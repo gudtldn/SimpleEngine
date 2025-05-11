@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineCore", "EngineCore\EngineCore.vcxproj", "{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineCore", "Engine\EngineCore\EngineCore.vcxproj", "{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{B97C8F8A-C88A-44F7-A932-81ED931E67F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +20,8 @@ Global
 		{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}.Release|Win32.Build.0 = Release|Win32
 		{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}.Release|x64.ActiveCfg = Release|x64
 		{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3} = {B97C8F8A-C88A-44F7-A932-81ED931E67F7}
 	EndGlobalSection
 EndGlobal
