@@ -1,0 +1,12 @@
+.vs/
+.vscode/
+.idea/
+
+Binaries/
+Intermediate/
+
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+*.user
