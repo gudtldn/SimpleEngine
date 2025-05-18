@@ -1,7 +1,10 @@
 ﻿module SimpleEngine.Core;
+import :Engine;
+
+import std;
 
 
 Engine::Engine()
 {
-    std::println("asdasd");
+    std::println("asdaasd123123sd");
 }

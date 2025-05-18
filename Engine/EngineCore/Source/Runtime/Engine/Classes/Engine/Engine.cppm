@@ -2,8 +2,7 @@
 
 #include "EngineCore.h"
 
-export module SimpleEngine.Core;
-import std;
+export module SimpleEngine.Core:Engine;
 
 
 export class ENGINE_API Engine
