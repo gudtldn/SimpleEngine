@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{3EF8A1DA-D347-4303-9310-C5208EE0199B}</ProjectGuid>
+    <RootNamespace>EditorEngine</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- ImGui 소스 파일이 이 프로젝트에 직접 포함된다면, 해당 파일들에 대한 컴파일러 설정 (예: 특정 경고 무시)이 필요할 수 있음 -->
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>SDL3.lib;imm32.lib;version.lib;Setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <!-- EditorEngine의 소스 파일들 -->
+    <ClCompile Include="EditorEngine.cpp" />
+
+    <!-- ImGui 소스 파일들 -->
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui.cpp" />
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_sdl3.cpp" />
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp" /> <!-- SDL3는 Win32 API를 사용하므로 필요할 수 있음 -->
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
