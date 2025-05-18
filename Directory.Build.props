@@ -36,8 +36,6 @@
     <ClCompile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <EnableModules>true</EnableModules>
-      <BuildStlModules>true</BuildStlModules> <!-- C++ 표준 라이브러리 모듈 사용 여부 -->
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel>Level3</WarningLevel> <!-- 기본 경고 수준 -->
       <SDLCheck>true</SDLCheck> <!-- 보안 개발 수명 주기 검사 -->
@@ -46,6 +44,12 @@
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
+      
+      <!-- 모듈 관련 설정 -->
+      <EnableModules>true</EnableModules>
+      <BuildStlModules>true</BuildStlModules> <!-- C++ 표준 라이브러리 모듈 사용 여부 -->
+      <TranslateIncludes>true</TranslateIncludes>
+      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
 
       <!-- 공통 Include 경로 추가 -->
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SDL3_IncludePath);$(ImGui_IncludePath);$(ImGui_Backends_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
