@@ -10,7 +10,7 @@
 
     <!-- 모든 프로젝트에 공통적인 OutDir 및 IntDir 설정 -->
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
 
     <!-- SDL3, ImGui 헤더 공통 경로 (모든 프로젝트에서 사용할 가능성) -->
     <SDL3_IncludePath>$(SolutionDir)ThirdParty\SDL3-3.2.14\include</SDL3_IncludePath>
