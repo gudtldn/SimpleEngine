@@ -50,7 +50,7 @@
 
   <ItemGroup>
     <!-- EditorEngine의 소스 파일들 -->
-    <ClCompile Include="EditorEngine.cpp" />
+    <ClCompile Include="Source\Launch\EditorEngine.cpp" />
 
     <!-- ImGui 소스 파일들 -->
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui.cpp" />
@@ -59,7 +59,7 @@
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_tables.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_sdl3.cpp" />
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp" /> <!-- SDL3는 Win32 API를 사용하므로 필요할 수 있음 -->
+    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
   </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
