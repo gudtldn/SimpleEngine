@@ -5,6 +5,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{B97C8F8A-C88A-44F7-A932-81ED931E67F7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EditorEngine", "Engine\EditorEngine\EditorEngine.vcxproj", "{3EF8A1DA-D347-4303-9310-C5208EE0199B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3} = {70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
