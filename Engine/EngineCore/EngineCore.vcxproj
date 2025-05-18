@@ -51,6 +51,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
+    <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cppm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\EngineCore.h" />
