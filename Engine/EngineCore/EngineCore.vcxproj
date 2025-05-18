@@ -51,7 +51,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\EngineCore.cppm" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\EngineCore.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
