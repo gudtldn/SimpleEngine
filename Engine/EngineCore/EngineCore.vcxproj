@@ -26,7 +26,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -39,16 +39,11 @@
 
   <ItemDefinitionGroup> <!-- 모든 구성/플랫폼에 대한 이 프로젝트만의 특별한 설정 -->
     <ClCompile>
-      <!-- API Export 매크로 (EngineCore.dll을 빌드할 때만 필요) -->
-      <PreprocessorDefinitions>ENGINECORE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem> <!-- DLL은 Windows 하위 시스템 -->
       <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Runtime\Core\Misc\App.cpp" />
@@ -56,9 +51,6 @@
     <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\SimpleEngine.Core.cppm" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Source\EngineCore.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

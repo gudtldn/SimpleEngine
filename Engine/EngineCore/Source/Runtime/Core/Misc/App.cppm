@@ -1,9 +1,7 @@
-﻿module;
-#include "EngineCore.h"
-export module SimpleEngine.Core:Application;
+﻿export module SimpleEngine.Core:Application;
 
 
-export class ENGINE_API FApp
+export class FApp
 {
 public:
     static double CurrentTime;

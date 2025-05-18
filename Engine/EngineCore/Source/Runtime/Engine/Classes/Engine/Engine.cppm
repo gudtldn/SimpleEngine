@@ -1,9 +1,7 @@
-﻿module;
-#include "EngineCore.h"
-export module SimpleEngine.Core:Engine;
+﻿export module SimpleEngine.Core:Engine;
 
 
-export class ENGINE_API UEngine
+export class UEngine
 {
 public:
     UEngine();
