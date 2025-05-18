@@ -1,7 +1,5 @@
 ﻿module;
-
 #include "EngineCore.h"
-
 export module SimpleEngine.Core:Application;
 
 

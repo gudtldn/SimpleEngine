@@ -22,6 +22,6 @@ int WINAPI wWinMain(
     Engine.Init();
     Engine.PostInit();
 
-    std::println("Hello World!");
+    std::println("Hello World! DT: {}", FApp::DeltaTime);
     return 0;
 }

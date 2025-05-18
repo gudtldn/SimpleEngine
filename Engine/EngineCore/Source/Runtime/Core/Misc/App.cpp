@@ -1,5 +1,4 @@
 ﻿module SimpleEngine.Core;
-import :Application;
 
 
 double FApp::CurrentTime = 0.0;

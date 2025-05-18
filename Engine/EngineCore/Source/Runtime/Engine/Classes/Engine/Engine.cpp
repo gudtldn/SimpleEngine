@@ -1,6 +1,4 @@
 ﻿module SimpleEngine.Core;
-import :Engine;
-
 import std;
 
 
