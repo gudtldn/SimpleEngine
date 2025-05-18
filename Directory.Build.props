@@ -44,6 +44,8 @@
       <ConformanceMode>true</ConformanceMode> <!-- 표준 준수 강화 -->
       <PrecompiledHeader>NotUsing</PrecompiledHeader> <!-- 기본적으로 PCH 사용 안 함 -->
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
 
       <!-- 공통 Include 경로 추가 -->
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SDL3_IncludePath);$(ImGui_IncludePath);$(ImGui_Backends_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
