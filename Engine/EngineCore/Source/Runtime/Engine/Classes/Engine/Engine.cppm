@@ -6,7 +6,7 @@ export module SimpleEngine.Core;
 import std;
 
 
-export class CORE_API Engine
+export class ENGINE_API Engine
 {
 public:
     Engine();
