@@ -17,10 +17,10 @@ int WINAPI wWinMain(
     UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nShowCmd);
 
-    Engine engine = Engine();
-    engine.PreInit();
-    engine.Init();
-    engine.PostInit();
+    UEngine Engine = UEngine();
+    Engine.PreInit();
+    Engine.Init();
+    Engine.PostInit();
 
     std::println("Hello World!");
     return 0;

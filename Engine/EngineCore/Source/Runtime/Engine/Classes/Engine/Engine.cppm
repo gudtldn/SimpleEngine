@@ -5,11 +5,11 @@
 export module SimpleEngine.Core:Engine;
 
 
-export class ENGINE_API Engine
+export class ENGINE_API UEngine
 {
 public:
-    Engine();
-    virtual ~Engine() {}
+    UEngine();
+    virtual ~UEngine() {}
 
 public:
     virtual void PreInit() {}

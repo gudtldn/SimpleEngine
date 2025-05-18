@@ -5,7 +5,7 @@
 export module SimpleEngine.Core:Application;
 
 
-export class ENGINE_API App
+export class ENGINE_API FApp
 {
 public:
     static double CurrentTime;
