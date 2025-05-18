@@ -37,7 +37,11 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <!-- ImGui 소스 파일이 이 프로젝트에 직접 포함된다면, 해당 파일들에 대한 컴파일러 설정 (예: 특정 경고 무시)이 필요할 수 있음 -->
-      <AdditionalModuleDependencies>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\EngineCore\Engine.cppm.ifc</AdditionalModuleDependencies>
+      <AdditionalModuleDependencies>
+        $(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\EngineCore\SimpleEngine.Core.cppm.ifc;
+        $(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\EngineCore\App.cppm.ifc;
+        $(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\EngineCore\Engine.cppm.ifc;
+      </AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
