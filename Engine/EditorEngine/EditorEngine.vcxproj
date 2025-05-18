@@ -34,10 +34,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-
   <ItemDefinitionGroup>
     <ClCompile>
       <!-- ImGui 소스 파일이 이 프로젝트에 직접 포함된다면, 해당 파일들에 대한 컴파일러 설정 (예: 특정 경고 무시)이 필요할 수 있음 -->
+      <AdditionalModuleDependencies>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\EngineCore\Engine.cppm.ifc</AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -47,11 +47,9 @@
       <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-
   <ItemGroup>
     <!-- EditorEngine의 소스 파일들 -->
     <ClCompile Include="Source\Launch\EditorEngine.cpp" />
-
     <!-- ImGui 소스 파일들 -->
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_demo.cpp" />
@@ -61,7 +59,11 @@
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_sdl3.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\EngineCore\EngineCore.vcxproj">
+      <Project>{70359232-4bc5-40b2-bd1f-3f6b5f19f1e3}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

@@ -1,5 +1,8 @@
 import std;
-#include <Windows.h>
+import SimpleEngine.Core;
+
+import <SDL3/SDL.h>;
+import <Windows.h>;
 
 
 int WINAPI wWinMain(
@@ -13,6 +16,11 @@ int WINAPI wWinMain(
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nShowCmd);
+
+    Engine engine = Engine();
+    engine.PreInit();
+    engine.Init();
+    engine.PostInit();
 
     std::println("Hello World!");
     return 0;
