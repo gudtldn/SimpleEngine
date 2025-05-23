@@ -1,11 +1,11 @@
-﻿export module SimpleEngine.Core:Engine;
+﻿export module SimpleEngine.Engine;
 
 
-export class UEngine
+export class Engine
 {
 public:
-    UEngine();
-    virtual ~UEngine() {}
+    Engine();
+    virtual ~Engine() {}
 
 public:
     virtual void PreInit() {}

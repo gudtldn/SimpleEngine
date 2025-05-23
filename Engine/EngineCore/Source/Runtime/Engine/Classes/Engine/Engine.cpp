@@ -1,8 +1,8 @@
-﻿module SimpleEngine.Core;
+﻿module SimpleEngine.Engine;
 import std;
 
 
-UEngine::UEngine()
+Engine::Engine()
 {
     std::println("asdaasd123123sd");
 }
