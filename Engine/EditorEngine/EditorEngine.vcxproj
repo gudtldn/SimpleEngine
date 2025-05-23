@@ -45,7 +45,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <!-- EditorEngine의 소스 파일들 -->
-    <ClCompile Include="Source\Launch\EditorEngine.cpp" />
     <!-- ImGui 소스 파일들 -->
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_demo.cpp" />
@@ -54,6 +53,7 @@
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_sdl3.cpp" />
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="Source\Launch\LaunchWindows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EngineCore\EngineCore.vcxproj">
