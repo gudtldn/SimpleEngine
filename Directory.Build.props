@@ -43,8 +43,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader> <!-- 기본적으로 PCH 사용 안 함 -->
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <WarningLevel>Level4</WarningLevel>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      
+
       <!-- 모듈 관련 설정 -->
       <EnableModules>true</EnableModules>
       <BuildStlModules>true</BuildStlModules> <!-- C++ 표준 라이브러리 모듈 사용 여부 -->
@@ -53,6 +52,10 @@
 
       <!-- 공통 Include 경로 추가 -->
       <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SDL3_IncludePath);$(ImGui_IncludePath);$(ImGui_Backends_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Condition="'$(Configuration)'=='Release'">
+      <!-- Release에서는 경고도 에러로 처리 -->
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <!-- 공통 링커 설정 (예: SDL3 라이브러리 경로) -->
