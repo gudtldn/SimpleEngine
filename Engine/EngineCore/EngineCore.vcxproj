@@ -46,8 +46,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Runtime\Core\Misc\App.cpp" />
-    <ClCompile Include="Source\Runtime\Core\Misc\App.cppm" />
+    <ClCompile Include="Source\Runtime\App\Application.cpp" />
+    <ClCompile Include="Source\Runtime\App\Application.cppm" />
     <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\SimpleEngine.Core.cppm" />
