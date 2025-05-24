@@ -3,6 +3,7 @@
 module SimpleEngine.Utils;
 import :StringUtils;
 
+import SimpleEngine.Core.TypeTraits;
 import <cassert>;
 
 
@@ -35,7 +36,7 @@ std::u8string ToU8String(const std::wstring& in_str)
     }
     else
     {
-        // static_assert() // TODO: AlwaysFalse<T>만들고 static_assert 추가
+        static_assert(sizeof(wchar_t) == 2 || sizeof(wchar_t) == 4, "Invalid wchar_t size");
     }
     return result;
 }
