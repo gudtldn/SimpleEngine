@@ -1,5 +1,5 @@
 ﻿import std;
-import SimpleEngine.App;
+import SimpleEngine.Editor.App;
 
 import <Windows.h>;
 import <SDL3/SDL.h>;
@@ -14,11 +14,10 @@ int WINAPI wWinMain(
 {
     UNREFERENCED_PARAMETER(hInstance);
     UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nShowCmd);
 
-    Application::Startup(lpCmdLine);
-    Application::Shutdown();
+    EditorApplication::Startup(lpCmdLine);
+    EditorApplication::Shutdown();
 
     // SDL_SetAppMetadata("My", "0.1.0", "com.example.simpleengine");
     //
