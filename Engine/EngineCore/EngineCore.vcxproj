@@ -53,6 +53,7 @@
     <ClCompile Include="Source\Core\EngineLoop.cpp" />
     <ClCompile Include="Source\Core\EngineLoop.cppm" />
     <ClCompile Include="Source\Core\SimpleEngine.Core.cppm" />
+    <ClCompile Include="Source\Core\TypeTrait\SimpleEngine.Core.TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Utils\SimpleEngine.Utils.cppm" />
