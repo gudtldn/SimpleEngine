@@ -1,8 +1,9 @@
-﻿module SimpleEngine.Utils;
+﻿module;
+#include <utf8.h>
+module SimpleEngine.Utils;
 import :StringUtils;
 
-#include <assert.h>
-#include <utf8.h>
+import <cassert>;
 
 
 namespace se::string_utils
