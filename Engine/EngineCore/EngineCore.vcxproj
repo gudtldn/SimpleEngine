@@ -55,6 +55,9 @@
     <ClCompile Include="Source\Core\SimpleEngine.Core.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
+    <ClCompile Include="Source\Utils\SimpleEngine.Utils.cppm" />
+    <ClCompile Include="Source\Utils\StringUtils.cpp" />
+    <ClCompile Include="Source\Utils\StringUtils.cppm" />
     <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
   </ItemGroup>
   <ItemGroup>
