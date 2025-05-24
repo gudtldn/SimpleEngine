@@ -1,4 +1,6 @@
-﻿export module SimpleEngine.App;
+﻿module;
+#include "Platform/PlatformMacros.h"
+export module SimpleEngine.App;
 
 
 export class Application
@@ -17,9 +19,8 @@ public:
     static void Shutdown();
 
 public:
-    // TODO: FORCE_INLINE 만들기
-    inline static double GetCurrentTime() { return CurrentTime; }
-    inline static double GetLastTime() { return LastTime; }
-    inline static double GetDeltaTime() { return DeltaTime; }
-    inline static double GetFixedDeltaTime() { return FixedDeltaTime; }
+    FORCE_INLINE static double GetCurrentTime() { return CurrentTime; }
+    FORCE_INLINE static double GetLastTime() { return LastTime; }
+    FORCE_INLINE static double GetDeltaTime() { return DeltaTime; }
+    FORCE_INLINE static double GetFixedDeltaTime() { return FixedDeltaTime; }
 };
