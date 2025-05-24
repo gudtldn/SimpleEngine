@@ -54,6 +54,11 @@
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Platform\Linux\LinuxPlatform.h" />
+    <ClInclude Include="Source\Platform\Mac\MacPlatform.h" />
+    <ClInclude Include="Source\Platform\PlatformMacros.h" />
+    <ClInclude Include="Source\Platform\Windows\WindowsPlatform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
