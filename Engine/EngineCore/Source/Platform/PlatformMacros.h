@@ -1,17 +1,15 @@
 ﻿// ReSharper disable CppClangTidyClangDiagnosticUnusedMacros
 #pragma once
 
-// Windows
-#if defined(_WIN32) || defined(_WIN64)
+
+#if defined(_WIN32) || defined(_WIN64) // Windows
     #define PLATFORM_WINDOWS 1
-// Linux
-#elif defined(__linux__)
+#elif defined(__linux__) // Linux
     #define PLATFORM_LINUX 1
-// MacOS
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) // MacOS
     #define PLATFORM_MACOS 1
 #else
-    #define PLATFORM_UNKNOWN 1
+    #error "Unsupported platform"
 #endif
 
 

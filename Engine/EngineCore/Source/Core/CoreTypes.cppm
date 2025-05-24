@@ -1,5 +1,4 @@
 ﻿export module SimpleEngine.Core:PlatformTypes;
-
 import std;
 
 export

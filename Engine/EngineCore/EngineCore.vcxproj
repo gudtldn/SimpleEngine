@@ -54,6 +54,7 @@
     <ClCompile Include="Source\Core\SimpleEngine.Core.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
+    <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Platform\Linux\LinuxPlatform.h" />
