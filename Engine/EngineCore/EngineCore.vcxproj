@@ -46,13 +46,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Runtime\App\Application.cpp" />
-    <ClCompile Include="Source\Runtime\App\Application.cppm" />
-    <ClCompile Include="Source\Runtime\Core\EngineLoop.cpp" />
-    <ClCompile Include="Source\Runtime\Core\EngineLoop.cppm" />
-    <ClCompile Include="Source\Runtime\Core\SimpleEngine.Core.cppm" />
-    <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
-    <ClCompile Include="Source\Runtime\Engine\Classes\Engine\Engine.cppm" />
+    <ClCompile Include="Source\App\Application.cpp" />
+    <ClCompile Include="Source\App\Application.cppm" />
+    <ClCompile Include="Source\Core\EngineLoop.cpp" />
+    <ClCompile Include="Source\Core\EngineLoop.cppm" />
+    <ClCompile Include="Source\Core\SimpleEngine.Core.cppm" />
+    <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
+    <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
+  </ItemGroup>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
