@@ -2,6 +2,7 @@
 #pragma once
 
 
+// 플랫폼 매크로
 #if defined(_WIN32) || defined(_WIN64) // Windows
     #define PLATFORM_WINDOWS 1
 #elif defined(__linux__) // Linux
@@ -32,4 +33,14 @@
     #include "Platform/Linux/LinuxPlatform.h"
 #elif PLATFORM_MACOS
     #include "Platform/MacOS/MacOSPlatform.h"
+#endif
+
+
+// 컴파일러별 매크로
+#ifdef _MSC_VER // MSVC 컴파일러
+    #define FORCE_INLINE __forceinline
+#elif ((defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)) // GNU && Clang 컴파일러
+    #define FORCE_INLINE __attribute__((always_inline)) static __inline__
+#else
+    #define FORCE_INLINE inline
 #endif
