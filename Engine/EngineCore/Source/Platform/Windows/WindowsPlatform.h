@@ -1,1 +1,4 @@
-﻿#pragma once
+﻿// ReSharper disable CppClangTidyClangDiagnosticUnusedMacros
+#pragma once
+
+#define FORCE_INLINE __forceinline
