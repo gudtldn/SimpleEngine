@@ -7,7 +7,7 @@ double Application::DeltaTime = 1.0 / 60.0;
 double Application::FixedDeltaTime = 1.0 / 60.0;
 
 
-void Application::Startup(const wchar_t* cmd_line)
+void Application::Startup(const char8* cmd_line)
 {
     std::println("startup");
 }

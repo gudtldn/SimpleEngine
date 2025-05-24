@@ -1,6 +1,7 @@
 ﻿module;
 #include "Platform/PlatformMacros.h"
 export module SimpleEngine.App;
+import SimpleEngine.Core;
 
 /**
  * 애플리케이션의 전체 수명 주기와 전역 상태를 관리하는 기본 클래스
@@ -10,8 +11,7 @@ export class Application
 public:
     Application() = default;
 
-    // TODO: wchar_t 플랫폼별 타입으로 변경
-    static void Startup(const wchar_t* cmd_line);
+    static void Startup(const char8* cmd_line);
     static void Shutdown();
 
 public:
