@@ -88,6 +88,13 @@ public:
     static double GetFixedDeltaTime() { return FixedDeltaTime; }
     static uint64 GetTotalElapsedTime() { return TotalElapsedTime; }
 
+    static uint32 GetTargetFPS() { return TargetFPS; }
+    static void SetTargetFPS(uint32 new_fps)
+    {
+        TargetFPS = new_fps;
+        TargetFrameTime = 1.0 / static_cast<double>(TargetFPS);
+    }
+
 private:
     static Application* Instance;
 
@@ -97,6 +104,9 @@ private:
     static double DeltaTime;        // CurrentTime - LastTime
     static double FixedDeltaTime;   // 물리 계산용 DeltaTime
     static uint64 TotalElapsedTime; // 총 경과 시간 ms
+
+    static uint32 TargetFPS;        // 목표 FPS
+    static double TargetFrameTime;  // 목표 FPS 시간
 
     // Loop 제어 변수
     bool is_initialized = false;

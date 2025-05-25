@@ -8,6 +8,9 @@ double Application::DeltaTime = 1.0 / 60.0;
 double Application::FixedDeltaTime = 1.0 / 60.0;
 uint64 Application::TotalElapsedTime = 0;
 
+uint32 Application::TargetFPS = 240;
+double Application::TargetFrameTime = 1.0 / static_cast<double>(TargetFPS);
+
 Application* Application::Instance = nullptr;
 
 
@@ -61,11 +64,7 @@ void Application::MainLoop()
 {
     is_running = true;
 
-    // TODO: Target FPS 변수 생성
-    constexpr double target_fps = 60.0;
-    constexpr double target_frame_time = 1.0 / target_fps;
-
-    double performance_frequency = SDL_GetPerformanceFrequency();
+    double performance_frequency = static_cast<double>(SDL_GetPerformanceFrequency());
     if (performance_frequency <= 0.0)
     {
         performance_frequency = 1000.0;
@@ -96,7 +95,7 @@ void Application::MainLoop()
             const double frame_end = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
             frame_duration = frame_end - CurrentTime;
         }
-        while (frame_duration < target_frame_time);
+        while (frame_duration < TargetFrameTime);
     }
 }
 
