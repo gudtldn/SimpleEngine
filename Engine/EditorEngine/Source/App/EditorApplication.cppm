@@ -4,5 +4,6 @@ import SimpleEngine.App;
 
 export class EditorApplication : public Application
 {
-
+public:
+    EditorApplication();
 };
