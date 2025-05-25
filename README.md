@@ -15,14 +15,18 @@ git submodule update --init --recursive
 
 #### 코드 컨벤션 (수정될 수 있음)
 - PascalCase
-  - 함수명
-  - 클래스명
-  - static 변수명
-  - Enum(접두사 E), Enum의 열거자
-  - 모듈명
+  - 함수명: `void TestFunction();`
+  - 클래스명: `class TestClass;`
+  - static 변수명 `static int TestVariable;`
+  - Enum(접두사 E), Enum의 열거자 `enum class EMyEnum;`
+  - 모듈명: `module TestModule;`
 - snake_case
   - static 변수를 제외한 모든 변수명 (매개변수, 멤버변수 포함)
-  - namespace
+    - `int my_variable;`
+    - `int in_my_variable;` 이름이 겹치는 매개변수는 `in/out`을 접두사로 사용
+  - namespace: `namespace se::my_namespace {}`
+- ALL_UPPER
+  - 상수
 - 공백 4칸을 사용
 - 중괄호는 항상 있어야 하며, BSD 스타일을 따름
 ```c++
