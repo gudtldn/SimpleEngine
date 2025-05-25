@@ -5,6 +5,8 @@ import <Windows.h>;
 import <SDL3/SDL.h>;
 
 
+static EditorApplication app;
+
 int WINAPI wWinMain(
     _In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -16,8 +18,8 @@ int WINAPI wWinMain(
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(nShowCmd);
 
-    EditorApplication::Startup(lpCmdLine);
-    EditorApplication::Shutdown();
+    app.Startup(lpCmdLine);
+    app.Shutdown();
 
     // SDL_SetAppMetadata("My", "0.1.0", "com.example.simpleengine");
     //
