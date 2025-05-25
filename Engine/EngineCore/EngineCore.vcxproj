@@ -50,10 +50,6 @@
     <ClCompile Include="Source\App\Application.cpp" />
     <ClCompile Include="Source\App\Application.cppm" />
     <ClCompile Include="Source\Core\CoreTypes.cppm" />
-    <ClCompile Include="Source\Core\EngineLoop.cpp" />
-    <ClCompile Include="Source\Core\EngineLoop.cppm" />
-    <ClCompile Include="Source\Core\SimpleEngine.Core.cppm" />
-    <ClCompile Include="Source\Core\TypeTrait\SimpleEngine.Core.TypeTraits.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
     <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
