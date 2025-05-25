@@ -61,14 +61,42 @@ void Application::MainLoop()
 {
     is_running = true;
 
+    // TODO: Target FPS 변수 생성
+    constexpr double target_fps = 60.0;
+    constexpr double target_frame_time = 1.0 / target_fps;
+
+    double performance_frequency = SDL_GetPerformanceFrequency();
+    if (performance_frequency <= 0.0)
+    {
+        performance_frequency = 1000.0;
+    }
+
+    CurrentTime = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+
     while (is_running && !quit_requested)
     {
+        const double frame_start = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+
+        // Calculate Delta Time
+        LastTime = CurrentTime;
+        CurrentTime = frame_start;
+        DeltaTime = CurrentTime - LastTime;
+        TotalElapsedTime += static_cast<uint64>(DeltaTime * 1000.0);
+
         ProcessPlatformEvents();
 
-        constexpr float delta_time = 1.0f / 60.0f;
-        Update(delta_time);
+        Update(static_cast<float>(DeltaTime));
 
         Render();
+
+        double frame_duration;
+        do
+        {
+            SDL_Delay(0);
+            const double frame_end = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+            frame_duration = frame_end - CurrentTime;
+        }
+        while (frame_duration < target_frame_time);
     }
 }
 

@@ -96,7 +96,7 @@ private:
     static double LastTime;         // 이전 프레임 시작 시간
     static double DeltaTime;        // CurrentTime - LastTime
     static double FixedDeltaTime;   // 물리 계산용 DeltaTime
-    static uint64 TotalElapsedTime; // 총 경과 시간
+    static uint64 TotalElapsedTime; // 총 경과 시간 ms
 
     // Loop 제어 변수
     bool is_initialized = false;
