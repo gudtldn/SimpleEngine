@@ -8,6 +8,8 @@ git clone --recursive https://github.com/gudtldn/SimpleEngine.git
 git submodule update --init --recursive
 ```
 
+<details>
+
 ### 추후에 문서에 정리
 - C++ latest 프로젝트 (C++26 ~ 29 까지 보고있음)
 - 기존의 헤더 방식이 아닌, C++20의 모듈을 사용
@@ -47,3 +49,5 @@ if (expr)
     return true;
 }
 ```
+
+</details>
