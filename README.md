@@ -11,6 +11,9 @@ git submodule update --init --recursive
 ### 추후에 문서에 정리
 - C++ latest 프로젝트 (C++26 ~ 29 까지 보고있음)
 - 기존의 헤더 방식이 아닌, C++20의 모듈을 사용
+- 핵심 구조는 OOP, 게임 로직은 ECS
+- Lua, Pyhton? 지원 예정
+- Visual Sctipt도 만?들 예정
 - 프로젝트의 기본 string타입은 char8_t, std::u8string 타입
 
 #### 코드 컨벤션 (수정될 수 있음)
