@@ -1,6 +1,7 @@
 ﻿export module SimpleEngine.Logging;
 
 export import :Formatter;
+import :Colors;
 
 import SimpleEngine.Platform.Types;
 import std;
@@ -18,7 +19,7 @@ export enum class ELogLevel
     Fatal,
 };
 
-const char8* to_string(ELogLevel e)
+const char8* ToString(ELogLevel e)
 {
     switch (e)
     {
@@ -48,6 +49,33 @@ struct LogLevelAndLocation
     std::source_location location;
 };
 
+const char8* GetColorForLevel(ELogLevel level)
+{
+    if (!LogSettings::IsColorEnabled() || !LogSettings::DetectColorSupport())
+    {
+        return u8"";
+    }
+
+    switch (level)
+    {
+    case ELogLevel::Debug: return LogColors::COLOR_DEBUG;
+    case ELogLevel::Info: return LogColors::COLOR_INFO;
+    case ELogLevel::Warning: return LogColors::COLOR_WARNING;
+    case ELogLevel::Error: return LogColors::COLOR_ERROR;
+    case ELogLevel::Fatal: return LogColors::COLOR_FATAL;
+    default: return u8"";
+    }
+}
+
+export void EnableLogColors(bool enable = true)
+{
+    LogSettings::EnableColor(enable);
+}
+
+export void ForceLogColors(bool force = true)
+{
+    LogSettings::SetForceColor(force);
+}
 
 /**
  * Console에 Log를 출력합니다.
@@ -73,6 +101,11 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     const std::string_view file_name = pretty_file_name(log_level.location.file_name());
     const uint32 line = log_level.location.line();
 
+    const char8* color = GetColorForLevel(log_level.level);
+    const char8* reset = LogSettings::IsColorEnabled() && LogSettings::DetectColorSupport()
+                             ? LogColors::COLOR_RESET
+                             : u8"";
+
     std::string formatted_message;
     if constexpr (sizeof...(Args) > 0) // 가변 인자가 있을 때만 추가젹인 formatting
     {
@@ -81,9 +114,10 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
         {
 #endif
             formatted_message = std::format(
-                "{}\t[{}:{}] {}",
-                to_string(log_level.level), file_name, line,
-                std::vformat(std::string(fmt.begin(), fmt.end()), std::make_format_args(args...))
+                "{}{}\t[{}:{}] {}{}",
+                color, ToString(log_level.level), file_name, line,
+                std::vformat(std::string(fmt.begin(), fmt.end()), std::make_format_args(args...)),
+                reset
             );
 #if defined(_DEBUG)
         }
@@ -99,8 +133,8 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     else
     {
         formatted_message = std::format(
-            "{}\t[{}:{}] {}",
-            to_string(log_level.level), file_name, line, fmt
+            "{}{}\t[{}:{}] {}{}",
+            color, ToString(log_level.level), file_name, line, fmt, reset
         );
     }
 
