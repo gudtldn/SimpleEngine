@@ -52,6 +52,7 @@
     <ClCompile Include="Source\Core\CoreTypes.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm"/>
+    <ClCompile Include="Source\Core\Logging\Logging.cppm"/>
     <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />

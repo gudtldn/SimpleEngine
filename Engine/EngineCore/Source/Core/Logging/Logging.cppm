@@ -1,0 +1,108 @@
+﻿export module SimpleEngine.Logging;
+
+export import :Formatter;
+
+import SimpleEngine.Platform.Types;
+import std;
+
+
+/**
+ * 로그 메시지의 심각도(레벨)를 나타내는 Enum
+ */
+export enum class ELogLevel
+{
+    Debug,
+    Info,
+    Warning,
+    Error,
+    Fatal,
+};
+
+const char8* to_string(ELogLevel e)
+{
+    switch (e)
+    {
+    case ELogLevel::Debug: return u8"Debug";
+    case ELogLevel::Info: return u8"Info";
+    case ELogLevel::Warning: return u8"Warning";
+    case ELogLevel::Error: return u8"Error";
+    case ELogLevel::Fatal: return u8"Fatal";
+    default: return u8"unknown";
+    }
+}
+
+/**
+ * LogLevel과 std::source_location 정보를 저장하는 구조체
+ *
+ * @see https://in-neuro.hatenablog.com/entry/2021/12/15/000033
+ */
+struct LogLevelAndLocation
+{
+    constexpr LogLevelAndLocation(ELogLevel in_level, const std::source_location& in_location = std::source_location::current())
+        : level(in_level)
+        , location(in_location)
+    {
+    }
+
+    ELogLevel level;
+    std::source_location location;
+};
+
+
+/**
+ * Console에 Log를 출력합니다.
+ *
+ * @param log_level 로그 레벨 (ELogLevel)
+ * @param fmt 출력할 메시지의 포맷 문자열
+ * @param args 포맷 문자열에 삽입될 가변 인수
+ */
+export template <typename... Args>
+void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
+{
+    // 파일 이름만 가져오는 함수
+    constexpr auto pretty_file_name = [](std::string_view in_file_name) static noexcept
+    {
+        const size_t last_slash = in_file_name.find_last_of("/\\");
+        if (last_slash == std::string_view::npos)
+        {
+            return in_file_name;
+        }
+        return in_file_name.substr(last_slash + 1);
+    };
+
+    const std::string_view file_name = pretty_file_name(log_level.location.file_name());
+    const uint32 line = log_level.location.line();
+
+    std::string formatted_message;
+    if constexpr (sizeof...(Args) > 0) // 가변 인자가 있을 때만 추가젹인 formatting
+    {
+#if defined(_DEBUG)
+        try
+        {
+#endif
+            formatted_message = std::format(
+                "{}\t[{}:{}] {}",
+                to_string(log_level.level), file_name, line,
+                std::vformat(std::string(fmt.begin(), fmt.end()), std::make_format_args(args...))
+            );
+#if defined(_DEBUG)
+        }
+        catch (const std::format_error& e)
+        {
+            std::println(
+                "[{}:{}] Log Formatting Error: {} (Original format: '{}', Args count: {})",
+                file_name, line, e.what(), fmt, sizeof...(Args)
+            );
+        }
+#endif
+    }
+    else
+    {
+        formatted_message = std::format(
+            "{}\t[{}:{}] {}",
+            to_string(log_level.level), file_name, line, fmt
+        );
+    }
+
+    std::println("{}", formatted_message);
+}
