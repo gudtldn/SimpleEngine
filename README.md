@@ -50,4 +50,9 @@ if (expr)
 }
 ```
 
+### 참고한 프로젝트 및 엔진
+- [Wicked Engine](https://github.com/turanszkij/WickedEngine)
+- [Unreal Engine](https://github.com/EpicGames/UnrealEngine)
+- [Bevy Engine](https://github.com/bevyengine/bevy)
+
 </details>
