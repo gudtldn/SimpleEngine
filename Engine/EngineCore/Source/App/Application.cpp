@@ -1,4 +1,5 @@
 ﻿module SimpleEngine.App;
+import SimpleEngine.Logging;
 import <cassert>;
 import <SDL3/SDL.h>;
 
@@ -39,8 +40,13 @@ void Application::Startup(const wchar_t* cmd_line)
 
 void Application::Startup(const std::u8string& cmd_line)
 {
+#ifdef _DEBUG
+    EnableLogColors(true);
+    ForceLogColors(true);
+#endif
+
     const char* cmd = reinterpret_cast<const char*>(cmd_line.c_str());
-    std::println("startup, cmd: {}", cmd);
+    ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd);
 
     PreInitialize();
     InitializeEngine();
@@ -57,7 +63,7 @@ void Application::Shutdown()
     ReleaseEngine();
     PostRelease();
 
-    std::println("shutdown");
+    ConsoleLog(ELogLevel::Info, u8"shutdown");
 }
 
 void Application::MainLoop()
