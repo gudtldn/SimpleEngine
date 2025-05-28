@@ -139,4 +139,5 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     }
 
     std::println("{}", formatted_message);
+    std::flush(std::cout);
 }
