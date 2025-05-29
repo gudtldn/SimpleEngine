@@ -127,6 +127,8 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
                 "[{}:{}] Log Formatting Error: {} (Original format: '{}', Args count: {})",
                 file_name, line, e.what(), fmt, sizeof...(Args)
             );
+            std::flush(std::cout);
+            return;
         }
 #endif
     }
