@@ -92,8 +92,6 @@ void Application::MainLoop()
 
         Update(static_cast<float>(DeltaTime));
 
-        Render();
-
         double frame_duration;
         do
         {
@@ -112,11 +110,22 @@ bool Application::PreInitialize()
 
 bool Application::InitializeEngine()
 {
+    engine_instance = std::make_unique<Engine>();
+    if (!engine_instance->Initialize())
+    {
+        ConsoleLog(ELogLevel::Error, u8"Engine failed to initialize!");
+        return false;
+    }
     return true;
 }
 
 bool Application::InitializeSubSystems()
 {
+    if (!engine_instance->InitializeAllSubSystems())
+    {
+        ConsoleLog(ELogLevel::Error, u8"SubSystems failed to initialize!");
+        return false;
+    }
     return true;
 }
 
@@ -129,12 +138,9 @@ void Application::ProcessPlatformEvents()
 {
 }
 
-void Application::Update([[maybe_unused]] float delta_time)
+void Application::Update(float delta_time)
 {
-}
-
-void Application::Render() const
-{
+    engine_instance->TickAllSubSystems(delta_time);
 }
 
 void Application::PreRelease()
@@ -143,10 +149,12 @@ void Application::PreRelease()
 
 void Application::ReleaseSubSystems()
 {
+    engine_instance->ReleaseAllSubSystems();
 }
 
 void Application::ReleaseEngine()
 {
+    engine_instance->Release();
 }
 
 void Application::PostRelease()
