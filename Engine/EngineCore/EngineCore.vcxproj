@@ -58,6 +58,8 @@
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Platform\PlatformTypes.cppm" />
+    <ClCompile Include="Source\Platform\SdlSubsystem\SdlSubsystem.cpp"/>
+    <ClCompile Include="Source\Platform\SdlSubsystem\SdlSubsystem.cppm"/>
     <ClCompile Include="Source\Utils\SimpleEngine.Utils.cppm" />
     <ClCompile Include="Source\Utils\StringUtils.cpp" />
     <ClCompile Include="Source\Utils\StringUtils.cppm" />
