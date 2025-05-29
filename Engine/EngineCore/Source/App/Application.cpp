@@ -9,8 +9,8 @@ double Application::DeltaTime = 1.0 / 60.0;
 double Application::FixedDeltaTime = 1.0 / 60.0;
 uint64 Application::TotalElapsedTime = 0;
 
-uint32 Application::TargetFPS = 240;
-double Application::TargetFrameTime = 1.0 / static_cast<double>(TargetFPS);
+uint32 Application::TargetFps = 240;
+double Application::TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
 
 Application* Application::Instance = nullptr;
 
