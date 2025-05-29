@@ -141,3 +141,38 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     std::println("{}", formatted_message);
     std::flush(std::cout);
 }
+
+
+#define DECLARE_CONSOLE_LOG(log_level) \
+    export template <typename... Args> \
+    class ConsoleLog_##log_level \
+    { \
+    public: \
+        ConsoleLog_##log_level(std::u8string_view fmt, const Args&... args, const std::source_location& location = std::source_location::current()) \
+        { \
+            ConsoleLog(LogLevelAndLocation(ELogLevel::log_level, location), fmt, args...); \
+        } \
+        ~ConsoleLog_##log_level() = default; \
+        ConsoleLog_##log_level(const ConsoleLog_##log_level&) = delete; \
+        ConsoleLog_##log_level& operator=(const ConsoleLog_##log_level&) = delete; \
+        ConsoleLog_##log_level(ConsoleLog_##log_level&&) = delete; \
+        ConsoleLog_##log_level& operator=(ConsoleLog_##log_level&&) = delete; \
+    }; \
+    template <typename... Args> \
+    ConsoleLog_##log_level(std::u8string_view fmt, const Args&... args) -> ConsoleLog_##log_level<Args...>;
+
+
+/** ConsoleLog에 Debug로 Log를 출력합니다. */
+DECLARE_CONSOLE_LOG(Debug)
+
+/** ConsoleLo에 Info로 Log를 출력합니다. */
+DECLARE_CONSOLE_LOG(Info)
+
+/** ConsoleLog의 에 Warning로 Log를 출력합니다. */
+DECLARE_CONSOLE_LOG(Warning)
+
+/** ConsoleLog에 Error로 Log를 출력합니다. */
+DECLARE_CONSOLE_LOG(Error)
+
+/** ConsoleLog에 Fatal로 Log를 출력합니다. */
+DECLARE_CONSOLE_LOG(Fatal)
