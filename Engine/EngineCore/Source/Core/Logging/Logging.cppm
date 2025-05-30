@@ -68,6 +68,38 @@ const char8* GetColorForLevel(ELogLevel level)
 }
 
 /**
+ * 로그의 정보를 가지고 있는 구조체
+ */
+struct LogEntry
+{
+    // 로그 레벨
+    ELogLevel level;
+
+    // ConsoleLog가 호출된 위치 정보
+    std::source_location location;
+
+    // 로그 메시지
+    std::string formatted_message;
+
+    // 타임스탬프
+    std::chrono::system_clock::time_point timestamp;
+
+    // location에서 파일 이름만 가져옵니다.
+    std::string_view GetPrettyFileName() const
+    {
+        const std::string_view name_view = location.file_name();
+        const size_t last_slash = name_view.find_last_of("/\\");
+        if (last_slash == std::string_view::npos)
+        {
+            return name_view;
+        }
+        return name_view.substr(last_slash + 1);
+    }
+
+    // TODO: Timestamp 문자열 반환 함수 추가
+};
+
+/**
  * Console에 Log를 출력합니다.
  *
  * @param log_level 로그 레벨 (ELogLevel)
@@ -77,45 +109,31 @@ const char8* GetColorForLevel(ELogLevel level)
 export template <typename... Args>
 void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
 {
-    // 파일 이름만 가져오는 함수
-    constexpr auto pretty_file_name = [](std::string_view in_file_name) static noexcept
-    {
-        const size_t last_slash = in_file_name.find_last_of("/\\");
-        if (last_slash == std::string_view::npos)
-        {
-            return in_file_name;
-        }
-        return in_file_name.substr(last_slash + 1);
-    };
-
-    const std::string_view file_name = pretty_file_name(log_level.location.file_name());
-    const uint32 line = log_level.location.line();
-
     const char8* color = GetColorForLevel(log_level.level);
     const char8* reset = LogSettings::IsColorEnabled() && LogSettings::DetectColorSupport()
                              ? LogColors::COLOR_RESET
                              : u8"";
 
-    std::string formatted_message;
+    LogEntry entry = {
+        .level = log_level.level,
+        .location = log_level.location,
+        .timestamp = std::chrono::system_clock::now(),
+    };
+
     if constexpr (sizeof...(Args) > 0) // 가변 인자가 있을 때만 추가젹인 formatting
     {
 #if defined(_DEBUG)
         try
         {
 #endif
-            formatted_message = std::format(
-                "{}{}\t[{}:{}] {}{}",
-                color, ToString(log_level.level), file_name, line,
-                std::vformat(std::string(fmt.begin(), fmt.end()), std::make_format_args(args...)),
-                reset
-            );
+            entry.formatted_message = std::vformat(std::string(fmt.begin(), fmt.end()), std::make_format_args(args...));
 #if defined(_DEBUG)
         }
         catch (const std::format_error& e)
         {
             std::println(
                 "[{}:{}] Log Formatting Error: {} (Original format: '{}', Args count: {})",
-                file_name, line, e.what(), fmt, sizeof...(Args)
+                entry.GetPrettyFileName(), entry.location.line(), e.what(), fmt, sizeof...(Args)
             );
             std::flush(std::cout);
             return;
@@ -124,13 +142,13 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     }
     else
     {
-        formatted_message = std::format(
-            "{}{}\t[{}:{}] {}{}",
-            color, ToString(log_level.level), file_name, line, fmt, reset
-        );
+        entry.formatted_message = std::string(fmt.begin(), fmt.end());
     }
 
-    std::println("{}", formatted_message);
+    std::println(
+        "{}{}\t[{}:{}] {}{}",
+        color, ToString(entry.level), entry.GetPrettyFileName(), entry.location.line(), entry.formatted_message, reset
+    );
     std::flush(std::cout);
 }
 
