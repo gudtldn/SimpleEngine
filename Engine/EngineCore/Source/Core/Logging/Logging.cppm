@@ -10,7 +10,7 @@ import std;
 /**
  * 로그 메시지의 심각도(레벨)를 나타내는 Enum
  */
-export enum class ELogLevel
+export enum class ELogLevel : uint8
 {
     Debug,
     Info,
