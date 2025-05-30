@@ -41,8 +41,8 @@ void Application::Startup(const wchar_t* cmd_line)
 void Application::Startup(const std::u8string& cmd_line)
 {
 #ifdef _DEBUG
-    EnableLogColors(true);
-    ForceLogColors(true);
+    LogSettings::EnableColor(true);
+    LogSettings::SetForceColor(true);
 #endif
 
     const char* cmd = reinterpret_cast<const char*>(cmd_line.c_str());

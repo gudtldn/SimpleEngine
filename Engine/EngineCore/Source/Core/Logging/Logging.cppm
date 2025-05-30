@@ -1,7 +1,7 @@
 ﻿export module SimpleEngine.Logging;
 
 export import :Formatter;
-import :Colors;
+export import :Colors;
 
 import SimpleEngine.Platform.Types;
 import std;
@@ -65,16 +65,6 @@ const char8* GetColorForLevel(ELogLevel level)
     case ELogLevel::Fatal: return LogColors::COLOR_FATAL;
     default: return u8"";
     }
-}
-
-export void EnableLogColors(bool enable = true)
-{
-    LogSettings::EnableColor(enable);
-}
-
-export void ForceLogColors(bool force = true)
-{
-    LogSettings::SetForceColor(force);
 }
 
 /**
