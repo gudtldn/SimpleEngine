@@ -2,6 +2,7 @@
 
 #define RETURN_IF_FAILED(x) if (!(x)) { return; }
 
+import SimpleEngine.Subsystems.ConfigSubsystem;
 import SimpleEngine.Subsystems.SdlSubsystem;
 import SimpleEngine.Logging;
 
@@ -122,6 +123,8 @@ bool Application::InitializeEngine()
         ConsoleLog(ELogLevel::Error, u8"Engine failed to initialize!");
         return false;
     }
+
+    [[maybe_unused]] ConfigSubsystem* config_sys = engine_instance->RegisterSubSystem<ConfigSubsystem>();
 
     SdlSubsystem* sdl_sys = engine_instance->RegisterSubSystem<SdlSubsystem>();
     sdl_sys->SetSdlInitFlags(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);

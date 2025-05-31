@@ -4,3 +4,6 @@
 [submodule "ThirdParty/utfcpp"]
 	path = ThirdParty/utfcpp
 	url = https://github.com/nemtrif/utfcpp.git
+[submodule "ThirdParty/tomlplusplus"]
+	path = ThirdParty/tomlplusplus
+	url = https://github.com/marzer/tomlplusplus.git

@@ -40,13 +40,14 @@
   <ItemDefinitionGroup> <!-- 모든 구성/플랫폼에 대한 이 프로젝트만의 특별한 설정 -->
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\utfcpp\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\utfcpp\source;$(SolutionDir)ThirdParty\tomlplusplus\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)ThirdParty\tomlplusplus\src\modules\tomlplusplus.cppm"/>
     <ClCompile Include="Source\App\Application.cpp" />
     <ClCompile Include="Source\App\Application.cppm" />
     <ClCompile Include="Source\Core\CoreTypes.cppm" />
@@ -59,8 +60,8 @@
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Platform\PlatformTypes.cppm" />
-      <ClCompile Include="Source\Subsystems\ConfigSubsystem\ConfigSubsystem.cpp"/>
-      <ClCompile Include="Source\Subsystems\ConfigSubsystem\ConfigSubsystem.cppm"/>
+    <ClCompile Include="Source\Subsystems\ConfigSubsystem\ConfigSubsystem.cpp"/>
+    <ClCompile Include="Source\Subsystems\ConfigSubsystem\ConfigSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\SdlSubsystem\SdlSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\SdlSubsystem\SdlSubsystem.cppm"/>
     <ClCompile Include="Source\Utils\SimpleEngine.Utils.cppm" />
