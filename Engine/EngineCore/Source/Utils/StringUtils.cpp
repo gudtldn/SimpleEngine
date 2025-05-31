@@ -9,7 +9,7 @@ import <cassert>;
 
 namespace se::string_utils
 {
-std::u8string ToU8String(const std::string& in_str)
+std::u8string ToU8String(std::string_view in_str)
 {
     std::u8string result;
     result.reserve(in_str.size());
@@ -21,7 +21,7 @@ std::u8string ToU8String(const std::string& in_str)
     return result;
 }
 
-std::u8string ToU8String(const std::wstring& in_str)
+std::u8string ToU8String(std::wstring_view in_str)
 {
     std::u8string result;
     result.reserve(in_str.size());
@@ -41,7 +41,7 @@ std::u8string ToU8String(const std::wstring& in_str)
     return result;
 }
 
-std::u8string ToU8String(const std::u16string& in_str)
+std::u8string ToU8String(std::u16string_view in_str)
 {
     std::u8string result;
     result.reserve(in_str.size());
@@ -50,7 +50,7 @@ std::u8string ToU8String(const std::u16string& in_str)
     return result;
 }
 
-std::u8string ToU8String(const std::u32string& in_str)
+std::u8string ToU8String(std::u32string_view in_str)
 {
     std::u8string result;
     result.reserve(in_str.size());
