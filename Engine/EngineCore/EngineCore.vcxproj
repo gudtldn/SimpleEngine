@@ -59,6 +59,8 @@
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Platform\PlatformTypes.cppm" />
+      <ClCompile Include="Source\Subsystems\ConfigSubsystem\ConfigSubsystem.cpp"/>
+      <ClCompile Include="Source\Subsystems\ConfigSubsystem\ConfigSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\SdlSubsystem\SdlSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\SdlSubsystem\SdlSubsystem.cppm"/>
     <ClCompile Include="Source\Utils\SimpleEngine.Utils.cppm" />
