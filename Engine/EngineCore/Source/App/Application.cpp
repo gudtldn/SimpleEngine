@@ -141,6 +141,8 @@ bool Application::InitializeSubSystems()
 
 bool Application::PostInitialize()
 {
+    // TODO: ConfigSubsystem 만들기
+    SdlSubsystem* sdl_sys = engine_instance->GetSubSystem<SdlSubsystem>();
     return true;
 }
 
