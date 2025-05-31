@@ -4,8 +4,12 @@ import SimpleEngine.Logging;
 import <SDL3/SDL_gpu.h>;
 
 
-// ReSharper disable once CppMemberFunctionMayBeConst
-bool SdlSubsystem::Initialize(uint32 sdl_init_flags)
+void SdlSubsystem::SetSdlInitFlags(uint32 in_sdl_init_flags)
+{
+    sdl_init_flags = in_sdl_init_flags;
+}
+
+bool SdlSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, u8"Initializing SDL subsystem...");
 

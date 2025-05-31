@@ -1,15 +1,16 @@
 ﻿export module SimpleEngine.Platform.SdlSubsystem;
 
 import SimpleEngine.Platform.Types;
+import SimpleEngine.Core.ISubSystem;
 import std;
 import <SDL3/SDL.h>;
 
 
-export class SdlSubsystem
+export class SdlSubsystem : public ISubSystem
 {
 public:
     SdlSubsystem() = default;
-    ~SdlSubsystem() = default;
+    virtual ~SdlSubsystem() override = default;
 
     SdlSubsystem(const SdlSubsystem&) = delete;
     SdlSubsystem& operator=(const SdlSubsystem&) = delete;
@@ -17,8 +18,11 @@ public:
     SdlSubsystem& operator=(SdlSubsystem&&) = delete;
 
 public:
-    [[nodiscard]] bool Initialize(uint32 sdl_init_flags);
-    void Release();
+    /** SDL_Init에 들어갈 Flag를 설정합니다. */
+    void SetSdlInitFlags(uint32 in_sdl_init_flags);
+
+    [[nodiscard]] virtual bool Initialize() override;
+    virtual void Release() override;
 
     void PollEvents(std::vector<SDL_Event>& out_events);
 
@@ -31,6 +35,8 @@ public:
     SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
 
 private:
+    uint32 sdl_init_flags = 0;
+
     SDL_Window* window = nullptr;
     SDL_GPUDevice* gpu_device = nullptr;
 };
