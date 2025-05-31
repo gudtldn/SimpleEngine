@@ -1,4 +1,4 @@
-﻿module SimpleEngine.Platform.SdlSubsystem;
+﻿module SimpleEngine.Subsystems.SdlSubsystem;
 
 import SimpleEngine.Logging;
 import <SDL3/SDL_gpu.h>;

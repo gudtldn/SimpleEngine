@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Platform.SdlSubsystem;
+﻿export module SimpleEngine.Subsystems.SdlSubsystem;
 
 import SimpleEngine.Platform.Types;
 import SimpleEngine.Core.ISubSystem;

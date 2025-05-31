@@ -2,7 +2,7 @@
 
 #define RETURN_IF_FAILED(x) if (!(x)) { return; }
 
-import SimpleEngine.Platform.SdlSubsystem;
+import SimpleEngine.Subsystems.SdlSubsystem;
 import SimpleEngine.Logging;
 
 import <cassert>;
