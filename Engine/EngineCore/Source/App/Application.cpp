@@ -1,7 +1,14 @@
 ﻿module SimpleEngine.App;
+
+#define RETURN_IF_FAILED(x) if (!(x)) { return; }
+
+import SimpleEngine.Platform.SdlSubsystem;
 import SimpleEngine.Logging;
+
 import <cassert>;
 import <SDL3/SDL.h>;
+import <SDL3/SDL_init.h>;
+
 
 double Application::CurrentTime = 0.0;
 double Application::LastTime = 0.0;
@@ -45,13 +52,12 @@ void Application::Startup(const std::u8string& cmd_line)
     LogSettings::SetForceColor(true);
 #endif
 
-    const char* cmd = reinterpret_cast<const char*>(cmd_line.c_str());
-    ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd);
+    ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);
 
-    PreInitialize();
-    InitializeEngine();
-    InitializeSubSystems();
-    PostInitialize();
+    RETURN_IF_FAILED(PreInitialize());
+    RETURN_IF_FAILED(InitializeEngine());
+    RETURN_IF_FAILED(InitializeSubSystems());
+    RETURN_IF_FAILED(PostInitialize());
 
     MainLoop();
 }
@@ -116,6 +122,10 @@ bool Application::InitializeEngine()
         ConsoleLog(ELogLevel::Error, u8"Engine failed to initialize!");
         return false;
     }
+
+    SdlSubsystem* sdl_sys = engine_instance->RegisterSubSystem<SdlSubsystem>();
+    sdl_sys->SetSdlInitFlags(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
+
     return true;
 }
 
