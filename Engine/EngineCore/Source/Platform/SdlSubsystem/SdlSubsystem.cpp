@@ -13,7 +13,7 @@ bool SdlSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, u8"Initializing SDL subsystem...");
 
-    if (SDL_Init(sdl_init_flags) != 0)
+    if (!SDL_Init(sdl_init_flags))
     {
         ConsoleLog(ELogLevel::Error, u8"SDL_Init failed: {}", SDL_GetError());
         return false;
