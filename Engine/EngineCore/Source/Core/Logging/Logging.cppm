@@ -96,7 +96,12 @@ struct LogEntry
         return name_view.substr(last_slash + 1);
     }
 
-    // TODO: Timestamp 문자열 반환 함수 추가
+    std::string GetTimestampString() const
+    {
+        namespace chrono = std::chrono;
+        auto zt = chrono::zoned_time{chrono::current_zone(), timestamp};
+        return std::format("{:%Y-%m-%d %H:%M:%S}", zt);
+    }
 };
 
 /**
@@ -146,7 +151,7 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     }
 
     std::println(
-        "{}{}\t[{}:{}] {}{}",
+        "{}{}\t[{}:{}] [{}] {}",
         color, ToString(entry.level), entry.GetPrettyFileName(), entry.location.line(), entry.formatted_message, reset
     );
     std::flush(std::cout);
