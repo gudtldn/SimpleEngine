@@ -43,7 +43,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EngineTest.cpp" />
+    <ClCompile Include="ConfigTest.cpp"/>
+    <ClCompile Include="MainTest.cpp"/>
   </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\Engine\EngineCore\EngineCore.vcxproj">
