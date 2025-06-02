@@ -33,9 +33,9 @@ void SdlSubsystem::Release()
 {
     ConsoleLog(ELogLevel::Info, u8"Releasing SDL subsystem...");
 
-    ConsoleLog(ELogLevel::Debug, u8"Destroying GPU device...");
     if (gpu_device)
     {
+        ConsoleLog(ELogLevel::Info, u8"Destroying GPU device...");
         if (window)
         {
             SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
@@ -44,9 +44,9 @@ void SdlSubsystem::Release()
         gpu_device = nullptr;
     }
 
-    ConsoleLog(ELogLevel::Debug, u8"Destroying window...");
     if (window)
     {
+        ConsoleLog(ELogLevel::Info, u8"Destroying window...");
         SDL_DestroyWindow(window);
         window = nullptr;
     }
