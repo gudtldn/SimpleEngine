@@ -8,7 +8,7 @@ import SimpleEngine.Logging;
 
 namespace se::config
 {
-TomlResult Config::ReadConfig(const std::filesystem::path& config_file_path)
+ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
 {
     toml::parse_result result = toml::parse_file(config_file_path.generic_string());
     if (result.failed())
