@@ -89,8 +89,10 @@ bool SdlSubsystem::CreateWindowAndGpuDevice(const std::u8string& window_title, u
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN, true);
 
+#ifdef _DEBUG
     // 디버그 모드 설정
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
+#endif
 
     gpu_device = SDL_CreateGPUDeviceWithProperties(props);
     SDL_DestroyProperties(props);
