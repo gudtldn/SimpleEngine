@@ -35,6 +35,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\doctest\doctest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -42,6 +45,12 @@
   <ItemGroup>
     <ClCompile Include="EngineTest.cpp" />
   </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\Engine\EngineCore\EngineCore.vcxproj">
+        <Project>{70359232-4bc5-40b2-bd1f-3f6b5f19f1e3}</Project>
+        <Name>EngineCore</Name>
+      </ProjectReference>
+    </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

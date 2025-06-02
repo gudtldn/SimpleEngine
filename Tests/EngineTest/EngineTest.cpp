@@ -1,7 +1,10 @@
+#include <time.h>  // NOLINT(modernize-deprecated-headers)
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
 
 
-int main()
+TEST_CASE("Test")
 {
-
-    return 0;
+    CHECK(true);
 }
