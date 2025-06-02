@@ -7,3 +7,6 @@
 [submodule "ThirdParty/tomlplusplus"]
 	path = ThirdParty/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus.git
+[submodule "ThirdParty/doctest"]
+	path = ThirdParty/doctest
+	url = https://github.com/doctest/doctest.git
