@@ -19,8 +19,12 @@ ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
         return std::unexpected{err};
     }
 
-    Config config;
-    config.config_table = std::move(result.table());
+    Config config = Config{std::move(result).table()};
     return config;
+}
+
+Config::Config(toml::table&& table)
+    : config_table(std::move(table))
+{
 }
 }
