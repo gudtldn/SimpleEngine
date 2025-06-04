@@ -18,11 +18,11 @@ public:
     static ParseResult ReadConfig(const std::filesystem::path& config_file_path);
 
     template <typename To>
-    std::optional<To> GetValue(std::u8string_view key);
+    std::optional<To> GetValue(std::u8string_view key) const;
 
     template <typename To, typename U = To>
         requires std::is_convertible_v<U, To>
-    To GetValueOr(std::u8string_view key, U&& default_val = U{});
+    To GetValueOr(std::u8string_view key, U&& default_val = U{}) const;
 
 private:
     explicit Config(toml::table&& table);
@@ -32,7 +32,7 @@ private:
 };
 
 template <typename To>
-std::optional<To> Config::GetValue(std::u8string_view key)
+std::optional<To> Config::GetValue(std::u8string_view key) const
 {
     const std::string key_str = std::string(key.begin(), key.end());
     return config_table[key_str].value<To>();
@@ -40,7 +40,7 @@ std::optional<To> Config::GetValue(std::u8string_view key)
 
 template <typename To, typename U>
     requires std::is_convertible_v<U, To>
-To Config::GetValueOr(std::u8string_view key, U&& default_val)
+To Config::GetValueOr(std::u8string_view key, U&& default_val) const
 {
     if (auto val = GetValue<To>(key))
     {
