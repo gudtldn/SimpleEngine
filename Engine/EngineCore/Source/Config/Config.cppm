@@ -9,12 +9,13 @@ import std;
 
 namespace se::config
 {
-export using ParseResult = std::expected<void, toml::parse_error>;
+export class Config;
+export using ParseResult = std::expected<Config, toml::parse_error>;
 
-export class Config
+class Config
 {
 public:
-    ParseResult ReadConfig(const std::filesystem::path& config_file_path);
+    static ParseResult ReadConfig(const std::filesystem::path& config_file_path);
 
 private:
     toml::table config_table;

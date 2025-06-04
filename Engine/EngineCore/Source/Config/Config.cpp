@@ -10,7 +10,7 @@ namespace se::config
 {
 ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
 {
-    toml::parse_result result = toml::parse_file(config_file_path.generic_string());
+    toml::parse_result result = toml::parse_file(config_file_path.generic_u8string());
     if (result.failed())
     {
         const toml::parse_error& err = result.error();
@@ -19,7 +19,8 @@ ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
         return std::unexpected{err};
     }
 
-    config_table = std::move(result.table());
-    return {};
+    Config config;
+    config.config_table = std::move(result.table());
+    return config;
 }
 }
