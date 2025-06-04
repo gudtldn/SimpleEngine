@@ -3,8 +3,6 @@
 #include <toml++/toml.h>
 module SimpleEngine.Config;
 
-import SimpleEngine.Logging;
-
 
 namespace se::config
 {
@@ -18,13 +16,25 @@ ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
 
         return std::unexpected{std::move(result).error()};
     }
-
-    Config config = Config{std::move(result).table()};
-    return config;
+    return Config{std::move(result).table()};
 }
 
-Config::Config(toml::table&& table)
-    : config_table(std::move(table))
+std::optional<Config> Config::GetTable(std::u8string_view key_path) const
 {
+    if (const auto node_view = FindNode(key_path))
+    {
+        if (auto* sub_table = node_view.as_table())
+        {
+            // toml::table을 복사하여 새로운 Config 객체 생성
+            return Config(toml::table(*sub_table));
+        }
+    }
+    return std::nullopt;
+}
+
+toml::node_view<const toml::node> Config::FindNode(std::u8string_view path_str) const
+{
+    const std::string key_str = std::string(path_str.begin(), path_str.end());
+    return config_table.at_path(key_str);
 }
 }
