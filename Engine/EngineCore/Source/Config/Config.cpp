@@ -16,7 +16,7 @@ ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
         const toml::parse_error& err = result.error();
         ConsoleLog(ELogLevel::Error, u8"Failed to parse config file: {}", err.description());
 
-        return std::unexpected{err};
+        return std::unexpected{std::move(result).error()};
     }
 
     Config config = Config{std::move(result).table()};
