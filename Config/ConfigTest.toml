@@ -1,0 +1,42 @@
+title = "TOML Example Config for SimpleEngine Tests"
+engine_version = "0.1.0-alpha"
+
+# 배열 타입 테스트
+int_array = [1, 2, 3, 4, 5]
+float_array = [0.5, 1.5, 2.5]
+string_array = ["apple", "banana", "cherry"]
+bool_array = [true, false, true, true]
+# mixed_type_array = [1, "two", 3.0] # GetArray는 현재 동종 타입만 지원
+
+empty_array = []
+
+# 특정 값 타입 테스트
+a_string = "Hello, TOML!"
+an_integer = 42
+a_float = 3.14159
+a_boolean = true
+a_datetime = 1979-05-27T07:32:00-08:00 # toml::date_time 으로 읽힘
+a_date = 1979-05-27                    # toml::date 로 읽힘
+a_time = 07:32:00                      # toml::time 으로 읽힘
+
+[window]
+width = 1280
+height = 720
+fullscreen = false
+title = "SimpleEngine Editor"
+scale = 1.5
+
+[graphics]
+vsync = true
+max_fps = 144
+shaders = ["default.vert", "default.frag"]
+features = { antialiasing = "MSAAx4", anisotropic_filtering = 16 }
+multisample_levels = [2, 4, 8]
+
+[logging]
+level = "debug" # "trace", "debug", "info", "warning", "error", "critical", "off"
+output_to_file = true
+log_file_path = "engine.log"
+
+[non_existent_section_test]
+# 이 섹션은 GetSection 테스트에서 없는 경로를 참조하기 위해 사용될 수 있습니다.
