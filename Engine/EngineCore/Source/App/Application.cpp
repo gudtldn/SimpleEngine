@@ -4,6 +4,7 @@
 
 import SimpleEngine.Subsystems.SdlSubsystem;
 import SimpleEngine.Logging;
+import SimpleEngine.Config;
 
 import <cassert>;
 import <SDL3/SDL.h>;
@@ -141,13 +142,50 @@ bool Application::InitializeSubSystems()
 
 bool Application::PostInitialize()
 {
-    // TODO: ConfigSubsystem 만들기
+    using namespace se::config;
+
+    const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
+    ParseResult result = Config::ReadConfig(solution_path / u8"Config/EngineConfig.toml");
+    if (!result.has_value())
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to read config file: {}", result.error().description());
+        return false;
+    }
+
+    const Config& config = result.value();
     SdlSubsystem* sdl_sys = engine_instance->GetSubSystem<SdlSubsystem>();
+
+    const std::u8string window_title = config.GetValue<std::u8string>(u8"windows.title").value_or(u8"SimpleEngine");
+    const int32 window_width = config.GetValue<int32>(u8"windows.width").value_or(1280);
+    const int32 window_height = config.GetValue<int32>(u8"windows.height").value_or(720);
+
+    if (!sdl_sys->CreateWindowAndGpuDevice(window_title, window_width, window_height, SDL_WINDOW_RESIZABLE))
+    {
+        return false;
+    }
+
     return true;
 }
 
 void Application::ProcessPlatformEvents()
 {
+    SdlSubsystem* sdl_sys = engine_instance->GetSubSystem<SdlSubsystem>();
+    std::vector<SDL_Event> events;
+    sdl_sys->PollEvents(events);
+
+    for (const SDL_Event& event : events)
+    {
+        switch (event.type)
+        {
+        case SDL_EVENT_QUIT:
+        {
+            RequestQuit();
+            break;
+        }
+        default:
+            break;
+        }
+    }
 }
 
 void Application::Update(float delta_time)
