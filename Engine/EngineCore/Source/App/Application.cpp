@@ -145,19 +145,26 @@ bool Application::PostInitialize()
     using namespace se::config;
 
     const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
-    ParseResult result = Config::ReadConfig(solution_path / u8"Config/EngineConfig.toml");
+    const std::filesystem::path config_path = solution_path / u8"Config/EngineConfig.toml";
+
+    ParseResult result = Config::ReadConfig(config_path);
     if (!result.has_value())
     {
         ConsoleLog(ELogLevel::Error, u8"Failed to read config file: {}", result.error().description());
         return false;
     }
 
-    const Config& config = result.value();
+    Config& config = result.value();
     SdlSubsystem* sdl_sys = engine_instance->GetSubSystem<SdlSubsystem>();
 
-    const std::u8string window_title = config.GetValue<std::u8string>(u8"windows.title").value_or(u8"SimpleEngine");
-    const int32 window_width = config.GetValue<int32>(u8"windows.width").value_or(1280);
-    const int32 window_height = config.GetValue<int32>(u8"windows.height").value_or(720);
+    const std::u8string window_title = config.GetValueOrStore<std::u8string>(u8"window.title", u8"SimpleEngine");
+    const int32 window_width = config.GetValueOrStore<int32>(u8"window.width", 1280);
+    const int32 window_height = config.GetValueOrStore<int32>(u8"window.height", 720);
+    if (!config.WriteConfig(config_path))
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.generic_u8string());
+        return false;
+    }
 
     if (!sdl_sys->CreateWindowAndGpuDevice(window_title, window_width, window_height, SDL_WINDOW_RESIZABLE))
     {
