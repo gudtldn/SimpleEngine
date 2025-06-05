@@ -45,7 +45,7 @@ public:
     std::optional<To> GetValue(std::u8string_view key) const;
 
     /**
-     * 읽어온 TOML에서 지정된 키에 해당하는 값을 가져오거나, 없을 경우 기본값을 반환합니다.
+     * 읽어온 TOML에서 지정된 키에 해당하는 값을 가져오거나, 없을 경우 저장 후 기본값을 반환합니다.
      * @tparam To 반환받을 값의 타입
      * @tparam U 기본값의 타입. To 타입으로 변환 가능해야 합니다.
      * @param key 값을 가져올 Key
