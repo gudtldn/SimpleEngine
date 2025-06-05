@@ -7,9 +7,10 @@ import SimpleEngine.Config;
 
 TEST_SUITE("SimpleEngine.Config")
 {
-static const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
-static const std::filesystem::path test_toml_path = solution_path / u8"Config/ConfigTest.toml";
-static const std::filesystem::path non_existent_file_path = solution_path / u8"Config" / u8"InvalidTest.toml";
+static const std::filesystem::path project_path = std::filesystem::current_path();
+static const std::filesystem::path test_toml_path = project_path / u8"Config/ConfigTest.toml";
+static const std::filesystem::path non_existent_file_path = project_path / u8"Config" / u8"InvalidTest.toml";
+static const std::filesystem::path save_test_toml_path = project_path / u8"Config" / u8"SaveTest.toml";
 
 using namespace std::string_view_literals;
 using namespace std::string_literals;
@@ -181,5 +182,53 @@ TEST_CASE("get table config file")
 
         CHECK(graphics->GetArray<int>(u8"multisample_levels") == std::vector{2, 4, 8});
     }
+}
+
+TEST_CASE("Config::SetValue and Config::WriteConfig")
+{
+    struct FileDeleter
+    {
+        std::filesystem::path path_to_delete;
+
+        FileDeleter(std::filesystem::path p)
+            : path_to_delete(std::move(p))
+        {
+        }
+
+        ~FileDeleter()
+        {
+            if (std::filesystem::exists(path_to_delete))
+            {
+                std::filesystem::remove(path_to_delete);
+            }
+        }
+    };
+
+    Config config;
+    config.SetValue(u8"a_boolean", true);
+    config.SetValue(u8"an_integer", 42);
+    config.SetValue(u8"a_float", 3.14159f);
+    config.SetValue(u8"a_string", u8"Hello, TOML!");
+
+    config.SetValue(u8"int_array", std::vector{1, 2, 3, 4, 5});
+    config.SetValue(u8"float_array", std::vector{0.5f, 1.5f, 2.5f});
+    config.SetValue(u8"string_array", std::vector{u8"apple", u8"banana", u8"cherry"});
+    config.SetValue(u8"bool_array", std::vector{true, false, true, true});
+
+    config.SetValue(u8"window.width", 1280);
+    config.SetValue(u8"window.height", 720);
+    config.SetValue(u8"window.fullscreen", false);
+    config.SetValue(u8"window.title", u8"SimpleEngine Editor");
+    config.SetValue(u8"window.scale", 1.5f);
+
+    config.SetValue(u8"graphics.vsync", true);
+    config.SetValue(u8"graphics.max_fps", 144);
+    config.SetValue(u8"graphics.shaders", std::vector{u8"default.vert", u8"default.frag"});
+    config.SetValue(u8"graphics.features.antialiasing", u8"MSAAx4");
+    config.SetValue(u8"graphics.features.anisotropic_filtering", 16);
+    config.SetValue(u8"graphics.multisample_levels", std::vector{2, 4, 8});
+
+    FileDeleter file_deleter(save_test_toml_path);
+    CHECK(config.WriteConfig(save_test_toml_path));
 }
 }
