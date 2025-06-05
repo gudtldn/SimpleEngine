@@ -88,16 +88,17 @@ TEST_CASE("get value config file")
 
 TEST_CASE("get value config file with default value")
 {
-    const ParseResult v = Config::ReadConfig(test_toml_path);
+    ParseResult v = Config::ReadConfig(test_toml_path);
     CHECK(v.has_value());
 
-    const Config& config = v.value();
-    CHECK(config.GetValueOr<bool>(u8"a_boolean", false) == true);
-    CHECK(config.GetValueOr<int>(u8"an_integer", 100) == 42);
-    CHECK(config.GetValueOr<float>(u8"a_float", 100.0f) == 3.14159f);
-    CHECK(config.GetValueOr<std::u8string>(u8"a_string", u8"hello world") == u8"Hello, TOML!");
+    Config& config = v.value();
+    CHECK(config.GetValueOrStore<bool>(u8"a_boolean", false) == true);
+    CHECK(config.GetValueOrStore<int>(u8"an_integer", 100) == 42);
+    CHECK(config.GetValueOrStore<float>(u8"a_float", 100.0f) == 3.14159f);
+    CHECK(config.GetValueOrStore<std::u8string>(u8"a_string", u8"hello world") == u8"Hello, TOML!");
 
-    CHECK(config.GetValueOr<bool>(u8"MyValue", true) == true);
+    CHECK(config.GetValueOrStore<std::u8string>(u8"MyValue", u8"TTest") == u8"TTest");
+    CHECK(config.GetValue<std::u8string>(u8"MyValue") == u8"TTest");
 }
 
 TEST_CASE("get array config file")

@@ -49,12 +49,13 @@ public:
      * @tparam To 반환받을 값의 타입
      * @tparam U 기본값의 타입. To 타입으로 변환 가능해야 합니다.
      * @param key 값을 가져올 Key
-     * @param default_val Key가 존재하고, To로 변환이 가능하다면 값을 반환하고, 없다면 default_val을 반환합니다.
+     * @param default_val Key가 존재하고, To로 변환이 가능하다면 값을 반환하고,
+     *        없다면 default_val을 Config에 저장하고 반환합니다.
      * @return
      */
     template <typename To, typename U = To>
         requires std::is_convertible_v<U, To>
-    To GetValueOr(std::u8string_view key, U&& default_val = U{}) const;
+    To GetValueOrStore(std::u8string_view key, U&& default_val = U{});
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 배열을 가져옵니다.
@@ -120,12 +121,13 @@ std::optional<To> Config::GetValue(std::u8string_view key) const
 
 template <typename To, typename U>
     requires std::is_convertible_v<U, To>
-To Config::GetValueOr(std::u8string_view key, U&& default_val) const
+To Config::GetValueOrStore(std::u8string_view key, U&& default_val)
 {
     if (auto val = GetValue<To>(key))
     {
         return *val;
     }
+    SetValue(key, std::forward<U>(default_val));
     return static_cast<To>(std::forward<U>(default_val));
 }
 
