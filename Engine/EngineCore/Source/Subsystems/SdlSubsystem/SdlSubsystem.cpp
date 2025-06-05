@@ -116,6 +116,9 @@ bool SdlSubsystem::CreateWindowAndGpuDevice(const std::u8string& window_title, u
         return false;
     }
 
+    // TODO: 나중에 Flag 입력 받기
+    SDL_SetGPUSwapchainParameters(gpu_device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_MAILBOX);
+
     ConsoleLog(ELogLevel::Info, u8"Window and GPU device created successfully");
     return true;
 }
