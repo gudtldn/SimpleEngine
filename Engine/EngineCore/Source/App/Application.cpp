@@ -99,6 +99,10 @@ void Application::MainLoop()
 
         Update(static_cast<float>(DeltaTime));
 
+        PreRender();
+        Render();
+        PostRender();
+
         double frame_duration;
         do
         {
@@ -170,6 +174,8 @@ bool Application::PostInitialize()
     {
         return false;
     }
+    SDL_SetWindowPosition(sdl_sys->GetWindow(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_ShowWindow(sdl_sys->GetWindow());
 
     return true;
 }
@@ -198,6 +204,18 @@ void Application::ProcessPlatformEvents()
 void Application::Update(float delta_time)
 {
     engine_instance->TickAllSubSystems(delta_time);
+}
+
+void Application::PreRender()
+{
+}
+
+void Application::Render()
+{
+}
+
+void Application::PostRender()
+{
 }
 
 void Application::PreRelease()

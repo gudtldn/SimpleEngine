@@ -74,6 +74,11 @@ protected:
     virtual void ProcessPlatformEvents();
     virtual void Update(float delta_time);
 
+    // 렌더링 단계
+    virtual void PreRender();
+    virtual void Render();
+    virtual void PostRender();
+
     // 종료 단계
     virtual void PreRelease();
     virtual void ReleaseSubSystems();
