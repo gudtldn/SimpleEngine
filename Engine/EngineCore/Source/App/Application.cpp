@@ -57,6 +57,7 @@ void Application::Startup(const std::u8string& cmd_line)
 
     RETURN_IF_FAILED(PreInitialize());
     RETURN_IF_FAILED(InitializeEngine());
+    RegisterSubSystems();
     RETURN_IF_FAILED(InitializeSubSystems());
     RETURN_IF_FAILED(PostInitialize());
 
@@ -112,6 +113,10 @@ void Application::MainLoop()
         }
         while (frame_duration < TargetFrameTime);
     }
+}
+
+void Application::RegisterSubSystems()
+{
 }
 
 bool Application::PreInitialize()
