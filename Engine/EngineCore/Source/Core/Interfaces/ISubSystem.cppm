@@ -19,4 +19,9 @@ public:
     virtual void Tick([[maybe_unused]] float delta_time)
     {
     }
+
+    virtual std::vector<std::type_index> GetDependencies() const
+    {
+        return {};
+    }
 };
