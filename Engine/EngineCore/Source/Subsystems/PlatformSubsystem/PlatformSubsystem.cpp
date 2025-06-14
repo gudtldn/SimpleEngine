@@ -11,10 +11,12 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
 
 void PlatformSubsystem::PrepareWindow(const std::u8string& window_title, uint32 window_width, uint32 window_height, uint32 sdl_window_flags)
 {
-    window_info.title = window_title;
-    window_info.width = window_width;
-    window_info.height = window_height;
-    window_info.sdl_window_flags = sdl_window_flags;
+    window_info = {
+        .title = window_title,
+        .width = window_width,
+        .height = window_height,
+        .sdl_window_flags = sdl_window_flags,
+    };
 }
 
 bool PlatformSubsystem::Initialize()
@@ -29,13 +31,19 @@ bool PlatformSubsystem::Initialize()
 
     // TODO: 나중에 다중모니터 지원하도록 변경
     ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
+    if (!window_info.has_value())
+    {
+        ConsoleLog(ELogLevel::Error, u8"Window info is not set! Please call PrepareWindow before InitializeEngine");
+        return false;
+    }
+
     const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-    const char* window_title_c = reinterpret_cast<const char*>(window_info.title.c_str());
+    const char* window_title_c = reinterpret_cast<const char*>(window_info->title.c_str());
     window = SDL_CreateWindow(
         window_title_c,
-        static_cast<int>(static_cast<float>(window_info.width) * main_display_scale),
-        static_cast<int>(static_cast<float>(window_info.height) * main_display_scale),
-        window_info.sdl_window_flags
+        static_cast<int>(static_cast<float>(window_info->width) * main_display_scale),
+        static_cast<int>(static_cast<float>(window_info->height) * main_display_scale),
+        window_info->sdl_window_flags
     );
 
     if (!window)
@@ -44,6 +52,7 @@ bool PlatformSubsystem::Initialize()
         return false;
     }
     SDL_ShowWindow(window);
+    ConsoleLog(ELogLevel::Info, u8"Window initialized");
 
     return true;
 }

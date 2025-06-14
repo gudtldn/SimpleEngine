@@ -54,6 +54,6 @@ public:
 private:
     const uint32 sdl_init_flags;
 
-    WindowInfo window_info;
+    std::optional<WindowInfo> window_info = std::nullopt;
     SDL_Window* window = nullptr;
 };
