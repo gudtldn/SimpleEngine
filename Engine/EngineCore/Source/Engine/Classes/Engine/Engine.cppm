@@ -15,7 +15,10 @@ private:
     // Type별 SubSystem 목록
     std::map<std::type_index, std::unique_ptr<ISubSystem>> sub_systems;
 
-    // 초기화/종료/틱 순서 관리를 위한 vector
+    // 초기화/종료 순서 관리를 위한 벡터
+    std::vector<ISubSystem*> sorted_sub_systems;
+
+    // 틱 순서 관리를 위한 벡터
     std::vector<ISubSystem*> sub_systems_list;
 
 public:
@@ -79,12 +82,19 @@ public:
     void Release();
 
 public:
-    /** 모든 SubSystem을 등록된 순서대로 초기화 합니다. */
+    /** 모든 SubSystem을 위상 정렬된 순서대로 초기화 합니다. */
     [[nodiscard]] bool InitializeAllSubSystems();
 
-    /** 모든 SubSystem을 등록된 순서의 역순으로 정리합니다. */
+    /** 모든 SubSystem을 위상 정렬된 순서의 역순으로 정리합니다. */
     void ReleaseAllSubSystems();
 
     /** 모든 SubSystem에 대해 등록된 순서대로 Tick을 호출합니다. */
     void TickAllSubSystems(float delta_time);
+
+private:
+    /**
+     * 의존성 그래프를 기반으로 서브시스템의 실행 순서를 위상 정렬합니다.
+     * 순환 의존성이 발견되면 false를 반환합니다.
+     */
+    [[nodiscard]] bool SortSubSystems();
 };
