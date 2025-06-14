@@ -18,10 +18,6 @@ private:
     // 초기화/종료 순서 관리를 위한 벡터
     std::vector<ISubSystem*> sorted_sub_systems;
 
-    // 틱 순서 관리를 위한 벡터
-    [[deprecated("Use sorted_sub_systems instead")]]
-    std::vector<ISubSystem*> sub_systems_list;
-
 public:
     Engine() = default;
     virtual ~Engine() = default;
@@ -53,7 +49,6 @@ public:
         T* sub_system_ptr = sub_system.get();
 
         sub_systems[type_id] = std::move(sub_system);
-        sub_systems_list.push_back(sub_system_ptr);
 
         ConsoleLog(ELogLevel::Info, u8"Registered SubSystem: {}", type_id.name());
         return sub_system_ptr;

@@ -29,7 +29,6 @@ void Engine::Release()
     ReleaseAllSubSystems();
     sub_systems.clear();
     sorted_sub_systems.clear();
-    sub_systems_list.clear();
 }
 
 bool Engine::InitializeAllSubSystems()
@@ -68,7 +67,7 @@ void Engine::ReleaseAllSubSystems()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void Engine::TickAllSubSystems(float delta_time)
 {
-    for (ISubSystem* sub_system : sub_systems_list)
+    for (ISubSystem* sub_system : sorted_sub_systems)
     {
         sub_system->Tick(delta_time);
     }
