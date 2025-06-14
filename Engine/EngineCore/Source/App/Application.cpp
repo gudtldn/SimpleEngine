@@ -122,8 +122,11 @@ void Application::RegisterSubsystems()
 bool Application::PreInitialize()
 {
     engine_instance = std::make_unique<Engine>();
-    assert(engine_instance && "Failed to create engine instance!");
-
+    if (engine_instance == nullptr)
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to create engine instance!");
+        return false;
+    }
     return true;
 }
 
