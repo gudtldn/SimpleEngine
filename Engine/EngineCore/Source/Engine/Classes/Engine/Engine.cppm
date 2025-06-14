@@ -77,17 +77,16 @@ public:
     /** Engine이 가지고 있던 객체를 정리합니다. */
     void Release();
 
-public:
+    /** 모든 SubSystem에 대해 위상 정렬된 순서대로 Tick을 호출합니다. */
+    void TickAllSubSystems(float delta_time);
+
+private:
     /** 모든 SubSystem을 위상 정렬된 순서대로 초기화 합니다. */
     [[nodiscard]] bool InitializeAllSubSystems();
 
     /** 모든 SubSystem을 위상 정렬된 순서의 역순으로 정리합니다. */
     void ReleaseAllSubSystems();
 
-    /** 모든 SubSystem에 대해 등록된 순서대로 Tick을 호출합니다. */
-    void TickAllSubSystems(float delta_time);
-
-private:
     /**
      * 의존성 그래프를 기반으로 서브시스템의 실행 순서를 위상 정렬합니다.
      * 순환 의존성이 발견되면 false를 반환합니다.
