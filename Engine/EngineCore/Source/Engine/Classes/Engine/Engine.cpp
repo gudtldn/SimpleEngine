@@ -8,11 +8,27 @@ import std;
 
 bool Engine::Initialize()
 {
+    // 의존성에 따라서 정렬
+    if (!SortSubSystems())
+    {
+        return false;
+    }
+
+    // SusSystems 초기화
+    if (!InitializeAllSubSystems())
+    {
+        return false;
+    }
+
     return true;
 }
 
 void Engine::Release()
 {
+    ReleaseAllSubSystems();
+    sub_systems.clear();
+    sorted_sub_systems.clear();
+    sub_systems_list.clear();
 }
 
 bool Engine::InitializeAllSubSystems()

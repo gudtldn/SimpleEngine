@@ -19,6 +19,7 @@ private:
     std::vector<ISubSystem*> sorted_sub_systems;
 
     // 틱 순서 관리를 위한 벡터
+    [[deprecated("Use sorted_sub_systems instead")]]
     std::vector<ISubSystem*> sub_systems_list;
 
 public:
