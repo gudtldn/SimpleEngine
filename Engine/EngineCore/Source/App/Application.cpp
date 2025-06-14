@@ -59,6 +59,7 @@ void Application::Startup(const std::u8string& cmd_line)
     RegisterSubsystems();
     RETURN_IF_FAILED(InitializeEngine());
     RETURN_IF_FAILED(PostInitialize());
+    is_initialized = true;
 
     MainLoop();
 }
