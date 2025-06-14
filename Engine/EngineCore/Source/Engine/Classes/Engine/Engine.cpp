@@ -9,15 +9,15 @@ import std;
 bool Engine::Initialize()
 {
     // 의존성에 따라서 정렬
-    if (!SortSubSystems())
+    if (!SortSubsystems())
     {
         return false;
     }
 
     // SusSystems 초기화
-    if (!InitializeAllSubSystems())
+    if (!InitializeAllSubsystems())
     {
-        ConsoleLog(ELogLevel::Error, u8"SubSystems failed to initialize!");
+        ConsoleLog(ELogLevel::Error, u8"Subsystems failed to initialize!");
         return false;
     }
 
@@ -26,56 +26,56 @@ bool Engine::Initialize()
 
 void Engine::Release()
 {
-    ReleaseAllSubSystems();
+    ReleaseAllSubsystems();
     sub_systems.clear();
     sorted_sub_systems.clear();
 }
 
-bool Engine::InitializeAllSubSystems()
+bool Engine::InitializeAllSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing SubSystems...");
-    for (ISubSystem* sub_system : sorted_sub_systems)
+    ConsoleLog(ELogLevel::Info, u8"Initializing Subsystems...");
+    for (ISubsystem* sub_system : sorted_sub_systems)
     {
         if (!sub_system->Initialize())
         {
             const std::u8string sub_system_name = se::string_utils::ToU8String(typeid(sub_system).name());
-            ConsoleLog(ELogLevel::Error, u8"SubSystem {} failed to initialize!", sub_system_name);
+            ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
             const auto current_it = std::ranges::find(sorted_sub_systems, sub_system);
             const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), current_it);
-            for (ISubSystem* rev_subsystem : subrange | std::views::reverse)
+            for (ISubsystem* rev_subsystem : subrange | std::views::reverse)
             {
                 rev_subsystem->Release();
             }
             return false;
         }
     }
-    ConsoleLog(ELogLevel::Info, u8"All SubSystems initialized successfully");
+    ConsoleLog(ELogLevel::Info, u8"All Subsystems initialized successfully");
     return true;
 }
 
-void Engine::ReleaseAllSubSystems()
+void Engine::ReleaseAllSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Releasing SubSystems...");
-    for (ISubSystem* sub_system : sorted_sub_systems | std::views::reverse)
+    ConsoleLog(ELogLevel::Info, u8"Releasing Subsystems...");
+    for (ISubsystem* sub_system : sorted_sub_systems | std::views::reverse)
     {
         sub_system->Release();
     }
-    ConsoleLog(ELogLevel::Info, u8"All SubSystems released successfully");
+    ConsoleLog(ELogLevel::Info, u8"All Subsystems released successfully");
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void Engine::UpdateAllSubSystems(float delta_time)
+void Engine::UpdateAllSubsystems(float delta_time)
 {
-    for (ISubSystem* sub_system : sorted_sub_systems)
+    for (ISubsystem* sub_system : sorted_sub_systems)
     {
         sub_system->Update(delta_time);
     }
 }
 
-bool Engine::SortSubSystems()
+bool Engine::SortSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Sorting SubSystems based on dependencies...");
+    ConsoleLog(ELogLevel::Info, u8"Sorting Subsystems based on dependencies...");
 
     std::unordered_map<std::type_index, std::vector<std::type_index>> adj_list;
     std::unordered_map<std::type_index, int> in_degree;
@@ -131,15 +131,30 @@ bool Engine::SortSubSystems()
     // 순환 의존성 확인
     if (sorted_sub_systems.size() != sub_systems.size())
     {
-        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among SubSystems! Sorting failed.");
-        // TODO: 순환 의존성에 포함된 서브시스템들을 로그로 남기기
-        // (이 부분은 추가 구현이 필요)
+        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
+
+        std::vector<std::type_index> circular_subsystems;
+        for (const auto& [type_id, degree] : in_degree)
+        {
+            if (degree > 0)
+            {
+                circular_subsystems.push_back(type_id);
+            }
+        }
+
+        std::u8string error_msg = u8"Circular dependency detected in subsystems: ";
+        for (const auto& id : circular_subsystems)
+        {
+            error_msg += u8"\n  - " + se::string_utils::ToU8String(typeid(*sub_systems[id]).name());
+        }
+
+        ConsoleLog(ELogLevel::Fatal, error_msg);
         return false;
     }
 
     // Update 순서는 한번 보고 나중에 필요시 변경
 
-    ConsoleLog(ELogLevel::Info, u8"SubSystems sorted successfully.");
+    ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
     for (const auto& [n, sub_system] : sorted_sub_systems | std::views::enumerate)
     {
         ConsoleLog(ELogLevel::Info, u8"  - Order {}: {}", n, se::string_utils::ToU8String(typeid(*sub_system).name()));

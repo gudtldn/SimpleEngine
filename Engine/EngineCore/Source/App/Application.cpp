@@ -56,7 +56,7 @@ void Application::Startup(const std::u8string& cmd_line)
     ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);
 
     RETURN_IF_FAILED(PreInitialize());
-    RegisterSubSystems();
+    RegisterSubsystems();
     RETURN_IF_FAILED(InitializeEngine());
     RETURN_IF_FAILED(PostInitialize());
 
@@ -113,9 +113,9 @@ void Application::MainLoop()
     }
 }
 
-void Application::RegisterSubSystems()
+void Application::RegisterSubsystems()
 {
-    SdlSubsystem* sdl_sys = engine_instance->RegisterSubSystem<SdlSubsystem>();
+    SdlSubsystem* sdl_sys = engine_instance->RegisterSubsystem<SdlSubsystem>();
     sdl_sys->SetSdlInitFlags(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
 }
 
@@ -152,7 +152,7 @@ bool Application::PostInitialize()
     }
 
     Config& config = result.value();
-    SdlSubsystem* sdl_sys = engine_instance->GetSubSystem<SdlSubsystem>();
+    SdlSubsystem* sdl_sys = engine_instance->GetSubsystem<SdlSubsystem>();
 
     const std::u8string window_title = config.GetValueOrStore<std::u8string>(u8"window.title", u8"SimpleEngine");
     const int32 window_width = config.GetValueOrStore<int32>(u8"window.width", 1280);
@@ -175,7 +175,7 @@ bool Application::PostInitialize()
 
 void Application::ProcessPlatformEvents()
 {
-    SdlSubsystem* sdl_sys = engine_instance->GetSubSystem<SdlSubsystem>();
+    SdlSubsystem* sdl_sys = engine_instance->GetSubsystem<SdlSubsystem>();
     std::vector<SDL_Event> events;
     sdl_sys->PollEvents(events);
 
@@ -196,7 +196,7 @@ void Application::ProcessPlatformEvents()
 
 void Application::Update(float delta_time)
 {
-    engine_instance->UpdateAllSubSystems(delta_time);
+    engine_instance->UpdateAllSubsystems(delta_time);
 }
 
 void Application::PreRender()

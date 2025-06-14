@@ -54,7 +54,7 @@
     <ClCompile Include="Source\Config\Config.cppm" />
     <ClCompile Include="Source\Core\CoreTypes.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
-    <ClCompile Include="Source\Core\Interfaces\ISubSystem.cppm" />
+    <ClCompile Include="Source\Core\Interfaces\ISubsystem.cppm" />
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
     <ClCompile Include="Source\Core\Logging\Logging.cppm" />
