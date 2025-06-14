@@ -17,6 +17,7 @@ bool Engine::Initialize()
     // SusSystems 초기화
     if (!InitializeAllSubSystems())
     {
+        ConsoleLog(ELogLevel::Error, u8"SubSystems failed to initialize!");
         return false;
     }
 

@@ -69,7 +69,6 @@ protected:
     // 초기화 단계
     virtual bool PreInitialize();
     virtual bool InitializeEngine();
-    virtual bool InitializeSubSystems();
     virtual bool PostInitialize();
 
     // 메인 루프의 각 단계
@@ -83,7 +82,6 @@ protected:
 
     // 종료 단계
     virtual void PreRelease();
-    virtual void ReleaseSubSystems();
     virtual void ReleaseEngine();
     virtual void PostRelease();
 

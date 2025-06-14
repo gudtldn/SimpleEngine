@@ -56,9 +56,8 @@ void Application::Startup(const std::u8string& cmd_line)
     ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);
 
     RETURN_IF_FAILED(PreInitialize());
-    RETURN_IF_FAILED(InitializeEngine());
     RegisterSubSystems();
-    RETURN_IF_FAILED(InitializeSubSystems());
+    RETURN_IF_FAILED(InitializeEngine());
     RETURN_IF_FAILED(PostInitialize());
 
     MainLoop();
@@ -67,7 +66,6 @@ void Application::Startup(const std::u8string& cmd_line)
 void Application::Shutdown()
 {
     PreRelease();
-    ReleaseSubSystems();
     ReleaseEngine();
     PostRelease();
 
@@ -117,33 +115,23 @@ void Application::MainLoop()
 
 void Application::RegisterSubSystems()
 {
+    SdlSubsystem* sdl_sys = engine_instance->RegisterSubSystem<SdlSubsystem>();
+    sdl_sys->SetSdlInitFlags(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
 }
 
 bool Application::PreInitialize()
 {
+    engine_instance = std::make_unique<Engine>();
+    assert(engine_instance && "Failed to create engine instance!");
+
     return true;
 }
 
 bool Application::InitializeEngine()
 {
-    engine_instance = std::make_unique<Engine>();
     if (!engine_instance->Initialize())
     {
         ConsoleLog(ELogLevel::Error, u8"Engine failed to initialize!");
-        return false;
-    }
-
-    SdlSubsystem* sdl_sys = engine_instance->RegisterSubSystem<SdlSubsystem>();
-    sdl_sys->SetSdlInitFlags(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
-
-    return true;
-}
-
-bool Application::InitializeSubSystems()
-{
-    if (!engine_instance->InitializeAllSubSystems())
-    {
-        ConsoleLog(ELogLevel::Error, u8"SubSystems failed to initialize!");
         return false;
     }
     return true;
@@ -225,11 +213,6 @@ void Application::PostRender()
 
 void Application::PreRelease()
 {
-}
-
-void Application::ReleaseSubSystems()
-{
-    engine_instance->ReleaseAllSubSystems();
 }
 
 void Application::ReleaseEngine()
