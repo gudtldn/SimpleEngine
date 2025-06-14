@@ -64,10 +64,9 @@ public:
     EApplicationMode GetApplicationMode() const { return application_mode; }
 
 protected:
-    virtual void RegisterSubsystems();
-
     // 초기화 단계
     virtual bool PreInitialize();
+    virtual void RegisterSubsystems();
     virtual bool InitializeEngine();
     virtual bool PostInitialize();
 
