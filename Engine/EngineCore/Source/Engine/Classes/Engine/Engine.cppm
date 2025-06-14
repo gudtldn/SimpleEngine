@@ -7,7 +7,7 @@ import std;
 
 /**
  * 엔진의 핵심 기능을 담당하는 클래스입니다.
- * SubSystem의 Register, Initialize, Release 및 Tick과 같은 동작을 관리합니다.
+ * SubSystem의 Register, Initialize, Release 및 Update와 같은 동작을 관리합니다.
  */
 export class Engine
 {
@@ -77,8 +77,8 @@ public:
     /** Engine이 가지고 있던 객체를 정리합니다. */
     void Release();
 
-    /** 모든 SubSystem에 대해 위상 정렬된 순서대로 Tick을 호출합니다. */
-    void TickAllSubSystems(float delta_time);
+    /** 모든 SubSystem에 대해 위상 정렬된 순서대로 Update을 호출합니다. */
+    void UpdateAllSubSystems(float delta_time);
 
 private:
     /** 모든 SubSystem을 위상 정렬된 순서대로 초기화 합니다. */

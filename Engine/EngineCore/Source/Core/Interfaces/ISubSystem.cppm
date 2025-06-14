@@ -16,7 +16,7 @@ public:
     [[nodiscard]] virtual bool Initialize() = 0;
     virtual void Release() = 0;
 
-    virtual void Tick([[maybe_unused]] float delta_time)
+    virtual void Update([[maybe_unused]] float delta_time)
     {
     }
 

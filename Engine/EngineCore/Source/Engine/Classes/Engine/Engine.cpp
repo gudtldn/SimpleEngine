@@ -65,11 +65,11 @@ void Engine::ReleaseAllSubSystems()
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void Engine::TickAllSubSystems(float delta_time)
+void Engine::UpdateAllSubSystems(float delta_time)
 {
     for (ISubSystem* sub_system : sorted_sub_systems)
     {
-        sub_system->Tick(delta_time);
+        sub_system->Update(delta_time);
     }
 }
 
@@ -137,7 +137,7 @@ bool Engine::SortSubSystems()
         return false;
     }
 
-    // Tick 순서는 한번 보고 나중에 필요시 변경
+    // Update 순서는 한번 보고 나중에 필요시 변경
 
     ConsoleLog(ELogLevel::Info, u8"SubSystems sorted successfully.");
     for (const auto& [n, sub_system] : sorted_sub_systems | std::views::enumerate)

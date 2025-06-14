@@ -196,7 +196,7 @@ void Application::ProcessPlatformEvents()
 
 void Application::Update(float delta_time)
 {
-    engine_instance->TickAllSubSystems(delta_time);
+    engine_instance->UpdateAllSubSystems(delta_time);
 }
 
 void Application::PreRender()
