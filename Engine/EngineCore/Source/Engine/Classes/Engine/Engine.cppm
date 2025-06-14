@@ -90,6 +90,8 @@ private:
     /**
      * 의존성 그래프를 기반으로 서브시스템의 실행 순서를 위상 정렬합니다.
      * 순환 의존성이 발견되면 false를 반환합니다.
+     *
+     * @see https://en.wikipedia.org/wiki/Topological_sorting
      */
     [[nodiscard]] bool SortSubSystems();
 };
