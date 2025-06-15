@@ -2,6 +2,7 @@
 
 import SimpleEngine.Logging;
 import SimpleEngine.Interfaces.ISubsystem;
+import SimpleEngine.Interfaces.IUpdatable;
 import std;
 
 
@@ -17,6 +18,9 @@ private:
 
     // 초기화/종료 순서 관리를 위한 벡터
     std::vector<ISubsystem*> sorted_sub_systems;
+
+    // Update가 필요한 Subsystem 목록
+    std::vector<IUpdatable*> updatable_systems;
 
 public:
     Engine() = default;
@@ -49,6 +53,11 @@ public:
         T* sub_system_ptr = sub_system.get();
 
         sub_systems[type_id] = std::move(sub_system);
+
+        if constexpr (std::derived_from<T, IUpdatable>)
+        {
+            updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
+        }
 
         ConsoleLog(ELogLevel::Info, u8"Registered Subsystem: {}", type_id.name());
         return sub_system_ptr;

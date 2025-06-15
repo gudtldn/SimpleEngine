@@ -67,7 +67,7 @@ void Engine::ReleaseAllSubsystems()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void Engine::UpdateAllSubsystems(float delta_time)
 {
-    for (ISubsystem* sub_system : sorted_sub_systems)
+    for (IUpdatable* sub_system : updatable_systems)
     {
         sub_system->Update(delta_time);
     }
