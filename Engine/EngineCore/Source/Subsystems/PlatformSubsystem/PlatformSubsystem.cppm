@@ -10,7 +10,7 @@ import <SDL3/SDL_init.h>;
 
 export class PlatformSubsystem : public ISubsystem
 {
-    struct WindowInfo
+    struct WindowDesc
     {
         std::u8string title;
         uint32 width;
@@ -56,6 +56,6 @@ public:
 private:
     const uint32 sdl_init_flags;
 
-    std::optional<WindowInfo> window_info = std::nullopt;
+    std::optional<WindowDesc> window_info = std::nullopt;
     SDL_Window* window = nullptr;
 };
