@@ -44,6 +44,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigTest.cpp"/>
+    <ClCompile Include="FunctionTest.cpp"/>
     <ClCompile Include="MainTest.cpp"/>
   </ItemGroup>
     <ItemGroup>
