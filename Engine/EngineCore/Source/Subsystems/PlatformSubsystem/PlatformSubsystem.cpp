@@ -29,31 +29,28 @@ bool PlatformSubsystem::Initialize()
     }
     ConsoleLog(ELogLevel::Info, u8"SDL_Init succeeded");
 
-    // TODO: 나중에 다중모니터 지원하도록 변경
-    ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
-    if (!window_info.has_value())
+    if (window_info.has_value())
     {
-        ConsoleLog(ELogLevel::Error, u8"Window info is not set! Please call PrepareWindow before InitializeEngine");
-        return false;
+        ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
+
+        // TODO: 나중에 다중모니터 지원하도록 변경
+        const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+        const char* window_title_c = reinterpret_cast<const char*>(window_info->title.c_str());
+        window = SDL_CreateWindow(
+            window_title_c,
+            static_cast<int>(static_cast<float>(window_info->width) * main_display_scale),
+            static_cast<int>(static_cast<float>(window_info->height) * main_display_scale),
+            window_info->sdl_window_flags
+        );
+
+        if (!window)
+        {
+            ConsoleLog(ELogLevel::Error, u8"SDL_CreateWindow failed: {}", SDL_GetError());
+            return false;
+        }
+        SDL_ShowWindow(window);
+        ConsoleLog(ELogLevel::Info, u8"Window initialized");
     }
-
-    const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-    const char* window_title_c = reinterpret_cast<const char*>(window_info->title.c_str());
-    window = SDL_CreateWindow(
-        window_title_c,
-        static_cast<int>(static_cast<float>(window_info->width) * main_display_scale),
-        static_cast<int>(static_cast<float>(window_info->height) * main_display_scale),
-        window_info->sdl_window_flags
-    );
-
-    if (!window)
-    {
-        ConsoleLog(ELogLevel::Error, u8"SDL_CreateWindow failed: {}", SDL_GetError());
-        return false;
-    }
-    SDL_ShowWindow(window);
-    ConsoleLog(ELogLevel::Info, u8"Window initialized");
-
     return true;
 }
 
