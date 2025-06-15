@@ -1,12 +1,12 @@
 ﻿export module SimpleEngine.Subsystems.SdlSubsystem;
 
 import SimpleEngine.Platform.Types;
-import SimpleEngine.Core.ISubSystem;
+import SimpleEngine.Core.ISubsystem;
 import std;
 import <SDL3/SDL.h>;
 
 
-export class SdlSubsystem : public ISubSystem
+export class [[deprecated("Use PlatformSubsystem instead")]] SdlSubsystem : public ISubsystem
 {
 public:
     SdlSubsystem() = default;
