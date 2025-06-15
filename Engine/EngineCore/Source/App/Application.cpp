@@ -9,6 +9,7 @@ import SimpleEngine.Config;
 import <cassert>;
 import <SDL3/SDL.h>;
 import <SDL3/SDL_init.h>;
+import <SDL3/SDL_video.h>;
 
 
 double Application::CurrentTime = 0.0;

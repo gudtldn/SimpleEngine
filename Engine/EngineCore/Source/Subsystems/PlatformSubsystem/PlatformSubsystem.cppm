@@ -1,9 +1,11 @@
 ﻿export module SimpleEngine.Subsystems.PlatformSubsystem;
+export import :PlatformEventDispatcher;
 
 import SimpleEngine.Platform.Types;
 import SimpleEngine.Core.ISubsystem;
 import std;
 import <SDL3/SDL.h>;
+import <SDL3/SDL_init.h>;
 
 
 export class PlatformSubsystem : public ISubsystem
