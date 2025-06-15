@@ -80,7 +80,6 @@ public:
     [[nodiscard]] SubscriptionHandle Subscribe(EventPriority priority, EventCallback callback);
     void Unsubscribe(SubscriptionHandle handle);
 
-private:
     void Dispatch(PlatformEvent& event);
 
 private:
