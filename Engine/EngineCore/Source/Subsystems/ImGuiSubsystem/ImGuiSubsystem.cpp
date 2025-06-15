@@ -1,17 +1,60 @@
-﻿module SimpleEngine.Subsystems.ImGuiSubsystem;
+﻿module;
+#include <imgui.h>
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_sdlgpu3.h>
+module SimpleEngine.Subsystems.ImGuiSubsystem;
 
+import SimpleEngine.Subsystems;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
+import std;
+import <SDL3/SDL.h>;
 
 
 bool ImGuiSubsystem::Initialize()
 {
-    // TODO: Implements this
+    const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+    const RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>();
+
+    SDL_Window* window = platform_subsystem->GetWindow();
+    SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
+
+    // ImGui 초기화
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& IO = ImGui::GetIO();
+    IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    IO.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+    IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL3_InitForSDLGPU(window);
+    ImGui_ImplSDLGPU3_InitInfo init_info = {
+        .Device = gpu_device,
+        .ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_device, window),
+        .MSAASamples = SDL_GPU_SAMPLECOUNT_1,
+    };
+    ImGui_ImplSDLGPU3_Init(&init_info);
+
+    // Platform Event 등록
+    platform_subsystem->GetEventDispatcher().Subscribe(
+        EventPriority::High, [this](const PlatformEvent& event)
+        {
+            ImGui_ImplSDL3_ProcessEvent(&event.SdlEvent);
+        }
+    );
+
     return true;
 }
 
 void ImGuiSubsystem::Release()
 {
+    ImGui_ImplSDLGPU3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
 }
 
 std::vector<std::type_index> ImGuiSubsystem::GetDependencies() const

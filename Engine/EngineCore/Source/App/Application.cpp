@@ -2,7 +2,7 @@
 
 #define RETURN_IF_FAILED(x) if (!(x)) { return; }
 
-import SimpleEngine.Subsystems.SdlSubsystem;
+import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Logging;
 import SimpleEngine.Config;
 
@@ -115,12 +115,6 @@ void Application::MainLoop()
     }
 }
 
-void Application::RegisterSubsystems()
-{
-    SdlSubsystem* sdl_sys = engine_instance->RegisterSubsystem<SdlSubsystem>();
-    sdl_sys->SetSdlInitFlags(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
-}
-
 bool Application::PreInitialize()
 {
     engine_instance = std::make_unique<Engine>();
@@ -130,6 +124,11 @@ bool Application::PreInitialize()
         return false;
     }
     return true;
+}
+
+void Application::RegisterSubsystems()
+{
+    engine_instance->RegisterSubsystem<PlatformSubsystem>();
 }
 
 bool Application::InitializeEngine()
@@ -144,59 +143,23 @@ bool Application::InitializeEngine()
 
 bool Application::PostInitialize()
 {
-    using namespace se::config;
-
-    const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
-    const std::filesystem::path config_path = solution_path / u8"Config/EngineConfig.toml";
-
-    ParseResult result = Config::ReadConfig(config_path);
-    if (!result.has_value())
-    {
-        ConsoleLog(ELogLevel::Error, u8"Failed to read config file: {}", result.error().description());
-        return false;
-    }
-
-    Config& config = result.value();
-    SdlSubsystem* sdl_sys = engine_instance->GetSubsystem<SdlSubsystem>();
-
-    const std::u8string window_title = config.GetValueOrStore<std::u8string>(u8"window.title", u8"SimpleEngine");
-    const int32 window_width = config.GetValueOrStore<int32>(u8"window.width", 1280);
-    const int32 window_height = config.GetValueOrStore<int32>(u8"window.height", 720);
-    if (!config.WriteConfig(config_path))
-    {
-        ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.generic_u8string());
-        return false;
-    }
-
-    if (!sdl_sys->CreateWindowAndGpuDevice(window_title, window_width, window_height, SDL_WINDOW_RESIZABLE))
-    {
-        return false;
-    }
-    SDL_SetWindowPosition(sdl_sys->GetWindow(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    SDL_ShowWindow(sdl_sys->GetWindow());
-
+    const PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
+    platform_sys->GetEventDispatcher().Subscribe(
+        EventPriority::High, [this](const PlatformEvent& event)
+        {
+            if (event.SdlEvent.type == SDL_EVENT_QUIT)
+            {
+                RequestQuit();
+            }
+        }
+    );
     return true;
 }
 
 void Application::ProcessPlatformEvents()
 {
-    SdlSubsystem* sdl_sys = engine_instance->GetSubsystem<SdlSubsystem>();
-    std::vector<SDL_Event> events;
-    sdl_sys->PollEvents(events);
-
-    for (const SDL_Event& event : events)
-    {
-        switch (event.type)
-        {
-        case SDL_EVENT_QUIT:
-        {
-            RequestQuit();
-            break;
-        }
-        default:
-            break;
-        }
-    }
+    PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
+    platform_sys->PollEvents();
 }
 
 void Application::Update(float delta_time)

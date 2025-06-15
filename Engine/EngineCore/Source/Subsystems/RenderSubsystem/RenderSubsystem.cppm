@@ -18,4 +18,5 @@ public:
 
 private:
     SDL_GPUDevice* gpu_device = nullptr;
+    SDL_Window* cached_window = nullptr;
 };
