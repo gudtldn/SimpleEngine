@@ -60,7 +60,7 @@
     <Link>
       <!-- 공통 링커 설정 (예: SDL3 라이브러리 경로) -->
       <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <!-- 특정 라이브러리는 각 프로젝트에서 지정 -->
+      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 
