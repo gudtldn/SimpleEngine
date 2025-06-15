@@ -72,7 +72,7 @@ void PlatformSubsystem::PollEvents()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        PlatformEvent platform_event = { .SdlEvent = event };
+        PlatformEvent platform_event = { .sdl_event = event };
         dispatcher.Dispatch(platform_event);
     }
 }

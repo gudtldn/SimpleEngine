@@ -10,31 +10,31 @@ export class SubscriptionHandle
 {
     friend struct std::hash<SubscriptionHandle>;
 
-    uint64 HandleId;
+    uint64 handle_id;
 
     explicit SubscriptionHandle()
-        : HandleId(0)
+        : handle_id(0)
     {
     }
 
-    explicit SubscriptionHandle(uint64 HandleId)
-        : HandleId(HandleId)
+    explicit SubscriptionHandle(uint64 in_handle_id)
+        : handle_id(in_handle_id)
     {
     }
 
     static uint64 GenerateNewID()
     {
-        static std::atomic<uint64> NextHandleId = 1;
-        uint64 Result = NextHandleId.fetch_add(1, std::memory_order_relaxed);
+        static std::atomic<uint64> next_handle_id = 1;
+        uint64 result = next_handle_id.fetch_add(1, std::memory_order_relaxed);
 
         // Overflow가 발생했다면
-        if (Result == 0)
+        if (result == 0)
         {
             // 한번 더 더하기
-            Result = NextHandleId.fetch_add(1, std::memory_order_relaxed);
+            result = next_handle_id.fetch_add(1, std::memory_order_relaxed);
         }
 
-        return Result;
+        return result;
     }
 
 public:
@@ -43,8 +43,8 @@ public:
         return SubscriptionHandle{GenerateNewID()};
     }
 
-    bool IsValid() const { return HandleId != 0; }
-    void Invalidate() { HandleId = 0; }
+    bool IsValid() const { return handle_id != 0; }
+    void Invalidate() { handle_id = 0; }
 
     std::strong_ordering operator<=>(const SubscriptionHandle&) const = default;
 };
@@ -54,7 +54,7 @@ struct std::hash<SubscriptionHandle>
 {
     size_t operator()(const SubscriptionHandle& handle) const noexcept
     {
-        return std::hash<uint64>{}(handle.HandleId);
+        return std::hash<uint64>{}(handle.handle_id);
     }
 };
 
@@ -68,8 +68,8 @@ export enum class EventPriority : uint8
 
 export struct PlatformEvent
 {
-    SDL_Event& SdlEvent;
-    bool Handled;
+    SDL_Event& sdl_event;
+    bool handled;
 };
 
 export class EventDispatcher
@@ -85,10 +85,10 @@ public:
 private:
     struct Subscription
     {
-        EventPriority Priority;
-        EventCallback Callback;
+        EventPriority priority;
+        EventCallback callback;
     };
 
-    std::unordered_map<SubscriptionHandle, Subscription> Subscriptions;
-    std::map<EventPriority, std::vector<SubscriptionHandle>> PriorityMap;
+    std::unordered_map<SubscriptionHandle, Subscription> subscriptions;
+    std::map<EventPriority, std::vector<SubscriptionHandle>> priority_map;
 };

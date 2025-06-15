@@ -5,10 +5,10 @@ import :PlatformEventDispatcher;
 SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallback callback)
 {
     const SubscriptionHandle handle = SubscriptionHandle::CreateHandle();
-    PriorityMap[priority].push_back(handle);
-    Subscriptions[handle] = {
-        .Priority = priority,
-        .Callback = std::move(callback)
+    priority_map[priority].push_back(handle);
+    subscriptions[handle] = {
+        .priority = priority,
+        .callback = std::move(callback)
     };
     return handle;
 }
@@ -16,34 +16,34 @@ SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallb
 void EventDispatcher::Unsubscribe(SubscriptionHandle handle)
 {
     // 유효하지 않은 Handle이면 return
-    if (!handle.IsValid() || !Subscriptions.contains(handle))
+    if (!handle.IsValid() || !subscriptions.contains(handle))
     {
         return;
     }
 
-    const EventPriority priority = Subscriptions[handle].Priority;
+    const EventPriority priority = subscriptions[handle].priority;
 
-    Subscriptions.erase(handle);
-    if (PriorityMap.contains(priority))
+    subscriptions.erase(handle);
+    if (priority_map.contains(priority))
     {
         // 나중에 swap_remove 고민해보기
-        auto& handle_vector = PriorityMap[priority];
+        auto& handle_vector = priority_map[priority];
         std::erase(handle_vector, handle);
     }
 }
 
 void EventDispatcher::Dispatch(PlatformEvent& event)
 {
-    for (const auto& handle_vector : PriorityMap | std::views::values)
+    for (const auto& handle_vector : priority_map | std::views::values)
     {
         for (const auto& handle : handle_vector)
         {
             // Unsubscribe 되었지만 아직 PriorityMap에서 제거되지 않은 경우를 대비
-            if (Subscriptions.contains(handle))
+            if (subscriptions.contains(handle))
             {
-                Subscriptions[handle].Callback(event);
+                subscriptions[handle].callback(event);
 
-                if (event.Handled)
+                if (event.handled)
                 {
                     return;
                 }

@@ -147,7 +147,7 @@ bool Application::PostInitialize()
     platform_sys->GetEventDispatcher().Subscribe(
         EventPriority::High, [this](const PlatformEvent& event)
         {
-            if (event.SdlEvent.type == SDL_EVENT_QUIT)
+            if (event.sdl_event.type == SDL_EVENT_QUIT)
             {
                 RequestQuit();
             }

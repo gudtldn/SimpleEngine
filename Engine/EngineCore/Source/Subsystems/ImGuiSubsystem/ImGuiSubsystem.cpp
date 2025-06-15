@@ -43,7 +43,7 @@ bool ImGuiSubsystem::Initialize()
     platform_subsystem->GetEventDispatcher().Subscribe(
         EventPriority::High, [this](const PlatformEvent& event)
         {
-            ImGui_ImplSDL3_ProcessEvent(&event.SdlEvent);
+            ImGui_ImplSDL3_ProcessEvent(&event.sdl_event);
         }
     );
 
