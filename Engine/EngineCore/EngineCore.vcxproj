@@ -60,6 +60,7 @@
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Platform\PlatformTypes.cppm" />
+    <ClCompile Include="Source\Prelude.cppm"/>
     <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformEventDispatcher.cpp"/>
