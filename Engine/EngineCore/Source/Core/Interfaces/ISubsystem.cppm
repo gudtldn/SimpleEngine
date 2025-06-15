@@ -1,7 +1,4 @@
 ﻿export module SimpleEngine.Interfaces.ISubsystem;
-
-import SimpleEngine.Platform.Types;
-import SimpleEngine.Utils;
 import std;
 
 
@@ -15,10 +12,6 @@ public:
 
     [[nodiscard]] virtual bool Initialize() = 0;
     virtual void Release() = 0;
-
-    virtual void Update([[maybe_unused]] float delta_time)
-    {
-    }
 
     virtual std::vector<std::type_index> GetDependencies() const
     {
