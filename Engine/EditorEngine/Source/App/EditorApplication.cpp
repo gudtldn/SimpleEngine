@@ -4,6 +4,7 @@ import SimpleEngine.Config;
 import SimpleEngine.Logging;
 import SimpleEngine.Platform.Types;
 import SimpleEngine.Subsystems.PlatformSubsystem;
+import SimpleEngine.Subsystems.RenderSubsystem;
 import std;
 import <SDL3/SDL_gpu.h>;
 
@@ -44,6 +45,15 @@ void EditorApplication::RegisterSubsystems()
             ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.generic_u8string());
             return;
         }
+    }
+
+    // GPU Device 초기화
+    if (RenderSubsystem* render_subsystem = engine_instance->RegisterSubsystem<RenderSubsystem>())
+    {
+        render_subsystem->ConfigureSwapchain(
+            SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+            SDL_GPU_PRESENTMODE_MAILBOX
+        );
     }
 }
 
