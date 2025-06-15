@@ -95,7 +95,47 @@ void RenderSubsystem::UnregisterRenderableSystem(IRenderable* renderable_system)
     std::erase_if(renderable_systems, [renderable_system](const IRenderable* system) { return system == renderable_system; });
 }
 
-void RenderSubsystem::RenderFrame()
+void RenderSubsystem::RenderFrame() const
 {
-    // TODO: Implements this
+    // TODO: 렌더링 순서 생각해야함
+
+    // Command Buffer 가져오기
+    SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);
+    if (!command_buffer)
+    {
+        ConsoleLog(ELogLevel::Error, u8"SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
+        return;
+    }
+
+    // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
+    SDL_GPUTexture* swapchain_texture;
+    SDL_AcquireGPUSwapchainTexture(command_buffer, cached_window, &swapchain_texture, nullptr, nullptr);
+
+    if (swapchain_texture)
+    {
+        constexpr SDL_FColor clear_color = { 0.25f, 0.25f, 0.25f, 1.0f };
+
+        SDL_GPUColorTargetInfo target_info = {};
+        target_info.texture = swapchain_texture;
+        target_info.clear_color = clear_color;
+        target_info.load_op = SDL_GPU_LOADOP_CLEAR;
+        target_info.store_op = SDL_GPU_STOREOP_STORE;
+        target_info.mip_level = 0;
+        target_info.layer_or_depth_plane = 0;
+        target_info.cycle = false;
+
+        SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
+        {
+            // 등록된 모든 렌더러들의 Render() 함수를 호출하여 그리게 함
+            // RenderFrameContext context{ .CommandBuffer = command_buffer };
+            // for (IRenderer* renderer : registered_renderers)
+            // {
+            //     renderer->Render(context);
+            // }
+        }
+        SDL_EndGPURenderPass(render_pass);
+    }
+
+    // Command Buffer 제출
+    SDL_SubmitGPUCommandBuffer(command_buffer);
 }

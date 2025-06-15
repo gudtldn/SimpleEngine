@@ -35,7 +35,7 @@ public:
     /**
      * 등록된 Subsystem을 렌더링 합니다.
      */
-    void RenderFrame();
+    void RenderFrame() const;
 
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
