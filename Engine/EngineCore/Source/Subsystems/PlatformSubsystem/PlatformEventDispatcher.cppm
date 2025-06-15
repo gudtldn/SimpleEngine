@@ -77,7 +77,7 @@ export class EventDispatcher
 public:
     using EventCallback = Function<void(PlatformEvent&)>;
 
-    [[nodiscard]] SubscriptionHandle Subscribe(EventPriority priority, EventCallback callback);
+    SubscriptionHandle Subscribe(EventPriority priority, EventCallback callback);
     void Unsubscribe(SubscriptionHandle handle);
 
     void Dispatch(PlatformEvent& event);
