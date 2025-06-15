@@ -164,7 +164,7 @@ void Application::ProcessPlatformEvents()
 
 void Application::Update(float delta_time)
 {
-    engine_instance->UpdateAllSubsystems(delta_time);
+    engine_instance->UpdateFrame(delta_time);
 }
 
 void Application::PreRender()

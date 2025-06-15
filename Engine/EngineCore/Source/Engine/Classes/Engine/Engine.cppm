@@ -87,7 +87,7 @@ public:
     void Release();
 
     /** 모든 Subsystem에 대해 위상 정렬된 순서대로 Update을 호출합니다. */
-    void UpdateAllSubsystems(float delta_time);
+    void UpdateFrame(float delta_time);
 
 private:
     /** 모든 Subsystem을 위상 정렬된 순서대로 초기화 합니다. */
