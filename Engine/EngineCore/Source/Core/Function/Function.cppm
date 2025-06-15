@@ -4,7 +4,7 @@ import std;
 
 constexpr size_t SBO_BUFFER_SIZE = sizeof(void*) * 3;
 
-template <typename Signature>
+export template <typename Signature>
 struct Function;
 
 export template <typename ReturnType, typename... ParamsType>
@@ -24,6 +24,7 @@ private:
 
         virtual ReturnType Invoke(ParamsType...) = 0;
 
+        virtual ICallable* Clone() const = 0;
         virtual void CloneTo(void* dest) const = 0;
         virtual void MoveTo(void* dest) noexcept = 0;
     };
@@ -42,6 +43,11 @@ private:
         virtual ReturnType Invoke(ParamsType... args) override
         {
             return std::invoke(functor, std::forward<ParamsType>(args)...);
+        }
+
+        virtual ICallable* Clone() const override
+        {
+            return new CallableImpl(functor);
         }
 
         virtual void CloneTo(void* dest) const override
@@ -82,35 +88,63 @@ public:
         {
             if (other.IsOnHeap())
             {
-                Storage.Heap_Storage = new CallableImpl(*other.Storage.Heap_Storage);
-                CallablePtr = Storage.Heap_Storage;
+                CallablePtr = other.CallablePtr->Clone();
+                Storage.Heap_Storage = CallablePtr;
             }
             else
             {
-                other.CallablePtr->CloneTo(Storage.SBO_Storage);
+                other.CallablePtr->CloneTo(&Storage.SBO_Storage);
                 CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
             }
         }
     }
 
     Function(Function&& other) noexcept
-        : Storage(other.Storage)
-        , CallablePtr(other.CallablePtr)
     {
-        other.Storage.Heap_Storage = nullptr;
-        other.CallablePtr = nullptr;
+        if (other.CallablePtr)
+        {
+            if (other.IsOnHeap())
+            {
+                Storage.Heap_Storage = other.Storage.Heap_Storage;
+                CallablePtr = other.CallablePtr;
+            }
+            else
+            {
+                other.CallablePtr->MoveTo(&Storage.SBO_Storage);
+                CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
+            }
+
+            other.Storage.Heap_Storage = nullptr;
+            other.CallablePtr = nullptr;
+        }
     }
 
     Function& operator=(const Function& other)
     {
-        Function(other).Swap(*this);
+        Function temp(other);
+        std::swap(temp, *this);
         return *this;
     }
 
     Function& operator=(Function&& other) noexcept
     {
         Reset();
-        Swap(other);
+        if (other.CallablePtr)
+        {
+            if (other.IsOnHeap())
+            {
+                Storage.Heap_Storage = other.Storage.Heap_Storage;
+                CallablePtr = other.CallablePtr;
+            }
+            else
+            {
+                other.CallablePtr->MoveTo(&Storage.SBO_Storage);
+                CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
+            }
+
+            other.Storage.Heap_Storage = nullptr;
+            other.CallablePtr = nullptr;
+        }
         return *this;
     }
 
@@ -154,22 +188,6 @@ public:
         return CallablePtr != nullptr;
     }
 
-    void Swap(Function& other) noexcept
-    {
-        std::swap(Storage, other.Storage);
-        std::swap(CallablePtr, other.CallablePtr);
-
-        if (CallablePtr && !IsOnHeap())
-        {
-            CallablePtr = reinterpret_cast<ICallable*>(&Storage.sbo_storage);
-        }
-
-        if (other.CallablePtr && !other.IsOnHeap())
-        {
-            other.CallablePtr = reinterpret_cast<ICallable*>(&other.Storage.sbo_storage);
-        }
-    }
-
 private:
     bool IsOnHeap() const noexcept
     {
@@ -180,10 +198,13 @@ private:
     {
         if (CallablePtr)
         {
-            std::destroy_at(CallablePtr);
             if (IsOnHeap())
             {
-                ::operator delete(CallablePtr);
+                delete CallablePtr;
+            }
+            else
+            {
+                std::destroy_at(CallablePtr);
             }
             CallablePtr = nullptr;
         }
