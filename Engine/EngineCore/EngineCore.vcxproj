@@ -70,6 +70,7 @@
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\SdlSubsystem\SdlSubsystem.cpp" />
     <ClCompile Include="Source\Subsystems\SdlSubsystem\SdlSubsystem.cppm" />
+    <ClCompile Include="Source\Subsystems\Subsystems.cppm"/>
     <ClCompile Include="Source\Utils\SimpleEngine.Utils.cppm" />
     <ClCompile Include="Source\Utils\StringUtils.cpp" />
     <ClCompile Include="Source\Utils\StringUtils.cppm" />
