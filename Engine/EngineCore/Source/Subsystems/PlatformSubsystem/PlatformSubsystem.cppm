@@ -57,7 +57,7 @@ public:
     void PollEvents();
 
 public:
-    SDL_Window* GetWindow() const { return window; }
+    [[nodiscard]] SDL_Window* GetWindow() const { return window; }
 
 private:
     const uint32 sdl_init_flags;
