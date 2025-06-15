@@ -48,7 +48,13 @@ public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
 
-    void PollEvents(std::vector<SDL_Event>& out_events);
+    EventDispatcher& GetEventDispatcher() const
+    {
+        static EventDispatcher platform_event_dispatcher;
+        return platform_event_dispatcher;
+    }
+
+    void PollEvents();
 
 public:
     SDL_Window* GetWindow() const { return window; }

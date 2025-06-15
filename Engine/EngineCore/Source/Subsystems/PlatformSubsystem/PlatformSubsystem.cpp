@@ -65,13 +65,14 @@ void PlatformSubsystem::Release()
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void PlatformSubsystem::PollEvents(std::vector<SDL_Event>& out_events)
+void PlatformSubsystem::PollEvents()
 {
-    // TODO: Event Dispatcher 만들기
-    out_events.clear();
+    EventDispatcher& dispatcher = GetEventDispatcher();
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        out_events.push_back(event);
+        PlatformEvent platform_event = { .SdlEvent = event };
+        dispatcher.Dispatch(platform_event);
     }
 }
