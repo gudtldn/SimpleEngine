@@ -100,9 +100,7 @@ void Application::MainLoop()
 
         Update(static_cast<float>(DeltaTime));
 
-        PreRender();
         Render();
-        PostRender();
 
         double frame_duration;
         do
@@ -167,15 +165,7 @@ void Application::Update(float delta_time)
     engine_instance->UpdateFrame(delta_time);
 }
 
-void Application::PreRender()
-{
-}
-
-void Application::Render()
-{
-}
-
-void Application::PostRender()
+void Application::Render() const
 {
 }
 

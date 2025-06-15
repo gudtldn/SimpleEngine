@@ -57,7 +57,7 @@ void EditorApplication::RegisterSubsystems()
     }
 }
 
-void EditorApplication::Render()
+void EditorApplication::Render() const
 {
     const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
     render_subsystem->RenderFrame();
