@@ -2,7 +2,7 @@
 export import :PlatformEventDispatcher;
 
 import SimpleEngine.Platform.Types;
-import SimpleEngine.Core.ISubsystem;
+import SimpleEngine.Interfaces.ISubsystem;
 import std;
 import <SDL3/SDL.h>;
 import <SDL3/SDL_init.h>;

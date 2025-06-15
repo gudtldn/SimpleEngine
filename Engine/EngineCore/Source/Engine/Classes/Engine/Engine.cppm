@@ -1,7 +1,7 @@
 ﻿export module SimpleEngine.Engine;
 
 import SimpleEngine.Logging;
-import SimpleEngine.Core.ISubsystem;
+import SimpleEngine.Interfaces.ISubsystem;
 import std;
 
 

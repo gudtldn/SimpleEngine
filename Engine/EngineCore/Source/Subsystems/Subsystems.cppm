@@ -1,5 +1,5 @@
 ﻿export module SimpleEngine.Subsystems;
-export import SimpleEngine.Core.ISubsystem;
+export import SimpleEngine.Interfaces.ISubsystem;
 
 import SimpleEngine.App;
 import std;

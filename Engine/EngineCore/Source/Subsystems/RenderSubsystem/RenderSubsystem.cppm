@@ -1,6 +1,6 @@
 ﻿export module SimpleEngine.Subsystems.RenderSubsystem;
 
-import SimpleEngine.Core.ISubsystem;
+import SimpleEngine.Interfaces.ISubsystem;
 import std;
 import <SDL3/SDL.h>;
 

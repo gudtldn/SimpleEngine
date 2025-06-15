@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core.ISubsystem;
+﻿export module SimpleEngine.Interfaces.ISubsystem;
 
 import SimpleEngine.Platform.Types;
 import SimpleEngine.Utils;

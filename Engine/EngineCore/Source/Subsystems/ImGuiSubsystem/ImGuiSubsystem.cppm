@@ -1,6 +1,6 @@
 ﻿export module SimpleEngine.Subsystems.ImGuiSubsystem;
 
-import SimpleEngine.Core.ISubsystem;
+import SimpleEngine.Interfaces.ISubsystem;
 import std;
 
 
