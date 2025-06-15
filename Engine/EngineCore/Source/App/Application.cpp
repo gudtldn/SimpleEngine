@@ -185,7 +185,10 @@ void Application::PreRelease()
 
 void Application::ReleaseEngine()
 {
-    engine_instance->Release();
+    if (is_initialized)
+    {
+        engine_instance->Release();
+    }
 }
 
 void Application::PostRelease()
