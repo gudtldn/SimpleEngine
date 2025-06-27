@@ -126,7 +126,7 @@ void RenderSubsystem::RenderFrame() const
 
         SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
         {
-            // 등록된 모든 렌더러들의 Render() 함수를 호출하여 그리게 함
+            // TODO: 등록된 모든 렌더러들의 Render() 함수를 호출하여 그리게 함
             // RenderFrameContext context{ .CommandBuffer = command_buffer };
             // for (IRenderer* renderer : registered_renderers)
             // {
