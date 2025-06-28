@@ -34,15 +34,14 @@ void Engine::Release()
 bool Engine::InitializeAllSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Initializing Subsystems...");
-    for (ISubsystem* sub_system : sorted_sub_systems)
+    for (auto [n, sub_system] : sorted_sub_systems | std::views::enumerate)
     {
         if (!sub_system->Initialize())
         {
             const std::u8string sub_system_name = se::string_utils::ToU8String(typeid(*sub_system).name());
             ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
-            const auto current_it = std::ranges::find(sorted_sub_systems, sub_system);
-            const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), current_it);
+            const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), sorted_sub_systems.begin() + n);
             for (ISubsystem* rev_subsystem : subrange | std::views::reverse)
             {
                 rev_subsystem->Release();
