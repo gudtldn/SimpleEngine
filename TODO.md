@@ -9,6 +9,8 @@
 - [ ] Log Backend 만들기
   - Log On/Off 가능하게
 - [ ] Log Category 만들기
+- [ ] Log도 Subsystem으로 할까
+- [ ] ISubsystem에 GetSubsystem을 추가해서 Dependency검사후 주는 방식으로 하는것도 나쁘지 않을듯
 - [ ] cmake로 크로스 플랫폼 빌드 구성하기
 - [ ] 나중에 SDL3를 submodule로 추가하기
 
