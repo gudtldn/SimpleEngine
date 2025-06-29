@@ -124,6 +124,7 @@ void RenderSubsystem::RenderFrame() const
         target_info.layer_or_depth_plane = 0;
         target_info.cycle = false;
 
+        // TODO: IRenderPass를 돌아가면서 렌더링 하도록 하기
         SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
         {
             // TODO: 등록된 모든 렌더러들의 Render() 함수를 호출하여 그리게 함
