@@ -34,6 +34,13 @@ bool ImGuiSubsystem::Initialize()
 
     ImGui::StyleColorsDark();
 
+    // TODO: 나중에 다중모니터 지원하도록 변경
+    const float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.ScaleAllSizes(main_scale);
+    style.FontScaleDpi = main_scale;
+
     ImGui_ImplSDL3_InitForSDLGPU(window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {
         .Device = gpu_device,
@@ -61,6 +68,14 @@ void ImGuiSubsystem::Release()
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
+}
+
+void ImGuiSubsystem::Update([[maybe_unused]] float delta_time)
+{
+    // ImGui Update
+    ImGui_ImplSDLGPU3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
 }
 
 std::vector<std::type_index> ImGuiSubsystem::GetDependencies() const
