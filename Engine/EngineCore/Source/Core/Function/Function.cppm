@@ -177,7 +177,6 @@ public:
     {
         if (!CallablePtr)
         {
-            // TODO: 추후에 std::expected로 바꿀지 고민
             throw std::bad_function_call();
         }
         return CallablePtr->Invoke(std::forward<ParamsType>(args)...);
