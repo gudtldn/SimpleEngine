@@ -1,5 +1,6 @@
 ﻿export module SimpleEngine.Platform.Types;
-import std;
+import <cstddef>;
+import <cstdint>;
 
 export
 {
