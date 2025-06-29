@@ -3,7 +3,7 @@ import SimpleEngine.App;
 import <SDL3/SDL.h>;
 
 
-export class EditorApplication : public Application
+export class EditorApplication : public se::app::Application
 {
 public:
     EditorApplication();

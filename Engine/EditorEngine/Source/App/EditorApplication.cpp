@@ -10,7 +10,7 @@ import <SDL3/SDL_gpu.h>;
 
 
 EditorApplication::EditorApplication()
-    : Application(EApplicationMode::Editor)
+    : Application(se::app::EApplicationMode::Editor)
 {
 }
 

@@ -4,8 +4,9 @@ import SimpleEngine.Engine;
 import SimpleEngine.Utils;
 import std;
 
-
-export enum class EApplicationMode : uint8
+export namespace se::app
+{
+enum class EApplicationMode : uint8
 {
     GameClient,
     Editor,
@@ -15,7 +16,7 @@ export enum class EApplicationMode : uint8
 /**
  * 애플리케이션의 전체 수명 주기와 전역 상태를 관리하는 기본 클래스
  */
-export class Application
+class Application
 {
 protected:
     std::unique_ptr<Engine> engine_instance;
@@ -114,3 +115,4 @@ private:
     bool is_running = false;
     bool quit_requested = false;
 };
+}

@@ -12,6 +12,8 @@ import <SDL3/SDL_init.h>;
 import <SDL3/SDL_video.h>;
 
 
+namespace se::app
+{
 double Application::CurrentTime = 0.0;
 double Application::LastTime = 0.0;
 double Application::DeltaTime = 1.0 / 60.0;
@@ -183,4 +185,5 @@ void Application::ReleaseEngine()
 
 void Application::PostRelease()
 {
+}
 }

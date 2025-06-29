@@ -14,7 +14,7 @@ export template <typename Subsystem>
     requires std::derived_from<Subsystem, ISubsystem>
 Subsystem* GetSubsystem()
 {
-    return Application::Get().GetEngine()->GetSubsystem<Subsystem>();
+    return se::app::Application::Get().GetEngine()->GetSubsystem<Subsystem>();
 }
 
 /**
@@ -27,5 +27,5 @@ export template <typename... Subsystems>
     requires (std::derived_from<Subsystems, ISubsystem> && ...)
 std::tuple<Subsystems*...> GetSubsystems()
 {
-    return { Application::Get().GetEngine()->GetSubsystem<Subsystems>()... };
+    return { GetSubsystem<Subsystems>()... };
 }
