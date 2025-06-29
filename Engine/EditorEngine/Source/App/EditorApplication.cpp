@@ -30,6 +30,7 @@ void EditorApplication::RegisterSubsystems()
         if (!result.has_value())
         {
             ConsoleLog(ELogLevel::Error, u8"Failed to read config file: {}", result.error().description());
+            return;
         }
 
         Config& config = result.value();
