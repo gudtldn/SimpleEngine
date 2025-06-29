@@ -52,7 +52,6 @@
     <ClCompile Include="Source\Core\CoreTypes.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
     <ClCompile Include="Source\Core\Function\Function.cppm"/>
-    <ClCompile Include="Source\Core\Interfaces\IRenderable.cppm"/>
     <ClCompile Include="Source\Core\Interfaces\IRenderPass.cppm"/>
     <ClCompile Include="Source\Core\Interfaces\ISubsystem.cppm" />
     <ClCompile Include="Source\Core\Interfaces\IUpdatable.cppm"/>

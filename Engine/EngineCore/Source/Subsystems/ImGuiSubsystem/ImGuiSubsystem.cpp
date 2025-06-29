@@ -14,10 +14,7 @@ import <SDL3/SDL.h>;
 bool ImGuiSubsystem::Initialize()
 {
     const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
-    RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>();
-
-    // Render Subsystem에 등록
-    render_subsystem->RegisterRenderableSystem(this);
+    const RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>();
 
     SDL_Window* window = platform_subsystem->GetWindow();
     SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
@@ -62,20 +59,9 @@ bool ImGuiSubsystem::Initialize()
 
 void ImGuiSubsystem::Release()
 {
-    RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>();
-    render_subsystem->UnregisterRenderableSystem(this);
-
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-}
-
-void ImGuiSubsystem::Update([[maybe_unused]] float delta_time)
-{
-    // ImGui Update
-    ImGui_ImplSDLGPU3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
 }
 
 std::vector<std::type_index> ImGuiSubsystem::GetDependencies() const

@@ -85,16 +85,6 @@ void RenderSubsystem::ConfigureSwapchain(SDL_GPUSwapchainComposition in_composit
     present_mode = in_present_mode;
 }
 
-void RenderSubsystem::RegisterRenderableSystem(IRenderable* renderable_system)
-{
-    renderable_systems.push_back(renderable_system);
-}
-
-void RenderSubsystem::UnregisterRenderableSystem(IRenderable* renderable_system)
-{
-    std::erase_if(renderable_systems, [renderable_system](const IRenderable* system) { return system == renderable_system; });
-}
-
 void RenderSubsystem::RenderFrame() const
 {
     // TODO: 렌더링 순서 생각해야함
@@ -139,4 +129,16 @@ void RenderSubsystem::RenderFrame() const
 
     // Command Buffer 제출
     SDL_SubmitGPUCommandBuffer(command_buffer);
+}
+
+void RenderSubsystem::BeginFrame() const
+{
+}
+
+void RenderSubsystem::EndFrame() const
+{
+}
+
+void RenderSubsystem::SubmitCommands() const
+{
 }
