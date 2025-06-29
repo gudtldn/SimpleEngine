@@ -2,7 +2,7 @@
 import :PlatformEventDispatcher;
 
 
-SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallback callback)
+SubscriptionHandle PlatformEventDispatcher::Subscribe(EventPriority priority, EventCallback callback)
 {
     const SubscriptionHandle handle = SubscriptionHandle::CreateHandle();
     priority_map[priority].push_back(handle);
@@ -13,7 +13,7 @@ SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallb
     return handle;
 }
 
-void EventDispatcher::Unsubscribe(SubscriptionHandle handle)
+void PlatformEventDispatcher::Unsubscribe(SubscriptionHandle handle)
 {
     // 유효하지 않은 Handle이면 return
     if (!handle.IsValid() || !subscriptions.contains(handle))
@@ -32,7 +32,7 @@ void EventDispatcher::Unsubscribe(SubscriptionHandle handle)
     }
 }
 
-void EventDispatcher::Dispatch(PlatformEvent& event)
+void PlatformEventDispatcher::Dispatch(PlatformEvent& event)
 {
     for (const auto& handle_vector : priority_map | std::views::values)
     {

@@ -72,7 +72,7 @@ export struct PlatformEvent
     bool handled;
 };
 
-export class EventDispatcher
+export class PlatformEventDispatcher
 {
 public:
     using EventCallback = Function<void(PlatformEvent&)>;

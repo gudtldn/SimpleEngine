@@ -48,9 +48,9 @@ public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
 
-    EventDispatcher& GetEventDispatcher() const
+    PlatformEventDispatcher& GetEventDispatcher() const
     {
-        static EventDispatcher platform_event_dispatcher;
+        static PlatformEventDispatcher platform_event_dispatcher;
         return platform_event_dispatcher;
     }
 

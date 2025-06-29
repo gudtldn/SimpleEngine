@@ -67,7 +67,7 @@ void PlatformSubsystem::Release()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void PlatformSubsystem::PollEvents()
 {
-    EventDispatcher& dispatcher = GetEventDispatcher();
+    PlatformEventDispatcher& dispatcher = GetEventDispatcher();
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
