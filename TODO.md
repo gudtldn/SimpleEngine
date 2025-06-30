@@ -6,6 +6,7 @@
   - [ ] namespace 모두 부착
   - [ ] 다중 윈도우 지원
 
+- [ ] StringName(FName) 구현
 - [ ] Log Backend 만들기
   - Log On/Off 가능하게
 - [ ] Log Category 만들기
