@@ -1,5 +1,4 @@
 ﻿module;
-#include <utf8.h>
 #include <unicode/unistr.h>
 module SimpleEngine.Utils;
 import :StringUtils;

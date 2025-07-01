@@ -40,7 +40,7 @@
   <ItemDefinitionGroup> <!-- 모든 구성/플랫폼에 대한 이 프로젝트만의 특별한 설정 -->
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\utfcpp\source;$(SolutionDir)ThirdParty\tomlplusplus\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\tomlplusplus\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
