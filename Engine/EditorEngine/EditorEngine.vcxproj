@@ -39,9 +39,6 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>imm32.lib;version.lib;Setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <!-- EditorEngine의 소스 파일들 -->

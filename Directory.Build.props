@@ -16,6 +16,7 @@
     <SDL3_IncludePath>$(SolutionDir)ThirdParty\SDL3-3.2.14\include</SDL3_IncludePath>
     <ImGui_IncludePath>$(SolutionDir)ThirdParty\ImGui</ImGui_IncludePath>
     <ImGui_Backends_IncludePath>$(SolutionDir)ThirdParty\ImGui\backends</ImGui_Backends_IncludePath>
+    <ICU4C_IncludePath>$(SolutionDir)ThirdParty\icu4c\include;</ICU4C_IncludePath>
   </PropertyGroup>
 
   <!-- Debug 구성일 때 공통 설정 -->
@@ -51,7 +52,7 @@
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
 
       <!-- 공통 Include 경로 추가 -->
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SDL3_IncludePath);$(ImGui_IncludePath);$(ImGui_Backends_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SDL3_IncludePath);$(ImGui_IncludePath);$(ImGui_Backends_IncludePath);$(ICU4C_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Condition="'$(Configuration)'=='Release'">
       <!-- Release에서는 경고도 에러로 처리 -->
@@ -59,9 +60,15 @@
     </ClCompile>
     <Link>
       <!-- 공통 링커 설정 (예: SDL3 라이브러리 경로) -->
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget);$(SolutionDir)ThirdParty\icu4c\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;icudt.lib;icuin.lib;icuio.lib;icuuc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+        xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"
+        xcopy /Y /D "$(SolutionDir)ThirdParty\icu4c\bin\$(PlatformTarget)\icu*.dll" "$(OutDir)"
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
 
   <!-- Debug 구성일 때 최적화 및 전처리기 -->
