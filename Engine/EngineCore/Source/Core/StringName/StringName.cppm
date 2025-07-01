@@ -14,6 +14,7 @@ export class StringName
 {
 public:
     StringName() = default;
+    StringName(const char8* in_str);
     StringName(std::u8string_view in_str);
 
     std::u8string ToString() const;
@@ -21,8 +22,15 @@ public:
     uint64 GetComparisonHash() const { return comparison_hash; }
 
 public:
-    bool operator==(const StringName&) const = default;
-    bool operator!=(const StringName&) const = default;
+    inline bool operator==(const StringName& other) const
+    {
+        return comparison_hash == other.comparison_hash;
+    }
+
+    inline bool operator!=(const StringName& other) const
+    {
+        return comparison_hash != other.comparison_hash;
+    }
 
 private:
     uint64 display_hash = 0;

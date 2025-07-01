@@ -1,5 +1,8 @@
 ﻿module SimpleEngine.Core.StringName;
 
+import SimpleEngine.Utils;
+
+
 namespace
 {
 /**
@@ -8,11 +11,11 @@ namespace
  */
 constexpr uint64 ComputeHash(std::u8string_view in_str) noexcept
 {
-    uint64 hash = 0xcbf29ce484222325;
-    for (const char8_t& c : in_str)
+    uint64 hash = 0xcbf29ce484222325ULL;
+    for (const char8_t c : in_str)
     {
         hash ^= c;
-        hash *= 0x100000001b3;
+        hash *= 0x100000001b3ULL;
     }
     return hash;
 }
@@ -20,14 +23,21 @@ constexpr uint64 ComputeHash(std::u8string_view in_str) noexcept
 
 namespace se::core
 {
+StringName::StringName(const char8* in_str)
+    : StringName(std::u8string_view(in_str))
+{
+}
+
 StringName::StringName(std::u8string_view in_str)
 {
+    // TODO: StringNamePool에 등록해야함
     display_hash = ComputeHash(in_str);
-    comparison_hash = ComputeHash(in_str); // TODO: Lowercase로 해야함
+    comparison_hash = ComputeHash(string_utils::ToU8LowerCase(in_str));
 }
 
 std::u8string StringName::ToString() const
 {
+    // TODO: Implements this
     std::unreachable();
 }
 }
