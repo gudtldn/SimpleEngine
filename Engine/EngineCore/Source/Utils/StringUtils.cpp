@@ -1,5 +1,6 @@
 ﻿module;
 #include <unicode/unistr.h>
+#include <unicode/locid.h>
 module SimpleEngine.Utils;
 import :StringUtils;
 
@@ -7,6 +8,18 @@ import SimpleEngine.Platform.Types;
 import SimpleEngine.Core.TypeTraits;
 import <cassert>;
 
+using namespace icu;
+
+
+namespace
+{
+std::u8string ToU8String(const UnicodeString& in_ustr)
+{
+    std::string result;
+    in_ustr.toUTF8String(result);
+    return se::string_utils::ToU8String(result);
+}
+}
 
 namespace se::string_utils
 {
@@ -20,22 +33,20 @@ std::u8string ToU8String(std::string_view in_str)
 
 std::u8string ToU8String(std::wstring_view in_str)
 {
-    const icu::UnicodeString ustr{ in_str.data(), static_cast<int32>(in_str.size()) };
-
-    std::string result;
-    ustr.toUTF8String(result);
-
-    return ToU8String(result);
+    const UnicodeString ustr{
+        in_str.data(),
+        static_cast<int32>(in_str.size())
+    };
+    return ::ToU8String(ustr);
 }
 
 std::u8string ToU8String(std::u16string_view in_str)
 {
-    const icu::UnicodeString ustr{ in_str.data(), static_cast<int32>(in_str.size()) };
-
-    std::string result;
-    ustr.toUTF8String(result);
-
-    return ToU8String(result);
+    const UnicodeString ustr{
+        in_str.data(),
+        static_cast<int32>(in_str.size())
+    };
+    return ::ToU8String(ustr);
 }
 
 std::u8string ToU8String(std::u32string_view in_str)
@@ -49,14 +60,24 @@ std::u8string ToU8String(std::u32string_view in_str)
         "char32_t and UChar32 have different alignments."
     );
 
-    const icu::UnicodeString ustr = icu::UnicodeString::fromUTF32(
+    const UnicodeString ustr = UnicodeString::fromUTF32(
         reinterpret_cast<const UChar32*>(in_str.data()),
         static_cast<int32_t>(in_str.length())
     );
+    return ::ToU8String(ustr);
+}
 
-    std::string result;
-    ustr.toUTF8String(result);
+std::u8string ToU8UpperCase(std::u8string_view in_str)
+{
+    UnicodeString ustr = UnicodeString::fromUTF8(in_str);
+    ustr.toUpper();
+    return ::ToU8String(ustr);
+}
 
-    return ToU8String(result);
+std::u8string ToU8LowerCase(std::u8string_view in_str)
+{
+    UnicodeString ustr = UnicodeString::fromUTF8(in_str);
+    ustr.toLower();
+    return ::ToU8String(ustr);
 }
 }
