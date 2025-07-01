@@ -1,0 +1,1 @@
+﻿module SimpleEngine.Core.StringName;

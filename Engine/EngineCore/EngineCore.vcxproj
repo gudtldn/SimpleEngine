@@ -60,6 +60,8 @@
     <ClCompile Include="Source\Core\Logging\Logging.cppm" />
     <ClCompile Include="Source\Core\StringName\StringName.cpp"/>
     <ClCompile Include="Source\Core\StringName\StringName.cppm"/>
+    <ClCompile Include="Source\Core\StringName\StringNamePool.cpp"/>
+    <ClCompile Include="Source\Core\StringName\StringNamePool.cppm"/>
     <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
