@@ -17,7 +17,7 @@ Subsystem* GetSubsystemUnchecked()
 }
 
 /**
- * Engine에 등록된 Subsystem을 한번에 여러개를 가져옵니다.
+ * Engine에 등록된 Subsystem 여러개를 std::tuple에 담아 가져옵니다.
  * @tparam Subsystems 가져올 Subsystem 타입들
  * @return Subsystem을 tuple에 담아서 반환.
  *         만약 등록되어 있지 않은 Subsystem이 있다면 그 Subsystem은 nullptr
@@ -30,7 +30,7 @@ std::tuple<Subsystems*...> GetMutableSubsystemsUnchecked()
 }
 
 /**
- * Engine에 등록된 Subsystem을 한번에 여러개를 가져옵니다.
+ * Engine에 등록된 Subsystem 여러개를 const로 std::tuple에 담아 가져옵니다.
  * @tparam Subsystems 가져올 Subsystem 타입들
  * @return Subsystem을 tuple에 담아서 반환.
  *         만약 등록되어 있지 않은 Subsystem이 있다면 그 Subsystem은 nullptr
