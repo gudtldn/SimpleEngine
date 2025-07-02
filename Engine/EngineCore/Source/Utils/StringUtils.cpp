@@ -62,7 +62,7 @@ std::u8string ToU8String(std::u32string_view in_str)
 
     const UnicodeString ustr = UnicodeString::fromUTF32(
         reinterpret_cast<const UChar32*>(in_str.data()),
-        static_cast<int32_t>(in_str.length())
+        static_cast<int32_t>(in_str.size())
     );
     return ::ToU8String(ustr);
 }
