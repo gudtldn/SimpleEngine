@@ -25,6 +25,22 @@ public:
     /** 타입 해시를 반환합니다. */
     [[nodiscard]] constexpr uint64 GetHash() const { return type_hash; }
 
+public:
+    constexpr bool operator==(const TypeId& other) const
+    {
+        return type_hash == other.type_hash;
+    }
+
+    constexpr bool operator!=(const TypeId& other) const
+    {
+        return !(*this == other);
+    }
+
+    constexpr auto operator<=>(const TypeId& other) const
+    {
+        return type_hash <=> other.type_hash;
+    }
+
 private:
     explicit constexpr TypeId(std::string_view in_type_name)
         : type_name(in_type_name), type_hash(hash::FowlerNollVoHash(in_type_name))
