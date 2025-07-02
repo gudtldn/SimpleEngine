@@ -1,6 +1,7 @@
 .vs/
 .vscode/
 .idea/
+.gemini/
 
 Binaries/
 Intermediate/
@@ -11,3 +12,4 @@ riderModule.iml
 
 *.user
 imgui.ini
+GEMINI.md
