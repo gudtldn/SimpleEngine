@@ -6,6 +6,7 @@
   - [ ] namespace 모두 부착
   - [ ] 다중 윈도우 지원
 
+- [ ] 모듈명, 넴스 이름 규칙 정하고 다시 점검하기
 - [ ] StringName(FName) 구현
 - [ ] Log Backend 만들기
   - Log On/Off 가능하게
