@@ -47,6 +47,7 @@
     <ClCompile Include="FunctionTest.cpp"/>
     <ClCompile Include="MainTest.cpp"/>
     <ClCompile Include="StringUtilsTest.cpp"/>
+    <ClCompile Include="TypeReflectionTest.cpp"/>
   </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\Engine\EngineCore\EngineCore.vcxproj">
