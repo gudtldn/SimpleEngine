@@ -1,6 +1,7 @@
 ﻿#include "doctest.h"
 
 import std;
+import SimpleEngine.Core.Hash;
 import SimpleEngine.Core.Reflection;
 
 
@@ -114,5 +115,12 @@ TEST_CASE("Test CompileTime Type Name")
         CHECK(name == "TestEnum");
         CHECK(without_ns_name == "TestEnum");
     }
+}
+
+TEST_CASE("TypeId Test")
+{
+    constexpr TypeId id = TypeId::Get<int>();
+    CHECK(id.GetName() == "int");
+    CHECK(id.GetHash() == se::hash::FowlerNollVoHash("int"));
 }
 }

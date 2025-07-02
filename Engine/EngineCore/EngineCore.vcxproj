@@ -65,7 +65,6 @@
     <ClCompile Include="Source\Core\StringName\StringName.cppm"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cpp"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cppm"/>
-    <ClCompile Include="Source\Core\Reflection\TypeId.cpp"/>
     <ClCompile Include="Source\Core\Reflection\TypeId.cppm"/>
     <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
