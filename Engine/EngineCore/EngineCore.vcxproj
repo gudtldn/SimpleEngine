@@ -55,6 +55,7 @@
     <ClCompile Include="Source\Core\Hash\Hash.cppm"/>
     <ClCompile Include="Source\Core\Interfaces\IRenderPass.cppm"/>
     <ClCompile Include="Source\Core\Interfaces\ISubsystem.cppm" />
+    <ClCompile Include="Source\Core\Interfaces\ISubsystemBase.cppm"/>
     <ClCompile Include="Source\Core\Interfaces\IUpdatable.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />

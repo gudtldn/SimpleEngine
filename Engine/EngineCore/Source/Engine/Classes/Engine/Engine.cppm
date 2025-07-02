@@ -1,7 +1,7 @@
 ﻿export module SimpleEngine.Engine;
 
 import SimpleEngine.Logging;
-import SimpleEngine.Interfaces.ISubsystem;
+import SimpleEngine.Interfaces.ISubsystemBase;
 import SimpleEngine.Interfaces.IUpdatable;
 import std;
 
@@ -14,10 +14,10 @@ export class Engine
 {
 private:
     // Type별 Subsystem 목록
-    std::map<std::type_index, std::unique_ptr<ISubsystem>> sub_systems;
+    std::map<std::type_index, std::unique_ptr<ISubsystemBase>> sub_systems;
 
     // 초기화/종료 순서 관리를 위한 벡터
-    std::vector<ISubsystem*> sorted_sub_systems;
+    std::vector<ISubsystemBase*> sorted_sub_systems;
 
     // Update가 필요한 Subsystem 목록
     std::vector<IUpdatable*> updatable_systems;
@@ -40,7 +40,7 @@ public:
      * @return 새로 생성된 T 타입의 서브시스템 포인터, 또는 이미 등록된 경우 해당 서브시스템의 포인터를 반환합니다.
      */
     template <typename T, typename... Args>
-        requires std::derived_from<T, ISubsystem>
+        requires std::derived_from<T, ISubsystemBase>
     T* RegisterSubsystem(Args&&... args)
     {
         const auto type_id = std::type_index(typeid(T));
@@ -68,7 +68,7 @@ public:
      * @return 등록된 T 타입의 Subsystem 포인터. 없을 경우 nullptr를 반환합니다.
      */
     template <typename T>
-        requires std::derived_from<T, ISubsystem>
+        requires std::derived_from<T, ISubsystemBase>
     T* GetSubsystem() const
     {
         const auto type_id = std::type_index(typeid(T));

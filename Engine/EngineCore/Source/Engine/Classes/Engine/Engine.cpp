@@ -42,7 +42,7 @@ bool Engine::InitializeAllSubsystems()
             ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
             const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), sorted_sub_systems.begin() + n);
-            for (ISubsystem* rev_subsystem : subrange | std::views::reverse)
+            for (ISubsystemBase* rev_subsystem : subrange | std::views::reverse)
             {
                 rev_subsystem->Release();
             }
@@ -56,7 +56,7 @@ bool Engine::InitializeAllSubsystems()
 void Engine::ReleaseAllSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Releasing Subsystems...");
-    for (ISubsystem* sub_system : sorted_sub_systems | std::views::reverse)
+    for (ISubsystemBase* sub_system : sorted_sub_systems | std::views::reverse)
     {
         sub_system->Release();
     }
