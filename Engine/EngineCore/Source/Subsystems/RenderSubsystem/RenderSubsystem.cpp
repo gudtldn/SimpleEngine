@@ -1,8 +1,7 @@
 ﻿module SimpleEngine.Subsystems.RenderSubsystem;
 
 import SimpleEngine.Logging;
-import SimpleEngine.Subsystems;
-import SimpleEngine.Subsystems.PlatformSubsystem;
+import SimpleEngine.Subsystems.Utils;
 import <SDL3/SDL_gpu.h>;
 
 
@@ -70,13 +69,6 @@ void RenderSubsystem::Release()
         SDL_DestroyGPUDevice(gpu_device);
         gpu_device = nullptr;
     }
-}
-
-std::vector<std::type_index> RenderSubsystem::GetDependencies() const
-{
-    return {
-        typeid(PlatformSubsystem)
-    };
 }
 
 void RenderSubsystem::ConfigureSwapchain(SDL_GPUSwapchainComposition in_composition, SDL_GPUPresentMode in_present_mode)

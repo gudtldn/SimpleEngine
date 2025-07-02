@@ -8,7 +8,7 @@ import <SDL3/SDL.h>;
 import <SDL3/SDL_init.h>;
 
 
-export class PlatformSubsystem : public ISubsystem
+export class PlatformSubsystem : public ISubsystem<>
 {
     struct WindowDesc
     {

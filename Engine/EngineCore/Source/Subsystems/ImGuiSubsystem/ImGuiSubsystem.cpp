@@ -4,17 +4,14 @@
 #include <imgui_impl_sdlgpu3.h>
 module SimpleEngine.Subsystems.ImGuiSubsystem;
 
-import SimpleEngine.Subsystems;
-import SimpleEngine.Subsystems.PlatformSubsystem;
-import SimpleEngine.Subsystems.RenderSubsystem;
+import SimpleEngine.Subsystems.Utils;
 import std;
 import <SDL3/SDL.h>;
 
 
 bool ImGuiSubsystem::Initialize()
 {
-    const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
-    const RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>();
+    auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, RenderSubsystem>();
 
     SDL_Window* window = platform_subsystem->GetWindow();
     SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
@@ -62,12 +59,4 @@ void ImGuiSubsystem::Release()
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
-}
-
-std::vector<std::type_index> ImGuiSubsystem::GetDependencies() const
-{
-    return {
-        typeid(PlatformSubsystem),
-        typeid(RenderSubsystem)
-    };
 }

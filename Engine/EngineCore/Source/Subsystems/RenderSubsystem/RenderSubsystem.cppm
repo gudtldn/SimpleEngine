@@ -1,17 +1,16 @@
 ﻿export module SimpleEngine.Subsystems.RenderSubsystem;
 
 import SimpleEngine.Interfaces.ISubsystem;
+import SimpleEngine.Subsystems.PlatformSubsystem;
 import std;
 import <SDL3/SDL.h>;
 
 
-export class RenderSubsystem : public ISubsystem
+export class RenderSubsystem : public ISubsystem<PlatformSubsystem>
 {
 public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
-
-    virtual std::vector<::std::type_index> GetDependencies() const override;
 
     /**
      * Swapchain 파라미터를 미리 설정합니다.
