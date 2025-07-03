@@ -41,7 +41,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <!-- EditorEngine의 소스 파일들 -->
     <!-- ImGui 소스 파일들 -->
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -67,8 +66,12 @@
     <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
+
+    <!-- EditorEngine의 소스 파일들 -->
     <ClCompile Include="Source\App\EditorApplication.cpp" />
     <ClCompile Include="Source\App\EditorApplication.cppm" />
+    <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cpp"/>
+    <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cppm"/>
     <ClCompile Include="Source\Launch\LaunchWindows.cpp" />
   </ItemGroup>
   <ItemGroup>

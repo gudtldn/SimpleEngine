@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Subsystems.ImGuiSubsystem;
+﻿export module SimpleEngine.Editor.Subsystems.ImGuiSubsystem;
 
 import SimpleEngine.Interface.ISubsystem;
 import SimpleEngine.Subsystems.PlatformSubsystem;

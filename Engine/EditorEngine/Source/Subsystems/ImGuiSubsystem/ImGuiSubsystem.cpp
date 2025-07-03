@@ -2,7 +2,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
-module SimpleEngine.Subsystems.ImGuiSubsystem;
+module SimpleEngine.Editor.Subsystems.ImGuiSubsystem;
 
 import SimpleEngine.Subsystems.Utility;
 import std;

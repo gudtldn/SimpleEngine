@@ -21,7 +21,6 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{70359232-4BC5-40B2-BD1F-3F6B5F19F1E3}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
     <RootNamespace>EngineCore</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -44,7 +43,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)ThirdParty\tomlplusplus\src\modules\tomlplusplus.cppm" />
     <ClCompile Include="Source\App\Application.cpp" />
     <ClCompile Include="Source\App\Application.cppm" />
     <ClCompile Include="Source\Config\Config.cpp" />
@@ -56,12 +54,12 @@
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
     <ClCompile Include="Source\Core\Logging\Logging.cppm" />
     <ClCompile Include="Source\Core\Reflection\Reflection.cppm"/>
+    <ClCompile Include="Source\Core\Reflection\TypeId.cppm"/>
     <ClCompile Include="Source\Core\Reflection\TypeUtils.cppm"/>
     <ClCompile Include="Source\Core\StringName\StringName.cpp"/>
     <ClCompile Include="Source\Core\StringName\StringName.cppm"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cpp"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cppm"/>
-    <ClCompile Include="Source\Core\Reflection\TypeId.cppm"/>
     <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
@@ -69,9 +67,9 @@
     <ClCompile Include="Source\Interface\ISubsystem.cppm"/>
     <ClCompile Include="Source\Interface\ISubsystemBase.cppm"/>
     <ClCompile Include="Source\Interface\IUpdatable.cppm"/>
+    <ClCompile Include="Source\Platform\Platform.cppm"/>
+    <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
     <ClCompile Include="Source\Prelude.cppm"/>
-    <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cpp"/>
-    <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformEventDispatcher.cpp"/>
     <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformEventDispatcher.cppm"/>
     <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformSubsystem.cpp"/>
@@ -81,10 +79,9 @@
     <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm"/>
     <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
-    <ClCompile Include="Source\Utility\Utility.cppm"/>
     <ClCompile Include="Source\Utility\StringUtils.cpp"/>
     <ClCompile Include="Source\Utility\StringUtils.cppm"/>
-    <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
+    <ClCompile Include="Source\Utility\Utility.cppm"/>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Platform\Linux\LinuxPlatform.h" />

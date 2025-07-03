@@ -27,7 +27,7 @@ enum class TestEnum
 
 TEST_SUITE("SimpleEngine.Core.Reflection")
 {
-using namespace se::reflection;
+using namespace se::core::reflection;
 
 TEST_CASE("Test CompileTime Type Name")
 {

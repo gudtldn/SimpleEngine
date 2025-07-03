@@ -5,7 +5,7 @@ import SimpleEngine.Types;
 import std;
 
 
-namespace se::reflection
+namespace se::core::reflection
 {
 namespace string_utils
 {
