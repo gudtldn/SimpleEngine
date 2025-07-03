@@ -16,11 +16,11 @@ std::u8string ToU8String(const UnicodeString& in_ustr)
 {
     std::string result;
     in_ustr.toUTF8String(result);
-    return se::string_utils::ToU8String(result);
+    return se::utility::string_utils::ToU8String(result);
 }
 }
 
-namespace se::string_utils
+namespace se::utility::string_utils
 {
 std::u8string ToU8String(std::string_view in_str)
 {

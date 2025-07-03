@@ -2,7 +2,7 @@
 import std;
 
 
-export namespace se::string_utils
+export namespace se::utility::string_utils
 {
 [[nodiscard]] std::u8string ToU8String(std::string_view in_str);
 [[nodiscard]] std::u8string ToU8String(std::wstring_view in_str);

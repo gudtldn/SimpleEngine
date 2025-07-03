@@ -6,7 +6,7 @@ import SimpleEngine.Utility;
 
 TEST_SUITE("SimpleEngine.StringUtils")
 {
-using namespace se::string_utils;
+using namespace se::utility::string_utils;
 
 static const std::u8string ValidateString = u8"Hello World 안녕 こんちは 👍";
 

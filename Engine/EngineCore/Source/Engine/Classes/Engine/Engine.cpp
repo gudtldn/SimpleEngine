@@ -38,7 +38,7 @@ bool Engine::InitializeAllSubsystems()
     {
         if (!sub_system->Initialize())
         {
-            const std::u8string sub_system_name = se::string_utils::ToU8String(typeid(*sub_system).name());
+            const std::u8string sub_system_name = se::utility::string_utils::ToU8String(typeid(*sub_system).name());
             ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
             const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), sorted_sub_systems.begin() + n);
@@ -144,7 +144,7 @@ bool Engine::SortSubsystems()
         std::u8string error_msg = u8"Circular dependency detected in subsystems: ";
         for (const auto& id : circular_subsystems)
         {
-            error_msg += u8"\n  - " + se::string_utils::ToU8String(typeid(*sub_systems[id]).name());
+            error_msg += u8"\n  - " + se::utility::string_utils::ToU8String(typeid(*sub_systems[id]).name());
         }
 
         ConsoleLog(ELogLevel::Fatal, error_msg);
@@ -156,7 +156,7 @@ bool Engine::SortSubsystems()
     ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
     for (const auto& [n, sub_system] : sorted_sub_systems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Info, u8"  - Order {}: {}", n, se::string_utils::ToU8String(typeid(*sub_system).name()));
+        ConsoleLog(ELogLevel::Info, u8"  - Order {}: {}", n, se::utility::string_utils::ToU8String(typeid(*sub_system).name()));
     }
 
     return true;

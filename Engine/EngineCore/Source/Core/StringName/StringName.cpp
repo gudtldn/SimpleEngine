@@ -16,7 +16,7 @@ StringName::StringName(std::u8string_view in_str)
 {
     // TODO: StringNamePool에 등록해야함
     display_hash = hash::FowlerNollVoHash(in_str);
-    comparison_hash = hash::FowlerNollVoHash(string_utils::ToU8LowerCase(in_str));
+    comparison_hash = hash::FowlerNollVoHash(utility::string_utils::ToU8LowerCase(in_str));
 }
 
 std::u8string StringName::ToString() const
