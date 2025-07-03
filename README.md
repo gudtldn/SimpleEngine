@@ -97,7 +97,7 @@ import <header.h>;
 - 모듈 이름은 `SimpleEngine` 접두사, 상위 카테고리(e.g., `Core`, `Subsystems`), 그리고 해당 모듈의 기능명(폴더명)으로 구성됩니다.
 - **예시:**
     - `Source/Utility/` 폴더 -> `SimpleEngine.Utility` 모듈
-    - `Source/Core/Interface/` 폴더 -> `SimpleEngine.Core:Interface` 모듈
+    - `Source/Core/StringName/` 폴더 -> `SimpleEngine.Core:StringName` 모듈
 
 > 만약 순환 종속성이 발생하게 된다면, 파티션으로 나누지 않아도 됨.
 
