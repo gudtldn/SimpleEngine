@@ -2,7 +2,7 @@
 #include <typeinfo>
 module SimpleEngine.Engine;
 
-import SimpleEngine.Utils;
+import SimpleEngine.Utility;
 import std;
 
 

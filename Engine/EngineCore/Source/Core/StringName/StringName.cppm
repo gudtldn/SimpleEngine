@@ -1,7 +1,7 @@
 ﻿export module SimpleEngine.Core.StringName;
 import :StringNamePool;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import std;
 
 

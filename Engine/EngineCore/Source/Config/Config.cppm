@@ -4,7 +4,7 @@
 export module SimpleEngine.Config;
 
 import SimpleEngine.Logging;
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import std;
 
 

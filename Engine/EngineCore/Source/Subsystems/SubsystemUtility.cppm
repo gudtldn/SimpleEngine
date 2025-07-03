@@ -1,8 +1,9 @@
-﻿export module SimpleEngine.Subsystems.Utils;
+﻿export module SimpleEngine.Subsystems.Utility;
 
-import SimpleEngine.Interfaces.ISubsystemBase;
 import SimpleEngine.App;
+import SimpleEngine.Interface.ISubsystemBase;
 import std;
+
 
 /**
  * Engine에 등록된 Subsystem을 가져옵니다.

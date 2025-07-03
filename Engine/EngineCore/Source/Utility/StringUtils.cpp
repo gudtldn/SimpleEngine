@@ -1,10 +1,10 @@
 ﻿module;
 #include <unicode/unistr.h>
 #include <unicode/locid.h>
-module SimpleEngine.Utils;
+module SimpleEngine.Utility;
 import :StringUtils;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import SimpleEngine.Core.TypeTraits;
 import <cassert>;
 

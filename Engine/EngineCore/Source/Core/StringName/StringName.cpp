@@ -1,7 +1,7 @@
 ﻿module SimpleEngine.Core.StringName;
 
 import SimpleEngine.Core.Hash;
-import SimpleEngine.Utils;
+import SimpleEngine.Utility;
 
 
 namespace se::core

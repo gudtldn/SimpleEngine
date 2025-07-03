@@ -2,6 +2,8 @@
 import std;
 
 
+namespace se::core::function
+{
 constexpr size_t SBO_BUFFER_SIZE = sizeof(void*) * 3;
 
 export template <typename Signature>
@@ -209,3 +211,4 @@ private:
         }
     }
 };
+}

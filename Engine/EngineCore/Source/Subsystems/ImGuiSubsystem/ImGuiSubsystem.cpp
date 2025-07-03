@@ -4,7 +4,7 @@
 #include <imgui_impl_sdlgpu3.h>
 module SimpleEngine.Subsystems.ImGuiSubsystem;
 
-import SimpleEngine.Subsystems.Utils;
+import SimpleEngine.Subsystems.Utility;
 import std;
 import <SDL3/SDL.h>;
 

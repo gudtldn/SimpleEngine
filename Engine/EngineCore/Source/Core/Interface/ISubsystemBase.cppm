@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Interfaces.ISubsystemBase;
+﻿export module SimpleEngine.Interface.ISubsystemBase;
 
 import std;
 

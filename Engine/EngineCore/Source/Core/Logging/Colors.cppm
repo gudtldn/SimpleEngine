@@ -2,7 +2,7 @@
 #include <Windows.h>
 export module SimpleEngine.Logging:Colors;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import std;
 
 

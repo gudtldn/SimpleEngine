@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Interfaces.IUpdatable;
+﻿export module SimpleEngine.Interface.IUpdatable;
 
 
 /**

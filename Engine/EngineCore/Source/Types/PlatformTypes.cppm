@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Platform.Types;
+﻿export module SimpleEngine.Types:PlatformTypes;
 import <cstddef>;
 import <cstdint>;
 

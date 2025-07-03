@@ -3,7 +3,7 @@
 export import :Formatter;
 export import :Colors;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import std;
 
 

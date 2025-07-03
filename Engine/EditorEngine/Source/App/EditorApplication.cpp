@@ -2,7 +2,7 @@
 
 import SimpleEngine.Config;
 import SimpleEngine.Logging;
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
 import std;

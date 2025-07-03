@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.Interfaces.ISubsystem;
+﻿export module SimpleEngine.Interface.ISubsystem;
 
 import SimpleEngine.Core.TypeTraits;
-import SimpleEngine.Subsystems.Utils;
-import SimpleEngine.Interfaces.ISubsystemBase;
+import SimpleEngine.Subsystems.Utility;
+import SimpleEngine.Interface.ISubsystemBase;
 import std;
 
 

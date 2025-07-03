@@ -1,9 +1,9 @@
 ﻿export module SimpleEngine.Core.Hash;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import std;
 
-export namespace se::hash
+export namespace se::core::hash
 {
 /**
  * FNV-1a 해시 알고리즘을 사용한 문자열 해싱 함수

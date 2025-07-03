@@ -1,10 +1,34 @@
 ﻿export module SimpleEngine.Core.Reflection:TypeUtils;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import SimpleEngine.Core.TypeTraits;
 import std;
 
 
+namespace se::reflection
+{
+namespace string_utils
+{
+/** 문자열 앞뒤의 공백을 제거합니다. */
+consteval std::string_view TrimWhitespace(std::string_view sv) noexcept
+{
+    constexpr std::string_view whitespace_chars = " \t\n\r\f\v";
+    if (sv.empty())
+    {
+        return sv;
+    }
+    const size_t first = sv.find_first_not_of(whitespace_chars);
+    if (first == std::string_view::npos)
+    {
+        return {};
+    }
+    const size_t last = sv.find_last_not_of(whitespace_chars);
+    return sv.substr(first, last - first + 1);
+}
+}
+
+namespace traits
+{
 template <typename T>
 struct RemoveAllQualifiersImpl
 {
@@ -38,28 +62,8 @@ struct RemoveAllQualifiersImpl<T* const volatile>
 /** 재귀적으로 typename T의 한정자를 제거합니다. */
 template <typename T>
 using RemoveAllQualifiers = RemoveAllQualifiersImpl<T>::Type;
-
-
-/** 문자열 앞뒤의 공백을 제거합니다. */
-consteval std::string_view TrimWhitespace(std::string_view sv) noexcept
-{
-    constexpr std::string_view whitespace_chars = " \t\n\r\f\v";
-    if (sv.empty())
-    {
-        return sv;
-    }
-    const size_t first = sv.find_first_not_of(whitespace_chars);
-    if (first == std::string_view::npos)
-    {
-        return {};
-    }
-    const size_t last = sv.find_last_not_of(whitespace_chars);
-    return sv.substr(first, last - first + 1);
 }
 
-
-namespace se::reflection
-{
 namespace detail
 {
 /** 문자열을 제거할 시작 위치를 지정합니다. */
@@ -136,7 +140,7 @@ consteval std::string_view RemoveQualifiers(std::string_view signature, std::arr
 
         if (was_modified)
         {
-            signature = TrimWhitespace(signature);
+            signature = string_utils::TrimWhitespace(signature);
         }
     }
     while (was_modified);
@@ -190,7 +194,7 @@ consteval std::string_view ExtractType_MSVC(std::string_view in_signature) noexc
     }
 
     // <>안 Type 정보만 추출
-    std::string_view extracted_typename = TrimWhitespace(in_signature.substr(start_pos, end_pos - start_pos));
+    std::string_view extracted_typename = string_utils::TrimWhitespace(in_signature.substr(start_pos, end_pos - start_pos));
 
     // 후행 한정자 (포인터, 참조, cv-한정자) 제거
     constexpr std::array<std::string_view, 4> trailing_qualifiers = { "*", "&", "const", "volatile" };
@@ -242,7 +246,7 @@ export template <typename T>
     requires !(std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>)
 consteval std::string_view GetTypeSignature(bool is_include_namespace = true) noexcept
 {
-    using CleanType = RemoveAllQualifiers<T>;
+    using CleanType = traits::RemoveAllQualifiers<T>;
     constexpr std::string_view ret = detail::ExtractTypeName<CleanType>();
     if constexpr (ret.empty())
     {

@@ -3,13 +3,7 @@
 import SimpleEngine.Core.Function;
 import std;
 
-
-template <typename R, typename... P>
-std::ostream& operator<<(std::ostream& os, const Function<R(P...)>& f)
-{
-    os << "Function object " << (f ? "(valid)" : "(empty)");
-    return os;
-}
+using namespace se::core::function;
 
 
 namespace
@@ -53,6 +47,13 @@ struct LargeFunctor
 
 TEST_SUITE("SimpleEngine.Core.Function")
 {
+template <typename R, typename... P>
+std::ostream& operator<<(std::ostream& os, const Function<R(P...)>& f)
+{
+    os << "Function object " << (f ? "(valid)" : "(empty)");
+    return os;
+}
+
 TEST_CASE("Default and Nullptr Construction")
 {
     const Function<int(int)> f1;

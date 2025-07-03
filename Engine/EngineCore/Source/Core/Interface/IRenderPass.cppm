@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Interfaces.IRenderPass;
+﻿export module SimpleEngine.Interface.IRenderPass;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 
 
 export

@@ -1,6 +1,6 @@
 ﻿export module SimpleEngine.Subsystems.PlatformSubsystem:PlatformEventDispatcher;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import SimpleEngine.Core.Function;
 import std;
 import <SDL3/SDL.h>;
@@ -75,7 +75,7 @@ export struct PlatformEvent
 export class PlatformEventDispatcher
 {
 public:
-    using EventCallback = Function<void(PlatformEvent&)>;
+    using EventCallback = se::core::function::Function<void(PlatformEvent&)>;
 
     SubscriptionHandle Subscribe(EventPriority priority, EventCallback callback);
     void Unsubscribe(SubscriptionHandle handle);

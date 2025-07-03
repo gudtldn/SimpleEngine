@@ -121,6 +121,6 @@ TEST_CASE("TypeId Test")
 {
     constexpr TypeId id = TypeId::Get<int>();
     CHECK(id.GetName() == "int");
-    CHECK(id.GetHash() == se::hash::FowlerNollVoHash("int"));
+    CHECK(id.GetHash() == se::core::hash::FowlerNollVoHash("int"));
 }
 }

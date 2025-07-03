@@ -1,7 +1,7 @@
 ﻿#include "doctest.h"
 
 import std;
-import SimpleEngine.Utils;
+import SimpleEngine.Utility;
 
 
 TEST_SUITE("SimpleEngine.StringUtils")

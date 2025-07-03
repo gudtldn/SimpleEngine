@@ -1,9 +1,9 @@
 ﻿export module SimpleEngine.Core.Reflection:TypeId;
+import :TypeUtils;
 
-import SimpleEngine.Platform.Types;
+import SimpleEngine.Types;
 import SimpleEngine.Core.Hash;
 import std;
-import :TypeUtils;
 
 
 namespace se::reflection
@@ -43,7 +43,7 @@ public:
 
 private:
     explicit constexpr TypeId(std::string_view in_type_name)
-        : type_name(in_type_name), type_hash(hash::FowlerNollVoHash(in_type_name))
+        : type_name(in_type_name), type_hash(core::hash::FowlerNollVoHash(in_type_name))
     {
     }
 

@@ -1,8 +1,10 @@
 ﻿export module SimpleEngine.App;
-import SimpleEngine.Platform.Types;
+
+import SimpleEngine.Types;
 import SimpleEngine.Engine;
-import SimpleEngine.Utils;
+import SimpleEngine.Utility;
 import std;
+
 
 export namespace se::app
 {
