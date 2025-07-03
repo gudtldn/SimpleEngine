@@ -50,6 +50,82 @@ if (expr)
 }
 ```
 
+- module export/import 키워드 순서
+
+> example.cppm
+
+```c++
+module;
+// 전역 프래그먼트
+export module SimpleEngine.Core:ExamplePartition;
+
+export import :TestPartition1;
+export import :TestPartition2;
+
+import :OtherPartition;
+import SimpleEngine.AnotherModule;
+
+import std;
+import <header.h>;
+```
+
+> example.cpp
+
+```c++
+module;
+// 전역 프래그먼트
+module SimpleEngine.Core;
+import :ExamplePartition;
+
+import :OtherPartition;
+import SimpleEngine.AnotherModule;
+
+import std;
+import <header.h>;
+```
+
+### 프로젝트 구조 및 명명 규칙
+
+**1. 폴더 기반 모듈 (Folder-based Modules)**
+
+- `Source` 디렉터리 아래의 각 기능 폴더(`PascalCase`)는 하나의 독립된 논리적 모듈을 구성합니다.
+- **예시:** `Source/Utility/` 폴더는 `Utility` 기능과 관련된 모든 코드를 담는 `SimpleEngine.Utility` 모듈이 됩니다.
+
+**2. 모듈 명명 규칙 (Module Naming)**
+
+- **형식:** `SimpleEngine.Category:ModuleName`
+- 모듈 이름은 `SimpleEngine` 접두사, 상위 카테고리(e.g., `Core`, `Subsystems`), 그리고 해당 모듈의 기능명(폴더명)으로 구성됩니다.
+- **예시:**
+    - `Source/Utility/` 폴더 -> `SimpleEngine.Utility` 모듈
+    - `Source/Core/Interface/` 폴더 -> `SimpleEngine.Core:Interface` 모듈
+
+> 만약 순환 종속성이 발생하게 된다면, 파티션으로 나누지 않아도 됨.
+
+**3. 파일 구조 규칙 (File Structure)**
+
+- 각 모듈 폴더는 폴더명과 동일한 이름의 **주 모듈 인터페이스 파일**을 가집니다. 이 파일은 모듈의 진입점 역할을 합니다.
+    - **예시:** `Source/Utility/` 폴더 안에는 `Utility.cppm` 파일이 존재하며, 이 파일이 `export module SimpleEngine.Utility;`를 선언합니다.
+- 모듈에 속한 개별 기능 파일들은 **모듈 파티션(Partition)**으로 작성됩니다.
+    - **예시:** `Source/Utility/StringUtils.cppm` 파일은 `export module SimpleEngine.Utility:StringUtils;` 와 같이 자신을 `Utility`
+      모듈의 파티션으로 선언합니다.
+- 주 모듈 인터페이스 파일(`Utility.cppm`)은 내부 파티션들을 `export import` 하여 모듈의 공개 API를 결정합니다.
+  ```cpp
+  // In: Source/Utility/Utility.cppm
+  export module SimpleEngine.Utility;
+
+  export import :StringUtils; // StringUtils 파티션을 외부에 공개
+  ```
+
+**4. 네임스페이스 규칙 (Namespace)**
+
+- **형식:** `se::category::module_name` (`snake_case`)
+- 네임스페이스는 `se` 접두사와 모듈의 경로를 `snake_case`로 변환하여 사용합니다.
+- **예시:**
+    - `SimpleEngine.Utility:StringUtils` 모듈 -> `namespace se::utility::string_utils`
+    - `SimpleEngine.Core:StringName` 모듈 -> `namespace se::core::string_name`
+- **예외:** 엔진의 가장 기본적인 타입을 정의하는 `SimpleEngine.Types` 모듈의 `CoreTypes` 파티션은 전역적인 사용성을 위해 네임스페이스를 사용하지 않습니다.
+- ConsoleLog도 포함
+
 ### 참고한 프로젝트 및 엔진
 - [Wicked Engine](https://github.com/turanszkij/WickedEngine)
 - [Unreal Engine](https://github.com/EpicGames/UnrealEngine)
