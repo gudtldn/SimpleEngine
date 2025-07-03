@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core.Function;
+﻿export module SimpleEngine.Core:Function;
 import std;
 
 

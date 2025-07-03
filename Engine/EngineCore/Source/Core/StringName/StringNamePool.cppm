@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core.StringName:StringNamePool;
+﻿export module SimpleEngine.Core:StringName.StringNamePool;
 
 
 class StringNamePool

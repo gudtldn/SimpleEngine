@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core.Reflection;
+﻿export module SimpleEngine.Core:Reflection;
 
-export import :TypeId;
-export import :TypeUtils;
+export import :Reflection.TypeId;
+export import :Reflection.TypeUtility;

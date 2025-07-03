@@ -1,6 +1,6 @@
 ﻿export module SimpleEngine.Engine;
 
-import SimpleEngine.Logging;
+import SimpleEngine.Core;
 import SimpleEngine.Interface.ISubsystemBase;
 import SimpleEngine.Interface.IUpdatable;
 import std;

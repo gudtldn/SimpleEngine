@@ -1,6 +1,6 @@
 #include "doctest.h"
 
-import SimpleEngine.Core.Function;
+import SimpleEngine.Core;
 import std;
 
 using namespace se::core::function;

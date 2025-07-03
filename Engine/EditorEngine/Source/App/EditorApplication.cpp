@@ -1,8 +1,8 @@
 ﻿module SimpleEngine.Editor.App;
 
-import SimpleEngine.Config;
-import SimpleEngine.Logging;
+import SimpleEngine.Core;
 import SimpleEngine.Types;
+import SimpleEngine.Config;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
 import std;

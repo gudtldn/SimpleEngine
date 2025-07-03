@@ -1,10 +1,11 @@
-﻿module SimpleEngine.Core.StringName;
+﻿module SimpleEngine.Core;
+import :StringName;
 
-import SimpleEngine.Core.Hash;
+import :Hash;
 import SimpleEngine.Utility;
 
 
-namespace se::core
+namespace se::core::string_name
 {
 StringName::StringName(const char8* in_str)
     : StringName(std::u8string_view(in_str))

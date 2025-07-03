@@ -1,7 +1,6 @@
 ﻿export module SimpleEngine.Subsystems.ImGuiSubsystem;
 
 import SimpleEngine.Interface.ISubsystem;
-import SimpleEngine.Interface.IUpdatable;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
 import std;

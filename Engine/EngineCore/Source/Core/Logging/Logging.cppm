@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Logging;
+﻿export module SimpleEngine.Core:Logging;
 
-export import :Formatter;
-export import :Colors;
+export import :Logging.Formatter;
+export import :Logging.Colors;
 
 import SimpleEngine.Types;
 import std;

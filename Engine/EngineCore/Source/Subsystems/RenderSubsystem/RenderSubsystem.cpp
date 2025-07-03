@@ -1,6 +1,6 @@
 ﻿module SimpleEngine.Subsystems.RenderSubsystem;
 
-import SimpleEngine.Logging;
+import SimpleEngine.Core;
 import SimpleEngine.Subsystems.Utility;
 import <SDL3/SDL_gpu.h>;
 

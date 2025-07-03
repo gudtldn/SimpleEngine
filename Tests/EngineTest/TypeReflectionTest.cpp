@@ -1,8 +1,7 @@
 ﻿#include "doctest.h"
 
 import std;
-import SimpleEngine.Core.Hash;
-import SimpleEngine.Core.Reflection;
+import SimpleEngine.Core;
 
 
 namespace WeirdNamespace

@@ -3,7 +3,7 @@
 export module SimpleEngine.Platform.Detection;
 
 
-export namespace se::platform_detection
+export namespace se::platform::detection
 {
 #if PLATFORM_WINDOWS
     inline constexpr bool IsWindows = true;

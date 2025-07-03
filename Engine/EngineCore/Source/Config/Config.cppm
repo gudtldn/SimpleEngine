@@ -3,7 +3,7 @@
 #include <toml++/toml.h>
 export module SimpleEngine.Config;
 
-import SimpleEngine.Logging;
+import SimpleEngine.Core;
 import SimpleEngine.Types;
 import std;
 

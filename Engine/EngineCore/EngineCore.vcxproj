@@ -52,10 +52,6 @@
     <ClCompile Include="Source\Core\Core.cppm" />
     <ClCompile Include="Source\Core\Function\Function.cppm"/>
     <ClCompile Include="Source\Core\Hash\Hash.cppm"/>
-    <ClCompile Include="Source\Core\Interface\IRenderPass.cppm"/>
-    <ClCompile Include="Source\Core\Interface\ISubsystem.cppm"/>
-    <ClCompile Include="Source\Core\Interface\ISubsystemBase.cppm"/>
-    <ClCompile Include="Source\Core\Interface\IUpdatable.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
     <ClCompile Include="Source\Core\Logging\Logging.cppm" />
@@ -69,6 +65,10 @@
     <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
+    <ClCompile Include="Source\Interface\IRenderPass.cppm"/>
+    <ClCompile Include="Source\Interface\ISubsystem.cppm"/>
+    <ClCompile Include="Source\Interface\ISubsystemBase.cppm"/>
+    <ClCompile Include="Source\Interface\IUpdatable.cppm"/>
     <ClCompile Include="Source\Prelude.cppm"/>
     <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cppm"/>
@@ -78,166 +78,8 @@
     <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cppm"/>
-    <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm">
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalOptions>/utf-8 /w34996</AdditionalOptions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <WarningLevel>Level4</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
-      <EnableModules>true</EnableModules>
-      <BuildStlModules>true</BuildStlModules>
-      <TranslateIncludes>true</TranslateIncludes>
-      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
-      <AdditionalIncludeDirectories>C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\tomlplusplus\include;C:\Users\Jungle\Desktop\SimpleEngine\Engine\EngineCore\Source;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\SDL3-3.2.14\include;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\ImGui;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\ImGui\backends;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\icu4c\include;;</AdditionalIncludeDirectories>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_DEBUG;</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <SupportJustMyCode>true</SupportJustMyCode>
-      <AssemblerOutput>NoListing</AssemblerOutput>
-      <AssemblerListingLocation>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</AssemblerListingLocation>
-      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</BrowseInformationFile>
-      <CompileAs>Default</CompileAs>
-      <UseDynamicDebugging>false</UseDynamicDebugging>
-      <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <ExpandAttributedSource>false</ExpandAttributedSource>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <EnableASAN>false</EnableASAN>
-      <EnableFuzzer>false</EnableFuzzer>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableVectorLength>NotSet</EnableVectorLength>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <GenerateModuleDependencies>false</GenerateModuleDependencies>
-      <GenerateSourceDependencies>false</GenerateSourceDependencies>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <LanguageStandard_C>Default</LanguageStandard_C>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ModuleDependenciesFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</ModuleDependenciesFile>
-      <ModuleOutputFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</ModuleOutputFile>
-      <OmitDefaultLibName>false</OmitDefaultLibName>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <ObjectFileName>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</ObjectFileName>
-      <CallingConvention>Cdecl</CallingConvention>
-      <ProgramDataBaseFileName>C:\Users\Jungle\Desktop\SimpleEngine\Binaries\x64\Debug\EngineCore.pdb</ProgramDataBaseFileName>
-      <PrecompiledHeaderOutputFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\EngineCore.pch</PrecompiledHeaderOutputFile>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessKeepComments>false</PreprocessKeepComments>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <ShowIncludes>false</ShowIncludes>
-      <SourceDependenciesFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</SourceDependenciesFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <SmallerTypeCheck>false</SmallerTypeCheck>
-      <SpectreMitigation>false</SpectreMitigation>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <TrackerLogDirectory>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\EngineCore.tlog\</TrackerLogDirectory>
-      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <UseFullPaths>true</UseFullPaths>
-      <XMLDocumentationFileName>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</XMLDocumentationFileName>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <IntelJCCErratum>false</IntelJCCErratum>
-      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
-      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
-      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
-      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
-      <LibCompiled>true</LibCompiled>
-    </ClCompile>
-    <ClCompile Include="Source\Types\PlatformTypes.cppm">
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalOptions>/utf-8 /w34996</AdditionalOptions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <WarningLevel>Level4</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
-      <EnableModules>true</EnableModules>
-      <BuildStlModules>true</BuildStlModules>
-      <TranslateIncludes>true</TranslateIncludes>
-      <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
-      <AdditionalIncludeDirectories>C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\tomlplusplus\include;C:\Users\Jungle\Desktop\SimpleEngine\Engine\EngineCore\Source;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\SDL3-3.2.14\include;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\ImGui;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\ImGui\backends;C:\Users\Jungle\Desktop\SimpleEngine\ThirdParty\icu4c\include;;</AdditionalIncludeDirectories>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_DEBUG;</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <SupportJustMyCode>true</SupportJustMyCode>
-      <AssemblerOutput>NoListing</AssemblerOutput>
-      <AssemblerListingLocation>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</AssemblerListingLocation>
-      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
-      <BrowseInformation>false</BrowseInformation>
-      <BrowseInformationFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</BrowseInformationFile>
-      <CompileAs>Default</CompileAs>
-      <UseDynamicDebugging>false</UseDynamicDebugging>
-      <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <ExpandAttributedSource>false</ExpandAttributedSource>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <EnableASAN>false</EnableASAN>
-      <EnableFuzzer>false</EnableFuzzer>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableVectorLength>NotSet</EnableVectorLength>
-      <FloatingPointModel>Precise</FloatingPointModel>
-      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
-      <GenerateModuleDependencies>false</GenerateModuleDependencies>
-      <GenerateSourceDependencies>false</GenerateSourceDependencies>
-      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <LanguageStandard_C>Default</LanguageStandard_C>
-      <MinimalRebuild>false</MinimalRebuild>
-      <ModuleDependenciesFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</ModuleDependenciesFile>
-      <ModuleOutputFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</ModuleOutputFile>
-      <OmitDefaultLibName>false</OmitDefaultLibName>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <ObjectFileName>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</ObjectFileName>
-      <CallingConvention>Cdecl</CallingConvention>
-      <ProgramDataBaseFileName>C:\Users\Jungle\Desktop\SimpleEngine\Binaries\x64\Debug\EngineCore.pdb</ProgramDataBaseFileName>
-      <PrecompiledHeaderOutputFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\EngineCore.pch</PrecompiledHeaderOutputFile>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessKeepComments>false</PreprocessKeepComments>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <ShowIncludes>false</ShowIncludes>
-      <SourceDependenciesFile>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</SourceDependenciesFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <SmallerTypeCheck>false</SmallerTypeCheck>
-      <SpectreMitigation>false</SpectreMitigation>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <TrackerLogDirectory>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\EngineCore.tlog\</TrackerLogDirectory>
-      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
-      <TreatWarningAsError>false</TreatWarningAsError>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <UseFullPaths>true</UseFullPaths>
-      <XMLDocumentationFileName>C:\Users\Jungle\Desktop\SimpleEngine\Intermediate\Build\x64\Debug\EngineCore\</XMLDocumentationFileName>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <IntelJCCErratum>false</IntelJCCErratum>
-      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
-      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
-      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
-      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
-      <LibCompiled>true</LibCompiled>
-    </ClCompile>
+    <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm"/>
+    <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
     <ClCompile Include="Source\Utility\Utility.cppm"/>
     <ClCompile Include="Source\Utility\StringUtils.cpp"/>

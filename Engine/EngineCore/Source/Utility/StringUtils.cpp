@@ -5,7 +5,6 @@ module SimpleEngine.Utility;
 import :StringUtils;
 
 import SimpleEngine.Types;
-import SimpleEngine.Core.TypeTraits;
 import <cassert>;
 
 using namespace icu;

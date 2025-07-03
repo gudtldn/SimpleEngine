@@ -1,1 +1,2 @@
-﻿module SimpleEngine.Core.StringName;
+﻿module SimpleEngine.Core;
+import :StringName.StringNamePool;

@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Logging:Formatter;
+﻿export module SimpleEngine.Core:Logging.Formatter;
 import std;
 
 

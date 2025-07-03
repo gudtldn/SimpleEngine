@@ -1,7 +1,8 @@
-﻿export module SimpleEngine.Core.Hash;
+﻿export module SimpleEngine.Core:Hash;
 
 import SimpleEngine.Types;
 import std;
+
 
 export namespace se::core::hash
 {

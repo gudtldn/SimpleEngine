@@ -1,11 +1,11 @@
-﻿export module SimpleEngine.Core.StringName;
-import :StringNamePool;
+﻿export module SimpleEngine.Core:StringName;
+import :StringName.StringNamePool;
 
 import SimpleEngine.Types;
 import std;
 
 
-namespace se::core
+namespace se::core::string_name
 {
 /**
  *
@@ -39,9 +39,9 @@ private:
 }
 
 template <>
-struct std::hash<se::core::StringName>
+struct std::hash<se::core::string_name::StringName>
 {
-    uint64 operator()(const se::core::StringName& key) const noexcept
+    uint64 operator()(const se::core::string_name::StringName& key) const noexcept
     {
         return hash<uint64>()(key.GetComparisonHash());
     }

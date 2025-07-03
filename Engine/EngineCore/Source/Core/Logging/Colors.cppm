@@ -1,6 +1,6 @@
 ﻿module;
 #include <Windows.h>
-export module SimpleEngine.Logging:Colors;
+export module SimpleEngine.Core:Logging.Colors;
 
 import SimpleEngine.Types;
 import std;
