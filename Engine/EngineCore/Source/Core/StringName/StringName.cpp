@@ -17,25 +17,17 @@ StringName::StringName(const char8* in_str)
 
 StringName::StringName(std::u8string_view in_str)
 {
-    // TODO: StringNamePool에서 가져오기
-
-    const std::u8string lower_case_str = utility::string_utils::ToU8LowerCase(in_str);
-    if (lower_case_str == u8"none")
-    {
-        *this = None;
-        return;
-    }
-
     StringNamePool& pool = StringNamePool::Get();
-    display_hash = pool.FindOrStore(in_str);
-    comparison_hash = pool.Resolve(display_hash).comparison_hash;
+    const auto [temp_display_hash, temp_comparison_hash] = pool.FindOrEmplace(in_str);
+
+    display_hash = temp_display_hash;
+    comparison_hash = temp_comparison_hash;
 }
 
 std::u8string StringName::ToString() const
 {
-    StringNamePool& pool = StringNamePool::Get();
-
-    // TODO: Implements this
-    std::unreachable();
+    const StringNamePool& pool = StringNamePool::Get();
+    const StringNameEntry& entry = pool.Resolve(display_hash);
+    return entry.name;
 }
 }
