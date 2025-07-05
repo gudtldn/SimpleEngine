@@ -46,6 +46,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="TestCases\ConfigTest.cpp" />
     <ClCompile Include="TestCases\FunctionTest.cpp" />
+    <ClCompile Include="TestCases\StringNameTest.cpp"/>
     <ClCompile Include="TestCases\StringUtilsTest.cpp" />
     <ClCompile Include="TestCases\TypeReflectionTest.cpp" />
   </ItemGroup>
