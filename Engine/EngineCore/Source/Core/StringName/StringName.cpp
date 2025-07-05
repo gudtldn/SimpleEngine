@@ -26,6 +26,11 @@ StringName::StringName(std::u8string_view in_str)
 
 std::u8string StringName::ToString() const
 {
+    if (display_hash == 0 && comparison_hash == 0)
+    {
+        return u8"None";
+    }
+
     const StringNamePool& pool = StringNamePool::Get();
     const StringNameEntry& entry = pool.Resolve(display_hash);
     return entry.name;

@@ -35,7 +35,7 @@ public:
     StringNameHashes FindOrEmplace(const std::u8string_view& view);
 
 private:
-    std::shared_mutex string_pool_mutex;
+    mutable std::shared_mutex string_pool_mutex;
 
     std::unordered_map<uint64, StringNameEntry> display_string_pool;
     std::unordered_map<uint64, StringNameEntry> comparison_string_pool;
