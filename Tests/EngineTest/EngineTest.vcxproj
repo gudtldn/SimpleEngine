@@ -43,11 +43,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ConfigTest.cpp"/>
-    <ClCompile Include="FunctionTest.cpp"/>
-    <ClCompile Include="MainTest.cpp"/>
-    <ClCompile Include="StringUtilsTest.cpp"/>
-    <ClCompile Include="TypeReflectionTest.cpp"/>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="TestCases\ConfigTest.cpp" />
+    <ClCompile Include="TestCases\FunctionTest.cpp" />
+    <ClCompile Include="TestCases\StringUtilsTest.cpp" />
+    <ClCompile Include="TestCases\TypeReflectionTest.cpp" />
   </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\Engine\EngineCore\EngineCore.vcxproj">
