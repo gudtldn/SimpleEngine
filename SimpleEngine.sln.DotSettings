@@ -18,6 +18,7 @@
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppCodeStyle/OverridingDestructorStyle/@EntryValue">VirtualAndOverride</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppCodeStyle/OverridingFunctionStyle/@EntryValue">VirtualAndOverride</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppCodeStyle/UseAutoCommonCase/@EntryValue">Never</s:String>
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/ALIGN_MULTILINE_CTOR_INIT/@EntryValue">False</s:Boolean>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/CASE_BLOCK_BRACES/@EntryValue">NEXT_LINE</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/FUNCTION_DECLARATION_RETURN_TYPE_STYLE/@EntryValue">ON_SINGLE_LINE</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/FUNCTION_DEFINITION_RETURN_TYPE_STYLE/@EntryValue">ON_SINGLE_LINE</s:String>

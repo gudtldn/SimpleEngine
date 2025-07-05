@@ -1,5 +1,4 @@
 ﻿export module SimpleEngine.Core:StringName;
-import :StringName.StringNamePool;
 
 import SimpleEngine.Types;
 import std;
@@ -20,6 +19,10 @@ public:
     std::u8string ToString() const;
     uint64 GetDisplayHash() const { return display_hash; }
     uint64 GetComparisonHash() const { return comparison_hash; }
+
+public:
+    constexpr static size_t MAX_LENGTH = 256;
+    static StringName None;
 
 public:
     inline bool operator==(const StringName& other) const
