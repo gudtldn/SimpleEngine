@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="se::core::string_name::StringName">
+    <DisplayString Condition="debug_entry_ptr == nullptr">"None"</DisplayString>
+    <DisplayString Condition="debug_entry_ptr != nullptr">
+      {(const char8*)((StringNameEntry*)debug_entry_ptr)->name,s8}
+    </DisplayString>
+    <Expand>
+      <Item Name="[display_hash]">display_hash</Item>
+      <Item Name="[comparison_hash]">comparison_hash</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

@@ -22,6 +22,10 @@ StringName::StringName(std::u8string_view in_str)
 
     display_hash = temp_display_hash;
     comparison_hash = temp_comparison_hash;
+
+#if _DEBUG
+    debug_entry_ptr = &pool.Resolve(display_hash);
+#endif
 }
 
 std::u8string StringName::ToString() const

@@ -13,6 +13,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{19294AA5
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineTest", "Tests\EngineTest\EngineTest.vcxproj", "{1E7EDF9F-4D9C-43B7-A4A8-59A53AB3DD04}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visualization", "Visualization", "{37183AAC-5702-47A9-9957-7F1C0E2726E8}"
+	ProjectSection(SolutionItems) = preProject
+		SimpleEngine.natvis = SimpleEngine.natvis
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
