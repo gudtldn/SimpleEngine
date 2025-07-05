@@ -4,7 +4,7 @@ import :StringName.StringNamePool;
 
 import SimpleEngine.Utility;
 
-// TODO: 스레드 동기화 로직 추가, shared_mutex
+
 namespace se::core::string_name
 {
 StringName StringName::None = StringName{};

@@ -8,17 +8,14 @@ import <cassert>;
 
 namespace
 {
-// TODO: shared_mutex로 변경
-std::mutex string_pool_mutex;
-
-bool IsNoneString(const std::u8string_view& str)
+bool IsNoneString(const std::u8string_view& view)
 {
-    if (str.length() == 4)
+    if (view.length() == 4)
     {
-        return (str[0] == u8'n' || str[0] == u8'N')
-            && (str[1] == u8'o' || str[1] == u8'O')
-            && (str[2] == u8'n' || str[2] == u8'N')
-            && (str[3] == u8'e' || str[3] == u8'E');
+        return (view[0] == u8'n' || view[0] == u8'N')
+            && (view[1] == u8'o' || view[1] == u8'O')
+            && (view[2] == u8'n' || view[2] == u8'N')
+            && (view[3] == u8'e' || view[3] == u8'E');
     }
     return false;
 }
@@ -33,10 +30,13 @@ StringNamePool& StringNamePool::Get()
 
 const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
 {
+    std::shared_lock lock(string_pool_mutex);
+
     if (const auto it = display_string_pool.find(hash); it != display_string_pool.end())
     {
         return it->second;
     }
+
     std::unreachable();
 }
 
@@ -47,18 +47,30 @@ StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
         return { 0, 0 };
     }
 
+    // display string pool에 있는지 확인
     const uint64 display_hash = se::core::hash::FowlerNollVoHash(view);
-    if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
     {
-        return { display_hash, it->second.comparison_hash };
+        std::shared_lock lock(string_pool_mutex);
+
+        if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
+        {
+            return { display_hash, it->second.comparison_hash };
+        }
     }
 
+    // 없으면 만들기
     const std::u8string lower_case_str = se::utility::string_utils::ToU8LowerCase(view);
     const uint64 comparison_hash = se::core::hash::FowlerNollVoHash(lower_case_str);
-
     {
-        std::scoped_lock lock(string_pool_mutex);
+        std::unique_lock lock(string_pool_mutex);
 
+        // double check
+        if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
+        {
+            return { display_hash, it->second.comparison_hash };
+        }
+
+        // pool에 entry를 등록
         if (!comparison_string_pool.contains(comparison_hash))
         {
             comparison_string_pool.emplace(comparison_hash, StringNameEntry{ lower_case_str, comparison_hash });
