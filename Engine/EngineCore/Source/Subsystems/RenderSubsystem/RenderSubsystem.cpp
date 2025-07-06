@@ -1,8 +1,10 @@
 ﻿module SimpleEngine.Subsystems.RenderSubsystem;
 
 import SimpleEngine.Core;
+import SimpleEngine.Platform;
 import SimpleEngine.Subsystems.Utility;
 import <SDL3/SDL_gpu.h>;
+import <SDL3/SDL_hints.h>;
 
 
 bool RenderSubsystem::Initialize()
@@ -30,6 +32,19 @@ bool RenderSubsystem::Initialize()
     // 디버그 모드 설정
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
 #endif
+
+    if constexpr (se::platform::detection::IsWindows)
+    {
+        SDL_SetHint(SDL_HINT_GPU_DRIVER, "direct3d12");
+    }
+    else if constexpr (se::platform::detection::IsLinux)
+    {
+        SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
+    }
+    else if constexpr (se::platform::detection::IsMacOS)
+    {
+        SDL_SetHint(SDL_HINT_GPU_DRIVER, "metal");
+    }
 
     gpu_device = SDL_CreateGPUDeviceWithProperties(props);
     SDL_DestroyProperties(props);
