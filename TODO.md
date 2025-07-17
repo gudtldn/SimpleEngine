@@ -7,6 +7,7 @@
   - [ ] 다중 윈도우 지원
 
 - [ ] 커스텀 메모리 할당자 구현
+- [ ] 프로파일러 만들기
 - [ ] Log Backend 만들기
   - Log On/Off 가능하게
 - [ ] Log Category 만들기
