@@ -1,6 +1,6 @@
 ﻿export module SimpleEngine.Core:Reflection.TypeUtility;
 
-import :TypeTraits;
+import SimpleEngine.TypeTraits;
 import SimpleEngine.Types;
 import std;
 
@@ -250,7 +250,7 @@ consteval std::string_view GetTypeSignature(bool is_include_namespace = true) no
     constexpr std::string_view ret = detail::ExtractTypeName<CleanType>();
     if constexpr (ret.empty())
     {
-        static_assert(core::type_traits::TAlwaysFalse<T>, "Failed to extract type name from type T");
+        static_assert(type_traits::TAlwaysFalse<T>, "Failed to extract type name from type T");
     }
 
     if (is_include_namespace)

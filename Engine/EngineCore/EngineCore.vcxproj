@@ -60,7 +60,6 @@
     <ClCompile Include="Source\Core\StringName\StringName.cppm"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cpp"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cppm"/>
-    <ClCompile Include="Source\Core\TypeTraits\TypeTraits.cppm" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Interface\IRenderPass.cppm"/>
@@ -79,6 +78,7 @@
     <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm"/>
     <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
+    <ClCompile Include="Source\TypeTraits\TypeTraits.cppm"/>
     <ClCompile Include="Source\Utility\StringUtils.cpp"/>
     <ClCompile Include="Source\Utility\StringUtils.cppm"/>
     <ClCompile Include="Source\Utility\Utility.cppm"/>
