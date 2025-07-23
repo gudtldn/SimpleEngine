@@ -50,10 +50,12 @@ public:
     constexpr VectorImpl operator+(const VectorImpl& other) const;
     constexpr VectorImpl operator+(T scalar) const;
     constexpr VectorImpl& operator+=(const VectorImpl& other);
+    constexpr VectorImpl& operator+=(T scalar);
 
     constexpr VectorImpl operator-(const VectorImpl& other) const;
     constexpr VectorImpl operator-(T scalar) const;
     constexpr VectorImpl& operator-=(const VectorImpl& other);
+    constexpr VectorImpl& operator-=(T scalar);
 
     constexpr VectorImpl operator*(const VectorImpl& other) const;
     constexpr VectorImpl operator*(T scalar) const;
@@ -62,6 +64,7 @@ public:
 
     constexpr VectorImpl operator/(const VectorImpl& other) const;
     constexpr VectorImpl operator/(T scalar) const;
+    constexpr VectorImpl& operator/=(const VectorImpl& other) const;
     constexpr VectorImpl& operator/=(T scalar);
 
     constexpr VectorImpl operator-() const;
@@ -185,6 +188,15 @@ constexpr VectorImpl<T>& VectorImpl<T>::operator+=(const VectorImpl& other)
 }
 
 template <FloatingType T>
+constexpr VectorImpl<T>& VectorImpl<T>::operator+=(T scalar)
+{
+    x += scalar;
+    y += scalar;
+    z += scalar;
+    return *this;
+}
+
+template <FloatingType T>
 constexpr VectorImpl<T> VectorImpl<T>::operator-(const VectorImpl& other) const
 {
     return { x - other.x, y - other.y, z - other.z };
@@ -202,6 +214,15 @@ constexpr VectorImpl<T>& VectorImpl<T>::operator-=(const VectorImpl& other)
     x -= other.x;
     y -= other.y;
     z -= other.z;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr VectorImpl<T>& VectorImpl<T>::operator-=(T scalar)
+{
+    x -= scalar;
+    y -= scalar;
+    z -= scalar;
     return *this;
 }
 
@@ -245,6 +266,15 @@ template <FloatingType T>
 constexpr VectorImpl<T> VectorImpl<T>::operator/(T scalar) const
 {
     return { x / scalar, y / scalar, z / scalar };
+}
+
+template <FloatingType T>
+constexpr VectorImpl<T>& VectorImpl<T>::operator/=(const VectorImpl& other) const
+{
+    x /= other.x;
+    y /= other.y;
+    z /= other.z;
+    return *this;
 }
 
 template <FloatingType T>
