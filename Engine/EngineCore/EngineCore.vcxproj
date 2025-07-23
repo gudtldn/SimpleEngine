@@ -67,6 +67,7 @@
     <ClCompile Include="Source\Interface\ISubsystemBase.cppm"/>
     <ClCompile Include="Source\Interface\IUpdatable.cppm"/>
     <ClCompile Include="Source\Math\Math.cppm"/>
+    <ClCompile Include="Source\Math\MathLiterals.cppm"/>
     <ClCompile Include="Source\Math\MathUtility.cppm"/>
     <ClCompile Include="Source\Math\Matrix.cppm"/>
     <ClCompile Include="Source\Math\Vector.cppm"/>
