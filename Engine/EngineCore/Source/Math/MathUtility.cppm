@@ -25,28 +25,28 @@ constexpr double PI_DOUBLE = 3.141592653589793238462643383279502884197169399;
 export struct MathUtils
 {
     /** 두 값중에 더 작은 값을 반환합니다. */
-    template <type_traits::OrderableType T>
+    template <OrderableType T>
     [[nodiscard]] static constexpr const T& Min(const T& a, const T& b)
     {
         return a < b ? a : b;
     }
 
     /** 두 값중에 더 큰 값을 반환합니다. */
-    template <type_traits::OrderableType T>
+    template <OrderableType T>
     [[nodiscard]] static constexpr const T& Max(const T& a, const T& b)
     {
         return a < b ? b : a;
     }
 
     /** value를 min과 max의 사이의 값으로 제한합니다. */
-    template <type_traits::OrderableType T>
+    template <OrderableType T>
     [[nodiscard]] static constexpr const T& Clamp(const T& value, const T& min_value, const T& max_value)
     {
         return Max(Min(value, max_value), min_value);
     }
 
     /** value의 절댓값을 구합니다. */
-    template <type_traits::OrderableType T>
+    template <OrderableType T>
     [[nodiscard]] static constexpr T Abs(const T value)
     {
         return value < T{ 0 } ? -value : value;
@@ -57,52 +57,65 @@ export struct MathUtils
     [[nodiscard]] static constexpr T Square(const T value) { return value * value; }
 
     /** a^b를 반환합니다 */
-    [[nodiscard]] static float Pow(float a, float b) { return std::powf(a, b); }
-    [[nodiscard]] static double Pow(double a, double b) { return std::pow(a, b); }
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T Pow(T a, T b) { return std::pow(a, b); }
 
     /** value의 제곱근을 구합니다. */
-    [[nodiscard]] static float Sqrt(float value) { return std::sqrtf(value); }
-    [[nodiscard]] static double Sqrt(double value) { return std::sqrt(value); }
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T Sqrt(T value) { return std::sqrt(value); }
 
     /** value의 역제곱근을 구합니다. */
-    [[nodiscard]] static float InvSqrt(float value) { return 1.0f / std::sqrtf(value); }
-    [[nodiscard]] static double InvSqrt(double value) { return 1.0 / std::sqrt(value); }
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T InvSqrt(T value) { return static_cast<T>(1) / std::sqrt(value); }
 
-    /**
-     * value가 거의 0에 가까운지 확인합니다.
-     * @param value 비교할 숫자
-     * @param error_tolerance 거의 0으로 간주되는 값의 허용 최대 차이
-     * @return Value가 거의 0에 가까우면 True
-     */
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T Fmod(T value, T mod) { return std::fmod(value, mod); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T Cos(Radian<T> rad_value) { return std::cos(*rad_value); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T Sin(Radian<T> rad_value) { return std::sin(*rad_value); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T Tan(Radian<T> rad_value) { return std::tan(*rad_value); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr Radian<T> Acos(T value) { return Radian<T>(std::acos(value)); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr Radian<T> Asin(T value) { return Radian<T>(std::asin(value)); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr Radian<T> Atan(T value) { return Radian<T>(std::atan(value)); }
+
+    template <FloatingType T>
+    [[nodiscard]] static constexpr Radian<T> Atan2(T y, T x) { return Radian<T>(std::atan2(y, x)); }
+
+    /** value가 거의 0에 가까운지 확인합니다. */
     template <typename T>
-    [[nodiscard]] static bool IsNearlyZero(T value, T error_tolerance = SMALL_NUMBER)
+    [[nodiscard]] static constexpr bool IsNearlyZero(T value, T error_tolerance = SMALL_NUMBER)
     {
         return Abs(value) <= error_tolerance;
     }
 
-    /**
-     * 두 값이 거의 같은지 확인합니다.
-     * @param a 비교할 숫자1
-     * @param b 비교할 숫자2
-     * @param error_tolerance 거의 0으로 간주되는 값의 허용 최대 차이
-     * @return 두 값이 거의 같으면 True
-     */
+    /** 두 값이 거의 같은지 확인합니다. */
     template <typename T>
-    [[nodiscard]] static bool IsNearlyEqual(T a, T b, T error_tolerance = SMALL_NUMBER)
+    [[nodiscard]] static constexpr bool IsNearlyEqual(T a, T b, T error_tolerance = SMALL_NUMBER)
     {
         return Abs(a - b) <= error_tolerance;
     }
 
     /** Degrees를 Radians으로 변환합니다. */
-    template <typename T>
-    constexpr Radian<T> DegreesToRadians(Degree<T> degrees)
+    template <FloatingType T>
+    [[nodiscard]] static constexpr Radian<T> DegreesToRadians(Degree<T> degrees)
     {
         return Radian(degrees.value * (static_cast<T>(PI_DOUBLE) / static_cast<T>(180)));
     }
 
     /** Radians를 Degrees으로 변환합니다. */
-    template <typename T>
-    constexpr Degree<T> RadiansToDegrees(Radian<T> radians)
+    template <FloatingType T>
+    [[nodiscard]] static constexpr Degree<T> RadiansToDegrees(Radian<T> radians)
     {
         return Degree(radians.value * (static_cast<T>(180) / static_cast<T>(PI_DOUBLE)));
     }
