@@ -22,7 +22,12 @@ private:
 public:
     constexpr MatrixImpl() = default;
 
-    static constexpr MatrixImpl Identity() requires (Rows == Cols)
+    explicit constexpr MatrixImpl(std::span<const T, Rows * Cols> src)
+    {
+        std::copy(src.begin(), src.end(), data.begin());
+    }
+
+    [[nodiscard]] static constexpr MatrixImpl Identity() requires (Rows == Cols)
     {
         MatrixImpl ret{};
         for (SizeType i = 0; i < Rows; ++i)
@@ -32,32 +37,32 @@ public:
         return ret;
     }
 
-    static constexpr MatrixImpl Zero()
+    [[nodiscard]] static constexpr MatrixImpl Zero()
     {
         return MatrixImpl{};
     }
 
 public:
-    constexpr T* GetData() noexcept { return data.data(); }
-    constexpr const T* GetData() const noexcept { return data.data(); }
+    [[nodiscard]] constexpr T* GetData() noexcept { return data.data(); }
+    [[nodiscard]] constexpr const T* GetData() const noexcept { return data.data(); }
 
-    constexpr auto GetView() noexcept
+    [[nodiscard]] constexpr auto GetView() noexcept
     {
         return std::mdspan<T, ExtentType>(data.data());
     }
 
-    constexpr auto GetView() const noexcept
+    [[nodiscard]] constexpr auto GetView() const noexcept
     {
         return std::mdspan<const T, ExtentType>(data.data());
     }
 
 public:
-    constexpr T& operator[](SizeType row, SizeType col) noexcept
+    [[nodiscard]] constexpr T& operator[](SizeType row, SizeType col) noexcept
     {
         return data[row * Cols + col];
     }
 
-    constexpr const T& operator[](SizeType row, SizeType col) const noexcept
+    [[nodiscard]] constexpr const T& operator[](SizeType row, SizeType col) const noexcept
     {
         return data[row * Cols + col];
     }
