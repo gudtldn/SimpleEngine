@@ -52,6 +52,17 @@ export struct MathUtils
         return value < T{ 0 } ? -value : value;
     }
 
+    /** 0으로 나누기를 방지하는 안전한 나눗셈 연산을 수행합니다. */
+    template <NumberType T>
+    [[nodiscard]] static constexpr T SafeDivide(const T a, const T b, const T esp = std::numeric_limits<T>::epsilon())
+    {
+        if (Abs(b) <= esp)
+        {
+            return T{ 0 };
+        }
+        return a / b;
+    }
+
     /** value의 제곱을 구합니다. */
     template <typename T>
     [[nodiscard]] static constexpr T Square(const T value) { return value * value; }
