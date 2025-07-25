@@ -24,7 +24,7 @@ StringName::StringName(std::u8string_view in_str)
     comparison_hash = temp_comparison_hash;
 
 #if _DEBUG
-    debug_entry_ptr = &pool.Resolve(display_hash);
+    debug_entry_ptr = display_hash == 0 ? nullptr : &pool.Resolve(display_hash);
 #endif
 }
 
