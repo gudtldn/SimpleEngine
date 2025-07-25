@@ -49,15 +49,10 @@ public:
     [[nodiscard]] constexpr Matrix4x4Impl operator+(const Matrix4x4Impl& rhs) const;
     constexpr Matrix4x4Impl& operator+=(const Matrix4x4Impl& rhs);
 
-    [[nodiscard]] constexpr Matrix4x4Impl operator-(const Matrix4x4Impl& rhs) const;
-    constexpr Matrix4x4Impl& operator-=(const Matrix4x4Impl& rhs);
-
     [[nodiscard]] constexpr Matrix4x4Impl operator*(const Matrix4x4Impl& rhs) const;
     [[nodiscard]] constexpr Matrix4x4Impl operator*(T scalar) const;
-    constexpr Matrix4x4Impl& operator*=(T scalar);
-
-    [[nodiscard]] constexpr Matrix4x4Impl operator/(T scalar) const;
-    constexpr Matrix4x4Impl& operator/=(T scalar);
+    constexpr void operator*=(const Matrix4x4Impl& rhs);
+    constexpr void operator*=(T scalar);
 
     [[nodiscard]] constexpr T& operator[](SizeType row, SizeType col) noexcept;
     [[nodiscard]] constexpr const T& operator[](SizeType row, SizeType col) const noexcept;
@@ -242,27 +237,6 @@ constexpr Matrix4x4Impl<T, Align>& Matrix4x4Impl<T, Align>::operator+=(const Mat
 }
 
 template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator-(const Matrix4x4Impl& rhs) const
-{
-    Matrix4x4Impl ret{};
-    for (SizeType i = 0; i < 16; ++i)
-    {
-        ret.data[i] = data[i] - rhs.data[i];
-    }
-    return ret;
-}
-
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align>& Matrix4x4Impl<T, Align>::operator-=(const Matrix4x4Impl& rhs)
-{
-    for (SizeType i = 0; i < 16; ++i)
-    {
-        data[i] -= rhs.data[i];
-    }
-    return *this;
-}
-
-template <FloatingType T, size_t Align>
 constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(const Matrix4x4Impl& rhs) const
 {
     Matrix4x4Impl ret{};
@@ -270,7 +244,7 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(const Matri
     {
         for (SizeType j = 0; j < 4; ++j)
         {
-            T sum = T{ 0 };
+            T sum{};
             for (SizeType k = 0; k < 4; ++k)
             {
                 sum += (*this)[i, k] * rhs[k, j];
@@ -285,42 +259,23 @@ template <FloatingType T, size_t Align>
 constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(T scalar) const
 {
     Matrix4x4Impl ret{};
-    for (SizeType i = 0; i < 16; ++i)
+    for (auto [n, ret_data] : ret.data | std::views::enumerate)
     {
-        ret.data[i] = data[i] * scalar;
+        ret_data = data[n] * scalar;
     }
     return ret;
 }
 
 template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator/(T scalar) const
+constexpr void Matrix4x4Impl<T, Align>::operator*=(const Matrix4x4Impl& rhs)
 {
-    Matrix4x4Impl ret{};
-    for (SizeType i = 0; i < 16; ++i)
-    {
-        ret.data[i] = data[i] / scalar;
-    }
-    return ret;
+    *this = *this * rhs;
 }
 
 template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align>& Matrix4x4Impl<T, Align>::operator*=(T scalar)
+constexpr void Matrix4x4Impl<T, Align>::operator*=(T scalar)
 {
-    for (SizeType i = 0; i < 16; ++i)
-    {
-        data[i] *= scalar;
-    }
-    return *this;
-}
-
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align>& Matrix4x4Impl<T, Align>::operator/=(T scalar)
-{
-    for (SizeType i = 0; i < 16; ++i)
-    {
-        data[i] /= scalar;
-    }
-    return *this;
+    *this = *this * scalar;
 }
 
 template <FloatingType T, size_t Align>
