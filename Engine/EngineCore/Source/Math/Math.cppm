@@ -10,8 +10,8 @@ export
 {
     using namespace se::math::math_literals;
 
-    using Matrix4x4 = MatrixImpl<double, 4, 4, 64>;
-    using Matrix4x4f = MatrixImpl<float, 4, 4, 64>;
+    using Matrix4x4 = Matrix4x4Impl<double, 64>;
+    using Matrix4x4f = Matrix4x4Impl<float, 64>;
     using Vector3 = VectorImpl<double>;
     using Vector3f = VectorImpl<float>;
 }
