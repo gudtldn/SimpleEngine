@@ -1,7 +1,7 @@
 ﻿#include "doctest.h"
 
+import SimpleEngine.Prelude;
 import std;
-import SimpleEngine.Core;
 
 
 namespace WeirdNamespace
