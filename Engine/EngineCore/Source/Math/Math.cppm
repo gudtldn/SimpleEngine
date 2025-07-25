@@ -5,6 +5,7 @@ export import :MathUtility;
 import :Matrix;
 import :Vector2;
 import :Vector3;
+import :Vector4;
 
 
 export
@@ -20,4 +21,6 @@ export
     using Vector2f = Vector2Impl<float>;
     using Vector3 = Vector3Impl<double>;
     using Vector3f = Vector3Impl<float>;
+    using Vector4 = Vector4Impl<double>;
+    using Vector4f = Vector4Impl<float>;
 }
