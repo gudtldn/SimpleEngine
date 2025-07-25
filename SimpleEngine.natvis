@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- StringName -->
   <Type Name="se::core::string_name::StringName">
     <DisplayString Condition="debug_entry_ptr == nullptr">"None"</DisplayString>
     <DisplayString Condition="debug_entry_ptr != nullptr">
@@ -8,6 +10,49 @@
     <Expand>
       <Item Name="[display_hash]">display_hash</Item>
       <Item Name="[comparison_hash]">comparison_hash</Item>
+    </Expand>
+  </Type>
+
+  <!-- Matrix4x4 -->
+  <Type Name="Matrix4x4Impl&lt;*,*&gt;">
+    <DisplayString>Matrix4x4, Align={$T2}</DisplayString>
+    <Expand>
+      <Synthetic Name="[0]">
+        <DisplayString>{data[0]}, {data[1]}, {data[2]}, {data[3]}</DisplayString>
+        <Expand>
+          <ArrayItems>
+            <Size>4</Size>
+            <ValuePointer>($T1*)&amp;data</ValuePointer>
+          </ArrayItems>
+        </Expand>
+      </Synthetic>
+      <Synthetic Name="[1]">
+        <DisplayString>{data[4]}, {data[5]}, {data[6]}, {data[7]}</DisplayString>
+        <Expand>
+          <ArrayItems>
+            <Size>4</Size>
+            <ValuePointer>($T1*)(&amp;data)+4</ValuePointer>
+          </ArrayItems>
+        </Expand>
+      </Synthetic>
+      <Synthetic Name="[2]">
+        <DisplayString>{data[8]}, {data[9]}, {data[10]}, {data[11]}</DisplayString>
+        <Expand>
+          <ArrayItems>
+            <Size>4</Size>
+            <ValuePointer>($T1*)(&amp;data)+8</ValuePointer>
+          </ArrayItems>
+        </Expand>
+      </Synthetic>
+      <Synthetic Name="[3]">
+        <DisplayString>{data[12]}, {data[13]}, {data[14]}, {data[15]}</DisplayString>
+        <Expand>
+          <ArrayItems>
+            <Size>4</Size>
+            <ValuePointer>($T1*)(&amp;data)+12</ValuePointer>
+          </ArrayItems>
+        </Expand>
+      </Synthetic>
     </Expand>
   </Type>
 </AutoVisualizer>
