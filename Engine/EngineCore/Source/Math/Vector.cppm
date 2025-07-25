@@ -422,7 +422,7 @@ template <FloatingType T>
 constexpr void VectorImpl<T>::Normalize()
 {
     T len = Length();
-    if (len > std::numeric_limits<T>::epsilon())
+    if (len > KINDA_SMALL_NUMBER)
     {
         x /= len;
         y /= len;
@@ -445,7 +445,7 @@ constexpr VectorImpl<T> VectorImpl<T>::GetNormalized() const
 template <FloatingType T>
 constexpr bool VectorImpl<T>::IsNormalized() const
 {
-    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+    constexpr T epsilon = KINDA_SMALL_NUMBER;
     return MathUtils::Abs(1.f - SquaredLength()) < epsilon;
 }
 

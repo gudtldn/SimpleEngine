@@ -54,7 +54,7 @@ export struct MathUtils
 
     /** 0으로 나누기를 방지하는 안전한 나눗셈 연산을 수행합니다. */
     template <NumberType T>
-    [[nodiscard]] static constexpr T SafeDivide(const T a, const T b, const T esp = std::numeric_limits<T>::epsilon())
+    [[nodiscard]] static constexpr T SafeDivide(const T a, const T b, const T esp = KINDA_SMALL_NUMBER)
     {
         if (Abs(b) <= esp)
         {

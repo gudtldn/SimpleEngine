@@ -1,4 +1,5 @@
 ﻿export module SimpleEngine.Math:Matrix;
+import :MathUtility;
 
 import SimpleEngine.TypeTraits;
 import SimpleEngine.Types;
@@ -136,15 +137,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Inverse() const
     det[3] = self[0, 1] * temp[3, 0] - self[1, 1] * temp[3, 1] + self[2, 1] * temp[3, 2];
 
     const T determinant = self[0, 0] * det[0] - self[1, 0] * det[1] + self[2, 0] * det[2] - self[3, 0] * det[3];
-
-    // ReSharper disable once CppIdenticalOperandsInBinaryExpression
-    if (
-        determinant == 0.0f
-        || determinant != determinant // NaN
-        || determinant == std::numeric_limits<T>::infinity()
-        || determinant == -std::numeric_limits<T>::infinity()
-        // !std::isfinite(determinant)
-    )
+    const T abs_determinant = determinant < T{ 0 } ? -determinant : determinant;
+    if (abs_determinant < se::math::KINDA_SMALL_NUMBER) // !std::isfinite(determinant)
     {
         return Identity();
     }
