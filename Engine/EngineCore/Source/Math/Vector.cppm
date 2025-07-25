@@ -94,6 +94,12 @@ public:
 public:
     [[nodiscard]] constexpr T Length() const;
     [[nodiscard]] constexpr T SquaredLength() const;
+
+    constexpr void Normalize();
+    [[nodiscard]] constexpr VectorImpl GetNormalized() const;
+    [[nodiscard]] constexpr bool IsNormalized() const;
+
+    [[nodiscard]] bool IsNearlyZero(T tolerance = KINDA_SMALL_NUMBER) const;
 };
 
 
@@ -410,4 +416,43 @@ constexpr T VectorImpl<T>::SquaredLength() const
     return MathUtils::Square(x)
         + MathUtils::Square(y)
         + MathUtils::Square(z);
+}
+
+template <FloatingType T>
+constexpr void VectorImpl<T>::Normalize()
+{
+    T len = Length();
+    if (len > std::numeric_limits<T>::epsilon())
+    {
+        x /= len;
+        y /= len;
+        z /= len;
+    }
+    else
+    {
+        x = y = z = 0;
+    }
+}
+
+template <FloatingType T>
+constexpr VectorImpl<T> VectorImpl<T>::GetNormalized() const
+{
+    VectorImpl copied = *this;
+    copied.Normalize();
+    return copied;
+}
+
+template <FloatingType T>
+constexpr bool VectorImpl<T>::IsNormalized() const
+{
+    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+    return MathUtils::Abs(1.f - SquaredLength()) < epsilon;
+}
+
+template <FloatingType T>
+bool VectorImpl<T>::IsNearlyZero(T tolerance) const
+{
+    return MathUtils::Abs(x) <= tolerance
+        && MathUtils::Abs(y) <= tolerance
+        && MathUtils::Abs(z) <= tolerance;
 }
