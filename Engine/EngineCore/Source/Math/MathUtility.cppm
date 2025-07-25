@@ -63,6 +63,13 @@ export struct MathUtils
         return a / b;
     }
 
+    /** 주어진 값이 유한수인지 확인합니다. */
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T IsFinite(T value)
+    {
+        return std::isfinite(value);
+    }
+
     /** value의 제곱을 구합니다. */
     template <typename T>
     [[nodiscard]] static constexpr T Square(const T value) { return value * value; }
