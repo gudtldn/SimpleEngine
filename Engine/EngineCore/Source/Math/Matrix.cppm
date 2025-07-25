@@ -55,7 +55,7 @@ public:
     constexpr void operator*=(T scalar);
 
     [[nodiscard]] constexpr T& operator[](SizeType row, SizeType col) noexcept;
-    [[nodiscard]] constexpr const T& operator[](SizeType row, SizeType col) const noexcept;
+    [[nodiscard]] constexpr T operator[](SizeType row, SizeType col) const noexcept;
 };
 
 template <FloatingType T, size_t Align>
@@ -285,7 +285,7 @@ constexpr T& Matrix4x4Impl<T, Align>::operator[](SizeType row, SizeType col) noe
 }
 
 template <FloatingType T, size_t Align>
-constexpr const T& Matrix4x4Impl<T, Align>::operator[](SizeType row, SizeType col) const noexcept
+constexpr T Matrix4x4Impl<T, Align>::operator[](SizeType row, SizeType col) const noexcept
 {
     return data[row * 4 + col];
 }
