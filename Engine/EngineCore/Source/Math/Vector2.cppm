@@ -15,7 +15,7 @@ struct Vector2Impl
     T x, y;
 
 public:
-    constexpr Vector2Impl();
+    constexpr Vector2Impl() = default;
     constexpr Vector2Impl(T in_x, T in_y);
     explicit constexpr Vector2Impl(T scalar);
 
@@ -25,12 +25,6 @@ public:
 
     /** Vector(1, 1) */
     [[nodiscard]] static constexpr Vector2Impl One();
-
-    /** Unit Vector(1, 0) */
-    [[nodiscard]] static constexpr Vector2Impl UnitX();
-
-    /** Unit Vector(0, 1) */
-    [[nodiscard]] static constexpr Vector2Impl UnitY();
 
 public:
     /** Dot Product */
@@ -50,7 +44,6 @@ public:
 
     [[nodiscard]] constexpr Vector2Impl operator-(const Vector2Impl& other) const;
     [[nodiscard]] constexpr Vector2Impl operator-(T scalar) const;
-    [[nodiscard]] friend constexpr Vector2Impl operator-(T scalar, const Vector2Impl& self);
     constexpr Vector2Impl& operator-=(const Vector2Impl& other);
     constexpr Vector2Impl& operator-=(T scalar);
 
@@ -62,7 +55,6 @@ public:
 
     [[nodiscard]] constexpr Vector2Impl operator/(const Vector2Impl& other) const;
     [[nodiscard]] constexpr Vector2Impl operator/(T scalar) const;
-    [[nodiscard]] friend constexpr Vector2Impl operator/(T scalar, const Vector2Impl& self);
     constexpr Vector2Impl& operator/=(const Vector2Impl& other);
     constexpr Vector2Impl& operator/=(T scalar);
 
@@ -75,20 +67,14 @@ public:
     [[nodiscard]] constexpr T Length() const;
     [[nodiscard]] constexpr T SquaredLength() const;
 
-    constexpr void Normalize();
-    [[nodiscard]] constexpr Vector2Impl GetNormalized() const;
-    [[nodiscard]] constexpr bool IsNormalized() const;
+    constexpr void Normalize(T tolerance = KINDA_SMALL_NUMBER);
+    [[nodiscard]] constexpr Vector2Impl GetNormalized(T tolerance = KINDA_SMALL_NUMBER) const;
+    [[nodiscard]] constexpr bool IsNormalized(T tolerance = KINDA_SMALL_NUMBER) const;
 
     [[nodiscard]] bool IsNearlyZero(T tolerance = KINDA_SMALL_NUMBER) const;
+    [[nodiscard]] bool IsNearlyEqual(const Vector2Impl& other, T tolerance = KINDA_SMALL_NUMBER) const;
 };
 
-
-template <FloatingType T>
-constexpr Vector2Impl<T>::Vector2Impl()
-    : x(0)
-    , y(0)
-{
-}
 
 template <FloatingType T>
 constexpr Vector2Impl<T>::Vector2Impl(T in_x, T in_y)
@@ -114,18 +100,6 @@ template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::One()
 {
     return { 1 };
-}
-
-template <FloatingType T>
-constexpr Vector2Impl<T> Vector2Impl<T>::UnitX()
-{
-    return { 1, 0 };
-}
-
-template <FloatingType T>
-constexpr Vector2Impl<T> Vector2Impl<T>::UnitY()
-{
-    return { 0, 1 };
 }
 
 template <FloatingType T>
@@ -212,12 +186,6 @@ constexpr Vector2Impl<T> Vector2Impl<T>::operator-(T scalar) const
 }
 
 template <FloatingType T>
-constexpr Vector2Impl<T> operator-(T scalar, const Vector2Impl<T>& self)
-{
-    return self - scalar;
-}
-
-template <FloatingType T>
 constexpr Vector2Impl<T>& Vector2Impl<T>::operator-=(const Vector2Impl& other)
 {
     x -= other.x;
@@ -280,12 +248,6 @@ constexpr Vector2Impl<T> Vector2Impl<T>::operator/(T scalar) const
 }
 
 template <FloatingType T>
-constexpr Vector2Impl<T> operator/(T scalar, const Vector2Impl<T>& self)
-{
-    return self / scalar;
-}
-
-template <FloatingType T>
 constexpr Vector2Impl<T>& Vector2Impl<T>::operator/=(const Vector2Impl& other)
 {
     x /= other.x;
@@ -333,10 +295,10 @@ constexpr T Vector2Impl<T>::SquaredLength() const
 }
 
 template <FloatingType T>
-constexpr void Vector2Impl<T>::Normalize()
+constexpr void Vector2Impl<T>::Normalize(T tolerance)
 {
     T len = Length();
-    if (len > KINDA_SMALL_NUMBER)
+    if (len > tolerance)
     {
         x /= len;
         y /= len;
@@ -348,18 +310,17 @@ constexpr void Vector2Impl<T>::Normalize()
 }
 
 template <FloatingType T>
-constexpr Vector2Impl<T> Vector2Impl<T>::GetNormalized() const
+constexpr Vector2Impl<T> Vector2Impl<T>::GetNormalized(T tolerance) const
 {
     Vector2Impl copied = *this;
-    copied.Normalize();
+    copied.Normalize(tolerance);
     return copied;
 }
 
 template <FloatingType T>
-constexpr bool Vector2Impl<T>::IsNormalized() const
+constexpr bool Vector2Impl<T>::IsNormalized(T tolerance) const
 {
-    constexpr T epsilon = KINDA_SMALL_NUMBER;
-    return MathUtils::Abs(1.f - SquaredLength()) < epsilon;
+    return MathUtils::Abs(1.f - SquaredLength()) < tolerance;
 }
 
 template <FloatingType T>
@@ -367,4 +328,11 @@ bool Vector2Impl<T>::IsNearlyZero(T tolerance) const
 {
     return MathUtils::Abs(x) <= tolerance
         && MathUtils::Abs(y) <= tolerance;
+}
+
+template <FloatingType T>
+bool Vector2Impl<T>::IsNearlyEqual(const Vector2Impl& other, T tolerance) const
+{
+    return MathUtils::Abs(x - other.x) <= tolerance
+        && MathUtils::Abs(y - other.y) <= tolerance;
 }

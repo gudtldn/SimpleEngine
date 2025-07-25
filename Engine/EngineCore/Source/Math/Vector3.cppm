@@ -15,7 +15,7 @@ struct Vector3Impl
     T x, y, z;
 
 public:
-    constexpr Vector3Impl();
+    constexpr Vector3Impl() = default;
     constexpr Vector3Impl(T in_x, T in_y, T in_z);
     explicit constexpr Vector3Impl(T scalar);
 
@@ -70,7 +70,6 @@ public:
 
     [[nodiscard]] constexpr Vector3Impl operator-(const Vector3Impl& other) const;
     [[nodiscard]] constexpr Vector3Impl operator-(T scalar) const;
-    [[nodiscard]] friend constexpr Vector3Impl operator-(T scalar, const Vector3Impl& self);
     constexpr Vector3Impl& operator-=(const Vector3Impl& other);
     constexpr Vector3Impl& operator-=(T scalar);
 
@@ -82,7 +81,6 @@ public:
 
     [[nodiscard]] constexpr Vector3Impl operator/(const Vector3Impl& other) const;
     [[nodiscard]] constexpr Vector3Impl operator/(T scalar) const;
-    [[nodiscard]] friend constexpr Vector3Impl operator/(T scalar, const Vector3Impl& self);
     constexpr Vector3Impl& operator/=(const Vector3Impl& other);
     constexpr Vector3Impl& operator/=(T scalar);
 
@@ -95,19 +93,14 @@ public:
     [[nodiscard]] constexpr T Length() const;
     [[nodiscard]] constexpr T SquaredLength() const;
 
-    constexpr void Normalize();
-    [[nodiscard]] constexpr Vector3Impl GetNormalized() const;
-    [[nodiscard]] constexpr bool IsNormalized() const;
+    constexpr void Normalize(T tolerance = KINDA_SMALL_NUMBER);
+    [[nodiscard]] constexpr Vector3Impl GetNormalized(T tolerance = KINDA_SMALL_NUMBER) const;
+    [[nodiscard]] constexpr bool IsNormalized(T tolerance = KINDA_SMALL_NUMBER) const;
 
     [[nodiscard]] bool IsNearlyZero(T tolerance = KINDA_SMALL_NUMBER) const;
+    [[nodiscard]] bool IsNearlyEqual(const Vector3Impl& other, T tolerance = KINDA_SMALL_NUMBER) const;
 };
 
-
-template <FloatingType T>
-constexpr Vector3Impl<T>::Vector3Impl()
-    : x(0), y(0), z(0)
-{
-}
 
 template <FloatingType T>
 constexpr Vector3Impl<T>::Vector3Impl(T in_x, T in_y, T in_z)
@@ -291,12 +284,6 @@ constexpr Vector3Impl<T> Vector3Impl<T>::operator-(T scalar) const
 }
 
 template <FloatingType T>
-constexpr Vector3Impl<T> operator-(T scalar, const Vector3Impl<T>& self)
-{
-    return self - scalar;
-}
-
-template <FloatingType T>
 constexpr Vector3Impl<T>& Vector3Impl<T>::operator-=(const Vector3Impl& other)
 {
     x -= other.x;
@@ -363,12 +350,6 @@ constexpr Vector3Impl<T> Vector3Impl<T>::operator/(T scalar) const
 }
 
 template <FloatingType T>
-constexpr Vector3Impl<T> operator/(T scalar, const Vector3Impl<T>& self)
-{
-    return self / scalar;
-}
-
-template <FloatingType T>
 constexpr Vector3Impl<T>& Vector3Impl<T>::operator/=(const Vector3Impl& other)
 {
     x /= other.x;
@@ -419,10 +400,10 @@ constexpr T Vector3Impl<T>::SquaredLength() const
 }
 
 template <FloatingType T>
-constexpr void Vector3Impl<T>::Normalize()
+constexpr void Vector3Impl<T>::Normalize(T tolerance)
 {
     T len = Length();
-    if (len > KINDA_SMALL_NUMBER)
+    if (len > tolerance)
     {
         x /= len;
         y /= len;
@@ -435,18 +416,17 @@ constexpr void Vector3Impl<T>::Normalize()
 }
 
 template <FloatingType T>
-constexpr Vector3Impl<T> Vector3Impl<T>::GetNormalized() const
+constexpr Vector3Impl<T> Vector3Impl<T>::GetNormalized(T tolerance) const
 {
     Vector3Impl copied = *this;
-    copied.Normalize();
+    copied.Normalize(tolerance);
     return copied;
 }
 
 template <FloatingType T>
-constexpr bool Vector3Impl<T>::IsNormalized() const
+constexpr bool Vector3Impl<T>::IsNormalized(T tolerance) const
 {
-    constexpr T epsilon = KINDA_SMALL_NUMBER;
-    return MathUtils::Abs(1.f - SquaredLength()) < epsilon;
+    return MathUtils::Abs(1.f - SquaredLength()) < tolerance;
 }
 
 template <FloatingType T>
@@ -455,4 +435,12 @@ bool Vector3Impl<T>::IsNearlyZero(T tolerance) const
     return MathUtils::Abs(x) <= tolerance
         && MathUtils::Abs(y) <= tolerance
         && MathUtils::Abs(z) <= tolerance;
+}
+
+template <FloatingType T>
+bool Vector3Impl<T>::IsNearlyEqual(const Vector3Impl& other, T tolerance) const
+{
+    return MathUtils::Abs(x - other.x) <= tolerance
+        && MathUtils::Abs(y - other.y) <= tolerance
+        && MathUtils::Abs(z - other.z) <= tolerance;
 }
