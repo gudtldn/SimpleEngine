@@ -90,6 +90,7 @@
     <ClCompile Include="Source\Utility\Utility.cppm"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Math\Vector4.cppm"/>
     <ClInclude Include="Source\Platform\Linux\LinuxPlatform.h" />
     <ClInclude Include="Source\Platform\Mac\MacPlatform.h" />
     <ClInclude Include="Source\Platform\PlatformMacros.h" />

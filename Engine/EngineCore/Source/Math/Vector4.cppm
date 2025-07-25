@@ -1,0 +1,332 @@
+﻿export module SimpleEngine.Math:Vector4;
+import :MathUtility;
+
+import SimpleEngine.TypeTraits;
+import SimpleEngine.Types;
+import std;
+
+using namespace se::type_traits;
+using namespace se::math;
+
+
+template <FloatingType T>
+struct alignas(16) Vector4Impl
+{
+    T x, y, z, w;
+
+public:
+    constexpr Vector4Impl() = default;
+    constexpr Vector4Impl(T in_x, T in_y, T in_z, T in_w);
+    explicit constexpr Vector4Impl(T scalar);
+
+public:
+    /** Vector(0, 0, 0, 0) */
+    [[nodiscard]] static constexpr Vector4Impl Zero();
+
+    /** Vector(1, 1, 1, 1) */
+    [[nodiscard]] static constexpr Vector4Impl One();
+
+public:
+    [[nodiscard]] constexpr Vector4Impl operator+(const Vector4Impl& other) const;
+    [[nodiscard]] constexpr Vector4Impl operator+(T scalar) const;
+    [[nodiscard]] friend constexpr Vector4Impl operator+(T scalar, const Vector4Impl& self);
+    constexpr Vector4Impl& operator+=(const Vector4Impl& other);
+    constexpr Vector4Impl& operator+=(T scalar);
+
+    [[nodiscard]] constexpr Vector4Impl operator-(const Vector4Impl& other) const;
+    [[nodiscard]] constexpr Vector4Impl operator-(T scalar) const;
+    constexpr Vector4Impl& operator-=(const Vector4Impl& other);
+    constexpr Vector4Impl& operator-=(T scalar);
+
+    [[nodiscard]] constexpr Vector4Impl operator*(const Vector4Impl& other) const;
+    [[nodiscard]] constexpr Vector4Impl operator*(T scalar) const;
+    [[nodiscard]] friend constexpr Vector4Impl operator*(T scalar, const Vector4Impl& self);
+    constexpr Vector4Impl& operator*=(const Vector4Impl& other);
+    constexpr Vector4Impl& operator*=(T scalar);
+
+    [[nodiscard]] constexpr Vector4Impl operator/(const Vector4Impl& other) const;
+    [[nodiscard]] constexpr Vector4Impl operator/(T scalar) const;
+    constexpr Vector4Impl& operator/=(const Vector4Impl& other);
+    constexpr Vector4Impl& operator/=(T scalar);
+
+    [[nodiscard]] constexpr Vector4Impl operator-() const;
+
+    [[nodiscard]] constexpr bool operator==(const Vector4Impl& other) const;
+    [[nodiscard]] constexpr bool operator!=(const Vector4Impl& other) const;
+
+public:
+    [[nodiscard]] constexpr T Length3() const;
+    [[nodiscard]] constexpr T Length() const;
+    [[nodiscard]] constexpr T SquaredLength3() const;
+    [[nodiscard]] constexpr T SquaredLength() const;
+
+    constexpr void Normalize(T tolerance = KINDA_SMALL_NUMBER);
+    [[nodiscard]] constexpr Vector4Impl GetNormalized(T tolerance = KINDA_SMALL_NUMBER) const;
+    [[nodiscard]] constexpr bool IsNormalized(T tolerance = KINDA_SMALL_NUMBER) const;
+
+    [[nodiscard]] bool IsNearlyZero3(T tolerance = KINDA_SMALL_NUMBER) const;
+    [[nodiscard]] bool IsNearlyEqual3(const Vector4Impl& other, T tolerance = KINDA_SMALL_NUMBER) const;
+};
+
+
+template <FloatingType T>
+constexpr Vector4Impl<T>::Vector4Impl(T in_x, T in_y, T in_z, T in_w)
+    : x(in_x)
+    , y(in_y)
+    , z(in_z)
+    , w(in_w)
+{
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>::Vector4Impl(T scalar)
+    : x(scalar)
+    , y(scalar)
+    , z(scalar)
+    , w(scalar)
+{
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::Zero()
+{
+    return {};
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::One()
+{
+    return { 1 };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator+(const Vector4Impl& other) const
+{
+    return { x + other.x, y + other.y, z + other.z, w + other.w };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator+(T scalar) const
+{
+    return { x + scalar, y + scalar, z + scalar, w + scalar };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> operator+(T scalar, const Vector4Impl<T>& self)
+{
+    return self + scalar;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator+=(const Vector4Impl& other)
+{
+    x += other.x;
+    y += other.y;
+    z += other.z;
+    w += other.w;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator+=(T scalar)
+{
+    x += scalar;
+    y += scalar;
+    z += scalar;
+    w += scalar;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator-(const Vector4Impl& other) const
+{
+    return { x - other.x, y - other.y, z - other.z, w - other.w };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator-(T scalar) const
+{
+    return { x - scalar, y - scalar, z - scalar, w - scalar };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator-=(const Vector4Impl& other)
+{
+    x -= other.x;
+    y -= other.y;
+    z -= other.z;
+    w -= other.w;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator-=(T scalar)
+{
+    x -= scalar;
+    y -= scalar;
+    z -= scalar;
+    w -= scalar;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator*(const Vector4Impl& other) const
+{
+    return { x * other.x, y * other.y, z * other.z, w * other.w };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator*(T scalar) const
+{
+    return { x * scalar, y * scalar, z * scalar, w * scalar };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> operator*(T scalar, const Vector4Impl<T>& self)
+{
+    return self * scalar;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator*=(const Vector4Impl& other)
+{
+    x *= other.x;
+    y *= other.y;
+    z *= other.z;
+    w *= other.w;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator*=(T scalar)
+{
+    x *= scalar;
+    y *= scalar;
+    z *= scalar;
+    w *= scalar;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator/(const Vector4Impl& other) const
+{
+    return { x / other.x, y / other.y, z / other.z, w / other.w };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator/(T scalar) const
+{
+    return { x / scalar, y / scalar, z / scalar, w / scalar };
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator/=(const Vector4Impl& other)
+{
+    x /= other.x;
+    y /= other.y;
+    z /= other.z;
+    w /= other.w;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>& Vector4Impl<T>::operator/=(T scalar)
+{
+    x /= scalar;
+    y /= scalar;
+    z /= scalar;
+    w /= scalar;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::operator-() const
+{
+    return { -x, -y, -z, -w };
+}
+
+template <FloatingType T>
+constexpr bool Vector4Impl<T>::operator==(const Vector4Impl& other) const
+{
+    return x == other.x && y == other.y && z == other.z && w == other.w;
+}
+
+template <FloatingType T>
+constexpr bool Vector4Impl<T>::operator!=(const Vector4Impl& other) const
+{
+    return !(*this == other);
+}
+
+
+template <FloatingType T>
+constexpr T Vector4Impl<T>::Length3() const
+{
+    return MathUtils::Sqrt(SquaredLength3());
+}
+
+template <FloatingType T>
+constexpr T Vector4Impl<T>::Length() const
+{
+    return MathUtils::Sqrt(SquaredLength());
+}
+
+template <FloatingType T>
+constexpr T Vector4Impl<T>::SquaredLength3() const
+{
+    return MathUtils::Square(x)
+        + MathUtils::Square(y)
+        + MathUtils::Square(z);
+}
+
+template <FloatingType T>
+constexpr T Vector4Impl<T>::SquaredLength() const
+{
+    return SquaredLength3() + MathUtils::Square(w);
+}
+
+template <FloatingType T>
+constexpr void Vector4Impl<T>::Normalize(T tolerance)
+{
+    T len = Length3();
+    if (len > tolerance)
+    {
+        x /= len;
+        y /= len;
+        z /= len;
+    }
+    else
+    {
+        x = y = z = 0;
+    }
+    w = 0;
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T> Vector4Impl<T>::GetNormalized(T tolerance) const
+{
+    Vector4Impl copied = *this;
+    copied.Normalize(tolerance);
+    return copied;
+}
+
+template <FloatingType T>
+constexpr bool Vector4Impl<T>::IsNormalized(T tolerance) const
+{
+    return MathUtils::Abs(1.f - SquaredLength3()) < tolerance;
+}
+
+template <FloatingType T>
+bool Vector4Impl<T>::IsNearlyZero3(T tolerance) const
+{
+    return MathUtils::Abs(x) <= tolerance
+        && MathUtils::Abs(y) <= tolerance
+        && MathUtils::Abs(z) <= tolerance;
+}
+
+template <FloatingType T>
+bool Vector4Impl<T>::IsNearlyEqual3(const Vector4Impl& other, T tolerance) const
+{
+    return MathUtils::Abs(x - other.x) <= tolerance
+        && MathUtils::Abs(y - other.y) <= tolerance
+        && MathUtils::Abs(z - other.z) <= tolerance;
+}
