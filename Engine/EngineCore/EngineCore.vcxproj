@@ -70,7 +70,8 @@
     <ClCompile Include="Source\Math\MathLiterals.cppm"/>
     <ClCompile Include="Source\Math\MathUtility.cppm"/>
     <ClCompile Include="Source\Math\Matrix.cppm"/>
-    <ClCompile Include="Source\Math\Vector.cppm"/>
+    <ClCompile Include="Source\Math\Vector2.cppm"/>
+    <ClCompile Include="Source\Math\Vector3.cppm"/>
     <ClCompile Include="Source\Platform\Platform.cppm"/>
     <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
     <ClCompile Include="Source\Prelude.cppm"/>
