@@ -13,8 +13,8 @@ import std;
 export class Engine
 {
 private:
-    // Type별 Subsystem 목록
-    std::map<std::type_index, std::unique_ptr<ISubsystemBase>> sub_systems;
+    // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
+    std::unordered_map<std::type_index, std::unique_ptr<ISubsystemBase>> sub_systems;
 
     // 초기화/종료 순서 관리를 위한 벡터
     std::vector<ISubsystemBase*> sorted_sub_systems;
