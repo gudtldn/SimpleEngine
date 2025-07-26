@@ -142,8 +142,7 @@ consteval std::string_view RemoveQualifiers(std::string_view signature, std::arr
         {
             signature = string_utils::TrimWhitespace(signature);
         }
-    }
-    while (was_modified);
+    } while (was_modified);
     return signature;
 }
 
