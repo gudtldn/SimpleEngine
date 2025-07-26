@@ -72,6 +72,7 @@
     <ClCompile Include="Source\Math\Matrix.cppm"/>
     <ClCompile Include="Source\Math\Vector2.cppm"/>
     <ClCompile Include="Source\Math\Vector3.cppm"/>
+    <ClCompile Include="Source\Math\Vector4.cppm"/>
     <ClCompile Include="Source\Platform\Platform.cppm"/>
     <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
     <ClCompile Include="Source\Prelude.cppm"/>
@@ -90,7 +91,6 @@
     <ClCompile Include="Source\Utility\Utility.cppm"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Math\Vector4.cppm"/>
     <ClInclude Include="Source\Platform\Linux\LinuxPlatform.h" />
     <ClInclude Include="Source\Platform\Mac\MacPlatform.h" />
     <ClInclude Include="Source\Platform\PlatformMacros.h" />
