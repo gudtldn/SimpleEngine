@@ -213,7 +213,11 @@ consteval std::string_view ExtractType_MSVC(std::string_view in_signature) noexc
 /** GCC/Clang 타입 시그니처에서 원본 타입명을 추출합니다. */
 consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) noexcept
 {
+#if defined(__clang__)
+    constexpr std::string_view prefix = "[T = ";
+#else
     constexpr std::string_view prefix = "[with T = ";
+#endif
     size_t start_pos = in_signature.find(prefix);
     if (start_pos == std::string_view::npos)
     {
@@ -221,7 +225,12 @@ consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) 
     }
     start_pos += prefix.size();
 
+
+#if defined(__clang__)
+    constexpr std::string_view suffix = "]";
+#else
     constexpr std::string_view suffix = ";";
+#endif
     const size_t end_pos = in_signature.rfind(suffix);
     if (end_pos == std::string_view::npos || end_pos <= start_pos)
     {
@@ -237,6 +246,7 @@ consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) 
 
     return extracted_typename;
 }
+
 
 template <typename T>
 /** 컴파일 타임에 템플릿 타입 T에서 원본 타입명을 추출합니다. */
