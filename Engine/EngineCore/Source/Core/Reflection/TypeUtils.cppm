@@ -213,8 +213,29 @@ consteval std::string_view ExtractType_MSVC(std::string_view in_signature) noexc
 /** GCC/Clang 타입 시그니처에서 원본 타입명을 추출합니다. */
 consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) noexcept
 {
-    // TODO("TODO: Implements this");
-    return {};
+    constexpr std::string_view prefix = "[with T = ";
+    size_t start_pos = in_signature.find(prefix);
+    if (start_pos == std::string_view::npos)
+    {
+        return {};
+    }
+    start_pos += prefix.size();
+
+    constexpr std::string_view suffix = ";";
+    const size_t end_pos = in_signature.rfind(suffix);
+    if (end_pos == std::string_view::npos || end_pos <= start_pos)
+    {
+        return {};
+    }
+
+    // [with T = ;]안 Type 정보만 추출
+    std::string_view extracted_typename = in_signature.substr(start_pos, end_pos - start_pos);
+
+    // 선행 cv-한정자 제거
+    constexpr std::array<std::string_view, 2> leading_qualifiers = { "const", "volatile" };
+    extracted_typename = RemoveQualifiers<EQualifierRemovePosition::FromStart>(extracted_typename, leading_qualifiers);
+
+    return extracted_typename;
 }
 
 template <typename T>
@@ -242,8 +263,8 @@ consteval std::string_view ExtractTypeName() noexcept
  * @return 추출된 타입 시그니처를 문자열 뷰 형태로 반환합니다.
  */
 export template <typename T>
-    requires !(std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>)
-consteval std::string_view GetTypeSignature(bool is_include_namespace = true) noexcept
+    requires (!(std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>))
+consteval std::string_view GetTypeSignature(bool include_namespace = true) noexcept
 {
     using CleanType = traits::RemoveAllQualifiers<T>;
     constexpr std::string_view ret = detail::ExtractTypeName<CleanType>();
@@ -252,7 +273,7 @@ consteval std::string_view GetTypeSignature(bool is_include_namespace = true) no
         static_assert(type_traits::TAlwaysFalse<T>, "Failed to extract type name from type T");
     }
 
-    if (is_include_namespace)
+    if (include_namespace)
     {
         return ret;
     }
