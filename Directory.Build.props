@@ -13,7 +13,7 @@
     <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
 
     <!-- SDL3, ImGui 헤더 공통 경로 (모든 프로젝트에서 사용할 가능성) -->
-    <SDL3_IncludePath>$(SolutionDir)ThirdParty\SDL3-3.2.14\include</SDL3_IncludePath>
+    <SDL3_IncludePath>$(SolutionDir)ThirdParty\SDL3\include</SDL3_IncludePath>
     <ImGui_IncludePath>$(SolutionDir)ThirdParty\ImGui</ImGui_IncludePath>
     <ImGui_Backends_IncludePath>$(SolutionDir)ThirdParty\ImGui\backends</ImGui_Backends_IncludePath>
     <ICU4C_IncludePath>$(SolutionDir)ThirdParty\icu4c\include;</ICU4C_IncludePath>
@@ -60,12 +60,12 @@
     </ClCompile>
     <Link>
       <!-- 공통 링커 설정 (예: SDL3 라이브러리 경로) -->
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget);$(SolutionDir)ThirdParty\icu4c\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3\lib\$(PlatformTarget);$(SolutionDir)ThirdParty\icu4c\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL3.lib;icudt.lib;icuin.lib;icuio.lib;icuuc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
-        xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3-3.2.14\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"
+        xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"
         xcopy /Y /D "$(SolutionDir)ThirdParty\icu4c\bin\$(PlatformTarget)\icu*.dll" "$(OutDir)"
       </Command>
     </PostBuildEvent>
