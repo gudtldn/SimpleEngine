@@ -1,4 +1,5 @@
 ﻿export module SimpleEngine.Core:ECS.SparseSet;
+import :ECS.ECSTypes;
 
 import SimpleEngine.Types;
 import std;
@@ -11,23 +12,23 @@ template <typename ComponentType>
 class SparseSet
 {
     /** Index: EntityID, Value: DenseArrayIdx*/
-    std::vector<std::optional<uint64>> sparse;
+    std::vector<std::optional<size_t>> sparse;
 
     /** EntityID array */
-    std::vector<uint32> dense;
+    std::vector<EntityId> dense;
 
     /** Component array */
     std::vector<ComponentType> components;
 
 public:
-    explicit SparseSet(uint64 max_entities)
+    explicit SparseSet(size_t max_entities)
         : sparse(max_entities, std::nullopt)
     {
     }
 
-    [[nodiscard]] bool Contains(uint64 entity_id) const noexcept
+    [[nodiscard]] bool Contains(EntityId entity_id) const noexcept
     {
-        if (const std::optional<uint64> dense_idx_opt = sparse[entity_id])
+        if (const std::optional<size_t> dense_idx_opt = sparse[entity_id])
         {
             const auto dense_idx = *dense_idx_opt;
             return dense_idx < dense.size() && dense[dense_idx] == entity_id;
@@ -35,7 +36,7 @@ public:
         return false;
     }
 
-    void Add(uint64 entity_id, ComponentType&& component)
+    void Add(EntityId entity_id, ComponentType&& component)
     {
         // 이미 존재하면 덮어쓰기
         if (Contains(entity_id))
@@ -50,14 +51,14 @@ public:
         components.emplace_back(std::move(component));
     }
 
-    void Remove(uint64 entity_id)
+    void Remove(EntityId entity_id)
     {
         if (!Contains(entity_id))
         {
             return;
         }
 
-        const std::size_t remove_entity = *sparse[entity_id];
+        const size_t remove_entity = *sparse[entity_id];
         const uint32 last_entity = dense.back();
 
         // swap-remove
@@ -70,7 +71,7 @@ public:
         sparse[entity_id] = std::nullopt;
     }
 
-    [[nodiscard]] std::optional<ComponentType&> Get(uint64 entity_id)
+    [[nodiscard]] std::optional<ComponentType&> Get(EntityId entity_id)
     {
         return Contains(entity_id) ? components[sparse[entity_id]] : std::nullopt;
     }
@@ -79,7 +80,7 @@ public:
     [[nodiscard]] const std::vector<ComponentType>& GetComponents() const { return components; }
 
 public:
-    [[nodiscard]] std::optional<ComponentType&> operator[](uint64 entity_id)
+    [[nodiscard]] std::optional<ComponentType&> operator[](EntityId entity_id)
     {
         return Get(entity_id);
     }
