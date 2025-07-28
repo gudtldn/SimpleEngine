@@ -18,11 +18,11 @@ int WINAPI wWinMain(
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(nShowCmd);
 
+    SDL_SetAppMetadata("SimpleEngine_Editor", "0.1.0", "com.editor.simpleengine");
+
     app.Startup(lpCmdLine);
     app.Shutdown();
 
-    // SDL_SetAppMetadata("My", "0.1.0", "com.example.simpleengine");
-    //
     // SDL_Init(SDL_INIT_VIDEO);
     // SDL_Window* Wnd;
     // SDL_Renderer* Renderer;
