@@ -14,7 +14,7 @@ public:
     bool operator!=(const Entity& other) const noexcept = default;
 
 private:
-    // TODO: friend class ...;
+    friend class EntityManager;
 
     Entity(uint32 in_id, uint32 in_generation) noexcept
         : id(in_id)
