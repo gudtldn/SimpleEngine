@@ -49,7 +49,7 @@
     <ClCompile Include="Source\Config\Config.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
     <ClCompile Include="Source\Core\ECS\ECS.cppm"/>
-    <ClCompile Include="Source\Core\ECS\ECSTypes.cppm"/>
+    <ClCompile Include="Source\Core\ECS\Entity.cppm"/>
     <ClCompile Include="Source\Core\ECS\SparseSet.cppm"/>
     <ClCompile Include="Source\Core\Function\Function.cppm"/>
     <ClCompile Include="Source\Core\Hash\Hash.cppm"/>

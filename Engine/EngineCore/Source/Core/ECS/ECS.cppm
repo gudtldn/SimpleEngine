@@ -1,3 +1,3 @@
 ﻿export module SimpleEngine.Core:ECS;
 
-export import :ECS.ECSTypes;
+export import :ECS.Entity;
