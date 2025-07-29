@@ -4,11 +4,24 @@ import SimpleEngine.Types;
 import std;
 
 
-export struct Entity
+export class Entity
 {
+public:
+    uint32 GetId() const noexcept { return id; }
+    uint32 GetGeneration() const noexcept { return generation; }
+
+    bool operator==(const Entity& other) const noexcept = default;
+    bool operator!=(const Entity& other) const noexcept = default;
+
+private:
+    // TODO: friend class ...;
+
+    Entity(uint32 in_id, uint32 in_generation) noexcept
+        : id(in_id)
+        , generation(in_generation)
+    {
+    }
+
     uint32 id;
     uint32 generation;
-
-    [[nodiscard]] bool operator==(const Entity& other) const = default;
-    [[nodiscard]] bool operator!=(const Entity& other) const = default;
 };

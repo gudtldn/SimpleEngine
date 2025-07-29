@@ -30,12 +30,12 @@ public:
 
     [[nodiscard]] bool Contains(Entity entity) const noexcept
     {
-        if (entity.id >= sparse.size())
+        if (entity.GetId() >= sparse.size())
         {
             return false;
         }
 
-        if (const std::optional<size_t> dense_idx_opt = sparse[entity.id])
+        if (const std::optional<size_t> dense_idx_opt = sparse[entity.GetId()])
         {
             const auto dense_idx = *dense_idx_opt;
             return dense_idx < dense.size() && dense[dense_idx] == entity;
@@ -45,17 +45,17 @@ public:
 
     void Add(Entity entity, ComponentType&& component)
     {
-        assert(entity.id < sparse.size() && "Entity ID is out of range");
+        assert(entity.GetId() < sparse.size() && "Entity ID is out of range");
 
         // 이미 존재하면 덮어쓰기
         if (Contains(entity))
         {
-            components[*sparse[entity.id]] = std::move(component);
+            components[*sparse[entity.GetId()]] = std::move(component);
             return;
         }
 
         const std::size_t dense_idx = dense.size();
-        sparse[entity.id] = dense_idx;
+        sparse[entity.GetId()] = dense_idx;
         dense.push_back(entity);
         components.emplace_back(std::move(component));
     }
@@ -67,23 +67,23 @@ public:
             return;
         }
 
-        const size_t remove_idx = *sparse[entity.id];
+        const size_t remove_idx = *sparse[entity.GetId()];
         const Entity last_entity = dense.back();
 
         // swap-remove
         dense[remove_idx] = last_entity;
         components[remove_idx] = std::move(components.back());
 
-        sparse[last_entity.id] = remove_idx;
+        sparse[last_entity.GetId()] = remove_idx;
 
         dense.pop_back();
         components.pop_back();
-        sparse[entity.id] = std::nullopt;
+        sparse[entity.GetId()] = std::nullopt;
     }
 
     [[nodiscard]] ComponentType* TryGet(Entity entity)
     {
-        return Contains(entity) ? &components[*sparse[entity.id]] : nullptr;
+        return Contains(entity) ? &components[*sparse[entity.GetId()]] : nullptr;
     }
 
     [[nodiscard]] ComponentType& Get(Entity entity)
