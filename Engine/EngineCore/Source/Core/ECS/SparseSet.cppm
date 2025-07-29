@@ -28,6 +28,7 @@ public:
     {
     }
 
+    /** 해당 엔티티가 컴포넌트를 가지고 있는지 확인합니다. */
     [[nodiscard]] bool Contains(Entity entity) const noexcept
     {
         if (entity.GetId() >= sparse.size())
@@ -43,6 +44,7 @@ public:
         return false;
     }
 
+    /** 엔티티에 컴포넌트를 추가하거나 갱신합니다. */
     void Add(Entity entity, ComponentType&& component)
     {
         assert(entity.GetId() < sparse.size() && "Entity ID is out of range");
@@ -60,6 +62,7 @@ public:
         components.emplace_back(std::move(component));
     }
 
+    /** 엔티티의 컴포넌트를 제거합니다. */
     void Remove(Entity entity)
     {
         if (!Contains(entity))
@@ -81,11 +84,13 @@ public:
         sparse[entity.GetId()] = std::nullopt;
     }
 
+    /** 엔티티의 컴포넌트 포인터를 반환하며, 없으면 nullptr을 반환합니다. */
     [[nodiscard]] ComponentType* TryGet(Entity entity)
     {
         return Contains(entity) ? &components[*sparse[entity.GetId()]] : nullptr;
     }
 
+    /** 엔티티의 컴포넌트 참조를 반환합니다. */
     [[nodiscard]] ComponentType& Get(Entity entity)
     {
         ComponentType* ptr = TryGet(entity);
