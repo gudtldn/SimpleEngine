@@ -4,6 +4,8 @@ import SimpleEngine.Types;
 import std;
 
 
+namespace se::core::ecs
+{
 export class Entity
 {
 public:
@@ -25,3 +27,4 @@ private:
     uint32 id;
     uint32 generation;
 };
+}

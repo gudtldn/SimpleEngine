@@ -7,19 +7,10 @@ import std;
 import <cassert>;
 
 
+namespace se::core::ecs
+{
 export class EntityManager
 {
-    struct EntityRecord
-    {
-        uint32 generation = 0;
-        bool alive = false;
-    };
-
-    std::vector<EntityRecord> entity_records;
-    std::queue<uint32> free_ids;
-
-    uint32 max_entities;
-
 public:
     explicit EntityManager(uint32 in_max_entities)
         : entity_records(in_max_entities), max_entities(in_max_entities)
@@ -75,7 +66,7 @@ public:
         free_ids.push(entity.id);
     }
 
-    bool IsValid(Entity entity) const
+    [[nodiscard]] bool IsValid(Entity entity) const
     {
         if (entity.id >= entity_records.size())
         {
@@ -84,4 +75,19 @@ public:
         const auto& record = entity_records[entity.id];
         return record.alive && (record.generation == entity.generation);
     }
+
+    [[nodiscard]] uint32 GetMaxEntities() const { return max_entities; }
+
+private:
+    struct EntityRecord
+    {
+        uint32 generation = 0;
+        bool alive = false;
+    };
+
+    std::vector<EntityRecord> entity_records;
+    std::queue<uint32> free_ids;
+
+    uint32 max_entities;
 };
+}
