@@ -90,10 +90,22 @@ public:
         return Contains(entity) ? &components[*sparse[entity.GetId()]] : nullptr;
     }
 
+    [[nodiscard]] const ComponentType* TryGet(Entity entity) const
+    {
+        return Contains(entity) ? &components[*sparse[entity.GetId()]] : nullptr;
+    }
+
     /** 엔티티의 컴포넌트 참조를 반환합니다. */
     [[nodiscard]] ComponentType& Get(Entity entity)
     {
         ComponentType* ptr = TryGet(entity);
+        assert(ptr && "Entity does not exist");
+        return *ptr;
+    }
+
+    [[nodiscard]] const ComponentType& Get(Entity entity) const
+    {
+        const ComponentType* ptr = TryGet(entity);
         assert(ptr && "Entity does not exist");
         return *ptr;
     }
