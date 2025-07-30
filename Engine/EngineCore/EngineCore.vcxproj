@@ -52,6 +52,7 @@
     <ClCompile Include="Source\Core\ECS\Entity.cppm"/>
     <ClCompile Include="Source\Core\ECS\EntityManager.cppm"/>
     <ClCompile Include="Source\Core\ECS\SparseSet.cppm"/>
+    <ClCompile Include="Source\Core\ECS\World.cppm"/>
     <ClCompile Include="Source\Core\Function\Function.cppm"/>
     <ClCompile Include="Source\Core\Hash\Hash.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
