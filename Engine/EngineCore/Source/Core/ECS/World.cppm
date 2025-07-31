@@ -117,7 +117,7 @@ private:
         const auto type_index = std::type_index(typeid(ComponentType));
         if (component_storages.contains(type_index))
         {
-            return static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
+            return &static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
         }
         return nullptr;
     }
