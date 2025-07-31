@@ -13,7 +13,8 @@ export class EntityManager
 {
 public:
     explicit EntityManager(uint32 in_max_entities)
-        : entity_records(in_max_entities), max_entities(in_max_entities)
+        : entity_records(in_max_entities)
+        , max_entities(in_max_entities)
     {
     }
 
@@ -29,15 +30,14 @@ public:
         }
         else
         {
-            id = static_cast<uint32>(entity_records.size());
-            if (id >= max_entities)
+            if (next_id >= max_entities)
             {
                 throw std::runtime_error("Entity limit reached");
             }
-            entity_records.push_back({});
+            id = next_id.fetch_add(1, std::memory_order_relaxed);
         }
 
-        auto& record = entity_records[id];
+        EntityRecord& record = entity_records[id];
         assert(!record.alive && "Entity already alive");
         record.alive = true;
 
@@ -46,13 +46,13 @@ public:
 
     void Destroy(Entity entity)
     {
-        if (entity.id >= entity_records.size())
+        if (entity.id >= max_entities)
         {
             return;
         }
 
-        auto& record = entity_records[entity.id];
         // 세대가 다르면 이미 파괴된 엔티티이므로 무시
+        EntityRecord& record = entity_records[entity.id];
         if (record.generation != entity.generation)
         {
             return;
@@ -68,11 +68,11 @@ public:
 
     [[nodiscard]] bool IsValid(Entity entity) const
     {
-        if (entity.id >= entity_records.size())
+        if (entity.id >= max_entities)
         {
             return false;
         }
-        const auto& record = entity_records[entity.id];
+        const EntityRecord& record = entity_records[entity.id];
         return record.alive && (record.generation == entity.generation);
     }
 
@@ -89,5 +89,6 @@ private:
     std::queue<uint32> free_ids;
 
     uint32 max_entities;
+    std::atomic<uint32> next_id;
 };
 }
