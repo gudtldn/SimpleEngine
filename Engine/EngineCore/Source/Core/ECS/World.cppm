@@ -36,9 +36,9 @@ struct ComponentStorage : IStorage
  */
 export class World final
 {
+public:
     class EntityChain;
 
-public:
     World()
         : entity_manager(MAX_ENTITIES)
     {
