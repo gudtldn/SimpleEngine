@@ -25,8 +25,8 @@ public:
         // 재활용 가능한 ID 있으면 우선 사용
         if (!free_ids.empty())
         {
-            id = free_ids.front();
-            free_ids.pop();
+            id = free_ids.back();
+            free_ids.pop_back();
         }
         else
         {
@@ -63,7 +63,7 @@ public:
         ++record.generation; // 세대 변경
 
         // ID 재활용용 큐에 저장
-        free_ids.push(entity.id);
+        free_ids.push_back(entity.id);
     }
 
     [[nodiscard]] bool IsValid(Entity entity) const
@@ -86,7 +86,7 @@ private:
     };
 
     std::vector<EntityRecord> entity_records;
-    std::queue<uint32> free_ids;
+    std::vector<uint32> free_ids;
 
     uint32 max_entities;
     std::atomic<uint32> next_id;
