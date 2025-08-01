@@ -91,9 +91,23 @@ public:
         return GetStorage<ComponentType>()->Get(entity);
     }
 
+    /** Entity에서 ComponentType에 맞는 Component를 참조로 가져옵니다. */
+    template <typename ComponentType>
+    const ComponentType& GetComponent(Entity entity) const
+    {
+        return GetStorage<ComponentType>()->Get(entity);
+    }
+
     /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
     template <typename ComponentType>
     Optional<ComponentType&> TryGetComponent(Entity entity)
+    {
+        return GetStorage<ComponentType>()->TryGet(entity);
+    }
+
+    /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
+    template <typename ComponentType>
+    Optional<const ComponentType&> TryGetComponent(Entity entity) const
     {
         return GetStorage<ComponentType>()->TryGet(entity);
     }
@@ -113,6 +127,17 @@ private:
 
     template <typename ComponentType>
     SparseSet<ComponentType>* GetStorage()
+    {
+        const auto type_index = std::type_index(typeid(ComponentType));
+        if (component_storages.contains(type_index))
+        {
+            return &static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
+        }
+        return nullptr;
+    }
+
+    template <typename ComponentType>
+    const SparseSet<ComponentType>* GetStorage() const
     {
         const auto type_index = std::type_index(typeid(ComponentType));
         if (component_storages.contains(type_index))
