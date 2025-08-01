@@ -87,12 +87,20 @@ public:
     /** Optional<ComponentType을 반환합니다. */
     [[nodiscard]] Optional<ComponentType&> TryGet(Entity entity)
     {
-        return Contains(entity) ? components[*sparse[entity.GetId()]] : std::nullopt;
+        if (Contains(entity))
+        {
+            return components[*sparse[entity.GetId()]];
+        }
+        return std::nullopt;
     }
 
     [[nodiscard]] Optional<const ComponentType&> TryGet(Entity entity) const
     {
-        return Contains(entity) ? components[*sparse[entity.GetId()]] : std::nullopt;
+        if (Contains(entity))
+        {
+            return components[*sparse[entity.GetId()]];
+        }
+        return std::nullopt;
     }
 
     /** 엔티티의 컴포넌트 참조를 반환합니다. */
