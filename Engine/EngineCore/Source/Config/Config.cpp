@@ -16,7 +16,7 @@ ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
     return Config{std::move(result).table()};
 }
 
-std::optional<Config> Config::GetTable(std::u8string_view key_path) const
+Optional<Config> Config::GetTable(std::u8string_view key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {

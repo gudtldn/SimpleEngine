@@ -42,7 +42,7 @@ public:
      * @return Key가 존재하고, To로 변환이 가능하다면 값을 반환하고, 없다면 std::nullopt를 반환합니다.
      */
     template <typename To>
-    std::optional<To> GetValue(std::u8string_view key) const;
+    Optional<To> GetValue(std::u8string_view key) const;
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 값을 가져오거나, 없을 경우 저장 후 기본값을 반환합니다.
@@ -65,7 +65,7 @@ public:
      * @warning 배열 내 요소들의 타입이 일치하지 않거나 ElementType으로 변환 불가능하면 std::nullopt를 반환합니다.
      */
     template <typename ElementType>
-    std::optional<std::vector<ElementType>> GetArray(std::u8string_view key_path) const;
+    Optional<std::vector<ElementType>> GetArray(std::u8string_view key_path) const;
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 Table을 Config 객체로 반환합니다.
@@ -73,7 +73,7 @@ public:
      * @return 키 경로가 존재하고 Table으로 변환 가능할 경우 Config 객체를 반환하며,
      *         그렇지 않을 경우 std::nullopt를 반환합니다.
      */
-    std::optional<Config> GetTable(std::u8string_view key_path) const;
+    Optional<Config> GetTable(std::u8string_view key_path) const;
 
     /**
      * @brief 지정된 키 경로에 값을 설정합니다. 중간 경로는 필요시 테이블로 자동 생성됩니다.
@@ -114,7 +114,7 @@ inline Config::Config(toml::table&& table)
 }
 
 template <typename To>
-std::optional<To> Config::GetValue(std::u8string_view key) const
+Optional<To> Config::GetValue(std::u8string_view key) const
 {
     return FindNode(key).value<To>();
 }
@@ -132,7 +132,7 @@ To Config::GetValueOrStore(std::u8string_view key, U&& default_val)
 }
 
 template <typename ElementType>
-std::optional<std::vector<ElementType>> Config::GetArray(std::u8string_view key_path) const
+Optional<std::vector<ElementType>> Config::GetArray(std::u8string_view key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {
