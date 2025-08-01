@@ -14,7 +14,7 @@ template <typename ComponentType>
 class SparseSet
 {
     /** EntityID -> DenseIdx */
-    std::vector<std::optional<size_t>> sparse;
+    std::vector<Optional<size_t>> sparse;
 
     /** Entity array */
     std::vector<Entity> dense;
@@ -36,7 +36,7 @@ public:
             return false;
         }
 
-        if (const std::optional<size_t> dense_idx_opt = sparse[entity.GetId()])
+        if (const Optional<size_t> dense_idx_opt = sparse[entity.GetId()])
         {
             const auto dense_idx = *dense_idx_opt;
             return dense_idx < dense.size() && dense[dense_idx] == entity;
@@ -84,30 +84,30 @@ public:
         sparse[entity.GetId()] = std::nullopt;
     }
 
-    /** 엔티티의 컴포넌트 포인터를 반환하며, 없으면 nullptr을 반환합니다. */
-    [[nodiscard]] ComponentType* TryGet(Entity entity)
+    /** Optional<ComponentType을 반환합니다. */
+    [[nodiscard]] Optional<ComponentType&> TryGet(Entity entity)
     {
-        return Contains(entity) ? &components[*sparse[entity.GetId()]] : nullptr;
+        return Contains(entity) ? components[*sparse[entity.GetId()]] : std::nullopt;
     }
 
-    [[nodiscard]] const ComponentType* TryGet(Entity entity) const
+    [[nodiscard]] Optional<const ComponentType&> TryGet(Entity entity) const
     {
-        return Contains(entity) ? &components[*sparse[entity.GetId()]] : nullptr;
+        return Contains(entity) ? components[*sparse[entity.GetId()]] : std::nullopt;
     }
 
     /** 엔티티의 컴포넌트 참조를 반환합니다. */
     [[nodiscard]] ComponentType& Get(Entity entity)
     {
-        ComponentType* ptr = TryGet(entity);
-        assert(ptr && "Entity does not exist");
-        return *ptr;
+        Optional<ComponentType&> opt_value = TryGet(entity);
+        assert(opt_value && "Entity does not exist");
+        return *opt_value;
     }
 
     [[nodiscard]] const ComponentType& Get(Entity entity) const
     {
-        const ComponentType* ptr = TryGet(entity);
-        assert(ptr && "Entity does not exist");
-        return *ptr;
+        Optional<ComponentType&> opt_value = TryGet(entity);
+        assert(opt_value && "Entity does not exist");
+        return *opt_value;
     }
 
     [[nodiscard]] const std::vector<Entity>& GetEntities() const { return dense; }

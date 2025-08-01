@@ -93,7 +93,7 @@ public:
 
     /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
     template <typename ComponentType>
-    ComponentType* TryGetComponent(Entity entity)
+    Optional<ComponentType&> TryGetComponent(Entity entity)
     {
         return GetStorage<ComponentType>()->TryGet(entity);
     }
