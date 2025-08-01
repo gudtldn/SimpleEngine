@@ -459,13 +459,23 @@ public:
     }
 
     /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
-    [[nodiscard]] T& value_or(T& default_value) const noexcept
+    [[nodiscard]] T& value_or(T& default_value)
     {
         if (has_value())
         {
             return get_stored_value();
         }
-        return static_cast<T&>(default_value);
+        return default_value;
+    }
+
+    /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
+    [[nodiscard]] const T& value_or(T& default_value) const
+    {
+        if (has_value())
+        {
+            return get_stored_value();
+        }
+        return default_value;
     }
 
     template <typename Fn>
