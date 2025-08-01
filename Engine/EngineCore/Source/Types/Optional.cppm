@@ -469,27 +469,13 @@ public:
     }
 
     /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
-    [[nodiscard]] const T& value_or(T& default_value) const
+    [[nodiscard]] const T& value_or(const T& default_value) const
     {
         if (has_value())
         {
             return get_stored_value();
         }
         return default_value;
-    }
-
-    template <typename Fn>
-        requires std::invocable<Fn, const T&>
-        && IsSpecializationOf<std::invoke_result_t<Fn, const T&>, Optional>
-    auto and_then(Fn&& func) const
-    {
-        using ResultT = std::invoke_result_t<Fn, const T&>;
-
-        if (has_value())
-        {
-            return std::invoke(std::forward<Fn>(func), get_stored_value());
-        }
-        return std::remove_cvref_t<ResultT>{};
     }
 
     template <typename Fn>
@@ -505,7 +491,7 @@ public:
         {
             return std::invoke(std::forward<Fn>(func), get_stored_value());
         }
-        return Optional<ResultT>{};
+        return ResultT{};
     }
 
     template <typename Fn>
@@ -521,20 +507,7 @@ public:
         {
             return std::invoke(std::forward<Fn>(func), get_stored_value());
         }
-        return Optional<ResultT>{};
-    }
-
-    template <typename Fn>
-        requires std::invocable<Fn>
-        && std::copy_constructible<T>
-        && std::same_as<std::remove_cvref_t<std::invoke_result_t<Fn>>, Optional>
-    Optional or_else(Fn&& func) const
-    {
-        if (has_value())
-        {
-            return *this;
-        }
-        return std::forward<Fn>(func)();
+        return ResultT{};
     }
 
     /** TODO: docs */
