@@ -180,6 +180,7 @@ public:
         return static_cast<std::remove_cv_t<T>>(std::forward<U>(default_value));
     }
 
+    /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
         && IsSpecializationOf<std::invoke_result_t<Fn, const T&>, Optional>
@@ -194,6 +195,7 @@ public:
         return std::remove_cvref_t<ResultT>{};
     }
 
+    /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&&>
         && IsSpecializationOf<std::invoke_result_t<Fn, T>, Optional>
@@ -208,6 +210,7 @@ public:
         return std::remove_cvref_t<ResultT>{};
     }
 
+    /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&&>
         && IsSpecializationOf<std::invoke_result_t<Fn, const T>, Optional>
@@ -222,6 +225,7 @@ public:
         return std::remove_cvref_t<ResultT>{};
     }
 
+    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&>
         && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>
@@ -238,6 +242,7 @@ public:
         return Optional<ResultT>{};
     }
 
+    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
         && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>
@@ -254,6 +259,7 @@ public:
         return Optional<ResultT>{};
     }
 
+    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&&>
         && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T>>, std::nullopt_t, std::in_place_t>
@@ -270,6 +276,7 @@ public:
         return Optional<ResultT>{};
     }
 
+    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<T, Fn, const T&&>
         && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T>>, std::nullopt_t, std::in_place_t>
@@ -286,6 +293,7 @@ public:
         return Optional<ResultT>{};
     }
 
+    /** 값이 없을 때, fn() -> Optional<T>인 함수를 호출하여, 새로운 Optional<T> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn>
         && std::copy_constructible<T>
@@ -299,6 +307,7 @@ public:
         return std::forward<Fn>(func)();
     }
 
+    /** 값이 없을 때, fn() -> Optional<T>인 함수를 호출하여, 새로운 Optional<T> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn>
         && std::move_constructible<T>
@@ -312,6 +321,7 @@ public:
         return std::forward<Fn>(func)();
     }
 
+    /** 새로운 값을 할당합니다. (내부에서 초기화) */
     template <typename... Args>
     T& emplace(Args&&... args)
     {
@@ -323,6 +333,7 @@ public:
     /** Optional에 값이 있는지 확인합니다. */
     [[nodiscard]] bool has_value() const noexcept { return is_value_set; }
 
+    /** 가지고 있던 값을 삭제하고, nullopt로 변경합니다. */
     void reset()
     {
         if (has_value())
@@ -478,6 +489,7 @@ public:
         return default_value;
     }
 
+    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&>
         && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>
@@ -494,6 +506,7 @@ public:
         return ResultT{};
     }
 
+    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
         && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>
@@ -510,7 +523,7 @@ public:
         return ResultT{};
     }
 
-    /** TODO: docs */
+    /** 가지고 있던 값을 삭제하고, nullopt로 변경합니다. */
     void reset() noexcept { ref_ptr = nullptr; }
 
     /** Optional에 값이 있는지 확인합니다. */
