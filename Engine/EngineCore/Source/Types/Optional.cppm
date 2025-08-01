@@ -14,6 +14,16 @@ public:
     Optional() noexcept = default;
     ~Optional() { reset(); }
 
+    template <typename U = T>
+        requires std::constructible_from<U, T>
+    Optional(std::optional<U>&& other_optional)
+    {
+        if (other_optional.has_value())
+        {
+            construct(std::move(other_optional.value()));
+        }
+    }
+
     template <typename... Args>
     Optional(std::in_place_t, Args&&... args)
     {
@@ -172,7 +182,7 @@ public:
 
     template <typename Fn>
         requires std::invocable<Fn, const T&>
-        && IsSpecialization<std::invoke_result_t<Fn, const T&>, Optional>
+        && IsSpecializationOf<std::invoke_result_t<Fn, const T&>, Optional>
     auto and_then(Fn&& func) const &
     {
         using ResultT = std::invoke_result_t<Fn, const T&>;
@@ -186,7 +196,7 @@ public:
 
     template <typename Fn>
         requires std::invocable<Fn, T&&>
-        && IsSpecialization<std::invoke_result_t<Fn, T>, Optional>
+        && IsSpecializationOf<std::invoke_result_t<Fn, T>, Optional>
     auto and_then(Fn&& func) &&
     {
         using ResultT = std::invoke_result_t<Fn, T>;
@@ -200,7 +210,7 @@ public:
 
     template <typename Fn>
         requires std::invocable<Fn, const T&&>
-        && IsSpecialization<std::invoke_result_t<Fn, const T>, Optional>
+        && IsSpecializationOf<std::invoke_result_t<Fn, const T>, Optional>
     auto and_then(Fn&& func) const &&
     {
         using ResultT = std::invoke_result_t<Fn, const T>;
@@ -330,6 +340,34 @@ public:
 
     [[nodiscard]] explicit operator bool() const noexcept { return has_value(); }
 
+    [[nodiscard]] bool operator==(std::nullopt_t) const noexcept { return !has_value(); }
+
+    [[nodiscard]] bool operator==(const Optional& other) const
+    {
+        if (has_value() && other.has_value())
+        {
+            return get_stored_value() == other.get_stored_value();
+        }
+        return has_value() == other.has_value();
+    }
+
+    template <typename U = T>
+        requires std::convertible_to<U, T>
+    [[nodiscard]] bool operator==(const U& value) const
+    {
+        if (has_value())
+        {
+            return get_stored_value() == value;
+        }
+        return false;
+    }
+
+    [[nodiscard]] friend bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
+
+    template <typename U = T>
+        requires std::convertible_to<U, T>
+    [[nodiscard]] friend bool operator==(const U& value, const Optional& other) { return other == value; }
+
 private:
     [[nodiscard]] T& get_stored_value() &
     {
@@ -407,7 +445,7 @@ public:
         {
             throw std::bad_optional_access{};
         }
-        return *ref_ptr;
+        return get_stored_value();
     }
 
     /** Optional이 가지고 있는 값을 반환합니다. */
@@ -417,7 +455,7 @@ public:
         {
             throw std::bad_optional_access{};
         }
-        return *ref_ptr;
+        return get_stored_value();
     }
 
     /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
@@ -425,21 +463,21 @@ public:
     {
         if (has_value())
         {
-            return *ref_ptr;
+            return get_stored_value();
         }
         return static_cast<T&>(default_value);
     }
 
     template <typename Fn>
         requires std::invocable<Fn, const T&>
-        && IsSpecialization<std::invoke_result_t<Fn, const T&>, Optional>
+        && IsSpecializationOf<std::invoke_result_t<Fn, const T&>, Optional>
     auto and_then(Fn&& func) const
     {
         using ResultT = std::invoke_result_t<Fn, const T&>;
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), *ref_ptr);
+            return std::invoke(std::forward<Fn>(func), get_stored_value());
         }
         return std::remove_cvref_t<ResultT>{};
     }
@@ -455,7 +493,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), *ref_ptr);
+            return std::invoke(std::forward<Fn>(func), get_stored_value());
         }
         return Optional<ResultT>{};
     }
@@ -471,7 +509,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), *ref_ptr);
+            return std::invoke(std::forward<Fn>(func), get_stored_value());
         }
         return Optional<ResultT>{};
     }
@@ -501,6 +539,38 @@ public:
     [[nodiscard]] T* operator->() const { return ref_ptr; }
 
     [[nodiscard]] explicit operator bool() const noexcept { return has_value(); }
+
+    [[nodiscard]] bool operator==(std::nullopt_t) const noexcept { return !has_value(); }
+
+    [[nodiscard]] bool operator==(const Optional& other) const
+    {
+        if (has_value() && other.has_value())
+        {
+            return get_stored_value() == other.get_stored_value();
+        }
+        return has_value() == other.has_value();
+    }
+
+    template <typename U = T>
+        requires std::convertible_to<U, T>
+    [[nodiscard]] bool operator==(const U& value) const
+    {
+        if (has_value())
+        {
+            return get_stored_value() == value;
+        }
+        return false;
+    }
+
+    [[nodiscard]] friend bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
+
+    template <typename U = T>
+        requires std::convertible_to<U, T>
+    [[nodiscard]] friend bool operator==(const U& value, const Optional& other) { return other == value; }
+
+private:
+    T& get_stored_value() { return *ref_ptr; }
+    const T& get_stored_value() const { return *ref_ptr; }
 
 private:
     T* ref_ptr = nullptr;
