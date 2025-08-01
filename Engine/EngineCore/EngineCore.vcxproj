@@ -88,6 +88,7 @@
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm"/>
+    <ClCompile Include="Source\Types\Optional.cppm"/>
     <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
     <ClCompile Include="Source\TypeTraits\TypeTraits.cppm"/>
