@@ -119,32 +119,35 @@ private:
         const auto type_index = std::type_index(typeid(ComponentType));
         if (!component_storages.contains(type_index))
         {
-            component_storages[type_index] = std::make_unique<ComponentStorage<ComponentType>>(entity_manager.GetMaxEntities());
+            component_storages[type_index] =
+                std::make_unique<ComponentStorage<ComponentType>>(entity_manager.GetMaxEntities());
         }
-        ComponentStorage<ComponentType>* wrapper = static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
+
+        ComponentStorage<ComponentType>* wrapper =
+            static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
+
         return wrapper->storage;
     }
 
     template <typename ComponentType>
-    Optional<SparseSet<ComponentType>&> GetStorage()
+    auto GetStorage(this auto&& self)
     {
-        const auto type_index = std::type_index(typeid(ComponentType));
-        if (component_storages.contains(type_index))
-        {
-            return static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
-        }
-        return std::nullopt;
-    }
+        // self의 cv-qualifier에 따라 const/비-const 자동 추론
+        using SelfType = std::remove_reference_t<decltype(self)>;
+        using StorageType = std::conditional_t<
+            std::is_const_v<SelfType>,
+            const SparseSet<ComponentType>&,
+            SparseSet<ComponentType>&
+        >;
 
-    template <typename ComponentType>
-    Optional<const SparseSet<ComponentType>&> GetStorage() const
-    {
         const auto type_index = std::type_index(typeid(ComponentType));
-        if (component_storages.contains(type_index))
+        if (self.component_storages.contains(type_index))
         {
-            return static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
+            return Optional<StorageType>{
+                static_cast<ComponentStorage<ComponentType>*>(self.component_storages.at(type_index).get())->storage
+            };
         }
-        return std::nullopt;
+        return Optional<StorageType>{};
     }
 
 private:
