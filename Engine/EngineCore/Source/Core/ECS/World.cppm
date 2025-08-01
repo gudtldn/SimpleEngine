@@ -81,7 +81,10 @@ public:
     template <typename ComponentType>
     void RemoveComponent(Entity entity)
     {
-        GetStorage<ComponentType>()->Remove(entity);
+        if (Optional storage_opt = GetStorage<ComponentType>())
+        {
+            storage_opt->Remove(entity);
+        }
     }
 
     /** Entity에서 ComponentType에 맞는 Component를 참조로 가져옵니다. */
@@ -102,14 +105,22 @@ public:
     template <typename ComponentType>
     Optional<ComponentType&> TryGetComponent(Entity entity)
     {
-        return GetStorage<ComponentType>()->TryGet(entity);
+        if (Optional opt_storage = GetStorage<ComponentType>())
+        {
+            return opt_storage->TryGet(entity);
+        }
+        return std::nullopt;
     }
 
     /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
     template <typename ComponentType>
     Optional<const ComponentType&> TryGetComponent(Entity entity) const
     {
-        return GetStorage<ComponentType>()->TryGet(entity);
+        if (Optional opt_storage = GetStorage<ComponentType>())
+        {
+            return opt_storage->TryGet(entity);
+        }
+        return std::nullopt;
     }
 
 private:
