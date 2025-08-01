@@ -126,25 +126,25 @@ private:
     }
 
     template <typename ComponentType>
-    SparseSet<ComponentType>* GetStorage()
+    Optional<SparseSet<ComponentType>&> GetStorage()
     {
         const auto type_index = std::type_index(typeid(ComponentType));
         if (component_storages.contains(type_index))
         {
-            return &static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
+            return static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
         }
-        return nullptr;
+        return std::nullopt;
     }
 
     template <typename ComponentType>
-    const SparseSet<ComponentType>* GetStorage() const
+    Optional<const SparseSet<ComponentType>&> GetStorage() const
     {
         const auto type_index = std::type_index(typeid(ComponentType));
         if (component_storages.contains(type_index))
         {
-            return &static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
+            return static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get())->storage;
         }
-        return nullptr;
+        return std::nullopt;
     }
 
 private:
