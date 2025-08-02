@@ -1,13 +1,13 @@
 ﻿export module SimpleEngine.Math:Matrix;
 import :MathUtility;
 
-import SimpleEngine.TypeTraits;
+import SimpleEngine.Traits;
 import SimpleEngine.Types;
 import std;
 
 import <cassert>;
 
-using namespace se::type_traits;
+using namespace se::traits::type_traits;
 
 
 /**

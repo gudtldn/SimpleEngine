@@ -1,11 +1,11 @@
 ﻿export module SimpleEngine.Math:Vector2;
 import :MathUtility;
 
-import SimpleEngine.TypeTraits;
+import SimpleEngine.Traits;
 import SimpleEngine.Types;
 import std;
 
-using namespace se::type_traits;
+using namespace se::traits::type_traits;
 using namespace se::math;
 
 

@@ -1,7 +1,7 @@
 ﻿export module SimpleEngine.Math:MathUtility;
 import :MathLiterals;
 
-import SimpleEngine.TypeTraits;
+import SimpleEngine.Traits;
 import SimpleEngine.Types;
 import std;
 

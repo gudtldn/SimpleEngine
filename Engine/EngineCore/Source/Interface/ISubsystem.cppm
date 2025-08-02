@@ -1,7 +1,7 @@
 ﻿export module SimpleEngine.Interface.ISubsystem;
 
 import SimpleEngine.Core;
-import SimpleEngine.TypeTraits;
+import SimpleEngine.Traits;
 import SimpleEngine.Subsystems.Utility;
 import SimpleEngine.Interface.ISubsystemBase;
 import std;
@@ -9,7 +9,7 @@ import std;
 
 /** Subsystem이 Dependencies에 포함되어 있는지 검사합니다. */
 template <typename Subsystem, typename... Dependencies>
-concept IsDependency = se::type_traits::TIsAnyOf<Subsystem, Dependencies...>;
+concept IsDependency = se::traits::type_traits::TIsAnyOf<Subsystem, Dependencies...>;
 
 export template <typename... Dependencies>
 class ISubsystem : public ISubsystemBase

@@ -1,10 +1,10 @@
 ﻿export module SimpleEngine.Types:Optional;
 import :PlatformTypes;
 
-import SimpleEngine.TypeTraits;
+import SimpleEngine.Traits;
 import std;
 
-using namespace se::type_traits;
+using namespace se::traits::type_traits;
 
 
 export template <typename T>
