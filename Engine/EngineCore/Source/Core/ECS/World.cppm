@@ -2,6 +2,7 @@ export module SimpleEngine.Core:ECS.World;
 import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
+import :ECS.QueryResult;
 
 import SimpleEngine.Types;
 import std;
@@ -10,7 +11,7 @@ import std;
 namespace se::core::ecs
 {
 /** 엔진이 동시에 관리할 수 있는 최대 엔티티 개수 */
-constexpr uint32 MAX_ENTITIES = 65535;
+constexpr uint32 MAX_ENTITIES = 65536;
 
 struct IStorage
 {
@@ -121,6 +122,13 @@ public:
             return opt_storage->TryGet(entity);
         }
         return std::nullopt;
+    }
+
+    template <typename... Components>
+    QueryResult<Components...> Query()
+    {
+        // TODO: Implements this
+        return {};
     }
 
 private:

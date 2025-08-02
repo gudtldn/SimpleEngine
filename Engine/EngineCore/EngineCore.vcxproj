@@ -51,6 +51,7 @@
     <ClCompile Include="Source\Core\ECS\ECS.cppm"/>
     <ClCompile Include="Source\Core\ECS\Entity.cppm"/>
     <ClCompile Include="Source\Core\ECS\EntityManager.cppm"/>
+    <ClCompile Include="Source\Core\ECS\QueryResult.cppm"/>
     <ClCompile Include="Source\Core\ECS\SparseSet.cppm"/>
     <ClCompile Include="Source\Core\ECS\World.cppm"/>
     <ClCompile Include="Source\Core\Function\Function.cppm"/>
