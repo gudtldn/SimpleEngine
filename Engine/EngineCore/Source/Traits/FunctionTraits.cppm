@@ -14,6 +14,8 @@ struct FunctionTraits<R(Args...)>
     using Signature = R(Args...);
     using ReturnType = R;
     using ArgumentTypes = std::tuple<Args...>;
+
+    static consteval size_t arg_count() { return sizeof...(Args); }
 };
 
 // 함수 포인터
