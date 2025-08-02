@@ -1,0 +1,13 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: SDL3_shadercross
+Description: Support SPIR-V and HLSL on various backends
+Version: 3.0.0
+Requires: sdl3 >= 3.1.3
+Libs: -L${libdir} -lSDL3_shadercross
+Requires.private: spirv-cross-c-shared
+Libs.private: -ldxcompiler
+Cflags: -I${includedir}
