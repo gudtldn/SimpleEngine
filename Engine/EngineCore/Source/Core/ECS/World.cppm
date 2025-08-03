@@ -2,7 +2,6 @@ export module SimpleEngine.Core:ECS.World;
 import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
-import :ECS.QueryResult;
 
 import SimpleEngine.Types;
 import std;
@@ -10,6 +9,10 @@ import std;
 
 namespace se::core::ecs
 {
+template <typename... ComponentType>
+class QueryResult;
+
+
 /** 엔진이 동시에 관리할 수 있는 최대 엔티티 개수 */
 constexpr uint32 MAX_ENTITIES = 65536;
 
@@ -197,5 +200,21 @@ public:
         World* world;
         Entity entity;
     };
+};
+
+template <typename... ComponentType>
+class QueryResult
+{
+public:
+    QueryResult(World* in_world)
+        : world(in_world)
+    {
+    }
+
+public:
+    // TODO: Implements for_each, ...
+
+private:
+    World* world;
 };
 }
