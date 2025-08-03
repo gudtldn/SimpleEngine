@@ -130,8 +130,7 @@ public:
     template <typename... Components>
     QueryResult<Components...> Query()
     {
-        // TODO: Implements this
-        return {};
+        return { world };
     }
 
 private:
@@ -202,7 +201,7 @@ public:
     };
 };
 
-template <typename... ComponentType>
+export template <typename... ComponentType>
 class QueryResult
 {
 public:
