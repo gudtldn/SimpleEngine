@@ -9,7 +9,7 @@ import std;
 
 namespace se::core::ecs
 {
-template <typename... ComponentType>
+export template <typename... ComponentType>
 class QueryResult;
 
 
@@ -130,7 +130,7 @@ public:
     template <typename... Components>
     QueryResult<Components...> Query()
     {
-        return { world };
+        return { this };
     }
 
 private:
