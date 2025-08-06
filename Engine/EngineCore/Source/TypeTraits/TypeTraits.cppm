@@ -14,7 +14,7 @@ export template <typename T, typename... Ts>
 concept TIsAnyOf = (std::same_as<T, Ts> || ...);
 
 // T 타입의 객체를 PrimaryTemplate<Args...> 패턴에 매칭되는지 확인합니다.
-template <typename T, template <typename...> typename PrimaryTemplate>
+export template <typename T, template <typename...> typename PrimaryTemplate>
 concept IsSpecializationOf = requires
 {
     []<typename... Args>(const PrimaryTemplate<Args...>&)
