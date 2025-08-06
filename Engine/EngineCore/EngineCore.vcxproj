@@ -87,6 +87,8 @@
     <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
     <ClCompile Include="Source\TypeTraits\TypeTraits.cppm"/>
+    <ClCompile Include="Source\Utility\FileUtils.cpp"/>
+    <ClCompile Include="Source\Utility\FileUtils.cppm"/>
     <ClCompile Include="Source\Utility\StringUtils.cpp"/>
     <ClCompile Include="Source\Utility\StringUtils.cppm"/>
     <ClCompile Include="Source\Utility\Utility.cppm"/>
