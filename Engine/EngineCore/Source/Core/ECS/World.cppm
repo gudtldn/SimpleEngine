@@ -9,9 +9,43 @@ import std;
 
 namespace se::core::ecs
 {
-export template <typename... ComponentType>
+export class World;
+
+inline namespace query
+{
+export template <typename FetchList, typename WithList, typename WithoutList>
 class QueryResult;
 
+export template <typename... T> struct Fetch {};
+export template <typename... T> struct With {};
+export template <typename... T> struct Without {};
+
+export template <
+    typename... FetchComps,
+    typename... WithComps,
+    typename... WithoutComps
+>
+class QueryResult<Fetch<FetchComps...>, With<WithComps...>, Without<WithoutComps...>>
+{
+public:
+    QueryResult(World* in_world)
+        : world(in_world)
+    {
+    }
+
+public:
+    // TODO: Implements for_each, ...
+
+    template <typename... WithComponentType>
+    QueryResult& With()
+    {
+        return {};
+    }
+
+private:
+    World* world;
+};
+}
 
 /** 엔진이 동시에 관리할 수 있는 최대 엔티티 개수 */
 constexpr uint32 MAX_ENTITIES = 65536;
@@ -128,9 +162,9 @@ public:
     }
 
     template <typename... Components>
-    QueryResult<Components...> Query()
+    auto Query()
     {
-        return { this };
+        return QueryResult<Fetch<Components...>, With<>, Without<>>{ this };
     }
 
 private:
@@ -199,21 +233,5 @@ public:
         World* world;
         Entity entity;
     };
-};
-
-export template <typename... ComponentType>
-class QueryResult
-{
-public:
-    QueryResult(World* in_world)
-        : world(in_world)
-    {
-    }
-
-public:
-    // TODO: Implements for_each, ...
-
-private:
-    World* world;
 };
 }
