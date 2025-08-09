@@ -69,7 +69,6 @@ public:
 
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
- * @todo World.cpp로 분리
  */
 export class World final
 {
@@ -178,7 +177,7 @@ public:
         return false;
     }
 
-    /** TODO: docs */
+    /** World에서 특정 컴포넌트를 가지고 있는 Entity를 가져옵니다. */
     template <typename... Components>
     auto Query() { return QueryResult<FetchQuery<Components...>, WithQuery<>, WithoutQuery<>>{ this }; }
 
@@ -267,7 +266,7 @@ public:
 
 
 /**
- * TODO: docs
+ * World 쿼리 결과를 나타내며, 지연 평가 및 메서드 체이닝을 지원하는 클래스입니다.
  */
 export template <
     typename... FetchComps,
@@ -283,6 +282,7 @@ public:
     }
 
 public:
+    /** '반드시 포함해야 하는' 컴포넌트 필터링 조건을 추가합니다. */
     template <typename... NewWithComps>
     auto With()
     {
@@ -293,6 +293,7 @@ public:
         >{ world };
     }
 
+    /** '절대 포함하면 안 되는' 컴포넌트 필터링 조건을 추가합니다. */
     template <typename... NewWithoutComps>
     auto Without()
     {
@@ -303,6 +304,7 @@ public:
         >{ world };
     }
 
+    /** 쿼리 결과를 순회하며 각 엔티티에 대해 주어진 함수를 실행합니다. */
     template <typename Fn>
         requires std::invocable<Fn, Entity, FetchComps&...>
     QueryResult& ForEach(Fn&& func)
