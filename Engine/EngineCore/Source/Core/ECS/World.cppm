@@ -55,11 +55,16 @@ public:
     {
     }
 
+    //~Begin IStorage
     [[nodiscard]] virtual size_t Length() const noexcept override { return storage.Length(); }
     [[nodiscard]] virtual bool IsEmpty() const noexcept override { return storage.IsEmpty(); }
     [[nodiscard]] virtual bool Contains(Entity entity) const noexcept override { return storage.Contains(entity); }
     [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const override { return storage.GetEntityByIndex(index); }
     virtual void Remove(Entity entity) override { storage.Remove(entity); }
+    //~End IStorage
+
+    SparseSet<ComponentType>& GetStorage() { return storage; }
+    const SparseSet<ComponentType>& GetStorage() const { return storage; }
 };
 
 /**
@@ -187,7 +192,7 @@ private:
             component_storages[type_index] = std::make_unique<ComponentStorage<ComponentType>>(entity_manager.GetMaxEntities());
         }
         ComponentStorage<ComponentType>* wrapper = static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
-        return wrapper->storage;
+        return wrapper->GetStorage();
     }
 
     template <typename ComponentType>
@@ -195,7 +200,7 @@ private:
     {
         if (IStorage* storage = GetIStorage<ComponentType>())
         {
-            return static_cast<ComponentStorage<ComponentType>*>(storage)->storage;
+            return static_cast<ComponentStorage<ComponentType>*>(storage)->GetStorage();
         }
         return std::nullopt;
     }
@@ -205,7 +210,7 @@ private:
     {
         if (const IStorage* storage = GetIStorage<ComponentType>())
         {
-            return static_cast<const ComponentStorage<ComponentType>*>(storage)->storage;
+            return static_cast<const ComponentStorage<ComponentType>*>(storage)->GetStorage();
         }
         return std::nullopt;
     }
@@ -279,7 +284,7 @@ public:
 
 public:
     template <typename... NewWithComps>
-    QueryResult With()
+    auto With()
     {
         return QueryResult<
             FetchQuery<FetchComps...>,
@@ -289,7 +294,7 @@ public:
     }
 
     template <typename... NewWithoutComps>
-    QueryResult Without()
+    auto Without()
     {
         return QueryResult<
             FetchQuery<FetchComps...>,
