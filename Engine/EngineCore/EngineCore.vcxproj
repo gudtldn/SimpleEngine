@@ -48,6 +48,11 @@
     <ClCompile Include="Source\Config\Config.cpp" />
     <ClCompile Include="Source\Config\Config.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
+    <ClCompile Include="Source\Core\ECS\ECS.cppm"/>
+    <ClCompile Include="Source\Core\ECS\Entity.cppm"/>
+    <ClCompile Include="Source\Core\ECS\EntityManager.cppm"/>
+    <ClCompile Include="Source\Core\ECS\SparseSet.cppm"/>
+    <ClCompile Include="Source\Core\ECS\World.cppm"/>
     <ClCompile Include="Source\Core\Function\Function.cppm"/>
     <ClCompile Include="Source\Core\Hash\Hash.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
@@ -83,10 +88,12 @@
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cppm"/>
     <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm"/>
+    <ClCompile Include="Source\Traits\FunctionTraits.cppm"/>
+    <ClCompile Include="Source\Traits\Traits.cppm"/>
     <ClCompile Include="Source\Types\Optional.cppm"/>
     <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
-    <ClCompile Include="Source\TypeTraits\TypeTraits.cppm"/>
+    <ClCompile Include="Source\Traits\TypeTraits.cppm"/>
     <ClCompile Include="Source\Utility\FileUtils.cpp"/>
     <ClCompile Include="Source\Utility\FileUtils.cppm"/>
     <ClCompile Include="Source\Utility\StringUtils.cpp"/>

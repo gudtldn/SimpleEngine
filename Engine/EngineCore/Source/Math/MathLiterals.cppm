@@ -1,9 +1,9 @@
 ﻿export module SimpleEngine.Math:MathLiterals;
 
-import SimpleEngine.TypeTraits;
+import SimpleEngine.Traits;
 import std;
 
-using namespace se::type_traits;
+using namespace se::traits::type_traits;
 
 
 struct DegreeTag{};

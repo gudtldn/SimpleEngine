@@ -1,9 +1,9 @@
-﻿export module SimpleEngine.TypeTraits;
+﻿export module SimpleEngine.Traits:TypeTraits;
 
 import std;
 
 
-namespace se::type_traits
+namespace se::traits::type_traits
 {
 // static_assert에 사용되는 Type Trait
 export template <typename T>
