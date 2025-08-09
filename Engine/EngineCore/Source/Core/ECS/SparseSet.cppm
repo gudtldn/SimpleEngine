@@ -13,6 +13,7 @@ namespace se::core::ecs
 template <typename ComponentType>
 class SparseSet
 {
+private:
     /** EntityID -> DenseIdx */
     std::vector<Optional<size_t>> sparse;
 
@@ -26,22 +27,6 @@ public:
     explicit SparseSet(size_t max_entities)
         : sparse(max_entities, std::nullopt)
     {
-    }
-
-    /** 해당 엔티티가 컴포넌트를 가지고 있는지 확인합니다. */
-    [[nodiscard]] bool Contains(Entity entity) const noexcept
-    {
-        if (entity.GetId() >= sparse.size())
-        {
-            return false;
-        }
-
-        if (const Optional<size_t> dense_idx_opt = sparse[entity.GetId()])
-        {
-            const auto dense_idx = *dense_idx_opt;
-            return dense_idx < dense.size() && dense[dense_idx] == entity;
-        }
-        return false;
     }
 
     /** 엔티티에 컴포넌트를 추가하거나 갱신합니다. */
@@ -62,7 +47,7 @@ public:
         components.emplace_back(std::move(component));
     }
 
-    /** 엔티티의 컴포넌트를 제거합니다. */
+    /** 엔티티가 가지고 있는 컴포넌트를 제거합니다. */
     void Remove(Entity entity)
     {
         if (!Contains(entity))
@@ -84,7 +69,46 @@ public:
         sparse[entity.GetId()] = std::nullopt;
     }
 
-    /** Optional<ComponentType을 반환합니다. */
+    /** Set에 Entity가 있는지 확인합니다. */
+    [[nodiscard]] bool Contains(Entity entity) const noexcept
+    {
+        if (entity.GetId() >= sparse.size())
+        {
+            return false;
+        }
+
+        if (const Optional<size_t> dense_idx_opt = sparse[entity.GetId()])
+        {
+            const auto dense_idx = *dense_idx_opt;
+            return dense_idx < dense.size() && dense[dense_idx] == entity;
+        }
+        return false;
+    }
+
+    /** Index로 Entity를 가져옵니다. */
+    [[nodiscard]] Optional<Entity> GetEntityByIndex(size_t index) const
+    {
+        // out of bounds 방지
+        if (index >= sparse.size())
+        {
+            return std::nullopt;
+        }
+
+        if (const Optional<size_t> dense_idx_opt = sparse[index])
+        {
+            const auto dense_idx = *dense_idx_opt;
+            return dense[dense_idx];
+        }
+        return std::nullopt;
+    }
+
+    /** Set에 등록된 Entity의 개수를 반환합니다. */
+    [[nodiscard]] size_t Length() const noexcept { return dense.size(); }
+
+    /** Set이 비어있는지 확인합니다. */
+    [[nodiscard]] bool IsEmpty() const noexcept { return dense.empty(); }
+
+    /** Entity의 Component를 가져오려고 시도합니다. */
     [[nodiscard]] Optional<ComponentType&> TryGet(Entity entity)
     {
         if (Contains(entity))
@@ -103,7 +127,7 @@ public:
         return std::nullopt;
     }
 
-    /** 엔티티의 컴포넌트 참조를 반환합니다. */
+    /** Entity의 Component&를 반환합니다. */
     [[nodiscard]] ComponentType& Get(Entity entity)
     {
         Optional<ComponentType&> opt_value = TryGet(entity);
