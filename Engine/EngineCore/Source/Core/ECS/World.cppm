@@ -11,69 +11,70 @@ namespace se::core::ecs
 {
 export class World;
 
-inline namespace query
-{
-export template <typename FetchList, typename WithList, typename WithoutList>
-class QueryResult;
-
-export template <typename... T> struct Fetch {};
-export template <typename... T> struct With {};
-export template <typename... T> struct Without {};
-
-export template <
-    typename... FetchComps,
-    typename... WithComps,
-    typename... WithoutComps
->
-class QueryResult<Fetch<FetchComps...>, With<WithComps...>, Without<WithoutComps...>>
-{
-public:
-    QueryResult(World* in_world)
-        : world(in_world)
-    {
-    }
-
-public:
-    // TODO: Implements for_each, ...
-
-    template <typename... WithComponentType>
-    QueryResult& With()
-    {
-        return {};
-    }
-
-private:
-    World* world;
-};
-}
-
 /** 엔진이 동시에 관리할 수 있는 최대 엔티티 개수 */
 constexpr uint32 MAX_ENTITIES = 65536;
 
-struct IStorage
+export template <typename FetchList, typename WithList, typename WithoutList>
+class QueryResult;
+
+export template <typename... T> struct FetchQuery {};
+export template <typename... T> struct WithQuery {};
+export template <typename... T> struct WithoutQuery {};
+
+
+/** type erasure를 위한 인터페이스 */
+class IStorage
 {
+public:
     virtual ~IStorage() = default;
+
+    /** Storage의 크기를 반환합니다. */
+    [[nodiscard]] virtual size_t Length() const noexcept = 0;
+
+    /** Storage가 비어있는지 확인합니다. */
+    [[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
+
+    /** 해당 엔티티가 컴포넌트를 가지고 있는지 확인합니다. */
+    [[nodiscard]] virtual bool Contains(Entity entity) const noexcept = 0;
+
+    /** Index로 Entity를 가져옵니다. */
+    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const = 0;
+
+    /** 엔티티가 가지고 있는 컴포넌트를 제거합니다. */
     virtual void Remove(Entity entity) = 0;
 };
 
 template <typename ComponentType>
-struct ComponentStorage : IStorage
+class ComponentStorage : public IStorage
 {
     SparseSet<ComponentType> storage;
 
-    ComponentStorage(size_t max_entities)
+public:
+    explicit ComponentStorage(size_t max_entities)
         : storage(max_entities)
     {
     }
 
+    [[nodiscard]] virtual size_t Length() const noexcept override { return storage.Length(); }
+    [[nodiscard]] virtual bool IsEmpty() const noexcept override { return storage.IsEmpty(); }
+    [[nodiscard]] virtual bool Contains(Entity entity) const noexcept override { return storage.Contains(entity); }
+    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const override { return storage.GetEntityByIndex(index); }
     virtual void Remove(Entity entity) override { storage.Remove(entity); }
 };
 
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
+ * @todo World.cpp로 분리
  */
 export class World final
 {
+private:
+    template <typename FetchList, typename WithList, typename WithoutList>
+    friend class QueryResult;
+
+    EntityManager entity_manager;
+    std::unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
+
 public:
     class EntityChain;
 
@@ -161,11 +162,20 @@ public:
         return std::nullopt;
     }
 
-    template <typename... Components>
-    auto Query()
+    /** Entity가 특정 Component를 가지고 있는지 확인합니다. */
+    template <typename ComponentType>
+    [[nodiscard]] bool HasComponent(Entity entity) const
     {
-        return QueryResult<Fetch<Components...>, With<>, Without<>>{ this };
+        if (Optional opt_storage = GetStorage<ComponentType>())
+        {
+            return opt_storage->Contains(entity);
+        }
+        return false;
     }
+
+    /** TODO: docs */
+    template <typename... Components>
+    auto Query() { return QueryResult<FetchQuery<Components...>, WithQuery<>, WithoutQuery<>>{ this }; }
 
 private:
     template <typename ComponentType>
@@ -174,40 +184,55 @@ private:
         const auto type_index = std::type_index(typeid(ComponentType));
         if (!component_storages.contains(type_index))
         {
-            component_storages[type_index] =
-                std::make_unique<ComponentStorage<ComponentType>>(entity_manager.GetMaxEntities());
+            component_storages[type_index] = std::make_unique<ComponentStorage<ComponentType>>(entity_manager.GetMaxEntities());
         }
-
-        ComponentStorage<ComponentType>* wrapper =
-            static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
-
+        ComponentStorage<ComponentType>* wrapper = static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
         return wrapper->storage;
     }
 
     template <typename ComponentType>
-    auto GetStorage(this auto&& self)
+    Optional<SparseSet<ComponentType>&> GetStorage()
     {
-        // self의 cv-qualifier에 따라 const/비-const 자동 추론
-        using SelfType = std::remove_reference_t<decltype(self)>;
-        using StorageType = std::conditional_t<
-            std::is_const_v<SelfType>,
-            const SparseSet<ComponentType>&,
-            SparseSet<ComponentType>&
-        >;
-
-        const auto type_index = std::type_index(typeid(ComponentType));
-        if (self.component_storages.contains(type_index))
+        if (IStorage* storage = GetIStorage<ComponentType>())
         {
-            return Optional<StorageType>{
-                static_cast<ComponentStorage<ComponentType>*>(self.component_storages.at(type_index).get())->storage
-            };
+            return static_cast<ComponentStorage<ComponentType>*>(storage)->storage;
         }
-        return Optional<StorageType>{};
+        return std::nullopt;
     }
 
-private:
-    EntityManager entity_manager;
-    std::unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
+    template <typename ComponentType>
+    Optional<const SparseSet<ComponentType>&> GetStorage() const
+    {
+        if (const IStorage* storage = GetIStorage<ComponentType>())
+        {
+            return static_cast<const ComponentStorage<ComponentType>*>(storage)->storage;
+        }
+        return std::nullopt;
+    }
+
+    /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
+    template <typename ComponentType>
+    [[nodiscard]] IStorage* GetIStorage()
+    {
+        const auto type_index = std::type_index(typeid(ComponentType));
+        if (component_storages.contains(type_index))
+        {
+            return component_storages.at(type_index).get();
+        }
+        return nullptr;
+    }
+
+    /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
+    template <typename ComponentType>
+    [[nodiscard]] const IStorage* GetIStorage() const
+    {
+        const auto type_index = std::type_index(typeid(ComponentType));
+        if (component_storages.contains(type_index))
+        {
+            return component_storages.at(type_index).get();
+        }
+        return nullptr;
+    }
 
 public:
     class EntityChain
@@ -233,5 +258,184 @@ public:
         World* world;
         Entity entity;
     };
+};
+
+
+/**
+ * TODO: docs
+ */
+export template <
+    typename... FetchComps,
+    typename... WithComps,
+    typename... WithoutComps
+>
+class QueryResult<FetchQuery<FetchComps...>, WithQuery<WithComps...>, WithoutQuery<WithoutComps...>>
+{
+public:
+    QueryResult(World* in_world)
+        : world(in_world)
+    {
+    }
+
+public:
+    template <typename... NewWithComps>
+    QueryResult With()
+    {
+        return QueryResult<
+            FetchQuery<FetchComps...>,
+            WithQuery<WithComps..., NewWithComps...>,
+            WithoutQuery<WithoutComps...>
+        >{ world };
+    }
+
+    template <typename... NewWithoutComps>
+    QueryResult Without()
+    {
+        return QueryResult<
+            FetchQuery<FetchComps...>,
+            WithQuery<WithComps...>,
+            WithoutQuery<WithoutComps..., NewWithoutComps...>
+        >{ world };
+    }
+
+    template <typename Fn>
+        requires std::invocable<Fn, Entity, FetchComps&...>
+    QueryResult& ForEach(Fn&& func)
+    {
+        for (auto tuple_value : *this)
+        {
+            std::apply(std::forward<Fn>(func), tuple_value);
+        }
+        return *this;
+    }
+
+public:
+    class Iterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = std::tuple<Entity, FetchComps&...>;
+        using difference_type = std::ptrdiff_t;
+
+    public:
+        Iterator(World* in_world, IStorage* in_pool, size_t in_index)
+            : world(in_world)
+            , base_pool(in_pool)
+            , storage_index(in_index)
+        {
+            AdvanceToValid();
+        }
+
+        value_type operator*() const noexcept
+        {
+            Entity entity = base_pool->GetEntityByIndex(storage_index).value();
+            return std::tie(entity, world->GetComponent<FetchComps>(entity)...);
+        }
+
+        Iterator& operator++()
+        {
+            ++storage_index;
+            AdvanceToValid();
+            return *this;
+        }
+
+        bool operator==(const Iterator& other) const noexcept
+        {
+            return storage_index == other.storage_index && base_pool == other.base_pool;
+        }
+
+    private:
+        void AdvanceToValid()
+        {
+            // 기준 풀이 없거나, 인덱스가 끝에 도달했으면 즉시 종료
+            if (!base_pool || storage_index >= base_pool->Length())
+            {
+                return;
+            }
+
+            while (storage_index < base_pool->Length())
+            {
+                if (Optional<Entity> entity_opt = base_pool->GetEntityByIndex(storage_index))
+                {
+                    Entity entity = *entity_opt;
+
+                    // Fetch와 With에 있는 Component를 가지고 있는지 확인
+                    const bool has_all_required =
+                        (world->HasComponent<FetchComps>(entity) && ...)
+                        && (world->HasComponent<WithComps>(entity) && ...);
+
+                    if (!has_all_required)
+                    {
+                        ++storage_index;
+                        continue;
+                    }
+
+                    // Without도 가지고 있는지 검사
+                    const bool has_any_excluded = (world->HasComponent<WithoutComps>(entity) || ...);
+                    if (has_any_excluded)
+                    {
+                        ++storage_index;
+                        continue;
+                    }
+
+                    // 유효한 엔티티면 return
+                    return;
+                }
+                ++storage_index;
+            }
+        }
+
+    private:
+        World* world;
+        IStorage* base_pool;
+        size_t storage_index;
+    };
+
+    Iterator begin()
+    {
+        IStorage* smallest_pool = FindSmallestPool();
+        return Iterator(world, smallest_pool, 0);
+    }
+
+    Iterator end()
+    {
+        IStorage* smallest_pool = FindSmallestPool();
+        const size_t end_index = smallest_pool ? smallest_pool->Length() : 0;
+        return Iterator(world, smallest_pool, end_index);
+    }
+
+private:
+    /** Fetch와 With 목록의 모든 SparseSet 중 가장 작은 것을 찾아 반환합니다. */
+    IStorage* FindSmallestPool()
+    {
+        std::array<IStorage*, sizeof...(FetchComps) + sizeof...(WithComps)> pools;
+        size_t i = 0;
+        ((pools[i++] = world->GetIStorage<FetchComps>()), ...);
+        ((pools[i++] = world->GetIStorage<WithComps>()), ...);
+        (void)i;
+
+        if (pools.empty())
+        {
+            return nullptr;
+        }
+
+        auto it = std::min_element(pools.begin(), pools.end(), [](const IStorage* a, const IStorage* b)
+        {
+            if (!a)
+            {
+                return false;
+            }
+            if (!b)
+            {
+                return true;
+            }
+            return a->Length() < b->Length();
+        });
+
+        return *it;
+    }
+
+private:
+    World* world;
 };
 }
