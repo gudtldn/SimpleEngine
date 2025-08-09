@@ -13,7 +13,7 @@ bool ImGuiSubsystem::Initialize()
 {
     auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, RenderSubsystem>();
 
-    SDL_Window* window = platform_subsystem->GetWindow();
+    SDL_Window* main_window = platform_subsystem->GetMainWindow();
     SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
 
     // ImGui 초기화
@@ -35,10 +35,10 @@ bool ImGuiSubsystem::Initialize()
     style.ScaleAllSizes(main_scale);
     style.FontScaleDpi = main_scale;
 
-    ImGui_ImplSDL3_InitForSDLGPU(window);
+    ImGui_ImplSDL3_InitForSDLGPU(main_window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {
         .Device = gpu_device,
-        .ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_device, window),
+        .ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_device, main_window),
         .MSAASamples = SDL_GPU_SAMPLECOUNT_1,
     };
     ImGui_ImplSDLGPU3_Init(&init_info);

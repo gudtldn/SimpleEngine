@@ -12,7 +12,8 @@ bool RenderSubsystem::Initialize()
     ConsoleLog(ELogLevel::Info, u8"Initializing Render subsystem...");
 
     const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
-    cached_window = platform_subsystem->GetWindow();
+    // TODO: 모든 window에 대해서 렌더링 하도록 수정
+    cached_window = platform_subsystem->GetMainWindow();
 
     // Window가 존재하는지 확인
     if (!cached_window)
