@@ -83,7 +83,7 @@ TEST_CASE("get value config file")
     CHECK(config.GetValue<float>(u8"a_float") == 3.14159f);
     CHECK(config.GetValue<std::u8string>(u8"a_string") == u8"Hello, TOML!");
 
-    CHECK(!config.GetValue<bool>(u8"__MyValue").has_value());
+    CHECK(!config.GetValue<bool>(u8"__MyValue").HasValue());
 }
 
 TEST_CASE("get value config file with default value")
@@ -110,7 +110,7 @@ TEST_CASE("get array config file")
     SUBCASE("get int array")
     {
         auto arr = config.GetArray<int>(u8"int_array");
-        CHECK(arr.has_value());
+        CHECK(arr.HasValue());
         CHECK(arr->size() == 5);
         CHECK(arr == std::vector{1, 2, 3, 4, 5});
     }
@@ -118,7 +118,7 @@ TEST_CASE("get array config file")
     SUBCASE("get float array")
     {
         auto arr = config.GetArray<float>(u8"float_array");
-        CHECK(arr.has_value());
+        CHECK(arr.HasValue());
         CHECK(arr->size() == 3);
         CHECK(arr == std::vector{0.5f, 1.5f, 2.5f});
     }
@@ -126,7 +126,7 @@ TEST_CASE("get array config file")
     SUBCASE("get string array")
     {
         auto arr = config.GetArray<std::u8string>(u8"string_array");
-        CHECK(arr.has_value());
+        CHECK(arr.HasValue());
         CHECK(arr->size() == 3);
 
         auto check_list = std::array{u8"apple", u8"banana", u8"cherry"};
@@ -139,7 +139,7 @@ TEST_CASE("get array config file")
     SUBCASE("get bool array")
     {
         auto arr = config.GetArray<bool>(u8"bool_array");
-        CHECK(arr.has_value());
+        CHECK(arr.HasValue());
         CHECK(arr->size() == 4);
         CHECK(arr == std::vector{true, false, true, true});
     }
@@ -154,7 +154,7 @@ TEST_CASE("get table config file")
     SUBCASE("get table")
     {
         auto window = config.GetTable(u8"window");
-        CHECK(window.has_value());
+        CHECK(window.HasValue());
         CHECK(window->GetValue<int>(u8"width") == 1280);
         CHECK(window->GetValue<int>(u8"height") == 720);
         CHECK(window->GetValue<bool>(u8"fullscreen") == false);
@@ -162,13 +162,13 @@ TEST_CASE("get table config file")
         CHECK(window->GetValue<float>(u8"scale") == 1.5f);
 
         auto graphics = config.GetTable(u8"graphics");
-        CHECK(graphics.has_value());
+        CHECK(graphics.HasValue());
         CHECK(graphics->GetValue<bool>(u8"vsync") == true);
         CHECK(graphics->GetValue<int>(u8"max_fps") == 144);
 
         auto check_list = std::array{u8"default.vert", u8"default.frag"};
         auto shaders = graphics->GetArray<std::u8string>(u8"shaders");
-        CHECK(shaders.has_value());
+        CHECK(shaders.HasValue());
         CHECK(shaders->size() == 2);
         for (size_t i = 0; i < shaders->size(); i++)
         {
@@ -176,10 +176,10 @@ TEST_CASE("get table config file")
         }
 
         auto features = graphics->GetTable(u8"features");
-        CHECK(features.has_value());
+        CHECK(features.HasValue());
         CHECK(features->GetValue<std::u8string>(u8"antialiasing") == u8"MSAAx4");
         CHECK(features->GetValue<int>(u8"anisotropic_filtering") == 16);
-        CHECK(!features->GetValue<std::u8string>(u8"anisotropic_filtering").has_value());
+        CHECK(!features->GetValue<std::u8string>(u8"anisotropic_filtering").HasValue());
 
         CHECK(graphics->GetArray<int>(u8"multisample_levels") == std::vector{2, 4, 8});
     }

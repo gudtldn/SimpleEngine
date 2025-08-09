@@ -29,7 +29,7 @@ bool PlatformSubsystem::Initialize()
     }
     ConsoleLog(ELogLevel::Info, u8"SDL_Init succeeded");
 
-    if (window_info.has_value())
+    if (window_info.HasValue())
     {
         ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
 

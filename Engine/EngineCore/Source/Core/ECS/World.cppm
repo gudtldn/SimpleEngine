@@ -335,7 +335,7 @@ public:
 
         value_type operator*() const noexcept
         {
-            Entity entity = base_pool->GetEntityByIndex(storage_index).value();
+            Entity entity = base_pool->GetEntityByIndex(storage_index).Value();
             return std::tie(entity, world->GetComponent<FetchComps>(entity)...);
         }
 
