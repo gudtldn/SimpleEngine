@@ -89,15 +89,9 @@ public:
     [[nodiscard]] Optional<Entity> GetEntityByIndex(size_t index) const
     {
         // out of bounds 방지
-        if (index >= sparse.size())
+        if (index < sparse.size())
         {
-            return std::nullopt;
-        }
-
-        if (const Optional<size_t> dense_idx_opt = sparse[index])
-        {
-            const auto dense_idx = *dense_idx_opt;
-            return dense[dense_idx];
+            return dense[index];
         }
         return std::nullopt;
     }
