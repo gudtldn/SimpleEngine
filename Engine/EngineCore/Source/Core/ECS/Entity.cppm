@@ -24,7 +24,7 @@ private:
     {
     }
 
-    uint32 id : 24;
-    uint32 generation : 8;
+    uint32 id;
+    uint32 generation;
 };
 }
