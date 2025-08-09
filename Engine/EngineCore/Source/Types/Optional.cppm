@@ -237,7 +237,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), get_stored_value());
+            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), get_stored_value()) };
         }
         return Optional<ResultT>{};
     }
@@ -254,7 +254,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), get_stored_value());
+            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), get_stored_value()) };
         }
         return Optional<ResultT>{};
     }
@@ -271,7 +271,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), std::move(get_stored_value()));
+            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), std::move(get_stored_value())) };
         }
         return Optional<ResultT>{};
     }
@@ -288,7 +288,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), std::move(get_stored_value()));
+            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), std::move(get_stored_value())) };
         }
         return Optional<ResultT>{};
     }
@@ -515,7 +515,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), get_stored_value());
+            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), get_stored_value()) };
         }
         return Optional<ResultT>{};
     }
@@ -532,7 +532,7 @@ public:
 
         if (has_value())
         {
-            return std::invoke(std::forward<Fn>(func), get_stored_value());
+            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), get_stored_value()) };
         }
         return Optional<ResultT>{};
     }
