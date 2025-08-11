@@ -157,6 +157,19 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     std::flush(std::cout);
 }
 
+/** 현재 함수의 Stack Trace를 출력합니다. */
+export void PrintStackTrace()
+{
+#ifdef _DEBUG
+    const std::stacktrace stack_trace = std::stacktrace::current();
+
+    ConsoleLog(ELogLevel::Debug, u8"Stack Trace:");
+    for (const std::stacktrace_entry& entry : stack_trace | std::views::drop(1) | std::views::reverse)
+    {
+        ConsoleLog(ELogLevel::Debug, u8"{}", entry);
+    }
+#endif
+}
 
 #define DECLARE_CONSOLE_LOG(log_level) \
     export template <typename... Args> \
