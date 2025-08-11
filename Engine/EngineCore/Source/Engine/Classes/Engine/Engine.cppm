@@ -69,12 +69,12 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, ISubsystemBase>
-    T* GetSubsystem() const
+    [[nodiscard]] T* GetSubsystem() const
     {
         const auto type_id = std::type_index(typeid(T));
-        if (const auto it = sub_systems.find(type_id); it != sub_systems.end())
+        if (sub_systems.contains(type_id))
         {
-            return static_cast<T*>(it->second.get());
+            return static_cast<T*>(sub_systems.at(type_id).get());
         }
         return nullptr;
     }
