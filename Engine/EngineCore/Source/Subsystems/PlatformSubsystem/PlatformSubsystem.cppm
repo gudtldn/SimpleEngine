@@ -8,16 +8,51 @@ import <SDL3/SDL.h>;
 import <SDL3/SDL_init.h>;
 
 
-export class PlatformSubsystem : public ISubsystem<>
+export struct WindowDesc
 {
-    struct WindowDesc
+    std::u8string title = u8"Untitled Window";
+    uint32 width = 1280;
+    uint32 height = 720;
+    uint32 sdl_window_flags = 0;
+
+    Optional<SDL_GPUSwapchainComposition> swapchain_composition = std::nullopt;
+    Optional<SDL_GPUPresentMode> present_mode = std::nullopt;
+
+    // HDR 및 고급 색공간 설정
+    bool enable_hdr = false;
+    bool prefer_linear_color_space = false;
+};
+
+export struct WindowCreateError
+{
+    enum class Type
     {
-        std::u8string title;
-        uint32 width;
-        uint32 height;
-        uint32 sdl_window_flags;
+        WindowCreationFailed,
+        GPUDeviceClaimFailed,
+        SwapchainSetupFailed,
     };
 
+    Type type;
+    std::u8string message;
+
+    static WindowCreateError WindowCreation(std::u8string&& sdl_error)
+    {
+        return { Type::WindowCreationFailed, std::move(sdl_error) };
+    }
+
+    static WindowCreateError GPUDeviceClaim(std::u8string&& sdl_error)
+    {
+        return { Type::GPUDeviceClaimFailed, std::move(sdl_error) };
+    }
+
+    static WindowCreateError SwapchainSetup(std::u8string&& sdl_error)
+    {
+        return { Type::SwapchainSetupFailed, std::move(sdl_error) };
+    }
+};
+
+export class PlatformSubsystem : public ISubsystem<>
+{
 public:
     /**
      * PlatformSubsystem을 새로 생성합니다.
@@ -49,7 +84,7 @@ public:
     void PrepareWindow(WindowDesc&& window_desc);
 
     /** Window를 새로 생성합니다. */
-    SDL_WindowID CreateWindow(const WindowDesc& window_desc);
+    std::expected<SDL_WindowID, WindowCreateError> CreateWindow(const WindowDesc& window_desc);
 
     /** Window를 제거합니다. (메인 윈도우는 제거할 수 없음) */
     bool DestroyWindow(SDL_WindowID window_id);
@@ -66,6 +101,9 @@ public:
 private:
     void RegisterWindow(SDL_WindowID window_id, SDL_Window* window);
     void UnregisterWindow(SDL_WindowID window_id);
+
+    static SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_GPUDevice* device, SDL_Window* window, const WindowDesc& desc);
+    static SDL_GPUPresentMode DetermineBestPresentMode(SDL_GPUDevice* device, SDL_Window* window);
 
 private:
     const uint32 sdl_init_flags;

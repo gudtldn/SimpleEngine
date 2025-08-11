@@ -1,7 +1,12 @@
 ﻿module SimpleEngine.Subsystems.PlatformSubsystem;
 
 import SimpleEngine.Core;
+import SimpleEngine.Utility;
+import SimpleEngine.Subsystems.Utility;
+import SimpleEngine.Subsystems.RenderSubsystem;
 import <SDL3/SDL_gpu.h>;
+
+using namespace se::utility::string_utils;
 
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
@@ -24,7 +29,14 @@ bool PlatformSubsystem::Initialize()
         ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
 
         // const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-        main_window_id = CreateWindow(*main_window_info);
+        if (const auto window_result = CreateWindow(*main_window_info))
+        {
+            main_window_id = *window_result;
+        }
+        else
+        {
+            ConsoleLog(ELogLevel::Error, window_result.error().message);
+        }
 
         SDL_ShowWindow(GetWindow(main_window_id));
         ConsoleLog(ELogLevel::Info, u8"Window initialized");
@@ -64,7 +76,7 @@ void PlatformSubsystem::PrepareWindow(WindowDesc&& window_desc)
     main_window_info = std::move(window_desc);
 }
 
-SDL_WindowID PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
+std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
 {
     const char* window_title_c = reinterpret_cast<const char*>(window_desc.title.c_str());
     SDL_Window* new_window = SDL_CreateWindow(
@@ -76,12 +88,52 @@ SDL_WindowID PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
 
     if (!new_window)
     {
-        ConsoleLog(ELogLevel::Error, u8"SDL_CreateWindow failed: {}", SDL_GetError());
-        return 0;
+        return std::unexpected{
+            WindowCreateError::WindowCreation(
+                ToU8String(std::format("SDL_CreateWindow failed: {}", SDL_GetError()))
+            )
+        };
     }
 
     const SDL_WindowID new_window_id = SDL_GetWindowID(new_window);
     RegisterWindow(new_window_id, new_window);
+
+    if (const RenderSubsystem* render_subsystem = GetSubsystemUnchecked<const RenderSubsystem>())
+    {
+        if (SDL_GPUDevice* device = render_subsystem->GetGpuDevice())
+        {
+            if (!SDL_ClaimWindowForGPUDevice(device, new_window))
+            {
+                SDL_DestroyWindow(new_window);
+                return std::unexpected{
+                    WindowCreateError::GPUDeviceClaim(
+                        ToU8String(std::format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError()))
+                    )
+                };
+            }
+
+            const SDL_GPUSwapchainComposition composition =
+                window_desc.swapchain_composition.HasValue()
+                    ? *window_desc.swapchain_composition
+                    : DetermineBestSwapchainComposition(device, new_window, window_desc);
+
+            const SDL_GPUPresentMode present_mode =
+                window_desc.present_mode.HasValue()
+                    ? *window_desc.present_mode
+                    : DetermineBestPresentMode(device, new_window);
+
+            if (!SDL_SetGPUSwapchainParameters(device, new_window, composition, present_mode))
+            {
+                SDL_DestroyWindow(new_window);
+                return std::unexpected{
+                    WindowCreateError::SwapchainSetup(
+                        ToU8String(std::format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError()))
+                    )
+                };
+            }
+        }
+    }
+
     return new_window_id;
 }
 
@@ -90,6 +142,14 @@ bool PlatformSubsystem::DestroyWindow(SDL_WindowID window_id)
     if (!windows.contains(window_id) || window_id == main_window_id)
     {
         return false;
+    }
+
+    if (const RenderSubsystem* render_subsystem = GetSubsystemUnchecked<const RenderSubsystem>())
+    {
+        if (SDL_GPUDevice* device = render_subsystem->GetGpuDevice())
+        {
+            SDL_ReleaseWindowFromGPUDevice(device, windows.at(window_id));
+        }
     }
 
     SDL_DestroyWindow(windows.at(window_id));
@@ -114,4 +174,40 @@ void PlatformSubsystem::RegisterWindow(SDL_WindowID window_id, SDL_Window* windo
 void PlatformSubsystem::UnregisterWindow(SDL_WindowID window_id)
 {
     windows.erase(window_id);
+}
+
+SDL_GPUSwapchainComposition PlatformSubsystem::DetermineBestSwapchainComposition(SDL_GPUDevice* device, SDL_Window* window, const WindowDesc& desc)
+{
+    // HDR이 요청되고 지원되는 경우
+    if (desc.enable_hdr && SDL_WindowSupportsGPUSwapchainComposition(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR))
+    {
+        return SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR;
+    }
+
+    // 선형 색공간이 선호되고 지원되는 경우
+    if (desc.prefer_linear_color_space && SDL_WindowSupportsGPUSwapchainComposition(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR))
+    {
+        return SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR;
+    }
+
+    // 기본값
+    return SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
+}
+
+SDL_GPUPresentMode PlatformSubsystem::DetermineBestPresentMode(SDL_GPUDevice* device, SDL_Window* window)
+{
+    // MAILBOX가 지원되면 우선 선택 (낮은 지연시간)
+    if (SDL_WindowSupportsGPUPresentMode(device, window, SDL_GPU_PRESENTMODE_MAILBOX))
+    {
+        return SDL_GPU_PRESENTMODE_MAILBOX;
+    }
+
+    // IMMEDIATE가 지원되면 다음 선택
+    if (SDL_WindowSupportsGPUPresentMode(device, window, SDL_GPU_PRESENTMODE_IMMEDIATE))
+    {
+        return SDL_GPU_PRESENTMODE_IMMEDIATE;
+    }
+
+    // 기본값 (항상 지원됨)
+    return SDL_GPU_PRESENTMODE_VSYNC;
 }

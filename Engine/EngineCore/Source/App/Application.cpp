@@ -143,11 +143,32 @@ bool Application::InitializeEngine()
 
 bool Application::PostInitialize()
 {
-    const PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
+    PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
     platform_sys->GetEventDispatcher().Subscribe(
-        EventPriority::High, [this](const PlatformEvent& event)
+        EventPriority::High, [this, platform_sys](const PlatformEvent& platform_event)
         {
-            if (event.sdl_event.type == SDL_EVENT_QUIT)
+            SDL_Event& sdl_event = platform_event.sdl_event;
+            switch (sdl_event.type)
+            {
+            case SDL_EVENT_QUIT:
+            {
+                RequestQuit();
+                break;
+            }
+            case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+            {
+                if (sdl_event.window.windowID == platform_sys->GetMainWindowID())
+                {
+                    RequestQuit();
+                    break;
+                }
+                platform_sys->DestroyWindow(sdl_event.window.windowID);
+                break;
+            }
+            default:
+                break;
+            }
+            if (platform_event.sdl_event.type == SDL_EVENT_QUIT)
             {
                 RequestQuit();
             }
