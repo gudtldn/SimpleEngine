@@ -97,20 +97,28 @@ void RenderSubsystem::RenderFrame() const
 {
     // TODO: 렌더링 순서 생각해야함
 
-    // Command Buffer 가져오기
-    SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);
-    if (!command_buffer)
+    PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+    for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
-        ConsoleLog(ELogLevel::Error, u8"SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
-        return;
-    }
+        // Command Buffer 가져오기
+        SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);
+        if (!command_buffer)
+        {
+            ConsoleLog(ELogLevel::Error, u8"SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
+            return;
+        }
 
-    // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
-    SDL_GPUTexture* swapchain_texture;
-    SDL_AcquireGPUSwapchainTexture(command_buffer, cached_main_window, &swapchain_texture, nullptr, nullptr);
+        // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
+        SDL_GPUTexture* swapchain_texture;
+        SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
 
-    if (swapchain_texture)
-    {
+        if (!swapchain_texture)
+        {
+            ConsoleLogOnce(ELogLevel::Error, u8"SDL_AcquireGPUSwapchainTexture failed: {}", SDL_GetError());
+            SDL_CancelGPUCommandBuffer(command_buffer);
+            return;
+        }
+
         constexpr SDL_FColor clear_color = { 0.25f, 0.25f, 0.25f, 1.0f };
 
         SDL_GPUColorTargetInfo target_info = {};
@@ -133,10 +141,10 @@ void RenderSubsystem::RenderFrame() const
             // }
         }
         SDL_EndGPURenderPass(render_pass);
-    }
 
-    // Command Buffer 제출
-    SDL_SubmitGPUCommandBuffer(command_buffer);
+        // Command Buffer 제출
+        SDL_SubmitGPUCommandBuffer(command_buffer);
+    }
 }
 
 void RenderSubsystem::BeginFrame() const

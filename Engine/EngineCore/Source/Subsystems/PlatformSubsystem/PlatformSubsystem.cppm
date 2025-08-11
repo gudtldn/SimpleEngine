@@ -98,6 +98,9 @@ public:
     /** Main Window를 가져옵니다. */
     SDL_Window* GetMainWindow() const { return GetWindow(main_window_id); }
 
+    /** 현재 관리되고 있는 모든 Window를 가져옵니다. */
+    const auto& GetWindows() const { return windows; }
+
 private:
     void RegisterWindow(SDL_WindowID window_id, SDL_Window* window);
     void UnregisterWindow(SDL_WindowID window_id);
