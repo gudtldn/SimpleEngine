@@ -97,6 +97,8 @@
     <ClCompile Include="Source\Traits\TypeTraits.cppm"/>
     <ClCompile Include="Source\Utility\FileUtils.cpp"/>
     <ClCompile Include="Source\Utility\FileUtils.cppm"/>
+    <ClCompile Include="Source\Utility\ShaderUtils.cpp"/>
+    <ClCompile Include="Source\Utility\ShaderUtils.cppm"/>
     <ClCompile Include="Source\Utility\StringUtils.cpp"/>
     <ClCompile Include="Source\Utility\StringUtils.cppm"/>
     <ClCompile Include="Source\Utility\Utility.cppm"/>
