@@ -67,6 +67,7 @@ SDL_GPUShader* CompileSPIRV(
     if (auto result = file_utils::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
+        source.emplace_back(0); // null-terminated
     }
     else
     {
@@ -112,7 +113,7 @@ SDL_GPUShader* CompileSPIRV(
     if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
         size_t bytecode_size;
-        const void* bytecode = SDL_ShaderCross_CompileDXILFromSPIRV(&spirv_info, &bytecode_size);
+        void* bytecode = SDL_ShaderCross_CompileDXILFromSPIRV(&spirv_info, &bytecode_size);
 
         const SDL_GPUShaderCreateInfo create_info = {
             .code_size = bytecode_size,
@@ -125,7 +126,9 @@ SDL_GPUShader* CompileSPIRV(
             .num_storage_buffers = storage_buffer_count,
             .num_uniform_buffers = uniform_buffer_count,
         };
-        return SDL_CreateGPUShader(device, &create_info);
+        SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
+        SDL_free(bytecode);
+        return shader;
     }
 
     if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
@@ -159,6 +162,7 @@ SDL_GPUShader* CompileHLSL(
     if (auto result = file_utils::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
+        source.emplace_back(0); // null-terminated
     }
     else
     {
@@ -219,7 +223,7 @@ SDL_GPUShader* CompileHLSL(
         .enable_debug = IS_DEBUG_BUILD,
     };
 
-    const void* bytecode = nullptr;
+    void* bytecode = nullptr;
     size_t bytecode_size = 0;
 
     const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(device);
@@ -227,8 +231,7 @@ SDL_GPUShader* CompileHLSL(
     {
         bytecode = SDL_ShaderCross_CompileDXILFromHLSL(&hlsl_info, &bytecode_size);
     }
-
-    if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
+    else if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
     {
         bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &bytecode_size);
     }
@@ -247,10 +250,12 @@ SDL_GPUShader* CompileHLSL(
             .num_storage_buffers = storage_buffer_count,
             .num_uniform_buffers = uniform_buffer_count,
         };
-        return SDL_CreateGPUShader(device, &create_info);
+        SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
+        SDL_free(bytecode);
+        return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, u8"Unknown shader backend format: {}", shader_path.generic_u8string());
+    ConsoleLog(ELogLevel::Error, u8"Unknown shader backend format: {}, Err: {}", shader_path.generic_u8string(), SDL_GetError());
     return nullptr;
 }
 }
