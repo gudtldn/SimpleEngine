@@ -82,6 +82,9 @@
     <ClCompile Include="Source\Launch\LaunchWindows.cpp" />
     <ClCompile Include="Source\Subsystems\ShaderCompileSubsystem\ShaderCompileSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\ShaderCompileSubsystem\ShaderCompileSubsystem.cppm"/>
+    <ClCompile Include="Source\Utility\ShaderUtils.cpp"/>
+    <ClCompile Include="Source\Utility\ShaderUtils.cppm"/>
+    <ClCompile Include="Source\Utility\Utility.cppm"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EngineCore\EngineCore.vcxproj">
