@@ -69,7 +69,7 @@ void EditorApplication::Render() const
 //     Application::PostInitialize();
 //
 //     SdlSubsystem* sdl_subsystem = engine_instance->GetSubSystem<SdlSubsystem>();
-//     cached_window = sdl_subsystem->GetWindow();
+//     cached_main_window = sdl_subsystem->GetWindow();
 //     cached_gpu_device = sdl_subsystem->GetGpuDevice();
 //
 //     IMGUI_CHECKVERSION();
@@ -83,10 +83,10 @@ void EditorApplication::Render() const
 //
 //     ImGui::StyleColorsDark();
 //
-//     ImGui_ImplSDL3_InitForSDLGPU(cached_window);
+//     ImGui_ImplSDL3_InitForSDLGPU(cached_main_window);
 //     ImGui_ImplSDLGPU3_InitInfo init_info;
 //     init_info.Device = cached_gpu_device;
-//     init_info.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(cached_gpu_device, cached_window);
+//     init_info.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(cached_gpu_device, cached_main_window);
 //     init_info.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
 //     ImGui_ImplSDLGPU3_Init(&init_info);
 //
@@ -148,7 +148,7 @@ void EditorApplication::Render() const
 //
 //     // Acquire a swapchain texture
 //     SDL_GPUTexture* swapchain_texture;
-//     SDL_AcquireGPUSwapchainTexture(command_buffer, cached_window, &swapchain_texture, nullptr, nullptr);
+//     SDL_AcquireGPUSwapchainTexture(command_buffer, cached_main_window, &swapchain_texture, nullptr, nullptr);
 //
 //     if (swapchain_texture != nullptr && !is_minimized)
 //     {

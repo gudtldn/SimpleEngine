@@ -13,10 +13,10 @@ bool RenderSubsystem::Initialize()
 
     const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
     // TODO: 모든 window에 대해서 렌더링 하도록 수정
-    cached_window = platform_subsystem->GetMainWindow();
+    cached_main_window = platform_subsystem->GetMainWindow();
 
     // Window가 존재하는지 확인
-    if (!cached_window)
+    if (!cached_main_window)
     {
         ConsoleLog(ELogLevel::Error, u8"Window not found. Render subsystem cannot be initialized.");
         return false;
@@ -57,7 +57,7 @@ bool RenderSubsystem::Initialize()
     }
 
     // Window를 GPU Device에 연결
-    if (!SDL_ClaimWindowForGPUDevice(gpu_device, cached_window))
+    if (!SDL_ClaimWindowForGPUDevice(gpu_device, cached_main_window))
     {
         ConsoleLog(ELogLevel::Error, u8"SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
         SDL_DestroyGPUDevice(gpu_device);
@@ -65,7 +65,7 @@ bool RenderSubsystem::Initialize()
         return false;
     }
 
-    if (!SDL_SetGPUSwapchainParameters(gpu_device, cached_window, swapchain_composition, present_mode))
+    if (!SDL_SetGPUSwapchainParameters(gpu_device, cached_main_window, swapchain_composition, present_mode))
     {
         ConsoleLog(ELogLevel::Warning, u8"SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
     }
@@ -78,9 +78,9 @@ void RenderSubsystem::Release()
 {
     if (gpu_device)
     {
-        if (cached_window)
+        if (cached_main_window)
         {
-            SDL_ReleaseWindowFromGPUDevice(gpu_device, cached_window);
+            SDL_ReleaseWindowFromGPUDevice(gpu_device, cached_main_window);
         }
         SDL_DestroyGPUDevice(gpu_device);
         gpu_device = nullptr;
@@ -107,7 +107,7 @@ void RenderSubsystem::RenderFrame() const
 
     // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
     SDL_GPUTexture* swapchain_texture;
-    SDL_AcquireGPUSwapchainTexture(command_buffer, cached_window, &swapchain_texture, nullptr, nullptr);
+    SDL_AcquireGPUSwapchainTexture(command_buffer, cached_main_window, &swapchain_texture, nullptr, nullptr);
 
     if (swapchain_texture)
     {

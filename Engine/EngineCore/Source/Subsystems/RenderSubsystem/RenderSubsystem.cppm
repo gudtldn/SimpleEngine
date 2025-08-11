@@ -33,7 +33,7 @@ public:
 
 private:
     SDL_GPUDevice* gpu_device = nullptr;
-    SDL_Window* cached_window = nullptr;
+    SDL_Window* cached_main_window = nullptr;
 
     SDL_GPUSwapchainComposition swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
     SDL_GPUPresentMode present_mode = SDL_GPU_PRESENTMODE_VSYNC;
