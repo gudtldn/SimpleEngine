@@ -114,7 +114,6 @@ void RenderSubsystem::RenderFrame() const
 
         if (!swapchain_texture)
         {
-            ConsoleLogOnce(ELogLevel::Error, u8"SDL_AcquireGPUSwapchainTexture failed: {}", SDL_GetError());
             SDL_CancelGPUCommandBuffer(command_buffer);
             return;
         }
