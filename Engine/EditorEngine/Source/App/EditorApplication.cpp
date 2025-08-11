@@ -3,6 +3,7 @@
 import SimpleEngine.Core;
 import SimpleEngine.Types;
 import SimpleEngine.Config;
+import SimpleEngine.Editor.Subsystems.ShaderCompileSubsystem;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
 import std;
@@ -48,9 +49,13 @@ void EditorApplication::RegisterSubsystems()
         }
     }
 
+    // SDL_shadercross 초기화
+    engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();
+
     // GPU Device 초기화
     if (RenderSubsystem* render_subsystem = engine_instance->RegisterSubsystem<RenderSubsystem>())
     {
+        // TODO: 나중에 이거 필요 없어짐
         render_subsystem->ConfigureSwapchain(
             SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
             SDL_GPU_PRESENTMODE_MAILBOX

@@ -80,6 +80,8 @@
     <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cpp"/>
     <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cppm"/>
     <ClCompile Include="Source\Launch\LaunchWindows.cpp" />
+    <ClCompile Include="Source\Subsystems\ShaderCompileSubsystem\ShaderCompileSubsystem.cpp"/>
+    <ClCompile Include="Source\Subsystems\ShaderCompileSubsystem\ShaderCompileSubsystem.cppm"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EngineCore\EngineCore.vcxproj">
