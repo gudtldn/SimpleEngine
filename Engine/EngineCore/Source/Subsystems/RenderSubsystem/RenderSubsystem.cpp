@@ -33,15 +33,15 @@ bool RenderSubsystem::Initialize()
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
 #endif
 
-    if constexpr (se::platform::detection::IsWindows)
+    if constexpr (se::platform::detection::IS_WINDOWS)
     {
         SDL_SetHint(SDL_HINT_GPU_DRIVER, "direct3d12");
     }
-    else if constexpr (se::platform::detection::IsLinux)
+    else if constexpr (se::platform::detection::IS_LINUX)
     {
         SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
     }
-    else if constexpr (se::platform::detection::IsMacOS)
+    else if constexpr (se::platform::detection::IS_MAC_OS)
     {
         SDL_SetHint(SDL_HINT_GPU_DRIVER, "metal");
     }
