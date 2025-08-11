@@ -99,10 +99,36 @@ struct LogEntry
     std::string GetTimestampString() const
     {
         namespace chrono = std::chrono;
-        auto zt = chrono::zoned_time{chrono::current_zone(), timestamp};
+        auto zt = chrono::zoned_time{ chrono::current_zone(), timestamp };
         return std::format("{:%Y-%m-%d %H:%M:%S}", zt);
     }
 };
+
+struct LogOnceKey
+{
+    std::string file;
+    uint32 line;
+    uint32 column;
+
+
+    bool operator==(const LogOnceKey& other) const noexcept
+    {
+        return file == other.file && line == other.line && column == other.column;
+    }
+
+    struct LogOnceKeyHash
+    {
+        std::size_t operator()(const LogOnceKey& k) const noexcept
+        {
+            const std::size_t h1 = std::hash<std::string>{}(k.file);
+            const std::size_t h2 = std::hash<uint32>{}(k.line);
+            const std::size_t h3 = std::hash<uint32>{}(k.column);
+            // 간단한 해시 조합
+            return h1 ^ (h2 << 1) ^ (h3 << 2);
+        }
+    };
+};
+
 
 /**
  * Console에 Log를 출력합니다.
@@ -155,6 +181,31 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
         color, ToString(entry.level), entry.GetPrettyFileName(), entry.location.line(), entry.formatted_message, reset
     );
     std::flush(std::cout);
+}
+
+export template <typename... Args>
+void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
+{
+    static std::unordered_set<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
+    static std::mutex mtx;
+
+    {
+        // 키 생성
+        LogOnceKey key{
+            .file = log_level.location.file_name() ? log_level.location.file_name() : "",
+            .line = log_level.location.line(),
+            .column = log_level.location.column(),
+        };
+
+        std::lock_guard lock(mtx);
+        if (called_logs.contains(key))
+        {
+            return; // 이미 호출한 로그면 리턴
+        }
+        called_logs.insert(key);
+    }
+
+    ConsoleLog(log_level, fmt, args...);
 }
 
 /** 현재 함수의 Stack Trace를 출력합니다. */
