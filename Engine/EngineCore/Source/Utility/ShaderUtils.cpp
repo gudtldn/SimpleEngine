@@ -13,7 +13,7 @@ SDL_GPUShader* LoadCompiledShader(
     uint32 storage_texture_count
 )
 {
-    auto data = file_utils::ReadFromBinary(shader_path);
+    auto data = file_utils::ReadToByteArray(shader_path);
     if (!data.has_value())
     {
         ConsoleLog(ELogLevel::Error, u8"Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), data.error().message);
