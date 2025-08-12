@@ -59,7 +59,10 @@
     <ClCompile Include="Source\Core\Hash.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
+    <ClCompile Include="Source\Core\Logging\LogData.cppm"/>
     <ClCompile Include="Source\Core\Logging\Logging.cppm" />
+    <ClCompile Include="Source\Core\Logging\LogLevel.cppm"/>
+    <ClCompile Include="Source\Core\Logging\LogSettings.cppm"/>
     <ClCompile Include="Source\Core\Reflection\Reflection.cppm"/>
     <ClCompile Include="Source\Core\Reflection\TypeId.cppm"/>
     <ClCompile Include="Source\Core\Reflection\TypeUtils.cppm"/>
