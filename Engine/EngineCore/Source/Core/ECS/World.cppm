@@ -22,51 +22,6 @@ export template <typename...> struct WithQuery {};
 export template <typename...> struct WithoutQuery {};
 
 
-/** type erasure를 위한 인터페이스 */
-class IStorage
-{
-public:
-    virtual ~IStorage() = default;
-
-    /** Storage의 크기를 반환합니다. */
-    [[nodiscard]] virtual size_t Length() const noexcept = 0;
-
-    /** Storage가 비어있는지 확인합니다. */
-    [[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
-
-    /** 해당 엔티티가 컴포넌트를 가지고 있는지 확인합니다. */
-    [[nodiscard]] virtual bool Contains(Entity entity) const noexcept = 0;
-
-    /** Index로 Entity를 가져옵니다. */
-    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const = 0;
-
-    /** 엔티티가 가지고 있는 컴포넌트를 제거합니다. */
-    virtual void Remove(Entity entity) = 0;
-};
-
-template <typename ComponentType>
-class ComponentStorage : public IStorage
-{
-    SparseSet<ComponentType> storage;
-
-public:
-    explicit ComponentStorage(size_t max_entities)
-        : storage(max_entities)
-    {
-    }
-
-    //~Begin IStorage
-    [[nodiscard]] virtual size_t Length() const noexcept override { return storage.Length(); }
-    [[nodiscard]] virtual bool IsEmpty() const noexcept override { return storage.IsEmpty(); }
-    [[nodiscard]] virtual bool Contains(Entity entity) const noexcept override { return storage.Contains(entity); }
-    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const override { return storage.GetEntityByIndex(index); }
-    virtual void Remove(Entity entity) override { storage.Remove(entity); }
-    //~End IStorage
-
-    SparseSet<ComponentType>& GetStorage() { return storage; }
-    const SparseSet<ComponentType>& GetStorage() const { return storage; }
-};
-
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
  */
