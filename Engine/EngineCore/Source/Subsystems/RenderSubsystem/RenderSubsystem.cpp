@@ -12,10 +12,10 @@ bool RenderSubsystem::Initialize()
     ConsoleLog(ELogLevel::Info, u8"Initializing Render subsystem...");
 
     const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
-    cached_main_window = platform_subsystem->GetMainWindow();
+    SDL_Window* main_window = platform_subsystem->GetMainWindow();
 
     // Window가 존재하는지 확인
-    if (!cached_main_window)
+    if (!main_window)
     {
         ConsoleLog(ELogLevel::Error, u8"Window not found. Render subsystem cannot be initialized.");
         return false;
@@ -56,7 +56,7 @@ bool RenderSubsystem::Initialize()
     }
 
     // Window를 GPU Device에 연결
-    if (!SDL_ClaimWindowForGPUDevice(gpu_device, cached_main_window))
+    if (!SDL_ClaimWindowForGPUDevice(gpu_device, main_window))
     {
         ConsoleLog(ELogLevel::Error, u8"SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
         SDL_DestroyGPUDevice(gpu_device);
@@ -66,11 +66,11 @@ bool RenderSubsystem::Initialize()
 
     const WindowDesc& window_desc = *platform_subsystem->GetMainWindowInfo();
     const SDL_GPUSwapchainComposition swapchain_composition = window_desc.swapchain_composition.ValueOr(
-        DetermineBestSwapchainComposition(cached_main_window, window_desc)
+        DetermineBestSwapchainComposition(main_window, window_desc)
     );
-    const SDL_GPUPresentMode present_mode = window_desc.present_mode.ValueOr(DetermineBestPresentMode(cached_main_window));
+    const SDL_GPUPresentMode present_mode = window_desc.present_mode.ValueOr(DetermineBestPresentMode(main_window));
 
-    if (!SDL_SetGPUSwapchainParameters(gpu_device, cached_main_window, swapchain_composition, present_mode))
+    if (!SDL_SetGPUSwapchainParameters(gpu_device, main_window, swapchain_composition, present_mode))
     {
         ConsoleLog(ELogLevel::Warning, u8"SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
     }
@@ -83,9 +83,10 @@ void RenderSubsystem::Release()
 {
     if (gpu_device)
     {
-        if (cached_main_window)
+        PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+        for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
         {
-            SDL_ReleaseWindowFromGPUDevice(gpu_device, cached_main_window);
+            SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
         }
         SDL_DestroyGPUDevice(gpu_device);
         gpu_device = nullptr;
