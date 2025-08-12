@@ -113,14 +113,8 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
             }
 
             const SDL_GPUSwapchainComposition composition =
-                window_desc.swapchain_composition.HasValue()
-                    ? *window_desc.swapchain_composition
-                    : DetermineBestSwapchainComposition(device, new_window, window_desc);
-
-            const SDL_GPUPresentMode present_mode =
-                window_desc.present_mode.HasValue()
-                    ? *window_desc.present_mode
-                    : DetermineBestPresentMode(device, new_window);
+                window_desc.swapchain_composition.ValueOr(render_subsystem->DetermineBestSwapchainComposition(new_window, window_desc));
+            const SDL_GPUPresentMode present_mode = window_desc.present_mode.ValueOr(render_subsystem->DetermineBestPresentMode(new_window));
 
             if (!SDL_SetGPUSwapchainParameters(device, new_window, composition, present_mode))
             {

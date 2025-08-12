@@ -39,7 +39,9 @@ void EditorApplication::RegisterSubsystems()
             .title = config.GetValueOrStore<std::u8string>(u8"window.title", u8"SimpleEngine Editor"),
             .width = config.GetValueOrStore<uint32>(u8"window.width", 1280),
             .height = config.GetValueOrStore<uint32>(u8"window.height", 720),
-            .sdl_window_flags = SDL_WINDOW_RESIZABLE
+            .sdl_window_flags = SDL_WINDOW_RESIZABLE,
+            .swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+            .present_mode = SDL_GPU_PRESENTMODE_MAILBOX,
         });
 
         if (!config.WriteConfig(config_path))
@@ -50,14 +52,7 @@ void EditorApplication::RegisterSubsystems()
     }
 
     // GPU Device 초기화
-    if (RenderSubsystem* render_subsystem = engine_instance->RegisterSubsystem<RenderSubsystem>())
-    {
-        // TODO: 나중에 이거 필요 없어짐
-        render_subsystem->ConfigureSwapchain(
-            SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
-            SDL_GPU_PRESENTMODE_MAILBOX
-        );
-    }
+    engine_instance->RegisterSubsystem<RenderSubsystem>();
 
     // SDL_shadercross 초기화
     engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();

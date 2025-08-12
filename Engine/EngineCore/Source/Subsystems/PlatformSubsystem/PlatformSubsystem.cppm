@@ -98,6 +98,9 @@ public:
     /** Main Window를 가져옵니다. */
     SDL_Window* GetMainWindow() const { return GetWindow(main_window_id); }
 
+    /** Main Window의 생성 정보를 가져옵니다. */
+    const Optional<WindowDesc>& GetMainWindowInfo() const { return main_window_info; }
+
     /** 현재 관리되고 있는 모든 Window를 가져옵니다. */
     const auto& GetWindows() const { return windows; }
 
