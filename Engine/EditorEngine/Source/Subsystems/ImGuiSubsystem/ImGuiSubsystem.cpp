@@ -11,7 +11,7 @@ import <SDL3/SDL.h>;
 
 bool ImGuiSubsystem::Initialize()
 {
-    auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, RenderSubsystem>();
+    auto [platform_subsystem, render_subsystem] = GetSubsystems<const PlatformSubsystem, const RenderSubsystem>();
 
     SDL_Window* main_window = platform_subsystem->GetMainWindow();
     SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
