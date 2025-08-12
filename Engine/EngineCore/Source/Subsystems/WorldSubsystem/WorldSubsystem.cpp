@@ -3,13 +3,11 @@
 
 bool WorldSubsystem::Initialize()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing World subsystem...");
-
-
-    ConsoleLog(ELogLevel::Info, u8"World subsystem initialized");
+    world = std::make_unique<World>();
     return true;
 }
 
 void WorldSubsystem::Release()
 {
+    world.reset();
 }

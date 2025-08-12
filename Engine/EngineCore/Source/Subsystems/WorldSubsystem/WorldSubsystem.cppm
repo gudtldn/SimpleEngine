@@ -16,6 +16,9 @@ public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
 
+    [[nodiscard]] World* GetWorld() const noexcept { return world.get(); }
+
 private:
-    // std::vector<std::unique_ptr<World>> world_list;
+    // TODO: 나중에 다중 월드로 관리
+    std::unique_ptr<World> world;
 };
