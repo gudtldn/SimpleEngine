@@ -67,7 +67,7 @@ SDL_GPUShader* CompileSPIRV(
     if (auto result = file_utils::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
-        source.emplace_back(0); // null-terminated
+        source.emplace_back('\0'); // null-terminated
     }
     else
     {
@@ -162,7 +162,7 @@ SDL_GPUShader* CompileHLSL(
     if (auto result = file_utils::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
-        source.emplace_back(0); // null-terminated
+        source.emplace_back('\0'); // null-terminated
     }
     else
     {

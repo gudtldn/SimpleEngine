@@ -1,4 +1,4 @@
-export module SimpleEngine.Core:ECS.World;
+﻿export module SimpleEngine.Core:ECS.World;
 import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
@@ -17,9 +17,9 @@ constexpr uint32 MAX_ENTITIES = 65536;
 export template <typename FetchList, typename WithList, typename WithoutList>
 class QueryResult;
 
-export template <typename... T> struct FetchQuery {};
-export template <typename... T> struct WithQuery {};
-export template <typename... T> struct WithoutQuery {};
+export template <typename...> struct FetchQuery {};
+export template <typename...> struct WithQuery {};
+export template <typename...> struct WithoutQuery {};
 
 
 /** type erasure를 위한 인터페이스 */
@@ -96,20 +96,10 @@ public:
 
 public:
     /** World에 새로운 Entity를 생성합니다. */
-    EntityChain CreateEntity()
-    {
-        return { this, entity_manager.Create() };
-    }
+    EntityChain CreateEntity();
 
     /** Entity와 Entity와 연결된 Component를 제거합니다. */
-    void DestroyEntity(Entity entity)
-    {
-        for (const auto& storage : component_storages | std::views::values)
-        {
-            storage->Remove(entity);
-        }
-        entity_manager.Destroy(entity);
-    }
+    void DestroyEntity(Entity entity);
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType, typename... Args>
