@@ -269,7 +269,7 @@ consteval std::string_view ExtractTypeName() noexcept
  * 특정 타입에 대해 네임스페이스 포함 여부를 제어할 수 있습니다.
  *
  * @tparam T 타입 시그니처를 추출할 대상 타입
- * @param is_include_namespace 네임스페이스를 포함할지 여부를 결정하는 플래그 (기본값: true)
+ * @param include_namespace 네임스페이스를 포함할지 여부를 결정하는 플래그 (기본값: true)
  * @return 추출된 타입 시그니처를 문자열 뷰 형태로 반환합니다.
  */
 export template <typename T>
