@@ -75,7 +75,7 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
     }
 
     std::println(
-        "{}{}\t[{}:{}] {}",
+        "{}{:<7} [{}:{}] {}{}",
         color, ToString(entry.level), entry.GetPrettyFileName(), entry.location.line(), entry.formatted_message, reset
     );
     std::flush(std::cout);
