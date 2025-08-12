@@ -5,6 +5,8 @@
 import SimpleEngine.Core;
 import SimpleEngine.Config;
 import SimpleEngine.Subsystems.PlatformSubsystem;
+import SimpleEngine.Subsystems.RenderSubsystem;
+import SimpleEngine.Subsystems.WorldSubsystem;
 
 import <cassert>;
 import <SDL3/SDL.h>;
@@ -129,6 +131,18 @@ bool Application::PreInitialize()
 void Application::RegisterSubsystems()
 {
     engine_instance->RegisterSubsystem<PlatformSubsystem>();
+
+    // GPU Device 초기화
+    if (RenderSubsystem* render_subsystem = engine_instance->RegisterSubsystem<RenderSubsystem>())
+    {
+        // TODO: 나중에 이거 필요 없어짐
+        render_subsystem->ConfigureSwapchain(
+            SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+            SDL_GPU_PRESENTMODE_MAILBOX
+        );
+    }
+
+    engine_instance->RegisterSubsystem<WorldSubsystem>();
 }
 
 bool Application::InitializeEngine()
