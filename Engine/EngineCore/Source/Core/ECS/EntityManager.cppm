@@ -4,8 +4,6 @@ import :ECS.Entity;
 import SimpleEngine.Types;
 import std;
 
-import <cassert>;
-
 
 namespace se::core::ecs
 {
@@ -18,64 +16,10 @@ public:
     {
     }
 
-    Entity Create()
-    {
-        uint32 id;
+    Entity Create();
+    void Destroy(Entity entity);
 
-        // 재활용 가능한 ID 있으면 우선 사용
-        if (!free_ids.empty())
-        {
-            id = free_ids.back();
-            free_ids.pop_back();
-        }
-        else
-        {
-            if (next_id >= max_entities)
-            {
-                throw std::runtime_error("Entity limit reached");
-            }
-            id = next_id.fetch_add(1, std::memory_order_relaxed);
-        }
-
-        EntityRecord& record = entity_records[id];
-        assert(!record.alive && "Entity already alive");
-        record.alive = true;
-
-        return Entity{ id, record.generation };
-    }
-
-    void Destroy(Entity entity)
-    {
-        if (entity.id >= max_entities)
-        {
-            return;
-        }
-
-        // 세대가 다르면 이미 파괴된 엔티티이므로 무시
-        EntityRecord& record = entity_records[entity.id];
-        if (record.generation != entity.generation)
-        {
-            return;
-        }
-
-        assert(record.alive && "Entity already destroyed");
-        record.alive = false;
-        ++record.generation; // 세대 변경
-
-        // ID 재활용용 큐에 저장
-        free_ids.push_back(entity.id);
-    }
-
-    [[nodiscard]] bool IsValid(Entity entity) const
-    {
-        if (entity.id >= max_entities)
-        {
-            return false;
-        }
-        const EntityRecord& record = entity_records[entity.id];
-        return record.alive && (record.generation == entity.generation);
-    }
-
+    [[nodiscard]] bool IsValid(Entity entity) const;
     [[nodiscard]] uint32 GetMaxEntities() const { return max_entities; }
 
 private:
