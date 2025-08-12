@@ -105,9 +105,6 @@ private:
     void RegisterWindow(SDL_WindowID window_id, SDL_Window* window);
     void UnregisterWindow(SDL_WindowID window_id);
 
-    static SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_GPUDevice* device, SDL_Window* window, const WindowDesc& desc);
-    static SDL_GPUPresentMode DetermineBestPresentMode(SDL_GPUDevice* device, SDL_Window* window);
-
 private:
     const uint32 sdl_init_flags;
 

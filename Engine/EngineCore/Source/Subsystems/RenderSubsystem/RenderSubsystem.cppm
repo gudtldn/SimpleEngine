@@ -13,12 +13,6 @@ public:
     virtual void Release() override;
 
     /**
-     * Swapchain 파라미터를 미리 설정합니다.
-     * @note 이 함수는 Initialize()보다 먼저 호출되어야 합니다.
-     */
-    void ConfigureSwapchain(SDL_GPUSwapchainComposition in_composition, SDL_GPUPresentMode in_present_mode);
-
-    /**
      * 등록된 Subsystem을 렌더링 합니다.
      */
     [[deprecated("Use Begin/EndFrame() instead")]]
@@ -31,10 +25,11 @@ public:
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
 
+public:
+    SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
+    SDL_GPUPresentMode DetermineBestPresentMode(SDL_Window* window) const;
+
 private:
     SDL_GPUDevice* gpu_device = nullptr;
     SDL_Window* cached_main_window = nullptr;
-
-    SDL_GPUSwapchainComposition swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
-    SDL_GPUPresentMode present_mode = SDL_GPU_PRESENTMODE_VSYNC;
 };

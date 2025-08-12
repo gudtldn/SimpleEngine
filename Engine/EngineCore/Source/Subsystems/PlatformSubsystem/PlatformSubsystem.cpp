@@ -175,39 +175,3 @@ void PlatformSubsystem::UnregisterWindow(SDL_WindowID window_id)
 {
     windows.erase(window_id);
 }
-
-SDL_GPUSwapchainComposition PlatformSubsystem::DetermineBestSwapchainComposition(SDL_GPUDevice* device, SDL_Window* window, const WindowDesc& desc)
-{
-    // HDR이 요청되고 지원되는 경우
-    if (desc.enable_hdr && SDL_WindowSupportsGPUSwapchainComposition(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR))
-    {
-        return SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR;
-    }
-
-    // 선형 색공간이 선호되고 지원되는 경우
-    if (desc.prefer_linear_color_space && SDL_WindowSupportsGPUSwapchainComposition(device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR))
-    {
-        return SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR;
-    }
-
-    // 기본값
-    return SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
-}
-
-SDL_GPUPresentMode PlatformSubsystem::DetermineBestPresentMode(SDL_GPUDevice* device, SDL_Window* window)
-{
-    // MAILBOX가 지원되면 우선 선택 (낮은 지연시간)
-    if (SDL_WindowSupportsGPUPresentMode(device, window, SDL_GPU_PRESENTMODE_MAILBOX))
-    {
-        return SDL_GPU_PRESENTMODE_MAILBOX;
-    }
-
-    // IMMEDIATE가 지원되면 다음 선택
-    if (SDL_WindowSupportsGPUPresentMode(device, window, SDL_GPU_PRESENTMODE_IMMEDIATE))
-    {
-        return SDL_GPU_PRESENTMODE_IMMEDIATE;
-    }
-
-    // 기본값 (항상 지원됨)
-    return SDL_GPU_PRESENTMODE_VSYNC;
-}
