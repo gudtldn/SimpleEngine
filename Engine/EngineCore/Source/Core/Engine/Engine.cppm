@@ -1,5 +1,6 @@
 ﻿export module SimpleEngine.Core:Engine;
 import :Logging;
+import :Reflection;
 
 import SimpleEngine.Interface.ISubsystemBase;
 import SimpleEngine.Interface.IUpdatable;
@@ -61,7 +62,7 @@ public:
             updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
         }
 
-        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_id.name());
+        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", reflection::GetTypeSignature<T>());
         return sub_system_ptr;
     }
 
