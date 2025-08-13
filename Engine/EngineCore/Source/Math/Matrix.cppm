@@ -146,8 +146,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(cons
         0, 0, 0, 1
     };
 
-    // Rz(yaw) * Ry(pitch) * Rx(roll)
-    return rz * ry * rx;
+    // Rz(yaw) * Rx(pitch) * Ry(roll)
+    return rz * rx * ry;
 }
 
 template <FloatingType T, size_t Align>
