@@ -3,7 +3,7 @@
 export import :MathLiterals;
 export import :MathUtility;
 import :Matrix;
-import :Quaternion;
+import :RotationTypes;
 import :Vector2;
 import :Vector3;
 import :Vector4;
@@ -28,4 +28,8 @@ export
     // Quaternion
     using Quaternion = QuaternionImpl<double>;
     using Quaternionf = QuaternionImpl<float>;
+
+    // Rotator
+    using Rotator = RotatorImpl<double>;
+    using Rotatorf = RotatorImpl<float>;
 }

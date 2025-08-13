@@ -1,6 +1,6 @@
 ﻿export module SimpleEngine.Math:Matrix;
 import :MathUtility;
-import :Quaternion;
+import :RotationTypes;
 import :Vector3;
 
 import SimpleEngine.Traits;
