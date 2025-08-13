@@ -8,6 +8,9 @@ git clone --recursive https://github.com/gudtldn/SimpleEngine.git
 git submodule update --init --recursive
 ```
 
+좌표계
+right-hand, z-up
+
 <details>
 
 ### 추후에 문서에 정리
