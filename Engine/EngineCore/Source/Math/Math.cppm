@@ -3,7 +3,7 @@
 export import :MathLiterals;
 export import :MathUtility;
 import :Matrix;
-import :Quat;
+import :Quaternion;
 import :Vector2;
 import :Vector3;
 import :Vector4;
@@ -25,7 +25,7 @@ export
     using Vector4 = Vector4Impl<double>;
     using Vector4f = Vector4Impl<float>;
 
-    // Quat
-    using Quat = QuatImpl<double>;
-    using Quatf = QuatImpl<float>;
+    // Quaternion
+    using Quaternion = QuaternionImpl<double>;
+    using Quaternionf = QuaternionImpl<float>;
 }

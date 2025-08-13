@@ -1,5 +1,7 @@
 ﻿export module SimpleEngine.Math:Matrix;
 import :MathUtility;
+import :Quaternion;
+import :Vector3;
 
 import SimpleEngine.Traits;
 import SimpleEngine.Types;
@@ -33,6 +35,10 @@ public:
 
     [[nodiscard]] static constexpr Matrix4x4Impl Identity();
     [[nodiscard]] static constexpr Matrix4x4Impl Zero();
+
+    [[nodiscard]] static constexpr Matrix4x4Impl MakeFromTranslation(const Vector3Impl<T>& translation);
+    [[nodiscard]] static constexpr Matrix4x4Impl MakeFromRotation(const QuaternionImpl<T>& quaternion);
+    [[nodiscard]] static constexpr Matrix4x4Impl MakeFromScale(const Vector3Impl<T>& scale);
 
 public:
     [[nodiscard]] constexpr Matrix4x4Impl Transpose() const;
@@ -86,6 +92,63 @@ template <FloatingType T, size_t Align>
 constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Zero()
 {
     return Matrix4x4Impl{};
+}
+
+template <FloatingType T, size_t Align>
+constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromTranslation(const Vector3Impl<T>& translation)
+{
+    T x = translation.x;
+    T y = translation.y;
+    T z = translation.z;
+
+    return {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        x, y, z, 1
+    };
+}
+
+template <FloatingType T, size_t Align>
+constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(const QuaternionImpl<T>& quaternion)
+{
+    const T x = quaternion.x;
+    const T y = quaternion.y;
+    const T z = quaternion.z;
+    const T w = quaternion.w;
+
+    const T xx = x * x;
+    const T yy = y * y;
+    const T zz = z * z;
+    const T xy = x * y;
+    const T xz = x * z;
+    const T yz = y * z;
+    const T wx = w * x;
+    const T wy = w * y;
+    const T wz = w * z;
+
+    // Row-major 3x3 rotation block for row-vector (p' = p M)
+    return {
+        1 - 2 * (yy + zz), 2 * (xy - wz), 2 * (xz + wy), 0,
+        2 * (xy + wz), 1 - 2 * (xx + zz), 2 * (yz - wx), 0,
+        2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (xx + yy), 0,
+        0, 0, 0, 1
+    };
+}
+
+template <FloatingType T, size_t Align>
+constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromScale(const Vector3Impl<T>& scale)
+{
+    T x = scale.x;
+    T y = scale.y;
+    T z = scale.z;
+
+    return {
+        x, 0, 0, 0,
+        0, y, 0, 0,
+        0, 0, z, 0,
+        0, 0, 0, 1
+    };
 }
 
 template <FloatingType T, size_t Align>
