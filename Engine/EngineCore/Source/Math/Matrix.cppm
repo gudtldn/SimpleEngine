@@ -1,5 +1,6 @@
 ﻿export module SimpleEngine.Math:Matrix;
 import :MathUtility;
+import :MathLiterals;
 import :RotationTypes;
 import :Vector3;
 
@@ -37,6 +38,7 @@ public:
     [[nodiscard]] static constexpr Matrix4x4Impl Zero();
 
     [[nodiscard]] static constexpr Matrix4x4Impl MakeFromTranslation(const Vector3Impl<T>& translation);
+    [[nodiscard]] static constexpr Matrix4x4Impl MakeFromRotation(const RotatorImpl<T>& rotation);
     [[nodiscard]] static constexpr Matrix4x4Impl MakeFromRotation(const QuaternionImpl<T>& quaternion);
     [[nodiscard]] static constexpr Matrix4x4Impl MakeFromScale(const Vector3Impl<T>& scale);
 
@@ -107,6 +109,45 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromTranslation(c
         0, 0, 1, 0,
         x, y, z, 1
     };
+}
+
+template <FloatingType T, size_t Align>
+constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(const RotatorImpl<T>& rotation)
+{
+    const Radian<T> pitch_rad{ rotation.pitch };
+    const Radian<T> yaw_rad{ rotation.yaw };
+    const Radian<T> roll_rad{ rotation.roll };
+
+    const T sin_p = MathUtils::Sin(pitch_rad), cos_p = MathUtils::Cos(pitch_rad);
+    const T sin_y = MathUtils::Sin(yaw_rad), cos_y = MathUtils::Cos(yaw_rad);
+    const T sin_r = MathUtils::Sin(roll_rad), cos_r = MathUtils::Cos(roll_rad);
+
+    // Rz(yaw)
+    Matrix4x4Impl rz{
+        cos_y, -sin_y, 0, 0,
+        sin_y, cos_y, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+
+    // Rx(pitch)
+    Matrix4x4Impl rx{
+        1, 0, 0, 0,
+        0, cos_p, -sin_p, 0,
+        0, sin_p, cos_p, 0,
+        0, 0, 0, 1
+    };
+
+    // Ry(roll)
+    Matrix4x4Impl ry{
+        cos_r, 0, sin_r, 0,
+        0, 1, 0, 0,
+        -sin_r, 0, cos_r, 0,
+        0, 0, 0, 1
+    };
+
+    // Rz(yaw) * Ry(pitch) * Rx(roll)
+    return rz * ry * rx;
 }
 
 template <FloatingType T, size_t Align>

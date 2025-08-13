@@ -80,12 +80,9 @@ constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
     const Radian<T> yaw_rad{ rotator.yaw };
     const Radian<T> roll_rad{ rotator.roll };
 
-    const T sin_p = MathUtils::Sin(pitch_rad * 0.5);
-    const T cos_p = MathUtils::Cos(pitch_rad * 0.5);
-    const T sin_y = MathUtils::Sin(yaw_rad * 0.5);
-    const T cos_y = MathUtils::Cos(yaw_rad * 0.5);
-    const T sin_r = MathUtils::Sin(roll_rad * 0.5);
-    const T cos_r = MathUtils::Cos(roll_rad * 0.5);
+    const T sin_p = MathUtils::Sin(pitch_rad * 0.5), cos_p = MathUtils::Cos(pitch_rad * 0.5);
+    const T sin_y = MathUtils::Sin(yaw_rad * 0.5), cos_y = MathUtils::Cos(yaw_rad * 0.5);
+    const T sin_r = MathUtils::Sin(roll_rad * 0.5), cos_r = MathUtils::Cos(roll_rad * 0.5);
 
     // Yaw * Pitch * Roll
     x = sin_r * cos_p * cos_y - cos_r * sin_p * sin_y;
