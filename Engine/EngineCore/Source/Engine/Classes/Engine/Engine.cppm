@@ -59,7 +59,7 @@ public:
             updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
         }
 
-        ConsoleLog(ELogLevel::Info, u8"Registered Subsystem: {}", type_id.name());
+        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_id.name());
         return sub_system_ptr;
     }
 

@@ -156,7 +156,7 @@ bool Engine::SortSubsystems()
     ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
     for (const auto& [n, sub_system] : sorted_sub_systems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Info, u8"  - Order {}: {}", n, se::utility::string_utils::ToU8String(typeid(*sub_system).name()));
+        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, se::utility::string_utils::ToU8String(typeid(*sub_system).name()));
     }
 
     return true;
