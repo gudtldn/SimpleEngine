@@ -110,6 +110,10 @@ export struct MathUtils
     template <FloatingType T>
     [[nodiscard]] static constexpr Radian<T> Atan2(T y, T x) { return Radian<T>(std::atan2(y, x)); }
 
+    /** 주어진 num에 sign의 부호를 적용합니다. */
+    template <FloatingType T>
+    [[nodiscard]] static constexpr T CopySign(T num, T sign) { return std::copysign(num, sign); }
+
     /** value가 거의 0에 가까운지 확인합니다. */
     template <typename T>
     [[nodiscard]] static constexpr bool IsNearlyZero(T value, T error_tolerance = SMALL_NUMBER)
