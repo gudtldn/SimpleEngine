@@ -55,6 +55,8 @@
     <ClCompile Include="Source\Core\ECS\SparseSet.cppm"/>
     <ClCompile Include="Source\Core\ECS\World.cpp"/>
     <ClCompile Include="Source\Core\ECS\World.cppm"/>
+    <ClCompile Include="Source\Core\Engine\Engine.cpp"/>
+    <ClCompile Include="Source\Core\Engine\Engine.cppm"/>
     <ClCompile Include="Source\Core\Function.cppm"/>
     <ClCompile Include="Source\Core\Hash.cppm"/>
     <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cpp"/>
@@ -66,9 +68,9 @@
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
     <ClCompile Include="Source\Core\Logging\LogBackendManager.cppm"/>
     <ClCompile Include="Source\Core\Logging\LogData.cppm"/>
-    <ClCompile Include="Source\Core\Logging\Logging.cppm" />
     <ClCompile Include="Source\Core\Logging\LogLevel.cppm"/>
     <ClCompile Include="Source\Core\Logging\LogSettings.cppm"/>
+    <ClCompile Include="Source\Core\Logging\Logging.cppm"/>
     <ClCompile Include="Source\Core\Reflection\Reflection.cppm"/>
     <ClCompile Include="Source\Core\Reflection\TypeId.cppm"/>
     <ClCompile Include="Source\Core\Reflection\TypeUtils.cppm"/>
@@ -76,8 +78,6 @@
     <ClCompile Include="Source\Core\StringName\StringName.cppm"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cpp"/>
     <ClCompile Include="Source\Core\StringName\StringNamePool.cppm"/>
-    <ClCompile Include="Source\Engine\Classes\Engine\Engine.cpp" />
-    <ClCompile Include="Source\Engine\Classes\Engine\Engine.cppm" />
     <ClCompile Include="Source\Interface\IRenderPass.cppm"/>
     <ClCompile Include="Source\Interface\ISubsystem.cppm"/>
     <ClCompile Include="Source\Interface\ISubsystemBase.cppm"/>
@@ -104,10 +104,10 @@
     <ClCompile Include="Source\Subsystems\WorldSubsystem\WorldSubsystem.cppm"/>
     <ClCompile Include="Source\Traits\FunctionTraits.cppm"/>
     <ClCompile Include="Source\Traits\Traits.cppm"/>
+    <ClCompile Include="Source\Traits\TypeTraits.cppm"/>
     <ClCompile Include="Source\Types\Optional.cppm"/>
     <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
     <ClCompile Include="Source\Types\Types.cppm"/>
-    <ClCompile Include="Source\Traits\TypeTraits.cppm"/>
     <ClCompile Include="Source\Utility\FileUtils.cpp"/>
     <ClCompile Include="Source\Utility\FileUtils.cppm"/>
     <ClCompile Include="Source\Utility\ShaderUtils.cpp"/>

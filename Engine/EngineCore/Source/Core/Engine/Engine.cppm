@@ -1,11 +1,13 @@
-﻿export module SimpleEngine.Engine;
+﻿export module SimpleEngine.Core:Engine;
+import :Logging;
 
-import SimpleEngine.Core;
 import SimpleEngine.Interface.ISubsystemBase;
 import SimpleEngine.Interface.IUpdatable;
 import std;
 
 
+namespace se::core::engine
+{
 /**
  * 엔진의 핵심 기능을 담당하는 클래스입니다.
  * Subsystem의 Register, Initialize, Release 및 Update와 같은 동작을 관리합니다.
@@ -104,3 +106,4 @@ private:
      */
     [[nodiscard]] bool SortSubsystems();
 };
+}

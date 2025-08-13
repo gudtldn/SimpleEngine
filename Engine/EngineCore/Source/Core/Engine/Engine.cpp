@@ -1,11 +1,13 @@
 ﻿module;
 #include <typeinfo>
-module SimpleEngine.Engine;
+module SimpleEngine.Core;
+import :Engine;
 
 import SimpleEngine.Utility;
-import std;
 
 
+namespace se::core::engine
+{
 bool Engine::Initialize()
 {
     // 의존성에 따라서 정렬
@@ -160,4 +162,5 @@ bool Engine::SortSubsystems()
     }
 
     return true;
+}
 }

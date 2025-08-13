@@ -1,9 +1,11 @@
 ﻿export module SimpleEngine.App;
 
 import SimpleEngine.Types;
-import SimpleEngine.Engine;
+import SimpleEngine.Core;
 import SimpleEngine.Utility;
 import std;
+
+using namespace se::core::engine;
 
 
 export namespace se::app
