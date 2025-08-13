@@ -45,6 +45,10 @@
   <ItemGroup>
     <ClCompile Include="Source\App\Application.cpp" />
     <ClCompile Include="Source\App\Application.cppm" />
+    <ClCompile Include="Source\Components\Components.cppm"/>
+    <ClCompile Include="Source\Components\Rotation.cppm"/>
+    <ClCompile Include="Source\Components\Scale.cppm"/>
+    <ClCompile Include="Source\Components\Translation.cppm"/>
     <ClCompile Include="Source\Config\Config.cpp" />
     <ClCompile Include="Source\Config\Config.cppm" />
     <ClCompile Include="Source\Core\Core.cppm" />
