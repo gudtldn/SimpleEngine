@@ -56,6 +56,19 @@ struct LogEntry
         auto zt = chrono::zoned_time{ chrono::current_zone(), timestamp };
         return std::format("{:%Y-%m-%d %H:%M:%S}", zt);
     }
+
+    const char* GetLevelString() const
+    {
+        switch (level)
+        {
+        case ELogLevel::Debug: return "Debug";
+        case ELogLevel::Info: return "Info";
+        case ELogLevel::Warning: return "Warning";
+        case ELogLevel::Error: return "Error";
+        case ELogLevel::Fatal: return "Fatal";
+        default: return "unknown";
+        }
+    }
 };
 
 struct LogOnceKey

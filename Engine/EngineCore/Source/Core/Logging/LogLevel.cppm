@@ -14,16 +14,3 @@ export enum class ELogLevel : uint8
     Error,
     Fatal,
 };
-
-const char8* ToString(ELogLevel e)
-{
-    switch (e)
-    {
-    case ELogLevel::Debug: return u8"Debug";
-    case ELogLevel::Info: return u8"Info";
-    case ELogLevel::Warning: return u8"Warning";
-    case ELogLevel::Error: return u8"Error";
-    case ELogLevel::Fatal: return u8"Fatal";
-    default: return u8"unknown";
-    }
-}
