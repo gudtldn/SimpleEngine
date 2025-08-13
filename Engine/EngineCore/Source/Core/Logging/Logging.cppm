@@ -5,28 +5,14 @@ import :Logging.Colors;
 export import :Logging.Formatter;
 export import :Logging.LogLevel;
 export import :Logging.LogSettings;
+export import :Logging.LogBackendManager;
+
+export import :Logging.Backends.ILogBackend;
+export import :Logging.Backends.ConsoleBackend;
 
 import SimpleEngine.Types;
 import std;
 
-
-const char8* GetColorForLevel(ELogLevel level)
-{
-    if (!LogSettings::IsColorEnabled() || !LogSettings::DetectColorSupport())
-    {
-        return u8"";
-    }
-
-    switch (level)
-    {
-    case ELogLevel::Debug: return LogColors::COLOR_DEBUG;
-    case ELogLevel::Info: return LogColors::COLOR_INFO;
-    case ELogLevel::Warning: return LogColors::COLOR_WARNING;
-    case ELogLevel::Error: return LogColors::COLOR_ERROR;
-    case ELogLevel::Fatal: return LogColors::COLOR_FATAL;
-    default: return u8"";
-    }
-}
 
 /**
  * Console에 Log를 출력합니다.
@@ -38,11 +24,6 @@ const char8* GetColorForLevel(ELogLevel level)
 export template <typename... Args>
 void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
 {
-    const char8* color = GetColorForLevel(log_level.level);
-    const char8* reset = LogSettings::IsColorEnabled() && LogSettings::DetectColorSupport()
-                             ? LogColors::COLOR_RESET
-                             : u8"";
-
     LogEntry entry = {
         .level = log_level.level,
         .location = log_level.location,
@@ -74,11 +55,11 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
         entry.formatted_message = std::string(fmt.begin(), fmt.end());
     }
 
-    std::println(
-        "{}{:<7} [{}:{}] {}{}",
-        color, ToString(entry.level), entry.GetPrettyFileName(), entry.location.line(), entry.formatted_message, reset
-    );
-    std::flush(std::cout);
+    using namespace se::core::logging;
+
+    LogBackendManager& manager = LogBackendManager::Get();
+    manager.WriteToAllBackends(entry);
+    manager.FlushAllBackends();
 }
 
 export template <typename... Args>
@@ -89,7 +70,7 @@ void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const
 
     {
         // 키 생성
-        LogOnceKey key{
+        const LogOnceKey key{
             .file = log_level.location.file_name() ? log_level.location.file_name() : "",
             .line = log_level.location.line(),
             .column = log_level.location.column(),
