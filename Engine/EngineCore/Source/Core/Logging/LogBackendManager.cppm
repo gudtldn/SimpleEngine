@@ -27,12 +27,12 @@ public:
     }
 
 public:
-    template <typename T>
+    template <typename T, typename... Args>
         requires std::derived_from<T, backends::ILogBackend>
-    void AddBackend()
+    void AddBackend(Args&&... args)
     {
         std::lock_guard lock(backends_mutex);
-        backends.emplace_back(std::make_unique<T>());
+        backends.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
     }
 
     void WriteToAllBackends(const LogEntry& entry)

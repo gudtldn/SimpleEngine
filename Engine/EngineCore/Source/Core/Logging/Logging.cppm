@@ -8,6 +8,7 @@ export import :Logging.LogSettings;
 export import :Logging.LogBackendManager;
 
 export import :Logging.Backends.ILogBackend;
+export import :Logging.Backends.FileBackend;
 export import :Logging.Backends.ConsoleBackend;
 
 import SimpleEngine.Types;

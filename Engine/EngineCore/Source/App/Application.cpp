@@ -64,6 +64,7 @@ void Application::Startup(const std::u8string& cmd_line)
         LogBackendManager& manager = LogBackendManager::Get();
 
         manager.AddBackend<backends::ConsoleBackend>();
+        manager.AddBackend<backends::FileBackend>();
     }
 
     ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);

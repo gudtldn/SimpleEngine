@@ -59,6 +59,8 @@
     <ClCompile Include="Source\Core\Hash.cppm"/>
     <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cpp"/>
     <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cppm"/>
+    <ClCompile Include="Source\Core\Logging\Backends\FileBackend.cpp"/>
+    <ClCompile Include="Source\Core\Logging\Backends\FileBackend.cppm"/>
     <ClCompile Include="Source\Core\Logging\Backends\ILogBackend.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
