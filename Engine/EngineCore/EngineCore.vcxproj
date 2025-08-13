@@ -57,8 +57,12 @@
     <ClCompile Include="Source\Core\ECS\World.cppm"/>
     <ClCompile Include="Source\Core\Function.cppm"/>
     <ClCompile Include="Source\Core\Hash.cppm"/>
+    <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cpp"/>
+    <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cppm"/>
+    <ClCompile Include="Source\Core\Logging\Backends\ILogBackend.cppm"/>
     <ClCompile Include="Source\Core\Logging\Colors.cppm" />
     <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
+    <ClCompile Include="Source\Core\Logging\LogBackendManager.cppm"/>
     <ClCompile Include="Source\Core\Logging\LogData.cppm"/>
     <ClCompile Include="Source\Core\Logging\Logging.cppm" />
     <ClCompile Include="Source\Core\Logging\LogLevel.cppm"/>

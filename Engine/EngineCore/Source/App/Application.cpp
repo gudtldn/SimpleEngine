@@ -58,6 +58,14 @@ void Application::Startup(const std::u8string& cmd_line)
     LogSettings::SetForceColor(true);
 #endif
 
+    // add log backends
+    {
+        using namespace core::logging;
+        LogBackendManager& manager = LogBackendManager::Get();
+
+        manager.AddBackend<backends::ConsoleBackend>();
+    }
+
     ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);
 
     RETURN_IF_FAILED(PreInitialize());
