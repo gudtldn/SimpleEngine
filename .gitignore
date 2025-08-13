@@ -10,6 +10,7 @@ Intermediate/
 riderModule.iml
 /_ReSharper.Caches/
 
+*.log
 *.user
 imgui.ini
 GEMINI.md
