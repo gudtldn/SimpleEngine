@@ -7,14 +7,14 @@
   - [ ] [엔진 개선 참고 1](https://www.perplexity.ai/search/naega-jigeum-sdl3wa-sdl3gpu-im-_DxIE29lTLq4VdhMutaWcA)
   - [ ] [엔진 개선 참고 2](https://aistudio.google.com/prompts/1BRsDCWohn6GONAaPJK88NiCAT-xJOCuW?_gl=1*1xqpzh6*_up*MQ..*_ga*MTY4OTQwMjM1NC4xNzQ5NTQ0MjU3*_ga_RJSPDF5Y0Q*czE3NDk1NTQ0MjQkbzIkZzAkdDE3NDk1NTQ0MjQkajYwJGwwJGgw*_ga_P1DBVKWT6V*czE3NDk1NTQ0MjQkbzIkZzAkdDE3NDk1NTQ0MjQkajYwJGwwJGgxNTU1NTk0MjI4)
   - [x] namespace 모두 부착
-  - [ ] 다중 윈도우 지원
+  - [x] 다중 윈도우 지원
 
 - [ ] 커스텀 메모리 할당자 구현
 - [ ] 프로파일러 만들기
-- [ ] Log Backend 만들기
+- [x] Log Backend 만들기
   - Log On/Off 가능하게
+  - Log도 Subsystem으로 할까
 - [ ] Log Category 만들기
-- [ ] Log도 Subsystem으로 할까
 - [ ] cmake로 크로스 플랫폼 빌드 구성하기
 - [ ] 나중에 SDL3를 submodule로 추가하기
 - [ ] 나중에 icu4c를 submodule로 추가하기
