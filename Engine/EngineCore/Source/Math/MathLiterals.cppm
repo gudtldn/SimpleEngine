@@ -51,16 +51,19 @@ struct AngleType
     [[nodiscard]] constexpr AngleType operator+(NumType scalar) const { return AngleType(value + scalar); }
     [[nodiscard]] constexpr AngleType operator-(NumType scalar) const { return AngleType(value - scalar); }
     [[nodiscard]] constexpr AngleType operator*(NumType scalar) const { return AngleType(value * scalar); }
+    [[nodiscard]] constexpr AngleType operator/(NumType scalar) const { return AngleType(value / scalar); }
 
     constexpr AngleType& operator+=(NumType scalar) { value += scalar; return *this; }
     constexpr AngleType& operator-=(NumType scalar) { value -= scalar; return *this; }
     constexpr AngleType& operator*=(NumType scalar) { value *= scalar; return *this; }
+    constexpr AngleType& operator/=(NumType scalar) { value /= scalar; return *this; }
 
     [[nodiscard]] constexpr AngleType operator-() const { return AngleType(-value); }
 
     [[nodiscard]] friend constexpr AngleType operator+(NumType scalar, const AngleType& rhs) { return AngleType(scalar + rhs.value); }
     [[nodiscard]] friend constexpr AngleType operator-(NumType scalar, const AngleType& rhs) { return AngleType(scalar - rhs.value); }
     [[nodiscard]] friend constexpr AngleType operator*(NumType scalar, const AngleType& rhs) { return AngleType(scalar * rhs.value); }
+    [[nodiscard]] friend constexpr AngleType operator/(NumType scalar, const AngleType& rhs) { return AngleType(scalar / rhs.value); }
 
     [[nodiscard]] constexpr bool operator==(const AngleType& rhs) const = default;
     [[nodiscard]] constexpr auto operator<=>(const AngleType& rhs) const = default;
