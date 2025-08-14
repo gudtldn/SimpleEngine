@@ -2,6 +2,7 @@
 
 export import :MathLiterals;
 export import :MathUtility;
+export import :TransformUtility;
 import :Matrix;
 import :RotationTypes;
 import :Vector2;
