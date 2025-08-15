@@ -55,4 +55,27 @@
       </Synthetic>
     </Expand>
   </Type>
+
+  <!-- Optional<T> -->
+  <Type Name="Optional&lt;*&gt;">
+    <DisplayString Condition="!is_value_set">nullopt</DisplayString>
+    <DisplayString Condition="is_value_set">{*($T1*)storage}</DisplayString>
+    <Expand>
+      <Item Name="[has_value]" ExcludeView="simple">is_value_set</Item>
+      <Item Name="[value]" Condition="is_value_set">*($T1*)storage</Item>
+    </Expand>
+  </Type>
+
+  <!-- Optional<T&> -->
+  <!--  <Type Name="Optional&lt;*&amp;&gt;">-->
+  <!--    <Intrinsic Name="has_value" Expression="ref_ptr != 0"/>-->
+  <!--    <Intrinsic Name="get_value" Expression="*ref_ptr"/>-->
+  <!--    <DisplayString Condition="!has_value()">nullopt</DisplayString>-->
+  <!--    <DisplayString Condition="has_value()">{get_value()}</DisplayString>-->
+  <!--    <Expand>-->
+  <!--      <Item Name="[has_value]" ExcludeView="simple">has_value()</Item>-->
+  <!--      <Item Name="[value]" Condition="has_value()">get_value()</Item>-->
+  <!--      <Item Name="[address]" IncludeView="detailed">ref_ptr</Item>-->
+  <!--    </Expand>-->
+  <!--  </Type>-->
 </AutoVisualizer>
