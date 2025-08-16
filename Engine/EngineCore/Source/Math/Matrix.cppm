@@ -16,8 +16,8 @@ using namespace se::traits::type_traits;
 /**
  * row-major matrix template
  */
-template <FloatingType T, size_t Align = 16>
-struct alignas(Align) Matrix4x4Impl
+template <FloatingType T>
+struct alignas(16) Matrix4x4Impl
 {
 private:
     std::array<T, 16> data;
@@ -66,21 +66,21 @@ public:
     [[nodiscard]] constexpr T operator[](SizeType row, SizeType col) const noexcept;
 };
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align>::Matrix4x4Impl(std::span<const T, 16> src)
+template <FloatingType T>
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<const T, 16> src)
 {
     std::copy(src.begin(), src.end(), data.begin());
 }
 
-template <FloatingType T, size_t Align>
+template <FloatingType T>
 template <typename... Ts> requires ((std::is_convertible_v<Ts, T> && ...) && sizeof...(Ts) == 16)
-constexpr Matrix4x4Impl<T, Align>::Matrix4x4Impl(Ts... values)
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(Ts... values)
     : data{ static_cast<T>(values)... }
 {
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Identity()
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Identity()
 {
     Matrix4x4Impl ret{};
     for (SizeType i = 0; i < 4; ++i)
@@ -90,14 +90,14 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Identity()
     return ret;
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Zero()
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Zero()
 {
     return Matrix4x4Impl{};
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromTranslation(const Vector3Impl<T>& translation)
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromTranslation(const Vector3Impl<T>& translation)
 {
     T x = translation.x;
     T y = translation.y;
@@ -111,8 +111,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromTranslation(c
     };
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(const RotatorImpl<T>& rotation)
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromRotation(const RotatorImpl<T>& rotation)
 {
     const Radian<T> pitch_rad{ rotation.pitch };
     const Radian<T> yaw_rad{ rotation.yaw };
@@ -150,8 +150,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(cons
     return rz * rx * ry;
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(const QuaternionImpl<T>& quaternion)
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromRotation(const QuaternionImpl<T>& quaternion)
 {
     const T x = quaternion.x;
     const T y = quaternion.y;
@@ -177,8 +177,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromRotation(cons
     };
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromScale(const Vector3Impl<T>& scale)
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromScale(const Vector3Impl<T>& scale)
 {
     T x = scale.x;
     T y = scale.y;
@@ -192,8 +192,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::MakeFromScale(const V
     };
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Transpose() const
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Transpose() const
 {
     Matrix4x4Impl result{};
     for (SizeType i = 0; i < 4; ++i)
@@ -206,8 +206,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Transpose() const
     return result;
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Inverse() const
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 {
     Matrix4x4Impl result;
     Matrix4x4Impl temp;
@@ -295,32 +295,32 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::Inverse() const
     return result;
 }
 
-template <FloatingType T, size_t Align>
-T* Matrix4x4Impl<T, Align>::GetData() noexcept
+template <FloatingType T>
+T* Matrix4x4Impl<T>::GetData() noexcept
 {
     return data.data();
 }
 
-template <FloatingType T, size_t Align>
-const T* Matrix4x4Impl<T, Align>::GetData() const noexcept
+template <FloatingType T>
+const T* Matrix4x4Impl<T>::GetData() const noexcept
 {
     return data.data();
 }
 
-template <FloatingType T, size_t Align>
-auto Matrix4x4Impl<T, Align>::GetView() noexcept
+template <FloatingType T>
+auto Matrix4x4Impl<T>::GetView() noexcept
 {
     return std::mdspan<T, ExtentType>(data.data());
 }
 
-template <FloatingType T, size_t Align>
-auto Matrix4x4Impl<T, Align>::GetView() const noexcept
+template <FloatingType T>
+auto Matrix4x4Impl<T>::GetView() const noexcept
 {
     return std::mdspan<const T, ExtentType>(data.data());
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator+(const Matrix4x4Impl& rhs) const
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator+(const Matrix4x4Impl& rhs) const
 {
     Matrix4x4Impl ret{};
     for (SizeType i = 0; i < 16; ++i)
@@ -330,8 +330,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator+(const Matri
     return ret;
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align>& Matrix4x4Impl<T, Align>::operator+=(const Matrix4x4Impl& rhs)
+template <FloatingType T>
+constexpr Matrix4x4Impl<T>& Matrix4x4Impl<T>::operator+=(const Matrix4x4Impl& rhs)
 {
     for (SizeType i = 0; i < 16; ++i)
     {
@@ -340,8 +340,8 @@ constexpr Matrix4x4Impl<T, Align>& Matrix4x4Impl<T, Align>::operator+=(const Mat
     return *this;
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(const Matrix4x4Impl& rhs) const
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator*(const Matrix4x4Impl& rhs) const
 {
     Matrix4x4Impl ret{};
     for (SizeType i = 0; i < 4; ++i)
@@ -359,8 +359,8 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(const Matri
     return ret;
 }
 
-template <FloatingType T, size_t Align>
-constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(T scalar) const
+template <FloatingType T>
+constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator*(T scalar) const
 {
     Matrix4x4Impl ret{};
     for (auto [n, ret_data] : ret.data | std::views::enumerate)
@@ -370,26 +370,26 @@ constexpr Matrix4x4Impl<T, Align> Matrix4x4Impl<T, Align>::operator*(T scalar) c
     return ret;
 }
 
-template <FloatingType T, size_t Align>
-constexpr void Matrix4x4Impl<T, Align>::operator*=(const Matrix4x4Impl& rhs)
+template <FloatingType T>
+constexpr void Matrix4x4Impl<T>::operator*=(const Matrix4x4Impl& rhs)
 {
     *this = *this * rhs;
 }
 
-template <FloatingType T, size_t Align>
-constexpr void Matrix4x4Impl<T, Align>::operator*=(T scalar)
+template <FloatingType T>
+constexpr void Matrix4x4Impl<T>::operator*=(T scalar)
 {
     *this = *this * scalar;
 }
 
-template <FloatingType T, size_t Align>
-constexpr T& Matrix4x4Impl<T, Align>::operator[](SizeType row, SizeType col) noexcept
+template <FloatingType T>
+constexpr T& Matrix4x4Impl<T>::operator[](SizeType row, SizeType col) noexcept
 {
     return data[row * 4 + col];
 }
 
-template <FloatingType T, size_t Align>
-constexpr T Matrix4x4Impl<T, Align>::operator[](SizeType row, SizeType col) const noexcept
+template <FloatingType T>
+constexpr T Matrix4x4Impl<T>::operator[](SizeType row, SizeType col) const noexcept
 {
     return data[row * 4 + col];
 }

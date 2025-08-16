@@ -15,8 +15,8 @@ export
     using namespace se::math::math_literals;
 
     // Matrix
-    using Matrix4x4 = Matrix4x4Impl<double, 64>;
-    using Matrix4x4f = Matrix4x4Impl<float, 64>;
+    using Matrix4x4 = Matrix4x4Impl<double>;
+    using Matrix4x4f = Matrix4x4Impl<float>;
 
     // Vector
     using Vector2 = Vector2Impl<double>;
