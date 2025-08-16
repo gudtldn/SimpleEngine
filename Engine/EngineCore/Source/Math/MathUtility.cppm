@@ -5,11 +5,11 @@ import SimpleEngine.Traits;
 import SimpleEngine.Types;
 import std;
 
+using namespace se::math::math_literals;
 
-namespace se::math
+
+export namespace se::math
 {
-using namespace math_literals;
-
 constexpr float SMALL_NUMBER = 1.e-8f;
 constexpr float KINDA_SMALL_NUMBER = 1.e-4f;
 
@@ -22,7 +22,7 @@ constexpr float PI_SQUARED = 9.86960440108f;
 constexpr double PI_DOUBLE = 3.141592653589793238462643383279502884197169399;
 
 
-export struct MathUtils
+struct MathUtils
 {
     /** 두 값중에 더 작은 값을 반환합니다. */
     template <OrderableType T>

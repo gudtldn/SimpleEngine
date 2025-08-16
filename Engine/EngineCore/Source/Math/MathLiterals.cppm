@@ -6,6 +6,8 @@ import std;
 using namespace se::traits::type_traits;
 
 
+namespace se::math
+{
 struct DegreeTag{};
 struct RadianTag{};
 
@@ -78,12 +80,13 @@ struct AngleType
         return AngleType<NumType, OtherUnitTag>(*this);
     }
 };
+}
 
 export template <FloatingType NumType>
-using Degree = AngleType<NumType, DegreeTag>;
+using Degree = se::math::AngleType<NumType, se::math::DegreeTag>;
 
 export template <FloatingType NumType>
-using Radian = AngleType<NumType, RadianTag>;
+using Radian = se::math::AngleType<NumType, se::math::RadianTag>;
 
 
 export namespace se::math::math_literals

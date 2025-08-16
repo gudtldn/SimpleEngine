@@ -6,9 +6,10 @@ import SimpleEngine.Types;
 import std;
 
 using namespace se::traits::type_traits;
-using namespace se::math;
 
 
+namespace se::math
+{
 template <FloatingType T>
 struct Vector3Impl
 {
@@ -443,4 +444,5 @@ bool Vector3Impl<T>::IsNearlyEqual(const Vector3Impl& other, T tolerance) const
     return MathUtils::Abs(x - other.x) <= tolerance
         && MathUtils::Abs(y - other.y) <= tolerance
         && MathUtils::Abs(z - other.z) <= tolerance;
+}
 }

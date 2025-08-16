@@ -7,8 +7,10 @@ import SimpleEngine.Types;
 import std;
 
 using namespace se::traits::type_traits;
-using namespace se::math;
 
+
+namespace se::math
+{
 // forward declaration
 template <FloatingType>
 struct RotatorImpl;
@@ -218,3 +220,4 @@ constexpr QuaternionImpl<T> RotatorImpl<T>::ToQuaternion() const
 }
 
 //~ End RotatorImpl
+}

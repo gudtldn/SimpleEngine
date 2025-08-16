@@ -13,6 +13,8 @@ import <cassert>;
 using namespace se::traits::type_traits;
 
 
+namespace se::math
+{
 /**
  * row-major matrix template
  */
@@ -392,4 +394,5 @@ template <FloatingType T>
 constexpr T Matrix4x4Impl<T>::operator[](SizeType row, SizeType col) const noexcept
 {
     return data[row * 4 + col];
+}
 }
