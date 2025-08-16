@@ -14,8 +14,8 @@
   </Type>
 
   <!-- Matrix4x4 -->
-  <Type Name="Matrix4x4Impl&lt;*,*&gt;">
-    <DisplayString>Matrix4x4, Align={$T2}</DisplayString>
+  <Type Name="Matrix4x4Impl&lt;*&gt;">
+    <DisplayString>Matrix4x4</DisplayString>
     <Expand>
       <Synthetic Name="[0]">
         <DisplayString>{data[0]}, {data[1]}, {data[2]}, {data[3]}</DisplayString>
