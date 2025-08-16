@@ -130,14 +130,14 @@ constexpr T Vector2Impl<T>::Dist(const Vector2Impl& other)
 template <FloatingType T>
 constexpr T Vector2Impl<T>::Distance(const Vector2Impl& a, const Vector2Impl& b)
 {
-    return MathUtils::Sqrt(DistSquared(a, b));
+    return MathUtility::Sqrt(DistSquared(a, b));
 }
 
 template <FloatingType T>
 constexpr T Vector2Impl<T>::DistSquared(const Vector2Impl& a, const Vector2Impl& b)
 {
-    return MathUtils::Square(b.x - a.x)
-        + MathUtils::Square(b.y - a.y);
+    return MathUtility::Square(b.x - a.x)
+        + MathUtility::Square(b.y - a.y);
 }
 
 template <FloatingType T>
@@ -285,14 +285,14 @@ constexpr bool Vector2Impl<T>::operator!=(const Vector2Impl& other) const
 template <FloatingType T>
 constexpr T Vector2Impl<T>::Length() const
 {
-    return MathUtils::Sqrt(SquaredLength());
+    return MathUtility::Sqrt(SquaredLength());
 }
 
 template <FloatingType T>
 constexpr T Vector2Impl<T>::SquaredLength() const
 {
-    return MathUtils::Square(x)
-        + MathUtils::Square(y);
+    return MathUtility::Square(x)
+        + MathUtility::Square(y);
 }
 
 template <FloatingType T>
@@ -321,20 +321,20 @@ constexpr Vector2Impl<T> Vector2Impl<T>::GetNormalized(T tolerance) const
 template <FloatingType T>
 constexpr bool Vector2Impl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtils::Abs(1.f - SquaredLength()) < tolerance;
+    return MathUtility::Abs(1.f - SquaredLength()) < tolerance;
 }
 
 template <FloatingType T>
 bool Vector2Impl<T>::IsNearlyZero(T tolerance) const
 {
-    return MathUtils::Abs(x) <= tolerance
-        && MathUtils::Abs(y) <= tolerance;
+    return MathUtility::Abs(x) <= tolerance
+        && MathUtility::Abs(y) <= tolerance;
 }
 
 template <FloatingType T>
 bool Vector2Impl<T>::IsNearlyEqual(const Vector2Impl& other, T tolerance) const
 {
-    return MathUtils::Abs(x - other.x) <= tolerance
-        && MathUtils::Abs(y - other.y) <= tolerance;
+    return MathUtility::Abs(x - other.x) <= tolerance
+        && MathUtility::Abs(y - other.y) <= tolerance;
 }
 }

@@ -212,28 +212,28 @@ constexpr T Vector3Impl<T>::Dist(const Vector3Impl& other)
 template <FloatingType T>
 constexpr T Vector3Impl<T>::Distance(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtils::Sqrt(DistSquared(a, b));
+    return MathUtility::Sqrt(DistSquared(a, b));
 }
 
 template <FloatingType T>
 constexpr T Vector3Impl<T>::Distance2D(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtils::Sqrt(DistSquared2D(a, b));
+    return MathUtility::Sqrt(DistSquared2D(a, b));
 }
 
 template <FloatingType T>
 constexpr T Vector3Impl<T>::DistSquared(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtils::Square(b.x - a.x)
-        + MathUtils::Square(b.y - a.y)
-        + MathUtils::Square(b.z - a.z);
+    return MathUtility::Square(b.x - a.x)
+        + MathUtility::Square(b.y - a.y)
+        + MathUtility::Square(b.z - a.z);
 }
 
 template <FloatingType T>
 constexpr T Vector3Impl<T>::DistSquared2D(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtils::Square(b.x - a.x)
-        + MathUtils::Square(b.y - a.y);
+    return MathUtility::Square(b.x - a.x)
+        + MathUtility::Square(b.y - a.y);
 }
 
 template <FloatingType T>
@@ -389,15 +389,15 @@ constexpr bool Vector3Impl<T>::operator!=(const Vector3Impl& other) const
 template <FloatingType T>
 constexpr T Vector3Impl<T>::Length() const
 {
-    return MathUtils::Sqrt(SquaredLength());
+    return MathUtility::Sqrt(SquaredLength());
 }
 
 template <FloatingType T>
 constexpr T Vector3Impl<T>::SquaredLength() const
 {
-    return MathUtils::Square(x)
-        + MathUtils::Square(y)
-        + MathUtils::Square(z);
+    return MathUtility::Square(x)
+        + MathUtility::Square(y)
+        + MathUtility::Square(z);
 }
 
 template <FloatingType T>
@@ -427,22 +427,22 @@ constexpr Vector3Impl<T> Vector3Impl<T>::GetNormalized(T tolerance) const
 template <FloatingType T>
 constexpr bool Vector3Impl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtils::Abs(1.f - SquaredLength()) < tolerance;
+    return MathUtility::Abs(1.f - SquaredLength()) < tolerance;
 }
 
 template <FloatingType T>
 bool Vector3Impl<T>::IsNearlyZero(T tolerance) const
 {
-    return MathUtils::Abs(x) <= tolerance
-        && MathUtils::Abs(y) <= tolerance
-        && MathUtils::Abs(z) <= tolerance;
+    return MathUtility::Abs(x) <= tolerance
+        && MathUtility::Abs(y) <= tolerance
+        && MathUtility::Abs(z) <= tolerance;
 }
 
 template <FloatingType T>
 bool Vector3Impl<T>::IsNearlyEqual(const Vector3Impl& other, T tolerance) const
 {
-    return MathUtils::Abs(x - other.x) <= tolerance
-        && MathUtils::Abs(y - other.y) <= tolerance
-        && MathUtils::Abs(z - other.z) <= tolerance;
+    return MathUtility::Abs(x - other.x) <= tolerance
+        && MathUtility::Abs(y - other.y) <= tolerance
+        && MathUtility::Abs(z - other.z) <= tolerance;
 }
 }

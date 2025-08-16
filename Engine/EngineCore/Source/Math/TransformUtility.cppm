@@ -11,7 +11,7 @@ import std;
 
 namespace se::math
 {
-export struct TransformUtils
+export struct TransformUtility
 {
     template <FloatingType T>
     static constexpr Matrix4x4Impl<T> MakeModelMatrix(
@@ -60,7 +60,7 @@ export struct TransformUtils
     template <FloatingType T>
     static constexpr Matrix4x4Impl<T> MakePerspectiveMatrix(Radian<T> fov, T aspect, T near, T far)
     {
-        const T f = 1 / MathUtils::Tan(fov / 2);
+        const T f = 1 / MathUtility::Tan(fov / 2);
         return {
             f / aspect, 0, 0, 0,
             0, f, 0, 0,

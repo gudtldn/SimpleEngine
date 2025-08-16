@@ -120,9 +120,9 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromRotation(const RotatorImpl<
     const Radian<T> yaw_rad{ rotation.yaw };
     const Radian<T> roll_rad{ rotation.roll };
 
-    const T sin_p = MathUtils::Sin(pitch_rad), cos_p = MathUtils::Cos(pitch_rad);
-    const T sin_y = MathUtils::Sin(yaw_rad), cos_y = MathUtils::Cos(yaw_rad);
-    const T sin_r = MathUtils::Sin(roll_rad), cos_r = MathUtils::Cos(roll_rad);
+    const T sin_p = MathUtility::Sin(pitch_rad), cos_p = MathUtility::Cos(pitch_rad);
+    const T sin_y = MathUtility::Sin(yaw_rad), cos_y = MathUtility::Cos(yaw_rad);
+    const T sin_r = MathUtility::Sin(roll_rad), cos_r = MathUtility::Cos(roll_rad);
 
     // Rz(yaw)
     Matrix4x4Impl rz{

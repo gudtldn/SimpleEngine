@@ -262,27 +262,27 @@ constexpr bool Vector4Impl<T>::operator!=(const Vector4Impl& other) const
 template <FloatingType T>
 constexpr T Vector4Impl<T>::Length3() const
 {
-    return MathUtils::Sqrt(SquaredLength3());
+    return MathUtility::Sqrt(SquaredLength3());
 }
 
 template <FloatingType T>
 constexpr T Vector4Impl<T>::Length() const
 {
-    return MathUtils::Sqrt(SquaredLength());
+    return MathUtility::Sqrt(SquaredLength());
 }
 
 template <FloatingType T>
 constexpr T Vector4Impl<T>::SquaredLength3() const
 {
-    return MathUtils::Square(x)
-        + MathUtils::Square(y)
-        + MathUtils::Square(z);
+    return MathUtility::Square(x)
+        + MathUtility::Square(y)
+        + MathUtility::Square(z);
 }
 
 template <FloatingType T>
 constexpr T Vector4Impl<T>::SquaredLength() const
 {
-    return SquaredLength3() + MathUtils::Square(w);
+    return SquaredLength3() + MathUtility::Square(w);
 }
 
 template <FloatingType T>
@@ -313,22 +313,22 @@ constexpr Vector4Impl<T> Vector4Impl<T>::GetNormalized(T tolerance) const
 template <FloatingType T>
 constexpr bool Vector4Impl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtils::Abs(1.f - SquaredLength3()) < tolerance;
+    return MathUtility::Abs(1.f - SquaredLength3()) < tolerance;
 }
 
 template <FloatingType T>
 bool Vector4Impl<T>::IsNearlyZero3(T tolerance) const
 {
-    return MathUtils::Abs(x) <= tolerance
-        && MathUtils::Abs(y) <= tolerance
-        && MathUtils::Abs(z) <= tolerance;
+    return MathUtility::Abs(x) <= tolerance
+        && MathUtility::Abs(y) <= tolerance
+        && MathUtility::Abs(z) <= tolerance;
 }
 
 template <FloatingType T>
 bool Vector4Impl<T>::IsNearlyEqual3(const Vector4Impl& other, T tolerance) const
 {
-    return MathUtils::Abs(x - other.x) <= tolerance
-        && MathUtils::Abs(y - other.y) <= tolerance
-        && MathUtils::Abs(z - other.z) <= tolerance;
+    return MathUtility::Abs(x - other.x) <= tolerance
+        && MathUtility::Abs(y - other.y) <= tolerance
+        && MathUtility::Abs(z - other.z) <= tolerance;
 }
 }

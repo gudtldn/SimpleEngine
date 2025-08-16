@@ -82,9 +82,9 @@ constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
     const Radian<T> yaw_rad{ rotator.yaw };
     const Radian<T> roll_rad{ rotator.roll };
 
-    const T sin_p = MathUtils::Sin(pitch_rad * 0.5), cos_p = MathUtils::Cos(pitch_rad * 0.5);
-    const T sin_y = MathUtils::Sin(yaw_rad * 0.5), cos_y = MathUtils::Cos(yaw_rad * 0.5);
-    const T sin_r = MathUtils::Sin(roll_rad * 0.5), cos_r = MathUtils::Cos(roll_rad * 0.5);
+    const T sin_p = MathUtility::Sin(pitch_rad * 0.5), cos_p = MathUtility::Cos(pitch_rad * 0.5);
+    const T sin_y = MathUtility::Sin(yaw_rad * 0.5), cos_y = MathUtility::Cos(yaw_rad * 0.5);
+    const T sin_r = MathUtility::Sin(roll_rad * 0.5), cos_r = MathUtility::Cos(roll_rad * 0.5);
 
     // Yaw * Pitch * Roll
     x = sin_r * cos_p * cos_y - cos_r * sin_p * sin_y;
@@ -126,7 +126,7 @@ constexpr void QuaternionImpl<T>::Normalize(T tolerance)
     const T square_sum = x * x + y * y + z * z + w * w;
     if (square_sum >= tolerance)
     {
-        const T scale = MathUtils::InvSqrt(square_sum);
+        const T scale = MathUtility::InvSqrt(square_sum);
         x *= scale;
         y *= scale;
         z *= scale;
@@ -149,18 +149,18 @@ constexpr QuaternionImpl<T> QuaternionImpl<T>::GetNormalized(T tolerance) const
 template <FloatingType T>
 constexpr bool QuaternionImpl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtils::Abs(x * x + y * y + z * z + w * w - 1.0f) < tolerance;
+    return MathUtility::Abs(x * x + y * y + z * z + w * w - 1.0f) < tolerance;
 }
 
 template <FloatingType T>
 constexpr bool QuaternionImpl<T>::IsNearlyEqual(const QuaternionImpl& other, T tolerance) const
 {
     return (
-        MathUtils::Abs(x - other.x) <= tolerance && MathUtils::Abs(y - other.y) <= tolerance
-        && MathUtils::Abs(z - other.z) <= tolerance && MathUtils::Abs(w - other.w) <= tolerance
+        MathUtility::Abs(x - other.x) <= tolerance && MathUtility::Abs(y - other.y) <= tolerance
+        && MathUtility::Abs(z - other.z) <= tolerance && MathUtility::Abs(w - other.w) <= tolerance
     ) || (
-        MathUtils::Abs(x + other.x) <= tolerance && MathUtils::Abs(y + other.y) <= tolerance
-        && MathUtils::Abs(z + other.z) <= tolerance && MathUtils::Abs(w + other.w) <= tolerance
+        MathUtility::Abs(x + other.x) <= tolerance && MathUtility::Abs(y + other.y) <= tolerance
+        && MathUtility::Abs(z + other.z) <= tolerance && MathUtility::Abs(w + other.w) <= tolerance
     );
 }
 
@@ -191,22 +191,22 @@ constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
 {
     const T sinr_cosp = 2 * (quaternion.w * quaternion.x + quaternion.y * quaternion.z);
     const T cosr_cosp = 1 - 2 * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
-    const Radian<T> roll_rad = MathUtils::Atan2(sinr_cosp, cosr_cosp);
+    const Radian<T> roll_rad = MathUtility::Atan2(sinr_cosp, cosr_cosp);
 
     const T sinp = 2 * (quaternion.w * quaternion.y - quaternion.z * quaternion.x);
     Radian<T> pitch_rad{ 0 };
-    if (MathUtils::Abs(sinp) >= 1)
+    if (MathUtility::Abs(sinp) >= 1)
     {
-        pitch_rad.value = MathUtils::CopySign(std::numbers::pi_v<T> / 2, sinp);
+        pitch_rad.value = MathUtility::CopySign(std::numbers::pi_v<T> / 2, sinp);
     }
     else
     {
-        pitch_rad = MathUtils::Asin(sinp);
+        pitch_rad = MathUtility::Asin(sinp);
     }
 
     const T siny_cosp = 2 * (quaternion.w * quaternion.z + quaternion.x * quaternion.y);
     const T cosy_cosp = 1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
-    const Radian<T> yaw_rad(MathUtils::Atan2(siny_cosp, cosy_cosp));
+    const Radian<T> yaw_rad(MathUtility::Atan2(siny_cosp, cosy_cosp));
 
     pitch = Degree<T>{ pitch_rad };
     yaw = Degree<T>{ yaw_rad };

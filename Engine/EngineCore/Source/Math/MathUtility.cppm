@@ -22,7 +22,7 @@ constexpr float PI_SQUARED = 9.86960440108f;
 constexpr double PI_DOUBLE = 3.141592653589793238462643383279502884197169399;
 
 
-struct MathUtils
+struct MathUtility
 {
     /** 두 값중에 더 작은 값을 반환합니다. */
     template <OrderableType T>
