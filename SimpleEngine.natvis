@@ -14,7 +14,7 @@
   </Type>
 
   <!-- Matrix4x4 -->
-  <Type Name="Matrix4x4Impl&lt;*&gt;">
+  <Type Name="se::math::Matrix4x4Impl&lt;*&gt;">
     <DisplayString>Matrix4x4</DisplayString>
     <Expand>
       <Synthetic Name="[0]">
