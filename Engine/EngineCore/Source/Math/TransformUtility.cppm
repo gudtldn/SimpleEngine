@@ -60,7 +60,7 @@ export struct TransformUtility
     template <FloatingType T>
     static constexpr Matrix4x4Impl<T> MakePerspectiveMatrix(Radian<T> fov, T aspect, T near, T far)
     {
-        const T f = 1 / MathUtility::Tan(fov / 2);
+        const T f = 1 / MathUtility::Tan(fov * static_cast<T>(0.5));
         return {
             f / aspect, 0, 0, 0,
             0, f, 0, 0,
