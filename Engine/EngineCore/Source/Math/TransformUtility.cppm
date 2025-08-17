@@ -20,9 +20,9 @@ export struct TransformUtility
         const Vector3Impl<T>& scale
     )
     {
-        return Matrix4x4Impl<T>::MakeFromTranslation(translation)
-            * Matrix4x4Impl<T>::MakeFromRotation(rotation)
-            * Matrix4x4Impl<T>::MakeFromScale(scale);
+        return Matrix4x4Impl<T>::MakeFromScale(scale)
+             * Matrix4x4Impl<T>::MakeFromRotation(rotation)
+             * Matrix4x4Impl<T>::MakeFromTranslation(translation);
     }
 
     template <FloatingType T>
@@ -32,9 +32,9 @@ export struct TransformUtility
         const Vector3Impl<T>& scale
     )
     {
-        return Matrix4x4Impl<T>::MakeFromTranslation(translation)
-            * Matrix4x4Impl<T>::MakeFromRotation(quaternion)
-            * Matrix4x4Impl<T>::MakeFromScale(scale);
+        return Matrix4x4Impl<T>::MakeFromScale(scale)
+             * Matrix4x4Impl<T>::MakeFromRotation(quaternion)
+             * Matrix4x4Impl<T>::MakeFromTranslation(translation);
     }
 
     template <FloatingType T>
@@ -44,28 +44,28 @@ export struct TransformUtility
         const Vector3Impl<T>& world_up
     )
     {
-        const Vector3Impl<T> f = (target - position).GetNormalized();
+        const Vector3Impl<T> f = (position - target).GetNormalized();
         const Vector3Impl<T> r = f.Cross(world_up).GetNormalized();
         const Vector3Impl<T> u = r.Cross(f);
 
-        // +X Right, +Y Forward, +Z Up
+        // F = -Y, R = +X, U = +Z
         return {
-            r.x, r.y, r.z, -r.Dot(position),
-            u.x, u.y, u.z, -u.Dot(position),
-            -f.x, -f.y, -f.z, f.Dot(position),
-            0, 0, 0, 1
+            r.x, u.x, f.x, 0,
+            r.y, u.y, f.y, 0,
+            r.z, u.z, f.z, 0,
+            -r.Dot(position), -u.Dot(position), -f.Dot(position), 1
         };
     }
 
     template <FloatingType T>
-    static constexpr Matrix4x4Impl<T> MakePerspectiveMatrix(Radian<T> fov, T aspect, T near, T far)
+    static constexpr Matrix4x4Impl<T> MakePerspectiveMatrix(Radian<T> fov_y, T aspect, T near, T far)
     {
-        const T f = 1 / MathUtility::Tan(fov * static_cast<T>(0.5));
+        const T f = 1 / MathUtility::Tan(fov_y * static_cast<T>(0.5));
         return {
             f / aspect, 0, 0, 0,
             0, f, 0, 0,
-            0, 0, far / (near - far), (far * near) / (near - far),
-            0, 0, -1, 0
+            0, 0, far / (near - far), -1,
+            0, 0, (near * far) / (near - far), 0
         };
     }
 
