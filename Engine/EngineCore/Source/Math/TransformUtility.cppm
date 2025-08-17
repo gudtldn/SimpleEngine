@@ -87,5 +87,19 @@ export struct TransformUtility
             tx, ty, tz, 1
         };
     }
+
+    template <FloatingType T>
+    static constexpr Matrix4x4Impl<T> MakeOrthographicMatrix(T width, T height, T near, T far)
+    {
+        const T half_width = width * static_cast<T>(0.5);
+        const T half_height = height * static_cast<T>(0.5);
+
+        return MakeOrthographicMatrix(
+            -half_width, half_width,
+            -half_height, half_height,
+            near,
+            far
+        );
+    }
 };
 }
