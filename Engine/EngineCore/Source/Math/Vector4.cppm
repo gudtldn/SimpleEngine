@@ -91,25 +91,25 @@ constexpr Vector4Impl<T>::Vector4Impl(T scalar)
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::Zero()
 {
-    return {};
+    return Vector4Impl{};
 }
 
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::One()
 {
-    return { 1 };
+    return Vector4Impl{ 1 };
 }
 
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator+(const Vector4Impl& other) const
 {
-    return { x + other.x, y + other.y, z + other.z, w + other.w };
+    return Vector4Impl{ x + other.x, y + other.y, z + other.z, w + other.w };
 }
 
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator+(T scalar) const
 {
-    return { x + scalar, y + scalar, z + scalar, w + scalar };
+    return Vector4Impl{ x + scalar, y + scalar, z + scalar, w + scalar };
 }
 
 template <FloatingType T>
@@ -141,13 +141,13 @@ constexpr Vector4Impl<T>& Vector4Impl<T>::operator+=(T scalar)
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator-(const Vector4Impl& other) const
 {
-    return { x - other.x, y - other.y, z - other.z, w - other.w };
+    return Vector4Impl{ x - other.x, y - other.y, z - other.z, w - other.w };
 }
 
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator-(T scalar) const
 {
-    return { x - scalar, y - scalar, z - scalar, w - scalar };
+    return Vector4Impl{ x - scalar, y - scalar, z - scalar, w - scalar };
 }
 
 template <FloatingType T>
@@ -173,13 +173,13 @@ constexpr Vector4Impl<T>& Vector4Impl<T>::operator-=(T scalar)
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator*(const Vector4Impl& other) const
 {
-    return { x * other.x, y * other.y, z * other.z, w * other.w };
+    return Vector4Impl{ x * other.x, y * other.y, z * other.z, w * other.w };
 }
 
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator*(T scalar) const
 {
-    return { x * scalar, y * scalar, z * scalar, w * scalar };
+    return Vector4Impl{ x * scalar, y * scalar, z * scalar, w * scalar };
 }
 
 template <FloatingType T>
@@ -211,13 +211,13 @@ constexpr Vector4Impl<T>& Vector4Impl<T>::operator*=(T scalar)
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator/(const Vector4Impl& other) const
 {
-    return { x / other.x, y / other.y, z / other.z, w / other.w };
+    return Vector4Impl{ x / other.x, y / other.y, z / other.z, w / other.w };
 }
 
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator/(T scalar) const
 {
-    return { x / scalar, y / scalar, z / scalar, w / scalar };
+    return Vector4Impl{ x / scalar, y / scalar, z / scalar, w / scalar };
 }
 
 template <FloatingType T>
@@ -243,7 +243,7 @@ constexpr Vector4Impl<T>& Vector4Impl<T>::operator/=(T scalar)
 template <FloatingType T>
 constexpr Vector4Impl<T> Vector4Impl<T>::operator-() const
 {
-    return { -x, -y, -z, -w };
+    return Vector4Impl{ -x, -y, -z, -w };
 }
 
 template <FloatingType T>

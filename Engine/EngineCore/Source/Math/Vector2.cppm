@@ -94,13 +94,13 @@ constexpr Vector2Impl<T>::Vector2Impl(T scalar)
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::Zero()
 {
-    return {};
+    return Vector2Impl{};
 }
 
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::One()
 {
-    return { 1 };
+    return Vector2Impl{ 1 };
 }
 
 template <FloatingType T>
@@ -143,13 +143,13 @@ constexpr T Vector2Impl<T>::DistSquared(const Vector2Impl& a, const Vector2Impl&
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator+(const Vector2Impl& other) const
 {
-    return { x + other.x, y + other.y };
+    return Vector2Impl{ x + other.x, y + other.y };
 }
 
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator+(T scalar) const
 {
-    return { x + scalar, y + scalar };
+    return Vector2Impl{ x + scalar, y + scalar };
 }
 
 template <FloatingType T>
@@ -177,13 +177,13 @@ constexpr Vector2Impl<T>& Vector2Impl<T>::operator+=(T scalar)
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator-(const Vector2Impl& other) const
 {
-    return { x - other.x, y - other.y };
+    return Vector2Impl{ x - other.x, y - other.y };
 }
 
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator-(T scalar) const
 {
-    return { x - scalar, y - scalar };
+    return Vector2Impl{ x - scalar, y - scalar };
 }
 
 template <FloatingType T>
@@ -205,13 +205,13 @@ constexpr Vector2Impl<T>& Vector2Impl<T>::operator-=(T scalar)
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator*(const Vector2Impl& other) const
 {
-    return { x * other.x, y * other.y };
+    return Vector2Impl{ x * other.x, y * other.y };
 }
 
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator*(T scalar) const
 {
-    return { x * scalar, y * scalar };
+    return Vector2Impl{ x * scalar, y * scalar };
 }
 
 template <FloatingType T>
@@ -239,13 +239,13 @@ constexpr Vector2Impl<T>& Vector2Impl<T>::operator*=(T scalar)
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator/(const Vector2Impl& other) const
 {
-    return { x / other.x, y / other.y };
+    return Vector2Impl{ x / other.x, y / other.y };
 }
 
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator/(T scalar) const
 {
-    return { x / scalar, y / scalar };
+    return Vector2Impl{ x / scalar, y / scalar };
 }
 
 template <FloatingType T>
@@ -267,7 +267,7 @@ constexpr Vector2Impl<T>& Vector2Impl<T>::operator/=(T scalar)
 template <FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator-() const
 {
-    return { -x, -y };
+    return Vector2Impl{ -x, -y };
 }
 
 template <FloatingType T>

@@ -96,7 +96,7 @@ constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
 template <FloatingType T>
 constexpr QuaternionImpl<T> QuaternionImpl<T>::Identity()
 {
-    return { 0, 0, 0, 1 };
+    return QuaternionImpl{ 0, 0, 0, 1 };
 }
 
 template <FloatingType T>
@@ -106,7 +106,7 @@ constexpr QuaternionImpl<T> QuaternionImpl<T>::operator*(const QuaternionImpl& o
     // (Q1 * Q2).Y = (W1*Y2 - X1*Z2 + Y1*W2 + Z1*X2)
     // (Q1 * Q2).Z = (W1*Z2 + X1*Y2 - Y1*X2 + Z1*W2)
     // (Q1 * Q2).W = (W1*W2 - X1*X2 - Y1*Y2 - Z1*Z2)
-    return {
+    return QuaternionImpl{
         w * other.x + x * other.w + y * other.z - z * other.y, // New X
         w * other.y - x * other.z + y * other.w + z * other.x, // New Y
         w * other.z + x * other.y - y * other.x + z * other.w, // New Z
@@ -117,7 +117,7 @@ constexpr QuaternionImpl<T> QuaternionImpl<T>::operator*(const QuaternionImpl& o
 template <FloatingType T>
 constexpr QuaternionImpl<T> QuaternionImpl<T>::operator*(T scalar) const
 {
-    return { x * scalar, y * scalar, z * scalar, w * scalar };
+    return QuaternionImpl{ x * scalar, y * scalar, z * scalar, w * scalar };
 }
 
 template <FloatingType T>
@@ -167,7 +167,7 @@ constexpr bool QuaternionImpl<T>::IsNearlyEqual(const QuaternionImpl& other, T t
 template <FloatingType T>
 constexpr RotatorImpl<T> QuaternionImpl<T>::ToRotator() const
 {
-    return { *this };
+    return RotatorImpl{ *this };
 }
 
 //~ End QuaternionImpl
@@ -216,7 +216,7 @@ constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
 template <FloatingType T>
 constexpr QuaternionImpl<T> RotatorImpl<T>::ToQuaternion() const
 {
-    return { *this };
+    return QuaternionImpl{ *this };
 }
 
 //~ End RotatorImpl

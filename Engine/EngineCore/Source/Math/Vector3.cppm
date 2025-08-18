@@ -118,31 +118,31 @@ constexpr Vector3Impl<T>::Vector3Impl(T scalar)
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::Zero()
 {
-    return {};
+    return Vector3Impl{ 0 };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::One()
 {
-    return { 1 };
+    return Vector3Impl{ 1 };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::UnitX()
 {
-    return { 1, 0, 0 };
+    return Vector3Impl{ 1, 0, 0 };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::UnitY()
 {
-    return { 0, 1, 0 };
+    return Vector3Impl{ 0, 1, 0 };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::UnitZ()
 {
-    return { 0, 0, 1 };
+    return Vector3Impl{ 0, 0, 1 };
 }
 
 template <FloatingType T>
@@ -184,7 +184,7 @@ constexpr T Vector3Impl<T>::DotProduct(const Vector3Impl& a, const Vector3Impl& 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator^(const Vector3Impl& other) const
 {
-    return {
+    return Vector3Impl{
         y * other.z - z * other.y,
         z * other.x - x * other.z,
         x * other.y - y * other.x
@@ -239,13 +239,13 @@ constexpr T Vector3Impl<T>::DistSquared2D(const Vector3Impl& a, const Vector3Imp
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator+(const Vector3Impl& other) const
 {
-    return { x + other.x, y + other.y, z + other.z };
+    return Vector3Impl{ x + other.x, y + other.y, z + other.z };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator+(T scalar) const
 {
-    return { x + scalar, y + scalar, z + scalar };
+    return Vector3Impl{ x + scalar, y + scalar, z + scalar };
 }
 
 template <FloatingType T>
@@ -275,13 +275,13 @@ constexpr Vector3Impl<T>& Vector3Impl<T>::operator+=(T scalar)
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator-(const Vector3Impl& other) const
 {
-    return { x - other.x, y - other.y, z - other.z };
+    return Vector3Impl{ x - other.x, y - other.y, z - other.z };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator-(T scalar) const
 {
-    return { x - scalar, y - scalar, z - scalar };
+    return Vector3Impl{ x - scalar, y - scalar, z - scalar };
 }
 
 template <FloatingType T>
@@ -305,13 +305,13 @@ constexpr Vector3Impl<T>& Vector3Impl<T>::operator-=(T scalar)
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator*(const Vector3Impl& other) const
 {
-    return { x * other.x, y * other.y, z * other.z };
+    return Vector3Impl{ x * other.x, y * other.y, z * other.z };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator*(T scalar) const
 {
-    return { x * scalar, y * scalar, z * scalar };
+    return Vector3Impl{ x * scalar, y * scalar, z * scalar };
 }
 
 template <FloatingType T>
@@ -341,13 +341,13 @@ constexpr Vector3Impl<T>& Vector3Impl<T>::operator*=(T scalar)
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator/(const Vector3Impl& other) const
 {
-    return { x / other.x, y / other.y, z / other.z };
+    return Vector3Impl{ x / other.x, y / other.y, z / other.z };
 }
 
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator/(T scalar) const
 {
-    return { x / scalar, y / scalar, z / scalar };
+    return Vector3Impl{ x / scalar, y / scalar, z / scalar };
 }
 
 template <FloatingType T>
@@ -371,7 +371,7 @@ constexpr Vector3Impl<T>& Vector3Impl<T>::operator/=(T scalar)
 template <FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator-() const
 {
-    return { -x, -y, -z };
+    return Vector3Impl{ -x, -y, -z };
 }
 
 template <FloatingType T>

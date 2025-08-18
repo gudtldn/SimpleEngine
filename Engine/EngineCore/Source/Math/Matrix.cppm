@@ -105,7 +105,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromTranslation(const Vector3Im
     T y = translation.y;
     T z = translation.z;
 
-    return {
+    return Matrix4x4Impl{
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
@@ -171,7 +171,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromRotation(const QuaternionIm
     const T wz = w * z;
 
     // Row-major 3x3 rotation block for row-vector (p' = p M)
-    return {
+    return Matrix4x4Impl{
         1 - 2 * (yy + zz), 2 * (xy - wz), 2 * (xz + wy), 0,
         2 * (xy + wz), 1 - 2 * (xx + zz), 2 * (yz - wx), 0,
         2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (xx + yy), 0,
@@ -186,7 +186,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromScale(const Vector3Impl<T>&
     T y = scale.y;
     T z = scale.z;
 
-    return {
+    return Matrix4x4Impl{
         x, 0, 0, 0,
         0, y, 0, 0,
         0, 0, z, 0,
