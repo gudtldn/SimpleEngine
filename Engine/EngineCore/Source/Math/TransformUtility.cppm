@@ -49,7 +49,7 @@ export struct TransformUtility
         const Vector3Impl<T> u = r.Cross(f);
 
         // F = -Y, R = +X, U = +Z
-        return Matrix4x4Impl{
+        return Matrix4x4Impl<T>{
             r.x, u.x, f.x, 0,
             r.y, u.y, f.y, 0,
             r.z, u.z, f.z, 0,
@@ -61,7 +61,7 @@ export struct TransformUtility
     static constexpr Matrix4x4Impl<T> MakePerspectiveMatrix(Radian<T> fov_y, T aspect, T near, T far)
     {
         const T f = 1 / MathUtility::Tan(fov_y * static_cast<T>(0.5));
-        return Matrix4x4Impl{
+        return Matrix4x4Impl<T>{
             f / aspect, 0, 0, 0,
             0, f, 0, 0,
             0, 0, far / (near - far), -1,
@@ -80,7 +80,7 @@ export struct TransformUtility
         const T ty = -(top + bottom) / (top - bottom);
         const T tz = -near / (far - near);
 
-        return Matrix4x4Impl{
+        return Matrix4x4Impl<T>{
             sx, 0, 0, 0,
             0, sy, 0, 0,
             0, 0, sz, 0,
