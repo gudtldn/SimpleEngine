@@ -36,7 +36,7 @@ export
     public:
         virtual ~IRenderPass() = default;
 
-        virtual void Setup() = 0;
-        virtual void Execute(SDL_GPUCommandBuffer* cmd) = 0;
+        // virtual void Setup(PassBuilder& builder) = 0;
+        // virtual void Execute(SDL_GPUCommandBuffer* cmd, const ResolvedResources& resources) = 0;
     };
 }
