@@ -9,6 +9,6 @@ import SimpleEngine.Math;
 export struct Camera3dComponent
 {
     Degree<float> fov = 90.0_degf;
-    float near_plane = 0.1;
-    float far_plane = 10'000.0;
+    float near_plane = 0.1f;
+    float far_plane = 10'000.0f;
 };
