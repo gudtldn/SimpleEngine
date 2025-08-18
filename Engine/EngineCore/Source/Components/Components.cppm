@@ -1,5 +1,6 @@
 ﻿export module SimpleEngine.Components;
 
-export import :Rotation;
-export import :Scale;
-export import :Translation;
+export import :Camera3dComponent;
+export import :MaterialHandleComponent;
+export import :MeshHandleComponent;
+export import :TransformComponent;
