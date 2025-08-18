@@ -8,7 +8,7 @@ import SimpleEngine.Math;
  */
 export struct TransformComponent
 {
-    Vector3 position = Vector3::Zero();
     Quaternion rotation = Quaternion::Identity();
+    Vector3 position = Vector3::Zero();
     Vector3 scale = Vector3::One();
 };
