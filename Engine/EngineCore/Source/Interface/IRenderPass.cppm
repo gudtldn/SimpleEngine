@@ -2,9 +2,24 @@
 
 import SimpleEngine.Types;
 
+import <SDL3/SDL_gpu.h>;
+
 
 export
 {
+    class VirtualResourceHandle;
+    // {
+    // public:
+    //     VirtualResourceHandle()
+    //     {
+    //         static uint32 next_resource_id = 0;
+    //         resource_id = next_resource_id++;
+    //     }
+    //
+    // private:
+    //     uint32 resource_id;
+    // };
+
     enum class ERenderPassType : uint8
     {
         Unknown = 0,
@@ -18,8 +33,10 @@ export
 
     class IRenderPass
     {
+    public:
         virtual ~IRenderPass() = default;
 
-        virtual ERenderPassType GetType() const = 0;
+        virtual void Setup() = 0;
+        virtual void Execute(SDL_GPUCommandBuffer* cmd) = 0;
     };
 }
