@@ -75,16 +75,8 @@
     </ClCompile>
 
     <!-- EditorEngine의 소스 파일들 -->
-    <ClCompile Include="Source\App\EditorApplication.cpp" />
-    <ClCompile Include="Source\App\EditorApplication.cppm" />
-    <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cpp"/>
-    <ClCompile Include="Source\Subsystems\ImGuiSubsystem\ImGuiSubsystem.cppm"/>
-    <ClCompile Include="Source\Launch\LaunchWindows.cpp" />
-    <ClCompile Include="Source\Subsystems\ShaderCompileSubsystem\ShaderCompileSubsystem.cpp"/>
-    <ClCompile Include="Source\Subsystems\ShaderCompileSubsystem\ShaderCompileSubsystem.cppm"/>
-    <ClCompile Include="Source\Utility\ShaderUtils.cpp"/>
-    <ClCompile Include="Source\Utility\ShaderUtils.cppm"/>
-    <ClCompile Include="Source\Utility\Utility.cppm"/>
+    <ClCompile Include="Source\**\*.cpp"/>
+    <ClCompile Include="Source\**\*.cppm"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EngineCore\EngineCore.vcxproj">

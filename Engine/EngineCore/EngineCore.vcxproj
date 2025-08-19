@@ -43,90 +43,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\App\Application.cpp" />
-    <ClCompile Include="Source\App\Application.cppm" />
-    <ClCompile Include="Source\Components\Camera3dComponent.cppm"/>
-    <ClCompile Include="Source\Components\Components.cppm"/>
-    <ClCompile Include="Source\Components\MaterialHandleComponent.cppm"/>
-    <ClCompile Include="Source\Components\MeshHandleComponent.cppm"/>
-    <ClCompile Include="Source\Components\TransformComponent.cppm"/>
-    <ClCompile Include="Source\Config\Config.cpp" />
-    <ClCompile Include="Source\Config\Config.cppm" />
-    <ClCompile Include="Source\Core\Core.cppm" />
-    <ClCompile Include="Source\Core\ECS\ECS.cppm"/>
-    <ClCompile Include="Source\Core\ECS\Entity.cppm"/>
-    <ClCompile Include="Source\Core\ECS\EntityManager.cpp"/>
-    <ClCompile Include="Source\Core\ECS\EntityManager.cppm"/>
-    <ClCompile Include="Source\Core\ECS\SparseSet.cppm"/>
-    <ClCompile Include="Source\Core\ECS\World.cpp"/>
-    <ClCompile Include="Source\Core\ECS\World.cppm"/>
-    <ClCompile Include="Source\Core\Engine\Engine.cpp"/>
-    <ClCompile Include="Source\Core\Engine\Engine.cppm"/>
-    <ClCompile Include="Source\Core\Function.cppm"/>
-    <ClCompile Include="Source\Core\Hash.cppm"/>
-    <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cpp"/>
-    <ClCompile Include="Source\Core\Logging\Backends\ConsoleBackend.cppm"/>
-    <ClCompile Include="Source\Core\Logging\Backends\FileBackend.cpp"/>
-    <ClCompile Include="Source\Core\Logging\Backends\FileBackend.cppm"/>
-    <ClCompile Include="Source\Core\Logging\Backends\ILogBackend.cppm"/>
-    <ClCompile Include="Source\Core\Logging\Colors.cppm" />
-    <ClCompile Include="Source\Core\Logging\Formatter.cppm" />
-    <ClCompile Include="Source\Core\Logging\LogBackendManager.cppm"/>
-    <ClCompile Include="Source\Core\Logging\LogData.cppm"/>
-    <ClCompile Include="Source\Core\Logging\LogLevel.cppm"/>
-    <ClCompile Include="Source\Core\Logging\LogSettings.cppm"/>
-    <ClCompile Include="Source\Core\Logging\Logging.cppm"/>
-    <ClCompile Include="Source\Core\Reflection\Reflection.cppm"/>
-    <ClCompile Include="Source\Core\Reflection\TypeId.cppm"/>
-    <ClCompile Include="Source\Core\Reflection\TypeUtils.cppm"/>
-    <ClCompile Include="Source\Core\StringName\StringName.cpp"/>
-    <ClCompile Include="Source\Core\StringName\StringName.cppm"/>
-    <ClCompile Include="Source\Core\StringName\StringNamePool.cpp"/>
-    <ClCompile Include="Source\Core\StringName\StringNamePool.cppm"/>
-    <ClCompile Include="Source\Interface\IRenderPass.cppm"/>
-    <ClCompile Include="Source\Interface\ISubsystem.cppm"/>
-    <ClCompile Include="Source\Interface\ISubsystemBase.cppm"/>
-    <ClCompile Include="Source\Interface\IUpdatable.cppm"/>
-    <ClCompile Include="Source\Math\Math.cppm"/>
-    <ClCompile Include="Source\Math\MathLiterals.cppm"/>
-    <ClCompile Include="Source\Math\MathUtility.cppm"/>
-    <ClCompile Include="Source\Math\Matrix.cppm"/>
-    <ClCompile Include="Source\Math\RotationTypes.cppm"/>
-    <ClCompile Include="Source\Math\TransformUtility.cppm"/>
-    <ClCompile Include="Source\Math\Vector2.cppm"/>
-    <ClCompile Include="Source\Math\Vector3.cppm"/>
-    <ClCompile Include="Source\Math\Vector4.cppm"/>
-    <ClCompile Include="Source\Platform\Platform.cppm"/>
-    <ClCompile Include="Source\Platform\PlatformDetection.cppm" />
-    <ClCompile Include="Source\Prelude.cppm"/>
-    <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformEventDispatcher.cpp"/>
-    <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformEventDispatcher.cppm"/>
-    <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformSubsystem.cpp"/>
-    <ClCompile Include="Source\Subsystems\PlatformSubsystem\PlatformSubsystem.cppm"/>
-    <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cpp"/>
-    <ClCompile Include="Source\Subsystems\RenderSubsystem\RenderSubsystem.cppm"/>
-    <ClCompile Include="Source\Subsystems\SubsystemUtility.cppm"/>
-    <ClCompile Include="Source\Subsystems\WorldSubsystem\WorldSubsystem.cpp"/>
-    <ClCompile Include="Source\Subsystems\WorldSubsystem\WorldSubsystem.cppm"/>
-    <ClCompile Include="Source\Traits\FunctionTraits.cppm"/>
-    <ClCompile Include="Source\Traits\Traits.cppm"/>
-    <ClCompile Include="Source\Traits\TypeTraits.cppm"/>
-    <ClCompile Include="Source\Types\Optional.cppm"/>
-    <ClCompile Include="Source\Types\PlatformTypes.cppm"/>
-    <ClCompile Include="Source\Types\Types.cppm"/>
-    <ClCompile Include="Source\Utility\FileUtils.cpp"/>
-    <ClCompile Include="Source\Utility\FileUtils.cppm"/>
-    <ClCompile Include="Source\Utility\ShaderUtils.cpp"/>
-    <ClCompile Include="Source\Utility\ShaderUtils.cppm"/>
-    <ClCompile Include="Source\Utility\StringUtils.cpp"/>
-    <ClCompile Include="Source\Utility\StringUtils.cppm"/>
-    <ClCompile Include="Source\Utility\Utility.cppm"/>
+    <ClCompile Include="Source\**\*.cpp"/>
+    <ClCompile Include="Source\**\*.cppm"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Platform\Linux\LinuxPlatform.h" />
-    <ClInclude Include="Source\Platform\Mac\MacPlatform.h" />
-    <ClInclude Include="Source\Platform\PlatformMacros.h" />
-    <ClInclude Include="Source\Platform\Windows\WindowsPlatform.h" />
+    <ClInclude Include="Source\**\*.h"/>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\**\*.hlsl"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
