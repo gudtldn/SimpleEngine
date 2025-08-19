@@ -43,7 +43,7 @@ public:
 
 private:
     explicit constexpr TypeId(std::string_view in_type_name)
-        : type_name(in_type_name), type_hash(core::hash::FowlerNollVoHash(in_type_name))
+        : type_name(in_type_name), type_hash(hash::FowlerNollVoHash(in_type_name))
     {
     }
 

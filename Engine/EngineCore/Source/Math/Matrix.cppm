@@ -239,7 +239,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 
     const T determinant = self[0, 0] * det[0] - self[1, 0] * det[1] + self[2, 0] * det[2] - self[3, 0] * det[3];
     const T abs_determinant = determinant < T{ 0 } ? -determinant : determinant;
-    if (abs_determinant < se::math::KINDA_SMALL_NUMBER) // !std::isfinite(determinant)
+    if (abs_determinant < KINDA_SMALL_NUMBER) // !std::isfinite(determinant)
     {
         return Identity();
     }

@@ -118,16 +118,15 @@ void RenderSubsystem::RenderFrame() const
             return;
         }
 
-        constexpr SDL_FColor clear_color = { 0.25f, 0.25f, 0.25f, 1.0f };
-
-        SDL_GPUColorTargetInfo target_info = {};
-        target_info.texture = swapchain_texture;
-        target_info.clear_color = clear_color;
-        target_info.load_op = SDL_GPU_LOADOP_CLEAR;
-        target_info.store_op = SDL_GPU_STOREOP_STORE;
-        target_info.mip_level = 0;
-        target_info.layer_or_depth_plane = 0;
-        target_info.cycle = false;
+        SDL_GPUColorTargetInfo target_info = {
+            .texture = swapchain_texture,
+            .mip_level = 0,
+            .layer_or_depth_plane = 0,
+            .clear_color = { 0.25f, 0.25f, 0.25f, 1.0f },
+            .load_op = SDL_GPU_LOADOP_CLEAR,
+            .store_op = SDL_GPU_STOREOP_STORE,
+            .cycle = false,
+        };
 
         // TODO: IRenderPass를 돌아가면서 렌더링 하도록 하기
         SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
