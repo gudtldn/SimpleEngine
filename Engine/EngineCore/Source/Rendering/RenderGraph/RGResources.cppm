@@ -18,9 +18,9 @@ public:
 };
 
 /**
- * Render Graph에서 사용하는 SDL_GPUTexture Wrapper
+ * Render Graph가 직접 생성하고 소유하는 임시(Transient) 텍스처
  */
-class RGTexture : public IRGResource
+class RGTransientTexture : public IRGResource
 {
 public:
     virtual void Realize(SDL_GPUDevice* device) override
@@ -43,9 +43,27 @@ public:
 };
 
 /**
- * Render Graph에서 사용하는 SDL_GPUBuffer Wrapper
+ * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class RGBuffer : public IRGResource
+class RGExternalTexture : public IRGResource
+{
+public:
+    explicit RGExternalTexture(SDL_GPUTexture* texture)
+        : actual_texture(texture)
+    {
+    }
+
+    virtual void Realize([[maybe_unused]] SDL_GPUDevice* device) override {}
+    virtual void Unrealize([[maybe_unused]] SDL_GPUDevice* device) override {}
+
+public:
+    SDL_GPUTexture* actual_texture;
+};
+
+/**
+ * Render Graph가 직접 생성하고 소유하는 임시(Transient) 버퍼
+ */
+class RGTransientBuffer : public IRGResource
 {
 public:
     virtual void Realize(SDL_GPUDevice* device) override
@@ -66,16 +84,22 @@ public:
     SDL_GPUBuffer* actual_buffer = nullptr;
     SDL_GPUBufferCreateInfo description;
 };
-}
 
-
-enum class [[deprecated]] ERenderPassType : uint8
+/**
+ * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
+ */
+class RGExternalBuffer : public IRGResource
 {
-    Unknown = 0,
-    ShadowMap,
-    GBuffer,
-    Lighting,
-    Forward,
-    PostProcess,
-    UI
+public:
+    explicit RGExternalBuffer(SDL_GPUBuffer* buffer)
+        : actual_buffer(buffer)
+    {
+    }
+
+    virtual void Realize([[maybe_unused]] SDL_GPUDevice* device) override {}
+    virtual void Unrealize([[maybe_unused]] SDL_GPUDevice* device) override {}
+
+public:
+    SDL_GPUBuffer* actual_buffer;
 };
+}

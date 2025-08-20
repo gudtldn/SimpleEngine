@@ -26,8 +26,8 @@ struct RGResourceNode
 /** 그래프 내의 렌더 패스를 표현하는 내부 구조체 */
 struct RGPassNode
 {
-    std::unique_ptr<IRenderPass> pass_object;
     StringName name;
+    std::unique_ptr<IRenderPass> pass_object;
     std::vector<RGResourceHandle> reads;
     std::vector<RGResourceHandle> writes;
 };
@@ -73,6 +73,11 @@ public:
     SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
     SDL_GPUBuffer* GetActualBuffer(RGResourceHandle handle) const;
 
+    RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
+    RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
+
+    Optional<RGResourceHandle> FindResource(const StringName& name) const;
+
 private:
     RGResourceHandle RegisterResource(RGResourceNode&& node);
 
@@ -98,6 +103,11 @@ public:
 
     RGResourceHandle CreateTexture(const StringName& name, const SDL_GPUTextureCreateInfo& description);
     RGResourceHandle CreateBuffer(const StringName& name, const SDL_GPUBufferCreateInfo& description);
+
+    RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
+    RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
+
+    Optional<RGResourceHandle> FindResource(const StringName& name) const;
 
     void Read(RGResourceHandle handle);
     void Write(RGResourceHandle handle);

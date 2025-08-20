@@ -50,11 +50,50 @@ void RenderGraph::Clear()
     compiled_passes.clear();
 }
 
+RGResourceHandle RenderGraph::ImportTexture(const StringName& name, SDL_GPUTexture* texture)
+{
+    assert(!FindResource(name) && "A resource with the same name already exists.");
+
+    auto texture_resource = std::make_unique<RGExternalTexture>(texture);
+    return RegisterResource({
+        .name = name,
+        .resource = std::move(texture_resource),
+    });
+}
+
+RGResourceHandle RenderGraph::ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer)
+{
+    assert(!FindResource(name) && "A resource with the same name already exists.");
+
+    auto buffer_resource = std::make_unique<RGExternalBuffer>(buffer);
+    return RegisterResource({
+        .name = name,
+        .resource = std::move(buffer_resource),
+    });
+}
+
+Optional<RGResourceHandle> RenderGraph::FindResource(const StringName& name) const
+{
+    for (auto [n, pass_node] : resource_nodes | std::views::enumerate)
+    {
+        if (pass_node.name == name)
+        {
+            return RGResourceHandle{ static_cast<size_t>(n) };
+        }
+    }
+    return std::nullopt;
+}
+
 SDL_GPUTexture* RenderGraph::GetActualTexture(RGResourceHandle handle) const
 {
-    if (handle && handle.index < resource_nodes.size())
+    if (handle.index < resource_nodes.size())
     {
-        if (const RGTexture* resource = dynamic_cast<RGTexture*>(resource_nodes[handle.index].resource.get()))
+        IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
+        if (const RGTransientTexture* resource = dynamic_cast<RGTransientTexture*>(raw_ptr))
+        {
+            return resource->actual_texture;
+        }
+        if (const RGExternalTexture* resource = dynamic_cast<RGExternalTexture*>(raw_ptr))
         {
             return resource->actual_texture;
         }
@@ -64,9 +103,14 @@ SDL_GPUTexture* RenderGraph::GetActualTexture(RGResourceHandle handle) const
 
 SDL_GPUBuffer* RenderGraph::GetActualBuffer(RGResourceHandle handle) const
 {
-    if (handle && handle.index < resource_nodes.size())
+    if (handle.index < resource_nodes.size())
     {
-        if (const RGBuffer* resource = dynamic_cast<RGBuffer*>(resource_nodes[handle.index].resource.get()))
+        IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
+        if (const RGTransientBuffer* resource = dynamic_cast<RGTransientBuffer*>(raw_ptr))
+        {
+            return resource->actual_buffer;
+        }
+        if (const RGExternalBuffer* resource = dynamic_cast<RGExternalBuffer*>(raw_ptr))
         {
             return resource->actual_buffer;
         }
@@ -78,13 +122,16 @@ RGResourceHandle RenderGraph::RegisterResource(RGResourceNode&& node)
 {
     const size_t index = resource_nodes.size();
     resource_nodes.push_back(std::move(node));
-    return { index };
+    return { .index = index };
 }
 
 RGResourceHandle RenderGraphBuilder::CreateTexture(const StringName& name, const SDL_GPUTextureCreateInfo& description)
 {
-    std::unique_ptr<RGTexture> texture_resource = std::make_unique<RGTexture>();
+    assert(!graph_ref.FindResource(name) && "A resource with the same name already exists.");
+
+    std::unique_ptr<RGTransientTexture> texture_resource = std::make_unique<RGTransientTexture>();
     texture_resource->description = description;
+
     return graph_ref.RegisterResource({
         .name = name,
         .resource = std::move(texture_resource),
@@ -93,12 +140,30 @@ RGResourceHandle RenderGraphBuilder::CreateTexture(const StringName& name, const
 
 RGResourceHandle RenderGraphBuilder::CreateBuffer(const StringName& name, const SDL_GPUBufferCreateInfo& description)
 {
-    std::unique_ptr<RGBuffer> buffer_resource = std::make_unique<RGBuffer>();
+    assert(!graph_ref.FindResource(name) && "A resource with the same name already exists.");
+
+    std::unique_ptr<RGTransientBuffer> buffer_resource = std::make_unique<RGTransientBuffer>();
     buffer_resource->description = description;
+
     return graph_ref.RegisterResource({
         .name = name,
         .resource = std::move(buffer_resource),
     });
+}
+
+RGResourceHandle RenderGraphBuilder::ImportTexture(const StringName& name, SDL_GPUTexture* texture)
+{
+    return graph_ref.ImportTexture(name, texture);
+}
+
+RGResourceHandle RenderGraphBuilder::ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer)
+{
+    return graph_ref.ImportBuffer(name, buffer);
+}
+
+Optional<RGResourceHandle> RenderGraphBuilder::FindResource(const StringName& name) const
+{
+    return graph_ref.FindResource(name);
 }
 
 void RenderGraphBuilder::Read(RGResourceHandle handle)

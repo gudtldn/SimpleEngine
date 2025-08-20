@@ -11,9 +11,8 @@ export namespace se::rendering::render_graph
  */
 struct RGResourceHandle
 {
-    size_t index = static_cast<size_t>(-1);
+    size_t index;
 
-    [[nodiscard]] explicit operator bool() const noexcept { return index != static_cast<size_t>(-1); }
     [[nodiscard]] bool operator==(const RGResourceHandle&) const = default;
     [[nodiscard]] auto operator<=>(const RGResourceHandle&) const = default;
 };
