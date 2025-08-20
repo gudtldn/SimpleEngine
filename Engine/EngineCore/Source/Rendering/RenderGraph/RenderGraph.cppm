@@ -86,7 +86,7 @@ private:
 };
 
 /**
- * TODO: Docs
+ * IRenderPass::Setup() 내에서 RenderGraph의 상태를 안전하게 조작하기 위한 빌더 클래스
  */
 class RenderGraphBuilder
 {
@@ -108,7 +108,7 @@ private:
 };
 
 /**
- *
+ * IRenderPass::Execute()에 전달되어 사용되는 컨텍스트 클래스
  */
 export class RGExecutionContext
 {

@@ -5,7 +5,7 @@ import std;
 
 
 /**
- * TODO: Docs
+ * 빠른 비교 및 조회를 위해 문자열을 ID로 관리하는 클래스
  */
 export class StringName
 {
