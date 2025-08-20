@@ -200,7 +200,7 @@ void Application::Update(float delta_time)
     engine_instance->UpdateFrame(delta_time);
 }
 
-void Application::Render() const
+void Application::Render()
 {
 }
 

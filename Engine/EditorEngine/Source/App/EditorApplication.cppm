@@ -17,7 +17,7 @@ protected:
     // virtual void Update(float delta_time) override;
     //
     // virtual void PreRender() override;
-    virtual void Render() const override;
+    virtual void Render() override;
     // virtual void PostRender() override;
 
 private:

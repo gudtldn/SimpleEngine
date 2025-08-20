@@ -79,7 +79,7 @@ protected:
     virtual void ProcessPlatformEvents();
     virtual void Update(float delta_time);
 
-    virtual void Render() const;
+    virtual void Render();
 
     // 종료 단계
     virtual void PreRelease();

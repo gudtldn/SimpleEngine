@@ -58,9 +58,9 @@ void EditorApplication::RegisterSubsystems()
     engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();
 }
 
-void EditorApplication::Render() const
+void EditorApplication::Render()
 {
-    const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
+    RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
     render_subsystem->RenderFrame();
 }
 
