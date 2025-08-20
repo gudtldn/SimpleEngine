@@ -1,0 +1,154 @@
+﻿export module SimpleEngine.Rendering:RenderGraph;
+export import :RenderGraph.RGResoueceHandle;
+export import :RenderGraph.RGResources;
+
+import SimpleEngine.Interface.IRenderPass;
+import SimpleEngine.Types;
+import std;
+
+import <SDL3/SDL_gpu.h>;
+
+
+namespace se::rendering::render_graph
+{
+// forward declaration
+export class RenderGraphBuilder;
+
+/**
+ * Render Graph가 사용하는 리소스의 타입을 나타내는 열거형
+ */
+export enum class ERGResourceType : uint8
+{
+    Texture,
+    Buffer
+};
+
+/** 그래프 내의 텍스처 리소스를 표현하는 내부 구조체 */
+struct RGResourceNode
+{
+    StringName name;
+    std::unique_ptr<IRGResource> resource;
+    ERGResourceType type;
+    // TODO: 생명주기 관리를 위한 추가 정보 (first_user, last_user 등)
+};
+
+/** 그래프 내의 렌더 패스를 표현하는 내부 구조체 */
+struct RGPassNode
+{
+    std::unique_ptr<IRenderPass> pass_object;
+    StringName name;
+    std::vector<RGResourceHandle> reads;
+    std::vector<RGResourceHandle> writes;
+};
+
+
+/**
+ * 렌더링 파이프라인의 구성, 최적화, 실행을 관리하는 핵심 클래스
+ */
+export class RenderGraph
+{
+    friend class RenderGraphBuilder;
+
+public:
+    RenderGraph(SDL_GPUDevice* in_device)
+        : device(in_device)
+    {
+    }
+
+    ~RenderGraph()
+    {
+        Clear();
+    }
+
+    // 복사 생성자는 제거
+    RenderGraph(const RenderGraph&) = delete;
+    RenderGraph& operator=(const RenderGraph&) = delete;
+    RenderGraph(RenderGraph&&) = default;
+    RenderGraph& operator=(RenderGraph&&) = default;
+
+    /**
+     * 새로운 RenderPass를 그래프에 추가합니다.
+     * @tparam PassType IRenderPass를 상속받아 구현된 패스 객체의 unique_ptr
+     * @return 추가된 패스에 대한 참조
+     */
+    template <typename PassType, typename... Args>
+        requires std::derived_from<PassType, IRenderPass>
+    PassType& AddPass(Args&&... args);
+
+    void Compile();
+    void Execute(SDL_GPUCommandBuffer* cmd);
+    void Clear();
+
+    SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
+    SDL_GPUBuffer* GetActualBuffer(RGResourceHandle handle) const;
+
+private:
+    RGResourceHandle RegisterResource(RGResourceNode&& node);
+
+private:
+    SDL_GPUDevice* device;
+    std::vector<RGPassNode> pass_nodes;
+    std::vector<RGResourceNode> resource_nodes;
+
+    // 컴파일 후 정렬된 Pass의 순서
+    std::vector<const RGPassNode*> compiled_passes;
+};
+
+/**
+ * TODO: Docs
+ */
+class RenderGraphBuilder
+{
+public:
+    RenderGraphBuilder(RenderGraph& in_graph, RGPassNode& in_pass)
+        : graph_ref(in_graph), pass_node_ref(in_pass)
+    {
+    }
+
+    RGResourceHandle CreateTexture(const StringName& name, const SDL_GPUTextureCreateInfo& description);
+    RGResourceHandle CreateBuffer(const StringName& name, const SDL_GPUBufferCreateInfo& description);
+
+    void Read(RGResourceHandle handle);
+    void Write(RGResourceHandle handle);
+
+private:
+    RenderGraph& graph_ref;
+    RGPassNode& pass_node_ref;
+};
+
+/**
+ *
+ */
+export class RGExecutionContext
+{
+public:
+    RGExecutionContext(SDL_GPUCommandBuffer* in_cmd, const RenderGraph& in_graph)
+        : command_buffer(in_cmd)
+        , graph_ref(in_graph)
+    {
+    }
+
+    [[nodiscard]] SDL_GPUCommandBuffer* GetCommandBuffer() const { return command_buffer; }
+
+    [[nodiscard]] SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
+    [[nodiscard]] SDL_GPUBuffer* GetActualBuffer(RGResourceHandle handle) const;
+
+private:
+    SDL_GPUCommandBuffer* command_buffer;
+    const RenderGraph& graph_ref;
+};
+
+
+template <typename PassType, typename... Args>
+    requires std::derived_from<PassType, IRenderPass>
+PassType& RenderGraph::AddPass(Args&&... args)
+{
+    auto pass_ptr = std::make_unique<PassType>(std::forward<Args>(args)...);
+    PassType* raw_ptr = pass_ptr.get();
+
+    RGPassNode& node = pass_nodes.emplace_back();
+    node.pass_object = std::move(pass_ptr);
+
+    return *raw_ptr;
+}
+}

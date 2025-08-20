@@ -1,42 +1,28 @@
 ﻿export module SimpleEngine.Interface.IRenderPass;
 
 import SimpleEngine.Types;
+import SimpleEngine.Rendering.Declarations;
 
 import <SDL3/SDL_gpu.h>;
 
 
-export
+/**
+ * Render Graph의 각 렌더링 단계를 정의하기 위한 인터페이스
+ */
+export class IRenderPass
 {
-    class VirtualResourceHandle;
-    // {
-    // public:
-    //     VirtualResourceHandle()
-    //     {
-    //         static uint32 next_resource_id = 0;
-    //         resource_id = next_resource_id++;
-    //     }
-    //
-    // private:
-    //     uint32 resource_id;
-    // };
+public:
+    virtual ~IRenderPass() = default;
 
-    enum class ERenderPassType : uint8
-    {
-        Unknown = 0,
-        ShadowMap,
-        GBuffer,
-        Lighting,
-        Forward,
-        PostProcess,
-        UI
-    };
+    /**
+    * Render Graph가 Compile될 때 호출됩니다.
+    * 이 함수 내에서 builder를 사용하여 이 패스가 읽거나 쓰는 리소스를 선언해야 합니다.
+    */
+    virtual void Setup(se::rendering::render_graph::RenderGraphBuilder& builder) = 0;
 
-    class IRenderPass
-    {
-    public:
-        virtual ~IRenderPass() = default;
-
-        // virtual void Setup(PassBuilder& builder) = 0;
-        // virtual void Execute(SDL_GPUCommandBuffer* cmd, const ResolvedResources& resources) = 0;
-    };
-}
+    /**
+    * Render Graph가 Execute될 때 호출됩니다.
+    * 이 함수 내에서 실제 렌더링 커맨드를 커맨드 버퍼에 기록해야 합니다.
+    */
+    virtual void Execute(const se::rendering::render_graph::RGExecutionContext& context) = 0;
+};
