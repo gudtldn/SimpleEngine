@@ -1,9 +1,13 @@
-﻿export module SimpleEngine.Subsystems.RenderSubsystem;
+export module SimpleEngine.Subsystems.RenderSubsystem;
 
+import SimpleEngine.Rendering;
 import SimpleEngine.Interface.ISubsystem;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import std;
 import <SDL3/SDL.h>;
+
+using namespace se::rendering::render_graph;
+using namespace se::rendering::passes;
 
 
 export class RenderSubsystem : public ISubsystem<PlatformSubsystem>
@@ -31,4 +35,5 @@ public:
 
 private:
     SDL_GPUDevice* gpu_device = nullptr;
+    std::unique_ptr<RenderGraph> render_graph;
 };

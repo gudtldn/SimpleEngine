@@ -1,8 +1,10 @@
-﻿module SimpleEngine.Subsystems.RenderSubsystem;
+module SimpleEngine.Subsystems.RenderSubsystem;
 
 import SimpleEngine.Core;
 import SimpleEngine.Platform;
 import SimpleEngine.Subsystems.Utility;
+import SimpleEngine.Rendering;
+
 import <SDL3/SDL_gpu.h>;
 import <SDL3/SDL_hints.h>;
 
@@ -75,6 +77,8 @@ bool RenderSubsystem::Initialize()
         ConsoleLog(ELogLevel::Warning, u8"SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
     }
 
+    render_graph = std::make_unique<RenderGraph>(gpu_device);
+
     ConsoleLog(ELogLevel::Info, u8"Window and GPU device created successfully");
     return true;
 }
@@ -83,6 +87,8 @@ void RenderSubsystem::Release()
 {
     if (gpu_device)
     {
+        render_graph.reset();
+
         PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
         for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
         {
@@ -95,8 +101,6 @@ void RenderSubsystem::Release()
 
 void RenderSubsystem::RenderFrame() const
 {
-    // TODO: 렌더링 순서 생각해야함
-
     PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
@@ -108,6 +112,9 @@ void RenderSubsystem::RenderFrame() const
             return;
         }
 
+        // 이전 프레임의 렌더 그래프 상태를 클리어합니다.
+        render_graph->Clear();
+
         // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
         SDL_GPUTexture* swapchain_texture;
         SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
@@ -118,27 +125,26 @@ void RenderSubsystem::RenderFrame() const
             return;
         }
 
-        SDL_GPUColorTargetInfo target_info = {
-            .texture = swapchain_texture,
-            .mip_level = 0,
-            .layer_or_depth_plane = 0,
-            .clear_color = { 0.25f, 0.25f, 0.25f, 1.0f },
-            .load_op = SDL_GPU_LOADOP_CLEAR,
-            .store_op = SDL_GPU_STOREOP_STORE,
-            .cycle = false,
-        };
+        // --- Render Graph 설정 및 실행 ---
 
-        // TODO: IRenderPass를 돌아가면서 렌더링 하도록 하기
-        SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer, &target_info, 1, nullptr);
-        {
-            // TODO: 등록된 모든 렌더러들의 Render() 함수를 호출하여 그리게 함
-            // RenderFrameContext context{ .CommandBuffer = command_buffer };
-            // for (IRenderer* renderer : registered_renderers)
-            // {
-            //     renderer->Render(context);
-            // }
-        }
-        SDL_EndGPURenderPass(render_pass);
+        // 스왑체인 텍스처를 "Backbuffer"라는 이름으로 RenderGraph에 임포트
+        const RGResourceHandle backbuffer_handle = render_graph->ImportTexture(u8"Backbuffer", swapchain_texture);
+
+        // ClearPass를 추가하여 Backbuffer를 회색으로 클리어
+        render_graph->AddPass<ClearPass>(
+            backbuffer_handle,
+            SDL_FColor{ 0.25f, 0.25f, 0.25f, 1.0f }
+        );
+
+        // TODO: 여기에 다른 렌더 패스들을 추가 (예: GBuffer, 조명, UI 등).
+
+        // 렌더 그래프를 컴파일 (의존성 분석, 리소스 생명주기 관리 등)
+        render_graph->Compile();
+
+        // 렌더 그래프를 실행하여 커맨드 버퍼에 렌더링 커맨드를 기록
+        render_graph->Execute(command_buffer);
+
+        // --- Render Graph 끝 ---
 
         // Command Buffer 제출
         SDL_SubmitGPUCommandBuffer(command_buffer);
