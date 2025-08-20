@@ -2,8 +2,10 @@
 export import :RenderGraph.RGResoueceHandle;
 export import :RenderGraph.RGResources;
 
-import SimpleEngine.Interface.IRenderPass;
+import SimpleEngine.Core;
 import SimpleEngine.Types;
+import SimpleEngine.Utility;
+import SimpleEngine.Interface.IRenderPass;
 import std;
 
 import <SDL3/SDL_gpu.h>;
@@ -12,7 +14,7 @@ import <SDL3/SDL_gpu.h>;
 namespace se::rendering::render_graph
 {
 // forward declaration
-export class RenderGraphBuilder;
+class RenderGraphBuilder;
 
 
 /** 그래프 내의 텍스처 리소스를 표현하는 내부 구조체 */
@@ -148,6 +150,7 @@ PassType& RenderGraph::AddPass(Args&&... args)
     PassType* raw_ptr = pass_ptr.get();
 
     RGPassNode& node = pass_nodes.emplace_back();
+    node.name = StringName(utility::string_utils::ToU8String(core::reflection::GetTypeSignature<PassType>()));
     node.pass_object = std::move(pass_ptr);
 
     return *raw_ptr;
