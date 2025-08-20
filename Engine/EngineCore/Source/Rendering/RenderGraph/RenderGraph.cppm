@@ -14,7 +14,7 @@ import <SDL3/SDL_gpu.h>;
 namespace se::rendering::render_graph
 {
 // forward declaration
-class RenderGraphBuilder;
+export class RenderGraphBuilder;
 
 
 /** 그래프 내의 텍스처 리소스를 표현하는 내부 구조체 */
