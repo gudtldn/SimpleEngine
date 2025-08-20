@@ -2,7 +2,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
   <!-- StringName -->
-  <Type Name="se::core::string_name::StringName">
+  <Type Name="StringName">
     <DisplayString Condition="debug_entry_ptr == nullptr">"None"</DisplayString>
     <DisplayString Condition="debug_entry_ptr != nullptr">
       {(const char8*)((StringNameEntry*)debug_entry_ptr)->name,s8}
