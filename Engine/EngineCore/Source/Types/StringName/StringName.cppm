@@ -1,13 +1,11 @@
-﻿export module SimpleEngine.Core:StringName;
+﻿export module SimpleEngine.Types:StringName;
+import :PlatformTypes;
 
-import SimpleEngine.Types;
 import std;
 
 
-namespace se::core::string_name
-{
 /**
- *
+ * TODO: Docs
  */
 export class StringName
 {
@@ -43,12 +41,12 @@ private:
     const void* debug_entry_ptr = nullptr;
 #endif
 };
-}
+
 
 template <>
-struct std::hash<se::core::string_name::StringName>
+struct std::hash<StringName>
 {
-    uint64 operator()(const se::core::string_name::StringName& key) const noexcept
+    uint64 operator()(const StringName& key) const noexcept
     {
         return hash<uint64>()(key.GetComparisonHash());
     }

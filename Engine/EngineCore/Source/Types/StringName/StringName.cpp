@@ -1,12 +1,10 @@
-﻿module SimpleEngine.Core;
+﻿module SimpleEngine.Types;
 import :StringName;
 import :StringName.StringNamePool;
 
 import SimpleEngine.Utility;
 
 
-namespace se::core::string_name
-{
 StringName StringName::None = StringName{};
 
 
@@ -38,5 +36,4 @@ std::u8string StringName::ToString() const
     const StringNamePool& pool = StringNamePool::Get();
     const StringNameEntry& entry = pool.Resolve(display_hash);
     return entry.name;
-}
 }

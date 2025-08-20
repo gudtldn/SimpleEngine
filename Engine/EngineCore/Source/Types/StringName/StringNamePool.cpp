@@ -1,6 +1,7 @@
-﻿module SimpleEngine.Core;
+﻿module SimpleEngine.Types;
 import :StringName.StringNamePool;
-import :Hash;
+
+import SimpleEngine.Core;
 
 import SimpleEngine.Utility;
 import <cassert>;

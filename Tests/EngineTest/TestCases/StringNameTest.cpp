@@ -6,7 +6,6 @@ import std;
 
 TEST_SUITE("SimpleEngine.Core.StringName")
 {
-using namespace se::core::string_name;
 using namespace std::string_view_literals;
 
 

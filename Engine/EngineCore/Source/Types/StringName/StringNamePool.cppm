@@ -1,11 +1,11 @@
-﻿export module SimpleEngine.Core:StringName.StringNamePool;
+﻿export module SimpleEngine.Types:StringName.StringNamePool;
+import :PlatformTypes;
 import :StringName;
 
-import SimpleEngine.Types;
 import std;
 
 
-export struct StringNameHashes
+struct StringNameHashes
 {
     uint64 display_hash = 0;
     uint64 comparison_hash = 0;
@@ -23,7 +23,7 @@ struct StringNameEntry
 
     uint64 comparison_hash;
     uint16 length;
-    char8 name[se::core::string_name::StringName::MAX_LENGTH];
+    char8 name[StringName::MAX_LENGTH];
 };
 
 class StringNamePool
