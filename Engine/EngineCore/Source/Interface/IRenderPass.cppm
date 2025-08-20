@@ -1,9 +1,6 @@
 ﻿export module SimpleEngine.Interface.IRenderPass;
 
-import SimpleEngine.Types;
 import SimpleEngine.Rendering.Declarations;
-
-import <SDL3/SDL_gpu.h>;
 
 
 /**

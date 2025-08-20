@@ -12,6 +12,9 @@ class IRGResource
 {
 public:
     virtual ~IRGResource() = default;
+
+    virtual void Realize(SDL_GPUDevice* device) = 0;
+    virtual void Unrealize(SDL_GPUDevice* device) = 0;
 };
 
 /**
@@ -20,8 +23,23 @@ public:
 class RGTexture : public IRGResource
 {
 public:
-    SDL_GPUTextureCreateInfo description;
+    virtual void Realize(SDL_GPUDevice* device) override
+    {
+        actual_texture = SDL_CreateGPUTexture(device, &description);
+    }
+
+    virtual void Unrealize(SDL_GPUDevice* device) override
+    {
+        if (actual_texture)
+        {
+            SDL_ReleaseGPUTexture(device, actual_texture);
+            actual_texture = nullptr;
+        }
+    }
+
+public:
     SDL_GPUTexture* actual_texture = nullptr;
+    SDL_GPUTextureCreateInfo description;
 };
 
 /**
@@ -30,8 +48,23 @@ public:
 class RGBuffer : public IRGResource
 {
 public:
-    SDL_GPUBufferCreateInfo description;
+    virtual void Realize(SDL_GPUDevice* device) override
+    {
+        actual_buffer = SDL_CreateGPUBuffer(device, &description);
+    }
+
+    virtual void Unrealize(SDL_GPUDevice* device) override
+    {
+        if (actual_buffer)
+        {
+            SDL_ReleaseGPUBuffer(device, actual_buffer);
+            actual_buffer = nullptr;
+        }
+    }
+
+public:
     SDL_GPUBuffer* actual_buffer = nullptr;
+    SDL_GPUBufferCreateInfo description;
 };
 }
 

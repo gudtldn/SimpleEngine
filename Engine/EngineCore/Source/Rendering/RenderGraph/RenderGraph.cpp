@@ -9,7 +9,7 @@ namespace se::rendering::render_graph
 {
 void RenderGraph::Compile()
 {
-    for (auto& pass_node : pass_nodes)
+    for (RGPassNode& pass_node : pass_nodes)
     {
         RenderGraphBuilder builder(*this, pass_node);
         pass_node.pass_object->Setup(builder);
@@ -24,25 +24,9 @@ void RenderGraph::Compile()
 
     // TODO: 리소스 lifecycle 체크해서 필요한 시점에만 리소스를 할당하고 재사용하게끔 수정
     // 일단 모든 리소스를 미리 생성
-    for (RGResourceNode& resource_node : resource_nodes)
+    for (const auto& [_, resource] : resource_nodes)
     {
-        switch (resource_node.type)
-        {
-        case ERGResourceType::Texture:
-        {
-            RGTexture* resource_ptr = static_cast<RGTexture*>(resource_node.resource.get());
-            resource_ptr->actual_texture = SDL_CreateGPUTexture(device, &resource_ptr->description);
-            break;
-        }
-        case ERGResourceType::Buffer:
-        {
-            RGBuffer* resource_ptr = static_cast<RGBuffer*>(resource_node.resource.get());
-            resource_ptr->actual_buffer = SDL_CreateGPUBuffer(device, &resource_ptr->description);
-            break;
-        }
-        default:
-            assert(false);
-        }
+        resource->Realize(device);
     }
 }
 
@@ -56,27 +40,9 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd)
 
 void RenderGraph::Clear()
 {
-    for (RGResourceNode& resource_node : resource_nodes)
+    for (const auto& [_, resource] : resource_nodes)
     {
-        switch (resource_node.type)
-        {
-        case ERGResourceType::Texture:
-        {
-            RGTexture* resource_ptr = static_cast<RGTexture*>(resource_node.resource.get());
-            SDL_ReleaseGPUTexture(device, resource_ptr->actual_texture);
-            resource_ptr->actual_texture = nullptr;
-            break;
-        }
-        case ERGResourceType::Buffer:
-        {
-            RGBuffer* resource_ptr = static_cast<RGBuffer*>(resource_node.resource.get());
-            SDL_ReleaseGPUBuffer(device, resource_ptr->actual_buffer);
-            resource_ptr->actual_buffer = nullptr;
-            break;
-        }
-        default:
-            assert(false);
-        }
+        resource->Unrealize(device);
     }
 
     pass_nodes.clear();
@@ -88,9 +54,9 @@ SDL_GPUTexture* RenderGraph::GetActualTexture(RGResourceHandle handle) const
 {
     if (handle && handle.index < resource_nodes.size())
     {
-        if (resource_nodes[handle.index].type == ERGResourceType::Texture)
+        if (const RGTexture* resource = dynamic_cast<RGTexture*>(resource_nodes[handle.index].resource.get()))
         {
-            return static_cast<RGTexture*>(resource_nodes[handle.index].resource.get())->actual_texture;
+            return resource->actual_texture;
         }
     }
     return nullptr;
@@ -100,9 +66,9 @@ SDL_GPUBuffer* RenderGraph::GetActualBuffer(RGResourceHandle handle) const
 {
     if (handle && handle.index < resource_nodes.size())
     {
-        if (resource_nodes[handle.index].type == ERGResourceType::Buffer)
+        if (const RGBuffer* resource = dynamic_cast<RGBuffer*>(resource_nodes[handle.index].resource.get()))
         {
-            return static_cast<RGBuffer*>(resource_nodes[handle.index].resource.get())->actual_buffer;
+            return resource->actual_buffer;
         }
     }
     return nullptr;
@@ -122,7 +88,6 @@ RGResourceHandle RenderGraphBuilder::CreateTexture(const StringName& name, const
     return graph_ref.RegisterResource({
         .name = name,
         .resource = std::move(texture_resource),
-        .type = ERGResourceType::Texture,
     });
 }
 
@@ -133,7 +98,6 @@ RGResourceHandle RenderGraphBuilder::CreateBuffer(const StringName& name, const 
     return graph_ref.RegisterResource({
         .name = name,
         .resource = std::move(buffer_resource),
-        .type = ERGResourceType::Buffer,
     });
 }
 

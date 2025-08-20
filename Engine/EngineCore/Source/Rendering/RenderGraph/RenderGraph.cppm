@@ -14,21 +14,12 @@ namespace se::rendering::render_graph
 // forward declaration
 export class RenderGraphBuilder;
 
-/**
- * Render Graph가 사용하는 리소스의 타입을 나타내는 열거형
- */
-export enum class ERGResourceType : uint8
-{
-    Texture,
-    Buffer
-};
 
 /** 그래프 내의 텍스처 리소스를 표현하는 내부 구조체 */
 struct RGResourceNode
 {
     StringName name;
     std::unique_ptr<IRGResource> resource;
-    ERGResourceType type;
     // TODO: 생명주기 관리를 위한 추가 정보 (first_user, last_user 등)
 };
 
