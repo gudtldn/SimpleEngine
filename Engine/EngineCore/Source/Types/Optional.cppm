@@ -228,7 +228,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&>
-        && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>
+        && !IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
         && !std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
     auto Transform(Fn&& func) &
@@ -245,7 +245,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
-        && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>
+        && !IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
         && !std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
     auto Transform(Fn&& func) const &
@@ -262,7 +262,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&&>
-        && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T>>, std::nullopt_t, std::in_place_t>
+        && !IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T>>, std::nullopt_t, std::in_place_t>
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>
         && !std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>
     auto Transform(Fn&& func) &&
@@ -279,7 +279,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<T, Fn, const T&&>
-        && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T>>, std::nullopt_t, std::in_place_t>
+        && !IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T>>, std::nullopt_t, std::in_place_t>
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>
         && !std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>
     auto Transform(Fn&& func) const &&
@@ -506,7 +506,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&>
-        && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>
+        && !IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
         && !std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
     auto Transform(Fn&& func)
@@ -523,7 +523,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
-        && !TIsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>
+        && !IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
         && !std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
     auto Transform(Fn&& func) const

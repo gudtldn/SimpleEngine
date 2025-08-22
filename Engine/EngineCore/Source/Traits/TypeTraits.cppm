@@ -8,11 +8,11 @@ namespace se::traits::type_traits
 {
 // static_assert에 사용되는 TypeTrait
 export template <typename T>
-concept TAlwaysFalse = false;
+concept AlwaysFalse = false;
 
 // Ts가 T와 같은지 확인하는 TypeTrait
 export template <typename T, typename... Ts>
-concept TIsAnyOf = (std::same_as<T, Ts> || ...);
+concept IsAnyOf = (std::same_as<T, Ts> || ...);
 
 // 함수인지 확인하는 TypeTrait
 export template <typename T>

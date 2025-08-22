@@ -9,7 +9,7 @@ import std;
 
 /** Subsystem이 Dependencies에 포함되어 있는지 검사합니다. */
 template <typename Subsystem, typename... Dependencies>
-concept IsDependency = se::traits::type_traits::TIsAnyOf<std::remove_cv_t<Subsystem>, Dependencies...>;
+concept IsDependency = se::traits::type_traits::IsAnyOf<std::remove_cv_t<Subsystem>, Dependencies...>;
 
 export template <typename... Dependencies>
     requires (std::derived_from<Dependencies, ISubsystemBase> && ...)
