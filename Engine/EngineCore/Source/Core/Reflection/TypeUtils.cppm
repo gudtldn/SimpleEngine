@@ -273,7 +273,7 @@ consteval std::string_view ExtractTypeName() noexcept
  * @return 추출된 타입 시그니처를 문자열 뷰 형태로 반환합니다.
  */
 export template <typename T>
-    requires (!(std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>))
+    requires (!se::traits::type_traits::IsFunctionType<T>)
 consteval std::string_view GetTypeSignature(bool include_namespace = true) noexcept
 {
     using CleanType = traits::RemoveAllQualifiers<T>;
