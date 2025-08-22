@@ -1,17 +1,26 @@
 ﻿export module SimpleEngine.Traits:TypeTraits;
+import :FunctionTraits;
 
 import std;
 
 
 namespace se::traits::type_traits
 {
-// static_assert에 사용되는 Type Trait
+// static_assert에 사용되는 TypeTrait
 export template <typename T>
 concept TAlwaysFalse = false;
 
-// Ts가 T와 같은지 확인하는 Type Trait
+// Ts가 T와 같은지 확인하는 TypeTrait
 export template <typename T, typename... Ts>
 concept TIsAnyOf = (std::same_as<T, Ts> || ...);
+
+// 함수인지 확인하는 TypeTrait
+export template <typename T>
+concept IsFunctionType = requires
+{
+    typename func_traits::FunctionTraits<T>::Signature;
+    typename func_traits::FunctionTraits<T>::ReturnType;
+};
 
 // T 타입의 객체를 PrimaryTemplate<Args...> 패턴에 매칭되는지 확인합니다.
 export template <typename T, template <typename...> typename PrimaryTemplate>

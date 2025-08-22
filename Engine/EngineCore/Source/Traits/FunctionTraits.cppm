@@ -5,8 +5,10 @@ import std;
 
 export namespace se::traits::func_traits
 {
-template <typename T>
-struct FunctionTraits;
+template <typename, typename = void>
+struct FunctionTraits : std::false_type
+{
+};
 
 template <typename R, typename... Args>
 struct FunctionTraits<R(Args...)>
@@ -15,7 +17,7 @@ struct FunctionTraits<R(Args...)>
     using ReturnType = R;
     using ArgumentTypes = std::tuple<Args...>;
 
-    static consteval size_t arg_count() { return sizeof...(Args); }
+    static consteval size_t ArgCount() { return sizeof...(Args); }
 };
 
 // 함수 포인터
@@ -44,7 +46,7 @@ struct FunctionTraits<R(C::*)(Args...) volatile> : FunctionTraits<R(Args...)>
 
 // 람다/함수 객체 지원 (operator() 사용)
 template <typename T>
-struct FunctionTraits : FunctionTraits<decltype(&T::operator())>
+struct FunctionTraits<T, std::void_t<decltype(&T::operator())>> : FunctionTraits<decltype(&T::operator())>
 {
 };
 }
