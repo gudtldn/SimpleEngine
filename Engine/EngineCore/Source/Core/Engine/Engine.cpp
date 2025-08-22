@@ -143,13 +143,12 @@ bool Engine::SortSubsystems()
             }
         }
 
-        std::u8string error_msg = u8"Circular dependency detected in subsystems: ";
+        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected in subsystems: ");
         for (const auto& id : circular_subsystems)
         {
-            error_msg += u8"\n  - " + utility::string_utils::ToU8String(typeid(*sub_systems[id]).name());
+            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*sub_systems[id]).name());
         }
 
-        ConsoleLog(ELogLevel::Fatal, error_msg);
         return false;
     }
 
