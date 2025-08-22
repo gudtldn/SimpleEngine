@@ -78,7 +78,7 @@ Optional<RGResourceHandle> RenderGraph::FindResource(const StringName& name) con
     {
         if (pass_node.name == name)
         {
-            return RGResourceHandle{ static_cast<size_t>(n) };
+            return RGResourceHandle{ .index = static_cast<size_t>(n) };
         }
     }
     return std::nullopt;
@@ -89,13 +89,9 @@ SDL_GPUTexture* RenderGraph::GetActualTexture(RGResourceHandle handle) const
     if (handle.index < resource_nodes.size())
     {
         IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
-        if (const RGTransientTexture* resource = dynamic_cast<RGTransientTexture*>(raw_ptr))
+        if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr))
         {
-            return resource->actual_texture;
-        }
-        if (const RGExternalTexture* resource = dynamic_cast<RGExternalTexture*>(raw_ptr))
-        {
-            return resource->actual_texture;
+            return resource->GetActualTexture();
         }
     }
     return nullptr;
@@ -106,13 +102,9 @@ SDL_GPUBuffer* RenderGraph::GetActualBuffer(RGResourceHandle handle) const
     if (handle.index < resource_nodes.size())
     {
         IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
-        if (const RGTransientBuffer* resource = dynamic_cast<RGTransientBuffer*>(raw_ptr))
+        if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr))
         {
-            return resource->actual_buffer;
-        }
-        if (const RGExternalBuffer* resource = dynamic_cast<RGExternalBuffer*>(raw_ptr))
-        {
-            return resource->actual_buffer;
+            return resource->GetActualBuffer();
         }
     }
     return nullptr;

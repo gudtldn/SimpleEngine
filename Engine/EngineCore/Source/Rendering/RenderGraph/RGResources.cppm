@@ -17,10 +17,32 @@ public:
     virtual void Unrealize(SDL_GPUDevice* device) = 0;
 };
 
+class IRGTexture : public IRGResource
+{
+public:
+    virtual ~IRGTexture() override = default;
+
+    [[nodiscard]] SDL_GPUTexture* GetActualTexture() const { return actual_texture; }
+
+protected:
+    SDL_GPUTexture* actual_texture = nullptr;
+};
+
+class IRGBuffer : public IRGResource
+{
+public:
+    virtual ~IRGBuffer() override = default;
+
+    [[nodiscard]] SDL_GPUBuffer* GetActualBuffer() const { return actual_buffer; }
+
+protected:
+    SDL_GPUBuffer* actual_buffer = nullptr;
+};
+
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 텍스처
  */
-class RGTransientTexture : public IRGResource
+class RGTransientTexture : public IRGTexture
 {
 public:
     virtual void Realize(SDL_GPUDevice* device) override
@@ -38,32 +60,30 @@ public:
     }
 
 public:
-    SDL_GPUTexture* actual_texture = nullptr;
     SDL_GPUTextureCreateInfo description;
 };
 
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class RGExternalTexture : public IRGResource
+class RGExternalTexture : public IRGTexture
 {
 public:
     explicit RGExternalTexture(SDL_GPUTexture* texture)
-        : actual_texture(texture)
     {
+        actual_texture = texture;
     }
 
     virtual void Realize([[maybe_unused]] SDL_GPUDevice* device) override {}
     virtual void Unrealize([[maybe_unused]] SDL_GPUDevice* device) override {}
 
 public:
-    SDL_GPUTexture* actual_texture;
 };
 
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 버퍼
  */
-class RGTransientBuffer : public IRGResource
+class RGTransientBuffer : public IRGBuffer
 {
 public:
     virtual void Realize(SDL_GPUDevice* device) override
@@ -81,25 +101,21 @@ public:
     }
 
 public:
-    SDL_GPUBuffer* actual_buffer = nullptr;
     SDL_GPUBufferCreateInfo description;
 };
 
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class RGExternalBuffer : public IRGResource
+class RGExternalBuffer : public IRGBuffer
 {
 public:
     explicit RGExternalBuffer(SDL_GPUBuffer* buffer)
-        : actual_buffer(buffer)
     {
+        actual_buffer = buffer;
     }
 
     virtual void Realize([[maybe_unused]] SDL_GPUDevice* device) override {}
     virtual void Unrealize([[maybe_unused]] SDL_GPUDevice* device) override {}
-
-public:
-    SDL_GPUBuffer* actual_buffer;
 };
 }
