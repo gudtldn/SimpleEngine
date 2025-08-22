@@ -12,6 +12,7 @@ template <typename Subsystem, typename... Dependencies>
 concept IsDependency = se::traits::type_traits::TIsAnyOf<std::remove_cv_t<Subsystem>, Dependencies...>;
 
 export template <typename... Dependencies>
+    requires (std::derived_from<Dependencies, ISubsystemBase> && ...)
 class ISubsystem : public ISubsystemBase
 {
 public:
