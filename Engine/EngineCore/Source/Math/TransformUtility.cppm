@@ -45,10 +45,9 @@ export struct TransformUtility
     )
     {
         const Vector3Impl<T> f = (position - target).GetNormalized();
-        const Vector3Impl<T> r = f.Cross(world_up).GetNormalized();
-        const Vector3Impl<T> u = r.Cross(f);
+        const Vector3Impl<T> r = world_up.Cross(f).GetNormalized();
+        const Vector3Impl<T> u = f.Cross(r);
 
-        // F = -Y, R = +X, U = +Z
         return Matrix4x4Impl<T>{
             r.x, u.x, f.x, 0,
             r.y, u.y, f.y, 0,
