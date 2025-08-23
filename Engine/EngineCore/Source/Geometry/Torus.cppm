@@ -6,7 +6,7 @@ import SimpleEngine.Types;
 
 export
 {
-    constexpr Vertex torus_vertices[] = 
+    constexpr Vertex torus_vertices[] =
     {
         { { 1.250000f, 0.000000f, 0.000000f }, { 0.698039f, 1.000000f, 0.788235f, 1.000000f } },
         { { 1.216506f, 0.000000f, 0.125000f }, { 0.988235f, 0.611765f, 0.905882f, 1.000000f } },
@@ -586,7 +586,7 @@ export
         { { 1.206099f, -0.158786f, -0.125000f }, { 0.956863f, 0.764706f, 0.400000f, 1.000000f } }
     };
 
-    constexpr uint16 torus_indices[] = 
+    constexpr uint16 torus_indices[] =
     {
         12, 1, 0,
         1, 14, 2,

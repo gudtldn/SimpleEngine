@@ -6,7 +6,7 @@ import SimpleEngine.Types;
 
 export
 {
-    constexpr Vertex corn_vertices[] = 
+    constexpr Vertex corn_vertices[] =
     {
         { { 0.000000f, 1.000000f, -1.000000f }, { 0.811765f, 1.000000f, 0.698039f, 1.000000f } },
         { { 0.195090f, 0.980785f, -1.000000f }, { 0.901961f, 0.988235f, 0.403922f, 1.000000f } },
@@ -43,7 +43,7 @@ export
         { { 0.000000f, 0.000000f, 1.000000f }, { 0.490196f, 0.490196f, 0.847059f, 1.000000f } }
     };
 
-    constexpr uint16 corn_indices[] = 
+    constexpr uint16 corn_indices[] =
     {
         0, 32, 1,
         1, 32, 2,

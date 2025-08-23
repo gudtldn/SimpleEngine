@@ -6,7 +6,7 @@ import SimpleEngine.Types;
 
 export
 {
-    constexpr Vertex cube_vertices[] = 
+    constexpr Vertex cube_vertices[] =
     {
         { { -1.000000f, -1.000000f, -1.000000f }, { 0.949020f, 0.615686f, 0.815686f, 1.000000f } },
         { { -1.000000f, -1.000000f, 1.000000f }, { 0.898039f, 0.494118f, 0.858824f, 1.000000f } },
@@ -18,7 +18,7 @@ export
         { { 1.000000f, 1.000000f, 1.000000f }, { 0.623529f, 0.988235f, 0.901961f, 1.000000f } }
     };
 
-    constexpr uint16 cube_indices[] = 
+    constexpr uint16 cube_indices[] =
     {
         1, 2, 0,
         3, 6, 2,

@@ -6,7 +6,7 @@ import SimpleEngine.Types;
 
 export
 {
-    constexpr Vertex cylinder_vertices[] = 
+    constexpr Vertex cylinder_vertices[] =
     {
         { { 0.000000f, 1.000000f, -1.000000f }, { 0.407843f, 0.654902f, 0.819608f, 1.000000f } },
         { { 0.000000f, 1.000000f, 1.000000f }, { 0.619608f, 0.949020f, 0.349020f, 1.000000f } },
@@ -74,7 +74,7 @@ export
         { { -0.195090f, 0.980785f, 1.000000f }, { 1.000000f, 0.945098f, 0.729412f, 1.000000f } }
     };
 
-    constexpr uint16 cylinder_indices[] = 
+    constexpr uint16 cylinder_indices[] =
     {
         1, 2, 0,
         3, 4, 2,

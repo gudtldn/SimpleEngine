@@ -6,7 +6,7 @@ import SimpleEngine.Types;
 
 export
 {
-    constexpr Vertex plane_vertices[] = 
+    constexpr Vertex plane_vertices[] =
     {
         { { -1.000000f, -1.000000f, 0.000000f }, { 0.717647f, 0.286275f, 0.847059f, 1.000000f } },
         { { 1.000000f, -1.000000f, 0.000000f }, { 0.082353f, 0.858824f, 0.317647f, 1.000000f } },
@@ -14,7 +14,7 @@ export
         { { 1.000000f, 1.000000f, 0.000000f }, { 0.270588f, 0.015686f, 0.478431f, 1.000000f } }
     };
 
-    constexpr uint16 plane_indices[] = 
+    constexpr uint16 plane_indices[] =
     {
         1, 2, 0,
         1, 3, 2
