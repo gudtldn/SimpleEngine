@@ -31,7 +31,8 @@ public:
 
 public:
     constexpr Matrix4x4Impl() = default;
-    constexpr Matrix4x4Impl(std::span<const T, 16> src);
+    constexpr Matrix4x4Impl(std::span<T, 16> src);
+    constexpr Matrix4x4Impl(std::span<T> src);
     template <typename... Ts>
         requires ((std::is_convertible_v<Ts, T> && ...) && sizeof...(Ts) == 16)
     constexpr Matrix4x4Impl(Ts... values);
@@ -69,8 +70,15 @@ public:
 };
 
 template <FloatingType T>
-constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<const T, 16> src)
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T, 16> src)
 {
+    std::copy(src.begin(), src.end(), data.begin());
+}
+
+template <FloatingType T>
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T> src)
+{
+    assert(src.size() == 16 && "Invalid span size.");
     std::copy(src.begin(), src.end(), data.begin());
 }
 
