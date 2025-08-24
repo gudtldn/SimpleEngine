@@ -1,5 +1,6 @@
 ﻿export module SimpleEngine.Math:Vector4;
 import :MathUtility;
+import :Vector3;
 
 import SimpleEngine.Traits;
 import SimpleEngine.Types;
@@ -20,6 +21,7 @@ struct alignas(16) Vector4Impl
 public:
     constexpr Vector4Impl() = default;
     constexpr Vector4Impl(T in_x, T in_y, T in_z, T in_w);
+    explicit constexpr Vector4Impl(const Vector3Impl<T>& vector3, T in_w);
     explicit constexpr Vector4Impl(T scalar);
 
 public:
@@ -80,6 +82,15 @@ constexpr Vector4Impl<T>::Vector4Impl(T in_x, T in_y, T in_z, T in_w)
     : x(in_x)
     , y(in_y)
     , z(in_z)
+    , w(in_w)
+{
+}
+
+template <FloatingType T>
+constexpr Vector4Impl<T>::Vector4Impl(const Vector3Impl<T>& vector3, T in_w)
+    : x(vector3.x)
+    , y(vector3.y)
+    , z(vector3.z)
     , w(in_w)
 {
 }
