@@ -124,13 +124,13 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromTranslation(const Vector3Im
 template <FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::MakeFromRotation(const RotatorImpl<T>& rotation)
 {
-    const Radian<T> pitch_rad{ rotation.pitch };
-    const Radian<T> yaw_rad{ rotation.yaw };
-    const Radian<T> roll_rad{ rotation.roll };
+    const Radian<T> rad_p{ rotation.pitch };
+    const Radian<T> rad_y{ rotation.yaw };
+    const Radian<T> rad_r{ rotation.roll };
 
-    const T sin_p = MathUtility::Sin(pitch_rad), cos_p = MathUtility::Cos(pitch_rad);
-    const T sin_y = MathUtility::Sin(yaw_rad), cos_y = MathUtility::Cos(yaw_rad);
-    const T sin_r = MathUtility::Sin(roll_rad), cos_r = MathUtility::Cos(roll_rad);
+    const T sin_p = MathUtility::Sin(rad_p), cos_p = MathUtility::Cos(rad_p);
+    const T sin_y = MathUtility::Sin(rad_y), cos_y = MathUtility::Cos(rad_y);
+    const T sin_r = MathUtility::Sin(rad_r), cos_r = MathUtility::Cos(rad_r);
 
     // Rz(yaw)
     Matrix4x4Impl rz{
