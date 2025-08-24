@@ -57,9 +57,9 @@ export struct TransformUtility
 
         // Ry(roll)
         Matrix4x4Impl<T> ry{
-            cos_r, 0, sin_r, 0,
+            cos_r, 0, -sin_r, 0,
             0, 1, 0, 0,
-            -sin_r, 0, cos_r, 0,
+            sin_r, 0, cos_r, 0,
             0, 0, 0, 1
         };
 
