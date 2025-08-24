@@ -1,4 +1,5 @@
 ﻿export module SimpleEngine.Math:RotationTypes;
+import :Vector3;
 import :MathUtility;
 import :MathLiterals;
 
@@ -57,6 +58,27 @@ public:
     explicit constexpr RotatorImpl(const QuaternionImpl<T>& quaternion);
 
 public:
+    /** Rotator(0, 0, 0) */
+    [[nodiscard]] static constexpr RotatorImpl ZeroRotator();
+
+public:
+    [[nodiscard]] constexpr RotatorImpl operator+(const RotatorImpl& other) const;
+    RotatorImpl& operator+=(const RotatorImpl& other);
+
+    [[nodiscard]] constexpr RotatorImpl operator-(const RotatorImpl& other) const;
+    RotatorImpl& operator-=(const RotatorImpl& other);
+
+    template <NumberType Num>
+    [[nodiscard]] constexpr RotatorImpl operator*(Num scale) const;
+
+    template <NumberType Num>
+    RotatorImpl& operator*=(Num scale);
+
+public:
+    [[nodiscard]] constexpr Vector3Impl<T> GetForwardVector() const;
+    [[nodiscard]] constexpr Vector3Impl<T> GetRightVector() const;
+    [[nodiscard]] constexpr Vector3Impl<T> GetUpVector() const;
+
     [[nodiscard]] constexpr QuaternionImpl<T> ToQuaternion() const;
 };
 
@@ -65,7 +87,7 @@ public:
 
 template <FloatingType T>
 constexpr QuaternionImpl<T>::QuaternionImpl()
-    : QuaternionImpl(Identity())
+    : x(0), y(0), z(0), w(1)
 {
 }
 
@@ -96,7 +118,7 @@ constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
 template <FloatingType T>
 constexpr QuaternionImpl<T> QuaternionImpl<T>::Identity()
 {
-    return QuaternionImpl{ 0, 0, 0, 1 };
+    return QuaternionImpl{};
 }
 
 template <FloatingType T>
@@ -211,6 +233,124 @@ constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
     pitch = Degree<T>{ pitch_rad };
     yaw = Degree<T>{ yaw_rad };
     roll = Degree<T>{ roll_rad };
+}
+
+template <FloatingType T>
+constexpr RotatorImpl<T> RotatorImpl<T>::ZeroRotator()
+{
+    return RotatorImpl{};
+}
+
+template <FloatingType T>
+constexpr RotatorImpl<T> RotatorImpl<T>::operator+(const RotatorImpl& other) const
+{
+    return RotatorImpl{
+        pitch + other.pitch,
+        yaw + other.yaw,
+        roll + other.roll
+    };
+}
+
+template <FloatingType T>
+RotatorImpl<T>& RotatorImpl<T>::operator+=(const RotatorImpl& other)
+{
+    pitch += other.pitch;
+    yaw += other.yaw;
+    roll += other.roll;
+    return *this;
+}
+
+template <FloatingType T>
+constexpr RotatorImpl<T> RotatorImpl<T>::operator-(const RotatorImpl& other) const
+{
+    return RotatorImpl{
+        pitch - other.pitch,
+        yaw - other.yaw,
+        roll - other.roll
+    };
+}
+
+template <FloatingType T>
+RotatorImpl<T>& RotatorImpl<T>::operator-=(const RotatorImpl& other)
+{
+    pitch -= other.pitch;
+    yaw -= other.yaw;
+    roll -= other.roll;
+    return *this;
+}
+
+template <FloatingType T>
+template <NumberType Num>
+constexpr RotatorImpl<T> RotatorImpl<T>::operator*(Num scale) const
+{
+    return RotatorImpl{
+        pitch * scale,
+        yaw * scale,
+        roll * scale
+    };
+}
+
+template <FloatingType T>
+constexpr Vector3Impl<T> RotatorImpl<T>::GetForwardVector() const
+{
+    const Radian<T> rad_p{pitch}; // X축 회전
+    const Radian<T> rad_r{roll};  // Y축 회전
+    const Radian<T> rad_y{yaw};   // Z축 회전
+
+    const T sy = MathUtility::Sin(rad_y), cy = MathUtility::Cos(rad_y);
+    const T sp = MathUtility::Sin(rad_p), cp = MathUtility::Cos(rad_p);
+    const T sr = MathUtility::Sin(rad_r), cr = MathUtility::Cos(rad_r);
+
+    return Vector3Impl<T>{
+        sy * cr - cy * sp * sr,
+        cy * cp,
+        -sy * sr - cy * sp * cr
+    };
+}
+
+template <FloatingType T>
+constexpr Vector3Impl<T> RotatorImpl<T>::GetRightVector() const
+{
+    const Radian<T> rad_p{pitch}; // X축 회전
+    const Radian<T> rad_r{roll};  // Y축 회전
+    const Radian<T> rad_y{yaw};   // Z축 회전
+
+    const T sy = MathUtility::Sin(rad_y), cy = MathUtility::Cos(rad_y);
+    const T sp = MathUtility::Sin(rad_p), cp = MathUtility::Cos(rad_p);
+    const T sr = MathUtility::Sin(rad_r), cr = MathUtility::Cos(rad_r);
+
+    return Vector3Impl<T>{
+        cy * cr + sy * sp * sr,
+        -sy * cp,
+        -cy * sr + sy * sp * cr
+    };
+}
+
+template <FloatingType T>
+constexpr Vector3Impl<T> RotatorImpl<T>::GetUpVector() const
+{
+    const Radian<T> rad_p{pitch}; // X축 회전
+    const Radian<T> rad_r{roll};  // Y축 회전
+    const Radian<T> rad_y{yaw};   // Z축 회전
+
+    const T sp = MathUtility::Sin(rad_p), cp = MathUtility::Cos(rad_p);
+    const T sr = MathUtility::Sin(rad_r), cr = MathUtility::Cos(rad_r);
+
+    return Vector3Impl<T>{
+        cp * sr,
+        sp,
+        cp * cr
+    };
+}
+
+template <FloatingType T>
+template <NumberType Num>
+RotatorImpl<T>& RotatorImpl<T>::operator*=(Num scale)
+{
+    pitch *= scale;
+    yaw *= scale;
+    roll *= scale;
+    return *this;
 }
 
 template <FloatingType T>
