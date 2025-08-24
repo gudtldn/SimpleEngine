@@ -20,7 +20,7 @@ export struct TransformUtility
         T y = translation.y;
         T z = translation.z;
 
-        return Matrix4x4Impl{
+        return Matrix4x4Impl<T>{
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -86,7 +86,7 @@ export struct TransformUtility
         const T wz = w * z;
 
         // Row-major 3x3 rotation block for row-vector (p' = p M)
-        return Matrix4x4Impl{
+        return Matrix4x4Impl<T>{
             1 - 2 * (yy + zz), 2 * (xy - wz), 2 * (xz + wy), 0,
             2 * (xy + wz), 1 - 2 * (xx + zz), 2 * (yz - wx), 0,
             2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (xx + yy), 0,
@@ -101,7 +101,7 @@ export struct TransformUtility
         T y = scale.y;
         T z = scale.z;
 
-        return Matrix4x4Impl{
+        return Matrix4x4Impl<T>{
             x, 0, 0, 0,
             0, y, 0, 0,
             0, 0, z, 0,
