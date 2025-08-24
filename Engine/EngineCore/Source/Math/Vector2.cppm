@@ -5,6 +5,8 @@ import SimpleEngine.Traits;
 import SimpleEngine.Types;
 import std;
 
+import <cassert>;
+
 using namespace se::traits::type_traits;
 
 
@@ -63,6 +65,9 @@ public:
 
     [[nodiscard]] constexpr bool operator==(const Vector2Impl& other) const;
     [[nodiscard]] constexpr bool operator!=(const Vector2Impl& other) const;
+
+    [[nodiscard]] constexpr T operator[](size_t index);
+    [[nodiscard]] constexpr T operator[](size_t index) const;
 
 public:
     [[nodiscard]] constexpr T Length() const;
@@ -280,6 +285,20 @@ template <FloatingType T>
 constexpr bool Vector2Impl<T>::operator!=(const Vector2Impl& other) const
 {
     return !(*this == other);
+}
+
+template <FloatingType T>
+constexpr T Vector2Impl<T>::operator[](size_t index)
+{
+    assert(index < 2);
+    return (&x)[index];
+}
+
+template <FloatingType T>
+constexpr T Vector2Impl<T>::operator[](size_t index) const
+{
+    assert(index < 2);
+    return (&x)[index];
 }
 
 template <FloatingType T>
