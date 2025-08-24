@@ -14,15 +14,111 @@ namespace se::math
 export struct TransformUtility
 {
     template <FloatingType T>
+    constexpr Matrix4x4Impl<T> MakeFromTranslation(const Vector3Impl<T>& translation)
+    {
+        T x = translation.x;
+        T y = translation.y;
+        T z = translation.z;
+
+        return Matrix4x4Impl{
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            x, y, z, 1
+        };
+    }
+
+    template <FloatingType T>
+    constexpr Matrix4x4Impl<T> MakeFromRotation(const RotatorImpl<T>& rotation)
+    {
+        const Radian<T> rad_p{ rotation.pitch };
+        const Radian<T> rad_y{ rotation.yaw };
+        const Radian<T> rad_r{ rotation.roll };
+
+        const T sin_p = MathUtility::Sin(rad_p), cos_p = MathUtility::Cos(rad_p);
+        const T sin_y = MathUtility::Sin(rad_y), cos_y = MathUtility::Cos(rad_y);
+        const T sin_r = MathUtility::Sin(rad_r), cos_r = MathUtility::Cos(rad_r);
+
+        // Rz(yaw)
+        Matrix4x4Impl rz{
+            cos_y, -sin_y, 0, 0,
+            sin_y, cos_y, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        };
+
+        // Rx(pitch)
+        Matrix4x4Impl rx{
+            1, 0, 0, 0,
+            0, cos_p, -sin_p, 0,
+            0, sin_p, cos_p, 0,
+            0, 0, 0, 1
+        };
+
+        // Ry(roll)
+        Matrix4x4Impl ry{
+            cos_r, 0, sin_r, 0,
+            0, 1, 0, 0,
+            -sin_r, 0, cos_r, 0,
+            0, 0, 0, 1
+        };
+
+        // Rz(yaw) * Rx(pitch) * Ry(roll)
+        return rz * rx * ry;
+    }
+
+    template <FloatingType T>
+    constexpr Matrix4x4Impl<T> MakeFromRotation(const QuaternionImpl<T>& quaternion)
+    {
+        const T x = quaternion.x;
+        const T y = quaternion.y;
+        const T z = quaternion.z;
+        const T w = quaternion.w;
+
+        const T xx = x * x;
+        const T yy = y * y;
+        const T zz = z * z;
+        const T xy = x * y;
+        const T xz = x * z;
+        const T yz = y * z;
+        const T wx = w * x;
+        const T wy = w * y;
+        const T wz = w * z;
+
+        // Row-major 3x3 rotation block for row-vector (p' = p M)
+        return Matrix4x4Impl{
+            1 - 2 * (yy + zz), 2 * (xy - wz), 2 * (xz + wy), 0,
+            2 * (xy + wz), 1 - 2 * (xx + zz), 2 * (yz - wx), 0,
+            2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (xx + yy), 0,
+            0, 0, 0, 1
+        };
+    }
+
+    template <FloatingType T>
+    constexpr Matrix4x4Impl<T> MakeFromScale(const Vector3Impl<T>& scale)
+    {
+        T x = scale.x;
+        T y = scale.y;
+        T z = scale.z;
+
+        return Matrix4x4Impl{
+            x, 0, 0, 0,
+            0, y, 0, 0,
+            0, 0, z, 0,
+            0, 0, 0, 1
+        };
+    }
+
+    template <FloatingType T>
     static constexpr Matrix4x4Impl<T> MakeModelMatrix(
         const Vector3Impl<T>& translation,
         const RotatorImpl<T>& rotation,
         const Vector3Impl<T>& scale
     )
     {
-        return Matrix4x4Impl<T>::MakeFromScale(scale)
-             * Matrix4x4Impl<T>::MakeFromRotation(rotation)
-             * Matrix4x4Impl<T>::MakeFromTranslation(translation);
+        return MakeFromScale(scale)
+            * MakeFromRotation(rotation)
+            * MakeFromTranslation(translation);
     }
 
     template <FloatingType T>
@@ -32,9 +128,9 @@ export struct TransformUtility
         const Vector3Impl<T>& scale
     )
     {
-        return Matrix4x4Impl<T>::MakeFromScale(scale)
-             * Matrix4x4Impl<T>::MakeFromRotation(quaternion)
-             * Matrix4x4Impl<T>::MakeFromTranslation(translation);
+        return MakeFromScale(scale)
+            * MakeFromRotation(quaternion)
+            * MakeFromTranslation(translation);
     }
 
     template <FloatingType T>
