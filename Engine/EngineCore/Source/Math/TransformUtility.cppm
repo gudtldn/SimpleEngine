@@ -31,6 +31,10 @@ export struct TransformUtility
     template <FloatingType T>
     static constexpr Matrix4x4Impl<T> MakeFromRotation(const RotatorImpl<T>& rotation)
     {
+        // https://en.wikipedia.org/wiki/Rotation_matrix
+        // 위키피디아에 나온 공식은 RH, col-major
+        // 여기서는 RH, row-major이기 때문에 전치해서 사용
+
         const Radian<T> rad_p{ rotation.pitch };
         const Radian<T> rad_y{ rotation.yaw };
         const Radian<T> rad_r{ rotation.roll };
