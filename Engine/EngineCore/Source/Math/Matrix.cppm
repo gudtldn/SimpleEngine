@@ -70,10 +70,10 @@ public:
         for (SizeType i = 0; i < 4; ++i)
         {
             result[i] =
-                rhs[i, 0] * lhs[0]
-                + rhs[i, 1] * lhs[1]
-                + rhs[i, 2] * lhs[2]
-                + rhs[i, 3] * lhs[3];
+                rhs[0, i] * lhs[0]
+                + rhs[1, i] * lhs[1]
+                + rhs[2, i] * lhs[2]
+                + rhs[3, i] * lhs[3];
         }
         return result;
     }
