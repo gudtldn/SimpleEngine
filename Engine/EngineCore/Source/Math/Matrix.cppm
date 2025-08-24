@@ -3,6 +3,7 @@ import :MathUtility;
 import :MathLiterals;
 import :RotationTypes;
 import :Vector3;
+import :Vector4;
 
 import SimpleEngine.Traits;
 import SimpleEngine.Types;
@@ -62,6 +63,20 @@ public:
 
     [[nodiscard]] constexpr T& operator[](SizeType row, SizeType col) noexcept;
     [[nodiscard]] constexpr T operator[](SizeType row, SizeType col) const noexcept;
+
+    [[nodiscard]] friend constexpr Vector4Impl<T> operator*(const Vector4Impl<T>& lhs, const Matrix4x4Impl& rhs)
+    {
+        Vector4Impl<T> result{};
+        for (SizeType i = 0; i < 4; ++i)
+        {
+            result[i] =
+                rhs[i, 0] * lhs[0]
+                + rhs[i, 1] * lhs[1]
+                + rhs[i, 2] * lhs[2]
+                + rhs[i, 3] * lhs[3];
+        }
+        return result;
+    }
 };
 
 template <FloatingType T>
@@ -257,12 +272,10 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator*(const Matrix4x4Impl& rhs)
     {
         for (SizeType j = 0; j < 4; ++j)
         {
-            T sum{};
             for (SizeType k = 0; k < 4; ++k)
             {
-                sum += (*this)[i, k] * rhs[k, j];
+                ret[i, j] += (*this)[i, k] * rhs[k, j];
             }
-            ret[i, j] = sum;
         }
     }
     return ret;
