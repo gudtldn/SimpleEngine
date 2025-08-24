@@ -41,8 +41,8 @@ export struct TransformUtility
 
         // Rz(yaw)
         Matrix4x4Impl<T> rz{
-            cos_y, -sin_y, 0, 0,
-            sin_y, cos_y, 0, 0,
+            cos_y, sin_y, 0, 0,
+            -sin_y, cos_y, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
         };
@@ -50,8 +50,8 @@ export struct TransformUtility
         // Rx(pitch)
         Matrix4x4Impl<T> rx{
             1, 0, 0, 0,
-            0, cos_p, -sin_p, 0,
-            0, sin_p, cos_p, 0,
+            0, cos_p, sin_p, 0,
+            0, -sin_p, cos_p, 0,
             0, 0, 0, 1
         };
 
