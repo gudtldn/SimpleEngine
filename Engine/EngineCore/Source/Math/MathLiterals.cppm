@@ -16,6 +16,8 @@ struct AngleType
 {
     NumType value;
 
+    constexpr AngleType() = default;
+
     explicit constexpr AngleType(NumType v)
         : value(v)
     {
