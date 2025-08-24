@@ -87,9 +87,9 @@ export struct TransformUtility
 
         // Row-major 3x3 rotation block for row-vector (p' = p M)
         return Matrix4x4Impl<T>{
-            1 - 2 * (yy + zz), 2 * (xy - wz), 2 * (xz + wy), 0,
-            2 * (xy + wz), 1 - 2 * (xx + zz), 2 * (yz - wx), 0,
-            2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (xx + yy), 0,
+            1 - 2 * (yy + zz), 2 * (xy + wz), 2 * (xz - wy), 0,
+            2 * (xy - wz), 1 - 2 * (xx + zz), 2 * (yz + wx), 0,
+            2 * (xz + wy), 2 * (yz - wx), 1 - 2 * (xx + yy), 0,
             0, 0, 0, 1
         };
     }
