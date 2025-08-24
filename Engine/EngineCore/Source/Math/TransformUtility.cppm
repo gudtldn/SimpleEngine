@@ -14,7 +14,7 @@ namespace se::math
 export struct TransformUtility
 {
     template <FloatingType T>
-    constexpr Matrix4x4Impl<T> MakeFromTranslation(const Vector3Impl<T>& translation)
+    static constexpr Matrix4x4Impl<T> MakeFromTranslation(const Vector3Impl<T>& translation)
     {
         T x = translation.x;
         T y = translation.y;
@@ -29,7 +29,7 @@ export struct TransformUtility
     }
 
     template <FloatingType T>
-    constexpr Matrix4x4Impl<T> MakeFromRotation(const RotatorImpl<T>& rotation)
+    static constexpr Matrix4x4Impl<T> MakeFromRotation(const RotatorImpl<T>& rotation)
     {
         const Radian<T> rad_p{ rotation.pitch };
         const Radian<T> rad_y{ rotation.yaw };
@@ -68,7 +68,7 @@ export struct TransformUtility
     }
 
     template <FloatingType T>
-    constexpr Matrix4x4Impl<T> MakeFromRotation(const QuaternionImpl<T>& quaternion)
+    static constexpr Matrix4x4Impl<T> MakeFromRotation(const QuaternionImpl<T>& quaternion)
     {
         const T x = quaternion.x;
         const T y = quaternion.y;
@@ -95,7 +95,7 @@ export struct TransformUtility
     }
 
     template <FloatingType T>
-    constexpr Matrix4x4Impl<T> MakeFromScale(const Vector3Impl<T>& scale)
+    static constexpr Matrix4x4Impl<T> MakeFromScale(const Vector3Impl<T>& scale)
     {
         T x = scale.x;
         T y = scale.y;
