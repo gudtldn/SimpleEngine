@@ -40,7 +40,7 @@ export struct TransformUtility
         const T sin_r = MathUtility::Sin(rad_r), cos_r = MathUtility::Cos(rad_r);
 
         // Rz(yaw)
-        Matrix4x4Impl rz{
+        Matrix4x4Impl<T> rz{
             cos_y, -sin_y, 0, 0,
             sin_y, cos_y, 0, 0,
             0, 0, 1, 0,
@@ -48,7 +48,7 @@ export struct TransformUtility
         };
 
         // Rx(pitch)
-        Matrix4x4Impl rx{
+        Matrix4x4Impl<T> rx{
             1, 0, 0, 0,
             0, cos_p, -sin_p, 0,
             0, sin_p, cos_p, 0,
@@ -56,7 +56,7 @@ export struct TransformUtility
         };
 
         // Ry(roll)
-        Matrix4x4Impl ry{
+        Matrix4x4Impl<T> ry{
             cos_r, 0, sin_r, 0,
             0, 1, 0, 0,
             -sin_r, 0, cos_r, 0,
