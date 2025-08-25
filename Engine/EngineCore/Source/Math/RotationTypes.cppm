@@ -42,6 +42,10 @@ public:
 
     [[nodiscard]] constexpr bool IsNearlyEqual(const QuaternionImpl& other, T tolerance = KINDA_SMALL_NUMBER) const;
 
+    [[nodiscard]] constexpr Vector3Impl<T> GetForwardVector() const;
+    [[nodiscard]] constexpr Vector3Impl<T> GetRightVector() const;
+    [[nodiscard]] constexpr Vector3Impl<T> GetUpVector() const;
+
     [[nodiscard]] constexpr RotatorImpl<T> ToRotator() const;
 };
 
@@ -184,6 +188,57 @@ constexpr bool QuaternionImpl<T>::IsNearlyEqual(const QuaternionImpl& other, T t
         MathUtility::Abs(x + other.x) <= tolerance && MathUtility::Abs(y + other.y) <= tolerance
         && MathUtility::Abs(z + other.z) <= tolerance && MathUtility::Abs(w + other.w) <= tolerance
     );
+}
+
+template <FloatingType T>
+constexpr Vector3Impl<T> QuaternionImpl<T>::GetForwardVector() const
+{
+    const T xx = x * x;
+    const T zz = z * z;
+    const T xy = x * y;
+    const T yz = y * z;
+    const T wz = w * z;
+    const T wx = w * x;
+
+    return Vector3Impl<T>{
+        static_cast<T>(2.0) * (xy - wz),
+        static_cast<T>(1.0) - static_cast<T>(2.0) * (xx + zz),
+        static_cast<T>(2.0) * (yz + wx)
+    };
+}
+
+template <FloatingType T>
+constexpr Vector3Impl<T> QuaternionImpl<T>::GetRightVector() const
+{
+    const T yy = y * y;
+    const T zz = z * z;
+    const T xy = x * y;
+    const T xz = x * z;
+    const T wz = w * z;
+    const T wy = w * y;
+
+    return Vector3Impl<T>{
+        static_cast<T>(1.0) - static_cast<T>(2.0) * (yy + zz),
+        static_cast<T>(2.0) * (xy + wz),
+        static_cast<T>(2.0) * (xz - wy)
+    };
+}
+
+template <FloatingType T>
+constexpr Vector3Impl<T> QuaternionImpl<T>::GetUpVector() const
+{
+    const T xx = x * x;
+    const T yy = y * y;
+    const T xz = x * z;
+    const T yz = y * z;
+    const T wy = w * y;
+    const T wx = w * x;
+
+    return Vector3Impl<T>{
+        static_cast<T>(2.0) * (xz + wy),
+        static_cast<T>(2.0) * (yz - wx),
+        static_cast<T>(1.0) - static_cast<T>(2.0) * (xx + yy)
+    };
 }
 
 template <FloatingType T>
