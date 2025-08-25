@@ -100,19 +100,19 @@ constexpr QuaternionImpl<T>::QuaternionImpl(T in_x, T in_y, T in_z, T in_w)
 template <FloatingType T>
 constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
 {
-    const Radian<T> pitch_rad{ rotator.pitch };
-    const Radian<T> yaw_rad{ rotator.yaw };
-    const Radian<T> roll_rad{ rotator.roll };
+    const Radian<T> half_rad_p{ rotator.pitch * static_cast<T>(0.5) };
+    const Radian<T> half_rad_y{ rotator.yaw * static_cast<T>(0.5) };
+    const Radian<T> half_rad_r{ rotator.roll * static_cast<T>(0.5) };
 
-    const T sin_p = MathUtility::Sin(pitch_rad * 0.5), cos_p = MathUtility::Cos(pitch_rad * 0.5);
-    const T sin_y = MathUtility::Sin(yaw_rad * 0.5), cos_y = MathUtility::Cos(yaw_rad * 0.5);
-    const T sin_r = MathUtility::Sin(roll_rad * 0.5), cos_r = MathUtility::Cos(roll_rad * 0.5);
+    const T sp = MathUtility::Sin(half_rad_p), cp = MathUtility::Cos(half_rad_p);
+    const T sy = MathUtility::Sin(half_rad_y), cy = MathUtility::Cos(half_rad_y);
+    const T sr = MathUtility::Sin(half_rad_r), cr = MathUtility::Cos(half_rad_r);
 
     // Yaw * Pitch * Roll
-    x = sin_r * cos_p * cos_y - cos_r * sin_p * sin_y;
-    y = cos_r * sin_p * cos_y + sin_r * cos_p * sin_y;
-    z = cos_r * cos_p * sin_y - sin_r * sin_p * cos_y;
-    w = cos_r * cos_p * cos_y + sin_r * sin_p * sin_y;
+    x = cr * sp * cy + sr * cp * sy;
+    y = sr * cp * cy - cr * sp * sy;
+    z = cr * cp * sy - sr * sp * cy;
+    w = cr * cp * cy + sr * sp * sy;
 }
 
 template <FloatingType T>
@@ -211,28 +211,37 @@ constexpr RotatorImpl<T>::RotatorImpl(Degree<T> in_pitch, Degree<T> in_yaw, Degr
 template <FloatingType T>
 constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
 {
-    const T sinr_cosp = 2 * (quaternion.w * quaternion.x + quaternion.y * quaternion.z);
-    const T cosr_cosp = 1 - 2 * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
-    const Radian<T> roll_rad = MathUtility::Atan2(sinr_cosp, cosr_cosp);
+    // sin(pitch) 값을 추출해서 짐벌 락 상태인지 체크 (±1에 가까우면 짐벌 락)
+    const T sin_p = -static_cast<T>(2.0) * (quaternion.y * quaternion.z - quaternion.w * quaternion.x);
 
-    const T sinp = 2 * (quaternion.w * quaternion.y - quaternion.z * quaternion.x);
-    Radian<T> pitch_rad{ 0 };
-    if (MathUtility::Abs(sinp) >= 1)
+    // 짐벌 락 체크 (Pitch가 +/- 90도인 경우)
+    if (MathUtility::Abs(sin_p) >= static_cast<T>(1.0 - KINDA_SMALL_NUMBER))
     {
-        pitch_rad.value = MathUtility::CopySign(std::numbers::pi_v<T> / 2, sinp);
+        // Pitch는 90도로 고정
+        pitch = Degree<T>{ MathUtility::CopySign(static_cast<T>(90), sin_p) };
+
+        // 이때는 Yaw와 Roll이 같은 동작을 하므로, Roll을 0으로 고정하고 Yaw에 회전을 적용
+        yaw = Degree<T>{
+            MathUtility::Atan2(quaternion.y, quaternion.w)
+            * -MathUtility::CopySign(static_cast<T>(2.0), sin_p)
+        };
+        roll = Degree<T>{ static_cast<T>(0.0) };
     }
     else
     {
-        pitch_rad = MathUtility::Asin(sinp);
+        // Pitch
+        pitch = Degree<T>{ MathUtility::Asin(sin_p) };
+
+        // Yaw
+        const T tan_y_numerator = static_cast<T>(2.0) * (quaternion.x * quaternion.y + quaternion.w * quaternion.z);
+        const T tan_y_denominator = static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.z * quaternion.z);
+        yaw = Degree<T>{ MathUtility::Atan2(tan_y_numerator, tan_y_denominator) };
+
+        // Roll
+        const T tan_r_numerator = static_cast<T>(2.0) * (quaternion.x * quaternion.z + quaternion.w * quaternion.y);
+        const T tan_r_denominator = static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
+        roll = Degree<T>{ MathUtility::Atan2(tan_r_numerator, tan_r_denominator) };
     }
-
-    const T siny_cosp = 2 * (quaternion.w * quaternion.z + quaternion.x * quaternion.y);
-    const T cosy_cosp = 1 - 2 * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
-    const Radian<T> yaw_rad(MathUtility::Atan2(siny_cosp, cosy_cosp));
-
-    pitch = Degree<T>{ pitch_rad };
-    yaw = Degree<T>{ yaw_rad };
-    roll = Degree<T>{ roll_rad };
 }
 
 template <FloatingType T>
