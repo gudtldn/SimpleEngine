@@ -1,5 +1,6 @@
 ﻿export module SimpleEngine.Geometry;
 
+export import :Circle;
 export import :Corn;
 export import :Cube;
 export import :Cylinder;
