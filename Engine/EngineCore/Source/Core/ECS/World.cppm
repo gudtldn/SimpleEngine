@@ -56,6 +56,9 @@ public:
     /** Entity와 Entity와 연결된 Component를 제거합니다. */
     void DestroyEntity(Entity entity);
 
+    /** 현재 살아있는 모든 Entity를 반환합니다. */
+    std::vector<Entity> GetAliveEntities() const;
+
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType, typename... Args>
     ComponentType& AddComponent(Entity entity, Args&&... args)

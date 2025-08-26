@@ -19,6 +19,8 @@ public:
     Entity Create();
     void Destroy(Entity entity);
 
+    [[nodiscard]] std::vector<Entity> GetAliveEntities() const;
+
     [[nodiscard]] bool IsValid(Entity entity) const;
     [[nodiscard]] uint32 GetMaxEntities() const { return max_entities; }
 

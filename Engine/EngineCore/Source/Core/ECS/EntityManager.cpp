@@ -54,6 +54,19 @@ void EntityManager::Destroy(Entity entity)
     free_ids.push_back(entity.id);
 }
 
+std::vector<Entity> EntityManager::GetAliveEntities() const
+{
+    std::vector<Entity> alive_entities;
+    for (uint32 id = 0; id < next_id.load(); ++id)
+    {
+        if (entity_records[id].alive)
+        {
+            alive_entities.emplace_back(id, entity_records[id].generation);
+        }
+    }
+    return alive_entities;
+}
+
 bool EntityManager::IsValid(Entity entity) const
 {
     if (entity.id >= max_entities)

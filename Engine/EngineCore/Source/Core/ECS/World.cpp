@@ -17,4 +17,9 @@ void World::DestroyEntity(Entity entity)
     }
     entity_manager.Destroy(entity);
 }
+
+std::vector<Entity> World::GetAliveEntities() const
+{
+    return entity_manager.GetAliveEntities();
+}
 }
