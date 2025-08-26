@@ -130,7 +130,8 @@ struct AngleType
 
     [[nodiscard]] constexpr AngleType operator-() const { return AngleType(-value); }
 
-    [[nodiscard]] constexpr NumType operator*() const { return value; }
+    [[nodiscard]] constexpr NumType& operator*() { return value; }
+    [[nodiscard]] constexpr const NumType& operator*() const { return value; }
     [[nodiscard]] explicit constexpr operator NumType() const { return value; }
 
     template <typename OtherUnitTag>
