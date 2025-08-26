@@ -24,7 +24,7 @@ struct AngleType
     }
 
     template <FloatingType Other>
-        requires std::is_convertible_v<Other, NumType>
+        requires std::convertible_to<Other, NumType>
     explicit constexpr AngleType(const AngleType<Other, UnitTag>& other)
         : value(static_cast<NumType>(other.value))
     {
@@ -49,28 +49,86 @@ struct AngleType
     [[nodiscard]] constexpr AngleType operator+(const AngleType& rhs) const { return AngleType(value + rhs.value); }
     [[nodiscard]] constexpr AngleType operator-(const AngleType& rhs) const { return AngleType(value - rhs.value); }
 
-    constexpr AngleType& operator+=(const AngleType& rhs) { value += rhs.value; return *this; }
-    constexpr AngleType& operator-=(const AngleType& rhs) { value -= rhs.value; return *this; }
+    AngleType& operator+=(const AngleType& rhs)
+    {
+        value += rhs.value;
+        return *this;
+    }
 
-    [[nodiscard]] constexpr AngleType operator+(NumType scalar) const { return AngleType(value + scalar); }
-    [[nodiscard]] constexpr AngleType operator-(NumType scalar) const { return AngleType(value - scalar); }
-    [[nodiscard]] constexpr AngleType operator*(NumType scalar) const { return AngleType(value * scalar); }
-    [[nodiscard]] constexpr AngleType operator/(NumType scalar) const { return AngleType(value / scalar); }
+    AngleType& operator-=(const AngleType& rhs)
+    {
+        value -= rhs.value;
+        return *this;
+    }
 
-    constexpr AngleType& operator+=(NumType scalar) { value += scalar; return *this; }
-    constexpr AngleType& operator-=(NumType scalar) { value -= scalar; return *this; }
-    constexpr AngleType& operator*=(NumType scalar) { value *= scalar; return *this; }
-    constexpr AngleType& operator/=(NumType scalar) { value /= scalar; return *this; }
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] constexpr AngleType operator+(T scalar) const { return AngleType(value + scalar); }
 
-    [[nodiscard]] constexpr AngleType operator-() const { return AngleType(-value); }
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] constexpr AngleType operator-(T scalar) const { return AngleType(value - scalar); }
 
-    [[nodiscard]] friend constexpr AngleType operator+(NumType scalar, const AngleType& rhs) { return AngleType(scalar + rhs.value); }
-    [[nodiscard]] friend constexpr AngleType operator-(NumType scalar, const AngleType& rhs) { return AngleType(scalar - rhs.value); }
-    [[nodiscard]] friend constexpr AngleType operator*(NumType scalar, const AngleType& rhs) { return AngleType(scalar * rhs.value); }
-    [[nodiscard]] friend constexpr AngleType operator/(NumType scalar, const AngleType& rhs) { return AngleType(scalar / rhs.value); }
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] constexpr AngleType operator*(T scalar) const { return AngleType(value * scalar); }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] constexpr AngleType operator/(T scalar) const { return AngleType(value / scalar); }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    AngleType& operator+=(T scalar)
+    {
+        value += scalar;
+        return *this;
+    }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    AngleType& operator-=(T scalar)
+    {
+        value -= scalar;
+        return *this;
+    }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    AngleType& operator*=(T scalar)
+    {
+        value *= scalar;
+        return *this;
+    }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    AngleType& operator/=(T scalar)
+    {
+        value /= scalar;
+        return *this;
+    }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] friend constexpr AngleType operator+(T scalar, const AngleType& rhs) { return AngleType(scalar + rhs.value); }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] friend constexpr AngleType operator-(T scalar, const AngleType& rhs) { return AngleType(scalar - rhs.value); }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] friend constexpr AngleType operator*(T scalar, const AngleType& rhs) { return AngleType(scalar * rhs.value); }
+
+    template <typename T>
+        requires std::convertible_to<T, NumType>
+    [[nodiscard]] friend constexpr AngleType operator/(T scalar, const AngleType& rhs) { return AngleType(scalar / rhs.value); }
 
     [[nodiscard]] constexpr bool operator==(const AngleType& rhs) const = default;
     [[nodiscard]] constexpr auto operator<=>(const AngleType& rhs) const = default;
+
+    [[nodiscard]] constexpr AngleType operator-() const { return AngleType(-value); }
 
     [[nodiscard]] constexpr NumType operator*() const { return value; }
     [[nodiscard]] explicit constexpr operator NumType() const { return value; }
