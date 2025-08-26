@@ -130,16 +130,16 @@ struct MathUtility
 
     /** Degrees를 Radians으로 변환합니다. */
     template <FloatingType T>
-    [[nodiscard]] static constexpr Radian<T> DegreesToRadians(Degree<T> degrees)
+    [[nodiscard]] static constexpr Radian<T> DegreesToRadians(T degrees)
     {
-        return Radian(degrees.value * (static_cast<T>(PI_DOUBLE) / static_cast<T>(180)));
+        return Radian{ degrees * (static_cast<T>(PI_DOUBLE) / static_cast<T>(180)) };
     }
 
     /** Radians를 Degrees으로 변환합니다. */
     template <FloatingType T>
-    [[nodiscard]] static constexpr Degree<T> RadiansToDegrees(Radian<T> radians)
+    [[nodiscard]] static constexpr Degree<T> RadiansToDegrees(T radians)
     {
-        return Degree(radians.value * (static_cast<T>(180) / static_cast<T>(PI_DOUBLE)));
+        return Degree{ radians * (static_cast<T>(180) / static_cast<T>(PI_DOUBLE)) };
     }
 };
 }
