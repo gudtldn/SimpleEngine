@@ -3,9 +3,11 @@ import :Vector3;
 import :MathUtility;
 import :MathLiterals;
 
-import SimpleEngine.Traits;
 import SimpleEngine.Types;
+import SimpleEngine.Traits;
 import std;
+
+import <cassert>;
 
 using namespace se::traits::type_traits;
 
@@ -31,9 +33,14 @@ public:
     /** Quaternion(0, 0, 0, 1) */
     [[nodiscard]] static constexpr QuaternionImpl Identity();
 
+    [[nodiscard]] static QuaternionImpl FromAxisAngle(const Vector3Impl<T>& axis, Radian<T> angle);
+
 public:
     [[nodiscard]] constexpr QuaternionImpl operator*(const QuaternionImpl& other) const;
     [[nodiscard]] constexpr QuaternionImpl operator*(T scalar) const;
+
+    QuaternionImpl& operator*=(const QuaternionImpl& other);
+    QuaternionImpl& operator*=(T scalar);
 
 public:
     constexpr void Normalize(T tolerance = KINDA_SMALL_NUMBER);
@@ -245,6 +252,43 @@ template <FloatingType T>
 constexpr RotatorImpl<T> QuaternionImpl<T>::ToRotator() const
 {
     return RotatorImpl{ *this };
+}
+
+template <FloatingType T>
+QuaternionImpl<T> QuaternionImpl<T>::FromAxisAngle(const Vector3Impl<T>& axis, Radian<T> angle)
+{
+    const Radian half_angle = angle * static_cast<T>(0.5);
+    const T sin_half_angle = MathUtility::Sin(half_angle);
+    const T cos_half_angle = MathUtility::Cos(half_angle);
+
+    assert(axis.IsNormalized());
+
+    return QuaternionImpl{
+        axis.x * sin_half_angle,
+        axis.y * sin_half_angle,
+        axis.z * sin_half_angle,
+        cos_half_angle
+    };
+}
+
+template <FloatingType T>
+QuaternionImpl<T>& QuaternionImpl<T>::operator*=(const QuaternionImpl& other)
+{
+    x = w * other.x + x * other.w + y * other.z - z * other.y;
+    y = w * other.y - x * other.z + y * other.w + z * other.x;
+    z = w * other.z + x * other.y - y * other.x + z * other.w;
+    w = w * other.w - x * other.x - y * other.y - z * other.z;
+    return *this;
+}
+
+template <FloatingType T>
+QuaternionImpl<T>& QuaternionImpl<T>::operator*=(T scalar)
+{
+    x *= scalar;
+    y *= scalar;
+    z *= scalar;
+    w *= scalar;
+    return *this;
 }
 
 //~ End QuaternionImpl
