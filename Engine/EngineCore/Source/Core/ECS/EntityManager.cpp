@@ -18,11 +18,13 @@ Entity EntityManager::Create()
     }
     else
     {
-        if (next_id >= max_entities)
-        {
-            throw std::runtime_error("Entity limit reached");
-        }
         id = next_id.fetch_add(1, std::memory_order_relaxed);
+
+        // records의 공간이 꽉 차면
+        if (id >= entity_records.size())
+        {
+            entity_records.resize(id + 1);
+        }
     }
 
     EntityRecord& record = entity_records[id];
@@ -34,7 +36,7 @@ Entity EntityManager::Create()
 
 void EntityManager::Destroy(Entity entity)
 {
-    if (entity.id >= max_entities)
+    if (entity.id >= entity_records.size())
     {
         return;
     }
@@ -61,7 +63,7 @@ std::vector<Entity> EntityManager::GetAliveEntities() const
     {
         if (entity_records[id].alive)
         {
-            alive_entities.emplace_back(id, entity_records[id].generation);
+            alive_entities.push_back({ id, entity_records[id].generation });
         }
     }
     return alive_entities;
@@ -69,7 +71,7 @@ std::vector<Entity> EntityManager::GetAliveEntities() const
 
 bool EntityManager::IsValid(Entity entity) const
 {
-    if (entity.id >= max_entities)
+    if (entity.id >= entity_records.size())
     {
         return false;
     }

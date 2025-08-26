@@ -10,19 +10,15 @@ namespace se::core::ecs
 export class EntityManager
 {
 public:
-    explicit EntityManager(uint32 in_max_entities)
-        : entity_records(in_max_entities)
-        , max_entities(in_max_entities)
-    {
-    }
+    explicit EntityManager() = default;
 
     Entity Create();
     void Destroy(Entity entity);
 
-    [[nodiscard]] std::vector<Entity> GetAliveEntities() const;
-
     [[nodiscard]] bool IsValid(Entity entity) const;
-    [[nodiscard]] uint32 GetMaxEntities() const { return max_entities; }
+    [[nodiscard]] uint32 GetTotalRecordCount() const { return next_id; }
+
+    [[nodiscard]] std::vector<Entity> GetAliveEntities() const;
 
 private:
     struct EntityRecord
@@ -34,7 +30,6 @@ private:
     std::vector<EntityRecord> entity_records;
     std::vector<uint32> free_ids;
 
-    uint32 max_entities;
     std::atomic<uint32> next_id;
 };
 }

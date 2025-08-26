@@ -24,15 +24,15 @@ private:
     std::vector<ComponentType> components;
 
 public:
-    explicit SparseSet(size_t max_entities)
-        : sparse(max_entities, std::nullopt)
-    {
-    }
+    explicit SparseSet() = default;
 
     /** 엔티티에 컴포넌트를 추가하거나 갱신합니다. */
     void Add(Entity entity, ComponentType&& component)
     {
-        assert(entity.GetId() < sparse.size() && "Entity ID is out of range");
+        if (entity.GetId() >= sparse.size())
+        {
+            sparse.resize(entity.GetId() + 1, std::nullopt);
+        }
 
         // 이미 존재하면 덮어쓰기
         if (Contains(entity))
@@ -239,10 +239,7 @@ class ComponentStorage : public IStorage
     SparseSet<ComponentType> storage;
 
 public:
-    explicit ComponentStorage(size_t max_entities)
-        : storage(max_entities)
-    {
-    }
+    ComponentStorage() = default;
 
     //~Begin IStorage
     [[nodiscard]] virtual size_t Length() const noexcept override { return storage.Length(); }

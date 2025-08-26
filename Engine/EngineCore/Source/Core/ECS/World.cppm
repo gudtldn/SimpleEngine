@@ -11,9 +11,6 @@ namespace se::core::ecs
 {
 export class World;
 
-/** 엔진이 동시에 관리할 수 있는 최대 엔티티 개수 */
-constexpr uint32 MAX_ENTITIES = 65536;
-
 export template <typename FetchList, typename WithList, typename WithoutList>
 class QueryResult;
 
@@ -37,11 +34,7 @@ private:
 public:
     class EntityChain;
 
-    World()
-        : entity_manager(MAX_ENTITIES)
-    {
-    }
-
+    World() = default;
     ~World() = default;
 
     World(const World&) = delete;
@@ -136,7 +129,7 @@ private:
         const auto type_index = std::type_index(typeid(ComponentType));
         if (!component_storages.contains(type_index))
         {
-            component_storages[type_index] = std::make_unique<ComponentStorage<ComponentType>>(entity_manager.GetMaxEntities());
+            component_storages[type_index] = std::make_unique<ComponentStorage<ComponentType>>();
         }
         ComponentStorage<ComponentType>* wrapper = static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
         return wrapper->GetStorage();
