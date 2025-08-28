@@ -31,12 +31,9 @@ void ClearPass::Execute(const render_graph::RGExecutionContext& context)
     color_attachment_info.load_op = SDL_GPU_LOADOP_CLEAR;   // 이전 내용을 버리고 클리어
     color_attachment_info.store_op = SDL_GPU_STOREOP_STORE; // 작업 결과를 저장
 
-    SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(
-        cmd,
-        &color_attachment_info,
-        1,
-        nullptr
-    );
+    SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(cmd, &color_attachment_info, 1, nullptr);
+    {
+    }
     SDL_EndGPURenderPass(render_pass);
 }
 }
