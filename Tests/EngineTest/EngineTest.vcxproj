@@ -26,6 +26,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
+
+    <!-- ThirdParty Folder Path 설정 -->
+    <ThirdPartyDir>$(SolutionDir)ThirdParty\</ThirdPartyDir>
+    <DoctestThirdPartyDir>$(ThirdPartyDir)doctest\</DoctestThirdPartyDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -36,7 +40,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\doctest\doctest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DoctestThirdPartyDir)doctest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -47,7 +51,7 @@
     <ClCompile Include="TestCases\**\*.cpp"/>
   </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\Engine\EngineCore\EngineCore.vcxproj">
+      <ProjectReference Include="$(SolutionDir)Engine\EngineCore\EngineCore.vcxproj">
         <Project>{70359232-4bc5-40b2-bd1f-3f6b5f19f1e3}</Project>
         <Name>EngineCore</Name>
       </ProjectReference>

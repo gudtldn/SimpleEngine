@@ -1,5 +1,5 @@
 ﻿#include "doctest.h"
-#include "../../../SimpleEngine/ThirdParty/tomlplusplus/toml.hpp"
+#include "toml++/toml.hpp"
 
 import std;
 import SimpleEngine.Config;

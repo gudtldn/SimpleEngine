@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup>
+  <PropertyGroup Label="Configuration">
     <!-- 기본 플랫폼 및 도구 집합 설정 -->
     <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0</WindowsTargetPlatformVersion>
     <PlatformToolset Condition="'$(PlatformToolset)' == ''">v143</PlatformToolset>
@@ -12,11 +12,12 @@
     <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
 
-    <!-- SDL3, ImGui 헤더 공통 경로 (모든 프로젝트에서 사용할 가능성) -->
-    <SDL3_IncludePath>$(SolutionDir)ThirdParty\SDL3\include</SDL3_IncludePath>
-    <ImGui_IncludePath>$(SolutionDir)ThirdParty\ImGui</ImGui_IncludePath>
-    <ImGui_Backends_IncludePath>$(SolutionDir)ThirdParty\ImGui\backends</ImGui_Backends_IncludePath>
-    <ICU4C_IncludePath>$(SolutionDir)ThirdParty\icu4c\include;</ICU4C_IncludePath>
+    <!-- 헤더 공통 경로 (모든 프로젝트에서 사용할 가능성) -->
+    <ThirdPartyDir>$(SolutionDir)ThirdParty\</ThirdPartyDir>
+    <SDL3_ThirdPartyDir>$(ThirdPartyDir)SDL3\</SDL3_ThirdPartyDir>
+    <ICU4C_ThirdPartyDir>$(ThirdPartyDir)icu4c\</ICU4C_ThirdPartyDir>
+    <TOMLPlusPlusThirdPartyDir>$(ThirdPartyDir)tomlplusplus\</TOMLPlusPlusThirdPartyDir>
+    <TracyThirdPartyDir>$(ThirdPartyDir)tracy\</TracyThirdPartyDir>
   </PropertyGroup>
 
   <!-- Debug 구성일 때 공통 설정 -->
@@ -52,7 +53,14 @@
       <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
 
       <!-- 공통 Include 경로 추가 -->
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SDL3_IncludePath);$(ImGui_IncludePath);$(ImGui_Backends_IncludePath);$(ICU4C_IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+        $(ProjectDir)Source;
+        $(SDL3_ThirdPartyDir)include;
+        $(ICU4C_ThirdPartyDir)include;
+        $(TOMLPlusPlusThirdPartyDir)include;
+        $(TracyThirdPartyDir)public;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Condition="'$(Configuration)'=='Release'">
       <!-- Release에서는 경고도 에러로 처리 -->
@@ -60,13 +68,30 @@
     </ClCompile>
     <Link>
       <!-- 공통 링커 설정 (예: SDL3 라이브러리 경로) -->
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3\lib\$(PlatformTarget);$(SolutionDir)ThirdParty\icu4c\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL3.lib;icudt.lib;icuin.lib;icuio.lib;icuuc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+        $(SDL3_ThirdPartyDir)lib\$(PlatformTarget);
+        $(ICU4C_ThirdPartyDir)lib\$(PlatformTarget);
+        %(AdditionalLibraryDirectories)
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        <!-- SDL3 -->
+        SDL3.lib;
+        <!-- ICU4C -->
+        icudt.lib;
+        icuin.lib;
+        icuio.lib;
+        icuuc.lib;
+        <!-- 기타 등등 -->
+        imm32.lib;
+        version.lib;
+        Setupapi.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
-        xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3\lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"
-        xcopy /Y /D "$(SolutionDir)ThirdParty\icu4c\bin\$(PlatformTarget)\icu*.dll" "$(OutDir)"
+        xcopy /Y /D "$(SDL3_ThirdPartyDir)lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"
+        xcopy /Y /D "$(ICU4C_ThirdPartyDir)bin\$(PlatformTarget)\icu*.dll" "$(OutDir)"
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -75,7 +100,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;TRACY_ENABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -91,7 +116,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation> <!-- Release에서도 PDB 생성 권장 -->
+      <GenerateDebugInformation>true</GenerateDebugInformation> <!-- Release에서도 PDB 생성 -->
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
