@@ -144,6 +144,10 @@ SDL_GPUShader* CompileFromSPIRV(
             .num_storage_textures = refl_metadata->num_storage_textures,
             .num_storage_buffers = refl_metadata->num_storage_buffers,
             .num_uniform_buffers = refl_metadata->num_uniform_buffers,
+            .num_inputs = refl_metadata->num_inputs,
+            .inputs = refl_metadata->inputs,
+            .num_outputs = refl_metadata->num_outputs,
+            .outputs = refl_metadata->outputs,
         };
         return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &metadata, 0);
     }
