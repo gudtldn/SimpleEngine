@@ -15,25 +15,17 @@ struct HLSL_Define
 };
 
 /** SPIRV를 컴파일하여 SDL_GPUShader로 변환합니다. */
-[[nodiscard]] SDL_GPUShader* CompileSPIRV(
+[[nodiscard]] SDL_GPUShader* CompileFromSPIRV(
     SDL_GPUDevice* device,
-    const std::filesystem::path& shader_path,
-    uint32 sampler_count,
-    uint32 uniform_buffer_count,
-    uint32 storage_buffer_count,
-    uint32 storage_texture_count
+    const std::filesystem::path& shader_path
 );
 
 /** HLSL을 컴파일하여 SDL_GPUShader로 변환합니다. */
-[[nodiscard]] SDL_GPUShader* CompileHLSL(
+[[nodiscard]] SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
     const std::filesystem::path& shader_path,
-    Optional<const std::filesystem::path&> include_dir_opt,
-    Optional<const std::vector<HLSL_Define>&> defines_opt,
-    uint32 sampler_count,
-    uint32 uniform_buffer_count,
-    uint32 storage_buffer_count,
-    uint32 storage_texture_count
+    Optional<const std::filesystem::path&> include_dir_opt = std::nullopt,
+    Optional<const std::vector<HLSL_Define>&> defines_opt = std::nullopt
 );
 
 // TODO: CreateComputeShader 구현하기

@@ -53,13 +53,9 @@ namespace se::editor::utility::shader_utils
 {
 using namespace se::utility;
 
-SDL_GPUShader* CompileSPIRV(
+SDL_GPUShader* CompileFromSPIRV(
     SDL_GPUDevice* device,
-    const std::filesystem::path& shader_path,
-    uint32 sampler_count,
-    uint32 uniform_buffer_count,
-    uint32 storage_buffer_count,
-    uint32 storage_texture_count
+    const std::filesystem::path& shader_path
 )
 {
     // read shader file
@@ -108,6 +104,16 @@ SDL_GPUShader* CompileSPIRV(
         .enable_debug = true,
     };
 
+    // get reflection metadata
+    const SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata =
+        SDL_ShaderCross_ReflectGraphicsSPIRV(source.data(), source.size(), 0);
+
+    if (!refl_metadata)
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to reflect shader: {}", shader_path.generic_u8string());
+        return nullptr;
+    }
+
     // create gpu shader
     const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(device);
     if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
@@ -121,10 +127,10 @@ SDL_GPUShader* CompileSPIRV(
             .entrypoint = entrypoint,
             .format = backend_formats,
             .stage = stage,
-            .num_samplers = sampler_count,
-            .num_storage_textures = storage_texture_count,
-            .num_storage_buffers = storage_buffer_count,
-            .num_uniform_buffers = uniform_buffer_count,
+            .num_samplers = refl_metadata->num_samplers,
+            .num_storage_textures = refl_metadata->num_storage_textures,
+            .num_storage_buffers = refl_metadata->num_storage_buffers,
+            .num_uniform_buffers = refl_metadata->num_uniform_buffers,
         };
         SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
         SDL_free(bytecode);
@@ -134,10 +140,10 @@ SDL_GPUShader* CompileSPIRV(
     if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
     {
         const SDL_ShaderCross_GraphicsShaderMetadata metadata = {
-            .num_samplers = sampler_count,
-            .num_storage_textures = storage_texture_count,
-            .num_storage_buffers = storage_buffer_count,
-            .num_uniform_buffers = uniform_buffer_count,
+            .num_samplers = refl_metadata->num_samplers,
+            .num_storage_textures = refl_metadata->num_storage_textures,
+            .num_storage_buffers = refl_metadata->num_storage_buffers,
+            .num_uniform_buffers = refl_metadata->num_uniform_buffers,
         };
         return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &metadata, 0);
     }
@@ -146,15 +152,11 @@ SDL_GPUShader* CompileSPIRV(
     return nullptr;
 }
 
-SDL_GPUShader* CompileHLSL(
+SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
     const std::filesystem::path& shader_path,
     Optional<const std::filesystem::path&> include_dir_opt,
-    Optional<const std::vector<HLSL_Define>&> defines_opt,
-    uint32 sampler_count,
-    uint32 uniform_buffer_count,
-    uint32 storage_buffer_count,
-    uint32 storage_texture_count
+    Optional<const std::vector<HLSL_Define>&> defines_opt
 )
 {
     // read shader file
@@ -226,18 +228,27 @@ SDL_GPUShader* CompileHLSL(
     void* bytecode = nullptr;
     size_t bytecode_size = 0;
 
+    SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata = nullptr;
+
     const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(device);
     if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
         bytecode = SDL_ShaderCross_CompileDXILFromHLSL(&hlsl_info, &bytecode_size);
+
+        // get reflection metadata
+        size_t spirv_size;
+        void* spirv_bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
+        refl_metadata = SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<const Uint8*>(spirv_bytecode), spirv_size, 0);
+        SDL_free(spirv_bytecode);
     }
     else if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
     {
         bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &bytecode_size);
+        refl_metadata = SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<const Uint8*>(bytecode), bytecode_size, 0);
     }
 
     // create gpu shader
-    if (bytecode)
+    if (bytecode && refl_metadata)
     {
         const SDL_GPUShaderCreateInfo create_info = {
             .code_size = bytecode_size,
@@ -245,12 +256,13 @@ SDL_GPUShader* CompileHLSL(
             .entrypoint = entrypoint,
             .format = backend_formats,
             .stage = stage,
-            .num_samplers = sampler_count,
-            .num_storage_textures = storage_texture_count,
-            .num_storage_buffers = storage_buffer_count,
-            .num_uniform_buffers = uniform_buffer_count,
+            .num_samplers = refl_metadata->num_samplers,
+            .num_storage_textures = refl_metadata->num_storage_textures,
+            .num_storage_buffers = refl_metadata->num_storage_buffers,
+            .num_uniform_buffers = refl_metadata->num_uniform_buffers,
         };
         SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
+        SDL_free(refl_metadata);
         SDL_free(bytecode);
         return shader;
     }
