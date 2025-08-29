@@ -4,6 +4,7 @@ import :RenderGraph;
 import SimpleEngine.Interface.IRenderPass;
 import <SDL3/SDL_gpu.h>;
 
+
 namespace se::rendering::passes
 {
 export class ClearPass : public IRenderPass

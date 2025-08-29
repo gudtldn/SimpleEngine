@@ -7,3 +7,6 @@
 [submodule "ThirdParty/doctest"]
 	path = ThirdParty/doctest
 	url = https://github.com/doctest/doctest.git
+[submodule "ThirdParty/tracy"]
+	path = ThirdParty/tracy
+	url = https://github.com/wolfpld/tracy.git

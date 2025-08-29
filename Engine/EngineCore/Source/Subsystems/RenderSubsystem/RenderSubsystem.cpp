@@ -112,9 +112,6 @@ void RenderSubsystem::RenderFrame() const
             return;
         }
 
-        // 이전 프레임의 렌더 그래프 상태를 클리어합니다.
-        render_graph->Clear();
-
         // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
         SDL_GPUTexture* swapchain_texture;
         SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
@@ -148,6 +145,9 @@ void RenderSubsystem::RenderFrame() const
 
         // Command Buffer 제출
         SDL_SubmitGPUCommandBuffer(command_buffer);
+
+        // 다음 프레임을 위해 렌더 그래프 상태를 클리어
+        render_graph->Clear();
     }
 }
 

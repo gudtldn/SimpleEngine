@@ -26,6 +26,11 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
+
+    <!-- ThirdParty Folder Path 설정 -->
+    <ThirdPartyDir>$(SolutionDir)ThirdParty\</ThirdPartyDir>
+    <SDL3_ShaderCrossThirdPartyDir>$(ThirdPartyDir)SDL3_shadercross\</SDL3_ShaderCrossThirdPartyDir>
+    <ImGui_ThirdPartyDir>$(ThirdPartyDir)ImGui\</ImGui_ThirdPartyDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -36,12 +41,17 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\SDL3_shadercross\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+        $(SDL3_ShaderCrossThirdPartyDir)include;
+        $(ImGui_ThirdPartyDir);
+        $(ImGui_ThirdPartyDir)backends;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>imm32.lib;version.lib;Setupapi.lib;SDL3_shadercross.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\SDL3_shadercross\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3_shadercross.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SDL3_ShaderCrossThirdPartyDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3_shadercross\bin\*.dll" "$(OutDir)"</Command>
@@ -49,28 +59,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <!-- ImGui 소스 파일들 -->
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)imgui.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_demo.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)imgui_demo.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_draw.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)imgui_draw.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_tables.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)imgui_tables.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\imgui_widgets.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)imgui_widgets.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_sdl3.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)backends\imgui_impl_sdl3.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_sdlgpu3.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)backends\imgui_impl_sdlgpu3.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)ThirdParty\ImGui\backends\imgui_impl_win32.cpp">
+    <ClCompile Include="$(ImGui_ThirdPartyDir)backends\imgui_impl_win32.cpp">
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
 
