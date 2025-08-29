@@ -89,7 +89,7 @@ SDL_GPUTexture* RenderGraph::GetActualTexture(RGResourceHandle handle) const
     if (handle.index < resource_nodes.size())
     {
         IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
-        if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr))
+        if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
         {
             return resource->GetActualTexture();
         }
@@ -102,7 +102,7 @@ SDL_GPUBuffer* RenderGraph::GetActualBuffer(RGResourceHandle handle) const
     if (handle.index < resource_nodes.size())
     {
         IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
-        if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr))
+        if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
         {
             return resource->GetActualBuffer();
         }
