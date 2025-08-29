@@ -1,9 +1,12 @@
 ﻿export module SimpleEngine.Core:Function;
+
+import SimpleEngine.Types;
 import std;
 
 
 namespace se::core::function
 {
+using SBOAlign = std::max_align_t;
 constexpr size_t SBO_BUFFER_SIZE = sizeof(void*) * 3;
 
 export template <typename Signature>
@@ -54,12 +57,12 @@ private:
 
         virtual void CloneTo(void* dest) const override
         {
-            new(dest) CallableImpl(functor);
+            std::construct_at(static_cast<CallableImpl*>(dest), functor);
         }
 
         virtual void MoveTo(void* dest) noexcept override
         {
-            new(dest) CallableImpl(std::move(functor));
+            std::construct_at(static_cast<CallableImpl*>(dest), std::move(functor));
         }
     };
 
@@ -67,7 +70,7 @@ private:
     union FunctionStorage
     {
         ICallable* Heap_Storage = nullptr;
-        std::aligned_storage_t<SBO_BUFFER_SIZE> SBO_Storage;
+        alignas(SBOAlign) uint8 SBO_Storage[SBO_BUFFER_SIZE];
     } Storage;
 
     ICallable* CallablePtr = nullptr;
@@ -95,8 +98,8 @@ public:
             }
             else
             {
-                other.CallablePtr->CloneTo(&Storage.SBO_Storage);
-                CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
+                other.CallablePtr->CloneTo(Storage.SBO_Storage);
+                CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
             }
         }
     }
@@ -112,8 +115,8 @@ public:
             }
             else
             {
-                other.CallablePtr->MoveTo(&Storage.SBO_Storage);
-                CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
+                other.CallablePtr->MoveTo(Storage.SBO_Storage);
+                CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
             }
 
             other.Storage.Heap_Storage = nullptr;
@@ -140,8 +143,8 @@ public:
             }
             else
             {
-                other.CallablePtr->MoveTo(&Storage.SBO_Storage);
-                CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
+                other.CallablePtr->MoveTo(Storage.SBO_Storage);
+                CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
             }
 
             other.Storage.Heap_Storage = nullptr;
@@ -165,8 +168,8 @@ public:
         // SBO 조건: 객체 크기가 버퍼보다 작고, 이동 생성이 noexcept여야 함
         if constexpr (sizeof(Callable) <= SBO_BUFFER_SIZE && std::is_nothrow_move_constructible_v<Fn>)
         {
-            new(&Storage.SBO_Storage) Callable(std::forward<Fn>(in_func));
-            CallablePtr = reinterpret_cast<ICallable*>(&Storage.SBO_Storage);
+            std::construct_at(reinterpret_cast<Callable*>(Storage.SBO_Storage), std::forward<Fn>(in_func));
+            CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
         }
         else
         {
@@ -192,7 +195,7 @@ public:
 private:
     bool IsOnHeap() const noexcept
     {
-        return CallablePtr && CallablePtr != reinterpret_cast<const ICallable*>(&Storage.SBO_Storage);
+        return CallablePtr && CallablePtr != reinterpret_cast<const ICallable*>(Storage.SBO_Storage);
     }
 
     void Reset() noexcept
