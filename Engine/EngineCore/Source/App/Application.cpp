@@ -1,6 +1,8 @@
-﻿module SimpleEngine.App;
+﻿module;
+#include "tracy/Tracy.hpp"
+module SimpleEngine.App;
 
-#define RETURN_IF_FAILED(x) if (!(x)) { return; }
+#define RETURN_IF_FAILED(x) if (!(x)) { return; } else {}
 
 import SimpleEngine.Core;
 import SimpleEngine.Config;
@@ -101,6 +103,8 @@ void Application::MainLoop()
 
     while (is_running && !quit_requested)
     {
+        ZoneScoped;
+
         const double frame_start = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
 
         // Calculate Delta Time
@@ -115,6 +119,7 @@ void Application::MainLoop()
 
         Render();
 
+        FrameMark;
         double frame_duration;
         do
         {
