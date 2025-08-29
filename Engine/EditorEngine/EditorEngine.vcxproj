@@ -29,7 +29,6 @@
 
     <!-- ThirdParty Folder Path 설정 -->
     <ThirdPartyDir>$(SolutionDir)ThirdParty\</ThirdPartyDir>
-    <SDL3_ShaderCrossThirdPartyDir>$(ThirdPartyDir)SDL3_shadercross\</SDL3_ShaderCrossThirdPartyDir>
     <ImGui_ThirdPartyDir>$(ThirdPartyDir)ImGui\</ImGui_ThirdPartyDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -42,7 +41,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>
-        $(SDL3_ShaderCrossThirdPartyDir)include;
         $(ImGui_ThirdPartyDir);
         $(ImGui_ThirdPartyDir)backends;
         %(AdditionalIncludeDirectories)
@@ -50,12 +48,9 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>SDL3_shadercross.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SDL3_ShaderCrossThirdPartyDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /Y /D "$(SolutionDir)ThirdParty\SDL3_shadercross\bin\*.dll" "$(OutDir)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <!-- ImGui 소스 파일들 -->

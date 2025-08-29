@@ -15,6 +15,7 @@
     <!-- 헤더 공통 경로 (모든 프로젝트에서 사용할 가능성) -->
     <ThirdPartyDir>$(SolutionDir)ThirdParty\</ThirdPartyDir>
     <SDL3_ThirdPartyDir>$(ThirdPartyDir)SDL3\</SDL3_ThirdPartyDir>
+    <SDL3_ShaderCrossThirdPartyDir>$(ThirdPartyDir)SDL3_shadercross\</SDL3_ShaderCrossThirdPartyDir>
     <ICU4C_ThirdPartyDir>$(ThirdPartyDir)icu4c\</ICU4C_ThirdPartyDir>
     <TOMLPlusPlusThirdPartyDir>$(ThirdPartyDir)tomlplusplus\</TOMLPlusPlusThirdPartyDir>
     <TracyThirdPartyDir>$(ThirdPartyDir)tracy\</TracyThirdPartyDir>
@@ -56,6 +57,7 @@
       <AdditionalIncludeDirectories>
         $(ProjectDir)Source;
         $(SDL3_ThirdPartyDir)include;
+        $(SDL3_ShaderCrossThirdPartyDir)include;
         $(ICU4C_ThirdPartyDir)include;
         $(TOMLPlusPlusThirdPartyDir)include;
         $(TracyThirdPartyDir)public;
@@ -70,12 +72,14 @@
       <!-- 공통 링커 설정 (예: SDL3 라이브러리 경로) -->
       <AdditionalLibraryDirectories>
         $(SDL3_ThirdPartyDir)lib\$(PlatformTarget);
+        $(SDL3_ShaderCrossThirdPartyDir)lib;
         $(ICU4C_ThirdPartyDir)lib\$(PlatformTarget);
         %(AdditionalLibraryDirectories)
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>
         <!-- SDL3 -->
         SDL3.lib;
+        SDL3_shadercross.lib;
         <!-- ICU4C -->
         icudt.lib;
         icuin.lib;
@@ -91,6 +95,7 @@
     <PostBuildEvent>
       <Command>
         xcopy /Y /D "$(SDL3_ThirdPartyDir)lib\$(PlatformTarget)\SDL3.dll" "$(OutDir)"
+        xcopy /Y /D "$(SDL3_ShaderCrossThirdPartyDir)bin\*.dll" "$(OutDir)"
         xcopy /Y /D "$(ICU4C_ThirdPartyDir)bin\$(PlatformTarget)\icu*.dll" "$(OutDir)"
       </Command>
     </PostBuildEvent>
