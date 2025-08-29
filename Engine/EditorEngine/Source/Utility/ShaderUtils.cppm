@@ -14,12 +14,6 @@ struct HLSL_Define
     const char* value; // An optional value for the define. Can be NULL.
 };
 
-/** SPIRV를 컴파일하여 SDL_GPUShader로 변환합니다. */
-[[nodiscard]] SDL_GPUShader* CompileFromSPIRV(
-    SDL_GPUDevice* device,
-    const std::filesystem::path& shader_path
-);
-
 /** HLSL을 컴파일하여 SDL_GPUShader로 변환합니다. */
 [[nodiscard]] SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
