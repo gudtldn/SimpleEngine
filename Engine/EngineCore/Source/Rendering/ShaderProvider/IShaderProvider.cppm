@@ -20,7 +20,6 @@ struct ShaderRequest
     Optional<const std::vector<std::pair<const char*, const char*>>&> hlsl_defines_opt = std::nullopt;
 };
 
-
 /**
  * ShaderManager에 SDL_GPUShader* 를 제공하는 인터페이스
  */
