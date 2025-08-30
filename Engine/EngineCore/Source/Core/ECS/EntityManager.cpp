@@ -19,12 +19,7 @@ Entity EntityManager::Create()
     else
     {
         id = next_id.fetch_add(1, std::memory_order_relaxed);
-
-        // records의 공간이 꽉 차면
-        if (id >= entity_records.size())
-        {
-            entity_records.resize(id + 1);
-        }
+        entity_records.emplace_back();
     }
 
     EntityRecord& record = entity_records[id];
