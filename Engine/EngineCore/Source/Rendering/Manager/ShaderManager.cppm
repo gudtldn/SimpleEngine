@@ -18,6 +18,12 @@ export class ShaderManager
 {
 public:
     explicit ShaderManager(SDL_GPUDevice* in_device);
+    ~ShaderManager();
+
+    ShaderManager(const ShaderManager&) = delete;
+    ShaderManager& operator=(const ShaderManager&) = delete;
+    ShaderManager(ShaderManager&&) = delete;
+    ShaderManager& operator=(ShaderManager&&) = delete;
 
     /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T>
