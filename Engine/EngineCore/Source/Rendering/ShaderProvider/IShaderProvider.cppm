@@ -1,6 +1,7 @@
 ﻿export module SimpleEngine.Rendering:ShaderProvider.IShaderProvider;
 
 import SimpleEngine.Types;
+import SimpleEngine.Utility;
 import std;
 
 import "SDL3/SDL_gpu.h";
@@ -13,11 +14,13 @@ export namespace se::rendering::shader_provider
  */
 struct ShaderRequest
 {
-    const std::filesystem::path& source_path;
+    std::filesystem::path source_path;
 
     // HLSL 컴파일 시 사용
-    Optional<const std::filesystem::path&> hlsl_include_dir_opt = std::nullopt;
-    Optional<const std::vector<std::pair<const char*, const char*>>&> hlsl_defines_opt = std::nullopt;
+    Optional<std::filesystem::path> hlsl_include_dir_opt = std::nullopt;
+    Optional<std::vector<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
+
+    bool operator==(const ShaderRequest& other) const = default;
 };
 
 /**
@@ -32,3 +35,39 @@ public:
     virtual SDL_GPUShader* Provide(const ShaderRequest& request) = 0;
 };
 }
+
+
+template <>
+struct std::hash<se::rendering::shader_provider::ShaderRequest>
+{
+    size_t operator()(const se::rendering::shader_provider::ShaderRequest& request) const noexcept
+    {
+        using se::utility::hash::HashCombine;
+
+        size_t seed = 0;
+
+        HashCombine(seed, request.source_path);
+        if (request.hlsl_include_dir_opt.HasValue())
+        {
+            HashCombine(seed, *request.hlsl_include_dir_opt);
+        }
+
+        if (request.hlsl_defines_opt.HasValue())
+        {
+            auto defines = request.hlsl_defines_opt.Value();
+
+            std::ranges::sort(defines, [](const auto& a, const auto& b) -> bool
+            {
+                return a.first < b.first;
+            });
+
+            for (const auto& [name, value] : defines)
+            {
+                HashCombine(seed, std::string_view{ name });
+                HashCombine(seed, std::string_view{ value });
+            }
+        }
+
+        return seed;
+    }
+};
