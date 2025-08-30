@@ -8,6 +8,13 @@
 
 - [ ] 커스텀 메모리 할당자 구현
 - [ ] 프로파일러 만들기
+  - CPU
+  - GPU
+  - Memory
+  - Network
+  - File I/O
+  - Thread
+  - 등등
 - [ ] Log Category 만들기
 - [ ] cmake로 크로스 플랫폼 빌드 구성하기
 - [ ] 나중에 SDL3를 submodule로 추가하기
