@@ -247,6 +247,18 @@ TEST_CASE("Optional for reference types (Optional<T&>)")
         CHECK_FALSE(opt_x.HasValue());
     }
 
+    SUBCASE("Optional<T> -> Optional<T&>")
+    {
+        Optional<int> opt(10);
+        Optional<int&> opt_ref = opt;
+        CHECK(opt_ref.HasValue());
+        CHECK(&(*opt_ref) == &opt.Value());
+
+        Optional<int> empty_opt;
+        Optional<int&> empty_opt_ref = empty_opt;
+        CHECK_FALSE(empty_opt_ref.HasValue());
+    }
+
     SUBCASE("value_or")
     {
         int x = 10;

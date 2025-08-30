@@ -440,7 +440,17 @@ public:
     }
 
     template <typename U>
-        requires std::is_convertible_v<U*, T*>
+        requires std::convertible_to<U*, T*>
+    Optional(Optional<U>& other)
+    {
+        if (other.HasValue())
+        {
+            ref_ptr = std::addressof(*other);
+        }
+    }
+
+    template <typename U>
+        requires std::convertible_to<U*, T*>
     Optional(const Optional<U>& other)
     {
         if (other.HasValue())
