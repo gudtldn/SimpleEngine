@@ -1,5 +1,10 @@
 ﻿export module SimpleEngine.Rendering:Manager.PSOManager;
 
+import SimpleEngine.Types;
+import std;
+
+import "SDL3/SDL_gpu.h";
+
 
 namespace se::rendering::manager
 {
@@ -8,5 +13,11 @@ namespace se::rendering::manager
  */
 export class PSOManager
 {
+public:
+    explicit PSOManager(SDL_GPUDevice* in_device);
+    ~PSOManager() = default;
+
+private:
+    SDL_GPUDevice* device;
 };
 }

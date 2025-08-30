@@ -81,6 +81,7 @@ bool RenderSubsystem::Initialize()
 
     render_graph = std::make_unique<RenderGraph>(gpu_device);
     shader_manager = std::make_unique<ShaderManager>(gpu_device);
+    pso_manager = std::make_unique<PSOManager>(gpu_device);
 
     ConsoleLog(ELogLevel::Info, u8"Window and GPU device created successfully");
     return true;
@@ -88,20 +89,22 @@ bool RenderSubsystem::Initialize()
 
 void RenderSubsystem::Release()
 {
+    if (!gpu_device)
+    {
+        return;
+    }
+
+    render_graph.reset();
+    pso_manager.reset();
     shader_manager.reset();
 
-    if (gpu_device)
+    PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+    for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
-        render_graph.reset();
-
-        PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
-        for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
-        {
-            SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
-        }
-        SDL_DestroyGPUDevice(gpu_device);
-        gpu_device = nullptr;
+        SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
     }
+    SDL_DestroyGPUDevice(gpu_device);
+    gpu_device = nullptr;
 }
 
 void RenderSubsystem::RenderFrame() const

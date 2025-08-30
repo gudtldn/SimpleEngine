@@ -30,6 +30,7 @@ public:
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
     [[nodiscard]] ShaderManager* GetShaderManager() const { return shader_manager.get(); }
+    [[nodiscard]] PSOManager* GetPSOManager() const { return pso_manager.get(); }
 
 public:
     SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
@@ -40,4 +41,5 @@ private:
 
     std::unique_ptr<RenderGraph> render_graph;
     std::unique_ptr<ShaderManager> shader_manager;
+    std::unique_ptr<PSOManager> pso_manager;
 };
