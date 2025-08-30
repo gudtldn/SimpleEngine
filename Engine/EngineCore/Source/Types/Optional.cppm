@@ -439,6 +439,16 @@ public:
         return *this;
     }
 
+    template <typename U>
+        requires std::is_convertible_v<U*, T*>
+    Optional(const Optional<U>& other)
+    {
+        if (other.HasValue())
+        {
+            ref_ptr = std::addressof(*other);
+        }
+    }
+
     Optional(const Optional&) = default;
     Optional& operator=(const Optional&) noexcept = default;
     Optional(Optional&&) noexcept = default;
