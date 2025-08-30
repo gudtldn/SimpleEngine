@@ -17,7 +17,7 @@ using namespace shader_provider;
 export class ShaderManager
 {
 public:
-    ShaderManager();
+    explicit ShaderManager(SDL_GPUDevice* in_device);
 
     /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T>
@@ -28,7 +28,9 @@ public:
     [[nodiscard]] SDL_GPUShader* GetShader(const ShaderRequest& request);
 
 private:
+    SDL_GPUDevice* device;
     std::unique_ptr<IShaderProvider> provider;
+
     std::unordered_map<ShaderRequest, SDL_GPUShader*> shader_cache;
 };
 

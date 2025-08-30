@@ -13,14 +13,7 @@ export namespace se::editor::rendering::shader_provider
 class CompilingShaderProvider : public se::rendering::shader_provider::IShaderProvider
 {
 public:
-    explicit CompilingShaderProvider(SDL_GPUDevice* in_device)
-        : device(in_device)
-    {
-    }
-
-    virtual SDL_GPUShader* Provide(const se::rendering::shader_provider::ShaderRequest& request) override;
-
-private:
-    SDL_GPUDevice* device;
+    /** HLSL 컴파일 및, SPIR-V을 가져옵니다. */
+    virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const se::rendering::shader_provider::ShaderRequest& request) override;
 };
 }

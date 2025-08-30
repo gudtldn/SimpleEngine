@@ -6,8 +6,9 @@ import SimpleEngine.Core;
 
 namespace se::rendering::manager
 {
-ShaderManager::ShaderManager()
-    : provider(std::make_unique<PrecompiledShaderProvider>(nullptr))
+ShaderManager::ShaderManager(SDL_GPUDevice* in_device)
+    : device(in_device)
+    , provider(std::make_unique<PrecompiledShaderProvider>())
 {
 }
 
@@ -18,7 +19,7 @@ SDL_GPUShader* ShaderManager::GetShader(const ShaderRequest& request)
         return shader_cache[request];
     }
 
-    if (SDL_GPUShader* shader = provider->Provide(request))
+    if (SDL_GPUShader* shader = provider->Provide(device, request))
     {
         shader_cache[request] = shader;
         return shader;

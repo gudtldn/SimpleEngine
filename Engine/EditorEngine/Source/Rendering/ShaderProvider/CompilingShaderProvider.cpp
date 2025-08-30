@@ -11,7 +11,7 @@ namespace se::editor::rendering::shader_provider
 using namespace se::rendering::shader_provider;
 
 
-SDL_GPUShader* CompilingShaderProvider::Provide(const ShaderRequest& request)
+SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
     const std::u8string ext = request.source_path.extension().u8string();
 

@@ -32,7 +32,7 @@ public:
     virtual ~IShaderProvider() = default;
 
     /** 주어진 Request에 따라 Shader를 가져옵니다. */
-    virtual SDL_GPUShader* Provide(const ShaderRequest& request) = 0;
+    virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const ShaderRequest& request) = 0;
 };
 }
 

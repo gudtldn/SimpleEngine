@@ -6,7 +6,7 @@ import SimpleEngine.Utility;
 
 namespace se::rendering::shader_provider
 {
-SDL_GPUShader* PrecompiledShaderProvider::Provide(const ShaderRequest& request)
+SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
     if constexpr (utility::IS_DEBUG_BUILD)
     {
