@@ -1,6 +1,7 @@
 module SimpleEngine.Subsystems.RenderSubsystem;
 
 import SimpleEngine.Core;
+import SimpleEngine.Utility;
 import SimpleEngine.Platform;
 import SimpleEngine.Subsystems.Utility;
 import SimpleEngine.Rendering;
@@ -30,10 +31,11 @@ bool RenderSubsystem::Initialize()
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN, true);
 
-#ifdef _DEBUG
-    // 디버그 모드 설정
-    SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
-#endif
+    if constexpr (se::utility::IS_DEBUG_BUILD)
+    {
+        // 디버그 모드 설정
+        SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
+    }
 
     if constexpr (se::platform::detection::IS_PLATFORM_WINDOWS)
     {

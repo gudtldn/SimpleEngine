@@ -6,6 +6,7 @@ module SimpleEngine.App;
 
 import SimpleEngine.Core;
 import SimpleEngine.Config;
+import SimpleEngine.Utility;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
 import SimpleEngine.Subsystems.WorldSubsystem;
@@ -55,10 +56,11 @@ void Application::Startup(const wchar_t* cmd_line)
 
 void Application::Startup(const std::u8string& cmd_line)
 {
-#ifdef _DEBUG
-    LogSettings::EnableColor(true);
-    LogSettings::SetForceColor(true);
-#endif
+    if constexpr (utility::IS_DEBUG_BUILD)
+    {
+        LogSettings::EnableColor(true);
+        LogSettings::SetForceColor(true);
+    }
 
     // add log backends
     {

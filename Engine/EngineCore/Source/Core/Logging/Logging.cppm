@@ -12,6 +12,7 @@ export import :Logging.Backends.FileBackend;
 export import :Logging.Backends.ConsoleBackend;
 
 import SimpleEngine.Types;
+import SimpleEngine.Utility;
 import std;
 
 
@@ -91,15 +92,16 @@ void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const
 /** 현재 함수의 Stack Trace를 출력합니다. */
 export void PrintStackTrace()
 {
-#ifdef _DEBUG
-    const std::stacktrace stack_trace = std::stacktrace::current();
-
-    ConsoleLog(ELogLevel::Debug, u8"Stack Trace:");
-    for (const std::stacktrace_entry& entry : stack_trace | std::views::drop(1) | std::views::reverse)
+    if constexpr (se::utility::IS_DEBUG_BUILD)
     {
-        ConsoleLog(ELogLevel::Debug, u8"{}", entry);
+        const std::stacktrace stack_trace = std::stacktrace::current();
+
+        ConsoleLog(ELogLevel::Debug, u8"Stack Trace:");
+        for (const std::stacktrace_entry& entry : stack_trace | std::views::drop(1) | std::views::reverse)
+        {
+            ConsoleLog(ELogLevel::Debug, u8"{}", entry);
+        }
     }
-#endif
 }
 
 #define DECLARE_CONSOLE_LOG(log_level) \

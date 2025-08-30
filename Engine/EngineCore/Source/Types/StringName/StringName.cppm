@@ -37,7 +37,7 @@ private:
     uint64 display_hash = 0;
     uint64 comparison_hash = 0;
 
-#if _DEBUG
+#ifdef _DEBUG
     const void* debug_entry_ptr = nullptr;
 #endif
 };
