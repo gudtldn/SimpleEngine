@@ -1,11 +1,14 @@
 ﻿module SimpleEngine.Editor.App;
 
+import SimpleEngine.Editor.Rendering;
+import SimpleEngine.Editor.Subsystems.ShaderCompileSubsystem;
+
 import SimpleEngine.Core;
 import SimpleEngine.Types;
 import SimpleEngine.Config;
-import SimpleEngine.Editor.Subsystems.ShaderCompileSubsystem;
 import SimpleEngine.Subsystems.PlatformSubsystem;
 import SimpleEngine.Subsystems.RenderSubsystem;
+
 import std;
 import <SDL3/SDL_gpu.h>;
 
@@ -51,8 +54,16 @@ void EditorApplication::RegisterSubsystems()
         }
     }
 
-    // GPU Device 초기화
-    engine_instance->RegisterSubsystem<RenderSubsystem>();
+    // GPU Device 초기화 및 Provider 변경
+    {
+        const RenderSubsystem* render_subsystem = engine_instance->RegisterSubsystem<RenderSubsystem>();
+
+        using namespace se::rendering::manager;
+        using namespace se::editor::rendering::shader_provider;
+
+        ShaderManager* shader_manager = render_subsystem->GetShaderManager();
+        shader_manager->SetProvider<CompilingShaderProvider>();
+    }
 
     // SDL_shadercross 초기화
     engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();

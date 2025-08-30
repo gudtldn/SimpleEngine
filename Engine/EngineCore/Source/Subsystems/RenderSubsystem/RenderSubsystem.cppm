@@ -6,6 +6,7 @@ import SimpleEngine.Subsystems.PlatformSubsystem;
 import std;
 import <SDL3/SDL.h>;
 
+using namespace se::rendering::manager;
 using namespace se::rendering::render_graph;
 using namespace se::rendering::passes;
 
@@ -28,6 +29,7 @@ public:
 
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
+    [[nodiscard]] ShaderManager* GetShaderManager() const { return shader_manager.get(); }
 
 public:
     SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
@@ -35,5 +37,7 @@ public:
 
 private:
     SDL_GPUDevice* gpu_device = nullptr;
+
     std::unique_ptr<RenderGraph> render_graph;
+    std::unique_ptr<ShaderManager> shader_manager;
 };

@@ -80,6 +80,7 @@ bool RenderSubsystem::Initialize()
     }
 
     render_graph = std::make_unique<RenderGraph>(gpu_device);
+    shader_manager = std::make_unique<ShaderManager>(gpu_device);
 
     ConsoleLog(ELogLevel::Info, u8"Window and GPU device created successfully");
     return true;
