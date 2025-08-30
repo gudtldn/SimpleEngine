@@ -1,8 +1,10 @@
 ﻿export module SimpleEngine.Utility;
 
 export import :FileUtils;
+export import :Hash;
 export import :ShaderUtils;
 export import :StringUtils;
+
 
 export namespace se::utility
 {

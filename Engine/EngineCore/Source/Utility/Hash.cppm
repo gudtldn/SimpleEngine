@@ -1,17 +1,17 @@
-﻿export module SimpleEngine.Core:Hash;
+﻿export module SimpleEngine.Utility:Hash;
 
 import SimpleEngine.Types;
 import std;
 
 
-export namespace se::core::hash
+export namespace se::utility::hash
 {
 /**
  * FNV-1a 해시 알고리즘을 사용한 문자열 해싱 함수
  * @see https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
  */
 template <typename StringType>
-constexpr uint64 FowlerNollVoHash(const StringType& in_str) noexcept
+constexpr uint64 FNV_Hash(const StringType& in_str) noexcept
 {
     using CharType = std::remove_cv_t<std::remove_pointer_t<decltype(std::data(in_str))>>;
     static_assert(sizeof(CharType) == 1, u8"Only 1-byte character types are supported");
@@ -26,5 +26,12 @@ constexpr uint64 FowlerNollVoHash(const StringType& in_str) noexcept
         hash *= 0x100000001b3ULL; // FNV_prime
     }
     return hash;
+}
+
+template <typename T>
+void HashCombine(std::size_t& seed, const T& v)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 }

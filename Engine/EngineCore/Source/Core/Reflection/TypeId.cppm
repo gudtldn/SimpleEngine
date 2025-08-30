@@ -1,8 +1,8 @@
 ﻿export module SimpleEngine.Core:Reflection.TypeId;
 import :Reflection.TypeUtility;
 
-import :Hash;
 import SimpleEngine.Types;
+import SimpleEngine.Utility;
 import std;
 
 
@@ -43,7 +43,7 @@ public:
 
 private:
     explicit constexpr TypeId(std::string_view in_type_name)
-        : type_name(in_type_name), type_hash(hash::FowlerNollVoHash(in_type_name))
+        : type_name(in_type_name), type_hash(utility::hash::FNV_Hash(in_type_name))
     {
     }
 
