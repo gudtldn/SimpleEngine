@@ -6,6 +6,11 @@ import SimpleEngine.Core;
 
 namespace se::rendering::manager
 {
+ShaderManager::ShaderManager()
+    : provider(std::make_unique<PrecompiledShaderProvider>(nullptr))
+{
+}
+
 SDL_GPUShader* ShaderManager::GetShader(const ShaderRequest& request)
 {
     if (shader_cache.contains(request))

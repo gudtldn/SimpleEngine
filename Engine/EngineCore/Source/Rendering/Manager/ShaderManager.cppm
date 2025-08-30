@@ -12,12 +12,14 @@ namespace se::rendering::manager
 using namespace shader_provider;
 
 /**
- * Rendering에 사용 될 셰이더를 관리하는 매니저
+ * Rendering에 사용될 셰이더를 관리하는 매니저
  */
 export class ShaderManager
 {
 public:
-    /** Shader를 컴파일 하는데 사용되는 Provider를 변경합니다. */
+    ShaderManager();
+
+    /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T>
         requires std::derived_from<T, IShaderProvider>
     void SetProvider();
