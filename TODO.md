@@ -4,6 +4,7 @@
   - 이래야 멀티 월드일 떄 구성하기가 쉬움
 - [ ] Optional constexpr로 만들기
 - [ ] RenderGraph 구현
+- [ ] 나중에 Thread-Safe해야하는 로직 확인하기
 
 - [ ] 커스텀 메모리 할당자 구현
 - [ ] 프로파일러 만들기
