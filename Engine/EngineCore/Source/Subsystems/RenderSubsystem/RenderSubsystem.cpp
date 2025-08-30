@@ -88,6 +88,8 @@ bool RenderSubsystem::Initialize()
 
 void RenderSubsystem::Release()
 {
+    shader_manager.reset();
+
     if (gpu_device)
     {
         render_graph.reset();
