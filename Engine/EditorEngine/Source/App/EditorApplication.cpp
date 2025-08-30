@@ -54,19 +54,31 @@ void EditorApplication::RegisterSubsystems()
         }
     }
 
-    // GPU Device 초기화 및 Provider 변경
-    {
-        const RenderSubsystem* render_subsystem = engine_instance->RegisterSubsystem<RenderSubsystem>();
+    // GPU Device 초기화
+    engine_instance->RegisterSubsystem<RenderSubsystem>();
 
+    // SDL_shadercross 초기화
+    engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();
+}
+
+bool EditorApplication::PostInitialize()
+{
+    if (!Application::PostInitialize())
+    {
+        return false;
+    }
+
+    // ShaderManager Provider 변경
+    {
         using namespace se::rendering::manager;
         using namespace se::editor::rendering::shader_provider;
 
+        const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
         ShaderManager* shader_manager = render_subsystem->GetShaderManager();
         shader_manager->SetProvider<CompilingShaderProvider>();
     }
 
-    // SDL_shadercross 초기화
-    engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();
+    return true;
 }
 
 void EditorApplication::Render()

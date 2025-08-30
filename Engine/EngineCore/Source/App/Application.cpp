@@ -2,7 +2,7 @@
 #include "tracy/Tracy.hpp"
 module SimpleEngine.App;
 
-#define RETURN_IF_FAILED(x) if (!(x)) { return; } else {}
+#define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, u8"Initialize Failed!: {}", #x); return; } else {}
 
 import SimpleEngine.Core;
 import SimpleEngine.Config;
