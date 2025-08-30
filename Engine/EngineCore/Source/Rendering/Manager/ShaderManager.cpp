@@ -3,14 +3,13 @@ import :Manager.ShaderManager;
 
 import SimpleEngine.Core;
 
-using namespace se::rendering::shader_provider;
 
 
 namespace se::rendering::manager
 {
-ShaderManager::ShaderManager(SDL_GPUDevice* in_device)
+ShaderManager::ShaderManager(SDL_GPUDevice* in_device, std::unique_ptr<IShaderProvider> init_provider)
     : device(in_device)
-    , provider(std::make_unique<PrecompiledShaderProvider>())
+    , provider(std::move(init_provider))
 {
 }
 
