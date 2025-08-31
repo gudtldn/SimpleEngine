@@ -12,6 +12,11 @@ PSOManager::PSOManager(SDL_GPUDevice* in_device)
 
 PSOManager::~PSOManager()
 {
+    for (SDL_GPUGraphicsPipeline* pipeline : cached_graphics_pipelines | std::views::values)
+    {
+        SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
+    }
+    cached_graphics_pipelines.clear();
 }
 
 SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info)
