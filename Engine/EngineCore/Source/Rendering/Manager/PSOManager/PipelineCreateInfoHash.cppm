@@ -166,3 +166,11 @@ SE_SPECIALIZE_STD_HASH(GraphicsPipelineCreateInfo, info,
         info.props
     );
 })
+
+SE_SPECIALIZE_STD_HASH(ComputePipelineCreateInfo, info,
+{
+    HashCombine(
+        seed,
+        info.placeholder
+    );
+})

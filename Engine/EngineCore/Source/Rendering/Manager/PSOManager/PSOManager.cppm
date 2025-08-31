@@ -40,7 +40,7 @@ private:
     ShaderCache shader_cache;
 
     std::unordered_map<GraphicsPipelineCreateInfo, SDL_GPUGraphicsPipeline*> cached_graphics_pipelines;
-    // std::unordered_map<SDL_GPUComputePipelineCreateInfo, SDL_GPUComputePipeline*> cached_compute_pipelines;
+    std::unordered_map<ComputePipelineCreateInfo, SDL_GPUComputePipeline*> cached_compute_pipelines;
 };
 
 template <typename T, typename... Args>

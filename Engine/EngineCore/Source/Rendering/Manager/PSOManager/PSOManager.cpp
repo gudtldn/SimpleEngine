@@ -17,6 +17,12 @@ PSOManager::~PSOManager()
         SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
     }
     cached_graphics_pipelines.clear();
+
+    for (SDL_GPUComputePipeline* pipeline : cached_compute_pipelines | std::views::values)
+    {
+        SDL_ReleaseGPUComputePipeline(device, pipeline);
+    }
+    cached_compute_pipelines.clear();
 }
 
 SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info)

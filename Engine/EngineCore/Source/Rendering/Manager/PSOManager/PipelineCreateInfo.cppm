@@ -36,4 +36,9 @@ export struct GraphicsPipelineCreateInfo
  */
 export struct ComputePipelineCreateInfo
 {
+    uint32 placeholder;
+
+    // TODO: Implement
+
+    bool operator==(const ComputePipelineCreateInfo& other) const = default;
 };

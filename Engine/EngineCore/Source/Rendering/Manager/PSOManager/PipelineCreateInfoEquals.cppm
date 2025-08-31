@@ -16,6 +16,9 @@ import "SDL3/SDL_gpu.h";
 #define SE_IF_NOT_EQUAL_RETURN(prop) \
     if (a.prop != b.prop) { return false; }
 
+
+inline namespace graphics_pipeline_create_info_equals
+{
 SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexBufferDescription)
 {
     return SE_PROPERTY_EQUAL(slot)
@@ -117,4 +120,10 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUGraphicsPipelineTargetInfo)
 
     return SE_PROPERTY_EQUAL(depth_stencil_format)
         && SE_PROPERTY_EQUAL(has_depth_stencil_target);
+}
+}
+
+
+inline namespace compute_pipeline_create_info
+{
 }
