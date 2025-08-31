@@ -4,9 +4,6 @@ import :Manager.PSOManager.ShaderCache;
 import SimpleEngine.Core;
 
 
-
-namespace se::rendering::manager
-{
 ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderCacheProvider> init_provider)
     : device(in_device)
     , provider(std::move(init_provider))
@@ -43,5 +40,4 @@ void ShaderCache::ClearCache()
         cache = nullptr;
     }
     shader_cache.clear();
-}
 }

@@ -10,12 +10,16 @@ PSOManager::PSOManager(SDL_GPUDevice* in_device)
 {
 }
 
-SDL_GPUGraphicsPipeline* PSOManager::CreateGraphicsPipeline(const SDL_GPUGraphicsPipelineCreateInfo& create_info)
+PSOManager::~PSOManager()
+{
+}
+
+SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const SDL_GPUGraphicsPipelineCreateInfo& create_info)
 {
     return SDL_CreateGPUGraphicsPipeline(device, &create_info);
 }
 
-SDL_GPUComputePipeline* PSOManager::CreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info)
+SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info)
 {
     return SDL_CreateGPUComputePipeline(device, &create_info);
 }

@@ -7,10 +7,8 @@ import std;
 
 import "SDL3/SDL_gpu.h";
 
+using namespace se::rendering::shader_provider;
 
-namespace se::rendering::manager
-{
-using namespace shader_provider;
 
 /**
  * Rendering에 사용될 셰이더를 관리하는 매니저
@@ -52,5 +50,4 @@ template <typename T, typename... Args>
 void ShaderCache::SetProvider(Args&&... args)
 {
     provider = std::make_unique<T>(std::forward<Args>(args)...);
-}
 }

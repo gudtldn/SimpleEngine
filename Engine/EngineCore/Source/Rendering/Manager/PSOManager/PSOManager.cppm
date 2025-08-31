@@ -1,4 +1,6 @@
 ﻿export module SimpleEngine.Rendering:Manager.PSOManager;
+export import :Manager.PSOManager.PipelineCreateInfo;
+export import :Manager.PSOManager.PipelineCreateInfoHash;
 import :Manager.PSOManager.ShaderCache;
 
 import SimpleEngine.Types;
@@ -17,13 +19,13 @@ export class PSOManager
 {
 public:
     explicit PSOManager(SDL_GPUDevice* in_device);
-    ~PSOManager() = default;
+    ~PSOManager();
 
     /** TODO: Docs */
-    [[nodiscard]] SDL_GPUGraphicsPipeline* CreateGraphicsPipeline(const SDL_GPUGraphicsPipelineCreateInfo& create_info);
+    [[nodiscard]] SDL_GPUGraphicsPipeline* GetOrCreateGraphicsPipeline(const SDL_GPUGraphicsPipelineCreateInfo& create_info);
 
     /** TODO: Docs */
-    [[nodiscard]] SDL_GPUComputePipeline* CreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info);
+    [[nodiscard]] SDL_GPUComputePipeline* GetOrCreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info);
 
     /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T, typename... Args>
