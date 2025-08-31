@@ -11,7 +11,7 @@ using namespace se::rendering::shader_provider;
 
 
 /**
- * TODO: Docs
+ * Hashing 가능한 SDL_GPUGraphicsPipelineCreateInfo 구조체
  */
 export struct GraphicsPipelineCreateInfo
 {
@@ -32,7 +32,7 @@ export struct GraphicsPipelineCreateInfo
 
 
 /**
- * TODO: Docs
+ * Hashing 가능한 SDL_GPUComputePipelineCreateInfo 구조체
  */
 export struct ComputePipelineCreateInfo
 {
