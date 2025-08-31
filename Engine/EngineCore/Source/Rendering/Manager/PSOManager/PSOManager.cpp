@@ -14,9 +14,48 @@ PSOManager::~PSOManager()
 {
 }
 
-SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const SDL_GPUGraphicsPipelineCreateInfo& create_info)
+SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info)
 {
-    return SDL_CreateGPUGraphicsPipeline(device, &create_info);
+    if (cached_graphics_pipelines.contains(create_info))
+    {
+        return cached_graphics_pipelines[create_info];
+    }
+
+    SDL_GPUShader* vertex_shader = shader_cache.GetOrCreate(create_info.vertex_shader_request);
+    if (!vertex_shader)
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to get vertex shader from cache!");
+        return nullptr;
+    }
+
+    SDL_GPUShader* frag_shader = shader_cache.GetOrCreate(create_info.fragment_shader_request);
+    if (!frag_shader)
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to get fragment shader from cache!");
+        return nullptr;
+    }
+
+    const SDL_GPUGraphicsPipelineCreateInfo info{
+        .vertex_shader = vertex_shader,
+        .fragment_shader = frag_shader,
+        .vertex_input_state = create_info.vertex_input_state,
+        .primitive_type = create_info.primitive_type,
+        .rasterizer_state = create_info.rasterizer_state,
+        .multisample_state = create_info.multisample_state,
+        .depth_stencil_state = create_info.depth_stencil_state,
+        .target_info = create_info.target_info,
+        .props = create_info.props
+    };
+
+    SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(device, &info);
+    if (!pipeline)
+    {
+        ConsoleLog(ELogLevel::Error, u8"Failed to create graphics pipeline!, Err: {}", SDL_GetError());
+        return nullptr;
+    }
+
+    cached_graphics_pipelines[create_info] = pipeline;
+    return pipeline;
 }
 
 SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info)

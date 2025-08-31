@@ -22,7 +22,7 @@ public:
     ~PSOManager();
 
     /** TODO: Docs */
-    [[nodiscard]] SDL_GPUGraphicsPipeline* GetOrCreateGraphicsPipeline(const SDL_GPUGraphicsPipelineCreateInfo& create_info);
+    [[nodiscard]] SDL_GPUGraphicsPipeline* GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info);
 
     /** TODO: Docs */
     [[nodiscard]] SDL_GPUComputePipeline* GetOrCreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info);
@@ -38,6 +38,9 @@ public:
 private:
     SDL_GPUDevice* device;
     ShaderCache shader_cache;
+
+    std::unordered_map<GraphicsPipelineCreateInfo, SDL_GPUGraphicsPipeline*> cached_graphics_pipelines;
+    // std::unordered_map<SDL_GPUComputePipelineCreateInfo, SDL_GPUComputePipeline*> cached_compute_pipelines;
 };
 
 template <typename T, typename... Args>

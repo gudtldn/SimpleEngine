@@ -1,4 +1,5 @@
 ﻿export module SimpleEngine.Rendering:Manager.PSOManager.PipelineCreateInfo;
+import :Manager.PSOManager.PipelineCreateInfoEquals;
 import :ShaderProvider.IShaderProvider;
 
 import SimpleEngine.Types;
@@ -26,7 +27,7 @@ export struct GraphicsPipelineCreateInfo
 
     SDL_PropertiesID props; // A properties ID for extensions. Should be 0 if no extensions are needed.
 
-    bool operator==(const GraphicsPipelineCreateInfo& other) const;
+    bool operator==(const GraphicsPipelineCreateInfo& other) const = default;
 };
 
 
