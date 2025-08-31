@@ -29,9 +29,15 @@ constexpr uint64 FNV_Hash(const StringType& in_str) noexcept
 }
 
 template <typename T>
-void HashCombine(std::size_t& seed, const T& v)
+void HashCombine(size_t& seed, const T& v)
 {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+template <typename... Ts>
+void HashCombine(size_t& seed, const Ts&... values)
+{
+    (HashCombine(seed, values), ...);
 }
 }
