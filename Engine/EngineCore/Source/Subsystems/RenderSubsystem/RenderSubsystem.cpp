@@ -80,7 +80,6 @@ bool RenderSubsystem::Initialize()
     }
 
     render_graph = std::make_unique<RenderGraph>(gpu_device);
-    shader_manager = std::make_unique<ShaderManager>(gpu_device);
     pso_manager = std::make_unique<PSOManager>(gpu_device);
 
     ConsoleLog(ELogLevel::Info, u8"Window and GPU device created successfully");
@@ -96,7 +95,6 @@ void RenderSubsystem::Release()
 
     render_graph.reset();
     pso_manager.reset();
-    shader_manager.reset();
 
     PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
@@ -157,6 +155,8 @@ void RenderSubsystem::RenderFrame() const
         // 다음 프레임을 위해 렌더 그래프 상태를 클리어
         render_graph->Clear();
     }
+
+    pso_manager->EndFrame();
 }
 
 void RenderSubsystem::BeginFrame() const

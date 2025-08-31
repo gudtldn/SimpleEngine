@@ -26,10 +26,10 @@ struct ShaderRequest
 /**
  * ShaderManager에 SDL_GPUShader* 를 제공하는 인터페이스
  */
-class IShaderProvider
+class IShaderCacheProvider
 {
 public:
-    virtual ~IShaderProvider() = default;
+    virtual ~IShaderCacheProvider() = default;
 
     /** 주어진 Request에 따라 Shader를 가져옵니다. */
     virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const ShaderRequest& request) = 0;

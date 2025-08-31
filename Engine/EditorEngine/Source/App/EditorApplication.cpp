@@ -68,14 +68,14 @@ bool EditorApplication::PostInitialize()
         return false;
     }
 
-    // ShaderManager Provider 변경
+    // Shader Cache Provider 변경
     {
         using namespace se::rendering::manager;
         using namespace se::editor::rendering::shader_provider;
 
         const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
-        ShaderManager* shader_manager = render_subsystem->GetShaderManager();
-        shader_manager->SetProvider<CompilingShaderProvider>();
+        PSOManager* pso_manager = render_subsystem->GetPSOManager();
+        pso_manager->SetShaderCacheProvider<CompilingShaderProvider>();
     }
 
     return true;

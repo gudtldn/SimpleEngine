@@ -1,5 +1,5 @@
 ﻿module SimpleEngine.Rendering;
-import :Manager.ShaderManager;
+import :Manager.PSOManager.ShaderCache;
 
 import SimpleEngine.Core;
 
@@ -7,23 +7,18 @@ import SimpleEngine.Core;
 
 namespace se::rendering::manager
 {
-ShaderManager::ShaderManager(SDL_GPUDevice* in_device, std::unique_ptr<IShaderProvider> init_provider)
+ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderCacheProvider> init_provider)
     : device(in_device)
     , provider(std::move(init_provider))
 {
 }
 
-ShaderManager::~ShaderManager()
+ShaderCache::~ShaderCache()
 {
-    for (SDL_GPUShader* cache : shader_cache | std::views::values)
-    {
-        SDL_ReleaseGPUShader(device, cache);
-        cache = nullptr;
-    }
-    shader_cache.clear();
+    ClearCache();
 }
 
-SDL_GPUShader* ShaderManager::GetShader(const ShaderRequest& request)
+SDL_GPUShader* ShaderCache::GetOrCreate(const ShaderRequest& request)
 {
     if (shader_cache.contains(request))
     {
@@ -38,5 +33,15 @@ SDL_GPUShader* ShaderManager::GetShader(const ShaderRequest& request)
 
     ConsoleLog(ELogLevel::Error, u8"Failed to get shader from provider!");
     return nullptr;
+}
+
+void ShaderCache::ClearCache()
+{
+    for (SDL_GPUShader* cache : shader_cache | std::views::values)
+    {
+        SDL_ReleaseGPUShader(device, cache);
+        cache = nullptr;
+    }
+    shader_cache.clear();
 }
 }

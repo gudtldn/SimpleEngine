@@ -29,7 +29,6 @@ public:
 
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
-    [[nodiscard]] ShaderManager* GetShaderManager() const { return shader_manager.get(); }
     [[nodiscard]] PSOManager* GetPSOManager() const { return pso_manager.get(); }
 
 public:
@@ -40,6 +39,5 @@ private:
     SDL_GPUDevice* gpu_device = nullptr;
 
     std::unique_ptr<RenderGraph> render_graph;
-    std::unique_ptr<ShaderManager> shader_manager;
     std::unique_ptr<PSOManager> pso_manager;
 };
