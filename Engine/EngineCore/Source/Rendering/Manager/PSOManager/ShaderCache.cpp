@@ -37,7 +37,6 @@ void ShaderCache::ClearCache()
     for (SDL_GPUShader* cache : shader_cache | std::views::values)
     {
         SDL_ReleaseGPUShader(device, cache);
-        cache = nullptr;
     }
     shader_cache.clear();
 }
