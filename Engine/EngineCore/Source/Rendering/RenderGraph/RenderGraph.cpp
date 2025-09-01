@@ -177,4 +177,14 @@ SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGResourceHandle handle) cons
 {
     return graph_ref.GetActualBuffer(handle);
 }
+
+SDL_GPUGraphicsPipeline* RGExecutionContext::GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info)
+{
+    return pso_manager.GetOrCreateGraphicsPipeline(create_info);
+}
+
+SDL_GPUComputePipeline* RGExecutionContext::GetOrCreateComputePipeline(const ComputePipelineCreateInfo& create_info)
+{
+    return pso_manager.GetOrCreateComputePipeline(create_info);
+}
 }

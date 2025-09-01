@@ -138,7 +138,8 @@ public:
     [[nodiscard]] SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
     [[nodiscard]] SDL_GPUBuffer* GetActualBuffer(RGResourceHandle handle) const;
 
-    [[nodiscard]] manager::PSOManager& GetPSOManager() const { return pso_manager; }
+    [[nodiscard]] SDL_GPUGraphicsPipeline* GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info);
+    [[nodiscard]] SDL_GPUComputePipeline* GetOrCreateComputePipeline(const ComputePipelineCreateInfo& create_info);
 
 private:
     SDL_GPUCommandBuffer* command_buffer;
