@@ -4,6 +4,9 @@ module SE.Core;
 import :Engine;
 
 import SE.Utility;
+import SE.Subsystems.RenderSubsystem;
+
+import "SDL3/SDL_gpu.h";
 
 
 namespace se::core::engine
@@ -58,6 +61,13 @@ bool Engine::InitializeAllSubsystems()
 void Engine::ReleaseAllSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Releasing Subsystems...");
+
+    // RenderSubsystem이 있다면, 해제하기전에 GPU 대기
+    if (const RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>())
+    {
+        SDL_WaitForGPUIdle(render_subsystem->GetGpuDevice());
+    }
+
     for (ISubsystemBase* sub_system : sorted_sub_systems | std::views::reverse)
     {
         sub_system->Release();

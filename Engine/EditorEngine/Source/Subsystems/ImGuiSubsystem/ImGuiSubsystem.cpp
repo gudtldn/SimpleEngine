@@ -20,11 +20,11 @@ bool ImGuiSubsystem::Initialize()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    ImGuiIO& IO = ImGui::GetIO();
-    IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    IO.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-    IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-    IO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
 
     ImGui::StyleColorsDark();
 
@@ -34,6 +34,8 @@ bool ImGuiSubsystem::Initialize()
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(main_scale);
     style.FontScaleDpi = main_scale;
+    io.ConfigDpiScaleFonts = true;
+    io.ConfigDpiScaleViewports = true;
 
     ImGui_ImplSDL3_InitForSDLGPU(main_window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {
