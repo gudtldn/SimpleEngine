@@ -25,7 +25,7 @@ public:
     [[nodiscard]] SDL_GPUGraphicsPipeline* GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info);
 
     /** 캐싱된 SDL_GPUComputePipeline* 를 가져오거나, 새로 생성합니다. */
-    [[nodiscard]] SDL_GPUComputePipeline* GetOrCreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info);
+    [[nodiscard]] SDL_GPUComputePipeline* GetOrCreateComputePipeline(const ComputePipelineCreateInfo& create_info);
 
     /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T, typename... Args>

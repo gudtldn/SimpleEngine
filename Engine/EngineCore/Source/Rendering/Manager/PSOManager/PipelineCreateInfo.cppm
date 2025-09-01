@@ -37,8 +37,12 @@ export struct GraphicsPipelineCreateInfo
 export struct ComputePipelineCreateInfo
 {
     uint32 placeholder;
+    SDL_GPUComputePipelineCreateInfo compute_pipeline_create_info;
 
     // TODO: Implement
 
-    bool operator==(const ComputePipelineCreateInfo& other) const = default;
+    bool operator==(const ComputePipelineCreateInfo& other) const
+    {
+        return placeholder == other.placeholder;
+    }
 };

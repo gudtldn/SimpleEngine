@@ -69,9 +69,9 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
     return pipeline;
 }
 
-SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const SDL_GPUComputePipelineCreateInfo& create_info)
+SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const ComputePipelineCreateInfo& create_info)
 {
-    return SDL_CreateGPUComputePipeline(device, &create_info);
+    return SDL_CreateGPUComputePipeline(device, &create_info.compute_pipeline_create_info);
 }
 
 void PSOManager::EndFrame()
