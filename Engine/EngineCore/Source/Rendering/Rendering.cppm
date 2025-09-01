@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Rendering;
+﻿export module SE.Rendering;
 
 export import :Manager;
 export import :RenderGraph;

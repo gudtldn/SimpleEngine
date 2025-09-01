@@ -1,8 +1,8 @@
-﻿module SimpleEngine.Editor.Rendering;
+﻿module SE.Editor.Rendering;
 import :ShaderProvider.CompilingShaderProvider;
 
-import SimpleEngine.Editor.Utility;
-import SimpleEngine.Utility;
+import SE.Editor.Utility;
+import SE.Utility;
 import std;
 
 

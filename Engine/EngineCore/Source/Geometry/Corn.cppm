@@ -1,7 +1,7 @@
-export module SimpleEngine.Geometry:Corn;
+export module SE.Geometry:Corn;
 import :Vertex;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 export

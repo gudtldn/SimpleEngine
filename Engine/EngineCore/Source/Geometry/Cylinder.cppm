@@ -1,7 +1,7 @@
-export module SimpleEngine.Geometry:Cylinder;
+export module SE.Geometry:Cylinder;
 import :Vertex;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 export

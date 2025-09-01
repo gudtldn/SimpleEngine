@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Core:ECS.SparseSet;
+﻿export module SE.Core:ECS.SparseSet;
 import :ECS.Entity;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 import <cassert>;

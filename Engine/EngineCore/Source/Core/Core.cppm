@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core;
+﻿export module SE.Core;
 
 export import :ECS;
 export import :Engine;

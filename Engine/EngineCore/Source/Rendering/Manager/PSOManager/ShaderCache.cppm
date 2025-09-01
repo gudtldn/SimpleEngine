@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.Rendering:Manager.PSOManager.ShaderCache;
+﻿export module SE.Rendering:Manager.PSOManager.ShaderCache;
 import :ShaderProvider.IShaderProvider;
 import :ShaderProvider.PrecompiledShaderProvider;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 import "SDL3/SDL_gpu.h";

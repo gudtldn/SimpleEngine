@@ -1,4 +1,4 @@
-﻿module SimpleEngine.Subsystems.WorldSubsystem;
+﻿module SE.Subsystems.WorldSubsystem;
 
 
 bool WorldSubsystem::Initialize()

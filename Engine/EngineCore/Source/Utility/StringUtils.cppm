@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Utility:StringUtils;
+﻿export module SE.Utility:StringUtils;
 import std;
 
 

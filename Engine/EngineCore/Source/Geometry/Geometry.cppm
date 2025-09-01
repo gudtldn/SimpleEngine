@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Geometry;
+﻿export module SE.Geometry;
 
 export import :Circle;
 export import :Corn;

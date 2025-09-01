@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Editor.Rendering:ShaderProvider.CompilingShaderProvider;
+﻿export module SE.Editor.Rendering:ShaderProvider.CompilingShaderProvider;
 
-import SimpleEngine.Rendering;
+import SE.Rendering;
 
 import "SDL3/SDL_gpu.h";
 

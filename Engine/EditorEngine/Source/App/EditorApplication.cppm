@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Editor.App;
+﻿export module SE.Editor.App;
 
-import SimpleEngine.App;
+import SE.App;
 import <SDL3/SDL.h>;
 
 

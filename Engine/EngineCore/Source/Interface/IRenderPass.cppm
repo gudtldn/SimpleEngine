@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Interface.IRenderPass;
+﻿export module SE.Interface.IRenderPass;
 
-import SimpleEngine.Rendering.Declarations;
+import SE.Rendering.Declarations;
 
 
 /**

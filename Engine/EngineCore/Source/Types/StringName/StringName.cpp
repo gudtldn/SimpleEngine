@@ -1,8 +1,8 @@
-﻿module SimpleEngine.Types;
+﻿module SE.Types;
 import :StringName;
 import :StringName.StringNamePool;
 
-import SimpleEngine.Utility;
+import SE.Utility;
 
 
 StringName StringName::None = StringName{};

@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Types;
+﻿export module SE.Types;
 
 export import :StringName;
 export import :Optional;

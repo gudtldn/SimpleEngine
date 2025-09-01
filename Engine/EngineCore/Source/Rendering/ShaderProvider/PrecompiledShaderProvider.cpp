@@ -1,7 +1,7 @@
-﻿module SimpleEngine.Rendering;
+﻿module SE.Rendering;
 import :ShaderProvider.PrecompiledShaderProvider;
 
-import SimpleEngine.Utility;
+import SE.Utility;
 
 
 namespace se::rendering::shader_provider

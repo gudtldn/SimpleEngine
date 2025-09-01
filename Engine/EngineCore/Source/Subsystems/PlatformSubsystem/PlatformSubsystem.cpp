@@ -1,9 +1,9 @@
-﻿module SimpleEngine.Subsystems.PlatformSubsystem;
+﻿module SE.Subsystems.PlatformSubsystem;
 
-import SimpleEngine.Core;
-import SimpleEngine.Utility;
-import SimpleEngine.Subsystems.Utility;
-import SimpleEngine.Subsystems.RenderSubsystem;
+import SE.Core;
+import SE.Utility;
+import SE.Subsystems.Utility;
+import SE.Subsystems.RenderSubsystem;
 import <SDL3/SDL_gpu.h>;
 
 using namespace se::utility::string_utils;

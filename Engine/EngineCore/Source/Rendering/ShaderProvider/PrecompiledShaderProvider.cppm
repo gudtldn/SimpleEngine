@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Rendering:ShaderProvider.PrecompiledShaderProvider;
+﻿export module SE.Rendering:ShaderProvider.PrecompiledShaderProvider;
 import :ShaderProvider.IShaderProvider;
 
 import "SDL3/SDL_gpu.h";

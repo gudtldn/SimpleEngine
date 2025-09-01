@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Subsystems.WorldSubsystem;
+﻿export module SE.Subsystems.WorldSubsystem;
 
-import SimpleEngine.Interface.ISubsystem;
-import SimpleEngine.Core;
+import SE.Interface.ISubsystem;
+import SE.Core;
 import std;
 
 using namespace se::core::ecs;

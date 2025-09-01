@@ -1,10 +1,10 @@
 ﻿module;
 #include <unicode/unistr.h>
 #include <unicode/locid.h>
-module SimpleEngine.Utility;
+module SE.Utility;
 import :StringUtils;
 
-import SimpleEngine.Types;
+import SE.Types;
 import <cassert>;
 
 using namespace icu;

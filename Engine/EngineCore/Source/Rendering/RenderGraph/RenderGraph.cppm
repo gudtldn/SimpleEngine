@@ -1,12 +1,12 @@
-﻿export module SimpleEngine.Rendering:RenderGraph;
+﻿export module SE.Rendering:RenderGraph;
 export import :RenderGraph.RGResoueceHandle;
 export import :RenderGraph.RGResources;
 import :Manager.PSOManager;
 
-import SimpleEngine.Core;
-import SimpleEngine.Types;
-import SimpleEngine.Utility;
-import SimpleEngine.Interface.IRenderPass;
+import SE.Core;
+import SE.Types;
+import SE.Utility;
+import SE.Interface.IRenderPass;
 import std;
 
 import <SDL3/SDL_gpu.h>;

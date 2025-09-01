@@ -1,4 +1,4 @@
-﻿module SimpleEngine.Rendering;
+﻿module SE.Rendering;
 import :Manager.PSOManager;
 
 

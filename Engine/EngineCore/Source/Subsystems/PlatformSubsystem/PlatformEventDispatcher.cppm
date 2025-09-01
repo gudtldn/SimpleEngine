@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Subsystems.PlatformSubsystem:PlatformEventDispatcher;
+﻿export module SE.Subsystems.PlatformSubsystem:PlatformEventDispatcher;
 
-import SimpleEngine.Core;
-import SimpleEngine.Types;
+import SE.Core;
+import SE.Types;
 import std;
 import <SDL3/SDL.h>;
 

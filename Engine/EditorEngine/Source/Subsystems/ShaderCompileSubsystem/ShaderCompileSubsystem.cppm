@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Editor.Subsystems.ShaderCompileSubsystem;
+﻿export module SE.Editor.Subsystems.ShaderCompileSubsystem;
 
-import SimpleEngine.Interface.ISubsystem;
-import SimpleEngine.Subsystems.PlatformSubsystem;
+import SE.Interface.ISubsystem;
+import SE.Subsystems.PlatformSubsystem;
 import std;
 
 

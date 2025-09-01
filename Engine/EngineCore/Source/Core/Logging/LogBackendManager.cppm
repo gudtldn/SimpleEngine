@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core:Logging.LogBackendManager;
+﻿export module SE.Core:Logging.LogBackendManager;
 import :Logging.Backends.ILogBackend;
 import :Logging.LogData;
 

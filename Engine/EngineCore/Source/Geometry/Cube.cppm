@@ -1,7 +1,7 @@
-export module SimpleEngine.Geometry:Cube;
+export module SE.Geometry:Cube;
 import :Vertex;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 export

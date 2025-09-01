@@ -1,3 +1,3 @@
-﻿export module SimpleEngine.Editor.Utility;
+﻿export module SE.Editor.Utility;
 
 export import :ShaderUtils;

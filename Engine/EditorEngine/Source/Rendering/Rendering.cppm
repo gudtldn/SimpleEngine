@@ -1,3 +1,3 @@
-﻿export module SimpleEngine.Editor.Rendering;
+﻿export module SE.Editor.Rendering;
 
 export import :ShaderProvider;

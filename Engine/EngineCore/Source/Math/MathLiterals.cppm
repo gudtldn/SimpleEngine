@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Math:MathLiterals;
+﻿export module SE.Math:MathLiterals;
 
-import SimpleEngine.Traits;
+import SE.Traits;
 import std;
 
 using namespace se::traits::type_traits;

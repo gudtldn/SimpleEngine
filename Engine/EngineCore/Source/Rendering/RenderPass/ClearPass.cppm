@@ -1,7 +1,7 @@
-export module SimpleEngine.Rendering:RenderPass.ClearPass;
+export module SE.Rendering:RenderPass.ClearPass;
 import :RenderGraph;
 
-import SimpleEngine.Interface.IRenderPass;
+import SE.Interface.IRenderPass;
 import <SDL3/SDL_gpu.h>;
 
 

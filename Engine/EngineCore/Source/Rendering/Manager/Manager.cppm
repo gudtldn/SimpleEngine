@@ -1,3 +1,3 @@
-﻿export module SimpleEngine.Rendering:Manager;
+﻿export module SE.Rendering:Manager;
 
 export import :Manager.PSOManager;

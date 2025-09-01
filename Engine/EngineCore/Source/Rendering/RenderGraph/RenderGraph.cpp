@@ -1,5 +1,5 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeConst
-module SimpleEngine.Rendering;
+module SE.Rendering;
 import :RenderGraph;
 
 import <cassert>;

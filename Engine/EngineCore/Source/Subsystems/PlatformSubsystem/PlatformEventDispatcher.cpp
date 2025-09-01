@@ -1,4 +1,4 @@
-﻿module SimpleEngine.Subsystems.PlatformSubsystem;
+﻿module SE.Subsystems.PlatformSubsystem;
 import :PlatformEventDispatcher;
 
 

@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.App;
+﻿export module SE.App;
 
-import SimpleEngine.Types;
-import SimpleEngine.Core;
-import SimpleEngine.Utility;
+import SE.Types;
+import SE.Core;
+import SE.Utility;
 import std;
 
 using namespace se::core::engine;

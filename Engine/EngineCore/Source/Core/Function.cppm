@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Core:Function;
+﻿export module SE.Core:Function;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

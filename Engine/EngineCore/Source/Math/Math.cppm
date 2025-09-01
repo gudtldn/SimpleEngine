@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Math;
+﻿export module SE.Math;
 
 export import :MathLiterals;
 export import :MathUtility;

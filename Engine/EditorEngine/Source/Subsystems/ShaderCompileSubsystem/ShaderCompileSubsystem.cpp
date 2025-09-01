@@ -1,8 +1,8 @@
 ﻿module;
 #include <SDL3_shadercross/SDL_shadercross.h>
-module SimpleEngine.Editor.Subsystems.ShaderCompileSubsystem;
+module SE.Editor.Subsystems.ShaderCompileSubsystem;
 
-import SimpleEngine.Core;
+import SE.Core;
 
 
 bool ShaderCompileSubsystem::Initialize()

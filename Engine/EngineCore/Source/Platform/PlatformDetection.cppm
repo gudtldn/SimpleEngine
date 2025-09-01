@@ -1,6 +1,6 @@
 ﻿module;
 #include "Platform/PlatformMacros.h"
-export module SimpleEngine.Platform:Detection;
+export module SE.Platform:Detection;
 
 
 export namespace se::platform::detection

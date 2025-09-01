@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Components:TransformComponent;
+﻿export module SE.Components:TransformComponent;
 
-import SimpleEngine.Math;
+import SE.Math;
 
 
 /**

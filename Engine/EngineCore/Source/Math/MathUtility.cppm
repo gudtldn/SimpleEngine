@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.Math:MathUtility;
+﻿export module SE.Math:MathUtility;
 import :MathLiterals;
 
-import SimpleEngine.Traits;
-import SimpleEngine.Types;
+import SE.Traits;
+import SE.Types;
 import std;
 
 using namespace se::math::math_literals;

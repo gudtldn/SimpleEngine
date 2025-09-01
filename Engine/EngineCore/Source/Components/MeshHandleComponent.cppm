@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Components:MeshHandleComponent;
+﻿export module SE.Components:MeshHandleComponent;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 /**

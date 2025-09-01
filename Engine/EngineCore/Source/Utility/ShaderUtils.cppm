@@ -1,10 +1,10 @@
 ﻿module;
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
-export module SimpleEngine.Utility:ShaderUtils;
+export module SE.Utility:ShaderUtils;
 import :FileUtils;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

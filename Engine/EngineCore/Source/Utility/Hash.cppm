@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Utility:Hash;
+﻿export module SE.Utility:Hash;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

@@ -1,8 +1,8 @@
-﻿module SimpleEngine.Types;
+﻿module SE.Types;
 import :StringName.StringNamePool;
 
-import SimpleEngine.Core;
-import SimpleEngine.Utility;
+import SE.Core;
+import SE.Utility;
 
 import <cassert>;
 

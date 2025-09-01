@@ -1,3 +1,3 @@
-﻿export module SimpleEngine.Platform;
+﻿export module SE.Platform;
 
 export import :Detection;

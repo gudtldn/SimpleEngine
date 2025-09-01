@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Rendering:RenderGraph.RGResoueceHandle;
+﻿export module SE.Rendering:RenderGraph.RGResoueceHandle;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

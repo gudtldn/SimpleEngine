@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Traits:FunctionTraits;
+﻿export module SE.Traits:FunctionTraits;
 
 import std;
 

@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.Math:Vector2;
+﻿export module SE.Math:Vector2;
 import :MathUtility;
 
-import SimpleEngine.Traits;
-import SimpleEngine.Types;
+import SE.Traits;
+import SE.Types;
 import std;
 
 import <cassert>;

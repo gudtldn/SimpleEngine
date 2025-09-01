@@ -1,15 +1,15 @@
 ﻿module;
 #include "tracy/Tracy.hpp"
-module SimpleEngine.App;
+module SE.App;
 
 #define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, u8"Initialize Failed!: {}", #x); return; } else {}
 
-import SimpleEngine.Core;
-import SimpleEngine.Config;
-import SimpleEngine.Utility;
-import SimpleEngine.Subsystems.PlatformSubsystem;
-import SimpleEngine.Subsystems.RenderSubsystem;
-import SimpleEngine.Subsystems.WorldSubsystem;
+import SE.Core;
+import SE.Config;
+import SE.Utility;
+import SE.Subsystems.PlatformSubsystem;
+import SE.Subsystems.RenderSubsystem;
+import SE.Subsystems.WorldSubsystem;
 
 import <cassert>;
 import <SDL3/SDL.h>;

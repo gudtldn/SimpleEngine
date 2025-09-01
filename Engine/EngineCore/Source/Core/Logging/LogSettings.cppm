@@ -2,7 +2,7 @@
 #ifdef _WIN32  // NOLINT(readability-avoid-unconditional-preprocessor-if)
 #include <Windows.h>
 #endif
-export module SimpleEngine.Core:Logging.LogSettings;
+export module SE.Core:Logging.LogSettings;
 
 
 /**

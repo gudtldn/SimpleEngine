@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Rendering:RenderGraph.RGResources;
+﻿export module SE.Rendering:RenderGraph.RGResources;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 import <SDL3/SDL_gpu.h>;

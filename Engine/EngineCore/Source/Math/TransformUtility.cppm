@@ -1,11 +1,11 @@
-﻿export module SimpleEngine.Math:TransformUtility;
+﻿export module SE.Math:TransformUtility;
 import :MathUtility;
 import :Matrix;
 import :RotationTypes;
 import :Vector3;
 
-import SimpleEngine.Traits;
-import SimpleEngine.Types;
+import SE.Traits;
+import SE.Types;
 import std;
 
 

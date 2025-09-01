@@ -1,7 +1,7 @@
-export module SimpleEngine.Geometry:Plane;
+export module SE.Geometry:Plane;
 import :Vertex;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 export

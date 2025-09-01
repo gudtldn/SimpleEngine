@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.Editor.Subsystems.ImGuiSubsystem;
+﻿export module SE.Editor.Subsystems.ImGuiSubsystem;
 
-import SimpleEngine.Interface.ISubsystem;
-import SimpleEngine.Subsystems.PlatformSubsystem;
-import SimpleEngine.Subsystems.RenderSubsystem;
+import SE.Interface.ISubsystem;
+import SE.Subsystems.PlatformSubsystem;
+import SE.Subsystems.RenderSubsystem;
 import std;
 
 

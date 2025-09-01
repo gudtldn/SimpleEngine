@@ -1,8 +1,8 @@
-export module SimpleEngine.Subsystems.RenderSubsystem;
+export module SE.Subsystems.RenderSubsystem;
 
-import SimpleEngine.Rendering;
-import SimpleEngine.Interface.ISubsystem;
-import SimpleEngine.Subsystems.PlatformSubsystem;
+import SE.Rendering;
+import SE.Interface.ISubsystem;
+import SE.Subsystems.PlatformSubsystem;
 import std;
 import <SDL3/SDL.h>;
 

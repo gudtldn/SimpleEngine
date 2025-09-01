@@ -1,8 +1,8 @@
 ﻿module;
 #include <SDL3/SDL_gpu.h>
-export module SimpleEngine.Editor.Utility:ShaderUtils;
+export module SE.Editor.Utility:ShaderUtils;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

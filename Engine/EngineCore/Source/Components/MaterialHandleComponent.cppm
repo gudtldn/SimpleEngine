@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Components:MaterialHandleComponent;
+﻿export module SE.Components:MaterialHandleComponent;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 /**

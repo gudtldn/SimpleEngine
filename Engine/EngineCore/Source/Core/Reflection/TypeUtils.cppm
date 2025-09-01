@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Core:Reflection.TypeUtility;
+﻿export module SE.Core:Reflection.TypeUtility;
 
-import SimpleEngine.Traits;
-import SimpleEngine.Types;
+import SE.Traits;
+import SE.Types;
 import std;
 
 

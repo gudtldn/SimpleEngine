@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core:Logging;
+﻿export module SE.Core:Logging;
 import :Logging.LogData;
 import :Logging.Colors;
 
@@ -11,8 +11,8 @@ export import :Logging.Backends.ILogBackend;
 export import :Logging.Backends.FileBackend;
 export import :Logging.Backends.ConsoleBackend;
 
-import SimpleEngine.Types;
-import SimpleEngine.Utility;
+import SE.Types;
+import SE.Utility;
 import std;
 
 

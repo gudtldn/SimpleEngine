@@ -1,7 +1,7 @@
 ﻿module;
 #define TOML_EXCEPTIONS 0
 #include <toml++/toml.h>
-module SimpleEngine.Config;
+module SE.Config;
 
 
 namespace se::config

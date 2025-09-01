@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Rendering:ShaderProvider.IShaderProvider;
+﻿export module SE.Rendering:ShaderProvider.IShaderProvider;
 
-import SimpleEngine.Types;
-import SimpleEngine.Utility;
+import SE.Types;
+import SE.Utility;
 import std;
 
 import "SDL3/SDL_gpu.h";

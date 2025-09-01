@@ -1,6 +1,6 @@
 ﻿#include "doctest.h"
 
-import SimpleEngine.Prelude;
+import SE.Prelude;
 import std;
 
 

@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core:Logging.Backends.ConsoleBackend;
+﻿export module SE.Core:Logging.Backends.ConsoleBackend;
 import :Logging.Backends.ILogBackend;
 
 

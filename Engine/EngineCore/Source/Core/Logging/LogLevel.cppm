@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Core:Logging.LogLevel;
+﻿export module SE.Core:Logging.LogLevel;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 /**

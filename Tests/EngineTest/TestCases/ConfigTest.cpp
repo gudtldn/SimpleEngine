@@ -2,7 +2,7 @@
 #include "toml++/toml.hpp"
 
 import std;
-import SimpleEngine.Config;
+import SE.Config;
 
 
 TEST_SUITE("SimpleEngine.Config")

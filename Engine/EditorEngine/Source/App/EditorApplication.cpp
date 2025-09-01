@@ -1,13 +1,13 @@
-﻿module SimpleEngine.Editor.App;
+﻿module SE.Editor.App;
 
-import SimpleEngine.Editor.Rendering;
-import SimpleEngine.Editor.Subsystems.ShaderCompileSubsystem;
+import SE.Editor.Rendering;
+import SE.Editor.Subsystems.ShaderCompileSubsystem;
 
-import SimpleEngine.Core;
-import SimpleEngine.Types;
-import SimpleEngine.Config;
-import SimpleEngine.Subsystems.PlatformSubsystem;
-import SimpleEngine.Subsystems.RenderSubsystem;
+import SE.Core;
+import SE.Types;
+import SE.Config;
+import SE.Subsystems.PlatformSubsystem;
+import SE.Subsystems.RenderSubsystem;
 
 import std;
 import <SDL3/SDL_gpu.h>;

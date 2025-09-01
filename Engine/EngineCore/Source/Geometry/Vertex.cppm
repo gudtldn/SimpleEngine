@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Geometry:Vertex;
+﻿export module SE.Geometry:Vertex;
 
 
 export struct Vertex

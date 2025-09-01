@@ -1,8 +1,8 @@
-﻿export module SimpleEngine.Core:Reflection.TypeId;
+﻿export module SE.Core:Reflection.TypeId;
 import :Reflection.TypeUtility;
 
-import SimpleEngine.Types;
-import SimpleEngine.Utility;
+import SE.Types;
+import SE.Utility;
 import std;
 
 

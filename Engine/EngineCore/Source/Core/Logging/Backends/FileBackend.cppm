@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Core:Logging.Backends.FileBackend;
+﻿export module SE.Core:Logging.Backends.FileBackend;
 import :Logging.Backends.ILogBackend;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

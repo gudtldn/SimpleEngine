@@ -1,10 +1,10 @@
-module SimpleEngine.Subsystems.RenderSubsystem;
+module SE.Subsystems.RenderSubsystem;
 
-import SimpleEngine.Core;
-import SimpleEngine.Utility;
-import SimpleEngine.Platform;
-import SimpleEngine.Subsystems.Utility;
-import SimpleEngine.Rendering;
+import SE.Core;
+import SE.Utility;
+import SE.Platform;
+import SE.Subsystems.Utility;
+import SE.Rendering;
 
 import <SDL3/SDL_gpu.h>;
 import <SDL3/SDL_hints.h>;

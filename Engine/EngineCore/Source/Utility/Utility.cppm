@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Utility;
+﻿export module SE.Utility;
 
 export import :FileUtils;
 export import :Hash;

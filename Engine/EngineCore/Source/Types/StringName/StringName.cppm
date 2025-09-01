@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Types:StringName;
+﻿export module SE.Types:StringName;
 import :PlatformTypes;
 
 import std;

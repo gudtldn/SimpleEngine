@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Types:StringName.StringNamePool;
+﻿export module SE.Types:StringName.StringNamePool;
 import :PlatformTypes;
 import :StringName;
 

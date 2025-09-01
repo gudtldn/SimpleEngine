@@ -1,7 +1,7 @@
-﻿export module SimpleEngine.Core:ECS.EntityManager;
+﻿export module SE.Core:ECS.EntityManager;
 import :ECS.Entity;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

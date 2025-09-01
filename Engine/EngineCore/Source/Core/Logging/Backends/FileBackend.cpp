@@ -1,4 +1,4 @@
-﻿module SimpleEngine.Core;
+﻿module SE.Core;
 import :Logging.Backends.FileBackend;
 
 

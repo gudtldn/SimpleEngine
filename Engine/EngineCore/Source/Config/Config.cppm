@@ -1,10 +1,10 @@
 ﻿module;
 #define TOML_EXCEPTIONS 0
 #include <toml++/toml.h>
-export module SimpleEngine.Config;
+export module SE.Config;
 
-import SimpleEngine.Core;
-import SimpleEngine.Types;
+import SE.Core;
+import SE.Types;
 import std;
 
 

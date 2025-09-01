@@ -1,9 +1,9 @@
-﻿export module SimpleEngine.Rendering:Manager.PSOManager.PipelineCreateInfoHash;
+﻿export module SE.Rendering:Manager.PSOManager.PipelineCreateInfoHash;
 import :Manager.PSOManager.PipelineCreateInfo;
 import :ShaderProvider.IShaderProvider;
 
-import SimpleEngine.Types;
-import SimpleEngine.Utility;
+import SE.Types;
+import SE.Utility;
 import std;
 
 import "SDL3/SDL_gpu.h";

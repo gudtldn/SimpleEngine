@@ -1,9 +1,9 @@
-﻿export module SimpleEngine.Core:Engine;
+﻿export module SE.Core:Engine;
 import :Logging;
 import :Reflection;
 
-import SimpleEngine.Interface.ISubsystemBase;
-import SimpleEngine.Interface.IUpdatable;
+import SE.Interface.ISubsystemBase;
+import SE.Interface.IUpdatable;
 import std;
 
 

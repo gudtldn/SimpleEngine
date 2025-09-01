@@ -1,7 +1,7 @@
-﻿module SimpleEngine.Rendering;
+﻿module SE.Rendering;
 import :Manager.PSOManager.ShaderCache;
 
-import SimpleEngine.Core;
+import SE.Core;
 
 
 ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderCacheProvider> init_provider)

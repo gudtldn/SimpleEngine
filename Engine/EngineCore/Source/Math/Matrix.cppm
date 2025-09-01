@@ -1,12 +1,12 @@
-﻿export module SimpleEngine.Math:Matrix;
+﻿export module SE.Math:Matrix;
 import :MathUtility;
 import :MathLiterals;
 import :RotationTypes;
 import :Vector3;
 import :Vector4;
 
-import SimpleEngine.Traits;
-import SimpleEngine.Types;
+import SE.Traits;
+import SE.Types;
 import std;
 
 import <cassert>;

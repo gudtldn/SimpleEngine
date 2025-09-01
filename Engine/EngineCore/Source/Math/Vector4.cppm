@@ -1,9 +1,9 @@
-﻿export module SimpleEngine.Math:Vector4;
+﻿export module SE.Math:Vector4;
 import :MathUtility;
 import :Vector3;
 
-import SimpleEngine.Traits;
-import SimpleEngine.Types;
+import SE.Traits;
+import SE.Types;
 import std;
 
 import <cassert>;

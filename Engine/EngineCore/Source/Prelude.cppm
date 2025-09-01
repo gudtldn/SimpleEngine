@@ -1,10 +1,10 @@
-﻿export module SimpleEngine.Prelude;
+﻿export module SE.Prelude;
 
-export import SimpleEngine.Core;
-export import SimpleEngine.Math;
-export import SimpleEngine.Types;
-export import SimpleEngine.Utility;
+export import SE.Core;
+export import SE.Math;
+export import SE.Types;
+export import SE.Utility;
 
-export import SimpleEngine.Subsystems.Utility;
-export import SimpleEngine.Subsystems.PlatformSubsystem;
-export import SimpleEngine.Subsystems.RenderSubsystem;
+export import SE.Subsystems.Utility;
+export import SE.Subsystems.PlatformSubsystem;
+export import SE.Subsystems.RenderSubsystem;

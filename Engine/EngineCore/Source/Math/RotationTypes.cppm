@@ -1,10 +1,10 @@
-﻿export module SimpleEngine.Math:RotationTypes;
+﻿export module SE.Math:RotationTypes;
 import :Vector3;
 import :MathUtility;
 import :MathLiterals;
 
-import SimpleEngine.Types;
-import SimpleEngine.Traits;
+import SE.Types;
+import SE.Traits;
 import std;
 
 import <cassert>;

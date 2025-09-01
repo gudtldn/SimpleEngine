@@ -1,9 +1,9 @@
-﻿export module SimpleEngine.Core:ECS.World;
+﻿export module SE.Core:ECS.World;
 import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
 
-import SimpleEngine.Types;
+import SE.Types;
 import std;
 
 

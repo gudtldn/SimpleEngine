@@ -1,4 +1,4 @@
-﻿export module SimpleEngine.Core:Logging.LogData;
+﻿export module SE.Core:Logging.LogData;
 import :Logging.LogLevel;
 
 import std;

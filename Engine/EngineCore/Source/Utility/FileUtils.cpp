@@ -1,4 +1,4 @@
-﻿module SimpleEngine.Utility;
+﻿module SE.Utility;
 import :StringUtils;
 import :FileUtils;
 

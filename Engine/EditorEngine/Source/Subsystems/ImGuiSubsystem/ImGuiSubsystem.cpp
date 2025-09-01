@@ -2,9 +2,9 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
-module SimpleEngine.Editor.Subsystems.ImGuiSubsystem;
+module SE.Editor.Subsystems.ImGuiSubsystem;
 
-import SimpleEngine.Subsystems.Utility;
+import SE.Subsystems.Utility;
 import std;
 import <SDL3/SDL.h>;
 

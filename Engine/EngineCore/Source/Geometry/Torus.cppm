@@ -1,7 +1,7 @@
-export module SimpleEngine.Geometry:Torus;
+export module SE.Geometry:Torus;
 import :Vertex;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 export

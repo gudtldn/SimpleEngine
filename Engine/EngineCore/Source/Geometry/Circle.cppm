@@ -1,7 +1,7 @@
-export module SimpleEngine.Geometry:Circle;
+export module SE.Geometry:Circle;
 import :Vertex;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 export

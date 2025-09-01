@@ -1,9 +1,9 @@
 ﻿module;
 #include <typeinfo>
-module SimpleEngine.Core;
+module SE.Core;
 import :Engine;
 
-import SimpleEngine.Utility;
+import SE.Utility;
 
 
 namespace se::core::engine

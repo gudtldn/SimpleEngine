@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Core:Logging.Colors;
+﻿export module SE.Core:Logging.Colors;
 
-import SimpleEngine.Types;
+import SE.Types;
 
 
 namespace LogColors

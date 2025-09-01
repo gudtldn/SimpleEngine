@@ -1,5 +1,5 @@
 ﻿import std;
-import SimpleEngine.Editor.App;
+import SE.Editor.App;
 
 import <Windows.h>;
 import <SDL3/SDL.h>;

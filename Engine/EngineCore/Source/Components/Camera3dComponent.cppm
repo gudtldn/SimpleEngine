@@ -1,6 +1,6 @@
-﻿export module SimpleEngine.Components:Camera3dComponent;
+﻿export module SE.Components:Camera3dComponent;
 
-import SimpleEngine.Math;
+import SE.Math;
 
 
 /**
