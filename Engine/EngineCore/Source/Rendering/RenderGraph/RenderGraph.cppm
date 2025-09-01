@@ -1,6 +1,7 @@
 ﻿export module SimpleEngine.Rendering:RenderGraph;
 export import :RenderGraph.RGResoueceHandle;
 export import :RenderGraph.RGResources;
+import :Manager.PSOManager;
 
 import SimpleEngine.Core;
 import SimpleEngine.Types;
@@ -69,7 +70,7 @@ public:
     PassType& AddPass(Args&&... args);
 
     void Compile();
-    void Execute(SDL_GPUCommandBuffer* cmd);
+    void Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager);
     void Clear();
 
     SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
@@ -125,8 +126,9 @@ private:
 export class RGExecutionContext
 {
 public:
-    RGExecutionContext(SDL_GPUCommandBuffer* in_cmd, const RenderGraph& in_graph)
+    RGExecutionContext(SDL_GPUCommandBuffer* in_cmd, manager::PSOManager& in_pso_manager, const RenderGraph& in_graph)
         : command_buffer(in_cmd)
+        , pso_manager(in_pso_manager)
         , graph_ref(in_graph)
     {
     }
@@ -136,8 +138,11 @@ public:
     [[nodiscard]] SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
     [[nodiscard]] SDL_GPUBuffer* GetActualBuffer(RGResourceHandle handle) const;
 
+    [[nodiscard]] manager::PSOManager& GetPSOManager() const { return pso_manager; }
+
 private:
     SDL_GPUCommandBuffer* command_buffer;
+    manager::PSOManager& pso_manager;
     const RenderGraph& graph_ref;
 };
 

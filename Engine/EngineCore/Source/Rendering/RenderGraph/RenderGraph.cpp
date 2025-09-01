@@ -30,11 +30,11 @@ void RenderGraph::Compile()
     }
 }
 
-void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd)
+void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager)
 {
     for (const RGPassNode* pass_node : compiled_passes)
     {
-        pass_node->pass_object->Execute({ cmd, *this });
+        pass_node->pass_object->Execute({ cmd, pso_manager, *this });
     }
 }
 
