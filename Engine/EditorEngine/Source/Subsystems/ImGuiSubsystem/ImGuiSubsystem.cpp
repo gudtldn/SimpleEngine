@@ -62,3 +62,10 @@ void ImGuiSubsystem::Release()
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 }
+
+void ImGuiSubsystem::Update([[maybe_unused]] float delta_time)
+{
+    ImGui_ImplSDLGPU3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+}
