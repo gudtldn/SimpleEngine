@@ -80,7 +80,15 @@ void Engine::UpdateFrame(float delta_time)
 {
     for (IUpdatable* sub_system : updatable_systems)
     {
+        sub_system->PreUpdate();
+    }
+    for (IUpdatable* sub_system : updatable_systems)
+    {
         sub_system->Update(delta_time);
+    }
+    for (IUpdatable* sub_system : updatable_systems)
+    {
+        sub_system->PostUpdate();
     }
 }
 
