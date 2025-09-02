@@ -63,9 +63,26 @@ void ImGuiSubsystem::Release()
     ImGui::DestroyContext();
 }
 
-void ImGuiSubsystem::Update([[maybe_unused]] float delta_time)
+void ImGuiSubsystem::PreUpdate()
 {
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+}
+
+void ImGuiSubsystem::Update([[nodiscard]] float delta_time)
+{
+    ImGui::ShowDemoWindow();
+}
+
+void ImGuiSubsystem::PostUpdate()
+{
+    ImGui::EndFrame();
+
+    // Update and Render additional Platform Windows
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+    }
 }
