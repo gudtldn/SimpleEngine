@@ -70,7 +70,7 @@ void ImGuiSubsystem::PreUpdate()
     ImGui::NewFrame();
 }
 
-void ImGuiSubsystem::Update([[nodiscard]] float delta_time)
+void ImGuiSubsystem::Update([[maybe_unused]] float delta_time)
 {
     ImGui::ShowDemoWindow();
 }
