@@ -7,7 +7,7 @@ import <SDL3/SDL_gpu.h>;
 
 namespace se::rendering::passes
 {
-export class ClearPass : public IRenderPass
+export class [[deprecated]] ClearPass : public IRenderPass
 {
 public:
     ClearPass(render_graph::RGResourceHandle target, const SDL_FColor& color);
