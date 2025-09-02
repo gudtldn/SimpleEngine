@@ -114,8 +114,10 @@ void RenderSubsystem::RenderFrame() const
         SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);
         if (!command_buffer)
         {
+            render_graph->Clear();
+
             ConsoleLog(ELogLevel::Error, u8"SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
-            return;
+            continue;
         }
 
         // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
@@ -124,8 +126,10 @@ void RenderSubsystem::RenderFrame() const
 
         if (!swapchain_texture)
         {
+            render_graph->Clear();
+
             SDL_CancelGPUCommandBuffer(command_buffer);
-            return;
+            continue;
         }
 
         // --- Render Graph 설정 및 실행 ---
