@@ -130,8 +130,8 @@ void RenderSubsystem::RenderFrame() const
 
         // --- Render Graph 설정 및 실행 ---
 
-        // 스왑체인 텍스처를 "Backbuffer"라는 이름으로 RenderGraph에 임포트
-        const RGResourceHandle backbuffer_handle = render_graph->ImportTexture(u8"Backbuffer", swapchain_texture);
+        // 스왑체인 텍스처를 "BackBuffer"라는 이름으로 RenderGraph에 임포트
+        const RGResourceHandle backbuffer_handle = render_graph->ImportTexture(u8"BackBuffer", swapchain_texture);
 
         // ClearPass를 추가하여 Backbuffer를 회색으로 클리어
         render_graph->AddPass<ClearPass>(
