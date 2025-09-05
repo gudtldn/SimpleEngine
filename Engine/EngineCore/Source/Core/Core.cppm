@@ -4,4 +4,5 @@ export import :ECS;
 export import :Engine;
 export import :Function;
 export import :Logging;
+export import :Memory;
 export import :Reflection;
