@@ -13,4 +13,10 @@ constexpr bool IS_DEBUG_BUILD = true;
 #else
 constexpr bool IS_DEBUG_BUILD = false;
 #endif
+
+#if defined(NDEBUG)
+constexpr bool IS_RELEASE_BUILD = true;
+#else
+constexpr bool IS_RELEASE_BUILD = false;
+#endif
 }
