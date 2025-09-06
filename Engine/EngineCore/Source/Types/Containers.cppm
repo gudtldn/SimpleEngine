@@ -7,7 +7,6 @@ template <typename T> \
 using container_name = std::pmr::container_name<T>;
 
 #define SE_USE_STD_STRING(container_name) \
-template <typename T> \
 using container_name = std::pmr::container_name;
 
 
