@@ -20,7 +20,7 @@ void MemoryTracker::TrackAllocation(
     [[maybe_unused]] const std::source_location& loc
 )
 {
-    // 메모리 트레킹 시작
+    // 메모리 트래킹 시작
     TotalAllocated.fetch_add(size, std::memory_order_relaxed);
     AllocationCount.fetch_add(1, std::memory_order_relaxed);
 
@@ -44,7 +44,7 @@ void MemoryTracker::TrackDeallocation(void* block)
 {
     const MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(block);
 
-    // 메모리 트레킹 해제
+    // 메모리 트래킹 해제
     TotalAllocated.fetch_sub(header->alloc_size, std::memory_order_relaxed);
     AllocationCount.fetch_sub(1, std::memory_order_relaxed);
 
