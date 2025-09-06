@@ -11,7 +11,10 @@ TrackedMemoryResource::TrackedMemoryResource(memory_resource* upstream)
 {
 }
 
-void* TrackedMemoryResource::do_allocate(size_t size, size_t align)
+void* TrackedMemoryResource::do_allocate(
+    size_t size,
+    [[maybe_unused]] size_t align
+)
 {
     if (size == 0)
     {
