@@ -6,6 +6,9 @@ import std;
 
 export namespace se::core::memory::memory_resource
 {
+/**
+ * 컨테이너의 사용량을 추적하는 메모리 리소스
+ */
 class TrackedMemoryResource : public std::pmr::memory_resource
 {
 public:
