@@ -83,10 +83,19 @@ bool MemoryTracker::CheckForLeaks()
         while (current)
         {
             const std::source_location& loc = current->loc;
+            std::string_view file_name_view = loc.file_name();
+            {
+                const size_t last_slash = file_name_view.find_last_of("/\\");
+                if (last_slash != std::string_view::npos)
+                {
+                    file_name_view = file_name_view.substr(last_slash + 1);
+                }
+            }
+
             ConsoleLog(
                 ELogLevel::Error,
                 u8"Leak: {} bytes, allocated at {}:{}",
-                current->alloc_size, loc.file_name(), loc.line()
+                current->alloc_size, file_name_view, loc.line()
             );
             current = current->next;
         }
