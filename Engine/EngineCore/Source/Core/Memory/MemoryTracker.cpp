@@ -91,6 +91,7 @@ bool MemoryTracker::CheckForLeaks()
             current = current->next;
         }
         ConsoleLog(ELogLevel::Error, u8"-----------------------------");
+        return true;
     }
 #endif
 
