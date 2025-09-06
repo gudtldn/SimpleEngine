@@ -3,11 +3,6 @@ import :Memory.OsMemory;
 import :Memory.MemoryTracker;
 
 
-namespace
-{
-constexpr size_t HEADER_SIZE = sizeof(se::core::memory::MemoryAllocHeader);
-}
-
 namespace se::core::memory
 {
 void* OsMemory::Allocate(size_t size, const std::source_location& loc)

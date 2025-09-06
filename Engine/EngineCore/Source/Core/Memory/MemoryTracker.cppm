@@ -4,12 +4,12 @@ import SE.Types;
 import std;
 
 
-export namespace se::core::memory
+namespace se::core::memory
 {
 /**
  * 각 메모리 할당 앞에 붙는 메타데이터 헤더
  */
-struct MemoryAllocHeader
+export struct MemoryAllocHeader
 {
     /** 사용자가 요청한 실제 데이터의 크기 */
     size_t alloc_size;
@@ -24,10 +24,13 @@ struct MemoryAllocHeader
 #endif
 };
 
+/** MemoryAllocHeader의 크기 */
+constexpr size_t HEADER_SIZE = sizeof(MemoryAllocHeader);
+
 /**
  * 모든 메모리 할당을 추적하고 통계 및 디버깅 정보를 제공하는 정적 클래스
  */
-class MemoryTracker
+export class MemoryTracker
 {
 public:
     /**
