@@ -40,7 +40,7 @@ void EditorApplication::RegisterSubsystems()
 
         Config& config = result.value();
         platform_subsystem->PrepareWindow({
-            .title = config.GetValueOrStore<std::u8string>(u8"window.title", u8"SimpleEngine Editor"),
+            .title = config.GetValueOrStore<se::u8string>(u8"window.title", u8"SimpleEngine Editor"),
             .width = config.GetValueOrStore<uint32>(u8"window.width", 1280),
             .height = config.GetValueOrStore<uint32>(u8"window.height", 720),
             .sdl_window_flags = SDL_WINDOW_RESIZABLE,

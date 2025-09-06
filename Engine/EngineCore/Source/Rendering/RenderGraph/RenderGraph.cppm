@@ -31,8 +31,8 @@ struct RGPassNode
 {
     StringName name;
     std::unique_ptr<IRenderPass> pass_object;
-    std::vector<RGResourceHandle> reads;
-    std::vector<RGResourceHandle> writes;
+    vector<RGResourceHandle> reads;
+    vector<RGResourceHandle> writes;
 };
 
 
@@ -86,11 +86,11 @@ private:
 
 private:
     SDL_GPUDevice* device;
-    std::vector<RGPassNode> pass_nodes;
-    std::vector<RGResourceNode> resource_nodes;
+    vector<RGPassNode> pass_nodes;
+    vector<RGResourceNode> resource_nodes;
 
     // 컴파일 후 정렬된 Pass의 순서
-    std::vector<const RGPassNode*> compiled_passes;
+    vector<const RGPassNode*> compiled_passes;
 };
 
 /**

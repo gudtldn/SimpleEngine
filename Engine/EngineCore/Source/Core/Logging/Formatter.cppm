@@ -1,4 +1,6 @@
 ﻿export module SE.Core:Logging.Formatter;
+
+import SE.Types;
 import std;
 
 
@@ -19,6 +21,16 @@ template <>
 struct std::formatter<std::u8string, char> : std::formatter<std::u8string_view>
 {
     auto format(const std::u8string& u8s, std::format_context& ctx) const
+    {
+        return std::formatter<std::u8string_view>::format(std::u8string_view(u8s), ctx);
+    }
+};
+
+// se::u8string에 대한 std::formatter 특수화
+template <>
+struct std::formatter<se::u8string, char> : std::formatter<std::u8string_view>
+{
+    auto format(const se::u8string& u8s, std::format_context& ctx) const
     {
         return std::formatter<std::u8string_view>::format(std::u8string_view(u8s), ctx);
     }

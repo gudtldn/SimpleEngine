@@ -15,13 +15,13 @@ class SparseSet
 {
 private:
     /** EntityID -> DenseIdx */
-    std::vector<Optional<size_t>> sparse;
+    vector<Optional<size_t>> sparse;
 
     /** Entity array */
-    std::vector<Entity> dense;
+    vector<Entity> dense;
 
     /** Component array */
-    std::vector<ComponentType> components;
+    vector<ComponentType> components;
 
 public:
     explicit SparseSet() = default;
@@ -136,8 +136,8 @@ public:
         return *opt_value;
     }
 
-    [[nodiscard]] const std::vector<Entity>& GetEntities() const { return dense; }
-    [[nodiscard]] const std::vector<ComponentType>& GetComponents() const { return components; }
+    [[nodiscard]] const vector<Entity>& GetEntities() const { return dense; }
+    [[nodiscard]] const vector<ComponentType>& GetComponents() const { return components; }
 
     [[nodiscard]] ComponentType& operator[](Entity entity_id) { return Get(entity_id); }
     [[nodiscard]] const ComponentType& operator[](Entity entity_id) const { return Get(entity_id); }
@@ -202,8 +202,8 @@ public:
         CompIt comp_iter;
     };
 
-    using Iterator = SparseSetIteratorTemplate<std::vector<Entity>::iterator, typename std::vector<ComponentType>::iterator>;
-    using ConstIterator = SparseSetIteratorTemplate<std::vector<Entity>::const_iterator, typename std::vector<ComponentType>::const_iterator>;
+    using Iterator = SparseSetIteratorTemplate<vector<Entity>::iterator, typename vector<ComponentType>::iterator>;
+    using ConstIterator = SparseSetIteratorTemplate<vector<Entity>::const_iterator, typename vector<ComponentType>::const_iterator>;
 
     [[nodiscard]] Iterator begin() { return Iterator(dense.begin(), components.begin()); }
     [[nodiscard]] Iterator end() { return Iterator(dense.end(), components.end()); }

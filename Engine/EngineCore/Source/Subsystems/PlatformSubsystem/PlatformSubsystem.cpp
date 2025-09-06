@@ -12,6 +12,26 @@ using namespace se::utility::string_utils;
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     : sdl_init_flags(in_sdl_init_flags)
 {
+    using namespace se::core::memory;
+
+    // SDL_SetMemoryFunctions(
+    //     [](size_t size) static -> void*
+    //     {
+    //         return OsMemory::Allocate(size);
+    //     },
+    //     [](size_t nmemb, size_t size) static -> void*
+    //     {
+    //         return std::calloc(nmemb, size);
+    //     },
+    //     [](void* mem, size_t size) static -> void*
+    //     {
+    //         return std::realloc(mem, size);
+    //     },
+    //     [](void* mem) static -> void
+    //     {
+    //         OsMemory::Free(mem);
+    //     }
+    // );
 }
 
 bool PlatformSubsystem::Initialize()

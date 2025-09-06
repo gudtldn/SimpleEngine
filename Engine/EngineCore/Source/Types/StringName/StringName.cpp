@@ -26,7 +26,7 @@ StringName::StringName(std::u8string_view in_str)
 #endif
 }
 
-std::u8string StringName::ToString() const
+se::u8string StringName::ToString() const
 {
     if (display_hash == 0 && comparison_hash == 0)
     {

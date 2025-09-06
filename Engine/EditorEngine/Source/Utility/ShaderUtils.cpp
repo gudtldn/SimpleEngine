@@ -17,11 +17,11 @@ SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
     const std::filesystem::path& shader_path,
     Optional<const std::filesystem::path&> include_dir_opt,
-    Optional<const std::vector<HLSL_Define>&> defines_opt
+    Optional<const vector<HLSL_Define>&> defines_opt
 )
 {
     // read shader file
-    std::vector<uint8> source;
+    vector<uint8> source;
     if (auto result = file_utils::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
@@ -64,10 +64,10 @@ SDL_GPUShader* CompileFromHLSL(
         include_dir_str = include_dir_opt->generic_string();
     }
 
-    std::vector<SDL_ShaderCross_HLSL_Define> hlsl_defines;
+    vector<SDL_ShaderCross_HLSL_Define> hlsl_defines;
     if (defines_opt)
     {
-        const std::vector<HLSL_Define>& defines = *defines_opt;
+        const vector<HLSL_Define>& defines = *defines_opt;
         hlsl_defines.resize(defines.size());
 
         for (auto [n, hlsl_define] : hlsl_defines | std::ranges::views::enumerate)

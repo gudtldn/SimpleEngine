@@ -51,7 +51,7 @@ SDL_GPUShader* CompileFromSPIRV(
 )
 {
     // read shader file
-    std::vector<uint8> source;
+    vector<uint8> source;
     if (auto result = file_utils::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();

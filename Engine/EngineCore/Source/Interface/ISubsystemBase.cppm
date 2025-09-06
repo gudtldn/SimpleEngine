@@ -1,5 +1,6 @@
 ﻿export module SE.Interface.ISubsystemBase;
 
+import SE.Types;
 import std;
 
 
@@ -15,5 +16,5 @@ public:
     [[nodiscard]] virtual bool Initialize() = 0;
     virtual void Release() = 0;
 
-    virtual std::vector<std::type_index> GetDependencies() const = 0;
+    virtual se::vector<std::type_index> GetDependencies() const = 0;
 };

@@ -18,7 +18,7 @@ public:
     [[nodiscard]] bool IsValid(Entity entity) const;
     [[nodiscard]] uint32 GetTotalRecordCount() const { return next_id; }
 
-    [[nodiscard]] std::vector<Entity> GetAliveEntities() const;
+    [[nodiscard]] vector<Entity> GetAliveEntities() const;
 
 private:
     struct EntityRecord
@@ -27,8 +27,8 @@ private:
         bool alive = false;
     };
 
-    std::vector<EntityRecord> entity_records;
-    std::vector<uint32> free_ids;
+    vector<EntityRecord> entity_records;
+    vector<uint32> free_ids;
 
     std::atomic<uint32> next_id;
 };

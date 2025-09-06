@@ -22,25 +22,25 @@ struct FileReadError
     };
 
     Type type;
-    std::u8string message;
+    u8string message;
 
-    static FileReadError NotFound(std::u8string&& msg) { return { Type::FileNotFound, std::move(msg) }; }
-    static FileReadError OpenFailed(std::u8string&& msg) { return { Type::FileOpenFailed, std::move(msg) }; }
-    static FileReadError Permission(std::u8string&& msg) { return { Type::PermissionDenied, std::move(msg) }; }
-    static FileReadError Format(std::u8string&& msg) { return { Type::InvalidFormat, std::move(msg) }; }
-    static FileReadError Read(std::u8string&& msg) { return { Type::ReadFailed, std::move(msg) }; }
-    static FileReadError Write(std::u8string&& msg) { return { Type::WriteFailed, std::move(msg) }; }
-    static FileReadError EOF(std::u8string&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
-    static FileReadError OutOfMem(std::u8string&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
-    static FileReadError Unknown(std::u8string&& msg) { return { Type::UnknownError, std::move(msg) }; }
+    static FileReadError NotFound(u8string&& msg) { return { Type::FileNotFound, std::move(msg) }; }
+    static FileReadError OpenFailed(u8string&& msg) { return { Type::FileOpenFailed, std::move(msg) }; }
+    static FileReadError Permission(u8string&& msg) { return { Type::PermissionDenied, std::move(msg) }; }
+    static FileReadError Format(u8string&& msg) { return { Type::InvalidFormat, std::move(msg) }; }
+    static FileReadError Read(u8string&& msg) { return { Type::ReadFailed, std::move(msg) }; }
+    static FileReadError Write(u8string&& msg) { return { Type::WriteFailed, std::move(msg) }; }
+    static FileReadError EOF(u8string&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
+    static FileReadError OutOfMem(u8string&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
+    static FileReadError Unknown(u8string&& msg) { return { Type::UnknownError, std::move(msg) }; }
 };
 
 template <typename T>
 using FileResult = std::expected<T, FileReadError>;
 
 /** 파일을 읽고, byte array로 반환합니다. */
-[[nodiscard]] FileResult<std::vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
+[[nodiscard]] FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
 
 /** 파일을 읽고, string으로 반환합니다. */
-[[nodiscard]] FileResult<std::u8string> ReadToString(const std::filesystem::path& file_path);
+[[nodiscard]] FileResult<u8string> ReadToString(const std::filesystem::path& file_path);
 }

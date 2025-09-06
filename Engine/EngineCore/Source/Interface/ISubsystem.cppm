@@ -17,7 +17,7 @@ class ISubsystem : public ISubsystemBase
 {
 public:
     /** 이 Subsystem이 의존하는 모든 타입의 type_index를 반환합니다. */
-    virtual std::vector<std::type_index> GetDependencies() const final override
+    virtual se::vector<std::type_index> GetDependencies() const final override
     {
         return { typeid(Dependencies)... };
     }

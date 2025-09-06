@@ -18,7 +18,7 @@ struct ShaderRequest
 
     // HLSL 컴파일 시 사용
     Optional<std::filesystem::path> hlsl_include_dir_opt = std::nullopt;
-    Optional<std::vector<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
+    Optional<vector<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
 
     bool operator==(const ShaderRequest& other) const = default;
 };

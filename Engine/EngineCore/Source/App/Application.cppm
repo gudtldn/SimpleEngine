@@ -44,7 +44,7 @@ public:
     // u8string으로 변경해서 호출해주는 오버로딩 함수
     void Startup(const char* cmd_line);
     void Startup(const wchar_t* cmd_line);
-    void Startup(const std::u8string& cmd_line);
+    void Startup(const u8string& cmd_line);
 
     void Shutdown();
 

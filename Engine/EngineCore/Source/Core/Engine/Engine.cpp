@@ -43,7 +43,7 @@ bool Engine::InitializeAllSubsystems()
     {
         if (!sub_system->Initialize())
         {
-            const std::u8string sub_system_name = utility::string_utils::ToU8String(typeid(*sub_system).name());
+            const u8string sub_system_name = utility::string_utils::ToU8String(typeid(*sub_system).name());
             ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
             const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), sorted_sub_systems.begin() + n);

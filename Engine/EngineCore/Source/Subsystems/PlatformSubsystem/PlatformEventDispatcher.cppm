@@ -89,6 +89,6 @@ private:
         EventCallback callback;
     };
 
-    std::unordered_map<SubscriptionHandle, Subscription> subscriptions;
-    std::map<EventPriority, std::vector<SubscriptionHandle>> priority_map;
+    se::unordered_map<SubscriptionHandle, Subscription> subscriptions;
+    se::map<EventPriority, se::vector<SubscriptionHandle>> priority_map;
 };

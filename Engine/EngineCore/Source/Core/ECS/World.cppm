@@ -29,7 +29,7 @@ private:
     friend class QueryResult;
 
     EntityManager entity_manager;
-    std::unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
+    unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
 
 public:
     class EntityChain;
@@ -50,7 +50,7 @@ public:
     void DestroyEntity(Entity entity);
 
     /** 현재 살아있는 모든 Entity를 반환합니다. */
-    std::vector<Entity> GetAliveEntities() const;
+    vector<Entity> GetAliveEntities() const;
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType, typename... Args>

@@ -112,7 +112,7 @@ TEST_CASE("get array config file")
         auto arr = config.GetArray<int>(u8"int_array");
         CHECK(arr.HasValue());
         CHECK(arr->size() == 5);
-        CHECK(arr == std::vector{1, 2, 3, 4, 5});
+        CHECK(arr == se::vector<int>{{1, 2, 3, 4, 5}, std::pmr::get_default_resource()});
     }
 
     SUBCASE("get float array")
@@ -120,7 +120,7 @@ TEST_CASE("get array config file")
         auto arr = config.GetArray<float>(u8"float_array");
         CHECK(arr.HasValue());
         CHECK(arr->size() == 3);
-        CHECK(arr == std::vector{0.5f, 1.5f, 2.5f});
+        CHECK(arr == se::vector<float>{{0.5f, 1.5f, 2.5f}, std::pmr::get_default_resource()});
     }
 
     SUBCASE("get string array")
@@ -141,7 +141,7 @@ TEST_CASE("get array config file")
         auto arr = config.GetArray<bool>(u8"bool_array");
         CHECK(arr.HasValue());
         CHECK(arr->size() == 4);
-        CHECK(arr == std::vector{true, false, true, true});
+        CHECK(arr == se::vector<bool>{{true, false, true, true}, std::pmr::get_default_resource()});
     }
 }
 
@@ -181,7 +181,7 @@ TEST_CASE("get table config file")
         CHECK(features->GetValue<int>(u8"anisotropic_filtering") == 16);
         CHECK(!features->GetValue<std::u8string>(u8"anisotropic_filtering").HasValue());
 
-        CHECK(graphics->GetArray<int>(u8"multisample_levels") == std::vector{2, 4, 8});
+        CHECK(graphics->GetArray<int>(u8"multisample_levels") == se::vector<int>{{2, 4, 8}, std::pmr::get_default_resource()});
     }
 }
 
@@ -211,10 +211,10 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
     config.SetValue(u8"a_float", 3.14159f);
     config.SetValue(u8"a_string", u8"Hello, TOML!");
 
-    config.SetValue(u8"int_array", std::vector{1, 2, 3, 4, 5});
-    config.SetValue(u8"float_array", std::vector{0.5f, 1.5f, 2.5f});
-    config.SetValue(u8"string_array", std::vector{u8"apple", u8"banana", u8"cherry"});
-    config.SetValue(u8"bool_array", std::vector{true, false, true, true});
+    config.SetValue(u8"int_array", se::vector<int>{ { 1, 2, 3, 4, 5 }, std::pmr::get_default_resource() });
+    config.SetValue(u8"float_array", se::vector<float>{ { 0.5f, 1.5f, 2.5f }, std::pmr::get_default_resource() });
+    config.SetValue(u8"string_array", se::vector<se::u8string>{ { u8"apple", u8"banana", u8"cherry" }, std::pmr::get_default_resource() });
+    config.SetValue(u8"bool_array", se::vector<bool>{ { true, false, true, true }, std::pmr::get_default_resource() });
 
     config.SetValue(u8"window.width", 1280);
     config.SetValue(u8"window.height", 720);
@@ -224,10 +224,10 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
 
     config.SetValue(u8"graphics.vsync", true);
     config.SetValue(u8"graphics.max_fps", 144);
-    config.SetValue(u8"graphics.shaders", std::vector{u8"default.vert", u8"default.frag"});
+    config.SetValue(u8"graphics.shaders", se::vector<se::u8string>{ { u8"default.vert", u8"default.frag" }, std::pmr::get_default_resource() });
     config.SetValue(u8"graphics.features.antialiasing", u8"MSAAx4");
     config.SetValue(u8"graphics.features.anisotropic_filtering", 16);
-    config.SetValue(u8"graphics.multisample_levels", std::vector{2, 4, 8});
+    config.SetValue(u8"graphics.multisample_levels", se::vector<int>{ { 2, 4, 8 }, std::pmr::get_default_resource() });
 
     FileDeleter file_deleter(save_test_toml_path);
     CHECK(config.WriteConfig(save_test_toml_path));

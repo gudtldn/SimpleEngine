@@ -12,7 +12,7 @@ using namespace icu;
 
 namespace
 {
-std::u8string ToU8String(const UnicodeString& in_ustr)
+se::u8string ToU8String(const UnicodeString& in_ustr)
 {
     std::string result;
     in_ustr.toUTF8String(result);
@@ -22,15 +22,15 @@ std::u8string ToU8String(const UnicodeString& in_ustr)
 
 namespace se::utility::string_utils
 {
-std::u8string ToU8String(std::string_view in_str)
+u8string ToU8String(std::string_view in_str)
 {
-    return std::u8string{
+    return u8string{
         reinterpret_cast<const char8_t*>(in_str.data()),
         in_str.size()
     };
 }
 
-std::u8string ToU8String(std::wstring_view in_str)
+u8string ToU8String(std::wstring_view in_str)
 {
     const UnicodeString ustr{
         in_str.data(),
@@ -39,7 +39,7 @@ std::u8string ToU8String(std::wstring_view in_str)
     return ::ToU8String(ustr);
 }
 
-std::u8string ToU8String(std::u16string_view in_str)
+u8string ToU8String(std::u16string_view in_str)
 {
     const UnicodeString ustr{
         in_str.data(),
@@ -48,7 +48,7 @@ std::u8string ToU8String(std::u16string_view in_str)
     return ::ToU8String(ustr);
 }
 
-std::u8string ToU8String(std::u32string_view in_str)
+u8string ToU8String(std::u32string_view in_str)
 {
     static_assert(
         sizeof(std::u32string_view::value_type) == sizeof(UChar32),
@@ -66,14 +66,14 @@ std::u8string ToU8String(std::u32string_view in_str)
     return ::ToU8String(ustr);
 }
 
-std::u8string ToU8UpperCase(std::u8string_view in_str)
+u8string ToU8UpperCase(std::u8string_view in_str)
 {
     UnicodeString ustr = UnicodeString::fromUTF8(in_str);
     ustr.toUpper();
     return ::ToU8String(ustr);
 }
 
-std::u8string ToU8LowerCase(std::u8string_view in_str)
+u8string ToU8LowerCase(std::u8string_view in_str)
 {
     UnicodeString ustr = UnicodeString::fromUTF8(in_str);
     ustr.toLower();

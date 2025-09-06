@@ -42,7 +42,7 @@ private:
     SDL_GPUDevice* device;
     std::unique_ptr<IShaderCacheProvider> provider;
 
-    std::unordered_map<ShaderRequest, SDL_GPUShader*> shader_cache;
+    se::unordered_map<ShaderRequest, SDL_GPUShader*> shader_cache;
 };
 
 template <typename T, typename... Args>

@@ -67,7 +67,7 @@ void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Arg
 export template <typename... Args>
 void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
 {
-    static std::unordered_set<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
+    static se::unordered_set<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
     static std::mutex mtx;
 
     {

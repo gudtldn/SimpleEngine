@@ -54,7 +54,7 @@ void Application::Startup(const wchar_t* cmd_line)
     Startup(utility::string_utils::ToU8String(cmd_line));
 }
 
-void Application::Startup(const std::u8string& cmd_line)
+void Application::Startup(const u8string& cmd_line)
 {
     if constexpr (utility::IS_DEBUG_BUILD)
     {
@@ -87,6 +87,8 @@ void Application::Shutdown()
     PreRelease();
     ReleaseEngine();
     PostRelease();
+
+    core::memory::MemoryTracker::CheckForLeaks();
 
     ConsoleLog(ELogLevel::Info, u8"shutdown");
 }

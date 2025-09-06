@@ -10,7 +10,7 @@ import <SDL3/SDL_init.h>;
 
 export struct WindowDesc
 {
-    std::u8string title = u8"Untitled Window";
+    se::u8string title = u8"Untitled Window";
     uint32 width = 1280;
     uint32 height = 720;
     uint32 sdl_window_flags = 0;
@@ -33,19 +33,19 @@ export struct WindowCreateError
     };
 
     Type type;
-    std::u8string message;
+    se::u8string message;
 
-    static WindowCreateError WindowCreation(std::u8string&& sdl_error)
+    static WindowCreateError WindowCreation(se::u8string&& sdl_error)
     {
         return { Type::WindowCreationFailed, std::move(sdl_error) };
     }
 
-    static WindowCreateError GPUDeviceClaim(std::u8string&& sdl_error)
+    static WindowCreateError GPUDeviceClaim(se::u8string&& sdl_error)
     {
         return { Type::GPUDeviceClaimFailed, std::move(sdl_error) };
     }
 
-    static WindowCreateError SwapchainSetup(std::u8string&& sdl_error)
+    static WindowCreateError SwapchainSetup(se::u8string&& sdl_error)
     {
         return { Type::SwapchainSetupFailed, std::move(sdl_error) };
     }
@@ -114,5 +114,5 @@ private:
     Optional<WindowDesc> main_window_info = std::nullopt;
     SDL_WindowID main_window_id = 0;
 
-    std::unordered_map<SDL_WindowID, SDL_Window*> windows;
+    se::unordered_map<SDL_WindowID, SDL_Window*> windows;
 };

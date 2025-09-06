@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    std::vector<std::unique_ptr<backends::ILogBackend>> backends;
+    vector<std::unique_ptr<backends::ILogBackend>> backends;
     std::mutex backends_mutex;
 };
 }

@@ -37,8 +37,8 @@ public:
 private:
     mutable std::shared_mutex string_pool_mutex;
 
-    std::unordered_map<uint64, StringNameEntry> display_string_pool;
-    std::unordered_map<uint64, StringNameEntry> comparison_string_pool;
+    se::unordered_map<uint64, StringNameEntry> display_string_pool;
+    se::unordered_map<uint64, StringNameEntry> comparison_string_pool;
 
 private:
     StringNamePool() = default;

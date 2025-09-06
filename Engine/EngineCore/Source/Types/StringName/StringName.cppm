@@ -1,4 +1,5 @@
 ﻿export module SE.Types:StringName;
+import :Containers;
 import :PlatformTypes;
 
 import std;
@@ -14,7 +15,7 @@ public:
     StringName(const char8* in_str);
     StringName(std::u8string_view in_str);
 
-    std::u8string ToString() const;
+    se::u8string ToString() const;
     uint64 GetDisplayHash() const { return display_hash; }
     uint64 GetComparisonHash() const { return comparison_hash; }
 

@@ -20,10 +20,10 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
     {
         using namespace utility::shader_utils;
 
-        Optional<std::vector<HLSL_Define>> defines_opt;
+        Optional<vector<HLSL_Define>> defines_opt;
         if (request.hlsl_defines_opt.HasValue())
         {
-            std::vector<HLSL_Define> hlsl_defines;
+            vector<HLSL_Define> hlsl_defines;
             const auto& request_defines = request.hlsl_defines_opt.Value();
 
             hlsl_defines.reserve(request_defines.size());

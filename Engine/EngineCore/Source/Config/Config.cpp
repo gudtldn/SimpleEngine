@@ -59,7 +59,7 @@ bool Config::WriteConfig(const std::filesystem::path& config_file_path) const
 
 toml::node_view<const toml::node> Config::FindNode(std::u8string_view path_str) const
 {
-    const std::string key_str = std::string(path_str.begin(), path_str.end());
+    const string key_str(path_str.begin(), path_str.end());
     return config_table.at_path(key_str);
 }
 }
