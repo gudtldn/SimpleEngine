@@ -6,6 +6,10 @@ import std;
 template <typename T> \
 using container_name = std::pmr::container_name<T>;
 
+#define SE_USE_STD_STRING(container_name) \
+template <typename T> \
+using container_name = std::pmr::container_name;
+
 
 export namespace se
 {
@@ -27,9 +31,9 @@ template <typename Key, typename Value, typename Hasher = std::hash<Key>, typena
 using unordered_map = std::pmr::unordered_map<Key, Value>;;
 
 // 문자열
-SE_USE_STD_CONTAINERS(string);
-SE_USE_STD_CONTAINERS(wstring);
-SE_USE_STD_CONTAINERS(u8string);
-SE_USE_STD_CONTAINERS(u16string);
-SE_USE_STD_CONTAINERS(u32string);
+SE_USE_STD_STRING(string);
+SE_USE_STD_STRING(wstring);
+SE_USE_STD_STRING(u8string);
+SE_USE_STD_STRING(u16string);
+SE_USE_STD_STRING(u32string);
 }
