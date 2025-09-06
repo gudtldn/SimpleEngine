@@ -1,9 +1,31 @@
 ﻿import std;
+import SE.Core;
 import SE.Editor.App;
 
 import <Windows.h>;
 import <SDL3/SDL.h>;
 
+namespace
+{
+se::core::memory::memory_resource::TrackedMemoryResource DefaultTrackedResource;
+
+class PmrScopeGuard
+{
+public:
+    PmrScopeGuard()
+        : original_resource(std::pmr::set_default_resource(&DefaultTrackedResource))
+    {
+    }
+
+    ~PmrScopeGuard()
+    {
+        std::pmr::set_default_resource(original_resource);
+    }
+
+private:
+    std::pmr::memory_resource* original_resource;
+};
+}
 
 static EditorApplication app;
 
@@ -20,8 +42,12 @@ int WINAPI wWinMain(
 
     SDL_SetAppMetadata("SimpleEngine_Editor", "0.1.0", "com.editor.simpleengine");
 
-    app.Startup(lpCmdLine);
-    app.Shutdown();
+    {
+        PmrScopeGuard scope_guard;
+
+        app.Startup(lpCmdLine);
+        app.Shutdown();
+    }
 
     // SDL_Init(SDL_INIT_VIDEO);
     // SDL_Window* Wnd;
