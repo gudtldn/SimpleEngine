@@ -18,10 +18,10 @@ public:
      * @param loc 소스코드 정보 (자동으로 채워집니다)
      * @return 할당된 메모리 블록의 시작 주소를 가리키는 포인터.
      */
-    static void* Allocate(size_t size, const std::source_location& loc = std::source_location::current());
+    [[nodiscard]] static void* Allocate(size_t size, const std::source_location& loc = std::source_location::current());
 
     template <typename T>
-    static T* Allocate(const std::source_location& loc = std::source_location::current());
+    [[nodiscard]] static T* Allocate(const std::source_location& loc = std::source_location::current());
 
     /**
      * 이전에 Allocate로 할당된 메모리를 해제합니다.
