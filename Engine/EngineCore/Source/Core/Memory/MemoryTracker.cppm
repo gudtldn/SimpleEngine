@@ -47,8 +47,11 @@ public:
     /** 현재 메모리 사용량 통계를 콘솔에 출력합니다. */
     static void PrintStats();
 
-    /** 프로그램 종료 시 호출하여 해제되지 않은 메모리(누수)를 로그에 남깁니다. */
-    static void CheckForLeaks();
+    /**
+     * 프로그램 종료 시 호출하여 해제되지 않은 메모리(누수)를 로그에 남깁니다.
+     * @return 누수가 있다면 true, 없으면 false
+     */
+    static bool CheckForLeaks();
 
 public:
     /** 현재 할당된 모든 메모리 Byte를 반환합니다. */

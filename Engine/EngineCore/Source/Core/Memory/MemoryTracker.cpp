@@ -2,7 +2,6 @@
 import :Memory.MemoryTracker;
 
 import SE.Core;
-import SE.Utility;
 
 
 namespace
@@ -15,14 +14,17 @@ std::mutex ListMutex;
 
 namespace se::core::memory
 {
-void MemoryTracker::TrackAllocation(void* block, size_t size, const std::source_location& loc)
+void MemoryTracker::TrackAllocation(
+    [[maybe_unused]] void* block,
+    size_t size,
+    [[maybe_unused]] const std::source_location& loc
+)
 {
     // 메모리 트레킹 시작
     TotalAllocated.fetch_add(size, std::memory_order_relaxed);
     AllocationCount.fetch_add(1, std::memory_order_relaxed);
 
-    if constexpr (utility::IS_DEBUG_BUILD)
-    {
+#ifdef _DEBUG
         MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(block);
         header->loc = loc;
         header->next = ListHead;
@@ -35,7 +37,7 @@ void MemoryTracker::TrackAllocation(void* block, size_t size, const std::source_
             ListHead->prev = header;
         }
         ListHead = header;
-    }
+#endif
 }
 
 void MemoryTracker::TrackDeallocation(void* block)
@@ -46,8 +48,7 @@ void MemoryTracker::TrackDeallocation(void* block)
     TotalAllocated.fetch_sub(header->alloc_size, std::memory_order_relaxed);
     AllocationCount.fetch_sub(1, std::memory_order_relaxed);
 
-    if constexpr (utility::IS_DEBUG_BUILD)
-    {
+#ifdef _DEBUG
         // 전역 리스트에서 제거
         std::lock_guard lock(ListMutex);
         if (header->prev)
@@ -62,7 +63,7 @@ void MemoryTracker::TrackDeallocation(void* block)
         {
             ListHead = header->next;
         }
-    }
+#endif
 }
 
 void MemoryTracker::PrintStats()
@@ -71,16 +72,11 @@ void MemoryTracker::PrintStats()
     ConsoleLog(ELogLevel::Info, u8"Allocation Count: {}", AllocationCount.load());
 }
 
-void MemoryTracker::CheckForLeaks()
+bool MemoryTracker::CheckForLeaks()
 {
-    if constexpr (utility::IS_DEBUG_BUILD)
-    {
+#ifdef _DEBUG
         std::lock_guard lock(ListMutex);
-        if (ListHead == nullptr)
-        {
-            ConsoleLog(ELogLevel::Info, u8"No memory leaks detected.");
-        }
-        else
+        if (ListHead)
         {
             ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
             const MemoryAllocHeader* current = ListHead;
@@ -95,8 +91,11 @@ void MemoryTracker::CheckForLeaks()
                 current = current->next;
             }
             ConsoleLog(ELogLevel::Error, u8"-----------------------------");
-        }
     }
+#endif
+
+        ConsoleLog(ELogLevel::Info, u8"No memory leaks detected.");
+        return false;
 }
 
 std::atomic<size_t> MemoryTracker::TotalAllocated = 0;
