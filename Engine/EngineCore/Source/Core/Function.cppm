@@ -1,4 +1,5 @@
 ﻿export module SE.Core:Function;
+import :Memory;
 
 import SE.Types;
 import std;
@@ -52,7 +53,9 @@ private:
 
         virtual ICallable* Clone() const override
         {
-            return new CallableImpl(functor);
+            CallableImpl* dest = memory::OsMemory::Allocate<CallableImpl>();
+            std::construct_at(dest, functor);
+            return dest;
         }
 
         virtual void CloneTo(void* dest) const override
@@ -173,7 +176,9 @@ public:
         }
         else
         {
-            Storage.Heap_Storage = new Callable(std::forward<Fn>(in_func));
+            Callable* dest = memory::OsMemory::Allocate<Callable>();
+            std::construct_at(dest, std::forward<Fn>(in_func));
+            Storage.Heap_Storage = dest;
             CallablePtr = Storage.Heap_Storage;
         }
     }
@@ -204,7 +209,8 @@ private:
         {
             if (IsOnHeap())
             {
-                delete CallablePtr;
+                std::destroy_at(CallablePtr);
+                memory::OsMemory::Free(CallablePtr);
             }
             else
             {
