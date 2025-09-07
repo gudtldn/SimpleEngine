@@ -20,7 +20,7 @@ void MemoryTracker::TrackAllocation(
     [[maybe_unused]] const std::source_location& loc
 )
 {
-    // 메모리 트레킹 시작
+    // 메모리 트래킹 시작
     TotalAllocated.fetch_add(size, std::memory_order_relaxed);
     AllocationCount.fetch_add(1, std::memory_order_relaxed);
 
@@ -44,7 +44,7 @@ void MemoryTracker::TrackDeallocation(void* block)
 {
     const MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(block);
 
-    // 메모리 트레킹 해제
+    // 메모리 트래킹 해제
     TotalAllocated.fetch_sub(header->alloc_size, std::memory_order_relaxed);
     AllocationCount.fetch_sub(1, std::memory_order_relaxed);
 
@@ -83,10 +83,19 @@ bool MemoryTracker::CheckForLeaks()
         while (current)
         {
             const std::source_location& loc = current->loc;
+            std::string_view file_name_view = loc.file_name();
+            {
+                const size_t last_slash = file_name_view.find_last_of("/\\");
+                if (last_slash != std::string_view::npos)
+                {
+                    file_name_view = file_name_view.substr(last_slash + 1);
+                }
+            }
+
             ConsoleLog(
                 ELogLevel::Error,
                 u8"Leak: {} bytes, allocated at {}:{}",
-                current->alloc_size, loc.file_name(), loc.line()
+                current->alloc_size, file_name_view, loc.line()
             );
             current = current->next;
         }
