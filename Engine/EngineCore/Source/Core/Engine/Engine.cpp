@@ -96,9 +96,9 @@ bool Engine::SortSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Sorting Subsystems based on dependencies...");
 
-    std::unordered_map<std::type_index, std::vector<std::type_index>> adj_list;
-    std::unordered_map<std::type_index, int> in_degree;
-    std::queue<std::type_index> queue;
+    unordered_map<std::type_index, vector<std::type_index>> adj_list;
+    unordered_map<std::type_index, int> in_degree;
+    queue<std::type_index> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
     for (const std::type_index& type_id : sub_systems | std::views::keys)
@@ -152,7 +152,7 @@ bool Engine::SortSubsystems()
     {
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
 
-        std::vector<std::type_index> circular_subsystems;
+        vector<std::type_index> circular_subsystems;
         for (const auto& [type_id, degree] : in_degree)
         {
             if (degree > 0)

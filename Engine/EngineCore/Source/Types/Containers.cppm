@@ -9,6 +9,9 @@ using container_name = std::pmr::container_name
 export namespace se
 {
 // 컨테이너
+template <typename T, size_t N>
+using array = std::array<T, N>;
+
 template <typename T>
 SE_USING_STD_PMR_CONTAINER(vector)<T>;
 
@@ -17,6 +20,12 @@ SE_USING_STD_PMR_CONTAINER(list)<T>;
 
 template <typename T>
 SE_USING_STD_PMR_CONTAINER(deque)<T>;
+
+template <typename T>
+using queue = std::queue<T, deque<T>>;
+
+template <typename T>
+using stack = std::stack<T, deque<T>>;
 
 template <typename T, typename Pred = std::less<T>>
 SE_USING_STD_PMR_CONTAINER(set)<T, Pred>;
