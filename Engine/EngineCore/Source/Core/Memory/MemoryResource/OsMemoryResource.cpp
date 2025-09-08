@@ -6,10 +6,7 @@ import :Memory.OsMemory;
 
 namespace se::core::memory::memory_resource
 {
-void* OsMemoryResource::do_allocate(
-    size_t size,
-    [[maybe_unused]] size_t align
-)
+void* OsMemoryResource::do_allocate(size_t size, size_t align)
 {
     return OsMemory::Allocate(size, align);
 }
