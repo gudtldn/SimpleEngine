@@ -14,13 +14,12 @@ void* OsMemory::Malloc(size_t size)
     return std::malloc(size);
 }
 
-void* OsMemory::Calloc(size_t count, size_t size)
-{
-    return std::calloc(count, size);
-}
-
 void* OsMemory::Realloc(void* address, size_t new_size)
 {
+    if (address == nullptr)
+    {
+        return Malloc(new_size);
+    }
     return std::realloc(address, new_size);
 }
 

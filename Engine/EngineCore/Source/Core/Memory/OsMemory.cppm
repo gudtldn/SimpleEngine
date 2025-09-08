@@ -19,11 +19,21 @@ public:
      */
     [[nodiscard]] static void* Malloc(size_t size);
 
+    /**
+     * 특정 타입 `T`의 객체를 `count`개 만큼 할당하기 위한 템플릿 헬퍼 함수
+     * @tparam T 할당할 객체의 타입
+     * @param count 할당할 객체의 개수 (기본값: 1)
+     * @return 할당된 메모리의 포인터
+     */
     template <typename T>
     [[nodiscard]] static T* Malloc(size_t count = 1);
 
-    [[nodiscard]] static void* Calloc(size_t count, size_t size);
-
+    /**
+     * 크기를 변경할 메모리 블록의 포인터
+     * @param address 기를 변경할 메모리 블록의 포인터
+     * @param new_size 새로운 메모리 블록의 크기 (Byte)
+     * @return 크기가 변경된 메모리의 포인터
+     */
     [[nodiscard]] static void* Realloc(void* address, size_t new_size);
 
     /**
