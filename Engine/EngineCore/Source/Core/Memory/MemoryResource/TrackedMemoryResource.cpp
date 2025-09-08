@@ -58,7 +58,11 @@ void* TrackedMemoryResource::do_allocate(size_t size, size_t align)
     return user_ptr;
 }
 
-void TrackedMemoryResource::do_deallocate(void* ptr, size_t size, size_t align)
+void TrackedMemoryResource::do_deallocate(
+    void* ptr,
+    [[maybe_unused]] size_t size,
+    size_t align
+)
 {
     if (ptr == nullptr)
     {
