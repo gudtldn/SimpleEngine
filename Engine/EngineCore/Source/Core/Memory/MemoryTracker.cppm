@@ -13,6 +13,7 @@ export struct MemoryAllocHeader
 {
     /** 사용자가 요청한 실제 데이터의 크기 */
     size_t alloc_size;
+    uint32 padding;
 
 #ifdef _DEBUG
     /** Alloc 당시의 코드 위치 (파일명, 함수명, 라인넘버) */
@@ -35,17 +36,17 @@ export class MemoryTracker
 public:
     /**
      * 새로운 메모리 할당을 추적 리스트에 추가하고 통계를 업데이트 합니다.
-     * @param block 할당된 전체 블록의 시작 주소 (헤더 포함)
+     * @param header_ptr 할당된 메모리의 헤더 주소
      * @param size 사용자가 요청한 데이터의 크기
      * @param loc 할당이 발생한 소스 코드 위치
      */
-    static void TrackAllocation(void* block, size_t size, const std::source_location& loc);
+    static void TrackAllocation(void* header_ptr, size_t size, const std::source_location& loc);
 
     /**
-     * 메모리 해제를 추적 리스트에서 제거하고 통계를 업데이트 합니다.
-     * @param block 해제될 전체 블록의 시작 주소 (헤더 포함)
+     * 추적되고 있던 메모리를 추적 리스트에서 제거하고 통계를 업데이트 합니다.
+     * @param header_ptr 해제될 메모리의 헤더 주소
      */
-    static void TrackDeallocation(void* block);
+    static void TrackDeallocation(const void* header_ptr);
 
     /** 현재 메모리 사용량 통계를 콘솔에 출력합니다. */
     static void PrintStats();

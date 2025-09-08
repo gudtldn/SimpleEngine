@@ -15,7 +15,7 @@ std::mutex ListMutex;
 namespace se::core::memory
 {
 void MemoryTracker::TrackAllocation(
-    [[maybe_unused]] void* block,
+    [[maybe_unused]] void* header_ptr,
     size_t size,
     [[maybe_unused]] const std::source_location& loc
 )
@@ -25,7 +25,7 @@ void MemoryTracker::TrackAllocation(
     AllocationCount.fetch_add(1, std::memory_order_relaxed);
 
 #ifdef _DEBUG
-    MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(block);
+    MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(header_ptr);
     header->loc = loc;
     header->next = ListHead;
     header->prev = nullptr;
@@ -40,9 +40,9 @@ void MemoryTracker::TrackAllocation(
 #endif
 }
 
-void MemoryTracker::TrackDeallocation(void* block)
+void MemoryTracker::TrackDeallocation(const void* header_ptr)
 {
-    const MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(block);
+    const MemoryAllocHeader* header = static_cast<const MemoryAllocHeader*>(header_ptr);
 
     // 메모리 트래킹 해제
     TotalAllocated.fetch_sub(header->alloc_size, std::memory_order_relaxed);
