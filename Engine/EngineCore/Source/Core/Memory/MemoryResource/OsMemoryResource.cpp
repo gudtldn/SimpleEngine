@@ -11,7 +11,7 @@ void* OsMemoryResource::do_allocate(
     [[maybe_unused]] size_t align
 )
 {
-    return OsMemory::Malloc(size);
+    return OsMemory::Allocate(size, align);
 }
 
 void OsMemoryResource::do_deallocate(
