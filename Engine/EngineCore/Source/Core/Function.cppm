@@ -53,7 +53,7 @@ private:
 
         virtual ICallable* Clone() const override
         {
-            CallableImpl* dest = memory::OsMemory::Allocate<CallableImpl>();
+            CallableImpl* dest = memory::OsMemory::Malloc<CallableImpl>();
             std::construct_at(dest, functor);
             return dest;
         }
@@ -176,7 +176,7 @@ public:
         }
         else
         {
-            Callable* dest = memory::OsMemory::Allocate<Callable>();
+            Callable* dest = memory::OsMemory::Malloc<Callable>();
             std::construct_at(dest, std::forward<Fn>(in_func));
             Storage.Heap_Storage = dest;
             CallablePtr = Storage.Heap_Storage;
