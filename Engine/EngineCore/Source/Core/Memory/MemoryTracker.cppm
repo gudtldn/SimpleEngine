@@ -58,10 +58,10 @@ public:
     static bool CheckForLeaks();
 
 public:
-    /** 현재 할당된 모든 메모리 Byte를 반환합니다. */
+    /** 현재 추적되고 있는 모든 메모리 Byte를 반환합니다. */
     [[nodiscard]] static size_t GetTotalAllocated() { return TotalAllocated; }
 
-    /** 현재 할당된 모든 메모리 개수를 반환합니다. */
+    /** 현재 추적되고 있는 모든 메모리 개수를 반환합니다. */
     [[nodiscard]] static size_t GetAllocationCount() { return AllocationCount; }
 
 private:
