@@ -15,22 +15,18 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     using namespace se::core::memory;
 
     // SDL_SetMemoryFunctions(
-    //     [](size_t size) static -> void*
-    //     {
-    //         return OsMemory::Allocate(size);
-    //     },
+    //     OsMemory::Malloc,
     //     [](size_t nmemb, size_t size) static -> void*
     //     {
-    //         return std::calloc(nmemb, size);
+    //         const size_t total_size = nmemb * size;
+    //
+    //         void* mem = OsMemory::Malloc(total_size);
+    //         std::memset(mem, 0, total_size);
+    //
+    //         return mem;
     //     },
-    //     [](void* mem, size_t size) static -> void*
-    //     {
-    //         return std::realloc(mem, size);
-    //     },
-    //     [](void* mem) static -> void
-    //     {
-    //         OsMemory::Free(mem);
-    //     }
+    //     OsMemory::Realloc,
+    //     OsMemory::Free
     // );
 }
 

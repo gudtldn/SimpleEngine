@@ -16,7 +16,7 @@ public:
      * @param upstream 이 리소스가 실제 메모리를 할당/해제할 때 사용할 상위 리소스.
      *                 기본값은 std::pmr::new_delete_resource()로, 전역 new/delete를 사용합니다.
      */
-    explicit TrackedMemoryResource(memory_resource* upstream = std::pmr::new_delete_resource());
+    explicit TrackedMemoryResource(memory_resource* upstream = std::pmr::get_default_resource());
 
 public:
     virtual void* do_allocate(size_t size, size_t align) override;

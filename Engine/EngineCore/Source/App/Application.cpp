@@ -16,6 +16,10 @@ import <SDL3/SDL.h>;
 import <SDL3/SDL_init.h>;
 import <SDL3/SDL_video.h>;
 
+namespace
+{
+se::core::memory::memory_resource::OsMemoryResource default_resource{};
+}
 
 namespace se::app
 {
@@ -36,6 +40,15 @@ Application::Application(EApplicationMode in_application_mode)
 {
     assert(!Instance && "Application instance already exists!");
     Instance = this;
+
+    original_resource = std::pmr::set_default_resource(&default_resource);
+}
+
+Application::~Application()
+{
+    std::pmr::set_default_resource(original_resource);
+
+    Instance = nullptr;
 }
 
 Application& Application::Get()

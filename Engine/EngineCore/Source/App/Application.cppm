@@ -27,11 +27,8 @@ protected:
     EApplicationMode application_mode;
 
 public:
-    Application(EApplicationMode in_application_mode = EApplicationMode::GameClient);
-    virtual ~Application()
-    {
-        Instance = nullptr;
-    }
+    explicit Application(EApplicationMode in_application_mode = EApplicationMode::GameClient);
+    virtual ~Application();
 
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
@@ -118,5 +115,8 @@ private:
     bool is_initialized = false;
     bool is_running = false;
     bool quit_requested = false;
+
+    // 메모리 관련
+    std::pmr::memory_resource* original_resource;
 };
 }
