@@ -16,8 +16,7 @@ namespace se::core::memory
 {
 void MemoryTracker::TrackAllocation(
     [[maybe_unused]] void* header_ptr,
-    size_t size,
-    [[maybe_unused]] const std::source_location& loc
+    size_t size
 )
 {
     // 메모리 트래킹 시작
@@ -26,7 +25,7 @@ void MemoryTracker::TrackAllocation(
 
 #ifdef _DEBUG
     MemoryAllocHeader* header = static_cast<MemoryAllocHeader*>(header_ptr);
-    header->loc = loc;
+    header->trace = std::stacktrace::current();
     header->next = ListHead;
     header->prev = nullptr;
 
@@ -76,27 +75,20 @@ bool MemoryTracker::CheckForLeaks()
 {
 #ifdef _DEBUG
     std::lock_guard lock(ListMutex);
+    PrintStackTrace();
     if (ListHead)
     {
         ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
         const MemoryAllocHeader* current = ListHead;
         while (current)
         {
-            const std::source_location& loc = current->loc;
-            std::string_view file_name_view = loc.file_name();
-            {
-                const size_t last_slash = file_name_view.find_last_of("/\\");
-                if (last_slash != std::string_view::npos)
-                {
-                    file_name_view = file_name_view.substr(last_slash + 1);
-                }
-            }
+            ConsoleLog(ELogLevel::Error, u8"Leak: {} bytes, allocated trace:", current->alloc_size);
 
-            ConsoleLog(
-                ELogLevel::Error,
-                u8"Leak: {} bytes, allocated at {}:{}",
-                current->alloc_size, file_name_view, loc.line()
-            );
+            // stacktrace 출력
+            for (const std::stacktrace_entry& entry : current->trace | std::views::reverse)
+            {
+                ConsoleLog(ELogLevel::Error, u8"    {}", entry);
+            }
             current = current->next;
         }
         ConsoleLog(ELogLevel::Error, u8"-----------------------------");

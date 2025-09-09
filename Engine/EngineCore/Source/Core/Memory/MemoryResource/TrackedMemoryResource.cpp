@@ -44,16 +44,16 @@ void* TrackedMemoryResource::do_allocate(size_t size, size_t align)
         reinterpret_cast<MemoryAllocHeader*>(static_cast<uint8*>(user_ptr) - HEADER_SIZE)
     );
 
-    // 유저가 할당한 메모리 크기를 기록
-    header->alloc_size = size;
-
     // 헤더가 실제 할당된 블럭으로부터 얼만큼 떨어져 있는지 계산
-    header->padding = static_cast<uint8>(
+    const uint32 padding = static_cast<uint8>(
         reinterpret_cast<uintptr_t>(header) - reinterpret_cast<uintptr_t>(raw_block)
     );
 
+    // 유저가 할당한 메모리 크기와 패딩을 기록하고 헤더 생성자 호출
+    std::construct_at(header, size, padding);
+
     // 메모리 추적
-    MemoryTracker::TrackAllocation(header, size, std::source_location::current());
+    MemoryTracker::TrackAllocation(header, size);
 
     return user_ptr;
 }
@@ -76,6 +76,9 @@ void TrackedMemoryResource::do_deallocate(
 
     // 메모리 추적 해제
     MemoryTracker::TrackDeallocation(header);
+
+    // 헤더 소멸자 호출
+    std::destroy_at(header);
 
     // 헤더에서 패딩을 이용하여 실제 할당된 메모리 블럭 계산
     const void* raw_block = reinterpret_cast<const uint8*>(header) - header->padding;

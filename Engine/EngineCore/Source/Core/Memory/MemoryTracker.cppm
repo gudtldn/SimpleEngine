@@ -16,13 +16,22 @@ export struct MemoryAllocHeader
     uint32 padding;
 
 #ifdef _DEBUG
-    /** Alloc 당시의 코드 위치 (파일명, 함수명, 라인넘버) */
-    std::source_location loc;
+    /** Alloc 당시의 Stacktrace */
+    std::stacktrace trace;
 
     // 메모리 누수 체크용 linked list
-    MemoryAllocHeader* next;
-    MemoryAllocHeader* prev;
+    MemoryAllocHeader* next = nullptr;
+    MemoryAllocHeader* prev = nullptr;
 #endif
+
+    MemoryAllocHeader(size_t size, uint8 pad)
+        : alloc_size(size)
+        , padding(pad)
+#ifdef _DEBUG
+        , trace(std::stacktrace::current())
+#endif
+    {
+    }
 };
 
 /** MemoryAllocHeader의 크기 */
@@ -38,9 +47,8 @@ public:
      * 새로운 메모리 할당을 추적 리스트에 추가하고 통계를 업데이트 합니다.
      * @param header_ptr 할당된 메모리의 헤더 주소
      * @param size 사용자가 요청한 데이터의 크기
-     * @param loc 할당이 발생한 소스 코드 위치
      */
-    static void TrackAllocation(void* header_ptr, size_t size, const std::source_location& loc);
+    static void TrackAllocation(void* header_ptr, size_t size);
 
     /**
      * 추적되고 있던 메모리를 추적 리스트에서 제거하고 통계를 업데이트 합니다.
