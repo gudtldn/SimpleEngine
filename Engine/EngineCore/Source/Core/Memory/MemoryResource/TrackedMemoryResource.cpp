@@ -40,9 +40,7 @@ void* TrackedMemoryResource::do_allocate(size_t size, size_t align)
     std::align(align, size, user_ptr, space);
 
     // 이렇게 이동한 user_ptr에서 HEADER_SIZE를 빼서 실제 헤더 위치를 계산
-    MemoryAllocHeader* header = std::launder(
-        reinterpret_cast<MemoryAllocHeader*>(static_cast<uint8*>(user_ptr) - HEADER_SIZE)
-    );
+    MemoryAllocHeader* header = reinterpret_cast<MemoryAllocHeader*>(static_cast<uint8*>(user_ptr) - HEADER_SIZE);
 
     // 헤더가 실제 할당된 블럭으로부터 얼만큼 떨어져 있는지 계산
     const uint32 padding = static_cast<uint8>(
