@@ -49,7 +49,7 @@ void MemoryTracker::TrackDeallocation(const void* header_ptr)
 
 #ifdef _DEBUG
     // 전역 리스트에서 제거
-    std::lock_guard lock(ListMutex);
+    std::scoped_lock lock(ListMutex);
     if (header->prev)
     {
         header->prev->next = header->next;
@@ -74,8 +74,8 @@ void MemoryTracker::PrintStats()
 bool MemoryTracker::CheckForLeaks()
 {
 #ifdef _DEBUG
-    std::lock_guard lock(ListMutex);
-    PrintStackTrace();
+    std::scoped_lock lock(ListMutex);
+
     if (ListHead)
     {
         ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
