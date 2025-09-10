@@ -36,7 +36,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     std::align(alignment, size, user_ptr, space);
 
     // 이렇게 이동한 user_ptr에서 HEADER_SIZE를 빼서 실제 헤더 위치를 계산
-    OsMemoryHeader* header = reinterpret_cast<OsMemoryHeader*>(static_cast<uint8*>(user_ptr) - HEADER_SIZE);
+    OsMemoryHeader* header = GetHeaderFromUserPtr(user_ptr);
 
     // 헤더가 실제 할당된 블럭으로부터 얼만큼 떨어져 있는지 계산
     const size_t offset = reinterpret_cast<uintptr_t>(header) - reinterpret_cast<uintptr_t>(raw_block);
@@ -67,9 +67,7 @@ void* OsMemory::Realloc(void* address, size_t new_size, size_t alignment)
         return nullptr;
     }
 
-    const OsMemoryHeader* old_header = reinterpret_cast<const OsMemoryHeader*>(
-        static_cast<const uint8*>(address) - HEADER_SIZE
-    );
+    const OsMemoryHeader* old_header = GetHeaderFromUserPtr(address);
 
     // 기존 내용 복사
     const size_t copy_size = math::MathUtility::Min(old_header->allocated_size, new_size);
@@ -89,9 +87,7 @@ void OsMemory::Free(void* address)
     }
 
     // user_ptr로 부터 헤더 위치 계산
-    OsMemoryHeader* header = reinterpret_cast<OsMemoryHeader*>(
-        static_cast<uint8*>(address) - HEADER_SIZE
-    );
+    OsMemoryHeader* header = GetHeaderFromUserPtr(address);
 
     // 헤더에서 패딩을 이용하여 실제 할당된 메모리 블럭 계산
     void* raw_block = reinterpret_cast<uint8*>(header) - header->offset;

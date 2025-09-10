@@ -11,25 +11,6 @@ export namespace se::core::memory
  */
 struct OsMemory
 {
-private:
-    /**
-     * Allocate 정보를 저장하기 위한 헤더
-     */
-    struct OsMemoryHeader
-    {
-        size_t allocated_size;
-        size_t offset;
-
-        OsMemoryHeader(size_t in_size, size_t in_offset)
-            : allocated_size(in_size)
-            , offset(in_offset)
-        {
-        }
-    };
-
-    /** AlignedAllocHeader의 크기 */
-    static constexpr size_t HEADER_SIZE = sizeof(OsMemoryHeader);
-
 public:
     /**
      * 요청된 크기와 정렬에 맞춰 메모리를 할당합니다.
@@ -63,6 +44,33 @@ public:
      * @param address 해제할 메모리의 시작 주소
      */
     static void Free(void* address);
+
+private:
+    /**
+     * Allocate 정보를 저장하기 위한 헤더
+     */
+    struct OsMemoryHeader
+    {
+        size_t allocated_size;
+        size_t offset;
+
+        OsMemoryHeader(size_t in_size, size_t in_offset)
+            : allocated_size(in_size)
+            , offset(in_offset)
+        {
+        }
+    };
+
+    /** AlignedAllocHeader의 크기 */
+    static constexpr size_t HEADER_SIZE = sizeof(OsMemoryHeader);
+
+private:
+    [[nodiscard]] static OsMemoryHeader* GetHeaderFromUserPtr(void* address)
+    {
+        return reinterpret_cast<OsMemoryHeader*>(
+            static_cast<uint8*>(address) - HEADER_SIZE
+        );
+    }
 };
 
 template <typename T>
