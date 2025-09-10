@@ -22,13 +22,13 @@ public:
 
     /**
      * 특정 타입 `T`의 객체를 `count`개 만큼 정렬하여 할당하기 위한 템플릿 헬퍼 함수.
-     * T의 정렬(alignof(T))이 자동으로 사용됩니다.
      * @tparam T 할당할 객체의 타입
      * @param count 할당할 객체의 개수 (기본값: 1)
+     * @param alignment 요청된 정렬 값. 반드시 2의 거듭제곱이어야 합니다. (기본값 alignof(T))
      * @return 할당된 메모리의 포인터
      */
     template <typename T>
-    [[nodiscard]] static T* Allocate(size_t count = 1);
+    [[nodiscard]] static T* Allocate(size_t count = 1, size_t alignment = alignof(T));
 
     /**
      * 이전에 할당된 정렬된 메모리 블록의 크기를 변경합니다.
@@ -96,8 +96,8 @@ private:
 };
 
 template <typename T>
-T* OsMemory::Allocate(size_t count)
+T* OsMemory::Allocate(size_t count, size_t alignment)
 {
-    return static_cast<T*>(Allocate(sizeof(T) * count, alignof(T)));
+    return static_cast<T*>(Allocate(sizeof(T) * count, alignment));
 }
 }
