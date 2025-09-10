@@ -15,7 +15,7 @@ public:
     ~Optional() { Reset(); }
 
     template <typename U = T>
-        requires std::constructible_from<U, T>
+        requires std::constructible_from<T, U>
     Optional(std::optional<U>&& other_optional)
     {
         if (other_optional.has_value())
