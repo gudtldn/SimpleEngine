@@ -67,10 +67,10 @@ void* OsMemory::Realloc(void* address, size_t new_size, size_t alignment)
         return nullptr;
     }
 
-    const OsMemoryHeader* old_header = GetHeaderFromUserPtr(address);
+    const size_t old_allocated_size = GetAllocatedSize(address);
 
     // 기존 내용 복사
-    const size_t copy_size = math::MathUtility::Min(old_header->allocated_size, new_size);
+    const size_t copy_size = math::MathUtility::Min(old_allocated_size, new_size);
     std::memcpy(new_address, address, copy_size);
 
     // 이전 메모리 해제
