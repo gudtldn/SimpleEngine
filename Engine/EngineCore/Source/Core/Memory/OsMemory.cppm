@@ -11,6 +11,25 @@ export namespace se::core::memory
  */
 struct OsMemory
 {
+private:
+    /**
+     * Allocate 정보를 저장하기 위한 헤더
+     */
+    struct OsMemoryHeader
+    {
+        size_t allocated_size;
+        size_t offset;
+
+        OsMemoryHeader(size_t in_size, size_t in_offset)
+            : allocated_size(in_size)
+            , offset(in_offset)
+        {
+        }
+    };
+
+    /** AlignedAllocHeader의 크기 */
+    static constexpr size_t HEADER_SIZE = sizeof(OsMemoryHeader);
+
 public:
     /**
      * 요청된 크기와 정렬에 맞춰 메모리를 할당합니다.
@@ -33,12 +52,11 @@ public:
     /**
      * 이전에 할당된 정렬된 메모리 블록의 크기를 변경합니다.
      * @param address 크기를 변경할 메모리 블록의 포인터
-     * @param old_size 이전 메모리 블록의 크기 (Byte)
      * @param new_size 새로운 메모리 블록의 크기 (Byte)
      * @param alignment 원래 할당 시 사용했던 정렬 값
      * @return 크기가 변경된 메모리의 포인터
      */
-    [[nodiscard]] static void* Realloc(void* address, size_t old_size, size_t new_size, size_t alignment);
+    [[nodiscard]] static void* Realloc(void* address, size_t new_size, size_t alignment);
 
     /**
      * 이전에 Allocate로 할당된 메모리를 해제합니다.
