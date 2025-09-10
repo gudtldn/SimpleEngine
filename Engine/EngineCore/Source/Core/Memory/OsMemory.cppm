@@ -45,6 +45,21 @@ public:
      */
     static void Free(void* address);
 
+public:
+    /**
+     * 할당한 메모리의 크기를 가져옵니다.
+     * @param address OsMemory::Allocate로 할당한 메모리 주소
+     * @return 할당한 메모리의 크기
+     */
+    [[nodiscard]] static size_t GetAllocatedSize(const void* address)
+    {
+        if (address == nullptr)
+        {
+            return 0;
+        }
+        return GetHeaderFromUserPtr(address)->allocated_size;
+    }
+
 private:
     /**
      * Allocate 정보를 저장하기 위한 헤더
@@ -69,6 +84,13 @@ private:
     {
         return reinterpret_cast<OsMemoryHeader*>(
             static_cast<uint8*>(address) - HEADER_SIZE
+        );
+    }
+
+    [[nodiscard]] static const OsMemoryHeader* GetHeaderFromUserPtr(const void* address)
+    {
+        return reinterpret_cast<const OsMemoryHeader*>(
+            static_cast<const uint8*>(address) - HEADER_SIZE
         );
     }
 };
