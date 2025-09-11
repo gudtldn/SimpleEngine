@@ -6,9 +6,9 @@ import std;
 using container_name = std::pmr::container_name
 
 
+// pmr container wrapper
 export namespace se
 {
-// 컨테이너
 template <typename T, size_t N>
 using array = std::array<T, N>;
 
