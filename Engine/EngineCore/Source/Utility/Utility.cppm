@@ -19,4 +19,57 @@ constexpr bool IS_RELEASE_BUILD = true;
 #else
 constexpr bool IS_RELEASE_BUILD = false;
 #endif
+
+/**
+ * 주어진 스코프({ ... })의 시작과 끝에서 특정 동작을 자동으로 수행하는 RAII 래퍼
+ *
+ * 객체가 생성될 때 템플릿 인자로 주어진 타입 `T`의 `Enter()` 정적 함수를 호출하고,
+ * 객체가 소멸될 때(스코프를 벗어날 때) `T`의 `Exit()` 정적 함수를 호출합니다.
+ *
+ * @tparam T static void Enter()와 static void Exit()가 구현되어 있는 클래스
+ */
+template <typename T>
+class ScopeGuard
+{
+public:
+    template <typename... Args>
+        requires requires { T::Enter(std::declval<Args>()...); T::Exit(); }
+    ScopeGuard(Args&&... args)
+    {
+        T::Enter(std::forward<Args>(args)...);
+    }
+
+    ~ScopeGuard()
+    {
+        T::Exit();
+    }
+
+    ScopeGuard(const ScopeGuard&) = delete;
+    ScopeGuard& operator=(const ScopeGuard&) = delete;
+    ScopeGuard(const ScopeGuard&&) = delete;
+    ScopeGuard& operator=(const ScopeGuard&&) = delete;
+};
+
+/**
+ * 스코프를 벗어날 때 주어진 람다(lambda)나 함수 객체를 실행하는 RAII 래퍼
+ * @tparam Fn 호출 가능한(invocable) 타입
+ */
+template <typename Fn>
+    requires std::invocable<Fn>
+class LambdaScopeGuard
+{
+public:
+    LambdaScopeGuard(Fn&& in_exit_func)
+        : exit_func(std::forward<Fn>(in_exit_func))
+    {
+    }
+
+    ~LambdaScopeGuard()
+    {
+        exit_func();
+    }
+
+private:
+    Fn exit_func;
+};
 }
