@@ -1,0 +1,71 @@
+﻿module;
+#include "tracy/Tracy.hpp"
+module SE.Rendering;
+import :Manager.PSOManager.GpuResourcePool;
+
+
+GpuResourcePool::GpuResourcePool(SDL_GPUDevice* in_device)
+    : device(in_device)
+{
+}
+
+GpuResourcePool::~GpuResourcePool()
+{
+    for (const PoolEntry<SDL_GPUTexture>& entry : texture_pool | std::views::values)
+    {
+        for (SDL_GPUTexture* texture : entry.available_resources)
+        {
+            SDL_ReleaseGPUTexture(device, texture);
+        }
+        for (SDL_GPUTexture* texture : entry.used_resources)
+        {
+            SDL_ReleaseGPUTexture(device, texture);
+        }
+    }
+
+    for (const PoolEntry<SDL_GPUBuffer>& entry : buffer_pool | std::views::values)
+    {
+        for (SDL_GPUBuffer* buffer : entry.available_resources)
+        {
+            SDL_ReleaseGPUBuffer(device, buffer);
+        }
+        for (SDL_GPUBuffer* buffer : entry.used_resources)
+        {
+            SDL_ReleaseGPUBuffer(device, buffer);
+        }
+    }
+}
+
+void GpuResourcePool::BeginFrame()
+{
+    ZoneScoped;
+
+    static auto entry_loop = []<typename T>(PoolEntry<T>& entry) static
+    {
+        entry.available_resources.insert(
+            entry.available_resources.end(),
+            entry.used_resources.begin(),
+            entry.used_resources.end()
+        );
+        entry.used_resources.clear();
+    };
+
+    std::ranges::for_each(texture_pool | std::views::values, entry_loop);
+    std::ranges::for_each(buffer_pool | std::views::values, entry_loop);
+}
+
+SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo& info)
+{
+    return AllocateT(texture_pool[info], [this, &info = std::as_const(info)]
+    {
+        return SDL_CreateGPUTexture(device, &info);
+    });
+}
+
+SDL_GPUBuffer* GpuResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& info)
+{
+    return AllocateT(buffer_pool[info], [this, &info = std::as_const(info)]
+    {
+        return SDL_CreateGPUBuffer(device, &info);
+    });
+}
