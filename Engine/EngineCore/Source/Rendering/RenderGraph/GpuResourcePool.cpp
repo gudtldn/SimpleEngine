@@ -1,7 +1,7 @@
 ﻿module;
 #include "tracy/Tracy.hpp"
 module SE.Rendering;
-import :Manager.PSOManager.GpuResourcePool;
+import :RenderGraph.GpuResourcePool;
 
 
 GpuResourcePool::GpuResourcePool(SDL_GPUDevice* in_device)
@@ -56,7 +56,7 @@ void GpuResourcePool::BeginFrame()
 
 SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo& info)
 {
-    return AllocateT(texture_pool[info], [this, &info = std::as_const(info)]
+    return AllocateResource(texture_pool[info], [this, &info = std::as_const(info)]
     {
         return SDL_CreateGPUTexture(device, &info);
     });
@@ -64,7 +64,7 @@ SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo&
 
 SDL_GPUBuffer* GpuResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& info)
 {
-    return AllocateT(buffer_pool[info], [this, &info = std::as_const(info)]
+    return AllocateResource(buffer_pool[info], [this, &info = std::as_const(info)]
     {
         return SDL_CreateGPUBuffer(device, &info);
     });

@@ -1,4 +1,4 @@
-﻿export module SE.Rendering:Manager.PSOManager.GpuResourcePool;
+﻿export module SE.Rendering:RenderGraph.GpuResourcePool;
 import :Manager.PSOManager.CreateInfoEquals;
 import :Manager.PSOManager.CreateInfoHash;
 
@@ -40,7 +40,7 @@ public:
 private:
     template <typename T, typename CreateResourceFn>
         requires std::is_invocable_r_v<T*, CreateResourceFn>
-    [[nodiscard]] T* AllocateT(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func);
+    [[nodiscard]] T* AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func);
 
 private:
     SDL_GPUDevice* device;
@@ -50,7 +50,7 @@ private:
 
 template <typename T, typename CreateResourceFn>
     requires std::is_invocable_r_v<T*, CreateResourceFn>
-T* GpuResourcePool::AllocateT(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func)
+T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func)
 {
     if (entry.available_resources.empty())
     {
