@@ -1,7 +1,7 @@
 ﻿export module SE.Rendering:Manager.PSOManager;
 export import :Manager.PSOManager.PipelineCreateInfo;
-export import :Manager.PSOManager.CreateInfoHash;
 import :Manager.PSOManager.ShaderCache;
+import :Traits.CreateInfoHash;
 
 import SE.Types;
 import SE.Utility;

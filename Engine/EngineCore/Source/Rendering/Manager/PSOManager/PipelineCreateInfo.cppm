@@ -1,5 +1,5 @@
 ﻿export module SE.Rendering:Manager.PSOManager.PipelineCreateInfo;
-import :Manager.PSOManager.CreateInfoEquals;
+import :Traits.CreateInfoEquals;
 import :ShaderProvider.IShaderProvider;
 
 import SE.Types;

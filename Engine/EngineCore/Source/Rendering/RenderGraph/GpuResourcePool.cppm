@@ -1,6 +1,6 @@
 ﻿export module SE.Rendering:RenderGraph.GpuResourcePool;
-import :Manager.PSOManager.CreateInfoEquals;
-import :Manager.PSOManager.CreateInfoHash;
+import :Traits.CreateInfoEquals;
+import :Traits.CreateInfoHash;
 
 import SE.Types;
 import std;

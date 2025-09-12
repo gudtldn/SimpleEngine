@@ -1,4 +1,4 @@
-﻿export module SE.Rendering:Manager.PSOManager.CreateInfoEquals;
+﻿export module SE.Rendering:Traits.CreateInfoEquals;
 
 import SE.Types;
 import SE.Utility;
