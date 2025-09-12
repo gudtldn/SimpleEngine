@@ -1,4 +1,6 @@
-﻿module SE.Core;
+﻿module;
+#include "tracy/Tracy.hpp"
+module SE.Core;
 import :Memory.MemoryTracker;
 
 import SE.Core;
@@ -6,10 +8,15 @@ import SE.Core;
 
 namespace
 {
-// #ifdef _DEBUG
-// se::core::memory::TrackingHeader* ListHead = nullptr;
-// std::mutex ListMutex;
-// #endif
+struct LeakInfo
+{
+    size_t size;
+    std::stacktrace trace;
+};
+
+// <메모리 주소, 누수 정보>를 저장하는 Map
+std::unordered_map<const void*, LeakInfo> GLeakedMemoryMap;
+std::mutex GMapMutex;
 }
 
 namespace se::core::memory
@@ -18,94 +25,55 @@ void MemoryTracker::TrackAllocation(const void* address)
 {
     const size_t allocated_size = OsMemory::GetAllocatedSize(address);
 
+#ifdef _DEBUG
+    {
+        std::scoped_lock lock(GMapMutex);
+        GLeakedMemoryMap[address] = {
+            .size = allocated_size,
+            .trace = std::stacktrace::current()
+        };
+    }
+#endif
+
     // 메모리 트래킹 시작
     TotalAllocated.fetch_add(allocated_size, std::memory_order_relaxed);
     AllocationCount.fetch_add(1, std::memory_order_relaxed);
-
-#ifdef _DEBUG
-    // TrackingHeader* header = static_cast<TrackingHeader*>(address);
-    // header->trace = std::stacktrace::current();
-    // header->next = ListHead;
-    // header->prev = nullptr;
-    //
-    // // 전역 리스트에 추가
-    // std::lock_guard lock(ListMutex);
-    // if (ListHead != nullptr)
-    // {
-    //     ListHead->prev = header;
-    // }
-    // ListHead = header;
-#endif
 }
 
 void MemoryTracker::TrackDeallocation(const void* address)
 {
     const size_t allocated_size = OsMemory::GetAllocatedSize(address);
 
+#ifdef _DEBUG
+    std::scoped_lock lock(GMapMutex);
+    GLeakedMemoryMap.erase(address);
+#endif
+
     // 메모리 트래킹 해제
     TotalAllocated.fetch_sub(allocated_size, std::memory_order_relaxed);
     AllocationCount.fetch_sub(1, std::memory_order_relaxed);
-
-#ifdef _DEBUG
-    // const TrackingHeader* header = static_cast<const TrackingHeader*>(address);
-
-    // // 전역 리스트에서 제거
-    // std::scoped_lock lock(ListMutex);
-    // if (header->prev)
-    // {
-    //     header->prev->next = header->next;
-    // }
-    // if (header->next)
-    // {
-    //     header->next->prev = header->prev;
-    // }
-    // if (ListHead == header)
-    // {
-    //     ListHead = header->next;
-    // }
-#endif
-}
-
-void MemoryTracker::PrintStats()
-{
-    ConsoleLog(ELogLevel::Info, u8"Total Allocated: {} bytes", TotalAllocated.load());
-    ConsoleLog(ELogLevel::Info, u8"Allocation Count: {}", AllocationCount.load());
 }
 
 bool MemoryTracker::CheckForLeaks()
 {
-    // #ifdef _DEBUG
-    //     std::scoped_lock lock(ListMutex);
-    //
-    //     if (ListHead)
-    //     {
-    //         ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
-    //         const TrackingHeader* current = ListHead;
-    //         while (current)
-    //         {
-    //             ConsoleLog(ELogLevel::Error, u8"Leak: {} bytes, allocated trace:", current->alloc_size);
-    //
-    //             // stacktrace 출력
-    //             for (const std::stacktrace_entry& entry : current->trace | std::views::reverse)
-    //             {
-    //                 ConsoleLog(ELogLevel::Error, u8"    {}", entry);
-    //             }
-    //             current = current->next;
-    //         }
-    //         ConsoleLog(ELogLevel::Error, u8"-----------------------------");
-    //         return true;
-    //     }
-    // #endif
-
-    if (AllocationCount.load() > 0)
+#ifdef _DEBUG
+    std::scoped_lock lock(GMapMutex);
+    if (!GLeakedMemoryMap.empty())
     {
         ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
-        PrintStats();
-        ConsoleLog(ELogLevel::Error, u8"-----------------------------");
+        for (const auto& [address, info] : GLeakedMemoryMap)
+        {
+            ConsoleLog(ELogLevel::Error, u8"Leak: {} bytes at {:p}, callstack:", info.size, address);
+
+            // stacktrace 출력
+            for (const std::stacktrace_entry& entry : info.trace | std::views::reverse)
+            {
+                ConsoleLog(ELogLevel::Error, u8"    {}", entry);
+            }
+        }
         return true;
     }
-
-    ConsoleLog(ELogLevel::Info, u8"No memory leaks detected.");
+#endif
     return false;
 }
 
