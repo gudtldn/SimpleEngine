@@ -8,11 +8,13 @@ import std;
 
 import "SDL3/SDL_gpu.h";
 
-#define SE_SPECIALIZE_STD_HASH(type, var_name, stmt) \
+#define SE_ARG arg
+#define SE_SPECIALIZE_STD_HASH(type, validate_size, stmt) \
+static_assert(sizeof(type) == validate_size, "Invalid size, please check the struct definition"); \
 template <> \
 struct std::hash<type> \
 { \
-    size_t operator()(const type& var_name) const noexcept \
+    size_t operator()(const type& SE_ARG) const noexcept \
     { \
         size_t seed = 0; \
         stmt \
@@ -20,157 +22,146 @@ struct std::hash<type> \
     } \
 };
 
-using se::utility::hash::HashCombine;
+#define SE_HASH_COMBINE(...) se::utility::hash::HashCombine(seed, __VA_ARGS__);
 
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUVertexBufferDescription, desc,
+SE_SPECIALIZE_STD_HASH(SDL_GPUVertexBufferDescription, 16,
 {
-    HashCombine(
-        seed,
-        desc.slot,
-        desc.pitch,
-        static_cast<uint32>(desc.input_rate),
-        desc.instance_step_rate
+    SE_HASH_COMBINE(
+        SE_ARG.slot,
+        SE_ARG.pitch,
+        static_cast<uint32>(SE_ARG.input_rate),
+        SE_ARG.instance_step_rate
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUVertexAttribute, attr,
+SE_SPECIALIZE_STD_HASH(SDL_GPUVertexAttribute, 16,
 {
-    HashCombine(
-        seed,
-        attr.location,
-        attr.buffer_slot,
-        static_cast<uint32>(attr.format),
-        attr.offset
+    SE_HASH_COMBINE(
+        SE_ARG.location,
+        SE_ARG.buffer_slot,
+        static_cast<uint32>(SE_ARG.format),
+        SE_ARG.offset
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUVertexInputState, state,
+SE_SPECIALIZE_STD_HASH(SDL_GPUVertexInputState, 32,
 {
-    for (uint32 i = 0; i < state.num_vertex_buffers; ++i)
+    for (uint32 i = 0; i < SE_ARG.num_vertex_buffers; ++i)
     {
-        const SDL_GPUVertexBufferDescription& desc = state.vertex_buffer_descriptions[i];
-        HashCombine(seed, desc);
+        const SDL_GPUVertexBufferDescription& desc = SE_ARG.vertex_buffer_descriptions[i];
+        SE_HASH_COMBINE(desc);
     }
 
-    for (uint32 i = 0; i < state.num_vertex_attributes; ++i)
+    for (uint32 i = 0; i < SE_ARG.num_vertex_attributes; ++i)
     {
-        const SDL_GPUVertexAttribute& attr = state.vertex_attributes[i];
-        HashCombine(seed, attr);
+        const SDL_GPUVertexAttribute& attr = SE_ARG.vertex_attributes[i];
+        SE_HASH_COMBINE(attr);
     }
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPURasterizerState, state,
+SE_SPECIALIZE_STD_HASH(SDL_GPURasterizerState, 28,
 {
-    HashCombine(
-        seed,
-        static_cast<uint32>(state.fill_mode),
-        static_cast<uint32>(state.cull_mode),
-        static_cast<uint32>(state.front_face),
-        state.depth_bias_constant_factor,
-        state.depth_bias_clamp,
-        state.depth_bias_slope_factor,
-        state.enable_depth_bias,
-        state.enable_depth_clip
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.fill_mode),
+        static_cast<uint32>(SE_ARG.cull_mode),
+        static_cast<uint32>(SE_ARG.front_face),
+        SE_ARG.depth_bias_constant_factor,
+        SE_ARG.depth_bias_clamp,
+        SE_ARG.depth_bias_slope_factor,
+        SE_ARG.enable_depth_bias,
+        SE_ARG.enable_depth_clip
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUMultisampleState, state,
+SE_SPECIALIZE_STD_HASH(SDL_GPUMultisampleState, 12,
 {
-    HashCombine(
-        seed,
-        static_cast<uint32>(state.sample_count),
-        state.sample_mask,
-        state.enable_mask
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.sample_count),
+        SE_ARG.sample_mask,
+        SE_ARG.enable_mask
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUStencilOpState, state,
+SE_SPECIALIZE_STD_HASH(SDL_GPUStencilOpState, 16,
 {
-    HashCombine(
-        seed,
-        static_cast<uint32>(state.fail_op),
-        static_cast<uint32>(state.pass_op),
-        static_cast<uint32>(state.depth_fail_op),
-        static_cast<uint32>(state.compare_op)
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.fail_op),
+        static_cast<uint32>(SE_ARG.pass_op),
+        static_cast<uint32>(SE_ARG.depth_fail_op),
+        static_cast<uint32>(SE_ARG.compare_op)
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUDepthStencilState, state,
+SE_SPECIALIZE_STD_HASH(SDL_GPUDepthStencilState, 44,
 {
-    HashCombine(
-        seed,
-        static_cast<uint32>(state.compare_op),
-        state.back_stencil_state,
-        state.front_stencil_state,
-        state.compare_mask,
-        state.write_mask,
-        state.enable_depth_test,
-        state.enable_depth_write,
-        state.enable_stencil_test
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.compare_op),
+        SE_ARG.back_stencil_state,
+        SE_ARG.front_stencil_state,
+        SE_ARG.compare_mask,
+        SE_ARG.write_mask,
+        SE_ARG.enable_depth_test,
+        SE_ARG.enable_depth_write,
+        SE_ARG.enable_stencil_test
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUColorTargetBlendState, state,
+SE_SPECIALIZE_STD_HASH(SDL_GPUColorTargetBlendState, 32,
 {
-    HashCombine(
-        seed,
-        static_cast<uint32>(state.src_color_blendfactor),
-        static_cast<uint32>(state.dst_color_blendfactor),
-        static_cast<uint32>(state.color_blend_op),
-        static_cast<uint32>(state.src_alpha_blendfactor),
-        static_cast<uint32>(state.dst_alpha_blendfactor),
-        static_cast<uint32>(state.alpha_blend_op),
-        static_cast<uint32>(state.color_write_mask),
-        state.enable_blend,
-        state.enable_color_write_mask
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.src_color_blendfactor),
+        static_cast<uint32>(SE_ARG.dst_color_blendfactor),
+        static_cast<uint32>(SE_ARG.color_blend_op),
+        static_cast<uint32>(SE_ARG.src_alpha_blendfactor),
+        static_cast<uint32>(SE_ARG.dst_alpha_blendfactor),
+        static_cast<uint32>(SE_ARG.alpha_blend_op),
+        static_cast<uint32>(SE_ARG.color_write_mask),
+        SE_ARG.enable_blend,
+        SE_ARG.enable_color_write_mask
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUColorTargetDescription, desc,
+SE_SPECIALIZE_STD_HASH(SDL_GPUColorTargetDescription, 36,
 {
-    HashCombine(
-        seed,
-        static_cast<uint32>(desc.format),
-        desc.blend_state
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.format),
+        SE_ARG.blend_state
     );
 })
 
-SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, info,
+SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, 24,
 {
-    for (uint32 i = 0; i < info.num_color_targets; ++i)
+    for (uint32 i = 0; i < SE_ARG.num_color_targets; ++i)
     {
-        const SDL_GPUColorTargetDescription& desc = info.color_target_descriptions[i];
-        HashCombine(seed, desc);
+        const SDL_GPUColorTargetDescription& desc = SE_ARG.color_target_descriptions[i];
+        SE_HASH_COMBINE(desc);
     }
 
-    HashCombine(
-        seed,
-        info.depth_stencil_format,
-        info.has_depth_stencil_target
+    SE_HASH_COMBINE(
+        SE_ARG.depth_stencil_format,
+        SE_ARG.has_depth_stencil_target
     );
 })
 
-SE_SPECIALIZE_STD_HASH(GraphicsPipelineCreateInfo, info,
+SE_SPECIALIZE_STD_HASH(GraphicsPipelineCreateInfo, 424,
 {
-    HashCombine(
-        seed,
-        info.vertex_shader_request,
-        info.fragment_shader_request,
-        info.vertex_input_state,
-        static_cast<uint32>(info.primitive_type),
-        info.rasterizer_state,
-        info.multisample_state,
-        info.depth_stencil_state,
-        info.target_info,
-        info.props
+    SE_HASH_COMBINE(
+        SE_ARG.vertex_shader_request,
+        SE_ARG.fragment_shader_request,
+        SE_ARG.vertex_input_state,
+        static_cast<uint32>(SE_ARG.primitive_type),
+        SE_ARG.rasterizer_state,
+        SE_ARG.multisample_state,
+        SE_ARG.depth_stencil_state,
+        SE_ARG.target_info,
+        SE_ARG.props
     );
 })
 
-SE_SPECIALIZE_STD_HASH(ComputePipelineCreateInfo, info,
+SE_SPECIALIZE_STD_HASH(ComputePipelineCreateInfo, 80,
 {
-    HashCombine(
-        seed,
-        info.placeholder
+    SE_HASH_COMBINE(
+        SE_ARG.placeholder
     );
 })
