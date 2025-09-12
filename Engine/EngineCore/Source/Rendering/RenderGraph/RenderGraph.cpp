@@ -7,6 +7,17 @@ import <cassert>;
 
 namespace se::rendering::render_graph
 {
+RenderGraph::RenderGraph(SDL_GPUDevice* in_device)
+    : device(in_device)
+    , resource_pool(in_device)
+{
+}
+
+RenderGraph::~RenderGraph()
+{
+    Clear();
+}
+
 void RenderGraph::Compile()
 {
     for (RGPassNode& pass_node : pass_nodes)
@@ -21,17 +32,19 @@ void RenderGraph::Compile()
     {
         compiled_passes.push_back(&pass_node);
     }
-
-    // TODO: 리소스 lifecycle 체크해서 필요한 시점에만 리소스를 할당하고 재사용하게끔 수정
-    // 일단 모든 리소스를 미리 생성
-    for (const auto& [_, resource] : resource_nodes)
-    {
-        resource->Realize(device);
-    }
 }
 
 void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager)
 {
+    resource_pool.BeginFrame();
+
+    // TODO: 컴파일 단계에서 리소스 lifecycle 체크해서 필요한 시점에만 리소스를 할당하고 재사용하게끔 수정
+    // 일단 모든 리소스를 미리 생성
+    for (const auto& [_, resource] : resource_nodes)
+    {
+        resource->Realize(resource_pool);
+    }
+
     for (const RGPassNode* pass_node : compiled_passes)
     {
         pass_node->pass_object->Execute({ cmd, pso_manager, *this });
@@ -42,7 +55,7 @@ void RenderGraph::Clear()
 {
     for (const auto& [_, resource] : resource_nodes)
     {
-        resource->Unrealize(device);
+        resource->Unrealize();
     }
 
     pass_nodes.clear();

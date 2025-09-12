@@ -1,6 +1,7 @@
 ﻿export module SE.Rendering:RenderGraph;
 export import :RenderGraph.RGResoueceHandle;
 export import :RenderGraph.RGResources;
+import :RenderGraph.GpuResourcePool;
 import :Manager.PSOManager;
 
 import SE.Core;
@@ -44,15 +45,8 @@ export class RenderGraph
     friend class RenderGraphBuilder;
 
 public:
-    RenderGraph(SDL_GPUDevice* in_device)
-        : device(in_device)
-    {
-    }
-
-    ~RenderGraph()
-    {
-        Clear();
-    }
+    explicit RenderGraph(SDL_GPUDevice* in_device);
+    ~RenderGraph();
 
     // 복사 생성자는 제거
     RenderGraph(const RenderGraph&) = delete;
@@ -86,6 +80,8 @@ private:
 
 private:
     SDL_GPUDevice* device;
+    GpuResourcePool resource_pool;
+
     vector<RGPassNode> pass_nodes;
     vector<RGResourceNode> resource_nodes;
 

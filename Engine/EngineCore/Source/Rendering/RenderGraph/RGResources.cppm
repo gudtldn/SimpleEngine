@@ -1,4 +1,5 @@
 ﻿export module SE.Rendering:RenderGraph.RGResources;
+import :RenderGraph.GpuResourcePool;
 
 import SE.Types;
 import std;
@@ -13,8 +14,8 @@ class IRGResource
 public:
     virtual ~IRGResource() = default;
 
-    virtual void Realize(SDL_GPUDevice* device) = 0;
-    virtual void Unrealize(SDL_GPUDevice* device) = 0;
+    virtual void Realize(GpuResourcePool& pool) = 0;
+    virtual void Unrealize() = 0;
 };
 
 class IRGTexture : public IRGResource
@@ -45,16 +46,15 @@ protected:
 class RGTransientTexture : public IRGTexture
 {
 public:
-    virtual void Realize(SDL_GPUDevice* device) override
+    virtual void Realize(GpuResourcePool& pool) override
     {
-        actual_texture = SDL_CreateGPUTexture(device, &description);
+        actual_texture = pool.AllocateTexture(description);
     }
 
-    virtual void Unrealize(SDL_GPUDevice* device) override
+    virtual void Unrealize() override
     {
         if (actual_texture)
         {
-            SDL_ReleaseGPUTexture(device, actual_texture);
             actual_texture = nullptr;
         }
     }
@@ -74,10 +74,8 @@ public:
         actual_texture = texture;
     }
 
-    virtual void Realize([[maybe_unused]] SDL_GPUDevice* device) override {}
-    virtual void Unrealize([[maybe_unused]] SDL_GPUDevice* device) override {}
-
-public:
+    virtual void Realize([[maybe_unused]] GpuResourcePool& pool) override {}
+    virtual void Unrealize() override {}
 };
 
 /**
@@ -86,16 +84,15 @@ public:
 class RGTransientBuffer : public IRGBuffer
 {
 public:
-    virtual void Realize(SDL_GPUDevice* device) override
+    virtual void Realize(GpuResourcePool& pool) override
     {
-        actual_buffer = SDL_CreateGPUBuffer(device, &description);
+        actual_buffer = pool.AllocateBuffer(description);
     }
 
-    virtual void Unrealize(SDL_GPUDevice* device) override
+    virtual void Unrealize() override
     {
         if (actual_buffer)
         {
-            SDL_ReleaseGPUBuffer(device, actual_buffer);
             actual_buffer = nullptr;
         }
     }
@@ -115,7 +112,7 @@ public:
         actual_buffer = buffer;
     }
 
-    virtual void Realize([[maybe_unused]] SDL_GPUDevice* device) override {}
-    virtual void Unrealize([[maybe_unused]] SDL_GPUDevice* device) override {}
+    virtual void Realize([[maybe_unused]] GpuResourcePool& pool) override {}
+    virtual void Unrealize() override {}
 };
 }
