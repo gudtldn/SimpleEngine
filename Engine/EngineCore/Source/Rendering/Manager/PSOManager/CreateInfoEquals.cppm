@@ -128,3 +128,26 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUGraphicsPipelineTargetInfo, 24)
 inline namespace compute_pipeline_create_info
 {
 }
+
+inline namespace other_create_info
+{
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUTextureCreateInfo, 36)
+{
+    return SE_PROPERTY_EQUAL(type)
+        && SE_PROPERTY_EQUAL(format)
+        && SE_PROPERTY_EQUAL(usage)
+        && SE_PROPERTY_EQUAL(width)
+        && SE_PROPERTY_EQUAL(height)
+        && SE_PROPERTY_EQUAL(layer_count_or_depth)
+        && SE_PROPERTY_EQUAL(num_levels)
+        && SE_PROPERTY_EQUAL(sample_count)
+        && SE_PROPERTY_EQUAL(props);
+}
+
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUBufferCreateInfo, 12)
+{
+    return SE_PROPERTY_EQUAL(size)
+        && SE_PROPERTY_EQUAL(usage)
+        && SE_PROPERTY_EQUAL(props);
+}
+}
