@@ -165,3 +165,27 @@ SE_SPECIALIZE_STD_HASH(ComputePipelineCreateInfo, 80,
         SE_ARG.placeholder
     );
 })
+
+SE_SPECIALIZE_STD_HASH(SDL_GPUTextureCreateInfo, 36,
+{
+    SE_HASH_COMBINE(
+        static_cast<uint32>(SE_ARG.type),
+        static_cast<uint32>(SE_ARG.format),
+        SE_ARG.usage,
+        SE_ARG.width,
+        SE_ARG.height,
+        SE_ARG.layer_count_or_depth,
+        SE_ARG.num_levels,
+        static_cast<uint32>(SE_ARG.sample_count),
+        SE_ARG.props
+    )
+})
+
+SE_SPECIALIZE_STD_HASH(SDL_GPUBufferCreateInfo, 12,
+{
+    SE_HASH_COMBINE(
+        SE_ARG.usage,
+        SE_ARG.size,
+        SE_ARG.props
+    )
+})
