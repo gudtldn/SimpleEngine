@@ -1,5 +1,6 @@
 ﻿module;
 #include <cstdlib>
+#include "tracy/Tracy.hpp"
 module SE.Core;
 import :Memory.OsMemory;
 
@@ -44,6 +45,9 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     // 유저가 할당한 메모리 크기와 패딩을 기록하고 헤더 생성자 호출
     std::construct_at(header, size, offset);
 
+    // Tracy로 메모리 사용량 추적
+    TracyAlloc(user_ptr, size);
+
     return user_ptr;
 }
 
@@ -85,6 +89,9 @@ void OsMemory::Free(void* address)
     {
         return;
     }
+
+    // Tracy에서 메모리 사용량 추적 해제
+    TracyFree(address);
 
     // user_ptr로 부터 헤더 위치 계산
     OsMemoryHeader* header = GetHeaderFromUserPtr(address);
