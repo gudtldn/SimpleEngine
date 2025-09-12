@@ -1,3 +1,5 @@
+module;
+#include "tracy/Tracy.hpp"
 module SE.Subsystems.RenderSubsystem;
 
 import SE.Core;
@@ -107,6 +109,8 @@ void RenderSubsystem::Release()
 
 void RenderSubsystem::RenderFrame() const
 {
+    ZoneScoped;
+
     PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
