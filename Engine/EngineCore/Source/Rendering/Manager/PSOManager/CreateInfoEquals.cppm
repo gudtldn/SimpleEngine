@@ -7,7 +7,8 @@ import std;
 import "SDL3/SDL_gpu.h";
 
 
-#define SE_DEFINE_EQUALS_OPERATOR(type) \
+#define SE_DEFINE_EQUALS_OPERATOR(type, validate_size) \
+    static_assert(sizeof(type) == validate_size, "Invalid size, please check the struct definition"); \
     bool operator==(const type& a, const type& b) noexcept
 
 #define SE_PROPERTY_EQUAL(prop) \
@@ -19,7 +20,7 @@ import "SDL3/SDL_gpu.h";
 
 inline namespace graphics_pipeline_create_info_equals
 {
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexBufferDescription)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexBufferDescription, 16)
 {
     return SE_PROPERTY_EQUAL(slot)
         && SE_PROPERTY_EQUAL(pitch)
@@ -27,7 +28,7 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexBufferDescription)
         && SE_PROPERTY_EQUAL(instance_step_rate);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexAttribute)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexAttribute, 16)
 {
     return SE_PROPERTY_EQUAL(location)
         && SE_PROPERTY_EQUAL(buffer_slot)
@@ -35,7 +36,7 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexAttribute)
         && SE_PROPERTY_EQUAL(offset);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexInputState)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexInputState, 32)
 {
     SE_IF_NOT_EQUAL_RETURN(num_vertex_buffers);
     for (uint32 i = 0; i < a.num_vertex_buffers; ++i)
@@ -52,7 +53,7 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexInputState)
     return true;
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPURasterizerState)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPURasterizerState, 28)
 {
     return SE_PROPERTY_EQUAL(fill_mode)
         && SE_PROPERTY_EQUAL(cull_mode)
@@ -64,14 +65,14 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPURasterizerState)
         && SE_PROPERTY_EQUAL(enable_depth_clip);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUMultisampleState)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUMultisampleState, 12)
 {
     return SE_PROPERTY_EQUAL(sample_count)
         && SE_PROPERTY_EQUAL(sample_mask)
         && SE_PROPERTY_EQUAL(enable_mask);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUStencilOpState)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUStencilOpState, 16)
 {
     return SE_PROPERTY_EQUAL(fail_op)
         && SE_PROPERTY_EQUAL(pass_op)
@@ -79,7 +80,7 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUStencilOpState)
         && SE_PROPERTY_EQUAL(compare_op);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUDepthStencilState)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUDepthStencilState, 44)
 {
     return SE_PROPERTY_EQUAL(compare_op)
         && SE_PROPERTY_EQUAL(back_stencil_state)
@@ -91,7 +92,7 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUDepthStencilState)
         && SE_PROPERTY_EQUAL(enable_stencil_test);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUColorTargetBlendState)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUColorTargetBlendState, 32)
 {
     return SE_PROPERTY_EQUAL(src_color_blendfactor)
         && SE_PROPERTY_EQUAL(dst_color_blendfactor)
@@ -104,13 +105,13 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUColorTargetBlendState)
         && SE_PROPERTY_EQUAL(enable_color_write_mask);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUColorTargetDescription)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUColorTargetDescription, 36)
 {
     return SE_PROPERTY_EQUAL(format)
         && SE_PROPERTY_EQUAL(blend_state);
 }
 
-SE_DEFINE_EQUALS_OPERATOR(SDL_GPUGraphicsPipelineTargetInfo)
+SE_DEFINE_EQUALS_OPERATOR(SDL_GPUGraphicsPipelineTargetInfo, 24)
 {
     SE_IF_NOT_EQUAL_RETURN(num_color_targets);
     for (uint32 i = 0; i < a.num_color_targets; ++i)
