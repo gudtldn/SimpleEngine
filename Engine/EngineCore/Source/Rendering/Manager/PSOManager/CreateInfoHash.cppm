@@ -1,4 +1,4 @@
-﻿export module SE.Rendering:Manager.PSOManager.PipelineCreateInfoHash;
+﻿export module SE.Rendering:Manager.PSOManager.CreateInfoHash;
 import :Manager.PSOManager.PipelineCreateInfo;
 import :ShaderProvider.IShaderProvider;
 

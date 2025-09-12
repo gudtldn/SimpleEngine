@@ -1,4 +1,4 @@
-﻿export module SE.Rendering:Manager.PSOManager.PipelineCreateInfoEquals;
+﻿export module SE.Rendering:Manager.PSOManager.CreateInfoEquals;
 
 import SE.Types;
 import SE.Utility;
