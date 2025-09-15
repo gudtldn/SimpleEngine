@@ -261,32 +261,6 @@ Optional<RGResourceHandle> RenderGraph::FindResource(const StringName& name) con
     return std::nullopt;
 }
 
-SDL_GPUTexture* RenderGraph::GetActualTexture(RGResourceHandle handle) const
-{
-    if (handle.index < resource_nodes.size())
-    {
-        IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
-        if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
-        {
-            return resource->GetActualTexture();
-        }
-    }
-    return nullptr;
-}
-
-SDL_GPUBuffer* RenderGraph::GetActualBuffer(RGResourceHandle handle) const
-{
-    if (handle.index < resource_nodes.size())
-    {
-        IRGResource* raw_ptr = resource_nodes[handle.index].resource.get();
-        if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
-        {
-            return resource->GetActualBuffer();
-        }
-    }
-    return nullptr;
-}
-
 RGResourceHandle RenderGraph::RegisterResource(RGResourceNode&& node)
 {
     const size_t index = resource_nodes.size();
@@ -347,12 +321,28 @@ void RenderGraphBuilder::Write(RGResourceHandle handle)
 
 SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) const
 {
-    return graph_ref.GetActualTexture(handle);
+    if (handle.index < graph_ref.resource_nodes.size())
+    {
+        IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
+        if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
+        {
+            return resource->GetActualTexture();
+        }
+    }
+    return nullptr;
 }
 
 SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGResourceHandle handle) const
 {
-    return graph_ref.GetActualBuffer(handle);
+    if (handle.index < graph_ref.resource_nodes.size())
+    {
+        IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
+        if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
+        {
+            return resource->GetActualBuffer();
+        }
+    }
+    return nullptr;
 }
 
 SDL_GPUGraphicsPipeline* RGExecutionContext::GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info)

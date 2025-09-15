@@ -17,6 +17,7 @@ namespace se::rendering::render_graph
 {
 // forward declaration
 export class RenderGraphBuilder;
+export class RGExecutionContext;
 
 
 /** 그래프 내의 렌더 패스를 표현하는 내부 구조체 */
@@ -52,6 +53,7 @@ struct RGResourceNode
 export class RenderGraph
 {
     friend class RenderGraphBuilder;
+    friend class RGExecutionContext;
 
 public:
     explicit RenderGraph(SDL_GPUDevice* in_device);
@@ -75,9 +77,6 @@ public:
     void Compile();
     void Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager);
     void Clear();
-
-    SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
-    SDL_GPUBuffer* GetActualBuffer(RGResourceHandle handle) const;
 
     RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
     RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
@@ -128,7 +127,7 @@ private:
 /**
  * IRenderPass::Execute()에 전달되어 사용되는 컨텍스트 클래스
  */
-export class RGExecutionContext
+class RGExecutionContext
 {
 public:
     RGExecutionContext(SDL_GPUCommandBuffer* in_cmd, manager::PSOManager& in_pso_manager, const RenderGraph& in_graph)
