@@ -19,14 +19,6 @@ namespace se::rendering::render_graph
 export class RenderGraphBuilder;
 
 
-/** 그래프 내의 텍스처 리소스를 표현하는 내부 구조체 */
-struct RGResourceNode
-{
-    StringName name;
-    std::unique_ptr<IRGResource> resource;
-    // TODO: 생명주기 관리를 위한 추가 정보 (first_user, last_user 등)
-};
-
 /** 그래프 내의 렌더 패스를 표현하는 내부 구조체 */
 struct RGPassNode
 {
@@ -34,6 +26,23 @@ struct RGPassNode
     std::unique_ptr<IRenderPass> pass_object;
     vector<RGResourceHandle> reads;
     vector<RGResourceHandle> writes;
+
+    // RenderGraph::Compile() 단계에서 채워질 정보들
+    bool culled = true; // 이번 프레임에서 사용 안하는지 여부 (Compile때 false로 변경)
+};
+
+/** 그래프 내의 텍스처 리소스를 표현하는 내부 구조체 */
+struct RGResourceNode
+{
+    StringName name;
+    std::unique_ptr<IRGResource> resource;
+
+    // RenderGraph::Compile() 단계에서 채워질 정보들
+    const RGPassNode* writer = nullptr; // 이 리소스를 쓰는 패스 (프레임당 하나여야 함)
+
+    // lifetime 정보 (위상 정렬 후 계산됨)
+    uint32 first_user_pass_index = std::numeric_limits<uint32>::max();
+    uint32 last_user_pass_index = 0;
 };
 
 
