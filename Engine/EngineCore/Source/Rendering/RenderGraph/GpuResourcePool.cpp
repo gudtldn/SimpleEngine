@@ -36,24 +36,6 @@ GpuResourcePool::~GpuResourcePool()
     }
 }
 
-void GpuResourcePool::BeginFrame()
-{
-    ZoneScoped;
-
-    static auto entry_loop = []<typename T>(PoolEntry<T>& entry) static
-    {
-        entry.available_resources.insert(
-            entry.available_resources.end(),
-            entry.used_resources.begin(),
-            entry.used_resources.end()
-        );
-        entry.used_resources.clear();
-    };
-
-    std::ranges::for_each(texture_pool | std::views::values, entry_loop);
-    std::ranges::for_each(buffer_pool | std::views::values, entry_loop);
-}
-
 SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo& info)
 {
     return AllocateResource(texture_pool[info], [this, &info = std::as_const(info)]

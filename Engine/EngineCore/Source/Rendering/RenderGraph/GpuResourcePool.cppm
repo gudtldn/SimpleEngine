@@ -30,9 +30,6 @@ public:
     GpuResourcePool& operator=(GpuResourcePool&&) = default;
 
 public:
-    /** 프레임 시작 시 호출되어, 지난 프레임에 사용된 모든 리소스를 '사용 가능' 상태로 되돌립니다. */
-    void BeginFrame();
-
     /** CreateInfo에 맞는 텍스처를 Pool에서 찾거나 새로 생성하여 반환합니다. */
     [[nodiscard]] SDL_GPUTexture* AllocateTexture(const SDL_GPUTextureCreateInfo& info);
 

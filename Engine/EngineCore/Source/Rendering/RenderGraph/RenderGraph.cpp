@@ -198,8 +198,6 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_ma
 {
     ZoneScoped;
 
-    resource_pool.BeginFrame();
-
     // TODO: 컴파일 단계에서 리소스 lifecycle 체크해서 필요한 시점에만 리소스를 할당하고 재사용하게끔 수정
 
     for (const RGPassNode* pass_node : compiled_passes)
