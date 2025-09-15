@@ -308,12 +308,12 @@ RGResourceHandle RenderGraphBuilder::CreateBuffer(const StringName& name, const 
 
 void RenderGraphBuilder::Read(RGResourceHandle handle)
 {
-    pass_node_ref.reads.push_back(handle);
+    pass_node_ref.reads.emplace(handle);
 }
 
 void RenderGraphBuilder::Write(RGResourceHandle handle)
 {
-    pass_node_ref.writes.push_back(handle);
+    pass_node_ref.writes.emplace(handle);
 }
 
 

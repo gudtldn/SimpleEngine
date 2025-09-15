@@ -48,7 +48,10 @@ class RGTransientTexture : public IRGTexture
 public:
     virtual void Realize(GpuResourcePool& pool) override
     {
-        actual_texture = pool.AllocateTexture(description);
+        if (!actual_texture)
+        {
+            actual_texture = pool.AllocateTexture(description);
+        }
     }
 
     virtual void Unrealize(GpuResourcePool& pool) override
@@ -87,7 +90,10 @@ class RGTransientBuffer : public IRGBuffer
 public:
     virtual void Realize(GpuResourcePool& pool) override
     {
-        actual_buffer = pool.AllocateBuffer(description);
+        if (!actual_buffer)
+        {
+            actual_buffer = pool.AllocateBuffer(description);
+        }
     }
 
     virtual void Unrealize(GpuResourcePool& pool) override

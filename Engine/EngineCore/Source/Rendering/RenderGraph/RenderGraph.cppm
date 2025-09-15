@@ -25,8 +25,8 @@ struct RGPassNode
 {
     StringName name;
     std::unique_ptr<IRenderPass> pass_object;
-    vector<RGResourceHandle> reads;
-    vector<RGResourceHandle> writes;
+    set<RGResourceHandle> reads;
+    set<RGResourceHandle> writes;
 
     // RenderGraph::Compile() 단계에서 채워질 정보들
     bool culled = true; // 이번 프레임에서 사용 안하는지 여부 (Compile때 false로 변경)
