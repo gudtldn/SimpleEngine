@@ -20,6 +20,34 @@ constexpr bool IS_RELEASE_BUILD = true;
 constexpr bool IS_RELEASE_BUILD = false;
 #endif
 
+
+/**
+ * 특정 값(size)을 지정된 정렬(AlignSize) 크기로 올림(round up)합니다.
+ * @tparam AlignSize 정렬 기준이 되는 크기 (예: 16, 256). 반드시 2의 거듭제곱이어야 합니다.
+ * @param size 정렬하려는 원래 크기 (바이트 단위)
+ * @return size보다 크거나 같은 값 중에서 가장 작은 AlignSize의 배수를 반환합니다.
+ */
+template <size_t AlignSize>
+    requires (std::has_single_bit(AlignSize))
+constexpr size_t AlignedSize(size_t size)
+{
+    return (size + AlignSize - 1) & ~(AlignSize - 1);
+}
+
+/**
+ * 특정 타입(T)의 크기를 지정된 정렬(AlignSize) 크기로 올림(round up)합니다.
+ * @tparam AlignSize 정렬 기준이 되는 크기 (예: 16, 256). **반드시 2의 거듭제곱이어야 합니다.**
+ * @tparam T 크기를 계산할 C++ 타입
+ * @return sizeof(T)보다 크거나 같은 값 중에서 가장 작은 AlignSize의 배수를 반환합니다.
+ */
+template <size_t AlignSize, typename T>
+    requires (std::has_single_bit(AlignSize))
+constexpr size_t AlignedSize()
+{
+    return AlignedSize<AlignSize>(sizeof(T));
+}
+
+
 /**
  * 주어진 스코프({ ... })의 시작과 끝에서 특정 동작을 자동으로 수행하는 RAII 래퍼
  *
