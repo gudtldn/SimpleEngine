@@ -120,8 +120,10 @@ void Application::MainLoop()
 
     while (is_running && !quit_requested)
     {
+        ZoneScoped;
+
         {
-            ZoneScoped;
+            ZoneScopedN("Frame Tick");
 
             const double frame_start = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
 
@@ -137,7 +139,6 @@ void Application::MainLoop()
 
             Render();
         }
-
         {
             ZoneScopedN("Frame Wait");
 
