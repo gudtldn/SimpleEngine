@@ -92,7 +92,7 @@ void EditorApplication::Render()
     RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
     {
         using namespace se::editor::rendering::passes;
-        render_subsystem->GetRenderGraph()->AddPass<ImGuiPass>();
+        render_subsystem->GetRenderGraph()->AddPass<EditorUIPass>();
     }
     render_subsystem->RenderFrame();
 }

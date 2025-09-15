@@ -9,13 +9,13 @@ using namespace se::rendering::render_graph;
 
 namespace se::editor::rendering::passes
 {
-void ImGuiPass::Setup(RenderGraphBuilder& builder)
+void EditorUIPass::Setup(RenderGraphBuilder& builder)
 {
     back_buffer_handle = builder.GetResourceHandleByName(u8"BackBuffer");
     builder.Write(back_buffer_handle);
 }
 
-void ImGuiPass::Execute(const RGExecutionContext& context)
+void EditorUIPass::Execute(const RGExecutionContext& context)
 {
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 

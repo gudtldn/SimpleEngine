@@ -8,7 +8,7 @@ import std;
 
 export namespace se::editor::rendering::passes
 {
-class ImGuiPass : public IRenderPass
+class EditorUIPass : public IRenderPass
 {
 public:
     virtual void Setup(se::rendering::render_graph::RenderGraphBuilder& builder) override;
