@@ -120,31 +120,37 @@ void Application::MainLoop()
 
     while (is_running && !quit_requested)
     {
-        ZoneScoped;
+        {
+            ZoneScoped;
 
-        const double frame_start = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+            const double frame_start = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
 
-        // Calculate Delta Time
-        LastTime = CurrentTime;
-        CurrentTime = frame_start;
-        DeltaTime = CurrentTime - LastTime;
-        TotalElapsedTime += static_cast<uint64>(DeltaTime * 1000.0);
+            // Calculate Delta Time
+            LastTime = CurrentTime;
+            CurrentTime = frame_start;
+            DeltaTime = CurrentTime - LastTime;
+            TotalElapsedTime += static_cast<uint64>(DeltaTime * 1000.0);
 
-        ProcessPlatformEvents();
+            ProcessPlatformEvents();
 
-        Update(static_cast<float>(DeltaTime));
+            Update(static_cast<float>(DeltaTime));
 
-        Render();
+            Render();
+        }
+
+        {
+            ZoneScopedN("Frame Wait");
+
+            double frame_duration;
+            do
+            {
+                SDL_Delay(0);
+                const double frame_end = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+                frame_duration = frame_end - CurrentTime;
+            } while (frame_duration < TargetFrameTime);
+        }
 
         FrameMark;
-        double frame_duration;
-        do
-        {
-            SDL_Delay(0);
-            const double frame_end = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
-            frame_duration = frame_end - CurrentTime;
-        }
-        while (frame_duration < TargetFrameTime);
     }
 }
 
