@@ -30,25 +30,59 @@ void RenderGraph::Compile()
     {
         RenderGraphBuilder builder(*this, pass_node);
         pass_node.pass_object->Setup(builder);
+    }
 
+    for (RGPassNode& pass_node : pass_nodes)
+    {
         // 이 패스가 사용하는 리소스에 writer_pass 정보를 추가
-        for (const auto& [write_handle_idx] : pass_node.writes)
+        for (const RGResourceHandle write_handle : pass_node.writes)
         {
-            RGResourceNode& resource_node = resource_nodes[write_handle_idx];
-            if (resource_node.writer && resource_node.writer != &pass_node)
+            if constexpr (utility::IS_DEBUG_BUILD)
             {
-                // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
-                ConsoleLog(
-                    ELogLevel::Error,
-                    u8"Render Graph Error: Multiple write passes detected for the same resource.\n"
-                    u8"  - Resource Name: {}\n"
-                    u8"  - Existing Writer Pass: {}\n"
-                    u8"  - Conflicting Writer Pass: {}",
-                    resource_node.name.ToString(),
-                    typeid(*resource_node.writer->pass_object).name(),
-                    typeid(*pass_node.pass_object).name()
-                );
-                assert(false && "A resource can only be written by a single pass per frame.");
+                // 리소스가 존재하는지 확인
+                if (!(write_handle && write_handle.index < resource_nodes.size()))
+                {
+                    ConsoleLog(
+                        ELogLevel::Error,
+                        u8"Invalid resource handle. Check the {}::Setup() logic",
+                        typeid(*pass_node.pass_object).name()
+                    );
+                    assert(false && "Invalid resource handle.");
+                }
+            }
+
+            RGResourceNode& resource_node = resource_nodes[write_handle.index];
+
+            // 리소스가 만들어졌는지 확인
+            if constexpr (utility::IS_DEBUG_BUILD)
+            {
+                if (!resource_node.resource)
+                {
+                    ConsoleLog(
+                        ELogLevel::Error,
+                        u8"Resource {} is not initialized. Check the {}::Setup() logic",
+                        resource_node.name.ToString(),
+                        typeid(*pass_node.pass_object).name()
+                    );
+                    assert(false && "Resource is not initialized.");
+                }
+
+                // 리소스가 이미 다른 패스에서 쓰고 있는지 확인
+                if (resource_node.writer && resource_node.writer != &pass_node)
+                {
+                    // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
+                    ConsoleLog(
+                        ELogLevel::Error,
+                        u8"Multiple write passes detected for the same resource.\n"
+                        u8"  - Resource Name: {}\n"
+                        u8"  - Existing Writer Pass: {}\n"
+                        u8"  - Conflicting Writer Pass: {}",
+                        resource_node.name.ToString(),
+                        typeid(*resource_node.writer->pass_object).name(),
+                        typeid(*pass_node.pass_object).name()
+                    );
+                    assert(false && "A resource can only be written by a single pass per frame.");
+                }
             }
             resource_node.writer = &pass_node;
         }
@@ -205,9 +239,9 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_ma
 
     for (const RGPassNode* pass_node : compiled_passes)
     {
-        for (const auto& [write_handle_idx] : pass_node->writes)
+        for (const RGResourceHandle write_handle : pass_node->writes)
         {
-            resource_nodes[write_handle_idx].resource->Realize(resource_pool);
+            resource_nodes[write_handle.index].resource->Realize(resource_pool);
         }
         pass_node->pass_object->Execute({ cmd, pso_manager, *this });
     }
