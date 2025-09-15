@@ -5,6 +5,7 @@ import :Traits.CreateInfoHash;
 import SE.Types;
 import std;
 
+import <cassert>;
 import "SDL3/SDL_gpu.h";
 
 
@@ -28,19 +29,29 @@ public:
     GpuResourcePool(GpuResourcePool&&) = default;
     GpuResourcePool& operator=(GpuResourcePool&&) = default;
 
+public:
     /** 프레임 시작 시 호출되어, 지난 프레임에 사용된 모든 리소스를 '사용 가능' 상태로 되돌립니다. */
     void BeginFrame();
 
     /** CreateInfo에 맞는 텍스처를 Pool에서 찾거나 새로 생성하여 반환합니다. */
     [[nodiscard]] SDL_GPUTexture* AllocateTexture(const SDL_GPUTextureCreateInfo& info);
 
+    /** 사용이 끝난 텍스처를 Pool에 반납합니다. */
+    void DeallocateTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture);
+
     /** CreateInfo에 맞는 버퍼를 Pool에서 찾거나 새로 생성하여 반환합니다. */
     [[nodiscard]] SDL_GPUBuffer* AllocateBuffer(const SDL_GPUBufferCreateInfo& info);
+
+    /** 사용이 끝난 버퍼를 Pool에 반납합니다. */
+    void DeallocateBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer);
 
 private:
     template <typename T, typename CreateResourceFn>
         requires std::is_invocable_r_v<T*, CreateResourceFn>
     [[nodiscard]] T* AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func);
+
+    template <typename T>
+    void DeallocateResource(PoolEntry<T>& entry, T* resource);
 
 private:
     SDL_GPUDevice* device;
@@ -62,4 +73,13 @@ T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& cre
         entry.available_resources.pop_back();
     }
     return entry.used_resources.back();
+}
+
+template <typename T>
+void GpuResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
+{
+    const size_t count = std::erase(entry.used_resources, resource);
+    assert(count > 0 && "Attempted to deallocate a texture that was not marked as used.");
+
+    entry.available_resources.push_back(resource);
 }

@@ -218,7 +218,7 @@ void RenderGraph::Clear()
     {
         for (const auto& [write_handle_idx] : pass_node->writes)
         {
-            resource_nodes[write_handle_idx].resource->Unrealize();
+            resource_nodes[write_handle_idx].resource->Unrealize(resource_pool);
         }
     }
 

@@ -62,10 +62,20 @@ SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo&
     });
 }
 
+void GpuResourcePool::DeallocateTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture)
+{
+    DeallocateResource(texture_pool[info], texture);
+}
+
 SDL_GPUBuffer* GpuResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& info)
 {
     return AllocateResource(buffer_pool[info], [this, &info = std::as_const(info)]
     {
         return SDL_CreateGPUBuffer(device, &info);
     });
+}
+
+void GpuResourcePool::DeallocateBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
+{
+    DeallocateResource(buffer_pool[info], buffer);
 }

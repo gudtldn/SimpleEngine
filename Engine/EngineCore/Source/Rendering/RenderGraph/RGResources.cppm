@@ -15,7 +15,7 @@ public:
     virtual ~IRGResource() = default;
 
     virtual void Realize(GpuResourcePool& pool) = 0;
-    virtual void Unrealize() = 0;
+    virtual void Unrealize(GpuResourcePool& pool) = 0;
 };
 
 class IRGTexture : public IRGResource
@@ -51,10 +51,11 @@ public:
         actual_texture = pool.AllocateTexture(description);
     }
 
-    virtual void Unrealize() override
+    virtual void Unrealize(GpuResourcePool& pool) override
     {
         if (actual_texture)
         {
+            pool.DeallocateTexture(description, actual_texture);
             actual_texture = nullptr;
         }
     }
@@ -75,7 +76,7 @@ public:
     }
 
     virtual void Realize([[maybe_unused]] GpuResourcePool& pool) override {}
-    virtual void Unrealize() override {}
+    virtual void Unrealize([[maybe_unused]] GpuResourcePool& pool) override {}
 };
 
 /**
@@ -89,10 +90,11 @@ public:
         actual_buffer = pool.AllocateBuffer(description);
     }
 
-    virtual void Unrealize() override
+    virtual void Unrealize(GpuResourcePool& pool) override
     {
         if (actual_buffer)
         {
+            pool.DeallocateBuffer(description, actual_buffer);
             actual_buffer = nullptr;
         }
     }
@@ -113,6 +115,6 @@ public:
     }
 
     virtual void Realize([[maybe_unused]] GpuResourcePool& pool) override {}
-    virtual void Unrealize() override {}
+    virtual void Unrealize([[maybe_unused]] GpuResourcePool& pool) override {}
 };
 }
