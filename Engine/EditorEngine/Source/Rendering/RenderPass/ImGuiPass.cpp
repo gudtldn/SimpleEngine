@@ -11,8 +11,10 @@ namespace se::editor::rendering::passes
 {
 void ImGuiPass::Setup(RenderGraphBuilder& builder)
 {
-    back_buffer_opt = builder.FindResource(u8"BackBuffer");
-    builder.Write(*back_buffer_opt);
+    back_buffer_handle = builder.GetResourceHandleByName(u8"BackBuffer");
+    builder.Write(back_buffer_handle);
+
+    builder.Read(builder.GetResourceHandleByName(u8"TestBuffer"));
 }
 
 void ImGuiPass::Execute(const RGExecutionContext& context)
@@ -22,7 +24,7 @@ void ImGuiPass::Execute(const RGExecutionContext& context)
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();
 
-    SDL_GPUTexture* back_buffer = context.GetActualTexture(*back_buffer_opt);
+    SDL_GPUTexture* back_buffer = context.GetActualTexture(back_buffer_handle);
     const SDL_GPUColorTargetInfo target_info = {
         .texture = back_buffer,
         .mip_level = 0,

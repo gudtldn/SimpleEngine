@@ -15,6 +15,6 @@ public:
     virtual void Execute(const se::rendering::render_graph::RGExecutionContext& context) override;
 
 private:
-    Optional<se::rendering::render_graph::RGResourceHandle> back_buffer_opt = std::nullopt;
+    se::rendering::render_graph::RGResourceHandle back_buffer_handle;
 };
 }
