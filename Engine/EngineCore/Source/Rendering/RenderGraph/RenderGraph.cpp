@@ -40,12 +40,15 @@ void RenderGraph::Compile()
                 // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Resource '{}' is written by multiple passes ({} override to {}) in a single frame!",
+                    u8"Render Graph Error: Multiple write passes detected for the same resource.\n"
+                    u8"  - Resource Name: {}\n"
+                    u8"  - Existing Writer Pass: {}\n"
+                    u8"  - Conflicting Writer Pass: {}",
                     resource_node.name.ToString(),
                     typeid(*resource_node.writer->pass_object).name(),
                     typeid(*pass_node.pass_object).name()
                 );
-                assert(false && "Resource written by multiple passes in a single frame!");
+                assert(false && "A resource can only be written by a single pass per frame.");
             }
             resource_node.writer = &pass_node;
         }
