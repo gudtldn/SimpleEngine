@@ -201,23 +201,25 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_ma
     resource_pool.BeginFrame();
 
     // TODO: 컴파일 단계에서 리소스 lifecycle 체크해서 필요한 시점에만 리소스를 할당하고 재사용하게끔 수정
-    // 일단 모든 리소스를 미리 생성
-    for (const RGResourceNode& node : resource_nodes)
-    {
-        node.resource->Realize(resource_pool);
-    }
 
     for (const RGPassNode* pass_node : compiled_passes)
     {
+        for (const auto& [write_handle_idx] : pass_node->writes)
+        {
+            resource_nodes[write_handle_idx].resource->Realize(resource_pool);
+        }
         pass_node->pass_object->Execute({ cmd, pso_manager, *this });
     }
 }
 
 void RenderGraph::Clear()
 {
-    for (const RGResourceNode& node : resource_nodes)
+    for (const RGPassNode* pass_node : compiled_passes)
     {
-        node.resource->Unrealize();
+        for (const auto& [write_handle_idx] : pass_node->writes)
+        {
+            resource_nodes[write_handle_idx].resource->Unrealize();
+        }
     }
 
     pass_nodes.clear();
