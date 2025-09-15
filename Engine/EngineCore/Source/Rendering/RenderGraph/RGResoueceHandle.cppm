@@ -11,9 +11,12 @@ export namespace se::rendering::render_graph
  */
 struct RGResourceHandle
 {
-    size_t index;
+    size_t index = std::numeric_limits<size_t>::max();
 
-    [[nodiscard]] bool operator==(const RGResourceHandle&) const = default;
-    [[nodiscard]] auto operator<=>(const RGResourceHandle&) const = default;
+    [[nodiscard]] constexpr bool operator==(const RGResourceHandle&) const = default;
+    [[nodiscard]] constexpr auto operator<=>(const RGResourceHandle&) const = default;
+
+    [[nodiscard]] constexpr bool IsValid() const { return index != std::numeric_limits<size_t>::max(); }
+    [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
 };
 }
