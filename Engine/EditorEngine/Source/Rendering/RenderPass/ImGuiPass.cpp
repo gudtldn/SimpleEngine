@@ -13,8 +13,6 @@ void ImGuiPass::Setup(RenderGraphBuilder& builder)
 {
     back_buffer_handle = builder.GetResourceHandleByName(u8"BackBuffer");
     builder.Write(back_buffer_handle);
-
-    builder.Read(builder.GetResourceHandleByName(u8"TestBuffer"));
 }
 
 void ImGuiPass::Execute(const RGExecutionContext& context)
