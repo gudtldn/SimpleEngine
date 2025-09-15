@@ -65,6 +65,7 @@ public:
     RenderGraph(RenderGraph&&) = default;
     RenderGraph& operator=(RenderGraph&&) = default;
 
+public:
     /**
      * 새로운 RenderPass를 그래프에 추가합니다.
      * @tparam PassType IRenderPass를 상속받아 구현된 패스 객체의 unique_ptr
@@ -78,17 +79,20 @@ public:
     void Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager);
     void Clear();
 
+public:
     RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
     RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
 
-    Optional<RGResourceHandle> FindResource(const StringName& name) const;
-
 private:
+    [[nodiscard]] RGResourceHandle GetResourceHandleByName(const StringName& name);
     RGResourceHandle RegisterResource(RGResourceNode&& node);
 
 private:
     SDL_GPUDevice* device;
     GpuResourcePool resource_pool;
+
+    // StringName으로 리소스 핸들을 찾기 위한 Map
+    unordered_map<StringName, RGResourceHandle> resource_name_map;
 
     vector<RGPassNode> pass_nodes;
     vector<RGResourceNode> resource_nodes;
@@ -108,13 +112,11 @@ public:
     {
     }
 
+public:
+    [[nodiscard]] RGResourceHandle GetResourceHandleByName(const StringName& name) const;
+
     RGResourceHandle CreateTexture(const StringName& name, const SDL_GPUTextureCreateInfo& description);
     RGResourceHandle CreateBuffer(const StringName& name, const SDL_GPUBufferCreateInfo& description);
-
-    RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
-    RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
-
-    Optional<RGResourceHandle> FindResource(const StringName& name) const;
 
     void Read(RGResourceHandle handle);
     void Write(RGResourceHandle handle);
@@ -137,6 +139,7 @@ public:
     {
     }
 
+public:
     [[nodiscard]] SDL_GPUCommandBuffer* GetCommandBuffer() const { return command_buffer; }
 
     [[nodiscard]] SDL_GPUTexture* GetActualTexture(RGResourceHandle handle) const;
