@@ -114,6 +114,12 @@ void RenderSubsystem::RenderFrame() const
     PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
+        if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
+        {
+            render_graph->Clear();
+            continue;
+        }
+
         // Command Buffer 가져오기
         SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);
         if (!command_buffer)
