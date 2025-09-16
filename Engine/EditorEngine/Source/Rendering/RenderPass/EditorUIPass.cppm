@@ -1,4 +1,4 @@
-﻿export module SE.Editor.Rendering:RenderPass.ImGuiPass;
+﻿export module SE.Editor.Rendering:RenderPass.EditorUIPass;
 
 import SE.Types;
 import SE.Rendering;

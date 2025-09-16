@@ -2,7 +2,7 @@
 #include <imgui.h>
 #include <imgui_impl_sdlgpu3.h>
 module SE.Editor.Rendering;
-import :RenderPass.ImGuiPass;
+import :RenderPass.EditorUIPass;
 
 using namespace se::rendering::render_graph;
 
