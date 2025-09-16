@@ -10,6 +10,7 @@ import SE.Utility;
 import SE.Subsystems.PlatformSubsystem;
 import SE.Subsystems.RenderSubsystem;
 import SE.Subsystems.WorldSubsystem;
+import SE.Subsystems.AssetSubsystem;
 
 import <cassert>;
 import <SDL3/SDL.h>;
@@ -189,6 +190,7 @@ void Application::RegisterSubsystems()
 {
     engine_instance->RegisterSubsystem<PlatformSubsystem>();
     engine_instance->RegisterSubsystem<WorldSubsystem>();
+    engine_instance->RegisterSubsystem<AssetSubsystem>();
 }
 
 bool Application::InitializeEngine()
