@@ -3,9 +3,7 @@
 - [ ] ECS World에 RegisterSystem 구현
   - 이래야 멀티 월드일 떄 구성하기가 쉬움
 - [ ] Optional constexpr로 만들기
-- [ ] RenderGraph 구현
-  - GPU Resource Pool 구현
-  - 이후 Realize() 로직을 Pool에서 가져오는 걸로 변경
+- [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
 - [ ] 나중에 Thread-Safe해야하는 로직 확인하기
 
 - [ ] 프로파일러 만들기
@@ -37,3 +35,6 @@
   - [x] namespace 모두 부착
   - [x] 다중 윈도우 지원
 - [x] 커스텀 메모리 할당자 구현
+- [x] RenderGraph 구현
+  - GPU Resource Pool 구현
+  - 이후 Realize() 로직을 Pool에서 가져오는 걸로 변경
