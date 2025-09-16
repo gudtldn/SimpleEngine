@@ -126,7 +126,7 @@ void RenderSubsystem::RenderFrame() const
 
         // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
         SDL_GPUTexture* swapchain_texture;
-        SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
+        SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
 
         if (!swapchain_texture)
         {
