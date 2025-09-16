@@ -32,6 +32,9 @@ uint64 Application::TotalElapsedTime = 0;
 uint32 Application::TargetFps = 240;
 double Application::TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
 
+double Application::BusyWaitRatio = 0.1;
+double Application::BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
+
 Application* Application::Instance = nullptr;
 
 
@@ -110,13 +113,18 @@ void Application::MainLoop()
 {
     is_running = true;
 
-    double performance_frequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    const double performance_frequency = static_cast<double>(SDL_GetPerformanceFrequency());
     if (performance_frequency <= 0.0)
     {
-        performance_frequency = 1000.0;
+        const_cast<double&>(performance_frequency) = 1000.0;
     }
 
-    CurrentTime = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+    auto get_performance_time = [performance_frequency] -> double
+    {
+        return static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+    };
+
+    CurrentTime = get_performance_time();
 
     while (is_running && !quit_requested)
     {
@@ -125,7 +133,7 @@ void Application::MainLoop()
         {
             ZoneScopedN("Frame Tick");
 
-            const double frame_start = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+            const double frame_start = get_performance_time();
 
             // Calculate Delta Time
             LastTime = CurrentTime;
@@ -142,13 +150,24 @@ void Application::MainLoop()
         {
             ZoneScopedN("Frame Wait");
 
-            double frame_duration;
-            do
+            const double elapsed_sec = get_performance_time() - CurrentTime;
+            const double time_to_wait_sec = TargetFrameTime - elapsed_sec;
+
+            if (time_to_wait_sec > 0.0)
             {
-                SDL_Delay(0);
-                const double frame_end = static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
-                frame_duration = frame_end - CurrentTime;
-            } while (frame_duration < TargetFrameTime);
+                const double busy_wait_threshold_ms = BusyWaitThreshold * 1000.0;
+                const uint32 sleep_ms = static_cast<uint32>((time_to_wait_sec * 1000.0) - busy_wait_threshold_ms);
+
+                // 대부분의 대기 시간을 Delay로 대기
+                if (sleep_ms > 0)
+                {
+                    SDL_Delay(sleep_ms);
+                }
+
+                // 남은 시간은 바쁜 대기로 대기
+                // ReSharper disable once CppEnforceWhileStatementBraces
+                while (get_performance_time() - CurrentTime < TargetFrameTime);
+            }
         }
 
         FrameMark;

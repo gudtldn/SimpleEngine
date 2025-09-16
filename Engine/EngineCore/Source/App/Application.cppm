@@ -96,6 +96,7 @@ public:
     {
         TargetFps = new_fps;
         TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
+        BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
     }
 
 private:
@@ -110,6 +111,9 @@ private:
 
     static uint32 TargetFps;       // 목표 FPS
     static double TargetFrameTime; // 목표 FPS 시간
+
+    static double BusyWaitRatio;     // 바쁜 대기 시간 비율
+    static double BusyWaitThreshold; // 바쁜 대기 시간 제한
 
     // Loop 제어 변수
     bool is_initialized = false;
