@@ -7,22 +7,22 @@ import SE.Types;
 import std;
 
 
-namespace se::core::ecs
+export namespace se::core::ecs
 {
-export class World;
+class World;
 
-export template <typename FetchList, typename WithList, typename WithoutList>
+template <typename FetchList, typename WithList, typename WithoutList>
 class QueryResult;
 
-export template <typename...> struct FetchQuery {};
-export template <typename...> struct WithQuery {};
-export template <typename...> struct WithoutQuery {};
+template <typename...> struct FetchQuery {};
+template <typename...> struct WithQuery {};
+template <typename...> struct WithoutQuery {};
 
 
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
  */
-export class World final
+class World final
 {
 private:
     template <typename FetchList, typename WithList, typename WithoutList>
@@ -209,7 +209,7 @@ public:
 /**
  * World 쿼리 결과를 나타내며, 지연 평가 및 메서드 체이닝을 지원하는 클래스입니다.
  */
-export template <
+template <
     typename... FetchComps,
     typename... WithComps,
     typename... WithoutComps
