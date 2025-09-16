@@ -239,9 +239,9 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_ma
 
     for (const RGPassNode* pass_node : compiled_passes)
     {
-        for (const RGResourceHandle write_handle : pass_node->writes)
+        for (const auto [write_handle_idx] : pass_node->writes)
         {
-            resource_nodes[write_handle.index].resource->Realize(resource_pool);
+            resource_nodes[write_handle_idx].resource->Realize(resource_pool);
         }
         pass_node->pass_object->Execute({ cmd, pso_manager, *this });
     }
