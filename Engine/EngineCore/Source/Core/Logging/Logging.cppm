@@ -1,4 +1,6 @@
-﻿export module SE.Core:Logging;
+﻿module;
+#include "tracy/Tracy.hpp"
+export module SE.Core:Logging;
 import :Logging.LogData;
 import :Logging.Colors;
 
@@ -68,7 +70,7 @@ export template <typename... Args>
 void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
 {
     static se::unordered_set<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
-    static std::mutex mtx;
+    static TracyLockable(std::mutex, mtx);
 
     {
         // 키 생성

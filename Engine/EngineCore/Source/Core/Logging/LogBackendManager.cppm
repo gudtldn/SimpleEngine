@@ -1,4 +1,6 @@
-﻿export module SE.Core:Logging.LogBackendManager;
+﻿module;
+#include "tracy/Tracy.hpp"
+export module SE.Core:Logging.LogBackendManager;
 import :Logging.Backends.ILogBackend;
 import :Logging.LogData;
 
@@ -55,6 +57,6 @@ public:
 
 private:
     vector<std::unique_ptr<backends::ILogBackend>> backends;
-    std::mutex backends_mutex;
+    TracyLockable(std::mutex, backends_mutex);
 };
 }

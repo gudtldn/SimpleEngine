@@ -16,7 +16,7 @@ struct LeakInfo
 
 // <메모리 주소, 누수 정보>를 저장하는 Map
 std::unordered_map<const void*, LeakInfo> GLeakedMemoryMap;
-std::mutex GMapMutex;
+TracyLockable(std::mutex, GMapMutex);
 }
 
 namespace se::core::memory
