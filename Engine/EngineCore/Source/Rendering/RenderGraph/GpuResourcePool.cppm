@@ -75,7 +75,7 @@ T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& cre
 template <typename T>
 void GpuResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
 {
-    const size_t count = std::erase(entry.used_resources, resource);
+    [[maybe_unused]] const size_t count = std::erase(entry.used_resources, resource);
     assert(count > 0 && "Attempted to deallocate a texture that was not marked as used.");
 
     entry.available_resources.push_back(resource);
