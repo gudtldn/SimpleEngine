@@ -1,6 +1,8 @@
 ﻿module SE.Core;
 import :Concurrency.ThreadPool;
 
+using namespace se::core::function;
+
 
 namespace se::core::concurrency
 {
@@ -29,7 +31,7 @@ ThreadPool::~ThreadPool()
     }
 }
 
-void ThreadPool::Submit(function::Function<void()> task)
+void ThreadPool::Submit(Function<void()> task)
 {
     {
         std::scoped_lock lock(mutex);
@@ -42,7 +44,7 @@ void ThreadPool::WorkerLoop()
 {
     while (true)
     {
-        function::Function<void()> task;
+        Function<void()> task;
         {
             std::unique_lock lock(mutex);
 
