@@ -1,5 +1,6 @@
 ﻿export module SE.Core;
 
+export import :Concurrency;
 export import :ECS;
 export import :Engine;
 export import :Function;
