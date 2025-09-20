@@ -1,4 +1,6 @@
-﻿export module SE.Rendering:Traits.CreateInfoHash;
+﻿module;
+#include "Utility/Utility.h"
+export module SE.Rendering:Traits.CreateInfoHash;
 import :Manager.PSOManager.PipelineCreateInfo;
 import :ShaderProvider.IShaderProvider;
 
@@ -144,7 +146,7 @@ SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, 24,
     );
 })
 
-SE_SPECIALIZE_STD_HASH(GraphicsPipelineCreateInfo, 424,
+SE_SPECIALIZE_STD_HASH(GraphicsPipelineCreateInfo, 424 RELEASE_EXPRESION(-48), // Release때 stl이 최적화됨
 {
     SE_HASH_COMBINE(
         SE_ARG.vertex_shader_request,
