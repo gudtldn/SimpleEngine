@@ -1,4 +1,6 @@
-﻿export module SE.Core:Concurrency.ThreadPool;
+﻿module;
+#include <cassert>
+export module SE.Core:Concurrency.ThreadPool;
 import :Function;
 
 import SE.Types;
@@ -34,10 +36,13 @@ public:
     ThreadPool& operator=(ThreadPool&&) = delete;
 
 public:
-    static void SubmitTask(function::Function<void()> task);
+    template <typename Fn, typename... Args>
+    static auto SubmitTask(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>;
 
 private:
-    void Submit(function::Function<void()> task);
+    template <typename Fn, typename... Args>
+    auto Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>;
+
     void WorkerLoop();
 
 private:
@@ -49,4 +54,28 @@ private:
     vector<std::thread> worker_threads;
     queue<function::Function<void()>> tasks;
 };
+
+template <typename Fn, typename... Args>
+auto ThreadPool::SubmitTask(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>
+{
+    assert(Instance && "ThreadPool instance is not initialized.");
+    return Instance->Submit(std::forward<Fn>(func), std::forward<Args>(args)...);
+}
+
+template <typename Fn, typename... Args>
+auto ThreadPool::Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>
+{
+    using ReturnType = std::invoke_result_t<Fn(Args...)>;
+    auto task_ptr = std::make_shared<std::packaged_task<ReturnType>>(
+        std::bind(std::forward<Fn>(func), std::forward<Args>(args)...)
+    );
+
+    {
+        std::scoped_lock lock(mutex);
+        tasks.emplace([task_ptr] { (*task_ptr)(); });
+    }
+
+    condition.notify_one();
+    return task_ptr->get_future();
+}
 }

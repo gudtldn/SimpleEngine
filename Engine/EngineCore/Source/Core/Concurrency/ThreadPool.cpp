@@ -1,7 +1,7 @@
-﻿module SE.Core;
+﻿module;
+#include <cassert>
+module SE.Core;
 import :Concurrency.ThreadPool;
-
-import <cassert>;
 
 using namespace se::core::function;
 
@@ -39,21 +39,6 @@ ThreadPool::~ThreadPool()
     {
         thread.join();
     }
-}
-
-void ThreadPool::SubmitTask(Function<void()> task)
-{
-    assert(Instance && "ThreadPool instance is not created!");
-    Instance->Submit(std::move(task));
-}
-
-void ThreadPool::Submit(Function<void()> task)
-{
-    {
-        std::scoped_lock lock(mutex);
-        tasks.push(std::move(task));
-    }
-    condition.notify_one();
 }
 
 void ThreadPool::WorkerLoop()
