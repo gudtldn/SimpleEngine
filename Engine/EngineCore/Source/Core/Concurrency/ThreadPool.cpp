@@ -51,7 +51,7 @@ void ThreadPool::WorkerLoop()
 
             // 작업이 없으면 대기
             condition.wait(lock, [this] { return !tasks.empty() || !running; });
-            if (!running)
+            if (!running && tasks.empty())
             {
                 return;
             }
