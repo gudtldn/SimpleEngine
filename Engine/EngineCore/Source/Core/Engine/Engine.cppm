@@ -46,7 +46,7 @@ public:
     [[nodiscard]] T* GetSubsystem() const;
 
     /** Thread Pool을 가져옵니다. */
-    concurrency::ThreadPool& GetThreadPool() { return thread_pool; }
+    concurrency::ThreadPool& GetThreadPool() const { return *thread_pool; }
 
 public:
     /** Engine을 초기화 합니다 */
@@ -84,7 +84,7 @@ private:
     vector<IUpdatable*> updatable_systems;
 
     // Engine에서 사용할 ThreadPool
-    concurrency::ThreadPool thread_pool;
+    std::unique_ptr<concurrency::ThreadPool> thread_pool;
 };
 
 

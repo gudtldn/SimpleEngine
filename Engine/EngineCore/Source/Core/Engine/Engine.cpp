@@ -13,6 +13,8 @@ namespace se::core::engine
 {
 bool Engine::Initialize()
 {
+    thread_pool.reset(new concurrency::ThreadPool);
+
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
     {
@@ -32,8 +34,10 @@ bool Engine::Initialize()
 void Engine::Release()
 {
     ReleaseAllSubsystems();
-    subsystems.clear();
     sorted_subsystems.clear();
+    subsystems.clear();
+
+    thread_pool.reset();
 }
 
 bool Engine::InitializeAllSubsystems()

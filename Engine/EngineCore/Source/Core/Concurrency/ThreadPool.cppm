@@ -4,6 +4,11 @@ import :Function;
 import SE.Types;
 import std;
 
+namespace se::core::engine
+{
+class Engine;
+}
+
 
 export namespace se::core::concurrency
 {
@@ -13,8 +18,13 @@ export namespace se::core::concurrency
  */
 class ThreadPool
 {
-public:
+private:
+    friend class engine::Engine;
+
+    static ThreadPool* Instance;
     explicit ThreadPool(uint32 num_threads = std::thread::hardware_concurrency() * 0.7);
+
+public:
     ~ThreadPool();
 
     // 이동 & 복사 생성자 제거
@@ -24,9 +34,10 @@ public:
     ThreadPool& operator=(ThreadPool&&) = delete;
 
 public:
-    void Submit(function::Function<void()> task);
+    static void SubmitTask(function::Function<void()> task);
 
 private:
+    void Submit(function::Function<void()> task);
     void WorkerLoop();
 
 private:
