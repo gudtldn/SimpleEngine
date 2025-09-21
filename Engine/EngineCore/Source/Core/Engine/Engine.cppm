@@ -1,6 +1,7 @@
 ﻿export module SE.Core:Engine;
 import :Logging;
 import :Reflection;
+import :Concurrency;
 
 import SE.Interface.ISubsystemBase;
 import SE.Interface.IUpdatable;
@@ -44,6 +45,9 @@ public:
         requires std::derived_from<T, ISubsystemBase>
     [[nodiscard]] T* GetSubsystem() const;
 
+    /** Thread Pool을 가져옵니다. */
+    concurrency::ThreadPool& GetThreadPool() { return thread_pool; }
+
 public:
     /** Engine을 초기화 합니다 */
     [[nodiscard]] bool Initialize();
@@ -78,6 +82,9 @@ private:
 
     // Update가 필요한 Subsystem 목록
     vector<IUpdatable*> updatable_systems;
+
+    // Engine에서 사용할 ThreadPool
+    concurrency::ThreadPool thread_pool;
 };
 
 
