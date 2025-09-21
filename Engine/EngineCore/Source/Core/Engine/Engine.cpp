@@ -32,21 +32,21 @@ bool Engine::Initialize()
 void Engine::Release()
 {
     ReleaseAllSubsystems();
-    sub_systems.clear();
-    sorted_sub_systems.clear();
+    subsystems.clear();
+    sorted_subsystems.clear();
 }
 
 bool Engine::InitializeAllSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Initializing Subsystems...");
-    for (auto [n, sub_system] : sorted_sub_systems | std::views::enumerate)
+    for (auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         if (!sub_system->Initialize())
         {
             const u8string sub_system_name = utility::string_utils::ToU8String(typeid(*sub_system).name());
             ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
-            const auto subrange = std::ranges::subrange(sorted_sub_systems.begin(), sorted_sub_systems.begin() + n);
+            const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
             for (ISubsystemBase* rev_subsystem : subrange | std::views::reverse)
             {
                 rev_subsystem->Release();
@@ -68,7 +68,7 @@ void Engine::ReleaseAllSubsystems()
         SDL_WaitForGPUIdle(render_subsystem->GetGpuDevice());
     }
 
-    for (ISubsystemBase* sub_system : sorted_sub_systems | std::views::reverse)
+    for (ISubsystemBase* sub_system : sorted_subsystems | std::views::reverse)
     {
         sub_system->Release();
     }
@@ -101,13 +101,13 @@ bool Engine::SortSubsystems()
     queue<std::type_index> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
-    for (const std::type_index& type_id : sub_systems | std::views::keys)
+    for (const std::type_index& type_id : subsystems | std::views::keys)
     {
         in_degree[type_id] = 0; // 모든 노드의 진입 차수 0으로 초기화
         adj_list[type_id] = {}; // 인접 리스트 초기화
     }
 
-    for (const auto& [type_id, sub_system] : sub_systems)
+    for (const auto& [type_id, sub_system] : subsystems)
     {
         for (const auto& dependency_id : sub_system->GetDependencies())
         {
@@ -129,13 +129,13 @@ bool Engine::SortSubsystems()
     }
 
     // 위상 정렬을 수행
-    sorted_sub_systems.clear();
+    sorted_subsystems.clear();
     while (!queue.empty())
     {
         const std::type_index current_id = queue.front();
         queue.pop();
 
-        sorted_sub_systems.push_back(sub_systems[current_id].get());
+        sorted_subsystems.push_back(subsystems[current_id].get());
 
         for (const auto& neighbor_id : adj_list[current_id])
         {
@@ -148,7 +148,7 @@ bool Engine::SortSubsystems()
     }
 
     // 순환 의존성 확인
-    if (sorted_sub_systems.size() != sub_systems.size())
+    if (sorted_subsystems.size() != subsystems.size())
     {
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
 
@@ -164,7 +164,7 @@ bool Engine::SortSubsystems()
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected in subsystems: ");
         for (const auto& id : circular_subsystems)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*sub_systems[id]).name());
+            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*subsystems[id]).name());
         }
 
         return false;
@@ -173,7 +173,7 @@ bool Engine::SortSubsystems()
     // Update 순서는 한번 보고 나중에 필요시 변경
 
     ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
-    for (const auto& [n, sub_system] : sorted_sub_systems | std::views::enumerate)
+    for (const auto& [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, utility::string_utils::ToU8String(typeid(*sub_system).name()));
     }

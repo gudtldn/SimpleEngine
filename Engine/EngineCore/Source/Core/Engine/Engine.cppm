@@ -15,19 +15,9 @@ namespace se::core::engine
  */
 export class Engine
 {
-private:
-    // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
-    unordered_map<std::type_index, std::unique_ptr<ISubsystemBase>> sub_systems;
-
-    // 초기화/종료 순서 관리를 위한 벡터
-    vector<ISubsystemBase*> sorted_sub_systems;
-
-    // Update가 필요한 Subsystem 목록
-    vector<IUpdatable*> updatable_systems;
-
 public:
     Engine() = default;
-    virtual ~Engine() = default;
+    ~Engine() = default;
 
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
@@ -44,27 +34,7 @@ public:
      */
     template <typename T, typename... Args>
         requires std::derived_from<T, ISubsystemBase>
-    T* RegisterSubsystem(Args&&... args)
-    {
-        const auto type_id = std::type_index(typeid(T));
-        if (sub_systems.contains(type_id))
-        {
-            return static_cast<T*>(sub_systems[type_id].get());
-        }
-
-        auto sub_system = std::make_unique<T>(std::forward<Args>(args)...);
-        T* sub_system_ptr = sub_system.get();
-
-        sub_systems[type_id] = std::move(sub_system);
-
-        if constexpr (std::derived_from<T, IUpdatable>)
-        {
-            updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
-        }
-
-        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", reflection::GetTypeSignature<T>());
-        return sub_system_ptr;
-    }
+    T* RegisterSubsystem(Args&&... args);
 
     /**
      * 등록된 Subsystem을 가져옵니다.
@@ -72,15 +42,7 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, ISubsystemBase>
-    [[nodiscard]] T* GetSubsystem() const
-    {
-        const auto type_id = std::type_index(typeid(T));
-        if (sub_systems.contains(type_id))
-        {
-            return static_cast<T*>(sub_systems.at(type_id).get());
-        }
-        return nullptr;
-    }
+    [[nodiscard]] T* GetSubsystem() const;
 
 public:
     /** Engine을 초기화 합니다 */
@@ -106,5 +68,50 @@ private:
      * @see https://en.wikipedia.org/wiki/Topological_sorting
      */
     [[nodiscard]] bool SortSubsystems();
+
+private:
+    // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
+    unordered_map<std::type_index, std::unique_ptr<ISubsystemBase>> subsystems;
+
+    // 초기화/종료 순서 관리를 위한 벡터
+    vector<ISubsystemBase*> sorted_subsystems;
+
+    // Update가 필요한 Subsystem 목록
+    vector<IUpdatable*> updatable_systems;
 };
+
+
+template <typename T, typename... Args> requires std::derived_from<T, ISubsystemBase>
+T* Engine::RegisterSubsystem(Args&&... args)
+{
+    const auto type_id = std::type_index(typeid(T));
+    if (subsystems.contains(type_id))
+    {
+        return static_cast<T*>(subsystems[type_id].get());
+    }
+
+    auto sub_system = std::make_unique<T>(std::forward<Args>(args)...);
+    T* sub_system_ptr = sub_system.get();
+
+    subsystems[type_id] = std::move(sub_system);
+
+    if constexpr (std::derived_from<T, IUpdatable>)
+    {
+        updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
+    }
+
+    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", reflection::GetTypeSignature<T>());
+    return sub_system_ptr;
+}
+
+template <typename T> requires std::derived_from<T, ISubsystemBase>
+T* Engine::GetSubsystem() const
+{
+    const auto type_id = std::type_index(typeid(T));
+    if (subsystems.contains(type_id))
+    {
+        return static_cast<T*>(subsystems.at(type_id).get());
+    }
+    return nullptr;
+}
 }
