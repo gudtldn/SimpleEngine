@@ -43,7 +43,7 @@ private:
     template <typename Fn, typename... Args>
     auto Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>;
 
-    void WorkerLoop();
+    void WorkerLoop(uint32 thread_id);
 
 private:
     std::atomic<bool> running = false;

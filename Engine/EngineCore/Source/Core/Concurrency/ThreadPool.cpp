@@ -3,6 +3,9 @@
 module SE.Core;
 import :Concurrency.ThreadPool;
 
+import SE.Utility;
+import SE.Platform;
+
 using namespace se::core::function;
 
 
@@ -18,9 +21,12 @@ ThreadPool::ThreadPool(uint32 num_threads)
 
     // Worker Thread 생성
     running = true;
-    for (std::thread& thread : worker_threads)
+    for (auto [n, thread] : worker_threads | std::views::enumerate)
     {
-        thread = std::thread(&ThreadPool::WorkerLoop, this);
+        thread = std::thread{
+            &ThreadPool::WorkerLoop, this,
+            static_cast<uint32>(n)
+        };
     }
 }
 
@@ -38,8 +44,13 @@ ThreadPool::~ThreadPool()
     }
 }
 
-void ThreadPool::WorkerLoop()
+void ThreadPool::WorkerLoop(uint32 thread_id)
 {
+    const std::u8string thread_name{
+        utility::string_utils::ToU8String(std::format("Worker Thread {}", thread_id))
+    };
+    platform::Platform::SetCurrentThreadName(thread_name);
+
     while (true)
     {
         Function<void()> task;
