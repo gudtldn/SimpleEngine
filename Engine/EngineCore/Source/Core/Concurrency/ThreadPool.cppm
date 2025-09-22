@@ -60,7 +60,10 @@ auto ThreadPool::SubmitTask(
     Fn&& func, Args&&... args
 ) -> std::future<std::invoke_result_t<Fn, Args...>>
 {
-    assert(Instance && "ThreadPool instance is not initialized.");
+    if (!Instance)
+    {
+        return std::future<std::invoke_result_t<Fn, Args...>>();
+    }
     return Instance->Submit(std::forward<Fn>(func), std::forward<Args>(args)...);
 }
 
