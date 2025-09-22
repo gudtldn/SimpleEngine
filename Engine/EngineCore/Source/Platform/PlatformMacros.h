@@ -28,11 +28,11 @@
 
 
 #if PLATFORM_WINDOWS
-    #include "Platform/Windows/WindowsPlatform.h"
+#include "Platform/Windows/WindowsPlatformMacro.h"
 #elif PLATFORM_LINUX
-    #include "Platform/Linux/LinuxPlatform.h"
+#include "Platform/Linux/LinuxPlatformMacro.h"
 #elif PLATFORM_MACOS
-    #include "Platform/MacOS/MacOSPlatform.h"
+#include "Platform/MacOS/MacOSPlatformMacro.h"
 #endif
 
 
