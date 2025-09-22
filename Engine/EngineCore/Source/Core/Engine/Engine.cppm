@@ -48,6 +48,9 @@ public:
     /** Thread Pool을 가져옵니다. */
     concurrency::ThreadPool& GetThreadPool() const { return *thread_pool; }
 
+    /** Task Scheduler를 가져옵니다 */
+    concurrency::TaskScheduler& GetTaskScheduler() const { return *task_scheduler; }
+
 public:
     /** Engine을 초기화 합니다 */
     [[nodiscard]] bool Initialize();
