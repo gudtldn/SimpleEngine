@@ -8,17 +8,17 @@ import std;
 
 namespace se::core::engine
 {
-class Engine;
+export class Engine;
 }
 
 
-export namespace se::core::concurrency
+namespace se::core::concurrency
 {
 /**
  *
  * @todo 추후 Work Stealing 방식으로 개선
  */
-class ThreadPool
+export class ThreadPool
 {
 private:
     friend class engine::Engine;

@@ -8,7 +8,7 @@ import std;
 
 namespace se::core::engine
 {
-class Engine;
+export class Engine;
 }
 
 
@@ -16,13 +16,13 @@ namespace se::core::concurrency
 {
 namespace coroutine
 {
-struct SwitchToMainThread;
+export struct SwitchToMainThread;
 }
 
 /**
  * 비동기 시스템을 관리하는 스케줄러
  */
-class TaskScheduler
+export class TaskScheduler
 {
     friend class engine::Engine;
     friend struct coroutine::SwitchToMainThread;
