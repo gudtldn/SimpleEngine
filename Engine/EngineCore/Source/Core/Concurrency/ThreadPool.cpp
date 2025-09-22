@@ -17,6 +17,7 @@ ThreadPool::ThreadPool(uint32 num_threads)
     Instance = this;
 
     // Worker Thread 생성
+    running = true;
     for (std::thread& thread : worker_threads)
     {
         thread = std::thread(&ThreadPool::WorkerLoop, this);
@@ -28,11 +29,7 @@ ThreadPool::~ThreadPool()
     assert(Instance == this && "ThreadPool instance is not created!");
     Instance = nullptr;
 
-    {
-        std::scoped_lock lock(mutex);
-        running = false;
-    }
-
+    running = false;
     condition.notify_all();
 
     for (std::thread& thread : worker_threads)
