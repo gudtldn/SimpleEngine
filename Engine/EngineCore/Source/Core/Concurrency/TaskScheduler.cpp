@@ -31,6 +31,12 @@ void TaskScheduler::LaunchTask(coroutine::Task<void>&& task)
     Instance->Launch(std::move(task));
 }
 
+std::thread::id TaskScheduler::GetMainThreadId()
+{
+    assert(Instance && "TaskScheduler instance is not initialized.");
+    return Instance->main_thread_id;
+}
+
 void TaskScheduler::Launch(coroutine::Task<void>&& task)
 {
     if (!task.handle)

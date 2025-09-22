@@ -36,6 +36,8 @@ public:
 public:
     static void LaunchTask(coroutine::Task<void>&& task);
 
+    static std::thread::id GetMainThreadId();
+
 private:
     /**
      * 코루틴을 시작합니다. ("Fire-and-forget")
