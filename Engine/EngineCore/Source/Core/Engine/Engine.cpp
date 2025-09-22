@@ -1,5 +1,6 @@
 ﻿module;
 #include <typeinfo>
+#include "tracy/Tracy.hpp"
 module SE.Core;
 import :Engine;
 
@@ -14,6 +15,7 @@ namespace se::core::engine
 bool Engine::Initialize()
 {
     thread_pool.reset(new concurrency::ThreadPool);
+    task_scheduler.reset(new concurrency::TaskScheduler(std::this_thread::get_id()));
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
@@ -37,6 +39,7 @@ void Engine::Release()
     sorted_subsystems.clear();
     subsystems.clear();
 
+    task_scheduler.reset();
     thread_pool.reset();
 }
 
@@ -82,18 +85,37 @@ void Engine::ReleaseAllSubsystems()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void Engine::UpdateFrame(float delta_time)
 {
+#define SE_PROFILE_SCOPE(scope_fmt, ...) \
+    ZoneScoped; \
+    { \
+        const std::string zone_name = std::format("Engine::UpdateFrame - " #scope_fmt, __VA_ARGS__); \
+        ZoneName(zone_name.c_str(), zone_name.size()); \
+    }
+
     for (IUpdatable* sub_system : updatable_systems)
     {
+        SE_PROFILE_SCOPE("PreUpdate | SubSystem: {}", typeid(*sub_system).name());
         sub_system->PreUpdate();
     }
     for (IUpdatable* sub_system : updatable_systems)
     {
+        SE_PROFILE_SCOPE("Update | SubSystem: {}", typeid(*sub_system).name());
         sub_system->Update(delta_time);
     }
     for (IUpdatable* sub_system : updatable_systems)
     {
+        SE_PROFILE_SCOPE("PostUpdate | SubSystem: {}", typeid(*sub_system).name());
         sub_system->PostUpdate();
     }
+
+    {
+        SE_PROFILE_SCOPE("MainThreadTasks");
+
+        // 비동기 태스크를 마저 실행
+        task_scheduler->ProcessMainThreadTasks();
+    }
+
+#undef SE_PROFILE_SCOPE
 }
 
 bool Engine::SortSubsystems()
