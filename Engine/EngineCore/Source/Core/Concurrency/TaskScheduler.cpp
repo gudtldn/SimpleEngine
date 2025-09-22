@@ -8,6 +8,8 @@ import <cassert>;
 
 namespace se::core::concurrency
 {
+TaskScheduler* TaskScheduler::Instance = nullptr;
+
 TaskScheduler::TaskScheduler(std::thread::id in_main_thread_id)
     : main_thread_id(in_main_thread_id)
 {
