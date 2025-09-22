@@ -1,6 +1,7 @@
 ﻿export module SE.Core:Concurrency.Coroutine;
-import :Concurrency.Coroutine.Task;
-import :Concurrency.Coroutine.Promise;
+export import :Concurrency.Coroutine.Awaitables;
+export import :Concurrency.Coroutine.Promise;
+export import :Concurrency.Coroutine.Task;
 
 
 namespace se::core::concurrency::coroutine
