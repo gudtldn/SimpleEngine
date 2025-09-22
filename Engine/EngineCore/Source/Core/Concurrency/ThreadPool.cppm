@@ -37,11 +37,11 @@ public:
 
 public:
     template <typename Fn, typename... Args>
-    static auto SubmitTask(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>;
+    static auto SubmitTask(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>;
 
 private:
     template <typename Fn, typename... Args>
-    auto Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>;
+    auto Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>;
 
     void WorkerLoop();
 
@@ -56,18 +56,25 @@ private:
 };
 
 template <typename Fn, typename... Args>
-auto ThreadPool::SubmitTask(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>
+auto ThreadPool::SubmitTask(
+    Fn&& func, Args&&... args
+) -> std::future<std::invoke_result_t<Fn, Args...>>
 {
     assert(Instance && "ThreadPool instance is not initialized.");
     return Instance->Submit(std::forward<Fn>(func), std::forward<Args>(args)...);
 }
 
 template <typename Fn, typename... Args>
-auto ThreadPool::Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn(Args...)>>
+auto ThreadPool::Submit(
+    Fn&& func, Args&&... args
+) -> std::future<std::invoke_result_t<Fn, Args...>>
 {
-    using ReturnType = std::invoke_result_t<Fn(Args...)>;
-    auto task_ptr = std::make_shared<std::packaged_task<ReturnType>>(
-        std::bind(std::forward<Fn>(func), std::forward<Args>(args)...)
+    using ReturnType = std::invoke_result_t<Fn, Args...>;
+    auto task_ptr = std::make_shared<std::packaged_task<ReturnType()>>(
+        [func = std::forward<Fn>(func), ...args = std::forward<Args>(args)] mutable -> ReturnType
+        {
+            return func(std::move(args)...);
+        }
     );
 
     {
