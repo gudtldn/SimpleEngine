@@ -24,7 +24,7 @@ private:
     friend class engine::Engine;
 
     static ThreadPool* Instance;
-    explicit ThreadPool(uint32 num_threads = std::thread::hardware_concurrency() * 0.7);
+    explicit ThreadPool(uint32 num_threads);
 
 public:
     ~ThreadPool();

@@ -14,8 +14,12 @@ namespace se::core::engine
 {
 bool Engine::Initialize()
 {
-    thread_pool.reset(new concurrency::ThreadPool);
-    task_scheduler.reset(new concurrency::TaskScheduler(std::this_thread::get_id()));
+    thread_pool.reset(new concurrency::ThreadPool{
+        static_cast<uint32>(std::thread::hardware_concurrency() * 0.7)
+    });
+    task_scheduler.reset(new concurrency::TaskScheduler{
+        std::this_thread::get_id()
+    });
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
