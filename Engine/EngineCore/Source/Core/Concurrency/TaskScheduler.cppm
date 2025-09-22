@@ -21,23 +21,29 @@ class TaskScheduler
 {
     friend class engine::Engine;
 
+    static TaskScheduler* Instance;
     explicit TaskScheduler(std::thread::id in_main_thread_id);
 
 public:
-    ~TaskScheduler() = default;
+    ~TaskScheduler();
 
+    // 이동 & 복사 생성자 제거
     TaskScheduler(const TaskScheduler&) = delete;
     TaskScheduler& operator=(const TaskScheduler&) = delete;
     TaskScheduler(TaskScheduler&&) = delete;
     TaskScheduler& operator=(TaskScheduler&&) = delete;
 
 public:
+    static void LaunchTask(coroutine::Task<void>&& task);
+
+private:
     /**
      * 코루틴을 시작합니다. ("Fire-and-forget")
      * @param task 시작할 Task<void> 타입의 코루틴
      */
     void Launch(coroutine::Task<void>&& task);
 
+private:
     /**
      * Main Loop에서 매 프레임 호출되어야 합니다.
      * 예약된 메인 스레드 작업들을 실행하고, 완료된 최상위 코루틴들을 정리합니다.

@@ -3,12 +3,30 @@
 module SE.Core;
 import :Concurrency.TaskScheduler;
 
+import <cassert>;
+
 
 namespace se::core::concurrency
 {
 TaskScheduler::TaskScheduler(std::thread::id in_main_thread_id)
     : main_thread_id(in_main_thread_id)
 {
+    assert(main_thread_id == std::this_thread::get_id() && "TaskScheduler instance is created on a non-main thread!");
+    assert(!Instance && "TaskScheduler instance is already created!");
+
+    Instance = this;
+}
+
+TaskScheduler::~TaskScheduler()
+{
+    assert(Instance == this && "TaskScheduler instance is not created!");
+    Instance = nullptr;
+}
+
+void TaskScheduler::LaunchTask(coroutine::Task<void>&& task)
+{
+    assert(Instance && "TaskScheduler instance is not initialized.");
+    Instance->Launch(std::move(task));
 }
 
 void TaskScheduler::Launch(coroutine::Task<void>&& task)
