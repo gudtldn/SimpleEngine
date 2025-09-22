@@ -25,19 +25,18 @@ TaskScheduler::~TaskScheduler()
     Instance = nullptr;
 }
 
-void TaskScheduler::LaunchTask(coroutine::Task<void>&& task)
+TaskScheduler& TaskScheduler::Get()
 {
     assert(Instance && "TaskScheduler instance is not initialized.");
-    Instance->Launch(std::move(task));
+    return *Instance;
 }
 
-std::thread::id TaskScheduler::GetMainThreadId()
+std::thread::id TaskScheduler::GetMainThreadId() const
 {
-    assert(Instance && "TaskScheduler instance is not initialized.");
-    return Instance->main_thread_id;
+    return main_thread_id;
 }
 
-void TaskScheduler::Launch(coroutine::Task<void>&& task)
+void TaskScheduler::Launch_MainThread(coroutine::Task<void>&& task)
 {
     if (!task.handle)
     {
@@ -49,6 +48,23 @@ void TaskScheduler::Launch(coroutine::Task<void>&& task)
 
     // Task의 handle을 사용하여 코드를 실행
     launched_tasks.back().handle.resume();
+}
+
+void TaskScheduler::Launch_WorkerThread(coroutine::Task<void>&& task)
+{
+    if (!task.handle)
+    {
+        return;
+    }
+
+    // Task의 소유권을 이동시겨 수명을 연장
+    launched_tasks.push_back(std::move(task));
+
+    // Task의 handle을 사용하여 코드를 실행
+    ThreadPool::SubmitTask([this]
+    {
+        launched_tasks.back().handle.resume();
+    });
 }
 
 void TaskScheduler::ProcessMainThreadTasks()

@@ -40,16 +40,23 @@ public:
     TaskScheduler& operator=(TaskScheduler&&) = delete;
 
 public:
-    static void LaunchTask(coroutine::Task<void>&& task);
+    /** TaskScheduler의 인스턴스를 가져옵니다. */
+    static TaskScheduler& Get();
 
-    static std::thread::id GetMainThreadId();
-
-private:
     /**
-     * 코루틴을 시작합니다. ("Fire-and-forget")
+     * 코루틴을 메인 스레드에서 시작합니다. ("Fire-and-forget")
      * @param task 시작할 Task<void> 타입의 코루틴
      */
-    void Launch(coroutine::Task<void>&& task);
+    void Launch_MainThread(coroutine::Task<void>&& task);
+
+    /**
+     * 코루틴을 작업 스레드에서 시작합니다. ("Fire-and-forget")
+     * @param task 시작할 Task<void> 타입의 코루틴
+     */
+    void Launch_WorkerThread(coroutine::Task<void>&& task);
+
+    /** Main Thread의 ID를 가져옵니다. */
+    std::thread::id GetMainThreadId() const;
 
 private:
     /**

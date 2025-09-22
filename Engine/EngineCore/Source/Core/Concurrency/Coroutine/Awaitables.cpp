@@ -28,13 +28,13 @@ void SwitchToWorkerThread::await_resume() const noexcept
 bool SwitchToMainThread::await_ready() const noexcept
 {
     // 이미 메인 스레드면 그냥 넘어가기
-    return std::this_thread::get_id() == TaskScheduler::GetMainThreadId();
+    return std::this_thread::get_id() == TaskScheduler::Get().GetMainThreadId();
 }
 
 void SwitchToMainThread::await_suspend(std::coroutine_handle<> handle) const
 {
     // 현재 작업 스레드를 메인스레드로 변경
-    TaskScheduler::Instance->ScheduleOnMainThread(handle);
+    TaskScheduler::Get().ScheduleOnMainThread(handle);
 }
 
 void SwitchToMainThread::await_resume() const noexcept
