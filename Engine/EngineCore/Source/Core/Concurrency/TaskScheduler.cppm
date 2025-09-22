@@ -14,12 +14,18 @@ class Engine;
 
 namespace se::core::concurrency
 {
+namespace coroutine
+{
+struct SwitchToMainThread;
+}
+
 /**
  * 비동기 시스템을 관리하는 스케줄러
  */
 class TaskScheduler
 {
     friend class engine::Engine;
+    friend struct coroutine::SwitchToMainThread;
 
     static TaskScheduler* Instance;
     explicit TaskScheduler(std::thread::id in_main_thread_id);
