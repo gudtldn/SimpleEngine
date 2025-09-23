@@ -43,8 +43,8 @@ void Engine::Release()
     sorted_subsystems.clear();
     subsystems.clear();
 
-    task_scheduler.reset();
     thread_pool.reset();
+    task_scheduler.reset();
 }
 
 bool Engine::InitializeAllSubsystems()
