@@ -118,7 +118,7 @@ private:
     // Loop 제어 변수
     bool is_initialized = false;
     bool is_running = false;
-    bool quit_requested = false;
+    std::atomic<bool> quit_requested = false;
 
     // 메모리 관련
     std::pmr::memory_resource* original_resource;
