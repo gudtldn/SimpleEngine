@@ -35,12 +35,21 @@ ThreadPool::~ThreadPool()
     assert(Instance == this && "ThreadPool instance is not created!");
     Instance = nullptr;
 
+    {
+        std::scoped_lock lock(mutex);
+        decltype(tasks) empty_queue;
+        tasks.swap(empty_queue);
+    }
+
     running = false;
     condition.notify_all();
 
     for (std::thread& thread : worker_threads)
     {
-        thread.join();
+        if (thread.joinable())
+        {
+            thread.join();
+        }
     }
 }
 
