@@ -1,6 +1,7 @@
 ﻿export module SE.Core:Logging.LogData;
 import :Logging.LogLevel;
 
+import SE.Platform;
 import std;
 
 
@@ -11,14 +12,20 @@ import std;
  */
 struct LogLevelAndLocation
 {
-    constexpr LogLevelAndLocation(ELogLevel in_level, const std::source_location& in_location = std::source_location::current())
+    LogLevelAndLocation(
+        ELogLevel in_level,
+        const std::source_location& in_location = std::source_location::current(),
+        se::u8string in_thread_name = se::platform::Platform::GetCurrentThreadName()
+    )
         : level(in_level)
         , location(in_location)
+        , thread_name(std::move(in_thread_name))
     {
     }
 
     ELogLevel level;
     std::source_location location;
+    se::u8string thread_name;
 };
 
 /**
@@ -31,6 +38,9 @@ struct LogEntry
 
     // ConsoleLog가 호출된 위치 정보
     std::source_location location;
+
+    // Thread 이름
+    se::u8string thread_name;
 
     // 로그 메시지
     std::string formatted_message;

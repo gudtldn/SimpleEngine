@@ -25,8 +25,13 @@ void FileBackend::WriteLog(const LogEntry& entry)
     }
 
     const std::string formatted = std::format(
-        "{} {:<7} [{}:{}] {}\n",
-        entry.GetTimestampString(), entry.GetLevelString(), entry.GetPrettyFileName(), entry.location.line(), entry.formatted_message
+        "{} {:<7} {:<16} [{}:{}] {}\n",
+        entry.GetTimestampString(),
+        entry.GetLevelString(),
+        entry.thread_name,
+        entry.GetPrettyFileName(),
+        entry.location.line(),
+        entry.formatted_message
     );
 
     file << formatted;

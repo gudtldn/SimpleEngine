@@ -7,6 +7,7 @@ module SE.App;
 import SE.Core;
 import SE.Config;
 import SE.Utility;
+import SE.Platform;
 import SE.Subsystems.PlatformSubsystem;
 import SE.Subsystems.RenderSubsystem;
 import SE.Subsystems.WorldSubsystem;
@@ -73,6 +74,8 @@ void Application::Startup(const wchar_t* cmd_line)
 
 void Application::Startup(const u8string& cmd_line)
 {
+    platform::Platform::SetCurrentThreadName(u8"Main Thread");
+
     if constexpr (utility::IS_DEBUG_BUILD)
     {
         LogSettings::EnableColor(true);

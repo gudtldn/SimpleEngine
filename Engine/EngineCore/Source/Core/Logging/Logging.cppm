@@ -28,9 +28,11 @@ import std;
 export template <typename... Args>
 void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
 {
+    const std::string s = reinterpret_cast<const char*>(log_level.thread_name.data());
     LogEntry entry = {
         .level = log_level.level,
         .location = log_level.location,
+        .thread_name = std::move(log_level.thread_name),
         .timestamp = std::chrono::system_clock::now(),
     };
 
