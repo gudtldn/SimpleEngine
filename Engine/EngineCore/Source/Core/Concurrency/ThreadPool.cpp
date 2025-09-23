@@ -19,6 +19,8 @@ ThreadPool::ThreadPool(uint32 num_threads)
     assert(!Instance && "ThreadPool instance is already created!");
     Instance = this;
 
+    ConsoleLog(ELogLevel::Info, u8"Creating ThreadPool...");
+
     // Worker Thread 생성
     running = true;
     for (auto [n, thread] : worker_threads | std::views::enumerate)
@@ -35,6 +37,7 @@ ThreadPool::~ThreadPool()
     assert(Instance == this && "ThreadPool instance is not created!");
     Instance = nullptr;
 
+    ConsoleLog(ELogLevel::Info, u8"Destroying ThreadPool...");
     {
         std::scoped_lock lock(mutex);
         decltype(tasks) empty_queue;
@@ -44,6 +47,7 @@ ThreadPool::~ThreadPool()
     running = false;
     condition.notify_all();
 
+    ConsoleLog(ELogLevel::Info, u8"Joining Worker Threads...");
     for (std::thread& thread : worker_threads)
     {
         if (thread.joinable())
