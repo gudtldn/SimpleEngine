@@ -4,13 +4,14 @@
 module SE.Platform;
 
 import SE.Types;
+import SE.Utility;
 import std;
 
 
 #if PLATFORM_WINDOWS
 namespace
 {
-void SetThreadName(HANDLE handle, const std::u8string& name)
+void SetThreadName(HANDLE handle, const se::u8string& name)
 {
     const int size_needed = MultiByteToWideChar(
         CP_UTF8, 0,
@@ -29,18 +30,45 @@ void SetThreadName(HANDLE handle, const std::u8string& name)
 
     (void)SetThreadDescription(handle, wide_name.c_str());
 }
+
+se::u8string GetThreadName(HANDLE handle)
+{
+    PWSTR data = nullptr;
+
+    // THREAD_QUERY_LIMITED_INFORMATION 권한 필요
+    const HRESULT hr = GetThreadDescription(handle, &data);
+    if (FAILED(hr) || data == nullptr)
+    {
+        return {};
+    }
+
+    const std::wstring name = data;
+    LocalFree(data);
+
+    return se::utility::string_utils::ToU8String(name);
+}
 }
 
 namespace se::platform
 {
-void Platform::SetThreadName(std::thread& thread, const std::u8string& name)
+void Platform::SetThreadName(std::thread& thread, const u8string& name)
 {
     ::SetThreadName(thread.native_handle(), name);
 }
 
-void Platform::SetCurrentThreadName(const std::u8string& name)
+void Platform::SetCurrentThreadName(const u8string& name)
 {
     ::SetThreadName(GetCurrentThread(), name);
+}
+
+u8string Platform::GetThreadName(std::thread& thread)
+{
+    return ::GetThreadName(thread.native_handle());
+}
+
+u8string Platform::GetCurrentThreadName()
+{
+    return ::GetThreadName(GetCurrentThread());
 }
 }
 #endif
