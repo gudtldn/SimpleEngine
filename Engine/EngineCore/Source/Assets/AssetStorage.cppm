@@ -58,9 +58,9 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
         std::unique_lock lock(mutex);
 
         // 이미 로딩중이거나, 로드 되었다면 무시
-        if (asset_entries.contains(asset_id))
+        if (auto it = asset_entries.find(asset_id); it != asset_entries.end())
         {
-            const AssetEntry<T>& entry = asset_entries[asset_id];
+            const AssetEntry<T>& entry = it->second;
             if (entry.state == EAssetState::Loading || entry.state == EAssetState::Loaded)
             {
                 return;
@@ -87,7 +87,7 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
             {
                 // Worker Thread에서 asset_entries에 접근하니까 락 걸고 진행
                 std::unique_lock task_lock(mutex);
-                asset_entries[asset_id].state = EAssetState::Loaded;
+                asset_entries[asset_id].state = asset ? EAssetState::Loaded : EAssetState::Failed;
             }
             prms.set_value(asset);
         }
@@ -110,13 +110,15 @@ std::shared_ptr<T> AssetStorage<T>::GetAssetOrWait(const StringName& asset_id)
     // Read Lock을 걸고 entries를 확인
     {
         std::shared_lock lock(mutex);
-        if (!asset_entries.contains(asset_id))
+
+        auto it = asset_entries.find(asset_id);
+        if (it == asset_entries.end())
         {
             // 아직 Load가 호출된 적도 없는 에셋
             return nullptr;
         }
 
-        const AssetEntry<T>& entry = asset_entries[asset_id];
+        const AssetEntry<T>& entry = it->second;
         future_to_wait = entry.future;
     }
 
@@ -139,10 +141,10 @@ template <typename T>
 void AssetStorage<T>::RemoveReference(const StringName& asset_id)
 {
     std::unique_lock lock(mutex);
-    if (asset_entries.contains(asset_id))
+    if (auto it = asset_entries.find(asset_id); it != asset_entries.end())
     {
         using namespace std::chrono_literals;
-        AssetEntry<T>& entry = asset_entries[asset_id];
+        AssetEntry<T>& entry = it->second;
 
         auto status = entry.future.wait_for(0s);
         if (status == std::future_status::ready)
@@ -150,7 +152,7 @@ void AssetStorage<T>::RemoveReference(const StringName& asset_id)
             // AssetStorage 외부에서 아무도 참조하고 있지 않다면
             if (entry.future.get().use_count() <= 1)
             {
-                asset_entries.erase(asset_id);
+                asset_entries.erase(it);
             }
         }
     }
