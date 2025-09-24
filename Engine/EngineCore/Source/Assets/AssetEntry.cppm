@@ -26,10 +26,7 @@ struct AssetEntry
     // Asset의 로딩 상태
     std::atomic<EAssetState> state = EAssetState::NotLoaded;
 
-    // 로딩이 완료된 실제 에셋 데이터
-    std::shared_ptr<T> asset_data = nullptr;
-
-    // 로딩이 진행 중일 때, 다른 요청자들이 결과를 기다릴 수 있도록 하는 future.
+    // 추후 실제 에셋 데이터가 담길 future
     std::shared_future<std::shared_ptr<T>> future;
 };
 }
