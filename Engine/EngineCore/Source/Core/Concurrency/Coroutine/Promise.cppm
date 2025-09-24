@@ -20,14 +20,13 @@ private:
     PromiseBase() = default;
 
 public:
-    // 이 코루틴의 작업이 끝난 후, 재개되어야 할 다음 코루틴의 핸들
-    std::coroutine_handle<> continuation;
-
-    // 코루틴의 최종 결과를 저장
-    std::expected<T, std::exception_ptr> result;
-
     /** 코루틴이 처음 생성될 때 호출자에게 반환될 Task 객체를 생성합니다. */
-    TaskImpl<T, Derived> get_return_object();
+    TaskImpl<T, Derived> get_return_object()
+    {
+        return TaskImpl<T, Derived>{
+            std::coroutine_handle<Derived>::from_promise(static_cast<Derived&>(*this))
+        };
+    }
 
     /**
      * 코루틴이 시작된 직후의 동작을 결정합니다.
@@ -39,63 +38,47 @@ public:
     struct FinalAwaiter
     {
         /** 항상 false를 반환하여 코루틴을 중단시키고 await_suspend를 호출하도록 합니다. */
-        bool await_ready() const noexcept;
+        bool await_ready() const noexcept
+        {
+            return false;
+        }
 
         /**
          * 이 코루틴을 기다리고 있던 다른 코루틴(continuation)을 찾아 재개시킵니다.
          * @return 재개할 코루틴의 핸들. 기다리는 코루틴이 없으면 noop_coroutine을 반환
          */
-        std::coroutine_handle<> await_suspend(std::coroutine_handle<Derived> continuation_handle) noexcept;
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<Derived> continuation_handle) noexcept
+        {
+            return continuation_handle.promise().continuation
+                       ? continuation_handle.promise().continuation
+                       : std::noop_coroutine();
+        }
 
         /** 재개 직전에 호출되는 함수 */
-        void await_resume() const noexcept;
+        void await_resume() const noexcept
+        {
+        }
     };
 
     /** 코루틴이 종료될 때의 동작, 여기서는 FinalAwaiter에 위임 */
-    FinalAwaiter final_suspend() noexcept;
+    FinalAwaiter final_suspend() noexcept
+    {
+        return {};
+    }
 
     /** 코루틴 내에서 처리되지 않은 예외가 발생했을 때 호출됩니다. */
-    void unhandled_exception();
+    void unhandled_exception()
+    {
+        result = std::unexpected{ std::current_exception() };
+    }
+
+public:
+    // 이 코루틴의 작업이 끝난 후, 재개되어야 할 다음 코루틴의 핸들
+    std::coroutine_handle<> continuation;
+
+    // 코루틴의 최종 결과를 저장
+    std::expected<T, std::exception_ptr> result;
 };
-
-template <typename T, typename Derived>
-TaskImpl<T, Derived> PromiseBase<T, Derived>::get_return_object()
-{
-    return TaskImpl<T, Derived>{
-        std::coroutine_handle<Derived>::from_promise(static_cast<Derived&>(*this))
-    };
-}
-
-template <typename T, typename Derived>
-bool PromiseBase<T, Derived>::FinalAwaiter::await_ready() const noexcept
-{
-    return false;
-}
-
-template <typename T, typename Derived>
-std::coroutine_handle<> PromiseBase<T, Derived>::FinalAwaiter::await_suspend(std::coroutine_handle<Derived> continuation_handle) noexcept
-{
-    return continuation_handle.promise().continuation
-               ? continuation_handle.promise().continuation
-               : std::noop_coroutine();
-}
-
-template <typename T, typename Derived>
-void PromiseBase<T, Derived>::FinalAwaiter::await_resume() const noexcept
-{
-}
-
-template <typename T, typename Derived>
-PromiseBase<T, Derived>::FinalAwaiter PromiseBase<T, Derived>::final_suspend() noexcept
-{
-    return {};
-}
-
-template <typename T, typename Derived>
-void PromiseBase<T, Derived>::unhandled_exception()
-{
-    result = std::unexpected{ std::current_exception() };
-}
 
 /**
  * T 값을 반환하는 코루틴을 위한 Promise 타입.
