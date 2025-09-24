@@ -2,9 +2,14 @@
 #include "tracy/Tracy.hpp"
 export module SE.Assets:AssetStorage;
 import :AssetEntry;
+import :Loaders;
 
+import SE.Core;
 import SE.Types;
 import std;
+
+using namespace se::core::concurrency;
+using namespace se::core::concurrency::coroutine;
 
 
 namespace se::assets
@@ -30,49 +35,112 @@ public:
     using AssetType = T;
 
 public:
-    /** Storage에서 Asset을 가져옵니다. */
-    std::shared_ptr<T> GetAsset(const StringName& asset_id);
+    /** 에셋을 비동기로 로드하고 Storage에 추가합니다. */
+    void LoadAssetAsync(const StringName& asset_id, const std::filesystem::path& virtual_path);
 
-    /** Storage에 Asset을 추가합니다. */
-    void InsertAsset(const StringName& asset_id, const std::shared_ptr<T>& asset);
+    /** 로딩이 완료될 때까지 기다렸다가 에셋을 반환합니다. */
+    std::shared_ptr<T> GetAssetOrWait(const StringName& asset_id);
 
-    /** Asset의 참조가 1개 이하일 때, Asset을 Storage에서 제거합니다. */
+    /** Asset의 참조 카운트를 확인 후, 참조가 1개 이하일 때 Asset을 Storage에서 제거합니다. */
     virtual void RemoveReference(const StringName& asset_id) override;
 
 private:
     TracySharedLockable(std::shared_mutex, mutex);
-    unordered_map<StringName, std::shared_ptr<AssetEntry<T>>> assets;
+    unordered_map<StringName, AssetEntry<T>> asset_entries;
 };
 
 template <typename T>
-std::shared_ptr<T> AssetStorage<T>::GetAsset(const StringName& asset_id)
+void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::filesystem::path& virtual_path)
 {
-    std::shared_lock lock{ mutex };
+    std::unique_lock lock(mutex);
 
-    if (auto it = assets.find(asset_id); it != assets.end())
+    // 이미 로딩중이거나, 로드 되었다면 무시
+    if (asset_entries.contains(asset_id))
     {
-        return it->second;
+        const AssetEntry<T>& entry = asset_entries[asset_id];
+        if (entry.state == EAssetState::Loading || entry.state == EAssetState::Loaded)
+        {
+            return;
+        }
+    }
+
+    AssetEntry<T>& entry = asset_entries[asset_id];
+    entry.state = EAssetState::Loading;
+
+    std::promise<std::shared_ptr<T>> promise;
+    entry.future = promise.get_future().share();
+
+    // TaskScheduler에게 코루틴과 함께 promise의 소유권을 넘겨 실행
+    TaskScheduler::Get().Launch_WorkerThread([this, asset_id](std::filesystem::path path, std::promise<std::shared_ptr<T>> prms) -> Task<void>
+    {
+        try
+        {
+            // T타입에 대한 AssetLoader가 특수화 되어있는지?
+            static_assert(loaders::AssetLoadable<T>, "not specialized AssetLoader for this asset type");
+
+            // 에셋 로딩
+            loaders::AssetLoader<T> loader;
+            std::shared_ptr<T> asset = co_await loader.Load(path);
+
+            {
+                // Worker Thread에서 asset_entries에 접근하니까 락 걸고 진행
+                std::unique_lock task_lock(mutex);
+                asset_entries[asset_id].state = EAssetState::Loaded;
+            }
+            prms.set_value(asset);
+        }
+        catch (...)
+        {
+            {
+                std::unique_lock task_lock(mutex);
+                asset_entries[asset_id].state = EAssetState::Failed;
+            }
+            prms.set_exception(std::current_exception());
+        }
+    }(virtual_path, std::move(promise))); // TODO: 실제 경로로 변환 해야함!
+}
+
+template <typename T>
+std::shared_ptr<T> AssetStorage<T>::GetAssetOrWait(const StringName& asset_id)
+{
+    std::shared_future<std::shared_ptr<T>> future_to_wait;
+
+    // Read Lock을 걸고 entries를 확인
+    {
+        std::shared_lock lock(mutex);
+        if (!asset_entries.contains(asset_id))
+        {
+            // 아직 Load가 호출된 적도 없는 에셋
+            return nullptr;
+        }
+
+        future_to_wait = asset_entries[asset_id].future;
+    }
+
+    if (future_to_wait.valid())
+    {
+        try
+        {
+            return future_to_wait.get();
+        }
+        catch (const std::exception& err)
+        {
+            ConsoleLog(ELogLevel::Error, u8"Failed to get asset: {}", err.what());
+            return nullptr;
+        }
     }
     return nullptr;
 }
 
 template <typename T>
-void AssetStorage<T>::InsertAsset(const StringName& asset_id, const std::shared_ptr<T>& asset)
-{
-    std::unique_lock lock{ mutex };
-    assets[asset_id] = asset;
-}
-
-template <typename T>
 void AssetStorage<T>::RemoveReference(const StringName& asset_id)
 {
-    std::unique_lock lock{ mutex };
-
-    if (auto it = assets.find(asset_id); it != assets.end())
+    std::unique_lock lock(mutex);
+    if (auto it = asset_entries.find(asset_id); it != asset_entries.end())
     {
-        if (it->second.use_count() <= 1)
+        if (it->second.future.get().use_count() <= 1)
         {
-            assets.erase(it);
+            asset_entries.erase(it);
         }
     }
 }
