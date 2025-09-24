@@ -3,7 +3,7 @@
 import SE.Types;
 import std;
 
-export namespace se::assets
+namespace se::assets
 {
 /**
  * 에셋의 현재 로딩 상태를 나타냅니다.

@@ -1,4 +1,4 @@
-﻿export module SE.Assets:Handle;
+﻿export module SE.Assets:AssetHandle;
 
 import SE.Types;
 import std;

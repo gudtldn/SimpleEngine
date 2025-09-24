@@ -2,7 +2,7 @@
 #include "tracy/Tracy.hpp"
 export module SE.Assets:AssetManager;
 import :AssetStorage;
-import :Handle;
+import :AssetHandle;
 
 import SE.Types;
 import std;
