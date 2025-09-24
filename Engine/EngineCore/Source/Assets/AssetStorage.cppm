@@ -29,7 +29,7 @@ public:
  * @tparam T 관리하는 Asset의 타입
  */
 template <typename T>
-class AssetStorage : public IAssetStorage
+class AssetStorage : public IAssetStorage, public std::enable_shared_from_this<AssetStorage<T>>
 {
 public:
     using AssetType = T;
@@ -73,7 +73,10 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
     }
 
     // TaskScheduler에게 코루틴과 함께 promise의 소유권을 넘겨 실행
-    TaskScheduler::Get().Launch_WorkerThread([this, asset_id](std::filesystem::path path, std::promise<std::shared_ptr<T>> prms) -> Task<void>
+    auto self = this->shared_from_this();
+    TaskScheduler::Get().Launch_WorkerThread([self, asset_id](
+        std::filesystem::path path, std::promise<std::shared_ptr<T>> prms
+    ) -> Task<void>
     {
         try
         {
@@ -86,16 +89,16 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
 
             {
                 // Worker Thread에서 asset_entries에 접근하니까 락 걸고 진행
-                std::unique_lock task_lock(mutex);
-                asset_entries[asset_id].state = asset ? EAssetState::Loaded : EAssetState::Failed;
+                std::unique_lock task_lock(self->mutex);
+                self->asset_entries[asset_id].state = asset ? EAssetState::Loaded : EAssetState::Failed;
             }
             prms.set_value(asset);
         }
         catch (...)
         {
             {
-                std::unique_lock task_lock(mutex);
-                asset_entries[asset_id].state = EAssetState::Failed;
+                std::unique_lock task_lock(self->mutex);
+                self->asset_entries[asset_id].state = EAssetState::Failed;
             }
             prms.set_exception(std::current_exception());
         }

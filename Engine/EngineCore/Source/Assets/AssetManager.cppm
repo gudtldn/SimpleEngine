@@ -64,7 +64,7 @@ private:
     AssetStorage<T>& GetOrCreateStorage();
 
 private:
-    unordered_map<std::type_index, std::unique_ptr<IAssetStorage>> storages;
+    unordered_map<std::type_index, std::shared_ptr<IAssetStorage>> storages;
 };
 
 template <typename T>
@@ -106,8 +106,8 @@ AssetStorage<T>& AssetManager::GetOrCreateStorage()
     const std::type_index type_idx = std::type_index(typeid(T));
     if (!storages.contains(type_idx))
     {
-        storages[type_idx] = std::make_unique<AssetStorage<T>>();
+        storages[type_idx] = std::make_shared<AssetStorage<T>>();
     }
-    return static_cast<AssetStorage<T>&>(*storages[type_idx]);
+    return *std::static_pointer_cast<AssetStorage<T>>(storages[type_idx]);
 }
 }
