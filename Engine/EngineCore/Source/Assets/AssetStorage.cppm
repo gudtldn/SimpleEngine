@@ -1,6 +1,7 @@
 ﻿module;
 #include "tracy/Tracy.hpp"
 export module SE.Assets:AssetStorage;
+import :AssetEntry;
 
 import SE.Types;
 import std;
@@ -40,7 +41,7 @@ public:
 
 private:
     TracySharedLockable(std::shared_mutex, mutex);
-    unordered_map<StringName, std::shared_ptr<T>> assets;
+    unordered_map<StringName, std::shared_ptr<AssetEntry<T>>> assets;
 };
 
 template <typename T>
