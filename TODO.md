@@ -6,6 +6,7 @@
 - [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
 - [ ] 나중에 Thread-Safe해야하는 로직 확인하기
 - [ ] 윈도우별 DrawData 구현
+- [ ] 가상 경로 시스템 구현
 
 - [ ] 프로파일러 만들기
   - CPU
