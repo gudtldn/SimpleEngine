@@ -52,23 +52,25 @@ private:
 template <typename T>
 void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::filesystem::path& virtual_path)
 {
-    std::unique_lock lock(mutex);
-
-    // 이미 로딩중이거나, 로드 되었다면 무시
-    if (asset_entries.contains(asset_id))
-    {
-        const AssetEntry<T>& entry = asset_entries[asset_id];
-        if (entry.state == EAssetState::Loading || entry.state == EAssetState::Loaded)
-        {
-            return;
-        }
-    }
-
-    AssetEntry<T>& entry = asset_entries[asset_id];
-    entry.state = EAssetState::Loading;
-
     std::promise<std::shared_ptr<T>> promise;
-    entry.future = promise.get_future().share();
+
+    {
+        std::unique_lock lock(mutex);
+
+        // 이미 로딩중이거나, 로드 되었다면 무시
+        if (asset_entries.contains(asset_id))
+        {
+            const AssetEntry<T>& entry = asset_entries[asset_id];
+            if (entry.state == EAssetState::Loading || entry.state == EAssetState::Loaded)
+            {
+                return;
+            }
+        }
+
+        AssetEntry<T>& entry = asset_entries[asset_id];
+        entry.state = EAssetState::Loading;
+        entry.future = promise.get_future().share();
+    }
 
     // TaskScheduler에게 코루틴과 함께 promise의 소유권을 넘겨 실행
     TaskScheduler::Get().Launch_WorkerThread([this, asset_id](std::filesystem::path path, std::promise<std::shared_ptr<T>> prms) -> Task<void>
@@ -114,7 +116,8 @@ std::shared_ptr<T> AssetStorage<T>::GetAssetOrWait(const StringName& asset_id)
             return nullptr;
         }
 
-        future_to_wait = asset_entries[asset_id].future;
+        const AssetEntry<T>& entry = asset_entries[asset_id];
+        future_to_wait = entry.future;
     }
 
     if (future_to_wait.valid())
@@ -136,11 +139,19 @@ template <typename T>
 void AssetStorage<T>::RemoveReference(const StringName& asset_id)
 {
     std::unique_lock lock(mutex);
-    if (auto it = asset_entries.find(asset_id); it != asset_entries.end())
+    if (asset_entries.contains(asset_id))
     {
-        if (it->second.future.get().use_count() <= 1)
+        using namespace std::chrono_literals;
+        AssetEntry<T>& entry = asset_entries[asset_id];
+
+        auto status = entry.future.wait_for(0s);
+        if (status == std::future_status::ready)
         {
-            asset_entries.erase(it);
+            // AssetStorage 외부에서 아무도 참조하고 있지 않다면
+            if (entry.future.get().use_count() <= 1)
+            {
+                asset_entries.erase(asset_id);
+            }
         }
     }
 }
