@@ -26,7 +26,7 @@ public:
     /**
      * 에셋을 비동기로 가져옵니다.
      * @tparam T 가져오려는 에셋 타입
-     * @param virtual_path 에셋의 가상 경로 위치, ex) Game://Foo/Bar/MyAsset.png
+     * @param virtual_path 에셋의 가상 경로 위치, ex) Assets://Foo/Bar/MyAsset.png
      * @return 에셋의 Handle
      */
     template <typename T>
