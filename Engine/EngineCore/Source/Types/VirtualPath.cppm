@@ -16,7 +16,6 @@ public:
     ~VPath() = default;
 
     VPath(std::u8string_view path);
-    VPath(const std::filesystem::path& path);
 
     VPath(const VPath&) = default;
     VPath& operator=(const VPath&) = default;

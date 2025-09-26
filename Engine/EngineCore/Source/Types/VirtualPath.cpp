@@ -7,11 +7,6 @@ VPath::VPath(std::u8string_view path)
     ParseAndNormalize(path);
 }
 
-VPath::VPath(const std::filesystem::path& path)
-{
-    ParseAndNormalize(path.generic_u8string());
-}
-
 VPath VPath::operator/(std::u8string_view relative_path) const
 {
     if (relative_path.empty())
