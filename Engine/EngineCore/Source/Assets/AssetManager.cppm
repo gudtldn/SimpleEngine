@@ -89,7 +89,11 @@ template <typename T>
     requires loaders::AssetLoadable<T>
 std::shared_ptr<T> AssetManager::LoadSynchronous(const VPath& virtual_path)
 {
-    return GetAsset<T>(Load<T>(virtual_path));
+    if (Optional<AssetHandle<T>> handle_opt = Load<T>(virtual_path))
+    {
+        return GetAsset<T>(*handle_opt);
+    }
+    return nullptr;
 }
 
 template <typename T>
