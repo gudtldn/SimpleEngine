@@ -15,6 +15,7 @@ public:
     VPath() = default;
     ~VPath() = default;
 
+    VPath(const char8* path);
     VPath(std::u8string_view path);
 
     VPath(const VPath&) = default;

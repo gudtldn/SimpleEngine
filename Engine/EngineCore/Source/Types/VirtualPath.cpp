@@ -2,6 +2,11 @@
 import :VirtualPath;
 
 
+VPath::VPath(const char8* path)
+    : VPath(std::u8string_view{ path })
+{
+}
+
 VPath::VPath(std::u8string_view path)
 {
     ParseAndNormalize(path);
