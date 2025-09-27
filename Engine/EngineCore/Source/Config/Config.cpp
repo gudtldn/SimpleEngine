@@ -6,9 +6,9 @@ module SE.Config;
 
 namespace se::config
 {
-ParseResult Config::ReadConfig(const std::filesystem::path& config_file_path)
+ParseResult Config::ReadConfig(const VPath& config_file_path)
 {
-    toml::parse_result result = toml::parse_file(config_file_path.generic_u8string());
+    toml::parse_result result = toml::parse_file(core::paths::Resolve(config_file_path)->generic_u8string());
     if (result.failed())
     {
         return std::unexpected{std::move(result).error()};
@@ -29,12 +29,14 @@ Optional<Config> Config::GetTable(std::u8string_view key_path) const
     return std::nullopt;
 }
 
-bool Config::WriteConfig(const std::filesystem::path& config_file_path) const
+bool Config::WriteConfig(const VPath& config_file_path) const
 {
-    std::ofstream file_stream(config_file_path.generic_string(), std::ios::binary | std::ios::trunc);
+    const std::u8string u8path = core::paths::Resolve(config_file_path)->generic_u8string();
+
+    std::ofstream file_stream(core::paths::Resolve(config_file_path)->generic_string(), std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to open config file for writing: {}", config_file_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, u8"Failed to open config file for writing: {}", u8path);
         return false;
     }
 
@@ -43,7 +45,7 @@ bool Config::WriteConfig(const std::filesystem::path& config_file_path) const
 
     if (file_stream.fail())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_file_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", u8path);
         file_stream.close();
         return false;
     }
@@ -51,7 +53,7 @@ bool Config::WriteConfig(const std::filesystem::path& config_file_path) const
     file_stream.close();
     if (file_stream.fail())
     {
-        ConsoleLog(ELogLevel::Warning, u8"Potential issue closing file stream for: {}", config_file_path.generic_u8string());
+        ConsoleLog(ELogLevel::Warning, u8"Potential issue closing file stream for: {}", u8path);
     }
 
     return true;

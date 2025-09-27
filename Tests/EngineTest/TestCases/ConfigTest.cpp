@@ -3,14 +3,23 @@
 
 import std;
 import SE.Config;
+import SE.Prelude;
 
 
 TEST_SUITE("SimpleEngine.Config")
 {
-static const std::filesystem::path project_path = std::filesystem::current_path();
-static const std::filesystem::path test_toml_path = project_path / u8"Config/ConfigTest.toml";
-static const std::filesystem::path non_existent_file_path = project_path / u8"Config" / u8"InvalidTest.toml";
-static const std::filesystem::path save_test_toml_path = project_path / u8"Config" / u8"SaveTest.toml";
+[[maybe_unused]]
+static struct Init
+{
+    Init()
+    {
+        se::core::paths::PathResolver::Get().Mount(u8"Config", std::filesystem::current_path() / u8"Config");
+    }
+} _registerer{};
+
+static const VPath test_toml_path = u8"Config://ConfigTest.toml";
+static const VPath non_existent_file_path = u8"Config://InvalidTest.toml";
+static const VPath save_test_toml_path = u8"Config://SaveTest.toml";
 
 using namespace std::string_view_literals;
 using namespace std::string_literals;
@@ -55,7 +64,7 @@ TEST_CASE("Config::ReadConfig - File Handling")
     {
         // 임시로 유효하지 않은 TOML 파일을 만듭니다.
         {
-            std::ofstream ofs(non_existent_file_path);
+            std::ofstream ofs(*se::core::paths::Resolve(non_existent_file_path));
             ofs << "this = is not valid toml syntax because of this character '";
         }
         const ParseResult result = Config::ReadConfig(non_existent_file_path);
@@ -68,7 +77,7 @@ TEST_CASE("Config::ReadConfig - File Handling")
         {
             MESSAGE("Successfully failed to read invalid TOML file as expected: " << result.error().description().data());
         }
-        std::filesystem::remove(non_existent_file_path); // 테스트 후 임시 파일 삭제
+        std::filesystem::remove(*se::core::paths::Resolve(non_existent_file_path)); // 테스트 후 임시 파일 삭제
     }
 }
 
@@ -191,8 +200,8 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
     {
         std::filesystem::path path_to_delete;
 
-        FileDeleter(std::filesystem::path p)
-            : path_to_delete(std::move(p))
+        FileDeleter(const VPath& p)
+            : path_to_delete(se::core::paths::Resolve(p).Value())
         {
         }
 

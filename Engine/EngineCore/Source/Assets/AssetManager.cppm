@@ -33,7 +33,7 @@ public:
      */
     template <typename T>
         requires loaders::AssetLoadable<T>
-    AssetHandle<T> Load(const std::filesystem::path& virtual_path);
+    AssetHandle<T> Load(const VPath& virtual_path);
 
     /**
      * 에셋을 동기 형태로 가져옵니다. (에셋을 불러오는 동안 Thread가 Blocking됩니다!)
@@ -43,7 +43,7 @@ public:
      */
     template <typename T>
         requires loaders::AssetLoadable<T>
-    std::shared_ptr<T> LoadSynchronous(const std::filesystem::path& virtual_path);
+    std::shared_ptr<T> LoadSynchronous(const VPath& virtual_path);
 
     /**
      * Handle로부터 실제 에셋을 가져옵니다. 만약 에셋이 아직 로딩 중이라면, 로딩이 끝날 때까지 기다립니다.
@@ -52,7 +52,7 @@ public:
      * @return 에셋의 참조. Handle이 유효하지 않을 경우 nullptr를 반환합니다.
      */
     template <typename T>
-    std::shared_ptr<T> Get(AssetHandle<T> handle);
+    std::shared_ptr<T> GetAsset(AssetHandle<T> handle);
 
 private:
     /**
@@ -69,10 +69,10 @@ private:
 
 template <typename T>
     requires loaders::AssetLoadable<T>
-AssetHandle<T> AssetManager::Load(const std::filesystem::path& virtual_path)
+AssetHandle<T> AssetManager::Load(const VPath& virtual_path)
 {
     AssetHandle<T> handle = {
-        .asset_id = StringName{ virtual_path.generic_u8string() }
+        .asset_id = virtual_path.ToStringName()
     };
 
     // TODO: 에셋이 로딩중인지 확인
@@ -82,14 +82,15 @@ AssetHandle<T> AssetManager::Load(const std::filesystem::path& virtual_path)
     return handle;
 }
 
-template <typename T> requires loaders::AssetLoadable<T>
-std::shared_ptr<T> AssetManager::LoadSynchronous(const std::filesystem::path& virtual_path)
+template <typename T>
+    requires loaders::AssetLoadable<T>
+std::shared_ptr<T> AssetManager::LoadSynchronous(const VPath& virtual_path)
 {
-    return Get<T>(Load<T>(virtual_path));
+    return GetAsset<T>(Load<T>(virtual_path));
 }
 
 template <typename T>
-std::shared_ptr<T> AssetManager::Get(AssetHandle<T> handle)
+std::shared_ptr<T> AssetManager::GetAsset(AssetHandle<T> handle)
 {
     if (!handle.IsValid())
     {

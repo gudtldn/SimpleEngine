@@ -28,9 +28,7 @@ void EditorApplication::RegisterSubsystems()
     {
         using namespace se::config;
 
-        const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
-        const std::filesystem::path config_path = solution_path / u8"Config/EngineConfig.toml";
-
+        const VPath config_path = u8"Config://EngineConfig.toml";
         ParseResult result = Config::ReadConfig(config_path);
         if (!result.has_value())
         {
@@ -50,7 +48,7 @@ void EditorApplication::RegisterSubsystems()
 
         if (!config.WriteConfig(config_path))
         {
-            ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.generic_u8string());
+            ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.ToU8String());
             return;
         }
     }

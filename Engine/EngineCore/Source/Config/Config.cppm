@@ -33,7 +33,7 @@ public:
      * @param config_file_path TOML 파일 경로
      * @return 정상적으로 읽어오면 Config 객체를, 실패하면 toml::parse_error를 반환합니다.
      */
-    static ParseResult ReadConfig(const std::filesystem::path& config_file_path);
+    static ParseResult ReadConfig(const VPath& config_file_path);
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 값을 가져옵니다.
@@ -96,7 +96,7 @@ public:
      * @param[in] config_file_path 저장할 파일의 경로입니다. 파일이 이미 존재하면 덮어씁니다.
      * @return bool 저장에 성공하면 true, 실패하면 false (예: 파일 열기/쓰기 오류).
      */
-    bool WriteConfig(const std::filesystem::path& config_file_path) const;
+    bool WriteConfig(const VPath& config_file_path) const;
 
 private:
     explicit Config(toml::table&& table);

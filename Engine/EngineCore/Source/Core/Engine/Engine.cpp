@@ -3,6 +3,7 @@
 #include "tracy/Tracy.hpp"
 module SE.Core;
 import :Engine;
+import :Paths;
 
 import SE.Utility;
 import SE.Subsystems.RenderSubsystem;
@@ -14,6 +15,22 @@ namespace se::core::engine
 {
 bool Engine::Initialize()
 {
+    {
+        paths::PathResolver& path_resolver = paths::PathResolver::Get();
+
+        // TODO: Shipping일 때 경로 수정해야함!!!
+        const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
+
+        // Core
+        path_resolver.Mount(u8"Config", solution_path / u8"Config");
+        path_resolver.Mount(u8"CoreAssets", solution_path / u8"Engine/EngineCore/Assets");
+        path_resolver.Mount(u8"CoreShader", solution_path / u8"Engine/EngineCore/Shaders");
+
+        // Editor
+        path_resolver.Mount(u8"EditorAssets", solution_path / u8"Engine/EditorEngine/Assets");
+        path_resolver.Mount(u8"EditorShader", solution_path / u8"Engine/EditorEngine/Shaders");
+    }
+
     thread_pool.reset(new concurrency::ThreadPool{
         static_cast<uint32>(std::thread::hardware_concurrency() * 0.7)
     });
