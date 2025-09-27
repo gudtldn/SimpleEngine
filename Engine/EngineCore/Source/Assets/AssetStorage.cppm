@@ -134,6 +134,7 @@ std::shared_ptr<T> AssetStorage<T>::GetAssetOrWait(const StringName& asset_id)
         catch (const std::exception& err)
         {
             ConsoleLog(ELogLevel::Error, u8"Failed to get asset: {}", err.what());
+            // TODO: 추후 T에 맞는 Default Asset을 가져와 사용하는 방향으로 수정, 또는 std::expected
             return nullptr;
         }
     }
