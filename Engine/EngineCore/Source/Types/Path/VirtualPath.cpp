@@ -1,5 +1,5 @@
 ﻿module SE.Types;
-import :VirtualPath;
+import :Path.VirtualPath;
 
 
 VPath::VPath(const char8* path)

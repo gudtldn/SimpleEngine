@@ -1,4 +1,4 @@
-﻿export module SE.Types:VirtualPath;
+﻿export module SE.Types:Path.VirtualPath;
 import :Containers;
 import :PlatformTypes;
 import :StringName;
