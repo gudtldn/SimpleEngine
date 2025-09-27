@@ -36,7 +36,7 @@ public:
 
 public:
     /** 에셋을 비동기로 로드하고 Storage에 추가합니다. */
-    void LoadAssetAsync(const StringName& asset_id, const VPath& virtual_path);
+    void LoadAssetAsync(const StringName& asset_id, const std::filesystem::path& physical_path);
 
     /** 로딩이 완료될 때까지 기다렸다가 에셋을 반환합니다. */
     std::shared_ptr<T> GetAssetOrWait(const StringName& asset_id);
@@ -50,7 +50,7 @@ private:
 };
 
 template <typename T>
-void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const VPath& virtual_path)
+void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::filesystem::path& physical_path)
 {
     std::promise<std::shared_ptr<T>> promise;
 
@@ -75,7 +75,7 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const VPath& vi
     // TaskScheduler에게 코루틴과 함께 promise의 소유권을 넘겨 실행
     auto self = this->shared_from_this();
     TaskScheduler::Get().Launch_WorkerThread([self, asset_id](
-        VPath path, std::promise<std::shared_ptr<T>> prms
+        std::filesystem::path path, std::promise<std::shared_ptr<T>> prms
     ) -> Task<void>
     {
         try
@@ -102,7 +102,7 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const VPath& vi
             }
             prms.set_exception(std::current_exception());
         }
-    }(virtual_path, std::move(promise))); // TODO: 실제 경로로 변환 해야함!
+    }(physical_path, std::move(promise)));
 }
 
 template <typename T>

@@ -33,7 +33,7 @@ public:
      */
     template <typename T>
         requires loaders::AssetLoadable<T>
-    AssetHandle<T> Load(const VPath& virtual_path);
+    Optional<AssetHandle<T>> Load(const VPath& virtual_path);
 
     /**
      * 에셋을 동기 형태로 가져옵니다. (에셋을 불러오는 동안 Thread가 Blocking됩니다!)
@@ -69,17 +69,20 @@ private:
 
 template <typename T>
     requires loaders::AssetLoadable<T>
-AssetHandle<T> AssetManager::Load(const VPath& virtual_path)
+Optional<AssetHandle<T>> AssetManager::Load(const VPath& virtual_path)
 {
-    AssetHandle<T> handle = {
-        .asset_id = virtual_path.ToStringName()
-    };
+    if (Optional<std::filesystem::path> physical_path_opt = core::paths::Resolve(virtual_path))
+    {
+        AssetHandle<T> handle = {
+            .asset_id = virtual_path.ToStringName()
+        };
 
-    // TODO: 에셋이 로딩중인지 확인
-    // TODO: 비동기로 에셋 로딩
-    GetOrCreateStorage<T>().LoadAssetAsync(handle.asset_id, virtual_path);
+        GetOrCreateStorage<T>().LoadAssetAsync(handle.asset_id, physical_path_opt.Value());
+        return handle;
+    }
 
-    return handle;
+    ConsoleLog(ELogLevel::Warning, u8"Failed to resolve virtual path: {}", virtual_path.ToU8String());
+    return std::nullopt;
 }
 
 template <typename T>
