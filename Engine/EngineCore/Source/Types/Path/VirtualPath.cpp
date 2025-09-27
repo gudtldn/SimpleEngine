@@ -44,7 +44,7 @@ std::u8string_view VPath::GetScheme() const noexcept
 
 std::u8string_view VPath::GetPathPart() const noexcept
 {
-    if (!IsValid())
+    if (IsValid())
     {
         return std::u8string_view(full_path.data() + path_offset, full_path.length() - path_offset);
     }
@@ -53,36 +53,34 @@ std::u8string_view VPath::GetPathPart() const noexcept
 
 VPath VPath::GetParentPath() const
 {
-    if (!IsValid())
+    if (IsValid())
     {
-        return {};
+        const auto last_slash = full_path.find_last_of(u8'/');
+
+        // "Assets://foo.txt" -> "Assets://"
+        // "Assets://bar/" -> "Assets://"
+        if (last_slash <= path_offset)
+        {
+            return { std::u8string_view(full_path.data(), path_offset) };
+        }
+
+        return { std::u8string_view(full_path.data(), last_slash) };
     }
-
-    const auto last_slash = full_path.find_last_of(u8'/');
-
-    // "Assets://foo.txt" -> "Assets://"
-    // "Assets://bar/" -> "Assets://"
-    if (last_slash <= path_offset)
-    {
-        return { std::u8string_view(full_path.data(), path_offset) };
-    }
-
-    return { std::u8string_view(full_path.data(), last_slash) };
+    return {};
 }
 
 std::u8string_view VPath::GetFilename() const noexcept
 {
-    if (!IsValid())
+    if (IsValid())
     {
-        return {};
+        const auto last_slash = full_path.find_last_of(u8'/');
+        if (last_slash == se::u8string::npos)
+        {
+            return GetPathPart(); // 스키마는 없고 파일명만 있는 경우
+        }
+        return std::u8string_view(full_path.data() + last_slash + 1);
     }
-
-    const auto last_slash = full_path.find_last_of(u8'/');
-    if (last_slash == se::u8string::npos)
-    {
-        return GetPathPart(); // 스키마는 없고 파일명만 있는 경우
-    }
-    return std::u8string_view(full_path.data() + last_slash + 1);
+    return {};
 }
 
 std::u8string_view VPath::GetExtension() const noexcept
