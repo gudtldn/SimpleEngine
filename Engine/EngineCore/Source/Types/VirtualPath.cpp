@@ -14,16 +14,18 @@ VPath VPath::operator/(std::u8string_view relative_path) const
         return *this;
     }
 
-    se::u8string new_path_str = full_path;
+    VPath new_path;
+    new_path.full_path = full_path;
 
     // 슬래시 중복 방지
+    se::u8string& new_path_str = new_path.full_path;
     if (new_path_str.back() != u8'/' && relative_path.front() != u8'/')
     {
         new_path_str += u8'/';
     }
     new_path_str += relative_path;
 
-    return { new_path_str };
+    return new_path;
 }
 
 std::u8string_view VPath::GetScheme() const noexcept
