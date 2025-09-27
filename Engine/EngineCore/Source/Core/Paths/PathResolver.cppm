@@ -1,17 +1,16 @@
-﻿export module SE.Types:Path.PathResolver;
-import :Path.VirtualPath;
-import :Optional;
-import :Containers;
-import :PlatformTypes;
+﻿export module SE.Core:Paths.PathResolver;
 
+import SE.Types;
 import std;
 
 
+export namespace se::core::paths
+{
 /**
  * VPath(가상 경로)를 실제 물리적 파일 시스템 경로로 변환하는 유틸리티 클래스.
  * 엔진 초기화 시점에 설정되어 전역적으로 경로 해석을 제공합니다.
  */
-export class PathResolver
+class PathResolver
 {
     static PathResolver* Instance;
     PathResolver() = default;
@@ -45,14 +44,14 @@ public:
     /**
      * VPath를 실제 물리적 경로로 해석합니다.
      * @param virtual_path 해석할 가상 경로
-     * @return 해당하는 물리적 경로. 유효하지 않으면 비어있는 경로를 반환합니다.
+     * @return 해당하는 물리적 경로. 유효하지 않으면 std::nullopt를 반환합니다.
      */
     [[nodiscard]] Optional<std::filesystem::path> Resolve(const VPath& virtual_path) const;
 
     /**
      * 물리적 경로를 가장 적합한 VPath로 역해석합니다.
      * @param physical_path 역해석할 물리적 경로
-     * @return 해당하는 가상 경로. 유효하지 않으면 비어있는 경로를 반환합니다.
+     * @return 해당하는 가상 경로. 유효하지 않으면 std::nullopt를 반환합니다.
      */
     [[nodiscard]] Optional<VPath> Unresolve(const std::filesystem::path& physical_path) const;
 
@@ -67,3 +66,4 @@ private:
 
     std::unordered_map<se::u8string, std::vector<MountPoint>> mount_points;
 };
+}

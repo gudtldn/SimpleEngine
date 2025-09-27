@@ -1,5 +1,5 @@
-﻿module SE.Types;
-import :Path.PathResolver;
+﻿module SE.Core;
+import :Paths.PathResolver;
 
 import SE.Core;
 import SE.Utility;
@@ -7,6 +7,8 @@ import SE.Utility;
 import <cassert>;
 
 
+namespace se::core::paths
+{
 PathResolver* PathResolver::Instance = nullptr;
 
 PathResolver& PathResolver::Get()
@@ -103,4 +105,5 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
         }
     }
     return best_match_opt;
+}
 }

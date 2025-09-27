@@ -4,4 +4,4 @@ export import :StringName;
 export import :Containers;
 export import :Optional;
 export import :PlatformTypes;
-export import :Path;
+export import :VirtualPath;
