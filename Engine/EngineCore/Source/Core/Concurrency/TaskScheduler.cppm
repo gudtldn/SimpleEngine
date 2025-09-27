@@ -24,13 +24,17 @@ export struct SwitchToMainThread;
  */
 export class TaskScheduler
 {
+private:
+    // ProcessMainThreadTasks 호출을 위해서
     friend class engine::Engine;
+
+    // ScheduleOnMainThread 호출을 위해서
     friend struct coroutine::SwitchToMainThread;
 
     static TaskScheduler* Instance;
-    explicit TaskScheduler(std::thread::id in_main_thread_id);
 
 public:
+    explicit TaskScheduler(std::thread::id in_main_thread_id);
     ~TaskScheduler();
 
     // 이동 & 복사 생성자 제거

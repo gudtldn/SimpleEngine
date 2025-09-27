@@ -1,15 +1,8 @@
-﻿module;
-#include <cassert>
-export module SE.Core:Concurrency.ThreadPool;
+﻿export module SE.Core:Concurrency.ThreadPool;
 import :Function;
 
 import SE.Types;
 import std;
-
-namespace se::core::engine
-{
-export class Engine;
-}
 
 
 namespace se::core::concurrency
@@ -21,12 +14,10 @@ namespace se::core::concurrency
 export class ThreadPool
 {
 private:
-    friend class engine::Engine;
-
     static ThreadPool* Instance;
-    explicit ThreadPool(uint32 num_threads);
 
 public:
+    explicit ThreadPool(uint32 num_threads);
     ~ThreadPool();
 
     // 이동 & 복사 생성자 제거
