@@ -1,5 +1,6 @@
 ﻿export module SE.Types:Path.PathResolver;
 import :Path.VirtualPath;
+import :Optional;
 import :Containers;
 import :PlatformTypes;
 
@@ -46,14 +47,14 @@ public:
      * @param virtual_path 해석할 가상 경로
      * @return 해당하는 물리적 경로. 유효하지 않으면 비어있는 경로를 반환합니다.
      */
-    [[nodiscard]] std::filesystem::path Resolve(const VPath& virtual_path) const;
+    [[nodiscard]] Optional<std::filesystem::path> Resolve(const VPath& virtual_path) const;
 
     /**
      * 물리적 경로를 가장 적합한 VPath로 역해석합니다.
      * @param physical_path 역해석할 물리적 경로
      * @return 해당하는 가상 경로. 유효하지 않으면 비어있는 경로를 반환합니다.
      */
-    [[nodiscard]] VPath Unresolve(const std::filesystem::path& physical_path) const;
+    [[nodiscard]] Optional<VPath> Unresolve(const std::filesystem::path& physical_path) const;
 
 private:
     struct MountPoint

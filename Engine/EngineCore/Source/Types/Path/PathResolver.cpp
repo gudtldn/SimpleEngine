@@ -38,11 +38,11 @@ void PathResolver::Unmount(std::u8string_view scheme)
     mount_points.erase(se::u8string(scheme));
 }
 
-std::filesystem::path PathResolver::Resolve(const VPath& virtual_path) const
+Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path) const
 {
     if (!virtual_path.IsValid() || !virtual_path.HasScheme())
     {
-        return {}; // 스키마가 없으면 해석 불가
+        return std::nullopt; // 스키마가 없으면 해석 불가
     }
 
     const auto scheme = virtual_path.GetScheme();
@@ -51,7 +51,7 @@ std::filesystem::path PathResolver::Resolve(const VPath& virtual_path) const
     if (it == mount_points.end() || it->second.empty())
     {
         ConsoleLog(ELogLevel::Warning, u8"Scheme '{}' is not mounted.", scheme);
-        return {};
+        return std::nullopt;
     }
 
     // 경로 부분에서 맨 앞의 '/' 제거
@@ -67,11 +67,11 @@ std::filesystem::path PathResolver::Resolve(const VPath& virtual_path) const
     return base_path / path_part;
 }
 
-VPath PathResolver::Unresolve(const std::filesystem::path& physical_path) const
+Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_path) const
 {
     const auto normalized_physical_path = std::filesystem::absolute(physical_path);
 
-    VPath best_match;
+    Optional<VPath> best_match_opt = std::nullopt;
     int best_priority = -1;
     size_t longest_match_len = 0;
 
@@ -89,19 +89,18 @@ VPath PathResolver::Unresolve(const std::filesystem::path& physical_path) const
                 // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
                 if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))
                 {
+                    using se::utility::string_utils::ToU8String;
+
                     longest_match_len = match_len;
                     best_priority = point.priority;
 
                     auto relative_part = std::filesystem::relative(normalized_physical_path, point.physical_path);
-                    best_match = VPath{
-                        se::utility::string_utils::ToU8String(
-                            std::format("{}://{}", scheme, relative_part.generic_u8string()
-                            )
-                        )
-                    };
+                    best_match_opt.Emplace(
+                        ToU8String(std::format("{}://{}", scheme, relative_part.generic_u8string()))
+                    );
                 }
             }
         }
     }
-    return best_match;
+    return best_match_opt;
 }
