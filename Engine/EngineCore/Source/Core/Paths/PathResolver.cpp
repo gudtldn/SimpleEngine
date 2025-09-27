@@ -82,16 +82,14 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
         for (const MountPoint& point : points)
         {
             // 물리적 경로가 마운트 포인트의 하위 경로인지 확인
-            auto [_, mismatch_iter] = std::ranges::mismatch(point.physical_path, normalized_physical_path);
-
-            if (mismatch_iter == point.physical_path.end()) // 접두사가 일치하는 경우
+            if (normalized_physical_path.native().starts_with(point.physical_path.native())) // 접두사가 일치하는 경우
             {
-                const size_t match_len = std::ranges::distance(point.physical_path);
+                const size_t match_len = point.physical_path.native().length();
 
                 // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
                 if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))
                 {
-                    using se::utility::string_utils::ToU8String;
+                    using utility::string_utils::ToU8String;
 
                     longest_match_len = match_len;
                     best_priority = point.priority;
