@@ -18,7 +18,7 @@ class AssetLoader;
  * @todo 추후 어떻게 사용하고, 어떻게 구현해야 하는지 주석 작성
  */
 template <typename AssetType>
-concept AssetLoadable = requires(AssetLoader<AssetType> loader, const VPath& path)
+concept AssetLoadable = requires(AssetLoader<AssetType> loader, const std::filesystem::path& path)
 {
     { loader.Load(path) } -> std::same_as<Task<std::shared_ptr<AssetType>>>;
 };
