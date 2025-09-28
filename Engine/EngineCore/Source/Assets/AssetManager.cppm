@@ -64,6 +64,7 @@ private:
     AssetStorage<T>& GetOrCreateStorage();
 
 private:
+    TracyLockable(std::mutex, storages_mutex);
     unordered_map<std::type_index, std::shared_ptr<IAssetStorage>> storages;
 };
 
@@ -112,6 +113,8 @@ template <typename T>
 AssetStorage<T>& AssetManager::GetOrCreateStorage()
 {
     const std::type_index type_idx = std::type_index(typeid(T));
+
+    std::scoped_lock lock(storages_mutex);
     if (!storages.contains(type_idx))
     {
         storages[type_idx] = std::make_shared<AssetStorage<T>>();
