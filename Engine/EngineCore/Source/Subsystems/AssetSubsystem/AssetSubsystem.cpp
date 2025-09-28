@@ -1,4 +1,6 @@
-﻿module SE.Subsystems.AssetSubsystem;
+﻿module;
+#include "tracy/Tracy.hpp"
+module SE.Subsystems.AssetSubsystem;
 
 import SE.Core;
 
