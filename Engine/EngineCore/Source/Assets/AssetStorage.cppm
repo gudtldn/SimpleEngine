@@ -73,9 +73,13 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
     }
 
     // TaskScheduler에게 코루틴과 함께 promise의 소유권을 넘겨 실행
-    auto self = this->shared_from_this();
-    TaskScheduler::Get().Launch_WorkerThread([self, asset_id](
-        std::filesystem::path path, std::promise<std::shared_ptr<T>> prms
+    // 코루틴 람다는 캡쳐시, 캡쳐된 변수의 수명에 주의
+    // (self와 asset_id 캡쳐하다가 Worker Thread에서 코루틴을 재개했더니 자꾸 터지길래 보니까, 재개 시점에 이미 람다가 소멸해버린것...)
+    TaskScheduler::Get().Launch_WorkerThread([](
+        std::shared_ptr<AssetStorage> self,
+        StringName asset_id_copy,
+        std::filesystem::path path,
+        std::promise<std::shared_ptr<T>> prms
     ) -> Task<void>
     {
         try
@@ -90,7 +94,7 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
             {
                 // Worker Thread에서 asset_entries에 접근하니까 락 걸고 진행
                 std::unique_lock task_lock(self->mutex);
-                self->asset_entries[asset_id].state = asset ? EAssetState::Loaded : EAssetState::Failed;
+                self->asset_entries[asset_id_copy].state = asset ? EAssetState::Loaded : EAssetState::Failed;
             }
             prms.set_value(asset);
         }
@@ -98,11 +102,11 @@ void AssetStorage<T>::LoadAssetAsync(const StringName& asset_id, const std::file
         {
             {
                 std::unique_lock task_lock(self->mutex);
-                self->asset_entries[asset_id].state = EAssetState::Failed;
+                self->asset_entries[asset_id_copy].state = EAssetState::Failed;
             }
             prms.set_exception(std::current_exception());
         }
-    }(physical_path, std::move(promise)));
+    }(this->shared_from_this(), asset_id, physical_path, std::move(promise)));
 }
 
 template <typename T>
