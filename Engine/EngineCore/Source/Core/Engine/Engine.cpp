@@ -3,6 +3,7 @@
 #include "tracy/Tracy.hpp"
 module SE.Core;
 import :Engine;
+import :Paths;
 
 import SE.Utility;
 import SE.Subsystems.RenderSubsystem;
