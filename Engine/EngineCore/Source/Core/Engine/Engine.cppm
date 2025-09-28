@@ -17,7 +17,7 @@ namespace se::core::engine
 export class Engine
 {
 public:
-    Engine() = default;
+    Engine();
     ~Engine() = default;
 
     Engine(const Engine&) = delete;
