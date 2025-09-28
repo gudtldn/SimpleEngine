@@ -22,12 +22,13 @@ ThreadPool::ThreadPool(uint32 num_threads)
     ConsoleLog(ELogLevel::Info, u8"Creating ThreadPool...");
 
     // Worker Thread 생성
-    running = true;
     for (auto [n, thread] : worker_threads | std::views::enumerate)
     {
-        thread = std::thread{
-            &ThreadPool::WorkerLoop, this,
-            static_cast<uint32>(n)
+        thread = std::jthread{
+            [this, n = static_cast<uint32>(n)](const std::stop_token& token)
+            {
+                WorkerLoop(token, n);
+            },
         };
     }
 }
@@ -44,35 +45,34 @@ ThreadPool::~ThreadPool()
         tasks.swap(empty_queue);
     }
 
-    running = false;
-    condition.notify_all();
-
-    ConsoleLog(ELogLevel::Info, u8"Joining Worker Threads...");
-    for (std::thread& thread : worker_threads)
+    // 스레드 중단
+    for (std::jthread& thread : worker_threads)
     {
-        if (thread.joinable())
-        {
-            thread.join();
-        }
+        thread.request_stop();
     }
+    condition.notify_all();
 }
 
-void ThreadPool::WorkerLoop(uint32 thread_id)
+void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 {
     const u8string thread_name = utility::string_utils::ToU8String(
         std::format("Worker Thread {}", thread_id)
     );
     platform::Platform::SetCurrentThreadName(thread_name);
 
-    while (true)
+    while (!token.stop_requested())
     {
         Function<void()> task;
         {
             std::unique_lock lock(mutex);
 
-            // 작업이 없으면 대기
-            condition.wait(lock, [this] { return !tasks.empty() || !running; });
-            if (!running && tasks.empty())
+            // stop이 요청되거나 작업이 생길 때까지 대기
+            condition.wait(lock, [this, &token]
+            {
+                return !tasks.empty() || token.stop_requested();
+            });
+
+            if (token.stop_requested() && tasks.empty())
             {
                 return;
             }

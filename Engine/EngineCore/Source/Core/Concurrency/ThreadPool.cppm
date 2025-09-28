@@ -34,15 +34,13 @@ private:
     template <typename Fn, typename... Args>
     auto Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>;
 
-    void WorkerLoop(uint32 thread_id);
+    void WorkerLoop(const std::stop_token& token, uint32 thread_id);
 
 private:
-    std::atomic<bool> running = false;
-
     std::mutex mutex;
     std::condition_variable condition;
 
-    vector<std::thread> worker_threads;
+    vector<std::jthread> worker_threads;
     queue<function::Function<void()>> tasks;
 };
 
