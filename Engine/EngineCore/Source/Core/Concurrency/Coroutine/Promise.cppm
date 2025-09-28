@@ -73,6 +73,11 @@ public:
     }
 
 public:
+    // 나중에 커스텀 메모리 할당자가 필요해질 때 사용
+    // void* operator new(std::size_t size);
+    // void operator delete(void* ptr, std::size_t size);
+
+public:
     // 이 코루틴의 작업이 끝난 후, 재개되어야 할 다음 코루틴의 핸들
     std::coroutine_handle<> continuation;
 
