@@ -18,7 +18,7 @@ public:
     //~ End ISubsystem
 
 public:
-    [[nodiscard]] se::assets::AssetManager* GetAssetManager() const noexcept { return asset_manager.get(); }
+    [[nodiscard]] se::assets::AssetManager& GetAssetManager() const { return *asset_manager; }
 
 private:
     std::unique_ptr<se::assets::AssetManager> asset_manager;
