@@ -43,11 +43,17 @@ void TaskScheduler::Launch_MainThread(coroutine::Task<void>&& task)
         return;
     }
 
-    // Task의 소유권을 이동시겨 수명을 연장
-    launched_tasks.push_back(std::move(task));
+    const auto handle_to_resume = task.handle;
+
+    {
+        std::scoped_lock lock(tasks_mutex);
+
+        // Task의 소유권을 이동시겨 수명을 연장
+        launched_tasks.push_back(std::move(task));
+    }
 
     // Task의 handle을 사용하여 코드를 실행
-    launched_tasks.back().handle.resume();
+    handle_to_resume.resume();
 }
 
 void TaskScheduler::Launch_WorkerThread(coroutine::Task<void>&& task)
@@ -57,13 +63,18 @@ void TaskScheduler::Launch_WorkerThread(coroutine::Task<void>&& task)
         return;
     }
 
-    // Task의 소유권을 이동시겨 수명을 연장
-    launched_tasks.push_back(std::move(task));
+    auto handle_to_resume = task.handle;
+
+    {
+        std::scoped_lock lock(tasks_mutex);
+        // Task의 소유권을 이동시켜 수명을 연장
+        launched_tasks.push_back(std::move(task));
+    }
 
     // Task의 handle을 사용하여 코드를 실행
-    ThreadPool::SubmitTask([this]
+    ThreadPool::SubmitTask([handle_to_resume]
     {
-        launched_tasks.back().handle.resume();
+        handle_to_resume.resume();
     });
 }
 
@@ -84,11 +95,15 @@ void TaskScheduler::ProcessMainThreadTasks()
         handle.resume();
     }
 
-    // 실행 완료된 코루틴들을 launched_tasks 에서 제거
-    std::erase_if(launched_tasks, [](const coroutine::Task<void>& task)
     {
-        return task.handle.done();
-    });
+        std::scoped_lock lock(tasks_mutex);
+
+        // 실행 완료된 코루틴들을 launched_tasks 에서 제거
+        std::erase_if(launched_tasks, [](const coroutine::Task<void>& task)
+        {
+            return !task.handle || task.handle.done();
+        });
+    }
 }
 
 void TaskScheduler::ScheduleOnMainThread(std::coroutine_handle<> handle)

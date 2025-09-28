@@ -78,6 +78,7 @@ private:
 private:
     std::thread::id main_thread_id;
     TracyLockable(std::mutex, main_thread_mutex);
+    TracyLockable(std::mutex, tasks_mutex);
 
     // 메인 스레드에서 실행되기를 기다리는 코루틴 핸들 큐
     queue<std::coroutine_handle<>> main_thread_tasks;
