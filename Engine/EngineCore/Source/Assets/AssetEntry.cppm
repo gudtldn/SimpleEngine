@@ -3,6 +3,7 @@
 import SE.Types;
 import std;
 
+
 namespace se::assets
 {
 /**
@@ -10,10 +11,10 @@ namespace se::assets
  */
 enum class EAssetState : uint8
 {
-    NotLoaded, // 로드된 적 없음
-    Loading,   // 현재 로딩 중
-    Loaded,    // 로딩 성공
-    Failed     // 로딩 실패
+    Unloaded, // 로드된 적이 없거나, 해제됨
+    Loading,  // 현재 로딩 중
+    Loaded,   // 로딩 성공
+    Failed    // 로딩 실패
 };
 
 /**
@@ -24,7 +25,7 @@ template <typename T>
 struct AssetEntry
 {
     // Asset의 로딩 상태
-    std::atomic<EAssetState> state = EAssetState::NotLoaded;
+    std::atomic<EAssetState> state = EAssetState::Unloaded;
 
     // 추후 실제 에셋 데이터가 담길 future
     std::shared_future<std::shared_ptr<T>> future;
