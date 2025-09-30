@@ -183,20 +183,11 @@ public:
         }
     }
 
-    Optional<ReturnType> TryInvoke(ParamsType&&... args) const
-    {
-        if (!CallablePtr)
-        {
-            return std::nullopt;
-        }
-        return CallablePtr->Invoke(std::forward<ParamsType>(args)...);
-    }
-
     ReturnType Invoke(ParamsType&&... args) const
     {
         if (!CallablePtr)
         {
-            throw std::bad_function_call();
+            throw std::bad_function_call{};
         }
         return CallablePtr->Invoke(std::forward<ParamsType>(args)...);
     }
