@@ -1,4 +1,6 @@
-﻿module SE.Core;
+﻿module;
+#include "tracy/Tracy.hpp"
+module SE.Core;
 import :Concurrency.Coroutine.Awaitables;
 
 import :Concurrency.ThreadPool;

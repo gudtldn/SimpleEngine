@@ -1,4 +1,6 @@
-﻿module SE.Editor.App;
+﻿module;
+#include "tracy/Tracy.hpp"
+module SE.Editor.App;
 
 import SE.Editor.Rendering;
 import SE.Editor.Subsystems.ShaderCompileSubsystem;
