@@ -28,7 +28,7 @@ private:
         ICallable(ICallable&&) = default;
         ICallable& operator=(ICallable&&) = default;
 
-        virtual ReturnType Invoke(ParamsType...) = 0;
+        virtual ReturnType Invoke(ParamsType&&...) = 0;
 
         virtual ICallable* Clone() const = 0;
         virtual void CloneTo(void* dest) const = 0;
@@ -46,7 +46,7 @@ private:
         {
         }
 
-        virtual ReturnType Invoke(ParamsType... args) override
+        virtual ReturnType Invoke(ParamsType&&... args) override
         {
             return std::invoke(functor, std::forward<ParamsType>(args)...);
         }
