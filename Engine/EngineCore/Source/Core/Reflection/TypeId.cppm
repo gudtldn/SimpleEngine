@@ -14,7 +14,7 @@ export class TypeId
 public:
     /** 템플릿 타입 T의 TypeId를 반환합니다. */
     template <typename T>
-    constexpr static TypeId Get()
+    [[nodiscard]] constexpr static TypeId Get()
     {
         return TypeId{ GetTypeSignature<T>() };
     }
