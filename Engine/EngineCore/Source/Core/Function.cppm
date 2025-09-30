@@ -183,13 +183,27 @@ public:
         }
     }
 
-    ReturnType operator()(ParamsType... args) const
+    Optional<ReturnType> TryInvoke(ParamsType&&... args) const
+    {
+        if (!CallablePtr)
+        {
+            return std::nullopt;
+        }
+        return CallablePtr->Invoke(std::forward<ParamsType>(args)...);
+    }
+
+    ReturnType Invoke(ParamsType&&... args) const
     {
         if (!CallablePtr)
         {
             throw std::bad_function_call();
         }
         return CallablePtr->Invoke(std::forward<ParamsType>(args)...);
+    }
+
+    ReturnType operator()(ParamsType&&... args) const
+    {
+        return Invoke(std::forward<ParamsType>(args)...);
     }
 
     explicit operator bool() const noexcept
