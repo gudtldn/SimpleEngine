@@ -19,6 +19,9 @@ namespace coroutine
 export struct SwitchToMainThread;
 }
 
+export struct TaskSchedulerTest;
+
+
 /**
  * 비동기 시스템을 관리하는 스케줄러
  */
@@ -30,6 +33,9 @@ private:
 
     // ScheduleOnMainThread 호출을 위해서
     friend struct coroutine::SwitchToMainThread;
+
+    // 코드 테스트를 위해서
+    friend struct TaskSchedulerTest;
 
     static TaskScheduler* Instance;
 
@@ -86,5 +92,22 @@ private:
     // Launch로 시작된 최상위 코루틴들의 생명 주기를 관리하는 벡터
     // Task 객체가 파괴되면 코루틴 상태도 파괴되므로, 끝날 때까지 보관
     vector<coroutine::Task<void>> launched_tasks;
+};
+
+
+// TODO: 전처리기로 테스트일때만 컴파일
+struct TaskSchedulerTest
+{
+    TaskSchedulerTest(TaskScheduler& in_scheduler)
+        : scheduler(in_scheduler)
+    {
+    }
+
+    void ProcessMainThreadTasks() const
+    {
+        scheduler.ProcessMainThreadTasks();
+    }
+
+    TaskScheduler& scheduler;
 };
 }
