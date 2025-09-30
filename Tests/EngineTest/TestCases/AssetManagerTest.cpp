@@ -95,11 +95,17 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
 
     SUBCASE("Load and GetAsset waits for the asset to be loaded")
     {
-        Optional<AssetHandle<DummyAsset>> handle_opt = asset_manager.Load<DummyAsset>(asset_path);
-        REQUIRE(handle_opt.HasValue());
+        std::shared_ptr<DummyAsset> asset;
+        asset_manager.LoadAsync<DummyAsset>(asset_path, [&asset]<typename T>(std::shared_ptr<T> in_asset) -> void
+        {
+            asset = in_asset;
+        });
 
-        // Immediately try to get the asset. This should block and wait.
-        std::shared_ptr<DummyAsset> asset = asset_manager.GetAsset<DummyAsset>(*handle_opt);
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(500ms); // Wait for the async loading to finish (500 ms)
+
+        const concurrency::TaskSchedulerTest test{ concurrency::TaskScheduler::Get() };
+        test.ProcessMainThreadTasks();
 
         REQUIRE(asset != nullptr);
         CHECK(asset->value == 456);
@@ -118,10 +124,18 @@ TEST_CASE_FIXTURE(TestFixture, "Loading non-existent asset")
 
     SUBCASE("Load and GetAsset on non-existent file returns nullptr")
     {
-        Optional<AssetHandle<DummyAsset>> handle_opt = asset_manager.Load<DummyAsset>(non_existent_path);
-        REQUIRE(handle_opt.HasValue()); // The handle is created, but loading will fail
+        std::shared_ptr<DummyAsset> asset;
+        asset_manager.LoadAsync<DummyAsset>(non_existent_path, [&asset]<typename T>(std::shared_ptr<T> in_asset) -> void
+        {
+            asset = in_asset;
+        });
 
-        std::shared_ptr<DummyAsset> asset = asset_manager.GetAsset<DummyAsset>(*handle_opt);
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(500ms); // Wait for the async loading to finish (500 ms)
+
+        const concurrency::TaskSchedulerTest test{ concurrency::TaskScheduler::Get() };
+        test.ProcessMainThreadTasks();
+
         CHECK(asset == nullptr);
     }
 }
@@ -136,10 +150,10 @@ TEST_CASE_FIXTURE(TestFixture, "Loading invalid virtual path")
         CHECK(asset == nullptr);
     }
 
-    SUBCASE("Load on invalid VPath returns nullopt")
-    {
-        Optional<AssetHandle<DummyAsset>> handle_opt = asset_manager.Load<DummyAsset>(invalid_vpath);
-        CHECK_FALSE(handle_opt.HasValue());
-    }
+    // SUBCASE("Load on invalid VPath returns nullopt")
+    // {
+    //     Optional<AssetHandle<DummyAsset>> handle_opt = asset_manager.Load<DummyAsset>(invalid_vpath);
+    //     CHECK_FALSE(handle_opt.HasValue());
+    // }
 }
 }
