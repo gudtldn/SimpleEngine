@@ -8,7 +8,7 @@ using namespace se::traits::type_traits;
 
 
 export template <typename T>
-class Optional
+class [[nodiscard]] Optional
 {
 public:
     Optional() noexcept = default;
@@ -418,7 +418,7 @@ private:
 };
 
 template <typename T>
-class Optional<T&>
+class [[nodiscard]] Optional<T&>
 {
 public:
     Optional() noexcept = default;
