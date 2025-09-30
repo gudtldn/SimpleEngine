@@ -65,6 +65,15 @@ public:
      */
     void Launch_WorkerThread(coroutine::Task<void>&& task);
 
+    /**
+     * Task가 완료될 때까지 현재 스레드를 블로킹하고 결과를 반환합니다.
+     * @warning ThreadPool이 관리하고 있는 Thread에서 호출하면 데드락이 발생할 수도 있습니다.
+     * @param task 기다릴 Task 객체
+     * @return Task의 결과값
+     */
+    template <typename T>
+    T BlockOn(coroutine::Task<T>&& task);
+
     /** Main Thread의 ID를 가져옵니다. */
     std::thread::id GetMainThreadId() const;
 
@@ -93,6 +102,38 @@ private:
     // Task 객체가 파괴되면 코루틴 상태도 파괴되므로, 끝날 때까지 보관
     vector<coroutine::Task<void>> launched_tasks;
 };
+
+template <typename T>
+T TaskScheduler::BlockOn(coroutine::Task<T>&& task)
+{
+    if (!task.handle)
+    {
+        throw std::runtime_error("Cannot BlockOn an invalid Task.");
+    }
+
+    if (task.await_ready())
+    {
+        return task.await_resume();
+    }
+
+    std::promise<T> promise;
+    auto future = promise.get_future();
+
+    Launch_WorkerThread([](coroutine::Task<T> t, std::promise<T> p) -> coroutine::Task<void>
+    {
+        try
+        {
+            T result = co_await t;
+            p.set_value(std::move(result));
+        }
+        catch (...)
+        {
+            p.set_exception(std::current_exception());
+        }
+    }(std::move(task), std::move(promise)));
+
+    return future.get();
+}
 
 
 // TODO: 전처리기로 테스트일때만 컴파일

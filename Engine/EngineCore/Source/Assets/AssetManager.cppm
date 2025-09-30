@@ -103,8 +103,7 @@ template <typename T>
     requires loaders::AssetLoadable<T>
 std::shared_ptr<T> AssetManager::LoadSynchronous(VPath virtual_path)
 {
-    // return core::concurrency::BlockOn(LoadInternal<T>(virtual_path));
-    return nullptr;
+    return TaskScheduler::Get().BlockOn(LoadInternal<T>(virtual_path));
 }
 
 template <typename T>
