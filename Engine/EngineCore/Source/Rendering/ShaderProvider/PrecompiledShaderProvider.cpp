@@ -22,6 +22,6 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
         }
     }
 
-    return utility::shader_utils::CompileFromSPIRV(device, request.source_path);
+    return utility::shader::CompileFromSPIRV(device, request.source_path);
 }
 }

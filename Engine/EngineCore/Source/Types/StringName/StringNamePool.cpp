@@ -60,7 +60,7 @@ StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
     }
 
     // 없으면 만들기
-    const se::u8string lower_case_str = se::utility::string_utils::ToU8LowerCase(view);
+    const se::u8string lower_case_str = se::utility::string::ToU8LowerCase(view);
     const uint64 comparison_hash = se::utility::hash::FNV_Hash(lower_case_str);
     {
         std::unique_lock lock(string_pool_mutex);

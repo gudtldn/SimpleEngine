@@ -50,7 +50,7 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
         || ext.contains(u8".spvt")
     )
     {
-        return se::utility::shader_utils::CompileFromSPIRV(device, request.source_path);
+        return se::utility::shader::CompileFromSPIRV(device, request.source_path);
     }
 
     return nullptr;

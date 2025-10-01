@@ -89,7 +89,7 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
                 // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
                 if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))
                 {
-                    using utility::string_utils::ToU8String;
+                    using utility::string::ToU8String;
 
                     longest_match_len = match_len;
                     best_priority = point.priority;

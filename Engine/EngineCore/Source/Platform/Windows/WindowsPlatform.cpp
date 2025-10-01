@@ -45,7 +45,7 @@ se::u8string GetThreadName(HANDLE handle)
     const std::wstring name = data;
     LocalFree(data);
 
-    return se::utility::string_utils::ToU8String(name);
+    return se::utility::string::ToU8String(name);
 }
 }
 

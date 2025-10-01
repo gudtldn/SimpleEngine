@@ -5,7 +5,7 @@ import SE.Types;
 import std;
 
 
-namespace se::utility::type_utils
+namespace se::utility::type
 {
 namespace string_utils
 {

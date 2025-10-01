@@ -64,12 +64,12 @@ Application& Application::Get()
 
 void Application::Startup(const char* cmd_line)
 {
-    Startup(utility::string_utils::ToU8String(cmd_line));
+    Startup(utility::string::ToU8String(cmd_line));
 }
 
 void Application::Startup(const wchar_t* cmd_line)
 {
-    Startup(utility::string_utils::ToU8String(cmd_line));
+    Startup(utility::string::ToU8String(cmd_line));
 }
 
 void Application::Startup(const u8string& cmd_line)

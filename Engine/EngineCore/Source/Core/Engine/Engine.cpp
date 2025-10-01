@@ -72,7 +72,7 @@ bool Engine::InitializeAllSubsystems()
     {
         if (!sub_system->Initialize())
         {
-            const u8string sub_system_name = utility::string_utils::ToU8String(typeid(*sub_system).name());
+            const u8string sub_system_name = utility::string::ToU8String(typeid(*sub_system).name());
             ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
@@ -223,7 +223,7 @@ bool Engine::SortSubsystems()
     ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
     for (const auto& [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, utility::string_utils::ToU8String(typeid(*sub_system).name()));
+        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, utility::string::ToU8String(typeid(*sub_system).name()));
     }
 
     return true;

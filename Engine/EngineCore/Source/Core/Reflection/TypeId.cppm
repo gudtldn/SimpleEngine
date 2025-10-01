@@ -15,7 +15,7 @@ public:
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
     {
-        return TypeId{ utility::type_utils::GetTypeSignature<T>() };
+        return TypeId{ utility::type::GetTypeSignature<T>() };
     }
 
     /** 타입 이름을 반환합니다. */

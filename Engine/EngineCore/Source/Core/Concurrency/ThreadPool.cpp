@@ -56,7 +56,7 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 {
-    const u8string thread_name = utility::string_utils::ToU8String(
+    const u8string thread_name = utility::string::ToU8String(
         std::format("Worker Thread {}", thread_id)
     );
     platform::Platform::SetCurrentThreadName(thread_name);

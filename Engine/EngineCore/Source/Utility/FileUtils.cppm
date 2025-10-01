@@ -4,7 +4,7 @@ import SE.Types;
 import std;
 
 
-export namespace se::utility::file_utils
+export namespace se::utility::file
 {
 struct FileReadError
 {

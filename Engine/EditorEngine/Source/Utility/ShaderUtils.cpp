@@ -22,7 +22,7 @@ SDL_GPUShader* CompileFromHLSL(
 {
     // read shader file
     vector<uint8> source;
-    if (auto result = file_utils::ReadToByteArray(shader_path))
+    if (auto result = file::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
         source.emplace_back('\0'); // null-terminated
@@ -35,7 +35,7 @@ SDL_GPUShader* CompileFromHLSL(
 
     // define default info
     const char* entrypoint = "main";
-    const Optional<SDL_ShaderCross_ShaderStage> stage_opt = se::utility::shader_utils::DetermineShaderStage(shader_path);
+    const Optional<SDL_ShaderCross_ShaderStage> stage_opt = se::utility::shader::DetermineShaderStage(shader_path);
 
     if (!stage_opt.HasValue())
     {

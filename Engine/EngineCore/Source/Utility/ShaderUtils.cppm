@@ -8,7 +8,7 @@ import SE.Types;
 import std;
 
 
-export namespace se::utility::shader_utils
+export namespace se::utility::shader
 {
 /** 파일명으로 ShaderStage를 자동으로 탐지합니다. */
 [[nodiscard]] Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem::path& shader_path);

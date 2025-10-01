@@ -3,7 +3,7 @@ import :StringUtils;
 import :FileUtils;
 
 
-namespace se::utility::file_utils
+namespace se::utility::file
 {
 FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path)
 {
@@ -45,7 +45,7 @@ FileResult<u8string> ReadToString(const std::filesystem::path& file_path)
     const auto result = ReadToByteArray(file_path);
     if (result.has_value())
     {
-        return string_utils::ToU8String({ reinterpret_cast<const char*>(result->data()), result->size() });
+        return string::ToU8String({ reinterpret_cast<const char*>(result->data()), result->size() });
     }
     return std::unexpected{ std::move(result).error() };
 }

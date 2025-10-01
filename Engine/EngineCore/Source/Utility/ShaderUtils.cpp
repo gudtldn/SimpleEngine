@@ -7,7 +7,7 @@ import :ShaderUtils;
 import SE.Core;
 
 
-namespace se::utility::shader_utils
+namespace se::utility::shader
 {
 Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem::path& shader_path)
 {
@@ -52,7 +52,7 @@ SDL_GPUShader* CompileFromSPIRV(
 {
     // read shader file
     vector<uint8> source;
-    if (auto result = file_utils::ReadToByteArray(shader_path))
+    if (auto result = file::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
         source.emplace_back('\0'); // null-terminated

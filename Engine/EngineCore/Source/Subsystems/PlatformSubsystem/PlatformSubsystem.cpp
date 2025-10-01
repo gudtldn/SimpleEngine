@@ -6,7 +6,7 @@ import SE.Subsystems.Utility;
 import SE.Subsystems.RenderSubsystem;
 import <SDL3/SDL_gpu.h>;
 
-using namespace se::utility::string_utils;
+using namespace se::utility::string;
 
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)

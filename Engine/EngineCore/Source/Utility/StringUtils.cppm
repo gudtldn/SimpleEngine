@@ -4,7 +4,7 @@ import SE.Types;
 import std;
 
 
-export namespace se::utility::string_utils
+export namespace se::utility::string
 {
 [[nodiscard]] u8string ToU8String(std::string_view in_str);
 [[nodiscard]] u8string ToU8String(std::wstring_view in_str);
