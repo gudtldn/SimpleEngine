@@ -264,6 +264,49 @@ consteval std::string_view ExtractTypeName() noexcept
 }
 }
 
+template <typename TupleType>
+struct UnpackTupleImpl;
+
+/**
+ * std::tuple에 포함된 모든 타입을 템플릿 파라미터 팩 `Ts...`로 추출(unpack)합니다.
+ * @tparam Ts std::tuple로부터 추출된 타입 파라미터 팩
+ */
+template <typename... Ts>
+struct UnpackTupleImpl<std::tuple<Ts...>>
+{
+    template <typename Fn>
+    constexpr auto Unpack(Fn&& func)
+    {
+        return std::forward<Fn>(func).template operator()<Ts...>();
+    }
+};
+
+/**
+ * 튜플 타입(`TupleType`)에서 타입 목록을 추출하여 제네릭 호출 가능 객체(`func`)에 템플릿 인자로 전달합니다.
+ * @note std::apply와는 다르게, 인자를 받지 않습니다.
+ *
+ * @tparam TupleType 타입들을 추출할 std::tuple
+ * @tparam Fn 템플릿 `operator()`를 가진 제네릭 Lambda 또는 Functor 타입
+ * @param func 추출된 타입들을 템플릿 인자로 받아 호출될 객체
+ * @return `func`를 호출한 결과값을 그대로 반환
+ *
+ * @code
+ * using MyTuple = std::tuple<int, std::string, double>;
+ * auto result = UnpackTuple<MyTuple>([]<typename... TArgs>()
+ * {
+ *     // 이 블록은 TArgs = int, std::string, double 로 호출됩니다.
+ *     return sizeof...(TArgs); // 3을 반환
+ * });
+ * @endcode
+ */
+export template <typename TupleType, typename Fn>
+auto UnpackTuple(Fn&& func)
+    requires se::traits::type_traits::IsSpecializationOf<TupleType, std::tuple>
+    && requires { UnpackTupleImpl<TupleType>{}.Unpack(std::forward<Fn>(func)); }
+{
+    return UnpackTupleImpl<TupleType>{}.Unpack(std::forward<Fn>(func));
+}
+
 /**
  * 템플릿 타입 T의 타입 시그니처를 컴파일 타임에 추출합니다.
  * 특정 타입에 대해 네임스페이스 포함 여부를 제어할 수 있습니다.
