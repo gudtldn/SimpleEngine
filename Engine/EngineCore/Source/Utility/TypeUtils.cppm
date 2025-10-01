@@ -275,7 +275,7 @@ template <typename... Ts>
 struct UnpackTupleImpl<std::tuple<Ts...>>
 {
     template <typename Fn>
-    constexpr auto Unpack(Fn&& func)
+    static constexpr auto Unpack(Fn&& func)
     {
         return std::forward<Fn>(func).template operator()<Ts...>();
     }
@@ -300,11 +300,11 @@ struct UnpackTupleImpl<std::tuple<Ts...>>
  * @endcode
  */
 export template <typename TupleType, typename Fn>
-auto UnpackTuple(Fn&& func)
+constexpr auto UnpackTuple(Fn&& func)
     requires se::traits::type_traits::IsSpecializationOf<TupleType, std::tuple>
     && requires { UnpackTupleImpl<TupleType>{}.Unpack(std::forward<Fn>(func)); }
 {
-    return UnpackTupleImpl<TupleType>{}.Unpack(std::forward<Fn>(func));
+    return UnpackTupleImpl<TupleType>::Unpack(std::forward<Fn>(func));
 }
 
 /**
