@@ -89,7 +89,7 @@ public:
     [[nodiscard]] Optional<Entity> GetEntityByIndex(size_t index) const
     {
         // out of bounds 방지
-        if (index < sparse.size())
+        if (index < dense.size())
         {
             return dense[index];
         }
