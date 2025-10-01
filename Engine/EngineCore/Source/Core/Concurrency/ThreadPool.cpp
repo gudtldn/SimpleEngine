@@ -1,5 +1,6 @@
 ﻿module;
 #include <cassert>
+#include "tracy/Tracy.hpp"
 module SE.Core;
 import :Concurrency.ThreadPool;
 
@@ -80,7 +81,15 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
             task = std::move(tasks.front());
             tasks.pop();
         }
-        task();
+
+        {
+            ZoneScoped;
+            {
+                const char* zone_name = reinterpret_cast<const char*>(thread_name.c_str());
+                ZoneName(zone_name, thread_name.size());
+            }
+            task();
+        }
     }
 }
 }
