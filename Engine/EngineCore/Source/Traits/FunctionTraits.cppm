@@ -17,7 +17,8 @@ struct FunctionTraits<R(Args...)>
     using ReturnType = R;
     using ArgumentTypes = std::tuple<Args...>;
 
-    static consteval size_t ArgCount() { return sizeof...(Args); }
+    /** 함수의 인자 개수 */
+    static consteval size_t Arity() { return sizeof...(Args); }
 };
 
 // 함수 포인터
@@ -45,8 +46,8 @@ struct FunctionTraits<R(C::*)(Args...) volatile> : FunctionTraits<R(Args...)>
 };
 
 // 람다/함수 객체 지원 (operator() 사용)
-template <typename T>
-struct FunctionTraits<T, std::void_t<decltype(&T::operator())>> : FunctionTraits<decltype(&T::operator())>
+template <typename Fn>
+struct FunctionTraits<Fn, std::void_t<decltype(&Fn::operator())>> : FunctionTraits<decltype(&Fn::operator())>
 {
 };
 }
