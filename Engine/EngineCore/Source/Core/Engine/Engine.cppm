@@ -1,8 +1,8 @@
 ﻿export module SE.Core:Engine;
 import :Logging;
-import :Reflection;
 import :Concurrency;
 
+import SE.Utility;
 import SE.Interface.ISubsystemBase;
 import SE.Interface.IUpdatable;
 import std;
@@ -105,7 +105,7 @@ T* Engine::RegisterSubsystem(Args&&... args)
         updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
     }
 
-    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", reflection::GetTypeSignature<T>());
+    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", utility::type_utils::GetTypeSignature<T>());
     return sub_system_ptr;
 }
 

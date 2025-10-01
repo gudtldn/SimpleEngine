@@ -4,6 +4,7 @@ export import :FileUtils;
 export import :Hash;
 export import :ShaderUtils;
 export import :StringUtils;
+export import :TypeUtils;
 
 
 export namespace se::utility

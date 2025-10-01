@@ -159,11 +159,13 @@ template <typename PassType, typename... Args>
     requires std::derived_from<PassType, IRenderPass>
 PassType& RenderGraph::AddPass(Args&&... args)
 {
+    using namespace se::utility;
+
     auto pass_ptr = std::make_unique<PassType>(std::forward<Args>(args)...);
     PassType* raw_ptr = pass_ptr.get();
 
     RGPassNode& node = pass_nodes.emplace_back();
-    node.name = StringName(utility::string_utils::ToU8String(core::reflection::GetTypeSignature<PassType>()));
+    node.name = StringName(string_utils::ToU8String(type_utils::GetTypeSignature<PassType>()));
     node.pass_object = std::move(pass_ptr);
 
     return *raw_ptr;

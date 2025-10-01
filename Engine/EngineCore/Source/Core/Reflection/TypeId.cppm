@@ -1,5 +1,4 @@
 ﻿export module SE.Core:Reflection.TypeId;
-import :Reflection.TypeUtility;
 
 import SE.Types;
 import SE.Utility;
@@ -16,7 +15,7 @@ public:
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
     {
-        return TypeId{ GetTypeSignature<T>() };
+        return TypeId{ utility::type_utils::GetTypeSignature<T>() };
     }
 
     /** 타입 이름을 반환합니다. */

@@ -25,9 +25,10 @@ enum class TestEnum
 {
 };
 
-TEST_SUITE("SimpleEngine.Core.Reflection")
+TEST_SUITE("SimpleEngine.Utility.TypeUtils")
 {
 using namespace se::core::reflection;
+using namespace se::utility::type_utils;
 
 TEST_CASE("Test CompileTime Type Name")
 {

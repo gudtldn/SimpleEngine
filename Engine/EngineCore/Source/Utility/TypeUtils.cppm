@@ -1,11 +1,11 @@
-﻿export module SE.Core:Reflection.TypeUtility;
+﻿export module SE.Utility:TypeUtils;
 
 import SE.Traits;
 import SE.Types;
 import std;
 
 
-namespace se::core::reflection
+namespace se::utility::type_utils
 {
 namespace string_utils
 {
