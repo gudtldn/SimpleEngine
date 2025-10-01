@@ -2,14 +2,14 @@
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
-module SE.Editor.Subsystems.ImGuiSubsystem;
+module SE.Editor.Subsystems.EditorUISubsystem;
 
 import SE.Subsystems.Utility;
 import std;
 import <SDL3/SDL.h>;
 
 
-bool ImGuiSubsystem::Initialize()
+bool EditorUISubsystem::Initialize()
 {
     auto [platform_subsystem, render_subsystem] = GetSubsystems<const PlatformSubsystem, const RenderSubsystem>();
 
@@ -56,26 +56,26 @@ bool ImGuiSubsystem::Initialize()
     return true;
 }
 
-void ImGuiSubsystem::Release()
+void EditorUISubsystem::Release()
 {
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 }
 
-void ImGuiSubsystem::PreUpdate()
+void EditorUISubsystem::PreUpdate()
 {
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 }
 
-void ImGuiSubsystem::Update([[maybe_unused]] float delta_time)
+void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
 {
     ImGui::ShowDemoWindow();
 }
 
-void ImGuiSubsystem::PostUpdate()
+void EditorUISubsystem::PostUpdate()
 {
     ImGui::EndFrame();
 

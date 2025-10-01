@@ -1,4 +1,4 @@
-﻿export module SE.Editor.Subsystems.ImGuiSubsystem;
+﻿export module SE.Editor.Subsystems.EditorUISubsystem;
 
 import SE.Interface.ISubsystem;
 import SE.Interface.IUpdatable;
@@ -7,7 +7,7 @@ import SE.Subsystems.RenderSubsystem;
 import std;
 
 
-export class ImGuiSubsystem : public ISubsystem<PlatformSubsystem, RenderSubsystem>, public IUpdatable
+export class EditorUISubsystem : public ISubsystem<PlatformSubsystem, RenderSubsystem>, public IUpdatable
 {
 public:
     //~ Begin ISubsystem

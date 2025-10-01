@@ -4,7 +4,7 @@ module SE.Editor.App;
 
 import SE.Editor.Rendering;
 import SE.Editor.Subsystems.ShaderCompileSubsystem;
-import SE.Editor.Subsystems.ImGuiSubsystem;
+import SE.Editor.Subsystems.EditorUISubsystem;
 
 import SE.Core;
 import SE.Types;
@@ -59,7 +59,7 @@ void EditorApplication::RegisterSubsystems()
     engine_instance->RegisterSubsystem<RenderSubsystem>();
 
     // ImGui 초기화
-    engine_instance->RegisterSubsystem<ImGuiSubsystem>();
+    engine_instance->RegisterSubsystem<EditorUISubsystem>();
 
     // SDL_shadercross 초기화
     engine_instance->RegisterSubsystem<ShaderCompileSubsystem>();
