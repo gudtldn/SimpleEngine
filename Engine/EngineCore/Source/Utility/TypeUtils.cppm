@@ -264,7 +264,7 @@ consteval std::string_view ExtractTypeName() noexcept
 }
 }
 
-template <typename TupleType>
+template <typename Signature>
 struct UnpackTupleImpl;
 
 /**
@@ -273,6 +273,20 @@ struct UnpackTupleImpl;
  */
 template <template <typename...> typename TupleType, typename... Ts>
 struct UnpackTupleImpl<TupleType<Ts...>>
+{
+    template <typename Fn>
+    static constexpr auto Unpack(Fn&& func)
+    {
+        return std::forward<Fn>(func).template operator()<Ts...>();
+    }
+};
+
+/**
+ * 함수 Signature에 포함된 모든 타입을 템플릿 파라미터 팩 `Ts...`로 추출(unpack)합니다.
+ * @tparam Ts 함수 Signature로부터 추출된 타입 파라미터 팩
+ */
+template <typename R, typename... Ts>
+struct UnpackTupleImpl<R(Ts...)>
 {
     template <typename Fn>
     static constexpr auto Unpack(Fn&& func)
