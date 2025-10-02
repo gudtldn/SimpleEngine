@@ -2,8 +2,11 @@
 import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
+import :Function;
 
 import SE.Types;
+import SE.Traits;
+import SE.Utility;
 import std;
 
 
@@ -11,24 +14,17 @@ export namespace se::core::ecs
 {
 class World;
 
-template <typename FetchList, typename WithList, typename WithoutList>
-class QueryResult;
-
-template <typename...> struct FetchQuery {};
-template <typename...> struct WithQuery {};
-template <typename...> struct WithoutQuery {};
-
-
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
  */
 class World final
 {
 private:
-    template <typename FetchList, typename WithList, typename WithoutList>
-    friend class QueryResult;
+    template <typename...>
+    friend class Query;
 
     EntityManager entity_manager;
+    vector<function::Function<void()>> systems;
     unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
 
 public:
@@ -118,9 +114,41 @@ public:
         return false;
     }
 
-    /** World에서 특정 컴포넌트를 가지고 있는 Entity를 가져옵니다. */
-    template <typename... Components>
-    auto Query() { return QueryResult<FetchQuery<Components...>, WithQuery<>, WithoutQuery<>>{ this }; }
+    template <typename Fn>
+        requires traits::type_traits::IsFunctionType<Fn>
+        && std::is_void_v<typename traits::func_traits::FunctionTraits<Fn>::ReturnType>
+    void AddSystem(Fn&& system_func)
+    {
+        systems.emplace_back([this, sys_func = std::forward<Fn>(system_func)] mutable
+        {
+            using F = traits::func_traits::FunctionTraits<Fn>;
+            auto tuple = utility::type::UnpackTuple<typename F::ArgumentTypes>([this]<typename... Ts>
+            {
+                return std::make_tuple(CreateSystemParam<Ts>()...);
+            });
+            std::apply(sys_func, tuple);
+        });
+    }
+
+private:
+    template <typename T>
+    T CreateSystemParam()
+    {
+        using namespace traits::type_traits;
+        if constexpr (std::same_as<T, World*>)
+        {
+            return this;
+        }
+        else if constexpr (IsSpecializationOf<T, Query>)
+        {
+            return T{ this };
+        }
+        else
+        {
+            static_assert(AlwaysFalse<T>, "Invalid system parameter type");
+            std::unreachable();
+        }
+    }
 
 private:
     template <typename ComponentType>
@@ -203,187 +231,5 @@ public:
         World* world;
         Entity entity;
     };
-};
-
-
-/**
- * World 쿼리 결과를 나타내며, 지연 평가 및 메서드 체이닝을 지원하는 클래스입니다.
- */
-template <
-    typename... FetchComps,
-    typename... WithComps,
-    typename... WithoutComps
->
-class QueryResult<FetchQuery<FetchComps...>, WithQuery<WithComps...>, WithoutQuery<WithoutComps...>>
-{
-public:
-    QueryResult(World* in_world)
-        : world(in_world)
-    {
-    }
-
-public:
-    /** '반드시 포함해야 하는' 컴포넌트 필터링 조건을 추가합니다. */
-    template <typename... NewWithComps>
-    auto With()
-    {
-        return QueryResult<
-            FetchQuery<FetchComps...>,
-            WithQuery<WithComps..., NewWithComps...>,
-            WithoutQuery<WithoutComps...>
-        >{ world };
-    }
-
-    /** '절대 포함하면 안 되는' 컴포넌트 필터링 조건을 추가합니다. */
-    template <typename... NewWithoutComps>
-    auto Without()
-    {
-        return QueryResult<
-            FetchQuery<FetchComps...>,
-            WithQuery<WithComps...>,
-            WithoutQuery<WithoutComps..., NewWithoutComps...>
-        >{ world };
-    }
-
-    /** 쿼리 결과를 순회하며 각 엔티티에 대해 주어진 함수를 실행합니다. */
-    template <typename Fn>
-        requires std::invocable<Fn, Entity, FetchComps&...>
-    QueryResult& ForEach(Fn&& func)
-    {
-        for (auto tuple_value : *this)
-        {
-            std::apply(std::forward<Fn>(func), tuple_value);
-        }
-        return *this;
-    }
-
-public:
-    class Iterator
-    {
-    public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type = std::tuple<Entity, FetchComps&...>;
-        using difference_type = std::ptrdiff_t;
-
-    public:
-        Iterator(World* in_world, IStorage* in_pool, size_t in_index)
-            : world(in_world)
-            , base_pool(in_pool)
-            , storage_index(in_index)
-        {
-            AdvanceToValid();
-        }
-
-        value_type operator*() const noexcept
-        {
-            Entity entity = base_pool->GetEntityByIndex(storage_index).Value();
-            return std::tie(entity, world->GetComponent<FetchComps>(entity)...);
-        }
-
-        Iterator& operator++()
-        {
-            ++storage_index;
-            AdvanceToValid();
-            return *this;
-        }
-
-        bool operator==(const Iterator& other) const noexcept
-        {
-            return storage_index == other.storage_index && base_pool == other.base_pool;
-        }
-
-    private:
-        void AdvanceToValid()
-        {
-            // 기준 풀이 없거나, 인덱스가 끝에 도달했으면 즉시 종료
-            if (!base_pool || storage_index >= base_pool->Length())
-            {
-                return;
-            }
-
-            while (storage_index < base_pool->Length())
-            {
-                if (Optional<Entity> entity_opt = base_pool->GetEntityByIndex(storage_index))
-                {
-                    Entity entity = *entity_opt;
-
-                    // Fetch와 With에 있는 Component를 가지고 있는지 확인
-                    const bool has_all_required =
-                        (world->HasComponent<FetchComps>(entity) && ...)
-                        && (world->HasComponent<WithComps>(entity) && ...);
-
-                    if (!has_all_required)
-                    {
-                        ++storage_index;
-                        continue;
-                    }
-
-                    // Without도 가지고 있는지 검사
-                    const bool has_any_excluded = (world->HasComponent<WithoutComps>(entity) || ...);
-                    if (has_any_excluded)
-                    {
-                        ++storage_index;
-                        continue;
-                    }
-
-                    // 유효한 엔티티면 return
-                    return;
-                }
-                ++storage_index;
-            }
-        }
-
-    private:
-        World* world;
-        IStorage* base_pool;
-        size_t storage_index;
-    };
-
-    Iterator begin()
-    {
-        IStorage* smallest_pool = FindSmallestPool();
-        return Iterator(world, smallest_pool, 0);
-    }
-
-    Iterator end()
-    {
-        IStorage* smallest_pool = FindSmallestPool();
-        const size_t end_index = smallest_pool ? smallest_pool->Length() : 0;
-        return Iterator(world, smallest_pool, end_index);
-    }
-
-private:
-    /** Fetch와 With 목록의 모든 SparseSet 중 가장 작은 것을 찾아 반환합니다. */
-    IStorage* FindSmallestPool()
-    {
-        std::array<IStorage*, sizeof...(FetchComps) + sizeof...(WithComps)> pools;
-        size_t i = 0;
-        ((pools[i++] = world->GetIStorage<FetchComps>()), ...);
-        ((pools[i++] = world->GetIStorage<WithComps>()), ...);
-        (void)i;
-
-        if (pools.empty())
-        {
-            return nullptr;
-        }
-
-        auto it = std::min_element(pools.begin(), pools.end(), [](const IStorage* a, const IStorage* b)
-        {
-            if (!a)
-            {
-                return false;
-            }
-            if (!b)
-            {
-                return true;
-            }
-            return a->Length() < b->Length();
-        });
-
-        return *it;
-    }
-
-private:
-    World* world;
 };
 }
