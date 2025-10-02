@@ -18,7 +18,7 @@ struct FunctionTraits<R(Args...)>
     using ArgumentTypes = std::tuple<Args...>;
 
     /** 함수의 인자 개수 */
-    static consteval size_t Arity() { return sizeof...(Args); }
+    static constexpr size_t Arity = sizeof...(Args);
 };
 
 // 함수 포인터
