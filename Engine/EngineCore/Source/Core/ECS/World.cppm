@@ -119,7 +119,7 @@ public:
         && std::is_void_v<typename traits::func_traits::FunctionTraits<Fn>::ReturnType>
     void AddSystem(Fn&& system_func)
     {
-        systems.emplace_back([this, sys_func = std::forward<Fn>(system_func)] mutable
+        systems.push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::func_traits::FunctionTraits<Fn>;
             auto tuple = utility::type::UnpackTuple<typename F::ArgumentTypes>([this]<typename... Ts>
