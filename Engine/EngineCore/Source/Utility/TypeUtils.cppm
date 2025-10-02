@@ -302,7 +302,7 @@ struct UnpackTupleImpl<std::tuple<Ts...>>
 export template <typename TupleType, typename Fn>
 constexpr auto UnpackTuple(Fn&& func)
     requires se::traits::type_traits::IsSpecializationOf<TupleType, std::tuple>
-    && requires { UnpackTupleImpl<TupleType>{}.Unpack(std::forward<Fn>(func)); }
+    && requires { UnpackTupleImpl<TupleType>::Unpack(std::forward<Fn>(func)); }
 {
     return UnpackTupleImpl<TupleType>::Unpack(std::forward<Fn>(func));
 }
