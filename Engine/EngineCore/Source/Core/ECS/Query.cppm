@@ -6,6 +6,9 @@ import SE.Traits;
 import SE.Utility;
 import std;
 
+#define SE_DEFINE_TYPE_CONDITION_TAG(tag_name, condition) \
+template <typename T> \
+struct tag_name { static constexpr bool Value = condition; }
 
 using namespace se::traits::type_traits;
 using namespace se::utility::type;
@@ -44,19 +47,32 @@ concept IsSpecializationTypes = (IsSpecializationOf<T, Ts> || ...);
 template <typename T>
 concept IsFilterTag = IsSpecializationTypes<T, With, Without>;
 
+template <template <typename> typename ConditionType, typename... Ts>
+    requires requires { { (ConditionType<Ts>::Value, ...) } -> std::same_as<bool>; }
+using ExtractTypes = TupleCat<
+    std::conditional_t<ConditionType<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
+>;
+
+SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, !IsFilterTag<T>);
+SE_DEFINE_TYPE_CONDITION_TAG(CondFilterTag, IsFilterTag<T>);
+SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));
+SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>));
+
 // 템플릿 파라미터 팩에서 Component 타입만 추출하여 튜플로 변환
 template <typename... Ts>
-using ExtractFetchTypes = TupleCat<
-    std::conditional_t<IsFilterTag<Ts>, std::tuple<>, std::tuple<Ts>>...
->;
+using ExtractFetchTypes = ExtractTypes<CondFetchTag, Ts...>;
 
 // 템플릿 파라미터 팩에서 FilterTag만 추출하여 튜플로 변환
 template <typename... Ts>
-using ExtractedFilterTypes = TupleCat<
-    std::conditional_t<IsFilterTag<Ts>, std::tuple<Ts>, std::tuple<>>...
->;
+using ExtractedFilterTypes = ExtractTypes<CondFilterTag, Ts...>;
 
-// TODO: With, Without만 따로 모아서 Flatten후 사용할 수 있도록
+// With<Ts...>의 Ts 타입들만 추출
+template <typename... Ts>
+using ExtractedWithTypes = FlattenTuple<ExtractTypes<CondWithTag, Ts...>>;
+
+// Without<Ts...>의 Ts 타입들만 추출
+template <typename... Ts>
+using ExtractedWithoutTypes = FlattenTuple<ExtractTypes<CondWithoutTag, Ts...>>;
 }
 
 /**
@@ -68,9 +84,22 @@ class Query
     using FetchTypes = details::ExtractFetchTypes<Ts...>;     // std::tuple<Comp...>
     using FilterTypes = details::ExtractedFilterTypes<Ts...>; // std::tuple<Filter<Comp...>, ...>
 
+    // Fetch 타입이 하나 이상 있거나, Filter 타입이 없어야 함
+    static_assert(
+        std::tuple_size_v<FetchTypes> > 0 || std::tuple_size_v<FilterTypes> == 0,
+        "Query must fetch at least one component if filters are used."
+    );
+
+    // FetchTypes와 FilterTypes의 컴포넌트 타입이 겹치면 안됨
     static_assert(
         IsDisjoint<FetchTypes, FlattenTuple<FilterTypes>>,
-        "Fetch and Filter types must be different"
+        "A component cannot be both fetched and used in a filter (With/Without)."
+    );
+
+    // With와 Without의 컴포넌트 타입이 겹치면 안됨
+    static_assert(
+        IsDisjoint<details::ExtractedWithTypes<Ts...>, details::ExtractedWithoutTypes<Ts...>>,
+        "A component cannot be present in both With<> and Without<> filters."
     );
 
 public:
