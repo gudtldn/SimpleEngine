@@ -314,9 +314,19 @@ struct MergeTwoTuples<TupleLike<Ts1...>, TupleLike<Ts2...>>
 /**
  * 여러 튜플 타입을 재귀적으로 병합하기 위한 구현체
  */
+template <typename...>
+struct TupleCatImpl;
+
+// 기본 케이스: 튜플에 멤버가 하나도 없으면 빈 튜플을 반환
+template <>
+struct TupleCatImpl<>
+{
+    using Type = std::tuple<>;
+};
+
 // 기본 케이스: 튜플이 하나만 남으면 그 자신을 결과 타입으로 가짐
-template <typename T1, typename...>
-struct TupleCatImpl
+template <typename T1>
+struct TupleCatImpl<T1>
 {
     using Type = T1;
 };
@@ -415,6 +425,7 @@ constexpr auto UnpackTuple(Fn&& func)
  * @tparam Tuples 병합할 튜플 타입들
  */
 export template <typename... Tuples>
+    requires (se::traits::type_traits::IsSpecializationOf<Tuples, std::tuple> && ...)
 using TupleCat = detail::TupleCatImpl<Tuples...>::Type;
 
 /**
