@@ -7,6 +7,9 @@ import SE.Utility;
 import std;
 
 
+using namespace se::traits::type_traits;
+using namespace se::utility::type;
+
 namespace se::core::ecs
 {
 export inline namespace filters
@@ -35,7 +38,7 @@ struct Without
 namespace details
 {
 template <typename T, template <typename...> typename... Ts>
-concept IsSpecializationTypes = (traits::type_traits::IsSpecializationOf<T, Ts> || ...);
+concept IsSpecializationTypes = (IsSpecializationOf<T, Ts> || ...);
 
 // 타입 T가 FilterTag인지 확인하는 Concept
 template <typename T>
@@ -43,15 +46,17 @@ concept IsFilterTag = IsSpecializationTypes<T, With, Without>;
 
 // 템플릿 파라미터 팩에서 Component 타입만 추출하여 튜플로 변환
 template <typename... Ts>
-using ExtractFetchTypes = utility::type::TupleCat<
+using ExtractFetchTypes = TupleCat<
     std::conditional_t<IsFilterTag<Ts>, std::tuple<>, std::tuple<Ts>>...
 >;
 
 // 템플릿 파라미터 팩에서 FilterTag만 추출하여 튜플로 변환
 template <typename... Ts>
-using ExtractedFilterTypes = utility::type::TupleCat<
+using ExtractedFilterTypes = TupleCat<
     std::conditional_t<IsFilterTag<Ts>, std::tuple<Ts>, std::tuple<>>...
 >;
+
+// TODO: With, Without만 따로 모아서 Flatten후 사용할 수 있도록
 }
 
 /**
@@ -64,7 +69,7 @@ class Query
     using FilterTypes = details::ExtractedFilterTypes<Ts...>; // std::tuple<Filter<Comp...>, ...>
 
     static_assert(
-        traits::type_traits::IsDisjoint<FetchTypes, utility::type::FlattenTuple<FilterTypes>>,
+        IsDisjoint<FetchTypes, FlattenTuple<FilterTypes>>,
         "Fetch and Filter types must be different"
     );
 
