@@ -423,6 +423,6 @@ using TupleCat = detail::TupleCatImpl<Tuples...>::Type;
  * @tparam ResultTupleLike (선택) 결과물로 사용할 튜플 컨테이너.
  *         예: FlattenTuple<MyTuple<...>, MyTuple>
  */
-template <typename T, template <typename...> typename ResultTupleLike = std::tuple>
+export template <typename T, template <typename...> typename ResultTupleLike = std::tuple>
 using FlattenTuple = detail::FlattenTupleImpl<ResultTupleLike, T>::Type;
 }
