@@ -34,11 +34,12 @@ struct Without
 
 namespace details
 {
+template <typename T, template <typename...> typename... Ts>
+concept IsSpecializationTypes = (traits::type_traits::IsSpecializationOf<T, Ts> || ...);
+
 // 타입 T가 FilterTag인지 확인하는 Concept
 template <typename T>
-concept IsFilterTag =
-    traits::type_traits::IsSpecializationOf<T, With>
-    || traits::type_traits::IsSpecializationOf<T, Without>;
+concept IsFilterTag = IsSpecializationTypes<T, With, Without>;
 
 // 템플릿 파라미터 팩에서 Component 타입만 추출하여 튜플로 변환
 template <typename... Ts>
