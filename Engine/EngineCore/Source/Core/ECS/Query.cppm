@@ -42,16 +42,15 @@ concept IsFilterTag =
 
 // 템플릿 파라미터 팩에서 Component 타입만 추출하여 튜플로 변환
 template <typename... Ts>
-using ExtractFetchTypes = decltype(std::tuple_cat(
-    std::conditional_t<IsFilterTag<Ts>, std::tuple<>, std::tuple<Ts>>{}...
-    // FIXME: Query.cppm(46,70): Error C2512 : 'std::tuple<TransformComponent &>': 사용할 수 있는 적절한 기본 생성자가 없습니다.
-));
+using ExtractFetchTypes = utility::type::TupleCat<
+    std::conditional_t<IsFilterTag<Ts>, std::tuple<>, std::tuple<Ts>>...
+>;
 
 // 템플릿 파라미터 팩에서 FilterTag만 추출하여 튜플로 변환
-template <typename... Args>
-using ExtractedFilterTypes = decltype(std::tuple_cat(
-    std::conditional_t<IsFilterTag<Args>, std::tuple<Args>, std::tuple<>>{}...
-));
+template <typename... Ts>
+using ExtractedFilterTypes = utility::type::TupleCat<
+    std::conditional_t<IsFilterTag<Ts>, std::tuple<Ts>, std::tuple<>>...
+>;
 }
 
 /**
