@@ -268,11 +268,11 @@ template <typename Signature>
 struct UnpackTupleImpl;
 
 /**
- * TupleType에 포함된 모든 타입을 템플릿 파라미터 팩 `Ts...`로 추출(unpack)합니다.
- * @tparam Ts TupleType으로부터 추출된 타입 파라미터 팩
+ * TupleLike에 포함된 모든 타입을 템플릿 파라미터 팩 `Ts...`로 추출(unpack)합니다.
+ * @tparam Ts TupleLike으로부터 추출된 타입 파라미터 팩
  */
-template <template <typename...> typename TupleType, typename... Ts>
-struct UnpackTupleImpl<TupleType<Ts...>>
+template <template <typename...> typename TupleLike, typename... Ts>
+struct UnpackTupleImpl<TupleLike<Ts...>>
 {
     template <typename Fn>
     static constexpr auto Unpack(Fn&& func)
@@ -296,10 +296,10 @@ struct UnpackTupleImpl<R(Ts...)>
 };
 
 /**
- * 튜플 타입(`TupleType`)에서 타입 목록을 추출하여 제네릭 호출 가능 객체(`func`)에 템플릿 인자로 전달합니다.
+ * 튜플 타입(`TupleLike`)에서 타입 목록을 추출하여 제네릭 호출 가능 객체(`func`)에 템플릿 인자로 전달합니다.
  * @note std::apply와는 다르게, 인자를 받지 않습니다.
  *
- * @tparam TupleType 타입들을 추출할 TupleType (ex: std::tuple<...>)
+ * @tparam TupleLike 타입들을 추출할 TupleLike (ex: std::tuple<...>)
  * @tparam Fn 템플릿 `operator()`를 가진 제네릭 Lambda 또는 Functor 타입
  * @param func 추출된 타입들을 템플릿 인자로 받아 호출될 객체
  * @return `func`를 호출한 결과값을 그대로 반환
@@ -313,11 +313,11 @@ struct UnpackTupleImpl<R(Ts...)>
  * });
  * @endcode
  */
-export template <typename TupleType, typename Fn>
+export template <typename TupleLike, typename Fn>
 constexpr auto UnpackTuple(Fn&& func)
-    requires requires { UnpackTupleImpl<TupleType>::Unpack(std::forward<Fn>(func)); }
+    requires requires { UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
 {
-    return UnpackTupleImpl<TupleType>::Unpack(std::forward<Fn>(func));
+    return UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func));
 }
 
 /**
