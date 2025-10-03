@@ -32,7 +32,7 @@ struct Without
 };
 }
 
-namespace detail
+namespace details
 {
 // 타입 T가 FilterTag인지 확인하는 Concept
 template <typename T>
@@ -59,8 +59,13 @@ using ExtractedFilterTypes = utility::type::TupleCat<
 export template <typename... Ts>
 class Query
 {
-    using FetchTypes = detail::ExtractFetchTypes<Ts...>;     // std::tuple<Comp...>
-    using FilterTypes = detail::ExtractedFilterTypes<Ts...>; // std::tuple<Filter<Comp...>, ...>
+    using FetchTypes = details::ExtractFetchTypes<Ts...>;     // std::tuple<Comp...>
+    using FilterTypes = details::ExtractedFilterTypes<Ts...>; // std::tuple<Filter<Comp...>, ...>
+
+    static_assert(
+        traits::type_traits::IsDisjoint<FetchTypes, utility::type::FlattenTuple<FilterTypes>>,
+        "Fetch and Filter types must be different"
+    );
 
 public:
     explicit Query(World* in_world);
@@ -73,11 +78,6 @@ public:
 
 public:
 
-
-private:
-    template <typename T>
-    T CreateParam();
-
 private:
     World* world;
 };
@@ -86,23 +86,5 @@ template <typename... Ts>
 Query<Ts...>::Query(World* in_world)
     : world(in_world)
 {
-}
-
-template <typename... Ts>
-template <typename T>
-T Query<Ts...>::CreateParam()
-{
-    using namespace se::traits::type_traits;
-    if constexpr (IsSpecializationOf<T, With>)
-    {
-    }
-    else if constexpr (IsSpecializationOf<T, Without>)
-    {
-    }
-    else
-    {
-        static_assert(AlwaysFalse<T>, "Invalid query parameter type");
-        std::unreachable();
-    }
 }
 }
