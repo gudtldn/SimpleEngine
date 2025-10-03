@@ -14,6 +14,10 @@ concept AlwaysFalse = false;
 export template <typename T, typename... Ts>
 concept IsAnyOf = (std::same_as<T, Ts> || ...);
 
+// Ts가 T와 같은지 확인하는 TypeTrait (덜 엄격함)
+export template <typename T, typename... Ts>
+concept IsAnyOfDecayed = IsAnyOf<std::decay_t<T>, std::decay_t<Ts>...>;
+
 // 함수인지 확인하는 TypeTrait
 export template <typename T>
 concept IsFunctionType = requires
@@ -30,6 +34,30 @@ concept IsSpecializationOf = requires
     {
     }(std::declval<T>());
 };
+
+template <typename Tuple1, typename Tuple2>
+struct IsDisjointImpl;
+
+template <
+    template <typename...> typename TupleLike1,
+    template <typename...> typename TupleLike2,
+    typename... Ts1,
+    typename... Ts2
+>
+struct IsDisjointImpl<TupleLike1<Ts1...>, TupleLike2<Ts2...>>
+{
+    static constexpr bool Value = (!IsAnyOfDecayed<Ts1, Ts2...> && ...);
+};
+
+/**
+ * 두 개의 Tuple-like 타입이 서로소 집합인지, 즉 겹치는 멤버 타입을 하나도 가지지 않는지 확인
+ *
+ * 타입 비교 시 내부적으로 IsAnyOfDecayed를 사용하므로, 참조(&, &&) 및 const/volatile 한정자는 무시됩니다.
+ * @tparam Tuple1 첫 번째 Tuple-like 타입
+ * @tparam Tuple2 두 번째 Tuple-like 타입
+ */
+export template <typename Tuple1, typename Tuple2>
+concept IsDisjoint = IsDisjointImpl<Tuple1, Tuple2>::Value;
 
 // Ord 연산자가 구현되어 있는 타입
 export template <typename T>
