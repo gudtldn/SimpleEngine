@@ -262,7 +262,6 @@ consteval std::string_view ExtractTypeName() noexcept
 #error "Unsupported compiler for type name extraction"
 #endif
 }
-}
 
 template <typename Signature>
 struct UnpackTupleImpl;
@@ -336,35 +335,28 @@ public:
 };
 
 /**
- * 여러 튜플 타입의 멤버 타입들을 모두 포함하는 단일 튜플 타입을 만듭니다.
- * @tparam Tuples 병합할 튜플 타입들
+ * TupleLike 타입을 평탄화하기 위한 구현체
+ * @tparam ResultTupleLike 최종 결과물로 사용할 튜플 컨테이너 타입 (예: std::tuple)
+ * @tparam T 평탄화할 대상 타입
  */
-export template <typename... Tuples>
-using TupleCat = TupleCatImpl<Tuples...>::Type;
-
-/**
- * 튜플 타입(`TupleLike`)에서 타입 목록을 추출하여 제네릭 호출 가능 객체(`func`)에 템플릿 인자로 전달합니다.
- * @note std::apply와는 다르게, 인자를 받지 않습니다.
- *
- * @tparam TupleLike 타입들을 추출할 TupleLike (ex: std::tuple<...>)
- * @tparam Fn 템플릿 `operator()`를 가진 제네릭 Lambda 또는 Functor 타입
- * @param func 추출된 타입들을 템플릿 인자로 받아 호출될 객체
- * @return `func`를 호출한 결과값을 그대로 반환
- *
- * @code
- * using MyTuple = std::tuple<int, std::string, double>;
- * auto result = UnpackTuple<MyTuple>([]<typename... TArgs>()
- * {
- *     // 이 블록은 TArgs = int, std::string, double 로 호출됩니다.
- *     return sizeof...(TArgs); // 3을 반환
- * });
- * @endcode
- */
-export template <typename TupleLike, typename Fn>
-constexpr auto UnpackTuple(Fn&& func)
-    requires requires { UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
+template <template <typename...> typename ResultTupleLike, typename T>
+struct FlattenTupleImpl
 {
-    return UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func));
+    // 기본 케이스: T가 튜플이 아닐 때, ResultTupleLike<T>를 반환.
+    using Type = ResultTupleLike<T>;
+};
+
+template <
+    template <typename...> typename ResultTupleLike,
+    template <typename...> typename InputTupleLike,
+    typename... Ts
+>
+struct FlattenTupleImpl<ResultTupleLike, InputTupleLike<Ts...>>
+{
+    // 재귀 케이스: T가 튜플일 때,
+    // 각 멤버에 대해 재귀 호출(결과 타입은 ResultTupleLike로 고정)하고, 그 결과들을 TupleCat으로 합침
+    using Type = TupleCatImpl<typename FlattenTupleImpl<ResultTupleLike, Ts>::Type...>::Type;
+};
 }
 
 /**
@@ -392,4 +384,45 @@ consteval std::string_view GetTypeSignature(bool include_namespace = true) noexc
     }
     return detail::RemoveNamespace(ret);
 }
+
+/**
+ * 튜플 타입(`TupleLike`)에서 타입 목록을 추출하여 제네릭 호출 가능 객체(`func`)에 템플릿 인자로 전달합니다.
+ * @note std::apply와는 다르게, 인자를 받지 않습니다.
+ *
+ * @tparam TupleLike 타입들을 추출할 TupleLike (ex: std::tuple<...>)
+ * @tparam Fn 템플릿 `operator()`를 가진 제네릭 Lambda 또는 Functor 타입
+ * @param func 추출된 타입들을 템플릿 인자로 받아 호출될 객체
+ * @return `func`를 호출한 결과값을 그대로 반환
+ *
+ * @code
+ * using MyTuple = std::tuple<int, std::string, double>;
+ * auto result = UnpackTuple<MyTuple>([]<typename... TArgs>()
+ * {
+ *     // 이 블록은 TArgs = int, std::string, double 로 호출됩니다.
+ *     return sizeof...(TArgs); // 3을 반환
+ * });
+ * @endcode
+ */
+export template <typename TupleLike, typename Fn>
+constexpr auto UnpackTuple(Fn&& func)
+    requires requires { detail::UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
+{
+    return detail::UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func));
+}
+
+/**
+ * 여러 튜플 타입의 멤버 타입들을 모두 포함하는 단일 튜플 타입을 만듭니다.
+ * @tparam Tuples 병합할 튜플 타입들
+ */
+export template <typename... Tuples>
+using TupleCat = detail::TupleCatImpl<Tuples...>::Type;
+
+/**
+ * 중첩된 TupleLike 타입을 지정된 컨테이너(기본값: std::tuple)로 평탄화합니다.
+ * @tparam T 평탄화할 타입
+ * @tparam ResultTupleLike (선택) 결과물로 사용할 튜플 컨테이너.
+ *         예: FlattenTuple<MyTuple<...>, MyTuple>
+ */
+template <typename T, template <typename...> typename ResultTupleLike = std::tuple>
+using FlattenTuple = detail::FlattenTupleImpl<ResultTupleLike, T>::Type;
 }
