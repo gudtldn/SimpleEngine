@@ -296,6 +296,53 @@ struct UnpackTupleImpl<R(Ts...)>
 };
 
 /**
+ * 두 개의 튜플 타입 T1과 T2를 하나의 튜플 타입으로 병합합니다.
+ */
+template <typename T1, typename T2>
+struct MergeTwoTuples;
+
+template <
+    template<typename...> typename TupleLike,
+    typename... Ts1,
+    typename... Ts2
+>
+struct MergeTwoTuples<TupleLike<Ts1...>, TupleLike<Ts2...>>
+{
+    // T1의 타입 목록(Ts1...)과 T2의 타입 목록(Ts2...)을 합쳐 새로운 튜플 타입을 정의
+    using Type = TupleLike<Ts1..., Ts2...>;
+};
+
+/**
+ * 여러 튜플 타입을 재귀적으로 병합하기 위한 구현체
+ */
+// 기본 케이스: 튜플이 하나만 남으면 그 자신을 결과 타입으로 가짐
+template <typename T1, typename...>
+struct TupleCatImpl
+{
+    using Type = T1;
+};
+
+// 재귀 케이스: 튜플이 두 개 이상일 때
+template <typename T1, typename T2, typename... Rest>
+struct TupleCatImpl<T1, T2, Rest...>
+{
+private:
+    // 먼저 앞의 두 튜플을 병합
+    using MergedFirstTwo = MergeTwoTuples<T1, T2>::Type;
+
+public:
+    // 병합된 결과와 나머지 튜플(Rest...)로 다시 재귀 호출
+    using Type = TupleCatImpl<MergedFirstTwo, Rest...>::Type;
+};
+
+/**
+ * 여러 튜플 타입의 멤버 타입들을 모두 포함하는 단일 튜플 타입을 만듭니다.
+ * @tparam Tuples 병합할 튜플 타입들
+ */
+export template <typename... Tuples>
+using TupleCat = TupleCatImpl<Tuples...>::Type;
+
+/**
  * 튜플 타입(`TupleLike`)에서 타입 목록을 추출하여 제네릭 호출 가능 객체(`func`)에 템플릿 인자로 전달합니다.
  * @note std::apply와는 다르게, 인자를 받지 않습니다.
  *
