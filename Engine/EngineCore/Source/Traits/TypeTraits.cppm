@@ -18,6 +18,13 @@ concept IsAnyOf = (std::same_as<T, Ts> || ...);
 export template <typename T, typename... Ts>
 concept IsAnyOfDecayed = IsAnyOf<std::decay_t<T>, std::decay_t<Ts>...>;
 
+template <typename T, typename... Us>
+constexpr size_t CountOccurrences = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
+
+// Ts...중에 중복된 타입이 존재하는지 확인
+export template <typename... Ts>
+concept UniqueTypes = ((CountOccurrences<Ts, Ts...> == 1) && ...);
+
 // 함수인지 확인하는 TypeTrait
 export template <typename T>
 concept IsFunctionType = requires
