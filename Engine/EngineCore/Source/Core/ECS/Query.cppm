@@ -59,6 +59,21 @@ SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, !IsFilterTag<T>);
 SE_DEFINE_TYPE_CONDITION_TAG(CondFilterTag, IsFilterTag<T>);
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>));
+
+template <typename TupleType>
+struct TupleHasPointerTypesImpl;
+
+template <
+    template <typename...> typename TupleLike,
+    typename... Ts
+>
+struct TupleHasPointerTypesImpl<TupleLike<Ts...>>
+{
+    static constexpr bool Value = (std::is_pointer_v<Ts> || ...);
+};
+
+template <typename TupleType>
+concept TupleHasPointerTypes = TupleHasPointerTypesImpl<TupleType>::Value;
 }
 
 /**
@@ -75,7 +90,11 @@ class Query
     using WithTypes = FlattenTuple<details::ExtractTypes<details::CondWithTag, Ts...>>;
     using WithoutTypes = FlattenTuple<details::ExtractTypes<details::CondWithoutTag, Ts...>>;
 
-    // TODO: Ts... 포인터 금지
+    // 쿼리 타입으로 포인터 타입이 들어오면 안됨
+    static_assert(
+        !details::TupleHasPointerTypes<TupleMap<FlattenTuple<std::tuple<Ts...>>, std::decay_t>>,
+        "No pointer types are allowed in the query parameters."
+    );
 
 public:
     explicit Query(World* in_world);
