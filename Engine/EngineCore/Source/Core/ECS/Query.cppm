@@ -47,10 +47,10 @@ concept IsSpecializationTypes = (IsSpecializationOf<T, Ts> || ...);
 template <typename T>
 concept IsFilterTag = IsSpecializationTypes<T, With, Without>;
 
-template <template <typename> typename ConditionType, typename... Ts>
-    requires requires { { (ConditionType<Ts>::Value, ...) } -> std::same_as<bool>; }
+template <template <typename> typename ConditionTag, typename... Ts>
+    requires requires { (ConditionTag<Ts>::Value, ...); }
 using ExtractTypes = TupleCat<
-    std::conditional_t<ConditionType<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
+    std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
 >;
 
 SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, !IsFilterTag<T>);
