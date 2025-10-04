@@ -264,14 +264,14 @@ consteval std::string_view ExtractTypeName() noexcept
 }
 
 template <typename Signature>
-struct UnpackTupleImpl;
+struct WithUnpackedTypesImpl;
 
 /**
  * TupleLike에 포함된 모든 타입을 템플릿 파라미터 팩 `Ts...`로 추출(unpack)합니다.
  * @tparam Ts TupleLike으로부터 추출된 타입 파라미터 팩
  */
 template <template <typename...> typename TupleLike, typename... Ts>
-struct UnpackTupleImpl<TupleLike<Ts...>>
+struct WithUnpackedTypesImpl<TupleLike<Ts...>>
 {
     template <typename Fn>
     static constexpr auto Unpack(Fn&& func)
@@ -285,7 +285,7 @@ struct UnpackTupleImpl<TupleLike<Ts...>>
  * @tparam Ts 함수 Signature로부터 추출된 타입 파라미터 팩
  */
 template <typename R, typename... Ts>
-struct UnpackTupleImpl<R(Ts...)>
+struct WithUnpackedTypesImpl<R(Ts...)>
 {
     template <typename Fn>
     static constexpr auto Unpack(Fn&& func)
@@ -414,10 +414,10 @@ consteval std::string_view GetTypeSignature(bool include_namespace = true) noexc
  * @endcode
  */
 export template <typename TupleLike, typename Fn>
-constexpr auto UnpackTuple(Fn&& func)
-    requires requires { detail::UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
+constexpr auto WithUnpackedTypes(Fn&& func)
+    requires requires { detail::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
 {
-    return detail::UnpackTupleImpl<TupleLike>::Unpack(std::forward<Fn>(func));
+    return detail::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func));
 }
 
 /**

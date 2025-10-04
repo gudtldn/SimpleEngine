@@ -20,7 +20,8 @@ class World;
 class World final
 {
 private:
-    template <typename...>
+    template <typename... Ts>
+        requires (sizeof...(Ts) != 0)
     friend class Query;
 
     EntityManager entity_manager;
@@ -122,7 +123,7 @@ public:
         systems.push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::func_traits::FunctionTraits<Fn>;
-            auto tuple = utility::type::UnpackTuple<typename F::ArgumentTypes>([this]<typename... Ts>
+            auto tuple = utility::type::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
             {
                 return std::make_tuple(CreateSystemParam<Ts>()...);
             });

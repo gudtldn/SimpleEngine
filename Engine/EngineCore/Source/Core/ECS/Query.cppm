@@ -79,16 +79,11 @@ using ExtractedWithoutTypes = FlattenTuple<ExtractTypes<CondWithoutTag, Ts...>>;
  * ECS 월드에서 Entity와 Component를 조회하기 위한 Query 인터페이스
  */
 export template <typename... Ts>
+    requires (sizeof...(Ts) != 0)
 class Query
 {
     using FetchTypes = details::ExtractFetchTypes<Ts...>;     // std::tuple<Comp...>
     using FilterTypes = details::ExtractedFilterTypes<Ts...>; // std::tuple<Filter<Comp...>, ...>
-
-    // Fetch 타입이 하나 이상 있거나, Filter 타입이 없어야 함
-    static_assert(
-        std::tuple_size_v<FetchTypes> > 0 || std::tuple_size_v<FilterTypes> == 0,
-        "Query must fetch at least one component if filters are used."
-    );
 
     // FetchTypes와 FilterTypes의 컴포넌트 타입이 겹치면 안됨
     static_assert(
@@ -113,11 +108,13 @@ public:
 
 public:
 
+
 private:
     World* world;
 };
 
 template <typename... Ts>
+    requires (sizeof...(Ts) != 0)
 Query<Ts...>::Query(World* in_world)
     : world(in_world)
 {
