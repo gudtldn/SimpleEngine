@@ -173,11 +173,11 @@ public:
                     const bool has_all_required =
                         WithUnpackedTypes<FetchTypes>([this, entity]<typename... FetchComps>
                         {
-                            return (world->HasComponent<FetchComps>(entity) && ...);
+                            return (world->HasComponent<std::decay_t<FetchComps>>(entity) && ...);
                         })
                         && WithUnpackedTypes<WithTypes>([this, entity]<typename... WithComps>
                         {
-                            return (world->HasComponent<WithComps>(entity) && ...);
+                            return (world->HasComponent<std::decay_t<WithComps>>(entity) && ...);
                         });
 
                     if (!has_all_required)
@@ -190,7 +190,7 @@ public:
                     const bool has_any_excluded =
                         WithUnpackedTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
                         {
-                            return (world->HasComponent<WithoutComps>(entity) || ...);
+                            return (world->HasComponent<std::decay_t<WithoutComps>>(entity) || ...);
                         });
 
                     if (has_any_excluded)
