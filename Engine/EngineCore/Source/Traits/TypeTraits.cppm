@@ -41,6 +41,29 @@ struct TupleHasUniqueTypesImpl<TupleLike<Ts...>>
 export template <typename Tuple>
 concept TupleHasUniqueTypes = TupleHasUniqueTypesImpl<Tuple>::Value;
 
+template <
+    typename Tuple,
+    template <typename...> typename MapType
+>
+struct TupleMapImpl;
+
+template <
+    template <typename...> typename TupleLike,
+    template <typename...> typename MapType,
+    typename... Ts
+>
+struct TupleMapImpl<TupleLike<Ts...>, MapType>
+{
+    using Type = TupleLike<MapType<Ts>...>;
+};
+
+// Tuple의 내부 타입에 MapType을 적용시킴
+export template <
+    typename Tuple,
+    template <typename...> typename MapType
+>
+using TupleMap = TupleMapImpl<Tuple, MapType>::Type;
+
 // 함수인지 확인하는 TypeTrait
 export template <typename T>
 concept IsFunctionType = requires
