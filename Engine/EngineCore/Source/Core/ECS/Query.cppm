@@ -79,24 +79,12 @@ using ExtractedWithoutTypes = FlattenTuple<ExtractTypes<CondWithoutTag, Ts...>>;
  * ECS 월드에서 Entity와 Component를 조회하기 위한 Query 인터페이스
  */
 export template <typename... Ts>
-    requires (sizeof...(Ts) != 0)
-    && traits::type_traits::UniqueTypes<Ts...>
+    requires (sizeof...(Ts) > 0)
+    && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>> // 입력된 타입들이 겹치면 안됨
 class Query
 {
     using FetchTypes = details::ExtractFetchTypes<Ts...>;     // std::tuple<Comp...>
     using FilterTypes = details::ExtractedFilterTypes<Ts...>; // std::tuple<Filter<Comp...>, ...>
-
-    // FetchTypes와 FilterTypes의 컴포넌트 타입이 겹치면 안됨
-    static_assert(
-        IsDisjoint<FetchTypes, FlattenTuple<FilterTypes>>,
-        "A component cannot be both fetched and used in a filter (With/Without)."
-    );
-
-    // With와 Without의 컴포넌트 타입이 겹치면 안됨
-    static_assert(
-        IsDisjoint<details::ExtractedWithTypes<Ts...>, details::ExtractedWithoutTypes<Ts...>>,
-        "A component cannot be present in both With<> and Without<> filters."
-    );
 
 public:
     explicit Query(World* in_world);
@@ -115,7 +103,8 @@ private:
 };
 
 template <typename... Ts>
-    requires (sizeof...(Ts) != 0) && traits::type_traits::UniqueTypes<Ts...>
+    requires (sizeof...(Ts) > 0)
+    && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>>
 Query<Ts...>::Query(World* in_world)
     : world(in_world)
 {

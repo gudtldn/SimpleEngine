@@ -9,6 +9,9 @@ import SE.Traits;
 import SE.Utility;
 import std;
 
+using namespace se::traits::type_traits;
+using namespace se::utility::type;
+
 
 export namespace se::core::ecs
 {
@@ -21,7 +24,8 @@ class World final
 {
 private:
     template <typename... Ts>
-        requires (sizeof...(Ts) != 0) && traits::type_traits::UniqueTypes<Ts...>
+        requires (sizeof...(Ts) > 0)
+        && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>>
     friend class Query;
 
     EntityManager entity_manager;
