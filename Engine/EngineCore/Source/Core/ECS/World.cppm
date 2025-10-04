@@ -21,7 +21,7 @@ class World final
 {
 private:
     template <typename... Ts>
-        requires (sizeof...(Ts) != 0)
+        requires (sizeof...(Ts) != 0) && traits::type_traits::UniqueTypes<Ts...>
     friend class Query;
 
     EntityManager entity_manager;

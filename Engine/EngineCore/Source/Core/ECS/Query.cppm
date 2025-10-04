@@ -80,6 +80,7 @@ using ExtractedWithoutTypes = FlattenTuple<ExtractTypes<CondWithoutTag, Ts...>>;
  */
 export template <typename... Ts>
     requires (sizeof...(Ts) != 0)
+    && traits::type_traits::UniqueTypes<Ts...>
 class Query
 {
     using FetchTypes = details::ExtractFetchTypes<Ts...>;     // std::tuple<Comp...>
@@ -114,7 +115,7 @@ private:
 };
 
 template <typename... Ts>
-    requires (sizeof...(Ts) != 0)
+    requires (sizeof...(Ts) != 0) && traits::type_traits::UniqueTypes<Ts...>
 Query<Ts...>::Query(World* in_world)
     : world(in_world)
 {
