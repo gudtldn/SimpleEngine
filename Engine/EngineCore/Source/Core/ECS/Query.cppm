@@ -1,4 +1,6 @@
-﻿export module SE.Core:ECS.Query;
+﻿module;
+#include "tracy/Tracy.hpp"
+export module SE.Core:ECS.Query;
 import :ECS.World;
 
 import SE.Types;
@@ -133,6 +135,8 @@ public:
     private:
         void AdvanceToValid()
         {
+            ZoneScoped;
+
             // 기준 풀이 없거나, 인덱스가 끝에 도달했으면 즉시 종료
             if (!base_pool || storage_index >= base_pool->Length())
             {
