@@ -295,6 +295,30 @@ struct WithUnpackedTypesImpl<R(Ts...)>
 };
 
 /**
+ * 템플릿 파라미터 팩을 다른 템플릿 컨테이너로 리바인딩(rebind)하는 기능을 제공합니다.
+ * @tparam Tuple 템플릿 파라미터 팩을 추출할 원본 템플릿 타입입니다. (예: `std::tuple<int, float>`)
+ */
+template <typename Tuple>
+struct RebindImpl;
+
+template <
+    template <typename...> typename TupleLike,
+    typename... Ts
+>
+struct RebindImpl<TupleLike<Ts...>>
+{
+    template <template <typename...> typename Target>
+    using To = Target<Ts...>;
+};
+
+template <typename R, typename... Ts>
+struct RebindImpl<R(Ts...)>
+{
+    template <template <typename...> typename Target>
+    using To = Target<Ts...>;
+};
+
+/**
  * 두 개의 튜플 타입 T1과 T2를 하나의 튜플 타입으로 병합합니다.
  */
 template <typename T1, typename T2>
@@ -419,6 +443,21 @@ constexpr auto WithUnpackedTypes(Fn&& func)
 {
     return detail::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func));
 }
+
+/**
+ * 템플릿 파라미터 팩을 다른 템플릿 컨테이너로 리바인딩(rebind)합니다.
+ * @tparam Tuple 리바인딩(rebind)할 튜플 타입
+ * @code
+ * template <typename... Ts> struct MyTuple {};
+ * using StdTuple = std::tuple<int, float>;
+ * Rebind<StdTuple, MyTuple>; // MyTuple<int, float>
+ * @endcode
+ */
+template <
+    typename Tuple,
+    template <typename...> typename Target
+>
+using Rebind = detail::RebindImpl<Tuple>::template To<Target>;
 
 /**
  * 여러 튜플 타입의 멤버 타입들을 모두 포함하는 단일 튜플 타입을 만듭니다.
