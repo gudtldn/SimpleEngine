@@ -246,7 +246,7 @@ IStorage* Query<Ts...>::FindSmallestPool()
         std::tuple_size_v<FetchTypes>
         + std::tuple_size_v<WithTypes>;
 
-    if (pool_size == 0)
+    if constexpr (pool_size == 0)
     {
         return nullptr;
     }
