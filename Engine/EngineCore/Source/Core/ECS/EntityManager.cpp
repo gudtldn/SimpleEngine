@@ -54,7 +54,8 @@ void EntityManager::Destroy(Entity entity)
 vector<Entity> EntityManager::GetAliveEntities() const
 {
     vector<Entity> alive_entities;
-    for (uint32 id = 0; id < next_id.load(); ++id)
+    alive_entities.reserve(next_id);
+    for (uint32 id = 0; id < next_id; ++id)
     {
         if (entity_records[id].alive)
         {
