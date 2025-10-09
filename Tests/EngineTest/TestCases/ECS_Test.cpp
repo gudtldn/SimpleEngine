@@ -139,6 +139,8 @@ TEST_CASE("ECS System Parameter Compilation Test")
         CHECK_MESSAGE(w != nullptr, "System with World* parameter compiled.");
     });
 
+    [[maybe_unused]] Query query = world.QueryEntities<TransformComponent>();
+
     world.RunSchedule<Update>();
 }
 }
