@@ -11,6 +11,9 @@ export template <typename T>
 class [[nodiscard]] Optional
 {
 public:
+    using InnerType = T;
+
+public:
     Optional() noexcept = default;
     ~Optional() { Reset(); }
 
@@ -420,6 +423,9 @@ private:
 template <typename T>
 class [[nodiscard]] Optional<T&>
 {
+public:
+    using InnerType = T;
+
 public:
     Optional() noexcept = default;
     ~Optional() = default;
