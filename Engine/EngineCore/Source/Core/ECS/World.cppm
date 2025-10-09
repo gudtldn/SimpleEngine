@@ -3,6 +3,7 @@ import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
 import :ECS.Schedules;
+import :ECS.QueryConcepts;
 import :Function;
 
 import SE.Types;
@@ -27,8 +28,7 @@ export namespace se::core::ecs
 class World;
 
 template <typename... Ts>
-    requires (sizeof...(Ts) > 0)
-    && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>>
+    requires QueryParameterPack<Ts...>
 class Query;
 
 /**

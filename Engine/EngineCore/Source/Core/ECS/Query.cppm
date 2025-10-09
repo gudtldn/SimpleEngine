@@ -3,6 +3,7 @@ module;
 export module SE.Core:ECS.Query;
 import :ECS.World;
 import :ECS.QueryData;
+import :ECS.QueryConcepts;
 
 import SE.Types;
 import SE.Traits;
@@ -19,8 +20,7 @@ namespace se::core::ecs
  * @tparam Ts 조회할 컴포넌트 타입들
  */
 export template <typename... Ts>
-    requires (sizeof...(Ts) > 0)
-    && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>>
+    requires QueryParameterPack<Ts...>
 class Query
 {
     friend class Iterator;

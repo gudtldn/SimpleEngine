@@ -66,28 +66,13 @@ SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, !IsFilterTag<T>);                    
 SE_DEFINE_TYPE_CONDITION_TAG(CondFilterTag, IsFilterTag<T>);                    // 필터 태그
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));       // With<...> 태그
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>)); // Without<...> 태그
-
-template <typename TupleType>
-struct TupleHasPointerTypesImpl;
-
-template <
-    template <typename...> typename TupleLike,
-    typename... Ts
->
-struct TupleHasPointerTypesImpl<TupleLike<Ts...>>
-{
-    static constexpr bool Value = (std::is_pointer_v<Ts> || ...);
-};
-
-template <typename TupleType>
-concept TupleHasPointerTypes = TupleHasPointerTypesImpl<TupleType>::Value;
 }
 
 /**
  * 쿼리 파라미터를 분석하고, 엔티티 유효성을 검증하는 로직을 캡슐화한 클래스
  * @tparam Ts 쿼리 파라미터 타입들 (컴포넌트 타입 및 필터 태그)
  */
-export template <typename... Ts>
+template <typename... Ts>
 class QueryData
 {
 public:
@@ -95,12 +80,6 @@ public:
     using FetchTypes = details::ExtractTypes<details::CondFetchTag, Ts...>;
     using WithTypes = FlattenTuple<details::ExtractTypes<details::CondWithTag, Ts...>>;
     using WithoutTypes = FlattenTuple<details::ExtractTypes<details::CondWithoutTag, Ts...>>;
-
-    // Ts...에 포인터 타입이 들어오면 안됨
-    static_assert(
-        !details::TupleHasPointerTypes<TupleMap<FlattenTuple<std::tuple<Ts...>>, std::decay_t>>,
-        "No pointer types are allowed in the query parameters."
-    );
 
 public:
     explicit QueryData(World* in_world);
