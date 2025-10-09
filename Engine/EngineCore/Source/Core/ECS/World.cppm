@@ -168,7 +168,7 @@ public:
     }
 
     /**
-     *
+     * Entity를 쿼리하는 Query 객체를 생성합니다.
      * @tparam Ts Component 목록 및 필터(With<...>, Without<...>)
      * @return Query 객체
      */
