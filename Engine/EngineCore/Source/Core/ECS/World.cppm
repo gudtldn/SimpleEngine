@@ -26,6 +26,11 @@ export namespace se::core::ecs
 {
 class World;
 
+template <typename... Ts>
+    requires (sizeof...(Ts) > 0)
+    && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>>
+class Query;
+
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
  */
@@ -33,9 +38,7 @@ class World final
 {
 private:
     template <typename... Ts>
-        requires (sizeof...(Ts) > 0)
-        && TupleHasUniqueTypes<FlattenTuple<std::tuple<Ts...>>>
-    friend class Query;
+    friend class QueryData;
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
