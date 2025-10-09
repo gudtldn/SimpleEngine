@@ -140,6 +140,15 @@ public:
         return false;
     }
 
+    /** Entity를 Spawn합니다 */
+    template <typename... Components>
+    EntityChain Spawn(Components&&... comps)
+    {
+        EntityChain entity = CreateEntity();
+        (AddComponent(entity, std::forward<Components>(comps)), ...);
+        return entity;
+    }
+
     template <ScheduleType S, SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
@@ -156,7 +165,7 @@ public:
     }
 
 public:
-    /** */
+    /** Schedule을 실행합니다. */
     template <ScheduleType S>
     void RunSchedule()
     {
