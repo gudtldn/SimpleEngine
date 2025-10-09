@@ -10,8 +10,11 @@ import SE.Traits;
 import SE.Utility;
 import std;
 
+import <cassert>;
+
 using namespace se::traits::type_traits;
 using namespace se::utility::type;
+
 
 namespace se::core::ecs
 {
@@ -25,6 +28,7 @@ class Query
 {
     friend class Iterator;
     using QueryDataType = QueryData<Ts...>;
+    using FetchTypes = QueryDataType::FetchTypes;
 
 public:
     explicit Query(World* in_world)
@@ -40,11 +44,64 @@ public:
     Query& operator=(Query&&) = default;
 
 public:
+    /** 쿼리 결과가 비어있는지 확인합니다. */
+    [[nodiscard]] bool IsEmpty()
+    {
+        return begin() == end();
+    }
+
+    /** 특정 엔티티가 쿼리 조건을 만족하는 경우, 해당 컴포넌트들을 반환합니다. */
+    [[nodiscard]] Optional<FetchTypes> Get(Entity entity)
+    {
+        if (query_data.IsEntityValid(entity))
+        {
+            World* world = query_data.GetWorld();
+            return utility::type::WithUnpackedTypes<FetchTypes>([world, entity]<typename... FetchComps>
+            {
+                return FetchTypes{ world->GetComponent<std::decay_t<FetchComps>>(entity)... };
+            });
+        }
+        return std::nullopt;
+    }
+
+    /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 Optional로 반환합니다. 결과가 없거나 여러 개이면 nullopt를 반환합니다. */
+    [[nodiscard]] Optional<FetchTypes> GetSingle()
+    {
+        auto it = begin();
+        if (it == end())
+        {
+            return std::nullopt;
+        }
+        
+        FetchTypes result = *it;
+        ++it;
+        if (it != end())
+        {
+            return std::nullopt;
+        }
+        
+        return result;
+    }
+
+    /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 반환합니다. 결과가 없거나 여러 개이면 assert로 프로그램을 중단시킵니다. */
+    [[nodiscard]] FetchTypes Single()
+    {
+        auto it = begin();
+        assert(it != end() && "Called Single() on a query with no matching entities.");
+        
+        FetchTypes result = *it;
+        ++it;
+        assert(it == end() && "Called Single() on a query with more than one matching entity.");
+        
+        return result;
+    }
+
+public:
     class Iterator
     {
     public:
         using iterator_category = std::input_iterator_tag;
-        using value_type = QueryDataType::FetchTypes;
+        using value_type = FetchTypes;
         using difference_type = std::ptrdiff_t;
 
     public:
