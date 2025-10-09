@@ -63,7 +63,6 @@ using ExtractTypes = TupleCat<
 
 // 타입 필터링을 위한 조건 태그 정의
 SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, !IsFilterTag<T>);                    // 가져올 컴포넌트 (필터가 아닌 것)
-SE_DEFINE_TYPE_CONDITION_TAG(CondFilterTag, IsFilterTag<T>);                    // 필터 태그
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));       // With<...> 태그
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>)); // Without<...> 태그
 }
