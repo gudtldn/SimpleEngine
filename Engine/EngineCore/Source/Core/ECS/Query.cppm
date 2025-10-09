@@ -58,7 +58,7 @@ public:
             World* world = query_data.GetWorld();
             return utility::type::WithUnpackedTypes<FetchTypes>([world, entity]<typename... FetchComps>
             {
-                return FetchTypes{ world->GetComponent<std::decay_t<FetchComps>>(entity)... };
+                return FetchTypes{ GetComponentHelper<FetchComps>(world, entity)... };
             });
         }
         return std::nullopt;
@@ -72,14 +72,14 @@ public:
         {
             return std::nullopt;
         }
-        
+
         FetchTypes result = *it;
         ++it;
         if (it != end())
         {
             return std::nullopt;
         }
-        
+
         return result;
     }
 
@@ -88,12 +88,28 @@ public:
     {
         auto it = begin();
         assert(it != end() && "Called Single() on a query with no matching entities.");
-        
+
         FetchTypes result = *it;
         ++it;
         assert(it == end() && "Called Single() on a query with more than one matching entity.");
-        
+
         return result;
+    }
+
+private:
+    template <typename T>
+    static decltype(auto) GetComponentHelper(World* world, Entity entity)
+    {
+        if constexpr (IsSpecializationOf<T, Optional>)
+        {
+            using DecayedT = std::decay_t<typename T::InnerType>;
+            return world->TryGetComponent<DecayedT>(entity);
+        }
+        else
+        {
+            using DecayedT = std::decay_t<T>;
+            return world->GetComponent<DecayedT>(entity);
+        }
     }
 
 public:
@@ -117,11 +133,11 @@ public:
         {
             World* world = query_data->GetWorld();
             Entity entity = *base_pool->GetEntityByIndex(storage_index);
-            
+
             // FetchTypes에 명시된 컴포넌트들을 월드에서 가져와 튜플로 묶어 반환
             return utility::type::WithUnpackedTypes<value_type>([world, entity]<typename... FetchComps>
             {
-                return value_type{ world->GetComponent<std::decay_t<FetchComps>>(entity)... };
+                return value_type{ GetComponentHelper<FetchComps>(world, entity)... };
             });
         }
 

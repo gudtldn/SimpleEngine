@@ -52,7 +52,7 @@ concept IsSpecializationTypes = (IsSpecializationOf<T, Ts> || ...);
 
 // 타입 T가 FilterTag인지 확인하는 Concept
 template <typename T>
-concept IsFilterTag = IsSpecializationTypes<T, With, Without>;
+concept IsFetchTag = !IsSpecializationTypes<T, With, Without>;
 
 // 조건 태그(CondFetchTag 등)를 사용하여 타입 목록에서 특정 타입들을 추출
 template <template <typename> typename ConditionTag, typename... Ts>
@@ -62,9 +62,13 @@ using ExtractTypes = TupleCat<
 >;
 
 // 타입 필터링을 위한 조건 태그 정의
-SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, !IsFilterTag<T>);                    // 가져올 컴포넌트 (필터가 아닌 것)
-SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));       // With<...> 태그
-SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>)); // Without<...> 태그
+SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, IsFetchTag<T>);                                           // 가져올 컴포넌트
+SE_DEFINE_TYPE_CONDITION_TAG(CondPredicateTag, IsFetchTag<T> && !(IsSpecializationOf<T, Optional>)); // 검사 할 컴포넌트
+SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));                            // With<...> 태그
+SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>));                      // Without<...> 태그
+
+template <template <typename...> typename ConditionTag, typename... Ts>
+using FlattenTypes = FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
 }
 
 /**
@@ -77,8 +81,12 @@ class QueryData
 public:
     // 템플릿 인자들을 분석하여 가져올(Fetch), 포함할(With), 제외할(Without) 타입으로 분류
     using FetchTypes = details::ExtractTypes<details::CondFetchTag, Ts...>;
-    using WithTypes = FlattenTuple<details::ExtractTypes<details::CondWithTag, Ts...>>;
-    using WithoutTypes = FlattenTuple<details::ExtractTypes<details::CondWithoutTag, Ts...>>;
+    using WithTypes = details::FlattenTypes<details::CondWithTag, Ts...>;
+    using WithoutTypes = details::FlattenTypes<details::CondWithoutTag, Ts...>;
+
+private:
+    // 실제 Query 검증에 사용되는 타입들
+    using PredicateTypes = TupleCat<details::FlattenTypes<details::CondPredicateTag, Ts...>, WithTypes>;
 
 public:
     explicit QueryData(World* in_world);
@@ -104,15 +112,11 @@ QueryData<Ts...>::QueryData(World* in_world)
 template <typename... Ts>
 bool QueryData<Ts...>::IsEntityValid(Entity entity)
 {
-    // Fetch와 With 목록의 모든 컴포넌트를 가졌는지 확인
+    // Fetch(Optional<T> 제외)와 With 목록의 모든 컴포넌트를 가졌는지 확인
     const bool has_all_required =
-        WithUnpackedTypes<FetchTypes>([this, entity]<typename... FetchComps>
+        WithUnpackedTypes<PredicateTypes>([this, entity]<typename... PredComps>
         {
-            return (world->HasComponent<std::decay_t<FetchComps>>(entity) && ...);
-        })
-        && WithUnpackedTypes<WithTypes>([this, entity]<typename... WithComps>
-        {
-            return (world->HasComponent<std::decay_t<WithComps>>(entity) && ...);
+            return (world->HasComponent<std::decay_t<PredComps>>(entity) && ...);
         });
 
     if (!has_all_required)
