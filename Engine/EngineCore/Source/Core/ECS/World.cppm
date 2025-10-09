@@ -64,6 +64,14 @@ public:
     vector<Entity> GetAliveEntities() const;
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
+    template <typename ComponentType>
+    ComponentType& AddComponent(Entity entity, ComponentType&& init_component)
+    {
+        auto& storage = GetOrCreateStorage<ComponentType>();
+        storage.Add(entity, std::move(init_component));
+        return storage.Get(entity);
+    }
+
     template <typename ComponentType, typename... Args>
     ComponentType& AddComponent(Entity entity, Args&&... args)
     {
@@ -247,6 +255,13 @@ public:
         }
 
         /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
+        template <typename ComponentType>
+        EntityChain& AddComponent(ComponentType&& init_component)
+        {
+            world->AddComponent<ComponentType>(entity, std::move(init_component));
+            return *this;
+        }
+
         template <typename ComponentType, typename... Args>
         EntityChain& AddComponent(Args&&... args)
         {
