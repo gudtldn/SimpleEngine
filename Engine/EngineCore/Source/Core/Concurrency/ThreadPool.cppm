@@ -65,7 +65,7 @@ auto ThreadPool::Submit(
     auto task_ptr = std::make_shared<std::packaged_task<ReturnType()>>(
         [func = std::forward<Fn>(func), ...args = std::forward<Args>(args)] mutable -> ReturnType
         {
-            return func(std::move(args)...);
+            return func(std::forward<Args>(args)...);
         }
     );
 
