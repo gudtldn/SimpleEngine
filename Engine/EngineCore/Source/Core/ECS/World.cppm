@@ -2,6 +2,7 @@
 import :ECS.Entity;
 import :ECS.EntityManager;
 import :ECS.SparseSet;
+import :ECS.Schedules;
 import :Function;
 
 import SE.Types;
@@ -9,9 +10,17 @@ import SE.Traits;
 import SE.Utility;
 import std;
 
+using namespace se::core::ecs::schedules;
 using namespace se::traits::type_traits;
+using namespace se::traits::func_traits;
 using namespace se::utility::type;
 
+
+namespace
+{
+template <typename Fn>
+concept SystemFuncType = IsFunctionType<Fn> && std::is_void_v<typename FunctionTraits<Fn>::ReturnType>;
+}
 
 export namespace se::core::ecs
 {
@@ -29,7 +38,8 @@ private:
     friend class Query;
 
     EntityManager entity_manager;
-    vector<function::Function<void()>> systems;
+    // TODO: 추후 C++26에서 Annotation으로 Tag 검사
+    unordered_map<std::type_index, vector<function::Function<void()>>> systems;
     unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
 
 public:
@@ -119,20 +129,34 @@ public:
         return false;
     }
 
-    template <typename Fn>
-        requires traits::type_traits::IsFunctionType<Fn>
-        && std::is_void_v<typename traits::func_traits::FunctionTraits<Fn>::ReturnType>
+    template <ScheduleType S, SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
-        systems.push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
+        const std::type_index idx = std::type_index(typeid(S));
+        systems[idx].push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
-            using F = traits::func_traits::FunctionTraits<Fn>;
+            using F = FunctionTraits<Fn>;
             auto tuple = utility::type::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
             {
                 return std::make_tuple(CreateSystemParam<Ts>()...);
             });
             std::apply(sys_func, tuple);
         });
+    }
+
+public:
+    /** */
+    template <ScheduleType S>
+    void RunSchedule()
+    {
+        const std::type_index idx = std::type_index(typeid(S));
+        if (const auto it = systems.find(idx); it != systems.end())
+        {
+            for (const function::Function<void()>& system : it->second)
+            {
+                system();
+            }
+        }
     }
 
 private:
