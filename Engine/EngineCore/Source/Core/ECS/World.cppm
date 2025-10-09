@@ -167,6 +167,18 @@ public:
         }
     }
 
+    /**
+     *
+     * @tparam Ts Component 목록 및 필터(With<...>, Without<...>)
+     * @return Query 객체
+     */
+    template <typename... Ts>
+        requires requires { Query<Ts...>{ std::declval<World*>() }; }
+    [[nodiscard]] Query<Ts...> QueryEntities()
+    {
+        return Query<Ts...>{ this };
+    }
+
 private:
     template <typename T>
     T CreateSystemParam()
