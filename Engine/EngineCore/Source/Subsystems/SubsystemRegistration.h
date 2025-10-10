@@ -7,6 +7,7 @@
 
 /**
  * 서브시스템 클래스 내에서 이 매크로를 호출하여 해당 서브시스템을 엔진에 자동 등록합니다.
+ * @todo 나중에 Engine을 dynamic lib로 변경하면 그때 적용
  */
 #define SE_REGISTER_SUBSYSTEM(subsystem) \
     inline static struct subsystem##Registerer \
