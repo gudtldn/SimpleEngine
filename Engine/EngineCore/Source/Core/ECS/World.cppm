@@ -57,9 +57,6 @@ public:
     World& operator=(World&&) = delete;
 
 public:
-    /** World에 새로운 Entity를 생성합니다. */
-    EntityChain CreateEntity();
-
     /** Entity와 Entity와 연결된 Component를 제거합니다. */
     void DestroyEntity(Entity entity);
 
@@ -144,7 +141,7 @@ public:
     template <typename... Components>
     EntityChain Spawn(Components&&... comps)
     {
-        EntityChain entity = CreateEntity();
+        EntityChain entity = { this, entity_manager.Create() };
         (AddComponent(entity, std::forward<Components>(comps)), ...);
         return entity;
     }

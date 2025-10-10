@@ -62,7 +62,7 @@ TEST_CASE("ECS System Component Modification and Queries")
     World world;
 
     // Create an entity with a component to be modified
-    auto entity = world.CreateEntity()
+    auto entity = world.Spawn()
                        .AddComponent<TestValueComponent>({ .value = 10 })
                        .AddComponent<TestTagComponent>();
 
@@ -120,7 +120,7 @@ TEST_CASE("ECS System Parameter Compilation Test")
 {
     World world;
 
-    world.CreateEntity()
+    world.Spawn()
          .AddComponent<TransformComponent>()
          .AddComponent<MeshHandleComponent>();
 
@@ -173,10 +173,10 @@ TEST_CASE("ECS System With Optional Components")
     World world;
 
     // Create entities
-    auto entity_with_component = world.CreateEntity()
+    auto entity_with_component = world.Spawn()
                                       .AddComponent<TestValueComponent>({ .value = 100 });
 
-    auto entity_without_component = world.CreateEntity();
+    auto entity_without_component = world.Spawn();
 
     // System that uses Optional to modify a component if it exists
     world.AddSystem<Update>([](Query<Optional<TestValueComponent&>> query)
