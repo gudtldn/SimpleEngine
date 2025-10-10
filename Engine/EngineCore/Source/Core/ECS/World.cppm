@@ -149,6 +149,12 @@ public:
         return entity;
     }
 
+    /**
+     * 지정된 스케줄 단계에 시스템을 추가합니다.
+     * @details 시스템은 함수 시그니처를 분석하여 필요한 자원(Query, World* 등)을 자동으로 주입받습니다.
+     * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
+     * @tparam Fn 시스템으로 등록할 함수 또는 람다
+     */
     template <ScheduleType S, SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
@@ -165,7 +171,10 @@ public:
     }
 
 public:
-    /** Schedule을 실행합니다. */
+    /**
+     * 지정된 스케줄에 등록된 모든 시스템을 순서대로 실행합니다.
+     * @tparam S 실행할 스케줄 타입
+     */
     template <ScheduleType S>
     void RunSchedule()
     {
