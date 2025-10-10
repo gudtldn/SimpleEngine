@@ -27,22 +27,22 @@ struct TestTagComponent
 TEST_CASE("ECS Schedule and System Execution Order")
 {
     World world;
-    std::vector<std::string> execution_log;
+    std::vector<std::u8string> execution_log;
 
     // Add systems to different schedules
     world.AddSystem<PreUpdate>([&]
     {
-        execution_log.push_back("PreUpdate");
+        execution_log.push_back(u8"PreUpdate");
     });
 
     world.AddSystem<Update>([&]
     {
-        execution_log.push_back("Update");
+        execution_log.push_back(u8"Update");
     });
 
     world.AddSystem<PostUpdate>([&]
     {
-        execution_log.push_back("PostUpdate");
+        execution_log.push_back(u8"PostUpdate");
     });
 
     // Run schedules in a specific order
@@ -52,9 +52,9 @@ TEST_CASE("ECS Schedule and System Execution Order")
 
     // Verify the execution order
     REQUIRE(execution_log.size() == 3);
-    CHECK(execution_log[0] == "PreUpdate");
-    CHECK(execution_log[1] == "Update");
-    CHECK(execution_log[2] == "PostUpdate");
+    CHECK(execution_log[0].contains(u8"PreUpdate"));
+    CHECK(execution_log[1].contains(u8"Update"));
+    CHECK(execution_log[2].contains(u8"PostUpdate"));
 }
 
 TEST_CASE("ECS System Component Modification and Queries")
