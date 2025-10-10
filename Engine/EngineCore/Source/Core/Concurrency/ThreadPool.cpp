@@ -85,7 +85,7 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
         {
             ZoneScoped;
             {
-                const char* zone_name = reinterpret_cast<const char*>(thread_name.c_str());
+                [[maybe_unused]] const char* zone_name = reinterpret_cast<const char*>(thread_name.c_str());
                 ZoneName(zone_name, thread_name.size());
             }
             task();

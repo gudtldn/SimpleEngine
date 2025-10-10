@@ -110,7 +110,7 @@ void Engine::UpdateFrame(float delta_time)
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
     ZoneScoped; \
     { \
-        const std::string zone_name = std::format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
+        [[maybe_unused]] const std::string zone_name = std::format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
         ZoneName(zone_name.c_str(), zone_name.size()); \
     }
 
