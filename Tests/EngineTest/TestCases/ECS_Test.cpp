@@ -139,8 +139,76 @@ TEST_CASE("ECS System Parameter Compilation Test")
         CHECK_MESSAGE(w != nullptr, "System with World* parameter compiled.");
     });
 
+    world.AddSystem<Update>([](Query<Entity> query)
+    {
+        REQUIRE(!query.IsEmpty());
+        for (auto [entity] : query)
+        {
+            auto opt = query.Get(entity);
+            auto [ent] = *opt;
+
+            CHECK(ent == entity);
+        }
+    });
+
     [[maybe_unused]] Query query = world.QueryEntities<TransformComponent>();
+    [[maybe_unused]] Query query_entity = world.QueryEntities<Entity>();
 
     world.RunSchedule<Update>();
+}
+
+TEST_CASE("ECS System With Optional Components")
+{
+    World world;
+
+    // Create entities
+    auto entity_with_component = world.CreateEntity()
+                                      .AddComponent<TestValueComponent>({ .value = 100 });
+
+    auto entity_without_component = world.CreateEntity();
+
+    // System that uses Optional to modify a component if it exists
+    world.AddSystem<Update>([](Query<Optional<TestValueComponent&>> query)
+    {
+        for (auto [opt_val] : query)
+        {
+            if (opt_val.HasValue())
+            {
+                opt_val->value = 200;
+            }
+        }
+    });
+
+    // Run the schedule
+    world.RunSchedule<Update>();
+
+    // Verify the component on the first entity was modified
+    auto component = world.TryGetComponent<TestValueComponent>(entity_with_component);
+    REQUIRE(component.HasValue());
+    CHECK(component->value == 200);
+
+    // Verify the second entity still does not have the component
+    auto component2 = world.TryGetComponent<TestValueComponent>(entity_without_component);
+    CHECK_FALSE(component2.HasValue());
+
+    // System that adds the component if it's missing
+    world.AddSystem<PostUpdate>([](Query<Entity, Optional<TestValueComponent&>> query, World* in_world)
+    {
+        for (auto [entity, opt_val] : query)
+        {
+            if (!opt_val.HasValue())
+            {
+                in_world->AddComponent<TestValueComponent>(entity, { .value = 50 });
+            }
+        }
+    });
+
+    // Run the second schedule
+    world.RunSchedule<PostUpdate>();
+
+    // Verify the second entity now has the component with the correct value
+    auto component3 = world.TryGetComponent<TestValueComponent>(entity_without_component);
+    REQUIRE(component3.HasValue());
+    CHECK(component3->value == 50);
 }
 }
