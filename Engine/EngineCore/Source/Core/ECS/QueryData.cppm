@@ -61,14 +61,21 @@ using ExtractTypes = TupleCat<
     std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
 >;
 
-// 타입 필터링을 위한 조건 태그 정의
-SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, IsFetchTag<T>);                                           // 가져올 컴포넌트
-SE_DEFINE_TYPE_CONDITION_TAG(CondPredicateTag, IsFetchTag<T> && !(IsSpecializationOf<T, Optional>)); // 검사 할 컴포넌트
-SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));                            // With<...> 태그
-SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>));                      // Without<...> 태그
-
 template <template <typename...> typename ConditionTag, typename... Ts>
 using FlattenTypes = FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
+
+// 타입 필터링을 위한 조건 태그 정의
+SE_DEFINE_TYPE_CONDITION_TAG(
+    CondPredicateTag,
+    IsFetchTag<T> && !(IsSpecializationOf<T, Optional>)
+);                                                                              // 검사 할 컴포넌트
+SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, IsFetchTag<T>);                      // 가져올 컴포넌트
+SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));       // With<...> 태그
+SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>)); // Without<...> 태그
+
+template <typename T> struct RemoveOptionalImpl { using Type = T; };
+template <typename T> struct RemoveOptionalImpl<Optional<T>> { using Type = T; };
+template <typename T> using RemoveOptional = RemoveOptionalImpl<T>::Type;
 }
 
 /**
@@ -155,11 +162,11 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
     std::array<IStorage*, pool_size> pools;
     size_t i = 0;
 
-    WithUnpackedTypes<FetchTypes>([this, &pools, &i]<typename... FetchComps>
+    WithUnpackedTypes<FetchTypes>([&]<typename... FetchComps>
     {
-        ((pools[i++] = world->GetIStorage<std::decay_t<FetchComps>>()), ...);
+        ((pools[i++] = world->GetIStorage<std::decay_t<details::RemoveOptional<FetchComps>>>()), ...);
     });
-    WithUnpackedTypes<WithTypes>([this, &pools, &i]<typename... WithComps>
+    WithUnpackedTypes<WithTypes>([&]<typename... WithComps>
     {
         ((pools[i++] = world->GetIStorage<std::decay_t<WithComps>>()), ...);
     });
