@@ -14,7 +14,7 @@ export template <typename Subsystem>
     requires std::derived_from<Subsystem, ISubsystemBase>
 Subsystem* GetSubsystemUnchecked()
 {
-    return se::app::Application::Get().GetEngine()->GetSubsystem<Subsystem>();
+    return se::app::Application::Get().GetEngine().GetSubsystem<Subsystem>();
 }
 
 /**

@@ -56,7 +56,7 @@ public:
     void RequestQuit() { quit_requested = true; }
     bool IsQuitRequested() const { return quit_requested; }
 
-    Engine* GetEngine() const { return engine_instance.get(); }
+    Engine& GetEngine() const { return *engine_instance.get(); }
 
     /**
      * 애플리케이션이 실행 중인 모드를 지정하는 현재 애플리케이션 모드를 가져옵니다.
