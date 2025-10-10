@@ -41,6 +41,7 @@ void Engine::LoadRegisteredSubsystems()
         std::unique_ptr<ISubsystemBase> subsystem{ static_cast<ISubsystemBase*>(factory_fn()) };
         subsystems[type_id] = std::move(subsystem);
     }
+    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystems: {}", registry.size());
     registry.clear();
 
     auto& update_registry = SubsystemRegistry::GetUpdatableSystems();
