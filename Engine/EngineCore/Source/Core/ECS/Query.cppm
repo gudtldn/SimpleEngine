@@ -120,8 +120,8 @@ private:
         else if constexpr (std::same_as<std::decay_t<T>, Entity>)
         {
             static_assert(
-                !std::is_lvalue_reference_v<T> || std::is_const_v<std::remove_reference_t<T>>,
-                "Entity in a Query should be fetched by value (Entity, const Entity) or const reference (const Entity&), not mutable reference (Entity&)."
+                !std::is_reference_v<T>,
+                "Entity in a Query must be fetched by value, not by reference."
             );
             return entity;
         }
