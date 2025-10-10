@@ -124,6 +124,17 @@ TEST_CASE("ECS System Parameter Compilation Test")
          .AddComponent<TransformComponent>()
          .AddComponent<MeshHandleComponent>();
 
+    world.Spawn(
+        TransformComponent{
+            .rotation = { 0.0, 0.0, 0.0, 1.0 },
+            .position = { 1.0, 2.0, 3.0 },
+            .scale = { 1.0, 1.0, 1.0 },
+        },
+        MeshHandleComponent{
+            .mesh_id = 123456789
+        }
+    );
+
     // These AddSystem calls are primarily for compile-time validation of different parameter types.
     // They don't need to be executed to be valuable.
     world.AddSystem<Update>([](
