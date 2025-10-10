@@ -1,4 +1,5 @@
 ﻿export module SE.Interface.ISubsystem;
+export import SE.Interface.IUpdatable;
 
 import SE.Core;
 import SE.Traits;
