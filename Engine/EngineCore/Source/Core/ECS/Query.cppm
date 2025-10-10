@@ -27,13 +27,20 @@ export template <typename... Ts>
 class Query
 {
     friend class Iterator;
+
     using QueryDataType = QueryData<Ts...>;
     using FetchTypes = QueryDataType::FetchTypes;
+
+    static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
 
 public:
     explicit Query(World* in_world)
         : query_data(in_world)
     {
+        if constexpr (!HasBasePool)
+        {
+            alive_entities_cache = query_data.GetWorld()->GetAliveEntities();
+        }
     }
 
     ~Query() = default;
@@ -105,6 +112,10 @@ private:
             using DecayedT = std::decay_t<typename T::InnerType>;
             return world->TryGetComponent<DecayedT>(entity);
         }
+        else if constexpr (std::same_as<std::remove_cv_t<T>, Entity>)
+        {
+            return entity;
+        }
         else
         {
             using DecayedT = std::decay_t<T>;
@@ -121,18 +132,36 @@ public:
         using difference_type = std::ptrdiff_t;
 
     public:
-        Iterator(QueryDataType* in_query_data, IStorage* in_pool, size_t in_index)
-            : query_data(in_query_data)
-            , base_pool(in_pool)
+        Iterator(Query* self, size_t in_index)
+            : query_data(&self->query_data)
             , storage_index(in_index)
         {
+            if constexpr (HasBasePool)
+            {
+                iteration_source = query_data->FindSmallestPool();
+            }
+            else
+            {
+                iteration_source = &self->alive_entities_cache;
+            }
             AdvanceToValid();
         }
 
         value_type operator*() const noexcept
         {
             World* world = query_data->GetWorld();
-            Entity entity = *base_pool->GetEntityByIndex(storage_index);
+            const Entity entity = std::visit([this]<typename Variant>(Variant&& source) -> Entity
+            {
+                using SourceType = std::decay_t<Variant>;
+                if constexpr (std::same_as<SourceType, IStorage*>)
+                {
+                    return source->GetEntityByIndex(storage_index).Value();
+                }
+                else // const vector<Entity>*
+                {
+                    return (*source)[storage_index];
+                }
+            }, iteration_source);
 
             // FetchTypes에 명시된 컴포넌트들을 월드에서 가져와 튜플로 묶어 반환
             return utility::type::WithUnpackedTypes<value_type>([world, entity]<typename... FetchComps>
@@ -150,7 +179,7 @@ public:
 
         bool operator==(const Iterator& other) const noexcept
         {
-            return storage_index == other.storage_index && base_pool == other.base_pool;
+            return iteration_source == other.iteration_source && storage_index == other.storage_index;
         }
 
     private:
@@ -158,44 +187,76 @@ public:
         {
             ZoneScoped;
 
-            if (!base_pool || storage_index >= base_pool->Length())
+            // std::visit를 사용하여 순회 로직을 실행합니다.
+            std::visit([this]<typename Variant>(Variant&& source)
             {
-                return;
-            }
-
-            while (storage_index < base_pool->Length())
-            {
-                if (Optional<Entity> entity_opt = base_pool->GetEntityByIndex(storage_index))
+                using SourceType = std::decay_t<Variant>;
+                if constexpr (std::same_as<SourceType, IStorage*>)
                 {
-                    if (query_data->IsEntityValid(*entity_opt))
+                    if (!source) [[unlikely]]
                     {
+                        // FindSmallestPool이 nullptr을 반환하는 경우 (예: 해당 컴포넌트를 가진 엔티티가 없음)
+                        storage_index = 0;
                         return;
                     }
+                    while (storage_index < source->Length())
+                    {
+                        if (Optional entity_opt = source->GetEntityByIndex(storage_index))
+                        {
+                            if (query_data->IsEntityValid(*entity_opt))
+                            {
+                                return;
+                            }
+                        }
+                        ++storage_index;
+                    }
                 }
-                ++storage_index;
-            }
+                else // const vector<Entity>*
+                {
+                    const auto& entities = *source;
+                    while (storage_index < entities.size())
+                    {
+                        if (query_data->IsEntityValid(entities[storage_index]))
+                        {
+                            return;
+                        }
+                        ++storage_index;
+                    }
+                }
+            }, iteration_source);
         }
 
     private:
         QueryDataType* query_data;
-        IStorage* base_pool;
         size_t storage_index;
+
+        std::variant<IStorage*, const vector<Entity>*> iteration_source;
     };
 
     Iterator begin()
     {
-        IStorage* smallest_pool = query_data.FindSmallestPool();
-        return Iterator(&query_data, smallest_pool, 0);
+        return Iterator(this, 0);
     }
 
     Iterator end()
     {
-        IStorage* smallest_pool = query_data.FindSmallestPool();
-        const size_t end_index = smallest_pool ? smallest_pool->Length() : 0;
-        return Iterator(&query_data, smallest_pool, end_index);
+        size_t end_index = 0;
+        if constexpr (HasBasePool)
+        {
+            if (auto* pool = query_data.FindSmallestPool())
+            {
+                end_index = pool->Length();
+            }
+        }
+        else
+        {
+            end_index = alive_entities_cache.size();
+        }
+        return Iterator(this, end_index);
     }
 
 private:
     QueryDataType query_data;
+    [[no_unique_address]] vector<Entity> alive_entities_cache;
 };
 }

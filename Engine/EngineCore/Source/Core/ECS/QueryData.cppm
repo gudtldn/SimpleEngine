@@ -54,6 +54,10 @@ concept IsSpecializationTypes = (IsSpecializationOf<T, Ts> || ...);
 template <typename T>
 concept IsFetchTag = !IsSpecializationTypes<T, With, Without>;
 
+// Optional이나 Entity가 아닌 필수 컴포넌트인지 확인하는 Concept
+template <typename T>
+concept IsRequiredComponent = IsFetchTag<T> && !(IsSpecializationOf<T, Optional> || std::same_as<T, Entity>);
+
 // 조건 태그(CondFetchTag 등)를 사용하여 타입 목록에서 특정 타입들을 추출
 template <template <typename> typename ConditionTag, typename... Ts>
     requires requires { (ConditionTag<Ts>::Value, ...); }
@@ -65,11 +69,8 @@ template <template <typename...> typename ConditionTag, typename... Ts>
 using FlattenTypes = FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
 
 // 타입 필터링을 위한 조건 태그 정의
-SE_DEFINE_TYPE_CONDITION_TAG(
-    CondPredicateTag,
-    IsFetchTag<T> && !(IsSpecializationOf<T, Optional>)
-);                                                                              // 검사 할 컴포넌트
 SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, IsFetchTag<T>);                      // 가져올 컴포넌트
+SE_DEFINE_TYPE_CONDITION_TAG(CondPredicateTag, IsRequiredComponent<T>);         // 검사 할 컴포넌트
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (IsSpecializationOf<T, With>));       // With<...> 태그
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (IsSpecializationOf<T, Without>)); // Without<...> 태그
 
@@ -91,7 +92,6 @@ public:
     using WithTypes = details::FlattenTypes<details::CondWithTag, Ts...>;
     using WithoutTypes = details::FlattenTypes<details::CondWithoutTag, Ts...>;
 
-private:
     // 실제 Query 검증에 사용되는 타입들
     using PredicateTypes = TupleCat<details::FlattenTypes<details::CondPredicateTag, Ts...>, WithTypes>;
 
@@ -149,10 +149,8 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
 template <typename... Ts>
 IStorage* QueryData<Ts...>::FindSmallestPool()
 {
-    // 순회의 기준이 될 Fetch + With 컴포넌트 스토리지의 총 개수
-    constexpr size_t pool_size =
-        std::tuple_size_v<FetchTypes> + std::tuple_size_v<WithTypes>;
-
+    // 순회의 기준이 될 PredicateTypes(필수 컴포넌트 + With)의 총 개수
+    constexpr size_t pool_size = std::tuple_size_v<PredicateTypes>;
     if constexpr (pool_size == 0)
     {
         return nullptr;
@@ -162,13 +160,9 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
     std::array<IStorage*, pool_size> pools;
     size_t i = 0;
 
-    WithUnpackedTypes<FetchTypes>([&]<typename... FetchComps>
+    WithUnpackedTypes<PredicateTypes>([&]<typename... PredComps>
     {
-        ((pools[i++] = world->GetIStorage<std::decay_t<details::RemoveOptional<FetchComps>>>()), ...);
-    });
-    WithUnpackedTypes<WithTypes>([&]<typename... WithComps>
-    {
-        ((pools[i++] = world->GetIStorage<std::decay_t<WithComps>>()), ...);
+        ((pools[i++] = world->GetIStorage<std::decay_t<PredComps>>()), ...);
     });
 
     // 수집된 스토리지 중 가장 크기가 작은 것을 찾아 반환
