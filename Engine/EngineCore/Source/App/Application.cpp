@@ -191,6 +191,7 @@ bool Application::PreInitialize()
 
 void Application::RegisterSubsystems()
 {
+    engine_instance->LoadRegisteredSubsystems();
     engine_instance->RegisterSubsystem<PlatformSubsystem>();
     engine_instance->RegisterSubsystem<WorldSubsystem>();
     engine_instance->RegisterSubsystem<AssetSubsystem>();
