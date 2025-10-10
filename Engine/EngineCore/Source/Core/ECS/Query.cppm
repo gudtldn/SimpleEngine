@@ -109,17 +109,25 @@ private:
     {
         if constexpr (IsSpecializationOf<T, Optional>)
         {
+            static_assert(
+                !std::is_reference_v<T>,
+                "Optional<T> in a Query must be fetched by value, not by reference."
+            );
+
             using DecayedT = std::decay_t<typename T::InnerType>;
             return world->TryGetComponent<DecayedT>(entity);
         }
-        else if constexpr (std::same_as<std::remove_cv_t<T>, Entity>)
+        else if constexpr (std::same_as<std::decay_t<T>, Entity>)
         {
+            static_assert(
+                !std::is_lvalue_reference_v<T> || std::is_const_v<std::remove_reference_t<T>>,
+                "Entity in a Query should be fetched by value (Entity, const Entity) or const reference (const Entity&), not mutable reference (Entity&)."
+            );
             return entity;
         }
         else
         {
-            using DecayedT = std::decay_t<T>;
-            return world->GetComponent<DecayedT>(entity);
+            return world->GetComponent<std::decay_t<T>>(entity);
         }
     }
 
