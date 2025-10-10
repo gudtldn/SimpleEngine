@@ -1,6 +1,7 @@
 ﻿module;
 #include <typeinfo>
 #include "tracy/Tracy.hpp"
+#include "Subsystems/SubsystemRegistration.h"
 module SE.Core;
 import :Engine;
 import :Paths;
@@ -28,6 +29,26 @@ Engine::Engine()
     // Editor
     path_resolver.Mount(u8"EditorAssets", solution_path / u8"Engine/EditorEngine/Assets");
     path_resolver.Mount(u8"EditorShader", solution_path / u8"Engine/EditorEngine/Shaders");
+}
+
+void Engine::LoadRegisteredSubsystems()
+{
+    using subsystem_register::details::SubsystemRegistry;
+
+    auto& registry = SubsystemRegistry::GetSubsystemRegistry();
+    for (const auto& [type_id, factory_fn] : registry)
+    {
+        std::unique_ptr<ISubsystemBase> subsystem{ static_cast<ISubsystemBase*>(factory_fn()) };
+        subsystems[type_id] = std::move(subsystem);
+    }
+    registry.clear();
+
+    auto& update_registry = SubsystemRegistry::GetUpdatableSystems();
+    for (const std::type_index& type_id : update_registry)
+    {
+        updatable_systems.push_back(reinterpret_cast<IUpdatable*>(subsystems[type_id].get()));
+    }
+    update_registry.clear();
 }
 
 bool Engine::Initialize()
