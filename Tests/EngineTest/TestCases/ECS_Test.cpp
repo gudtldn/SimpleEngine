@@ -139,9 +139,16 @@ TEST_CASE("ECS System Parameter Compilation Test")
     // They don't need to be executed to be valuable.
     world.AddSystem<Update>([](
         [[maybe_unused]] Query<TransformComponent&, With<>, Without<>> query1,
-        [[maybe_unused]] Query<TransformComponent&, With<MeshHandleComponent>, Without<>> query2
+        [[maybe_unused]] Query<TransformComponent&, With<MeshHandleComponent>, Without<>> query2,
+        [[maybe_unused]] Query<Entity, With<>, Without<>> query3
     )
         {
+            constexpr size_t query1_size = sizeof(query1);
+            constexpr size_t query2_size = sizeof(query2);
+            constexpr size_t query3_size = sizeof(query3);
+
+            static_assert(query1_size == query2_size || query1_size != query3_size);
+
             CHECK_MESSAGE(true, "System with multiple queries compiled.");
         });
 

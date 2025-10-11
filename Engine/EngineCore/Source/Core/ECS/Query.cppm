@@ -33,6 +33,9 @@ class Query
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
 
+    struct EmptyCache{};
+    using CacheType = std::conditional_t<HasBasePool, EmptyCache, vector<Entity>>;
+
 public:
     explicit Query(World* in_world)
         : query_data(in_world)
@@ -265,6 +268,6 @@ public:
 
 private:
     QueryDataType query_data;
-    [[no_unique_address]] vector<Entity> alive_entities_cache;
+    [[no_unique_address]] CacheType alive_entities_cache;
 };
 }
