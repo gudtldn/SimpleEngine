@@ -1,11 +1,11 @@
-﻿export module SE.Core:Reflection.TypeId;
+﻿export module SE.Reflection:TypeId;
 
 import SE.Types;
 import SE.Utility;
 import std;
 
 
-namespace se::core::reflection
+namespace se::reflection
 {
 /** 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다. */
 export class TypeId
@@ -52,9 +52,9 @@ private:
 }
 
 template <>
-struct std::hash<se::core::reflection::TypeId>
+struct std::hash<se::reflection::TypeId>
 {
-    constexpr uint64 operator()(const se::core::reflection::TypeId& id) const noexcept
+    constexpr uint64 operator()(const se::reflection::TypeId& id) const noexcept
     {
         return id.GetHash();
     }

@@ -2,6 +2,7 @@
 
 export import SE.Core;
 export import SE.Math;
+export import SE.Reflection;
 export import SE.Types;
 export import SE.Utility;
 
