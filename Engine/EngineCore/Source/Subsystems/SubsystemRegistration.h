@@ -10,9 +10,9 @@
  * @todo 나중에 Engine을 dynamic lib로 변경하면 그때 적용
  */
 #define SE_REGISTER_SUBSYSTEM(subsystem) \
-    inline static struct subsystem##Registerer \
+    inline static struct subsystem##Registrar \
     { \
-        subsystem##Registerer() \
+        subsystem##Registrar() \
         { \
             using se::subsystem_register::details::SubsystemRegistry; \
             SubsystemRegistry::GetSubsystemRegistry()[std::type_index(typeid(subsystem))] = [] -> void* \
@@ -24,7 +24,7 @@
                 SubsystemRegistry::GetUpdatableSystems().emplace_back(typeid(subsystem)); \
             } \
         } \
-    } subsystem##Registerer_PRIVATE{};
+    } subsystem##Registrar_PRIVATE{};
 
 
 namespace se::subsystem_register::details

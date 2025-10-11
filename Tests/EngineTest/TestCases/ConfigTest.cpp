@@ -15,7 +15,7 @@ static struct Init
     {
         se::core::paths::PathResolver::Get().Mount(u8"Config", std::filesystem::current_path() / u8"Config");
     }
-} _registerer{};
+} _registrar{};
 
 static const VPath test_toml_path = u8"Config://ConfigTest.toml";
 static const VPath non_existent_file_path = u8"Config://InvalidTest.toml";
