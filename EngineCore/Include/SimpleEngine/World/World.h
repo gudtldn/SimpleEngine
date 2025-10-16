@@ -1,40 +1,38 @@
-﻿export module SE.Core:ECS.World;
-import :ECS.Entity;
-import :ECS.EntityManager;
-import :ECS.SparseSet;
-import :ECS.Schedules;
-import :ECS.QueryConcepts;
-import :Function;
+﻿#pragma once
+#include <concepts>
+#include <memory>
+#include <tuple>
+#include <typeindex>
+#include <type_traits>
+#include <utility>
 
-import SE.Types;
-import SE.Traits;
-import SE.Utility;
-import std;
-
-using namespace se::core::ecs::schedules;
-using namespace se::traits::type_traits;
-using namespace se::traits::func_traits;
-using namespace se::utility::type;
+#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/World/EntityManager.h"
+#include "SimpleEngine/World/QueryConcepts.h"
+#include "SimpleEngine/World/Schedules.h"
+#include "SimpleEngine/World/SparseSet.h"
 
 
-namespace
+namespace se::world
 {
-template <typename Fn>
-concept SystemFuncType = IsFunctionType<Fn> && std::is_void_v<typename FunctionTraits<Fn>::ReturnType>;
-}
-
-export namespace se::core::ecs
-{
-class World;
-
 template <typename... Ts>
     requires QueryParameterPack<Ts...>
 class Query;
 
+
+namespace details
+{
+template <typename Fn>
+concept SystemFuncType = traits::IsFunctionType<Fn>
+    && std::is_void_v<typename traits::FunctionTraits<Fn>::ReturnType>;
+}
+
 /**
  * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
  */
-class World final
+class SE_CORE_API World final
 {
 private:
     template <typename... Ts>
@@ -42,7 +40,7 @@ private:
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    unordered_map<std::type_index, vector<function::Function<void()>>> systems;
+    unordered_map<std::type_index, vector<core::Function<void()>>> systems;
     unordered_map<std::type_index, std::unique_ptr<IStorage>> component_storages;
 
 public:
@@ -57,6 +55,15 @@ public:
     World& operator=(World&&) = delete;
 
 public:
+    /** Entity를 생성합니다. */
+    template <typename... Components>
+    EntityChain SpawnEntity(Components&&... comps)
+    {
+        EntityChain entity = { this, entity_manager.Create() };
+        (AddComponent(entity, std::forward<Components>(comps)), ...);
+        return entity;
+    }
+
     /** Entity와 Entity와 연결된 Component를 제거합니다. */
     void DestroyEntity(Entity entity);
 
@@ -68,7 +75,7 @@ public:
     ComponentType& AddComponent(Entity entity, ComponentType&& init_component)
     {
         auto& storage = GetOrCreateStorage<ComponentType>();
-        storage.Add(entity, std::move(init_component));
+        storage.Add(entity, std::forward<ComponentType>(init_component));
         return storage.Get(entity);
     }
 
@@ -137,33 +144,24 @@ public:
         return false;
     }
 
-    /** Entity를 Spawn합니다 */
-    template <typename... Components>
-    EntityChain Spawn(Components&&... comps)
-    {
-        EntityChain entity = { this, entity_manager.Create() };
-        (AddComponent(entity, std::forward<Components>(comps)), ...);
-        return entity;
-    }
-
     /**
      * 지정된 스케줄 단계에 시스템을 추가합니다.
      * @details 시스템은 함수 시그니처를 분석하여 필요한 자원(Query, World* 등)을 자동으로 주입받습니다.
      * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
      * @tparam Fn 시스템으로 등록할 함수 또는 람다
      */
-    template <ScheduleType S, SystemFuncType Fn>
+    template <schedules::ScheduleType S, details::SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
         const std::type_index idx = std::type_index(typeid(S));
         systems[idx].push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
-            using F = FunctionTraits<Fn>;
-            auto tuple = utility::type::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
+            using F = traits::FunctionTraits<Fn>;
+            std::tuple tuple = utility::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
             {
                 return std::make_tuple(CreateSystemParam<Ts>()...);
             });
-            std::apply(sys_func, tuple);
+            std::apply(sys_func, std::move(tuple));
         });
     }
 
@@ -172,13 +170,13 @@ public:
      * 지정된 스케줄에 등록된 모든 시스템을 순서대로 실행합니다.
      * @tparam S 실행할 스케줄 타입
      */
-    template <ScheduleType S>
+    template <schedules::ScheduleType S>
     void RunSchedule()
     {
         const std::type_index idx = std::type_index(typeid(S));
         if (const auto it = systems.find(idx); it != systems.end())
         {
-            for (const function::Function<void()>& system : it->second)
+            for (const core::Function<void()>& system : it->second)
             {
                 system();
             }
@@ -201,7 +199,7 @@ private:
     template <typename T>
     T CreateSystemParam()
     {
-        using namespace traits::type_traits;
+        using namespace traits;
         if constexpr (std::same_as<T, World*>)
         {
             return this;
@@ -219,42 +217,48 @@ private:
 
 private:
     template <typename ComponentType>
-    SparseSet<ComponentType>& GetOrCreateStorage()
+    SparseSet<std::decay_t<ComponentType>>& GetOrCreateStorage()
     {
-        const auto type_index = std::type_index(typeid(ComponentType));
+        using RawType = std::decay_t<ComponentType>;
+
+        const auto type_index = std::type_index(typeid(RawType));
         if (!component_storages.contains(type_index))
         {
-            component_storages[type_index] = std::make_unique<ComponentStorage<ComponentType>>();
+            component_storages[type_index] = std::make_unique<ComponentStorage<RawType>>();
         }
-        ComponentStorage<ComponentType>* wrapper = static_cast<ComponentStorage<ComponentType>*>(component_storages.at(type_index).get());
+        ComponentStorage<RawType>* wrapper = static_cast<ComponentStorage<RawType>*>(component_storages.at(type_index).get());
         return wrapper->GetStorage();
     }
 
     template <typename ComponentType>
-    Optional<SparseSet<ComponentType>&> GetStorage()
+    Optional<SparseSet<std::decay_t<ComponentType>>&> GetStorage()
     {
-        if (IStorage* storage = GetIStorage<ComponentType>())
+        using RawType = std::decay_t<ComponentType>;
+        if (IStorage* storage = GetIStorage<RawType>())
         {
-            return static_cast<ComponentStorage<ComponentType>*>(storage)->GetStorage();
+            return static_cast<ComponentStorage<RawType>*>(storage)->GetStorage();
         }
         return std::nullopt;
     }
 
     template <typename ComponentType>
-    Optional<const SparseSet<ComponentType>&> GetStorage() const
+    Optional<const SparseSet<std::decay_t<ComponentType>>&> GetStorage() const
     {
-        if (const IStorage* storage = GetIStorage<ComponentType>())
+        using RawType = std::decay_t<ComponentType>;
+        if (const IStorage* storage = GetIStorage<RawType>())
         {
-            return static_cast<const ComponentStorage<ComponentType>*>(storage)->GetStorage();
+            return static_cast<const ComponentStorage<RawType>*>(storage)->GetStorage();
         }
         return std::nullopt;
     }
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
     template <typename ComponentType>
-    [[nodiscard]] IStorage* GetIStorage()
+    IStorage* GetIStorage()
     {
-        const auto type_index = std::type_index(typeid(ComponentType));
+        using RawType = std::decay_t<ComponentType>;
+
+        const auto type_index = std::type_index(typeid(RawType));
         if (component_storages.contains(type_index))
         {
             return component_storages.at(type_index).get();
@@ -264,9 +268,11 @@ private:
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
     template <typename ComponentType>
-    [[nodiscard]] const IStorage* GetIStorage() const
+    const IStorage* GetIStorage() const
     {
-        const auto type_index = std::type_index(typeid(ComponentType));
+        using RawType = std::decay_t<ComponentType>;
+
+        const auto type_index = std::type_index(typeid(RawType));
         if (component_storages.contains(type_index))
         {
             return component_storages.at(type_index).get();
@@ -288,7 +294,7 @@ public:
         template <typename ComponentType>
         EntityChain& AddComponent(ComponentType&& init_component)
         {
-            world->AddComponent<ComponentType>(entity, std::move(init_component));
+            world->AddComponent(entity, std::forward<ComponentType>(init_component));
             return *this;
         }
 

@@ -1,8 +1,10 @@
-﻿module SE.Core;
-import :ECS.World;
+﻿#include "World/World.h"
+
+#include <ranges>
+#include "World/SparseSet.h"
 
 
-namespace se::core::ecs
+namespace se::world
 {
 void World::DestroyEntity(Entity entity)
 {
