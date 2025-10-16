@@ -1,10 +1,6 @@
-﻿module;
-#include "tracy/Tracy.hpp"
-module SE.Subsystems.AssetSubsystem;
+﻿#include "Asset/AssetSubsystem.h"
 
-import SE.Core;
-
-using namespace se::assets;
+using namespace se::asset;
 
 
 bool AssetSubsystem::Initialize()

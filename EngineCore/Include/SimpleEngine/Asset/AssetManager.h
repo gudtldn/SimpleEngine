@@ -1,31 +1,42 @@
-﻿module;
+﻿#pragma once
+#include <concepts>
+#include <filesystem>
+#include <memory>
+#include <mutex>
+#include <typeindex>
+#include <utility>
+
+#include "SimpleEngine/Asset/AssetStorage.h"
+#include "SimpleEngine/Asset/Loaders/AssetLoader.h"
+#include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
+#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Utility/PathResolver.h"
+
 #include "tracy/Tracy.hpp"
-export module SE.Assets:AssetManager;
-import :AssetStorage;
-
-import SE.Types;
-import std;
-
-using namespace se::core::function;
-using namespace se::core::concurrency;
-using namespace se::core::concurrency::coroutine;
 
 
-namespace se::assets
+namespace se::asset
 {
 /**
  * 동일한 에셋에 대한 중복 로딩 요청을 관리하기 위한 내부 구조체
  */
 struct LoadingRequest
 {
+private:
+    using EventHandle = core::concurrency::coroutine::EventWaitHandle;
+
+public:
     // 여러 스레드가 하나의 로딩 완료 이벤트를 기다릴 수 있도록 shared_ptr로 관리
-    std::shared_ptr<EventWaitHandle> event = std::make_shared<EventWaitHandle>();
+    std::shared_ptr<EventHandle> event = std::make_shared<EventHandle>();
 };
 
 /**
  * 엔진의 모든 에셋 로딩과 생명 주기를 관리합니다.
  */
-export class AssetManager
+class SE_CORE_API AssetManager
 {
 public:
     AssetManager() = default;
@@ -45,7 +56,7 @@ public:
      * @param on_loaded 로딩 완료 시 호출될 콜백 함수. 로딩 실패 시 nullptr가 전달됩니다.
      */
     template <typename T, typename Fn>
-        requires loaders::AssetLoadable<T>
+        requires AssetLoadable<T>
         && std::invocable<Fn, std::shared_ptr<T>>
     void LoadAsync(VPath virtual_path, Fn&& on_loaded);
 
@@ -56,7 +67,7 @@ public:
      * @return 불러온 에셋
      */
     template <typename T>
-        requires loaders::AssetLoadable<T>
+        requires AssetLoadable<T>
     std::shared_ptr<T> LoadSynchronous(VPath virtual_path);
 
 private:
@@ -69,7 +80,7 @@ private:
     AssetStorage<T>& GetOrCreateStorage();
 
     template <typename T>
-    Task<std::shared_ptr<T>> LoadInternal(const VPath& virtual_path);
+    core::concurrency::Task<std::shared_ptr<T>> LoadInternal(const VPath& virtual_path);
 
 private:
     TracyLockable(std::mutex, storages_mutex);
@@ -81,16 +92,19 @@ private:
 };
 
 template <typename T, typename Fn>
-    requires loaders::AssetLoadable<T>
+    requires AssetLoadable<T>
     && std::invocable<Fn, std::shared_ptr<T>>
 void AssetManager::LoadAsync(VPath virtual_path, Fn&& on_loaded)
 {
+    using namespace core;
+    using namespace core::concurrency;
+
     TaskScheduler::Get().Launch_WorkerThread(
         [](AssetManager* self, VPath path, Function<void(std::shared_ptr<T>)> callback) -> Task<void>
         {
             std::shared_ptr<T> asset = co_await self->LoadInternal<T>(path);
 
-            co_await SwitchToMainThread{};
+            co_await coroutine::SwitchToMainThread{};
             if (callback)
             {
                 callback(std::move(asset));
@@ -100,9 +114,10 @@ void AssetManager::LoadAsync(VPath virtual_path, Fn&& on_loaded)
 }
 
 template <typename T>
-    requires loaders::AssetLoadable<T>
+    requires AssetLoadable<T>
 std::shared_ptr<T> AssetManager::LoadSynchronous(VPath virtual_path)
 {
+    using core::concurrency::TaskScheduler;
     return TaskScheduler::Get().BlockOn(LoadInternal<T>(std::move(virtual_path)));
 }
 
@@ -120,8 +135,10 @@ AssetStorage<T>& AssetManager::GetOrCreateStorage()
 }
 
 template <typename T>
-Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPath& virtual_path)
+core::concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPath& virtual_path)
 {
+    using namespace core::concurrency;
+
     const StringName asset_id = virtual_path.ToStringName();
     AssetStorage<T>& storage = GetOrCreateStorage<T>();
 
@@ -131,7 +148,7 @@ Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPath& virtual_path)
         co_return cached_asset;
     }
 
-    std::shared_ptr<EventWaitHandle> ongoing_load_event;
+    std::shared_ptr<coroutine::EventWaitHandle> ongoing_load_event;
     bool first_loader = false;
     {
         std::unique_lock lock(loading_requests_mutex);
@@ -148,17 +165,20 @@ Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPath& virtual_path)
 
     if (first_loader)
     {
+        using utility::PathResolver;
+        const PathResolver& resolver = PathResolver::Get();
+
         TaskScheduler::Get().Launch_WorkerThread([](
             AssetManager* self,
             Optional<std::filesystem::path> physical_path_opt,
             StringName asset_id_copy,
-            std::shared_ptr<EventWaitHandle> event
+            std::shared_ptr<coroutine::EventWaitHandle> event
         ) -> Task<void>
             {
                 std::shared_ptr<T> loaded_asset = nullptr;
                 if (physical_path_opt)
                 {
-                    loaders::AssetLoader<T> loader;
+                    AssetLoader<T> loader;
                     loaded_asset = co_await loader.Load(physical_path_opt.Value());
                 }
 
@@ -171,7 +191,7 @@ Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPath& virtual_path)
                 // loading_requests 에서 제거
                 std::unique_lock req_lock(self->loading_requests_mutex);
                 self->loading_requests.erase(asset_id_copy);
-            }(this, core::paths::Resolve(virtual_path), asset_id, ongoing_load_event)
+            }(this, resolver.Resolve(virtual_path), asset_id, ongoing_load_event)
         );
     }
 
