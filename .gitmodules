@@ -1,12 +1,15 @@
-[submodule "ThirdParty/ImGui"]
-	path = ThirdParty/ImGui
+[submodule "ThirdParty/SDL_shadercross"]
+	path = ThirdParty/SDL_shadercross
+	url = https://github.com/libsdl-org/SDL_shadercross
+[submodule "ThirdParty/tracy"]
+	path = ThirdParty/tracy
+	url = https://github.com/wolfpld/tracy
+[submodule "ThirdParty/doctest"]
+	path = ThirdParty/doctest
+	url = https://github.com/doctest/doctest
+[submodule "ThirdParty/imgui"]
+	path = ThirdParty/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "ThirdParty/tomlplusplus"]
 	path = ThirdParty/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus.git
-[submodule "ThirdParty/doctest"]
-	path = ThirdParty/doctest
-	url = https://github.com/doctest/doctest.git
-[submodule "ThirdParty/tracy"]
-	path = ThirdParty/tracy
-	url = https://github.com/wolfpld/tracy.git

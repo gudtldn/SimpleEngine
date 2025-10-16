@@ -1,0 +1,25 @@
+﻿#include "Core/Memory/MemoryResource/OsMemoryResource.h"
+#include "Core/Memory/OsMemory.h"
+
+
+namespace se::core::memory::memory_resource
+{
+void* OsMemoryResource::do_allocate(size_t size, size_t align)
+{
+    return OsMemory::Allocate(size, align);
+}
+
+void OsMemoryResource::do_deallocate(
+    void* ptr,
+    [[maybe_unused]] size_t size,
+    [[maybe_unused]] size_t align
+)
+{
+    OsMemory::Free(ptr);
+}
+
+bool OsMemoryResource::do_is_equal(const memory_resource& other) const noexcept
+{
+    return this == &other;
+}
+}

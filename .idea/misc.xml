@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakePythonSetting">
+    <option name="pythonIntegrationState" value="YES" />
+  </component>
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/Editor" />
+      <file path="$PROJECT_DIR$/EngineCore" />
+      <file path="$PROJECT_DIR$/EngineTest" />
+    </sourceRoots>
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/ThirdParty" />
+    </libraryRoots>
+  </component>
+</project>

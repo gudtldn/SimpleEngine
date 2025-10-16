@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="SimpleEngine" pattern="file:Engine//*||file:Tests//*||file:TODO.md" />
-</component>
