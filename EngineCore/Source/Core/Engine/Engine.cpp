@@ -1,65 +1,74 @@
-﻿module;
-#include <typeinfo>
+﻿#include "Core/Engine/Engine.h"
+
+#include <filesystem>
+#include <ranges>
+
+#include "Core/Concurrency/TaskScheduler.h"
+#include "Core/Concurrency/ThreadPool.h"
+#include "Core/Interfaces/ISubsystemBase.h"
+#include "Core/Interfaces/IUpdatable.h"
+#include "Core/Registration/SubsystemRegistration.h"
+#include "Gfx/RenderSubsystem.h"
+#include "Utility/PathResolver.h"
+#include "Utility/StringUtils.h"
+
+#include "SDL3/SDL_gpu.h"
 #include "tracy/Tracy.hpp"
-#include "Subsystems/SubsystemRegistration.h"
-module SE.Core;
-import :Engine;
-import :Paths;
 
-import SE.Utility;
-import SE.Subsystems.RenderSubsystem;
-
-import "SDL3/SDL_gpu.h";
+using namespace se::utility;
 
 
-namespace se::core::engine
+namespace se::core
 {
 Engine::Engine()
 {
-    paths::PathResolver& path_resolver = paths::PathResolver::Get();
+    PathResolver& path_resolver = PathResolver::Get();
 
     // TODO: Shipping일 때 경로 수정해야함!!!
     const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
 
     // Core
     path_resolver.Mount(u8"Config", solution_path / u8"Config");
-    path_resolver.Mount(u8"CoreAssets", solution_path / u8"Engine/EngineCore/Assets");
-    path_resolver.Mount(u8"CoreShader", solution_path / u8"Engine/EngineCore/Shaders");
+    path_resolver.Mount(u8"CoreAssets", solution_path / u8"EngineCore/Assets");
+    path_resolver.Mount(u8"CoreShader", solution_path / u8"EngineCore/Shaders");
 
     // Editor
-    path_resolver.Mount(u8"EditorAssets", solution_path / u8"Engine/EditorEngine/Assets");
-    path_resolver.Mount(u8"EditorShader", solution_path / u8"Engine/EditorEngine/Shaders");
+    path_resolver.Mount(u8"EditorAssets", solution_path / u8"Editor/Assets");
+    path_resolver.Mount(u8"EditorShader", solution_path / u8"Editor/Shaders");
 }
+
+Engine::~Engine() = default;
 
 void Engine::LoadRegisteredSubsystems()
 {
-    using subsystem_register::details::SubsystemRegistry;
-
-    auto& registry = SubsystemRegistry::GetSubsystemRegistry();
-    for (const auto& [type_id, factory_fn] : registry)
+    auto& registry = details::SubsystemRegistry::GetInstance();
+    for (const auto& [type_idx, metadata] : registry.factories)
     {
-        std::unique_ptr<ISubsystemBase> subsystem{ static_cast<ISubsystemBase*>(factory_fn()) };
-        subsystems[type_id] = std::move(subsystem);
-    }
-    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystems: {}", registry.size());
-    registry.clear();
+        if (subsystems.contains(type_idx))
+        {
+            continue;
+        }
 
-    auto& update_registry = SubsystemRegistry::GetUpdatableSystems();
-    for (const std::type_index& type_id : update_registry)
-    {
-        updatable_systems.push_back(reinterpret_cast<IUpdatable*>(subsystems[type_id].get()));
+        std::unique_ptr<ISubsystemBase> subsystem = metadata.factory();
+        if (metadata.is_updatable)
+        {
+            updatable_systems.push_back(dynamic_cast<IUpdatable*>(subsystem.get()));
+        }
+        subsystems[type_idx] = std::move(subsystem);
+
+        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_idx.name());
     }
-    update_registry.clear();
+    registry.factories.clear();
 }
 
 bool Engine::Initialize()
 {
-    thread_pool.reset(new concurrency::ThreadPool{
+    thread_pool = std::make_unique<concurrency::ThreadPool>(
         static_cast<uint32>(std::thread::hardware_concurrency() * 0.7)
-    });
-    task_scheduler.reset(new concurrency::TaskScheduler{
+    );
+    task_scheduler = std::make_unique<concurrency::TaskScheduler>(
         std::this_thread::get_id()
-    });
+    );
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
@@ -114,7 +123,7 @@ void Engine::ReleaseAllSubsystems()
     ConsoleLog(ELogLevel::Info, u8"Releasing Subsystems...");
 
     // RenderSubsystem이 있다면, 해제하기전에 GPU 대기
-    if (const RenderSubsystem* render_subsystem = GetSubsystem<RenderSubsystem>())
+    if (const RenderSubsystem* render_subsystem = GetSubsystem<const RenderSubsystem>())
     {
         SDL_WaitForGPUIdle(render_subsystem->GetGpuDevice());
     }
@@ -234,7 +243,8 @@ bool Engine::SortSubsystems()
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected in subsystems: ");
         for (const auto& id : circular_subsystems)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*subsystems[id]).name());
+            const ISubsystemBase* const subsystem = subsystems[id].get();
+            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*subsystem).name());
         }
 
         return false;
@@ -245,7 +255,7 @@ bool Engine::SortSubsystems()
     ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
     for (const auto& [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, utility::string::ToU8String(typeid(*sub_system).name()));
+        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, typeid(*sub_system).name());
     }
 
     return true;

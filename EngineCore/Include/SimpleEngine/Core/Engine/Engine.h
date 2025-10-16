@@ -1,24 +1,34 @@
-﻿export module SE.Core:Engine;
-import :Logging;
-import :Concurrency;
+﻿#pragma once
+#include <concepts>
+#include <memory>
+#include <typeindex>
+#include <utility>
 
-import SE.Utility;
-import SE.Interface.ISubsystemBase;
-import SE.Interface.IUpdatable;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Reflection/TypeSignature.h"
 
 
-namespace se::core::engine
+namespace se::core
 {
+namespace concurrency
+{
+class TaskScheduler;
+class ThreadPool;
+}
+
+class IUpdatable;
+class ISubsystemBase;
+
 /**
  * 엔진의 핵심 기능을 담당하는 클래스입니다.
  * Subsystem의 Register, Initialize, Release 및 Update와 같은 동작을 관리합니다.
  */
-export class Engine
+class SE_CORE_API Engine
 {
 public:
     Engine();
-    ~Engine() = default;
+    ~Engine();
 
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
@@ -96,7 +106,8 @@ private:
 };
 
 
-template <typename T, typename... Args> requires std::derived_from<T, ISubsystemBase>
+template <typename T, typename... Args>
+    requires std::derived_from<T, ISubsystemBase>
 T* Engine::RegisterSubsystem(Args&&... args)
 {
     const auto type_id = std::type_index(typeid(T));
@@ -115,11 +126,12 @@ T* Engine::RegisterSubsystem(Args&&... args)
         updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
     }
 
-    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", utility::type::GetTypeSignature<T>());
+    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", reflection::GetTypeSignature<T>());
     return sub_system_ptr;
 }
 
-template <typename T> requires std::derived_from<T, ISubsystemBase>
+template <typename T>
+    requires std::derived_from<T, ISubsystemBase>
 T* Engine::GetSubsystem() const
 {
     const auto type_id = std::type_index(typeid(T));
