@@ -15,7 +15,8 @@ public:
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
     {
-        return TypeId{ GetFullTypeName<T>(), GetTypeSignature<T>() };
+        using NonCVType = std::remove_cv_t<T>;
+        return TypeId{ GetFullTypeName<NonCVType>(), GetTypeSignature<NonCVType>() };
     }
 
     /** 타입 이름을 반환합니다. */
