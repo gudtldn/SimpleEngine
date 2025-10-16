@@ -1,21 +1,20 @@
-﻿export module SE.Rendering:Manager.PSOManager;
-export import :Manager.PSOManager.PipelineCreateInfo;
-import :Manager.PSOManager.ShaderCache;
-import :Traits.CreateInfoHash;
+﻿#pragma once
+#include <concepts>
 
-import SE.Types;
-import SE.Utility;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Rendering/Manager/PipelineCreateInfo.h"
+#include "SimpleEngine/Rendering/Manager/ShaderCache.h"
+#include "SimpleEngine/Rendering/Traits/CreateInfoHash.h"
 
-import "SDL3/SDL_gpu.h";
+#include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering::manager
+namespace se::rendering
 {
 /**
  * Graphics API에 사용되는 PSO를 관리하는 매니저
  */
-export class PSOManager
+class SE_CORE_API PSOManager
 {
 public:
     explicit PSOManager(SDL_GPUDevice* in_device);
@@ -29,7 +28,7 @@ public:
 
     /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T, typename... Args>
-        requires std::derived_from<T, IShaderCacheProvider>
+        requires std::derived_from<T, IShaderProvider>
     void SetShaderCacheProvider(Args&&... args);
 
     /** Shader 캐시 정리 및 파이프라인 정리를 수행합니다. */
@@ -44,7 +43,7 @@ private:
 };
 
 template <typename T, typename... Args>
-    requires std::derived_from<T, IShaderCacheProvider>
+    requires std::derived_from<T, IShaderProvider>
 void PSOManager::SetShaderCacheProvider(Args&&... args)
 {
     shader_cache.SetProvider<T>(std::forward<Args>(args)...);

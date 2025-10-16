@@ -1,24 +1,22 @@
-﻿export module SE.Rendering:Manager.PSOManager.ShaderCache;
-import :ShaderProvider.IShaderProvider;
-import :ShaderProvider.PrecompiledShaderProvider;
+﻿#pragma once
+#include <concepts>
+#include <memory>
 
-import SE.Types;
-import std;
-
-import "SDL3/SDL_gpu.h";
-
-using namespace se::rendering::shader_provider;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Rendering/ShaderProvider/PrecompiledShaderProvider.h"
 
 
+namespace se::rendering
+{
 /**
  * Rendering에 사용될 셰이더를 관리하는 매니저
  */
-class ShaderCache
+class SE_CORE_API ShaderCache
 {
 public:
     explicit ShaderCache(
         SDL_GPUDevice* in_device,
-        std::unique_ptr<IShaderCacheProvider> init_provider = std::make_unique<PrecompiledShaderProvider>()
+        std::unique_ptr<IShaderProvider> init_provider = std::make_unique<PrecompiledShaderProvider>()
     );
     ~ShaderCache();
 
@@ -29,7 +27,7 @@ public:
 
     /** Shader를 컴파일하는데 사용되는 Provider를 변경합니다. */
     template <typename T, typename... Args>
-        requires std::derived_from<T, IShaderCacheProvider>
+        requires std::derived_from<T, IShaderProvider>
     void SetProvider(Args&&... args);
 
     /** SDL_GPUShader* 를 가져옵니다. */
@@ -40,14 +38,15 @@ public:
 
 private:
     SDL_GPUDevice* device;
-    std::unique_ptr<IShaderCacheProvider> provider;
+    std::unique_ptr<IShaderProvider> provider;
 
-    se::unordered_map<ShaderRequest, SDL_GPUShader*> shader_cache;
+    unordered_map<ShaderRequest, SDL_GPUShader*> shader_cache;
 };
 
 template <typename T, typename... Args>
-    requires std::derived_from<T, IShaderCacheProvider>
+    requires std::derived_from<T, IShaderProvider>
 void ShaderCache::SetProvider(Args&&... args)
 {
     provider = std::make_unique<T>(std::forward<Args>(args)...);
+}
 }

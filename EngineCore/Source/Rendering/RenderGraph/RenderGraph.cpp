@@ -1,13 +1,18 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeConst
-module;
+#include "Rendering/RenderGraph/RenderGraph.h"
+
+#include <algorithm>
+#include <cassert>
+#include <memory>
+#include <ranges>
+#include <utility>
+
+#include "Core/Logging/Logging.h"
+#include "Rendering/Manager/PSOManager.h"
 #include "tracy/Tracy.hpp"
-module SE.Rendering;
-import :RenderGraph;
-
-import <cassert>;
 
 
-namespace se::rendering::render_graph
+namespace se::rendering
 {
 RenderGraph::RenderGraph(SDL_GPUDevice* in_device)
     : device(in_device)
@@ -37,15 +42,16 @@ void RenderGraph::Compile()
         // 이 패스가 사용하는 리소스에 writer_pass 정보를 추가
         for (const RGResourceHandle write_handle : pass_node.writes)
         {
-            if constexpr (utility::IS_DEBUG_BUILD)
+            if constexpr (SE_DEBUG_BUILD)
             {
                 // 리소스가 존재하는지 확인
                 if (!(write_handle && write_handle.index < resource_nodes.size()))
                 {
+                    const IRenderPass* const pass_object = pass_node.pass_object.get();
                     ConsoleLog(
                         ELogLevel::Error,
                         u8"Invalid resource handle. Check the {}::Setup() logic",
-                        typeid(*pass_node.pass_object).name()
+                        typeid(*pass_object).name()
                     );
                     assert(false && "Invalid resource handle.");
                 }
@@ -54,15 +60,16 @@ void RenderGraph::Compile()
             RGResourceNode& resource_node = resource_nodes[write_handle.index];
 
             // 리소스가 만들어졌는지 확인
-            if constexpr (utility::IS_DEBUG_BUILD)
+            if constexpr (SE_DEBUG_BUILD)
             {
                 if (!resource_node.resource)
                 {
+                    const IRenderPass* const pass_object = pass_node.pass_object.get();
                     ConsoleLog(
                         ELogLevel::Error,
                         u8"Resource {} is not initialized. Check the {}::Setup() logic",
                         resource_node.name.ToString(),
-                        typeid(*pass_node.pass_object).name()
+                        typeid(*pass_object).name()
                     );
                     assert(false && "Resource is not initialized.");
                 }
@@ -70,6 +77,8 @@ void RenderGraph::Compile()
                 // 리소스가 이미 다른 패스에서 쓰고 있는지 확인
                 if (resource_node.writer && resource_node.writer != &pass_node)
                 {
+                    const IRenderPass* const existing_writer_pass = resource_node.writer->pass_object.get();
+                    const IRenderPass* const pass_object = pass_node.pass_object.get();
                     // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
                     ConsoleLog(
                         ELogLevel::Error,
@@ -78,8 +87,8 @@ void RenderGraph::Compile()
                         u8"  - Existing Writer Pass: {}\n"
                         u8"  - Conflicting Writer Pass: {}",
                         resource_node.name.ToString(),
-                        typeid(*resource_node.writer->pass_object).name(),
-                        typeid(*pass_node.pass_object).name()
+                        typeid(*existing_writer_pass).name(),
+                        typeid(*pass_object).name()
                     );
                     assert(false && "A resource can only be written by a single pass per frame.");
                 }
@@ -221,7 +230,8 @@ void RenderGraph::Compile()
         ConsoleLog(ELogLevel::Fatal, u8"The following subsystems are involved in a circular dependency:");
         for (const RGPassNode* node : circular_pass_node)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*node->pass_object).name());
+            const IRenderPass* const pass_object = node->pass_object.get();
+            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*pass_object).name());
         }
 
         assert(false && "A cycle was detected in the render graph!");
@@ -231,7 +241,7 @@ void RenderGraph::Compile()
     // TODO: 리소스 생명주기 계산
 }
 
-void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager)
+void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
 {
     ZoneScoped;
 

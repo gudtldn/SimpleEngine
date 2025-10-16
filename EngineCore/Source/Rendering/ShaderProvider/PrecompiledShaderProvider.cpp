@@ -1,14 +1,14 @@
-﻿module SE.Rendering;
-import :ShaderProvider.PrecompiledShaderProvider;
+﻿#include "Rendering/ShaderProvider/PrecompiledShaderProvider.h"
 
-import SE.Utility;
+#include "Core/Logging/Logging.h"
+#include "Gfx/ShaderUtils.h"
 
 
-namespace se::rendering::shader_provider
+namespace se::rendering
 {
 SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
-    if constexpr (utility::IS_DEBUG_BUILD)
+    if constexpr (SE_DEBUG_BUILD)
     {
         const std::u8string ext = request.source_path.extension().u8string();
         if (!(
@@ -22,6 +22,6 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
         }
     }
 
-    return utility::shader::CompileFromSPIRV(device, request.source_path);
+    return gfx::CompileFromSPIRV(device, request.source_path);
 }
 }

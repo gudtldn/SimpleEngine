@@ -1,8 +1,10 @@
-﻿module SE.Rendering;
-import :Manager.PSOManager;
+﻿#include "Rendering/Manager/PSOManager.h"
+
+#include <ranges>
+#include "Core/Logging/Logging.h"
 
 
-namespace se::rendering::manager
+namespace se::rendering
 {
 PSOManager::PSOManager(SDL_GPUDevice* in_device)
     : device(in_device)

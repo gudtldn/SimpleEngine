@@ -1,15 +1,17 @@
-﻿export module SE.Rendering:RenderGraph.GpuResourcePool;
-import :Traits.CreateInfoEquals;
-import :Traits.CreateInfoHash;
+﻿#pragma once
+#include <cassert>
+#include <memory>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Rendering/Traits/CreateInfoEquals.h"
+#include "SimpleEngine/Rendering/Traits/CreateInfoHash.h"
 
-import <cassert>;
-import "SDL3/SDL_gpu.h";
+#include "SDL3/SDL_gpu.h"
 
 
-class GpuResourcePool
+namespace se::rendering
+{
+class SE_CORE_API GpuResourcePool
 {
 private:
     // Pool 관리용 Entry
@@ -26,8 +28,8 @@ public:
 
     GpuResourcePool(const GpuResourcePool&) = delete;
     GpuResourcePool& operator=(const GpuResourcePool&) = delete;
-    GpuResourcePool(GpuResourcePool&&) = default;
-    GpuResourcePool& operator=(GpuResourcePool&&) = default;
+    GpuResourcePool(GpuResourcePool&&) noexcept = default;
+    GpuResourcePool& operator=(GpuResourcePool&&) noexcept = default;
 
 public:
     /** CreateInfo에 맞는 텍스처를 Pool에서 찾거나 새로 생성하여 반환합니다. */
@@ -45,10 +47,10 @@ public:
 private:
     template <typename T, typename CreateResourceFn>
         requires std::is_invocable_r_v<T*, CreateResourceFn>
-    [[nodiscard]] T* AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func);
+    [[nodiscard]] static T* AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func);
 
     template <typename T>
-    void DeallocateResource(PoolEntry<T>& entry, T* resource);
+    static void DeallocateResource(PoolEntry<T>& entry, T* resource);
 
 private:
     SDL_GPUDevice* device;
@@ -62,7 +64,7 @@ T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& cre
 {
     if (entry.available_resources.empty())
     {
-        entry.used_resources.push_back(create_resource_func());
+        entry.used_resources.push_back(std::forward<CreateResourceFn>(create_resource_func)());
     }
     else [[likely]]
     {
@@ -79,4 +81,5 @@ void GpuResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
     assert(count > 0 && "Attempted to deallocate a texture that was not marked as used.");
 
     entry.available_resources.push_back(resource);
+}
 }

@@ -1,23 +1,22 @@
-﻿export module SE.Rendering:RenderGraph;
-export import :RenderGraph.RGResoueceHandle;
-export import :RenderGraph.RGResources;
-import :RenderGraph.GpuResourcePool;
-import :Manager.PSOManager;
+﻿#pragma once
+#include <memory>
 
-import SE.Core;
-import SE.Types;
-import SE.Utility;
-import SE.Interface.IRenderPass;
-import std;
-
-import <SDL3/SDL_gpu.h>;
+#include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Reflection/TypeSignature.h"
+#include "SimpleEngine/Rendering/RenderGraph/RGResoueceHandle.h"
+#include "SimpleEngine/Rendering/RenderGraph/RGResources.h"
+#include "SimpleEngine/Rendering/RenderPass/IRenderPass.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 
-namespace se::rendering::render_graph
+namespace se::rendering
 {
 // forward declaration
-export class RenderGraphBuilder;
-export class RGExecutionContext;
+struct GraphicsPipelineCreateInfo;
+struct ComputePipelineCreateInfo;
+class PSOManager;
+class RenderGraphBuilder;
+class RGExecutionContext;
 
 
 /** 그래프 내의 렌더 패스를 표현하는 내부 구조체 */
@@ -50,7 +49,7 @@ struct RGResourceNode
 /**
  * 렌더링 파이프라인의 구성, 최적화, 실행을 관리하는 핵심 클래스
  */
-export class RenderGraph
+class SE_CORE_API RenderGraph
 {
     friend class RenderGraphBuilder;
     friend class RGExecutionContext;
@@ -62,8 +61,8 @@ public:
     // 복사 생성자는 제거
     RenderGraph(const RenderGraph&) = delete;
     RenderGraph& operator=(const RenderGraph&) = delete;
-    RenderGraph(RenderGraph&&) = default;
-    RenderGraph& operator=(RenderGraph&&) = default;
+    RenderGraph(RenderGraph&&) noexcept = default;
+    RenderGraph& operator=(RenderGraph&&) noexcept = default;
 
 public:
     /**
@@ -76,7 +75,7 @@ public:
     PassType& AddPass(Args&&... args);
 
     void Compile();
-    void Execute(SDL_GPUCommandBuffer* cmd, manager::PSOManager& pso_manager);
+    void Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager);
     void Clear();
 
 public:
@@ -104,11 +103,12 @@ private:
 /**
  * IRenderPass::Setup() 내에서 RenderGraph의 상태를 안전하게 조작하기 위한 빌더 클래스
  */
-class RenderGraphBuilder
+class SE_CORE_API RenderGraphBuilder
 {
 public:
     RenderGraphBuilder(RenderGraph& in_graph, RGPassNode& in_pass)
-        : graph_ref(in_graph), pass_node_ref(in_pass)
+        : graph_ref(in_graph)
+        , pass_node_ref(in_pass)
     {
     }
 
@@ -129,10 +129,10 @@ private:
 /**
  * IRenderPass::Execute()에 전달되어 사용되는 컨텍스트 클래스
  */
-class RGExecutionContext
+class SE_CORE_API RGExecutionContext
 {
 public:
-    RGExecutionContext(SDL_GPUCommandBuffer* in_cmd, manager::PSOManager& in_pso_manager, const RenderGraph& in_graph)
+    RGExecutionContext(SDL_GPUCommandBuffer* in_cmd, PSOManager& in_pso_manager, const RenderGraph& in_graph)
         : command_buffer(in_cmd)
         , pso_manager(in_pso_manager)
         , graph_ref(in_graph)
@@ -150,7 +150,7 @@ public:
 
 private:
     SDL_GPUCommandBuffer* command_buffer;
-    manager::PSOManager& pso_manager;
+    PSOManager& pso_manager;
     const RenderGraph& graph_ref;
 };
 
@@ -165,7 +165,7 @@ PassType& RenderGraph::AddPass(Args&&... args)
     PassType* raw_ptr = pass_ptr.get();
 
     RGPassNode& node = pass_nodes.emplace_back();
-    node.name = StringName(utility::string::ToU8String(type::GetTypeSignature<PassType>()));
+    node.name = StringName(utility::string::ToU8String(reflection::GetTypeSignature<PassType>()));
     node.pass_object = std::move(pass_ptr);
 
     return *raw_ptr;

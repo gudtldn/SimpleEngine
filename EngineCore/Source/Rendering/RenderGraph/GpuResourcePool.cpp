@@ -1,9 +1,10 @@
-﻿module;
-#include "tracy/Tracy.hpp"
-module SE.Rendering;
-import :RenderGraph.GpuResourcePool;
+﻿#include "Rendering/RenderGraph/GpuResourcePool.h"
+
+#include <ranges>
 
 
+namespace se::rendering
+{
 GpuResourcePool::GpuResourcePool(SDL_GPUDevice* in_device)
     : device(in_device)
 {
@@ -60,4 +61,5 @@ SDL_GPUBuffer* GpuResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& in
 void GpuResourcePool::DeallocateBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
 {
     DeallocateResource(buffer_pool[info], buffer);
+}
 }

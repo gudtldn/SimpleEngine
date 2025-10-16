@@ -1,10 +1,12 @@
-﻿module SE.Rendering;
-import :Manager.PSOManager.ShaderCache;
+﻿#include "Rendering/Manager/ShaderCache.h"
 
-import SE.Core;
+#include <ranges>
+#include "Core/Logging/Logging.h"
 
 
-ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderCacheProvider> init_provider)
+namespace se::rendering
+{
+ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderProvider> init_provider)
     : device(in_device)
     , provider(std::move(init_provider))
 {
@@ -39,4 +41,5 @@ void ShaderCache::ClearCache()
         SDL_ReleaseGPUShader(device, cache);
     }
     shader_cache.clear();
+}
 }
