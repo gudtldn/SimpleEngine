@@ -1,7 +1,7 @@
-﻿#include "doctest.h"
+﻿#include "doctest/doctest.h"
 
-import SE.Prelude;
-import std;
+#include <string>
+#include "SimpleEngine/Core/Containers/Optional.h"
 
 
 TEST_SUITE("SimpleEngine.Types.Optional")

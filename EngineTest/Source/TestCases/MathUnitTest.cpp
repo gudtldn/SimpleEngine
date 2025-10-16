@@ -1,7 +1,5 @@
-﻿#include "doctest.h"
-
-import SE.Prelude;
-import std;
+﻿#include "doctest/doctest.h"
+#include "SimpleEngine/Core/Math/Math.h"
 
 
 TEST_SUITE("SimpleEngine.Math:Literals")

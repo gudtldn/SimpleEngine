@@ -1,17 +1,17 @@
-#include "doctest.h"
-#include "tracy/Tracy.hpp"
+#include "doctest/doctest.h"
 
-import std;
-import SE.Prelude;
-import SE.Components;
-import SE.Core;
+#include "SimpleEngine/World/Query.h"
+#include "SimpleEngine/World/QueryData.h"
+#include "SimpleEngine/World/World.h"
+#include "SimpleEngine/World/Components/MeshHandleComponent.h"
+#include "SimpleEngine/World/Components/TransformComponent.h"
 
 
 TEST_SUITE("SimpleEngine.Core:ECS")
 {
 using namespace se::core;
-using namespace se::core::ecs;
-using namespace se::core::ecs::schedules;
+using namespace se::world;
+using namespace se::world::schedules;
 
 // A simple component for testing
 struct TestValueComponent
@@ -32,17 +32,17 @@ TEST_CASE("ECS Schedule and System Execution Order")
     // Add systems to different schedules
     world.AddSystem<PreUpdate>([&]
     {
-        execution_log.push_back(u8"PreUpdate");
+        execution_log.emplace_back(u8"PreUpdate");
     });
 
     world.AddSystem<Update>([&]
     {
-        execution_log.push_back(u8"Update");
+        execution_log.emplace_back(u8"Update");
     });
 
     world.AddSystem<PostUpdate>([&]
     {
-        execution_log.push_back(u8"PostUpdate");
+        execution_log.emplace_back(u8"PostUpdate");
     });
 
     // Run schedules in a specific order
@@ -62,7 +62,7 @@ TEST_CASE("ECS System Component Modification and Queries")
     World world;
 
     // Create an entity with a component to be modified
-    auto entity = world.Spawn()
+    auto entity = world.SpawnEntity()
                        .AddComponent<TestValueComponent>({ .value = 10 })
                        .AddComponent<TestTagComponent>();
 
@@ -120,11 +120,11 @@ TEST_CASE("ECS System Parameter Compilation Test")
 {
     World world;
 
-    world.Spawn()
+    world.SpawnEntity()
          .AddComponent<TransformComponent>()
          .AddComponent<MeshHandleComponent>();
 
-    world.Spawn(
+    world.SpawnEntity(
         TransformComponent{
             .rotation = { 0.0, 0.0, 0.0, 1.0 },
             .position = { 1.0, 2.0, 3.0 },
@@ -180,15 +180,15 @@ TEST_CASE("ECS System With Optional Components")
     World world;
 
     // Create entities
-    auto entity_with_component = world.Spawn()
+    auto entity_with_component = world.SpawnEntity()
                                       .AddComponent<TestValueComponent>({ .value = 100 });
 
-    auto entity_without_component = world.Spawn();
+    auto entity_without_component = world.SpawnEntity();
 
     // System that uses Optional to modify a component if it exists
     world.AddSystem<Update>([](Query<Optional<TestValueComponent&>> query)
     {
-        for (auto [opt_val] : query)
+        for (const auto& [opt_val] : query)
         {
             if (opt_val.HasValue())
             {
@@ -212,7 +212,7 @@ TEST_CASE("ECS System With Optional Components")
     // System that adds the component if it's missing
     world.AddSystem<PostUpdate>([](Query<Entity, Optional<TestValueComponent&>> query, World* in_world)
     {
-        for (auto [entity, opt_val] : query)
+        for (const auto& [entity, opt_val] : query)
         {
             if (!opt_val.HasValue())
             {

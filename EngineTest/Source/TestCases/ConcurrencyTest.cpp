@@ -1,12 +1,19 @@
-#include "doctest.h"
+#include "doctest/doctest.h"
 
-import std;
-import SE.Core;
+#include <chrono>
+#include <future>
+#include <thread>
+
+#include "SimpleEngine/Core/Concurrency/Coroutine.h"
+#include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
+#include "SimpleEngine/Core/Concurrency/ThreadPool.h"
 
 using namespace se::core::concurrency;
 
 
-TEST_SUITE("SimpleEngine.Core.Concurrency")
+TEST_SUITE (
+"SimpleEngine.Core.Concurrency"
+)
 {
 TEST_CASE("ThreadPool can execute a simple task")
 {
@@ -33,7 +40,7 @@ TEST_CASE("TaskScheduler can launch a task on a worker thread")
     std::future<std::thread::id> future = promise.get_future();
 
     // Launch a task that captures the thread ID
-    TaskScheduler::Get().Launch_WorkerThread([&promise]() -> coroutine::Task<void>
+    TaskScheduler::Get().Launch_WorkerThread([&promise]() -> Task<void>
     {
         promise.set_value(std::this_thread::get_id());
         co_return;

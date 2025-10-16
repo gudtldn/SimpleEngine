@@ -1,7 +1,6 @@
-﻿#include "doctest.h"
+﻿#include "doctest/doctest.h"
 
-import SE.Prelude;
-import std;
+#include "SimpleEngine/Utility/StringUtils.h"
 
 
 TEST_SUITE("SimpleEngine.StringUtils")

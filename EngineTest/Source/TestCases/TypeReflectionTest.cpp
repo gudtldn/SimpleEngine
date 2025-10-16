@@ -1,7 +1,11 @@
-﻿#include "doctest.h"
+﻿#include "doctest/doctest.h"
 
-import SE.Prelude;
-import std;
+#include <ostream>
+#include <string_view>
+
+#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Reflection/TypeSignature.h"
+#include "SimpleEngine/Utility/Hash.h"
 
 
 namespace WeirdNamespace
@@ -28,7 +32,6 @@ enum class TestEnum
 TEST_SUITE("SimpleEngine.Utility.TypeUtils")
 {
 using namespace se::reflection;
-using namespace se::utility::type;
 
 TEST_CASE("Test CompileTime Type Name")
 {
@@ -121,6 +124,6 @@ TEST_CASE("TypeId Test")
 {
     constexpr TypeId id = TypeId::Get<int>();
     CHECK(id.GetName() == "int");
-    CHECK(id.GetHash() == se::utility::hash::FNV_Hash("int"));
+    CHECK(id.GetHash() == se::utility::FNV_Hash("int"));
 }
 }

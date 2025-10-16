@@ -1,29 +1,38 @@
-﻿#include "doctest.h"
-#include "toml++/toml.hpp"
+﻿#include "doctest/doctest.h"
 
-import std;
-import SE.Config;
-import SE.Prelude;
+#include <filesystem>
 
+#include "SimpleEngine/Utility/Config.h"
+#include "SimpleEngine/Utility/PathResolver.h"
+
+#define TOML_EXCEPTIONS 0
+#include "toml++/toml.h"
+#undef TOML_EXCEPTIONS
+
+
+namespace
+{
+se::utility::PathResolver& resolver = se::utility::PathResolver::Get();
+}
 
 TEST_SUITE("SimpleEngine.Config")
 {
+using namespace std::string_view_literals;
+using namespace std::string_literals;
+using namespace se::utility;
+
 [[maybe_unused]]
 static struct Init
 {
     Init()
     {
-        se::core::paths::PathResolver::Get().Mount(u8"Config", std::filesystem::current_path() / u8"Config");
+        resolver.Mount(u8"Config", std::filesystem::current_path() / u8"Config");
     }
 } _registrar{};
 
 static const VPath test_toml_path = u8"Config://ConfigTest.toml";
 static const VPath non_existent_file_path = u8"Config://InvalidTest.toml";
 static const VPath save_test_toml_path = u8"Config://SaveTest.toml";
-
-using namespace std::string_view_literals;
-using namespace std::string_literals;
-using namespace se::config;
 
 
 // --- 파일 읽기 테스트 ---
@@ -64,7 +73,7 @@ TEST_CASE("Config::ReadConfig - File Handling")
     {
         // 임시로 유효하지 않은 TOML 파일을 만듭니다.
         {
-            std::ofstream ofs(*se::core::paths::Resolve(non_existent_file_path));
+            std::ofstream ofs(*resolver.Resolve(non_existent_file_path, false));
             ofs << "this = is not valid toml syntax because of this character '";
         }
         const ParseResult result = Config::ReadConfig(non_existent_file_path);
@@ -77,7 +86,7 @@ TEST_CASE("Config::ReadConfig - File Handling")
         {
             MESSAGE("Successfully failed to read invalid TOML file as expected: " << result.error().description().data());
         }
-        std::filesystem::remove(*se::core::paths::Resolve(non_existent_file_path)); // 테스트 후 임시 파일 삭제
+        std::filesystem::remove(*resolver.Resolve(non_existent_file_path, false)); // 테스트 후 임시 파일 삭제
     }
 }
 
@@ -138,7 +147,7 @@ TEST_CASE("get array config file")
         CHECK(arr.HasValue());
         CHECK(arr->size() == 3);
 
-        auto check_list = std::array{u8"apple", u8"banana", u8"cherry"};
+        auto check_list = std::array{ u8"apple", u8"banana", u8"cherry" };
         for (size_t i = 0; i < arr->size(); i++)
         {
             CHECK((*arr)[i] == check_list[i]);
@@ -175,7 +184,7 @@ TEST_CASE("get table config file")
         CHECK(graphics->GetValue<bool>(u8"vsync") == true);
         CHECK(graphics->GetValue<int>(u8"max_fps") == 144);
 
-        auto check_list = std::array{u8"default.vert", u8"default.frag"};
+        auto check_list = std::array{ u8"default.vert", u8"default.frag" };
         auto shaders = graphics->GetArray<std::u8string>(u8"shaders");
         CHECK(shaders.HasValue());
         CHECK(shaders->size() == 2);
@@ -201,7 +210,7 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
         std::filesystem::path path_to_delete;
 
         FileDeleter(const VPath& p)
-            : path_to_delete(se::core::paths::Resolve(p).Value())
+            : path_to_delete(*PathResolver::Get().Resolve(p, false))
         {
         }
 
@@ -220,10 +229,10 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
     config.SetValue(u8"a_float", 3.14159f);
     config.SetValue(u8"a_string", u8"Hello, TOML!");
 
-    config.SetValue(u8"int_array", se::vector<int>{ { 1, 2, 3, 4, 5 }, std::pmr::get_default_resource() });
-    config.SetValue(u8"float_array", se::vector<float>{ { 0.5f, 1.5f, 2.5f }, std::pmr::get_default_resource() });
-    config.SetValue(u8"string_array", se::vector<se::u8string>{ { u8"apple", u8"banana", u8"cherry" }, std::pmr::get_default_resource() });
-    config.SetValue(u8"bool_array", se::vector<bool>{ { true, false, true, true }, std::pmr::get_default_resource() });
+    config.SetValue(u8"int_array", se::vector<int>{ { 1, 2, 3, 4, 5 } });
+    config.SetValue(u8"float_array", se::vector<float>{ { 0.5f, 1.5f, 2.5f } });
+    config.SetValue(u8"string_array", se::vector<se::u8string>{ { u8"apple", u8"banana", u8"cherry" } });
+    config.SetValue(u8"bool_array", se::vector<bool>{ { true, false, true, true } });
 
     config.SetValue(u8"window.width", 1280);
     config.SetValue(u8"window.height", 720);
@@ -236,7 +245,7 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
     config.SetValue(u8"graphics.shaders", se::vector<se::u8string>{ { u8"default.vert", u8"default.frag" }, std::pmr::get_default_resource() });
     config.SetValue(u8"graphics.features.antialiasing", u8"MSAAx4");
     config.SetValue(u8"graphics.features.anisotropic_filtering", 16);
-    config.SetValue(u8"graphics.multisample_levels", se::vector<int>{ { 2, 4, 8 }, std::pmr::get_default_resource() });
+    config.SetValue(u8"graphics.multisample_levels", se::vector<int>{ { 2, 4, 8 } });
 
     FileDeleter file_deleter(save_test_toml_path);
     CHECK(config.WriteConfig(save_test_toml_path));

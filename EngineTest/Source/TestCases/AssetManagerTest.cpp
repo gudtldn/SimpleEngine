@@ -1,16 +1,23 @@
-// #define DOCTEST_CONFIG_DISABLE
-#include "doctest.h"
-#include "tracy/Tracy.hpp"
+#include "doctest/doctest.h"
 
-import std;
-import SE.Assets;
-import SE.Core;
-import SE.Types;
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <thread>
+#include <utility>
 
-using namespace se::assets;
-using namespace se::core;
+#include "SimpleEngine/Asset/AssetManager.h"
+
+using namespace se::asset;
+using namespace se::core::concurrency;
 using namespace se::core::concurrency::coroutine;
 
+
+namespace
+{
+se::utility::PathResolver& resolver = se::utility::PathResolver::Get();
+}
 
 // 1. Dummy Asset & Loader for testing
 struct DummyAsset
@@ -19,10 +26,10 @@ struct DummyAsset
 };
 
 template <>
-class loaders::AssetLoader<DummyAsset>
+class se::asset::AssetLoader<DummyAsset>
 {
 public:
-    Task<std::shared_ptr<DummyAsset>> Load(const std::filesystem::path& path) const
+    [[nodiscard]] Task<std::shared_ptr<DummyAsset>> Load(const std::filesystem::path& path) const
     {
         // Simulate file read and parsing
         if (!std::filesystem::exists(path))
@@ -55,12 +62,12 @@ struct TestFixture
     {
         temp_dir_path = std::filesystem::temp_directory_path() / "AssetManagerTest";
         std::filesystem::create_directories(temp_dir_path);
-        paths::PathResolver::Get().Mount(u8"TestAssets", temp_dir_path);
+        resolver.Mount(u8"TestAssets", temp_dir_path);
     }
 
     ~TestFixture()
     {
-        paths::PathResolver::Get().Unmount(u8"TestAssets");
+        resolver.Unmount(u8"TestAssets");
         std::filesystem::remove_all(temp_dir_path);
         // Reset the singleton or clear its state if necessary. For now, we assume it's okay.
     }
@@ -70,7 +77,7 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Synchronously")
 {
     // Setup a dummy asset file
     const VPath asset_path = u8"TestAssets://my_asset.dummy";
-    const auto physical_path = paths::Resolve(asset_path).Value();
+    const auto physical_path = resolver.Resolve(asset_path, false).Value();
     {
         std::ofstream file(physical_path);
         file << 123;
@@ -87,7 +94,7 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Synchronously")
 TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
 {
     const VPath asset_path = u8"TestAssets://my_async_asset.dummy";
-    const auto physical_path = paths::Resolve(asset_path).Value();
+    const auto physical_path = resolver.Resolve(asset_path, false).Value();
     {
         std::ofstream file(physical_path);
         file << 456;
@@ -98,13 +105,13 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
         std::shared_ptr<DummyAsset> asset;
         asset_manager.LoadAsync<DummyAsset>(asset_path, [&asset]<typename T>(std::shared_ptr<T> in_asset) -> void
         {
-            asset = in_asset;
+            asset = std::move(in_asset);
         });
 
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(500ms); // Wait for the async loading to finish (500 ms)
 
-        const concurrency::TaskSchedulerTest test{ concurrency::TaskScheduler::Get() };
+        const TaskSchedulerTest test{ TaskScheduler::Get() };
         test.ProcessMainThreadTasks();
 
         REQUIRE(asset != nullptr);
@@ -127,13 +134,13 @@ TEST_CASE_FIXTURE(TestFixture, "Loading non-existent asset")
         std::shared_ptr<DummyAsset> asset;
         asset_manager.LoadAsync<DummyAsset>(non_existent_path, [&asset]<typename T>(std::shared_ptr<T> in_asset) -> void
         {
-            asset = in_asset;
+            asset = std::move(in_asset);
         });
 
         using namespace std::chrono_literals;
         std::this_thread::sleep_for(500ms); // Wait for the async loading to finish (500 ms)
 
-        const concurrency::TaskSchedulerTest test{ concurrency::TaskScheduler::Get() };
+        const TaskSchedulerTest test{ TaskScheduler::Get() };
         test.ProcessMainThreadTasks();
 
         CHECK(asset == nullptr);

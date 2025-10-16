@@ -1,15 +1,13 @@
-#include "doctest.h"
+#include "doctest/doctest.h"
 
-import SE.Prelude;
-import std;
+#include <string>
+#include "SimpleEngine/Core/Functional/Function.h"
 
-using namespace se::core::function;
+using namespace se::core;
 
 
 namespace
 {
-constexpr size_t SBO_BUFFER_SIZE = sizeof(void*) * 3;
-
 int free_function(int i)
 {
     return i * 2;
@@ -26,7 +24,7 @@ struct Functor
 // A large functor that will force heap allocation
 struct LargeFunctor
 {
-    char data[SBO_BUFFER_SIZE + 1];
+    char data[details::SBO_BUFFER_SIZE + 1];
 
     LargeFunctor()
     {
@@ -90,7 +88,7 @@ TEST_CASE("Invocation")
 
     SUBCASE("Large Lambda (Heap allocated)")
     {
-        char data[SBO_BUFFER_SIZE + 1]{}; // Force heap allocation
+        char data[details::SBO_BUFFER_SIZE + 1]{}; // Force heap allocation
         Function<int(int)> f([data](int i) { return i + data[0]; });
         CHECK(f);
         CHECK(f(10) == 10);

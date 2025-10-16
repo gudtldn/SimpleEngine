@@ -1,7 +1,5 @@
-﻿#include "doctest.h"
-
-import SE.Prelude;
-import std;
+﻿#include "doctest/doctest.h"
+#include "SimpleEngine/Core/Types/StringName.h"
 
 
 TEST_SUITE("SimpleEngine.Core.StringName")
@@ -103,7 +101,7 @@ TEST_CASE("3. Thread Safety with Reader-Writer Lock")
 
     for (int i = 0; i < num_threads; ++i)
     {
-        threads.emplace_back([&test_strings, num_iterations_per_thread, i]
+        threads.emplace_back([&test_strings, i]
         {
             for (int j = 0; j < num_iterations_per_thread; ++j)
             {
