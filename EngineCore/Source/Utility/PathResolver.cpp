@@ -1,31 +1,31 @@
-﻿module SE.Core;
-import :Paths.PathResolver;
+﻿#include "SimpleEngine/Utility/PathResolver.h"
 
-import SE.Core;
-import SE.Utility;
+#include <algorithm>
+#include <filesystem>
+#include <format>
+#include <functional>
+#include <shared_mutex>
 
-import <cassert>;
+#include "Core/Logging/Logging.h"
+#include "Utility/StringUtils.h"
 
 
-namespace se::core::paths
+namespace se::utility
 {
-PathResolver* PathResolver::Instance = nullptr;
-
 PathResolver& PathResolver::Get()
 {
-    if (!Instance)
-    {
-        Instance = new PathResolver;
-    }
-    return *Instance;
+    static PathResolver instance;
+    return instance;
 }
 
-void PathResolver::Mount(std::u8string_view scheme, const std::filesystem::path& physical_path, int priority)
+void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& physical_path, int priority)
 {
+    std::unique_lock lock(mutex);
+
     // 경로를 정규화하여 저장
     auto normalized_path = std::filesystem::absolute(physical_path);
 
-    std::vector<MountPoint>& points = mount_points[se::u8string(scheme)];
+    std::vector<MountPoint>& points = mount_points[scheme];
     points.push_back({
         .physical_path = std::move(normalized_path),
         .priority = priority
@@ -35,20 +35,23 @@ void PathResolver::Mount(std::u8string_view scheme, const std::filesystem::path&
     std::ranges::stable_sort(points, std::greater{});
 }
 
-void PathResolver::Unmount(std::u8string_view scheme)
+void PathResolver::Unmount(const StringName& scheme)
 {
-    mount_points.erase(se::u8string(scheme));
+    std::unique_lock lock(mutex);
+    mount_points.erase(scheme);
 }
 
-Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path) const
+Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path, bool check_existence) const
 {
     if (!virtual_path.IsValid() || !virtual_path.HasScheme())
     {
         return std::nullopt; // 스키마가 없으면 해석 불가
     }
 
-    const auto scheme = virtual_path.GetScheme();
-    const auto it = mount_points.find(se::u8string(scheme));
+    std::shared_lock lock(mutex);
+
+    const std::u8string_view scheme = virtual_path.GetScheme();
+    const auto it = mount_points.find(scheme);
 
     if (it == mount_points.end() || it->second.empty())
     {
@@ -57,20 +60,37 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path)
     }
 
     // 경로 부분에서 맨 앞의 '/' 제거
-    auto path_part = virtual_path.GetPathPart();
+    std::u8string_view path_part = virtual_path.GetPathPart();
     if (path_part.starts_with(u8'/'))
     {
         path_part.remove_prefix(1);
     }
 
-    // 우선순위가 가장 높은 마운트 포인트(0번 인덱스)를 사용
-    // TODO: 모든 마운트 포인트를 순회하며 파일이 실제로 존재하는지 확인할 수도 있음 (Mod Fallback)
-    const auto& base_path = it->second[0].physical_path;
-    return base_path / path_part;
+    // 모든 마운트 포인트를 순회하며 파일이 실제로 존재하는지 확인 (Mod Fallback)
+    for (const MountPoint& mount_point : it->second)
+    {
+        const std::filesystem::path resolved_path = mount_point.physical_path / path_part;
+        if (std::filesystem::exists(resolved_path))
+        {
+            return resolved_path;
+        }
+    }
+
+    if (!check_existence)
+    {
+        // 가장 우선순위가 높은(첫 번째) 마운트 포인트를 사용하여 경로를 조합
+        const MountPoint& primary_mount_point = it->second.front();
+        return primary_mount_point.physical_path / path_part;
+    }
+
+    ConsoleLog(ELogLevel::Warning, u8"File '{}' not found in any mounted path for scheme '{}'.", virtual_path.ToString(), scheme);
+    return std::nullopt;
 }
 
 Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_path) const
 {
+    std::shared_lock lock(mutex);
+
     const auto normalized_physical_path = std::filesystem::absolute(physical_path);
 
     Optional<VPath> best_match_opt = std::nullopt;
@@ -89,14 +109,14 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
                 // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
                 if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))
                 {
-                    using utility::string::ToU8String;
+                    using string::ToU8String;
 
                     longest_match_len = match_len;
                     best_priority = point.priority;
 
                     auto relative_part = std::filesystem::relative(normalized_physical_path, point.physical_path);
                     best_match_opt.Emplace(
-                        ToU8String(std::format("{}://{}", scheme, relative_part.generic_u8string()))
+                        ToU8String(std::format("{}://{}", scheme.ToString(), relative_part.generic_u8string()))
                     );
                 }
             }
