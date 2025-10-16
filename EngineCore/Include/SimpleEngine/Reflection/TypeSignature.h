@@ -196,8 +196,8 @@ consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) 
 }
 
 
-template <typename T>
 /** 컴파일 타임에 템플릿 타입 T에서 원본 타입명을 추출합니다. */
+template <typename T>
 consteval std::string_view ExtractTypeName() noexcept
 {
     constexpr auto signature = GetRawTypeSignature<T>();
