@@ -1,13 +1,14 @@
-﻿export module SE.Core:ECS.EntityManager;
-import :ECS.Entity;
+﻿#pragma once
+#include <atomic>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/World/Entity.h"
 
 
-namespace se::core::ecs
+namespace se::world
 {
-export class EntityManager
+class SE_CORE_API EntityManager
 {
 public:
     explicit EntityManager() = default;

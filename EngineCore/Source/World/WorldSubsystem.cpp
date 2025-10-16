@@ -1,4 +1,7 @@
-﻿module SE.Subsystems.WorldSubsystem;
+﻿#include "World/WorldSubsystem.h"
+#include "World/World.h"
+
+using namespace se::world;
 
 
 bool WorldSubsystem::Initialize()

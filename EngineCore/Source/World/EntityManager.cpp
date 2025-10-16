@@ -1,10 +1,9 @@
-﻿module SE.Core;
-import :ECS.EntityManager;
+﻿#include "World/EntityManager.h"
 
-import <cassert>;
+#include <cassert>
 
 
-namespace se::core::ecs
+namespace se::world
 {
 Entity EntityManager::Create()
 {
