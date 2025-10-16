@@ -1,22 +1,20 @@
-module;
+// ReSharper disable CppDFAUnreachableCode
+#include "Gfx/RenderSubsystem.h"
+
+#include <ranges>
+
+#include "SDL3/SDL_gpu.h"
+#include "SDL3/SDL_hints.h"
 #include "tracy/Tracy.hpp"
-module SE.Subsystems.RenderSubsystem;
 
-import SE.Core;
-import SE.Utility;
-import SE.Platform;
-import SE.Subsystems.Utility;
-import SE.Rendering;
-
-import <SDL3/SDL_gpu.h>;
-import <SDL3/SDL_hints.h>;
+using namespace se::rendering;
 
 
 bool RenderSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, u8"Initializing Render subsystem...");
 
-    const PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+    const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
     SDL_Window* main_window = platform_subsystem->GetMainWindow();
 
     // Window가 존재하는지 확인
@@ -33,21 +31,21 @@ bool RenderSubsystem::Initialize()
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN, true);
 
-    if constexpr (se::utility::IS_DEBUG_BUILD)
+    if constexpr (SE_DEBUG_BUILD)
     {
         // 디버그 모드 설정
         SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
     }
 
-    if constexpr (se::platform::detection::IS_PLATFORM_WINDOWS)
+    if constexpr (SE_PLATFORM_WINDOWS)
     {
         SDL_SetHint(SDL_HINT_GPU_DRIVER, "direct3d12");
     }
-    else if constexpr (se::platform::detection::IS_PLATFORM_LINUX)
+    else if constexpr (SE_PLATFORM_LINUX)
     {
         SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
     }
-    else if constexpr (se::platform::detection::IS_PLATFORM_MAC_OS)
+    else if constexpr (SE_PLATFORM_MACOS)
     {
         SDL_SetHint(SDL_HINT_GPU_DRIVER, "metal");
     }
@@ -98,7 +96,7 @@ void RenderSubsystem::Release()
     render_graph.reset();
     pso_manager.reset();
 
-    PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+    const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
         SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
@@ -111,7 +109,7 @@ void RenderSubsystem::RenderFrame() const
 {
     ZoneScoped;
 
-    PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>();
+    const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
     {
         if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)

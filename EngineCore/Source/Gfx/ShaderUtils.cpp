@@ -1,13 +1,12 @@
-﻿module;
-#include <SDL3/SDL_gpu.h>
-#include <SDL3_shadercross/SDL_shadercross.h>
-module SE.Utility;
-import :ShaderUtils;
+﻿#include "Gfx/ShaderUtils.h"
 
-import SE.Core;
+#include "Core/Containers/Containers.h"
+#include "Core/HAL/PlatformTypes.h"
+#include "Core/Logging/Logging.h"
+#include "Utility/FileUtils.h"
 
 
-namespace se::utility::shader
+namespace se::gfx
 {
 Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem::path& shader_path)
 {
@@ -52,7 +51,7 @@ SDL_GPUShader* CompileFromSPIRV(
 {
     // read shader file
     vector<uint8> source;
-    if (auto result = file::ReadToByteArray(shader_path))
+    if (auto result = utility::file::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
         source.emplace_back('\0'); // null-terminated
@@ -93,7 +92,6 @@ SDL_GPUShader* CompileFromSPIRV(
         .bytecode_size = source.size(),
         .entrypoint = entrypoint,
         .shader_stage = *stage_opt,
-        .enable_debug = true,
     };
 
     // get reflection metadata
@@ -119,10 +117,10 @@ SDL_GPUShader* CompileFromSPIRV(
             .entrypoint = entrypoint,
             .format = backend_formats,
             .stage = stage,
-            .num_samplers = refl_metadata->num_samplers,
-            .num_storage_textures = refl_metadata->num_storage_textures,
-            .num_storage_buffers = refl_metadata->num_storage_buffers,
-            .num_uniform_buffers = refl_metadata->num_uniform_buffers,
+            .num_samplers = refl_metadata->resource_info.num_samplers,
+            .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
+            .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
+            .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
         };
         SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
         SDL_free(bytecode);
@@ -131,17 +129,13 @@ SDL_GPUShader* CompileFromSPIRV(
 
     if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
     {
-        const SDL_ShaderCross_GraphicsShaderMetadata metadata = {
-            .num_samplers = refl_metadata->num_samplers,
-            .num_storage_textures = refl_metadata->num_storage_textures,
-            .num_storage_buffers = refl_metadata->num_storage_buffers,
-            .num_uniform_buffers = refl_metadata->num_uniform_buffers,
-            .num_inputs = refl_metadata->num_inputs,
-            .inputs = refl_metadata->inputs,
-            .num_outputs = refl_metadata->num_outputs,
-            .outputs = refl_metadata->outputs,
+        const SDL_ShaderCross_GraphicsShaderResourceInfo resource_info = {
+            .num_samplers = refl_metadata->resource_info.num_samplers,
+            .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
+            .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
+            .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
         };
-        return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &metadata, 0);
+        return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &resource_info, 0);
     }
 
     ConsoleLog(ELogLevel::Error, u8"Unknown shader backend format: {}", shader_path.generic_u8string());
