@@ -1,15 +1,15 @@
-﻿module;
-#include <SDL3/SDL_gpu.h>
-#include <SDL3_shadercross/SDL_shadercross.h>
-module SE.Editor.Utility;
-import :ShaderUtils;
+﻿#include "Rendering/Compiler/Compiler.h"
 
-import SE.Core;
-import SE.Types;
-import SE.Utility;
+#include <ranges>
+
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/FileUtils.h"
+
+#include "SDL3_shadercross/SDL_shadercross.h"
+#include "SimpleEngine/Gfx/ShaderUtils.h"
 
 
-namespace se::editor::utility::shader_utils
+namespace se::editor::rendering
 {
 using namespace se::utility;
 
@@ -35,7 +35,7 @@ SDL_GPUShader* CompileFromHLSL(
 
     // define default info
     const char* entrypoint = "main";
-    const Optional<SDL_ShaderCross_ShaderStage> stage_opt = se::utility::shader::DetermineShaderStage(shader_path);
+    const Optional<SDL_ShaderCross_ShaderStage> stage_opt = gfx::DetermineShaderStage(shader_path);
 
     if (!stage_opt.HasValue())
     {
@@ -70,7 +70,7 @@ SDL_GPUShader* CompileFromHLSL(
         const vector<HLSL_Define>& defines = *defines_opt;
         hlsl_defines.resize(defines.size());
 
-        for (auto [n, hlsl_define] : hlsl_defines | std::ranges::views::enumerate)
+        for (auto [n, hlsl_define] : hlsl_defines | std::views::enumerate)
         {
             hlsl_define.name = const_cast<char*>(defines[n].name);
             hlsl_define.value = const_cast<char*>(defines[n].value);
@@ -83,7 +83,6 @@ SDL_GPUShader* CompileFromHLSL(
         .include_dir = include_dir_opt ? include_dir_str.c_str() : nullptr,
         .defines = defines_opt ? hlsl_defines.data() : nullptr,
         .shader_stage = *stage_opt,
-        .enable_debug = IS_DEBUG_BUILD,
     };
 
     void* bytecode = nullptr;
@@ -117,10 +116,10 @@ SDL_GPUShader* CompileFromHLSL(
             .entrypoint = entrypoint,
             .format = backend_formats,
             .stage = stage,
-            .num_samplers = refl_metadata->num_samplers,
-            .num_storage_textures = refl_metadata->num_storage_textures,
-            .num_storage_buffers = refl_metadata->num_storage_buffers,
-            .num_uniform_buffers = refl_metadata->num_uniform_buffers,
+            .num_samplers = refl_metadata->resource_info.num_samplers,
+            .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
+            .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
+            .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
         };
         SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
         SDL_free(refl_metadata);

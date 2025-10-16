@@ -1,12 +1,13 @@
-﻿module;
-#include <SDL3/SDL_gpu.h>
-export module SE.Editor.Utility:ShaderUtils;
+﻿#pragma once
+#include <filesystem>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Containers/Optional.h"
+
+#include "SDL3/SDL_gpu.h"
 
 
-export namespace se::editor::utility::shader_utils
+namespace se::editor::rendering
 {
 struct HLSL_Define
 {

@@ -1,16 +1,18 @@
-﻿module SE.Editor.Rendering;
-import :ShaderProvider.CompilingShaderProvider;
+﻿#include "Rendering/Compiler/Provider.h"
 
-import SE.Editor.Utility;
-import SE.Utility;
-import std;
+#include <vector>
+
+#include "Rendering/Compiler/Compiler.h"
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Gfx/ShaderUtils.h"
+#include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
+
+using namespace se::rendering;
 
 
-namespace se::editor::rendering::shader_provider
+namespace se::editor::rendering
 {
-using namespace se::rendering::shader_provider;
-
-
 SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
     const std::u8string ext = request.source_path.extension().u8string();
@@ -18,8 +20,6 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
     // HLSL Compile
     if (ext.contains(u8".hlsl"))
     {
-        using namespace utility::shader_utils;
-
         Optional<vector<HLSL_Define>> defines_opt;
         if (request.hlsl_defines_opt.HasValue())
         {
@@ -50,7 +50,7 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
         || ext.contains(u8".spvt")
     )
     {
-        return se::utility::shader::CompileFromSPIRV(device, request.source_path);
+        return gfx::CompileFromSPIRV(device, request.source_path);
     }
 
     return nullptr;
