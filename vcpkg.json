@@ -1,0 +1,10 @@
+{
+    "name": "simple-engine",
+    "version-string": "0.1.0",
+    "dependencies": [
+        "icu",
+        "spirv-cross",
+        "directx-dxc",
+        "sdl3"
+    ]
+}
