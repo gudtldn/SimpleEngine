@@ -1,14 +1,17 @@
-﻿export module SE.Subsystems.PlatformSubsystem;
-export import :PlatformEventDispatcher;
+﻿#pragma once
+#include <expected>
 
-import SE.Types;
-import SE.Interface.ISubsystem;
-import std;
-import <SDL3/SDL.h>;
-import <SDL3/SDL_init.h>;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Event/EventDispatcher.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
+#include "SimpleEngine/Core/Registration/SubsystemRegistration.h"
+
+#include "SDL3/SDL.h"
 
 
-export struct WindowDesc
+struct WindowDesc
 {
     se::u8string title = u8"Untitled Window";
     uint32 width = 1280;
@@ -23,7 +26,7 @@ export struct WindowDesc
     bool prefer_linear_color_space = false;
 };
 
-export struct WindowCreateError
+struct WindowCreateError
 {
     enum class Type
     {
@@ -35,24 +38,15 @@ export struct WindowCreateError
     Type type;
     se::u8string message;
 
-    static WindowCreateError WindowCreation(se::u8string&& sdl_error)
-    {
-        return { Type::WindowCreationFailed, std::move(sdl_error) };
-    }
-
-    static WindowCreateError GPUDeviceClaim(se::u8string&& sdl_error)
-    {
-        return { Type::GPUDeviceClaimFailed, std::move(sdl_error) };
-    }
-
-    static WindowCreateError SwapchainSetup(se::u8string&& sdl_error)
-    {
-        return { Type::SwapchainSetupFailed, std::move(sdl_error) };
-    }
+    static WindowCreateError WindowCreation(se::u8string&& sdl_error) { return { Type::WindowCreationFailed, std::move(sdl_error) }; }
+    static WindowCreateError GPUDeviceClaim(se::u8string&& sdl_error) { return { Type::GPUDeviceClaimFailed, std::move(sdl_error) }; }
+    static WindowCreateError SwapchainSetup(se::u8string&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
 };
 
-export class PlatformSubsystem : public ISubsystem<>
+class SE_CORE_API PlatformSubsystem : public se::core::ISubsystem<>
 {
+    SE_REGISTER_SUBSYSTEM(PlatformSubsystem)
+
 public:
     /**
      * PlatformSubsystem을 새로 생성합니다.
@@ -73,11 +67,8 @@ public:
 
     void PollEvents();
 
-    PlatformEventDispatcher& GetEventDispatcher() const
-    {
-        static PlatformEventDispatcher platform_event_dispatcher;
-        return platform_event_dispatcher;
-    }
+    [[nodiscard]] se::core::event::EventDispatcher& GetEventDispatcher() { return platform_event_dispatcher; }
+    [[nodiscard]] const se::core::event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
 
 public:
     /** 메인 Window의 초기화 및 생성 준비를 수행합니다. */
@@ -90,19 +81,19 @@ public:
     bool DestroyWindow(SDL_WindowID window_id);
 
     /** WindowID로 Window 정보를 가져옵니다. */
-    SDL_Window* GetWindow(SDL_WindowID window_id) const;
+    [[nodiscard]] SDL_Window* GetWindow(SDL_WindowID window_id) const;
 
     /** Main Window의 ID를 가져옵니다. */
-    SDL_WindowID GetMainWindowID() const { return main_window_id; }
+    [[nodiscard]] SDL_WindowID GetMainWindowID() const { return main_window_id; }
 
     /** Main Window를 가져옵니다. */
-    SDL_Window* GetMainWindow() const { return GetWindow(main_window_id); }
+    [[nodiscard]] SDL_Window* GetMainWindow() const { return GetWindow(main_window_id); }
 
     /** Main Window의 생성 정보를 가져옵니다. */
-    const Optional<WindowDesc>& GetMainWindowInfo() const { return main_window_info; }
+    [[nodiscard]] const Optional<WindowDesc>& GetMainWindowInfo() const { return main_window_info; }
 
     /** 현재 관리되고 있는 모든 Window를 가져옵니다. */
-    const auto& GetWindows() const { return windows; }
+    [[nodiscard]] const auto& GetWindows() const { return windows; }
 
 private:
     void RegisterWindow(SDL_WindowID window_id, SDL_Window* window);
@@ -115,4 +106,5 @@ private:
     SDL_WindowID main_window_id = 0;
 
     se::unordered_map<SDL_WindowID, SDL_Window*> windows;
+    se::core::event::EventDispatcher platform_event_dispatcher;
 };

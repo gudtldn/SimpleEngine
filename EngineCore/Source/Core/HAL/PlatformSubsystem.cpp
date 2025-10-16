@@ -1,11 +1,15 @@
-﻿module SE.Subsystems.PlatformSubsystem;
+﻿#include "Core/HAL/PlatformSubsystem.h"
 
-import SE.Core;
-import SE.Utility;
-import SE.Subsystems.Utility;
-import SE.Subsystems.RenderSubsystem;
-import <SDL3/SDL_gpu.h>;
+#include <ranges>
 
+#include "Gfx/RenderSubsystem.h"
+#include "Utility/StringUtils.h"
+
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_gpu.h"
+
+using namespace se::core::event;
+using namespace se::utility;
 using namespace se::utility::string;
 
 
@@ -15,17 +19,21 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     using namespace se::core::memory;
 
     // SDL_SetMemoryFunctions(
-    //     OsMemory::Malloc,
+    //     [](size_t size) static -> void*
+    //     {
+    //         return OsMemory::Allocate(size);
+    //     },
     //     [](size_t nmemb, size_t size) static -> void*
     //     {
     //         const size_t total_size = nmemb * size;
-    //
-    //         void* mem = OsMemory::Malloc(total_size);
+    //         void* mem = OsMemory::Allocate(total_size);
     //         std::memset(mem, 0, total_size);
-    //
-    //         return mem;
+    //          return mem;
     //     },
-    //     OsMemory::Realloc,
+    //     [](void* mem, size_t size) static -> void*
+    //     {
+    //         return OsMemory::Realloc(mem, size, alignof(max_align_t));
+    //     },
     //     OsMemory::Free
     // );
 }
@@ -77,7 +85,7 @@ void PlatformSubsystem::Release()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void PlatformSubsystem::PollEvents()
 {
-    PlatformEventDispatcher& dispatcher = GetEventDispatcher();
+    EventDispatcher& dispatcher = GetEventDispatcher();
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
