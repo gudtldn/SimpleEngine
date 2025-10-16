@@ -1,22 +1,26 @@
-﻿module;
+﻿#include "App/Application.h"
+
+#include <cassert>
+
+#include "Asset/AssetSubsystem.h"
+#include "Core/Engine/Engine.h"
+#include "Core/HAL/PlatformSubsystem.h"
+#include "Core/Logging/LogBackendManager.h"
+#include "Core/Logging/Logging.h"
+#include "Core/Logging/LogSettings.h"
+#include "Core/Logging/Backends/ConsoleBackend.h"
+#include "Core/Logging/Backends/FileBackend.h"
+#include "Core/Memory/MemoryTracker.h"
+#include "Core/Memory/MemoryResource/OsMemoryResource.h"
+#include "Utility/StringUtils.h"
+#include "World/WorldSubsystem.h"
+
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_init.h"
 #include "tracy/Tracy.hpp"
-module SE.App;
 
 #define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, u8"Initialize Failed!: {}", #x); return; } else {}
 
-import SE.Core;
-import SE.Config;
-import SE.Utility;
-import SE.Platform;
-import SE.Subsystems.PlatformSubsystem;
-import SE.Subsystems.RenderSubsystem;
-import SE.Subsystems.WorldSubsystem;
-import SE.Subsystems.AssetSubsystem;
-
-import <cassert>;
-import <SDL3/SDL.h>;
-import <SDL3/SDL_init.h>;
-import <SDL3/SDL_video.h>;
 
 namespace
 {
@@ -46,6 +50,7 @@ Application::Application(EApplicationMode in_application_mode)
     assert(!Instance && "Application instance already exists!");
     Instance = this;
 
+    // TODO: 이거 역할이 멤버변수하고 전역변수하고 반대 아닌가?
     original_resource = std::pmr::set_default_resource(&default_resource);
 }
 
@@ -74,9 +79,9 @@ void Application::Startup(const wchar_t* cmd_line)
 
 void Application::Startup(const u8string& cmd_line)
 {
-    platform::Platform::SetCurrentThreadName(u8"Main Thread");
+    platform::SetCurrentThreadName(u8"Main Thread");
 
-    if constexpr (utility::IS_DEBUG_BUILD)
+    if constexpr (SE_DEBUG_BUILD)
     {
         LogSettings::EnableColor(true);
         LogSettings::SetForceColor(true);
@@ -87,8 +92,8 @@ void Application::Startup(const u8string& cmd_line)
         using namespace core::logging;
         LogBackendManager& manager = LogBackendManager::Get();
 
-        manager.AddBackend<backends::ConsoleBackend>();
-        manager.AddBackend<backends::FileBackend>();
+        manager.AddBackend<ConsoleBackend>();
+        manager.AddBackend<FileBackend>();
     }
 
     ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);
@@ -117,19 +122,20 @@ void Application::MainLoop()
 {
     is_running = true;
 
-    const double performance_frequency = static_cast<double>(SDL_GetPerformanceFrequency());
-    if (performance_frequency <= 0.0)
+    static double frequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    if (frequency <= 0.0)
     {
-        const_cast<double&>(performance_frequency) = 1000.0;
+        frequency = 1000.0;
     }
 
-    auto get_performance_time = [performance_frequency] -> double
+    static auto get_performance_time = [] static -> double
     {
-        return static_cast<double>(SDL_GetPerformanceCounter()) / performance_frequency;
+        return static_cast<double>(SDL_GetPerformanceCounter()) / frequency;
     };
 
     CurrentTime = get_performance_time();
 
+    // ReSharper disable once CppDFAConstantConditions
     while (is_running && !quit_requested)
     {
         ZoneScoped;
@@ -180,7 +186,7 @@ void Application::MainLoop()
 
 bool Application::PreInitialize()
 {
-    engine_instance = std::make_unique<Engine>();
+    engine_instance = std::make_unique<core::Engine>();
     if (engine_instance == nullptr)
     {
         ConsoleLog(ELogLevel::Error, u8"Failed to create engine instance!");
@@ -192,9 +198,6 @@ bool Application::PreInitialize()
 void Application::RegisterSubsystems()
 {
     engine_instance->LoadRegisteredSubsystems();
-    engine_instance->RegisterSubsystem<PlatformSubsystem>();
-    engine_instance->RegisterSubsystem<WorldSubsystem>();
-    engine_instance->RegisterSubsystem<AssetSubsystem>();
 }
 
 bool Application::InitializeEngine()
@@ -209,6 +212,8 @@ bool Application::InitializeEngine()
 
 bool Application::PostInitialize()
 {
+    using namespace core::event;
+
     PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
     platform_sys->GetEventDispatcher().Subscribe(
         EventPriority::High, [this, platform_sys](const PlatformEvent& platform_event)
