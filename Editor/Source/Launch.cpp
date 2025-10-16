@@ -1,26 +1,26 @@
-﻿import std;
-import SE.Core;
-import SE.Editor.App;
+﻿#include "App/EditorApplication.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
-import <Windows.h>;
-import <SDL3/SDL.h>;
+#include "SDL3/SDL.h"
+
 
 static EditorApplication app;
 
-int WINAPI wWinMain(
-    _In_ HINSTANCE hInstance,
-    _In_opt_ HINSTANCE hPrevInstance,
-    _In_ LPWSTR lpCmdLine,
-    _In_ int nShowCmd
-)
+int main(int argc, char* argv[])
 {
-    UNREFERENCED_PARAMETER(hInstance);
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(nShowCmd);
-
     SDL_SetAppMetadata("SimpleEngine_Editor", "0.1.0", "com.editor.simpleengine");
 
-    app.Startup(lpCmdLine);
+    se::u8string cmd_line;
+    for (int i = 1; i < argc; ++i)
+    {
+        cmd_line += se::utility::string::ToU8String(argv[i]);
+        if (i != argc - 1)
+        {
+            cmd_line += u8" ";
+        }
+    }
+
+    app.Startup(cmd_line);
     app.Shutdown();
 
     // SDL_Init(SDL_INIT_VIDEO);
