@@ -1,15 +1,14 @@
-﻿export module SE.Types:VirtualPath;
-import :Containers;
-import :PlatformTypes;
-import :StringName;
+﻿#pragma once
+#include <string_view>
 
-import std;
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Types/StringName.h"
 
 
 /**
  * 엔진의 파일 시스템을 추상화하는 가상 경로 타입
  */
-export class VPath
+class SE_CORE_API VPath
 {
 public:
     VPath() = default;
@@ -20,8 +19,8 @@ public:
 
     VPath(const VPath&) = default;
     VPath& operator=(const VPath&) = default;
-    VPath(VPath&&) = default;
-    VPath& operator=(VPath&&) = default;
+    VPath(VPath&&) noexcept = default;
+    VPath& operator=(VPath&&) noexcept = default;
 
 public:
     /** 현재 경로에 상대 경로를 추가하여 새로운 VPath 객체를 생성합니다 */
@@ -57,7 +56,7 @@ public:
     [[nodiscard]] std::u8string_view GetStem() const noexcept;
 
     /** 전체 경로를 u8string 참조로 반환합니다. */
-    [[nodiscard]] const se::u8string& ToU8String() const noexcept { return full_path; }
+    [[nodiscard]] const se::u8string& ToString() const noexcept { return full_path; }
 
     /** 전체 경로를 StringName으로 변환하여 반환합니다. */
     [[nodiscard]] StringName ToStringName() const { return StringName{ full_path }; }
@@ -77,6 +76,6 @@ struct std::hash<VPath>
 {
     std::size_t operator()(const VPath& path) const noexcept
     {
-        return std::hash<se::u8string>{}(path.ToU8String());
+        return std::hash<se::u8string>{}(path.ToString());
     }
 };

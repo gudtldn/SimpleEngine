@@ -1,5 +1,4 @@
-﻿module SE.Types;
-import :VirtualPath;
+﻿#include "SimpleEngine/Core/Types/VPath.h"
 
 
 VPath::VPath(const char8* path)
@@ -37,7 +36,7 @@ std::u8string_view VPath::GetScheme() const noexcept
 {
     if (HasScheme())
     {
-        return std::u8string_view(full_path.data(), scheme_len);
+        return std::u8string_view{ full_path.data(), scheme_len };
     }
     return {};
 }
@@ -46,7 +45,7 @@ std::u8string_view VPath::GetPathPart() const noexcept
 {
     if (IsValid())
     {
-        return std::u8string_view(full_path.data() + path_offset, full_path.length() - path_offset);
+        return std::u8string_view{ full_path.data() + path_offset, full_path.length() - path_offset };
     }
     return {};
 }
@@ -78,7 +77,7 @@ std::u8string_view VPath::GetFilename() const noexcept
         {
             return GetPathPart(); // 스키마는 없고 파일명만 있는 경우
         }
-        return std::u8string_view(full_path.data() + last_slash + 1);
+        return std::u8string_view{ full_path.data() + last_slash + 1 };
     }
     return {};
 }
