@@ -7,7 +7,6 @@ namespace se::reflection
 {
 /**
  * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
- * @todo cv-ref에 대해서도 구분할 수 있게 해야함
  */
 class TypeId
 {
@@ -16,7 +15,7 @@ public:
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
     {
-        return TypeId{ GetTypeSignature<T>() };
+        return TypeId{ GetFullTypeName<T>(), GetTypeSignature<T>() };
     }
 
     /** 타입 이름을 반환합니다. */
@@ -30,9 +29,9 @@ public:
     constexpr auto operator<=>(const TypeId& other) const { return type_hash <=> other.type_hash; }
 
 private:
-    explicit constexpr TypeId(std::string_view in_type_name)
+    explicit constexpr TypeId(std::string_view in_type_name, std::string_view in_type_hash)
         : type_name(in_type_name)
-        , type_hash(utility::FNV_Hash(in_type_name))
+        , type_hash(utility::FNV_Hash(in_type_hash))
     {
     }
 
