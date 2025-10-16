@@ -1,8 +1,8 @@
-﻿module SE.Core;
-import :Logging.Backends.FileBackend;
+﻿#include "Core/Logging/Backends/FileBackend.h"
+#include "Core/Logging/Formatter.h"
 
 
-namespace se::core::logging::backends
+namespace se::core::logging
 {
 FileBackend::FileBackend()
 {

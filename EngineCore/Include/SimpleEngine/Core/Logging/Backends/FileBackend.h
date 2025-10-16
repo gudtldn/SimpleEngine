@@ -1,13 +1,14 @@
-﻿export module SE.Core:Logging.Backends.FileBackend;
-import :Logging.Backends.ILogBackend;
+﻿#pragma once
+#include <fstream>
+#include <filesystem>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
 
 
-namespace se::core::logging::backends
+namespace se::core::logging
 {
-export class FileBackend : public ILogBackend
+class SE_CORE_API FileBackend : public ILogBackend
 {
 public:
     FileBackend();
