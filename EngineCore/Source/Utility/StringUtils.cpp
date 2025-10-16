@@ -1,11 +1,7 @@
-﻿module;
+﻿#include "Utility/StringUtils.h"
+
 #include <unicode/unistr.h>
 #include <unicode/locid.h>
-module SE.Utility;
-import :StringUtils;
-
-import SE.Types;
-import <cassert>;
 
 using namespace icu;
 
