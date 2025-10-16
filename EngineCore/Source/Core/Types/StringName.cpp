@@ -1,12 +1,8 @@
-﻿module SE.Types;
-import :StringName;
-import :StringName.StringNamePool;
-
-import SE.Utility;
+﻿#include "Core/Types/StringName.h"
+#include "StringNamePool.h"
 
 
 StringName StringName::None = StringName{};
-
 
 StringName::StringName(const char8* in_str)
     : StringName(std::u8string_view(in_str))
@@ -21,7 +17,7 @@ StringName::StringName(std::u8string_view in_str)
     display_hash = temp_display_hash;
     comparison_hash = temp_comparison_hash;
 
-#ifdef _DEBUG
+#ifdef SE_DEBUG_BUILD
     debug_entry_ptr = display_hash == 0 ? nullptr : &pool.Resolve(display_hash);
 #endif
 }
