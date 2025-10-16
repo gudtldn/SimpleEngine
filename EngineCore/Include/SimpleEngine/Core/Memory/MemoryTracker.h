@@ -1,7 +1,8 @@
-﻿export module SE.Core:Memory.MemoryTracker;
+﻿#pragma once
+#include <atomic>
+#include <stacktrace>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
 namespace se::core::memory
@@ -27,7 +28,7 @@ struct TrackingHeader
 /**
  * 모든 메모리 할당을 추적하고 통계 및 디버깅 정보를 제공하는 정적 클래스
  */
-export class MemoryTracker
+class SE_CORE_API MemoryTracker
 {
 public:
     /**
@@ -50,10 +51,10 @@ public:
 
 public:
     /** 현재 추적되고 있는 모든 메모리 Byte를 반환합니다. */
-    [[nodiscard]] static size_t GetTotalAllocated() { return TotalAllocated; }
+    [[nodiscard]] FORCE_INLINE static size_t GetTotalAllocated() { return TotalAllocated; }
 
     /** 현재 추적되고 있는 모든 메모리 개수를 반환합니다. */
-    [[nodiscard]] static size_t GetAllocationCount() { return AllocationCount; }
+    [[nodiscard]] FORCE_INLINE static size_t GetAllocationCount() { return AllocationCount; }
 
 private:
     static std::atomic<size_t> TotalAllocated;

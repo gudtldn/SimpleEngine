@@ -1,10 +1,8 @@
-﻿module;
-#include <cstdlib>
-#include "tracy/Tracy.hpp"
-module SE.Core;
-import :Memory.OsMemory;
+﻿// ReSharper disable CppDFAMemoryLeak
+#include "Core/Memory/OsMemory.h"
 
-import SE.Math;
+#include <memory>
+#include "tracy/Tracy.hpp"
 
 
 namespace se::core::memory
@@ -46,7 +44,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     std::construct_at(header, size, offset);
 
     // Tracy로 메모리 사용량 추적
-    TracyAllocS(user_ptr, size, 12);
+    TracyAllocS(user_ptr, size, 16);
 
     return user_ptr;
 }
@@ -74,7 +72,7 @@ void* OsMemory::Realloc(void* address, size_t new_size, size_t alignment)
     const size_t old_allocated_size = GetAllocatedSize(address);
 
     // 기존 내용 복사
-    const size_t copy_size = math::MathUtility::Min(old_allocated_size, new_size);
+    const size_t copy_size = std::min(old_allocated_size, new_size);
     std::memcpy(new_address, address, copy_size);
 
     // 이전 메모리 해제
@@ -91,7 +89,7 @@ void OsMemory::Free(void* address)
     }
 
     // Tracy에서 메모리 사용량 추적 해제
-    TracyFreeS(address, 12);
+    TracyFreeS(address, 16);
 
     // user_ptr로 부터 헤더 위치 계산
     OsMemoryHeader* header = GetHeaderFromUserPtr(address);

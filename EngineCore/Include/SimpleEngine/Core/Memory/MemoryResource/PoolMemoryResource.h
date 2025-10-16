@@ -1,12 +1,12 @@
-﻿export module SE.Core:Memory.MemoryResource.PoolMemoryResource;
+﻿#pragma once
+#include <memory_resource>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-export namespace se::core::memory::memory_resource
+namespace se::core::memory::memory_resource
 {
-class PoolMemoryResource : public std::pmr::synchronized_pool_resource
+class SE_CORE_API PoolMemoryResource : public std::pmr::synchronized_pool_resource
 {
 public:
     explicit PoolMemoryResource(memory_resource* upstream = std::pmr::get_default_resource());

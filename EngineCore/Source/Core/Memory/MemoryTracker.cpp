@@ -1,9 +1,12 @@
-﻿module;
-#include "tracy/Tracy.hpp"
-module SE.Core;
-import :Memory.MemoryTracker;
+﻿#include "Core/Memory/MemoryTracker.h"
 
-import SE.Core;
+#include <ranges>
+
+#include "Core/Containers/Containers.h"
+#include "Core/Logging/Logging.h"
+#include "Core/Memory/OsMemory.h"
+
+#include "tracy/Tracy.hpp"
 
 
 namespace
@@ -15,17 +18,20 @@ struct LeakInfo
 };
 
 // <메모리 주소, 누수 정보>를 저장하는 Map
-std::unordered_map<const void*, LeakInfo> GLeakedMemoryMap;
+se::unordered_map<const void*, LeakInfo> GLeakedMemoryMap;
 TracyLockable(std::mutex, GMapMutex);
 }
 
 namespace se::core::memory
 {
+std::atomic<size_t> MemoryTracker::TotalAllocated = 0;
+std::atomic<size_t> MemoryTracker::AllocationCount = 0;
+
 void MemoryTracker::TrackAllocation(const void* address)
 {
     const size_t allocated_size = OsMemory::GetAllocatedSize(address);
 
-#ifdef _DEBUG
+#ifdef SE_DEBUG_BUILD
     {
         std::scoped_lock lock(GMapMutex);
         GLeakedMemoryMap[address] = {
@@ -44,7 +50,7 @@ void MemoryTracker::TrackDeallocation(const void* address)
 {
     const size_t allocated_size = OsMemory::GetAllocatedSize(address);
 
-#ifdef _DEBUG
+#ifdef SE_DEBUG_BUILD
     std::scoped_lock lock(GMapMutex);
     GLeakedMemoryMap.erase(address);
 #endif
@@ -56,7 +62,7 @@ void MemoryTracker::TrackDeallocation(const void* address)
 
 bool MemoryTracker::CheckForLeaks()
 {
-#ifdef _DEBUG
+#ifdef SE_DEBUG_BUILD
     std::scoped_lock lock(GMapMutex);
     if (!GLeakedMemoryMap.empty())
     {
@@ -76,7 +82,4 @@ bool MemoryTracker::CheckForLeaks()
 #endif
     return false;
 }
-
-std::atomic<size_t> MemoryTracker::TotalAllocated = 0;
-std::atomic<size_t> MemoryTracker::AllocationCount = 0;
 }

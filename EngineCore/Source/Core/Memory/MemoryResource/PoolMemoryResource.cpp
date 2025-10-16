@@ -1,5 +1,4 @@
-﻿module SE.Core;
-import :Memory.MemoryResource.PoolMemoryResource;
+﻿#include "Core/Memory/MemoryResource/PoolMemoryResource.h"
 
 
 namespace se::core::memory::memory_resource

@@ -1,7 +1,5 @@
-﻿module SE.Core;
-import :Memory.MemoryResource.OsMemoryResource;
-
-import :Memory.OsMemory;
+﻿#include "Core/Memory/MemoryResource/OsMemoryResource.h"
+#include "Core/Memory/OsMemory.h"
 
 
 namespace se::core::memory::memory_resource

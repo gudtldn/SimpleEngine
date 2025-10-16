@@ -1,15 +1,15 @@
-﻿export module SE.Core:Memory.MemoryResource.TrackedMemoryResource;
+﻿#pragma once
+#include <memory_resource>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-export namespace se::core::memory::memory_resource
+namespace se::core::memory::memory_resource
 {
 /**
  * 컨테이너의 사용량을 추적하는 메모리 리소스
  */
-class TrackedMemoryResource : public std::pmr::memory_resource
+class SE_CORE_API TrackedMemoryResource : public std::pmr::memory_resource
 {
 public:
     /**
@@ -21,7 +21,7 @@ public:
 protected:
     virtual void* do_allocate(size_t size, size_t align) override;
     virtual void do_deallocate(void* ptr, size_t size, size_t align) override;
-    virtual bool do_is_equal(const memory_resource& other) const noexcept override;
+    [[nodiscard]] virtual bool do_is_equal(const memory_resource& other) const noexcept override;
 
 private:
     memory_resource* upstream_resource;

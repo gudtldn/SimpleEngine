@@ -1,15 +1,15 @@
-﻿export module SE.Core:Memory.OsMemory;
+﻿#pragma once
+#include <cstddef>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-export namespace se::core::memory
+namespace se::core::memory
 {
 /**
  * 운영체제의 메모리 할당/해제(malloc, free)를 추상화한 클래스
  */
-struct OsMemory
+struct SE_CORE_API OsMemory
 {
 public:
     /**
@@ -80,14 +80,14 @@ private:
     static constexpr size_t HEADER_SIZE = sizeof(OsMemoryHeader);
 
 private:
-    [[nodiscard]] static OsMemoryHeader* GetHeaderFromUserPtr(void* address)
+    [[nodiscard]] FORCE_INLINE static OsMemoryHeader* GetHeaderFromUserPtr(void* address)
     {
         return reinterpret_cast<OsMemoryHeader*>(
             static_cast<uint8*>(address) - HEADER_SIZE
         );
     }
 
-    [[nodiscard]] static const OsMemoryHeader* GetHeaderFromUserPtr(const void* address)
+    [[nodiscard]] FORCE_INLINE static const OsMemoryHeader* GetHeaderFromUserPtr(const void* address)
     {
         return reinterpret_cast<const OsMemoryHeader*>(
             static_cast<const uint8*>(address) - HEADER_SIZE
