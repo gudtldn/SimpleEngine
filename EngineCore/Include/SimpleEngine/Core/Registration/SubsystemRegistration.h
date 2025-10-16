@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include <concepts>
-#include <typeindex>
 
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystemBase.h"
@@ -41,7 +40,7 @@ public:
         requires std::derived_from<Subsystem, ISubsystemBase>
     static void Register()
     {
-        const std::type_index type_idx = typeid(Subsystem);
+        const auto type_idx = reflection::TypeId::Get<Subsystem>();
         GetInstance().factories[type_idx] = {
             .factory = [] static -> std::unique_ptr<ISubsystemBase>
             {
@@ -66,7 +65,7 @@ private:
     }
 
 private:
-    std::unordered_map<std::type_index, SubsystemMetadata> factories;
+    std::unordered_map<reflection::TypeId, SubsystemMetadata> factories;
 };
 }
 }

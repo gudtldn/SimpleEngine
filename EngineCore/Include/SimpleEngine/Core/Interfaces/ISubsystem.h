@@ -1,7 +1,6 @@
 #pragma once
 #include <concepts>
 #include <tuple>
-#include <typeindex>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystemBase.h"
@@ -24,9 +23,9 @@ class ISubsystem : public ISubsystemBase
 {
 public:
     /** 이 Subsystem이 의존하는 모든 타입의 type_index를 반환합니다. */
-    virtual vector<std::type_index> GetDependencies() const final override
+    virtual vector<reflection::TypeId> GetDependencies() const final override
     {
-        return { typeid(Dependencies)... };
+        return { reflection::TypeId::Get<Dependencies>()... };
     }
 
     /**

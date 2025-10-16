@@ -5,7 +5,10 @@
 
 namespace se::reflection
 {
-/** 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다. */
+/**
+ * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
+ * @todo cv-ref에 대해서도 구분할 수 있게 해야함
+ */
 class TypeId
 {
 public:

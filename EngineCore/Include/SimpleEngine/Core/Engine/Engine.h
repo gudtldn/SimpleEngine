@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <concepts>
 #include <memory>
-#include <typeindex>
 #include <utility>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
 
 
@@ -92,7 +92,7 @@ private:
 
 private:
     // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
-    unordered_map<std::type_index, std::unique_ptr<ISubsystemBase>> subsystems;
+    unordered_map<reflection::TypeId, std::unique_ptr<ISubsystemBase>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
     vector<ISubsystemBase*> sorted_subsystems;
@@ -110,7 +110,7 @@ template <typename T, typename... Args>
     requires std::derived_from<T, ISubsystemBase>
 T* Engine::RegisterSubsystem(Args&&... args)
 {
-    const auto type_id = std::type_index(typeid(T));
+    const auto type_id = reflection::TypeId::Get<T>();
     if (subsystems.contains(type_id))
     {
         return static_cast<T*>(subsystems[type_id].get());
@@ -134,7 +134,7 @@ template <typename T>
     requires std::derived_from<T, ISubsystemBase>
 T* Engine::GetSubsystem() const
 {
-    const auto type_id = std::type_index(typeid(T));
+    const auto type_id = reflection::TypeId::Get<T>();
     if (subsystems.contains(type_id))
     {
         return static_cast<T*>(subsystems.at(type_id).get());

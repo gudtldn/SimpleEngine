@@ -42,9 +42,9 @@ Engine::~Engine() = default;
 void Engine::LoadRegisteredSubsystems()
 {
     auto& registry = details::SubsystemRegistry::GetInstance();
-    for (const auto& [type_idx, metadata] : registry.factories)
+    for (const auto& [type_id, metadata] : registry.factories)
     {
-        if (subsystems.contains(type_idx))
+        if (subsystems.contains(type_id))
         {
             continue;
         }
@@ -54,9 +54,9 @@ void Engine::LoadRegisteredSubsystems()
         {
             updatable_systems.push_back(dynamic_cast<IUpdatable*>(subsystem.get()));
         }
-        subsystems[type_idx] = std::move(subsystem);
+        subsystems[type_id] = std::move(subsystem);
 
-        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_idx.name());
+        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_id.GetName());
     }
     registry.factories.clear();
 }
@@ -103,8 +103,7 @@ bool Engine::InitializeAllSubsystems()
     {
         if (!sub_system->Initialize())
         {
-            const u8string sub_system_name = utility::string::ToU8String(typeid(*sub_system).name());
-            ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", sub_system_name);
+            ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", typeid(*sub_system).name());
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
             for (ISubsystemBase* rev_subsystem : subrange | std::views::reverse)
@@ -175,12 +174,12 @@ bool Engine::SortSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Sorting Subsystems based on dependencies...");
 
-    unordered_map<std::type_index, vector<std::type_index>> adj_list;
-    unordered_map<std::type_index, int> in_degree;
-    queue<std::type_index> queue;
+    unordered_map<reflection::TypeId, vector<reflection::TypeId>> adj_list;
+    unordered_map<reflection::TypeId, int> in_degree;
+    queue<reflection::TypeId> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
-    for (const std::type_index& type_id : subsystems | std::views::keys)
+    for (const reflection::TypeId& type_id : subsystems | std::views::keys)
     {
         in_degree[type_id] = 0; // 모든 노드의 진입 차수 0으로 초기화
         adj_list[type_id] = {}; // 인접 리스트 초기화
@@ -211,7 +210,7 @@ bool Engine::SortSubsystems()
     sorted_subsystems.clear();
     while (!queue.empty())
     {
-        const std::type_index current_id = queue.front();
+        const auto current_id = queue.front();
         queue.pop();
 
         sorted_subsystems.push_back(subsystems[current_id].get());
@@ -231,7 +230,7 @@ bool Engine::SortSubsystems()
     {
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
 
-        vector<std::type_index> circular_subsystems;
+        vector<reflection::TypeId> circular_subsystems;
         for (const auto& [type_id, degree] : in_degree)
         {
             if (degree > 0)
@@ -243,8 +242,7 @@ bool Engine::SortSubsystems()
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected in subsystems: ");
         for (const auto& id : circular_subsystems)
         {
-            const ISubsystemBase* const subsystem = subsystems[id].get();
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*subsystem).name());
+            ConsoleLog(ELogLevel::Fatal, u8"- {}", id.GetName());
         }
 
         return false;

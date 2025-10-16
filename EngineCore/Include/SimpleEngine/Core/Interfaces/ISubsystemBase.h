@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include <typeindex>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Reflection/TypeId.h"
 
 
 namespace se::core
@@ -18,6 +18,6 @@ public:
     [[nodiscard]] virtual bool Initialize() = 0;
     virtual void Release() = 0;
 
-    virtual vector<std::type_index> GetDependencies() const = 0;
+    virtual vector<reflection::TypeId> GetDependencies() const = 0;
 };
 }
