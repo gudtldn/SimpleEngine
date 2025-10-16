@@ -15,8 +15,16 @@ public:
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
     {
-        using NonCVType = std::remove_cv_t<T>;
-        return TypeId{ GetFullTypeName<NonCVType>(), GetTypeSignature<NonCVType>() };
+        if constexpr (traits::IsFunctionType<T>)
+        {
+            constexpr auto signature = GetTypeSignature<T>();
+            return TypeId{ signature, signature };
+        }
+        else
+        {
+            using CleanType = std::remove_cvref_t<T>;
+            return TypeId{ GetFullTypeName<CleanType>(), GetTypeSignature<CleanType>() };
+        }
     }
 
     /** 타입 이름을 반환합니다. */

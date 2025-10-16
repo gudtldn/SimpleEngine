@@ -219,7 +219,6 @@ consteval std::string_view ExtractTypeName() noexcept
  * @return 컴파일러가 생성한 원본 타입 시그니처
  */
 template <typename T>
-    requires (!se::traits::IsFunctionType<T>)
 [[nodiscard]] consteval std::string_view GetTypeSignature() noexcept
 {
     constexpr auto ret = details::ExtractTypeName<T>();
