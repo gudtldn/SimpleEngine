@@ -68,12 +68,6 @@ private:
     {
         size_t allocated_size;
         size_t offset;
-
-        OsMemoryHeader(size_t in_size, size_t in_offset)
-            : allocated_size(in_size)
-            , offset(in_offset)
-        {
-        }
     };
 
     /** AlignedAllocHeader의 크기 */
