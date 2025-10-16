@@ -33,7 +33,7 @@ FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path
     }
 
     vector<uint8> data(file_size);
-    if (!file.read(reinterpret_cast<char*>(data.data()), static_cast<isize>(file_size)))
+    if (!file.read(reinterpret_cast<char*>(data.data()), static_cast<isize>(file_size))) // TODO: 여기서 isize로 바꾸는 과정에서 overflow 가능성 있음
     {
         return std::unexpected(FileReadError::Read(u8"Failed to read file: " + u8_path));
     }
