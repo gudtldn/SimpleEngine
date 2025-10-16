@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "SimpleEngine/Rendering/RenderPass/IRenderPass.h"
-#include "SimpleEngine/Rendering/RenderGraph/RGResoueceHandle.h"
+#include "SimpleEngine/Rendering/RenderGraph/RGResourceHandle.h"
 
 
 namespace se::editor::rendering

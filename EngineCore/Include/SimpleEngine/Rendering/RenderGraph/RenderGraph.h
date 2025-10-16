@@ -3,7 +3,7 @@
 
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
-#include "SimpleEngine/Rendering/RenderGraph/RGResoueceHandle.h"
+#include "SimpleEngine/Rendering/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Rendering/RenderGraph/RGResources.h"
 #include "SimpleEngine/Rendering/RenderPass/IRenderPass.h"
 #include "SimpleEngine/Utility/StringUtils.h"
