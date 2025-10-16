@@ -1,10 +1,12 @@
-﻿export module SE.Utility:FileUtils;
+﻿#pragma once
+#include <expected>
+#include <filesystem>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-export namespace se::utility::file
+namespace se::utility::file
 {
 struct FileReadError
 {
@@ -30,7 +32,7 @@ struct FileReadError
     static FileReadError Format(u8string&& msg) { return { Type::InvalidFormat, std::move(msg) }; }
     static FileReadError Read(u8string&& msg) { return { Type::ReadFailed, std::move(msg) }; }
     static FileReadError Write(u8string&& msg) { return { Type::WriteFailed, std::move(msg) }; }
-    static FileReadError EOF(u8string&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
+    static FileReadError EndOfFile(u8string&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
     static FileReadError OutOfMem(u8string&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
     static FileReadError Unknown(u8string&& msg) { return { Type::UnknownError, std::move(msg) }; }
 };
@@ -39,8 +41,8 @@ template <typename T>
 using FileResult = std::expected<T, FileReadError>;
 
 /** 파일을 읽고, byte array로 반환합니다. */
-[[nodiscard]] FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
+[[nodiscard]] SE_CORE_API FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
 
 /** 파일을 읽고, string으로 반환합니다. */
-[[nodiscard]] FileResult<u8string> ReadToString(const std::filesystem::path& file_path);
+[[nodiscard]] SE_CORE_API FileResult<u8string> ReadToString(const std::filesystem::path& file_path);
 }

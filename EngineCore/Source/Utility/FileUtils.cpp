@@ -1,6 +1,8 @@
-﻿module SE.Utility;
-import :StringUtils;
-import :FileUtils;
+﻿#include "Utility/FileUtils.h"
+
+#include <fstream>
+
+#include "Utility/StringUtils.h"
 
 
 namespace se::utility::file
@@ -24,14 +26,14 @@ FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path
     }
 
     std::error_code ec;
-    const uint64 file_size = std::filesystem::file_size(file_path, ec);
+    const usize file_size = std::filesystem::file_size(file_path, ec);
     if (ec)
     {
-        return std::unexpected{ FileReadError::EOF(u8"File size error: " + u8_path) };
+        return std::unexpected{ FileReadError::EndOfFile(u8"File size error: " + u8_path) };
     }
 
     vector<uint8> data(file_size);
-    if (!file.read(reinterpret_cast<char*>(data.data()), file_size))
+    if (!file.read(reinterpret_cast<char*>(data.data()), static_cast<isize>(file_size)))
     {
         return std::unexpected(FileReadError::Read(u8"Failed to read file: " + u8_path));
     }
