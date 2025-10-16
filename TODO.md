@@ -10,7 +10,6 @@
     - 매 프레임 렌더링에 필요한 컴포넌트만 추출해서
 - [ ] InputSystem 구현
 - [ ] PlatformEventDispatcher 리펙토링
-- [ ] 컴파일 타임에 알 수 있는 `std::type_index`를 TypeId로 변경
 
 - [ ] 프로파일러 만들기
     - CPU
@@ -47,3 +46,4 @@
 - [x] 가상 경로 시스템 구현
 - [x] ECS World에 RegisterSystem 구현
     - 이래야 멀티 월드일 때 구성하기가 쉬움
+- [x] 컴파일 타임에 알 수 있는 `std::type_index`를 TypeId로 변경
