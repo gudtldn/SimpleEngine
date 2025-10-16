@@ -1,8 +1,15 @@
-﻿export module SE.Core:Concurrency.ThreadPool;
-import :Function;
+﻿#pragma once
+#include <condition_variable>
+#include <future>
+#include <mutex>
+#include <stop_token>
+#include <thread>
 
-import SE.Types;
-import std;
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
+#include "tracy/Tracy.hpp"
 
 
 namespace se::core::concurrency
@@ -11,7 +18,7 @@ namespace se::core::concurrency
  *
  * @todo 추후 Work Stealing 방식으로 개선
  */
-export class ThreadPool
+class SE_CORE_API ThreadPool
 {
 private:
     static ThreadPool* Instance;
@@ -37,11 +44,16 @@ private:
     void WorkerLoop(const std::stop_token& token, uint32 thread_id);
 
 private:
-    std::mutex mutex;
+    TracyLockable(std::mutex, mutex);
+
+#if TRACY_ENABLE
+    std::condition_variable_any condition;
+#else
     std::condition_variable condition;
+#endif
 
     vector<std::jthread> worker_threads;
-    queue<function::Function<void()>> tasks;
+    queue<Function<void()>> tasks;
 };
 
 template <typename Fn, typename... Args>

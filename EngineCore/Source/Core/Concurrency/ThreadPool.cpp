@@ -1,13 +1,10 @@
-﻿module;
+﻿#include "Core/Concurrency/ThreadPool.h"
+
 #include <cassert>
-#include "tracy/Tracy.hpp"
-module SE.Core;
-import :Concurrency.ThreadPool;
+#include <ranges>
 
-import SE.Utility;
-import SE.Platform;
-
-using namespace se::core::function;
+#include "Core/Logging/Logging.h"
+#include "Utility/StringUtils.h"
 
 
 namespace se::core::concurrency
@@ -25,12 +22,10 @@ ThreadPool::ThreadPool(uint32 num_threads)
     // Worker Thread 생성
     for (auto [n, thread] : worker_threads | std::views::enumerate)
     {
-        thread = std::jthread{
-            [this, n = static_cast<uint32>(n)](const std::stop_token& token)
-            {
-                WorkerLoop(token, n);
-            },
-        };
+        thread = std::jthread([this, id = static_cast<uint32>(n)](const std::stop_token& token)
+        {
+            WorkerLoop(token, id);
+        });
     }
 }
 
@@ -42,8 +37,7 @@ ThreadPool::~ThreadPool()
     ConsoleLog(ELogLevel::Info, u8"Destroying ThreadPool...");
     {
         std::scoped_lock lock(mutex);
-        decltype(tasks) empty_queue;
-        tasks.swap(empty_queue);
+        while (!tasks.empty()) { tasks.pop(); }
     }
 
     // 스레드 중단
@@ -59,7 +53,7 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
     const u8string thread_name = utility::string::ToU8String(
         std::format("Worker Thread {}", thread_id)
     );
-    platform::Platform::SetCurrentThreadName(thread_name);
+    platform::SetCurrentThreadName(thread_name);
 
     while (!token.stop_requested())
     {
