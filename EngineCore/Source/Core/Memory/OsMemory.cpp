@@ -53,6 +53,8 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
 
 void* OsMemory::Realloc(void* address, size_t new_size, size_t alignment)
 {
+    // TODO: Realloc 최적화
+
     if (address == nullptr)
     {
         return Allocate(new_size, alignment);
