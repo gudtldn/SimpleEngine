@@ -1,9 +1,8 @@
-﻿module;
-#include "tracy/Tracy.hpp"
-module SE.Core;
-import :Concurrency.Coroutine.Awaitables;
+﻿// ReSharper disable CppMemberFunctionMayBeStatic
+#include "Core/Concurrency/Coroutine/Awaitables.h"
 
-import :Concurrency.ThreadPool;
+#include "Core/Concurrency/TaskScheduler.h"
+#include "Core/Concurrency/ThreadPool.h"
 
 
 namespace se::core::concurrency::coroutine

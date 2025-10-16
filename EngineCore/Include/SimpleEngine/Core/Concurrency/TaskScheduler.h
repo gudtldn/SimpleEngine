@@ -1,14 +1,19 @@
-﻿module;
+﻿#pragma once
+#include <coroutine>
+#include <future>
+#include <mutex>
+#include <thread>
+
+#include "Coroutine.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/Task.h"
+#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "tracy/Tracy.hpp"
-export module SE.Core:Concurrency.TaskScheduler;
-import :Concurrency.Coroutine;
 
-import SE.Types;
-import std;
 
-namespace se::core::engine
+namespace se::core
 {
-export class Engine;
+class Engine;
 }
 
 
@@ -16,20 +21,20 @@ namespace se::core::concurrency
 {
 namespace coroutine
 {
-export struct SwitchToMainThread;
+struct SwitchToMainThread;
 }
 
-export struct TaskSchedulerTest;
+struct TaskSchedulerTest;
 
 
 /**
  * 비동기 시스템을 관리하는 스케줄러
  */
-export class TaskScheduler
+class SE_CORE_API TaskScheduler
 {
 private:
     // ProcessMainThreadTasks 호출을 위해서
-    friend class engine::Engine;
+    friend class se::core::Engine;
 
     // ScheduleOnMainThread 호출을 위해서
     friend struct coroutine::SwitchToMainThread;
@@ -57,13 +62,13 @@ public:
      * 코루틴을 메인 스레드에서 시작합니다. ("Fire-and-forget")
      * @param task 시작할 Task<void> 타입의 코루틴
      */
-    void Launch_MainThread(coroutine::Task<void>&& task);
+    void Launch_MainThread(Task<void>&& task);
 
     /**
      * 코루틴을 작업 스레드에서 시작합니다. ("Fire-and-forget")
      * @param task 시작할 Task<void> 타입의 코루틴
      */
-    void Launch_WorkerThread(coroutine::Task<void>&& task);
+    void Launch_WorkerThread(Task<void>&& task);
 
     /**
      * Task가 완료될 때까지 현재 스레드를 블로킹하고 결과를 반환합니다.
@@ -72,10 +77,10 @@ public:
      * @return Task의 결과값
      */
     template <typename T>
-    T BlockOn(coroutine::Task<T>&& task);
+    T BlockOn(Task<T>&& task);
 
     /** Main Thread의 ID를 가져옵니다. */
-    std::thread::id GetMainThreadId() const;
+    [[nodiscard]] std::thread::id GetMainThreadId() const;
 
 private:
     /**
@@ -100,11 +105,11 @@ private:
 
     // Launch로 시작된 최상위 코루틴들의 생명 주기를 관리하는 벡터
     // Task 객체가 파괴되면 코루틴 상태도 파괴되므로, 끝날 때까지 보관
-    vector<coroutine::Task<void>> launched_tasks;
+    vector<Task<void>> launched_tasks;
 };
 
 template <typename T>
-T TaskScheduler::BlockOn(coroutine::Task<T>&& task)
+T TaskScheduler::BlockOn(Task<T>&& task)
 {
     if (!task.handle)
     {
@@ -119,7 +124,7 @@ T TaskScheduler::BlockOn(coroutine::Task<T>&& task)
     std::promise<T> promise;
     auto future = promise.get_future();
 
-    Launch_WorkerThread([](coroutine::Task<T> t, std::promise<T> p) -> coroutine::Task<void>
+    Launch_WorkerThread([](Task<T> t, std::promise<T> p) -> Task<void>
     {
         try
         {

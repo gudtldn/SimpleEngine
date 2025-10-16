@@ -1,9 +1,9 @@
-﻿module;
-#include "tracy/Tracy.hpp"
-module SE.Core;
-import :Concurrency.TaskScheduler;
+﻿#include "Core/Concurrency/TaskScheduler.h"
 
-import <cassert>;
+#include <cassert>
+
+#include "Core/Concurrency/ThreadPool.h"
+#include "tracy/Tracy.hpp"
 
 
 namespace se::core::concurrency
@@ -36,7 +36,7 @@ std::thread::id TaskScheduler::GetMainThreadId() const
     return main_thread_id;
 }
 
-void TaskScheduler::Launch_MainThread(coroutine::Task<void>&& task)
+void TaskScheduler::Launch_MainThread(Task<void>&& task)
 {
     if (!task.handle)
     {
@@ -56,7 +56,7 @@ void TaskScheduler::Launch_MainThread(coroutine::Task<void>&& task)
     handle_to_resume.resume();
 }
 
-void TaskScheduler::Launch_WorkerThread(coroutine::Task<void>&& task)
+void TaskScheduler::Launch_WorkerThread(Task<void>&& task)
 {
     if (!task.handle)
     {
@@ -99,7 +99,7 @@ void TaskScheduler::ProcessMainThreadTasks()
         std::scoped_lock lock(tasks_mutex);
 
         // 실행 완료된 코루틴들을 launched_tasks 에서 제거
-        std::erase_if(launched_tasks, [](const coroutine::Task<void>& task)
+        std::erase_if(launched_tasks, [](const Task<void>& task)
         {
             return !task.handle || task.handle.done();
         });

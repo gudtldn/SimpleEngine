@@ -1,19 +1,20 @@
-﻿module;
+﻿#pragma once
+#include <atomic>
+#include <coroutine>
+#include <mutex>
+
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "tracy/Tracy.hpp"
-export module SE.Core:Concurrency.Coroutine.Awaitables;
-
-import SE.Types;
-import std;
 
 
-export namespace se::core::concurrency::coroutine
+namespace se::core::concurrency::coroutine
 {
 /**
  * Task<T>를 WorkerThread에서 실행합니다.
  */
-struct SwitchToWorkerThread
+struct SE_CORE_API SwitchToWorkerThread
 {
-    bool await_ready() const noexcept;
+    [[nodiscard]] bool await_ready() const noexcept;
     void await_suspend(std::coroutine_handle<> handle) const;
     void await_resume() const noexcept;
 };
@@ -21,22 +22,22 @@ struct SwitchToWorkerThread
 /**
  * Task<T>를 MainThread에서 실행합니다.
  */
-struct SwitchToMainThread
+struct SE_CORE_API SwitchToMainThread
 {
-    bool await_ready() const noexcept;
+    [[nodiscard]] bool await_ready() const noexcept;
     void await_suspend(std::coroutine_handle<> handle) const;
     void await_resume() const noexcept;
 };
 
-class EventWaitHandle
+class SE_CORE_API EventWaitHandle
 {
-    struct Awaiter
+    struct SE_CORE_API Awaiter
     {
         EventWaitHandle& event;
         std::coroutine_handle<> continuation = nullptr;
         Awaiter* next = nullptr;
 
-        bool await_ready() const noexcept;
+        [[nodiscard]] bool await_ready() const noexcept;
         bool await_suspend(std::coroutine_handle<> handle) noexcept;
         void await_resume() const noexcept;
     };
