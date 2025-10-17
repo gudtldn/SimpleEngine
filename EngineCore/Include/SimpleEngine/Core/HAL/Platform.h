@@ -1,5 +1,6 @@
 #pragma once
 #include <thread>
+#include <filesystem>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -36,4 +37,10 @@ SE_CORE_API void SetCurrentThreadName(const u8string& name);
  * @return 스레드 이름
  */
 [[nodiscard]] SE_CORE_API u8string GetCurrentThreadName();
+
+/**
+ * 현재 실행 파일(.exe)이 위치한 디렉터리의 절대 경로를 가져옵니다.
+ * @return 실행 파일이 있는 디렉터리의 경로, 실패 시 nullopt
+ */
+[[nodiscard]] SE_CORE_API std::filesystem::path GetExecutableDirectory();
 }

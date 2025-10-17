@@ -2,6 +2,9 @@
 
 #if SE_PLATFORM_LINUX
 #include <string>
+#include <utility>
+
+#include <unistd.h>
 #include <pthread.h>
 
 #include "Utility/StringUtils.h"
@@ -37,6 +40,15 @@ u8string GetCurrentThreadName()
         return utility::string::ToU8String(thread_name);
     }
     return {};
+}
+
+std::filesystem::path GetExecutableDirectory()
+{
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    return std::filesystem::path{
+        std::string{ result, std::min(count, 0) }
+    }.parent_path();
 }
 }
 #endif

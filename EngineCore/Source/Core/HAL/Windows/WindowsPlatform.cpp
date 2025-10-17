@@ -68,5 +68,12 @@ u8string GetCurrentThreadName()
 {
     return ::GetThreadName(GetCurrentThread());
 }
+
+std::filesystem::path GetExecutableDirectory()
+{
+    wchar_t path[MAX_PATH] = {};
+    GetModuleFileNameW(nullptr, path, MAX_PATH);
+    return std::filesystem::path{ path }.parent_path();
+}
 }
 #endif

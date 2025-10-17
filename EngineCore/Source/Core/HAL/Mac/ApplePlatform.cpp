@@ -40,5 +40,16 @@ u8string GetCurrentThreadName()
     }
     return {};
 }
+
+std::filesystem::path GetExecutableDirectory()
+{
+    char path[1024];
+    uint32 size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) == 0)
+    {
+        return std::filesystem::path{ path }.parent_path();
+    }
+    return {};
+}
 }
 #endif

@@ -24,7 +24,7 @@ Engine::Engine()
 {
     PathResolver& path_resolver = PathResolver::Get();
 
-    // TODO: Shipping일 때 경로 수정해야함!!!
+    // TODO: Shipping일 때 GetExecutableDirectory로 수정해야함!!!
     const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
 
     // Core
