@@ -2,8 +2,9 @@
 .vscode/
 .gemini/
 
-Binaries/
-Intermediate/
+[B|b]inaries/
+[B|b]uild/
+[I|i]ntermediate/
 
 /packages/
 riderModule.iml

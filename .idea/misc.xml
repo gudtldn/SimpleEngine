@@ -13,5 +13,9 @@
     <libraryRoots>
       <file path="$PROJECT_DIR$/ThirdParty" />
     </libraryRoots>
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/Binaries" />
+      <file path="$PROJECT_DIR$/Build" />
+    </excludeRoots>
   </component>
 </project>
