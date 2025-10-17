@@ -4,17 +4,6 @@ file(GLOB_RECURSE EDITOR_SOURCES "Source/*.cpp")
 # Editor를 실행 파일로 정의하고, 찾은 소스 파일들을 사용
 add_executable(Editor ${EDITOR_SOURCES})
 
-# 빌드가 끝난 후 EngineCore.dll, .pdb를 Editor.exe가 있는 폴더로 복사
-add_custom_command(TARGET Editor POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:EngineCore>
-        $<TARGET_FILE_DIR:Editor>
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_PDB_FILE:EngineCore>
-        $<TARGET_FILE_DIR:Editor>
-)
-
 
 # Editor가 EngineCore 및 다른 라이브러리들에 의존하도록 설정
 find_package(SDL3 REQUIRED)

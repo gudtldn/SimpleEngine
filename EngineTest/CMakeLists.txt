@@ -4,20 +4,11 @@ file(GLOB_RECURSE ENGINE_TEST_SOURCES "Source/*.cpp")
 # EngineTest를 실행 파일로 정의하고, 찾은 소스 파일들을 사용
 add_executable(EngineTest ${ENGINE_TEST_SOURCES})
 
-# 빌드가 끝난 후 EngineCore.dll과 Config 폴더를 EngineTest.exe가 있는 폴더로 복사
+# 빌드가 끝난 후 Config 폴더를 EngineTest.exe가 있는 폴더로 복사
 add_custom_command(TARGET EngineTest POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_FILE:EngineCore>
-        $<TARGET_FILE_DIR:EngineTest>
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_PDB_FILE:EngineCore>
-        $<TARGET_FILE_DIR:EngineTest>
-
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/Config
         $<TARGET_FILE_DIR:EngineTest>/Config
-        #        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Config
 )
 
 
