@@ -6,7 +6,7 @@ namespace se::core::logging
 {
 FileBackend::FileBackend()
 {
-    const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
+    const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
     file_path = solution_path / "Logs/latest.log";
     OpenFile();
 }

@@ -25,7 +25,7 @@ Engine::Engine()
     PathResolver& path_resolver = PathResolver::Get();
 
     // TODO: Shipping일 때 경로 수정해야함!!!
-    const std::filesystem::path solution_path = std::filesystem::current_path().parent_path().parent_path();
+    const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
 
     // Core
     path_resolver.Mount(u8"Config", solution_path / u8"Config");

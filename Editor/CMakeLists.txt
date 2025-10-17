@@ -36,3 +36,7 @@ target_include_directories(Editor PRIVATE
         # 내부 구현에서 짧은 경로를 사용하기 위한 경로
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
+
+target_compile_definitions(Editor PRIVATE
+        PROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}"
+)
