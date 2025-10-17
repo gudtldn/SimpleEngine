@@ -4,6 +4,8 @@
 #include <concepts>
 #include <utility>
 
+#define SE_STRINGIFY(x) u8## #x
+
 
 namespace se::utility
 {
