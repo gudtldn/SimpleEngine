@@ -4,6 +4,27 @@
 
 StringName StringName::None = StringName{};
 
+StringName StringName::Find(const char8* in_str)
+{
+    return Find(std::u8string_view(in_str));
+}
+
+StringName StringName::Find(std::u8string_view in_str)
+{
+    const StringNamePool& pool = StringNamePool::Get();
+    const auto [temp_display_hash, temp_comparison_hash] = pool.Find(in_str);
+
+    StringName result;
+    result.display_hash = temp_display_hash;
+    result.comparison_hash = temp_comparison_hash;
+
+#ifdef SE_DEBUG_BUILD
+    result.debug_entry_ptr = result.display_hash == 0 ? nullptr : &pool.Resolve(result.display_hash);
+#endif
+
+    return result;
+}
+
 StringName::StringName(const char8* in_str)
     : StringName(std::u8string_view(in_str))
 {

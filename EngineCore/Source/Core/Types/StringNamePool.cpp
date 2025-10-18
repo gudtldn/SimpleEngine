@@ -41,6 +41,27 @@ const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
     std::unreachable();
 }
 
+StringNameHashes StringNamePool::Find(const std::u8string_view& view) const
+{
+    if (view.empty() || IsNoneString(view))
+    {
+        return { 0, 0 };
+    }
+
+    {
+        const se::u8string lower_case_str = se::utility::string::ToU8LowerCase(view);
+        const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
+
+        std::shared_lock lock(string_pool_mutex);
+        if (const auto it = comparison_hash_to_display_hash.find(comparison_hash); it != comparison_hash_to_display_hash.end())
+        {
+            return { it->second, comparison_hash };
+        }
+    }
+
+    return { 0, 0 };
+}
+
 StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
 {
     if (view.empty() || IsNoneString(view))
@@ -72,9 +93,10 @@ StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
         }
 
         // pool에 entry를 등록
-        if (!comparison_string_pool.contains(comparison_hash))
+        if (!comparison_hash_to_display_hash.contains(comparison_hash))
         {
-            comparison_string_pool.emplace(comparison_hash, StringNameEntry{ lower_case_str, comparison_hash });
+            // 처음에 추가된 이름을 comparison의 이름으로
+            comparison_hash_to_display_hash.emplace(comparison_hash, display_hash);
         }
         display_string_pool.emplace(display_hash, StringNameEntry{ view, comparison_hash });
     }

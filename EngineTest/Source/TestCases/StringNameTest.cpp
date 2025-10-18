@@ -169,4 +169,21 @@ TEST_CASE("4. STL Container Compatibility")
     CHECK(name_set.count(name2) == 1);
     CHECK(name_set.count(name3) == 1); // name3는 name1과 같으므로 존재함
 }
+
+TEST_CASE("5. StringName Find Test")
+{
+    StringName name1(u8"TestName");
+
+    const StringName find1 = StringName::Find(u8"TestName");
+    CHECK(find1 == name1);
+
+    const StringName find2 = StringName::Find(u8"testName");
+    CHECK(find2 == name1);
+
+    const StringName find3 = StringName::Find(u8"AAAAAA");
+    CHECK(find3 == StringName::None);
+
+    const StringName find4 = StringName::Find(u8"NONE");
+    CHECK(find4 == StringName::None);
+}
 }

@@ -47,12 +47,13 @@ public:
 public:
     static StringNamePool& Get();
 
-    const StringNameEntry& Resolve(uint64 hash) const;
-    StringNameHashes FindOrEmplace(const std::u8string_view& view);
+    [[nodiscard]] const StringNameEntry& Resolve(uint64 hash) const;
+    [[nodiscard]] StringNameHashes Find(const std::u8string_view& view) const;
+    [[nodiscard]] StringNameHashes FindOrEmplace(const std::u8string_view& view);
 
 private:
     mutable TracySharedLockable(std::shared_mutex, string_pool_mutex);
 
+    se::unordered_map<uint64, uint64> comparison_hash_to_display_hash;
     se::unordered_map<uint64, StringNameEntry> display_string_pool;
-    se::unordered_map<uint64, StringNameEntry> comparison_string_pool;
 };
