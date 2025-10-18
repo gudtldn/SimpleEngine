@@ -32,12 +32,15 @@ struct TypeRegistrar
 }
 }
 
-/** (헤더용) 리플렉션을 적용할 타입의 선언부 안에 사용합니다. */
-#define SE_REFLECTABLE(type) \
+/** (.h용) 리플렉션을 적용할 타입의 선언부 안에 사용합니다. */
+#define SE_REFLECTABLE(...) \
 private: \
     static se::reflection::TypeInfo RegisterReflection(); \
 public: \
     static const se::reflection::TypeInfo& Reflect();
+
+/** (.h용) 리플렉션을 적용할 프로퍼티 위에 사용합니다. */
+#define SE_PROPERTY(...)
 
 /** (.cpp용) 타입의 리플렉션 정보 등록을 시작합니다. */
 #define SE_BEGIN_REFLECT(type) \
