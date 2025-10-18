@@ -1,10 +1,11 @@
 ﻿#pragma once
-
 #include <bit>
 #include <concepts>
 #include <utility>
 
-#define SE_STRINGIFY(x) u8## #x
+#define SE_CONCAT_TOKEN(a, b) a##b
+#define SE_UNIQUE_TOKEN(name) SE_CONCAT_TOKEN(name, __LINE__)
+#define SE_STRINGIFY(x) SE_CONCAT_TOKEN(u8, #x)
 
 
 namespace se::utility
