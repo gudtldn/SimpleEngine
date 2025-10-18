@@ -1,9 +1,21 @@
-﻿# Source 폴더 및 하위 폴더의 모든 .cpp 파일을 찾습니다.
-file(GLOB_RECURSE ALL_SOURCES "Source/*.cpp")
+﻿# Source 폴더 및 하위 폴더의 모든 .cpp 파일을 찾아 ENGINE_SOURCES에 추가
+file(GLOB_RECURSE ENGINE_SOURCES "Source/*.cpp")
 
 # EngineCore를 동적 라이브러리(.dll)로 정의
 add_library(EngineCore SHARED
-        ${ALL_SOURCES}
+        ${ENGINE_SOURCES}
+)
+
+# setup_reflection_generation 함수를 호출하여 코드 생성
+include(CodeGeneration)
+setup_reflection_generation(
+        TARGET EngineCore
+        SCAN_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/Include"
+        GENERATED_SOURCES_VAR ENGINE_GENERATED_SOURCES
+)
+
+target_sources(EngineCore PRIVATE
+        ${ENGINE_GENERATED_SOURCES}
 )
 
 # C++17 이상에서 SHARED 라이브러리를 빌드할 때 필요한 프로퍼티 설정
