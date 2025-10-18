@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "SimpleEngine/Asset/AssetManager.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystem.h"
-#include "SimpleEngine/Core/Registration/SubsystemRegistration.h"
+#include "SimpleEngine/Reflection/SubsystemRegistration.h"
 
 
 /**

@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystem.h"
 #include "SimpleEngine/Core/Interfaces/IUpdatable.h"
-#include "SimpleEngine/Core/Registration/SubsystemRegistration.h"
+#include "SimpleEngine/Reflection/SubsystemRegistration.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 
 
