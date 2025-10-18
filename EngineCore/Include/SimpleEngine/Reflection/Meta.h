@@ -1,6 +1,7 @@
 #pragma once
+#include <string_view>
+
 #include "SimpleEngine/Core/Containers/Containers.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
@@ -32,7 +33,7 @@ struct PropertyMetadata
 struct PropertyInfo
 {
     // Property 이름
-    u8string name; // TODO: C++26때 char8_t로 이름을 가져올 수 있다면 u8string_view로 변경
+    std::u8string_view name; // TODO: C++26때 char8_t로 이름을 가져올 수 있다면 u8string_view로 변경
 
     // Property 크기
     size_t size;
@@ -53,13 +54,13 @@ struct PropertyInfo
 struct TypeInfo
 {
     // 클래스/구조체 이름
-    u8string name; // TODO: C++26때 char8_t로 이름을 가져올 수 있다면 u8string_view로 변경
+    std::u8string_view name; // TODO: C++26때 char8_t로 이름을 가져올 수 있다면 u8string_view로 변경
 
     // 클래스/구조체 총합 크기
     size_t size;
 
     // 클래스/구조체의 멤버 변수(Property) 목록
-    vector<PropertyInfo> properties; // TODO: C++26때 std::array로 바꿔야 할 수 있음
+    std::vector<PropertyInfo> properties; // TODO: C++26때 std::array로 바꿔야 할 수 있음
 
     // 컴파일타임 타입 식별자
     TypeId type_id;
