@@ -49,7 +49,35 @@ def parse_cxx_header(header_file_path: Path) -> ParsedData | None:
 
     # utf-8-sig를 제거한 후 파싱
     parsed_data = parse_string(header_content.replace("\ufeff", ""))
+
+    # 파싱된 데이터에서 SE_REFLECTABLE() 토큰이 실제로 존재하는지 확인
+    if not has_se_reflectable_token(parsed_data):
+        return None
+
     return parsed_data
+
+
+def has_se_reflectable_token(parsed_data: ParsedData) -> bool:
+    """
+    파싱된 데이터에서 SE_REFLECTABLE() 매크로가 토큰으로 존재하는지 확인합니다.
+    주석 처리된 매크로는 토큰에 포함되지 않으므로 이 함수는 None을 반환합니다.
+    """
+    def check_scope(scope: NamespaceScope) -> bool:
+        # 현재 스코프의 모든 변수에서 확인
+        for variable in scope.variables:
+            if hasattr(variable, 'value') and hasattr(variable.value, 'tokens'):
+                for token in variable.value.tokens:
+                    if token.value == "SE_REFLECTABLE":
+                        return True
+
+        # 하위 네임스페이스 확인
+        for child_scope in scope.namespaces.values():
+            if check_scope(child_scope):
+                return True
+
+        return False
+
+    return check_scope(parsed_data.namespace)
 
 
 def flatten_namespace(ns: NamespaceScope) -> list[tuple[str | None, NamespaceScope]]:
