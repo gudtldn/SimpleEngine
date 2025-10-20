@@ -10,6 +10,12 @@
     - 매 프레임 렌더링에 필요한 컴포넌트만 추출해서
 - [ ] InputSystem 구현
 - [ ] PlatformEventDispatcher 리펙토링
+- [ ] C++26기능을 사용할 수 있을 때, 다음 파일을 수정하거나 삭제해야함
+    - /CMake/CodeGeneration.cmake
+    - /Scripts/generate_reflection_data.py
+    - clion python venv 관련
+    - 프로젝트 별 CMakeLists.txt
+    - EngineCore의 Reflection 관련 코드
 
 - [ ] 프로파일러 만들기
     - CPU
