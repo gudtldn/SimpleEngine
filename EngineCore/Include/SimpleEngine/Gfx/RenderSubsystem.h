@@ -31,8 +31,8 @@ public:
 
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
-    [[nodiscard]] se::rendering::PSOManager* GetPSOManager() const { return pso_manager.get(); }
-    [[nodiscard]] se::rendering::RenderGraph* GetRenderGraph() const { return render_graph.get(); }
+    [[nodiscard]] se::rendering::PSOManager& GetPSOManager() const { return *pso_manager; }
+    [[nodiscard]] se::rendering::RenderGraph& GetRenderGraph() const { return *render_graph; }
 
 public:
     [[nodiscard]] SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;

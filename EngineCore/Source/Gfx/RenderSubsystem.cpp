@@ -151,7 +151,7 @@ void RenderSubsystem::RenderFrame() const
         render_graph->Compile();
 
         // 렌더 그래프를 실행하여 커맨드 버퍼에 렌더링 커맨드를 기록
-        render_graph->Execute(command_buffer, *GetPSOManager());
+        render_graph->Execute(command_buffer, GetPSOManager());
 
         // --- Render Graph 끝 ---
 

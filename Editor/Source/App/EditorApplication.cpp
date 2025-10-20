@@ -61,8 +61,8 @@ bool EditorApplication::PostInitialize()
         using namespace se::editor::rendering;
 
         const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
-        PSOManager* pso_manager = render_subsystem->GetPSOManager();
-        pso_manager->SetShaderCacheProvider<CompilingShaderProvider>();
+        PSOManager& pso_manager = render_subsystem->GetPSOManager();
+        pso_manager.SetShaderCacheProvider<CompilingShaderProvider>();
     }
 
     return true;
@@ -72,10 +72,10 @@ void EditorApplication::Render()
 {
     Application::Render();
 
-    RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
+    const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
     {
         using namespace se::editor::rendering;
-        render_subsystem->GetRenderGraph()->AddPass<EditorUIPass>();
+        render_subsystem->GetRenderGraph().AddPass<EditorUIPass>();
     }
     render_subsystem->RenderFrame();
 }
