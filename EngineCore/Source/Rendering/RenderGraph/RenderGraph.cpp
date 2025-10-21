@@ -33,6 +33,11 @@ void RenderGraph::Compile()
     // 각 패스의 Setup을 호출하여 먼저 이번 프레임에 사용할 리소스를 체크
     for (RGPassNode& pass_node : pass_nodes)
     {
+        ZoneScoped;
+        {
+            [[maybe_unused]] std::string zone_name = std::format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
+            ZoneName(zone_name.c_str(), zone_name.size());
+        }
         RenderGraphBuilder builder(*this, pass_node);
         pass_node.pass_object->Setup(builder);
     }
