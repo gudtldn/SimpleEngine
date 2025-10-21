@@ -13,11 +13,11 @@ struct SE_CORE_API Camera3dComponent
 
 public:
     SE_PROPERTY()
-    Degree<float> fov = 90.0_degf;
+    Degree<double> fov = 90.0_deg;
 
     SE_PROPERTY()
-    float near_plane = 0.1f;
+    double near_plane = 0.1f;
 
     SE_PROPERTY()
-    float far_plane = 10'000.0f;
+    double far_plane = 10'000.0f;
 };
