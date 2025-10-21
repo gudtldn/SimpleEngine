@@ -258,7 +258,9 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
         {
             resource_nodes[write_handle_idx].resource->Realize(resource_pool);
         }
-        pass_node->pass_object->Execute({ cmd, pso_manager, *this });
+
+        RGExecutionContext context{ cmd, pso_manager, *this };
+        pass_node->pass_object->Execute(context);
     }
 }
 

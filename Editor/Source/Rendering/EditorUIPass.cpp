@@ -15,7 +15,7 @@ void EditorUIPass::Setup(RenderGraphBuilder& builder)
     builder.Write(back_buffer_handle);
 }
 
-void EditorUIPass::Execute(const RGExecutionContext& context)
+void EditorUIPass::Execute(RGExecutionContext& context)
 {
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 

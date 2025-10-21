@@ -24,6 +24,6 @@ public:
     * Render Graph가 Execute될 때 호출됩니다.
     * 이 함수 내에서 실제 렌더링 커맨드를 커맨드 버퍼에 기록해야 합니다.
     */
-    virtual void Execute(const RGExecutionContext& context) = 0;
+    virtual void Execute(RGExecutionContext& context) = 0;
 };
 }

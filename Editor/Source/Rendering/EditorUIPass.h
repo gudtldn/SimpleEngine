@@ -9,7 +9,7 @@ class EditorUIPass : public se::rendering::IRenderPass
 {
 public:
     virtual void Setup(se::rendering::RenderGraphBuilder& builder) override;
-    virtual void Execute(const se::rendering::RGExecutionContext& context) override;
+    virtual void Execute(se::rendering::RGExecutionContext& context) override;
 
 private:
     se::rendering::RGResourceHandle back_buffer_handle;
