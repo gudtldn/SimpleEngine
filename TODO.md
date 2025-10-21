@@ -1,5 +1,8 @@
 ## TODO
 
+- [ ] 각 Window를 기존의 렌더 방식을 RenderingPipeline으로 캡슐화
+  - 이렇게 하면 Window별로 Rendering을 다르게할 수 있음
+
 - [ ] Optional constexpr로 만들기
 - [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
 - [ ] 나중에 Thread-Safe해야하는 로직 확인하기
