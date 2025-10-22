@@ -47,57 +47,56 @@ void RenderGraph::Compile()
         // 이 패스가 사용하는 리소스에 writer_pass 정보를 추가
         for (const RGResourceHandle write_handle : pass_node.writes)
         {
-            if constexpr (SE_DEBUG_BUILD)
+#if SE_DEBUG_BUILD
+            // 리소스가 존재하는지 확인
+            if (!(write_handle && write_handle.index < resource_nodes.size()))
             {
-                // 리소스가 존재하는지 확인
-                if (!(write_handle && write_handle.index < resource_nodes.size()))
-                {
-                    const IRenderPass* const pass_object = pass_node.pass_object.get();
-                    ConsoleLog(
-                        ELogLevel::Error,
-                        u8"Invalid resource handle. Check the {}::Setup() logic",
-                        typeid(*pass_object).name()
-                    );
-                    assert(false && "Invalid resource handle.");
-                }
+                const IRenderPass* const pass_object = pass_node.pass_object.get();
+                ConsoleLog(
+                    ELogLevel::Error,
+                    u8"Invalid resource handle. Check the {}::Setup() logic",
+                    typeid(*pass_object).name()
+                );
+                assert(false && "Invalid resource handle.");
             }
+#endif
 
             RGResourceNode& resource_node = resource_nodes[write_handle.index];
 
+#if SE_DEBUG_BUILD
             // 리소스가 만들어졌는지 확인
-            if constexpr (SE_DEBUG_BUILD)
+            if (!resource_node.resource)
             {
-                if (!resource_node.resource)
-                {
-                    const IRenderPass* const pass_object = pass_node.pass_object.get();
-                    ConsoleLog(
-                        ELogLevel::Error,
-                        u8"Resource {} is not initialized. Check the {}::Setup() logic",
-                        resource_node.name.ToString(),
-                        typeid(*pass_object).name()
-                    );
-                    assert(false && "Resource is not initialized.");
-                }
-
-                // 리소스가 이미 다른 패스에서 쓰고 있는지 확인
-                if (resource_node.writer && resource_node.writer != &pass_node)
-                {
-                    const IRenderPass* const existing_writer_pass = resource_node.writer->pass_object.get();
-                    const IRenderPass* const pass_object = pass_node.pass_object.get();
-                    // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
-                    ConsoleLog(
-                        ELogLevel::Error,
-                        u8"Multiple write passes detected for the same resource.\n"
-                        u8"  - Resource Name: {}\n"
-                        u8"  - Existing Writer Pass: {}\n"
-                        u8"  - Conflicting Writer Pass: {}",
-                        resource_node.name.ToString(),
-                        typeid(*existing_writer_pass).name(),
-                        typeid(*pass_object).name()
-                    );
-                    assert(false && "A resource can only be written by a single pass per frame.");
-                }
+                const IRenderPass* const pass_object = pass_node.pass_object.get();
+                ConsoleLog(
+                    ELogLevel::Error,
+                    u8"Resource {} is not initialized. Check the {}::Setup() logic",
+                    resource_node.name.ToString(),
+                    typeid(*pass_object).name()
+                );
+                assert(false && "Resource is not initialized.");
             }
+
+            // 리소스가 이미 다른 패스에서 쓰고 있는지 확인
+            if (resource_node.writer && resource_node.writer != &pass_node)
+            {
+                const IRenderPass* const existing_writer_pass = resource_node.writer->pass_object.get();
+                const IRenderPass* const pass_object = pass_node.pass_object.get();
+                // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
+                ConsoleLog(
+                    ELogLevel::Error,
+                    u8"Multiple write passes detected for the same resource.\n"
+                    u8"  - Resource Name: {}\n"
+                    u8"  - Existing Writer Pass: {}\n"
+                    u8"  - Conflicting Writer Pass: {}",
+                    resource_node.name.ToString(),
+                    typeid(*existing_writer_pass).name(),
+                    typeid(*pass_object).name()
+                );
+                assert(false && "A resource can only be written by a single pass per frame.");
+            }
+#endif
+
             resource_node.writer = &pass_node;
         }
     }
@@ -138,9 +137,9 @@ void RenderGraph::Compile()
             pass_to_activate.culled = false;
 
             // pass_to_activate가 사용하고 있는 Read 리소스를 active_resources에 추가
-            for (const auto& [read_handle_idx] : pass_to_activate.reads)
+            for (const RGResourceHandle& resource_handle : pass_to_activate.reads)
             {
-                active_resources.push({ static_cast<size_t>(read_handle_idx) });
+                active_resources.push(resource_handle);
             }
         }
     }
@@ -235,8 +234,7 @@ void RenderGraph::Compile()
         ConsoleLog(ELogLevel::Fatal, u8"The following subsystems are involved in a circular dependency:");
         for (const RGPassNode* node : circular_pass_node)
         {
-            const IRenderPass* const pass_object = node->pass_object.get();
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", typeid(*pass_object).name());
+            ConsoleLog(ELogLevel::Fatal, u8"- {}", node->name.ToString());
         }
 
         assert(false && "A cycle was detected in the render graph!");
