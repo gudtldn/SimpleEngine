@@ -254,6 +254,12 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
 
     for (const RGPassNode* pass_node : compiled_passes)
     {
+        ZoneScoped;
+        {
+            [[maybe_unused]] std::string zone_name = std::format("RenderGraph::Execute - {}::Execute", pass_node->name.ToString());
+            ZoneName(zone_name.c_str(), zone_name.size());
+        }
+
         for (const auto [write_handle_idx] : pass_node->writes)
         {
             resource_nodes[write_handle_idx].resource->Realize(resource_pool);
