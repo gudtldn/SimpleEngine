@@ -3,6 +3,6 @@
 
 struct Vertex
 {
-    float position[3];
+    float position[4];
     float color[4];
 };
