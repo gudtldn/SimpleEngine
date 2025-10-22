@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 4.0)
+﻿cmake_minimum_required(VERSION 3.22)
 project(SimpleEngine VERSION 0.1.0)
 
 # 프로젝트 cmake폴더 추가
