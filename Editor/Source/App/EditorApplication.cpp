@@ -5,7 +5,9 @@
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
+#include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Utility/Config.h"
+#include "SimpleEngine/World/WorldSubsystem.h"
 
 
 EditorApplication::EditorApplication()
@@ -75,7 +77,20 @@ void EditorApplication::Render()
     const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
     {
         using namespace se::editor::rendering;
-        render_subsystem->GetRenderGraph().AddPass<EditorUIPass>();
+        const PlatformSubsystem* platform_subsystem = engine_instance->GetSubsystem<PlatformSubsystem>();
+        const WorldSubsystem* world_subsystem = engine_instance->GetSubsystem<WorldSubsystem>();
+
+        // 임시로 화면의 크기를 인자로 넣어줌
+        int32 width, height;
+        SDL_GetWindowSize(platform_subsystem->GetMainWindow(), &width, &height);
+
+        render_subsystem->GetRenderGraph().AddPass<se::rendering::ForwardScenePass>(
+            *world_subsystem->GetWorld(),
+            static_cast<uint32>(width), static_cast<uint32>(height)
+        );
+        render_subsystem->GetRenderGraph().AddPass<EditorUIPass>(
+            static_cast<uint32>(width), static_cast<uint32>(height)
+        );
     }
     render_subsystem->RenderFrame();
 }
