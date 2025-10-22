@@ -46,7 +46,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     header->offset = offset;
 
     // Tracy로 메모리 사용량 추적
-    TracyAllocS(user_ptr, size, 16);
+    TracyAllocS(user_ptr, size, 32);
 
     return user_ptr;
 }
@@ -93,7 +93,7 @@ void OsMemory::Free(void* address)
     }
 
     // Tracy에서 메모리 사용량 추적 해제
-    TracyFreeS(address, 16);
+    TracyFreeS(address, 32);
 
     // user_ptr로 부터 헤더 위치 계산
     OsMemoryHeader* header = GetHeaderFromUserPtr(address);
