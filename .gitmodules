@@ -13,3 +13,6 @@
 [submodule "ThirdParty/tomlplusplus"]
 	path = ThirdParty/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus.git
+[submodule "ThirdParty/refl-cpp"]
+	path = ThirdParty/refl-cpp
+	url = https://github.com/veselink1/refl-cpp.git

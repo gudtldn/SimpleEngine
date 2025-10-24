@@ -3,6 +3,7 @@ find_package(SDL3 REQUIRED)
 add_subdirectory(tracy EXCLUDE_FROM_ALL)
 add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
 add_subdirectory(doctest)
+add_subdirectory(refl-cpp)
 
 # SDL_shadercross
 set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF)

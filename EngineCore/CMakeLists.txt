@@ -35,6 +35,9 @@ target_link_libraries(EngineCore PUBLIC
         # SDL3
         SDL3::SDL3
         SDL3_shadercross::SDL3_shadercross
+
+        # refl-cpp
+        refl-cpp::refl-cpp
 )
 target_link_libraries(EngineCore PRIVATE
         # ICU4C
