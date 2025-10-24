@@ -6,17 +6,6 @@ add_executable(Editor
         ${EDITOR_SOURCES}
 )
 
-# setup_reflection_generation 함수를 호출하여 코드 생성
-include(CodeGeneration)
-setup_reflection_generation(
-        TARGET Editor
-        SCAN_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/Source"
-        GENERATED_SOURCES_VAR EDITOR_GENERATED_SOURCES
-)
-
-target_sources(Editor PRIVATE
-        ${EDITOR_GENERATED_SOURCES}
-)
 
 # Editor가 EngineCore 및 다른 라이브러리들에 의존하도록 설정
 find_package(SDL3 REQUIRED)

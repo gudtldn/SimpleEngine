@@ -1,4 +1,5 @@
-﻿#include "Reflection/ReflectionRegistry.h"
+﻿#if false
+#include "Reflection/ReflectionRegistry.h"
 
 
 namespace se::reflection
@@ -31,3 +32,4 @@ const std::unordered_map<TypeId, const TypeInfo*>& ReflectionRegistry::GetAllTyp
     return type_map;
 }
 }
+#endif

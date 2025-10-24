@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Reflection/Reflect.h"
 
 
 /**
@@ -9,15 +8,7 @@
  */
 struct SE_CORE_API TransformComponent
 {
-    SE_REFLECTABLE()
-
-public:
-    SE_PROPERTY()
     Quaternion rotation = Quaternion::Identity();
-
-    SE_PROPERTY()
     Vector3 position = Vector3::Zero();
-
-    SE_PROPERTY()
     Vector3 scale = Vector3::One();
 };

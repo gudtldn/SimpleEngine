@@ -1,4 +1,5 @@
 ﻿#pragma once
+#if false
 #include <concepts>
 #include <cstddef>
 
@@ -91,3 +92,4 @@ namespace \
 { \
     static const se::reflection::details::TypeRegistrar<type> SE_UNIQUE_TOKEN(SE_CONCAT_TOKEN(registrar_, type)); \
 }
+#endif

@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Reflection/Reflect.h"
 
 
 /**
@@ -8,10 +7,6 @@
  */
 struct SE_CORE_API MeshHandleComponent
 {
-    SE_REFLECTABLE()
-
-public:
     // Mesh Resource ID
-    SE_PROPERTY()
     uint32 mesh_id = 0;
 };

@@ -1,7 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Reflection/Reflect.h"
 
 
 /**
@@ -9,15 +7,8 @@
  */
 struct SE_CORE_API Camera3dComponent
 {
-    SE_REFLECTABLE()
-
 public:
-    SE_PROPERTY()
     Degree<double> fov = 90.0_deg;
-
-    SE_PROPERTY()
     double near_plane = 0.1f;
-
-    SE_PROPERTY()
     double far_plane = 10'000.0f;
 };

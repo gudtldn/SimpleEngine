@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "SimpleEngine/Reflection/Reflect.h"
 #include "SimpleEngine/World/World.h"
 
 
@@ -8,9 +7,6 @@
  */
 struct SE_CORE_API ParentComponent
 {
-    SE_REFLECTABLE()
-
 public:
-    SE_PROPERTY()
     se::world::Entity parent;
 };

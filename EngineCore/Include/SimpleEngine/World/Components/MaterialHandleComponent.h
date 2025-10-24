@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Reflection/Reflect.h"
 
 
 /**
@@ -8,9 +7,5 @@
  */
 struct SE_CORE_API MaterialHandleComponent
 {
-    SE_REFLECTABLE()
-
-public:
-    SE_PROPERTY()
     uint32 material_id = 0;
 };

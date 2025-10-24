@@ -6,18 +6,6 @@ add_library(EngineCore SHARED
         ${ENGINE_SOURCES}
 )
 
-# setup_reflection_generation 함수를 호출하여 코드 생성
-include(CodeGeneration)
-setup_reflection_generation(
-        TARGET EngineCore
-        SCAN_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/Include"
-        GENERATED_SOURCES_VAR ENGINE_GENERATED_SOURCES
-)
-
-target_sources(EngineCore PRIVATE
-        ${ENGINE_GENERATED_SOURCES}
-)
-
 # C++17 이상에서 SHARED 라이브러리를 빌드할 때 필요한 프로퍼티 설정
 set_target_properties(EngineCore PROPERTIES
         CXX_STANDARD 23

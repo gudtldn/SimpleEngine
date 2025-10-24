@@ -1,4 +1,5 @@
 ﻿#pragma once
+#if false
 #include <unordered_map>
 
 #include "SimpleEngine/Core/Containers/Optional.h"
@@ -24,10 +25,11 @@ public:
 public:
     void RegisterType(const TypeInfo* type_info);
 
-    const TypeInfo* Find(const TypeId& type_id) const;
-    const std::unordered_map<TypeId, const TypeInfo*>& GetAllTypes() const;
+    [[nodiscard]] const TypeInfo* Find(const TypeId& type_id) const;
+    [[nodiscard]] const std::unordered_map<TypeId, const TypeInfo*>& GetAllTypes() const;
 
 private:
     std::unordered_map<TypeId, const TypeInfo*> type_map;
 };
 }
+#endif
