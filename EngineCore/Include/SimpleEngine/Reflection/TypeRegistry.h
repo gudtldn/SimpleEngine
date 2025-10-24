@@ -6,7 +6,7 @@
 #include "SimpleEngine/Reflection/Meta.h"
 
 
-namespace se::reflection
+namespace se::refl
 {
 class SE_CORE_API TypeRegistry
 {
@@ -25,6 +25,8 @@ public:
 public:
     void RegisterType(TypeInfo&& type_info);
 
+    template <typename T>
+    [[nodiscard]] Optional<const TypeInfo&> Find() const;
     [[nodiscard]] Optional<const TypeInfo&> Find(const TypeId& type_id) const;
     [[nodiscard]] Optional<const TypeInfo&> Find(const StringName& type_name) const;
     [[nodiscard]] const auto& GetAllTypes() const { return type_map; }
@@ -33,4 +35,10 @@ private:
     std::unordered_map<StringName, TypeId> name_map;
     std::unordered_map<TypeId, TypeInfo> type_map;
 };
+
+template <typename T>
+Optional<const TypeInfo&> TypeRegistry::Find() const
+{
+    return Find(TypeId::Get<T>());
+}
 }
