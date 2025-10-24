@@ -11,6 +11,9 @@ namespace se::reflection
 class TypeId
 {
 public:
+    constexpr TypeId() = default;
+
+public:
     /** 템플릿 타입 T의 TypeId를 반환합니다. */
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
