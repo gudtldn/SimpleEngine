@@ -26,7 +26,7 @@ inline static const struct type##_Registrar \
         using T = type; \
         std::vector<se::refl::PropertyInfo> properties;
 
-/** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */
+/** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */ // TODO: 추후 offset 대신 멤버 포인터를 저장
 #define SE_REFLECT_PROPERTY(property_name) \
         properties.emplace_back( \
             /* .name     = */ SE_STRINGIFY(property_name), \
