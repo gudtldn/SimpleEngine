@@ -64,6 +64,8 @@ struct TypeInfo
 
     // 컴파일타임 타입 식별자
     TypeId type_id;
+
+    // TODO: 상속 정보 추가
 };
 }
 
