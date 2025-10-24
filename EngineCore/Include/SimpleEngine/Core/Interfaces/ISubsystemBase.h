@@ -18,6 +18,6 @@ public:
     [[nodiscard]] virtual bool Initialize() = 0;
     virtual void Release() = 0;
 
-    virtual vector<reflection::TypeId> GetDependencies() const = 0;
+    virtual vector<refl::TypeId> GetDependencies() const = 0;
 };
 }

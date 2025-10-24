@@ -23,9 +23,9 @@ class ISubsystem : public ISubsystemBase
 {
 public:
     /** 이 Subsystem이 의존하는 모든 타입의 type_index를 반환합니다. */
-    virtual vector<reflection::TypeId> GetDependencies() const final override
+    virtual vector<refl::TypeId> GetDependencies() const final override
     {
-        return { reflection::TypeId::Get<Dependencies>()... };
+        return { refl::TypeId::Get<Dependencies>()... };
     }
 
     /**

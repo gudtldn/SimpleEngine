@@ -84,7 +84,7 @@ private:
 
 private:
     TracyLockable(std::mutex, storages_mutex);
-    unordered_map<reflection::TypeId, std::shared_ptr<IAssetStorage>> storages;
+    unordered_map<refl::TypeId, std::shared_ptr<IAssetStorage>> storages;
 
     // 현재 진행 중인 로딩 요청을 추적하는 맵
     TracyLockable(std::mutex, loading_requests_mutex);
@@ -124,7 +124,7 @@ std::shared_ptr<T> AssetManager::LoadSynchronous(VPath virtual_path)
 template <typename T>
 AssetStorage<T>& AssetManager::GetOrCreateStorage()
 {
-    const auto type_id = reflection::TypeId::Get<T>();
+    const auto type_id = refl::TypeId::Get<T>();
 
     std::scoped_lock lock(storages_mutex);
     if (!storages.contains(type_id))

@@ -40,8 +40,8 @@ private:
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    unordered_map<reflection::TypeId, vector<core::Function<void()>>> systems;
-    unordered_map<reflection::TypeId, std::unique_ptr<IStorage>> component_storages;
+    unordered_map<refl::TypeId, vector<core::Function<void()>>> systems;
+    unordered_map<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
 
 public:
     class EntityChain;
@@ -153,7 +153,7 @@ public:
     template <schedules::ScheduleType S, details::SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
-        const auto type_id = reflection::TypeId::Get<S>();
+        const auto type_id = refl::TypeId::Get<S>();
         systems[type_id].push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::FunctionTraits<Fn>;
@@ -173,7 +173,7 @@ public:
     template <schedules::ScheduleType S>
     void RunSchedule()
     {
-        const auto type_id = reflection::TypeId::Get<S>();
+        const auto type_id = refl::TypeId::Get<S>();
         if (const auto it = systems.find(type_id); it != systems.end())
         {
             for (const core::Function<void()>& system : it->second)
@@ -221,7 +221,7 @@ private:
     {
         using RawType = std::decay_t<ComponentType>;
 
-        const auto type_id = reflection::TypeId::Get<RawType>();
+        const auto type_id = refl::TypeId::Get<RawType>();
         if (!component_storages.contains(type_id))
         {
             component_storages[type_id] = std::make_unique<ComponentStorage<RawType>>();
@@ -258,7 +258,7 @@ private:
     {
         using RawType = std::decay_t<ComponentType>;
 
-        const auto type_id = reflection::TypeId::Get<RawType>();
+        const auto type_id = refl::TypeId::Get<RawType>();
         if (component_storages.contains(type_id))
         {
             return component_storages.at(type_id).get();
@@ -272,7 +272,7 @@ private:
     {
         using RawType = std::decay_t<ComponentType>;
 
-        const auto type_id = reflection::TypeId::Get<RawType>();
+        const auto type_id = refl::TypeId::Get<RawType>();
         if (component_storages.contains(type_id))
         {
             return component_storages.at(type_id).get();

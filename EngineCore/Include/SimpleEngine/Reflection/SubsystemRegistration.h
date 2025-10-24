@@ -40,7 +40,7 @@ public:
         requires std::derived_from<Subsystem, ISubsystemBase>
     static void Register()
     {
-        const auto type_idx = reflection::TypeId::Get<Subsystem>();
+        const auto type_idx = refl::TypeId::Get<Subsystem>();
         GetInstance().factories[type_idx] = {
             .factory = [] static -> std::unique_ptr<ISubsystemBase>
             {
@@ -65,7 +65,7 @@ private:
     }
 
 private:
-    std::unordered_map<reflection::TypeId, SubsystemMetadata> factories;
+    std::unordered_map<refl::TypeId, SubsystemMetadata> factories;
 };
 }
 }

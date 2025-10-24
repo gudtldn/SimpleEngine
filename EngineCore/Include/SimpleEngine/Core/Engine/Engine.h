@@ -92,7 +92,7 @@ private:
 
 private:
     // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
-    unordered_map<reflection::TypeId, std::unique_ptr<ISubsystemBase>> subsystems;
+    unordered_map<refl::TypeId, std::unique_ptr<ISubsystemBase>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
     vector<ISubsystemBase*> sorted_subsystems;
@@ -110,7 +110,7 @@ template <typename T, typename... Args>
     requires std::derived_from<T, ISubsystemBase>
 T* Engine::RegisterSubsystem(Args&&... args)
 {
-    const auto type_id = reflection::TypeId::Get<T>();
+    const auto type_id = refl::TypeId::Get<T>();
     if (subsystems.contains(type_id))
     {
         return static_cast<T*>(subsystems[type_id].get());
@@ -126,7 +126,7 @@ T* Engine::RegisterSubsystem(Args&&... args)
         updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
     }
 
-    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", reflection::GetTypeSignature<T>());
+    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", refl::GetTypeSignature<T>());
     return sub_system_ptr;
 }
 
@@ -134,7 +134,7 @@ template <typename T>
     requires std::derived_from<T, ISubsystemBase>
 T* Engine::GetSubsystem() const
 {
-    const auto type_id = reflection::TypeId::Get<T>();
+    const auto type_id = refl::TypeId::Get<T>();
     if (subsystems.contains(type_id))
     {
         return static_cast<T*>(subsystems.at(type_id).get());

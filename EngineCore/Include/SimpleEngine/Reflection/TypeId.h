@@ -3,7 +3,7 @@
 #include "SimpleEngine/Utility/Hash.h"
 
 
-namespace se::reflection
+namespace se::refl
 {
 /**
  * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
@@ -53,9 +53,9 @@ private:
 }
 
 template <>
-struct std::hash<se::reflection::TypeId>
+struct std::hash<se::refl::TypeId>
 {
-    constexpr uint64 operator()(const se::reflection::TypeId& id) const noexcept
+    constexpr uint64 operator()(const se::refl::TypeId& id) const noexcept
     {
         return id.GetHash();
     }

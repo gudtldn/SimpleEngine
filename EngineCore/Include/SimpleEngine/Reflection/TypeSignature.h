@@ -5,7 +5,7 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
-namespace se::reflection
+namespace se::refl
 {
 namespace details
 {

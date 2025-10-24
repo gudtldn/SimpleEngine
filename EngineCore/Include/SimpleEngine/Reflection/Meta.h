@@ -5,7 +5,7 @@
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
-namespace se::reflection
+namespace se::refl
 {
 /**
  * 멤버 변수(Property)의 추가 메타데이터 정보

@@ -1,7 +1,7 @@
 ﻿#include "Reflection/TypeRegistry.h"
 
 
-namespace se::reflection
+namespace se::refl
 {
 TypeRegistry& TypeRegistry::GetInstance()
 {
