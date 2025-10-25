@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <fstream> // For creating dummy files
 
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/StringName.h" // For StringName
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/PathResolver.h"

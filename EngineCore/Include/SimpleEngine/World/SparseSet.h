@@ -3,7 +3,7 @@
 #include <utility>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/World/Entity.h"
 
@@ -171,7 +171,7 @@ public:
     public:
         SparseSetIteratorTemplate(EntityIt in_entity_iter, CompIt in_comp_iter)
             : entity_iter(std::move(in_entity_iter))
-            , comp_iter(std::move(in_comp_iter))
+              , comp_iter(std::move(in_comp_iter))
         {
         }
 

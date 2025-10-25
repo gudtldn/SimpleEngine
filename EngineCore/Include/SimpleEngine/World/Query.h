@@ -5,7 +5,7 @@
 #include <variant>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/World/QueryConcepts.h"
 #include "SimpleEngine/World/QueryData.h"
 
@@ -19,7 +19,10 @@ namespace se::world
  * @tparam Ts 조회할 컴포넌트 타입들
  */
 template <typename... Ts>
-    requires QueryParameterPack<Ts...>
+    requires QueryParameterPack < Ts
+
+...
+>
 class Query
 {
     friend class Iterator;
@@ -80,7 +83,7 @@ public:
     public:
         Iterator(Query* self, size_t in_index)
             : query_data(&self->query_data)
-            , storage_index(in_index)
+              , storage_index(in_index)
         {
             if constexpr (HasBasePool)
             {
@@ -208,14 +211,22 @@ private:
     [[no_unique_address]] CacheType alive_entities_cache;
 };
 
-template <typename... Ts> requires QueryParameterPack<Ts...>
+template <typename... Ts> requires QueryParameterPack < Ts
+
+...
+>
 bool Query<Ts...>::IsEmpty()
 {
     return begin() == end();
 }
 
-template <typename... Ts> requires QueryParameterPack<Ts...>
-Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::Get(Entity entity)
+template <typename... Ts> requires QueryParameterPack < Ts
+
+...
+>
+Optional<typename Query < Ts...>::FetchTypes
+>
+Query<Ts...>::Get(Entity entity)
 {
     if (query_data.IsEntityValid(entity))
     {
@@ -228,8 +239,13 @@ Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::Get(Entity entity)
     return std::nullopt;
 }
 
-template <typename... Ts> requires QueryParameterPack<Ts...>
-Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::GetSingle()
+template <typename... Ts> requires QueryParameterPack < Ts
+
+...
+>
+Optional<typename Query < Ts...>::FetchTypes
+>
+Query<Ts...>::GetSingle()
 {
     auto it = begin();
     if (it == end())
@@ -247,7 +263,10 @@ Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::GetSingle()
     return result;
 }
 
-template <typename... Ts> requires QueryParameterPack<Ts...>
+template <typename... Ts> requires QueryParameterPack < Ts
+
+...
+>
 Query<Ts...>::FetchTypes Query<Ts...>::Single()
 {
     auto it = begin();
@@ -260,7 +279,10 @@ Query<Ts...>::FetchTypes Query<Ts...>::Single()
     return result;
 }
 
-template <typename... Ts> requires QueryParameterPack<Ts...>
+template <typename... Ts> requires QueryParameterPack < Ts
+
+...
+>
 template <typename T>
 decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
 {
