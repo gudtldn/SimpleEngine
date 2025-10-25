@@ -190,7 +190,10 @@ core::concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPa
 
                 // loading_requests 에서 제거
                 std::unique_lock req_lock(self->loading_requests_mutex);
-                self->loading_requests.erase(asset_id_copy);
+                if (self->loading_requests.contains(asset_id_copy))
+                {
+                    self->loading_requests.erase(asset_id_copy);
+                }
             }(this, resolver.Resolve(virtual_path), asset_id, ongoing_load_event)
         );
     }
