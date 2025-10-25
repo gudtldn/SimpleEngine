@@ -272,7 +272,10 @@ decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
         );
 
         using DecayedT = std::decay_t<typename T::InnerType>;
-        return world->TryGetComponent<DecayedT>(entity);
+        using WorldType = std::conditional_t<std::is_const_v<typename T::InnerType>, const World*, World*>;
+
+        WorldType world_ptr = world;
+        return world_ptr->template TryGetComponent<DecayedT>(entity);
     }
     else if constexpr (std::same_as<std::decay_t<T>, Entity>)
     {
