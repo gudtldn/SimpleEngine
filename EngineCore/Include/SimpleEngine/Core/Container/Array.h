@@ -46,6 +46,9 @@ public:
     Array(SizeType count, const ValueType& value);
     Array(std::initializer_list<ValueType> init_list);
 
+    template <std::ranges::input_range Rng>
+    Array(Rng&& range);
+
     template <std::input_iterator It>
     Array(It first, It last);
 
@@ -96,6 +99,13 @@ public:
     /** 배열의 끝에 새 요소를 추가하고, 추가된 요소의 참조를 반환합니다. */
     T& Add(const ValueType& value);
     T& Add(ValueType&& value);
+
+    /** 배열의 끝에 다른 시퀀스의 모든 요소를 추가합니다. */
+    template <std::input_iterator It>
+    void Append(It first, It last);
+
+    template <std::ranges::input_range Rng>
+    void Append(Rng&& range);
 
     /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 참조를 반환합니다. */
     template <typename... Args>
@@ -163,6 +173,13 @@ Array<T, Allocator>::Array(std::initializer_list<ValueType> init_list)
 }
 
 template <typename T, typename Allocator>
+template <std::ranges::input_range Rng>
+Array<T, Allocator>::Array(Rng&& range)
+    : internal_vector(std::ranges::begin(range), std::ranges::end(range))
+{
+}
+
+template <typename T, typename Allocator>
 template <std::input_iterator It>
 Array<T, Allocator>::Array(It first, It last)
     : internal_vector(first, last)
@@ -209,20 +226,6 @@ template <typename T, typename Allocator>
 void Array<T, Allocator>::Clear() noexcept
 {
     internal_vector.clear();
-}
-
-template <typename T, typename Allocator>
-T& Array<T, Allocator>::operator[](SizeType index) noexcept
-{
-    assert(index < Len() && "Index out of bounds");
-    return internal_vector[index];
-}
-
-template <typename T, typename Allocator>
-const T& Array<T, Allocator>::operator[](SizeType index) const noexcept
-{
-    assert(index < Len() && "Index out of bounds");
-    return internal_vector[index];
 }
 
 template <typename T, typename Allocator>
@@ -312,6 +315,25 @@ T& Array<T, Allocator>::Add(ValueType&& value)
 }
 
 template <typename T, typename Allocator>
+template <std::input_iterator It>
+void Array<T, Allocator>::Append(It first, It last)
+{
+    if constexpr (std::forward_iterator<It>)
+    {
+        const auto distance = std::distance(first, last);
+        internal_vector.reserve(Len() + distance);
+    }
+    internal_vector.insert(internal_vector.end(), first, last);
+}
+
+template <typename T, typename Allocator>
+template <std::ranges::input_range Rng>
+void Array<T, Allocator>::Append(Rng&& range)
+{
+    Append(std::ranges::begin(range), std::ranges::end(range));
+}
+
+template <typename T, typename Allocator>
 template <typename... Args>
 T& Array<T, Allocator>::Emplace(Args&&... args)
 {
@@ -363,6 +385,20 @@ Optional<typename Array<T, Allocator>::SizeType> Array<T, Allocator>::Find(const
         return std::distance(begin(), it);
     }
     return std::nullopt;
+}
+
+template <typename T, typename Allocator>
+T& Array<T, Allocator>::operator[](SizeType index) noexcept
+{
+    assert(index < Len() && "Index out of bounds");
+    return internal_vector[index];
+}
+
+template <typename T, typename Allocator>
+const T& Array<T, Allocator>::operator[](SizeType index) const noexcept
+{
+    assert(index < Len() && "Index out of bounds");
+    return internal_vector[index];
 }
 
 template <typename T, typename Allocator>
