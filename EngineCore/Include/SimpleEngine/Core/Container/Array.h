@@ -27,21 +27,13 @@ public:
     using value_type = T;
     using allocator_type = Allocator;
     using size_type = usize;
-    using difference_type = std::ptrdiff_t;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using pointer = std::allocator_traits<Allocator>::pointer;
-    using const_pointer = std::allocator_traits<Allocator>::const_pointer;
+    using difference_type = isize;
 
     // 엔진 내부 일관성을 위한 PascalCase 별칭
     using ValueType = value_type;
     using AllocatorType = allocator_type;
     using SizeType = size_type;
     using DifferenceType = difference_type;
-    using Reference = reference;
-    using ConstReference = const_reference;
-    using Pointer = pointer;
-    using ConstPointer = const_pointer;
 
     using Iterator = InternalVectorType::iterator;
     using ConstIterator = InternalVectorType::const_iterator;
@@ -50,13 +42,12 @@ public:
 
 public:
     Array() noexcept(noexcept(Allocator()));
-    explicit Array(const AllocatorType& allocator) noexcept;
-    explicit Array(SizeType count, const AllocatorType& allocator = AllocatorType{});
-    Array(SizeType count, const ValueType& value, const AllocatorType& allocator = AllocatorType{});
-    Array(std::initializer_list<ValueType> init_list, const AllocatorType& allocator = AllocatorType{});
+    explicit Array(SizeType count);
+    Array(SizeType count, const ValueType& value);
+    Array(std::initializer_list<ValueType> init_list);
 
     template <std::input_iterator It>
-    Array(It first, It last, const AllocatorType& allocator = AllocatorType{});
+    Array(It first, It last);
 
     ~Array() = default;
     Array(const Array& other) = default;
@@ -87,28 +78,28 @@ public:
     void Clear() noexcept;
 
     /** 경계 검사를 수행하며 특정 인덱스의 요소에 대한 Optional 참조를 반환합니다. */
-    [[nodiscard]] Optional<Reference> At(SizeType index);
-    [[nodiscard]] Optional<ConstReference> At(SizeType index) const;
+    [[nodiscard]] Optional<T&> At(SizeType index);
+    [[nodiscard]] Optional<const T&> At(SizeType index) const;
 
     /** 첫 번째 요소에 대한 Optional 참조를 반환합니다. (비어있을 경우 nullopt) */
-    [[nodiscard]] Optional<Reference> Front();
-    [[nodiscard]] Optional<ConstReference> Front() const;
+    [[nodiscard]] Optional<T&> Front();
+    [[nodiscard]] Optional<const T&> Front() const;
 
     /** 마지막 요소에 대한 Optional 참조를 반환합니다. (비어있을 경우 nullopt) */
-    [[nodiscard]] Optional<Reference> Back();
-    [[nodiscard]] Optional<ConstReference> Back() const;
+    [[nodiscard]] Optional<T&> Back();
+    [[nodiscard]] Optional<const T&> Back() const;
 
     /** 내부 데이터 버퍼에 대한 포인터를 반환합니다. */
-    [[nodiscard]] Pointer Data() noexcept;
-    [[nodiscard]] ConstPointer Data() const noexcept;
+    [[nodiscard]] T* Data() noexcept;
+    [[nodiscard]] const T* Data() const noexcept;
 
     /** 배열의 끝에 새 요소를 추가하고, 추가된 요소의 참조를 반환합니다. */
-    Reference Add(const ValueType& value);
-    Reference Add(ValueType&& value);
+    T& Add(const ValueType& value);
+    T& Add(ValueType&& value);
 
     /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 참조를 반환합니다. */
     template <typename... Args>
-    Reference Emplace(Args&&... args);
+    T& Emplace(Args&&... args);
 
     /** 배열의 마지막 요소를 제거하고, 그 값을 Optional로 반환합니다. */
     Optional<ValueType> Pop();
@@ -128,8 +119,8 @@ public:
 
 public:
     /** 경계 검사 없이 특정 인덱스의 요소에 접근합니다. */
-    [[nodiscard]] Reference operator[](SizeType index) noexcept;
-    [[nodiscard]] ConstReference operator[](SizeType index) const noexcept;
+    [[nodiscard]] T& operator[](SizeType index) noexcept;
+    [[nodiscard]] const T& operator[](SizeType index) const noexcept;
 
     // Iterator
     [[nodiscard]] Iterator begin() noexcept;
@@ -154,33 +145,27 @@ Array<T, Allocator>::Array() noexcept(noexcept(Allocator()))
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Array(const AllocatorType& allocator) noexcept
-    : internal_vector(allocator)
+Array<T, Allocator>::Array(SizeType count)
+    : internal_vector(count)
 {
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Array(SizeType count, const AllocatorType& allocator)
-    : internal_vector(count, allocator)
+Array<T, Allocator>::Array(SizeType count, const ValueType& value)
+    : internal_vector(count, value)
 {
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Array(SizeType count, const ValueType& value, const AllocatorType& allocator)
-    : internal_vector(count, value, allocator)
-{
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Array(std::initializer_list<ValueType> init_list, const AllocatorType& allocator)
-    : internal_vector(init_list, allocator)
+Array<T, Allocator>::Array(std::initializer_list<ValueType> init_list)
+    : internal_vector(init_list)
 {
 }
 
 template <typename T, typename Allocator>
 template <std::input_iterator It>
-Array<T, Allocator>::Array(It first, It last, const AllocatorType& allocator)
-    : internal_vector(first, last, allocator)
+Array<T, Allocator>::Array(It first, It last)
+    : internal_vector(first, last)
 {
 }
 
@@ -227,21 +212,21 @@ void Array<T, Allocator>::Clear() noexcept
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Reference Array<T, Allocator>::operator[](SizeType index) noexcept
+T& Array<T, Allocator>::operator[](SizeType index) noexcept
 {
     assert(index < Len() && "Index out of bounds");
     return internal_vector[index];
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ConstReference Array<T, Allocator>::operator[](SizeType index) const noexcept
+const T& Array<T, Allocator>::operator[](SizeType index) const noexcept
 {
     assert(index < Len() && "Index out of bounds");
     return internal_vector[index];
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::Reference> Array<T, Allocator>::At(SizeType index)
+Optional<T&> Array<T, Allocator>::At(SizeType index)
 {
     if (index >= Len())
     {
@@ -251,7 +236,7 @@ Optional<typename Array<T, Allocator>::Reference> Array<T, Allocator>::At(SizeTy
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::ConstReference> Array<T, Allocator>::At(SizeType index) const
+Optional<const T&> Array<T, Allocator>::At(SizeType index) const
 {
     if (index >= Len())
     {
@@ -261,7 +246,7 @@ Optional<typename Array<T, Allocator>::ConstReference> Array<T, Allocator>::At(S
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::Reference> Array<T, Allocator>::Front()
+Optional<T&> Array<T, Allocator>::Front()
 {
     if (IsEmpty())
     {
@@ -271,7 +256,7 @@ Optional<typename Array<T, Allocator>::Reference> Array<T, Allocator>::Front()
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::ConstReference> Array<T, Allocator>::Front() const
+Optional<const T&> Array<T, Allocator>::Front() const
 {
     if (IsEmpty())
     {
@@ -281,7 +266,7 @@ Optional<typename Array<T, Allocator>::ConstReference> Array<T, Allocator>::Fron
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::Reference> Array<T, Allocator>::Back()
+Optional<T&> Array<T, Allocator>::Back()
 {
     if (IsEmpty())
     {
@@ -291,7 +276,7 @@ Optional<typename Array<T, Allocator>::Reference> Array<T, Allocator>::Back()
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::ConstReference> Array<T, Allocator>::Back() const
+Optional<const T&> Array<T, Allocator>::Back() const
 {
     if (IsEmpty())
     {
@@ -301,26 +286,26 @@ Optional<typename Array<T, Allocator>::ConstReference> Array<T, Allocator>::Back
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Pointer Array<T, Allocator>::Data() noexcept
+T* Array<T, Allocator>::Data() noexcept
 {
     return internal_vector.data();
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ConstPointer Array<T, Allocator>::Data() const noexcept
+const T* Array<T, Allocator>::Data() const noexcept
 {
     return internal_vector.data();
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Reference Array<T, Allocator>::Add(const ValueType& value)
+T& Array<T, Allocator>::Add(const ValueType& value)
 {
     internal_vector.push_back(value);
     return internal_vector.back();
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Reference Array<T, Allocator>::Add(ValueType&& value)
+T& Array<T, Allocator>::Add(ValueType&& value)
 {
     internal_vector.push_back(std::move(value));
     return internal_vector.back();
@@ -328,7 +313,7 @@ Array<T, Allocator>::Reference Array<T, Allocator>::Add(ValueType&& value)
 
 template <typename T, typename Allocator>
 template <typename... Args>
-Array<T, Allocator>::Reference Array<T, Allocator>::Emplace(Args&&... args)
+T& Array<T, Allocator>::Emplace(Args&&... args)
 {
     return internal_vector.emplace_back(std::forward<Args>(args)...);
 }
