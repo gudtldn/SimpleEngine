@@ -11,7 +11,7 @@
 
 
 template <typename T>
-class [[nodiscard]] Optional
+class Optional
 {
 public:
     using InnerType = T;
