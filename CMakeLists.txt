@@ -29,11 +29,16 @@ endforeach ()
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# MSVC 컴파일러를 사용하는 경우에만 아래 옵션을 추가
+# UTF-8 인코딩 사용
 if (MSVC)
     add_compile_options(
-            "/utf-8"           # 소스 코드 파일을 UTF-8로 읽도록 지정
-            "/Zc:preprocessor" # MSVC 전처리기 최신 표준 기능을 활성화
+            /utf-8
+            /Zc:preprocessor # MSVC 전처리기 최신 표준 기능을 활성화
+    )
+else ()
+    add_compile_options(
+            -finput-charset=UTF-8
+            -fexec-charset=UTF-8
     )
 endif ()
 
