@@ -81,13 +81,13 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     for (const auto& [transform, mesh, material] : entity_query)
     {
         draw_infos.push_back({
-            .mesh_id = mesh.mesh_id,
-            .material_id = material.material_id,
             .mvp_matrix = TransformUtility::MakeModelMatrix(
                 transform.position,
                 transform.rotation,
                 transform.scale
-            ) * vp_matrix
+            ) * vp_matrix,
+            .mesh_id = mesh.mesh_id,
+            .material_id = material.material_id,
         });
     }
 
