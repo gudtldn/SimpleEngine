@@ -59,7 +59,7 @@ class CodePointView
 public:
     CodePointView() = default;
 
-    explicit CodePointView(const std::string_view& sv)
+    explicit CodePointView(std::string_view sv)
         : view(sv)
     {
     }
@@ -122,8 +122,8 @@ public:
      * @param view string_view
      * @param repeat 이 문자열을 반복할 횟수
      */
-    BaseString(const std::string_view& view, SizeType repeat = 1);
-    BaseString& operator=(const std::string_view& view);
+    BaseString(std::string_view view, SizeType repeat = 1);
+    BaseString& operator=(std::string_view view);
 
     /**
      * C++20 Range로부터 문자열을 생성합니다.
@@ -196,7 +196,7 @@ public:
      */
     void Append(const BaseString& other);
     void Append(const char* str);
-    void Append(const std::string_view& view);
+    void Append(std::string_view view);
 
     /**
      * 바이트 인덱스 위치에 문자열을 삽입합니다.
@@ -204,7 +204,7 @@ public:
      * @param view 삽입할 문자열 뷰
      * @warning byte_idx는 유효한 UTF-8 코드 포인트 경계여야 합니다.
      */
-    void Insert(SizeType byte_idx, const std::string_view& view);
+    void Insert(SizeType byte_idx, std::string_view view);
 
     /**
      * 바이트 인덱스 위치부터 count 바이트만큼 문자를 제거합니다.
@@ -247,21 +247,21 @@ public:
      * @param view 검색할 string_view
      * @return 포함되어 있으면 true
      */
-    [[nodiscard]] bool Contains(const std::string_view& view) const;
+    [[nodiscard]] bool Contains(std::string_view view) const;
 
     /**
      * 문자열이 특정 접두사로 시작하는지 확인합니다.
      * @param view 비교할 접두사 view
      * @return 접두사로 시작하면 true
      */
-    [[nodiscard]] bool StartsWith(const std::string_view& view) const;
+    [[nodiscard]] bool StartsWith(std::string_view view) const;
 
     /**
      * 문자열이 특정 접미사로 끝나는지 확인합니다.
      * @param view 비교할 접미사 view
      * @return 접미사로 끝나면 true
      */
-    [[nodiscard]] bool EndsWith(const std::string_view& view) const;
+    [[nodiscard]] bool EndsWith(std::string_view view) const;
 
     /**
      * 부분 문자열을 검색하여 첫 번째로 일치하는 위치의 바이트 인덱스를 반환합니다.
@@ -269,7 +269,7 @@ public:
      * @param start_byte_pos 검색을 시작할 바이트 오프셋
      * @return 찾은 경우 해당 바이트 인덱스, 찾지 못한 경우 nullopt
      */
-    [[nodiscard]] Optional<SizeType> Find(const std::string_view& view, SizeType start_byte_pos = 0) const;
+    [[nodiscard]] Optional<SizeType> Find(std::string_view view, SizeType start_byte_pos = 0) const;
 
     /**
      * 부분 문자열을 뒤에서부터 검색하여 첫 번째로 일치하는 위치의 바이트 인덱스를 반환합니다.
@@ -277,7 +277,7 @@ public:
      * @param start_byte_pos 검색을 시작할 바이트 오프셋 (기본값: 끝에서부터)
      * @return 찾은 경우 해당 바이트 인덱스, 찾지 못한 경우 nullopt
      */
-    [[nodiscard]] Optional<SizeType> FindLast(const std::string_view& view, SizeType start_byte_pos = -1) const;
+    [[nodiscard]] Optional<SizeType> FindLast(std::string_view view, SizeType start_byte_pos = -1) const;
 
     /**
      * 바이트 인덱스 기준으로 부분 문자열을 복사하여 새로운 String 객체를 반환합니다.
@@ -347,7 +347,7 @@ public:
     [[nodiscard]] BaseString operator+(const BaseString& other) const;
     [[nodiscard]] BaseString operator+(char32 code_point) const;
     [[nodiscard]] BaseString operator+(const char* str) const;
-    [[nodiscard]] BaseString operator+(const std::string_view& view) const;
+    [[nodiscard]] BaseString operator+(std::string_view view) const;
 
     [[nodiscard]] friend BaseString operator+(char32 lhs, const BaseString& rhs)
     {
@@ -363,7 +363,7 @@ public:
         return ret;
     }
 
-    [[nodiscard]] friend BaseString operator+(const std::string_view& lhs, const BaseString& rhs)
+    [[nodiscard]] friend BaseString operator+(std::string_view lhs, const BaseString& rhs)
     {
         BaseString ret{ lhs };
         ret.Append(rhs);
@@ -373,32 +373,32 @@ public:
     BaseString& operator+=(const BaseString& other);
     BaseString& operator+=(char32 code_point);
     BaseString& operator+=(const char* str);
-    BaseString& operator+=(const std::string_view& view);
+    BaseString& operator+=(std::string_view view);
 
     [[nodiscard]] bool operator==(const BaseString& other) const;
     [[nodiscard]] bool operator==(const char* str) const;
-    [[nodiscard]] bool operator==(const std::string_view& view) const;
+    [[nodiscard]] bool operator==(std::string_view view) const;
 
     [[nodiscard]] friend bool operator==(const char* lhs, const BaseString& rhs)
     {
         return std::string_view{ lhs } == std::string_view{ rhs };
     }
 
-    [[nodiscard]] friend bool operator==(const std::string_view& lhs, const BaseString& rhs)
+    [[nodiscard]] friend bool operator==(std::string_view lhs, const BaseString& rhs)
     {
         return lhs == std::string_view{ rhs };
     }
 
     [[nodiscard]] std::strong_ordering operator<=>(const BaseString& other) const;
     [[nodiscard]] std::strong_ordering operator<=>(const char* other) const;
-    [[nodiscard]] std::strong_ordering operator<=>(const std::string_view& other) const;
+    [[nodiscard]] std::strong_ordering operator<=>(std::string_view other) const;
 
     [[nodiscard]] friend std::strong_ordering operator<=>(const char* lhs, const BaseString& rhs)
     {
         return std::string_view{ lhs } <=> std::string_view{ rhs };
     }
 
-    [[nodiscard]] friend std::strong_ordering operator<=>(const std::string_view& lhs, const BaseString& rhs)
+    [[nodiscard]] friend std::strong_ordering operator<=>(std::string_view lhs, const BaseString& rhs)
     {
         return lhs <=> std::string_view{ rhs };
     }
