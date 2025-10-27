@@ -16,7 +16,7 @@ using namespace se::core::concurrency::coroutine;
 
 namespace
 {
-se::utility::PathResolver& resolver = se::utility::PathResolver::Get();
+se::utility::PathResolver& path_resolver = se::utility::PathResolver::Get();
 }
 
 // 1. Dummy Asset & Loader for testing
@@ -62,12 +62,12 @@ struct TestFixture
     {
         temp_dir_path = std::filesystem::temp_directory_path() / "AssetManagerTest";
         std::filesystem::create_directories(temp_dir_path);
-        resolver.Mount(u8"TestAssets", temp_dir_path);
+        path_resolver.Mount(u8"TestAssets", temp_dir_path);
     }
 
     ~TestFixture()
     {
-        resolver.Unmount(u8"TestAssets");
+        path_resolver.Unmount(u8"TestAssets");
         std::filesystem::remove_all(temp_dir_path);
         // Reset the singleton or clear its state if necessary. For now, we assume it's okay.
     }
@@ -77,7 +77,7 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Synchronously")
 {
     // Setup a dummy asset file
     const VPath asset_path = u8"TestAssets://my_asset.dummy";
-    const auto physical_path = resolver.Resolve(asset_path, false).Value();
+    const auto physical_path = path_resolver.Resolve(asset_path, false).Value();
     {
         std::ofstream file(physical_path);
         file << 123;
@@ -94,7 +94,7 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Synchronously")
 TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
 {
     const VPath asset_path = u8"TestAssets://my_async_asset.dummy";
-    const auto physical_path = resolver.Resolve(asset_path, false).Value();
+    const auto physical_path = path_resolver.Resolve(asset_path, false).Value();
     {
         std::ofstream file(physical_path);
         file << 456;
