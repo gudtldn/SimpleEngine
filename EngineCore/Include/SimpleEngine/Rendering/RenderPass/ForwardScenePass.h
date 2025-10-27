@@ -16,9 +16,9 @@ namespace se::rendering
 /** 개별 객체의 렌더링 정보 */
 struct EntityDrawInfo
 {
+    Matrix4x4 mvp_matrix;
     uint32 mesh_id;
     uint32 material_id;
-    Matrix4x4 mvp_matrix;
 };
 
 /**
