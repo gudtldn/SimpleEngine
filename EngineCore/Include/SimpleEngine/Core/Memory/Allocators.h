@@ -1,10 +1,9 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
+#include <cassert>
 #include <limits>
-#include <new>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Memory/OsMemory.h"
 
 
@@ -33,15 +32,13 @@ public:
      * n개의 T 객체를 저장할 수 있는 메모리 블록을 할당합니다.
      * @param n 할당할 객체의 수
      * @return 할당된 메모리 블록의 포인터
-     * @throws std::bad_alloc 메모리 할당에 실패할 경우
      */
     [[nodiscard]] T* allocate(usize n)
     {
-        if (n > std::numeric_limits<usize>::max() / sizeof(T))
-        {
-            ConsoleLog(ELogLevel::Fatal, u8"Memory allocation size overflow: {} elements of size {}", n, sizeof(T));
-            throw std::bad_alloc();
-        }
+        assert(
+            n <= std::numeric_limits<usize>::max() / sizeof(T)
+            && "Memory allocation size overflow"
+        );
 
         if (n == 0)
         {
