@@ -6,7 +6,7 @@
 #define SE_CONCAT_TOKEN_IMPL(a, b) a##b
 #define SE_CONCAT_TOKEN(a, b) SE_CONCAT_TOKEN_IMPL(a, b)
 #define SE_UNIQUE_TOKEN(name) SE_CONCAT_TOKEN(name, __COUNTER__)
-#define SE_STRINGIFY(x) SE_CONCAT_TOKEN(u8, #x)
+#define SE_STRINGIFY(x) #x
 
 
 namespace se::utility

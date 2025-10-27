@@ -2,9 +2,10 @@
 #include <concepts>
 #include <cstddef>
 
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Reflection/Meta.h"
-#include "SimpleEngine/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Utility/Common.h"
 
 
@@ -24,11 +25,11 @@ inline static const struct type##_Registrar \
     type##_Registrar() \
     { \
         using T = type; \
-        std::vector<se::refl::PropertyInfo> properties;
+        se::Array<se::refl::PropertyInfo> properties;
 
 /** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */ // TODO: 추후 offset 대신 멤버 포인터를 저장
 #define SE_REFLECT_PROPERTY(property_name) \
-        properties.emplace_back( \
+        properties.Emplace( \
             /* .name     = */ SE_STRINGIFY(property_name), \
             /* .size     = */ sizeof(T::property_name), \
             /* .offset   = */ offsetof(T, property_name), \
@@ -42,7 +43,7 @@ inline static const struct type##_Registrar \
  * @param ...           PropertyMetadata 초기화 구문 (예: .display_name = u8"이름")
  */
 #define SE_REFLECT_PROPERTY_WITH_META(property_name, ...) \
-        properties.emplace_back( \
+        properties.Emplace( \
             /* .name     = */ SE_STRINGIFY(property_name), \
             /* .size     = */ sizeof(T::property_name), \
             /* .offset   = */ offsetof(T, property_name), \
