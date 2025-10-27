@@ -34,11 +34,13 @@ if (MSVC)
     add_compile_options(
             /utf-8
             /Zc:preprocessor # MSVC 전처리기 최신 표준 기능을 활성화
+            # /W3
     )
 else ()
     add_compile_options(
             -finput-charset=UTF-8
             -fexec-charset=UTF-8
+            # -Wall -Wextra
     )
 endif ()
 
