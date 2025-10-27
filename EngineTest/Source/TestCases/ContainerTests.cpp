@@ -1,4 +1,6 @@
 #include "doctest/doctest.h"
+#include <iostream>
+
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/String.h"
