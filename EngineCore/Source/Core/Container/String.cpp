@@ -136,7 +136,7 @@ CodePointIterator::reference CodePointIterator::operator*() const
     // s: 현재 위치 포인터 (ptr이 문자열 시작처럼 동작)
     // i: 오프셋 (현재 위치를 읽으므로 0)
     // c: 결과 코드 포인트
-    U8_GET_UNSAFE(reinterpret_cast<const uint8*>(ptr), offset, c);
+    U8_GET_UNSAFE(ptr, offset, c);
     return static_cast<char32>(c);
 }
 
@@ -147,8 +147,13 @@ CodePointIterator& CodePointIterator::operator++()
     int32 offset = 0;
     UChar32 dummy_c;
 
+    // U8_NEXT_UNSAFE(s, i, c)
+    // s: 현재 위치 포인터
+    // i: 오프셋
+    // c: 결과 코드 포인트
+
     // U8_NEXT_UNSAFE를 사용하여 코드 포인트를 읽고, offset을 코드 포인트 길이로 업데이트
-    U8_NEXT_UNSAFE(reinterpret_cast<const uint8*>(ptr), offset, dummy_c);
+    U8_NEXT_UNSAFE(ptr, offset, dummy_c);
 
     // 업데이트된 offset(코드 포인트의 바이트 길이)만큼 ptr을 전진
     ptr += offset;

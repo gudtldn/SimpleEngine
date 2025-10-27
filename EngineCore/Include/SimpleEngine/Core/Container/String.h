@@ -38,7 +38,7 @@ public:
     }
 
     explicit CodePointIterator(const char* p)
-        : ptr(p)
+        : ptr(reinterpret_cast<const uint8*>(p))
     {
     }
 
@@ -50,7 +50,7 @@ public:
     bool operator!=(const CodePointIterator& other) const { return ptr != other.ptr; }
 
 private:
-    const char* ptr;
+    const uint8* ptr;
 };
 
 // --- 코드 포인트 뷰 ---
