@@ -411,4 +411,13 @@ private:
 };
 }
 
+template <>
+struct std::hash<se::String>
+{
+    std::size_t operator()(const se::String& path) const noexcept
+    {
+        return std::hash<std::string_view>{}(std::string_view{ path });
+    }
+};
+
 #include "SimpleEngine/Core/Container/String.inl"
