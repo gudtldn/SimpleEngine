@@ -130,6 +130,7 @@ public:
      * @param range char로 변환 가능한 요소를 포함하는 range
      */
     template <std::ranges::input_range Rng>
+        requires std::same_as<std::ranges::range_value_t<Rng>, char>
     BaseString(Rng&& range);
 
     /**
@@ -138,6 +139,7 @@ public:
      * @param last 끝 이터레이터
      */
     template <std::input_iterator It>
+        requires std::same_as<std::iter_value_t<It>, char>
     BaseString(It first, It last);
 
     BaseString(const BaseString&) = default;
