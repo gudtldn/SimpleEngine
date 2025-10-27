@@ -16,10 +16,6 @@ TEST_CASE("FixedArray API")
         FixedArray<int, 5> arr;
         CHECK(arr.Len() == 5);
         CHECK_FALSE(arr.IsEmpty());
-
-        FixedArray<int, 0> empty_arr;
-        CHECK(empty_arr.Len() == 0);
-        CHECK(empty_arr.IsEmpty());
     }
 
     SUBCASE("Element Access with At()")
@@ -39,7 +35,7 @@ TEST_CASE("FixedArray API")
         CHECK(*arr.At(2) == 30);
 
         CHECK_FALSE(arr.At(3).HasValue());
-        CHECK_FALSE(arr.At(-1).HasValue());
+        CHECK_FALSE(arr.At(static_cast<usize>(-1)).HasValue());
     }
 
     SUBCASE("Copy Construction and Assignment")

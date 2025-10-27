@@ -18,6 +18,8 @@ namespace se
 template <typename T, usize N>
 class FixedArray
 {
+    static_assert(N > 0, "FixedArray size must be greater than 0");
+
 public:
     using ValueType = T;
 
