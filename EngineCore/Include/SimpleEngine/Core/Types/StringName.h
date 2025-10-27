@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string_view>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -19,21 +19,22 @@ public:
      * @param in_str 찾으려는 문자열
      * @return Pool에 존재하면 StringName값을 반환, 존재하지 않으면 StringName::None을 반환
      */
-    [[nodiscard]] static StringName Find(const char8* in_str);
+    [[nodiscard]] static StringName Find(const char* in_str);
 
     /**
      * Pool에서 문자열을 찾습니다.
      * @param in_str 찾으려는 문자열
      * @return Pool에 존재하면 StringName값을 반환, 존재하지 않으면 StringName::None을 반환
      */
-    [[nodiscard]] static StringName Find(std::u8string_view in_str);
+    [[nodiscard]] static StringName Find(std::string_view in_str);
 
 public:
     StringName() = default;
-    StringName(const char8* in_str);
-    StringName(std::u8string_view in_str);
+    StringName(const char* in_str);
+    StringName(const se::String& in_str);
+    StringName(std::string_view in_str);
 
-    [[nodiscard]] se::u8string ToString() const;
+    [[nodiscard]] se::String ToString() const;
     [[nodiscard]] FORCE_INLINE uint64 GetDisplayHash() const { return display_hash; }
     [[nodiscard]] FORCE_INLINE uint64 GetComparisonHash() const { return comparison_hash; }
 

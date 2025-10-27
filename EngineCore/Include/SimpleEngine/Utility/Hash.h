@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string_view>
 
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -11,12 +12,13 @@ namespace se::utility
  * @see https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
  */
 template <typename StringType>
+    requires requires { typename StringType::value_type; }
 constexpr uint64 FNV_Hash(const StringType& in_str) noexcept
 {
-    using CharType = std::remove_cv_t<std::remove_pointer_t<decltype(std::data(in_str))>>;
+    using CharType = StringType::value_type;
     static_assert(sizeof(CharType) == 1, "Only 1-byte character types are supported");
 
-    std::basic_string_view<CharType> sv = in_str;
+    std::basic_string_view<CharType> sv{ in_str };
 
     uint64 hash = 0xcbf29ce484222325ULL; // FNV_offset_basis
     for (const CharType c : sv)

@@ -4,19 +4,18 @@
 #include <utility>
 
 #include "Utility/Hash.h"
-#include "Utility/StringUtils.h"
 
 
 namespace
 {
-bool IsNoneString(const std::u8string_view& view)
+bool IsNoneString(std::string_view view)
 {
     if (view.length() == 4)
     {
-        return (view[0] == u8'n' || view[0] == u8'N')
-            && (view[1] == u8'o' || view[1] == u8'O')
-            && (view[2] == u8'n' || view[2] == u8'N')
-            && (view[3] == u8'e' || view[3] == u8'E');
+        return (view[0] == 'n' || view[0] == 'N')
+            && (view[1] == 'o' || view[1] == 'O')
+            && (view[2] == 'n' || view[2] == 'N')
+            && (view[3] == 'e' || view[3] == 'E');
     }
     return false;
 }
@@ -41,7 +40,7 @@ const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
     std::unreachable();
 }
 
-StringNameHashes StringNamePool::Find(const std::u8string_view& view) const
+StringNameHashes StringNamePool::Find(std::string_view view) const
 {
     if (view.empty() || IsNoneString(view))
     {
@@ -49,7 +48,7 @@ StringNameHashes StringNamePool::Find(const std::u8string_view& view) const
     }
 
     {
-        const se::u8string lower_case_str = se::utility::string::ToU8LowerCase(view);
+        const se::String lower_case_str = se::String{ view }.ToLower();
         const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
 
         std::shared_lock lock(string_pool_mutex);
@@ -62,7 +61,7 @@ StringNameHashes StringNamePool::Find(const std::u8string_view& view) const
     return { 0, 0 };
 }
 
-StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
+StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
 {
     if (view.empty() || IsNoneString(view))
     {
@@ -81,7 +80,7 @@ StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
     }
 
     // 없으면 만들기
-    const se::u8string lower_case_str = se::utility::string::ToU8LowerCase(view);
+    const se::String lower_case_str = se::String{ view }.ToLower();
     const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
     {
         std::unique_lock lock(string_pool_mutex);
