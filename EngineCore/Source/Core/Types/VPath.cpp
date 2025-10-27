@@ -1,17 +1,22 @@
 ﻿#include "SimpleEngine/Core/Types/VPath.h"
 
 
-VPath::VPath(const char8* path)
-    : VPath(std::u8string_view{ path })
+VPath::VPath(const char* path)
+    : VPath(std::string_view{ path })
 {
 }
 
-VPath::VPath(std::u8string_view path)
+VPath::VPath(const se::String& path)
+    : VPath(std::string_view{ path })
+{
+}
+
+VPath::VPath(std::string_view path)
 {
     ParseAndNormalize(path);
 }
 
-VPath VPath::operator/(std::u8string_view relative_path) const
+VPath VPath::operator/(std::string_view relative_path) const
 {
     if (relative_path.empty())
     {
@@ -22,30 +27,31 @@ VPath VPath::operator/(std::u8string_view relative_path) const
     new_path.full_path = full_path;
 
     // 슬래시 중복 방지
-    se::u8string& new_path_str = new_path.full_path;
-    if (new_path_str.back() != u8'/' && relative_path.front() != u8'/')
+    se::String& new_path_str = new_path.full_path;
+    const std::string_view view{ new_path_str };
+    if (view.back() != '/' && relative_path.front() != '/')
     {
-        new_path_str += u8'/';
+        new_path_str += '/';
     }
     new_path_str += relative_path;
 
     return new_path;
 }
 
-std::u8string_view VPath::GetScheme() const noexcept
+std::string_view VPath::GetScheme() const noexcept
 {
     if (HasScheme())
     {
-        return std::u8string_view{ full_path.data(), scheme_len };
+        return std::string_view{ full_path.Data(), scheme_len };
     }
     return {};
 }
 
-std::u8string_view VPath::GetPathPart() const noexcept
+std::string_view VPath::GetPathPart() const noexcept
 {
     if (IsValid())
     {
-        return std::u8string_view{ full_path.data() + path_offset, full_path.length() - path_offset };
+        return std::string_view{ full_path.Data() + path_offset, full_path.ByteLen() - path_offset };
     }
     return {};
 }
@@ -54,87 +60,87 @@ VPath VPath::GetParentPath() const
 {
     if (IsValid())
     {
-        const auto last_slash = full_path.find_last_of(u8'/');
-
-        // "Assets://foo.txt" -> "Assets://"
-        // "Assets://bar/" -> "Assets://"
-        if (last_slash <= path_offset)
+        if (const Optional last_slash_opt = full_path.FindLast("/"))
         {
-            return { std::u8string_view(full_path.data(), path_offset) };
-        }
+            // "Assets://foo.txt" -> "Assets://"
+            // "Assets://bar/" -> "Assets://"
+            if (*last_slash_opt <= path_offset)
+            {
+                return { std::string_view{ full_path.Data(), path_offset } };
+            }
 
-        return { std::u8string_view(full_path.data(), last_slash) };
+            return { std::string_view{ full_path.Data(), *last_slash_opt } };
+        }
     }
     return {};
 }
 
-std::u8string_view VPath::GetFilename() const noexcept
+std::string_view VPath::GetFilename() const noexcept
 {
     if (IsValid())
     {
-        const auto last_slash = full_path.find_last_of(u8'/');
-        if (last_slash == se::u8string::npos)
+        const Optional last_slash_opt = full_path.FindLast("/");
+        if (!last_slash_opt.HasValue())
         {
             return GetPathPart(); // 스키마는 없고 파일명만 있는 경우
         }
-        return std::u8string_view{ full_path.data() + last_slash + 1 };
+        return std::string_view{ full_path.Data() + *last_slash_opt + 1 };
     }
     return {};
 }
 
-std::u8string_view VPath::GetExtension() const noexcept
+std::string_view VPath::GetExtension() const noexcept
 {
-    const std::u8string_view filename = GetFilename();
+    const std::string_view filename = GetFilename();
     if (filename.empty())
     {
         return {};
     }
 
-    const auto last_dot = filename.find_last_of(u8'.');
-    if (last_dot == std::u8string_view::npos)
+    const auto last_dot = filename.find_last_of('.');
+    if (last_dot == std::string_view::npos)
     {
         return {}; // 확장자 없음
     }
     return filename.substr(last_dot);
 }
 
-std::u8string_view VPath::GetStem() const noexcept
+std::string_view VPath::GetStem() const noexcept
 {
-    const std::u8string_view filename = GetFilename();
+    const std::string_view filename = GetFilename();
     if (filename.empty())
     {
         return {};
     }
 
-    const auto last_dot = filename.find_last_of(u8'.');
-    if (last_dot == std::u8string_view::npos)
+    const auto last_dot = filename.find_last_of('.');
+    if (last_dot == std::string_view::npos)
     {
         return filename; // 확장자 없음
     }
     return filename.substr(0, last_dot);
 }
 
-void VPath::ParseAndNormalize(std::u8string_view path)
+void VPath::ParseAndNormalize(std::string_view path)
 {
     if (path.empty())
     {
         return;
     }
 
-    full_path.reserve(path.length());
+    full_path.Reserve(path.length());
 
     // 경로 정규화 (\ -> /) 및 복사
-    for (const char8_t c : path)
+    for (const char c : path)
     {
-        full_path += (c == u8'\\') ? u8'/' : c;
+        full_path += (c == '\\') ? '/' : c;
     }
 
     // 스키마 파싱 ("scheme://")
-    const auto scheme_separator = full_path.find(u8"://");
-    if (scheme_separator != se::u8string::npos)
+    if (const Optional scheme_separator_opt = full_path.Find("://"))
     {
-        scheme_len = static_cast<uint16>(scheme_separator);
-        path_offset = static_cast<uint16>(scheme_separator + 3); // "://" 길이만큼 건너뜀
+        scheme_len = static_cast<uint16>(*scheme_separator_opt);
+        path_offset = static_cast<uint16>(*scheme_separator_opt + 3); // "://" 길이만큼 건너뜀
     }
     else
     {
