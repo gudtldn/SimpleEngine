@@ -25,8 +25,8 @@ void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& 
     // 경로를 정규화하여 저장
     auto normalized_path = std::filesystem::absolute(physical_path);
 
-    std::vector<MountPoint>& points = mount_points[scheme];
-    points.push_back({
+    Array<MountPoint>& points = mount_points[scheme];
+    points.Push({
         .physical_path = std::move(normalized_path),
         .priority = priority
     });
@@ -50,18 +50,18 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
 
     std::shared_lock lock(mutex);
 
-    const std::u8string_view scheme = virtual_path.GetScheme();
+    const std::string_view scheme = virtual_path.GetScheme();
     const auto it = mount_points.find(scheme);
 
-    if (it == mount_points.end() || it->second.empty())
+    if (it == mount_points.end() || it->second.IsEmpty())
     {
         ConsoleLog(ELogLevel::Warning, u8"Scheme '{}' is not mounted.", scheme);
         return std::nullopt;
     }
 
     // 경로 부분에서 맨 앞의 '/' 제거
-    std::u8string_view path_part = virtual_path.GetPathPart();
-    if (path_part.starts_with(u8'/'))
+    std::string_view path_part = virtual_path.GetPathPart();
+    if (path_part.starts_with('/'))
     {
         path_part.remove_prefix(1);
     }
@@ -79,7 +79,7 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     if (!check_existence)
     {
         // 가장 우선순위가 높은(첫 번째) 마운트 포인트를 사용하여 경로를 조합
-        const MountPoint& primary_mount_point = it->second.front();
+        const MountPoint& primary_mount_point = *it->second.Front();
         return primary_mount_point.physical_path / path_part;
     }
 
@@ -109,14 +109,14 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
                 // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
                 if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))
                 {
-                    using string::ToU8String;
+                    using string::ToString;
 
                     longest_match_len = match_len;
                     best_priority = point.priority;
 
                     auto relative_part = std::filesystem::relative(normalized_physical_path, point.physical_path);
                     best_match_opt.Emplace(
-                        ToU8String(std::format("{}://{}", scheme.ToString(), relative_part.generic_u8string()))
+                        String::Format("{}://{}", scheme.ToString(), relative_part.generic_string())
                     );
                 }
             }
