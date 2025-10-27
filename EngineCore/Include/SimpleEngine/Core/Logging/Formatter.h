@@ -2,11 +2,24 @@
 #include <format>
 #include <string_view>
 
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Containers/Containers.h"
 
 
 // NOLINTBEGIN(*-dcl58-cpp)
 
+// se::String에 대한 std::formatter 특수화
+template <>
+struct std::formatter<se::String, char> : std::formatter<std::string_view>
+{
+    auto format(const se::String& string, std::format_context& ctx) const
+    {
+        const std::string_view sv{ string };
+        return std::formatter<std::string_view>::format(sv, ctx);
+    }
+};
+
+// TODO: 코드 제거
 // std::u8string_view에 대한 std::formatter 특수화
 template <>
 struct std::formatter<std::u8string_view, char> : std::formatter<std::string_view>
@@ -75,5 +88,6 @@ template <size_t N>
 struct std::formatter<char8_t[N], char> : std::formatter<const char8_t*>
 {
 };
+// TODO: 코드 제거
 
 // NOLINTEND(*-dcl58-cpp)
