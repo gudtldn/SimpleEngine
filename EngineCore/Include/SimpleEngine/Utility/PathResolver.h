@@ -7,6 +7,8 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
+#include "tracy/Tracy.hpp"
+
 
 namespace se::utility
 {
@@ -69,6 +71,6 @@ private:
     };
 
     unordered_map<StringName, std::vector<MountPoint>> mount_points;
-    mutable std::shared_mutex mutex;
+    mutable TracySharedLockable(std::shared_mutex, mutex);
 };
 }
