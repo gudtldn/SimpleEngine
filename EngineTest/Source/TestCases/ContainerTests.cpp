@@ -344,4 +344,192 @@ TEST_CASE("Array API")
         CHECK(arr3.IsEmpty());
     }
 }
+
+TEST_CASE("String API")
+{
+    SUBCASE("Construction")
+    {
+        String s1;
+        CHECK(s1.IsEmpty());
+        CHECK(s1.ByteLen() == 0);
+        CHECK(s1.CodePointLen() == 0);
+
+        String s2("hello");
+        CHECK(s2.ByteLen() == 5);
+        CHECK(s2.CodePointLen() == 5);
+        CHECK(s2 == "hello");
+
+        // UTF-8 string: "안녕하세요" (5 characters, 15 bytes)
+        String s3("안녕하세요");
+        CHECK(s3.ByteLen() == 15);
+        CHECK(s3.CodePointLen() == 5);
+        CHECK(s3 == "안녕하세요");
+
+        String s4(U'😊', 3); // 3 smiling faces
+        CHECK(s4 == "😊😊😊");
+        CHECK(s4.ByteLen() == 12); // 4 bytes per emoji
+        CHECK(s4.CodePointLen() == 3);
+
+        String s5(std::string_view("world"));
+        CHECK(s5 == "world");
+
+        String s6 = s5; // Copy construction
+        CHECK(s6 == "world");
+
+        String s7 = std::move(s6); // Move construction
+        CHECK(s7 == "world");
+        CHECK(s6.IsEmpty()); // Moved-from state
+    }
+
+    SUBCASE("Assignment")
+    {
+        String s;
+        s = "test";
+        CHECK(s == "test");
+        s = std::string_view("another");
+        CHECK(s == "another");
+        s = U'X';
+        CHECK(s == "X");
+        CHECK(s.ByteLen() == 1);
+        CHECK(s.CodePointLen() == 1);
+    }
+
+    SUBCASE("Append and Concatenation")
+    {
+        String s1("Hello");
+        s1.Append(" World");
+        CHECK(s1 == "Hello World");
+
+        String s2 = s1 + "!";
+        CHECK(s2 == "Hello World!");
+
+        s2 += U'😊';
+        CHECK(s2 == "Hello World!😊");
+
+        String s3 = "Prefix: " + s2;
+        CHECK(s3.StartsWith("Prefix: "));
+    }
+
+    SUBCASE("Find and Contains")
+    {
+        String s("Hello World, Hello Universe");
+        CHECK(s.Contains("World"));
+        CHECK_FALSE(s.Contains("Galaxy"));
+
+        CHECK(s.StartsWith("Hello"));
+        CHECK(s.EndsWith("Universe"));
+
+        auto find_res = s.Find("Hello");
+        CHECK(find_res.HasValue());
+        CHECK(*find_res == 0);
+
+        find_res = s.Find("Hello", 1);
+        CHECK(find_res.HasValue());
+        CHECK(*find_res == 13);
+
+        auto rfind_res = s.FindLast("Hello");
+        CHECK(rfind_res.HasValue());
+        CHECK(*rfind_res == 13);
+    }
+
+    SUBCASE("Substrings")
+    {
+        String s("0123456789");
+        String sub1 = s.Substring(2, 5);
+        CHECK(sub1 == "23456");
+
+        String sub2 = s.Substring(5);
+        CHECK(sub2 == "56789");
+
+        std::string_view view1 = s.SubstringView(2, 5);
+        CHECK(view1 == "23456");
+    }
+
+    SUBCASE("Insert and Remove")
+    {
+        String s("Hello Universe");
+        s.Insert(6, "Beautiful ");
+        CHECK(s == "Hello Beautiful Universe");
+
+        // Remove "Beautiful " (10 bytes)
+        s.RemoveRange(6, 10);
+        CHECK(s == "Hello Universe");
+    }
+
+    SUBCASE("Push and Pop")
+    {
+        String s("abc");
+        s.Push(U'😊');
+        CHECK(s == "abc😊");
+
+        Optional<char32> popped = s.Pop();
+        CHECK(popped.HasValue());
+        CHECK(*popped == U'😊');
+        CHECK(s == "abc");
+
+        s.Pop();
+        s.Pop();
+        s.Pop();
+        CHECK(s.IsEmpty());
+
+        popped = s.Pop();
+        CHECK_FALSE(popped.HasValue());
+    }
+
+    SUBCASE("Case Conversion")
+    {
+        String s("Hello World");
+        String upper = s.ToUpper();
+        String lower = s.ToLower();
+        CHECK(upper == "HELLO WORLD");
+        CHECK(lower == "hello world");
+
+        // Turkish 'i' test
+        String turkish_i("Iıİi");
+        String turkish_upper = turkish_i.ToUpper("tr_TR");
+        String turkish_lower = turkish_i.ToLower("tr_TR");
+        CHECK(turkish_upper == "IIİİ");
+        CHECK(turkish_lower == "ııii");
+    }
+
+    SUBCASE("CodePoints and Bytes View")
+    {
+        String s("a😊b"); // a(1) + emoji(4) + b(1) = 6 bytes
+        CHECK(s.ByteLen() == 6);
+        CHECK(s.CodePointLen() == 3);
+
+        int cp_count = 0;
+        for ([[maybe_unused]] char32 cp : s.CodePoints())
+        {
+            cp_count++;
+        }
+        CHECK(cp_count == 3);
+
+        int byte_count = 0;
+        for ([[maybe_unused]] char byte : s.Bytes())
+        {
+            byte_count++;
+        }
+        CHECK(byte_count == 6);
+    }
+
+    SUBCASE("Comparison")
+    {
+        String s1("abc");
+        String s2("abd");
+        String s3("abc");
+
+        CHECK(s1 == s3);
+        CHECK(s1 != s2);
+        CHECK(s1 < s2);
+        CHECK(s2 > s1);
+        CHECK(s1 <= s3);
+    }
+
+    SUBCASE("Static Format")
+    {
+        auto s = String::Format("The number is {} and the string is '{}'.", 42, "test");
+        CHECK(s == "The number is 42 and the string is 'test'.");
+    }
+}
 }
