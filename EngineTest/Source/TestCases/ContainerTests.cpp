@@ -1,6 +1,7 @@
 #include "doctest/doctest.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
+#include "SimpleEngine/Core/Container/String.h"
 
 // Using the namespace where containers are defined
 using namespace se;
@@ -103,183 +104,244 @@ TEST_CASE("Array API")
     SUBCASE("Default Construction")
     {
         Array<int> arr;
-        CHECK(arr.IsEmpty());
         CHECK(arr.Len() == 0);
+        CHECK(arr.IsEmpty());
+        CHECK(arr.Capacity() == 0);
+    }
+
+    SUBCASE("Construction with size")
+    {
+        Array<int> arr(5);
+        CHECK(arr.Len() == 5);
+        CHECK_FALSE(arr.IsEmpty());
+        CHECK(arr.Capacity() >= 5);
+        // Elements are default-initialized
+        CHECK(arr[0] == 0);
+    }
+
+    SUBCASE("Construction with size and value")
+    {
+        Array<int> arr(3, 10);
+        CHECK(arr.Len() == 3);
+        CHECK(arr[0] == 10);
+        CHECK(arr[1] == 10);
+        CHECK(arr[2] == 10);
     }
 
     SUBCASE("Initializer List Construction")
     {
-        Array<int> arr = { 1, 2, 3 };
-        CHECK_FALSE(arr.IsEmpty());
-        CHECK(arr.Len() == 3);
+        Array<int> arr = { 1, 2, 3, 4, 5 };
+        CHECK(arr.Len() == 5);
         CHECK(arr[0] == 1);
-        CHECK(arr[1] == 2);
-        CHECK(arr[2] == 3);
+        CHECK(arr[4] == 5);
     }
 
-    SUBCASE("Add and Emplace")
+    SUBCASE("Push and Pop")
     {
         Array<int> arr;
-        arr.Add(10);
-        CHECK(arr.Len() == 1);
-        CHECK(arr[0] == 10);
-
-        arr.Emplace(20);
+        arr.Push(10);
+        arr.Push(20);
         CHECK(arr.Len() == 2);
         CHECK(arr[1] == 20);
-    }
 
-    SUBCASE("Accessors: At, [], Front, Back")
-    {
-        Array<std::string> arr = { "hello", "world", "!" };
-
-        CHECK(arr.At(1).HasValue());
-        CHECK(*arr.At(1) == "world");
-        CHECK_FALSE(arr.At(3).HasValue());
-
-        CHECK(arr[0] == "hello");
-
-        CHECK(arr.Front().HasValue());
-        CHECK(*arr.Front() == "hello");
-
-        CHECK(arr.Back().HasValue());
-        CHECK(*arr.Back() == "!");
-
-        const auto& const_arr = arr;
-        CHECK(*const_arr.At(1) == "world");
-        CHECK(const_arr[0] == "hello");
-        CHECK(*const_arr.Front() == "hello");
-        CHECK(*const_arr.Back() == "!");
-    }
-
-    SUBCASE("Pop")
-    {
-        Array<int> arr = { 1, 2, 3 };
         auto popped = arr.Pop();
         CHECK(popped.HasValue());
-        CHECK(*popped == 3);
-        CHECK(arr.Len() == 2);
-        CHECK(*arr.Back() == 2);
+        CHECK(*popped == 20);
+        CHECK(arr.Len() == 1);
 
-        arr.Pop();
-        arr.Pop();
+        popped = arr.Pop();
+        CHECK(popped.HasValue());
+        CHECK(*popped == 10);
         CHECK(arr.IsEmpty());
-        auto empty_pop = arr.Pop();
-        CHECK_FALSE(empty_pop.HasValue());
+
+        popped = arr.Pop();
+        CHECK_FALSE(popped.HasValue());
     }
 
-    SUBCASE("RemoveAtSwap")
+    SUBCASE("Element Access")
     {
-        Array<int> arr = { 10, 20, 30, 40, 50 };
+        Array<int> arr = { 10, 20, 30 };
+        CHECK(*arr.At(1) == 20);
+        CHECK_FALSE(arr.At(3).HasValue());
 
-        // Remove middle element
-        bool removed = arr.RemoveAtSwap(2); // remove 30
-        CHECK(removed);
-        CHECK(arr.Len() == 4);
-        CHECK(arr.Contains(50)); // 30 should be replaced by 50
-        CHECK_FALSE(arr.Contains(30));
+        CHECK(*arr.Front() == 10);
+        CHECK(*arr.Back() == 30);
 
-        // Remove last element
-        removed = arr.RemoveAtSwap(arr.Len() - 1);
-        CHECK(removed);
-        CHECK(arr.Len() == 3);
+        arr[0] = 15;
+        CHECK(arr[0] == 15);
 
-        // Remove out of bounds
-        removed = arr.RemoveAtSwap(10);
-        CHECK_FALSE(removed);
+        const Array<int> const_arr = { 1, 2 };
+        CHECK(*const_arr.At(0) == 1);
+        CHECK(*const_arr.Front() == 1);
+        CHECK(*const_arr.Back() == 2);
+        CHECK(const_arr[1] == 2);
     }
 
-    SUBCASE("Find and Contains")
-    {
-        Array<int> arr = { 10, 20, 30, 20 };
-        CHECK(arr.Contains(20));
-        CHECK_FALSE(arr.Contains(99));
-
-        auto found_index = arr.Find(20);
-        CHECK(found_index.HasValue());
-        CHECK(*found_index == 1);
-
-        auto not_found_index = arr.Find(99);
-        CHECK_FALSE(not_found_index.HasValue());
-    }
-
-    SUBCASE("Capacity and Memory Management")
+    SUBCASE("Empty Array Access")
     {
         Array<int> arr;
-        CHECK(arr.Capacity() == 0);
-
-        arr.Reserve(10);
-        CHECK(arr.Capacity() >= 10);
-        auto old_capacity = arr.Capacity();
-
-        arr.Add(1);
-        arr.Add(2);
-        CHECK(arr.Capacity() == old_capacity);
-
-        arr.ShrinkToFit();
-        CHECK(arr.Capacity() == arr.Len());
-        CHECK(arr.Capacity() == 2);
+        CHECK_FALSE(arr.Front().HasValue());
+        CHECK_FALSE(arr.Back().HasValue());
+        CHECK_FALSE(arr.At(0).HasValue());
     }
 
-    SUBCASE("Resize and Clear")
+    SUBCASE("Capacity and Reserving")
     {
-        Array<int> arr = { 1, 2, 3 };
+        Array<int> arr;
+        arr.Reserve(10);
+        CHECK(arr.Capacity() >= 10);
+        CHECK(arr.Len() == 0);
+
+        arr.Push(1);
+        arr.ShrinkToFit();
+        CHECK(arr.Capacity() == 1);
+        CHECK(arr.Len() == 1);
+    }
+
+    SUBCASE("Resize")
+    {
+        Array<int> arr = { 1, 2, 3};
         arr.Resize(5);
         CHECK(arr.Len() == 5);
-        // New elements are default-initialized (to 0 for int)
+        CHECK(arr[2] == 3);
+        // New elements are default-initialized
         CHECK(arr[3] == 0);
         CHECK(arr[4] == 0);
 
         arr.Resize(2);
         CHECK(arr.Len() == 2);
-        CHECK(*arr.Back() == 2);
+        CHECK(arr[1] == 2);
+    }
 
+    SUBCASE("Clear")
+    {
+        Array<int> arr = { 1, 2, 3};
         arr.Clear();
-        CHECK(arr.IsEmpty());
         CHECK(arr.Len() == 0);
-        CHECK(arr.Capacity() > 0); // Clear doesn't change capacity
+        CHECK(arr.IsEmpty());
+        CHECK(arr.Capacity() >= 3); // Capacity is not changed
+    }
+
+    SUBCASE("Insert and Remove")
+    {
+        Array<int> arr = { 10, 20, 30 };
+        arr.Insert(1, 15); // {10, 15, 20, 30}
+        CHECK(arr.Len() == 4);
+        CHECK(arr[1] == 15);
+        CHECK(arr[2] == 20);
+
+        arr.RemoveAt(2); // {10, 15, 30}
+        CHECK(arr.Len() == 3);
+        CHECK(arr[2] == 30);
+    }
+
+    SUBCASE("RemoveAtSwap")
+    {
+        Array<int> arr = { 10, 20, 30, 40 };
+        bool success = arr.RemoveAtSwap(1); // swap 20 with 40, then pop
+        CHECK(success);
+        CHECK(arr.Len() == 3);
+        CHECK(arr[0] == 10);
+        CHECK(arr[1] == 40); // 20 was swapped with 40
+        CHECK(arr[2] == 30);
+
+        success = arr.RemoveAtSwap(5); // out of bounds
+        CHECK_FALSE(success);
+
+        // Test removing the last element
+        Array<int> arr2 = { 1, 2, 3 };
+        success = arr2.RemoveAtSwap(2);
+        CHECK(success);
+        CHECK(arr2.Len() == 2);
+        CHECK(arr2[0] == 1);
+        CHECK(arr2[1] == 2);
+    }
+
+    SUBCASE("Contains and Find")
+    {
+        Array<int> arr = { 10, 20, 30, 20 };
+        CHECK(arr.Contains(20));
+        CHECK_FALSE(arr.Contains(50));
+
+        auto index = arr.Find(20);
+        CHECK(index.HasValue());
+        CHECK(*index == 1); // Finds first occurrence
+
+        index = arr.Find(50);
+        CHECK_FALSE(index.HasValue());
+    }
+
+    SUBCASE("Append")
+    {
+        Array<int> arr1 = { 1, 2 };
+        Array<int> arr2 = { 3, 4 };
+        arr1.Append(arr2);
+        CHECK(arr1.Len() == 4);
+        CHECK(arr1[2] == 3);
+        CHECK(arr1[3] == 4);
+
+        std::vector<int> vec = { 5, 6 };
+        arr1.Append(vec);
+        CHECK(arr1.Len() == 6);
+        CHECK(arr1[4] == 5);
+        CHECK(arr1[5] == 6);
+    }
+
+    SUBCASE("Emplace")
+    {
+        struct TestStruct
+        {
+            int x;
+            double y;
+
+            TestStruct(int x, double y)
+                : x(x)
+                , y(y)
+            {
+            }
+        };
+        Array<TestStruct> arr;
+        arr.Emplace(1, 3.14);
+        CHECK(arr.Len() == 1);
+        CHECK(arr[0].x == 1);
+        CHECK(arr[0].y == 3.14);
+    }
+
+    SUBCASE("Range-based for loop")
+    {
+        Array<int> arr = { 1, 2, 3, 4 };
+        int sum = 0;
+        for (const int val : arr)
+        {
+            sum += val;
+        }
+        CHECK(sum == 10);
     }
 
     SUBCASE("Copy and Move Semantics")
     {
         Array<int> arr1 = { 1, 2, 3 };
-
-        // Copy constructor
-        Array<int> arr2 = arr1;
-        CHECK(arr2.Len() == 3);
+        Array<int> arr2 = arr1; // Copy constructor
         CHECK(arr1.Len() == 3);
+        CHECK(arr2.Len() == 3);
         CHECK(arr2[1] == 2);
 
-        // Copy assignment
         Array<int> arr3;
-        arr3 = arr1;
+        arr3 = arr1; // Copy assignment
         CHECK(arr3.Len() == 3);
         CHECK(arr3[1] == 2);
 
-        // Move constructor
-        Array<int> arr4 = std::move(arr1);
+        Array<int> arr4 = std::move(arr1); // Move constructor
         CHECK(arr4.Len() == 3);
         CHECK(arr4[1] == 2);
         // arr1 is in a valid but unspecified state, but should be empty
         CHECK(arr1.IsEmpty());
 
-        // Move assignment
         Array<int> arr5;
-        arr5 = std::move(arr2);
+        arr5 = std::move(arr3); // Move assignment
         CHECK(arr5.Len() == 3);
         CHECK(arr5[1] == 2);
-        CHECK(arr2.IsEmpty());
-    }
-
-    SUBCASE("Range-based for loop")
-    {
-        Array<int> arr = { 10, 20, 30 };
-        int sum = 0;
-        for (const auto& val : arr)
-        {
-            sum += val;
-        }
-        CHECK(sum == 60);
+        CHECK(arr3.IsEmpty());
     }
 }
 }
