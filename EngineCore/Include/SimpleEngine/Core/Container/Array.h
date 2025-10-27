@@ -97,8 +97,11 @@ public:
     [[nodiscard]] const T* Data() const noexcept;
 
     /** 배열의 끝에 새 요소를 추가하고, 추가된 요소의 참조를 반환합니다. */
-    T& Add(const ValueType& value);
-    T& Add(ValueType&& value);
+    T& Push(const ValueType& value);
+    T& Push(ValueType&& value);
+
+    /** 배열의 마지막 요소를 제거하고, 그 값을 Optional로 반환합니다. */
+    Optional<ValueType> Pop();
 
     /** 배열의 끝에 다른 시퀀스의 모든 요소를 추가합니다. */
     template <std::input_iterator It>
@@ -111,8 +114,46 @@ public:
     template <typename... Args>
     T& Emplace(Args&&... args);
 
-    /** 배열의 마지막 요소를 제거하고, 그 값을 Optional로 반환합니다. */
-    Optional<ValueType> Pop();
+    /**
+     * @brief index 위치에 새 요소를 삽입합니다.
+     * @param index 삽입할 위치의 인덱스.
+     * @param value 삽입할 요소.
+     * @return 삽입된 요소의 참조.
+     */
+    T& Insert(SizeType index, const T& value);
+    T& Insert(SizeType index, T&& value);
+
+    /**
+     * @brief index 위치에 다른 시퀀스의 모든 요소를 삽입합니다.
+     * @param index 삽입할 위치의 인덱스.
+     * @param first 삽입할 시퀀스의 시작 이터레이터.
+     * @param last 삽입할 시퀀스의 끝 이터레이터.
+     */
+    template <std::input_iterator It>
+    void Insert(SizeType index, It first, It last);
+
+    /**
+     * @brief index 위치에 다른 레인지의 모든 요소를 삽입합니다.
+     * @param index 삽입할 위치의 인덱스.
+     * @param range 삽입할 레인지.
+     */
+    template <std::ranges::input_range Rng>
+    void Insert(SizeType index, Rng&& range);
+
+    /**
+     * @brief index 위치의 요소를 제거합니다. (순서 유지)
+     * @param index 제거할 요소의 인덱스.
+     * @return 제거된 다음 요소의 이터레이터.
+     */
+    Iterator RemoveAt(SizeType index);
+
+    /**
+     * @brief index부터 count개 만큼의 요소들을 제거합니다. (순서 유지)
+     * @param index 제거를 시작할 요소의 인덱스.
+     * @param count 제거할 요소의 개수.
+     * @return 제거된 다음 요소의 이터레이터.
+     */
+    Iterator RemoveRange(SizeType index, SizeType count);
 
     /**
      * 특정 인덱스의 요소를 제거합니다. (순서 보장 안됨)
@@ -301,17 +342,30 @@ const T* Array<T, Allocator>::Data() const noexcept
 }
 
 template <typename T, typename Allocator>
-T& Array<T, Allocator>::Add(const ValueType& value)
+T& Array<T, Allocator>::Push(const ValueType& value)
 {
     internal_vector.push_back(value);
     return internal_vector.back();
 }
 
 template <typename T, typename Allocator>
-T& Array<T, Allocator>::Add(ValueType&& value)
+T& Array<T, Allocator>::Push(ValueType&& value)
 {
     internal_vector.push_back(std::move(value));
     return internal_vector.back();
+}
+
+template <typename T, typename Allocator>
+Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
+{
+    if (IsEmpty())
+    {
+        return std::nullopt;
+    }
+
+    ValueType value = std::move(internal_vector.back());
+    internal_vector.pop_back();
+    return { std::move(value) };
 }
 
 template <typename T, typename Allocator>
@@ -341,16 +395,48 @@ T& Array<T, Allocator>::Emplace(Args&&... args)
 }
 
 template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
+T& Array<T, Allocator>::Insert(SizeType index, const T& value)
 {
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
+    assert(index <= Len() && "Insert index out of bounds");
+    auto it = internal_vector.insert(internal_vector.cbegin() + index, value);
+    return *it;
+}
 
-    ValueType value = std::move(internal_vector.back());
-    internal_vector.pop_back();
-    return { std::move(value) };
+template <typename T, typename Allocator>
+T& Array<T, Allocator>::Insert(SizeType index, T&& value)
+{
+    assert(index <= Len() && "Insert index out of bounds");
+    auto it = internal_vector.insert(internal_vector.cbegin() + index, std::move(value));
+    return *it;
+}
+
+template <typename T, typename Allocator>
+template <std::input_iterator It>
+void Array<T, Allocator>::Insert(SizeType index, It first, It last)
+{
+    assert(index <= Len() && "Insert index out of bounds");
+    internal_vector.insert(internal_vector.cbegin() + index, first, last);
+}
+
+template <typename T, typename Allocator>
+template <std::ranges::input_range Rng>
+void Array<T, Allocator>::Insert(SizeType index, Rng&& range)
+{
+    Insert(index, std::ranges::begin(range), std::ranges::end(range));
+}
+
+template <typename T, typename Allocator>
+Array<T, Allocator>::Iterator Array<T, Allocator>::RemoveAt(SizeType index)
+{
+    assert(index < Len() && "RemoveAt index out of bounds");
+    return internal_vector.erase(internal_vector.cbegin() + index);
+}
+
+template <typename T, typename Allocator>
+Array<T, Allocator>::Iterator Array<T, Allocator>::RemoveRange(SizeType index, SizeType count)
+{
+    assert(index + count <= Len() && "RemoveRange out of bounds");
+    return internal_vector.erase(internal_vector.cbegin() + index, internal_vector.cbegin() + index + count);
 }
 
 template <typename T, typename Allocator>
