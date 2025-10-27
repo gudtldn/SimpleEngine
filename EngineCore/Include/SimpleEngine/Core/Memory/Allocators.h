@@ -1,13 +1,12 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
+#include <limits>
+#include <new>
 
-#include <new>      // For std::bad_alloc, std::align_val_t
-#include <limits>   // For std::numeric_limits
-#include <utility>  // For std::is_constant_evaluated in C++20+
-
-#include "OsMemory.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Logging/Logging.h" // 예시: 로그 시스템 포함
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Memory/OsMemory.h"
+
 
 namespace se::core::memory
 {
