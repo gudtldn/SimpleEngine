@@ -67,9 +67,9 @@ SE_CORE_API void PrintStackTrace();
     class ConsoleLog_##log_level \
     { \
     public: \
-        ConsoleLog_##log_level(std::u8string_view fmt, const Args&... args, const std::source_location& location = std::source_location::current()) \
+        ConsoleLog_##log_level(std::format_string<Args...> fmt, Args&&... args, const std::source_location& location = std::source_location::current()) \
         { \
-            ConsoleLog(LogLevelAndLocation(ELogLevel::log_level, location), fmt, args...); \
+            ConsoleLog(LogLevelAndLocation(ELogLevel::log_level, location), fmt, std::forward<Args>(args)...); \
         } \
         ~ConsoleLog_##log_level() = default; \
         ConsoleLog_##log_level(const ConsoleLog_##log_level&) = delete; \
@@ -78,7 +78,7 @@ SE_CORE_API void PrintStackTrace();
         ConsoleLog_##log_level& operator=(ConsoleLog_##log_level&&) = delete; \
     }; \
     template <typename... Args> \
-    ConsoleLog_##log_level(std::u8string_view fmt, const Args&... args) -> ConsoleLog_##log_level<Args...>;
+    ConsoleLog_##log_level(std::format_string<Args...> fmt, Args&&... args) -> ConsoleLog_##log_level<Args...>;
 
 
 /** ConsoleLog에 Debug로 Log를 출력합니다. */

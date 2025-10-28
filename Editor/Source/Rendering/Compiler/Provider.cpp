@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Rendering/Compiler/Compiler.h"
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Gfx/ShaderUtils.h"
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
@@ -15,21 +15,21 @@ namespace se::editor::rendering
 {
 SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
-    const std::u8string ext = request.source_path.extension().u8string();
+    const std::string ext = request.source_path.extension().string();
 
     // HLSL Compile
-    if (ext.contains(u8".hlsl"))
+    if (ext.contains(".hlsl"))
     {
-        Optional<vector<HLSL_Define>> defines_opt;
+        Optional<Array<HLSL_Define>> defines_opt;
         if (request.hlsl_defines_opt.HasValue())
         {
-            vector<HLSL_Define> hlsl_defines;
+            Array<HLSL_Define> hlsl_defines;
             const auto& request_defines = request.hlsl_defines_opt.Value();
 
-            hlsl_defines.reserve(request_defines.size());
+            hlsl_defines.Reserve(request_defines.size());
             for (const auto& [name, value] : request_defines)
             {
-                hlsl_defines.emplace_back(name, value);
+                hlsl_defines.Emplace(name, value);
             }
 
             defines_opt = std::move(hlsl_defines);
@@ -45,9 +45,9 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
 
     // SPIR-V Compile
     if (
-        ext.contains(u8".spv")
-        || ext.contains(u8".spirv")
-        || ext.contains(u8".spvt")
+        ext.contains(".spv")
+        || ext.contains(".spirv")
+        || ext.contains(".spvt")
     )
     {
         return gfx::CompileFromSPIRV(device, request.source_path);

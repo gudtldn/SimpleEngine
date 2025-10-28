@@ -165,7 +165,7 @@ PassType& RenderGraph::AddPass(Args&&... args)
     PassType* raw_ptr = pass_ptr.get();
 
     RGPassNode& node = pass_nodes.emplace_back();
-    node.name = StringName(utility::string::ToString(refl::GetFullTypeName<PassType>()));
+    node.name = StringName{ refl::GetFullTypeName<PassType>() };
     node.pass_object = std::move(pass_ptr);
 
     return *raw_ptr;

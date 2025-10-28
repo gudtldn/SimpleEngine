@@ -17,19 +17,19 @@ SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
     const std::filesystem::path& shader_path,
     Optional<const std::filesystem::path&> include_dir_opt,
-    Optional<const vector<HLSL_Define>&> defines_opt
+    Optional<const Array<HLSL_Define>&> defines_opt
 )
 {
     // read shader file
-    vector<uint8> source;
+    Array<uint8> source;
     if (auto result = file::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
-        source.emplace_back('\0'); // null-terminated
+        source.Emplace('\0'); // null-terminated
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), result.error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.error().message);
         return nullptr;
     }
 
@@ -39,7 +39,7 @@ SDL_GPUShader* CompileFromHLSL(
 
     if (!stage_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_string());
         return nullptr;
     }
 
@@ -53,7 +53,7 @@ SDL_GPUShader* CompileFromHLSL(
         stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         break;
     default:
-        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_u8string()); // Compute Shader는 다른 함수로
+        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_string()); // Compute Shader는 다른 함수로
         return nullptr;
     }
 
@@ -64,11 +64,11 @@ SDL_GPUShader* CompileFromHLSL(
         include_dir_str = include_dir_opt->generic_string();
     }
 
-    vector<SDL_ShaderCross_HLSL_Define> hlsl_defines;
+    Array<SDL_ShaderCross_HLSL_Define> hlsl_defines;
     if (defines_opt)
     {
-        const vector<HLSL_Define>& defines = *defines_opt;
-        hlsl_defines.resize(defines.size());
+        const Array<HLSL_Define>& defines = *defines_opt;
+        hlsl_defines.Resize(defines.Len());
 
         for (auto [n, hlsl_define] : hlsl_defines | std::views::enumerate)
         {
@@ -78,10 +78,10 @@ SDL_GPUShader* CompileFromHLSL(
     }
 
     const SDL_ShaderCross_HLSL_Info hlsl_info = {
-        .source = reinterpret_cast<const char*>(source.data()),
+        .source = reinterpret_cast<const char*>(source.Data()),
         .entrypoint = entrypoint,
         .include_dir = include_dir_opt ? include_dir_str.c_str() : nullptr,
-        .defines = defines_opt ? hlsl_defines.data() : nullptr,
+        .defines = defines_opt ? hlsl_defines.Data() : nullptr,
         .shader_stage = *stage_opt,
     };
 
@@ -127,7 +127,7 @@ SDL_GPUShader* CompileFromHLSL(
         return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path.generic_u8string(), SDL_GetError());
+    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path.generic_string(), SDL_GetError());
     return nullptr;
 }
 }

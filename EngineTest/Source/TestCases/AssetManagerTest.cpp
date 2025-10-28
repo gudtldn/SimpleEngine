@@ -62,12 +62,12 @@ struct TestFixture
     {
         temp_dir_path = std::filesystem::temp_directory_path() / "AssetManagerTest";
         std::filesystem::create_directories(temp_dir_path);
-        path_resolver.Mount(u8"TestAssets", temp_dir_path);
+        path_resolver.Mount("TestAssets", temp_dir_path);
     }
 
     ~TestFixture()
     {
-        path_resolver.Unmount(u8"TestAssets");
+        path_resolver.Unmount("TestAssets");
         std::filesystem::remove_all(temp_dir_path);
         // Reset the singleton or clear its state if necessary. For now, we assume it's okay.
     }
@@ -76,9 +76,9 @@ struct TestFixture
 TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Synchronously")
 {
     // Setup a dummy asset file
-    const VPath asset_path = u8"TestAssets://my_asset.dummy";
-    const auto physical_path = path_resolver.Resolve(asset_path, false).Value();
+    const VPath asset_path = "TestAssets://my_asset.dummy";
     {
+        const auto physical_path = path_resolver.Resolve(asset_path, false).Value();
         std::ofstream file(physical_path);
         file << 123;
     }
@@ -93,7 +93,7 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Synchronously")
 
 TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
 {
-    const VPath asset_path = u8"TestAssets://my_async_asset.dummy";
+    const VPath asset_path = "TestAssets://my_async_asset.dummy";
     const auto physical_path = path_resolver.Resolve(asset_path, false).Value();
     {
         std::ofstream file(physical_path);
@@ -121,7 +121,7 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
 
 TEST_CASE_FIXTURE(TestFixture, "Loading non-existent asset")
 {
-    const VPath non_existent_path = u8"TestAssets://i_dont_exist.dummy";
+    const VPath non_existent_path = "TestAssets://i_dont_exist.dummy";
 
     SUBCASE("LoadSynchronous on non-existent file returns nullptr")
     {
@@ -149,7 +149,7 @@ TEST_CASE_FIXTURE(TestFixture, "Loading non-existent asset")
 
 TEST_CASE_FIXTURE(TestFixture, "Loading invalid virtual path")
 {
-    const VPath invalid_vpath = u8"InvalidScheme://some_asset.dummy";
+    const VPath invalid_vpath = "InvalidScheme://some_asset.dummy";
 
     SUBCASE("LoadSynchronous on invalid VPath returns nullptr")
     {

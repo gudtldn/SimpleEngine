@@ -173,6 +173,9 @@ public:
     [[nodiscard]] T& operator[](SizeType index) noexcept;
     [[nodiscard]] const T& operator[](SizeType index) const noexcept;
 
+    [[nodiscard]] bool operator==(const Array& other) const = default;
+    [[nodiscard]] auto operator<=>(const Array& other) const = default;
+
     // Iterator
     [[nodiscard]] Iterator begin() noexcept;
     [[nodiscard]] Iterator end() noexcept;

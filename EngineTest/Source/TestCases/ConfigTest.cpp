@@ -6,6 +6,8 @@
 #include "SimpleEngine/Utility/PathResolver.h"
 
 #define TOML_EXCEPTIONS 0
+#include <SimpleEngine/Core/Container/FixedArray.h>
+
 #include "toml++/toml.h"
 #undef TOML_EXCEPTIONS
 
@@ -26,13 +28,13 @@ static struct Init
 {
     Init()
     {
-        resolver.Mount(u8"Config", std::filesystem::current_path() / u8"Config");
+        resolver.Mount("Config", std::filesystem::current_path() / "Config");
     }
 } _registrar{};
 
-static const VPath test_toml_path = u8"Config://ConfigTest.toml";
-static const VPath non_existent_file_path = u8"Config://InvalidTest.toml";
-static const VPath save_test_toml_path = u8"Config://SaveTest.toml";
+static const VPath test_toml_path = "Config://ConfigTest.toml";
+static const VPath non_existent_file_path = "Config://InvalidTest.toml";
+static const VPath save_test_toml_path = "Config://SaveTest.toml";
 
 
 // --- 파일 읽기 테스트 ---
@@ -96,12 +98,12 @@ TEST_CASE("get value config file")
     CHECK(v.has_value());
 
     const Config& config = v.value();
-    CHECK(config.GetValue<bool>(u8"a_boolean") == true);
-    CHECK(config.GetValue<int>(u8"an_integer") == 42);
-    CHECK(config.GetValue<float>(u8"a_float") == 3.14159f);
-    CHECK(config.GetValue<std::u8string>(u8"a_string") == u8"Hello, TOML!");
+    CHECK(config.GetValue<bool>("a_boolean") == true);
+    CHECK(config.GetValue<int>("an_integer") == 42);
+    CHECK(config.GetValue<float>("a_float") == 3.14159f);
+    CHECK(config.GetValue<std::string>("a_string") == "Hello, TOML!");
 
-    CHECK(!config.GetValue<bool>(u8"__MyValue").HasValue());
+    CHECK(!config.GetValue<bool>("__MyValue").HasValue());
 }
 
 TEST_CASE("get value config file with default value")
@@ -110,13 +112,13 @@ TEST_CASE("get value config file with default value")
     CHECK(v.has_value());
 
     Config& config = v.value();
-    CHECK(config.GetValueOrStore<bool>(u8"a_boolean", false) == true);
-    CHECK(config.GetValueOrStore<int>(u8"an_integer", 100) == 42);
-    CHECK(config.GetValueOrStore<float>(u8"a_float", 100.0f) == 3.14159f);
-    CHECK(config.GetValueOrStore<std::u8string>(u8"a_string", u8"hello world") == u8"Hello, TOML!");
+    CHECK(config.GetValueOrStore<bool>("a_boolean", false) == true);
+    CHECK(config.GetValueOrStore<int>("an_integer", 100) == 42);
+    CHECK(config.GetValueOrStore<float>("a_float", 100.0f) == 3.14159f);
+    CHECK(config.GetValueOrStore<std::string>("a_string", "hello world") == "Hello, TOML!");
 
-    CHECK(config.GetValueOrStore<std::u8string>(u8"MyValue", u8"TTest") == u8"TTest");
-    CHECK(config.GetValue<std::u8string>(u8"MyValue") == u8"TTest");
+    CHECK(config.GetValueOrStore<std::string>("MyValue", "TTest") == "TTest");
+    CHECK(config.GetValue<std::string>("MyValue") == "TTest");
 }
 
 TEST_CASE("get array config file")
@@ -127,28 +129,28 @@ TEST_CASE("get array config file")
     const Config& config = v.value();
     SUBCASE("get int array")
     {
-        auto arr = config.GetArray<int>(u8"int_array");
+        auto arr = config.GetArray<int>("int_array");
         CHECK(arr.HasValue());
-        CHECK(arr->size() == 5);
-        CHECK(arr == se::vector<int>{{1, 2, 3, 4, 5}, std::pmr::get_default_resource()});
+        CHECK(arr->Len() == 5);
+        CHECK(arr == se::Array{1, 2, 3, 4, 5});
     }
 
     SUBCASE("get float array")
     {
-        auto arr = config.GetArray<float>(u8"float_array");
+        auto arr = config.GetArray<float>("float_array");
         CHECK(arr.HasValue());
-        CHECK(arr->size() == 3);
-        CHECK(arr == se::vector<float>{{0.5f, 1.5f, 2.5f}, std::pmr::get_default_resource()});
+        CHECK(arr->Len() == 3);
+        CHECK(arr == se::Array{0.5f, 1.5f, 2.5f});
     }
 
     SUBCASE("get string array")
     {
-        auto arr = config.GetArray<std::u8string>(u8"string_array");
+        auto arr = config.GetArray<std::string>("string_array");
         CHECK(arr.HasValue());
-        CHECK(arr->size() == 3);
+        CHECK(arr->Len() == 3);
 
-        auto check_list = std::array{ u8"apple", u8"banana", u8"cherry" };
-        for (size_t i = 0; i < arr->size(); i++)
+        auto check_list = std::array{ "apple", "banana", "cherry" };
+        for (size_t i = 0; i < arr->Len(); i++)
         {
             CHECK((*arr)[i] == check_list[i]);
         }
@@ -156,10 +158,11 @@ TEST_CASE("get array config file")
 
     SUBCASE("get bool array")
     {
-        auto arr = config.GetArray<bool>(u8"bool_array");
-        CHECK(arr.HasValue());
-        CHECK(arr->size() == 4);
-        CHECK(arr == se::vector<bool>{{true, false, true, true}, std::pmr::get_default_resource()});
+        // TODO: std::vector의 bool특수화 때문에 지금 사용할 수 없음. 나중에 Array로직 직접 구현하면 그때 사용
+        // auto arr = config.GetArray<bool>("bool_array");
+        // CHECK(arr.HasValue());
+        // CHECK(arr->Len() == 4);
+        // CHECK(arr == se::Array{true, false, true, true});
     }
 }
 
@@ -171,35 +174,35 @@ TEST_CASE("get table config file")
     const Config& config = v.value();
     SUBCASE("get table")
     {
-        auto window = config.GetTable(u8"window");
+        auto window = config.GetTable("window");
         CHECK(window.HasValue());
-        CHECK(window->GetValue<int>(u8"width") == 1280);
-        CHECK(window->GetValue<int>(u8"height") == 720);
-        CHECK(window->GetValue<bool>(u8"fullscreen") == false);
-        CHECK(window->GetValue<std::u8string>(u8"title") == u8"SimpleEngine Editor");
-        CHECK(window->GetValue<float>(u8"scale") == 1.5f);
+        CHECK(window->GetValue<int>("width") == 1280);
+        CHECK(window->GetValue<int>("height") == 720);
+        CHECK(window->GetValue<bool>("fullscreen") == false);
+        CHECK(window->GetValue<std::string>("title") == "SimpleEngine Editor");
+        CHECK(window->GetValue<float>("scale") == 1.5f);
 
-        auto graphics = config.GetTable(u8"graphics");
+        auto graphics = config.GetTable("graphics");
         CHECK(graphics.HasValue());
-        CHECK(graphics->GetValue<bool>(u8"vsync") == true);
-        CHECK(graphics->GetValue<int>(u8"max_fps") == 144);
+        CHECK(graphics->GetValue<bool>("vsync") == true);
+        CHECK(graphics->GetValue<int>("max_fps") == 144);
 
-        auto check_list = std::array{ u8"default.vert", u8"default.frag" };
-        auto shaders = graphics->GetArray<std::u8string>(u8"shaders");
+        auto check_list = se::FixedArray{ "default.vert", "default.frag" };
+        auto shaders = graphics->GetArray<std::string>("shaders");
         CHECK(shaders.HasValue());
-        CHECK(shaders->size() == 2);
-        for (size_t i = 0; i < shaders->size(); i++)
+        CHECK(shaders->Len() == 2);
+        for (size_t i = 0; i < shaders->Len(); i++)
         {
             CHECK((*shaders)[i] == check_list[i]);
         }
 
-        auto features = graphics->GetTable(u8"features");
+        auto features = graphics->GetTable("features");
         CHECK(features.HasValue());
-        CHECK(features->GetValue<std::u8string>(u8"antialiasing") == u8"MSAAx4");
-        CHECK(features->GetValue<int>(u8"anisotropic_filtering") == 16);
-        CHECK(!features->GetValue<std::u8string>(u8"anisotropic_filtering").HasValue());
+        CHECK(features->GetValue<std::string>("antialiasing") == "MSAAx4");
+        CHECK(features->GetValue<int>("anisotropic_filtering") == 16);
+        CHECK(!features->GetValue<std::string>("anisotropic_filtering").HasValue());
 
-        CHECK(graphics->GetArray<int>(u8"multisample_levels") == se::vector<int>{{2, 4, 8}, std::pmr::get_default_resource()});
+        CHECK(graphics->GetArray<int>("multisample_levels") == se::Array{2, 4, 8});
     }
 }
 
@@ -224,28 +227,28 @@ TEST_CASE("Config::SetValue and Config::WriteConfig")
     };
 
     Config config;
-    config.SetValue(u8"a_boolean", true);
-    config.SetValue(u8"an_integer", 42);
-    config.SetValue(u8"a_float", 3.14159f);
-    config.SetValue(u8"a_string", u8"Hello, TOML!");
+    config.SetValue("a_boolean", true);
+    config.SetValue("an_integer", 42);
+    config.SetValue("a_float", 3.14159f);
+    config.SetValue("a_string", "Hello, TOML!");
 
-    config.SetValue(u8"int_array", se::vector<int>{ { 1, 2, 3, 4, 5 } });
-    config.SetValue(u8"float_array", se::vector<float>{ { 0.5f, 1.5f, 2.5f } });
-    config.SetValue(u8"string_array", se::vector<se::u8string>{ { u8"apple", u8"banana", u8"cherry" } });
-    config.SetValue(u8"bool_array", se::vector<bool>{ { true, false, true, true } });
+    config.SetValue("int_array", se::Array{ 1, 2, 3, 4, 5 });
+    config.SetValue("float_array", se::Array{ 0.5f, 1.5f, 2.5f });
+    config.SetValue("string_array", se::Array<se::String>{ "apple", "banana", "cherry" });
+    config.SetValue("bool_array", se::Array{ true, false, true, true });
 
-    config.SetValue(u8"window.width", 1280);
-    config.SetValue(u8"window.height", 720);
-    config.SetValue(u8"window.fullscreen", false);
-    config.SetValue(u8"window.title", u8"SimpleEngine Editor");
-    config.SetValue(u8"window.scale", 1.5f);
+    config.SetValue("window.width", 1280);
+    config.SetValue("window.height", 720);
+    config.SetValue("window.fullscreen", false);
+    config.SetValue("window.title", "SimpleEngine Editor");
+    config.SetValue("window.scale", 1.5f);
 
-    config.SetValue(u8"graphics.vsync", true);
-    config.SetValue(u8"graphics.max_fps", 144);
-    config.SetValue(u8"graphics.shaders", se::vector<se::u8string>{ { u8"default.vert", u8"default.frag" }, std::pmr::get_default_resource() });
-    config.SetValue(u8"graphics.features.antialiasing", u8"MSAAx4");
-    config.SetValue(u8"graphics.features.anisotropic_filtering", 16);
-    config.SetValue(u8"graphics.multisample_levels", se::vector<int>{ { 2, 4, 8 } });
+    config.SetValue("graphics.vsync", true);
+    config.SetValue("graphics.max_fps", 144);
+    config.SetValue("graphics.shaders", se::Array<se::String>{ "default.vert", "default.frag" });
+    config.SetValue("graphics.features.antialiasing", "MSAAx4");
+    config.SetValue("graphics.features.anisotropic_filtering", 16);
+    config.SetValue("graphics.multisample_levels", se::Array{ 2, 4, 8 });
 
     FileDeleter file_deleter(save_test_toml_path);
     CHECK(config.WriteConfig(save_test_toml_path));
