@@ -30,30 +30,30 @@ public:
 public:
     /**
      * n개의 T 객체를 저장할 수 있는 메모리 블록을 할당합니다.
-     * @param n 할당할 객체의 수
+     * @param count 할당할 객체의 수
      * @return 할당된 메모리 블록의 포인터
      */
-    [[nodiscard]] T* allocate(usize n)
+    [[nodiscard]] T* allocate(usize count)
     {
         assert(
-            n <= std::numeric_limits<usize>::max() / sizeof(T)
+            count <= std::numeric_limits<usize>::max() / sizeof(T)
             && "Memory allocation size overflow"
         );
 
-        if (n == 0)
+        if (count == 0)
         {
             return nullptr;
         }
 
-        return OsMemory::Allocate<T>(n, alignof(T));
+        return OsMemory::Allocate<T>(count, alignof(T));
     }
 
     /**
      * 이전에 allocate를 통해 할당된 메모리 블록을 해제합니다.
      * @param p 해제할 메모리 블록의 포인터 (nullptr가 아니어야 함)
-     * @param n 해제할 객체의 수 (allocate 호출 시 사용된 값과 동일해야 함)
+     * @param count 해제할 객체의 수 (allocate 호출 시 사용된 값과 동일해야 함)
      */
-    void deallocate(T* p, [[maybe_unused]] usize n)
+    void deallocate(T* p, [[maybe_unused]] usize count)
     {
         if (p == nullptr)
         {
