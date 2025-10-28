@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include <array>
 #include <cassert>
 #include <concepts>
 #include <mdspan>
 #include <ranges>
 
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Core/Math/Vector4.h"
@@ -20,7 +20,7 @@ template <traits::FloatingType T>
 struct alignas(16) Matrix4x4Impl
 {
 private:
-    std::array<T, 16> data;
+    FixedArray<T, 16> data;
 
 public:
     using RealType = T;
@@ -220,25 +220,25 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 template <traits::FloatingType T>
 T* Matrix4x4Impl<T>::GetData() noexcept
 {
-    return data.data();
+    return data.Data();
 }
 
 template <traits::FloatingType T>
 const T* Matrix4x4Impl<T>::GetData() const noexcept
 {
-    return data.data();
+    return data.Data();
 }
 
 template <traits::FloatingType T>
 auto Matrix4x4Impl<T>::GetView() noexcept
 {
-    return std::mdspan<T, ExtentType>(data.data());
+    return std::mdspan<T, ExtentType>{ data.Data() };
 }
 
 template <traits::FloatingType T>
 auto Matrix4x4Impl<T>::GetView() const noexcept
 {
-    return std::mdspan<const T, ExtentType>(data.data());
+    return std::mdspan<const T, ExtentType>{ data.Data() };
 }
 
 template <traits::FloatingType T>
