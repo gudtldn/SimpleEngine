@@ -179,7 +179,7 @@ bool Array<T, Allocator>::IsEmpty() const noexcept
 template <typename T, typename Allocator>
 void Array<T, Allocator>::Reserve(SizeType new_capacity)
 {
-    Reallocate(new_capacity);
+    EnsureCapacity(new_capacity);
 }
 
 template <typename T, typename Allocator>
@@ -187,7 +187,7 @@ void Array<T, Allocator>::Resize(SizeType new_size)
 {
     if (new_size > size)
     {
-        Reserve(new_size);
+        EnsureCapacity(new_size);
         std::uninitialized_value_construct_n(data + size, new_size - size);
     }
     else if (new_size < size)
@@ -195,6 +195,34 @@ void Array<T, Allocator>::Resize(SizeType new_size)
         std::destroy(data + new_size, data + size);
     }
     size = new_size;
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Resize(SizeType new_size, const ValueType& value)
+{
+    if (new_size > size)
+    {
+        EnsureCapacity(new_size);
+
+        // 새로 추가된 (new_size - size)개의 원소를 value의 복사본으로 채움
+        std::uninitialized_fill_n(data + size, new_size - size, value);
+    }
+    else if (new_size < size)
+    {
+        std::destroy(data + new_size, data + size);
+    }
+    size = new_size;
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Truncate(SizeType new_size)
+{
+    if (new_size < size)
+    {
+        // 줄어든 만큼의 원소들을 제거
+        std::destroy(data + new_size, data + size);
+        size = new_size;
+    }
 }
 
 template <typename T, typename Allocator>
@@ -441,6 +469,15 @@ void Array<T, Allocator>::Insert(SizeType index, Rng&& range)
 }
 
 template <typename T, typename Allocator>
+Array<T, Allocator>::SizeType Array<T, Allocator>::Remove(const ValueType& value)
+{
+    return RemoveIf([&value](const ValueType& element)
+    {
+        return element == value;
+    });
+}
+
+template <typename T, typename Allocator>
 void Array<T, Allocator>::RemoveAt(SizeType index)
 {
     assert(index < size && "RemoveAt index out of bounds");
@@ -589,6 +626,8 @@ Array<T, Allocator>::ConstReverseIterator Array<T, Allocator>::rend() const noex
 template <typename T, typename Allocator>
 void Array<T, Allocator>::Reallocate(SizeType new_capacity)
 {
+    assert(new_capacity >= size && "Reallocate new_capacity must be greater than or equal to size");
+
     T* new_data = AllocTraits::allocate(allocator, new_capacity);
 
     if (data)

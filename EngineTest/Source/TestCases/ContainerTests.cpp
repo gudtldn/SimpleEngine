@@ -254,6 +254,27 @@ TEST_CASE("Array API")
         arr.Resize(2);
         CHECK(arr.Len() == 2);
         CHECK(arr[1] == 2);
+
+        // Test resize with value
+        arr.Resize(4, 99);
+        CHECK(arr.Len() == 4);
+        CHECK(arr[1] == 2);
+        CHECK(arr[2] == 99);
+        CHECK(arr[3] == 99);
+    }
+
+    SUBCASE("Truncate")
+    {
+        Array<int> arr = { 1, 2, 3, 4, 5 };
+        arr.Truncate(3);
+        CHECK(arr.Len() == 3);
+        CHECK(arr[0] == 1);
+        CHECK(arr[1] == 2);
+        CHECK(arr[2] == 3);
+
+        // Truncate to a larger or equal size should do nothing
+        arr.Truncate(5);
+        CHECK(arr.Len() == 3);
     }
 
     SUBCASE("Clear")
@@ -300,6 +321,18 @@ TEST_CASE("Array API")
         CHECK(arr2[2] == 30);
         CHECK(arr2[3] == 40);
     }
+
+    SUBCASE("Remove")
+    {
+        Array<int> arr = { 1, 2, 1, 1, 2, 3, 1 };
+        usize removed_count = arr.Remove(1);
+        CHECK(removed_count == 4);
+        CHECK(arr.Len() == 3);
+        CHECK(arr[0] == 2);
+        CHECK(arr[1] == 2);
+        CHECK(arr[2] == 3);
+    }
+
 
     SUBCASE("RemoveRange")
     {

@@ -82,6 +82,14 @@ public:
 
     /** 배열의 크기를 new_size로 변경합니다. */
     void Resize(SizeType new_size);
+    void Resize(SizeType new_size, const ValueType& value);
+
+    /**
+     * 배열의 크기를 new_size로 잘라냅니다.
+     * @param new_size 새로운 배열의 크기
+     * @note new_size가 현재 크기보다 크거나 같으면 아무 작업도 수행하지 않습니다.
+     */
+    void Truncate(SizeType new_size);
 
     /** 배열의 용량을 크기에 맞게 줄입니다. */
     void ShrinkToFit();
@@ -124,7 +132,7 @@ public:
     SizeType Emplace(Args&&... args);
 
     /**
-     * @brief index 위치에 새 요소를 삽입합니다.
+     * index 위치에 새 요소를 삽입합니다.
      * @param index 삽입할 위치의 인덱스
      * @param value 삽입할 요소
      */
@@ -132,7 +140,7 @@ public:
     void Insert(SizeType index, T&& value);
 
     /**
-     * @brief index 위치에 다른 시퀀스의 모든 요소를 삽입합니다.
+     * index 위치에 다른 시퀀스의 모든 요소를 삽입합니다.
      * @param index 삽입할 위치의 인덱스.
      * @param first 삽입할 시퀀스의 시작 이터레이터.
      * @param last 삽입할 시퀀스의 끝 이터레이터.
@@ -141,7 +149,7 @@ public:
     void Insert(SizeType index, It first, It last);
 
     /**
-     * @brief index 위치에 다른 레인지의 모든 요소를 삽입합니다.
+     * index 위치에 다른 레인지의 모든 요소를 삽입합니다.
      * @param index 삽입할 위치의 인덱스.
      * @param range 삽입할 레인지.
      */
@@ -149,13 +157,20 @@ public:
     void Insert(SizeType index, Rng&& range);
 
     /**
-     * @brief index 위치의 요소를 제거합니다. (순서 유지)
+     * 특정 값과 일치하는 모든 원소를 제거합니다.
+     * @param value 제거할 값
+     * @return 제거된 원소의 개수
+     */
+    SizeType Remove(const ValueType& value);
+
+    /**
+     * index 위치의 요소를 제거합니다. (순서 유지)
      * @param index 제거할 요소의 인덱스.
      */
     void RemoveAt(SizeType index);
 
     /**
-     * @brief index부터 count개 만큼의 요소들을 제거합니다. (순서 유지)
+     * index부터 count개 만큼의 요소들을 제거합니다. (순서 유지)
      * @param index 제거를 시작할 요소의 인덱스.
      * @param count 제거할 요소의 개수.
      */
@@ -206,6 +221,7 @@ public:
     [[nodiscard]] ConstReverseIterator rend() const noexcept;
 
 private:
+    /** 메모리를 재할당 합니다. */
     void Reallocate(SizeType new_capacity);
 
     /**
