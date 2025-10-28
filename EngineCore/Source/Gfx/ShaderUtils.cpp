@@ -13,29 +13,29 @@ Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem
     const std::string path_str = shader_path.generic_string();
 
     if (
-        path_str.find(".vert") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".vertex") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".vs") != std::string::npos // TODO: contains로 변경
+        path_str.contains(".vert")
+        || path_str.contains(".vertex")
+        || path_str.contains(".vs")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_VERTEX;
     }
 
     if (
-        path_str.find(".frag") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".fragment") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".fs") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".pixel") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".ps") != std::string::npos // TODO: contains로 변경
+        path_str.contains(".frag")
+        || path_str.contains(".fragment")
+        || path_str.contains(".fs")
+        || path_str.contains(".pixel")
+        || path_str.contains(".ps")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT;
     }
 
     if (
-        path_str.find(".comp") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".compute") != std::string::npos // TODO: contains로 변경
-        || path_str.find(".cs") != std::string::npos // TODO: contains로 변경
+        path_str.contains(".comp")
+        || path_str.contains(".compute")
+        || path_str.contains(".cs")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
