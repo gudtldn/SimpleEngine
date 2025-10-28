@@ -44,10 +44,7 @@ Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem
     return std::nullopt;
 }
 
-SDL_GPUShader* CompileFromSPIRV(
-    SDL_GPUDevice* device,
-    const std::filesystem::path& shader_path
-)
+SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::path& shader_path)
 {
     // read shader file
     Array<uint8> source;
