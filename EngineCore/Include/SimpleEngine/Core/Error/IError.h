@@ -13,7 +13,7 @@ public:
     virtual ~IError() = default;
 
     /** 사용자에게 보여줄 에러 설명을 반환합니다. */
-    [[nodiscard]] virtual const char8* What() const noexcept = 0;
+    [[nodiscard]] virtual const char* What() const noexcept = 0;
 
     /**
      * 이 에러의 근본 원인이 되는 에러를 반환합니다.
