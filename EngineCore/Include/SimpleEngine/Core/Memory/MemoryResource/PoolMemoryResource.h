@@ -6,7 +6,7 @@
 
 namespace se::core::memory::memory_resource
 {
-class SE_CORE_API PoolMemoryResource : public std::pmr::synchronized_pool_resource
+class [[deprecated]] SE_CORE_API PoolMemoryResource : public std::pmr::synchronized_pool_resource
 {
 public:
     explicit PoolMemoryResource(memory_resource* upstream = std::pmr::get_default_resource());

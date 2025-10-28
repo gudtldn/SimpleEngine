@@ -3,7 +3,6 @@
 #include <span>
 #include <type_traits>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -14,7 +13,7 @@ namespace se::core::memory::memory_resource
  * @tparam BufferSize
  */
 template <size_t BufferSize = std::dynamic_extent>
-class FrameMemoryResource : public std::pmr::memory_resource
+class [[deprecated]] FrameMemoryResource : public std::pmr::memory_resource
 {
 public:
     /**
@@ -43,8 +42,8 @@ protected:
 private:
     using BufferType = std::conditional_t<
         BufferSize == std::dynamic_extent,
-        vector<uint8>,
-        array<uint8, BufferSize>
+        std::vector<uint8>,
+        std::array<uint8, BufferSize>
     >;
 
     BufferType buffer;
