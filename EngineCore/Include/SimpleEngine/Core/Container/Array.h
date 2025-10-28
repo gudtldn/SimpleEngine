@@ -45,10 +45,12 @@ public:
     Array(std::initializer_list<ValueType> init_list);
 
     template <std::input_iterator It>
+        requires std::same_as<std::iter_value_t<It>, T>
     Array(It first, It last);
 
     template <std::ranges::input_range Rng>
-    Array(Rng&& range);
+        requires std::same_as<std::ranges::range_value_t<Rng>, T>
+    explicit Array(Rng&& range);
 
     ~Array();
 

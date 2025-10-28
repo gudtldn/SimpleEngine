@@ -58,6 +58,7 @@ Array<T, Allocator>::Array(std::initializer_list<ValueType> init_list)
 
 template <typename T, typename Allocator>
 template <std::input_iterator It>
+    requires std::same_as<std::iter_value_t<It>, T>
 Array<T, Allocator>::Array(It first, It last)
     : allocator{}
 {
@@ -83,6 +84,7 @@ Array<T, Allocator>::Array(It first, It last)
 
 template <typename T, typename Allocator>
 template <std::ranges::input_range Rng>
+    requires std::same_as<std::ranges::range_value_t<Rng>, T>
 Array<T, Allocator>::Array(Rng&& range)
     : Array(std::ranges::begin(range), std::ranges::end(range))
 {

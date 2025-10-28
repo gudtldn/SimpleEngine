@@ -100,16 +100,8 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(std::string_view view)
 }
 
 template <typename Allocator>
-template <std::ranges::input_range Rng>
-    requires std::same_as<std::ranges::range_value_t<Rng>, char>
-BaseString<Allocator>::BaseString(Rng&& range)
-    : BaseString(std::ranges::begin(range), std::ranges::end(range))
-{
-}
-
-template <typename Allocator>
 template <std::input_iterator It>
-    requires std::same_as<std::iter_value_t<It>, char>
+    requires std::same_as<std::iter_value_t<It>, typename BaseString<Allocator>::ValueType>
 BaseString<Allocator>::BaseString(It first, It last)
 {
     data.Append(first, last);
@@ -356,7 +348,7 @@ template <typename Allocator>
 template <typename... Args>
 BaseString<Allocator> BaseString<Allocator>::Format(std::format_string<Args...> fmt, Args&&... args)
 {
-    return std::format(fmt, std::forward<Args>(args)...);
+    return std::format(fmt, std::forward<Args>(args)...).c_str();
 }
 
 template <typename Allocator>
