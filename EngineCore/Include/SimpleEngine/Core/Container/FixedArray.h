@@ -84,6 +84,12 @@ public:
     T data[N];
 };
 
+template <typename T, typename... U>
+FixedArray(T, U...) -> FixedArray<T, 1 + sizeof...(U)>;
+
+template <typename T, usize N>
+FixedArray(const T (&)[N]) -> FixedArray<T, N>;
+
 template <typename T, usize N>
 constexpr void FixedArray<T, N>::Fill(const T& init_val)
 {
