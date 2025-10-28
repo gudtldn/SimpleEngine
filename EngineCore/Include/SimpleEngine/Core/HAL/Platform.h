@@ -2,6 +2,7 @@
 #include <thread>
 #include <filesystem>
 
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 

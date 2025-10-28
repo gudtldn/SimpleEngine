@@ -1,5 +1,4 @@
 ﻿#include "Core/Logging/Backends/FileBackend.h"
-#include "Core/Logging/Formatter.h"
 
 
 namespace se::core::logging

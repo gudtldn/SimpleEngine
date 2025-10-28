@@ -411,12 +411,24 @@ private:
 };
 }
 
+// se::String에 대한 std::hash 특수화
 template <>
 struct std::hash<se::String>
 {
     std::size_t operator()(const se::String& path) const noexcept
     {
         return std::hash<std::string_view>{}(std::string_view{ path });
+    }
+};
+
+// se::String에 대한 std::formatter 특수화
+template <>
+struct std::formatter<se::String, char> : std::formatter<std::string_view>
+{
+    auto format(const se::String& string, std::format_context& ctx) const
+    {
+        const std::string_view sv{ string };
+        return std::formatter<std::string_view>::format(sv, ctx);
     }
 };
 
