@@ -1,5 +1,6 @@
 #include "doctest/doctest.h"
 #include <iostream>
+#include <vector>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
@@ -107,6 +108,19 @@ TEST_CASE("Array API")
         CHECK(arr.Capacity() == 0);
     }
 
+    SUBCASE("Uninitialized")
+    {
+        // This is only safe for trivially default constructible types
+        Array<int> arr = Array<int>::Uninitialized(5);
+        CHECK(arr.Len() == 5);
+        CHECK(arr.Capacity() >= 5);
+        // The values are uninitialized, so we just write to them
+        arr[0] = 1;
+        arr[4] = 5;
+        CHECK(arr[0] == 1);
+        CHECK(arr[4] == 5);
+    }
+
     SUBCASE("Construction with size")
     {
         Array<int> arr(5);
@@ -134,13 +148,29 @@ TEST_CASE("Array API")
         CHECK(arr[4] == 5);
     }
 
+    SUBCASE("Construction from range")
+    {
+        std::vector<int> vec = { 1, 2, 3, 4, 5 };
+        Array<int> arr_from_vec(vec.begin(), vec.end());
+        CHECK(arr_from_vec.Len() == 5);
+        CHECK(arr_from_vec[0] == 1);
+        CHECK(arr_from_vec[4] == 5);
+
+        Array<int> arr_from_range(vec);
+        CHECK(arr_from_range.Len() == 5);
+        CHECK(arr_from_range[0] == 1);
+        CHECK(arr_from_range[4] == 5);
+    }
+
     SUBCASE("Push and Pop")
     {
         Array<int> arr;
-        arr.Push(10);
-        arr.Push(20);
+        usize index1 = arr.Push(10);
+        usize index2 = arr.Push(20);
         CHECK(arr.Len() == 2);
         CHECK(arr[1] == 20);
+        CHECK(index1 == 0);
+        CHECK(index2 == 1);
 
         auto popped = arr.Pop();
         CHECK(popped.HasValue());
@@ -175,6 +205,21 @@ TEST_CASE("Array API")
         CHECK(const_arr[1] == 2);
     }
 
+    SUBCASE("Data")
+    {
+        Array<int> arr = { 1, 2, 3 };
+        int* data_ptr = arr.Data();
+        CHECK(data_ptr[0] == 1);
+        CHECK(data_ptr[1] == 2);
+        CHECK(data_ptr[2] == 3);
+
+        const Array<int> const_arr = { 4, 5, 6 };
+        const int* const_data_ptr = const_arr.Data();
+        CHECK(const_data_ptr[0] == 4);
+        CHECK(const_data_ptr[1] == 5);
+        CHECK(const_data_ptr[2] == 6);
+    }
+
     SUBCASE("Empty Array Access")
     {
         Array<int> arr;
@@ -198,7 +243,7 @@ TEST_CASE("Array API")
 
     SUBCASE("Resize")
     {
-        Array<int> arr = { 1, 2, 3};
+        Array<int> arr = { 1, 2, 3 };
         arr.Resize(5);
         CHECK(arr.Len() == 5);
         CHECK(arr[2] == 3);
@@ -213,7 +258,7 @@ TEST_CASE("Array API")
 
     SUBCASE("Clear")
     {
-        Array<int> arr = { 1, 2, 3};
+        Array<int> arr = { 1, 2, 3 };
         arr.Clear();
         CHECK(arr.Len() == 0);
         CHECK(arr.IsEmpty());
@@ -231,6 +276,50 @@ TEST_CASE("Array API")
         arr.RemoveAt(2); // {10, 15, 30}
         CHECK(arr.Len() == 3);
         CHECK(arr[2] == 30);
+    }
+
+    SUBCASE("Insert range")
+    {
+        Array<int> arr = { 10, 40 };
+        std::vector<int> to_insert = { 20, 30 };
+
+        // Test with iterators
+        arr.Insert(1, to_insert.begin(), to_insert.end());
+        CHECK(arr.Len() == 4);
+        CHECK(arr[0] == 10);
+        CHECK(arr[1] == 20);
+        CHECK(arr[2] == 30);
+        CHECK(arr[3] == 40);
+
+        // Test with range
+        Array<int> arr2 = { 10, 40 };
+        arr2.Insert(1, to_insert);
+        CHECK(arr2.Len() == 4);
+        CHECK(arr2[0] == 10);
+        CHECK(arr2[1] == 20);
+        CHECK(arr2[2] == 30);
+        CHECK(arr2[3] == 40);
+    }
+
+    SUBCASE("RemoveRange")
+    {
+        Array<int> arr = { 10, 20, 30, 40, 50, 60 };
+        arr.RemoveRange(2, 3); // Remove 30, 40, 50
+        CHECK(arr.Len() == 3);
+        CHECK(arr[0] == 10);
+        CHECK(arr[1] == 20);
+        CHECK(arr[2] == 60);
+    }
+
+    SUBCASE("RemoveIf")
+    {
+        Array<int> arr = { 1, 2, 3, 4, 5, 6 };
+        usize removed_count = arr.RemoveIf([](int val) { return val % 2 == 0; }); // Remove even numbers
+        CHECK(removed_count == 3);
+        CHECK(arr.Len() == 3);
+        CHECK(arr[0] == 1);
+        CHECK(arr[1] == 3);
+        CHECK(arr[2] == 5);
     }
 
     SUBCASE("RemoveAtSwap")
@@ -299,10 +388,11 @@ TEST_CASE("Array API")
             }
         };
         Array<TestStruct> arr;
-        arr.Emplace(1, 3.14);
+        usize index = arr.Emplace(1, 3.14);
         CHECK(arr.Len() == 1);
         CHECK(arr[0].x == 1);
         CHECK(arr[0].y == 3.14);
+        CHECK(index == 0);
     }
 
     SUBCASE("Range-based for loop")

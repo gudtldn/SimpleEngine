@@ -158,11 +158,10 @@ TEST_CASE("get array config file")
 
     SUBCASE("get bool array")
     {
-        // TODO: std::vector의 bool특수화 때문에 지금 사용할 수 없음. 나중에 Array로직 직접 구현하면 그때 사용
-        // auto arr = config.GetArray<bool>("bool_array");
-        // CHECK(arr.HasValue());
-        // CHECK(arr->Len() == 4);
-        // CHECK(arr == se::Array{true, false, true, true});
+        auto arr = config.GetArray<bool>("bool_array");
+        CHECK(arr.HasValue());
+        CHECK(arr->Len() == 4);
+        CHECK(arr == se::Array{true, false, true, true});
     }
 }
 

@@ -1,8 +1,8 @@
 #pragma once
-#include <cassert>
 #include <initializer_list>
 #include <iterator>
-#include <vector>
+#include <ranges>
+#include <type_traits>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -19,9 +19,6 @@ namespace se
 template <typename T, typename Allocator = core::memory::DefaultAllocator<T>>
 class Array
 {
-private:
-    using InternalVectorType = std::vector<T, Allocator>;
-
 public:
     // STL 호환성을 위해서
     using value_type = T;
@@ -32,13 +29,14 @@ public:
     // 엔진 내부 일관성을 위한 PascalCase 별칭
     using ValueType = value_type;
     using AllocatorType = allocator_type;
+    using AllocTraits = std::allocator_traits<Allocator>;
     using SizeType = size_type;
     using DifferenceType = difference_type;
 
-    using Iterator = InternalVectorType::iterator;
-    using ConstIterator = InternalVectorType::const_iterator;
-    using ReverseIterator = InternalVectorType::reverse_iterator;
-    using ConstReverseIterator = InternalVectorType::const_reverse_iterator;
+    using Iterator = T*;
+    using ConstIterator = const T*;
+    using ReverseIterator = std::reverse_iterator<Iterator>;
+    using ConstReverseIterator = std::reverse_iterator<ConstIterator>;
 
 public:
     Array() noexcept(noexcept(Allocator()));
@@ -46,17 +44,28 @@ public:
     Array(SizeType count, const ValueType& value);
     Array(std::initializer_list<ValueType> init_list);
 
-    template <std::ranges::input_range Rng>
-    Array(Rng&& range);
-
     template <std::input_iterator It>
     Array(It first, It last);
 
-    ~Array() = default;
-    Array(const Array& other) = default;
-    Array& operator=(const Array& other) = default;
-    Array(Array&& other) noexcept = default;
-    Array& operator=(Array&& other) noexcept = default;
+    template <std::ranges::input_range Rng>
+    Array(Rng&& range);
+
+    ~Array();
+
+    Array(const Array& other);
+    Array& operator=(const Array& other);
+    Array(Array&& other) noexcept;
+    Array& operator=(Array&& other) noexcept;
+
+public:
+    /**
+     * 초기화되지 않은(uninitialized) 메모리를 가진 배열을 생성합니다.
+     * @param size 배열의 크기
+     * @return 생성된 Array 객체
+     * @warning POD가 아닌 타입에 사용하는 것은 위험합니다. 원소를 읽기 전에 반드시 써야 합니다.
+     */
+    [[nodiscard]] static Array Uninitialized(SizeType size)
+        requires std::is_trivially_default_constructible_v<T>;
 
 public:
     /** 배열에 포함된 요소의 수를 반환합니다. */
@@ -96,9 +105,9 @@ public:
     [[nodiscard]] T* Data() noexcept;
     [[nodiscard]] const T* Data() const noexcept;
 
-    /** 배열의 끝에 새 요소를 추가하고, 추가된 요소의 참조를 반환합니다. */
-    T& Push(const ValueType& value);
-    T& Push(ValueType&& value);
+    /** 배열의 끝에 새 요소를 추가하고, 추가된 요소의 인덱스를 반환합니다. */
+    SizeType Push(const ValueType& value);
+    SizeType Push(ValueType&& value);
 
     /** 배열의 마지막 요소를 제거하고, 그 값을 Optional로 반환합니다. */
     Optional<ValueType> Pop();
@@ -110,18 +119,17 @@ public:
     template <std::ranges::input_range Rng>
     void Append(Rng&& range);
 
-    /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 참조를 반환합니다. */
+    /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 인덱스를 반환합니다. */
     template <typename... Args>
-    T& Emplace(Args&&... args);
+    SizeType Emplace(Args&&... args);
 
     /**
      * @brief index 위치에 새 요소를 삽입합니다.
-     * @param index 삽입할 위치의 인덱스.
-     * @param value 삽입할 요소.
-     * @return 삽입된 요소의 참조.
+     * @param index 삽입할 위치의 인덱스
+     * @param value 삽입할 요소
      */
-    T& Insert(SizeType index, const T& value);
-    T& Insert(SizeType index, T&& value);
+    void Insert(SizeType index, const T& value);
+    void Insert(SizeType index, T&& value);
 
     /**
      * @brief index 위치에 다른 시퀀스의 모든 요소를 삽입합니다.
@@ -143,17 +151,27 @@ public:
     /**
      * @brief index 위치의 요소를 제거합니다. (순서 유지)
      * @param index 제거할 요소의 인덱스.
-     * @return 제거된 다음 요소의 이터레이터.
      */
-    Iterator RemoveAt(SizeType index);
+    void RemoveAt(SizeType index);
 
     /**
      * @brief index부터 count개 만큼의 요소들을 제거합니다. (순서 유지)
      * @param index 제거를 시작할 요소의 인덱스.
      * @param count 제거할 요소의 개수.
-     * @return 제거된 다음 요소의 이터레이터.
      */
-    Iterator RemoveRange(SizeType index, SizeType count);
+    void RemoveRange(SizeType index, SizeType count);
+
+    /**
+     * 조건에 따라 배열에서 요소를 제거합니다.
+     * 조건자를 만족하는 요소를 삭제하며, 삭제된 요소의 개수를 반환합니다.
+     *
+     * @tparam Predicate 요소에 대해 bool 값을 반환하는 함수
+     * @param pred 요소를 인자로 받아 조건을 판단하는 함수
+     * @return 제거된 요소의 개수
+     */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    SizeType RemoveIf(Predicate&& pred);
 
     /**
      * 특정 인덱스의 요소를 제거합니다. (순서 보장 안됨)
@@ -173,8 +191,8 @@ public:
     [[nodiscard]] T& operator[](SizeType index) noexcept;
     [[nodiscard]] const T& operator[](SizeType index) const noexcept;
 
-    [[nodiscard]] bool operator==(const Array& other) const = default;
-    [[nodiscard]] auto operator<=>(const Array& other) const = default;
+    [[nodiscard]] bool operator==(const Array& other) const;
+    [[nodiscard]] auto operator<=>(const Array& other) const;
 
     // Iterator
     [[nodiscard]] Iterator begin() noexcept;
@@ -188,329 +206,26 @@ public:
     [[nodiscard]] ConstReverseIterator rend() const noexcept;
 
 private:
-    InternalVectorType internal_vector;
+    void Reallocate(SizeType new_capacity);
+
+    /**
+     * 최소 required_capacity 만큼의 용량을 확보합니다. 필요하다면 재할당을 수행합니다.
+     * @param required_capacity 필요한 총 용량
+     */
+    bool EnsureCapacity(SizeType required_capacity);
+
+    T& FrontUnsafe();
+    const T& FrontUnsafe() const;
+
+    T& BackUnsafe();
+    const T& BackUnsafe() const;
+
+private:
+    T* data = nullptr;
+    SizeType size = 0;
+    SizeType capacity = 0;
+    [[no_unique_address]] AllocatorType allocator;
 };
-
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Array() noexcept(noexcept(Allocator()))
-    : internal_vector()
-{
 }
 
-template <typename T, typename Allocator>
-Array<T, Allocator>::Array(SizeType count)
-    : internal_vector(count)
-{
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Array(SizeType count, const ValueType& value)
-    : internal_vector(count, value)
-{
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Array(std::initializer_list<ValueType> init_list)
-    : internal_vector(init_list)
-{
-}
-
-template <typename T, typename Allocator>
-template <std::ranges::input_range Rng>
-Array<T, Allocator>::Array(Rng&& range)
-    : internal_vector(std::ranges::begin(range), std::ranges::end(range))
-{
-}
-
-template <typename T, typename Allocator>
-template <std::input_iterator It>
-Array<T, Allocator>::Array(It first, It last)
-    : internal_vector(first, last)
-{
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::SizeType Array<T, Allocator>::Len() const noexcept
-{
-    return internal_vector.size();
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::SizeType Array<T, Allocator>::Capacity() const noexcept
-{
-    return internal_vector.capacity();
-}
-
-template <typename T, typename Allocator>
-bool Array<T, Allocator>::IsEmpty() const noexcept
-{
-    return internal_vector.empty();
-}
-
-template <typename T, typename Allocator>
-void Array<T, Allocator>::Reserve(SizeType new_capacity)
-{
-    internal_vector.reserve(new_capacity);
-}
-
-template <typename T, typename Allocator>
-void Array<T, Allocator>::Resize(SizeType new_size)
-{
-    internal_vector.resize(new_size);
-}
-
-template <typename T, typename Allocator>
-void Array<T, Allocator>::ShrinkToFit()
-{
-    internal_vector.shrink_to_fit();
-}
-
-template <typename T, typename Allocator>
-void Array<T, Allocator>::Clear() noexcept
-{
-    internal_vector.clear();
-}
-
-template <typename T, typename Allocator>
-Optional<T&> Array<T, Allocator>::At(SizeType index)
-{
-    if (index >= Len())
-    {
-        return std::nullopt;
-    }
-    return internal_vector[index];
-}
-
-template <typename T, typename Allocator>
-Optional<const T&> Array<T, Allocator>::At(SizeType index) const
-{
-    if (index >= Len())
-    {
-        return std::nullopt;
-    }
-    return internal_vector[index];
-}
-
-template <typename T, typename Allocator>
-Optional<T&> Array<T, Allocator>::Front()
-{
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return internal_vector.front();
-}
-
-template <typename T, typename Allocator>
-Optional<const T&> Array<T, Allocator>::Front() const
-{
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return internal_vector.front();
-}
-
-template <typename T, typename Allocator>
-Optional<T&> Array<T, Allocator>::Back()
-{
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return internal_vector.back();
-}
-
-template <typename T, typename Allocator>
-Optional<const T&> Array<T, Allocator>::Back() const
-{
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return internal_vector.back();
-}
-
-template <typename T, typename Allocator>
-T* Array<T, Allocator>::Data() noexcept
-{
-    return internal_vector.data();
-}
-
-template <typename T, typename Allocator>
-const T* Array<T, Allocator>::Data() const noexcept
-{
-    return internal_vector.data();
-}
-
-template <typename T, typename Allocator>
-T& Array<T, Allocator>::Push(const ValueType& value)
-{
-    internal_vector.push_back(value);
-    return internal_vector.back();
-}
-
-template <typename T, typename Allocator>
-T& Array<T, Allocator>::Push(ValueType&& value)
-{
-    internal_vector.push_back(std::move(value));
-    return internal_vector.back();
-}
-
-template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
-{
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-
-    ValueType value = std::move(internal_vector.back());
-    internal_vector.pop_back();
-    return { std::move(value) };
-}
-
-template <typename T, typename Allocator>
-template <std::input_iterator It>
-void Array<T, Allocator>::Append(It first, It last)
-{
-    if constexpr (std::forward_iterator<It>)
-    {
-        const auto distance = std::distance(first, last);
-        internal_vector.reserve(Len() + distance);
-    }
-    internal_vector.insert(internal_vector.end(), first, last);
-}
-
-template <typename T, typename Allocator>
-template <std::ranges::input_range Rng>
-void Array<T, Allocator>::Append(Rng&& range)
-{
-    Append(std::ranges::begin(range), std::ranges::end(range));
-}
-
-template <typename T, typename Allocator>
-template <typename... Args>
-T& Array<T, Allocator>::Emplace(Args&&... args)
-{
-    return internal_vector.emplace_back(std::forward<Args>(args)...);
-}
-
-template <typename T, typename Allocator>
-T& Array<T, Allocator>::Insert(SizeType index, const T& value)
-{
-    assert(index <= Len() && "Insert index out of bounds");
-    auto it = internal_vector.insert(internal_vector.cbegin() + index, value);
-    return *it;
-}
-
-template <typename T, typename Allocator>
-T& Array<T, Allocator>::Insert(SizeType index, T&& value)
-{
-    assert(index <= Len() && "Insert index out of bounds");
-    auto it = internal_vector.insert(internal_vector.cbegin() + index, std::move(value));
-    return *it;
-}
-
-template <typename T, typename Allocator>
-template <std::input_iterator It>
-void Array<T, Allocator>::Insert(SizeType index, It first, It last)
-{
-    assert(index <= Len() && "Insert index out of bounds");
-    internal_vector.insert(internal_vector.cbegin() + index, first, last);
-}
-
-template <typename T, typename Allocator>
-template <std::ranges::input_range Rng>
-void Array<T, Allocator>::Insert(SizeType index, Rng&& range)
-{
-    Insert(index, std::ranges::begin(range), std::ranges::end(range));
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Iterator Array<T, Allocator>::RemoveAt(SizeType index)
-{
-    assert(index < Len() && "RemoveAt index out of bounds");
-    return internal_vector.erase(internal_vector.cbegin() + index);
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Iterator Array<T, Allocator>::RemoveRange(SizeType index, SizeType count)
-{
-    assert(index + count <= Len() && "RemoveRange out of bounds");
-    return internal_vector.erase(internal_vector.cbegin() + index, internal_vector.cbegin() + index + count);
-}
-
-template <typename T, typename Allocator>
-bool Array<T, Allocator>::RemoveAtSwap(SizeType index)
-{
-    if (index >= Len())
-    {
-        return false;
-    }
-
-    // 마지막 요소가 아닌 경우에만 swap
-    if (index != Len() - 1)
-    {
-        std::swap((*this)[index], Back().Value());
-    }
-
-    internal_vector.pop_back();
-    return true;
-}
-
-template <typename T, typename Allocator>
-bool Array<T, Allocator>::Contains(const ValueType& value) const
-{
-    return std::find(begin(), end(), value) != end();
-}
-
-template <typename T, typename Allocator>
-Optional<typename Array<T, Allocator>::SizeType> Array<T, Allocator>::Find(const ValueType& value) const
-{
-    if (const auto it = std::find(begin(), end(), value); it != end())
-    {
-        return std::distance(begin(), it);
-    }
-    return std::nullopt;
-}
-
-template <typename T, typename Allocator>
-T& Array<T, Allocator>::operator[](SizeType index) noexcept
-{
-    assert(index < Len() && "Index out of bounds");
-    return internal_vector[index];
-}
-
-template <typename T, typename Allocator>
-const T& Array<T, Allocator>::operator[](SizeType index) const noexcept
-{
-    assert(index < Len() && "Index out of bounds");
-    return internal_vector[index];
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Iterator Array<T, Allocator>::begin() noexcept { return internal_vector.begin(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::Iterator Array<T, Allocator>::end() noexcept { return internal_vector.end(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::ConstIterator Array<T, Allocator>::begin() const noexcept { return internal_vector.begin(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::ConstIterator Array<T, Allocator>::end() const noexcept { return internal_vector.end(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::ReverseIterator Array<T, Allocator>::rbegin() noexcept { return internal_vector.rbegin(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::ReverseIterator Array<T, Allocator>::rend() noexcept { return internal_vector.rend(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::ConstReverseIterator Array<T, Allocator>::rbegin() const noexcept { return internal_vector.rbegin(); }
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::ConstReverseIterator Array<T, Allocator>::rend() const noexcept { return internal_vector.rend(); }
-}
+#include "SimpleEngine/Core/Container/Array.inl"
