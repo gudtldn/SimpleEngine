@@ -100,6 +100,15 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(std::string_view view)
 }
 
 template <typename Allocator>
+template <std::input_iterator It>
+    requires std::same_as<std::iter_value_t<It>, char>
+BaseString<Allocator>::BaseString(It first, It last)
+{
+    data.Append(first, last);
+    data.Push('\0');
+}
+
+template <typename Allocator>
 template <std::ranges::input_range Rng>
     requires std::same_as<std::ranges::range_value_t<Rng>, char>
 BaseString<Allocator>::BaseString(Rng&& range)
@@ -108,12 +117,10 @@ BaseString<Allocator>::BaseString(Rng&& range)
 }
 
 template <typename Allocator>
-template <std::input_iterator It>
-    requires std::same_as<std::iter_value_t<It>, char>
-BaseString<Allocator>::BaseString(It first, It last)
+template <typename... Args>
+BaseString<Allocator> BaseString<Allocator>::Format(std::format_string<Args...> fmt, Args&&... args)
 {
-    data.Append(first, last);
-    data.Push('\0');
+    return std::format(fmt, std::forward<Args>(args)...).c_str();
 }
 
 template <typename Allocator>
@@ -353,10 +360,9 @@ std::string_view BaseString<Allocator>::Bytes() const
 }
 
 template <typename Allocator>
-template <typename... Args>
-BaseString<Allocator> BaseString<Allocator>::Format(std::format_string<Args...> fmt, Args&&... args)
+void BaseString<Allocator>::Swap(BaseString& other) noexcept
 {
-    return std::format(fmt, std::forward<Args>(args)...).c_str();
+    std::swap(data, other.data);
 }
 
 template <typename Allocator>

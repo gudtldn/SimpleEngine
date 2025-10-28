@@ -149,6 +149,16 @@ public:
 
 public:
     /**
+     * C++20 std::format을 사용하여 포맷된 문자열을 생성합니다.
+     * @param fmt 포맷 문자열
+     * @param args 포맷 인자
+     * @return 포맷팅된 새로운 String 객체
+     */
+    template <typename... Args>
+    [[nodiscard]] static BaseString Format(std::format_string<Args...> fmt, Args&&... args);
+
+public:
+    /**
      * 문자열의 바이트 길이를 반환합니다. (null terminator 제외)
      * @return 바이트 단위 길이 (O(1))
      */
@@ -333,15 +343,8 @@ public:
      */
     [[nodiscard]] std::string_view Bytes() const;
 
-public:
-    /**
-     * C++20 std::format을 사용하여 포맷된 문자열을 생성합니다.
-     * @param fmt 포맷 문자열
-     * @param args 포맷 인자
-     * @return 포맷팅된 새로운 String 객체
-     */
-    template <typename... Args>
-    [[nodiscard]] static BaseString Format(std::format_string<Args...> fmt, Args&&... args);
+    /** 문자열을 서로 교환합니다. */
+    void Swap(BaseString& other) noexcept;
 
 public:
     [[nodiscard]] explicit operator std::string_view() const;
@@ -403,6 +406,11 @@ public:
     [[nodiscard]] friend std::strong_ordering operator<=>(std::string_view lhs, const BaseString& rhs)
     {
         return lhs <=> std::string_view{ rhs };
+    }
+
+    friend void swap(BaseString& lhs, BaseString& rhs) noexcept
+    {
+        lhs.Swap(rhs);
     }
 
 private:
