@@ -37,14 +37,14 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
     SDL_GPUShader* vertex_shader = shader_cache.GetOrCreate(create_info.vertex_shader_request);
     if (!vertex_shader)
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to get vertex shader from cache!");
+        ConsoleLog(ELogLevel::Error, "Failed to get vertex shader from cache!");
         return nullptr;
     }
 
     SDL_GPUShader* frag_shader = shader_cache.GetOrCreate(create_info.fragment_shader_request);
     if (!frag_shader)
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to get fragment shader from cache!");
+        ConsoleLog(ELogLevel::Error, "Failed to get fragment shader from cache!");
         return nullptr;
     }
 
@@ -63,7 +63,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
     SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(device, &info);
     if (!pipeline)
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to create graphics pipeline!, Err: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "Failed to create graphics pipeline!, Err: {}", SDL_GetError());
         return nullptr;
     }
 

@@ -58,7 +58,7 @@ SDL_GPUShader* CompileFromSPIRV(
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), result.error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), result.error().message);
         return nullptr;
     }
 
@@ -68,7 +68,7 @@ SDL_GPUShader* CompileFromSPIRV(
 
     if (!stage_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to determine shader stage: {}", shader_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_u8string());
         return nullptr;
     }
 
@@ -82,7 +82,7 @@ SDL_GPUShader* CompileFromSPIRV(
         stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         break;
     default:
-        ConsoleLog(ELogLevel::Error, u8"Unknown shader stage: {}", shader_path.generic_u8string()); // Compute Shader는 다른 함수로
+        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_u8string()); // Compute Shader는 다른 함수로
         return nullptr;
     }
 
@@ -100,7 +100,7 @@ SDL_GPUShader* CompileFromSPIRV(
 
     if (!refl_metadata)
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to reflect shader: {}", shader_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, "Failed to reflect shader: {}", shader_path.generic_u8string());
         return nullptr;
     }
 
@@ -138,7 +138,7 @@ SDL_GPUShader* CompileFromSPIRV(
         return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &resource_info, 0);
     }
 
-    ConsoleLog(ELogLevel::Error, u8"Unknown shader backend format: {}", shader_path.generic_u8string());
+    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path.generic_u8string());
     return nullptr;
 }
 }

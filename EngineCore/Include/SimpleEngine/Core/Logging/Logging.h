@@ -5,6 +5,7 @@
 #include <print>
 #include <stacktrace>
 
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Logging/Formatter.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/LogData.h"
@@ -20,52 +21,23 @@
  * @param args 포맷 문자열에 삽입될 가변 인수
  */
 template <typename... Args>
-void ConsoleLog(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
+void ConsoleLog(LogLevelAndLocation log_level, std::format_string<Args...> fmt, Args&&... args)
 {
-    const std::string s = reinterpret_cast<const char*>(log_level.thread_name.data());
-    LogEntry entry = {
+    auto& manager = se::core::logging::LogBackendManager::Get();
+    manager.WriteToAllBackends({
         .level = log_level.level,
         .location = log_level.location,
         .thread_name = std::move(log_level.thread_name),
+        .formatted_message = se::String::Format(fmt, std::forward<Args>(args)...),
         .timestamp = std::chrono::system_clock::now(),
-    };
-
-    if constexpr (sizeof...(Args) > 0) // 가변 인자가 있을 때만 추가젹인 formatting
-    {
-#if defined(_DEBUG)
-        try
-        {
-#endif
-            entry.formatted_message = std::vformat(std::string(fmt.begin(), fmt.end()), std::make_format_args(args...));
-#if defined(_DEBUG)
-        }
-        catch (const std::format_error& e)
-        {
-            std::println(
-                "[{}:{}] Log Formatting Error: {} (Original format: '{}', Args count: {})",
-                entry.GetPrettyFileName(), entry.location.line(), e.what(), fmt, sizeof...(Args)
-            );
-            std::flush(std::cout);
-            return;
-        }
-#endif
-    }
-    else
-    {
-        entry.formatted_message = std::string(fmt.begin(), fmt.end());
-    }
-
-    using namespace se::core::logging;
-
-    LogBackendManager& manager = LogBackendManager::Get();
-    manager.WriteToAllBackends(entry);
+    });
     manager.FlushAllBackends();
 }
 
 template <typename... Args>
-void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const Args&... args)
+void ConsoleLogOnce(LogLevelAndLocation log_level, std::format_string<Args...> fmt, Args&&... args)
 {
-    static se::unordered_set<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
+    static se::HashSet<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
     static TracyLockable(std::mutex, mtx);
 
     {
@@ -76,7 +48,7 @@ void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const
             .column = log_level.location.column(),
         };
 
-        std::lock_guard lock(mtx);
+        std::scoped_lock lock(mtx);
         if (called_logs.contains(key))
         {
             return; // 이미 호출한 로그면 리턴
@@ -84,7 +56,7 @@ void ConsoleLogOnce(LogLevelAndLocation log_level, std::u8string_view fmt, const
         called_logs.insert(key);
     }
 
-    ConsoleLog(log_level, fmt, args...);
+    ConsoleLog(log_level, fmt, std::forward<Args>(args)...);
 }
 
 /** 현재 함수의 Stack Trace를 출력합니다. */

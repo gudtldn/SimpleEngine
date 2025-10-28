@@ -5,7 +5,7 @@ using namespace se::asset;
 
 bool AssetSubsystem::Initialize()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing Asset subsystem...");
+    ConsoleLog(ELogLevel::Info, "Initializing Asset subsystem...");
     asset_manager = std::make_unique<AssetManager>();
 
     return true;
@@ -13,6 +13,6 @@ bool AssetSubsystem::Initialize()
 
 void AssetSubsystem::Release()
 {
-    ConsoleLog(ELogLevel::Info, u8"Releasing Asset subsystem...");
+    ConsoleLog(ELogLevel::Info, "Releasing Asset subsystem...");
     asset_manager.reset();
 }

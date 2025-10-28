@@ -57,7 +57,7 @@ void Engine::LoadRegisteredSubsystems()
         }
         subsystems[type_id] = std::move(subsystem);
 
-        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_id.GetName());
+        ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", type_id.GetName());
     }
     registry.factories.clear();
 }
@@ -80,7 +80,7 @@ bool Engine::Initialize()
     // SusSystems 초기화
     if (!InitializeAllSubsystems())
     {
-        ConsoleLog(ELogLevel::Error, u8"Subsystems failed to initialize!");
+        ConsoleLog(ELogLevel::Error, "Subsystems failed to initialize!");
         return false;
     }
 
@@ -99,12 +99,12 @@ void Engine::Release()
 
 bool Engine::InitializeAllSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing Subsystems...");
+    ConsoleLog(ELogLevel::Info, "Initializing Subsystems...");
     for (auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         if (!sub_system->Initialize())
         {
-            ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", typeid(*sub_system).name());
+            ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", typeid(*sub_system).name());
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
             for (ISubsystemBase* rev_subsystem : subrange | std::views::reverse)
@@ -114,13 +114,13 @@ bool Engine::InitializeAllSubsystems()
             return false;
         }
     }
-    ConsoleLog(ELogLevel::Info, u8"All Subsystems initialized successfully");
+    ConsoleLog(ELogLevel::Info, "All Subsystems initialized successfully");
     return true;
 }
 
 void Engine::ReleaseAllSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Releasing Subsystems...");
+    ConsoleLog(ELogLevel::Info, "Releasing Subsystems...");
 
     // RenderSubsystem이 있다면, 해제하기전에 GPU 대기
     if (const RenderSubsystem* render_subsystem = GetSubsystem<const RenderSubsystem>())
@@ -132,7 +132,7 @@ void Engine::ReleaseAllSubsystems()
     {
         sub_system->Release();
     }
-    ConsoleLog(ELogLevel::Info, u8"All Subsystems released successfully");
+    ConsoleLog(ELogLevel::Info, "All Subsystems released successfully");
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -173,7 +173,7 @@ void Engine::UpdateFrame(float delta_time)
 
 bool Engine::SortSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Sorting Subsystems based on dependencies...");
+    ConsoleLog(ELogLevel::Info, "Sorting Subsystems based on dependencies...");
 
     HashMap<refl::TypeId, Array<refl::TypeId>> adj_list;
     HashMap<refl::TypeId, int> in_degree;
@@ -229,7 +229,7 @@ bool Engine::SortSubsystems()
     // 순환 의존성 확인
     if (sorted_subsystems.size() != subsystems.size())
     {
-        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
+        ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
 
         Array<refl::TypeId> circular_subsystems;
         for (const auto& [type_id, degree] : in_degree)
@@ -240,10 +240,10 @@ bool Engine::SortSubsystems()
             }
         }
 
-        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected in subsystems: ");
+        ConsoleLog(ELogLevel::Fatal, "Circular dependency detected in subsystems: ");
         for (const auto& id : circular_subsystems)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", id.GetName());
+            ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
         }
 
         return false;
@@ -251,10 +251,10 @@ bool Engine::SortSubsystems()
 
     // Update 순서는 한번 보고 나중에 필요시 변경
 
-    ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
+    ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
     for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, typeid(*sub_system).name());
+        ConsoleLog(ELogLevel::Debug, "  - Order {}: {}", n, typeid(*sub_system).name());
     }
 
     return true;

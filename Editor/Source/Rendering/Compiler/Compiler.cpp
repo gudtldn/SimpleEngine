@@ -29,7 +29,7 @@ SDL_GPUShader* CompileFromHLSL(
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), result.error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), result.error().message);
         return nullptr;
     }
 
@@ -39,7 +39,7 @@ SDL_GPUShader* CompileFromHLSL(
 
     if (!stage_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to determine shader stage: {}", shader_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_u8string());
         return nullptr;
     }
 
@@ -53,7 +53,7 @@ SDL_GPUShader* CompileFromHLSL(
         stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         break;
     default:
-        ConsoleLog(ELogLevel::Error, u8"Unknown shader stage: {}", shader_path.generic_u8string()); // Compute Shader는 다른 함수로
+        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_u8string()); // Compute Shader는 다른 함수로
         return nullptr;
     }
 
@@ -127,7 +127,7 @@ SDL_GPUShader* CompileFromHLSL(
         return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, u8"Unknown shader backend format: {}, Err: {}", shader_path.generic_u8string(), SDL_GetError());
+    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path.generic_u8string(), SDL_GetError());
     return nullptr;
 }
 }

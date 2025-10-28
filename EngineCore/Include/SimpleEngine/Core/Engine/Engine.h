@@ -126,7 +126,7 @@ T* Engine::RegisterSubsystem(Args&&... args)
         updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
     }
 
-    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", refl::GetTypeSignature<T>());
+    ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", refl::GetTypeSignature<T>());
     return sub_system_ptr;
 }
 

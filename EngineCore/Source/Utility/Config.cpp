@@ -46,7 +46,7 @@ bool Config::WriteConfig(const VPath& config_file_path) const
     Optional physical_path_opt = resolver.Resolve(config_file_path, false);
     if (!physical_path_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to resolve config file path: {}", config_file_path.ToString());
+        ConsoleLog(ELogLevel::Error, "Failed to resolve config file path: {}", config_file_path.ToString());
         return false;
     }
 
@@ -54,7 +54,7 @@ bool Config::WriteConfig(const VPath& config_file_path) const
     std::ofstream file_stream(physical_path, std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to open config file for writing: {}", physical_path);
+        ConsoleLog(ELogLevel::Error, "Failed to open config file for writing: {}", physical_path);
         return false;
     }
 
@@ -63,7 +63,7 @@ bool Config::WriteConfig(const VPath& config_file_path) const
 
     if (file_stream.fail())
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", physical_path);
+        ConsoleLog(ELogLevel::Error, "Failed to write config file: {}", physical_path);
         file_stream.close();
         return false;
     }
@@ -71,7 +71,7 @@ bool Config::WriteConfig(const VPath& config_file_path) const
     file_stream.close();
     if (file_stream.fail())
     {
-        ConsoleLog(ELogLevel::Warning, u8"Potential issue closing file stream for: {}", physical_path);
+        ConsoleLog(ELogLevel::Warning, "Potential issue closing file stream for: {}", physical_path);
     }
 
     return true;

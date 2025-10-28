@@ -19,7 +19,7 @@
 #include "SDL3/SDL_init.h"
 #include "tracy/Tracy.hpp"
 
-#define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, u8"Initialize Failed!: {}", #x); return; } else {}
+#define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, "Initialize Failed!: {}", #x); return; } else {}
 
 
 namespace
@@ -91,7 +91,7 @@ void Application::Startup(const String& cmd_line)
         manager.AddBackend<FileBackend>();
     }
 
-    ConsoleLog(ELogLevel::Info, u8"startup, cmd: {}", cmd_line);
+    ConsoleLog(ELogLevel::Info, "startup, cmd: {}", cmd_line);
 
     RETURN_IF_FAILED(PreInitialize());
     RegisterSubsystems();
@@ -110,7 +110,7 @@ void Application::Shutdown()
 
     core::memory::MemoryTracker::CheckForLeaks();
 
-    ConsoleLog(ELogLevel::Info, u8"shutdown");
+    ConsoleLog(ELogLevel::Info, "shutdown");
 }
 
 void Application::MainLoop()
@@ -184,7 +184,7 @@ bool Application::PreInitialize()
     engine_instance = std::make_unique<core::Engine>();
     if (engine_instance == nullptr)
     {
-        ConsoleLog(ELogLevel::Error, u8"Failed to create engine instance!");
+        ConsoleLog(ELogLevel::Error, "Failed to create engine instance!");
         return false;
     }
     return true;
@@ -199,7 +199,7 @@ bool Application::InitializeEngine()
 {
     if (!engine_instance->Initialize())
     {
-        ConsoleLog(ELogLevel::Error, u8"Engine failed to initialize!");
+        ConsoleLog(ELogLevel::Error, "Engine failed to initialize!");
         return false;
     }
     return true;

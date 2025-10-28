@@ -230,11 +230,11 @@ void RenderGraph::Compile()
             }
         }
 
-        ConsoleLog(ELogLevel::Fatal, u8"A cycle was detected in the render graph!");
-        ConsoleLog(ELogLevel::Fatal, u8"The following subsystems are involved in a circular dependency:");
+        ConsoleLog(ELogLevel::Fatal, "A cycle was detected in the render graph!");
+        ConsoleLog(ELogLevel::Fatal, "The following subsystems are involved in a circular dependency:");
         for (const RGPassNode* node : circular_pass_node)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", node->name.ToString());
+            ConsoleLog(ELogLevel::Fatal, "- {}", node->name.ToString());
         }
 
         assert(false && "A cycle was detected in the render graph!");

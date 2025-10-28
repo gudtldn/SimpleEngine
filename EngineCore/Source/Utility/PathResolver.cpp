@@ -55,7 +55,7 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
 
     if (it == mount_points.end() || it->second.IsEmpty())
     {
-        ConsoleLog(ELogLevel::Warning, u8"Scheme '{}' is not mounted.", scheme);
+        ConsoleLog(ELogLevel::Warning, "Scheme '{}' is not mounted.", scheme);
         return std::nullopt;
     }
 
@@ -83,7 +83,7 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
         return primary_mount_point.physical_path / path_part;
     }
 
-    ConsoleLog(ELogLevel::Warning, u8"File '{}' not found in any mounted path for scheme '{}'.", virtual_path.ToString(), scheme);
+    ConsoleLog(ELogLevel::Warning, "File '{}' not found in any mounted path for scheme '{}'.", virtual_path.ToString(), scheme);
     return std::nullopt;
 }
 

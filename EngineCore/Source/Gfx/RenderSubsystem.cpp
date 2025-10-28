@@ -12,7 +12,7 @@ using namespace se::rendering;
 
 bool RenderSubsystem::Initialize()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing Render subsystem...");
+    ConsoleLog(ELogLevel::Info, "Initializing Render subsystem...");
 
     const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
     SDL_Window* main_window = platform_subsystem->GetMainWindow();
@@ -20,7 +20,7 @@ bool RenderSubsystem::Initialize()
     // Window가 존재하는지 확인
     if (!main_window)
     {
-        ConsoleLog(ELogLevel::Error, u8"Window not found. Render subsystem cannot be initialized.");
+        ConsoleLog(ELogLevel::Error, "Window not found. Render subsystem cannot be initialized.");
         return false;
     }
 
@@ -55,14 +55,14 @@ bool RenderSubsystem::Initialize()
 
     if (!gpu_device)
     {
-        ConsoleLog(ELogLevel::Error, u8"SDL_CreateGPUDeviceWithProperties failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "SDL_CreateGPUDeviceWithProperties failed: {}", SDL_GetError());
         return false;
     }
 
     // Window를 GPU Device에 연결
     if (!SDL_ClaimWindowForGPUDevice(gpu_device, main_window))
     {
-        ConsoleLog(ELogLevel::Error, u8"SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
         SDL_DestroyGPUDevice(gpu_device);
         gpu_device = nullptr;
         return false;
@@ -76,13 +76,13 @@ bool RenderSubsystem::Initialize()
 
     if (!SDL_SetGPUSwapchainParameters(gpu_device, main_window, swapchain_composition, present_mode))
     {
-        ConsoleLog(ELogLevel::Warning, u8"SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Warning, "SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
     }
 
     render_graph = std::make_unique<RenderGraph>(gpu_device);
     pso_manager = std::make_unique<PSOManager>(gpu_device);
 
-    ConsoleLog(ELogLevel::Info, u8"Window and GPU device created successfully");
+    ConsoleLog(ELogLevel::Info, "Window and GPU device created successfully");
     return true;
 }
 
@@ -124,7 +124,7 @@ void RenderSubsystem::RenderFrame() const
         {
             render_graph->Clear();
 
-            ConsoleLog(ELogLevel::Error, u8"SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
+            ConsoleLog(ELogLevel::Error, "SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
             continue;
         }
 

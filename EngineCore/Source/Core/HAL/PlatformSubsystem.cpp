@@ -38,17 +38,17 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
 
 bool PlatformSubsystem::Initialize()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing Platform Subsystem...");
+    ConsoleLog(ELogLevel::Info, "Initializing Platform Subsystem...");
     if (!SDL_Init(sdl_init_flags))
     {
-        ConsoleLog(ELogLevel::Error, u8"SDL_Init failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "SDL_Init failed: {}", SDL_GetError());
         return false;
     }
-    ConsoleLog(ELogLevel::Info, u8"SDL_Init succeeded");
+    ConsoleLog(ELogLevel::Info, "SDL_Init succeeded");
 
     if (main_window_info.HasValue())
     {
-        ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
+        ConsoleLog(ELogLevel::Info, "Initializing Window...");
 
         // const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
         if (const auto window_result = CreateWindow(*main_window_info))
@@ -57,18 +57,18 @@ bool PlatformSubsystem::Initialize()
         }
         else
         {
-            ConsoleLog(ELogLevel::Error, u8"{}", window_result.error().message);
+            ConsoleLog(ELogLevel::Error, "{}", window_result.error().message);
         }
 
         SDL_ShowWindow(GetWindow(main_window_id));
-        ConsoleLog(ELogLevel::Info, u8"Window initialized");
+        ConsoleLog(ELogLevel::Info, "Window initialized");
     }
     return true;
 }
 
 void PlatformSubsystem::Release()
 {
-    ConsoleLog(ELogLevel::Info, u8"Releasing Platform Subsystem...");
+    ConsoleLog(ELogLevel::Info, "Releasing Platform Subsystem...");
 
     for (SDL_Window* window : windows | std::views::values)
     {

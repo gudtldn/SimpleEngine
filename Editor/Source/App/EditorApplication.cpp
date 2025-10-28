@@ -28,7 +28,7 @@ void EditorApplication::RegisterSubsystems()
         ParseResult result = Config::ReadConfig(config_path);
         if (!result.has_value())
         {
-            ConsoleLog(ELogLevel::Error, u8"Failed to read config file: {}", result.error().description());
+            ConsoleLog(ELogLevel::Error, "Failed to read config file: {}", result.error().description());
             return;
         }
 
@@ -44,7 +44,7 @@ void EditorApplication::RegisterSubsystems()
 
         if (!config.WriteConfig(config_path))
         {
-            ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.ToString());
+            ConsoleLog(ELogLevel::Error, "Failed to write config file: {}", config_path.ToString());
             return;
         }
     }

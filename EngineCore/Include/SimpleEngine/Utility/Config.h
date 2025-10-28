@@ -176,7 +176,7 @@ Optional<se::vector<ElementType>> Config::GetArray(std::u8string_view key_path) 
                 else
                 {
                     auto* str_node = elem_node.as_string();
-                    ConsoleLog(ELogLevel::Warning, u8"Failed to get array element: {}", str_node ? str_node->get() : "null");
+                    ConsoleLog(ELogLevel::Warning, "Failed to get array element: {}", str_node ? str_node->get() : "null");
 
                     success = false; // 배열 내 타입 불일치
                     break;
@@ -196,7 +196,7 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
 {
     if (key_path.empty())
     {
-        ConsoleLog(ELogLevel::Error, u8"Config::SetValue: Key path cannot be empty.");
+        ConsoleLog(ELogLevel::Error, "Config::SetValue: Key path cannot be empty.");
         return false;
     }
 
@@ -253,7 +253,7 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
     {
         // 경로가 "."으로 끝나는 경우 (예: "section.table.")
         ConsoleLog(
-            ELogLevel::Error, u8"Config::SetValue: Key path '{}' is invalid as it ends with a delimiter without a final key name.",
+            ELogLevel::Error, "Config::SetValue: Key path '{}' is invalid as it ends with a delimiter without a final key name.",
             key_path
         );
         return false;

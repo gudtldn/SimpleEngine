@@ -66,15 +66,15 @@ bool MemoryTracker::CheckForLeaks()
     std::scoped_lock lock(GMapMutex);
     if (!GLeakedMemoryMap.empty())
     {
-        ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
+        ConsoleLog(ELogLevel::Error, "--- MEMORY LEAKS DETECTED ---");
         for (const auto& [address, info] : GLeakedMemoryMap)
         {
-            ConsoleLog(ELogLevel::Error, u8"Leak: {} bytes at {:p}, callstack:", info.size, address);
+            ConsoleLog(ELogLevel::Error, "Leak: {} bytes at {:p}, callstack:", info.size, address);
 
             // stacktrace 출력
             for (const std::stacktrace_entry& entry : info.trace | std::views::reverse)
             {
-                ConsoleLog(ELogLevel::Error, u8"    {}", entry);
+                ConsoleLog(ELogLevel::Error, "    {}", entry);
             }
         }
         return true;

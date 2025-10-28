@@ -30,7 +30,7 @@ SDL_GPUShader* ShaderCache::GetOrCreate(const ShaderRequest& request)
         return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, u8"Failed to get shader from provider!");
+    ConsoleLog(ELogLevel::Error, "Failed to get shader from provider!");
     return nullptr;
 }
 

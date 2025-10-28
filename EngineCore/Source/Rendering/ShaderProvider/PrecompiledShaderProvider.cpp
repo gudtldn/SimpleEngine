@@ -17,7 +17,7 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
             || ext.contains(u8".spvt")
         ))
         {
-            ConsoleLog(ELogLevel::Error, u8"Precompiled shader provider only supports SPIR-V files.");
+            ConsoleLog(ELogLevel::Error, "Precompiled shader provider only supports SPIR-V files.");
             return nullptr;
         }
     }
