@@ -8,8 +8,7 @@
 
 
 #define SE_ARG arg
-#define SE_SPECIALIZE_STD_HASH(type, validate_size, stmt) \
-static_assert(sizeof(type) == validate_size, "Invalid size, please check the struct definition"); \
+#define SE_SPECIALIZE_STD_HASH_WIHTOUT_VALIDATE(type, stmt) \
 template <> \
 struct std::hash<type> \
 { \
@@ -20,6 +19,10 @@ struct std::hash<type> \
         return seed; \
     } \
 };
+
+#define SE_SPECIALIZE_STD_HASH(type, validate_size, stmt) \
+static_assert(sizeof(type) == validate_size, "Invalid size, please check the struct definition"); \
+SE_SPECIALIZE_STD_HASH_WIHTOUT_VALIDATE(type, stmt)
 
 #define SE_HASH_COMBINE(...) se::utility::HashCombine(seed, __VA_ARGS__);
 
@@ -143,7 +146,7 @@ SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, 24,
     );
 })
 
-SE_SPECIALIZE_STD_HASH(se::rendering::GraphicsPipelineCreateInfo, 424 SE_RELEASE_EXPRESION(-48), // Release때 stl이 최적화됨
+SE_SPECIALIZE_STD_HASH_WIHTOUT_VALIDATE(se::rendering::GraphicsPipelineCreateInfo,
 {
     SE_HASH_COMBINE(
         SE_ARG.vertex_shader_request,
