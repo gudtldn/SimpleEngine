@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <concepts>
 
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystemBase.h"
 #include "SimpleEngine/Core/Interfaces/IUpdatable.h"
@@ -65,7 +66,7 @@ private:
     }
 
 private:
-    std::unordered_map<refl::TypeId, SubsystemMetadata> factories;
+    HashMap<refl::TypeId, SubsystemMetadata> factories;
 };
 }
 }
