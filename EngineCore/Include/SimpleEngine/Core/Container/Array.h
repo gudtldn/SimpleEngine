@@ -203,6 +203,9 @@ public:
     /** 배열에서 특정 값을 찾아 첫 번째로 일치하는 요소의 인덱스를 Optional로 반환합니다. */
     [[nodiscard]] Optional<SizeType> Find(const ValueType& value) const;
 
+    /** 배열의 요소를 교환합니다. */
+    void Swap(Array& other) noexcept;
+
 public:
     /** 경계 검사 없이 특정 인덱스의 요소에 접근합니다. */
     [[nodiscard]] T& operator[](SizeType index) noexcept;
@@ -221,6 +224,8 @@ public:
     [[nodiscard]] ReverseIterator rend() noexcept;
     [[nodiscard]] ConstReverseIterator rbegin() const noexcept;
     [[nodiscard]] ConstReverseIterator rend() const noexcept;
+
+    friend void swap(Array& lhs, Array& rhs) noexcept { lhs.Swap(rhs); }
 
 private:
     /** 메모리를 재할당 합니다. */

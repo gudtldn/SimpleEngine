@@ -266,41 +266,25 @@ Optional<const T&> Array<T, Allocator>::At(SizeType index) const
 template <typename T, typename Allocator>
 Optional<T&> Array<T, Allocator>::Front()
 {
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return FrontUnsafe();
+    return At(0);
 }
 
 template <typename T, typename Allocator>
 Optional<const T&> Array<T, Allocator>::Front() const
 {
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return FrontUnsafe();
+    return At(0);
 }
 
 template <typename T, typename Allocator>
 Optional<T&> Array<T, Allocator>::Back()
 {
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return BackUnsafe();
+    return At(size - 1);
 }
 
 template <typename T, typename Allocator>
 Optional<const T&> Array<T, Allocator>::Back() const
 {
-    if (IsEmpty())
-    {
-        return std::nullopt;
-    }
-    return BackUnsafe();
+    return At(size - 1);
 }
 
 template <typename T, typename Allocator>
@@ -566,6 +550,14 @@ Optional<typename Array<T, Allocator>::SizeType> Array<T, Allocator>::Find(const
         return std::distance(begin(), it);
     }
     return std::nullopt;
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Swap(Array& other) noexcept
+{
+    std::swap(data, other.data);
+    std::swap(size, other.size);
+    std::swap(capacity, other.capacity);
 }
 
 template <typename T, typename Allocator>
