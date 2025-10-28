@@ -5,6 +5,8 @@
 
 #include "Core/Concurrency/TaskScheduler.h"
 #include "Core/Concurrency/ThreadPool.h"
+#include "Core/Container/Array.h"
+#include "Core/Container/HashMap.h"
 #include "Core/Interfaces/ISubsystemBase.h"
 #include "Core/Interfaces/IUpdatable.h"
 #include "Gfx/RenderSubsystem.h"
@@ -27,13 +29,13 @@ Engine::Engine()
     const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
 
     // Core
-    path_resolver.Mount(u8"Config", solution_path / u8"Config");
-    path_resolver.Mount(u8"CoreAssets", solution_path / u8"EngineCore/Assets");
-    path_resolver.Mount(u8"CoreShader", solution_path / u8"EngineCore/Shaders");
+    path_resolver.Mount("Config", solution_path / "Config");
+    path_resolver.Mount("CoreAssets", solution_path / "EngineCore/Assets");
+    path_resolver.Mount("CoreShader", solution_path / "EngineCore/Shaders");
 
     // Editor
-    path_resolver.Mount(u8"EditorAssets", solution_path / u8"Editor/Assets");
-    path_resolver.Mount(u8"EditorShader", solution_path / u8"Editor/Shaders");
+    path_resolver.Mount("EditorAssets", solution_path / "Editor/Assets");
+    path_resolver.Mount("EditorShader", solution_path / "Editor/Shaders");
 }
 
 Engine::~Engine() = default;
@@ -173,8 +175,8 @@ bool Engine::SortSubsystems()
 {
     ConsoleLog(ELogLevel::Info, u8"Sorting Subsystems based on dependencies...");
 
-    unordered_map<refl::TypeId, vector<refl::TypeId>> adj_list;
-    unordered_map<refl::TypeId, int> in_degree;
+    HashMap<refl::TypeId, Array<refl::TypeId>> adj_list;
+    HashMap<refl::TypeId, int> in_degree;
     queue<refl::TypeId> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
@@ -190,7 +192,7 @@ bool Engine::SortSubsystems()
         {
             // A가 B에 의존한다면 (A -> B), B에서 A로 가는 간선을 추가
             // B가 먼저 초기화되어야 하기 때문
-            adj_list[dependency_id].push_back(type_id);
+            adj_list[dependency_id].Push(type_id);
             in_degree[type_id]++;
         }
     }
@@ -229,12 +231,12 @@ bool Engine::SortSubsystems()
     {
         ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
 
-        vector<refl::TypeId> circular_subsystems;
+        Array<refl::TypeId> circular_subsystems;
         for (const auto& [type_id, degree] : in_degree)
         {
             if (degree > 0)
             {
-                circular_subsystems.push_back(type_id);
+                circular_subsystems.Push(type_id);
             }
         }
 
@@ -250,7 +252,7 @@ bool Engine::SortSubsystems()
     // Update 순서는 한번 보고 나중에 필요시 변경
 
     ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
-    for (const auto& [n, sub_system] : sorted_subsystems | std::views::enumerate)
+    for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, typeid(*sub_system).name());
     }

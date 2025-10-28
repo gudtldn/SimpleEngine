@@ -3,14 +3,12 @@
 #include <ranges>
 
 #include "Gfx/RenderSubsystem.h"
-#include "Utility/StringUtils.h"
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_gpu.h"
 
 using namespace se::core::event;
 using namespace se::utility;
-using namespace se::utility::string;
 
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
@@ -59,7 +57,7 @@ bool PlatformSubsystem::Initialize()
         }
         else
         {
-            ConsoleLog(ELogLevel::Error, window_result.error().message);
+            ConsoleLog(ELogLevel::Error, u8"{}", window_result.error().message);
         }
 
         SDL_ShowWindow(GetWindow(main_window_id));
@@ -102,11 +100,11 @@ void PlatformSubsystem::PrepareWindow(WindowDesc&& window_desc)
 
 std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
 {
-    const char* window_title_c = reinterpret_cast<const char*>(window_desc.title.c_str());
+    const char* window_title_c = window_desc.title.CStr();
     SDL_Window* new_window = SDL_CreateWindow(
         window_title_c,
-        window_desc.width,
-        window_desc.height,
+        static_cast<int>(window_desc.width),
+        static_cast<int>(window_desc.height),
         window_desc.sdl_window_flags
     );
 
@@ -114,7 +112,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
     {
         return std::unexpected{
             WindowCreateError::WindowCreation(
-                ToU8String(std::format("SDL_CreateWindow failed: {}", SDL_GetError()))
+                se::String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
             )
         };
     }
@@ -131,7 +129,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
                 SDL_DestroyWindow(new_window);
                 return std::unexpected{
                     WindowCreateError::GPUDeviceClaim(
-                        ToU8String(std::format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError()))
+                        se::String::Format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError())
                     )
                 };
             }
@@ -145,7 +143,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
                 SDL_DestroyWindow(new_window);
                 return std::unexpected{
                     WindowCreateError::SwapchainSetup(
-                        ToU8String(std::format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError()))
+                        se::String::Format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError())
                     )
                 };
             }

@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include <expected>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Event/EventDispatcher.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystem.h"
@@ -13,7 +14,7 @@
 
 struct WindowDesc
 {
-    se::u8string title = u8"Untitled Window";
+    se::String title = "Untitled Window";
     uint32 width = 1280;
     uint32 height = 720;
     uint32 sdl_window_flags = 0;
@@ -36,11 +37,11 @@ struct WindowCreateError
     };
 
     Type type;
-    se::u8string message;
+    se::String message;
 
-    static WindowCreateError WindowCreation(se::u8string&& sdl_error) { return { Type::WindowCreationFailed, std::move(sdl_error) }; }
-    static WindowCreateError GPUDeviceClaim(se::u8string&& sdl_error) { return { Type::GPUDeviceClaimFailed, std::move(sdl_error) }; }
-    static WindowCreateError SwapchainSetup(se::u8string&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
+    static WindowCreateError WindowCreation(se::String&& sdl_error) { return { Type::WindowCreationFailed, std::move(sdl_error) }; }
+    static WindowCreateError GPUDeviceClaim(se::String&& sdl_error) { return { Type::GPUDeviceClaimFailed, std::move(sdl_error) }; }
+    static WindowCreateError SwapchainSetup(se::String&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
 };
 
 class SE_CORE_API PlatformSubsystem : public se::core::ISubsystem<>
@@ -105,6 +106,6 @@ private:
     Optional<WindowDesc> main_window_info = std::nullopt;
     SDL_WindowID main_window_id = 0;
 
-    se::unordered_map<SDL_WindowID, SDL_Window*> windows;
+    se::HashMap<SDL_WindowID, SDL_Window*> windows;
     se::core::event::EventDispatcher platform_event_dispatcher;
 };

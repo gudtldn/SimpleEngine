@@ -143,7 +143,7 @@ void RenderSubsystem::RenderFrame() const
         // --- Render Graph 설정 및 실행 ---
 
         // 스왑체인 텍스처를 "BackBuffer"라는 이름으로 RenderGraph에 임포트
-        [[maybe_unused]] const RGResourceHandle backbuffer_handle = render_graph->ImportTexture(u8"BackBuffer", swapchain_texture);
+        [[maybe_unused]] const RGResourceHandle backbuffer_handle = render_graph->ImportTexture("BackBuffer", swapchain_texture);
 
         // TODO: 여기에 다른 렌더 패스들을 추가 (예: GBuffer, 조명, UI 등).
 

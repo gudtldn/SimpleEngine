@@ -3,7 +3,7 @@
 #include <memory>
 #include <memory_resource>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 // forward declaration
@@ -39,10 +39,9 @@ public:
     static Application& Get();
 
 public:
-    // u8string으로 변경해서 호출해주는 오버로딩 함수
-    void Startup(const char* cmd_line);
+    // String으로 변경해서 호출해주는 오버로딩 함수
     void Startup(const wchar_t* cmd_line);
-    void Startup(const u8string& cmd_line);
+    void Startup(const String& cmd_line);
 
     void Shutdown();
 

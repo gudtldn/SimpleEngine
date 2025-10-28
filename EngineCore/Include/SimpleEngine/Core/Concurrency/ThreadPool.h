@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
@@ -52,8 +53,8 @@ private:
     std::condition_variable condition;
 #endif
 
-    vector<std::jthread> worker_threads;
-    queue<Function<void()>> tasks;
+    Array<std::jthread> worker_threads;
+    se::queue<Function<void()>> tasks;
 };
 
 template <typename Fn, typename... Args>

@@ -50,9 +50,7 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 {
-    const u8string thread_name = utility::string::ToU8String(
-        std::format("Worker Thread {}", thread_id)
-    );
+    const String thread_name = String::Format("Worker Thread {}", thread_id);
     platform::SetCurrentThreadName(thread_name);
 
     while (!token.stop_requested())
@@ -78,10 +76,8 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 
         {
             ZoneScoped;
-            {
-                [[maybe_unused]] const char* zone_name = reinterpret_cast<const char*>(thread_name.c_str());
-                ZoneName(zone_name, thread_name.size());
-            }
+            ZoneName(thread_name.CStr(), thread_name.ByteLen());
+
             task();
         }
     }

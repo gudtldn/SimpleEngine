@@ -67,19 +67,14 @@ Application& Application::Get()
     return *Instance;
 }
 
-void Application::Startup(const char* cmd_line)
-{
-    Startup(utility::string::ToU8String(cmd_line));
-}
-
 void Application::Startup(const wchar_t* cmd_line)
 {
-    Startup(utility::string::ToU8String(cmd_line));
+    Startup(utility::string::ToString(cmd_line));
 }
 
-void Application::Startup(const u8string& cmd_line)
+void Application::Startup(const String& cmd_line)
 {
-    platform::SetCurrentThreadName(u8"Main Thread");
+    platform::SetCurrentThreadName("Main Thread");
 
     if constexpr (SE_DEBUG_BUILD)
     {

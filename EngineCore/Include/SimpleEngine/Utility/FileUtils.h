@@ -2,7 +2,7 @@
 #include <expected>
 #include <filesystem>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -24,25 +24,25 @@ struct FileReadError
     };
 
     Type type;
-    u8string message;
+    String message;
 
-    static FileReadError NotFound(u8string&& msg) { return { Type::FileNotFound, std::move(msg) }; }
-    static FileReadError OpenFailed(u8string&& msg) { return { Type::FileOpenFailed, std::move(msg) }; }
-    static FileReadError Permission(u8string&& msg) { return { Type::PermissionDenied, std::move(msg) }; }
-    static FileReadError Format(u8string&& msg) { return { Type::InvalidFormat, std::move(msg) }; }
-    static FileReadError Read(u8string&& msg) { return { Type::ReadFailed, std::move(msg) }; }
-    static FileReadError Write(u8string&& msg) { return { Type::WriteFailed, std::move(msg) }; }
-    static FileReadError EndOfFile(u8string&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
-    static FileReadError OutOfMem(u8string&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
-    static FileReadError Unknown(u8string&& msg) { return { Type::UnknownError, std::move(msg) }; }
+    static FileReadError NotFound(String&& msg) { return { Type::FileNotFound, std::move(msg) }; }
+    static FileReadError OpenFailed(String&& msg) { return { Type::FileOpenFailed, std::move(msg) }; }
+    static FileReadError Permission(String&& msg) { return { Type::PermissionDenied, std::move(msg) }; }
+    static FileReadError Format(String&& msg) { return { Type::InvalidFormat, std::move(msg) }; }
+    static FileReadError Read(String&& msg) { return { Type::ReadFailed, std::move(msg) }; }
+    static FileReadError Write(String&& msg) { return { Type::WriteFailed, std::move(msg) }; }
+    static FileReadError EndOfFile(String&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
+    static FileReadError OutOfMem(String&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
+    static FileReadError Unknown(String&& msg) { return { Type::UnknownError, std::move(msg) }; }
 };
 
 template <typename T>
 using FileResult = std::expected<T, FileReadError>;
 
 /** 파일을 읽고, byte array로 반환합니다. */
-[[nodiscard]] SE_CORE_API FileResult<vector<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
+[[nodiscard]] SE_CORE_API FileResult<Array<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
 
 /** 파일을 읽고, string으로 반환합니다. */
-[[nodiscard]] SE_CORE_API FileResult<u8string> ReadToString(const std::filesystem::path& file_path);
+[[nodiscard]] SE_CORE_API FileResult<String> ReadToString(const std::filesystem::path& file_path);
 }
