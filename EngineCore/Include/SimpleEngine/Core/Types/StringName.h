@@ -11,7 +11,7 @@
 class SE_CORE_API StringName
 {
 public:
-    constexpr static size_t MAX_LENGTH = 256;
+    constexpr static usize MAX_LENGTH = 256;
     static StringName None;
 
     /**

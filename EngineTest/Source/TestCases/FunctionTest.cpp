@@ -29,7 +29,7 @@ struct LargeFunctor
     LargeFunctor()
     {
         // To avoid unused variable warnings
-        for (size_t i = 0; i < sizeof(data); ++i)
+        for (usize i = 0; i < sizeof(data); ++i)
         {
             data[i] = static_cast<char>(i);
         }

@@ -196,8 +196,8 @@ bool Config::SetValue(std::string_view key_path, ValueType&& value)
     std::string_view current_path_segment_view = key_path;
 
     toml::table* current_table_ptr = &config_table;
-    size_t current_pos = 0;
-    size_t next_dot_pos = current_path_segment_view.find('.');
+    usize current_pos = 0;
+    usize next_dot_pos = current_path_segment_view.find('.');
 
     while (next_dot_pos != std::string_view::npos)
     {

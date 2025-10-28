@@ -19,12 +19,12 @@ consteval std::string_view TrimWhitespace(std::string_view sv) noexcept
     {
         return sv;
     }
-    const size_t first = sv.find_first_not_of(whitespace_chars);
+    const usize first = sv.find_first_not_of(whitespace_chars);
     if (first == std::string_view::npos)
     {
         return {};
     }
-    const size_t last = sv.find_last_not_of(whitespace_chars);
+    const usize last = sv.find_last_not_of(whitespace_chars);
     return sv.substr(first, last - first + 1);
 }
 }
@@ -43,7 +43,7 @@ struct ExtractBaseTypeImpl<T*>
     using Type = ExtractBaseTypeImpl<std::remove_cv_t<T>>::Type;
 };
 
-template <typename T, std::size_t N>
+template <typename T, usize N>
 struct ExtractBaseTypeImpl<T[N]>
 {
     using Type = ExtractBaseTypeImpl<std::remove_cv_t<T>>::Type;
@@ -78,7 +78,7 @@ consteval bool IsTokenBoundary(char c)
  * @param token_list 제거할 한정자의 배열
  * @return 한정자가 제거된 시그니처를 반환
  */
-template <size_t N>
+template <usize N>
 consteval std::string_view RemoveToken(std::string_view signature, std::array<std::string_view, N> token_list) noexcept
 {
     bool was_modified;
@@ -116,7 +116,7 @@ consteval std::string_view RemoveToken(std::string_view signature, std::array<st
 consteval std::string_view RemoveNamespace(std::string_view in_signature) noexcept
 {
     constexpr std::string_view namespace_prefix = "::";
-    const size_t start_pos = in_signature.rfind(namespace_prefix);
+    const usize start_pos = in_signature.rfind(namespace_prefix);
     if (start_pos == std::string_view::npos)
     {
         return in_signature;
@@ -144,7 +144,7 @@ consteval std::string_view GetRawTypeSignature() noexcept
 consteval std::string_view ExtractType_MSVC(std::string_view in_signature) noexcept
 {
     constexpr std::string_view prefix = "GetRawTypeSignature<";
-    size_t start_pos = in_signature.find(prefix);
+    usize start_pos = in_signature.find(prefix);
     if (start_pos == std::string_view::npos)
     {
         return {};
@@ -152,7 +152,7 @@ consteval std::string_view ExtractType_MSVC(std::string_view in_signature) noexc
     start_pos += prefix.size();
 
     constexpr std::string_view suffix = ">(void) noexcept";
-    const size_t end_pos = in_signature.rfind(suffix);
+    const usize end_pos = in_signature.rfind(suffix);
     if (end_pos == std::string_view::npos || end_pos <= start_pos)
     {
         return {};
@@ -171,7 +171,7 @@ consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) 
 #else
     constexpr std::string_view prefix = "[with T = ";
 #endif
-    size_t start_pos = in_signature.find(prefix);
+    usize start_pos = in_signature.find(prefix);
     if (start_pos == std::string_view::npos)
     {
         return {};
@@ -184,7 +184,7 @@ consteval std::string_view ExtractType_GCC_Clang(std::string_view in_signature) 
 #else
     constexpr std::string_view suffix = ";";
 #endif
-    const size_t end_pos = in_signature.rfind(suffix);
+    const usize end_pos = in_signature.rfind(suffix);
     if (end_pos == std::string_view::npos || end_pos <= start_pos)
     {
         return {};

@@ -35,10 +35,10 @@ struct PropertyInfo
     std::string_view name;
 
     // Property 크기
-    size_t size;
+    usize size;
 
     // Property가 속하는 클래스/구조체로부터 떨어진 거리
-    size_t offset;
+    usize offset;
 
     // Property에 대한 컴파일타임 타입 식별자
     TypeId type_id;
@@ -56,7 +56,7 @@ struct TypeInfo
     std::string_view name;
 
     // 클래스/구조체 총합 크기
-    size_t size;
+    usize size;
 
     // 클래스/구조체의 멤버 변수(Property) 목록
     Array<PropertyInfo> properties; // TODO: C++26때 FixedArray로 바꿔야 할 수 있음

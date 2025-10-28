@@ -5,6 +5,7 @@
 #include <mdspan>
 #include <ranges>
 
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Core/Math/Vector4.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -23,7 +24,7 @@ private:
 
 public:
     using RealType = T;
-    using SizeType = size_t;
+    using SizeType = usize;
     using ExtentType = std::extents<SizeType, 4, 4>;
 
 public:

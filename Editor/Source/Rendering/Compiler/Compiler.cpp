@@ -86,7 +86,7 @@ SDL_GPUShader* CompileFromHLSL(
     };
 
     void* bytecode = nullptr;
-    size_t bytecode_size = 0;
+    usize bytecode_size = 0;
 
     SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata = nullptr;
 
@@ -96,7 +96,7 @@ SDL_GPUShader* CompileFromHLSL(
         bytecode = SDL_ShaderCross_CompileDXILFromHLSL(&hlsl_info, &bytecode_size);
 
         // get reflection metadata
-        size_t spirv_size;
+        usize spirv_size;
         void* spirv_bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
         refl_metadata = SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<const Uint8*>(spirv_bytecode), spirv_size, 0);
         SDL_free(spirv_bytecode);

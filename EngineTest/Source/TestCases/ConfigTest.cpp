@@ -150,7 +150,7 @@ TEST_CASE("get array config file")
         CHECK(arr->Len() == 3);
 
         auto check_list = std::array{ "apple", "banana", "cherry" };
-        for (size_t i = 0; i < arr->Len(); i++)
+        for (usize i = 0; i < arr->Len(); i++)
         {
             CHECK((*arr)[i] == check_list[i]);
         }
@@ -190,7 +190,7 @@ TEST_CASE("get table config file")
         auto shaders = graphics->GetArray<std::string>("shaders");
         CHECK(shaders.HasValue());
         CHECK(shaders->Len() == 2);
-        for (size_t i = 0; i < shaders->Len(); i++)
+        for (usize i = 0; i < shaders->Len(); i++)
         {
             CHECK((*shaders)[i] == check_list[i]);
         }

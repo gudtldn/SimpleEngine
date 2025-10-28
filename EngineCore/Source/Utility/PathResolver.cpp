@@ -95,7 +95,7 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
 
     Optional<VPath> best_match_opt = std::nullopt;
     int best_priority = -1;
-    size_t longest_match_len = 0;
+    usize longest_match_len = 0;
 
     for (const auto& [scheme, points] : mount_points)
     {
@@ -104,7 +104,7 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
             // 물리적 경로가 마운트 포인트의 하위 경로인지 확인
             if (normalized_physical_path.native().starts_with(point.physical_path.native())) // 접두사가 일치하는 경우
             {
-                const size_t match_len = point.physical_path.native().length();
+                const usize match_len = point.physical_path.native().length();
 
                 // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
                 if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))

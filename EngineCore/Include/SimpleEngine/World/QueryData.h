@@ -164,7 +164,7 @@ template <typename... Ts>
 IStorage* QueryData<Ts...>::FindSmallestPool()
 {
     // 순회의 기준이 될 PredicateTypes(필수 컴포넌트 + With)의 총 개수
-    constexpr size_t pool_size = std::tuple_size_v<PredicateTypes>;
+    constexpr usize pool_size = std::tuple_size_v<PredicateTypes>;
     if constexpr (pool_size == 0)
     {
         return nullptr;

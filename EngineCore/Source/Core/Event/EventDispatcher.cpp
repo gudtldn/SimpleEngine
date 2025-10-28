@@ -88,7 +88,7 @@ void EventDispatcher::Dispatch(PlatformEvent& event)
 // Specialization for SubscriptionHandle
 using se::core::event::SubscriptionHandle;
 
-size_t std::hash<SubscriptionHandle>::operator()(const SubscriptionHandle& handle) const noexcept
+usize std::hash<SubscriptionHandle>::operator()(const SubscriptionHandle& handle) const noexcept
 {
     return std::hash<uint64>{}(handle.GetID());
 }

@@ -115,7 +115,7 @@ void RenderGraph::Compile()
             || dynamic_cast<RGExternalBuffer*>(resource)
         )
         {
-            active_resources.push({ static_cast<size_t>(n) });
+            active_resources.push({ static_cast<usize>(n) });
         }
     }
 
@@ -127,7 +127,7 @@ void RenderGraph::Compile()
 
         if (const RGPassNode* writer_pass = resource_nodes[active_handle_idx].writer)
         {
-            const size_t pass_index = writer_pass - &pass_nodes[0];
+            const usize pass_index = writer_pass - &pass_nodes[0];
             RGPassNode& pass_to_activate = pass_nodes[pass_index];
 
             // 이미 활성화 상태면 건너뛰기
@@ -217,7 +217,7 @@ void RenderGraph::Compile()
     }
 
     // 순환 의존성 확인
-    const size_t active_pass_count = std::ranges::count_if(pass_nodes, [](const RGPassNode& pass_node)
+    const usize active_pass_count = std::ranges::count_if(pass_nodes, [](const RGPassNode& pass_node)
     {
         return !pass_node.culled;
     });
@@ -324,7 +324,7 @@ RGResourceHandle RenderGraph::GetResourceHandleByName(const StringName& name)
 
 RGResourceHandle RenderGraph::RegisterResource(RGResourceNode&& node)
 {
-    const size_t index = resource_nodes.Len();
+    const usize index = resource_nodes.Len();
     resource_nodes.Push(std::move(node));
     return { .index = index };
 }

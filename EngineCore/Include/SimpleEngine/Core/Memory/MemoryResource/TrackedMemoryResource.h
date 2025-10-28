@@ -19,8 +19,8 @@ public:
     explicit TrackedMemoryResource(memory_resource* upstream = std::pmr::get_default_resource());
 
 protected:
-    virtual void* do_allocate(size_t size, size_t align) override;
-    virtual void do_deallocate(void* ptr, size_t size, size_t align) override;
+    virtual void* do_allocate(usize size, usize align) override;
+    virtual void do_deallocate(void* ptr, usize size, usize align) override;
     [[nodiscard]] virtual bool do_is_equal(const memory_resource& other) const noexcept override;
 
 private:

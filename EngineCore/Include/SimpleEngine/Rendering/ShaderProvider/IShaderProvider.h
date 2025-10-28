@@ -42,11 +42,11 @@ public:
 template <>
 struct std::hash<se::rendering::ShaderRequest>
 {
-    size_t operator()(const se::rendering::ShaderRequest& request) const noexcept
+    usize operator()(const se::rendering::ShaderRequest& request) const noexcept
     {
         using se::utility::HashCombine;
 
-        size_t seed = 0;
+        usize seed = 0;
 
         HashCombine(seed, request.source_path);
         if (request.hlsl_include_dir_opt.HasValue())

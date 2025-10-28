@@ -9,7 +9,7 @@ TrackedMemoryResource::TrackedMemoryResource(memory_resource* upstream)
 {
 }
 
-void* TrackedMemoryResource::do_allocate(size_t size, size_t align)
+void* TrackedMemoryResource::do_allocate(usize size, usize align)
 {
     if (size == 0)
     {
@@ -29,7 +29,7 @@ void* TrackedMemoryResource::do_allocate(size_t size, size_t align)
     return user_ptr;
 }
 
-void TrackedMemoryResource::do_deallocate(void* ptr, size_t size, size_t align)
+void TrackedMemoryResource::do_deallocate(void* ptr, usize size, usize align)
 {
     if (ptr == nullptr)
     {

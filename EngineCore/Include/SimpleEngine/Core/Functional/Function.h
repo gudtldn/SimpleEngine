@@ -14,7 +14,7 @@ namespace se::core
 namespace details
 {
 using SBOAlign = std::max_align_t;
-constexpr size_t SBO_BUFFER_SIZE = sizeof(void*) * 3;
+constexpr usize SBO_BUFFER_SIZE = sizeof(void*) * 3;
 }
 
 template <typename Signature>

@@ -10,12 +10,12 @@ namespace se::rendering
  */
 struct RGResourceHandle
 {
-    size_t index = std::numeric_limits<size_t>::max();
+    usize index = std::numeric_limits<usize>::max();
 
     [[nodiscard]] constexpr bool operator==(const RGResourceHandle&) const = default;
     [[nodiscard]] constexpr auto operator<=>(const RGResourceHandle&) const = default;
 
-    [[nodiscard]] constexpr bool IsValid() const { return index != std::numeric_limits<size_t>::max(); }
+    [[nodiscard]] constexpr bool IsValid() const { return index != std::numeric_limits<usize>::max(); }
     [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
 };
 }

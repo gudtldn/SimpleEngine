@@ -12,9 +12,9 @@
 template <> \
 struct std::hash<type> \
 { \
-    size_t operator()(const type& SE_ARG) const noexcept \
+    usize operator()(const type& SE_ARG) const noexcept \
     { \
-        size_t seed = 0; \
+        usize seed = 0; \
         stmt \
         return seed; \
     } \

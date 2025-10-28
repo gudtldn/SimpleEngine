@@ -57,7 +57,7 @@ struct LogEntry
     [[nodiscard]] std::string_view GetPrettyFileName() const
     {
         const std::string_view name_view = location.file_name();
-        const size_t last_slash = name_view.find_last_of("/\\");
+        const usize last_slash = name_view.find_last_of("/\\");
         if (last_slash == std::string_view::npos)
         {
             return name_view;
@@ -100,11 +100,11 @@ struct LogOnceKey
 
     struct LogOnceKeyHash
     {
-        size_t operator()(const LogOnceKey& k) const noexcept
+        usize operator()(const LogOnceKey& k) const noexcept
         {
-            const size_t h1 = std::hash<se::String>{}(k.file);
-            const size_t h2 = std::hash<uint32>{}(k.line);
-            const size_t h3 = std::hash<uint32>{}(k.column);
+            const usize h1 = std::hash<se::String>{}(k.file);
+            const usize h2 = std::hash<uint32>{}(k.line);
+            const usize h3 = std::hash<uint32>{}(k.column);
             // 간단한 해시 조합
             return h1 ^ (h2 << 1) ^ (h3 << 2);
         }

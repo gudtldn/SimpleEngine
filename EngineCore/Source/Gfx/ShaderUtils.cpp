@@ -105,7 +105,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
     const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(device);
     if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
-        size_t bytecode_size;
+        usize bytecode_size;
         void* bytecode = SDL_ShaderCross_CompileDXILFromSPIRV(&spirv_info, &bytecode_size);
 
         const SDL_GPUShaderCreateInfo create_info = {

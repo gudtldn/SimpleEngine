@@ -39,7 +39,7 @@ constexpr uint64 FNV_Hash(const StringType& in_str) noexcept
     return details::FNV_Hash_Impl(std::basic_string_view<CharType>{ in_str });
 }
 
-template <typename CharType, size_t N>
+template <typename CharType, usize N>
 constexpr uint64 FNV_Hash(const CharType(&str)[N]) noexcept
 {
     if constexpr (N > 0)
@@ -54,14 +54,14 @@ constexpr uint64 FNV_Hash(const CharType(&str)[N]) noexcept
 }
 
 template <typename T>
-void HashCombine(size_t& seed, const T& v)
+void HashCombine(usize& seed, const T& v)
 {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 template <typename... Ts>
-void HashCombine(size_t& seed, const Ts&... values)
+void HashCombine(usize& seed, const Ts&... values)
 {
     (HashCombine(seed, values), ...);
 }
