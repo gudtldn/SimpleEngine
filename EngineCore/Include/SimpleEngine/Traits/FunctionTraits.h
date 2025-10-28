@@ -1,7 +1,8 @@
 #pragma once
-
 #include <tuple>
 #include <type_traits>
+
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
 namespace se::traits
