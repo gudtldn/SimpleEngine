@@ -156,7 +156,7 @@ TEST_CASE("Array API")
         CHECK(arr_from_vec[0] == 1);
         CHECK(arr_from_vec[4] == 5);
 
-        Array<int> arr_from_range(vec);
+        Array<int> arr_from_range = Array<int>::FromRange(vec);
         CHECK(arr_from_range.Len() == 5);
         CHECK(arr_from_range[0] == 1);
         CHECK(arr_from_range[4] == 5);
@@ -314,7 +314,7 @@ TEST_CASE("Array API")
 
         // Test with range
         Array<int> arr2 = { 10, 40 };
-        arr2.Insert(1, to_insert);
+        arr2.InsertRange(1, to_insert);
         CHECK(arr2.Len() == 4);
         CHECK(arr2[0] == 10);
         CHECK(arr2[1] == 20);
@@ -395,13 +395,13 @@ TEST_CASE("Array API")
     {
         Array<int> arr1 = { 1, 2 };
         Array<int> arr2 = { 3, 4 };
-        arr1.Append(arr2);
+        arr1.AppendRange(arr2);
         CHECK(arr1.Len() == 4);
         CHECK(arr1[2] == 3);
         CHECK(arr1[3] == 4);
 
         std::vector<int> vec = { 5, 6 };
-        arr1.Append(vec);
+        arr1.AppendRange(vec);
         CHECK(arr1.Len() == 6);
         CHECK(arr1[4] == 5);
         CHECK(arr1[5] == 6);

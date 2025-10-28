@@ -134,14 +134,6 @@ public:
         requires std::same_as<std::iter_value_t<It>, char>
     BaseString(It first, It last);
 
-    /**
-     * C++20 Range로부터 문자열을 생성합니다.
-     * @param range char로 변환 가능한 요소를 포함하는 range
-     */
-    template <std::ranges::input_range Rng>
-        requires std::same_as<std::ranges::range_value_t<Rng>, char>
-    explicit BaseString(Rng&& range);
-
     BaseString(const BaseString&) = default;
     BaseString& operator=(const BaseString&) = default;
     BaseString(BaseString&&) noexcept = default;
@@ -156,6 +148,14 @@ public:
      */
     template <typename... Args>
     [[nodiscard]] static BaseString Format(std::format_string<Args...> fmt, Args&&... args);
+
+    /**
+     * C++20 Range로부터 문자열을 생성합니다.
+     * @param range char로 변환 가능한 요소를 포함하는 range
+     */
+    template <std::ranges::input_range Rng>
+        requires std::same_as<std::ranges::range_value_t<Rng>, char>
+    [[nodiscard]] static BaseString FromRange(Rng&& range);
 
 public:
     /**

@@ -85,9 +85,9 @@ Array<T, Allocator>::Array(It first, It last)
 template <typename T, typename Allocator>
 template <std::ranges::input_range Rng>
     requires std::same_as<std::ranges::range_value_t<Rng>, T>
-Array<T, Allocator>::Array(Rng&& range)
-    : Array(std::ranges::begin(range), std::ranges::end(range))
+Array<T, Allocator> Array<T, Allocator>::FromRange(Rng&& range)
 {
+    return Array{ std::ranges::begin(range), std::ranges::end(range) };
 }
 
 template <typename T, typename Allocator>
@@ -333,6 +333,7 @@ Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
 
 template <typename T, typename Allocator>
 template <std::input_iterator It>
+    requires std::same_as<std::iter_value_t<It>, T>
 void Array<T, Allocator>::Append(It first, It last)
 {
     if (first == last)
@@ -359,7 +360,8 @@ void Array<T, Allocator>::Append(It first, It last)
 
 template <typename T, typename Allocator>
 template <std::ranges::input_range Rng>
-void Array<T, Allocator>::Append(Rng&& range)
+    requires std::same_as<std::ranges::range_value_t<Rng>, T>
+void Array<T, Allocator>::AppendRange(Rng&& range)
 {
     Append(std::ranges::begin(range), std::ranges::end(range));
 }
@@ -410,6 +412,7 @@ void Array<T, Allocator>::Insert(SizeType index, T&& value)
 
 template <typename T, typename Allocator>
 template <std::input_iterator It>
+    requires std::same_as<std::iter_value_t<It>, T>
 void Array<T, Allocator>::Insert(SizeType index, It first, It last)
 {
     assert(index <= size && "Insert index out of bounds");
@@ -449,7 +452,8 @@ void Array<T, Allocator>::Insert(SizeType index, It first, It last)
 
 template <typename T, typename Allocator>
 template <std::ranges::input_range Rng>
-void Array<T, Allocator>::Insert(SizeType index, Rng&& range)
+    requires std::same_as<std::ranges::range_value_t<Rng>, T>
+void Array<T, Allocator>::InsertRange(SizeType index, Rng&& range)
 {
     Insert(index, std::ranges::begin(range), std::ranges::end(range));
 }

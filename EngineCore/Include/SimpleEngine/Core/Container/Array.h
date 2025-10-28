@@ -48,10 +48,6 @@ public:
         requires std::same_as<std::iter_value_t<It>, T>
     Array(It first, It last);
 
-    template <std::ranges::input_range Rng>
-        requires std::same_as<std::ranges::range_value_t<Rng>, T>
-    explicit Array(Rng&& range);
-
     ~Array();
 
     Array(const Array& other);
@@ -68,6 +64,11 @@ public:
      */
     [[nodiscard]] static Array Uninitialized(SizeType size)
         requires std::is_trivially_default_constructible_v<T>;
+
+    /** C++20 Range로 부터 Array를 생성합니다. */
+    template <std::ranges::input_range Rng>
+        requires std::same_as<std::ranges::range_value_t<Rng>, T>
+    [[nodiscard]] static Array FromRange(Rng&& range);
 
 public:
     /** 배열에 포함된 요소의 수를 반환합니다. */
@@ -124,10 +125,12 @@ public:
 
     /** 배열의 끝에 다른 시퀀스의 모든 요소를 추가합니다. */
     template <std::input_iterator It>
+        requires std::same_as<std::iter_value_t<It>, T>
     void Append(It first, It last);
 
     template <std::ranges::input_range Rng>
-    void Append(Rng&& range);
+        requires std::same_as<std::ranges::range_value_t<Rng>, T>
+    void AppendRange(Rng&& range);
 
     /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 인덱스를 반환합니다. */
     template <typename... Args>
@@ -148,6 +151,7 @@ public:
      * @param last 삽입할 시퀀스의 끝 이터레이터.
      */
     template <std::input_iterator It>
+        requires std::same_as<std::iter_value_t<It>, T>
     void Insert(SizeType index, It first, It last);
 
     /**
@@ -156,7 +160,8 @@ public:
      * @param range 삽입할 레인지.
      */
     template <std::ranges::input_range Rng>
-    void Insert(SizeType index, Rng&& range);
+        requires std::same_as<std::ranges::range_value_t<Rng>, T>
+    void InsertRange(SizeType index, Rng&& range);
 
     /**
      * 특정 값과 일치하는 모든 원소를 제거합니다.

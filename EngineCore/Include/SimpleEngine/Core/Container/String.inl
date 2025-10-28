@@ -39,7 +39,7 @@ BaseString<Allocator>::BaseString(char32 code_point, SizeType repeat)
             Reserve(encoded_bytes.Len() * repeat);
             for (SizeType i = 0; i < repeat; ++i)
             {
-                data.Append(encoded_bytes);
+                data.AppendRange(encoded_bytes);
             }
         }
     }
@@ -80,7 +80,7 @@ BaseString<Allocator>::BaseString(std::string_view view, SizeType repeat)
     data.Reserve(total_len + 1);
     for (SizeType i = 0; i < repeat; ++i)
     {
-        data.Append(view);
+        data.AppendRange(view);
     }
     data.Push('\0');
 }
@@ -109,18 +109,18 @@ BaseString<Allocator>::BaseString(It first, It last)
 }
 
 template <typename Allocator>
-template <std::ranges::input_range Rng>
-    requires std::same_as<std::ranges::range_value_t<Rng>, char>
-BaseString<Allocator>::BaseString(Rng&& range)
-    : BaseString(std::ranges::begin(range), std::ranges::end(range))
-{
-}
-
-template <typename Allocator>
 template <typename... Args>
 BaseString<Allocator> BaseString<Allocator>::Format(std::format_string<Args...> fmt, Args&&... args)
 {
     return std::format(fmt, std::forward<Args>(args)...).c_str();
+}
+
+template <typename Allocator>
+template <std::ranges::input_range Rng>
+    requires std::same_as<std::ranges::range_value_t<Rng>, char>
+BaseString<Allocator> BaseString<Allocator>::FromRange(Rng&& range)
+{
+    return BaseString{ std::ranges::begin(range), std::ranges::end(range) };
 }
 
 template <typename Allocator>
@@ -165,7 +165,7 @@ void BaseString<Allocator>::Push(char32 code_point)
     Array<char> encoded_bytes = details::EncodeCodePoint(code_point);
 
     data.Pop(); // null terminator 제거
-    data.Append(encoded_bytes);
+    data.AppendRange(encoded_bytes);
     data.Push('\0'); // null terminator 추가
 }
 
@@ -206,7 +206,7 @@ void BaseString<Allocator>::Append(std::string_view view)
     }
 
     data.Pop();
-    data.Append(view);
+    data.AppendRange(view);
     data.Push('\0');
 }
 
@@ -222,7 +222,7 @@ void BaseString<Allocator>::Insert(SizeType byte_idx, std::string_view view)
     }
 
     data.Pop(); // null terminator 제거
-    data.Insert(byte_idx, view);
+    data.InsertRange(byte_idx, view);
     data.Push('\0'); // null terminator 다시 추가
 }
 
