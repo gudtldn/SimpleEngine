@@ -6,7 +6,6 @@
 #include <stacktrace>
 
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Logging/Formatter.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/LogData.h"
 

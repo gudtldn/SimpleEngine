@@ -17,10 +17,10 @@ ParseResult Config::ReadConfig(const VPath& config_file_path)
     if (!physical_path_opt.HasValue())
     {
         // TODO: 에러 반환타입 리펙토링 toml::parse_result가 아닌, 새로운 타입으로
-        return std::unexpected{ toml::parse_file(u8"").error() };
+        return std::unexpected{ toml::parse_file("").error() };
     }
 
-    toml::parse_result result = toml::parse_file(physical_path_opt->generic_u8string());
+    toml::parse_result result = toml::parse_file(physical_path_opt->generic_string());
     if (result.failed())
     {
         return std::unexpected{ std::move(result).error() };
@@ -28,7 +28,7 @@ ParseResult Config::ReadConfig(const VPath& config_file_path)
     return Config{ std::move(result).table() };
 }
 
-Optional<Config> Config::GetTable(std::u8string_view key_path) const
+Optional<Config> Config::GetTable(std::string_view key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {
@@ -77,9 +77,8 @@ bool Config::WriteConfig(const VPath& config_file_path) const
     return true;
 }
 
-toml::node_view<const toml::node> Config::FindNode(std::u8string_view path_str) const
+toml::node_view<const toml::node> Config::FindNode(std::string_view path_str) const
 {
-    const string key_str(path_str.begin(), path_str.end());
-    return config_table.at_path(key_str);
+    return config_table.at_path(path_str);
 }
 }

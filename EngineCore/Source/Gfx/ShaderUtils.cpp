@@ -10,32 +10,32 @@ namespace se::gfx
 {
 Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem::path& shader_path)
 {
-    const std::u8string path_str = shader_path.generic_u8string();
+    const std::string path_str = shader_path.generic_string();
 
     if (
-        path_str.find(u8".vert") != std::string::npos
-        || path_str.find(u8".vertex") != std::string::npos
-        || path_str.find(u8".vs") != std::string::npos
+        path_str.find(".vert") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".vertex") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".vs") != std::string::npos // TODO: contains로 변경
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_VERTEX;
     }
 
     if (
-        path_str.find(u8".frag") != std::string::npos
-        || path_str.find(u8".fragment") != std::string::npos
-        || path_str.find(u8".fs") != std::string::npos
-        || path_str.find(u8".pixel") != std::string::npos
-        || path_str.find(u8".ps") != std::string::npos
+        path_str.find(".frag") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".fragment") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".fs") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".pixel") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".ps") != std::string::npos // TODO: contains로 변경
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT;
     }
 
     if (
-        path_str.find(u8".comp") != std::string::npos
-        || path_str.find(u8".compute") != std::string::npos
-        || path_str.find(u8".cs") != std::string::npos
+        path_str.find(".comp") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".compute") != std::string::npos // TODO: contains로 변경
+        || path_str.find(".cs") != std::string::npos // TODO: contains로 변경
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
@@ -50,15 +50,15 @@ SDL_GPUShader* CompileFromSPIRV(
 )
 {
     // read shader file
-    vector<uint8> source;
+    Array<uint8> source;
     if (auto result = utility::file::ReadToByteArray(shader_path))
     {
         source = std::move(result).value();
-        source.emplace_back('\0'); // null-terminated
+        source.Emplace('\0'); // null-terminated
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_u8string(), result.error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.error().message);
         return nullptr;
     }
 
@@ -68,7 +68,7 @@ SDL_GPUShader* CompileFromSPIRV(
 
     if (!stage_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_string());
         return nullptr;
     }
 
@@ -82,25 +82,25 @@ SDL_GPUShader* CompileFromSPIRV(
         stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         break;
     default:
-        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_u8string()); // Compute Shader는 다른 함수로
+        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_string()); // Compute Shader는 다른 함수로
         return nullptr;
     }
 
     // compile shader
     const SDL_ShaderCross_SPIRV_Info spirv_info = {
-        .bytecode = source.data(),
-        .bytecode_size = source.size(),
+        .bytecode = source.Data(),
+        .bytecode_size = source.Len(),
         .entrypoint = entrypoint,
         .shader_stage = *stage_opt,
     };
 
     // get reflection metadata
     const SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata =
-        SDL_ShaderCross_ReflectGraphicsSPIRV(source.data(), source.size(), 0);
+        SDL_ShaderCross_ReflectGraphicsSPIRV(source.Data(), source.Len(), 0);
 
     if (!refl_metadata)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to reflect shader: {}", shader_path.generic_u8string());
+        ConsoleLog(ELogLevel::Error, "Failed to reflect shader: {}", shader_path.generic_string());
         return nullptr;
     }
 
@@ -138,7 +138,7 @@ SDL_GPUShader* CompileFromSPIRV(
         return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &resource_info, 0);
     }
 
-    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path.generic_u8string());
+    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path.generic_string());
     return nullptr;
 }
 }

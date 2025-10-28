@@ -1,9 +1,11 @@
 ﻿#pragma once
 #include <expected>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"
@@ -47,7 +49,7 @@ public:
      * @return Key가 존재하고, To로 변환이 가능하다면 값을 반환하고, 없다면 std::nullopt를 반환합니다.
      */
     template <typename To>
-    [[nodiscard]] Optional<To> GetValue(std::u8string_view key) const;
+    [[nodiscard]] Optional<To> GetValue(std::string_view key) const;
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 값을 가져오거나, 없을 경우 저장 후 기본값을 반환합니다.
@@ -59,8 +61,8 @@ public:
      * @return
      */
     template <typename To, typename U = To>
-        requires std::is_convertible_v<U, To>
-    [[nodiscard]] To GetValueOrStore(std::u8string_view key, U&& default_val = U{});
+        requires std::convertible_to<U, To>
+    [[nodiscard]] To GetValueOrStore(std::string_view key, U&& default_val = U{});
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 배열을 가져옵니다.
@@ -70,7 +72,7 @@ public:
      * @warning 배열 내 요소들의 타입이 일치하지 않거나 ElementType으로 변환 불가능하면 std::nullopt를 반환합니다.
      */
     template <typename ElementType>
-    [[nodiscard]] Optional<se::vector<ElementType>> GetArray(std::u8string_view key_path) const;
+    [[nodiscard]] Optional<se::Array<ElementType>> GetArray(std::string_view key_path) const;
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 Table을 Config 객체로 반환합니다.
@@ -78,7 +80,7 @@ public:
      * @return 키 경로가 존재하고 Table으로 변환 가능할 경우 Config 객체를 반환하며,
      *         그렇지 않을 경우 std::nullopt를 반환합니다.
      */
-    [[nodiscard]] Optional<Config> GetTable(std::u8string_view key_path) const;
+    [[nodiscard]] Optional<Config> GetTable(std::string_view key_path) const;
 
     /**
      * @brief 지정된 키 경로에 값을 설정합니다. 중간 경로는 필요시 테이블로 자동 생성됩니다.
@@ -88,13 +90,13 @@ public:
      * @return bool 설정에 성공하면 true, 실패하면 false (예: 경로 충돌).
      */
     template <typename ValueType>
-    bool SetValue(std::u8string_view key_path, ValueType&& value);
+    bool SetValue(std::string_view key_path, ValueType&& value);
 
     template <typename ElementType>
-    bool SetValue(std::u8string_view key_path, const vector<ElementType>& vec_value);
+    bool SetValue(std::string_view key_path, const Array<ElementType>& vec_value);
 
     template <typename ElementType>
-    bool SetValue(std::u8string_view key_path, vector<ElementType>&& vec_value);
+    bool SetValue(std::string_view key_path, Array<ElementType>&& vec_value);
 
     /**
      * @brief 현재 Config 객체의 내용을 지정된 파일 경로에 TOML 형식으로 저장합니다.
@@ -107,7 +109,7 @@ private:
     explicit Config(toml::table&& table);
 
     /** TOML내의 노드를 가져옵니다. */
-    [[nodiscard]] toml::node_view<const toml::node> FindNode(std::u8string_view path_str) const;
+    [[nodiscard]] toml::node_view<const toml::node> FindNode(std::string_view path_str) const;
 
 private:
     toml::table config_table;
@@ -119,24 +121,15 @@ inline Config::Config(toml::table&& table)
 }
 
 template <typename To>
-Optional<To> Config::GetValue(std::u8string_view key) const
+Optional<To> Config::GetValue(std::string_view key) const
 {
-    if constexpr (std::same_as<To, se::u8string>)
+    if constexpr (std::same_as<To, se::String>)
     {
         return FindNode(key)
                .value<std::u8string>()
                .and_then([](const std::u8string& value) -> std::optional<To>
                {
-                   return { To{ value } };
-               });
-    }
-    else if constexpr (std::same_as<To, se::string>)
-    {
-        return FindNode(key)
-               .value<std::string>()
-               .and_then([](const std::string& value) -> std::optional<To>
-               {
-                   return { To{ value } };
+                   return se::utility::string::ToString(value);
                });
     }
     else
@@ -146,8 +139,8 @@ Optional<To> Config::GetValue(std::u8string_view key) const
 }
 
 template <typename To, typename U>
-    requires std::is_convertible_v<U, To>
-To Config::GetValueOrStore(std::u8string_view key, U&& default_val)
+    requires std::convertible_to<U, To>
+To Config::GetValueOrStore(std::string_view key, U&& default_val)
 {
     if (auto val = GetValue<To>(key))
     {
@@ -158,20 +151,20 @@ To Config::GetValueOrStore(std::u8string_view key, U&& default_val)
 }
 
 template <typename ElementType>
-Optional<se::vector<ElementType>> Config::GetArray(std::u8string_view key_path) const
+Optional<se::Array<ElementType>> Config::GetArray(std::string_view key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {
         if (auto* arr = node_view.as_array())
         {
-            se::vector<ElementType> result_vec;
-            result_vec.reserve(arr->size());
+            se::Array<ElementType> result_vec;
+            result_vec.Reserve(arr->size());
             bool success = true;
             for (const auto& elem_node : *arr)
             {
                 if (auto val_opt = elem_node.value<ElementType>())
                 {
-                    result_vec.push_back(*val_opt);
+                    result_vec.Push(*val_opt);
                 }
                 else
                 {
@@ -192,7 +185,7 @@ Optional<se::vector<ElementType>> Config::GetArray(std::u8string_view key_path) 
 }
 
 template <typename ValueType>
-bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
+bool Config::SetValue(std::string_view key_path, ValueType&& value)
 {
     if (key_path.empty())
     {
@@ -200,8 +193,7 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
         return false;
     }
 
-    const se::string path_std_string{ key_path.begin(), key_path.end() };
-    std::string_view current_path_segment_view = path_std_string;
+    std::string_view current_path_segment_view = key_path;
 
     toml::table* current_table_ptr = &config_table;
     size_t current_pos = 0;
@@ -209,7 +201,7 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
 
     while (next_dot_pos != std::string_view::npos)
     {
-        se::string segment_key_str{ current_path_segment_view.substr(current_pos, next_dot_pos - current_pos) };
+        std::string_view segment_key_str{ current_path_segment_view.substr(current_pos, next_dot_pos - current_pos) };
 
         if (toml::node* node = current_table_ptr->get(segment_key_str)) // 노드가 이미 존재
         {
@@ -221,7 +213,7 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
             {
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Config::SetValue: Path conflict at segment '{}' in path '{}'. Expected a table, but found a different type.",
+                    "Config::SetValue: Path conflict at segment '{}' in path '{}'. Expected a table, but found a different type.",
                     segment_key_str, key_path
                 );
                 return false;
@@ -233,11 +225,10 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
             auto [it, success] = current_table_ptr->emplace(segment_key_str, toml::table{});
             if (!success || !it->second.is_table())
             {
-                const se::u8string u8_segment_key(segment_key_str.begin(), segment_key_str.end());
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Config::SetValue: Failed to create intermediate table at segment '{}' in path '{}'.",
-                    u8_segment_key, key_path
+                    "Config::SetValue: Failed to create intermediate table at segment '{}' in path '{}'.",
+                    segment_key_str, key_path
                 );
                 return false;
             }
@@ -248,7 +239,7 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
     }
 
     // 마지막 세그먼트 (실제 값을 설정할 키)
-    se::string value_key_str{ current_path_segment_view.substr(current_pos) };
+    std::string_view value_key_str{ current_path_segment_view.substr(current_pos) };
     if (value_key_str.empty())
     {
         // 경로가 "."으로 끝나는 경우 (예: "section.table.")
@@ -266,29 +257,25 @@ bool Config::SetValue(std::u8string_view key_path, ValueType&& value)
 }
 
 template <typename ElementType>
-bool Config::SetValue(std::u8string_view key_path, const se::vector<ElementType>& vec_value)
+bool Config::SetValue(std::string_view key_path, const Array<ElementType>& vec_value)
 {
-    return SetValue(key_path, se::vector<ElementType>(vec_value));
+    return SetValue(key_path, se::Array<ElementType>(vec_value));
 }
 
 template <typename ElementType>
-bool Config::SetValue(std::u8string_view key_path, se::vector<ElementType>&& vec_value)
+bool Config::SetValue(std::string_view key_path, se::Array<ElementType>&& vec_value)
 {
     toml::array arr;
-    arr.reserve(vec_value.size());
+    arr.reserve(vec_value.Len());
     for (auto&& elem : vec_value)
     {
         if constexpr (std::same_as<ElementType, bool>)
         {
             arr.push_back(static_cast<bool>(elem));
         }
-        else if constexpr (std::same_as<ElementType, se::u8string>)
+        else if constexpr (std::same_as<ElementType, se::String>)
         {
-            arr.push_back(std::u8string(elem));
-        }
-        else if constexpr (std::same_as<ElementType, se::string>)
-        {
-            arr.push_back(std::string(elem));
+            arr.push_back(std::string{ std::string_view{ elem } });
         }
         else
         {

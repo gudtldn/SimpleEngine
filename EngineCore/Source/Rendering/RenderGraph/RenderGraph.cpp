@@ -7,8 +7,10 @@
 #include <ranges>
 #include <utility>
 
+#include "Core/Container/HashMap.h"
 #include "Core/Logging/Logging.h"
 #include "Rendering/Manager/PSOManager.h"
+
 #include "tracy/Tracy.hpp"
 
 
@@ -35,8 +37,8 @@ void RenderGraph::Compile()
     {
         ZoneScoped;
         {
-            [[maybe_unused]] std::string zone_name = std::format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
-            ZoneName(zone_name.c_str(), zone_name.size());
+            [[maybe_unused]] String zone_name = String::Format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
+            ZoneName(zone_name.CStr(), zone_name.ByteLen());
         }
         RenderGraphBuilder builder(*this, pass_node);
         pass_node.pass_object->Setup(builder);
@@ -54,7 +56,7 @@ void RenderGraph::Compile()
                 const IRenderPass* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Invalid resource handle. Check the {}::Setup() logic",
+                    "Invalid resource handle. Check the {}::Setup() logic",
                     typeid(*pass_object).name()
                 );
                 assert(false && "Invalid resource handle.");
@@ -70,7 +72,7 @@ void RenderGraph::Compile()
                 const IRenderPass* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Resource {} is not initialized. Check the {}::Setup() logic",
+                    "Resource {} is not initialized. Check the {}::Setup() logic",
                     resource_node.name.ToString(),
                     typeid(*pass_object).name()
                 );
@@ -85,10 +87,10 @@ void RenderGraph::Compile()
                 // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Multiple write passes detected for the same resource.\n"
-                    u8"  - Resource Name: {}\n"
-                    u8"  - Existing Writer Pass: {}\n"
-                    u8"  - Conflicting Writer Pass: {}",
+                    "Multiple write passes detected for the same resource.\n"
+                    "  - Resource Name: {}\n"
+                    "  - Existing Writer Pass: {}\n"
+                    "  - Conflicting Writer Pass: {}",
                     resource_node.name.ToString(),
                     typeid(*existing_writer_pass).name(),
                     typeid(*pass_object).name()
@@ -104,7 +106,7 @@ void RenderGraph::Compile()
     // 2. Pass Culling 단계
     // 사용되고 있는 리소스를 추적해서 패스를 활성화로 만들기
     queue<RGResourceHandle> active_resources;
-    for (const auto& [n, resource_node] : resource_nodes | std::views::enumerate)
+    for (const auto [n, resource_node] : resource_nodes | std::views::enumerate)
     {
         IRGResource* resource = resource_node.resource.get();
         if (
@@ -145,7 +147,7 @@ void RenderGraph::Compile()
     }
 
     // 3. Pass간 위상정렬 수행
-    unordered_map<const RGPassNode*, uint32> in_degrees;
+    HashMap<const RGPassNode*, uint32> in_degrees;
 
     // 진입 차수 계산 (각 패스가 몇 개의 다른 패스에 의존하는지 계산)
     for (const RGPassNode& pass_node : pass_nodes)
@@ -221,12 +223,12 @@ void RenderGraph::Compile()
 
     if (compiled_passes.size() != active_pass_count)
     {
-        vector<const RGPassNode*> circular_pass_node;
+        Array<const RGPassNode*> circular_pass_node;
         for (const auto& [pass_node, degree] : in_degrees)
         {
             if (degree > 0)
             {
-                circular_pass_node.push_back(pass_node);
+                circular_pass_node.Push(pass_node);
             }
         }
 
@@ -254,8 +256,8 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
     {
         ZoneScoped;
         {
-            [[maybe_unused]] std::string zone_name = std::format("RenderGraph::Execute - {}::Execute", pass_node->name.ToString());
-            ZoneName(zone_name.c_str(), zone_name.size());
+            [[maybe_unused]] String zone_name = String::Format("RenderGraph::Execute - {}::Execute", pass_node->name.ToString());
+            ZoneName(zone_name.CStr(), zone_name.ByteLen());
         }
 
         for (const auto [write_handle_idx] : pass_node->writes)
