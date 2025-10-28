@@ -5,6 +5,8 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/Deque.h"
+
 
 // Using the namespace where containers are defined
 using namespace se;
@@ -651,6 +653,229 @@ TEST_CASE("String API")
     {
         auto s = String::Format("The number is {} and the string is '{}'.", 42, "test");
         CHECK(s == "The number is 42 and the string is 'test'.");
+    }
+}
+
+TEST_CASE("Deque API")
+{
+    SUBCASE("Construction")
+    {
+        // Default
+        Deque<int> d1;
+        CHECK(d1.IsEmpty());
+        CHECK(d1.Len() == 0);
+
+        // With size
+        Deque<int> d2(5);
+        CHECK(d2.Len() == 5);
+        CHECK(d2[0] == 0);
+
+        // With size and value
+        Deque<int> d3(3, 100);
+        CHECK(d3.Len() == 3);
+        CHECK(d3[0] == 100);
+        CHECK(d3[1] == 100);
+        CHECK(d3[2] == 100);
+
+        // Initializer list
+        Deque<int> d4 = { 1, 2, 3 };
+        CHECK(d4.Len() == 3);
+        CHECK(d4[1] == 2);
+
+        // From iterators
+        std::vector<int> vec = { 4, 5, 6 };
+        Deque<int> d5(vec.begin(), vec.end());
+        CHECK(d5.Len() == 3);
+        CHECK(d5[1] == 5);
+
+        // From range
+        Deque<int> d6 = Deque<int>::FromRange(vec);
+        CHECK(d6.Len() == 3);
+        CHECK(d6[1] == 5);
+    }
+
+    SUBCASE("Push and Pop")
+    {
+        Deque<int> d;
+        d.PushBack(10);
+        d.PushFront(20); // {20, 10}
+        d.PushBack(30);  // {20, 10, 30}
+        CHECK(d.Len() == 3);
+        CHECK(d[0] == 20);
+        CHECK(d[1] == 10);
+        CHECK(d[2] == 30);
+
+        auto pop_back = d.PopBack();
+        CHECK(pop_back.HasValue());
+        CHECK(*pop_back == 30);
+        CHECK(d.Len() == 2);
+
+        auto pop_front = d.PopFront();
+        CHECK(pop_front.HasValue());
+        CHECK(*pop_front == 20);
+        CHECK(d.Len() == 1);
+
+        d.PopBack();
+        CHECK(d.IsEmpty());
+
+        CHECK_FALSE(d.PopFront().HasValue());
+        CHECK_FALSE(d.PopBack().HasValue());
+    }
+
+    SUBCASE("Emplace")
+    {
+        struct TestStruct
+        {
+            int x;
+            double y;
+            TestStruct(int x, double y) : x(x), y(y) {}
+        };
+
+        Deque<TestStruct> d;
+        d.EmplaceBack(1, 1.1);
+        d.EmplaceFront(2, 2.2);
+        CHECK(d.Len() == 2);
+        CHECK(d[0].x == 2);
+        CHECK(d[1].x == 1);
+    }
+
+    SUBCASE("Element Access")
+    {
+        Deque<int> d = { 10, 20, 30 };
+        CHECK(d[1] == 20);
+
+        *d.At(0) = 15;
+        CHECK(*d.At(0) == 15);
+        CHECK_FALSE(d.At(3).HasValue());
+
+        CHECK(*d.Front() == 15);
+        CHECK(*d.Back() == 30);
+
+        const Deque<int> cd = d;
+        CHECK(cd[1] == 20);
+        CHECK(*cd.At(0) == 15);
+        CHECK(*cd.Front() == 15);
+        CHECK(*cd.Back() == 30);
+    }
+
+    SUBCASE("Resize and Clear")
+    {
+        Deque<int> d = { 1, 2, 3, 4, 5 };
+        d.Resize(3);
+        CHECK(d.Len() == 3);
+        CHECK(d[2] == 3);
+
+        d.Resize(5, 100);
+        CHECK(d.Len() == 5);
+        CHECK(d[3] == 100);
+        CHECK(d[4] == 100);
+
+        d.Clear();
+        CHECK(d.IsEmpty());
+        CHECK(d.Len() == 0);
+    }
+
+    SUBCASE("ShrinkToFit")
+    {
+        Deque<int> d;
+        d.PushBack(1);
+        d.PushBack(2);
+        d.PushBack(3);
+        // NOTE: std::deque doesn't have capacity(), so we can't directly test if it shrank.
+        // We just call it to ensure it compiles and doesn't crash.
+        d.ShrinkToFit();
+        CHECK(d.Len() == 3);
+    }
+
+    SUBCASE("Insert")
+    {
+        Deque<int> d = { 10, 50 };
+        d.Insert(1, 20); // {10, 20, 50}
+        CHECK(d.Len() == 3);
+        CHECK(d[1] == 20);
+
+        std::vector<int> vec = { 30, 40 };
+        d.InsertRange(2, vec); // {10, 20, 30, 40, 50}
+        CHECK(d.Len() == 5);
+        CHECK(d[2] == 30);
+        CHECK(d[3] == 40);
+    }
+
+    SUBCASE("Remove")
+    {
+        Deque<int> d = { 10, 20, 30, 40, 50 };
+        d.RemoveAt(1); // remove 20 -> {10, 30, 40, 50}
+        CHECK(d.Len() == 4);
+        CHECK(d[1] == 30);
+
+        Deque<int> d2 = { 1, 2, 1, 3, 1 };
+        auto removed_count = d2.Remove(1);
+        CHECK(removed_count == 3);
+        CHECK(d2.Len() == 2);
+        CHECK(d2[0] == 2);
+        CHECK(d2[1] == 3);
+
+        Deque<int> d3 = { 1, 2, 3, 4, 5, 6 };
+        removed_count = d3.RemoveIf([](int val) { return val % 2 != 0; }); // remove odd
+        CHECK(removed_count == 3);
+        CHECK(d3.Len() == 3);
+        CHECK(d3[0] == 2);
+        CHECK(d3[1] == 4);
+        CHECK(d3[2] == 6);
+    }
+
+    SUBCASE("Contains")
+    {
+        Deque<int> d = { 10, 20, 30 };
+        CHECK(d.Contains(20));
+        CHECK_FALSE(d.Contains(99));
+    }
+
+    SUBCASE("Swap")
+    {
+        Deque<int> d1 = { 1, 2, 3 };
+        Deque<int> d2 = { 4, 5 };
+        d1.Swap(d2);
+        CHECK(d1.Len() == 2);
+        CHECK(d1[0] == 4);
+        CHECK(d2.Len() == 3);
+        CHECK(d2[0] == 1);
+    }
+
+    SUBCASE("Range-based for loop")
+    {
+        Deque<int> d = { 1, 2, 3, 4 };
+        int sum = 0;
+        for (const int val : d)
+        {
+            sum += val;
+        }
+        CHECK(sum == 10);
+    }
+
+    SUBCASE("Copy and Move Semantics")
+    {
+        Deque<int> d1 = { 1, 2, 3 };
+        Deque<int> d2 = d1; // Copy constructor
+        CHECK(d1.Len() == 3);
+        CHECK(d2.Len() == 3);
+        CHECK(d2[1] == 2);
+
+        Deque<int> d3;
+        d3 = d1; // Copy assignment
+        CHECK(d3.Len() == 3);
+        CHECK(d3[1] == 2);
+
+        Deque<int> d4 = std::move(d1); // Move constructor
+        CHECK(d4.Len() == 3);
+        CHECK(d4[1] == 2);
+        CHECK(d1.IsEmpty()); // Moved-from state for std::deque is empty
+
+        Deque<int> d5;
+        d5 = std::move(d3); // Move assignment
+        CHECK(d5.Len() == 3);
+        CHECK(d5[1] == 2);
+        CHECK(d3.IsEmpty());
     }
 }
 }
