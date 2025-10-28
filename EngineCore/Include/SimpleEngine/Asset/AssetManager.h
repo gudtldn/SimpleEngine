@@ -9,6 +9,7 @@
 #include "SimpleEngine/Asset/Loaders/AssetLoader.h"
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -84,11 +85,11 @@ private:
 
 private:
     TracyLockable(std::mutex, storages_mutex);
-    unordered_map<refl::TypeId, std::shared_ptr<IAssetStorage>> storages;
+    HashMap<refl::TypeId, std::shared_ptr<IAssetStorage>> storages;
 
     // 현재 진행 중인 로딩 요청을 추적하는 맵
     TracyLockable(std::mutex, loading_requests_mutex);
-    unordered_map<StringName, LoadingRequest> loading_requests;
+    HashMap<StringName, LoadingRequest> loading_requests;
 };
 
 template <typename T, typename Fn>

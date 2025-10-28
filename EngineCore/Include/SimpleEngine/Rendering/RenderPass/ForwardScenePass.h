@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Containers/Containers.h"
+
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Types/StringName.h"
@@ -41,6 +42,6 @@ private:
     const uint32 height;
 
     world::World& world_ref;
-    vector<EntityDrawInfo> draw_infos;
+    Array<EntityDrawInfo> draw_infos;
 };
 }

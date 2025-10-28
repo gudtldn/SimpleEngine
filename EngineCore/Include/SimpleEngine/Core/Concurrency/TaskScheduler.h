@@ -6,10 +6,11 @@
 
 #include "Coroutine.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Task.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Containers/Containers.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "tracy/Tracy.hpp"
 
+#include "tracy/Tracy.hpp"
 
 namespace se::core
 {
@@ -105,7 +106,7 @@ private:
 
     // Launch로 시작된 최상위 코루틴들의 생명 주기를 관리하는 벡터
     // Task 객체가 파괴되면 코루틴 상태도 파괴되므로, 끝날 때까지 보관
-    vector<Task<void>> launched_tasks;
+    Array<Task<void>> launched_tasks;
 };
 
 template <typename T>

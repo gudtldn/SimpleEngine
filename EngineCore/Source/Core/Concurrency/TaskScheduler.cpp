@@ -49,7 +49,7 @@ void TaskScheduler::Launch_MainThread(Task<void>&& task)
         std::scoped_lock lock(tasks_mutex);
 
         // Task의 소유권을 이동시겨 수명을 연장
-        launched_tasks.push_back(std::move(task));
+        launched_tasks.Push(std::move(task));
     }
 
     // Task의 handle을 사용하여 코드를 실행
@@ -68,7 +68,7 @@ void TaskScheduler::Launch_WorkerThread(Task<void>&& task)
     {
         std::scoped_lock lock(tasks_mutex);
         // Task의 소유권을 이동시켜 수명을 연장
-        launched_tasks.push_back(std::move(task));
+        launched_tasks.Push(std::move(task));
     }
 
     // Task의 handle을 사용하여 코드를 실행
@@ -99,9 +99,9 @@ void TaskScheduler::ProcessMainThreadTasks()
         std::scoped_lock lock(tasks_mutex);
 
         // 실행 완료된 코루틴들을 launched_tasks 에서 제거
-        std::erase_if(launched_tasks, [](const Task<void>& task)
+        launched_tasks.RemoveIf([](const Task<void>& task)
         {
-            return !task.handle || task.handle.done();
+            return task.handle && task.handle.done();
         });
     }
 }

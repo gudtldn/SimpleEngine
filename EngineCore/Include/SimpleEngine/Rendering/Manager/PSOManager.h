@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <concepts>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Rendering/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Rendering/Manager/ShaderCache.h"
 #include "SimpleEngine/Rendering/Traits/CreateInfoHash.h"
@@ -38,8 +38,8 @@ private:
     SDL_GPUDevice* device;
     ShaderCache shader_cache;
 
-    unordered_map<GraphicsPipelineCreateInfo, SDL_GPUGraphicsPipeline*> cached_graphics_pipelines;
-    unordered_map<ComputePipelineCreateInfo, SDL_GPUComputePipeline*> cached_compute_pipelines;
+    HashMap<GraphicsPipelineCreateInfo, SDL_GPUGraphicsPipeline*> cached_graphics_pipelines;
+    HashMap<ComputePipelineCreateInfo, SDL_GPUComputePipeline*> cached_compute_pipelines;
 };
 
 template <typename T, typename... Args>

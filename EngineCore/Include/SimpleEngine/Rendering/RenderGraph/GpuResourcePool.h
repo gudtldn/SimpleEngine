@@ -2,7 +2,8 @@
 #include <cassert>
 #include <memory>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Rendering/Traits/CreateInfoEquals.h"
 #include "SimpleEngine/Rendering/Traits/CreateInfoHash.h"
 
@@ -18,8 +19,8 @@ private:
     template <typename T>
     struct PoolEntry
     {
-        se::vector<T*> available_resources;
-        se::vector<T*> used_resources;
+        Array<T*> available_resources;
+        Array<T*> used_resources;
     };
 
 public:
@@ -54,32 +55,31 @@ private:
 
 private:
     SDL_GPUDevice* device;
-    se::unordered_map<SDL_GPUTextureCreateInfo, PoolEntry<SDL_GPUTexture>> texture_pool;
-    se::unordered_map<SDL_GPUBufferCreateInfo, PoolEntry<SDL_GPUBuffer>> buffer_pool;
+    HashMap<SDL_GPUTextureCreateInfo, PoolEntry<SDL_GPUTexture>> texture_pool;
+    HashMap<SDL_GPUBufferCreateInfo, PoolEntry<SDL_GPUBuffer>> buffer_pool;
 };
 
 template <typename T, typename CreateResourceFn>
     requires std::is_invocable_r_v<T*, CreateResourceFn>
 T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func)
 {
-    if (entry.available_resources.empty())
+    if (Optional resource_opt = entry.available_resources.Pop())
     {
-        entry.used_resources.push_back(std::forward<CreateResourceFn>(create_resource_func)());
+        entry.used_resources.Push(*resource_opt);
     }
-    else [[likely]]
+    else [[unlikely]]
     {
-        entry.used_resources.push_back(entry.available_resources.back());
-        entry.available_resources.pop_back();
+        entry.used_resources.Push(std::forward<CreateResourceFn>(create_resource_func)());
     }
-    return entry.used_resources.back();
+    return *entry.used_resources.Back();
 }
 
 template <typename T>
 void GpuResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
 {
-    [[maybe_unused]] const size_t count = std::erase(entry.used_resources, resource);
+    [[maybe_unused]] const usize count = entry.used_resources.Remove(resource);
     assert(count > 0 && "Attempted to deallocate a texture that was not marked as used.");
 
-    entry.available_resources.push_back(resource);
+    entry.available_resources.Push(resource);
 }
 }

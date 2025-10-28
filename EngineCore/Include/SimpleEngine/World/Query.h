@@ -4,7 +4,7 @@
 #include <utility>
 #include <variant>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/World/QueryConcepts.h"
 #include "SimpleEngine/World/QueryData.h"
@@ -19,10 +19,7 @@ namespace se::world
  * @tparam Ts 조회할 컴포넌트 타입들
  */
 template <typename... Ts>
-    requires QueryParameterPack < Ts
-
-...
->
+    requires QueryParameterPack<Ts...>
 class Query
 {
     friend class Iterator;
@@ -32,11 +29,8 @@ class Query
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
 
-    struct EmptyCache
-    {
-    };
-
-    using CacheType = std::conditional_t<HasBasePool, EmptyCache, vector<Entity>>;
+    struct EmptyCache{};
+    using CacheType = std::conditional_t<HasBasePool, EmptyCache, Array<Entity>>;
 
 public:
     explicit Query(World* in_world)
@@ -81,9 +75,9 @@ public:
         using difference_type = std::ptrdiff_t;
 
     public:
-        Iterator(Query* self, size_t in_index)
+        Iterator(Query* self, usize in_index)
             : query_data(&self->query_data)
-              , storage_index(in_index)
+            , storage_index(in_index)
         {
             if constexpr (HasBasePool)
             {
@@ -106,7 +100,7 @@ public:
                 {
                     return source->GetEntityByIndex(storage_index).Value();
                 }
-                else // const vector<Entity>*
+                else // const Array<Entity>*
                 {
                     return (*source)[storage_index];
                 }
@@ -136,7 +130,7 @@ public:
         {
             ZoneScoped;
 
-            // std::visit를 사용하여 순회 로직을 실행합니다.
+            // std::visit를 사용하여 순회 로직을 실행
             std::visit([this]<typename Variant>(Variant&& source)
             {
                 using SourceType = std::decay_t<Variant>;
@@ -160,12 +154,12 @@ public:
                         ++storage_index;
                     }
                 }
-                else // const vector<Entity>*
+                else // const Array<Entity>*
                 {
                     assert(source);
 
                     const auto& entities = *source;
-                    while (storage_index < entities.size())
+                    while (storage_index < entities.Len())
                     {
                         if (query_data->IsEntityValid(entities[storage_index]))
                         {
@@ -179,9 +173,9 @@ public:
 
     private:
         QueryDataType* query_data;
-        size_t storage_index;
+        usize storage_index;
 
-        std::variant<IStorage*, const vector<Entity>*> iteration_source;
+        std::variant<IStorage*, const Array<Entity>*> iteration_source;
     };
 
     Iterator begin()
@@ -191,7 +185,7 @@ public:
 
     Iterator end()
     {
-        size_t end_index = 0;
+        usize end_index = 0;
         if constexpr (HasBasePool)
         {
             if (auto* pool = query_data.FindSmallestPool())
@@ -201,7 +195,7 @@ public:
         }
         else
         {
-            end_index = alive_entities_cache.size();
+            end_index = alive_entities_cache.Len();
         }
         return Iterator(this, end_index);
     }
@@ -211,22 +205,14 @@ private:
     [[no_unique_address]] CacheType alive_entities_cache;
 };
 
-template <typename... Ts> requires QueryParameterPack < Ts
-
-...
->
+template <typename... Ts> requires QueryParameterPack<Ts...>
 bool Query<Ts...>::IsEmpty()
 {
     return begin() == end();
 }
 
-template <typename... Ts> requires QueryParameterPack < Ts
-
-...
->
-Optional<typename Query < Ts...>::FetchTypes
->
-Query<Ts...>::Get(Entity entity)
+template <typename... Ts> requires QueryParameterPack<Ts...>
+Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::Get(Entity entity)
 {
     if (query_data.IsEntityValid(entity))
     {
@@ -239,13 +225,8 @@ Query<Ts...>::Get(Entity entity)
     return std::nullopt;
 }
 
-template <typename... Ts> requires QueryParameterPack < Ts
-
-...
->
-Optional<typename Query < Ts...>::FetchTypes
->
-Query<Ts...>::GetSingle()
+template <typename... Ts> requires QueryParameterPack<Ts...>
+Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::GetSingle()
 {
     auto it = begin();
     if (it == end())
@@ -263,10 +244,7 @@ Query<Ts...>::GetSingle()
     return result;
 }
 
-template <typename... Ts> requires QueryParameterPack < Ts
-
-...
->
+template <typename... Ts> requires QueryParameterPack<Ts...>
 Query<Ts...>::FetchTypes Query<Ts...>::Single()
 {
     auto it = begin();
@@ -279,10 +257,7 @@ Query<Ts...>::FetchTypes Query<Ts...>::Single()
     return result;
 }
 
-template <typename... Ts> requires QueryParameterPack < Ts
-
-...
->
+template <typename... Ts> requires QueryParameterPack<Ts...>
 template <typename T>
 decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
 {

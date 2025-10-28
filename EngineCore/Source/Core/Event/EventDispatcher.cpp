@@ -37,7 +37,7 @@ SubscriptionHandle SubscriptionHandle::CreateHandle()
 SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallback callback)
 {
     const SubscriptionHandle handle = SubscriptionHandle::CreateHandle();
-    priority_map[priority].push_back(handle);
+    priority_map[priority].Push(handle);
     subscriptions[handle] = {
         .priority = priority,
         .callback = std::move(callback)
@@ -60,7 +60,7 @@ void EventDispatcher::Unsubscribe(SubscriptionHandle handle)
     {
         // 나중에 swap_remove 고민해보기
         auto& handle_vector = priority_map[priority];
-        std::erase(handle_vector, handle);
+        handle_vector.Remove(handle);
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Containers/Containers.h"
+
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/World/Entity.h"
 
 
@@ -8,5 +9,5 @@
  */
 struct SE_CORE_API ChildrenComponent
 {
-    se::vector<se::world::Entity> children;
+    se::Array<se::world::Entity> children;
 };

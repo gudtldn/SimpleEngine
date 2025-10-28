@@ -2,7 +2,7 @@
 #include <memory>
 #include <shared_mutex>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "tracy/Tracy.hpp"
 
@@ -41,7 +41,7 @@ public:
 
 private:
     mutable TracySharedLockable(std::shared_mutex, mutex);
-    unordered_map<StringName, std::shared_ptr<T>> assets;
+    HashMap<StringName, std::shared_ptr<T>> assets;
 };
 
 template <typename T>

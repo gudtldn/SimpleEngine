@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <utility>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Utility/Hash.h"
 
@@ -20,7 +20,7 @@ struct ShaderRequest
 
     // HLSL 컴파일 시 사용
     Optional<std::filesystem::path> hlsl_include_dir_opt = std::nullopt;
-    Optional<vector<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
+    Optional<Array<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
 
     bool operator==(const ShaderRequest& other) const = default;
 };

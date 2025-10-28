@@ -75,12 +75,12 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     }
 
     // 엔티티의 렌더 정보 생성
-    draw_infos.clear();
+    draw_infos.Clear();
 
     Query entity_query = world_ref.QueryEntities<const TransformComponent&, const MeshHandleComponent&, const MaterialHandleComponent&>();
     for (const auto [transform, mesh, material] : entity_query)
     {
-        draw_infos.push_back({
+        draw_infos.Push({
             .mvp_matrix = TransformUtility::MakeModelMatrix(
                 transform.position,
                 transform.rotation,

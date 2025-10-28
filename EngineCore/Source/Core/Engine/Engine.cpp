@@ -53,7 +53,7 @@ void Engine::LoadRegisteredSubsystems()
         std::unique_ptr<ISubsystemBase> subsystem = metadata.factory();
         if (metadata.is_updatable)
         {
-            updatable_systems.push_back(dynamic_cast<IUpdatable*>(subsystem.get()));
+            updatable_systems.Push(dynamic_cast<IUpdatable*>(subsystem.get()));
         }
         subsystems[type_id] = std::move(subsystem);
 
@@ -90,7 +90,7 @@ bool Engine::Initialize()
 void Engine::Release()
 {
     ReleaseAllSubsystems();
-    sorted_subsystems.clear();
+    sorted_subsystems.Clear();
     subsystems.clear();
 
     thread_pool.reset();
@@ -208,13 +208,13 @@ bool Engine::SortSubsystems()
     }
 
     // 위상 정렬을 수행
-    sorted_subsystems.clear();
+    sorted_subsystems.Clear();
     while (!queue.empty())
     {
         const auto current_id = queue.front();
         queue.pop();
 
-        sorted_subsystems.push_back(subsystems[current_id].get());
+        sorted_subsystems.Push(subsystems[current_id].get());
 
         for (const auto& neighbor_id : adj_list[current_id])
         {
@@ -227,7 +227,7 @@ bool Engine::SortSubsystems()
     }
 
     // 순환 의존성 확인
-    if (sorted_subsystems.size() != subsystems.size())
+    if (sorted_subsystems.Len() != subsystems.size())
     {
         ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
 

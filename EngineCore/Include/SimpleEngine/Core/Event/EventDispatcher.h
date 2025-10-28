@@ -1,11 +1,10 @@
 ﻿#pragma once
 #include <atomic>
 #include <functional>
-#include <map>
-#include <unordered_map>
-#include <vector>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Map.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
@@ -78,7 +77,7 @@ private:
         EventCallback callback;
     };
 
-    unordered_map<SubscriptionHandle, Subscription> subscriptions;
-    map<EventPriority, vector<SubscriptionHandle>> priority_map;
+    HashMap<SubscriptionHandle, Subscription> subscriptions;
+    Map<EventPriority, Array<SubscriptionHandle>> priority_map;
 };
 }

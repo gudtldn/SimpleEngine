@@ -2,7 +2,7 @@
 #include <cassert>
 #include <utility>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/World/Entity.h"
@@ -16,13 +16,13 @@ class SparseSet
 {
 private:
     /** EntityID -> DenseIdx */
-    vector<Optional<size_t>> sparse;
+    Array<Optional<usize>> sparse;
 
     /** Entity array */
-    vector<Entity> dense;
+    Array<Entity> dense;
 
     /** Component array */
-    vector<ComponentType> components;
+    Array<ComponentType> components;
 
 public:
     explicit SparseSet() = default;
@@ -30,9 +30,9 @@ public:
     /** 엔티티에 컴포넌트를 추가하거나 갱신합니다. */
     void Add(Entity entity, ComponentType&& component)
     {
-        if (entity.GetId() >= sparse.size())
+        if (entity.GetId() >= sparse.Len())
         {
-            sparse.resize(entity.GetId() + 1, std::nullopt);
+            sparse.Resize(entity.GetId() + 1, std::nullopt);
         }
 
         // 이미 존재하면 덮어쓰기
@@ -42,10 +42,10 @@ public:
             return;
         }
 
-        const size_t dense_idx = dense.size();
+        const usize dense_idx = dense.Len();
         sparse[entity.GetId()] = dense_idx;
-        dense.push_back(entity);
-        components.emplace_back(std::move(component));
+        dense.Push(entity);
+        components.Push(std::move(component));
     }
 
     /** 엔티티에 컴포넌트를 추가하거나 갱신합니다. */
@@ -62,41 +62,41 @@ public:
             return;
         }
 
-        const size_t remove_idx = *sparse[entity.GetId()];
-        const Entity last_entity = dense.back();
+        const usize remove_idx = *sparse[entity.GetId()];
+        const Entity last_entity = *dense.Back();
 
         // swap-remove
         dense[remove_idx] = last_entity;
-        components[remove_idx] = std::move(components.back());
+        components[remove_idx] = std::move(*components.Back());
 
         sparse[last_entity.GetId()] = remove_idx;
 
-        dense.pop_back();
-        components.pop_back();
+        dense.Pop();
+        components.Pop();
         sparse[entity.GetId()] = std::nullopt;
     }
 
     /** Set에 Entity가 있는지 확인합니다. */
     [[nodiscard]] bool Contains(Entity entity) const noexcept
     {
-        if (entity.GetId() >= sparse.size())
+        if (entity.GetId() >= sparse.Len())
         {
             return false;
         }
 
-        if (const Optional<size_t> dense_idx_opt = sparse[entity.GetId()])
+        if (const Optional<usize> dense_idx_opt = sparse[entity.GetId()])
         {
             const auto dense_idx = *dense_idx_opt;
-            return dense_idx < dense.size() && dense[dense_idx] == entity;
+            return dense_idx < dense.Len() && dense[dense_idx] == entity;
         }
         return false;
     }
 
     /** Index로 Entity를 가져옵니다. */
-    [[nodiscard]] Optional<Entity> GetEntityByIndex(size_t index) const
+    [[nodiscard]] Optional<Entity> GetEntityByIndex(usize index) const
     {
         // out of bounds 방지
-        if (index < dense.size())
+        if (index < dense.Len())
         {
             return dense[index];
         }
@@ -104,10 +104,10 @@ public:
     }
 
     /** Set에 등록된 Entity의 개수를 반환합니다. */
-    [[nodiscard]] size_t Length() const noexcept { return dense.size(); }
+    [[nodiscard]] usize Length() const noexcept { return dense.Len(); }
 
     /** Set이 비어있는지 확인합니다. */
-    [[nodiscard]] bool IsEmpty() const noexcept { return dense.empty(); }
+    [[nodiscard]] bool IsEmpty() const noexcept { return dense.IsEmpty(); }
 
     /** Entity의 Component를 가져오려고 시도합니다. */
     [[nodiscard]] Optional<ComponentType&> TryGet(Entity entity)
@@ -143,8 +143,8 @@ public:
         return *opt_value;
     }
 
-    [[nodiscard]] const vector<Entity>& GetEntities() const { return dense; }
-    [[nodiscard]] const vector<ComponentType>& GetComponents() const { return components; }
+    [[nodiscard]] const Array<Entity>& GetEntities() const { return dense; }
+    [[nodiscard]] const Array<ComponentType>& GetComponents() const { return components; }
 
     [[nodiscard]] ComponentType& operator[](Entity entity_id) { return Get(entity_id); }
     [[nodiscard]] const ComponentType& operator[](Entity entity_id) const { return Get(entity_id); }
@@ -209,13 +209,13 @@ public:
         CompIt comp_iter;
     };
 
-    using Iterator = SparseSetIteratorTemplate<vector<Entity>::iterator, typename vector<ComponentType>::iterator>;
-    using ConstIterator = SparseSetIteratorTemplate<vector<Entity>::const_iterator, typename vector<ComponentType>::const_iterator>;
+    using Iterator = SparseSetIteratorTemplate<Array<Entity>::Iterator, typename Array<ComponentType>::Iterator>;
+    using ConstIterator = SparseSetIteratorTemplate<Array<Entity>::ConstIterator, typename Array<ComponentType>::ConstIterator>;
 
     [[nodiscard]] Iterator begin() { return Iterator(dense.begin(), components.begin()); }
     [[nodiscard]] Iterator end() { return Iterator(dense.end(), components.end()); }
-    [[nodiscard]] ConstIterator begin() const { return ConstIterator(dense.cbegin(), components.cbegin()); }
-    [[nodiscard]] ConstIterator end() const { return ConstIterator(dense.cend(), components.cend()); }
+    [[nodiscard]] ConstIterator begin() const { return ConstIterator(dense.begin(), components.end()); }
+    [[nodiscard]] ConstIterator end() const { return ConstIterator(dense.begin(), components.end()); }
 };
 
 /** type erasure를 위한 인터페이스 */
@@ -225,7 +225,7 @@ public:
     virtual ~IStorage() = default;
 
     /** Storage의 크기를 반환합니다. */
-    [[nodiscard]] virtual size_t Length() const noexcept = 0;
+    [[nodiscard]] virtual usize Length() const noexcept = 0;
 
     /** Storage가 비어있는지 확인합니다. */
     [[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
@@ -234,7 +234,7 @@ public:
     [[nodiscard]] virtual bool Contains(Entity entity) const noexcept = 0;
 
     /** Index로 Entity를 가져옵니다. */
-    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const = 0;
+    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(usize index) const = 0;
 
     /** 엔티티가 가지고 있는 컴포넌트를 제거합니다. */
     virtual void Remove(Entity entity) = 0;
@@ -249,10 +249,10 @@ public:
     ComponentStorage() = default;
 
     //~Begin IStorage
-    [[nodiscard]] virtual size_t Length() const noexcept override { return storage.Length(); }
+    [[nodiscard]] virtual usize Length() const noexcept override { return storage.Length(); }
     [[nodiscard]] virtual bool IsEmpty() const noexcept override { return storage.IsEmpty(); }
     [[nodiscard]] virtual bool Contains(Entity entity) const noexcept override { return storage.Contains(entity); }
-    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(size_t index) const override { return storage.GetEntityByIndex(index); }
+    [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(usize index) const override { return storage.GetEntityByIndex(index); }
     virtual void Remove(Entity entity) override { storage.Remove(entity); }
     //~End IStorage
 

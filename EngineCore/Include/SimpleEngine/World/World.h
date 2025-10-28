@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Reflection/TypeId.h"
@@ -40,8 +42,8 @@ private:
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    unordered_map<refl::TypeId, vector<core::Function<void()>>> systems;
-    unordered_map<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
+    HashMap<refl::TypeId, Array<core::Function<void()>>> systems;
+    HashMap<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
 
 public:
     class EntityChain;
@@ -68,7 +70,7 @@ public:
     void DestroyEntity(Entity entity);
 
     /** 현재 살아있는 모든 Entity를 반환합니다. */
-    vector<Entity> GetAliveEntities() const;
+    Array<Entity> GetAliveEntities() const;
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType>
@@ -154,7 +156,7 @@ public:
     void AddSystem(Fn&& system_func)
     {
         const auto type_id = refl::TypeId::Get<S>();
-        systems[type_id].push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
+        systems[type_id].Push([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::FunctionTraits<Fn>;
             std::tuple tuple = utility::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>

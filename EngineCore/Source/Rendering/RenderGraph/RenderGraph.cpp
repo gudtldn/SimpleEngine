@@ -13,6 +13,7 @@
 
 #include "tracy/Tracy.hpp"
 
+#include "Core/Containers/Containers.h" // TODO: 제거
 
 namespace se::rendering
 {
@@ -51,7 +52,7 @@ void RenderGraph::Compile()
         {
 #if SE_DEBUG_BUILD
             // 리소스가 존재하는지 확인
-            if (!(write_handle && write_handle.index < resource_nodes.size()))
+            if (!(write_handle && write_handle.index < resource_nodes.Len()))
             {
                 const IRenderPass* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
@@ -187,7 +188,7 @@ void RenderGraph::Compile()
         const RGPassNode* pass_node = ready_queue.front();
         ready_queue.pop();
 
-        compiled_passes.push_back(pass_node);
+        compiled_passes.Push(pass_node);
 
         // 현재 패스가 쓴 리소스를 읽는 다른 패스들의 의존성을 해결
         for (const RGResourceHandle& write_handle : pass_node->writes)
@@ -221,7 +222,7 @@ void RenderGraph::Compile()
         return !pass_node.culled;
     });
 
-    if (compiled_passes.size() != active_pass_count)
+    if (compiled_passes.Len() != active_pass_count)
     {
         Array<const RGPassNode*> circular_pass_node;
         for (const auto& [pass_node, degree] : in_degrees)
@@ -280,10 +281,10 @@ void RenderGraph::Clear()
         }
     }
 
-    pass_nodes.clear();
-    resource_nodes.clear();
+    pass_nodes.Clear();
+    resource_nodes.Clear();
     resource_name_map.clear();
-    compiled_passes.clear();
+    compiled_passes.Clear();
 }
 
 RGResourceHandle RenderGraph::ImportTexture(const StringName& name, SDL_GPUTexture* texture)
@@ -323,8 +324,8 @@ RGResourceHandle RenderGraph::GetResourceHandleByName(const StringName& name)
 
 RGResourceHandle RenderGraph::RegisterResource(RGResourceNode&& node)
 {
-    const size_t index = resource_nodes.size();
-    resource_nodes.push_back(std::move(node));
+    const size_t index = resource_nodes.Len();
+    resource_nodes.Push(std::move(node));
     return { .index = index };
 }
 
@@ -379,7 +380,7 @@ void RenderGraphBuilder::Write(RGResourceHandle handle)
 
 SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) const
 {
-    if (handle.index < graph_ref.resource_nodes.size())
+    if (handle.index < graph_ref.resource_nodes.Len())
     {
         IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
         if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
@@ -392,7 +393,7 @@ SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) co
 
 SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGResourceHandle handle) const
 {
-    if (handle.index < graph_ref.resource_nodes.size())
+    if (handle.index < graph_ref.resource_nodes.Len())
     {
         IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
         if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정

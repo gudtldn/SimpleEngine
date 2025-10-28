@@ -1,7 +1,5 @@
 ﻿#include "Rendering/Compiler/Provider.h"
 
-#include <vector>
-
 #include "Rendering/Compiler/Compiler.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
@@ -26,7 +24,7 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
             Array<HLSL_Define> hlsl_defines;
             const auto& request_defines = request.hlsl_defines_opt.Value();
 
-            hlsl_defines.Reserve(request_defines.size());
+            hlsl_defines.Reserve(request_defines.Len());
             for (const auto& [name, value] : request_defines)
             {
                 hlsl_defines.Emplace(name, value);
