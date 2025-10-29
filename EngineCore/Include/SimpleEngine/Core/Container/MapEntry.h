@@ -175,5 +175,13 @@ private:
 
     explicit MapEntry(OccupiedEntry occ) : storage(std::move(occ)) {}
     explicit MapEntry(VacantEntry vac) : storage(std::move(vac)) {}
+
+public:
+    ~MapEntry() = default;
+
+    MapEntry(const MapEntry&) = delete;
+    MapEntry(MapEntry&&) noexcept = delete;
+    MapEntry& operator=(const MapEntry&) = delete;
+    MapEntry& operator=(MapEntry&&) noexcept = delete;
 };
 }

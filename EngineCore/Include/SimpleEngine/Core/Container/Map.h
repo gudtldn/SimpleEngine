@@ -150,6 +150,8 @@ public:
     /** 맵의 모든 값을 담은 Array를 생성하여 반환합니다. */
     [[nodiscard]] Array<ValueType> GetValues() const;
 
+    void Swap(Map& other) noexcept;
+
 public:
     /**
      * 키에 해당하는 값에 접근합니다. 키가 없으면 기본 생성된 값을 삽입 후 반환합니다.
@@ -162,6 +164,11 @@ public:
     [[nodiscard]] IteratorType end() noexcept;
     [[nodiscard]] ConstIteratorType begin() const noexcept;
     [[nodiscard]] ConstIteratorType end() const noexcept;
+
+    friend void swap(Map& lhs, Map& rhs) noexcept
+    {
+        lhs.Swap(rhs);
+    }
 
 private:
     InternalMapType internal_map;

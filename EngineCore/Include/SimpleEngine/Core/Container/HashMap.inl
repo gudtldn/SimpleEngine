@@ -156,6 +156,12 @@ Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType> HashMap
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+void HashMap<Key, Value, Hasher, KeyEq, Allocator>::Swap(HashMap& other) noexcept
+{
+    std::swap(internal_map, other.internal_map);
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
 HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::operator[](const KeyType& key)
 {
     return internal_map[key];
