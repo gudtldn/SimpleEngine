@@ -9,9 +9,9 @@
 namespace se
 {
 template <typename T>
-using queue [[deprecated]] = std::queue<T, Deque<T>>;
+using queue [[deprecated]] = std::queue<T, std::deque<T>>;
 
 template <typename T>
-using stack [[deprecated]] = std::stack<T, Deque<T>>;
+using stack [[deprecated]] = std::stack<T, std::deque<T>>;
 }
 
