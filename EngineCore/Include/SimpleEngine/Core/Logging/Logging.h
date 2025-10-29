@@ -20,7 +20,7 @@
  * @param args 포맷 문자열에 삽입될 가변 인수
  */
 template <typename... Args>
-void ConsoleLog(LogLevelAndLocation log_level, std::format_string<Args...> fmt, Args&&... args)
+void ConsoleLog(const LogLevelAndLocation& log_level, std::format_string<Args...> fmt, Args&&... args)
 {
     auto& manager = se::core::logging::LogBackendManager::Get();
     manager.WriteToAllBackends({
@@ -48,11 +48,11 @@ void ConsoleLogOnce(LogLevelAndLocation log_level, std::format_string<Args...> f
         };
 
         std::scoped_lock lock(mtx);
-        if (called_logs.contains(key))
+        if (called_logs.Contains(key))
         {
             return; // 이미 호출한 로그면 리턴
         }
-        called_logs.insert(key);
+        called_logs.Add(key);
     }
 
     ConsoleLog(log_level, fmt, std::forward<Args>(args)...);
