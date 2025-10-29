@@ -1,53 +1,58 @@
 #include "Core/HAL/Platform.h"
 
 #if SE_PLATFORM_MACOS
-#include <string>
+#include <string_view>
 #include <pthread.h>
+#include <string.h>
 
 #include "Utility/StringUtils.h"
 
 
 namespace se::platform
 {
-void SetThreadName([[maybe_unused]] std::thread& thread, [[maybe_unused]] const u8string& name)
+void SetThreadName([[maybe_unused]] std::thread& thread, [[maybe_unused]] const String& name)
 {
     // macOS does not support setting the name of another thread by its handle.
     // This function is a no-op on this platform.
 }
 
-void SetCurrentThreadName(const u8string& name)
+void SetCurrentThreadName(const String& name)
 {
     // The pthread_setname_np on macOS/BSD sets the name of the calling thread.
-    pthread_setname_np(reinterpret_cast<const char*>(name.c_str()));
+    pthread_setname_np(name.CStr());
 }
 
-u8string GetThreadName(std::thread& thread)
+String GetThreadName(std::thread& thread)
 {
     char thread_name[64] = {};
     if (pthread_getname_np(thread.native_handle(), thread_name, sizeof(thread_name)) == 0)
     {
-        return utility::string::ToU8String(thread_name);
+        usize len = strnlen(thread_name, sizeof(thread_name));
+        return { thread_name, len };
     }
     return {};
 }
 
-u8string GetCurrentThreadName()
+String GetCurrentThreadName()
 {
     char thread_name[64] = {};
     if (pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name)) == 0)
     {
-        return utility::string::ToU8String(thread_name);
+        usize len = strnlen(thread_name, sizeof(thread_name));
+        return { thread_name, len };
     }
     return {};
 }
 
 std::filesystem::path GetExecutableDirectory()
 {
-    char path[1024];
-    uint32 size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0)
+    char path_buffer[1024];
+    uint32 size = sizeof(path_buffer);
+    if (_NSGetExecutablePath(path_buffer, &size) == 0)
     {
-        return std::filesystem::path{ path }.parent_path();
+        return std::filesystem::path{
+            std::string_view(path_buffer)
+        }.parent_path();
     }
     return {};
 }
