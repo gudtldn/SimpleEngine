@@ -153,12 +153,12 @@ TEST_CASE("Optional for value types")
     SUBCASE("transform")
     {
         Optional<int> opt(21);
-        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
         CHECK(transformed.HasValue());
         CHECK(*transformed == "42");
 
         Optional<int> empty_opt;
-        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         CHECK_FALSE(transformed_empty.HasValue());
     }
 
@@ -290,12 +290,12 @@ TEST_CASE("Optional for reference types (Optional<T&>)")
     {
         int x = 21;
         Optional<int&> opt(x);
-        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
         CHECK(transformed.HasValue());
         CHECK(*transformed == "42");
 
         Optional<int&> empty_opt;
-        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         CHECK_FALSE(transformed_empty.HasValue());
     }
 }

@@ -238,7 +238,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>)
-    auto Transform(Fn&& func) &
+    auto Map(Fn&& func) &
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
 
@@ -255,7 +255,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>)
-    auto Transform(Fn&& func) const &
+    auto Map(Fn&& func) const &
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T&>>;
 
@@ -272,7 +272,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>)
-    auto Transform(Fn&& func) &&
+    auto Map(Fn&& func) &&
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T>>;
 
@@ -289,7 +289,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>)
-    auto Transform(Fn&& func) const &&
+    auto Map(Fn&& func) const &&
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T>>;
 
@@ -538,7 +538,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>)
-    auto Transform(Fn&& func)
+    auto Map(Fn&& func)
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
 
@@ -555,7 +555,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>)
-    auto Transform(Fn&& func) const
+    auto Map(Fn&& func) const
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T&>>;
 
