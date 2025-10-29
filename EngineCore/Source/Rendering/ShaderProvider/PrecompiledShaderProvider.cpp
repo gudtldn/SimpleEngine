@@ -10,11 +10,11 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
 {
     if constexpr (SE_DEBUG_BUILD)
     {
-        const std::u8string ext = request.source_path.extension().u8string();
+        const std::string ext = request.source_path.extension().string();
         if (!(
-            ext.contains(u8".spv")
-            || ext.contains(u8".spirv")
-            || ext.contains(u8".spvt")
+            ext.contains(".spv")
+            || ext.contains(".spirv")
+            || ext.contains(".spvt")
         ))
         {
             ConsoleLog(ELogLevel::Error, "Precompiled shader provider only supports SPIR-V files.");

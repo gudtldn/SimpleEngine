@@ -64,10 +64,10 @@ public:
     {
     }
 
-    CodePointIterator begin() const { return CodePointIterator(view.data()); }
-    CodePointIterator end() const { return CodePointIterator(view.data() + view.size()); }
+    [[nodiscard]] CodePointIterator begin() const { return CodePointIterator(view.data()); }
+    [[nodiscard]] CodePointIterator end() const { return CodePointIterator(view.data() + view.size()); }
 
-    bool IsEmpty() const { return view.empty(); }
+    [[nodiscard]] bool IsEmpty() const { return view.empty(); }
 
 private:
     std::string_view view;

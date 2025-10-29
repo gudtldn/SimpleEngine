@@ -56,7 +56,7 @@ public:
     /** 확장자를 제외한 파일명을 반환합니다. (예: "Player") */
     [[nodiscard]] std::string_view GetStem() const noexcept;
 
-    /** 전체 경로를 u8string 참조로 반환합니다. */
+    /** 전체 경로를 se::String 참조로 반환합니다. */
     [[nodiscard]] const se::String& ToString() const noexcept { return full_path; }
 
     /** 전체 경로를 StringName으로 변환하여 반환합니다. */
@@ -78,5 +78,15 @@ struct std::hash<VPath>
     usize operator()(const VPath& path) const noexcept
     {
         return std::hash<se::String>{}(path.ToString());
+    }
+};
+
+// VPath에 대한 std::formatter 특수화
+template <>
+struct std::formatter<VPath, char> : std::formatter<se::String>
+{
+    auto format(const VPath& path, std::format_context& ctx) const
+    {
+        return std::formatter<se::String>::format(path.ToString(), ctx);
     }
 };

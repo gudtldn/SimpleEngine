@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <format>
 #include <string_view>
 
 #include "SimpleEngine/Core/Container/String.h"
@@ -58,5 +59,15 @@ struct std::hash<StringName>
     uint64 operator()(const StringName& key) const noexcept
     {
         return hash<uint64>()(key.GetComparisonHash());
+    }
+};
+
+// StringName에 대한 std::formatter 특수화
+template <>
+struct std::formatter<StringName, char> : std::formatter<se::String>
+{
+    auto format(const StringName& string, std::format_context& ctx) const
+    {
+        return std::formatter<se::String>::format(string.ToString(), ctx);
     }
 };
