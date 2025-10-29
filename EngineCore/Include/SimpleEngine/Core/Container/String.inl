@@ -39,7 +39,7 @@ BaseString<Allocator>::BaseString(char32 code_point, SizeType repeat)
             Reserve(encoded_bytes.Len() * repeat);
             for (SizeType i = 0; i < repeat; ++i)
             {
-                data.AppendRange(encoded_bytes);
+                data.PushRange(encoded_bytes);
             }
         }
     }
@@ -80,7 +80,7 @@ BaseString<Allocator>::BaseString(std::string_view view, SizeType repeat)
     data.Reserve(total_len + 1);
     for (SizeType i = 0; i < repeat; ++i)
     {
-        data.AppendRange(view);
+        data.PushRange(view);
     }
     data.Push('\0');
 }
@@ -104,7 +104,7 @@ template <std::input_iterator It>
     requires std::same_as<std::iter_value_t<It>, char>
 BaseString<Allocator>::BaseString(It first, It last)
 {
-    data.Append(first, last);
+    data.Push(first, last);
     data.Push('\0');
 }
 
@@ -165,7 +165,7 @@ void BaseString<Allocator>::Push(char32 code_point)
     Array<char> encoded_bytes = details::EncodeCodePoint(code_point);
 
     data.Pop(); // null terminator 제거
-    data.AppendRange(encoded_bytes);
+    data.PushRange(encoded_bytes);
     data.Push('\0'); // null terminator 추가
 }
 
@@ -206,7 +206,7 @@ void BaseString<Allocator>::Append(std::string_view view)
     }
 
     data.Pop();
-    data.AppendRange(view);
+    data.PushRange(view);
     data.Push('\0');
 }
 

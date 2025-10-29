@@ -334,7 +334,7 @@ Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
 template <typename T, typename Allocator>
 template <std::input_iterator It>
     requires std::same_as<std::iter_value_t<It>, T>
-void Array<T, Allocator>::Append(It first, It last)
+void Array<T, Allocator>::Push(It first, It last)
 {
     if (first == last)
     {
@@ -361,9 +361,9 @@ void Array<T, Allocator>::Append(It first, It last)
 template <typename T, typename Allocator>
 template <std::ranges::input_range Rng>
     requires std::same_as<std::ranges::range_value_t<Rng>, T>
-void Array<T, Allocator>::AppendRange(Rng&& range)
+void Array<T, Allocator>::PushRange(Rng&& range)
 {
-    Append(std::ranges::begin(range), std::ranges::end(range));
+    Push(std::ranges::begin(range), std::ranges::end(range));
 }
 
 template <typename T, typename Allocator>

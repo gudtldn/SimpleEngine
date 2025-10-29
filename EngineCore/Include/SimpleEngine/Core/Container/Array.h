@@ -126,11 +126,11 @@ public:
     /** 배열의 끝에 다른 시퀀스의 모든 요소를 추가합니다. */
     template <std::input_iterator It>
         requires std::same_as<std::iter_value_t<It>, T>
-    void Append(It first, It last);
+    void Push(It first, It last);
 
     template <std::ranges::input_range Rng>
         requires std::same_as<std::ranges::range_value_t<Rng>, T>
-    void AppendRange(Rng&& range);
+    void PushRange(Rng&& range);
 
     /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 인덱스를 반환합니다. */
     template <typename... Args>
