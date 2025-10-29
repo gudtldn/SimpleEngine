@@ -11,6 +11,7 @@
 #include "SimpleEngine/Core/Container/LinkedList.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Container/Set.h"
+#include "SimpleEngine/Core/Container/PriorityQueue.h"
 
 
 // Using the namespace where containers are defined
@@ -398,17 +399,17 @@ TEST_CASE("Array API")
         CHECK_FALSE(index.HasValue());
     }
 
-    SUBCASE("Append")
+    SUBCASE("Push")
     {
         Array<int> arr1 = { 1, 2 };
         Array<int> arr2 = { 3, 4 };
-        arr1.AppendRange(arr2);
+        arr1.PushRange(arr2);
         CHECK(arr1.Len() == 4);
         CHECK(arr1[2] == 3);
         CHECK(arr1[3] == 4);
 
         std::vector<int> vec = { 5, 6 };
-        arr1.AppendRange(vec);
+        arr1.PushRange(vec);
         CHECK(arr1.Len() == 6);
         CHECK(arr1[4] == 5);
         CHECK(arr1[5] == 6);
@@ -522,7 +523,7 @@ TEST_CASE("String API")
         CHECK(s.CodePointLen() == 1);
     }
 
-    SUBCASE("Append and Concatenation")
+    SUBCASE("Push and Concatenation")
     {
         String s1("Hello");
         s1.Append(" World");
@@ -1924,6 +1925,135 @@ TEST_CASE("Set API")
         CHECK(set5.Len() == 3);
         CHECK(set5.Contains(1));
         CHECK(set3.IsEmpty());
+    }
+}
+
+TEST_CASE("PriorityQueue API")
+{
+    SUBCASE("Default Construction and Push/Pop (Max-Heap)")
+    {
+        PriorityQueue<int> pq;
+        CHECK(pq.IsEmpty());
+        CHECK(pq.Len() == 0);
+
+        pq.Push(10); // {10}
+        pq.Push(30); // {30, 10}
+        pq.Push(20); // {30, 10, 20} (heap property)
+        pq.Push(5);  // {30, 10, 20, 5} (heap property)
+
+        CHECK_FALSE(pq.IsEmpty());
+        CHECK(pq.Len() == 4);
+        CHECK(*pq.Peek() == 30);
+
+        CHECK(*pq.Pop() == 30); // {20, 10, 5}
+        CHECK(pq.Len() == 3);
+        CHECK(*pq.Peek() == 20);
+
+        CHECK(*pq.Pop() == 20); // {10, 5}
+        CHECK(*pq.Pop() == 10); // {5}
+        CHECK(*pq.Pop() == 5);  // {}
+        CHECK(pq.IsEmpty());
+        CHECK_FALSE(pq.Pop().HasValue());
+    }
+
+    SUBCASE("Construction from Iterators")
+    {
+        std::vector<int> vec = { 10, 30, 20, 5 };
+        PriorityQueue<int> pq(vec.begin(), vec.end());
+        CHECK(pq.Len() == 4);
+        CHECK(*pq.Peek() == 30); // Max element
+    }
+
+    SUBCASE("Emplace")
+    {
+        struct TestStruct
+        {
+            int priority;
+            String name;
+
+            TestStruct(int p, String n)
+                : priority(p)
+                , name(std::move(n))
+            {
+            }
+
+            bool operator<(const TestStruct& other) const { return priority < other.priority; }
+        };
+
+        PriorityQueue<TestStruct> pq;
+        pq.Emplace(10, "low");
+        pq.Emplace(30, "high");
+        pq.Emplace(20, "medium");
+
+        CHECK(pq.Len() == 3);
+        CHECK(pq.Peek()->priority == 30);
+        CHECK(pq.Peek()->name == "high");
+
+        CHECK(pq.Pop()->priority == 30);
+        CHECK(pq.Pop()->priority == 20);
+        CHECK(pq.Pop()->priority == 10);
+    }
+
+    SUBCASE("PushRange")
+    {
+        PriorityQueue<int> pq;
+        std::vector<int> values = { 1, 5, 2, 8, 3 };
+        pq.PushRange(values);
+        CHECK(pq.Len() == 5);
+        CHECK(*pq.Peek() == 8);
+        CHECK(*pq.Pop() == 8);
+        CHECK(*pq.Pop() == 5);
+    }
+
+    SUBCASE("Clear")
+    {
+        PriorityQueue<int> pq = { 1, 2, 3 };
+        pq.Clear();
+        CHECK(pq.IsEmpty());
+        CHECK(pq.Len() == 0);
+        CHECK_FALSE(pq.Peek().HasValue());
+    }
+
+    SUBCASE("ToUnderlyingContainer")
+    {
+        PriorityQueue<int> pq = { 10, 30, 20 };
+        Array<int> arr = pq.ToUnderlyingContainer();
+        CHECK(arr.Len() == 3);
+        // The underlying container is a heap, not necessarily sorted
+        // So we check if the elements are present
+        CHECK(arr.Contains(10));
+        CHECK(arr.Contains(20));
+        CHECK(arr.Contains(30));
+    }
+
+    SUBCASE("Min-Heap (Custom Compare)")
+    {
+        PriorityQueue<int, Array<int>, std::greater<>> min_pq; // Use std::greater for min-heap
+        min_pq.Push(10);
+        min_pq.Push(30);
+        min_pq.Push(20);
+        min_pq.Push(5);
+
+        CHECK(*min_pq.Peek() == 5);
+        CHECK(*min_pq.Pop() == 5);
+        CHECK(*min_pq.Pop() == 10);
+        CHECK(*min_pq.Pop() == 20);
+        CHECK(*min_pq.Pop() == 30);
+        CHECK(min_pq.IsEmpty());
+    }
+
+    SUBCASE("Swap")
+    {
+        PriorityQueue<int> pq1 = { 1, 5, 2 };
+        PriorityQueue<int> pq2 = { 10, 30, 20 };
+
+        pq1.Swap(pq2);
+
+        CHECK(pq1.Len() == 3);
+        CHECK(*pq1.Peek() == 30);
+
+        CHECK(pq2.Len() == 3);
+        CHECK(*pq2.Peek() == 5);
     }
 }
 }
