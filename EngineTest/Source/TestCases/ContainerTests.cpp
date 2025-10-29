@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Container/Deque.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Map.h"
+#include "SimpleEngine/Core/Container/LinkedList.h"
 
 
 // Using the namespace where containers are defined
@@ -1015,7 +1016,7 @@ TEST_CASE("HashMap API")
     {
         HashMap<String, int> map = { { "one", 1 }, { "two", 2 } };
         int sum = 0;
-        for (auto& [key, value] : map)
+        for (auto& value : map | std::views::values)
         {
             sum += value;
         }
@@ -1231,6 +1232,336 @@ TEST_CASE("Map API")
         CHECK_FALSE(empty_map.Last().HasValue());
         CHECK_FALSE(empty_map.LowerBoundEntry(1).HasValue());
         CHECK_FALSE(empty_map.UpperBoundEntry(1).HasValue());
+    }
+}
+
+TEST_CASE("LinkedList API")
+{
+    SUBCASE("Default Construction")
+    {
+        LinkedList<int> list;
+        CHECK(list.IsEmpty());
+        CHECK(list.Len() == 0);
+    }
+
+    SUBCASE("Construction with count")
+    {
+        LinkedList<int> list(5);
+        CHECK(list.Len() == 5);
+        CHECK_FALSE(list.IsEmpty());
+        CHECK(*list.Front() == 0); // Default constructed
+        CHECK(*list.Back() == 0);
+    }
+
+    SUBCASE("Construction with count and value")
+    {
+        LinkedList<int> list(3, 10);
+        CHECK(list.Len() == 3);
+        CHECK(*list.Front() == 10);
+        CHECK(*list.Back() == 10);
+        auto it = list.begin();
+        CHECK(*it == 10);
+        ++it;
+        CHECK(*it == 10);
+    }
+
+    SUBCASE("Initializer List Construction")
+    {
+        LinkedList<int> list = { 1, 2, 3, 4, 5 };
+        CHECK(list.Len() == 5);
+        CHECK(*list.Front() == 1);
+        CHECK(*list.Back() == 5);
+    }
+
+    SUBCASE("Construction from iterators and range")
+    {
+        std::vector<int> vec = { 10, 20, 30 };
+        LinkedList<int> list_from_iter(vec.begin(), vec.end());
+        CHECK(list_from_iter.Len() == 3);
+        CHECK(*list_from_iter.Front() == 10);
+        CHECK(*list_from_iter.Back() == 30);
+
+        LinkedList<int> list_from_range = LinkedList<int>::FromRange(vec);
+        CHECK(list_from_range.Len() == 3);
+        CHECK(*list_from_range.Front() == 10);
+        CHECK(*list_from_range.Back() == 30);
+    }
+
+    SUBCASE("Operations on Empty List")
+    {
+        LinkedList<int> list;
+        auto it = list.begin();
+        CHECK(it == list.end());
+
+        // 비어있는 리스트에 Remove(value) 또는 RemoveIf 호출
+        CHECK(list.Remove(10) == 0);
+        CHECK(list.RemoveIf([](int i){ return i > 0; }) == 0);
+        CHECK(list.IsEmpty());
+
+        // 비어있는 리스트에 Find 호출
+        CHECK(list.Find(10) == list.end());
+    }
+
+    SUBCASE("Self-Assignment")
+    {
+        LinkedList<int> list = { 1, 2, 3 };
+        list = list; // Self-assignment
+        CHECK(list.Len() == 3);
+        CHECK(*list.Front() == 1);
+
+        LinkedList<int> list2 = { 4, 5, 6 };
+        LinkedList<int>& ref = list2;
+        list2 = ref;
+        CHECK(list2.Len() == 3);
+        CHECK(*list2.Front() == 4);
+    }
+
+    SUBCASE("Storing Pointers")
+    {
+        LinkedList<int*> list;
+        int a = 1, b = 2;
+        list.PushBack(&a);
+        list.PushBack(nullptr);
+        list.PushBack(&b);
+
+        CHECK(list.Len() == 3);
+        CHECK(*list.Find(nullptr) == nullptr);
+        CHECK(list.Remove(nullptr) == 1);
+        CHECK(list.Len() == 2);
+    }
+
+    SUBCASE("PushFront and PushBack")
+    {
+        LinkedList<int> list;
+        list.PushBack(1);  // {1}
+        list.PushFront(0); // {0, 1}
+        list.PushBack(2);  // {0, 1, 2}
+        CHECK(list.Len() == 3);
+        CHECK(*list.Front() == 0);
+        CHECK(*list.Back() == 2);
+
+        auto it = list.begin();
+        CHECK(*it == 0);
+        ++it;
+        CHECK(*it == 1);
+        ++it;
+        CHECK(*it == 2);
+    }
+
+    SUBCASE("PopFront and PopBack")
+    {
+        LinkedList<int> list = { 0, 1, 2 };
+        auto val = list.PopFront();
+        CHECK(val.HasValue());
+        CHECK(*val == 0);
+        CHECK(list.Len() == 2);
+        CHECK(*list.Front() == 1);
+
+        val = list.PopBack();
+        CHECK(val.HasValue());
+        CHECK(*val == 2);
+        CHECK(list.Len() == 1);
+        CHECK(*list.Back() == 1);
+
+        list.PopFront();
+        CHECK(list.IsEmpty());
+        CHECK_FALSE(list.PopFront().HasValue());
+        CHECK_FALSE(list.PopBack().HasValue());
+    }
+
+    SUBCASE("EmplaceFront and EmplaceBack")
+    {
+        struct TestStruct
+        {
+            int x;
+            double y;
+
+            TestStruct(int x, double y)
+                : x(x)
+                , y(y)
+            {
+            }
+
+            bool operator==(const TestStruct& other) const { return x == other.x && y == other.y; }
+        };
+
+        LinkedList<TestStruct> list;
+        list.EmplaceBack(1, 1.1);  // {{1, 1.1}}
+        list.EmplaceFront(0, 0.0); // {{0, 0.0}, {1, 1.1}}
+        CHECK(list.Len() == 2);
+        CHECK(*list.Front() == TestStruct(0, 0.0));
+        CHECK(*list.Back() == TestStruct(1, 1.1));
+    }
+
+    SUBCASE("Insert and Emplace")
+    {
+        LinkedList<int> list = { 1, 4 };
+        auto it = list.begin();
+        ++it; // points to 4
+
+        list.Insert(it, 2); // {1, 2, 4}
+        CHECK(list.Len() == 3);
+        CHECK(*list.begin() == 1);
+        CHECK(*std::next(list.begin()) == 2);
+        CHECK(*list.Back() == 4);
+
+        it = list.begin();
+        std::advance(it, 2); // points to 4
+        list.Emplace(it, 3); // {1, 2, 3, 4}
+        CHECK(list.Len() == 4);
+        CHECK(*std::next(list.begin(), 2) == 3);
+    }
+
+    SUBCASE("Remove by Iterator")
+    {
+        LinkedList<int> list = { 1, 2, 3, 4 };
+        auto it = list.begin();
+        ++it; // points to 2
+
+        it = list.Remove(it); // {1, 3, 4}, it now points to 3
+        CHECK(list.Len() == 3);
+        CHECK(*list.begin() == 1);
+        CHECK(*it == 3);
+
+        list.Remove(list.begin()); // {3, 4}
+        CHECK(list.Len() == 2);
+        CHECK(*list.Front() == 3);
+
+        list.Remove(std::next(list.begin())); // {3}
+        CHECK(list.Len() == 1);
+        CHECK(*list.Front() == 3);
+
+        list.Remove(list.begin()); // {}
+        CHECK(list.IsEmpty());
+    }
+
+    SUBCASE("Remove by Value")
+    {
+        LinkedList<int> list = { 1, 2, 1, 3, 1 };
+        usize removed_count = list.Remove(1);
+        CHECK(removed_count == 3);
+        CHECK(list.Len() == 2);
+        CHECK(*list.Front() == 2);
+        CHECK(*list.Back() == 3);
+    }
+
+    SUBCASE("RemoveIf")
+    {
+        LinkedList<int> list = { 1, 2, 3, 4, 5, 6 };
+        usize removed_count = list.RemoveIf([](int val) { return val % 2 == 0; }); // Remove even numbers
+        CHECK(removed_count == 3);
+        CHECK(list.Len() == 3);
+        CHECK(*list.Front() == 1);
+        CHECK(*std::next(list.begin()) == 3);
+        CHECK(*list.Back() == 5);
+    }
+
+    SUBCASE("Clear")
+    {
+        LinkedList<int> list = { 1, 2, 3 };
+        list.Clear();
+        CHECK(list.IsEmpty());
+        CHECK(list.Len() == 0);
+        CHECK_FALSE(list.Front().HasValue());
+    }
+
+    SUBCASE("Find")
+    {
+        LinkedList<int> list = { 10, 20, 30, 20 };
+        auto it = list.Find(20);
+        CHECK(it != list.end());
+        CHECK(*it == 20);
+        ++it;
+        CHECK(*it == 30); // Find returns first occurrence
+
+        it = list.Find(50);
+        CHECK(it == list.end());
+    }
+
+    SUBCASE("Iterators and Range-based for loop")
+    {
+        LinkedList<int> list = { 1, 2, 3, 4 };
+        int sum = 0;
+        for (const int val : list)
+        {
+            sum += val;
+        }
+        CHECK(sum == 10);
+
+        // Test const iterators
+        const LinkedList<int> const_list = { 5, 6 };
+        int const_sum = 0;
+        for (const int val : const_list)
+        {
+            const_sum += val;
+        }
+        CHECK(const_sum == 11);
+    }
+
+    SUBCASE("Iterator Invalidation Rules")
+    {
+        LinkedList<int> list = { 10, 20, 30, 40 };
+        auto it20 = list.Find(20);
+        auto it40 = list.Find(40);
+
+        // PushFront/Back은 기존 이터레이터를 무효화하지 않음
+        list.PushFront(0);
+        list.PushBack(50);
+        CHECK(*it20 == 20);
+        CHECK(*it40 == 40);
+
+        // Insert는 기존 이터레이터를 무효화하지 않음
+        list.Insert(it20, 15);
+        CHECK(*it20 == 20);
+        CHECK(*it40 == 40);
+
+        // Remove는 제거된 요소의 이터레이터만 무효화함
+        auto it30 = list.Find(30);
+        list.Remove(it30); // it30은 이제 무효화됨
+        CHECK(*it20 == 20);
+        CHECK(*it40 == 40);
+    }
+    SUBCASE("Const Correctness")
+    {
+        LinkedList<int> list = { 1, 2, 3 };
+        const LinkedList<int>& const_list = list;
+
+        CHECK(const_list.Len() == 3);
+        CHECK(*const_list.Front() == 1);
+        CHECK(*const_list.Back() == 3);
+
+        // const_list.Find(...) 가 ConstIterator를 반환하는지 간접적으로 확인
+        auto it = const_list.Find(2);
+        CHECK(it != const_list.end());
+        CHECK(*it == 2);
+
+        // 컴파일 타임에 확인 (optional)
+        static_assert(std::is_same_v<decltype(const_list.begin()), LinkedList<int>::ConstIterator>);
+    }
+
+    SUBCASE("Copy and Move Semantics")
+    {
+        LinkedList<int> list1 = { 1, 2, 3 };
+        LinkedList<int> list2 = list1; // Copy constructor
+        CHECK(list2.Len() == 3);
+        CHECK(*list2.Front() == 1);
+        CHECK(*list2.Back() == 3);
+
+        LinkedList<int> list3;
+        list3 = list1; // Copy assignment
+        CHECK(list3.Len() == 3);
+        CHECK(*list3.Front() == 1);
+
+        LinkedList<int> list4 = std::move(list1); // Move constructor
+        CHECK(list4.Len() == 3);
+        CHECK(*list4.Front() == 1);
+        CHECK(list1.IsEmpty()); // Moved-from state
+
+        LinkedList<int> list5;
+        list5 = std::move(list3); // Move assignment
+        CHECK(list5.Len() == 3);
+        CHECK(*list5.Front() == 1);
+        CHECK(list3.IsEmpty());
     }
 }
 }
