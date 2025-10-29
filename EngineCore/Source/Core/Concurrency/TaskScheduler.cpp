@@ -100,7 +100,7 @@ void TaskScheduler::ProcessMainThreadTasks()
         // 실행 완료된 코루틴들을 launched_tasks 에서 제거
         launched_tasks.RemoveIf([](const Task<void>& task)
         {
-            return task.handle && task.handle.done();
+            return !task.handle || task.handle.done();
         });
     }
 }
