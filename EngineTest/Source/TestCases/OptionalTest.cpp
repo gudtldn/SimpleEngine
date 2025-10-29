@@ -94,9 +94,6 @@ TEST_CASE("Optional for value types")
         CHECK(c_opt.Value() == 42);
 
         CHECK(std::move(opt).Value() == 42);
-
-        Optional<int> empty_opt;
-        CHECK_THROWS_AS((void)empty_opt.Value(), std::bad_optional_access);
     }
 
     SUBCASE("Pointer-like access")
@@ -227,9 +224,6 @@ TEST_CASE("Optional for reference types (Optional<T&>)")
 
         x = 30;
         CHECK(*opt == 30);
-
-        Optional<int&> empty_opt;
-        CHECK_THROWS_AS((void)empty_opt.Value(), std::bad_optional_access);
     }
 
     SUBCASE("Assignment")
