@@ -159,6 +159,9 @@ public:
      */
     [[nodiscard]] ValueType& operator[](const KeyType& key);
 
+    [[nodiscard]] bool operator==(const Map&) const = default;
+    [[nodiscard]] auto operator<=>(const Map&) const = default;
+
     // Iterator
     [[nodiscard]] IteratorType begin() noexcept;
     [[nodiscard]] IteratorType end() noexcept;

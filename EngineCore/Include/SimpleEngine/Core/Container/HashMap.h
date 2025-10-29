@@ -151,6 +151,8 @@ public:
      */
     [[nodiscard]] ValueType& operator[](const KeyType& key);
 
+    [[nodiscard]] bool operator==(const HashMap&) const = default;
+
     // Iterator
     [[nodiscard]] IteratorType begin() noexcept;
     [[nodiscard]] IteratorType end() noexcept;

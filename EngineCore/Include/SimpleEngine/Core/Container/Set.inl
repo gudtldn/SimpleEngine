@@ -90,6 +90,12 @@ Array<typename Set<T, Pred, Allocator>::ValueType> Set<T, Pred, Allocator>::ToAr
 }
 
 template <typename T, typename Pred, typename Allocator>
+void Set<T, Pred, Allocator>::Swap(Set& other) noexcept
+{
+    std::swap(internal_set, other.internal_set);
+}
+
+template <typename T, typename Pred, typename Allocator>
 Set<T, Pred, Allocator>::Iterator Set<T, Pred, Allocator>::begin() noexcept
 {
     return internal_set.begin();

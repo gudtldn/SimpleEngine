@@ -122,11 +122,21 @@ public:
      */
     [[nodiscard]] Array<ValueType> ToArray() const;
 
+    void Swap(HashSet& other) noexcept;
+
 public:
+    [[nodiscard]] bool operator==(const HashSet& other) const = default;
+
+    // Iterator
     [[nodiscard]] Iterator begin() noexcept;
     [[nodiscard]] Iterator end() noexcept;
     [[nodiscard]] ConstIterator begin() const noexcept;
     [[nodiscard]] ConstIterator end() const noexcept;
+
+    friend void swap(HashSet& lhs, HashSet& rhs) noexcept
+    {
+        lhs.Swap(rhs);
+    }
 
 private:
     InternalSetType internal_set;

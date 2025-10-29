@@ -107,6 +107,12 @@ Array<typename HashSet<T, Hasher, KeyEq, Allocator>::ValueType> HashSet<T, Hashe
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
+void HashSet<T, Hasher, KeyEq, Allocator>::Swap(HashSet& other) noexcept
+{
+    std::swap(internal_set, other.internal_set);
+}
+
+template <typename T, typename Hasher, typename KeyEq, typename Allocator>
 HashSet<T, Hasher, KeyEq, Allocator>::Iterator HashSet<T, Hasher, KeyEq, Allocator>::begin() noexcept
 {
     return internal_set.begin();
