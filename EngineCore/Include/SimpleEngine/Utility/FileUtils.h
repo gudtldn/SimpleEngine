@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -38,7 +39,7 @@ struct FileReadError
 };
 
 template <typename T>
-using FileResult = std::expected<T, FileReadError>;
+using FileResult = Expected<T, FileReadError>;
 
 /** 파일을 읽고, byte array로 반환합니다. */
 [[nodiscard]] SE_CORE_API FileResult<Array<uint8>> ReadToByteArray(const std::filesystem::path& file_path);

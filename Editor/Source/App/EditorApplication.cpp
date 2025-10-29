@@ -26,13 +26,13 @@ void EditorApplication::RegisterSubsystems()
 
         const VPath config_path = "Config://EngineConfig.toml";
         ParseResult result = Config::ReadConfig(config_path);
-        if (!result.has_value())
+        if (!result.HasValue())
         {
-            ConsoleLog(ELogLevel::Error, "Failed to read config file: {}", result.error().description());
+            ConsoleLog(ELogLevel::Error, "Failed to read config file: {}", result.Error().description());
             return;
         }
 
-        Config& config = result.value();
+        Config& config = result.Value();
         platform_subsystem->PrepareWindow({
             .title = config.GetValueOrStore<se::String>("window.title", "SimpleEngine Editor"),
             .width = config.GetValueOrStore<uint32>("window.width", 1280),

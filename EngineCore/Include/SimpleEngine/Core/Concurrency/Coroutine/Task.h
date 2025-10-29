@@ -3,6 +3,8 @@
 #include <exception>
 #include <utility>
 
+#include "SimpleEngine/Core/Error/Expected.h"
+
 
 namespace se::core::concurrency::coroutine
 {
@@ -94,11 +96,11 @@ auto TaskImpl<T, PromiseType>::await_suspend(std::coroutine_handle<> awaiting_ha
 template <typename T, typename PromiseType>
 T TaskImpl<T, PromiseType>::await_resume()
 {
-    auto& result = handle.promise().result;
-    if (result.has_value())
+    Expected<T, std::exception_ptr>& result = handle.promise().result;
+    if (result.HasValue())
     {
-        return std::move(result).value();
+        return std::move(result).Value();
     }
-    std::rethrow_exception(result.error());
+    std::rethrow_exception(result.Error());
 }
 }

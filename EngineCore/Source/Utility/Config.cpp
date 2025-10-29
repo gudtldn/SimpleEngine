@@ -17,13 +17,13 @@ ParseResult Config::ReadConfig(const VPath& config_file_path)
     if (!physical_path_opt.HasValue())
     {
         // TODO: 에러 반환타입 리펙토링 toml::parse_result가 아닌, 새로운 타입으로
-        return std::unexpected{ toml::parse_file("").error() };
+        return Unexpected{ toml::parse_file("").error() };
     }
 
     toml::parse_result result = toml::parse_file(physical_path_opt->generic_string());
     if (result.failed())
     {
-        return std::unexpected{ std::move(result).error() };
+        return Unexpected{ std::move(result).error() };
     }
     return Config{ std::move(result).table() };
 }

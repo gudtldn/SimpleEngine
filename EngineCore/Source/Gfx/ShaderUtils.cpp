@@ -50,12 +50,12 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
     Array<uint8> source;
     if (auto result = utility::file::ReadToByteArray(shader_path))
     {
-        source = std::move(result).value();
+        source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().message);
         return nullptr;
     }
 

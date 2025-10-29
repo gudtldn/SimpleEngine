@@ -57,7 +57,7 @@ bool PlatformSubsystem::Initialize()
         }
         else
         {
-            ConsoleLog(ELogLevel::Error, "{}", window_result.error().message);
+            ConsoleLog(ELogLevel::Error, "{}", window_result.Error().message);
         }
 
         SDL_ShowWindow(GetWindow(main_window_id));
@@ -98,7 +98,7 @@ void PlatformSubsystem::PrepareWindow(WindowDesc&& window_desc)
     main_window_info = std::move(window_desc);
 }
 
-std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
+Expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
 {
     const char* window_title_c = window_desc.title.CStr();
     SDL_Window* new_window = SDL_CreateWindow(
@@ -110,7 +110,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
 
     if (!new_window)
     {
-        return std::unexpected{
+        return Unexpected{
             WindowCreateError::WindowCreation(
                 se::String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
             )
@@ -127,7 +127,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
             if (!SDL_ClaimWindowForGPUDevice(device, new_window))
             {
                 SDL_DestroyWindow(new_window);
-                return std::unexpected{
+                return Unexpected{
                     WindowCreateError::GPUDeviceClaim(
                         se::String::Format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError())
                     )
@@ -141,7 +141,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
             if (!SDL_SetGPUSwapchainParameters(device, new_window, composition, present_mode))
             {
                 SDL_DestroyWindow(new_window);
-                return std::unexpected{
+                return Unexpected{
                     WindowCreateError::SwapchainSetup(
                         se::String::Format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError())
                     )

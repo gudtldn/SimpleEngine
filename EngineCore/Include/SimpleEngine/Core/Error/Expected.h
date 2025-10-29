@@ -22,12 +22,18 @@ public:
     using UnexpectedType = Unexpected<E>;
 
 public:
+    /** Uninitialized 상태로 Expected를 생성합니다. */
+    Expected()
+        : storage(std::in_place_index<0>, std::monostate{})
+    {
+    }
+
     /** 값이 있는 Expected를 생성합니다. */
     template <typename U = T>
         requires(!std::same_as<std::remove_cvref_t<U>, Expected>)
         && std::constructible_from<T, U>
     Expected(U&& value)
-        : storage(std::in_place_index<0>, std::forward<U>(value))
+        : storage(std::in_place_index<1>, std::forward<U>(value))
     {
     }
 
@@ -35,21 +41,21 @@ public:
     template <typename Err = E>
         requires std::constructible_from<E, Err>
     Expected(const Unexpected<Err>& error)
-        : storage(std::in_place_index<1>, error.Error())
+        : storage(std::in_place_index<2>, error.Error())
     {
     }
 
     template <typename Err = E>
         requires std::constructible_from<E, Err>
     Expected(Unexpected<Err>&& error)
-        : storage(std::in_place_index<1>, std::move(error.Error()))
+        : storage(std::in_place_index<2>, std::move(error.Error()))
     {
     }
 
     /** 값을 내부 생성하여 Expected를 생성합니다. */
     template <typename... Args>
     Expected(std::in_place_t, Args&&... args)
-        : storage(std::in_place_index<0>, std::forward<Args>(args)...)
+        : storage(std::in_place_index<1>, std::forward<Args>(args)...)
     {
     }
 
@@ -59,11 +65,17 @@ public:
     Expected& operator=(Expected&&) noexcept = default;
 
 public:
+    /** 내부 저장소에 새로운 값을 직접 생성(in-place)합니다. */
+    template <typename... Args>
+        requires std::constructible_from<T, Args...>
+    T& Emplace(Args&&... args);
+
+public:
     /** Expected가 값을 가지고 있는지 확인합니다. */
-    [[nodiscard]] bool HasValue() const noexcept { return storage.index() == 0; }
+    [[nodiscard]] bool HasValue() const noexcept { return storage.index() == 1; }
 
     /** Expected가 에러를 가지고 있는지 확인합니다. */
-    [[nodiscard]] bool HasError() const noexcept { return storage.index() == 1; }
+    [[nodiscard]] bool HasError() const noexcept { return storage.index() == 2; }
 
     /** 가지고 있는 값을 반환합니다. 값이 없으면 assert로 실패합니다. */
     [[nodiscard]] T& Value() &;
@@ -156,7 +168,103 @@ public:
     [[nodiscard]] const T* operator->() const { return std::addressof(Value()); }
 
 private:
-    std::variant<T, E> storage;
+    std::variant<std::monostate, T, E> storage;
+};
+
+/** void 특수화 */
+template <typename E>
+class Expected<void, E>
+{
+public:
+    using ValueType = void;
+    using ErrorType = E;
+    using UnexpectedType = Unexpected<E>;
+
+public:
+    /** 성공 상태의 Expected<void, E>를 생성합니다. */
+    Expected()
+        : storage(std::in_place_index<0>, std::monostate{})
+    {
+    }
+
+    /** 에러 상태의 Expected<void, E>를 생성합니다. */
+    template <typename Err = E>
+        requires std::constructible_from<E, Err>
+    Expected(const Unexpected<Err>& error)
+        : storage(std::in_place_index<1>, error.Error())
+    {
+    }
+
+    template <typename Err = E>
+        requires std::constructible_from<E, Err>
+    Expected(Unexpected<Err>&& error)
+        : storage(std::in_place_index<1>, std::move(error.Error()))
+    {
+    }
+
+    Expected(const Expected&) = default;
+    Expected(Expected&&) noexcept = default;
+    Expected& operator=(const Expected&) = default;
+    Expected& operator=(Expected&&) noexcept = default;
+
+public:
+    /** 내부 저장소에 새로운 값을 직접 생성(in-place)합니다. */
+    template <typename... Args>
+    void Emplace(Args&&... args);
+
+public:
+    [[nodiscard]] bool HasValue() const noexcept { return storage.index() == 0; }
+    [[nodiscard]] bool HasError() const noexcept { return storage.index() == 1; }
+    [[nodiscard]] explicit operator bool() const noexcept { return HasValue(); }
+
+    /** 성공 상태일 때 호출합니다. (값을 반환하지 않음) */
+    void Value() const { assert(HasValue() && "Attempted to access value of an Expected<void, E> that contains an error."); }
+
+    /** 가지고 있는 에러를 반환합니다. 에러가 없으면 assert로 실패합니다. */
+    [[nodiscard]] E& Error() &;
+    [[nodiscard]] const E& Error() const &;
+    [[nodiscard]] E&& Error() &&;
+    [[nodiscard]] const E&& Error() const &&;
+
+    /**
+     * 성공 상태일 때, fn() -> Expected<U, E> 함수를 호출하여 새로운 Expected<U, E>를 반환합니다.
+     */
+    template <typename Fn>
+        requires std::invocable<Fn>
+        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn>, Expected>
+    auto AndThen(Fn&& func) const;
+
+    /**
+     * 성공 상태일 때, fn() -> U 함수를 호출하여 새로운 Expected<U, E>를 반환합니다.
+     */
+    template <typename Fn>
+        requires std::invocable<Fn>
+    auto Map(Fn&& func) const;
+
+    /**
+     * 에러가 존재할 때, fn(E) -> Expected<void, F> 함수를 호출하여 새로운 Expected<void, F>를 반환합니다.
+     */
+    template <typename Fn>
+        requires std::invocable<Fn, E&>
+        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, E&>, Expected>
+    auto OrElse(Fn&& func) &;
+    template <typename Fn>
+        requires std::invocable<Fn, E&&>
+        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, E&&>, Expected>
+    auto OrElse(Fn&& func) &&;
+
+    /**
+     * 에러가 존재할 때, fn(E) -> F 함수를 호출하여 새로운 Expected<void, F>를 반환합니다.
+     */
+    template <typename Fn>
+        requires std::invocable<Fn, E&>
+    auto MapError(Fn&& func) &;
+    template <typename Fn>
+        requires std::invocable<Fn, E&&>
+    auto MapError(Fn&& func) &&;
+
+private:
+    std::variant<std::monostate, E> storage;
 };
 
 /**
@@ -199,59 +307,66 @@ Unexpected(E) -> Unexpected<E>;
 
 
 template <typename T, typename E>
+template <typename ... Args> requires std::constructible_from<T, Args...>
+T& Expected<T, E>::Emplace(Args&&... args)
+{
+    return storage.template emplace<1>(std::forward<Args>(args)...);
+}
+
+template <typename T, typename E>
 T& Expected<T, E>::Value() &
 {
     assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
-    return std::get<0>(storage);
+    return std::get<1>(storage);
 }
 
 template <typename T, typename E>
 const T& Expected<T, E>::Value() const &
 {
     assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
-    return std::get<0>(storage);
+    return std::get<1>(storage);
 }
 
 template <typename T, typename E>
 T&& Expected<T, E>::Value() &&
 {
     assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
-    return std::move(std::get<0>(storage));
+    return std::move(std::get<1>(storage));
 }
 
 template <typename T, typename E>
 const T&& Expected<T, E>::Value() const &&
 {
     assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
-    return std::move(std::get<0>(storage));
+    return std::move(std::get<1>(storage));
 }
 
 template <typename T, typename E>
 E& Expected<T, E>::Error() &
 {
     assert(HasError() && "Attempted to access error of an Expected that contains a value.");
-    return std::get<1>(storage);
+    return std::get<2>(storage);
 }
 
 template <typename T, typename E>
 const E& Expected<T, E>::Error() const &
 {
     assert(HasError() && "Attempted to access error of an Expected that contains a value.");
-    return std::get<1>(storage);
+    return std::get<2>(storage);
 }
 
 template <typename T, typename E>
 E&& Expected<T, E>::Error() &&
 {
     assert(HasError() && "Attempted to access error of an Expected that contains a value.");
-    return std::move(std::get<1>(storage));
+    return std::move(std::get<2>(storage));
 }
 
 template <typename T, typename E>
 const E&& Expected<T, E>::Error() const &&
 {
     assert(HasError() && "Attempted to access error of an Expected that contains a value.");
-    return std::move(std::get<1>(storage));
+    return std::move(std::get<2>(storage));
 }
 
 template <typename T, typename E>
@@ -425,7 +540,7 @@ auto Expected<T, E>::MapError(Fn&& func) &
 
     if (HasError())
     {
-        return RetType{ Unexpected{ std::invoke(std::forward<Fn>(func), Error()) } };
+        return RetType{ Unexpected(std::invoke(std::forward<Fn>(func), Error())) };
     }
     return RetType{ Value() };
 }
@@ -440,7 +555,135 @@ auto Expected<T, E>::MapError(Fn&& func) &&
 
     if (HasError())
     {
-        return RetType{ Unexpected{ std::invoke(std::forward<Fn>(func), std::move(Error())) } };
+        return RetType{ Unexpected(std::invoke(std::forward<Fn>(func), std::move(Error()))) };
     }
     return RetType{ std::move(Value()) };
+}
+
+template <typename E>
+template <typename ... Args>
+void Expected<void, E>::Emplace([[maybe_unused]] Args&&... args)
+{
+    storage.template emplace<0>();
+}
+
+template <typename E>
+E& Expected<void, E>::Error() &
+{
+    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    return std::get<1>(storage);
+}
+
+template <typename E>
+const E& Expected<void, E>::Error() const &
+{
+    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    return std::get<1>(storage);
+}
+
+template <typename E>
+E&& Expected<void, E>::Error() &&
+{
+    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    return std::move(std::get<1>(storage));
+}
+
+template <typename E>
+const E&& Expected<void, E>::Error() const &&
+{
+    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    return std::move(std::get<1>(storage));
+}
+
+template <typename E>
+template <typename Fn>
+    requires std::invocable<Fn>
+    && se::traits::IsSpecializationOf<std::invoke_result_t<Fn>, Expected>
+auto Expected<void, E>::AndThen(Fn&& func) const
+{
+    if (HasValue())
+    {
+        return std::invoke(std::forward<Fn>(func));
+    }
+    using RetType = std::invoke_result_t<Fn>;
+    return RetType{ Unexpected(Error()) };
+}
+
+template <typename E>
+template <typename Fn>
+    requires std::invocable<Fn>
+auto Expected<void, E>::Map(Fn&& func) const
+{
+    using RetU = std::invoke_result_t<Fn>;
+    using RetType = Expected<RetU, E>;
+    if (HasValue())
+    {
+        // void->U 변환의 경우, U가 void일 수도 있으므로 분기 처리
+        if constexpr (std::is_void_v<RetU>)
+        {
+            std::invoke(std::forward<Fn>(func));
+            return RetType();
+        }
+        else
+        {
+            return RetType(std::invoke(std::forward<Fn>(func)));
+        }
+    }
+    return RetType{ Unexpected(Error()) };
+}
+
+template <typename E>
+template <typename Fn>
+    requires std::invocable<Fn, E&>
+    && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, E&>, Expected>
+auto Expected<void, E>::OrElse(Fn&& func) &
+{
+    if (HasError())
+    {
+        return std::invoke(std::forward<Fn>(func), Error());
+    }
+    using RetType = std::invoke_result_t<Fn, E&>;
+    return RetType();
+}
+
+template <typename E>
+template <typename Fn>
+    requires std::invocable<Fn, E&&>
+    && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, E&&>, Expected>
+auto Expected<void, E>::OrElse(Fn&& func) &&
+{
+    if (HasError())
+    {
+        return std::invoke(std::forward<Fn>(func), std::move(Error()));
+    }
+    using RetType = std::invoke_result_t<Fn, E&&>;
+    return RetType();
+}
+
+template <typename E>
+template <typename Fn>
+    requires std::invocable<Fn, E&>
+auto Expected<void, E>::MapError(Fn&& func) &
+{
+    using NewErrorType = std::invoke_result_t<Fn, E&>;
+    using RetType = Expected<void, NewErrorType>;
+    if (HasError())
+    {
+        return RetType{ Unexpected(std::invoke(std::forward<Fn>(func), Error())) };
+    }
+    return RetType();
+}
+
+template <typename E>
+template <typename Fn>
+    requires std::invocable<Fn, E&&>
+auto Expected<void, E>::MapError(Fn&& func) &&
+{
+    using NewErrorType = std::invoke_result_t<Fn, E&&>;
+    using RetType = Expected<void, NewErrorType>;
+    if (HasError())
+    {
+        return RetType{ Unexpected(std::invoke(std::forward<Fn>(func), std::move(Error()))) };
+    }
+    return RetType();
 }

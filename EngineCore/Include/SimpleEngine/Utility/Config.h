@@ -2,8 +2,9 @@
 #include <expected>
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
@@ -23,7 +24,7 @@ class Config;
  * TOML 파일 파싱 결과를 나타내는 타입입니다.
  * @details 성공 시 Config 객체를, 실패 시 toml::parse_error를 반환합니다.
  */
-using ParseResult = std::expected<Config, toml::parse_error>;
+using ParseResult = Expected<Config, toml::parse_error>;
 
 /**
  * TOML 파일을 읽고 쓰는 설정 관리 클래스입니다.

@@ -43,13 +43,13 @@ TEST_CASE("Config::ReadConfig - File Handling")
     SUBCASE("Reading an existing and valid config file")
     {
         const ParseResult result = Config::ReadConfig(test_toml_path);
-        CHECK(result.has_value());
-        if (!result.has_value())
+        CHECK(result.HasValue());
+        if (!result.HasValue())
         {
             FAIL_CHECK(
-                "Failed to read config file: " << result.error().description() <<
-                " at line " << result.error().source().begin.line <<
-                ", column " << result.error().source().begin.column
+                "Failed to read config file: " << result.Error().description() <<
+                " at line " << result.Error().source().begin.line <<
+                ", column " << result.Error().source().begin.column
             );
         }
     }
@@ -57,15 +57,15 @@ TEST_CASE("Config::ReadConfig - File Handling")
     SUBCASE("Attempting to read a non-existent config file")
     {
         const ParseResult result = Config::ReadConfig(non_existent_file_path);
-        CHECK_FALSE(result.has_value());
-        if (result.has_value())
+        CHECK_FALSE(result.HasValue());
+        if (result.HasValue())
         {
             FAIL_CHECK("ReadConfig succeeded for a non-existent file.");
         }
         else
         {
             // toml++는 파일 열기 실패 시 특정 에러를 반환할 수 있습니다.
-            // (예: toml::parse_error의 특정 메시지 또는 타입)
+            // (예: toml::Error의 특정 메시지 또는 타입)
             // 여기서는 단순히 실패했는지 여부만 확인합니다.
             MESSAGE("Successfully failed to read non-existent file as expected.");
         }
@@ -79,25 +79,25 @@ TEST_CASE("Config::ReadConfig - File Handling")
             ofs << "this = is not valid toml syntax because of this character '";
         }
         const ParseResult result = Config::ReadConfig(non_existent_file_path);
-        CHECK_FALSE(result.has_value());
-        if (result.has_value())
+        CHECK_FALSE(result.HasValue());
+        if (result.HasValue())
         {
             FAIL_CHECK("ReadConfig succeeded for an invalid TOML file.");
         }
         else
         {
-            MESSAGE("Successfully failed to read invalid TOML file as expected: " << result.error().description().data());
+            MESSAGE("Successfully failed to read invalid TOML file as expected: " << result.Error().description().data());
         }
         std::filesystem::remove(*resolver.Resolve(non_existent_file_path, false)); // 테스트 후 임시 파일 삭제
     }
 }
 
-TEST_CASE("get value config file")
+TEST_CASE("get Value config file")
 {
     const ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.has_value());
+    CHECK(v.HasValue());
 
-    const Config& config = v.value();
+    const Config& config = v.Value();
     CHECK(config.GetValue<bool>("a_boolean") == true);
     CHECK(config.GetValue<int>("an_integer") == 42);
     CHECK(config.GetValue<float>("a_float") == 3.14159f);
@@ -106,12 +106,12 @@ TEST_CASE("get value config file")
     CHECK(!config.GetValue<bool>("__MyValue").HasValue());
 }
 
-TEST_CASE("get value config file with default value")
+TEST_CASE("get Value config file with default Value")
 {
     ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.has_value());
+    CHECK(v.HasValue());
 
-    Config& config = v.value();
+    Config& config = v.Value();
     CHECK(config.GetValueOrStore<bool>("a_boolean", false) == true);
     CHECK(config.GetValueOrStore<int>("an_integer", 100) == 42);
     CHECK(config.GetValueOrStore<float>("a_float", 100.0f) == 3.14159f);
@@ -124,9 +124,9 @@ TEST_CASE("get value config file with default value")
 TEST_CASE("get array config file")
 {
     const ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.has_value());
+    CHECK(v.HasValue());
 
-    const Config& config = v.value();
+    const Config& config = v.Value();
     SUBCASE("get int array")
     {
         auto arr = config.GetArray<int>("int_array");
@@ -168,9 +168,9 @@ TEST_CASE("get array config file")
 TEST_CASE("get table config file")
 {
     const ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.has_value());
+    CHECK(v.HasValue());
 
-    const Config& config = v.value();
+    const Config& config = v.Value();
     SUBCASE("get table")
     {
         auto window = config.GetTable("window");

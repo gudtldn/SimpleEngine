@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Event/EventDispatcher.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystem.h"
@@ -76,7 +77,7 @@ public:
     void PrepareWindow(WindowDesc&& window_desc);
 
     /** Window를 새로 생성합니다. */
-    std::expected<SDL_WindowID, WindowCreateError> CreateWindow(const WindowDesc& window_desc);
+    Expected<SDL_WindowID, WindowCreateError> CreateWindow(const WindowDesc& window_desc);
 
     /** Window를 제거합니다. (메인 윈도우는 제거할 수 없음) */
     bool DestroyWindow(SDL_WindowID window_id);
