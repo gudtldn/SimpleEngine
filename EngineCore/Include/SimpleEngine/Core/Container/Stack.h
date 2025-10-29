@@ -134,7 +134,7 @@ se::Stack<T, Container>::ValueType& se::Stack<T, Container>::Emplace(Args&&... a
 template <typename T, typename Container>
 Optional<typename se::Stack<T, Container>::ValueType> se::Stack<T, Container>::Pop()
 {
-    return container.PopFront();
+    return container.PopBack();
 }
 
 template <typename T, typename Container>
