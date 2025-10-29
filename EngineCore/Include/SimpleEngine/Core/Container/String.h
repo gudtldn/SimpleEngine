@@ -118,6 +118,17 @@ public:
     BaseString& operator=(const char* literal);
 
     /**
+     * 컴파일 타임에 크기가 알려진 문자열 리터럴로부터 String 객체를 생성합니다.
+     * @tparam N 리터럴의 크기 (null terminator 포함).
+     * @param literal 문자열 리터럴.
+     */
+    template <usize N>
+    BaseString(const char (&literal)[N]);
+
+    template <usize N>
+    BaseString& operator=(const char (&literal)[N]);
+
+    /**
      * std::string_view로부터 String 객체를 생성합니다.
      * @param view string_view
      */
