@@ -30,7 +30,7 @@ private:
 private:
     std::ofstream file;
     std::filesystem::path file_path;
-    size_t current_file_size = 0;
-    constexpr static size_t max_file_size = 1024 * 1024 * 10;
+    usize current_file_size = 0;
+    constexpr static usize max_file_size = 1024 * 1024 * 10;
 };
 }

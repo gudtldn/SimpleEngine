@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
@@ -18,6 +18,6 @@ public:
     [[nodiscard]] virtual bool Initialize() = 0;
     virtual void Release() = 0;
 
-    virtual vector<refl::TypeId> GetDependencies() const = 0;
+    virtual Array<refl::TypeId> GetDependencies() const = 0;
 };
 }

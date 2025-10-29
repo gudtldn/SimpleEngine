@@ -51,13 +51,13 @@ public:
 
 public:
     /** 현재 추적되고 있는 모든 메모리 Byte를 반환합니다. */
-    [[nodiscard]] FORCE_INLINE static size_t GetTotalAllocated() { return TotalAllocated; }
+    [[nodiscard]] FORCE_INLINE static usize GetTotalAllocated() { return TotalAllocated; }
 
     /** 현재 추적되고 있는 모든 메모리 개수를 반환합니다. */
-    [[nodiscard]] FORCE_INLINE static size_t GetAllocationCount() { return AllocationCount; }
+    [[nodiscard]] FORCE_INLINE static usize GetAllocationCount() { return AllocationCount; }
 
 private:
-    static std::atomic<size_t> TotalAllocated;
-    static std::atomic<size_t> AllocationCount;
+    static std::atomic<usize> TotalAllocated;
+    static std::atomic<usize> AllocationCount;
 };
 }

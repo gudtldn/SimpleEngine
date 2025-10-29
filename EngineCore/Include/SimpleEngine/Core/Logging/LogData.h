@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/Logging/LogLevel.h"
 
@@ -20,7 +20,7 @@ struct LogLevelAndLocation
     LogLevelAndLocation(
         ELogLevel in_level,
         const std::source_location& in_location = std::source_location::current(),
-        se::u8string in_thread_name = se::platform::GetCurrentThreadName()
+        se::String in_thread_name = se::platform::GetCurrentThreadName()
     )
         : level(in_level)
         , location(in_location)
@@ -30,7 +30,7 @@ struct LogLevelAndLocation
 
     ELogLevel level;
     std::source_location location;
-    se::u8string thread_name;
+    se::String thread_name;
 };
 
 /**
@@ -45,10 +45,10 @@ struct LogEntry
     std::source_location location;
 
     // Thread 이름
-    se::u8string thread_name;
+    se::String thread_name;
 
     // 로그 메시지
-    std::string formatted_message;
+    se::String formatted_message;
 
     // 타임스탬프
     std::chrono::system_clock::time_point timestamp;
@@ -57,7 +57,7 @@ struct LogEntry
     [[nodiscard]] std::string_view GetPrettyFileName() const
     {
         const std::string_view name_view = location.file_name();
-        const size_t last_slash = name_view.find_last_of("/\\");
+        const usize last_slash = name_view.find_last_of("/\\");
         if (last_slash == std::string_view::npos)
         {
             return name_view;
@@ -88,7 +88,7 @@ struct LogEntry
 
 struct LogOnceKey
 {
-    std::string file;
+    se::String file;
     uint32 line;
     uint32 column;
 
@@ -100,11 +100,11 @@ struct LogOnceKey
 
     struct LogOnceKeyHash
     {
-        size_t operator()(const LogOnceKey& k) const noexcept
+        usize operator()(const LogOnceKey& k) const noexcept
         {
-            const size_t h1 = std::hash<std::string>{}(k.file);
-            const size_t h2 = std::hash<uint32>{}(k.line);
-            const size_t h3 = std::hash<uint32>{}(k.column);
+            const usize h1 = std::hash<se::String>{}(k.file);
+            const usize h2 = std::hash<uint32>{}(k.line);
+            const usize h3 = std::hash<uint32>{}(k.column);
             // 간단한 해시 조합
             return h1 ^ (h2 << 1) ^ (h3 << 2);
         }

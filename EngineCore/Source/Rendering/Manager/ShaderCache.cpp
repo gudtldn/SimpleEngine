@@ -19,9 +19,9 @@ ShaderCache::~ShaderCache()
 
 SDL_GPUShader* ShaderCache::GetOrCreate(const ShaderRequest& request)
 {
-    if (shader_cache.contains(request))
+    if (Optional cache_opt = shader_cache.Find(request))
     {
-        return shader_cache[request];
+        return *cache_opt;
     }
 
     if (SDL_GPUShader* shader = provider->Provide(device, request))
@@ -30,7 +30,7 @@ SDL_GPUShader* ShaderCache::GetOrCreate(const ShaderRequest& request)
         return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, u8"Failed to get shader from provider!");
+    ConsoleLog(ELogLevel::Error, "Failed to get shader from provider!");
     return nullptr;
 }
 
@@ -40,6 +40,6 @@ void ShaderCache::ClearCache()
     {
         SDL_ReleaseGPUShader(device, cache);
     }
-    shader_cache.clear();
+    shader_cache.Clear();
 }
 }

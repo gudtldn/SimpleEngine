@@ -5,6 +5,9 @@
 
 #include "Core/Concurrency/TaskScheduler.h"
 #include "Core/Concurrency/ThreadPool.h"
+#include "Core/Container/Array.h"
+#include "Core/Container/HashMap.h"
+#include "Core/Container/Queue.h"
 #include "Core/Interfaces/ISubsystemBase.h"
 #include "Core/Interfaces/IUpdatable.h"
 #include "Gfx/RenderSubsystem.h"
@@ -27,13 +30,13 @@ Engine::Engine()
     const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
 
     // Core
-    path_resolver.Mount(u8"Config", solution_path / u8"Config");
-    path_resolver.Mount(u8"CoreAssets", solution_path / u8"EngineCore/Assets");
-    path_resolver.Mount(u8"CoreShader", solution_path / u8"EngineCore/Shaders");
+    path_resolver.Mount("Config", solution_path / "Config");
+    path_resolver.Mount("CoreAssets", solution_path / "EngineCore/Assets");
+    path_resolver.Mount("CoreShader", solution_path / "EngineCore/Shaders");
 
     // Editor
-    path_resolver.Mount(u8"EditorAssets", solution_path / u8"Editor/Assets");
-    path_resolver.Mount(u8"EditorShader", solution_path / u8"Editor/Shaders");
+    path_resolver.Mount("EditorAssets", solution_path / "Editor/Assets");
+    path_resolver.Mount("EditorShader", solution_path / "Editor/Shaders");
 }
 
 Engine::~Engine() = default;
@@ -43,7 +46,7 @@ void Engine::LoadRegisteredSubsystems()
     auto& registry = details::SubsystemRegistry::GetInstance();
     for (const auto& [type_id, metadata] : registry.factories)
     {
-        if (subsystems.contains(type_id))
+        if (subsystems.Contains(type_id))
         {
             continue;
         }
@@ -51,13 +54,13 @@ void Engine::LoadRegisteredSubsystems()
         std::unique_ptr<ISubsystemBase> subsystem = metadata.factory();
         if (metadata.is_updatable)
         {
-            updatable_systems.push_back(dynamic_cast<IUpdatable*>(subsystem.get()));
+            updatable_systems.Push(dynamic_cast<IUpdatable*>(subsystem.get()));
         }
         subsystems[type_id] = std::move(subsystem);
 
-        ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", type_id.GetName());
+        ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", type_id.GetName());
     }
-    registry.factories.clear();
+    registry.factories.Clear();
 }
 
 bool Engine::Initialize()
@@ -78,7 +81,7 @@ bool Engine::Initialize()
     // SusSystems 초기화
     if (!InitializeAllSubsystems())
     {
-        ConsoleLog(ELogLevel::Error, u8"Subsystems failed to initialize!");
+        ConsoleLog(ELogLevel::Error, "Subsystems failed to initialize!");
         return false;
     }
 
@@ -88,8 +91,8 @@ bool Engine::Initialize()
 void Engine::Release()
 {
     ReleaseAllSubsystems();
-    sorted_subsystems.clear();
-    subsystems.clear();
+    sorted_subsystems.Clear();
+    subsystems.Clear();
 
     thread_pool.reset();
     task_scheduler.reset();
@@ -97,12 +100,12 @@ void Engine::Release()
 
 bool Engine::InitializeAllSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing Subsystems...");
+    ConsoleLog(ELogLevel::Info, "Initializing Subsystems...");
     for (auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         if (!sub_system->Initialize())
         {
-            ConsoleLog(ELogLevel::Error, u8"Subsystem {} failed to initialize!", typeid(*sub_system).name());
+            ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", typeid(*sub_system).name());
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
             for (ISubsystemBase* rev_subsystem : subrange | std::views::reverse)
@@ -112,13 +115,13 @@ bool Engine::InitializeAllSubsystems()
             return false;
         }
     }
-    ConsoleLog(ELogLevel::Info, u8"All Subsystems initialized successfully");
+    ConsoleLog(ELogLevel::Info, "All Subsystems initialized successfully");
     return true;
 }
 
 void Engine::ReleaseAllSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Releasing Subsystems...");
+    ConsoleLog(ELogLevel::Info, "Releasing Subsystems...");
 
     // RenderSubsystem이 있다면, 해제하기전에 GPU 대기
     if (const RenderSubsystem* render_subsystem = GetSubsystem<const RenderSubsystem>())
@@ -130,7 +133,7 @@ void Engine::ReleaseAllSubsystems()
     {
         sub_system->Release();
     }
-    ConsoleLog(ELogLevel::Info, u8"All Subsystems released successfully");
+    ConsoleLog(ELogLevel::Info, "All Subsystems released successfully");
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -171,11 +174,11 @@ void Engine::UpdateFrame(float delta_time)
 
 bool Engine::SortSubsystems()
 {
-    ConsoleLog(ELogLevel::Info, u8"Sorting Subsystems based on dependencies...");
+    ConsoleLog(ELogLevel::Info, "Sorting Subsystems based on dependencies...");
 
-    unordered_map<refl::TypeId, vector<refl::TypeId>> adj_list;
-    unordered_map<refl::TypeId, int> in_degree;
-    queue<refl::TypeId> queue;
+    HashMap<refl::TypeId, Array<refl::TypeId>> adj_list;
+    HashMap<refl::TypeId, int> in_degree;
+    Queue<refl::TypeId> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
     for (const refl::TypeId& type_id : subsystems | std::views::keys)
@@ -190,7 +193,7 @@ bool Engine::SortSubsystems()
         {
             // A가 B에 의존한다면 (A -> B), B에서 A로 가는 간선을 추가
             // B가 먼저 초기화되어야 하기 때문
-            adj_list[dependency_id].push_back(type_id);
+            adj_list[dependency_id].Push(type_id);
             in_degree[type_id]++;
         }
     }
@@ -201,47 +204,45 @@ bool Engine::SortSubsystems()
     {
         if (degree == 0)
         {
-            queue.push(type_id);
+            queue.Push(type_id);
         }
     }
 
     // 위상 정렬을 수행
-    sorted_subsystems.clear();
-    while (!queue.empty())
+    sorted_subsystems.Clear();
+    while (Optional current_id_opt = queue.Pop())
     {
-        const auto current_id = queue.front();
-        queue.pop();
-
-        sorted_subsystems.push_back(subsystems[current_id].get());
+        const refl::TypeId current_id = *current_id_opt;
+        sorted_subsystems.Push(subsystems[current_id].get());
 
         for (const auto& neighbor_id : adj_list[current_id])
         {
             --in_degree[neighbor_id];
             if (in_degree[neighbor_id] == 0)
             {
-                queue.push(neighbor_id);
+                queue.Push(neighbor_id);
             }
         }
     }
 
     // 순환 의존성 확인
-    if (sorted_subsystems.size() != subsystems.size())
+    if (sorted_subsystems.Len() != subsystems.Len())
     {
-        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected among Subsystems! Sorting failed.");
+        ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
 
-        vector<refl::TypeId> circular_subsystems;
+        Array<refl::TypeId> circular_subsystems;
         for (const auto& [type_id, degree] : in_degree)
         {
             if (degree > 0)
             {
-                circular_subsystems.push_back(type_id);
+                circular_subsystems.Push(type_id);
             }
         }
 
-        ConsoleLog(ELogLevel::Fatal, u8"Circular dependency detected in subsystems: ");
+        ConsoleLog(ELogLevel::Fatal, "Circular dependency detected in subsystems: ");
         for (const auto& id : circular_subsystems)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", id.GetName());
+            ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
         }
 
         return false;
@@ -249,10 +250,10 @@ bool Engine::SortSubsystems()
 
     // Update 순서는 한번 보고 나중에 필요시 변경
 
-    ConsoleLog(ELogLevel::Info, u8"Subsystems sorted successfully.");
-    for (const auto& [n, sub_system] : sorted_subsystems | std::views::enumerate)
+    ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
+    for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, u8"  - Order {}: {}", n, typeid(*sub_system).name());
+        ConsoleLog(ELogLevel::Debug, "  - Order {}: {}", n, typeid(*sub_system).name());
     }
 
     return true;

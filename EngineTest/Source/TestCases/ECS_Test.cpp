@@ -143,9 +143,9 @@ TEST_CASE("ECS System Parameter Compilation Test")
         [[maybe_unused]] Query<Entity, With<>, Without<>> query3
     )
         {
-            constexpr size_t query1_size = sizeof(query1);
-            constexpr size_t query2_size = sizeof(query2);
-            constexpr size_t query3_size = sizeof(query3);
+            constexpr usize query1_size = sizeof(query1);
+            constexpr usize query2_size = sizeof(query2);
+            constexpr usize query3_size = sizeof(query3);
 
             static_assert(query1_size == query2_size || query1_size != query3_size);
 

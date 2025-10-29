@@ -2,7 +2,7 @@
 #include <concepts>
 #include <memory>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Rendering/ShaderProvider/PrecompiledShaderProvider.h"
 
 
@@ -40,7 +40,7 @@ private:
     SDL_GPUDevice* device;
     std::unique_ptr<IShaderProvider> provider;
 
-    unordered_map<ShaderRequest, SDL_GPUShader*> shader_cache;
+    HashMap<ShaderRequest, SDL_GPUShader*> shader_cache;
 };
 
 template <typename T, typename... Args>

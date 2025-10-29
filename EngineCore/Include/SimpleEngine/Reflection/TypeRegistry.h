@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include <unordered_map>
 
-#include "Core/Types/StringName.h"
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Reflection/Meta.h"
 
 
@@ -32,8 +33,8 @@ public:
     [[nodiscard]] const auto& GetAllTypes() const { return type_map; }
 
 private:
-    std::unordered_map<StringName, TypeId> name_map;
-    std::unordered_map<TypeId, TypeInfo> type_map;
+    HashMap<StringName, TypeId> name_map;
+    HashMap<TypeId, TypeInfo> type_map;
 };
 
 template <typename T>

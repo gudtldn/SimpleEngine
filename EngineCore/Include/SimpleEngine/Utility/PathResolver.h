@@ -4,8 +4,11 @@
 #include <shared_mutex>
 #include <unordered_map>
 
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/VPath.h"
+
+#include "tracy/Tracy.hpp"
 
 
 namespace se::utility
@@ -68,7 +71,7 @@ private:
         auto operator<=>(const MountPoint& other) const { return priority <=> other.priority; }
     };
 
-    unordered_map<StringName, std::vector<MountPoint>> mount_points;
-    mutable std::shared_mutex mutex;
+    HashMap<StringName, Array<MountPoint>> mount_points;
+    mutable TracySharedLockable(std::shared_mutex, mutex);
 };
 }

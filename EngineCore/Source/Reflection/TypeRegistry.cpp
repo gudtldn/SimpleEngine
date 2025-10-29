@@ -17,19 +17,14 @@ void TypeRegistry::RegisterType(TypeInfo&& type_info)
 
 Optional<const TypeInfo&> TypeRegistry::Find(const TypeId& type_id) const
 {
-    if (const auto it = type_map.find(type_id); it != type_map.end())
-    {
-        return it->second;
-    }
-    return std::nullopt;
+    return type_map.Find(type_id);
 }
 
 Optional<const TypeInfo&> TypeRegistry::Find(const StringName& type_name) const
 {
-    if (const auto it = name_map.find(type_name); it != name_map.end())
+    return name_map.Find(type_name).AndThen([this](const TypeId& type_id)
     {
-        return Find(it->second);
-    }
-    return std::nullopt;
+        return Find(type_id);
+    });
 }
 }

@@ -24,19 +24,19 @@ void EditorApplication::RegisterSubsystems()
     {
         using namespace se::utility;
 
-        const VPath config_path = u8"Config://EngineConfig.toml";
+        const VPath config_path = "Config://EngineConfig.toml";
         ParseResult result = Config::ReadConfig(config_path);
-        if (!result.has_value())
+        if (!result.HasValue())
         {
-            ConsoleLog(ELogLevel::Error, u8"Failed to read config file: {}", result.error().description());
+            ConsoleLog(ELogLevel::Error, "Failed to read config file: {}", result.Error().description());
             return;
         }
 
-        Config& config = result.value();
+        Config& config = result.Value();
         platform_subsystem->PrepareWindow({
-            .title = config.GetValueOrStore<se::u8string>(u8"window.title", u8"SimpleEngine Editor"),
-            .width = config.GetValueOrStore<uint32>(u8"window.width", 1280),
-            .height = config.GetValueOrStore<uint32>(u8"window.height", 720),
+            .title = config.GetValueOrStore<se::String>("window.title", "SimpleEngine Editor"),
+            .width = config.GetValueOrStore<uint32>("window.width", 1280),
+            .height = config.GetValueOrStore<uint32>("window.height", 720),
             .sdl_window_flags = SDL_WINDOW_RESIZABLE,
             .swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
             .present_mode = SDL_GPU_PRESENTMODE_MAILBOX,
@@ -44,7 +44,7 @@ void EditorApplication::RegisterSubsystems()
 
         if (!config.WriteConfig(config_path))
         {
-            ConsoleLog(ELogLevel::Error, u8"Failed to write config file: {}", config_path.ToString());
+            ConsoleLog(ELogLevel::Error, "Failed to write config file: {}", config_path.ToString());
             return;
         }
     }

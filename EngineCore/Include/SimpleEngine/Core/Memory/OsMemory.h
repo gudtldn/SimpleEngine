@@ -18,7 +18,7 @@ public:
      * @param alignment 요청된 정렬 값. 반드시 2의 거듭제곱이어야 합니다.
      * @return 할당된 메모리의 포인터
      */
-    [[nodiscard]] static void* Allocate(size_t size, size_t alignment = alignof(std::max_align_t));
+    [[nodiscard]] static void* Allocate(usize size, usize alignment = alignof(std::max_align_t));
 
     /**
      * 특정 타입 `T`의 객체를 `count`개 만큼 정렬하여 할당하기 위한 템플릿 헬퍼 함수.
@@ -28,7 +28,7 @@ public:
      * @return 할당된 메모리의 포인터
      */
     template <typename T>
-    [[nodiscard]] static T* Allocate(size_t count = 1, size_t alignment = alignof(T));
+    [[nodiscard]] static T* Allocate(usize count = 1, usize alignment = alignof(T));
 
     /**
      * 이전에 할당된 정렬된 메모리 블록의 크기를 변경합니다.
@@ -37,7 +37,7 @@ public:
      * @param alignment 원래 할당 시 사용했던 정렬 값
      * @return 크기가 변경된 메모리의 포인터
      */
-    [[nodiscard]] static void* Realloc(void* address, size_t new_size, size_t alignment);
+    [[nodiscard]] static void* Realloc(void* address, usize new_size, usize alignment);
 
     /**
      * 이전에 Allocate로 할당된 메모리를 해제합니다.
@@ -51,7 +51,7 @@ public:
      * @param address OsMemory::Allocate로 할당한 메모리 주소
      * @return 할당한 메모리의 크기
      */
-    [[nodiscard]] static size_t GetAllocatedSize(const void* address)
+    [[nodiscard]] static usize GetAllocatedSize(const void* address)
     {
         if (address == nullptr)
         {
@@ -66,12 +66,12 @@ private:
      */
     struct OsMemoryHeader
     {
-        size_t allocated_size;
-        size_t offset;
+        usize allocated_size;
+        usize offset;
     };
 
     /** AlignedAllocHeader의 크기 */
-    static constexpr size_t HEADER_SIZE = sizeof(OsMemoryHeader);
+    static constexpr usize HEADER_SIZE = sizeof(OsMemoryHeader);
 
 private:
     [[nodiscard]] FORCE_INLINE static OsMemoryHeader* GetHeaderFromUserPtr(void* address)
@@ -90,7 +90,7 @@ private:
 };
 
 template <typename T>
-T* OsMemory::Allocate(size_t count, size_t alignment)
+T* OsMemory::Allocate(usize count, usize alignment)
 {
     return static_cast<T*>(Allocate(sizeof(T) * count, alignment));
 }

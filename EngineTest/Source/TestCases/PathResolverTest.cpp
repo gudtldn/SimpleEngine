@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <fstream> // For creating dummy files
 
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/StringName.h" // For StringName
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/PathResolver.h"
@@ -76,11 +76,11 @@ TEST_CASE("PathResolver Mount and Resolve")
 {
     TempDirManager assets_dir("TestAssets");
     PathResolverGuard guard(PathResolver::Get());
-    guard.Mount(u8"Assets", assets_dir.temp_path);
+    guard.Mount("Assets", assets_dir.temp_path);
 
     SUBCASE("Resolve fails if file does not exist")
     {
-        VPath virtual_path(u8"Assets://textures/non_existent.png");
+        VPath virtual_path("Assets://textures/non_existent.png");
         Optional<std::filesystem::path> resolved_path = guard.resolver.Resolve(virtual_path);
         CHECK_FALSE(resolved_path.HasValue());
     }
@@ -89,7 +89,7 @@ TEST_CASE("PathResolver Mount and Resolve")
     {
         assets_dir.CreateDummyFile("textures/player.png");
 
-        VPath virtual_path(u8"Assets://textures/player.png");
+        VPath virtual_path("Assets://textures/player.png");
         Optional<std::filesystem::path> resolved_path = guard.resolver.Resolve(virtual_path);
         CHECK(resolved_path.HasValue());
 
@@ -99,14 +99,14 @@ TEST_CASE("PathResolver Mount and Resolve")
 
     SUBCASE("Resolve path with unmounted scheme")
     {
-        VPath virtual_path(u8"InvalidScheme://some/path.txt");
+        VPath virtual_path("InvalidScheme://some/path.txt");
         Optional<std::filesystem::path> resolved_path = guard.resolver.Resolve(virtual_path);
         CHECK_FALSE(resolved_path.HasValue());
     }
 
     SUBCASE("Resolve path with no scheme")
     {
-        VPath virtual_path(u8"some/relative/path.txt");
+        VPath virtual_path("some/relative/path.txt");
         Optional<std::filesystem::path> resolved_path = guard.resolver.Resolve(virtual_path);
         CHECK_FALSE(resolved_path.HasValue());
     }
@@ -116,14 +116,14 @@ TEST_CASE("PathResolver Unresolve")
 {
     TempDirManager assets_dir("TestAssets");
     PathResolverGuard guard(PathResolver::Get());
-    guard.Mount(u8"Assets", assets_dir.temp_path);
+    guard.Mount("Assets", assets_dir.temp_path);
 
     SUBCASE("Unresolve a path within a mount point")
     {
         std::filesystem::path physical_path = assets_dir.temp_path / "scripts/main.lua";
         Optional<VPath> virtual_path = guard.resolver.Unresolve(physical_path);
         CHECK(virtual_path.HasValue());
-        CHECK(virtual_path.Value().ToString() == u8"Assets://scripts/main.lua");
+        CHECK(virtual_path.Value().ToString() == "Assets://scripts/main.lua");
     }
 
     SUBCASE("Unresolve a path outside any mount point")
@@ -141,11 +141,11 @@ TEST_CASE("PathResolver Priority and Fallback on Resolve")
     PathResolverGuard guard(PathResolver::Get());
 
     // Base game assets have lower priority
-    guard.Mount(u8"Game", base_game_dir.temp_path, 0);
+    guard.Mount("Game", base_game_dir.temp_path, 0);
     // Mod assets have higher priority
-    guard.Mount(u8"Game", mod_override_dir.temp_path, 10);
+    guard.Mount("Game", mod_override_dir.temp_path, 10);
 
-    VPath virtual_path(u8"Game://config/settings.ini");
+    VPath virtual_path("Game://config/settings.ini");
 
     SUBCASE("Resolve uses higher priority path if file exists there")
     {
@@ -185,28 +185,28 @@ TEST_CASE("PathResolver Priority on Unresolve")
 
     SUBCASE("Unresolve prefers longest path match over priority")
     {
-        guard.Mount(u8"Generic", common_dir.temp_path, 10);              // High priority
-        guard.Mount(u8"Specific", common_dir.temp_path / "specific", 0); // Low priority
+        guard.Mount("Generic", common_dir.temp_path, 10);              // High priority
+        guard.Mount("Specific", common_dir.temp_path / "specific", 0); // Low priority
 
         std::filesystem::path physical_path = common_dir.temp_path / "specific" / "file.txt";
         Optional<VPath> virtual_path = guard.resolver.Unresolve(physical_path);
 
         CHECK(virtual_path.HasValue());
         // Should choose "Specific" because it's a longer, more specific match, despite lower priority
-        CHECK(virtual_path.Value().ToString() == u8"Specific://file.txt");
+        CHECK(virtual_path.Value().ToString() == "Specific://file.txt");
     }
 
     SUBCASE("Unresolve prefers higher priority for same-length paths")
     {
-        guard.Mount(u8"Base", common_dir.temp_path, 0); // Low priority
-        guard.Mount(u8"Mod", common_dir.temp_path, 10); // High priority
+        guard.Mount("Base", common_dir.temp_path, 0); // Low priority
+        guard.Mount("Mod", common_dir.temp_path, 10); // High priority
 
         std::filesystem::path physical_path = common_dir.temp_path / "file.txt";
         Optional<VPath> virtual_path = guard.resolver.Unresolve(physical_path);
 
         CHECK(virtual_path.HasValue());
         // Paths are same length, so higher priority "Mod" should be chosen
-        CHECK(virtual_path.Value().ToString() == u8"Mod://file.txt");
+        CHECK(virtual_path.Value().ToString() == "Mod://file.txt");
     }
 }
 }

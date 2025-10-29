@@ -26,8 +26,8 @@ se::rendering::RGResourceHandle depth_target_handle;
 
 namespace se::rendering
 {
-StringName ForwardScenePass::SceneColorTarget = u8"SceneColorTarget";
-StringName ForwardScenePass::SceneDepthTarget = u8"SceneDepthTarget";
+StringName ForwardScenePass::SceneColorTarget = "SceneColorTarget";
+StringName ForwardScenePass::SceneDepthTarget = "SceneDepthTarget";
 
 ForwardScenePass::ForwardScenePass(World& world, uint32 width, uint32 height)
     : width(width)
@@ -75,19 +75,19 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     }
 
     // 엔티티의 렌더 정보 생성
-    draw_infos.clear();
+    draw_infos.Clear();
 
     Query entity_query = world_ref.QueryEntities<const TransformComponent&, const MeshHandleComponent&, const MaterialHandleComponent&>();
-    for (const auto& [transform, mesh, material] : entity_query)
+    for (const auto [transform, mesh, material] : entity_query)
     {
-        draw_infos.push_back({
-            .mesh_id = mesh.mesh_id,
-            .material_id = material.material_id,
+        draw_infos.Push({
             .mvp_matrix = TransformUtility::MakeModelMatrix(
                 transform.position,
                 transform.rotation,
                 transform.scale
-            ) * vp_matrix
+            ) * vp_matrix,
+            .mesh_id = mesh.mesh_id,
+            .material_id = material.material_id,
         });
     }
 
@@ -152,8 +152,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_GPUGraphicsPipeline* pipeline;
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
-        static const VPath VertexShaderPath = u8"CoreShader://Default.vert.hlsl";
-        static const VPath FragmentShaderPath = u8"CoreShader://Default.frag.hlsl";
+        static const VPath VertexShaderPath = "CoreShader://Default.vert.hlsl";
+        static const VPath FragmentShaderPath = "CoreShader://Default.frag.hlsl";
 
         static const std::filesystem::path VSPath = utility::PathResolver::Get().Resolve(VertexShaderPath).Value();
         static const std::filesystem::path FSPath = utility::PathResolver::Get().Resolve(FragmentShaderPath).Value();

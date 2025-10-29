@@ -21,7 +21,8 @@ right-hand, z-up
 - 핵심 구조는 OOP, 게임 로직은 ECS
 - Lua, Pyhton? 지원 예정
 - Visual Sctipt도 만?들 예정
-- 프로젝트의 기본 string타입은 char8_t, std::u8string 타입
+- ~~프로젝트의 기본 string타입은 char8_t, std::u8string 타입~~
+    - char8_t가 기존 std나 라이브러리 코드와 호환이 잘 안되고, 컴파일러 설정에 utf-8을 적용시키면 일반 char로도 유니코드 사용이 가능해서 다시 변경
 
 ### 코드 컨벤션 (수정될 수 있음)
 

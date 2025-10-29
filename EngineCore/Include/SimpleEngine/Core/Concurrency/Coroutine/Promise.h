@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "SimpleEngine/Core/Concurrency/Coroutine/Task.h"
+#include "SimpleEngine/Core/Error/Expected.h"
 
 
 namespace se::core::concurrency::coroutine
@@ -72,20 +73,20 @@ public:
     /** 코루틴 내에서 처리되지 않은 예외가 발생했을 때 호출됩니다. */
     void unhandled_exception()
     {
-        result = std::unexpected{ std::current_exception() };
+        result = Unexpected{ std::current_exception() };
     }
 
 public:
     // 나중에 커스텀 메모리 할당자가 필요해질 때 사용
-    // void* operator new(std::size_t size);
-    // void operator delete(void* ptr, std::size_t size);
+    // void* operator new(usize size);
+    // void operator delete(void* ptr, usize size);
 
 public:
     // 이 코루틴의 작업이 끝난 후, 재개되어야 할 다음 코루틴의 핸들
     std::coroutine_handle<> continuation;
 
     // 코루틴의 최종 결과를 저장
-    std::expected<T, std::exception_ptr> result;
+    Expected<T, std::exception_ptr> result;
 };
 
 /**
@@ -99,7 +100,7 @@ struct Promise : PromiseBase<T, Promise<T>>
         requires std::convertible_to<U, T>
     void return_value(U&& value)
     {
-        this->result.emplace(std::forward<U>(value));
+        this->result.Emplace(std::forward<U>(value));
     }
 };
 
@@ -111,7 +112,7 @@ struct Promise<void> : PromiseBase<void, Promise<void>>
 {
     void return_void()
     {
-        this->result.emplace();
+        this->result.Emplace();
     }
 };
 }

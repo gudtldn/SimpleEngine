@@ -2,8 +2,8 @@
 #include <filesystem>
 #include <utility>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Utility/Hash.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -20,7 +20,7 @@ struct ShaderRequest
 
     // HLSL 컴파일 시 사용
     Optional<std::filesystem::path> hlsl_include_dir_opt = std::nullopt;
-    Optional<vector<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
+    Optional<Array<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
 
     bool operator==(const ShaderRequest& other) const = default;
 };
@@ -42,11 +42,11 @@ public:
 template <>
 struct std::hash<se::rendering::ShaderRequest>
 {
-    size_t operator()(const se::rendering::ShaderRequest& request) const noexcept
+    usize operator()(const se::rendering::ShaderRequest& request) const noexcept
     {
         using se::utility::HashCombine;
 
-        size_t seed = 0;
+        usize seed = 0;
 
         HashCombine(seed, request.source_path);
         if (request.hlsl_include_dir_opt.HasValue())

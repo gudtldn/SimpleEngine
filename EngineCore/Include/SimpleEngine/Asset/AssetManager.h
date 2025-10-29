@@ -9,7 +9,8 @@
 #include "SimpleEngine/Asset/Loaders/AssetLoader.h"
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Reflection/TypeId.h"
@@ -84,11 +85,11 @@ private:
 
 private:
     TracyLockable(std::mutex, storages_mutex);
-    unordered_map<refl::TypeId, std::shared_ptr<IAssetStorage>> storages;
+    HashMap<refl::TypeId, std::shared_ptr<IAssetStorage>> storages;
 
     // 현재 진행 중인 로딩 요청을 추적하는 맵
     TracyLockable(std::mutex, loading_requests_mutex);
-    unordered_map<StringName, LoadingRequest> loading_requests;
+    HashMap<StringName, LoadingRequest> loading_requests;
 };
 
 template <typename T, typename Fn>
@@ -127,7 +128,7 @@ AssetStorage<T>& AssetManager::GetOrCreateStorage()
     const auto type_id = refl::TypeId::Get<T>();
 
     std::scoped_lock lock(storages_mutex);
-    if (!storages.contains(type_id))
+    if (!storages.Contains(type_id))
     {
         storages[type_id] = std::make_shared<AssetStorage<T>>();
     }
@@ -152,15 +153,14 @@ core::concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPa
     bool first_loader = false;
     {
         std::unique_lock lock(loading_requests_mutex);
-        if (const auto it = loading_requests.find(asset_id); it != loading_requests.end())
-        {
-            ongoing_load_event = it->second.event;
-        }
-        else
-        {
-            first_loader = true;
-            ongoing_load_event = loading_requests[asset_id].event;
-        }
+        ongoing_load_event = loading_requests
+            .Entry(asset_id)
+            .OrInsertWith([&first_loader] -> LoadingRequest
+            {
+                first_loader = true;
+                return {};
+            })
+            .event;
     }
 
     if (first_loader)
@@ -190,7 +190,7 @@ core::concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPa
 
                 // loading_requests 에서 제거
                 std::unique_lock req_lock(self->loading_requests_mutex);
-                self->loading_requests.erase(asset_id_copy);
+                self->loading_requests.Remove(asset_id_copy);
             }(this, resolver.Resolve(virtual_path), asset_id, ongoing_load_event)
         );
     }

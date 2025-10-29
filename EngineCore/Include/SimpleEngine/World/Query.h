@@ -4,8 +4,8 @@
 #include <utility>
 #include <variant>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/World/QueryConcepts.h"
 #include "SimpleEngine/World/QueryData.h"
 
@@ -29,11 +29,8 @@ class Query
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
 
-    struct EmptyCache
-    {
-    };
-
-    using CacheType = std::conditional_t<HasBasePool, EmptyCache, vector<Entity>>;
+    struct EmptyCache{};
+    using CacheType = std::conditional_t<HasBasePool, EmptyCache, Array<Entity>>;
 
 public:
     explicit Query(World* in_world)
@@ -78,7 +75,7 @@ public:
         using difference_type = std::ptrdiff_t;
 
     public:
-        Iterator(Query* self, size_t in_index)
+        Iterator(Query* self, usize in_index)
             : query_data(&self->query_data)
             , storage_index(in_index)
         {
@@ -103,7 +100,7 @@ public:
                 {
                     return source->GetEntityByIndex(storage_index).Value();
                 }
-                else // const vector<Entity>*
+                else // const Array<Entity>*
                 {
                     return (*source)[storage_index];
                 }
@@ -133,7 +130,7 @@ public:
         {
             ZoneScoped;
 
-            // std::visit를 사용하여 순회 로직을 실행합니다.
+            // std::visit를 사용하여 순회 로직을 실행
             std::visit([this]<typename Variant>(Variant&& source)
             {
                 using SourceType = std::decay_t<Variant>;
@@ -157,12 +154,12 @@ public:
                         ++storage_index;
                     }
                 }
-                else // const vector<Entity>*
+                else // const Array<Entity>*
                 {
                     assert(source);
 
                     const auto& entities = *source;
-                    while (storage_index < entities.size())
+                    while (storage_index < entities.Len())
                     {
                         if (query_data->IsEntityValid(entities[storage_index]))
                         {
@@ -176,9 +173,9 @@ public:
 
     private:
         QueryDataType* query_data;
-        size_t storage_index;
+        usize storage_index;
 
-        std::variant<IStorage*, const vector<Entity>*> iteration_source;
+        std::variant<IStorage*, const Array<Entity>*> iteration_source;
     };
 
     Iterator begin()
@@ -188,7 +185,7 @@ public:
 
     Iterator end()
     {
-        size_t end_index = 0;
+        usize end_index = 0;
         if constexpr (HasBasePool)
         {
             if (auto* pool = query_data.FindSmallestPool())
@@ -198,7 +195,7 @@ public:
         }
         else
         {
-            end_index = alive_entities_cache.size();
+            end_index = alive_entities_cache.Len();
         }
         return Iterator(this, end_index);
     }
@@ -271,8 +268,8 @@ decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
             "Optional<T> in a Query must be fetched by value, not by reference."
         );
 
-        using DecayedT = std::decay_t<typename T::InnerType>;
-        using WorldType = std::conditional_t<std::is_const_v<typename T::InnerType>, const World*, World*>;
+        using DecayedT = std::decay_t<typename T::ValueType>;
+        using WorldType = std::conditional_t<std::is_const_v<typename T::ValueType>, const World*, World*>;
 
         WorldType world_ptr = world;
         return world_ptr->template TryGetComponent<DecayedT>(entity);

@@ -3,14 +3,12 @@
 #include <ranges>
 
 #include "Gfx/RenderSubsystem.h"
-#include "Utility/StringUtils.h"
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_gpu.h"
 
 using namespace se::core::event;
 using namespace se::utility;
-using namespace se::utility::string;
 
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
@@ -19,18 +17,18 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     using namespace se::core::memory;
 
     // SDL_SetMemoryFunctions(
-    //     [](size_t size) static -> void*
+    //     [](usize size) static -> void*
     //     {
     //         return OsMemory::Allocate(size);
     //     },
-    //     [](size_t nmemb, size_t size) static -> void*
+    //     [](usize nmemb, usize size) static -> void*
     //     {
-    //         const size_t total_size = nmemb * size;
+    //         const usize total_size = nmemb * size;
     //         void* mem = OsMemory::Allocate(total_size);
     //         std::memset(mem, 0, total_size);
     //          return mem;
     //     },
-    //     [](void* mem, size_t size) static -> void*
+    //     [](void* mem, usize size) static -> void*
     //     {
     //         return OsMemory::Realloc(mem, size, alignof(max_align_t));
     //     },
@@ -40,17 +38,17 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
 
 bool PlatformSubsystem::Initialize()
 {
-    ConsoleLog(ELogLevel::Info, u8"Initializing Platform Subsystem...");
+    ConsoleLog(ELogLevel::Info, "Initializing Platform Subsystem...");
     if (!SDL_Init(sdl_init_flags))
     {
-        ConsoleLog(ELogLevel::Error, u8"SDL_Init failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "SDL_Init failed: {}", SDL_GetError());
         return false;
     }
-    ConsoleLog(ELogLevel::Info, u8"SDL_Init succeeded");
+    ConsoleLog(ELogLevel::Info, "SDL_Init succeeded");
 
     if (main_window_info.HasValue())
     {
-        ConsoleLog(ELogLevel::Info, u8"Initializing Window...");
+        ConsoleLog(ELogLevel::Info, "Initializing Window...");
 
         // const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
         if (const auto window_result = CreateWindow(*main_window_info))
@@ -59,24 +57,24 @@ bool PlatformSubsystem::Initialize()
         }
         else
         {
-            ConsoleLog(ELogLevel::Error, window_result.error().message);
+            ConsoleLog(ELogLevel::Error, "{}", window_result.Error().message);
         }
 
         SDL_ShowWindow(GetWindow(main_window_id));
-        ConsoleLog(ELogLevel::Info, u8"Window initialized");
+        ConsoleLog(ELogLevel::Info, "Window initialized");
     }
     return true;
 }
 
 void PlatformSubsystem::Release()
 {
-    ConsoleLog(ELogLevel::Info, u8"Releasing Platform Subsystem...");
+    ConsoleLog(ELogLevel::Info, "Releasing Platform Subsystem...");
 
     for (SDL_Window* window : windows | std::views::values)
     {
         SDL_DestroyWindow(window);
     }
-    windows.clear();
+    windows.Clear();
     main_window_id = 0;
 
     SDL_Quit();
@@ -100,21 +98,21 @@ void PlatformSubsystem::PrepareWindow(WindowDesc&& window_desc)
     main_window_info = std::move(window_desc);
 }
 
-std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
+Expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const WindowDesc& window_desc)
 {
-    const char* window_title_c = reinterpret_cast<const char*>(window_desc.title.c_str());
+    const char* window_title_c = window_desc.title.CStr();
     SDL_Window* new_window = SDL_CreateWindow(
         window_title_c,
-        window_desc.width,
-        window_desc.height,
+        static_cast<int>(window_desc.width),
+        static_cast<int>(window_desc.height),
         window_desc.sdl_window_flags
     );
 
     if (!new_window)
     {
-        return std::unexpected{
+        return Unexpected{
             WindowCreateError::WindowCreation(
-                ToU8String(std::format("SDL_CreateWindow failed: {}", SDL_GetError()))
+                se::String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
             )
         };
     }
@@ -129,9 +127,9 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
             if (!SDL_ClaimWindowForGPUDevice(device, new_window))
             {
                 SDL_DestroyWindow(new_window);
-                return std::unexpected{
+                return Unexpected{
                     WindowCreateError::GPUDeviceClaim(
-                        ToU8String(std::format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError()))
+                        se::String::Format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError())
                     )
                 };
             }
@@ -143,9 +141,9 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
             if (!SDL_SetGPUSwapchainParameters(device, new_window, composition, present_mode))
             {
                 SDL_DestroyWindow(new_window);
-                return std::unexpected{
+                return Unexpected{
                     WindowCreateError::SwapchainSetup(
-                        ToU8String(std::format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError()))
+                        se::String::Format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError())
                     )
                 };
             }
@@ -157,7 +155,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
 
 bool PlatformSubsystem::DestroyWindow(SDL_WindowID window_id)
 {
-    if (!windows.contains(window_id) || window_id == main_window_id)
+    if (!windows.Contains(window_id) || window_id == main_window_id)
     {
         return false;
     }
@@ -166,30 +164,30 @@ bool PlatformSubsystem::DestroyWindow(SDL_WindowID window_id)
     {
         if (SDL_GPUDevice* device = render_subsystem->GetGpuDevice())
         {
-            SDL_ReleaseWindowFromGPUDevice(device, windows.at(window_id));
+            SDL_ReleaseWindowFromGPUDevice(device, *windows.Find(window_id));
         }
     }
 
-    SDL_DestroyWindow(windows.at(window_id));
+    SDL_DestroyWindow(*windows.Find(window_id));
     UnregisterWindow(window_id);
     return true;
 }
 
 SDL_Window* PlatformSubsystem::GetWindow(SDL_WindowID window_id) const
 {
-    if (windows.contains(window_id))
+    if (Optional window_opt = windows.Find(window_id))
     {
-        return windows.at(window_id);
+        return *window_opt;
     }
     return nullptr;
 }
 
 void PlatformSubsystem::RegisterWindow(SDL_WindowID window_id, SDL_Window* window)
 {
-    windows[window_id] = window;
+    windows.Emplace(window_id, window);
 }
 
 void PlatformSubsystem::UnregisterWindow(SDL_WindowID window_id)
 {
-    windows.erase(window_id);
+    windows.Remove(window_id);
 }

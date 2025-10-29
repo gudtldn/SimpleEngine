@@ -4,12 +4,12 @@
 
 StringName StringName::None = StringName{};
 
-StringName StringName::Find(const char8* in_str)
+StringName StringName::Find(const char* in_str)
 {
-    return Find(std::u8string_view(in_str));
+    return Find(std::string_view(in_str));
 }
 
-StringName StringName::Find(std::u8string_view in_str)
+StringName StringName::Find(std::string_view in_str)
 {
     const StringNamePool& pool = StringNamePool::Get();
     const auto [temp_display_hash, temp_comparison_hash] = pool.Find(in_str);
@@ -25,12 +25,17 @@ StringName StringName::Find(std::u8string_view in_str)
     return result;
 }
 
-StringName::StringName(const char8* in_str)
-    : StringName(std::u8string_view(in_str))
+StringName::StringName(const char* in_str)
+    : StringName(std::string_view{ in_str })
 {
 }
 
-StringName::StringName(std::u8string_view in_str)
+StringName::StringName(const se::String& in_str)
+    : StringName(std::string_view{ in_str })
+{
+}
+
+StringName::StringName(std::string_view in_str)
 {
     StringNamePool& pool = StringNamePool::Get();
     const auto [temp_display_hash, temp_comparison_hash] = pool.FindOrEmplace(in_str);
@@ -43,11 +48,11 @@ StringName::StringName(std::u8string_view in_str)
 #endif
 }
 
-se::u8string StringName::ToString() const
+se::String StringName::ToString() const
 {
     if (display_hash == 0 && comparison_hash == 0)
     {
-        return u8"None";
+        return "None";
     }
 
     const StringNamePool& pool = StringNamePool::Get();

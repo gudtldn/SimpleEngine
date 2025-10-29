@@ -5,7 +5,9 @@
 #include <type_traits>
 #include <utility>
 
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -40,8 +42,8 @@ private:
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    unordered_map<refl::TypeId, vector<core::Function<void()>>> systems;
-    unordered_map<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
+    HashMap<refl::TypeId, Array<core::Function<void()>>> systems;
+    HashMap<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
 
 public:
     class EntityChain;
@@ -68,7 +70,7 @@ public:
     void DestroyEntity(Entity entity);
 
     /** 현재 살아있는 모든 Entity를 반환합니다. */
-    vector<Entity> GetAliveEntities() const;
+    Array<Entity> GetAliveEntities() const;
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType>
@@ -154,7 +156,7 @@ public:
     void AddSystem(Fn&& system_func)
     {
         const auto type_id = refl::TypeId::Get<S>();
-        systems[type_id].push_back([this, sys_func = std::forward<Fn>(system_func)] mutable
+        systems[type_id].Push([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::FunctionTraits<Fn>;
             std::tuple tuple = utility::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
@@ -174,9 +176,9 @@ public:
     void RunSchedule()
     {
         const auto type_id = refl::TypeId::Get<S>();
-        if (const auto it = systems.find(type_id); it != systems.end())
+        if (Optional system_opt = systems.Find(type_id))
         {
-            for (const core::Function<void()>& system : it->second)
+            for (const core::Function<void()>& system : *system_opt)
             {
                 system();
             }
@@ -222,11 +224,11 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        if (!component_storages.contains(type_id))
-        {
-            component_storages[type_id] = std::make_unique<ComponentStorage<RawType>>();
-        }
-        ComponentStorage<RawType>* wrapper = static_cast<ComponentStorage<RawType>*>(component_storages.at(type_id).get());
+        IStorage* storage = component_storages
+            .Entry(type_id)
+            .OrInsert(std::make_unique<ComponentStorage<RawType>>()).get();
+
+        auto* wrapper = static_cast<ComponentStorage<RawType>*>(storage);
         return wrapper->GetStorage();
     }
 
@@ -259,11 +261,7 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        if (component_storages.contains(type_id))
-        {
-            return component_storages.at(type_id).get();
-        }
-        return nullptr;
+        return component_storages.Find(type_id).ValueOr(nullptr).get();
     }
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
@@ -273,11 +271,7 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        if (component_storages.contains(type_id))
-        {
-            return component_storages.at(type_id).get();
-        }
-        return nullptr;
+        return component_storages.Find(type_id).ValueOr(nullptr).get();
     }
 
 public:

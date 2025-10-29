@@ -1,7 +1,8 @@
 #pragma once
-
 #include <tuple>
 #include <type_traits>
+
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
 namespace se::traits
@@ -19,7 +20,7 @@ struct FunctionTraits<R(Args...)>
     using ArgumentTypes = std::tuple<Args...>;
 
     /** 함수의 인자 개수 */
-    static constexpr size_t Arity = sizeof...(Args);
+    static constexpr usize Arity = sizeof...(Args);
 };
 
 // 함수 포인터

@@ -54,8 +54,8 @@ public:
     [[nodiscard]] constexpr bool operator==(const Vector4Impl& other) const;
     [[nodiscard]] constexpr bool operator!=(const Vector4Impl& other) const;
 
-    [[nodiscard]] constexpr T& operator[](size_t index);
-    [[nodiscard]] constexpr T operator[](size_t index) const;
+    [[nodiscard]] constexpr T& operator[](usize index);
+    [[nodiscard]] constexpr T operator[](usize index) const;
 
 public:
     [[nodiscard]] constexpr T Length3() const;
@@ -261,14 +261,14 @@ constexpr bool Vector4Impl<T>::operator!=(const Vector4Impl& other) const
 }
 
 template <traits::FloatingType T>
-constexpr T& Vector4Impl<T>::operator[](size_t index)
+constexpr T& Vector4Impl<T>::operator[](usize index)
 {
     assert(index < 4);
     return (&x)[index];
 }
 
 template <traits::FloatingType T>
-constexpr T Vector4Impl<T>::operator[](size_t index) const
+constexpr T Vector4Impl<T>::operator[](usize index) const
 {
     assert(index < 4);
     return (&x)[index];

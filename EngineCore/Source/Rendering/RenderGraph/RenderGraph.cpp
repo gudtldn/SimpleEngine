@@ -7,10 +7,12 @@
 #include <ranges>
 #include <utility>
 
+#include "Core/Container/HashMap.h"
+#include "Core/Container/Queue.h"
 #include "Core/Logging/Logging.h"
 #include "Rendering/Manager/PSOManager.h"
-#include "tracy/Tracy.hpp"
 
+#include "tracy/Tracy.hpp"
 
 namespace se::rendering
 {
@@ -35,8 +37,8 @@ void RenderGraph::Compile()
     {
         ZoneScoped;
         {
-            [[maybe_unused]] std::string zone_name = std::format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
-            ZoneName(zone_name.c_str(), zone_name.size());
+            [[maybe_unused]] String zone_name = String::Format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
+            ZoneName(zone_name.CStr(), zone_name.ByteLen());
         }
         RenderGraphBuilder builder(*this, pass_node);
         pass_node.pass_object->Setup(builder);
@@ -49,12 +51,12 @@ void RenderGraph::Compile()
         {
 #if SE_DEBUG_BUILD
             // 리소스가 존재하는지 확인
-            if (!(write_handle && write_handle.index < resource_nodes.size()))
+            if (!(write_handle && write_handle.index < resource_nodes.Len()))
             {
                 const IRenderPass* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Invalid resource handle. Check the {}::Setup() logic",
+                    "Invalid resource handle. Check the {}::Setup() logic",
                     typeid(*pass_object).name()
                 );
                 assert(false && "Invalid resource handle.");
@@ -70,7 +72,7 @@ void RenderGraph::Compile()
                 const IRenderPass* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Resource {} is not initialized. Check the {}::Setup() logic",
+                    "Resource {} is not initialized. Check the {}::Setup() logic",
                     resource_node.name.ToString(),
                     typeid(*pass_object).name()
                 );
@@ -85,10 +87,10 @@ void RenderGraph::Compile()
                 // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
                 ConsoleLog(
                     ELogLevel::Error,
-                    u8"Multiple write passes detected for the same resource.\n"
-                    u8"  - Resource Name: {}\n"
-                    u8"  - Existing Writer Pass: {}\n"
-                    u8"  - Conflicting Writer Pass: {}",
+                    "Multiple write passes detected for the same resource.\n"
+                    "  - Resource Name: {}\n"
+                    "  - Existing Writer Pass: {}\n"
+                    "  - Conflicting Writer Pass: {}",
                     resource_node.name.ToString(),
                     typeid(*existing_writer_pass).name(),
                     typeid(*pass_object).name()
@@ -103,8 +105,8 @@ void RenderGraph::Compile()
 
     // 2. Pass Culling 단계
     // 사용되고 있는 리소스를 추적해서 패스를 활성화로 만들기
-    queue<RGResourceHandle> active_resources;
-    for (const auto& [n, resource_node] : resource_nodes | std::views::enumerate)
+    Queue<RGResourceHandle> active_resources;
+    for (const auto [n, resource_node] : resource_nodes | std::views::enumerate)
     {
         IRGResource* resource = resource_node.resource.get();
         if (
@@ -112,19 +114,18 @@ void RenderGraph::Compile()
             || dynamic_cast<RGExternalBuffer*>(resource)
         )
         {
-            active_resources.push({ static_cast<size_t>(n) });
+            active_resources.Push({ static_cast<usize>(n) });
         }
     }
 
     // 역방향으로 그래프를 순회하며 활성 패스를 찾아냄
-    while (!active_resources.empty())
+    while (Optional active_resource_opt = active_resources.Pop())
     {
-        const auto [active_handle_idx] = active_resources.front();
-        active_resources.pop();
+        const auto [active_handle_idx] = *active_resource_opt;
 
         if (const RGPassNode* writer_pass = resource_nodes[active_handle_idx].writer)
         {
-            const size_t pass_index = writer_pass - &pass_nodes[0];
+            const isize pass_index = writer_pass - &pass_nodes[0];
             RGPassNode& pass_to_activate = pass_nodes[pass_index];
 
             // 이미 활성화 상태면 건너뛰기
@@ -139,13 +140,13 @@ void RenderGraph::Compile()
             // pass_to_activate가 사용하고 있는 Read 리소스를 active_resources에 추가
             for (const RGResourceHandle& resource_handle : pass_to_activate.reads)
             {
-                active_resources.push(resource_handle);
+                active_resources.Push(resource_handle);
             }
         }
     }
 
     // 3. Pass간 위상정렬 수행
-    unordered_map<const RGPassNode*, uint32> in_degrees;
+    HashMap<const RGPassNode*, uint32> in_degrees;
 
     // 진입 차수 계산 (각 패스가 몇 개의 다른 패스에 의존하는지 계산)
     for (const RGPassNode& pass_node : pass_nodes)
@@ -170,22 +171,20 @@ void RenderGraph::Compile()
     }
 
     // 진입 차수가 0인 패스(누구에게도 의존하지 않는 패스)들을 큐에 추가
-    queue<const RGPassNode*> ready_queue;
+    Queue<const RGPassNode*> ready_queue;
     for (const RGPassNode& pass_node : pass_nodes)
     {
         if (!pass_node.culled && in_degrees[&pass_node] == 0)
         {
-            ready_queue.push(&pass_node);
+            ready_queue.Push(&pass_node);
         }
     }
 
     // 위상 정렬 수행
-    while (!ready_queue.empty())
+    while (Optional pass_node_opt = ready_queue.Pop())
     {
-        const RGPassNode* pass_node = ready_queue.front();
-        ready_queue.pop();
-
-        compiled_passes.push_back(pass_node);
+        const RGPassNode* pass_node = *pass_node_opt;
+        compiled_passes.Push(pass_node);
 
         // 현재 패스가 쓴 리소스를 읽는 다른 패스들의 의존성을 해결
         for (const RGResourceHandle& write_handle : pass_node->writes)
@@ -205,7 +204,7 @@ void RenderGraph::Compile()
                         --in_degrees[&potential_reader_pass];
                         if (in_degrees[&potential_reader_pass] == 0)
                         {
-                            ready_queue.push(&potential_reader_pass);
+                            ready_queue.Push(&potential_reader_pass);
                         }
                     }
                 }
@@ -214,27 +213,27 @@ void RenderGraph::Compile()
     }
 
     // 순환 의존성 확인
-    const size_t active_pass_count = std::ranges::count_if(pass_nodes, [](const RGPassNode& pass_node)
+    const usize active_pass_count = std::ranges::count_if(pass_nodes, [](const RGPassNode& pass_node)
     {
         return !pass_node.culled;
     });
 
-    if (compiled_passes.size() != active_pass_count)
+    if (compiled_passes.Len() != active_pass_count)
     {
-        vector<const RGPassNode*> circular_pass_node;
+        Array<const RGPassNode*> circular_pass_node;
         for (const auto& [pass_node, degree] : in_degrees)
         {
             if (degree > 0)
             {
-                circular_pass_node.push_back(pass_node);
+                circular_pass_node.Push(pass_node);
             }
         }
 
-        ConsoleLog(ELogLevel::Fatal, u8"A cycle was detected in the render graph!");
-        ConsoleLog(ELogLevel::Fatal, u8"The following subsystems are involved in a circular dependency:");
+        ConsoleLog(ELogLevel::Fatal, "A cycle was detected in the render graph!");
+        ConsoleLog(ELogLevel::Fatal, "The following subsystems are involved in a circular dependency:");
         for (const RGPassNode* node : circular_pass_node)
         {
-            ConsoleLog(ELogLevel::Fatal, u8"- {}", node->name.ToString());
+            ConsoleLog(ELogLevel::Fatal, "- {}", node->name.ToString());
         }
 
         assert(false && "A cycle was detected in the render graph!");
@@ -254,8 +253,8 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
     {
         ZoneScoped;
         {
-            [[maybe_unused]] std::string zone_name = std::format("RenderGraph::Execute - {}::Execute", pass_node->name.ToString());
-            ZoneName(zone_name.c_str(), zone_name.size());
+            [[maybe_unused]] String zone_name = String::Format("RenderGraph::Execute - {}::Execute", pass_node->name.ToString());
+            ZoneName(zone_name.CStr(), zone_name.ByteLen());
         }
 
         for (const auto [write_handle_idx] : pass_node->writes)
@@ -278,10 +277,10 @@ void RenderGraph::Clear()
         }
     }
 
-    pass_nodes.clear();
-    resource_nodes.clear();
-    resource_name_map.clear();
-    compiled_passes.clear();
+    pass_nodes.Clear();
+    resource_nodes.Clear();
+    resource_name_map.Clear();
+    compiled_passes.Clear();
 }
 
 RGResourceHandle RenderGraph::ImportTexture(const StringName& name, SDL_GPUTexture* texture)
@@ -308,9 +307,9 @@ RGResourceHandle RenderGraph::ImportBuffer(const StringName& name, SDL_GPUBuffer
 
 RGResourceHandle RenderGraph::GetResourceHandleByName(const StringName& name)
 {
-    if (const auto it = resource_name_map.find(name); it != resource_name_map.end())
+    if (Optional resource_name_opt = resource_name_map.Find(name))
     {
-        return it->second;
+        return *resource_name_opt;
     }
 
     const RGResourceHandle new_handle = RegisterResource({ .name = name });
@@ -321,8 +320,8 @@ RGResourceHandle RenderGraph::GetResourceHandleByName(const StringName& name)
 
 RGResourceHandle RenderGraph::RegisterResource(RGResourceNode&& node)
 {
-    const size_t index = resource_nodes.size();
-    resource_nodes.push_back(std::move(node));
+    const usize index = resource_nodes.Len();
+    resource_nodes.Push(std::move(node));
     return { .index = index };
 }
 
@@ -366,18 +365,18 @@ RGResourceHandle RenderGraphBuilder::CreateBuffer(const StringName& name, const 
 
 void RenderGraphBuilder::Read(RGResourceHandle handle)
 {
-    pass_node_ref.reads.emplace(handle);
+    pass_node_ref.reads.Emplace(handle);
 }
 
 void RenderGraphBuilder::Write(RGResourceHandle handle)
 {
-    pass_node_ref.writes.emplace(handle);
+    pass_node_ref.writes.Emplace(handle);
 }
 
 
 SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) const
 {
-    if (handle.index < graph_ref.resource_nodes.size())
+    if (handle.index < graph_ref.resource_nodes.Len())
     {
         IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
         if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
@@ -390,7 +389,7 @@ SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) co
 
 SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGResourceHandle handle) const
 {
-    if (handle.index < graph_ref.resource_nodes.size())
+    if (handle.index < graph_ref.resource_nodes.Len())
     {
         IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
         if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정

@@ -2,7 +2,7 @@
 
 #include <ranges>
 
-#include "Core/Containers/Containers.h"
+#include "Core/Container/HashMap.h"
 #include "Core/Logging/Logging.h"
 #include "Core/Memory/OsMemory.h"
 
@@ -13,23 +13,23 @@ namespace
 {
 struct LeakInfo
 {
-    size_t size;
+    usize size;
     std::stacktrace trace;
 };
 
 // <메모리 주소, 누수 정보>를 저장하는 Map
-se::unordered_map<const void*, LeakInfo> GLeakedMemoryMap;
+se::HashMap<const void*, LeakInfo> GLeakedMemoryMap;
 TracyLockable(std::mutex, GMapMutex);
 }
 
 namespace se::core::memory
 {
-std::atomic<size_t> MemoryTracker::TotalAllocated = 0;
-std::atomic<size_t> MemoryTracker::AllocationCount = 0;
+std::atomic<usize> MemoryTracker::TotalAllocated = 0;
+std::atomic<usize> MemoryTracker::AllocationCount = 0;
 
 void MemoryTracker::TrackAllocation(const void* address)
 {
-    const size_t allocated_size = OsMemory::GetAllocatedSize(address);
+    const usize allocated_size = OsMemory::GetAllocatedSize(address);
 
 #ifdef SE_DEBUG_BUILD
     {
@@ -48,11 +48,11 @@ void MemoryTracker::TrackAllocation(const void* address)
 
 void MemoryTracker::TrackDeallocation(const void* address)
 {
-    const size_t allocated_size = OsMemory::GetAllocatedSize(address);
+    const usize allocated_size = OsMemory::GetAllocatedSize(address);
 
 #ifdef SE_DEBUG_BUILD
     std::scoped_lock lock(GMapMutex);
-    GLeakedMemoryMap.erase(address);
+    GLeakedMemoryMap.Remove(address);
 #endif
 
     // 메모리 트래킹 해제
@@ -64,17 +64,17 @@ bool MemoryTracker::CheckForLeaks()
 {
 #ifdef SE_DEBUG_BUILD
     std::scoped_lock lock(GMapMutex);
-    if (!GLeakedMemoryMap.empty())
+    if (!GLeakedMemoryMap.IsEmpty())
     {
-        ConsoleLog(ELogLevel::Error, u8"--- MEMORY LEAKS DETECTED ---");
+        ConsoleLog(ELogLevel::Error, "--- MEMORY LEAKS DETECTED ---");
         for (const auto& [address, info] : GLeakedMemoryMap)
         {
-            ConsoleLog(ELogLevel::Error, u8"Leak: {} bytes at {:p}, callstack:", info.size, address);
+            ConsoleLog(ELogLevel::Error, "Leak: {} bytes at {:p}, callstack:", info.size, address);
 
             // stacktrace 출력
             for (const std::stacktrace_entry& entry : info.trace | std::views::reverse)
             {
-                ConsoleLog(ELogLevel::Error, u8"    {}", entry);
+                ConsoleLog(ELogLevel::Error, "    {}", entry);
             }
         }
         return true;

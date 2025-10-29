@@ -3,10 +3,12 @@
 #include <concepts>
 #include <utility>
 
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
 #define SE_CONCAT_TOKEN_IMPL(a, b) a##b
 #define SE_CONCAT_TOKEN(a, b) SE_CONCAT_TOKEN_IMPL(a, b)
 #define SE_UNIQUE_TOKEN(name) SE_CONCAT_TOKEN(name, __COUNTER__)
-#define SE_STRINGIFY(x) SE_CONCAT_TOKEN(u8, #x)
+#define SE_STRINGIFY(x) #x
 
 
 namespace se::utility
@@ -14,9 +16,9 @@ namespace se::utility
 /**
  * 특정 값(size)을 지정된 정렬(AlignSize) 크기로 올림(round up)합니다.
  */
-template <size_t AlignSize>
+template <usize AlignSize>
     requires (std::has_single_bit(AlignSize))
-constexpr size_t AlignedSize(size_t size)
+constexpr usize AlignedSize(usize size)
 {
     return (size + AlignSize - 1) & ~(AlignSize - 1);
 }
@@ -24,9 +26,9 @@ constexpr size_t AlignedSize(size_t size)
 /**
  * 특정 타입(T)의 크기를 지정된 정렬(AlignSize) 크기로 올림(round up)합니다.
  */
-template <size_t AlignSize, typename T>
+template <usize AlignSize, typename T>
     requires (std::has_single_bit(AlignSize))
-constexpr size_t AlignedSize()
+constexpr usize AlignedSize()
 {
     return AlignedSize<AlignSize>(sizeof(T));
 }

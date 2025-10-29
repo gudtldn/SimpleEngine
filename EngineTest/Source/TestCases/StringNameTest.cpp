@@ -1,4 +1,8 @@
 ﻿#include "doctest/doctest.h"
+
+#include <thread>
+#include <unordered_set>
+
 #include "SimpleEngine/Core/Types/StringName.h"
 
 
@@ -12,10 +16,10 @@ TEST_CASE("1. Core Functionality and Comparisons")
     // 테스트 시작 전 풀을 초기화하는 것이 좋습니다 (테스트 간 독립성).
     // 여기서는 Get()을 통해 싱글턴에 접근하므로 상태가 유지됩니다.
 
-    StringName name_a(u8"Hello");
-    StringName name_b(u8"hello");
-    StringName name_c(u8"World");
-    StringName name_d(u8"Hello");
+    StringName name_a("Hello");
+    StringName name_b("hello");
+    StringName name_c("World");
+    StringName name_d("Hello");
 
     SUBCASE("Case-Insensitive Comparison")
     {
@@ -39,9 +43,9 @@ TEST_CASE("1. Core Functionality and Comparisons")
     SUBCASE("ToString functionality")
     {
         // ToString()은 원본 문자열을 반환해야 함
-        CHECK(name_a.ToString() == u8"Hello");
-        CHECK(name_b.ToString() == u8"hello");
-        CHECK(name_c.ToString() == u8"World");
+        CHECK(name_a.ToString() == "Hello");
+        CHECK(name_b.ToString() == "hello");
+        CHECK(name_c.ToString() == "World");
     }
 }
 
@@ -49,10 +53,10 @@ TEST_CASE("2. 'None' Value Handling")
 {
     SUBCASE("Various casings of 'none' should resolve to StringName::None")
     {
-        StringName none1(u8"none");
-        StringName none2(u8"None");
-        StringName none3(u8"NONE");
-        StringName none4(u8"nOnE");
+        StringName none1("none");
+        StringName none2("None");
+        StringName none3("NONE");
+        StringName none4("nOnE");
 
         CHECK(none1 == StringName::None);
         CHECK(none2 == StringName::None);
@@ -65,7 +69,7 @@ TEST_CASE("2. 'None' Value Handling")
 
     SUBCASE("Empty string should resolve to StringName::None")
     {
-        StringName empty_name(u8"");
+        StringName empty_name("");
         CHECK(empty_name == StringName::None);
         CHECK(empty_name.GetDisplayHash() == 0);
     }
@@ -78,7 +82,7 @@ TEST_CASE("2. 'None' Value Handling")
 
         CHECK(StringName::None.GetDisplayHash() == 0);
         CHECK(StringName::None.GetComparisonHash() == 0);
-        CHECK(StringName::None.ToString() == u8"None");
+        CHECK(StringName::None.ToString() == "None");
     }
 }
 
@@ -93,12 +97,13 @@ TEST_CASE("3. Thread Safety with Reader-Writer Lock")
     std::vector<std::thread> threads;
 
     // 여러 스레드에서 공유하며 사용할 문자열 데이터
-    const std::vector<std::u8string_view> test_strings = {
-        u8"PlayerCharacter", u8"playercharacter", u8"EnemyAIController",
-        u8"RenderComponent", u8"RENDERCOMPONENT", u8"PhysicsSystem",
-        u8"AudioEmitter", u8"GameInstance", u8"NONE" // 'None' 케이스 포함
+    const std::vector<std::string_view> test_strings = {
+        "PlayerCharacter", "playercharacter", "EnemyAIController",
+        "RenderComponent", "RENDERCOMPONENT", "PhysicsSystem",
+        "AudioEmitter", "GameInstance", "NONE" // 'None' 케이스 포함
     };
 
+    threads.reserve(num_threads);
     for (int i = 0; i < num_threads; ++i)
     {
         threads.emplace_back([&test_strings, i]
@@ -112,15 +117,14 @@ TEST_CASE("3. Thread Safety with Reader-Writer Lock")
                 StringName name(str);
 
                 // 생성된 StringName의 유효성 검사
-                if (str == u8"NONE" || str == u8"none")
+                if (str == "NONE" || str == "none")
                 {
                     REQUIRE(name == StringName::None);
                 }
                 else
                 {
                     // 대소문자 변환 후 비교가 일치하는지 확인
-                    std::u8string lower_str;
-                    for (char8 c : str) { lower_str += static_cast<char8>(std::tolower(c)); }
+                    se::String lower_str = se::String{ str }.ToLower();
 
                     StringName lower_name(lower_str);
                     REQUIRE(name == lower_name);
@@ -138,9 +142,9 @@ TEST_CASE("3. Thread Safety with Reader-Writer Lock")
 
     // 스레드 작업 후 최종 상태 검증
     // 데이터 레이스 컨디션이 있었다면 이 값들이 깨졌을 수 있음
-    StringName player(u8"PlayerCharacter");
-    StringName player_lower(u8"playercharacter");
-    StringName physics(u8"PhysicsSystem");
+    StringName player("PlayerCharacter");
+    StringName player_lower("playercharacter");
+    StringName physics("PhysicsSystem");
 
     CHECK(player == player_lower);
     CHECK(player.GetDisplayHash() != player_lower.GetDisplayHash());
@@ -152,9 +156,9 @@ TEST_CASE("4. STL Container Compatibility")
     // std::hash 특수화가 잘 동작하는지 확인
     std::unordered_set<StringName> name_set;
 
-    StringName name1(u8"Weapon");
-    StringName name2(u8"Armor");
-    StringName name3(u8"weapon"); // name1과 같음
+    StringName name1("Weapon");
+    StringName name2("Armor");
+    StringName name3("weapon"); // name1과 같음
 
     name_set.insert(name1);
     name_set.insert(name2);
@@ -172,18 +176,18 @@ TEST_CASE("4. STL Container Compatibility")
 
 TEST_CASE("5. StringName Find Test")
 {
-    StringName name1(u8"TestName");
+    StringName name1("TestName");
 
-    const StringName find1 = StringName::Find(u8"TestName");
+    const StringName find1 = StringName::Find("TestName");
     CHECK(find1 == name1);
 
-    const StringName find2 = StringName::Find(u8"testName");
+    const StringName find2 = StringName::Find("testName");
     CHECK(find2 == name1);
 
-    const StringName find3 = StringName::Find(u8"AAAAAA");
+    const StringName find3 = StringName::Find("AAAAAA");
     CHECK(find3 == StringName::None);
 
-    const StringName find4 = StringName::Find(u8"NONE");
+    const StringName find4 = StringName::Find("NONE");
     CHECK(find4 == StringName::None);
 }
 }

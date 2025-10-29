@@ -1,7 +1,7 @@
 ﻿#include "doctest/doctest.h"
 
 #include <string>
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 
 
 TEST_SUITE("SimpleEngine.Types.Optional")
@@ -94,9 +94,6 @@ TEST_CASE("Optional for value types")
         CHECK(c_opt.Value() == 42);
 
         CHECK(std::move(opt).Value() == 42);
-
-        Optional<int> empty_opt;
-        CHECK_THROWS_AS((void)empty_opt.Value(), std::bad_optional_access);
     }
 
     SUBCASE("Pointer-like access")
@@ -153,12 +150,12 @@ TEST_CASE("Optional for value types")
     SUBCASE("transform")
     {
         Optional<int> opt(21);
-        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
         CHECK(transformed.HasValue());
         CHECK(*transformed == "42");
 
         Optional<int> empty_opt;
-        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         CHECK_FALSE(transformed_empty.HasValue());
     }
 
@@ -227,9 +224,6 @@ TEST_CASE("Optional for reference types (Optional<T&>)")
 
         x = 30;
         CHECK(*opt == 30);
-
-        Optional<int&> empty_opt;
-        CHECK_THROWS_AS((void)empty_opt.Value(), std::bad_optional_access);
     }
 
     SUBCASE("Assignment")
@@ -290,12 +284,12 @@ TEST_CASE("Optional for reference types (Optional<T&>)")
     {
         int x = 21;
         Optional<int&> opt(x);
-        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
         CHECK(transformed.HasValue());
         CHECK(*transformed == "42");
 
         Optional<int&> empty_opt;
-        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         CHECK_FALSE(transformed_empty.HasValue());
     }
 }

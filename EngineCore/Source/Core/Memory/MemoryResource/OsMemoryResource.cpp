@@ -4,15 +4,15 @@
 
 namespace se::core::memory::memory_resource
 {
-void* OsMemoryResource::do_allocate(size_t size, size_t align)
+void* OsMemoryResource::do_allocate(usize size, usize align)
 {
     return OsMemory::Allocate(size, align);
 }
 
 void OsMemoryResource::do_deallocate(
     void* ptr,
-    [[maybe_unused]] size_t size,
-    [[maybe_unused]] size_t align
+    [[maybe_unused]] usize size,
+    [[maybe_unused]] usize align
 )
 {
     OsMemory::Free(ptr);

@@ -1,7 +1,6 @@
 #pragma once
 #include <string_view>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
@@ -14,10 +13,10 @@ namespace se::refl
 struct PropertyMetadata
 {
     // 에디터에 표시될 이름
-    std::u8string_view display_name;
+    std::string_view display_name;
 
     // 에디터에 표시될 ToopTip
-    std::u8string_view tooltip;
+    std::string_view tooltip;
 
     // // 숫자 슬라이더 min/max
     // float min_value = 0.0f;
@@ -33,13 +32,13 @@ struct PropertyMetadata
 struct PropertyInfo
 {
     // Property 이름
-    std::u8string_view name; // TODO: C++26때 char8_t로 이름을 가져올 수 있다면 u8string_view로 변경
+    std::string_view name;
 
     // Property 크기
-    size_t size;
+    usize size;
 
     // Property가 속하는 클래스/구조체로부터 떨어진 거리
-    size_t offset;
+    usize offset;
 
     // Property에 대한 컴파일타임 타입 식별자
     TypeId type_id;
@@ -54,13 +53,13 @@ struct PropertyInfo
 struct TypeInfo
 {
     // 클래스/구조체 이름
-    std::u8string_view name; // TODO: C++26때 char8_t로 이름을 가져올 수 있다면 u8string_view로 변경
+    std::string_view name;
 
     // 클래스/구조체 총합 크기
-    size_t size;
+    usize size;
 
     // 클래스/구조체의 멤버 변수(Property) 목록
-    std::vector<PropertyInfo> properties; // TODO: C++26때 std::array로 바꿔야 할 수 있음
+    Array<PropertyInfo> properties; // TODO: C++26때 FixedArray로 바꿔야 할 수 있음
 
     // 컴파일타임 타입 식별자
     TypeId type_id;

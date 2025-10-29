@@ -4,7 +4,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "SimpleEngine/Core/Containers/Optional.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/TypeUtils.h"
 #include "SimpleEngine/World/Entity.h"
@@ -64,7 +64,8 @@ concept IsRequiredComponent = IsFetchTag<T> && !(traits::IsSpecializationOf<T, O
 template <template <typename> typename ConditionTag, typename... Ts>
     requires requires { (ConditionTag<Ts>::Value, ...); }
 using ExtractTypes = utility::TupleCat<
-    std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
+    std::conditional_t < ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>
+...
 >;
 
 template <template <typename...> typename ConditionTag, typename... Ts>
@@ -76,9 +77,20 @@ SE_DEFINE_TYPE_CONDITION_TAG(CondPredicateTag, IsRequiredComponent<T>);         
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (traits::IsSpecializationOf<T, With>));       // With<...> 태그
 SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (traits::IsSpecializationOf<T, Without>)); // Without<...> 태그
 
-template <typename T> struct RemoveOptionalImpl { using Type = T; };
-template <typename T> struct RemoveOptionalImpl<Optional<T>> { using Type = T; };
-template <typename T> using RemoveOptional = RemoveOptionalImpl<T>::Type;
+template <typename T>
+struct RemoveOptionalImpl
+{
+    using Type = T;
+};
+
+template <typename T>
+struct RemoveOptionalImpl<Optional<T>>
+{
+    using Type = T;
+};
+
+template <typename T>
+using RemoveOptional = RemoveOptionalImpl<T>::Type;
 }
 
 /**
@@ -152,7 +164,7 @@ template <typename... Ts>
 IStorage* QueryData<Ts...>::FindSmallestPool()
 {
     // 순회의 기준이 될 PredicateTypes(필수 컴포넌트 + With)의 총 개수
-    constexpr size_t pool_size = std::tuple_size_v<PredicateTypes>;
+    constexpr usize pool_size = std::tuple_size_v<PredicateTypes>;
     if constexpr (pool_size == 0)
     {
         return nullptr;

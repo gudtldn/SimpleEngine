@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Containers/Containers.h"
+
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Types/StringName.h"
@@ -16,9 +17,9 @@ namespace se::rendering
 /** 개별 객체의 렌더링 정보 */
 struct EntityDrawInfo
 {
+    Matrix4x4 mvp_matrix;
     uint32 mesh_id;
     uint32 material_id;
-    Matrix4x4 mvp_matrix;
 };
 
 /**
@@ -41,6 +42,6 @@ private:
     const uint32 height;
 
     world::World& world_ref;
-    vector<EntityDrawInfo> draw_infos;
+    Array<EntityDrawInfo> draw_infos;
 };
 }

@@ -3,7 +3,8 @@
 #include <memory>
 #include <utility>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
@@ -92,13 +93,13 @@ private:
 
 private:
     // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
-    unordered_map<refl::TypeId, std::unique_ptr<ISubsystemBase>> subsystems;
+    HashMap<refl::TypeId, std::unique_ptr<ISubsystemBase>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
-    vector<ISubsystemBase*> sorted_subsystems;
+    Array<ISubsystemBase*> sorted_subsystems;
 
     // Update가 필요한 Subsystem 목록
-    vector<IUpdatable*> updatable_systems;
+    Array<IUpdatable*> updatable_systems;
 
     // Engine에서 사용할 ThreadPool과 TaskScheduler
     std::unique_ptr<concurrency::ThreadPool> thread_pool;
@@ -111,9 +112,9 @@ template <typename T, typename... Args>
 T* Engine::RegisterSubsystem(Args&&... args)
 {
     const auto type_id = refl::TypeId::Get<T>();
-    if (subsystems.contains(type_id))
+    if (Optional subsystem = subsystems.Find(type_id))
     {
-        return static_cast<T*>(subsystems[type_id].get());
+        return static_cast<T*>(subsystem->get());
     }
 
     auto sub_system = std::make_unique<T>(std::forward<Args>(args)...);
@@ -123,10 +124,10 @@ T* Engine::RegisterSubsystem(Args&&... args)
 
     if constexpr (std::derived_from<T, IUpdatable>)
     {
-        updatable_systems.push_back(static_cast<IUpdatable*>(sub_system_ptr));
+        updatable_systems.Push(static_cast<IUpdatable*>(sub_system_ptr));
     }
 
-    ConsoleLog(ELogLevel::Debug, u8"Registered Subsystem: {}", refl::GetTypeSignature<T>());
+    ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", refl::GetTypeSignature<T>());
     return sub_system_ptr;
 }
 
@@ -135,9 +136,9 @@ template <typename T>
 T* Engine::GetSubsystem() const
 {
     const auto type_id = refl::TypeId::Get<T>();
-    if (subsystems.contains(type_id))
+    if (Optional subsystem = subsystems.Find(type_id))
     {
-        return static_cast<T*>(subsystems.at(type_id).get());
+        return static_cast<T*>(subsystem->get());
     }
     return nullptr;
 }

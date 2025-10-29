@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
+#include "SimpleEngine/Core/Container/Set.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
 #include "SimpleEngine/Rendering/RenderGraph/RGResourceHandle.h"
@@ -24,8 +25,8 @@ struct RGPassNode
 {
     StringName name;
     std::unique_ptr<IRenderPass> pass_object;
-    set<RGResourceHandle> reads;
-    set<RGResourceHandle> writes;
+    Set<RGResourceHandle> reads;
+    Set<RGResourceHandle> writes;
 
     // RenderGraph::Compile() 단계에서 채워질 정보들
     bool culled = true; // 이번 프레임에서 사용 안하는지 여부 (Compile때 false로 변경)
@@ -91,13 +92,13 @@ private:
     GpuResourcePool resource_pool;
 
     // StringName으로 리소스 핸들을 찾기 위한 Map
-    unordered_map<StringName, RGResourceHandle> resource_name_map;
+    HashMap<StringName, RGResourceHandle> resource_name_map;
 
-    vector<RGPassNode> pass_nodes;
-    vector<RGResourceNode> resource_nodes;
+    Array<RGPassNode> pass_nodes;
+    Array<RGResourceNode> resource_nodes;
 
     // 컴파일 후 정렬된 Pass의 순서
-    vector<const RGPassNode*> compiled_passes;
+    Array<const RGPassNode*> compiled_passes;
 };
 
 /**
@@ -164,8 +165,9 @@ PassType& RenderGraph::AddPass(Args&&... args)
     auto pass_ptr = std::make_unique<PassType>(std::forward<Args>(args)...);
     PassType* raw_ptr = pass_ptr.get();
 
-    RGPassNode& node = pass_nodes.emplace_back();
-    node.name = StringName(utility::string::ToU8String(refl::GetFullTypeName<PassType>()));
+    const usize idx = pass_nodes.Emplace();
+    RGPassNode& node = pass_nodes[idx];
+    node.name = StringName{ refl::GetFullTypeName<PassType>() };
     node.pass_object = std::move(pass_ptr);
 
     return *raw_ptr;

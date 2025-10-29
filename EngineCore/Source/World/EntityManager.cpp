@@ -10,15 +10,14 @@ Entity EntityManager::Create()
     uint32 id;
 
     // 재활용 가능한 ID 있으면 우선 사용
-    if (!free_ids.empty())
+    if (Optional<uint32> id_opt = free_ids.Pop())
     {
-        id = free_ids.back();
-        free_ids.pop_back();
+        id = *id_opt;
     }
     else
     {
         id = next_id.fetch_add(1, std::memory_order_relaxed);
-        entity_records.emplace_back();
+        entity_records.Emplace();
     }
 
     EntityRecord& record = entity_records[id];
@@ -30,7 +29,7 @@ Entity EntityManager::Create()
 
 void EntityManager::Destroy(Entity entity)
 {
-    if (entity.id >= entity_records.size())
+    if (entity.id >= entity_records.Len())
     {
         return;
     }
@@ -47,18 +46,18 @@ void EntityManager::Destroy(Entity entity)
     ++record.generation; // 세대 변경
 
     // ID 재활용용 큐에 저장
-    free_ids.push_back(entity.id);
+    free_ids.Push(entity.id);
 }
 
-vector<Entity> EntityManager::GetAliveEntities() const
+Array<Entity> EntityManager::GetAliveEntities() const
 {
-    vector<Entity> alive_entities;
-    alive_entities.reserve(next_id);
+    Array<Entity> alive_entities;
+    alive_entities.Reserve(next_id);
     for (uint32 id = 0; id < next_id; ++id)
     {
         if (entity_records[id].alive)
         {
-            alive_entities.push_back({ id, entity_records[id].generation });
+            alive_entities.Push({ id, entity_records[id].generation });
         }
     }
     return alive_entities;
@@ -66,7 +65,7 @@ vector<Entity> EntityManager::GetAliveEntities() const
 
 bool EntityManager::IsValid(Entity entity) const
 {
-    if (entity.id >= entity_records.size())
+    if (entity.id >= entity_records.Len())
     {
         return false;
     }

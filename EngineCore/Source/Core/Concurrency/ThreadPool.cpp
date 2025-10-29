@@ -17,7 +17,7 @@ ThreadPool::ThreadPool(uint32 num_threads)
     assert(!Instance && "ThreadPool instance is already created!");
     Instance = this;
 
-    ConsoleLog(ELogLevel::Info, u8"Creating ThreadPool...");
+    ConsoleLog(ELogLevel::Info, "Creating ThreadPool...");
 
     // Worker Thread 생성
     for (auto [n, thread] : worker_threads | std::views::enumerate)
@@ -34,10 +34,10 @@ ThreadPool::~ThreadPool()
     assert(Instance == this && "ThreadPool instance is not created!");
     Instance = nullptr;
 
-    ConsoleLog(ELogLevel::Info, u8"Destroying ThreadPool...");
+    ConsoleLog(ELogLevel::Info, "Destroying ThreadPool...");
     {
         std::scoped_lock lock(mutex);
-        while (!tasks.empty()) { tasks.pop(); }
+        tasks.Clear();
     }
 
     // 스레드 중단
@@ -50,9 +50,7 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 {
-    const u8string thread_name = utility::string::ToU8String(
-        std::format("Worker Thread {}", thread_id)
-    );
+    const String thread_name = String::Format("Worker Thread {}", thread_id);
     platform::SetCurrentThreadName(thread_name);
 
     while (!token.stop_requested())
@@ -64,24 +62,21 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
             // stop이 요청되거나 작업이 생길 때까지 대기
             condition.wait(lock, [this, &token]
             {
-                return !tasks.empty() || token.stop_requested();
+                return !tasks.IsEmpty() || token.stop_requested();
             });
 
-            if (token.stop_requested() && tasks.empty())
+            if (token.stop_requested() && tasks.IsEmpty())
             {
                 return;
             }
 
-            task = std::move(tasks.front());
-            tasks.pop();
+            task = std::move(*tasks.Pop());
         }
 
         {
             ZoneScoped;
-            {
-                [[maybe_unused]] const char* zone_name = reinterpret_cast<const char*>(thread_name.c_str());
-                ZoneName(zone_name, thread_name.size());
-            }
+            ZoneName(thread_name.CStr(), thread_name.ByteLen());
+
             task();
         }
     }

@@ -37,7 +37,7 @@ SubscriptionHandle SubscriptionHandle::CreateHandle()
 SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallback callback)
 {
     const SubscriptionHandle handle = SubscriptionHandle::CreateHandle();
-    priority_map[priority].push_back(handle);
+    priority_map[priority].Push(handle);
     subscriptions[handle] = {
         .priority = priority,
         .callback = std::move(callback)
@@ -48,19 +48,19 @@ SubscriptionHandle EventDispatcher::Subscribe(EventPriority priority, EventCallb
 void EventDispatcher::Unsubscribe(SubscriptionHandle handle)
 {
     // 유효하지 않은 Handle이면 return
-    if (!handle.IsValid() || !subscriptions.contains(handle))
+    if (!handle.IsValid() || !subscriptions.Contains(handle))
     {
         return;
     }
 
     const EventPriority priority = subscriptions[handle].priority;
 
-    subscriptions.erase(handle);
-    if (priority_map.contains(priority))
+    subscriptions.Remove(handle);
+    if (Optional vec_opt = priority_map.Find(priority))
     {
         // 나중에 swap_remove 고민해보기
-        auto& handle_vector = priority_map[priority];
-        std::erase(handle_vector, handle);
+        Array<SubscriptionHandle>& handle_vector = *vec_opt;
+        handle_vector.Remove(handle);
     }
 }
 
@@ -71,9 +71,9 @@ void EventDispatcher::Dispatch(PlatformEvent& event)
         for (const auto& handle : handle_vector)
         {
             // Unsubscribe 되었지만 아직 PriorityMap에서 제거되지 않은 경우를 대비
-            if (subscriptions.contains(handle))
+            if (const Optional subscription_opt = subscriptions.Find(handle))
             {
-                subscriptions[handle].callback(event);
+                subscription_opt->callback(event);
 
                 if (event.handled)
                 {
@@ -88,7 +88,7 @@ void EventDispatcher::Dispatch(PlatformEvent& event)
 // Specialization for SubscriptionHandle
 using se::core::event::SubscriptionHandle;
 
-size_t std::hash<SubscriptionHandle>::operator()(const SubscriptionHandle& handle) const noexcept
+usize std::hash<SubscriptionHandle>::operator()(const SubscriptionHandle& handle) const noexcept
 {
     return std::hash<uint64>{}(handle.GetID());
 }

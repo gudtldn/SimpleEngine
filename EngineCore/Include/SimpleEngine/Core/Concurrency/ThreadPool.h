@@ -5,7 +5,8 @@
 #include <stop_token>
 #include <thread>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/Queue.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
@@ -52,8 +53,8 @@ private:
     std::condition_variable condition;
 #endif
 
-    vector<std::jthread> worker_threads;
-    queue<Function<void()>> tasks;
+    Array<std::jthread> worker_threads;
+    Queue<Function<void()>> tasks;
 };
 
 template <typename Fn, typename... Args>
@@ -83,7 +84,7 @@ auto ThreadPool::Submit(
 
     {
         std::scoped_lock lock(mutex);
-        tasks.emplace([task_ptr] { (*task_ptr)(); });
+        tasks.Emplace([task_ptr] { (*task_ptr)(); });
     }
 
     condition.notify_one();

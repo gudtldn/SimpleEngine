@@ -7,7 +7,7 @@
 
 namespace se::core::memory
 {
-void* OsMemory::Allocate(size_t size, size_t alignment)
+void* OsMemory::Allocate(usize size, usize alignment)
 {
     if (size == 0)
     {
@@ -20,7 +20,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     // | padding |     header    |     user_data     | <- std::align으로 정렬 후 사용할 메모리
 
     // 헤더, 데이터, 정렬 패딩을 모두 담을 공간을 계산
-    const size_t total_size_to_alloc = HEADER_SIZE + size + alignment - 1;
+    const usize total_size_to_alloc = HEADER_SIZE + size + alignment - 1;
 
     void* raw_block = std::malloc(total_size_to_alloc);
     if (raw_block == nullptr)
@@ -30,7 +30,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
 
     // 일단 유저 데이터 위치를 계산
     void* user_ptr = static_cast<uint8*>(raw_block) + HEADER_SIZE;
-    size_t space = total_size_to_alloc - HEADER_SIZE; // 정렬 조정을 위해 사용 가능한 공간
+    usize space = total_size_to_alloc - HEADER_SIZE; // 정렬 조정을 위해 사용 가능한 공간
 
     // user_ptr의 위치를 정렬 기준에 맞게 이동
     std::align(alignment, size, user_ptr, space);
@@ -39,7 +39,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     OsMemoryHeader* header = GetHeaderFromUserPtr(user_ptr);
 
     // raw_block의 시작점부터 정렬된 user_ptr까지의 오프셋을 계산
-    const size_t offset = static_cast<uint8*>(user_ptr) - static_cast<uint8*>(raw_block);
+    const usize offset = static_cast<uint8*>(user_ptr) - static_cast<uint8*>(raw_block);
 
     // 유저가 할당한 메모리 크기와 패딩을 기록
     header->allocated_size = size;
@@ -51,7 +51,7 @@ void* OsMemory::Allocate(size_t size, size_t alignment)
     return user_ptr;
 }
 
-void* OsMemory::Realloc(void* address, size_t new_size, size_t alignment)
+void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
 {
     // TODO: Realloc 최적화
 
@@ -73,10 +73,10 @@ void* OsMemory::Realloc(void* address, size_t new_size, size_t alignment)
         return nullptr;
     }
 
-    const size_t old_allocated_size = GetAllocatedSize(address);
+    const usize old_allocated_size = GetAllocatedSize(address);
 
     // 기존 내용 복사
-    const size_t copy_size = std::min(old_allocated_size, new_size);
+    const usize copy_size = std::min(old_allocated_size, new_size);
     std::memcpy(new_address, address, copy_size);
 
     // 이전 메모리 해제

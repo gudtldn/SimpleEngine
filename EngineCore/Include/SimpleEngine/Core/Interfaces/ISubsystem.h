@@ -2,7 +2,7 @@
 #include <concepts>
 #include <tuple>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Interfaces/ISubsystemBase.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -23,7 +23,7 @@ class ISubsystem : public ISubsystemBase
 {
 public:
     /** 이 Subsystem이 의존하는 모든 타입의 type_index를 반환합니다. */
-    virtual vector<refl::TypeId> GetDependencies() const final override
+    virtual Array<refl::TypeId> GetDependencies() const final override
     {
         return { refl::TypeId::Get<Dependencies>()... };
     }

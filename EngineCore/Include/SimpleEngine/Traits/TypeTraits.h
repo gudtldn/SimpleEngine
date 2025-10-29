@@ -22,7 +22,7 @@ concept IsAnyOfDecayed = IsAnyOf<std::decay_t<T>, std::decay_t<Ts>...>;
 namespace details
 {
 template <typename T, typename... Us>
-constexpr size_t CountOccurrences = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
+constexpr usize CountOccurrences = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
 
 template <typename Tuple, template <typename...> typename MapType>
 struct TupleMapImpl;

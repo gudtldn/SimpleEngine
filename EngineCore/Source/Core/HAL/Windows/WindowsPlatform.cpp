@@ -2,6 +2,9 @@
 
 #if SE_PLATFORM_WINDOWS
 #include <string>
+
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
 #include "Utility/StringUtils.h"
@@ -9,27 +12,27 @@
 
 namespace
 {
-void SetThreadName(HANDLE handle, const se::u8string& name)
+void SetThreadName(HANDLE handle, const se::String& name)
 {
     const int size_needed = MultiByteToWideChar(
         CP_UTF8, 0,
-        reinterpret_cast<const char*>(name.data()),
-        static_cast<int>(name.size()),
+        name.Data(),
+        static_cast<int>(name.ByteLen()),
         nullptr, 0
     );
 
-    se::wstring wide_name(size_needed, 0);
+    std::wstring wide_name(size_needed, 0);
     MultiByteToWideChar(
         CP_UTF8, 0,
-        reinterpret_cast<const char*>(name.data()),
-        static_cast<int>(name.size()),
+        name.Data(),
+        static_cast<int>(name.ByteLen()),
         wide_name.data(), size_needed
     );
 
     (void)SetThreadDescription(handle, wide_name.c_str());
 }
 
-se::u8string GetThreadName(HANDLE handle)
+se::String GetThreadName(HANDLE handle)
 {
     PWSTR data = nullptr;
 
@@ -40,31 +43,31 @@ se::u8string GetThreadName(HANDLE handle)
         return {};
     }
 
-    const se::wstring name = data;
+    const std::wstring name{ data };
     LocalFree(data);
 
-    return se::utility::string::ToU8String(name);
+    return se::utility::string::ToString(name);
 }
 }
 
 namespace se::platform
 {
-void SetThreadName(std::thread& thread, const u8string& name)
+void SetThreadName(std::thread& thread, const String& name)
 {
     ::SetThreadName(thread.native_handle(), name);
 }
 
-void SetCurrentThreadName(const u8string& name)
+void SetCurrentThreadName(const String& name)
 {
     ::SetThreadName(GetCurrentThread(), name);
 }
 
-u8string GetThreadName(std::thread& thread)
+String GetThreadName(std::thread& thread)
 {
     return ::GetThreadName(thread.native_handle());
 }
 
-u8string GetCurrentThreadName()
+String GetCurrentThreadName()
 {
     return ::GetThreadName(GetCurrentThread());
 }

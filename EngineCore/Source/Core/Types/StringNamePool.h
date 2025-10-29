@@ -2,7 +2,7 @@
 #include <cstring>
 #include <shared_mutex>
 
-#include "SimpleEngine/Core/Containers/Containers.h"
+#include "Core/Container/HashMap.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -17,17 +17,17 @@ struct StringNameHashes
 
 struct StringNameEntry
 {
-    StringNameEntry(const std::u8string_view& view, uint64 in_comparison_hash)
+    StringNameEntry(std::string_view view, uint64 in_comparison_hash)
         : comparison_hash(in_comparison_hash)
         , length(static_cast<uint16>(view.length()))
     {
-        std::memcpy(name, view.data(), sizeof(char8) * length);
+        std::memcpy(name, view.data(), sizeof(char) * length);
         name[length] = '\0';
     }
 
     uint64 comparison_hash;
     uint16 length;
-    char8 name[StringName::MAX_LENGTH];
+    char name[StringName::MAX_LENGTH];
 };
 
 class StringNamePool
@@ -48,12 +48,12 @@ public:
     static StringNamePool& Get();
 
     [[nodiscard]] const StringNameEntry& Resolve(uint64 hash) const;
-    [[nodiscard]] StringNameHashes Find(const std::u8string_view& view) const;
-    [[nodiscard]] StringNameHashes FindOrEmplace(const std::u8string_view& view);
+    [[nodiscard]] StringNameHashes Find(std::string_view view) const;
+    [[nodiscard]] StringNameHashes FindOrEmplace(std::string_view view);
 
 private:
     mutable TracySharedLockable(std::shared_mutex, string_pool_mutex);
 
-    se::unordered_map<uint64, uint64> comparison_hash_to_display_hash;
-    se::unordered_map<uint64, StringNameEntry> display_string_pool;
+    se::HashMap<uint64, uint64> comparison_hash_to_display_hash;
+    se::HashMap<uint64, StringNameEntry> display_string_pool;
 };

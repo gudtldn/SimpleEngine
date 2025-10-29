@@ -61,8 +61,8 @@ public:
     [[nodiscard]] constexpr bool operator==(const Vector2Impl& other) const;
     [[nodiscard]] constexpr bool operator!=(const Vector2Impl& other) const;
 
-    [[nodiscard]] constexpr T operator[](size_t index);
-    [[nodiscard]] constexpr T operator[](size_t index) const;
+    [[nodiscard]] constexpr T operator[](usize index);
+    [[nodiscard]] constexpr T operator[](usize index) const;
 
 public:
     [[nodiscard]] constexpr T Length() const;
@@ -79,15 +79,13 @@ public:
 
 template <traits::FloatingType T>
 constexpr Vector2Impl<T>::Vector2Impl(T in_x, T in_y)
-    : x(in_x)
-    , y(in_y)
+    : x(in_x), y(in_y)
 {
 }
 
 template <traits::FloatingType T>
 constexpr Vector2Impl<T>::Vector2Impl(T scalar)
-    : x(scalar)
-    , y(scalar)
+    : x(scalar), y(scalar)
 {
 }
 
@@ -283,14 +281,14 @@ constexpr bool Vector2Impl<T>::operator!=(const Vector2Impl& other) const
 }
 
 template <traits::FloatingType T>
-constexpr T Vector2Impl<T>::operator[](size_t index)
+constexpr T Vector2Impl<T>::operator[](usize index)
 {
     assert(index < 2);
     return (&x)[index];
 }
 
 template <traits::FloatingType T>
-constexpr T Vector2Impl<T>::operator[](size_t index) const
+constexpr T Vector2Impl<T>::operator[](usize index) const
 {
     assert(index < 2);
     return (&x)[index];

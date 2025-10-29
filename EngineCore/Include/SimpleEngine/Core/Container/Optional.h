@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cassert>
 #include <concepts>
 #include <memory>
 #include <new>
@@ -11,10 +12,10 @@
 
 
 template <typename T>
-class [[nodiscard]] Optional
+class Optional
 {
 public:
-    using InnerType = T;
+    using ValueType = T;
 
 public:
     Optional() noexcept = default;
@@ -127,7 +128,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -137,7 +138,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -147,7 +148,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return std::move(GetStoredValue());
     }
@@ -157,7 +158,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return std::move(GetStoredValue());
     }
@@ -237,7 +238,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>)
-    auto Transform(Fn&& func) &
+    auto Map(Fn&& func) &
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
 
@@ -254,7 +255,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>)
-    auto Transform(Fn&& func) const &
+    auto Map(Fn&& func) const &
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T&>>;
 
@@ -271,7 +272,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>)
-    auto Transform(Fn&& func) &&
+    auto Map(Fn&& func) &&
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T>>;
 
@@ -288,7 +289,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>)
-    auto Transform(Fn&& func) const &&
+    auto Map(Fn&& func) const &&
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T>>;
 
@@ -423,10 +424,10 @@ private:
 };
 
 template <typename T>
-class [[nodiscard]] Optional<T&>
+class Optional<T&>
 {
 public:
-    using InnerType = T;
+    using ValueType = T;
 
 public:
     Optional() noexcept = default;
@@ -482,7 +483,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -492,7 +493,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -537,7 +538,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>)
-    auto Transform(Fn&& func)
+    auto Map(Fn&& func)
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
 
@@ -554,7 +555,7 @@ public:
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>)
         && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
         && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>)
-    auto Transform(Fn&& func) const
+    auto Map(Fn&& func) const
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T&>>;
 

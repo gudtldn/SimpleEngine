@@ -4,19 +4,18 @@
 #include <utility>
 
 #include "Utility/Hash.h"
-#include "Utility/StringUtils.h"
 
 
 namespace
 {
-bool IsNoneString(const std::u8string_view& view)
+bool IsNoneString(std::string_view view)
 {
     if (view.length() == 4)
     {
-        return (view[0] == u8'n' || view[0] == u8'N')
-            && (view[1] == u8'o' || view[1] == u8'O')
-            && (view[2] == u8'n' || view[2] == u8'N')
-            && (view[3] == u8'e' || view[3] == u8'E');
+        return (view[0] == 'n' || view[0] == 'N')
+            && (view[1] == 'o' || view[1] == 'O')
+            && (view[2] == 'n' || view[2] == 'N')
+            && (view[3] == 'e' || view[3] == 'E');
     }
     return false;
 }
@@ -33,15 +32,15 @@ const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
 {
     std::shared_lock lock(string_pool_mutex);
 
-    if (const auto it = display_string_pool.find(hash); it != display_string_pool.end())
+    if (const Optional display_pool_opt = display_string_pool.Find(hash))
     {
-        return it->second;
+        return *display_pool_opt;
     }
 
     std::unreachable();
 }
 
-StringNameHashes StringNamePool::Find(const std::u8string_view& view) const
+StringNameHashes StringNamePool::Find(std::string_view view) const
 {
     if (view.empty() || IsNoneString(view))
     {
@@ -49,20 +48,20 @@ StringNameHashes StringNamePool::Find(const std::u8string_view& view) const
     }
 
     {
-        const se::u8string lower_case_str = se::utility::string::ToU8LowerCase(view);
+        const se::String lower_case_str = se::String{ view }.ToLower();
         const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
 
         std::shared_lock lock(string_pool_mutex);
-        if (const auto it = comparison_hash_to_display_hash.find(comparison_hash); it != comparison_hash_to_display_hash.end())
+        if (const Optional comp2disp_hash_opt = comparison_hash_to_display_hash.Find(comparison_hash))
         {
-            return { it->second, comparison_hash };
+            return { *comp2disp_hash_opt, comparison_hash };
         }
     }
 
     return { 0, 0 };
 }
 
-StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
+StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
 {
     if (view.empty() || IsNoneString(view))
     {
@@ -74,31 +73,27 @@ StringNameHashes StringNamePool::FindOrEmplace(const std::u8string_view& view)
     {
         std::shared_lock lock(string_pool_mutex);
 
-        if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
+        if (const Optional display_pool_opt = display_string_pool.Find(display_hash))
         {
-            return { display_hash, it->second.comparison_hash };
+            return { display_hash, display_pool_opt->comparison_hash };
         }
     }
 
     // 없으면 만들기
-    const se::u8string lower_case_str = se::utility::string::ToU8LowerCase(view);
+    const se::String lower_case_str = se::String{ view }.ToLower();
     const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
     {
         std::unique_lock lock(string_pool_mutex);
 
         // double check
-        if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
+        if (const Optional display_pool_opt = display_string_pool.Find(display_hash))
         {
-            return { display_hash, it->second.comparison_hash };
+            return { display_hash, display_pool_opt->comparison_hash };
         }
 
-        // pool에 entry를 등록
-        if (!comparison_hash_to_display_hash.contains(comparison_hash))
-        {
-            // 처음에 추가된 이름을 comparison의 이름으로
-            comparison_hash_to_display_hash.emplace(comparison_hash, display_hash);
-        }
-        display_string_pool.emplace(display_hash, StringNameEntry{ view, comparison_hash });
+        // pool에 entry를 등록, 처음에 추가된 이름을 comparison의 이름으로 설정
+        comparison_hash_to_display_hash.Entry(comparison_hash).OrInsert(display_hash);
+        display_string_pool.Emplace(display_hash, StringNameEntry(view, comparison_hash));
     }
 
     return { display_hash, comparison_hash };
