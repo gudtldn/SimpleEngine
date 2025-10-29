@@ -16,6 +16,28 @@ using namespace se::core::concurrency::coroutine;
 
 namespace
 {
+template <typename Fn>
+    requires std::predicate<Fn>
+void RequireConditionTimeout(Fn&& condition, std::chrono::milliseconds timeout_duration)
+{
+    using namespace std::chrono_literals;
+    const auto start_time = std::chrono::steady_clock::now();
+
+    while (!std::forward<Fn>(condition)())
+    {
+        const auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+        if (elapsed_time >= timeout_duration)
+        {
+            // Timeout
+            REQUIRE_MESSAGE(false, std::format("Timeout: Condition was not met within {} seconds.", timeout_duration.count()));
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    // 조건 충족
+    REQUIRE_MESSAGE(true, "Condition met successfully within the timeout period.");
+}
+
 se::utility::PathResolver& path_resolver = se::utility::PathResolver::Get();
 }
 
@@ -102,17 +124,21 @@ TEST_CASE_FIXTURE(TestFixture, "Load and Get Asset Asynchronously")
 
     SUBCASE("Load and GetAsset waits for the asset to be loaded")
     {
+        bool is_set = false;
+
         std::shared_ptr<DummyAsset> asset;
-        asset_manager.LoadAsync<DummyAsset>(asset_path, [&asset]<typename T>(std::shared_ptr<T> in_asset) -> void
+        asset_manager.LoadAsync<DummyAsset>(asset_path, [&asset, &is_set]<typename T>(std::shared_ptr<T> in_asset) -> void
         {
             asset = std::move(in_asset);
+            is_set = true;
         });
 
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(500ms); // Wait for the async loading to finish (500 ms)
-
         const TaskSchedulerTest test{ TaskScheduler::Get() };
-        test.ProcessMainThreadTasks();
+        RequireConditionTimeout([&] -> bool
+        {
+            test.ProcessMainThreadTasks();
+            return is_set;
+        }, std::chrono::seconds(1));
 
         REQUIRE(asset != nullptr);
         CHECK(asset->value == 456);
@@ -131,17 +157,21 @@ TEST_CASE_FIXTURE(TestFixture, "Loading non-existent asset")
 
     SUBCASE("Load and GetAsset on non-existent file returns nullptr")
     {
+        bool is_set = false;
+
         std::shared_ptr<DummyAsset> asset;
-        asset_manager.LoadAsync<DummyAsset>(non_existent_path, [&asset]<typename T>(std::shared_ptr<T> in_asset) -> void
+        asset_manager.LoadAsync<DummyAsset>(non_existent_path, [&asset, &is_set]<typename T>(std::shared_ptr<T> in_asset) -> void
         {
             asset = std::move(in_asset);
+            is_set = true;
         });
 
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(500ms); // Wait for the async loading to finish (500 ms)
-
         const TaskSchedulerTest test{ TaskScheduler::Get() };
-        test.ProcessMainThreadTasks();
+        RequireConditionTimeout([&] -> bool
+        {
+            test.ProcessMainThreadTasks();
+            return is_set;
+        }, std::chrono::milliseconds(100));
 
         CHECK(asset == nullptr);
     }
