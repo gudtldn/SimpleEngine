@@ -52,7 +52,7 @@ void MemoryTracker::TrackDeallocation(const void* address)
 
 #ifdef SE_DEBUG_BUILD
     std::scoped_lock lock(GMapMutex);
-    GLeakedMemoryMap.erase(address);
+    GLeakedMemoryMap.Remove(address);
 #endif
 
     // 메모리 트래킹 해제
@@ -64,7 +64,7 @@ bool MemoryTracker::CheckForLeaks()
 {
 #ifdef SE_DEBUG_BUILD
     std::scoped_lock lock(GMapMutex);
-    if (!GLeakedMemoryMap.empty())
+    if (!GLeakedMemoryMap.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "--- MEMORY LEAKS DETECTED ---");
         for (const auto& [address, info] : GLeakedMemoryMap)

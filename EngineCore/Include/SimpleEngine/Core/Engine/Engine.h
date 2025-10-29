@@ -112,9 +112,9 @@ template <typename T, typename... Args>
 T* Engine::RegisterSubsystem(Args&&... args)
 {
     const auto type_id = refl::TypeId::Get<T>();
-    if (subsystems.contains(type_id))
+    if (Optional subsystem = subsystems.Find(type_id))
     {
-        return static_cast<T*>(subsystems[type_id].get());
+        return static_cast<T*>(subsystem->get());
     }
 
     auto sub_system = std::make_unique<T>(std::forward<Args>(args)...);
@@ -136,9 +136,9 @@ template <typename T>
 T* Engine::GetSubsystem() const
 {
     const auto type_id = refl::TypeId::Get<T>();
-    if (subsystems.contains(type_id))
+    if (Optional subsystem = subsystems.Find(type_id))
     {
-        return static_cast<T*>(subsystems.at(type_id).get());
+        return static_cast<T*>(subsystem->get());
     }
     return nullptr;
 }

@@ -176,9 +176,9 @@ public:
     void RunSchedule()
     {
         const auto type_id = refl::TypeId::Get<S>();
-        if (const auto it = systems.find(type_id); it != systems.end())
+        if (Optional system_opt = systems.Find(type_id))
         {
-            for (const core::Function<void()>& system : it->second)
+            for (const core::Function<void()>& system : *system_opt)
             {
                 system();
             }
@@ -224,11 +224,11 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        if (!component_storages.contains(type_id))
-        {
-            component_storages[type_id] = std::make_unique<ComponentStorage<RawType>>();
-        }
-        ComponentStorage<RawType>* wrapper = static_cast<ComponentStorage<RawType>*>(component_storages.at(type_id).get());
+        IStorage* storage = component_storages
+            .Entry(type_id)
+            .OrInsert(std::make_unique<ComponentStorage<RawType>>()).get();
+
+        auto* wrapper = static_cast<ComponentStorage<RawType>*>(storage);
         return wrapper->GetStorage();
     }
 
@@ -261,11 +261,7 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        if (component_storages.contains(type_id))
-        {
-            return component_storages.at(type_id).get();
-        }
-        return nullptr;
+        return component_storages.Find(type_id).ValueOr(nullptr).get();
     }
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
@@ -275,11 +271,7 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        if (component_storages.contains(type_id))
-        {
-            return component_storages.at(type_id).get();
-        }
-        return nullptr;
+        return component_storages.Find(type_id).ValueOr(nullptr).get();
     }
 
 public:

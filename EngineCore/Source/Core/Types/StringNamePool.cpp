@@ -32,9 +32,9 @@ const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
 {
     std::shared_lock lock(string_pool_mutex);
 
-    if (const auto it = display_string_pool.find(hash); it != display_string_pool.end())
+    if (const Optional display_pool_opt = display_string_pool.Find(hash))
     {
-        return it->second;
+        return *display_pool_opt;
     }
 
     std::unreachable();
@@ -52,9 +52,9 @@ StringNameHashes StringNamePool::Find(std::string_view view) const
         const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
 
         std::shared_lock lock(string_pool_mutex);
-        if (const auto it = comparison_hash_to_display_hash.find(comparison_hash); it != comparison_hash_to_display_hash.end())
+        if (const Optional comp2disp_hash_opt = comparison_hash_to_display_hash.Find(comparison_hash))
         {
-            return { it->second, comparison_hash };
+            return { *comp2disp_hash_opt, comparison_hash };
         }
     }
 
@@ -73,9 +73,9 @@ StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
     {
         std::shared_lock lock(string_pool_mutex);
 
-        if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
+        if (const Optional display_pool_opt = display_string_pool.Find(display_hash))
         {
-            return { display_hash, it->second.comparison_hash };
+            return { display_hash, display_pool_opt->comparison_hash };
         }
     }
 
@@ -86,18 +86,14 @@ StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
         std::unique_lock lock(string_pool_mutex);
 
         // double check
-        if (const auto it = display_string_pool.find(display_hash); it != display_string_pool.end())
+        if (const Optional display_pool_opt = display_string_pool.Find(display_hash))
         {
-            return { display_hash, it->second.comparison_hash };
+            return { display_hash, display_pool_opt->comparison_hash };
         }
 
-        // pool에 entry를 등록
-        if (!comparison_hash_to_display_hash.contains(comparison_hash))
-        {
-            // 처음에 추가된 이름을 comparison의 이름으로
-            comparison_hash_to_display_hash.emplace(comparison_hash, display_hash);
-        }
-        display_string_pool.emplace(display_hash, StringNameEntry{ view, comparison_hash });
+        // pool에 entry를 등록, 처음에 추가된 이름을 comparison의 이름으로 설정
+        comparison_hash_to_display_hash.Entry(comparison_hash).OrInsert(display_hash);
+        display_string_pool.Emplace(display_hash, StringNameEntry(view, comparison_hash));
     }
 
     return { display_hash, comparison_hash };

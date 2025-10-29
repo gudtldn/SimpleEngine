@@ -74,7 +74,7 @@ void PlatformSubsystem::Release()
     {
         SDL_DestroyWindow(window);
     }
-    windows.clear();
+    windows.Clear();
     main_window_id = 0;
 
     SDL_Quit();
@@ -155,7 +155,7 @@ std::expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(c
 
 bool PlatformSubsystem::DestroyWindow(SDL_WindowID window_id)
 {
-    if (!windows.contains(window_id) || window_id == main_window_id)
+    if (!windows.Contains(window_id) || window_id == main_window_id)
     {
         return false;
     }
@@ -164,30 +164,30 @@ bool PlatformSubsystem::DestroyWindow(SDL_WindowID window_id)
     {
         if (SDL_GPUDevice* device = render_subsystem->GetGpuDevice())
         {
-            SDL_ReleaseWindowFromGPUDevice(device, windows.at(window_id));
+            SDL_ReleaseWindowFromGPUDevice(device, *windows.Find(window_id));
         }
     }
 
-    SDL_DestroyWindow(windows.at(window_id));
+    SDL_DestroyWindow(*windows.Find(window_id));
     UnregisterWindow(window_id);
     return true;
 }
 
 SDL_Window* PlatformSubsystem::GetWindow(SDL_WindowID window_id) const
 {
-    if (windows.contains(window_id))
+    if (Optional window_opt = windows.Find(window_id))
     {
-        return windows.at(window_id);
+        return *window_opt;
     }
     return nullptr;
 }
 
 void PlatformSubsystem::RegisterWindow(SDL_WindowID window_id, SDL_Window* window)
 {
-    windows[window_id] = window;
+    windows.Emplace(window_id, window);
 }
 
 void PlatformSubsystem::UnregisterWindow(SDL_WindowID window_id)
 {
-    windows.erase(window_id);
+    windows.Remove(window_id);
 }

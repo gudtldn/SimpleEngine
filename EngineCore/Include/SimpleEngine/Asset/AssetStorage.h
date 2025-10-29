@@ -48,9 +48,9 @@ template <typename T>
 std::shared_ptr<T> AssetStorage<T>::Find(const StringName& asset_id) const
 {
     std::shared_lock lock(mutex);
-    if (auto it = assets.find(asset_id); it != assets.end())
+    if (Optional asset_opt = assets.Find(asset_id))
     {
-        return it->second;
+        return asset_opt.Value();
     }
     return nullptr;
 }
@@ -66,14 +66,14 @@ template <typename T>
 void AssetStorage<T>::RemoveReference(const StringName& asset_id)
 {
     std::unique_lock lock(mutex);
-    if (auto it = assets.find(asset_id); it != assets.end())
+    if (Optional asset_opt = assets.Find(asset_id))
     {
-        const std::shared_ptr<T>& asset = it->second;
+        const std::shared_ptr<T>& asset = *asset_opt;
 
         // AssetStorage 외부에서 아무도 참조하고 있지 않다면
         if (asset.use_count() <= 1)
         {
-            assets.erase(it);
+            assets.Remove(asset_id);
         }
     }
 }

@@ -38,7 +38,7 @@ void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& 
 void PathResolver::Unmount(const StringName& scheme)
 {
     std::unique_lock lock(mutex);
-    mount_points.erase(scheme);
+    mount_points.Remove(scheme);
 }
 
 Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path, bool check_existence) const
@@ -51,9 +51,9 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     std::shared_lock lock(mutex);
 
     const std::string_view scheme = virtual_path.GetScheme();
-    const auto it = mount_points.find(scheme);
+    const Optional point_opt = mount_points.Find(scheme);
 
-    if (it == mount_points.end() || it->second.IsEmpty())
+    if (!point_opt.HasValue() || point_opt->IsEmpty())
     {
         ConsoleLog(ELogLevel::Warning, "Scheme '{}' is not mounted.", scheme);
         return std::nullopt;
@@ -67,9 +67,9 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     }
 
     // 모든 마운트 포인트를 순회하며 파일이 실제로 존재하는지 확인 (Mod Fallback)
-    for (const MountPoint& mount_point : it->second)
+    for (const MountPoint& mount_point : *point_opt)
     {
-        const std::filesystem::path resolved_path = mount_point.physical_path / path_part;
+        std::filesystem::path resolved_path = mount_point.physical_path / path_part;
         if (std::filesystem::exists(resolved_path))
         {
             return resolved_path;
@@ -79,7 +79,7 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     if (!check_existence)
     {
         // 가장 우선순위가 높은(첫 번째) 마운트 포인트를 사용하여 경로를 조합
-        const MountPoint& primary_mount_point = *it->second.Front();
+        const MountPoint& primary_mount_point = *point_opt->Front();
         return primary_mount_point.physical_path / path_part;
     }
 

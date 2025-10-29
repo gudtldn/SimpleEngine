@@ -45,7 +45,7 @@ void Engine::LoadRegisteredSubsystems()
     auto& registry = details::SubsystemRegistry::GetInstance();
     for (const auto& [type_id, metadata] : registry.factories)
     {
-        if (subsystems.contains(type_id))
+        if (subsystems.Contains(type_id))
         {
             continue;
         }
@@ -59,7 +59,7 @@ void Engine::LoadRegisteredSubsystems()
 
         ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", type_id.GetName());
     }
-    registry.factories.clear();
+    registry.factories.Clear();
 }
 
 bool Engine::Initialize()
@@ -91,7 +91,7 @@ void Engine::Release()
 {
     ReleaseAllSubsystems();
     sorted_subsystems.Clear();
-    subsystems.clear();
+    subsystems.Clear();
 
     thread_pool.reset();
     task_scheduler.reset();
@@ -227,7 +227,7 @@ bool Engine::SortSubsystems()
     }
 
     // 순환 의존성 확인
-    if (sorted_subsystems.Len() != subsystems.size())
+    if (sorted_subsystems.Len() != subsystems.Len())
     {
         ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
 

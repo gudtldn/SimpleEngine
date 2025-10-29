@@ -283,7 +283,7 @@ void RenderGraph::Clear()
 
     pass_nodes.Clear();
     resource_nodes.Clear();
-    resource_name_map.clear();
+    resource_name_map.Clear();
     compiled_passes.Clear();
 }
 
@@ -311,9 +311,9 @@ RGResourceHandle RenderGraph::ImportBuffer(const StringName& name, SDL_GPUBuffer
 
 RGResourceHandle RenderGraph::GetResourceHandleByName(const StringName& name)
 {
-    if (const auto it = resource_name_map.find(name); it != resource_name_map.end())
+    if (Optional resource_name_opt = resource_name_map.Find(name))
     {
-        return it->second;
+        return *resource_name_opt;
     }
 
     const RGResourceHandle new_handle = RegisterResource({ .name = name });
