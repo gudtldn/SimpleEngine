@@ -424,7 +424,7 @@ private:
 };
 
 template <typename T>
-class [[nodiscard]] Optional<T&>
+class Optional<T&>
 {
 public:
     using ValueType = T;
