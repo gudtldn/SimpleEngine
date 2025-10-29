@@ -125,7 +125,7 @@ void RenderGraph::Compile()
 
         if (const RGPassNode* writer_pass = resource_nodes[active_handle_idx].writer)
         {
-            const usize pass_index = writer_pass - &pass_nodes[0];
+            const isize pass_index = writer_pass - &pass_nodes[0];
             RGPassNode& pass_to_activate = pass_nodes[pass_index];
 
             // 이미 활성화 상태면 건너뛰기
