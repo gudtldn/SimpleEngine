@@ -22,11 +22,6 @@
 #define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, "Initialize Failed!: {}", #x); return; } else {}
 
 
-namespace
-{
-se::core::memory::memory_resource::OsMemoryResource default_resource{};
-}
-
 namespace se::app
 {
 double Application::CurrentTime = 0.0;
@@ -49,15 +44,10 @@ Application::Application(EApplicationMode in_application_mode)
 {
     assert(!Instance && "Application instance already exists!");
     Instance = this;
-
-    // TODO: 이거 역할이 멤버변수하고 전역변수하고 반대 아닌가?
-    original_resource = std::pmr::set_default_resource(&default_resource);
 }
 
 Application::~Application()
 {
-    std::pmr::set_default_resource(original_resource);
-
     Instance = nullptr;
 }
 

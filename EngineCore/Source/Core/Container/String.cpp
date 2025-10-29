@@ -103,7 +103,7 @@ String ToUpperImpl(std::string_view view, const char* locale)
 
     std::string result_str;
     ustr.toUTF8String(result_str);
-    return { result_str };
+    return { std::string_view{ result_str } };
 }
 
 String ToLowerImpl(std::string_view view, const char* locale)
@@ -122,7 +122,7 @@ String ToLowerImpl(std::string_view view, const char* locale)
 
     std::string result_str;
     ustr.toUTF8String(result_str);
-    return { result_str };
+    return { std::string_view{ result_str } };
 }
 
 CodePointIterator::reference CodePointIterator::operator*() const
