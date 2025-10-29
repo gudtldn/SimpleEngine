@@ -6,6 +6,8 @@
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/Deque.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Map.h"
 
 
 // Using the namespace where containers are defined
@@ -876,6 +878,359 @@ TEST_CASE("Deque API")
         CHECK(d5.Len() == 3);
         CHECK(d5[1] == 2);
         CHECK(d3.IsEmpty());
+    }
+}
+
+TEST_CASE("HashMap API")
+{
+    SUBCASE("Construction")
+    {
+        HashMap<String, int> map1;
+        CHECK(map1.IsEmpty());
+        CHECK(map1.Len() == 0);
+
+        HashMap<String, int> map2 = { { "one", 1 }, { "two", 2 } };
+        CHECK(map2.Len() == 2);
+        CHECK(*map2.Find("one") == 1);
+
+        std::vector<std::pair<const String, int>> vec = { { "three", 3 }, { "four", 4 } };
+        HashMap<String, int> map3(vec.begin(), vec.end());
+        CHECK(map3.Len() == 2);
+        CHECK(*map3.Find("three") == 3);
+
+        auto map4 = HashMap<String, int>::FromRange(vec);
+        CHECK(map4.Len() == 2);
+        CHECK(*map4.Find("four") == 4);
+    }
+
+    SUBCASE("Access and Modification")
+    {
+        HashMap<String, int> map;
+        map["one"] = 1;
+        CHECK(map.Len() == 1);
+        CHECK(map["one"] == 1);
+
+        map["one"] = 11;
+        CHECK(map["one"] == 11);
+
+        CHECK(map.Contains("one"));
+        CHECK_FALSE(map.Contains("two"));
+
+        auto find_res = map.Find("one");
+        CHECK(find_res.HasValue());
+        CHECK(*find_res == 11);
+
+        auto find_res_const = static_cast<const decltype(map)&>(map).Find("one");
+        CHECK(find_res_const.HasValue());
+        CHECK(*find_res_const == 11);
+
+        CHECK_FALSE(map.Find("two").HasValue());
+    }
+
+    SUBCASE("Remove and Clear")
+    {
+        HashMap<String, int> map = { { "one", 1 }, { "two", 2 }, { "three", 3 } };
+        CHECK(map.Remove("two"));
+        CHECK(map.Len() == 2);
+        CHECK_FALSE(map.Contains("two"));
+        CHECK_FALSE(map.Remove("four"));
+
+        map.Clear();
+        CHECK(map.IsEmpty());
+        CHECK(map.Len() == 0);
+        CHECK(map.Capacity() > 0); // Clear does not affect capacity
+    }
+
+    SUBCASE("Capacity and Reserve")
+    {
+        HashMap<String, int> map;
+        // CHECK(map.Capacity() == 0);
+        map.Reserve(10);
+        CHECK(map.Capacity() >= 10);
+        map["one"] = 1;
+        CHECK(map.Len() == 1);
+    }
+
+    SUBCASE("Entry API")
+    {
+        HashMap<String, int> map;
+        map["existing"] = 10;
+
+        // Insert new entry
+        auto entry1 = map.Entry("new");
+        CHECK_FALSE(entry1.IsOccupied());
+        int& val1 = entry1.OrInsert(20);
+        CHECK(val1 == 20);
+        CHECK(*map.Find("new") == 20);
+
+        // Access existing entry
+        auto entry2 = map.Entry("existing");
+        CHECK(entry2.IsOccupied());
+        int& val2 = entry2.OrInsert(0); // Should not insert
+        CHECK(val2 == 10);
+        *entry2.GetValue() = 11;
+        CHECK(*map.Find("existing") == 11);
+
+        // Modify with function
+        auto entry3 = map.Entry("new");
+        entry3.AndModify([](int& v) { v *= 2; });
+        CHECK(*map.Find("new") == 40);
+    }
+
+    SUBCASE("GetKeys and GetValues")
+    {
+        HashMap<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 } };
+        Array<String> keys = map.GetKeys();
+        Array<int> values = map.GetValues();
+
+        CHECK(keys.Len() == 3);
+        CHECK(values.Len() == 3);
+
+        // The order is not guaranteed in HashMap, so we check for presence
+        CHECK(keys.Contains("a"));
+        CHECK(keys.Contains("b"));
+        CHECK(keys.Contains("c"));
+
+        CHECK(values.Contains(1));
+        CHECK(values.Contains(2));
+        CHECK(values.Contains(3));
+    }
+
+    SUBCASE("RemoveIf")
+    {
+        HashMap<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 } };
+        usize removed_count = map.RemoveIf([](const String& key, const int& val)
+        {
+            return val % 2 == 0; // Remove even values
+        });
+        CHECK(removed_count == 2);
+        CHECK(map.Len() == 2);
+        CHECK(map.Contains("a"));
+        CHECK_FALSE(map.Contains("b"));
+        CHECK(map.Contains("c"));
+        CHECK_FALSE(map.Contains("d"));
+    }
+
+    SUBCASE("Range-based for loop")
+    {
+        HashMap<String, int> map = { { "one", 1 }, { "two", 2 } };
+        int sum = 0;
+        for (auto& [key, value] : map)
+        {
+            sum += value;
+        }
+        CHECK(sum == 3);
+    }
+
+    SUBCASE("Emplace")
+    {
+        HashMap<String, String> map;
+
+        // Emplace a new element
+        String& val1 = map.Emplace("key1", "value1");
+        CHECK(map.Len() == 1);
+        CHECK(val1 == "value1");
+        CHECK(*map.Find("key1") == "value1");
+
+        // Emplace on existing key
+        String& val2 = map.Emplace("key1", "value2_should_not_be_inserted");
+        CHECK(map.Len() == 1);
+        CHECK(val2 == "value1"); // Should return ref to existing value
+        CHECK(*map.Find("key1") == "value1");
+
+        // Modify through returned reference
+        val2 = "modified_value";
+        CHECK(*map.Find("key1") == "modified_value");
+    }
+}
+
+TEST_CASE("Map API")
+{
+    SUBCASE("Construction")
+    {
+        Map<String, int> map1;
+        CHECK(map1.IsEmpty());
+        CHECK(map1.Len() == 0);
+
+        Map<String, int> map2 = { { "one", 1 }, { "two", 2 } };
+        CHECK(map2.Len() == 2);
+        CHECK(*map2.Find("one") == 1);
+
+        std::vector<std::pair<const String, int>> vec = { { "three", 3 }, { "four", 4 } };
+        Map<String, int> map3(vec.begin(), vec.end());
+        CHECK(map3.Len() == 2);
+        CHECK(*map3.Find("three") == 3);
+
+        auto map4 = Map<String, int>::FromRange(vec);
+        CHECK(map4.Len() == 2);
+        CHECK(*map4.Find("four") == 4);
+    }
+
+    SUBCASE("Access and Modification")
+    {
+        Map<String, int> map;
+        map["one"] = 1;
+        CHECK(map.Len() == 1);
+        CHECK(map["one"] == 1);
+
+        map["one"] = 11;
+        CHECK(map["one"] == 11);
+
+        CHECK(map.Contains("one"));
+        CHECK_FALSE(map.Contains("two"));
+
+        auto find_res = map.Find("one");
+        CHECK(find_res.HasValue());
+        CHECK(*find_res == 11);
+
+        auto find_res_const = static_cast<const decltype(map)&>(map).Find("one");
+        CHECK(find_res_const.HasValue());
+        CHECK(*find_res_const == 11);
+
+        CHECK_FALSE(map.Find("two").HasValue());
+    }
+
+    SUBCASE("Remove and Clear")
+    {
+        Map<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 } };
+        CHECK(map.Remove("b"));
+        CHECK(map.Len() == 2);
+        CHECK_FALSE(map.Contains("b"));
+        CHECK_FALSE(map.Remove("d"));
+
+        map.Clear();
+        CHECK(map.IsEmpty());
+        CHECK(map.Len() == 0);
+    }
+
+    SUBCASE("Entry API")
+    {
+        Map<String, int> map;
+        map["existing"] = 10;
+
+        // Insert new entry
+        auto entry1 = map.Entry("new");
+        CHECK_FALSE(entry1.IsOccupied());
+        int& val1 = entry1.OrInsert(20);
+        CHECK(val1 == 20);
+        CHECK(*map.Find("new") == 20);
+
+        // Access existing entry
+        auto entry2 = map.Entry("existing");
+        CHECK(entry2.IsOccupied());
+        int& val2 = entry2.OrInsert(0); // Should not insert
+        CHECK(val2 == 10);
+        *entry2.GetValue() = 11;
+        CHECK(*map.Find("existing") == 11);
+
+        // Modify with function
+        auto entry3 = map.Entry("new");
+        entry3.AndModify([](int& v) { v *= 2; });
+        CHECK(*map.Find("new") == 40);
+    }
+
+    SUBCASE("GetKeys and GetValues")
+    {
+        Map<String, int> map = { { "c", 3 }, { "a", 1 }, { "b", 2 } };
+        Array<String> keys = map.GetKeys();
+        Array<int> values = map.GetValues();
+
+        CHECK(keys.Len() == 3);
+        CHECK(values.Len() == 3);
+
+        // Map guarantees order
+        CHECK(keys[0] == "a");
+        CHECK(keys[1] == "b");
+        CHECK(keys[2] == "c");
+
+        CHECK(values[0] == 1);
+        CHECK(values[1] == 2);
+        CHECK(values[2] == 3);
+    }
+
+    SUBCASE("RemoveIf")
+    {
+        Map<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 } };
+        usize removed_count = map.RemoveIf([](const String& key, const int& val)
+        {
+            return val % 2 == 0; // Remove even values
+        });
+        CHECK(removed_count == 2);
+        CHECK(map.Len() == 2);
+        CHECK(map.Contains("a"));
+        CHECK_FALSE(map.Contains("b"));
+        CHECK(map.Contains("c"));
+        CHECK_FALSE(map.Contains("d"));
+    }
+
+    SUBCASE("Range-based for loop")
+    {
+        Map<String, int> map = { { "one", 1 }, { "two", 2 } };
+        int sum = 0;
+        String key_concat;
+        // Order should be "one", "two" if String comparison is as expected
+        for (auto& [key, value] : map)
+        {
+            sum += value;
+            key_concat.Append(key);
+        }
+        CHECK(sum == 3);
+        CHECK(key_concat == "onetwo");
+    }
+
+    SUBCASE("Emplace")
+    {
+        Map<String, String> map;
+
+        // Emplace a new element
+        String& val1 = map.Emplace("key1", "value1");
+        CHECK(map.Len() == 1);
+        CHECK(val1 == "value1");
+        CHECK(*map.Find("key1") == "value1");
+
+        // Emplace on existing key
+        String& val2 = map.Emplace("key1", "value2_should_not_be_inserted");
+        CHECK(map.Len() == 1);
+        CHECK(val2 == "value1"); // Should return ref to existing value
+        CHECK(*map.Find("key1") == "value1");
+
+        // Modify through returned reference
+        val2 = "modified_value";
+        CHECK(*map.Find("key1") == "modified_value");
+    }
+
+    SUBCASE("First, Last, Bounds")
+    {
+        Map<int, String> map = { { 10, "ten" }, { 20, "twenty" }, { 30, "thirty" } };
+
+        CHECK(map.First().HasValue());
+        CHECK(map.First()->first == 10);
+        CHECK(map.First()->second == "ten");
+
+        CHECK(map.Last().HasValue());
+        CHECK(map.Last()->first == 30);
+        CHECK(map.Last()->second == "thirty");
+
+        auto lower = map.LowerBoundEntry(20);
+        CHECK(lower.HasValue());
+        CHECK(lower->first == 20);
+
+        auto lower2 = map.LowerBoundEntry(21);
+        CHECK(lower2.HasValue());
+        CHECK(lower2->first == 30);
+
+        auto upper = map.UpperBoundEntry(20);
+        CHECK(upper.HasValue());
+        CHECK(upper->first == 30);
+
+        auto upper2 = map.UpperBoundEntry(30);
+        CHECK_FALSE(upper2.HasValue());
+
+        Map<int, String> empty_map;
+        CHECK_FALSE(empty_map.First().HasValue());
+        CHECK_FALSE(empty_map.Last().HasValue());
+        CHECK_FALSE(empty_map.LowerBoundEntry(1).HasValue());
+        CHECK_FALSE(empty_map.UpperBoundEntry(1).HasValue());
     }
 }
 }
