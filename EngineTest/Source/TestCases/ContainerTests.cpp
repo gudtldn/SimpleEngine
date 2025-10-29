@@ -1,17 +1,19 @@
 #include "doctest/doctest.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
 #include <iostream>
 #include <vector>
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/FixedArray.h"
-#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/Deque.h"
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Container/Map.h"
-#include "SimpleEngine/Core/Container/LinkedList.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Container/Set.h"
+#include "SimpleEngine/Core/Container/LinkedList.h"
+#include "SimpleEngine/Core/Container/Map.h"
 #include "SimpleEngine/Core/Container/PriorityQueue.h"
+#include "SimpleEngine/Core/Container/Set.h"
+#include "SimpleEngine/Core/Container/String.h"
 
 
 // Using the namespace where containers are defined
@@ -1308,6 +1310,7 @@ TEST_CASE("LinkedList API")
     SUBCASE("Self-Assignment")
     {
         LinkedList<int> list = { 1, 2, 3 };
+        // ReSharper disable once CppIdenticalOperandsInBinaryExpression
         list = list; // Self-assignment
         CHECK(list.Len() == 3);
         CHECK(*list.Front() == 1);

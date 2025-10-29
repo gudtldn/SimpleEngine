@@ -112,17 +112,16 @@ public:
     /**
      * C-style 문자열 리터럴로부터 String 객체를 생성합니다.
      * @param literal null로 끝나는 C-style UTF-8 문자열
-     * @param repeat 이 문자열을 반복할 횟수
      */
-    BaseString(const char* literal, SizeType repeat = 1);
+    BaseString(const char* literal);
+    BaseString(const char* literal, SizeType length);
     BaseString& operator=(const char* literal);
 
     /**
      * std::string_view로부터 String 객체를 생성합니다.
      * @param view string_view
-     * @param repeat 이 문자열을 반복할 횟수
      */
-    BaseString(std::string_view view, SizeType repeat = 1);
+    BaseString(std::string_view view);
     BaseString& operator=(std::string_view view);
 
     /**

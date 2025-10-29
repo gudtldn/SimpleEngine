@@ -55,8 +55,14 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(char32 code_point)
 }
 
 template <typename Allocator>
-BaseString<Allocator>::BaseString(const char* literal, SizeType repeat)
-    : BaseString(std::string_view{ literal }, repeat)
+BaseString<Allocator>::BaseString(const char* literal)
+    : BaseString(std::string_view{ literal })
+{
+}
+
+template <typename Allocator>
+BaseString<Allocator>::BaseString(const char* literal, SizeType length)
+    : BaseString(std::string_view{ literal, length })
 {
 }
 
@@ -68,20 +74,16 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(const char* literal)
 }
 
 template <typename Allocator>
-BaseString<Allocator>::BaseString(std::string_view view, SizeType repeat)
+BaseString<Allocator>::BaseString(std::string_view view)
 {
-    if (view.empty() || repeat == 0)
+    if (view.empty())
     {
         data.Push('\0');
         return;
     }
 
-    const SizeType total_len = view.length() * repeat;
-    data.Reserve(total_len + 1);
-    for (SizeType i = 0; i < repeat; ++i)
-    {
-        data.PushRange(view);
-    }
+    data.Reserve(view.length());
+    data.PushRange(view);
     data.Push('\0');
 }
 
