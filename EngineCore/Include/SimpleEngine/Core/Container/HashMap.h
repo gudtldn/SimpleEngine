@@ -75,22 +75,27 @@ public:
     [[nodiscard]] static HashMap FromRange(Rng&& range);
 
 public:
-    /** 맵에 포함된 요소의 수를 반환합니다. */
+    /** Map에 포함된 요소의 수를 반환합니다. */
     [[nodiscard]] SizeType Len() const noexcept;
 
-    /** 맵이 비어있는지 확인합니다. */
+    /** Map이 비어있는지 확인합니다. */
     [[nodiscard]] bool IsEmpty() const noexcept;
 
-    /** 재할당 없이 맵이 담을 수 있는 요소의 수를 반환합니다. (내부 버킷 수) */
+    /** 재할당 없이 Map이 담을 수 있는 요소의 수를 반환합니다. (내부 버킷 수) */
     [[nodiscard]] SizeType Capacity() const noexcept;
 
     /** 최소 new_capacity 만큼의 요소를 저장할 수 있도록 용량을 예약합니다. */
     void Reserve(SizeType new_capacity);
 
-    /** 맵의 모든 요소를 제거합니다. */
+    /** Map의 모든 요소를 제거합니다. */
     void Clear() noexcept;
 
-    /** TODO: docs */
+    /**
+     * 새로운 요소를 Map에 내부 생성(emplace)하여 추가합니다.
+     * @tparam Args 요소의 생성자에 전달할 인수들의 타입
+     * @param key 삽입할 키
+     * @param args 요소의 생성자에 전달할 인수들
+     */
     template <typename... Args>
     ValueType& Emplace(const KeyType& key, Args&&... args);
 
@@ -110,7 +115,7 @@ public:
     [[nodiscard]] Optional<const ValueType&> Find(const KeyType& key) const;
 
     /**
-     * 특정 Key가 맵에 포함되어 있는지 확인합니다
+     * 특정 Key가 Map에 포함되어 있는지 확인합니다
      * @param key 확인할 Key
      */
     [[nodiscard]] bool Contains(const KeyType& key) const;
@@ -131,10 +136,10 @@ public:
         requires std::predicate<Predicate, const Key&, const Value&>
     SizeType RemoveIf(Predicate&& pred);
 
-    /** 맵의 모든 키를 담은 Array를 생성하여 반환합니다. */
+    /** Map의 모든 키를 담은 Array를 생성하여 반환합니다. */
     [[nodiscard]] Array<KeyType> GetKeys() const;
 
-    /** 맵의 모든 값을 담은 Array를 생성하여 반환합니다. */
+    /** Map의 모든 값을 담은 Array를 생성하여 반환합니다. */
     [[nodiscard]] Array<ValueType> GetValues() const;
 
     void Swap(HashMap& other) noexcept;

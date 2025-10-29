@@ -72,13 +72,13 @@ public:
     [[nodiscard]] static Map FromRange(Rng&& range);
 
 public:
-    /** 맵에 포함된 요소의 수를 반환합니다. */
+    /** Map에 포함된 요소의 수를 반환합니다. */
     [[nodiscard]] SizeType Len() const noexcept;
 
-    /** 맵이 비어있는지 확인합니다. */
+    /** Map이 비어있는지 확인합니다. */
     [[nodiscard]] bool IsEmpty() const noexcept;
 
-    /** 맵의 모든 요소를 제거합니다. */
+    /** Map의 모든 요소를 제거합니다. */
     void Clear() noexcept;
 
     /** TODO: docs */
@@ -123,7 +123,7 @@ public:
     [[nodiscard]] Optional<const PairType&> UpperBoundEntry(const KeyType& key) const;
 
     /**
-     * 특정 Key가 맵에 포함되어 있는지 확인합니다
+     * 특정 Key가 Map에 포함되어 있는지 확인합니다
      * @param key 확인할 Key
      */
     [[nodiscard]] bool Contains(const KeyType& key) const;
@@ -144,10 +144,10 @@ public:
         requires std::predicate<Predicate, const Key&, const Value&>
     SizeType RemoveIf(Predicate&& pred);
 
-    /** 맵의 모든 키를 담은 Array를 생성하여 반환합니다. */
+    /** Map의 모든 키를 담은 Array를 생성하여 반환합니다. */
     [[nodiscard]] Array<KeyType> GetKeys() const;
 
-    /** 맵의 모든 값을 담은 Array를 생성하여 반환합니다. */
+    /** Map의 모든 값을 담은 Array를 생성하여 반환합니다. */
     [[nodiscard]] Array<ValueType> GetValues() const;
 
     void Swap(Map& other) noexcept;
