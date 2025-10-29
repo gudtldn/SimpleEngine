@@ -214,8 +214,8 @@ public:
 
     [[nodiscard]] IteratorType begin() { return IteratorType(dense.begin(), components.begin()); }
     [[nodiscard]] IteratorType end() { return IteratorType(dense.end(), components.end()); }
-    [[nodiscard]] ConstIteratorType begin() const { return ConstIteratorType(dense.begin(), components.end()); }
-    [[nodiscard]] ConstIteratorType end() const { return ConstIteratorType(dense.begin(), components.end()); }
+    [[nodiscard]] ConstIteratorType begin() const { return ConstIteratorType(dense.begin(), components.begin()); }
+    [[nodiscard]] ConstIteratorType end() const { return ConstIteratorType(dense.end(), components.end()); }
 };
 
 /** type erasure를 위한 인터페이스 */
