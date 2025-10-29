@@ -268,8 +268,8 @@ decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
             "Optional<T> in a Query must be fetched by value, not by reference."
         );
 
-        using DecayedT = std::decay_t<typename T::InnerType>;
-        using WorldType = std::conditional_t<std::is_const_v<typename T::InnerType>, const World*, World*>;
+        using DecayedT = std::decay_t<typename T::ValueType>;
+        using WorldType = std::conditional_t<std::is_const_v<typename T::ValueType>, const World*, World*>;
 
         WorldType world_ptr = world;
         return world_ptr->template TryGetComponent<DecayedT>(entity);

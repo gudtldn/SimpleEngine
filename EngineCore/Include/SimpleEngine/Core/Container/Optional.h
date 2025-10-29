@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <cassert>
 #include <concepts>
 #include <memory>
 #include <new>
@@ -14,7 +15,7 @@ template <typename T>
 class Optional
 {
 public:
-    using InnerType = T;
+    using ValueType = T;
 
 public:
     Optional() noexcept = default;
@@ -127,7 +128,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -137,7 +138,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -147,7 +148,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return std::move(GetStoredValue());
     }
@@ -157,7 +158,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return std::move(GetStoredValue());
     }
@@ -426,7 +427,7 @@ template <typename T>
 class [[nodiscard]] Optional<T&>
 {
 public:
-    using InnerType = T;
+    using ValueType = T;
 
 public:
     Optional() noexcept = default;
@@ -482,7 +483,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
@@ -492,7 +493,7 @@ public:
     {
         if (!HasValue())
         {
-            throw std::bad_optional_access{};
+            assert(false && "Optional is empty!");
         }
         return GetStoredValue();
     }
