@@ -81,18 +81,17 @@ void TaskScheduler::Launch_WorkerThread(Task<void>&& task)
 void TaskScheduler::ProcessMainThreadTasks()
 {
     // 데드락 방지용으로 사용할 변수
-    queue<std::coroutine_handle<>> tasks_to_run;
+    Queue<std::coroutine_handle<>> tasks_to_run;
     {
         std::scoped_lock lock(main_thread_mutex);
-        tasks_to_run.swap(main_thread_tasks);
+        tasks_to_run.Swap(main_thread_tasks);
     }
 
     // 다시 예약된 모든 코루틴을 재개합니다.
-    while (!tasks_to_run.empty())
+    while (const Optional handle_opt = tasks_to_run.Front())
     {
-        auto handle = tasks_to_run.front();
-        tasks_to_run.pop();
-        handle.resume();
+        tasks_to_run.Pop();
+        handle_opt->resume();
     }
 
     {
@@ -109,6 +108,6 @@ void TaskScheduler::ProcessMainThreadTasks()
 void TaskScheduler::ScheduleOnMainThread(std::coroutine_handle<> handle)
 {
     std::scoped_lock lock(main_thread_mutex);
-    main_thread_tasks.push(handle);
+    main_thread_tasks.Push(handle);
 }
 }

@@ -151,7 +151,7 @@ TEST_CASE("Expected API")
         {
             return std::to_string(i);
         };
-        auto then_func_err = [](int i) -> Expected<String, TestError>
+        auto then_func_err = []([[maybe_unused]] int i) -> Expected<String, TestError>
         {
             return Unexpected(TestError::AnotherError);
         };
@@ -173,11 +173,11 @@ TEST_CASE("Expected API")
 
     SUBCASE("OrElse")
     {
-        auto else_func_ok = [](TestError e) -> Expected<int, String>
+        auto else_func_ok = []([[maybe_unused]] TestError e) -> Expected<int, String>
         {
             return 100;
         };
-        auto else_func_err = [](TestError e) -> Expected<int, String>
+        auto else_func_err = []([[maybe_unused]] TestError e) -> Expected<int, String>
         {
             return Unexpected("Recovered error");
         };

@@ -999,7 +999,7 @@ TEST_CASE("HashMap API")
     SUBCASE("RemoveIf")
     {
         HashMap<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 } };
-        usize removed_count = map.RemoveIf([](const String& key, const int& val)
+        usize removed_count = map.RemoveIf([]([[maybe_unused]] const String& key, const int& val)
         {
             return val % 2 == 0; // Remove even values
         });
@@ -1151,7 +1151,7 @@ TEST_CASE("Map API")
     SUBCASE("RemoveIf")
     {
         Map<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 } };
-        usize removed_count = map.RemoveIf([](const String& key, const int& val)
+        usize removed_count = map.RemoveIf([]([[maybe_unused]] const String& key, const int& val)
         {
             return val % 2 == 0; // Remove even values
         });

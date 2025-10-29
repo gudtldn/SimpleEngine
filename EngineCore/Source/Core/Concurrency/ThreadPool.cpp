@@ -37,7 +37,7 @@ ThreadPool::~ThreadPool()
     ConsoleLog(ELogLevel::Info, "Destroying ThreadPool...");
     {
         std::scoped_lock lock(mutex);
-        while (!tasks.empty()) { tasks.pop(); }
+        tasks.Clear();
     }
 
     // 스레드 중단
@@ -62,16 +62,15 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
             // stop이 요청되거나 작업이 생길 때까지 대기
             condition.wait(lock, [this, &token]
             {
-                return !tasks.empty() || token.stop_requested();
+                return !tasks.IsEmpty() || token.stop_requested();
             });
 
-            if (token.stop_requested() && tasks.empty())
+            if (token.stop_requested() && tasks.IsEmpty())
             {
                 return;
             }
 
-            task = std::move(tasks.front());
-            tasks.pop();
+            task = std::move(*tasks.Pop());
         }
 
         {

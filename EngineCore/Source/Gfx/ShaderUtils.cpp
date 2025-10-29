@@ -1,6 +1,5 @@
 ﻿#include "Gfx/ShaderUtils.h"
 
-#include "Core/Containers/Containers.h"
 #include "Core/HAL/PlatformTypes.h"
 #include "Core/Logging/Logging.h"
 #include "Utility/FileUtils.h"

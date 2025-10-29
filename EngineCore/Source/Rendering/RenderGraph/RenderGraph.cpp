@@ -8,12 +8,11 @@
 #include <utility>
 
 #include "Core/Container/HashMap.h"
+#include "Core/Container/Queue.h"
 #include "Core/Logging/Logging.h"
 #include "Rendering/Manager/PSOManager.h"
 
 #include "tracy/Tracy.hpp"
-
-#include "Core/Containers/Containers.h" // TODO: 제거
 
 namespace se::rendering
 {
@@ -106,7 +105,7 @@ void RenderGraph::Compile()
 
     // 2. Pass Culling 단계
     // 사용되고 있는 리소스를 추적해서 패스를 활성화로 만들기
-    queue<RGResourceHandle> active_resources;
+    Queue<RGResourceHandle> active_resources;
     for (const auto [n, resource_node] : resource_nodes | std::views::enumerate)
     {
         IRGResource* resource = resource_node.resource.get();
@@ -115,15 +114,14 @@ void RenderGraph::Compile()
             || dynamic_cast<RGExternalBuffer*>(resource)
         )
         {
-            active_resources.push({ static_cast<usize>(n) });
+            active_resources.Push({ static_cast<usize>(n) });
         }
     }
 
     // 역방향으로 그래프를 순회하며 활성 패스를 찾아냄
-    while (!active_resources.empty())
+    while (Optional active_resource_opt = active_resources.Pop())
     {
-        const auto [active_handle_idx] = active_resources.front();
-        active_resources.pop();
+        const auto [active_handle_idx] = *active_resource_opt;
 
         if (const RGPassNode* writer_pass = resource_nodes[active_handle_idx].writer)
         {
@@ -142,7 +140,7 @@ void RenderGraph::Compile()
             // pass_to_activate가 사용하고 있는 Read 리소스를 active_resources에 추가
             for (const RGResourceHandle& resource_handle : pass_to_activate.reads)
             {
-                active_resources.push(resource_handle);
+                active_resources.Push(resource_handle);
             }
         }
     }
@@ -173,21 +171,19 @@ void RenderGraph::Compile()
     }
 
     // 진입 차수가 0인 패스(누구에게도 의존하지 않는 패스)들을 큐에 추가
-    queue<const RGPassNode*> ready_queue;
+    Queue<const RGPassNode*> ready_queue;
     for (const RGPassNode& pass_node : pass_nodes)
     {
         if (!pass_node.culled && in_degrees[&pass_node] == 0)
         {
-            ready_queue.push(&pass_node);
+            ready_queue.Push(&pass_node);
         }
     }
 
     // 위상 정렬 수행
-    while (!ready_queue.empty())
+    while (Optional pass_node_opt = ready_queue.Pop())
     {
-        const RGPassNode* pass_node = ready_queue.front();
-        ready_queue.pop();
-
+        const RGPassNode* pass_node = *pass_node_opt;
         compiled_passes.Push(pass_node);
 
         // 현재 패스가 쓴 리소스를 읽는 다른 패스들의 의존성을 해결
@@ -208,7 +204,7 @@ void RenderGraph::Compile()
                         --in_degrees[&potential_reader_pass];
                         if (in_degrees[&potential_reader_pass] == 0)
                         {
-                            ready_queue.push(&potential_reader_pass);
+                            ready_queue.Push(&potential_reader_pass);
                         }
                     }
                 }

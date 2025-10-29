@@ -7,6 +7,7 @@
 #include "Core/Concurrency/ThreadPool.h"
 #include "Core/Container/Array.h"
 #include "Core/Container/HashMap.h"
+#include "Core/Container/Queue.h"
 #include "Core/Interfaces/ISubsystemBase.h"
 #include "Core/Interfaces/IUpdatable.h"
 #include "Gfx/RenderSubsystem.h"
@@ -177,7 +178,7 @@ bool Engine::SortSubsystems()
 
     HashMap<refl::TypeId, Array<refl::TypeId>> adj_list;
     HashMap<refl::TypeId, int> in_degree;
-    queue<refl::TypeId> queue;
+    Queue<refl::TypeId> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
     for (const refl::TypeId& type_id : subsystems | std::views::keys)
@@ -203,17 +204,15 @@ bool Engine::SortSubsystems()
     {
         if (degree == 0)
         {
-            queue.push(type_id);
+            queue.Push(type_id);
         }
     }
 
     // 위상 정렬을 수행
     sorted_subsystems.Clear();
-    while (!queue.empty())
+    while (Optional current_id_opt = queue.Pop())
     {
-        const auto current_id = queue.front();
-        queue.pop();
-
+        const refl::TypeId current_id = *current_id_opt;
         sorted_subsystems.Push(subsystems[current_id].get());
 
         for (const auto& neighbor_id : adj_list[current_id])
@@ -221,7 +220,7 @@ bool Engine::SortSubsystems()
             --in_degree[neighbor_id];
             if (in_degree[neighbor_id] == 0)
             {
-                queue.push(neighbor_id);
+                queue.Push(neighbor_id);
             }
         }
     }
