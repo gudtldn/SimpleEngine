@@ -9,6 +9,8 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Map.h"
 #include "SimpleEngine/Core/Container/LinkedList.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
+#include "SimpleEngine/Core/Container/Set.h"
 
 
 // Using the namespace where containers are defined
@@ -1562,6 +1564,366 @@ TEST_CASE("LinkedList API")
         CHECK(list5.Len() == 3);
         CHECK(*list5.Front() == 1);
         CHECK(list3.IsEmpty());
+    }
+}
+
+TEST_CASE("HashSet API")
+{
+    SUBCASE("Default Construction")
+    {
+        HashSet<int> set;
+        CHECK(set.IsEmpty());
+        CHECK(set.Len() == 0);
+    }
+
+    SUBCASE("Construction with capacity")
+    {
+        HashSet<int> set(10);
+        CHECK(set.IsEmpty());
+        CHECK(set.Len() == 0);
+        CHECK(set.Capacity() >= 10);
+    }
+
+    SUBCASE("Initializer List Construction")
+    {
+        HashSet<int> set = { 1, 2, 3, 2, 1 };
+        CHECK(set.Len() == 3);
+        CHECK(set.Contains(1));
+        CHECK(set.Contains(2));
+        CHECK(set.Contains(3));
+        CHECK_FALSE(set.Contains(4));
+    }
+
+    SUBCASE("Construction from iterators and range")
+    {
+        std::vector<int> vec = { 10, 20, 30, 20 };
+        HashSet<int> set_from_iter(vec.begin(), vec.end());
+        CHECK(set_from_iter.Len() == 3);
+        CHECK(set_from_iter.Contains(10));
+        CHECK(set_from_iter.Contains(20));
+        CHECK(set_from_iter.Contains(30));
+
+        HashSet<int> set_from_range = HashSet<int>::FromRange(vec);
+        CHECK(set_from_range.Len() == 3);
+        CHECK(set_from_range.Contains(10));
+        CHECK(set_from_range.Contains(20));
+        CHECK(set_from_range.Contains(30));
+    }
+
+    SUBCASE("Add and Contains")
+    {
+        HashSet<String> set;
+        CHECK(set.Add("apple"));
+        CHECK(set.Len() == 1);
+        CHECK(set.Contains("apple"));
+        CHECK_FALSE(set.Add("apple")); // Already exists
+        CHECK(set.Len() == 1);
+
+        set.Add("banana");
+        CHECK(set.Len() == 2);
+        CHECK(set.Contains("banana"));
+    }
+
+    SUBCASE("Emplace")
+    {
+        struct TestStruct
+        {
+            String name;
+            int id;
+
+            TestStruct(String n, int i)
+                : name(std::move(n))
+                , id(i)
+            {
+            }
+
+            bool operator==(const TestStruct& other) const { return name == other.name && id == other.id; }
+        };
+
+        // Custom hash for TestStruct
+        struct TestStructHasher
+        {
+            usize operator()(const TestStruct& ts) const
+            {
+                return std::hash<String>()(ts.name) ^ std::hash<int>()(ts.id);
+            }
+        };
+
+        HashSet<TestStruct, TestStructHasher> set;
+        CHECK(set.Emplace("item1", 1));
+        CHECK(set.Len() == 1);
+        CHECK(set.Contains(TestStruct("item1", 1)));
+
+        CHECK_FALSE(set.Emplace("item1", 1)); // Already exists
+        CHECK(set.Len() == 1);
+
+        CHECK(set.Emplace("item2", 2));
+        CHECK(set.Len() == 2);
+    }
+
+    SUBCASE("Remove")
+    {
+        HashSet<int> set = { 1, 2, 3 };
+        CHECK(set.Remove(2));
+        CHECK(set.Len() == 2);
+        CHECK_FALSE(set.Contains(2));
+        CHECK_FALSE(set.Remove(4)); // Not found
+        CHECK(set.Len() == 2);
+    }
+
+    SUBCASE("RemoveIf")
+    {
+        HashSet<int> set = { 1, 2, 3, 4, 5, 6 };
+        usize removed_count = set.RemoveIf([](int val) { return val % 2 == 0; }); // Remove even numbers
+        CHECK(removed_count == 3);
+        CHECK(set.Len() == 3);
+        CHECK(set.Contains(1));
+        CHECK(set.Contains(3));
+        CHECK(set.Contains(5));
+        CHECK_FALSE(set.Contains(2));
+    }
+
+    SUBCASE("Clear")
+    {
+        HashSet<int> set = { 1, 2, 3 };
+        set.Clear();
+        CHECK(set.IsEmpty());
+        CHECK(set.Len() == 0);
+        CHECK(set.Capacity() > 0); // Capacity is not necessarily 0 after clear
+    }
+
+    SUBCASE("Capacity and Reserve")
+    {
+        HashSet<int> set;
+        set.Reserve(10);
+        CHECK(set.Capacity() >= 10);
+        set.Add(1);
+        CHECK(set.Len() == 1);
+    }
+
+    SUBCASE("ToArray")
+    {
+        HashSet<int> set = { 3, 1, 2 };
+        Array<int> arr = set.ToArray();
+        CHECK(arr.Len() == 3);
+        // Order is not guaranteed, so check for presence
+        CHECK(arr.Contains(1));
+        CHECK(arr.Contains(2));
+        CHECK(arr.Contains(3));
+    }
+
+    SUBCASE("Iterators and Range-based for loop")
+    {
+        HashSet<int> set = { 10, 20, 30 };
+        int sum = 0;
+        for (int val : set)
+        {
+            sum += val;
+        }
+        CHECK(sum == 60);
+
+        const HashSet<int> const_set = { 40, 50 };
+        int const_sum = 0;
+        for (int val : const_set)
+        {
+            const_sum += val;
+        }
+        CHECK(const_sum == 90);
+    }
+
+    SUBCASE("Copy and Move Semantics")
+    {
+        HashSet<int> set1 = { 1, 2, 3 };
+        HashSet<int> set2 = set1; // Copy constructor
+        CHECK(set2.Len() == 3);
+        CHECK(set2.Contains(1));
+
+        HashSet<int> set3;
+        set3 = set1; // Copy assignment
+        CHECK(set3.Len() == 3);
+        CHECK(set3.Contains(2));
+
+        HashSet<int> set4 = std::move(set1); // Move constructor
+        CHECK(set4.Len() == 3);
+        CHECK(set4.Contains(3));
+        CHECK(set1.IsEmpty()); // Moved-from state
+
+        HashSet<int> set5;
+        set5 = std::move(set3); // Move assignment
+        CHECK(set5.Len() == 3);
+        CHECK(set5.Contains(1));
+        CHECK(set3.IsEmpty());
+    }
+}
+
+TEST_CASE("Set API")
+{
+    SUBCASE("Default Construction")
+    {
+        Set<int> set;
+        CHECK(set.IsEmpty());
+        CHECK(set.Len() == 0);
+    }
+
+    SUBCASE("Initializer List Construction")
+    {
+        Set<int> set = { 3, 1, 2, 1, 3 };
+        CHECK(set.Len() == 3);
+        CHECK(set.Contains(1));
+        CHECK(set.Contains(2));
+        CHECK(set.Contains(3));
+        CHECK_FALSE(set.Contains(4));
+    }
+
+    SUBCASE("Construction from iterators and range")
+    {
+        std::vector<int> vec = { 30, 10, 20, 10 };
+        Set<int> set_from_iter(vec.begin(), vec.end());
+        CHECK(set_from_iter.Len() == 3);
+        CHECK(set_from_iter.Contains(10));
+        CHECK(set_from_iter.Contains(20));
+        CHECK(set_from_iter.Contains(30));
+
+        Set<int> set_from_range = Set<int>::FromRange(vec);
+        CHECK(set_from_range.Len() == 3);
+        CHECK(set_from_range.Contains(10));
+        CHECK(set_from_range.Contains(20));
+        CHECK(set_from_range.Contains(30));
+    }
+
+    SUBCASE("Add and Contains")
+    {
+        Set<String> set;
+        CHECK(set.Add("apple"));
+        CHECK(set.Len() == 1);
+        CHECK(set.Contains("apple"));
+        CHECK_FALSE(set.Add("apple")); // Already exists
+        CHECK(set.Len() == 1);
+
+        set.Add("banana");
+        CHECK(set.Len() == 2);
+        CHECK(set.Contains("banana"));
+    }
+
+    SUBCASE("Emplace")
+    {
+        struct TestStruct
+        {
+            String name;
+            int id;
+
+            TestStruct(String n, int i)
+                : name(std::move(n))
+                , id(i)
+            {
+            }
+
+            bool operator<(const TestStruct& other) const
+            {
+                if (name != other.name) return name < other.name;
+                return id < other.id;
+            }
+
+            bool operator==(const TestStruct& other) const { return name == other.name && id == other.id; }
+        };
+
+        Set<TestStruct> set;
+        CHECK(set.Emplace("item1", 1));
+        CHECK(set.Len() == 1);
+        CHECK(set.Contains(TestStruct("item1", 1)));
+
+        CHECK_FALSE(set.Emplace("item1", 1)); // Already exists
+        CHECK(set.Len() == 1);
+
+        CHECK(set.Emplace("item2", 2));
+        CHECK(set.Len() == 2);
+    }
+
+    SUBCASE("Remove")
+    {
+        Set<int> set = { 1, 2, 3 };
+        CHECK(set.Remove(2));
+        CHECK(set.Len() == 2);
+        CHECK_FALSE(set.Contains(2));
+        CHECK_FALSE(set.Remove(4)); // Not found
+        CHECK(set.Len() == 2);
+    }
+
+    SUBCASE("RemoveIf")
+    {
+        Set<int> set = { 1, 2, 3, 4, 5, 6 };
+        usize removed_count = set.RemoveIf([](int val) { return val % 2 == 0; }); // Remove even numbers
+        CHECK(removed_count == 3);
+        CHECK(set.Len() == 3);
+        CHECK(set.Contains(1));
+        CHECK(set.Contains(3));
+        CHECK(set.Contains(5));
+        CHECK_FALSE(set.Contains(2));
+    }
+
+    SUBCASE("Clear")
+    {
+        Set<int> set = { 1, 2, 3 };
+        set.Clear();
+        CHECK(set.IsEmpty());
+        CHECK(set.Len() == 0);
+    }
+
+    SUBCASE("ToArray")
+    {
+        Set<int> set = { 3, 1, 2 };
+        Array<int> arr = set.ToArray();
+        CHECK(arr.Len() == 3);
+        // Order is guaranteed for Set
+        CHECK(arr[0] == 1);
+        CHECK(arr[1] == 2);
+        CHECK(arr[2] == 3);
+    }
+
+    SUBCASE("Iterators and Range-based for loop")
+    {
+        Set<int> set = { 30, 10, 20 };
+        int sum = 0;
+        String concat_str;
+        for (int val : set) // Should iterate in order: 10, 20, 30
+        {
+            sum += val;
+            concat_str.Append(String::Format("{}", val));
+        }
+        CHECK(sum == 60);
+        CHECK(concat_str == "102030");
+
+        const Set<int> const_set = { 50, 40 };
+        int const_sum = 0;
+        for (int val : const_set)
+        {
+            const_sum += val;
+        }
+        CHECK(const_sum == 90);
+    }
+
+    SUBCASE("Copy and Move Semantics")
+    {
+        Set<int> set1 = { 1, 2, 3 };
+        Set<int> set2 = set1; // Copy constructor
+        CHECK(set2.Len() == 3);
+        CHECK(set2.Contains(1));
+
+        Set<int> set3;
+        set3 = set1; // Copy assignment
+        CHECK(set3.Len() == 3);
+        CHECK(set3.Contains(2));
+
+        Set<int> set4 = std::move(set1); // Move constructor
+        CHECK(set4.Len() == 3);
+        CHECK(set4.Contains(3));
+        CHECK(set1.IsEmpty()); // Moved-from state
+
+        Set<int> set5;
+        set5 = std::move(set3); // Move assignment
+        CHECK(set5.Len() == 3);
+        CHECK(set5.Contains(1));
+        CHECK(set3.IsEmpty());
     }
 }
 }
