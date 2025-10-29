@@ -271,49 +271,49 @@ const T& Deque<T, Allocator>::operator[](SizeType index) const noexcept
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::Iterator Deque<T, Allocator>::begin() noexcept
+Deque<T, Allocator>::IteratorType Deque<T, Allocator>::begin() noexcept
 {
     return internal_deque.begin();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::Iterator Deque<T, Allocator>::end() noexcept
+Deque<T, Allocator>::IteratorType Deque<T, Allocator>::end() noexcept
 {
     return internal_deque.end();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::ConstIterator Deque<T, Allocator>::begin() const noexcept
+Deque<T, Allocator>::ConstIteratorType Deque<T, Allocator>::begin() const noexcept
 {
     return internal_deque.cbegin();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::ConstIterator Deque<T, Allocator>::end() const noexcept
+Deque<T, Allocator>::ConstIteratorType Deque<T, Allocator>::end() const noexcept
 {
     return internal_deque.cend();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::ReverseIterator Deque<T, Allocator>::rbegin() noexcept
+Deque<T, Allocator>::ReverseIteratorType Deque<T, Allocator>::rbegin() noexcept
 {
     return internal_deque.rbegin();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::ReverseIterator Deque<T, Allocator>::rend() noexcept
+Deque<T, Allocator>::ReverseIteratorType Deque<T, Allocator>::rend() noexcept
 {
     return internal_deque.rend();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::ConstReverseIterator Deque<T, Allocator>::rbegin() const noexcept
+Deque<T, Allocator>::ConstReverseIteratorType Deque<T, Allocator>::rbegin() const noexcept
 {
     return internal_deque.crbegin();
 }
 
 template <typename T, typename Allocator>
-Deque<T, Allocator>::ConstReverseIterator Deque<T, Allocator>::rend() const noexcept
+Deque<T, Allocator>::ConstReverseIteratorType Deque<T, Allocator>::rend() const noexcept
 {
     return internal_deque.crend();
 }

@@ -209,13 +209,13 @@ public:
         CompIt comp_iter;
     };
 
-    using Iterator = SparseSetIteratorTemplate<Array<Entity>::Iterator, typename Array<ComponentType>::Iterator>;
-    using ConstIterator = SparseSetIteratorTemplate<Array<Entity>::ConstIterator, typename Array<ComponentType>::ConstIterator>;
+    using IteratorType = SparseSetIteratorTemplate<Array<Entity>::IteratorType, typename Array<ComponentType>::IteratorType>;
+    using ConstIteratorType = SparseSetIteratorTemplate<Array<Entity>::ConstIteratorType, typename Array<ComponentType>::ConstIteratorType>;
 
-    [[nodiscard]] Iterator begin() { return Iterator(dense.begin(), components.begin()); }
-    [[nodiscard]] Iterator end() { return Iterator(dense.end(), components.end()); }
-    [[nodiscard]] ConstIterator begin() const { return ConstIterator(dense.begin(), components.end()); }
-    [[nodiscard]] ConstIterator end() const { return ConstIterator(dense.begin(), components.end()); }
+    [[nodiscard]] IteratorType begin() { return IteratorType(dense.begin(), components.begin()); }
+    [[nodiscard]] IteratorType end() { return IteratorType(dense.end(), components.end()); }
+    [[nodiscard]] ConstIteratorType begin() const { return ConstIteratorType(dense.begin(), components.end()); }
+    [[nodiscard]] ConstIteratorType end() const { return ConstIteratorType(dense.begin(), components.end()); }
 };
 
 /** type erasure를 위한 인터페이스 */

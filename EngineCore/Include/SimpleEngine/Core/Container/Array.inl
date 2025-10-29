@@ -598,28 +598,28 @@ auto Array<T, Allocator>::operator<=>(const Array& other) const
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Iterator Array<T, Allocator>::begin() noexcept { return data; }
+Array<T, Allocator>::IteratorType Array<T, Allocator>::begin() noexcept { return data; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::Iterator Array<T, Allocator>::end() noexcept { return data + size; }
+Array<T, Allocator>::IteratorType Array<T, Allocator>::end() noexcept { return data + size; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ConstIterator Array<T, Allocator>::begin() const noexcept { return data; }
+Array<T, Allocator>::ConstIteratorType Array<T, Allocator>::begin() const noexcept { return data; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ConstIterator Array<T, Allocator>::end() const noexcept { return data + size; }
+Array<T, Allocator>::ConstIteratorType Array<T, Allocator>::end() const noexcept { return data + size; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ReverseIterator Array<T, Allocator>::rbegin() noexcept { return ReverseIterator{ begin() }; }
+Array<T, Allocator>::ReverseIteratorType Array<T, Allocator>::rbegin() noexcept { return ReverseIteratorType{ begin() }; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ReverseIterator Array<T, Allocator>::rend() noexcept { return ReverseIterator{ end() }; }
+Array<T, Allocator>::ReverseIteratorType Array<T, Allocator>::rend() noexcept { return ReverseIteratorType{ end() }; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ConstReverseIterator Array<T, Allocator>::rbegin() const noexcept { return ConstReverseIterator{ begin() }; }
+Array<T, Allocator>::ConstReverseIteratorType Array<T, Allocator>::rbegin() const noexcept { return ConstReverseIteratorType{ begin() }; }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::ConstReverseIterator Array<T, Allocator>::rend() const noexcept { return ConstReverseIterator{ end() }; }
+Array<T, Allocator>::ConstReverseIteratorType Array<T, Allocator>::rend() const noexcept { return ConstReverseIteratorType{ end() }; }
 
 template <typename T, typename Allocator>
 void Array<T, Allocator>::Reallocate(SizeType new_capacity)

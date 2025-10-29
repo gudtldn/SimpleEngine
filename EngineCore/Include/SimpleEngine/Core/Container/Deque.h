@@ -36,10 +36,10 @@ public:
     using SizeType = size_type;
     using DifferenceType = difference_type;
 
-    using Iterator = InternalDequeType::iterator;
-    using ConstIterator = InternalDequeType::const_iterator;
-    using ReverseIterator = InternalDequeType::reverse_iterator;
-    using ConstReverseIterator = InternalDequeType::const_reverse_iterator;
+    using IteratorType = InternalDequeType::iterator;
+    using ConstIteratorType = InternalDequeType::const_iterator;
+    using ReverseIteratorType = InternalDequeType::reverse_iterator;
+    using ConstReverseIteratorType = InternalDequeType::const_reverse_iterator;
 
 public:
     Deque() noexcept(noexcept(Allocator()));
@@ -149,15 +149,15 @@ public:
     [[nodiscard]] bool operator==(const Deque& other) const = default;
     [[nodiscard]] auto operator<=>(const Deque& other) const = default;
 
-    [[nodiscard]] Iterator begin() noexcept;
-    [[nodiscard]] Iterator end() noexcept;
-    [[nodiscard]] ConstIterator begin() const noexcept;
-    [[nodiscard]] ConstIterator end() const noexcept;
+    [[nodiscard]] IteratorType begin() noexcept;
+    [[nodiscard]] IteratorType end() noexcept;
+    [[nodiscard]] ConstIteratorType begin() const noexcept;
+    [[nodiscard]] ConstIteratorType end() const noexcept;
 
-    [[nodiscard]] ReverseIterator rbegin() noexcept;
-    [[nodiscard]] ReverseIterator rend() noexcept;
-    [[nodiscard]] ConstReverseIterator rbegin() const noexcept;
-    [[nodiscard]] ConstReverseIterator rend() const noexcept;
+    [[nodiscard]] ReverseIteratorType rbegin() noexcept;
+    [[nodiscard]] ReverseIteratorType rend() noexcept;
+    [[nodiscard]] ConstReverseIteratorType rbegin() const noexcept;
+    [[nodiscard]] ConstReverseIteratorType rend() const noexcept;
 
     friend void swap(Deque& lhs, Deque& rhs) noexcept { lhs.Swap(rhs); }
 

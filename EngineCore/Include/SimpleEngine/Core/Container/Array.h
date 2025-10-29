@@ -33,10 +33,10 @@ public:
     using SizeType = size_type;
     using DifferenceType = difference_type;
 
-    using Iterator = T*;
-    using ConstIterator = const T*;
-    using ReverseIterator = std::reverse_iterator<Iterator>;
-    using ConstReverseIterator = std::reverse_iterator<ConstIterator>;
+    using IteratorType = T*;
+    using ConstIteratorType = const T*;
+    using ReverseIteratorType = std::reverse_iterator<IteratorType>;
+    using ConstReverseIteratorType = std::reverse_iterator<ConstIteratorType>;
 
 public:
     Array() noexcept(noexcept(Allocator()));
@@ -220,15 +220,15 @@ public:
     [[nodiscard]] auto operator<=>(const Array& other) const;
 
     // Iterator
-    [[nodiscard]] Iterator begin() noexcept;
-    [[nodiscard]] Iterator end() noexcept;
-    [[nodiscard]] ConstIterator begin() const noexcept;
-    [[nodiscard]] ConstIterator end() const noexcept;
+    [[nodiscard]] IteratorType begin() noexcept;
+    [[nodiscard]] IteratorType end() noexcept;
+    [[nodiscard]] ConstIteratorType begin() const noexcept;
+    [[nodiscard]] ConstIteratorType end() const noexcept;
 
-    [[nodiscard]] ReverseIterator rbegin() noexcept;
-    [[nodiscard]] ReverseIterator rend() noexcept;
-    [[nodiscard]] ConstReverseIterator rbegin() const noexcept;
-    [[nodiscard]] ConstReverseIterator rend() const noexcept;
+    [[nodiscard]] ReverseIteratorType rbegin() noexcept;
+    [[nodiscard]] ReverseIteratorType rend() noexcept;
+    [[nodiscard]] ConstReverseIteratorType rbegin() const noexcept;
+    [[nodiscard]] ConstReverseIteratorType rend() const noexcept;
 
     friend void swap(Array& lhs, Array& rhs) noexcept { lhs.Swap(rhs); }
 
