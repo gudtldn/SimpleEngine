@@ -5,6 +5,14 @@ add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
 add_subdirectory(doctest EXCLUDE_FROM_ALL)
 add_subdirectory(cpu_features EXCLUDE_FROM_ALL)
 
+if(MSVC)
+    target_compile_options(cpu_features PRIVATE
+            /wd4206 # translation unit is empty
+            /wd4132 # const object should be initialized
+            /wd4100 # unreferenced formal parameter
+    )
+endif()
+
 # SDL_shadercross
 set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF)
 add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)

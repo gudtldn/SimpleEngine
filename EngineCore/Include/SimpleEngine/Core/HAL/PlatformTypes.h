@@ -19,7 +19,6 @@
 #error "Unsupported platform"
 #endif
 
-
 #if !defined(SE_PLATFORM_WINDOWS)
 #define SE_PLATFORM_WINDOWS false
 #endif
@@ -31,7 +30,41 @@
 #if !defined(SE_PLATFORM_MACOS)
 #define SE_PLATFORM_MACOS false
 #endif
+// ~플랫폼 매크로
 
+// 플랫폼 아키텍처 매크로
+#if defined(_M_X64) || defined(__x86_64__)
+#define SE_COMPILE_PLATFORM_X86_64 true
+#elif defined(_M_IX86) || defined(__i386__)
+#define SE_COMPILE_PLATFORM_X86 true
+#elif defined(_M_ARM64) || defined(__aarch64__)
+#define SE_COMPILE_PLATFORM_ARM64 true
+#else
+#error "Unsupported platform"
+#endif
+
+#if defined(SE_COMPILE_PLATFORM_X86) || defined(SE_COMPILE_PLATFORM_X86_64)
+#define SE_COMPILE_PLATFORM_X86_FAMILY true
+#else
+#define SE_COMPILE_PLATFORM_X86_FAMILY false
+#endif
+
+#if defined(SE_COMPILE_PLATFORM_ARM64)
+#define SE_COMPILE_PLATFORM_ARM_FAMILY true
+#else
+#define SE_COMPILE_PLATFORM_ARM_FAMILY false
+#endif
+
+#if !defined(SE_COMPILE_PLATFORM_X86_64)
+#define SE_COMPILE_PLATFORM_X86_64 false
+#endif
+#if !defined(SE_COMPILE_PLATFORM_X86)
+#define SE_COMPILE_PLATFORM_X86 false
+#endif
+#if !defined(SE_COMPILE_PLATFORM_ARM64)
+#define SE_COMPILE_PLATFORM_ARM64 false
+#endif
+// ~플랫폼 아키텍처 매크로
 
 // 컴파일러별 매크로
 #ifdef _MSC_VER // MSVC 컴파일러
@@ -44,7 +77,9 @@
 #define FORCE_INLINE inline
 #define NO_INLINE
 #endif
+// ~컴파일러별 매크로
 
+// 디버그/릴리즈 빌드 매크로
 #if defined(_DEBUG)
 #define SE_DEBUG_BUILD true
 #define SE_DEBUG_EXPRESION(x) x
@@ -60,6 +95,7 @@
 #define SE_RELEASE_BUILD false
 #define SE_RELEASE_EXPRESION(x)
 #endif
+// ~디버그/릴리즈 빌드 매크로
 
 
 // 정수형
