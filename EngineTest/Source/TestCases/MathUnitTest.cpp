@@ -153,3 +153,397 @@ TEST_CASE("AngleType - Constexpr Evaluation")
     static_assert(calculated_at_compile_time.value > 3.14f && calculated_at_compile_time.value < 3.15f);
 }
 }
+
+TEST_SUITE("SimpleEngine.Math:Matrix4x4")
+{
+    template <typename T>
+    void test_matrix_creation_and_zero()
+    {
+        se::math::Matrix4x4Impl<T> mat{};
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                CHECK(mat[i, j] == doctest::Approx(T{0}));
+            }
+        }
+
+        se::math::Matrix4x4Impl<T> zero_mat = se::math::Matrix4x4Impl<T>::Zero();
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                CHECK(zero_mat[i, j] == doctest::Approx(T{0}));
+            }
+        }
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Creation and Zero")
+    {
+        test_matrix_creation_and_zero<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Creation and Zero")
+    {
+        test_matrix_creation_and_zero<double>();
+    }
+
+    template <typename T>
+    void test_matrix_variadic_constructor()
+    {
+        se::math::Matrix4x4Impl<T> mat(
+            static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
+            static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
+            static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
+            static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
+        );
+
+        CHECK(mat[0, 0] == doctest::Approx(static_cast<T>(1.0)));
+        CHECK(mat[0, 1] == doctest::Approx(static_cast<T>(2.0)));
+        CHECK(mat[3, 3] == doctest::Approx(static_cast<T>(16.0)));
+        CHECK(mat[1, 2] == doctest::Approx(static_cast<T>(7.0)));
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Variadic Constructor")
+    {
+        test_matrix_variadic_constructor<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Variadic Constructor")
+    {
+        test_matrix_variadic_constructor<double>();
+    }
+
+    template <typename T>
+    void test_matrix_identity_matrix()
+    {
+        se::math::Matrix4x4Impl<T> identity_mat = se::math::Matrix4x4Impl<T>::Identity();
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                if (i == j)
+                {
+                    CHECK(identity_mat[i, j] == doctest::Approx(static_cast<T>(1.0)));
+                }
+                else
+                {
+                    CHECK(identity_mat[i, j] == doctest::Approx(static_cast<T>(0.0)));
+                }
+            }
+        }
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Identity Matrix")
+    {
+        test_matrix_identity_matrix<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Identity Matrix")
+    {
+        test_matrix_identity_matrix<double>();
+    }
+
+    template <typename T>
+    void test_matrix_transpose()
+    {
+        se::math::Matrix4x4Impl<T> mat(
+            static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
+            static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
+            static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
+            static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
+        );
+
+        se::math::Matrix4x4Impl<T> transposed_mat = mat.Transpose();
+
+        CHECK(transposed_mat[0, 0] == doctest::Approx(static_cast<T>(1.0)));
+        CHECK(transposed_mat[0, 1] == doctest::Approx(static_cast<T>(5.0)));
+        CHECK(transposed_mat[1, 0] == doctest::Approx(static_cast<T>(2.0)));
+        CHECK(transposed_mat[3, 2] == doctest::Approx(static_cast<T>(12.0)));
+        CHECK(transposed_mat[2, 3] == doctest::Approx(static_cast<T>(15.0)));
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Transpose")
+    {
+        test_matrix_transpose<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Transpose")
+    {
+        test_matrix_transpose<double>();
+    }
+
+    template <typename T>
+    void test_matrix_addition()
+    {
+        se::math::Matrix4x4Impl<T> mat1(
+            static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
+            static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
+            static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
+            static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
+        );
+
+        se::math::Matrix4x4Impl<T> mat2(
+            static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0),
+            static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0),
+            static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0),
+            static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0)
+        );
+
+        se::math::Matrix4x4Impl<T> result = mat1 + mat2;
+
+        CHECK(result[0, 0] == doctest::Approx(static_cast<T>(2.0)));
+        CHECK(result[0, 1] == doctest::Approx(static_cast<T>(3.0)));
+        CHECK(result[3, 3] == doctest::Approx(static_cast<T>(17.0)));
+
+        mat1 += mat2;
+        CHECK(mat1[0, 0] == doctest::Approx(static_cast<T>(2.0)));
+        CHECK(mat1[0, 1] == doctest::Approx(static_cast<T>(3.0)));
+        CHECK(mat1[3, 3] == doctest::Approx(static_cast<T>(17.0)));
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Addition")
+    {
+        test_matrix_addition<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Addition")
+    {
+        test_matrix_addition<double>();
+    }
+
+    template <typename T>
+    void test_matrix_scalar_multiplication()
+    {
+        se::math::Matrix4x4Impl<T> mat(
+            static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
+            static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
+            static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
+            static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
+        );
+
+        se::math::Matrix4x4Impl<T> result = mat * static_cast<T>(2.0);
+
+        CHECK(result[0, 0] == doctest::Approx(static_cast<T>(2.0)));
+        CHECK(result[0, 1] == doctest::Approx(static_cast<T>(4.0)));
+        CHECK(result[3, 3] == doctest::Approx(static_cast<T>(32.0)));
+
+        mat *= static_cast<T>(0.5);
+        CHECK(mat[0, 0] == doctest::Approx(static_cast<T>(0.5)));
+        CHECK(mat[0, 1] == doctest::Approx(static_cast<T>(1.0)));
+        CHECK(mat[3, 3] == doctest::Approx(static_cast<T>(8.0)));
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Scalar Multiplication")
+    {
+        test_matrix_scalar_multiplication<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Scalar Multiplication")
+    {
+        test_matrix_scalar_multiplication<double>();
+    }
+
+    template <typename T>
+    void test_matrix_multiplication()
+    {
+        se::math::Matrix4x4Impl<T> mat1(
+            static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
+        );
+
+        se::math::Matrix4x4Impl<T> mat2(
+            static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
+            static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
+            static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
+            static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
+        );
+
+        se::math::Matrix4x4Impl<T> result = mat1 * mat2;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                CHECK(result[i, j] == doctest::Approx(mat2[i, j]));
+            }
+        }
+
+        se::math::Matrix4x4Impl<T> mat3(
+            static_cast<T>(2.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(2.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(2.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(2.0)
+        );
+
+        se::math::Matrix4x4Impl<T> mat4_expected(
+            static_cast<T>(2.0), static_cast<T>(4.0), static_cast<T>(6.0), static_cast<T>(8.0),
+            static_cast<T>(10.0), static_cast<T>(12.0), static_cast<T>(14.0), static_cast<T>(16.0),
+            static_cast<T>(18.0), static_cast<T>(20.0), static_cast<T>(22.0), static_cast<T>(24.0),
+            static_cast<T>(26.0), static_cast<T>(28.0), static_cast<T>(30.0), static_cast<T>(32.0)
+        );
+
+        result = mat3 * mat2;
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                CHECK(result[i, j] == doctest::Approx(mat4_expected[i, j]));
+            }
+        }
+
+        se::math::Matrix4x4Impl<T> original_mat2 = mat2;
+        mat2 *= mat1;
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                CHECK(mat2[i, j] == doctest::Approx(original_mat2[i, j]));
+            }
+        }
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Matrix Multiplication")
+    {
+        test_matrix_multiplication<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Matrix Multiplication")
+    {
+        test_matrix_multiplication<double>();
+    }
+
+    template <typename T>
+    void test_matrix_vector4_multiplication()
+    {
+        se::math::Matrix4x4Impl<T> mat(
+            static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
+        );
+
+        se::math::Vector4Impl<T> vec(static_cast<T>(10.0), static_cast<T>(20.0), static_cast<T>(30.0), static_cast<T>(1.0));
+
+        se::math::Vector4Impl<T> result = vec * mat;
+
+        CHECK(result[0] == doctest::Approx(static_cast<T>(10.0)));
+        CHECK(result[1] == doctest::Approx(static_cast<T>(20.0)));
+        CHECK(result[2] == doctest::Approx(static_cast<T>(30.0)));
+        CHECK(result[3] == doctest::Approx(static_cast<T>(1.0)));
+
+        se::math::Matrix4x4Impl<T> translation_mat(
+            static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(100.0), static_cast<T>(200.0), static_cast<T>(300.0), static_cast<T>(1.0)
+        );
+
+        se::math::Vector4Impl<T> vec_to_translate(static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(1.0));
+        se::math::Vector4Impl<T> translated_vec = vec_to_translate * translation_mat;
+
+        CHECK(translated_vec[0] == doctest::Approx(static_cast<T>(1.0) + static_cast<T>(100.0)));
+        CHECK(translated_vec[1] == doctest::Approx(static_cast<T>(2.0) + static_cast<T>(200.0)));
+        CHECK(translated_vec[2] == doctest::Approx(static_cast<T>(3.0) + static_cast<T>(300.0)));
+        CHECK(translated_vec[3] == doctest::Approx(static_cast<T>(1.0)));
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Vector4 Multiplication")
+    {
+        test_matrix_vector4_multiplication<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Vector4 Multiplication")
+    {
+        test_matrix_vector4_multiplication<double>();
+    }
+
+    template <typename T>
+    void test_matrix_inverse()
+    {
+        se::math::Matrix4x4Impl<T> identity_mat = se::math::Matrix4x4Impl<T>::Identity();
+        se::math::Matrix4x4Impl<T> inverse_identity = identity_mat.Inverse();
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                if (i == j)
+                {
+                    CHECK(inverse_identity[i, j] == doctest::Approx(static_cast<T>(1.0)));
+                }
+                else
+                {
+                    CHECK(inverse_identity[i, j] == doctest::Approx(static_cast<T>(0.0)));
+                }
+            }
+        }
+
+        se::math::Matrix4x4Impl<T> product = identity_mat * inverse_identity;
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                if (i == j)
+                {
+                    CHECK(product[i, j] == doctest::Approx(static_cast<T>(1.0)));
+                }
+                else
+                {
+                    CHECK(product[i, j] == doctest::Approx(static_cast<T>(0.0)));
+                }
+            }
+        }
+
+        se::math::Matrix4x4Impl<T> mat_to_inverse(
+            static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(4.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
+        );
+        se::math::Matrix4x4Impl<T> expected_inverse(
+            static_cast<T>(1.0), static_cast<T>(-2.0), static_cast<T>(5.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(-4.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
+        );
+
+        se::math::Matrix4x4Impl<T> calculated_inverse = mat_to_inverse.Inverse();
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                CHECK(calculated_inverse[i, j] == doctest::Approx(expected_inverse[i, j]));
+            }
+        }
+
+        product = mat_to_inverse * calculated_inverse;
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                if (i == j)
+                {
+                    CHECK(product[i, j] == doctest::Approx(static_cast<T>(1.0)));
+                }
+                else
+                {
+                    CHECK(product[i, j] == doctest::Approx(static_cast<T>(0.0)));
+                }
+            }
+        }
+    }
+
+    TEST_CASE("Matrix4x4Impl: float - Inverse")
+    {
+        test_matrix_inverse<float>();
+    }
+
+    TEST_CASE("Matrix4x4Impl: double - Inverse")
+    {
+        test_matrix_inverse<double>();
+    }
+}

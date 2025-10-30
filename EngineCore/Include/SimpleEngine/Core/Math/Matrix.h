@@ -6,6 +6,7 @@
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Math/MathSimd.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Core/Math/Vector4.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -265,18 +266,22 @@ constexpr Matrix4x4Impl<T>& Matrix4x4Impl<T>::operator+=(const Matrix4x4Impl& rh
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator*(const Matrix4x4Impl& rhs) const
 {
-    Matrix4x4Impl ret{};
-    for (SizeType i = 0; i < 4; ++i)
+    if consteval
     {
-        for (SizeType j = 0; j < 4; ++j)
+        Matrix4x4Impl ret{};
+        for (SizeType i = 0; i < 4; ++i)
         {
-            ret[i, j] += (*this)[i, 0] * rhs[0, j];
-            ret[i, j] += (*this)[i, 1] * rhs[1, j];
-            ret[i, j] += (*this)[i, 2] * rhs[2, j];
-            ret[i, j] += (*this)[i, 3] * rhs[3, j];
+            for (SizeType j = 0; j < 4; ++j)
+            {
+                ret[i, j] += (*this)[i, 0] * rhs[0, j];
+                ret[i, j] += (*this)[i, 1] * rhs[1, j];
+                ret[i, j] += (*this)[i, 2] * rhs[2, j];
+                ret[i, j] += (*this)[i, 3] * rhs[3, j];
+            }
         }
+        return ret;
     }
-    return ret;
+    return simd::Matrix4x4Multiply(*this, rhs);
 }
 
 template <traits::FloatingType T>
