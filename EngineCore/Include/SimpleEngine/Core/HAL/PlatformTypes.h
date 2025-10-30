@@ -34,35 +34,37 @@
 
 // 플랫폼 아키텍처 매크로
 #if defined(_M_X64) || defined(__x86_64__)
-#define SE_COMPILE_PLATFORM_X86_64 true
+#define SE_PLATFORM_ARCHITECTURE_X86_64 true
 #elif defined(_M_IX86) || defined(__i386__)
-#define SE_COMPILE_PLATFORM_X86 true
+#define SE_PLATFORM_ARCHITECTURE_X86 true
 #elif defined(_M_ARM64) || defined(__aarch64__)
-#define SE_COMPILE_PLATFORM_ARM64 true
+#define SE_PLATFORM_ARCHITECTURE_ARM64 true
 #else
 #error "Unsupported platform"
 #endif
 
-#if defined(SE_COMPILE_PLATFORM_X86) || defined(SE_COMPILE_PLATFORM_X86_64)
-#define SE_COMPILE_PLATFORM_X86_FAMILY true
+#if defined(SE_PLATFORM_ARCHITECTURE_X86) || defined(SE_PLATFORM_ARCHITECTURE_X86_64)
+#define SE_PLATFORM_ARCHITECTURE_X86_FAMILY true
 #else
-#define SE_COMPILE_PLATFORM_X86_FAMILY false
+#define SE_PLATFORM_ARCHITECTURE_X86_FAMILY false
 #endif
 
-#if defined(SE_COMPILE_PLATFORM_ARM64)
-#define SE_COMPILE_PLATFORM_ARM_FAMILY true
+#if defined(SE_PLATFORM_ARCHITECTURE_ARM64)
+#define SE_PLATFORM_ARCHITECTURE_ARM_FAMILY true
 #else
-#define SE_COMPILE_PLATFORM_ARM_FAMILY false
+#define SE_PLATFORM_ARCHITECTURE_ARM_FAMILY false
 #endif
 
-#if !defined(SE_COMPILE_PLATFORM_X86_64)
-#define SE_COMPILE_PLATFORM_X86_64 false
+#if !defined(SE_PLATFORM_ARCHITECTURE_X86_64)
+#define SE_PLATFORM_ARCHITECTURE_X86_64 false
 #endif
-#if !defined(SE_COMPILE_PLATFORM_X86)
-#define SE_COMPILE_PLATFORM_X86 false
+
+#if !defined(SE_PLATFORM_ARCHITECTURE_X86)
+#define SE_PLATFORM_ARCHITECTURE_X86 false
 #endif
-#if !defined(SE_COMPILE_PLATFORM_ARM64)
-#define SE_COMPILE_PLATFORM_ARM64 false
+
+#if !defined(SE_PLATFORM_ARCHITECTURE_ARM64)
+#define SE_PLATFORM_ARCHITECTURE_ARM64 false
 #endif
 // ~플랫폼 아키텍처 매크로
 
