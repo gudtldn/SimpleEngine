@@ -2,6 +2,7 @@
 
 #include <ranges>
 
+#include "Core/HAL/CpuFeature.h"
 #include "Gfx/RenderSubsystem.h"
 
 #include "SDL3/SDL.h"
@@ -38,6 +39,22 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
 
 bool PlatformSubsystem::Initialize()
 {
+    {
+        using se::core::CpuFeature;
+        ConsoleLog(
+            ELogLevel::Debug,
+            "CPU Features:\n"
+            "  - SSE: {}, SSE2: {}, SSE3: {}, SSSE3: {}, SSE4.1: {}, SSE4.2: {}\n"
+            "  - FMA3 : {}, FMA4 : {}\n"
+            "  - AVX: {}, AVX2: {}, AVX512F: {}\n"
+            "  - NEON: {}",
+            CpuFeature::HasSSE(), CpuFeature::HasSSE2(), CpuFeature::HasSSE3(), CpuFeature::HasSSSE3(), CpuFeature::HasSSE4_1(), CpuFeature::HasSSE4_2(),
+            CpuFeature::HasFMA3(), CpuFeature::HasFMA4(),
+            CpuFeature::HasAVX(), CpuFeature::HasAVX2(), CpuFeature::HasAVX512F(),
+            CpuFeature::HasNEON()
+        );
+    }
+
     ConsoleLog(ELogLevel::Info, "Initializing Platform Subsystem...");
     if (!SDL_Init(sdl_init_flags))
     {
