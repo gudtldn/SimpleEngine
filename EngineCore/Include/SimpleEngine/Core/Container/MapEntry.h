@@ -52,7 +52,6 @@ public:
         [[nodiscard]] ValueType Remove()
         {
             ValueType value = std::move(iter->second);
-            // TODO: 실제 API에 맞게 수정 필요
             map_ptr->internal_map.erase(iter);
             return value;
         }
