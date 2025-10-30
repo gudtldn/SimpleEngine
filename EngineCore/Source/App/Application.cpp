@@ -4,6 +4,7 @@
 
 #include "Asset/AssetSubsystem.h"
 #include "Core/Engine/Engine.h"
+#include "Core/HAL/CpuFeature.h"
 #include "Core/HAL/PlatformSubsystem.h"
 #include "Core/Logging/LogBackendManager.h"
 #include "Core/Logging/Logging.h"
@@ -82,6 +83,38 @@ void Application::Startup(const String& cmd_line)
     }
 
     ConsoleLog(ELogLevel::Info, "startup, cmd: {}", cmd_line);
+
+    {
+        using core::CpuFeature;
+        using PairType = std::pair<bool, String>;
+
+        Array<PairType> features{
+            { CpuFeature::HasSSE(), "SSE" },
+            { CpuFeature::HasSSE2(), "SSE2" },
+            { CpuFeature::HasSSE3(), "SSE3" },
+            { CpuFeature::HasSSSE3(), "SSSE3" },
+            { CpuFeature::HasSSE4_1(), "SSE4.1" },
+            { CpuFeature::HasSSE4_2(), "SSE4.2" },
+            { CpuFeature::HasFMA3(), "FMA3" },
+            { CpuFeature::HasFMA4(), "FMA4" },
+            { CpuFeature::HasAVX(), "AVX" },
+            { CpuFeature::HasAVX2(), "AVX2" },
+            { CpuFeature::HasAVX512F(), "AVX512F" },
+            { CpuFeature::HasNEON(), "NEON" },
+        };
+
+        auto on_view = features
+            | std::views::filter([](const PairType& p) { return p.first; })
+            | std::views::transform([](const PairType& p) { return p.second.Bytes(); });
+
+        auto off_view = features
+            | std::views::filter([](const PairType& p) { return !p.first; })
+            | std::views::transform([](const PairType& p) { return p.second.Bytes(); });
+
+        ConsoleLog(ELogLevel::Debug, "CPU Features:");
+        ConsoleLog(ELogLevel::Debug, "- On:  {}", utility::string::Join(on_view, ", "));
+        ConsoleLog(ELogLevel::Debug, "- Off: {}", utility::string::Join(off_view, ", "));
+    }
 
     RETURN_IF_FAILED(PreInitialize());
     RegisterSubsystems();
