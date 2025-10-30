@@ -19,3 +19,12 @@ struct RGResourceHandle
     [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
 };
 }
+
+template<>
+struct std::hash<se::rendering::RGResourceHandle>
+{
+    [[nodiscard]] size_t operator()(const se::rendering::RGResourceHandle& handle) const noexcept
+    {
+        return std::hash<usize>{}(handle.index);
+    }
+};

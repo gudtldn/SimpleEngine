@@ -12,11 +12,11 @@
 template <> \
 struct std::hash<type> \
 { \
-    usize operator()(const type& SE_ARG) const noexcept \
+    size_t operator()(const type& SE_ARG) const noexcept \
     { \
         usize seed = 0; \
         stmt \
-        return seed; \
+        return static_cast<size_t>(seed); \
     } \
 };
 

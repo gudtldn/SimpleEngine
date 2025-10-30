@@ -42,7 +42,7 @@ public:
 template <>
 struct std::hash<se::rendering::ShaderRequest>
 {
-    usize operator()(const se::rendering::ShaderRequest& request) const noexcept
+    size_t operator()(const se::rendering::ShaderRequest& request) const noexcept
     {
         using se::utility::HashCombine;
 
@@ -70,6 +70,6 @@ struct std::hash<se::rendering::ShaderRequest>
             }
         }
 
-        return seed;
+        return static_cast<size_t>(seed);
     }
 };

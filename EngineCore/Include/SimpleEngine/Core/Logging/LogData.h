@@ -100,11 +100,11 @@ struct LogOnceKey
 
     struct LogOnceKeyHash
     {
-        usize operator()(const LogOnceKey& k) const noexcept
+        size_t operator()(const LogOnceKey& k) const noexcept
         {
-            const usize h1 = std::hash<se::String>{}(k.file);
-            const usize h2 = std::hash<uint32>{}(k.line);
-            const usize h3 = std::hash<uint32>{}(k.column);
+            const size_t h1 = std::hash<se::String>{}(k.file);
+            const size_t h2 = std::hash<uint32>{}(k.line);
+            const size_t h3 = std::hash<uint32>{}(k.column);
             // 간단한 해시 조합
             return h1 ^ (h2 << 1) ^ (h3 << 2);
         }

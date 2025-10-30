@@ -55,8 +55,8 @@ private:
 template <>
 struct std::hash<se::refl::TypeId>
 {
-    constexpr uint64 operator()(const se::refl::TypeId& id) const noexcept
+    constexpr size_t operator()(const se::refl::TypeId& id) const noexcept
     {
-        return id.GetHash();
+        return static_cast<size_t>(id.GetHash());
     }
 };

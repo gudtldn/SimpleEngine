@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
-#include "SimpleEngine/Core/Container/Set.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
 #include "SimpleEngine/Rendering/RenderGraph/RGResourceHandle.h"
@@ -25,8 +25,8 @@ struct RGPassNode
 {
     StringName name;
     std::unique_ptr<IRenderPass> pass_object;
-    Set<RGResourceHandle> reads;
-    Set<RGResourceHandle> writes;
+    HashSet<RGResourceHandle> reads;
+    HashSet<RGResourceHandle> writes;
 
     // RenderGraph::Compile() 단계에서 채워질 정보들
     bool culled = true; // 이번 프레임에서 사용 안하는지 여부 (Compile때 false로 변경)

@@ -56,7 +56,7 @@ private:
 template <>
 struct std::hash<StringName>
 {
-    uint64 operator()(const StringName& key) const noexcept
+    size_t operator()(const StringName& key) const noexcept
     {
         return hash<uint64>()(key.GetComparisonHash());
     }

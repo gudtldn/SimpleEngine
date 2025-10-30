@@ -1647,7 +1647,7 @@ TEST_CASE("HashSet API")
         // Custom hash for TestStruct
         struct TestStructHasher
         {
-            usize operator()(const TestStruct& ts) const
+            size_t operator()(const TestStruct& ts) const
             {
                 return std::hash<String>()(ts.name) ^ std::hash<int>()(ts.id);
             }

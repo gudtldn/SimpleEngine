@@ -21,7 +21,7 @@ class SubscriptionHandle;
 template <>
 struct std::hash<se::core::event::SubscriptionHandle>
 {
-    usize operator()(const se::core::event::SubscriptionHandle& handle) const noexcept;
+    size_t operator()(const se::core::event::SubscriptionHandle& handle) const noexcept;
 };
 
 namespace se::core::event

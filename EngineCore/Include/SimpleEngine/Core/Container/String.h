@@ -433,7 +433,7 @@ private:
 template <>
 struct std::hash<se::String>
 {
-    usize operator()(const se::String& path) const noexcept
+    size_t operator()(const se::String& path) const noexcept
     {
         return std::hash<std::string_view>{}(std::string_view{ path });
     }

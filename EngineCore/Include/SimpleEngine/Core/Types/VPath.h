@@ -75,7 +75,7 @@ private:
 template <>
 struct std::hash<VPath>
 {
-    usize operator()(const VPath& path) const noexcept
+    size_t operator()(const VPath& path) const noexcept
     {
         return std::hash<se::String>{}(path.ToString());
     }
