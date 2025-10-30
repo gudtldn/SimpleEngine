@@ -69,10 +69,30 @@
 // ~플랫폼 아키텍처 매크로
 
 // 컴파일러별 매크로
-#ifdef _MSC_VER // MSVC 컴파일러
+#if defined(_MSC_VER)
+#define SE_COMPILER_MSVC true
+#elif defined(__clang__)
+#define SE_COMPILER_CLANG true
+#elif defined(__GNUC__)
+#define SE_COMPILER_GCC true
+#endif
+
+#if !defined(SE_COMPILER_MSVC)
+#define SE_COMPILER_MSVC false
+#endif
+
+#if !defined(SE_COMPILER_CLANG)
+#define SE_COMPILER_CLANG false
+#endif
+
+#if !defined(SE_COMPILER_GCC)
+#define SE_COMPILER_GCC false
+#endif
+
+#if SE_COMPILER_MSVC
 #define FORCE_INLINE __forceinline
 #define NO_INLINE __declspec(noinline)
-#elif ((defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)) // GNU && Clang 컴파일러
+#elif SE_COMPILER_CLANG || SE_COMPILER_GCC
 #define FORCE_INLINE __attribute__((always_inline)) __inline__
 #define NO_INLINE __attribute__((noinline))
 #else
