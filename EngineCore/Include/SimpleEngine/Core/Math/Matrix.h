@@ -17,7 +17,7 @@ namespace se::math
  * row-major matrix template
  */
 template <traits::FloatingType T>
-struct alignas(16) Matrix4x4Impl
+struct alignas(sizeof(T) * 4) Matrix4x4Impl
 {
 private:
     FixedArray<T, 16> data;
@@ -79,14 +79,14 @@ public:
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T, 16> src)
 {
-    std::copy(src.begin(), src.end(), data.begin());
+    std::ranges::copy(src, data.begin());
 }
 
 template <traits::FloatingType T>
 Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T> src)
 {
     assert(src.size() == 16 && "Invalid span size.");
-    std::copy(src.begin(), src.end(), data.begin());
+    std::ranges::copy(src, data.begin());
 }
 
 template <traits::FloatingType T>
@@ -100,12 +100,12 @@ constexpr Matrix4x4Impl<T>::Matrix4x4Impl(Ts... values)
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Identity()
 {
-    Matrix4x4Impl ret{};
-    for (SizeType i = 0; i < 4; ++i)
-    {
-        ret[i, i] = T{ 1 };
-    }
-    return ret;
+    return {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
 }
 
 template <traits::FloatingType T>
