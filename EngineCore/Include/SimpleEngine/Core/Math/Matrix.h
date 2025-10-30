@@ -19,9 +19,6 @@ namespace se::math
 template <traits::FloatingType T>
 struct alignas(sizeof(T) * 4) Matrix4x4Impl
 {
-private:
-    FixedArray<T, 16> data;
-
 public:
     using RealType = T;
     using SizeType = usize;
@@ -74,6 +71,9 @@ public:
         }
         return result;
     }
+
+private:
+    FixedArray<T, 16> data;
 };
 
 template <traits::FloatingType T>
@@ -270,10 +270,10 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator*(const Matrix4x4Impl& rhs)
     {
         for (SizeType j = 0; j < 4; ++j)
         {
-            for (SizeType k = 0; k < 4; ++k)
-            {
-                ret[i, j] += (*this)[i, k] * rhs[k, j];
-            }
+            ret[i, j] += (*this)[i, 0] * rhs[0, j];
+            ret[i, j] += (*this)[i, 1] * rhs[1, j];
+            ret[i, j] += (*this)[i, 2] * rhs[2, j];
+            ret[i, j] += (*this)[i, 3] * rhs[3, j];
         }
     }
     return ret;
