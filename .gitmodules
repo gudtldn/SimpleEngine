@@ -13,3 +13,6 @@
 [submodule "ThirdParty/tomlplusplus"]
 	path = ThirdParty/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus.git
+[submodule "ThirdParty/cpu_features"]
+	path = ThirdParty/cpu_features
+	url = https://github.com/google/cpu_features

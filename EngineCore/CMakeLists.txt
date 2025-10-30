@@ -41,6 +41,9 @@ target_link_libraries(EngineCore PRIVATE
         ICU::uc
         ICU::i18n
         ICU::data
+
+        # cpu features
+        cpu_features
 )
 
 # 공개 헤더 파일의 경로를 지정 (다른 프로젝트에서 #include <SimpleEngine/Core/Engine.h> 와 같이 사용할 수 있게 하기 위함)
