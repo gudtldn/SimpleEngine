@@ -2,6 +2,10 @@
 
 #ifdef _WIN32  // NOLINT(readability-avoid-unconditional-preprocessor-if)
 #include <Windows.h>
+
+#else
+#include <cstdlib>
+#include <string_view>
 #endif
 
 

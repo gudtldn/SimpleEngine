@@ -54,7 +54,7 @@ std::ostream& operator<<(std::ostream& os, const Function<R(P...)>& f)
 
 TEST_F(FunctionAPI_Test, DefaultAndNullptrConstruction)
 {
-    const Function<int(int)> f1;
+    const Function<int(int)> f1{};
     EXPECT_FALSE(f1);
 
     const Function<void()> f2(nullptr);
@@ -105,7 +105,7 @@ TEST_F(FunctionAPI_Test, Invocation)
 
 TEST_F(FunctionAPI_Test, EmptyFunctionCall)
 {
-    const Function<int()> f;
+    const Function<int()> f{};
     EXPECT_THROW(f(), std::bad_function_call);
 }
 

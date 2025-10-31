@@ -1,9 +1,11 @@
 #include "gtest/gtest.h"
-#include <string>
-#include <memory>
 
-#include "SimpleEngine/Core/Error/Expected.h"
+#include <cstring>
+#include <memory>
+#include <string>
+
 #include "SimpleEngine/Core/Container/String.h" // For error messages
+#include "SimpleEngine/Core/Error/Expected.h"
 
 using namespace se;
 

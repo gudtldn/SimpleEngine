@@ -1,7 +1,9 @@
 ﻿// ReSharper disable CppDFAMemoryLeak
 #include "Core/Memory/OsMemory.h"
 
+#include <cstring>
 #include <memory>
+
 #include "tracy/Tracy.hpp"
 
 
