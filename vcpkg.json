@@ -10,7 +10,8 @@
     "version>=" : "1.4.309.0"
   }, {
     "name" : "directx-dxc",
-    "version>=" : "2025-07-15"
+    "version>=" : "2025-07-15",
+    "platform" : "windows"
   }, {
     "name" : "icu",
     "version>=" : "74.2#6"
