@@ -4,9 +4,6 @@
 [submodule "ThirdParty/tracy"]
 	path = ThirdParty/tracy
 	url = https://github.com/wolfpld/tracy
-[submodule "ThirdParty/doctest"]
-	path = ThirdParty/doctest
-	url = https://github.com/doctest/doctest
 [submodule "ThirdParty/imgui"]
 	path = ThirdParty/imgui
 	url = https://github.com/ocornut/imgui.git
