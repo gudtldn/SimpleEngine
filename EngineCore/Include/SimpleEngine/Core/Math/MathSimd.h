@@ -31,42 +31,75 @@ void Matrix4x4MultiplyGeneric(const T* lhs, const T* rhs, T* result)
 }
 
 #if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
-/** float 행렬 곱셈을 SSE를 사용하여 구현 (내적 방식) */
+/** float 행렬 곱셈을 SSE를 사용하여 구현 (외부 곱 방식) */
 inline void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* result)
 {
-    // 1. rhs 행렬의 4개의 행을 각각 128비트 SSE 레지스터(__m128)로 로드 (행으로 로드하지만, 밑에서 전치를 할 예정이기 때문에 변수명을 col로 함)
+    // 1. rhs 행렬의 4개의 행을 각각 128비트 SSE 레지스터(__m128)로 로드
     // _mm_load_ps: 16바이트 정렬된 주소에서 4개의 float를 로드
-    __m128 rhs_col0 = _mm_load_ps(&rhs[0]);
-    __m128 rhs_col1 = _mm_load_ps(&rhs[4]);
-    __m128 rhs_col2 = _mm_load_ps(&rhs[8]);
-    __m128 rhs_col3 = _mm_load_ps(&rhs[12]);
+    const __m128 rhs_row0 = _mm_load_ps(&rhs[0]);
+    const __m128 rhs_row1 = _mm_load_ps(&rhs[4]);
+    const __m128 rhs_row2 = _mm_load_ps(&rhs[8]);
+    const __m128 rhs_row3 = _mm_load_ps(&rhs[12]);
 
-    // 2. 4x4 행렬을 그 자리에서 전치(transpose)
-    _MM_TRANSPOSE4_PS(rhs_col0, rhs_col1, rhs_col2, rhs_col3);
-
-    // 3. lhs의 각 행에 대해서 반복
+    // 2. lhs의 각 행에 대해서 반복하여 result의 i번째 행을 계산
     for (uint32 i = 0; i < 4; ++i)
     {
-        // lhs의 현재 행을 레지스터로 로드
-        __m128 lhs_row = _mm_load_ps(&lhs[i * 4]);
+        const float* current_lhs_row = &lhs[i * 4];
 
-        // 4. 내적(Dot Product) 계산 (SSE4.1 명령어 사용)
-        // _mm_dp_ps(a, b, mask): a와 b의 내적을 계산
+        // 3. lhs 행의 각 스칼라 값을 SSE 레지스터의 모든 요소로 복제(broadcast)
+        // _mm_set1_ps(value): [value, value, value, value] 형태의 레지스터를 생성
+        const __m128 lhs_broadcast0 = _mm_set1_ps(current_lhs_row[0]);
+        const __m128 lhs_broadcast1 = _mm_set1_ps(current_lhs_row[1]);
+        const __m128 lhs_broadcast2 = _mm_set1_ps(current_lhs_row[2]);
+        const __m128 lhs_broadcast3 = _mm_set1_ps(current_lhs_row[3]);
 
-        // 0xF1의 의미
-        // - 상위 4비트(0xF = 1111): a와 b의 어떤 요소를 곱할지 결정 (모두 곱함)
-        // - 하위 4비트(0x1 = 0001): 결과를 목적지 레지스터의 어디에 저장할지 결정 (첫 번째 요소에 저장)
-        __m128 res_row0 = _mm_dp_ps(lhs_row, rhs_col0, 0xF1); // 결과: [c0, 0, 0, 0]
-        __m128 res_row1 = _mm_dp_ps(lhs_row, rhs_col1, 0xF1); // 결과: [c1, 0, 0, 0]
-        __m128 res_row2 = _mm_dp_ps(lhs_row, rhs_col2, 0xF1); // 결과: [c2, 0, 0, 0]
-        __m128 res_row3 = _mm_dp_ps(lhs_row, rhs_col3, 0xF1); // 결과: [c3, 0, 0, 0]
+        // 4. 외부 곱(_mm_mul_ps)과 덧셈(_mm_add_ps)을 순차적으로 수행
+        __m128 term0 = _mm_mul_ps(lhs_broadcast0, rhs_row0);
+        __m128 term1 = _mm_mul_ps(lhs_broadcast1, rhs_row1);
+        __m128 term2 = _mm_mul_ps(lhs_broadcast2, rhs_row2);
+        __m128 term3 = _mm_mul_ps(lhs_broadcast3, rhs_row3);
 
-        // 5. 각 레지스터의 첫 번째 요소에 있는 결과들을 하나의 레지스터로 합침
-        __m128 temp01 = _mm_unpacklo_ps(res_row0, res_row1); // [c0, 0, 0, 0], [c1, 0, 0, 0] -> [c0, c1, 0, 0]
-        __m128 temp23 = _mm_unpacklo_ps(res_row2, res_row3); // [c2, 0, 0, 0], [c3, 0, 0, 0] -> [c2, c3, 0, 0]
-        __m128 result_row = _mm_movelh_ps(temp01, temp23);        // [c0, c1, 0, 0], [c2, c3, 0, 0] -> [c0, c1, c2, c3]
+        __m128 sum01 = _mm_add_ps(term0, term1);
+        __m128 sum23 = _mm_add_ps(term2, term3);
+        __m128 result_row = _mm_add_ps(sum01, sum23);
 
-        // 6. 이렇게 계산된 행을 다시 메모리에 저장
+        // 5. 계산된 결과 행을 다시 메모리에 저장
+        _mm_store_ps(&result[i * 4], result_row);
+    }
+}
+
+/** float 행렬 곱셈을 FMA3 명령어를 사용하여 구현 (외부 곱 방식) */
+inline void Matrix4x4MultiplyFMAImpl(const float* lhs, const float* rhs, float* result)
+{
+    // 1. rhs 행렬의 4개의 행을 미리 로드
+    const __m128 rhs_row0 = _mm_load_ps(&rhs[0]);
+    const __m128 rhs_row1 = _mm_load_ps(&rhs[4]);
+    const __m128 rhs_row2 = _mm_load_ps(&rhs[8]);
+    const __m128 rhs_row3 = _mm_load_ps(&rhs[12]);
+
+    // 2. lhs의 각 행에 대해서 반복
+    for (uint32 i = 0; i < 4; ++i)
+    {
+        const float* current_lhs_row = &lhs[i * 4];
+
+        // 3. lhs 행의 각 스칼라 값을 복제(broadcast)
+        const __m128 lhs_broadcast0 = _mm_set1_ps(current_lhs_row[0]);
+        const __m128 lhs_broadcast1 = _mm_set1_ps(current_lhs_row[1]);
+        const __m128 lhs_broadcast2 = _mm_set1_ps(current_lhs_row[2]);
+        const __m128 lhs_broadcast3 = _mm_set1_ps(current_lhs_row[3]);
+
+        // 4. FMA(Fused Multiply-Add)를 사용하여 외부 곱과 덧셈을 누적 계산
+        // _mm_fmadd_ps(a, b, c) -> (a * b) + c
+
+        // 첫 번째 외부 곱 계산
+        __m128 result_row = _mm_mul_ps(lhs_broadcast0, rhs_row0);
+
+        // 두 번째부터 FMA를 사용하여 누적
+        result_row = _mm_fmadd_ps(lhs_broadcast1, rhs_row1, result_row);
+        result_row = _mm_fmadd_ps(lhs_broadcast2, rhs_row2, result_row);
+        result_row = _mm_fmadd_ps(lhs_broadcast3, rhs_row3, result_row);
+
+        // 5. 계산된 결과 행을 메모리에 저장
         _mm_store_ps(&result[i * 4], result_row);
     }
 }
@@ -130,7 +163,14 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
 #if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
     if (core::CpuFeature::HasSSE4_1())
     {
-        details::Matrix4x4MultiplySSEImpl(lhs_ptr, rhs_ptr, result_ptr);
+        if (core::CpuFeature::HasFMA3())
+        {
+            details::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
+        }
+        else
+        {
+            details::Matrix4x4MultiplySSEImpl(lhs_ptr, rhs_ptr, result_ptr);
+        }
         return result;
     }
     // TODO: 다른 SIMD 버전에 대해서 구현
