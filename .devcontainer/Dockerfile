@@ -38,8 +38,10 @@ RUN apt update && export DEBIAN_FRONTEND=noninteractive \
         libxext-dev \
         python3-jinja2 \
         lsb-release wget software-properties-common gnupg \
-    && wget https://apt.llvm.org/llvm.sh \
-    && chmod +x llvm.sh \
-    && ./llvm.sh 21 \
-    && rm llvm.sh \
-    && apt clean && rm -rf /var/lib/apt/lists/*
+
+# Clang 설치
+RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 21
+RUN sudo apt install libc++-21-dev libc++abi-21-dev \
+
+# 정리
+RUN rm llvm.sh && apt clean && rm -rf /var/lib/apt/lists/*
