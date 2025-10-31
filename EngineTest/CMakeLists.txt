@@ -1,6 +1,6 @@
 ﻿# Test와 Benchmark에 사용되는 라이브러리가 있는지 확인
 find_package(GTest CONFIG REQUIRED)
-find_package(Benchmark CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
 
 
 # 유닛 테스트용 실행 파일
