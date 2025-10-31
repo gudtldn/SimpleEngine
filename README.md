@@ -1,11 +1,8 @@
 ﻿# SimpleEngine
 
 ```shell
-git clone --recursive https://github.com/gudtldn/SimpleEngine.git
-```
-
-```shell
-git submodule update --init --recursive
+git clone https://github.com/gudtldn/SimpleEngine.git
+git submodule update --init
 ```
 
 좌표계
