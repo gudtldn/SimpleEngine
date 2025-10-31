@@ -1,7 +1,9 @@
 ﻿cmake_minimum_required(VERSION 3.22)
+
+# 프로젝트 정의
 project(SimpleEngine
         VERSION 0.1.0
-        LANGUAGES CXX
+        LANGUAGES C CXX
 )
 
 # --- 아키텍처 이름 설정 (x64 / x86) ---
@@ -49,11 +51,11 @@ else ()
     )
 endif ()
 
-# Clang 컴파일러를 사용할 경우, libc++를 사용하도록 설정
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+# Clang + UNIX (Linux/macOS) libc++를 사용하도록 설정
+if(UNIX AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(STATUS "Clang detected, using libc++ standard library.")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
-    message(STATUS "Clang detected, using libc++ standard library.")
 endif()
 
 # 컴파일러 빌드 설정
