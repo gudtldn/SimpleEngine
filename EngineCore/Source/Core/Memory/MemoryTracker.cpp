@@ -14,7 +14,7 @@ namespace
 struct LeakInfo
 {
     usize size;
-    std::stacktrace trace;
+    // std::stacktrace trace;
 };
 
 // <메모리 주소, 누수 정보>를 저장하는 Map
@@ -36,7 +36,7 @@ void MemoryTracker::TrackAllocation(const void* address)
         std::scoped_lock lock(GMapMutex);
         GLeakedMemoryMap[address] = {
             .size = allocated_size,
-            .trace = std::stacktrace::current()
+            // .trace = std::stacktrace::current()
         };
     }
 #endif
@@ -71,15 +71,15 @@ bool MemoryTracker::CheckForLeaks()
         {
             ConsoleLog(ELogLevel::Error, "Leak: {} bytes at {:p}, callstack:", info.size, address);
 
-            // stacktrace 출력
-            for (const std::stacktrace_entry& entry : info.trace | std::views::reverse)
-            {
-                ConsoleLog(
-                    ELogLevel::Error,
-                    "    [{}:{}]: {}",
-                    entry.source_file(), entry.source_line(), entry.description()
-                );
-            }
+            // // stacktrace 출력
+            // for (const std::stacktrace_entry& entry : info.trace | std::views::reverse)
+            // {
+            //     ConsoleLog(
+            //         ELogLevel::Error,
+            //         "    [{}:{}]: {}",
+            //         entry.source_file(), entry.source_line(), entry.description()
+            //     );
+            // }
         }
         return true;
     }

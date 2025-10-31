@@ -2,7 +2,6 @@
 #include <chrono>
 #include <format>
 #include <iostream>
-#include <stacktrace>
 
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
@@ -56,9 +55,6 @@ void ConsoleLogOnce(LogLevelAndLocation log_level, std::format_string<Args...> f
 
     ConsoleLog(log_level, fmt, std::forward<Args>(args)...);
 }
-
-/** 현재 함수의 Stack Trace를 출력합니다. */
-SE_CORE_API void PrintStackTrace();
 
 
 #define DECLARE_CONSOLE_LOG(log_level) \

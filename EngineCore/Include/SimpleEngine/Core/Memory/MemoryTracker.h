@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <atomic>
-#include <stacktrace>
+// #include <stacktrace>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
@@ -13,14 +13,14 @@ namespace se::core::memory
 struct TrackingHeader
 {
     /** Alloc 당시의 Stacktrace */
-    std::stacktrace trace;
+    // std::stacktrace trace;
 
     // 메모리 누수 체크용 linked list
     TrackingHeader* next = nullptr;
     TrackingHeader* prev = nullptr;
 
     TrackingHeader()
-        : trace(std::stacktrace())
+        // : trace(std::stacktrace())
     {
     }
 };
