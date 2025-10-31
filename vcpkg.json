@@ -1,10 +1,24 @@
 {
-    "name": "simple-engine",
-    "version-string": "0.1.0",
-    "dependencies": [
-        "icu",
-        "spirv-cross",
-        "directx-dxc",
-        "sdl3"
-    ]
+  "name" : "simple-engine",
+  "version-string" : "0.1.0",
+  "builtin-baseline": "83375d1ded4878305df9f5272f360f4f80ee0d83",
+  "dependencies" : [ {
+    "name" : "sdl3",
+    "version>=" : "3.2.24"
+  }, {
+    "name" : "spirv-cross",
+    "version>=" : "1.4.309.0"
+  }, {
+    "name" : "directx-dxc",
+    "version>=" : "2025-07-15"
+  }, {
+    "name" : "icu",
+    "version>=" : "74.2#6"
+  }, {
+    "name" : "gtest",
+    "version>=" : "1.17.0#2"
+  }, {
+    "name" : "benchmark",
+    "version>=" : "1.9.4"
+  } ]
 }

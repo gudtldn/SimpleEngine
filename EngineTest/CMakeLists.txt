@@ -1,21 +1,30 @@
-﻿# Source 폴더 및 하위 폴더의 모든 .cpp 파일을 찾아 변수에 저장
-file(GLOB_RECURSE ENGINE_TEST_SOURCES "Source/*.cpp")
+﻿# Test와 Benchmark에 사용되는 라이브러리가 있는지 확인
+find_package(GTest CONFIG REQUIRED)
+find_package(Benchmark CONFIG REQUIRED)
 
-# EngineTest를 실행 파일로 정의하고, 찾은 소스 파일들을 사용
-add_executable(EngineTest ${ENGINE_TEST_SOURCES})
 
-# 빌드가 끝난 후 Config 폴더를 EngineTest.exe가 있는 폴더로 복사
-add_custom_command(TARGET EngineTest POST_BUILD
+# 유닛 테스트용 실행 파일
+file(GLOB_RECURSE ENGINE_UNIT_TEST_SOURCES "Source/UnitTests/*.cpp")
+add_executable(UnitTests ${ENGINE_UNIT_TEST_SOURCES} "Source/UnitTestMain.cpp")
+target_link_libraries(UnitTests PRIVATE
+        EngineCore
+        GTest::gtest
+)
+add_custom_command(TARGET UnitTests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/Config
-        $<TARGET_FILE_DIR:EngineTest>/Config
+        $<TARGET_FILE_DIR:UnitTests>/Config
 )
 
-
-# EngineTest가 EngineCore 및 다른 라이브러리들에 의존하도록 설정
-target_link_libraries(EngineTest PRIVATE
+# 벤치마크 실행 파일 (GBenchmark 전용 main 사용)
+file(GLOB_RECURSE ENGINE_BENCHMARK_SOURCES "Source/Benchmark/*.cpp")
+add_executable(Benchmarks ${ENGINE_BENCHMARK_SOURCES})
+target_link_libraries(Benchmarks PRIVATE
         EngineCore
-
-        # doctest
-        doctest::doctest
+        benchmark::benchmark_main
+)
+add_custom_command(TARGET Benchmarks POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/Config
+        $<TARGET_FILE_DIR:Benchmarks>/Config
 )

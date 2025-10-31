@@ -1,8 +1,9 @@
 find_package(SDL3 REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
 
 add_subdirectory(tracy EXCLUDE_FROM_ALL)
 add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
-add_subdirectory(doctest EXCLUDE_FROM_ALL)
 add_subdirectory(cpu_features EXCLUDE_FROM_ALL)
 
 if(MSVC)
