@@ -20,10 +20,19 @@ namespace se::utility::string
 {
 String ToString(std::wstring_view in_str)
 {
+#if SE_PLATFORM_WINDOWS
+    // Windows: wchar_t는 16비트(UTF-16)
     const UnicodeString ustr{
-        in_str.data(),
-        static_cast<int32>(in_str.size())
+        reinterpret_cast<const UChar*>(in_str.data()),
+        static_cast<int32>(in_str.length())
     };
+#else
+    // Linux/macOS: wchar_t는 32비트(UTF-32)
+    const UnicodeString ustr = UnicodeString::fromUTF32(
+        reinterpret_cast<const UChar32*>(in_str.data()),
+        static_cast<int32>(in_str.length())
+    );
+#endif
     return ::ToString(ustr);
 }
 
