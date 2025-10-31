@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/SDL_shadercross" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ThirdParty/cpu_features" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/doctest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/tomlplusplus" vcs="Git" />
