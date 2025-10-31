@@ -33,6 +33,7 @@ endforeach ()
 # C++ 표준 설정
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSTIONS OFF)
 
 # UTF-8 인코딩 사용
 if (MSVC)
