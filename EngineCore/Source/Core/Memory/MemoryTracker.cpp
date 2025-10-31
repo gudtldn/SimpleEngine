@@ -74,7 +74,11 @@ bool MemoryTracker::CheckForLeaks()
             // stacktrace 출력
             for (const std::stacktrace_entry& entry : info.trace | std::views::reverse)
             {
-                ConsoleLog(ELogLevel::Error, "    {}", entry);
+                ConsoleLog(
+                    ELogLevel::Error,
+                    "    [{}:{}]: {}",
+                    entry.source_file(), entry.source_line(), entry.description()
+                );
             }
         }
         return true;

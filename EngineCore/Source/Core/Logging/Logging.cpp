@@ -12,7 +12,11 @@ void PrintStackTrace()
         ConsoleLog(ELogLevel::Debug, "Stack Trace:");
         for (const std::stacktrace_entry& entry : stack_trace | std::views::drop(1) | std::views::reverse)
         {
-            ConsoleLog(ELogLevel::Debug, "{}", entry);
+            ConsoleLog(
+                ELogLevel::Debug,
+                "[{}:{}]: {}",
+                entry.source_file(), entry.source_line(), entry.description()
+            );
         }
     }
 }
