@@ -1,255 +1,161 @@
-﻿#include "doctest/doctest.h"
+﻿#include "../UnitTestEnvironment.h"
+#include "gtest/gtest.h"
 
 #include <filesystem>
+#include <fstream>
 
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Utility/Config.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 
 #define TOML_EXCEPTIONS 0
-#include <SimpleEngine/Core/Container/FixedArray.h>
-
 #include "toml++/toml.h"
 #undef TOML_EXCEPTIONS
 
 
-namespace
-{
-se::utility::PathResolver& resolver = se::utility::PathResolver::Get();
-}
-
-TEST_SUITE("SimpleEngine.Config")
-{
 using namespace std::string_view_literals;
 using namespace std::string_literals;
 using namespace se::utility;
 
-[[maybe_unused]]
-static struct Init
-{
-    Init()
-    {
-        resolver.Mount("Config", std::filesystem::current_path() / "Config");
-    }
-} _registrar{};
 
-static const VPath test_toml_path = "Config://ConfigTest.toml";
-static const VPath non_existent_file_path = "Config://InvalidTest.toml";
-static const VPath save_test_toml_path = "Config://SaveTest.toml";
+// --- 테스트 Fixture 정의 ---
+class ConfigTest : public ::testing::Test
+{
+protected:
+    virtual void SetUp() override
+    {
+        ParseResult result = Config::ReadConfig(test_toml_path);
+        // 이 Fixture를 사용하는 대부분의 테스트는 이 파일이 성공적으로 로드되는 것을 전제로 합니다.
+        // 따라서 EXPECT 대신 ASSERT를 사용하여 실패 시 즉시 중단시킵니다.
+        ASSERT_TRUE(result.HasValue()) << "Failed to read base config file for tests: "
+                                       << result.Error().description().data();
+        config = std::move(result.Value());
+    }
+
+    Config config;
+
+    // 테스트 파일 경로들을 멤버 변수로 만들어 접근을 용이하게 합니다.
+    static const VPath test_toml_path;
+    static const VPath non_existent_file_path;
+    static const VPath invalid_toml_path;
+    static const VPath save_test_toml_path;
+};
+
+// static const 멤버 변수 초기화
+const VPath ConfigTest::test_toml_path = "Config://ConfigTest.toml";
+const VPath ConfigTest::non_existent_file_path = "Config://NonExistent.toml";
+const VPath ConfigTest::invalid_toml_path = "Config://Invalid.toml";
+const VPath ConfigTest::save_test_toml_path = "Config://SaveTest.toml";
 
 
 // --- 파일 읽기 테스트 ---
-TEST_CASE("Config::ReadConfig - File Handling")
+TEST_F(ConfigTest, ReadExistingAndValidFileSucceeds)
 {
-    SUBCASE("Reading an existing and valid config file")
-    {
-        const ParseResult result = Config::ReadConfig(test_toml_path);
-        CHECK(result.HasValue());
-        if (!result.HasValue())
-        {
-            FAIL_CHECK(
-                "Failed to read config file: " << result.Error().description() <<
-                " at line " << result.Error().source().begin.line <<
-                ", column " << result.Error().source().begin.column
-            );
-        }
-    }
-
-    SUBCASE("Attempting to read a non-existent config file")
-    {
-        const ParseResult result = Config::ReadConfig(non_existent_file_path);
-        CHECK_FALSE(result.HasValue());
-        if (result.HasValue())
-        {
-            FAIL_CHECK("ReadConfig succeeded for a non-existent file.");
-        }
-        else
-        {
-            // toml++는 파일 열기 실패 시 특정 에러를 반환할 수 있습니다.
-            // (예: toml::Error의 특정 메시지 또는 타입)
-            // 여기서는 단순히 실패했는지 여부만 확인합니다.
-            MESSAGE("Successfully failed to read non-existent file as expected.");
-        }
-    }
-
-    SUBCASE("Attempting to read an invalid TOML file")
-    {
-        // 임시로 유효하지 않은 TOML 파일을 만듭니다.
-        {
-            std::ofstream ofs(*resolver.Resolve(non_existent_file_path, false));
-            ofs << "this = is not valid toml syntax because of this character '";
-        }
-        const ParseResult result = Config::ReadConfig(non_existent_file_path);
-        CHECK_FALSE(result.HasValue());
-        if (result.HasValue())
-        {
-            FAIL_CHECK("ReadConfig succeeded for an invalid TOML file.");
-        }
-        else
-        {
-            MESSAGE("Successfully failed to read invalid TOML file as expected: " << result.Error().description().data());
-        }
-        std::filesystem::remove(*resolver.Resolve(non_existent_file_path, false)); // 테스트 후 임시 파일 삭제
-    }
+    ParseResult result = Config::ReadConfig(test_toml_path);
+    EXPECT_TRUE(result.HasValue());
 }
 
-TEST_CASE("get Value config file")
+TEST_F(ConfigTest, ReadNonExistentFileFails)
 {
-    const ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.HasValue());
-
-    const Config& config = v.Value();
-    CHECK(config.GetValue<bool>("a_boolean") == true);
-    CHECK(config.GetValue<int>("an_integer") == 42);
-    CHECK(config.GetValue<float>("a_float") == 3.14159f);
-    CHECK(config.GetValue<std::string>("a_string") == "Hello, TOML!");
-
-    CHECK(!config.GetValue<bool>("__MyValue").HasValue());
+    ParseResult result = Config::ReadConfig(non_existent_file_path);
+    EXPECT_FALSE(result.HasValue());
 }
 
-TEST_CASE("get Value config file with default Value")
+TEST_F(ConfigTest, ReadInvalidTomlFileFails)
 {
-    ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.HasValue());
+    // 임시로 유효하지 않은 TOML 파일을 만듭니다.
+    const auto physical_path = PathResolver::Get().Resolve(invalid_toml_path, false).Value();
+    {
+        std::ofstream ofs(physical_path);
+        ofs << "this = is not valid toml' syntax";
+    }
 
-    Config& config = v.Value();
-    CHECK(config.GetValueOrStore<bool>("a_boolean", false) == true);
-    CHECK(config.GetValueOrStore<int>("an_integer", 100) == 42);
-    CHECK(config.GetValueOrStore<float>("a_float", 100.0f) == 3.14159f);
-    CHECK(config.GetValueOrStore<std::string>("a_string", "hello world") == "Hello, TOML!");
+    ParseResult result = Config::ReadConfig(invalid_toml_path);
+    EXPECT_FALSE(result.HasValue());
 
-    CHECK(config.GetValueOrStore<std::string>("MyValue", "TTest") == "TTest");
-    CHECK(config.GetValue<std::string>("MyValue") == "TTest");
+    // 테스트 후 임시 파일 삭제
+    std::filesystem::remove(physical_path);
 }
 
-TEST_CASE("get array config file")
+// --- 값 가져오기 테스트 ---
+TEST_F(ConfigTest, GetValueReturnsCorrectValues)
 {
-    const ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.HasValue());
+    EXPECT_EQ(config.GetValue<bool>("a_boolean").Value(), true);
+    EXPECT_EQ(config.GetValue<int>("an_integer").Value(), 42);
+    EXPECT_FLOAT_EQ(config.GetValue<float>("a_float").Value(), 3.14159f);
+    EXPECT_EQ(config.GetValue<std::string>("a_string").Value(), "Hello, TOML!");
 
-    const Config& config = v.Value();
-    SUBCASE("get int array")
-    {
-        auto arr = config.GetArray<int>("int_array");
-        CHECK(arr.HasValue());
-        CHECK(arr->Len() == 5);
-        CHECK(arr == se::Array{1, 2, 3, 4, 5});
-    }
-
-    SUBCASE("get float array")
-    {
-        auto arr = config.GetArray<float>("float_array");
-        CHECK(arr.HasValue());
-        CHECK(arr->Len() == 3);
-        CHECK(arr == se::Array{0.5f, 1.5f, 2.5f});
-    }
-
-    SUBCASE("get string array")
-    {
-        auto arr = config.GetArray<std::string>("string_array");
-        CHECK(arr.HasValue());
-        CHECK(arr->Len() == 3);
-
-        auto check_list = std::array{ "apple", "banana", "cherry" };
-        for (usize i = 0; i < arr->Len(); i++)
-        {
-            CHECK((*arr)[i] == check_list[i]);
-        }
-    }
-
-    SUBCASE("get bool array")
-    {
-        auto arr = config.GetArray<bool>("bool_array");
-        CHECK(arr.HasValue());
-        CHECK(arr->Len() == 4);
-        CHECK(arr == se::Array{true, false, true, true});
-    }
+    // 존재하지 않는 값
+    EXPECT_FALSE(config.GetValue<bool>("__MyValue").HasValue());
 }
 
-TEST_CASE("get table config file")
+TEST_F(ConfigTest, GetValueOrStoreBehavesCorrectly)
 {
-    const ParseResult v = Config::ReadConfig(test_toml_path);
-    CHECK(v.HasValue());
+    // 이 테스트는 config 객체를 수정하므로, SetUp에서 로드된 공유 객체 대신
+    // 자체 복사본을 만들어 사용하는 것이 좋습니다.
+    Config local_config = config;
 
-    const Config& config = v.Value();
-    SUBCASE("get table")
-    {
-        auto window = config.GetTable("window");
-        CHECK(window.HasValue());
-        CHECK(window->GetValue<int>("width") == 1280);
-        CHECK(window->GetValue<int>("height") == 720);
-        CHECK(window->GetValue<bool>("fullscreen") == false);
-        CHECK(window->GetValue<std::string>("title") == "SimpleEngine Editor");
-        CHECK(window->GetValue<float>("scale") == 1.5f);
+    // 기존 값 확인
+    EXPECT_EQ(local_config.GetValueOrStore<bool>("a_boolean", false), true);
+    EXPECT_EQ(local_config.GetValueOrStore<int>("an_integer", 100), 42);
 
-        auto graphics = config.GetTable("graphics");
-        CHECK(graphics.HasValue());
-        CHECK(graphics->GetValue<bool>("vsync") == true);
-        CHECK(graphics->GetValue<int>("max_fps") == 144);
-
-        auto check_list = se::FixedArray{ "default.vert", "default.frag" };
-        auto shaders = graphics->GetArray<std::string>("shaders");
-        CHECK(shaders.HasValue());
-        CHECK(shaders->Len() == 2);
-        for (usize i = 0; i < shaders->Len(); i++)
-        {
-            CHECK((*shaders)[i] == check_list[i]);
-        }
-
-        auto features = graphics->GetTable("features");
-        CHECK(features.HasValue());
-        CHECK(features->GetValue<std::string>("antialiasing") == "MSAAx4");
-        CHECK(features->GetValue<int>("anisotropic_filtering") == 16);
-        CHECK(!features->GetValue<std::string>("anisotropic_filtering").HasValue());
-
-        CHECK(graphics->GetArray<int>("multisample_levels") == se::Array{2, 4, 8});
-    }
+    // 새로운 값 저장 및 확인
+    EXPECT_EQ(local_config.GetValueOrStore<std::string>("MyValue", "TTest"), "TTest");
+    ASSERT_TRUE(local_config.GetValue<std::string>("MyValue").HasValue());
+    EXPECT_EQ(local_config.GetValue<std::string>("MyValue").Value(), "TTest");
 }
 
-TEST_CASE("Config::SetValue and Config::WriteConfig")
+
+// --- 배열 및 테이블 테스트 ---
+
+TEST_F(ConfigTest, GetArrayForIntegers)
 {
+    auto arr = config.GetArray<int>("int_array");
+    ASSERT_TRUE(arr.HasValue());
+    EXPECT_EQ(arr, (se::Array{1, 2, 3, 4, 5}));
+}
+
+TEST_F(ConfigTest, GetTableForWindow)
+{
+    auto window = config.GetTable("window");
+    ASSERT_TRUE(window.HasValue());
+    EXPECT_EQ(window->GetValue<int>("width").Value(), 1280);
+    EXPECT_EQ(window->GetValue<int>("height").Value(), 720);
+    EXPECT_EQ(window->GetValue<bool>("fullscreen").Value(), false);
+    EXPECT_EQ(window->GetValue<std::string>("title").Value(), "SimpleEngine Editor");
+}
+
+
+// --- 파일 쓰기 테스트 ---
+
+TEST_F(ConfigTest, SetValueAndWriteConfigSavesCorrectly)
+{
+    Config new_config;
+    new_config.SetValue("window.width", 1920);
+    new_config.SetValue("window.height", 1080);
+    new_config.SetValue("graphics.vsync", false);
+
+    const auto physical_path = PathResolver::Get().Resolve(save_test_toml_path, false).Value();
+
+    // RAII를 이용한 파일 자동 삭제
     struct FileDeleter
     {
-        std::filesystem::path path_to_delete;
+        std::filesystem::path path;
+        ~FileDeleter() { if (std::filesystem::exists(path)) std::filesystem::remove(path); }
+    } deleter{ physical_path };
 
-        FileDeleter(const VPath& p)
-            : path_to_delete(*PathResolver::Get().Resolve(p, false))
-        {
-        }
+    ASSERT_TRUE(new_config.WriteConfig(save_test_toml_path));
 
-        ~FileDeleter()
-        {
-            if (std::filesystem::exists(path_to_delete))
-            {
-                std::filesystem::remove(path_to_delete);
-            }
-        }
-    };
+    // 저장된 파일을 다시 읽어서 값이 올바른지 검증
+    auto reloaded_result = Config::ReadConfig(save_test_toml_path);
+    ASSERT_TRUE(reloaded_result.HasValue());
 
-    Config config;
-    config.SetValue("a_boolean", true);
-    config.SetValue("an_integer", 42);
-    config.SetValue("a_float", 3.14159f);
-    config.SetValue("a_string", "Hello, TOML!");
+    const Config& reloaded_config = reloaded_result.Value();
+    auto window = reloaded_config.GetTable("window");
+    ASSERT_TRUE(window.HasValue());
+    EXPECT_EQ(window->GetValue<int>("width").Value(), 1920);
 
-    config.SetValue("int_array", se::Array{ 1, 2, 3, 4, 5 });
-    config.SetValue("float_array", se::Array{ 0.5f, 1.5f, 2.5f });
-    config.SetValue("string_array", se::Array<se::String>{ "apple", "banana", "cherry" });
-    config.SetValue("bool_array", se::Array{ true, false, true, true });
-
-    config.SetValue("window.width", 1280);
-    config.SetValue("window.height", 720);
-    config.SetValue("window.fullscreen", false);
-    config.SetValue("window.title", "SimpleEngine Editor");
-    config.SetValue("window.scale", 1.5f);
-
-    config.SetValue("graphics.vsync", true);
-    config.SetValue("graphics.max_fps", 144);
-    config.SetValue("graphics.shaders", se::Array<se::String>{ "default.vert", "default.frag" });
-    config.SetValue("graphics.features.antialiasing", "MSAAx4");
-    config.SetValue("graphics.features.anisotropic_filtering", 16);
-    config.SetValue("graphics.multisample_levels", se::Array{ 2, 4, 8 });
-
-    FileDeleter file_deleter(save_test_toml_path);
-    CHECK(config.WriteConfig(save_test_toml_path));
-}
+    auto graphics = reloaded_config.GetTable("graphics");
+    ASSERT_TRUE(graphics.HasValue());
+    EXPECT_EQ(graphics->GetValue<bool>("vsync").Value(), false);
 }

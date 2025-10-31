@@ -1,9 +1,11 @@
-#include "doctest/doctest.h"
+#include "gtest/gtest.h"
 
 #include <string>
 #include "SimpleEngine/Core/Functional/Function.h"
 
 using namespace se::core;
+
+class FunctionAPI_Test : public ::testing::Test {};
 
 
 namespace
@@ -43,8 +45,6 @@ struct LargeFunctor
 }
 
 
-TEST_SUITE("SimpleEngine.Core.Function")
-{
 template <typename R, typename... P>
 std::ostream& operator<<(std::ostream& os, const Function<R(P...)>& f)
 {
@@ -52,154 +52,153 @@ std::ostream& operator<<(std::ostream& os, const Function<R(P...)>& f)
     return os;
 }
 
-TEST_CASE("Default and Nullptr Construction")
+TEST_F(FunctionAPI_Test, DefaultAndNullptrConstruction)
 {
     const Function<int(int)> f1;
-    CHECK_FALSE(f1);
+    EXPECT_FALSE(f1);
 
     const Function<void()> f2(nullptr);
-    CHECK_FALSE(f2);
+    EXPECT_FALSE(f2);
 }
 
-TEST_CASE("Invocation")
+TEST_F(FunctionAPI_Test, Invocation)
 {
-    SUBCASE("Free function")
+    // Free function
     {
         Function<int(int)> f(free_function);
-        CHECK(f);
-        CHECK(f(10) == 20);
+        EXPECT_TRUE(f);
+        EXPECT_EQ(f(10), 20);
     }
 
-    SUBCASE("Lambda (SBO)")
+    // Lambda (SBO)
     {
         int captured_value = 5;
         Function<int(int)> f([captured_value](int i) { return i + captured_value; });
-        CHECK(f);
-        CHECK(f(10) == 15);
+        EXPECT_TRUE(f);
+        EXPECT_EQ(f(10), 15);
     }
 
-    SUBCASE("Functor (SBO)")
+    // Functor (SBO)
     {
         Functor functor;
         Function<int(int)> f(functor);
-        CHECK(f);
-        CHECK(f(10) == 30);
+        EXPECT_TRUE(f);
+        EXPECT_EQ(f(10), 30);
     }
 
-    SUBCASE("Large Lambda (Heap allocated)")
+    // Large Lambda (Heap allocated)
     {
         char data[details::SBO_BUFFER_SIZE + 1]{}; // Force heap allocation
         Function<int(int)> f([data](int i) { return i + data[0]; });
-        CHECK(f);
-        CHECK(f(10) == 10);
+        EXPECT_TRUE(f);
+        EXPECT_EQ(f(10), 10);
     }
 
-    SUBCASE("Large Functor (Heap allocated)")
+    // Large Functor (Heap allocated)
     {
         LargeFunctor large_functor;
         Function<int(int)> f(large_functor);
-        CHECK(f);
-        CHECK(f(10) == 40);
+        EXPECT_TRUE(f);
+        EXPECT_EQ(f(10), 40);
     }
 }
 
-TEST_CASE("Empty Function Call")
+TEST_F(FunctionAPI_Test, EmptyFunctionCall)
 {
     const Function<int()> f;
-    CHECK_THROWS_AS(f(), std::bad_function_call);
+    EXPECT_THROW(f(), std::bad_function_call);
 }
 
-TEST_CASE("Copy Semantics")
+TEST_F(FunctionAPI_Test, CopySemantics)
 {
-    SUBCASE("Copy constructing from SBO")
+    // Copy constructing from SBO
     {
         int val = 10;
         Function<int()> f1 = [val] { return val; };
         Function<int()> f2 = f1;
-        CHECK(f1);
-        CHECK(f2);
-        CHECK(f1() == 10);
-        CHECK(f2() == 10);
+        EXPECT_TRUE(f1);
+        EXPECT_TRUE(f2);
+        EXPECT_EQ(f1(), 10);
+        EXPECT_EQ(f2(), 10);
     }
 
-    SUBCASE("Copy constructing from Heap")
+    // Copy constructing from Heap
     {
         LargeFunctor lf;
         Function<int(int)> f1 = lf;
         Function<int(int)> f2 = f1;
-        CHECK(f1);
-        CHECK(f2);
-        CHECK(f1(5) == 20);
-        CHECK(f2(5) == 20);
+        EXPECT_TRUE(f1);
+        EXPECT_TRUE(f2);
+        EXPECT_EQ(f1(5), 20);
+        EXPECT_EQ(f2(5), 20);
     }
 
-    SUBCASE("Copy assigning from SBO to empty")
+    // Copy assigning from SBO to empty
     {
         Function<int()> f1;
         Function<int()> f2 = [] { return 20; };
         f1 = f2;
-        CHECK(f1);
-        CHECK(f2);
-        CHECK(f1() == 20);
+        EXPECT_TRUE(f1);
+        EXPECT_TRUE(f2);
+        EXPECT_EQ(f1(), 20);
     }
 
-    SUBCASE("Copy assigning from Heap to SBO")
+    // Copy assigning from Heap to SBO
     {
         Function<int(int)> f1 = [](int i) { return i; };
         Function<int(int)> f2 = LargeFunctor{};
         f1 = f2;
-        CHECK(f1);
-        CHECK(f2);
-        CHECK(f1(10) == 40);
+        EXPECT_TRUE(f1);
+        EXPECT_TRUE(f2);
+        EXPECT_EQ(f1(10), 40);
     }
 }
 
-TEST_CASE("Move Semantics")
+TEST_F(FunctionAPI_Test, MoveSemantics)
 {
-    SUBCASE("Move constructing from SBO")
+    // Move constructing from SBO
     {
         Function<std::string()> f1 = []() -> std::string { return "hello"; };
         Function<std::string()> f2 = std::move(f1);
 
-        CHECK_FALSE(f1);
-        CHECK(f2);
-        CHECK(f2() == std::string("hello"));
-        CHECK_THROWS_AS(f1(), std::bad_function_call);
+        EXPECT_FALSE(f1);
+        EXPECT_TRUE(f2);
+        EXPECT_EQ(f2(), std::string("hello"));
+        EXPECT_THROW(f1(), std::bad_function_call);
     }
 
-    SUBCASE("Move constructing from Heap")
+    // Move constructing from Heap
     {
         Function<int(int)> f1 = LargeFunctor{};
         Function<int(int)> f2 = std::move(f1);
 
-        CHECK_FALSE(f1);
-        CHECK(f2);
-        CHECK(f2(10) == 40);
-        CHECK_THROWS_AS(f1(10), std::bad_function_call);
+        EXPECT_FALSE(f1);
+        EXPECT_TRUE(f2);
+        EXPECT_EQ(f2(10), 40);
+        EXPECT_THROW(f1(10), std::bad_function_call);
     }
 
-    SUBCASE("Move assigning from SBO to Heap")
+    // Move assigning from SBO to Heap
     {
         Function<int(int)> f1 = LargeFunctor{};
         Function<int(int)> f2 = [](int i) { return i * 5; };
 
         f1 = std::move(f2);
-        CHECK(f1);
-        CHECK_FALSE(f2);
-        CHECK(f1(10) == 50);
-        CHECK_THROWS_AS(f2(10), std::bad_function_call);
+        EXPECT_TRUE(f1);
+        EXPECT_FALSE(f2);
+        EXPECT_EQ(f1(10), 50);
+        EXPECT_THROW(f2(10), std::bad_function_call);
     }
 }
 
-TEST_CASE("Reset and Reassignment")
+TEST_F(FunctionAPI_Test, ResetAndReassignment)
 {
     Function<int(int)> f(free_function);
-    CHECK(f);
+    EXPECT_TRUE(f);
     f = nullptr;
-    CHECK_FALSE(f);
+    EXPECT_FALSE(f);
 
     f = [](int i) { return i + 1; };
-    CHECK(f);
-    CHECK(f(1) == 2);
-}
+    EXPECT_TRUE(f);
+    EXPECT_EQ(f(1), 2);
 }

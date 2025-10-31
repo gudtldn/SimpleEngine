@@ -1,4 +1,4 @@
-#include "doctest/doctest.h"
+#include "gtest/gtest.h"
 
 #include "SimpleEngine/World/Query.h"
 #include "SimpleEngine/World/QueryData.h"
@@ -6,12 +6,11 @@
 #include "SimpleEngine/World/Components/MeshHandleComponent.h"
 #include "SimpleEngine/World/Components/TransformComponent.h"
 
-
-TEST_SUITE("SimpleEngine.Core:ECS")
-{
 using namespace se::core;
 using namespace se::world;
 using namespace se::world::schedules;
+
+class ECSTest : public ::testing::Test {};
 
 // A simple component for testing
 struct TestValueComponent
@@ -24,7 +23,7 @@ struct TestTagComponent
 {
 };
 
-TEST_CASE("ECS Schedule and System Execution Order")
+TEST_F(ECSTest, ECSScheduleAndSystemExecutionOrder)
 {
     World world;
     std::vector<std::u8string> execution_log;
@@ -51,13 +50,13 @@ TEST_CASE("ECS Schedule and System Execution Order")
     world.RunSchedule<PostUpdate>();
 
     // Verify the execution order
-    REQUIRE(execution_log.size() == 3);
-    CHECK(execution_log[0].contains(u8"PreUpdate"));
-    CHECK(execution_log[1].contains(u8"Update"));
-    CHECK(execution_log[2].contains(u8"PostUpdate"));
+    ASSERT_EQ(execution_log.size(), 3);
+    EXPECT_TRUE(execution_log[0].contains(u8"PreUpdate"));
+    EXPECT_TRUE(execution_log[1].contains(u8"Update"));
+    EXPECT_TRUE(execution_log[2].contains(u8"PostUpdate"));
 }
 
-TEST_CASE("ECS System Component Modification and Queries")
+TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
 {
     World world;
 
@@ -101,8 +100,8 @@ TEST_CASE("ECS System Component Modification and Queries")
 
     // Verify the final value of the component
     auto component = world.TryGetComponent<TestValueComponent>(entity);
-    REQUIRE(component.HasValue());
-    CHECK(component->value == 30);
+    ASSERT_TRUE(component.HasValue());
+    EXPECT_EQ(component->value, 30);
 
     // Verify that removing a component works with queries
     world.RemoveComponent<TestTagComponent>(entity);
@@ -111,12 +110,12 @@ TEST_CASE("ECS System Component Modification and Queries")
     world.RunSchedule<PostUpdate>();
 
     component = world.TryGetComponent<TestValueComponent>(entity);
-    REQUIRE(component.HasValue());
-    CHECK(component->value == 0);
+    ASSERT_TRUE(component.HasValue());
+    EXPECT_EQ(component->value, 0);
 }
 
 // Keep the user's original test case as a compile-time check
-TEST_CASE("ECS System Parameter Compilation Test")
+TEST_F(ECSTest, ECSSystemParameterCompilationTest)
 {
     World world;
 
@@ -148,24 +147,23 @@ TEST_CASE("ECS System Parameter Compilation Test")
             constexpr usize query3_size = sizeof(query3);
 
             static_assert(query1_size == query2_size || query1_size != query3_size);
-
-            CHECK_MESSAGE(true, "System with multiple queries compiled.");
+            SUCCEED() << "System with multiple queries compiled and ran successfully.";
         });
 
     world.AddSystem<Update>([](World* w)
     {
-        CHECK_MESSAGE(w != nullptr, "System with World* parameter compiled.");
+        ASSERT_NE(w, nullptr) << "System received a null World pointer.";
     });
 
     world.AddSystem<Update>([](Query<Entity> query)
     {
-        REQUIRE(!query.IsEmpty());
+        ASSERT_TRUE(!query.IsEmpty());
         for (auto [entity] : query)
         {
             auto opt = query.Get(entity);
             auto [ent] = *opt;
 
-            CHECK(ent == entity);
+            EXPECT_EQ(ent, entity);
         }
     });
 
@@ -175,7 +173,7 @@ TEST_CASE("ECS System Parameter Compilation Test")
     world.RunSchedule<Update>();
 }
 
-TEST_CASE("ECS System With Optional Components")
+TEST_F(ECSTest, ECSSystemWithOptionalComponents)
 {
     World world;
 
@@ -202,12 +200,12 @@ TEST_CASE("ECS System With Optional Components")
 
     // Verify the component on the first entity was modified
     auto component = world.TryGetComponent<TestValueComponent>(entity_with_component);
-    REQUIRE(component.HasValue());
-    CHECK(component->value == 200);
+    ASSERT_TRUE(component.HasValue());
+    EXPECT_EQ(component->value, 200);
 
     // Verify the second entity still does not have the component
     auto component2 = world.TryGetComponent<TestValueComponent>(entity_without_component);
-    CHECK_FALSE(component2.HasValue());
+    EXPECT_FALSE(component2.HasValue());
 
     // System that adds the component if it's missing
     world.AddSystem<PostUpdate>([](Query<Entity, Optional<TestValueComponent&>> query, World* in_world)
@@ -226,7 +224,6 @@ TEST_CASE("ECS System With Optional Components")
 
     // Verify the second entity now has the component with the correct value
     auto component3 = world.TryGetComponent<TestValueComponent>(entity_without_component);
-    REQUIRE(component3.HasValue());
-    CHECK(component3->value == 50);
-}
+    ASSERT_TRUE(component3.HasValue());
+    EXPECT_EQ(component3->value, 50);
 }
