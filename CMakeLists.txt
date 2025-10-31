@@ -1,5 +1,8 @@
 ﻿cmake_minimum_required(VERSION 3.22)
-project(SimpleEngine VERSION 0.1.0)
+project(SimpleEngine
+        VERSION 0.1.0
+        LANGUAGES CXX
+)
 
 # --- 아키텍처 이름 설정 (x64 / x86) ---
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
