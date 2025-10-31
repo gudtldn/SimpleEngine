@@ -49,6 +49,13 @@ else ()
     )
 endif ()
 
+# Clang 컴파일러를 사용할 경우, libc++를 사용하도록 설정
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+    message(STATUS "Clang detected, using libc++ standard library.")
+endif()
+
 # 컴파일러 빌드 설정
 add_compile_definitions(
         $<$<CONFIG:Debug>:_DEBUG>

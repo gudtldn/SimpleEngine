@@ -15,6 +15,11 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 
 RUN apt update && export DEBIAN_FRONTEND=noninteractive \
     && apt -y install --no-install-recommends \
+        clang \
+        lldb \
+        lld \
+        libc++-dev \
+        libc++abi-dev \
         build-essential \
         autoconf \
         autoconf-archive \
