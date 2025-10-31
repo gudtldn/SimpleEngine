@@ -22,8 +22,8 @@
         }
     },
     "containerEnv": {
-        "CC": "/usr/bin/clang",
-        "CXX": "/usr/bin/clang++"
+        "CC": "/usr/bin/clang-21",
+        "CXX": "/usr/bin/clang++-21"
     },
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.

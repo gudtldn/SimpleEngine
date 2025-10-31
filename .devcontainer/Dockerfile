@@ -15,11 +15,6 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 
 RUN apt update && export DEBIAN_FRONTEND=noninteractive \
     && apt -y install --no-install-recommends \
-        clang \
-        lldb \
-        lld \
-        libc++-dev \
-        libc++abi-dev \
         build-essential \
         autoconf \
         autoconf-archive \
@@ -42,4 +37,9 @@ RUN apt update && export DEBIAN_FRONTEND=noninteractive \
         libxft-dev \
         libxext-dev \
         python3-jinja2 \
+        lsb-release wget software-properties-common gnupg \
+    && wget https://apt.llvm.org/llvm.sh \
+    && chmod +x llvm.sh \
+    && ./llvm.sh 21 \
+    && rm llvm.sh \
     && apt clean && rm -rf /var/lib/apt/lists/*
