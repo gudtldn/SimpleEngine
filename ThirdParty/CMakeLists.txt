@@ -16,6 +16,10 @@ endif()
 
 # SDL_shadercross
 set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF)
+if(NOT WIN32)
+    # Windows가 아닌 플랫폼(Linux, macOS 등)에서는 DXC를 비활성화
+    set(SDLSHADERCROSS_DXC OFF CACHE BOOL "Disable DXC support on non-Windows platforms")
+endif()
 add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)
 
 # imgui 라이브러리 추가
