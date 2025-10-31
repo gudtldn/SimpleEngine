@@ -13,10 +13,11 @@ RUN if [ "${REINSTALL_CMAKE_VERSION_FROM_SOURCE}" != "none" ]; then \
 # [Optional] Uncomment this section to install additional vcpkg ports.
 # RUN su vscode -c "${VCPKG_ROOT}/vcpkg install <your-port-name-here>"
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends \
+RUN apt update && export DEBIAN_FRONTEND=noninteractive \
+    && apt -y install --no-install-recommends \
         build-essential \
         autoconf \
+        autoconf-archive \
         automake \
         libtool \
         gdb \
@@ -32,4 +33,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         libxi-dev \
         libicu-dev \
         libsystemd-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+        libltdl-dev \
+        libxft-dev \
+        libxext-dev \
+        python3-jinja2 \
+    && apt clean && rm -rf /var/lib/apt/lists/*
