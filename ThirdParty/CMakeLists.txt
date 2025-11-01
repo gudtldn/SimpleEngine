@@ -2,6 +2,9 @@ find_package(SDL3 REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 
+# 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
+find_package(range-v3 CONFIG REQUIRED)
+
 add_subdirectory(tracy EXCLUDE_FROM_ALL)
 add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
 add_subdirectory(cpu_features EXCLUDE_FROM_ALL)

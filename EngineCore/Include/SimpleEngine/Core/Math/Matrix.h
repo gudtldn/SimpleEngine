@@ -3,6 +3,7 @@
 #include <concepts>
 #include <mdspan>
 #include <ranges>
+#include "range/v3/view/enumerate.hpp"
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -288,7 +289,7 @@ template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator*(T scalar) const
 {
     Matrix4x4Impl ret{};
-    for (auto [n, ret_data] : ret.data | std::views::enumerate)
+    for (auto [n, ret_data] : ret.data | ranges::views::enumerate)
     {
         ret_data = data[n] * scalar;
     }

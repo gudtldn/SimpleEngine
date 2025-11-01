@@ -1,6 +1,7 @@
 ﻿#include "Rendering/Compiler/Compiler.h"
 
 #include <ranges>
+#include "range/v3/view/enumerate.hpp"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/FileUtils.h"
@@ -70,7 +71,7 @@ SDL_GPUShader* CompileFromHLSL(
         const Array<HLSL_Define>& defines = *defines_opt;
         hlsl_defines.Resize(defines.Len());
 
-        for (auto [n, hlsl_define] : hlsl_defines | std::views::enumerate)
+        for (auto [n, hlsl_define] : hlsl_defines | ranges::views::enumerate)
         {
             hlsl_define.name = const_cast<char*>(defines[n].name);
             hlsl_define.value = const_cast<char*>(defines[n].value);

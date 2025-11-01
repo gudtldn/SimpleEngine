@@ -5,6 +5,7 @@
 #include <cassert>
 #include <memory>
 #include <ranges>
+#include "range/v3/view/enumerate.hpp"
 #include <utility>
 
 #include "Core/Container/HashMap.h"
@@ -106,7 +107,7 @@ void RenderGraph::Compile()
     // 2. Pass Culling 단계
     // 사용되고 있는 리소스를 추적해서 패스를 활성화로 만들기
     Queue<RGResourceHandle> active_resources;
-    for (const auto [n, resource_node] : resource_nodes | std::views::enumerate)
+    for (const auto [n, resource_node] : resource_nodes | ranges::views::enumerate)
     {
         IRGResource* resource = resource_node.resource.get();
         if (

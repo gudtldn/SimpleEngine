@@ -24,6 +24,9 @@ generate_export_header(EngineCore
 find_package(ICU REQUIRED COMPONENTS uc i18n data)
 find_package(SDL3 REQUIRED)
 
+# 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
+find_package(range-v3 CONFIG REQUIRED)
+
 # EngineCore 라이브러리에 의존 라이브러리들을 연결
 target_link_libraries(EngineCore PUBLIC
         # tomlplusplus
@@ -35,6 +38,9 @@ target_link_libraries(EngineCore PUBLIC
         # SDL3
         SDL3::SDL3
         SDL3_shadercross::SDL3_shadercross
+
+        # 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
+        range-v3
 )
 target_link_libraries(EngineCore PRIVATE
         # ICU4C
