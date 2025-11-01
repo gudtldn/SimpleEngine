@@ -54,14 +54,14 @@ inline void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* 
         const __m128 lhs_broadcast3 = _mm_set1_ps(current_lhs_row[3]);
 
         // 4. 외부 곱(_mm_mul_ps)과 덧셈(_mm_add_ps)을 순차적으로 수행
-        __m128 term0 = _mm_mul_ps(lhs_broadcast0, rhs_row0);
-        __m128 term1 = _mm_mul_ps(lhs_broadcast1, rhs_row1);
-        __m128 term2 = _mm_mul_ps(lhs_broadcast2, rhs_row2);
-        __m128 term3 = _mm_mul_ps(lhs_broadcast3, rhs_row3);
+        const __m128 term0 = _mm_mul_ps(lhs_broadcast0, rhs_row0);
+        const __m128 term1 = _mm_mul_ps(lhs_broadcast1, rhs_row1);
+        const __m128 term2 = _mm_mul_ps(lhs_broadcast2, rhs_row2);
+        const __m128 term3 = _mm_mul_ps(lhs_broadcast3, rhs_row3);
 
-        __m128 sum01 = _mm_add_ps(term0, term1);
-        __m128 sum23 = _mm_add_ps(term2, term3);
-        __m128 result_row = _mm_add_ps(sum01, sum23);
+        const __m128 sum01 = _mm_add_ps(term0, term1);
+        const __m128 sum23 = _mm_add_ps(term2, term3);
+        const __m128 result_row = _mm_add_ps(sum01, sum23);
 
         // 5. 계산된 결과 행을 다시 메모리에 저장
         _mm_store_ps(&result[i * 4], result_row);
