@@ -43,12 +43,18 @@ if (MSVC)
             /W4              # 경고 수준을 최고 수준으로 설정
             /MP              # 멀티스레드 빌드 사용
             /wd4251 /wd4275
+
+            # AVX를 명시적으로 타겟팅
+            /arch:AVX2
     )
 else ()
     add_compile_options(
             -finput-charset=UTF-8
             -fexec-charset=UTF-8
             -Wall -Wextra
+
+            # AVX + FMA를 명시적으로 타겟팅
+            -mavx -mfma
     )
 endif ()
 

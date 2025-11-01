@@ -23,7 +23,9 @@
     },
     "containerEnv": {
         "CC": "/usr/bin/clang-21",
-        "CXX": "/usr/bin/clang++-21"
+        "CXX": "/usr/bin/clang++-21",
+        "VCPKG_CXX_FLAGS": "-stdlib=libc++",
+        "VCPKG_LDFLAGS": "-stdlib=libc++"
     },
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
