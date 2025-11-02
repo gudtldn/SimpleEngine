@@ -4,6 +4,7 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
 
+#include "Panels/DetailPanel.h"
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
@@ -60,6 +61,7 @@ bool EditorUISubsystem::Initialize()
     // 일단 명시적으로 Register 코드 작성
     RegisterPanel<ImGuiDemoPanel>();
     RegisterPanel<OutlinerPanel>();
+    RegisterPanel<DetailPanel>();
 
     return true;
 }
