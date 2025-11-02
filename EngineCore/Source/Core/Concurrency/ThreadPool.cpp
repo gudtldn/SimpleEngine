@@ -1,8 +1,6 @@
 ﻿#include "Core/Concurrency/ThreadPool.h"
 
 #include <cassert>
-#include <ranges>
-#include "range/v3/view/enumerate.hpp"
 
 #include "Core/Logging/Logging.h"
 #include "Utility/StringUtils.h"
@@ -13,7 +11,6 @@ namespace se::core::concurrency
 ThreadPool* ThreadPool::Instance = nullptr;
 
 ThreadPool::ThreadPool(uint32 num_threads)
-    : worker_threads(num_threads)
 {
     assert(!Instance && "ThreadPool instance is already created!");
     Instance = this;
@@ -21,11 +18,12 @@ ThreadPool::ThreadPool(uint32 num_threads)
     ConsoleLog(ELogLevel::Info, "Creating ThreadPool...");
 
     // Worker Thread 생성
-    for (auto [n, thread] : worker_threads | ranges::views::enumerate)
+    worker_threads.Reserve(num_threads);
+    for (uint32 n = 0; n < num_threads; ++n)
     {
-        thread = std::jthread([this, id = static_cast<uint32>(n)](const std::stop_token& token)
+        worker_threads.Emplace([this, n](const std::stop_token& token)
         {
-            WorkerLoop(token, id);
+            WorkerLoop(token, n);
         });
     }
 }
