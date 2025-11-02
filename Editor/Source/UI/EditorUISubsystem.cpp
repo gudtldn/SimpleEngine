@@ -1,4 +1,5 @@
-﻿#include "Core/EditorUISubsystem.h"
+﻿#include "UI/EditorUISubsystem.h"
+#include "Panels/ImGuiDemoPanel.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
@@ -7,6 +8,8 @@
 using namespace se::core::event;
 
 
+namespace se::editor::ui
+{
 bool EditorUISubsystem::Initialize()
 {
     const auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, const RenderSubsystem>();
@@ -51,6 +54,8 @@ bool EditorUISubsystem::Initialize()
         }
     );
 
+    RegisterPanel<ImGuiDemoPanel>();
+
     return true;
 }
 
@@ -70,7 +75,19 @@ void EditorUISubsystem::PreUpdate()
 
 void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
 {
-    ImGui::ShowDemoWindow();
+    const EditorUIContext context = {
+        .delta_time = delta_time,
+    };
+
+    DrawMainMenu();
+
+    for (const auto& panel : panels)
+    {
+        if (panel->IsVisible())
+        {
+            panel->Draw(context);
+        }
+    }
 }
 
 void EditorUISubsystem::PostUpdate()
@@ -83,4 +100,35 @@ void EditorUISubsystem::PostUpdate()
     {
         ImGui::UpdatePlatformWindows();
     }
+}
+
+void EditorUISubsystem::DrawMainMenu()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Exit"))
+            {
+                app::Application::Get().RequestQuit();
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Window"))
+        {
+            for (const auto& panel : panels)
+            {
+                bool is_open = panel->IsVisible();
+                if (ImGui::MenuItem(panel->GetName(), nullptr, &is_open))
+                {
+                    panel->SetVisibility(is_open);
+                }
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
 }
