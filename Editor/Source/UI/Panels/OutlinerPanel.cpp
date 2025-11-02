@@ -6,6 +6,7 @@
 
 #include "imgui.h"
 
+
 namespace se::editor::ui
 {
 const char* OutlinerPanel::GetName() const

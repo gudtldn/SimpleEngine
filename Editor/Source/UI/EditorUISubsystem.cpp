@@ -78,11 +78,9 @@ void EditorUISubsystem::PreUpdate()
     ImGui::NewFrame();
 }
 
-void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
+void EditorUISubsystem::Update(float delta_time)
 {
-    EditorUIContext context = {
-        .delta_time = delta_time,
-    };
+    context.delta_time = delta_time;
 
     SetupDockSpace();
     DrawMainMenu();

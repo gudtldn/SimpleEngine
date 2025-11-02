@@ -46,6 +46,7 @@ private:
 
 private:
     Array<std::unique_ptr<IEditorPanel>> panels;
+    EditorUIContext context{};
 };
 
 template <typename PanelType, typename ... Args>
