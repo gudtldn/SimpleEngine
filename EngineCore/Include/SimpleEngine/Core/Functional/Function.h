@@ -194,6 +194,11 @@ public:
         }
     }
 
+    [[nodiscard]] bool IsValid() const noexcept
+    {
+        return CallablePtr != nullptr;
+    }
+
     ReturnType Invoke(ParamsType&&... args) const
     {
         if (!CallablePtr)
@@ -208,9 +213,19 @@ public:
         return Invoke(std::forward<ParamsType>(args)...);
     }
 
-    explicit operator bool() const noexcept
+    [[nodiscard]] bool operator==(const Function& other) const
     {
-        return CallablePtr != nullptr;
+        return CallablePtr == other.CallablePtr;
+    }
+
+    [[nodiscard]] bool operator==(std::nullptr_t) const
+    {
+        return !IsValid();
+    }
+
+    [[nodiscard]] explicit operator bool() const noexcept
+    {
+        return IsValid();
     }
 
 private:
