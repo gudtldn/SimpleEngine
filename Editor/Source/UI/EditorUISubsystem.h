@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Interfaces/IUpdatable.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Reflection/SubsystemRegistration.h"
+#include "SimpleEngine/World/World.h"
 #include "UI/Panels/IEditorPanel.h"
 
 
@@ -13,6 +14,7 @@ namespace se::editor::ui
 struct EditorUIContext
 {
     float delta_time;
+    Optional<world::Entity> selected_entity;
 };
 
 class EditorUISubsystem

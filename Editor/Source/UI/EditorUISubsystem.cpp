@@ -1,9 +1,12 @@
 ﻿#include "UI/EditorUISubsystem.h"
-#include "Panels/ImGuiDemoPanel.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
+
+#include "Panels/ImGuiDemoPanel.h"
+#include "Panels/OutlinerPanel.h"
+#include "SimpleEngine/World/WorldSubsystem.h"
 
 using namespace se::core::event;
 
@@ -56,6 +59,7 @@ bool EditorUISubsystem::Initialize()
 
     // 일단 명시적으로 Register 코드 작성
     RegisterPanel<ImGuiDemoPanel>();
+    RegisterPanel<OutlinerPanel>();
 
     return true;
 }
@@ -134,6 +138,20 @@ void EditorUISubsystem::DrawMainMenu()
             }
             ImGui::EndMenu();
         }
+
+        if (ImGui::BeginMenu("Entity"))
+        {
+            if (ImGui::MenuItem("Spawn Entity"))
+            {
+                if (const WorldSubsystem* world_subsystem = utility::GetSubsystemUnchecked<WorldSubsystem>())
+                {
+                    world::World* world = world_subsystem->GetWorld();
+                    world->SpawnEntity();
+                }
+            }
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 }
