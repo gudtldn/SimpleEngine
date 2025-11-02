@@ -14,7 +14,7 @@ public:
     [[nodiscard]] virtual const char* GetName() const = 0;
 
     // 실제 ImGui 코드가 들어갈 함수
-    virtual void Draw(const EditorUIContext& context) = 0;
+    virtual void Draw(EditorUIContext& context) = 0;
 
     // 패널이 열려있는지 여부를 관리
     [[nodiscard]] bool IsVisible() const { return is_visible; }

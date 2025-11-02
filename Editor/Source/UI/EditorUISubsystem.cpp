@@ -76,7 +76,7 @@ void EditorUISubsystem::PreUpdate()
 
 void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
 {
-    const EditorUIContext context = {
+    EditorUIContext context = {
         .delta_time = delta_time,
     };
 

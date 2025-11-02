@@ -10,7 +10,7 @@ const char* ImGuiDemoPanel::GetName() const
     return "ImGui Demo";
 }
 
-void ImGuiDemoPanel::Draw(const EditorUIContext& context)
+void ImGuiDemoPanel::Draw([[maybe_unused]] EditorUIContext& context)
 {
     ImGui::ShowDemoWindow(&is_visible);
 }
