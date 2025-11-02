@@ -26,3 +26,12 @@ private:
     uint32 generation;
 };
 }
+
+template <>
+struct std::hash<se::world::Entity>
+{
+    size_t operator()(const se::world::Entity& entity) const noexcept
+    {
+        return std::hash<uint32>{}(entity.GetId());
+    }
+};
