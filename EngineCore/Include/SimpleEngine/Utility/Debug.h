@@ -27,8 +27,10 @@
             #define SE_BREAKPOINT() ((void)0)
         #endif
     #endif
+    #define SE_BREAKPOINT_CONDITION(cond) do { if (cond) { SE_BREAKPOINT(); } } while(0)
 #else
     #define SE_BREAKPOINT() ((void)0)
+    #define SE_BREAKPOINT_CONDITION(cond) ((void)0)
 #endif
 
 // --- 치명적 오류 (Fatal Error) ---
