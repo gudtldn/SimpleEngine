@@ -54,6 +54,7 @@ bool EditorUISubsystem::Initialize()
         }
     );
 
+    // 일단 명시적으로 Register 코드 작성
     RegisterPanel<ImGuiDemoPanel>();
 
     return true;
@@ -79,6 +80,7 @@ void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
         .delta_time = delta_time,
     };
 
+    SetupDockSpace();
     DrawMainMenu();
 
     for (const auto& panel : panels)
@@ -100,6 +102,11 @@ void EditorUISubsystem::PostUpdate()
     {
         ImGui::UpdatePlatformWindows();
     }
+}
+
+void EditorUISubsystem::SetupDockSpace()
+{
+    ImGui::DockSpaceOverViewport();
 }
 
 void EditorUISubsystem::DrawMainMenu()
@@ -127,7 +134,6 @@ void EditorUISubsystem::DrawMainMenu()
             }
             ImGui::EndMenu();
         }
-
         ImGui::EndMainMenuBar();
     }
 }

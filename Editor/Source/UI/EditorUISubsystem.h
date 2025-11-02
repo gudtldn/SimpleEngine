@@ -38,7 +38,8 @@ public:
         requires std::derived_from<PanelType, IEditorPanel>
     void RegisterPanel(Args&&... args);
 
-protected:
+private:
+    void SetupDockSpace();
     void DrawMainMenu();
 
 private:
