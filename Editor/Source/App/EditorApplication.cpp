@@ -88,9 +88,7 @@ void EditorApplication::Render()
             *world_subsystem->GetWorld(),
             static_cast<uint32>(width), static_cast<uint32>(height)
         );
-        render_subsystem->GetRenderGraph().AddPass<EditorUIPass>(
-            static_cast<uint32>(width), static_cast<uint32>(height)
-        );
+        render_subsystem->GetRenderGraph().AddPass<EditorUIPass>();
     }
     render_subsystem->RenderFrame();
 }

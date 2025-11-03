@@ -8,13 +8,9 @@ namespace se::editor::rendering
 class EditorUIPass : public se::rendering::IRenderPass
 {
 public:
-    explicit EditorUIPass(uint32 width, uint32 height);
-
     virtual void Setup(se::rendering::RenderGraphBuilder& builder) override;
     virtual void Execute(se::rendering::RGExecutionContext& context) override;
 
 private:
-    const uint32 scene_color_target_width;
-    const uint32 scene_color_target_height;
 };
 }

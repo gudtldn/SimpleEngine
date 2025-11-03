@@ -7,7 +7,6 @@
 #include "SimpleEngine/Rendering/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Rendering/RenderGraph/RGResources.h"
 #include "SimpleEngine/Rendering/RenderPass/IRenderPass.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 
 
 namespace se::rendering
