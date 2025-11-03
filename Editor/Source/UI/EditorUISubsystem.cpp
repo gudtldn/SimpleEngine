@@ -7,6 +7,7 @@
 #include "Panels/DetailPanel.h"
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
+#include "Panels/ViewportPanel.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
 
 using namespace se::core::event;
@@ -62,6 +63,7 @@ bool EditorUISubsystem::Initialize()
     RegisterPanel<ImGuiDemoPanel>();
     RegisterPanel<OutlinerPanel>();
     RegisterPanel<DetailPanel>();
+    RegisterPanel<ViewportPanel>();
 
     return true;
 }

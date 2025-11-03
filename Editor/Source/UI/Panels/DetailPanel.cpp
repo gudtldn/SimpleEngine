@@ -12,7 +12,7 @@ const char* DetailPanel::GetName() const
 
 void DetailPanel::Draw(EditorUIContext& context)
 {
-    ImGui::Begin(GetName());
+    ImGui::Begin(GetName(), &is_visible);
     {
 
     }
