@@ -114,7 +114,7 @@ void EditorUISubsystem::PostUpdate()
 
 void EditorUISubsystem::SetupDockSpace()
 {
-    ImGui::DockSpaceOverViewport();
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 }
 
 void EditorUISubsystem::DrawMainMenu()
