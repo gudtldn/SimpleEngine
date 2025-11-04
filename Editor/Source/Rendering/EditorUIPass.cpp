@@ -10,7 +10,6 @@ using namespace se::rendering;
 
 namespace
 {
-RGResourceHandle forward_scene_color_handle;
 RGResourceHandle back_buffer_handle;
 }
 
@@ -18,9 +17,6 @@ namespace se::editor::rendering
 {
 void EditorUIPass::Setup(RenderGraphBuilder& builder)
 {
-    forward_scene_color_handle = builder.GetResourceHandleByName(ForwardScenePass::SceneColorTarget);
-    builder.Read(forward_scene_color_handle);
-
     back_buffer_handle = builder.GetResourceHandleByName("BackBuffer");
     builder.Write(back_buffer_handle);
 }

@@ -70,6 +70,8 @@ bool EditorUISubsystem::Initialize()
 
 void EditorUISubsystem::Release()
 {
+    panels.Clear();
+
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
