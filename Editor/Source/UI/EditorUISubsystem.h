@@ -38,7 +38,7 @@ public:
 public:
     template <typename PanelType, typename... Args>
         requires std::derived_from<PanelType, IEditorPanel>
-    void RegisterPanel(Args&&... args);
+    PanelType& RegisterPanel(Args&&... args);
 
 private:
     void SetupDockSpace();
@@ -51,8 +51,12 @@ private:
 
 template <typename PanelType, typename ... Args>
     requires std::derived_from<PanelType, IEditorPanel>
-void EditorUISubsystem::RegisterPanel(Args&&... args)
+PanelType& EditorUISubsystem::RegisterPanel(Args&&... args)
 {
-    panels.Emplace(std::make_unique<PanelType>(std::forward<Args>(args)...));
+    auto panel = std::make_unique<PanelType>(std::forward<Args>(args)...);
+    PanelType* raw_ptr = panel.get();
+
+    panels.Emplace(std::move(panel));
+    return *raw_ptr;
 }
 }
