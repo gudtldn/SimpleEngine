@@ -6,6 +6,7 @@
 
 #include "tracy/Tracy.hpp"
 
+constexpr usize TRACY_CALLSTACK_DEPTH = 32;
 
 namespace se::core::memory
 {
@@ -48,15 +49,13 @@ void* OsMemory::Allocate(usize size, usize alignment)
     header->offset = offset;
 
     // Tracy로 메모리 사용량 추적
-    TracyAllocS(user_ptr, size, 32);
+    TracyAllocS(user_ptr, size, TRACY_CALLSTACK_DEPTH);
 
     return user_ptr;
 }
 
 void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
 {
-    // TODO: Realloc 최적화
-
     if (address == nullptr)
     {
         return Allocate(new_size, alignment);
@@ -68,6 +67,18 @@ void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
         return nullptr;
     }
 
+    // new_size가 기존에 할당된 메모리보다 작으면 할당된 크기만 줄이기
+    OsMemoryHeader* const memory_header = GetHeaderFromUserPtr(address);
+    if (new_size <= memory_header->allocated_size)
+    {
+        memory_header->allocated_size = new_size;
+
+        TracyFreeS(address, TRACY_CALLSTACK_DEPTH);
+        TracyAllocS(address, new_size, TRACY_CALLSTACK_DEPTH);
+
+        return address;
+    }
+
     // 새로운 메모리 할당
     void* new_address = Allocate(new_size, alignment);
     if (new_address == nullptr)
@@ -75,10 +86,8 @@ void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
         return nullptr;
     }
 
-    const usize old_allocated_size = GetAllocatedSize(address);
-
     // 기존 내용 복사
-    const usize copy_size = std::min(old_allocated_size, new_size);
+    const usize copy_size = std::min(memory_header->allocated_size, new_size);
     std::memcpy(new_address, address, copy_size);
 
     // 이전 메모리 해제
@@ -95,10 +104,10 @@ void OsMemory::Free(void* address)
     }
 
     // Tracy에서 메모리 사용량 추적 해제
-    TracyFreeS(address, 32);
+    TracyFreeS(address, TRACY_CALLSTACK_DEPTH);
 
     // user_ptr로 부터 헤더 위치 계산
-    OsMemoryHeader* header = GetHeaderFromUserPtr(address);
+    const OsMemoryHeader* header = GetHeaderFromUserPtr(address);
 
     // user_ptr에서 패딩을 이용하여 실제 할당된 메모리 블럭 계산
     void* raw_block = static_cast<uint8*>(address) - header->offset;
