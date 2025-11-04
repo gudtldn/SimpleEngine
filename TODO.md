@@ -6,6 +6,9 @@
 
 - [ ] Optional constexpr로 만들기
 - [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
+- [ ] RenderGraph에 Resource Extract 로직 추가
+  - Extract를 하면 ResourcePool에서 std::unique_ptr<ExtractedResource>로 소유권을 넘겨서 반환
+  - ExtractedResource가 소멸하면 다시 Pool로 반납
 - [ ] 나중에 Thread-Safe해야하는 로직 확인하기
 - [ ] ECS System클래스 구현
     - 생성자로 Fn&&을 받아서 시스템 끼리의 순서나 여러가지 상호작용을 할 수 있도록 하기
