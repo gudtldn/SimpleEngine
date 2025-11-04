@@ -2,23 +2,17 @@
 
 - [ ] 각 Window를 기존의 렌더 방식을 RenderingPipeline으로 캡슐화
   - 이렇게 하면 Window별로 Rendering을 다르게할 수 있음
+  - 윈도우별 DrawData 구현 (비슷한 내용)
 
 - [ ] Optional constexpr로 만들기
 - [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
 - [ ] 나중에 Thread-Safe해야하는 로직 확인하기
-- [ ] 윈도우별 DrawData 구현
 - [ ] ECS System클래스 구현
     - 생성자로 Fn&&을 받아서 시스템 끼리의 순서나 여러가지 상호작용을 할 수 있도록 하기
 - [ ] RenderWorld 구현
     - 매 프레임 렌더링에 필요한 컴포넌트만 추출해서
 - [ ] InputSystem 구현
 - [ ] PlatformEventDispatcher 리펙토링
-- [ ] C++26기능을 사용할 수 있을 때, 다음 파일을 수정하거나 삭제해야함
-    - /CMake/CodeGeneration.cmake
-    - /Scripts/generate_reflection_data.py
-    - clion python venv 관련
-    - 프로젝트 별 CMakeLists.txt
-    - EngineCore의 Reflection 관련 코드
 
 - [ ] 프로파일러 만들기
     - CPU
@@ -29,9 +23,10 @@
     - Thread
     - 등등
 - [ ] Log Category 만들기
-- [ ] cmake로 크로스 플랫폼 빌드 구성하기
-- [ ] 나중에 SDL3를 submodule로 추가하기
-- [ ] 나중에 icu4c를 submodule로 추가하기
+- [ ] 메모리 할당자 개선
+  - _expand나 realloc_in_place를 사용하여 개선
+  - 아니면 나중에 제대로 OS로부터 Page를 받아서 메모리 Pool을 직접 구현
+  - 디버그 빌드 시 가드 바이트(카나리)를 추가하여 메모리 손상 감지
 
 ## 완료
 
@@ -56,3 +51,6 @@
 - [x] ECS World에 RegisterSystem 구현
     - 이래야 멀티 월드일 때 구성하기가 쉬움
 - [x] 컴파일 타임에 알 수 있는 `std::type_index`를 TypeId로 변경
+- [x] cmake로 크로스 플랫폼 빌드 구성하기
+- [x] 나중에 SDL3를 submodule로 추가하기 (vcpkg로 관리)
+- [x] 나중에 icu4c를 submodule로 추가하기 (vcpkg로 관리)
