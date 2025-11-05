@@ -8,6 +8,8 @@
 #include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Utility/Config.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
+#include "UI/EditorUISubsystem.h"
+#include "UI/Panels/ViewportPanel.h"
 
 
 EditorApplication::EditorApplication()
@@ -76,19 +78,26 @@ void EditorApplication::Render()
 
     const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
     {
+        using namespace se::editor::ui;
         using namespace se::editor::rendering;
-        const PlatformSubsystem* platform_subsystem = engine_instance->GetSubsystem<PlatformSubsystem>();
+
         const WorldSubsystem* world_subsystem = engine_instance->GetSubsystem<WorldSubsystem>();
+        const EditorUISubsystem* editor_ui_subsystem = engine_instance->GetSubsystem<EditorUISubsystem>();
 
         // 임시로 화면의 크기를 인자로 넣어줌
-        int32 width, height;
-        SDL_GetWindowSize(platform_subsystem->GetMainWindow(), &width, &height);
+        const ViewportPanel& viewport_panel = *editor_ui_subsystem->GetPanel<ViewportPanel>();
+        const uint32 width = viewport_panel.GetViewportWidth();
+        const uint32 height = viewport_panel.GetViewportHeight();
 
-        render_subsystem->GetRenderGraph().AddPass<se::rendering::ForwardScenePass>(
-            *world_subsystem->GetWorld(),
-            static_cast<uint32>(width), static_cast<uint32>(height)
+        se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
+
+        graph.ImportTexture(se::rendering::ForwardScenePass::SceneColorTarget, viewport_panel.GetViewportColorTexture());
+        graph.ImportTexture(se::rendering::ForwardScenePass::SceneDepthTarget, viewport_panel.GetViewportDepthTexture());
+
+        graph.AddPass<se::rendering::ForwardScenePass>(
+            *world_subsystem->GetWorld(), width, height
         );
-        render_subsystem->GetRenderGraph().AddPass<EditorUIPass>();
+        graph.AddPass<EditorUIPass>();
     }
     render_subsystem->RenderFrame();
 }

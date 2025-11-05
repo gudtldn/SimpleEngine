@@ -94,29 +94,34 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     /**
      * 2. Pass에서 사용할 Texture를 생성
      */
-    color_target_handle = builder.CreateTexture(SceneColorTarget, {
-        .type = SDL_GPU_TEXTURETYPE_2D,                      // 2D 텍스처
-        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB, // RGBA 각 채널당 8비트, sRGB 색 공간 사용
-        // 이 텍스처의 사용 목적
-        // - COLOR_TARGET: 이 텍스처에 그림을 그릴(렌더링할) 것임을 의미
-        // - SAMPLER: 나중에 다른 패스(예: 후처리, UI)에서 이 텍스처를 읽어서 사용할 것임을 의미
-        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
-        .width = width,
-        .height = height,
-        .layer_count_or_depth = 1, // 2D 텍스처이므로 레이어는 1개
-        .num_levels = 1,
-        .sample_count = SDL_GPU_SAMPLECOUNT_1,
-    });
-    depth_target_handle = builder.CreateTexture(SceneDepthTarget, {
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,  // 24비트 깊이버퍼 + 8비트 스텐실버퍼
-        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, // 이 텍스처는 깊이/스텐실 버퍼로만 사용될 것임을 의미
-        .width = width,
-        .height = height,
-        .layer_count_or_depth = 1,
-        .num_levels = 1,
-        .sample_count = SDL_GPU_SAMPLECOUNT_1,
-    });
+    // color_target_handle = builder.CreateTexture(SceneColorTarget, {
+    //     .type = SDL_GPU_TEXTURETYPE_2D,                      // 2D 텍스처
+    //     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB, // RGBA 각 채널당 8비트, sRGB 색 공간 사용
+    //     // 이 텍스처의 사용 목적
+    //     // - COLOR_TARGET: 이 텍스처에 그림을 그릴(렌더링할) 것임을 의미
+    //     // - SAMPLER: 나중에 다른 패스(예: 후처리, UI)에서 이 텍스처를 읽어서 사용할 것임을 의미
+    //     .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    //     .width = width,
+    //     .height = height,
+    //     .layer_count_or_depth = 1, // 2D 텍스처이므로 레이어는 1개
+    //     .num_levels = 1,
+    //     .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    // });
+    color_target_handle = builder.GetResourceHandleByName(SceneColorTarget);
+    builder.Write(color_target_handle);
+
+    // depth_target_handle = builder.CreateTexture(SceneDepthTarget, {
+    //     .type = SDL_GPU_TEXTURETYPE_2D,
+    //     .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,  // 24비트 깊이버퍼 + 8비트 스텐실버퍼
+    //     .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, // 이 텍스처는 깊이/스텐실 버퍼로만 사용될 것임을 의미
+    //     .width = width,
+    //     .height = height,
+    //     .layer_count_or_depth = 1,
+    //     .num_levels = 1,
+    //     .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    // });
+    depth_target_handle = builder.GetResourceHandleByName(SceneDepthTarget);
+    builder.Write(depth_target_handle);
 }
 
 void ForwardScenePass::Execute(RGExecutionContext& context)
@@ -126,15 +131,14 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_GPUTexture* color_target = context.GetActualTexture(color_target_handle);
     SDL_GPUTexture* depth_target = context.GetActualTexture(depth_target_handle);
 
-    assert(color_target && "SceneColor texture is missing.");
-    assert(depth_target && "SceneDepth texture is missing.");
+    if (!(color_target && depth_target)) { return; }
 
     const SDL_GPUColorTargetInfo color_target_info[] = {
         {
             .texture = color_target,
             .mip_level = 0,
             .layer_or_depth_plane = 0,
-            .clear_color = { 0.2f, 0.2f, 0.2f, 1.0f },
+            .clear_color = { 0.15f, 0.15f, 0.15f, 1.0f },
             .load_op = SDL_GPU_LOADOP_CLEAR,
             .store_op = SDL_GPU_STOREOP_STORE,
         }
@@ -152,11 +156,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_GPUGraphicsPipeline* pipeline;
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
-        static const VPath VertexShaderPath = "CoreShader://Default.vert.hlsl";
-        static const VPath FragmentShaderPath = "CoreShader://Default.frag.hlsl";
-
-        static const std::filesystem::path VSPath = utility::PathResolver::Get().Resolve(VertexShaderPath).Value();
-        static const std::filesystem::path FSPath = utility::PathResolver::Get().Resolve(FragmentShaderPath).Value();
+        static const std::filesystem::path VSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.vert.hlsl").Value();
+        static const std::filesystem::path FSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.frag.hlsl").Value();
 
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description

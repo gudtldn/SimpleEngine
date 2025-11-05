@@ -40,12 +40,15 @@ public:
         requires std::derived_from<PanelType, IEditorPanel>
     PanelType& RegisterPanel(Args&&... args);
 
+    template <typename PanelType>
+    Optional<const PanelType&> GetPanel() const;
+
 private:
     void SetupDockSpace();
     void DrawMainMenu();
 
 private:
-    Array<std::unique_ptr<IEditorPanel>> panels;
+    HashMap<refl::TypeId, std::unique_ptr<IEditorPanel>> panels;
     EditorUIContext context{};
 };
 
@@ -56,7 +59,17 @@ PanelType& EditorUISubsystem::RegisterPanel(Args&&... args)
     auto panel = std::make_unique<PanelType>(std::forward<Args>(args)...);
     PanelType* raw_ptr = panel.get();
 
-    panels.Emplace(std::move(panel));
+    panels.Emplace(refl::TypeId::Get<PanelType>(), std::move(panel));
     return *raw_ptr;
+}
+
+template <typename PanelType>
+Optional<const PanelType&> EditorUISubsystem::GetPanel() const
+{
+    return panels.Find(refl::TypeId::Get<PanelType>())
+        .AndThen([](const auto& panel_ptr) -> Optional<const PanelType&>
+        {
+            return static_cast<const PanelType&>(*panel_ptr);
+        });
 }
 }

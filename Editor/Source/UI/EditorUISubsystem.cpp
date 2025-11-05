@@ -91,7 +91,7 @@ void EditorUISubsystem::Update(float delta_time)
     SetupDockSpace();
     DrawMainMenu();
 
-    for (const auto& panel : panels)
+    for (const auto& panel : panels | std::views::values)
     {
         if (panel->IsVisible())
         {
@@ -132,7 +132,7 @@ void EditorUISubsystem::DrawMainMenu()
 
         if (ImGui::BeginMenu("Window"))
         {
-            for (const auto& panel : panels)
+            for (const auto& panel : panels | std::views::values)
             {
                 bool is_open = panel->IsVisible();
                 if (ImGui::MenuItem(panel->GetName(), nullptr, &is_open))
