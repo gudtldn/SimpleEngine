@@ -17,6 +17,7 @@
     - 매 프레임 렌더링에 필요한 컴포넌트만 추출해서
 - [ ] InputSystem 구현
 - [ ] PlatformEventDispatcher 리펙토링
+- [ ] Entity를 Spawn할 때, 한번에 Entity + Components... 로 Spawn할 수 있도록 Bundle 기능 추가
 
 - [ ] 프로파일러 만들기
     - CPU
