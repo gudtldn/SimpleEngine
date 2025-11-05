@@ -1,5 +1,4 @@
 ﻿#include "Rendering/EditorUIPass.h"
-#include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Rendering/RenderGraph/RenderGraph.h"
 
 #include "imgui.h"
@@ -30,7 +29,7 @@ void EditorUIPass::Execute(RGExecutionContext& context)
         .texture = back_buffer,
         .mip_level = 0,
         .layer_or_depth_plane = 0,
-        .clear_color = { 0.1f, 0.1f, 0.1f, 1.0f },
+        .clear_color = { 0.0f, 0.0f, 0.0f, 1.0f },
         .load_op = SDL_GPU_LOADOP_CLEAR,
         .store_op = SDL_GPU_STOREOP_STORE,
         .cycle = false,
