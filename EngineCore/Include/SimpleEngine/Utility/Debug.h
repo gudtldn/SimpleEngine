@@ -53,11 +53,8 @@
         { \
             if (!(expr)) \
             { \
-                ConsoleLog(ELogLevel::Fatal, "Assertion failed: {}", #expr); \
-                if constexpr (sizeof(#__VA_ARGS__) > 1) \
-                { \
-                    ConsoleLog(ELogLevel::Fatal, "  Message: {}", se::String::Format("{}", __VA_ARGS__)); \
-                } \
+                ConsoleLog(ELogLevel::Fatal, "Assertion failed: " #expr); \
+                __VA_OPT__(ConsoleLog(ELogLevel::Fatal, ##__VA_ARGS__);) \
                 SE_BREAKPOINT(); \
             } \
         } while (0)
