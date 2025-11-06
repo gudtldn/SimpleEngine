@@ -54,8 +54,9 @@
             if (!(expr)) \
             { \
                 ConsoleLog(ELogLevel::Fatal, "Assertion failed: " #expr); \
-                __VA_OPT__(ConsoleLog(ELogLevel::Fatal, ##__VA_ARGS__);) \
+                __VA_OPT__(ConsoleLog(ELogLevel::Fatal, "└─ " __VA_ARGS__);) \
                 SE_BREAKPOINT(); \
+                abort(); \
             } \
         } while (0)
 #else

@@ -8,6 +8,7 @@
 #include "SimpleEngine/Rendering/Traits/CreateInfoHash.h"
 
 #include "SDL3/SDL_gpu.h"
+#include "Utility/Debug.h"
 
 
 namespace se::rendering
@@ -78,7 +79,7 @@ template <typename T>
 void GpuResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
 {
     [[maybe_unused]] const usize count = entry.used_resources.Remove(resource);
-    assert(count > 0 && "Attempted to deallocate a texture that was not marked as used.");
+    SE_ASSERT(count > 0, "Attempted to deallocate a texture that was not marked as used.");
 
     entry.available_resources.Push(resource);
 }

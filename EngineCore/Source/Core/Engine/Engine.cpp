@@ -142,10 +142,10 @@ void Engine::UpdateFrame(float delta_time)
 {
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
     ZoneScoped; \
-    { \
-        [[maybe_unused]] const std::string zone_name = std::format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
-        ZoneName(zone_name.c_str(), zone_name.size()); \
-    }
+    SE_DEBUG_EXPRESION({ \
+        const se::String zone_name = se::String::Format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
+        ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
+    })
 
     for (IUpdatable* sub_system : updatable_systems)
     {

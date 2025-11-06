@@ -308,7 +308,7 @@ Unexpected(E) -> Unexpected<E>;
 
 
 template <typename T, typename E>
-template <typename ... Args> requires std::constructible_from<T, Args...>
+template <typename... Args> requires std::constructible_from<T, Args...>
 T& Expected<T, E>::Emplace(Args&&... args)
 {
     return storage.template emplace<1>(std::forward<Args>(args)...);
@@ -562,7 +562,7 @@ auto Expected<T, E>::MapError(Fn&& func) &&
 }
 
 template <typename E>
-template <typename ... Args>
+template <typename... Args>
 void Expected<void, E>::Emplace([[maybe_unused]] Args&&... args)
 {
     storage.template emplace<0>();

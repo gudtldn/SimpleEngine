@@ -61,7 +61,7 @@ void HashMap<Key, Value, Hasher, KeyEq, Allocator>::Clear() noexcept
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-template <typename ... Args>
+template <typename... Args>
 typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Emplace(
     const KeyType& key, Args&&... args
 )

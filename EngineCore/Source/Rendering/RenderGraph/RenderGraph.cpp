@@ -37,10 +37,10 @@ void RenderGraph::Compile()
     for (RGPassNode& pass_node : pass_nodes)
     {
         ZoneScoped;
-        {
-            [[maybe_unused]] String zone_name = String::Format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
+        SE_DEBUG_EXPRESION({
+            String zone_name = String::Format("RenderGraph::Compile - {}::Setup", pass_node.name.ToString());
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
-        }
+        });
         RenderGraphBuilder builder(*this, pass_node);
         pass_node.pass_object->Setup(builder);
     }
@@ -253,10 +253,10 @@ void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
     for (const RGPassNode* pass_node : compiled_passes)
     {
         ZoneScoped;
-        {
-            [[maybe_unused]] String zone_name = String::Format("RenderGraph::Execute - {}::Execute", pass_node->name.ToString());
+        SE_DEBUG_EXPRESION({
+            String zone_name = String::Format("RenderGraph::Execute - {}::Execute", pass_node->name);
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
-        }
+        })
 
         for (const auto [write_handle_idx] : pass_node->writes)
         {

@@ -43,7 +43,7 @@ void Map<Key, Value, Pred, Allocator>::Clear() noexcept
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-template <typename ... Args>
+template <typename... Args>
 typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Emplace(const KeyType& key, Args&&... args)
 {
     internal_map.emplace(
