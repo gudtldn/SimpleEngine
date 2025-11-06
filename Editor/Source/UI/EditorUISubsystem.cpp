@@ -60,10 +60,10 @@ bool EditorUISubsystem::Initialize()
     );
 
     // 일단 명시적으로 Register 코드 작성
-    RegisterPanel<ImGuiDemoPanel>();
-    RegisterPanel<OutlinerPanel>();
-    RegisterPanel<DetailPanel>();
-    RegisterPanel<ViewportPanel>();
+    RegisterPanel<ImGuiDemoPanel>(refl::GetTypeName<ImGuiDemoPanel>());
+    RegisterPanel<OutlinerPanel>(refl::GetTypeName<OutlinerPanel>());
+    RegisterPanel<DetailPanel>(refl::GetTypeName<DetailPanel>());
+    RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
 
     return true;
 }
@@ -86,8 +86,6 @@ void EditorUISubsystem::PreUpdate()
 
 void EditorUISubsystem::Update(float delta_time)
 {
-    context.delta_time = delta_time;
-
     SetupDockSpace();
     DrawMainMenu();
 
@@ -95,7 +93,7 @@ void EditorUISubsystem::Update(float delta_time)
     {
         if (panel->IsVisible())
         {
-            panel->Draw(context);
+            panel->Draw();
         }
     }
 }
@@ -110,6 +108,15 @@ void EditorUISubsystem::PostUpdate()
     {
         ImGui::UpdatePlatformWindows();
     }
+}
+
+Optional<const IEditorPanel&> EditorUISubsystem::GetPanel(const StringName& panel_id) const
+{
+    return panels.Find(panel_id)
+        .AndThen([](const auto& panel_ptr) -> Optional<const IEditorPanel&>
+        {
+            return *panel_ptr;
+        });
 }
 
 void EditorUISubsystem::SetupDockSpace()

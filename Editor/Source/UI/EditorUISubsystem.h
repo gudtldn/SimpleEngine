@@ -5,18 +5,13 @@
 #include "SimpleEngine/Core/Interfaces/IUpdatable.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Reflection/SubsystemRegistration.h"
+#include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/World/World.h"
 #include "UI/Panels/IEditorPanel.h"
 
 
 namespace se::editor::ui
 {
-struct EditorUIContext
-{
-    float delta_time;
-    Optional<world::Entity> selected_entity;
-};
-
 class EditorUISubsystem
     : public core::ISubsystem<PlatformSubsystem, RenderSubsystem>,
       public core::IUpdatable
@@ -38,38 +33,28 @@ public:
 public:
     template <typename PanelType, typename... Args>
         requires std::derived_from<PanelType, IEditorPanel>
-    PanelType& RegisterPanel(Args&&... args);
+    PanelType& RegisterPanel(const StringName& panel_id, Args&&... args);
 
-    template <typename PanelType>
-    Optional<const PanelType&> GetPanel() const;
+    [[nodiscard]] Optional<const IEditorPanel&> GetPanel(const StringName& panel_id) const;
 
 private:
     void SetupDockSpace();
     void DrawMainMenu();
 
 private:
-    HashMap<refl::TypeId, std::unique_ptr<IEditorPanel>> panels;
-    EditorUIContext context{};
+    HashMap<StringName, std::unique_ptr<IEditorPanel>> panels;
 };
 
-template <typename PanelType, typename ... Args>
+template <typename PanelType, typename... Args>
     requires std::derived_from<PanelType, IEditorPanel>
-PanelType& EditorUISubsystem::RegisterPanel(Args&&... args)
+PanelType& EditorUISubsystem::RegisterPanel(const StringName& panel_id, Args&&... args)
 {
+    SE_ASSERT(!panels.Contains(panel_id), "Panel '{}' is already registered", panel_id);
+
     auto panel = std::make_unique<PanelType>(std::forward<Args>(args)...);
-    PanelType* raw_ptr = panel.get();
+    PanelType& panel_ref = *panel;
 
-    panels.Emplace(refl::TypeId::Get<PanelType>(), std::move(panel));
-    return *raw_ptr;
-}
-
-template <typename PanelType>
-Optional<const PanelType&> EditorUISubsystem::GetPanel() const
-{
-    return panels.Find(refl::TypeId::Get<PanelType>())
-        .AndThen([](const auto& panel_ptr) -> Optional<const PanelType&>
-        {
-            return static_cast<const PanelType&>(*panel_ptr);
-        });
+    panels.Emplace(panel_id, std::move(panel));
+    return panel_ref;
 }
 }
