@@ -29,7 +29,7 @@ protected:
         // 따라서 EXPECT 대신 ASSERT를 사용하여 실패 시 즉시 중단시킵니다.
         ASSERT_TRUE(result.HasValue()) << "Failed to read base config file for tests: "
                                        << result.Error().description().data();
-        config = std::move(result.Value());
+        config = std::move(result).Value();
     }
 
     Config config;

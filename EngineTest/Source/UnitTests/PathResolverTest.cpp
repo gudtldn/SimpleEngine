@@ -44,7 +44,7 @@ struct TempDirManager
 struct PathResolverGuard
 {
     PathResolver& resolver;
-    std::vector<StringName> mounted_schemes;
+    Array<StringName> mounted_schemes;
 
     PathResolverGuard(PathResolver& res)
         : resolver(res)
@@ -55,9 +55,9 @@ struct PathResolverGuard
     {
         resolver.Mount(scheme, physical_path, priority);
         // Avoid duplicates
-        if (std::find(mounted_schemes.begin(), mounted_schemes.end(), scheme) == mounted_schemes.end())
+        if (mounted_schemes.Find(scheme))
         {
-            mounted_schemes.push_back(scheme);
+            mounted_schemes.Push(scheme);
         }
     }
 
@@ -81,7 +81,7 @@ protected:
     PathResolverGuard guard{PathResolver::Get()};
 
     // SetUp()에서 공통적인 Mount 작업을 수행할 수 있습니다.
-    void SetUp() override
+    virtual void SetUp() override
     {
         guard.Mount("Assets", assets_dir.temp_path);
     }
@@ -151,7 +151,7 @@ protected:
     TempDirManager mod_override_dir{"ModOverride"};
     PathResolverGuard guard{PathResolver::Get()};
 
-    void SetUp() override
+    virtual void SetUp() override
     {
         // Base game assets (낮은 우선순위)
         guard.Mount("Game", base_game_dir.temp_path, 0);

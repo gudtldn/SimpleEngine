@@ -35,7 +35,7 @@ template <typename StringType>
     requires requires { typename StringType::value_type; }
 constexpr uint64 FNV_Hash(const StringType& in_str) noexcept
 {
-    using CharType = typename StringType::value_type;
+    using CharType = StringType::value_type;
     return details::FNV_Hash_Impl(std::basic_string_view<CharType>{ in_str });
 }
 

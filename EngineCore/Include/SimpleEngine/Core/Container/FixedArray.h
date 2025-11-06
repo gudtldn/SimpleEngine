@@ -66,8 +66,8 @@ public:
     [[nodiscard]] constexpr const T& operator[](usize idx) const noexcept;
 
     // STL 호환
-    [[nodiscard]] constexpr operator std::span<T, N>() noexcept;
-    [[nodiscard]] constexpr operator std::span<const T, N>() const noexcept;
+    [[nodiscard]] explicit constexpr operator std::span<T, N>() noexcept;
+    [[nodiscard]] explicit constexpr operator std::span<const T, N>() const noexcept;
 
     // Iterator
     [[nodiscard]] constexpr T* begin() noexcept;

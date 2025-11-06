@@ -242,11 +242,11 @@ private:
      */
     bool EnsureCapacity(SizeType required_capacity);
 
-    T& FrontUnsafe();
-    const T& FrontUnsafe() const;
+    [[nodiscard]] T& FrontUnsafe();
+    [[nodiscard]] const T& FrontUnsafe() const;
 
-    T& BackUnsafe();
-    const T& BackUnsafe() const;
+    [[nodiscard]] T& BackUnsafe();
+    [[nodiscard]] const T& BackUnsafe() const;
 
 private:
     T* data = nullptr;
