@@ -9,7 +9,7 @@
 #include "SimpleEngine/Utility/Config.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
 #include "UI/EditorUISubsystem.h"
-#include "UI/Panels/ViewportPanel.h"
+#include "UI/EditorViewportSubsystem.h"
 
 
 EditorApplication::EditorApplication()
@@ -22,7 +22,7 @@ void EditorApplication::RegisterSubsystems()
     Application::RegisterSubsystems();
 
     // Window 초기화
-    if (PlatformSubsystem* platform_subsystem = engine_instance->GetSubsystem<PlatformSubsystem>())
+    if (PlatformSubsystem* platform_subsystem = se::utility::GetSubsystemUnchecked<PlatformSubsystem>())
     {
         using namespace se::utility;
 
@@ -64,7 +64,7 @@ bool EditorApplication::PostInitialize()
         using namespace se::rendering;
         using namespace se::editor::rendering;
 
-        const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
+        const RenderSubsystem* render_subsystem = se::utility::GetSubsystemUnchecked<RenderSubsystem>();
         PSOManager& pso_manager = render_subsystem->GetPSOManager();
         pso_manager.SetShaderCacheProvider<CompilingShaderProvider>();
     }
@@ -76,27 +76,32 @@ void EditorApplication::Render()
 {
     Application::Render();
 
-    const RenderSubsystem* render_subsystem = engine_instance->GetSubsystem<RenderSubsystem>();
+    const RenderSubsystem* render_subsystem = se::utility::GetSubsystemUnchecked<RenderSubsystem>();
     {
         using namespace se::editor::ui;
         using namespace se::editor::rendering;
 
-        const WorldSubsystem* world_subsystem = engine_instance->GetSubsystem<WorldSubsystem>();
-        const EditorUISubsystem* editor_ui_subsystem = engine_instance->GetSubsystem<EditorUISubsystem>();
+        const WorldSubsystem* world_subsystem = se::utility::GetSubsystemUnchecked<WorldSubsystem>();
+        const EditorUISubsystem* ui_subsystem = se::utility::GetSubsystemUnchecked<EditorUISubsystem>();
+        const EditorViewportSubsystem* viewport_subsystem = se::utility::GetSubsystemUnchecked<EditorViewportSubsystem>();
 
-        // 임시로 화면의 크기를 인자로 넣어줌
-        const ViewportPanel& viewport_panel = *editor_ui_subsystem->GetPanel<ViewportPanel>();
-        const uint32 width = viewport_panel.GetViewportWidth();
-        const uint32 height = viewport_panel.GetViewportHeight();
-
+        se::world::World& world_ref = *world_subsystem->GetWorld();
         se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
+        for (const auto& [viewport_id, info] : viewport_subsystem->GetActiveViewportInfo())
+        {
+            if (ui_subsystem->GetPanel(viewport_id)->IsVisible())
+            {
+                const StringName color_target_name = viewport_id;
+                graph.ImportTexture(color_target_name, info.color_texture);
 
-        graph.ImportTexture(se::rendering::ForwardScenePass::SceneColorTarget, viewport_panel.GetViewportColorTexture());
-        graph.ImportTexture(se::rendering::ForwardScenePass::SceneDepthTarget, viewport_panel.GetViewportDepthTexture());
-
-        graph.AddPass<se::rendering::ForwardScenePass>(
-            *world_subsystem->GetWorld(), width, height
-        );
+                const StringName depth_target_name = se::String::Format("{}_Depth", viewport_id.ToString());
+                graph.AddPass<se::rendering::ForwardScenePass>(
+                    world_ref,
+                    color_target_name, depth_target_name,
+                    info.width, info.height
+                );
+            }
+        }
         graph.AddPass<EditorUIPass>();
     }
     render_subsystem->RenderFrame();
