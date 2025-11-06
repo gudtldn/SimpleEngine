@@ -6,9 +6,9 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Rendering/Traits/CreateInfoEquals.h"
 #include "SimpleEngine/Rendering/Traits/CreateInfoHash.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include "SDL3/SDL_gpu.h"
-#include "Utility/Debug.h"
 
 
 namespace se::rendering
