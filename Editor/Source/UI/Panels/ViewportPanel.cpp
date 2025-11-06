@@ -30,7 +30,7 @@ const char* ViewportPanel::GetName() const
     return "Viewport";
 }
 
-void ViewportPanel::Draw(EditorUIContext& context)
+void ViewportPanel::Draw()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin(GetName(), &is_visible);

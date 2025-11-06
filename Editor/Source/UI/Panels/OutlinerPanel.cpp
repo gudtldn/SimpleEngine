@@ -14,7 +14,7 @@ const char* OutlinerPanel::GetName() const
     return "Outliner";
 }
 
-void OutlinerPanel::Draw(EditorUIContext& context)
+void OutlinerPanel::Draw()
 {
     ImGui::Begin(GetName(), &is_visible);
     {
@@ -29,10 +29,11 @@ void OutlinerPanel::Draw(EditorUIContext& context)
 
         for (const auto& [entity] : query)
         {
-            if (ImGui::Selectable(String::Format("Entity {}", entity.GetId()).CStr(), context.selected_entity == entity))
+            static Optional<world::Entity> selected_entity; // TODO: 이거 수정해야함. 임시코드
+            if (ImGui::Selectable(String::Format("Entity {}", entity.GetId()).CStr(), selected_entity == entity))
             {
                 // 엔티티를 클릭하면 EditorContext의 선택된 엔티티를 업데이트
-                context.selected_entity = entity;
+                selected_entity = entity;
             }
         }
     }

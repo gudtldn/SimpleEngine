@@ -11,7 +11,7 @@ public:
 
     //~ IEditorPanel
     [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw(EditorUIContext& context) override;
+    virtual void Draw() override;
     //~ IEditorPanel
 };
 }

@@ -14,7 +14,6 @@ public:
     virtual ~ViewportPanel() override;
 
     [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw(EditorUIContext& context) override;
 
 public:
     [[nodiscard]] SDL_GPUTexture* GetViewportColorTexture() const { return viewport_color_texture; }
@@ -22,6 +21,7 @@ public:
 
     [[nodiscard]] uint32 GetViewportWidth() const { return viewport_width; }
     [[nodiscard]] uint32 GetViewportHeight() const { return viewport_height; }
+    virtual void Draw() override;
 
 private:
     void ResizeViewportTexture(uint32 new_width, uint32 new_height);
