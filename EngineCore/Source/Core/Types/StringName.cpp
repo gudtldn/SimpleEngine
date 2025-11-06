@@ -48,7 +48,7 @@ StringName::StringName(std::string_view in_str)
 #endif
 }
 
-se::String StringName::ToString() const
+const char* StringName::CStr() const
 {
     if (display_hash == 0 && comparison_hash == 0)
     {
@@ -58,4 +58,9 @@ se::String StringName::ToString() const
     const StringNamePool& pool = StringNamePool::Get();
     const StringNameEntry& entry = pool.Resolve(display_hash);
     return entry.name;
+}
+
+se::String StringName::ToString() const
+{
+    return { CStr() };
 }

@@ -35,6 +35,7 @@ public:
     StringName(const se::String& in_str);
     StringName(std::string_view in_str);
 
+    [[nodiscard]] const char* CStr() const;
     [[nodiscard]] se::String ToString() const;
     [[nodiscard]] FORCE_INLINE uint64 GetDisplayHash() const { return display_hash; }
     [[nodiscard]] FORCE_INLINE uint64 GetComparisonHash() const { return comparison_hash; }

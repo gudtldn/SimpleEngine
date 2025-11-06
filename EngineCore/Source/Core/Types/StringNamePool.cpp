@@ -3,6 +3,7 @@
 #include <mutex>
 #include <utility>
 
+#include "Utility/Debug.h"
 #include "Utility/Hash.h"
 
 
@@ -37,7 +38,7 @@ const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
         return *display_pool_opt;
     }
 
-    std::unreachable();
+    SE_UNREACHABLE();
 }
 
 StringNameHashes StringNamePool::Find(std::string_view view) const
