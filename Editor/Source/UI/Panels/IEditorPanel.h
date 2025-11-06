@@ -3,8 +3,6 @@
 
 namespace se::editor::ui
 {
-struct EditorUIContext;
-
 class IEditorPanel
 {
 public:
