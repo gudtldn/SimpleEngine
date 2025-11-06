@@ -4,6 +4,7 @@
 #include "Core/Types/VPath.h"
 #include "Geometry/Vertex.h"
 #include "Rendering/RenderGraph/RenderGraph.h"
+#include "Utility/PathResolver.h"
 #include "World/Query.h"
 #include "World/World.h"
 #include "World/Components/Camera3dComponent.h"
@@ -12,27 +13,24 @@
 #include "World/Components/TransformComponent.h"
 
 #include "SDL3/SDL_gpu.h"
-#include "Utility/PathResolver.h"
 
 using namespace se::math;
 using namespace se::world;
 
 
-namespace
-{
-se::rendering::RGResourceHandle color_target_handle;
-se::rendering::RGResourceHandle depth_target_handle;
-}
-
 namespace se::rendering
 {
-StringName ForwardScenePass::SceneColorTarget = "SceneColorTarget";
-StringName ForwardScenePass::SceneDepthTarget = "SceneDepthTarget";
-
-ForwardScenePass::ForwardScenePass(World& world, uint32 width, uint32 height)
-    : width(width)
+ForwardScenePass::ForwardScenePass(
+    World& world,
+    const StringName& in_color_target_name,
+    const StringName& in_depth_target_name,
+    uint32 width, uint32 height
+)
+    : world_ref(world)
+    , color_target_name(in_color_target_name)
+    , depth_target_name(in_depth_target_name)
+    , width(width)
     , height(height)
-    , world_ref(world)
 {
 }
 
@@ -94,33 +92,19 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     /**
      * 2. Pass에서 사용할 Texture를 생성
      */
-    // color_target_handle = builder.CreateTexture(SceneColorTarget, {
-    //     .type = SDL_GPU_TEXTURETYPE_2D,                      // 2D 텍스처
-    //     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB, // RGBA 각 채널당 8비트, sRGB 색 공간 사용
-    //     // 이 텍스처의 사용 목적
-    //     // - COLOR_TARGET: 이 텍스처에 그림을 그릴(렌더링할) 것임을 의미
-    //     // - SAMPLER: 나중에 다른 패스(예: 후처리, UI)에서 이 텍스처를 읽어서 사용할 것임을 의미
-    //     .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    //     .width = width,
-    //     .height = height,
-    //     .layer_count_or_depth = 1, // 2D 텍스처이므로 레이어는 1개
-    //     .num_levels = 1,
-    //     .sample_count = SDL_GPU_SAMPLECOUNT_1,
-    // });
-    color_target_handle = builder.GetResourceHandleByName(SceneColorTarget);
+    color_target_handle = builder.GetResourceHandleByName(color_target_name);
     builder.Write(color_target_handle);
 
-    // depth_target_handle = builder.CreateTexture(SceneDepthTarget, {
-    //     .type = SDL_GPU_TEXTURETYPE_2D,
-    //     .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,  // 24비트 깊이버퍼 + 8비트 스텐실버퍼
-    //     .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, // 이 텍스처는 깊이/스텐실 버퍼로만 사용될 것임을 의미
-    //     .width = width,
-    //     .height = height,
-    //     .layer_count_or_depth = 1,
-    //     .num_levels = 1,
-    //     .sample_count = SDL_GPU_SAMPLECOUNT_1,
-    // });
-    depth_target_handle = builder.GetResourceHandleByName(SceneDepthTarget);
+    depth_target_handle = builder.CreateTexture(depth_target_name, {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,  // 24비트 깊이버퍼 + 8비트 스텐실버퍼
+        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, // 이 텍스처는 깊이/스텐실 버퍼로만 사용될 것임을 의미
+        .width = width,
+        .height = height,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    });
     builder.Write(depth_target_handle);
 }
 
