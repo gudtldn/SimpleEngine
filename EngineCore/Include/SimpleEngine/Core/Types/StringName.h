@@ -65,10 +65,10 @@ struct std::hash<StringName>
 
 // StringName에 대한 std::formatter 특수화
 template <>
-struct std::formatter<StringName, char> : std::formatter<se::String>
+struct std::formatter<StringName, char> : std::formatter<std::string_view>
 {
     auto format(const StringName& string, std::format_context& ctx) const
     {
-        return std::formatter<se::String>::format(string.ToString(), ctx);
+        return std::formatter<std::string_view>::format(string.CStr(), ctx);
     }
 };
