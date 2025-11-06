@@ -11,6 +11,7 @@
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/World/EntityManager.h"
 #include "SimpleEngine/World/QueryConcepts.h"
 #include "SimpleEngine/World/Schedules.h"
@@ -192,7 +193,7 @@ public:
      */
     template <typename... Ts>
         requires requires { Query<Ts...>{ std::declval<World*>() }; }
-    [[nodiscard]] Query<Ts...> QueryEntities()
+    [[nodiscard]] Query<Ts...> QueryEntities() // TODO: QueryEntities를 const로 만들기
     {
         return Query<Ts...>{ this };
     }
@@ -213,7 +214,7 @@ private:
         else
         {
             static_assert(AlwaysFalse<T>, "Invalid system parameter type");
-            std::unreachable();
+            SE_UNREACHABLE();
         }
     }
 
