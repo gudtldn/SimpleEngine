@@ -5,7 +5,7 @@
   <Type Name="StringName">
     <DisplayString Condition="debug_entry_ptr == nullptr">"None"</DisplayString>
     <DisplayString Condition="debug_entry_ptr != nullptr">
-      {(const char8*)((StringNameEntry*)debug_entry_ptr)->name,s8}
+      {(const char*)((StringNameEntry*)debug_entry_ptr)->name,s8}
     </DisplayString>
     <Expand>
       <Item Name="[display_hash]">display_hash</Item>
