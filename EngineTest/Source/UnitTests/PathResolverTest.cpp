@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -44,7 +45,7 @@ struct TempDirManager
 struct PathResolverGuard
 {
     PathResolver& resolver;
-    Array<StringName> mounted_schemes;
+    HashSet<StringName> mounted_schemes;
 
     PathResolverGuard(PathResolver& res)
         : resolver(res)
@@ -54,11 +55,7 @@ struct PathResolverGuard
     void Mount(const StringName& scheme, const std::filesystem::path& physical_path, int32_t priority = 0)
     {
         resolver.Mount(scheme, physical_path, priority);
-        // Avoid duplicates
-        if (mounted_schemes.Find(scheme))
-        {
-            mounted_schemes.Push(scheme);
-        }
+        mounted_schemes.Add(scheme);
     }
 
     ~PathResolverGuard()
