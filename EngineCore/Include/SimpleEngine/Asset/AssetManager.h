@@ -166,39 +166,36 @@ core::concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPa
     if (first_loader)
     {
         using utility::PathResolver;
+        co_await coroutine::SwitchToWorkerThread{};
+
         const PathResolver& resolver = PathResolver::Get();
 
-        TaskScheduler::Get().Launch_WorkerThread([](
-            AssetManager* self,
-            Optional<std::filesystem::path> physical_path_opt,
-            StringName asset_id_copy,
-            std::shared_ptr<coroutine::EventWaitHandle> event
-        ) -> Task<void>
-            {
-                std::shared_ptr<T> loaded_asset = nullptr;
-                if (physical_path_opt)
-                {
-                    AssetLoader<T> loader;
-                    loaded_asset = co_await loader.Load(physical_path_opt.Value());
-                }
+        std::shared_ptr<T> loaded_asset = nullptr;
+        if (Optional physical_path_opt = resolver.Resolve(virtual_path))
+        {
+            AssetLoader<T> loader;
+            loaded_asset = co_await loader.Load(std::move(physical_path_opt).Value());
+        }
 
-                // Storage에 Asset 추가
-                self->GetOrCreateStorage<T>().Add(asset_id_copy, loaded_asset);
+        // Storage에 Asset 추가
+        storage.Add(asset_id, loaded_asset);
 
-                // 로딩 완
-                event->Set();
+        // 로딩 완
+        ongoing_load_event->Set();
 
-                // loading_requests 에서 제거
-                std::unique_lock req_lock(self->loading_requests_mutex);
-                self->loading_requests.Remove(asset_id_copy);
-            }(this, resolver.Resolve(virtual_path), asset_id, ongoing_load_event)
-        );
+        // loading_requests 에서 제거
+        {
+            std::unique_lock req_lock(loading_requests_mutex);
+            loading_requests.Remove(asset_id);
+        }
+
+        co_return loaded_asset;
     }
 
-    // 로딩이 끝날 때 까지 대기
+    // 처음 로딩이 아니라면, 로딩이 끝날 때까지 대기
     co_await ongoing_load_event->Wait();
 
-    // Asset 반환
+    // 로드된 Asset 반환
     co_return storage.Find(asset_id);
 }
 }
