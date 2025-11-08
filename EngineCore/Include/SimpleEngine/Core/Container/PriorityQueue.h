@@ -41,9 +41,9 @@ public:
      * @param first 범위의 시작 이터레이터.
      * @param last 범위의 끝 이터레이터.
      */
-    template <std::input_iterator It>
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, T>
-    PriorityQueue(It first, It last);
+    PriorityQueue(It first, Sent last);
 
 public:
     /** 큐가 비어있는지 확인합니다. */
@@ -114,8 +114,9 @@ PriorityQueue<T, Container, Compare>::PriorityQueue(std::initializer_list<ValueT
 }
 
 template <typename T, typename Container, typename Compare>
-template <std::input_iterator It> requires std::same_as<std::iter_value_t<It>, T>
-PriorityQueue<T, Container, Compare>::PriorityQueue(It first, It last)
+template <std::input_iterator It, std::sentinel_for<It> Sent>
+    requires std::same_as<std::iter_value_t<It>, T>
+PriorityQueue<T, Container, Compare>::PriorityQueue(It first, Sent last)
     : container(first, last)
     , comp{}
 {
@@ -155,7 +156,8 @@ void PriorityQueue<T, Container, Compare>::Push(ValueType&& value)
 }
 
 template <typename T, typename Container, typename Compare>
-template <std::ranges::input_range Rng> requires std::same_as<std::ranges::range_value_t<Rng>, T>
+template <std::ranges::input_range Rng>
+    requires std::same_as<std::ranges::range_value_t<Rng>, T>
 void PriorityQueue<T, Container, Compare>::PushRange(Rng&& range)
 {
     container.PushRange(std::forward<Rng>(range));

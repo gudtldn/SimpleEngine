@@ -117,9 +117,9 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(std::string_view view)
 }
 
 template <typename Allocator>
-template <std::input_iterator It>
+template <std::input_iterator It, std::sentinel_for<It> Sent>
     requires std::same_as<std::iter_value_t<It>, char>
-BaseString<Allocator>::BaseString(It first, It last)
+BaseString<Allocator>::BaseString(It first, Sent last)
 {
     data.Push(first, last);
     data.Push('\0');

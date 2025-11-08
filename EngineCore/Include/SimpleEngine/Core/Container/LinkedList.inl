@@ -139,9 +139,9 @@ LinkedList<T, Allocator>::LinkedList(std::initializer_list<ValueType> init_list)
 }
 
 template <typename T, typename Allocator>
-template <std::input_iterator It>
+template <std::input_iterator It, std::sentinel_for<It> Sent>
     requires std::same_as<std::iter_value_t<It>, T>
-LinkedList<T, Allocator>::LinkedList(It first, It last)
+LinkedList<T, Allocator>::LinkedList(It first, Sent last)
 {
     Init();
     for (auto it = first; it != last; ++it)

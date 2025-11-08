@@ -2,8 +2,8 @@
 #include <functional>
 #include <initializer_list>
 #include <iterator>
-#include <ranges>
 #include <map>
+#include <ranges>
 #include <utility>
 
 #include "SimpleEngine/Core/Container/Array.h"
@@ -58,8 +58,8 @@ public:
     Map() = default;
     Map(std::initializer_list<PairType> init_list);
 
-    template <std::input_iterator It>
-    Map(It first, It last);
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
+    Map(It first, Sent last);
 
     ~Map() = default;
     Map(const Map&) = default;

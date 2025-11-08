@@ -333,9 +333,9 @@ Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
 }
 
 template <typename T, typename Allocator>
-template <std::input_iterator It>
+template <std::input_iterator It, std::sentinel_for<It> Sent>
     requires std::same_as<std::iter_value_t<It>, T>
-void Array<T, Allocator>::Push(It first, It last)
+void Array<T, Allocator>::Push(It first, Sent last)
 {
     if (first == last)
     {

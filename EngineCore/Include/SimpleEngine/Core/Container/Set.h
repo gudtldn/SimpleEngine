@@ -40,9 +40,9 @@ public:
     Set() = default;
     Set(std::initializer_list<ValueType> init_list);
 
-    template <std::input_iterator It>
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, T>
-    Set(It first, It last);
+    Set(It first, Sent last);
 
     ~Set() = default;
     Set(const Set&) = default;

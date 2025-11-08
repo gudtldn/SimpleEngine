@@ -47,9 +47,9 @@ public:
     Deque(SizeType count, const ValueType& value);
     Deque(std::initializer_list<ValueType> init_list);
 
-    template <std::input_iterator It>
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, T>
-    Deque(It first, It last);
+    Deque(It first, Sent last);
 
     ~Deque() = default;
     Deque(const Deque& other) = default;

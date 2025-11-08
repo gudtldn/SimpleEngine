@@ -11,8 +11,8 @@ Map<Key, Value, Pred, Allocator>::Map(std::initializer_list<PairType> init_list)
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-template <std::input_iterator It>
-Map<Key, Value, Pred, Allocator>::Map(It first, It last)
+template <std::input_iterator It, std::sentinel_for<It> Sent>
+Map<Key, Value, Pred, Allocator>::Map(It first, Sent last)
     : internal_map(first, last)
 {
 }

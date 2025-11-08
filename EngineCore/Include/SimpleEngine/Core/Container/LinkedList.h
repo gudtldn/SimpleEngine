@@ -124,9 +124,9 @@ public:
     LinkedList(SizeType count, const ValueType& value);
     LinkedList(std::initializer_list<ValueType> init_list);
 
-    template <std::input_iterator It>
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, T>
-    LinkedList(It first, It last);
+    LinkedList(It first, Sent last);
 
     ~LinkedList();
 

@@ -11,9 +11,9 @@ Set<T, Pred, Allocator>::Set(std::initializer_list<ValueType> init_list)
 }
 
 template <typename T, typename Pred, typename Allocator>
-template <std::input_iterator It>
+template <std::input_iterator It, std::sentinel_for<It> Sent>
     requires std::same_as<std::iter_value_t<It>, T>
-Set<T, Pred, Allocator>::Set(It first, It last)
+Set<T, Pred, Allocator>::Set(It first, Sent last)
     : internal_set(first, last)
 {
 }

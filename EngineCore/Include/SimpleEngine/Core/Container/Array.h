@@ -124,9 +124,9 @@ public:
     Optional<ValueType> Pop();
 
     /** 배열의 끝에 다른 시퀀스의 모든 요소를 추가합니다. */
-    template <std::input_iterator It>
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, T>
-    void Push(It first, It last);
+    void Push(It first, Sent last);
 
     template <std::ranges::input_range Rng>
         requires std::same_as<std::ranges::range_value_t<Rng>, T>

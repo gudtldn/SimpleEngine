@@ -17,8 +17,8 @@ HashMap<Key, Value, Hasher, KeyEq, Allocator>::HashMap(std::initializer_list<Pai
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-template <std::input_iterator It>
-HashMap<Key, Value, Hasher, KeyEq, Allocator>::HashMap(It first, It last)
+template <std::input_iterator It, std::sentinel_for<It> Sent>
+HashMap<Key, Value, Hasher, KeyEq, Allocator>::HashMap(It first, Sent last)
     : internal_map(first, last)
 {
 }

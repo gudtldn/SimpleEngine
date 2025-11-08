@@ -17,8 +17,9 @@ HashSet<T, Hasher, KeyEq, Allocator>::HashSet(std::initializer_list<ValueType> i
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-template <std::input_iterator It> requires std::same_as<std::iter_value_t<It>, T>
-HashSet<T, Hasher, KeyEq, Allocator>::HashSet(It first, It last)
+template <std::input_iterator It, std::sentinel_for<It> Sent>
+    requires std::same_as<std::iter_value_t<It>, T>
+HashSet<T, Hasher, KeyEq, Allocator>::HashSet(It first, Sent last)
     : internal_set(first, last)
 {
 }

@@ -140,9 +140,9 @@ public:
      * @param first 시작 이터레이터
      * @param last 끝 이터레이터
      */
-    template <std::input_iterator It>
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, char>
-    BaseString(It first, It last);
+    BaseString(It first, Sent last);
 
     BaseString(const BaseString&) = default;
     BaseString& operator=(const BaseString&) = default;

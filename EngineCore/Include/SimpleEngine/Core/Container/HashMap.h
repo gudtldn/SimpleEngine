@@ -61,8 +61,8 @@ public:
     explicit HashMap(SizeType capacity);
     HashMap(std::initializer_list<PairType> init_list);
 
-    template <std::input_iterator It>
-    HashMap(It first, It last);
+    template <std::input_iterator It, std::sentinel_for<It> Sent>
+    HashMap(It first, Sent last);
 
     ~HashMap() = default;
     HashMap(const HashMap&) = default;

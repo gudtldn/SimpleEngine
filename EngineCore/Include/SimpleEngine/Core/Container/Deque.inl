@@ -29,9 +29,9 @@ Deque<T, Allocator>::Deque(std::initializer_list<ValueType> init_list)
 }
 
 template <typename T, typename Allocator>
-template <std::input_iterator It>
+template <std::input_iterator It, std::sentinel_for<It> Sent>
     requires std::same_as<std::iter_value_t<It>, T>
-Deque<T, Allocator>::Deque(It first, It last)
+Deque<T, Allocator>::Deque(It first, Sent last)
     : internal_deque(first, last)
 {
 }
