@@ -129,7 +129,8 @@ template <typename Allocator>
 template <typename... Args>
 BaseString<Allocator> BaseString<Allocator>::Format(std::format_string<Args...> fmt, Args&&... args)
 {
-    return std::format(fmt, std::forward<Args>(args)...).c_str();
+    const std::string result_str = std::format(fmt, std::forward<Args>(args)...);
+    return BaseString{ std::string_view{ result_str } };
 }
 
 template <typename Allocator>
