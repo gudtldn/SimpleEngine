@@ -30,16 +30,18 @@ class SE_CORE_API ForwardScenePass : public IRenderPass
 {
 public:
     explicit ForwardScenePass(
-        world::World& world,
+        world::World& in_world_ref,
+        const Matrix4x4& in_vp_matrix,
         const StringName& in_color_target_name,
         const StringName& in_depth_target_name,
-        uint32 width, uint32 height
+        uint32 in_width, uint32 in_height
     );
 
     virtual void Setup(RenderGraphBuilder& builder) override;
     virtual void Execute(RGExecutionContext& context) override;
 
 private:
+    const Matrix4x4 vp_matrix;
     world::World& world_ref; // TODO: 추후 QueryEntities가 const로 바뀌면 const&로 수정
     const StringName color_target_name;
     const StringName depth_target_name;

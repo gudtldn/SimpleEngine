@@ -21,16 +21,18 @@ using namespace se::world;
 namespace se::rendering
 {
 ForwardScenePass::ForwardScenePass(
-    World& world,
+    World& in_world_ref,
+    const Matrix4x4& in_vp_matrix,
     const StringName& in_color_target_name,
     const StringName& in_depth_target_name,
-    uint32 width, uint32 height
+    uint32 in_width, uint32 in_height
 )
-    : world_ref(world)
+    : vp_matrix(in_vp_matrix)
+    , world_ref(in_world_ref)
     , color_target_name(in_color_target_name)
     , depth_target_name(in_depth_target_name)
-    , width(width)
-    , height(height)
+    , width(in_width)
+    , height(in_height)
 {
 }
 
@@ -39,38 +41,6 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     /**
      * 1. 월드에서 렌더링에 필요한 Entity목록을 가져옴
      */
-    // 카메라 행렬 정보 생성
-    Matrix4x4 vp_matrix;
-
-    Query camera_query = world_ref.QueryEntities<const TransformComponent&, const Camera3dComponent&>();
-    if (Optional camera_opt = camera_query.GetSingle())
-    {
-        const auto& [camera_transform, camera] = *camera_opt;
-
-        vp_matrix = TransformUtility::MakeViewMatrix(
-            camera_transform.position,
-            camera_transform.position + camera_transform.rotation.GetForwardVector(),
-            Vector3::Up()
-        ) * TransformUtility::MakePerspectiveMatrix(
-            Radian{ camera.fov },
-            static_cast<double>(width) / static_cast<double>(height),
-            camera.near_plane,
-            camera.far_plane
-        );
-    }
-    else
-    {
-        vp_matrix = TransformUtility::MakeViewMatrix(
-            Vector3::Zero(),
-            Vector3::Forward(),
-            Vector3::Up()
-        ) * TransformUtility::MakePerspectiveMatrix(
-            MathUtility::DegreesToRadians(90.0),
-            static_cast<double>(width) / static_cast<double>(height),
-            1.0,
-            10000.0
-        );
-    }
 
     // 엔티티의 렌더 정보 생성
     draw_infos.Clear();
@@ -255,6 +225,9 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         for (const EntityDrawInfo& info : draw_infos)
         {
             // TODO: Entity Rendering
+
+            // mesh에 vertex buffer를 두는게 아니라, 큰 버퍼의 offset정보를 가지고, mesh를 출력
+            // 사용방법 좀 더 연구 필요, 머티리얼은 다음 단계
         }
     }
     SDL_EndGPURenderPass(pass);

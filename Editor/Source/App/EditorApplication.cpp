@@ -81,9 +81,8 @@ void EditorApplication::Render()
         using namespace se::editor::ui;
         using namespace se::editor::rendering;
 
-        const WorldSubsystem* world_subsystem = se::utility::GetSubsystemUnchecked<WorldSubsystem>();
-        const EditorUISubsystem* ui_subsystem = se::utility::GetSubsystemUnchecked<EditorUISubsystem>();
-        const EditorViewportSubsystem* viewport_subsystem = se::utility::GetSubsystemUnchecked<EditorViewportSubsystem>();
+        const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
+            se::utility::GetSubsystemsUnchecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
         se::world::World& world_ref = *world_subsystem->GetWorld();
         se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
@@ -94,9 +93,13 @@ void EditorApplication::Render()
                 const StringName color_target_name = viewport_id;
                 graph.ImportTexture(color_target_name, info.color_texture);
 
+                // TODO: 나중에 에디터 카메라나, 월드 카메라 분기 처리
+                const Matrix4x4 vp_matrix_to_render = info.view_matrix * info.projection_matrix;
+
                 const StringName depth_target_name = se::String::Format("{}_Depth", viewport_id.ToString());
                 graph.AddPass<se::rendering::ForwardScenePass>(
                     world_ref,
+                    vp_matrix_to_render,
                     color_target_name, depth_target_name,
                     info.width, info.height
                 );

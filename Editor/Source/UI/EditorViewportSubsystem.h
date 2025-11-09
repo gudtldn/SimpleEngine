@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Interfaces/ISubsystem.h"
+#include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Reflection/SubsystemRegistration.h"
@@ -21,6 +22,9 @@ struct ViewportRenderInfo
     SDL_GPUTexture* color_texture = nullptr;
     uint32 width = 0;
     uint32 height = 0;
+
+    Matrix4x4 view_matrix = Matrix4x4::Identity();
+    Matrix4x4 projection_matrix = Matrix4x4::Identity();
     // TODO: 뷰포트별 카메라, 씬 정보 등 추가
 };
 
