@@ -24,6 +24,10 @@ public:
     [[nodiscard]] bool IsValid() const noexcept;
     [[nodiscard]] const Guid& GetGuid() const noexcept { return guid; }
 
+public:
+    [[nodiscard]] explicit operator bool() const noexcept { return IsValid(); }
+    [[nodiscard]] bool operator==(const AssetHandle&) const noexcept = default;
+
 private:
     Guid guid;
 };
@@ -40,3 +44,12 @@ bool AssetHandle<T>::IsValid() const noexcept
     return guid.IsValid();
 }
 }
+
+template <typename T>
+struct std::hash<se::asset::AssetHandle<T>>
+{
+    size_t operator()(const se::asset::AssetHandle<T>& handle) const noexcept
+    {
+        return std::hash<Guid>{}(handle.GetGuid());
+    }
+};
