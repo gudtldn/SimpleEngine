@@ -24,5 +24,8 @@
   }, {
     "name" : "range-v3",
     "version>=" : "0.12.0#4"
+  }, {
+    "name" : "stduuid",
+    "version>=" : "1.2.3"
   } ]
 }

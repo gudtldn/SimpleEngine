@@ -1,6 +1,7 @@
 find_package(SDL3 REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
+find_package(stduuid REQUIRED)
 
 # 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
 find_package(range-v3 CONFIG REQUIRED)
