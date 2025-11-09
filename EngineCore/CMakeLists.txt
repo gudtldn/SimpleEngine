@@ -23,6 +23,7 @@ generate_export_header(EngineCore
 # 외부 라이브러리 관리
 find_package(ICU REQUIRED COMPONENTS uc i18n data)
 find_package(SDL3 REQUIRED)
+find_package(stduuid REQUIRED)
 
 # 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
 find_package(range-v3 CONFIG REQUIRED)
@@ -50,6 +51,9 @@ target_link_libraries(EngineCore PRIVATE
 
         # cpu features
         cpu_features
+
+        # GUID Generator
+        stduuid
 )
 
 # 공개 헤더 파일의 경로를 지정 (다른 프로젝트에서 #include <SimpleEngine/Core/Engine.h> 와 같이 사용할 수 있게 하기 위함)
