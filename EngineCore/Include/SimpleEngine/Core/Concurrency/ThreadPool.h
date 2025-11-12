@@ -13,7 +13,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core::concurrency
+namespace se::concurrency
 {
 /**
  *
@@ -54,7 +54,7 @@ private:
 #endif
 
     Array<std::jthread> worker_threads;
-    Queue<Function<void()>> tasks;
+    Queue<core::Function<void()>> tasks;
 };
 
 template <typename Fn, typename... Args>

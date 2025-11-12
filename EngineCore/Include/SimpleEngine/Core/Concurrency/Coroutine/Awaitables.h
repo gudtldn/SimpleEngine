@@ -7,7 +7,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core::concurrency::coroutine
+namespace se::concurrency
 {
 /**
  * Task<T>를 WorkerThread에서 실행합니다.

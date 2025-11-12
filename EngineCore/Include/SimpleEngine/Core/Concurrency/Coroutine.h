@@ -3,9 +3,9 @@
 #include "Coroutine/Task.h"
 
 
-namespace se::core::concurrency
+namespace se::concurrency
 {
 /** C++20 Coroutine Task 타입  */
 template <typename T>
-using Task = coroutine::TaskImpl<T, coroutine::Promise<T>>;
+using Task = details::TaskImpl<T, details::Promise<T>>;
 }

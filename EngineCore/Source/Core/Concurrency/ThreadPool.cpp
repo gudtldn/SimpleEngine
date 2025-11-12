@@ -6,7 +6,7 @@
 #include "Utility/StringUtils.h"
 
 
-namespace se::core::concurrency
+namespace se::concurrency
 {
 ThreadPool* ThreadPool::Instance = nullptr;
 
@@ -54,7 +54,7 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 
     while (!token.stop_requested())
     {
-        Function<void()> task;
+        core::Function<void()> task;
         {
             std::unique_lock lock(mutex);
 

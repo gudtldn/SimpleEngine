@@ -6,7 +6,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core::concurrency
+namespace se::concurrency
 {
 TaskScheduler* TaskScheduler::Instance = nullptr;
 
