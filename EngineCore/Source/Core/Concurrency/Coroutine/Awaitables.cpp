@@ -5,7 +5,7 @@
 #include "Core/Concurrency/ThreadPool.h"
 
 
-namespace se::core::concurrency::coroutine
+namespace se::concurrency
 {
 bool SwitchToWorkerThread::await_ready() const noexcept
 {

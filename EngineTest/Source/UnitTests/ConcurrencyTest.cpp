@@ -8,8 +8,7 @@
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
 
-using namespace se::core::concurrency;
-using namespace se::core::concurrency::coroutine;
+using namespace se::concurrency;
 
 
 class ConcurrencyTest : public ::testing::Test{};

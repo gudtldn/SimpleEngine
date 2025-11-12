@@ -10,14 +10,14 @@
 #include "SimpleEngine/Reflection/TypeSignature.h"
 
 
-namespace se::core
-{
-namespace concurrency
+namespace se::concurrency
 {
 class TaskScheduler;
 class ThreadPool;
 }
 
+namespace se::core
+{
 class IUpdatable;
 class ISubsystemBase;
 

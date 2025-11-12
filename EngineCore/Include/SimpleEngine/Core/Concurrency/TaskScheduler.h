@@ -17,15 +17,9 @@ namespace se::core
 class Engine;
 }
 
-
-namespace se::core::concurrency
-{
-namespace coroutine
+namespace se::concurrency
 {
 struct SwitchToMainThread;
-}
-
-struct TaskSchedulerTest;
 
 
 /**
@@ -38,7 +32,7 @@ private:
     friend class se::core::Engine;
 
     // ScheduleOnMainThread 호출을 위해서
-    friend struct coroutine::SwitchToMainThread;
+    friend struct se::concurrency::SwitchToMainThread;
 
     // 코드 테스트를 위해서
     friend struct TaskSchedulerTest;

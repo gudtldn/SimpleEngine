@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Error/Expected.h"
 
 
-namespace se::core::concurrency::coroutine
+namespace se::concurrency::details
 {
 /**
  * C++20 Coroutine의 구현부
