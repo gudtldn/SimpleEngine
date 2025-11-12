@@ -39,7 +39,7 @@ private:
 };
 
 template <>
-struct std::hash<Guid>
+struct SE_CORE_API std::hash<Guid>
 {
     size_t operator()(const Guid& guid) const noexcept;
 };
