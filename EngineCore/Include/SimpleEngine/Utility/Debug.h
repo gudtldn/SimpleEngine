@@ -51,7 +51,7 @@
     #define SE_ASSERT(expr, ...) \
         do \
         { \
-            if (!(expr)) \
+            if (!(!!expr)) \
             { \
                 ConsoleLog(ELogLevel::Fatal, "Assertion failed: " #expr); \
                 __VA_OPT__(ConsoleLog(ELogLevel::Fatal, "└─ " __VA_ARGS__);) \
