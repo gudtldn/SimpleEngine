@@ -15,11 +15,13 @@ class ConcurrencyTest : public ::testing::Test{};
 
 TEST_F(ConcurrencyTest, ThreadPoolExecutesSimpleTask)
 {
+    auto thread_pool = ThreadPool("Worker Thread", 2);
+
     std::promise<bool> promise;
     std::future<bool> future = promise.get_future();
 
     // Submit a task that sets the promise value to true
-    ThreadPool::SubmitTask([&promise]
+    thread_pool.Submit([&promise]
     {
         promise.set_value(true);
     });
