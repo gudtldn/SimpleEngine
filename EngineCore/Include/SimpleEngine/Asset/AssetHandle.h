@@ -1,6 +1,8 @@
 ﻿#pragma once
+#include <concepts>
 #include <utility>
 
+#include "SimpleEngine/Asset/IAsset.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
 
@@ -11,6 +13,7 @@ namespace se::asset
  * @tparam T 핸들이 참조하는 Asset의 타입 (ex: Texture, Material, Mesh)
  */
 template <typename T>
+    requires std::derived_from<T, IAsset>
 class AssetHandle
 {
 public:
@@ -33,12 +36,14 @@ private:
 };
 
 template <typename T>
+    requires std::derived_from<T, IAsset>
 AssetHandle<T>::AssetHandle(Guid in_guid)
     : guid(std::move(in_guid))
 {
 }
 
 template <typename T>
+    requires std::derived_from<T, IAsset>
 bool AssetHandle<T>::IsValid() const noexcept
 {
     return guid.IsValid();
@@ -46,7 +51,8 @@ bool AssetHandle<T>::IsValid() const noexcept
 }
 
 template <typename T>
-struct std::hash<se::asset::AssetHandle<T>>
+    requires std::derived_from<T, se::asset::IAsset>
+struct std::hash<se::asset::AssetHandle<T>> // NOLINT(*-dcl58-cpp)
 {
     size_t operator()(const se::asset::AssetHandle<T>& handle) const noexcept
     {
