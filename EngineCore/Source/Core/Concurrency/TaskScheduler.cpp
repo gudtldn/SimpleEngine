@@ -2,8 +2,9 @@
 #include "Core/Concurrency/TaskScheduler.h"
 
 #include "Core/Concurrency/ThreadPool.h"
-#include "tracy/Tracy.hpp"
 #include "Utility/Debug.h"
+
+#include "tracy/Tracy.hpp"
 
 
 namespace se::concurrency
