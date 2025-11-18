@@ -39,7 +39,7 @@
 #define SE_FATAL_ERROR(message, ...) \
     do \
     { \
-        ConsoleLog(ELogLevel::Fatal, "Fatal Error: {}", se::String::Format(message, ##__VA_ARGS__)); \
+        ConsoleLog(ELogLevel::Fatal, "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
         SE_BREAKPOINT(); \
         std::terminate(); \
     } while (0)
@@ -56,7 +56,7 @@
                 ConsoleLog(ELogLevel::Fatal, "Assertion failed: " #expr); \
                 __VA_OPT__(ConsoleLog(ELogLevel::Fatal, "└─ " __VA_ARGS__);) \
                 SE_BREAKPOINT(); \
-                abort(); \
+                std::abort(); \
             } \
         } while (0)
 #else
