@@ -1,5 +1,6 @@
 ﻿// ReSharper disable CppRedundantTypenameKeyword
 #pragma once
+#include "Utility/Debug.h"
 
 
 namespace se
@@ -104,6 +105,28 @@ Optional<const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType
         return it->second;
     }
     return std::nullopt;
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::FindChecked(const KeyType& key)
+{
+    if (auto it = internal_map.find(key); it != internal_map.end())
+    {
+        return it->second;
+    }
+    SE_UNREACHABLE();
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::FindChecked(
+    const KeyType& key
+) const
+{
+    if (auto it = internal_map.find(key); it != internal_map.end())
+    {
+        return it->second;
+    }
+    SE_UNREACHABLE();
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
