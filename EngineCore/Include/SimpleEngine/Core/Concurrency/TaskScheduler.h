@@ -8,9 +8,9 @@
 #include "SimpleEngine/Core/Concurrency/Coroutine/Task.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Queue.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 #include "tracy/Tracy.hpp"
+#include "Utility/Debug.h"
 
 namespace se::core
 {
@@ -19,8 +19,10 @@ class Engine;
 
 namespace se::concurrency
 {
+class ThreadPool;
 struct SwitchToMainThread;
-
+struct SwitchToWorkerThread;
+struct SwitchToIOThread;
 
 /**
  * 비동기 시스템을 관리하는 스케줄러
@@ -31,8 +33,10 @@ private:
     // ProcessMainThreadTasks 호출을 위해서
     friend class se::core::Engine;
 
-    // ScheduleOnMainThread 호출을 위해서
+    // ScheduleOn... 호출을 위해서
     friend struct se::concurrency::SwitchToMainThread;
+    friend struct se::concurrency::SwitchToWorkerThread;
+    friend struct se::concurrency::SwitchToIOThread;
 
     // 코드 테스트를 위해서
     friend struct TaskSchedulerTest;
@@ -66,6 +70,12 @@ public:
     void Launch_WorkerThread(Task<void>&& task);
 
     /**
+     * 코루틴을 I/O 스레드에서 시작합니다. ("Fire-and-forget")
+     * @param task 시작할 Task<void> 타입의 코루틴
+     */
+    void Launch_IOThread(Task<void>&& task);
+
+    /**
      * Task가 완료될 때까지 현재 스레드를 블로킹하고 결과를 반환합니다.
      * @warning ThreadPool이 관리하고 있는 Thread에서 호출하면 데드락이 발생할 수도 있습니다.
      * @param task 기다릴 Task 객체
@@ -79,18 +89,30 @@ public:
 
 private:
     /**
-     * Main Loop에서 매 프레임 호출되어야 합니다.
-     * 예약된 메인 스레드 작업들을 실행하고, 완료된 최상위 코루틴들을 정리합니다.
+     * 코루틴 핸들의 유효성을 검사하고, Task의 수명을 연장하며, 재개할 핸들을 반환합니다.
+     * @param task 재개될 코루틴 Task 객체 (rvalue reference)
+     * @return 재개할 코루틴 핸들 (Task<void>::HandleType), 핸들이 유효하지 않으면 기본값(null)을 반환
      */
-    void ProcessMainThreadTasks();
+    Task<void>::HandleType PrepareTaskToLaunch(Task<void>&& task);
 
     /**
      * 워커 스레드나 I/O 스레드에서 메인 스레드로 코루틴의 실행을 예약합니다.
      * @param handle 메인 스레드에서 재개될 코루틴의 핸들
      */
     void ScheduleOnMainThread(std::coroutine_handle<> handle);
+    void ScheduleOnWorkerThread(std::coroutine_handle<> handle);
+    void ScheduleOnIOThread(std::coroutine_handle<> handle);
+
+    /**
+     * Main Loop에서 매 프레임 호출되어야 합니다.
+     * 예약된 메인 스레드 작업들을 실행하고, 완료된 최상위 코루틴들을 정리합니다.
+     */
+    void ProcessMainThreadTasks();
 
 private:
+    std::unique_ptr<ThreadPool> compute_pool; // CPU 집약 작업을 위한 풀
+    std::unique_ptr<ThreadPool> io_pool;      // I/O 대기(블로킹) 작업을 위한 풀
+
     std::thread::id main_thread_id;
     TracyLockable(std::mutex, main_thread_mutex);
     TracyLockable(std::mutex, tasks_mutex);
@@ -106,10 +128,7 @@ private:
 template <typename T>
 T TaskScheduler::BlockOn(Task<T>&& task)
 {
-    if (!task.handle)
-    {
-        throw std::runtime_error("Cannot BlockOn an invalid Task.");
-    }
+    SE_ASSERT(task.handle, "Cannot BlockOn an invalid Task.");
 
     if (task.await_ready())
     {
