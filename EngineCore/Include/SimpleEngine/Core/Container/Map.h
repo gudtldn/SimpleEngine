@@ -100,6 +100,16 @@ public:
     [[nodiscard]] Optional<ValueType&> Find(const KeyType& key);
     [[nodiscard]] Optional<const ValueType&> Find(const KeyType& key) const;
 
+    /**
+     * Key에 해당하는 값을 찾습니다.
+     * @warning 키가 존재하지 않으면 SE_UNREACHABLE()을 통해 프로그램이 종료됩니다.
+     *
+     * @param key 검색할 Key
+     * @return 값에 대한 const 참조
+     */
+    [[nodiscard]] ValueType& FindChecked(const KeyType& key);
+    [[nodiscard]] const ValueType& FindChecked(const KeyType& key) const;
+
     /** 가장 작은 키를 가진 요소의 참조를 Optional로 반환합니다. */
     [[nodiscard]] Optional<PairType&> First() noexcept;
     [[nodiscard]] Optional<const PairType&> First() const noexcept;

@@ -1,5 +1,6 @@
 ﻿// ReSharper disable CppRedundantTypenameKeyword
 #pragma once
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -82,6 +83,26 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::ValueType&> Map<Key, V
         return it->second;
     }
     return std::nullopt;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::FindChecked(const KeyType& key)
+{
+    if (auto it = internal_map.find(key); it != internal_map.end())
+    {
+        return it->second;
+    }
+    SE_UNREACHABLE();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+const typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::FindChecked(const KeyType& key) const
+{
+    if (auto it = internal_map.find(key); it != internal_map.end())
+    {
+        return it->second;
+    }
+    SE_UNREACHABLE();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
