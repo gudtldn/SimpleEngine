@@ -7,6 +7,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Queue.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
@@ -21,11 +22,8 @@ namespace se::concurrency
  */
 class SE_CORE_API ThreadPool
 {
-private:
-    static ThreadPool* Instance;
-
 public:
-    explicit ThreadPool(uint32 num_threads);
+    explicit ThreadPool(String in_pool_name, uint32 num_threads);
     ~ThreadPool();
 
     // 이동 & 복사 생성자 제거
@@ -36,15 +34,15 @@ public:
 
 public:
     template <typename Fn, typename... Args>
-    static auto SubmitTask(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>;
-
-private:
-    template <typename Fn, typename... Args>
     auto Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>;
 
+private:
+    /** Worker Thread가 실행할 메인 루프 함수 */
     void WorkerLoop(const std::stop_token& token, uint32 thread_id);
 
 private:
+    String pool_name;
+
     TracyLockable(std::mutex, mutex);
 
 #if TRACY_ENABLE
@@ -56,18 +54,6 @@ private:
     Array<std::jthread> worker_threads;
     Queue<core::Function<void()>> tasks;
 };
-
-template <typename Fn, typename... Args>
-auto ThreadPool::SubmitTask(
-    Fn&& func, Args&&... args
-) -> std::future<std::invoke_result_t<Fn, Args...>>
-{
-    if (!Instance)
-    {
-        return std::future<std::invoke_result_t<Fn, Args...>>();
-    }
-    return Instance->Submit(std::forward<Fn>(func), std::forward<Args>(args)...);
-}
 
 template <typename Fn, typename... Args>
 auto ThreadPool::Submit(

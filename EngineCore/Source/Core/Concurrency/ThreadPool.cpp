@@ -8,13 +8,9 @@
 
 namespace se::concurrency
 {
-ThreadPool* ThreadPool::Instance = nullptr;
-
-ThreadPool::ThreadPool(uint32 num_threads)
+ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
+    : pool_name(std::move(in_pool_name))
 {
-    assert(!Instance && "ThreadPool instance is already created!");
-    Instance = this;
-
     ConsoleLog(ELogLevel::Info, "Creating ThreadPool...");
 
     // Worker Thread 생성
@@ -30,9 +26,6 @@ ThreadPool::ThreadPool(uint32 num_threads)
 
 ThreadPool::~ThreadPool()
 {
-    assert(Instance == this && "ThreadPool instance is not created!");
-    Instance = nullptr;
-
     ConsoleLog(ELogLevel::Info, "Destroying ThreadPool...");
     {
         std::scoped_lock lock(mutex);
@@ -49,27 +42,26 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 {
-    const String thread_name = String::Format("Worker Thread {}", thread_id);
+    const String thread_name = String::Format("{} {}", pool_name, thread_id);
     platform::SetCurrentThreadName(thread_name);
 
     while (!token.stop_requested())
     {
         core::Function<void()> task;
         {
-            std::unique_lock lock(mutex);
-
             // stop이 요청되거나 작업이 생길 때까지 대기
+            std::unique_lock lock(mutex);
             condition.wait(lock, [this, &token]
             {
                 return !tasks.IsEmpty() || token.stop_requested();
             });
 
-            if (token.stop_requested() && tasks.IsEmpty())
+            if (tasks.IsEmpty() && token.stop_requested())
             {
                 return;
             }
 
-            task = std::move(*tasks.Pop());
+            task = std::move(tasks.Pop()).Value();
         }
 
         {
