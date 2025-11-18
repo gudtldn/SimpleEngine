@@ -1,31 +1,10 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
 #include "Core/Concurrency/Coroutine/Awaitables.h"
-
 #include "Core/Concurrency/TaskScheduler.h"
-#include "Core/Concurrency/ThreadPool.h"
 
 
 namespace se::concurrency
 {
-bool SwitchToWorkerThread::await_ready() const noexcept
-{
-    // SwitchTo...은 항상 스레드를 전환해야 하므로, false를 반환
-    return false;
-}
-
-void SwitchToWorkerThread::await_suspend(std::coroutine_handle<> handle) const
-{
-    // 현재 코루틴을 중단하고, ThreadPool에서 다시 resume()을 호출
-    ThreadPool::SubmitTask([handle]
-    {
-        handle.resume();
-    });
-}
-
-void SwitchToWorkerThread::await_resume() const noexcept
-{
-}
-
 bool SwitchToMainThread::await_ready() const noexcept
 {
     // 이미 메인 스레드면 그냥 넘어가기
@@ -39,6 +18,38 @@ void SwitchToMainThread::await_suspend(std::coroutine_handle<> handle) const
 }
 
 void SwitchToMainThread::await_resume() const noexcept
+{
+}
+
+bool SwitchToWorkerThread::await_ready() const noexcept
+{
+    // SwitchTo...은 항상 스레드를 전환해야 하므로, false를 반환
+    return false;
+}
+
+void SwitchToWorkerThread::await_suspend(std::coroutine_handle<> handle) const
+{
+    // 현재 작업 스레드를 워커 스레드로 변경
+    TaskScheduler::Get().ScheduleOnWorkerThread(handle);
+}
+
+void SwitchToWorkerThread::await_resume() const noexcept
+{
+}
+
+bool SwitchToIOThread::await_ready() const noexcept
+{
+    // SwitchTo...은 항상 스레드를 전환해야 하므로, false를 반환
+    return false;
+}
+
+void SwitchToIOThread::await_suspend(std::coroutine_handle<> handle) const
+{
+    // 현재 작업 스레드를 I/O 스레드로 변경
+    TaskScheduler::Get().ScheduleOnIOThread(handle);
+}
+
+void SwitchToIOThread::await_resume() const noexcept
 {
 }
 

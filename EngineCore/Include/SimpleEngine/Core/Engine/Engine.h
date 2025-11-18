@@ -101,8 +101,6 @@ private:
     // Update가 필요한 Subsystem 목록
     Array<IUpdatable*> updatable_systems;
 
-    // Engine에서 사용할 ThreadPool과 TaskScheduler
-    std::unique_ptr<concurrency::ThreadPool> thread_pool;
     std::unique_ptr<concurrency::TaskScheduler> task_scheduler;
 };
 
