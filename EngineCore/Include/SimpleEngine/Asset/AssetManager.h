@@ -1,19 +1,21 @@
 ﻿#pragma once
 #include <concepts>
-#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <utility>
 
-#include "SimpleEngine/Asset/AssetStorage.h"
-#include "SimpleEngine/Asset/Loaders/AssetLoader.h"
+#include "SimpleEngine/Asset/AssetHandle.h"
+#include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/Loaders/IAssetLoader.h"
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 
 #include "tracy/Tracy.hpp"
@@ -22,16 +24,23 @@
 namespace se::asset
 {
 /**
- * 동일한 에셋에 대한 중복 로딩 요청을 관리하기 위한 내부 구조체
+ * Asset의 로딩 상태
  */
-struct LoadingRequest
+enum class ELoadingState : uint8
 {
-private:
-    using EventHandle = core::concurrency::coroutine::EventWaitHandle;
+    NotLoaded,
+    Loading,
+    Loaded,
+    Failed,
+};
 
-public:
+struct AssetSlot
+{
+    std::shared_ptr<IAsset> asset = nullptr;
+    ELoadingState state = ELoadingState::NotLoaded;
+
     // 여러 스레드가 하나의 로딩 완료 이벤트를 기다릴 수 있도록 shared_ptr로 관리
-    std::shared_ptr<EventHandle> event = std::make_shared<EventHandle>();
+    std::shared_ptr<concurrency::EventWaitHandle> load_event = nullptr;
 };
 
 /**
@@ -49,153 +58,171 @@ public:
     AssetManager& operator=(AssetManager&&) = delete;
 
 public:
+    // TODO: 추후에 registry 위치 변경
+    [[nodiscard]] AssetRegistry& GetRegistry() noexcept { return registry; }
+
+    template <typename AssetType, typename LoaderType>
+        requires std::derived_from<AssetType, IAsset> && std::derived_from<LoaderType, IAssetLoader>
+    void RegisterLoader(const StringName& extension);
+
     /**
      * 에셋을 비동기적으로 로드하고, 완료되면 메인 스레드에서 콜백을 호출합니다.
      * @tparam T 로드할 에셋 타입
      * @tparam Fn void(std::shared_ptr<T>) 형태의 콜백 함수
-     * @param virtual_path 에셋의 가상 경로 (예: "Assets://Textures/T_Hero.png")
+     * @param in_handle 가져오려는 에셋의 핸들
      * @param on_loaded 로딩 완료 시 호출될 콜백 함수. 로딩 실패 시 nullptr가 전달됩니다.
      */
     template <typename T, typename Fn>
-        requires AssetLoadable<T>
+        requires std::derived_from<T, IAsset>
         && std::invocable<Fn, std::shared_ptr<T>>
-    void LoadAsync(VPath virtual_path, Fn&& on_loaded);
+    void LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded);
 
     /**
      * 에셋을 동기 형태로 가져옵니다. (에셋을 불러오는 동안 Thread가 Blocking됩니다!)
      * @tparam T 가져오려는 에셋 타입
-     * @param virtual_path 에셋의 가상 경로 위치, ex) Assets://Foo/Bar/MyAsset.png
+     * @param in_handle 가져오려는 에셋의 핸들
      * @return 불러온 에셋
      */
     template <typename T>
-        requires AssetLoadable<T>
-    std::shared_ptr<T> LoadSynchronous(VPath virtual_path);
+        requires std::derived_from<T, IAsset>
+    std::shared_ptr<T> LoadSynchronous(const AssetHandle<T>& in_handle);
 
 private:
-    /**
-     * AssetStorage를 새로 만들거나 가져옵니다.
-     * @tparam T 가져오려는 Asset의 타입
-     * @return AssetStorage<T>의 참조
-     */
     template <typename T>
-    AssetStorage<T>& GetOrCreateStorage();
+    concurrency::Task<std::shared_ptr<T>> LoadInternal(const Guid& in_guid);
 
-    template <typename T>
-    core::concurrency::Task<std::shared_ptr<T>> LoadInternal(const VPath& virtual_path);
+    [[nodiscard]] IAssetLoader* GetLoaderForType(const refl::TypeId& type_id) const;
+    [[nodiscard]] refl::TypeId GetTypeFromExtension(const StringName& extension) const; // TODO: 필요한가?
 
 private:
-    TracyLockable(std::mutex, storages_mutex);
-    HashMap<refl::TypeId, std::shared_ptr<IAssetStorage>> storages;
+    AssetRegistry registry;
 
-    // 현재 진행 중인 로딩 요청을 추적하는 맵
-    TracyLockable(std::mutex, loading_requests_mutex);
-    HashMap<StringName, LoadingRequest> loading_requests;
+    // 로드된 에셋의 중앙 캐시
+    TracyLockable(std::mutex, slots_mutex);
+    HashMap<Guid, AssetSlot> asset_slots;
+
+    HashMap<refl::TypeId, std::unique_ptr<IAssetLoader>> loaders;
+    HashMap<StringName, refl::TypeId> extension_to_type_map;
 };
 
-template <typename T, typename Fn>
-    requires AssetLoadable<T>
-    && std::invocable<Fn, std::shared_ptr<T>>
-void AssetManager::LoadAsync(VPath virtual_path, Fn&& on_loaded)
+template <typename AssetType, typename LoaderType>
+    requires std::derived_from<AssetType, IAsset> && std::derived_from<LoaderType, IAssetLoader>
+void AssetManager::RegisterLoader(const StringName& extension)
 {
-    using namespace core;
-    using namespace core::concurrency;
+    const refl::TypeId type_id = refl::TypeId::Get<AssetType>();
+    extension_to_type_map.Emplace(extension, type_id);
+    loaders.Entry(type_id).OrInsert(std::make_unique<LoaderType>());
+}
 
-    TaskScheduler::Get().Launch_WorkerThread(
-        [](AssetManager* self, VPath path, Function<void(std::shared_ptr<T>)> callback) -> Task<void>
+template <typename T, typename Fn>
+    requires std::derived_from<T, IAsset>
+    && std::invocable<Fn, std::shared_ptr<T>>
+void AssetManager::LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded)
+{
+    using namespace concurrency;
+
+    TaskScheduler::Get().Launch_IOThread(
+        [](AssetManager* self, Guid guid, core::Function<void(std::shared_ptr<T>)> callback) -> Task<void>
         {
-            std::shared_ptr<T> asset = co_await self->LoadInternal<T>(path);
+            std::shared_ptr<T> asset = co_await self->LoadInternal<T>(guid);
 
-            co_await coroutine::SwitchToMainThread{};
+            co_await SwitchToMainThread{};
             if (callback)
             {
                 callback(std::move(asset));
             }
-        }(this, std::move(virtual_path), std::forward<Fn>(on_loaded))
+        }(this, in_handle.GetGuid(), std::forward<Fn>(on_loaded))
     );
 }
 
 template <typename T>
-    requires AssetLoadable<T>
-std::shared_ptr<T> AssetManager::LoadSynchronous(VPath virtual_path)
+    requires std::derived_from<T, IAsset>
+std::shared_ptr<T> AssetManager::LoadSynchronous(const AssetHandle<T>& in_handle)
 {
-    using core::concurrency::TaskScheduler;
-    return TaskScheduler::Get().BlockOn(LoadInternal<T>(std::move(virtual_path)));
+    return concurrency::TaskScheduler::Get().BlockOn(LoadInternal<T>(in_handle.GetGuid()));
 }
 
 template <typename T>
-AssetStorage<T>& AssetManager::GetOrCreateStorage()
+concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_guid)
 {
-    const auto type_id = refl::TypeId::Get<T>();
-
-    std::scoped_lock lock(storages_mutex);
-    if (!storages.Contains(type_id))
+    if (!in_guid.IsValid())
     {
-        storages[type_id] = std::make_shared<AssetStorage<T>>();
-    }
-    return *std::static_pointer_cast<AssetStorage<T>>(storages[type_id]);
-}
-
-template <typename T>
-core::concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const VPath& virtual_path)
-{
-    using namespace core::concurrency;
-
-    const StringName asset_id = virtual_path.ToStringName();
-    AssetStorage<T>& storage = GetOrCreateStorage<T>();
-
-    // 캐시에 이미 있는지 확인
-    if (std::shared_ptr<T> cached_asset = storage.Find(asset_id))
-    {
-        co_return cached_asset;
+        ConsoleLog(ELogLevel::Warning, "Invalid asset GUID: {}", in_guid.ToString());
+        co_return nullptr;
     }
 
-    std::shared_ptr<coroutine::EventWaitHandle> ongoing_load_event;
-    bool first_loader = false;
+    // Slot 확인
+    std::shared_ptr<concurrency::EventWaitHandle> event_to_wait;
     {
-        std::unique_lock lock(loading_requests_mutex);
-        ongoing_load_event = loading_requests
-            .Entry(asset_id)
-            .OrInsertWith([&first_loader] -> LoadingRequest
-            {
-                first_loader = true;
-                return {};
-            })
-            .event;
-    }
+        std::scoped_lock lock(slots_mutex);
+        AssetSlot& slot = asset_slots[in_guid];
 
-    if (first_loader)
-    {
-        using utility::PathResolver;
-        co_await coroutine::SwitchToWorkerThread{};
-
-        const PathResolver& resolver = PathResolver::Get();
-
-        std::shared_ptr<T> loaded_asset = nullptr;
-        if (Optional physical_path_opt = resolver.Resolve(virtual_path))
+        switch (slot.state)
         {
-            AssetLoader<T> loader;
-            loaded_asset = co_await loader.Load(std::move(physical_path_opt).Value());
+        // 이미 로딩되어 있는 경우
+        case ELoadingState::Loaded:
+        {
+            co_return std::static_pointer_cast<T>(slot.asset);
         }
 
-        // Storage에 Asset 추가
-        storage.Add(asset_id, loaded_asset);
+        // 로딩중인 경우
+        case ELoadingState::Loading:
+        {
+            // 기존에 있던 event를 가져옮
+            event_to_wait = slot.load_event;
+            break;
+        }
+
+        // 로딩이 안된 경우
+        case ELoadingState::NotLoaded:
+        case ELoadingState::Failed:
+        {
+            // event를 새로 생성
+            slot.state = ELoadingState::Loading;
+            slot.load_event = std::make_shared<concurrency::EventWaitHandle>();
+            break;
+        }
+
+        default:
+            SE_UNREACHABLE();
+        }
+    }
+
+    // event가 설정되면 (다른 스레드가 로딩중이면) 대기
+    if (event_to_wait)
+    {
+        co_await event_to_wait->Wait();
+
+        std::scoped_lock lock(slots_mutex);
+        co_return std::static_pointer_cast<T>(asset_slots[in_guid].asset);
+    }
+
+    // Registry에서 메타데이터 가져오기
+    Optional<const AssetEntry&> entry_opt = registry.GetEntry(in_guid);
+    SE_ASSERT(entry_opt, "Asset not found in registry: {}", in_guid.ToString());
+
+    // Type에 맞는 Loader 가져오기
+    IAssetLoader* loader = GetLoaderForType(entry_opt->asset_type);
+    SE_ASSERT(loader, "No loader registered for asset type: {}", entry_opt->asset_type.GetName());
+
+    // vpath로부터 실제 경로 가져오기
+    auto physical_path_opt = utility::PathResolver::Get().Resolve(entry_opt->virtual_path, false);
+    SE_ASSERT(physical_path_opt, "Asset path not found: {}", entry_opt->virtual_path);
+
+    // Asset Load 및 Slot에 저장
+    std::shared_ptr<IAsset> loaded_asset = co_await loader->Load(std::move(physical_path_opt).Value());
+    {
+        std::scoped_lock lock(slots_mutex);
+
+        AssetSlot& slot = asset_slots[in_guid];
+        slot.asset = loaded_asset;
+        slot.state = loaded_asset ? ELoadingState::Loaded : ELoadingState::Failed;
 
         // 로딩 완
-        ongoing_load_event->Set();
-
-        // loading_requests 에서 제거
-        {
-            std::unique_lock req_lock(loading_requests_mutex);
-            loading_requests.Remove(asset_id);
-        }
-
-        co_return loaded_asset;
+        slot.load_event->Set();
+        slot.load_event.reset();
     }
 
-    // 처음 로딩이 아니라면, 로딩이 끝날 때까지 대기
-    co_await ongoing_load_event->Wait();
-
-    // 로드된 Asset 반환
-    co_return storage.Find(asset_id);
+    co_return std::static_pointer_cast<T>(std::move(loaded_asset));
 }
 }
