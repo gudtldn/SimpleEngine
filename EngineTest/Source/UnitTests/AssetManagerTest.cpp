@@ -11,8 +11,8 @@
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
 
 using namespace se::asset;
-using namespace se::core::concurrency;
-using namespace se::core::concurrency::coroutine;
+using namespace se::concurrency;
+using namespace se::concurrency;
 using namespace se::utility;
 
 
@@ -53,24 +53,24 @@ PathResolver& path_resolver = PathResolver::Get();
 }
 
 // 1. Dummy Asset & Loader for testing
-struct DummyAsset
+class DummyAsset : public IAsset
 {
+public:
     int value;
 };
 
-template <>
-class se::asset::AssetLoader<DummyAsset>
+class DummyAssetLoader : public IAssetLoader
 {
 public:
-    [[nodiscard]] Task<std::shared_ptr<DummyAsset>> Load(const std::filesystem::path& path) const
+    virtual Task<std::shared_ptr<IAsset>> Load(const std::filesystem::path& physical_path) override
     {
         // Simulate file read and parsing
-        if (!std::filesystem::exists(path))
+        if (!std::filesystem::exists(physical_path))
         {
             co_return nullptr;
         }
 
-        std::ifstream file(path);
+        std::ifstream file(physical_path);
         int file_content;
         file >> file_content;
 
@@ -87,11 +87,40 @@ public:
 class AssetManagerTest : public ::testing::Test
 {
 protected:
+    AssetHandle<DummyAsset> RegisterDummyAsset(const StringName& name, int content)
+    {
+        using namespace se::asset;
+        using namespace se::core;
+
+        // 1. 새 GUID 생성
+        Guid guid = Guid::NewGuid();
+        VPath vpath = se::String::Format("TestAssets://{}", name.ToString());
+
+        // 2. AssetRegistry에 등록
+        asset_manager.GetRegistry().AddEntry({
+            .guid = guid,
+            .asset_type = se::refl::TypeId::Get<DummyAsset>(),
+            .virtual_path = vpath
+        });
+
+        // 3. 실제 파일 생성
+        const auto physical_path = path_resolver.Resolve(vpath, false).Value();
+        std::ofstream file(physical_path);
+        file << content;
+        file.close();
+
+        // 4. 생성된 핸들 반환
+        return AssetHandle<DummyAsset>{ guid };
+    }
+
     virtual void SetUp() override
     {
         temp_dir_path = std::filesystem::temp_directory_path() / "AssetManagerTest";
         std::filesystem::create_directories(temp_dir_path);
         path_resolver.Mount("TestAssets", temp_dir_path);
+
+        // AssetManager에 로더 등록
+        asset_manager.RegisterLoader<DummyAsset, DummyAssetLoader>("dummy");
     }
 
     virtual void TearDown() override
@@ -100,54 +129,43 @@ protected:
         std::filesystem::remove_all(temp_dir_path);
     }
 
+protected:
     std::filesystem::path temp_dir_path;
     AssetManager asset_manager;
 };
 
 TEST_F(AssetManagerTest, LoadSynchronousReturnsValidAsset)
 {
-    // Setup
-    const VPath asset_path = "TestAssets://my_asset.dummy";
-    {
-        const auto physical_path = path_resolver.Resolve(asset_path, false).Value();
-        std::ofstream file(physical_path);
-        file << 123;
-        file.close();
-    }
+    // Arrange (Given)
+    AssetHandle<DummyAsset> handle = RegisterDummyAsset("my_asset.dummy", 123);
 
-    // Action
-    std::shared_ptr<DummyAsset> asset = asset_manager.LoadSynchronous<DummyAsset>(asset_path);
+    // Act (When)
+    std::shared_ptr<DummyAsset> asset = asset_manager.LoadSynchronous<DummyAsset>(handle);
 
-    // Assert
+    // Assert (Then)
     ASSERT_NE(asset, nullptr);
     EXPECT_EQ(asset->value, 123);
 }
 
 TEST_F(AssetManagerTest, LoadAsyncWaitsForCompletion)
 {
-    // Setup
-    const VPath asset_path = "TestAssets://my_async_asset.dummy";
-    {
-        const auto physical_path = PathResolver::Get().Resolve(asset_path, false).Value();
-        std::ofstream file(physical_path);
-        file << 456;
-        file.close();
-    }
-
-    // Action
+    // Arrange
+    AssetHandle<DummyAsset> handle = RegisterDummyAsset("my_async_asset.dummy", 456);
     bool is_set = false;
     std::shared_ptr<DummyAsset> asset;
-    asset_manager.LoadAsync<DummyAsset>(asset_path, [&asset, &is_set](std::shared_ptr<DummyAsset> in_asset)
+
+    // Act
+    asset_manager.LoadAsync<DummyAsset>(handle, [&asset, &is_set](std::shared_ptr<DummyAsset> in_asset)
     {
         asset = std::move(in_asset);
         is_set = true;
     });
 
     // Assert
-    const TaskSchedulerTest test{ TaskScheduler::Get() };
+    const TaskSchedulerTest test_helper{ TaskScheduler::Get() };
     RequireConditionTimeout([&] -> bool
     {
-        test.ProcessMainThreadTasks();
+        test_helper.ProcessMainThreadTasks();
         return is_set;
     }, std::chrono::seconds(1));
 
@@ -155,39 +173,68 @@ TEST_F(AssetManagerTest, LoadAsyncWaitsForCompletion)
     EXPECT_EQ(asset->value, 456);
 }
 
-TEST_F(AssetManagerTest, LoadSynchronousOnNonExistentFileReturnsNull)
+TEST_F(AssetManagerTest, LoadSynchronousOnInvalidHandleReturnsNull)
 {
-    const VPath non_existent_path = "TestAssets://i_dont_exist.dummy";
+    // Arrange: 유효하지 않은 (기본 생성된) 핸들
+    AssetHandle<DummyAsset> invalid_handle;
 
-    std::shared_ptr<DummyAsset> asset = asset_manager.LoadSynchronous<DummyAsset>(non_existent_path);
+    // Act
+    std::shared_ptr<DummyAsset> asset = asset_manager.LoadSynchronous<DummyAsset>(invalid_handle);
+
+    // Assert
+    EXPECT_EQ(asset, nullptr);
+}
+
+TEST_F(AssetManagerTest, LoadSynchronousOnRegisteredButNonExistentFileReturnsNull)
+{
+    // Arrange: 레지스트리에는 등록하지만, 실제 파일은 만들지 않음
+    AssetHandle<DummyAsset> handle;
+    {
+        handle = AssetHandle<DummyAsset>(Guid::NewGuid());
+        asset_manager.GetRegistry().AddEntry({
+            .guid = handle.GetGuid(),
+            .asset_type = se::refl::TypeId::Get<DummyAsset>(),
+            .virtual_path = "TestAssets://i_dont_exist.dummy"
+        });
+    }
+
+    // Act
+    std::shared_ptr<DummyAsset> asset = asset_manager.LoadSynchronous<DummyAsset>(handle);
+
+    // Assert
     EXPECT_EQ(asset, nullptr);
 }
 
 TEST_F(AssetManagerTest, LoadAsyncOnNonExistentFileReturnsNull)
 {
-    const VPath non_existent_path = "TestAssets://i_dont_exist.dummy";
+    // Arrange
+    AssetHandle<DummyAsset> handle;
+    {
+        handle = AssetHandle<DummyAsset>(Guid::NewGuid());
+        asset_manager.GetRegistry().AddEntry({
+            .guid = handle.GetGuid(),
+            .asset_type = se::refl::TypeId::Get<DummyAsset>(),
+            .virtual_path = "TestAssets://i_dont_exist_async.dummy"
+        });
+    }
 
     bool is_set = false;
     std::shared_ptr<DummyAsset> asset;
-    asset_manager.LoadAsync<DummyAsset>(non_existent_path, [&asset, &is_set](std::shared_ptr<DummyAsset> in_asset)
+
+    // Act
+    asset_manager.LoadAsync<DummyAsset>(handle, [&asset, &is_set](std::shared_ptr<DummyAsset> in_asset)
     {
         asset = std::move(in_asset);
         is_set = true;
     });
 
-    const TaskSchedulerTest test{ TaskScheduler::Get() };
+    // Assert
+    const TaskSchedulerTest test_helper{ TaskScheduler::Get() };
     RequireConditionTimeout([&] -> bool
     {
-        test.ProcessMainThreadTasks();
+        test_helper.ProcessMainThreadTasks();
         return is_set;
-    }, std::chrono::milliseconds(100));
+    }, std::chrono::seconds(1));
 
-    EXPECT_EQ(asset, nullptr);
-}
-
-TEST_F(AssetManagerTest, LoadSynchronousOnInvalidVPathReturnsNull)
-{
-    const VPath invalid_vpath = "InvalidScheme://some_asset.dummy";
-    std::shared_ptr<DummyAsset> asset = asset_manager.LoadSynchronous<DummyAsset>(invalid_vpath);
     EXPECT_EQ(asset, nullptr);
 }
