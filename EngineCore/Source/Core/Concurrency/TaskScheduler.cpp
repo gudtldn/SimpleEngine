@@ -19,13 +19,16 @@ TaskScheduler::TaskScheduler(std::thread::id in_main_thread_id)
 
     Instance = this;
 
-    // 메인 스레드를 제외한 실제 워커 스레드로 사용 가능한 코어 수
     const uint32 core_count = std::thread::hardware_concurrency();
+
+    // 메인 스레드를 제외한 실제 워커 스레드로 사용 가능한 코어 수
     const uint32 worker_cores = std::max(1u, core_count - 1);
 
-    // 워커 코어를 Compute(80%) 와 IO(20%)로 분배
+    // Compute 스레드: 가용 코어의 80%, 최소 1개
     const uint32 compute_threads = std::max(1u, static_cast<uint32>(worker_cores * 0.8));
-    const uint32 io_threads = worker_cores - compute_threads;
+
+    // I/O 스레드: 남은 코어 수, 하지만 최소 1개는 보장
+    const uint32 io_threads = std::max(1u, worker_cores - compute_threads);
 
     compute_pool = std::make_unique<ThreadPool>("Worker Thread", compute_threads);
     io_pool = std::make_unique<ThreadPool>("I/O Thread", io_threads);
