@@ -66,9 +66,6 @@ void Engine::LoadRegisteredSubsystems()
 
 bool Engine::Initialize()
 {
-    thread_pool = std::make_unique<concurrency::ThreadPool>(
-        static_cast<uint32>(std::thread::hardware_concurrency() * 0.7)
-    );
     task_scheduler = std::make_unique<concurrency::TaskScheduler>(
         std::this_thread::get_id()
     );
@@ -95,7 +92,6 @@ void Engine::Release()
     sorted_subsystems.Clear();
     subsystems.Clear();
 
-    thread_pool.reset();
     task_scheduler.reset();
 }
 

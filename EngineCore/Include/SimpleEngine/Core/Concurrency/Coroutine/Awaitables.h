@@ -10,6 +10,16 @@
 namespace se::concurrency
 {
 /**
+ * Task<T>를 MainThread에서 실행합니다.
+ */
+struct SE_CORE_API SwitchToMainThread
+{
+    [[nodiscard]] bool await_ready() const noexcept;
+    void await_suspend(std::coroutine_handle<> handle) const;
+    void await_resume() const noexcept;
+};
+
+/**
  * Task<T>를 WorkerThread에서 실행합니다.
  */
 struct SE_CORE_API SwitchToWorkerThread
@@ -20,9 +30,9 @@ struct SE_CORE_API SwitchToWorkerThread
 };
 
 /**
- * Task<T>를 MainThread에서 실행합니다.
+ * Task<T>를 I/O Thread에서 실행합니다.
  */
-struct SE_CORE_API SwitchToMainThread
+struct SE_CORE_API SwitchToIOThread
 {
     [[nodiscard]] bool await_ready() const noexcept;
     void await_suspend(std::coroutine_handle<> handle) const;
