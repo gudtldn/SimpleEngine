@@ -87,12 +87,14 @@ public:
         requires std::derived_from<T, IAsset>
     std::shared_ptr<T> LoadSynchronous(const AssetHandle<T>& in_handle);
 
+public:
+    [[nodiscard]] IAssetLoader* GetLoaderForType(const refl::TypeId& type_id) const;
+    [[nodiscard]] Optional<const refl::TypeId&> GetTypeFromExtension(const std::filesystem::path& extension) const;
+    [[nodiscard]] Optional<const refl::TypeId&> GetTypeFromExtension(const StringName& extension) const;
+
 private:
     template <typename T>
     concurrency::Task<std::shared_ptr<T>> LoadInternal(const Guid& in_guid);
-
-    [[nodiscard]] IAssetLoader* GetLoaderForType(const refl::TypeId& type_id) const;
-    [[nodiscard]] refl::TypeId GetTypeFromExtension(const StringName& extension) const; // TODO: 필요한가?
 
 private:
     AssetRegistry registry;
