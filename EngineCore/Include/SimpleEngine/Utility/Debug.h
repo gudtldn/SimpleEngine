@@ -59,8 +59,19 @@
                 std::abort(); \
             } \
         } while (0)
+
+    #define SE_ENSURE(expr, ...) \
+        (!!(expr) || [&] \
+        { \
+            ConsoleLog(ELogLevel::Error, "Ensure failed: " #expr); \
+            __VA_OPT__(ConsoleLog(ELogLevel::Error, "└─ " __VA_ARGS__);) \
+            SE_BREAKPOINT(); \
+            return false; \
+        }())
+
 #else
     #define SE_ASSERT(expr, ...) ((void)0)
+    #define SE_ENSURE(expr, ...) (!!(expr))
 #endif
 
 // --- 미구현 / 도달 불가 코드 ---
