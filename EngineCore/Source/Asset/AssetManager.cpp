@@ -1,15 +1,22 @@
 ﻿#include "Asset/AssetManager.h"
+#include "Utility/StringUtils.h"
 
 
 namespace se::asset
 {
 IAssetLoader* AssetManager::GetLoaderForType(const refl::TypeId& type_id) const
 {
-    return loaders.FindChecked(type_id).get();
+    return loaders.Find(type_id).ValueOr(nullptr).get();
 }
 
-refl::TypeId AssetManager::GetTypeFromExtension(const StringName& extension) const
+Optional<const refl::TypeId&> AssetManager::GetTypeFromExtension(const std::filesystem::path& extension) const
 {
-    return extension_to_type_map.FindChecked(extension);
+    SE_ASSERT(!extension.empty());
+    return GetTypeFromExtension(utility::string::ToString(extension.c_str()));
+}
+
+Optional<const refl::TypeId&> AssetManager::GetTypeFromExtension(const StringName& extension) const
+{
+    return extension_to_type_map.Find(extension);
 }
 }
