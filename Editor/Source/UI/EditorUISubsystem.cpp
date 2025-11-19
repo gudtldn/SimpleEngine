@@ -1,15 +1,16 @@
 ﻿#include "UI/EditorUISubsystem.h"
 
-#include "imgui.h"
-#include "backends/imgui_impl_sdl3.h"
-#include "backends/imgui_impl_sdlgpu3.h"
-
+#include "Panels/AssetsBrowserPanel.h"
 #include "Panels/DetailPanel.h"
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
 #include "Panels/ViewportPanel.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
+
+#include "imgui.h"
+#include "backends/imgui_impl_sdl3.h"
+#include "backends/imgui_impl_sdlgpu3.h"
 
 using namespace se::core::event;
 
@@ -69,6 +70,7 @@ bool EditorUISubsystem::Initialize()
     RegisterPanel<OutlinerPanel>(refl::GetTypeName<OutlinerPanel>());
     RegisterPanel<DetailPanel>(refl::GetTypeName<DetailPanel>());
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
+    RegisterPanel<AssetsBrowserPanel>(refl::GetTypeName<AssetsBrowserPanel>());
 
     return true;
 }
