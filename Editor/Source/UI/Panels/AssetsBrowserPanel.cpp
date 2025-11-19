@@ -95,8 +95,13 @@ void AssetsBrowserPanel::DrawAssetGrid()
 bool AssetsBrowserPanel::HasSubDirectories(const fs::path& path)
 {
     std::error_code ec;
-    return std::ranges::any_of(fs::directory_iterator(path, ec), [](const auto& entry)
+    return std::ranges::any_of(fs::directory_iterator(path, ec), [&ec, &path](const auto& entry)
     {
+        if (ec)
+        {
+            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path.string());
+            return false;
+        }
         return entry.is_directory();
     });
 }
@@ -106,6 +111,12 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
     std::error_code ec;
     for (const auto& entry : fs::directory_iterator(path, ec))
     {
+        if (ec)
+        {
+            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path.string());
+            continue;
+        }
+
         if (!entry.is_directory())
         {
             continue;
