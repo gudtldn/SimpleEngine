@@ -23,6 +23,7 @@ generate_export_header(EngineCore
 # 외부 라이브러리 관리
 find_package(ICU REQUIRED COMPONENTS uc i18n data)
 find_package(SDL3 REQUIRED)
+find_package(SDL3_image REQUIRED)
 find_package(stduuid REQUIRED)
 
 # 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
@@ -38,6 +39,7 @@ target_link_libraries(EngineCore PUBLIC
 
         # SDL3
         SDL3::SDL3
+        SDL3_image::SDL3_image
         SDL3_shadercross::SDL3_shadercross
 
         # 나중에 C++ 표준 라이브러리로 대체 가능하면 제거
