@@ -8,6 +8,7 @@
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
 #include "Panels/ViewportPanel.h"
+#include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
 
 using namespace se::core::event;
@@ -42,6 +43,10 @@ bool EditorUISubsystem::Initialize()
     style.FontScaleDpi = main_scale;
     io.ConfigDpiScaleFonts = true;
     io.ConfigDpiScaleViewports = true;
+
+    // 한글 폰트 추가
+    const auto ttf_path = utility::PathResolver::Get().Resolve("CoreAssets://Font/malgun.ttf").Value();
+    io.Fonts->AddFontFromFileTTF(ttf_path.generic_string().c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
 
     ImGui_ImplSDL3_InitForSDLGPU(main_window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {
