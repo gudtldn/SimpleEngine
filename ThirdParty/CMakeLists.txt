@@ -1,4 +1,5 @@
 find_package(SDL3 REQUIRED)
+find_package(SDL3_image REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 find_package(stduuid REQUIRED)
