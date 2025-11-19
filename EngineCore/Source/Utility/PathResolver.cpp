@@ -18,16 +18,28 @@ PathResolver& PathResolver::Get()
     return instance;
 }
 
-void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& physical_path, int priority)
+void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& physical_path, int32 priority)
 {
     std::unique_lock lock(mutex);
 
     // 경로를 정규화하여 저장
-    auto normalized_path = std::filesystem::absolute(physical_path);
+    auto abs_path = std::filesystem::absolute(physical_path);
+    abs_path.make_preferred();
 
     Array<MountPoint>& points = mount_points[scheme];
+    const auto it = std::ranges::find_if(points, [&](const MountPoint& point)
+    {
+        return point.priority == priority && point.physical_path == abs_path;
+    });
+
+    // 이미 존재하는 경우
+    if (it != points.end())
+    {
+        return;
+    }
+
     points.Push({
-        .physical_path = std::move(normalized_path),
+        .physical_path = std::move(abs_path),
         .priority = priority
     });
 
@@ -61,27 +73,30 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     }
 
     // 경로 부분에서 맨 앞의 '/' 제거
-    std::string_view path_part = virtual_path.GetPathPart();
-    if (path_part.starts_with('/'))
+    std::string_view relative_part = virtual_path.GetPathPart();
+    if (relative_part.starts_with('/'))
     {
-        path_part.remove_prefix(1);
+        relative_part.remove_prefix(1);
     }
 
     // 모든 마운트 포인트를 순회하며 파일이 실제로 존재하는지 확인 (Mod Fallback)
     for (const MountPoint& mount_point : *point_opt)
     {
-        std::filesystem::path resolved_path = mount_point.physical_path / path_part;
-        if (std::filesystem::exists(resolved_path))
-        {
-            return resolved_path;
-        }
-    }
+        std::filesystem::path candidate = mount_point.physical_path / relative_part;
 
-    if (!check_existence)
-    {
-        // 가장 우선순위가 높은(첫 번째) 마운트 포인트를 사용하여 경로를 조합
-        const MountPoint& primary_mount_point = *point_opt->Front();
-        return primary_mount_point.physical_path / path_part;
+        if (check_existence)
+        {
+            std::error_code ec;
+            if (std::filesystem::exists(candidate, ec) && !ec)
+            {
+                return candidate;
+            }
+        }
+        else
+        {
+            // 가장 우선순위가 높은(첫 번째) 마운트 포인트를 사용하여 경로를 조합
+            return candidate;
+        }
     }
 
     ConsoleLog(ELogLevel::Warning, "File '{}' not found in any mounted path for scheme '{}'.", virtual_path.ToString(), scheme);
@@ -92,37 +107,50 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
 {
     std::shared_lock lock(mutex);
 
-    const auto normalized_physical_path = std::filesystem::absolute(physical_path);
+    std::filesystem::path abs_input = std::filesystem::absolute(physical_path);
+    abs_input.make_preferred();
+    const auto& input_str = abs_input.native();
 
-    Optional<VPath> best_match_opt = std::nullopt;
-    int best_priority = -1;
-    usize longest_match_len = 0;
+    const StringName* best_scheme = nullptr;
+    const MountPoint* best_mount_point = nullptr;
+    usize best_match_len = 0;
 
     for (const auto& [scheme, points] : mount_points)
     {
         for (const MountPoint& point : points)
         {
+            const auto& root_str = point.physical_path.native();
+
             // 물리적 경로가 마운트 포인트의 하위 경로인지 확인
-            if (normalized_physical_path.native().starts_with(point.physical_path.native())) // 접두사가 일치하는 경우
+            if (input_str.starts_with(root_str)) // 접두사가 일치하는 경우
             {
-                const usize match_len = point.physical_path.native().length();
-
-                // 가장 길게 일치하거나, 길이가 같으면 우선순위가 높은 쪽을 선택
-                if (match_len > longest_match_len || (match_len == longest_match_len && point.priority > best_priority))
-                {
-                    using string::ToString;
-
-                    longest_match_len = match_len;
-                    best_priority = point.priority;
-
-                    auto relative_part = std::filesystem::relative(normalized_physical_path, point.physical_path);
-                    best_match_opt.Emplace(
-                        String::Format("{}://{}", scheme.ToString(), relative_part.generic_string())
-                    );
+                if (
+                    input_str.size() == root_str.size()
+                    || input_str[root_str.size()] == std::filesystem::path::preferred_separator
+                ) {
+                    // 더 긴 경로가 매칭되거나 (하위 폴더 마운트 우선), 길이는 같은데 우선순위가 높은 경우 선택
+                    if (
+                        root_str.size() > best_match_len
+                        || (root_str.size() == best_match_len && (!best_mount_point || point.priority > best_mount_point->priority))
+                    ) {
+                        best_match_len = root_str.size();
+                        best_scheme = &scheme;
+                        best_mount_point = &point;
+                    }
                 }
             }
         }
     }
-    return best_match_opt;
+
+    if (best_scheme && best_mount_point)
+    {
+        // 상대 경로 추출
+        const std::filesystem::path relative = std::filesystem::relative(abs_input, best_mount_point->physical_path);
+        std::string generic_rel = relative.generic_string();
+
+        return VPath{ String::Format("{}://{}", best_scheme->ToString(), generic_rel) };
+    }
+
+    return std::nullopt;
 }
 }
