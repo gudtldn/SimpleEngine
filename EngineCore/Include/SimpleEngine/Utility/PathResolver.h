@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <shared_mutex>
-#include <unordered_map>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
@@ -62,6 +61,11 @@ public:
      */
     [[nodiscard]] Optional<VPath> Unresolve(const std::filesystem::path& physical_path) const;
 
+public:
+    template <typename Fn>
+        requires std::invocable<Fn, const StringName&, const std::filesystem::path&, int32>
+    void VisitMountPoints(Fn&& visitor) const;
+
 private:
     struct MountPoint
     {
@@ -74,4 +78,18 @@ private:
     HashMap<StringName, Array<MountPoint>> mount_points;
     mutable TracySharedLockable(std::shared_mutex, mutex);
 };
+
+template <typename Fn>
+    requires std::invocable<Fn, const StringName&, const std::filesystem::path&, int32>
+void PathResolver::VisitMountPoints(Fn&& visitor) const
+{
+    std::shared_lock lock(mutex);
+    for (const auto& [scheme, points] : mount_points)
+    {
+        for (const auto& [physical_path, priority] : points)
+        {
+            std::invoke(std::forward<Fn>(visitor), scheme, physical_path, priority);
+        }
+    }
+}
 }
