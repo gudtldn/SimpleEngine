@@ -33,6 +33,7 @@ void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& 
 
     // 우선순위가 높은 것이 앞에 오도록 정렬 (stable_sort로 순서 유지)
     std::ranges::stable_sort(points, std::greater{});
+    ConsoleLog(ELogLevel::Info, "Virtual path scheme '{}://' mounted at '{}', priority: {}", scheme, physical_path.generic_string(), priority);
 }
 
 void PathResolver::Unmount(const StringName& scheme)
