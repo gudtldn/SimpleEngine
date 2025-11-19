@@ -42,7 +42,7 @@ private:
     void DrawMainMenu();
 
 private:
-    HashMap<StringName, std::unique_ptr<IEditorPanel>> panels;
+    HashMap<StringName, std::unique_ptr<IEditorPanel>> panels; // TODO: Key GUID로 바꿀까
 };
 
 template <typename PanelType, typename... Args>
