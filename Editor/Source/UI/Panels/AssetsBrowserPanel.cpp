@@ -62,6 +62,10 @@ void AssetsBrowserPanel::DrawAssetTree()
     utility::PathResolver::Get().VisitMountPoints([this](const StringName& scheme, const fs::path& physical_path, [[maybe_unused]] int32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
+        if (GetSelectedDirPath() == physical_path)
+        {
+            root_flags |= ImGuiTreeNodeFlags_Selected;
+        }
 
         const bool root_has_sub_dirs = HasSubDirectories(physical_path);
         if (!root_has_sub_dirs)
