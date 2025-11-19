@@ -12,16 +12,16 @@
 class SE_CORE_API Guid
 {
 public:
-    Guid() noexcept;
-    ~Guid();
+    Guid() noexcept = default;
+    ~Guid() = default;
 
-    Guid(const Guid& other) noexcept;
-    Guid& operator=(const Guid& other) noexcept;
-    Guid(Guid&& other) noexcept;
-    Guid& operator=(Guid&& other) noexcept;
+    Guid(const Guid& other) noexcept = default;
+    Guid& operator=(const Guid& other) noexcept = default;
+    Guid(Guid&& other) noexcept = default;
+    Guid& operator=(Guid&& other) noexcept = default;
 
 public:
-    static Guid None;
+    static const Guid None;
 
     [[nodiscard]] static Guid NewGuid();
     [[nodiscard]] static Guid FromString(const se::String& str);
@@ -35,7 +35,7 @@ public:
     [[nodiscard]] bool operator==(const Guid& other) const noexcept = default;
 
 private:
-    se::FixedArray<uint8, 16> data;
+    se::FixedArray<uint8, 16> data{};
 };
 
 template <>
