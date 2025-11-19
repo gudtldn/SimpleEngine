@@ -144,10 +144,11 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
     if (best_scheme && best_mount_point)
     {
         // 상대 경로 추출
-        const std::filesystem::path relative = std::filesystem::relative(abs_input, best_mount_point->physical_path);
-        std::string generic_rel = relative.generic_string();
+        const std::filesystem::path relative_path = abs_input.lexically_relative(best_mount_point->physical_path);
+        const bool is_root = relative_path == ".";
 
-        return VPath{ String::Format("{}://{}", best_scheme->ToString(), generic_rel) };
+        String relative_str = is_root ? String{} : string::ToString(relative_path.c_str());
+        return VPath{ String::Format("{}://{}", best_scheme->ToString(), relative_str) };
     }
 
     return std::nullopt;

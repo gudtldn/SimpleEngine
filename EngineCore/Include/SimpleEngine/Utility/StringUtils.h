@@ -8,6 +8,7 @@
 
 namespace se::utility::string
 {
+[[nodiscard]] SE_CORE_API String ToString(std::string_view in_str);
 [[nodiscard]] SE_CORE_API String ToString(std::wstring_view in_str);
 [[nodiscard]] SE_CORE_API String ToString(std::u8string_view in_str);
 [[nodiscard]] SE_CORE_API String ToString(std::u16string_view in_str);

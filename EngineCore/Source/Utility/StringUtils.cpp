@@ -18,6 +18,12 @@ se::String ToString(const UnicodeString& in_ustr)
 
 namespace se::utility::string
 {
+String ToString(std::string_view in_str)
+{
+    const UnicodeString ustr = UnicodeString::fromUTF8(in_str);
+    return ::ToString(ustr);
+}
+
 String ToString(std::wstring_view in_str)
 {
 #if SE_PLATFORM_WINDOWS
