@@ -46,8 +46,14 @@ bool EditorUISubsystem::Initialize()
     io.ConfigDpiScaleViewports = true;
 
     // 한글 폰트 추가
-    const auto ttf_path = utility::PathResolver::Get().Resolve("CoreAssets://Font/malgun.ttf").Value();
-    io.Fonts->AddFontFromFileTTF(ttf_path.generic_string().c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
+    if (const Optional ttf_path_opt = utility::PathResolver::Get().Resolve("CoreAssets://Font/malgun.ttf"))
+    {
+        io.Fonts->AddFontFromFileTTF(ttf_path_opt->generic_string().c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Warning, "Failed to load font: CoreAssets://Font/malgun.ttf");
+    }
 
     ImGui_ImplSDL3_InitForSDLGPU(main_window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {
