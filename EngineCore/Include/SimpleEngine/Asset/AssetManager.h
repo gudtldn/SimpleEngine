@@ -170,7 +170,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
         // 로딩중인 경우
         case ELoadingState::Loading:
         {
-            // 기존에 있던 event를 가져옮
+            // 기존에 있던 event를 가져옴
             event_to_wait = slot.load_event;
             break;
         }
@@ -220,7 +220,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
         slot.asset = loaded_asset;
         slot.state = loaded_asset ? ELoadingState::Loaded : ELoadingState::Failed;
 
-        // 로딩 완
+        // 로딩 완료
         slot.load_event->Set();
         slot.load_event.reset();
     }
