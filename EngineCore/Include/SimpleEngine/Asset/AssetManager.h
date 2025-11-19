@@ -196,7 +196,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
         co_await event_to_wait->Wait();
 
         std::scoped_lock lock(slots_mutex);
-        co_return std::static_pointer_cast<T>(asset_slots[in_guid].asset);
+        co_return std::static_pointer_cast<T>(asset_slots.FindChecked(in_guid).asset);
     }
 
     // Registry에서 메타데이터 가져오기
