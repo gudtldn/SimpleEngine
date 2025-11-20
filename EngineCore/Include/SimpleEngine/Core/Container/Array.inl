@@ -218,6 +218,17 @@ void Array<T, Allocator>::Resize(SizeType new_size, const ValueType& value)
 }
 
 template <typename T, typename Allocator>
+void Array<T, Allocator>::ResizeUninitialized(SizeType new_size)
+    requires std::is_trivially_default_constructible_v<T> && std::is_trivially_destructible_v<T>
+{
+    if (new_size > size)
+    {
+        EnsureCapacity(new_size);
+    }
+    size = new_size;
+}
+
+template <typename T, typename Allocator>
 void Array<T, Allocator>::Truncate(SizeType new_size)
 {
     if (new_size < size)

@@ -87,6 +87,10 @@ public:
     void Resize(SizeType new_size);
     void Resize(SizeType new_size, const ValueType& value);
 
+    /** 배열의 크기를 new_size로 변경하지만, 새로 생성된 값을 초기화하지는 않습니다. */
+    void ResizeUninitialized(SizeType new_size)
+        requires std::is_trivially_default_constructible_v<T> && std::is_trivially_destructible_v<T>;
+
     /**
      * 배열의 크기를 new_size로 잘라냅니다.
      * @param new_size 새로운 배열의 크기

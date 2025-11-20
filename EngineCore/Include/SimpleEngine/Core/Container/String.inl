@@ -172,6 +172,13 @@ void BaseString<Allocator>::Reserve(SizeType new_capacity)
 }
 
 template <typename Allocator>
+void BaseString<Allocator>::ResizeForOverwrite(SizeType new_size)
+{
+    data.ResizeUninitialized(new_size + 1); // null terminator 공간 추가
+    data[new_size] = '\0';
+}
+
+template <typename Allocator>
 void BaseString<Allocator>::ShrinkToFit()
 {
     data.ShrinkToFit();
