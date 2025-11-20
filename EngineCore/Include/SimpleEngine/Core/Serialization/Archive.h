@@ -5,7 +5,8 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
-#define SE_NVP(value) NamedValue{ value, #value }
+#define SE_NVP(value) se::core::NamedValue{ value, #value }
+#define SE_NVP_NAMED(value, name) se::core::NamedValue{ value, name }
 
 
 namespace se::core
