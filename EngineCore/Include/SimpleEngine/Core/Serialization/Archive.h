@@ -5,12 +5,22 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
-#define SE_NVP(value) se::core::NamedValue{ value, #value }
-#define SE_NVP_NAMED(value, name) se::core::NamedValue{ value, name }
+#define SE_NVP(value) se::core::NamedValue{ value, se::core::details::GetSuffixAfterDot(#value) }
 
 
 namespace se::core
 {
+namespace details
+{
+// ReSharper disable once CppDFAConstantParameter
+consteval const char* GetSuffixAfterDot(const char* str)
+{
+    const std::string_view sv{ str };
+    const size_t last_dot_pos = sv.find_last_of('.');
+    return sv.substr(last_dot_pos + 1).data();
+}
+}
+
 /**
  *
  */
