@@ -20,6 +20,9 @@ struct Texture2D : IAsset
     int32 channels = 0;
     ETextureFormat format = ETextureFormat::None;
 
+    bool is_srgb = true;
+    bool generate_mips = true;
+
     Array<uint8> pixels;
 };
 }
