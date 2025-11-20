@@ -59,12 +59,6 @@ void EditorAssetSubsystem::RefreshRegistry()
 
 void EditorAssetSubsystem::ImportAsset(const std::filesystem::path& physical_path)
 {
-    // 지원하는 확장자인지 확인
-    if (!asset_manager->GetTypeFromExtension(physical_path.extension()).HasValue())
-    {
-        return;
-    }
-
     // .meta 처리
     if (auto entry_opt = ProcessMetaFile(physical_path))
     {
@@ -76,10 +70,31 @@ void EditorAssetSubsystem::ImportAsset(const std::filesystem::path& physical_pat
 // ReSharper disable once CppMemberFunctionMayBeConst
 Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std::filesystem::path& physical_path)
 {
+    // 지원하는 확장자인지 확인
+    Optional type_opt = asset_manager->GetTypeFromExtension(physical_path.extension());
+    if (!type_opt.HasValue())
+    {
+        return std::nullopt;
+    }
+
+    // 가상 경로 계산 (Physical -> Virtual)
+    Optional vpath_opt = utility::PathResolver::Get().Unresolve(physical_path);
+    if (!vpath_opt.HasValue())
+    {
+        return std::nullopt;
+    }
+
+    // Entry 정보 추가
+    se::asset::AssetEntry entry;
+    entry.guid = Guid::NewGuid();
+    entry.asset_type = *type_opt;
+    entry.virtual_path = std::move(vpath_opt).Value();
+    entry.import_settings = asset_manager->GetSettingsForType(entry.asset_type);
+
+    // .meta 파일 관련
     std::filesystem::path meta_path = physical_path;
     meta_path += ".meta";
 
-    se::asset::AssetEntry entry;
     if (std::filesystem::exists(meta_path))
     {
         // TODO: [Load] 기존 메타 파일 읽기
@@ -90,21 +105,9 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
     else
     {
         // [New] 메타 파일 생성
-        entry.guid = Guid::NewGuid();
-        entry.asset_type = asset_manager->GetTypeFromExtension(physical_path.extension()).Value();
-
         // TODO: [Save] 메타 파일 쓰기
         // std::ofstream ... << json
     }
-
-    // 가상 경로 계산 (Physical -> Virtual)
-    Optional<VPath> vpath_opt = utility::PathResolver::Get().Unresolve(physical_path);
-    if (!vpath_opt.HasValue())
-    {
-        return std::nullopt;
-    }
-
-    entry.virtual_path = vpath_opt.Value();
     return entry;
 }
 }
