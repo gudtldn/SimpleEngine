@@ -165,7 +165,7 @@ core::Archive& operator<<(core::Archive& ar, HashSet<T>& set)
     {
         for (const T& value : set)
         {
-            ar << value;
+            ar << const_cast<T&>(value);
         }
     }
     return ar;

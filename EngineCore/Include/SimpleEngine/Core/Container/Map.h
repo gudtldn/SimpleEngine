@@ -211,7 +211,7 @@ core::Archive& operator<<(core::Archive& ar, Map<Key, Value>& map)
     {
         for (auto& [key, value] : map)
         {
-            ar << key << value;
+            ar << const_cast<Key&>(key) << value;
         }
     }
     return ar;
