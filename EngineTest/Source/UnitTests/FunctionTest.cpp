@@ -3,7 +3,7 @@
 #include <string>
 #include "SimpleEngine/Core/Functional/Function.h"
 
-using namespace se::core;
+using namespace se;
 
 class FunctionAPI_Test : public ::testing::Test {};
 
