@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
 
@@ -24,7 +25,9 @@ class SE_CORE_API MemoryReader : public MemoryArchive
 {
 public:
     explicit MemoryReader(const Array<uint8>& in_buffer);
-    virtual void ProcessRaw(void* value, usize byte_size, const char* name) override;
+
+protected:
+    virtual void ProcessBytes(void* value, usize byte_size) override;
 
 private:
     const Array<uint8>& buffer;
@@ -34,7 +37,9 @@ class SE_CORE_API MemoryWriter : public MemoryArchive
 {
 public:
     explicit MemoryWriter(Array<uint8>& out_buffer);
-    virtual void ProcessRaw(void* value, usize byte_size, const char* name) override;
+
+protected:
+    virtual void ProcessBytes(void* value, usize byte_size) override;
 
 private:
     Array<uint8>& buffer;

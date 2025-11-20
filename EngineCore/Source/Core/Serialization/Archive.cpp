@@ -1,56 +1,63 @@
 ﻿#include "Core/Serialization/Archive.h"
 
+#include "Core/Container/String.h"
+#include "Core/Types/Guid.h"
+#include "Core/Types/StringName.h"
+
 
 namespace se::core
 {
-#define IMPL_PROCESS_PRIMITIVE(type) \
-    void Archive::Process(type& value, const char* name) \
+#define IMPL_ARCHIVE_OPERATOR(Type) \
+    Archive& Archive::operator<<(Type& value) \
     { \
-        ProcessRaw(&value, sizeof(type), name); \
+        ProcessBytes(&value, sizeof(Type)); \
+        return *this; \
     }
 
-IMPL_PROCESS_PRIMITIVE(int8)
-IMPL_PROCESS_PRIMITIVE(uint8)
-IMPL_PROCESS_PRIMITIVE(int16)
-IMPL_PROCESS_PRIMITIVE(uint16)
-IMPL_PROCESS_PRIMITIVE(int32)
-IMPL_PROCESS_PRIMITIVE(uint32)
-IMPL_PROCESS_PRIMITIVE(int64)
-IMPL_PROCESS_PRIMITIVE(uint64)
-IMPL_PROCESS_PRIMITIVE(float)
-IMPL_PROCESS_PRIMITIVE(double)
+IMPL_ARCHIVE_OPERATOR(int8)
+IMPL_ARCHIVE_OPERATOR(uint8)
+IMPL_ARCHIVE_OPERATOR(int16)
+IMPL_ARCHIVE_OPERATOR(uint16)
+IMPL_ARCHIVE_OPERATOR(int32)
+IMPL_ARCHIVE_OPERATOR(uint32)
+IMPL_ARCHIVE_OPERATOR(int64)
+IMPL_ARCHIVE_OPERATOR(uint64)
+IMPL_ARCHIVE_OPERATOR(float)
+IMPL_ARCHIVE_OPERATOR(double)
 
-#undef IMPL_PROCESS_PRIMITIVE
+#undef IMPL_ARCHIVE_OPERATOR
 
 
-void Archive::Process(bool& value, const char* name)
+Archive& Archive::operator<<(bool& value)
 {
     uint8 bool_value = value ? 1 : 0;
-    ProcessRaw(&bool_value, sizeof(uint8), name);
+    *this << bool_value;
 
     if (IsLoading())
     {
         value = bool_value != 0;
     }
+    return *this;
 }
 
-void Archive::Process(String& value, const char* name)
+Archive& Archive::operator<<(String& value)
 {
-    usize length;
+    uint64 length;
     if (IsSaving())
     {
         length = value.ByteLen();
     }
-    Process(length, nullptr);
+    *this << length;
 
     if (IsLoading())
     {
         value.ResizeForOverwrite(length);
     }
-    ProcessRaw(value.Data(), length, name);
+    ProcessBytes(value.Data(), length);
+    return *this;
 }
 
-void Archive::Process(StringName& value, const char* name)
+Archive& Archive::operator<<(StringName& value)
 {
     String name_str;
     if (IsSaving())
@@ -58,16 +65,19 @@ void Archive::Process(StringName& value, const char* name)
         name_str = value.ToString();
     }
 
-    Process(name_str, name);
+    *this << name_str;
 
     if (IsLoading())
     {
         value = name_str;
     }
+
+    return *this;
 }
 
-void Archive::Process(Guid& value, const char* name)
+Archive& Archive::operator<<(Guid& value)
 {
-    ProcessRaw(&value, sizeof(Guid), name);
+    ProcessBytes(&value, sizeof(Guid));
+    return *this;
 }
 }
