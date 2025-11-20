@@ -21,12 +21,12 @@ TEST_F(SerializationTest, ReadAndWritePrimitives)
     double original_double = 1.23456789;
 
     // 쓰기
-    writer.ProcessRaw(&original_int, sizeof(original_int), nullptr);
-    writer.ProcessRaw(&original_float, sizeof(original_float), nullptr);
-    writer.ProcessRaw(&original_bool, sizeof(original_bool), nullptr);
-    writer.ProcessRaw(&original_double, sizeof(original_double), nullptr);
+    writer << original_int
+           << original_float
+           << original_bool
+           << original_double;
 
-    const usize expected_size = sizeof(original_int) + sizeof(original_float) + sizeof(original_bool) + sizeof(original_double);
+    constexpr usize expected_size = sizeof(original_int) + sizeof(original_float) + sizeof(original_bool) + sizeof(original_double);
     EXPECT_EQ(buffer.Len(), expected_size);
     EXPECT_EQ(writer.Tell(), expected_size);
 
@@ -37,10 +37,10 @@ TEST_F(SerializationTest, ReadAndWritePrimitives)
     bool read_bool = false;
     double read_double = 0.0;
 
-    reader.ProcessRaw(&read_int, sizeof(read_int), nullptr);
-    reader.ProcessRaw(&read_float, sizeof(read_float), nullptr);
-    reader.ProcessRaw(&read_bool, sizeof(read_bool), nullptr);
-    reader.ProcessRaw(&read_double, sizeof(read_double), nullptr);
+    reader << read_int
+           << read_float
+           << read_bool
+           << read_double;
 
     // 검증
     EXPECT_EQ(read_int, original_int);
@@ -59,15 +59,15 @@ TEST_F(SerializationTest, SeekAndTell)
     int32_t val2 = 200;
     int32_t val3 = 300; // 덮어쓸 값
 
-    writer.ProcessRaw(&val1, sizeof(val1), nullptr);
-    writer.ProcessRaw(&val2, sizeof(val2), nullptr);
+    writer << val1;
+    writer << val2;
 
     EXPECT_EQ(writer.Tell(), sizeof(val1) + sizeof(val2));
 
     // 맨 앞으로 이동해서 덮어쓰기
     writer.Seek(0);
     EXPECT_EQ(writer.Tell(), 0);
-    writer.ProcessRaw(&val3, sizeof(val3), nullptr);
+    writer << val3;
     EXPECT_EQ(writer.Tell(), sizeof(val3));
 
     // 읽기 및 검증
@@ -75,16 +75,16 @@ TEST_F(SerializationTest, SeekAndTell)
     int32_t read_val1 = 0;
     int32_t read_val2 = 0;
 
-    reader.ProcessRaw(&read_val1, sizeof(read_val1), nullptr);
+    reader << read_val1;
     EXPECT_EQ(read_val1, val3); // val1은 val3로 덮어씌워졌어야 함
 
-    reader.ProcessRaw(&read_val2, sizeof(read_val2), nullptr);
+    reader << read_val2;
     EXPECT_EQ(read_val2, val2);
 
     // Reader에서 Seek 테스트
     reader.Seek(0);
     EXPECT_EQ(reader.Tell(), 0);
-    reader.ProcessRaw(&read_val1, sizeof(read_val1), nullptr);
+    reader << read_val1;
     EXPECT_EQ(read_val1, val3);
 }
 
@@ -100,6 +100,11 @@ struct TestStruct
     }
 };
 
+void Serialize(Archive& ar, TestStruct& value)
+{
+    ar << BinaryData::FromItems(&value);
+}
+
 TEST_F(SerializationTest, SerializeStruct)
 {
     Array<uint8> buffer;
@@ -109,14 +114,14 @@ TEST_F(SerializationTest, SerializeStruct)
     TestStruct read_struct = { 0, 0.0f, false };
 
     // 쓰기
-    writer.ProcessRaw(&original_struct, sizeof(original_struct), nullptr);
+    writer << original_struct;
 
     EXPECT_EQ(writer.Tell(), sizeof(TestStruct));
     EXPECT_EQ(buffer.Len(), sizeof(TestStruct));
 
     // 읽기
     MemoryReader reader(buffer);
-    reader.ProcessRaw(&read_struct, sizeof(read_struct), nullptr);
+    reader << read_struct;
 
     // 검증
     EXPECT_EQ(read_struct, original_struct);

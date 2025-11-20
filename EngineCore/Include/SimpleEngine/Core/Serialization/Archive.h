@@ -41,6 +41,34 @@ void Serialize([[maybe_unused]] Archive& ar, [[maybe_unused]] T& value)
 }
 
 /**
+ * Raw Memory 처리를 위한 래퍼 구조체
+ */
+class BinaryData
+{
+public:
+    void* data;
+    usize size;
+
+    static BinaryData FromBytes(void* in_data, usize in_byte_size)
+    {
+        return { in_data, in_byte_size };
+    }
+
+    template <typename T>
+        requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
+    static BinaryData FromItems(T* in_data, usize count = 1)
+    {
+        return { in_data, count * sizeof(T) };
+    }
+
+private:
+    BinaryData(void* in_data, usize in_size)
+        : data(in_data), size(in_size)
+    {
+    }
+};
+
+/**
  * 모든 직렬화(Serialization) 작업의 추상 기본 클래스
  */
 class SE_CORE_API Archive
@@ -119,6 +147,13 @@ public:
     {
         std::underlying_type_t<EnumType>& underlying_value = static_cast<std::underlying_type_t<EnumType>&>(value);
         return *this << underlying_value;
+    }
+
+    // BinaryData를 직접 다루는 경우
+    friend Archive& operator<<(Archive& ar, const BinaryData& value)
+    {
+        ar.ProcessBytes(value.data, value.size);
+        return ar;
     }
 
     // 사용자 정의 타입 (UDT)
