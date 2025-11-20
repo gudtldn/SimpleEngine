@@ -11,6 +11,7 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se
@@ -177,6 +178,36 @@ public:
 private:
     InternalMapType internal_map;
 };
+
+template <typename Key, typename Value>
+core::Archive& operator<<(core::Archive& ar, HashMap<Key, Value>& map)
+{
+    uint64 size = map.Len();
+    ar("size") << size;
+
+    if (ar.IsLoading())
+    {
+        map.Clear();
+        map.Reserve(size);
+        for (uint64 i = 0; i < size; ++i)
+        {
+            Key key;
+            Value value;
+
+            // 키와 값을 순서대로 읽음
+            ar << key << value;
+            map.Emplace(std::move(key), std::move(value));
+        }
+    }
+    else
+    {
+        for (auto& [key, value] : map)
+        {
+            ar << key << value;
+        }
+    }
+    return ar;
+}
 }
 
 #include "SimpleEngine/Core/Container/HashMap.inl"

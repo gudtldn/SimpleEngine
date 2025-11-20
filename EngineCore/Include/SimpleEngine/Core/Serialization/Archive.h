@@ -76,10 +76,10 @@ class SE_CORE_API Archive
 public:
     virtual ~Archive() = default;
 
-    Archive(const Archive&) = delete;
-    Archive& operator=(const Archive&) = delete;
-    Archive(Archive&&) = delete;
-    Archive& operator=(Archive&&) = delete;
+    Archive(const Archive&) = default;
+    Archive& operator=(const Archive&) = default;
+    Archive(Archive&&) = default;
+    Archive& operator=(Archive&&) = default;
 
 public:
     /** 현재 Archive가 로드(읽기) 모드인지 확인합니다. */

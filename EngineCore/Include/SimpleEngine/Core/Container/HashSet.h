@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se
@@ -141,6 +142,34 @@ public:
 private:
     InternalSetType internal_set;
 };
+
+template <typename T>
+core::Archive& operator<<(core::Archive& ar, HashSet<T>& set)
+{
+    uint64 size = set.Len();
+    ar("size") << size;
+
+    if (ar.IsLoading())
+    {
+        set.Clear();
+        set.Reserve(size);
+        for (uint64 i = 0; i < size; ++i)
+        {
+            T value;
+            ar << value;
+
+            set.Emplace(std::move(value));
+        }
+    }
+    else
+    {
+        for (const T& value : set)
+        {
+            ar << value;
+        }
+    }
+    return ar;
+}
 }
 
 #include "SimpleEngine/Core/Container/HashSet.inl"
