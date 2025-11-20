@@ -23,7 +23,7 @@ MemoryReader::MemoryReader(const Array<uint8>& in_buffer)
 {
 }
 
-void MemoryReader::ProcessRaw(void* value, usize byte_size, const char* name)
+void MemoryReader::ProcessRaw(void* value, usize byte_size, [[maybe_unused]] const char* name)
 {
     SE_ASSERT(offset + byte_size <= buffer.Len(), "MemoryReader Overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer.Len());
 
@@ -38,7 +38,7 @@ MemoryWriter::MemoryWriter(Array<uint8>& out_buffer)
     offset = buffer.Len();
 }
 
-void MemoryWriter::ProcessRaw(void* value, usize byte_size, const char* name)
+void MemoryWriter::ProcessRaw(void* value, usize byte_size, [[maybe_unused]] const char* name)
 {
     const usize required_size = offset + byte_size;
 

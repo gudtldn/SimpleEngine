@@ -69,7 +69,7 @@ public:
     template <typename T>
     void ProcessRaw(T& value, const char* name) { ProcessRaw(&value, sizeof(T), name); }
 
-    virtual void EnterNode(const char* name) {}
+    virtual void EnterNode([[maybe_unused]] const char* name) {}
     virtual void ExitNode() {}
 
 public:
