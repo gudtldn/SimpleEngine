@@ -22,7 +22,7 @@ se::HashMap<const void*, LeakInfo> GLeakedMemoryMap;
 TracyLockable(std::mutex, GMapMutex);
 }
 
-namespace se::core::memory
+namespace se::core
 {
 std::atomic<usize> MemoryTracker::TotalAllocated = 0;
 std::atomic<usize> MemoryTracker::AllocationCount = 0;

@@ -43,7 +43,7 @@ private:
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    HashMap<refl::TypeId, Array<core::Function<void()>>> systems;
+    HashMap<refl::TypeId, Array<Function<void()>>> systems;
     HashMap<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
 
 public:
@@ -179,7 +179,7 @@ public:
         const auto type_id = refl::TypeId::Get<S>();
         if (Optional system_opt = systems.Find(type_id))
         {
-            for (const core::Function<void()>& system : *system_opt)
+            for (const Function<void()>& system : *system_opt)
             {
                 system();
             }

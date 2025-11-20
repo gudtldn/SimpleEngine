@@ -4,7 +4,7 @@
 // This benchmark is for optimizing the Realloc logic.
 // It compares the current naive implementation of OsMemory::Realloc with the standard C realloc.
 
-namespace se::core::memory
+namespace se::core
 {
 static void BM_OsMemoryRealloc_Naive(benchmark::State& state)
 {

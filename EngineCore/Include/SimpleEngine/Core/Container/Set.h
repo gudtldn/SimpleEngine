@@ -19,7 +19,7 @@ namespace se
 template <
     typename T,
     typename Pred = std::less<T>,
-    typename Allocator = core::memory::DefaultAllocator<T>
+    typename Allocator = core::DefaultAllocator<T>
 >
 class Set
 {

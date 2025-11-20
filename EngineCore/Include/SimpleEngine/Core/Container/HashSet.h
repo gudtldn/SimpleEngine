@@ -21,7 +21,7 @@ template <
     typename T,
     typename Hasher = std::hash<T>,
     typename KeyEq = std::equal_to<T>,
-    typename Allocator = core::memory::DefaultAllocator<T>
+    typename Allocator = core::DefaultAllocator<T>
 >
 class HashSet
 {

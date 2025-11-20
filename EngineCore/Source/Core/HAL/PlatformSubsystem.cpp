@@ -14,7 +14,7 @@ using namespace se::utility;
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     : sdl_init_flags(in_sdl_init_flags)
 {
-    using namespace se::core::memory;
+    using namespace se::core;
 
     // SDL_SetMemoryFunctions(
     //     [](usize size) static -> void*

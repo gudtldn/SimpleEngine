@@ -47,7 +47,7 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 
     while (!token.stop_requested())
     {
-        core::Function<void()> task;
+        Function<void()> task;
         {
             // stop이 요청되거나 작업이 생길 때까지 대기
             std::unique_lock lock(mutex);

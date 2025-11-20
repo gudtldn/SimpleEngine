@@ -131,7 +131,7 @@ void Application::Shutdown()
     ReleaseEngine();
     PostRelease();
 
-    core::memory::MemoryTracker::CheckForLeaks();
+    core::MemoryTracker::CheckForLeaks();
 
     ConsoleLog(ELogLevel::Info, "shutdown");
 }

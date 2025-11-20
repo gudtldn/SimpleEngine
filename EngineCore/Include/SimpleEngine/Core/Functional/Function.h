@@ -9,7 +9,7 @@
 #include "SimpleEngine/Core/Memory/OsMemory.h"
 
 
-namespace se::core
+namespace se
 {
 namespace details
 {
@@ -61,7 +61,7 @@ private:
 
         virtual ICallable* Clone() const override
         {
-            CallableImpl* dest = memory::OsMemory::Allocate<CallableImpl>();
+            CallableImpl* dest = core::OsMemory::Allocate<CallableImpl>();
             std::construct_at(dest, functor);
             return dest;
         }
@@ -187,7 +187,7 @@ public:
         }
         else
         {
-            Callable* dest = memory::OsMemory::Allocate<Callable>();
+            Callable* dest = core::OsMemory::Allocate<Callable>();
             std::construct_at(dest, std::forward<Fn>(in_func));
             Storage.Heap_Storage = dest;
             CallablePtr = Storage.Heap_Storage;
@@ -241,7 +241,7 @@ private:
             if (IsOnHeap())
             {
                 std::destroy_at(CallablePtr);
-                memory::OsMemory::Free(CallablePtr);
+                core::OsMemory::Free(CallablePtr);
             }
             else
             {

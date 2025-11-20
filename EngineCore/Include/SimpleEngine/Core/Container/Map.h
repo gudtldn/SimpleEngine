@@ -27,7 +27,7 @@ template <
     typename Key,
     typename Value,
     typename Pred = std::less<Key>,
-    typename Allocator = core::memory::DefaultAllocator<std::pair<const Key, Value>>
+    typename Allocator = core::DefaultAllocator<std::pair<const Key, Value>>
 >
 class Map
 {

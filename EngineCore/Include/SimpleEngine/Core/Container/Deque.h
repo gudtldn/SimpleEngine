@@ -17,7 +17,7 @@ namespace se
  * @tparam T 요소의 타입
  * @tparam Allocator 메모리 할당자 타입
  */
-template <typename T, typename Allocator = core::memory::DefaultAllocator<T>>
+template <typename T, typename Allocator = core::DefaultAllocator<T>>
 class Deque
 {
 private:

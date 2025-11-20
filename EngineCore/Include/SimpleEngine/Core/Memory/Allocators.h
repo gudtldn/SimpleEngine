@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/Memory/OsMemory.h"
 
 
-namespace se::core::memory
+namespace se::core
 {
 /**
  * 엔진의 기본 메모리 할당자

@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::core::memory
+namespace se::core
 {
 /**
  * 운영체제의 메모리 할당/해제(malloc, free)를 추상화한 클래스

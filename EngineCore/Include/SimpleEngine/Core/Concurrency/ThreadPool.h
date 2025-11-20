@@ -52,7 +52,7 @@ private:
 #endif
 
     Array<std::jthread> worker_threads;
-    Queue<core::Function<void()>> tasks;
+    Queue<Function<void()>> tasks;
 };
 
 template <typename Fn, typename... Args>

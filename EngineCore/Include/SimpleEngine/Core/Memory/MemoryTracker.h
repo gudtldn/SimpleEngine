@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::core::memory
+namespace se::core
 {
 /**
  * 메모리 추적용 헤더 정보

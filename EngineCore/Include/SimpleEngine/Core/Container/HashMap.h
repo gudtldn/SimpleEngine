@@ -29,7 +29,7 @@ template <
     typename Value,
     typename Hasher = std::hash<Key>,
     typename KeyEq = std::equal_to<Key>,
-    typename Allocator = core::memory::DefaultAllocator<std::pair<const Key, Value>>
+    typename Allocator = core::DefaultAllocator<std::pair<const Key, Value>>
 >
 class HashMap
 {

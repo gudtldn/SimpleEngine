@@ -16,7 +16,7 @@ namespace se
 template <typename Allocator>
 class BaseString;
 
-using String = BaseString<core::memory::DefaultAllocator<char>>;
+using String = BaseString<core::DefaultAllocator<char>>;
 
 
 namespace details

@@ -8,7 +8,7 @@
 
 constexpr usize TRACY_CALLSTACK_DEPTH = 32;
 
-namespace se::core::memory
+namespace se::core
 {
 void* OsMemory::Allocate(usize size, usize alignment)
 {
