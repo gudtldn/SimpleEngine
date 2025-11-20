@@ -61,8 +61,10 @@ public:
     // TODO: 추후에 registry 위치 변경
     [[nodiscard]] AssetRegistry& GetRegistry() noexcept { return registry; }
 
-    template <typename AssetType, typename LoaderType>
-        requires std::derived_from<AssetType, IAsset> && std::derived_from<LoaderType, IAssetLoader>
+    template <typename AssetType, typename LoaderType, typename SettingsType>
+        requires std::derived_from<AssetType, IAsset>
+        && std::derived_from<LoaderType, IAssetLoader>
+        && std::derived_from<SettingsType, IAssetImportSettings>
     void RegisterLoader(const StringName& extension);
 
     /**
@@ -89,6 +91,7 @@ public:
 
 public:
     [[nodiscard]] IAssetLoader* GetLoaderForType(const refl::TypeId& type_id) const;
+    [[nodiscard]] std::shared_ptr<IAssetImportSettings> GetSettingsForType(const refl::TypeId& type_id) const;
     [[nodiscard]] Optional<const refl::TypeId&> GetTypeFromExtension(const std::filesystem::path& extension) const;
     [[nodiscard]] Optional<const refl::TypeId&> GetTypeFromExtension(const StringName& extension) const;
 
@@ -104,16 +107,20 @@ private:
     HashMap<Guid, AssetSlot> asset_slots;
 
     HashMap<refl::TypeId, std::unique_ptr<IAssetLoader>> loaders;
+    HashMap<refl::TypeId, Function<std::shared_ptr<IAssetImportSettings>()>> settings_factories;
     HashMap<StringName, refl::TypeId> extension_to_type_map;
 };
 
-template <typename AssetType, typename LoaderType>
-    requires std::derived_from<AssetType, IAsset> && std::derived_from<LoaderType, IAssetLoader>
+template <typename AssetType, typename LoaderType, typename SettingsType>
+    requires std::derived_from<AssetType, IAsset>
+    && std::derived_from<LoaderType, IAssetLoader>
+    && std::derived_from<SettingsType, IAssetImportSettings>
 void AssetManager::RegisterLoader(const StringName& extension)
 {
     const refl::TypeId type_id = refl::TypeId::Get<AssetType>();
     extension_to_type_map.Emplace(extension, type_id);
     loaders.Entry(type_id).OrInsert(std::make_unique<LoaderType>());
+    settings_factories.Entry(type_id).OrInsert([] { return std::make_shared<SettingsType>(); });
 }
 
 template <typename T, typename Fn>
@@ -124,7 +131,7 @@ void AssetManager::LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded)
     using namespace concurrency;
 
     TaskScheduler::Get().Launch_IOThread(
-        [](AssetManager* self, Guid guid, core::Function<void(std::shared_ptr<T>)> callback) -> Task<void>
+        [](AssetManager* self, Guid guid, Function<void(std::shared_ptr<T>)> callback) -> Task<void>
         {
             std::shared_ptr<T> asset = co_await self->LoadInternal<T>(guid);
 
@@ -212,7 +219,11 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
     SE_ASSERT(physical_path_opt, "Asset path not found: {}", entry_opt->virtual_path);
 
     // Asset Load 및 Slot에 저장
-    std::shared_ptr<IAsset> loaded_asset = co_await loader->Load(std::move(physical_path_opt).Value());
+    std::shared_ptr<IAsset> loaded_asset = co_await loader->Load(
+        std::move(physical_path_opt).Value(),
+        entry_opt->import_settings.get()
+    );
+
     {
         std::scoped_lock lock(slots_mutex);
 

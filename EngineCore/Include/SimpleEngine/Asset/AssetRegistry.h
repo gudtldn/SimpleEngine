@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
+#include "SimpleEngine/Asset/ImportSettings/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -30,6 +31,27 @@ struct AssetEntry
 
     // 이 에셋이 의존하는 다른 에셋 GUID 목록
     Array<Guid> dependencies;
+
+    // 에셋을 불러올 때 사용할 Settings
+    std::shared_ptr<IAssetImportSettings> import_settings = nullptr;
+
+public:
+    template <typename SettingType>
+        requires std::derived_from<SettingType, IAssetImportSettings>
+    const SettingType* GetSettings() const
+    {
+        if (import_settings)
+        {
+#if SE_DEBUG_BUILD
+            const SettingType* settings = dynamic_cast<const SettingType*>(import_settings.get());
+            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", refl::TypeId::Get<SettingType>().GetName());
+            return settings;
+#else
+            return static_cast<const SettingType*>(import_settings.get());
+#endif
+        }
+        return nullptr;
+    }
 
     // TODO: Archive를 사용한 직렬화/역직렬화 함수 추가
 };

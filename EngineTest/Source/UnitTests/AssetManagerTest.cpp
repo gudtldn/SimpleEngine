@@ -61,7 +61,10 @@ public:
 class DummyAssetLoader : public IAssetLoader
 {
 public:
-    virtual Task<std::shared_ptr<IAsset>> Load(const std::filesystem::path& physical_path) override
+    virtual Task<std::shared_ptr<IAsset>> Load(
+        const std::filesystem::path& physical_path,
+        [[maybe_unused]] const IAssetImportSettings* import_settings
+    ) override
     {
         // Simulate file read and parsing
         if (!std::filesystem::exists(physical_path))
@@ -81,6 +84,10 @@ public:
         asset->value = file_content;
         co_return asset;
     }
+};
+
+class DummyImportSettings : public IAssetImportSettings
+{
 };
 
 class AssetManagerTest : public ::testing::Test
@@ -119,7 +126,7 @@ protected:
         path_resolver.Mount("TestAssets", temp_dir_path);
 
         // AssetManager에 로더 등록
-        asset_manager.RegisterLoader<DummyAsset, DummyAssetLoader>("dummy");
+        asset_manager.RegisterLoader<DummyAsset, DummyAssetLoader, DummyImportSettings>("dummy");
     }
 
     virtual void TearDown() override
