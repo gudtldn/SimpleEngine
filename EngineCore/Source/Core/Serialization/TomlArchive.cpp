@@ -11,7 +11,7 @@ void TomlArchive::HintNextName(const char* name)
     pending_key = name;
 }
 
-void TomlArchive::ProcessBytes(void* value, uint64 byte_size)
+void TomlArchive::ProcessBytes([[maybe_unused]] void* value, [[maybe_unused]] uint64 byte_size)
 {
     // TomlArchive는 BinaryData를 사용 안함. (나중에 Base64로 해도 되고)
 }
@@ -33,9 +33,15 @@ TomlReader::TomlReader(const toml::table& root)
 
 void TomlReader::BeginNode()
 {
-    toml::node* sub_node = GetCurrentNode();
+    const Context& ctx = GetCurrentContext();
+    if (!ctx.IsArray() && pending_key.empty())
+    {
+        context_stack.Push(ctx);
+        return;
+    }
 
     // 찾은 노드가 테이블이면 스택에 푸시
+    toml::node* sub_node = GetCurrentNode();
     if (sub_node && sub_node->is_table())
     {
         context_stack.Push({
@@ -45,7 +51,7 @@ void TomlReader::BeginNode()
     }
     else
     {
-        ConsoleLog(ELogLevel::Warning, "Invalid node type found while loading TOML file.");
+        ConsoleLog(ELogLevel::Warning, "Expected a table but found something else.");
         context_stack.Push({
             .node = nullptr,
             .array_idx_opt = std::nullopt,
@@ -144,7 +150,10 @@ Archive& TomlReader::operator<<(Guid& value)
 toml::node* TomlReader::GetCurrentNode()
 {
     Context& ctx = GetCurrentContext();
-    if (!ctx.node) return nullptr;
+    if (!ctx.node)
+    {
+        return nullptr;
+    }
 
     if (ctx.IsArray())
     {
@@ -178,6 +187,15 @@ TomlWriter::TomlWriter(toml::table& root)
 
 void TomlWriter::BeginNode()
 {
+    const Context& ctx = GetCurrentContext();
+
+    //  현재가 테이블(Table) 내부인데, 키(pending_key)가 없다면 Root 테이블로 취급
+    if (!ctx.IsArray() && pending_key.empty())
+    {
+        context_stack.Push(ctx);
+        return;
+    }
+
     context_stack.Push({
         .node = InsertNewNode<toml::table>(toml::table{}),
         .array_idx_opt = std::nullopt,
@@ -189,7 +207,7 @@ void TomlWriter::EndNode()
     context_stack.Pop();
 }
 
-void TomlWriter::BeginArray(uint64& count)
+void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
 {
     context_stack.Push({
         .node = InsertNewNode<toml::array>(toml::array{}),
