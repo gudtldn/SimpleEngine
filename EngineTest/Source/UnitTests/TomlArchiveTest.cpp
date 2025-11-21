@@ -2,6 +2,8 @@
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -51,6 +53,12 @@ struct TestData
     NestedData nested;
     Array<int32> i32_array;
     Array<NestedData> nested_array;
+    HashMap<String, int32> map_str_i32;
+    HashMap<int32, String> map_i32_str;
+    HashSet<String> set_str;
+    HashSet<int32> set_i32;
+    HashMap<String, NestedData> map_str_nested;
+
 
     friend void Serialize(Archive& ar, TestData& data)
     {
@@ -71,6 +79,11 @@ struct TestData
         ar("nested") << data.nested;
         ar("i32_array") << data.i32_array;
         ar("nested_array") << data.nested_array;
+        ar("map_str_i32") << data.map_str_i32;
+        ar("map_i32_str") << data.map_i32_str;
+        ar("set_str") << data.set_str;
+        ar("set_i32") << data.set_i32;
+        ar("map_str_nested") << data.map_str_nested;
     }
 };
 }
@@ -94,7 +107,12 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
         .guid = Guid::NewGuid(),
         .nested = { "Nested String", 123.456f },
         .i32_array = { 1, 2, 3, 4, 5 },
-        .nested_array = { { "nested1", 1.1f }, { "nested2", 2.2f } }
+        .nested_array = { { "nested1", 1.1f }, { "nested2", 2.2f } },
+        .map_str_i32 = { {"one", 1}, {"two", 2} },
+        .map_i32_str = { {1, "one"}, {2, "two"} },
+        .set_str = { "A", "B", "C" },
+        .set_i32 = { 100, 200, 300 },
+        .map_str_nested = { {"nested1", {"n1", 1.0f}}, {"nested2", {"n2", 2.0f}} },
     };
 
     toml::table tbl;
@@ -139,7 +157,6 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
         EXPECT_FLOAT_EQ(*nested_elem_tbl["val"].value<float>(), original_data.nested_array[i].val);
     }
 
-
     TestData read_data = {};
     {
         TomlReader reader(tbl);
@@ -163,4 +180,9 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
     EXPECT_EQ(read_data.nested, original_data.nested);
     EXPECT_EQ(read_data.i32_array, original_data.i32_array);
     EXPECT_EQ(read_data.nested_array, original_data.nested_array);
+    EXPECT_EQ(read_data.map_str_i32, original_data.map_str_i32);
+    EXPECT_EQ(read_data.map_i32_str, original_data.map_i32_str);
+    EXPECT_EQ(read_data.set_str, original_data.set_str);
+    EXPECT_EQ(read_data.set_i32, original_data.set_i32);
+    EXPECT_EQ(read_data.map_str_nested, original_data.map_str_nested);
 }
