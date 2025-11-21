@@ -67,7 +67,6 @@ void TomlReader::EndNode()
 void TomlReader::BeginArray(uint64& count)
 {
     toml::node* sub_node = GetCurrentNode();
-
     if (sub_node && sub_node->is_array())
     {
         toml::array* arr = sub_node->as_array();
@@ -243,7 +242,7 @@ OVERRIDE_TOML_WRITE(bool)
 
 Archive& TomlWriter::operator<<(String& value)
 {
-    WriteValue(std::string_view(value.CStr(), value.ByteLen()));
+    WriteValue(value.Bytes());
     return *this;
 }
 

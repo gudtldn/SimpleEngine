@@ -182,11 +182,15 @@ private:
 template <typename Key, typename Value>
 core::Archive& operator<<(core::Archive& ar, HashMap<Key, Value>& map)
 {
+    // TODO: 추후에 Array 대신 더 나은 방법으로 수정
+
     uint64 size = map.Len();
     ar.BeginArray(size);
 
     if (ar.IsLoading())
     {
+        size /= 2; // 현재 로직은 배열에 Key-Value를 순서대로 두기 때문에 (배열의 모든 개수 / 2)로 설정
+
         map.Clear();
         map.Reserve(size);
         for (uint64 i = 0; i < size; ++i)
