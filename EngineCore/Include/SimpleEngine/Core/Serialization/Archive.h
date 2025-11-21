@@ -100,6 +100,10 @@ public:
     /** 구조체나 객체의 끝(Node 탈출)을 알립니다. */
     virtual void EndNode() {}
 
+    /** 배열의 시작과 끝을 알립니다. */
+    virtual void BeginArray(uint64& count) { *this << count; }
+    virtual void EndArray() {}
+
 protected:
     /**
      * 로우 레벨 바이트 데이터를 처리하는 순수 가상 함수입니다.
