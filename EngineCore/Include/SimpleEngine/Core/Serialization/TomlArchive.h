@@ -30,7 +30,7 @@ public:
     virtual void HintNextName(const char* name) override;
 
 protected:
-    explicit TomlArchive(BitFlags<EArchiveMode> mode) : Archive(mode) {}
+    explicit TomlArchive(EArchiveMode mode) : Archive(mode) {}
     virtual void ProcessBytes(void* value, uint64 byte_size) override;
 
     [[nodiscard]] Context& GetCurrentContext();

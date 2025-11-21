@@ -27,9 +27,10 @@ class Archive;
  */
 enum class EArchiveMode : uint8
 {
-    Invalid = 0,
-    Load    = 1 << 0,
-    Save    = 1 << 1,
+    LoadText   = 0, // 00 (Load | Text)
+    SaveText   = 1, // 01 (Save | Text)
+    LoadBinary = 2, // 10 (Load | Binary)
+    SaveBinary = 3, // 11 (Save | Binary)
 };
 
 /** 사용자 정의 타입(UDT)에 대한 직렬화 함수의 기본 템플릿 */
@@ -85,10 +86,32 @@ public:
 
 public:
     /** 현재 Archive가 로드(읽기) 모드인지 확인합니다. */
-    [[nodiscard]] bool IsLoading() const { return mode.IsAnySet(EArchiveMode::Load); }
+    [[nodiscard]] bool IsLoading() const
+    {
+        // Bit 0이 0이면 Load
+        return (static_cast<uint8>(mode) & 1) == 0;
+    }
 
     /** 현재 Archive가 저장(쓰기) 모드인지 확인합니다. */
-    [[nodiscard]] bool IsSaving() const { return mode.IsAnySet(EArchiveMode::Save); }
+    [[nodiscard]] bool IsSaving() const
+    {
+        // Bit 0이 1이면 Save
+        return (static_cast<uint8>(mode) & 1) != 0;
+    }
+
+    /** 현재 Archive가 Binary 모드인지 확인합니다. */
+    [[nodiscard]] bool IsBinary() const
+    {
+        // Bit 1이 1이면 Binary
+        return (static_cast<uint8>(mode) & 2) != 0;
+    }
+
+    /** 현재 Archive가 Text 모드인지 확인합니다. */
+    [[nodiscard]] bool IsText() const
+    {
+        // Bit 1이 0이면 Text
+        return (static_cast<uint8>(mode) & 2) == 0;
+    }
 
     /**
      * 다음에 직렬화될 값의 이름(Key)에 대한 힌트를 제공합니다.
@@ -174,7 +197,7 @@ public:
     }
 
 protected:
-    explicit Archive(BitFlags<EArchiveMode> in_mode) : mode(in_mode) {}
-    BitFlags<EArchiveMode> mode;
+    explicit Archive(EArchiveMode in_mode) : mode(in_mode) {}
+    EArchiveMode mode;
 };
 }

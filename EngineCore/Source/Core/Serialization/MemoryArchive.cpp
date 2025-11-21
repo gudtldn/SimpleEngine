@@ -18,7 +18,7 @@ void MemoryArchive::Seek(usize pos)
 }
 
 MemoryReader::MemoryReader(const Array<uint8>& in_buffer)
-    : MemoryArchive(EArchiveMode::Load)
+    : MemoryArchive(EArchiveMode::LoadBinary)
     , buffer(in_buffer)
 {
 }
@@ -32,7 +32,7 @@ void MemoryReader::ProcessBytes(void* value, uint64 byte_size)
 }
 
 MemoryWriter::MemoryWriter(Array<uint8>& out_buffer)
-    : MemoryArchive(EArchiveMode::Save)
+    : MemoryArchive(EArchiveMode::SaveBinary)
     , buffer(out_buffer)
 {
     offset = buffer.Len();

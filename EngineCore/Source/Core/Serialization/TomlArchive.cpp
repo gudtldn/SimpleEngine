@@ -23,7 +23,7 @@ TomlArchive::Context& TomlArchive::GetCurrentContext()
 }
 
 TomlReader::TomlReader(const toml::table& root)
-    : TomlArchive(EArchiveMode::Load)
+    : TomlArchive(EArchiveMode::LoadText)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
@@ -176,7 +176,7 @@ toml::node* TomlReader::GetCurrentNode()
 }
 
 TomlWriter::TomlWriter(toml::table& root)
-    : TomlArchive(EArchiveMode::Save)
+    : TomlArchive(EArchiveMode::SaveText)
 {
     context_stack.Push({
         .node = &root,
