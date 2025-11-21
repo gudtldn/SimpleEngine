@@ -17,7 +17,7 @@ public:
     void Seek(usize pos);
 
 protected:
-    explicit MemoryArchive(EArchiveMode mode) : Archive(mode) {}
+    explicit MemoryArchive(BitFlags<EArchiveMode> mode) : Archive(mode) {}
     usize offset = 0;
 };
 

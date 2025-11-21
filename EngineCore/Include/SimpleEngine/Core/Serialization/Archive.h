@@ -3,6 +3,7 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+#include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
@@ -26,8 +27,9 @@ class Archive;
  */
 enum class EArchiveMode : uint8
 {
-    Load,
-    Save
+    Invalid = 0,
+    Load    = 1 << 0,
+    Save    = 1 << 1,
 };
 
 /** 사용자 정의 타입(UDT)에 대한 직렬화 함수의 기본 템플릿 */
@@ -83,10 +85,10 @@ public:
 
 public:
     /** 현재 Archive가 로드(읽기) 모드인지 확인합니다. */
-    [[nodiscard]] bool IsLoading() const { return mode == EArchiveMode::Load; }
+    [[nodiscard]] bool IsLoading() const { return mode.IsAnySet(EArchiveMode::Load); }
 
     /** 현재 Archive가 저장(쓰기) 모드인지 확인합니다. */
-    [[nodiscard]] bool IsSaving() const { return mode == EArchiveMode::Save; }
+    [[nodiscard]] bool IsSaving() const { return mode.IsAnySet(EArchiveMode::Save); }
 
     /**
      * 다음에 직렬화될 값의 이름(Key)에 대한 힌트를 제공합니다.
@@ -172,7 +174,7 @@ public:
     }
 
 protected:
-    explicit Archive(EArchiveMode in_mode) : mode(in_mode) {}
-    EArchiveMode mode;
+    explicit Archive(BitFlags<EArchiveMode> in_mode) : mode(in_mode) {}
+    BitFlags<EArchiveMode> mode;
 };
 }
