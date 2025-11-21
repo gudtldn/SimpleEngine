@@ -278,11 +278,18 @@ core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
         }
     }
 
-    // if constexpr (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    // {
-    //     ar << core::BinaryData::FromItems(array.Data(), size);
-    // }
-    // else
+    bool processed_as_binary = false;
+    if constexpr (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
+    {
+        if (ar.IsBinary())
+        {
+            // Binary Serialize시 memcpy를 사용하도록 최적화
+            ar << core::BinaryData::FromItems(array.Data(), size);
+            processed_as_binary = true;
+        }
+    }
+
+    if (!processed_as_binary)
     {
         for (uint64 i = 0; i < size; ++i)
         {
