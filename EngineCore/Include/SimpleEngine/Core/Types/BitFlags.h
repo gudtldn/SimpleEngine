@@ -1,6 +1,12 @@
 ﻿#pragma once
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+#define SE_ENABLE_BITMASK_OPERATORS(enum_type) \
+    constexpr ::se::BitFlags<enum_type> operator|(enum_type lhs, enum_type rhs) { return ::se::BitFlags<enum_type>(lhs) | rhs; } \
+    constexpr ::se::BitFlags<enum_type> operator&(enum_type lhs, enum_type rhs) { return ::se::BitFlags<enum_type>(lhs) & rhs; } \
+    constexpr ::se::BitFlags<enum_type> operator^(enum_type lhs, enum_type rhs) { return ::se::BitFlags<enum_type>(lhs) ^ rhs; } \
+    constexpr ::se::BitFlags<enum_type> operator~(enum_type lhs) { return ~::se::BitFlags<enum_type>(lhs); }
+
 
 namespace se
 {
