@@ -147,7 +147,7 @@ template <typename T>
 core::Archive& operator<<(core::Archive& ar, HashSet<T>& set)
 {
     uint64 size = set.Len();
-    ar("size") << size;
+    ar.BeginArray(size);
 
     if (ar.IsLoading())
     {
@@ -168,6 +168,8 @@ core::Archive& operator<<(core::Archive& ar, HashSet<T>& set)
             ar << const_cast<T&>(value);
         }
     }
+
+    ar.EndArray();
     return ar;
 }
 }

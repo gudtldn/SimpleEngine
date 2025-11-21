@@ -139,7 +139,7 @@ template <typename T>
 core::Archive& operator<<(core::Archive& ar, Set<T>& set)
 {
     uint64 size = set.Len();
-    ar("size") << size;
+    ar.BeginArray(size);
 
     if (ar.IsLoading())
     {
@@ -159,6 +159,8 @@ core::Archive& operator<<(core::Archive& ar, Set<T>& set)
             ar << const_cast<T&>(value);
         }
     }
+
+    ar.EndArray();
     return ar;
 }
 }

@@ -183,7 +183,7 @@ template <typename Key, typename Value>
 core::Archive& operator<<(core::Archive& ar, HashMap<Key, Value>& map)
 {
     uint64 size = map.Len();
-    ar("size") << size;
+    ar.BeginArray(size);
 
     if (ar.IsLoading())
     {
@@ -206,6 +206,8 @@ core::Archive& operator<<(core::Archive& ar, HashMap<Key, Value>& map)
             ar << const_cast<Key&>(key) << value;
         }
     }
+
+    ar.EndArray();
     return ar;
 }
 }

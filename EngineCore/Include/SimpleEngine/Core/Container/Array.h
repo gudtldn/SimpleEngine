@@ -278,9 +278,16 @@ core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
         }
     }
 
-    for (uint64 i = 0; i < size; ++i)
+    // if constexpr (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
+    // {
+    //     ar << core::BinaryData::FromItems(array.Data(), size);
+    // }
+    // else
     {
-        ar << array[i];
+        for (uint64 i = 0; i < size; ++i)
+        {
+            ar << array[i];
+        }
     }
 
     ar.EndArray();
