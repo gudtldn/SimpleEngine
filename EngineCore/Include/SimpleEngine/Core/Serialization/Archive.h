@@ -47,22 +47,22 @@ class BinaryData
 {
 public:
     void* data;
-    usize size;
+    uint64 size;
 
-    static BinaryData FromBytes(void* in_data, usize in_byte_size)
+    static BinaryData FromBytes(void* in_data, uint64 in_byte_size)
     {
         return { in_data, in_byte_size };
     }
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    static BinaryData FromItems(T* in_data, usize count = 1)
+    static BinaryData FromItems(T* in_data, uint64 count = 1)
     {
         return { in_data, count * sizeof(T) };
     }
 
 private:
-    BinaryData(void* in_data, usize in_size)
+    BinaryData(void* in_data, uint64 in_size)
         : data(in_data), size(in_size)
     {
     }
@@ -94,10 +94,8 @@ public:
      */
     virtual void HintNextName([[maybe_unused]] const char* name) {}
 
-    /** 구조체나 객체의 시작(Node 진입)을 알립니다. */
+    /** 구조체나 객체의 시작과 끝을 알립니다. */
     virtual void BeginNode() {}
-
-    /** 구조체나 객체의 끝(Node 탈출)을 알립니다. */
     virtual void EndNode() {}
 
     /** 배열의 시작과 끝을 알립니다. */
@@ -110,7 +108,7 @@ protected:
      * @param value 데이터가 저장되거나 읽혀질 메모리 주소
      * @param byte_size 처리할 데이터의 바이트 크기
      */
-    virtual void ProcessBytes(void* value, usize byte_size) = 0;
+    virtual void ProcessBytes(void* value, uint64 byte_size) = 0;
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)

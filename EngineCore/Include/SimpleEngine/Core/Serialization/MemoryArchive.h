@@ -27,7 +27,7 @@ public:
     explicit MemoryReader(const Array<uint8>& in_buffer);
 
 protected:
-    virtual void ProcessBytes(void* value, usize byte_size) override;
+    virtual void ProcessBytes(void* value, uint64 byte_size) override;
 
 private:
     const Array<uint8>& buffer;
@@ -39,7 +39,7 @@ public:
     explicit MemoryWriter(Array<uint8>& out_buffer);
 
 protected:
-    virtual void ProcessBytes(void* value, usize byte_size) override;
+    virtual void ProcessBytes(void* value, uint64 byte_size) override;
 
 private:
     Array<uint8>& buffer;

@@ -264,7 +264,7 @@ template <typename T, typename Alloc>
 core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
 {
     uint64 size = array.Len();
-    ar("size") << size;
+    ar.BeginArray(size);
 
     if (ar.IsLoading())
     {
@@ -278,17 +278,12 @@ core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
         }
     }
 
-    if constexpr (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
+    for (uint64 i = 0; i < size; ++i)
     {
-        ar << core::BinaryData::FromItems(array.Data(), size);
+        ar << array[i];
     }
-    else
-    {
-        for (uint64 i = 0; i < size; ++i)
-        {
-            ar << array[i];
-        }
-    }
+
+    ar.EndArray();
     return ar;
 }
 }
