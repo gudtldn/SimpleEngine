@@ -116,4 +116,8 @@ concept IntegralType = std::is_integral_v<T>;
 // 실수 타입
 template <typename T>
 concept FloatingType = std::is_floating_point_v<T>;
+
+// Enum
+template <typename T>
+concept EnumType = std::is_enum_v<T>;
 }
