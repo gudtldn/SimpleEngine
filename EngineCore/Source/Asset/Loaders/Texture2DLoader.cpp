@@ -16,7 +16,7 @@ concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
 )
 {
     TextureImportSettings final_settings;
-    if(const TextureImportSettings* settings = GetSettings<TextureImportSettings>(import_settings))
+    if (const TextureImportSettings* settings = GetSettings<TextureImportSettings>(import_settings))
     {
         final_settings = *settings;
     }
