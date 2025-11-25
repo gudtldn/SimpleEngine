@@ -257,10 +257,6 @@ bool Application::PostInitialize()
             default:
                 break;
             }
-            if (platform_event.sdl_event.type == SDL_EVENT_QUIT)
-            {
-                RequestQuit();
-            }
         }
     );
     return true;
