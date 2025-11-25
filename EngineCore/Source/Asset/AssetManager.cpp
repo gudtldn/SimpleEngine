@@ -21,7 +21,7 @@ std::shared_ptr<IAssetImportSettings> AssetManager::GetSettingsForType(const ref
 Optional<const refl::TypeId&> AssetManager::GetTypeFromExtension(const std::filesystem::path& extension) const
 {
     SE_ASSERT(!extension.empty());
-    return GetTypeFromExtension(utility::string::ToString(extension.c_str()));
+    return GetTypeFromExtension(utility::ToString(extension.c_str()));
 }
 
 Optional<const refl::TypeId&> AssetManager::GetTypeFromExtension(const StringName& extension) const

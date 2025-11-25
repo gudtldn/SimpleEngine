@@ -16,7 +16,7 @@ se::String ToString(const UnicodeString& in_ustr)
 }
 }
 
-namespace se::utility::string
+namespace se::utility
 {
 String ToString(std::string_view in_str)
 {

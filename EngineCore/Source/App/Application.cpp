@@ -60,7 +60,7 @@ Application& Application::Get()
 
 void Application::Startup(const wchar_t* cmd_line)
 {
-    Startup(utility::string::ToString(cmd_line));
+    Startup(utility::ToString(cmd_line));
 }
 
 void Application::Startup(const String& cmd_line)
@@ -112,8 +112,8 @@ void Application::Startup(const String& cmd_line)
             | std::views::transform([](const PairType& p) { return p.second.Bytes(); });
 
         ConsoleLog(ELogLevel::Debug, "CPU Features:");
-        ConsoleLog(ELogLevel::Debug, "- On:  {}", utility::string::Join(on_view, ", "));
-        ConsoleLog(ELogLevel::Debug, "- Off: {}", utility::string::Join(off_view, ", "));
+        ConsoleLog(ELogLevel::Debug, "- On:  {}", utility::Join(on_view, ", "));
+        ConsoleLog(ELogLevel::Debug, "- Off: {}", utility::Join(off_view, ", "));
     }
 
     RETURN_IF_FAILED(PreInitialize());

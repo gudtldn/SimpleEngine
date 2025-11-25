@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::utility::file
+namespace se::utility
 {
 struct FileReadError
 {

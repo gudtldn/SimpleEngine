@@ -123,7 +123,7 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
         }
 
         const fs::path& entry_path = entry.path();
-        String folder_name = utility::string::ToString(entry_path.filename().c_str());
+        String folder_name = utility::ToString(entry_path.filename().c_str());
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
         if (GetSelectedDirPath() == entry_path)

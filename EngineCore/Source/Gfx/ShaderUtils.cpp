@@ -47,7 +47,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
 {
     // read shader file
     Array<uint8> source;
-    if (auto result = utility::file::ReadToByteArray(shader_path))
+    if (auto result = utility::ReadToByteArray(shader_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

@@ -5,7 +5,7 @@
 #include "Utility/StringUtils.h"
 
 
-namespace se::utility::file
+namespace se::utility
 {
 FileResult<Array<uint8>> ReadToByteArray(const std::filesystem::path& file_path)
 {

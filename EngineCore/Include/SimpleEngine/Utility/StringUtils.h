@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::utility::string
+namespace se::utility
 {
 [[nodiscard]] SE_CORE_API String ToString(std::string_view in_str);
 [[nodiscard]] SE_CORE_API String ToString(std::wstring_view in_str);

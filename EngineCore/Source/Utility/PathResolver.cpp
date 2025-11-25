@@ -148,7 +148,7 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
         const std::filesystem::path relative_path = abs_input.lexically_relative(best_mount_point->physical_path);
         const bool is_root = relative_path == ".";
 
-        String relative_str = is_root ? String{} : string::ToString(relative_path.c_str());
+        String relative_str = is_root ? String{} : ToString(relative_path.c_str());
         return VPath{ String::Format("{}://{}", best_scheme->ToString(), relative_str) };
     }
 

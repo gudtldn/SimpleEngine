@@ -21,7 +21,7 @@ concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
         final_settings = *settings;
     }
 
-    String path_str = utility::string::ToString(physical_path.c_str());
+    String path_str = utility::ToString(physical_path.c_str());
 
     // Image를 Surface로 로드
     SDL_Surface* raw_surface = IMG_Load(path_str.CStr());

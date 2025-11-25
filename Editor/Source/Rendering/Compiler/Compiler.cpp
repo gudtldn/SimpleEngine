@@ -23,7 +23,7 @@ SDL_GPUShader* CompileFromHLSL(
 {
     // read shader file
     Array<uint8> source;
-    if (auto result = file::ReadToByteArray(shader_path))
+    if (auto result = ReadToByteArray(shader_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

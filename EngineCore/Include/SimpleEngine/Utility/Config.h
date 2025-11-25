@@ -130,7 +130,7 @@ Optional<To> Config::GetValue(std::string_view key) const
                .value<std::u8string>()
                .and_then([](const std::u8string& value) -> std::optional<To>
                {
-                   return se::utility::string::ToString(value);
+                   return se::utility::ToString(value);
                });
     }
     else

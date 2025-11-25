@@ -46,7 +46,7 @@ se::String GetThreadName(HANDLE handle)
     const std::wstring name{ data };
     LocalFree(data);
 
-    return se::utility::string::ToString(name);
+    return se::utility::ToString(name);
 }
 }
 
