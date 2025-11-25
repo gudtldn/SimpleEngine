@@ -44,7 +44,7 @@ public:
         {
 #if SE_DEBUG_BUILD
             const SettingType* settings = dynamic_cast<const SettingType*>(import_settings.get());
-            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", refl::TypeId::Get<SettingType>().GetName());
+            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", refl::GetFullTypeName<SettingType>());
             return settings;
 #else
             return static_cast<const SettingType*>(import_settings.get());
