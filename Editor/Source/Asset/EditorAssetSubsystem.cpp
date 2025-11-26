@@ -87,6 +87,9 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
 
     se::asset::AssetEntry entry;
 
+    // TODO: 매번 std::shared_ptr를 만들어서 반환하는거 개선 및 .meta에 저장할 수 있도록
+    entry.import_settings = asset_manager->GetSettingsForType(entry.asset_type);
+
     // .meta 파일 관련
     std::filesystem::path meta_path = physical_path;
     meta_path += ".meta";
@@ -109,7 +112,6 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
         entry.guid = Guid::NewGuid();
         entry.asset_type = *type_opt;
         entry.virtual_path = std::move(vpath_opt).Value();
-        entry.import_settings = asset_manager->GetSettingsForType(entry.asset_type);
 
         toml::table table;
         core::TomlWriter writer{ table };
