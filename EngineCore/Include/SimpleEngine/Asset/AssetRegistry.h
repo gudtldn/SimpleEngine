@@ -54,6 +54,27 @@ public:
     }
 
     // TODO: Archive를 사용한 직렬화/역직렬화 함수 추가
+    friend void Serialize(core::Archive& ar, AssetEntry& entry)
+    {
+        String virtual_path_str;
+        if (ar.IsSaving())
+        {
+            virtual_path_str = entry.virtual_path.ToString();
+        }
+
+        ar("guid") << entry.guid;
+        ar("asset_type") << entry.asset_type;
+        ar("virtual_path") << virtual_path_str;
+        ar("dependencies") << entry.dependencies;
+
+        // TODO: import_settings (다형성 포인터) 직렬화 로직 필요
+        // ar("settings") << entry.import_settings;
+
+        if (ar.IsLoading())
+        {
+            entry.virtual_path = VPath{ virtual_path_str };
+        }
+    }
 };
 
 

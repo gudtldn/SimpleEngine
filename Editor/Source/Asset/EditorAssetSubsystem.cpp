@@ -1,5 +1,6 @@
 ﻿#include "Asset/EditorAssetSubsystem.h"
 
+#include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 namespace fs = std::filesystem;
@@ -84,12 +85,7 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
         return std::nullopt;
     }
 
-    // Entry 정보 추가
     se::asset::AssetEntry entry;
-    entry.guid = Guid::NewGuid();
-    entry.asset_type = *type_opt;
-    entry.virtual_path = std::move(vpath_opt).Value();
-    entry.import_settings = asset_manager->GetSettingsForType(entry.asset_type);
 
     // .meta 파일 관련
     std::filesystem::path meta_path = physical_path;
@@ -97,16 +93,32 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
 
     if (std::filesystem::exists(meta_path))
     {
-        // TODO: [Load] 기존 메타 파일 읽기
-        // std::ifstream ... >> json
-        // entry.guid = json["guid"];
-        // entry.asset_type = json["type"];
+        if (auto result = toml::parse_file(meta_path.u8string()))
+        {
+            core::TomlReader reader{ result.table() };
+            reader << entry;
+        }
+        else
+        {
+            return std::nullopt;
+        }
     }
     else
     {
-        // [New] 메타 파일 생성
-        // TODO: [Save] 메타 파일 쓰기
-        // std::ofstream ... << json
+        // Entry 정보 추가
+        entry.guid = Guid::NewGuid();
+        entry.asset_type = *type_opt;
+        entry.virtual_path = std::move(vpath_opt).Value();
+        entry.import_settings = asset_manager->GetSettingsForType(entry.asset_type);
+
+        toml::table table;
+        core::TomlWriter writer{ table };
+
+        writer << entry;
+
+        std::ofstream ofs{ meta_path };
+        ofs << table;
+        ofs.close();
     }
     return entry;
 }
