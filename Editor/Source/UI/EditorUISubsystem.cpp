@@ -145,15 +145,7 @@ void EditorUISubsystem::DrawMainMenu()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Import Asset"))
-            {
-                core::FileDialog::OpenFile([](const String& path)
-                {
-                    // TODO: File Import 로직 작성
-                    ConsoleLog(ELogLevel::Info, "File selected: {}", path);
-                });
-            }
-            else if (ImGui::MenuItem("Exit"))
+            if (ImGui::MenuItem("Exit"))
             {
                 app::Application::Get().RequestQuit();
             }
