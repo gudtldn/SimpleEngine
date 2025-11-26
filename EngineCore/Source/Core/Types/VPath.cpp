@@ -128,12 +128,14 @@ void VPath::ParseAndNormalize(std::string_view path)
         return;
     }
 
-    full_path.Reserve(path.length());
+    full_path.ResizeForOverwrite(path.length());
 
     // 경로 정규화 (\ -> /) 및 복사
-    for (const char c : path)
+    char* dest = full_path.Data();
+    for (size_t i = 0; i < path.length(); ++i)
     {
-        full_path += (c == '\\') ? '/' : c;
+        const char c = path[i];
+        dest[i] = (c == '\\') ? '/' : c;
     }
 
     // 스키마 파싱 ("scheme://")
