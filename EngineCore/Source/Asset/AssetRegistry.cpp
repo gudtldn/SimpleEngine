@@ -3,21 +3,6 @@
 
 namespace se::asset
 {
-void AssetRegistry::SaveToCache(const std::filesystem::path& cache_path)
-{
-    (void)cache_path;
-
-    // TODO: guid_map을 직렬화해서 저장
-}
-
-bool AssetRegistry::LoadFromCache(const std::filesystem::path& cache_path)
-{
-    (void)cache_path;
-
-    // TODO: guid_map을 역직렬화해서 불러오기
-    return false;
-}
-
 void AssetRegistry::AddEntry(AssetEntry&& entry)
 {
     vpath_map[entry.virtual_path] = entry.guid;

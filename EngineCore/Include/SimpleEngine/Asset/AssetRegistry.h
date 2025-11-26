@@ -84,12 +84,6 @@ public:
 class SE_CORE_API AssetRegistry
 {
 public:
-    /** 런타임 캐시 파일(.cache/AssetRegistry.cache)을 로드합니다. */
-    void SaveToCache(const std::filesystem::path& cache_path);
-
-    /** 에디터가 빌드한 캐시를 저장합니다. */
-    bool LoadFromCache(const std::filesystem::path& cache_path);
-
     [[nodiscard]] Optional<const AssetEntry&> GetEntry(const Guid& guid) const;
     [[nodiscard]] Optional<const AssetEntry&> GetEntry(const VPath& vpath) const;
     [[nodiscard]] Optional<const Guid&> GetGuid(const VPath& vpath) const;
