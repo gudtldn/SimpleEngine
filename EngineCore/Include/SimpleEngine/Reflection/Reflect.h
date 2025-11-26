@@ -54,7 +54,7 @@ inline static const struct type##_Registrar \
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
         ::se::refl::TypeInfo info{ \
-            .name = SE_STRINGIFY(type), \
+            .name = ::se::refl::GetFullTypeName<type>(), \
             .size = sizeof(type), \
             .properties = std::move(properties), \
             .type_id = ::se::refl::TypeId::Get<type>(), \
