@@ -24,6 +24,7 @@ protected:
 
 private:
     void RenderDirectoryTreeRecursive(const std::filesystem::path& path);
+    void DrawDirectoryContextMenu(const std::filesystem::path& path);
 
 private:
     std::filesystem::path selected_dir_path;

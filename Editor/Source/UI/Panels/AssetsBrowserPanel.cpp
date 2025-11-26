@@ -1,8 +1,8 @@
 ﻿#include "UI/Panels/AssetsBrowserPanel.h"
 #include "SimpleEngine/Utility/PathResolver.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "imgui.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 
 namespace fs = std::filesystem;
 
@@ -42,7 +42,7 @@ void AssetsBrowserPanel::Draw()
                 return vpath.ToString();
             });
 
-        ImGui::Text("%s", selected_path.ValueOr("").CStr());
+        ImGui::Text("%s", selected_path.ValueOr("No directory selected").CStr());
         ImGui::Separator();
 
         ImGui::BeginChild("GridView");
@@ -73,10 +73,18 @@ void AssetsBrowserPanel::DrawAssetTree()
             root_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         }
 
+        // 트리 노드 그리기
         const bool is_node_open = ImGui::TreeNodeEx(scheme.CStr(), root_flags);
-        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
             SetSelectedDirPath(physical_path);
+        }
+
+        // 우클릿 컨텍스트 메뉴
+        if (ImGui::BeginPopupContextItem())
+        {
+            DrawDirectoryContextMenu(physical_path);
+            ImGui::EndPopup();
         }
 
         if (is_node_open && root_has_sub_dirs)
@@ -137,10 +145,18 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
             flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
         }
 
+        // 트리 노드 그리기
         const bool is_node_open = ImGui::TreeNodeEx(folder_name.CStr(), flags);
-        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
             SetSelectedDirPath(entry_path);
+        }
+
+        // 우클릭 컨텍스트 메뉴
+        if (ImGui::BeginPopupContextItem())
+        {
+            DrawDirectoryContextMenu(entry_path);
+            ImGui::EndPopup();
         }
 
         if (is_node_open && has_subdirectories)
@@ -148,6 +164,35 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
             RenderDirectoryTreeRecursive(entry_path);
             ImGui::TreePop();
         }
+    }
+}
+
+void AssetsBrowserPanel::DrawDirectoryContextMenu(const std::filesystem::path& path)
+{
+    // 메뉴 타이틀
+    ImGui::TextDisabled("%s", utility::ToString(path.filename().c_str()).CStr());
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Import Asset Here..."))
+    {
+        // TODO: 파일 다이얼로그 열기 및 Import 로직 연결
+        // FileDialog::OpenFile(..., path.string().c_str());
+        ConsoleLog(ELogLevel::Info, "Import request at: {}", path.string());
+    }
+
+    if (ImGui::MenuItem("Create New Folder"))
+    {
+        // TODO: 폴더 생성 로직
+        ConsoleLog(ELogLevel::Info, "Create new folder at: {}", path.string());
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Show in Explorer"))
+    {
+        // 플랫폼 별 탐색기 열기 (ShellExecute 등)
+        // se::core::Platform::RevealInExplorer(path); 구현 필요
+        ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path.string());
     }
 }
 }
