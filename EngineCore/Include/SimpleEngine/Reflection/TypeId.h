@@ -2,6 +2,9 @@
 #include "SimpleEngine/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/Hash.h"
 
+// forward declaration
+class StringName;
+
 
 namespace se::refl
 {

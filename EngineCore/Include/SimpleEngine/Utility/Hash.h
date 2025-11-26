@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include <string_view>
-
-#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
