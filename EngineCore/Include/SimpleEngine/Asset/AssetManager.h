@@ -6,6 +6,7 @@
 
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/ImportSettings/DefaultImportSettings.h"
 #include "SimpleEngine/Asset/Loaders/IAssetLoader.h"
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
@@ -61,7 +62,7 @@ public:
     // TODO: 추후에 registry 위치 변경
     [[nodiscard]] AssetRegistry& GetRegistry() noexcept { return registry; }
 
-    template <typename AssetType, typename LoaderType, typename SettingsType>
+    template <typename AssetType, typename LoaderType, typename SettingsType = DefaultImportSettings>
         requires std::derived_from<AssetType, IAsset>
         && std::derived_from<LoaderType, IAssetLoader>
         && std::derived_from<SettingsType, IAssetImportSettings>
@@ -120,7 +121,18 @@ void AssetManager::RegisterLoader(const StringName& extension)
     const refl::TypeId type_id = refl::TypeId::Get<AssetType>();
     extension_to_type_map.Emplace(extension, type_id);
     loaders.Entry(type_id).OrInsert(std::make_unique<LoaderType>());
-    settings_factories.Entry(type_id).OrInsert([] { return std::make_shared<SettingsType>(); });
+
+    settings_factories.Entry(type_id).OrInsert([] -> std::shared_ptr<IAssetImportSettings>
+    {
+        if constexpr (std::same_as<SettingsType, DefaultImportSettings>)
+        {
+            return nullptr;
+        }
+        else
+        {
+            return std::make_shared<SettingsType>();
+        }
+    });
 }
 
 template <typename T, typename Fn>

@@ -86,10 +86,6 @@ public:
     }
 };
 
-class DummyImportSettings : public IAssetImportSettings
-{
-};
-
 class AssetManagerTest : public ::testing::Test
 {
 protected:
@@ -126,7 +122,7 @@ protected:
         path_resolver.Mount("TestAssets", temp_dir_path);
 
         // AssetManager에 로더 등록
-        asset_manager.RegisterLoader<DummyAsset, DummyAssetLoader, DummyImportSettings>("dummy");
+        asset_manager.RegisterLoader<DummyAsset, DummyAssetLoader>("dummy");
     }
 
     virtual void TearDown() override
