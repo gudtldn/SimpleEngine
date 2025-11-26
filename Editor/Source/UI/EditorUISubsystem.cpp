@@ -11,6 +11,8 @@
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
+#include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Core/HAL/FileDialog.h"
 
 using namespace se::core::event;
 
@@ -97,7 +99,7 @@ void EditorUISubsystem::PreUpdate()
     ImGui::NewFrame();
 }
 
-void EditorUISubsystem::Update(float delta_time)
+void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
 {
     SetupDockSpace();
     DrawMainMenu();
@@ -143,7 +145,15 @@ void EditorUISubsystem::DrawMainMenu()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Exit"))
+            if (ImGui::MenuItem("Import Asset"))
+            {
+                core::FileDialog::OpenFile([](const String& path)
+                {
+                    // TODO: File Import 로직 작성
+                    ConsoleLog(ELogLevel::Info, "File selected: {}", path);
+                });
+            }
+            else if (ImGui::MenuItem("Exit"))
             {
                 app::Application::Get().RequestQuit();
             }

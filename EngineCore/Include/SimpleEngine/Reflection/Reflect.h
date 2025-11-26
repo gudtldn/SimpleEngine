@@ -25,7 +25,7 @@ inline static const struct type##_Registrar \
     type##_Registrar() \
     { \
         using T = type; \
-        se::Array<se::refl::PropertyInfo> properties;
+        ::se::Array<::se::refl::PropertyInfo> properties;
 
 /** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */ // TODO: 추후 offset 대신 멤버 포인터를 저장
 #define SE_REFLECT_PROPERTY(property_name) \
@@ -33,8 +33,8 @@ inline static const struct type##_Registrar \
             /* .name     = */ SE_STRINGIFY(property_name), \
             /* .size     = */ sizeof(T::property_name), \
             /* .offset   = */ offsetof(T, property_name), \
-            /* .type_id  = */ se::refl::TypeId::Get<decltype(T::property_name)>(), \
-            /* .metadata = */ se::refl::PropertyMetadata{} \
+            /* .type_id  = */ ::se::refl::TypeId::Get<decltype(T::property_name)>(), \
+            /* .metadata = */ ::se::refl::PropertyMetadata{} \
         );
 
 /**
@@ -47,19 +47,19 @@ inline static const struct type##_Registrar \
             /* .name     = */ SE_STRINGIFY(property_name), \
             /* .size     = */ sizeof(T::property_name), \
             /* .offset   = */ offsetof(T, property_name), \
-            /* .type_id  = */ se::refl::TypeId::Get<decltype(T::property_name)>(), \
-            /* .metadata = */ se::refl::PropertyMetadata{__VA_ARGS__} \
+            /* .type_id  = */ ::se::refl::TypeId::Get<decltype(T::property_name)>(), \
+            /* .metadata = */ ::se::refl::PropertyMetadata{__VA_ARGS__} \
         );
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
-        se::refl::TypeInfo info{ \
+        ::se::refl::TypeInfo info{ \
             .name = SE_STRINGIFY(type), \
             .size = sizeof(type), \
             .properties = std::move(properties), \
-            .type_id = se::refl::TypeId::Get<type>(), \
+            .type_id = ::se::refl::TypeId::Get<type>(), \
         }; \
-        se::refl::TypeRegistry::GetInstance().RegisterType(std::move(info)); \
+        ::se::refl::TypeRegistry::GetInstance().RegisterType(std::move(info)); \
     } \
 } SE_UNIQUE_TOKEN(SE_CONCAT_TOKEN(type, _Registrar)){}; \
 } // se::refl::registration
