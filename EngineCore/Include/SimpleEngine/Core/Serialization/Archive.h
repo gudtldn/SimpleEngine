@@ -3,7 +3,6 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
-#include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
@@ -12,6 +11,11 @@ class StringName;
 
 namespace se
 {
+namespace refl
+{
+class TypeId;
+}
+
 template <typename AllocatorType>
 class BaseString;
 
@@ -166,6 +170,7 @@ public:
     virtual Archive& operator<<(String& value);
     virtual Archive& operator<<(StringName& value);
     virtual Archive& operator<<(Guid& value);
+    virtual Archive& operator<<(refl::TypeId& value);
 
     // Enum
     template <typename EnumType>

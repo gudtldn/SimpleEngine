@@ -3,6 +3,8 @@
 #include "Core/Container/String.h"
 #include "Core/Types/Guid.h"
 #include "Core/Types/StringName.h"
+#include "Reflection/TypeId.h"
+#include "Utility/Debug.h"
 
 
 namespace se::core
@@ -78,6 +80,55 @@ Archive& Archive::operator<<(StringName& value)
 Archive& Archive::operator<<(Guid& value)
 {
     ProcessBytes(&value, sizeof(Guid));
+    return *this;
+}
+
+Archive& Archive::operator<<(refl::TypeId& value)
+{
+    if (IsBinary())
+    {
+        uint64 hash = 0;
+        if (IsSaving())
+        {
+            if (SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Binary!"))
+            {
+                hash = value.GetHash();
+            }
+        }
+
+        *this << hash;
+
+        if (IsLoading())
+        {
+            value = refl::TypeId::FromHash(hash);
+            if (!value.IsValid())
+            {
+                ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash);
+            }
+        }
+    }
+    else
+    {
+        String type_name;
+        if (IsSaving())
+        {
+            if (SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Text!"))
+            {
+                type_name = value.GetName();
+            }
+        }
+
+        *this << type_name;
+
+        if (IsLoading())
+        {
+            value = refl::TypeId::FromName(type_name);
+            if (!value.IsValid())
+            {
+                ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name);
+            }
+        }
+    }
     return *this;
 }
 }
