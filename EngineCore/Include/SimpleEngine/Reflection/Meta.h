@@ -7,9 +7,29 @@
 
 namespace se::refl
 {
-/**
- * 프로퍼티 속성 비트 플래그
- */
+/** 타입 속성 비트 플래그 */
+enum class ETypeFlags : uint32
+{
+    None        = 0,
+
+    // --- ECS Architecture ---
+    Component   = 1 << 0, // 이 클래스는 ECS 컴포넌트입니다.
+    Resource    = 1 << 1, // 이 클래스는 전역 리소스입니다.
+    System      = 1 << 2, // 이 클래스는 로직 시스템입니다.
+    Event       = 1 << 3, // 이 클래스는 이벤트 구조체입니다.
+
+    // --- Object Nature ---
+    Abstract    = 1 << 4, // 추상 클래스입니다 (인스턴스화 불가능).
+
+    // --- Serialization ---
+    Transient   = 1 << 5, // 이 타입 자체를 직렬화 대상에서 제외합니다.
+
+    // --- Editor ---
+    Hidden      = 1 << 6, // 에디터(ex: Add Component 메뉴)에서 숨깁니다.
+};
+SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
+
+/** 프로퍼티 속성 비트 플래그 */
 enum class EPropertyFlags : uint32
 {
     None        = 0,
@@ -79,6 +99,9 @@ struct TypeInfo
 
     // 클래스/구조체 총합 크기
     usize size;
+
+    // 타입 메타데이터 flag
+    BitFlags<ETypeFlags> flags;
 
     // 클래스/구조체의 멤버 변수(Property) 목록
     Array<PropertyInfo> properties; // TODO: C++26때 FixedArray로 바꿔야 할 수 있음
