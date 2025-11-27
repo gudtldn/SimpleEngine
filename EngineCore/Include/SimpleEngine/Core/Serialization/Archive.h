@@ -153,6 +153,8 @@ public:
         return *this;
     }
 
+    Archive& operator<<(Archive&);
+
     // POD
     virtual Archive& operator<<(int8& value);
     virtual Archive& operator<<(uint8& value);

@@ -16,6 +16,11 @@ namespace se::core
         return *this; \
     }
 
+Archive& Archive::operator<<(Archive&)
+{
+    return *this;
+}
+
 IMPL_ARCHIVE_OPERATOR(int8)
 IMPL_ARCHIVE_OPERATOR(uint8)
 IMPL_ARCHIVE_OPERATOR(int16)
