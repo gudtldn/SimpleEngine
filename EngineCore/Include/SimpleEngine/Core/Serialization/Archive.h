@@ -77,6 +77,7 @@ private:
 
 /**
  * 모든 직렬화(Serialization) 작업의 추상 기본 클래스
+ * @todo Error이 IsSetError(), SetError() 같은 로직 추가. 버전 불일치나, 잘못된 파일 역직렬화 방지용으로
  */
 class SE_CORE_API Archive
 {
