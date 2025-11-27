@@ -177,8 +177,16 @@ public:
         requires std::is_enum_v<EnumType>
     Archive& operator<<(EnumType& value)
     {
-        std::underlying_type_t<EnumType>& underlying_value = static_cast<std::underlying_type_t<EnumType>&>(value);
-        return *this << underlying_value;
+        using UnderlyingType = std::underlying_type_t<EnumType>;
+
+        UnderlyingType temp_value = static_cast<UnderlyingType>(value);
+        *this << temp_value;
+
+        if (IsLoading())
+        {
+            value = static_cast<EnumType>(temp_value);
+        }
+        return *this;
     }
 
     // BinaryData를 직접 다루는 경우
