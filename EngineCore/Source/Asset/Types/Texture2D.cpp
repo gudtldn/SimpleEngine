@@ -5,12 +5,12 @@
 namespace se::asset
 {
 SE_BEGIN_REFLECT(Texture2D)
-    SE_REFLECT_PROPERTY(width)
-    SE_REFLECT_PROPERTY(height)
-    SE_REFLECT_PROPERTY(channels)
-    SE_REFLECT_PROPERTY(format)
-    SE_REFLECT_PROPERTY(is_srgb)
-    SE_REFLECT_PROPERTY(generate_mips)
-    SE_REFLECT_PROPERTY(pixels)
+    SE_REFLECT_PROPERTY(width, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(height, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(channels, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(format, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(is_srgb, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(generate_mips, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(pixels, meta::ReadOnly)
 SE_END_REFLECT(Texture2D)
 }

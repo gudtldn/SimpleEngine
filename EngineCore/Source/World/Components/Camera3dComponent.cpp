@@ -2,8 +2,8 @@
 #include "Reflection/Reflect.h"
 
 // Reflection for Camera3dComponent
-SE_BEGIN_REFLECT(Camera3dComponent)
-    SE_REFLECT_PROPERTY(fov)
-    SE_REFLECT_PROPERTY(near_plane)
-    SE_REFLECT_PROPERTY(far_plane)
+SE_BEGIN_REFLECT(Camera3dComponent, meta::Component)
+    SE_REFLECT_PROPERTY(fov, meta::Edit)
+    SE_REFLECT_PROPERTY(near_plane, meta::Edit)
+    SE_REFLECT_PROPERTY(far_plane, meta::Edit)
 SE_END_REFLECT(Camera3dComponent)

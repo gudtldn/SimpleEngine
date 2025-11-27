@@ -2,6 +2,6 @@
 #include "Reflection/Reflect.h"
 
 // Reflection for MaterialHandleComponent
-SE_BEGIN_REFLECT(MaterialHandleComponent)
-    SE_REFLECT_PROPERTY(material_id)
+SE_BEGIN_REFLECT(MaterialHandleComponent, meta::Component)
+    SE_REFLECT_PROPERTY(material_id, meta::Edit)
 SE_END_REFLECT(MaterialHandleComponent)
