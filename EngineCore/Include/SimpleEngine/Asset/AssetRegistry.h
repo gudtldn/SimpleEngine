@@ -74,7 +74,7 @@ public:
 
         if (SE_ENSURE(entry.import_settings, "AssetEntry.import_settings is null"))
         {
-            ar("settings") << *entry.import_settings;
+            ar("import_settings") << *entry.import_settings;
         }
 
         if (ar.IsLoading())

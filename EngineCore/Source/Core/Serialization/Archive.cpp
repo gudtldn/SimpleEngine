@@ -131,6 +131,7 @@ Archive& Archive::operator<<(refl::TypeId& value)
             if (!value.IsValid())
             {
                 ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name);
+                SE_BREAKPOINT();
             }
         }
     }

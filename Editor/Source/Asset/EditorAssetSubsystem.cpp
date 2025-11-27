@@ -91,6 +91,8 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
     meta_path += ".meta";
 
     se::asset::AssetEntry entry;
+    entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
+
     if (std::filesystem::exists(meta_path))
     {
         auto result = toml::parse_file(meta_path.u8string());
@@ -110,7 +112,6 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
         entry.asset_type = info_opt->asset_type;
         entry.loader_type = info_opt->loader_type;
         entry.virtual_path = std::move(vpath_opt).Value();
-        entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
 
         toml::table table;
         core::TomlWriter writer{ table };

@@ -3,6 +3,7 @@
 #include "Asset/ImportSettings/TextureImportSettings.h"
 #include "Asset/Types/Texture2D.h"
 #include "Core/Logging/Logging.h"
+#include "Reflection/Reflect.h"
 #include "Utility/StringUtils.h"
 
 #include "SDL3_image/SDL_image.h"
@@ -10,6 +11,9 @@
 
 namespace se::asset
 {
+SE_BEGIN_REFLECT(Texture2DLoader)
+SE_END_REFLECT(Texture2DLoader)
+
 concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
     const std::filesystem::path& physical_path,
     const IAssetImportSettings* import_settings
