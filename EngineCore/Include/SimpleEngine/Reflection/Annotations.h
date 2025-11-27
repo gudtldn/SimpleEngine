@@ -56,4 +56,15 @@ struct Tooltip
     explicit constexpr Tooltip(const char* msg)
         : message(msg) {}
 };
+
+/**
+ * 에디터에서 표시할 이름입니다.
+ */
+struct DisplayName
+{
+    const char* name;
+
+    explicit constexpr DisplayName(const char* name)
+        : name(name) {}
+};
 }

@@ -1,11 +1,29 @@
 #pragma once
 #include <string_view>
 
+#include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
 namespace se::refl
 {
+/**
+ * 프로퍼티 속성 비트 플래그
+ */
+enum class EPropertyFlags : uint32
+{
+    None        = 0,
+    Edit        = 1 << 0, // 에디터 수정 가능
+    ReadOnly    = 1 << 1, // 에디터 읽기 전용
+    Serialized  = 1 << 2, // 직렬화 대상
+    Transient   = 1 << 3, // 직렬화 제외
+    ColorPicker = 1 << 4, // 색상 피커 사용
+
+    DefaultEdit = Edit | Serialized,
+    DefaultReadOnly = ReadOnly | Serialized
+};
+SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
+
 /**
  * 멤버 변수(Property)의 추가 메타데이터 정보
  * @todo C++26 Custom Annotation 이용해서 구조체 채워넣기
@@ -18,10 +36,14 @@ struct PropertyMetadata
     // 에디터에 표시될 ToopTip
     std::string_view tooltip;
 
-    // // 숫자 슬라이더 min/max
-    // float min_value = 0.0f;
-    // float max_value = 1.0f;
-    //
+    // Property 비트 플래그
+    BitFlags<EPropertyFlags> flags;
+
+    // 숫자 슬라이더 min/max
+    float range_min = 0.0f;
+    float range_max = 0.0f;
+    bool has_range = false;
+
     // // 네트워크 리플리케이트
     // bool is_replicated = false;
 };
