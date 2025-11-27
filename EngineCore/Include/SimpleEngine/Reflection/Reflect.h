@@ -11,11 +11,6 @@
 
 // TODO: C++26되면 여기 파일 전체 수정해야 함
 
-/** TODO: docs */
-#define SE_TYPE_ANNOTATION(...)
-/** TODO: docs */
-#define SE_PROPERTY_ANNOTATION(...)
-
 /** 타입의 리플렉션 정보 등록을 시작합니다. */
 #define SE_BEGIN_REFLECT(type) \
 namespace se::refl::registration \
