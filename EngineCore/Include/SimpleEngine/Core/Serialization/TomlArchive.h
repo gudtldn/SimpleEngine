@@ -12,7 +12,8 @@
 namespace se::core
 {
 /**
- * @todo docs
+ * toml++ 라이브러리를 기반으로 하는 TOML 직렬화 시스템의 기반 클래스
+ * 현재 탐색 중인 노드의 위치(Context) 관리와 키(Key)와 값(Value)의 매핑 상태를 추적합니다.
  */
 class SE_CORE_API TomlArchive : public Archive
 {
@@ -27,6 +28,8 @@ protected:
 
 public:
     virtual ~TomlArchive() override = default;
+
+    /** 다음에 처리할 필드(Key)의 이름을 임시 저장합니다. */
     virtual void HintNextName(const char* name) override;
 
 protected:
@@ -41,7 +44,8 @@ protected:
 };
 
 /**
- * @todo docs
+ * TOML 데이터 구조를 순회하며 값을 읽어오는 역직렬화(Deserialization) 클래스
+ * toml++의 노드 트리에서 데이터를 추출하여 엔진의 타입으로 변환합니다.
  */
 class SE_CORE_API TomlReader : public TomlArchive
 {
@@ -89,7 +93,8 @@ private:
 };
 
 /**
- * @todo docs
+ * 데이터를 TOML 포맷으로 변환하여 저장하는 직렬화(Serialization) 클래스
+ * 데이터 구조에 따라 Table이나 Array 노드를 동적으로 생성하고 값을 삽입합니다.
  */
 class SE_CORE_API TomlWriter : public TomlArchive
 {

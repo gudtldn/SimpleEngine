@@ -5,7 +5,7 @@
 namespace se::asset
 {
 /**
- * @todo docs
+ * 텍스처 리소스용 ImportSettings
  */
 class SE_CORE_API TextureImportSettings : public IAssetImportSettings
 {

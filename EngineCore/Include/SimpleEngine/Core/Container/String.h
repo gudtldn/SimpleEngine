@@ -266,10 +266,6 @@ public:
      */
     [[nodiscard]] BaseString ToLower(const char* locale = "") const;
 
-    // TODO: ICU4C를 사용하여 대소문자 변환 함수 구현
-    // void ToUpperInline(const char* locale = "");
-    // void ToLowerInline(const char* locale = "");
-
     /**
      * 문자열에 특정 부분 문자열이 포함되어 있는지 확인합니다.
      * @param view 검색할 string_view

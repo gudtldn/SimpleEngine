@@ -6,7 +6,7 @@
 namespace se::core::logging
 {
 /**
- * @todo docs
+ * 표준 출력(stdout/stderr)을 통해 콘솔에 로그를 남기는 Backend 클래스
  */
 class SE_CORE_API ConsoleBackend : public ILogBackend
 {

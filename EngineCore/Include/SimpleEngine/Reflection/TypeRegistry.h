@@ -8,6 +8,10 @@
 
 namespace se::refl
 {
+/**
+ * 런타임 타입 정보(RTTI)를 중앙에서 관리하는 전역 저장소
+ * 컴파일 타임에 수집된 모든 리플렉션 데이터를 런타임에 검색(Look-up)할 수 있게 해줍니다.
+ */
 class SE_CORE_API TypeRegistry
 {
     TypeRegistry() = default;

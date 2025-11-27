@@ -53,7 +53,6 @@ public:
         return nullptr;
     }
 
-    // TODO: Archive를 사용한 직렬화/역직렬화 함수 추가
     friend void Serialize(core::Archive& ar, AssetEntry& entry)
     {
         String virtual_path_str;

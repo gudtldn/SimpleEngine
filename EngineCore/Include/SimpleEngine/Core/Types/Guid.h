@@ -7,7 +7,7 @@
 
 
 /**
- * @todo docs
+ * 128비트 전역 고유 식별자(GUID/UUID) 클래스
  */
 class SE_CORE_API Guid
 {

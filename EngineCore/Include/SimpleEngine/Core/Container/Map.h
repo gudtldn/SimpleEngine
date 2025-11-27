@@ -82,7 +82,12 @@ public:
     /** Map의 모든 요소를 제거합니다. */
     void Clear() noexcept;
 
-    /** TODO: docs */
+    /**
+     * 새로운 요소를 Map에 내부 생성(emplace)하여 추가합니다.
+     * @tparam Args 요소의 생성자에 전달할 인수들의 타입
+     * @param key 삽입할 키
+     * @param args 요소의 생성자에 전달할 인수들
+     */
     template <typename... Args>
     ValueType& Emplace(const KeyType& key, Args&&... args);
 
