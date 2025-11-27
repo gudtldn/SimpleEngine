@@ -72,8 +72,9 @@ void EditorAssetSubsystem::ImportAsset(const std::filesystem::path& physical_pat
 Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std::filesystem::path& physical_path)
 {
     // 지원하는 확장자인지 확인
-    Optional type_opt = asset_manager->GetTypeFromExtension(physical_path.extension());
-    if (!type_opt.HasValue())
+    const StringName ext_name = utility::ToString(physical_path.extension().c_str());
+    Optional info_opt = asset_manager->GetExtensionInfo(ext_name);
+    if (!info_opt.HasValue())
     {
         return std::nullopt;
     }
@@ -85,43 +86,49 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
         return std::nullopt;
     }
 
-    se::asset::AssetEntry entry;
-
-    // TODO: 매번 std::shared_ptr를 만들어서 반환하는거 개선 및 .meta에 저장할 수 있도록
-    entry.import_settings = asset_manager->GetSettingsForType(entry.asset_type);
-
     // .meta 파일 관련
     std::filesystem::path meta_path = physical_path;
     meta_path += ".meta";
 
+    se::asset::AssetEntry entry;
     if (std::filesystem::exists(meta_path))
     {
-        if (auto result = toml::parse_file(meta_path.u8string()))
+        auto result = toml::parse_file(meta_path.u8string());
+        if (!result)
         {
-            core::TomlReader reader{ result.table() };
-            reader << entry;
-        }
-        else
-        {
+            ConsoleLog(ELogLevel::Error, "Failed to parse meta file: {}", meta_path.string());
             return std::nullopt;
         }
+
+        core::TomlReader reader{ result.table() };
+        reader << entry;
     }
     else
     {
         // Entry 정보 추가
         entry.guid = Guid::NewGuid();
-        entry.asset_type = *type_opt;
+        entry.asset_type = info_opt->asset_type;
+        entry.loader_type = info_opt->loader_type;
         entry.virtual_path = std::move(vpath_opt).Value();
+        entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
 
         toml::table table;
         core::TomlWriter writer{ table };
-
         writer << entry;
 
         std::ofstream ofs{ meta_path };
-        ofs << table;
-        ofs.close();
+        if (ofs.is_open())
+        {
+            ofs << table;
+            ofs.close();
+        }
+        else
+        {
+            ConsoleLog(ELogLevel::Error, "Failed to write meta file: {}", meta_path.string());
+            return std::nullopt;
+        }
     }
+
     return entry;
 }
 }

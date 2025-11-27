@@ -26,6 +26,9 @@ struct AssetEntry
     // Asset의 TypeId
     refl::TypeId asset_type;
 
+    // Loader의 TypeId
+    refl::TypeId loader_type;
+
     // "Asset://"으로 시작하는 에셋의 가상 경로
     VPath virtual_path;
 
@@ -61,13 +64,18 @@ public:
             virtual_path_str = entry.virtual_path.ToString();
         }
 
+        // TODO: 저장할 때 버전정보에 따른 로직 추가
+
         ar("guid") << entry.guid;
         ar("asset_type") << entry.asset_type;
+        ar("loader_type") << entry.loader_type;
         ar("virtual_path") << virtual_path_str;
         ar("dependencies") << entry.dependencies;
 
-        // TODO: import_settings (다형성 포인터) 직렬화 로직 필요
-        // ar("settings") << entry.import_settings;
+        if (SE_ENSURE(entry.import_settings, "AssetEntry.import_settings is null"))
+        {
+            ar("settings") << *entry.import_settings;
+        }
 
         if (ar.IsLoading())
         {

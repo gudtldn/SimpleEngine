@@ -4,28 +4,35 @@
 
 namespace se::asset
 {
-IAssetLoader* AssetManager::GetLoaderForType(const refl::TypeId& type_id) const
+Optional<const AssetManager::ExtensionInfo&> AssetManager::GetExtensionInfo(const StringName& extension) const
+{
+    return extension_registry.Find(extension);
+}
+
+IAssetLoader* AssetManager::GetLoaderFromType(const refl::TypeId& type_id) const
 {
     return loaders.Find(type_id).ValueOr(nullptr).get();
 }
 
-std::shared_ptr<IAssetImportSettings> AssetManager::GetSettingsForType(const refl::TypeId& type_id) const
+std::shared_ptr<IAssetImportSettings> AssetManager::CreateDefaultSettingsForFile(const std::filesystem::path& path) const
 {
-    if (Optional factory_opt = settings_factories.Find(type_id))
+    const StringName ext_name = utility::ToString(path.extension().c_str());
+
+    // 레지스트리 조회
+    if (const Optional info_opt = extension_registry.Find(ext_name))
     {
-        return (*factory_opt)();
+        const refl::TypeId& settings_type = info_opt->settings_type;
+        return CreateSettingsFromType(settings_type);
     }
     return nullptr;
 }
 
-Optional<const refl::TypeId&> AssetManager::GetTypeFromExtension(const std::filesystem::path& extension) const
+std::shared_ptr<IAssetImportSettings> AssetManager::CreateSettingsFromType(const refl::TypeId& settings_type) const
 {
-    SE_ASSERT(!extension.empty());
-    return GetTypeFromExtension(utility::ToString(extension.c_str()));
-}
-
-Optional<const refl::TypeId&> AssetManager::GetTypeFromExtension(const StringName& extension) const
-{
-    return extension_to_type_map.Find(extension);
+    if (const Optional settings_ptr_opt = settings_prototypes.Find(settings_type))
+    {
+        return (*settings_ptr_opt)->Clone();
+    }
+    return nullptr;
 }
 }

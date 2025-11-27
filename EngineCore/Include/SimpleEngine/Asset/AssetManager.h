@@ -49,6 +49,8 @@ struct AssetSlot
  */
 class SE_CORE_API AssetManager
 {
+    struct ExtensionInfo;
+
 public:
     AssetManager() = default;
     ~AssetManager() = default;
@@ -91,14 +93,28 @@ public:
     std::shared_ptr<T> LoadSynchronous(const AssetHandle<T>& in_handle);
 
 public:
-    [[nodiscard]] IAssetLoader* GetLoaderForType(const refl::TypeId& type_id) const;
-    [[nodiscard]] std::shared_ptr<IAssetImportSettings> GetSettingsForType(const refl::TypeId& type_id) const;
-    [[nodiscard]] Optional<const refl::TypeId&> GetTypeFromExtension(const std::filesystem::path& extension) const;
-    [[nodiscard]] Optional<const refl::TypeId&> GetTypeFromExtension(const StringName& extension) const;
+    [[nodiscard]] Optional<const ExtensionInfo&> GetExtensionInfo(const StringName& extension) const;
+    [[nodiscard]] IAssetLoader* GetLoaderFromType(const refl::TypeId& type_id) const;
+    [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateDefaultSettingsForFile(const std::filesystem::path& path) const;
+    [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateSettingsFromType(const refl::TypeId& settings_type) const;
 
 private:
     template <typename T>
     concurrency::Task<std::shared_ptr<T>> LoadInternal(const Guid& in_guid);
+
+private:
+    // 확장자별 등록 정보를 담는 구조체
+    struct ExtensionInfo
+    {
+        refl::TypeId asset_type;    // 생성될 에셋 타입 (예: Texture2D)
+        refl::TypeId loader_type;   // 사용할 로더 타입 (예: Texture2DLoader)
+        refl::TypeId settings_type; // 사용할 설정 타입 (예: TextureImportSettings)
+    };
+
+    HashMap<StringName, ExtensionInfo> extension_registry;
+
+    HashMap<refl::TypeId, std::unique_ptr<IAssetLoader>> loaders;
+    HashMap<refl::TypeId, std::shared_ptr<IAssetImportSettings>> settings_prototypes;
 
 private:
     AssetRegistry registry;
@@ -106,10 +122,6 @@ private:
     // 로드된 에셋의 중앙 캐시
     TracyLockable(std::mutex, slots_mutex);
     HashMap<Guid, AssetSlot> asset_slots;
-
-    HashMap<refl::TypeId, std::unique_ptr<IAssetLoader>> loaders;
-    HashMap<refl::TypeId, Function<std::shared_ptr<IAssetImportSettings>()>> settings_factories;
-    HashMap<StringName, refl::TypeId> extension_to_type_map;
 };
 
 template <typename AssetType, typename LoaderType, typename SettingsType>
@@ -118,21 +130,26 @@ template <typename AssetType, typename LoaderType, typename SettingsType>
     && std::derived_from<SettingsType, IAssetImportSettings>
 void AssetManager::RegisterLoader(const StringName& extension)
 {
-    const refl::TypeId type_id = refl::TypeId::Get<AssetType>();
-    extension_to_type_map.Emplace(extension, type_id);
-    loaders.Entry(type_id).OrInsert(std::make_unique<LoaderType>());
+    const refl::TypeId asset_type = refl::TypeId::Get<AssetType>();
+    const refl::TypeId loader_type = refl::TypeId::Get<LoaderType>();
+    const refl::TypeId settings_type = refl::TypeId::Get<SettingsType>();
 
-    settings_factories.Entry(type_id).OrInsert([] -> std::shared_ptr<IAssetImportSettings>
+    // Extension Registry에 통합 정보 저장
+    ExtensionInfo info = {
+        .asset_type = asset_type,
+        .loader_type = loader_type,
+        .settings_type = settings_type,
+    };
+    extension_registry.Emplace(extension, info);
+
+    // Loader 인스턴스 생성 (로더는 타입별로 하나만 있으면 됨)
+    loaders.Entry(loader_type).OrInsert(std::make_unique<LoaderType>());
+
+    // Settings Prototypes 등록
+    if constexpr (!std::same_as<SettingsType, DefaultImportSettings>)
     {
-        if constexpr (std::same_as<SettingsType, DefaultImportSettings>)
-        {
-            return nullptr;
-        }
-        else
-        {
-            return std::make_shared<SettingsType>();
-        }
-    });
+        settings_prototypes.Entry(settings_type).OrInsert(std::make_shared<SettingsType>());
+    }
 }
 
 template <typename T, typename Fn>
@@ -223,8 +240,8 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
     SE_ASSERT(entry_opt, "Asset not found in registry: {}", in_guid.ToString());
 
     // Type에 맞는 Loader 가져오기
-    IAssetLoader* loader = GetLoaderForType(entry_opt->asset_type);
-    SE_ASSERT(loader, "No loader registered for asset type: {}", entry_opt->asset_type.GetName());
+    IAssetLoader* loader = GetLoaderFromType(entry_opt->loader_type);
+    SE_ASSERT(loader, "No loader registered for asset type: {}", entry_opt->loader_type.GetName());
 
     // vpath로부터 실제 경로 가져오기
     auto physical_path_opt = utility::PathResolver::Get().Resolve(entry_opt->virtual_path, false);
