@@ -4,6 +4,24 @@
 
 namespace se::asset
 {
+/** 텍스처 압축 포맷 */
+enum class ETextureCompression : uint8
+{
+    None = 0, // 압축 안 함 (RGBA8)
+    BC1,      // DXT1 (RGB, 1-bit Alpha)
+    BC3,      // DXT5 (RGBA, Interpolated Alpha)
+    BC4,      // Grayscale (R channel only)
+    BC5,      // Normal Map (RG channels)
+    BC7,      // High Quality RGBA
+};
+
+/** 필터링 모드 */
+enum class ETextureFilter : uint8
+{
+    Nearest, // 도트(픽셀) 느낌
+    Linear,  // 부드럽게
+};
+
 /**
  * 텍스처 리소스용 ImportSettings
  */
@@ -15,11 +33,16 @@ public:
     bool is_srgb = true;       // Color(true) vs Data(false)
     bool generate_mips = true; // 밉맵 생성 여부
 
+    ETextureCompression compression = ETextureCompression::BC7;
+    ETextureFilter filter = ETextureFilter::Linear;
+
 public:
     virtual void Serialize(core::Archive& ar) override
     {
         ar("is_srgb") << is_srgb;
         ar("generate_mips") << generate_mips;
+        ar("compression") << compression;
+        ar("filter") << filter;
     }
 };
 }
