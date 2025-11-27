@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Reflection/TypeId.h"
 
 
 namespace se::asset
@@ -12,5 +13,38 @@ class SE_CORE_API IAssetImportSettings
 {
 public:
     virtual ~IAssetImportSettings() = default;
+
+    /** 현재 ImportSettings를 깊은 복사 합니다. */
+    [[nodiscard]] virtual std::shared_ptr<IAssetImportSettings> Clone() const = 0;
+
+    /** 현재 ImportSettings의 TypeId를 반환합니다. */
+    [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;
+
+    /** ImportSettings를 Archive로 직렬화합니다. */
+    virtual void Serialize(core::Archive& ar) = 0;
+
+public:
+    friend void Serialize(core::Archive& ar, IAssetImportSettings& settings)
+    {
+        settings.Serialize(ar);
+    }
+};
+
+template <typename Derived>
+class AssetImportSettingsBase : public IAssetImportSettings
+{
+protected:
+    AssetImportSettingsBase() = default;
+
+public:
+    [[nodiscard]] virtual std::shared_ptr<IAssetImportSettings> Clone() const override
+    {
+        return std::make_shared<Derived>(static_cast<const Derived&>(*this));
+    }
+
+    [[nodiscard]] virtual refl::TypeId GetTypeId() const override final
+    {
+        return refl::TypeId::Get<Derived>();
+    }
 };
 }
