@@ -1,17 +1,14 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
-#include "SimpleEngine/Core/Interfaces/IUpdatable.h"
-#include "SimpleEngine/Reflection/SubsystemRegistration.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/World/World.h"
 
 
 /**
  *
  */
-class SE_CORE_API WorldSubsystem : public se::core::ISubsystem<>, public se::core::IUpdatable
+class SE_CORE_API WorldSubsystem : public se::core::ISubsystem, public se::core::IUpdatable
 {
-    SE_REGISTER_SUBSYSTEM(WorldSubsystem)
-
 public:
     //~ Begin ISubsystem
     [[nodiscard]] virtual bool Initialize() override;

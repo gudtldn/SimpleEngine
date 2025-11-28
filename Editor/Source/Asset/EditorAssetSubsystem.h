@@ -1,14 +1,13 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Asset/AssetSubsystem.h"
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 
 namespace se::editor::asset
 {
-class EditorAssetSubsystem : public core::ISubsystem<AssetSubsystem>
+class EditorAssetSubsystem : public core::ISubsystem
 {
-    SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
-
 public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;

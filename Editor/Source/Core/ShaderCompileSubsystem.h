@@ -1,16 +1,12 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
-#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
-#include "SimpleEngine/Reflection/SubsystemRegistration.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 
 /**
  * @todo docs
  */
-class ShaderCompileSubsystem : public se::core::ISubsystem<PlatformSubsystem>
+class ShaderCompileSubsystem : public se::core::ISubsystem
 {
-    SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
-
 public:
     //~ Begin ISubsystem
     [[nodiscard]] virtual bool Initialize() override;

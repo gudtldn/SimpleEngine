@@ -7,8 +7,7 @@
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Event/EventDispatcher.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
-#include "SimpleEngine/Reflection/SubsystemRegistration.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 #include "SDL3/SDL.h"
 
@@ -45,10 +44,8 @@ struct WindowCreateError
     static WindowCreateError SwapchainSetup(se::String&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
 };
 
-class SE_CORE_API PlatformSubsystem : public se::core::ISubsystem<>
+class SE_CORE_API PlatformSubsystem : public se::core::ISubsystem
 {
-    SE_REGISTER_SUBSYSTEM(PlatformSubsystem)
-
 public:
     /**
      * PlatformSubsystem을 새로 생성합니다.

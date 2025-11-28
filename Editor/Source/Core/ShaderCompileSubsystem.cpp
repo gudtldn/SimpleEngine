@@ -1,6 +1,12 @@
 ﻿#include "Core/ShaderCompileSubsystem.h"
+#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+
 #include "SDL3_shadercross/SDL_shadercross.h"
 
+
+SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
+    .DependsOn<PlatformSubsystem>();
 
 bool ShaderCompileSubsystem::Initialize()
 {

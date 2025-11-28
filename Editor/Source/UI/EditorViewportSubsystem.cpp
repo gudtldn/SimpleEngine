@@ -1,8 +1,14 @@
 ﻿#include "UI/EditorViewportSubsystem.h"
 
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
+
 
 namespace se::editor::ui
 {
+SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
+    .DependsOn<RenderSubsystem>();
+
 bool EditorViewportSubsystem::Initialize()
 {
     gpu_device = GetSubsystem<RenderSubsystem>()->GetGpuDevice();

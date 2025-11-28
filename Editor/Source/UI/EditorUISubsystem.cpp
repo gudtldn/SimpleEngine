@@ -5,20 +5,26 @@
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
 #include "Panels/ViewportPanel.h"
+#include "SimpleEngine/App/Application.h"
+#include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Core/HAL/FileDialog.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/PathResolver.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
-#include "SimpleEngine/Asset/AssetSubsystem.h"
-#include "SimpleEngine/Core/HAL/FileDialog.h"
 
 using namespace se::core::event;
 
 
 namespace se::editor::ui
 {
+SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
+    .DependsOn<PlatformSubsystem, RenderSubsystem>();
+
 bool EditorUISubsystem::Initialize()
 {
     const auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, const RenderSubsystem>();
@@ -169,7 +175,7 @@ void EditorUISubsystem::DrawMainMenu()
         {
             if (ImGui::MenuItem("Spawn Entity"))
             {
-                if (const WorldSubsystem* world_subsystem = utility::GetSubsystemUnchecked<WorldSubsystem>())
+                if (const WorldSubsystem* world_subsystem = GetSubsystem<WorldSubsystem>())
                 {
                     world::World* world = world_subsystem->GetWorld();
                     world->SpawnEntity();

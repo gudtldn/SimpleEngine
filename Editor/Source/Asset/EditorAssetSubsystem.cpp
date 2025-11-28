@@ -1,16 +1,21 @@
 ﻿#include "Asset/EditorAssetSubsystem.h"
 
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/StringUtils.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 namespace fs = std::filesystem;
 
 
 namespace se::editor::asset
 {
+SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
+    .DependsOn<se::asset::AssetSubsystem>();
+
 bool EditorAssetSubsystem::Initialize()
 {
-    asset_manager = std::addressof(GetSubsystem<AssetSubsystem>()->GetAssetManager());
+    asset_manager = &GetSubsystemChecked<se::asset::AssetSubsystem>().GetAssetManager();
     SE_ASSERT(asset_manager != nullptr);
 
     // TODO: 캐시 불러오는 로직

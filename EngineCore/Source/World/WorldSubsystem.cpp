@@ -1,8 +1,12 @@
 ﻿#include "World/WorldSubsystem.h"
+
+#include "Core/Subsystem/SubsystemRegistration.h"
 #include "World/World.h"
 
 using namespace se::world;
 
+
+SE_REGISTER_SUBSYSTEM(WorldSubsystem);
 
 bool WorldSubsystem::Initialize()
 {

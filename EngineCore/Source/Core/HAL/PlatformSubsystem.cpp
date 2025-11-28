@@ -2,7 +2,9 @@
 
 #include <ranges>
 
+#include "Core/Subsystem/SubsystemRegistration.h"
 #include "Gfx/RenderSubsystem.h"
+#include "Utility/SubsystemUtils.h"
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_gpu.h"
@@ -10,6 +12,8 @@
 using namespace se::core::event;
 using namespace se::utility;
 
+
+SE_REGISTER_SUBSYSTEM(PlatformSubsystem);
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     : sdl_init_flags(in_sdl_init_flags)
@@ -120,7 +124,7 @@ Expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const 
     const SDL_WindowID new_window_id = SDL_GetWindowID(new_window);
     RegisterWindow(new_window_id, new_window);
 
-    if (const RenderSubsystem* render_subsystem = GetSubsystemUnchecked<const RenderSubsystem>())
+    if (const RenderSubsystem* render_subsystem = se::GetSubsystem<const RenderSubsystem>())
     {
         if (SDL_GPUDevice* device = render_subsystem->GetGpuDevice())
         {
@@ -160,7 +164,7 @@ bool PlatformSubsystem::DestroyWindow(SDL_WindowID window_id)
         return false;
     }
 
-    if (const RenderSubsystem* render_subsystem = GetSubsystemUnchecked<const RenderSubsystem>())
+    if (const RenderSubsystem* render_subsystem = se::GetSubsystem<const RenderSubsystem>())
     {
         if (SDL_GPUDevice* device = render_subsystem->GetGpuDevice())
         {

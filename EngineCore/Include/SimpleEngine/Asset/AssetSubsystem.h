@@ -1,16 +1,16 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Asset/AssetManager.h"
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
-#include "SimpleEngine/Reflection/SubsystemRegistration.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 
-/**
- *
- */
-class SE_CORE_API AssetSubsystem : public se::core::ISubsystem<>
+namespace se::asset
 {
-    SE_REGISTER_SUBSYSTEM(AssetSubsystem)
-
+/**
+ * @todo docs
+ */
+class SE_CORE_API AssetSubsystem : public se::core::ISubsystem
+{
 public:
     //~ Begin ISubsystem
     [[nodiscard]] virtual bool Initialize() override;
@@ -18,8 +18,9 @@ public:
     //~ End ISubsystem
 
 public:
-    [[nodiscard]] se::asset::AssetManager& GetAssetManager() const { return *asset_manager; }
+    [[nodiscard]] AssetManager& GetAssetManager() const { return *asset_manager; }
 
 private:
-    std::unique_ptr<se::asset::AssetManager> asset_manager;
+    std::unique_ptr<AssetManager> asset_manager;
 };
+}
