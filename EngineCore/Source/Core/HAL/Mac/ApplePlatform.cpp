@@ -1,11 +1,14 @@
 #include "Core/HAL/Platform.h"
 
 #if SE_PLATFORM_MACOS
+#include <cstdlib>
 #include <string_view>
 #include <pthread.h>
 #include <string.h>
 
+#include "Core/Logging/Logging.h"
 #include "Utility/StringUtils.h"
+#include "Utility/Debug.h"
 
 
 namespace se::platform
@@ -55,6 +58,20 @@ std::filesystem::path GetExecutableDirectory()
         }.parent_path();
     }
     return {};
+}
+
+void RevealInExplorer(const std::filesystem::path& path)
+{
+    if (!std::filesystem::exists(path))
+    {
+        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path.string());
+        return;
+    }
+
+    const std::filesystem::path absolute_path = std::filesystem::absolute(path);
+
+    std::string command = "open -R \"" + absolute_path.string() + "\"";
+    std::system(command.c_str());
 }
 }
 #endif

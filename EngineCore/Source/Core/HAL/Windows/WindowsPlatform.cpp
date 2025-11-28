@@ -6,7 +6,9 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <shellapi.h>
 
+#include "Core/Logging/Logging.h"
 #include "Utility/StringUtils.h"
 
 
@@ -77,6 +79,27 @@ std::filesystem::path GetExecutableDirectory()
     wchar_t path[MAX_PATH] = {};
     GetModuleFileNameW(nullptr, path, MAX_PATH);
     return std::filesystem::path{ path }.parent_path();
+}
+
+void RevealInExplorer(const std::filesystem::path& path)
+{
+    if (!std::filesystem::exists(path))
+    {
+        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path.string());
+        return;
+    }
+
+    const std::filesystem::path absolute_path = std::filesystem::absolute(path);
+    if (std::filesystem::is_directory(absolute_path))
+    {
+        ShellExecuteW(nullptr, L"explore", absolute_path.c_str(), nullptr, nullptr, SW_SHOWDEFAULT);
+    }
+    else
+    {
+        // 파일인 경우: explorer.exe /select,"C:\Path\To\File.txt"
+        const std::wstring param = L"/select,\"" + absolute_path.wstring() + L"\"";
+        ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
+    }
 }
 }
 #endif
