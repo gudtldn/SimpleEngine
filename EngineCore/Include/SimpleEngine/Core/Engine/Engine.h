@@ -1,13 +1,10 @@
 ﻿#pragma once
 #include <concepts>
 #include <memory>
-#include <utility>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Reflection/TypeId.h"
-#include "SimpleEngine/Reflection/TypeSignature.h"
 
 
 namespace se::concurrency
@@ -19,7 +16,7 @@ class ThreadPool;
 namespace se::core
 {
 class IUpdatable;
-class ISubsystemBase;
+class ISubsystem;
 
 /**
  * 엔진의 핵심 기능을 담당하는 클래스입니다.
@@ -36,6 +33,8 @@ public:
     Engine(Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
+    static Engine& Get();
+
 public:
     /**
      * 전역 레지스트리에 자동 등록된 서브시스템들을 엔진에 로드합니다.
@@ -48,22 +47,11 @@ public:
     void LoadRegisteredSubsystems();
 
     /**
-     * Subsystem을 엔진에 등록합니다.
-     *
-     * @tparam T 등록할 서브시스템의 타입입니다. 반드시 ISubsystem을 상속받아야 합니다.
-     * @param args Subsystem의 생성자에 전달될 인자들
-     * @return 새로 생성된 T 타입의 서브시스템 포인터, 또는 이미 등록된 경우 해당 서브시스템의 포인터를 반환합니다.
-     */
-    template <typename T, typename... Args>
-        requires std::derived_from<T, ISubsystemBase>
-    T* RegisterSubsystem(Args&&... args);
-
-    /**
      * 등록된 Subsystem을 가져옵니다.
      * @return 등록된 T 타입의 Subsystem 포인터. 없을 경우 nullptr를 반환합니다.
      */
     template <typename T>
-        requires std::derived_from<T, ISubsystemBase>
+        requires std::derived_from<T, ISubsystem>
     [[nodiscard]] T* GetSubsystem() const;
 
 public:
@@ -92,11 +80,13 @@ private:
     [[nodiscard]] bool SortSubsystems();
 
 private:
+    static Engine* Instance;
+
     // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
-    HashMap<refl::TypeId, std::unique_ptr<ISubsystemBase>> subsystems;
+    HashMap<refl::TypeId, std::unique_ptr<ISubsystem>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
-    Array<ISubsystemBase*> sorted_subsystems;
+    Array<ISubsystem*> sorted_subsystems;
 
     // Update가 필요한 Subsystem 목록
     Array<IUpdatable*> updatable_systems;
@@ -105,32 +95,8 @@ private:
 };
 
 
-template <typename T, typename... Args>
-    requires std::derived_from<T, ISubsystemBase>
-T* Engine::RegisterSubsystem(Args&&... args)
-{
-    const auto type_id = refl::TypeId::Get<T>();
-    if (Optional subsystem = subsystems.Find(type_id))
-    {
-        return static_cast<T*>(subsystem->get());
-    }
-
-    auto sub_system = std::make_unique<T>(std::forward<Args>(args)...);
-    T* sub_system_ptr = sub_system.get();
-
-    subsystems[type_id] = std::move(sub_system);
-
-    if constexpr (std::derived_from<T, IUpdatable>)
-    {
-        updatable_systems.Push(static_cast<IUpdatable*>(sub_system_ptr));
-    }
-
-    ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", refl::GetTypeSignature<T>());
-    return sub_system_ptr;
-}
-
 template <typename T>
-    requires std::derived_from<T, ISubsystemBase>
+    requires std::derived_from<T, ISubsystem>
 T* Engine::GetSubsystem() const
 {
     const auto type_id = refl::TypeId::Get<T>();
