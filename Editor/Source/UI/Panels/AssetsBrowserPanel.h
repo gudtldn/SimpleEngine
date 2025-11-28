@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "IEditorPanel.h"
+#include "UI/Panels/IEditorPanel.h"
 
 
 namespace se::editor::ui
@@ -19,12 +19,14 @@ protected:
 protected:
     [[nodiscard]] static bool HasSubDirectories(const std::filesystem::path& path);
 
-    [[nodiscard]] const std::filesystem::path& GetSelectedDirPath() const noexcept { return selected_dir_path; }
-    void SetSelectedDirPath(const std::filesystem::path& new_path) noexcept { selected_dir_path = new_path; }
+    [[nodiscard]] const std::filesystem::path& GetSelectedDirPath() const noexcept;
+    void SetSelectedDirPath(const std::filesystem::path& new_path) noexcept;
 
 private:
     void RenderDirectoryTreeRecursive(const std::filesystem::path& path);
     void DrawDirectoryContextMenu(const std::filesystem::path& path);
+
+    void DrawFileContextMenu(const std::filesystem::path& path);
 
 private:
     std::filesystem::path selected_dir_path;

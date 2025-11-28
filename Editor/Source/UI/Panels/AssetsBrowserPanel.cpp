@@ -1,4 +1,6 @@
 ﻿#include "UI/Panels/AssetsBrowserPanel.h"
+#include <compare>
+
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
@@ -6,6 +8,24 @@
 
 namespace fs = std::filesystem;
 
+namespace
+{
+struct AssetItem
+{
+    fs::path path;
+    se::String name;
+    bool is_directory;
+
+    std::strong_ordering operator<=>(const AssetItem& other) const noexcept
+    {
+        if (is_directory == other.is_directory)
+        {
+            return is_directory <=> other.is_directory;
+        }
+        return name <=> other.name;
+    }
+};
+}
 
 namespace se::editor::ui
 {
@@ -97,7 +117,124 @@ void AssetsBrowserPanel::DrawAssetTree()
 
 void AssetsBrowserPanel::DrawAssetGrid()
 {
-    SE_TODO("AssetsBrowserPanel::DrawAssetGrid 구현하기"); // TODO: AssetsBrowserPanel::DrawAssetGrid 구현하기
+    const fs::path current_path = GetSelectedDirPath();
+
+    // 경로 유효성 검사
+    if (current_path.empty() || !fs::exists(current_path))
+    {
+        return;
+    }
+
+    // 그리드 레이아웃 설정 | TODO: 나중에 따로 설정으로 빼놓기
+    static float padding = 16.0f;
+    static float thumbnail_size = 64.0f;
+    const float cell_size = thumbnail_size + padding;
+
+    const float panel_width = ImGui::GetContentRegionAvail().x;
+    const int column_count = std::max(static_cast<int>(panel_width / cell_size), 1);
+
+    // 파일 목록 수집
+    Array<AssetItem> items;
+    std::error_code ec;
+    for (const auto& entry : fs::directory_iterator(current_path, ec))
+    {
+        if (ec)
+        {
+            continue;
+        }
+
+        // .meta 파일 숨기기
+        if (entry.path().extension() == ".meta")
+        {
+            continue;
+        }
+
+        items.Push({
+            .path = entry.path(),
+            .name = utility::ToString(entry.path().filename().c_str()),
+            .is_directory = entry.is_directory()
+        });
+    }
+
+    // Item 정렬
+    std::sort(items.begin(), items.end());
+
+    // 테이블(그리드) 그리기
+    if (ImGui::BeginTable("AssetGridTable", column_count))
+    {
+        for (const AssetItem& item : items)
+        {
+            ImGui::TableNextColumn();
+            ImGui::PushID(item.name.CStr());
+
+            // 스타일링: 아이콘처럼 보이게 큰 버튼 사용
+            // TODO: 나중에 실제 아이콘 텍스처(folder_icon, file_icon)로 교체 필요
+            // ImGui::ImageButton(...)
+
+            // 폴더/파일 색상 구분 (임시)
+            ImGui::PushStyleColor(
+                ImGuiCol_Button,
+                item.is_directory
+                    ? ImVec4(0.8f, 0.7f, 0.3f, 0.5f)
+                    : ImVec4(0.3f, 0.5f, 0.8f, 0.5f)
+            );
+
+            // 버튼 그리기 (썸네일)
+            if (ImGui::Button(item.is_directory ? "[Dir]" : "[File]", ImVec2(thumbnail_size, thumbnail_size)))
+            {
+                // 싱글 클릭: 선택 처리 (필요시)
+            }
+            ImGui::PopStyleColor();
+
+            // Drag & Drop Source (파일인 경우)
+            if (!item.is_directory && ImGui::BeginDragDropSource())
+            {
+                // 텍스처 등 에셋 로딩을 위해 경로 전달
+                const String item_path = utility::ToString(item.path.c_str());
+                ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", item_path.CStr(), item_path.ByteLen() + 1);
+                ImGui::Text("%s", item.name.CStr()); // 드래그 중 힌트
+                ImGui::EndDragDropSource();
+            }
+
+            // 더블 클릭 처리
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            {
+                if (item.is_directory)
+                {
+                    SetSelectedDirPath(item.path);
+                }
+                else
+                {
+                    // 파일 열기 (임시: 로그 출력)
+                    // TODO: AssetEditor 등을 열거나 외부 프로그램 연결
+                    ConsoleLog(ELogLevel::Info, "Open File: {}", item.name);
+                }
+            }
+
+            // 우클릭 컨텍스트 메뉴
+            if (ImGui::BeginPopupContextItem())
+            {
+                if (item.is_directory)
+                {
+                    DrawDirectoryContextMenu(item.path);
+                }
+                else
+                {
+                    DrawFileContextMenu(item.path);
+                }
+                ImGui::EndPopup();
+            }
+
+            // 파일 이름 텍스트 (가운데 정렬, 래핑)
+            // 텍스트가 썸네일 너비를 넘어가면 줄바꿈
+            ImGui::PushItemWidth(thumbnail_size);
+            ImGui::TextWrapped("%s", item.name.CStr());
+            ImGui::PopItemWidth();
+
+            ImGui::PopID();
+        }
+        ImGui::EndTable();
+    }
 }
 
 bool AssetsBrowserPanel::HasSubDirectories(const fs::path& path)
@@ -112,6 +249,16 @@ bool AssetsBrowserPanel::HasSubDirectories(const fs::path& path)
         }
         return entry.is_directory();
     });
+}
+
+const std::filesystem::path& AssetsBrowserPanel::GetSelectedDirPath() const noexcept
+{
+    return selected_dir_path;
+}
+
+void AssetsBrowserPanel::SetSelectedDirPath(const std::filesystem::path& new_path) noexcept
+{
+    selected_dir_path = new_path;
 }
 
 void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
@@ -184,6 +331,38 @@ void AssetsBrowserPanel::DrawDirectoryContextMenu(const std::filesystem::path& p
     {
         // TODO: 폴더 생성 로직
         ConsoleLog(ELogLevel::Info, "Create new folder at: {}", path.string());
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Show in Explorer"))
+    {
+        ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path.string());
+        platform::RevealInExplorer(path);
+    }
+}
+
+void AssetsBrowserPanel::DrawFileContextMenu(const std::filesystem::path& path)
+{
+    ImGui::TextDisabled("%s", utility::ToString(path.filename().c_str()).CStr());
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Open"))
+    {
+        // TODO: 에셋 타입에 맞는 에디터 열기
+        ConsoleLog(ELogLevel::Info, "Opening asset: {}", path.string());
+    }
+
+    if (ImGui::MenuItem("Delete"))
+    {
+        // TODO: 삭제 확인 팝업 후 삭제 로직
+        ConsoleLog(ELogLevel::Warning, "Delete requested: {}", path.string());
+        // fs::remove(path); // 위험하므로 실제 구현 시 주의
+    }
+
+    if (ImGui::MenuItem("Rename"))
+    {
+        // TODO: 이름 변경 로직
     }
 
     ImGui::Separator();
