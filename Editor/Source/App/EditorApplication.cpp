@@ -7,6 +7,7 @@
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Utility/Config.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
 #include "UI/EditorUISubsystem.h"
 #include "UI/EditorViewportSubsystem.h"
@@ -22,7 +23,7 @@ void EditorApplication::RegisterSubsystems()
     Application::RegisterSubsystems();
 
     // Window 초기화
-    if (PlatformSubsystem* platform_subsystem = se::utility::GetSubsystemUnchecked<PlatformSubsystem>())
+    if (PlatformSubsystem* platform_subsystem = se::GetSubsystem<PlatformSubsystem>())
     {
         using namespace se::utility;
 
@@ -64,7 +65,7 @@ bool EditorApplication::PostInitialize()
         using namespace se::rendering;
         using namespace se::editor::rendering;
 
-        const RenderSubsystem* render_subsystem = se::utility::GetSubsystemUnchecked<RenderSubsystem>();
+        const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
         PSOManager& pso_manager = render_subsystem->GetPSOManager();
         pso_manager.SetShaderCacheProvider<CompilingShaderProvider>();
     }
@@ -76,13 +77,13 @@ void EditorApplication::Render()
 {
     Application::Render();
 
-    const RenderSubsystem* render_subsystem = se::utility::GetSubsystemUnchecked<RenderSubsystem>();
+    const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
     {
         using namespace se::editor::ui;
         using namespace se::editor::rendering;
 
         const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
-            se::utility::GetSubsystemsUnchecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
+            se::GetSubsystems<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
         se::world::World& world_ref = *world_subsystem->GetWorld();
         se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
