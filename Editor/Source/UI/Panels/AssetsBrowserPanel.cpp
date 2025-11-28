@@ -190,9 +190,8 @@ void AssetsBrowserPanel::DrawDirectoryContextMenu(const std::filesystem::path& p
 
     if (ImGui::MenuItem("Show in Explorer"))
     {
-        // 플랫폼 별 탐색기 열기 (ShellExecute 등)
-        // se::core::Platform::RevealInExplorer(path); 구현 필요
         ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path.string());
+        platform::RevealInExplorer(path);
     }
 }
 }
