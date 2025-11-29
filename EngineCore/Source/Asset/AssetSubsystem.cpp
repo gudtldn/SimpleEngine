@@ -3,9 +3,13 @@
 #include "Asset/ImportSettings/TextureImportSettings.h"
 #include "Asset/Loaders/Texture2DLoader.h"
 #include "Asset/Types/Texture2D.h"
+#include "Core/Subsystem/SubsystemRegistration.h"
 
-using namespace se::asset;
 
+
+namespace se::asset
+{
+SE_REGISTER_SUBSYSTEM(AssetSubsystem);
 
 bool AssetSubsystem::Initialize()
 {
@@ -23,4 +27,5 @@ void AssetSubsystem::Release()
 {
     ConsoleLog(ELogLevel::Info, "Releasing Asset subsystem...");
     asset_manager.reset();
+}
 }

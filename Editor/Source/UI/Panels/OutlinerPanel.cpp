@@ -3,6 +3,7 @@
 #include "UI/EditorUISubsystem.h"
 #include "SimpleEngine/World/Query.h"
 #include "SimpleEngine/World/WorldSubsystem.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 
@@ -18,7 +19,7 @@ void OutlinerPanel::Draw()
 {
     ImGui::Begin(GetName(), &is_visible);
     {
-        WorldSubsystem* world_subsystem = utility::GetSubsystemUnchecked<WorldSubsystem>();
+        WorldSubsystem* world_subsystem = GetSubsystem<WorldSubsystem>();
         if (!world_subsystem)
         {
             return;

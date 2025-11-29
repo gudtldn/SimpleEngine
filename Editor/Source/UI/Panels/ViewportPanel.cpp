@@ -1,6 +1,6 @@
 ﻿#include "UI/Panels/ViewportPanel.h"
 #include "UI/EditorViewportSubsystem.h"
-#include "SimpleEngine/Gfx/RenderSubsystem.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 
@@ -22,7 +22,7 @@ void ViewportPanel::Draw()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin(GetName(), &is_visible);
     {
-        if (EditorViewportSubsystem* viewport_sys = utility::GetSubsystemUnchecked<EditorViewportSubsystem>())
+        if (EditorViewportSubsystem* viewport_sys = GetSubsystem<EditorViewportSubsystem>())
         {
             const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
             const uint32 width = static_cast<uint32>(viewport_size.x);

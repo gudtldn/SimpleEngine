@@ -9,10 +9,11 @@
 #include "Core/Container/Array.h"
 #include "Core/Container/HashMap.h"
 #include "Core/Container/Queue.h"
-#include "Core/Interfaces/ISubsystemBase.h"
-#include "Core/Interfaces/IUpdatable.h"
+#include "Core/Logging/Logging.h"
+#include "Core/Subsystem/ISubsystem.h"
+#include "Core/Subsystem/IUpdatable.h"
+#include "Core/Subsystem/SubsystemRegistration.h"
 #include "Gfx/RenderSubsystem.h"
-#include "Reflection/SubsystemRegistration.h"
 #include "Utility/PathResolver.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -23,8 +24,13 @@ using namespace se::utility;
 
 namespace se::core
 {
+Engine* Engine::Instance = nullptr;
+
 Engine::Engine()
 {
+    SE_ASSERT(!Instance, "Engine instance already exists.");
+    Instance = this;
+
     PathResolver& path_resolver = PathResolver::Get();
 
     // TODO: Shipping일 때 GetExecutableDirectory로 수정해야함!!!
@@ -40,28 +46,39 @@ Engine::Engine()
     path_resolver.Mount("EditorShader", solution_path / "Editor/Shaders");
 }
 
-Engine::~Engine() = default;
+Engine::~Engine()
+{
+    SE_ASSERT(Instance == this, "Engine instance is not initialized.");
+    Instance = nullptr;
+}
+
+Engine& Engine::Get()
+{
+    SE_ASSERT(Instance, "Engine instance is not initialized.");
+    return *Instance;
+}
 
 void Engine::LoadRegisteredSubsystems()
 {
     auto& registry = details::SubsystemRegistry::GetInstance();
-    for (const auto& [type_id, metadata] : registry.factories)
+    for (const auto& [type_id, metadata] : registry.GetMetadataMap())
     {
         if (subsystems.Contains(type_id))
         {
             continue;
         }
 
-        std::unique_ptr<ISubsystemBase> subsystem = metadata.factory();
-        if (metadata.is_updatable)
+        if (std::unique_ptr<ISubsystem> subsystem = metadata.factory())
         {
-            updatable_systems.Push(dynamic_cast<IUpdatable*>(subsystem.get()));
-        }
-        subsystems[type_id] = std::move(subsystem);
+            if (IUpdatable* updatable = dynamic_cast<IUpdatable*>(subsystem.get()))
+            {
+                updatable_systems.Push(updatable);
+            }
 
-        ConsoleLog(ELogLevel::Debug, "Registered Subsystem: {}", type_id.GetName());
+            subsystems.Emplace(type_id, std::move(subsystem));
+            ConsoleLog(ELogLevel::Debug, "Instantiated Subsystem: {}", type_id.GetName());
+        }
     }
-    registry.factories.Clear();
 }
 
 bool Engine::Initialize()
@@ -105,7 +122,7 @@ bool Engine::InitializeAllSubsystems()
             ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", typeid(*sub_system).name());
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
-            for (ISubsystemBase* rev_subsystem : subrange | std::views::reverse)
+            for (ISubsystem* rev_subsystem : subrange | std::views::reverse)
             {
                 rev_subsystem->Release();
             }
@@ -126,7 +143,7 @@ void Engine::ReleaseAllSubsystems()
         SDL_WaitForGPUIdle(render_subsystem->GetGpuDevice());
     }
 
-    for (ISubsystemBase* sub_system : sorted_subsystems | std::views::reverse)
+    for (ISubsystem* sub_system : sorted_subsystems | std::views::reverse)
     {
         sub_system->Release();
     }
@@ -184,9 +201,10 @@ bool Engine::SortSubsystems()
         adj_list[type_id] = {}; // 인접 리스트 초기화
     }
 
-    for (const auto& [type_id, sub_system] : subsystems)
+    auto& registry = details::SubsystemRegistry::GetInstance();
+    for (const auto& type_id : subsystems | std::views::keys)
     {
-        for (const auto& dependency_id : sub_system->GetDependencies())
+        for (const refl::TypeId& dependency_id : registry.GetMetadata(type_id).dependencies)
         {
             // A가 B에 의존한다면 (A -> B), B에서 A로 가는 간선을 추가
             // B가 먼저 초기화되어야 하기 때문

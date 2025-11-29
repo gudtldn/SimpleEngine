@@ -1,10 +1,9 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
-#include "SimpleEngine/Reflection/SubsystemRegistration.h"
 
 #include "SDL3/SDL_gpu.h"
 
@@ -31,10 +30,8 @@ struct ViewportRenderInfo
 /**
  * @todo docs
  */
-class EditorViewportSubsystem : public core::ISubsystem<RenderSubsystem>
+class EditorViewportSubsystem : public core::ISubsystem
 {
-    SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
-
 public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;

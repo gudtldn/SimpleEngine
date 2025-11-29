@@ -1,10 +1,9 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
-#include "SimpleEngine/Core/Interfaces/ISubsystem.h"
-#include "SimpleEngine/Core/Interfaces/IUpdatable.h"
+#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
-#include "SimpleEngine/Reflection/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/World/World.h"
 #include "UI/Panels/IEditorPanel.h"
@@ -12,12 +11,8 @@
 
 namespace se::editor::ui
 {
-class EditorUISubsystem
-    : public core::ISubsystem<PlatformSubsystem, RenderSubsystem>,
-      public core::IUpdatable
+class EditorUISubsystem : public core::ISubsystem, public core::IUpdatable
 {
-    SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
-
 public:
     //~ Begin ISubsystem
     [[nodiscard]] virtual bool Initialize() override;

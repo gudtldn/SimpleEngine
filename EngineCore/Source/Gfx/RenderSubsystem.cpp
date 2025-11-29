@@ -1,7 +1,9 @@
-// ReSharper disable CppDFAUnreachableCode
 #include "Gfx/RenderSubsystem.h"
 
 #include <ranges>
+
+#include "Core/Subsystem/SubsystemRegistration.h"
+#include "Utility/SubsystemUtils.h"
 
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_hints.h"
@@ -10,12 +12,16 @@
 using namespace se::rendering;
 
 
+// TODO: GameServer는 이거 필요없는데
+SE_REGISTER_SUBSYSTEM(RenderSubsystem)
+    .DependsOn<PlatformSubsystem>();
+
 bool RenderSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Render subsystem...");
 
-    const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
-    SDL_Window* main_window = platform_subsystem->GetMainWindow();
+    const PlatformSubsystem& platform_subsystem = se::GetSubsystemChecked<const PlatformSubsystem>();
+    SDL_Window* main_window = platform_subsystem.GetMainWindow();
 
     // Window가 존재하는지 확인
     if (!main_window)
@@ -68,7 +74,7 @@ bool RenderSubsystem::Initialize()
         return false;
     }
 
-    const WindowDesc& window_desc = *platform_subsystem->GetMainWindowInfo();
+    const WindowDesc& window_desc = *platform_subsystem.GetMainWindowInfo();
     const SDL_GPUSwapchainComposition swapchain_composition = window_desc.swapchain_composition.ValueOr(
         DetermineBestSwapchainComposition(main_window, window_desc)
     );
@@ -96,8 +102,8 @@ void RenderSubsystem::Release()
     render_graph.reset();
     pso_manager.reset();
 
-    const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
-    for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
+    const PlatformSubsystem& platform_subsystem = se::GetSubsystemChecked<const PlatformSubsystem>();
+    for (SDL_Window* window : platform_subsystem.GetWindows() | std::views::values)
     {
         SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
     }
@@ -109,8 +115,8 @@ void RenderSubsystem::RenderFrame() const
 {
     ZoneScoped;
 
-    const PlatformSubsystem* platform_subsystem = GetSubsystem<const PlatformSubsystem>();
-    for (SDL_Window* window : platform_subsystem->GetWindows() | std::views::values)
+    const PlatformSubsystem& platform_subsystem = se::GetSubsystemChecked<const PlatformSubsystem>();
+    for (SDL_Window* window : platform_subsystem.GetWindows() | std::views::values)
     {
         if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
         {
