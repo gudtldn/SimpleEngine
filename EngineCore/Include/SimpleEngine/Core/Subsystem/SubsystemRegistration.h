@@ -88,7 +88,6 @@ public:
 
     [[nodiscard]] SubsystemMetadata& GetMetadata(const refl::TypeId& id) { return metadata_map.FindChecked(id); }
     [[nodiscard]] const auto& GetMetadataMap() const { return metadata_map; }
-    void ClearMetadataMap() { metadata_map.Clear(); }
 
 private:
     SubsystemRegistry() = default;
