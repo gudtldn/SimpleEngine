@@ -11,7 +11,7 @@ SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
 
 bool EditorViewportSubsystem::Initialize()
 {
-    gpu_device = GetSubsystem<RenderSubsystem>()->GetGpuDevice();
+    gpu_device = GetSubsystemChecked<RenderSubsystem>().GetGpuDevice();
     return gpu_device != nullptr;
 }
 

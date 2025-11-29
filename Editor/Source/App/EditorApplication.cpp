@@ -65,9 +65,11 @@ bool EditorApplication::PostInitialize()
         using namespace se::rendering;
         using namespace se::editor::rendering;
 
-        const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
-        PSOManager& pso_manager = render_subsystem->GetPSOManager();
-        pso_manager.SetShaderCacheProvider<CompilingShaderProvider>();
+        if (const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>())
+        {
+            PSOManager& pso_manager = render_subsystem->GetPSOManager();
+            pso_manager.SetShaderCacheProvider<CompilingShaderProvider>();
+        }
     }
 
     return true;
@@ -78,18 +80,23 @@ void EditorApplication::Render()
     Application::Render();
 
     const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
+    if (!render_subsystem)
+    {
+        return;
+    }
+
     {
         using namespace se::editor::ui;
         using namespace se::editor::rendering;
 
         const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
-            se::GetSubsystems<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
+            se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
-        se::world::World& world_ref = *world_subsystem->GetWorld();
+        se::world::World& world_ref = *world_subsystem.GetWorld();
         se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
-        for (const auto& [viewport_id, info] : viewport_subsystem->GetActiveViewportInfo())
+        for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
         {
-            if (ui_subsystem->GetPanel(viewport_id)->IsVisible())
+            if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
             {
                 const StringName color_target_name = viewport_id;
                 graph.ImportTexture(color_target_name, info.color_texture);
