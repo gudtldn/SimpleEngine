@@ -2,11 +2,10 @@
 
 #if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
 #include "cpuinfo_x86.h"
-using namespace cpu_features;
 #elif SE_PLATFORM_ARCHITECTURE_ARM64
 #include "cpuinfo_arm.h"
-using namespace cpu_features;
 #endif
+using namespace cpu_features;
 
 
 namespace

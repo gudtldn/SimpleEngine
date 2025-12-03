@@ -150,60 +150,50 @@ void Matrix4x4MultiplyNEONImpl(const T* lhs, const T* rhs, T* result)
 #endif
 }
 
-template <typename T>
-    requires std::same_as<T, float>
+template <traits::FloatingType T>
 Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4Impl<T>& rhs)
 {
+    // 나중에 성능을 더 끌어올리고 싶으면 프로그램 시작때 CPU Feature를 검사한 다음, 적절한 함수 포인터를 설정하고 호출하는 방법이 있음
     Matrix4x4Impl<T> result;
 
     const T* lhs_ptr = reinterpret_cast<const T*>(&lhs);
     const T* rhs_ptr = reinterpret_cast<const T*>(&rhs);
     T* result_ptr = reinterpret_cast<T*>(&result);
 
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
-    if (core::CpuFeature::HasSSE4_1())
+    if constexpr (std::same_as<T, float>)
     {
-        if (core::CpuFeature::HasFMA3())
+#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+        if (core::CpuFeature::HasSSE4_1())
         {
-            details::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
+            if (core::CpuFeature::HasFMA3())
+            {
+                details::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
+            }
+            else
+            {
+                details::Matrix4x4MultiplySSEImpl(lhs_ptr, rhs_ptr, result_ptr);
+            }
+            return result;
         }
-        else
-        {
-            details::Matrix4x4MultiplySSEImpl(lhs_ptr, rhs_ptr, result_ptr);
-        }
-        return result;
-    }
-    // TODO: 다른 SIMD 버전에 대해서 구현
+        // TODO: 다른 SIMD 버전에 대해서 구현
 #elif SE_PLATFORM_ARCHITECTURE_ARM_FAMILY
-    if (core::CpuFeature::HasNEON())
-    {
-        // TODO: NEON 구현 추가
-    }
+        if (core::CpuFeature::HasNEON())
+        {
+            // TODO: NEON 구현 추가
+        }
 #endif
-
-    // SIMD 미지원 시 일반 구현 사용
-    details::Matrix4x4MultiplyGeneric(lhs_ptr, rhs_ptr, result_ptr);
-    return result;
-}
-
-template <typename T>
-    requires std::same_as<T, double>
-Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4Impl<T>& rhs)
-{
-    Matrix4x4Impl<T> result;
-
-    const T* lhs_ptr = reinterpret_cast<const T*>(&lhs);
-    const T* rhs_ptr = reinterpret_cast<const T*>(&rhs);
-    T* result_ptr = reinterpret_cast<T*>(&result);
-
+    }
+    else if constexpr (std::same_as<T, double>)
+    {
 #if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
-    if (core::CpuFeature::HasAVX() && core::CpuFeature::HasFMA3())
-    {
-        details::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);
-        return result;
-    }
-    // TODO: 다른 SIMD 버전에 대해서 구현
+        if (core::CpuFeature::HasAVX() && core::CpuFeature::HasFMA3())
+        {
+            details::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);
+            return result;
+        }
+        // TODO: 다른 SIMD 버전에 대해서 구현
 #endif
+    }
 
     // SIMD 미지원 시 일반 구현 사용
     details::Matrix4x4MultiplyGeneric(lhs_ptr, rhs_ptr, result_ptr);
