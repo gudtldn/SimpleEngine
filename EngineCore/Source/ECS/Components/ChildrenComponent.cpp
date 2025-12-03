@@ -1,4 +1,4 @@
-#include "World/Components/ChildrenComponent.h"
+#include "ECS/Components/ChildrenComponent.h"
 #include "Reflection/Reflect.h"
 
 // Reflection for ChildrenComponent

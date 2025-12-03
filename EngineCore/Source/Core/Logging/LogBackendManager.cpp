@@ -1,7 +1,7 @@
 ﻿#include "Core/Logging/LogBackendManager.h"
 
 
-namespace se::core::logging
+namespace se::core
 {
 void LogBackendManager::WriteToAllBackends(const LogEntry& entry)
 {

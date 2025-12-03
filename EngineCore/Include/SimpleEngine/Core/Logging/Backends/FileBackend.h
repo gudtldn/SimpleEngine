@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
 
 
-namespace se::core::logging
+namespace se::core
 {
 class SE_CORE_API FileBackend : public ILogBackend
 {

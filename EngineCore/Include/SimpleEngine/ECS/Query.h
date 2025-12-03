@@ -6,8 +6,8 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/World/QueryConcepts.h"
-#include "SimpleEngine/World/QueryData.h"
+#include "SimpleEngine/ECS/QueryConcepts.h"
+#include "SimpleEngine/ECS/QueryData.h"
 
 #include "tracy/Tracy.hpp"
 

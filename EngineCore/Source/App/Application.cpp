@@ -13,7 +13,7 @@
 #include "Core/Logging/Backends/FileBackend.h"
 #include "Core/Memory/MemoryTracker.h"
 #include "Utility/StringUtils.h"
-#include "World/WorldSubsystem.h"
+#include "ECS/WorldSubsystem.h"
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_init.h"
@@ -68,13 +68,13 @@ void Application::Startup(const String& cmd_line)
 
     if constexpr (SE_DEBUG_BUILD)
     {
-        LogSettings::EnableColor(true);
-        LogSettings::SetForceColor(true);
+        core::LogSettings::EnableColor(true);
+        core::LogSettings::SetForceColor(true);
     }
 
     // add log backends
     {
-        using namespace core::logging;
+        using namespace core;
         LogBackendManager& manager = LogBackendManager::Get();
 
         manager.AddBackend<ConsoleBackend>();

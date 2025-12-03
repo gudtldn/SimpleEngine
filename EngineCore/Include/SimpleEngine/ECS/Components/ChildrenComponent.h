@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/World/Entity.h"
+#include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/Reflection/Annotations.h"
 
 

@@ -1,4 +1,4 @@
-#include "World/Components/MeshHandleComponent.h"
+#include "ECS/Components/MeshHandleComponent.h"
 #include "Reflection/Reflect.h"
 
 // Reflection for MeshHandleComponent

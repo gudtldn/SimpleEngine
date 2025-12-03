@@ -2,6 +2,8 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
+namespace se::core
+{
 /**
  * 색상 설정 관리 클래스
  */
@@ -19,3 +21,4 @@ private:
     inline static bool ColorEnabled = true;
     inline static bool ForceColor = false;
 };
+}

@@ -9,6 +9,8 @@
 #include "SDL3/SDL.h"
 
 
+namespace se
+{
 class SE_CORE_API RenderSubsystem : public se::core::ISubsystem
 {
 public:
@@ -40,3 +42,4 @@ private:
     std::unique_ptr<se::rendering::RenderGraph> render_graph;
     std::unique_ptr<se::rendering::PSOManager> pso_manager;
 };
+}

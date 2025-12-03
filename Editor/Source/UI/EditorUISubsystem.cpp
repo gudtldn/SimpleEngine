@@ -11,7 +11,7 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-#include "SimpleEngine/World/WorldSubsystem.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"

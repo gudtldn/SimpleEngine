@@ -10,7 +10,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core::logging
+namespace se::core
 {
 class SE_CORE_API LogBackendManager
 {

@@ -5,12 +5,12 @@
 #include "Geometry/Vertex.h"
 #include "Rendering/RenderGraph/RenderGraph.h"
 #include "Utility/PathResolver.h"
-#include "World/Query.h"
-#include "World/World.h"
-#include "World/Components/Camera3dComponent.h"
-#include "World/Components/MaterialHandleComponent.h"
-#include "World/Components/MeshHandleComponent.h"
-#include "World/Components/TransformComponent.h"
+#include "ECS/Query.h"
+#include "ECS/World.h"
+#include "ECS/Components/Camera3dComponent.h"
+#include "ECS/Components/MaterialHandleComponent.h"
+#include "ECS/Components/MeshHandleComponent.h"
+#include "ECS/Components/TransformComponent.h"
 
 #include "SDL3/SDL_gpu.h"
 

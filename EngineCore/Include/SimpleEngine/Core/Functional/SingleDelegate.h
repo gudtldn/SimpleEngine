@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Functional/Function.h"
 
 
-namespace se::core
+namespace se
 {
 template <typename Signature>
 class SingleDelegate;

@@ -1,4 +1,4 @@
-#include "World/Components/Camera3dComponent.h"
+#include "ECS/Components/Camera3dComponent.h"
 #include "Reflection/Reflect.h"
 
 // Reflection for Camera3dComponent

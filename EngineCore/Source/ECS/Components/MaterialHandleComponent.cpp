@@ -1,4 +1,4 @@
-#include "World/Components/MaterialHandleComponent.h"
+#include "ECS/Components/MaterialHandleComponent.h"
 #include "Reflection/Reflect.h"
 
 // Reflection for MaterialHandleComponent

@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/World/Entity.h"
+#include "SimpleEngine/ECS/Entity.h"
 
 
 namespace se::world

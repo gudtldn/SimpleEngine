@@ -1,7 +1,7 @@
 ﻿#include "Core/Logging/Backends/FileBackend.h"
 
 
-namespace se::core::logging
+namespace se::core
 {
 FileBackend::FileBackend()
 {

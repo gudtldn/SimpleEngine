@@ -1,8 +1,8 @@
 ﻿#include "UI/Panels/OutlinerPanel.h"
 
 #include "UI/EditorUISubsystem.h"
-#include "SimpleEngine/World/Query.h"
-#include "SimpleEngine/World/WorldSubsystem.h"
+#include "SimpleEngine/ECS/Query.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"

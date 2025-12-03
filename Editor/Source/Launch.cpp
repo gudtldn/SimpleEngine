@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {
-    static EditorApplication app;
+    static se::editor::EditorApplication app;
     SDL_SetAppMetadata("SimpleEngine_Editor", "0.1.0", "com.editor.simpleengine");
 
     se::String cmd_line;

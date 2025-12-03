@@ -12,6 +12,8 @@
 using namespace se::rendering;
 
 
+namespace se
+{
 // TODO: GameServer는 이거 필요없는데
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<PlatformSubsystem>();
@@ -217,4 +219,5 @@ SDL_GPUPresentMode RenderSubsystem::DetermineBestPresentMode(SDL_Window* window)
 
     // 기본값 (항상 지원됨)
     return SDL_GPU_PRESENTMODE_VSYNC;
+}
 }

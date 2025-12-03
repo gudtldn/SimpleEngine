@@ -1,7 +1,7 @@
-﻿#include "World/World.h"
+﻿#include "ECS/World.h"
 
 #include <ranges>
-#include "World/SparseSet.h"
+#include "ECS/SparseSet.h"
 
 
 namespace se::world

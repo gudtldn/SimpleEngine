@@ -4,6 +4,8 @@
 #include "SDL3/SDL.h"
 
 
+namespace se::editor
+{
 class EditorApplication : public se::app::Application
 {
 public:
@@ -21,3 +23,4 @@ private:
     SDL_Window* cached_window = nullptr;
     SDL_GPUDevice* cached_gpu_device = nullptr;
 };
+}

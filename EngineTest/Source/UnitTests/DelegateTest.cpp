@@ -2,6 +2,7 @@
 #include "SimpleEngine/Core/Functional/SingleDelegate.h"
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 
+using namespace se;
 using namespace se::core;
 
 // SingleDelegate Tests

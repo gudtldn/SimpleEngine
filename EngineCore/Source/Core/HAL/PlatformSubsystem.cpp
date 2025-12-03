@@ -12,7 +12,8 @@
 using namespace se::core::event;
 using namespace se::utility;
 
-
+namespace se
+{
 SE_REGISTER_SUBSYSTEM(PlatformSubsystem);
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
@@ -194,4 +195,5 @@ void PlatformSubsystem::RegisterWindow(SDL_WindowID window_id, SDL_Window* windo
 void PlatformSubsystem::UnregisterWindow(SDL_WindowID window_id)
 {
     windows.Remove(window_id);
+}
 }

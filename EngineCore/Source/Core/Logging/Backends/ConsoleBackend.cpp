@@ -18,26 +18,26 @@ constexpr const char* COLOR_FATAL = "\x1b[35m";   // Magenta
 constexpr const char* COLOR_RESET = "\x1b[0m";    // Reset
 }
 
-const char* GetColorForLevel(ELogLevel level)
+const char* GetColorForLevel(se::ELogLevel level)
 {
-    if (!LogSettings::IsColorEnabled() || !LogSettings::DetectColorSupport())
+    if (!se::core::LogSettings::IsColorEnabled() || !se::core::LogSettings::DetectColorSupport())
     {
         return "";
     }
 
     switch (level)
     {
-    case ELogLevel::Debug: return LogColors::COLOR_DEBUG;
-    case ELogLevel::Info: return LogColors::COLOR_INFO;
-    case ELogLevel::Warning: return LogColors::COLOR_WARNING;
-    case ELogLevel::Error: return LogColors::COLOR_ERROR;
-    case ELogLevel::Fatal: return LogColors::COLOR_FATAL;
+    case se::ELogLevel::Debug: return LogColors::COLOR_DEBUG;
+    case se::ELogLevel::Info: return LogColors::COLOR_INFO;
+    case se::ELogLevel::Warning: return LogColors::COLOR_WARNING;
+    case se::ELogLevel::Error: return LogColors::COLOR_ERROR;
+    case se::ELogLevel::Fatal: return LogColors::COLOR_FATAL;
     default: return "";
     }
 }
 }
 
-namespace se::core::logging
+namespace se::core
 {
 void ConsoleBackend::WriteLog(const LogEntry& entry)
 {

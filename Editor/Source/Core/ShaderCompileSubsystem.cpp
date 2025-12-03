@@ -5,6 +5,8 @@
 #include "SDL3_shadercross/SDL_shadercross.h"
 
 
+namespace se::editor
+{
 SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
     .DependsOn<PlatformSubsystem>();
 
@@ -21,4 +23,5 @@ bool ShaderCompileSubsystem::Initialize()
 void ShaderCompileSubsystem::Release()
 {
     SDL_ShaderCross_Quit();
+}
 }

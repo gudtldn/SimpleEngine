@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
-#include "SimpleEngine/World/World.h"
+#include "SimpleEngine/ECS/World.h"
 #include "UI/Panels/IEditorPanel.h"
 
 

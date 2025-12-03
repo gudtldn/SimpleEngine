@@ -39,7 +39,7 @@
 #define SE_FATAL_ERROR(message, ...) \
     do \
     { \
-        ConsoleLog(ELogLevel::Fatal, "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
+        ::se::ConsoleLog(::se::ELogLevel::Fatal, "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
         SE_BREAKPOINT(); \
         std::terminate(); \
     } while (0)
@@ -53,8 +53,8 @@
         { \
             if (!(!!(expr))) \
             { \
-                ConsoleLog(ELogLevel::Fatal, "Assertion failed: " #expr); \
-                __VA_OPT__(ConsoleLog(ELogLevel::Fatal, "└─ " __VA_ARGS__);) \
+                ::se::ConsoleLog(::se::ELogLevel::Fatal, "Assertion failed: " #expr); \
+                __VA_OPT__(::se::ConsoleLog(::se::ELogLevel::Fatal, "└─ " __VA_ARGS__);) \
                 SE_BREAKPOINT(); \
                 std::abort(); \
             } \
@@ -63,8 +63,8 @@
     #define SE_ENSURE(expr, ...) \
         (!!(expr) || [&] \
         { \
-            ConsoleLog(ELogLevel::Error, "Ensure failed: " #expr); \
-            __VA_OPT__(ConsoleLog(ELogLevel::Error, "└─ " __VA_ARGS__);) \
+            ::se::ConsoleLog(::se::ELogLevel::Error, "Ensure failed: " #expr); \
+            __VA_OPT__(::se::ConsoleLog(::se::ELogLevel::Error, "└─ " __VA_ARGS__);) \
             SE_BREAKPOINT(); \
             return false; \
         }())

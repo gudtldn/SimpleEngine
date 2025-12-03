@@ -9,6 +9,8 @@
 #endif
 
 
+namespace se::core
+{
 bool LogSettings::DetectColorSupport()
 {
     if (ForceColor)
@@ -32,4 +34,5 @@ bool LogSettings::DetectColorSupport()
     }
     return false;
 #endif
+}
 }

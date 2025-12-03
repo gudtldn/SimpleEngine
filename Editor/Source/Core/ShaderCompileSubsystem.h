@@ -2,6 +2,8 @@
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 
+namespace se::editor
+{
 /**
  * @todo docs
  */
@@ -13,3 +15,4 @@ public:
     virtual void Release() override;
     //~ End ISubsystem
 };
+}

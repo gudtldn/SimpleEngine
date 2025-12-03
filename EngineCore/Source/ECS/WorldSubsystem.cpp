@@ -1,7 +1,7 @@
-﻿#include "World/WorldSubsystem.h"
+﻿#include "ECS/WorldSubsystem.h"
 
 #include "Core/Subsystem/SubsystemRegistration.h"
-#include "World/World.h"
+#include "ECS/World.h"
 
 using namespace se::world;
 

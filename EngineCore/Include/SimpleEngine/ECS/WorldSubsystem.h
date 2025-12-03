@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
-#include "SimpleEngine/World/World.h"
+#include "SimpleEngine/ECS/World.h"
 
 
 /**

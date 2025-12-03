@@ -7,9 +7,9 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/TypeUtils.h"
-#include "SimpleEngine/World/Entity.h"
-#include "SimpleEngine/World/SparseSet.h"
-#include "SimpleEngine/World/World.h"
+#include "SimpleEngine/ECS/Entity.h"
+#include "SimpleEngine/ECS/SparseSet.h"
+#include "SimpleEngine/ECS/World.h"
 
 #define SE_DEFINE_TYPE_CONDITION_TAG(tag_name, condition) \
 template <typename T> \

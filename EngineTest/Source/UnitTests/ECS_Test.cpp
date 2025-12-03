@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 
-#include "SimpleEngine/World/Query.h"
-#include "SimpleEngine/World/QueryData.h"
-#include "SimpleEngine/World/World.h"
-#include "SimpleEngine/World/Components/MeshHandleComponent.h"
-#include "SimpleEngine/World/Components/TransformComponent.h"
+#include "SimpleEngine/ECS/Query.h"
+#include "SimpleEngine/ECS/QueryData.h"
+#include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/ECS/Components/MeshHandleComponent.h"
+#include "SimpleEngine/ECS/Components/TransformComponent.h"
 
 using namespace se::core;
 using namespace se::world;

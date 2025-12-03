@@ -12,10 +12,10 @@
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
-#include "SimpleEngine/World/EntityManager.h"
-#include "SimpleEngine/World/QueryConcepts.h"
-#include "SimpleEngine/World/Schedules.h"
-#include "SimpleEngine/World/SparseSet.h"
+#include "SimpleEngine/ECS/EntityManager.h"
+#include "SimpleEngine/ECS/QueryConcepts.h"
+#include "SimpleEngine/ECS/Schedules.h"
+#include "SimpleEngine/ECS/SparseSet.h"
 
 
 namespace se::world

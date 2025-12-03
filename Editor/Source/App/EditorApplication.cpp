@@ -8,11 +8,13 @@
 #include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Utility/Config.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-#include "SimpleEngine/World/WorldSubsystem.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "UI/EditorUISubsystem.h"
 #include "UI/EditorViewportSubsystem.h"
 
 
+namespace se::editor
+{
 EditorApplication::EditorApplication()
     : Application(se::app::EApplicationMode::Editor)
 {
@@ -116,4 +118,5 @@ void EditorApplication::Render()
         graph.AddPass<EditorUIPass>();
     }
     render_subsystem->RenderFrame();
+}
 }

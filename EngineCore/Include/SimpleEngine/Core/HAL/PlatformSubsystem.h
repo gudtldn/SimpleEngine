@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <expected>
-
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
@@ -12,6 +10,8 @@
 #include "SDL3/SDL.h"
 
 
+namespace se
+{
 struct WindowDesc
 {
     se::String title = "Untitled Window";
@@ -44,7 +44,7 @@ struct WindowCreateError
     static WindowCreateError SwapchainSetup(se::String&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
 };
 
-class SE_CORE_API PlatformSubsystem : public se::core::ISubsystem
+class SE_CORE_API PlatformSubsystem : public core::ISubsystem
 {
 public:
     /**
@@ -66,8 +66,8 @@ public:
 
     void PollEvents();
 
-    [[nodiscard]] se::core::event::EventDispatcher& GetEventDispatcher() { return platform_event_dispatcher; }
-    [[nodiscard]] const se::core::event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
+    [[nodiscard]] core::event::EventDispatcher& GetEventDispatcher() { return platform_event_dispatcher; }
+    [[nodiscard]] const core::event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
 
 public:
     /** 메인 Window의 초기화 및 생성 준비를 수행합니다. */
@@ -104,6 +104,7 @@ private:
     Optional<WindowDesc> main_window_info = std::nullopt;
     SDL_WindowID main_window_id = 0;
 
-    se::HashMap<SDL_WindowID, SDL_Window*> windows;
-    se::core::event::EventDispatcher platform_event_dispatcher;
+    HashMap<SDL_WindowID, SDL_Window*> windows;
+    core::event::EventDispatcher platform_event_dispatcher;
 };
+}

@@ -1,4 +1,4 @@
-#include "World/Components/TransformComponent.h"
+#include "ECS/Components/TransformComponent.h"
 #include "Reflection/Reflect.h"
 
 // Reflection for TransformComponent

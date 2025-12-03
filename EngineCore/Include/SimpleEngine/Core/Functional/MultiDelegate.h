@@ -8,7 +8,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core
+namespace se
 {
 struct DelegateHandle
 {

@@ -9,6 +9,8 @@
 
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+namespace se
+{
 // Forward declaration
 template <typename E>
 class Unexpected;
@@ -687,4 +689,5 @@ auto Expected<void, E>::MapError(Fn&& func) &&
         return RetType{ Unexpected(std::invoke(std::forward<Fn>(func), std::move(Error()))) };
     }
     return RetType();
+}
 }
