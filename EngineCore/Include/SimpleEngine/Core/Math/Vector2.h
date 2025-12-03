@@ -128,14 +128,14 @@ constexpr T Vector2Impl<T>::Dist(const Vector2Impl& other)
 template <traits::FloatingType T>
 constexpr T Vector2Impl<T>::Distance(const Vector2Impl& a, const Vector2Impl& b)
 {
-    return MathUtility::Sqrt(DistSquared(a, b));
+    return Sqrt(DistSquared(a, b));
 }
 
 template <traits::FloatingType T>
 constexpr T Vector2Impl<T>::DistSquared(const Vector2Impl& a, const Vector2Impl& b)
 {
-    return MathUtility::Square(b.x - a.x)
-        + MathUtility::Square(b.y - a.y);
+    return Square(b.x - a.x)
+        + Square(b.y - a.y);
 }
 
 template <traits::FloatingType T>
@@ -297,14 +297,14 @@ constexpr T Vector2Impl<T>::operator[](usize index) const
 template <traits::FloatingType T>
 constexpr T Vector2Impl<T>::Length() const
 {
-    return MathUtility::Sqrt(SquaredLength());
+    return Sqrt(SquaredLength());
 }
 
 template <traits::FloatingType T>
 constexpr T Vector2Impl<T>::SquaredLength() const
 {
-    return MathUtility::Square(x)
-        + MathUtility::Square(y);
+    return Square(x)
+        + Square(y);
 }
 
 template <traits::FloatingType T>
@@ -333,20 +333,20 @@ constexpr Vector2Impl<T> Vector2Impl<T>::GetNormalized(T tolerance) const
 template <traits::FloatingType T>
 constexpr bool Vector2Impl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtility::Abs(1.f - SquaredLength()) < tolerance;
+    return Abs(1.f - SquaredLength()) < tolerance;
 }
 
 template <traits::FloatingType T>
 bool Vector2Impl<T>::IsNearlyZero(T tolerance) const
 {
-    return MathUtility::Abs(x) <= tolerance
-        && MathUtility::Abs(y) <= tolerance;
+    return Abs(x) <= tolerance
+        && Abs(y) <= tolerance;
 }
 
 template <traits::FloatingType T>
 bool Vector2Impl<T>::IsNearlyEqual(const Vector2Impl& other, T tolerance) const
 {
-    return MathUtility::Abs(x - other.x) <= tolerance
-        && MathUtility::Abs(y - other.y) <= tolerance;
+    return Abs(x - other.x) <= tolerance
+        && Abs(y - other.y) <= tolerance;
 }
 }

@@ -3,6 +3,8 @@
 #include <concepts>
 #include <mdspan>
 #include <ranges>
+
+#include "Math.h"
 #include "range/v3/view/enumerate.hpp"
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
@@ -113,7 +115,12 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Identity()
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Zero()
 {
-    return Matrix4x4Impl{};
+    return {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0
+    };
 }
 
 template <traits::FloatingType T>

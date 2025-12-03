@@ -10,7 +10,7 @@
 struct SE_CORE_API SE_TYPE_ANNOTATION(=se::meta::Component) Camera3dComponent
 {
     SE_PROPERTY(=se::meta::Edit)
-    Degree<double> fov = 90.0_deg;
+    se::Degree<double> fov = 90.0_deg;
 
     SE_PROPERTY(=se::meta::Edit)
     double near_plane = 0.1f;

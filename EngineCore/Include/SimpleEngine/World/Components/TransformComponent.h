@@ -10,11 +10,11 @@
 struct SE_CORE_API SE_TYPE_ANNOTATION(=se::meta::Component) TransformComponent
 {
     SE_PROPERTY(=se::meta::Edit)
-    Quaternion rotation = Quaternion::Identity();
+    se::Quaternion rotation = se::Quaternion::Identity();
 
     SE_PROPERTY(=se::meta::Edit)
-    Vector3 position = Vector3::Zero();
+    se::Vector3 position = se::Vector3::Zero();
 
     SE_PROPERTY(=se::meta::Edit)
-    Vector3 scale = Vector3::One();
+    se::Vector3 scale = se::Vector3::One();
 };

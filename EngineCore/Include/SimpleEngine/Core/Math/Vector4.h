@@ -277,27 +277,27 @@ constexpr T Vector4Impl<T>::operator[](usize index) const
 template <traits::FloatingType T>
 constexpr T Vector4Impl<T>::Length3() const
 {
-    return MathUtility::Sqrt(SquaredLength3());
+    return Sqrt(SquaredLength3());
 }
 
 template <traits::FloatingType T>
 constexpr T Vector4Impl<T>::Length() const
 {
-    return MathUtility::Sqrt(SquaredLength());
+    return Sqrt(SquaredLength());
 }
 
 template <traits::FloatingType T>
 constexpr T Vector4Impl<T>::SquaredLength3() const
 {
-    return MathUtility::Square(x)
-        + MathUtility::Square(y)
-        + MathUtility::Square(z);
+    return Square(x)
+        + Square(y)
+        + Square(z);
 }
 
 template <traits::FloatingType T>
 constexpr T Vector4Impl<T>::SquaredLength() const
 {
-    return SquaredLength3() + MathUtility::Square(w);
+    return SquaredLength3() + Square(w);
 }
 
 template <traits::FloatingType T>
@@ -328,22 +328,22 @@ constexpr Vector4Impl<T> Vector4Impl<T>::GetNormalized(T tolerance) const
 template <traits::FloatingType T>
 constexpr bool Vector4Impl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtility::Abs(1.f - SquaredLength3()) < tolerance;
+    return Abs(1.f - SquaredLength3()) < tolerance;
 }
 
 template <traits::FloatingType T>
 bool Vector4Impl<T>::IsNearlyZero3(T tolerance) const
 {
-    return MathUtility::Abs(x) <= tolerance
-        && MathUtility::Abs(y) <= tolerance
-        && MathUtility::Abs(z) <= tolerance;
+    return Abs(x) <= tolerance
+        && Abs(y) <= tolerance
+        && Abs(z) <= tolerance;
 }
 
 template <traits::FloatingType T>
 bool Vector4Impl<T>::IsNearlyEqual3(const Vector4Impl& other, T tolerance) const
 {
-    return MathUtility::Abs(x - other.x) <= tolerance
-        && MathUtility::Abs(y - other.y) <= tolerance
-        && MathUtility::Abs(z - other.z) <= tolerance;
+    return Abs(x - other.x) <= tolerance
+        && Abs(y - other.y) <= tolerance
+        && Abs(z - other.z) <= tolerance;
 }
 }

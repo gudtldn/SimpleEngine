@@ -104,9 +104,9 @@ constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
     const Radian<T> half_rad_y{ rotator.yaw * static_cast<T>(0.5) };
     const Radian<T> half_rad_r{ rotator.roll * static_cast<T>(0.5) };
 
-    const T sp = MathUtility::Sin(half_rad_p), cp = MathUtility::Cos(half_rad_p);
-    const T sy = MathUtility::Sin(half_rad_y), cy = MathUtility::Cos(half_rad_y);
-    const T sr = MathUtility::Sin(half_rad_r), cr = MathUtility::Cos(half_rad_r);
+    const T sp = Sin(half_rad_p), cp = Cos(half_rad_p);
+    const T sy = Sin(half_rad_y), cy = Cos(half_rad_y);
+    const T sr = Sin(half_rad_r), cr = Cos(half_rad_r);
 
     // Yaw * Pitch * Roll
     x = cr * sp * cy + sr * cp * sy;
@@ -148,7 +148,7 @@ constexpr void QuaternionImpl<T>::Normalize(T tolerance)
     const T square_sum = x * x + y * y + z * z + w * w;
     if (square_sum >= tolerance)
     {
-        const T scale = MathUtility::InvSqrt(square_sum);
+        const T scale = InvSqrt(square_sum);
         x *= scale;
         y *= scale;
         z *= scale;
@@ -171,18 +171,18 @@ constexpr QuaternionImpl<T> QuaternionImpl<T>::GetNormalized(T tolerance) const
 template <traits::FloatingType T>
 constexpr bool QuaternionImpl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtility::Abs(x * x + y * y + z * z + w * w - 1.0f) < tolerance;
+    return Abs(x * x + y * y + z * z + w * w - 1.0f) < tolerance;
 }
 
 template <traits::FloatingType T>
 constexpr bool QuaternionImpl<T>::IsNearlyEqual(const QuaternionImpl& other, T tolerance) const
 {
     return (
-        MathUtility::Abs(x - other.x) <= tolerance && MathUtility::Abs(y - other.y) <= tolerance
-        && MathUtility::Abs(z - other.z) <= tolerance && MathUtility::Abs(w - other.w) <= tolerance
+        Abs(x - other.x) <= tolerance && Abs(y - other.y) <= tolerance
+        && Abs(z - other.z) <= tolerance && Abs(w - other.w) <= tolerance
     ) || (
-        MathUtility::Abs(x + other.x) <= tolerance && MathUtility::Abs(y + other.y) <= tolerance
-        && MathUtility::Abs(z + other.z) <= tolerance && MathUtility::Abs(w + other.w) <= tolerance
+        Abs(x + other.x) <= tolerance && Abs(y + other.y) <= tolerance
+        && Abs(z + other.z) <= tolerance && Abs(w + other.w) <= tolerance
     );
 }
 
@@ -247,8 +247,8 @@ template <traits::FloatingType T>
 QuaternionImpl<T> QuaternionImpl<T>::FromAxisAngle(const Vector3Impl<T>& axis, Radian<T> angle)
 {
     const Radian half_angle = angle * static_cast<T>(0.5);
-    const T sin_half_angle = MathUtility::Sin(half_angle);
-    const T cos_half_angle = MathUtility::Cos(half_angle);
+    const T sin_half_angle = Sin(half_angle);
+    const T cos_half_angle = Cos(half_angle);
 
     assert(axis.IsNormalized());
 
@@ -303,32 +303,32 @@ constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
     const T sin_p = -static_cast<T>(2.0) * (quaternion.y * quaternion.z - quaternion.w * quaternion.x);
 
     // 짐벌 락 체크 (Pitch가 +/- 90도인 경우)
-    if (MathUtility::Abs(sin_p) >= static_cast<T>(1.0 - KINDA_SMALL_NUMBER))
+    if (Abs(sin_p) >= static_cast<T>(1.0 - KINDA_SMALL_NUMBER))
     {
         // Pitch는 90도로 고정
-        pitch = Degree<T>{ MathUtility::CopySign(static_cast<T>(90), sin_p) };
+        pitch = Degree<T>{ CopySign(static_cast<T>(90), sin_p) };
 
         // 이때는 Yaw와 Roll이 같은 동작을 하므로, Roll을 0으로 고정하고 Yaw에 회전을 적용
         yaw = Degree<T>{
-            MathUtility::Atan2(quaternion.y, quaternion.w)
-            * -MathUtility::CopySign(static_cast<T>(2.0), sin_p)
+            Atan2(quaternion.y, quaternion.w)
+            * -CopySign(static_cast<T>(2.0), sin_p)
         };
         roll = Degree<T>{ static_cast<T>(0.0) };
     }
     else
     {
         // Pitch
-        pitch = Degree<T>{ MathUtility::Asin(sin_p) };
+        pitch = Degree<T>{ Asin(sin_p) };
 
         // Yaw
         const T tan_y_numerator = static_cast<T>(2.0) * (quaternion.x * quaternion.y + quaternion.w * quaternion.z);
         const T tan_y_denominator = static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.z * quaternion.z);
-        yaw = Degree<T>{ MathUtility::Atan2(tan_y_numerator, tan_y_denominator) };
+        yaw = Degree<T>{ Atan2(tan_y_numerator, tan_y_denominator) };
 
         // Roll
         const T tan_r_numerator = static_cast<T>(2.0) * (quaternion.x * quaternion.z + quaternion.w * quaternion.y);
         const T tan_r_denominator = static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
-        roll = Degree<T>{ MathUtility::Atan2(tan_r_numerator, tan_r_denominator) };
+        roll = Degree<T>{ Atan2(tan_r_numerator, tan_r_denominator) };
     }
 }
 
@@ -404,9 +404,9 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetForwardVector() const
     const Radian<T> rad_r{ roll };  // Y축 회전
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
-    const T sy = MathUtility::Sin(rad_y), cy = MathUtility::Cos(rad_y);
-    const T sp = MathUtility::Sin(rad_p), cp = MathUtility::Cos(rad_p);
-    const T sr = MathUtility::Sin(rad_r), cr = MathUtility::Cos(rad_r);
+    const T sy = Sin(rad_y), cy = Cos(rad_y);
+    const T sp = Sin(rad_p), cp = Cos(rad_p);
+    const T sr = Sin(rad_r), cr = Cos(rad_r);
 
     return Vector3Impl<T>{
         -sy * cr + cy * sp * sr,
@@ -422,9 +422,9 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetRightVector() const
     const Radian<T> rad_r{ roll };  // Y축 회전
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
-    const T sy = MathUtility::Sin(rad_y), cy = MathUtility::Cos(rad_y);
-    const T sp = MathUtility::Sin(rad_p), cp = MathUtility::Cos(rad_p);
-    const T sr = MathUtility::Sin(rad_r), cr = MathUtility::Cos(rad_r);
+    const T sy = Sin(rad_y), cy = Cos(rad_y);
+    const T sp = Sin(rad_p), cp = Cos(rad_p);
+    const T sr = Sin(rad_r), cr = Cos(rad_r);
 
     return Vector3Impl<T>{
         cy * cr + sy * sp * sr,
@@ -440,8 +440,8 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetUpVector() const
     const Radian<T> rad_r{ roll };  // Y축 회전
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
-    const T sp = MathUtility::Sin(rad_p), cp = MathUtility::Cos(rad_p);
-    const T sr = MathUtility::Sin(rad_r), cr = MathUtility::Cos(rad_r);
+    const T sp = Sin(rad_p), cp = Cos(rad_p);
+    const T sr = Sin(rad_r), cr = Cos(rad_r);
 
     return Vector3Impl<T>{
         cp * sr,

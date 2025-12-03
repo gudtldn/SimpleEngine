@@ -1,6 +1,8 @@
 ﻿#include "gtest/gtest.h"
 #include "SimpleEngine/Core/Math/Math.h"
 
+using namespace se;
+
 class MathLiteralsTest : public ::testing::Test{};
 class MathMatrix4x4Test : public ::testing::Test{};
 

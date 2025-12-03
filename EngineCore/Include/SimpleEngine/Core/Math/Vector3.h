@@ -212,28 +212,28 @@ constexpr T Vector3Impl<T>::Dist(const Vector3Impl& other)
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::Distance(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtility::Sqrt(DistSquared(a, b));
+    return Sqrt(DistSquared(a, b));
 }
 
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::Distance2D(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtility::Sqrt(DistSquared2D(a, b));
+    return Sqrt(DistSquared2D(a, b));
 }
 
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::DistSquared(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtility::Square(b.x - a.x)
-        + MathUtility::Square(b.y - a.y)
-        + MathUtility::Square(b.z - a.z);
+    return Square(b.x - a.x)
+        + Square(b.y - a.y)
+        + Square(b.z - a.z);
 }
 
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::DistSquared2D(const Vector3Impl& a, const Vector3Impl& b)
 {
-    return MathUtility::Square(b.x - a.x)
-        + MathUtility::Square(b.y - a.y);
+    return Square(b.x - a.x)
+        + Square(b.y - a.y);
 }
 
 template <traits::FloatingType T>
@@ -403,15 +403,15 @@ constexpr T Vector3Impl<T>::operator[](usize index) const
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::Length() const
 {
-    return MathUtility::Sqrt(SquaredLength());
+    return Sqrt(SquaredLength());
 }
 
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::SquaredLength() const
 {
-    return MathUtility::Square(x)
-        + MathUtility::Square(y)
-        + MathUtility::Square(z);
+    return Square(x)
+        + Square(y)
+        + Square(z);
 }
 
 template <traits::FloatingType T>
@@ -441,22 +441,22 @@ constexpr Vector3Impl<T> Vector3Impl<T>::GetNormalized(T tolerance) const
 template <traits::FloatingType T>
 constexpr bool Vector3Impl<T>::IsNormalized(T tolerance) const
 {
-    return MathUtility::Abs(1.f - SquaredLength()) < tolerance;
+    return Abs(1.f - SquaredLength()) < tolerance;
 }
 
 template <traits::FloatingType T>
 bool Vector3Impl<T>::IsNearlyZero(T tolerance) const
 {
-    return MathUtility::Abs(x) <= tolerance
-        && MathUtility::Abs(y) <= tolerance
-        && MathUtility::Abs(z) <= tolerance;
+    return Abs(x) <= tolerance
+        && Abs(y) <= tolerance
+        && Abs(z) <= tolerance;
 }
 
 template <traits::FloatingType T>
 bool Vector3Impl<T>::IsNearlyEqual(const Vector3Impl& other, T tolerance) const
 {
-    return MathUtility::Abs(x - other.x) <= tolerance
-        && MathUtility::Abs(y - other.y) <= tolerance
-        && MathUtility::Abs(z - other.z) <= tolerance;
+    return Abs(x - other.x) <= tolerance
+        && Abs(y - other.y) <= tolerance
+        && Abs(z - other.z) <= tolerance;
 }
 }

@@ -5,7 +5,9 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
-namespace se::math
+namespace se
+{
+namespace math
 {
 struct DegreeTag{};
 struct RadianTag{};
@@ -142,20 +144,21 @@ struct AngleType
 };
 }
 
-template <se::traits::FloatingType NumType>
-using Degree = se::math::AngleType<NumType, se::math::DegreeTag>;
+template <traits::FloatingType NumType>
+using Degree = math::AngleType<NumType, math::DegreeTag>;
 
-template <se::traits::FloatingType NumType>
-using Radian = se::math::AngleType<NumType, se::math::RadianTag>;
+template <traits::FloatingType NumType>
+using Radian = math::AngleType<NumType, math::RadianTag>;
+}
 
 // double literals
-constexpr Degree<double> operator""_deg(long double deg) { return Degree(static_cast<double>(deg)); }
-constexpr Degree<double> operator""_deg(unsigned long long deg) { return Degree(static_cast<double>(deg)); }
-constexpr Radian<double> operator""_rad(long double rad) { return Radian(static_cast<double>(rad)); }
-constexpr Radian<double> operator""_rad(unsigned long long rad) { return Radian(static_cast<double>(rad)); }
+constexpr se::Degree<double> operator""_deg(long double deg) { return se::Degree(static_cast<double>(deg)); }
+constexpr se::Degree<double> operator""_deg(unsigned long long deg) { return se::Degree(static_cast<double>(deg)); }
+constexpr se::Radian<double> operator""_rad(long double rad) { return se::Radian(static_cast<double>(rad)); }
+constexpr se::Radian<double> operator""_rad(unsigned long long rad) { return se::Radian(static_cast<double>(rad)); }
 
 // float literals
-constexpr Degree<float> operator""_degf(long double deg) { return Degree(static_cast<float>(deg)); }
-constexpr Degree<float> operator""_degf(unsigned long long deg) { return Degree(static_cast<float>(deg)); }
-constexpr Radian<float> operator""_radf(long double rad) { return Radian(static_cast<float>(rad)); }
-constexpr Radian<float> operator""_radf(unsigned long long rad) { return Radian(static_cast<float>(rad)); }
+constexpr se::Degree<float> operator""_degf(long double deg) { return se::Degree(static_cast<float>(deg)); }
+constexpr se::Degree<float> operator""_degf(unsigned long long deg) { return se::Degree(static_cast<float>(deg)); }
+constexpr se::Radian<float> operator""_radf(long double rad) { return se::Radian(static_cast<float>(rad)); }
+constexpr se::Radian<float> operator""_radf(unsigned long long rad) { return se::Radian(static_cast<float>(rad)); }

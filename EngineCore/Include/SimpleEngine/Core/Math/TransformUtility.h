@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "MathFwd.h"
+#include "SimpleEngine/Core/Math/MathFwd.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 
 
@@ -33,9 +33,9 @@ struct TransformUtility
         const Radian<T> rad_y{ rotation.yaw };
         const Radian<T> rad_r{ rotation.roll };
 
-        const T sin_p = MathUtility::Sin(rad_p), cos_p = MathUtility::Cos(rad_p);
-        const T sin_y = MathUtility::Sin(rad_y), cos_y = MathUtility::Cos(rad_y);
-        const T sin_r = MathUtility::Sin(rad_r), cos_r = MathUtility::Cos(rad_r);
+        const T sin_p = Sin(rad_p), cos_p = Cos(rad_p);
+        const T sin_y = Sin(rad_y), cos_y = Cos(rad_y);
+        const T sin_r = Sin(rad_r), cos_r = Cos(rad_r);
 
         // Rz(yaw)
         Matrix4x4Impl<T> rz{
@@ -153,7 +153,7 @@ struct TransformUtility
     template <traits::FloatingType T>
     static constexpr Matrix4x4Impl<T> MakePerspectiveMatrix(Radian<T> fov_y, T aspect, T near, T far)
     {
-        const T f = 1 / MathUtility::Tan(fov_y * static_cast<T>(0.5));
+        const T f = 1 / Tan(fov_y * static_cast<T>(0.5));
         return Matrix4x4Impl<T>{
             f / aspect, 0, 0, 0,
             0, f, 0, 0,
