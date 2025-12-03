@@ -12,7 +12,6 @@
 #include "Core/Logging/Backends/ConsoleBackend.h"
 #include "Core/Logging/Backends/FileBackend.h"
 #include "Core/Memory/MemoryTracker.h"
-#include "Core/Memory/MemoryResource/OsMemoryResource.h"
 #include "Utility/StringUtils.h"
 #include "World/WorldSubsystem.h"
 
