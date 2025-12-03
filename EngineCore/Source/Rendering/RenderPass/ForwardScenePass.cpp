@@ -15,7 +15,7 @@
 #include "SDL3/SDL_gpu.h"
 
 using namespace se::math;
-using namespace se::world;
+using namespace se::ecs;
 
 
 namespace se::rendering

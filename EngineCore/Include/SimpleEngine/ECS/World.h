@@ -18,7 +18,7 @@
 #include "SimpleEngine/ECS/SparseSet.h"
 
 
-namespace se::world
+namespace se::ecs
 {
 template <typename... Ts>
     requires QueryParameterPack<Ts...>
@@ -153,7 +153,7 @@ public:
      * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
      * @tparam Fn 시스템으로 등록할 함수 또는 람다
      */
-    template <schedules::ScheduleType S, details::SystemFuncType Fn>
+    template <schedule::ScheduleType S, details::SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
         const auto type_id = refl::TypeId::Get<S>();
@@ -173,7 +173,7 @@ public:
      * 지정된 스케줄에 등록된 모든 시스템을 순서대로 실행합니다.
      * @tparam S 실행할 스케줄 타입
      */
-    template <schedules::ScheduleType S>
+    template <schedule::ScheduleType S>
     void RunSchedule()
     {
         const auto type_id = refl::TypeId::Get<S>();

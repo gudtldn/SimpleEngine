@@ -25,12 +25,12 @@ void OutlinerPanel::Draw()
             return;
         }
 
-        world::World* world = world_subsystem->GetWorld();
-        world::Query query = world->QueryEntities<world::Entity>();
+        ecs::World* world = world_subsystem->GetWorld();
+        ecs::Query query = world->QueryEntities<Entity>();
 
         for (const auto& [entity] : query)
         {
-            static Optional<world::Entity> selected_entity; // TODO: 이거 수정해야함. 임시코드
+            static Optional<Entity> selected_entity; // TODO: 이거 수정해야함. 임시코드
             if (ImGui::Selectable(String::Format("Entity {}", entity.GetId()).CStr(), selected_entity == entity))
             {
                 // 엔티티를 클릭하면 EditorContext의 선택된 엔티티를 업데이트

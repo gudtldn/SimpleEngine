@@ -12,7 +12,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::world
+namespace se::ecs
 {
 /**
  * 조건에 맞는 엔티티와 컴포넌트들을 순회(iterate)하기 위한 인터페이스입니다.

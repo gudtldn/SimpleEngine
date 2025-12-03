@@ -6,7 +6,7 @@
 #include "SimpleEngine/ECS/Entity.h"
 
 
-namespace se::world
+namespace se::ecs
 {
 class SE_CORE_API EntityManager
 {

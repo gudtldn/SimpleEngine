@@ -3,7 +3,7 @@
 #include <cassert>
 
 
-namespace se::world
+namespace se::ecs
 {
 Entity EntityManager::Create()
 {

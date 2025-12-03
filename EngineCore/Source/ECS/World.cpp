@@ -4,7 +4,7 @@
 #include "ECS/SparseSet.h"
 
 
-namespace se::world
+namespace se::ecs
 {
 void World::DestroyEntity(Entity entity)
 {

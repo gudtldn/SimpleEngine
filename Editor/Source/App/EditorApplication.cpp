@@ -94,7 +94,7 @@ void EditorApplication::Render()
         const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
             se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
-        se::world::World& world_ref = *world_subsystem.GetWorld();
+        se::ecs::World& world_ref = *world_subsystem.GetWorld();
         se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
         for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
         {

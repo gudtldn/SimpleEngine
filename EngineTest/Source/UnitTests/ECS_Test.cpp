@@ -6,9 +6,10 @@
 #include "SimpleEngine/ECS/Components/MeshHandleComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 
+using namespace se;
 using namespace se::core;
-using namespace se::world;
-using namespace se::world::schedules;
+using namespace se::ecs;
+using namespace se::ecs::schedule;
 
 class ECSTest : public ::testing::Test {};
 
@@ -158,7 +159,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
     world.AddSystem<Update>([](Query<Entity> query)
     {
         ASSERT_TRUE(!query.IsEmpty());
-        for (auto [entity] : query)
+        for (const auto& [entity] : query)
         {
             auto opt = query.Get(entity);
             auto [ent] = *opt;

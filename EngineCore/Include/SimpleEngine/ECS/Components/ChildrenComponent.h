@@ -10,5 +10,5 @@
 struct SE_CORE_API SE_TYPE_ANNOTATION(=se::meta::Component) ChildrenComponent
 {
     SE_PROPERTY(=se::meta::Edit)
-    se::Array<se::world::Entity> children;
+    se::Array<se::Entity> children;
 };

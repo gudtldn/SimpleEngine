@@ -10,5 +10,5 @@ struct SE_CORE_API SE_TYPE_ANNOTATION(=se::meta::Component) ParentComponent
 {
 public:
     SE_PROPERTY(=se::meta::Edit)
-    se::world::Entity parent;
+    se::Entity parent;
 };

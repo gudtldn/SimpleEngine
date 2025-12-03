@@ -4,6 +4,8 @@
 #include "SimpleEngine/ECS/World.h"
 
 
+namespace se
+{
 /**
  *
  */
@@ -21,9 +23,10 @@ public:
     virtual void PostUpdate() override;
     //~ End IUpdatable
 
-    [[nodiscard]] se::world::World* GetWorld() const noexcept { return world.get(); }
+    [[nodiscard]] se::ecs::World* GetWorld() const noexcept { return world.get(); }
 
 private:
     // TODO: 나중에 다중 월드로 관리
-    std::unique_ptr<se::world::World> world;
+    std::unique_ptr<se::ecs::World> world;
 };
+}

@@ -8,7 +8,7 @@
 #include "SimpleEngine/Rendering/RenderPass/IRenderPass.h"
 
 
-namespace se::world
+namespace se::ecs
 {
 class World;
 }
@@ -30,7 +30,7 @@ class SE_CORE_API ForwardScenePass : public IRenderPass
 {
 public:
     explicit ForwardScenePass(
-        world::World& in_world_ref,
+        ecs::World& in_world_ref,
         const Matrix4x4& in_vp_matrix,
         const StringName& in_color_target_name,
         const StringName& in_depth_target_name,
@@ -42,7 +42,7 @@ public:
 
 private:
     const Matrix4x4 vp_matrix;
-    world::World& world_ref; // TODO: 추후 QueryEntities가 const로 바뀌면 const&로 수정
+    ecs::World& world_ref; // TODO: 추후 QueryEntities가 const로 바뀌면 const&로 수정
     const StringName color_target_name;
     const StringName depth_target_name;
     const uint32 width;

@@ -16,7 +16,7 @@ template <typename T> \
 struct tag_name { static constexpr bool Value = condition; };
 
 
-namespace se::world
+namespace se::ecs
 {
 /**
  * 쿼리 파라미터에서 필터링 조건을 명시하는 태그 모음
@@ -64,8 +64,7 @@ concept IsRequiredComponent = IsFetchTag<T> && !(traits::IsSpecializationOf<T, O
 template <template <typename> typename ConditionTag, typename... Ts>
     requires requires { (ConditionTag<Ts>::Value, ...); }
 using ExtractTypes = utility::TupleCat<
-    std::conditional_t < ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>
-...
+    std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
 >;
 
 template <template <typename...> typename ConditionTag, typename... Ts>
@@ -189,6 +188,5 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
     });
 }
 }
-
 
 #undef SE_DEFINE_TYPE_CONDITION_TAG

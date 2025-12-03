@@ -2,8 +2,13 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::world
+namespace se
 {
+namespace ecs
+{
+class EntityManager;
+}
+
 class Entity
 {
 public:
@@ -14,7 +19,7 @@ public:
     bool operator!=(const Entity& other) const noexcept = default;
 
 private:
-    friend class EntityManager;
+    friend class se::ecs::EntityManager;
 
     Entity(uint32 in_id, uint32 in_generation) noexcept
         : id(in_id)
@@ -28,9 +33,9 @@ private:
 }
 
 template <>
-struct std::hash<se::world::Entity>
+struct std::hash<se::Entity>
 {
-    size_t operator()(const se::world::Entity& entity) const noexcept
+    size_t operator()(const se::Entity& entity) const noexcept
     {
         return std::hash<uint32>{}(entity.GetId());
     }

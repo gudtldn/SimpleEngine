@@ -8,7 +8,7 @@
 #include "SimpleEngine/ECS/Entity.h"
 
 
-namespace se::world
+namespace se::ecs
 {
 /** Component를 담아두는 자료구조 입니다. */
 template <typename ComponentType>

@@ -6,7 +6,7 @@
 #include "SimpleEngine/Utility/TypeUtils.h"
 
 
-namespace se::world
+namespace se::ecs
 {
 namespace details
 {
