@@ -128,6 +128,16 @@ public:
         return std::nullopt;
     }
 
+    template <typename Self>
+    [[nodiscard]] Optional<traits::DeduceRetType<Self, ComponentType&>> TryGet(this Self&& self, Entity entity)
+    {
+        if (self.Contains(entity))
+        {
+            return self.components[*self.sparse[entity.GetId()]];
+        }
+        return std::nullopt;
+    }
+
     /** Entity의 Component&를 반환합니다. */
     [[nodiscard]] ComponentType& Get(Entity entity)
     {
@@ -256,7 +266,7 @@ public:
     virtual void Remove(Entity entity) override { storage.Remove(entity); }
     //~End IStorage
 
-    SparseSet<ComponentType>& GetStorage() { return storage; }
-    const SparseSet<ComponentType>& GetStorage() const { return storage; }
+    template <typename Self>
+    traits::DeduceRetType<Self, SparseSet<ComponentType>&> GetStorage(this Self&& self) { return self.storage; }
 };
 }

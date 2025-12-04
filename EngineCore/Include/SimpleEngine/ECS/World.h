@@ -233,24 +233,13 @@ private:
         return wrapper->GetStorage();
     }
 
-    template <typename ComponentType>
-    Optional<SparseSet<std::decay_t<ComponentType>>&> GetStorage()
+    template <typename ComponentType, typename Self>
+    Optional<traits::DeduceRetType<Self, SparseSet<std::decay_t<ComponentType>>&>> GetStorage(this Self&& self)
     {
         using RawType = std::decay_t<ComponentType>;
-        if (IStorage* storage = GetIStorage<RawType>())
+        if (traits::DeduceRetType<Self, IStorage*> storage = self.template GetIStorage<RawType>())
         {
-            return static_cast<ComponentStorage<RawType>*>(storage)->GetStorage();
-        }
-        return std::nullopt;
-    }
-
-    template <typename ComponentType>
-    Optional<const SparseSet<std::decay_t<ComponentType>>&> GetStorage() const
-    {
-        using RawType = std::decay_t<ComponentType>;
-        if (const IStorage* storage = GetIStorage<RawType>())
-        {
-            return static_cast<const ComponentStorage<RawType>*>(storage)->GetStorage();
+            return static_cast<traits::DeduceRetType<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
         }
         return std::nullopt;
     }
@@ -262,7 +251,7 @@ private:
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        return std::forward_like<Self>(self.component_storages).Find(type_id).ValueOr(nullptr).get();
+        return self.component_storages.Find(type_id).ValueOr(nullptr).get();
     }
 
 public:
