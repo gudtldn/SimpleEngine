@@ -42,23 +42,20 @@ struct IsDisjointImpl<TupleLike1<Ts1...>, TupleLike2<Ts2...>>
     static constexpr bool Value = (!IsAnyOfDecayed<Ts1, Ts2...> && ...);
 };
 
-/**
- * Self의 const 상태에 따라 RetType에 const를 붙일지 결정합니다.
- * RetType이 포인터 타입일 경우, 포인터가 가리키는 대상에 const를 붙입니다.
- */
-template <typename Self, typename RetType>
-struct DeduceRetTypeImpl
-{
-private:
-    static constexpr bool IsSelfConst = std::is_const_v<std::remove_reference_t<Self>>;
-    static constexpr bool IsRetPointer = std::is_pointer_v<RetType>;
+template <typename Self>
+concept IsConstV = std::is_const_v<std::remove_reference_t<Self>>;
 
-    using BaseType = std::conditional_t<IsRetPointer, std::remove_pointer_t<RetType>, RetType>;
-    using ConstQualifiedBaseType = std::conditional_t<IsSelfConst, const BaseType, BaseType>;
+template <typename Self, typename T>
+struct DeduceRetTypeImpl { using Type = std::conditional_t<IsConstV<Self>, const T, T>; };
 
-public:
-    using Type = std::conditional_t<IsRetPointer, ConstQualifiedBaseType*, ConstQualifiedBaseType>;
-};
+template <typename Self, typename T>
+struct DeduceRetTypeImpl<Self, T*> { using Type = std::conditional_t<IsConstV<Self>, const T*, T*>; };
+
+template <typename Self, typename T>
+struct DeduceRetTypeImpl<Self, T&> { using Type = std::conditional_t<IsConstV<Self>, const T&, T&>; };
+
+template <typename Self, typename T>
+struct DeduceRetTypeImpl<Self, T&&> { using Type = std::conditional_t<IsConstV<Self>, const T&&, T&&>; };
 }
 
 // Ts...중에 중복된 타입이 존재하는지 확인
