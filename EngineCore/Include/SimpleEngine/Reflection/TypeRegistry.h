@@ -24,7 +24,7 @@ public:
     TypeRegistry(TypeRegistry&&) = delete;
     TypeRegistry& operator=(TypeRegistry&&) = delete;
 
-    static TypeRegistry& GetInstance();
+    static TypeRegistry& Get();
 
 public:
     void RegisterType(TypeInfo&& type_info);

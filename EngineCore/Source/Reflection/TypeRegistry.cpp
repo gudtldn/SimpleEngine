@@ -3,7 +3,7 @@
 
 namespace se::refl
 {
-TypeRegistry& TypeRegistry::GetInstance()
+TypeRegistry& TypeRegistry::Get()
 {
     static TypeRegistry instance;
     return instance;
