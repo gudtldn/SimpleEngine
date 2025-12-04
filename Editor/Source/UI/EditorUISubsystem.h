@@ -1,12 +1,14 @@
 ﻿#pragma once
 
+#include "Core/EditorSubsystem.h"
+#include "UI/Panels/IEditorPanel.h"
+
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/ECS/World.h"
-#include "UI/Panels/IEditorPanel.h"
 
 
 namespace se::editor::ui

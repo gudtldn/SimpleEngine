@@ -23,7 +23,7 @@ using namespace se::core::event;
 namespace se::editor::ui
 {
 SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
-    .DependsOn<PlatformSubsystem, RenderSubsystem>();
+    .DependsOn<PlatformSubsystem, RenderSubsystem, EditorSubsystem>();
 
 bool EditorUISubsystem::Initialize()
 {
