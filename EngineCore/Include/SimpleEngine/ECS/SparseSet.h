@@ -229,7 +229,7 @@ public:
 };
 
 /** type erasure를 위한 인터페이스 */
-class IStorage
+class SE_CORE_API IStorage
 {
 public:
     virtual ~IStorage() = default;
