@@ -256,23 +256,13 @@ private:
     }
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
-    template <typename ComponentType>
-    IStorage* GetIStorage()
+    template <typename ComponentType, typename Self>
+    traits::DeduceRetType<Self, IStorage*> GetIStorage(this Self&& self)
     {
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        return component_storages.Find(type_id).ValueOr(nullptr).get();
-    }
-
-    /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
-    template <typename ComponentType>
-    const IStorage* GetIStorage() const
-    {
-        using RawType = std::decay_t<ComponentType>;
-
-        const auto type_id = refl::TypeId::Get<RawType>();
-        return component_storages.Find(type_id).ValueOr(nullptr).get();
+        return std::forward_like<Self>(self.component_storages).Find(type_id).ValueOr(nullptr).get();
     }
 
 public:
