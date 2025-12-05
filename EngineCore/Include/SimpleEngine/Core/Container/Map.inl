@@ -209,7 +209,7 @@ Map<Key, Value, Pred, Allocator>::SizeType Map<Key, Value, Pred, Allocator>::Rem
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Array<typename Map<Key, Value, Pred, Allocator>::KeyType> Map<Key, Value, Pred, Allocator>::GetKeys() const
+Array<typename Map<Key, Value, Pred, Allocator>::KeyType> Map<Key, Value, Pred, Allocator>::Keys() const
 {
     Array<KeyType> keys;
 
@@ -222,7 +222,7 @@ Array<typename Map<Key, Value, Pred, Allocator>::KeyType> Map<Key, Value, Pred, 
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Array<typename Map<Key, Value, Pred, Allocator>::ValueType> Map<Key, Value, Pred, Allocator>::GetValues() const
+Array<typename Map<Key, Value, Pred, Allocator>::ValueType> Map<Key, Value, Pred, Allocator>::Values() const
 {
     Array<ValueType> values;
 

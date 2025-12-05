@@ -153,7 +153,7 @@ HashMap<Key, Value, Hasher, KeyEq, Allocator>::SizeType HashMap<Key, Value, Hash
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::KeyType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::GetKeys() const
+Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::KeyType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Keys() const
 {
     Array<KeyType> keys;
 
@@ -166,7 +166,7 @@ Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::KeyType> HashMap<K
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::GetValues() const
+Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Values() const
 {
     Array<ValueType> values;
 

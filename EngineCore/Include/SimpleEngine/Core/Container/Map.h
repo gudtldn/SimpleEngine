@@ -161,10 +161,10 @@ public:
     SizeType RemoveIf(Predicate&& pred);
 
     /** Map의 모든 키를 담은 Array를 생성하여 반환합니다. */
-    [[nodiscard]] Array<KeyType> GetKeys() const;
+    [[nodiscard]] Array<KeyType> Keys() const;
 
     /** Map의 모든 값을 담은 Array를 생성하여 반환합니다. */
-    [[nodiscard]] Array<ValueType> GetValues() const;
+    [[nodiscard]] Array<ValueType> Values() const;
 
     void Swap(Map& other) noexcept;
 

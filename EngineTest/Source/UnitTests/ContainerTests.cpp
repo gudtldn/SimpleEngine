@@ -982,8 +982,8 @@ TEST_F(HashMapAPI_Test, EntryAPI)
 TEST_F(HashMapAPI_Test, GetKeysAndGetValues)
 {
     HashMap<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 } };
-    Array<String> keys = map.GetKeys();
-    Array<int> values = map.GetValues();
+    Array<String> keys = map.Keys();
+    Array<int> values = map.Values();
 
     EXPECT_EQ(keys.Len(), 3);
     EXPECT_EQ(values.Len(), 3);
@@ -1131,8 +1131,8 @@ TEST_F(MapAPI_Test, EntryAPI)
 TEST_F(MapAPI_Test, GetKeysAndGetValues)
 {
     Map<String, int> map = { { "c", 3 }, { "a", 1 }, { "b", 2 } };
-    Array<String> keys = map.GetKeys();
-    Array<int> values = map.GetValues();
+    Array<String> keys = map.Keys();
+    Array<int> values = map.Values();
 
     EXPECT_EQ(keys.Len(), 3);
     EXPECT_EQ(values.Len(), 3);
