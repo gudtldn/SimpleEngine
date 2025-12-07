@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
