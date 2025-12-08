@@ -7,6 +7,7 @@
 #include "SimpleEngine/Reflection/Meta.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Reflection/TypeRegistry.h"
+#include "SimpleEngine/ECS/ComponentRegistry.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"
 
@@ -118,7 +119,8 @@ consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
     (process_tag(std::forward<Tags>(tags)), ...);
     return meta;
 }
-}
+} // namespace se::refl::details
+
 
 /** 타입의 리플렉션 정보 등록을 시작합니다. */
 #define SE_BEGIN_REFLECT(type, ...) \
@@ -151,6 +153,10 @@ inline static const struct type##_Registrar \
             .properties = std::move(properties), \
             .type_id = ::se::refl::TypeId::Get<type>(), \
         }); \
+        if constexpr (type_flags.IsAnySet(::se::refl::ETypeFlags::Component)) \
+        { \
+            ::se::ecs::ComponentRegistry::Register<type>(); \
+        } \
     } \
 } SE_UNIQUE_TOKEN(SE_CONCAT_TOKEN(type, _Registrar)){}; \
 } // se::refl::registration
