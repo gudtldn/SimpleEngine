@@ -2,6 +2,7 @@
 
 #include <ranges>
 #include "ECS/SparseSet.h"
+#include "ECS/ComponentRegistry.h"
 
 
 namespace se::ecs
@@ -18,5 +19,19 @@ void World::DestroyEntity(Entity entity)
 Array<Entity> World::GetAliveEntities() const
 {
     return entity_manager.GetAliveEntities();
+}
+
+IStorage* World::GetStorage(const refl::TypeId& type_id)
+{
+    if (const Optional storage_opt = component_storages.Find(type_id))
+    {
+        return storage_opt->get();
+    }
+
+    if (ComponentRegistry::Get().EnsureStorage(*this, type_id))
+    {
+        return component_storages.Find(type_id).ValueOr(nullptr).get();
+    }
+    return nullptr;
 }
 }

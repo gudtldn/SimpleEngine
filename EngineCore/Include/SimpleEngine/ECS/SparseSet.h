@@ -246,8 +246,15 @@ public:
     /** Index로 Entity를 가져옵니다. */
     [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(usize index) const = 0;
 
+    /** 주어진 엔티티에 기본 생성자로 만들어진 컴포넌트를 추가합니다. */
+    virtual void EmplaceDefault(Entity entity) = 0;
+
     /** 엔티티가 가지고 있는 컴포넌트를 제거합니다. */
     virtual void Remove(Entity entity) = 0;
+
+    /** 컴포넌트 데이터의 Raw Pointer 반환 (리플렉션용) */
+    [[nodiscard]] virtual void* GetRaw(Entity entity) = 0;
+    [[nodiscard]] virtual const void* GetRaw(Entity entity) const = 0;
 };
 
 template <typename ComponentType>
@@ -263,10 +270,33 @@ public:
     [[nodiscard]] virtual bool IsEmpty() const noexcept override { return storage.IsEmpty(); }
     [[nodiscard]] virtual bool Contains(Entity entity) const noexcept override { return storage.Contains(entity); }
     [[nodiscard]] virtual Optional<Entity> GetEntityByIndex(usize index) const override { return storage.GetEntityByIndex(index); }
+    virtual void EmplaceDefault(Entity entity) override
+    {
+        static_assert(std::is_default_constructible_v<ComponentType>, "ComponentType must be default constructible");
+        storage.Add(entity, ComponentType{});
+    }
     virtual void Remove(Entity entity) override { storage.Remove(entity); }
+
+    [[nodiscard]] virtual void* GetRaw(Entity entity) override
+    {
+        if (auto opt = storage.TryGet(entity))
+        {
+            return std::addressof(*opt);
+        }
+        return nullptr;
+    }
+
+    [[nodiscard]] virtual const void* GetRaw(Entity entity) const override
+    {
+        if (auto opt = storage.TryGet(entity))
+        {
+            return std::addressof(*opt);
+        }
+        return nullptr;
+    }
     //~End IStorage
 
     template <typename Self>
     traits::DeduceRetType<Self, SparseSet<ComponentType>&> GetStorage(this Self&& self) { return self.storage; }
 };
-}
+}  // namespace se::ecs

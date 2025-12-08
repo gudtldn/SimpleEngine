@@ -41,6 +41,8 @@ private:
     template <typename... Ts>
     friend class QueryData;
 
+    friend class ComponentRegistry;
+
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
     HashMap<refl::TypeId, Array<Function<void()>>> systems;
@@ -170,6 +172,13 @@ public:
 
 public:
     /**
+     * 주어진 TypeId에 해당하는 IStorage 포인터를 반환합니다.
+     * @param type_id 검색할 타입의 TypeId
+     * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
+     */
+    IStorage* GetStorage(const refl::TypeId& type_id);
+
+    /**
      * 지정된 스케줄에 등록된 모든 시스템을 순서대로 실행합니다.
      * @tparam S 실행할 스케줄 타입
      */
@@ -279,11 +288,11 @@ public:
             return *this;
         }
 
-        operator Entity() const { return entity; }
+        operator Entity() const { return entity; } // NOLINT(*-explicit-constructor)
 
     private:
         World* world;
         Entity entity;
     };
 };
-}
+}  // namespace se::ecs
