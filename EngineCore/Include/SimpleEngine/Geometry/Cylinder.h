@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Geometry/Vertex.h"
+#include "SimpleEngine/Geometry/Vertex_TEST.h"
 
-constexpr Vertex cylinder_vertices[] =
+constexpr Vertex_TEST cylinder_vertices[] =
 {
     { { 0.000000f, 1.000000f, -1.000000f }, { 0.407843f, 0.654902f, 0.819608f, 1.000000f } },
     { { 0.000000f, 1.000000f, 1.000000f }, { 0.619608f, 0.949020f, 0.349020f, 1.000000f } },

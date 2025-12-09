@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Geometry/Vertex.h"
+#include "SimpleEngine/Geometry/Vertex_TEST.h"
 
-constexpr Vertex corn_vertices[] =
+constexpr Vertex_TEST corn_vertices[] =
 {
     { { 0.000000f, 1.000000f, -1.000000f }, { 0.811765f, 1.000000f, 0.698039f, 1.000000f } },
     { { 0.195090f, 0.980785f, -1.000000f }, { 0.901961f, 0.988235f, 0.403922f, 1.000000f } },

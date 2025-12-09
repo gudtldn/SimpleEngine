@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Geometry/Vertex.h"
+#include "SimpleEngine/Geometry/Vertex_TEST.h"
 
 
-constexpr Vertex torus_vertices[] =
+constexpr Vertex_TEST torus_vertices[] =
 {
     { { 1.250000f, 0.000000f, 0.000000f }, { 0.698039f, 1.000000f, 0.788235f, 1.000000f } },
     { { 1.216506f, 0.000000f, 0.125000f }, { 0.988235f, 0.611765f, 0.905882f, 1.000000f } },

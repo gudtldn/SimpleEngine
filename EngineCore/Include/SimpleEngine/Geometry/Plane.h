@@ -1,9 +1,9 @@
 #pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Geometry/Vertex.h"
+#include "SimpleEngine/Geometry/Vertex_TEST.h"
 
 
-constexpr Vertex plane_vertices[] =
+constexpr Vertex_TEST plane_vertices[] =
 {
     { { -1.000000f, -1.000000f, 0.000000f }, { 0.717647f, 0.286275f, 0.847059f, 1.000000f } },
     { { 1.000000f, -1.000000f, 0.000000f }, { 0.082353f, 0.858824f, 0.317647f, 1.000000f } },
