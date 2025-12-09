@@ -10,6 +10,7 @@ find_package(range-v3 CONFIG REQUIRED)
 add_subdirectory(tracy EXCLUDE_FROM_ALL)
 set_property(TARGET TracyClient PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+add_subdirectory(assimp EXCLUDE_FROM_ALL)
 add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
 add_subdirectory(cpu_features EXCLUDE_FROM_ALL)
 

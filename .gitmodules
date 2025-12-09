@@ -13,3 +13,6 @@
 [submodule "ThirdParty/cpu_features"]
 	path = ThirdParty/cpu_features
 	url = https://github.com/google/cpu_features
+[submodule "ThirdParty/assimp"]
+	path = ThirdParty/assimp
+	url = https://github.com/assimp/assimp.git

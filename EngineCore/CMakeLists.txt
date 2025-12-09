@@ -75,3 +75,14 @@ target_include_directories(EngineCore PRIVATE
 target_compile_definitions(EngineCore PRIVATE
         PROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}"
 )
+
+if(MSVC)
+    target_compile_options(EngineCore PRIVATE
+            /utf-8
+    )
+else ()
+    target_compile_options(EngineCore PRIVATE
+            -finput-charset=UTF-8
+            -fexec-charset=UTF-8
+    )
+endif ()

@@ -31,3 +31,14 @@ target_include_directories(Editor PRIVATE
 target_compile_definitions(Editor PRIVATE
         PROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}"
 )
+
+if(MSVC)
+    target_compile_options(Editor PRIVATE
+            /utf-8
+    )
+else ()
+    target_compile_options(Editor PRIVATE
+            -finput-charset=UTF-8
+            -fexec-charset=UTF-8
+    )
+endif ()

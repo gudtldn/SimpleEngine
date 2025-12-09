@@ -16,6 +16,17 @@ add_custom_command(TARGET UnitTests POST_BUILD
         $<TARGET_FILE_DIR:UnitTests>/Config
 )
 
+if(MSVC)
+    target_compile_options(UnitTests PRIVATE
+            /utf-8
+    )
+else ()
+    target_compile_options(UnitTests PRIVATE
+            -finput-charset=UTF-8
+            -fexec-charset=UTF-8
+    )
+endif ()
+
 # 벤치마크 실행 파일 (GBenchmark 전용 main 사용)
 file(GLOB_RECURSE ENGINE_BENCHMARK_SOURCES "Source/Benchmark/*.cpp")
 add_executable(Benchmarks ${ENGINE_BENCHMARK_SOURCES})
@@ -28,3 +39,14 @@ add_custom_command(TARGET Benchmarks POST_BUILD
         ${CMAKE_CURRENT_SOURCE_DIR}/Config
         $<TARGET_FILE_DIR:Benchmarks>/Config
 )
+
+if(MSVC)
+    target_compile_options(Benchmarks PRIVATE
+            /utf-8
+    )
+else ()
+    target_compile_options(Benchmarks PRIVATE
+            -finput-charset=UTF-8
+            -fexec-charset=UTF-8
+    )
+endif ()
