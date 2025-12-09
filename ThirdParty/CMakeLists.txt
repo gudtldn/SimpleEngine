@@ -20,6 +20,10 @@ if(MSVC)
             /wd4132 # const object should be initialized
             /wd4100 # unreferenced formal parameter
     )
+    target_compile_options(assimp PRIVATE
+            /wd4819
+            /wd4132 # const object should be initialized
+    )
 endif()
 
 # SDL_shadercross
