@@ -133,14 +133,20 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             {
                 .location = 0,                                // 셰이더 내에서의 위치(location). HLSL의 :POSITION에 해당
                 .buffer_slot = 0,                             // 이 속성이 어느 버퍼(vertex_buffer_desc)에 속하는지
-                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, // 데이터 타입 (float 4개)
+                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, // 데이터 타입 (float 3개)
                 .offset = offsetof(Vertex, position)          // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
             },
             {
-                .location = 1, // 셰이더 내에서의 위치. HLSL의 :COLOR0에 해당
+                .location = 1,
                 .buffer_slot = 0,
-                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
-                .offset = offsetof(Vertex, color)
+                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+                .offset = offsetof(Vertex, normal)
+            },
+            {
+                .location = 2,
+                .buffer_slot = 0,
+                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+                .offset = offsetof(Vertex, tex_coord)
             },
         };
 

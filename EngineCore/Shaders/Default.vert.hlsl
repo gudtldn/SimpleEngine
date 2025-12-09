@@ -7,8 +7,14 @@ cbuffer UBO : register(b0, space1)
 
 struct VertexInput
 {
-    float4 position : POSITION;
-    float4 color : COLOR;
+    // C++: location 0 (Vector3f position)
+    float3 position : POSITION;
+
+    // C++: location 1 (Vector3f normal)
+    float3 normal : NORMAL;
+
+    // C++: location 2 (Vector2f tex_coord)
+    float2 tex_coord : TEXCOORD0;
 };
 
 struct VertexOutput
@@ -21,8 +27,11 @@ VertexOutput main(VertexInput input)
 {
     VertexOutput output;
 
-    output.position = mul(MVP, input.position);
-    output.color = input.color;
+    // Local -> Clip Space
+    output.position = mul(MVP, float4(input.position, 1.0f));
+
+    // 일단 임시로 Normal값을 Color로 사용
+    output.color = float4(input.normal * 0.5f + 0.5f, 1.0f);
 
     return output;
 }
