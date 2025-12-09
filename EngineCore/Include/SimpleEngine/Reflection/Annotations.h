@@ -21,7 +21,7 @@ struct ColorTag {};     // Vector3/4를 색상 피커로 표시
 
 struct SerializeTag {}; // 직렬화/역직렬화 강제
 struct TransientTag {}; // 직렬화/역직렬화 제외
-}
+}  // namespace details
 
 constexpr details::ComponentTag Component; // ECS 엔티티 컴포넌트
 constexpr details::ResourceTag Resource;   // 전역 리소스 (싱글톤 데이터)
@@ -67,4 +67,4 @@ struct DisplayName
     explicit constexpr DisplayName(const char* name)
         : name(name) {}
 };
-}
+}  // namespace se::meta
