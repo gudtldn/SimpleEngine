@@ -13,7 +13,10 @@ struct VertexInput
     // C++: location 1 (Vector3f normal)
     float3 normal : NORMAL;
 
-    // C++: location 2 (Vector2f tex_coord)
+    // C++: location 2 (Vector3f tangent)
+    float3 tangent : TANGENT;
+
+    // C++: location 3 (Vector2f tex_coord)
     float2 tex_coord : TEXCOORD0;
 };
 

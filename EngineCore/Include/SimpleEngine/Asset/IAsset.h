@@ -10,6 +10,7 @@ namespace se::asset
  */
 class SE_CORE_API IAsset
 {
+public:
     virtual ~IAsset() = default;
 };
 }

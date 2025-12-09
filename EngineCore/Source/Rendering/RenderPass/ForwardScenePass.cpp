@@ -1,8 +1,8 @@
 ﻿#include "Rendering/RenderPass/ForwardScenePass.h"
 
+#include "Asset/Types/MeshTypes.h"
 #include "Core/Logging/Logging.h"
 #include "Core/Types/VPath.h"
-#include "Geometry/Vertex.h"
 #include "Rendering/RenderGraph/RenderGraph.h"
 #include "Utility/PathResolver.h"
 #include "ECS/Query.h"
@@ -120,7 +120,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
             {
                 .slot = 0,                                    // 이 버퍼가 바인딩될 슬롯 번호 (셰이더에서 참조)
-                .pitch = sizeof(Vertex),                      // 정점 하나가 차지하는 총 메모리 크기 (stride)
+                .pitch = sizeof(asset::Vertex),               // 정점 하나가 차지하는 총 메모리 크기 (stride)
                 .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX, // 버퍼 데이터가 정점마다 바뀌는지(VERTEX) 또는 인스턴스마다 바뀌는지(INSTANCE)
             },
         };
@@ -134,19 +134,25 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 .location = 0,                                // 셰이더 내에서의 위치(location). HLSL의 :POSITION에 해당
                 .buffer_slot = 0,                             // 이 속성이 어느 버퍼(vertex_buffer_desc)에 속하는지
                 .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, // 데이터 타입 (float 3개)
-                .offset = offsetof(Vertex, position)          // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
+                .offset = offsetof(asset::Vertex, position)   // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
             },
             {
                 .location = 1,
                 .buffer_slot = 0,
                 .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-                .offset = offsetof(Vertex, normal)
+                .offset = offsetof(asset::Vertex, normal)
             },
             {
                 .location = 2,
                 .buffer_slot = 0,
+                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+                .offset = offsetof(asset::Vertex, tangent)
+            },
+            {
+                .location = 3,
+                .buffer_slot = 0,
                 .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-                .offset = offsetof(Vertex, tex_coord)
+                .offset = offsetof(asset::Vertex, tex_coord)
             },
         };
 
