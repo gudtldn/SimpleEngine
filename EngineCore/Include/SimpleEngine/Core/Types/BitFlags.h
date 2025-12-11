@@ -21,7 +21,7 @@ public:
     using MaskType = std::underlying_type_t<EnumType>;
 
     constexpr BitFlags() = default;
-    constexpr BitFlags(EnumType in_bit) : mask_value(std::to_underlying(in_bit)) {}
+    constexpr explicit BitFlags(EnumType in_bit) : mask_value(std::to_underlying(in_bit)) {}
     constexpr BitFlags(const BitFlags& in_other) = default;
     constexpr explicit BitFlags(MaskType in_value) : mask_value(in_value) {}
 
