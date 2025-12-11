@@ -36,6 +36,11 @@ public:
         return (mask_value & std::to_underlying(bit)) == std::to_underlying(bit);
     }
 
+    [[nodiscard]] constexpr bool IsAnySet(EnumType flags) const
+    {
+        return (mask_value & std::to_underlying(flags)) != 0;
+    }
+
     [[nodiscard]] constexpr bool IsAnySet(BitFlags flags) const
     {
         return (mask_value & flags.mask_value) != 0;
