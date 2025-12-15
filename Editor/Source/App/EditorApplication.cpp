@@ -38,11 +38,28 @@ void EditorApplication::RegisterSubsystems()
         }
 
         Config& config = result.Value();
+        uint32 flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+        if (config.GetValueOrStore<bool>("window.fullscreen", false))
+        {
+            flags |= SDL_WINDOW_FULLSCREEN;
+        }
+
+        if (config.GetValueOrStore<bool>("window.borderless", false))
+        {
+            flags |= SDL_WINDOW_BORDERLESS;
+        }
+
+        if (config.GetValueOrStore<bool>("window.resizable", true))
+        {
+            flags |= SDL_WINDOW_RESIZABLE;
+        }
+
         platform_subsystem->PrepareWindow({
-            .title = config.GetValueOrStore<se::String>("window.title", "SimpleEngine Editor"),
+            .title = config.GetValueOrStore<String>("window.title", "SimpleEngine Editor"),
             .width = config.GetValueOrStore<uint32>("window.width", 1280),
             .height = config.GetValueOrStore<uint32>("window.height", 720),
-            .sdl_window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
+            .sdl_window_flags = flags,
             .swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
             .present_mode = SDL_GPU_PRESENTMODE_MAILBOX,
         });

@@ -1,4 +1,7 @@
 [window]
+borderless = false
+fullscreen = false
 height = 900
+resizable = true
 title = 'SimpleEngine'
 width = 1600
