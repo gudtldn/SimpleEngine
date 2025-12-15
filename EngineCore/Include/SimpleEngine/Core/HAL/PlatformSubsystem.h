@@ -81,6 +81,15 @@ public:
     [[nodiscard]] const core::event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
 
 public:
+    // TODO: 다중 윈도우에 대해 작동할 수 있도록 수?정 | Main이 아닌 Window가 Fullscreen이 필요한가?
+
+    /** Main Window가 Fullscreen 상태인지 확인합니다. */
+    [[nodiscard]] bool IsFullscreen() const;
+
+    /** Main Window를 Fullscreen 상태로 설정합니다. */
+    void SetFullscreen(bool fullscreen);
+
+public:
     /** 메인 Window의 초기화 및 생성 준비를 수행합니다. */
     void PrepareWindow(WindowDesc&& window_desc);
 

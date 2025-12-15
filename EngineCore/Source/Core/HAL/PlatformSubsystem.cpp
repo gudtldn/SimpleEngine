@@ -98,6 +98,21 @@ void PlatformSubsystem::PollEvents()
     }
 }
 
+bool PlatformSubsystem::IsFullscreen() const
+{
+    return (SDL_GetWindowFlags(GetMainWindow()) & SDL_WINDOW_FULLSCREEN) != 0;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void PlatformSubsystem::SetFullscreen(bool fullscreen)
+{
+    if (IsFullscreen() == fullscreen)
+    {
+        return;
+    }
+    SDL_SetWindowFullscreen(GetMainWindow(), fullscreen);
+}
+
 void PlatformSubsystem::PrepareWindow(WindowDesc&& window_desc)
 {
     main_window_info = std::move(window_desc);
