@@ -4,13 +4,15 @@
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
+#include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
 namespace se::utility
 {
-struct FileReadError
+class FileReadError : public core::IError
 {
+public:
     enum class Type
     {
         FileNotFound,     // 파일이 존재하지 않음
@@ -24,9 +26,6 @@ struct FileReadError
         UnknownError      // 알 수 없는 에러
     };
 
-    Type type;
-    String message;
-
     static FileReadError NotFound(String&& msg) { return { Type::FileNotFound, std::move(msg) }; }
     static FileReadError OpenFailed(String&& msg) { return { Type::FileOpenFailed, std::move(msg) }; }
     static FileReadError Permission(String&& msg) { return { Type::PermissionDenied, std::move(msg) }; }
@@ -36,6 +35,18 @@ struct FileReadError
     static FileReadError EndOfFile(String&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
     static FileReadError OutOfMem(String&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
     static FileReadError Unknown(String&& msg) { return { Type::UnknownError, std::move(msg) }; }
+
+    [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
+    [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
+
+    [[nodiscard]] Type GetType() const noexcept { return type; }
+
+private:
+    FileReadError(Type in_type, String&& message)
+        : type(in_type), message(std::move(message)) {}
+
+    Type type;
+    String message;
 };
 
 template <typename T>

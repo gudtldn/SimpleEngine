@@ -30,7 +30,7 @@ SDL_GPUShader* CompileFromHLSL(
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().What());
         return nullptr;
     }
 

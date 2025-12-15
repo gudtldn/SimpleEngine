@@ -55,14 +55,14 @@ bool PlatformSubsystem::Initialize()
     {
         ConsoleLog(ELogLevel::Info, "Initializing Window...");
 
-        // const float main_display_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
         if (const auto window_result = CreateWindow(*main_window_info))
         {
             main_window_id = *window_result;
         }
         else
         {
-            ConsoleLog(ELogLevel::Error, "{}", window_result.Error().message);
+            ConsoleLog(ELogLevel::Error, "{}", window_result.Error().What());
+            return false;
         }
 
         SDL_ShowWindow(GetWindow(main_window_id));
@@ -117,7 +117,7 @@ Expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const 
     {
         return Unexpected{
             WindowCreateError::WindowCreation(
-                se::String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
+                String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
             )
         };
     }
@@ -134,7 +134,7 @@ Expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const 
                 SDL_DestroyWindow(new_window);
                 return Unexpected{
                     WindowCreateError::GPUDeviceClaim(
-                        se::String::Format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError())
+                        String::Format("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError())
                     )
                 };
             }
@@ -148,7 +148,7 @@ Expected<SDL_WindowID, WindowCreateError> PlatformSubsystem::CreateWindow(const 
                 SDL_DestroyWindow(new_window);
                 return Unexpected{
                     WindowCreateError::SwapchainSetup(
-                        se::String::Format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError())
+                        String::Format("SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError())
                     )
                 };
             }

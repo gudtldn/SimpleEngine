@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
+#include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/Event/EventDispatcher.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
@@ -27,8 +28,9 @@ struct WindowDesc
     bool prefer_linear_color_space = false;
 };
 
-struct WindowCreateError
+class WindowCreateError : public core::IError
 {
+public:
     enum class Type
     {
         WindowCreationFailed,
@@ -36,12 +38,21 @@ struct WindowCreateError
         SwapchainSetupFailed,
     };
 
-    Type type;
-    se::String message;
+    static WindowCreateError WindowCreation(String&& sdl_error) { return { Type::WindowCreationFailed, std::move(sdl_error) }; }
+    static WindowCreateError GPUDeviceClaim(String&& sdl_error) { return { Type::GPUDeviceClaimFailed, std::move(sdl_error) }; }
+    static WindowCreateError SwapchainSetup(String&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
 
-    static WindowCreateError WindowCreation(se::String&& sdl_error) { return { Type::WindowCreationFailed, std::move(sdl_error) }; }
-    static WindowCreateError GPUDeviceClaim(se::String&& sdl_error) { return { Type::GPUDeviceClaimFailed, std::move(sdl_error) }; }
-    static WindowCreateError SwapchainSetup(se::String&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
+    [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
+    [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
+
+    [[nodiscard]] Type GetType() const noexcept { return type; }
+
+private:
+    WindowCreateError(Type in_type, String&& message)
+        : type(in_type), message(std::move(message)) {}
+
+    Type type;
+    String message;
 };
 
 class SE_CORE_API PlatformSubsystem : public core::ISubsystem

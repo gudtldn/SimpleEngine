@@ -54,7 +54,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().message);
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().What());
         return nullptr;
     }
 
