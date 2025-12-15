@@ -42,7 +42,7 @@ void EditorApplication::RegisterSubsystems()
             .title = config.GetValueOrStore<se::String>("window.title", "SimpleEngine Editor"),
             .width = config.GetValueOrStore<uint32>("window.width", 1280),
             .height = config.GetValueOrStore<uint32>("window.height", 720),
-            .sdl_window_flags = SDL_WINDOW_RESIZABLE,
+            .sdl_window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY,
             .swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
             .present_mode = SDL_GPU_PRESENTMODE_MAILBOX,
         });
@@ -119,4 +119,4 @@ void EditorApplication::Render()
     }
     render_subsystem->RenderFrame();
 }
-}
+}  // namespace se::editor
