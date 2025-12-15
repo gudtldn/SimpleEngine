@@ -49,21 +49,19 @@ private:
     void MainLoop();
 
 public:
-    bool IsInitialized() const { return is_initialized; }
-    bool IsRunning() const { return is_running; }
+    [[nodiscard]] bool IsInitialized() const { return is_initialized; }
+    [[nodiscard]] bool IsRunning() const { return is_running; }
 
     // Application 종료 관련
     void RequestQuit() { quit_requested = true; }
-    bool IsQuitRequested() const { return quit_requested; }
-
-    core::Engine& GetEngine() const { return *engine_instance; }
+    [[nodiscard]] bool IsQuitRequested() const { return quit_requested; }
 
     /**
      * 애플리케이션이 실행 중인 모드를 지정하는 현재 애플리케이션 모드를 가져옵니다.
      *
      * @return 현재 애플리케이션 모드는 EApplicationMode 열거형 값으로 표시됩니다.
      */
-    EApplicationMode GetApplicationMode() const { return application_mode; }
+    [[nodiscard]] EApplicationMode GetApplicationMode() const { return application_mode; }
 
 protected:
     // 초기화 단계
@@ -84,13 +82,13 @@ protected:
     virtual void PostRelease();
 
 public:
-    static double GetCurrentTime() { return CurrentTime; }
-    static double GetLastTime() { return LastTime; }
-    static double GetDeltaTime() { return DeltaTime; }
-    static double GetFixedDeltaTime() { return FixedDeltaTime; }
-    static uint64 GetTotalElapsedTime() { return TotalElapsedTime; }
+    [[nodiscard]] static double GetCurrentTime() { return CurrentTime; }
+    [[nodiscard]] static double GetLastTime() { return LastTime; }
+    [[nodiscard]] static double GetDeltaTime() { return DeltaTime; }
+    [[nodiscard]] static double GetFixedDeltaTime() { return FixedDeltaTime; }
+    [[nodiscard]] static uint64 GetTotalElapsedTime() { return TotalElapsedTime; }
 
-    static uint32 GetTargetFps() { return TargetFps; }
+    [[nodiscard]] static uint32 GetTargetFps() { return TargetFps; }
 
     static void SetTargetFps(uint32 new_fps)
     {
