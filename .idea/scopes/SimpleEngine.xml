@@ -1,3 +1,3 @@
 <component name="DependencyValidationManager">
-  <scope name="SimpleEngine" pattern="file[SimpleEngine]:Editor//*||file[SimpleEngine]:EngineCore//*||file[SimpleEngine]:EngineTest//*||file:CMakeLists.txt" />
+  <scope name="SimpleEngine" pattern="file[SimpleEngine]:Editor//*||file[SimpleEngine]:EngineCore//*||file[SimpleEngine]:EngineTest//*||file:CMakeLists.txt||file[SimpleEngine]:Config//*" />
 </component>
