@@ -2,8 +2,8 @@
 #include <concepts>
 #include <utility>
 
+#include "AssetId.h"
 #include "SimpleEngine/Asset/IAsset.h"
-#include "SimpleEngine/Core/Types/Guid.h"
 
 
 namespace se::asset
@@ -21,24 +21,27 @@ public:
 
 public:
     AssetHandle() = default;
-    explicit AssetHandle(Guid in_guid);
+    explicit AssetHandle(const Guid& in_guid);
 
 public:
     [[nodiscard]] bool IsValid() const noexcept;
-    [[nodiscard]] const Guid& GetGuid() const noexcept { return guid; }
+    [[nodiscard]] const Guid& GetGuid() const noexcept { return id.GetGuid(); }
 
 public:
+    // ReSharper disable once CppNonExplicitConversionOperator
+    [[nodiscard]] operator AssetId() const noexcept { return id; } // NOLINT(*-explicit-constructor)
+
     [[nodiscard]] explicit operator bool() const noexcept { return IsValid(); }
     [[nodiscard]] bool operator==(const AssetHandle&) const noexcept = default;
 
 private:
-    Guid guid;
+    AssetId id;
 };
 
 template <typename T>
     requires std::derived_from<T, IAsset>
-AssetHandle<T>::AssetHandle(Guid in_guid)
-    : guid(std::move(in_guid))
+AssetHandle<T>::AssetHandle(const Guid& in_guid)
+    : id(in_guid)
 {
 }
 
@@ -46,9 +49,9 @@ template <typename T>
     requires std::derived_from<T, IAsset>
 bool AssetHandle<T>::IsValid() const noexcept
 {
-    return guid.IsValid();
+    return id.IsValid();
 }
-}
+}  // namespace se::asset
 
 template <typename T>
     requires std::derived_from<T, se::asset::IAsset>
