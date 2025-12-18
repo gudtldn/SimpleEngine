@@ -19,21 +19,29 @@ public:
     GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage);
     ~GpuMemoryBlock();
 
-    // 이동만 허용
+    // 복사 방지
     GpuMemoryBlock(const GpuMemoryBlock&) = delete;
     GpuMemoryBlock& operator=(const GpuMemoryBlock&) = delete;
+
+    // 이동만 허용
     GpuMemoryBlock(GpuMemoryBlock&& other) noexcept;
     GpuMemoryBlock& operator=(GpuMemoryBlock&& other) noexcept;
 
 public:
+    /** 블록 내에서 메모리를 할당합니다. (Linear Allocation) */
     [[nodiscard]] bool AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBufferSlice& out_slice);
-    [[nodiscard]] SDL_GPUBuffer* GetNativeBuffer() const noexcept { return buffer; }
+
+    [[nodiscard]] uint32 GetTotalSize() const { return total_size; }
+    [[nodiscard]] uint32 GetUsedSize() const { return used_offset; }
+    [[nodiscard]] SDL_GPUBufferUsageFlags GetUsage() const { return usage_flags; }
+    [[nodiscard]] SDL_GPUBuffer* GetNativeBuffer() const { return buffer; }
 
 private:
-    SDL_GPUDevice* device;
-    SDL_GPUBuffer* buffer; // GPU Buffer 리소스
+    SDL_GPUDevice* device = nullptr;
+    SDL_GPUBuffer* buffer = nullptr; // GPU Buffer 리소스
 
-    uint32 total_size;  // 버퍼 크기
-    uint32 used_offset; // 버퍼를 할당할 수 있는 시작 오프셋
+    SDL_GPUBufferUsageFlags usage_flags = 0; // Buffer의 사용 용도
+    uint32 total_size = 0;                   // 버퍼 크기
+    uint32 used_offset = 0;                  // 버퍼를 할당할 수 있는 시작 오프셋
 };
-}  // namespace se::rendering
+} // namespace se::rendering

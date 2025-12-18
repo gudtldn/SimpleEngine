@@ -1,5 +1,4 @@
 ﻿#include "Rendering/Memory/GpuMemoryBlock.h"
-
 #include "Utility/Common.h"
 
 
@@ -7,8 +6,8 @@ namespace se::rendering
 {
 GpuMemoryBlock::GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage)
     : device(in_device)
+    , usage_flags(in_usage)
     , total_size(in_size)
-    , used_offset(0)
 {
     // const SDL_PropertiesID buffer_props = SDL_CreateProperties();
     // SDL_SetStringProperty(buffer_props, SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING, );
@@ -25,7 +24,10 @@ GpuMemoryBlock::GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPU
 
 GpuMemoryBlock::~GpuMemoryBlock()
 {
-    SDL_ReleaseGPUBuffer(device, buffer);
+    if (buffer)
+    {
+        SDL_ReleaseGPUBuffer(device, buffer);
+    }
 }
 
 GpuMemoryBlock::GpuMemoryBlock(GpuMemoryBlock&& other) noexcept
@@ -37,12 +39,16 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
 {
     if (this != &other)
     {
-        SDL_ReleaseGPUBuffer(device, buffer);
+         if (buffer)
+        {
+            SDL_ReleaseGPUBuffer(device, buffer);
+        }
 
         static_assert(
             utility::AlignedSize<alignof(GpuMemoryBlock)>(
                 sizeof(device)   // NOLINT(*-sizeof-expression)
                 + sizeof(buffer) // NOLINT(*-sizeof-expression)
+                + sizeof(usage_flags)
                 + sizeof(total_size)
                 + sizeof(used_offset)
             ) == sizeof(GpuMemoryBlock),
@@ -51,6 +57,7 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
 
         device = std::exchange(other.device, nullptr);
         buffer = std::exchange(other.buffer, nullptr);
+        usage_flags = std::exchange(other.usage_flags, 0);
         total_size = std::exchange(other.total_size, 0);
         used_offset = std::exchange(other.used_offset, 0);
     }
@@ -64,7 +71,7 @@ bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBuffe
     // Buffer의 남은 공간이 부족한지?
     if (aligned_offset + in_size > total_size)
     {
-        return false;
+        return false; // 공간 부족
     }
 
     out_slice.buffer = buffer;
