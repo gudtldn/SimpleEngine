@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #define SE_CONCAT_TOKEN_IMPL(a, b) a##b
 #define SE_CONCAT_TOKEN(a, b) SE_CONCAT_TOKEN_IMPL(a, b)
