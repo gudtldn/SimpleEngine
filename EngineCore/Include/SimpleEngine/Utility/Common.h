@@ -14,23 +14,41 @@
 namespace se::utility
 {
 /**
- * 특정 값(size)을 지정된 정렬(AlignSize) 크기로 올림(round up)합니다.
+ * 특정 값(size)을 지정된 정렬(alignment) 크기로 올림(round up)합니다.
+ * @param size 원본 크기
+ * @param alignment 정렬 단위 (반드시 2의 거듭제곱이어야 함)
+ * @return usize 정렬된 크기
  */
-template <usize AlignSize>
-    requires (std::has_single_bit(AlignSize))
-constexpr usize AlignedSize(usize size)
+constexpr usize AlignedSize(usize size, usize alignment)
 {
-    return (size + AlignSize - 1) & ~(AlignSize - 1);
+    SE_ASSERT(std::has_single_bit(alignment));
+    return (size + alignment - 1) & ~(alignment - 1);
 }
 
 /**
- * 특정 타입(T)의 크기를 지정된 정렬(AlignSize) 크기로 올림(round up)합니다.
+ * 특정 값(size)을 지정된 정렬(Alignment) 크기로 올림(round up)합니다.
+ * @tparam Alignment 정렬 단위 (2의 거듭제곱)
+ * @param size 원본 크기
+ * @return constexpr usize 정렬된 크기
  */
-template <usize AlignSize, typename T>
-    requires (std::has_single_bit(AlignSize))
+template <usize Alignment>
+    requires (std::has_single_bit(Alignment))
+constexpr usize AlignedSize(usize size)
+{
+    return (size + Alignment - 1) & ~(Alignment - 1);
+}
+
+/**
+ * 특정 타입(T)의 크기를 지정된 정렬(Alignment) 크기로 올림(round up)합니다.
+ * @tparam Alignment 정렬 단위 (2의 거듭제곱)
+ * @tparam T 대상 타입
+ * @return constexpr usize 정렬된 타입의 크기
+ */
+template <usize Alignment, typename T>
+    requires (std::has_single_bit(Alignment))
 constexpr usize AlignedSize()
 {
-    return AlignedSize<AlignSize>(sizeof(T));
+    return AlignedSize<Alignment>(sizeof(T));
 }
 
 /**
@@ -42,7 +60,7 @@ class ScopeGuard
 public:
     template <typename... Args>
         requires requires { T::Enter(std::declval<Args>()...); T::Exit(); }
-    ScopeGuard(Args&&... args)
+    explicit ScopeGuard(Args&&... args)
     {
         T::Enter(std::forward<Args>(args)...);
     }
@@ -66,7 +84,7 @@ template <typename Fn>
 class LambdaScopeGuard
 {
 public:
-    LambdaScopeGuard(Fn&& in_exit_func)
+    explicit LambdaScopeGuard(Fn&& in_exit_func)
         : exit_func(std::forward<Fn>(in_exit_func))
     {
     }
@@ -79,4 +97,4 @@ public:
 private:
     Fn exit_func;
 };
-}
+}  // namespace se::utility
