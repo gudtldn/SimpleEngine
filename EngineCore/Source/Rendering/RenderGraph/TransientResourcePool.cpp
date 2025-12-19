@@ -1,16 +1,16 @@
-﻿#include "Rendering/RenderGraph/GpuResourcePool.h"
+﻿#include "Rendering/RenderGraph/TransientResourcePool.h"
 
 #include <ranges>
 
 
 namespace se::rendering
 {
-GpuResourcePool::GpuResourcePool(SDL_GPUDevice* in_device)
+TransientResourcePool::TransientResourcePool(SDL_GPUDevice* in_device)
     : device(in_device)
 {
 }
 
-GpuResourcePool::~GpuResourcePool()
+TransientResourcePool::~TransientResourcePool()
 {
     for (const PoolEntry<SDL_GPUTexture>& entry : texture_pool | std::views::values)
     {
@@ -37,7 +37,7 @@ GpuResourcePool::~GpuResourcePool()
     }
 }
 
-SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo& info)
+SDL_GPUTexture* TransientResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo& info)
 {
     return AllocateResource(texture_pool[info], [this, &info = std::as_const(info)]
     {
@@ -45,12 +45,12 @@ SDL_GPUTexture* GpuResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo&
     });
 }
 
-void GpuResourcePool::DeallocateTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture)
+void TransientResourcePool::DeallocateTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture)
 {
     DeallocateResource(texture_pool[info], texture);
 }
 
-SDL_GPUBuffer* GpuResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& info)
+SDL_GPUBuffer* TransientResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& info)
 {
     return AllocateResource(buffer_pool[info], [this, &info = std::as_const(info)]
     {
@@ -58,8 +58,8 @@ SDL_GPUBuffer* GpuResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& in
     });
 }
 
-void GpuResourcePool::DeallocateBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
+void TransientResourcePool::DeallocateBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
 {
     DeallocateResource(buffer_pool[info], buffer);
 }
-}
+}  // namespace se::rendering

@@ -12,7 +12,7 @@
 
 namespace se::rendering
 {
-class SE_CORE_API GpuResourcePool
+class SE_CORE_API TransientResourcePool
 {
 private:
     // Pool 관리용 Entry
@@ -24,13 +24,13 @@ private:
     };
 
 public:
-    explicit GpuResourcePool(SDL_GPUDevice* in_device);
-    ~GpuResourcePool();
+    explicit TransientResourcePool(SDL_GPUDevice* in_device);
+    ~TransientResourcePool();
 
-    GpuResourcePool(const GpuResourcePool&) = delete;
-    GpuResourcePool& operator=(const GpuResourcePool&) = delete;
-    GpuResourcePool(GpuResourcePool&&) noexcept = default;
-    GpuResourcePool& operator=(GpuResourcePool&&) noexcept = default;
+    TransientResourcePool(const TransientResourcePool&) = delete;
+    TransientResourcePool& operator=(const TransientResourcePool&) = delete;
+    TransientResourcePool(TransientResourcePool&&) noexcept = default;
+    TransientResourcePool& operator=(TransientResourcePool&&) noexcept = default;
 
 public:
     /** CreateInfo에 맞는 텍스처를 Pool에서 찾거나 새로 생성하여 반환합니다. */
@@ -61,7 +61,7 @@ private:
 
 template <typename T, typename CreateResourceFn>
     requires std::is_invocable_r_v<T*, CreateResourceFn>
-T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func)
+T* TransientResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& create_resource_func)
 {
     if (Optional resource_opt = entry.available_resources.Pop())
     {
@@ -75,11 +75,11 @@ T* GpuResourcePool::AllocateResource(PoolEntry<T>& entry, CreateResourceFn&& cre
 }
 
 template <typename T>
-void GpuResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
+void TransientResourcePool::DeallocateResource(PoolEntry<T>& entry, T* resource)
 {
     [[maybe_unused]] const usize count = entry.used_resources.Remove(resource);
     SE_ASSERT(count > 0, "Attempted to deallocate a texture that was not marked as used.");
 
     entry.available_resources.Push(resource);
 }
-}
+}  // namespace se::rendering

@@ -88,7 +88,7 @@ private:
 
 private:
     SDL_GPUDevice* device;
-    GpuResourcePool resource_pool;
+    TransientResourcePool resource_pool;
 
     // StringName으로 리소스 핸들을 찾기 위한 Map
     HashMap<StringName, RGResourceHandle> resource_name_map;
@@ -171,4 +171,4 @@ PassType& RenderGraph::AddPass(Args&&... args)
 
     return *raw_ptr;
 }
-}
+}  // namespace se::rendering
