@@ -258,9 +258,10 @@ private:
     traits::DeduceRetType<Self, IStorage*> GetIStorage(this Self&& self)
     {
         using RawType = std::decay_t<ComponentType>;
+        std::unique_ptr<IStorage> null_ptr;
 
         const auto type_id = refl::TypeId::Get<RawType>();
-        return self.component_storages.Find(type_id).ValueOr(nullptr).get();
+        return self.component_storages.Find(type_id).ValueOr(null_ptr).get();
     }
 
 public:

@@ -30,7 +30,8 @@ IStorage* World::GetStorage(const refl::TypeId& type_id)
 
     if (ComponentRegistry::Get().EnsureStorage(*this, type_id))
     {
-        return component_storages.Find(type_id).ValueOr(nullptr).get();
+        std::unique_ptr<IStorage> null_ptr;
+        return component_storages.Find(type_id).ValueOr(null_ptr).get();
     }
     return nullptr;
 }

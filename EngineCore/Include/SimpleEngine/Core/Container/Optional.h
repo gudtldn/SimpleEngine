@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include <cassert>
 #include <concepts>
 #include <functional>
@@ -11,6 +12,24 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+// forward declaration
+template <typename T>
+class Optional;
+
+namespace se::details
+{
+    template <typename T>
+    concept IsOptional = traits::IsSpecializationOf<T, Optional>;
+
+    template <typename T>
+    concept NotOptionalOrInPlace =
+        !IsOptional<std::remove_cvref_t<T>>
+        && !std::same_as<std::remove_cvref_t<T>, std::in_place_t>
+        && !std::same_as<std::remove_cvref_t<T>, std::nullopt_t>;
+
+    template <typename T>
+    concept IsValidResultType = !std::is_array_v<T> && std::is_object_v<T>;
+} // namespace se::details
 
 template <typename T>
 class Optional
@@ -19,26 +38,9 @@ public:
     using ValueType = T;
 
 public:
-    Optional() noexcept = default;
-    ~Optional() { Reset(); }
+    constexpr Optional() noexcept = default;
 
-    template <typename U = T>
-        requires std::constructible_from<T, U>
-    Optional(std::optional<U>&& other_optional)
-    {
-        if (other_optional.has_value())
-        {
-            Construct(std::move(other_optional.value()));
-        }
-    }
-
-    template <typename... Args>
-    Optional(std::in_place_t, Args&&... args)
-    {
-        Construct(std::forward<Args>(args)...);
-    }
-
-    Optional(std::nullopt_t) noexcept
+    constexpr Optional(std::nullopt_t) noexcept
         : storage{}
     {
     }
@@ -51,6 +53,22 @@ public:
     Optional(T&& in_value)
     {
         Construct(std::move(in_value));
+    }
+
+    template <typename... Args>
+    explicit Optional(std::in_place_t, Args&&... args)
+    {
+        Construct(std::forward<Args>(args)...);
+    }
+
+    template <typename U = T>
+        requires std::constructible_from<T, U>
+    Optional(std::optional<U>&& other)
+    {
+        if (other.has_value())
+        {
+            Construct(std::move(other).value());
+        }
     }
 
     Optional(const Optional& other)
@@ -70,29 +88,14 @@ public:
         }
     }
 
-    Optional& operator=(const T& in_value)
+    ~Optional()
     {
-        if (HasValue())
-        {
-            GetStoredValue() = in_value;
-        }
-        else
-        {
-            Construct(in_value);
-        }
-        return *this;
+        Reset();
     }
 
-    Optional& operator=(T&& in_value) noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>)
+    Optional& operator=(std::nullopt_t) noexcept
     {
-        if (HasValue())
-        {
-            GetStoredValue() = std::move(in_value);
-        }
-        else
-        {
-            Construct(std::move(in_value));
-        }
+        Reset();
         return *this;
     }
 
@@ -100,102 +103,94 @@ public:
     {
         if (this != &other)
         {
-            Reset();
             if (other.HasValue())
             {
-                Construct(other.GetStoredValue());
+                if (HasValue())
+                {
+                    GetStoredValue() = other.GetStoredValue();
+                }
+                else
+                {
+                    Construct(other.GetStoredValue());
+                }
+            }
+            else
+            {
+                Reset();
             }
         }
         return *this;
     }
 
-    Optional& operator=(Optional&& other) noexcept
+    Optional& operator=(Optional&& other) noexcept(std::is_nothrow_move_assignable_v<T> && std::is_nothrow_move_constructible_v<T>)
     {
         if (this != &other)
         {
-            Reset();
             if (other.HasValue())
             {
-                Construct(std::move(other.GetStoredValue()));
+                if (HasValue())
+                {
+                    GetStoredValue() = std::move(other.GetStoredValue());
+                }
+                else
+                {
+                    Construct(std::move(other.GetStoredValue()));
+                }
                 other.Reset();
             }
+            else
+            {
+                Reset();
+            }
+        }
+        return *this;
+    }
+
+    template <typename U = T>
+        requires std::constructible_from<T, U>
+        && std::assignable_from<T&, U>
+        && se::details::NotOptionalOrInPlace<U>
+    Optional& operator=(U&& value)
+    {
+        if (HasValue())
+        {
+            GetStoredValue() = std::forward<U>(value);
+        }
+        else
+        {
+            Construct(std::forward<U>(value));
         }
         return *this;
     }
 
 public:
     /** Optional이 가지고 있는 값을 반환합니다. */
-    [[nodiscard]] T& Value() &
+    template <typename Self>
+    [[nodiscard]] auto&& Value(this Self&& self)
     {
-        if (!HasValue())
-        {
-            assert(false && "Optional is empty!");
-        }
-        return GetStoredValue();
-    }
-
-    /** Optional이 가지고 있는 값을 반환합니다. */
-    [[nodiscard]] const T& Value() const &
-    {
-        if (!HasValue())
-        {
-            assert(false && "Optional is empty!");
-        }
-        return GetStoredValue();
-    }
-
-    /** Optional이 가지고 있는 값을 반환합니다. */
-    [[nodiscard]] T&& Value() &&
-    {
-        if (!HasValue())
-        {
-            assert(false && "Optional is empty!");
-        }
-        return std::move(GetStoredValue());
-    }
-
-    /** Optional이 가지고 있는 값을 반환합니다. */
-    [[nodiscard]] const T&& Value() const &&
-    {
-        if (!HasValue())
-        {
-            assert(false && "Optional is empty!");
-        }
-        return std::move(GetStoredValue());
+        assert(self.HasValue() && "Optional is empty!");
+        return std::forward_like<Self>(self.GetStoredValue());
     }
 
     /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
-    template <typename U = std::remove_cv_t<T>>
-        requires std::convertible_to<U, std::remove_cv_t<T>>
-    [[nodiscard]] std::remove_cv_t<T> ValueOr(U&& default_value) const &
+    template <typename Self, typename U>
+        requires std::convertible_to<U, T>
+    [[nodiscard]] T ValueOr(this Self&& self, U&& default_value)
     {
-        if (HasValue())
+        if (self.HasValue())
         {
-            return GetStoredValue();
+            return std::forward<Self>(self).Value();
         }
-        return static_cast<std::remove_cv_t<T>>(std::forward<U>(default_value));
-    }
-
-    /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
-    template <typename U = std::remove_cv_t<T>>
-        requires std::convertible_to<U, std::remove_cv_t<T>>
-    [[nodiscard]] std::remove_cv_t<T> ValueOr(U&& default_value) &&
-    {
-        if (HasValue())
-        {
-            return GetStoredValue();
-        }
-        return static_cast<std::remove_cv_t<T>>(std::forward<U>(default_value));
+        return static_cast<T>(std::forward<U>(default_value));
     }
 
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
-        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, const T&>, Optional>
+        && se::details::IsOptional<std::invoke_result_t<Fn, const T&>>
     auto AndThen(Fn&& func) const &
     {
         using ResultT = std::invoke_result_t<Fn, const T&>;
-
         if (HasValue())
         {
             return std::invoke(std::forward<Fn>(func), GetStoredValue());
@@ -206,11 +201,10 @@ public:
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&&>
-        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, T>, Optional>
+        && se::details::IsOptional<std::invoke_result_t<Fn, T>>
     auto AndThen(Fn&& func) &&
     {
         using ResultT = std::invoke_result_t<Fn, T>;
-
         if (HasValue())
         {
             return std::invoke(std::forward<Fn>(func), std::move(GetStoredValue()));
@@ -221,11 +215,10 @@ public:
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&&>
-        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, const T>, Optional>
+        && se::details::IsOptional<std::invoke_result_t<Fn, const T>>
     auto AndThen(Fn&& func) const &&
     {
         using ResultT = std::invoke_result_t<Fn, const T>;
-
         if (HasValue())
         {
             return std::invoke(std::forward<Fn>(func), static_cast<const T&&>(GetStoredValue()));
@@ -237,12 +230,10 @@ public:
     template <typename Fn>
         requires std::invocable<Fn, T&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
-        && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
-        && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>)
+        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
     auto Map(Fn&& func) &
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
-
         if (HasValue())
         {
             return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), GetStoredValue()) };
@@ -254,12 +245,10 @@ public:
     template <typename Fn>
         requires std::invocable<Fn, const T&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>)
-        && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
-        && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>)
+        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
     auto Map(Fn&& func) const &
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T&>>;
-
         if (HasValue())
         {
             return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), GetStoredValue()) };
@@ -271,12 +260,10 @@ public:
     template <typename Fn>
         requires std::invocable<Fn, T&&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T>>, std::nullopt_t, std::in_place_t>)
-        && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>
-        && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T>>>)
+        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, T>>>
     auto Map(Fn&& func) &&
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T>>;
-
         if (HasValue())
         {
             return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), std::move(GetStoredValue())) };
@@ -286,14 +273,12 @@ public:
 
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
     template <typename Fn>
-        requires std::invocable<T, Fn, const T&&>
+        requires std::invocable<Fn, const T&&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T>>, std::nullopt_t, std::in_place_t>)
-        && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>
-        && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>)
+        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, const T>>>
     auto Map(Fn&& func) const &&
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T>>;
-
         if (HasValue())
         {
             return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), std::move(GetStoredValue())) };
@@ -352,12 +337,17 @@ public:
     }
 
 public:
-    [[nodiscard]] T& operator*() { return Value(); }
-    [[nodiscard]] const T& operator*() const { return Value(); }
+    [[nodiscard]] explicit operator bool() const noexcept { return HasValue(); }
+
+    template <typename Self>
+    [[nodiscard]] decltype(auto) operator*(this Self&& self)
+    {
+        return std::forward_like<Self>(self.Value());
+    }
+
     [[nodiscard]] T* operator->() { return std::addressof(Value()); }
     [[nodiscard]] const T* operator->() const { return std::addressof(Value()); }
 
-    [[nodiscard]] explicit operator bool() const noexcept { return HasValue(); }
     [[nodiscard]] bool operator==(std::nullopt_t) const noexcept { return !HasValue(); }
 
     [[nodiscard]] bool operator==(const Optional& other) const
@@ -369,54 +359,40 @@ public:
         return HasValue() == other.HasValue();
     }
 
-    template <typename U = T>
-        requires std::convertible_to<U, T>
+    template <typename U>
+        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
     [[nodiscard]] bool operator==(const U& value) const
     {
-        if (HasValue())
-        {
-            return GetStoredValue() == value;
-        }
-        return false;
+        return HasValue() && GetStoredValue() == value;
     }
+
+    template <typename U>
+        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
+    [[nodiscard]] friend bool operator==(const U& value, const Optional& other) { return other == value; }
 
     [[nodiscard]] friend bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
 
-    template <typename U = T>
-        requires std::convertible_to<U, T>
-    [[nodiscard]] friend bool operator==(const U& value, const Optional& other) { return other == value; }
-
 private:
-    [[nodiscard]] T& GetStoredValue() &
+    template <typename Self>
+    [[nodiscard]] decltype(auto) GetStoredValue(this Self&& self)
     {
-        return *std::launder(reinterpret_cast<T*>(&storage));
-    }
-
-    [[nodiscard]] const T& GetStoredValue() const &
-    {
-        return *std::launder(reinterpret_cast<const T*>(&storage));
-    }
-
-    [[nodiscard]] T&& GetStoredValue() &&
-    {
-        return std::move(*std::launder(reinterpret_cast<T*>(&storage)));
-    }
-
-    [[nodiscard]] const T&& GetStoredValue() const &&
-    {
-        return std::move(*std::launder(reinterpret_cast<const T*>(&storage)));
+        using CastType = se::traits::DeduceRetType<Self, T*>;
+        return *std::launder(reinterpret_cast<CastType>(&std::forward<Self>(self).storage));
     }
 
     template <typename... Args>
     void Construct(Args&&... args)
     {
-        new(storage) T(std::forward<Args>(args)...);
+        ::new(storage) T(std::forward<Args>(args)...);
         is_value_set = true;
     }
 
     void Destroy()
     {
-        std::destroy_at(std::addressof(GetStoredValue()));
+        if constexpr (!std::is_trivially_destructible_v<T>)
+        {
+            std::destroy_at(std::addressof(GetStoredValue()));
+        }
     }
 
 private:
@@ -431,27 +407,18 @@ public:
     using ValueType = T;
 
 public:
-    Optional() noexcept = default;
-    ~Optional() = default;
-
-    Optional(std::nullopt_t) noexcept
-    {
-    }
+    constexpr Optional() noexcept = default;
+    constexpr Optional(std::nullopt_t) noexcept {}
 
     Optional(T& in_value) noexcept
         : ref_ptr(std::addressof(in_value))
     {
     }
 
-    Optional& operator=(std::nullopt_t) noexcept
-    {
-        ref_ptr = nullptr;
-        return *this;
-    }
-
+    // Value Optional -> Ref Optional 변환
     template <typename U>
         requires std::convertible_to<U*, T*>
-    Optional(Optional<U>& other)
+    Optional(Optional<U>& other) noexcept
     {
         if (other.HasValue())
         {
@@ -460,8 +427,8 @@ public:
     }
 
     template <typename U>
-        requires std::convertible_to<U*, T*>
-    Optional(const Optional<U>& other)
+        requires std::convertible_to<const U*, T*>
+    Optional(const Optional<U>& other) noexcept
     {
         if (other.HasValue())
         {
@@ -469,48 +436,46 @@ public:
         }
     }
 
+    template <typename U>
+    Optional(Optional<U>&&) = delete;
+
+    // 다른 Optional<U&> 에서 변환 (예: Derived& -> Base&)
+    template <typename U>
+        requires std::convertible_to<U*, T*>
+    Optional(const Optional<U&>& other) noexcept
+    {
+        if (other.HasValue())
+        {
+            ref_ptr = std::addressof(*other);
+        }
+    }
+
+    ~Optional() = default;
     Optional(const Optional&) = default;
-    Optional& operator=(const Optional&) noexcept = default;
+    Optional& operator=(const Optional&) = default;
     Optional(Optional&&) noexcept = default;
     Optional& operator=(Optional&&) noexcept = default;
 
     // r-value 타입 T는 사용불가
-    Optional(T&&) = delete;
-    Optional& operator=(T&&) = delete;
+    Optional(T&&) noexcept = delete;
+    Optional& operator=(T&&) noexcept = delete;
+
+    Optional& operator=(std::nullopt_t) noexcept
+    {
+        Reset();
+        return *this;
+    }
 
 public:
     /** Optional이 가지고 있는 값을 반환합니다. */
-    [[nodiscard]] T& Value()
+    [[nodiscard]] T& Value() const
     {
-        if (!HasValue())
-        {
-            assert(false && "Optional is empty!");
-        }
-        return GetStoredValue();
-    }
-
-    /** Optional이 가지고 있는 값을 반환합니다. */
-    [[nodiscard]] const T& Value() const
-    {
-        if (!HasValue())
-        {
-            assert(false && "Optional is empty!");
-        }
+        assert(HasValue() && "Optional is empty!");
         return GetStoredValue();
     }
 
     /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
-    [[nodiscard]] T& ValueOr(T& default_value)
-    {
-        if (HasValue())
-        {
-            return GetStoredValue();
-        }
-        return static_cast<T&>(default_value);
-    }
-
-    /** Optional이 가지고 있는 값을 반환하거나, 값이 없으면 default_value를 반환합니다. */
-    [[nodiscard]] const T& ValueOr(const T& default_value) const
+    [[nodiscard]] T& ValueOr(T& default_value) const
     {
         if (HasValue())
         {
@@ -520,11 +485,11 @@ public:
     }
 
     template <typename Fn>
-        requires std::invocable<Fn, const T&>
-        && se::traits::IsSpecializationOf<std::invoke_result_t<Fn, const T&>, Optional>
+        requires std::invocable<Fn, T&>
+        && se::details::IsOptional<std::invoke_result_t<Fn, T&>>
     auto AndThen(Fn&& func) const
     {
-        using ResultT = std::invoke_result_t<Fn, const T&>;
+        using ResultT = std::invoke_result_t<Fn, T&>;
 
         if (HasValue())
         {
@@ -537,9 +502,8 @@ public:
     template <typename Fn>
         requires std::invocable<Fn, T&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
-        && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
-        && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>)
-    auto Map(Fn&& func)
+        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
+    auto Map(Fn&& func) const
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
 
@@ -550,26 +514,8 @@ public:
         return Optional<ResultT>{};
     }
 
-    /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 U타입을 반환합니다. */
-    template <typename Fn>
-        requires std::invocable<Fn, const T&>
-        && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>, std::nullopt_t, std::in_place_t>)
-        && std::is_object_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>
-        && (!std::is_array_v<std::remove_cv_t<std::invoke_result_t<Fn, const T&>>>)
-    auto Map(Fn&& func) const
-    {
-        using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, const T&>>;
-
-        if (HasValue())
-        {
-            return Optional<ResultT>{ std::invoke(std::forward<Fn>(func), GetStoredValue()) };
-        }
-        return Optional<ResultT>{};
-    }
-
     template <typename Fn>
         requires std::invocable<Fn>
-        && std::copy_constructible<T>
         && std::same_as<std::remove_cvref_t<std::invoke_result_t<Fn>>, Optional>
     Optional OrElse(Fn&& func) const
     {
@@ -577,7 +523,7 @@ public:
         {
             return *this;
         }
-        return std::forward<Fn>(func)();
+        return std::invoke(std::forward<Fn>(func));
     }
 
     /** 가지고 있던 값을 삭제하고, nullopt로 변경합니다. */
@@ -587,13 +533,13 @@ public:
     [[nodiscard]] bool HasValue() const noexcept { return ref_ptr != nullptr; }
 
 public:
-    [[nodiscard]] T& operator*() { return Value(); }
-    [[nodiscard]] const T& operator*() const { return Value(); }
-    [[nodiscard]] T* operator->() const { return ref_ptr; }
-
     [[nodiscard]] explicit operator bool() const noexcept { return HasValue(); }
 
+    [[nodiscard]] T& operator*() const { return Value(); }
+    [[nodiscard]] T* operator->() const { return ref_ptr; }
+
     [[nodiscard]] bool operator==(std::nullopt_t) const noexcept { return !HasValue(); }
+    [[nodiscard]] friend bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
 
     [[nodiscard]] bool operator==(const Optional& other) const
     {
@@ -604,26 +550,19 @@ public:
         return HasValue() == other.HasValue();
     }
 
-    template <typename U = T>
-        requires std::convertible_to<U, T>
+    template <typename U>
+        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
     [[nodiscard]] bool operator==(const U& value) const
     {
-        if (HasValue())
-        {
-            return GetStoredValue() == value;
-        }
-        return false;
+        return HasValue() && GetStoredValue() == value;
     }
 
-    [[nodiscard]] friend bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
-
-    template <typename U = T>
-        requires std::convertible_to<U, T>
+    template <typename U>
+        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
     [[nodiscard]] friend bool operator==(const U& value, const Optional& other) { return other == value; }
 
 private:
-    T& GetStoredValue() { return *ref_ptr; }
-    const T& GetStoredValue() const { return *ref_ptr; }
+    T& GetStoredValue() const { return *ref_ptr; }
 
 private:
     T* ref_ptr = nullptr;

@@ -11,7 +11,8 @@ Optional<const AssetManager::ExtensionInfo&> AssetManager::GetExtensionInfo(cons
 
 IAssetLoader* AssetManager::GetLoaderFromType(const refl::TypeId& type_id) const
 {
-    return loaders.Find(type_id).ValueOr(nullptr).get();
+    constexpr std::unique_ptr<IAssetLoader> null_ptr;
+    return loaders.Find(type_id).ValueOr(null_ptr).get();
 }
 
 std::shared_ptr<IAssetImportSettings> AssetManager::CreateDefaultSettingsForFile(const std::filesystem::path& path) const
