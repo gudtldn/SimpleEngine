@@ -45,13 +45,13 @@ void Set<T, Pred, Allocator>::Clear() noexcept
 }
 
 template <typename T, typename Pred, typename Allocator>
-bool Set<T, Pred, Allocator>::Add(const ValueType& value)
+bool Set<T, Pred, Allocator>::Insert(const ValueType& value)
 {
-    return Add(ValueType{ value });
+    return Insert(ValueType{ value });
 }
 
 template <typename T, typename Pred, typename Allocator>
-bool Set<T, Pred, Allocator>::Add(ValueType&& value)
+bool Set<T, Pred, Allocator>::Insert(ValueType&& value)
 {
     return internal_set.emplace(std::move(value)).second;
 }

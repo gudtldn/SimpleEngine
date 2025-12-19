@@ -52,7 +52,7 @@ void ConsoleLogOnce(core::LogLevelAndLocation log_level, std::format_string<Args
         {
             return; // 이미 호출한 로그면 리턴
         }
-        called_logs.Add(key);
+        called_logs.Insert(key);
     }
 
     ConsoleLog(log_level, fmt, std::forward<Args>(args)...);

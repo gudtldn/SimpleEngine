@@ -55,7 +55,7 @@ struct PathResolverGuard
     void Mount(const StringName& scheme, const std::filesystem::path& physical_path, int32_t priority = 0)
     {
         resolver.Mount(scheme, physical_path, priority);
-        mounted_schemes.Add(scheme);
+        mounted_schemes.Insert(scheme);
     }
 
     ~PathResolverGuard()

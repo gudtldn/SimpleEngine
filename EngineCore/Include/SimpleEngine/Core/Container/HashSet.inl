@@ -63,13 +63,13 @@ void HashSet<T, Hasher, KeyEq, Allocator>::Clear() noexcept
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-bool HashSet<T, Hasher, KeyEq, Allocator>::Add(const ValueType& value)
+bool HashSet<T, Hasher, KeyEq, Allocator>::Insert(const ValueType& value)
 {
-    return Add(ValueType{ value });
+    return Insert(ValueType{ value });
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-bool HashSet<T, Hasher, KeyEq, Allocator>::Add(ValueType&& value)
+bool HashSet<T, Hasher, KeyEq, Allocator>::Insert(ValueType&& value)
 {
     return internal_set.emplace(std::move(value)).second;
 }

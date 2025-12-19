@@ -1604,13 +1604,13 @@ TEST_F(HashSetAPI_Test, ConstructionFromIteratorsAndRange)
 TEST_F(HashSetAPI_Test, AddAndContains)
 {
     HashSet<String> set;
-    EXPECT_TRUE(set.Add("apple"));
+    EXPECT_TRUE(set.Insert("apple"));
     EXPECT_EQ(set.Len(), 1);
     EXPECT_TRUE(set.Contains("apple"));
-    EXPECT_FALSE(set.Add("apple")); // Already exists
+    EXPECT_FALSE(set.Insert("apple")); // Already exists
     EXPECT_EQ(set.Len(), 1);
 
-    set.Add("banana");
+    set.Insert("banana");
     EXPECT_EQ(set.Len(), 2);
     EXPECT_TRUE(set.Contains("banana"));
 }
@@ -1688,7 +1688,7 @@ TEST_F(HashSetAPI_Test, CapacityAndReserve)
     HashSet<int> set;
     set.Reserve(10);
     EXPECT_GE(set.Capacity(), 10);
-    set.Add(1);
+    set.Insert(1);
     EXPECT_EQ(set.Len(), 1);
 }
 
@@ -1782,13 +1782,13 @@ TEST_F(SetAPI_Test, ConstructionFromIteratorsAndRange)
 TEST_F(SetAPI_Test, AddAndContains)
 {
     Set<String> set;
-    EXPECT_TRUE(set.Add("apple"));
+    EXPECT_TRUE(set.Insert("apple"));
     EXPECT_EQ(set.Len(), 1);
     EXPECT_TRUE(set.Contains("apple"));
-    EXPECT_FALSE(set.Add("apple")); // Already exists
+    EXPECT_FALSE(set.Insert("apple")); // Already exists
     EXPECT_EQ(set.Len(), 1);
 
-    set.Add("banana");
+    set.Insert("banana");
     EXPECT_EQ(set.Len(), 2);
     EXPECT_TRUE(set.Contains("banana"));
 }

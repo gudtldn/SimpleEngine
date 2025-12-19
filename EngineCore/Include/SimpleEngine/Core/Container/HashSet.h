@@ -81,8 +81,8 @@ public:
      * @param value 추가할 요소
      * @return 새로운 요소가 실제로 추가되었으면 true, 이미 존재했다면 false
      */
-    bool Add(const ValueType& value);
-    bool Add(ValueType&& value);
+    bool Insert(const ValueType& value);
+    bool Insert(ValueType&& value);
 
     /**
      * 새로운 요소를 Set에 내부 생성(emplace)하여 추가합니다.

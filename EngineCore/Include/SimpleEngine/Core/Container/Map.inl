@@ -44,6 +44,13 @@ void Map<Key, Value, Pred, Allocator>::Clear() noexcept
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
+typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(const KeyType& key, const ValueType& value)
+{
+    internal_map.insert_or_assign(key, value);
+    return internal_map.at(key);
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
 template <typename... Args>
 typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Emplace(const KeyType& key, Args&&... args)
 {
@@ -269,4 +276,4 @@ Map<Key, Value, Pred, Allocator>::ConstIteratorType Map<Key, Value, Pred, Alloca
 {
     return internal_map.end();
 }
-}
+}  // namespace se
