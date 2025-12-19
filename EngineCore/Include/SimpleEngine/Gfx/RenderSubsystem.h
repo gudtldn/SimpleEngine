@@ -11,7 +11,7 @@
 
 namespace se
 {
-class SE_CORE_API RenderSubsystem : public se::core::ISubsystem
+class SE_CORE_API RenderSubsystem : public core::ISubsystem
 {
 public:
     [[nodiscard]] virtual bool Initialize() override;
@@ -29,8 +29,8 @@ public:
 
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
-    [[nodiscard]] se::rendering::PSOManager& GetPSOManager() const { return *pso_manager; }
-    [[nodiscard]] se::rendering::RenderGraph& GetRenderGraph() const { return *render_graph; }
+    [[nodiscard]] rendering::PSOManager& GetPSOManager() const { return *pso_manager; }
+    [[nodiscard]] rendering::RenderGraph& GetRenderGraph() const { return *render_graph; }
 
 public:
     [[nodiscard]] SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
@@ -39,7 +39,7 @@ public:
 private:
     SDL_GPUDevice* gpu_device = nullptr;
 
-    std::unique_ptr<se::rendering::RenderGraph> render_graph;
-    std::unique_ptr<se::rendering::PSOManager> pso_manager;
+    std::unique_ptr<rendering::RenderGraph> render_graph;
+    std::unique_ptr<rendering::PSOManager> pso_manager;
 };
 }

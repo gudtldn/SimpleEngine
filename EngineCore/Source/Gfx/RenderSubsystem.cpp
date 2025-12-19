@@ -39,24 +39,18 @@ bool RenderSubsystem::Initialize()
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
     SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN, true);
 
-    if constexpr (SE_DEBUG_BUILD)
-    {
-        // 디버그 모드 설정
-        SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
-    }
+#if SE_DEBUG_BUILD
+    // 디버그 모드 설정
+    SDL_SetBooleanProperty(props, SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, true);
+#endif
 
-    if constexpr (SE_PLATFORM_WINDOWS)
-    {
-        SDL_SetHint(SDL_HINT_GPU_DRIVER, "direct3d12");
-    }
-    else if constexpr (SE_PLATFORM_LINUX)
-    {
-        SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
-    }
-    else if constexpr (SE_PLATFORM_MACOS)
-    {
-        SDL_SetHint(SDL_HINT_GPU_DRIVER, "metal");
-    }
+#if SE_PLATFORM_WINDOWS
+    SDL_SetHint(SDL_HINT_GPU_DRIVER, "direct3d12");
+#elif SE_PLATFORM_LINUX
+    SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
+#elif SE_PLATFORM_MACOS
+    SDL_SetHint(SDL_HINT_GPU_DRIVER, "metal");
+#endif
 
     gpu_device = SDL_CreateGPUDeviceWithProperties(props);
     SDL_DestroyProperties(props);
