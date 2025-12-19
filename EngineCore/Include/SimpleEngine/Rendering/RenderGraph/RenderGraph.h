@@ -88,7 +88,7 @@ private:
 
 private:
     SDL_GPUDevice* device;
-    TransientResourcePool resource_pool;
+    FrameResourcePool resource_pool;
 
     // StringName으로 리소스 핸들을 찾기 위한 Map
     HashMap<StringName, RGResourceHandle> resource_name_map;

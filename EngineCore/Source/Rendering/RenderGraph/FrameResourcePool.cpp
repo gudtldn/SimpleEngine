@@ -1,16 +1,16 @@
-﻿#include "Rendering/RenderGraph/TransientResourcePool.h"
+﻿#include "Rendering/RenderGraph/FrameResourcePool.h"
 
 #include <ranges>
 
 
 namespace se::rendering
 {
-TransientResourcePool::TransientResourcePool(SDL_GPUDevice* in_device)
+FrameResourcePool::FrameResourcePool(SDL_GPUDevice* in_device)
     : device(in_device)
 {
 }
 
-TransientResourcePool::~TransientResourcePool()
+FrameResourcePool::~FrameResourcePool()
 {
     for (const PoolEntry<SDL_GPUTexture>& entry : texture_pool | std::views::values)
     {
@@ -37,29 +37,29 @@ TransientResourcePool::~TransientResourcePool()
     }
 }
 
-SDL_GPUTexture* TransientResourcePool::AllocateTexture(const SDL_GPUTextureCreateInfo& info)
+SDL_GPUTexture* FrameResourcePool::AcquireTexture(const SDL_GPUTextureCreateInfo& info)
 {
-    return AllocateResource(texture_pool[info], [this, &info = std::as_const(info)]
+    return AcquireResourceInternal(texture_pool[info], [this, &info = std::as_const(info)]
     {
         return SDL_CreateGPUTexture(device, &info);
     });
 }
 
-void TransientResourcePool::DeallocateTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture)
+void FrameResourcePool::ReleaseTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture)
 {
-    DeallocateResource(texture_pool[info], texture);
+    ReleaseResourceInternal(texture_pool[info], texture);
 }
 
-SDL_GPUBuffer* TransientResourcePool::AllocateBuffer(const SDL_GPUBufferCreateInfo& info)
+SDL_GPUBuffer* FrameResourcePool::AcquireBuffer(const SDL_GPUBufferCreateInfo& info)
 {
-    return AllocateResource(buffer_pool[info], [this, &info = std::as_const(info)]
+    return AcquireResourceInternal(buffer_pool[info], [this, &info = std::as_const(info)]
     {
         return SDL_CreateGPUBuffer(device, &info);
     });
 }
 
-void TransientResourcePool::DeallocateBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
+void FrameResourcePool::ReleaseBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
 {
-    DeallocateResource(buffer_pool[info], buffer);
+    ReleaseResourceInternal(buffer_pool[info], buffer);
 }
 }  // namespace se::rendering

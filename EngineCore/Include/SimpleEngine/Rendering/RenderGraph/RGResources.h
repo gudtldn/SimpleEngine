@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Rendering/RenderGraph/TransientResourcePool.h"
+#include "SimpleEngine/Rendering/RenderGraph/FrameResourcePool.h"
 #include "SDL3/SDL_gpu.h"
 
 
@@ -10,8 +10,8 @@ class IRGResource
 public:
     virtual ~IRGResource() = default;
 
-    virtual void Realize(TransientResourcePool& pool) = 0;
-    virtual void Unrealize(TransientResourcePool& pool) = 0;
+    virtual void Realize(FrameResourcePool& pool) = 0;
+    virtual void Unrealize(FrameResourcePool& pool) = 0;
 };
 
 class IRGTexture : public IRGResource
@@ -42,19 +42,19 @@ protected:
 class RGTransientTexture : public IRGTexture
 {
 public:
-    virtual void Realize(TransientResourcePool& pool) override
+    virtual void Realize(FrameResourcePool& pool) override
     {
         if (!actual_texture)
         {
-            actual_texture = pool.AllocateTexture(description);
+            actual_texture = pool.AcquireTexture(description);
         }
     }
 
-    virtual void Unrealize(TransientResourcePool& pool) override
+    virtual void Unrealize(FrameResourcePool& pool) override
     {
         if (actual_texture)
         {
-            pool.DeallocateTexture(description, actual_texture);
+            pool.ReleaseTexture(description, actual_texture);
             actual_texture = nullptr;
         }
     }
@@ -74,8 +74,8 @@ public:
         actual_texture = texture;
     }
 
-    virtual void Realize([[maybe_unused]] TransientResourcePool& pool) override {}
-    virtual void Unrealize([[maybe_unused]] TransientResourcePool& pool) override {}
+    virtual void Realize([[maybe_unused]] FrameResourcePool& pool) override {}
+    virtual void Unrealize([[maybe_unused]] FrameResourcePool& pool) override {}
 };
 
 /**
@@ -84,19 +84,19 @@ public:
 class RGTransientBuffer : public IRGBuffer
 {
 public:
-    virtual void Realize(TransientResourcePool& pool) override
+    virtual void Realize(FrameResourcePool& pool) override
     {
         if (!actual_buffer)
         {
-            actual_buffer = pool.AllocateBuffer(description);
+            actual_buffer = pool.AcquireBuffer(description);
         }
     }
 
-    virtual void Unrealize(TransientResourcePool& pool) override
+    virtual void Unrealize(FrameResourcePool& pool) override
     {
         if (actual_buffer)
         {
-            pool.DeallocateBuffer(description, actual_buffer);
+            pool.ReleaseBuffer(description, actual_buffer);
             actual_buffer = nullptr;
         }
     }
@@ -116,7 +116,7 @@ public:
         actual_buffer = buffer;
     }
 
-    virtual void Realize([[maybe_unused]] TransientResourcePool& pool) override {}
-    virtual void Unrealize([[maybe_unused]] TransientResourcePool& pool) override {}
+    virtual void Realize([[maybe_unused]] FrameResourcePool& pool) override {}
+    virtual void Unrealize([[maybe_unused]] FrameResourcePool& pool) override {}
 };
 }
