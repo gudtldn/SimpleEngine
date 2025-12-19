@@ -1,4 +1,5 @@
 ﻿#include "Rendering/Memory/GpuResourceManager.h"
+#include <cstring>
 
 
 namespace se::rendering
@@ -9,7 +10,22 @@ GpuResourceManager::GpuResourceManager(SDL_GPUDevice* in_device)
     SE_ASSERT(device, "GPU device is null!");
 }
 
-GpuResourceManager::~GpuResourceManager() = default;
+GpuResourceManager::~GpuResourceManager()
+{
+    // Texture 해제
+    for (GpuTexture& gpu_texture : texture_map | std::views::values)
+    {
+        if (gpu_texture.IsValid())
+        {
+            SDL_ReleaseGPUTexture(device, gpu_texture.texture);
+        }
+    }
+    texture_map.Clear();
+
+    // Buffer 해제
+    slice_map.Clear();
+    geometry_blocks.Clear();
+}
 
 bool GpuResourceManager::UploadMesh(
     const asset::AssetId& in_id,
@@ -40,7 +56,7 @@ bool GpuResourceManager::UploadMesh(
     };
 
     SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
-    if (transfer_buffer == nullptr)
+    if (!transfer_buffer)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create Transfer Buffer: {}", SDL_GetError());
         return false;
@@ -98,6 +114,120 @@ bool GpuResourceManager::UploadMesh(
 const GpuBufferSlice& GpuResourceManager::GetSlice(const asset::AssetId& in_id) const
 {
     return slice_map.Find(in_id).ValueOr(EmptySlice);
+}
+
+bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Surface* in_surface)
+{
+    // 포맷 변환 (SDL_Surface -> RGBA32)
+    SDL_Surface* converted_surface = SDL_ConvertSurface(const_cast<SDL_Surface*>(in_surface), SDL_PIXELFORMAT_RGBA32);
+    if (!converted_surface)
+    {
+        ConsoleLog(ELogLevel::Error, "GpuResourceManager: Surface conversion failed: {}", SDL_GetError());
+        return false;
+    }
+
+    const uint32 width = static_cast<uint32>(converted_surface->w);
+    const uint32 height = static_cast<uint32>(converted_surface->h);
+    const uint32 buffer_size = converted_surface->pitch * height;
+
+    // GPU Texture 생성 | TODO: sRGB도 불러올 수 있도록 하기
+    SDL_GPUTextureCreateInfo create_info = {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM, // Converted format matches this
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+        .width = width,
+        .height = height,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = SDL_GPU_SAMPLECOUNT_1
+    };
+
+    SDL_GPUTexture* texture = SDL_CreateGPUTexture(device, &create_info);
+    if (!texture)
+    {
+        ConsoleLog(ELogLevel::Error, "GpuResourceManager: Failed to create GPU texture. reason: {}", SDL_GetError());
+        SDL_DestroySurface(converted_surface);
+        return false;
+    }
+
+    // Transfer Buffer 생성
+    const SDL_GPUTransferBufferCreateInfo transfer_info = {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        .size = buffer_size
+    };
+
+    SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
+    if (!transfer_buffer)
+    {
+        SDL_ReleaseGPUTexture(device, texture);
+        SDL_DestroySurface(converted_surface);
+        return false;
+    }
+
+    // 메모리 맵핑 및 복사 (CPU -> Transfer Buffer)
+    if (void* mapped_ptr = SDL_MapGPUTransferBuffer(device, transfer_buffer, false))
+    {
+        std::memcpy(mapped_ptr, converted_surface->pixels, buffer_size);
+        SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+    }
+    else
+    {
+        SDL_ReleaseGPUTexture(device, texture);
+        SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+        SDL_DestroySurface(converted_surface);
+        return false;
+    }
+
+    // GPU에 업로드
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
+    SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(cmd);
+    {
+        const SDL_GPUTextureTransferInfo src_info = {
+            .transfer_buffer = transfer_buffer,
+            .offset = 0,
+            .pixels_per_row = width,
+            .rows_per_layer = height
+        };
+
+        const SDL_GPUTextureRegion dst_region = {
+            .texture = texture,
+            .w = width,
+            .h = height,
+            .d = 1
+        };
+
+        SDL_UploadToGPUTexture(copy_pass, &src_info, &dst_region, false);
+    }
+    SDL_EndGPUCopyPass(copy_pass);
+    SDL_SubmitGPUCommandBuffer(cmd);
+
+    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    SDL_DestroySurface(converted_surface); // 변환된 임시 Surface 해제
+
+    texture_map.Insert(in_id, {
+        .texture = texture,
+        .width = width,
+        .height = height,
+        .format = create_info.format
+    });
+    return true;
+}
+
+const GpuTexture& GpuResourceManager::GetTexture(const asset::AssetId& in_id) const
+{
+    return texture_map.Find(in_id).ValueOr(EmptyTexture);
+}
+
+void GpuResourceManager::UnloadTexture(const asset::AssetId& in_id)
+{
+    if (const Optional texture_opt = texture_map.Find(in_id))
+    {
+        if (texture_opt->IsValid())
+        {
+            SDL_ReleaseGPUTexture(device, texture_opt->texture);
+        }
+        texture_map.Remove(in_id);
+    }
 }
 
 GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
