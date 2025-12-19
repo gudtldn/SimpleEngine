@@ -372,20 +372,17 @@ TEST_F(ArrayAPI_Test, RemoveIf)
 TEST_F(ArrayAPI_Test, RemoveAtSwap)
 {
     Array<int> arr = { 10, 20, 30, 40 };
-    bool success = arr.RemoveAtSwap(1); // swap 20 with 40, then pop
-    EXPECT_TRUE(success);
+    arr.RemoveAtSwap(1); // swap 20 with 40, then pop
     EXPECT_EQ(arr.Len(), 3);
     EXPECT_EQ(arr[0], 10);
     EXPECT_EQ(arr[1], 40); // 20 was swapped with 40
     EXPECT_EQ(arr[2], 30);
 
-    success = arr.RemoveAtSwap(5); // out of bounds
-    EXPECT_FALSE(success);
+    // arr.RemoveAtSwap(5); // out of bounds
 
     // Test removing the last element
     Array<int> arr2 = { 1, 2, 3 };
-    success = arr2.RemoveAtSwap(2);
-    EXPECT_TRUE(success);
+    arr2.RemoveAtSwap(2);
     EXPECT_EQ(arr2.Len(), 2);
     EXPECT_EQ(arr2[0], 1);
     EXPECT_EQ(arr2[1], 2);

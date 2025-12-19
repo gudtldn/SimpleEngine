@@ -533,23 +533,18 @@ Array<T, Allocator>::SizeType Array<T, Allocator>::RemoveIf(Predicate&& pred)
 }
 
 template <typename T, typename Allocator>
-bool Array<T, Allocator>::RemoveAtSwap(SizeType index)
+void Array<T, Allocator>::RemoveAtSwap(SizeType index)
 {
-    if (index >= size)
-    {
-        return false;
-    }
+    assert(index < size && "RemoveAtSwap index out of bounds");
 
-    // 마지막 요소가 아닌 경우에만 swap
-    if (index != size - 1)
+    // 삭제할 위치가 마지막이 아닐 때만 덮어쓰기 수행
+    if (index < size - 1)
     {
-        std::swap(data[index], BackUnsafe());
+        data[index] = std::move(data[size - 1]);
     }
 
     --size;
-    std::destroy_at(data + size);
-
-    return true;
+    AllocTraits::destroy(allocator, data + size);
 }
 
 template <typename T, typename Allocator>

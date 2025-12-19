@@ -205,7 +205,7 @@ public:
      * 제거할 요소를 마지막 요소와 교체한 뒤 마지막 요소를 제거합니다.
      * @return 작업 성공 여부
      */
-    bool RemoveAtSwap(SizeType index);
+    void RemoveAtSwap(SizeType index);
 
     /** 배열에 특정 값이 포함되어 있는지 확인합니다. */
     [[nodiscard]] bool Contains(const ValueType& value) const;
