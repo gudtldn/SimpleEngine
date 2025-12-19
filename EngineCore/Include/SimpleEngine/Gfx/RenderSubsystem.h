@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Rendering/Manager/PSOManager.h"
+#include "SimpleEngine/Rendering/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Rendering/RenderGraph/RenderGraph.h"
 
 #include "SDL3/SDL.h"
@@ -31,6 +32,7 @@ public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
     [[nodiscard]] rendering::PSOManager& GetPSOManager() const { return *pso_manager; }
     [[nodiscard]] rendering::RenderGraph& GetRenderGraph() const { return *render_graph; }
+    [[nodiscard]] rendering::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
 
 public:
     [[nodiscard]] SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
@@ -41,5 +43,6 @@ private:
 
     std::unique_ptr<rendering::RenderGraph> render_graph;
     std::unique_ptr<rendering::PSOManager> pso_manager;
+    std::unique_ptr<rendering::GpuResourceManager> resource_manager;
 };
 }

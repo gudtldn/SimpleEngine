@@ -81,6 +81,7 @@ bool RenderSubsystem::Initialize()
         ConsoleLog(ELogLevel::Warning, "SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
     }
 
+    resource_manager = std::make_unique<GpuResourceManager>(gpu_device);
     render_graph = std::make_unique<RenderGraph>(gpu_device);
     pso_manager = std::make_unique<PSOManager>(gpu_device);
 
@@ -97,6 +98,7 @@ void RenderSubsystem::Release()
 
     render_graph.reset();
     pso_manager.reset();
+    resource_manager.reset();
 
     const PlatformSubsystem& platform_subsystem = se::GetSubsystemChecked<const PlatformSubsystem>();
     for (SDL_Window* window : platform_subsystem.GetWindows() | std::views::values)
