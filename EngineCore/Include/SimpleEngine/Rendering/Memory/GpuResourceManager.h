@@ -42,7 +42,9 @@ private:
     static constexpr uint32 DEFAULT_BLOCK_SIZE = 128 * 1024 * 1024;
     static constexpr GpuBufferSlice EmptySlice;
 
-    GpuBufferSlice AllocateInGeometryBlock(uint32 in_size);
+    [[nodiscard]] GpuBufferSlice AllocateInGeometryBlock(uint32 in_size);
+
+    // TODO: 나중에 사용하지 않는 버퍼 해제하는 로직 추가
 
 private:
     SDL_GPUDevice* device = nullptr;
