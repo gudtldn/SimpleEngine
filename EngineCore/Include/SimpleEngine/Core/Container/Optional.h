@@ -184,6 +184,18 @@ public:
         return static_cast<T>(std::forward<U>(default_value));
     }
 
+    /** 값이 있으면 반환하고, 없으면 T의 기본 생성 값을 반환합니다. (Lazy Evaluation) */
+    template <typename Self>
+        requires std::default_initializable<T>
+    [[nodiscard]] T ValueOrDefault(this Self&& self)
+    {
+        if (self.HasValue())
+        {
+            return std::forward<Self>(self).Value();
+        }
+        return T{};
+    }
+
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, const T&>
