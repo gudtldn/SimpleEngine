@@ -56,7 +56,7 @@ struct DeduceRetTypeImpl<Self, T&> { using Type = std::conditional_t<IsConstV<Se
 
 template <typename Self, typename T>
 struct DeduceRetTypeImpl<Self, T&&> { using Type = std::conditional_t<IsConstV<Self>, const T&&, T&&>; };
-}
+}  // namespace details
 
 // Ts...중에 중복된 타입이 존재하는지 확인
 template <typename... Ts>
@@ -146,4 +146,4 @@ concept FloatingType = std::is_floating_point_v<T>;
 // Enum
 template <typename T>
 concept EnumType = std::is_enum_v<T>;
-}
+}  // namespace se::traits
