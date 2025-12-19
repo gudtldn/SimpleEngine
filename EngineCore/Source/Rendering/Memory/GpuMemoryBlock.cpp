@@ -9,17 +9,12 @@ GpuMemoryBlock::GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPU
     , usage_flags(in_usage)
     , total_size(in_size)
 {
-    // const SDL_PropertiesID buffer_props = SDL_CreateProperties();
-    // SDL_SetStringProperty(buffer_props, SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING, );
-
     const SDL_GPUBufferCreateInfo buffer_info = {
         .usage = in_usage,
         .size = in_size,
-        // .props = buffer_props
     };
     buffer = SDL_CreateGPUBuffer(device, &buffer_info);
-
-    // SDL_DestroyProperties(buffer_props);
+    // SDL_SetGPUBufferName(device, buffer, 이름 설정);
 }
 
 GpuMemoryBlock::~GpuMemoryBlock()
