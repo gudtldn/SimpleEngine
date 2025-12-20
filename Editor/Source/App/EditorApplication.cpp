@@ -1,16 +1,18 @@
 ﻿#include "App/EditorApplication.h"
 
+#include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Rendering/EditorUIPass.h"
 #include "Rendering/Compiler/Provider.h"
+#include "UI/EditorUISubsystem.h"
+#include "UI/EditorViewportSubsystem.h"
+
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Gfx/RenderSubsystem.h"
 #include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Utility/Config.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
-#include "UI/EditorUISubsystem.h"
-#include "UI/EditorViewportSubsystem.h"
 
 
 namespace se::editor
@@ -22,6 +24,13 @@ EditorApplication::EditorApplication()
 
 void EditorApplication::Startup(const String& cmd_line)
 {
+    {
+        using namespace core;
+        LogBackendManager& manager = LogBackendManager::Get();
+
+        manager.AddBackend<EditorConsoleBackend>();
+    }
+
     Application::Startup(cmd_line);
 }
 

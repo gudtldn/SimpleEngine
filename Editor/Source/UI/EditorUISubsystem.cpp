@@ -1,6 +1,7 @@
 ﻿#include "UI/EditorUISubsystem.h"
 
 #include "Panels/AssetsBrowserPanel.h"
+#include "Panels/EditorConsolePanel.h"
 #include "Panels/DetailPanel.h"
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
@@ -9,9 +10,9 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
@@ -85,6 +86,7 @@ bool EditorUISubsystem::Initialize()
     RegisterPanel<DetailPanel>(refl::GetTypeName<DetailPanel>());
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
     RegisterPanel<AssetsBrowserPanel>(refl::GetTypeName<AssetsBrowserPanel>());
+    RegisterPanel<EditorConsolePanel>(refl::GetTypeName<EditorConsolePanel>());
 
     return true;
 }
