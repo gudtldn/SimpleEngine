@@ -3,14 +3,16 @@
 #include "Asset/Types/MeshTypes.h"
 #include "Core/Logging/Logging.h"
 #include "Core/Types/VPath.h"
-#include "Rendering/RenderGraph/RenderGraph.h"
-#include "Utility/PathResolver.h"
 #include "ECS/Query.h"
 #include "ECS/World.h"
 #include "ECS/Components/Camera3dComponent.h"
 #include "ECS/Components/MaterialHandleComponent.h"
 #include "ECS/Components/MeshHandleComponent.h"
 #include "ECS/Components/TransformComponent.h"
+#include "Gfx/RenderSubsystem.h"
+#include "Rendering/RenderGraph/RenderGraph.h"
+#include "Utility/PathResolver.h"
+#include "Utility/SubsystemUtils.h"
 
 #include "SDL3/SDL_gpu.h"
 
@@ -80,6 +82,9 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
 
 void ForwardScenePass::Execute(RGExecutionContext& context)
 {
+    const RenderSubsystem& render_subsystem = GetSubsystemChecked<RenderSubsystem>();
+    const GpuResourceManager& gpu_manager = render_subsystem.GetResourceManager();
+
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 
     SDL_GPUTexture* color_target = context.GetActualTexture(color_target_handle);
@@ -232,14 +237,85 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
     SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, color_target_info, std::size(color_target_info), &depth_stencil_target_info);
     {
+        // Pipeline 설정
         SDL_BindGPUGraphicsPipeline(pass, pipeline);
 
+        // Viewport/Scissor 설정
+        const SDL_GPUViewport viewport = {
+            .x = 0.0f, .y = 0.0f,
+            .w = static_cast<float>(width),
+            .h = static_cast<float>(height),
+            .min_depth = 0.0f, .max_depth = 1.0f,
+        };
+
+        const SDL_Rect scissor = {
+            .x = 0, .y = 0,
+            .w = static_cast<int32>(width),
+            .h = static_cast<int32>(height),
+        };
+
+        SDL_SetGPUViewport(pass, &viewport);
+        SDL_SetGPUScissor(pass, &scissor);
+
+        // Draw Meshes
         for (const EntityDrawInfo& info : draw_infos)
         {
-            // TODO: Entity Rendering
+            const GpuBufferSlice& slice = gpu_manager.GetSlice(info.mesh_id);
+            if (!slice.IsValid())
+            {
+                continue;
+            }
 
-            // mesh에 vertex buffer를 두는게 아니라, 큰 버퍼의 offset정보를 가지고, mesh를 출력
-            // 사용방법 좀 더 연구 필요, 머티리얼은 다음 단계
+            // Vertex Buffer 바인딩
+            // 셰이더의 Input Slot 0번에 바인딩
+            const SDL_GPUBufferBinding vertex_binding = {
+                .buffer = slice.buffer,
+                .offset = slice.offset
+            };
+            SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
+
+            if (slice.index_count > 0)
+            {
+                // Index Buffer 바인딩
+                const SDL_GPUBufferBinding index_binding = {
+                    .buffer = slice.buffer,
+                    .offset = slice.offset + slice.index_offset
+                };
+                SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+            }
+
+            // Uniform 데이터 전송 (MVP Matrix)
+            SDL_PushGPUVertexUniformData(cmd, 0, &info.mvp_matrix, sizeof(Matrix4x4));
+
+            // TODO: Mesh Subset에 대해서도 렌더링 할 수 있도록 개선
+
+            // Material 바인딩 | TODO: Texture/Sampler 바인딩 함수 만들기
+            // if (info.material_id.IsValid())
+            // {
+            //     // 텍스처 조회
+            //     const GpuTexture& albedo = gpu_manager.GetTexture(material.albedo_id);
+            //
+            //     // 바인딩 (Sampler + Texture)
+            //     if (albedo.IsValid())
+            //     {
+            //         const SDL_GPUTextureSamplerBinding binding = {
+            //             .texture = albedo.texture,
+            //             .sampler = render_subsystem.GetSampler(ESamplerType::LinearRepeat) // 샘플러는 미리 만들어두고 재사용
+            //         };
+            //         // Fragment Shader의 0번 슬롯
+            //         SDL_BindGPUFragmentSamplers(pass, 0, &binding, 1);
+            //     }
+            // }
+
+            if (slice.index_count > 0)
+            {
+                SDL_DrawGPUIndexedPrimitives(pass, slice.index_count, 1, 0, 0, 0);
+            }
+            else
+            {
+                const uint32 vertex_count = slice.index_offset / sizeof(asset::Vertex);
+                SDL_DrawGPUPrimitives(pass, vertex_count, 1, 0, 0);
+            }
         }
     }
     SDL_EndGPURenderPass(pass);

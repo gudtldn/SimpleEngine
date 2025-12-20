@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
@@ -19,8 +20,8 @@ namespace se::rendering
 struct EntityDrawInfo
 {
     Matrix4x4 mvp_matrix;
-    uint32 mesh_id;
-    uint32 material_id;
+    asset::AssetId mesh_id;
+    asset::AssetId material_id;
 };
 
 /**
