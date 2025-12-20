@@ -9,6 +9,7 @@ namespace se::asset
 {
 /**
  * 렌더링에 필요한 기본 정점 데이터
+ * @todo Vertex가 asset에 있는게 맞나?
  */
 struct Vertex
 {
