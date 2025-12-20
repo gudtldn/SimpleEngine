@@ -40,10 +40,7 @@ ForwardScenePass::ForwardScenePass(
 
 void ForwardScenePass::Setup(RenderGraphBuilder& builder)
 {
-    /**
-     * 1. 월드에서 렌더링에 필요한 Entity목록을 가져옴
-     */
-
+    // 1. 월드에서 렌더링에 필요한 Entity목록을 가져옴
     // 엔티티의 렌더 정보 생성
     draw_infos.Clear();
 
@@ -61,9 +58,7 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
         });
     }
 
-    /**
-     * 2. Pass에서 사용할 Texture를 생성
-     */
+    // 2. Pass에서 사용할 Texture를 생성
     color_target_handle = builder.GetResourceHandleByName(color_target_name);
     builder.Write(color_target_handle);
 
@@ -120,7 +115,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description
-         * 버퍼가 여러 개일 경우, 각 버퍼에 대한 정보를 여기에 정의한다
+         * 버퍼가 여러 개일 경우, 각 버퍼에 대한 정보를 여기에 정의
          */
         SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
             {
@@ -132,7 +127,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
         /**
          * 정점 버퍼 내부의 각 데이터(속성, attribute)가 무엇을 의미하는지 설정
-         * Vertex 셰이더의 입력(VertexInput) 구조체와 정확히 일치해야 한다
+         * Vertex 셰이더의 입력(VertexInput) 구조체와 정확히 일치해야 함
          */
         SDL_GPUVertexAttribute vertex_attributes[] = {
             {
@@ -163,7 +158,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
         /**
          * 컬러 렌더 타겟에 대한 Description
-         * 파이프라인이 어떤 포맷의 텍스처에 렌더링될 것인지, 그리고 어떻게 색상을 혼합(블렌딩)할지 정의한다
+         * 파이프라인이 어떤 포맷의 텍스처에 렌더링될 것인지, 그리고 어떻게 색상을 혼합(블렌딩)할지 정의
          */
         SDL_GPUColorTargetDescription color_target_desc[] = {
             {
