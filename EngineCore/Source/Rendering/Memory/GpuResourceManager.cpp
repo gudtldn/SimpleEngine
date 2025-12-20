@@ -1,4 +1,6 @@
 ﻿#include "Rendering/Memory/GpuResourceManager.h"
+
+#include <cmath>
 #include <cstring>
 
 
@@ -111,18 +113,24 @@ bool GpuResourceManager::UploadMesh(
     return true;
 }
 
+void GpuResourceManager::UnloadMesh(const asset::AssetId& in_id)
+{
+    // TODO: Defragmentation 시스템 도입 시 실제 메모리 회수 로직 추가 필요
+    slice_map.Remove(in_id);
+}
+
 const GpuBufferSlice& GpuResourceManager::GetSlice(const asset::AssetId& in_id) const
 {
     return slice_map.Find(in_id).ValueOr(EmptySlice);
 }
 
-bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Surface* in_surface)
+bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Surface* in_surface, TextureUploadSettings in_settings)
 {
     // 포맷 변환 (SDL_Surface -> RGBA32)
     SDL_Surface* converted_surface = SDL_ConvertSurface(const_cast<SDL_Surface*>(in_surface), SDL_PIXELFORMAT_RGBA32);
     if (!converted_surface)
     {
-        ConsoleLog(ELogLevel::Error, "GpuResourceManager: Surface conversion failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "Surface conversion failed: {}", SDL_GetError());
         return false;
     }
 
@@ -130,22 +138,49 @@ bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Su
     const uint32 height = static_cast<uint32>(converted_surface->h);
     const uint32 buffer_size = converted_surface->pitch * height;
 
-    // GPU Texture 생성 | TODO: sRGB도 불러올 수 있도록 하기
-    SDL_GPUTextureCreateInfo create_info = {
+    // Mipmap 레벨 계산
+    uint32 num_levels = 1;
+    if (in_settings.generate_mips)
+    {
+        // 1 + floor(log2(max(w, h)))
+        num_levels = static_cast<uint32>(std::floor(std::log2(std::max(width, height)))) + 1;
+    }
+
+    // Texture 포맷 및 Usage 설정
+    SDL_GPUTextureFormat format;
+    if (in_settings.is_srgb)
+    {
+        format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB;
+    }
+    else
+    {
+        format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    }
+
+    SDL_GPUTextureUsageFlags usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+
+    // 밉맵 생성을 하려면 GPU가 해당 텍스처에 렌더링(Blit)을 할 수 있어야 함
+    if (in_settings.generate_mips)
+    {
+        usage |= SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
+    }
+
+    // GPU Texture 생성
+    const SDL_GPUTextureCreateInfo create_info = {
         .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM, // Converted format matches this
-        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+        .format = format,
+        .usage = usage,
         .width = width,
         .height = height,
         .layer_count_or_depth = 1,
-        .num_levels = 1,
+        .num_levels = num_levels,
         .sample_count = SDL_GPU_SAMPLECOUNT_1
     };
 
     SDL_GPUTexture* texture = SDL_CreateGPUTexture(device, &create_info);
     if (!texture)
     {
-        ConsoleLog(ELogLevel::Error, "GpuResourceManager: Failed to create GPU texture. reason: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "Failed to create GPU texture: {}", SDL_GetError());
         SDL_DestroySurface(converted_surface);
         return false;
     }
@@ -191,6 +226,7 @@ bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Su
 
         const SDL_GPUTextureRegion dst_region = {
             .texture = texture,
+            .mip_level = 0, // Base Level에만 업로드
             .w = width,
             .h = height,
             .d = 1
@@ -199,6 +235,13 @@ bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Su
         SDL_UploadToGPUTexture(copy_pass, &src_info, &dst_region, false);
     }
     SDL_EndGPUCopyPass(copy_pass);
+
+    // 밉맵 생성 (업로드 직후 수행)
+    if (in_settings.generate_mips && num_levels > 1)
+    {
+        SDL_GenerateMipmapsForGPUTexture(cmd, texture);
+    }
+
     SDL_SubmitGPUCommandBuffer(cmd);
 
     SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
@@ -259,4 +302,4 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
 
     return slice;
 }
-}
+}  // namespace se::rendering
