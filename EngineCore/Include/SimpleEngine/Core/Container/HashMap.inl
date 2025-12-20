@@ -1,6 +1,6 @@
 ﻿// ReSharper disable CppRedundantTypenameKeyword
 #pragma once
-#include "SimpleEngine/Utility/Debug.h"
+#include <utility>
 
 
 namespace se
@@ -123,7 +123,7 @@ typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, 
     {
         return it->second;
     }
-    SE_UNREACHABLE();
+    std::unreachable();
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
@@ -135,7 +135,7 @@ const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap
     {
         return it->second;
     }
-    SE_UNREACHABLE();
+    std::unreachable();
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>

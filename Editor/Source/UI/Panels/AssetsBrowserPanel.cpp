@@ -1,6 +1,7 @@
 ﻿#include "UI/Panels/AssetsBrowserPanel.h"
 #include <compare>
 
+#include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 

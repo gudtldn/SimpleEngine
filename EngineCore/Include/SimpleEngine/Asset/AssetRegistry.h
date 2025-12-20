@@ -6,6 +6,7 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::utility

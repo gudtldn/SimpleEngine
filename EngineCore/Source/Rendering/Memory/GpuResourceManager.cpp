@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "SimpleEngine/Utility/Debug.h"
+
 
 namespace se::rendering
 {
