@@ -56,7 +56,7 @@ public:
     void FlushAllBackends();
 
 private:
-    std::mutex backends_mutex;
+    mutable std::mutex backends_mutex;
     HashMap<refl::TypeId, std::unique_ptr<ILogBackend>> backends{}; // TODO: flat_map 나오면 변경
 };
 }
