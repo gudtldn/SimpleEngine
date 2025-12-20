@@ -46,7 +46,13 @@ void Map<Key, Value, Pred, Allocator>::Clear() noexcept
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(const KeyType& key, const ValueType& value)
 {
-    internal_map.insert_or_assign(key, value);
+    return Insert(key, ValueType{ value });
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(const KeyType& key, ValueType&& value)
+{
+    internal_map.insert_or_assign(key, std::move(value));
     return internal_map.at(key);
 }
 

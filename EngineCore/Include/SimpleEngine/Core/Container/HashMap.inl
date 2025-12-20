@@ -66,7 +66,15 @@ typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, 
     const KeyType& key, const ValueType& value
 )
 {
-    internal_map.insert_or_assign(key, value);
+    return Insert(key, ValueType{ value });
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Insert(
+    const KeyType& key, ValueType&& value
+)
+{
+    internal_map.insert_or_assign(key, std::move(value));
     return internal_map.at(key);
 }
 

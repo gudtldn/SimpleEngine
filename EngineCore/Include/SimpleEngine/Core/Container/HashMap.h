@@ -101,6 +101,15 @@ public:
     ValueType& Insert(const KeyType& key, const ValueType& value);
 
     /**
+     * 새로운 요소를 Map에 추가합니다.
+     * 이미 동일한 키를 가진 요소가 존재할 경우, 해당 요소의 값을 대체합니다.
+     * @param key 삽입 또는 업데이트할 키
+     * @param value 키에 매핑할 값
+     * @return 삽입되거나 업데이트된 값에 대한 참조
+     */
+    ValueType& Insert(const KeyType& key, ValueType&& value);
+
+    /**
      * 새로운 요소를 Map에 내부 생성(emplace)하여 추가합니다.
      * @tparam Args 요소의 생성자에 전달할 인수들의 타입
      * @param key 삽입할 키
