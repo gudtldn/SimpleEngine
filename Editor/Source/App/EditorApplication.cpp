@@ -20,6 +20,11 @@ EditorApplication::EditorApplication()
 {
 }
 
+void EditorApplication::Startup(const String& cmd_line)
+{
+    Application::Startup(cmd_line);
+}
+
 void EditorApplication::RegisterSubsystems()
 {
     Application::RegisterSubsystems();

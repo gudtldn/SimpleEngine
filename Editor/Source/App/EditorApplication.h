@@ -11,6 +11,8 @@ class EditorApplication : public se::app::Application
 public:
     EditorApplication();
 
+    virtual void Startup(const String& cmd_line) override;
+
 protected:
     virtual void RegisterSubsystems() override;
     virtual bool PostInitialize() override;
