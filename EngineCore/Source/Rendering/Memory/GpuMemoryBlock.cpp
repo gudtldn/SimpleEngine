@@ -75,6 +75,7 @@ bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBuffe
 
     // index_offset는 여기서 알 수 없으므로, GpuResourceManager가 설정
     out_slice.index_offset = 0;
+    out_slice.index_count = 0;
 
     // 다음 할당을 위해 Offset 이동
     used_offset = aligned_offset + in_size;

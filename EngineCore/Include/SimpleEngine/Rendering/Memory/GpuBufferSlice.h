@@ -18,6 +18,7 @@ struct GpuBufferSlice
     uint32 offset = 0;       // 버퍼 시작점으로부터의 바이트 오프셋
     uint32 size = 0;         // 할당된 크기 (bytes)
     uint32 index_offset = 0; // (Mesh의 경우) Vertex Data 끝, Index Data 시작점
+    uint32 index_count = 0;  // Index Data의 개수
 
     [[nodiscard]] bool IsValid() const noexcept { return buffer != nullptr && size > 0; }
     void Reset() { *this = GpuBufferSlice{}; }
