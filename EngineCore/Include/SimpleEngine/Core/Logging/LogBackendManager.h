@@ -3,9 +3,10 @@
 #include <memory>
 #include <mutex>
 
-#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Logging/LogData.h"
 #include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
+#include "SimpleEngine/Reflection/TypeId.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -36,15 +37,28 @@ public:
         requires std::derived_from<T, ILogBackend>
     void AddBackend(Args&&... args)
     {
-        std::lock_guard lock(backends_mutex);
-        backends.Emplace(std::make_unique<T>(std::forward<Args>(args)...));
+        const auto type_id = refl::TypeId::Get<T>();
+
+        std::scoped_lock lock(backends_mutex);
+        backends.Emplace(type_id, std::forward<Args>(args)...);
+    }
+
+    template <typename T>
+        requires std::derived_from<T, ILogBackend>
+    [[nodiscard]] Optional<T&> GetBackend() const
+    {
+        const auto type_id = refl::TypeId::Get<T>();
+        constexpr std::unique_ptr<ILogBackend> null_ptr;
+
+        std::scoped_lock lock(backends_mutex);
+        return static_cast<T*>(backends.Find(type_id).AndThen([](const auto& backend) -> T& { return *backend; }));
     }
 
     void WriteToAllBackends(const LogEntry& entry);
     void FlushAllBackends();
 
 private:
-    Array<std::unique_ptr<ILogBackend>> backends{};
+    HashMap<refl::TypeId, std::unique_ptr<ILogBackend>> backends{}; // TODO: flat_map 나오면 변경
     TracyLockable(std::mutex, backends_mutex);
 };
 }
