@@ -69,7 +69,7 @@ void FileBackend::RotateFile()
     file.close();
 
     namespace chrono = std::chrono;
-    auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::system_clock::now() };;
+    auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::system_clock::now() };
 
     auto backup_path = file_path;
     backup_path += std::format(".{:%Y-%m-%d_%H:%M:%S}", zt);
@@ -83,4 +83,4 @@ bool FileBackend::CheckRotation() const
 {
     return current_file_size > max_file_size;
 }
-}
+}  // namespace se::core

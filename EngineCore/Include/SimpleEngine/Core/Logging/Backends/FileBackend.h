@@ -31,6 +31,6 @@ private:
     std::ofstream file;
     std::filesystem::path file_path;
     usize current_file_size = 0;
-    constexpr static usize max_file_size = 1024 * 1024 * 10;
+    constexpr static usize max_file_size = 10ULL * 1024 * 1024; // 10MB
 };
-}
+}  // namespace se::core
