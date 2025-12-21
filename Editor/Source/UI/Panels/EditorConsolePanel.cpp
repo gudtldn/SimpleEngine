@@ -2,9 +2,10 @@
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include "imgui.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 
 
 namespace
@@ -14,27 +15,27 @@ namespace
     switch (level)
     {
     case se::ELogLevel::Debug:
-        // 회색 (Gray) - 덜 중요함
+        // Gray
         return { 0.6f, 0.6f, 0.6f, 1.0f };
 
     case se::ELogLevel::Info:
-        // 흰색 (White) - 기본
+        // White
         return { 1.0f, 1.0f, 1.0f, 1.0f };
 
     case se::ELogLevel::Warning:
-        // 노란색 (Yellow)
+        // Yellow
         return { 1.0f, 0.9f, 0.2f, 1.0f };
 
     case se::ELogLevel::Error:
-        // 밝은 빨간색 (Light Red)
+        // Red
         return { 1.0f, 0.3f, 0.3f, 1.0f };
 
     case se::ELogLevel::Fatal:
-        // 자주색/보라색 (Magenta/Purple) - 치명적임
+        // Magenta
         return { 1.0f, 0.0f, 1.0f, 1.0f };
 
     default:
-        // 혹시 모를 경우 기본 텍스트 색상
+        // 기본 텍스트 색상
         return ImGui::GetStyle().Colors[ImGuiCol_Text];
     }
 }
@@ -49,7 +50,7 @@ const char* EditorConsolePanel::GetName() const
 
 void EditorConsolePanel::Draw()
 {
-    static EditorConsoleBackend* backend = se::core::LogBackendManager::Get().GetBackend<EditorConsoleBackend>();
+    EditorConsoleBackend* backend = se::core::LogBackendManager::Get().GetBackend<EditorConsoleBackend>();
     if (!backend)
     {
         ConsoleLog(ELogLevel::Error, "Failed to get editor console backend!");
@@ -63,52 +64,203 @@ void EditorConsolePanel::Draw()
         if (ImGui::Button("Clear"))
         {
             backend->Clear();
+            filter_changed = true;
         }
+
         ImGui::SameLine();
-        ImGui::Checkbox("Auto-scroll", &auto_scroll);
-        // ... 필터 등 추가 ...
+
+        // Options Dropdown
+        if (ImGui::Button("Options"))
+        {
+            ImGui::OpenPopup("OptionsPopup");
+        }
+
+        if (ImGui::BeginPopup("OptionsPopup"))
+        {
+            ImGui::Checkbox("Auto-scroll", &auto_scroll);
+            ImGui::Separator();
+            ImGui::Checkbox("Show Timestamp", &show_timestamp);
+            ImGui::Checkbox("Show Thread Name", &show_thread_name);
+            ImGui::Checkbox("Show Location", &show_location);
+            ImGui::EndPopup();
+        }
+
+        ImGui::SameLine();
+
+        // Level Filters Dropdown
+        if (ImGui::Button("Levels"))
+        {
+            ImGui::OpenPopup("LevelsPopup");
+        }
+
+        if (ImGui::BeginPopup("LevelsPopup"))
+        {
+            filter_changed |= ImGui::Checkbox("Debug", &filter_debug);
+            filter_changed |= ImGui::Checkbox("Info", &filter_info);
+            filter_changed |= ImGui::Checkbox("Warning", &filter_warning);
+            filter_changed |= ImGui::Checkbox("Error", &filter_error);
+            filter_changed |= ImGui::Checkbox("Fatal", &filter_fatal);
+            ImGui::EndPopup();
+        }
+
+        ImGui::SameLine();
+
+        // Text Filter
+        ImGui::SetNextItemWidth(-150.0f); // 우측 여백을 조금 남김
+        filter_changed |= text_filter.Draw("Search ###ConsoleFilter");
 
         ImGui::Separator();
 
         // 스크롤 영역 시작
-        ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+        if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
         {
-            backend->ReadLogs([this](const Deque<se::core::LogEntry>& logs)
+            backend->ReadLogs([this](const Deque<se::core::LogEntry>& entries)
             {
-                ImGuiListClipper clipper;
+                if (entries.Len() != last_log_count)
+                {
+                    filter_changed = true;
+                }
 
-                // Clipper에게 전체 아이템 개수를 알려줌
-                clipper.Begin(static_cast<int>(logs.Len()));
+                if (filter_changed)
+                {
+                    RefreshFilterList(entries);
+
+                    // TODO: 맨 밑에 있을때만
+                    // Auto-scroll이 켜져있고 새 로그가 들어온 상황이면 스크롤 준비
+                    if (auto_scroll)
+                    {
+                        ImGui::SetScrollHereY(1.0f);
+                    }
+                }
+
+                ImGuiListClipper clipper;
+                clipper.Begin(static_cast<int>(cached_indices.Len())); // Clipper에게 전체 아이템 개수를 알려줌
 
                 // Clipper가 지정한 범위(화면에 보이는 범위)만 렌더링
                 while (clipper.Step())
                 {
-                    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+                    for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; ++idx)
                     {
-                        const auto& log = logs[i]; // Deque의 Random Access
+                        const usize log_idx = cached_indices[idx];
+                        if (log_idx >= entries.Len())
+                        {
+                            continue;
+                        }
 
-                        ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(log.level));
-                        ImGui::Text(
-                            "%-7s [%.*s:%d] %s",
-                            log.GetLevelString(),
-                            static_cast<int>(log.GetPrettyFileName().size()),
-                            log.GetPrettyFileName().data(),
-                            log.location.line(),
-                            log.formatted_message.CStr()
-                        );
+                        const auto& entry = entries[log_idx];
+
+                        // Rendering Timestamp (Gray)
+                        if (show_timestamp)
+                        {
+                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+                            ImGui::TextUnformatted(entry.GetTimestampString().c_str());
+                            ImGui::PopStyleColor();
+                            ImGui::SameLine();
+                        }
+
+                        // Rendering Thread Name (Cyan)
+                        if (show_thread_name)
+                        {
+                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.8f, 0.8f, 1.0f));
+                            ImGui::Text("[%s]", entry.thread_name.CStr());
+                            ImGui::PopStyleColor();
+                            ImGui::SameLine();
+                        }
+
+                        // Rendering Log Level (Color based on level)
+                        ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(entry.level));
+                        ImGui::TextUnformatted(entry.GetLevelString());
+                        ImGui::PopStyleColor();
+                        ImGui::SameLine();
+
+                        // Rendering File Location (Dimmed White)
+                        if (show_location)
+                        {
+                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+                            const std::string_view pretty_name = entry.GetPrettyFileName();
+                            ImGui::Text("[%.*s:%d]",
+                                static_cast<int>(pretty_name.size()),
+                                pretty_name.data(),
+                                entry.location.line()
+                            );
+                            ImGui::PopStyleColor();
+                            ImGui::SameLine();
+                        }
+
+                        // Rendering Message
+                        ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(entry.level));
+                        ImGui::Text("%s", entry.formatted_message.CStr());
                         ImGui::PopStyleColor();
                     }
                 }
-
-                // Auto Scroll 처리
-                if (auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-                {
-                    ImGui::SetScrollHereY(1.0f);
-                }
             });
+
+            // Auto Scroll 처리
+            if (auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+            {
+                ImGui::SetScrollHereY(1.0f);
+            }
         }
         ImGui::EndChild();
     }
     ImGui::End();
+}
+
+void EditorConsolePanel::RefreshFilterList(const Deque<se::core::LogEntry>& logs)
+{
+    cached_indices.Clear();
+    cached_indices.Reserve(logs.Len());
+
+    for (auto [idx, entry] : logs | std::views::enumerate)
+    {
+        // Level Filtering
+        bool level_pass = false;
+        switch (entry.level)
+        {
+        case ELogLevel::Debug:
+        {
+            level_pass = filter_debug;
+            break;
+        }
+        case ELogLevel::Info:
+        {
+            level_pass = filter_info;
+            break;
+        }
+        case ELogLevel::Warning:
+        {
+            level_pass = filter_warning;
+            break;
+        }
+        case ELogLevel::Error:
+        {
+            level_pass = filter_error;
+            break;
+        }
+        case ELogLevel::Fatal:
+        {
+            level_pass = filter_fatal;
+            break;
+        }
+        default:
+            SE_UNREACHABLE();
+        }
+
+        if (!level_pass)
+        {
+            continue;
+        }
+
+        // Text Filtering
+        if (!text_filter.PassFilter(entry.formatted_message.CStr()))
+        {
+            continue;
+        }
+
+        cached_indices.Push(idx);
+    }
+
+    filter_changed = false;
+    last_log_count = logs.Len();
 }
 }  // namespace se::editor::ui
