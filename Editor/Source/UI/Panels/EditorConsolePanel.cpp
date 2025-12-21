@@ -15,30 +15,30 @@ namespace
     {
     case se::ELogLevel::Debug:
         // 회색 (Gray) - 덜 중요함
-        return ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+        return { 0.6f, 0.6f, 0.6f, 1.0f };
 
     case se::ELogLevel::Info:
         // 흰색 (White) - 기본
-        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return { 1.0f, 1.0f, 1.0f, 1.0f };
 
     case se::ELogLevel::Warning:
         // 노란색 (Yellow)
-        return ImVec4(1.0f, 0.9f, 0.2f, 1.0f);
+        return { 1.0f, 0.9f, 0.2f, 1.0f };
 
     case se::ELogLevel::Error:
         // 밝은 빨간색 (Light Red)
-        return ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+        return { 1.0f, 0.3f, 0.3f, 1.0f };
 
     case se::ELogLevel::Fatal:
         // 자주색/보라색 (Magenta/Purple) - 치명적임
-        return ImVec4(1.0f, 0.0f, 1.0f, 1.0f);
+        return { 1.0f, 0.0f, 1.0f, 1.0f };
 
     default:
         // 혹시 모를 경우 기본 텍스트 색상
         return ImGui::GetStyle().Colors[ImGuiCol_Text];
     }
 }
-}
+} // namespace
 
 namespace se::editor::ui
 {
@@ -89,8 +89,9 @@ void EditorConsolePanel::Draw()
 
                         ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(log.level));
                         ImGui::Text(
-                            "%-7s [%s:%d] %s",
+                            "%-7s [%.*s:%d] %s",
                             log.GetLevelString(),
+                            static_cast<int>(log.GetPrettyFileName().size()),
                             log.GetPrettyFileName().data(),
                             log.location.line(),
                             log.formatted_message.CStr()
@@ -110,4 +111,4 @@ void EditorConsolePanel::Draw()
     }
     ImGui::End();
 }
-}
+}  // namespace se::editor::ui

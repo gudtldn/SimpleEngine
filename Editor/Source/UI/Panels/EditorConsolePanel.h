@@ -4,6 +4,9 @@
 
 namespace se::editor::ui
 {
+/**
+ * @todo docs
+ */
 class EditorConsolePanel : public IEditorPanel
 {
 public:
@@ -13,4 +16,4 @@ public:
 private:
     bool auto_scroll = true;
 };
-}
+}  // namespace se::editor::ui
