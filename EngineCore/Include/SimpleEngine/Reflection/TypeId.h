@@ -3,7 +3,10 @@
 #include "SimpleEngine/Utility/Hash.h"
 
 // forward declaration
+namespace se
+{
 class StringName;
+}
 
 
 namespace se::refl

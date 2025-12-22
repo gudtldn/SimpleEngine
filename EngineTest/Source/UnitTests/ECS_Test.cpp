@@ -131,7 +131,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
             .scale = { 1.0, 1.0, 1.0 },
         },
         MeshHandleComponent{
-            .mesh_id = 123456789
+            .mesh_id = asset::AssetId{ Guid::NewGuid() }
         }
     );
 

@@ -20,9 +20,11 @@ bool IsNoneString(std::string_view view)
     }
     return false;
 }
-}
+}  // namespace
 
 
+namespace se
+{
 StringNamePool& StringNamePool::Get()
 {
     static StringNamePool instance;
@@ -49,8 +51,8 @@ StringNameHashes StringNamePool::Find(std::string_view view) const
     }
 
     {
-        const se::String lower_case_str = se::String{ view }.ToLower();
-        const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
+        const String lower_case_str = String{ view }.ToLower();
+        const uint64 comparison_hash = utility::FNV_Hash(lower_case_str);
 
         std::shared_lock lock(string_pool_mutex);
         if (const Optional comp2disp_hash_opt = comparison_hash_to_display_hash.Find(comparison_hash))
@@ -70,7 +72,7 @@ StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
     }
 
     // display string pool에 있는지 확인
-    const uint64 display_hash = se::utility::FNV_Hash(view);
+    const uint64 display_hash = utility::FNV_Hash(view);
     {
         std::shared_lock lock(string_pool_mutex);
 
@@ -81,8 +83,8 @@ StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
     }
 
     // 없으면 만들기
-    const se::String lower_case_str = se::String{ view }.ToLower();
-    const uint64 comparison_hash = se::utility::FNV_Hash(lower_case_str);
+    const String lower_case_str = String{ view }.ToLower();
+    const uint64 comparison_hash = utility::FNV_Hash(lower_case_str);
     {
         std::unique_lock lock(string_pool_mutex);
 
@@ -99,3 +101,4 @@ StringNameHashes StringNamePool::FindOrEmplace(std::string_view view)
 
     return { display_hash, comparison_hash };
 }
+}  // namespace se

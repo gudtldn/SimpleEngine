@@ -9,6 +9,8 @@
 #include "tracy/Tracy.hpp"
 
 
+namespace se
+{
 struct StringNameHashes
 {
     uint64 display_hash = 0;
@@ -54,6 +56,7 @@ public:
 private:
     mutable TracySharedLockable(std::shared_mutex, string_pool_mutex);
 
-    se::HashMap<uint64, uint64> comparison_hash_to_display_hash;
-    se::HashMap<uint64, StringNameEntry> display_string_pool;
+    HashMap<uint64, uint64> comparison_hash_to_display_hash;
+    HashMap<uint64, StringNameEntry> display_string_pool;
 };
+}  // namespace se

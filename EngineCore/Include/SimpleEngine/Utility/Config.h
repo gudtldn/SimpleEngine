@@ -12,8 +12,11 @@
 #include "toml++/toml.h"
 #undef TOML_EXCEPTIONS
 
+namespace se
+{
 // forward declaration
 class VPath;
+}
 
 
 namespace se::utility
@@ -156,7 +159,7 @@ Optional<se::Array<ElementType>> Config::GetArray(std::string_view key_path) con
 {
     if (const auto node_view = FindNode(key_path))
     {
-        if (auto* arr = node_view.as_array())
+        if (const auto* arr = node_view.as_array())
         {
             se::Array<ElementType> result_vec;
             result_vec.Reserve(arr->size());
@@ -169,7 +172,7 @@ Optional<se::Array<ElementType>> Config::GetArray(std::string_view key_path) con
                 }
                 else
                 {
-                    auto* str_node = elem_node.as_string();
+                    const auto* str_node = elem_node.as_string();
                     ConsoleLog(ELogLevel::Warning, "Failed to get array element: {}", str_node ? str_node->get() : "null");
 
                     success = false; // 배열 내 타입 불일치
@@ -285,4 +288,4 @@ bool Config::SetValue(std::string_view key_path, se::Array<ElementType>&& vec_va
     }
     return SetValue(key_path, std::move(arr));
 }
-}
+}  // namespace se::utility

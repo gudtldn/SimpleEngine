@@ -5,6 +5,8 @@
 #include "SimpleEngine/Core/Types/StringName.h"
 
 
+namespace se
+{
 /**
  * 엔진의 파일 시스템을 추상화하는 가상 경로 타입
  */
@@ -15,7 +17,7 @@ public:
     ~VPath() = default;
 
     VPath(const char* path);
-    VPath(const se::String& path);
+    VPath(const String& path);
     VPath(std::string_view path);
 
     VPath(const VPath&) = default;
@@ -57,7 +59,7 @@ public:
     [[nodiscard]] std::string_view GetStem() const noexcept;
 
     /** 전체 경로를 se::String 참조로 반환합니다. */
-    [[nodiscard]] const se::String& ToString() const noexcept { return full_path; }
+    [[nodiscard]] const String& ToString() const noexcept { return full_path; }
 
     /** 전체 경로를 StringName으로 변환하여 반환합니다. */
     [[nodiscard]] StringName ToStringName() const { return StringName{ full_path }; }
@@ -67,15 +69,16 @@ private:
     void ParseAndNormalize(std::string_view path);
 
 private:
-    se::String full_path;
+    String full_path;
     uint16 scheme_len = 0;  // 스키마의 길이, 0이면 스키마 없음
     uint16 path_offset = 0; // 경로 부분의 시작 인덱스
 };
+}  // namespace se
 
 template <>
-struct std::hash<VPath>
+struct std::hash<se::VPath>
 {
-    size_t operator()(const VPath& path) const noexcept
+    size_t operator()(const se::VPath& path) const noexcept
     {
         return std::hash<se::String>{}(path.ToString());
     }
@@ -83,9 +86,9 @@ struct std::hash<VPath>
 
 // VPath에 대한 std::formatter 특수화
 template <>
-struct std::formatter<VPath, char> : std::formatter<se::String>
+struct std::formatter<se::VPath, char> : std::formatter<se::String>
 {
-    auto format(const VPath& path, std::format_context& ctx) const
+    auto format(const se::VPath& path, std::format_context& ctx) const
     {
         return std::formatter<se::String>::format(path.ToString(), ctx);
     }

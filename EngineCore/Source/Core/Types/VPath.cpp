@@ -1,6 +1,8 @@
 ﻿#include "SimpleEngine/Core/Types/VPath.h"
 
 
+namespace se
+{
 VPath::VPath(const char* path)
     : VPath(std::string_view{ path })
 {
@@ -151,3 +153,4 @@ void VPath::ParseAndNormalize(std::string_view path)
         path_offset = 0;
     }
 }
+}  // namespace se

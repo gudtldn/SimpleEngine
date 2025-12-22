@@ -6,22 +6,24 @@
 
 namespace
 {
-uuids::uuid ToUuid(const Guid& guid)
+uuids::uuid ToUuid(const se::Guid& guid)
 {
-    static_assert(sizeof(Guid) == sizeof(uuids::uuid));
-    static_assert(alignof(Guid) == alignof(uuids::uuid));
+    static_assert(sizeof(se::Guid) == sizeof(uuids::uuid));
+    static_assert(alignof(se::Guid) == alignof(uuids::uuid));
     return std::bit_cast<uuids::uuid>(guid);
 }
 
-Guid FromUuid(const uuids::uuid& uuid)
+se::Guid FromUuid(const uuids::uuid& uuid)
 {
-    static_assert(sizeof(Guid) == sizeof(uuids::uuid));
-    static_assert(alignof(Guid) == alignof(uuids::uuid));
-    return std::bit_cast<Guid>(uuid);
+    static_assert(sizeof(se::Guid) == sizeof(uuids::uuid));
+    static_assert(alignof(se::Guid) == alignof(uuids::uuid));
+    return std::bit_cast<se::Guid>(uuid);
 }
-}
+}  // namespace
 
 
+namespace se
+{
 const Guid Guid::None{};
 
 Guid Guid::NewGuid()
@@ -29,7 +31,7 @@ Guid Guid::NewGuid()
     return FromUuid(uuids::uuid_system_generator{}());
 }
 
-Guid Guid::FromString(const se::String& str)
+Guid Guid::FromString(const String& str)
 {
     return FromUuid(uuids::uuid::from_string(str.Bytes()).value_or(uuids::uuid{}));
 }
@@ -41,17 +43,18 @@ bool Guid::IsValid() const noexcept
     return (parts[0] | parts[1]) != 0;
 }
 
-se::String Guid::ToString() const
+String Guid::ToString() const
 {
-    return se::String{ uuids::to_string(ToUuid(*this)) };
+    return String{ uuids::to_string(ToUuid(*this)) };
 }
 
 Guid::operator bool() const noexcept
 {
     return IsValid();
 }
+}  // namespace se
 
-size_t std::hash<Guid>::operator()(const Guid& guid) const noexcept
+size_t std::hash<se::Guid>::operator()(const se::Guid& guid) const noexcept
 {
     return std::hash<uuids::uuid>{}(ToUuid(guid));
 }

@@ -32,7 +32,7 @@ Optional<Config> Config::GetTable(std::string_view key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {
-        if (auto* sub_table = node_view.as_table())
+        if (const auto* sub_table = node_view.as_table())
         {
             // toml::table을 복사하여 새로운 Config 객체 생성
             return Config(toml::table(*sub_table));
@@ -81,4 +81,4 @@ toml::node_view<const toml::node> Config::FindNode(std::string_view path_str) co
 {
     return config_table.at_path(path_str);
 }
-}
+}  // namespace se::utility

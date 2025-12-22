@@ -10,6 +10,7 @@
 #include "SimpleEngine/Asset/AssetManager.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
 
+using namespace se;
 using namespace se::asset;
 using namespace se::concurrency;
 using namespace se::utility;

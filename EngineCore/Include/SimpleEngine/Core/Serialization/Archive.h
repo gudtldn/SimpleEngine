@@ -6,11 +6,11 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
+namespace se
+{
 class Guid;
 class StringName;
 
-namespace se
-{
 namespace refl
 {
 class TypeId;
@@ -216,4 +216,4 @@ protected:
     explicit Archive(EArchiveMode in_mode) : mode(in_mode) {}
     EArchiveMode mode;
 };
-}
+}  // namespace se::core

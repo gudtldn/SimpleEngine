@@ -6,6 +6,8 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
+namespace se
+{
 /**
  * 빠른 비교 및 조회를 위해 문자열을 ID로 관리하는 클래스
  */
@@ -52,12 +54,12 @@ private:
     const void* debug_entry_ptr = nullptr;
 #endif
 };
-
+}  // namespace se
 
 template <>
-struct std::hash<StringName>
+struct std::hash<se::StringName>
 {
-    size_t operator()(const StringName& key) const noexcept
+    size_t operator()(const se::StringName& key) const noexcept
     {
         return hash<uint64>()(key.GetComparisonHash());
     }
@@ -65,9 +67,9 @@ struct std::hash<StringName>
 
 // StringName에 대한 std::formatter 특수화
 template <>
-struct std::formatter<StringName, char> : std::formatter<std::string_view>
+struct std::formatter<se::StringName, char> : std::formatter<std::string_view>
 {
-    auto format(const StringName& string, std::format_context& ctx) const
+    auto format(const se::StringName& string, std::format_context& ctx) const
     {
         return std::formatter<std::string_view>::format(string.CStr(), ctx);
     }

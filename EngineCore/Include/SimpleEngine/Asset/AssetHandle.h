@@ -59,6 +59,6 @@ struct std::hash<se::asset::AssetHandle<T>> // NOLINT(*-dcl58-cpp)
 {
     size_t operator()(const se::asset::AssetHandle<T>& handle) const noexcept
     {
-        return std::hash<Guid>{}(handle.GetGuid());
+        return std::hash<se::Guid>{}(handle.GetGuid());
     }
 };

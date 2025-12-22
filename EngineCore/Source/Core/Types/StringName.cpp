@@ -2,6 +2,8 @@
 #include "StringNamePool.h"
 
 
+namespace se
+{
 StringName StringName::None = StringName{};
 
 StringName StringName::Find(const char* in_str)
@@ -30,7 +32,7 @@ StringName::StringName(const char* in_str)
 {
 }
 
-StringName::StringName(const se::String& in_str)
+StringName::StringName(const String& in_str)
     : StringName(std::string_view{ in_str })
 {
 }
@@ -60,7 +62,8 @@ const char* StringName::CStr() const
     return entry.name;
 }
 
-se::String StringName::ToString() const
+String StringName::ToString() const
 {
     return { CStr() };
 }
+}  // namespace se

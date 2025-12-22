@@ -137,4 +137,4 @@ Archive& Archive::operator<<(refl::TypeId& value)
     }
     return *this;
 }
-}
+}  // namespace se::core

@@ -29,6 +29,6 @@ struct std::hash<se::asset::AssetId>
 {
     size_t operator()(const se::asset::AssetId& asset_id) const noexcept
     {
-        return std::hash<Guid>{}(asset_id.GetGuid());
+        return std::hash<se::Guid>{}(asset_id.GetGuid());
     }
 };

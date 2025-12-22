@@ -4,6 +4,8 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
+namespace se
+{
 /**
  * 128비트 전역 고유 식별자(GUID/UUID) 클래스
  */
@@ -22,22 +24,23 @@ public:
     static const Guid None;
 
     [[nodiscard]] static Guid NewGuid();
-    [[nodiscard]] static Guid FromString(const se::String& str);
+    [[nodiscard]] static Guid FromString(const String& str);
 
 public:
     [[nodiscard]] bool IsValid() const noexcept;
-    [[nodiscard]] se::String ToString() const;
+    [[nodiscard]] String ToString() const;
 
 public:
     [[nodiscard]] explicit operator bool() const noexcept;
     [[nodiscard]] bool operator==(const Guid& other) const noexcept = default;
 
 private:
-    se::FixedArray<uint8, 16> data{};
+    FixedArray<uint8, 16> data{};
 };
+}  // namespace se
 
 template <>
-struct SE_CORE_API std::hash<Guid>
+struct SE_CORE_API std::hash<se::Guid>
 {
-    size_t operator()(const Guid& guid) const noexcept;
+    size_t operator()(const se::Guid& guid) const noexcept;
 };
