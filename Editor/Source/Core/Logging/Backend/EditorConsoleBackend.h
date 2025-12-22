@@ -20,13 +20,12 @@ public:
     //~ ILogBackend
 
     void Clear();
-    void ReadLogs(const Function<void(const Deque<core::LogEntry>&)>& visitor);
+    void ReadLogs(const Function<void(const Deque<core::LogEntry>&)>& visitor) const;
 
 private:
     static constexpr usize MAX_LOG_LINES = 2000;
 
 private:
-    std::mutex log_mutex;
     Deque<core::LogEntry> log_history;
 };
-}
+}  // namespace se::editor
