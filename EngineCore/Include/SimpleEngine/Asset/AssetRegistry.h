@@ -73,7 +73,7 @@ public:
         ar("virtual_path") << virtual_path_str;
         ar("dependencies") << entry.dependencies;
 
-        if (SE_ENSURE(entry.import_settings, "AssetEntry.import_settings is null"))
+        if (entry.import_settings)
         {
             ar("import_settings") << *entry.import_settings;
         }
