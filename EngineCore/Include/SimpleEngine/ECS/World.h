@@ -73,7 +73,7 @@ public:
     void DestroyEntity(Entity entity);
 
     /** 현재 살아있는 모든 Entity를 반환합니다. */
-    Array<Entity> GetAliveEntities() const;
+    [[nodiscard]] Array<Entity> GetAliveEntities() const;
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType>

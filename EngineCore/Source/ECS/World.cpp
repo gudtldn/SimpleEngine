@@ -35,4 +35,4 @@ IStorage* World::GetStorage(const refl::TypeId& type_id)
     }
     return nullptr;
 }
-}
+}  // namespace se::ecs
