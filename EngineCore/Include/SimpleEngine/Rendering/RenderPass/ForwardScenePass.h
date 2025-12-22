@@ -53,4 +53,4 @@ private:
     RGResourceHandle color_target_handle;
     RGResourceHandle depth_target_handle;
 };
-}
+}  // namespace se::rendering

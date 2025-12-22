@@ -92,7 +92,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             .texture = color_target,
             .mip_level = 0,
             .layer_or_depth_plane = 0,
-            .clear_color = { 0.15f, 0.15f, 0.15f, 1.0f },
+            .clear_color = { .r = 0.15f, .g = 0.15f, .b = 0.15f, .a = 1.0f },
             .load_op = SDL_GPU_LOADOP_CLEAR,
             .store_op = SDL_GPU_STOREOP_STORE,
         }
@@ -315,4 +315,4 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     }
     SDL_EndGPURenderPass(pass);
 }
-}
+}  // namespace se::rendering
