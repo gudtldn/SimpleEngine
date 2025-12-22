@@ -1,13 +1,18 @@
 ﻿#include "SimpleEngine/Asset/Loaders/ObjLoader.h"
 
 #include "Asset/Types/MeshTypes.h"
+#include "Reflection/Reflect.h"
+
 #include "assimp/Importer.hpp"
-#include "assimp/scene.h"
 #include "assimp/postprocess.h"
+#include "assimp/scene.h"
 
 
 namespace se::asset
 {
+SE_BEGIN_REFLECT(ObjLoader)
+SE_END_REFLECT(ObjLoader)
+
 concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
     const std::filesystem::path& physical_path,
     const IAssetImportSettings* import_settings
