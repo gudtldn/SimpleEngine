@@ -124,13 +124,6 @@ void EditorConsolePanel::Draw()
                 if (filter_changed)
                 {
                     RefreshFilterList(entries);
-
-                    // TODO: 맨 밑에 있을때만
-                    // Auto-scroll이 켜져있고 새 로그가 들어온 상황이면 스크롤 준비
-                    if (auto_scroll)
-                    {
-                        ImGui::SetScrollHereY(1.0f);
-                    }
                 }
 
                 ImGuiListClipper clipper;
