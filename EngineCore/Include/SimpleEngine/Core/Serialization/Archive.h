@@ -20,7 +20,7 @@ template <typename AllocatorType>
 class BaseString;
 
 using String = BaseString<core::DefaultAllocator<char>>;
-}
+}  // namespace se
 
 namespace se::core
 {

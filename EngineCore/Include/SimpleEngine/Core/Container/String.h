@@ -429,7 +429,7 @@ private:
     // TODO: 나중에 필요할 때 SSO 구현
     Array<char, AllocatorType> data;
 };
-}
+}  // namespace se
 
 // se::String에 대한 std::hash 특수화
 template <>

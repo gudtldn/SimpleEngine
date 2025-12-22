@@ -76,7 +76,7 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(const char* literal)
 template <typename Allocator>
 template <usize N>
 BaseString<Allocator>::BaseString(const char (&literal)[N])
-    : BaseString(std::string_view{ literal, N > 0 ? N - 1 : 0 })
+    : BaseString(std::string_view{ literal })
 {
 }
 
@@ -84,7 +84,7 @@ template <typename Allocator>
 template <usize N>
 BaseString<Allocator>& BaseString<Allocator>::operator=(const char (&literal)[N])
 {
-    *this = std::string_view{ literal, N > 0 ? N - 1 : 0 };
+    *this = std::string_view{ literal };
     return *this;
 }
 
