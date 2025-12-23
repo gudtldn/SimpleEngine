@@ -11,7 +11,6 @@
 #include "Core/Logging/LogSettings.h"
 #include "Core/Logging/Backends/ConsoleBackend.h"
 #include "Core/Logging/Backends/FileBackend.h"
-#include "Core/Memory/MemoryTracker.h"
 #include "Utility/StringUtils.h"
 #include "ECS/WorldSubsystem.h"
 
@@ -19,7 +18,7 @@
 #include "SDL3/SDL_init.h"
 #include "tracy/Tracy.hpp"
 
-#define RETURN_IF_FAILED(x) if (!(x)) { ConsoleLog(ELogLevel::Error, "Initialize Failed!: {}", #x); return; } else {}
+#define RETURN_IF_FAILED(x) do { if (!(x)) { ConsoleLog(ELogLevel::Error, "Initialize Failed!: {}", #x); return; } } while (false);
 
 
 namespace se::app
@@ -129,8 +128,6 @@ void Application::Shutdown()
     PreRelease();
     ReleaseEngine();
     PostRelease();
-
-    core::MemoryTracker::CheckForLeaks();
 
     ConsoleLog(ELogLevel::Info, "shutdown");
 }
@@ -291,4 +288,4 @@ void Application::ReleaseEngine()
 void Application::PostRelease()
 {
 }
-}
+}  // namespace se::app
