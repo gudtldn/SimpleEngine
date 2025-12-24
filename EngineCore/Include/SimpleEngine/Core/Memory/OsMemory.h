@@ -2,6 +2,7 @@
 #include <cstddef>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Memory/MemoryConfig.h"
 
 
 namespace se::core
@@ -64,10 +65,15 @@ private:
     /**
      * Allocate 정보를 저장하기 위한 헤더
      */
-    struct OsMemoryHeader
+    struct alignas(std::max_align_t) OsMemoryHeader
     {
         usize allocated_size;
         usize offset;
+
+#if SE_ENABLE_MEMORY_TRACKING
+        uint32 tag_id;
+        uint32 _padding;
+#endif
     };
 
     /** AlignedAllocHeader의 크기 */
@@ -94,4 +100,4 @@ T* OsMemory::Allocate(usize count, usize alignment)
 {
     return static_cast<T*>(Allocate(sizeof(T) * count, alignment));
 }
-}
+}  // namespace se::core

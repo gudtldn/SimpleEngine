@@ -1,5 +1,6 @@
 ﻿// ReSharper disable CppDFAMemoryLeak
 #include "Core/Memory/OsMemory.h"
+#include "Core/Memory/MemoryStats.h"
 
 #include <cstring>
 #include <memory>
@@ -22,7 +23,7 @@ void* OsMemory::Allocate(usize size, usize alignment)
     // |      <offset> size      | ----------------- | <- Header에 저장된 Offset값
     // | padding |     header    |     user_data     | <- std::align으로 정렬 후 사용할 메모리
 
-    // 헤더, 데이터, 정렬 패딩을 모두 담을 공간을 계산
+    // 헤더, 데이터, 정렬 패딩을 모두 담을 공간 계산
     const usize total_size_to_alloc = HEADER_SIZE + size + alignment - 1;
 
     void* raw_block = std::malloc(total_size_to_alloc);
@@ -48,6 +49,11 @@ void* OsMemory::Allocate(usize size, usize alignment)
     header->allocated_size = size;
     header->offset = offset;
 
+#if SE_ENABLE_MEMORY_TRACKING
+    // 현재 스레드의 활성 태그 가져오기 (TLS)
+    header->tag_id = MemoryStats::GetCurrentTag();
+#endif
+
     // Tracy로 메모리 사용량 추적
     TracyAllocS(user_ptr, size, TRACY_CALLSTACK_DEPTH);
 
@@ -67,11 +73,18 @@ void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
         return nullptr;
     }
 
-    // new_size가 기존에 할당된 메모리보다 작으면 할당된 크기만 줄이기
     OsMemoryHeader* const memory_header = GetHeaderFromUserPtr(address);
+
+    // new_size가 기존에 할당된 메모리보다 작으면 할당된 크기만 줄이기
     if (new_size <= memory_header->allocated_size)
     {
+        [[maybe_unused]] const usize old_size = memory_header->allocated_size;
         memory_header->allocated_size = new_size;
+
+#if SE_ENABLE_MEMORY_TRACKING
+        // 줄어든 만큼 통계 차감
+        MemoryStats::TrackFree(memory_header->tag_id, old_size - new_size);
+#endif
 
         TracyFreeS(address, TRACY_CALLSTACK_DEPTH);
         TracyAllocS(address, new_size, TRACY_CALLSTACK_DEPTH);
@@ -79,7 +92,7 @@ void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
         return address;
     }
 
-    // 새로운 메모리 할당
+    // 크기를 키우는 경우 새로운 메모리 할당
     void* new_address = Allocate(new_size, alignment);
     if (new_address == nullptr)
     {
@@ -109,10 +122,15 @@ void OsMemory::Free(void* address)
     // user_ptr로 부터 헤더 위치 계산
     const OsMemoryHeader* header = GetHeaderFromUserPtr(address);
 
+#if SE_ENABLE_MEMORY_TRACKING
+    // 저장해둔 태그 ID로 통계 해제
+    MemoryStats::TrackFree(header->tag_id, header->allocated_size);
+#endif
+
     // user_ptr에서 패딩을 이용하여 실제 할당된 메모리 블럭 계산
     void* raw_block = static_cast<uint8*>(address) - header->offset;
 
     // 메모리 해제
     std::free(raw_block);
 }
-}
+}  // namespace se::core
