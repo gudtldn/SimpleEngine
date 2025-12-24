@@ -11,6 +11,15 @@ std::atomic<uint32> MemoryStats::registered_count = 1;
 FixedArray<MemoryTag, MemoryStats::MAX_MEMORY_TAGS> MemoryStats::tags{};
 HashMap<StringName, uint32> MemoryStats::tag_lookup;
 
+[[maybe_unused]] static const bool DefaultTagInitialized = [] static
+{
+    if (auto tags_span = MemoryStats::GetTags(); !tags_span.empty())
+    {
+        tags_span[0].name = "Untagged";
+    }
+    return true;
+}();
+
 std::atomic<usize> MemoryStats::total_cpu_allocated = 0;
 std::atomic<usize> MemoryStats::total_gpu_allocated = 0;
 
