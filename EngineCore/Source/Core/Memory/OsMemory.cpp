@@ -51,7 +51,10 @@ void* OsMemory::Allocate(usize size, usize alignment)
 
 #if SE_ENABLE_MEMORY_TRACKING
     // 현재 스레드의 활성 태그 가져오기 (TLS)
-    header->tag_id = MemoryStats::GetCurrentTag();
+    const uint32 current_tag = MemoryStats::GetCurrentTag();
+    header->tag_id = current_tag;
+
+    MemoryStats::TrackAlloc(current_tag, size);
 #endif
 
     // Tracy로 메모리 사용량 추적
