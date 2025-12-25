@@ -1,8 +1,9 @@
 ﻿#include "UI/EditorUISubsystem.h"
 
 #include "Panels/AssetsBrowserPanel.h"
-#include "Panels/EditorConsolePanel.h"
+#include "Panels/DebugPanel.h"
 #include "Panels/DetailPanel.h"
+#include "Panels/EditorConsolePanel.h"
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
 #include "Panels/ViewportPanel.h"
@@ -82,6 +83,7 @@ bool EditorUISubsystem::Initialize()
 
     // 일단 명시적으로 Register 코드 작성
     RegisterPanel<ImGuiDemoPanel>(refl::GetTypeName<ImGuiDemoPanel>());
+    RegisterPanel<DebugPanel>(refl::GetTypeName<DebugPanel>());
     RegisterPanel<OutlinerPanel>(refl::GetTypeName<OutlinerPanel>());
     RegisterPanel<DetailPanel>(refl::GetTypeName<DetailPanel>());
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
@@ -142,7 +144,8 @@ Optional<const IEditorPanel&> EditorUISubsystem::GetPanel(const StringName& pane
         });
 }
 
-void EditorUISubsystem::SetupDockSpace()
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void EditorUISubsystem::SetupDockSpace() // NOLINT(*-convert-member-functions-to-static)
 {
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 }
@@ -189,4 +192,4 @@ void EditorUISubsystem::DrawMainMenu()
         ImGui::EndMainMenuBar();
     }
 }
-}
+}  // namespace se::editor::ui
