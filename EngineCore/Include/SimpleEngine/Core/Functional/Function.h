@@ -38,8 +38,8 @@ private:
         virtual ReturnType Invoke(ParamsType&&...) = 0;
 
         virtual ICallable* Clone() const = 0;
-        virtual void CloneTo(void* dest) const = 0;
-        virtual void MoveTo(void* dest) noexcept = 0;
+        virtual ICallable* CloneTo(void* dest) const = 0;
+        virtual ICallable* MoveTo(void* dest) noexcept = 0;
     };
 
     template <typename Fn>
@@ -66,14 +66,14 @@ private:
             return dest;
         }
 
-        virtual void CloneTo(void* dest) const override
+        virtual ICallable* CloneTo(void* dest) const override
         {
-            std::construct_at(static_cast<CallableImpl*>(dest), functor);
+            return std::construct_at(static_cast<CallableImpl*>(dest), functor);
         }
 
-        virtual void MoveTo(void* dest) noexcept override
+        virtual ICallable* MoveTo(void* dest) noexcept override
         {
-            std::construct_at(static_cast<CallableImpl*>(dest), std::move(functor));
+            return std::construct_at(static_cast<CallableImpl*>(dest), std::move(functor));
         }
     };
 
@@ -109,8 +109,7 @@ public:
             }
             else
             {
-                other.CallablePtr->CloneTo(Storage.SBO_Storage);
-                CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
+                CallablePtr = other.CallablePtr->CloneTo(Storage.SBO_Storage);
             }
         }
     }
@@ -126,8 +125,7 @@ public:
             }
             else
             {
-                other.CallablePtr->MoveTo(Storage.SBO_Storage);
-                CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
+                CallablePtr = other.CallablePtr->MoveTo(Storage.SBO_Storage);
             }
 
             other.Storage.Heap_Storage = nullptr;
@@ -157,8 +155,7 @@ public:
             }
             else
             {
-                other.CallablePtr->MoveTo(Storage.SBO_Storage);
-                CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
+                CallablePtr = other.CallablePtr->MoveTo(Storage.SBO_Storage);
             }
 
             other.Storage.Heap_Storage = nullptr;
@@ -182,8 +179,7 @@ public:
         // SBO 조건: 객체 크기가 버퍼보다 작고, 이동 생성이 noexcept여야 함
         if constexpr (sizeof(Callable) <= details::SBO_BUFFER_SIZE && std::is_nothrow_move_constructible_v<Fn>)
         {
-            std::construct_at(reinterpret_cast<Callable*>(Storage.SBO_Storage), std::forward<Fn>(in_func));
-            CallablePtr = reinterpret_cast<ICallable*>(Storage.SBO_Storage);
+            CallablePtr = std::construct_at(reinterpret_cast<Callable*>(Storage.SBO_Storage), std::forward<Fn>(in_func));
         }
         else
         {
