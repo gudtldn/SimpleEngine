@@ -1,5 +1,5 @@
 ﻿# Source 폴더 및 하위 폴더의 모든 .cpp 파일을 찾아 ENGINE_SOURCES에 추가
-file(GLOB_RECURSE ENGINE_SOURCES "Source/*.cpp")
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp")
 
 # EngineCore를 동적 라이브러리(.dll)로 정의
 add_library(EngineCore SHARED

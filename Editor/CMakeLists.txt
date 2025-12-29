@@ -1,5 +1,5 @@
 ﻿# Source 폴더 및 하위 폴더의 모든 .cpp 파일을 찾아 EDITOR_SOURCES에 저장
-file(GLOB_RECURSE EDITOR_SOURCES "Source/*.cpp")
+file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp")
 
 # Editor를 실행 파일로 정의하고, 찾은 소스 파일들을 사용
 add_executable(Editor
