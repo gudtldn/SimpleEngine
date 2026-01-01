@@ -92,12 +92,15 @@
 #if SE_COMPILER_MSVC
 #define FORCE_INLINE __forceinline
 #define NO_INLINE __declspec(noinline)
+#define RESTRICT __restrict
 #elif SE_COMPILER_CLANG || SE_COMPILER_GCC
 #define FORCE_INLINE __attribute__((always_inline)) __inline__
 #define NO_INLINE __attribute__((noinline))
+#define RESTRICT __restrict__
 #else
 #define FORCE_INLINE inline
 #define NO_INLINE
+#define RESTRICT
 #endif
 // ~컴파일러별 매크로
 
