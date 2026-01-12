@@ -496,6 +496,17 @@ public:
         return default_value;
     }
 
+    /** Optional에 저장된 값을 복사하여 Optional<T>로 반환합니다. */
+    [[nodiscard]] Optional<std::remove_cv_t<T>> Copy() const
+        requires std::copy_constructible<std::remove_cv_t<T>>
+    {
+        if (HasValue())
+        {
+            return Optional<std::remove_cv_t<T>>{ GetStoredValue() };
+        }
+        return Optional<std::remove_cv_t<T>>{};
+    }
+
     template <typename Fn>
         requires std::invocable<Fn, T&>
         && se::details::IsOptional<std::invoke_result_t<Fn, T&>>
