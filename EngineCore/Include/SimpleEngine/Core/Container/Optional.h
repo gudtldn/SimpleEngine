@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// NOLINTBEGIN(*-explicit-constructor)
+#pragma once
 
 #include <cassert>
 #include <concepts>
@@ -34,6 +35,8 @@ namespace se::details
 template <typename T>
 class Optional
 {
+    template <typename> friend class Optional;
+
 public:
     using ValueType = T;
 
@@ -61,13 +64,36 @@ public:
         Construct(std::forward<Args>(args)...);
     }
 
-    template <typename U = T>
+    // std::optional -> Optional 변환 생성자
+    template <typename U>
         requires std::constructible_from<T, U>
     Optional(std::optional<U>&& other)
     {
         if (other.has_value())
         {
             Construct(std::move(other).value());
+        }
+    }
+
+    // Optional<U> -> Optional<T> 변환 생성자
+    template <typename U>
+        requires std::constructible_from<T, const U&>
+    Optional(const Optional<U>& other)
+    {
+        if (other.HasValue())
+        {
+            Construct(other.GetStoredValue());
+        }
+    }
+
+    template <typename U>
+        requires std::constructible_from<T, U&&>
+    Optional(Optional<U>&& other)
+    {
+        if (other.HasValue())
+        {
+            Construct(std::move(other.GetStoredValue()));
+            other.Reset();
         }
     }
 
@@ -146,7 +172,7 @@ public:
         return *this;
     }
 
-    template <typename U = T>
+    template <typename U>
         requires std::constructible_from<T, U>
         && std::assignable_from<T&, U>
         && se::details::NotOptionalOrInPlace<U>
@@ -590,3 +616,5 @@ private:
 private:
     T* ref_ptr = nullptr;
 };
+
+// NOLINTEND(*-explicit-constructor)
