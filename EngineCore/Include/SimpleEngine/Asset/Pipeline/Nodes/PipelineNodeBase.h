@@ -71,6 +71,10 @@ public:
         attributes.Insert(key, std::forward<T>(value));
     }
 
+protected:
+    /** 노드의 모든 Attribute를 반환합니다. */
+    [[nodiscard]] const auto& GetAttributes() const noexcept { return attributes; }
+
 private:
     Guid uid;
     Guid parent_uid;
