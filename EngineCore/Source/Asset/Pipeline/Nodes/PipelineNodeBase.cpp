@@ -5,12 +5,12 @@ namespace se::asset
 {
 const Guid& PipelineNodeBase::GetUid() const noexcept
 {
-    return uid;
+    return self_uid;
 }
 
 void PipelineNodeBase::SetUid(Guid new_uid) noexcept
 {
-    uid = new_uid;
+    self_uid = new_uid;
 }
 
 const Guid& PipelineNodeBase::GetParentUid() const noexcept

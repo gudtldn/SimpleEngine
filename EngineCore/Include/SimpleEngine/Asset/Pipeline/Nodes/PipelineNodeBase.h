@@ -76,7 +76,7 @@ protected:
     [[nodiscard]] const auto& GetAttributes() const noexcept { return attributes; }
 
 private:
-    Guid uid;
+    Guid self_uid;
     Guid parent_uid;
     String display_name;
 
