@@ -25,13 +25,13 @@ public:
     {
         if constexpr (traits::IsFunctionType<T>)
         {
-            constexpr auto signature = GetTypeSignature<T>();
+            constexpr auto signature = GetRawTypeName<T>();
             return TypeId{ signature, signature };
         }
         else
         {
             using CleanType = std::remove_cvref_t<T>;
-            return TypeId{ GetFullTypeName<CleanType>(), GetTypeSignature<CleanType>() };
+            return TypeId{ GetFullTypeName<CleanType>(), GetRawTypeName<CleanType>() };
         }
     }
 
