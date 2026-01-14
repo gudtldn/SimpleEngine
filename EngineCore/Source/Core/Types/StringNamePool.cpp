@@ -34,13 +34,7 @@ StringNamePool& StringNamePool::Get()
 const StringNameEntry& StringNamePool::Resolve(uint64 hash) const
 {
     std::shared_lock lock(string_pool_mutex);
-
-    if (const Optional display_pool_opt = display_string_pool.Find(hash))
-    {
-        return *display_pool_opt;
-    }
-
-    SE_UNREACHABLE();
+    return display_string_pool.FindChecked(hash);
 }
 
 StringNameHashes StringNamePool::Find(std::string_view view) const
