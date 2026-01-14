@@ -16,17 +16,17 @@ namespace se::asset
 class PipelineNodeContainer
 {
 public:
-    template <typename T, typename... Args>
-        requires std::derived_from<T, PipelineBaseNode>
-    T* CreateNode(Args&&... args)
+    template <typename NodeType, typename... Args>
+        requires std::derived_from<NodeType, PipelineBaseNode>
+    NodeType* CreateNode(Args&&... args)
     {
-        auto node = std::make_unique<T>(std::forward<Args>(args)...);
+        auto node = std::make_unique<NodeType>(std::forward<Args>(args)...);
         if (!node->GetUid().IsValid())
         {
             node->SetUid(Guid::NewGuid());
         }
 
-        T* ptr = node.get();
+        NodeType* ptr = node.get();
         nodes.Insert(node->GetUid(), std::move(node));
         return ptr;
     }
@@ -40,30 +40,30 @@ public:
         return nullptr;
     }
 
-    template <typename T>
-        requires std::derived_from<T, PipelineBaseNode>
-    [[nodiscard]] T* GetNode(const Guid& uid) const
+    template <typename NodeType>
+        requires std::derived_from<NodeType, PipelineBaseNode>
+    [[nodiscard]] NodeType* GetNode(const Guid& uid) const
     {
         PipelineBaseNode* node = GetNode(uid);
-        if (node && node->GetTypeId() == refl::TypeId::Get<T>())
+        if (node && node->GetTypeId() == refl::TypeId::Get<NodeType>())
         {
-            return static_cast<T*>(node);
+            return static_cast<NodeType*>(node);
         }
         return nullptr;
     }
 
-    template <typename T>
-        requires std::derived_from<T, PipelineBaseNode>
-    [[nodiscard]] T* GetNodeChecked(const Guid& uid) const
+    template <typename NodeType>
+        requires std::derived_from<NodeType, PipelineBaseNode>
+    [[nodiscard]] NodeType* GetNodeChecked(const Guid& uid) const
     {
         PipelineBaseNode* node = GetNode(uid);
         SE_ASSERT(node, "Node with UID {} does not exist!", uid.ToString());
         SE_ASSERT(
-            node->GetTypeId() == refl::TypeId::Get<T>(),
+            node->GetTypeId() == refl::TypeId::Get<NodeType>(),
             "Node Type Mismatch! Expected: {}, Actual: {}",
-            refl::TypeId::Get<T>().GetName(), node->GetTypeId().GetName()
+            refl::TypeId::Get<NodeType>().GetName(), node->GetTypeId().GetName()
         );
-        return static_cast<T*>(node);
+        return static_cast<NodeType*>(node);
     }
 
     [[nodiscard]] const auto& GetAllNodes() const { return nodes; }
