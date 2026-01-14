@@ -39,7 +39,7 @@ void PipelineMaterialNode::GetFactoryDependencies(Array<Guid>& out_dependencies)
     for (const StringName& key : TextureSlots)
     {
         // 해당 키에 Guid 타입의 값이 설정되어 있다면 의존성에 추가
-        if (Optional uid = GetAttribute<Guid>(key))
+        if (Optional uid = attributes.GetAttribute<Guid>(key))
         {
             if (uid->IsValid())
             {
@@ -51,41 +51,41 @@ void PipelineMaterialNode::GetFactoryDependencies(Array<Guid>& out_dependencies)
 
 Optional<Guid> PipelineMaterialNode::GetBaseColorTexture() const
 {
-    return GetAttribute<Guid>(AttributeKeys::BaseColorTex).Copy();
+    return attributes.GetAttribute<Guid>(AttributeKeys::BaseColorTex).Copy();
 }
 
 void PipelineMaterialNode::SetBaseColorTexture(const Guid& texture_uid)
 {
-    SetAttribute(AttributeKeys::BaseColorTex, texture_uid);
+    attributes.SetAttribute(AttributeKeys::BaseColorTex, texture_uid);
 }
 
 void PipelineMaterialNode::SetNormalTexture(const Guid& texture_uid)
 {
-    SetAttribute(AttributeKeys::NormalTex, texture_uid);
+    attributes.SetAttribute(AttributeKeys::NormalTex, texture_uid);
 }
 
 void PipelineMaterialNode::SetRoughnessTexture(const Guid& texture_uid)
 {
-    SetAttribute(AttributeKeys::RoughnessTex, texture_uid);
+    attributes.SetAttribute(AttributeKeys::RoughnessTex, texture_uid);
 }
 
-void PipelineMaterialNode::SetBaseColorValue(const Vector4f& color)
+void PipelineMaterialNode::SetBaseColorValue(const Vector4& color)
 {
-    SetAttribute(AttributeKeys::BaseColorVal, color);
+    attributes.SetAttribute(AttributeKeys::BaseColorVal, color);
 }
 
 void PipelineMaterialNode::SetRoughnessValue(float value)
 {
-    SetAttribute(AttributeKeys::RoughnessVal, value);
+    attributes.SetAttribute(AttributeKeys::RoughnessVal, value);
 }
 
 void PipelineMaterialNode::SetBlendMode(int32 mode)
 {
-    SetAttribute(AttributeKeys::BlendMode, static_cast<int64>(mode));
+    attributes.SetAttribute(AttributeKeys::BlendMode, static_cast<int64>(mode));
 }
 
 void PipelineMaterialNode::SetTwoSided(bool bEnable)
 {
-    SetAttribute(AttributeKeys::TwoSided, bEnable);
+    attributes.SetAttribute(AttributeKeys::TwoSided, bEnable);
 }
 } // namespace se::asset

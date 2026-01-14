@@ -16,26 +16,26 @@ refl::TypeId PipelineTextureNode::GetTypeId() const noexcept
 
 void PipelineTextureNode::SetSourceFile(const String& path)
 {
-    SetAttribute(AttributeKeys::SourceFile, path);
+    attributes.SetAttribute(AttributeKeys::SourceFile, path);
 }
 
 Optional<const String&> PipelineTextureNode::GetSourceFile() const
 {
-    return GetAttribute<String>(AttributeKeys::SourceFile);
+    return attributes.GetAttribute<String>(AttributeKeys::SourceFile);
 }
 
 void PipelineTextureNode::SetSRGB(bool is_srgb)
 {
-    SetAttribute(AttributeKeys::IsSRGB, is_srgb);
+    attributes.SetAttribute(AttributeKeys::IsSRGB, is_srgb);
 }
 
 bool PipelineTextureNode::GetSRGB() const
 {
-    return GetAttribute<bool>(AttributeKeys::IsSRGB).ValueOr(true);
+    return attributes.GetAttribute<bool>(AttributeKeys::IsSRGB).ValueOr(true);
 }
 
 void PipelineTextureNode::SetCompression(const String& compression)
 {
-    SetAttribute(AttributeKeys::Compression, compression);
+    attributes.SetAttribute(AttributeKeys::Compression, compression);
 }
 }  // namespace se::asset

@@ -37,7 +37,7 @@ public:
     void SetNormalTexture(const Guid& texture_uid);
     void SetRoughnessTexture(const Guid& texture_uid);
 
-    void SetBaseColorValue(const Vector4f& color);
+    void SetBaseColorValue(const Vector4& color);
     void SetRoughnessValue(float value);
 
     void SetBlendMode(int32 mode);
