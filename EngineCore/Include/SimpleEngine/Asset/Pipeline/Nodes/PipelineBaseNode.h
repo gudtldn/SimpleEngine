@@ -19,7 +19,13 @@ public:
     [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;
 
     /** 팩토리 정렬(Topological Sort)을 위해 이 노드가 참조하는 다른 노드들의 ID 반환합니다. */
-    virtual void GetFactoryDependencies([[maybe_unused]] Array<Guid>& out_dependencies) const {}
+    virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const
+    {
+        if (parent_uid.IsValid())
+        {
+            out_dependencies.Push(parent_uid);
+        }
+    }
 
 public:
     [[nodiscard]] FORCE_INLINE const Guid& GetUid() const { return self_uid; }
@@ -32,6 +38,7 @@ public:
     FORCE_INLINE void SetDisplayName(const String& new_name) { display_name = new_name; }
 
     [[nodiscard]] FORCE_INLINE const AttributeStorage& GetAttributes() const { return attributes; }
+    [[nodiscard]] FORCE_INLINE AttributeStorage& GetAttributes() { return attributes; }
 
 protected:
     Guid self_uid;
