@@ -8,120 +8,117 @@
 #include <enginecore_export.h>
 
 
-// 플랫폼 매크로
+// -----------------------------------------------------------------------------
+// Platform Detection
+// -----------------------------------------------------------------------------
 #if defined(_WIN32) || defined(_WIN64)
-#define SE_PLATFORM_WINDOWS true
-#elif defined(__linux__)
-#define SE_PLATFORM_LINUX true
-#elif defined(__APPLE__)
-#define SE_PLATFORM_MACOS true
+    #define SE_PLATFORM_WINDOWS true
 #else
-#error "Unsupported platform"
+    #define SE_PLATFORM_WINDOWS false
 #endif
 
-#if !defined(SE_PLATFORM_WINDOWS)
-#define SE_PLATFORM_WINDOWS false
+#if defined(__linux__)
+    #define SE_PLATFORM_LINUX true
+#else
+    #define SE_PLATFORM_LINUX false
 #endif
 
-#if !defined(SE_PLATFORM_LINUX)
-#define SE_PLATFORM_LINUX false
+#if defined(__APPLE__)
+    #define SE_PLATFORM_MACOS true
+#else
+    #define SE_PLATFORM_MACOS false
 #endif
-
-#if !defined(SE_PLATFORM_MACOS)
-#define SE_PLATFORM_MACOS false
-#endif
-// ~플랫폼 매크로
 
 // 플랫폼 아키텍처 매크로
+// -----------------------------------------------------------------------------
+// Architecture Detection
+// -----------------------------------------------------------------------------
 #if defined(_M_X64) || defined(__x86_64__)
-#define SE_ARCH_X86_64 true
+    #define SE_ARCH_X64 true
+    #define SE_ARCH_X86 false
+    #define SE_ARCH_ARM64 false
 #elif defined(_M_IX86) || defined(__i386__)
-#define SE_ARCH_X86 true
+    #define SE_ARCH_X64 false
+    #define SE_ARCH_X86 true
+    #define SE_ARCH_ARM64 false
 #elif defined(_M_ARM64) || defined(__aarch64__)
-#define SE_ARCH_ARM64 true
+    #define SE_ARCH_X64 false
+    #define SE_ARCH_X86 false
+    #define SE_ARCH_ARM64 true
 #else
-#error "Unsupported platform"
+    #define SE_ARCH_X64 false
+    #define SE_ARCH_X86 false
+    #define SE_ARCH_ARM64 false
 #endif
 
-#if defined(SE_ARCH_X86) || defined(SE_ARCH_X86_64)
-#define SE_ARCH_X86_FAMILY true
+#if SE_ARCH_X86 || SE_ARCH_X64
+    #define SE_ARCH_X86_FAMILY true
 #else
-#define SE_ARCH_X86_FAMILY false
+    #define SE_ARCH_X86_FAMILY false
 #endif
 
-#if defined(SE_ARCH_ARM64)
-#define SE_ARCH_ARM_FAMILY true
+#if SE_ARCH_ARM64
+    #define SE_ARCH_ARM_FAMILY true
 #else
-#define SE_ARCH_ARM_FAMILY false
+    #define SE_ARCH_ARM_FAMILY false
 #endif
 
-#if !defined(SE_ARCH_X86_64)
-#define SE_ARCH_X86_64 false
-#endif
-
-#if !defined(SE_ARCH_X86)
-#define SE_ARCH_X86 false
-#endif
-
-#if !defined(SE_ARCH_ARM64)
-#define SE_ARCH_ARM64 false
-#endif
-// ~플랫폼 아키텍처 매크로
-
-// 컴파일러별 매크로
+// -----------------------------------------------------------------------------
+// Compiler Detection
+// -----------------------------------------------------------------------------
 #if defined(__clang__)
-#define SE_COMPILER_CLANG true
+    #define SE_COMPILER_CLANG true
+    #define SE_COMPILER_MSVC false
+    #define SE_COMPILER_GCC false
 #elif defined(_MSC_VER)
-#define SE_COMPILER_MSVC true
+    #define SE_COMPILER_CLANG false
+    #define SE_COMPILER_MSVC true
+    #define SE_COMPILER_GCC false
 #elif defined(__GNUC__)
-#define SE_COMPILER_GCC true
+    #define SE_COMPILER_CLANG false
+    #define SE_COMPILER_MSVC false
+    #define SE_COMPILER_GCC true
+#else
+    #define SE_COMPILER_CLANG false
+    #define SE_COMPILER_MSVC false
+    #define SE_COMPILER_GCC false
 #endif
 
-#if !defined(SE_COMPILER_CLANG)
-#define SE_COMPILER_CLANG false
-#endif
-
-#if !defined(SE_COMPILER_MSVC)
-#define SE_COMPILER_MSVC false
-#endif
-
-#if !defined(SE_COMPILER_GCC)
-#define SE_COMPILER_GCC false
-#endif
-
+// -----------------------------------------------------------------------------
+// Utility Macros
+// -----------------------------------------------------------------------------
 #if SE_COMPILER_MSVC
-#define FORCE_INLINE __forceinline
-#define NO_INLINE __declspec(noinline)
-#define RESTRICT __restrict
+    #define FORCE_INLINE __forceinline
+    #define NO_INLINE __declspec(noinline)
+    #define RESTRICT __restrict
 #elif SE_COMPILER_CLANG || SE_COMPILER_GCC
-#define FORCE_INLINE __attribute__((always_inline)) __inline__
-#define NO_INLINE __attribute__((noinline))
-#define RESTRICT __restrict__
+    #define FORCE_INLINE __attribute__((always_inline)) __inline__
+    #define NO_INLINE __attribute__((noinline))
+    #define RESTRICT __restrict__
 #else
-#define FORCE_INLINE inline
-#define NO_INLINE
-#define RESTRICT
+    #define FORCE_INLINE inline
+    #define NO_INLINE
+    #define RESTRICT
 #endif
-// ~컴파일러별 매크로
 
-// 디버그/릴리즈 빌드 매크로
-#if defined(_DEBUG)
-#define SE_DEBUG_BUILD true
-#define SE_DEBUG_EXPRESION(x) x
+// -----------------------------------------------------------------------------
+// Build Configuration
+// -----------------------------------------------------------------------------
+#if defined(_DEBUG) || defined(DEBUG)
+    #define SE_DEBUG_BUILD true
+    #define SE_DEBUG_EXPRESION(x) x
 #else
-#define SE_DEBUG_BUILD false
-#define SE_DEBUG_EXPRESION(x)
+    #define SE_DEBUG_BUILD false
+    #define SE_DEBUG_EXPRESION(x)
 #endif
 
 #if defined(NDEBUG)
-#define SE_RELEASE_BUILD true
-#define SE_RELEASE_EXPRESION(x) x
+    #define SE_RELEASE_BUILD true
+    #define SE_RELEASE_EXPRESION(x) x
 #else
-#define SE_RELEASE_BUILD false
-#define SE_RELEASE_EXPRESION(x)
+    #define SE_RELEASE_BUILD false
+    #define SE_RELEASE_EXPRESION(x)
 #endif
-// ~디버그/릴리즈 빌드 매크로
-
 
 // 정수형
 using int8 = std::int8_t;
@@ -140,5 +137,5 @@ using char32 = char32_t;
 
 // 크기 및 플랫폼 정수형
 using size_t = std::size_t;
-using isize = std::intptr_t;
+using isize = std::ptrdiff_t;
 using usize = std::uintptr_t;
