@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNodeBase.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 
 
 namespace se::asset
