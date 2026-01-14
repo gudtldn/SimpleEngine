@@ -11,7 +11,7 @@ namespace se::math::simd::details
     template <traits::FloatingType T>
     void Matrix4x4MultiplyGeneric(const T* lhs, const T* rhs, T* result);
 
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
     void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* result);
     void Matrix4x4MultiplyFMAImpl(const float* lhs, const float* rhs, float* result);
     void Matrix4x4MultiplyAVXImpl(const double* lhs, const double* rhs, double* result);
@@ -48,7 +48,7 @@ static void BM_Matrix4x4Multiply_Generic_Float(benchmark::State& state)
 }
 BENCHMARK(BM_Matrix4x4Multiply_Generic_Float);
 
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 // Benchmark for SSE float matrix multiplication
 static void BM_Matrix4x4Multiply_SSE_Float(benchmark::State& state)
 {
@@ -126,7 +126,7 @@ static void BM_Matrix4x4Multiply_Generic_Double(benchmark::State& state)
 }
 BENCHMARK(BM_Matrix4x4Multiply_Generic_Double);
 
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 // Benchmark for AVX double matrix multiplication
 static void BM_Matrix4x4Multiply_AVX_Double(benchmark::State& state)
 {

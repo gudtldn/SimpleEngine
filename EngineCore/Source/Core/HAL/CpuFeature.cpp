@@ -1,8 +1,8 @@
 ﻿#include "SimpleEngine/Core/HAL/CpuFeature.h"
 
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 #include "cpuinfo_x86.h"
-#elif SE_PLATFORM_ARCHITECTURE_ARM64
+#elif SE_ARCH_ARM64
 #include "cpuinfo_arm.h"
 #endif
 using namespace cpu_features;
@@ -10,16 +10,16 @@ using namespace cpu_features;
 
 namespace
 {
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 const X86Features Features = GetX86Info().features;
-#elif SE_PLATFORM_ARCHITECTURE_ARM64
+#elif SE_ARCH_ARM64
 const ArmFeatures Features = GetArmInfo().features;
 #endif
 }
 
 namespace se::core
 {
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 bool CpuFeature::HasSSE()     { return CPU_FEATURES_COMPILED_X86_SSE || Features.sse;       }
 bool CpuFeature::HasSSE2()    { return CPU_FEATURES_COMPILED_X86_SSE2 || Features.sse2;     }
 bool CpuFeature::HasSSE3()    { return CPU_FEATURES_COMPILED_X86_SSE3 || Features.sse3;     }
@@ -33,7 +33,7 @@ bool CpuFeature::HasFMA4()    { return Features.fma4;                           
 bool CpuFeature::HasAVX512F() { return Features.avx512f;                                    }
 bool CpuFeature::HasNEON()    { return false;                                               }
 
-#elif SE_PLATFORM_ARCHITECTURE_ARM64
+#elif SE_ARCH_ARM64
 
 bool CpuFeature::HasSSE()     { return false;                                               }
 bool CpuFeature::HasSSE2()    { return false;                                               }

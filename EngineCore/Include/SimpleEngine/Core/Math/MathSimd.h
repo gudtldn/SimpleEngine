@@ -3,9 +3,9 @@
 #include "SimpleEngine/Core/Math/MathFwd.h"
 
 // 플랫폼에 따른 인트린식 헤더 포함
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 #include <immintrin.h>
-#elif SE_PLATFORM_ARCHITECTURE_ARM_FAMILY
+#elif SE_ARCH_ARM_FAMILY
 #include <arm_neon.h>
 #endif
 
@@ -30,7 +30,7 @@ void Matrix4x4MultiplyGeneric(const T* lhs, const T* rhs, T* result)
     }
 }
 
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
 /** float 행렬 곱셈을 SSE를 사용하여 구현 (외부 곱 방식) */
 inline void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* result)
 {
@@ -140,7 +140,7 @@ inline void Matrix4x4MultiplyAVXImpl(const double* lhs, const double* rhs, doubl
     }
 }
 
-#elif SE_PLATFORM_ARCHITECTURE_ARM_FAMILY
+#elif SE_ARCH_ARM_FAMILY
 
 template <traits::FloatingType T>
 void Matrix4x4MultiplyNEONImpl(const T* lhs, const T* rhs, T* result)
@@ -162,7 +162,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
 
     if constexpr (std::same_as<T, float>)
     {
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
         if (core::CpuFeature::HasSSE4_1())
         {
             if (core::CpuFeature::HasFMA3())
@@ -176,7 +176,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
             return result;
         }
         // TODO: 다른 SIMD 버전에 대해서 구현
-#elif SE_PLATFORM_ARCHITECTURE_ARM_FAMILY
+#elif SE_ARCH_ARM_FAMILY
         if (core::CpuFeature::HasNEON())
         {
             // TODO: NEON 구현 추가
@@ -185,7 +185,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
     }
     else if constexpr (std::same_as<T, double>)
     {
-#if SE_PLATFORM_ARCHITECTURE_X86_FAMILY
+#if SE_ARCH_X86_FAMILY
         if (core::CpuFeature::HasAVX() && core::CpuFeature::HasFMA3())
         {
             details::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);
