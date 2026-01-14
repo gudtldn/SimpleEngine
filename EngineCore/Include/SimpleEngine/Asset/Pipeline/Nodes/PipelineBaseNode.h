@@ -10,10 +10,10 @@ namespace se::asset
 /**
  * Asset Import Pipeline의 기본 노드 클래스
  */
-class PipelineNodeBase
+class PipelineBaseNode
 {
 public:
-    virtual ~PipelineNodeBase() = default;
+    virtual ~PipelineBaseNode() = default;
 
     /** 노드의 고유 타입 식별자를 반환합니다. */
     [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;

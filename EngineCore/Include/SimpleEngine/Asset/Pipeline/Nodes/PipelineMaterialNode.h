@@ -4,7 +4,7 @@
 
 namespace se::asset
 {
-class PipelineMaterialNode final : public PipelineNodeBase
+class PipelineMaterialNode final : public PipelineBaseNode
 {
 public:
     struct AttributeKeys

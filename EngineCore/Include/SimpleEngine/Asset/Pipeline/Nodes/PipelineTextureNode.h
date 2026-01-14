@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNodeBase.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 
 
 namespace se::asset
@@ -7,7 +7,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class PipelineTextureNode final : public PipelineNodeBase
+class PipelineTextureNode final : public PipelineBaseNode
 {
 public:
     struct AttributeKeys

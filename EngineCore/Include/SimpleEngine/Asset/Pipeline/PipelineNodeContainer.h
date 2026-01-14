@@ -2,7 +2,7 @@
 #include <concepts>
 #include <memory>
 
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNodeBase.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
@@ -16,7 +16,7 @@ class PipelineNodeContainer
 {
 public:
     template <typename T, typename... Args>
-        requires std::derived_from<T, PipelineNodeBase>
+        requires std::derived_from<T, PipelineBaseNode>
     T* CreateNode(Args&&... args)
     {
         auto node = std::make_unique<T>(std::forward<Args>(args)...);
@@ -30,7 +30,7 @@ public:
         return ptr;
     }
 
-    [[nodiscard]] PipelineNodeBase* GetNode(const Guid& uid) const
+    [[nodiscard]] PipelineBaseNode* GetNode(const Guid& uid) const
     {
         if (const Optional ptr = nodes.Find(uid))
         {
@@ -42,6 +42,6 @@ public:
     [[nodiscard]] const auto& GetAllNodes() const { return nodes; }
 
 private:
-    HashMap<Guid, std::unique_ptr<PipelineNodeBase>> nodes;
+    HashMap<Guid, std::unique_ptr<PipelineBaseNode>> nodes;
 };
 }  // namespace se::asset
