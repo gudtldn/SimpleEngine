@@ -9,11 +9,11 @@
 
 
 // 플랫폼 매크로
-#if defined(_WIN32) || defined(_WIN64) // Windows
+#if defined(_WIN32) || defined(_WIN64)
 #define SE_PLATFORM_WINDOWS true
-#elif defined(__linux__) // Linux
+#elif defined(__linux__)
 #define SE_PLATFORM_LINUX true
-#elif defined(__APPLE__) // MacOS
+#elif defined(__APPLE__)
 #define SE_PLATFORM_MACOS true
 #else
 #error "Unsupported platform"
@@ -69,20 +69,20 @@
 // ~플랫폼 아키텍처 매크로
 
 // 컴파일러별 매크로
-#if defined(_MSC_VER)
-#define SE_COMPILER_MSVC true
-#elif defined(__clang__)
+#if defined(__clang__)
 #define SE_COMPILER_CLANG true
+#elif defined(_MSC_VER)
+#define SE_COMPILER_MSVC true
 #elif defined(__GNUC__)
 #define SE_COMPILER_GCC true
 #endif
 
-#if !defined(SE_COMPILER_MSVC)
-#define SE_COMPILER_MSVC false
-#endif
-
 #if !defined(SE_COMPILER_CLANG)
 #define SE_COMPILER_CLANG false
+#endif
+
+#if !defined(SE_COMPILER_MSVC)
+#define SE_COMPILER_MSVC false
 #endif
 
 #if !defined(SE_COMPILER_GCC)
