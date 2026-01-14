@@ -27,6 +27,8 @@ refl::TypeId PipelineMaterialNode::GetTypeId() const noexcept
 
 void PipelineMaterialNode::GetFactoryDependencies(Array<Guid>& out_dependencies) const
 {
+    PipelineBaseNode::GetFactoryDependencies(out_dependencies);
+
     // 의존성 검사 대상이 되는 텍스처 슬롯 키 목록
     static const std::initializer_list TextureSlots = {
         AttributeKeys::BaseColorTex,
