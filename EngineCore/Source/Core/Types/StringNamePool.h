@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cstring>
+#include <memory>
 #include <shared_mutex>
 
 #include "Core/Container/HashMap.h"
@@ -19,17 +20,37 @@ struct StringNameHashes
 
 struct StringNameEntry
 {
-    StringNameEntry(std::string_view view, uint64 in_comparison_hash)
-        : comparison_hash(in_comparison_hash)
-        , length(static_cast<uint16>(view.length()))
-    {
-        std::memcpy(name, view.data(), sizeof(char) * length);
-        name[length] = '\0';
-    }
-
-    uint64 comparison_hash;
+    const char* name;
     uint16 length;
-    char name[StringName::MAX_LENGTH];
+    uint64 comparison_hash;
+
+    StringNameEntry(const char* in_name, uint16 in_length, uint64 in_comparison_hash)
+        : name(in_name)
+        , length(in_length)
+        , comparison_hash(in_comparison_hash)
+    {
+    }
+};
+
+// TODO: 나중에 LinearAllocator 만들면 StringStorage 개선하기
+class StringStorage
+{
+public:
+    static constexpr usize BLOCK_SIZE = 64ULL * 1024; // 64KB
+
+public:
+    StringStorage();
+    ~StringStorage();
+
+    const char* Store(std::string_view view);
+
+private:
+    void AllocateNewBlock();
+
+private:
+    Array<std::unique_ptr<char[]>> blocks;
+    char* current_block = nullptr;
+    usize current_offset = 0;
 };
 
 class StringNamePool
@@ -56,6 +77,7 @@ public:
 private:
     mutable TracySharedLockable(std::shared_mutex, string_pool_mutex);
 
+    StringStorage string_storage;
     HashMap<uint64, uint64> comparison_hash_to_display_hash;
     HashMap<uint64, StringNameEntry> display_string_pool;
 };
