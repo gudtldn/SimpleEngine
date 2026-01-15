@@ -42,20 +42,26 @@ struct IsDisjointImpl<TupleLike1<Ts1...>, TupleLike2<Ts2...>>
     static constexpr bool Value = (!IsAnyOfDecayed<Ts1, Ts2...> && ...);
 };
 
-template <typename Self>
-concept IsConstV = std::is_const_v<std::remove_reference_t<Self>>;
+template <typename T>
+struct PassTypeImpl
+{
+    static constexpr bool USE_VALUE =
+        (sizeof(T) <= sizeof(void*)) && std::is_trivially_copyable_v<T>;
+
+    using Type = std::conditional_t<USE_VALUE, T, const T&>;
+};
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl { using Type = std::conditional_t<IsConstV<Self>, const T, T>; };
+struct DeduceRetTypeImpl { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T, T>; };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl<Self, T*> { using Type = std::conditional_t<IsConstV<Self>, const T*, T*>; };
+struct DeduceRetTypeImpl<Self, T*> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T*, T*>; };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl<Self, T&> { using Type = std::conditional_t<IsConstV<Self>, const T&, T&>; };
+struct DeduceRetTypeImpl<Self, T&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&, T&>; };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl<Self, T&&> { using Type = std::conditional_t<IsConstV<Self>, const T&&, T&&>; };
+struct DeduceRetTypeImpl<Self, T&&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&&, T&&>; };
 }  // namespace details
 
 // Ts...중에 중복된 타입이 존재하는지 확인
@@ -89,6 +95,14 @@ using TupleMap = details::TupleMapImpl<Tuple, MapType>::Type;
 template <typename Self, typename ReturnType>
     requires std::is_class_v<std::remove_reference_t<Self>>
 using DeduceRetType = details::DeduceRetTypeImpl<Self, ReturnType>::Type;
+
+/**
+ * 타입 T에 대한 최적의 전달(Pass) 방식을 결정합니다.
+ * - 크기가 포인터 이하이고 복사 비용이 저렴한 경우: T
+ * - 그 외의 경우 (큰 객체, 복잡한 클래스 등): const T&
+ */
+template <typename T>
+using PassType = details::PassTypeImpl<T>::Type;
 
 // 함수인지 확인하는 TypeTrait
 template <typename T>
