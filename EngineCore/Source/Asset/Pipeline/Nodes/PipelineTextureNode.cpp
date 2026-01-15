@@ -3,39 +3,39 @@
 
 namespace se::asset
 {
-StringName PipelineTextureNode::AttributeKeys::SourceFile = "SourceFile";
-StringName PipelineTextureNode::AttributeKeys::IsSRGB = "IsSRGB";
-StringName PipelineTextureNode::AttributeKeys::Compression = "Compression";
-StringName PipelineTextureNode::AttributeKeys::Filter = "Filter";
-StringName PipelineTextureNode::AttributeKeys::LODGroup = "LODGroup";
-
 refl::TypeId PipelineTextureNode::GetTypeId() const noexcept
 {
     return refl::TypeId::Get<PipelineTextureNode>();
 }
 
-void PipelineTextureNode::SetSourceFile(const String& path)
-{
-    attributes.SetAttribute(AttributeKeys::SourceFile, path);
-}
-
 Optional<const String&> PipelineTextureNode::GetSourceFile() const
 {
-    return attributes.GetAttribute<String>(AttributeKeys::SourceFile);
+    return attributes.GetAttribute<String>(Keys::SOURCE_FILE);
+}
+
+void PipelineTextureNode::SetSourceFile(const String& path)
+{
+    attributes.SetAttribute(Keys::SOURCE_FILE, path);
+}
+
+bool PipelineTextureNode::IsSRGB() const
+{
+    // TODO: 기본값 true/false 정책 결정 필요 (보통 Albedo는 true, Normal/Mask는 false)
+    return attributes.GetAttribute<bool>(Keys::USE_SRGB).ValueOr(true);
 }
 
 void PipelineTextureNode::SetSRGB(bool is_srgb)
 {
-    attributes.SetAttribute(AttributeKeys::IsSRGB, is_srgb);
+    attributes.SetAttribute(Keys::USE_SRGB, is_srgb);
 }
 
-bool PipelineTextureNode::GetSRGB() const
+Optional<const String&> PipelineTextureNode::GetCompression() const
 {
-    return attributes.GetAttribute<bool>(AttributeKeys::IsSRGB).ValueOr(true);
+    return attributes.GetAttribute<String>(Keys::COMPRESSION);
 }
 
 void PipelineTextureNode::SetCompression(const String& compression)
 {
-    attributes.SetAttribute(AttributeKeys::Compression, compression);
+    attributes.SetAttribute(Keys::COMPRESSION, compression);
 }
 }  // namespace se::asset
