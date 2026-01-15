@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Gfx/MaterialEnums.h"
 
 
 namespace se::asset
@@ -7,40 +8,80 @@ namespace se::asset
 class PipelineMaterialNode final : public PipelineBaseNode
 {
 public:
-    struct AttributeKeys
+    struct Keys
     {
-        // Texture Slots (Dependencies)
-        static StringName BaseColorTex;
-        static StringName NormalTex;
-        static StringName RoughnessTex;
-        static StringName MetallicTex;
-        static StringName EmissiveTex;
+        // Texture Slots
+        inline static const StringName BASE_COLOR_TEX = "BaseColorTex";
+        inline static const StringName NORMAL_TEX     = "NormalTex";
+        inline static const StringName ROUGHNESS_TEX  = "RoughnessTex";
+        inline static const StringName METALLIC_TEX   = "MetallicTex";
+        inline static const StringName EMISSIVE_TEX   = "EmissiveTex";
+        inline static const StringName OCCLUSION_TEX  = "OcclusionTex";
+        inline static const StringName OPACITY_TEX    = "OpacityTex";
 
         // Scalar/Vector Parameters
-        static StringName BaseColorVal;
-        static StringName MetallicVal;
-        static StringName RoughnessVal;
+        inline static const StringName BASE_COLOR_VAL = "BaseColorVal";
+        inline static const StringName METALLIC_VAL   = "MetallicVal";
+        inline static const StringName ROUGHNESS_VAL  = "RoughnessVal";
+        inline static const StringName EMISSIVE_VAL   = "EmissiveVal";
+        inline static const StringName OPACITY_VAL    = "OpacityVal";
+        inline static const StringName SPECULAR_VAL   = "SpecularVal";
 
         // Settings
-        static StringName BlendMode;    // Opaque, Masked, Translucent
-        static StringName ShadingModel; // DefaultLit, Unlit
-        static StringName TwoSided;
+        inline static const StringName BLEND_MODE     = "BlendMode";
+        inline static const StringName SHADING_MODEL  = "ShadingModel";
+        inline static const StringName TWO_SIDED      = "TwoSided";
+        inline static const StringName ALPHA_CUTOFF   = "AlphaCutoff";
     };
 
     [[nodiscard]] virtual refl::TypeId GetTypeId() const noexcept override;
     virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const override;
 
 public:
-    [[nodiscard]] Optional<Guid> GetBaseColorTexture() const;
+    // --- Textures ---
+    [[nodiscard]] Optional<const Guid&> GetBaseColorTexture() const;
     void SetBaseColorTexture(const Guid& texture_uid);
 
+    [[nodiscard]] Optional<const Guid&> GetNormalTexture() const;
     void SetNormalTexture(const Guid& texture_uid);
+
+    [[nodiscard]] Optional<const Guid&> GetRoughnessTexture() const;
     void SetRoughnessTexture(const Guid& texture_uid);
 
+    [[nodiscard]] Optional<const Guid&> GetMetallicTexture() const;
+    void SetMetallicTexture(const Guid& texture_uid);
+
+    [[nodiscard]] Optional<const Guid&> GetOcclusionTexture() const;
+    void SetOcclusionTexture(const Guid& texture_uid);
+
+    [[nodiscard]] Optional<const Guid&> GetOpacityTexture() const;
+    void SetOpacityTexture(const Guid& texture_uid);
+
+    // --- Values ---
+    [[nodiscard]] Optional<const Vector4&> GetBaseColorValue() const;
     void SetBaseColorValue(const Vector4& color);
+
+    [[nodiscard]] Optional<float> GetRoughnessValue() const;
     void SetRoughnessValue(float value);
 
-    void SetBlendMode(int32 mode);
-    void SetTwoSided(bool bEnable);
+    [[nodiscard]] Optional<float> GetMetallicValue() const;
+    void SetMetallicValue(float value);
+
+    [[nodiscard]] Optional<const Vector3&> GetEmissiveValue() const;
+    void SetEmissiveValue(const Vector3& color);
+
+    // --- Settings ---
+    [[nodiscard]] gfx::EBlendMode GetBlendMode() const;
+    void SetBlendMode(gfx::EBlendMode mode);
+
+    [[nodiscard]] gfx::EShadingModel GetShadingModel() const;
+    void SetShadingModel(gfx::EShadingModel model);
+
+    [[nodiscard]] bool GetTwoSided() const;
+    void SetTwoSided(bool use_two_sided);
+
+    [[nodiscard]] float GetAlphaCutoff() const;
+    void SetAlphaCutoff(float cutoff);
+
 };
 } // namespace se::asset
