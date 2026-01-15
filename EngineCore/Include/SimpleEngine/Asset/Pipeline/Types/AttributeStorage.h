@@ -73,15 +73,31 @@ class AttributeStorage
 public:
     /** 지정된 키에 해당하는 속성값을 가져옵니다. */
     template <typename T>
-    [[nodiscard]] Optional<const T&> GetAttribute(const AttributeKey& key) const
+    [[nodiscard]] Optional<traits::PassType<T>> GetAttribute(const AttributeKey& key) const
     {
-        return attributes.Find(key).AndThen([](const AttributeValue& attr) -> Optional<const T&>
+        using ReturnType = traits::PassType<T>;
+        return attributes.Find(key).AndThen([](const AttributeValue& attr) -> Optional<ReturnType>
         {
-            if (const T* val = std::get_if<T>(&attr))
+            return std::visit([]<typename Arg>(const Arg& arg) -> Optional<ReturnType>
             {
-                return *val;
-            }
-            return std::nullopt;
+                using StoredType = std::decay_t<Arg>;
+
+                // 타입이 정확히 일치하는 경우
+                if constexpr (std::same_as<StoredType, T>)
+                {
+                    return Optional<ReturnType>(arg);
+                }
+                // 타입은 다르지만 T타입으로 형변환이 가능한 경우 (+참조 반환이 아니어야 함)
+                else if constexpr (std::convertible_to<StoredType, T> && !std::is_reference_v<ReturnType>)
+                {
+                    return Optional<ReturnType>(static_cast<T>(arg));
+                }
+                // 변환 불가능
+                else
+                {
+                    return Optional<ReturnType>{};
+                }
+            }, attr);
         });
     }
 
