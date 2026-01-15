@@ -16,7 +16,6 @@ public:
         inline static const StringName USE_SRGB = "UseSRGB";
         inline static const StringName COMPRESSION = "Compression"; // e.g., "BC7", "BC5"
         inline static const StringName FILTER = "Filter";           // e.g., "Nearest", "Bilinear"
-        inline static const StringName LOD_GROUP = "LODGroup";
     };
 
     [[nodiscard]] virtual refl::TypeId GetTypeId() const noexcept override;
