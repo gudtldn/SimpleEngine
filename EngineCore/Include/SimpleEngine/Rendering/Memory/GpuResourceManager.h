@@ -37,7 +37,7 @@ struct TextureUploadSettings
  * - Mesh 데이터는 거대한 버퍼 블록(Page)에 선형 할당(Sub-allocation)되어 관리됩니다.
  * - Texture 데이터는 개별 SDL_GPUTexture 객체로 생성되어 관리됩니다.
  */
-class GpuResourceManager
+class SE_CORE_API GpuResourceManager
 {
 public:
     explicit GpuResourceManager(SDL_GPUDevice* in_device);
