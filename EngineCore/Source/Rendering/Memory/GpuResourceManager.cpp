@@ -51,7 +51,7 @@ bool GpuResourceManager::UploadMesh(
     }
 
     // Index 데이터는 Vertex 데이터 바로 뒤에 위치
-    slice.index_offset = in_vertex_size;
+    slice.index_offset = slice.offset + in_vertex_size;
     slice.index_count = in_index_size / sizeof(uint32);
 
     // Transfer Buffer 생성 (Staging)
