@@ -69,7 +69,7 @@ concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
         // --- Vertex Processing ---
         for (uint vert_idx = 0; vert_idx < ai_mesh->mNumVertices; ++vert_idx)
         {
-            Vertex vertex;
+            gfx::Vertex vertex;
 
             // Position
             vertex.position = {
@@ -129,7 +129,7 @@ concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
         }
 
         // --- Section Info ---
-        MeshSection section;
+        gfx::MeshSection section;
         section.material_index = ai_mesh->mMaterialIndex;
         section.index_start = index_offset;
         section.index_count = current_mesh_indices_count;
