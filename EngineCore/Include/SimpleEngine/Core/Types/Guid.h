@@ -44,3 +44,12 @@ struct SE_CORE_API std::hash<se::Guid>
 {
     size_t operator()(const se::Guid& guid) const noexcept;
 };
+
+template <>
+struct std::formatter<se::Guid, char> : std::formatter<se::String>
+{
+    auto format(const se::Guid& guid, std::format_context& ctx) const
+    {
+        return std::formatter<se::String>::format(guid.ToString(), ctx);
+    }
+};
