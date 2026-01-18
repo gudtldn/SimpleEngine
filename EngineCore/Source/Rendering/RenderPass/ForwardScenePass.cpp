@@ -145,14 +145,14 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             {
                 .location = 2,
                 .buffer_slot = 0,
-                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-                .offset = offsetof(asset::Vertex, tangent)
+                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+                .offset = offsetof(asset::Vertex, tex_coord)
             },
             {
                 .location = 3,
                 .buffer_slot = 0,
-                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-                .offset = offsetof(asset::Vertex, tex_coord)
+                .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+                .offset = offsetof(asset::Vertex, tangent)
             },
         };
 

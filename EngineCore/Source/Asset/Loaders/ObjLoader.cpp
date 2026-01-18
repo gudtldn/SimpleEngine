@@ -94,7 +94,8 @@ concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
                 vertex.tangent = {
                     ai_mesh->mTangents[vert_idx].x,
                     ai_mesh->mTangents[vert_idx].y,
-                    ai_mesh->mTangents[vert_idx].z
+                    ai_mesh->mTangents[vert_idx].z,
+                    1.0f
                 };
             }
 
