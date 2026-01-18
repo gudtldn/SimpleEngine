@@ -258,6 +258,18 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             const GpuBufferSlice& slice = gpu_manager.GetSlice(info.mesh_id);
             if (!slice.IsValid())
             {
+#if SE_DEBUG_BUILD
+                static HashSet<asset::AssetId> logged_asset_ids;
+                if (!logged_asset_ids.Contains(info.mesh_id))
+                {
+                    ConsoleLog(
+                        ELogLevel::Warning,
+                        "Skipping Draw: Invalid GPU slice for MeshID[{}]. Resource may not be loaded.",
+                        info.mesh_id.GetGuid()
+                    );
+                    logged_asset_ids.Insert(info.mesh_id);
+                }
+#endif
                 continue;
             }
 
@@ -280,9 +292,13 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             }
 
             // Uniform 데이터 전송 (MVP Matrix)
-            SDL_PushGPUVertexUniformData(cmd, 0, &info.mvp_matrix, sizeof(Matrix4x4));
-
-            // TODO: Mesh Subset에 대해서도 렌더링 할 수 있도록 개선
+            Matrix4x4f mvpf; // TODO: 추후 RTE(Relative To Eye) 방식으로 수정
+            std::transform(
+                info.mvp_matrix.GetData(), info.mvp_matrix.GetData() + 16,
+                mvpf.GetData(),
+                [](double d) { return static_cast<float>(d); }
+            );
+            SDL_PushGPUVertexUniformData(cmd, 0, &mvpf, sizeof(mvpf));
 
             // Material 바인딩 | TODO: Texture/Sampler 바인딩 함수 만들기
             // if (info.material_id.IsValid())
@@ -300,6 +316,14 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             //         // Fragment Shader의 0번 슬롯
             //         SDL_BindGPUFragmentSamplers(pass, 0, &binding, 1);
             //     }
+            // }
+
+            // TODO: Mesh Section에 대해서도 렌더링 할 수 있도록 개선
+            // info.mesh_id로 AssetManager에서 실제 CPU Mesh를 가져온 후, 아래 코드처럼
+            // Draw Sections
+            // for (const auto& section : mesh->sections)
+            // {
+            //     SDL_DrawGPUIndexedPrimitives(render_pass, section.index_count, 1, section.index_start, 0, 0);
             // }
 
             if (slice.index_count > 0)
