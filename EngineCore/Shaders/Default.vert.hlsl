@@ -31,7 +31,7 @@ VertexOutput main(VertexInput input)
     VertexOutput output;
 
     // Local -> Clip Space
-    output.position = mul(MVP, input.position, 1.0f);
+    output.position = mul(MVP, input.position);
 
     // 일단 임시로 Normal값을 Color로 사용
     output.color = float4(input.normal * 0.5f + 0.5f, 1.0f);
