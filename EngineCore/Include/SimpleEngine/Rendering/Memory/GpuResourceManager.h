@@ -52,6 +52,7 @@ public:
 public:
     /**
      * Mesh 데이터를 GPU 버퍼로 업로드하고 관리 목록에 등록합니다.
+     * @todo 추후 Batch Upload 구조로 변경
      * @param in_id Asset ID
      * @param in_vertex_data Vertex 데이터 포인터
      * @param in_vertex_size Vertex 데이터 전체 크기 (bytes)
