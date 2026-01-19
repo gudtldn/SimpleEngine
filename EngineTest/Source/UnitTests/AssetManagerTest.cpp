@@ -7,7 +7,7 @@
 #include <thread>
 #include <utility>
 
-#include "SimpleEngine/Asset/AssetManager.h"
+#include "SimpleEngine/Asset/AssetManager_DEPRECATED.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
 
 using namespace se;
@@ -135,7 +135,7 @@ protected:
 
 protected:
     std::filesystem::path temp_dir_path;
-    AssetManager asset_manager;
+    AssetManager_DEPRECATED asset_manager;
 };
 
 TEST_F(AssetManagerTest, LoadSynchronousReturnsValidAsset)

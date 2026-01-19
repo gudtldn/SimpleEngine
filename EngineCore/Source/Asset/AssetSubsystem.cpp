@@ -16,7 +16,7 @@ SE_REGISTER_SUBSYSTEM(AssetSubsystem);
 bool AssetSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Asset subsystem...");
-    asset_manager = std::make_unique<AssetManager>();
+    asset_manager = std::make_unique<AssetManager_DEPRECATED>();
 
     asset_manager->RegisterLoader<Texture2D, Texture2DLoader, TextureImportSettings>(".png");
     asset_manager->RegisterLoader<Texture2D, Texture2DLoader, TextureImportSettings>(".jpg");

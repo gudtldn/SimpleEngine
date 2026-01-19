@@ -19,6 +19,6 @@ private:
     Optional<se::asset::AssetEntry> ProcessMetaFile(const std::filesystem::path& physical_path);
 
 private:
-    se::asset::AssetManager* asset_manager = nullptr;
+    se::asset::AssetManager_DEPRECATED* asset_manager = nullptr;
 };
 }

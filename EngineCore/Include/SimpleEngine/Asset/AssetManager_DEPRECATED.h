@@ -27,7 +27,7 @@ namespace se::asset
 /**
  * Asset의 로딩 상태
  */
-enum class ELoadingState : uint8
+enum class ELoadingState_DEPRECATED : uint8
 {
     NotLoaded,
     Loading,
@@ -38,7 +38,7 @@ enum class ELoadingState : uint8
 struct AssetSlot
 {
     std::shared_ptr<IAsset> asset = nullptr;
-    ELoadingState state = ELoadingState::NotLoaded;
+    ELoadingState_DEPRECATED state = ELoadingState_DEPRECATED::NotLoaded;
 
     // 여러 스레드가 하나의 로딩 완료 이벤트를 기다릴 수 있도록 shared_ptr로 관리
     std::shared_ptr<concurrency::EventWaitHandle> load_event = nullptr;
@@ -47,18 +47,18 @@ struct AssetSlot
 /**
  * 엔진의 모든 에셋 로딩과 생명 주기를 관리합니다.
  */
-class SE_CORE_API AssetManager
+class SE_CORE_API AssetManager_DEPRECATED
 {
     struct ExtensionInfo;
 
 public:
-    AssetManager() = default;
-    ~AssetManager() = default;
+    AssetManager_DEPRECATED() = default;
+    ~AssetManager_DEPRECATED() = default;
 
-    AssetManager(const AssetManager&) = delete;
-    AssetManager& operator=(const AssetManager&) = delete;
-    AssetManager(AssetManager&&) = delete;
-    AssetManager& operator=(AssetManager&&) = delete;
+    AssetManager_DEPRECATED(const AssetManager_DEPRECATED&) = delete;
+    AssetManager_DEPRECATED& operator=(const AssetManager_DEPRECATED&) = delete;
+    AssetManager_DEPRECATED(AssetManager_DEPRECATED&&) = delete;
+    AssetManager_DEPRECATED& operator=(AssetManager_DEPRECATED&&) = delete;
 
 public:
     // TODO: 추후에 registry 위치 변경
@@ -128,7 +128,7 @@ template <typename AssetType, typename LoaderType, typename SettingsType>
     requires std::derived_from<AssetType, IAsset>
     && std::derived_from<LoaderType, IAssetLoader>
     && std::derived_from<SettingsType, IAssetImportSettings>
-void AssetManager::RegisterLoader(const StringName& extension)
+void AssetManager_DEPRECATED::RegisterLoader(const StringName& extension)
 {
     const refl::TypeId asset_type = refl::TypeId::Get<AssetType>();
     const refl::TypeId loader_type = refl::TypeId::Get<LoaderType>();
@@ -155,12 +155,12 @@ void AssetManager::RegisterLoader(const StringName& extension)
 template <typename T, typename Fn>
     requires std::derived_from<T, IAsset>
     && std::invocable<Fn, std::shared_ptr<T>>
-void AssetManager::LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded)
+void AssetManager_DEPRECATED::LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded)
 {
     using namespace concurrency;
 
     TaskScheduler::Get().Launch_IOThread(
-        [](AssetManager* self, Guid guid, Function<void(std::shared_ptr<T>)> callback) -> Task<void>
+        [](AssetManager_DEPRECATED* self, Guid guid, Function<void(std::shared_ptr<T>)> callback) -> Task<void>
         {
             std::shared_ptr<T> asset = co_await self->LoadInternal<T>(guid);
 
@@ -175,13 +175,13 @@ void AssetManager::LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded)
 
 template <typename T>
     requires std::derived_from<T, IAsset>
-std::shared_ptr<T> AssetManager::LoadSynchronous(const AssetHandle<T>& in_handle)
+std::shared_ptr<T> AssetManager_DEPRECATED::LoadSynchronous(const AssetHandle<T>& in_handle)
 {
     return concurrency::TaskScheduler::Get().BlockOn(LoadInternal<T>(in_handle.GetGuid()));
 }
 
 template <typename T>
-concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_guid)
+concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(const Guid& in_guid)
 {
     if (!in_guid.IsValid())
     {
@@ -198,13 +198,13 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
         switch (slot.state)
         {
         // 이미 로딩되어 있는 경우
-        case ELoadingState::Loaded:
+        case ELoadingState_DEPRECATED::Loaded:
         {
             co_return std::static_pointer_cast<T>(slot.asset);
         }
 
         // 로딩중인 경우
-        case ELoadingState::Loading:
+        case ELoadingState_DEPRECATED::Loading:
         {
             // 기존에 있던 event를 가져옴
             event_to_wait = slot.load_event;
@@ -212,11 +212,11 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
         }
 
         // 로딩이 안된 경우
-        case ELoadingState::NotLoaded:
-        case ELoadingState::Failed:
+        case ELoadingState_DEPRECATED::NotLoaded:
+        case ELoadingState_DEPRECATED::Failed:
         {
             // event를 새로 생성
-            slot.state = ELoadingState::Loading;
+            slot.state = ELoadingState_DEPRECATED::Loading;
             slot.load_event = std::make_shared<concurrency::EventWaitHandle>();
             break;
         }
@@ -258,7 +258,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager::LoadInternal(const Guid& in_
 
         AssetSlot& slot = asset_slots[in_guid];
         slot.asset = loaded_asset;
-        slot.state = loaded_asset ? ELoadingState::Loaded : ELoadingState::Failed;
+        slot.state = loaded_asset ? ELoadingState_DEPRECATED::Loaded : ELoadingState_DEPRECATED::Failed;
 
         // 로딩 완료
         slot.load_event->Set();

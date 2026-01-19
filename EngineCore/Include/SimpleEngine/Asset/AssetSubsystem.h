@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Asset/AssetManager.h"
+#include "SimpleEngine/Asset/AssetManager_DEPRECATED.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 
@@ -18,9 +18,9 @@ public:
     //~ End ISubsystem
 
 public:
-    [[nodiscard]] AssetManager& GetAssetManager() const { return *asset_manager; }
+    [[nodiscard]] AssetManager_DEPRECATED& GetAssetManager() const { return *asset_manager; }
 
 private:
-    std::unique_ptr<AssetManager> asset_manager;
+    std::unique_ptr<AssetManager_DEPRECATED> asset_manager;
 };
 }
