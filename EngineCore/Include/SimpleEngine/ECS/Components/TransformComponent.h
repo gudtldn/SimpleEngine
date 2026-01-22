@@ -20,4 +20,4 @@ struct SE_CORE_API SE_TYPE_ANNOTATION(=meta::Component) TransformComponent
     SE_PROPERTY(=meta::Edit)
     Vector3 scale = Vector3::One();
 };
-}
+}  // namespace se

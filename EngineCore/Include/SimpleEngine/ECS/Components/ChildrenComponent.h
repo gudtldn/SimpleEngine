@@ -14,4 +14,4 @@ struct SE_CORE_API SE_TYPE_ANNOTATION(=meta::Component) ChildrenComponent
     SE_PROPERTY(=meta::Edit)
     Array<Entity> children;
 };
-}
+}  // namespace se

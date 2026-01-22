@@ -142,14 +142,14 @@ struct AngleType
         return AngleType<NumType, OtherUnitTag>(*this);
     }
 };
-}
+}  // namespace math
 
 template <traits::FloatingType NumType>
 using Degree = math::AngleType<NumType, math::DegreeTag>;
 
 template <traits::FloatingType NumType>
 using Radian = math::AngleType<NumType, math::RadianTag>;
-}
+}  // namespace se
 
 // double literals
 constexpr se::Degree<double> operator""_deg(long double deg) { return se::Degree(static_cast<double>(deg)); }

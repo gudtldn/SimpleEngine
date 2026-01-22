@@ -14,4 +14,4 @@ public:
     SE_PROPERTY(=meta::Edit)
     Entity parent;
 };
-}
+}  // namespace se
