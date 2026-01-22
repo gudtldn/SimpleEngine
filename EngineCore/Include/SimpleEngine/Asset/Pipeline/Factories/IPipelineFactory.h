@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
+
 namespace se::asset
 {
 /**
