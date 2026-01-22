@@ -1,4 +1,4 @@
-#include "ECS/Components/MaterialHandleComponent.h"
+#include "ECS/Components/MaterialComponent.h"
 #include "Reflection/Reflect.h"
 
 using namespace se;

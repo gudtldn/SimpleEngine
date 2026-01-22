@@ -13,4 +13,4 @@ struct SE_CORE_API SE_TYPE_ANNOTATION(=meta::Component) MaterialHandleComponent
     SE_PROPERTY(=meta::Edit)
     asset::AssetId material_id;
 };
-}
+}  // namespace se

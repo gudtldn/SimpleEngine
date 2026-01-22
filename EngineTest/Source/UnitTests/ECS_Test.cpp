@@ -3,7 +3,7 @@
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
 #include "SimpleEngine/ECS/World.h"
-#include "SimpleEngine/ECS/Components/MeshHandleComponent.h"
+#include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 
 using namespace se;
@@ -122,7 +122,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
 
     world.SpawnEntity()
          .AddComponent<TransformComponent>()
-         .AddComponent<MeshHandleComponent>();
+         .AddComponent<StaticMeshComponent>();
 
     world.SpawnEntity(
         TransformComponent{
@@ -130,7 +130,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
             .position = { 1.0, 2.0, 3.0 },
             .scale = { 1.0, 1.0, 1.0 },
         },
-        MeshHandleComponent{
+        StaticMeshComponent{
             .mesh_id = asset::AssetId{ Guid::NewGuid() }
         }
     );
@@ -139,7 +139,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
     // They don't need to be executed to be valuable.
     world.AddSystem<Update>([](
         [[maybe_unused]] Query<TransformComponent&, With<>, Without<>> query1,
-        [[maybe_unused]] Query<TransformComponent&, With<MeshHandleComponent>, Without<>> query2,
+        [[maybe_unused]] Query<TransformComponent&, With<StaticMeshComponent>, Without<>> query2,
         [[maybe_unused]] Query<Entity, With<>, Without<>> query3
     )
         {

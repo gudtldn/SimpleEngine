@@ -5,8 +5,8 @@
 #include "ECS/Query.h"
 #include "ECS/World.h"
 #include "ECS/Components/Camera3dComponent.h"
-#include "ECS/Components/MaterialHandleComponent.h"
-#include "ECS/Components/MeshHandleComponent.h"
+#include "ECS/Components/MaterialComponent.h"
+#include "ECS/Components/StaticMeshComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "Gfx/MeshPrimitives.h"
 #include "Gfx/RenderSubsystem.h"
@@ -44,7 +44,7 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     // 엔티티의 렌더 정보 생성
     draw_infos.Clear();
 
-    Query entity_query = world_ref.QueryEntities<const TransformComponent&, const MeshHandleComponent&, const MaterialHandleComponent&>();
+    Query entity_query = world_ref.QueryEntities<const TransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
     for (const auto [transform, mesh, material] : entity_query)
     {
         draw_infos.Push({
