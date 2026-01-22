@@ -52,7 +52,7 @@ public:
 public:
     /**
      * Mesh 데이터를 GPU 버퍼로 업로드하고 관리 목록에 등록합니다.
-     * @todo 추후 Batch Upload 구조로 변경
+     * @param in_cmd Upload 명령을 기록할 Command Buffer
      * @param in_id Asset ID
      * @param in_vertex_data Vertex 데이터 포인터
      * @param in_vertex_size Vertex 데이터 전체 크기 (bytes)
@@ -61,6 +61,7 @@ public:
      * @return 성공 시 true, 실패 시 false (VRAM 부족 등)
      */
     bool UploadMesh(
+        SDL_GPUCommandBuffer* in_cmd,
         const asset::AssetId& in_id,
         const void* in_vertex_data, uint32 in_vertex_size,
         const void* in_index_data, uint32 in_index_size
@@ -84,15 +85,20 @@ public:
 
     /**
      * CPU Surface(이미지)를 GPU Texture로 변환하여 업로드합니다.
-     *
      * 입력된 Surface는 내부적으로 GPU 호환 포맷(RGBA32)으로 변환되어 업로드됩니다.
      *
+     * @param in_cmd Upload 명령을 기록할 Command Buffer
      * @param in_id Asset ID
      * @param in_surface SDL_Surface 포인터 (이미지 데이터)
      * @param in_settings 텍스처 설정 (sRGB 포맷 여부, Mipmap 생성 여부 등)
      * @return 성공 시 true, 실패 시 false
      */
-    bool UploadTexture(const asset::AssetId& in_id, const SDL_Surface* in_surface, TextureUploadSettings in_settings = TextureUploadSettings{});
+    bool UploadTexture(
+        SDL_GPUCommandBuffer* in_cmd,
+        const asset::AssetId& in_id,
+        const SDL_Surface* in_surface,
+        TextureUploadSettings in_settings = TextureUploadSettings{}
+    );
 
     /**
      * AssetId에 매핑된 GPU Texture 객체 정보를 반환합니다.

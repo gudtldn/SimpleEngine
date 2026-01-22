@@ -32,6 +32,7 @@ GpuResourceManager::~GpuResourceManager()
 }
 
 bool GpuResourceManager::UploadMesh(
+    SDL_GPUCommandBuffer* in_cmd,
     const asset::AssetId& in_id,
     const void* in_vertex_data, uint32 in_vertex_size,
     const void* in_index_data, uint32 in_index_size
@@ -60,6 +61,7 @@ bool GpuResourceManager::UploadMesh(
         .size = total_size
     };
 
+    // TODO: transfer_buffer를 매번 할당하는 대신, 추후 Ring Buffer 방식으로 개선
     SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
     if (!transfer_buffer)
     {
@@ -91,8 +93,7 @@ bool GpuResourceManager::UploadMesh(
     }
 
     // GPU에 업로드
-    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
-    SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(cmd);
+    SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(in_cmd);
     {
         const SDL_GPUTransferBufferLocation src_loc = {
             .transfer_buffer = transfer_buffer,
@@ -108,8 +109,6 @@ bool GpuResourceManager::UploadMesh(
         SDL_UploadToGPUBuffer(copy_pass, &src_loc, &dst_loc, false);
     }
     SDL_EndGPUCopyPass(copy_pass);
-    SDL_SubmitGPUCommandBuffer(cmd);
-
     SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
 
     slice_map.Insert(in_id, slice);
@@ -127,7 +126,12 @@ const GpuBufferSlice& GpuResourceManager::GetSlice(const asset::AssetId& in_id) 
     return slice_map.Find(in_id).ValueOr(EmptySlice);
 }
 
-bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Surface* in_surface, TextureUploadSettings in_settings)
+bool GpuResourceManager::UploadTexture(
+    SDL_GPUCommandBuffer* in_cmd,
+    const asset::AssetId& in_id,
+    const SDL_Surface* in_surface,
+    TextureUploadSettings in_settings
+)
 {
     // 포맷 변환 (SDL_Surface -> RGBA32)
     SDL_Surface* converted_surface = SDL_ConvertSurface(const_cast<SDL_Surface*>(in_surface), SDL_PIXELFORMAT_RGBA32);
@@ -217,8 +221,7 @@ bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Su
     }
 
     // GPU에 업로드
-    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(device);
-    SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(cmd);
+    SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(in_cmd);
     {
         const SDL_GPUTextureTransferInfo src_info = {
             .transfer_buffer = transfer_buffer,
@@ -242,10 +245,8 @@ bool GpuResourceManager::UploadTexture(const asset::AssetId& in_id, const SDL_Su
     // 밉맵 생성 (업로드 직후 수행)
     if (in_settings.generate_mips && num_levels > 1)
     {
-        SDL_GenerateMipmapsForGPUTexture(cmd, texture);
+        SDL_GenerateMipmapsForGPUTexture(in_cmd, texture);
     }
-
-    SDL_SubmitGPUCommandBuffer(cmd);
 
     SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
     SDL_DestroySurface(converted_surface); // 변환된 임시 Surface 해제
