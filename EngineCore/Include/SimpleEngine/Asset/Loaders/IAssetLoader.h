@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "SimpleEngine/Asset/IAsset.h"
-#include "SimpleEngine/Asset/ImportSettings/IAssetImportSettings.h"
+#include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/Debug.h"

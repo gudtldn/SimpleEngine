@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "SimpleEngine/Asset/ImportSettings/IAssetImportSettings.h"
+#include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/VPath.h"

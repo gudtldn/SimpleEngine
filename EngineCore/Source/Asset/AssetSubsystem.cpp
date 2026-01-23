@@ -1,6 +1,6 @@
 ﻿#include "Asset/AssetSubsystem.h"
 
-#include "Asset/ImportSettings/TextureImportSettings.h"
+#include "Asset/ImportSettings_DEPRECATED/TextureImportSettings.h"
 #include "Asset/Loaders/ObjLoader.h"
 #include "Asset/Loaders/Texture2DLoader.h"
 #include "Asset/Types/MeshTypes.h"

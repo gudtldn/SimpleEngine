@@ -1,6 +1,6 @@
 ﻿#include "Asset/Loaders/Texture2DLoader.h"
 
-#include "Asset/ImportSettings/TextureImportSettings.h"
+#include "Asset/ImportSettings_DEPRECATED/TextureImportSettings.h"
 #include "Asset/Types/Texture2D.h"
 #include "Core/Logging/Logging.h"
 #include "Reflection/Reflect.h"

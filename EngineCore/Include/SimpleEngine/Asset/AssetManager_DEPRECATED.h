@@ -6,7 +6,7 @@
 
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
-#include "SimpleEngine/Asset/ImportSettings/DefaultImportSettings.h"
+#include "SimpleEngine/Asset/ImportSettings_DEPRECATED/DefaultImportSettings.h"
 #include "SimpleEngine/Asset/Loaders/IAssetLoader.h"
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"

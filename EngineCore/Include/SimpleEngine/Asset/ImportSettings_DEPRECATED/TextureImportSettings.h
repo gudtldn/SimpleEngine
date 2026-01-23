@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/ImportSettings/IAssetImportSettings.h"
+#include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 
 
 namespace se::asset
