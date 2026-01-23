@@ -29,6 +29,9 @@ class SE_CORE_API IPipelineFactory
 public:
     virtual ~IPipelineFactory() = default;
 
+    /** 생성될 에셋의 타입 정보를 반환합니다. */
+    [[nodiscard]] virtual refl::TypeId GetAssetType() const = 0;
+
     /** 현재 Factory가 해당 노드를 처리할 수 있는지 확인합니다. */
     [[nodiscard]] virtual bool CanCreateAsset(const PipelineBaseNode* node) const = 0;
 
@@ -42,8 +45,5 @@ public:
         PipelineBaseNode* node,
         const PipelineImportContext& context
     ) = 0;
-
-    /** 생성될 에셋의 타입 정보를 반환합니다. */
-    [[nodiscard]] virtual refl::TypeId GetAssetType() const = 0;
 };
 }  // namespace se::asset

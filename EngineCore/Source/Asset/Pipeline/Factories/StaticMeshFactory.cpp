@@ -6,6 +6,11 @@
 
 namespace se::asset
 {
+refl::TypeId StaticMeshFactory::GetAssetType() const
+{
+    return refl::TypeId::Get<StaticMesh>();
+}
+
 bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
 {
     return node->GetTypeId() == refl::TypeId::Get<StaticMeshPipelineNode>();
@@ -34,10 +39,5 @@ std::shared_ptr<IAsset> StaticMeshFactory::CreateAsset(
     (void)context;
 
     return static_mesh;
-}
-
-refl::TypeId StaticMeshFactory::GetAssetType() const
-{
-    return refl::TypeId::Get<StaticMesh>();
 }
 }
