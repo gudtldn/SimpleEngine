@@ -1,4 +1,4 @@
-﻿#include "Asset/Loaders/Texture2DLoader.h"
+﻿#include "Asset/Loaders_DEPRECATED/Texture2DLoader.h"
 
 #include "Asset/ImportSettings_DEPRECATED/TextureImportSettings.h"
 #include "Asset/Types/Texture2D.h"

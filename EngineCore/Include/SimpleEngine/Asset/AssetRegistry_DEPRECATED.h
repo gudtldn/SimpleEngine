@@ -19,7 +19,7 @@ namespace se::asset
 /**
  * 런타임에 필요한 Asset의 메타데이터
  */
-struct AssetEntry
+struct AssetEntry_DEPRECATED
 {
     // Asset의 고유 식별자
     Guid guid;
@@ -57,7 +57,7 @@ public:
         return nullptr;
     }
 
-    friend void Serialize(core::Archive& ar, AssetEntry& entry)
+    friend void Serialize(core::Archive& ar, AssetEntry_DEPRECATED& entry)
     {
         String virtual_path_str;
         if (ar.IsSaving())
@@ -89,19 +89,19 @@ public:
 /**
  * 프로젝트 내의 모든 에셋의 메타데이터를 관리하는 중앙 데이터베이스
  */
-class SE_CORE_API AssetRegistry
+class SE_CORE_API AssetRegistry_DEPRECATED
 {
 public:
-    [[nodiscard]] Optional<const AssetEntry&> GetEntry(const Guid& guid) const;
-    [[nodiscard]] Optional<const AssetEntry&> GetEntry(const VPath& vpath) const;
+    [[nodiscard]] Optional<const AssetEntry_DEPRECATED&> GetEntry(const Guid& guid) const;
+    [[nodiscard]] Optional<const AssetEntry_DEPRECATED&> GetEntry(const VPath& vpath) const;
     [[nodiscard]] Optional<const Guid&> GetGuid(const VPath& vpath) const;
 
     // Editor에서 Entry를 채우기 위한 API
-    void AddEntry(AssetEntry&& entry);
+    void AddEntry(AssetEntry_DEPRECATED&& entry);
     void Clear();
 
 private:
-    HashMap<Guid, AssetEntry> guid_map;
+    HashMap<Guid, AssetEntry_DEPRECATED> guid_map;
     HashMap<VPath, Guid> vpath_map;
 };
 }

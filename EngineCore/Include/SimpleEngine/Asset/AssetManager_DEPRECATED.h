@@ -5,9 +5,9 @@
 #include <utility>
 
 #include "SimpleEngine/Asset/AssetHandle.h"
-#include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/AssetRegistry_DEPRECATED.h"
 #include "SimpleEngine/Asset/ImportSettings_DEPRECATED/DefaultImportSettings.h"
-#include "SimpleEngine/Asset/Loaders/IAssetLoader.h"
+#include "SimpleEngine/Asset/Loaders_DEPRECATED/IAssetLoader.h"
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -62,7 +62,7 @@ public:
 
 public:
     // TODO: 추후에 registry 위치 변경
-    [[nodiscard]] AssetRegistry& GetRegistry() noexcept { return registry; }
+    [[nodiscard]] AssetRegistry_DEPRECATED& GetRegistry() noexcept { return registry; }
 
     template <typename AssetType, typename LoaderType, typename SettingsType = DefaultImportSettings>
         requires std::derived_from<AssetType, IAsset>
@@ -117,7 +117,7 @@ private:
     HashMap<refl::TypeId, std::shared_ptr<IAssetImportSettings>> settings_prototypes;
 
 private:
-    AssetRegistry registry;
+    AssetRegistry_DEPRECATED registry;
 
     // 로드된 에셋의 중앙 캐시
     TracyLockable(std::mutex, slots_mutex);
@@ -236,7 +236,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(cons
     }
 
     // Registry에서 메타데이터 가져오기
-    Optional<const AssetEntry&> entry_opt = registry.GetEntry(in_guid);
+    Optional<const AssetEntry_DEPRECATED&> entry_opt = registry.GetEntry(in_guid);
     SE_ASSERT(entry_opt, "Asset not found in registry: {}", in_guid.ToString());
 
     // Type에 맞는 Loader 가져오기

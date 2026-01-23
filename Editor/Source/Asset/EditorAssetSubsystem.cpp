@@ -74,7 +74,7 @@ void EditorAssetSubsystem::ImportAsset(const std::filesystem::path& physical_pat
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std::filesystem::path& physical_path)
+Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile(const std::filesystem::path& physical_path)
 {
     // 지원하는 확장자인지 확인
     const StringName ext_name = utility::ToString(physical_path.extension().c_str());
@@ -95,7 +95,7 @@ Optional<se::asset::AssetEntry> EditorAssetSubsystem::ProcessMetaFile(const std:
     std::filesystem::path meta_path = physical_path;
     meta_path += ".meta";
 
-    se::asset::AssetEntry entry;
+    se::asset::AssetEntry_DEPRECATED entry;
     entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
 
     if (std::filesystem::exists(meta_path))

@@ -1,8 +1,8 @@
 ﻿#include "Asset/AssetSubsystem.h"
 
 #include "Asset/ImportSettings_DEPRECATED/TextureImportSettings.h"
-#include "Asset/Loaders/ObjLoader.h"
-#include "Asset/Loaders/Texture2DLoader.h"
+#include "Asset/Loaders_DEPRECATED/ObjLoader.h"
+#include "Asset/Loaders_DEPRECATED/Texture2DLoader.h"
 #include "Asset/Types/MeshTypes.h"
 #include "Asset/Types/Texture2D.h"
 #include "Core/Subsystem/SubsystemRegistration.h"

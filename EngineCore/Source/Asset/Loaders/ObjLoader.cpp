@@ -1,4 +1,4 @@
-﻿#include "SimpleEngine/Asset/Loaders/ObjLoader.h"
+﻿#include "SimpleEngine/Asset/Loaders_DEPRECATED/ObjLoader.h"
 
 #include "Asset/Types/MeshTypes.h"
 #include "Reflection/Reflect.h"
