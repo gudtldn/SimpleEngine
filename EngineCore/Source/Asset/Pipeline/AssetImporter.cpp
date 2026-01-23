@@ -66,7 +66,7 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
 
     {
         ZoneScopedN("Factory::CreateAssets");
-        for (const PipelineBaseNode* node : sorted_nodes)
+        for (PipelineBaseNode* node : sorted_nodes)
         {
             ZoneScopedN("Process Node");
 #if TRACY_ENABLE

@@ -39,7 +39,7 @@ public:
      * @return 생성된 에셋 (실패 시 nullptr)
      */
     virtual std::shared_ptr<IAsset> CreateAsset(
-        const PipelineBaseNode* node,
+        PipelineBaseNode* node,
         const PipelineImportContext& context
     ) = 0;
 
