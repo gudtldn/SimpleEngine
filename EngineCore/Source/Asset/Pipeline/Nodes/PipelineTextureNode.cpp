@@ -3,11 +3,6 @@
 
 namespace se::asset
 {
-refl::TypeId PipelineTextureNode::GetTypeId() const noexcept
-{
-    return refl::TypeId::Get<PipelineTextureNode>();
-}
-
 Optional<const String&> PipelineTextureNode::GetSourceFile() const
 {
     return attributes.GetAttribute<String>(Keys::SOURCE_FILE);

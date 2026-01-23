@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
 #include "SimpleEngine/Gfx/MaterialEnums.h"
 
 
 namespace se::asset
 {
-class SE_CORE_API PipelineMaterialNode final : public PipelineBaseNode
+class SE_CORE_API PipelineMaterialNode final : public PipelineNode<PipelineMaterialNode>
 {
 public:
     struct Keys
@@ -34,7 +34,6 @@ public:
         inline static const StringName ALPHA_CUTOFF   = "AlphaCutoff";
     };
 
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const noexcept override;
     virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const override;
 
 public:

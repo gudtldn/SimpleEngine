@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
 
 
 namespace se::asset
@@ -7,7 +7,7 @@ namespace se::asset
 /**
  * Texture의 원본 파일 정보 및 임포트 설정을 담당하는 노드
  */
-class SE_CORE_API PipelineTextureNode final : public PipelineBaseNode
+class SE_CORE_API PipelineTextureNode final : public PipelineNode<PipelineTextureNode>
 {
 public:
     struct Keys
@@ -17,8 +17,6 @@ public:
         inline static const StringName COMPRESSION = "Compression"; // e.g., "BC7", "BC5"
         inline static const StringName FILTER = "Filter";           // e.g., "Nearest", "Bilinear"
     };
-
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const noexcept override;
 
 public:
     // TODO: 반환값 fs::path로 할지 고민

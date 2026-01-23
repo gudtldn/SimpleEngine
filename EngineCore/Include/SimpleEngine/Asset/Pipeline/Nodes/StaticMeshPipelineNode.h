@@ -1,18 +1,13 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
 #include "SimpleEngine/Gfx/MeshPrimitives.h"
 
 
 namespace se::asset
 {
-class SE_CORE_API StaticMeshPipelineNode : public PipelineBaseNode
+class SE_CORE_API StaticMeshPipelineNode : public PipelineNode<StaticMeshPipelineNode>
 {
 public:
-    virtual refl::TypeId GetTypeId() const override
-    {
-        return refl::TypeId::Get<StaticMeshPipelineNode>();
-    }
-
     // Mesh Data
     Array<gfx::Vertex> vertices;
     Array<uint32> indices;

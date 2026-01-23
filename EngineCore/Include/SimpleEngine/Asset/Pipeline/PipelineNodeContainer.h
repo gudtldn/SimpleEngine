@@ -2,7 +2,7 @@
 #include <concepts>
 #include <memory>
 
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Utility/Debug.h"

@@ -47,4 +47,25 @@ protected:
 
     AttributeStorage attributes;
 };
+
+/**
+ * CRTP 패턴을 활용한 Pipeline 기본 노드 템플릿 클래스
+ * @tparam Derived 실제 이 클래스를 상속받는 하위 클래스 타입
+ */
+template <typename Derived>
+class PipelineNode : public PipelineBaseNode
+{
+    friend Derived;
+
+protected:
+    PipelineNode() = default;
+    virtual ~PipelineNode() override = default;
+
+public:
+    virtual refl::TypeId GetTypeId() const override final
+    {
+        static_assert(std::derived_from<Derived, PipelineNode>, "CRTP Error: Derived class must inherit from PipelineNode<Derived>");
+        return refl::TypeId::Get<Derived>();
+    }
+};
 }  // namespace se::asset

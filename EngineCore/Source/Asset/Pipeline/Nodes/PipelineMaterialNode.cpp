@@ -3,11 +3,6 @@
 
 namespace se::asset
 {
-refl::TypeId PipelineMaterialNode::GetTypeId() const noexcept
-{
-    return refl::TypeId::Get<PipelineMaterialNode>();
-}
-
 void PipelineMaterialNode::GetFactoryDependencies(Array<Guid>& out_dependencies) const
 {
     PipelineBaseNode::GetFactoryDependencies(out_dependencies);
