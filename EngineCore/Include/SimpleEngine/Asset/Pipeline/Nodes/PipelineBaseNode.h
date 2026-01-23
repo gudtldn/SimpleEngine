@@ -10,7 +10,7 @@ namespace se::asset
 /**
  * Asset Import Pipeline의 기본 노드 클래스
  */
-class PipelineBaseNode
+class SE_CORE_API PipelineBaseNode
 {
 public:
     virtual ~PipelineBaseNode() = default;

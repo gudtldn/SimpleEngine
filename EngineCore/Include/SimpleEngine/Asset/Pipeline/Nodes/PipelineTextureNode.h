@@ -7,7 +7,7 @@ namespace se::asset
 /**
  * Texture의 원본 파일 정보 및 임포트 설정을 담당하는 노드
  */
-class PipelineTextureNode final : public PipelineBaseNode
+class SE_CORE_API PipelineTextureNode final : public PipelineBaseNode
 {
 public:
     struct Keys

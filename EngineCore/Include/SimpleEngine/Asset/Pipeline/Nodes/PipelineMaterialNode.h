@@ -5,7 +5,7 @@
 
 namespace se::asset
 {
-class PipelineMaterialNode final : public PipelineBaseNode
+class SE_CORE_API PipelineMaterialNode final : public PipelineBaseNode
 {
 public:
     struct Keys

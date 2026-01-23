@@ -7,7 +7,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class IPipelineTranslator
+class SE_CORE_API IPipelineTranslator
 {
 public:
     virtual ~IPipelineTranslator() = default;

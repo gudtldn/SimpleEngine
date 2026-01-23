@@ -13,7 +13,7 @@ namespace se::asset
 /**
  * 에셋 파이프라인 시스템에서 속성을 식별하기 위한 Key 클래스
  */
-class AttributeKey
+class SE_CORE_API AttributeKey
 {
 public:
     // NOLINTBEGIN(*-explicit-constructor)
@@ -68,7 +68,7 @@ using AttributeValue = std::variant<
 /**
  * 파이프라인 노드(Node)들이 데이터를 저장하는 제네릭 컨테이너
  */
-class AttributeStorage
+class SE_CORE_API AttributeStorage
 {
 public:
     /** 지정된 키에 해당하는 속성값을 가져옵니다. */

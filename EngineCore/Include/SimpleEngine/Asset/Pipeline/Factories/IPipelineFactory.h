@@ -10,7 +10,7 @@ namespace se::asset
 /**
  * Factory가 Asset을 생성할 때 필요한 의존성 정보를 담고 있는 Context
  */
-struct PipelineImportContext
+struct SE_CORE_API PipelineImportContext
 {
     const PipelineNodeContainer& container;
     const HashMap<Guid, std::shared_ptr<IAsset>>& created_assets;
@@ -24,7 +24,7 @@ struct PipelineImportContext
 /**
  * Pipeline Node를 실제 IAsset으로 변환하는 Interface
  */
-class IPipelineFactory
+class SE_CORE_API IPipelineFactory
 {
 public:
     virtual ~IPipelineFactory() = default;

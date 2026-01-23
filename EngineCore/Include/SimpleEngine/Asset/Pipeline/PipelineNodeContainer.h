@@ -13,7 +13,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class PipelineNodeContainer
+class SE_CORE_API PipelineNodeContainer
 {
 public:
     template <typename NodeType, typename... Args>
