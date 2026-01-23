@@ -38,9 +38,9 @@ public:
             node->SetUid(Guid::NewGuid());
         }
 
-        NodeType* ptr = node.get();
-        nodes.Insert(node->GetUid(), std::move(node));
-        return *ptr;
+        NodeType* node_ptr = node.get();
+        nodes.Insert(node_ptr->GetUid(), std::move(node));
+        return *node_ptr;
     }
 
     [[nodiscard]] Optional<PipelineBaseNode&> GetNode(const Guid& uid) const
