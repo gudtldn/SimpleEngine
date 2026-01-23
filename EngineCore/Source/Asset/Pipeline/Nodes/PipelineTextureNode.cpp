@@ -13,9 +13,9 @@ Optional<const String&> PipelineTextureNode::GetSourceFile() const
     return attributes.GetAttribute<String>(Keys::SOURCE_FILE);
 }
 
-void PipelineTextureNode::SetSourceFile(const String& path)
+void PipelineTextureNode::SetSourceFile(const String& file_path)
 {
-    attributes.SetAttribute(Keys::SOURCE_FILE, path);
+    attributes.SetAttribute(Keys::SOURCE_FILE, file_path);
 }
 
 bool PipelineTextureNode::IsSRGB() const

@@ -21,8 +21,9 @@ public:
     [[nodiscard]] virtual refl::TypeId GetTypeId() const noexcept override;
 
 public:
+    // TODO: 반환값 fs::path로 할지 고민
     [[nodiscard]] Optional<const String&> GetSourceFile() const;
-    void SetSourceFile(const String& path);
+    void SetSourceFile(const String& file_path);
 
     [[nodiscard]] bool IsSRGB() const;
     void SetSRGB(bool is_srgb);
