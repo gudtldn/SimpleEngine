@@ -51,6 +51,12 @@ public:
         });
     }
 
+    [[nodiscard]] PipelineBaseNode& GetNodeChecked(const Guid& uid) const
+    {
+        SE_ASSERT(nodes.Contains(uid), "Node with UID {} does not exist!", uid);
+        return *nodes.FindChecked(uid);
+    }
+
     template <typename NodeType>
         requires std::derived_from<NodeType, PipelineBaseNode>
     [[nodiscard]] Optional<NodeType&> GetNode(const Guid& uid) const
@@ -65,18 +71,24 @@ public:
         requires std::derived_from<NodeType, PipelineBaseNode>
     [[nodiscard]] NodeType& GetNodeChecked(const Guid& uid) const
     {
-        SE_ASSERT(nodes.Contains(uid), "Node with UID {} does not exist!", uid);
-        const auto& node_ptr = nodes.FindChecked(uid);
-
+        const auto& node = GetNodeChecked(uid);
         SE_ASSERT(
-            node_ptr->GetTypeId() == refl::TypeId::Get<NodeType>(),
+            node.GetTypeId() == refl::TypeId::Get<NodeType>(),
             "Node Type Mismatch! Expected: {}, Actual: {}",
-            refl::TypeId::Get<NodeType>().GetName(), node_ptr->GetTypeId().GetName()
+            refl::TypeId::Get<NodeType>().GetName(), node.GetTypeId().GetName()
         );
-        return static_cast<NodeType&>(*node_ptr);
+        return static_cast<NodeType&>(node);
     }
 
-    [[nodiscard]] const NodeMap& GetAllNodes() const { return nodes; }
+    [[nodiscard]] bool Contains(const Guid& uid) const
+    {
+        return nodes.Contains(uid);
+    }
+
+    [[nodiscard]] const NodeMap& GetAllNodes() const
+    {
+        return nodes;
+    }
 
 private:
     NodeMap nodes;
