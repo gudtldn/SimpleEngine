@@ -93,7 +93,7 @@
 // 컴파일 시점에 TO DO 메시지를 출력합니다.
 #if defined(SE_COMPILER_MSVC)
     #define SE_PRAGMA(x) __pragma(x)
-    #define SE_TODO(msg) SE_PRAGMA(message(__FILE__ "(" _CRT_STRINGIZE(__LINE__) ") : TODO - " msg))
+    #define SE_TODO(msg) SE_PRAGMA(message("[" __FILE__ ":" _CRT_STRINGIZE(__LINE__) "]: TODO - " msg))
 #elif defined(SE_COMPILER_CLANG) || defined(SE_COMPILER_GCC)
     #define SE_PRAGMA(x) _Pragma(#x)
     #define SE_TODO(msg) SE_PRAGMA(message("TODO: " msg))
