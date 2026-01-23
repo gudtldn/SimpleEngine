@@ -74,29 +74,25 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
             ZoneText(node_name.data(), node_name.size());
 #endif
 
-            bool factory_found = false;
-
-            // 해당 노드를 처리할 수 있는 팩토리를 검색
-            // TODO: 반복문이 좀 비효율적인데, 추후 개선
-            for (const auto& factory : factories)
+            [&]
             {
-                if (factory->CanCreateAsset(node))
+                // 해당 노드를 처리할 수 있는 팩토리를 검색
+                // TODO: 반복문이 좀 비효율적인데, 추후 개선
+                for (const auto& factory : factories)
                 {
-                    ZoneScopedN("Factory::CreateAsset");
-                    if (std::shared_ptr<IAsset> new_asset = factory->CreateAsset(node, context))
+                    if (factory->CanCreateAsset(node))
                     {
-                        created_assets_map.Insert(node->GetUid(), new_asset);
-                        created_assets.Push(new_asset);
+                        ZoneScopedN("Factory::CreateAsset");
+                        if (std::shared_ptr<IAsset> new_asset = factory->CreateAsset(node, context))
+                        {
+                            created_assets_map.Insert(node->GetUid(), new_asset);
+                            created_assets.Push(new_asset);
+                        }
+                        return;
                     }
-                    factory_found = true;
-                    break;
                 }
-            }
-
-            if (!factory_found)
-            {
                 ConsoleLog(ELogLevel::Warning, "No factory found for node type: {}", node->GetTypeId().GetName());
-            }
+            }();
         }
     }
 
