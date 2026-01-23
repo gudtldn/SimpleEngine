@@ -2,8 +2,8 @@
 #include <concepts>
 #include <utility>
 
-#include "AssetId.h"
-#include "SimpleEngine/Asset/IAsset.h"
+#include "SimpleEngine/Asset/AssetId.h"
+#include "SimpleEngine/Asset/Types/IAsset.h"
 
 
 namespace se::asset

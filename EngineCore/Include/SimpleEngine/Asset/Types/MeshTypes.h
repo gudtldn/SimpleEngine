@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/IAsset.h"
+#include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Gfx/MeshPrimitives.h"
 #include "SimpleEngine/Reflection/Annotations.h"

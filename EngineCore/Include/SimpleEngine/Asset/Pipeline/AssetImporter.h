@@ -2,11 +2,11 @@
 #include <filesystem>
 #include <memory>
 
-#include "SimpleEngine/Asset/IAsset.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEngine/Asset/Pipeline/Factories/IPipelineFactory.h"
 #include "SimpleEngine/Asset/Pipeline/Translators/IPipelineTranslator.h"
+#include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 

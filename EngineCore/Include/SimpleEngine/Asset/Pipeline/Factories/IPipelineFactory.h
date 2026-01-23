@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/IAsset.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
+#include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
