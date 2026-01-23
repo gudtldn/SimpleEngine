@@ -92,7 +92,7 @@ void ProcessMesh(
     // TODO: 여기서 머티리얼 의존성(Material Node UID)을 추가
 }
 
-void ProcessNode(const aiNode* node, const aiScene* scene, PipelineNodeContainer& out_container)
+void ProcessNodeRecursive(const aiNode* node, const aiScene* scene, PipelineNodeContainer& out_container)
 {
     // 현재 노드에 있는 모든 메쉬 처리
     for (uint32 i = 0; i < node->mNumMeshes; ++i)
@@ -104,7 +104,7 @@ void ProcessNode(const aiNode* node, const aiScene* scene, PipelineNodeContainer
     // 자식 노드 순회
     for (uint32 i = 0; i < node->mNumChildren; ++i)
     {
-        ProcessNode(node->mChildren[i], scene, out_container);
+        ProcessNodeRecursive(node->mChildren[i], scene, out_container);
     }
 }
 }
@@ -143,6 +143,6 @@ void AssimpTranslator::Translate(const std::filesystem::path& file_path, Pipelin
     }
 
     // 재귀적으로 노드를 순회하며 메쉬 처리
-    ProcessNode(scene->mRootNode, scene, out_container);
+    ProcessNodeRecursive(scene->mRootNode, scene, out_container);
 }
 }
