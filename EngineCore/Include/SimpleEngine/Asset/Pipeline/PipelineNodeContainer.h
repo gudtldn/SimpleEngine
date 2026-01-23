@@ -16,9 +16,21 @@ namespace se::asset
 class SE_CORE_API PipelineNodeContainer
 {
 public:
+    using NodeMap = HashMap<Guid, std::unique_ptr<PipelineBaseNode>>;
+
+    PipelineNodeContainer() = default;
+    ~PipelineNodeContainer() = default;
+
+    // 복사만 금지
+    PipelineNodeContainer(const PipelineNodeContainer&) = delete;
+    PipelineNodeContainer& operator=(const PipelineNodeContainer&) = delete;
+    PipelineNodeContainer(PipelineNodeContainer&&) = default;
+    PipelineNodeContainer& operator=(PipelineNodeContainer&&) = default;
+
+public:
     template <typename NodeType, typename... Args>
         requires std::derived_from<NodeType, PipelineBaseNode>
-    NodeType* CreateNode(Args&&... args)
+    NodeType& CreateNode(Args&&... args)
     {
         auto node = std::make_unique<NodeType>(std::forward<Args>(args)...);
         if (!node->GetUid().IsValid())
@@ -28,47 +40,45 @@ public:
 
         NodeType* ptr = node.get();
         nodes.Insert(node->GetUid(), std::move(node));
-        return ptr;
+        return *ptr;
     }
 
-    [[nodiscard]] PipelineBaseNode* GetNode(const Guid& uid) const
+    [[nodiscard]] Optional<PipelineBaseNode&> GetNode(const Guid& uid) const
     {
-        if (const Optional ptr = nodes.Find(uid))
+        return nodes.Find(uid).AndThen([](auto& ptr) -> Optional<PipelineBaseNode&>
         {
-            return ptr->get();
-        }
-        return nullptr;
+            return *ptr;
+        });
     }
 
     template <typename NodeType>
         requires std::derived_from<NodeType, PipelineBaseNode>
-    [[nodiscard]] NodeType* GetNode(const Guid& uid) const
+    [[nodiscard]] Optional<NodeType&> GetNode(const Guid& uid) const
     {
-        PipelineBaseNode* node = GetNode(uid);
-        if (node && node->GetTypeId() == refl::TypeId::Get<NodeType>())
+        return GetNode(uid).AndThen([](PipelineBaseNode& node) -> Optional<NodeType&>
         {
-            return static_cast<NodeType*>(node);
-        }
-        return nullptr;
+            return static_cast<NodeType&>(node);
+        });
     }
 
     template <typename NodeType>
         requires std::derived_from<NodeType, PipelineBaseNode>
-    [[nodiscard]] NodeType* GetNodeChecked(const Guid& uid) const
+    [[nodiscard]] NodeType& GetNodeChecked(const Guid& uid) const
     {
-        PipelineBaseNode* node = GetNode(uid);
-        SE_ASSERT(node, "Node with UID {} does not exist!", uid.ToString());
+        SE_ASSERT(nodes.Contains(uid), "Node with UID {} does not exist!", uid);
+        const auto& node_ptr = nodes.FindChecked(uid);
+
         SE_ASSERT(
-            node->GetTypeId() == refl::TypeId::Get<NodeType>(),
+            node_ptr->GetTypeId() == refl::TypeId::Get<NodeType>(),
             "Node Type Mismatch! Expected: {}, Actual: {}",
-            refl::TypeId::Get<NodeType>().GetName(), node->GetTypeId().GetName()
+            refl::TypeId::Get<NodeType>().GetName(), node_ptr->GetTypeId().GetName()
         );
-        return static_cast<NodeType*>(node);
+        return static_cast<NodeType&>(*node_ptr);
     }
 
-    [[nodiscard]] const auto& GetAllNodes() const { return nodes; }
+    [[nodiscard]] const NodeMap& GetAllNodes() const { return nodes; }
 
 private:
-    HashMap<Guid, std::unique_ptr<PipelineBaseNode>> nodes;
+    NodeMap nodes;
 };
 }  // namespace se::asset
