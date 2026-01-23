@@ -29,7 +29,7 @@ public:
 
 public:
     [[nodiscard]] FORCE_INLINE const Guid& GetUid() const { return self_uid; }
-    FORCE_INLINE void SetUid(Guid new_uid) { self_uid = new_uid; }
+    FORCE_INLINE void SetUid(const Guid& new_uid) { self_uid = new_uid; }
 
     [[nodiscard]] FORCE_INLINE const Guid& GetParentUid() const { return parent_uid; }
     FORCE_INLINE void SetParentUid(const Guid& parent) { parent_uid = parent; }
@@ -37,8 +37,8 @@ public:
     [[nodiscard]] FORCE_INLINE const String& GetDisplayName() const { return display_name; }
     FORCE_INLINE void SetDisplayName(const String& new_name) { display_name = new_name; }
 
-    [[nodiscard]] FORCE_INLINE const AttributeStorage& GetAttributes() const { return attributes; }
     [[nodiscard]] FORCE_INLINE AttributeStorage& GetAttributes() { return attributes; }
+    [[nodiscard]] FORCE_INLINE const AttributeStorage& GetAttributes() const { return attributes; }
 
 protected:
     Guid self_uid;
