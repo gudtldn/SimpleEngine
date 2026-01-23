@@ -84,7 +84,7 @@ void ProcessMesh(
     // Section(Submesh) 설정
     gfx::MeshSection section;
     section.index_start = 0;
-    section.index_count = pipeline_node.indices.Len();
+    section.index_count = static_cast<uint32>(pipeline_node.indices.Len());
     section.material_index = mesh->mMaterialIndex;
 
     pipeline_node.sections.Push(section);
