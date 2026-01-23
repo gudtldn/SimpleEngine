@@ -1,14 +1,14 @@
 ﻿#include "Asset/Pipeline/AssetImporter.h"
+#include "Core/Container/Queue.h"
 
 #include <tracy/Tracy.hpp>
-
-#include "Core/Container/Queue.h"
 
 
 namespace se::asset
 {
 Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     const std::filesystem::path& file_path,
+    const ImportConfig& import_config,
     Optional<PipelineProcessorStack&> pipeline_stack
 )
 {
@@ -31,7 +31,7 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     PipelineNodeContainer container;
     {
         ZoneScopedN("Translator::Translate");
-        translator_opt->Translate(file_path, container);
+        translator_opt->Translate(file_path, import_config, container);
     }
 
     // ---------------------------------------------------------

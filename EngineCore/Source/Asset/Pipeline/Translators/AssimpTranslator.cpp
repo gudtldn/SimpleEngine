@@ -119,8 +119,15 @@ bool AssimpTranslator::CanTranslate(const std::filesystem::path& file_extension)
     return supported_extensions.Contains(ext);
 }
 
-void AssimpTranslator::Translate(const std::filesystem::path& file_path, PipelineNodeContainer& out_container)
+void AssimpTranslator::Translate(
+    const std::filesystem::path& file_path,
+    const ImportConfig& import_config,
+    PipelineNodeContainer& out_container
+)
 {
+    (void)import_config; // TODO: config 사용해서 불러오기
+    SE_TODO("TODO: config 사용해서 불러오기")
+
     Assimp::Importer importer;
 
     // 플래그 설정
