@@ -9,7 +9,7 @@ namespace se::asset
 Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     const std::filesystem::path& file_path,
     const ImportConfig& import_config,
-    Optional<PipelineProcessorStack&> pipeline_stack
+    Optional<const PipelineProcessorStack&> pipeline_stack
 )
 {
     ZoneScopedN("AssetImporter::Import");

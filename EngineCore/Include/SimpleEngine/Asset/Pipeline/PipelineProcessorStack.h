@@ -30,7 +30,7 @@ public:
     }
 
     /** Stack에 있는 모든 프로세서를 순차적으로 실행하여 노드를 가공합니다. */
-    void ExecuteStack(PipelineNodeContainer& container)
+    void ExecuteStack(PipelineNodeContainer& container) const
     {
         for (const auto& processor : processors)
         {

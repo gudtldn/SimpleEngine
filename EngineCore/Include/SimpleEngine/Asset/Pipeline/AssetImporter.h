@@ -49,7 +49,7 @@ public:
     [[nodiscard]] Array<std::shared_ptr<IAsset>> Import(
         const std::filesystem::path& file_path,
         const ImportConfig& import_config = {},
-        Optional<PipelineProcessorStack&> pipeline_stack = std::nullopt
+        Optional<const PipelineProcessorStack&> pipeline_stack = std::nullopt
     );
 
 private:
