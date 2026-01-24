@@ -61,6 +61,7 @@ if (expr)
 
 - [Wicked Engine](https://github.com/turanszkij/WickedEngine)
 - [Unreal Engine](https://github.com/EpicGames/UnrealEngine)
-- [Bevy Engine](https://github.com/bevyengine/bevy)
+- [Bevy](https://github.com/bevyengine/bevy)
+- [Lumos](https://github.com/jmorton06/Lumos)
 
 </details>
