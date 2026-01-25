@@ -9,7 +9,7 @@ namespace se::asset
 Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     const std::filesystem::path& file_path,
     const ImportConfig& import_config,
-    Optional<const PipelineProcessorStack&> pipeline_stack
+    Optional<const PipelineProcessorStack&> processor_stack
 )
 {
     ZoneScopedN("AssetImporter::Import");
@@ -37,10 +37,10 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     // ---------------------------------------------------------
     // 2단계: Pipeline Stack 실행 (Node Modification)
     // ---------------------------------------------------------
-    if (pipeline_stack)
+    if (processor_stack)
     {
         ZoneScopedN("ProcessorStack::ExecuteStack");
-        pipeline_stack->ExecuteStack(container);
+        processor_stack->ExecuteStack(container);
     }
 
     // ---------------------------------------------------------
