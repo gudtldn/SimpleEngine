@@ -27,7 +27,7 @@ set(ASSIMP_BUILD_BLEND_IMPORTER  TRUE CACHE BOOL "" FORCE) # .blend
 # 불필요한 테스트 및 유틸리티, 익스포터 비활성화
 set(ASSIMP_BUILD_TESTS           OFF  CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS    OFF  CACHE BOOL "" FORCE)
-set(ASSIMP_NO_EXPORT             OFF  CACHE BOOL "" FORCE)
+set(ASSIMP_NO_EXPORT             ON   CACHE BOOL "" FORCE)
 
 add_subdirectory(assimp EXCLUDE_FROM_ALL)
 # ---------------------------------------------------------------------------
