@@ -84,14 +84,6 @@ Array<T, Allocator>::Array(It first, It last)
 }
 
 template <typename T, typename Allocator>
-template <std::ranges::input_range Rng>
-    requires std::same_as<std::ranges::range_value_t<Rng>, T>
-Array<T, Allocator> Array<T, Allocator>::FromRange(Rng&& range)
-{
-    return Array{ std::ranges::begin(range), std::ranges::end(range) };
-}
-
-template <typename T, typename Allocator>
 Array<T, Allocator>::~Array()
 {
     Clear();
@@ -159,6 +151,14 @@ Array<T, Allocator> Array<T, Allocator>::Uninitialized(SizeType size)
     result.capacity = size;
 
     return result;
+}
+
+template <typename T, typename Allocator>
+template <std::ranges::input_range Rng>
+    requires std::same_as<std::ranges::range_value_t<Rng>, T>
+Array<T, Allocator> Array<T, Allocator>::FromRange(Rng&& range)
+{
+    return Array{ std::ranges::begin(range), std::ranges::end(range) };
 }
 
 template <typename T, typename Allocator>
@@ -312,24 +312,6 @@ const T* Array<T, Allocator>::Data() const noexcept
 }
 
 template <typename T, typename Allocator>
-Array<T, Allocator>::SizeType Array<T, Allocator>::Push(const ValueType& value)
-{
-    EnsureCapacity(size + 1);
-
-    AllocTraits::construct(allocator, data + size, value);
-    return size++;
-}
-
-template <typename T, typename Allocator>
-Array<T, Allocator>::SizeType Array<T, Allocator>::Push(ValueType&& value)
-{
-    EnsureCapacity(size + 1);
-
-    AllocTraits::construct(allocator, data + size, std::move(value));
-    return size++;
-}
-
-template <typename T, typename Allocator>
 Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
 {
     if (IsEmpty())
@@ -338,9 +320,27 @@ Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
     }
 
     T value = std::move(BackUnsafe());
-    --size;
+    size -= 1;
     std::destroy_at(data + size);
     return value;
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Push(const ValueType& value)
+{
+    EnsureCapacity(size + 1);
+
+    AllocTraits::construct(allocator, data + size, value);
+    size += 1;
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Push(ValueType&& value)
+{
+    EnsureCapacity(size + 1);
+
+    AllocTraits::construct(allocator, data + size, std::move(value));
+    size += 1;
 }
 
 template <typename T, typename Allocator>
@@ -380,12 +380,15 @@ void Array<T, Allocator>::PushRange(Rng&& range)
 
 template <typename T, typename Allocator>
 template <typename... Args>
-Array<T, Allocator>::SizeType Array<T, Allocator>::Emplace(Args&&... args)
+Array<T, Allocator>::ValueType& Array<T, Allocator>::Emplace(Args&&... args)
 {
     EnsureCapacity(size + 1);
 
-    AllocTraits::construct(allocator, data + size, std::forward<Args>(args)...);
-    return size++;
+    T* item_ptr = data + size;
+    AllocTraits::construct(allocator, item_ptr, std::forward<Args>(args)...);
+    size += 1;
+
+    return *item_ptr;
 }
 
 template <typename T, typename Allocator>
@@ -419,7 +422,7 @@ void Array<T, Allocator>::Insert(SizeType index, T&& value)
 
     // index에 새 요소 삽입
     data[index] = std::move(value);
-    ++size;
+    size += 1;
 }
 
 template <typename T, typename Allocator>
@@ -487,7 +490,7 @@ void Array<T, Allocator>::RemoveAt(SizeType index)
     // 제거할 요소 뒤의 모든 요소를 앞으로 한 칸씩 이동
     std::move(data + index + 1, data + size, data + index);
 
-    --size;
+    size -= 1;
     AllocTraits::destroy(allocator, data + size);
 }
 
@@ -543,7 +546,7 @@ void Array<T, Allocator>::RemoveAtSwap(SizeType index)
         data[index] = std::move(data[size - 1]);
     }
 
-    --size;
+    size -= 1;
     AllocTraits::destroy(allocator, data + size);
 }
 

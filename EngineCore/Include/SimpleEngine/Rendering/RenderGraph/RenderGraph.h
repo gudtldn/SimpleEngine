@@ -164,8 +164,7 @@ PassType& RenderGraph::AddPass(Args&&... args)
     auto pass_ptr = std::make_unique<PassType>(std::forward<Args>(args)...);
     PassType* raw_ptr = pass_ptr.get();
 
-    const usize idx = pass_nodes.Emplace();
-    RGPassNode& node = pass_nodes[idx];
+    RGPassNode& node = pass_nodes.Emplace();
     node.name = StringName{ refl::GetFullTypeName<PassType>() };
     node.pass_object = std::move(pass_ptr);
 

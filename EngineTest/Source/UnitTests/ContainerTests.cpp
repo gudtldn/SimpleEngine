@@ -179,12 +179,10 @@ TEST_F(ArrayAPI_Test, ConstructionFromRange)
 TEST_F(ArrayAPI_Test, PushAndPop)
 {
     Array<int> arr;
-    usize index1 = arr.Push(10);
-    usize index2 = arr.Push(20);
+    arr.Push(10);
+    arr.Push(20);
     EXPECT_EQ(arr.Len(), 2);
     EXPECT_EQ(arr[1], 20);
-    EXPECT_EQ(index1, 0);
-    EXPECT_EQ(index2, 1);
 
     auto popped = arr.Pop();
     EXPECT_TRUE(popped.HasValue());
@@ -432,11 +430,12 @@ TEST_F(ArrayAPI_Test, Emplace)
         }
     };
     Array<TestStruct> arr;
-    usize index = arr.Emplace(1, 3.14);
+    TestStruct& val = arr.Emplace(1, 3.14);
     EXPECT_EQ(arr.Len(), 1);
     EXPECT_EQ(arr[0].x, 1);
     EXPECT_EQ(arr[0].y, 3.14);
-    EXPECT_EQ(index, 0);
+    EXPECT_EQ(val.x, 1);
+    EXPECT_EQ(val.y, 3.14);
 }
 
 TEST_F(ArrayAPI_Test, RangeBasedForLoop)

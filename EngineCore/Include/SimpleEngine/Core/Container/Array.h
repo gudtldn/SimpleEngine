@@ -121,12 +121,12 @@ public:
     [[nodiscard]] T* Data() noexcept;
     [[nodiscard]] const T* Data() const noexcept;
 
-    /** 배열의 끝에 새 요소를 추가하고, 추가된 요소의 인덱스를 반환합니다. */
-    SizeType Push(const ValueType& value);
-    SizeType Push(ValueType&& value);
-
     /** 배열의 마지막 요소를 제거하고, 그 값을 Optional로 반환합니다. */
     Optional<ValueType> Pop();
+
+    /** 배열의 끝에 새 요소를 추가합니다. */
+    void Push(const ValueType& value);
+    void Push(ValueType&& value);
 
     /** 배열의 끝에 다른 시퀀스의 모든 요소를 추가합니다. */
     template <std::input_iterator It, std::sentinel_for<It> Sent>
@@ -137,9 +137,9 @@ public:
         requires std::same_as<std::ranges::range_value_t<Rng>, T>
     void PushRange(Rng&& range);
 
-    /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 인덱스를 반환합니다. */
+    /** 배열의 끝에 새 요소를 내부 생성(emplace)하고, 생성된 요소의 참조를 반환합니다. */
     template <typename... Args>
-    SizeType Emplace(Args&&... args);
+    T& Emplace(Args&&... args);
 
     /**
      * index 위치에 새 요소를 삽입합니다.
@@ -151,18 +151,18 @@ public:
 
     /**
      * index 위치에 다른 시퀀스의 모든 요소를 삽입합니다.
-     * @param index 삽입할 위치의 인덱스.
-     * @param first 삽입할 시퀀스의 시작 이터레이터.
-     * @param last 삽입할 시퀀스의 끝 이터레이터.
+     * @param index 삽입할 위치의 인덱스
+     * @param first 삽입할 시퀀스의 시작 이터레이터
+     * @param last 삽입할 시퀀스의 끝 이터레이터
      */
     template <std::input_iterator It>
         requires std::same_as<std::iter_value_t<It>, T>
     void Insert(SizeType index, It first, It last);
 
     /**
-     * index 위치에 다른 레인지의 모든 요소를 삽입합니다.
-     * @param index 삽입할 위치의 인덱스.
-     * @param range 삽입할 레인지.
+     * index 위치에 다른 Range의 모든 요소를 삽입합니다.
+     * @param index 삽입할 위치의 인덱스
+     * @param range 삽입할 Range
      */
     template <std::ranges::input_range Rng>
         requires std::same_as<std::ranges::range_value_t<Rng>, T>
@@ -177,14 +177,14 @@ public:
 
     /**
      * index 위치의 요소를 제거합니다. (순서 유지)
-     * @param index 제거할 요소의 인덱스.
+     * @param index 제거할 요소의 인덱스
      */
     void RemoveAt(SizeType index);
 
     /**
      * index부터 count개 만큼의 요소들을 제거합니다. (순서 유지)
-     * @param index 제거를 시작할 요소의 인덱스.
-     * @param count 제거할 요소의 개수.
+     * @param index 제거를 시작할 요소의 인덱스
+     * @param count 제거할 요소의 개수
      */
     void RemoveRange(SizeType index, SizeType count);
 
