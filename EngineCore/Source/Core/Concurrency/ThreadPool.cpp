@@ -11,7 +11,7 @@ namespace se::concurrency
 ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
     : pool_name(std::move(in_pool_name))
 {
-    ConsoleLog(ELogLevel::Info, "Creating ThreadPool...");
+    ConsoleLog(ELogLevel::Info, "Initializing ThreadPool: [{}] (Count: {})", pool_name, num_threads);
 
     // Worker Thread 생성
     worker_threads.Reserve(num_threads);
@@ -26,7 +26,21 @@ ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
 
 ThreadPool::~ThreadPool()
 {
-    ConsoleLog(ELogLevel::Info, "Destroying ThreadPool...");
+    const usize remaining_tasks = [this]
+    {
+        std::scoped_lock lock(mutex);
+        return tasks.Len();
+    }();
+
+    if (remaining_tasks > 0)
+    {
+        ConsoleLog(ELogLevel::Warning, "Destroying ThreadPool: [{}] with {} tasks still in queue!", pool_name, remaining_tasks);
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Info, "Destroying ThreadPool: [{}]", pool_name);
+    }
+
     {
         std::scoped_lock lock(mutex);
         tasks.Clear();
@@ -38,6 +52,8 @@ ThreadPool::~ThreadPool()
         thread.request_stop();
     }
     condition.notify_all();
+
+    ConsoleLog(ELogLevel::Info, "ThreadPool: [{}] destroyed successfully.", pool_name);
 }
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
@@ -58,7 +74,7 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 
             if (tasks.IsEmpty() && token.stop_requested())
             {
-                return;
+                break;
             }
 
             task = std::move(tasks.Pop()).Value();

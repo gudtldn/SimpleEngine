@@ -30,6 +30,8 @@ TaskScheduler::TaskScheduler(std::thread::id in_main_thread_id)
     // I/O 스레드: 남은 코어 수, 하지만 최소 1개는 보장
     const uint32 io_threads = std::max(1u, worker_cores - compute_threads);
 
+    ConsoleLog(ELogLevel::Info, "Hardware Concurrency: {}, Allocating [Compute: {}], [I/O: {}]", core_count, compute_threads, io_threads);
+
     compute_pool = std::make_unique<ThreadPool>("Worker Thread", compute_threads);
     io_pool = std::make_unique<ThreadPool>("I/O Thread", io_threads);
 }
