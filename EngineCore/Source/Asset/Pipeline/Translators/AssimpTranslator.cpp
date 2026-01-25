@@ -1,4 +1,5 @@
-﻿#include "Asset/Pipeline/Translators/AssimpTranslator.h"
+﻿// NOLINTBEGIN(*-reserved-identifier)
+#include "Asset/Pipeline/Translators/AssimpTranslator.h"
 
 #include "Asset/ImportSettings/MeshImportSettings.h"
 #include "Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
@@ -164,19 +165,27 @@ void ProcessSingleMesh(
     // TODO: 여기서 머티리얼 의존성(Material Node UID)을 추가
 }
 
-void ProcessNodeRecursive(const aiNode* node, const aiScene* scene, PipelineNodeContainer& out_container)
+void ProcessNodeIterative(const aiNode* root_node, const aiScene* scene, PipelineNodeContainer& out_container)
 {
-    // 현재 노드에 있는 모든 메쉬 처리
-    for (uint32 i = 0; i < node->mNumMeshes; ++i)
-    {
-        const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        ProcessSingleMesh(mesh, scene, node->mName.C_Str(), out_container);
-    }
+    Array<const aiNode*> stack;
+    stack.Push(root_node);
 
-    // 자식 노드 순회
-    for (uint32 i = 0; i < node->mNumChildren; ++i)
+    while (Optional node_opt = stack.Pop())
     {
-        ProcessNodeRecursive(node->mChildren[i], scene, out_container);
+        const aiNode* node = *node_opt;
+
+        // 메쉬 처리
+        for (uint32 i = 0; i < node->mNumMeshes; ++i)
+        {
+            const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+            ProcessSingleMesh(mesh, scene, node->mName.C_Str(), out_container);
+        }
+
+        // 자식 노드들을 스택에 추가
+        for (uint32 i = 0; i < node->mNumChildren; ++i)
+        {
+            stack.Push(node->mChildren[i]);
+        }
     }
 }
 }  // namespace
@@ -185,7 +194,7 @@ namespace se::asset
 {
 bool AssimpTranslator::CanTranslate(const String& file_extension) const
 {
-    static HashSet<String> supported_extensions = { ".obj", ".fbx", ".gltf", ".glb" };
+    static HashSet<String> supported_extensions = { ".obj", ".fbx", ".gltf", ".glb", ".blend", ".vrm" };
     return supported_extensions.Contains(file_extension);
 }
 
@@ -224,7 +233,7 @@ void AssimpTranslator::Translate(
     const String utf8_path = utility::ToString(file_path.generic_u8string());
     const aiScene* scene = [&]
     {
-        ZoneScopedN("Assimp::ReadFile");
+        ZoneScopedN("Assimp::ReadFile"); // NOLINT(*-lambda-function-name)
         return importer.ReadFile(utf8_path.CStr(), flags);
     }();
 
@@ -242,7 +251,8 @@ void AssimpTranslator::Translate(
     }
     else
     {
-        ProcessNodeRecursive(scene->mRootNode, scene, out_container);
+        ProcessNodeIterative(scene->mRootNode, scene, out_container);
     }
 }
 }  // namespace se::asset
+// NOLINTEND(*-reserved-identifier)
