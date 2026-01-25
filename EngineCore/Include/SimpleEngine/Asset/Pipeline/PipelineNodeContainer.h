@@ -11,7 +11,7 @@
 namespace se::asset
 {
 /**
- * @todo docs
+ * 파이프라인 시스템에서 사용되는 노드들의 생성 및 생명주기를 관리하는 컨테이너 클래스
  */
 class SE_CORE_API PipelineNodeContainer
 {
