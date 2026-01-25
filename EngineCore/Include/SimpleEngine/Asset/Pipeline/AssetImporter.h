@@ -43,13 +43,13 @@ public:
      * 파일을 불러와 Asset 목록을 생성하여 반환합니다.
      * @param file_path 소스 파일 경로
      * @param import_config Import 설정
-     * @param pipeline_stack 파이프라인 처리 스택 (선택)
+     * @param processor_stack 파이프라인 처리 스택 (선택)
      * @return 생성된 에셋 목록
      */
     [[nodiscard]] Array<std::shared_ptr<IAsset>> Import(
         const std::filesystem::path& file_path,
         const ImportConfig& import_config = {},
-        Optional<const PipelineProcessorStack&> pipeline_stack = std::nullopt
+        Optional<const PipelineProcessorStack&> processor_stack = std::nullopt
     );
 
 private:
