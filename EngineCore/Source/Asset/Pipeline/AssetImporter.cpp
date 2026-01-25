@@ -1,4 +1,5 @@
-﻿#include "Asset/Pipeline/AssetImporter.h"
+﻿// NOLINTBEGIN(*-reserved-identifier)
+#include "Asset/Pipeline/AssetImporter.h"
 #include "Core/Container/Queue.h"
 #include "Utility/StringUtils.h"
 
@@ -49,7 +50,7 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     // ---------------------------------------------------------
     const Array<PipelineBaseNode*> sorted_nodes = [&container]
     {
-        ZoneScopedN("SortNodesByDependency");
+        ZoneScopedN("SortNodesByDependency"); // NOLINT(*-lambda-function-name)
         return SortNodesByDependency(container);
     }();
 
@@ -83,7 +84,7 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
                 {
                     if (factory->CanCreateAsset(node))
                     {
-                        ZoneScopedN("Factory::CreateAsset");
+                        ZoneScopedN("Factory::CreateAsset"); // NOLINT(*-lambda-function-name)
                         if (std::shared_ptr<IAsset> new_asset = factory->CreateAsset(node, context))
                         {
                             created_assets_map.Insert(node->GetUid(), new_asset);
@@ -207,3 +208,4 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
     return result;
 }
 }  // namespace se::asset
+// NOLINTEND(*-reserved-identifier)
