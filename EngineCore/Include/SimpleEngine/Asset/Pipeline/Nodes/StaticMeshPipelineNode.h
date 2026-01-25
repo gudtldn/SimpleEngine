@@ -16,4 +16,4 @@ public:
     // 이 메쉬가 참조하는 머티리얼 노드들의 UID 목록 (나중에 Material Factory와 연결용)
     // Array<Guid> material_dependencies;
 };
-}
+}  // namespace se::asset
