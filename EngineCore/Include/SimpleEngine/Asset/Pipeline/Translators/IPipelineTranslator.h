@@ -17,9 +17,9 @@ public:
 
     /**
      * Translator가 지원하는 파일 확장자인지 확인합니다.
-     * @param file_extension 파일 확장자 (파일 경로가 아님에 주의!)
+     * @param file_extension 파일 확장자 (ex: .obj)
      */
-    [[nodiscard]] virtual bool CanTranslate(const std::filesystem::path& file_extension) const = 0;
+    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const = 0;
 
     /**
      * 파일을 읽고 Container에 Node를 채웁니다.

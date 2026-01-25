@@ -10,11 +10,12 @@ namespace se::asset
 class SE_CORE_API AssimpTranslator : public IPipelineTranslator
 {
 public:
-    [[nodiscard]] virtual bool CanTranslate(const std::filesystem::path& file_extension) const override;
+    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const override;
+
     virtual void Translate(
         const std::filesystem::path& file_path,
         const ImportConfig& import_config,
         PipelineNodeContainer& out_container
     ) override;
 };
-}
+}  // namespace se::asset

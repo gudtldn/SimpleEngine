@@ -29,7 +29,7 @@ struct MockImportSettings : public ImportSettings<MockImportSettings>
 class MockMeshTranslator : public IPipelineTranslator
 {
 public:
-    [[nodiscard]] virtual bool CanTranslate(const std::filesystem::path& file_extension) const override
+    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const override
     {
         return file_extension == ".mock";
     }
