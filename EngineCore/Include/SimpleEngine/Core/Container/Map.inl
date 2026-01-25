@@ -52,20 +52,20 @@ typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allo
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(const KeyType& key, ValueType&& value)
 {
-    internal_map.insert_or_assign(key, std::move(value));
-    return internal_map.at(key);
+    auto [iter, _] = internal_map.insert_or_assign(key, std::move(value));
+    return iter->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 template <typename... Args>
 typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Emplace(const KeyType& key, Args&&... args)
 {
-    internal_map.emplace(
+    auto [iter, _] = internal_map.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(key),
         std::forward_as_tuple(std::forward<Args>(args)...)
     );
-    return internal_map.at(key);
+    return iter->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>

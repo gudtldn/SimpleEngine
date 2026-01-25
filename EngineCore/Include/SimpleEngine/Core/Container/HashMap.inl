@@ -74,8 +74,8 @@ typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, 
     const KeyType& key, ValueType&& value
 )
 {
-    internal_map.insert_or_assign(key, std::move(value));
-    return internal_map.at(key);
+    auto [iter, _] = internal_map.insert_or_assign(key, std::move(value));
+    return iter->second;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
@@ -84,12 +84,12 @@ typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, 
     const KeyType& key, Args&&... args
 )
 {
-    internal_map.emplace(
+    auto [iter, _] = internal_map.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(key),
         std::forward_as_tuple(std::forward<Args>(args)...)
     );
-    return internal_map.at(key);
+    return iter->second;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
