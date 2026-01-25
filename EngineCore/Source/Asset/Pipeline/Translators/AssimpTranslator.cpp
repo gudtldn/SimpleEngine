@@ -8,6 +8,8 @@
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
+#include "tracy/Tracy.hpp"
+
 
 namespace
 {
@@ -20,6 +22,8 @@ void ProcessMergedMesh(
     PipelineNodeContainer& out_container
 )
 {
+    ZoneScopedN("ProcessMergedMesh");
+
     StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
     pipeline_node.SetDisplayName(mesh_name);
 
@@ -47,40 +51,24 @@ void ProcessMergedMesh(
             gfx::Vertex vertex;
 
             // Position
-            vertex.position = {
-                mesh->mVertices[v].x,
-                mesh->mVertices[v].y,
-                mesh->mVertices[v].z,
-            };
+            vertex.position = { mesh->mVertices[v].x, mesh->mVertices[v].y, mesh->mVertices[v].z };
 
             // Normal
             if (mesh->HasNormals())
             {
-                vertex.normal = {
-                    mesh->mNormals[v].x,
-                    mesh->mNormals[v].y,
-                    mesh->mNormals[v].z,
-                };
+                vertex.normal = { mesh->mNormals[v].x, mesh->mNormals[v].y, mesh->mNormals[v].z };
             }
 
             // UV
             if (mesh->HasTextureCoords(0))
             {
-                vertex.tex_coord = {
-                    mesh->mTextureCoords[0][v].x,
-                    mesh->mTextureCoords[0][v].y
-                };
+                vertex.tex_coord = { mesh->mTextureCoords[0][v].x, mesh->mTextureCoords[0][v].y };
             }
 
             // Tangent
             if (mesh->HasTangentsAndBitangents())
             {
-                vertex.tangent = {
-                    mesh->mTangents[v].x,
-                    mesh->mTangents[v].y,
-                    mesh->mTangents[v].z,
-                    1.0f
-                };
+                vertex.tangent = { mesh->mTangents[v].x, mesh->mTangents[v].y, mesh->mTangents[v].z, 1.0f };
             }
 
             pipeline_node.vertices.Push(vertex);
@@ -118,6 +106,8 @@ void ProcessSingleMesh(
     PipelineNodeContainer& out_container
 )
 {
+    ZoneScopedN("ProcessSingleMesh");
+
     StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
 
     // 노드 이름 설정
@@ -129,41 +119,24 @@ void ProcessSingleMesh(
     {
         gfx::Vertex vertex;
 
-        // Position
-        vertex.position = {
-            mesh->mVertices[i].x,
-            mesh->mVertices[i].y,
-            mesh->mVertices[i].z,
-        };
+        vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
 
         // Normal
         if (mesh->HasNormals())
         {
-            vertex.normal = {
-                mesh->mNormals[i].x,
-                mesh->mNormals[i].y,
-                mesh->mNormals[i].z,
-            };
+            vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
         }
 
         // UV
         if (mesh->HasTextureCoords(0))
         {
-            vertex.tex_coord = {
-                mesh->mTextureCoords[0][i].x,
-                mesh->mTextureCoords[0][i].y
-            };
+            vertex.tex_coord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
         }
 
         // Tangent
         if (mesh->HasTangentsAndBitangents())
         {
-            vertex.tangent = {
-                mesh->mTangents[i].x,
-                mesh->mTangents[i].y,
-                mesh->mTangents[i].z,
-                1.0f
-            };
+            vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z, 1.0f };
         }
 
         pipeline_node.vertices.Push(vertex);
@@ -248,8 +221,12 @@ void AssimpTranslator::Translate(
     }
 
     // 파일 로드
-    const String utf8_path = utility::ToString(file_path.u8string());
-    const aiScene* scene = importer.ReadFile(utf8_path.CStr(), flags);
+    const String utf8_path = utility::ToString(file_path.generic_u8string());
+    const aiScene* scene = [&]
+    {
+        ZoneScopedN("Assimp::ReadFile");
+        return importer.ReadFile(utf8_path.CStr(), flags);
+    }();
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
