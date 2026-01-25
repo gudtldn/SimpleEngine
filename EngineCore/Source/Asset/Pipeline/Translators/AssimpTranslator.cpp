@@ -170,7 +170,7 @@ void ProcessSingleMesh(
     }
 
     // Indices 변환
-    pipeline_node.indices.Reserve(mesh->mNumFaces * 3);
+    pipeline_node.indices.Reserve(mesh->mNumFaces * 3ULL);
     for (uint32 i = 0; i < mesh->mNumFaces; ++i)
     {
         const aiFace& face = mesh->mFaces[i];
@@ -206,16 +206,14 @@ void ProcessNodeRecursive(const aiNode* node, const aiScene* scene, PipelineNode
         ProcessNodeRecursive(node->mChildren[i], scene, out_container);
     }
 }
-}
+}  // namespace
 
 namespace se::asset
 {
-bool AssimpTranslator::CanTranslate(const std::filesystem::path& file_extension) const
+bool AssimpTranslator::CanTranslate(const String& file_extension) const
 {
-    const String ext = utility::ToString(file_extension.u8string()).ToLower();
-
     static HashSet<String> supported_extensions = { ".obj", ".fbx", ".gltf", ".glb" };
-    return supported_extensions.Contains(ext);
+    return supported_extensions.Contains(file_extension);
 }
 
 void AssimpTranslator::Translate(
@@ -270,4 +268,4 @@ void AssimpTranslator::Translate(
         ProcessNodeRecursive(scene->mRootNode, scene, out_container);
     }
 }
-}
+}  // namespace se::asset

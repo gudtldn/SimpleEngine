@@ -1,5 +1,6 @@
 ﻿#include "Asset/Pipeline/AssetImporter.h"
 #include "Core/Container/Queue.h"
+#include "Utility/StringUtils.h"
 
 #include <tracy/Tracy.hpp>
 
@@ -101,7 +102,7 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
 
 Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const std::filesystem::path& file_path) const
 {
-    const auto ext = file_path.extension();
+    const String ext = utility::ToString(file_path.extension().u8string()).ToLower();
     for (const auto& translator : translators)
     {
         if (translator->CanTranslate(ext))
