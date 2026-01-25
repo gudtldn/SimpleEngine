@@ -15,7 +15,7 @@ SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
 
 bool EditorAssetSubsystem::Initialize()
 {
-    asset_manager = &GetSubsystemChecked<se::asset::AssetSubsystem>().GetAssetManager();
+    asset_manager = &GetSubsystemChecked<se::asset::AssetSubsystem>().GetAssetManager_DEPRECATED();
     SE_ASSERT(asset_manager != nullptr);
 
     // TODO: 캐시 불러오는 로직

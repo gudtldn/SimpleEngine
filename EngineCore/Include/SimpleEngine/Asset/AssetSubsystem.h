@@ -1,6 +1,11 @@
 ﻿#pragma once
 
+// DEPRECATED
 #include "SimpleEngine/Asset/AssetManager_DEPRECATED.h"
+// ~DEPRECATED
+
+#include "SimpleEngine/Asset/AssetManager.h"
+#include "SimpleEngine/Asset/Pipeline/AssetImporter.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 
 
@@ -18,9 +23,16 @@ public:
     //~ End ISubsystem
 
 public:
-    [[nodiscard]] AssetManager_DEPRECATED& GetAssetManager() const { return *asset_manager; }
+    [[nodiscard]] AssetImporter& GetAssetImporter() const { return *asset_importer; }
+    [[nodiscard]] AssetManager& GetAssetManager() const { return *asset_manager; }
+
+public:
+    [[nodiscard]] AssetManager_DEPRECATED& GetAssetManager_DEPRECATED() const { return *asset_manager_deprecated; }
 
 private:
-    std::unique_ptr<AssetManager_DEPRECATED> asset_manager;
+    std::unique_ptr<AssetManager_DEPRECATED> asset_manager_deprecated;
+
+    std::unique_ptr<AssetImporter> asset_importer;
+    std::unique_ptr<AssetManager> asset_manager;
 };
-}
+}  // namespace se::asset
