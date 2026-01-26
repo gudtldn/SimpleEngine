@@ -47,19 +47,6 @@ String GetCurrentThreadName()
     return {};
 }
 
-std::filesystem::path GetExecutableDirectory()
-{
-    char path_buffer[1024];
-    uint32 size = sizeof(path_buffer);
-    if (_NSGetExecutablePath(path_buffer, &size) == 0)
-    {
-        return std::filesystem::path{
-            std::string_view(path_buffer)
-        }.parent_path();
-    }
-    return {};
-}
-
 void RevealInExplorer(const std::filesystem::path& path)
 {
     if (!std::filesystem::exists(path))
@@ -73,5 +60,5 @@ void RevealInExplorer(const std::filesystem::path& path)
     std::string command = "open -R \"" + absolute_path.string() + "\"";
     std::system(command.c_str());
 }
-}
+}  // namespace se::platform
 #endif

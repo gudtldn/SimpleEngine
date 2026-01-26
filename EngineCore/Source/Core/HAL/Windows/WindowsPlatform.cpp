@@ -50,7 +50,7 @@ se::String GetThreadName(HANDLE handle)
 
     return se::utility::ToString(name);
 }
-}
+}  // namespace
 
 namespace se::platform
 {
@@ -74,13 +74,6 @@ String GetCurrentThreadName()
     return ::GetThreadName(GetCurrentThread());
 }
 
-std::filesystem::path GetExecutableDirectory()
-{
-    wchar_t path[MAX_PATH] = {};
-    GetModuleFileNameW(nullptr, path, MAX_PATH);
-    return std::filesystem::path{ path }.parent_path();
-}
-
 void RevealInExplorer(const std::filesystem::path& path)
 {
     if (!std::filesystem::exists(path))
@@ -101,5 +94,5 @@ void RevealInExplorer(const std::filesystem::path& path)
         ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
     }
 }
-}
+}  // namespace se::platform
 #endif

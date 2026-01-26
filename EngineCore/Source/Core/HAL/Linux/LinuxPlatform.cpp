@@ -48,19 +48,6 @@ String GetCurrentThreadName()
     return {};
 }
 
-std::filesystem::path GetExecutableDirectory()
-{
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-    if (count > 0 && count < PATH_MAX)
-    {
-        return std::filesystem::path{
-            std::string_view(result, static_cast<size_t>(count))
-        }.parent_path();
-    }
-    return {};
-}
-
 void RevealInExplorer(const std::filesystem::path& path)
 {
     if (!std::filesystem::exists(path))
@@ -74,5 +61,5 @@ void RevealInExplorer(const std::filesystem::path& path)
     std::string command = "xdg-open \"" + absolute_path.parent_path().string() + "\"";
     std::system(command.c_str());
 }
-}
+}  // namespace se::platform
 #endif
