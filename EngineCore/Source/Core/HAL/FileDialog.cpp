@@ -42,11 +42,10 @@ struct DialogCallbackProxy
                     {
                         std::forward<Fn>(cb)(String(file_list[0]));
                     }
-                    return;
                 }
 
                 // 다중 선택
-                if constexpr (std::same_as<DecayedFn, FileDialog::OnMultiFilesSelected>)
+                else if constexpr (std::same_as<DecayedFn, FileDialog::OnMultiFilesSelected>)
                 {
                     Array<String> paths;
                     for (int i = 0; file_list[i] != nullptr; ++i)
@@ -59,9 +58,7 @@ struct DialogCallbackProxy
                     {
                         std::forward<Fn>(cb)(paths);
                     }
-                    return;
                 }
-                SE_UNREACHABLE();
             }, proxy->callback);
         }
 
@@ -97,7 +94,7 @@ Array<SDL_DialogFileFilter> ConvertFilters(const Array<FileFilter>& filters)
     ConsoleLog(ELogLevel::Warning, "File dialog is already open. Ignoring request.");
     return false;
 }
-}
+}  // namespace
 
 namespace se::core
 {
@@ -162,4 +159,4 @@ void FileDialog::SaveFile(OnFileSelected callback, const Array<FileFilter>& filt
         default_location
     );
 }
-}
+}  // namespace se::core
