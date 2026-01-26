@@ -43,8 +43,8 @@ bool AssetSubsystem::Initialize()
     }
 
     {
-        // Make AssetManager Instance
-        asset_manager = std::make_unique<AssetManager>();
+        // Make AssetCache Instance
+        asset_cache = std::make_unique<AssetCache>();
     }
 
     return true;
@@ -54,7 +54,7 @@ void AssetSubsystem::Release()
 {
     ConsoleLog(ELogLevel::Info, "Releasing Asset subsystem...");
 
-    asset_manager.reset();
+    asset_cache.reset();
     asset_importer.reset();
 
     {
