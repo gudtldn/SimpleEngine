@@ -45,10 +45,10 @@ TEST_F(StringNameTest, DisplayHashIsCaseSensitive)
     StringName name_b("hello");
     StringName name_d("Hello");
 
-    // 대소문자가 다르므로 디스플레이 해시는 달라야 함
-    EXPECT_NE(name_a.GetDisplayHash(), name_b.GetDisplayHash());
-    // 내용은 완전히 같으므로 디스플레이 해시도 같아야 함
-    EXPECT_EQ(name_a.GetDisplayHash(), name_d.GetDisplayHash());
+    // 대소문자가 다르므로 문자열의 주소는 달라야 함
+    EXPECT_NE(name_a.CStr(), name_b.CStr());
+    // 내용은 완전히 같으므로 문자열의 주소도 같아야 함
+    EXPECT_EQ(name_a.CStr(), name_d.CStr());
 }
 
 TEST_F(StringNameTest, ToStringReturnsOriginalString)
@@ -83,7 +83,7 @@ TEST_F(StringNameTest, StaticNoneProperties)
     // 기본 생성자는 None과 같아야 함
     EXPECT_EQ(StringName(), StringName::None);
 
-    EXPECT_EQ(StringName::None.GetDisplayHash(), 0);
+    EXPECT_NE(StringName::None.CStr(), nullptr); // "None" 반환
     EXPECT_EQ(StringName::None.GetComparisonHash(), 0);
     EXPECT_EQ(StringName::None.ToString(), "None");
 }
@@ -139,7 +139,7 @@ TEST_F(StringNameTest, IsThreadSafe)
     StringName physics("PhysicsSystem");
 
     EXPECT_EQ(player, player_lower);
-    EXPECT_NE(player.GetDisplayHash(), player_lower.GetDisplayHash());
+    EXPECT_NE(player.CStr(), player_lower.CStr());
     EXPECT_NE(player, physics);
 }
 

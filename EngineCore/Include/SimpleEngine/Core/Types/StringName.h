@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// ReSharper disable CppNonExplicitConvertingConstructor
+#pragma once
 #include <format>
 #include <string_view>
 
@@ -10,6 +11,7 @@ namespace se
 {
 /**
  * 빠른 비교 및 조회를 위해 문자열을 ID로 관리하는 클래스
+ * @note ASCII 문자에 한해 대소문자를 구분하지 않습니다. (Unicode 문자는 대소문자 구분)
  */
 class SE_CORE_API StringName
 {
@@ -31,14 +33,15 @@ public:
     [[nodiscard]] static StringName Find(std::string_view in_str);
 
 public:
+    // NOLINTBEGIN(*-explicit-constructor)
     StringName() = default;
     StringName(const char* in_str);
     StringName(const String& in_str);
     StringName(std::string_view in_str);
+    // NOLINTEND(*-explicit-constructor)
 
     [[nodiscard]] const char* CStr() const;
     [[nodiscard]] String ToString() const;
-    [[nodiscard]] FORCE_INLINE uint64 GetDisplayHash() const { return display_hash; }
     [[nodiscard]] FORCE_INLINE uint64 GetComparisonHash() const { return comparison_hash; }
 
 public:
@@ -46,21 +49,17 @@ public:
     [[nodiscard]] FORCE_INLINE bool operator!=(const StringName& other) const { return comparison_hash != other.comparison_hash; }
 
 private:
-    uint64 display_hash = 0;
     uint64 comparison_hash = 0;
-
-#ifdef SE_DEBUG_BUILD
-    const void* debug_entry_ptr = nullptr;
-#endif
+    const char* display_name = nullptr;
 };
 }  // namespace se
 
 template <>
 struct std::hash<se::StringName>
 {
-    size_t operator()(const se::StringName& key) const noexcept
+    size_t operator()(const se::StringName& name) const noexcept
     {
-        return hash<uint64>()(key.GetComparisonHash());
+        return hash<uint64>()(name.GetComparisonHash());
     }
 };
 
@@ -68,8 +67,8 @@ struct std::hash<se::StringName>
 template <>
 struct std::formatter<se::StringName, char> : std::formatter<std::string_view>
 {
-    auto format(const se::StringName& string, std::format_context& ctx) const
+    auto format(const se::StringName& name, std::format_context& ctx) const
     {
-        return std::formatter<std::string_view>::format(string.CStr(), ctx);
+        return std::formatter<std::string_view>::format(name.CStr(), ctx);
     }
 };
