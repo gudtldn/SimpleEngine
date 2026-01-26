@@ -2,13 +2,10 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
   <!-- StringName -->
-  <Type Name="StringName">
-    <DisplayString Condition="debug_entry_ptr == nullptr">"None"</DisplayString>
-    <DisplayString Condition="debug_entry_ptr != nullptr">
-      {(const char*)((StringNameEntry*)debug_entry_ptr)->name,s8}
-    </DisplayString>
+  <Type Name="se::StringName">
+    <DisplayString>{display_name,s8}</DisplayString>
     <Expand>
-      <Item Name="[display_hash]">display_hash</Item>
+      <Item Name="[display_name]">display_name</Item>
       <Item Name="[comparison_hash]">comparison_hash</Item>
     </Expand>
   </Type>
@@ -18,38 +15,38 @@
     <DisplayString>Matrix4x4</DisplayString>
     <Expand>
       <Synthetic Name="[0]">
-        <DisplayString>{data[0]}, {data[1]}, {data[2]}, {data[3]}</DisplayString>
+        <DisplayString>{data[0],g}, {data[1],g}, {data[2],g}, {data[3],g}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>($T1*)&amp;data</ValuePointer>
+            <ValuePointer>&amp;data[0]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
       <Synthetic Name="[1]">
-        <DisplayString>{data[4]}, {data[5]}, {data[6]}, {data[7]}</DisplayString>
+        <DisplayString>{data[4],g}, {data[5],g}, {data[6],g}, {data[7],g}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>($T1*)(&amp;data)+4</ValuePointer>
+            <ValuePointer>&amp;data[4]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
       <Synthetic Name="[2]">
-        <DisplayString>{data[8]}, {data[9]}, {data[10]}, {data[11]}</DisplayString>
+        <DisplayString>{data[8],g}, {data[9],g}, {data[10],g}, {data[11],g}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>($T1*)(&amp;data)+8</ValuePointer>
+            <ValuePointer>&amp;data[8]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
       <Synthetic Name="[3]">
-        <DisplayString>{data[12]}, {data[13]}, {data[14]}, {data[15]}</DisplayString>
+        <DisplayString>{data[12],g}, {data[13],g}, {data[14],g}, {data[15],g}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>($T1*)(&amp;data)+12</ValuePointer>
+            <ValuePointer>&amp;data[12]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
