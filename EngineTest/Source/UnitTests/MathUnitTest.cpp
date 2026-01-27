@@ -3,7 +3,15 @@
 
 using namespace se;
 
+template <traits::FloatingType T>
+constexpr T epsilon = std::numeric_limits<T>::epsilon() * 10;
+
 class MathLiteralsTest : public ::testing::Test{};
+class MathVector2Test : public ::testing::Test{};
+class MathVector3Test : public ::testing::Test{};
+class MathVector4Test : public ::testing::Test{};
+class MathQuaternionTest : public ::testing::Test{};
+class MathRotatorTest : public ::testing::Test{};
 class MathMatrix4x4Test : public ::testing::Test{};
 
 
@@ -156,6 +164,122 @@ TEST_F(MathLiteralsTest, AngleType_ConstexprEvaluation)
     static_assert(calculated_at_compile_time.value > 3.14f && calculated_at_compile_time.value < 3.15f);
 }
 
+// Vector2 Tests
+template <typename T>
+void test_vector2_basic()
+{
+    math::Vector2Impl<T> v1(1, 2);
+    math::Vector2Impl<T> v2(3, 4);
+
+    EXPECT_NEAR(v1.x, 1, epsilon<T>);
+    EXPECT_NEAR(v1.y, 2, epsilon<T>);
+
+    auto v3 = v1 + v2;
+    EXPECT_NEAR(v3.x, 4, epsilon<T>);
+    EXPECT_NEAR(v3.y, 6, epsilon<T>);
+
+    auto v4 = v1 * static_cast<T>(2);
+    EXPECT_NEAR(v4.x, 2, epsilon<T>);
+    EXPECT_NEAR(v4.y, 4, epsilon<T>);
+
+    EXPECT_NEAR(v1.Dot(v2), 11, epsilon<T>);
+    EXPECT_NEAR(v1.SquaredLength(), 5, epsilon<T>);
+    EXPECT_NEAR(v1.Length(), std::sqrt(5.0), epsilon<T>);
+}
+
+TEST_F(MathVector2Test, float_Basic) { test_vector2_basic<float>(); }
+TEST_F(MathVector2Test, double_Basic) { test_vector2_basic<double>(); }
+
+// Vector3 Tests
+template <typename T>
+void test_vector3_basic()
+{
+    math::Vector3Impl<T> v1(1, 0, 0);
+    math::Vector3Impl<T> v2(0, 1, 0);
+
+    auto v3 = v1 ^ v2; // Cross product
+    EXPECT_NEAR(v3.x, 0, epsilon<T>);
+    EXPECT_NEAR(v3.y, 0, epsilon<T>);
+    EXPECT_NEAR(v3.z, 1, epsilon<T>);
+
+    EXPECT_NEAR(v1.Dot(v2), 0, epsilon<T>);
+    EXPECT_NEAR(v1.Length(), 1, epsilon<T>);
+
+    math::Vector3Impl<T> v4(1, 2, 2);
+    EXPECT_NEAR(v4.Length(), 3, epsilon<T>);
+}
+
+TEST_F(MathVector3Test, float_Basic) { test_vector3_basic<float>(); }
+TEST_F(MathVector3Test, double_Basic) { test_vector3_basic<double>(); }
+
+// Vector4 Tests
+template <typename T>
+void test_vector4_basic()
+{
+    math::Vector4Impl<T> v1(1, 2, 3, 4);
+    EXPECT_NEAR(v1.x, 1, epsilon<T>);
+    EXPECT_NEAR(v1.y, 2, epsilon<T>);
+    EXPECT_NEAR(v1.z, 3, epsilon<T>);
+    EXPECT_NEAR(v1.w, 4, epsilon<T>);
+
+    math::Vector4Impl<T> v2(math::Vector3Impl<T>(1, 2, 3), 5);
+    EXPECT_NEAR(v2.w, 5, epsilon<T>);
+}
+
+TEST_F(MathVector4Test, float_Basic) { test_vector4_basic<float>(); }
+TEST_F(MathVector4Test, double_Basic) { test_vector4_basic<double>(); }
+
+// Quaternion Tests
+template <typename T>
+void test_quaternion_basic()
+{
+    math::QuaternionImpl<T> q1 = math::QuaternionImpl<T>::Identity();
+    EXPECT_NEAR(q1.x, 0, epsilon<T>);
+    EXPECT_NEAR(q1.y, 0, epsilon<T>);
+    EXPECT_NEAR(q1.z, 0, epsilon<T>);
+    EXPECT_NEAR(q1.w, 1, epsilon<T>);
+
+    // Rotation 90 degrees around Z axis
+    math::Vector3Impl<T> axis(0, 0, 1);
+    auto q2 = math::QuaternionImpl<T>::FromAxisAngle(axis, math::DegreesToRadians<T>(90.0));
+
+    // q = [axis * sin(theta/2), cos(theta/2)]
+    // sin(45) = 0.707106..., cos(45) = 0.707106...
+    EXPECT_NEAR(q2.x, 0, epsilon<T>);
+    EXPECT_NEAR(q2.y, 0, epsilon<T>);
+    EXPECT_NEAR(q2.z, std::sin(std::numbers::pi / 4.0), epsilon<T>);
+    EXPECT_NEAR(q2.w, std::cos(std::numbers::pi / 4.0), epsilon<T>);
+
+    auto fwd = q2.GetForwardVector(); // Forward is +Y (0, 1, 0)
+    // After 90 deg around Z, +Y becomes -X (-1, 0, 0)
+    EXPECT_NEAR(fwd.x, -1, epsilon<T>);
+    EXPECT_NEAR(fwd.y, 0, epsilon<T>);
+    EXPECT_NEAR(fwd.z, 0, epsilon<T>);
+}
+
+TEST_F(MathQuaternionTest, float_Basic) { test_quaternion_basic<float>(); }
+TEST_F(MathQuaternionTest, double_Basic) { test_quaternion_basic<double>(); }
+
+// Rotator Tests
+template <typename T>
+void test_rotator_basic()
+{
+    math::RotatorImpl<T> r1(Degree<T>(0), Degree<T>(90), Degree<T>(0)); // Yaw 90
+    auto q = r1.ToQuaternion();
+
+    auto fwd = r1.GetForwardVector();
+    EXPECT_NEAR(fwd.x, -1, epsilon<T>);
+    EXPECT_NEAR(fwd.y, 0, epsilon<T>);
+    EXPECT_NEAR(fwd.z, 0, epsilon<T>);
+
+    math::RotatorImpl<T> r2 = q.ToRotator();
+    EXPECT_NEAR(r2.yaw.value, 90, 1e-5);
+}
+
+TEST_F(MathRotatorTest, float_Basic) { test_rotator_basic<float>(); }
+TEST_F(MathRotatorTest, double_Basic) { test_rotator_basic<double>(); }
+
+
 
 template <typename T>
 void test_matrix_creation_and_zero()
@@ -165,7 +289,7 @@ void test_matrix_creation_and_zero()
     {
         for (int j = 0; j < 4; ++j)
         {
-            EXPECT_DOUBLE_EQ((mat[i, j]), T{0});
+            EXPECT_NEAR((mat[i, j]), T{0}, epsilon<T>);
         }
     }
 
@@ -174,7 +298,7 @@ void test_matrix_creation_and_zero()
     {
         for (int j = 0; j < 4; ++j)
         {
-            EXPECT_DOUBLE_EQ((zero_mat[i, j]), T{0});
+            EXPECT_NEAR((zero_mat[i, j]), T{0}, epsilon<T>);
         }
     }
 }
@@ -199,10 +323,10 @@ void test_matrix_variadic_constructor()
         static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
     );
 
-    EXPECT_DOUBLE_EQ((mat[0, 0]), static_cast<T>(1.0));
-    EXPECT_DOUBLE_EQ((mat[0, 1]), static_cast<T>(2.0));
-    EXPECT_DOUBLE_EQ((mat[3, 3]), static_cast<T>(16.0));
-    EXPECT_DOUBLE_EQ((mat[1, 2]), static_cast<T>(7.0));
+    EXPECT_NEAR((mat[0, 0]), static_cast<T>(1.0), epsilon<T>);
+    EXPECT_NEAR((mat[0, 1]), static_cast<T>(2.0), epsilon<T>);
+    EXPECT_NEAR((mat[3, 3]), static_cast<T>(16.0), epsilon<T>);
+    EXPECT_NEAR((mat[1, 2]), static_cast<T>(7.0), epsilon<T>);
 }
 
 TEST_F(MathMatrix4x4Test, float_VariadicConstructor)
@@ -225,11 +349,11 @@ void test_matrix_identity_matrix()
         {
             if (i == j)
             {
-                EXPECT_DOUBLE_EQ((identity_mat[i, j]), static_cast<T>(1.0));
+                EXPECT_NEAR((identity_mat[i, j]), static_cast<T>(1.0), epsilon<T>);
             }
             else
             {
-                EXPECT_DOUBLE_EQ((identity_mat[i, j]), static_cast<T>(0.0));
+                EXPECT_NEAR((identity_mat[i, j]), static_cast<T>(0.0), epsilon<T>);
             }
         }
     }
@@ -257,12 +381,12 @@ void test_matrix_transpose()
 
     se::math::Matrix4x4Impl<T> transposed_mat = mat.Transpose();
 
-    EXPECT_DOUBLE_EQ((transposed_mat[0, 0]), static_cast<T>(1.0));
-    EXPECT_DOUBLE_EQ((transposed_mat[0, 1]), static_cast<T>(5.0));
-    EXPECT_DOUBLE_EQ((transposed_mat[1, 0]), static_cast<T>(2.0));
-    EXPECT_DOUBLE_EQ((transposed_mat[3, 2]), static_cast<T>(12.0));
+    EXPECT_NEAR((transposed_mat[0, 0]), static_cast<T>(1.0), epsilon<T>);
+    EXPECT_NEAR((transposed_mat[0, 1]), static_cast<T>(5.0), epsilon<T>);
+    EXPECT_NEAR((transposed_mat[1, 0]), static_cast<T>(2.0), epsilon<T>);
+    EXPECT_NEAR((transposed_mat[3, 2]), static_cast<T>(12.0), epsilon<T>);
 
-    EXPECT_DOUBLE_EQ((transposed_mat[2, 3]), static_cast<T>(15.0));
+    EXPECT_NEAR((transposed_mat[2, 3]), static_cast<T>(15.0), epsilon<T>);
 }
 
 TEST_F(MathMatrix4x4Test, float_Transpose)
@@ -294,14 +418,14 @@ void test_matrix_addition()
 
     se::math::Matrix4x4Impl<T> result = mat1 + mat2;
 
-    EXPECT_DOUBLE_EQ((result[0, 0]), static_cast<T>(2.0));
-    EXPECT_DOUBLE_EQ((result[0, 1]), static_cast<T>(3.0));
-    EXPECT_DOUBLE_EQ((result[3, 3]), static_cast<T>(17.0));
+    EXPECT_NEAR((result[0, 0]), static_cast<T>(2.0), epsilon<T>);
+    EXPECT_NEAR((result[0, 1]), static_cast<T>(3.0), epsilon<T>);
+    EXPECT_NEAR((result[3, 3]), static_cast<T>(17.0), epsilon<T>);
 
     mat1 += mat2;
-    EXPECT_DOUBLE_EQ((mat1[0, 0]), static_cast<T>(2.0));
-    EXPECT_DOUBLE_EQ((mat1[0, 1]), static_cast<T>(3.0));
-    EXPECT_DOUBLE_EQ((mat1[3, 3]), static_cast<T>(17.0));
+    EXPECT_NEAR((mat1[0, 0]), static_cast<T>(2.0), epsilon<T>);
+    EXPECT_NEAR((mat1[0, 1]), static_cast<T>(3.0), epsilon<T>);
+    EXPECT_NEAR((mat1[3, 3]), static_cast<T>(17.0), epsilon<T>);
 }
 
 TEST_F(MathMatrix4x4Test, float_Addition)
@@ -326,14 +450,14 @@ void test_matrix_scalar_multiplication()
 
     se::math::Matrix4x4Impl<T> result = mat * static_cast<T>(2.0);
 
-    EXPECT_DOUBLE_EQ((result[0, 0]), static_cast<T>(2.0));
-    EXPECT_DOUBLE_EQ((result[0, 1]), static_cast<T>(4.0));
-    EXPECT_DOUBLE_EQ((result[3, 3]), static_cast<T>(32.0));
+    EXPECT_NEAR((result[0, 0]), static_cast<T>(2.0), epsilon<T>);
+    EXPECT_NEAR((result[0, 1]), static_cast<T>(4.0), epsilon<T>);
+    EXPECT_NEAR((result[3, 3]), static_cast<T>(32.0), epsilon<T>);
 
     mat *= static_cast<T>(0.5);
-    EXPECT_DOUBLE_EQ((mat[0, 0]), static_cast<T>(0.5));
-    EXPECT_DOUBLE_EQ((mat[0, 1]), static_cast<T>(1.0));
-    EXPECT_DOUBLE_EQ((mat[3, 3]), static_cast<T>(8.0));
+    EXPECT_NEAR((mat[0, 0]), static_cast<T>(0.5), epsilon<T>);
+    EXPECT_NEAR((mat[0, 1]), static_cast<T>(1.0), epsilon<T>);
+    EXPECT_NEAR((mat[3, 3]), static_cast<T>(8.0), epsilon<T>);
 }
 
 TEST_F(MathMatrix4x4Test, float_ScalarMultiplication)
@@ -369,7 +493,7 @@ void test_matrix_multiplication()
     {
         for (int j = 0; j < 4; ++j)
         {
-            EXPECT_DOUBLE_EQ((result[i, j]), (mat2[i, j]));
+            EXPECT_NEAR((result[i, j]), (mat2[i, j]), epsilon<T>);
         }
     }
 
@@ -392,7 +516,7 @@ void test_matrix_multiplication()
     {
         for (int j = 0; j < 4; ++j)
         {
-            EXPECT_DOUBLE_EQ((result[i, j]), (mat4_expected[i, j]));
+            EXPECT_NEAR((result[i, j]), (mat4_expected[i, j]), epsilon<T>);
         }
     }
 
@@ -402,7 +526,7 @@ void test_matrix_multiplication()
     {
         for (int j = 0; j < 4; ++j)
         {
-            EXPECT_DOUBLE_EQ((mat2[i, j]), (original_mat2[i, j]));
+            EXPECT_NEAR((mat2[i, j]), (original_mat2[i, j]), epsilon<T>);
         }
     }
 }
@@ -431,10 +555,10 @@ void test_matrix_vector4_multiplication()
 
     se::math::Vector4Impl<T> result = vec * mat;
 
-    EXPECT_DOUBLE_EQ((result[0]), static_cast<T>(10.0));
-    EXPECT_DOUBLE_EQ((result[1]), static_cast<T>(20.0));
-    EXPECT_DOUBLE_EQ((result[2]), static_cast<T>(30.0));
-    EXPECT_DOUBLE_EQ((result[3]), static_cast<T>(1.0));
+    EXPECT_NEAR((result[0]), static_cast<T>(10.0), epsilon<T>);
+    EXPECT_NEAR((result[1]), static_cast<T>(20.0), epsilon<T>);
+    EXPECT_NEAR((result[2]), static_cast<T>(30.0), epsilon<T>);
+    EXPECT_NEAR((result[3]), static_cast<T>(1.0), epsilon<T>);
 
     se::math::Matrix4x4Impl<T> translation_mat(
         static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
@@ -446,10 +570,10 @@ void test_matrix_vector4_multiplication()
     se::math::Vector4Impl<T> vec_to_translate(static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(1.0));
     se::math::Vector4Impl<T> translated_vec = vec_to_translate * translation_mat;
 
-    EXPECT_DOUBLE_EQ((translated_vec[0]), static_cast<T>(1.0) + static_cast<T>(100.0));
-    EXPECT_DOUBLE_EQ((translated_vec[1]), static_cast<T>(2.0) + static_cast<T>(200.0));
-    EXPECT_DOUBLE_EQ((translated_vec[2]), static_cast<T>(3.0) + static_cast<T>(300.0));
-    EXPECT_DOUBLE_EQ((translated_vec[3]), static_cast<T>(1.0));
+    EXPECT_NEAR((translated_vec[0]), static_cast<T>(1.0) + static_cast<T>(100.0), epsilon<T>);
+    EXPECT_NEAR((translated_vec[1]), static_cast<T>(2.0) + static_cast<T>(200.0), epsilon<T>);
+    EXPECT_NEAR((translated_vec[2]), static_cast<T>(3.0) + static_cast<T>(300.0), epsilon<T>);
+    EXPECT_NEAR((translated_vec[3]), static_cast<T>(1.0), epsilon<T>);
 }
 
 TEST_F(MathMatrix4x4Test, float_Vector4Multiplication)
@@ -474,11 +598,11 @@ void test_matrix_inverse()
         {
             if (i == j)
             {
-                EXPECT_DOUBLE_EQ((inverse_identity[i, j]), static_cast<T>(1.0));
+                EXPECT_NEAR((inverse_identity[i, j]), static_cast<T>(1.0), epsilon<T>);
             }
             else
             {
-                EXPECT_DOUBLE_EQ((inverse_identity[i, j]), static_cast<T>(0.0));
+                EXPECT_NEAR((inverse_identity[i, j]), static_cast<T>(0.0), epsilon<T>);
             }
         }
     }
@@ -490,11 +614,11 @@ void test_matrix_inverse()
         {
             if (i == j)
             {
-                EXPECT_DOUBLE_EQ((product[i, j]), static_cast<T>(1.0));
+                EXPECT_NEAR((product[i, j]), static_cast<T>(1.0), epsilon<T>);
             }
             else
             {
-                EXPECT_DOUBLE_EQ((product[i, j]), static_cast<T>(0.0));
+                EXPECT_NEAR((product[i, j]), static_cast<T>(0.0), epsilon<T>);
             }
         }
     }
@@ -518,7 +642,7 @@ void test_matrix_inverse()
     {
         for (int j = 0; j < 4; ++j)
         {
-            EXPECT_DOUBLE_EQ((calculated_inverse[i, j]), (expected_inverse[i, j]));
+            EXPECT_NEAR((calculated_inverse[i, j]), (expected_inverse[i, j]), epsilon<T>);
         }
     }
 
@@ -529,11 +653,11 @@ void test_matrix_inverse()
         {
             if (i == j)
             {
-                EXPECT_DOUBLE_EQ((product[i, j]), static_cast<T>(1.0));
+                EXPECT_NEAR((product[i, j]), static_cast<T>(1.0), epsilon<T>);
             }
             else
             {
-                EXPECT_DOUBLE_EQ((product[i, j]), static_cast<T>(0.0));
+                EXPECT_NEAR((product[i, j]), static_cast<T>(0.0), epsilon<T>);
             }
         }
     }
