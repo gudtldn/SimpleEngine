@@ -124,6 +124,23 @@ constexpr QuaternionImpl<T> QuaternionImpl<T>::Identity()
 }
 
 template <traits::FloatingType T>
+QuaternionImpl<T> QuaternionImpl<T>::FromAxisAngle(const Vector3Impl<T>& axis, Radian<T> angle)
+{
+    const Radian half_angle = angle * static_cast<T>(0.5);
+    const T sin_half_angle = Sin(half_angle);
+    const T cos_half_angle = Cos(half_angle);
+
+    assert(axis.IsNormalized());
+
+    return QuaternionImpl{
+        axis.x * sin_half_angle,
+        axis.y * sin_half_angle,
+        axis.z * sin_half_angle,
+        cos_half_angle
+    };
+}
+
+template <traits::FloatingType T>
 constexpr QuaternionImpl<T> QuaternionImpl<T>::operator*(const QuaternionImpl& other) const
 {
     // (Q1 * Q2).X = (W1*X2 + X1*W2 + Y1*Z2 - Z1*Y2)
@@ -142,6 +159,26 @@ template <traits::FloatingType T>
 constexpr QuaternionImpl<T> QuaternionImpl<T>::operator*(T scalar) const
 {
     return QuaternionImpl{ x * scalar, y * scalar, z * scalar, w * scalar };
+}
+
+template <traits::FloatingType T>
+QuaternionImpl<T>& QuaternionImpl<T>::operator*=(const QuaternionImpl& other)
+{
+    x = w * other.x + x * other.w + y * other.z - z * other.y;
+    y = w * other.y - x * other.z + y * other.w + z * other.x;
+    z = w * other.z + x * other.y - y * other.x + z * other.w;
+    w = w * other.w - x * other.x - y * other.y - z * other.z;
+    return *this;
+}
+
+template <traits::FloatingType T>
+QuaternionImpl<T>& QuaternionImpl<T>::operator*=(T scalar)
+{
+    x *= scalar;
+    y *= scalar;
+    z *= scalar;
+    w *= scalar;
+    return *this;
 }
 
 template <traits::FloatingType T>
@@ -243,43 +280,6 @@ template <traits::FloatingType T>
 constexpr RotatorImpl<T> QuaternionImpl<T>::ToRotator() const
 {
     return RotatorImpl{ *this };
-}
-
-template <traits::FloatingType T>
-QuaternionImpl<T> QuaternionImpl<T>::FromAxisAngle(const Vector3Impl<T>& axis, Radian<T> angle)
-{
-    const Radian half_angle = angle * static_cast<T>(0.5);
-    const T sin_half_angle = Sin(half_angle);
-    const T cos_half_angle = Cos(half_angle);
-
-    assert(axis.IsNormalized());
-
-    return QuaternionImpl{
-        axis.x * sin_half_angle,
-        axis.y * sin_half_angle,
-        axis.z * sin_half_angle,
-        cos_half_angle
-    };
-}
-
-template <traits::FloatingType T>
-QuaternionImpl<T>& QuaternionImpl<T>::operator*=(const QuaternionImpl& other)
-{
-    x = w * other.x + x * other.w + y * other.z - z * other.y;
-    y = w * other.y - x * other.z + y * other.w + z * other.x;
-    z = w * other.z + x * other.y - y * other.x + z * other.w;
-    w = w * other.w - x * other.x - y * other.y - z * other.z;
-    return *this;
-}
-
-template <traits::FloatingType T>
-QuaternionImpl<T>& QuaternionImpl<T>::operator*=(T scalar)
-{
-    x *= scalar;
-    y *= scalar;
-    z *= scalar;
-    w *= scalar;
-    return *this;
 }
 
 //~ End QuaternionImpl
