@@ -26,34 +26,29 @@ ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
 
 ThreadPool::~ThreadPool()
 {
-    const usize remaining_tasks = [this]
+    usize tasks_dropped = 0;
     {
         std::scoped_lock lock(mutex);
-        return tasks.Len();
-    }();
-
-    if (remaining_tasks > 0)
-    {
-        ConsoleLog(ELogLevel::Warning, "Destroying ThreadPool: [{}] with {} tasks still in queue!", pool_name, remaining_tasks);
-    }
-    else
-    {
-        ConsoleLog(ELogLevel::Info, "Destroying ThreadPool: [{}]", pool_name);
-    }
-
-    {
-        std::scoped_lock lock(mutex);
+        tasks_dropped = tasks.Len();
         tasks.Clear();
     }
 
-    // 스레드 중단
+    // 스레드 중단 요청
     for (std::jthread& thread : worker_threads)
     {
         thread.request_stop();
     }
     condition.notify_all();
+    worker_threads.Clear();
 
-    ConsoleLog(ELogLevel::Info, "ThreadPool: [{}] destroyed successfully.", pool_name);
+    if (tasks_dropped > 0)
+    {
+        ConsoleLog(ELogLevel::Warning, "ThreadPool: [{}] destroyed. {} tasks were discarded.", pool_name, tasks_dropped);
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Info, "ThreadPool: [{}] destroyed successfully.", pool_name);
+    }
 }
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
@@ -88,4 +83,4 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
         }
     }
 }
-}
+}  // namespace se::concurrency

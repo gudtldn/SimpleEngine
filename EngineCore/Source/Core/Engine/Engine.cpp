@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <ranges>
-#include "range/v3/view/enumerate.hpp"
 
 #include "Core/Concurrency/TaskScheduler.h"
 #include "Core/Concurrency/ThreadPool.h"
@@ -83,9 +82,7 @@ void Engine::LoadRegisteredSubsystems()
 
 bool Engine::Initialize()
 {
-    task_scheduler = std::make_unique<concurrency::TaskScheduler>(
-        std::this_thread::get_id()
-    );
+    task_scheduler = std::make_unique<concurrency::TaskScheduler>(std::this_thread::get_id());
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
@@ -115,7 +112,7 @@ void Engine::Release()
 bool Engine::InitializeAllSubsystems()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Subsystems...");
-    for (auto [n, sub_system] : sorted_subsystems | ranges::views::enumerate)
+    for (auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         if (!sub_system->Initialize())
         {
@@ -266,7 +263,7 @@ bool Engine::SortSubsystems()
     // Update 순서는 한번 보고 나중에 필요시 변경
 
     ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
-    for (const auto [n, sub_system] : sorted_subsystems | ranges::views::enumerate)
+    for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
         ConsoleLog(ELogLevel::Debug, "  - Order {}: {}", n, typeid(*sub_system).name());
     }
