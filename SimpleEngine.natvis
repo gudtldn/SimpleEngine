@@ -1,12 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
-  <!-- StringName -->
-  <Type Name="se::StringName">
-    <DisplayString>{display_name,s8}</DisplayString>
+  <!-- Vector2Impl Visualizer -->
+  <Type Name="se::math::Vector2Impl&lt;*&gt;">
+    <Intrinsic Name="LengthSq" Expression="x*x + y*y"/>
+    <DisplayString>{{ x={x,g}, y={y,g} }}</DisplayString>
     <Expand>
-      <Item Name="[display_name]">display_name</Item>
-      <Item Name="[comparison_hash]">comparison_hash</Item>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+
+      <Item Name="||v||">sqrt(LengthSq())</Item>
+      <Item Name="||v||&#xB2;">LengthSq()</Item>
+
+      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
+        <DisplayString>{{ x={x / sqrt(LengthSq()),g}, y={y / sqrt(LengthSq()),g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">x / sqrt(LengthSq())</Item>
+          <Item Name="y">y / sqrt(LengthSq())</Item>
+        </Expand>
+      </Synthetic>
+    </Expand>
+  </Type>
+
+  <!-- Vector3Impl Visualizer -->
+  <Type Name="se::math::Vector3Impl&lt;*&gt;">
+    <Intrinsic Name="LengthSq" Expression="x*x + y*y + z*z"/>
+    <DisplayString>{{ x={x,g}, y={y,g}, z={z,g} }}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+
+      <Item Name="||v||">sqrt(LengthSq())</Item>
+      <Item Name="||v||&#xB2;">LengthSq()</Item>
+
+      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
+        <DisplayString>{{ x={x / sqrt(LengthSq()),g}, y={y / sqrt(LengthSq()),g}, z={z / sqrt(LengthSq()),g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">x / sqrt(LengthSq())</Item>
+          <Item Name="y">y / sqrt(LengthSq())</Item>
+          <Item Name="z">z / sqrt(LengthSq())</Item>
+        </Expand>
+      </Synthetic>
+    </Expand>
+  </Type>
+
+  <!-- Vector4Impl Visualizer -->
+  <Type Name="se::math::Vector4Impl&lt;*&gt;">
+    <Intrinsic Name="LengthSq" Expression="x*x + y*y + z*z + w*w"/>
+    <DisplayString>{{ x={x,g}, y={y,g}, z={z,g}, w={w,g} }}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+      <Item Name="w">w</Item>
+
+      <Item Name="||v||">sqrt(LengthSq())</Item>
+      <Item Name="||v||&#xB2;">LengthSq()</Item>
+
+      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
+        <DisplayString>{{ x={x / sqrt(LengthSq()),g}, y={y / sqrt(LengthSq()),g}, z={z / sqrt(LengthSq()),g}, w={w / sqrt(LengthSq()),g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">x / sqrt(LengthSq())</Item>
+          <Item Name="y">y / sqrt(LengthSq())</Item>
+          <Item Name="z">z / sqrt(LengthSq())</Item>
+          <Item Name="w">w / sqrt(LengthSq())</Item>
+        </Expand>
+      </Synthetic>
     </Expand>
   </Type>
 
@@ -53,6 +113,69 @@
     </Expand>
   </Type>
 
+  <!-- Degree<T> -->
+  <Type Name="se::math::AngleType&lt;*,se::math::DegreeTag&gt;">
+    <DisplayString>{value,g}°</DisplayString>
+    <Expand>
+      <Item Name="value">value</Item>
+      <Item Name="[rad]">value * 0.017453292519943295</Item>
+    </Expand>
+  </Type>
+
+  <!-- Radian<T> -->
+  <Type Name="se::math::AngleType&lt;*,se::math::RadianTag&gt;">
+    <DisplayString>{value,g}_rad</DisplayString>
+    <Expand>
+      <Item Name="value">value</Item>
+      <Item Name="[deg]">value * 57.29577951308232</Item>
+    </Expand>
+  </Type>
+
+  <!-- RotatorImpl<T> -->
+  <Type Name="se::math::RotatorImpl&lt;*&gt;">
+    <DisplayString>{{ P={pitch.value,g}°, R={roll.value,g}°, Y={yaw.value,g}° }}</DisplayString>
+    <Expand>
+      <Item Name="Pitch (X)">pitch</Item>
+      <Item Name="Roll  (Y)">roll</Item>
+      <Item Name="Yaw   (Z)">yaw</Item>
+    </Expand>
+  </Type>
+
+  <!-- QuaternionImpl<T> -->
+  <Type Name="se::math::QuaternionImpl&lt;*&gt;">
+    <Intrinsic Name="LengthSq" Expression="x*x + y*y + z*z + w*w"/>
+
+    <DisplayString>{{ x={x,g}, y={y,g}, z={z,g}, w={w,g} }}</DisplayString>
+    <Expand>
+      <Item Name="x">x</Item>
+      <Item Name="y">y</Item>
+      <Item Name="z">z</Item>
+      <Item Name="w">w</Item>
+
+      <Item Name="||q||">sqrt(LengthSq())</Item>
+
+      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
+        <DisplayString>{{ x={x/sqrt(LengthSq()),g}, y={y/sqrt(LengthSq()),g}, z={z/sqrt(LengthSq()),g}, w={w/sqrt(LengthSq()),g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">x / sqrt(LengthSq())</Item>
+          <Item Name="y">y / sqrt(LengthSq())</Item>
+          <Item Name="z">z / sqrt(LengthSq())</Item>
+          <Item Name="w">w / sqrt(LengthSq())</Item>
+        </Expand>
+      </Synthetic>
+
+      <Synthetic Name="[conjugate]">
+        <DisplayString>{{ x={-x,g}, y={-y,g}, z={-z,g}, w={w,g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">-x</Item>
+          <Item Name="y">-y</Item>
+          <Item Name="z">-z</Item>
+          <Item Name="w">w</Item>
+        </Expand>
+      </Synthetic>
+    </Expand>
+  </Type>
+
   <!-- Optional<T> -->
   <Type Name="Optional&lt;*&gt;">
     <DisplayString Condition="!is_value_set">nullopt</DisplayString>
@@ -75,6 +198,15 @@
   <!--      <Item Name="[address]" IncludeView="detailed">ref_ptr</Item>-->
   <!--    </Expand>-->
   <!--  </Type>-->
+
+  <!-- StringName -->
+  <Type Name="se::StringName">
+    <DisplayString>{display_name,s8}</DisplayString>
+    <Expand>
+      <Item Name="[display_name]">display_name</Item>
+      <Item Name="[comparison_hash]">comparison_hash</Item>
+    </Expand>
+  </Type>
 
   <!-- FixedArray<T, N> -->
   <Type Name="se::FixedArray&lt;*,*&gt;">
