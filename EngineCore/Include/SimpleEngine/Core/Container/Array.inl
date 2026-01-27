@@ -655,10 +655,10 @@ bool Array<T, Allocator>::EnsureCapacity(SizeType required_capacity)
     if (required_capacity > capacity)
     {
         // 재할당시 기존 capacity의 1.5배
-        SizeType new_capacity = capacity + capacity / 2;
+        SizeType new_capacity = capacity + (capacity / 2);
         if (required_capacity > new_capacity)
         {
-            new_capacity = required_capacity + required_capacity / 2;
+            new_capacity = required_capacity + (required_capacity / 2);
         }
 
         Reallocate(new_capacity);
@@ -691,4 +691,4 @@ const T& Array<T, Allocator>::BackUnsafe() const
 {
     return data[size - 1];
 }
-}
+}  // namespace se

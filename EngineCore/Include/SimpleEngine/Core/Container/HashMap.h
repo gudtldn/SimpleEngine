@@ -237,6 +237,6 @@ core::Archive& operator<<(core::Archive& ar, HashMap<Key, Value>& map)
     ar.EndArray();
     return ar;
 }
-}
+}  // namespace se
 
 #include "SimpleEngine/Core/Container/HashMap.inl"

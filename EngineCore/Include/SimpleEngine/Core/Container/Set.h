@@ -163,6 +163,6 @@ core::Archive& operator<<(core::Archive& ar, Set<T>& set)
     ar.EndArray();
     return ar;
 }
-}
+}  // namespace se
 
 #include "SimpleEngine/Core/Container/Set.inl"

@@ -257,7 +257,7 @@ private:
     T* data = nullptr;
     SizeType size = 0;
     SizeType capacity = 0;
-    [[no_unique_address]] AllocatorType allocator;
+    AllocatorType allocator;
 };
 
 template <typename T, typename Alloc>
@@ -300,6 +300,6 @@ core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
     ar.EndArray();
     return ar;
 }
-}
+}  // namespace se
 
 #include "SimpleEngine/Core/Container/Array.inl"

@@ -29,7 +29,7 @@ public:
 
 public:
     // ReSharper disable once CppNonExplicitConversionOperator
-    [[nodiscard]] operator AssetId() const noexcept { return id; } // NOLINT(*-explicit-constructor)
+    [[nodiscard]] operator AssetId() const noexcept { return id; }
 
     [[nodiscard]] explicit operator bool() const noexcept { return IsValid(); }
     [[nodiscard]] bool operator==(const AssetHandle&) const noexcept = default;

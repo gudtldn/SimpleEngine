@@ -118,4 +118,4 @@ Set<T, Pred, Allocator>::ConstIterator Set<T, Pred, Allocator>::end() const noex
 {
     return internal_set.end();
 }
-}
+}  // namespace se

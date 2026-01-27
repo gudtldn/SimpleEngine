@@ -33,12 +33,10 @@ public:
     [[nodiscard]] static StringName Find(std::string_view in_str);
 
 public:
-    // NOLINTBEGIN(*-explicit-constructor)
     StringName() = default;
     StringName(const char* in_str);
     StringName(const String& in_str);
     StringName(std::string_view in_str);
-    // NOLINTEND(*-explicit-constructor)
 
     [[nodiscard]] const char* CStr() const;
     [[nodiscard]] String ToString() const;

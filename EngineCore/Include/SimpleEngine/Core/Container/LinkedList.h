@@ -251,7 +251,7 @@ private:
 private:
     Node* head = nullptr;
     SizeType size = 0;
-    [[no_unique_address]] NodeAllocatorType node_allocator;
+    NodeAllocatorType node_allocator;
 };
 
 template <typename T>
@@ -267,6 +267,6 @@ struct LinkedListNode
     {
     }
 };
-}
+}  // namespace se
 
 #include "SimpleEngine/Core/Container/LinkedList.inl"

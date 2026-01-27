@@ -1,5 +1,4 @@
-﻿// NOLINTBEGIN(*-explicit-constructor)
-#pragma once
+﻿#pragma once
 
 #include <cassert>
 #include <concepts>
@@ -616,5 +615,3 @@ private:
 private:
     T* ref_ptr = nullptr;
 };
-
-// NOLINTEND(*-explicit-constructor)

@@ -277,4 +277,4 @@ constexpr std::reverse_iterator<const T*> FixedArray<T, N>::rend() const noexcep
 {
     return std::reverse_iterator(begin());
 }
-}
+}  // namespace se

@@ -136,4 +136,4 @@ HashSet<T, Hasher, KeyEq, Allocator>::ConstIterator HashSet<T, Hasher, KeyEq, Al
 {
     return internal_set.end();
 }
-}
+}  // namespace se

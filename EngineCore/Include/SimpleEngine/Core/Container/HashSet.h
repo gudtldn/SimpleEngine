@@ -172,6 +172,6 @@ core::Archive& operator<<(core::Archive& ar, HashSet<T>& set)
     ar.EndArray();
     return ar;
 }
-}
+}  // namespace se
 
 #include "SimpleEngine/Core/Container/HashSet.inl"

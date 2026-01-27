@@ -230,4 +230,4 @@ HashMap<Key, Value, Hasher, KeyEq, Allocator>::ConstIteratorType HashMap<Key, Va
 {
     return internal_map.end();
 }
-}
+}  // namespace se

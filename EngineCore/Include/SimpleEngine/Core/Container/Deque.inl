@@ -317,4 +317,4 @@ Deque<T, Allocator>::ConstReverseIteratorType Deque<T, Allocator>::rend() const 
 {
     return internal_deque.crend();
 }
-}
+}  // namespace se

@@ -16,7 +16,6 @@ namespace se::asset
 class SE_CORE_API AttributeKey
 {
 public:
-    // NOLINTBEGIN(*-explicit-constructor)
     AttributeKey(String in_string)
         : key_str(std::move(in_string))
     {
@@ -31,7 +30,6 @@ public:
         : key_str(in_name.CStr())
     {
     }
-    // NOLINTEND(*-explicit-constructor)
 
 public:
     [[nodiscard]] const String& ToString() const { return key_str; }

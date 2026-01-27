@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <algorithm>
 #include <cassert>
 
 
@@ -20,7 +21,7 @@ SE_CORE_API Optional<std::pair<char32, usize>> DecodeLastCodePoint(std::string_v
 /** 대소문자 변환 */
 SE_CORE_API String ToUpperImpl(std::string_view view, const char* locale);
 SE_CORE_API String ToLowerImpl(std::string_view view, const char* locale);
-}
+}  // namespace details
 
 
 template <typename Allocator>
@@ -347,11 +348,11 @@ std::string_view BaseString<Allocator>::SubstringView(SizeType start_index, Size
 {
     assert(start_index <= ByteLen() && "Substring start index out of bounds");
     const SizeType max_len = ByteLen() - start_index;
-    if (byte_count > max_len)
-    {
-        byte_count = max_len;
-    }
-    return std::string_view{ Data() + start_index, byte_count };
+
+    return std::string_view{
+        Data() + start_index,
+        std::min(byte_count, max_len)
+    };
 }
 
 template <typename Allocator>
@@ -495,4 +496,4 @@ std::strong_ordering BaseString<Allocator>::operator<=>(std::string_view other) 
 {
     return std::string_view{ *this } <=> other;
 }
-}
+}  // namespace se

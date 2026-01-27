@@ -64,7 +64,7 @@ public:
     {
     }
 
-    [[nodiscard]] CodePointIterator begin() const { return CodePointIterator(view.data()); }
+    [[nodiscard]] CodePointIterator begin() const { return CodePointIterator(view.data()); } // NOLINT(*-suspicious-stringview-data-usage)
     [[nodiscard]] CodePointIterator end() const { return CodePointIterator(view.data() + view.size()); }
 
     [[nodiscard]] bool IsEmpty() const { return view.empty(); }
@@ -72,7 +72,7 @@ public:
 private:
     std::string_view view;
 };
-}
+}  // namespace details
 
 /**
  * UTF-8 인코딩을 네이티브로 지원하는 동적 문자열 클래스

@@ -1,7 +1,10 @@
 ﻿#pragma once
 #include <cassert>
+#include <tuple>
 #include <utility>
 #include <variant>
+
+#include "SimpleEngine/Core/Container/Optional.h"
 
 
 namespace se
@@ -183,4 +186,4 @@ public:
     MapEntry& operator=(const MapEntry&) = delete;
     MapEntry& operator=(MapEntry&&) noexcept = delete;
 };
-}
+}  // namespace se

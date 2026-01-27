@@ -289,7 +289,7 @@ public:
             return *this;
         }
 
-        operator Entity() const { return entity; } // NOLINT(*-explicit-constructor)
+        operator Entity() const { return entity; }
 
     private:
         World* world;

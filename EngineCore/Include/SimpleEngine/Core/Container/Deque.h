@@ -164,6 +164,6 @@ public:
 private:
     InternalDequeType internal_deque;
 };
-}
+}  // namespace se
 
 #include "SimpleEngine/Core/Container/Deque.inl"

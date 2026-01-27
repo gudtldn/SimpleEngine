@@ -509,4 +509,4 @@ void LinkedList<T, Allocator>::DestroyNode(Node* node)
     NodeAllocTraits::destroy(node_allocator, node);
     NodeAllocTraits::deallocate(node_allocator, node, 1);
 }
-}
+}  // namespace se

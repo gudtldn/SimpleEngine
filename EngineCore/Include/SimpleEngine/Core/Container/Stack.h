@@ -67,7 +67,7 @@ public:
 private:
     ContainerType container;
 };
-}
+}  // namespace se
 
 
 template <typename T, typename Container>
