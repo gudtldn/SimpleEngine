@@ -13,7 +13,7 @@ namespace se
 {
 // Forward declarations
 template <typename T, typename Allocator>
-class LinkedList;
+class LinkedList_DEPRECATED;
 
 template <typename T>
 class ConstLinkedListIterator;
@@ -28,7 +28,7 @@ template <typename T>
 class LinkedListIterator
 {
     template <typename, typename>
-    friend class LinkedList;
+    friend class LinkedList_DEPRECATED;
     friend class ConstLinkedListIterator<T>;
 
 public:
@@ -69,7 +69,7 @@ template <typename T>
 class ConstLinkedListIterator
 {
     template <typename, typename>
-    friend class LinkedList;
+    friend class LinkedList_DEPRECATED;
 
 public:
     using iterator_category = std::bidirectional_iterator_tag;
@@ -104,7 +104,7 @@ private:
  * @tparam Allocator 노드 메모리를 위한 할당자 타입
  */
 template <typename T, typename Allocator = core::DefaultAllocator<T>>
-class LinkedList
+class [[deprecated]] LinkedList_DEPRECATED
 {
 private:
     using Node = LinkedListNode<T>;
@@ -119,26 +119,26 @@ public:
     using ConstIterator = ConstLinkedListIterator<T>;
 
 public:
-    LinkedList() noexcept;
-    explicit LinkedList(SizeType count);
-    LinkedList(SizeType count, const ValueType& value);
-    LinkedList(std::initializer_list<ValueType> init_list);
+    LinkedList_DEPRECATED() noexcept;
+    explicit LinkedList_DEPRECATED(SizeType count);
+    LinkedList_DEPRECATED(SizeType count, const ValueType& value);
+    LinkedList_DEPRECATED(std::initializer_list<ValueType> init_list);
 
     template <std::input_iterator It, std::sentinel_for<It> Sent>
         requires std::same_as<std::iter_value_t<It>, T>
-    LinkedList(It first, Sent last);
+    LinkedList_DEPRECATED(It first, Sent last);
 
-    ~LinkedList();
+    ~LinkedList_DEPRECATED();
 
-    LinkedList(const LinkedList& other);
-    LinkedList& operator=(const LinkedList& other);
-    LinkedList(LinkedList&& other) noexcept;
-    LinkedList& operator=(LinkedList&& other) noexcept;
+    LinkedList_DEPRECATED(const LinkedList_DEPRECATED& other);
+    LinkedList_DEPRECATED& operator=(const LinkedList_DEPRECATED& other);
+    LinkedList_DEPRECATED(LinkedList_DEPRECATED&& other) noexcept;
+    LinkedList_DEPRECATED& operator=(LinkedList_DEPRECATED&& other) noexcept;
 
 public:
     template <std::ranges::input_range Rng>
         requires std::same_as<std::ranges::range_value_t<Rng>, T>
-    [[nodiscard]] static LinkedList FromRange(Rng&& range);
+    [[nodiscard]] static LinkedList_DEPRECATED FromRange(Rng&& range);
 
 public:
     /** 리스트에 포함된 요소의 수를 반환합니다. */
@@ -269,4 +269,4 @@ struct LinkedListNode
 };
 }  // namespace se
 
-#include "SimpleEngine/Core/Container/LinkedList.inl"
+#include "SimpleEngine/Core/Container/LinkedList_DEPRECATED.inl"

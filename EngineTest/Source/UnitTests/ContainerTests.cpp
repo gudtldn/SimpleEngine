@@ -9,7 +9,6 @@
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Container/LinkedList.h"
 #include "SimpleEngine/Core/Container/Map.h"
 #include "SimpleEngine/Core/Container/PriorityQueue.h"
 #include "SimpleEngine/Core/Container/Set.h"
@@ -23,7 +22,6 @@ class HashMapAPI_Test : public ::testing::Test {};
 class MapAPI_Test : public ::testing::Test {};
 class HashSetAPI_Test : public ::testing::Test {};
 class SetAPI_Test : public ::testing::Test {};
-class LinkedListAPI_Test : public ::testing::Test {};
 class PriorityQueueAPI_Test : public ::testing::Test {};
 
 // Using the namespace where containers are defined
@@ -273,6 +271,21 @@ TEST_F(ArrayAPI_Test, Resize)
     EXPECT_EQ(arr[1], 2);
     EXPECT_EQ(arr[2], 99);
     EXPECT_EQ(arr[3], 99);
+}
+
+TEST_F(ArrayAPI_Test, ResizeUninitialize)
+{
+    Array<int> arr = { 1, 2, 3 };
+    arr.ResizeUninitialized(5);
+    EXPECT_EQ(arr.Len(), 5);
+    EXPECT_EQ(arr[2], 3);
+    // New elements are default-initialized
+    EXPECT_TRUE(arr.At(3).HasValue());
+    EXPECT_TRUE(arr.At(4).HasValue());
+
+    arr.ResizeUninitialized(2);
+    EXPECT_EQ(arr.Len(), 2);
+    EXPECT_EQ(arr[1], 2);
 }
 
 TEST_F(ArrayAPI_Test, Truncate)
@@ -1226,334 +1239,6 @@ TEST_F(MapAPI_Test, First_Last_Bounds)
     EXPECT_FALSE(empty_map.Last().HasValue());
     EXPECT_FALSE(empty_map.LowerBoundEntry(1).HasValue());
     EXPECT_FALSE(empty_map.UpperBoundEntry(1).HasValue());
-}
-
-TEST_F(LinkedListAPI_Test, DefaultConstruction)
-{
-    LinkedList<int> list;
-    EXPECT_TRUE(list.IsEmpty());
-    EXPECT_EQ(list.Len(), 0);
-}
-
-TEST_F(LinkedListAPI_Test, ConstructionWithCount)
-{
-    LinkedList<int> list(5);
-    EXPECT_EQ(list.Len(), 5);
-    EXPECT_FALSE(list.IsEmpty());
-    EXPECT_EQ(*list.Front(), 0); // Default constructed
-    EXPECT_EQ(*list.Back(), 0);
-}
-
-TEST_F(LinkedListAPI_Test, ConstructionWithCountAndValue)
-{
-    LinkedList<int> list(3, 10);
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.Front(), 10);
-    EXPECT_EQ(*list.Back(), 10);
-    auto it = list.begin();
-    EXPECT_EQ(*it, 10);
-    ++it;
-    EXPECT_EQ(*it, 10);
-}
-
-TEST_F(LinkedListAPI_Test, InitializerListConstruction)
-{
-    LinkedList<int> list = { 1, 2, 3, 4, 5 };
-    EXPECT_EQ(list.Len(), 5);
-    EXPECT_EQ(*list.Front(), 1);
-    EXPECT_EQ(*list.Back(), 5);
-}
-
-TEST_F(LinkedListAPI_Test, ConstructionFromIteratorsAndRange)
-{
-    std::vector<int> vec = { 10, 20, 30 };
-    LinkedList<int> list_from_iter(vec.begin(), vec.end());
-    EXPECT_EQ(list_from_iter.Len(), 3);
-    EXPECT_EQ(*list_from_iter.Front(), 10);
-    EXPECT_EQ(*list_from_iter.Back(), 30);
-
-    LinkedList<int> list_from_range = LinkedList<int>::FromRange(vec);
-    EXPECT_EQ(list_from_range.Len(), 3);
-    EXPECT_EQ(*list_from_range.Front(), 10);
-    EXPECT_EQ(*list_from_range.Back(), 30);
-}
-
-TEST_F(LinkedListAPI_Test, OperationsOnEmptyList)
-{
-    LinkedList<int> list;
-    auto it = list.begin();
-    EXPECT_EQ(it, list.end());
-
-    // 비어있는 리스트에 Remove(value) 또는 RemoveIf 호출
-    EXPECT_EQ(list.Remove(10), 0);
-    EXPECT_EQ(list.RemoveIf([](int i){ return i > 0; }), 0);
-    EXPECT_TRUE(list.IsEmpty());
-
-    // 비어있는 리스트에 Find 호출
-    EXPECT_EQ(list.Find(10), list.end());
-}
-
-TEST_F(LinkedListAPI_Test, SelfAssignment)
-{
-    LinkedList<int> list = { 1, 2, 3 };
-    // ReSharper disable once CppIdenticalOperandsInBinaryExpression
-    list = list; // Self-assignment
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.Front(), 1);
-
-    LinkedList<int> list2 = { 4, 5, 6 };
-    LinkedList<int>& ref = list2;
-    list2 = ref;
-    EXPECT_EQ(list2.Len(), 3);
-    EXPECT_EQ(*list2.Front(), 4);
-}
-
-TEST_F(LinkedListAPI_Test, StoringPointers)
-{
-    LinkedList<int*> list;
-    int a = 1, b = 2;
-    list.PushBack(&a);
-    list.PushBack(nullptr);
-    list.PushBack(&b);
-
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.Find(nullptr), nullptr);
-    EXPECT_EQ(list.Remove(nullptr), 1);
-    EXPECT_EQ(list.Len(), 2);
-}
-
-TEST_F(LinkedListAPI_Test, PushFrontAndPushBack)
-{
-    LinkedList<int> list;
-    list.PushBack(1);  // {1}
-    list.PushFront(0); // {0, 1}
-    list.PushBack(2);  // {0, 1, 2}
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.Front(), 0);
-    EXPECT_EQ(*list.Back(), 2);
-
-    auto it = list.begin();
-    EXPECT_EQ(*it, 0);
-    ++it;
-    EXPECT_EQ(*it, 1);
-    ++it;
-    EXPECT_EQ(*it, 2);
-}
-
-TEST_F(LinkedListAPI_Test, PopFrontAndPopBack)
-{
-    LinkedList<int> list = { 0, 1, 2 };
-    auto val = list.PopFront();
-    EXPECT_TRUE(val.HasValue());
-    EXPECT_EQ(*val, 0);
-    EXPECT_EQ(list.Len(), 2);
-    EXPECT_EQ(*list.Front(), 1);
-
-    val = list.PopBack();
-    EXPECT_TRUE(val.HasValue());
-    EXPECT_EQ(*val, 2);
-    EXPECT_EQ(list.Len(), 1);
-    EXPECT_EQ(*list.Back(), 1);
-
-    list.PopFront();
-    EXPECT_TRUE(list.IsEmpty());
-    EXPECT_FALSE(list.PopFront().HasValue());
-    EXPECT_FALSE(list.PopBack().HasValue());
-}
-
-TEST_F(LinkedListAPI_Test, EmplaceFrontAndEmplaceBack)
-{
-    struct TestStruct
-    {
-        int x;
-        double y;
-
-        TestStruct(int x, double y)
-            : x(x)
-            , y(y)
-        {
-        }
-
-        bool operator==(const TestStruct& other) const { return x == other.x && y == other.y; }
-    };
-
-    LinkedList<TestStruct> list;
-    list.EmplaceBack(1, 1.1);  // {{1, 1.1}}
-    list.EmplaceFront(0, 0.0); // {{0, 0.0}, {1, 1.1}}
-    EXPECT_EQ(list.Len(), 2);
-    EXPECT_EQ(*list.Front(), TestStruct(0, 0.0));
-    EXPECT_EQ(*list.Back(), TestStruct(1, 1.1));
-}
-
-TEST_F(LinkedListAPI_Test, InsertAndEmplace)
-{
-    LinkedList<int> list = { 1, 4 };
-    auto it = list.begin();
-    ++it; // points to 4
-
-    list.Insert(it, 2); // {1, 2, 4}
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.begin(), 1);
-    EXPECT_EQ(*std::next(list.begin()), 2);
-    EXPECT_EQ(*list.Back(), 4);
-
-    it = list.begin();
-    std::advance(it, 2); // points to 4
-    list.Emplace(it, 3); // {1, 2, 3, 4}
-    EXPECT_EQ(list.Len(), 4);
-    EXPECT_EQ(*std::next(list.begin(), 2), 3);
-}
-
-TEST_F(LinkedListAPI_Test, RemoveByIterator)
-{
-    LinkedList<int> list = { 1, 2, 3, 4 };
-    auto it = list.begin();
-    ++it; // points to 2
-
-    it = list.Remove(it); // {1, 3, 4}, it now points to 3
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.begin(), 1);
-    EXPECT_EQ(*it, 3);
-
-    list.Remove(list.begin()); // {3, 4}
-    EXPECT_EQ(list.Len(), 2);
-    EXPECT_EQ(*list.Front(), 3);
-
-    list.Remove(std::next(list.begin())); // {3}
-    EXPECT_EQ(list.Len(), 1);
-    EXPECT_EQ(*list.Front(), 3);
-
-    list.Remove(list.begin()); // {}
-    EXPECT_TRUE(list.IsEmpty());
-}
-
-TEST_F(LinkedListAPI_Test, RemoveByValue)
-{
-    LinkedList<int> list = { 1, 2, 1, 3, 1 };
-    usize removed_count = list.Remove(1);
-    EXPECT_EQ(removed_count, 3);
-    EXPECT_EQ(list.Len(), 2);
-    EXPECT_EQ(*list.Front(), 2);
-    EXPECT_EQ(*list.Back(), 3);
-}
-
-TEST_F(LinkedListAPI_Test, RemoveIf)
-{
-    LinkedList<int> list = { 1, 2, 3, 4, 5, 6 };
-    usize removed_count = list.RemoveIf([](int val) { return val % 2 == 0; }); // Remove even numbers
-    EXPECT_EQ(removed_count, 3);
-    EXPECT_EQ(list.Len(), 3);
-    EXPECT_EQ(*list.Front(), 1);
-    EXPECT_EQ(*std::next(list.begin()), 3);
-    EXPECT_EQ(*list.Back(), 5);
-}
-
-TEST_F(LinkedListAPI_Test, Clear)
-{
-    LinkedList<int> list = { 1, 2, 3 };
-    list.Clear();
-    EXPECT_TRUE(list.IsEmpty());
-    EXPECT_EQ(list.Len(), 0);
-    EXPECT_FALSE(list.Front().HasValue());
-}
-
-TEST_F(LinkedListAPI_Test, Find)
-{
-    LinkedList<int> list = { 10, 20, 30, 20 };
-    auto it = list.Find(20);
-    EXPECT_NE(it, list.end());
-    EXPECT_EQ(*it, 20);
-    ++it;
-    EXPECT_EQ(*it, 30); // Find returns first occurrence
-
-    it = list.Find(50);
-    EXPECT_EQ(it, list.end());
-}
-
-TEST_F(LinkedListAPI_Test, IteratorsAndRangeBasedForLoop)
-{
-    LinkedList<int> list = { 1, 2, 3, 4 };
-    int sum = 0;
-    for (const int val : list)
-    {
-        sum += val;
-    }
-    EXPECT_EQ(sum, 10);
-
-    // Test const iterators
-    const LinkedList<int> const_list = { 5, 6 };
-    int const_sum = 0;
-    for (const int val : const_list)
-    {
-        const_sum += val;
-    }
-    EXPECT_EQ(const_sum, 11);
-}
-
-TEST_F(LinkedListAPI_Test, IteratorInvalidationRules)
-{
-    LinkedList<int> list = { 10, 20, 30, 40 };
-    auto it20 = list.Find(20);
-    auto it40 = list.Find(40);
-
-    // PushFront/Back은 기존 이터레이터를 무효화하지 않음
-    list.PushFront(0);
-    list.PushBack(50);
-    EXPECT_EQ(*it20, 20);
-    EXPECT_EQ(*it40, 40);
-
-    // Insert는 기존 이터레이터를 무효화하지 않음
-    list.Insert(it20, 15);
-    EXPECT_EQ(*it20, 20);
-    EXPECT_EQ(*it40, 40);
-
-    // Remove는 제거된 요소의 이터레이터만 무효화함
-    auto it30 = list.Find(30);
-    list.Remove(it30); // it30은 이제 무효화됨
-    EXPECT_EQ(*it20, 20);
-    EXPECT_EQ(*it40, 40);
-}
-TEST_F(LinkedListAPI_Test, ConstCorrectness)
-{
-    LinkedList<int> list = { 1, 2, 3 };
-    const LinkedList<int>& const_list = list;
-
-    EXPECT_EQ(const_list.Len(), 3);
-    EXPECT_EQ(*const_list.Front(), 1);
-    EXPECT_EQ(*const_list.Back(), 3);
-
-    // const_list.Find(...) 가 ConstIterator를 반환하는지 간접적으로 확인
-    auto it = const_list.Find(2);
-    EXPECT_NE(it, const_list.end());
-    EXPECT_EQ(*it, 2);
-
-    // 컴파일 타임에 확인 (optional)
-    static_assert(std::is_same_v<decltype(const_list.begin()), LinkedList<int>::ConstIterator>);
-}
-
-TEST_F(LinkedListAPI_Test, CopyAndMoveSemantics)
-{
-    LinkedList<int> list1 = { 1, 2, 3 };
-    LinkedList<int> list2 = list1; // Copy constructor
-    EXPECT_EQ(list2.Len(), 3);
-    EXPECT_EQ(*list2.Front(), 1);
-    EXPECT_EQ(*list2.Back(), 3);
-
-    LinkedList<int> list3;
-    list3 = list1; // Copy assignment
-    EXPECT_EQ(list3.Len(), 3);
-    EXPECT_EQ(*list3.Front(), 1);
-
-    LinkedList<int> list4 = std::move(list1); // Move constructor
-    EXPECT_EQ(list4.Len(), 3);
-    EXPECT_EQ(*list4.Front(), 1);
-    EXPECT_TRUE(list1.IsEmpty()); // Moved-from state
-
-    LinkedList<int> list5;
-    list5 = std::move(list3); // Move assignment
-    EXPECT_EQ(list5.Len(), 3);
-    EXPECT_EQ(*list5.Front(), 1);
-    EXPECT_TRUE(list3.IsEmpty());
 }
 
 TEST_F(HashSetAPI_Test, DefaultConstruction)

@@ -103,13 +103,13 @@ ConstLinkedListIterator<T> ConstLinkedListIterator<T>::operator--(int)
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::LinkedList() noexcept
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED() noexcept
 {
     Init();
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::LinkedList(SizeType count)
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED(SizeType count)
 {
     Init();
     for (SizeType i = 0; i < count; ++i)
@@ -119,7 +119,7 @@ LinkedList<T, Allocator>::LinkedList(SizeType count)
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::LinkedList(SizeType count, const ValueType& value)
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED(SizeType count, const ValueType& value)
 {
     Init();
     for (SizeType i = 0; i < count; ++i)
@@ -129,7 +129,7 @@ LinkedList<T, Allocator>::LinkedList(SizeType count, const ValueType& value)
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::LinkedList(std::initializer_list<ValueType> init_list)
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED(std::initializer_list<ValueType> init_list)
 {
     Init();
     for (const auto& value : init_list)
@@ -141,7 +141,7 @@ LinkedList<T, Allocator>::LinkedList(std::initializer_list<ValueType> init_list)
 template <typename T, typename Allocator>
 template <std::input_iterator It, std::sentinel_for<It> Sent>
     requires std::same_as<std::iter_value_t<It>, T>
-LinkedList<T, Allocator>::LinkedList(It first, Sent last)
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED(It first, Sent last)
 {
     Init();
     for (auto it = first; it != last; ++it)
@@ -151,14 +151,14 @@ LinkedList<T, Allocator>::LinkedList(It first, Sent last)
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::~LinkedList()
+LinkedList_DEPRECATED<T, Allocator>::~LinkedList_DEPRECATED()
 {
     Clear();
     NodeAllocTraits::deallocate(node_allocator, head, 1);
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::LinkedList(const LinkedList& other)
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED(const LinkedList_DEPRECATED& other)
 {
     Init();
     for (const auto& value : other)
@@ -168,7 +168,7 @@ LinkedList<T, Allocator>::LinkedList(const LinkedList& other)
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>& LinkedList<T, Allocator>::operator=(const LinkedList& other)
+LinkedList_DEPRECATED<T, Allocator>& LinkedList_DEPRECATED<T, Allocator>::operator=(const LinkedList_DEPRECATED& other)
 {
     if (this != &other)
     {
@@ -182,7 +182,7 @@ LinkedList<T, Allocator>& LinkedList<T, Allocator>::operator=(const LinkedList& 
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::LinkedList(LinkedList&& other) noexcept
+LinkedList_DEPRECATED<T, Allocator>::LinkedList_DEPRECATED(LinkedList_DEPRECATED&& other) noexcept
     : head(other.head)
     , size(other.size)
     , node_allocator(std::move(other.node_allocator))
@@ -192,7 +192,7 @@ LinkedList<T, Allocator>::LinkedList(LinkedList&& other) noexcept
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>& LinkedList<T, Allocator>::operator=(LinkedList&& other) noexcept
+LinkedList_DEPRECATED<T, Allocator>& LinkedList_DEPRECATED<T, Allocator>::operator=(LinkedList_DEPRECATED&& other) noexcept
 {
     if (this != &other)
     {
@@ -212,25 +212,25 @@ LinkedList<T, Allocator>& LinkedList<T, Allocator>::operator=(LinkedList&& other
 template <typename T, typename Allocator>
 template <std::ranges::input_range Rng>
     requires std::same_as<std::ranges::range_value_t<Rng>, T>
-LinkedList<T, Allocator> LinkedList<T, Allocator>::FromRange(Rng&& range)
+LinkedList_DEPRECATED<T, Allocator> LinkedList_DEPRECATED<T, Allocator>::FromRange(Rng&& range)
 {
-    return LinkedList{ std::ranges::begin(range), std::ranges::end(range) };
+    return LinkedList_DEPRECATED{ std::ranges::begin(range), std::ranges::end(range) };
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::SizeType LinkedList<T, Allocator>::Len() const noexcept
+LinkedList_DEPRECATED<T, Allocator>::SizeType LinkedList_DEPRECATED<T, Allocator>::Len() const noexcept
 {
     return size;
 }
 
 template <typename T, typename Allocator>
-bool LinkedList<T, Allocator>::IsEmpty() const noexcept
+bool LinkedList_DEPRECATED<T, Allocator>::IsEmpty() const noexcept
 {
     return size == 0;
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::Clear()
+void LinkedList_DEPRECATED<T, Allocator>::Clear()
 {
     if (IsEmpty())
     {
@@ -250,7 +250,7 @@ void LinkedList<T, Allocator>::Clear()
 }
 
 template <typename T, typename Allocator>
-Optional<T&> LinkedList<T, Allocator>::Front()
+Optional<T&> LinkedList_DEPRECATED<T, Allocator>::Front()
 {
     if (IsEmpty())
     {
@@ -261,7 +261,7 @@ Optional<T&> LinkedList<T, Allocator>::Front()
 }
 
 template <typename T, typename Allocator>
-Optional<const T&> LinkedList<T, Allocator>::Front() const
+Optional<const T&> LinkedList_DEPRECATED<T, Allocator>::Front() const
 {
     if (IsEmpty())
     {
@@ -272,7 +272,7 @@ Optional<const T&> LinkedList<T, Allocator>::Front() const
 }
 
 template <typename T, typename Allocator>
-Optional<T&> LinkedList<T, Allocator>::Back()
+Optional<T&> LinkedList_DEPRECATED<T, Allocator>::Back()
 {
     if (IsEmpty())
     {
@@ -283,7 +283,7 @@ Optional<T&> LinkedList<T, Allocator>::Back()
 }
 
 template <typename T, typename Allocator>
-Optional<const T&> LinkedList<T, Allocator>::Back() const
+Optional<const T&> LinkedList_DEPRECATED<T, Allocator>::Back() const
 {
     if (IsEmpty())
     {
@@ -294,31 +294,31 @@ Optional<const T&> LinkedList<T, Allocator>::Back() const
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::PushFront(const ValueType& value)
+void LinkedList_DEPRECATED<T, Allocator>::PushFront(const ValueType& value)
 {
     Emplace(begin(), value);
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::PushFront(ValueType&& value)
+void LinkedList_DEPRECATED<T, Allocator>::PushFront(ValueType&& value)
 {
     Emplace(begin(), std::move(value));
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::PushBack(const ValueType& value)
+void LinkedList_DEPRECATED<T, Allocator>::PushBack(const ValueType& value)
 {
     Emplace(end(), value);
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::PushBack(ValueType&& value)
+void LinkedList_DEPRECATED<T, Allocator>::PushBack(ValueType&& value)
 {
     Emplace(end(), std::move(value));
 }
 
 template <typename T, typename Allocator>
-Optional<T> LinkedList<T, Allocator>::PopFront()
+Optional<T> LinkedList_DEPRECATED<T, Allocator>::PopFront()
 {
     if (IsEmpty())
     {
@@ -331,7 +331,7 @@ Optional<T> LinkedList<T, Allocator>::PopFront()
 }
 
 template <typename T, typename Allocator>
-Optional<T> LinkedList<T, Allocator>::PopBack()
+Optional<T> LinkedList_DEPRECATED<T, Allocator>::PopBack()
 {
     if (IsEmpty())
     {
@@ -345,33 +345,33 @@ Optional<T> LinkedList<T, Allocator>::PopBack()
 
 template <typename T, typename Allocator>
 template <typename... Args>
-T& LinkedList<T, Allocator>::EmplaceFront(Args&&... args)
+T& LinkedList_DEPRECATED<T, Allocator>::EmplaceFront(Args&&... args)
 {
     return *Emplace(begin(), std::forward<Args>(args)...);
 }
 
 template <typename T, typename Allocator>
 template <typename... Args>
-T& LinkedList<T, Allocator>::EmplaceBack(Args&&... args)
+T& LinkedList_DEPRECATED<T, Allocator>::EmplaceBack(Args&&... args)
 {
     return *Emplace(end(), std::forward<Args>(args)...);
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Insert(Iterator where, const ValueType& value)
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::Insert(Iterator where, const ValueType& value)
 {
     return Emplace(where, value);
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Insert(Iterator where, ValueType&& value)
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::Insert(Iterator where, ValueType&& value)
 {
     return Emplace(where, std::move(value));
 }
 
 template <typename T, typename Allocator>
 template <typename... Args>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Emplace(Iterator where, Args&&... args)
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::Emplace(Iterator where, Args&&... args)
 {
     Node* current_node = where.node_ptr;
     Node* prev_node = current_node->prev;
@@ -387,7 +387,7 @@ LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Emplace(Iterator wh
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Remove(Iterator where)
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::Remove(Iterator where)
 {
     assert(where.node_ptr != head && "Cannot remove the end() iterator.");
     assert(!IsEmpty() && "Cannot remove from an empty list.");
@@ -406,7 +406,7 @@ LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Remove(Iterator whe
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Find(const ValueType& value)
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::Find(const ValueType& value)
 {
     for (auto it = begin(); it != end(); ++it)
     {
@@ -419,7 +419,7 @@ LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::Find(const ValueTyp
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::ConstIterator LinkedList<T, Allocator>::Find(const ValueType& value) const
+LinkedList_DEPRECATED<T, Allocator>::ConstIterator LinkedList_DEPRECATED<T, Allocator>::Find(const ValueType& value) const
 {
     for (auto it = begin(); it != end(); ++it)
     {
@@ -432,7 +432,7 @@ LinkedList<T, Allocator>::ConstIterator LinkedList<T, Allocator>::Find(const Val
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::SizeType LinkedList<T, Allocator>::Remove(const ValueType& value)
+LinkedList_DEPRECATED<T, Allocator>::SizeType LinkedList_DEPRECATED<T, Allocator>::Remove(const ValueType& value)
 {
     return RemoveIf([&value](const T& elem)
     {
@@ -443,7 +443,7 @@ LinkedList<T, Allocator>::SizeType LinkedList<T, Allocator>::Remove(const ValueT
 template <typename T, typename Allocator>
 template <typename Predicate>
     requires std::predicate<Predicate, const T&>
-LinkedList<T, Allocator>::SizeType LinkedList<T, Allocator>::RemoveIf(Predicate&& pred)
+LinkedList_DEPRECATED<T, Allocator>::SizeType LinkedList_DEPRECATED<T, Allocator>::RemoveIf(Predicate&& pred)
 {
     SizeType count = 0;
     for (auto it = begin(); it != end();)
@@ -462,31 +462,31 @@ LinkedList<T, Allocator>::SizeType LinkedList<T, Allocator>::RemoveIf(Predicate&
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::begin() noexcept
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::begin() noexcept
 {
     return Iterator{ head->next };
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::Iterator LinkedList<T, Allocator>::end() noexcept
+LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::end() noexcept
 {
     return Iterator{ head };
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::ConstIterator LinkedList<T, Allocator>::begin() const noexcept
+LinkedList_DEPRECATED<T, Allocator>::ConstIterator LinkedList_DEPRECATED<T, Allocator>::begin() const noexcept
 {
     return ConstIterator{ head->next };
 }
 
 template <typename T, typename Allocator>
-LinkedList<T, Allocator>::ConstIterator LinkedList<T, Allocator>::end() const noexcept
+LinkedList_DEPRECATED<T, Allocator>::ConstIterator LinkedList_DEPRECATED<T, Allocator>::end() const noexcept
 {
     return ConstIterator{ head };
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::Init()
+void LinkedList_DEPRECATED<T, Allocator>::Init()
 {
     head = NodeAllocTraits::allocate(node_allocator, 1);
     head->prev = head;
@@ -496,7 +496,7 @@ void LinkedList<T, Allocator>::Init()
 
 template <typename T, typename Allocator>
 template <typename... Args>
-LinkedList<T, Allocator>::Node* LinkedList<T, Allocator>::CreateNode(Args&&... args)
+LinkedList_DEPRECATED<T, Allocator>::Node* LinkedList_DEPRECATED<T, Allocator>::CreateNode(Args&&... args)
 {
     Node* new_node = NodeAllocTraits::allocate(node_allocator, 1);
     NodeAllocTraits::construct(node_allocator, new_node, std::forward<Args>(args)...);
@@ -504,7 +504,7 @@ LinkedList<T, Allocator>::Node* LinkedList<T, Allocator>::CreateNode(Args&&... a
 }
 
 template <typename T, typename Allocator>
-void LinkedList<T, Allocator>::DestroyNode(Node* node)
+void LinkedList_DEPRECATED<T, Allocator>::DestroyNode(Node* node)
 {
     NodeAllocTraits::destroy(node_allocator, node);
     NodeAllocTraits::deallocate(node_allocator, node, 1);
