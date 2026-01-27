@@ -164,10 +164,15 @@ constexpr QuaternionImpl<T> QuaternionImpl<T>::operator*(T scalar) const
 template <traits::FloatingType T>
 QuaternionImpl<T>& QuaternionImpl<T>::operator*=(const QuaternionImpl& other)
 {
-    x = w * other.x + x * other.w + y * other.z - z * other.y;
-    y = w * other.y - x * other.z + y * other.w + z * other.x;
-    z = w * other.z + x * other.y - y * other.x + z * other.w;
-    w = w * other.w - x * other.x - y * other.y - z * other.z;
+    const T tx = w * other.x + x * other.w + y * other.z - z * other.y;
+    const T ty = w * other.y - x * other.z + y * other.w + z * other.x;
+    const T tz = w * other.z + x * other.y - y * other.x + z * other.w;
+    const T tw = w * other.w - x * other.x - y * other.y - z * other.z;
+
+    x = tx;
+    y = ty;
+    z = tz;
+    w = tw;
     return *this;
 }
 
