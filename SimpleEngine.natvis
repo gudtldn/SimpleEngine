@@ -12,7 +12,7 @@
 
   <!-- Matrix4x4 -->
   <Type Name="se::math::Matrix4x4Impl&lt;*&gt;">
-    <DisplayString>Matrix4x4</DisplayString>
+    <DisplayString>{{{{ {data[0],g}, {data[1],g}, {data[2],g}, {data[3],g} }}, ...}}</DisplayString>
     <Expand>
       <Synthetic Name="[0]">
         <DisplayString>{data[0],g}, {data[1],g}, {data[2],g}, {data[3],g}</DisplayString>
@@ -75,4 +75,115 @@
   <!--      <Item Name="[address]" IncludeView="detailed">ref_ptr</Item>-->
   <!--    </Expand>-->
   <!--  </Type>-->
+
+  <!-- FixedArray<T, N> -->
+  <Type Name="se::FixedArray&lt;*,*&gt;">
+    <DisplayString>{{ size={$T2} }}</DisplayString>
+    <Expand>
+      <ArrayItems>
+        <Size>$T2</Size>
+        <ValuePointer>data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- Array<T> -->
+  <Type Name="se::Array&lt;*&gt;">
+    <DisplayString Condition="size == 0 &amp;&amp; capacity == 0">Empty</DisplayString>
+    <DisplayString Condition="size &lt; 0">Invalid</DisplayString>
+    <DisplayString Condition="capacity &lt; size">Invalid</DisplayString>
+    <DisplayString Condition="capacity &gt;= size">{{ size={size} capacity={capacity} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">size</Item>
+      <Item Name="[capacity]">capacity</Item>
+      <ArrayItems>
+        <Size>size</Size>
+        <ValuePointer>data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- String -->
+  <Type Name="se::BaseString&lt;*&gt;">
+    <DisplayString>{data.data,s8}</DisplayString>
+    <StringView>data.data,s8</StringView>
+    <Expand>
+      <Item Name="[length]">data.size</Item>
+      <Item Name="[capacity]">data.capacity</Item>
+      <Item Name="[buffer]">data.data,s8</Item>
+    </Expand>
+  </Type>
+
+  <!-- Deque<T> -->
+  <Type Name="se::Deque&lt;*&gt;">
+    <DisplayString>{internal_deque}</DisplayString>
+    <Expand>
+      <ExpandedItem>internal_deque</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- HashMap<K, V> -->
+  <Type Name="se::HashMap&lt;*&gt;">
+    <DisplayString>{internal_map}</DisplayString>
+    <Expand>
+      <ExpandedItem>internal_map</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- HashSet<T> -->
+  <Type Name="se::HashSet&lt;*&gt;">
+    <DisplayString>{internal_map}</DisplayString>
+    <Expand>
+      <ExpandedItem>internal_map</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- Map<K, V> -->
+  <Type Name="se::Map&lt;*&gt;">
+    <DisplayString>{internal_map}</DisplayString>
+    <Expand>
+      <ExpandedItem>internal_map</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- Set<T> -->
+  <Type Name="se::Set&lt;*&gt;">
+    <DisplayString>{internal_map}</DisplayString>
+    <Expand>
+      <ExpandedItem>internal_map</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- Queue<T> -->
+  <Type Name="se::Queue&lt;*&gt;">
+    <DisplayString>{container}</DisplayString>
+    <Expand>
+      <ExpandedItem>container</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- Stack<T> -->
+  <Type Name="se::Stack&lt;*&gt;">
+    <DisplayString>{container}</DisplayString>
+    <Expand>
+      <ExpandedItem>container</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- LinkedList<T> -->
+  <Type Name="se::LinkedList&lt;*&gt;">
+    <DisplayString>{{ size={size} }}</DisplayString>
+    <Expand>
+      <LinkedListItems>
+        <Size>size</Size>
+        <HeadPointer>head</HeadPointer>
+        <NextPointer>next</NextPointer>
+        <ValueNode>value</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+
+  <Type Name="se::LinkedListNode&lt;*&gt;">
+    <DisplayString>{value}</DisplayString>
+  </Type>
 </AutoVisualizer>
