@@ -100,19 +100,21 @@ constexpr QuaternionImpl<T>::QuaternionImpl(T in_x, T in_y, T in_z, T in_w)
 template <traits::FloatingType T>
 constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
 {
-    const Radian<T> half_rad_p{ rotator.pitch * static_cast<T>(0.5) };
-    const Radian<T> half_rad_y{ rotator.yaw * static_cast<T>(0.5) };
-    const Radian<T> half_rad_r{ rotator.roll * static_cast<T>(0.5) };
+    const Radian<T> half_p{ rotator.pitch * static_cast<T>(0.5) }; // X
+    const Radian<T> half_y{ rotator.yaw * static_cast<T>(0.5) };   // Z
+    const Radian<T> half_r{ rotator.roll * static_cast<T>(0.5) };  // Y
 
-    const T sp = Sin(half_rad_p), cp = Cos(half_rad_p);
-    const T sy = Sin(half_rad_y), cy = Cos(half_rad_y);
-    const T sr = Sin(half_rad_r), cr = Cos(half_rad_r);
+    // NOLINTBEGIN(*-isolate-declaration)
+    const T sp = Sin(half_p), cp = Cos(half_p);
+    const T sy = Sin(half_y), cy = Cos(half_y);
+    const T sr = Sin(half_r), cr = Cos(half_r);
+    // NOLINTEND(*-isolate-declaration)
 
-    // Yaw * Pitch * Roll
-    x = cr * sp * cy + sr * cp * sy;
-    y = sr * cp * cy - cr * sp * sy;
-    z = cr * cp * sy - sr * sp * cy;
-    w = cr * cp * cy + sr * sp * sy;
+    // Yaw(Z) * Pitch(X) * Roll(Y)
+    x = cy * sp * cr + sy * cp * sr;
+    y = cy * cp * sr - sy * sp * cr;
+    z = sy * cp * cr - cy * sp * sr;
+    w = cy * cp * cr + sy * sp * sr;
 }
 
 template <traits::FloatingType T>
@@ -404,9 +406,11 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetForwardVector() const
     const Radian<T> rad_r{ roll };  // Y축 회전
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
+    // NOLINTBEGIN(*-isolate-declaration)
     const T sy = Sin(rad_y), cy = Cos(rad_y);
     const T sp = Sin(rad_p), cp = Cos(rad_p);
     const T sr = Sin(rad_r), cr = Cos(rad_r);
+    // NOLINTEND(*-isolate-declaration)
 
     return Vector3Impl<T>{
         -sy * cr + cy * sp * sr,
@@ -422,9 +426,11 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetRightVector() const
     const Radian<T> rad_r{ roll };  // Y축 회전
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
+    // NOLINTBEGIN(*-isolate-declaration)
     const T sy = Sin(rad_y), cy = Cos(rad_y);
     const T sp = Sin(rad_p), cp = Cos(rad_p);
     const T sr = Sin(rad_r), cr = Cos(rad_r);
+    // NOLINTEND(*-isolate-declaration)
 
     return Vector3Impl<T>{
         cy * cr + sy * sp * sr,
@@ -440,8 +446,10 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetUpVector() const
     const Radian<T> rad_r{ roll };  // Y축 회전
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
+    // NOLINTBEGIN(*-isolate-declaration)
     const T sp = Sin(rad_p), cp = Cos(rad_p);
     const T sr = Sin(rad_r), cr = Cos(rad_r);
+    // NOLINTEND(*-isolate-declaration)
 
     return Vector3Impl<T>{
         cp * sr,
@@ -457,4 +465,4 @@ constexpr QuaternionImpl<T> RotatorImpl<T>::ToQuaternion() const
 }
 
 //~ End RotatorImpl
-}
+}  // namespace se::math
