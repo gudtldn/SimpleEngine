@@ -166,8 +166,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
     det[3] = self[0, 1] * temp[3, 0] - self[1, 1] * temp[3, 1] + self[2, 1] * temp[3, 2];
 
     const T determinant = self[0, 0] * det[0] - self[1, 0] * det[1] + self[2, 0] * det[2] - self[3, 0] * det[3];
-    const T abs_determinant = determinant < T{ 0 } ? -determinant : determinant;
-    if (abs_determinant < KINDA_SMALL_NUMBER) // !std::isfinite(determinant)
+    if (!IsFinite(determinant))
     {
         return Identity();
     }
@@ -317,12 +316,12 @@ constexpr void Matrix4x4Impl<T>::operator*=(T scalar)
 template <traits::FloatingType T>
 constexpr T& Matrix4x4Impl<T>::operator[](SizeType row, SizeType col) noexcept
 {
-    return data[row * 4 + col];
+    return data[(row * 4) + col];
 }
 
 template <traits::FloatingType T>
 constexpr T Matrix4x4Impl<T>::operator[](SizeType row, SizeType col) const noexcept
 {
-    return data[row * 4 + col];
+    return data[(row * 4) + col];
 }
-}
+}  // namespace se::math
