@@ -21,4 +21,13 @@ struct Vector3Impl;
 
 template <traits::FloatingType T>
 struct Vector4Impl;
-}
+
+template <traits::FloatingType T>
+struct AABBImpl;
+
+template <traits::FloatingType T>
+struct RayImpl;
+
+struct Color;
+struct LinearColor;
+}  // namespace se::math
