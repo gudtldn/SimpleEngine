@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cmath>
+#include <numbers>
 
 #include "SimpleEngine/Core/Math/MathLiterals.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -10,27 +11,27 @@ namespace se::math
 constexpr float SMALL_NUMBER = 1.e-8f;
 constexpr float KINDA_SMALL_NUMBER = 1.e-4f;
 
-constexpr float PI = 3.1415926535897932f;
-constexpr float INV_PI = 0.31830988618f;
-constexpr float HALF_PI = 1.57079632679f;
-constexpr float TWO_PI = 6.28318530717f;
-constexpr float PI_SQUARED = 9.86960440108f;
+constexpr float PI = std::numbers::pi_v<float>;
+constexpr float INV_PI = std::numbers::inv_pi_v<float>;
+constexpr float HALF_PI = PI * 0.5f;
+constexpr float TWO_PI = PI * 2.0f;
+constexpr float PI_SQUARED = PI * PI;
 
-constexpr double PI_DOUBLE = 3.141592653589793238462643383279502884197169399;
+constexpr double PI_DOUBLE = std::numbers::pi;
 
 
 /** 두 값중에 더 작은 값을 반환합니다. */
 template <traits::OrderableType T>
 [[nodiscard]] static constexpr const T& Min(const T& a, const T& b)
 {
-    return a < b ? a : b;
+    return a < b ? a : b; // NOLINT(*-return-const-ref-from-parameter)
 }
 
 /** 두 값중에 더 큰 값을 반환합니다. */
 template <traits::OrderableType T>
 [[nodiscard]] static constexpr const T& Max(const T& a, const T& b)
 {
-    return a < b ? b : a;
+    return a < b ? b : a; // NOLINT(*-return-const-ref-from-parameter)
 }
 
 /** value를 min과 max의 사이의 값으로 제한합니다. */
@@ -79,7 +80,7 @@ template <traits::FloatingType T>
 
 /** value의 역제곱근을 구합니다. */
 template <traits::FloatingType T>
-[[nodiscard]] static constexpr T InvSqrt(T value) { return static_cast<T>(1) / std::sqrt(value); }
+[[nodiscard]] static constexpr T InvSqrt(T value) { return static_cast<T>(1) / Sqrt(value); }
 
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T Fmod(T value, T mod) { return std::fmod(value, mod); }
@@ -136,4 +137,4 @@ template <traits::FloatingType T>
 {
     return Degree{ radians * (static_cast<T>(180) / static_cast<T>(PI_DOUBLE)) };
 }
-}
+}  // namespace se::math
