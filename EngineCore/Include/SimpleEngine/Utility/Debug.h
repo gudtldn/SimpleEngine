@@ -1,9 +1,54 @@
 ﻿#pragma once
+#include <cstdio>
+#include <format>
+#include <print>
+#include <source_location>
 #include <utility>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 
+
+namespace se::details
+{
+[[nodiscard]] constexpr std::string_view GetPrettyFileName(const char* file_name)
+{
+    const std::string_view view(file_name);
+    const usize last_slash = view.find_last_of("/\\");
+    if (last_slash == std::string_view::npos)
+    {
+        return view;
+    }
+    return view.substr(last_slash + 1);
+}
+
+template <typename... Args>
+void PrintLogWithLocation(const std::source_location& loc, std::format_string<Args...> fmt, Args&&... args) noexcept
+{
+    const std::string user_message = std::format(fmt, std::forward<Args>(args)...);
+    const std::string final_log = std::format(
+        "[{}:{}] {}",
+        GetPrettyFileName(loc.file_name()),
+        loc.line(), user_message
+    );
+
+    std::println(stderr, "{}", final_log);
+    std::fflush(stderr);
+}
+
+inline void ReportAssertionFailure(const std::source_location& loc, std::string_view expr) noexcept // NOLINT(*-exception-escape)
+{
+    std::println(stderr, "[{}:{}] Assertion failed: {}", GetPrettyFileName(loc.file_name()), loc.line(), expr);
+    std::fflush(stderr);
+}
+
+template <typename... Args>
+void ReportAssertionFailure(const std::source_location& loc, std::string_view expr, std::format_string<Args...> fmt, Args&&... args) noexcept
+{
+    const std::string user_msg = std::format(fmt, std::forward<Args>(args)...);
+    std::println(stderr, "[{}:{}] Assertion failed: {}\n└─ {}", GetPrettyFileName(loc.file_name()), loc.line(), expr, user_msg);
+    std::fflush(stderr);
+}
+} // namespace se::details
 
 #if SE_DEBUG_BUILD
     #define SE_ENABLE_DEBUG_TOOLS true
@@ -39,7 +84,7 @@
 #define SE_FATAL_ERROR(message, ...) \
     do \
     { \
-        ::se::ConsoleLog(::se::ELogLevel::Fatal, "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
+        ::se::details::PrintLogWithLocation(std::source_location::current(), "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
         SE_BREAKPOINT(); \
         std::terminate(); \
     } while (0)
@@ -53,8 +98,7 @@
         { \
             if (!(!!(expr))) \
             { \
-                ::se::ConsoleLog(::se::ELogLevel::Fatal, "Assertion failed: " #expr); \
-                __VA_OPT__(::se::ConsoleLog(::se::ELogLevel::Fatal, "└─ " __VA_ARGS__);) \
+                ::se::details::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
                 SE_BREAKPOINT(); \
                 std::abort(); \
             } \
@@ -63,8 +107,7 @@
     #define SE_ENSURE(expr, ...) \
         (!!(expr) || [&] \
         { \
-            ::se::ConsoleLog(::se::ELogLevel::Error, "Ensure failed: " #expr); \
-            __VA_OPT__(::se::ConsoleLog(::se::ELogLevel::Error, "└─ " __VA_ARGS__);) \
+            ::se::details::ReportAssertionFailure(std::source_location::current(), "Ensure failed (" #expr ")" __VA_OPT__(, __VA_ARGS__)); \
             SE_BREAKPOINT(); \
             return false; \
         }())
