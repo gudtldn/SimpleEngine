@@ -79,8 +79,6 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
 #endif
 
 // --- 치명적 오류 (Fatal Error) ---
-// 복구 불가능한 오류가 발생했을 때 사용합니다.
-// 오류를 기록하고 디버거를 중단시킨 후 프로그램을 즉시 종료합니다.
 #define SE_FATAL_ERROR(message, ...) \
     do \
     { \
@@ -89,14 +87,25 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
         std::terminate(); \
     } while (0)
 
+#define SE_ASSERT_RELEASE(expr, ...) \
+    do \
+    { \
+        if (!(!!(expr))) [[unlikely]] \
+        { \
+            ::se::details::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
+            SE_BREAKPOINT(); \
+            std::terminate(); \
+        } \
+    } while (0)
+
 // --- 어설션 (Assertions) ---
-// 디버그 빌드에서만 조건을 검사하고, 실패 시 프로그램을 중단합니다.
+// 디버그 빌드에서만 조건을 검사합니다.
 #if SE_ENABLE_ASSERTS
-    // 기본 어설션: SE_ASSERT(expression, "optional message", ...args)
+    // SE_ASSERT(expression, "optional message", ...args)
     #define SE_ASSERT(expr, ...) \
         do \
         { \
-            if (!(!!(expr))) \
+            if (!(!!(expr))) [[unlikely]] \
             { \
                 ::se::details::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
                 SE_BREAKPOINT(); \
@@ -111,7 +120,6 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
             SE_BREAKPOINT(); \
             return false; \
         }())
-
 #else
     #define SE_ASSERT(expr, ...) ((void)0)
     #define SE_ENSURE(expr, ...) (!!(expr))
