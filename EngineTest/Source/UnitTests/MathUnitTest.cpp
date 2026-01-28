@@ -672,3 +672,332 @@ TEST_F(MathMatrix4x4Test, double_Inverse)
 {
     test_matrix_inverse<double>();
 }
+
+// AABB Tests
+class MathAABBTest : public ::testing::Test{};
+
+template <typename T>
+void test_aabb_construction_and_properties()
+{
+    using Vec3Type = math::Vector3Impl<T>;
+    using AABBType = math::AABBImpl<T>;
+
+    // Default Constructor (Invalid AABB)
+    AABBType invalid_aabb;
+    EXPECT_FALSE(invalid_aabb.IsValid());
+
+    // From Min/Max
+    Vec3Type min(-1, -1, -1);
+    Vec3Type max(1, 1, 1);
+    AABBType aabb(min, max);
+
+    EXPECT_TRUE(aabb.IsValid());
+    EXPECT_NEAR(aabb.min.x, -1, epsilon<T>);
+    EXPECT_NEAR(aabb.max.x, 1, epsilon<T>);
+
+    // From Center/Extent
+    Vec3Type center(0, 0, 0);
+    Vec3Type extent(1, 1, 1);
+    AABBType aabb_from_center = AABBType::FromCenterExtent(center, extent);
+
+    EXPECT_NEAR(aabb_from_center.min.x, -1, epsilon<T>);
+    EXPECT_NEAR(aabb_from_center.max.x, 1, epsilon<T>);
+    EXPECT_NEAR(aabb_from_center.GetCenter().x, 0, epsilon<T>);
+    EXPECT_NEAR(aabb_from_center.GetExtent().x, 1, epsilon<T>);
+    EXPECT_NEAR(aabb_from_center.GetSize().x, 2, epsilon<T>);
+}
+
+TEST_F(MathAABBTest, float_ConstructionAndProperties) { test_aabb_construction_and_properties<float>(); }
+TEST_F(MathAABBTest, double_ConstructionAndProperties) { test_aabb_construction_and_properties<double>(); }
+
+template <typename T>
+void test_aabb_expansion()
+{
+    using Vec3Type = math::Vector3Impl<T>;
+    using AABBType = math::AABBImpl<T>;
+
+    AABBType aabb(Vec3Type(0, 0, 0), Vec3Type(1, 1, 1));
+
+    // Expand by point
+    aabb.Expand(Vec3Type(2, 2, 2));
+    EXPECT_NEAR(aabb.max.x, 2, epsilon<T>);
+    EXPECT_NEAR(aabb.max.y, 2, epsilon<T>);
+
+    aabb.Expand(Vec3Type(-1, -1, -1));
+    EXPECT_NEAR(aabb.min.x, -1, epsilon<T>);
+
+    // Expand by another AABB
+    AABBType other(Vec3Type(3, 3, 3), Vec3Type(4, 4, 4));
+    aabb.Expand(other);
+
+    EXPECT_NEAR(aabb.max.x, 4, epsilon<T>);
+}
+
+TEST_F(MathAABBTest, float_Expansion) { test_aabb_expansion<float>(); }
+TEST_F(MathAABBTest, double_Expansion) { test_aabb_expansion<double>(); }
+
+template <typename T>
+void test_aabb_containment_intersection()
+{
+    using Vec3Type = math::Vector3Impl<T>;
+    using AABBType = math::AABBImpl<T>;
+
+    AABBType aabb(Vec3Type(-1, -1, -1), Vec3Type(1, 1, 1));
+
+    // Contains Point
+    EXPECT_TRUE(aabb.Contains(Vec3Type(0, 0, 0)));
+    EXPECT_TRUE(aabb.Contains(Vec3Type(1, 1, 1))); // Inclusive
+    EXPECT_FALSE(aabb.Contains(Vec3Type(2, 0, 0)));
+
+    // Intersects AABB
+    AABBType overlapping(Vec3Type(0, 0, 0), Vec3Type(2, 2, 2));
+    EXPECT_TRUE(aabb.Intersects(overlapping));
+
+    AABBType non_overlapping(Vec3Type(2, 0, 0), Vec3Type(3, 0, 0)); // Starts at 2, aabb ends at 1
+    EXPECT_FALSE(aabb.Intersects(non_overlapping));
+}
+
+TEST_F(MathAABBTest, float_ContainmentIntersection) { test_aabb_containment_intersection<float>(); }
+TEST_F(MathAABBTest, double_ContainmentIntersection) { test_aabb_containment_intersection<double>(); }
+
+
+// Color & LinearColor Tests
+class MathColorTest : public ::testing::Test{};
+
+TEST_F(MathColorTest, Color_ConstructionAndConversion)
+{
+    // Color Construction
+    math::Color red(255, 0, 0, 255);
+    EXPECT_EQ(red.r, 255);
+    EXPECT_EQ(red.g, 0);
+    EXPECT_EQ(red.b, 0);
+    EXPECT_EQ(red.a, 255);
+
+    // From packed integer
+    // uint32 packed_red_argb = 0xFFFF0000; // A=FF, R=FF, G=00, B=00 (ARGB)
+    // Note: Color::ToPackedARGB() does (a << 24) | (r << 16)...
+    // So constructor from uint32 assumes 0xRRGGBBAA as per comment?
+    // Let's check implementation:
+    // Color(uint32 rgba) : r((rgba >> 24) & 0xFF), ...
+    // So 0xFF0000FF would be Red in RGBA
+    math::Color red_from_packed(0xFF0000FF);
+    EXPECT_EQ(red_from_packed.r, 255);
+    EXPECT_EQ(red_from_packed.g, 0);
+    EXPECT_EQ(red_from_packed.b, 0);
+    EXPECT_EQ(red_from_packed.a, 255);
+
+    // Check Packing
+    EXPECT_EQ(red_from_packed.ToPackedRGBA(), 0xFF0000FF);
+    EXPECT_EQ(red_from_packed.ToPackedARGB(), 0xFFFF0000);
+}
+
+TEST_F(MathColorTest, LinearColor_Basic)
+{
+    math::LinearColor lc(1.0f, 0.5f, 0.0f, 1.0f);
+
+    // Arithmetic
+    math::LinearColor lc2(0.0f, 0.5f, 1.0f, 0.0f);
+    auto sum = lc + lc2;
+    EXPECT_FLOAT_EQ(sum.r, 1.0f);
+    EXPECT_FLOAT_EQ(sum.g, 1.0f);
+    EXPECT_FLOAT_EQ(sum.b, 1.0f);
+    EXPECT_FLOAT_EQ(sum.a, 1.0f);
+
+    // Clamping
+    math::LinearColor large(2.0f, -1.0f, 0.5f, 1.0f);
+    large.Clamp();
+    EXPECT_FLOAT_EQ(large.r, 1.0f);
+    EXPECT_FLOAT_EQ(large.g, 0.0f);
+}
+
+TEST_F(MathColorTest, Color_Linear_Conversion)
+{
+    // sRGB <-> Linear
+    // 0.5 linear is approx 0.73535 sRGB (188/255)
+
+    math::LinearColor linear_gray(0.5f, 0.5f, 0.5f, 1.0f);
+    math::Color srgb_gray = linear_gray.ToColor(true); // sRGB conversion
+
+    // 0.5 linear -> sRGB formula: 1.055 * pow(0.5, 1/2.4) - 0.055 approx 0.73535
+    // 0.73535 * 255 = 187.5 -> 188
+    EXPECT_NEAR(srgb_gray.r, 188, 1);
+
+    // Non-sRGB (simple scale)
+    math::Color linear_scaled = linear_gray.ToColor(false);
+    EXPECT_EQ(linear_scaled.r, 128); // 0.5 * 255 = 127.5 -> 128 (round)
+}
+
+TEST_F(MathColorTest, HSV_Conversion)
+{
+    // Red: H=0, S=1, V=1
+    auto red = math::LinearColor::Red();
+    auto hsv = red.LinearRGBToHSV();
+    EXPECT_FLOAT_EQ(hsv.r, 0.0f); // Hue
+    EXPECT_FLOAT_EQ(hsv.g, 1.0f); // Sat
+    EXPECT_FLOAT_EQ(hsv.b, 1.0f); // Val
+
+    auto back_to_linear = hsv.HSVToLinearRGB();
+    EXPECT_TRUE(red.IsNearlyEqual(back_to_linear));
+}
+
+
+// Ray Tests
+class MathRayTest : public ::testing::Test{};
+
+template <typename T>
+void test_ray_intersection()
+{
+    using Vec3Type = math::Vector3Impl<T>;
+    using AABBType = math::AABBImpl<T>;
+    using RayType = math::RayImpl<T>;
+
+    RayType ray(Vec3Type(0, 0, 10), Vec3Type(0, 0, -1)); // Pointing down at origin
+
+    // It normalizes direction?
+    // Direction was (0,0,-1) length 1.
+
+    AABBType box(Vec3Type(-1, -1, -1), Vec3Type(1, 1, 1));
+
+    T dist = 0;
+    EXPECT_TRUE(ray.Intersects(box, dist));
+    // Ray starts at z=10, box top is z=1. dist should be 9.
+    EXPECT_NEAR(dist, 9, epsilon<T>);
+
+    // Ray misses
+    RayType ray_miss(Vec3Type(5, 5, 5), Vec3Type(0, 1, 0));
+    EXPECT_FALSE(ray_miss.Intersects(box));
+
+    // Ray inside
+    RayType ray_inside(Vec3Type(0, 0, 0), Vec3Type(1, 0, 0));
+    EXPECT_TRUE(ray_inside.Intersects(box, dist));
+    // If origin is inside, dist might be negative depending on logic, or entry point behind?
+    // Logic: t_min is max of entry points.
+    // X slab: (-1 - 0)/1 = -1, (1 - 0)/1 = 1. min=-1, max=1
+    // Y slab: (-1 - 0)/0 = -inf, inf. min=-1, max=1
+    // Z slab: (-1 - 0)/0 = -inf, inf. min=-1, max=1
+    // t_min should be -1.
+    // The code says: return t_max >= t_min && t_max >= 0;
+    // So it should return true.
+    EXPECT_LT(dist, 0);
+}
+
+TEST_F(MathRayTest, float_Intersection) { test_ray_intersection<float>(); }
+TEST_F(MathRayTest, double_Intersection) { test_ray_intersection<double>(); }
+
+// MathUtility Tests
+class MathUtilityTest : public ::testing::Test{};
+
+TEST_F(MathUtilityTest, AbsImpl_vs_StdAbs)
+{
+    float values[] = { 0.0f, -0.0f, 1.0f, -1.0f, 123.456f, -123.456f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
+    for (float v : values)
+    {
+        EXPECT_EQ(se::math::details::AbsImpl(v), std::abs(v));
+    }
+}
+
+TEST_F(MathUtilityTest, Fmod_vs_StdFmod)
+{
+    struct Case { float x; float y; };
+    Case cases[] = {
+        { 5.3f, 2.0f }, { 18.5f, 4.2f }, { -5.3f, 2.0f }, { 5.3f, -2.0f },
+        { 0.0f, 1.0f }, { 1.0f, 1.0f }
+    };
+
+    for (const auto& c : cases)
+    {
+        EXPECT_NEAR(se::math::details::Fmod(c.x, c.y), std::fmod(c.x, c.y), epsilon<float>);
+    }
+}
+
+TEST_F(MathUtilityTest, Sqrt_vs_StdSqrt)
+{
+    float values[] = { 0.0f, 1.0f, 2.0f, 4.0f, 100.0f, 0.25f };
+    for (float v : values)
+    {
+        EXPECT_NEAR(se::math::details::Sqrt(v), std::sqrt(v), epsilon<float>);
+    }
+    
+    // NaN check for negative
+    EXPECT_TRUE(std::isnan(se::math::details::Sqrt(-1.0f)));
+}
+
+TEST_F(MathUtilityTest, Exp_vs_StdExp)
+{
+    float values[] = { 0.0f, 1.0f, -1.0f, 0.5f, 2.0f };
+    for (float v : values)
+    {
+        // Relaxed tolerance for approximation
+        EXPECT_NEAR(se::math::details::Exp(v), std::exp(v), 1e-5f);
+    }
+}
+
+TEST_F(MathUtilityTest, Ln_vs_StdLog)
+{
+    float values[] = { 1.0f, 2.71828f, 10.0f, 0.5f };
+    for (float v : values)
+    {
+        EXPECT_NEAR(se::math::details::Ln(v), std::log(v), 1e-4f);
+    }
+}
+
+TEST_F(MathUtilityTest, Pow_vs_StdPow)
+{
+    struct Case { float b; float e; };
+    Case cases[] = {
+        { 2.0f, 3.0f }, { 2.0f, 0.0f }, { 2.0f, 1.0f }, 
+        { 4.0f, 0.5f }, { 2.0f, -1.0f }, { 2.5f, 2.0f }
+    };
+
+    for (const auto& c : cases)
+    {
+        EXPECT_NEAR(se::math::details::Pow(c.b, c.e), std::pow(c.b, c.e), 1e-4f);
+    }
+}
+
+TEST_F(MathUtilityTest, Classification_Functions)
+{
+    float inf = std::numeric_limits<float>::infinity();
+    float nan = std::numeric_limits<float>::quiet_NaN();
+    float norm = 1.0f;
+
+    EXPECT_EQ(se::math::details::IsNaN(nan), std::isnan(nan));
+    EXPECT_EQ(se::math::details::IsNaN(norm), std::isnan(norm));
+
+    EXPECT_EQ(se::math::details::IsInfinite(inf), std::isinf(inf));
+    EXPECT_EQ(se::math::details::IsInfinite(-inf), std::isinf(-inf));
+    EXPECT_EQ(se::math::details::IsInfinite(norm), std::isinf(norm));
+
+    EXPECT_EQ(se::math::details::IsFinite(norm), std::isfinite(norm));
+    EXPECT_EQ(se::math::details::IsFinite(inf), std::isfinite(inf));
+    EXPECT_EQ(se::math::details::IsFinite(nan), std::isfinite(nan));
+}
+
+TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
+{
+    struct Case { float n; float s; };
+    Case cases[] = {
+        { 1.0f, 1.0f }, { 1.0f, -1.0f }, { -1.0f, 1.0f }, { -1.0f, -1.0f }
+    };
+    for (const auto& c : cases)
+    {
+        EXPECT_EQ(se::math::details::CopySign(c.n, c.s), std::copysign(c.n, c.s));
+    }
+}
+
+TEST_F(MathUtilityTest, Constexpr_Checks)
+{
+    constexpr float sqrt_val = se::math::Sqrt(4.0f);
+    static_assert(se::math::IsNearlyEqual(sqrt_val, 2.0f));
+
+    constexpr float pow_val = se::math::Pow(2.0f, 3.0f);
+    static_assert(se::math::IsNearlyEqual(pow_val, 8.0f));
+
+    constexpr float abs_val = se::math::Abs(-10.0f);
+    static_assert(se::math::IsNearlyEqual(abs_val, 10.0f));
+    
+    constexpr float fmod_val = se::math::Fmod(5.5f, 2.0f);
+    static_assert(se::math::IsNearlyEqual(fmod_val, 1.5f));
+}
+
+
