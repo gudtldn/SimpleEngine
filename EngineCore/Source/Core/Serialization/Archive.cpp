@@ -1,6 +1,7 @@
 ﻿#include "Core/Serialization/Archive.h"
 
 #include "Core/Container/String.h"
+#include "Core/Logging/Logging.h"
 #include "Core/Types/Guid.h"
 #include "Core/Types/StringName.h"
 #include "Reflection/TypeId.h"
@@ -9,12 +10,14 @@
 
 namespace se::core
 {
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define IMPL_ARCHIVE_OPERATOR(Type) \
     Archive& Archive::operator<<(Type& value) \
     { \
         ProcessBytes(&value, sizeof(Type)); \
         return *this; \
     }
+// NOLINTEND(bugprone-macro-parentheses)
 
 Archive& Archive::operator<<(Archive&)
 {

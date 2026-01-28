@@ -3,6 +3,8 @@
 
 #include "Asset/ImportSettings/MeshImportSettings.h"
 #include "Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
+#include "Core/Container/HashSet.h"
+#include "Core/Logging/Logging.h"
 #include "Utility/StringUtils.h"
 
 #include "assimp/Importer.hpp"

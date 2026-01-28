@@ -2,6 +2,7 @@
 
 #include "Core/Types/Guid.h"
 #include "Core/Types/StringName.h"
+#include "Utility/Debug.h"
 
 
 namespace se::core

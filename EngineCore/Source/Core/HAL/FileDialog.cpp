@@ -3,7 +3,7 @@
 #include <atomic>
 #include <variant>
 
-#include "Utility/Debug.h"
+#include "Core/Logging/Logging.h"
 
 
 namespace

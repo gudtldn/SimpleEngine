@@ -13,6 +13,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Reflection/TypeId.h"
@@ -267,4 +268,4 @@ concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(cons
 
     co_return std::static_pointer_cast<T>(std::move(loaded_asset));
 }
-}
+}  // namespace se::asset

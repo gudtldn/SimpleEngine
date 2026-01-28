@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/Container/Stack.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"
@@ -171,4 +171,4 @@ private:
         return it->second.template as<NodeType>();
     }
 };
-}
+}  // namespace se::core

@@ -3,6 +3,7 @@
 #include "Core/EditorSubsystem.h"
 #include "UI/EditorUISubsystem.h"
 
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"

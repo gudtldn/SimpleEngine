@@ -1,13 +1,15 @@
 ﻿#include "UI/Panels/AssetsBrowserPanel.h"
+
 #include <compare>
 
-#include "SimpleEngine/Utility/Debug.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 #include "imgui.h"
 
 namespace fs = std::filesystem;
+
 
 namespace
 {
@@ -26,7 +28,7 @@ struct AssetItem
         return name <=> other.name;
     }
 };
-}
+}  // namespace
 
 namespace se::editor::ui
 {
@@ -158,7 +160,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
     }
 
     // Item 정렬
-    std::sort(items.begin(), items.end());
+    std::sort(items.begin(), items.end()); // NOLINT(*-use-ranges)
 
     // 테이블(그리드) 그리기
     if (ImGui::BeginTable("AssetGridTable", column_count))
@@ -374,4 +376,4 @@ void AssetsBrowserPanel::DrawFileContextMenu(const std::filesystem::path& path)
         platform::RevealInExplorer(path);
     }
 }
-}
+}  // namespace se::editor::ui

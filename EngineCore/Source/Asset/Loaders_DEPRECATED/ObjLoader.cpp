@@ -1,6 +1,7 @@
 ﻿#include "SimpleEngine/Asset/Loaders_DEPRECATED/ObjLoader.h"
 
 #include "Asset/Types/MeshTypes.h"
+#include "Core/Logging/Logging.h"
 #include "Reflection/Reflect.h"
 
 #include "assimp/Importer.hpp"

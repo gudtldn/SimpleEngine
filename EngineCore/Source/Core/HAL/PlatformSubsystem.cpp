@@ -2,6 +2,7 @@
 
 #include <ranges>
 
+#include "Core/Logging/Logging.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
 #include "Gfx/RenderSubsystem.h"
 #include "Utility/SubsystemUtils.h"
@@ -104,7 +105,7 @@ bool PlatformSubsystem::IsFullscreen() const
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void PlatformSubsystem::SetFullscreen(bool fullscreen)
+void PlatformSubsystem::SetFullscreen(bool fullscreen) // NOLINT(*-make-member-function-const)
 {
     if (IsFullscreen() == fullscreen)
     {
@@ -211,4 +212,4 @@ void PlatformSubsystem::UnregisterWindow(SDL_WindowID window_id)
 {
     windows.Remove(window_id);
 }
-}
+}  // namespace se

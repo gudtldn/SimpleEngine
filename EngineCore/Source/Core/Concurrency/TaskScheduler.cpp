@@ -2,6 +2,7 @@
 #include "Core/Concurrency/TaskScheduler.h"
 
 #include "Core/Concurrency/ThreadPool.h"
+#include "Core/Logging/Logging.h"
 #include "Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"
@@ -145,4 +146,4 @@ void TaskScheduler::ProcessMainThreadTasks()
         });
     }
 }
-}
+}  // namespace se::concurrency

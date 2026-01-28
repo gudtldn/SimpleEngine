@@ -1,9 +1,9 @@
 ﻿#include "Rendering/Memory/GpuResourceManager.h"
 
 #include <cmath>
-#include <cstring>
 
-#include "SimpleEngine/Utility/Debug.h"
+#include "Core/Logging/Logging.h"
+#include "Utility/Debug.h"
 
 
 namespace se::rendering

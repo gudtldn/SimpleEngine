@@ -1,9 +1,10 @@
 ﻿// NOLINTBEGIN(*-reserved-identifier)
 #include "Asset/Pipeline/AssetImporter.h"
 #include "Core/Container/Queue.h"
+#include "Core/Logging/Logging.h"
 #include "Utility/StringUtils.h"
 
-#include <tracy/Tracy.hpp>
+#include "tracy/Tracy.hpp"
 
 
 namespace se::asset
