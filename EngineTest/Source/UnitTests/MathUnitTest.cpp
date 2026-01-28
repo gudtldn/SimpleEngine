@@ -241,7 +241,7 @@ void test_quaternion_basic()
 
     // Rotation 90 degrees around Z axis
     math::Vector3Impl<T> axis(0, 0, 1);
-    auto q2 = math::QuaternionImpl<T>::FromAxisAngle(axis, math::DegreesToRadians<T>(90.0));
+    auto q2 = math::QuaternionImpl<T>::FromAxisAngle(axis, math::DegToRad<T>(90.0));
 
     // q = [axis * sin(theta/2), cos(theta/2)]
     // sin(45) = 0.707106..., cos(45) = 0.707106...
@@ -917,7 +917,7 @@ TEST_F(MathUtilityTest, Sqrt_vs_StdSqrt)
     {
         EXPECT_NEAR(se::math::details::Sqrt(v), std::sqrt(v), epsilon<float>);
     }
-    
+
     // NaN check for negative
     EXPECT_TRUE(std::isnan(se::math::details::Sqrt(-1.0f)));
 }
@@ -945,7 +945,7 @@ TEST_F(MathUtilityTest, Pow_vs_StdPow)
 {
     struct Case { float b; float e; };
     Case cases[] = {
-        { 2.0f, 3.0f }, { 2.0f, 0.0f }, { 2.0f, 1.0f }, 
+        { 2.0f, 3.0f }, { 2.0f, 0.0f }, { 2.0f, 1.0f },
         { 4.0f, 0.5f }, { 2.0f, -1.0f }, { 2.5f, 2.0f }
     };
 
@@ -995,7 +995,7 @@ TEST_F(MathUtilityTest, Constexpr_Checks)
 
     constexpr float abs_val = se::math::Abs(-10.0f);
     static_assert(se::math::IsNearlyEqual(abs_val, 10.0f));
-    
+
     constexpr float fmod_val = se::math::Fmod(5.5f, 2.0f);
     static_assert(se::math::IsNearlyEqual(fmod_val, 1.5f));
 }

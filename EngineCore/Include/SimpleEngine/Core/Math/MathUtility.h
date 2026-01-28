@@ -281,14 +281,14 @@ template <typename T>
 
 /** Degrees를 Radians으로 변환합니다. */
 template <traits::FloatingType T>
-[[nodiscard]] static constexpr Radian<T> DegreesToRadians(T degrees)
+[[nodiscard]] static constexpr Radian<T> DegToRad(T degrees)
 {
     return Radian{ degrees * (static_cast<T>(PI_V<T>) / static_cast<T>(180)) };
 }
 
 /** Radians를 Degrees으로 변환합니다. */
 template <traits::FloatingType T>
-[[nodiscard]] static constexpr Degree<T> RadiansToDegrees(T radians)
+[[nodiscard]] static constexpr Degree<T> RadToDeg(T radians)
 {
     return Degree{ radians * (static_cast<T>(180) / static_cast<T>(PI_V<T>)) };
 }
