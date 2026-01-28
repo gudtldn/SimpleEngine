@@ -176,6 +176,75 @@
     </Expand>
   </Type>
 
+  <!-- AABBImpl<T> -->
+  <Type Name="se::math::AABBImpl&lt;*&gt;">
+    <Intrinsic Name="IsValid" Expression="min.x &lt;= max.x &amp;&amp; min.y &lt;= max.y &amp;&amp; min.z &lt;= max.z"/>
+
+    <DisplayString Condition="!IsValid()">Invalid</DisplayString>
+    <DisplayString Condition="IsValid()">{{ min={min}, max={max} }}</DisplayString>
+    <Expand>
+      <Item Name="min">min</Item>
+      <Item Name="max">max</Item>
+
+      <Synthetic Name="[size]">
+        <DisplayString>{{ x={max.x - min.x,g}, y={max.y - min.y,g}, z={max.z - min.z,g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">max.x - min.x</Item>
+          <Item Name="y">max.y - min.y</Item>
+          <Item Name="z">max.z - min.z</Item>
+        </Expand>
+      </Synthetic>
+
+      <Synthetic Name="[center]">
+        <DisplayString>{{ x={(min.x + max.x) * 0.5,g}, y={(min.y + max.y) * 0.5,g}, z={(min.z + max.z) * 0.5,g} }}</DisplayString>
+        <Expand>
+          <Item Name="x">(min.x + max.x) * 0.5</Item>
+          <Item Name="y">(min.y + max.y) * 0.5</Item>
+          <Item Name="z">(min.z + max.z) * 0.5</Item>
+        </Expand>
+      </Synthetic>
+    </Expand>
+  </Type>
+
+  <!-- RayImpl<T> -->
+  <Type Name="se::math::RayImpl&lt;*&gt;">
+    <DisplayString>{{ origin={origin}, direction={direction} }}</DisplayString>
+    <Expand>
+      <Item Name="origin">origin</Item>
+      <Item Name="direction">direction</Item>
+    </Expand>
+  </Type>
+
+  <!-- Color -->
+  <Type Name="se::math::Color">
+    <Intrinsic Name="ToHexInt" Expression="((unsigned int)r &lt;&lt; 24) | ((unsigned int)g &lt;&lt; 16) | ((unsigned int)b &lt;&lt; 8) | (unsigned int)a" />
+
+    <DisplayString>{{ R={(int)r}, G={(int)g}, B={(int)b}, A={(int)a} }}</DisplayString>
+    <Expand>
+      <Item Name="R">(int)r</Item>
+      <Item Name="G">(int)g</Item>
+      <Item Name="B">(int)b</Item>
+      <Item Name="A">(int)a</Item>
+
+      <Item Name="[hex]">ToHexInt(),X</Item>
+    </Expand>
+  </Type>
+
+  <!-- LinearColor -->
+  <Type Name="se::math::LinearColor">
+    <DisplayString>{{ R={r,g}, G={g,g}, B={b,g}, A={a,g} }}</DisplayString>
+    <Expand>
+      <Item Name="R">r</Item>
+      <Item Name="G">g</Item>
+      <Item Name="B">b</Item>
+      <Item Name="A">a</Item>
+
+      <Item Name="[luma]">r * 0.2126f + g * 0.7152f + b * 0.0722f</Item>
+      <Item Name="[max]">(r > g ? (r > b ? r : b) : (g > b ? g : b))</Item>
+      <Item Name="[is_hdr]">r > 1.0f || g > 1.0f || b > 1.0f</Item>
+    </Expand>
+  </Type>
+
   <!-- Optional<T> -->
   <Type Name="Optional&lt;*&gt;">
     <DisplayString Condition="!is_value_set">nullopt</DisplayString>
