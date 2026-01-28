@@ -33,6 +33,11 @@
   - 아니면 나중에 제대로 OS로부터 Page를 받아서 메모리 Pool을 직접 구현
   - 디버그 빌드 시 가드 바이트(카나리)를 추가하여 메모리 손상 감지
 
+- [ ] 지금 사용하고 있는 Assert의 출력을 AssertHandler로 리펙토링
+  - `using AssertHandlerType = void(*)(const std::source_location& loc, std::string_view expr, std::string_view msg);`
+  - 이런식으로 핸들러를 등록해서, Assert는 Dispatch만 하고
+  - 핸들러를 등록할 때, 재귀를 방지하기 위해서 `thread_local bool is_asserting = false;`이런거 사용
+
 ## 완료
 
 - [x] 모듈명, 넴스 이름 규칙 정하고 다시 점검하기
