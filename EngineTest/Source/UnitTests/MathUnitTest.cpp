@@ -867,27 +867,22 @@ void test_ray_intersection()
     RayType ray_miss(Vec3Type(5, 5, 5), Vec3Type(0, 1, 0));
     EXPECT_FALSE(ray_miss.Intersects(box));
 
-    // Ray inside
-    RayType ray_inside(Vec3Type(0, 0, 0), Vec3Type(1, 0, 0));
+    // 3. Ray starts Inside
+    // Origin(0,0,0) is inside the box (-1,-1,-1 ~ 1,1,1)
+    RayType ray_inside(Vec3Type(0, 0, 0), Vec3Type(1, 0, 0)); // +X 방향으로 발사
+
     EXPECT_TRUE(ray_inside.Intersects(box, dist));
-    // dist가 음수면 origin이 box 내부, 양수면 exit point
-    // 구현 의도에 맞게 검증
-    if (dist < 0) {
-        // Origin 내부에서 시작하는 경우
-        EXPECT_LT(dist, 0);
-    } else {
-        // Exit point까지의 거리
-        EXPECT_NEAR(dist, 1, epsilon<T>); // x방향으로 1만큼
-    }
-    // If origin is inside, dist might be negative depending on logic, or entry point behind?
-    // Logic: t_min is max of entry points.
-    // X slab: (-1 - 0)/1 = -1, (1 - 0)/1 = 1. min=-1, max=1
-    // Y slab: (-1 - 0)/0 = -inf, inf. min=-1, max=1
-    // Z slab: (-1 - 0)/0 = -inf, inf. min=-1, max=1
-    // t_min should be -1.
-    // The code says: return t_max >= t_min && t_max >= 0;
-    // So it should return true.
-    EXPECT_LT(dist, 0);
+
+    // [분석]
+    // X축 Slab: (-1 - 0)/1 = -1(진입), (1 - 0)/1 = 1(탈출)
+    // t_min = -1, t_max = 1
+    //
+    // 바뀐 로직: out_distance = (t_min >= 0) ? t_min : t_max;
+    // t_min(-1) < 0 이므로 t_max(1)을 선택해야 함.
+
+    // 기대 결과: 음수(-1)가 아니라 양수(1)이어야 함
+    EXPECT_GT(dist, static_cast<T>(0)); // 거리는 양수여야 함
+    EXPECT_NEAR(dist, static_cast<T>(1), epsilon<T>); // 원점에서 오른쪽 벽(x=1)까지 거리
 }
 
 TEST_F(MathRayTest, float_Intersection) { test_ray_intersection<float>(); }

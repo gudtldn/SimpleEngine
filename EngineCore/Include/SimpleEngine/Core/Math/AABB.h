@@ -9,7 +9,7 @@
 namespace se::math
 {
 /**
- * @todo docs
+ * Axis-Aligned Bounding Box를 나타내는 구조체
  */
 template <traits::FloatingType T>
 struct AABBImpl
@@ -32,6 +32,7 @@ public:
     {
     }
 
+    /** 중심점(Center)과 각 축의 절반 크기(Extent)를 사용하여 생성합니다. */
     static constexpr AABBImpl FromCenterExtent(const VectorType& center, const VectorType& extent)
     {
         return AABBImpl{
@@ -40,6 +41,7 @@ public:
         };
     }
 
+    /** 중심점(Center)과 균일한 절반 크기(Extent)를 사용하여 정육면체 형태를 생성합니다. */
     static constexpr AABBImpl FromCenterExtent(const VectorType& center, T extent)
     {
         const VectorType v_ext{ extent };
@@ -50,26 +52,34 @@ public:
     }
 
 public:
+    /** AABB의 중심점을 반환합니다. */
     [[nodiscard]] constexpr VectorType GetCenter() const
     {
         return (min + max) * 0.5;
     }
 
+    /** 중심에서 면까지의 거리를 반환합니다. */
     [[nodiscard]] constexpr VectorType GetExtent() const
     {
         return (max - min) * 0.5;
     }
 
+    /** AABB의 전체 크기(가로, 세로, 높이)를 반환합니다. */
     [[nodiscard]] constexpr VectorType GetSize() const
     {
         return max - min;
     }
 
+    /** 현재 AABB가 유효한지(min <= max) 확인합니다. */
     [[nodiscard]] constexpr bool IsValid() const
     {
         return min.x <= max.x && min.y <= max.y && min.z <= max.z;
     }
 
+    /**
+     * 주어진 점을 포함하도록 AABB를 확장합니다.
+     * @return 확장 성공 여부
+     */
     constexpr bool Expand(const VectorType& point)
     {
         min.x = Min(min.x, point.x);
@@ -83,6 +93,11 @@ public:
         return true;
     }
 
+    /**
+     * 다른 AABB를 포함하도록 영역을 확장합니다.
+     * @param other 병합할 다른 AABB
+     * @return other가 유효하지 않으면 false, 병합에 성공하면 true
+     */
     constexpr bool Expand(const AABBImpl& other)
     {
         if (!other.IsValid())
@@ -101,6 +116,7 @@ public:
         return true;
     }
 
+    /** 점이 AABB 내부에 포함되는지 확인합니다. */
     [[nodiscard]] constexpr bool Contains(const VectorType& point) const
     {
         return point.x >= min.x && point.x <= max.x
@@ -108,6 +124,7 @@ public:
             && point.z >= min.z && point.z <= max.z;
     }
 
+    /** 다른 AABB와 겹치는지(교차하는지) 확인합니다. */
     [[nodiscard]] constexpr bool Intersects(const AABBImpl& other) const
     {
         return min.x <= other.max.x && max.x >= other.min.x
