@@ -75,11 +75,24 @@ target_compile_definitions(EngineCore PRIVATE
 
 if(MSVC)
     target_compile_options(EngineCore PRIVATE
-            /utf-8
+            /utf-8           # 인코딩을 UTF-8로 사용
+            /Zc:preprocessor # MSVC 전처리기 최신 표준 기능을 활성화
+            /Zc:__cplusplus  # 표준 __cplusplus 버전을 사용
+            /W4              # 경고 수준을 최고 수준으로 설정
+            /MP              # 멀티스레드 빌드 사용
+            /wd4251 /wd4275 /wd4324 /wd4702
+
+            # AVX를 명시적으로 타겟팅 | 나중에 ON, OFF로 수정
+            /arch:AVX2
     )
 else ()
     target_compile_options(EngineCore PRIVATE
             -finput-charset=UTF-8
             -fexec-charset=UTF-8
+
+            -Wall -Wextra
+
+            # AVX + FMA를 명시적으로 타겟팅 | 나중에 ON, OFF로 수정
+            -mavx -mfma
     )
 endif ()
