@@ -9,24 +9,6 @@ struct Color;
 
 namespace details
 {
-consteval FixedArray<float, 256> CreateSRGBToLinearTable()
-{
-    FixedArray<float, 256> table;
-    for (int i = 0; i < 256; ++i)
-    {
-        const float val = static_cast<float>(i) / 255.0f;
-        if (val <= 0.04045f)
-        {
-            table[i] = val / 12.92f;
-        }
-        else
-        {
-            table[i] = Pow((val + 0.055f) / 1.055f, 2.4f);
-        }
-    }
-    return table;
-}
-
 /** sRGB -> Linear 변환 */
 constexpr float SrgbToLinear(float val)
 {
@@ -46,10 +28,24 @@ constexpr float LinearToSrgb(float val)
     }
     return (1.055f * Pow(val, 1.0f / 2.4f)) - 0.055f;
 }
+
+/** 컴파일 타임에 sRGB -> Linear 변환 테이블을 생성합니다. */
+consteval FixedArray<float, 256> CreateSRGBToLinearTable()
+{
+    FixedArray<float, 256> table;
+    for (int i = 0; i < 256; ++i)
+    {
+        const float val = static_cast<float>(i) / 255.0f;
+
+        // sRGB 표준 공식 (어두운 부분은 선형, 밝은 부분은 곡선)
+        table[i] = SrgbToLinear(val);
+    }
+    return table;
+}
 }  // namespace details
 
 /**
- * @todo docs
+ * float 기반 색상 구조체 (R, G, B, A)
  */
 struct LinearColor
 {
@@ -69,8 +65,8 @@ public:
     }
 
     /**
-     * @brief Color로부터 LinearColor를 생성합니다.
-     * @param color 원본 Color
+     * 8비트 Color를 LinearColor로 변환합니다.
+     * @param color 원본 8비트 색상
      * @param is_srgb true면 sRGB -> Linear 변환 수행, false면 단순 정규화(/255)만 수행
      */
     explicit constexpr LinearColor(const Color& color, bool is_srgb = true);
@@ -90,11 +86,7 @@ public:
     [[nodiscard]] static constexpr LinearColor Transparent() { return { 0.0f, 0.0f, 0.0f, 0.0f }; }
 
 public:
-    /**
-     *
-     * @param min_value
-     * @param max_value
-     */
+    /** 값을 min~max 범위로 자릅니다. (Saturate 등) */
     constexpr void Clamp(float min_value = 0.0f, float max_value = 1.0f)
     {
         r = math::Clamp(r, min_value, max_value);
@@ -103,12 +95,7 @@ public:
         a = math::Clamp(a, min_value, max_value);
     }
 
-    /**
-     *
-     * @param min_value
-     * @param max_value
-     * @return
-     */
+    /** Clamp된 복사본을 반환합니다. */
     [[nodiscard]] constexpr LinearColor GetClamped(float min_value = 0.0f, float max_value = 1.0f) const
     {
         LinearColor result = *this;
@@ -116,31 +103,19 @@ public:
         return result;
     }
 
-    /**
-     *
-     * @return
-     */
+    /** 현재 RGB 색상을 HSV 모델로 변환하여 반환합니다. */
     [[nodiscard]] constexpr LinearColor LinearRGBToHSV() const;
 
-    /**
-     *
-     * @return
-     */
+    /** 현재 값을 HSV로 해석하여 다시 RGB로 변환합니다. (r=H, g=S, b=V라 가정) */
     [[nodiscard]] constexpr LinearColor HSVToLinearRGB() const;
 
     /**
-     *
-     * @param is_srgb
-     * @return
+     * LinearColor를 8비트 Color로 변환합니다. (모니터 출력/저장용)
+     * * 연산이 끝난 선형 색상을 사람이 보기 좋게 만들기 위해 다시 감마 인코딩(Linear->sRGB)을 수행합니다.
      */
     [[nodiscard]] constexpr Color ToColor(bool is_srgb = true) const;
 
-    /**
-     *
-     * @param other
-     * @param tolerance
-     * @return
-     */
+    /** 두 색상이 오차 범위 내에서 같은지 비교합니다. (부동소수점 오차 고려) */
     [[nodiscard]] constexpr bool IsNearlyEqual(const LinearColor& other, float tolerance = KINDA_SMALL_NUMBER) const
     {
         return Abs(r - other.r) <= tolerance
@@ -222,7 +197,7 @@ public:
 };
 
 /**
- * @todo docs
+ * 8비트 정수 기반 색상 구조체 (R, G, B, A)
  */
 struct Color
 {
@@ -253,7 +228,7 @@ public:
     }
 
     /**
-     * @brief LinearColor를 Color로 변환하여 생성합니다.
+     * LinearColor를 8비트 Color로 변환하여 생성합니다.
      * @param linear_color 변환할 LinearColor
      * @param is_srgb true면 Linear -> sRGB 변환 수행, false면 단순 정규화(/1.0f)만 수행
      */
@@ -271,18 +246,21 @@ public:
     [[nodiscard]] static constexpr Color Transparent() { return { 0,  0,  0,  0 }; }
 
 public:
+    /** @return ARGB 포맷의 32비트 정수 */
     [[nodiscard]] constexpr uint32 ToPackedARGB() const
     {
         return (static_cast<uint32>(a) << 24) | (static_cast<uint32>(r) << 16)
              | (static_cast<uint32>(g) << 8)  | (static_cast<uint32>(b) << 0);
     }
 
+    /** @return RGBA 포맷의 32비트 정수 */
     [[nodiscard]] constexpr uint32 ToPackedRGBA() const
     {
         return (static_cast<uint32>(r) << 24) | (static_cast<uint32>(g) << 16)
              | (static_cast<uint32>(b) << 8)  | (static_cast<uint32>(a) << 0);
     }
 
+    /** LinearColor로 변환합니다. */
     [[nodiscard]] constexpr LinearColor ToLinearColor(bool is_srgb = true) const;
 
 public:
