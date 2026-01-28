@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include <cassert>
 
 #include "SimpleEngine/Core/Math/MathFwd.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::math
@@ -263,14 +263,14 @@ constexpr bool Vector4Impl<T>::operator!=(const Vector4Impl& other) const
 template <traits::FloatingType T>
 constexpr T& Vector4Impl<T>::operator[](usize index)
 {
-    assert(index < 4);
+    SE_ASSERT(index < 4);
     return (&x)[index];
 }
 
 template <traits::FloatingType T>
 constexpr T Vector4Impl<T>::operator[](usize index) const
 {
-    assert(index < 4);
+    SE_ASSERT(index < 4);
     return (&x)[index];
 }
 
@@ -346,4 +346,4 @@ bool Vector4Impl<T>::IsNearlyEqual3(const Vector4Impl& other, T tolerance) const
         && Abs(y - other.y) <= tolerance
         && Abs(z - other.z) <= tolerance;
 }
-}
+}  // namespace se::math

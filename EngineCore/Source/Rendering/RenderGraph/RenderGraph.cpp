@@ -2,7 +2,6 @@
 #include "Rendering/RenderGraph/RenderGraph.h"
 
 #include <algorithm>
-#include <cassert>
 #include <memory>
 #include <ranges>
 #include <utility>
@@ -11,6 +10,7 @@
 #include "Core/Container/Queue.h"
 #include "Core/Logging/Logging.h"
 #include "Rendering/Manager/PSOManager.h"
+#include "Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -59,7 +59,7 @@ void RenderGraph::Compile()
                     "Invalid resource handle. Check the {}::Setup() logic",
                     typeid(*pass_object).name()
                 );
-                assert(false && "Invalid resource handle.");
+                SE_ASSERT(false, "Invalid resource handle.");
             }
 #endif
 
@@ -76,7 +76,7 @@ void RenderGraph::Compile()
                     resource_node.name.ToString(),
                     typeid(*pass_object).name()
                 );
-                assert(false && "Resource is not initialized.");
+                SE_ASSERT(false, "Resource is not initialized.");
             }
 
             // 리소스가 이미 다른 패스에서 쓰고 있는지 확인
@@ -95,7 +95,7 @@ void RenderGraph::Compile()
                     typeid(*existing_writer_pass).name(),
                     typeid(*pass_object).name()
                 );
-                assert(false && "A resource can only be written by a single pass per frame.");
+                SE_ASSERT(false, "A resource can only be written by a single pass per frame.");
             }
 #endif
 
@@ -236,7 +236,7 @@ void RenderGraph::Compile()
             ConsoleLog(ELogLevel::Fatal, "- {}", node->name.ToString());
         }
 
-        assert(false && "A cycle was detected in the render graph!");
+        SE_ASSERT(false, "A cycle was detected in the render graph!");
         return;
     }
 
@@ -288,7 +288,7 @@ RGResourceHandle RenderGraph::ImportTexture(const StringName& name, SDL_GPUTextu
     const RGResourceHandle handle = GetResourceHandleByName(name);
     RGResourceNode& node = resource_nodes[handle.index];
 
-    assert(!node.resource && "A resource with the same name already exists.");
+    SE_ASSERT(!node.resource, "A resource with the same name already exists.");
 
     node.resource = std::make_unique<RGExternalTexture>(texture);
     return handle;
@@ -299,7 +299,7 @@ RGResourceHandle RenderGraph::ImportBuffer(const StringName& name, SDL_GPUBuffer
     const RGResourceHandle handle = GetResourceHandleByName(name);
     RGResourceNode& node = resource_nodes[handle.index];
 
-    assert(!node.resource && "A resource with the same name already exists.");
+    SE_ASSERT(!node.resource, "A resource with the same name already exists.");
 
     node.resource = std::make_unique<RGExternalBuffer>(buffer);
     return handle;
@@ -336,7 +336,7 @@ RGResourceHandle RenderGraphBuilder::CreateTexture(const StringName& name, const
     const RGResourceHandle handle = GetResourceHandleByName(name);
     RGResourceNode& node = graph_ref.resource_nodes[handle.index];
 
-    assert(!node.resource && "A resource with the same name already exists.");
+    SE_ASSERT(!node.resource, "A resource with the same name already exists.");
 
     std::unique_ptr<RGTransientTexture> texture_resource = std::make_unique<RGTransientTexture>();
     texture_resource->description = description;
@@ -352,7 +352,7 @@ RGResourceHandle RenderGraphBuilder::CreateBuffer(const StringName& name, const 
     const RGResourceHandle handle = GetResourceHandleByName(name);
     RGResourceNode& node = graph_ref.resource_nodes[handle.index];
 
-    assert(!node.resource && "A resource with the same name already exists.");
+    SE_ASSERT(!node.resource, "A resource with the same name already exists.");
 
     std::unique_ptr<RGTransientBuffer> buffer_resource = std::make_unique<RGTransientBuffer>();
     buffer_resource->description = description;
@@ -409,4 +409,4 @@ SDL_GPUComputePipeline* RGExecutionContext::GetOrCreateComputePipeline(const Com
 {
     return pso_manager.GetOrCreateComputePipeline(create_info);
 }
-}
+}  // namespace se::rendering

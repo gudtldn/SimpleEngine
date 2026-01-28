@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <cassert>
 #include <concepts>
 #include <functional>
 #include <memory>
@@ -11,10 +10,12 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 // forward declaration
 template <typename T>
 class Optional;
+
 
 namespace se::details
 {
@@ -193,7 +194,7 @@ public:
     template <typename Self>
     [[nodiscard]] auto&& Value(this Self&& self)
     {
-        assert(self.HasValue() && "Optional is empty!");
+        SE_ASSERT(self.HasValue(), "Optional is empty!");
         return std::forward_like<Self>(self.GetStoredValue());
     }
 
@@ -507,7 +508,7 @@ public:
     /** Optional이 가지고 있는 값을 반환합니다. */
     [[nodiscard]] T& Value() const
     {
-        assert(HasValue() && "Optional is empty!");
+        SE_ASSERT(HasValue(), "Optional is empty!");
         return GetStoredValue();
     }
 

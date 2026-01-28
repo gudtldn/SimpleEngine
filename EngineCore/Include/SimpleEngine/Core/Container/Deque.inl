@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <cassert>
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -201,7 +201,7 @@ void Deque<T, Allocator>::Insert(SizeType index, const ValueType& value)
 template <typename T, typename Allocator>
 void Deque<T, Allocator>::Insert(SizeType index, ValueType&& value)
 {
-    assert(index <= internal_deque.size() && "Insert index out of bounds");
+    SE_ASSERT(index <= internal_deque.size(), "Insert index out of bounds");
 
     internal_deque.insert(internal_deque.begin() + index, std::move(value));
 }
@@ -211,7 +211,7 @@ template <std::input_iterator It>
     requires std::same_as<std::iter_value_t<It>, T>
 void Deque<T, Allocator>::Insert(SizeType index, It first, It last)
 {
-    assert(index <= internal_deque.size() && "Insert index out of bounds");
+    SE_ASSERT(index <= internal_deque.size(), "Insert index out of bounds");
 
     internal_deque.insert(internal_deque.begin() + index, first, last);
 }
@@ -227,7 +227,7 @@ void Deque<T, Allocator>::InsertRange(SizeType index, Rng&& range)
 template <typename T, typename Allocator>
 void Deque<T, Allocator>::RemoveAt(SizeType index)
 {
-    assert(index < internal_deque.size() && "RemoveAt index out of bounds");
+    SE_ASSERT(index < internal_deque.size(), "RemoveAt index out of bounds");
 
     internal_deque.erase(internal_deque.begin() + index);
 }

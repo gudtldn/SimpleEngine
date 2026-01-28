@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/QueryData.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -156,7 +157,7 @@ public:
                 }
                 else // const Array<Entity>*
                 {
-                    assert(source);
+                    SE_ASSERT(source);
 
                     const auto& entities = *source;
                     while (storage_index < entities.Len())
@@ -248,11 +249,11 @@ template <typename... Ts> requires QueryParameterPack<Ts...>
 Query<Ts...>::FetchTypes Query<Ts...>::Single()
 {
     auto it = begin();
-    assert(it != end() && "Called Single() on a query with no matching entities.");
+    SE_ASSERT(it != end(), "Called Single() on a query with no matching entities.");
 
     FetchTypes result = *it;
     ++it;
-    assert(it == end() && "Called Single() on a query with more than one matching entity.");
+    SE_ASSERT(it == end(), "Called Single() on a query with more than one matching entity.");
 
     return result;
 }
@@ -287,4 +288,4 @@ decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
         return world->GetComponent<std::decay_t<T>>(entity);
     }
 }
-}
+}  // namespace se::ecs

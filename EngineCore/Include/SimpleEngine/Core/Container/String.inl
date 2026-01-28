@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <algorithm>
-#include <cassert>
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -204,7 +204,7 @@ Optional<char32> BaseString<Allocator>::Pop()
     }
 
     Optional decode_result = details::DecodeLastCodePoint(std::string_view{ *this });
-    assert(decode_result.HasValue() && "Failed to decode the last code point.");
+    SE_ASSERT(decode_result.HasValue(), "Failed to decode the last code point.");
 
     const auto& [code_point, byte_len] = decode_result.Value();
     Truncate(ByteLen() - byte_len);
@@ -239,8 +239,8 @@ void BaseString<Allocator>::Append(std::string_view view)
 template <typename Allocator>
 void BaseString<Allocator>::Insert(SizeType byte_idx, std::string_view view)
 {
-    assert(byte_idx <= ByteLen() && "Insert index out of bounds");
-    assert(details::IsCharBoundary(std::string_view{ *this }, byte_idx) && "Byte index is not a valid UTF-8 character boundary.");
+    SE_ASSERT(byte_idx <= ByteLen(), "Insert index out of bounds");
+    SE_ASSERT(details::IsCharBoundary(std::string_view{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
 
     if (view.empty())
     {
@@ -255,9 +255,9 @@ void BaseString<Allocator>::Insert(SizeType byte_idx, std::string_view view)
 template <typename Allocator>
 void BaseString<Allocator>::RemoveRange(SizeType byte_idx, SizeType count)
 {
-    assert(byte_idx + count <= ByteLen() && "RemoveRange out of bounds");
-    assert(details::IsCharBoundary(std::string_view{ *this }, byte_idx) && "Byte index is not a valid UTF-8 character boundary.");
-    assert(details::IsCharBoundary(std::string_view{ *this }, byte_idx + count) && "Count is not a valid UTF-8 character boundary.");
+    SE_ASSERT(byte_idx + count <= ByteLen(), "RemoveRange out of bounds");
+    SE_ASSERT(details::IsCharBoundary(std::string_view{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
+    SE_ASSERT(details::IsCharBoundary(std::string_view{ *this }, byte_idx + count), "Count is not a valid UTF-8 character boundary.");
 
     if (count == 0)
     {
@@ -274,7 +274,7 @@ void BaseString<Allocator>::Truncate(SizeType new_byte_len)
     {
         return;
     }
-    assert(details::IsCharBoundary(Bytes(), new_byte_len) && "Truncation position is not a valid UTF-8 character boundary.");
+    SE_ASSERT(details::IsCharBoundary(Bytes(), new_byte_len), "Truncation position is not a valid UTF-8 character boundary.");
 
     data.Resize(new_byte_len + 1);
     *data.Back() = '\0';
@@ -346,7 +346,7 @@ BaseString<Allocator> BaseString<Allocator>::Substring(SizeType start_index, Siz
 template <typename Allocator>
 std::string_view BaseString<Allocator>::SubstringView(SizeType start_index, SizeType byte_count) const
 {
-    assert(start_index <= ByteLen() && "Substring start index out of bounds");
+    SE_ASSERT(start_index <= ByteLen(), "Substring start index out of bounds");
     const SizeType max_len = ByteLen() - start_index;
 
     return std::string_view{

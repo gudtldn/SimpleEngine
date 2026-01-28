@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <cassert>
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -7,21 +7,21 @@ namespace se
 template <typename T>
 LinkedListIterator<T>::reference LinkedListIterator<T>::operator*() const
 {
-    assert(node_ptr != nullptr && "Dereferencing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Dereferencing a null iterator.");
     return node_ptr->value;
 }
 
 template <typename T>
 LinkedListIterator<T>::pointer LinkedListIterator<T>::operator->() const
 {
-    assert(node_ptr != nullptr && "Dereferencing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Dereferencing a null iterator.");
     return std::addressof(node_ptr->value);
 }
 
 template <typename T>
 LinkedListIterator<T>& LinkedListIterator<T>::operator++()
 {
-    assert(node_ptr != nullptr && "Incrementing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Incrementing a null iterator.");
     node_ptr = node_ptr->next;
     return *this;
 }
@@ -37,7 +37,7 @@ LinkedListIterator<T> LinkedListIterator<T>::operator++(int)
 template <typename T>
 LinkedListIterator<T>& LinkedListIterator<T>::operator--()
 {
-    assert(node_ptr != nullptr && "Decrementing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Decrementing a null iterator.");
     node_ptr = node_ptr->prev;
     return *this;
 }
@@ -59,21 +59,21 @@ ConstLinkedListIterator<T>::ConstLinkedListIterator(const LinkedListIterator<T>&
 template <typename T>
 ConstLinkedListIterator<T>::reference ConstLinkedListIterator<T>::operator*() const
 {
-    assert(node_ptr != nullptr && "Dereferencing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Dereferencing a null iterator.");
     return node_ptr->value;
 }
 
 template <typename T>
 ConstLinkedListIterator<T>::pointer ConstLinkedListIterator<T>::operator->() const
 {
-    assert(node_ptr != nullptr && "Dereferencing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Dereferencing a null iterator.");
     return std::addressof(node_ptr->value);
 }
 
 template <typename T>
 ConstLinkedListIterator<T>& ConstLinkedListIterator<T>::operator++()
 {
-    assert(node_ptr != nullptr && "Incrementing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Incrementing a null iterator.");
     node_ptr = node_ptr->next;
     return *this;
 }
@@ -89,7 +89,7 @@ ConstLinkedListIterator<T> ConstLinkedListIterator<T>::operator++(int)
 template <typename T>
 ConstLinkedListIterator<T>& ConstLinkedListIterator<T>::operator--()
 {
-    assert(node_ptr != nullptr && "Decrementing a null iterator.");
+    SE_ASSERT(node_ptr != nullptr, "Decrementing a null iterator.");
     node_ptr = node_ptr->prev;
     return *this;
 }
@@ -389,8 +389,8 @@ LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator
 template <typename T, typename Allocator>
 LinkedList_DEPRECATED<T, Allocator>::Iterator LinkedList_DEPRECATED<T, Allocator>::Remove(Iterator where)
 {
-    assert(where.node_ptr != head && "Cannot remove the end() iterator.");
-    assert(!IsEmpty() && "Cannot remove from an empty list.");
+    SE_ASSERT(where.node_ptr != head, "Cannot remove the end() iterator.");
+    SE_ASSERT(!IsEmpty(), "Cannot remove from an empty list.");
 
     Node* node_to_remove = where.node_ptr;
     Node* prev_node = node_to_remove->prev;

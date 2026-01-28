@@ -1,4 +1,5 @@
 ﻿#include "Core/Container/String.h"
+#include "Utility/Debug.h"
 
 #include <unicode/locid.h>
 #include <unicode/unistr.h>
@@ -37,7 +38,7 @@ usize CountCodePointsImpl(std::string_view view)
     for (int32 i = 0; i < length;)
     {
         UChar32 c;
-        U8_NEXT(s, i, length, c);
+        U8_NEXT(s, i, length, c); // NOLINT(*-assignment-in-if-condition, *-inc-dec-in-conditions)
         ++count;
     }
     return count;
@@ -127,7 +128,7 @@ String ToLowerImpl(std::string_view view, const char* locale)
 
 CodePointIterator::reference CodePointIterator::operator*() const
 {
-    assert(ptr != nullptr && "Dereferencing null iterator");
+    SE_ASSERT(ptr != nullptr, "Dereferencing null iterator");
 
     UChar32 c;
     constexpr int32 offset = 0;
@@ -142,7 +143,7 @@ CodePointIterator::reference CodePointIterator::operator*() const
 
 CodePointIterator& CodePointIterator::operator++()
 {
-    assert(ptr != nullptr && "Incrementing null iterator");
+    SE_ASSERT(ptr != nullptr, "Incrementing null iterator");
 
     int32 offset = 0;
     UChar32 dummy_c;
@@ -167,4 +168,4 @@ CodePointIterator CodePointIterator::operator++(int)
     ++(*this);
     return temp;
 }
-}
+}  // namespace se::details

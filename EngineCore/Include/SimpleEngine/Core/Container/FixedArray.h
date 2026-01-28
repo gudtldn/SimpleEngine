@@ -1,11 +1,11 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
 #include <algorithm>
-#include <cassert>
 #include <span>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -207,14 +207,14 @@ constexpr bool FixedArray<T, N>::operator==(const FixedArray& other) const
 template <typename T, usize N>
 constexpr T& FixedArray<T, N>::operator[](usize idx) noexcept
 {
-    assert(idx < N && "Index out of bounds");
+    SE_ASSERT(idx < N, "Index out of bounds");
     return data[idx];
 }
 
 template <typename T, usize N>
 constexpr const T& FixedArray<T, N>::operator[](usize idx) const noexcept
 {
-    assert(idx < N && "Index out of bounds");
+    SE_ASSERT(idx < N, "Index out of bounds");
     return data[idx];
 }
 

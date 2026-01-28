@@ -1,7 +1,7 @@
 #pragma once
-#include <cassert>
 
 #include "SimpleEngine/Core/Math/MathFwd.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::math
@@ -34,7 +34,7 @@ public:
         : origin(in_origin)
         , direction(in_direction)
     {
-        assert(direction.IsNormalized() && "Ray direction must be normalized.");
+        SE_ASSERT(direction.IsNormalized(), "Ray direction must be normalized.");
     }
 
 public:

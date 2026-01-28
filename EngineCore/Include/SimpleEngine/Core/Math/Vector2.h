@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include <cassert>
 
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::math
@@ -283,14 +283,14 @@ constexpr bool Vector2Impl<T>::operator!=(const Vector2Impl& other) const
 template <traits::FloatingType T>
 constexpr T Vector2Impl<T>::operator[](usize index)
 {
-    assert(index < 2);
+    SE_ASSERT(index < 2);
     return (&x)[index];
 }
 
 template <traits::FloatingType T>
 constexpr T Vector2Impl<T>::operator[](usize index) const
 {
-    assert(index < 2);
+    SE_ASSERT(index < 2);
     return (&x)[index];
 }
 
@@ -349,4 +349,4 @@ bool Vector2Impl<T>::IsNearlyEqual(const Vector2Impl& other, T tolerance) const
     return Abs(x - other.x) <= tolerance
         && Abs(y - other.y) <= tolerance;
 }
-}
+}  // namespace se::math

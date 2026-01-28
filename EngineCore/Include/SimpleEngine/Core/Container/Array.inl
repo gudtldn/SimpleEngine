@@ -3,6 +3,8 @@
 #include <memory>
 #include <utility>
 
+#include "SimpleEngine/Utility/Debug.h"
+
 
 namespace se
 {
@@ -400,7 +402,7 @@ void Array<T, Allocator>::Insert(SizeType index, const T& value)
 template <typename T, typename Allocator>
 void Array<T, Allocator>::Insert(SizeType index, T&& value)
 {
-    assert(index <= size && "Insert index out of bounds");
+    SE_ASSERT(index <= size, "Insert index out of bounds");
 
     if (index == size)
     {
@@ -430,7 +432,7 @@ template <std::input_iterator It>
     requires std::same_as<std::iter_value_t<It>, T>
 void Array<T, Allocator>::Insert(SizeType index, It first, It last)
 {
-    assert(index <= size && "Insert index out of bounds");
+    SE_ASSERT(index <= size, "Insert index out of bounds");
     if (first == last)
     {
         return;
@@ -485,7 +487,7 @@ Array<T, Allocator>::SizeType Array<T, Allocator>::Remove(const ValueType& value
 template <typename T, typename Allocator>
 void Array<T, Allocator>::RemoveAt(SizeType index)
 {
-    assert(index < size && "RemoveAt index out of bounds");
+    SE_ASSERT(index < size, "RemoveAt index out of bounds");
 
     // 제거할 요소 뒤의 모든 요소를 앞으로 한 칸씩 이동
     std::move(data + index + 1, data + size, data + index);
@@ -497,7 +499,7 @@ void Array<T, Allocator>::RemoveAt(SizeType index)
 template <typename T, typename Allocator>
 void Array<T, Allocator>::RemoveRange(SizeType index, SizeType count)
 {
-    assert(index + count <= size && "RemoveRange out of bounds");
+    SE_ASSERT(index + count <= size, "RemoveRange out of bounds");
     if (count == 0)
     {
         return;
@@ -538,7 +540,7 @@ Array<T, Allocator>::SizeType Array<T, Allocator>::RemoveIf(Predicate&& pred)
 template <typename T, typename Allocator>
 void Array<T, Allocator>::RemoveAtSwap(SizeType index)
 {
-    assert(index < size && "RemoveAtSwap index out of bounds");
+    SE_ASSERT(index < size, "RemoveAtSwap index out of bounds");
 
     // 삭제할 위치가 마지막이 아닐 때만 덮어쓰기 수행
     if (index < size - 1)
@@ -577,14 +579,14 @@ void Array<T, Allocator>::Swap(Array& other) noexcept
 template <typename T, typename Allocator>
 T& Array<T, Allocator>::operator[](SizeType index) noexcept
 {
-    assert(index < size && "Index out of bounds");
+    SE_ASSERT(index < size, "Index out of bounds");
     return data[index];
 }
 
 template <typename T, typename Allocator>
 const T& Array<T, Allocator>::operator[](SizeType index) const noexcept
 {
-    assert(index < size && "Index out of bounds");
+    SE_ASSERT(index < size, "Index out of bounds");
     return data[index];
 }
 
@@ -634,7 +636,7 @@ Array<T, Allocator>::ConstReverseIteratorType Array<T, Allocator>::rend() const 
 template <typename T, typename Allocator>
 void Array<T, Allocator>::Reallocate(SizeType new_capacity)
 {
-    assert(new_capacity >= size && "Reallocate new_capacity must be greater than or equal to size");
+    SE_ASSERT(new_capacity >= size, "Reallocate new_capacity must be greater than or equal to size");
 
     T* new_data = AllocTraits::allocate(allocator, new_capacity);
 

@@ -1,6 +1,5 @@
 ﻿#include "ECS/EntityManager.h"
-
-#include <cassert>
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::ecs
@@ -21,7 +20,7 @@ Entity EntityManager::Create()
     }
 
     EntityRecord& record = entity_records[id];
-    assert(!record.alive && "Entity already alive");
+    SE_ASSERT(!record.alive, "Entity already alive");
     record.alive = true;
 
     return Entity{ id, record.generation };
@@ -41,7 +40,7 @@ void EntityManager::Destroy(Entity entity)
         return;
     }
 
-    assert(record.alive && "Entity already destroyed");
+    SE_ASSERT(record.alive, "Entity already destroyed");
     record.alive = false;
     ++record.generation; // 세대 변경
 
@@ -72,4 +71,4 @@ bool EntityManager::IsValid(Entity entity) const
     const EntityRecord& record = entity_records[entity.id];
     return record.alive && (record.generation == entity.generation);
 }
-}
+}  // namespace se::ecs

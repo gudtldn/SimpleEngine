@@ -1,7 +1,5 @@
 ﻿#include "App/Application.h"
 
-#include <cassert>
-
 #include "Asset/AssetSubsystem.h"
 #include "Core/Engine/Engine.h"
 #include "Core/HAL/CpuFeature.h"
@@ -11,8 +9,8 @@
 #include "Core/Logging/LogSettings.h"
 #include "Core/Logging/Backends/ConsoleBackend.h"
 #include "Core/Logging/Backends/FileBackend.h"
+#include "Utility/Debug.h"
 #include "Utility/StringUtils.h"
-#include "ECS/WorldSubsystem.h"
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_init.h"
@@ -41,7 +39,7 @@ Application* Application::Instance = nullptr;
 Application::Application(EApplicationMode in_application_mode)
     : application_mode(in_application_mode)
 {
-    assert(!Instance && "Application instance already exists!");
+    SE_ASSERT(!Instance, "Application instance already exists!");
     Instance = this;
 }
 
@@ -52,7 +50,7 @@ Application::~Application()
 
 Application& Application::Get()
 {
-    assert(Instance && "Application instance is null! Startup must be called first.");
+    SE_ASSERT(Instance, "Application instance is null! Startup must be called first.");
     return *Instance;
 }
 

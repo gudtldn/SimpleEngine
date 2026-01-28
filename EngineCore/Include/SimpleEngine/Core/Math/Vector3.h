@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include <cassert>
 
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::math
@@ -389,14 +389,14 @@ constexpr bool Vector3Impl<T>::operator!=(const Vector3Impl& other) const
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::operator[](usize index)
 {
-    assert(index < 3);
+    SE_ASSERT(index < 3);
     return (&x)[index];
 }
 
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::operator[](usize index) const
 {
-    assert(index < 3);
+    SE_ASSERT(index < 3);
     return (&x)[index];
 }
 

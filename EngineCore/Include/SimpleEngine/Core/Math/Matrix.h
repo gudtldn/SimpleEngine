@@ -1,10 +1,7 @@
 ﻿#pragma once
-#include <cassert>
 #include <concepts>
 #include <mdspan>
 #include <ranges>
-
-#include "Math.h"
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -12,6 +9,7 @@
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Core/Math/Vector4.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::math
@@ -88,7 +86,7 @@ constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T, 16> src)
 template <traits::FloatingType T>
 Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T> src)
 {
-    assert(src.size() == 16 && "Invalid span size.");
+    SE_ASSERT(src.size() == 16, "Invalid span size.");
     std::ranges::copy(src, data.begin());
 }
 

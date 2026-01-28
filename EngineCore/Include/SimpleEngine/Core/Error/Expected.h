@@ -1,5 +1,5 @@
 #pragma once
-#include <cassert>
+
 #include <concepts>
 #include <functional>
 #include <memory>
@@ -8,6 +8,8 @@
 #include <variant>
 
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
+
 
 namespace se
 {
@@ -319,56 +321,56 @@ T& Expected<T, E>::Emplace(Args&&... args)
 template <typename T, typename E>
 T& Expected<T, E>::Value() &
 {
-    assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
+    SE_ASSERT(HasValue(), "Attempted to access value of an Expected that contains an error.");
     return std::get<1>(storage);
 }
 
 template <typename T, typename E>
 const T& Expected<T, E>::Value() const &
 {
-    assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
+    SE_ASSERT(HasValue(), "Attempted to access value of an Expected that contains an error.");
     return std::get<1>(storage);
 }
 
 template <typename T, typename E>
 T&& Expected<T, E>::Value() &&
 {
-    assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
+    SE_ASSERT(HasValue(), "Attempted to access value of an Expected that contains an error.");
     return std::move(std::get<1>(storage));
 }
 
 template <typename T, typename E>
 const T&& Expected<T, E>::Value() const &&
 {
-    assert(HasValue() && "Attempted to access value of an Expected that contains an error.");
+    SE_ASSERT(HasValue(), "Attempted to access value of an Expected that contains an error.");
     return std::move(std::get<1>(storage));
 }
 
 template <typename T, typename E>
 E& Expected<T, E>::Error() &
 {
-    assert(HasError() && "Attempted to access error of an Expected that contains a value.");
+    SE_ASSERT(HasError(), "Attempted to access error of an Expected that contains a value.");
     return std::get<2>(storage);
 }
 
 template <typename T, typename E>
 const E& Expected<T, E>::Error() const &
 {
-    assert(HasError() && "Attempted to access error of an Expected that contains a value.");
+    SE_ASSERT(HasError(), "Attempted to access error of an Expected that contains a value.");
     return std::get<2>(storage);
 }
 
 template <typename T, typename E>
 E&& Expected<T, E>::Error() &&
 {
-    assert(HasError() && "Attempted to access error of an Expected that contains a value.");
+    SE_ASSERT(HasError(), "Attempted to access error of an Expected that contains a value.");
     return std::move(std::get<2>(storage));
 }
 
 template <typename T, typename E>
 const E&& Expected<T, E>::Error() const &&
 {
-    assert(HasError() && "Attempted to access error of an Expected that contains a value.");
+    SE_ASSERT(HasError(), "Attempted to access error of an Expected that contains a value.");
     return std::move(std::get<2>(storage));
 }
 
@@ -573,28 +575,28 @@ void Expected<void, E>::Emplace([[maybe_unused]] Args&&... args)
 template <typename E>
 E& Expected<void, E>::Error() &
 {
-    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    SE_ASSERT(HasError(), "Attempted to access error of a successful Expected<void, E>.");
     return std::get<1>(storage);
 }
 
 template <typename E>
 const E& Expected<void, E>::Error() const &
 {
-    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    SE_ASSERT(HasError(), "Attempted to access error of a successful Expected<void, E>.");
     return std::get<1>(storage);
 }
 
 template <typename E>
 E&& Expected<void, E>::Error() &&
 {
-    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    SE_ASSERT(HasError(), "Attempted to access error of a successful Expected<void, E>.");
     return std::move(std::get<1>(storage));
 }
 
 template <typename E>
 const E&& Expected<void, E>::Error() const &&
 {
-    assert(HasError() && "Attempted to access error of a successful Expected<void, E>.");
+    SE_ASSERT(HasError(), "Attempted to access error of a successful Expected<void, E>.");
     return std::move(std::get<1>(storage));
 }
 
@@ -690,4 +692,4 @@ auto Expected<void, E>::MapError(Fn&& func) &&
     }
     return RetType();
 }
-}
+}  // namespace se

@@ -12,6 +12,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -225,7 +226,7 @@ core::Archive& operator<<(core::Archive& ar, Map<Key, Value>& map)
 
     if (ar.IsLoading())
     {
-        assert(total_elements % 2 == 0 && "");
+        SE_ASSERT(total_elements % 2 == 0, "");
         const uint64 map_count = total_elements / 2;
 
         map.Clear();

@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include <cassert>
 #include <tuple>
 #include <utility>
 #include <variant>
 
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -93,7 +93,7 @@ public:
                 std::forward_as_tuple(std::forward<Args>(args)...)
             );
 
-            assert(inserted && "Entry API error: Key existed during VacantEmplace.");
+            SE_ASSERT(inserted, "Entry API error: Key existed during VacantEmplace.");
             return it->second;
         }
 
@@ -108,13 +108,13 @@ public:
 
     [[nodiscard]] OccupiedEntry& AsOccupied()
     {
-        assert(IsOccupied() && "Called AsOccupied() on a Vacant Entry.");
+        SE_ASSERT(IsOccupied(), "Called AsOccupied() on a Vacant Entry.");
         return std::get<OccupiedEntry>(storage);
     }
 
     [[nodiscard]] VacantEntry& AsVacant()
     {
-        assert(IsVacant() && "Called AsVacant() on an Occupied Entry.");
+        SE_ASSERT(IsVacant(), "Called AsVacant() on an Occupied Entry.");
         return std::get<VacantEntry>(storage);
     }
 

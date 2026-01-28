@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include <cassert>
 #include <utility>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/ECS/Entity.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::ecs
@@ -142,14 +142,14 @@ public:
     [[nodiscard]] ComponentType& Get(Entity entity)
     {
         Optional<ComponentType&> opt_value = TryGet(entity);
-        assert(opt_value && "Entity does not exist");
+        SE_ASSERT(opt_value, "Entity does not exist");
         return *opt_value;
     }
 
     [[nodiscard]] const ComponentType& Get(Entity entity) const
     {
         Optional<ComponentType&> opt_value = TryGet(entity);
-        assert(opt_value && "Entity does not exist");
+        SE_ASSERT(opt_value, "Entity does not exist");
         return *opt_value;
     }
 

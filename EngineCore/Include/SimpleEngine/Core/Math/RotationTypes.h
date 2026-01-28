@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include <cassert>
 
 #include "SimpleEngine/Core/Math/MathFwd.h"
 #include "SimpleEngine/Core/Math/MathLiterals.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::math
@@ -130,7 +130,7 @@ QuaternionImpl<T> QuaternionImpl<T>::FromAxisAngle(const Vector3Impl<T>& axis, R
     const T sin_half_angle = Sin(half_angle);
     const T cos_half_angle = Cos(half_angle);
 
-    assert(axis.IsNormalized());
+    SE_ASSERT(axis.IsNormalized());
 
     return QuaternionImpl{
         axis.x * sin_half_angle,
