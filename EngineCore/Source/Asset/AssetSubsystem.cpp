@@ -11,7 +11,6 @@
 #include "Asset/Types/MeshTypes.h"
 #include "Asset/Types/Texture2D.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
-#include "Utility/SubsystemUtils.h"
 
 
 namespace se::asset
