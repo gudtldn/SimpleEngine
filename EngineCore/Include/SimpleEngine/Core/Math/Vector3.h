@@ -166,7 +166,7 @@ constexpr Vector3Impl<T> Vector3Impl<T>::Right()
 template <traits::FloatingType T>
 constexpr T Vector3Impl<T>::operator|(const Vector3Impl& other) const
 {
-    return x * other.x + y * other.y + z * other.z;
+    return (x * other.x) + (y * other.y) + (z * other.z);
 }
 
 template <traits::FloatingType T>
@@ -185,9 +185,9 @@ template <traits::FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator^(const Vector3Impl& other) const
 {
     return Vector3Impl{
-        y * other.z - z * other.y,
-        z * other.x - x * other.z,
-        x * other.y - y * other.x
+        (y * other.z) - (z * other.y),
+        (z * other.x) - (x * other.z),
+        (x * other.y) - (y * other.x)
     };
 }
 
@@ -459,4 +459,4 @@ bool Vector3Impl<T>::IsNearlyEqual(const Vector3Impl& other, T tolerance) const
         && Abs(y - other.y) <= tolerance
         && Abs(z - other.z) <= tolerance;
 }
-}
+}  // namespace se::math
