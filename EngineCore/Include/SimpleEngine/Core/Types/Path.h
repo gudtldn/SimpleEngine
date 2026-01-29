@@ -171,3 +171,13 @@ struct std::hash<se::Path>
         return std::filesystem::hash_value(in_path.GetStdPath());
     }
 };
+
+template <>
+struct std::formatter<se::Path> : std::formatter<se::String>
+{
+    auto format(const se::Path& path, std::format_context& ctx) const
+    {
+        const se::String str = path.ToString();
+        return std::formatter<se::String>::format(str, ctx);
+    }
+};
