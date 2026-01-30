@@ -229,16 +229,6 @@ void Path::Swap(Path& other) noexcept
     internal_path.swap(other.internal_path);
 }
 
-bool Path::operator==(const char* other) const
-{
-    return internal_path == std::filesystem::path{ reinterpret_cast<const char8_t*>(other) };
-}
-
-bool Path::operator==(const String& other) const
-{
-    return internal_path == std::filesystem::path{ reinterpret_cast<const char8_t*>(other.CStr()) };
-}
-
 bool Path::operator==(const Path& other) const
 {
     return internal_path == other.internal_path;

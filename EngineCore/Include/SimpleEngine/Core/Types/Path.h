@@ -148,8 +148,6 @@ public:
     /** 내부 std::filesystem::path 객체를 반환합니다. (나중에 API 변경 가능성 있음) */
     [[nodiscard]] operator const std::filesystem::path&() const { return internal_path; }
 
-    [[nodiscard]] bool operator==(const char* other) const;
-    [[nodiscard]] bool operator==(const String& other) const;
     [[nodiscard]] bool operator==(const Path& other) const;
     [[nodiscard]] std::strong_ordering operator<=>(const Path& other) const;
 
