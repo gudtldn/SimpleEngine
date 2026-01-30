@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include <filesystem>
 
+#include "SimpleEngine/Core/Types/Path.h"
 #include "UI/Panels/IEditorPanel.h"
 
 
@@ -17,18 +17,18 @@ protected:
     virtual void DrawAssetGrid();
 
 protected:
-    [[nodiscard]] static bool HasSubDirectories(const std::filesystem::path& path);
+    [[nodiscard]] static bool HasSubDirectories(const Path& path);
 
-    [[nodiscard]] const std::filesystem::path& GetSelectedDirPath() const noexcept;
-    void SetSelectedDirPath(const std::filesystem::path& new_path) noexcept;
-
-private:
-    void RenderDirectoryTreeRecursive(const std::filesystem::path& path);
-    void DrawDirectoryContextMenu(const std::filesystem::path& path);
-
-    void DrawFileContextMenu(const std::filesystem::path& path);
+    [[nodiscard]] const Path& GetSelectedDirPath() const noexcept;
+    void SetSelectedDirPath(const Path& new_path) noexcept;
 
 private:
-    std::filesystem::path selected_dir_path;
+    void RenderDirectoryTreeRecursive(const Path& path);
+    void DrawDirectoryContextMenu(const Path& path);
+
+    void DrawFileContextMenu(const Path& path);
+
+private:
+    Path selected_dir_path;
 };
-}
+}  // namespace se::editor::ui

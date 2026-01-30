@@ -63,7 +63,7 @@ class DummyAssetLoader : public IAssetLoader
 {
 public:
     virtual Task<std::shared_ptr<IAsset>> Load(
-        const std::filesystem::path& physical_path,
+        const Path& physical_path,
         [[maybe_unused]] const IAssetImportSettings* import_settings
     ) override
     {
@@ -73,7 +73,7 @@ public:
             co_return nullptr;
         }
 
-        std::ifstream file(physical_path);
+        std::ifstream file(physical_path.ToString().CStr());
         int file_content;
         file >> file_content;
 
@@ -109,7 +109,7 @@ protected:
 
         // 3. 실제 파일 생성
         const auto physical_path = path_resolver.Resolve(vpath, false).Value();
-        std::ofstream file(physical_path);
+        std::ofstream file(physical_path.ToString().CStr());
         file << content;
         file.close();
 

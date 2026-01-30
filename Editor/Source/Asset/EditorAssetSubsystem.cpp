@@ -33,10 +33,10 @@ void EditorAssetSubsystem::RefreshRegistry()
 {
     utility::PathResolver::Get().VisitMountPoints([this](
         [[maybe_unused]] const StringName& scheme,
-        const fs::path& physical_path,
+        const Path& physical_path,
         [[maybe_unused]] int32 priority
     ) {
-        if (!std::filesystem::exists(physical_path))
+        if (!physical_path.Exists())
         {
             return;
         }
@@ -51,8 +51,8 @@ void EditorAssetSubsystem::RefreshRegistry()
             }
 
             // .meta 파일은 건너뛰기
-            const auto& path = entry.path();
-            if (path.extension() == ".meta")
+            const Path path = entry.path();
+            if (path.Extension().ValueOrDefault() == ".meta")
             {
                 continue;
             }
@@ -63,7 +63,7 @@ void EditorAssetSubsystem::RefreshRegistry()
     });
 }
 
-void EditorAssetSubsystem::ImportAsset(const std::filesystem::path& physical_path)
+void EditorAssetSubsystem::ImportAsset(const Path& physical_path)
 {
     // .meta 처리
     if (auto entry_opt = ProcessMetaFile(physical_path))
@@ -74,13 +74,21 @@ void EditorAssetSubsystem::ImportAsset(const std::filesystem::path& physical_pat
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile(const std::filesystem::path& physical_path)
+Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile(const Path& physical_path)
 {
     // 지원하는 확장자인지 확인
-    const StringName ext_name = utility::ToString(physical_path.extension().c_str());
+    const Optional ext_opt = physical_path.Extension();
+    if (!ext_opt.HasValue())
+    {
+        ConsoleLog(ELogLevel::Warning, "Cannot process meta file: file has no extension: {}", physical_path);
+        return std::nullopt;
+    }
+
+    const StringName ext_name = ext_opt->CStr();
     Optional info_opt = asset_manager->GetExtensionInfo(ext_name);
     if (!info_opt.HasValue())
     {
+        // 지원하지 않는 확장자는 조용히 무시
         return std::nullopt;
     }
 
@@ -88,22 +96,23 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
     Optional vpath_opt = utility::PathResolver::Get().Unresolve(physical_path);
     if (!vpath_opt.HasValue())
     {
+        ConsoleLog(ELogLevel::Warning, "Cannot resolve virtual path for: {}", physical_path);
         return std::nullopt;
     }
 
     // .meta 파일 관련
-    std::filesystem::path meta_path = physical_path;
-    meta_path += ".meta";
+    Path meta_path = physical_path;
+    meta_path.SetExtension(".meta");
 
     se::asset::AssetEntry_DEPRECATED entry;
     entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
 
     if (std::filesystem::exists(meta_path))
     {
-        auto result = toml::parse_file(meta_path.u8string());
+        auto result = toml::parse_file(meta_path.ToString().CStr());
         if (!result)
         {
-            ConsoleLog(ELogLevel::Error, "Failed to parse meta file: {}", meta_path.string());
+            ConsoleLog(ELogLevel::Error, "Failed to parse meta file: {}", meta_path);
             return std::nullopt;
         }
 
@@ -122,7 +131,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
         core::TomlWriter writer{ table };
         writer << entry;
 
-        std::ofstream ofs{ meta_path };
+        std::ofstream ofs{ meta_path.ToString().CStr() };
         if (ofs.is_open())
         {
             ofs << table;
@@ -130,11 +139,11 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
         }
         else
         {
-            ConsoleLog(ELogLevel::Error, "Failed to write meta file: {}", meta_path.string());
+            ConsoleLog(ELogLevel::Error, "Failed to write meta file: {}", meta_path);
             return std::nullopt;
         }
     }
 
     return entry;
 }
-}
+}  // namespace se::editor::asset

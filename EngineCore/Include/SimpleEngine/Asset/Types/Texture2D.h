@@ -17,13 +17,13 @@ enum class ETextureFormat
 struct SE_CORE_API Texture2D : IAsset
 {
     SE_PROPERTY(=meta::ReadOnly)
-    int32 width = 0;
+    uint32 width = 0;
 
     SE_PROPERTY(=meta::ReadOnly)
-    int32 height = 0;
+    uint32 height = 0;
 
     SE_PROPERTY(=meta::ReadOnly)
-    int32 channels = 0;
+    uint32 channels = 0;
 
     SE_PROPERTY(=meta::ReadOnly)
     ETextureFormat format = ETextureFormat::None;

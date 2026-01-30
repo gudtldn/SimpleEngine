@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::editor::asset
@@ -14,11 +15,11 @@ public:
 
 private:
     void RefreshRegistry();
-    void ImportAsset(const std::filesystem::path& physical_path);
+    void ImportAsset(const Path& physical_path);
 
-    Optional<se::asset::AssetEntry_DEPRECATED> ProcessMetaFile(const std::filesystem::path& physical_path);
+    Optional<se::asset::AssetEntry_DEPRECATED> ProcessMetaFile(const Path& physical_path);
 
 private:
     se::asset::AssetManager_DEPRECATED* asset_manager = nullptr;
 };
-}
+}  // namespace se::editor::asset

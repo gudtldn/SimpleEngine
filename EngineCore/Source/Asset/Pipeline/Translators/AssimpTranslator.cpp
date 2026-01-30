@@ -201,7 +201,7 @@ bool AssimpTranslator::CanTranslate(const String& file_extension) const
 }
 
 void AssimpTranslator::Translate(
-    const std::filesystem::path& file_path,
+    const Path& file_path,
     const ImportConfig& import_config,
     PipelineNodeContainer& out_container
 )
@@ -232,7 +232,7 @@ void AssimpTranslator::Translate(
     }
 
     // 파일 로드
-    const String utf8_path = utility::ToString(file_path.generic_u8string());
+    const String utf8_path = file_path.ToString();
     const aiScene* scene = [&]
     {
         ZoneScopedN("Assimp::ReadFile"); // NOLINT(*-lambda-function-name)
@@ -248,7 +248,7 @@ void AssimpTranslator::Translate(
     if (mesh_settings.combine_meshes)
     {
         // 파일명을 메쉬 이름으로 사용
-        const String filename = utility::ToString(file_path.filename().stem().u8string());
+        const String filename = file_path.FileStem().ValueOr("Unnamed");
         ProcessMergedMesh(scene, filename, out_container);
     }
     else

@@ -1,12 +1,12 @@
 ﻿#include "SimpleEngine/Utility/PathResolver.h"
 
 #include <algorithm>
-#include <filesystem>
 #include <format>
 #include <functional>
 #include <shared_mutex>
 
 #include "Core/Logging/Logging.h"
+#include "Utility/FileSystem.h"
 #include "Utility/StringUtils.h"
 
 
@@ -18,16 +18,15 @@ PathResolver& PathResolver::Get()
     return instance;
 }
 
-void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& physical_path, int32 priority)
+void PathResolver::Mount(const StringName& scheme, const Path& physical_path, int32 priority)
 {
     std::unique_lock lock(mutex);
 
     // 경로를 정규화하여 저장
-    auto abs_path = std::filesystem::absolute(physical_path);
-    abs_path.make_preferred();
+    Path abs_path = physical_path.GetNormalized();
 
     Array<MountPoint>& points = mount_points[scheme];
-    const auto it = std::ranges::find_if(points, [&](const MountPoint& point)
+    const MountPoint* it = std::ranges::find_if(points, [&](const MountPoint& point)
     {
         return point.priority == priority && point.physical_path == abs_path;
     });
@@ -45,7 +44,7 @@ void PathResolver::Mount(const StringName& scheme, const std::filesystem::path& 
 
     // 우선순위가 높은 것이 앞에 오도록 정렬 (stable_sort로 순서 유지)
     std::ranges::stable_sort(points, std::greater{});
-    ConsoleLog(ELogLevel::Info, "Virtual path scheme '{}://' mounted at '{}', priority: {}", scheme, physical_path.generic_string(), priority);
+    ConsoleLog(ELogLevel::Info, "Virtual path scheme '{}://' mounted at '{}', priority: {}", scheme, physical_path, priority);
 }
 
 void PathResolver::Unmount(const StringName& scheme)
@@ -54,7 +53,7 @@ void PathResolver::Unmount(const StringName& scheme)
     mount_points.Remove(scheme);
 }
 
-Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path, bool check_existence) const
+Optional<Path> PathResolver::Resolve(const VPath& virtual_path, bool check_existence) const
 {
     if (!virtual_path.IsValid() || !virtual_path.HasScheme())
     {
@@ -82,12 +81,11 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     // 모든 마운트 포인트를 순회하며 파일이 실제로 존재하는지 확인 (Mod Fallback)
     for (const MountPoint& mount_point : *point_opt)
     {
-        std::filesystem::path candidate = mount_point.physical_path / relative_part;
+        Path candidate = mount_point.physical_path / relative_part;
 
         if (check_existence)
         {
-            std::error_code ec;
-            if (std::filesystem::exists(candidate, ec) && !ec)
+            if (candidate.Exists())
             {
                 return candidate;
             }
@@ -103,13 +101,14 @@ Optional<std::filesystem::path> PathResolver::Resolve(const VPath& virtual_path,
     return std::nullopt;
 }
 
-Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_path) const
+Optional<VPath> PathResolver::Unresolve(const Path& physical_path) const
 {
     std::shared_lock lock(mutex);
 
-    std::filesystem::path abs_input = std::filesystem::absolute(physical_path);
-    abs_input.make_preferred();
-    const auto& input_str = abs_input.native();
+    Path abs_input = FileSystem::Absolute(physical_path);
+    abs_input.Normalize();
+    const String input_str = abs_input.ToString();
+    const std::string_view input_view{ input_str };
 
     const StringName* best_scheme = nullptr;
     const MountPoint* best_mount_point = nullptr;
@@ -119,21 +118,22 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
     {
         for (const MountPoint& point : points)
         {
-            const auto& root_str = point.physical_path.native();
+            const String root_str = point.physical_path.ToString();
+            const std::string_view root_view{ root_str };
 
             // 물리적 경로가 마운트 포인트의 하위 경로인지 확인
-            if (input_str.starts_with(root_str)) // 접두사가 일치하는 경우
+            if (input_view.starts_with(root_view)) // 접두사가 일치하는 경우
             {
                 if (
-                    input_str.size() == root_str.size()
-                    || input_str[root_str.size()] == std::filesystem::path::preferred_separator
+                    input_view.size() == root_view.size()
+                    || input_view[root_view.size()] == '/'
                 ) {
                     // 더 긴 경로가 매칭되거나 (하위 폴더 마운트 우선), 길이는 같은데 우선순위가 높은 경우 선택
                     if (
-                        root_str.size() > best_match_len
-                        || (root_str.size() == best_match_len && (!best_mount_point || point.priority > best_mount_point->priority))
+                        root_view.size() > best_match_len
+                        || (root_view.size() == best_match_len && (!best_mount_point || point.priority > best_mount_point->priority))
                     ) {
-                        best_match_len = root_str.size();
+                        best_match_len = root_view.size();
                         best_scheme = &scheme;
                         best_mount_point = &point;
                     }
@@ -145,13 +145,13 @@ Optional<VPath> PathResolver::Unresolve(const std::filesystem::path& physical_pa
     if (best_scheme && best_mount_point)
     {
         // 상대 경로 추출
-        const std::filesystem::path relative_path = abs_input.lexically_relative(best_mount_point->physical_path);
+        const Path relative_path = abs_input.RelativeTo(best_mount_point->physical_path).Value();
         const bool is_root = relative_path == ".";
 
-        String relative_str = is_root ? String{} : ToString(relative_path.c_str());
+        String relative_str = is_root ? String{} : relative_path.ToString();
         return VPath{ String::Format("{}://{}", best_scheme->ToString(), relative_str) };
     }
 
     return std::nullopt;
 }
-}
+}  // namespace se::utility

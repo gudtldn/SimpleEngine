@@ -15,7 +15,7 @@ SE_BEGIN_REFLECT(Texture2DLoader)
 SE_END_REFLECT(Texture2DLoader)
 
 concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
-    const std::filesystem::path& physical_path,
+    const Path& physical_path,
     const IAssetImportSettings* import_settings
 )
 {
@@ -25,7 +25,7 @@ concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
         final_settings = *settings;
     }
 
-    String path_str = utility::ToString(physical_path.c_str());
+    String path_str = physical_path.ToString();
 
     // Image를 Surface로 로드
     SDL_Surface* raw_surface = IMG_Load(path_str.CStr());
@@ -73,10 +73,10 @@ concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
     ConsoleLog(
         ELogLevel::Info,
         "Loaded Texture: {} ({}x{}, sRGB: {})",
-        physical_path.filename().string(), texture->width, texture->height,
+        physical_path.FileName().ValueOr("Unknown"), texture->width, texture->height,
         texture->is_srgb ? "True" : "False"
     );
 
     co_return texture;
 }
-}
+}  // namespace se::asset

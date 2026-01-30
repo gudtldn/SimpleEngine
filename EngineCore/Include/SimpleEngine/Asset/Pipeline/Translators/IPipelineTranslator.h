@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include <filesystem>
 
 #include "SimpleEngine/Asset/ImportConfig.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::asset
@@ -28,7 +28,7 @@ public:
      * @param out_container 변환된 노드들을 담을 컨테이너
      */
     virtual void Translate(
-        const std::filesystem::path& file_path,
+        const Path& file_path,
         const ImportConfig& import_config,
         PipelineNodeContainer& out_container
     ) = 0;

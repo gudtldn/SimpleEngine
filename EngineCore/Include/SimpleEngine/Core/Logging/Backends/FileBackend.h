@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include <fstream>
-#include <filesystem>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::core
@@ -12,7 +12,7 @@ class SE_CORE_API FileBackend : public ILogBackend
 {
 public:
     FileBackend();
-    FileBackend(std::filesystem::path path);
+    FileBackend(Path path);
 
     virtual void WriteLog(const LogEntry& entry) override;
     virtual void Flush() override;
@@ -29,7 +29,7 @@ private:
 
 private:
     std::ofstream file;
-    std::filesystem::path file_path;
+    Path file_path;
     usize current_file_size = 0;
     constexpr static usize max_file_size = 10ULL * 1024 * 1024; // 10MB
 };

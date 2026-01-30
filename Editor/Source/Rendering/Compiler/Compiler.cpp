@@ -3,10 +3,10 @@
 #include <ranges>
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Gfx/ShaderUtils.h"
 #include "SimpleEngine/Utility/FileUtils.h"
 
 #include "SDL3_shadercross/SDL_shadercross.h"
-#include "SimpleEngine/Gfx/ShaderUtils.h"
 
 
 namespace se::editor::rendering
@@ -15,8 +15,8 @@ using namespace se::utility;
 
 SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
-    const std::filesystem::path& shader_path,
-    Optional<const std::filesystem::path&> include_dir_opt,
+    const Path& shader_path,
+    Optional<const Path&> include_dir_opt,
     Optional<const Array<HLSL_Define>&> defines_opt
 )
 {
@@ -29,7 +29,7 @@ SDL_GPUShader* CompileFromHLSL(
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().What());
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path, result.Error().What());
         return nullptr;
     }
 
@@ -39,7 +39,7 @@ SDL_GPUShader* CompileFromHLSL(
 
     if (!stage_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_string());
+        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path);
         return nullptr;
     }
 
@@ -53,17 +53,11 @@ SDL_GPUShader* CompileFromHLSL(
         stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         break;
     default:
-        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_string()); // Compute Shader는 다른 함수로
+        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path); // Compute Shader는 다른 함수로
         return nullptr;
     }
 
     // compile shader
-    std::string include_dir_str;
-    if (include_dir_opt)
-    {
-        include_dir_str = include_dir_opt->generic_string();
-    }
-
     Array<SDL_ShaderCross_HLSL_Define> hlsl_defines;
     if (defines_opt)
     {
@@ -77,10 +71,16 @@ SDL_GPUShader* CompileFromHLSL(
         }
     }
 
+    String include_dir_str;
+    if (include_dir_opt.HasValue())
+    {
+        include_dir_str = include_dir_opt.Value().ToString();
+    }
+
     const SDL_ShaderCross_HLSL_Info hlsl_info = {
         .source = reinterpret_cast<const char*>(source.Data()),
         .entrypoint = entrypoint,
-        .include_dir = include_dir_opt ? include_dir_str.c_str() : nullptr,
+        .include_dir = include_dir_opt ? include_dir_str.CStr() : nullptr,
         .defines = defines_opt ? hlsl_defines.Data() : nullptr,
         .shader_stage = *stage_opt,
     };
@@ -127,7 +127,7 @@ SDL_GPUShader* CompileFromHLSL(
         return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path.generic_string(), SDL_GetError());
+    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path, SDL_GetError());
     return nullptr;
 }
-}
+}  // namespace se::editor::rendering

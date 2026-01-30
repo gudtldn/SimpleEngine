@@ -7,34 +7,34 @@
 
 namespace se::gfx
 {
-Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem::path& shader_path)
+Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const Path& shader_path)
 {
-    const std::string path_str = shader_path.generic_string();
+    const String path_str = shader_path.ToString();
 
     if (
-        path_str.contains(".vert")
-        || path_str.contains(".vertex")
-        || path_str.contains(".vs")
+        path_str.Contains(".vert")
+        || path_str.Contains(".vertex")
+        || path_str.Contains(".vs")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_VERTEX;
     }
 
     if (
-        path_str.contains(".frag")
-        || path_str.contains(".fragment")
-        || path_str.contains(".fs")
-        || path_str.contains(".pixel")
-        || path_str.contains(".ps")
+        path_str.Contains(".frag")
+        || path_str.Contains(".fragment")
+        || path_str.Contains(".fs")
+        || path_str.Contains(".pixel")
+        || path_str.Contains(".ps")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT;
     }
 
     if (
-        path_str.contains(".comp")
-        || path_str.contains(".compute")
-        || path_str.contains(".cs")
+        path_str.Contains(".comp")
+        || path_str.Contains(".compute")
+        || path_str.Contains(".cs")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
@@ -43,7 +43,7 @@ Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const std::filesystem
     return std::nullopt;
 }
 
-SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::path& shader_path)
+SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
 {
     // read shader file
     Array<uint8> source;
@@ -54,7 +54,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path.generic_string(), result.Error().What());
+        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path, result.Error().What());
         return nullptr;
     }
 
@@ -64,7 +64,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
 
     if (!stage_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path.generic_string());
+        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path);
         return nullptr;
     }
 
@@ -78,7 +78,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
         stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
         break;
     default:
-        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path.generic_string()); // Compute Shader는 다른 함수로
+        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path); // Compute Shader는 다른 함수로
         return nullptr;
     }
 
@@ -96,7 +96,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
 
     if (!refl_metadata)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to reflect shader: {}", shader_path.generic_string());
+        ConsoleLog(ELogLevel::Error, "Failed to reflect shader: {}", shader_path);
         return nullptr;
     }
 
@@ -134,7 +134,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const std::filesystem::pa
         return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &resource_info, 0);
     }
 
-    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path.generic_string());
+    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path);
     return nullptr;
 }
-}
+}  // namespace se::gfx

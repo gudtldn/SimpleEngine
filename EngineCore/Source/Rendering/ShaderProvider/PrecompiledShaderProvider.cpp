@@ -10,11 +10,18 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
 {
     if constexpr (SE_DEBUG_BUILD)
     {
-        const std::string ext = request.source_path.extension().string();
+        const Optional ext_opt = request.source_path.Extension();
+        if (!ext_opt.HasValue())
+        {
+            ConsoleLog(ELogLevel::Error, "Shader file has no extension: {}", request.source_path);
+            return nullptr;
+        }
+
+        const String& ext = *ext_opt;
         if (!(
-            ext.contains(".spv")
-            || ext.contains(".spirv")
-            || ext.contains(".spvt")
+            ext.Contains(".spv")
+            || ext.Contains(".spirv")
+            || ext.Contains(".spvt")
         ))
         {
             ConsoleLog(ELogLevel::Error, "Precompiled shader provider only supports SPIR-V files.");
@@ -24,4 +31,4 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
 
     return gfx::CompileFromSPIRV(device, request.source_path);
 }
-}
+}  // namespace se::rendering

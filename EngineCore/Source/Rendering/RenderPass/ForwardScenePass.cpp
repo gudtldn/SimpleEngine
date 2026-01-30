@@ -110,8 +110,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_GPUGraphicsPipeline* pipeline;
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
-        static const std::filesystem::path VSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.vert.hlsl").Value();
-        static const std::filesystem::path FSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.frag.hlsl").Value();
+        static const Path VSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.vert.hlsl").Value();
+        static const Path FSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.frag.hlsl").Value();
 
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description
@@ -120,7 +120,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
             {
                 .slot = 0,                                    // 이 버퍼가 바인딩될 슬롯 번호 (셰이더에서 참조)
-                .pitch = sizeof(gfx::Vertex),               // 정점 하나가 차지하는 총 메모리 크기 (stride)
+                .pitch = sizeof(gfx::Vertex),                 // 정점 하나가 차지하는 총 메모리 크기 (stride)
                 .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX, // 버퍼 데이터가 정점마다 바뀌는지(VERTEX) 또는 인스턴스마다 바뀌는지(INSTANCE)
             },
         };
@@ -134,7 +134,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 .location = 0,                                // 셰이더 내에서의 위치(location). HLSL의 :POSITION에 해당
                 .buffer_slot = 0,                             // 이 속성이 어느 버퍼(vertex_buffer_desc)에 속하는지
                 .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, // 데이터 타입 (float 3개)
-                .offset = offsetof(gfx::Vertex, position)   // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
+                .offset = offsetof(gfx::Vertex, position)     // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
             },
             {
                 .location = 1,

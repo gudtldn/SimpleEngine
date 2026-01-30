@@ -68,7 +68,7 @@ TEST_F(ConfigTest, ReadInvalidTomlFileFails)
     // 임시로 유효하지 않은 TOML 파일을 만듭니다.
     const auto physical_path = PathResolver::Get().Resolve(invalid_toml_path, false).Value();
     {
-        std::ofstream ofs(physical_path);
+        std::ofstream ofs(physical_path.ToString().CStr());
         ofs << "this = is not valid toml' syntax";
     }
 

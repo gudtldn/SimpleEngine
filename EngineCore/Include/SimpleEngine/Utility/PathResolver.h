@@ -1,11 +1,10 @@
 ﻿#pragma once
-
-#include <filesystem>
 #include <shared_mutex>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -38,7 +37,7 @@ public:
      * @param physical_path 매핑할 실제 디스크 경로
      * @param priority 우선순위. 숫자가 높을수록 Unresolve 시 먼저 고려됩니다. (모딩 지원용)
      */
-    void Mount(const StringName& scheme, const std::filesystem::path& physical_path, int32 priority = 0);
+    void Mount(const StringName& scheme, const Path& physical_path, int32 priority = 0);
 
     /**
      * 마운트된 스키마를 해제합니다.
@@ -52,24 +51,24 @@ public:
      * @param check_existence (기본값: true) true이면 파일이 실제로 존재할 때만 경로를 반환합니다. false이면 존재 여부와 상관없이 최우선 경로를 반환합니다.
      * @return 해당하는 물리적 경로. 유효하지 않으면 std::nullopt를 반환합니다.
      */
-    [[nodiscard]] Optional<std::filesystem::path> Resolve(const VPath& virtual_path, bool check_existence = true) const;
+    [[nodiscard]] Optional<Path> Resolve(const VPath& virtual_path, bool check_existence = true) const;
 
     /**
      * 물리적 경로를 가장 적합한 VPath로 역해석합니다.
      * @param physical_path 역해석할 물리적 경로
      * @return 해당하는 가상 경로. 유효하지 않으면 std::nullopt를 반환합니다.
      */
-    [[nodiscard]] Optional<VPath> Unresolve(const std::filesystem::path& physical_path) const;
+    [[nodiscard]] Optional<VPath> Unresolve(const Path& physical_path) const;
 
 public:
     template <typename Fn>
-        requires std::invocable<Fn, const StringName&, const std::filesystem::path&, int32>
+        requires std::invocable<Fn, const StringName&, const Path&, int32>
     void VisitMountPoints(Fn&& visitor) const;
 
 private:
     struct MountPoint
     {
-        std::filesystem::path physical_path;
+        Path physical_path;
         int32 priority = 0;
 
         auto operator<=>(const MountPoint& other) const { return priority <=> other.priority; }
@@ -80,7 +79,7 @@ private:
 };
 
 template <typename Fn>
-    requires std::invocable<Fn, const StringName&, const std::filesystem::path&, int32>
+    requires std::invocable<Fn, const StringName&, const Path&, int32>
 void PathResolver::VisitMountPoints(Fn&& visitor) const
 {
     std::shared_lock lock(mutex);
@@ -92,4 +91,4 @@ void PathResolver::VisitMountPoints(Fn&& visitor) const
         }
     }
 }
-}
+}  // namespace se::utility

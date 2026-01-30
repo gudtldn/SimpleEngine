@@ -20,7 +20,7 @@ ParseResult Config::ReadConfig(const VPath& config_file_path)
         return Unexpected{ toml::parse_file("").error() };
     }
 
-    toml::parse_result result = toml::parse_file(physical_path_opt->generic_string());
+    toml::parse_result result = toml::parse_file(physical_path_opt->ToString().CStr());
     if (result.failed())
     {
         return Unexpected{ std::move(result).error() };
@@ -50,8 +50,8 @@ bool Config::WriteConfig(const VPath& config_file_path) const
         return false;
     }
 
-    const std::string physical_path = physical_path_opt->generic_string();
-    std::ofstream file_stream(physical_path, std::ios::binary | std::ios::trunc);
+    const String physical_path = physical_path_opt->ToString();
+    std::ofstream file_stream(physical_path.CStr(), std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open())
     {
         ConsoleLog(ELogLevel::Error, "Failed to open config file for writing: {}", physical_path);

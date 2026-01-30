@@ -15,7 +15,7 @@ SE_BEGIN_REFLECT(ObjLoader)
 SE_END_REFLECT(ObjLoader)
 
 concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
-    const std::filesystem::path& physical_path,
+    const Path& physical_path,
     const IAssetImportSettings* import_settings
 )
 {
@@ -35,7 +35,7 @@ concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
         | aiProcess_SortByPType;          // 점/선 제거하고 다각형만 남김
 
     // 파일 로딩
-    const aiScene* scene = importer.ReadFile(physical_path.string(), flags);
+    const aiScene* scene = importer.ReadFile(physical_path.ToString().CStr(), flags);
 
     // 에러 체크
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||!scene->mRootNode)

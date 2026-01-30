@@ -9,28 +9,35 @@
 #include <shellapi.h>
 
 #include "Core/Logging/Logging.h"
+#include "Utility/FileSystem.h"
 #include "Utility/StringUtils.h"
 
 
 namespace
 {
-void SetThreadName(HANDLE handle, const se::String& name)
+std::wstring ConvertToWString(const se::String& str)
 {
     const int size_needed = MultiByteToWideChar(
         CP_UTF8, 0,
-        name.Data(),
-        static_cast<int>(name.ByteLen()),
+        str.Data(),
+        static_cast<int>(str.ByteLen()),
         nullptr, 0
     );
 
     std::wstring wide_name(size_needed, 0);
     MultiByteToWideChar(
         CP_UTF8, 0,
-        name.Data(),
-        static_cast<int>(name.ByteLen()),
+        str.Data(),
+        static_cast<int>(str.ByteLen()),
         wide_name.data(), size_needed
     );
 
+    return wide_name;
+}
+
+void SetThreadName(HANDLE handle, const se::String& name)
+{
+    const std::wstring wide_name = ConvertToWString(name);
     (void)SetThreadDescription(handle, wide_name.c_str());
 }
 
@@ -74,23 +81,24 @@ String GetCurrentThreadName()
     return ::GetThreadName(GetCurrentThread());
 }
 
-void RevealInExplorer(const std::filesystem::path& path)
+void RevealInExplorer(const Path& path)
 {
-    if (!std::filesystem::exists(path))
+    if (!path.Exists())
     {
-        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path.string());
+        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path);
         return;
     }
 
-    const std::filesystem::path absolute_path = std::filesystem::absolute(path);
-    if (std::filesystem::is_directory(absolute_path))
+    const Path absolute_path = FileSystem::Absolute(path);
+    const std::wstring wstr_path = ConvertToWString(absolute_path.ToString());
+    if (absolute_path.IsDirectory())
     {
-        ShellExecuteW(nullptr, L"explore", absolute_path.c_str(), nullptr, nullptr, SW_SHOWDEFAULT);
+        ShellExecuteW(nullptr, L"explore", wstr_path.c_str(), nullptr, nullptr, SW_SHOWDEFAULT);
     }
     else
     {
         // 파일인 경우: explorer.exe /select,"C:\Path\To\File.txt"
-        const std::wstring param = L"/select,\"" + absolute_path.wstring() + L"\"";
+        const std::wstring param = L"/select,\"" + wstr_path + L"\"";
         ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
     }
 }

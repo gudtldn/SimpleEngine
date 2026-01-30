@@ -1,16 +1,17 @@
 ﻿#include "Core/Logging/Backends/FileBackend.h"
+#include "Utility/FileSystem.h"
 
 
 namespace se::core
 {
 FileBackend::FileBackend()
 {
-    const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
+    const Path solution_path = PROJECT_ROOT_DIR;
     file_path = solution_path / "Logs/latest.log";
     OpenFile();
 }
 
-FileBackend::FileBackend(std::filesystem::path path)
+FileBackend::FileBackend(Path path)
 {
     file_path = std::move(path);
     OpenFile();
@@ -52,15 +53,18 @@ void FileBackend::Flush()
 
 void FileBackend::OpenFile()
 {
-    if (!std::filesystem::exists(file_path))
+    if (!file_path.Exists())
     {
-        std::filesystem::create_directories(file_path.parent_path());
+        if (const Optional parent_opt = file_path.Parent())
+        {
+            FileSystem::CreateDirectories(*parent_opt);
+        }
     }
 
     file.open(file_path, std::ios::out | std::ios::app);
     if (file.is_open())
     {
-        current_file_size = std::filesystem::file_size(file_path);
+        current_file_size = FileSystem::FileSize(file_path).ValueOr(0);
     }
 }
 
@@ -72,9 +76,9 @@ void FileBackend::RotateFile()
     auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::system_clock::now() };
 
     auto backup_path = file_path;
-    backup_path += std::format(".{:%Y-%m-%d_%H:%M:%S}", zt);
+    backup_path += String::Format(".{:%Y-%m-%d_%H:%M:%S}", zt);
 
-    std::filesystem::rename(file_path, backup_path);
+    FileSystem::Rename(file_path, backup_path);
     OpenFile();
     current_file_size = 0;
 }

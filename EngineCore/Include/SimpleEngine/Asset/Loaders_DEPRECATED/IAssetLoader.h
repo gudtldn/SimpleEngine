@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include <filesystem>
 #include <memory>
 
 #include "../Types/IAsset.h"
 #include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine.h"
+#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -16,7 +16,7 @@ class SE_CORE_API IAssetLoader
 public:
     virtual ~IAssetLoader() = default;
     virtual concurrency::Task<std::shared_ptr<IAsset>> Load(
-        const std::filesystem::path& physical_path,
+        const Path& physical_path,
         const IAssetImportSettings* import_settings
     ) = 0;
 
@@ -42,4 +42,4 @@ protected:
         return nullptr;
     }
 };
-}
+}  // namespace se::asset

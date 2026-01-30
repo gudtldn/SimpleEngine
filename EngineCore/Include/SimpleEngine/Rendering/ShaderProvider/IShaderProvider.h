@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include <algorithm>
-#include <filesystem>
 #include <utility>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Utility/Hash.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -17,10 +17,10 @@ namespace se::rendering
  */
 struct ShaderRequest
 {
-    std::filesystem::path source_path;
+    Path source_path;
 
     // HLSL 컴파일 시 사용
-    Optional<std::filesystem::path> hlsl_include_dir_opt = std::nullopt;
+    Optional<Path> hlsl_include_dir_opt = std::nullopt;
     Optional<Array<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
 
     bool operator==(const ShaderRequest& other) const = default;
@@ -37,12 +37,13 @@ public:
     /** 주어진 Request에 따라 Shader를 가져옵니다. */
     virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const ShaderRequest& request) = 0;
 };
-}
+}  // namespace se::rendering
 
 
 template <>
 struct std::hash<se::rendering::ShaderRequest>
 {
+    // ReSharper disable once CppDFAConstantFunctionResult
     size_t operator()(const se::rendering::ShaderRequest& request) const noexcept
     {
         using se::utility::HashCombine;

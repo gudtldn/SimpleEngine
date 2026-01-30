@@ -58,7 +58,7 @@ bool EditorUISubsystem::Initialize()
     // 한글 폰트 추가
     if (const Optional ttf_path_opt = utility::PathResolver::Get().Resolve("CoreAssets://Font/malgun.ttf"))
     {
-        io.Fonts->AddFontFromFileTTF(ttf_path_opt->generic_string().c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
+        io.Fonts->AddFontFromFileTTF(ttf_path_opt->ToString().CStr(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
     }
     else
     {

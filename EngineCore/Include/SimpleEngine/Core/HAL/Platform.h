@@ -1,8 +1,8 @@
 #pragma once
 #include <thread>
-#include <filesystem>
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 
 /**
@@ -41,10 +41,10 @@ SE_CORE_API void SetCurrentThreadName(const String& name);
  * 현재 실행 파일(.exe)이 위치한 디렉터리의 절대 경로를 가져옵니다.
  * @return 실행 파일이 있는 디렉터리의 경로
  */
-[[nodiscard]] SE_CORE_API std::filesystem::path GetExecutableDirectory();
+[[nodiscard]] SE_CORE_API Path GetExecutableDirectory();
 
 /**
  * 운영체제의 파일 탐색기를 열어 해당 경로를 보여줍니다.
  */
-SE_CORE_API void RevealInExplorer(const std::filesystem::path& path);
+SE_CORE_API void RevealInExplorer(const Path& path);
 }  // namespace se::platform

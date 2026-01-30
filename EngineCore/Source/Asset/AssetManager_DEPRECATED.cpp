@@ -15,9 +15,15 @@ IAssetLoader* AssetManager_DEPRECATED::GetLoaderFromType(const refl::TypeId& typ
     return loaders.Find(type_id).ValueOr(null_ptr).get();
 }
 
-std::shared_ptr<IAssetImportSettings> AssetManager_DEPRECATED::CreateDefaultSettingsForFile(const std::filesystem::path& path) const
+std::shared_ptr<IAssetImportSettings> AssetManager_DEPRECATED::CreateDefaultSettingsForFile(const Path& path) const
 {
-    const StringName ext_name = utility::ToString(path.extension().c_str());
+    const Optional ext_opt = path.Extension();
+    if (!ext_opt.HasValue())
+    {
+        ConsoleLog(ELogLevel::Warning, "Cannot create import settings: file has no extension: {}", path);
+        return nullptr;
+    }
+    const StringName ext_name = ext_opt->CStr();
 
     // 레지스트리 조회
     if (const Optional info_opt = extension_registry.Find(ext_name))

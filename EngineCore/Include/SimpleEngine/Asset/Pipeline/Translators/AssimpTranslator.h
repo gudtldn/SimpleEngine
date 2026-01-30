@@ -13,7 +13,7 @@ public:
     [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const override;
 
     virtual void Translate(
-        const std::filesystem::path& file_path,
+        const Path& file_path,
         const ImportConfig& import_config,
         PipelineNodeContainer& out_container
     ) override;

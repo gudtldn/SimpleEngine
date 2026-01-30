@@ -15,6 +15,7 @@
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -96,7 +97,7 @@ public:
 public:
     [[nodiscard]] Optional<const ExtensionInfo&> GetExtensionInfo(const StringName& extension) const;
     [[nodiscard]] IAssetLoader* GetLoaderFromType(const refl::TypeId& type_id) const;
-    [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateDefaultSettingsForFile(const std::filesystem::path& path) const;
+    [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateDefaultSettingsForFile(const Path& path) const;
     [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateSettingsFromType(const refl::TypeId& settings_type) const;
 
 private:

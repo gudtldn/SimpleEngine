@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <filesystem>
 #include <memory>
 
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
@@ -8,7 +7,7 @@
 #include "SimpleEngine/Asset/Pipeline/Translators/IPipelineTranslator.h"
 #include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::asset
@@ -47,14 +46,14 @@ public:
      * @return 생성된 에셋 목록
      */
     [[nodiscard]] Array<std::shared_ptr<IAsset>> Import(
-        const std::filesystem::path& file_path,
+        const Path& file_path,
         const ImportConfig& import_config = {},
         Optional<const PipelineProcessorStack&> processor_stack = std::nullopt
     );
 
 private:
     /** 파일 확장자에 맞는 Translator를 찾습니다. */ // TODO: 나중에 우선순위 같은거 정해야 할듯
-    [[nodiscard]] Optional<IPipelineTranslator&> FindTranslator(const std::filesystem::path& file_path) const;
+    [[nodiscard]] Optional<IPipelineTranslator&> FindTranslator(const Path& file_path) const;
 
     /** 노드 간 의존성을 분석하여 생성 순서대로 위상 정렬합니다. */
     [[nodiscard]] static Array<PipelineBaseNode*> SortNodesByDependency(const PipelineNodeContainer& container);

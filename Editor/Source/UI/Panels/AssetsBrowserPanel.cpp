@@ -3,6 +3,7 @@
 #include <compare>
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
@@ -15,7 +16,7 @@ namespace
 {
 struct AssetItem
 {
-    fs::path path;
+    se::Path path;
     se::String name;
     bool is_directory;
 
@@ -82,7 +83,7 @@ void AssetsBrowserPanel::Draw()
 
 void AssetsBrowserPanel::DrawAssetTree()
 {
-    utility::PathResolver::Get().VisitMountPoints([this](const StringName& scheme, const fs::path& physical_path, [[maybe_unused]] int32 priority)
+    utility::PathResolver::Get().VisitMountPoints([this](const StringName& scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
         if (GetSelectedDirPath() == physical_path)
@@ -120,10 +121,10 @@ void AssetsBrowserPanel::DrawAssetTree()
 
 void AssetsBrowserPanel::DrawAssetGrid()
 {
-    const fs::path current_path = GetSelectedDirPath();
+    const Path& current_path = GetSelectedDirPath();
 
     // 경로 유효성 검사
-    if (current_path.empty() || !fs::exists(current_path))
+    if (current_path.IsEmpty() || !current_path.Exists())
     {
         return;
     }
@@ -146,15 +147,18 @@ void AssetsBrowserPanel::DrawAssetGrid()
             continue;
         }
 
+        Path item_path = entry.path();
+
         // .meta 파일 숨기기
-        if (entry.path().extension() == ".meta")
+        if (item_path.Extension().ValueOrDefault() == ".meta")
         {
             continue;
         }
 
+        String item_name = item_path.FileName().ValueOr("(Unknown)");
         items.Push({
-            .path = entry.path(),
-            .name = utility::ToString(entry.path().filename().c_str()),
+            .path = std::move(item_path),
+            .name = std::move(item_name),
             .is_directory = entry.is_directory()
         });
     }
@@ -193,7 +197,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
             if (!item.is_directory && ImGui::BeginDragDropSource())
             {
                 // 텍스처 등 에셋 로딩을 위해 경로 전달
-                const String item_path = utility::ToString(item.path.c_str());
+                const String item_path = item.path.ToString();
                 ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", item_path.CStr(), item_path.ByteLen() + 1);
                 ImGui::Text("%s", item.name.CStr()); // 드래그 중 힌트
                 ImGui::EndDragDropSource();
@@ -240,38 +244,38 @@ void AssetsBrowserPanel::DrawAssetGrid()
     }
 }
 
-bool AssetsBrowserPanel::HasSubDirectories(const fs::path& path)
+bool AssetsBrowserPanel::HasSubDirectories(const Path& path)
 {
     std::error_code ec;
     return std::ranges::any_of(fs::directory_iterator(path, ec), [&ec, &path](const auto& entry)
     {
         if (ec)
         {
-            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path.string());
+            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path);
             return false;
         }
         return entry.is_directory();
     });
 }
 
-const std::filesystem::path& AssetsBrowserPanel::GetSelectedDirPath() const noexcept
+const Path& AssetsBrowserPanel::GetSelectedDirPath() const noexcept
 {
     return selected_dir_path;
 }
 
-void AssetsBrowserPanel::SetSelectedDirPath(const std::filesystem::path& new_path) noexcept
+void AssetsBrowserPanel::SetSelectedDirPath(const Path& new_path) noexcept
 {
     selected_dir_path = new_path;
 }
 
-void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
+void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
 {
     std::error_code ec;
     for (const auto& entry : fs::directory_iterator(path, ec))
     {
         if (ec)
         {
-            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path.string());
+            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path);
             continue;
         }
 
@@ -280,8 +284,8 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
             continue;
         }
 
-        const fs::path& entry_path = entry.path();
-        String folder_name = utility::ToString(entry_path.filename().c_str());
+        const Path entry_path = entry.path();
+        const String folder_name = entry_path.FileName().ValueOr("(Unknown)");
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
         if (GetSelectedDirPath() == entry_path)
@@ -317,49 +321,49 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const fs::path& path)
     }
 }
 
-void AssetsBrowserPanel::DrawDirectoryContextMenu(const std::filesystem::path& path)
+void AssetsBrowserPanel::DrawDirectoryContextMenu(const Path& path)
 {
     // 메뉴 타이틀
-    ImGui::TextDisabled("%s", utility::ToString(path.filename().c_str()).CStr());
+    ImGui::TextDisabled("%s", path.FileName().ValueOr("(Unknown)").CStr());
     ImGui::Separator();
 
     if (ImGui::MenuItem("Import Asset Here..."))
     {
         // TODO: 파일 다이얼로그 열기 및 Import 로직 연결
         // FileDialog::OpenFile(..., path.string().c_str());
-        ConsoleLog(ELogLevel::Info, "Import request at: {}", path.string());
+        ConsoleLog(ELogLevel::Info, "Import request at: {}", path);
     }
 
     if (ImGui::MenuItem("Create New Folder"))
     {
         // TODO: 폴더 생성 로직
-        ConsoleLog(ELogLevel::Info, "Create new folder at: {}", path.string());
+        ConsoleLog(ELogLevel::Info, "Create new folder at: {}", path);
     }
 
     ImGui::Separator();
 
     if (ImGui::MenuItem("Show in Explorer"))
     {
-        ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path.string());
+        ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path);
         platform::RevealInExplorer(path);
     }
 }
 
-void AssetsBrowserPanel::DrawFileContextMenu(const std::filesystem::path& path)
+void AssetsBrowserPanel::DrawFileContextMenu(const Path& path)
 {
-    ImGui::TextDisabled("%s", utility::ToString(path.filename().c_str()).CStr());
+    ImGui::TextDisabled("%s", path.FileName().ValueOr("(Unknown)").CStr());
     ImGui::Separator();
 
     if (ImGui::MenuItem("Open"))
     {
         // TODO: 에셋 타입에 맞는 에디터 열기
-        ConsoleLog(ELogLevel::Info, "Opening asset: {}", path.string());
+        ConsoleLog(ELogLevel::Info, "Opening asset: {}", path);
     }
 
     if (ImGui::MenuItem("Delete"))
     {
         // TODO: 삭제 확인 팝업 후 삭제 로직
-        ConsoleLog(ELogLevel::Warning, "Delete requested: {}", path.string());
+        ConsoleLog(ELogLevel::Warning, "Delete requested: {}", path);
         // fs::remove(path); // 위험하므로 실제 구현 시 주의
     }
 
@@ -372,7 +376,7 @@ void AssetsBrowserPanel::DrawFileContextMenu(const std::filesystem::path& path)
 
     if (ImGui::MenuItem("Show in Explorer"))
     {
-        ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path.string());
+        ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path);
         platform::RevealInExplorer(path);
     }
 }

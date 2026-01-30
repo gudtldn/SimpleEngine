@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <memory>
+
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
@@ -47,4 +49,4 @@ public:
         return refl::TypeId::Get<Derived>();
     }
 };
-}
+}  // namespace se::asset

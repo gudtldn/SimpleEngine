@@ -35,13 +35,13 @@ public:
     }
 
     virtual void Translate(
-        const std::filesystem::path& file_path,
+        const Path& file_path,
         const ImportConfig& import_config,
         PipelineNodeContainer& out_container
     ) override
     {
         // 예외 처리 테스트: 특정 파일명이면 아무것도 생성하지 않음
-        if (file_path.stem().string().contains("Empty"))
+        if (file_path.FileStem() == "Empty")
         {
             return;
         }

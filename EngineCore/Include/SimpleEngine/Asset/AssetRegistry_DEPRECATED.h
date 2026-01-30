@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <filesystem>
 
 #include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Container/HashMap.h"

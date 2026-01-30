@@ -2,35 +2,36 @@
 
 #include <fstream>
 
+#include "Utility/FileSystem.h"
 #include "Utility/StringUtils.h"
 
 
 namespace se::utility
 {
-FileResult<Array<uint8>> ReadToByteArray(const std::filesystem::path& file_path)
+FileResult<Array<uint8>> ReadToByteArray(const Path& file_path)
 {
-    const String path(file_path.generic_string());
+    const String path = file_path.ToString();
 
-    std::ifstream file(file_path, std::ios::binary);
+    std::ifstream file(path.CStr(), std::ios::binary);
     if (!file.is_open())
     {
-        if (!std::filesystem::exists(file_path))
+        if (!file_path.Exists())
         {
             return Unexpected{ FileReadError::NotFound("File not found: " + path) };
         }
-        if (!std::filesystem::is_regular_file(file_path))
+        if (!file_path.IsFile())
         {
             return Unexpected{ FileReadError::Format("File is not a regular file: " + path) };
         }
         return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path) };
     }
 
-    std::error_code ec;
-    const usize file_size = std::filesystem::file_size(file_path, ec);
-    if (ec)
+    const Optional<usize> file_size_opt = FileSystem::FileSize(file_path);
+    if (!file_size_opt.HasValue())
     {
         return Unexpected{ FileReadError::EndOfFile("File size error: " + path) };
     }
+    const usize file_size = *file_size_opt;
 
     Array<uint8> data(file_size);
     if (!file.read(reinterpret_cast<char*>(data.Data()), static_cast<isize>(file_size))) // TODO: 여기서 isize로 바꾸는 과정에서 overflow 가능성 있음
@@ -42,7 +43,7 @@ FileResult<Array<uint8>> ReadToByteArray(const std::filesystem::path& file_path)
     return data;
 }
 
-FileResult<String> ReadToString(const std::filesystem::path& file_path)
+FileResult<String> ReadToString(const Path& file_path)
 {
     const auto result = ReadToByteArray(file_path);
     if (result.HasValue())
@@ -51,4 +52,4 @@ FileResult<String> ReadToString(const std::filesystem::path& file_path)
     }
     return Unexpected{ std::move(result).Error() };
 }
-}
+}  // namespace se::utility

@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <atomic>
-#include <filesystem>
 #include <memory>
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
@@ -45,7 +45,7 @@ private:
         std::weak_ptr<IAsset> asset;
 
         refl::TypeId asset_type;
-        std::filesystem::path file_path;
+        Path file_path;
         std::atomic<ELoadingState> loading_state = ELoadingState::Unloaded;
     };
 

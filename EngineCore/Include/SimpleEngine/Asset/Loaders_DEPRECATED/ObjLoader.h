@@ -8,7 +8,7 @@ class SE_CORE_API ObjLoader : public IAssetLoader
 {
 public:
     virtual concurrency::Task<std::shared_ptr<IAsset>> Load(
-        const std::filesystem::path& physical_path,
+        const Path& physical_path,
         const IAssetImportSettings* import_settings
     ) override;
 };

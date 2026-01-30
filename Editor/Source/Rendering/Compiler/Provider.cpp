@@ -3,6 +3,7 @@
 #include "Rendering/Compiler/Compiler.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Gfx/ShaderUtils.h"
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
 
@@ -13,10 +14,16 @@ namespace se::editor::rendering
 {
 SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
-    const std::string ext = request.source_path.extension().string();
+    const Optional ext_opt = request.source_path.Extension();
+    if (!ext_opt.HasValue())
+    {
+        ConsoleLog(ELogLevel::Error, "Shader source path has no extension: {}", request.source_path);
+        return nullptr;
+    }
+    const String& ext = *ext_opt;
 
     // HLSL Compile
-    if (ext.contains(".hlsl"))
+    if (ext.Contains(".hlsl"))
     {
         Optional<Array<HLSL_Define>> defines_opt;
         if (request.hlsl_defines_opt.HasValue())
@@ -43,9 +50,9 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
 
     // SPIR-V Compile
     if (
-        ext.contains(".spv")
-        || ext.contains(".spirv")
-        || ext.contains(".spvt")
+        ext.Contains(".spv")
+        || ext.Contains(".spirv")
+        || ext.Contains(".spvt")
     )
     {
         return gfx::CompileFromSPIRV(device, request.source_path);
@@ -53,4 +60,4 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
 
     return nullptr;
 }
-}
+}  // namespace se::editor::rendering

@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "Core/Logging/Logging.h"
+#include "Utility/FileSystem.h"
 #include "Utility/StringUtils.h"
 #include "Utility/Debug.h"
 
@@ -48,18 +49,20 @@ String GetCurrentThreadName()
     return {};
 }
 
-void RevealInExplorer(const std::filesystem::path& path)
+void RevealInExplorer(const Path& path)
 {
-    if (!std::filesystem::exists(path))
+    if (!path.Exists())
     {
-        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path.string());
+        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path);
         return;
     }
 
-    const std::filesystem::path absolute_path = std::filesystem::absolute(path);
-
-    std::string command = "xdg-open \"" + absolute_path.parent_path().string() + "\"";
-    std::system(command.c_str());
+    const Path absolute_path = FileSystem::Absolute(path);
+    if (const auto parent_opt = absolute_path.Parent())
+    {
+        const String command = String::Format("xdg-open \"{}\"", parent_opt->ToString());
+        std::system(command.CStr());
+    }
 }
 }  // namespace se::platform
 #endif

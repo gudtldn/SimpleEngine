@@ -10,15 +10,15 @@
 namespace se::asset
 {
 Array<std::shared_ptr<IAsset>> AssetImporter::Import(
-    const std::filesystem::path& file_path,
+    const Path& file_path,
     const ImportConfig& import_config,
     Optional<const PipelineProcessorStack&> processor_stack
 )
 {
     ZoneScopedN("AssetImporter::Import");
 #if TRACY_ENABLE
-        const std::string filename = file_path.filename().string();
-        ZoneText(filename.c_str(), filename.size());
+        const String filename = file_path.FileName().ValueOr("Unknown");
+        ZoneText(filename.CStr(), filename.ByteLen());
 #endif
 
     // ---------------------------------------------------------
@@ -27,7 +27,7 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     const Optional translator_opt = FindTranslator(file_path);
     if (!translator_opt)
     {
-        ConsoleLog(ELogLevel::Error, "No suitable translator found for file: {}", file_path.generic_string());
+        ConsoleLog(ELogLevel::Error, "No suitable translator found for file: {}", file_path);
         return {};
     }
 
@@ -102,9 +102,16 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     return created_assets;
 }
 
-Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const std::filesystem::path& file_path) const
+Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const Path& file_path) const
 {
-    const String ext = utility::ToString(file_path.extension().u8string()).ToLower();
+    const Optional ext_opt = file_path.Extension();
+    if (!ext_opt.HasValue())
+    {
+        ConsoleLog(ELogLevel::Warning, "Cannot find translator: file path has no extension: {}", file_path);
+        return std::nullopt;
+    }
+
+    const String ext = ext_opt->ToLower();
     for (const auto& translator : translators)
     {
         if (translator->CanTranslate(ext))

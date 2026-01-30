@@ -5,7 +5,7 @@
 
 namespace se::platform
 {
-std::filesystem::path GetExecutableDirectory()
+Path GetExecutableDirectory()
 {
     return { SDL_GetBasePath() };
 }

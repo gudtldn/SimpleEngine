@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "Core/Logging/Logging.h"
+#include "Utility/FileSystem.h"
 #include "Utility/StringUtils.h"
 #include "Utility/Debug.h"
 
@@ -47,18 +48,18 @@ String GetCurrentThreadName()
     return {};
 }
 
-void RevealInExplorer(const std::filesystem::path& path)
+void RevealInExplorer(const Path& path)
 {
-    if (!std::filesystem::exists(path))
+    if (!path.Exists())
     {
-        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path.string());
+        ConsoleLog(ELogLevel::Warning, "Path does not exist: {}", path);
         return;
     }
 
-    const std::filesystem::path absolute_path = std::filesystem::absolute(path);
-
-    std::string command = "open -R \"" + absolute_path.string() + "\"";
-    std::system(command.c_str());
+    // open -R은 파일을 선택하여 Finder에서 보여줌
+    const Path absolute_path = FileSystem::Absolute(path);
+    const String command = String::Format("open -R \"{}\"", absolute_path);
+    std::system(command.CStr());
 }
 }  // namespace se::platform
 #endif

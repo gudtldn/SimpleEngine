@@ -1,6 +1,5 @@
 ﻿#include "Core/Engine/Engine.h"
 
-#include <filesystem>
 #include <ranges>
 
 #include "Core/Concurrency/TaskScheduler.h"
@@ -33,7 +32,7 @@ Engine::Engine()
     PathResolver& path_resolver = PathResolver::Get();
 
     // TODO: Shipping일 때 GetExecutableDirectory로 수정해야함!!!
-    const std::filesystem::path solution_path = PROJECT_ROOT_DIR;
+    const Path solution_path = PROJECT_ROOT_DIR;
 
     // Core
     path_resolver.Mount("Config", solution_path / "Config");
@@ -270,4 +269,4 @@ bool Engine::SortSubsystems()
 
     return true;
 }
-}
+}  // namespace se::core

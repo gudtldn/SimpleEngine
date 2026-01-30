@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <expected>
-#include <filesystem>
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::utility
@@ -53,8 +53,8 @@ template <typename T>
 using FileResult = Expected<T, FileReadError>;
 
 /** 파일을 읽고, byte array로 반환합니다. */
-[[nodiscard]] SE_CORE_API FileResult<Array<uint8>> ReadToByteArray(const std::filesystem::path& file_path);
+[[nodiscard]] SE_CORE_API FileResult<Array<uint8>> ReadToByteArray(const Path& file_path);
 
 /** 파일을 읽고, string으로 반환합니다. */
-[[nodiscard]] SE_CORE_API FileResult<String> ReadToString(const std::filesystem::path& file_path);
-}
+[[nodiscard]] SE_CORE_API FileResult<String> ReadToString(const Path& file_path);
+}  // namespace se::utility
