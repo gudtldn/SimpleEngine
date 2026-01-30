@@ -4,11 +4,11 @@
 #include <mutex>
 #include <stop_token>
 #include <thread>
+#include <functional>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Queue.h"
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 #include "tracy/Tracy.hpp"
@@ -44,36 +44,30 @@ private:
     String pool_name;
 
     TracyLockable(std::mutex, mutex);
-
-#if TRACY_ENABLE
     std::condition_variable_any condition;
-#else
-    std::condition_variable condition;
-#endif
 
     Array<std::jthread> worker_threads;
-    Queue<Function<void()>> tasks;
+    Queue<std::move_only_function<void()>> tasks;
 };
 
 template <typename Fn, typename... Args>
-auto ThreadPool::Submit(
-    Fn&& func, Args&&... args
-) -> std::future<std::invoke_result_t<Fn, Args...>>
+auto ThreadPool::Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_result_t<Fn, Args...>>
 {
     using ReturnType = std::invoke_result_t<Fn, Args...>;
-    auto task_ptr = std::make_shared<std::packaged_task<ReturnType()>>(
-        [func = std::forward<Fn>(func), ...args = std::forward<Args>(args)] mutable -> ReturnType
-        {
-            return func(std::forward<Args>(args)...);
-        }
-    );
+    std::packaged_task<ReturnType()> task{
+        std::bind_front(std::forward<Fn>(func), std::forward<Args>(args)...)
+    };
 
+    std::future<ReturnType> result_future = task.get_future();
     {
         std::scoped_lock lock(mutex);
-        tasks.Emplace([task_ptr] { (*task_ptr)(); });
+        tasks.Emplace([task = std::move(task)]() mutable
+        {
+            task();
+        });
     }
 
     condition.notify_one();
-    return task_ptr->get_future();
+    return result_future;
 }
 }  // namespace se::concurrency

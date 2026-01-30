@@ -26,14 +26,16 @@ ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
 
 ThreadPool::~ThreadPool()
 {
-    usize tasks_dropped = 0;
     {
         std::scoped_lock lock(mutex);
-        tasks_dropped = tasks.Len();
-        tasks.Clear();
+        if (!tasks.IsEmpty())
+        {
+            ConsoleLog(ELogLevel::Warning, "ThreadPool: [{}] destroyed. {} tasks discarded.", pool_name, tasks.Len());
+            tasks.Clear();
+        }
     }
 
-    // 스레드 중단 요청
+    // 스레드 종료 요청
     for (std::jthread& thread : worker_threads)
     {
         thread.request_stop();
@@ -41,14 +43,7 @@ ThreadPool::~ThreadPool()
     condition.notify_all();
     worker_threads.Clear();
 
-    if (tasks_dropped > 0)
-    {
-        ConsoleLog(ELogLevel::Warning, "ThreadPool: [{}] destroyed. {} tasks were discarded.", pool_name, tasks_dropped);
-    }
-    else
-    {
-        ConsoleLog(ELogLevel::Info, "ThreadPool: [{}] destroyed successfully.", pool_name);
-    }
+    ConsoleLog(ELogLevel::Info, "ThreadPool: [{}] destroyed successfully.", pool_name);
 }
 
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
@@ -58,11 +53,11 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 
     while (!token.stop_requested())
     {
-        Function<void()> task;
+        std::move_only_function<void()> current_task;
         {
             // stop이 요청되거나 작업이 생길 때까지 대기
             std::unique_lock lock(mutex);
-            condition.wait(lock, [this, &token]
+            condition.wait(lock, token, [this, &token]
             {
                 return !tasks.IsEmpty() || token.stop_requested();
             });
@@ -72,14 +67,14 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
                 break;
             }
 
-            task = std::move(tasks.Pop()).Value();
+            current_task = std::move(tasks.Pop()).Value();
         }
 
         {
             ZoneScoped;
             ZoneName(thread_name.CStr(), thread_name.ByteLen());
 
-            task();
+            current_task();
         }
     }
 }
