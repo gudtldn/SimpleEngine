@@ -140,15 +140,12 @@ public:
 
     // [[nodiscard]] const char* CStr() const; // 필요 시 주석 해제
 
-    /** 내부 std::filesystem::path 객체를 반환합니다. (나중에 API 변경 가능성 있음) */
-    [[nodiscard]] const std::filesystem::path& GetStdPath() const { return internal_path; }
-
     void Swap(Path& other) noexcept;
 
 public:
     // --- Operators ---
 
-    // 임시 코드
+    /** 내부 std::filesystem::path 객체를 반환합니다. (나중에 API 변경 가능성 있음) */
     [[nodiscard]] operator const std::filesystem::path&() const { return internal_path; }
 
     [[nodiscard]] bool operator==(const char* other) const;
@@ -159,6 +156,7 @@ public:
     friend void swap(Path& lhs, Path& rhs) noexcept { lhs.Swap(rhs); }
 
 private:
+    friend struct std::hash<Path>;
     std::filesystem::path internal_path;
 };
 } // namespace se
@@ -168,7 +166,7 @@ struct std::hash<se::Path>
 {
     size_t operator()(const se::Path& in_path) const noexcept
     {
-        return std::filesystem::hash_value(in_path.GetStdPath());
+        return std::filesystem::hash_value(in_path.internal_path);
     }
 };
 

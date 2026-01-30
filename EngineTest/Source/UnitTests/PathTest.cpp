@@ -14,10 +14,6 @@ TEST(PathTest, Constructors)
     String s = "Engine/Source/Main.cpp";
     Path p3(s);
     EXPECT_EQ(p3.ToString(), s);
-
-    std::filesystem::path fs_path = "C:/Windows";
-    Path p4(fs_path);
-    EXPECT_EQ(p4.GetStdPath(), fs_path);
 }
 
 TEST(PathTest, Modifiers)
