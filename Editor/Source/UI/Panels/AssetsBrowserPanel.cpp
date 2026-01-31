@@ -59,8 +59,9 @@ void AssetsBrowserPanel::Draw()
         // GridView
         ImGui::TableNextColumn();
 
-        const Optional<String> selected_path = GetSelectedDirPath().ToVirtual()
-            .AndThen([](const auto& vpath) -> Optional<String>
+        const Optional<String> selected_path = GetSelectedDirPath()
+            .ToVirtual()
+            .Transform([](const VPath& vpath)
             {
                 return vpath.ToString();
             });
