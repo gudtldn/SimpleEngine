@@ -5,6 +5,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 
@@ -349,6 +350,35 @@ TEST_F(ArrayViewAPI_Test, ConstructionFromArray)
     const Array<int>& const_arr = arr;
     ArrayView<const int> const_view(const_arr);
     EXPECT_EQ(const_view.Len(), 3);
+
+    // non-const Array에서 const View 생성
+    ArrayView<const int> const_view_from_mutable(arr);
+    EXPECT_EQ(const_view_from_mutable.Len(), 3);
+}
+
+TEST_F(ArrayViewAPI_Test, ConstructionFromFixedArray)
+{
+    FixedArray<int, 3> arr = {1, 2, 3};
+
+    // non-const FixedArray에서 non-const View 생성 (정적 크기)
+    ArrayView view1(arr);
+    EXPECT_EQ(view1.Len(), 3);
+    static_assert(std::same_as<decltype(view1), ArrayView<int, 3>>);
+
+    // non-const FixedArray에서 const View 생성 (정적 크기)
+    ArrayView<const int, 3> const_view1(arr);
+    EXPECT_EQ(const_view1.Len(), 3);
+
+    // const FixedArray에서 const View 생성
+    const FixedArray<int, 3>& const_arr = arr;
+    ArrayView const_view2(const_arr);
+    EXPECT_EQ(const_view2.Len(), 3);
+    static_assert(std::same_as<decltype(const_view2), ArrayView<const int, 3>>);
+
+    // 정적 크기에서 동적 크기로 변환
+    ArrayView<int> dynamic_view(arr);
+    EXPECT_EQ(dynamic_view.Len(), 3);
+    static_assert(dynamic_view.Extent == DynamicExtent);
 }
 
 TEST_F(ArrayViewAPI_Test, AtSafeAccess)
@@ -555,19 +585,134 @@ TEST_F(ArrayViewAPI_Test, DeductionGuides)
 {
     int arr[] = {1, 2, 3};
 
-    // 포인터 + 크기
+    // 포인터 + 크기 -> 동적 크기
     ArrayView view1(arr, 3u);
     EXPECT_EQ(view1.Len(), 3);
+    static_assert(std::same_as<decltype(view1), ArrayView<int>>);
 
-    // 두 포인터
+    // 두 포인터 -> 동적 크기
     ArrayView view2(arr, arr + 2);
     EXPECT_EQ(view2.Len(), 2);
+    static_assert(std::same_as<decltype(view2), ArrayView<int>>);
 
-    // C 배열
+    // C 배열 -> 정적 크기
     ArrayView view3(arr);
     EXPECT_EQ(view3.Len(), 3);
 
-    // initializer_list
+    // 아래 static_assert는 정상 동작하는 표현식임.
+    // template <typename T, usize N>
+    // ArrayView(T (&)[N]) -> ArrayView<T, N>;
+    static_assert(std::same_as<decltype(view3), ArrayView<int, 3>>);
+
+    // initializer_list -> 동적 크기
     ArrayView view4 = {1, 2, 3, 4};
     EXPECT_EQ(view4.Len(), 4);
+    static_assert(std::same_as<decltype(view4), ArrayView<const int>>);
+}
+
+TEST_F(ArrayViewAPI_Test, StaticExtent)
+{
+    int arr[] = {1, 2, 3, 4, 5};
+
+    // 정적 크기 View 생성
+    ArrayView<int, 5> static_view(arr);
+    EXPECT_EQ(static_view.Len(), 5);
+    static_assert(static_view.Extent == 5);
+
+    // 정적 크기에서 동적 크기로 변환
+    ArrayView<int> dynamic_view = static_view;
+    EXPECT_EQ(dynamic_view.Len(), 5);
+    static_assert(dynamic_view.Extent == DynamicExtent);
+}
+
+TEST_F(ArrayViewAPI_Test, StaticExtentFirst)
+{
+    int arr[] = {1, 2, 3, 4, 5};
+    ArrayView<int, 5> view(arr);
+
+    // 컴파일 타임 First
+    auto first3 = view.First<3>();
+    EXPECT_EQ(first3.Len(), 3);
+    EXPECT_EQ(first3[0], 1);
+    EXPECT_EQ(first3[2], 3);
+    static_assert(std::same_as<decltype(first3), ArrayView<int, 3>>);
+}
+
+TEST_F(ArrayViewAPI_Test, StaticExtentLast)
+{
+    int arr[] = {1, 2, 3, 4, 5};
+    ArrayView<int, 5> view(arr);
+
+    // 컴파일 타임 Last
+    auto last2 = view.Last<2>();
+    EXPECT_EQ(last2.Len(), 2);
+    EXPECT_EQ(last2[0], 4);
+    EXPECT_EQ(last2[1], 5);
+    static_assert(std::same_as<decltype(last2), ArrayView<int, 2>>);
+}
+
+TEST_F(ArrayViewAPI_Test, StaticExtentSubview)
+{
+    int arr[] = {1, 2, 3, 4, 5};
+    ArrayView<int, 5> view(arr);
+
+    // 컴파일 타임 Subview (offset과 count 지정)
+    auto sub1 = view.Subview<1, 3>();
+    EXPECT_EQ(sub1.Len(), 3);
+    EXPECT_EQ(sub1[0], 2);
+    EXPECT_EQ(sub1[2], 4);
+    static_assert(std::same_as<decltype(sub1), ArrayView<int, 3>>);
+
+    // 컴파일 타임 Subview (offset만 지정, 정적 크기에서)
+    auto sub2 = view.Subview<2>();
+    EXPECT_EQ(sub2.Len(), 3);
+    EXPECT_EQ(sub2[0], 3);
+    static_assert(std::same_as<decltype(sub2), ArrayView<int, 3>>);
+}
+
+TEST_F(ArrayViewAPI_Test, ConstexprStaticExtent)
+{
+    static constexpr int arr[] = {1, 2, 3, 4, 5};
+    constexpr ArrayView<const int, 5> view(arr);
+
+    static_assert(view.Len() == 5);
+    static_assert(view.Extent == 5);
+    static_assert(view[0] == 1);
+    static_assert(view[4] == 5);
+
+    // constexpr First
+    constexpr auto first2 = view.First<2>();
+    static_assert(first2.Len() == 2);
+    static_assert(first2[0] == 1);
+    static_assert(first2[1] == 2);
+
+    // constexpr Last
+    constexpr auto last2 = view.Last<2>();
+    static_assert(last2.Len() == 2);
+    static_assert(last2[0] == 4);
+    static_assert(last2[1] == 5);
+
+    // constexpr Subview
+    constexpr auto sub = view.Subview<1, 3>();
+    static_assert(sub.Len() == 3);
+    static_assert(sub[0] == 2);
+}
+
+TEST_F(ArrayViewAPI_Test, StaticExtentComparison)
+{
+    int arr1[] = {1, 2, 3};
+    int arr2[] = {1, 2, 3};
+    int arr3[] = {1, 2, 4};
+
+    ArrayView<int, 3> view1(arr1);
+    ArrayView<int, 3> view2(arr2);
+    ArrayView<int, 3> view3(arr3);
+    ArrayView<int> dynamic_view(arr1, 3);
+
+    // 정적 크기끼리 비교
+    EXPECT_EQ(view1, view2);
+    EXPECT_NE(view1, view3);
+
+    // 정적 크기와 동적 크기 비교
+    EXPECT_EQ(view1, dynamic_view);
 }
