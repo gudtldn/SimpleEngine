@@ -1,12 +1,16 @@
 ﻿#pragma once
 #include <string_view>
 
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
 
 namespace se
 {
+// Forward declaration
+class Path;
+
 /**
  * 엔진의 파일 시스템을 추상화하는 가상 경로 타입
  */
@@ -63,6 +67,22 @@ public:
 
     /** 전체 경로를 StringName으로 변환하여 반환합니다. */
     [[nodiscard]] StringName ToStringName() const { return StringName{ full_path }; }
+
+public:
+    /**
+     * 가상 경로를 물리적 경로로 변환합니다. (존재 여부 확인 안 함)
+     * @return 물리적 경로. 변환 실패 시 빈 Path
+     */
+    [[nodiscard]] Path ToPath() const;
+
+    /**
+     * 가상 경로를 물리적 경로로 해석하고, 파일이 존재하는지 확인합니다.
+     * @return 물리적 경로. 해석 실패 또는 파일 없음 시 std::nullopt
+     */
+    [[nodiscard]] Optional<Path> Resolve() const;
+
+    /** 가상 경로가 가리키는 파일/폴더가 존재하는지 확인합니다. */
+    [[nodiscard]] bool Exists() const;
 
 private:
     /** 입력받은 경로 문자열을 파싱하고 정규화(\ -> /)하여 내부 멤버를 초기화합니다. */

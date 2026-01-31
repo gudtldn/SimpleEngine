@@ -11,7 +11,6 @@
 #include "Gfx/MeshPrimitives.h"
 #include "Gfx/RenderSubsystem.h"
 #include "Rendering/RenderGraph/RenderGraph.h"
-#include "Utility/PathResolver.h"
 #include "Utility/SubsystemUtils.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -110,8 +109,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_GPUGraphicsPipeline* pipeline;
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
-        static const Path VSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.vert.hlsl").Value();
-        static const Path FSPath = utility::PathResolver::Get().Resolve("CoreShader://Default.frag.hlsl").Value();
+        static const Path VSPath = VPath("CoreShader://Default.vert.hlsl").ToPath();
+        static const Path FSPath = VPath("CoreShader://Default.frag.hlsl").ToPath();
 
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description

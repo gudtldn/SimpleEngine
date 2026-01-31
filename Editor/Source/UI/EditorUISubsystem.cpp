@@ -11,8 +11,8 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
-#include "SimpleEngine/Utility/PathResolver.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -56,7 +56,7 @@ bool EditorUISubsystem::Initialize()
     io.ConfigDpiScaleViewports = true;
 
     // 한글 폰트 추가
-    if (const Optional ttf_path_opt = utility::PathResolver::Get().Resolve("CoreAssets://Font/malgun.ttf"))
+    if (const Optional ttf_path_opt = VPath("CoreAssets://Font/malgun.ttf").Resolve())
     {
         io.Fonts->AddFontFromFileTTF(ttf_path_opt->ToString().CStr(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
     }

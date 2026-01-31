@@ -1,12 +1,12 @@
 ﻿#include "../UnitTestEnvironment.h"
 #include "gtest/gtest.h"
 
-#include <filesystem>
 #include <fstream>
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/Config.h"
-#include "SimpleEngine/Utility/PathResolver.h"
+#include "SimpleEngine/Utility/FileSystem.h"
 
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"
@@ -66,7 +66,7 @@ TEST_F(ConfigTest, ReadNonExistentFileFails)
 TEST_F(ConfigTest, ReadInvalidTomlFileFails)
 {
     // 임시로 유효하지 않은 TOML 파일을 만듭니다.
-    const auto physical_path = PathResolver::Get().Resolve(invalid_toml_path, false).Value();
+    const auto physical_path = invalid_toml_path.ToPath();
     {
         std::ofstream ofs(physical_path.ToString().CStr());
         ofs << "this = is not valid toml' syntax";
@@ -76,7 +76,7 @@ TEST_F(ConfigTest, ReadInvalidTomlFileFails)
     EXPECT_FALSE(result.HasValue());
 
     // 테스트 후 임시 파일 삭제
-    std::filesystem::remove(physical_path);
+    FileSystem::Remove(physical_path);
 }
 
 // --- 값 가져오기 테스트 ---
@@ -137,13 +137,13 @@ TEST_F(ConfigTest, SetValueAndWriteConfigSavesCorrectly)
     new_config.SetValue("window.height", 1080);
     new_config.SetValue("graphics.vsync", false);
 
-    const auto physical_path = PathResolver::Get().Resolve(save_test_toml_path, false).Value();
+    const auto physical_path = save_test_toml_path.ToPath();
 
     // RAII를 이용한 파일 자동 삭제
     struct FileDeleter
     {
-        std::filesystem::path path;
-        ~FileDeleter() { if (std::filesystem::exists(path)) std::filesystem::remove(path); }
+        Path path;
+        ~FileDeleter() { if (path.Exists()) FileSystem::Remove(path); }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.WriteConfig(save_test_toml_path));

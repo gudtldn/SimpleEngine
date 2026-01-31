@@ -4,13 +4,11 @@
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Utility/PathResolver.h"
+#include "SimpleEngine/Utility/FileSystem.h"
+#include "SimpleEngine/Utility/VFS.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 #include "imgui.h"
-
-namespace fs = std::filesystem;
-
 
 namespace
 {
@@ -60,7 +58,7 @@ void AssetsBrowserPanel::Draw()
         // GridView
         ImGui::TableNextColumn();
 
-        const Optional<String> selected_path = utility::PathResolver::Get().Unresolve(GetSelectedDirPath())
+        const Optional<String> selected_path = GetSelectedDirPath().ToVirtual()
             .AndThen([](const auto& vpath) -> Optional<String>
             {
                 return vpath.ToString();
@@ -83,7 +81,7 @@ void AssetsBrowserPanel::Draw()
 
 void AssetsBrowserPanel::DrawAssetTree()
 {
-    utility::PathResolver::Get().VisitMountPoints([this](const StringName& scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
+    VFS::Get().VisitMounts([this](std::string_view scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
         if (GetSelectedDirPath() == physical_path)
@@ -98,7 +96,7 @@ void AssetsBrowserPanel::DrawAssetTree()
         }
 
         // 트리 노드 그리기
-        const bool is_node_open = ImGui::TreeNodeEx(scheme.CStr(), root_flags);
+        const bool is_node_open = ImGui::TreeNodeEx(String(scheme).CStr(), root_flags);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
             SetSelectedDirPath(physical_path);

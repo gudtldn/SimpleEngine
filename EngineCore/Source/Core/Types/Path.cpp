@@ -1,5 +1,7 @@
 #include "Core/Types/Path.h"
+#include "Core/Types/VPath.h"
 #include "Utility/StringUtils.h"
+#include "Utility/VFS.h"
 
 #include <string>
 #include <utility>
@@ -222,6 +224,11 @@ String Path::ToString() const
 {
     const std::u8string u8_str = internal_path.generic_u8string();
     return utility::ToString(u8_str);
+}
+
+Optional<VPath> Path::ToVirtual() const
+{
+    return VFS::Get().Unresolve(*this);
 }
 
 void Path::Swap(Path& other) noexcept

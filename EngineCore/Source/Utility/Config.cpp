@@ -1,19 +1,14 @@
 ﻿#include "Utility/Config.h"
 
+#include "Core/Types/VPath.h"
 #include "Utility/FileUtils.h"
-#include "Utility/PathResolver.h"
 
-
-namespace
-{
-se::utility::PathResolver& resolver = se::utility::PathResolver::Get();
-}
 
 namespace se::utility
 {
 ParseResult Config::ReadConfig(const VPath& config_file_path)
 {
-    Optional physical_path_opt = resolver.Resolve(config_file_path);
+    Optional physical_path_opt = config_file_path.Resolve();
     if (!physical_path_opt.HasValue())
     {
         // TODO: 에러 반환타입 리펙토링 toml::parse_result가 아닌, 새로운 타입으로
@@ -43,18 +38,18 @@ Optional<Config> Config::GetTable(std::string_view key_path) const
 
 bool Config::WriteConfig(const VPath& config_file_path) const
 {
-    Optional physical_path_opt = resolver.Resolve(config_file_path, false);
-    if (!physical_path_opt.HasValue())
+    Path physical_path = config_file_path.ToPath();
+    if (physical_path.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "Failed to resolve config file path: {}", config_file_path.ToString());
         return false;
     }
 
-    const String physical_path = physical_path_opt->ToString();
-    std::ofstream file_stream(physical_path.CStr(), std::ios::binary | std::ios::trunc);
+    const String physical_path_str = physical_path.ToString();
+    std::ofstream file_stream(physical_path_str.CStr(), std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to open config file for writing: {}", physical_path);
+        ConsoleLog(ELogLevel::Error, "Failed to open config file for writing: {}", physical_path_str);
         return false;
     }
 

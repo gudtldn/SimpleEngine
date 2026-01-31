@@ -1,4 +1,6 @@
 ﻿#include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Utility/VFS.h"
 
 
 namespace se
@@ -152,5 +154,20 @@ void VPath::ParseAndNormalize(std::string_view path)
         scheme_len = 0;
         path_offset = 0;
     }
+}
+
+Path VPath::ToPath() const
+{
+    return VFS::Get().Resolve(*this, false).ValueOrDefault();
+}
+
+Optional<Path> VPath::Resolve() const
+{
+    return VFS::Get().Resolve(*this, true);
+}
+
+bool VPath::Exists() const
+{
+    return Resolve().HasValue();
 }
 }  // namespace se

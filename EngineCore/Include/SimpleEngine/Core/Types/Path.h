@@ -10,6 +10,9 @@
 
 namespace se
 {
+// Forward declaration
+class VPath;
+
 /**
  * 파일 시스템 경로를 다루는 클래스
  */
@@ -138,6 +141,13 @@ public:
     /** 경로를 UTF-8 문자열로 변환하여 반환합니다. */
     [[nodiscard]] String ToString() const;
 
+    /**
+     * 물리적 경로를 가상 경로로 변환합니다.
+     * 마운트된 경로 내에 있을 경우에만 변환됩니다.
+     * @return 가상 경로. 변환 불가 시 std::nullopt
+     */
+    [[nodiscard]] Optional<VPath> ToVirtual() const;
+
     // [[nodiscard]] const char* CStr() const; // 필요 시 주석 해제
 
     void Swap(Path& other) noexcept;
@@ -146,7 +156,7 @@ public:
     // --- Operators ---
 
     /** 내부 std::filesystem::path 객체를 반환합니다. (나중에 API 변경 가능성 있음) */
-    [[nodiscard]] operator const std::filesystem::path&() const { return internal_path; }
+    [[nodiscard]] explicit operator const std::filesystem::path&() const { return internal_path; }
 
     [[nodiscard]] bool operator==(const Path& other) const;
     [[nodiscard]] std::strong_ordering operator<=>(const Path& other) const;

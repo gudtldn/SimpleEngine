@@ -9,11 +9,11 @@
 
 #include "SimpleEngine/Asset/AssetManager_DEPRECATED.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
+#include "SimpleEngine/Utility/VFS.h"
 
 using namespace se;
 using namespace se::asset;
 using namespace se::concurrency;
-using namespace se::utility;
 
 
 namespace
@@ -49,7 +49,7 @@ void RequireConditionTimeout(Fn&& condition, std::chrono::milliseconds timeout_d
     }
 }
 
-PathResolver& path_resolver = PathResolver::Get();
+VFS& vfs = VFS::Get();
 }
 
 // 1. Dummy Asset & Loader for testing
@@ -68,7 +68,7 @@ public:
     ) override
     {
         // Simulate file read and parsing
-        if (!std::filesystem::exists(physical_path))
+        if (!physical_path.Exists())
         {
             co_return nullptr;
         }
@@ -108,7 +108,7 @@ protected:
         });
 
         // 3. 실제 파일 생성
-        const auto physical_path = path_resolver.Resolve(vpath, false).Value();
+        const auto physical_path = vpath.ToPath();
         std::ofstream file(physical_path.ToString().CStr());
         file << content;
         file.close();
@@ -121,7 +121,7 @@ protected:
     {
         temp_dir_path = std::filesystem::temp_directory_path() / "AssetManagerTest";
         std::filesystem::create_directories(temp_dir_path);
-        path_resolver.Mount("TestAssets", temp_dir_path);
+        vfs.Mount("TestAssets", temp_dir_path);
 
         // AssetManager에 로더 등록
         asset_manager.RegisterLoader<DummyAsset, DummyAssetLoader>("dummy");
@@ -129,7 +129,7 @@ protected:
 
     virtual void TearDown() override
     {
-        path_resolver.Unmount("TestAssets");
+        vfs.Unmount("TestAssets");
         std::filesystem::remove_all(temp_dir_path);
     }
 

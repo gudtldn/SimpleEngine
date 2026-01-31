@@ -19,7 +19,6 @@
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
-#include "SimpleEngine/Utility/PathResolver.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -246,12 +245,12 @@ concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(cons
     SE_ASSERT(loader, "No loader registered for asset type: {}", entry_opt->loader_type.GetName());
 
     // vpath로부터 실제 경로 가져오기
-    auto physical_path_opt = utility::PathResolver::Get().Resolve(entry_opt->virtual_path, false);
-    SE_ASSERT(physical_path_opt, "Asset path not found: {}", entry_opt->virtual_path);
+    Path physical_path = entry_opt->virtual_path.ToPath();
+    SE_ASSERT(!physical_path.IsEmpty(), "Asset path not found: {}", entry_opt->virtual_path);
 
     // Asset Load 및 Slot에 저장
     std::shared_ptr<IAsset> loaded_asset = co_await loader->Load(
-        std::move(physical_path_opt).Value(),
+        std::move(physical_path),
         entry_opt->import_settings.get()
     );
 

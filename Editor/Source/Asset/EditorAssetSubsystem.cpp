@@ -2,10 +2,10 @@
 
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Utility/FileSystem.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-
-namespace fs = std::filesystem;
+#include "SimpleEngine/Utility/VFS.h"
 
 
 namespace se::editor::asset
@@ -31,8 +31,8 @@ void EditorAssetSubsystem::Release()
 
 void EditorAssetSubsystem::RefreshRegistry()
 {
-    utility::PathResolver::Get().VisitMountPoints([this](
-        [[maybe_unused]] const StringName& scheme,
+    VFS::Get().VisitMounts([this](
+        [[maybe_unused]] std::string_view scheme,
         const Path& physical_path,
         [[maybe_unused]] int32 priority
     ) {
@@ -92,7 +92,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
     }
 
     // 가상 경로 계산 (Physical -> Virtual)
-    Optional vpath_opt = utility::PathResolver::Get().Unresolve(physical_path);
+    Optional vpath_opt = physical_path.ToVirtual();
     if (!vpath_opt.HasValue())
     {
         ConsoleLog(ELogLevel::Warning, "Cannot resolve virtual path for: {}", physical_path);
@@ -106,7 +106,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
     se::asset::AssetEntry_DEPRECATED entry;
     entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
 
-    if (std::filesystem::exists(meta_path))
+    if (meta_path.Exists())
     {
         auto result = toml::parse_file(meta_path.ToString().CStr());
         if (!result)

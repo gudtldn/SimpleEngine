@@ -12,12 +12,10 @@
 #include "Core/Subsystem/IUpdatable.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
 #include "Gfx/RenderSubsystem.h"
-#include "Utility/PathResolver.h"
+#include "Utility/VFS.h"
 
 #include "SDL3/SDL_gpu.h"
 #include "tracy/Tracy.hpp"
-
-using namespace se::utility;
 
 
 namespace se::core
@@ -29,19 +27,19 @@ Engine::Engine()
     SE_ASSERT(!Instance, "Engine instance already exists.");
     Instance = this;
 
-    PathResolver& path_resolver = PathResolver::Get();
+    VFS& vfs = VFS::Get();
 
     // TODO: Shipping일 때 GetExecutableDirectory로 수정해야함!!!
     const Path solution_path = PROJECT_ROOT_DIR;
 
     // Core
-    path_resolver.Mount("Config", solution_path / "Config");
-    path_resolver.Mount("CoreAssets", solution_path / "EngineCore/Assets");
-    path_resolver.Mount("CoreShader", solution_path / "EngineCore/Shaders");
+    vfs.Mount("Config", solution_path / "Config");
+    vfs.Mount("CoreAssets", solution_path / "EngineCore/Assets");
+    vfs.Mount("CoreShader", solution_path / "EngineCore/Shaders");
 
     // Editor
-    path_resolver.Mount("EditorAssets", solution_path / "Editor/Assets");
-    path_resolver.Mount("EditorShader", solution_path / "Editor/Shaders");
+    vfs.Mount("EditorAssets", solution_path / "Editor/Assets");
+    vfs.Mount("EditorShader", solution_path / "Editor/Shaders");
 }
 
 Engine::~Engine()
