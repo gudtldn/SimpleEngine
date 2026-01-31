@@ -56,7 +56,7 @@ Engine& Engine::Get()
 
 void Engine::LoadRegisteredSubsystems()
 {
-    auto& registry = details::SubsystemRegistry::GetInstance();
+    auto& registry = detail::SubsystemRegistry::GetInstance();
     for (const auto& [type_id, metadata] : registry.GetMetadataMap())
     {
         if (subsystems.Contains(type_id))
@@ -195,7 +195,7 @@ bool Engine::SortSubsystems()
         adj_list[type_id] = {}; // 인접 리스트 초기화
     }
 
-    auto& registry = details::SubsystemRegistry::GetInstance();
+    auto& registry = detail::SubsystemRegistry::GetInstance();
     for (const auto& type_id : subsystems | std::views::keys)
     {
         for (const refl::TypeId& dependency_id : registry.GetMetadata(type_id).dependencies)

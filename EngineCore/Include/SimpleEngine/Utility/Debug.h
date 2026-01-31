@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::details
+namespace se::detail
 {
 [[nodiscard]] constexpr std::string_view GetPrettyFileName(const char* file_name)
 {
@@ -72,7 +72,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
     std::println(stderr, "[{}:{}] Assertion failed: {}\n└─ {}", GetPrettyFileName(loc.file_name()), loc.line(), expr, user_msg);
     std::fflush(stderr);
 }
-} // namespace se::details
+} // namespace se::detail
 
 #if SE_DEBUG_BUILD
     #define SE_ENABLE_DEBUG_TOOLS true
@@ -106,7 +106,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
 #define SE_FATAL_ERROR(message, ...) \
     do \
     { \
-        ::se::details::PrintLogWithLocation(std::source_location::current(), "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
+        ::se::detail::PrintLogWithLocation(std::source_location::current(), "Fatal Error: " message __VA_OPT__(, __VA_ARGS__)); \
         SE_BREAKPOINT(); \
         std::terminate(); \
     } while (0)
@@ -116,7 +116,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
     { \
         if (!(!!(expr))) [[unlikely]] \
         { \
-            ::se::details::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
+            ::se::detail::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
             SE_BREAKPOINT(); \
             std::terminate(); \
         } \
@@ -131,7 +131,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
         { \
             if (!(!!(expr))) [[unlikely]] \
             { \
-                ::se::details::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
+                ::se::detail::ReportAssertionFailure(std::source_location::current(), #expr __VA_OPT__(, __VA_ARGS__)); \
                 SE_BREAKPOINT(); \
                 std::abort(); \
             } \
@@ -140,7 +140,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
     #define SE_ENSURE(expr, ...) \
         (!!(expr) || [&] \
         { \
-            ::se::details::ReportAssertionFailure(std::source_location::current(), "Ensure failed (" #expr ")" __VA_OPT__(, __VA_ARGS__)); \
+            ::se::detail::ReportAssertionFailure(std::source_location::current(), "Ensure failed (" #expr ")" __VA_OPT__(, __VA_ARGS__)); \
             SE_BREAKPOINT(); \
             return false; \
         }())
@@ -160,7 +160,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
         { \
             if (!(!!(expr))) \
             { \
-                ::se::details::ConstexprAssertFail<#expr, msg>(); \
+                ::se::detail::ConstexprAssertFail<#expr, msg>(); \
             } \
         } \
         else \

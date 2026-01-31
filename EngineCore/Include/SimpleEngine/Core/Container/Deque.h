@@ -13,7 +13,7 @@ namespace se
 {
 /**
  * 양방향 큐(Double-Ended Queue) 컨테이너.
- * @details 양쪽 끝에서의 삽입/삭제가 효율적입니다. 내부적으로 std::deque를 래핑합니다.
+ * @detail 양쪽 끝에서의 삽입/삭제가 효율적입니다. 내부적으로 std::deque를 래핑합니다.
  * @tparam T 요소의 타입
  * @tparam Allocator 메모리 할당자 타입
  */

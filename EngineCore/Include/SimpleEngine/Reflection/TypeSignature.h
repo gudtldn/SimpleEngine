@@ -7,7 +7,7 @@
 
 namespace se::refl
 {
-namespace details
+namespace detail
 {
 /** 문자열 앞뒤의 공백을 제거합니다. */
 [[nodiscard]] consteval StringView TrimWhitespace(StringView sv) noexcept
@@ -192,7 +192,7 @@ consteval StringView ExtractTypeName() noexcept
 #error "Unsupported compiler for type name extraction"
 #endif
 }
-}  // namespace details
+}  // namespace detail
 
 /**
  * 컴파일러 시그니처에서 추출된 그대로의 타입 이름을 반환합니다. (예: "class se::MyClass", "struct Foo")
@@ -201,7 +201,7 @@ consteval StringView ExtractTypeName() noexcept
 template <typename T>
 [[nodiscard]] consteval StringView GetRawTypeName() noexcept
 {
-    constexpr auto ret = details::ExtractTypeName<T>();
+    constexpr auto ret = detail::ExtractTypeName<T>();
 
     // IDE 버그 때문에 일단 주석
     // static_assert(!ret.empty(), "Failed to extract type name from type T");
@@ -217,12 +217,12 @@ template <typename T>
     requires (!se::traits::IsFunctionType<T>)
 [[nodiscard]] consteval StringView GetFullTypeName() noexcept
 {
-    using CleanType = details::UnwrapType<T>;
-    constexpr auto signature = details::ExtractTypeName<CleanType>();
+    using CleanType = detail::UnwrapType<T>;
+    constexpr auto signature = detail::ExtractTypeName<CleanType>();
 
     // 선행 타입 키워드 ("class", "struct", "enum", "union") 제거
     constexpr std::array<StringView, 5> leading_keywords = { "class", "struct", "enum", "union", "typename" };
-    constexpr auto ret = details::RemoveKeywords(signature, leading_keywords);
+    constexpr auto ret = detail::RemoveKeywords(signature, leading_keywords);
 
     // IDE 버그 때문에 일단 주석
     // static_assert(!ret.empty(), "Failed to extract type name from type T");
@@ -239,6 +239,6 @@ template <typename T>
 [[nodiscard]] consteval StringView GetTypeName() noexcept
 {
     constexpr auto ret = GetFullTypeName<T>();
-    return details::RemoveNamespace(ret);
+    return detail::RemoveNamespace(ret);
 }
 }  // namespace se::refl

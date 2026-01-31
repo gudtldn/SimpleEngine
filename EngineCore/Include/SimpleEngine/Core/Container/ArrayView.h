@@ -31,7 +31,7 @@ class DefaultAllocator;
 constexpr usize DynamicExtent = static_cast<usize>(-1);
 
 
-namespace details
+namespace detail
 {
 /**
  * ArrayView의 크기 저장소
@@ -57,7 +57,7 @@ struct ArrayViewStorage<DynamicExtent>
     }
     [[nodiscard]] constexpr usize Len() const noexcept { return data_len; }
 };
-} // namespace details
+} // namespace detail
 
 
 /**
@@ -66,9 +66,9 @@ struct ArrayViewStorage<DynamicExtent>
  * @tparam InExtent 요소 개수 (DynamicExtent이면 런타임에 결정)
  */
 template <typename T, usize InExtent = DynamicExtent>
-class ArrayView : private details::ArrayViewStorage<InExtent>
+class ArrayView : private detail::ArrayViewStorage<InExtent>
 {
-    using StorageType = details::ArrayViewStorage<InExtent>;
+    using StorageType = detail::ArrayViewStorage<InExtent>;
 
 public:
     using ValueType = T;

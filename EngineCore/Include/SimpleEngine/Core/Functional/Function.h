@@ -11,7 +11,7 @@
 
 namespace se
 {
-namespace details
+namespace detail
 {
 using SBOAlign = std::max_align_t;
 constexpr usize SBO_BUFFER_SIZE = sizeof(void*) * 3;
@@ -81,7 +81,7 @@ private:
     union FunctionStorage
     {
         ICallable* Heap_Storage = nullptr;
-        alignas(details::SBOAlign) uint8 SBO_Storage[details::SBO_BUFFER_SIZE];
+        alignas(detail::SBOAlign) uint8 SBO_Storage[detail::SBO_BUFFER_SIZE];
     } Storage;
 
     ICallable* CallablePtr = nullptr;
@@ -177,7 +177,7 @@ public:
         using Callable = CallableImpl<DecayedFunctorType>;
 
         // SBO 조건: 객체 크기가 버퍼보다 작고, 이동 생성이 noexcept여야 함
-        if constexpr (sizeof(Callable) <= details::SBO_BUFFER_SIZE && std::is_nothrow_move_constructible_v<Fn>)
+        if constexpr (sizeof(Callable) <= detail::SBO_BUFFER_SIZE && std::is_nothrow_move_constructible_v<Fn>)
         {
             CallablePtr = std::construct_at(reinterpret_cast<Callable*>(Storage.SBO_Storage), std::forward<Fn>(in_func));
         }

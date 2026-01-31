@@ -8,7 +8,7 @@
 
 namespace se::utility
 {
-namespace details
+namespace detail
 {
 template <typename Signature>
 struct WithUnpackedTypesImpl;
@@ -160,9 +160,9 @@ struct FlattenTupleImpl<ResultTupleLike, InputTupleLike<Ts...>>
  */
 template <typename TupleLike, typename Fn>
 constexpr auto WithUnpackedTypes(Fn&& func)
-    requires requires { details::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
+    requires requires { detail::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func)); }
 {
-    return details::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func));
+    return detail::WithUnpackedTypesImpl<TupleLike>::Unpack(std::forward<Fn>(func));
 }
 
 /**
@@ -178,7 +178,7 @@ template <
     typename Tuple,
     template <typename...> typename Target
 >
-using Rebind = details::RebindImpl<Tuple>::template To<Target>;
+using Rebind = detail::RebindImpl<Tuple>::template To<Target>;
 
 /**
  * 여러 튜플 타입의 멤버 타입들을 모두 포함하는 단일 튜플 타입을 만듭니다.
@@ -186,7 +186,7 @@ using Rebind = details::RebindImpl<Tuple>::template To<Target>;
  */
 template <typename... Tuples>
     requires (traits::IsSpecializationOf<Tuples, std::tuple> && ...)
-using TupleCat = details::TupleCatImpl<Tuples...>::Type;
+using TupleCat = detail::TupleCatImpl<Tuples...>::Type;
 
 /**
  * 중첩된 TupleLike 타입을 지정된 컨테이너(기본값: std::tuple)로 평탄화합니다.
@@ -195,5 +195,5 @@ using TupleCat = details::TupleCatImpl<Tuples...>::Type;
  *         예: FlattenTuple<MyTuple<...>, MyTuple>
  */
 template <typename T, template <typename...> typename ResultTupleLike = std::tuple>
-using FlattenTuple = details::FlattenTupleImpl<ResultTupleLike, T>::Type;
+using FlattenTuple = detail::FlattenTupleImpl<ResultTupleLike, T>::Type;
 }

@@ -896,7 +896,7 @@ TEST_F(MathUtilityTest, AbsImpl_vs_StdAbs)
     float values[] = { 0.0f, -0.0f, 1.0f, -1.0f, 123.456f, -123.456f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
     for (float v : values)
     {
-        EXPECT_EQ(se::math::details::AbsImpl(v), std::abs(v));
+        EXPECT_EQ(se::math::detail::AbsImpl(v), std::abs(v));
     }
 }
 
@@ -910,7 +910,7 @@ TEST_F(MathUtilityTest, Fmod_vs_StdFmod)
 
     for (const auto& c : cases)
     {
-        EXPECT_NEAR(se::math::details::Fmod(c.x, c.y), std::fmod(c.x, c.y), epsilon<float>);
+        EXPECT_NEAR(se::math::detail::Fmod(c.x, c.y), std::fmod(c.x, c.y), epsilon<float>);
     }
 }
 
@@ -919,11 +919,11 @@ TEST_F(MathUtilityTest, Sqrt_vs_StdSqrt)
     float values[] = { 0.0f, 1.0f, 2.0f, 4.0f, 100.0f, 0.25f };
     for (float v : values)
     {
-        EXPECT_NEAR(se::math::details::Sqrt(v), std::sqrt(v), epsilon<float>);
+        EXPECT_NEAR(se::math::detail::Sqrt(v), std::sqrt(v), epsilon<float>);
     }
 
     // NaN check for negative
-    EXPECT_TRUE(std::isnan(se::math::details::Sqrt(-1.0f)));
+    EXPECT_TRUE(std::isnan(se::math::detail::Sqrt(-1.0f)));
 }
 
 TEST_F(MathUtilityTest, Exp_vs_StdExp)
@@ -932,7 +932,7 @@ TEST_F(MathUtilityTest, Exp_vs_StdExp)
     for (float v : values)
     {
         // Relaxed tolerance for approximation
-        EXPECT_NEAR(se::math::details::Exp(v), std::exp(v), 1e-5f);
+        EXPECT_NEAR(se::math::detail::Exp(v), std::exp(v), 1e-5f);
     }
 }
 
@@ -941,7 +941,7 @@ TEST_F(MathUtilityTest, Ln_vs_StdLog)
     float values[] = { 1.0f, 2.71828f, 10.0f, 0.5f };
     for (float v : values)
     {
-        EXPECT_NEAR(se::math::details::Ln(v), std::log(v), epsilon<float>);
+        EXPECT_NEAR(se::math::detail::Ln(v), std::log(v), epsilon<float>);
     }
 }
 
@@ -955,7 +955,7 @@ TEST_F(MathUtilityTest, Pow_vs_StdPow)
 
     for (const auto& c : cases)
     {
-        EXPECT_NEAR(se::math::details::Pow(c.b, c.e), std::pow(c.b, c.e), epsilon<float>);
+        EXPECT_NEAR(se::math::detail::Pow(c.b, c.e), std::pow(c.b, c.e), epsilon<float>);
     }
 }
 
@@ -965,16 +965,16 @@ TEST_F(MathUtilityTest, Classification_Functions)
     float nan = std::numeric_limits<float>::quiet_NaN();
     float norm = 1.0f;
 
-    EXPECT_EQ(se::math::details::IsNaN(nan), std::isnan(nan));
-    EXPECT_EQ(se::math::details::IsNaN(norm), std::isnan(norm));
+    EXPECT_EQ(se::math::detail::IsNaN(nan), std::isnan(nan));
+    EXPECT_EQ(se::math::detail::IsNaN(norm), std::isnan(norm));
 
-    EXPECT_EQ(se::math::details::IsInfinite(inf), std::isinf(inf));
-    EXPECT_EQ(se::math::details::IsInfinite(-inf), std::isinf(-inf));
-    EXPECT_EQ(se::math::details::IsInfinite(norm), std::isinf(norm));
+    EXPECT_EQ(se::math::detail::IsInfinite(inf), std::isinf(inf));
+    EXPECT_EQ(se::math::detail::IsInfinite(-inf), std::isinf(-inf));
+    EXPECT_EQ(se::math::detail::IsInfinite(norm), std::isinf(norm));
 
-    EXPECT_EQ(se::math::details::IsFinite(norm), std::isfinite(norm));
-    EXPECT_EQ(se::math::details::IsFinite(inf), std::isfinite(inf));
-    EXPECT_EQ(se::math::details::IsFinite(nan), std::isfinite(nan));
+    EXPECT_EQ(se::math::detail::IsFinite(norm), std::isfinite(norm));
+    EXPECT_EQ(se::math::detail::IsFinite(inf), std::isfinite(inf));
+    EXPECT_EQ(se::math::detail::IsFinite(nan), std::isfinite(nan));
 }
 
 TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
@@ -985,7 +985,7 @@ TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
     };
     for (const auto& c : cases)
     {
-        EXPECT_EQ(se::math::details::CopySign(c.n, c.s), std::copysign(c.n, c.s));
+        EXPECT_EQ(se::math::detail::CopySign(c.n, c.s), std::copysign(c.n, c.s));
     }
 }
 

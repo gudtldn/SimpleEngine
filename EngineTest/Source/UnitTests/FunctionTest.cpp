@@ -26,7 +26,7 @@ struct Functor
 // A large functor that will force heap allocation
 struct LargeFunctor
 {
-    char data[details::SBO_BUFFER_SIZE + 1];
+    char data[detail::SBO_BUFFER_SIZE + 1];
 
     LargeFunctor()
     {
@@ -88,7 +88,7 @@ TEST_F(FunctionAPI_Test, Invocation)
 
     // Large Lambda (Heap allocated)
     {
-        char data[details::SBO_BUFFER_SIZE + 1]{}; // Force heap allocation
+        char data[detail::SBO_BUFFER_SIZE + 1]{}; // Force heap allocation
         Function<int(int)> f([data](int i) { return i + data[0]; });
         EXPECT_TRUE(f);
         EXPECT_EQ(f(10), 10);

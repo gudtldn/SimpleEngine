@@ -16,7 +16,7 @@ template <typename T>
 class Optional;
 
 
-namespace se::details
+namespace se::detail
 {
     template <typename T>
     concept IsOptional = traits::IsSpecializationOf<T, Optional>;
@@ -29,7 +29,7 @@ namespace se::details
 
     template <typename T>
     concept IsValidResultType = !std::is_array_v<T> && std::is_object_v<T>;
-} // namespace se::details
+} // namespace se::detail
 
 template <typename T>
 class Optional
@@ -174,7 +174,7 @@ public:
     template <typename U>
         requires std::constructible_from<T, U>
         && std::assignable_from<T&, U>
-        && se::details::NotOptionalOrInPlace<U>
+        && se::detail::NotOptionalOrInPlace<U>
     constexpr Optional& operator=(U&& value)
     {
         if (HasValue())
@@ -223,7 +223,7 @@ public:
 
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Self, typename Fn>
-        requires se::details::IsOptional<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>
+        requires se::detail::IsOptional<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>
     constexpr auto AndThen(this Self&& self, Fn&& func)
     {
         using ResultT = std::invoke_result_t<Fn, decltype(std::forward<Self>(self).Value())>;
@@ -240,7 +240,7 @@ public:
                      std::remove_cv_t<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>,
                      std::nullopt_t,
                      std::in_place_t>)
-        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>>
+        && se::detail::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>>
     constexpr auto Transform(this Self&& self, Fn&& func)
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, decltype(std::forward<Self>(self).Value())>>;
@@ -310,14 +310,14 @@ public:
     }
 
     template <typename U>
-        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
+        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
     [[nodiscard]] constexpr bool operator==(const U& value) const
     {
         return HasValue() && GetStoredValue() == value;
     }
 
     template <typename U>
-        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
+        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
     [[nodiscard]] friend constexpr bool operator==(const U& value, const Optional& other) { return other == value; }
 
     [[nodiscard]] friend constexpr bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
@@ -455,7 +455,7 @@ public:
 
     template <typename Fn>
         requires std::invocable<Fn, T&>
-        && se::details::IsOptional<std::invoke_result_t<Fn, T&>>
+        && se::detail::IsOptional<std::invoke_result_t<Fn, T&>>
     constexpr auto AndThen(Fn&& func) const
     {
         using ResultT = std::invoke_result_t<Fn, T&>;
@@ -470,7 +470,7 @@ public:
     template <typename Fn>
         requires std::invocable<Fn, T&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
-        && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
+        && se::detail::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
     constexpr auto Transform(Fn&& func) const
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
@@ -518,14 +518,14 @@ public:
     }
 
     template <typename U>
-        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
+        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
     [[nodiscard]] constexpr bool operator==(const U& value) const
     {
         return HasValue() && *ref_ptr == value;
     }
 
     template <typename U>
-        requires (!se::details::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
+        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
     [[nodiscard]] friend constexpr bool operator==(const U& value, const Optional& other) { return other == value; }
 
 private:
