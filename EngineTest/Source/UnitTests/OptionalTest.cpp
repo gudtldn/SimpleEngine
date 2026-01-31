@@ -148,12 +148,12 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
     // transform
     {
         Optional<int> opt(21);
-        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
         EXPECT_TRUE(transformed.HasValue());
         EXPECT_EQ(*transformed, "42");
 
         Optional<int> empty_opt;
-        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
         EXPECT_FALSE(transformed_empty.HasValue());
     }
 
@@ -290,4 +290,154 @@ TEST_F(OptionalAPI_Test, OptionalForReferenceTypes) // Optional<T&>
         auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         EXPECT_FALSE(transformed_empty.HasValue());
     }
+}
+
+// ============================================================================
+// Constexpr Tests
+// ============================================================================
+
+TEST_F(OptionalAPI_Test, ConstexprConstruction)
+{
+    // constexpr 기본 생성
+    constexpr Optional<int> empty_opt;
+    static_assert(!empty_opt.HasValue());
+
+    // constexpr nullopt 생성
+    constexpr Optional<int> null_opt(std::nullopt);
+    static_assert(!null_opt.HasValue());
+
+    // constexpr 값 생성
+    constexpr Optional<int> opt(42);
+    static_assert(opt.HasValue());
+    static_assert(opt.Value() == 42);
+
+    // constexpr in_place 생성
+    constexpr Optional<std::pair<int, int>> pair_opt(std::in_place, 1, 2);
+    static_assert(pair_opt.HasValue());
+    static_assert(pair_opt.Value().first == 1);
+    static_assert(pair_opt.Value().second == 2);
+}
+
+TEST_F(OptionalAPI_Test, ConstexprOperations)
+{
+    // constexpr ValueOr
+    constexpr Optional<int> opt(42);
+    static_assert(opt.ValueOr(99) == 42);
+
+    constexpr Optional<int> empty_opt;
+    static_assert(empty_opt.ValueOr(99) == 99);
+
+    // constexpr ValueOrDefault
+    static_assert(empty_opt.ValueOrDefault() == 0);
+    static_assert(opt.ValueOrDefault() == 42);
+
+    // constexpr 비교
+    static_assert(opt == 42);
+    static_assert(empty_opt == std::nullopt);
+    static_assert(opt != std::nullopt);
+}
+
+TEST_F(OptionalAPI_Test, ConstexprTransformAndAndThen)
+{
+    // constexpr Transform
+    constexpr auto transform_result = []() constexpr {
+        Optional<int> opt(21);
+        return opt.Transform([](int n) { return n * 2; });
+    }();
+    static_assert(transform_result.HasValue());
+    static_assert(transform_result.Value() == 42);
+
+    // constexpr AndThen
+    constexpr auto and_then_result = []() constexpr {
+        Optional<int> opt(10);
+        return opt.AndThen([](int n) -> Optional<int> {
+            if (n > 0) return n * 2;
+            return std::nullopt;
+        });
+    }();
+    static_assert(and_then_result.HasValue());
+    static_assert(and_then_result.Value() == 20);
+
+    // constexpr OrElse
+    constexpr auto or_else_result = []() constexpr {
+        Optional<int> opt;
+        return opt.OrElse([]() { return Optional<int>(99); });
+    }();
+    static_assert(or_else_result.HasValue());
+    static_assert(or_else_result.Value() == 99);
+}
+
+TEST_F(OptionalAPI_Test, ValueOrDefault)
+{
+    // Runtime tests for ValueOrDefault
+    Optional<int> opt(42);
+    EXPECT_EQ(opt.ValueOrDefault(), 42);
+
+    Optional<int> empty_opt;
+    EXPECT_EQ(empty_opt.ValueOrDefault(), 0);
+
+    Optional<std::string> str_opt("hello");
+    EXPECT_EQ(str_opt.ValueOrDefault(), "hello");
+
+    Optional<std::string> empty_str_opt;
+    EXPECT_EQ(empty_str_opt.ValueOrDefault(), "");
+}
+
+TEST_F(OptionalAPI_Test, DeducingThisValueCategories)
+{
+    // lvalue
+    {
+        Optional<std::string> opt("test");
+        std::string& val = opt.Value();
+        val = "modified";
+        EXPECT_EQ(opt.Value(), "modified");
+    }
+
+    // const lvalue
+    {
+        const Optional<std::string> opt("test");
+        const std::string& val = opt.Value();
+        EXPECT_EQ(val, "test");
+    }
+
+    // rvalue
+    {
+        Optional<std::string> opt("test");
+        std::string val = std::move(opt).Value();
+        EXPECT_EQ(val, "test");
+    }
+
+    // Transform with different value categories
+    {
+        Optional<int> opt(10);
+
+        // lvalue
+        auto res1 = opt.Transform([](int& n) { return n * 2; });
+        EXPECT_EQ(res1.Value(), 20);
+
+        // rvalue
+        auto res2 = std::move(opt).Transform([](int&& n) { return n * 3; });
+        EXPECT_EQ(res2.Value(), 30);
+    }
+}
+
+TEST_F(OptionalAPI_Test, OptionalRefCopy)
+{
+    int x = 42;
+    Optional<int&> ref_opt(x);
+
+    // Copy를 통해 값 복사
+    Optional<int> copied = ref_opt.Copy();
+    EXPECT_TRUE(copied.HasValue());
+    EXPECT_EQ(copied.Value(), 42);
+
+    // 원본 변경해도 복사본은 영향 없음
+    x = 100;
+    EXPECT_EQ(ref_opt.Value(), 100);
+    EXPECT_EQ(copied.Value(), 42);
+
+    // 빈 Optional<T&>의 Copy
+    Optional<int&> empty_ref;
+    Optional<int> empty_copied = empty_ref.Copy();
+    EXPECT_FALSE(empty_copied.HasValue());
 }
