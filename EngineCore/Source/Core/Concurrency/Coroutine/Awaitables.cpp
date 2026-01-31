@@ -3,7 +3,7 @@
 #include "Core/Concurrency/TaskScheduler.h"
 
 
-namespace se::concurrency
+namespace se
 {
 bool SwitchToMainThread::await_ready() const noexcept
 {

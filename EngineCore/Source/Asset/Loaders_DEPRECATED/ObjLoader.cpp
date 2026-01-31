@@ -14,7 +14,7 @@ namespace se::asset
 SE_BEGIN_REFLECT(ObjLoader)
 SE_END_REFLECT(ObjLoader)
 
-concurrency::Task<std::shared_ptr<IAsset>> ObjLoader::Load(
+Task<std::shared_ptr<IAsset>> ObjLoader::Load(
     const Path& physical_path,
     const IAssetImportSettings* import_settings
 )

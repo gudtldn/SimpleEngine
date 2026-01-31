@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     // Environment 추가
     ::testing::AddGlobalTestEnvironment(new ConfigTestEnvironment());
 
-    auto task_scheduler = std::make_unique<se::concurrency::TaskScheduler>(std::this_thread::get_id());
+    auto task_scheduler = std::make_unique<se::TaskScheduler>(std::this_thread::get_id());
 
     // 테스트 실행
     const int res = RUN_ALL_TESTS();

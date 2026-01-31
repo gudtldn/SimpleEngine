@@ -9,7 +9,7 @@
 #include "SimpleEngine/Core/Error/Expected.h"
 
 
-namespace se::concurrency::detail
+namespace se::detail
 {
 // C++ Coroutine Promise Trait
 /**

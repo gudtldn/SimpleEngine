@@ -7,7 +7,7 @@
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
-namespace se::concurrency
+namespace se
 {
 class TaskScheduler;
 class ThreadPool;
@@ -90,7 +90,7 @@ private:
     // Update가 필요한 Subsystem 목록
     Array<IUpdatable*> updatable_systems;
 
-    std::unique_ptr<concurrency::TaskScheduler> task_scheduler;
+    std::unique_ptr<TaskScheduler> task_scheduler;
 };
 
 

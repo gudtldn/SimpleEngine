@@ -79,7 +79,7 @@ void Engine::LoadRegisteredSubsystems()
 
 bool Engine::Initialize()
 {
-    task_scheduler = std::make_unique<concurrency::TaskScheduler>(std::this_thread::get_id());
+    task_scheduler = std::make_unique<TaskScheduler>(std::this_thread::get_id());
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())

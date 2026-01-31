@@ -42,7 +42,7 @@ struct AssetSlot
     ELoadingState_DEPRECATED state = ELoadingState_DEPRECATED::NotLoaded;
 
     // 여러 스레드가 하나의 로딩 완료 이벤트를 기다릴 수 있도록 shared_ptr로 관리
-    std::shared_ptr<concurrency::EventWaitHandle> load_event = nullptr;
+    std::shared_ptr<EventWaitHandle> load_event = nullptr;
 };
 
 /**
@@ -101,7 +101,7 @@ public:
 
 private:
     template <typename T>
-    concurrency::Task<std::shared_ptr<T>> LoadInternal(const Guid& in_guid);
+    Task<std::shared_ptr<T>> LoadInternal(const Guid& in_guid);
 
 private:
     // 확장자별 등록 정보를 담는 구조체
@@ -158,8 +158,6 @@ template <typename T, typename Fn>
     && std::invocable<Fn, std::shared_ptr<T>>
 void AssetManager_DEPRECATED::LoadAsync(const AssetHandle<T>& in_handle, Fn&& on_loaded)
 {
-    using namespace concurrency;
-
     TaskScheduler::Get().Launch_IOThread(
         [](AssetManager_DEPRECATED* self, Guid guid, Function<void(std::shared_ptr<T>)> callback) -> Task<void>
         {
@@ -178,11 +176,11 @@ template <typename T>
     requires std::derived_from<T, IAsset>
 std::shared_ptr<T> AssetManager_DEPRECATED::LoadSynchronous(const AssetHandle<T>& in_handle)
 {
-    return concurrency::TaskScheduler::Get().BlockOn(LoadInternal<T>(in_handle.GetGuid()));
+    return TaskScheduler::Get().BlockOn(LoadInternal<T>(in_handle.GetGuid()));
 }
 
 template <typename T>
-concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(const Guid& in_guid)
+Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(const Guid& in_guid)
 {
     if (!in_guid.IsValid())
     {
@@ -191,7 +189,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(cons
     }
 
     // Slot 확인
-    std::shared_ptr<concurrency::EventWaitHandle> event_to_wait;
+    std::shared_ptr<EventWaitHandle> event_to_wait;
     {
         std::scoped_lock lock(slots_mutex);
         AssetSlot& slot = asset_slots[in_guid];
@@ -218,7 +216,7 @@ concurrency::Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(cons
         {
             // event를 새로 생성
             slot.state = ELoadingState_DEPRECATED::Loading;
-            slot.load_event = std::make_shared<concurrency::EventWaitHandle>();
+            slot.load_event = std::make_shared<EventWaitHandle>();
             break;
         }
 

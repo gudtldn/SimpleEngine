@@ -14,7 +14,7 @@ namespace se::asset
 SE_BEGIN_REFLECT(Texture2DLoader)
 SE_END_REFLECT(Texture2DLoader)
 
-concurrency::Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
+Task<std::shared_ptr<IAsset>> Texture2DLoader::Load(
     const Path& physical_path,
     const IAssetImportSettings* import_settings
 )
