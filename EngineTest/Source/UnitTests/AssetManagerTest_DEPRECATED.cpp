@@ -1,14 +1,13 @@
 #include "gtest/gtest.h"
 
 #include <chrono>
-#include <filesystem>
-#include <fstream>
 #include <memory>
 #include <thread>
 #include <utility>
 
 #include "SimpleEngine/Asset/AssetManager_DEPRECATED.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
+#include "SimpleEngine/Utility/FileSystem.h"
 #include "SimpleEngine/Utility/VFS.h"
 
 using namespace se;
@@ -73,9 +72,12 @@ public:
             co_return nullptr;
         }
 
-        std::ifstream file(physical_path.ToString().CStr());
-        int file_content;
-        file >> file_content;
+        auto content_opt = FileSystem::ReadToString(physical_path);
+        if (!content_opt.HasValue())
+        {
+            co_return nullptr;
+        }
+        int file_content = std::stoi(content_opt->CStr());
 
         // Simulate async loading time
         using namespace std::chrono_literals;
@@ -109,9 +111,7 @@ protected:
 
         // 3. 실제 파일 생성
         const auto physical_path = vpath.ToPath();
-        std::ofstream file(physical_path.ToString().CStr());
-        file << content;
-        file.close();
+        FileSystem::WriteString(physical_path, std::to_string(content));
 
         // 4. 생성된 핸들 반환
         return AssetHandle<DummyAsset>{ guid };

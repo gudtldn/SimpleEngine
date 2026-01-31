@@ -1,6 +1,7 @@
 #include "Utility/FileSystem.h"
 
 #include <filesystem>
+#include <fstream>
 
 
 namespace
@@ -180,6 +181,92 @@ Optional<usize> FileSystem::FileSize(const Path& path)
         return std::nullopt;
     }
     return static_cast<usize>(size);
+}
+
+Optional<String> FileSystem::ReadToString(const Path& path)
+{
+    std::ifstream file(ToStdPath(path), std::ios::in | std::ios::binary);
+    if (!file.is_open())
+    {
+        return std::nullopt;
+    }
+
+    // 파일 크기 확인
+    file.seekg(0, std::ios::end);
+    const auto size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    if (size < 0)
+    {
+        return std::nullopt;
+    }
+
+    // 문자열로 읽기
+    String content;
+    content.ResizeForOverwrite(static_cast<usize>(size));
+    file.read(content.Data(), size);
+
+    if (file.fail() && !file.eof())
+    {
+        return std::nullopt;
+    }
+
+    return content;
+}
+
+Optional<Array<uint8>> FileSystem::Read(const Path& path)
+{
+    std::ifstream file(ToStdPath(path), std::ios::in | std::ios::binary);
+    if (!file.is_open())
+    {
+        return std::nullopt;
+    }
+
+    // 파일 크기 확인
+    file.seekg(0, std::ios::end);
+    const auto size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    if (size < 0)
+    {
+        return std::nullopt;
+    }
+
+    // 바이트 배열로 읽기
+    Array<uint8> data;
+    data.Resize(static_cast<usize>(size));
+    file.read(reinterpret_cast<char*>(data.Data()), size);
+
+    if (file.fail() && !file.eof())
+    {
+        return std::nullopt;
+    }
+
+    return data;
+}
+
+bool FileSystem::WriteString(const Path& path, std::string_view content)
+{
+    std::ofstream file(ToStdPath(path), std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    file.write(content.data(), static_cast<std::streamsize>(content.size()));
+    return !file.fail();
+}
+
+bool FileSystem::Write(const Path& path, std::span<const uint8> data)
+{
+    std::ofstream file(ToStdPath(path), std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    file.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
+    return !file.fail();
 }
 
 DirectoryIterator FileSystem::ReadDir(const Path& path)

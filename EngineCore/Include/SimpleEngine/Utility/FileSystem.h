@@ -1,7 +1,9 @@
 #pragma once
 
 #include <filesystem>
+#include <span>
 
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -163,6 +165,41 @@ struct SE_CORE_API FileSystem
      * @return 파일 크기. 실패 시 nullopt
      */
     [[nodiscard]] static Optional<usize> FileSize(const Path& path);
+
+
+    // =========================================================================
+    // File Read/Write (Rust-style)
+    // =========================================================================
+
+    /**
+     * 파일 전체 내용을 문자열로 읽습니다.
+     * @param path 파일 경로
+     * @return 파일 내용. 실패 시 nullopt
+     */
+    [[nodiscard]] static Optional<String> ReadToString(const Path& path);
+
+    /**
+     * 파일 전체 내용을 바이트 배열로 읽습니다.
+     * @param path 파일 경로
+     * @return 파일 내용. 실패 시 nullopt
+     */
+    [[nodiscard]] static Optional<Array<uint8>> Read(const Path& path);
+
+    /**
+     * 문자열을 파일에 씁니다. (기존 내용 덮어쓰기)
+     * @param path 파일 경로
+     * @param content 쓸 내용
+     * @return 성공 시 true
+     */
+    static bool WriteString(const Path& path, std::string_view content);
+
+    /**
+     * 바이트 배열을 파일에 씁니다. (기존 내용 덮어쓰기)
+     * @param path 파일 경로
+     * @param data 쓸 데이터
+     * @return 성공 시 true
+     */
+    static bool Write(const Path& path, std::span<const uint8> data);
 
 
     // =========================================================================

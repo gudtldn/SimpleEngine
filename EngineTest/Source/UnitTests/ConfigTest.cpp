@@ -1,8 +1,6 @@
 ﻿#include "../UnitTestEnvironment.h"
 #include "gtest/gtest.h"
 
-#include <fstream>
-
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/Config.h"
@@ -67,10 +65,7 @@ TEST_F(ConfigTest, ReadInvalidTomlFileFails)
 {
     // 임시로 유효하지 않은 TOML 파일을 만듭니다.
     const auto physical_path = invalid_toml_path.ToPath();
-    {
-        std::ofstream ofs(physical_path.ToString().CStr());
-        ofs << "this = is not valid toml' syntax";
-    }
+    FileSystem::WriteString(physical_path, "this = is not valid toml' syntax");
 
     ParseResult result = Config::ReadConfig(invalid_toml_path);
     EXPECT_FALSE(result.HasValue());

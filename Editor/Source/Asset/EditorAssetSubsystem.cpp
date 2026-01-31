@@ -1,5 +1,7 @@
 ﻿#include "Asset/EditorAssetSubsystem.h"
 
+#include <sstream>
+
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/FileSystem.h"
@@ -130,13 +132,9 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
         core::TomlWriter writer{ table };
         writer << entry;
 
-        std::ofstream ofs{ meta_path.ToString().CStr() };
-        if (ofs.is_open())
-        {
-            ofs << table;
-            ofs.close();
-        }
-        else
+        std::ostringstream oss;
+        oss << table;
+        if (!FileSystem::WriteString(meta_path, oss.str()))
         {
             ConsoleLog(ELogLevel::Error, "Failed to write meta file: {}", meta_path);
             return std::nullopt;
