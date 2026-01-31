@@ -61,7 +61,8 @@ void FileBackend::OpenFile()
         }
     }
 
-    file.open(file_path, std::ios::out | std::ios::app);
+    const String file_path_str = file_path.ToString();
+    file.open(file_path_str.CStr(), std::ios::out | std::ios::app);
     if (file.is_open())
     {
         current_file_size = FileSystem::FileSize(file_path).ValueOr(0);
