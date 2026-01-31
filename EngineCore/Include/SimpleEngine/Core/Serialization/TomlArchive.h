@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/Container/Stack.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
@@ -39,7 +40,7 @@ protected:
     [[nodiscard]] Context& GetCurrentContext();
 
 protected:
-    std::string_view pending_key;
+    StringView pending_key;
     Stack<Context> context_stack;
 };
 
@@ -135,7 +136,7 @@ private:
         else
         {
             // 테이블이면 Key-Value 삽입
-            if (!pending_key.empty())
+            if (!pending_key.IsEmpty())
             {
                 ctx.node->as_table()->insert_or_assign(pending_key, std::forward<T>(val));
                 pending_key = ""; // 키 소비
@@ -161,7 +162,7 @@ private:
             return ref.template as<NodeType>();
         }
 
-        if (pending_key.empty())
+        if (pending_key.IsEmpty())
         {
             ConsoleLog(ELogLevel::Error, "Pending key is empty!");
             return nullptr;

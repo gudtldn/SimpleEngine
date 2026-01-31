@@ -16,7 +16,7 @@ VFS& VFS::Get()
     return instance;
 }
 
-void VFS::Mount(std::string_view scheme, const Path& physical_path, int32 priority)
+void VFS::Mount(StringView scheme, const Path& physical_path, int32 priority)
 {
     std::unique_lock lock(mutex);
 
@@ -47,7 +47,7 @@ void VFS::Mount(std::string_view scheme, const Path& physical_path, int32 priori
     ConsoleLog(ELogLevel::Info, "VFS: Mounted '{}://' -> '{}' (priority: {})", scheme, physical_path, priority);
 }
 
-void VFS::Unmount(std::string_view scheme)
+void VFS::Unmount(StringView scheme)
 {
     std::unique_lock lock(mutex);
     mount_points.Remove(StringName{ scheme });
@@ -63,7 +63,7 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
 
     std::shared_lock lock(mutex);
 
-    const std::string_view scheme = virtual_path.GetScheme();
+    const StringView scheme = virtual_path.GetScheme();
     const Optional point_opt = mount_points.Find(scheme);
 
     if (!point_opt.HasValue() || point_opt->IsEmpty())
@@ -73,10 +73,10 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
     }
 
     // 경로 부분에서 맨 앞의 '/' 제거
-    std::string_view relative_part = virtual_path.GetPathPart();
-    if (relative_part.starts_with('/'))
+    StringView relative_part = virtual_path.GetPathPart();
+    if (relative_part.StartsWith('/'))
     {
-        relative_part.remove_prefix(1);
+        relative_part = relative_part.Substr(1);
     }
 
     // 모든 마운트 포인트를 순회하며 파일이 실제로 존재하는지 확인 (Mod Fallback)
@@ -109,7 +109,7 @@ Optional<VPath> VFS::Unresolve(const Path& physical_path) const
     Path abs_input = FileSystem::Absolute(physical_path);
     abs_input.Normalize();
     const String input_str = abs_input.ToString();
-    const std::string_view input_view{ input_str };
+    const StringView input_view{ input_str };
 
     const StringName* best_scheme = nullptr;
     const MountPoint* best_mount_point = nullptr;
@@ -120,21 +120,21 @@ Optional<VPath> VFS::Unresolve(const Path& physical_path) const
         for (const MountPoint& point : points)
         {
             const String root_str = point.physical_path.ToString();
-            const std::string_view root_view{ root_str };
+            const StringView root_view{ root_str };
 
             // 물리적 경로가 마운트 포인트의 하위 경로인지 확인
-            if (input_view.starts_with(root_view))
+            if (input_view.StartsWith(root_view))
             {
                 if (
-                    input_view.size() == root_view.size()
-                    || input_view[root_view.size()] == '/'
+                    input_view.ByteLen() == root_view.ByteLen()
+                    || input_view[root_view.ByteLen()] == '/'
                 ) {
                     // 더 긴 경로가 매칭되거나, 같은 길이면 우선순위가 높은 것 선택
                     if (
-                        root_view.size() > best_match_len
-                        || (root_view.size() == best_match_len && (!best_mount_point || point.priority > best_mount_point->priority))
+                        root_view.ByteLen() > best_match_len
+                        || (root_view.ByteLen() == best_match_len && (!best_mount_point || point.priority > best_mount_point->priority))
                     ) {
-                        best_match_len = root_view.size();
+                        best_match_len = root_view.ByteLen();
                         best_scheme = &scheme;
                         best_mount_point = &point;
                     }

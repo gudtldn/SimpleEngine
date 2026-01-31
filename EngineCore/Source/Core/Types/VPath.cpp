@@ -6,23 +6,23 @@
 namespace se
 {
 VPath::VPath(const char* path)
-    : VPath(std::string_view{ path })
+    : VPath(StringView{ path })
 {
 }
 
 VPath::VPath(const se::String& path)
-    : VPath(std::string_view{ path })
+    : VPath(StringView{ path })
 {
 }
 
-VPath::VPath(std::string_view path)
+VPath::VPath(StringView path)
 {
     ParseAndNormalize(path);
 }
 
-VPath VPath::operator/(std::string_view relative_path) const
+VPath VPath::operator/(StringView relative_path) const
 {
-    if (relative_path.empty())
+    if (relative_path.IsEmpty())
     {
         return *this;
     }
@@ -32,8 +32,8 @@ VPath VPath::operator/(std::string_view relative_path) const
 
     // 슬래시 중복 방지
     se::String& new_path_str = new_path.full_path;
-    const std::string_view view{ new_path_str };
-    if (view.back() != '/' && relative_path.front() != '/')
+    const StringView view{ new_path_str };
+    if (view.Back() != '/' && relative_path.Front() != '/')
     {
         new_path_str += '/';
     }
@@ -42,20 +42,20 @@ VPath VPath::operator/(std::string_view relative_path) const
     return new_path;
 }
 
-std::string_view VPath::GetScheme() const noexcept
+StringView VPath::GetScheme() const noexcept
 {
     if (HasScheme())
     {
-        return std::string_view{ full_path.Data(), scheme_len };
+        return StringView{ full_path.Data(), scheme_len };
     }
     return {};
 }
 
-std::string_view VPath::GetPathPart() const noexcept
+StringView VPath::GetPathPart() const noexcept
 {
     if (IsValid())
     {
-        return std::string_view{ full_path.Data() + path_offset, full_path.ByteLen() - path_offset };
+        return StringView{ full_path.Data() + path_offset, full_path.ByteLen() - path_offset };
     }
     return {};
 }
@@ -70,16 +70,16 @@ VPath VPath::GetParentPath() const
             // "Assets://bar/" -> "Assets://"
             if (*last_slash_opt <= path_offset)
             {
-                return { std::string_view{ full_path.Data(), path_offset } };
+                return { StringView{ full_path.Data(), path_offset } };
             }
 
-            return { std::string_view{ full_path.Data(), *last_slash_opt } };
+            return { StringView{ full_path.Data(), *last_slash_opt } };
         }
     }
     return {};
 }
 
-std::string_view VPath::GetFilename() const noexcept
+StringView VPath::GetFilename() const noexcept
 {
     if (IsValid())
     {
@@ -88,55 +88,55 @@ std::string_view VPath::GetFilename() const noexcept
         {
             return GetPathPart(); // 스키마는 없고 파일명만 있는 경우
         }
-        return std::string_view{ full_path.Data() + *last_slash_opt + 1 };
+        return StringView{ full_path.Data() + *last_slash_opt + 1 };
     }
     return {};
 }
 
-std::string_view VPath::GetExtension() const noexcept
+StringView VPath::GetExtension() const noexcept
 {
-    const std::string_view filename = GetFilename();
-    if (filename.empty())
+    const StringView filename = GetFilename();
+    if (filename.IsEmpty())
     {
         return {};
     }
 
-    const auto last_dot = filename.find_last_of('.');
-    if (last_dot == std::string_view::npos)
+    const auto last_dot = filename.FindLastOf('.');
+    if (!last_dot.HasValue())
     {
         return {}; // 확장자 없음
     }
-    return filename.substr(last_dot);
+    return filename.Substr(*last_dot);
 }
 
-std::string_view VPath::GetStem() const noexcept
+StringView VPath::GetStem() const noexcept
 {
-    const std::string_view filename = GetFilename();
-    if (filename.empty())
+    const StringView filename = GetFilename();
+    if (filename.IsEmpty())
     {
         return {};
     }
 
-    const auto last_dot = filename.find_last_of('.');
-    if (last_dot == std::string_view::npos)
+    const Optional last_dot = filename.FindLastOf('.');
+    if (!last_dot.HasValue())
     {
         return filename; // 확장자 없음
     }
-    return filename.substr(0, last_dot);
+    return filename.Substr(0, *last_dot);
 }
 
-void VPath::ParseAndNormalize(std::string_view path)
+void VPath::ParseAndNormalize(StringView path)
 {
-    if (path.empty())
+    if (path.IsEmpty())
     {
         return;
     }
 
-    full_path.ResizeForOverwrite(path.length());
+    full_path.ResizeForOverwrite(path.ByteLen());
 
     // 경로 정규화 (\ -> /) 및 복사
     char* dest = full_path.Data();
-    for (size_t i = 0; i < path.length(); ++i)
+    for (usize i = 0; i < path.ByteLen(); ++i)
     {
         const char c = path[i];
         dest[i] = (c == '\\') ? '/' : c;

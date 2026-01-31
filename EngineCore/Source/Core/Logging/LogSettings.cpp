@@ -1,11 +1,11 @@
 ﻿#include "Core/Logging/LogSettings.h"
 
-#ifdef _WIN32  // NOLINT(readability-avoid-unconditional-preprocessor-if)
+#ifdef SE_PLATFORM_WINDOWS
 #include <Windows.h>
 
 #else
 #include <cstdlib>
-#include <string_view>
+#include "Core/Container/StringView.h"
 #endif
 
 
@@ -18,7 +18,7 @@ bool LogSettings::DetectColorSupport()
         return true;
     }
 
-#ifdef _WIN32
+#ifdef SE_PLATFORM_WINDOWS
     const HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0;
     if (GetConsoleMode(console, &mode))
@@ -28,7 +28,7 @@ bool LogSettings::DetectColorSupport()
     return false;
 #else
     const char* term = std::getenv("TERM");
-    if (term && std::string_view(term) != "dumb")
+    if (term && StringView(term) != "dumb")
     {
         return true;
     }

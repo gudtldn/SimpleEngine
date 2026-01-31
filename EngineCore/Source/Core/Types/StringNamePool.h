@@ -3,6 +3,7 @@
 #include <shared_mutex>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -44,7 +45,7 @@ public:
      * @param view 저장할 문자열 View
      * @return 저장된 문자열의 시작 주소 (Null-terminated 보장)
      */
-    const char* Store(std::string_view view);
+    const char* Store(StringView view);
 
 private:
     /** 새 메모리 블록을 할당하고 current_block_ptr를 갱신합니다. */
@@ -77,10 +78,10 @@ public:
     [[nodiscard]] static StringNamePool& Get();
 
     /** 문자열을 Pool에서 찾습니다. 없으면 nullopt */
-    [[nodiscard]] Optional<const StringNameEntry&> Find(std::string_view view) const;
+    [[nodiscard]] Optional<const StringNameEntry&> Find(StringView view) const;
 
     /** 문자열을 Pool에서 찾고, 없으면 새로 만듭니다. */
-    [[nodiscard]] const StringNameEntry& FindOrEmplace(std::string_view view);
+    [[nodiscard]] const StringNameEntry& FindOrEmplace(StringView view);
 
 private:
     mutable TracySharedLockable(std::shared_mutex, string_pool_mutex);

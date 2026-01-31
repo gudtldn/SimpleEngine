@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/FileSystem.h"
@@ -34,7 +35,7 @@ void EditorAssetSubsystem::Release()
 void EditorAssetSubsystem::RefreshRegistry()
 {
     VFS::Get().VisitMounts([this](
-        [[maybe_unused]] std::string_view scheme,
+        [[maybe_unused]] StringView scheme,
         const Path& physical_path,
         [[maybe_unused]] int32 priority
     ) {
@@ -134,7 +135,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
 
         std::ostringstream oss;
         oss << table;
-        if (!FileSystem::WriteString(meta_path, oss.str()))
+        if (!FileSystem::WriteString(meta_path, oss.view()))
         {
             ConsoleLog(ELogLevel::Error, "Failed to write meta file: {}", meta_path);
             return std::nullopt;

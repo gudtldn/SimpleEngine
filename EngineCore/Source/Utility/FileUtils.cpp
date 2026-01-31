@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "Core/Container/StringView.h"
 #include "Utility/FileSystem.h"
 #include "Utility/StringUtils.h"
 
@@ -48,7 +49,7 @@ FileResult<String> ReadToString(const Path& file_path)
     const auto result = ReadToByteArray(file_path);
     if (result.HasValue())
     {
-        return String{ std::string_view{ reinterpret_cast<const char*>(result->Data()), result->Len() } };
+        return String{ reinterpret_cast<const char*>(result->Data()), result->Len() };
     }
     return Unexpected{ std::move(result).Error() };
 }

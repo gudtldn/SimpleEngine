@@ -25,13 +25,13 @@ Path::Path(const String& in_path)
     }
 }
 
-Path::Path(std::string_view in_path)
+Path::Path(StringView in_path)
 {
-    if (!in_path.empty())
+    if (!in_path.IsEmpty())
     {
         internal_path = std::filesystem::path{
-            reinterpret_cast<const char8_t*>(in_path.data()),
-            reinterpret_cast<const char8_t*>(in_path.data() + in_path.size())
+            reinterpret_cast<const char8_t*>(in_path.Data()),
+            reinterpret_cast<const char8_t*>(in_path.Data() + in_path.ByteLen())
         };
     }
 }

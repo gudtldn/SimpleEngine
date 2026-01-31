@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include <string_view>
 
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -22,7 +22,7 @@ public:
 
     VPath(const char* path);
     VPath(const String& path);
-    VPath(std::string_view path);
+    VPath(StringView path);
 
     VPath(const VPath&) = default;
     VPath& operator=(const VPath&) = default;
@@ -31,7 +31,7 @@ public:
 
 public:
     /** 현재 경로에 상대 경로를 추가하여 새로운 VPath 객체를 생성합니다 */
-    [[nodiscard]] VPath operator/(std::string_view relative_path) const;
+    [[nodiscard]] VPath operator/(StringView relative_path) const;
 
     // 비교 연산자
     [[nodiscard]] bool operator==(const VPath&) const = default;
@@ -45,22 +45,22 @@ public:
     [[nodiscard]] bool HasScheme() const noexcept { return scheme_len > 0; }
 
     /** 경로의 스킴 부분을 반환합니다. (예: "Assets") */
-    [[nodiscard]] std::string_view GetScheme() const noexcept;
+    [[nodiscard]] StringView GetScheme() const noexcept;
 
     /** 스킴을 제외한 순수 경로 부분을 반환합니다. (예: "/Textures/Player.png") */
-    [[nodiscard]] std::string_view GetPathPart() const noexcept;
+    [[nodiscard]] StringView GetPathPart() const noexcept;
 
     /** 파일명을 제외한 부모 디렉토리 경로를 반환합니다. (예: "Assets://Textures") */
     [[nodiscard]] VPath GetParentPath() const;
 
     /** 확장자를 포함한 파일명을 반환합니다. (예: "Player.png") */
-    [[nodiscard]] std::string_view GetFilename() const noexcept;
+    [[nodiscard]] StringView GetFilename() const noexcept;
 
     /** 파일의 확장자를 반환합니다. (예: ".png") */
-    [[nodiscard]] std::string_view GetExtension() const noexcept;
+    [[nodiscard]] StringView GetExtension() const noexcept;
 
     /** 확장자를 제외한 파일명을 반환합니다. (예: "Player") */
-    [[nodiscard]] std::string_view GetStem() const noexcept;
+    [[nodiscard]] StringView GetStem() const noexcept;
 
     /** 전체 경로를 se::String 참조로 반환합니다. */
     [[nodiscard]] const String& ToString() const noexcept { return full_path; }
@@ -86,7 +86,7 @@ public:
 
 private:
     /** 입력받은 경로 문자열을 파싱하고 정규화(\ -> /)하여 내부 멤버를 초기화합니다. */
-    void ParseAndNormalize(std::string_view path);
+    void ParseAndNormalize(StringView path);
 
 private:
     String full_path;

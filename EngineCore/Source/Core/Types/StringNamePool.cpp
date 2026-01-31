@@ -8,9 +8,9 @@
 
 namespace
 {
-bool IsNoneString(std::string_view view)
+bool IsNoneString(se::StringView view)
 {
-    if (view.length() != 4)
+    if (view.ByteLen() != 4)
     {
         return false;
     }
@@ -32,9 +32,9 @@ StringStorage::StringStorage()
 
 StringStorage::~StringStorage() = default;
 
-const char* StringStorage::Store(std::string_view view)
+const char* StringStorage::Store(StringView view)
 {
-    const usize len = view.length();
+    const usize len = view.ByteLen();
     const usize size_needed = len + 1; // null-terminator 포함
 
     // 현재 블록에 공간이 부족하면 새 블록 할당
@@ -45,7 +45,7 @@ const char* StringStorage::Store(std::string_view view)
         {
             auto huge_block = std::make_unique<char[]>(size_needed);
             char* ptr = huge_block.get();
-            std::memcpy(ptr, view.data(), len);
+            std::memcpy(ptr, view.Data(), len);
             ptr[len] = '\0';
 
             blocks.Push(std::move(huge_block));
@@ -57,7 +57,7 @@ const char* StringStorage::Store(std::string_view view)
 
     // 현재 블록의 남은 공간에 복사
     char* dest = current_block_ptr + current_offset;
-    std::memcpy(dest, view.data(), len);
+    std::memcpy(dest, view.Data(), len);
     dest[len] = '\0';
 
     current_offset += size_needed;
@@ -78,9 +78,9 @@ StringNamePool& StringNamePool::Get()
     return instance;
 }
 
-Optional<const StringNameEntry&> StringNamePool::Find(std::string_view view) const
+Optional<const StringNameEntry&> StringNamePool::Find(StringView view) const
 {
-    if (view.empty() || IsNoneString(view))
+    if (view.IsEmpty() || IsNoneString(view))
     {
         return std::nullopt;
     }
@@ -95,9 +95,9 @@ Optional<const StringNameEntry&> StringNamePool::Find(std::string_view view) con
         });
 }
 
-const StringNameEntry& StringNamePool::FindOrEmplace(std::string_view view)
+const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
 {
-    if (view.empty() || IsNoneString(view))
+    if (view.IsEmpty() || IsNoneString(view))
     {
         static constexpr StringNameEntry NoneEntry = {
             .display_name = nullptr,
@@ -130,7 +130,7 @@ const StringNameEntry& StringNamePool::FindOrEmplace(std::string_view view)
     const StringNameEntry& new_entry = entry_pool.Insert(display_hash, {
         .display_name = string_storage.Store(view),
         .comparison_hash = comparison_hash,
-        .length = static_cast<uint32>(view.length()),
+        .length = static_cast<uint32>(view.ByteLen()),
     });
 
     lookup_map.Entry(comparison_hash).OrInsert(&new_entry);

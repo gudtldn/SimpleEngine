@@ -6,6 +6,7 @@
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 
 
 namespace se
@@ -22,7 +23,7 @@ public:
     Path() = default;
     Path(const char* in_path);
     Path(const String& in_path);
-    Path(std::string_view in_path);
+    Path(StringView in_path);
     Path(std::filesystem::path in_path);
 
     Path(const Path&) = default;

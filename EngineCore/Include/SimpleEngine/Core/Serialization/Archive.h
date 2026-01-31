@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <type_traits>
 
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Memory/Allocators.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
@@ -15,11 +15,6 @@ namespace refl
 {
 class TypeId;
 }
-
-template <typename AllocatorType>
-class BaseString;
-
-using String = BaseString<core::DefaultAllocator<char>>;
 }  // namespace se
 
 namespace se::core

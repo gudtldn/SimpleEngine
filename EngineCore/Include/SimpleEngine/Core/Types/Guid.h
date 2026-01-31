@@ -24,7 +24,7 @@ public:
     static const Guid None;
 
     [[nodiscard]] static Guid NewGuid();
-    [[nodiscard]] static Guid FromString(const String& str);
+    [[nodiscard]] static Guid FromString(const StringView& view);
 
 public:
     [[nodiscard]] bool IsValid() const noexcept;

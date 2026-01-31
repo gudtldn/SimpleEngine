@@ -245,7 +245,7 @@ Optional<Array<uint8>> FileSystem::Read(const Path& path)
     return data;
 }
 
-bool FileSystem::WriteString(const Path& path, std::string_view content)
+bool FileSystem::WriteString(const Path& path, StringView content)
 {
     std::ofstream file(ToStdPath(path), std::ios::out | std::ios::binary | std::ios::trunc);
     if (!file.is_open())
@@ -253,7 +253,7 @@ bool FileSystem::WriteString(const Path& path, std::string_view content)
         return false;
     }
 
-    file.write(content.data(), static_cast<std::streamsize>(content.size()));
+    file.write(content.Data(), static_cast<std::streamsize>(content.ByteLen()));
     return !file.fail();
 }
 

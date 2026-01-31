@@ -1,4 +1,5 @@
 ﻿#include "Core/Container/String.h"
+#include "Core/Container/StringView.h"
 #include "Utility/Debug.h"
 
 #include <unicode/locid.h>
@@ -8,16 +9,16 @@
 
 namespace se::details
 {
-bool IsCharBoundary(std::string_view view, usize index)
+bool IsCharBoundary(StringView view, usize index)
 {
     // 문자열의 시작과 끝은 항상 유효한 경계
-    if (index == 0 || index == view.length())
+    if (index == 0 || index == view.ByteLen())
     {
         return true;
     }
 
     // 인덱스가 범위를 벗어나면 유효하지 않은 경계
-    if (index > view.length())
+    if (index > view.ByteLen())
     {
         return false;
     }
@@ -26,15 +27,15 @@ bool IsCharBoundary(std::string_view view, usize index)
     return U8_IS_LEAD(view[index]) || U8_IS_SINGLE(view[index]);
 }
 
-usize CountCodePointsImpl(std::string_view view)
+usize CountCodePointsImpl(StringView view)
 {
-    if (view.empty())
+    if (view.IsEmpty())
     {
         return 0;
     }
     usize count = 0;
-    const char* s = view.data();
-    const auto length = static_cast<int32>(view.length());
+    const char* s = view.Data();
+    const auto length = static_cast<int32>(view.ByteLen());
     for (int32 i = 0; i < length;)
     {
         UChar32 c;
@@ -64,15 +65,15 @@ Array<char> EncodeCodePoint(char32 code_point)
     return out_bytes;
 }
 
-Optional<std::pair<char32, usize>> DecodeLastCodePoint(std::string_view view)
+Optional<std::pair<char32, usize>> DecodeLastCodePoint(StringView view)
 {
-    if (view.empty())
+    if (view.IsEmpty())
     {
         return std::nullopt;
     }
 
-    const char* s = view.data();
-    int32 i = static_cast<int32>(view.length());
+    const char* s = view.Data();
+    int32 i = static_cast<int32>(view.ByteLen());
     const int32 prev_i = i;
 
     // i를 이전 코드 포인트의 시작 위치로 이동시킴
@@ -88,42 +89,42 @@ Optional<std::pair<char32, usize>> DecodeLastCodePoint(std::string_view view)
     return std::make_pair(static_cast<char32>(c), byte_len);
 }
 
-String ToUpperImpl(std::string_view view, const char* locale)
+String ToUpperImpl(StringView view, const char* locale)
 {
-    if (view.empty())
+    if (view.IsEmpty())
     {
         return {};
     }
 
     icu::UnicodeString ustr{
-        view.data(),
-        static_cast<int32>(view.length()),
+        view.Data(),
+        static_cast<int32>(view.ByteLen()),
         "UTF-8"
     };
     ustr.toUpper(icu::Locale{ locale });
 
     std::string result_str;
     ustr.toUTF8String(result_str);
-    return { std::string_view{ result_str } };
+    return { StringView{ result_str } };
 }
 
-String ToLowerImpl(std::string_view view, const char* locale)
+String ToLowerImpl(StringView view, const char* locale)
 {
-    if (view.empty())
+    if (view.IsEmpty())
     {
         return {};
     }
 
     icu::UnicodeString ustr{
-        view.data(),
-        static_cast<int32>(view.length()),
+        view.Data(),
+        static_cast<int32>(view.ByteLen()),
         "UTF-8"
     };
     ustr.toLower(icu::Locale{ locale });
 
     std::string result_str;
     ustr.toUTF8String(result_str);
-    return { std::string_view{ result_str } };
+    return { StringView{ result_str } };
 }
 
 CodePointIterator::reference CodePointIterator::operator*() const

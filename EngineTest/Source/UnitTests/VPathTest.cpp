@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
 using namespace se;
@@ -32,7 +33,7 @@ TEST(VPathTest, ConstructFromString)
 
 TEST(VPathTest, ConstructFromStringView)
 {
-    std::string_view sv = "Assets://Textures/Player.png";
+    StringView sv = "Assets://Textures/Player.png";
     VPath p(sv);
     EXPECT_TRUE(p.IsValid());
 }
@@ -52,7 +53,7 @@ TEST(VPathTest, HasSchemeReturnsFalseForRelativePath)
 {
     VPath p("Textures/Player.png");
     EXPECT_FALSE(p.HasScheme());
-    EXPECT_TRUE(p.GetScheme().empty());
+    EXPECT_TRUE(p.GetScheme().IsEmpty());
 }
 
 TEST(VPathTest, GetSchemeHandlesEmptyScheme)
@@ -104,7 +105,7 @@ TEST(VPathTest, GetFilenameReturnsFilename)
 TEST(VPathTest, GetFilenameReturnsEmptyForDirectory)
 {
     VPath p("Assets://Textures/");
-    EXPECT_TRUE(p.GetFilename().empty());
+    EXPECT_TRUE(p.GetFilename().IsEmpty());
 }
 
 TEST(VPathTest, GetExtensionReturnsExtension)
@@ -116,7 +117,7 @@ TEST(VPathTest, GetExtensionReturnsExtension)
 TEST(VPathTest, GetExtensionReturnsEmptyForNoExtension)
 {
     VPath p("Assets://Textures/README");
-    EXPECT_TRUE(p.GetExtension().empty());
+    EXPECT_TRUE(p.GetExtension().IsEmpty());
 }
 
 TEST(VPathTest, GetStemReturnsStem)
@@ -269,7 +270,7 @@ TEST(VPathTest, SchemeOnlyPathIsValid)
     EXPECT_TRUE(p.IsValid());
     EXPECT_TRUE(p.HasScheme());
     EXPECT_EQ(p.GetScheme(), "Assets");
-    EXPECT_TRUE(p.GetPathPart().empty());
+    EXPECT_TRUE(p.GetPathPart().IsEmpty());
 }
 
 TEST(VPathTest, VeryLongPathHandledCorrectly)

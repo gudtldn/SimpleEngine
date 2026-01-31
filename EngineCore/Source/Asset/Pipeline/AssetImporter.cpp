@@ -73,8 +73,8 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
         {
             ZoneScopedN("Process Node");
 #if TRACY_ENABLE
-            const std::string_view node_name = node->GetTypeId().GetName();
-            ZoneText(node_name.data(), node_name.size());
+            const StringView node_name = node->GetTypeId().GetName();
+            ZoneText(node_name.Data(), node_name.ByteLen());
 #endif
 
             [&]

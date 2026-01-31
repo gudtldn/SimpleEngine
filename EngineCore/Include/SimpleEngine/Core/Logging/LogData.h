@@ -3,9 +3,9 @@
 #include <format>
 #include <source_location>
 #include <string>
-#include <string_view>
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/Logging/LogLevel.h"
 
@@ -56,15 +56,14 @@ struct LogEntry
     std::chrono::system_clock::time_point timestamp;
 
     // location에서 파일 이름만 가져옵니다.
-    [[nodiscard]] std::string_view GetPrettyFileName() const
+    [[nodiscard]] StringView GetPrettyFileName() const
     {
-        const std::string_view name_view = location.file_name();
-        const usize last_slash = name_view.find_last_of("/\\");
-        if (last_slash == std::string_view::npos)
+        const StringView name_view = location.file_name();
+        if (const Optional last_slash_opt = name_view.FindLastOf("/\\"))
         {
-            return name_view;
+            return name_view.Substr(*last_slash_opt + 1);
         }
-        return name_view.substr(last_slash + 1);
+        return name_view;
     }
 
     [[nodiscard]] std::string GetTimestampString() const

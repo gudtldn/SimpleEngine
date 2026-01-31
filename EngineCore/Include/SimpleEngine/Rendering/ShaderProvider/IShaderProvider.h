@@ -67,8 +67,8 @@ struct std::hash<se::rendering::ShaderRequest>
 
             for (const auto& [name, value] : defines)
             {
-                HashCombine(seed, std::string_view{ name });
-                HashCombine(seed, std::string_view{ value });
+                HashCombine(seed, se::StringView{ name });
+                HashCombine(seed, se::StringView{ value });
             }
         }
 

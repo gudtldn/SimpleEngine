@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <algorithm>
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 
@@ -7,20 +8,20 @@ namespace se
 {
 namespace details
 {
-SE_CORE_API bool IsCharBoundary(std::string_view view, usize index);
+SE_CORE_API bool IsCharBoundary(StringView view, usize index);
 
 /** 코드 포인트 개수 계산 */
-SE_CORE_API usize CountCodePointsImpl(std::string_view view);
+SE_CORE_API usize CountCodePointsImpl(StringView view);
 
 /** char32_t를 UTF-8 바이트 시퀀스로 인코딩 (최대 4바이트 + null) */
 SE_CORE_API Array<char> EncodeCodePoint(char32 code_point);
 
 /** 문자열의 마지막 코드 포인트를 디코딩하고 해당 바이트 길이를 반환 */
-SE_CORE_API Optional<std::pair<char32, usize>> DecodeLastCodePoint(std::string_view view);
+SE_CORE_API Optional<std::pair<char32, usize>> DecodeLastCodePoint(StringView view);
 
 /** 대소문자 변환 */
-SE_CORE_API String ToUpperImpl(std::string_view view, const char* locale);
-SE_CORE_API String ToLowerImpl(std::string_view view, const char* locale);
+SE_CORE_API String ToUpperImpl(StringView view, const char* locale);
+SE_CORE_API String ToLowerImpl(StringView view, const char* locale);
 }  // namespace details
 
 
@@ -57,27 +58,27 @@ BaseString<Allocator>& BaseString<Allocator>::operator=(char32 code_point)
 
 template <typename Allocator>
 BaseString<Allocator>::BaseString(const char* literal)
-    : BaseString(std::string_view{ literal })
+    : BaseString(StringView{ literal })
 {
 }
 
 template <typename Allocator>
 BaseString<Allocator>::BaseString(const char* literal, SizeType length)
-    : BaseString(std::string_view{ literal, length })
+    : BaseString(StringView{ literal, length })
 {
 }
 
 template <typename Allocator>
 BaseString<Allocator>& BaseString<Allocator>::operator=(const char* literal)
 {
-    *this = std::string_view{ literal };
+    *this = StringView{ literal };
     return *this;
 }
 
 template <typename Allocator>
 template <usize N>
 BaseString<Allocator>::BaseString(const char (&literal)[N])
-    : BaseString(std::string_view{ literal })
+    : BaseString(StringView{ literal })
 {
 }
 
@@ -85,28 +86,28 @@ template <typename Allocator>
 template <usize N>
 BaseString<Allocator>& BaseString<Allocator>::operator=(const char (&literal)[N])
 {
-    *this = std::string_view{ literal };
+    *this = StringView{ literal };
     return *this;
 }
 
 template <typename Allocator>
-BaseString<Allocator>::BaseString(std::string_view view)
+BaseString<Allocator>::BaseString(StringView view)
 {
-    if (view.empty())
+    if (view.IsEmpty())
     {
         data.Push('\0');
         return;
     }
 
-    data.Reserve(view.length());
+    data.Reserve(view.ByteLen());
     data.PushRange(view);
     data.Push('\0');
 }
 
 template <typename Allocator>
-BaseString<Allocator>& BaseString<Allocator>::operator=(std::string_view view)
+BaseString<Allocator>& BaseString<Allocator>::operator=(StringView view)
 {
-    if (Data() == view.data())
+    if (Data() == view.Data())
     {
         return *this;
     }
@@ -131,7 +132,7 @@ template <typename... Args>
 BaseString<Allocator> BaseString<Allocator>::Format(std::format_string<Args...> fmt, Args&&... args)
 {
     const std::string result_str = std::format(fmt, std::forward<Args>(args)...);
-    return BaseString{ std::string_view{ result_str } };
+    return BaseString{ StringView{ result_str } };
 }
 
 template <typename Allocator>
@@ -151,7 +152,7 @@ BaseString<Allocator>::SizeType BaseString<Allocator>::ByteLen() const noexcept
 template <typename Allocator>
 BaseString<Allocator>::SizeType BaseString<Allocator>::CodePointLen() const
 {
-    return details::CountCodePointsImpl(std::string_view{ *this });
+    return details::CountCodePointsImpl(StringView{ *this });
 }
 
 template <typename Allocator>
@@ -203,7 +204,7 @@ Optional<char32> BaseString<Allocator>::Pop()
         return std::nullopt;
     }
 
-    Optional decode_result = details::DecodeLastCodePoint(std::string_view{ *this });
+    Optional decode_result = details::DecodeLastCodePoint(StringView{ *this });
     SE_ASSERT(decode_result.HasValue(), "Failed to decode the last code point.");
 
     const auto& [code_point, byte_len] = decode_result.Value();
@@ -214,19 +215,19 @@ Optional<char32> BaseString<Allocator>::Pop()
 template <typename Allocator>
 void BaseString<Allocator>::Append(const BaseString& other)
 {
-    Append(std::string_view{ other });
+    Append(StringView{ other });
 }
 
 template <typename Allocator>
 void BaseString<Allocator>::Append(const char* str)
 {
-    Append(std::string_view{ str });
+    Append(StringView{ str });
 }
 
 template <typename Allocator>
-void BaseString<Allocator>::Append(std::string_view view)
+void BaseString<Allocator>::Append(StringView view)
 {
-    if (view.empty())
+    if (view.IsEmpty())
     {
         return;
     }
@@ -237,12 +238,12 @@ void BaseString<Allocator>::Append(std::string_view view)
 }
 
 template <typename Allocator>
-void BaseString<Allocator>::Insert(SizeType byte_idx, std::string_view view)
+void BaseString<Allocator>::Insert(SizeType byte_idx, StringView view)
 {
     SE_ASSERT(byte_idx <= ByteLen(), "Insert index out of bounds");
-    SE_ASSERT(details::IsCharBoundary(std::string_view{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
+    SE_ASSERT(details::IsCharBoundary(StringView{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
 
-    if (view.empty())
+    if (view.IsEmpty())
     {
         return;
     }
@@ -256,8 +257,8 @@ template <typename Allocator>
 void BaseString<Allocator>::RemoveRange(SizeType byte_idx, SizeType count)
 {
     SE_ASSERT(byte_idx + count <= ByteLen(), "RemoveRange out of bounds");
-    SE_ASSERT(details::IsCharBoundary(std::string_view{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
-    SE_ASSERT(details::IsCharBoundary(std::string_view{ *this }, byte_idx + count), "Count is not a valid UTF-8 character boundary.");
+    SE_ASSERT(details::IsCharBoundary(StringView{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
+    SE_ASSERT(details::IsCharBoundary(StringView{ *this }, byte_idx + count), "Count is not a valid UTF-8 character boundary.");
 
     if (count == 0)
     {
@@ -290,51 +291,43 @@ void BaseString<Allocator>::Clear() noexcept
 template <typename Allocator>
 BaseString<Allocator> BaseString<Allocator>::ToUpper(const char* locale) const
 {
-    return details::ToUpperImpl(std::string_view{ *this }, locale);
+    return details::ToUpperImpl(StringView{ *this }, locale);
 }
 
 template <typename Allocator>
 BaseString<Allocator> BaseString<Allocator>::ToLower(const char* locale) const
 {
-    return details::ToLowerImpl(std::string_view{ *this }, locale);
+    return details::ToLowerImpl(StringView{ *this }, locale);
 }
 
 template <typename Allocator>
-bool BaseString<Allocator>::Contains(std::string_view view) const
+bool BaseString<Allocator>::Contains(StringView view) const
 {
-    return std::string_view{ *this }.contains(view);
+    return StringView{ *this }.Contains(view);
 }
 
 template <typename Allocator>
-bool BaseString<Allocator>::StartsWith(std::string_view view) const
+bool BaseString<Allocator>::StartsWith(StringView view) const
 {
-    return std::string_view{ *this }.starts_with(view);
+    return StringView{ *this }.StartsWith(view);
 }
 
 template <typename Allocator>
-bool BaseString<Allocator>::EndsWith(std::string_view view) const
+bool BaseString<Allocator>::EndsWith(StringView view) const
 {
-    return std::string_view{ *this }.ends_with(view);
+    return StringView{ *this }.EndsWith(view);
 }
 
 template <typename Allocator>
-Optional<typename BaseString<Allocator>::SizeType> BaseString<Allocator>::Find(std::string_view view, SizeType start_byte_pos) const
+Optional<typename BaseString<Allocator>::SizeType> BaseString<Allocator>::Find(StringView view, SizeType start_byte_pos) const
 {
-    if (const auto pos = std::string_view{ *this }.find(view, start_byte_pos); pos != std::string_view::npos)
-    {
-        return pos;
-    }
-    return std::nullopt;
+    return StringView{ *this }.Find(view, start_byte_pos);
 }
 
 template <typename Allocator>
-Optional<typename BaseString<Allocator>::SizeType> BaseString<Allocator>::FindLast(std::string_view view, SizeType start_byte_pos) const
+Optional<typename BaseString<Allocator>::SizeType> BaseString<Allocator>::FindLast(StringView view, SizeType start_byte_pos) const
 {
-    if (const auto pos = std::string_view{ *this }.rfind(view, start_byte_pos); pos != std::string_view::npos)
-    {
-        return pos;
-    }
-    return std::nullopt;
+    return StringView{ *this }.FindLast(view, start_byte_pos);
 }
 
 template <typename Allocator>
@@ -344,12 +337,12 @@ BaseString<Allocator> BaseString<Allocator>::Substring(SizeType start_index, Siz
 }
 
 template <typename Allocator>
-std::string_view BaseString<Allocator>::SubstringView(SizeType start_index, SizeType byte_count) const
+StringView BaseString<Allocator>::SubstringView(SizeType start_index, SizeType byte_count) const
 {
     SE_ASSERT(start_index <= ByteLen(), "Substring start index out of bounds");
     const SizeType max_len = ByteLen() - start_index;
 
-    return std::string_view{
+    return StringView{
         Data() + start_index,
         std::min(byte_count, max_len)
     };
@@ -380,21 +373,15 @@ details::CodePointView BaseString<Allocator>::CodePoints() const
 }
 
 template <typename Allocator>
-std::string_view BaseString<Allocator>::Bytes() const
+StringView BaseString<Allocator>::Bytes() const
 {
-    return std::string_view{ *this };
+    return StringView{ *this };
 }
 
 template <typename Allocator>
 void BaseString<Allocator>::Swap(BaseString& other) noexcept
 {
     std::swap(data, other.data);
-}
-
-template <typename Allocator>
-BaseString<Allocator>::operator std::string_view() const
-{
-    return std::string_view{ Data(), ByteLen() };
 }
 
 template <typename Allocator>
@@ -417,12 +404,12 @@ template <typename Allocator>
 BaseString<Allocator> BaseString<Allocator>::operator+(const char* str) const
 {
     BaseString ret{ *this };
-    ret.Append(std::string_view{ str });
+    ret.Append(StringView{ str });
     return ret;
 }
 
 template <typename Allocator>
-BaseString<Allocator> BaseString<Allocator>::operator+(std::string_view view) const
+BaseString<Allocator> BaseString<Allocator>::operator+(StringView view) const
 {
     BaseString ret{ *this };
     ret.Append(view);
@@ -446,12 +433,12 @@ BaseString<Allocator>& BaseString<Allocator>::operator+=(char32 code_point)
 template <typename Allocator>
 BaseString<Allocator>& BaseString<Allocator>::operator+=(const char* str)
 {
-    Append(std::string_view{ str });
+    Append(StringView{ str });
     return *this;
 }
 
 template <typename Allocator>
-BaseString<Allocator>& BaseString<Allocator>::operator+=(std::string_view view)
+BaseString<Allocator>& BaseString<Allocator>::operator+=(StringView view)
 {
     Append(view);
     return *this;
@@ -461,39 +448,39 @@ template <typename Allocator>
 
 bool BaseString<Allocator>::operator==(const BaseString& other) const
 {
-    return std::string_view{ *this } == std::string_view{ other };
+    return StringView{ *this } == StringView{ other };
 }
 
 template <typename Allocator>
 
 bool BaseString<Allocator>::operator==(const char* str) const
 {
-    return std::string_view{ *this } == std::string_view{ str };
+    return StringView{ *this } == StringView{ str };
 }
 
 template <typename Allocator>
 
-bool BaseString<Allocator>::operator==(std::string_view view) const
+bool BaseString<Allocator>::operator==(StringView view) const
 {
-    return std::string_view{ *this } == view;
+    return StringView{ *this } == view;
 }
 
 
 template <typename Allocator>
 std::strong_ordering BaseString<Allocator>::operator<=>(const BaseString& other) const
 {
-    return std::string_view{ *this } <=> std::string_view{ other };
+    return StringView{ *this } <=> StringView{ other };
 }
 
 template <typename Allocator>
 std::strong_ordering BaseString<Allocator>::operator<=>(const char* other) const
 {
-    return std::string_view{ *this } <=> std::string_view{ other };
+    return StringView{ *this } <=> StringView{ other };
 }
 
 template <typename Allocator>
-std::strong_ordering BaseString<Allocator>::operator<=>(std::string_view other) const
+std::strong_ordering BaseString<Allocator>::operator<=>(StringView other) const
 {
-    return std::string_view{ *this } <=> other;
+    return StringView{ *this } <=> other;
 }
 }  // namespace se

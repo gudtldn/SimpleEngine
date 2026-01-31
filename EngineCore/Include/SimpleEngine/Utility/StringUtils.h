@@ -3,7 +3,7 @@
 #include <string_view>
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 
 
 namespace se::utility
@@ -18,9 +18,9 @@ template <
     std::ranges::input_range Rng,
     typename Allocator = String::AllocatorType
 >
-    requires std::convertible_to<std::ranges::range_value_t<Rng>, std::string_view>
-[[nodiscard]] BaseString<Allocator> Join(Rng&& range, std::string_view separator)
+    requires std::convertible_to<std::ranges::range_value_t<Rng>, StringView>
+[[nodiscard]] BaseString<Allocator> Join(Rng&& range, StringView separator)
 {
-    return BaseString<Allocator>::FromRange(range | std::views::join_with(separator));
+    return BaseString<Allocator>::FromRange(range | std::views::join_with(std::string_view{ separator }));
 }
 }

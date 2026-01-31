@@ -8,10 +8,10 @@ StringName StringName::None = StringName{};
 
 StringName StringName::Find(const char* in_str)
 {
-    return Find(std::string_view{ in_str });
+    return Find(StringView{ in_str });
 }
 
-StringName StringName::Find(std::string_view in_str)
+StringName StringName::Find(StringView in_str)
 {
     const StringNamePool& pool = StringNamePool::Get();
     return pool.Find(in_str)
@@ -26,16 +26,16 @@ StringName StringName::Find(std::string_view in_str)
 }
 
 StringName::StringName(const char* in_str)
-    : StringName(std::string_view{ in_str })
+    : StringName(StringView{ in_str })
 {
 }
 
 StringName::StringName(const String& in_str)
-    : StringName(in_str.Bytes())
+    : StringName(StringView{ in_str })
 {
 }
 
-StringName::StringName(std::string_view in_str)
+StringName::StringName(StringView in_str)
 {
     StringNamePool& pool = StringNamePool::Get();
     const auto [pool_display_name, pool_comparison_hash, _] = pool.FindOrEmplace(in_str);

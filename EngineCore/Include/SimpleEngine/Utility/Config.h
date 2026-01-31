@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/StringUtils.h"
@@ -53,7 +54,7 @@ public:
      * @return Key가 존재하고, To로 변환이 가능하다면 값을 반환하고, 없다면 std::nullopt를 반환합니다.
      */
     template <typename To>
-    [[nodiscard]] Optional<To> GetValue(std::string_view key) const;
+    [[nodiscard]] Optional<To> GetValue(StringView key) const;
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 값을 가져오거나, 없을 경우 저장 후 기본값을 반환합니다.
@@ -66,7 +67,7 @@ public:
      */
     template <typename To, typename U = To>
         requires std::convertible_to<U, To>
-    [[nodiscard]] To GetValueOrStore(std::string_view key, U&& default_val = U{});
+    [[nodiscard]] To GetValueOrStore(StringView key, U&& default_val = U{});
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 배열을 가져옵니다.
@@ -76,7 +77,7 @@ public:
      * @warning 배열 내 요소들의 타입이 일치하지 않거나 ElementType으로 변환 불가능하면 std::nullopt를 반환합니다.
      */
     template <typename ElementType>
-    [[nodiscard]] Optional<se::Array<ElementType>> GetArray(std::string_view key_path) const;
+    [[nodiscard]] Optional<se::Array<ElementType>> GetArray(StringView key_path) const;
 
     /**
      * 읽어온 TOML에서 지정된 키에 해당하는 Table을 Config 객체로 반환합니다.
@@ -84,7 +85,7 @@ public:
      * @return 키 경로가 존재하고 Table으로 변환 가능할 경우 Config 객체를 반환하며,
      *         그렇지 않을 경우 std::nullopt를 반환합니다.
      */
-    [[nodiscard]] Optional<Config> GetTable(std::string_view key_path) const;
+    [[nodiscard]] Optional<Config> GetTable(StringView key_path) const;
 
     /**
      * @brief 지정된 키 경로에 값을 설정합니다. 중간 경로는 필요시 테이블로 자동 생성됩니다.
@@ -94,13 +95,13 @@ public:
      * @return bool 설정에 성공하면 true, 실패하면 false (예: 경로 충돌).
      */
     template <typename ValueType>
-    bool SetValue(std::string_view key_path, ValueType&& value);
+    bool SetValue(StringView key_path, ValueType&& value);
 
     template <typename ElementType>
-    bool SetValue(std::string_view key_path, const Array<ElementType>& vec_value);
+    bool SetValue(StringView key_path, const Array<ElementType>& vec_value);
 
     template <typename ElementType>
-    bool SetValue(std::string_view key_path, Array<ElementType>&& vec_value);
+    bool SetValue(StringView key_path, Array<ElementType>&& vec_value);
 
     /**
      * @brief 현재 Config 객체의 내용을 지정된 파일 경로에 TOML 형식으로 저장합니다.
@@ -113,7 +114,7 @@ private:
     explicit Config(toml::table&& table);
 
     /** TOML내의 노드를 가져옵니다. */
-    [[nodiscard]] toml::node_view<const toml::node> FindNode(std::string_view path_str) const;
+    [[nodiscard]] toml::node_view<const toml::node> FindNode(StringView path_str) const;
 
 private:
     toml::table config_table;
@@ -125,7 +126,7 @@ inline Config::Config(toml::table&& table)
 }
 
 template <typename To>
-Optional<To> Config::GetValue(std::string_view key) const
+Optional<To> Config::GetValue(StringView key) const
 {
     if constexpr (std::same_as<To, se::String>)
     {
@@ -144,7 +145,7 @@ Optional<To> Config::GetValue(std::string_view key) const
 
 template <typename To, typename U>
     requires std::convertible_to<U, To>
-To Config::GetValueOrStore(std::string_view key, U&& default_val)
+To Config::GetValueOrStore(StringView key, U&& default_val)
 {
     if (auto val = GetValue<To>(key))
     {
@@ -155,7 +156,7 @@ To Config::GetValueOrStore(std::string_view key, U&& default_val)
 }
 
 template <typename ElementType>
-Optional<se::Array<ElementType>> Config::GetArray(std::string_view key_path) const
+Optional<se::Array<ElementType>> Config::GetArray(StringView key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {
@@ -189,15 +190,15 @@ Optional<se::Array<ElementType>> Config::GetArray(std::string_view key_path) con
 }
 
 template <typename ValueType>
-bool Config::SetValue(std::string_view key_path, ValueType&& value)
+bool Config::SetValue(StringView key_path, ValueType&& value)
 {
-    if (key_path.empty())
+    if (key_path.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "Config::SetValue: Key path cannot be empty.");
         return false;
     }
 
-    std::string_view current_path_segment_view = key_path;
+    const std::string_view current_path_segment_view = key_path;
 
     toml::table* current_table_ptr = &config_table;
     usize current_pos = 0;
@@ -261,13 +262,13 @@ bool Config::SetValue(std::string_view key_path, ValueType&& value)
 }
 
 template <typename ElementType>
-bool Config::SetValue(std::string_view key_path, const Array<ElementType>& vec_value)
+bool Config::SetValue(StringView key_path, const Array<ElementType>& vec_value)
 {
     return SetValue(key_path, se::Array<ElementType>(vec_value));
 }
 
 template <typename ElementType>
-bool Config::SetValue(std::string_view key_path, se::Array<ElementType>&& vec_value)
+bool Config::SetValue(StringView key_path, se::Array<ElementType>&& vec_value)
 {
     toml::array arr;
     arr.reserve(vec_value.Len());
@@ -279,7 +280,7 @@ bool Config::SetValue(std::string_view key_path, se::Array<ElementType>&& vec_va
         }
         else if constexpr (std::same_as<ElementType, se::String>)
         {
-            arr.push_back(std::string{ std::string_view{ elem } });
+            arr.push_back(std::string_view{ elem });
         }
         else
         {

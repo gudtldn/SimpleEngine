@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <concepts>
-#include <string_view>
+
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -15,13 +16,11 @@ constexpr uint64 FNV_Prime = 0x100000001b3ULL;
  * FNV-1a 해시 알고리즘을 사용한 문자열 해싱 함수
  * @see https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
  */
-template <typename CharType, typename TransformFunc>
-constexpr uint64 FNV_Hash_Impl(std::basic_string_view<CharType> view, TransformFunc transform) noexcept
+template <typename TransformFunc>
+constexpr uint64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcept
 {
-    static_assert(sizeof(CharType) == 1, "Only 1-byte character types are supported");
-
     uint64 hash = DefaultFNVHash; // FNV_offset_basis
-    for (const CharType c : view)
+    for (const StringView::CharType c : view)
     {
         hash ^= static_cast<uint8>(transform(c));
         hash *= FNV_Prime;
@@ -31,23 +30,20 @@ constexpr uint64 FNV_Hash_Impl(std::basic_string_view<CharType> view, TransformF
 }  // namespace details
 
 template <typename T>
-    requires std::is_convertible_v<T, std::string_view>
+    requires std::is_convertible_v<T, StringView>
 constexpr uint64 FNV_Hash(const T& str) noexcept
 {
-    return details::FNV_Hash_Impl(std::string_view{ str }, [](auto c) { return c; });
+    return details::FNV_Hash_Impl(StringView{ str }, [](auto c) { return c; });
 }
 
 template <typename T>
-    requires std::is_convertible_v<T, std::string_view>
+    requires std::is_convertible_v<T, StringView>
 constexpr uint64 FNV_Hash_CaseInsensitive(const T& str) noexcept
 {
-    return details::FNV_Hash_Impl(
-        std::string_view{ str },
-        [](auto c)
-        {
-            return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
-        }
-    );
+    return details::FNV_Hash_Impl(StringView{ str }, [](auto c)
+    {
+        return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
+    });
 }
 
 template <typename... Ts>

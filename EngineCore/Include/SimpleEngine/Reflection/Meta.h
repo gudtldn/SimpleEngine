@@ -1,7 +1,7 @@
 #pragma once
-#include <string_view>
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Reflection/TypeId.h"
 
@@ -52,10 +52,10 @@ SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 struct PropertyMetadata
 {
     // 에디터에 표시될 이름
-    std::string_view display_name;
+    StringView display_name;
 
     // 에디터에 표시될 ToopTip
-    std::string_view tooltip;
+    StringView tooltip;
 
     // Property 비트 플래그
     BitFlags<EPropertyFlags> flags;
@@ -75,7 +75,7 @@ struct PropertyMetadata
 struct PropertyInfo
 {
     // Property 이름
-    std::string_view name;
+    StringView name;
 
     // Property 크기
     usize size;
@@ -96,7 +96,7 @@ struct PropertyInfo
 struct TypeInfo
 {
     // 클래스/구조체 이름
-    std::string_view name;
+    StringView name;
 
     // 클래스/구조체 총합 크기
     usize size;
@@ -112,5 +112,5 @@ struct TypeInfo
 
     // TODO: 상속 정보 추가
 };
-}
+} // namespace se::refl
 

@@ -15,8 +15,8 @@ namespace
 class TempDir
 {
 public:
-    TempDir(std::string_view name)
-        : root_path(std::filesystem::temp_directory_path() / "SimpleEngineTest" / "FileSystemTest" / std::string(name))
+    TempDir(StringView name)
+        : root_path(std::filesystem::temp_directory_path() / "SimpleEngineTest" / "FileSystemTest" / std::string(std::string_view{ name }))
     {
         std::filesystem::create_directories(root_path);
     }
@@ -30,10 +30,10 @@ public:
     Path GetPath() const { return Path{ root_path }; }
 
     // UTF-8 문자열을 올바르게 처리하기 위해 char8_t로 변환
-    Path operator/(std::string_view relative) const
+    Path operator/(StringView relative) const
     {
-        std::filesystem::path relative_path{ reinterpret_cast<const char8_t*>(relative.data()),
-                                             reinterpret_cast<const char8_t*>(relative.data() + relative.size()) };
+        std::filesystem::path relative_path{ reinterpret_cast<const char8_t*>(relative.Data()),
+                                             reinterpret_cast<const char8_t*>(relative.Data() + relative.ByteLen()) };
         return Path{ root_path / relative_path };
     }
 
@@ -213,13 +213,13 @@ TEST_F(FileSystemFileTest, RenameMovesFile)
 TEST_F(FileSystemFileTest, FileSizeReturnsCorrectSize)
 {
     Path file_path = temp_dir / "sized_file.txt";
-    const std::string_view content = "Hello, World!";
+    const StringView content = "Hello, World!";
     FileSystem::WriteString(file_path, content);
 
     Optional<usize> size = FileSystem::FileSize(file_path);
 
     ASSERT_TRUE(size.HasValue());
-    EXPECT_EQ(size.Value(), content.size());
+    EXPECT_EQ(size.Value(), content.ByteLen());
 }
 
 TEST_F(FileSystemFileTest, FileSizeReturnsNulloptForNonExistent)
@@ -244,7 +244,7 @@ protected:
 TEST_F(FileSystemReadWriteTest, WriteStringAndReadToString)
 {
     Path file_path = temp_dir / "text_file.txt";
-    const std::string_view content = "Hello, SimpleEngine!\n이것은 UTF-8 테스트입니다.";
+    const StringView content = "Hello, SimpleEngine!\n이것은 UTF-8 테스트입니다.";
 
     bool write_result = FileSystem::WriteString(file_path, content);
     ASSERT_TRUE(write_result);
@@ -252,7 +252,7 @@ TEST_F(FileSystemReadWriteTest, WriteStringAndReadToString)
 
     Optional<String> read_result = FileSystem::ReadToString(file_path);
     ASSERT_TRUE(read_result.HasValue());
-    EXPECT_EQ(std::string_view(read_result->CStr(), read_result->ByteLen()), content);
+    EXPECT_EQ(StringView(read_result->CStr(), read_result->ByteLen()), content);
 }
 
 TEST_F(FileSystemReadWriteTest, WriteAndReadBinaryData)
@@ -304,7 +304,7 @@ TEST_F(FileSystemReadWriteTest, WriteStringOverwritesExistingContent)
 
     auto result = FileSystem::ReadToString(file_path);
     ASSERT_TRUE(result.HasValue());
-    EXPECT_EQ(std::string_view(result->CStr(), result->ByteLen()), "new content");
+    EXPECT_EQ(StringView(result->CStr(), result->ByteLen()), "new content");
 }
 
 TEST_F(FileSystemReadWriteTest, WriteStringCreatesParentDirectories)
@@ -464,14 +464,14 @@ protected:
 TEST_F(FileSystemUtf8Test, WriteAndReadFileWithKoreanPath)
 {
     Path korean_path = temp_dir / "한글파일.txt";
-    const std::string_view content = "한글 내용입니다.";
+    const StringView content = "한글 내용입니다.";
 
     bool write_result = FileSystem::WriteString(korean_path, content);
     ASSERT_TRUE(write_result);
 
     Optional<String> read_result = FileSystem::ReadToString(korean_path);
     ASSERT_TRUE(read_result.HasValue());
-    EXPECT_EQ(std::string_view(read_result->CStr(), read_result->ByteLen()), content);
+    EXPECT_EQ(StringView(read_result->CStr(), read_result->ByteLen()), content);
 }
 
 TEST_F(FileSystemUtf8Test, CreateDirectoryWithUnicodeName)

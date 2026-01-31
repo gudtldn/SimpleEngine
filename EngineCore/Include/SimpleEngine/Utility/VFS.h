@@ -52,13 +52,13 @@ public:
      * @param physical_path 매핑할 실제 디스크 경로
      * @param priority 우선순위. 높을수록 Unresolve 시 먼저 고려됩니다. (모딩 지원용)
      */
-    void Mount(std::string_view scheme, const Path& physical_path, int32 priority = 0);
+    void Mount(StringView scheme, const Path& physical_path, int32 priority = 0);
 
     /**
      * 마운트된 스킴을 해제합니다.
      * @param scheme 해제할 스킴
      */
-    void Unmount(std::string_view scheme);
+    void Unmount(StringView scheme);
 
     /**
      * VPath를 물리적 경로로 해석합니다.
@@ -83,7 +83,7 @@ public:
      * @param visitor 콜백 함수 (scheme, physical_path, priority)
      */
     template <typename Fn>
-        requires std::invocable<Fn, const char*, const Path&, int32>
+        requires std::invocable<Fn, StringView, const Path&, int32>
     void VisitMounts(Fn&& visitor) const;
 
 private:
@@ -103,7 +103,7 @@ private:
 // === Template Implementation ===
 
 template <typename Fn>
-    requires std::invocable<Fn, const char*, const Path&, int32>
+    requires std::invocable<Fn, StringView, const Path&, int32>
 void VFS::VisitMounts(Fn&& visitor) const
 {
     std::shared_lock lock(mutex);
@@ -111,7 +111,7 @@ void VFS::VisitMounts(Fn&& visitor) const
     {
         for (const auto& [physical_path, priority] : points)
         {
-            std::invoke(std::forward<Fn>(visitor), scheme.CStr(), physical_path, priority);
+            std::invoke(std::forward<Fn>(visitor), StringView{ scheme.CStr() }, physical_path, priority);
         }
     }
 }

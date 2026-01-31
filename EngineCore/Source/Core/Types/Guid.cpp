@@ -31,9 +31,9 @@ Guid Guid::NewGuid()
     return FromUuid(uuids::uuid_system_generator{}());
 }
 
-Guid Guid::FromString(const String& str)
+Guid Guid::FromString(const StringView& view)
 {
-    return FromUuid(uuids::uuid::from_string(str.Bytes()).value_or(uuids::uuid{}));
+    return FromUuid(uuids::uuid::from_string(std::string_view{ view }).value_or(uuids::uuid{}));
 }
 
 bool Guid::IsValid() const noexcept
@@ -45,7 +45,8 @@ bool Guid::IsValid() const noexcept
 
 String Guid::ToString() const
 {
-    return String{ uuids::to_string(ToUuid(*this)) };
+    const std::string uuid_str = uuids::to_string(ToUuid(*this));
+    return String{ uuid_str.c_str(), uuid_str.length() };
 }
 
 Guid::operator bool() const noexcept

@@ -1,6 +1,7 @@
 ﻿#include "UI/Panels/EditorConsolePanel.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -170,10 +171,10 @@ void EditorConsolePanel::Draw()
                         if (show_location)
                         {
                             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-                            const std::string_view pretty_name = entry.GetPrettyFileName();
+                            const StringView pretty_name = entry.GetPrettyFileName();
                             ImGui::Text("[%.*s:%d]",
-                                static_cast<int>(pretty_name.size()),
-                                pretty_name.data(),
+                                static_cast<int>(pretty_name.ByteLen()),
+                                pretty_name.Data(),
                                 entry.location.line()
                             );
                             ImGui::PopStyleColor();

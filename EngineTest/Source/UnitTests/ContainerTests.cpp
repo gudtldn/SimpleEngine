@@ -582,7 +582,7 @@ TEST_F(StringAPI_Test, Substrings)
     String sub2 = s.Substring(5);
     EXPECT_EQ(sub2, "56789");
 
-    std::string_view view1 = s.SubstringView(2, 5);
+    StringView view1 = s.SubstringView(2, 5);
     EXPECT_EQ(view1, "23456");
 }
 

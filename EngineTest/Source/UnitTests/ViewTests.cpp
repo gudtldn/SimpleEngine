@@ -206,20 +206,20 @@ TEST_F(StringViewAPI_Test, RFind)
 {
     StringView sv("hello");
 
-    auto pos1 = sv.RFind('l');
+    auto pos1 = sv.FindLast('l');
     EXPECT_TRUE(pos1.HasValue());
     EXPECT_EQ(pos1.Value(), 3);
 
-    auto pos2 = sv.RFind('h');
+    auto pos2 = sv.FindLast('h');
     EXPECT_TRUE(pos2.HasValue());
     EXPECT_EQ(pos2.Value(), 0);
 
-    auto pos3 = sv.RFind('x');
+    auto pos3 = sv.FindLast('x');
     EXPECT_FALSE(pos3.HasValue());
 
     // 빈 View
     StringView empty;
-    EXPECT_FALSE(empty.RFind('a').HasValue());
+    EXPECT_FALSE(empty.FindLast('a').HasValue());
 }
 
 TEST_F(StringViewAPI_Test, Comparison)

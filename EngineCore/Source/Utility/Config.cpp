@@ -23,7 +23,7 @@ ParseResult Config::ReadConfig(const VPath& config_file_path)
     return Config{ std::move(result).table() };
 }
 
-Optional<Config> Config::GetTable(std::string_view key_path) const
+Optional<Config> Config::GetTable(StringView key_path) const
 {
     if (const auto node_view = FindNode(key_path))
     {
@@ -72,8 +72,8 @@ bool Config::WriteConfig(const VPath& config_file_path) const
     return true;
 }
 
-toml::node_view<const toml::node> Config::FindNode(std::string_view path_str) const
+toml::node_view<const toml::node> Config::FindNode(StringView path_str) const
 {
-    return config_table.at_path(path_str);
+    return config_table.at_path(std::string_view{ path_str });
 }
 }  // namespace se::utility

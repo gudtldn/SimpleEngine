@@ -5,6 +5,7 @@
 
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/VFS.h"
@@ -51,7 +52,7 @@ struct VFSGuard
     {
     }
 
-    void Mount(std::string_view scheme, const std::filesystem::path& physical_path, int32_t priority = 0)
+    void Mount(StringView scheme, const std::filesystem::path& physical_path, int32_t priority = 0)
     {
         vfs.Mount(scheme, physical_path, priority);
         mounted_schemes.Insert(String(scheme));

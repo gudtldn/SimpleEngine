@@ -12,7 +12,7 @@ se::String ToString(const UnicodeString& in_ustr)
 {
     std::string result;
     in_ustr.toUTF8String(result);
-    return se::String{ result };
+    return se::String{ result.c_str(), result.size() };
 }
 }
 

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <array>
-#include <string_view>
 
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
@@ -10,16 +10,15 @@ namespace se::refl
 namespace details
 {
 /** 문자열 앞뒤의 공백을 제거합니다. */
-[[nodiscard]] consteval std::string_view TrimWhitespace(std::string_view sv) noexcept
+[[nodiscard]] consteval StringView TrimWhitespace(StringView sv) noexcept
 {
-    constexpr std::string_view whitespace_chars = " \t\n\r\f\v";
-    const usize first = sv.find_first_not_of(whitespace_chars);
-    if (first == std::string_view::npos)
+    constexpr StringView whitespace_chars = " \t\n\r\f\v";
+    if (const auto first_opt = sv.FindFirstNotOf(whitespace_chars))
     {
-        return {};
+        const auto last = sv.FindLastNotOf(whitespace_chars);
+        return sv.Substr(*first_opt, *last - *first_opt + 1);
     }
-    const usize last = sv.find_last_not_of(whitespace_chars);
-    return sv.substr(first, last - first + 1);
+    return {};
 }
 
 /** 들어온 값이 토큰 경계 문자인지 여부를 구합니다. */
@@ -41,22 +40,22 @@ namespace details
  * @return 한정자가 제거된 시그니처를 반환
  */
 template <usize N>
-consteval std::string_view RemoveKeywords(std::string_view signature, const std::array<std::string_view, N>& keywords) noexcept
+consteval StringView RemoveKeywords(StringView signature, const std::array<StringView, N>& keywords) noexcept
 {
     bool modified;
     do
     {
         modified = false;
 
-        for (const std::string_view& keyword : keywords)
+        for (const StringView& keyword : keywords)
         {
-            if (signature.starts_with(keyword))
+            if (signature.StartsWith(keyword))
             {
                 // qualifier 다음 문자가 토큰 경계인지 확인
-                const char next = signature.size() > keyword.size() ? signature[keyword.size()] : '\0';
+                const char next = signature.ByteLen() > keyword.ByteLen() ? signature[keyword.ByteLen()] : '\0';
                 if (IsTokenBoundary(next))
                 {
-                    signature.remove_prefix(keyword.size());
+                    signature.RemovePrefix(keyword.ByteLen());
                     modified = true;
                     break;
                 }
@@ -74,15 +73,14 @@ consteval std::string_view RemoveKeywords(std::string_view signature, const std:
 
 /** signature에서 namespace를 제거한 원본 타입명을 반환합니다. */
 // ReSharper disable once CppDFAUnreachableFunctionCall
-consteval std::string_view RemoveNamespace(std::string_view signature) noexcept
+consteval StringView RemoveNamespace(StringView signature) noexcept
 {
-    constexpr std::string_view ns_sep = "::";
-    const usize pos = signature.rfind(ns_sep);
-    if (pos == std::string_view::npos)
+    constexpr StringView ns_sep = "::";
+    if (const auto pos_opt = signature.FindLast(ns_sep))
     {
-        return signature;
+        return signature.Substr(*pos_opt + ns_sep.ByteLen());
     }
-    return signature.substr(pos + ns_sep.size());
+    return signature;
 }
 
 template <typename T>
@@ -113,7 +111,7 @@ using UnwrapType = UnwrapTypeImpl<std::remove_cvref_t<T>>::Type;
  * @return 컴파일러에 종속적인 함수 시그니처 문자열
  */
 template <typename T>
-consteval std::string_view GetRawTypeSignature() noexcept
+consteval StringView GetRawTypeSignature() noexcept
 {
 #if SE_COMPILER_MSVC
     return __FUNCSIG__;
@@ -125,64 +123,64 @@ consteval std::string_view GetRawTypeSignature() noexcept
 }
 
 /** MSVC 시그니처에서 타입 이름을 추출합니다. */
-consteval std::string_view ExtractType_MSVC(std::string_view signature) noexcept
+consteval StringView ExtractType_MSVC(StringView signature) noexcept
 {
-    constexpr std::string_view prefix = "GetRawTypeSignature<";
-    usize start_pos = signature.find(prefix);
-    if (start_pos == std::string_view::npos)
+    constexpr StringView prefix = "GetRawTypeSignature<";
+    auto start_pos_opt = signature.Find(prefix);
+    if (!start_pos_opt.HasValue())
     {
         return {};
     }
-    start_pos += prefix.size();
+    const usize start_pos = *start_pos_opt + prefix.ByteLen();
 
-    constexpr std::string_view suffix = ">(void) noexcept";
-    const usize end_pos = signature.rfind(suffix);
-    if (end_pos == std::string_view::npos || end_pos <= start_pos)
+    constexpr StringView suffix = ">(void) noexcept";
+    const auto end_pos_opt = signature.FindLast(suffix);
+    if (!end_pos_opt.HasValue() || *end_pos_opt <= start_pos)
     {
         return {};
     }
 
     // <>안 Type 정보만 추출
-    const std::string_view extracted_typename = TrimWhitespace(signature.substr(start_pos, end_pos - start_pos));
+    const StringView extracted_typename = TrimWhitespace(signature.Substr(start_pos, *end_pos_opt - start_pos));
     return extracted_typename;
 }
 
 /** GCC/Clang 시그니처에서 타입 이름을 추출합니다. */
-consteval std::string_view ExtractType_GCC_Clang(std::string_view signature) noexcept
+consteval StringView ExtractType_GCC_Clang(StringView signature) noexcept
 {
 #if SE_COMPILER_CLANG
-    constexpr std::string_view prefix = "[T = ";
+    constexpr StringView prefix = "[T = ";
 #else
-    constexpr std::string_view prefix = "[with T = ";
+    constexpr StringView prefix = "[with T = ";
 #endif
-    usize start_pos = signature.find(prefix);
-    if (start_pos == std::string_view::npos)
+    auto start_pos_opt = signature.Find(prefix);
+    if (!start_pos_opt.HasValue())
     {
         return {};
     }
-    start_pos += prefix.size();
+    const usize start_pos = *start_pos_opt + prefix.ByteLen();
 
 
 #if SE_COMPILER_CLANG
-    constexpr std::string_view suffix = "]";
+    constexpr StringView suffix = "]";
 #else
-    constexpr std::string_view suffix = ";";
+    constexpr StringView suffix = ";";
 #endif
-    const usize end_pos = signature.rfind(suffix);
-    if (end_pos == std::string_view::npos || end_pos <= start_pos)
+    const auto end_pos_opt = signature.FindLast(suffix);
+    if (!end_pos_opt.HasValue() || *end_pos_opt <= start_pos)
     {
         return {};
     }
 
     // [with T = ;]안 Type 정보만 추출
-    const std::string_view extracted_typename = signature.substr(start_pos, end_pos - start_pos);
+    const StringView extracted_typename = signature.Substr(start_pos, *end_pos_opt - start_pos);
     return extracted_typename;
 }
 
 
 /** 컴파일 타임에 템플릿 타입 T의 시그니처에서 이름을 추출합니다. */
 template <typename T>
-consteval std::string_view ExtractTypeName() noexcept
+consteval StringView ExtractTypeName() noexcept
 {
     constexpr auto signature = GetRawTypeSignature<T>();
 
@@ -201,7 +199,7 @@ consteval std::string_view ExtractTypeName() noexcept
  * @tparam T 이름을 추출할 대상 타입
  */
 template <typename T>
-[[nodiscard]] consteval std::string_view GetRawTypeName() noexcept
+[[nodiscard]] consteval StringView GetRawTypeName() noexcept
 {
     constexpr auto ret = details::ExtractTypeName<T>();
 
@@ -217,13 +215,13 @@ template <typename T>
  */
 template <typename T>
     requires (!se::traits::IsFunctionType<T>)
-[[nodiscard]] consteval std::string_view GetFullTypeName() noexcept
+[[nodiscard]] consteval StringView GetFullTypeName() noexcept
 {
     using CleanType = details::UnwrapType<T>;
     constexpr auto signature = details::ExtractTypeName<CleanType>();
 
     // 선행 타입 키워드 ("class", "struct", "enum", "union") 제거
-    constexpr std::array<std::string_view, 5> leading_keywords = { "class", "struct", "enum", "union", "typename" };
+    constexpr std::array<StringView, 5> leading_keywords = { "class", "struct", "enum", "union", "typename" };
     constexpr auto ret = details::RemoveKeywords(signature, leading_keywords);
 
     // IDE 버그 때문에 일단 주석
@@ -238,7 +236,7 @@ template <typename T>
  */
 template <typename T>
     requires (!se::traits::IsFunctionType<T>)
-[[nodiscard]] consteval std::string_view GetTypeName() noexcept
+[[nodiscard]] consteval StringView GetTypeName() noexcept
 {
     constexpr auto ret = GetFullTypeName<T>();
     return details::RemoveNamespace(ret);

@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
@@ -191,7 +192,7 @@ struct SE_CORE_API FileSystem
      * @param content 쓸 내용
      * @return 성공 시 true
      */
-    static bool WriteString(const Path& path, std::string_view content);
+    static bool WriteString(const Path& path, StringView content);
 
     /**
      * 바이트 배열을 파일에 씁니다. (기존 내용 덮어쓰기)

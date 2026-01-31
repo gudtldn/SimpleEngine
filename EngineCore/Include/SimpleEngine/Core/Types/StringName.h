@@ -1,9 +1,9 @@
 ﻿// ReSharper disable CppNonExplicitConvertingConstructor
 #pragma once
 #include <format>
-#include <string_view>
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -30,13 +30,13 @@ public:
      * @param in_str 찾으려는 문자열
      * @return Pool에 존재하면 StringName값을 반환, 존재하지 않으면 StringName::None을 반환
      */
-    [[nodiscard]] static StringName Find(std::string_view in_str);
+    [[nodiscard]] static StringName Find(StringView in_str);
 
 public:
     StringName() = default;
     StringName(const char* in_str);
     StringName(const String& in_str);
-    StringName(std::string_view in_str);
+    StringName(StringView in_str);
 
     [[nodiscard]] const char* CStr() const;
     [[nodiscard]] String ToString() const;
@@ -63,10 +63,10 @@ struct std::hash<se::StringName>
 
 // StringName에 대한 std::formatter 특수화
 template <>
-struct std::formatter<se::StringName, char> : std::formatter<std::string_view>
+struct std::formatter<se::StringName, char> : std::formatter<se::StringView>
 {
     auto format(const se::StringName& name, std::format_context& ctx) const
     {
-        return std::formatter<std::string_view>::format(name.CStr(), ctx);
+        return std::formatter<se::StringView>::format(name.CStr(), ctx);
     }
 };

@@ -150,7 +150,7 @@ TEST_F(ExpectedAPI_Test, AndThen)
 {
     auto then_func_ok = [](int i) -> Expected<String, TestError>
     {
-        return std::to_string(i);
+        return std::to_string(i).data();
     };
     auto then_func_err = []([[maybe_unused]] int i) -> Expected<String, TestError>
     {

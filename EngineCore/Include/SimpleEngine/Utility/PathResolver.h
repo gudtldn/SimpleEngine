@@ -15,7 +15,7 @@ namespace se::utility
  * VPath(가상 경로)를 실제 물리적 파일 시스템 경로로 변환하는 유틸리티 클래스.
  * 엔진 초기화 시점에 설정되어 전역적으로 경로 해석을 제공합니다.
  */
-class SE_CORE_API PathResolver
+class SE_CORE_API [[deprecated]] PathResolver
 {
     PathResolver() = default;
 

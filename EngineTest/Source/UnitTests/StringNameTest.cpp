@@ -97,7 +97,7 @@ TEST_F(StringNameTest, IsThreadSafe)
     constexpr int num_threads = 16;
     constexpr int num_iterations_per_thread = 1000;
 
-    const std::vector<std::string_view> test_strings = {
+    const std::vector<StringView> test_strings = {
         "PlayerCharacter", "playercharacter", "EnemyAIController",
         "RenderComponent", "RENDERCOMPONENT", "PhysicsSystem",
         "AudioEmitter", "GameInstance", "NONE"

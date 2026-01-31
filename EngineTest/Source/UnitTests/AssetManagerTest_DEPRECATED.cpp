@@ -111,7 +111,7 @@ protected:
 
         // 3. 실제 파일 생성
         const auto physical_path = vpath.ToPath();
-        FileSystem::WriteString(physical_path, std::to_string(content));
+        FileSystem::WriteString(physical_path, std::to_string(content).data());
 
         // 4. 생성된 핸들 반환
         return AssetHandle<DummyAsset>{ guid };

@@ -3,6 +3,7 @@
 #include "Core/Types/Guid.h"
 #include "Core/Types/StringName.h"
 #include "Utility/Debug.h"
+#include "Utility/StringUtils.h"
 
 
 namespace se::core
@@ -35,7 +36,7 @@ TomlReader::TomlReader(const toml::table& root)
 void TomlReader::BeginNode()
 {
     const Context& ctx = GetCurrentContext();
-    if (!ctx.IsArray() && pending_key.empty())
+    if (!ctx.IsArray() && pending_key.IsEmpty())
     {
         context_stack.Push(ctx);
         return;
@@ -119,30 +120,30 @@ OVERRIDE_TOML_READ(bool)
 
 Archive& TomlReader::operator<<(String& value)
 {
-    std::string_view sv;
+    std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = sv;
+        value = utility::ToString(sv);
     }
     return *this;
 }
 
 Archive& TomlReader::operator<<(StringName& value)
 {
-    std::string_view sv;
+    std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = sv;
+        value = utility::ToString(sv);
     }
     return *this;
 }
 
 Archive& TomlReader::operator<<(Guid& value)
 {
-    std::string_view sv;
+    std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = Guid::FromString(sv);
+        value = Guid::FromString(utility::ToString(sv));
     }
     return *this;
 }
@@ -167,7 +168,7 @@ toml::node* TomlReader::GetCurrentNode()
     }
 
     // 테이블 모드: 키(Hint)로 접근
-    if (!pending_key.empty())
+    if (!pending_key.IsEmpty())
     {
         toml::node* node = ctx.node->as_table()->get(pending_key);
         pending_key = ""; // 키 소비
@@ -190,7 +191,7 @@ void TomlWriter::BeginNode()
     const Context& ctx = GetCurrentContext();
 
     //  현재가 테이블(Table) 내부인데, 키(pending_key)가 없다면 Root 테이블로 취급
-    if (!ctx.IsArray() && pending_key.empty())
+    if (!ctx.IsArray() && pending_key.IsEmpty())
     {
         context_stack.Push(ctx);
         return;
@@ -243,7 +244,7 @@ OVERRIDE_TOML_WRITE(bool)
 
 Archive& TomlWriter::operator<<(String& value)
 {
-    WriteValue(value.Bytes());
+    WriteValue(std::string_view{ value.Bytes() });
     return *this;
 }
 

@@ -2,6 +2,7 @@
 
 #include <compare>
 
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Utility/FileSystem.h"
@@ -81,7 +82,7 @@ void AssetsBrowserPanel::Draw()
 
 void AssetsBrowserPanel::DrawAssetTree()
 {
-    VFS::Get().VisitMounts([this](std::string_view scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
+    VFS::Get().VisitMounts([this](StringView scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
         if (GetSelectedDirPath() == physical_path)
