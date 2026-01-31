@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -7,6 +9,69 @@
 
 namespace se
 {
+/**
+ * 파일 또는 디렉토리의 정보를 담고 있는 구조체
+ */
+class SE_CORE_API DirectoryEntry
+{
+public:
+    DirectoryEntry() = default;
+    explicit DirectoryEntry(std::filesystem::directory_entry entry);
+
+    /** 엔트리의 경로를 반환합니다. */
+    [[nodiscard]] Path GetPath() const;
+
+    /** 디렉토리인지 확인합니다. */
+    [[nodiscard]] bool IsDirectory() const;
+
+    /** 일반 파일인지 확인합니다. */
+    [[nodiscard]] bool IsFile() const;
+
+    /** 심볼릭 링크인지 확인합니다. */
+    [[nodiscard]] bool IsSymlink() const;
+
+    /** 파일 크기를 반환합니다. (파일이 아닌 경우 0) */
+    [[nodiscard]] usize FileSize() const;
+
+private:
+    std::filesystem::directory_entry internal_entry;
+};
+
+
+/**
+ * 특정 경로 내의 디렉터리 항목들을 순회하는 Iterator
+ */
+class SE_CORE_API DirectoryIterator
+{
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = DirectoryEntry;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const DirectoryEntry*;
+    using reference = const DirectoryEntry&;
+
+    DirectoryIterator() = default;
+    explicit DirectoryIterator(const Path& path);
+
+    DirectoryIterator& operator++();
+    DirectoryIterator operator++(int);
+
+    [[nodiscard]] reference operator*() const { return current_entry; }
+    [[nodiscard]] pointer operator->() const { return &current_entry; }
+
+    [[nodiscard]] bool operator==(const DirectoryIterator& other) const;
+    [[nodiscard]] bool operator!=(const DirectoryIterator& other) const { return !(*this == other); }
+
+    [[nodiscard]] DirectoryIterator begin() const { return *this; }
+    [[nodiscard]] DirectoryIterator end() const { return {}; }
+
+private:
+    std::filesystem::directory_iterator internal_iter;
+    DirectoryEntry current_entry;
+    bool is_end = true;
+};
+
+
 /**
  * 파일시스템 I/O 작업을 위한 유틸리티
  */
@@ -98,5 +163,16 @@ struct SE_CORE_API FileSystem
      * @return 파일 크기. 실패 시 nullopt
      */
     [[nodiscard]] static Optional<usize> FileSize(const Path& path);
+
+
+    // =========================================================================
+    // Directory Iteration
+    // =========================================================================
+
+    /**
+     * 디렉토리 내 엔트리를 순회합니다.
+     * @param path 디렉토리 경로
+     */
+    [[nodiscard]] static DirectoryIterator ReadDir(const Path& path);
 };
 }  // namespace se

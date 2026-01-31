@@ -41,17 +41,16 @@ void EditorAssetSubsystem::RefreshRegistry()
             return;
         }
 
-        std::error_code ec;
-        for (const auto& entry : fs::directory_iterator(physical_path, ec))
+        for (const auto& entry : FileSystem::ReadDir(physical_path))
         {
             // 폴더 건너뛰기
-            if (ec || entry.is_directory())
+            if (entry.IsDirectory())
             {
                 continue;
             }
 
             // .meta 파일은 건너뛰기
-            const Path path = entry.path();
+            const Path path = entry.GetPath();
             if (path.Extension().ValueOrDefault() == ".meta")
             {
                 continue;

@@ -139,15 +139,9 @@ void AssetsBrowserPanel::DrawAssetGrid()
 
     // 파일 목록 수집
     Array<AssetItem> items;
-    std::error_code ec;
-    for (const auto& entry : fs::directory_iterator(current_path, ec))
+    for (const auto& entry : FileSystem::ReadDir(current_path))
     {
-        if (ec)
-        {
-            continue;
-        }
-
-        Path item_path = entry.path();
+        Path item_path = entry.GetPath();
 
         // .meta 파일 숨기기
         if (item_path.Extension().ValueOrDefault() == ".meta")
@@ -159,7 +153,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
         items.Push({
             .path = std::move(item_path),
             .name = std::move(item_name),
-            .is_directory = entry.is_directory()
+            .is_directory = entry.IsDirectory()
         });
     }
 
@@ -246,16 +240,14 @@ void AssetsBrowserPanel::DrawAssetGrid()
 
 bool AssetsBrowserPanel::HasSubDirectories(const Path& path)
 {
-    std::error_code ec;
-    return std::ranges::any_of(fs::directory_iterator(path, ec), [&ec, &path](const auto& entry)
+    for (const auto& entry : FileSystem::ReadDir(path))
     {
-        if (ec)
+        if (entry.IsDirectory())
         {
-            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path);
-            return false;
+            return true;
         }
-        return entry.is_directory();
-    });
+    }
+    return false;
 }
 
 const Path& AssetsBrowserPanel::GetSelectedDirPath() const noexcept
@@ -270,21 +262,14 @@ void AssetsBrowserPanel::SetSelectedDirPath(const Path& new_path) noexcept
 
 void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
 {
-    std::error_code ec;
-    for (const auto& entry : fs::directory_iterator(path, ec))
+    for (const auto& entry : FileSystem::ReadDir(path))
     {
-        if (ec)
-        {
-            ConsoleLog(ELogLevel::Warning, "Failed to read directory: {}", path);
-            continue;
-        }
-
-        if (!entry.is_directory())
+        if (!entry.IsDirectory())
         {
             continue;
         }
 
-        const Path entry_path = entry.path();
+        const Path entry_path = entry.GetPath();
         const String folder_name = entry_path.FileName().ValueOr("(Unknown)");
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
