@@ -7,7 +7,6 @@
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 
 using namespace se;
-using namespace se::core;
 using namespace se::ecs;
 using namespace se::ecs::schedule;
 

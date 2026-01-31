@@ -9,7 +9,7 @@
 #endif
 
 
-namespace se::core
+namespace se
 {
 bool LogSettings::DetectColorSupport()
 {

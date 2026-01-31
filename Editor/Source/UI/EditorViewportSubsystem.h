@@ -30,7 +30,7 @@ struct ViewportRenderInfo
 /**
  * @todo docs
  */
-class EditorViewportSubsystem : public core::ISubsystem
+class EditorViewportSubsystem : public ISubsystem
 {
 public:
     [[nodiscard]] virtual bool Initialize() override;

@@ -5,7 +5,7 @@
 #include "Utility/Debug.h"
 
 
-namespace se::core
+namespace se
 {
 usize MemoryArchive::Tell() const
 {

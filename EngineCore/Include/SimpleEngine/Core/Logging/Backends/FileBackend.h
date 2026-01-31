@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Types/Path.h"
 
 
-namespace se::core
+namespace se
 {
 class SE_CORE_API FileBackend : public ILogBackend
 {
@@ -33,4 +33,4 @@ private:
     usize current_file_size = 0;
     constexpr static usize max_file_size = 10ULL * 1024 * 1024; // 10MB
 };
-}  // namespace se::core
+}  // namespace se

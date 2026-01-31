@@ -10,7 +10,7 @@
 #include "SimpleEngine/Core/Logging/LogLevel.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * LogLevel과 std::source_location 정보를 저장하는 구조체

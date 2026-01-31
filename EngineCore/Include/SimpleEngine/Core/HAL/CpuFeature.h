@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * CPU의 하드웨어 기능 지원 여부를 제공하는 구조체

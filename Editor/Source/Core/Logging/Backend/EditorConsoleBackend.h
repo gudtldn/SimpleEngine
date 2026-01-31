@@ -11,21 +11,21 @@ namespace se::editor
 /**
  * @todo docs
  */
-class EditorConsoleBackend : public core::ILogBackend
+class EditorConsoleBackend : public ILogBackend
 {
 public:
     //~ ILogBackend
-    virtual void WriteLog(const core::LogEntry& entry) override;
+    virtual void WriteLog(const LogEntry& entry) override;
     virtual void Flush() override;
     //~ ILogBackend
 
     void Clear();
-    void ReadLogs(const Function<void(const Deque<core::LogEntry>&)>& visitor) const;
+    void ReadLogs(const Function<void(const Deque<LogEntry>&)>& visitor) const;
 
 private:
     static constexpr usize MAX_LOG_LINES = 2000;
 
 private:
-    Deque<core::LogEntry> log_history;
+    Deque<LogEntry> log_history;
 };
 }  // namespace se::editor

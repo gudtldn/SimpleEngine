@@ -2,7 +2,7 @@
 #include "Utility/FileSystem.h"
 
 
-namespace se::core
+namespace se
 {
 FileBackend::FileBackend()
 {
@@ -88,4 +88,4 @@ bool FileBackend::CheckRotation() const
 {
     return current_file_size > max_file_size;
 }
-}  // namespace se::core
+}  // namespace se

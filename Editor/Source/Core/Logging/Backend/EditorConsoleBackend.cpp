@@ -3,7 +3,7 @@
 
 namespace se::editor
 {
-void EditorConsoleBackend::WriteLog(const core::LogEntry& entry)
+void EditorConsoleBackend::WriteLog(const LogEntry& entry)
 {
     if (log_history.Len() >= MAX_LOG_LINES)
     {
@@ -22,7 +22,7 @@ void EditorConsoleBackend::Clear()
     log_history.Clear();
 }
 
-void EditorConsoleBackend::ReadLogs(const Function<void(const Deque<core::LogEntry>&)>& visitor) const
+void EditorConsoleBackend::ReadLogs(const Function<void(const Deque<LogEntry>&)>& visitor) const
 {
     if (visitor)
     {

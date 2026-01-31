@@ -9,7 +9,7 @@
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
-namespace se::core
+namespace se
 {
 class SE_CORE_API LogBackendManager
 {

@@ -5,7 +5,7 @@
 
 namespace se::editor
 {
-class EditorSubsystem : public core::ISubsystem
+class EditorSubsystem : public ISubsystem
 {
 public:
     [[nodiscard]] virtual bool Initialize() override;

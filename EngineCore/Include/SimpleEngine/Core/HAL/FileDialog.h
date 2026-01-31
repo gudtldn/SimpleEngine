@@ -5,7 +5,7 @@
 #include "SDL3/SDL.h"
 
 
-namespace se::core
+namespace se
 {
 struct FileFilter
 {
@@ -66,4 +66,4 @@ public:
         SDL_Window* window = nullptr
     );
 };
-}  // namespace se::core
+}  // namespace se

@@ -10,7 +10,7 @@
 #undef TOML_EXCEPTIONS
 
 
-namespace se::core
+namespace se
 {
 /**
  * toml++ 라이브러리를 기반으로 하는 TOML 직렬화 시스템의 기반 클래스
@@ -172,4 +172,4 @@ private:
         return it->second.template as<NodeType>();
     }
 };
-}  // namespace se::core
+}  // namespace se

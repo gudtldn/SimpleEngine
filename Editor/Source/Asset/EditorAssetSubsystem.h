@@ -7,7 +7,7 @@
 
 namespace se::editor::asset
 {
-class EditorAssetSubsystem : public core::ISubsystem
+class EditorAssetSubsystem : public ISubsystem
 {
 public:
     [[nodiscard]] virtual bool Initialize() override;

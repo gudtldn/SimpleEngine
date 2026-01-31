@@ -23,10 +23,10 @@ public:
     [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;
 
     /** ImportSettings를 Archive로 직렬화합니다. */
-    virtual void Serialize(core::Archive& ar) = 0;
+    virtual void Serialize(Archive& ar) = 0;
 
 public:
-    friend void Serialize(core::Archive& ar, IAssetImportSettings& settings)
+    friend void Serialize(Archive& ar, IAssetImportSettings& settings)
     {
         settings.Serialize(ar);
     }

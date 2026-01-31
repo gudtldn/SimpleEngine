@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
 
-namespace se::core
+namespace se
 {
 class SE_CORE_API MemoryArchive : public Archive
 {

@@ -18,7 +18,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core
+namespace se
 {
 Engine* Engine::Instance = nullptr;
 
@@ -267,4 +267,4 @@ bool Engine::SortSubsystems()
 
     return true;
 }
-}  // namespace se::core
+}  // namespace se

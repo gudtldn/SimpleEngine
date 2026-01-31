@@ -12,7 +12,6 @@
 #undef TOML_EXCEPTIONS
 
 using namespace se;
-using namespace se::core;
 
 class TomlArchiveTest : public ::testing::Test
 {

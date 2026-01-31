@@ -9,7 +9,7 @@ namespace se
 /**
  *
  */
-class SE_CORE_API WorldSubsystem : public se::core::ISubsystem, public se::core::IUpdatable
+class SE_CORE_API WorldSubsystem : public se::ISubsystem, public se::IUpdatable
 {
 public:
     //~ Begin ISubsystem

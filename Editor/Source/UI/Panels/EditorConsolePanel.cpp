@@ -51,7 +51,7 @@ const char* EditorConsolePanel::GetName() const
 
 void EditorConsolePanel::Draw()
 {
-    EditorConsoleBackend* backend = se::core::LogBackendManager::Get().GetBackend<EditorConsoleBackend>();
+    EditorConsoleBackend* backend = se::LogBackendManager::Get().GetBackend<EditorConsoleBackend>();
     if (!backend)
     {
         ConsoleLog(ELogLevel::Error, "Failed to get editor console backend!");
@@ -115,7 +115,7 @@ void EditorConsolePanel::Draw()
         // 스크롤 영역 시작
         if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
         {
-            backend->ReadLogs([this](const Deque<se::core::LogEntry>& entries)
+            backend->ReadLogs([this](const Deque<se::LogEntry>& entries)
             {
                 if (entries.Len() != last_log_count)
                 {
@@ -200,7 +200,7 @@ void EditorConsolePanel::Draw()
     ImGui::End();
 }
 
-void EditorConsolePanel::RefreshFilterList(const Deque<se::core::LogEntry>& logs)
+void EditorConsolePanel::RefreshFilterList(const Deque<se::LogEntry>& logs)
 {
     cached_indices.Clear();
     cached_indices.Reserve(logs.Len());

@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace se::core
+namespace se
 {
 /**
  * 매 프레임 논리적 업데이트가 필요한 객체들이 구현해야 하는 인터페이스

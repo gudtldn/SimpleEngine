@@ -12,7 +12,7 @@
 
 namespace se
 {
-class SE_CORE_API RenderSubsystem : public core::ISubsystem
+class SE_CORE_API RenderSubsystem : public ISubsystem
 {
 public:
     [[nodiscard]] virtual bool Initialize() override;

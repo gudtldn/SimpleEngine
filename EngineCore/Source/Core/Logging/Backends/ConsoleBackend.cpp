@@ -20,7 +20,7 @@ constexpr const char* COLOR_RESET = "\x1b[0m";    // Reset
 
 const char* GetColorForLevel(se::ELogLevel level)
 {
-    if (!se::core::LogSettings::IsColorEnabled() || !se::core::LogSettings::DetectColorSupport())
+    if (!se::LogSettings::IsColorEnabled() || !se::LogSettings::DetectColorSupport())
     {
         return "";
     }
@@ -37,7 +37,7 @@ const char* GetColorForLevel(se::ELogLevel level)
 }
 }
 
-namespace se::core
+namespace se
 {
 void ConsoleBackend::WriteLog(const LogEntry& entry)
 {

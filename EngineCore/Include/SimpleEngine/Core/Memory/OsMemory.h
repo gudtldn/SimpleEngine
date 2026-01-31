@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Memory/MemoryConfig.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * 운영체제의 메모리 할당/해제(malloc, free)를 추상화한 클래스
@@ -100,4 +100,4 @@ T* OsMemory::Allocate(usize count, usize alignment)
 {
     return static_cast<T*>(Allocate(sizeof(T) * count, alignment));
 }
-}  // namespace se::core
+}  // namespace se

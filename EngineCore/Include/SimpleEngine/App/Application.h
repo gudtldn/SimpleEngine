@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 // forward declaration
-namespace se::core
+namespace se
 {
 class Engine;
 }
@@ -98,7 +98,7 @@ public:
     }
 
 protected:
-    std::unique_ptr<core::Engine> engine_instance;
+    std::unique_ptr<Engine> engine_instance;
     EApplicationMode application_mode;
 
 private:

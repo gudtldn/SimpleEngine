@@ -8,7 +8,7 @@
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
-namespace se::core
+namespace se
 {
 class ISubsystem;
 
@@ -107,4 +107,4 @@ void SubsystemBuilder<Subsystem>::AddDependency()
 
 /** 서브시스템 클래스의 .cpp 파일 내에서 이 매크로를 호출하여 해당 서브시스템을 엔진에 자동 등록합니다. */
 #define SE_REGISTER_SUBSYSTEM(type) \
-    static const auto type##_Registrar = ::se::core::detail::SubsystemRegistry::Register<type>()
+    static const auto type##_Registrar = ::se::detail::SubsystemRegistry::Register<type>()

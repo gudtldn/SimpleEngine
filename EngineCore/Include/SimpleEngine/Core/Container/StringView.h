@@ -14,13 +14,10 @@ namespace se
 template <typename Allocator>
 class BaseString;
 
-namespace core
-{
 template <typename T>
 class DefaultAllocator;
-} // namespace core
 
-using String = BaseString<core::DefaultAllocator<char>>;
+using String = BaseString<DefaultAllocator<char>>;
 
 
 /**

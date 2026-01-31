@@ -163,9 +163,9 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
     if constexpr (std::same_as<T, float>)
     {
 #if SE_ARCH_X86_FAMILY
-        if (core::CpuFeature::HasSSE4_1())
+        if (CpuFeature::HasSSE4_1())
         {
-            if (core::CpuFeature::HasFMA3())
+            if (CpuFeature::HasFMA3())
             {
                 detail::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
             }
@@ -177,7 +177,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
         }
         // TODO: 다른 SIMD 버전에 대해서 구현
 #elif SE_ARCH_ARM_FAMILY
-        if (core::CpuFeature::HasNEON())
+        if (CpuFeature::HasNEON())
         {
             // TODO: NEON 구현 추가
         }
@@ -186,7 +186,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
     else if constexpr (std::same_as<T, double>)
     {
 #if SE_ARCH_X86_FAMILY
-        if (core::CpuFeature::HasAVX() && core::CpuFeature::HasFMA3())
+        if (CpuFeature::HasAVX() && CpuFeature::HasFMA3())
         {
             detail::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);
             return result;

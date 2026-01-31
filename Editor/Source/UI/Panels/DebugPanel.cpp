@@ -49,8 +49,8 @@ void DebugPanel::Draw()
 
         if (ImGui::CollapsingHeader("Memory Stats", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Text("Total CPU Allocated: %s", FormatBytes(core::MemoryStats::GetTotalCpuAllocated()).CStr());
-            ImGui::Text("Total GPU Allocated: %s", FormatBytes(core::MemoryStats::GetTotalGpuAllocated()).CStr());
+            ImGui::Text("Total CPU Allocated: %s", FormatBytes(MemoryStats::GetTotalCpuAllocated()).CStr());
+            ImGui::Text("Total GPU Allocated: %s", FormatBytes(MemoryStats::GetTotalGpuAllocated()).CStr());
 
             if (ImGui::BeginTable("MemoryTags", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
             {
@@ -59,7 +59,7 @@ void DebugPanel::Draw()
                 ImGui::TableSetupColumn("GPU Allocated");
                 ImGui::TableHeadersRow();
 
-                for (const auto& [name, cpu_allocated, gpu_allocated] : core::MemoryStats::GetTags())
+                for (const auto& [name, cpu_allocated, gpu_allocated] : MemoryStats::GetTags())
                 {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);

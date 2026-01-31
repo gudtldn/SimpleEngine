@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * Engine에서 사용되는 Subsystem의 기본 구조를 정의하는 인터페이스 클래스

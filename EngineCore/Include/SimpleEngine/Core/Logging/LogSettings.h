@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * 색상 설정 관리 클래스

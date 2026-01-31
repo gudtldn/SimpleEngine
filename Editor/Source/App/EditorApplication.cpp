@@ -25,7 +25,6 @@ EditorApplication::EditorApplication()
 void EditorApplication::Startup(const String& cmd_line)
 {
     {
-        using namespace core;
         LogBackendManager& manager = LogBackendManager::Get();
 
         manager.AddBackend<EditorConsoleBackend>();

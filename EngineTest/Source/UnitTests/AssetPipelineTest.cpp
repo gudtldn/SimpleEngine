@@ -22,7 +22,7 @@ struct MockImportSettings : public ImportSettings<MockImportSettings>
 {
     bool combine_meshes = true;
 
-    virtual void Serialize([[maybe_unused]] core::Archive& ar) override {}
+    virtual void Serialize([[maybe_unused]] Archive& ar) override {}
 };
 
 // 테스트용 간단한 Translator
