@@ -24,7 +24,7 @@ constexpr double PI_DOUBLE = PI_V<double>;
 
 
 // TODO: C++26 컴파일러 나오면 기본 std 함수로 대체
-namespace details
+namespace detail
 {
 template <typename T>
 constexpr T AbsImpl(const T value)
@@ -140,7 +140,7 @@ template <typename T>
 {
     return (sign >= T(0)) ? AbsImpl(num) : -AbsImpl(num);
 }
-}  // namespace details
+}  // namespace detail
 
 
 /** 두 값중에 더 작은 값을 반환합니다. */
@@ -188,7 +188,7 @@ template <traits::FloatingType T>
 {
     if consteval
     {
-        return details::IsFinite(value);
+        return detail::IsFinite(value);
     }
     return std::isfinite(value);
 }
@@ -203,7 +203,7 @@ template <traits::FloatingType T>
 {
     if consteval
     {
-        return details::Pow(a, b);
+        return detail::Pow(a, b);
     }
     return std::pow(a, b);
 }
@@ -214,7 +214,7 @@ template <traits::FloatingType T>
 {
     if consteval
     {
-        return details::Sqrt(value);
+        return detail::Sqrt(value);
     }
     return std::sqrt(value);
 }
@@ -228,7 +228,7 @@ template <traits::FloatingType T>
 {
     if consteval
     {
-        return details::Fmod(value, mod);
+        return detail::Fmod(value, mod);
     }
     return std::fmod(value, mod);
 }
@@ -260,7 +260,7 @@ template <traits::FloatingType T>
 {
     if consteval
     {
-        return details::CopySign(num, sign);
+        return detail::CopySign(num, sign);
     }
     return std::copysign(num, sign);
 }

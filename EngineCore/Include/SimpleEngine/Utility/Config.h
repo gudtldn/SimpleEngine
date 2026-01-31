@@ -26,7 +26,7 @@ class Config;
 
 /**
  * TOML 파일 파싱 결과를 나타내는 타입입니다.
- * @details 성공 시 Config 객체를, 실패 시 toml::parse_error를 반환합니다.
+ * @detail 성공 시 Config 객체를, 실패 시 toml::parse_error를 반환합니다.
  */
 using ParseResult = Expected<Config, toml::parse_error>;
 

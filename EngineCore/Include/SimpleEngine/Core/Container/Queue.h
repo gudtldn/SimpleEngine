@@ -7,7 +7,7 @@ namespace se
 {
 /**
  * FIFO(First-In, First-Out) 정책을 따르는 컨테이너 어댑터
- * @details 내부적으로 se::Deque를 사용하여 구현됩니다
+ * @detail 내부적으로 se::Deque를 사용하여 구현됩니다
  * @tparam T 요소의 타입
  * @tparam Container 내부적으로 사용할 컨테이너의 타입. (se::Deque<T>와 호환되어야 합니다.)
  */

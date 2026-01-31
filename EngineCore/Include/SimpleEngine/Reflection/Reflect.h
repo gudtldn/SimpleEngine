@@ -14,13 +14,13 @@
 
 // TODO: C++26되면 여기 파일 전체 수정해야 함
 
-namespace se::refl::details
+namespace se::refl::detail
 {
 template <typename T, typename... Tags>
 consteval BitFlags<ETypeFlags> MakeTypeFlags(Tags&&... tags)
 {
     using namespace se::meta;
-    using namespace se::meta::details;
+    using namespace se::meta::detail;
 
     BitFlags<ETypeFlags> flags;
     auto process_tag = [&flags]<typename Tag>([[maybe_unused]] Tag&& tag)
@@ -64,7 +64,7 @@ template <typename... Tags>
 consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
 {
     using namespace se::meta;
-    using namespace se::meta::details;
+    using namespace se::meta::detail;
 
     PropertyMetadata meta{};
     auto process_tag = [&meta]<typename Tag>(Tag&& tag)
@@ -119,7 +119,7 @@ consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
     (process_tag(std::forward<Tags>(tags)), ...);
     return meta;
 }
-} // namespace se::refl::details
+} // namespace se::refl::detail
 
 
 /** 타입의 리플렉션 정보 등록을 시작합니다. */
@@ -131,7 +131,7 @@ inline static const struct type##_Registrar \
     type##_Registrar() \
     { \
         using T = type; \
-        constexpr auto type_flags = ::se::refl::details::MakeTypeFlags<T>(__VA_ARGS__); \
+        constexpr auto type_flags = ::se::refl::detail::MakeTypeFlags<T>(__VA_ARGS__); \
         ::se::Array<::se::refl::PropertyInfo> properties;
 
 /** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */ // TODO: 추후 offset 대신 멤버 포인터를 저장
@@ -141,7 +141,7 @@ inline static const struct type##_Registrar \
             /* .size     = */ sizeof(T::property_name), \
             /* .offset   = */ offsetof(T, property_name), \
             /* .type_id  = */ ::se::refl::TypeId::Get<decltype(T::property_name)>(), \
-            /* .metadata = */ ::se::refl::details::MakePropertyMetadata(__VA_ARGS__) \
+            /* .metadata = */ ::se::refl::detail::MakePropertyMetadata(__VA_ARGS__) \
         );
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */

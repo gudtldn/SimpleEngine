@@ -12,7 +12,7 @@ namespace se::core
 {
 class ISubsystem;
 
-namespace details
+namespace detail
 {
 /**
  * Subsystem 생성 및 의존성 정보를 담는 메타데이터
@@ -107,4 +107,4 @@ void SubsystemBuilder<Subsystem>::AddDependency()
 
 /** 서브시스템 클래스의 .cpp 파일 내에서 이 매크로를 호출하여 해당 서브시스템을 엔진에 자동 등록합니다. */
 #define SE_REGISTER_SUBSYSTEM(type) \
-    static const auto type##_Registrar = ::se::core::details::SubsystemRegistry::Register<type>()
+    static const auto type##_Registrar = ::se::core::detail::SubsystemRegistry::Register<type>()

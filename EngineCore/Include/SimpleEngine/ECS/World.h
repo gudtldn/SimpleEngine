@@ -25,7 +25,7 @@ template <typename... Ts>
 class Query;
 
 
-namespace details
+namespace detail
 {
 template <typename Fn>
 concept SystemFuncType = traits::IsFunctionType<Fn>
@@ -151,11 +151,11 @@ public:
 
     /**
      * 지정된 스케줄 단계에 시스템을 추가합니다.
-     * @details 시스템은 함수 시그니처를 분석하여 필요한 자원(Query, World* 등)을 자동으로 주입받습니다.
+     * @detail 시스템은 함수 시그니처를 분석하여 필요한 자원(Query, World* 등)을 자동으로 주입받습니다.
      * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
      * @tparam Fn 시스템으로 등록할 함수 또는 람다
      */
-    template <schedule::ScheduleType S, details::SystemFuncType Fn>
+    template <schedule::ScheduleType S, detail::SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
         const auto type_id = refl::TypeId::Get<S>();

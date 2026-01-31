@@ -19,7 +19,7 @@ class BaseString;
 using String = BaseString<core::DefaultAllocator<char>>;
 
 
-namespace details
+namespace detail
 {
 // --- 코드 포인트 이터레이터 ---
 class SE_CORE_API CodePointIterator
@@ -72,7 +72,7 @@ public:
 private:
     StringView view;
 };
-}  // namespace details
+}  // namespace detail
 
 /**
  * UTF-8 인코딩을 네이티브로 지원하는 동적 문자열 클래스
@@ -345,7 +345,7 @@ public:
      * for (char32 cp : my_string.CodePoints()) { ... }
      * @endcode
      */
-    [[nodiscard]] details::CodePointView CodePoints() const;
+    [[nodiscard]] detail::CodePointView CodePoints() const;
 
     /**
      * 바이트(코드 유닛) 단위로 순회할 수 있는 뷰를 반환합니다.

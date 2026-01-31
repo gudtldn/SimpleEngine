@@ -7,7 +7,7 @@
 
 namespace se::utility
 {
-namespace details
+namespace detail
 {
 constexpr uint64 DefaultFNVHash = 0xcbf29ce484222325ULL;
 constexpr uint64 FNV_Prime = 0x100000001b3ULL;
@@ -27,20 +27,20 @@ constexpr uint64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcep
     }
     return hash;
 }
-}  // namespace details
+}  // namespace detail
 
 template <typename T>
     requires std::is_convertible_v<T, StringView>
 constexpr uint64 FNV_Hash(const T& str) noexcept
 {
-    return details::FNV_Hash_Impl(StringView{ str }, [](auto c) { return c; });
+    return detail::FNV_Hash_Impl(StringView{ str }, [](auto c) { return c; });
 }
 
 template <typename T>
     requires std::is_convertible_v<T, StringView>
 constexpr uint64 FNV_Hash_CaseInsensitive(const T& str) noexcept
 {
-    return details::FNV_Hash_Impl(StringView{ str }, [](auto c)
+    return detail::FNV_Hash_Impl(StringView{ str }, [](auto c)
     {
         return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
     });

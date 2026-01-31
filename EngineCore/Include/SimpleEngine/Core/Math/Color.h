@@ -7,7 +7,7 @@ namespace se::math
 {
 struct Color;
 
-namespace details
+namespace detail
 {
 /** sRGB -> Linear 변환 */
 constexpr float SrgbToLinear(float val)
@@ -42,7 +42,7 @@ consteval FixedArray<float, 256> CreateSRGBToLinearTable()
     }
     return table;
 }
-}  // namespace details
+}  // namespace detail
 
 /**
  * float 기반 색상 구조체 (R, G, B, A)
@@ -51,7 +51,7 @@ struct LinearColor
 {
     float r, g, b, a;
 
-    static constexpr FixedArray<float, 256> SRGB_TO_LINEAR_TABLE = details::CreateSRGBToLinearTable();
+    static constexpr FixedArray<float, 256> SRGB_TO_LINEAR_TABLE = detail::CreateSRGBToLinearTable();
 
 public:
     constexpr LinearColor()
@@ -357,9 +357,9 @@ constexpr Color LinearColor::ToColor(bool is_srgb) const
     LinearColor clamped = GetClamped();
     if (is_srgb)
     {
-        clamped.r = details::LinearToSrgb(clamped.r);
-        clamped.g = details::LinearToSrgb(clamped.g);
-        clamped.b = details::LinearToSrgb(clamped.b);
+        clamped.r = detail::LinearToSrgb(clamped.r);
+        clamped.g = detail::LinearToSrgb(clamped.g);
+        clamped.b = detail::LinearToSrgb(clamped.b);
     }
 
     // NOLINTBEGIN(*-incorrect-roundings)

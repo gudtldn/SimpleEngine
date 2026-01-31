@@ -12,7 +12,7 @@
 
 namespace se::math::simd
 {
-namespace details
+namespace detail
 {
 /** SIMD를 사용할 수 없을 때를 위한 Matrix4x4 곱셈 대체 구현 */
 template <traits::FloatingType T>
@@ -167,11 +167,11 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
         {
             if (core::CpuFeature::HasFMA3())
             {
-                details::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
+                detail::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
             }
             else
             {
-                details::Matrix4x4MultiplySSEImpl(lhs_ptr, rhs_ptr, result_ptr);
+                detail::Matrix4x4MultiplySSEImpl(lhs_ptr, rhs_ptr, result_ptr);
             }
             return result;
         }
@@ -188,7 +188,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
 #if SE_ARCH_X86_FAMILY
         if (core::CpuFeature::HasAVX() && core::CpuFeature::HasFMA3())
         {
-            details::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);
+            detail::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);
             return result;
         }
         // TODO: 다른 SIMD 버전에 대해서 구현
@@ -196,7 +196,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
     }
 
     // SIMD 미지원 시 일반 구현 사용
-    details::Matrix4x4MultiplyGeneric(lhs_ptr, rhs_ptr, result_ptr);
+    detail::Matrix4x4MultiplyGeneric(lhs_ptr, rhs_ptr, result_ptr);
     return result;
 }
 }

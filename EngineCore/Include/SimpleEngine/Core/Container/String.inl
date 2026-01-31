@@ -6,7 +6,7 @@
 
 namespace se
 {
-namespace details
+namespace detail
 {
 SE_CORE_API bool IsCharBoundary(StringView view, usize index);
 
@@ -22,7 +22,7 @@ SE_CORE_API Optional<std::pair<char32, usize>> DecodeLastCodePoint(StringView vi
 /** 대소문자 변환 */
 SE_CORE_API String ToUpperImpl(StringView view, const char* locale);
 SE_CORE_API String ToLowerImpl(StringView view, const char* locale);
-}  // namespace details
+}  // namespace detail
 
 
 template <typename Allocator>
@@ -36,7 +36,7 @@ BaseString<Allocator>::BaseString(char32 code_point, SizeType repeat)
 {
     if (repeat > 0)
     {
-        if (Array<char> encoded_bytes = details::EncodeCodePoint(code_point); !encoded_bytes.IsEmpty())
+        if (Array<char> encoded_bytes = detail::EncodeCodePoint(code_point); !encoded_bytes.IsEmpty())
         {
             Reserve(encoded_bytes.Len() * repeat);
             for (SizeType i = 0; i < repeat; ++i)
@@ -152,7 +152,7 @@ BaseString<Allocator>::SizeType BaseString<Allocator>::ByteLen() const noexcept
 template <typename Allocator>
 BaseString<Allocator>::SizeType BaseString<Allocator>::CodePointLen() const
 {
-    return details::CountCodePointsImpl(StringView{ *this });
+    return detail::CountCodePointsImpl(StringView{ *this });
 }
 
 template <typename Allocator>
@@ -189,7 +189,7 @@ void BaseString<Allocator>::ShrinkToFit()
 template <typename Allocator>
 void BaseString<Allocator>::Push(char32 code_point)
 {
-    Array<char> encoded_bytes = details::EncodeCodePoint(code_point);
+    Array<char> encoded_bytes = detail::EncodeCodePoint(code_point);
 
     data.Pop(); // null terminator 제거
     data.PushRange(encoded_bytes);
@@ -204,7 +204,7 @@ Optional<char32> BaseString<Allocator>::Pop()
         return std::nullopt;
     }
 
-    Optional decode_result = details::DecodeLastCodePoint(StringView{ *this });
+    Optional decode_result = detail::DecodeLastCodePoint(StringView{ *this });
     SE_ASSERT(decode_result.HasValue(), "Failed to decode the last code point.");
 
     const auto& [code_point, byte_len] = decode_result.Value();
@@ -241,7 +241,7 @@ template <typename Allocator>
 void BaseString<Allocator>::Insert(SizeType byte_idx, StringView view)
 {
     SE_ASSERT(byte_idx <= ByteLen(), "Insert index out of bounds");
-    SE_ASSERT(details::IsCharBoundary(StringView{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
+    SE_ASSERT(detail::IsCharBoundary(StringView{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
 
     if (view.IsEmpty())
     {
@@ -257,8 +257,8 @@ template <typename Allocator>
 void BaseString<Allocator>::RemoveRange(SizeType byte_idx, SizeType count)
 {
     SE_ASSERT(byte_idx + count <= ByteLen(), "RemoveRange out of bounds");
-    SE_ASSERT(details::IsCharBoundary(StringView{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
-    SE_ASSERT(details::IsCharBoundary(StringView{ *this }, byte_idx + count), "Count is not a valid UTF-8 character boundary.");
+    SE_ASSERT(detail::IsCharBoundary(StringView{ *this }, byte_idx), "Byte index is not a valid UTF-8 character boundary.");
+    SE_ASSERT(detail::IsCharBoundary(StringView{ *this }, byte_idx + count), "Count is not a valid UTF-8 character boundary.");
 
     if (count == 0)
     {
@@ -275,7 +275,7 @@ void BaseString<Allocator>::Truncate(SizeType new_byte_len)
     {
         return;
     }
-    SE_ASSERT(details::IsCharBoundary(Bytes(), new_byte_len), "Truncation position is not a valid UTF-8 character boundary.");
+    SE_ASSERT(detail::IsCharBoundary(Bytes(), new_byte_len), "Truncation position is not a valid UTF-8 character boundary.");
 
     data.Resize(new_byte_len + 1);
     *data.Back() = '\0';
@@ -291,13 +291,13 @@ void BaseString<Allocator>::Clear() noexcept
 template <typename Allocator>
 BaseString<Allocator> BaseString<Allocator>::ToUpper(const char* locale) const
 {
-    return details::ToUpperImpl(StringView{ *this }, locale);
+    return detail::ToUpperImpl(StringView{ *this }, locale);
 }
 
 template <typename Allocator>
 BaseString<Allocator> BaseString<Allocator>::ToLower(const char* locale) const
 {
-    return details::ToLowerImpl(StringView{ *this }, locale);
+    return detail::ToLowerImpl(StringView{ *this }, locale);
 }
 
 template <typename Allocator>
@@ -367,9 +367,9 @@ char* BaseString<Allocator>::Data() noexcept
 }
 
 template <typename Allocator>
-details::CodePointView BaseString<Allocator>::CodePoints() const
+detail::CodePointView BaseString<Allocator>::CodePoints() const
 {
-    return details::CodePointView{ Bytes() };
+    return detail::CodePointView{ Bytes() };
 }
 
 template <typename Allocator>

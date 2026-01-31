@@ -310,7 +310,7 @@ private:
 
 /**
  * 함수의 실패를 나타내는 래퍼 클래스
- * @details Expected<T, E>에 에러 값을 전달하기 위해 사용됩니다.
+ * @detail Expected<T, E>에 에러 값을 전달하기 위해 사용됩니다.
  */
 template <typename E>
 class Unexpected

@@ -7,7 +7,7 @@
 
 namespace se::meta
 {
-namespace details
+namespace detail
 {
 // ECS Architecture Tags
 struct ComponentTag {}; // ECS 엔티티 컴포넌트
@@ -21,18 +21,18 @@ struct ColorTag {};     // Vector3/4를 색상 피커로 표시
 
 struct SerializeTag {}; // 직렬화/역직렬화 강제
 struct TransientTag {}; // 직렬화/역직렬화 제외
-}  // namespace details
+}  // namespace detail
 
-constexpr details::ComponentTag Component; // ECS 엔티티 컴포넌트
-constexpr details::ResourceTag Resource;   // 전역 리소스 (싱글톤 데이터)
-constexpr details::EventTag Event;         // 이벤트 메시지
+constexpr detail::ComponentTag Component; // ECS 엔티티 컴포넌트
+constexpr detail::ResourceTag Resource;   // 전역 리소스 (싱글톤 데이터)
+constexpr detail::EventTag Event;         // 이벤트 메시지
 
-constexpr details::EditTag Edit;           // 값 표시 및 수정 가능
-constexpr details::ReadOnlyTag ReadOnly;   // 값 표시는 하되 수정 불가
-constexpr details::ColorTag Color;         // Vector3/4를 색상 피커로 표시
+constexpr detail::EditTag Edit;           // 값 표시 및 수정 가능
+constexpr detail::ReadOnlyTag ReadOnly;   // 값 표시는 하되 수정 불가
+constexpr detail::ColorTag Color;         // Vector3/4를 색상 피커로 표시
 
-constexpr details::SerializeTag Serialize; // 직렬화 강제
-constexpr details::TransientTag Transient; // 직렬화(저장) 제외
+constexpr detail::SerializeTag Serialize; // 직렬화 강제
+constexpr detail::TransientTag Transient; // 직렬화(저장) 제외
 
 /**
  * 숫자 데이터에 슬라이더 UI를 제공하고 입력 범위를 제한합니다.

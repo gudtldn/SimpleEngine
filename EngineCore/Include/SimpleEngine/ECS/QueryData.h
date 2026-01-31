@@ -47,7 +47,7 @@ struct Without
 /**
  * 쿼리 파라미터 파싱을 위한 내부 메타프로그래밍 유틸리티
  */
-namespace details
+namespace detail
 {
 template <typename T, template <typename...> typename... Ts>
 concept IsSpecializationTypes = (traits::IsSpecializationOf<T, Ts> || ...);
@@ -101,12 +101,12 @@ class QueryData
 {
 public:
     // 템플릿 인자들을 분석하여 가져올(Fetch), 포함할(With), 제외할(Without) 타입으로 분류
-    using FetchTypes = details::ExtractTypes<details::CondFetchTag, Ts...>;
-    using WithTypes = details::FlattenTypes<details::CondWithTag, Ts...>;
-    using WithoutTypes = details::FlattenTypes<details::CondWithoutTag, Ts...>;
+    using FetchTypes = detail::ExtractTypes<detail::CondFetchTag, Ts...>;
+    using WithTypes = detail::FlattenTypes<detail::CondWithTag, Ts...>;
+    using WithoutTypes = detail::FlattenTypes<detail::CondWithoutTag, Ts...>;
 
     // 실제 Query 검증에 사용되는 타입들
-    using PredicateTypes = utility::TupleCat<details::FlattenTypes<details::CondPredicateTag, Ts...>, WithTypes>;
+    using PredicateTypes = utility::TupleCat<detail::FlattenTypes<detail::CondPredicateTag, Ts...>, WithTypes>;
 
 public:
     explicit QueryData(World* in_world);

@@ -7,7 +7,7 @@
 #include <unicode/utf8.h>
 
 
-namespace se::details
+namespace se::detail
 {
 bool IsCharBoundary(StringView view, usize index)
 {
@@ -169,4 +169,4 @@ CodePointIterator CodePointIterator::operator++(int)
     ++(*this);
     return temp;
 }
-}  // namespace se::details
+}  // namespace se::detail

@@ -7,5 +7,5 @@ namespace se::concurrency
 {
 /** C++20 Coroutine Task 타입  */
 template <typename T>
-using Task = details::TaskImpl<T, details::Promise<T>>;
+using Task = detail::TaskImpl<T, detail::Promise<T>>;
 }
