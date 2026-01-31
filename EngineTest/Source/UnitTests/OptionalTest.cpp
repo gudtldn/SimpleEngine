@@ -282,12 +282,12 @@ TEST_F(OptionalAPI_Test, OptionalForReferenceTypes) // Optional<T&>
     {
         int x = 21;
         Optional<int&> opt(x);
-        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
         EXPECT_TRUE(transformed.HasValue());
         EXPECT_EQ(*transformed, "42");
 
         Optional<int&> empty_opt;
-        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
         EXPECT_FALSE(transformed_empty.HasValue());
     }
 }

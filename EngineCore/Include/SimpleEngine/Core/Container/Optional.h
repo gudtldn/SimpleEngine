@@ -471,7 +471,7 @@ public:
         requires std::invocable<Fn, T&>
         && (!se::traits::IsAnyOf<std::remove_cv_t<std::invoke_result_t<Fn, T&>>, std::nullopt_t, std::in_place_t>)
         && se::details::IsValidResultType<std::remove_cv_t<std::invoke_result_t<Fn, T&>>>
-    constexpr auto Map(Fn&& func) const
+    constexpr auto Transform(Fn&& func) const
     {
         using ResultT = std::remove_cv_t<std::invoke_result_t<Fn, T&>>;
         if (HasValue())
