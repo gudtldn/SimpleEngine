@@ -13,7 +13,7 @@
 
 namespace se::editor::ui
 {
-class EditorUISubsystem : public core::ISubsystem, public core::IUpdatable
+class EditorUISubsystem : public ISubsystem, public IUpdatable
 {
 public:
     //~ Begin ISubsystem

@@ -13,7 +13,7 @@ class TaskScheduler;
 class ThreadPool;
 }
 
-namespace se::core
+namespace se
 {
 class IUpdatable;
 class ISubsystem;

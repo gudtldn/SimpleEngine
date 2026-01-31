@@ -65,13 +65,12 @@ void Application::Startup(const String& cmd_line)
 
     if constexpr (SE_DEBUG_BUILD)
     {
-        core::LogSettings::EnableColor(true);
-        core::LogSettings::SetForceColor(true);
+        LogSettings::EnableColor(true);
+        LogSettings::SetForceColor(true);
     }
 
     // add log backends
     {
-        using namespace core;
         LogBackendManager& manager = LogBackendManager::Get();
 
         manager.AddBackend<ConsoleBackend>();
@@ -81,7 +80,6 @@ void Application::Startup(const String& cmd_line)
     ConsoleLog(ELogLevel::Info, "startup, cmd: {}", cmd_line);
 
     {
-        using core::CpuFeature;
         using PairType = std::pair<bool, String>;
 
         Array<PairType> features{
@@ -198,7 +196,7 @@ void Application::MainLoop()
 
 bool Application::PreInitialize()
 {
-    engine_instance = std::make_unique<core::Engine>();
+    engine_instance = std::make_unique<Engine>();
     if (engine_instance == nullptr)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create engine instance!");
@@ -224,7 +222,7 @@ bool Application::InitializeEngine()
 
 bool Application::PostInitialize()
 {
-    using namespace core::event;
+    using namespace event;
 
     PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
     platform_sys->GetEventDispatcher().Subscribe(

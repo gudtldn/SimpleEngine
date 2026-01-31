@@ -17,7 +17,7 @@ class TypeId;
 }
 }  // namespace se
 
-namespace se::core
+namespace se
 {
 class Archive;
 
@@ -211,4 +211,4 @@ protected:
     explicit Archive(EArchiveMode in_mode) : mode(in_mode) {}
     EArchiveMode mode;
 };
-}  // namespace se::core
+}  // namespace se

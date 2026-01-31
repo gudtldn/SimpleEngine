@@ -6,7 +6,7 @@
 #include "Utility/StringUtils.h"
 
 
-namespace se::core
+namespace se
 {
 void TomlArchive::HintNextName(const char* name)
 {

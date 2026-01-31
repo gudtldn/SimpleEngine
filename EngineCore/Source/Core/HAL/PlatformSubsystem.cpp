@@ -10,7 +10,7 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_gpu.h"
 
-using namespace se::core::event;
+using namespace se::event;
 using namespace se::utility;
 
 namespace se
@@ -20,7 +20,7 @@ SE_REGISTER_SUBSYSTEM(PlatformSubsystem);
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     : sdl_init_flags(in_sdl_init_flags)
 {
-    using namespace se::core;
+    using namespace se;
 
     // SDL_SetMemoryFunctions(
     //     [](usize size) static -> void*

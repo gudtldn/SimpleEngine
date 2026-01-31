@@ -9,7 +9,7 @@
 namespace
 {
 using namespace se;
-using namespace se::core;
+using namespace se;
 
 std::atomic<bool> IsDialogOpen = false;
 
@@ -96,7 +96,7 @@ Array<SDL_DialogFileFilter> ConvertFilters(const Array<FileFilter>& filters)
 }
 }  // namespace
 
-namespace se::core
+namespace se
 {
 void FileDialog::OpenFile(OnFileSelected callback, const Array<FileFilter>& filters, const char* default_location, SDL_Window* window)
 {
@@ -159,4 +159,4 @@ void FileDialog::SaveFile(OnFileSelected callback, const Array<FileFilter>& filt
         default_location
     );
 }
-}  // namespace se::core
+}  // namespace se

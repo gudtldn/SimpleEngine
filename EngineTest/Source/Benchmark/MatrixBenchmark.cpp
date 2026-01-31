@@ -52,7 +52,7 @@ BENCHMARK(BM_Matrix4x4Multiply_Generic_Float);
 // Benchmark for SSE float matrix multiplication
 static void BM_Matrix4x4Multiply_SSE_Float(benchmark::State& state)
 {
-    if (!se::core::CpuFeature::HasSSE4_1())
+    if (!se::CpuFeature::HasSSE4_1())
     {
         state.SkipWithError("SSE4.1 not supported");
         return;
@@ -73,7 +73,7 @@ BENCHMARK(BM_Matrix4x4Multiply_SSE_Float);
 // Benchmark for FMA float matrix multiplication
 static void BM_Matrix4x4Multiply_FMA_Float(benchmark::State& state)
 {
-    if (!se::core::CpuFeature::HasFMA3())
+    if (!se::CpuFeature::HasFMA3())
     {
         state.SkipWithError("FMA3 not supported");
         return;
@@ -130,7 +130,7 @@ BENCHMARK(BM_Matrix4x4Multiply_Generic_Double);
 // Benchmark for AVX double matrix multiplication
 static void BM_Matrix4x4Multiply_AVX_Double(benchmark::State& state)
 {
-    if (!se::core::CpuFeature::HasAVX() || !se::core::CpuFeature::HasFMA3())
+    if (!se::CpuFeature::HasAVX() || !se::CpuFeature::HasFMA3())
     {
         state.SkipWithError("AVX or FMA3 not supported");
         return;

@@ -10,7 +10,7 @@
 
 namespace se::utility
 {
-class FileReadError : public core::IError
+class FileReadError : public IError
 {
 public:
     enum class Type

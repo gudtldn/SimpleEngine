@@ -14,7 +14,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core
+namespace se
 {
 /**
  * 메모리 카테고리 태그 정보를 담는 구조체
@@ -174,18 +174,18 @@ public:
     ScopedMemoryTag(ScopedMemoryTag&&) noexcept = delete;
     ScopedMemoryTag& operator=(ScopedMemoryTag&&) noexcept = delete;
 };
-}  // namespace se::core
+}  // namespace se
 
 /**
  * 현재 스코프의 메모리 태그를 설정합니다.
  * @param name 태그 이름 (문자열 리터럴 또는 StringName)
  */
 #define SE_MEM_SCOPE(name) \
-    se::core::ScopedMemoryTag SE_UNIQUE_TOKEN(_se_mem_tag_){ name }
+    se::ScopedMemoryTag SE_UNIQUE_TOKEN(_se_mem_tag_){ name }
 
 /**
  * 미리 캐싱된 ID를 사용하여 현재 스코프의 메모리 태그를 설정합니다.
  * @param id 태그 ID (uint32)
  */
 #define SE_MEM_SCOPE_ID(id) \
-    se::core::ScopedMemoryTag SE_UNIQUE_TOKEN(_se_mem_tag_){ id }
+    se::ScopedMemoryTag SE_UNIQUE_TOKEN(_se_mem_tag_){ id }

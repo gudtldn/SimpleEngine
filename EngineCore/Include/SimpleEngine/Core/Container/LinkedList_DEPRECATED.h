@@ -103,7 +103,7 @@ private:
  * @tparam T 요소의 타입
  * @tparam Allocator 노드 메모리를 위한 할당자 타입
  */
-template <typename T, typename Allocator = core::DefaultAllocator<T>>
+template <typename T, typename Allocator = DefaultAllocator<T>>
 class [[deprecated]] LinkedList_DEPRECATED
 {
 private:

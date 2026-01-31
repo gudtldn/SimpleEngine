@@ -3,7 +3,7 @@
 #include <ranges>
 
 
-namespace se::core
+namespace se
 {
 void LogBackendManager::WriteToAllBackends(const LogEntry& entry)
 {
@@ -22,4 +22,4 @@ void LogBackendManager::FlushAllBackends()
         backend->Flush();
     }
 }
-}  // namespace se::core
+}  // namespace se

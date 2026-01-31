@@ -28,7 +28,7 @@ struct WindowDesc
     bool prefer_linear_color_space = false;
 };
 
-class WindowCreateError : public core::IError
+class WindowCreateError : public IError
 {
 public:
     enum class Type
@@ -55,7 +55,7 @@ private:
     String message;
 };
 
-class SE_CORE_API PlatformSubsystem : public core::ISubsystem
+class SE_CORE_API PlatformSubsystem : public ISubsystem
 {
 public:
     /**
@@ -77,8 +77,8 @@ public:
 
     void PollEvents();
 
-    [[nodiscard]] core::event::EventDispatcher& GetEventDispatcher() { return platform_event_dispatcher; }
-    [[nodiscard]] const core::event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
+    [[nodiscard]] event::EventDispatcher& GetEventDispatcher() { return platform_event_dispatcher; }
+    [[nodiscard]] const event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
 
 public:
     // TODO: 다중 윈도우에 대해 작동할 수 있도록 수?정 | Main이 아닌 Window가 Fullscreen이 필요한가?
@@ -125,6 +125,6 @@ private:
     SDL_WindowID main_window_id = 0;
 
     HashMap<SDL_WindowID, SDL_Window*> windows;
-    core::event::EventDispatcher platform_event_dispatcher;
+    event::EventDispatcher platform_event_dispatcher;
 };
 }

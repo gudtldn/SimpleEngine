@@ -17,7 +17,7 @@ const ArmFeatures Features = GetArmInfo().features;
 #endif
 }
 
-namespace se::core
+namespace se
 {
 #if SE_ARCH_X86_FAMILY
 bool CpuFeature::HasSSE()     { return CPU_FEATURES_COMPILED_X86_SSE || Features.sse;       }

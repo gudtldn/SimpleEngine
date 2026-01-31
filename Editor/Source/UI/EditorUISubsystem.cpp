@@ -19,7 +19,7 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
 
-using namespace se::core::event;
+using namespace se::event;
 
 
 namespace se::editor::ui

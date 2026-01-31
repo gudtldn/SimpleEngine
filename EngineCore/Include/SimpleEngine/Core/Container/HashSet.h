@@ -22,7 +22,7 @@ template <
     typename T,
     typename Hasher = std::hash<T>,
     typename KeyEq = std::equal_to<T>,
-    typename Allocator = core::DefaultAllocator<T>
+    typename Allocator = DefaultAllocator<T>
 >
 class HashSet
 {
@@ -144,7 +144,7 @@ private:
 };
 
 template <typename T>
-core::Archive& operator<<(core::Archive& ar, HashSet<T>& set)
+Archive& operator<<(Archive& ar, HashSet<T>& set)
 {
     uint64 size = set.Len();
     ar.BeginArray(size);

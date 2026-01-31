@@ -8,7 +8,7 @@
 #include "Utility/Debug.h"
 
 
-namespace se::core
+namespace se
 {
 // NOLINTBEGIN(bugprone-macro-parentheses)
 #define IMPL_ARCHIVE_OPERATOR(Type) \
@@ -140,4 +140,4 @@ Archive& Archive::operator<<(refl::TypeId& value)
     }
     return *this;
 }
-}  // namespace se::core
+}  // namespace se

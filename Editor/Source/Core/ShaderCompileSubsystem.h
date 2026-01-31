@@ -7,7 +7,7 @@ namespace se::editor
 /**
  * @todo docs
  */
-class ShaderCompileSubsystem : public se::core::ISubsystem
+class ShaderCompileSubsystem : public se::ISubsystem
 {
 public:
     //~ Begin ISubsystem

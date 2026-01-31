@@ -20,7 +20,7 @@ namespace se
 template <
     typename T,
     typename Pred = std::less<T>,
-    typename Allocator = core::DefaultAllocator<T>
+    typename Allocator = DefaultAllocator<T>
 >
 class Set
 {
@@ -136,7 +136,7 @@ private:
 };
 
 template <typename T>
-core::Archive& operator<<(core::Archive& ar, Set<T>& set)
+Archive& operator<<(Archive& ar, Set<T>& set)
 {
     uint64 size = set.Len();
     ar.BeginArray(size);

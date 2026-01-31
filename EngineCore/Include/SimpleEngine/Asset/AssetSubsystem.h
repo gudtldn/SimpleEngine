@@ -14,7 +14,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class SE_CORE_API AssetSubsystem : public se::core::ISubsystem
+class SE_CORE_API AssetSubsystem : public se::ISubsystem
 {
 public:
     //~ Begin ISubsystem

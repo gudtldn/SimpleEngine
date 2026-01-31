@@ -9,7 +9,6 @@
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
 using namespace se;
-using namespace se::core;
 
 class SerializationTest : public ::testing::Test
 {

@@ -20,9 +20,9 @@ namespace se
  * @param args 포맷 문자열에 삽입될 가변 인수
  */
 template <typename... Args>
-void ConsoleLog(const core::LogLevelAndLocation& log_level, std::format_string<Args...> fmt, Args&&... args)
+void ConsoleLog(const LogLevelAndLocation& log_level, std::format_string<Args...> fmt, Args&&... args)
 {
-    auto& manager = core::LogBackendManager::Get();
+    auto& manager = LogBackendManager::Get();
     manager.WriteToAllBackends({
         .level = log_level.level,
         .location = log_level.location,
@@ -34,14 +34,14 @@ void ConsoleLog(const core::LogLevelAndLocation& log_level, std::format_string<A
 }
 
 template <typename... Args>
-void ConsoleLogOnce(core::LogLevelAndLocation log_level, std::format_string<Args...> fmt, Args&&... args)
+void ConsoleLogOnce(LogLevelAndLocation log_level, std::format_string<Args...> fmt, Args&&... args)
 {
-    static HashSet<core::LogOnceKey, core::LogOnceKey::LogOnceKeyHash> called_logs;
+    static HashSet<LogOnceKey, LogOnceKey::LogOnceKeyHash> called_logs;
     static TracyLockable(std::mutex, mtx);
 
     {
         // 키 생성
-        const core::LogOnceKey key{
+        const LogOnceKey key{
             .file = log_level.location.file_name() ? log_level.location.file_name() : "",
             .line = log_level.location.line(),
             .column = log_level.location.column(),
@@ -65,7 +65,7 @@ void ConsoleLogOnce(core::LogLevelAndLocation log_level, std::format_string<Args
     public: \
         ConsoleLog_##log_level(std::format_string<Args...> fmt, Args&&... args, const std::source_location& location = std::source_location::current()) \
         { \
-            ConsoleLog(core::LogLevelAndLocation(ELogLevel::log_level, location), fmt, std::forward<Args>(args)...); \
+            ConsoleLog(LogLevelAndLocation(ELogLevel::log_level, location), fmt, std::forward<Args>(args)...); \
         } \
         ~ConsoleLog_##log_level() = default; \
         ConsoleLog_##log_level(const ConsoleLog_##log_level&) = delete; \

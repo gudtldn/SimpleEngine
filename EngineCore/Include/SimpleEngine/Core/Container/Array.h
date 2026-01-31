@@ -17,7 +17,7 @@ namespace se
  * @tparam T 요소의 타입
  * @tparam Allocator 메모리 할당자 타입
  */
-template <typename T, typename Allocator = core::DefaultAllocator<T>>
+template <typename T, typename Allocator = DefaultAllocator<T>>
 class Array
 {
 public:
@@ -261,7 +261,7 @@ private:
 };
 
 template <typename T, typename Alloc>
-core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
+Archive& operator<<(Archive& ar, Array<T, Alloc>& array)
 {
     uint64 size = array.Len();
     ar.BeginArray(size);
@@ -284,7 +284,7 @@ core::Archive& operator<<(core::Archive& ar, Array<T, Alloc>& array)
         if (ar.IsBinary())
         {
             // Binary Serialize시 memcpy를 사용하도록 최적화
-            ar << core::BinaryData::FromItems(array.Data(), size);
+            ar << BinaryData::FromItems(array.Data(), size);
             processed_as_binary = true;
         }
     }

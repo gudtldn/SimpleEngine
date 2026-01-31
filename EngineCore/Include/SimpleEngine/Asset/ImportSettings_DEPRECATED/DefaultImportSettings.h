@@ -11,6 +11,6 @@ class DefaultImportSettings final : public AssetImportSettingsBase<DefaultImport
 {
 public:
     [[nodiscard]] virtual std::shared_ptr<IAssetImportSettings> Clone() const override { return nullptr; }
-    virtual void Serialize([[maybe_unused]] core::Archive& ar) override {}
+    virtual void Serialize([[maybe_unused]] Archive& ar) override {}
 };
 }

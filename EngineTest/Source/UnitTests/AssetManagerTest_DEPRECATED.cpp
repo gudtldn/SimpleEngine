@@ -95,7 +95,6 @@ protected:
     AssetHandle<DummyAsset> RegisterDummyAsset(const StringName& name, int content)
     {
         using namespace se::asset;
-        using namespace se::core;
 
         // 1. 새 GUID 생성
         Guid guid = Guid::NewGuid();

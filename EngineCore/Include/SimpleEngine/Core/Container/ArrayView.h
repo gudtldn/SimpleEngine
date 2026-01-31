@@ -20,11 +20,8 @@ class Array;
 template <typename T, usize N>
 class FixedArray;
 
-namespace core
-{
 template <typename T>
 class DefaultAllocator;
-} // namespace core
 
 
 /** 동적 크기를 나타내는 상수 */

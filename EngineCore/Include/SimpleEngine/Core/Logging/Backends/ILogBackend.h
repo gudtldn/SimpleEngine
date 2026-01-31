@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/Logging/LogData.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * 로그 데이터를 실제 출력 대상(파일, 콘솔, 네트워크 등)으로 전달하는 인터페이스

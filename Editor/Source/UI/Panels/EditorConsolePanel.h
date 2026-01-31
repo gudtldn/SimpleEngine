@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 
 
-namespace se::core
+namespace se
 {
 struct LogEntry;
 }
@@ -25,7 +25,7 @@ public:
     virtual void Draw() override;
 
 private:
-    void RefreshFilterList(const Deque<se::core::LogEntry>& logs);
+    void RefreshFilterList(const Deque<se::LogEntry>& logs);
 
 private:
     // TODO: EngineConfig.toml에 기록

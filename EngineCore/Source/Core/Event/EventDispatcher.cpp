@@ -2,7 +2,7 @@
 #include <ranges>
 
 
-namespace se::core::event
+namespace se::event
 {
 SubscriptionHandle::SubscriptionHandle()
     : handle_id(0)
@@ -86,7 +86,7 @@ void EventDispatcher::Dispatch(PlatformEvent& event)
 }
 
 // Specialization for SubscriptionHandle
-using se::core::event::SubscriptionHandle;
+using se::event::SubscriptionHandle;
 
 size_t std::hash<SubscriptionHandle>::operator()(const SubscriptionHandle& handle) const noexcept
 {

@@ -118,7 +118,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
             return std::nullopt;
         }
 
-        core::TomlReader reader{ result.table() };
+        TomlReader reader{ result.table() };
         reader << entry;
     }
     else
@@ -130,7 +130,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
         entry.virtual_path = std::move(vpath_opt).Value();
 
         toml::table table;
-        core::TomlWriter writer{ table };
+        TomlWriter writer{ table };
         writer << entry;
 
         std::ostringstream oss;

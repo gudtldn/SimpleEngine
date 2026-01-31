@@ -29,7 +29,7 @@ template <
     typename Key,
     typename Value,
     typename Pred = std::less<Key>,
-    typename Allocator = core::DefaultAllocator<std::pair<const Key, Value>>
+    typename Allocator = DefaultAllocator<std::pair<const Key, Value>>
 >
 class Map
 {
@@ -213,7 +213,7 @@ private:
 };
 
 template <typename Key, typename Value>
-core::Archive& operator<<(core::Archive& ar, Map<Key, Value>& map)
+Archive& operator<<(Archive& ar, Map<Key, Value>& map)
 {
     // TODO: 추후에 Array 대신 더 나은 방법으로 수정
 

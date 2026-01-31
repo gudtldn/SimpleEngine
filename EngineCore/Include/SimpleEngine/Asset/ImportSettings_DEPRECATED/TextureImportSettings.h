@@ -37,7 +37,7 @@ public:
     ETextureFilter filter = ETextureFilter::Linear;
 
 public:
-    virtual void Serialize(core::Archive& ar) override
+    virtual void Serialize(Archive& ar) override
     {
         ar("is_srgb") << is_srgb;
         ar("generate_mips") << generate_mips;

@@ -11,7 +11,7 @@
 #include "SDL3/SDL.h"
 
 // forward declaration
-namespace se::core::event
+namespace se::event
 {
 class SubscriptionHandle;
 }
@@ -19,12 +19,12 @@ class SubscriptionHandle;
 
 // Specialization for SubscriptionHandle
 template <>
-struct std::hash<se::core::event::SubscriptionHandle>
+struct std::hash<se::event::SubscriptionHandle>
 {
-    size_t operator()(const se::core::event::SubscriptionHandle& handle) const noexcept;
+    size_t operator()(const se::event::SubscriptionHandle& handle) const noexcept;
 };
 
-namespace se::core::event
+namespace se::event
 {
 class SE_CORE_API SubscriptionHandle
 {

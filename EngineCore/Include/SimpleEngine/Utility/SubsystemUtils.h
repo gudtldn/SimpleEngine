@@ -15,10 +15,10 @@ namespace se
  * @return Subsystem을 반환, 등록되어 있지 않다면 nullptr
  */
 template <typename Subsystem>
-    requires std::derived_from<Subsystem, core::ISubsystem>
+    requires std::derived_from<Subsystem, ISubsystem>
 Subsystem* GetSubsystem()
 {
-    return core::Engine::Get().GetSubsystem<Subsystem>();
+    return Engine::Get().GetSubsystem<Subsystem>();
 }
 
 /**
@@ -29,7 +29,7 @@ Subsystem* GetSubsystem()
  * @return 등록된 Subsystem의 참조를 반환
  */
 template <typename Subsystem>
-    requires std::derived_from<Subsystem, core::ISubsystem>
+    requires std::derived_from<Subsystem, ISubsystem>
 Subsystem& GetSubsystemChecked()
 {
     Subsystem* subsystem = GetSubsystem<Subsystem>();
@@ -44,7 +44,7 @@ Subsystem& GetSubsystemChecked()
  *         만약 등록되어 있지 않은 Subsystem이 있다면 그 Subsystem은 nullptr
  */
 template <typename... Subsystems>
-    requires (std::derived_from<Subsystems, core::ISubsystem> && ...)
+    requires (std::derived_from<Subsystems, ISubsystem> && ...)
 std::tuple<Subsystems*...> GetSubsystems()
 {
     return { GetSubsystem<Subsystems>()... };
@@ -58,7 +58,7 @@ std::tuple<Subsystems*...> GetSubsystems()
  * @return 등록된 Subsystem의 참조를 std::tuple에 담아 반환
  */
 template <typename... Subsystems>
-    requires (std::derived_from<Subsystems, core::ISubsystem> && ...)
+    requires (std::derived_from<Subsystems, ISubsystem> && ...)
 std::tuple<Subsystems&...> GetSubsystemsChecked()
 {
     return { GetSubsystemChecked<Subsystems>()... };

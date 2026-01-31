@@ -13,7 +13,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::core
+namespace se
 {
 class Engine;
 }
@@ -32,7 +32,7 @@ class SE_CORE_API TaskScheduler
 {
 private:
     // ProcessMainThreadTasks 호출을 위해서
-    friend class se::core::Engine;
+    friend class se::Engine;
 
     // ScheduleOn... 호출을 위해서
     friend struct se::concurrency::SwitchToMainThread;

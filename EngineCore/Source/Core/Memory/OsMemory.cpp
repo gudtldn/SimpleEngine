@@ -9,7 +9,7 @@
 
 constexpr usize TRACY_CALLSTACK_DEPTH = 32;
 
-namespace se::core
+namespace se
 {
 void* OsMemory::Allocate(usize size, usize alignment)
 {
@@ -136,4 +136,4 @@ void OsMemory::Free(void* address)
     // 메모리 해제
     std::free(raw_block);
 }
-}  // namespace se::core
+}  // namespace se

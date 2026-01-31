@@ -4,7 +4,7 @@
 #include "Utility/Debug.h"
 
 
-namespace se::core
+namespace se
 {
 // static 초기화 시점에 기록할 수 있도록
 std::atomic<uint32> MemoryStats::registered_count = 1;
@@ -102,5 +102,5 @@ usize MemoryStats::GetTotalGpuAllocated()
 {
     return total_gpu_allocated.load(std::memory_order_relaxed);
 }
-}  // namespace se::core
+}  // namespace se
 #endif

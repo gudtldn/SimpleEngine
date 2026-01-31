@@ -52,7 +52,7 @@ public:
         return nullptr;
     }
 
-    friend void Serialize(core::Archive& ar, AssetEntry_DEPRECATED& entry)
+    friend void Serialize(Archive& ar, AssetEntry_DEPRECATED& entry)
     {
         String virtual_path_str;
         if (ar.IsSaving())

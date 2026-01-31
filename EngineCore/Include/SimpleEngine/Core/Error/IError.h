@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::core
+namespace se
 {
 /**
  * 엔진에서 발생하는 에러의 기본 인터페이스
