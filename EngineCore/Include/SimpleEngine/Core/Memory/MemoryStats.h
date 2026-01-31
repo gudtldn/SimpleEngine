@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -87,9 +88,9 @@ public:
 
     /**
      * 현재 등록된 모든 메모리 태그의 목록을 반환합니다.
-     * @return MemoryTag 구조체의 Span
+     * @return MemoryTag 구조체의 ArrayView
      */
-    [[nodiscard]] static std::span<MemoryTag> GetTags();
+    [[nodiscard]] static ArrayView<MemoryTag> GetTags();
 
     /**
      * 전체 CPU 메모리 할당량을 반환합니다.
@@ -115,9 +116,7 @@ private:
 
     static std::atomic<usize> total_cpu_allocated;
     static std::atomic<usize> total_gpu_allocated;
-
 #else
-
     FORCE_INLINE static uint32 GetOrRegisterTag([[maybe_unused]] const StringName& name) { return 0; }
 
     FORCE_INLINE static uint32 SetCurrentTag([[maybe_unused]] uint32 tag_id) { return 0; }
@@ -129,7 +128,7 @@ private:
     FORCE_INLINE static void TrackGpuAlloc([[maybe_unused]] uint32 tag_id, [[maybe_unused]] usize size) {}
     FORCE_INLINE static void TrackGpuFree([[maybe_unused]] uint32 tag_id, [[maybe_unused]] usize size) {}
 
-    FORCE_INLINE static std::span<MemoryTag> GetTags() { return {}; }
+    FORCE_INLINE static ArrayView<MemoryTag> GetTags() { return {}; }
     FORCE_INLINE static usize GetTotalCpuAllocated() { return 0; }
     FORCE_INLINE static usize GetTotalGpuAllocated() { return 0; }
 #endif

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include <span>
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -199,7 +199,7 @@ struct SE_CORE_API FileSystem
      * @param data 쓸 데이터
      * @return 성공 시 true
      */
-    static bool Write(const Path& path, std::span<const uint8> data);
+    static bool Write(const Path& path, ArrayView<const uint8> data);
 
 
     // =========================================================================

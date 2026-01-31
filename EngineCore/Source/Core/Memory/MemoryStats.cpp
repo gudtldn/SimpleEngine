@@ -13,7 +13,7 @@ HashMap<StringName, uint32> MemoryStats::tag_lookup;
 
 [[maybe_unused]] static const bool DefaultTagInitialized = [] static
 {
-    if (auto tags_span = MemoryStats::GetTags(); !tags_span.empty())
+    if (auto tags_span = MemoryStats::GetTags(); !tags_span.IsEmpty())
     {
         tags_span[0].name = "Untagged";
     }
@@ -88,9 +88,9 @@ void MemoryStats::TrackGpuFree(uint32 tag_id, usize size)
     tags[tag_id].gpu_allocated.fetch_sub(size, std::memory_order_relaxed);
 }
 
-std::span<MemoryTag> MemoryStats::GetTags()
+ArrayView<MemoryTag> MemoryStats::GetTags()
 {
-    return { tags.begin(), registered_count.load(std::memory_order_acquire) };
+    return { tags.Data(), registered_count.load(std::memory_order_acquire) };
 }
 
 usize MemoryStats::GetTotalCpuAllocated()

@@ -3,6 +3,7 @@
 #include <mdspan>
 #include <ranges>
 
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/MathSimd.h"
@@ -27,8 +28,8 @@ public:
 
 public:
     constexpr Matrix4x4Impl() = default;
-    constexpr Matrix4x4Impl(std::span<T, 16> src);
-    Matrix4x4Impl(std::span<T> src);
+    constexpr Matrix4x4Impl(ArrayView<const T, 16> src);
+    Matrix4x4Impl(ArrayView<const T> src);
     template <typename... Ts>
         requires ((std::convertible_to<Ts, T> && ...) && sizeof...(Ts) == 16)
     constexpr Matrix4x4Impl(Ts... values);
@@ -78,15 +79,15 @@ private:
 };
 
 template <traits::FloatingType T>
-constexpr Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T, 16> src)
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(ArrayView<const T, 16> src)
 {
     std::ranges::copy(src, data.begin());
 }
 
 template <traits::FloatingType T>
-Matrix4x4Impl<T>::Matrix4x4Impl(std::span<T> src)
+Matrix4x4Impl<T>::Matrix4x4Impl(ArrayView<const T> src)
 {
-    SE_ASSERT(src.size() == 16, "Invalid span size.");
+    SE_ASSERT(src.Len() == 16, "Invalid ArrayView size.");
     std::ranges::copy(src, data.begin());
 }
 

@@ -1,7 +1,6 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
 #include <algorithm>
-#include <span>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -64,10 +63,6 @@ public:
 
     [[nodiscard]] constexpr T& operator[](usize idx) noexcept;
     [[nodiscard]] constexpr const T& operator[](usize idx) const noexcept;
-
-    // STL 호환
-    [[nodiscard]] explicit constexpr operator std::span<T, N>() noexcept;
-    [[nodiscard]] explicit constexpr operator std::span<const T, N>() const noexcept;
 
     // Iterator
     [[nodiscard]] constexpr T* begin() noexcept;
@@ -216,18 +211,6 @@ constexpr const T& FixedArray<T, N>::operator[](usize idx) const noexcept
 {
     SE_ASSERT(idx < N, "Index out of bounds");
     return data[idx];
-}
-
-template <typename T, usize N>
-constexpr FixedArray<T, N>::operator std::span<T, N>() noexcept
-{
-    return std::span<T, N>(data, N);
-}
-
-template <typename T, usize N>
-constexpr FixedArray<T, N>::operator std::span<const T, N>() const noexcept
-{
-    return std::span<const T, N>(data, N);
 }
 
 template <typename T, usize N>
