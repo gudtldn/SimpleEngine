@@ -8,10 +8,6 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 
-namespace se::utility
-{
-class PathResolver;
-}
 
 namespace se::asset
 {
