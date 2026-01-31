@@ -101,7 +101,7 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
 
     // .meta 파일 관련
     Path meta_path = physical_path;
-    meta_path.SetExtension(".meta");
+    meta_path += ".meta";
 
     se::asset::AssetEntry_DEPRECATED entry;
     entry.import_settings = asset_manager->CreateDefaultSettingsForFile(physical_path);
