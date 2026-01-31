@@ -4,8 +4,6 @@
   - 이렇게 하면 Window별로 Rendering을 다르게할 수 있음
   - 윈도우별 DrawData 구현 (비슷한 내용)
 
-- [ ] Optional constexpr로 만들기
-  - 주석 다시한번 확인하고, 함수이름과 requires절 가독성 개선
 - [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
 - [ ] RenderGraph에 Resource Extract 로직 추가
   - Extract를 하면 ResourcePool에서 std::unique_ptr<ExtractedResource>로 소유권을 넘겨서 반환
@@ -67,3 +65,5 @@
 - [x] cmake로 크로스 플랫폼 빌드 구성하기
 - [x] 나중에 SDL3를 submodule로 추가하기 (vcpkg로 관리)
 - [x] 나중에 icu4c를 submodule로 추가하기 (vcpkg로 관리)
+- [x] Optional constexpr로 만들기
+  - 주석 다시한번 확인하고, 함수이름과 requires절 가독성 개선
