@@ -18,7 +18,7 @@ namespace se
 class Engine;
 }
 
-namespace se::concurrency
+namespace se
 {
 class ThreadPool;
 struct SwitchToMainThread;
@@ -35,9 +35,9 @@ private:
     friend class se::Engine;
 
     // ScheduleOn... 호출을 위해서
-    friend struct se::concurrency::SwitchToMainThread;
-    friend struct se::concurrency::SwitchToWorkerThread;
-    friend struct se::concurrency::SwitchToIOThread;
+    friend struct se::SwitchToMainThread;
+    friend struct se::SwitchToWorkerThread;
+    friend struct se::SwitchToIOThread;
 
     // 코드 테스트를 위해서
     friend struct TaskSchedulerTest;

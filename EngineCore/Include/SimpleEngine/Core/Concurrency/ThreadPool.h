@@ -14,7 +14,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::concurrency
+namespace se
 {
 /**
  *
@@ -70,4 +70,4 @@ auto ThreadPool::Submit(Fn&& func, Args&&... args) -> std::future<std::invoke_re
     condition.notify_one();
     return result_future;
 }
-}  // namespace se::concurrency
+}  // namespace se

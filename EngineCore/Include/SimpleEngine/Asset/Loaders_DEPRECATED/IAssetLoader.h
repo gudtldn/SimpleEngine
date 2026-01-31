@@ -15,7 +15,7 @@ class SE_CORE_API IAssetLoader
 {
 public:
     virtual ~IAssetLoader() = default;
-    virtual concurrency::Task<std::shared_ptr<IAsset>> Load(
+    virtual Task<std::shared_ptr<IAsset>> Load(
         const Path& physical_path,
         const IAssetImportSettings* import_settings
     ) = 0;

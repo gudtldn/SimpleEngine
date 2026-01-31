@@ -6,7 +6,7 @@
 #include "Utility/StringUtils.h"
 
 
-namespace se::concurrency
+namespace se
 {
 ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
     : pool_name(std::move(in_pool_name))
@@ -78,4 +78,4 @@ void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
         }
     }
 }
-}  // namespace se::concurrency
+}  // namespace se

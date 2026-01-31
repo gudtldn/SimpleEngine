@@ -7,7 +7,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::concurrency
+namespace se
 {
 /**
  * Task<T>를 MainThread에서 실행합니다.

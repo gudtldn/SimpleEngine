@@ -7,7 +7,7 @@ namespace se::asset
 class SE_CORE_API Texture2DLoader : public IAssetLoader
 {
 public:
-    virtual concurrency::Task<std::shared_ptr<IAsset>> Load(
+    virtual Task<std::shared_ptr<IAsset>> Load(
         const Path& physical_path,
         const IAssetImportSettings* import_settings
     ) override;

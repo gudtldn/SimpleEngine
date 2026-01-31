@@ -8,7 +8,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::concurrency
+namespace se
 {
 TaskScheduler* TaskScheduler::Instance = nullptr;
 
@@ -146,4 +146,4 @@ void TaskScheduler::ProcessMainThreadTasks()
         });
     }
 }
-}  // namespace se::concurrency
+}  // namespace se
