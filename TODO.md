@@ -38,6 +38,9 @@
   - 이런식으로 핸들러를 등록해서, Assert는 Dispatch만 하고
   - 핸들러를 등록할 때, 재귀를 방지하기 위해서 `thread_local bool is_asserting = false;`이런거 사용
 
+- [ ] 나중에 I18n을 지원할 때, ICU4X도 한번 검토하기
+  - ICU4X를 링크하려면 rust compiler가 필요한데, 엔진에서 진짜 필요한지 봐야할 듯.
+
 ## 완료
 
 - [x] 모듈명, 넴스 이름 규칙 정하고 다시 점검하기
