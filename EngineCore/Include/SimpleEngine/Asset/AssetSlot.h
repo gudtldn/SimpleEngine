@@ -51,8 +51,8 @@ public:
      */
     [[nodiscard]] std::shared_ptr<IAsset> GetAsset() const;
 
-    /** 에셋 데이터를 교체합니다. */
-    void SetAsset(std::shared_ptr<IAsset> new_asset, ELoadingState new_state = ELoadingState::Loaded);
+    /** 에셋 데이터를 교체 후, 이전 에셋을 반환합니다. */
+    [[nodiscard]] std::shared_ptr<IAsset> ExchangeAsset(std::shared_ptr<IAsset> new_asset, ELoadingState new_state = ELoadingState::Loaded);
 
     /** 현재 에셋의 로딩 상태를 가져옵니다.*/
     [[nodiscard]] ELoadingState GetState() const;
@@ -69,12 +69,15 @@ public:
     /** 이 Slot이 소유하는 Asset의 실제 물리적 위치를 반환합니다. */
     [[nodiscard]] FORCE_INLINE const Path& GetSourcePath() const { return source_path; }
 
-    /** 에셋을 무효화 합니다. */
-    void Invalidate();
+    /** 에셋을 무효화 후, 이전 에셋을 반환합니다. */
+    [[nodiscard]] std::shared_ptr<IAsset> Invalidate();
 
 private:
     mutable TracySharedLockable(std::shared_mutex, mutex);
     std::shared_ptr<IAsset> asset;
+
+    // lock-free 읽기 전용 포인터
+    std::atomic<IAsset*> cached_asset;
 
     // Asset Metadata
     const AssetId asset_id;
