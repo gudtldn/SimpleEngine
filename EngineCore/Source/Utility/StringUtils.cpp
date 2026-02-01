@@ -1,4 +1,4 @@
-﻿#include "Utility/StringUtils.h"
+#include "Utility/StringUtils.h"
 
 #include <unicode/unistr.h>
 #include <unicode/locid.h>
@@ -16,15 +16,15 @@ se::String ToString(const UnicodeString& in_ustr)
 }
 }
 
-namespace se::utility
+namespace se
 {
-String ToString(std::string_view in_str)
+String StringUtils::ToString(std::string_view in_str)
 {
     const UnicodeString ustr = UnicodeString::fromUTF8(in_str);
     return ::ToString(ustr);
 }
 
-String ToString(std::wstring_view in_str)
+String StringUtils::ToString(std::wstring_view in_str)
 {
 #if SE_PLATFORM_WINDOWS
     // Windows: wchar_t는 16비트(UTF-16)
@@ -42,13 +42,13 @@ String ToString(std::wstring_view in_str)
     return ::ToString(ustr);
 }
 
-String ToString(std::u8string_view in_str)
+String StringUtils::ToString(std::u8string_view in_str)
 {
     const UnicodeString ustr = UnicodeString::fromUTF8(in_str);
     return ::ToString(ustr);
 }
 
-String ToString(std::u16string_view in_str)
+String StringUtils::ToString(std::u16string_view in_str)
 {
     const UnicodeString ustr{
         in_str.data(),
@@ -57,7 +57,7 @@ String ToString(std::u16string_view in_str)
     return ::ToString(ustr);
 }
 
-String ToString(std::u32string_view in_str)
+String StringUtils::ToString(std::u32string_view in_str)
 {
     static_assert(
         sizeof(std::u32string_view::value_type) == sizeof(UChar32),

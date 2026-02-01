@@ -148,7 +148,7 @@ Optional<String> Path::FileName() const
         return std::nullopt;
     }
     const std::u8string u8_str = internal_path.filename().generic_u8string();
-    return utility::ToString(u8_str);
+    return StringUtils::ToString(u8_str);
 }
 
 Optional<String> Path::FileStem() const
@@ -159,7 +159,7 @@ Optional<String> Path::FileStem() const
     }
 
     const std::u8string u8_str = internal_path.stem().generic_u8string();
-    return utility::ToString(u8_str);
+    return StringUtils::ToString(u8_str);
 }
 
 Optional<String> Path::Extension() const
@@ -170,7 +170,7 @@ Optional<String> Path::Extension() const
     }
 
     const std::u8string u8_str = internal_path.extension().generic_u8string();
-    return utility::ToString(u8_str);
+    return StringUtils::ToString(u8_str);
 }
 
 bool Path::IsEmpty() const
@@ -223,7 +223,7 @@ bool Path::IsFile() const
 String Path::ToString() const
 {
     const std::u8string u8_str = internal_path.generic_u8string();
-    return utility::ToString(u8_str);
+    return StringUtils::ToString(u8_str);
 }
 
 Optional<VPath> Path::ToVirtual() const

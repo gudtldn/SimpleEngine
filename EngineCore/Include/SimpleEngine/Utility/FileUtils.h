@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <expected>
 
 #include "SimpleEngine/Core/Container/String.h"
@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/Types/Path.h"
 
 
-namespace se::utility
+namespace se
 {
 class FileReadError : public IError
 {
@@ -52,9 +52,17 @@ private:
 template <typename T>
 using FileResult = Expected<T, FileReadError>;
 
-/** 파일을 읽고, byte array로 반환합니다. */
-[[nodiscard]] SE_CORE_API FileResult<Array<uint8>> ReadToByteArray(const Path& file_path);
+/**
+ * 파일 I/O 관련 유틸리티 함수 모음
+ */
+struct SE_CORE_API FileIO
+{
+    FileIO() = delete;
 
-/** 파일을 읽고, string으로 반환합니다. */
-[[nodiscard]] SE_CORE_API FileResult<String> ReadToString(const Path& file_path);
-}  // namespace se::utility
+    /** 파일을 읽고, byte array로 반환합니다. */
+    [[nodiscard]] static FileResult<Array<uint8>> ReadBytes(const Path& file_path);
+
+    /** 파일을 읽고, string으로 반환합니다. */
+    [[nodiscard]] static FileResult<String> ReadString(const Path& file_path);
+};
+}  // namespace se

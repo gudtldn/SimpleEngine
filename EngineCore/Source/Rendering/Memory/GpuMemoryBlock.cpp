@@ -40,7 +40,7 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
         }
 
         static_assert(
-            utility::AlignedSize<alignof(GpuMemoryBlock)>(
+            AlignedSize<alignof(GpuMemoryBlock)>(
                 sizeof(device)   // NOLINT(*-sizeof-expression)
                 + sizeof(buffer) // NOLINT(*-sizeof-expression)
                 + sizeof(usage_flags)
@@ -61,7 +61,7 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
 
 bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBufferSlice& out_slice)
 {
-    const uint32 aligned_offset = static_cast<uint32>(utility::AlignedSize(used_offset, in_alignment));
+    const uint32 aligned_offset = static_cast<uint32>(AlignedSize(used_offset, in_alignment));
 
     // Buffer의 남은 공간이 부족한지?
     if (aligned_offset + in_size > total_size)

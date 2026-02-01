@@ -159,7 +159,7 @@ template <typename PassType, typename... Args>
     requires std::derived_from<PassType, IRenderPass>
 PassType& RenderGraph::AddPass(Args&&... args)
 {
-    using namespace se::utility;
+    using namespace se;
 
     auto pass_ptr = std::make_unique<PassType>(std::forward<Args>(args)...);
     PassType* raw_ptr = pass_ptr.get();

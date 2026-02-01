@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <tuple>
 #include <type_traits>
@@ -6,7 +6,7 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
-namespace se::utility
+namespace se
 {
 namespace detail
 {

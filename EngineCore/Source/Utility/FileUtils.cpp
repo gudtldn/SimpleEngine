@@ -1,4 +1,4 @@
-﻿#include "Utility/FileUtils.h"
+#include "Utility/FileUtils.h"
 
 #include <fstream>
 
@@ -7,9 +7,9 @@
 #include "Utility/StringUtils.h"
 
 
-namespace se::utility
+namespace se
 {
-FileResult<Array<uint8>> ReadToByteArray(const Path& file_path)
+FileResult<Array<uint8>> FileIO::ReadBytes(const Path& file_path)
 {
     const String path = file_path.ToString();
 
@@ -44,13 +44,13 @@ FileResult<Array<uint8>> ReadToByteArray(const Path& file_path)
     return data;
 }
 
-FileResult<String> ReadToString(const Path& file_path)
+FileResult<String> FileIO::ReadString(const Path& file_path)
 {
-    const auto result = ReadToByteArray(file_path);
+    const auto result = ReadBytes(file_path);
     if (result.HasValue())
     {
         return String{ reinterpret_cast<const char*>(result->Data()), result->Len() };
     }
     return Unexpected{ std::move(result).Error() };
 }
-}  // namespace se::utility
+}  // namespace se

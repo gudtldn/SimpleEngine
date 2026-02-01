@@ -1,4 +1,4 @@
-﻿#include "Gfx/ShaderUtils.h"
+#include "Gfx/ShaderUtils.h"
 
 #include "Core/HAL/PlatformTypes.h"
 #include "Core/Logging/Logging.h"
@@ -47,7 +47,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
 {
     // read shader file
     Array<uint8> source;
-    if (auto result = utility::ReadToByteArray(shader_path))
+    if (auto result = FileIO::ReadBytes(shader_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

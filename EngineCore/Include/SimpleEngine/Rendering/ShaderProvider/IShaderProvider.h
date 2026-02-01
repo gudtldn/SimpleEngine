@@ -46,14 +46,12 @@ struct std::hash<se::graphics::ShaderRequest>
     // ReSharper disable once CppDFAConstantFunctionResult
     size_t operator()(const se::graphics::ShaderRequest& request) const noexcept
     {
-        using se::utility::HashCombine;
-
         usize seed = 0;
 
-        HashCombine(seed, request.source_path);
+        se::HashUtils::Combine(seed, request.source_path);
         if (request.hlsl_include_dir_opt.HasValue())
         {
-            HashCombine(seed, *request.hlsl_include_dir_opt);
+            se::HashUtils::Combine(seed, *request.hlsl_include_dir_opt);
         }
 
         if (request.hlsl_defines_opt.HasValue())
@@ -67,8 +65,8 @@ struct std::hash<se::graphics::ShaderRequest>
 
             for (const auto& [name, value] : defines)
             {
-                HashCombine(seed, se::StringView{ name });
-                HashCombine(seed, se::StringView{ value });
+                se::HashUtils::Combine(seed, se::StringView{ name });
+                se::HashUtils::Combine(seed, se::StringView{ value });
             }
         }
 

@@ -42,7 +42,7 @@ private:
     uint32 id;
     uint32 generation;
 };
-}
+}  // namespace se
 
 template <>
 struct std::hash<se::Entity>
@@ -50,7 +50,7 @@ struct std::hash<se::Entity>
     size_t operator()(const se::Entity& entity) const noexcept
     {
         usize hash = 0;
-        se::utility::HashCombine(hash, entity.GetId(), entity.GetGeneration());
+        se::HashUtils::Combine(hash, entity.GetId(), entity.GetGeneration());
         return static_cast<size_t>(hash);
     }
 };

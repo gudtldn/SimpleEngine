@@ -63,12 +63,12 @@ concept IsRequiredComponent = IsFetchTag<T> && !(traits::IsSpecializationOf<T, O
 // 조건 태그(CondFetchTag 등)를 사용하여 타입 목록에서 특정 타입들을 추출
 template <template <typename> typename ConditionTag, typename... Ts>
     requires requires { (ConditionTag<Ts>::Value, ...); }
-using ExtractTypes = utility::TupleCat<
+using ExtractTypes = TupleCat<
     std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
 >;
 
 template <template <typename...> typename ConditionTag, typename... Ts>
-using FlattenTypes = utility::FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
+using FlattenTypes = FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
 
 // 타입 필터링을 위한 조건 태그 정의
 SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, IsFetchTag<T>);                              // 가져올 컴포넌트
@@ -106,7 +106,7 @@ public:
     using WithoutTypes = detail::FlattenTypes<detail::CondWithoutTag, Ts...>;
 
     // 실제 Query 검증에 사용되는 타입들
-    using PredicateTypes = utility::TupleCat<detail::FlattenTypes<detail::CondPredicateTag, Ts...>, WithTypes>;
+    using PredicateTypes = TupleCat<detail::FlattenTypes<detail::CondPredicateTag, Ts...>, WithTypes>;
 
 public:
     explicit QueryData(World* in_world);
@@ -134,7 +134,7 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
 {
     // Fetch(Optional<T> 제외)와 With 목록의 모든 컴포넌트를 가졌는지 확인
     const bool has_all_required =
-        utility::WithUnpackedTypes<PredicateTypes>([this, entity]<typename... PredComps>
+        WithUnpackedTypes<PredicateTypes>([this, entity]<typename... PredComps>
         {
             return (world->HasComponent<std::decay_t<PredComps>>(entity) && ...);
         });
@@ -146,7 +146,7 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
 
     // Without 목록의 컴포넌트를 하나라도 가졌는지 확인
     const bool has_any_excluded =
-        utility::WithUnpackedTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
+        WithUnpackedTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
         {
             return (world->HasComponent<std::decay_t<WithoutComps>>(entity) || ...);
         });
@@ -171,7 +171,7 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
 
     // 각 컴포넌트 스토리지 포인터를 배열에 수집
     const auto pools =
-        utility::WithUnpackedTypes<PredicateTypes>([this]<typename... PredComps> -> std::array<IStorage*, pool_size>
+        WithUnpackedTypes<PredicateTypes>([this]<typename... PredComps> -> std::array<IStorage*, pool_size>
         {
             return {
                 world->GetIStorage<std::decay_t<PredComps>>()...

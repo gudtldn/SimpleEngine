@@ -1,10 +1,10 @@
-﻿#include "Utility/Config.h"
+#include "Utility/Config.h"
 
 #include "Core/Types/VPath.h"
 #include "Utility/FileUtils.h"
 
 
-namespace se::utility
+namespace se
 {
 ParseResult Config::ReadConfig(const VPath& config_file_path)
 {
@@ -76,4 +76,4 @@ toml::node_view<const toml::node> Config::FindNode(StringView path_str) const
 {
     return config_table.at_path(std::string_view{ path_str });
 }
-}  // namespace se::utility
+}  // namespace se
