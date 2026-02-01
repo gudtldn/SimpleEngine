@@ -118,9 +118,6 @@ void EditorApplication::Render()
     }
 
     {
-        using namespace se::editor;
-        using namespace se::editor;
-
         const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
             se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
