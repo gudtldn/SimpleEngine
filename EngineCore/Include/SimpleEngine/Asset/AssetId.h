@@ -10,6 +10,9 @@ namespace se::asset
 class AssetId
 {
 public:
+    static const AssetId Invalid;
+
+public:
     AssetId() = default;
     explicit AssetId(const Guid& in_guid) : guid(in_guid) {}
 
