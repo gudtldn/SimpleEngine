@@ -4,7 +4,8 @@
 namespace se::asset
 {
 AssetSlot::AssetSlot(AssetId id, Path path, const TypeId& type_id)
-    : asset_id(id)
+    : cached_asset(nullptr)
+    , asset_id(id)
     , asset_type(type_id)
     , source_path(std::move(path))
     , loading_state(ELoadingState::Unloaded)
@@ -13,7 +14,7 @@ AssetSlot::AssetSlot(AssetId id, Path path, const TypeId& type_id)
 
 IAsset* AssetSlot::GetRawAsset() const
 {
-    return asset.get();
+    return cached_asset.load(std::memory_order_acquire);
 }
 
 std::shared_ptr<IAsset> AssetSlot::GetAsset() const
@@ -22,11 +23,15 @@ std::shared_ptr<IAsset> AssetSlot::GetAsset() const
     return asset;
 }
 
-void AssetSlot::SetAsset(std::shared_ptr<IAsset> new_asset, ELoadingState new_state)
+std::shared_ptr<IAsset> AssetSlot::ExchangeAsset(std::shared_ptr<IAsset> new_asset, ELoadingState new_state)
 {
     std::unique_lock lock(mutex);
-    asset = std::move(new_asset);
+
+    std::shared_ptr<IAsset> old_asset = std::exchange(asset, std::move(new_asset));
+    cached_asset.store(asset.get(), std::memory_order_release);
     SetState(new_state);
+
+    return old_asset;
 }
 
 ELoadingState AssetSlot::GetState() const
@@ -39,10 +44,14 @@ void AssetSlot::SetState(ELoadingState state)
     loading_state.store(state, std::memory_order_release);
 }
 
-void AssetSlot::Invalidate()
+std::shared_ptr<IAsset> AssetSlot::Invalidate()
 {
     std::unique_lock lock(mutex);
-    asset.reset();
+
+    std::shared_ptr<IAsset> old_asset = std::move(asset);
+    cached_asset.store(nullptr, std::memory_order_release);
     SetState(ELoadingState::Unloaded);
+
+    return old_asset;
 }
 } // namespace se::asset
