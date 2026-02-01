@@ -1,4 +1,4 @@
-﻿#include "Asset/AssetManager_DEPRECATED.h"
+#include "Asset/AssetManager_DEPRECATED.h"
 #include "Utility/StringUtils.h"
 
 
@@ -9,7 +9,7 @@ Optional<const AssetManager_DEPRECATED::ExtensionInfo&> AssetManager_DEPRECATED:
     return extension_registry.Find(extension);
 }
 
-IAssetLoader* AssetManager_DEPRECATED::GetLoaderFromType(const refl::TypeId& type_id) const
+IAssetLoader* AssetManager_DEPRECATED::GetLoaderFromType(const TypeId& type_id) const
 {
     constexpr std::unique_ptr<IAssetLoader> null_ptr;
     return loaders.Find(type_id).ValueOr(null_ptr).get();
@@ -28,13 +28,13 @@ std::shared_ptr<IAssetImportSettings> AssetManager_DEPRECATED::CreateDefaultSett
     // 레지스트리 조회
     if (const Optional info_opt = extension_registry.Find(ext_name))
     {
-        const refl::TypeId& settings_type = info_opt->settings_type;
+        const TypeId& settings_type = info_opt->settings_type;
         return CreateSettingsFromType(settings_type);
     }
     return nullptr;
 }
 
-std::shared_ptr<IAssetImportSettings> AssetManager_DEPRECATED::CreateSettingsFromType(const refl::TypeId& settings_type) const
+std::shared_ptr<IAssetImportSettings> AssetManager_DEPRECATED::CreateSettingsFromType(const TypeId& settings_type) const
 {
     if (const Optional settings_ptr_opt = settings_prototypes.Find(settings_type))
     {
@@ -42,4 +42,4 @@ std::shared_ptr<IAssetImportSettings> AssetManager_DEPRECATED::CreateSettingsFro
     }
     return nullptr;
 }
-}
+}  // namespace se::asset

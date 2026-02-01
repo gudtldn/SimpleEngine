@@ -6,7 +6,7 @@
 #include "SimpleEngine/Reflection/TypeId.h"
 
 
-namespace se::refl
+namespace se
 {
 /** 타입 속성 비트 플래그 */
 enum class ETypeFlags : uint32
@@ -112,5 +112,5 @@ struct TypeInfo
 
     // TODO: 상속 정보 추가
 };
-} // namespace se::refl
+} // namespace se
 

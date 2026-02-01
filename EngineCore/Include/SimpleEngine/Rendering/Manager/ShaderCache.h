@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <memory>
 
@@ -6,7 +6,7 @@
 #include "SimpleEngine/Rendering/ShaderProvider/PrecompiledShaderProvider.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
  * Rendering에 사용될 셰이더를 관리하는 매니저
@@ -49,4 +49,4 @@ void ShaderCache::SetProvider(Args&&... args)
 {
     provider = std::make_unique<T>(std::forward<Args>(args)...);
 }
-}
+}  // namespace se::graphics

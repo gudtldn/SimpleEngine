@@ -1,9 +1,9 @@
-﻿#include "UI/Panels/ImGuiDemoPanel.h"
+#include "UI/Panels/ImGuiDemoPanel.h"
 
 #include "imgui.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 ImGuiDemoPanel::ImGuiDemoPanel()
 {
@@ -19,4 +19,4 @@ void ImGuiDemoPanel::Draw()
 {
     ImGui::ShowDemoWindow(&is_visible);
 }
-}
+}  // namespace se::editor

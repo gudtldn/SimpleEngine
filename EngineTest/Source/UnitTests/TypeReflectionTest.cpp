@@ -1,4 +1,4 @@
-﻿#include "gtest/gtest.h"
+#include "gtest/gtest.h"
 
 #include <ostream>
 #include <string_view>
@@ -38,7 +38,7 @@ class TypeReflectionTest : public ::testing::Test {};
 
 TEST_F(TypeReflectionTest, PrimitiveTypeNamesAreCorrect)
 {
-    using namespace se::refl;
+    using namespace se;
 
     // int와 그 변형(포인터, 참조 등)은 모두 기본 타입 이름 "int"를 반환해야 합니다.
     EXPECT_EQ(GetFullTypeName<int>(), "int");
@@ -62,7 +62,7 @@ TEST_F(TypeReflectionTest, PrimitiveTypeNamesAreCorrect)
 
 TEST_F(TypeReflectionTest, ComplexPointerAndQualifierStripping)
 {
-    using namespace se::refl;
+    using namespace se;
 
     using Type1 = const volatile WeirdNamespace::MyEnum***** const volatile;
     EXPECT_EQ(GetFullTypeName<Type1>(), "WeirdNamespace::MyEnum");
@@ -75,7 +75,7 @@ TEST_F(TypeReflectionTest, ComplexPointerAndQualifierStripping)
 
 TEST_F(TypeReflectionTest, ClassTypeNamesAreCorrect)
 {
-    using namespace se::refl;
+    using namespace se;
 
     using Type1 = const WeirdNamespace::MyClass* const&&;
     EXPECT_EQ(GetFullTypeName<Type1>(), "WeirdNamespace::MyClass");
@@ -88,7 +88,7 @@ TEST_F(TypeReflectionTest, ClassTypeNamesAreCorrect)
 
 TEST_F(TypeReflectionTest, EnumInGlobalNamespace)
 {
-    using namespace se::refl;
+    using namespace se;
 
     using Type1 = TestEnum****** * **;
     // 전역 네임스페이스의 enum이므로 FullTypeName과 TypeName이 같아야 함
@@ -101,7 +101,7 @@ TEST_F(TypeReflectionTest, EnumInGlobalNamespace)
 
 TEST_F(TypeReflectionTest, TypeIdReturnsCorrectNameAndHash)
 {
-    using namespace se::refl;
+    using namespace se;
 
     constexpr TypeId id = TypeId::Get<int>();
 
@@ -117,7 +117,7 @@ TEST_F(TypeReflectionTest, TypeIdReturnsCorrectNameAndHash)
 
 TEST_F(TypeReflectionTest, TypeIdsForDifferentTypesAreDifferent)
 {
-    using namespace se::refl;
+    using namespace se;
 
     constexpr TypeId id_int = TypeId::Get<int>();
     constexpr TypeId id_float = TypeId::Get<float>();

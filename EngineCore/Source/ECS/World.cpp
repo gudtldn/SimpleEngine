@@ -1,4 +1,4 @@
-﻿#include "ECS/World.h"
+#include "ECS/World.h"
 
 #include <ranges>
 #include "ECS/SparseSet.h"
@@ -21,7 +21,7 @@ Array<Entity> World::GetAliveEntities() const
     return entity_manager.GetAliveEntities();
 }
 
-IStorage* World::GetStorage(const refl::TypeId& type_id)
+IStorage* World::GetStorage(const TypeId& type_id)
 {
     if (const Optional storage_opt = component_storages.Find(type_id))
     {

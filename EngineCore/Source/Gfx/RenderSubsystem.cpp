@@ -10,7 +10,7 @@
 #include "SDL3/SDL_hints.h"
 #include "tracy/Tracy.hpp"
 
-using namespace se::rendering;
+using namespace se::graphics;
 
 
 namespace se

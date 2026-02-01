@@ -1,4 +1,4 @@
-﻿#include "Asset/EditorAssetSubsystem.h"
+#include "Asset/EditorAssetSubsystem.h"
 
 #include <sstream>
 
@@ -11,7 +11,7 @@
 #include "SimpleEngine/Utility/VFS.h"
 
 
-namespace se::editor::asset
+namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::asset::AssetSubsystem>();
@@ -144,4 +144,4 @@ Optional<se::asset::AssetEntry_DEPRECATED> EditorAssetSubsystem::ProcessMetaFile
 
     return entry;
 }
-}  // namespace se::editor::asset
+}  // namespace se::editor

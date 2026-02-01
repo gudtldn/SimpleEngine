@@ -1,4 +1,4 @@
-﻿#include "UI/Panels/DebugPanel.h"
+#include "UI/Panels/DebugPanel.h"
 
 #include "imgui.h"
 #include "SimpleEngine/Core/Memory/MemoryStats.h"
@@ -23,7 +23,7 @@ se::String FormatBytes(usize bytes)
 }
 }  // namespace
 
-namespace se::editor::ui
+namespace se::editor
 {
 DebugPanel::DebugPanel()
 {
@@ -75,4 +75,4 @@ void DebugPanel::Draw()
     }
     ImGui::End();
 }
-}  // namespace se::editor::ui
+}  // namespace se::editor

@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "UI/Panels/IEditorPanel.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Reflection/Meta.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class DetailPanel : public IEditorPanel
 {
@@ -15,6 +15,6 @@ public:
     virtual void Draw() override;
 
 private:
-    Array<refl::TypeInfo> components;
+    Array<TypeInfo> components;
 };
-}  // namespace se::editor::ui
+}  // namespace se::editor

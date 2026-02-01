@@ -1,9 +1,9 @@
-﻿#include "Rendering/RenderGraph/FrameResourcePool.h"
+#include "Rendering/RenderGraph/FrameResourcePool.h"
 
 #include <ranges>
 
 
-namespace se::rendering
+namespace se::graphics
 {
 FrameResourcePool::FrameResourcePool(SDL_GPUDevice* in_device)
     : device(in_device)
@@ -62,4 +62,4 @@ void FrameResourcePool::ReleaseBuffer(const SDL_GPUBufferCreateInfo& info, SDL_G
 {
     ReleaseResourceInternal(buffer_pool[info], buffer);
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

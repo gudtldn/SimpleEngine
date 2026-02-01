@@ -102,8 +102,8 @@ protected:
         // 2. AssetRegistry에 등록
         asset_manager.GetRegistry().AddEntry({
             .guid = guid,
-            .asset_type = se::refl::TypeId::Get<DummyAsset>(),
-            .loader_type = se::refl::TypeId::Get<DummyAssetLoader>(),
+            .asset_type = se::TypeId::Get<DummyAsset>(),
+            .loader_type = se::TypeId::Get<DummyAssetLoader>(),
             .virtual_path = vpath
         });
 
@@ -195,8 +195,8 @@ TEST_F(AssetManagerTest, LoadSynchronousOnRegisteredButNonExistentFileReturnsNul
         handle = AssetHandle<DummyAsset>(Guid::NewGuid());
         asset_manager.GetRegistry().AddEntry({
             .guid = handle.GetGuid(),
-            .asset_type = se::refl::TypeId::Get<DummyAsset>(),
-            .loader_type = se::refl::TypeId::Get<DummyAssetLoader>(),
+            .asset_type = se::TypeId::Get<DummyAsset>(),
+            .loader_type = se::TypeId::Get<DummyAssetLoader>(),
             .virtual_path = "TestAssets://i_dont_exist.dummy"
         });
     }
@@ -216,8 +216,8 @@ TEST_F(AssetManagerTest, LoadAsyncOnNonExistentFileReturnsNull)
         handle = AssetHandle<DummyAsset>(Guid::NewGuid());
         asset_manager.GetRegistry().AddEntry({
             .guid = handle.GetGuid(),
-            .asset_type = se::refl::TypeId::Get<DummyAsset>(),
-            .loader_type = se::refl::TypeId::Get<DummyAssetLoader>(),
+            .asset_type = se::TypeId::Get<DummyAsset>(),
+            .loader_type = se::TypeId::Get<DummyAssetLoader>(),
             .virtual_path = "TestAssets://i_dont_exist_async.dummy"
         });
     }

@@ -1,4 +1,4 @@
-﻿#include "Rendering/Compiler/Provider.h"
+#include "Rendering/Compiler/Provider.h"
 
 #include "Rendering/Compiler/Compiler.h"
 #include "SimpleEngine/Core/Container/Array.h"
@@ -7,10 +7,10 @@
 #include "SimpleEngine/Gfx/ShaderUtils.h"
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
 
-using namespace se::rendering;
+using namespace se::graphics;
 
 
-namespace se::editor::rendering
+namespace se::editor
 {
 SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
@@ -60,4 +60,4 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
 
     return nullptr;
 }
-}  // namespace se::editor::rendering
+}  // namespace se::editor

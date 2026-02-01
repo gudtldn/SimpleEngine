@@ -6,7 +6,7 @@
 #include "SimpleEngine/Reflection/Meta.h"
 
 
-namespace se::refl
+namespace se
 {
 /**
  * 런타임 타입 정보(RTTI)를 중앙에서 관리하는 전역 저장소
@@ -45,4 +45,4 @@ Optional<const TypeInfo&> TypeRegistry::Find() const
 {
     return Find(TypeId::Get<T>());
 }
-}
+}  // namespace se

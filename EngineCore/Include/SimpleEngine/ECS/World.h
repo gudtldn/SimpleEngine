@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <memory>
 #include <tuple>
@@ -14,7 +14,7 @@
 #include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/ECS/EntityManager.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
-#include "SimpleEngine/ECS/Schedules.h"
+#include "SimpleEngine/ECS/Phases.h"
 #include "SimpleEngine/ECS/SparseSet.h"
 
 
@@ -45,8 +45,8 @@ private:
 
     EntityManager entity_manager;
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    HashMap<refl::TypeId, Array<Function<void()>>> systems;
-    HashMap<refl::TypeId, std::unique_ptr<IStorage>> component_storages;
+    HashMap<TypeId, Array<Function<void()>>> systems;
+    HashMap<TypeId, std::unique_ptr<IStorage>> component_storages;
 
 public:
     class EntityChain;
@@ -155,10 +155,10 @@ public:
      * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
      * @tparam Fn 시스템으로 등록할 함수 또는 람다
      */
-    template <schedule::ScheduleType S, detail::SystemFuncType Fn>
+    template <PhaseType S, detail::SystemFuncType Fn>
     void AddSystem(Fn&& system_func)
     {
-        const auto type_id = refl::TypeId::Get<S>();
+        const auto type_id = TypeId::Get<S>();
         systems[type_id].Push([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::FunctionTraits<Fn>;
@@ -176,16 +176,16 @@ public:
      * @param type_id 검색할 타입의 TypeId
      * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
      */
-    IStorage* GetStorage(const refl::TypeId& type_id);
+    IStorage* GetStorage(const TypeId& type_id);
 
     /**
      * 지정된 스케줄에 등록된 모든 시스템을 순서대로 실행합니다.
      * @tparam S 실행할 스케줄 타입
      */
-    template <schedule::ScheduleType S>
-    void RunSchedule()
+    template <PhaseType S>
+    void RunPhase()
     {
-        const auto type_id = refl::TypeId::Get<S>();
+        const auto type_id = TypeId::Get<S>();
         if (Optional system_opt = systems.Find(type_id))
         {
             for (const Function<void()>& system : *system_opt)
@@ -233,7 +233,7 @@ private:
     {
         using RawType = std::decay_t<ComponentType>;
 
-        const auto type_id = refl::TypeId::Get<RawType>();
+        const auto type_id = TypeId::Get<RawType>();
         IStorage* storage = component_storages
             .Entry(type_id)
             .OrInsert(std::make_unique<ComponentStorage<RawType>>()).get();
@@ -260,7 +260,7 @@ private:
         using RawType = std::decay_t<ComponentType>;
         std::unique_ptr<IStorage> null_ptr;
 
-        const auto type_id = refl::TypeId::Get<RawType>();
+        const auto type_id = TypeId::Get<RawType>();
         return self.component_storages.Find(type_id).ValueOr(null_ptr).get();
     }
 

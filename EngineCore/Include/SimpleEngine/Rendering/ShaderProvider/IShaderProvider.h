@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <algorithm>
 #include <utility>
 
@@ -10,7 +10,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
  * Shader 요청에 필요한 정보
@@ -37,14 +37,14 @@ public:
     /** 주어진 Request에 따라 Shader를 가져옵니다. */
     virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const ShaderRequest& request) = 0;
 };
-}  // namespace se::rendering
+}  // namespace se::graphics
 
 
 template <>
-struct std::hash<se::rendering::ShaderRequest>
+struct std::hash<se::graphics::ShaderRequest>
 {
     // ReSharper disable once CppDFAConstantFunctionResult
-    size_t operator()(const se::rendering::ShaderRequest& request) const noexcept
+    size_t operator()(const se::graphics::ShaderRequest& request) const noexcept
     {
         using se::utility::HashCombine;
 

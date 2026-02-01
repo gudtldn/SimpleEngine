@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 
 #include "../Types/IAsset.h"
@@ -33,7 +33,7 @@ protected:
         {
 #if SE_DEBUG_BUILD
             const SettingType* settings = dynamic_cast<const SettingType*>(in_settings);
-            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", refl::GetFullTypeName<SettingType>());
+            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", GetFullTypeName<SettingType>());
             return settings;
 #else
             return static_cast<const SettingType*>(in_settings);

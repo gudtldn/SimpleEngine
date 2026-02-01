@@ -1,4 +1,4 @@
-﻿#include "ECS/WorldSubsystem.h"
+#include "ECS/WorldSubsystem.h"
 
 #include "Core/Subsystem/SubsystemRegistration.h"
 #include "ECS/World.h"
@@ -23,7 +23,7 @@ void WorldSubsystem::Release()
 
 void WorldSubsystem::PreUpdate()
 {
-    world->RunSchedule<schedule::PreUpdate>();
+    world->RunPhase<PreUpdatePhase>();
 }
 
 void WorldSubsystem::Update(float delta_time)
@@ -31,11 +31,11 @@ void WorldSubsystem::Update(float delta_time)
     // TODO: delta_time ECS에서 사용할 수 있도록 수정
     (void)delta_time;
 
-    world->RunSchedule<schedule::Update>();
+    world->RunPhase<UpdatePhase>();
 }
 
 void WorldSubsystem::PostUpdate()
 {
-    world->RunSchedule<schedule::PostUpdate>();
+    world->RunPhase<PostUpdatePhase>();
 }
 }

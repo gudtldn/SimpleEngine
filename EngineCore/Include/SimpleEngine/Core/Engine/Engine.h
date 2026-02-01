@@ -82,7 +82,7 @@ private:
     static Engine* Instance;
 
     // Type별 Subsystem 목록 | TODO: MSVC flat_map 나오면 수정
-    HashMap<refl::TypeId, std::unique_ptr<ISubsystem>> subsystems;
+    HashMap<TypeId, std::unique_ptr<ISubsystem>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
     Array<ISubsystem*> sorted_subsystems;
@@ -98,11 +98,11 @@ template <typename T>
     requires std::derived_from<T, ISubsystem>
 T* Engine::GetSubsystem() const
 {
-    const auto type_id = refl::TypeId::Get<T>();
+    const auto type_id = TypeId::Get<T>();
     if (Optional subsystem = subsystems.Find(type_id))
     {
         return static_cast<T*>(subsystem->get());
     }
     return nullptr;
 }
-}
+}  // namespace se

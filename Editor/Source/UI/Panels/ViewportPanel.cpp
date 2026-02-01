@@ -1,11 +1,11 @@
-﻿#include "UI/Panels/ViewportPanel.h"
+#include "UI/Panels/ViewportPanel.h"
 #include "UI/EditorViewportSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 ViewportPanel::ViewportPanel(const StringName& in_viewport_id)
     : viewport_id(in_viewport_id)
@@ -37,4 +37,4 @@ void ViewportPanel::Draw()
     ImGui::End();
     ImGui::PopStyleVar();
 }
-}
+}  // namespace se::editor

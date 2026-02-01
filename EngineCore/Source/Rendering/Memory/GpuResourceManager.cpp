@@ -1,4 +1,4 @@
-﻿#include "Rendering/Memory/GpuResourceManager.h"
+#include "Rendering/Memory/GpuResourceManager.h"
 
 #include <cmath>
 
@@ -6,7 +6,7 @@
 #include "Utility/Debug.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 GpuResourceManager::GpuResourceManager(SDL_GPUDevice* in_device)
     : device(in_device)
@@ -306,4 +306,4 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
 
     return slice;
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

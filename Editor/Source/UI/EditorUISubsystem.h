@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Core/EditorSubsystem.h"
 #include "UI/Panels/IEditorPanel.h"
@@ -11,7 +11,7 @@
 #include "SimpleEngine/ECS/World.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class EditorUISubsystem : public ISubsystem, public IUpdatable
 {
@@ -54,4 +54,4 @@ PanelType& EditorUISubsystem::RegisterPanel(const StringName& panel_id, Args&&..
     panels.Emplace(panel_id, std::move(panel));
     return panel_ref;
 }
-}
+}  // namespace se::editor

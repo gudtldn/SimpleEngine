@@ -1,10 +1,10 @@
-﻿#include "Rendering/Manager/ShaderCache.h"
+#include "Rendering/Manager/ShaderCache.h"
 
 #include <ranges>
 #include "Core/Logging/Logging.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderProvider> init_provider)
     : device(in_device)
@@ -42,4 +42,4 @@ void ShaderCache::ClearCache()
     }
     shader_cache.Clear();
 }
-}
+}  // namespace se::graphics

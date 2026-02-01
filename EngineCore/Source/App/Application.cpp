@@ -19,7 +19,7 @@
 #define RETURN_IF_FAILED(x) do { if (!(x)) { ConsoleLog(ELogLevel::Error, "Initialize Failed!: {}", #x); return; } } while (false);
 
 
-namespace se::app
+namespace se
 {
 double Application::CurrentTime = 0.0;
 double Application::LastTime = 0.0;
@@ -61,7 +61,7 @@ void Application::Startup(const wchar_t* cmd_line)
 
 void Application::Startup(const String& cmd_line)
 {
-    platform::SetCurrentThreadName("Main Thread");
+    Platform::SetCurrentThreadName("Main Thread");
 
     if constexpr (SE_DEBUG_BUILD)
     {
@@ -284,4 +284,4 @@ void Application::ReleaseEngine()
 void Application::PostRelease()
 {
 }
-}  // namespace se::app
+}  // namespace se

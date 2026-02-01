@@ -59,29 +59,29 @@ se::String GetThreadName(HANDLE handle)
 }
 }  // namespace
 
-namespace se::platform
+namespace se
 {
-void SetThreadName(std::thread& thread, const String& name)
+void Platform::SetThreadName(std::thread& thread, const String& name)
 {
     ::SetThreadName(thread.native_handle(), name);
 }
 
-void SetCurrentThreadName(const String& name)
+void Platform::SetCurrentThreadName(const String& name)
 {
     ::SetThreadName(GetCurrentThread(), name);
 }
 
-String GetThreadName(std::thread& thread)
+String Platform::GetThreadName(std::thread& thread)
 {
     return ::GetThreadName(thread.native_handle());
 }
 
-String GetCurrentThreadName()
+String Platform::GetCurrentThreadName()
 {
     return ::GetThreadName(GetCurrentThread());
 }
 
-void RevealInExplorer(const Path& path)
+void Platform::RevealInExplorer(const Path& path)
 {
     if (!path.Exists())
     {
@@ -102,5 +102,5 @@ void RevealInExplorer(const Path& path)
         ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
     }
 }
-}  // namespace se::platform
+}  // namespace se
 #endif

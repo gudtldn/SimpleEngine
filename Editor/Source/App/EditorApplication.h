@@ -6,7 +6,7 @@
 
 namespace se::editor
 {
-class EditorApplication : public se::app::Application
+class EditorApplication : public se::Application
 {
 public:
     EditorApplication();

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <tuple>
 
@@ -33,7 +33,7 @@ template <typename Subsystem>
 Subsystem& GetSubsystemChecked()
 {
     Subsystem* subsystem = GetSubsystem<Subsystem>();
-    SE_ASSERT(subsystem, "Subsystem {} is not registered.", refl::GetFullTypeName<Subsystem>());
+    SE_ASSERT(subsystem, "Subsystem {} is not registered.", GetFullTypeName<Subsystem>());
     return *subsystem;
 }
 
@@ -63,4 +63,4 @@ std::tuple<Subsystems&...> GetSubsystemsChecked()
 {
     return { GetSubsystemChecked<Subsystems>()... };
 }
-}
+}  // namespace se

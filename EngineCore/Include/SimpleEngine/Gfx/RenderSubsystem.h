@@ -30,9 +30,9 @@ public:
 
 public:
     [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
-    [[nodiscard]] rendering::PSOManager& GetPSOManager() const { return *pso_manager; }
-    [[nodiscard]] rendering::RenderGraph& GetRenderGraph() const { return *render_graph; }
-    [[nodiscard]] rendering::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
+    [[nodiscard]] graphics::PSOManager& GetPSOManager() const { return *pso_manager; }
+    [[nodiscard]] graphics::RenderGraph& GetRenderGraph() const { return *render_graph; }
+    [[nodiscard]] graphics::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
 
 public:
     [[nodiscard]] SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
@@ -41,8 +41,8 @@ public:
 private:
     SDL_GPUDevice* gpu_device = nullptr;
 
-    std::unique_ptr<rendering::RenderGraph> render_graph;
-    std::unique_ptr<rendering::PSOManager> pso_manager;
-    std::unique_ptr<rendering::GpuResourceManager> resource_manager;
+    std::unique_ptr<graphics::RenderGraph> render_graph;
+    std::unique_ptr<graphics::PSOManager> pso_manager;
+    std::unique_ptr<graphics::GpuResourceManager> resource_manager;
 };
-}
+}  // namespace se

@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 
-namespace se::editor::asset
+namespace se::editor
 {
 class EditorAssetSubsystem : public ISubsystem
 {
@@ -22,4 +22,4 @@ private:
 private:
     se::asset::AssetManager_DEPRECATED* asset_manager = nullptr;
 };
-}  // namespace se::editor::asset
+}  // namespace se::editor

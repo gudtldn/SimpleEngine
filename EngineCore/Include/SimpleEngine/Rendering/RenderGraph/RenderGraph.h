@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 
 #include "SimpleEngine/Core/Container/HashSet.h"
@@ -9,7 +9,7 @@
 #include "SimpleEngine/Rendering/RenderPass/IRenderPass.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 // forward declaration
 struct GraphicsPipelineCreateInfo;
@@ -165,9 +165,9 @@ PassType& RenderGraph::AddPass(Args&&... args)
     PassType* raw_ptr = pass_ptr.get();
 
     RGPassNode& node = pass_nodes.Emplace();
-    node.name = StringName{ refl::GetFullTypeName<PassType>() };
+    node.name = StringName{ GetFullTypeName<PassType>() };
     node.pass_object = std::move(pass_ptr);
 
     return *raw_ptr;
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

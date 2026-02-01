@@ -1,4 +1,4 @@
-﻿#include "Rendering/RenderPass/ForwardScenePass.h"
+#include "Rendering/RenderPass/ForwardScenePass.h"
 
 #include "Core/Logging/Logging.h"
 #include "Core/Types/VPath.h"
@@ -19,7 +19,7 @@ using namespace se::math;
 using namespace se::ecs;
 
 
-namespace se::rendering
+namespace se::graphics
 {
 ForwardScenePass::ForwardScenePass(
     World& in_world_ref,
@@ -338,4 +338,4 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     }
     SDL_EndGPURenderPass(pass);
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

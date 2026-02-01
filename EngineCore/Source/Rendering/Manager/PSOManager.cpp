@@ -1,10 +1,10 @@
-﻿#include "Rendering/Manager/PSOManager.h"
+#include "Rendering/Manager/PSOManager.h"
 
 #include <ranges>
 #include "Core/Logging/Logging.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 PSOManager::PSOManager(SDL_GPUDevice* in_device)
     : device(in_device)
@@ -80,4 +80,4 @@ void PSOManager::EndFrame()
 {
     shader_cache.ClearCache();
 }
-}
+}  // namespace se::graphics

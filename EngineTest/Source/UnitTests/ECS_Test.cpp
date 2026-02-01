@@ -8,7 +8,6 @@
 
 using namespace se;
 using namespace se::ecs;
-using namespace se::ecs::schedule;
 
 class ECSTest : public ::testing::Test {};
 
@@ -29,25 +28,25 @@ TEST_F(ECSTest, ECSScheduleAndSystemExecutionOrder)
     std::vector<std::u8string> execution_log;
 
     // Add systems to different schedules
-    world.AddSystem<PreUpdate>([&]
+    world.AddSystem<PreUpdatePhase>([&]
     {
         execution_log.emplace_back(u8"PreUpdate");
     });
 
-    world.AddSystem<Update>([&]
+    world.AddSystem<UpdatePhase>([&]
     {
         execution_log.emplace_back(u8"Update");
     });
 
-    world.AddSystem<PostUpdate>([&]
+    world.AddSystem<PostUpdatePhase>([&]
     {
         execution_log.emplace_back(u8"PostUpdate");
     });
 
     // Run schedules in a specific order
-    world.RunSchedule<PreUpdate>();
-    world.RunSchedule<Update>();
-    world.RunSchedule<PostUpdate>();
+    world.RunPhase<PreUpdatePhase>();
+    world.RunPhase<UpdatePhase>();
+    world.RunPhase<PostUpdatePhase>();
 
     // Verify the execution order
     ASSERT_EQ(execution_log.size(), 3);
@@ -66,7 +65,7 @@ TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
                        .AddComponent<TestTagComponent>();
 
     // System to run in PreUpdate to add a value
-    world.AddSystem<PreUpdate>([](Query<TestValueComponent&> query)
+    world.AddSystem<PreUpdatePhase>([](Query<TestValueComponent&> query)
     {
         for (auto [val] : query)
         {
@@ -75,7 +74,7 @@ TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
     });
 
     // System to run in Update to multiply the value
-    world.AddSystem<Update>([](Query<TestValueComponent&, With<TestTagComponent>> query)
+    world.AddSystem<UpdatePhase>([](Query<TestValueComponent&, With<TestTagComponent>> query)
     {
         for (auto [val] : query)
         {
@@ -84,7 +83,7 @@ TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
     });
 
     // System to run in PostUpdate on entities without the tag (should not run)
-    world.AddSystem<PostUpdate>([](Query<TestValueComponent&, Without<TestTagComponent>> query)
+    world.AddSystem<PostUpdatePhase>([](Query<TestValueComponent&, Without<TestTagComponent>> query)
     {
         for (auto [val] : query)
         {
@@ -94,9 +93,9 @@ TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
 
 
     // Run the schedules
-    world.RunSchedule<PreUpdate>();
-    world.RunSchedule<Update>();
-    world.RunSchedule<PostUpdate>();
+    world.RunPhase<PreUpdatePhase>();
+    world.RunPhase<UpdatePhase>();
+    world.RunPhase<PostUpdatePhase>();
 
     // Verify the final value of the component
     auto component = world.TryGetComponent<TestValueComponent>(entity);
@@ -107,7 +106,7 @@ TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
     world.RemoveComponent<TestTagComponent>(entity);
 
     // This system should now run and set the value to 0
-    world.RunSchedule<PostUpdate>();
+    world.RunPhase<PostUpdatePhase>();
 
     component = world.TryGetComponent<TestValueComponent>(entity);
     ASSERT_TRUE(component.HasValue());
@@ -136,7 +135,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
 
     // These AddSystem calls are primarily for compile-time validation of different parameter types.
     // They don't need to be executed to be valuable.
-    world.AddSystem<Update>([](
+    world.AddSystem<UpdatePhase>([](
         [[maybe_unused]] Query<TransformComponent&, With<>, Without<>> query1,
         [[maybe_unused]] Query<TransformComponent&, With<StaticMeshComponent>, Without<>> query2,
         [[maybe_unused]] Query<Entity, With<>, Without<>> query3
@@ -150,12 +149,12 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
             SUCCEED() << "System with multiple queries compiled and ran successfully.";
         });
 
-    world.AddSystem<Update>([](World* w)
+    world.AddSystem<UpdatePhase>([](World* w)
     {
         ASSERT_NE(w, nullptr) << "System received a null World pointer.";
     });
 
-    world.AddSystem<Update>([](Query<Entity> query)
+    world.AddSystem<UpdatePhase>([](Query<Entity> query)
     {
         ASSERT_TRUE(!query.IsEmpty());
         for (const auto& [entity] : query)
@@ -170,7 +169,7 @@ TEST_F(ECSTest, ECSSystemParameterCompilationTest)
     [[maybe_unused]] Query query = world.QueryEntities<TransformComponent>();
     [[maybe_unused]] Query query_entity = world.QueryEntities<Entity>();
 
-    world.RunSchedule<Update>();
+    world.RunPhase<UpdatePhase>();
 }
 
 TEST_F(ECSTest, ECSSystemWithOptionalComponents)
@@ -184,7 +183,7 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
     auto entity_without_component = world.SpawnEntity();
 
     // System that uses Optional to modify a component if it exists
-    world.AddSystem<Update>([](Query<Optional<TestValueComponent&>> query)
+    world.AddSystem<UpdatePhase>([](Query<Optional<TestValueComponent&>> query)
     {
         for (const auto& [opt_val] : query)
         {
@@ -195,8 +194,8 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
         }
     });
 
-    // Run the schedule
-    world.RunSchedule<Update>();
+    // Run the Phase
+    world.RunPhase<UpdatePhase>();
 
     // Verify the component on the first entity was modified
     auto component = world.TryGetComponent<TestValueComponent>(entity_with_component);
@@ -208,7 +207,7 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
     EXPECT_FALSE(component2.HasValue());
 
     // System that adds the component if it's missing
-    world.AddSystem<PostUpdate>([](Query<Entity, Optional<TestValueComponent&>> query, World* in_world)
+    world.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, World* in_world)
     {
         for (const auto& [entity, opt_val] : query)
         {
@@ -219,8 +218,8 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
         }
     });
 
-    // Run the second schedule
-    world.RunSchedule<PostUpdate>();
+    // Run the second Phase
+    world.RunPhase<PostUpdatePhase>();
 
     // Verify the second entity now has the component with the correct value
     auto component3 = world.TryGetComponent<TestValueComponent>(entity_without_component);

@@ -1,10 +1,10 @@
-﻿#include "Rendering/ShaderProvider/PrecompiledShaderProvider.h"
+#include "Rendering/ShaderProvider/PrecompiledShaderProvider.h"
 
 #include "Core/Logging/Logging.h"
 #include "Gfx/ShaderUtils.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
@@ -31,4 +31,4 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
 
     return gfx::CompileFromSPIRV(device, request.source_path);
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

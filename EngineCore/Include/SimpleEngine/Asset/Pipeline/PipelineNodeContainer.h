@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <memory>
 
@@ -73,9 +73,9 @@ public:
     {
         const auto& node = GetNodeChecked(uid);
         SE_ASSERT(
-            node.GetTypeId() == refl::TypeId::Get<NodeType>(),
+            node.GetTypeId() == TypeId::Get<NodeType>(),
             "Node Type Mismatch! Expected: {}, Actual: {}",
-            refl::TypeId::Get<NodeType>().GetName(), node.GetTypeId().GetName()
+            TypeId::Get<NodeType>().GetName(), node.GetTypeId().GetName()
         );
         return static_cast<NodeType&>(node);
     }

@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "UI/Panels/IEditorPanel.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class OutlinerPanel : public IEditorPanel
 {

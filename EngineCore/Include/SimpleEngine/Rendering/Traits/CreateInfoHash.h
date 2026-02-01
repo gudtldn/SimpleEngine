@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Rendering/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
@@ -146,7 +146,7 @@ SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, 24,
     );
 })
 
-SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::rendering::GraphicsPipelineCreateInfo,
+SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::GraphicsPipelineCreateInfo,
 {
     SE_HASH_COMBINE(
         SE_ARG.vertex_shader_request,
@@ -161,7 +161,7 @@ SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::rendering::GraphicsPipelineCreateInf
     );
 })
 
-SE_SPECIALIZE_STD_HASH(se::rendering::ComputePipelineCreateInfo, 80,
+SE_SPECIALIZE_STD_HASH(se::graphics::ComputePipelineCreateInfo, 80,
 {
     SE_HASH_COMBINE(
         SE_ARG.placeholder

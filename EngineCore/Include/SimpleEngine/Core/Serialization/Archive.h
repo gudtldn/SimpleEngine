@@ -10,11 +10,7 @@ namespace se
 {
 class Guid;
 class StringName;
-
-namespace refl
-{
 class TypeId;
-}
 }  // namespace se
 
 namespace se
@@ -168,7 +164,7 @@ public:
     virtual Archive& operator<<(String& value);
     virtual Archive& operator<<(StringName& value);
     virtual Archive& operator<<(Guid& value);
-    virtual Archive& operator<<(refl::TypeId& value);
+    virtual Archive& operator<<(TypeId& value);
 
     // Enum
     template <typename EnumType>

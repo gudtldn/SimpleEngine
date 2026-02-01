@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
@@ -8,7 +8,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class ViewportPanel;
 
@@ -47,4 +47,4 @@ private:
     SDL_GPUDevice* gpu_device = nullptr;
     HashMap<StringName, ViewportRenderInfo> viewport_data;
 };
-}
+}  // namespace se::editor

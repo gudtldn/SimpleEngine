@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Asset/Pipeline/Types/AttributeStorage.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Types/Guid.h"
@@ -16,7 +16,7 @@ public:
     virtual ~PipelineBaseNode() = default;
 
     /** 노드의 고유 타입 식별자를 반환합니다. */
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;
+    [[nodiscard]] virtual TypeId GetTypeId() const = 0;
 
     /** 팩토리 정렬(Topological Sort)을 위해 이 노드가 참조하는 다른 노드들의 ID 반환합니다. */
     virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const
@@ -62,10 +62,10 @@ protected:
     virtual ~PipelineNode() override = default;
 
 public:
-    virtual refl::TypeId GetTypeId() const override final
+    [[nodiscard]] virtual TypeId GetTypeId() const override final
     {
         static_assert(std::derived_from<Derived, PipelineNode>, "CRTP Error: Derived class must inherit from PipelineNode<Derived>");
-        return refl::TypeId::Get<Derived>();
+        return TypeId::Get<Derived>();
     }
 };
 }  // namespace se::asset

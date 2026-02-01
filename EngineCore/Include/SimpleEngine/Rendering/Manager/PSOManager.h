@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -9,7 +9,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
  * Graphics API에 사용되는 PSO를 관리하는 매니저
@@ -48,5 +48,4 @@ void PSOManager::SetShaderCacheProvider(Args&&... args)
 {
     shader_cache.SetProvider<T>(std::forward<Args>(args)...);
 }
-}
-
+}  // namespace se::graphics

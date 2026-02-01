@@ -95,9 +95,9 @@ public:
 
 public:
     [[nodiscard]] Optional<const ExtensionInfo&> GetExtensionInfo(const StringName& extension) const;
-    [[nodiscard]] IAssetLoader* GetLoaderFromType(const refl::TypeId& type_id) const;
+    [[nodiscard]] IAssetLoader* GetLoaderFromType(const TypeId& type_id) const;
     [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateDefaultSettingsForFile(const Path& path) const;
-    [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateSettingsFromType(const refl::TypeId& settings_type) const;
+    [[nodiscard]] std::shared_ptr<IAssetImportSettings> CreateSettingsFromType(const TypeId& settings_type) const;
 
 private:
     template <typename T>
@@ -107,15 +107,15 @@ private:
     // 확장자별 등록 정보를 담는 구조체
     struct ExtensionInfo
     {
-        refl::TypeId asset_type;    // 생성될 에셋 타입 (예: Texture2D)
-        refl::TypeId loader_type;   // 사용할 로더 타입 (예: Texture2DLoader)
-        refl::TypeId settings_type; // 사용할 설정 타입 (예: TextureImportSettings)
+        TypeId asset_type;    // 생성될 에셋 타입 (예: Texture2D)
+        TypeId loader_type;   // 사용할 로더 타입 (예: Texture2DLoader)
+        TypeId settings_type; // 사용할 설정 타입 (예: TextureImportSettings)
     };
 
     HashMap<StringName, ExtensionInfo> extension_registry;
 
-    HashMap<refl::TypeId, std::unique_ptr<IAssetLoader>> loaders;
-    HashMap<refl::TypeId, std::shared_ptr<IAssetImportSettings>> settings_prototypes;
+    HashMap<TypeId, std::unique_ptr<IAssetLoader>> loaders;
+    HashMap<TypeId, std::shared_ptr<IAssetImportSettings>> settings_prototypes;
 
 private:
     AssetRegistry_DEPRECATED registry;
@@ -131,9 +131,9 @@ template <typename AssetType, typename LoaderType, typename SettingsType>
     && std::derived_from<SettingsType, IAssetImportSettings>
 void AssetManager_DEPRECATED::RegisterLoader(const StringName& extension)
 {
-    const refl::TypeId asset_type = refl::TypeId::Get<AssetType>();
-    const refl::TypeId loader_type = refl::TypeId::Get<LoaderType>();
-    const refl::TypeId settings_type = refl::TypeId::Get<SettingsType>();
+    const TypeId asset_type = TypeId::Get<AssetType>();
+    const TypeId loader_type = TypeId::Get<LoaderType>();
+    const TypeId settings_type = TypeId::Get<SettingsType>();
 
     // Extension Registry에 통합 정보 저장
     ExtensionInfo info = {
@@ -248,7 +248,7 @@ Task<std::shared_ptr<T>> AssetManager_DEPRECATED::LoadInternal(const Guid& in_gu
 
     // Asset Load 및 Slot에 저장
     std::shared_ptr<IAsset> loaded_asset = co_await loader->Load(
-        std::move(physical_path),
+        physical_path,
         entry_opt->import_settings.get()
     );
 

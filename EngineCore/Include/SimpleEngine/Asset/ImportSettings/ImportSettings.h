@@ -16,7 +16,7 @@ public:
     virtual ~ImportSettingsBase() = default;
 
     /** 현재 ImportSettings의 TypeId를 반환합니다. */
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;
+    [[nodiscard]] virtual TypeId GetTypeId() const = 0;
 
     /** ImportSettings를 Archive로 직렬화합니다. */
     virtual void Serialize(Archive& ar) = 0;
@@ -42,10 +42,10 @@ protected:
     virtual ~ImportSettings() override = default;
 
 public:
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const override final
+    [[nodiscard]] virtual TypeId GetTypeId() const override final
     {
         static_assert(std::derived_from<Derived, ImportSettings>, "CRTP Error: Derived class must inherit from ImportSettings<Derived>");
-        return refl::TypeId::Get<Derived>();
+        return TypeId::Get<Derived>();
     }
 };
-}
+}  // namespace se::asset

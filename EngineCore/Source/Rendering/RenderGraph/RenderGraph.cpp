@@ -1,4 +1,4 @@
-﻿// ReSharper disable CppMemberFunctionMayBeConst
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "Rendering/RenderGraph/RenderGraph.h"
 
 #include <algorithm>
@@ -14,7 +14,7 @@
 
 #include "tracy/Tracy.hpp"
 
-namespace se::rendering
+namespace se::graphics
 {
 RenderGraph::RenderGraph(SDL_GPUDevice* in_device)
     : device(in_device)
@@ -409,4 +409,4 @@ SDL_GPUComputePipeline* RGExecutionContext::GetOrCreateComputePipeline(const Com
 {
     return pso_manager.GetOrCreateComputePipeline(create_info);
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

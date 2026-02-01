@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 class PrecompiledShaderProvider : public IShaderProvider
 {
