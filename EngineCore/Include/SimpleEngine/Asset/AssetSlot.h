@@ -30,7 +30,7 @@ enum class ELoadingState : uint8
 class AssetSlot
 {
 public:
-    explicit AssetSlot(AssetId id, Path path, const TypeId& type_id);
+    explicit AssetSlot(const AssetId& id, const TypeId& type_id, Path path);
 
     // 복사 & 이동 금지
     AssetSlot(const AssetSlot&) = delete;
