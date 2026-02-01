@@ -1,7 +1,7 @@
 #pragma once
 #include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Gfx/MeshPrimitives.h"
+#include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Reflection/Annotations.h"
 
 
@@ -16,7 +16,7 @@ struct SE_CORE_API StaticMesh : IAsset
     // 하이브리드 SoA 방식으로 구조를 변경해 볼 수도 있음.
     // (GPU Buffer를 positions +(pad) attributes +(pad) indices로 할당해서, Buffer를 2개로 나눠 Slot0, 1에 할당)
     //
-    // struct gfx::VertexAttributes
+    // struct graphics::VertexAttributes
     // {
     //     Vector3f normal;
     //     Vector2f tex_coord;
@@ -27,16 +27,16 @@ struct SE_CORE_API StaticMesh : IAsset
     // Array<Vector3f> positions;
     //
     // SE_PROPERTY(=::se::meta::ReadOnly)
-    // Array<gfx::VertexAttributes> attributes;
+    // Array<graphics::VertexAttributes> attributes;
 
     SE_PROPERTY(=::se::meta::ReadOnly)
-    Array<gfx::Vertex> vertices;
+    Array<graphics::Vertex> vertices;
 
     SE_PROPERTY(=::se::meta::ReadOnly)
     Array<uint32> indices;
 
     SE_PROPERTY(=::se::meta::ReadOnly)
-    Array<gfx::MeshSection> sections;
+    Array<graphics::MeshSection> sections;
 
     // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Material> materials;
@@ -50,16 +50,16 @@ struct SE_CORE_API StaticMesh : IAsset
 struct SE_CORE_API SkeletalMesh : IAsset
 {
     SE_PROPERTY(=::se::meta::ReadOnly)
-    Array<gfx::Vertex> vertices;
+    Array<graphics::Vertex> vertices;
 
     SE_PROPERTY(=::se::meta::ReadOnly)
-    Array<gfx::SkinVertex> skin_vertices;
+    Array<graphics::SkinVertex> skin_vertices;
 
     SE_PROPERTY(=::se::meta::ReadOnly)
     Array<uint32> indices;
 
     SE_PROPERTY(=::se::meta::ReadOnly)
-    Array<gfx::MeshSection> sections;
+    Array<graphics::MeshSection> sections;
 
     // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Material> materials;

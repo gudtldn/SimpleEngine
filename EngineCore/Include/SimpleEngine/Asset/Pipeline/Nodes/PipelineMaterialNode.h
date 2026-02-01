@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
-#include "SimpleEngine/Gfx/MaterialEnums.h"
+#include "SimpleEngine/Graphics/MaterialEnums.h"
 
 
 namespace se::asset
@@ -70,11 +70,11 @@ public:
     void SetEmissiveValue(const Vector3& color);
 
     // --- Settings ---
-    [[nodiscard]] gfx::EBlendMode GetBlendMode() const;
-    void SetBlendMode(gfx::EBlendMode mode);
+    [[nodiscard]] graphics::EBlendMode GetBlendMode() const;
+    void SetBlendMode(graphics::EBlendMode mode);
 
-    [[nodiscard]] gfx::EShadingModel GetShadingModel() const;
-    void SetShadingModel(gfx::EShadingModel model);
+    [[nodiscard]] graphics::EShadingModel GetShadingModel() const;
+    void SetShadingModel(graphics::EShadingModel model);
 
     [[nodiscard]] bool GetTwoSided() const;
     void SetTwoSided(bool use_two_sided);

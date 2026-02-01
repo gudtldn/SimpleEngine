@@ -1,4 +1,4 @@
-﻿#include "SimpleEngine/Asset/Loaders_DEPRECATED/ObjLoader.h"
+#include "SimpleEngine/Asset/Loaders_DEPRECATED/ObjLoader.h"
 
 #include "Asset/Types/MeshTypes.h"
 #include "Core/Logging/Logging.h"
@@ -70,7 +70,7 @@ Task<std::shared_ptr<IAsset>> ObjLoader::Load(
         // --- Vertex Processing ---
         for (uint vert_idx = 0; vert_idx < ai_mesh->mNumVertices; ++vert_idx)
         {
-            gfx::Vertex vertex;
+            graphics::Vertex vertex;
 
             // Position
             vertex.position = {
@@ -130,7 +130,7 @@ Task<std::shared_ptr<IAsset>> ObjLoader::Load(
         }
 
         // --- Section Info ---
-        gfx::MeshSection section;
+        graphics::MeshSection section;
         section.material_index = ai_mesh->mMaterialIndex;
         section.index_start = index_offset;
         section.index_count = current_mesh_indices_count;

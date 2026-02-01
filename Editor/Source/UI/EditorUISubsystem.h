@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
-#include "SimpleEngine/Gfx/RenderSubsystem.h"
+#include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/ECS/World.h"
 
