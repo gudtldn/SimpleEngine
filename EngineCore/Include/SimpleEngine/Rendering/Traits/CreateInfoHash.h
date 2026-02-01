@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Rendering/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
-#include "SimpleEngine/Utility/Hash.h"
+#include "SimpleEngine/Utility/HashUtils.h"
 
 #include "SDL3/SDL_gpu.h"
 

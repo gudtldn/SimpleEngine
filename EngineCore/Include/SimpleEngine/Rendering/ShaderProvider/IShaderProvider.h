@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Utility/Hash.h"
+#include "SimpleEngine/Utility/HashUtils.h"
 
 #include "SDL3/SDL_gpu.h"
 

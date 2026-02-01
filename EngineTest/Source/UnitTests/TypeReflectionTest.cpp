@@ -5,7 +5,7 @@
 
 #include "SimpleEngine/Reflection/TypeId.h"
 #include "SimpleEngine/Reflection/TypeSignature.h"
-#include "SimpleEngine/Utility/Hash.h"
+#include "SimpleEngine/Utility/HashUtils.h"
 
 
 namespace WeirdNamespace

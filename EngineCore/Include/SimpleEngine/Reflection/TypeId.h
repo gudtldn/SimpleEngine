@@ -1,6 +1,6 @@
 #pragma once
 #include "SimpleEngine/Reflection/TypeSignature.h"
-#include "SimpleEngine/Utility/Hash.h"
+#include "SimpleEngine/Utility/HashUtils.h"
 
 
 namespace se

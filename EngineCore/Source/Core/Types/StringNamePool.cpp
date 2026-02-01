@@ -3,7 +3,7 @@
 #include <mutex>
 #include <utility>
 
-#include "Utility/Hash.h"
+#include "Utility/HashUtils.h"
 
 
 namespace

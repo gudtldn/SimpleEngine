@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Utility/Hash.h"
+#include "SimpleEngine/Utility/HashUtils.h"
 
 
 namespace se
