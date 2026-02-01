@@ -3,7 +3,7 @@
 
 #include "SimpleEngine/Asset/ImportSettings/ImportSettings.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 

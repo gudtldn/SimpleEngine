@@ -1,5 +1,5 @@
-﻿#include "SimpleEngine/Reflection/TypeId.h"
-#include "SimpleEngine/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 
 
 namespace se

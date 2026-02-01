@@ -3,7 +3,7 @@
 
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/StringName.h"
-#include "SimpleEngine/Reflection/TypeSignature.h"
+#include "SimpleEngine/Core/Reflection/TypeSignature.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResources.h"
 #include "SimpleEngine/Graphics/RenderPass/IRenderPass.h"

@@ -9,7 +9,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 #include "SimpleEngine/ECS/EntityManager.h"

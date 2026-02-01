@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
 namespace se

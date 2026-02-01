@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 

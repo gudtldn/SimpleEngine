@@ -1,4 +1,4 @@
-﻿#include "Reflection/TypeRegistry.h"
+#include "Core/Reflection/TypeRegistry.h"
 
 
 namespace se

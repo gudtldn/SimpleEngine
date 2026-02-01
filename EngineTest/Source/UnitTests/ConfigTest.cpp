@@ -3,8 +3,8 @@
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Utility/Config.h"
-#include "SimpleEngine/Utility/FileSystem.h"
+#include "SimpleEngine/Core/Config/Config.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"

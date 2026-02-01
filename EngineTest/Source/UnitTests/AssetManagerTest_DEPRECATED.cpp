@@ -7,8 +7,8 @@
 
 #include "SimpleEngine/Asset/AssetManager_DEPRECATED.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
-#include "SimpleEngine/Utility/FileSystem.h"
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 using namespace se;
 using namespace se::asset;

@@ -1,5 +1,5 @@
 #include "ECS/Components/Camera3dComponent.h"
-#include "Reflection/Reflect.h"
+#include "Core/Reflection/Reflect.h"
 
 using namespace se;
 

@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 
 #include "SimpleEngine/Core/Serialization/Archive.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
 namespace se::asset

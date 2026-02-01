@@ -1,6 +1,6 @@
 ﻿#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 
 namespace se

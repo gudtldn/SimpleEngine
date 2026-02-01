@@ -4,7 +4,7 @@
 #include "Core/Logging/Logging.h"
 #include "Core/Types/Guid.h"
 #include "Core/Types/StringName.h"
-#include "Reflection/TypeId.h"
+#include "Core/Reflection/TypeId.h"
 #include "Utility/Debug.h"
 
 

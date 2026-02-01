@@ -1,10 +1,10 @@
-﻿#include "gtest/gtest.h"
+#include "gtest/gtest.h"
 
 #include <ostream>
 #include <string_view>
 
-#include "SimpleEngine/Reflection/TypeId.h"
-#include "SimpleEngine/Reflection/TypeSignature.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
 

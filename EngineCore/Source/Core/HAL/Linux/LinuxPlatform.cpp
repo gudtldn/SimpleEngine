@@ -10,7 +10,7 @@
 #include <string.h>
 
 #include "Core/Logging/Logging.h"
-#include "Utility/FileSystem.h"
+#include "Core/FileSystem/FileSystem.h"
 #include "Utility/StringUtils.h"
 #include "Utility/Debug.h"
 

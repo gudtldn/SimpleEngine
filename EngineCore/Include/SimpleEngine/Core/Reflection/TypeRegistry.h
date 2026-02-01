@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/StringName.h"
-#include "SimpleEngine/Reflection/Meta.h"
+#include "SimpleEngine/Core/Reflection/Meta.h"
 
 
 namespace se

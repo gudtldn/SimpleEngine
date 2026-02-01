@@ -1,6 +1,6 @@
 #pragma once
 #include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Reflection/Annotations.h"
+#include "SimpleEngine/Meta/Annotations.h"
 
 
 namespace se

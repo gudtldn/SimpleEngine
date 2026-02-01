@@ -3,7 +3,7 @@
 #include "Core/EditorSubsystem.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
-#include "SimpleEngine/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
