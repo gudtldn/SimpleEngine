@@ -40,6 +40,12 @@ public:
 
 public:
     /**
+     * 현재 로드된 에셋을 Raw Pointer로 가져옵니다.
+     * 로딩 중이거나 실패했다면 nullptr을 반환할 수 있습니다.
+     */
+    [[nodiscard]] IAsset* GetRawAsset() const;
+
+    /**
      * 현재 로드된 에셋을 가져옵니다.
      * 로딩 중이거나 실패했다면 nullptr을 반환할 수 있습니다.
      */
