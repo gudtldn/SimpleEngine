@@ -2,7 +2,7 @@
 #include "SimpleEngine/Asset/Pipeline/Types/AttributeStorage.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Types/Guid.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
 namespace se::asset

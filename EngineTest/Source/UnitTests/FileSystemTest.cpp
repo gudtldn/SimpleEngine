@@ -4,7 +4,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Utility/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 using namespace se;
 

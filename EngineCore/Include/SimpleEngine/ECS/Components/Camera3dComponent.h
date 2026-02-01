@@ -1,7 +1,7 @@
 #pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Reflection/Annotations.h"
+#include "SimpleEngine/Meta/Annotations.h"
 
 
 namespace se

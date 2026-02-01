@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <cstddef>
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Reflection/Annotations.h"
-#include "SimpleEngine/Reflection/Meta.h"
-#include "SimpleEngine/Reflection/TypeId.h"
-#include "SimpleEngine/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Meta/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Meta.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/ECS/ComponentRegistry.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"

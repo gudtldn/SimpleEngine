@@ -5,8 +5,8 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Utility/FileSystem.h"
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 #include "imgui.h"

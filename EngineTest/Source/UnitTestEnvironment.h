@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "gtest/gtest.h"
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 
 // ConfigTest에서 사용하는 Environment

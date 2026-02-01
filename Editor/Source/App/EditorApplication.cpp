@@ -1,4 +1,4 @@
-#include "App/EditorApplication.h"
+﻿#include "App/EditorApplication.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Graphics/EditorUIPass.h"
@@ -11,7 +11,7 @@
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
-#include "SimpleEngine/Utility/Config.h"
+#include "SimpleEngine/Core/Config/Config.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 

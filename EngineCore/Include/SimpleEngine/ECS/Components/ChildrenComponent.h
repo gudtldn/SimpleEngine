@@ -1,7 +1,7 @@
 #pragma once
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/ECS/Entity.h"
-#include "SimpleEngine/Reflection/Annotations.h"
+#include "SimpleEngine/Meta/Annotations.h"
 
 
 namespace se

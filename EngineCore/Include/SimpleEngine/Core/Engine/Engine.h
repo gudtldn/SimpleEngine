@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <memory>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
 namespace se

@@ -1,11 +1,11 @@
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 #include <algorithm>
 #include <functional>
 #include <shared_mutex>
 
 #include "Core/Logging/Logging.h"
-#include "Utility/FileSystem.h"
+#include "Core/FileSystem/FileSystem.h"
 
 
 namespace se

@@ -5,10 +5,10 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Utility/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 
 namespace se::editor

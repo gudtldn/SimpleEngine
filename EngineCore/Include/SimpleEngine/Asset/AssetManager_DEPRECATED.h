@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <memory>
 #include <mutex>
@@ -17,7 +17,7 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"

@@ -5,7 +5,7 @@
 #include "SimpleEngine/Asset/ImportSettings_DEPRECATED/IAssetImportSettings.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Reflection/TypeSignature.h"
+#include "SimpleEngine/Core/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 

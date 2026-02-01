@@ -1,5 +1,5 @@
 #pragma once
-#include "SimpleEngine/Reflection/TypeSignature.h"
+#include "SimpleEngine/Core/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
 

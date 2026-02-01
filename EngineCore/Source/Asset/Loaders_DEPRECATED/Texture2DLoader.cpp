@@ -1,9 +1,9 @@
-﻿#include "Asset/Loaders_DEPRECATED/Texture2DLoader.h"
+#include "Asset/Loaders_DEPRECATED/Texture2DLoader.h"
 
 #include "Asset/ImportSettings_DEPRECATED/TextureImportSettings.h"
 #include "Asset/Types/Texture2D.h"
 #include "Core/Logging/Logging.h"
-#include "Reflection/Reflect.h"
+#include "Core/Reflection/Reflect.h"
 #include "Utility/StringUtils.h"
 
 #include "SDL3_image/SDL_image.h"

@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Utility/VFS.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 using namespace se;
 

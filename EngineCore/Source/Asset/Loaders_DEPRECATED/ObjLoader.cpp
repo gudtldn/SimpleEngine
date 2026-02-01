@@ -2,7 +2,7 @@
 
 #include "Asset/Types/MeshTypes.h"
 #include "Core/Logging/Logging.h"
-#include "Reflection/Reflect.h"
+#include "Core/Reflection/Reflect.h"
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
