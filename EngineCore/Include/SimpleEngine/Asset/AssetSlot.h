@@ -3,6 +3,7 @@
 #include <shared_mutex>
 #include <atomic>
 
+#include "AssetId.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Asset/Types/IAsset.h"
@@ -29,7 +30,7 @@ enum class ELoadingState : uint8
 class AssetSlot
 {
 public:
-    explicit AssetSlot(Path path, const TypeId& type_id);
+    explicit AssetSlot(AssetId id, Path path, const TypeId& type_id);
 
     // 복사 & 이동 금지
     AssetSlot(const AssetSlot&) = delete;
@@ -53,6 +54,9 @@ public:
     /** 현재 에셋의 로딩 상태를 설정합니다.*/
     void SetState(ELoadingState state);
 
+    /** 이 Slot의 소유하는 Asset의 고유 ID를 반환합니다. */
+    [[nodiscard]] FORCE_INLINE AssetId GetAssetId() const { return asset_id; }
+
     /** 이 Slot이 소유하는 Asset의 타입을 반환합니다. */
     [[nodiscard]] FORCE_INLINE TypeId GetAssetType() const { return asset_type; }
 
@@ -67,7 +71,8 @@ private:
     std::shared_ptr<IAsset> asset;
 
     // Asset Metadata
-    TypeId asset_type;
+    const AssetId asset_id;
+    const TypeId asset_type;
     Path source_path;
     std::atomic<ELoadingState> loading_state;
 };

@@ -3,8 +3,9 @@
 
 namespace se::asset
 {
-AssetSlot::AssetSlot(Path path, const TypeId& type_id)
-    : asset_type(type_id)
+AssetSlot::AssetSlot(AssetId id, Path path, const TypeId& type_id)
+    : asset_id(id)
+    , asset_type(type_id)
     , source_path(std::move(path))
     , loading_state(ELoadingState::Unloaded)
 {
