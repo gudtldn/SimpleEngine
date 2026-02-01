@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "UI/Panels/IEditorPanel.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class DebugPanel : public IEditorPanel
 {
@@ -12,4 +12,4 @@ public:
     [[nodiscard]] virtual const char* GetName() const override;
     virtual void Draw() override;
 };
-}  // namespace se::editor::ui
+}  // namespace se::editor

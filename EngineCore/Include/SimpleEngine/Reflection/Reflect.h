@@ -14,12 +14,12 @@
 
 // TODO: C++26되면 여기 파일 전체 수정해야 함
 
-namespace se::refl::detail
+namespace se::detail
 {
 template <typename T, typename... Tags>
 consteval BitFlags<ETypeFlags> MakeTypeFlags(Tags&&... tags)
 {
-    using namespace se::meta;
+    using namespace se;
     using namespace se::meta::detail;
 
     BitFlags<ETypeFlags> flags;
@@ -63,6 +63,7 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags(Tags&&... tags)
 template <typename... Tags>
 consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
 {
+    using namespace se;
     using namespace se::meta;
     using namespace se::meta::detail;
 
@@ -119,20 +120,20 @@ consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
     (process_tag(std::forward<Tags>(tags)), ...);
     return meta;
 }
-} // namespace se::refl::detail
+} // namespace se::detail
 
 
 /** 타입의 리플렉션 정보 등록을 시작합니다. */
 #define SE_BEGIN_REFLECT(type, ...) \
-namespace se::refl::registration \
+namespace se::registration \
 { \
 inline static const struct type##_Registrar \
 { \
     type##_Registrar() \
     { \
         using T = type; \
-        constexpr auto type_flags = ::se::refl::detail::MakeTypeFlags<T>(__VA_ARGS__); \
-        ::se::Array<::se::refl::PropertyInfo> properties;
+        constexpr auto type_flags = ::se::detail::MakeTypeFlags<T>(__VA_ARGS__); \
+        ::se::Array<::se::PropertyInfo> properties;
 
 /** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */ // TODO: 추후 offset 대신 멤버 포인터를 저장
 #define SE_REFLECT_PROPERTY(property_name, ...) \
@@ -140,23 +141,23 @@ inline static const struct type##_Registrar \
             /* .name     = */ SE_STRINGIFY(property_name), \
             /* .size     = */ sizeof(T::property_name), \
             /* .offset   = */ offsetof(T, property_name), \
-            /* .type_id  = */ ::se::refl::TypeId::Get<decltype(T::property_name)>(), \
-            /* .metadata = */ ::se::refl::detail::MakePropertyMetadata(__VA_ARGS__) \
+            /* .type_id  = */ ::se::TypeId::Get<decltype(T::property_name)>(), \
+            /* .metadata = */ ::se::detail::MakePropertyMetadata(__VA_ARGS__) \
         );
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
-        ::se::refl::TypeRegistry::Get().RegisterType({ \
-            .name = ::se::refl::GetFullTypeName<type>(), \
+        ::se::TypeRegistry::Get().RegisterType({ \
+            .name = ::se::GetFullTypeName<type>(), \
             .size = sizeof(type), \
             .flags = type_flags, \
             .properties = std::move(properties), \
-            .type_id = ::se::refl::TypeId::Get<type>(), \
+            .type_id = ::se::TypeId::Get<type>(), \
         }); \
-        if constexpr (type_flags.IsAnySet(::se::refl::ETypeFlags::Component)) \
+        if constexpr (type_flags.IsAnySet(::se::ETypeFlags::Component)) \
         { \
             ::se::ecs::ComponentRegistry::Register<type>(); \
         } \
     } \
 } SE_UNIQUE_TOKEN(SE_CONCAT_TOKEN(type, _Registrar)){}; \
-} // se::refl::registration
+} // se::registration

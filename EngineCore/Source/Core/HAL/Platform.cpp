@@ -3,10 +3,10 @@
 #include "SDL3/SDL.h"
 
 
-namespace se::platform
+namespace se
 {
-Path GetExecutableDirectory()
+Path Platform::GetExecutableDirectory()
 {
     return { SDL_GetBasePath() };
 }
-}  // namespace se::platform
+}  // namespace se

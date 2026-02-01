@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <concepts>
 #include <memory>
 #include <mutex>
@@ -35,7 +35,7 @@ public:
         requires std::derived_from<T, ILogBackend>
     void AddBackend(Args&&... args)
     {
-        const auto type_id = refl::TypeId::Get<T>();
+        const auto type_id = TypeId::Get<T>();
 
         std::scoped_lock lock(backends_mutex);
         backends.Insert(type_id, std::make_unique<T>(std::forward<Args>(args)...));
@@ -45,7 +45,7 @@ public:
         requires std::derived_from<T, ILogBackend>
     [[nodiscard]] T* GetBackend() const
     {
-        const auto type_id = refl::TypeId::Get<T>();
+        const auto type_id = TypeId::Get<T>();
         constexpr std::unique_ptr<ILogBackend> null_ptr;
 
         std::scoped_lock lock(backends_mutex);
@@ -57,6 +57,6 @@ public:
 
 private:
     mutable std::mutex backends_mutex;
-    HashMap<refl::TypeId, std::unique_ptr<ILogBackend>> backends{}; // TODO: flat_map 나오면 변경
+    HashMap<TypeId, std::unique_ptr<ILogBackend>> backends{}; // TODO: flat_map 나오면 변경
 };
-}
+}  // namespace se

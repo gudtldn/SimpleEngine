@@ -1,4 +1,4 @@
-﻿#include "UI/Panels/EditorConsolePanel.h"
+#include "UI/Panels/EditorConsolePanel.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "SimpleEngine/Core/Container/StringView.h"
@@ -42,7 +42,7 @@ namespace
 }
 } // namespace
 
-namespace se::editor::ui
+namespace se::editor
 {
 const char* EditorConsolePanel::GetName() const
 {
@@ -257,4 +257,4 @@ void EditorConsolePanel::RefreshFilterList(const Deque<se::LogEntry>& logs)
     filter_changed = false;
     last_log_count = logs.Len();
 }
-}  // namespace se::editor::ui
+}  // namespace se::editor

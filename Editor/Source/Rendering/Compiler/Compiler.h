@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -6,7 +6,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::editor::rendering
+namespace se::editor
 {
 struct HLSL_Define
 {
@@ -23,4 +23,4 @@ struct HLSL_Define
 );
 
 // TODO: CreateComputeShader 구현하기
-}  // namespace se::editor::rendering
+}  // namespace se::editor

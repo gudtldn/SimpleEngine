@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/Types/Path.h"
 #include "UI/Panels/IEditorPanel.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class AssetsBrowserPanel : public IEditorPanel
 {
@@ -31,4 +31,4 @@ private:
 private:
     Path selected_dir_path;
 };
-}  // namespace se::editor::ui
+}  // namespace se::editor

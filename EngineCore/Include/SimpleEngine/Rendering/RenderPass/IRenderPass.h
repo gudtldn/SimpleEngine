@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace se::rendering
+namespace se::graphics
 {
 class RenderGraphBuilder;
 class RGExecutionContext;
@@ -26,4 +26,4 @@ public:
     */
     virtual void Execute(RGExecutionContext& context) = 0;
 };
-}
+}  // namespace se::graphics

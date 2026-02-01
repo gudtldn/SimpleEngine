@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
   * GPU 버퍼의 특정 구간(Slice)을 나타내는 메타데이터
@@ -25,4 +25,4 @@ struct GpuBufferSlice
 
     explicit operator bool() const noexcept { return IsValid(); }
 };
-} // namespace se::rendering
+} // namespace se::graphics

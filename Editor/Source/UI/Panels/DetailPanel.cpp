@@ -1,4 +1,4 @@
-﻿#include "UI/Panels/DetailPanel.h"
+#include "UI/Panels/DetailPanel.h"
 
 #include "Core/EditorSubsystem.h"
 #include "SimpleEngine/ECS/Query.h"
@@ -10,13 +10,13 @@
 #include "imgui.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 DetailPanel::DetailPanel()
     : components{
-        decltype(components)::FromRange(refl::TypeRegistry::Get().GetAllTypes().Values() | std::views::filter([](const refl::TypeInfo& info) -> bool
+        decltype(components)::FromRange(TypeRegistry::Get().GetAllTypes().Values() | std::views::filter([](const TypeInfo& info) -> bool
         {
-            return info.flags.IsAnySet(refl::ETypeFlags::Component);
+            return info.flags.IsAnySet(ETypeFlags::Component);
         }))
     }
 {
@@ -48,7 +48,7 @@ void DetailPanel::Draw()
 
         if (selected_entities.Len() == 1)
         {
-            static refl::TypeId selected_id;
+            static TypeId selected_id;
             const Entity& entity = selection.GetPrimarySelectedEntity().Value();
 
             ImGui::Separator();
@@ -56,7 +56,7 @@ void DetailPanel::Draw()
             const ImVec2 size = ImVec2(0, 5 * ImGui::GetTextLineHeightWithSpacing());
             if (ImGui::BeginListBox("##Component Lists", size))
             {
-                for (const refl::TypeInfo& component_info : components)
+                for (const TypeInfo& component_info : components)
                 {
                     ecs::World* world = world_subsystem->GetWorld();
                     ecs::IStorage* storage = world->GetStorage(component_info.type_id);
@@ -74,7 +74,7 @@ void DetailPanel::Draw()
 
             if (ImGui::BeginCombo("Add Component", "Select Component"))
             {
-                for (const refl::TypeInfo& component_info : components)
+                for (const TypeInfo& component_info : components)
                 {
                     ecs::World* world = world_subsystem->GetWorld();
                     if (ecs::IStorage* storage = world->GetStorage(component_info.type_id))
@@ -99,4 +99,4 @@ void DetailPanel::Draw()
     }();
     ImGui::End();
 }
-}  // namespace se::editor::ui
+}  // namespace se::editor

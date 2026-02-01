@@ -1,4 +1,4 @@
-﻿#include "Core/Engine/Engine.h"
+#include "Core/Engine/Engine.h"
 
 #include <ranges>
 
@@ -184,12 +184,12 @@ bool Engine::SortSubsystems()
 {
     ConsoleLog(ELogLevel::Info, "Sorting Subsystems based on dependencies...");
 
-    HashMap<refl::TypeId, Array<refl::TypeId>> adj_list;
-    HashMap<refl::TypeId, int> in_degree;
-    Queue<refl::TypeId> queue;
+    HashMap<TypeId, Array<TypeId>> adj_list;
+    HashMap<TypeId, int> in_degree;
+    Queue<TypeId> queue;
 
     // 의존성 그래프와 진입 차수(in-degree)를 계산
-    for (const refl::TypeId& type_id : subsystems | std::views::keys)
+    for (const TypeId& type_id : subsystems | std::views::keys)
     {
         in_degree[type_id] = 0; // 모든 노드의 진입 차수 0으로 초기화
         adj_list[type_id] = {}; // 인접 리스트 초기화
@@ -198,7 +198,7 @@ bool Engine::SortSubsystems()
     auto& registry = detail::SubsystemRegistry::GetInstance();
     for (const auto& type_id : subsystems | std::views::keys)
     {
-        for (const refl::TypeId& dependency_id : registry.GetMetadata(type_id).dependencies)
+        for (const TypeId& dependency_id : registry.GetMetadata(type_id).dependencies)
         {
             // A가 B에 의존한다면 (A -> B), B에서 A로 가는 간선을 추가
             // B가 먼저 초기화되어야 하기 때문
@@ -221,7 +221,7 @@ bool Engine::SortSubsystems()
     sorted_subsystems.Clear();
     while (Optional current_id_opt = queue.Pop())
     {
-        const refl::TypeId current_id = *current_id_opt;
+        const TypeId current_id = *current_id_opt;
         sorted_subsystems.Push(subsystems[current_id].get());
 
         for (const auto& neighbor_id : adj_list[current_id])
@@ -239,7 +239,7 @@ bool Engine::SortSubsystems()
     {
         ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
 
-        Array<refl::TypeId> circular_subsystems;
+        Array<TypeId> circular_subsystems;
         for (const auto& [type_id, degree] : in_degree)
         {
             if (degree > 0)

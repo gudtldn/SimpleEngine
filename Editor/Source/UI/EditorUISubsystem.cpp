@@ -1,4 +1,4 @@
-﻿#include "UI/EditorUISubsystem.h"
+#include "UI/EditorUISubsystem.h"
 
 #include "Panels/AssetsBrowserPanel.h"
 #include "Panels/DebugPanel.h"
@@ -22,7 +22,7 @@
 using namespace se::event;
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
     .DependsOn<PlatformSubsystem, RenderSubsystem, EditorSubsystem>();
@@ -82,13 +82,13 @@ bool EditorUISubsystem::Initialize()
     );
 
     // 일단 명시적으로 Register 코드 작성
-    RegisterPanel<ImGuiDemoPanel>(refl::GetTypeName<ImGuiDemoPanel>());
-    RegisterPanel<DebugPanel>(refl::GetTypeName<DebugPanel>());
-    RegisterPanel<OutlinerPanel>(refl::GetTypeName<OutlinerPanel>());
-    RegisterPanel<DetailPanel>(refl::GetTypeName<DetailPanel>());
+    RegisterPanel<ImGuiDemoPanel>(GetTypeName<ImGuiDemoPanel>());
+    RegisterPanel<DebugPanel>(GetTypeName<DebugPanel>());
+    RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
+    RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
-    RegisterPanel<AssetsBrowserPanel>(refl::GetTypeName<AssetsBrowserPanel>());
-    RegisterPanel<EditorConsolePanel>(refl::GetTypeName<EditorConsolePanel>());
+    RegisterPanel<AssetsBrowserPanel>(GetTypeName<AssetsBrowserPanel>());
+    RegisterPanel<EditorConsolePanel>(GetTypeName<EditorConsolePanel>());
 
     return true;
 }
@@ -158,7 +158,7 @@ void EditorUISubsystem::DrawMainMenu()
         {
             if (ImGui::MenuItem("Exit"))
             {
-                app::Application::Get().RequestQuit();
+                Application::Get().RequestQuit();
             }
             ImGui::EndMenu();
         }
@@ -192,4 +192,4 @@ void EditorUISubsystem::DrawMainMenu()
         ImGui::EndMainMenuBar();
     }
 }
-}  // namespace se::editor::ui
+}  // namespace se::editor

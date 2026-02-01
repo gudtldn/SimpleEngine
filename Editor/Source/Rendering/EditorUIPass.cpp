@@ -1,10 +1,10 @@
-﻿#include "Rendering/EditorUIPass.h"
+#include "Rendering/EditorUIPass.h"
 #include "SimpleEngine/Rendering/RenderGraph/RenderGraph.h"
 
 #include "imgui.h"
 #include "imgui_impl_sdlgpu3.h"
 
-using namespace se::rendering;
+using namespace se::graphics;
 
 
 namespace
@@ -12,7 +12,7 @@ namespace
 RGResourceHandle back_buffer_handle;
 }
 
-namespace se::editor::rendering
+namespace se::editor
 {
 void EditorUIPass::Setup(RenderGraphBuilder& builder)
 {
@@ -53,4 +53,4 @@ void EditorUIPass::Execute(RGExecutionContext& context)
         ImGui::RenderPlatformWindowsDefault();
     }
 }
-}
+}  // namespace se::editor

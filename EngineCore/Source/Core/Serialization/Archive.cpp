@@ -1,4 +1,4 @@
-﻿#include "Core/Serialization/Archive.h"
+#include "Core/Serialization/Archive.h"
 
 #include "Core/Container/String.h"
 #include "Core/Logging/Logging.h"
@@ -91,7 +91,7 @@ Archive& Archive::operator<<(Guid& value)
     return *this;
 }
 
-Archive& Archive::operator<<(refl::TypeId& value)
+Archive& Archive::operator<<(TypeId& value)
 {
     if (IsBinary())
     {
@@ -108,7 +108,7 @@ Archive& Archive::operator<<(refl::TypeId& value)
 
         if (IsLoading())
         {
-            value = refl::TypeId::FromHash(hash);
+            value = TypeId::FromHash(hash);
             if (!value.IsValid())
             {
                 ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash);
@@ -130,7 +130,7 @@ Archive& Archive::operator<<(refl::TypeId& value)
 
         if (IsLoading())
         {
-            value = refl::TypeId::FromName(type_name);
+            value = TypeId::FromName(type_name);
             if (!value.IsValid())
             {
                 ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name);

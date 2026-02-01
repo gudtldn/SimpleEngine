@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/Container/Deque.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -13,7 +13,7 @@ namespace se
 struct LogEntry;
 }
 
-namespace se::editor::ui
+namespace se::editor
 {
 /**
  * 엔진의 로그를 출력하는 에디터 콘솔 패널
@@ -52,4 +52,4 @@ private:
     bool filter_changed = false;
     usize last_log_count = 0;
 };
-}  // namespace se::editor::ui
+}  // namespace se::editor

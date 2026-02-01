@@ -1,8 +1,8 @@
-﻿#include "Rendering/Memory/GpuMemoryBlock.h"
+#include "Rendering/Memory/GpuMemoryBlock.h"
 #include "Utility/Common.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 GpuMemoryBlock::GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage)
     : device(in_device)
@@ -81,4 +81,4 @@ bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBuffe
     used_offset = aligned_offset + in_size;
     return true;
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

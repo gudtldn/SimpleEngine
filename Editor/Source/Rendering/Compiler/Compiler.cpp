@@ -1,4 +1,4 @@
-﻿#include "Rendering/Compiler/Compiler.h"
+#include "Rendering/Compiler/Compiler.h"
 
 #include <ranges>
 
@@ -9,7 +9,7 @@
 #include "SDL3_shadercross/SDL_shadercross.h"
 
 
-namespace se::editor::rendering
+namespace se::editor
 {
 using namespace se::utility;
 
@@ -130,4 +130,4 @@ SDL_GPUShader* CompileFromHLSL(
     ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path, SDL_GetError());
     return nullptr;
 }
-}  // namespace se::editor::rendering
+}  // namespace se::editor

@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Rendering/RenderGraph/FrameResourcePool.h"
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 class IRGResource
 {
@@ -119,4 +119,4 @@ public:
     virtual void Realize([[maybe_unused]] FrameResourcePool& pool) override {}
     virtual void Unrealize([[maybe_unused]] FrameResourcePool& pool) override {}
 };
-}
+}  // namespace se::graphics

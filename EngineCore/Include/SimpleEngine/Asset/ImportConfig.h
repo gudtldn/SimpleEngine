@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 
 #include "SimpleEngine/Asset/ImportSettings/ImportSettings.h"
@@ -15,7 +15,7 @@ namespace se::asset
 class SE_CORE_API ImportConfig
 {
 public:
-    using SettingsMap = HashMap<refl::TypeId, std::shared_ptr<ImportSettingsBase>>;
+    using SettingsMap = HashMap<TypeId, std::shared_ptr<ImportSettingsBase>>;
 
 public:
     /**
@@ -32,7 +32,7 @@ public:
 
         // 내부적으로 복사본을 만들어 shared_ptr로 관리
         settings_map.Insert(
-            refl::TypeId::Get<T>(),
+            TypeId::Get<T>(),
             std::make_shared<T>(settings)
         );
     }
@@ -48,7 +48,7 @@ public:
     [[nodiscard]] Optional<const T&> Get() const
     {
         return settings_map
-            .Find(refl::TypeId::Get<T>())
+            .Find(TypeId::Get<T>())
             .AndThen([](const auto& ptr) -> Optional<const T&>
             {
                 return static_cast<const T&>(*ptr);

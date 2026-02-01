@@ -6,15 +6,10 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
-// forward declaration
 namespace se
 {
 class Engine;
-}
 
-
-namespace se::app
-{
 enum class EApplicationMode : uint8
 {
     GameClient,
@@ -125,4 +120,4 @@ private:
     // 메모리 관련
     std::pmr::memory_resource* original_resource;
 };
-}
+}  // namespace se

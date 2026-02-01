@@ -18,7 +18,7 @@
 namespace se::editor
 {
 EditorApplication::EditorApplication()
-    : Application(se::app::EApplicationMode::Editor)
+    : Application(se::EApplicationMode::Editor)
 {
 }
 
@@ -94,8 +94,8 @@ bool EditorApplication::PostInitialize()
 
     // Shader Cache Provider 변경
     {
-        using namespace se::rendering;
-        using namespace se::editor::rendering;
+        using namespace se::graphics;
+        using namespace se::editor;
 
         if (const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>())
         {
@@ -118,14 +118,14 @@ void EditorApplication::Render()
     }
 
     {
-        using namespace se::editor::ui;
-        using namespace se::editor::rendering;
+        using namespace se::editor;
+        using namespace se::editor;
 
         const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
             se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
         se::ecs::World& world_ref = *world_subsystem.GetWorld();
-        se::rendering::RenderGraph& graph = render_subsystem->GetRenderGraph();
+        se::graphics::RenderGraph& graph = render_subsystem->GetRenderGraph();
         for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
         {
             if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
@@ -137,7 +137,7 @@ void EditorApplication::Render()
                 const Matrix4x4 vp_matrix_to_render = info.view_matrix * info.projection_matrix;
 
                 const StringName depth_target_name = se::String::Format("{}_Depth", viewport_id.ToString());
-                graph.AddPass<se::rendering::ForwardScenePass>(
+                graph.AddPass<se::graphics::ForwardScenePass>(
                     world_ref,
                     vp_matrix_to_render,
                     color_target_name, depth_target_name,

@@ -1,4 +1,4 @@
-﻿#include "UI/Panels/AssetsBrowserPanel.h"
+#include "UI/Panels/AssetsBrowserPanel.h"
 
 #include <compare>
 
@@ -30,7 +30,7 @@ struct AssetItem
 };
 }  // namespace
 
-namespace se::editor::ui
+namespace se::editor
 {
 const char* AssetsBrowserPanel::GetName() const
 {
@@ -330,7 +330,7 @@ void AssetsBrowserPanel::DrawDirectoryContextMenu(const Path& path)
     if (ImGui::MenuItem("Show in Explorer"))
     {
         ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path);
-        platform::RevealInExplorer(path);
+        Platform::RevealInExplorer(path);
     }
 }
 
@@ -362,7 +362,7 @@ void AssetsBrowserPanel::DrawFileContextMenu(const Path& path)
     if (ImGui::MenuItem("Show in Explorer"))
     {
         ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path);
-        platform::RevealInExplorer(path);
+        Platform::RevealInExplorer(path);
     }
 }
-}  // namespace se::editor::ui
+}  // namespace se::editor

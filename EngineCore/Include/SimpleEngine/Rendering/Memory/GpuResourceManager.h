@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -9,7 +9,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /** 텍스처 업로드 시 적용할 옵션 */
 struct TextureUploadSettings
@@ -137,4 +137,4 @@ private:
     // AssetId -> GPU Texture 매핑
     HashMap<asset::AssetId, GpuTexture> texture_map;
 };
-}  // namespace se::rendering
+}  // namespace se::graphics

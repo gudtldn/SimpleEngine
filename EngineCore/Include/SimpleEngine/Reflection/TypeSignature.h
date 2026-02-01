@@ -5,7 +5,7 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
-namespace se::refl
+namespace se
 {
 namespace detail
 {
@@ -241,4 +241,4 @@ template <typename T>
     constexpr auto ret = GetFullTypeName<T>();
     return detail::RemoveNamespace(ret);
 }
-}  // namespace se::refl
+}  // namespace se

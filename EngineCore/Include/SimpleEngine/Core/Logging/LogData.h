@@ -22,7 +22,7 @@ struct LogLevelAndLocation
     LogLevelAndLocation(
         ELogLevel in_level,
         const std::source_location& in_location = std::source_location::current(),
-        se::String in_thread_name = se::platform::GetCurrentThreadName()
+        se::String in_thread_name = se::Platform::GetCurrentThreadName()
     )
         : level(in_level)
         , location(in_location)
@@ -111,4 +111,4 @@ struct LogOnceKey
         }
     };
 };
-}
+}  // namespace se

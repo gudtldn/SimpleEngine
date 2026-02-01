@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <atomic>
 #include <memory>
 
@@ -44,7 +44,7 @@ private:
     {
         std::weak_ptr<IAsset> asset;
 
-        refl::TypeId asset_type;
+        TypeId asset_type;
         Path file_path;
         std::atomic<ELoadingState> loading_state = ELoadingState::Unloaded;
     };

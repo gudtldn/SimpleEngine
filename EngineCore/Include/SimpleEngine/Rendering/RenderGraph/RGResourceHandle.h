@@ -3,7 +3,7 @@
 #include <limits>
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
  * Render Graph 내의 리소스를 가리키는 핸들
@@ -18,12 +18,12 @@ struct RGResourceHandle
     [[nodiscard]] constexpr bool IsValid() const { return index != std::numeric_limits<usize>::max(); }
     [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
 };
-}
+}  // namespace se::graphics
 
 template<>
-struct std::hash<se::rendering::RGResourceHandle>
+struct std::hash<se::graphics::RGResourceHandle>
 {
-    [[nodiscard]] size_t operator()(const se::rendering::RGResourceHandle& handle) const noexcept
+    [[nodiscard]] size_t operator()(const se::graphics::RGResourceHandle& handle) const noexcept
     {
         return std::hash<usize>{}(handle.index);
     }

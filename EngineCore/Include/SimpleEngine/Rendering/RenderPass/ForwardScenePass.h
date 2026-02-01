@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/Array.h"
@@ -14,7 +14,7 @@ namespace se::ecs
 class World;
 }
 
-namespace se::rendering
+namespace se::graphics
 {
 /** 개별 객체의 렌더링 정보 */
 struct EntityDrawInfo
@@ -53,4 +53,4 @@ private:
     RGResourceHandle color_target_handle;
     RGResourceHandle depth_target_handle;
 };
-}  // namespace se::rendering
+}  // namespace se::graphics

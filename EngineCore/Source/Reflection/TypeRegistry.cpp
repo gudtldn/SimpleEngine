@@ -1,7 +1,7 @@
 ﻿#include "Reflection/TypeRegistry.h"
 
 
-namespace se::refl
+namespace se
 {
 TypeRegistry& TypeRegistry::Get()
 {
@@ -27,4 +27,4 @@ Optional<const TypeInfo&> TypeRegistry::Find(const StringName& type_name) const
         return Find(type_id);
     });
 }
-}
+}  // namespace se

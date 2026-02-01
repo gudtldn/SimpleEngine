@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 
 #include "SimpleEngine/Core/Container/Array.h"
@@ -10,7 +10,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
  * 렌더링 파이프라인에서 일시적으로 필요한 텍스처를 재사용하기 위한 Pool
@@ -90,4 +90,4 @@ void FrameResourcePool::ReleaseResourceInternal(PoolEntry<T>& entry, T* resource
     entry.used_resources.RemoveAtSwap(*remove_idx_opt);
     entry.available_resources.Push(resource);
 }
-}  // namespace se::rendering
+}  // namespace se::graphics

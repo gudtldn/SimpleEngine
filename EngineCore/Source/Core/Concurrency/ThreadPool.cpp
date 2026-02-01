@@ -49,7 +49,7 @@ ThreadPool::~ThreadPool()
 void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
 {
     const String thread_name = String::Format("{} {}", pool_name, thread_id);
-    platform::SetCurrentThreadName(thread_name);
+    Platform::SetCurrentThreadName(thread_name);
 
     while (!token.stop_requested())
     {

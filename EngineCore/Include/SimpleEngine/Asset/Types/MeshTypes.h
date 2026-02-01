@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Gfx/MeshPrimitives.h"
@@ -23,22 +23,22 @@ struct SE_CORE_API StaticMesh : IAsset
     //     Vector4f tangent;
     // }
     //
-    // SE_PROPERTY(=meta::ReadOnly)
+    // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Vector3f> positions;
     //
-    // SE_PROPERTY(=meta::ReadOnly)
+    // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<gfx::VertexAttributes> attributes;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<gfx::Vertex> vertices;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<uint32> indices;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<gfx::MeshSection> sections;
 
-    // SE_PROPERTY(=meta::ReadOnly)
+    // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Material> materials;
 
     // TODO: AABB bounds; 추가
@@ -49,19 +49,19 @@ struct SE_CORE_API StaticMesh : IAsset
  */
 struct SE_CORE_API SkeletalMesh : IAsset
 {
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<gfx::Vertex> vertices;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<gfx::SkinVertex> skin_vertices;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<uint32> indices;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<gfx::MeshSection> sections;
 
-    // SE_PROPERTY(=meta::ReadOnly)
+    // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Material> materials;
 
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리

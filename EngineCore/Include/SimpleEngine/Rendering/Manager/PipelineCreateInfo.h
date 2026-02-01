@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Rendering/ShaderProvider/IShaderProvider.h"
 #include "SimpleEngine/Rendering/Traits/CreateInfoEquals.h"
 
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::rendering
+namespace se::graphics
 {
 /**
  * Hashing 가능한 SDL_GPUGraphicsPipelineCreateInfo 구조체
@@ -44,4 +44,4 @@ struct ComputePipelineCreateInfo
         return placeholder == other.placeholder;
     }
 };
-}
+}  // namespace se::graphics

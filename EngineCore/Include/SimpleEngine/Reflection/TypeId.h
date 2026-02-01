@@ -2,15 +2,12 @@
 #include "SimpleEngine/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/Hash.h"
 
-// forward declaration
+
 namespace se
 {
+// forward declaration
 class StringName;
-}
 
-
-namespace se::refl
-{
 /**
  * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
  */
@@ -79,12 +76,12 @@ private:
     StringView type_name;
     uint64 type_hash = 0;
 };
-}
+}  // namespace se
 
 template <>
-struct std::hash<se::refl::TypeId>
+struct std::hash<se::TypeId>
 {
-    constexpr size_t operator()(const se::refl::TypeId& id) const noexcept
+    constexpr size_t operator()(const se::TypeId& id) const noexcept
     {
         return static_cast<size_t>(id.GetHash());
     }

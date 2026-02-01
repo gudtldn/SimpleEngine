@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class IEditorPanel
 {
@@ -21,4 +21,4 @@ public:
 protected:
     bool is_visible = true;
 };
-}
+}  // namespace se::editor

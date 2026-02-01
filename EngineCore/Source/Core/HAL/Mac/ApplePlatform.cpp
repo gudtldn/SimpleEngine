@@ -12,21 +12,21 @@
 #include "Utility/Debug.h"
 
 
-namespace se::platform
+namespace se
 {
-void SetThreadName([[maybe_unused]] std::thread& thread, [[maybe_unused]] const String& name)
+void Platform::SetThreadName([[maybe_unused]] std::thread& thread, [[maybe_unused]] const String& name)
 {
     // macOS does not support setting the name of another thread by its handle.
     // This function is a no-op on this platform.
 }
 
-void SetCurrentThreadName(const String& name)
+void Platform::SetCurrentThreadName(const String& name)
 {
     // The pthread_setname_np on macOS/BSD sets the name of the calling thread.
     pthread_setname_np(name.CStr());
 }
 
-String GetThreadName(std::thread& thread)
+String Platform::GetThreadName(std::thread& thread)
 {
     char thread_name[64] = {};
     if (pthread_getname_np(thread.native_handle(), thread_name, sizeof(thread_name)) == 0)
@@ -37,7 +37,7 @@ String GetThreadName(std::thread& thread)
     return {};
 }
 
-String GetCurrentThreadName()
+String Platform::GetCurrentThreadName()
 {
     char thread_name[64] = {};
     if (pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name)) == 0)
@@ -48,7 +48,7 @@ String GetCurrentThreadName()
     return {};
 }
 
-void RevealInExplorer(const Path& path)
+void Platform::RevealInExplorer(const Path& path)
 {
     if (!path.Exists())
     {
@@ -61,5 +61,5 @@ void RevealInExplorer(const Path& path)
     const String command = String::Format("open -R \"{}\"", absolute_path);
     std::system(command.CStr());
 }
-}  // namespace se::platform
+}  // namespace se
 #endif

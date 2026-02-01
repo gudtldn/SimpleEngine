@@ -20,10 +20,10 @@ struct AssetEntry_DEPRECATED
     Guid guid;
 
     // Asset의 TypeId
-    refl::TypeId asset_type;
+    TypeId asset_type;
 
     // Loader의 TypeId
-    refl::TypeId loader_type;
+    TypeId loader_type;
 
     // "Asset://"으로 시작하는 에셋의 가상 경로
     VPath virtual_path;
@@ -43,7 +43,7 @@ public:
         {
 #if SE_DEBUG_BUILD
             const SettingType* settings = dynamic_cast<const SettingType*>(import_settings.get());
-            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", refl::GetFullTypeName<SettingType>());
+            SE_ASSERT(settings, "Invalid Asset Import Settings Type. Expected: {}, Actual Type ID mismatch.", GetFullTypeName<SettingType>());
             return settings;
 #else
             return static_cast<const SettingType*>(import_settings.get());
@@ -99,4 +99,4 @@ private:
     HashMap<Guid, AssetEntry_DEPRECATED> guid_map;
     HashMap<VPath, Guid> vpath_map;
 };
-}
+}  // namespace se::asset

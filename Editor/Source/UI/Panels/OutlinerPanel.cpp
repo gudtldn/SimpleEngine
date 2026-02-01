@@ -1,4 +1,4 @@
-﻿#include "UI/Panels/OutlinerPanel.h"
+#include "UI/Panels/OutlinerPanel.h"
 
 #include "Core/EditorSubsystem.h"
 #include "UI/EditorUISubsystem.h"
@@ -11,7 +11,7 @@
 #include "imgui.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 const char* OutlinerPanel::GetName() const
 {
@@ -59,4 +59,4 @@ void OutlinerPanel::Draw()
     }
     ImGui::End();
 }
-}  // namespace se::editor::ui
+}  // namespace se::editor

@@ -1,10 +1,10 @@
-﻿#include "UI/EditorViewportSubsystem.h"
+#include "UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
     .DependsOn<RenderSubsystem>();
@@ -75,4 +75,4 @@ SDL_GPUTexture* EditorViewportSubsystem::UpdateAndGetViewportTexture(const Strin
     }
     return info.color_texture;
 }
-}
+}  // namespace se::editor

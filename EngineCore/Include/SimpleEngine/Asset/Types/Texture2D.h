@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Reflection/Annotations.h"
@@ -16,25 +16,25 @@ enum class ETextureFormat
 
 struct SE_CORE_API Texture2D : IAsset
 {
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     uint32 width = 0;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     uint32 height = 0;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     uint32 channels = 0;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     ETextureFormat format = ETextureFormat::None;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     bool is_srgb = true;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     bool generate_mips = true;
 
-    SE_PROPERTY(=meta::ReadOnly)
+    SE_PROPERTY(=::se::meta::ReadOnly)
     Array<uint8> pixels;
 };
-}
+}  // namespace se::asset

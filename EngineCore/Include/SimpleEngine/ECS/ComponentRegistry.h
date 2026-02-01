@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/ECS/World.h"
@@ -24,13 +24,13 @@ public:
     template <typename T>
     static void Register()
     {
-        Get().factories.Emplace(refl::TypeId::Get<T>(), [](World& world)
+        Get().factories.Emplace(TypeId::Get<T>(), [](World& world)
         {
             world.GetOrCreateStorage<T>();
         });
     }
 
-    bool EnsureStorage(World& world, const refl::TypeId& type_id) const
+    bool EnsureStorage(World& world, const TypeId& type_id) const
     {
         if (const Optional func_opt = factories.Find(type_id))
         {
@@ -41,6 +41,6 @@ public:
     }
 
 private:
-    HashMap<refl::TypeId, StorageFactory> factories;
+    HashMap<TypeId, StorageFactory> factories;
 };
 }  // namespace se::ecs

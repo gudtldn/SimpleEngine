@@ -15,19 +15,19 @@
 #include "Utility/Debug.h"
 
 
-namespace se::platform
+namespace se
 {
-void SetThreadName(std::thread& thread, const String& name)
+void Platform::SetThreadName(std::thread& thread, const String& name)
 {
     pthread_setname_np(thread.native_handle(), name.CStr());
 }
 
-void SetCurrentThreadName(const String& name)
+void Platform::SetCurrentThreadName(const String& name)
 {
     pthread_setname_np(pthread_self(), name.CStr());
 }
 
-String GetThreadName(std::thread& thread)
+String Platform::GetThreadName(std::thread& thread)
 {
     char thread_name[16] = { 0 };
     if (pthread_getname_np(thread.native_handle(), thread_name, sizeof(thread_name)) == 0)
@@ -38,7 +38,7 @@ String GetThreadName(std::thread& thread)
     return {};
 }
 
-String GetCurrentThreadName()
+String Platform::GetCurrentThreadName()
 {
     char thread_name[16] = { 0 };
     if (pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name)) == 0)
@@ -49,7 +49,7 @@ String GetCurrentThreadName()
     return {};
 }
 
-void RevealInExplorer(const Path& path)
+void Platform::RevealInExplorer(const Path& path)
 {
     if (!path.Exists())
     {
@@ -64,5 +64,5 @@ void RevealInExplorer(const Path& path)
         std::system(command.CStr());
     }
 }
-}  // namespace se::platform
+}  // namespace se
 #endif

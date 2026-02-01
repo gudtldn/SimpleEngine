@@ -2,7 +2,7 @@
 #include "SimpleEngine/Reflection/TypeRegistry.h"
 
 
-namespace se::refl
+namespace se
 {
 TypeId TypeId::FromHash(uint64 in_hash)
 {
@@ -25,4 +25,4 @@ TypeId TypeId::FromName(const StringName& in_type_name)
     }
     return TypeId{};
 }
-}
+}  // namespace se

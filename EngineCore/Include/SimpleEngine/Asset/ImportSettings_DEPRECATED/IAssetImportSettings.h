@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 
 #include "SimpleEngine/Core/Serialization/Archive.h"
@@ -20,7 +20,7 @@ public:
     [[nodiscard]] virtual std::shared_ptr<IAssetImportSettings> Clone() const = 0;
 
     /** 현재 ImportSettings의 TypeId를 반환합니다. */
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const = 0;
+    [[nodiscard]] virtual TypeId GetTypeId() const = 0;
 
     /** ImportSettings를 Archive로 직렬화합니다. */
     virtual void Serialize(Archive& ar) = 0;
@@ -44,9 +44,9 @@ public:
         return std::make_shared<Derived>(static_cast<const Derived&>(*this));
     }
 
-    [[nodiscard]] virtual refl::TypeId GetTypeId() const override final
+    [[nodiscard]] virtual TypeId GetTypeId() const override final
     {
-        return refl::TypeId::Get<Derived>();
+        return TypeId::Get<Derived>();
     }
 };
 }  // namespace se::asset

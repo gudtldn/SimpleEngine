@@ -5,6 +5,6 @@ using namespace se;
 
 
 // Reflection for ChildrenComponent
-SE_BEGIN_REFLECT(ChildrenComponent, meta::Component)
-    SE_REFLECT_PROPERTY(children, meta::Edit)
+SE_BEGIN_REFLECT(ChildrenComponent, ::se::meta::Component)
+    SE_REFLECT_PROPERTY(children, ::se::meta::Edit)
 SE_END_REFLECT(ChildrenComponent)

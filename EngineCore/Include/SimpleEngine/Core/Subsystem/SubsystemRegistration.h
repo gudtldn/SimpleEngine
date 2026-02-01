@@ -1,4 +1,4 @@
-﻿// ReSharper disable CppMemberFunctionMayBeConst
+// ReSharper disable CppMemberFunctionMayBeConst
 #pragma once
 #include <concepts>
 #include <memory>
@@ -22,7 +22,7 @@ struct SubsystemMetadata
     using SubsystemFactory = Function<std::unique_ptr<ISubsystem>()>;
 
     SubsystemFactory factory;
-    Array<refl::TypeId> dependencies;
+    Array<TypeId> dependencies;
 };
 
 /**
@@ -31,7 +31,7 @@ struct SubsystemMetadata
 template <typename Subsystem>
 struct SubsystemBuilder
 {
-    refl::TypeId target_id;
+    TypeId target_id;
 
     template <typename... Dependencies>
         requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, ISubsystem> && ...))
@@ -73,7 +73,7 @@ public:
         requires std::derived_from<Subsystem, ISubsystem>
     static SubsystemBuilder<Subsystem> Register()
     {
-        refl::TypeId id = refl::TypeId::Get<Subsystem>();
+        TypeId id = TypeId::Get<Subsystem>();
 
         GetInstance().metadata_map.Emplace(id, SubsystemMetadata{
             .factory = [] static -> std::unique_ptr<ISubsystem>
@@ -86,12 +86,12 @@ public:
         return SubsystemBuilder<Subsystem>{ id };
     }
 
-    [[nodiscard]] SubsystemMetadata& GetMetadata(const refl::TypeId& id) { return metadata_map.FindChecked(id); }
+    [[nodiscard]] SubsystemMetadata& GetMetadata(const TypeId& id) { return metadata_map.FindChecked(id); }
     [[nodiscard]] const auto& GetMetadataMap() const { return metadata_map; }
 
 private:
     SubsystemRegistry() = default;
-    HashMap<refl::TypeId, SubsystemMetadata> metadata_map;
+    HashMap<TypeId, SubsystemMetadata> metadata_map;
 };
 
 template <typename Subsystem>
@@ -100,10 +100,10 @@ void SubsystemBuilder<Subsystem>::AddDependency()
 {
     SubsystemRegistry::GetInstance()
         .GetMetadata(target_id).dependencies
-        .Push(refl::TypeId::Get<Dependency>());
+        .Push(TypeId::Get<Dependency>());
 }
-}
-}
+}  // namespace detail
+}  // namespace se
 
 /** 서브시스템 클래스의 .cpp 파일 내에서 이 매크로를 호출하여 해당 서브시스템을 엔진에 자동 등록합니다. */
 #define SE_REGISTER_SUBSYSTEM(type) \

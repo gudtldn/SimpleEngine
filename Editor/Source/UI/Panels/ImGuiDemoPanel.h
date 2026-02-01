@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 #include "UI/Panels/IEditorPanel.h"
 
 
-namespace se::editor::ui
+namespace se::editor
 {
 class ImGuiDemoPanel final : public IEditorPanel
 {
@@ -14,4 +14,4 @@ public:
     virtual void Draw() override;
     //~ IEditorPanel
 };
-}
+}  // namespace se::editor
