@@ -3,7 +3,7 @@
 
 namespace se::asset
 {
-AssetSlot::AssetSlot(AssetId id, Path path, const TypeId& type_id)
+AssetSlot::AssetSlot(const AssetId& id, const TypeId& type_id, Path path)
     : cached_asset(nullptr)
     , asset_id(id)
     , asset_type(type_id)
