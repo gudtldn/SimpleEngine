@@ -1,27 +1,12 @@
 #pragma once
-#include <atomic>
-#include <memory>
 
 #include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Asset/Types/IAsset.h"
+#include "SimpleEngine/Asset/AssetSlot.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
 namespace se::asset
 {
-/**
- * @todo docs
- */
-enum class ELoadingState : uint8
-{
-    Unloaded,
-    Loading,
-    Loaded,
-    Failed,
-};
-
 /**
  * @todo docs
  */
@@ -37,18 +22,6 @@ public:
     AssetCache& operator=(AssetCache&&) = delete;
 
 private:
-    /**
-     * @todo docs
-     */
-    struct AssetEntry
-    {
-        std::weak_ptr<IAsset> asset;
-
-        TypeId asset_type;
-        Path file_path;
-        std::atomic<ELoadingState> loading_state = ELoadingState::Unloaded;
-    };
-
-    HashMap<AssetId, AssetEntry> asset_caches;
+    HashMap<AssetId, AssetSlot> asset_caches;
 };
 }  // namespace se::asset
