@@ -1,4 +1,4 @@
-﻿#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineMaterialNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineMaterialNode.h"
 
 
 namespace se::asset
@@ -131,22 +131,22 @@ void PipelineMaterialNode::SetEmissiveValue(const Vector3& color)
     attributes.SetAttribute(Keys::EMISSIVE_VAL, color);
 }
 
-gfx::EBlendMode PipelineMaterialNode::GetBlendMode() const
+graphics::EBlendMode PipelineMaterialNode::GetBlendMode() const
 {
-    return attributes.GetAttribute<gfx::EBlendMode>(Keys::BLEND_MODE).ValueOr(gfx::EBlendMode::Opaque);
+    return attributes.GetAttribute<graphics::EBlendMode>(Keys::BLEND_MODE).ValueOr(graphics::EBlendMode::Opaque);
 }
 
-void PipelineMaterialNode::SetBlendMode(gfx::EBlendMode mode)
+void PipelineMaterialNode::SetBlendMode(graphics::EBlendMode mode)
 {
     attributes.SetAttribute(Keys::BLEND_MODE, static_cast<uint64>(mode));
 }
 
-gfx::EShadingModel PipelineMaterialNode::GetShadingModel() const
+graphics::EShadingModel PipelineMaterialNode::GetShadingModel() const
 {
-    return attributes.GetAttribute<gfx::EShadingModel>(Keys::SHADING_MODEL).ValueOr(gfx::EShadingModel::Lit);
+    return attributes.GetAttribute<graphics::EShadingModel>(Keys::SHADING_MODEL).ValueOr(graphics::EShadingModel::Lit);
 }
 
-void PipelineMaterialNode::SetShadingModel(gfx::EShadingModel model)
+void PipelineMaterialNode::SetShadingModel(graphics::EShadingModel model)
 {
     attributes.SetAttribute(Keys::SHADING_MODEL, static_cast<uint64>(model));
 }

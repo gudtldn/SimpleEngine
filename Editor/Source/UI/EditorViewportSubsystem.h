@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Types/StringName.h"
-#include "SimpleEngine/Gfx/RenderSubsystem.h"
+#include "SimpleEngine/Graphics/RenderSubsystem.h"
 
 #include "SDL3/SDL_gpu.h"
 

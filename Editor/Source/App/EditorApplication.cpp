@@ -1,16 +1,16 @@
 #include "App/EditorApplication.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
-#include "Rendering/EditorUIPass.h"
-#include "Rendering/Compiler/Provider.h"
+#include "Graphics/EditorUIPass.h"
+#include "Graphics/Compiler/Provider.h"
 #include "UI/EditorUISubsystem.h"
 #include "UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
-#include "SimpleEngine/Gfx/RenderSubsystem.h"
-#include "SimpleEngine/Rendering/RenderPass/ForwardScenePass.h"
+#include "SimpleEngine/Graphics/RenderSubsystem.h"
+#include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Utility/Config.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 

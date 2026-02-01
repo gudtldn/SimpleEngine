@@ -1,4 +1,4 @@
-#include "Core/Engine/Engine.h"
+﻿#include "Core/Engine/Engine.h"
 
 #include <ranges>
 
@@ -11,7 +11,7 @@
 #include "Core/Subsystem/ISubsystem.h"
 #include "Core/Subsystem/IUpdatable.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
-#include "Gfx/RenderSubsystem.h"
+#include "Graphics/RenderSubsystem.h"
 #include "Utility/VFS.h"
 
 #include "SDL3/SDL_gpu.h"

@@ -1,4 +1,4 @@
-﻿// NOLINTBEGIN(*-reserved-identifier)
+// NOLINTBEGIN(*-reserved-identifier)
 #include "Asset/Pipeline/Translators/AssimpTranslator.h"
 
 #include "Asset/ImportSettings/MeshImportSettings.h"
@@ -51,7 +51,7 @@ void ProcessMergedMesh(
         // Vertices 변환
         for (uint32 v = 0; v < mesh->mNumVertices; ++v)
         {
-            gfx::Vertex vertex;
+            graphics::Vertex vertex;
 
             // Position
             vertex.position = { mesh->mVertices[v].x, mesh->mVertices[v].y, mesh->mVertices[v].z };
@@ -88,7 +88,7 @@ void ProcessMergedMesh(
         }
 
         // Section(Submesh) 설정
-        gfx::MeshSection section;
+        graphics::MeshSection section;
         section.index_start = index_offset;
         section.index_count = mesh->mNumFaces * 3;
         section.material_index = mesh->mMaterialIndex;
@@ -120,7 +120,7 @@ void ProcessSingleMesh(
     pipeline_node.vertices.Reserve(mesh->mNumVertices);
     for (uint32 i = 0; i < mesh->mNumVertices; ++i)
     {
-        gfx::Vertex vertex;
+        graphics::Vertex vertex;
 
         vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
 
@@ -157,7 +157,7 @@ void ProcessSingleMesh(
     }
 
     // Section(Submesh) 설정
-    gfx::MeshSection section;
+    graphics::MeshSection section;
     section.index_start = 0;
     section.index_count = static_cast<uint32>(pipeline_node.indices.Len());
     section.material_index = mesh->mMaterialIndex;

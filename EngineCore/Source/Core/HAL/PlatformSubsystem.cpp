@@ -4,7 +4,7 @@
 
 #include "Core/Logging/Logging.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
-#include "Gfx/RenderSubsystem.h"
+#include "Graphics/RenderSubsystem.h"
 #include "Utility/SubsystemUtils.h"
 
 #include "SDL3/SDL.h"

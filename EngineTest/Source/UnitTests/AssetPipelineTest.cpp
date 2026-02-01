@@ -13,7 +13,7 @@
 
 using namespace se;
 using namespace se::asset;
-using namespace se::gfx;
+using namespace se::graphics;
 
 // --- Mock Classes ---
 
