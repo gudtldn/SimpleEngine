@@ -7,9 +7,11 @@
 #include "Panels/ImGuiDemoPanel.h"
 #include "Panels/OutlinerPanel.h"
 #include "Panels/ViewportPanel.h"
+
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/HAL/FileDialog.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
