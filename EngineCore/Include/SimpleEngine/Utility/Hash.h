@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::utility
+namespace se
 {
 namespace detail
 {
@@ -29,30 +29,38 @@ constexpr uint64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcep
 }
 }  // namespace detail
 
-template <typename T>
-    requires std::is_convertible_v<T, StringView>
-constexpr uint64 FNV_Hash(const T& str) noexcept
+/**
+ * 해시 관련 유틸리티 함수 모음
+ */
+struct HashUtils
 {
-    return detail::FNV_Hash_Impl(StringView{ str }, [](auto c) { return c; });
-}
+    HashUtils() = delete;
 
-template <typename T>
-    requires std::is_convertible_v<T, StringView>
-constexpr uint64 FNV_Hash_CaseInsensitive(const T& str) noexcept
-{
-    return detail::FNV_Hash_Impl(StringView{ str }, [](auto c)
+    template <typename T>
+        requires std::is_convertible_v<T, StringView>
+    static constexpr uint64 FNV(const T& str) noexcept
     {
-        return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
-    });
-}
+        return detail::FNV_Hash_Impl(StringView{ str }, [](auto c) { return c; });
+    }
 
-template <typename... Ts>
-void HashCombine(usize& seed, const Ts&... values)
-{
-    const auto combine_one = [&]<typename T>(const T& v)
+    template <typename T>
+        requires std::is_convertible_v<T, StringView>
+    static constexpr uint64 FNVCaseInsensitive(const T& str) noexcept
     {
-        seed ^= std::hash<std::decay_t<T>>{}(v) + 0x9e3779b97f4a7c15 + (seed << 6) + (seed >> 2);
-    };
-    (combine_one(values), ...);
-}
-}  // namespace se::utility
+        return detail::FNV_Hash_Impl(StringView{ str }, [](auto c)
+        {
+            return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
+        });
+    }
+
+    template <typename... Ts>
+    static void Combine(usize& seed, const Ts&... values)
+    {
+        const auto combine_one = [&]<typename T>(const T& v)
+        {
+            seed ^= std::hash<std::decay_t<T>>{}(v) + 0x9e3779b97f4a7c15 + (seed << 6) + (seed >> 2);
+        };
+        (combine_one(values), ...);
+    }
+};
+}  // namespace se

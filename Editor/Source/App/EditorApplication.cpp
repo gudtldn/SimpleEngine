@@ -1,4 +1,4 @@
-﻿#include "App/EditorApplication.h"
+#include "App/EditorApplication.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Rendering/EditorUIPass.h"
@@ -40,7 +40,7 @@ void EditorApplication::RegisterSubsystems()
     // Window 초기화
     if (PlatformSubsystem* platform_subsystem = se::GetSubsystem<PlatformSubsystem>())
     {
-        using namespace se::utility;
+        using namespace se;
 
         const VPath config_path = "Config://EngineConfig.toml";
         ParseResult result = Config::ReadConfig(config_path);

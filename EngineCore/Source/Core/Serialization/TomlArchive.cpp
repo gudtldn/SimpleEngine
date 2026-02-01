@@ -123,7 +123,7 @@ Archive& TomlReader::operator<<(String& value)
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = utility::ToString(sv);
+        value = StringUtils::ToString(sv);
     }
     return *this;
 }
@@ -133,7 +133,7 @@ Archive& TomlReader::operator<<(StringName& value)
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = utility::ToString(sv);
+        value = StringUtils::ToString(sv);
     }
     return *this;
 }
@@ -143,7 +143,7 @@ Archive& TomlReader::operator<<(Guid& value)
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = Guid::FromString(utility::ToString(sv));
+        value = Guid::FromString(StringUtils::ToString(sv));
     }
     return *this;
 }
@@ -259,4 +259,4 @@ Archive& TomlWriter::operator<<(Guid& value)
     WriteValue(value.ToString().CStr());
     return *this;
 }
-}
+}  // namespace se

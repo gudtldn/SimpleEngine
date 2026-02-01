@@ -20,7 +20,7 @@ class VPath;
 }
 
 
-namespace se::utility
+namespace se
 {
 class Config;
 
@@ -134,7 +134,7 @@ Optional<To> Config::GetValue(StringView key) const
                .value<std::u8string>()
                .and_then([](const std::u8string& value) -> std::optional<To>
                {
-                   return se::utility::ToString(value);
+                   return se::StringUtils::ToString(value);
                });
     }
     else
@@ -289,4 +289,4 @@ bool Config::SetValue(StringView key_path, se::Array<ElementType>&& vec_value)
     }
     return SetValue(key_path, std::move(arr));
 }
-}  // namespace se::utility
+}  // namespace se

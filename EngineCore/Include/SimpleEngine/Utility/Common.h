@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <bit>
 #include <concepts>
 #include <utility>
@@ -12,7 +12,7 @@
 #define SE_STRINGIFY(x) #x
 
 
-namespace se::utility
+namespace se
 {
 /**
  * 특정 값(size)을 지정된 정렬(alignment) 크기로 올림(round up)합니다.
@@ -98,4 +98,4 @@ public:
 private:
     Fn exit_func;
 };
-}  // namespace se::utility
+}  // namespace se

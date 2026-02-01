@@ -24,7 +24,7 @@ struct std::hash<type> \
 static_assert(sizeof(type) == validate_size, "Invalid size, please check the struct definition"); \
 SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(type, stmt)
 
-#define SE_HASH_COMBINE(...) se::utility::HashCombine(seed, __VA_ARGS__);
+#define SE_HASH_COMBINE(...) se::HashUtils::Combine(seed, __VA_ARGS__);
 
 
 SE_SPECIALIZE_STD_HASH(SDL_GPUVertexBufferDescription, 16,

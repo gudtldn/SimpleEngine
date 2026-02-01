@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+﻿#include "gtest/gtest.h"
 
 #include <ostream>
 #include <string_view>
@@ -107,11 +107,11 @@ TEST_F(TypeReflectionTest, TypeIdReturnsCorrectNameAndHash)
 
     // 컴파일 타임 기능이지만, 런타임 값도 확인
     EXPECT_EQ(id.GetName(), "int");
-    EXPECT_EQ(id.GetHash(), se::utility::FNV_Hash("int"));
+    EXPECT_EQ(id.GetHash(), se::HashUtils::FNV("int"));
 
     // static_assert를 사용하여 컴파일 타임 검증도 명시
     static_assert(id.GetName() == "int");
-    static_assert(id.GetHash() == se::utility::FNV_Hash("int"));
+    static_assert(id.GetHash() == se::HashUtils::FNV("int"));
     SUCCEED(); // static_assert가 통과했음을 gtest에 알림
 }
 

@@ -11,7 +11,7 @@
 
 namespace se::editor
 {
-using namespace se::utility;
+using namespace se;
 
 SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
@@ -22,7 +22,7 @@ SDL_GPUShader* CompileFromHLSL(
 {
     // read shader file
     Array<uint8> source;
-    if (auto result = ReadToByteArray(shader_path))
+    if (auto result = FileIO::ReadBytes(shader_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

@@ -162,7 +162,7 @@ public:
         systems[type_id].Push([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::FunctionTraits<Fn>;
-            std::tuple tuple = utility::WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
+            std::tuple tuple = WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
             {
                 return std::make_tuple(CreateSystemParam<Ts>()...);
             });

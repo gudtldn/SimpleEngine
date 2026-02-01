@@ -1,4 +1,4 @@
-﻿#include "Core/HAL/PlatformSubsystem.h"
+#include "Core/HAL/PlatformSubsystem.h"
 
 #include <ranges>
 
@@ -11,7 +11,7 @@
 #include "SDL3/SDL_gpu.h"
 
 using namespace se::event;
-using namespace se::utility;
+using namespace se;
 
 namespace se
 {

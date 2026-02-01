@@ -1,4 +1,4 @@
-﻿#include "../UnitTestEnvironment.h"
+#include "../UnitTestEnvironment.h"
 #include "gtest/gtest.h"
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
@@ -15,7 +15,7 @@ using namespace std::string_view_literals;
 using namespace std::string_literals;
 
 using namespace se;
-using namespace se::utility;
+using namespace se;
 
 
 // --- 테스트 Fixture 정의 ---
