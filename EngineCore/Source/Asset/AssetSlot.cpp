@@ -13,7 +13,6 @@ AssetSlot::AssetSlot(AssetId id, Path path, const TypeId& type_id)
 
 IAsset* AssetSlot::GetRawAsset() const
 {
-    std::shared_lock lock(mutex);
     return asset.get();
 }
 
