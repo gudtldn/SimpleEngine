@@ -9,7 +9,7 @@
 
 namespace se::asset
 {
-Array<std::shared_ptr<IAsset>> AssetImporter::Import(
+Expected<ImportResult, ImportError> AssetImporter::Import(
     const Path& file_path,
     const ImportConfig& import_config,
     Optional<const PipelineProcessorStack&> processor_stack
@@ -28,7 +28,11 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
     if (!translator_opt)
     {
         ConsoleLog(ELogLevel::Error, "No suitable translator found for file: {}", file_path);
-        return {};
+        return Unexpected(ImportError{
+            ImportError::ECode::NoTranslator,
+            "No suitable translator found",
+            file_path
+        });
     }
 
     PipelineNodeContainer container;
@@ -55,11 +59,21 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
         return SortNodesByDependency(container);
     }();
 
+    // 순환 의존성 감지 시 실패 반환
+    if (sorted_nodes.IsEmpty() && !container.GetAllNodes().IsEmpty())
+    {
+        return Unexpected(ImportError{
+            ImportError::ECode::CyclicDependency,
+            "Cyclic dependency detected in pipeline nodes",
+            file_path
+        });
+    }
+
     // ---------------------------------------------------------
     // 4단계: Factory 실행 (Nodes -> Assets)
     // ---------------------------------------------------------
+    ImportResult result;
     HashMap<Guid, std::shared_ptr<IAsset>> created_assets_map;
-    Array<std::shared_ptr<IAsset>> created_assets;
 
     // Factory가 참조할 Context 생성
     const PipelineImportContext context{
@@ -86,10 +100,13 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
                     if (factory->CanCreateAsset(node))
                     {
                         ZoneScopedN("Factory::CreateAsset"); // NOLINT(*-lambda-function-name)
-                        if (std::shared_ptr<IAsset> new_asset = factory->CreateAsset(node, context))
+                        if (const std::shared_ptr<IAsset> new_asset = factory->CreateAsset(node, context))
                         {
                             created_assets_map.Insert(node->GetUid(), new_asset);
-                            created_assets.Push(new_asset);
+
+                            // ImportResult에 등록 (노드 이름을 Sub-Asset 이름으로 사용)
+                            const String& display_name = node->GetDisplayName();
+                            result.RegisterAsset(new_asset, display_name);
                         }
                         return;
                     }
@@ -99,7 +116,16 @@ Array<std::shared_ptr<IAsset>> AssetImporter::Import(
         }
     }
 
-    return created_assets;
+    if (result.IsEmpty())
+    {
+        return Unexpected(ImportError{
+            ImportError::ECode::FactoryFailed,
+            "No assets were created from the file",
+            file_path
+        });
+    }
+
+    return result;
 }
 
 Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const Path& file_path) const
@@ -208,8 +234,6 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
                 }
             }
         }
-
-        SE_BREAKPOINT();
         return {};
     }
 
