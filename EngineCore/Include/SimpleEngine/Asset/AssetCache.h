@@ -11,7 +11,7 @@
 namespace se::asset
 {
 /**
- * 로드된 AssetSlot들을 관리하는 런타임 저장소
+ * 로드된 Asset의 Slot(MemoryBlock)을 관리하는 런타임 저장소
  * Slot의 생명주기(생성 및 제거)를 관리합니다.
  */
 class SE_CORE_API AssetCache
