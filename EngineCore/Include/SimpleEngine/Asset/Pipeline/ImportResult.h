@@ -207,7 +207,11 @@ public:
     }
 
 public:
-    /** Sub-Asset을 등록합니다. (Importer 내부용) */
+    /**
+     * Sub-Asset을 등록합니다. (Importer 내부용)
+     * @param asset 등록할 Asset
+     * @param name Sub-Asset 이름 (중복 시 자동으로 suffix 추가: Name_1, Name_2, ...)
+     */
     void RegisterAsset(std::shared_ptr<IAsset> asset, StringView name = {})
     {
         const uint32 index = static_cast<uint32>(assets.Len());
@@ -215,8 +219,34 @@ public:
 
         if (!name.IsEmpty())
         {
-            name_to_index.Insert(String(name), index);
+            String unique_name = MakeUniqueName(name);
+            name_to_index.Insert(std::move(unique_name), index);
         }
     }
+
+private:
+    /** 중복되지 않는 고유한 이름을 생성합니다. */
+    [[nodiscard]] String MakeUniqueName(StringView base_name)
+    {
+        String candidate{ base_name };
+
+        // 이름이 이미 존재하지 않으면 그대로 반환
+        if (!name_to_index.Contains(candidate))
+        {
+            return candidate;
+        }
+
+        // 중복 시 suffix 추가: Name_1, Name_2, ...
+        uint32& next_suffix = next_suffix_map.Entry(candidate).OrInsert(1);
+        do
+        {
+            candidate = String::Format("{}_{}", base_name, next_suffix++);
+        }
+        while (name_to_index.Contains(candidate));
+
+        return candidate;
+    }
+
+    HashMap<String, uint32> next_suffix_map;
 };
 }  // namespace se::asset
