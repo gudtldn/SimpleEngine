@@ -14,7 +14,7 @@ enum class ETextureFormat
     R8G8B8A8,
 };
 
-struct SE_CORE_API Texture2D : IAsset
+struct SE_CORE_API Texture2D : Asset<Texture2D>
 {
     SE_PROPERTY(=::se::meta::ReadOnly)
     uint32 width = 0;
