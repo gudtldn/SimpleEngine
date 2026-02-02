@@ -1,19 +1,22 @@
 ﻿#pragma once
 #include <memory>
 
+#include "SimpleEngine/Asset/Pipeline/ImportResult.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEngine/Asset/Pipeline/Factories/IPipelineFactory.h"
 #include "SimpleEngine/Asset/Pipeline/Translators/IPipelineTranslator.h"
-#include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::asset
 {
 /**
- * @todo docs
+ * 파일을 Asset으로 변환하는 Import Pipeline 클래스
+ *
+ * 구조: File -> Translator -> PipelineNodes -> ProcessorStack -> Factory -> Assets
  */
 class SE_CORE_API AssetImporter
 {
@@ -39,13 +42,13 @@ public:
     void RegisterFactory(Args&&... args);
 
     /**
-     * 파일을 불러와 Asset 목록을 생성하여 반환합니다.
+     * 파일을 불러와 ImportResult를 반환합니다.
      * @param file_path 소스 파일 경로
      * @param import_config Import 설정
      * @param processor_stack 파이프라인 처리 스택 (선택)
-     * @return 생성된 에셋 목록
+     * @return 성공 시 ImportResult, 실패 시 ImportError
      */
-    [[nodiscard]] Array<std::shared_ptr<IAsset>> Import(
+    [[nodiscard]] Expected<ImportResult, ImportError> Import(
         const Path& file_path,
         const ImportConfig& import_config = {},
         Optional<const PipelineProcessorStack&> processor_stack = std::nullopt
