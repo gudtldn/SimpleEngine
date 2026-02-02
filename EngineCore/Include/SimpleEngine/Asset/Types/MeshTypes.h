@@ -10,7 +10,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-struct SE_CORE_API StaticMesh : IAsset
+struct SE_CORE_API StaticMesh : Asset<StaticMesh>
 {
     // 추후 Depth Prepass를 위한 Position정보와 나머지 Vertex정보를 분리해서
     // 하이브리드 SoA 방식으로 구조를 변경해 볼 수도 있음.
@@ -47,7 +47,7 @@ struct SE_CORE_API StaticMesh : IAsset
 /**
  * @todo docs
  */
-struct SE_CORE_API SkeletalMesh : IAsset
+struct SE_CORE_API SkeletalMesh : Asset<SkeletalMesh>
 {
     SE_PROPERTY(=::se::meta::ReadOnly)
     Array<graphics::Vertex> vertices;
