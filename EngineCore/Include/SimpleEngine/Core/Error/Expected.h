@@ -19,7 +19,7 @@ class Unexpected;
 
 
 template <typename T, typename E>
-class Expected
+class [[nodiscard]] Expected
 {
 public:
     using ValueType = T;
@@ -181,7 +181,7 @@ private:
 
 /** void 특수화 */
 template <typename E>
-class Expected<void, E>
+class [[nodiscard]] Expected<void, E>
 {
 public:
     using ValueType = void;
