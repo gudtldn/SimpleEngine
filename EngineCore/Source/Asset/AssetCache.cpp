@@ -42,11 +42,12 @@ uint32 AssetCache::CollectGarbage()
     using SlotValue = decltype(slots)::ValueType;
 
     std::unique_lock write_lock(slot_mutex);
-    return slots.RemoveIf([](const SlotKey&, const SlotValue& slot_ptr)
+    const usize remove_count = slots.RemoveIf([](const SlotKey&, const SlotValue& slot_ptr)
     {
         // 사용되고 있는 외부 Handle이 없는 경우 제거
         return slot_ptr.use_count() == 1;
     });
+    return static_cast<uint32>(remove_count);
 }
 
 uint32 AssetCache::GetCount() const
