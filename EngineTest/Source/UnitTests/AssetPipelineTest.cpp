@@ -189,12 +189,14 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
 
     ImportConfig config;
 
-    auto assets = importer.Import("Test.mock", config, pipeline_stack);
+    auto assets_exp = importer.Import("Test.mock", config, pipeline_stack);
+    EXPECT_TRUE(assets_exp.HasValue());
 
+    auto assets = std::move(assets_exp).Value();
     ASSERT_FALSE(assets.IsEmpty());
-    ASSERT_EQ(assets.Len(), 1);
+    ASSERT_EQ(assets.GetCount(), 1);
 
-    const auto& asset = assets[0];
+    const auto& asset = assets.GetAsset(0);
     ASSERT_NE(asset, nullptr);
 
     auto mesh = std::dynamic_pointer_cast<StaticMesh>(asset);
@@ -224,9 +226,10 @@ TEST_F(AssetPipelineTest, ImportPipeline_ConfigTest)
         config.Set(settings);
 
         auto assets = importer.Import("Test.mock", config);
+        EXPECT_TRUE(assets.HasValue());
 
         // 두 개의 노드가 생성되어 두 개의 에셋이 반환되어야 함
-        ASSERT_EQ(assets.Len(), 2);
+        ASSERT_EQ(assets->GetCount(), 2);
     }
 
     // 2. combine_meshes = true (기본값)
@@ -237,9 +240,10 @@ TEST_F(AssetPipelineTest, ImportPipeline_ConfigTest)
         config.Set(settings);
 
         auto assets = importer.Import("Test.mock", config);
+        EXPECT_TRUE(assets.HasValue());
 
         // 하나의 통합된 노드가 생성되어 하나의 에셋이 반환되어야 함
-        ASSERT_EQ(assets.Len(), 1);
+        ASSERT_EQ(assets->GetCount(), 1);
     }
 }
 
@@ -258,9 +262,10 @@ TEST_F(AssetPipelineTest, ImportPipeline_MultiProcessorTest)
 
     ImportConfig config;
     auto assets = importer.Import("Test.mock", config, pipeline_stack);
+    EXPECT_TRUE(assets.HasValue());
 
-    ASSERT_EQ(assets.Len(), 1);
-    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets[0]);
+    ASSERT_EQ(assets->GetCount(), 1);
+    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(0));
     ASSERT_NE(mesh, nullptr);
 
     // 원본 (1, 1, 1) -> Scale(2배) -> (2, 2, 2) -> Offset(+1, 0, 0) -> (3, 2, 2)
@@ -280,7 +285,8 @@ TEST_F(AssetPipelineTest, ImportPipeline_EmptyResultTest)
     ImportConfig config;
     // "Empty"가 포함된 파일명은 MockMeshTranslator에서 무시됨
     auto assets = importer.Import("Empty.mock", config);
+    EXPECT_TRUE(assets.HasError());
 
-    // 빈 배열을 리턴하고 죽지 않아야 함
-    ASSERT_TRUE(assets.IsEmpty());
+    // 에러를 반환
+    ASSERT_EQ(assets.Error().GetCode(), ImportError::ECode::FactoryFailed);
 }
