@@ -11,6 +11,9 @@
 #define SE_UNIQUE_TOKEN(name) SE_CONCAT_TOKEN(name, __COUNTER__)
 #define SE_STRINGIFY(x) #x
 
+#define SE_SCOPE_DEFER(stmt) \
+    const LambdaScopeGuard SE_UNIQUE_TOKEN(defer_guard_){ [&] { stmt; } }
+
 
 namespace se
 {
@@ -53,35 +56,10 @@ constexpr usize AlignedSize()
 }
 
 /**
- * 주어진 스코프({ ... })의 시작과 끝에서 특정 동작을 자동으로 수행하는 RAII 래퍼
- */
-template <typename T>
-class ScopeGuard
-{
-public:
-    template <typename... Args>
-        requires requires { T::Enter(std::declval<Args>()...); T::Exit(); }
-    explicit ScopeGuard(Args&&... args)
-    {
-        T::Enter(std::forward<Args>(args)...);
-    }
-
-    ~ScopeGuard()
-    {
-        T::Exit();
-    }
-
-    ScopeGuard(const ScopeGuard&) = delete;
-    ScopeGuard& operator=(const ScopeGuard&) = delete;
-    ScopeGuard(const ScopeGuard&&) = delete;
-    ScopeGuard& operator=(const ScopeGuard&&) = delete;
-};
-
-/**
  * 스코프를 벗어날 때 주어진 람다(lambda)나 함수 객체를 실행하는 RAII 래퍼
  */
 template <typename Fn>
-    requires std::invocable<Fn>
+    requires std::invocable<Fn&>
 class LambdaScopeGuard
 {
 public:
@@ -94,6 +72,12 @@ public:
     {
         exit_func();
     }
+
+    // 복사만 금지
+    LambdaScopeGuard(const LambdaScopeGuard&) = delete;
+    LambdaScopeGuard& operator=(const LambdaScopeGuard&) = delete;
+    LambdaScopeGuard(LambdaScopeGuard&&) = default;
+    LambdaScopeGuard& operator=(LambdaScopeGuard&&) = default;
 
 private:
     Fn exit_func;
