@@ -10,7 +10,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class AssetPath
+class SE_CORE_API AssetPath
 {
 public:
     AssetPath() = default;

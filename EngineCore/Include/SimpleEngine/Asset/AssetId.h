@@ -7,7 +7,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class AssetId
+class SE_CORE_API AssetId
 {
 public:
     static const AssetId Invalid;

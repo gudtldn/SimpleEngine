@@ -16,7 +16,7 @@ namespace se::asset
 /**
  * Asset Import 실패 시 발생하는 에러
  */
-class ImportError final : public IError
+class SE_CORE_API ImportError final : public IError
 {
 public:
     enum class ECode
@@ -65,7 +65,7 @@ private:
 /**
  * Asset Import 결과를 담는 구조체
  */
-struct ImportResult
+struct SE_CORE_API ImportResult
 {
     /** 생성된 모든 Asset 목록 */
     Array<std::shared_ptr<IAsset>> assets;
