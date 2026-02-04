@@ -27,7 +27,7 @@ enum class ELoadingState : uint8
 /**
  * Asset의 상태와 데이터를 관리하는 제어 블록 클래스
  */
-class AssetSlot
+class SE_CORE_API AssetSlot
 {
 public:
     explicit AssetSlot(const AssetId& id, const TypeId& type_id, Path path);

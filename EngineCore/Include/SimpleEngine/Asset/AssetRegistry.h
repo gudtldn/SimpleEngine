@@ -26,7 +26,7 @@ struct AssetEntry
  * Asset의 Path와 Id 매핑을 관리하는 클래스
  * @todo 나중에 .meta 기반 레지스트리로 변경
  */
-class AssetRegistry
+class SE_CORE_API AssetRegistry
 {
 public:
     AssetRegistry() = default;
