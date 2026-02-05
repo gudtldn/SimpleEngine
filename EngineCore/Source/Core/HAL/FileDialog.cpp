@@ -68,7 +68,7 @@ struct DialogCallbackProxy
 };
 
 // SDL 필터 구조체로 변환하는 헬퍼
-Array<SDL_DialogFileFilter> ConvertFilters(const Array<FileFilter>& filters)
+Array<SDL_DialogFileFilter> ConvertFilters(ArrayView<const FileFilter> filters)
 {
     Array<SDL_DialogFileFilter> sdl_filters;
     sdl_filters.Reserve(filters.Len());
@@ -98,7 +98,7 @@ Array<SDL_DialogFileFilter> ConvertFilters(const Array<FileFilter>& filters)
 
 namespace se
 {
-void FileDialog::OpenFile(OnFileSelected callback, const Array<FileFilter>& filters, const char* default_location, SDL_Window* window)
+void FileDialog::OpenFile(OnFileSelected callback, ArrayView<const FileFilter> filters, const char* default_location, SDL_Window* window)
 {
     if (!TryOpenDialog())
     {
@@ -119,7 +119,7 @@ void FileDialog::OpenFile(OnFileSelected callback, const Array<FileFilter>& filt
     );
 }
 
-void FileDialog::OpenFiles(OnMultiFilesSelected callback, const Array<FileFilter>& filters, const char* default_location, SDL_Window* window)
+void FileDialog::OpenFiles(OnMultiFilesSelected callback, ArrayView<const FileFilter> filters, const char* default_location, SDL_Window* window)
 {
     if (!TryOpenDialog())
     {
@@ -140,7 +140,7 @@ void FileDialog::OpenFiles(OnMultiFilesSelected callback, const Array<FileFilter
     );
 }
 
-void FileDialog::SaveFile(OnFileSelected callback, const Array<FileFilter>& filters, const char* default_location, SDL_Window* window)
+void FileDialog::SaveFile(OnFileSelected callback, ArrayView<const FileFilter> filters, const char* default_location, SDL_Window* window)
 {
     if (!TryOpenDialog())
     {

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
@@ -33,7 +34,7 @@ public:
      */
     static void OpenFile(
         OnFileSelected callback,
-        const Array<FileFilter>& filters = {},
+        ArrayView<const FileFilter> filters = {},
         const char* default_location = nullptr,
         SDL_Window* window = nullptr
     );
@@ -47,7 +48,7 @@ public:
      */
     static void OpenFiles(
         OnMultiFilesSelected callback,
-        const Array<FileFilter>& filters = {},
+        ArrayView<const FileFilter> filters = {},
         const char* default_location = nullptr,
         SDL_Window* window = nullptr
     );
@@ -61,7 +62,7 @@ public:
      */
     static void SaveFile(
         OnFileSelected callback,
-        const Array<FileFilter>& filters = {},
+        ArrayView<const FileFilter> filters = {},
         const char* default_location = nullptr,
         SDL_Window* window = nullptr
     );
