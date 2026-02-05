@@ -43,6 +43,7 @@ void AssetSubsystem::Release()
 {
     ConsoleLog(ELogLevel::Info, "Releasing Asset subsystem...");
 
+    registry.reset();
     cache.reset();
     importer.reset();
 }
