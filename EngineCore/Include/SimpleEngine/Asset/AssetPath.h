@@ -15,7 +15,7 @@ class SE_CORE_API AssetPath
 public:
     AssetPath() = default;
     AssetPath(StringView full_path_str);
-    AssetPath(const Path& in_file_path, StringView in_sub_asset_name);
+    AssetPath(Path in_file_path, StringView in_sub_asset_name);
 
 public:
     [[nodiscard]] FORCE_INLINE const Path& GetFilePath() const { return file_path; }

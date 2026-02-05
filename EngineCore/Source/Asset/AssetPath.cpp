@@ -18,8 +18,8 @@ AssetPath::AssetPath(StringView full_path_str)
     sub_asset_name = full_path_str.Substr(*separator_pos_opt + 1);
 }
 
-AssetPath::AssetPath(const Path& in_file_path, StringView in_sub_asset_name)
-    : file_path(in_file_path)
+AssetPath::AssetPath(Path in_file_path, StringView in_sub_asset_name)
+    : file_path(std::move(in_file_path))
     , sub_asset_name(in_sub_asset_name)
 {
 }
