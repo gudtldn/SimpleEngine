@@ -35,8 +35,8 @@ public:
     // 복사 & 이동 금지
     AssetRegistry(const AssetRegistry&) = delete;
     AssetRegistry& operator=(const AssetRegistry&) = delete;
-    AssetRegistry(const AssetRegistry&&) = delete;
-    AssetRegistry& operator=(const AssetRegistry&&) = delete;
+    AssetRegistry(AssetRegistry&&) = delete;
+    AssetRegistry& operator=(AssetRegistry&&) = delete;
 
 public:
     /** 새로운 Asset을 Registry에 등록합니다. */
