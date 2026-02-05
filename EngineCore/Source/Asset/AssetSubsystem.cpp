@@ -78,11 +78,11 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
     {
         if (has_sub_name)
         {
-            // Case A: sub_name 있음 → 정확히 매칭
+            // Case A: sub_name 있음 -> 정확히 매칭
             return registry->GetAssetId(source_path);
         }
 
-        // Case B: sub_name 없음 → 해당 타입의 첫 번째 Asset
+        // Case B: sub_name 없음 -> 해당 타입의 첫 번째 Asset
         return registry->FindFirstOfType(file_path, expected_type);
     };
 
@@ -171,7 +171,7 @@ bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
         registry->RegisterAsset(asset_id, asset_type, std::move(asset_path));
 
         // Cache에 등록
-        auto slot = cache->FindOrCreate(asset_id, asset_type, file_path);
+        const auto slot = cache->FindOrCreate(asset_id, asset_type, file_path);
         if (auto old_asset = slot->ExchangeAsset(std::move(asset)))
         {
             DeferRelease(std::move(old_asset));
