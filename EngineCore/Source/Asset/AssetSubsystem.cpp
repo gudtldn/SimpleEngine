@@ -125,9 +125,9 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
     return nullptr;
 }
 
-std::shared_ptr<AssetSlot> AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& id) const
+std::shared_ptr<AssetSlot> AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
 {
-    if (auto slot = cache->Find(id))
+    if (auto slot = cache->Find(asset_id))
     {
         if (slot->GetAssetType() == expected_type)
         {
