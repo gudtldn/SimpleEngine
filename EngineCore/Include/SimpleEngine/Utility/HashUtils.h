@@ -36,18 +36,14 @@ struct HashUtils
 {
     HashUtils() = delete;
 
-    template <typename T>
-        requires std::is_convertible_v<T, StringView>
-    static constexpr uint64 FNV(const T& str) noexcept
+    static constexpr uint64 FNV(StringView view) noexcept
     {
-        return detail::FNV_Hash_Impl(StringView{ str }, [](auto c) { return c; });
+        return detail::FNV_Hash_Impl(view, [](auto c) { return c; });
     }
 
-    template <typename T>
-        requires std::is_convertible_v<T, StringView>
-    static constexpr uint64 FNVCaseInsensitive(const T& str) noexcept
+    static constexpr uint64 FNVCaseInsensitive(StringView view) noexcept
     {
-        return detail::FNV_Hash_Impl(StringView{ str }, [](auto c)
+        return detail::FNV_Hash_Impl(view, [](auto c)
         {
             return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
         });
