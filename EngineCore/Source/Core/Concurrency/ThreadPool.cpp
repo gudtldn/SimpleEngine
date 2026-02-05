@@ -1,7 +1,5 @@
 ﻿#include "Core/Concurrency/ThreadPool.h"
 
-#include <cassert>
-
 #include "Core/Logging/Logging.h"
 #include "Utility/StringUtils.h"
 
