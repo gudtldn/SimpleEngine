@@ -57,7 +57,7 @@ public:
     /** Path에 있는 파일을 Import 한걸로 표시합니다. */
     void MarkFileAsImported(const Path& file_path);
 
-    /** Path에 있는 파일 */
+    /** Path에 있는 파일이 Import되었는지 확인합니다. */
     [[nodiscard]] bool IsFileImported(const Path& file_path) const;
 
 private:

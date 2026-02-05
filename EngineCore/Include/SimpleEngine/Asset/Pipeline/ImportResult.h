@@ -73,7 +73,7 @@ struct SE_CORE_API ImportResult
     /** Sub-Asset 이름 -> 인덱스 매핑 */
     HashMap<String, uint32> name_to_index;
 
-    /** 메인 Asset 인덱스 (보통 0, 없으면 UINT32_MAX) */
+    /** 메인 Asset 인덱스 */
     uint32 main_asset_index = 0;
 
 public:
