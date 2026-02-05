@@ -40,14 +40,14 @@ struct DialogCallbackProxy
                     // file_list[0]이 존재하면 호출
                     if (file_list[0] != nullptr)
                     {
-                        std::forward<Fn>(cb)(String(file_list[0]));
+                        std::forward<Fn>(cb)(Path(file_list[0]));
                     }
                 }
 
                 // 다중 선택
                 else if constexpr (std::same_as<DecayedFn, FileDialog::OnMultiFilesSelected>)
                 {
-                    Array<String> paths;
+                    Array<Path> paths;
                     for (int i = 0; file_list[i] != nullptr; ++i)
                     {
                         paths.Emplace(file_list[i]);
