@@ -74,8 +74,16 @@ public:
     }
 
 public:
-    [[nodiscard]] T* operator->() const { return Get(); }
-    [[nodiscard]] T& operator*() const { return *Get(); }
+    [[nodiscard]] T* operator->() const
+    {
+        return Get();
+    }
+
+    [[nodiscard]] T& operator*() const
+    {
+        SE_ASSERT(Get());
+        return *Get();
+    }
 
     [[nodiscard]] explicit operator bool() const { return IsValid(); }
     [[nodiscard]] bool operator==(const AssetHandle& other) const = default;
