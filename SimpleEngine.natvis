@@ -371,20 +371,41 @@
     </Expand>
   </Type>
 
-  <!-- LinkedList<T> -->
-  <Type Name="se::LinkedList&lt;*&gt;">
-    <DisplayString>{{ size={size} }}</DisplayString>
+  <!-- ArrayView<T, DynamicExtent> -->
+  <Type Name="se::ArrayView&lt;*,18446744073709551615&gt;">
+    <DisplayString Condition="data_len == 0">Empty</DisplayString>
+    <DisplayString Condition="data_len &gt; 0">{{ size={data_len} }}</DisplayString>
     <Expand>
-      <LinkedListItems>
-        <Size>size</Size>
-        <HeadPointer>head</HeadPointer>
-        <NextPointer>next</NextPointer>
-        <ValueNode>value</ValueNode>
-      </LinkedListItems>
+      <Item Name="[size]">data_len</Item>
+      <Item Name="[data]">data_ptr</Item>
+      <ArrayItems>
+        <Size>data_len</Size>
+        <ValuePointer>data_ptr</ValuePointer>
+      </ArrayItems>
     </Expand>
   </Type>
 
-  <Type Name="se::LinkedListNode&lt;*&gt;">
-    <DisplayString>{value}</DisplayString>
+  <!-- ArrayView<T, N> (static extent) -->
+  <Type Name="se::ArrayView&lt;*,*&gt;">
+    <DisplayString>{{ size={$T2} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">$T2</Item>
+      <Item Name="[data]">data_ptr</Item>
+      <ArrayItems>
+        <Size>$T2</Size>
+        <ValuePointer>data_ptr</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- StringView -->
+  <Type Name="se::StringView">
+    <DisplayString>{data_ptr,[data_len]s8}</DisplayString>
+    <StringView>data_ptr,[data_len]s8</StringView>
+    <Expand>
+      <Item Name="[length]">data_len</Item>
+      <Item Name="[data]">data_ptr,[data_len]s8</Item>
+      <Item Name="[is_empty]">data_len == 0</Item>
+    </Expand>
   </Type>
 </AutoVisualizer>
