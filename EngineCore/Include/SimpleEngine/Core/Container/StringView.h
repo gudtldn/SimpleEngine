@@ -154,7 +154,7 @@ public:
     {
         const SizeType actual_pos = std::min(pos, data_len);
         const SizeType actual_count = std::min(count, data_len - actual_pos);
-        return StringView(data_ptr + actual_pos, actual_count);
+        return { data_ptr + actual_pos, actual_count };
     }
 
     /** 특정 문자열로 시작하는지 확인합니다. */
@@ -382,7 +382,7 @@ public:
     /** std::string_view로 변환합니다. */
     [[nodiscard]] constexpr operator std::string_view() const noexcept
     {
-        return std::string_view(data_ptr, data_len);
+        return { data_ptr, data_len };
     }
 
     /** String 객체를 생성합니다. */

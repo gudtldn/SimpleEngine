@@ -12,6 +12,6 @@ StringView::StringView(const String& str) noexcept
 
 String StringView::ToString() const
 {
-    return String(data_ptr, data_len);
+    return { data_ptr, data_len };
 }
 }  // namespace se
