@@ -106,10 +106,11 @@ public:
     {
         if (const auto main_asset = GetMainAsset())
         {
+            const TypeId target_type = TypeId::Get<T>();
             SE_ASSERT(
-                main_asset->GetAssetType() == TypeId::Get<T>(),
+                main_asset->GetAssetType() == target_type,
                 "Asset type mismatch! Asset: {}, Requested: {}",
-                main_asset->GetAssetType().GetName(), TypeId::Get<T>().GetName()
+                main_asset->GetAssetType().GetName(), target_type.GetName()
             );
             return std::static_pointer_cast<T>(main_asset);
         }
@@ -136,10 +137,11 @@ public:
     {
         if (const auto asset = FindByName(name))
         {
+            const TypeId target_type = TypeId::Get<T>();
             SE_ASSERT(
-                asset->GetAssetType() == TypeId::Get<T>(),
+                asset->GetAssetType() == target_type,
                 "Asset type mismatch! Asset: {}, Requested: {}",
-                asset->GetAssetType().GetName(), TypeId::Get<T>().GetName()
+                asset->GetAssetType().GetName(), target_type.GetName()
             );
             return std::static_pointer_cast<T>(asset);
         }
@@ -163,10 +165,11 @@ public:
     {
         if (const auto asset = GetAsset(index))
         {
+            const TypeId target_type = TypeId::Get<T>();
             SE_ASSERT(
-                asset->GetAssetType() == TypeId::Get<T>(),
+                asset->GetAssetType() == target_type,
                 "Asset type mismatch! Asset: {}, Requested: {}",
-                asset->GetAssetType().GetName(), TypeId::Get<T>().GetName()
+                asset->GetAssetType().GetName(), target_type.GetName()
             );
             return std::static_pointer_cast<T>(asset);
         }
