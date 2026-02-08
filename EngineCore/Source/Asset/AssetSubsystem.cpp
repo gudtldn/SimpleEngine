@@ -155,29 +155,30 @@ bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
     }
     const ImportResult& result = result_exp.Value();
 
+    // TODO: Registry를 .meta 기반으로 변경하면 여기 Import Flow를 전체적으로 수정해야함.
     // 모든 Asset을 Registry + Cache에 등록
-    // for (const auto& [name, idx] : result.name_to_index)
-    // {
-    //     std::shared_ptr<IAsset> asset = result.GetAsset(idx);
-    //     if (!asset)
-    //     {
-    //         continue;
-    //     }
-    //
-    //     AssetId asset_id = AssetId{ Guid::NewGuid() };
-    //     const TypeId asset_type = asset->GetAssetType();
-    //     AssetPath asset_path = AssetPath{ file_path, name };
-    //
-    //     // Registry에 등록
-    //     registry->RegisterAsset(asset_id, asset_type, std::move(asset_path));
-    //
-    //     // Cache에 등록
-    //     const auto slot = cache->FindOrCreate(asset_id, asset_type, file_path);
-    //     if (auto old_asset = slot->ExchangeAsset(std::move(asset)))
-    //     {
-    //         DeferRelease(std::move(old_asset));
-    //     }
-    // }
+    for (const auto& [name, idx] : result.GetNameToIndexMap())
+    {
+        std::shared_ptr<IAsset> asset = result.GetAsset(idx);
+        if (!asset)
+        {
+            continue;
+        }
+
+        AssetId asset_id = AssetId{ Guid::NewGuid() };
+        const TypeId asset_type = asset->GetAssetType();
+        AssetPath asset_path = AssetPath{ file_path, name };
+
+        // Registry에 등록
+        registry->RegisterAsset(asset_id, asset_type, std::move(asset_path));
+
+        // Cache에 등록
+        const auto slot = cache->FindOrCreate(asset_id, asset_type, file_path);
+        if (auto old_asset = slot->ExchangeAsset(std::move(asset)))
+        {
+            DeferRelease(std::move(old_asset));
+        }
+    }
 
     // Import 완료
     registry->MarkFileAsImported(file_path);

@@ -75,6 +75,9 @@ public:
     ImportResult& operator=(ImportResult&&) noexcept = default;
 
 public:
+    [[nodiscard]] FORCE_INLINE const Array<std::shared_ptr<IAsset>>& GetAssets() const { return assets; }
+    [[nodiscard]] FORCE_INLINE const HashMap<String, uint32>& GetNameToIndexMap() const { return name_to_index; }
+
     /** Asset이 존재하는지 확인합니다. */
     [[nodiscard]] FORCE_INLINE bool IsEmpty() const { return assets.IsEmpty(); }
 
