@@ -257,7 +257,8 @@ private:
     T* data = nullptr;
     SizeType size = 0;
     SizeType capacity = 0;
-    AllocatorType allocator;
+
+    [[no_unique_address]] AllocatorType allocator;
 };
 
 template <typename T, typename Alloc>
