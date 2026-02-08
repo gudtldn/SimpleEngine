@@ -167,10 +167,14 @@ public:
     SizeType RemoveIf(Predicate&& pred);
 
     /** Map의 모든 키를 담은 Array를 생성하여 반환합니다. */
-    [[nodiscard]] Array<KeyType> Keys() const;
+    template <typename T = KeyType>
+        requires std::constructible_from<T, const Key&>
+    [[nodiscard]] Array<T> Keys() const;
 
     /** Map의 모든 값을 담은 Array를 생성하여 반환합니다. */
-    [[nodiscard]] Array<ValueType> Values() const;
+    template <typename T = ValueType>
+        requires std::constructible_from<T, const Value&>
+    [[nodiscard]] Array<T> Values() const;
 
     void Swap(HashMap& other) noexcept;
 

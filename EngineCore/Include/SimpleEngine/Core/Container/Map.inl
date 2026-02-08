@@ -222,27 +222,31 @@ Map<Key, Value, Pred, Allocator>::SizeType Map<Key, Value, Pred, Allocator>::Rem
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
+template <typename T>
+    requires std::constructible_from<T, const Key&>
 Array<typename Map<Key, Value, Pred, Allocator>::KeyType> Map<Key, Value, Pred, Allocator>::Keys() const
 {
-    Array<KeyType> keys;
+    Array<T> keys;
 
     keys.Reserve(Len());
-    for (const auto& pair : internal_map)
+    for (const auto& key : internal_map | std::views::keys)
     {
-        keys.Push(pair.first);
+        keys.Emplace(key);
     }
     return keys;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
+template <typename T>
+    requires std::constructible_from<T, const Value&>
 Array<typename Map<Key, Value, Pred, Allocator>::ValueType> Map<Key, Value, Pred, Allocator>::Values() const
 {
-    Array<ValueType> values;
+    Array<T> values;
 
     values.Reserve(Len());
-    for (const auto& pair : internal_map)
+    for (const auto& value : internal_map | std::views::values)
     {
-        values.Push(pair.second);
+        values.Emplace(value);
     }
     return values;
 }

@@ -170,27 +170,31 @@ HashMap<Key, Value, Hasher, KeyEq, Allocator>::SizeType HashMap<Key, Value, Hash
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::KeyType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Keys() const
+template <typename T>
+    requires std::constructible_from<T, const Key&>
+Array<T> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Keys() const
 {
-    Array<KeyType> keys;
+    Array<T> keys;
 
-    keys.Reserve(internal_map.size());
-    for (const auto& pair : internal_map)
+    keys.Reserve(Len());
+    for (const auto& key : internal_map | std::views::keys)
     {
-        keys.Push(pair.first);
+        keys.Emplace(key);
     }
     return keys;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Values() const
+template <typename T>
+    requires std::constructible_from<T, const Value&>
+Array<T> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Values() const
 {
-    Array<ValueType> values;
+    Array<T> values;
 
-    values.Reserve(internal_map.size());
-    for (const auto& pair : internal_map)
+    values.Reserve(Len());
+    for (const auto& value : internal_map | std::views::values)
     {
-        values.Push(pair.second);
+        values.Emplace(value);
     }
     return values;
 }

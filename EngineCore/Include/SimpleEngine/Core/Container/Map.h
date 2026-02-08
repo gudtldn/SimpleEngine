@@ -180,9 +180,13 @@ public:
     SizeType RemoveIf(Predicate&& pred);
 
     /** Map의 모든 키를 담은 Array를 생성하여 반환합니다. */
+    template <typename T = KeyType>
+        requires std::constructible_from<T, const Key&>
     [[nodiscard]] Array<KeyType> Keys() const;
 
     /** Map의 모든 값을 담은 Array를 생성하여 반환합니다. */
+    template <typename T = ValueType>
+        requires std::constructible_from<T, const Value&>
     [[nodiscard]] Array<ValueType> Values() const;
 
     void Swap(Map& other) noexcept;

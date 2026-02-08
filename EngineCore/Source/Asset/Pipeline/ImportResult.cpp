@@ -46,14 +46,7 @@ std::shared_ptr<IAsset> ImportResult::FindByName(StringView name) const
 
 Array<StringView> ImportResult::GetAllNames() const
 {
-    Array<StringView> names; // TODO: HashMap API 바꾸면 name_to_index.Keys<StringView>()로 수정
-    names.Reserve(name_to_index.Len());
-
-    for (const String& name : name_to_index | std::views::keys)
-    {
-        names.Push(name);
-    }
-    return names;
+    return name_to_index.Keys<StringView>();
 }
 
 
