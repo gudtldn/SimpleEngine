@@ -3,44 +3,31 @@
 
 namespace se::asset
 {
-ImportError::ImportError(ECode code, String message, Path file_path)
-    : code(code)
-    , message(std::move(message))
-    , file_path(std::move(file_path))
+ImportResult::ImportResult(
+    Array<std::shared_ptr<IAsset>> assets,
+    HashMap<String, uint32> name_to_index,
+    uint32 main_asset_index
+)
+    : assets(std::move(assets))
+    , name_to_index(std::move(name_to_index))
+    , main_asset_index(main_asset_index)
 {
 }
-
-const char* ImportError::What() const noexcept
-{
-    return message.CStr();
-}
-
-const IError* ImportError::Source() const noexcept
-{
-    return source_error.get();
-}
-
-ImportError::ECode ImportError::GetCode() const noexcept
-{
-    return code;
-}
-
-const Path& ImportError::GetFilePath() const noexcept
-{
-    return file_path;
-}
-
-void ImportError::SetSource(std::unique_ptr<IError> source)
-{
-    source_error = std::move(source);
-}
-
 
 std::shared_ptr<IAsset> ImportResult::GetMainAsset() const
 {
     if (main_asset_index < assets.Len())
     {
         return assets[main_asset_index];
+    }
+    return nullptr;
+}
+
+std::shared_ptr<IAsset> ImportResult::GetAsset(uint32 index) const
+{
+    if (index < assets.Len())
+    {
+        return assets[index];
     }
     return nullptr;
 }
@@ -57,15 +44,6 @@ std::shared_ptr<IAsset> ImportResult::FindByName(StringView name) const
     return nullptr;
 }
 
-std::shared_ptr<IAsset> ImportResult::GetAsset(uint32 index) const
-{
-    if (index < assets.Len())
-    {
-        return assets[index];
-    }
-    return nullptr;
-}
-
 Array<StringView> ImportResult::GetAllNames() const
 {
     Array<StringView> names; // TODO: HashMap API 바꾸면 name_to_index.Keys<StringView>()로 수정
@@ -76,5 +54,53 @@ Array<StringView> ImportResult::GetAllNames() const
         names.Push(name);
     }
     return names;
+}
+
+
+uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<IAsset> asset, const String& name)
+{
+    const uint32 index = static_cast<uint32>(assets.Len());
+    assets.Push(std::move(asset));
+
+    if (!name.IsEmpty())
+    {
+        String unique_name = MakeUniqueName(name);
+        name_to_index.Insert(std::move(unique_name), index);
+    }
+    return index;
+}
+
+void ImportResult::Builder::SetMainAssetIndex(uint32 index)
+{
+    main_asset_index = index;
+}
+
+ImportResult ImportResult::Builder::Build()
+{
+    return {
+        std::move(assets),
+        std::move(name_to_index),
+        main_asset_index
+    };
+}
+
+String ImportResult::Builder::MakeUniqueName(const String& base_name)
+{
+    // 이름이 이미 존재하지 않으면 그대로 반환
+    if (!name_to_index.Contains(base_name))
+    {
+        return base_name;
+    }
+
+    // 중복 시 suffix 추가: Name_1, Name_2, ...
+    String copy_name = base_name;
+    uint32& next_suffix = next_suffix_map.Entry(copy_name).OrInsert(1);
+    do
+    {
+        copy_name = String::Format("{}_{}", base_name, next_suffix++);
+    }
+    while (name_to_index.Contains(copy_name));
+
+    return copy_name;
 }
 }  // namespace se::asset
