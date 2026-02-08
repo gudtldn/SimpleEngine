@@ -21,30 +21,6 @@ namespace se::detail
     return view.substr(last_slash + 1);
 }
 
-template <usize N>
-struct ConstexprMessage
-{
-    char data[N]{};
-
-    consteval ConstexprMessage(const char (&str)[N])
-    {
-        for (usize i = 0; i < N; ++i)
-        {
-            data[i] = str[i];
-        }
-    }
-};
-
-/**
- * constexpr 컨텍스트에서 assertion 실패 시 컴파일 오류를 발생시킵니다.
- * 템플릿 파라미터에 표현식과 메시지가 포함되어 컴파일 오류에 표시됩니다.
- */
-template <ConstexprMessage Expr, ConstexprMessage Msg>
-constexpr void ConstexprAssertFail()
-{
-    throw "SE_CONSTEXPR_ASSERT failed";
-}
-
 template <typename... Args>
 void PrintLogWithLocation(const std::source_location& loc, std::format_string<Args...> fmt, Args&&... args) noexcept
 {
@@ -148,26 +124,6 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
     #define SE_ASSERT(expr, ...) ((void)0)
     #define SE_ENSURE(expr, ...) (!!(expr))
 #endif
-
-// --- constexpr 어설션 (Constexpr Assertions) ---
-// constexpr 함수 내에서 사용 가능한 어설션입니다.
-// 컴파일 타임: 조건 실패 시 컴파일 오류 발생 (항상 검사, 표현식과 메시지가 오류에 표시됨)
-// 런타임: SE_ASSERT와 동일하게 동작 (SE_ENABLE_ASSERTS에 따라)
-#define SE_CONSTEXPR_ASSERT(expr, msg) \
-    do \
-    { \
-        if consteval \
-        { \
-            if (!(!!(expr))) \
-            { \
-                ::se::detail::ConstexprAssertFail<#expr, msg>(); \
-            } \
-        } \
-        else \
-        { \
-            SE_ASSERT(expr, msg); \
-        } \
-    } while (false)
 
 // --- 미구현 / 도달 불가 코드 ---
 #if SE_ENABLE_DEBUG_TOOLS

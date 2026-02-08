@@ -38,7 +38,7 @@ namespace se
  */
 constexpr usize AlignedSize(usize size, usize alignment)
 {
-    SE_ASSERT(std::has_single_bit(alignment));
+    SE_ASSERT(std::has_single_bit(alignment), "Alignment must be a power of two.");
     return (size + alignment - 1) & ~(alignment - 1);
 }
 
