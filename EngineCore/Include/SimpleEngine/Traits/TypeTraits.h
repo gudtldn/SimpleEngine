@@ -8,7 +8,7 @@
 namespace se::traits
 {
 // static_assert에 사용되는 TypeTrait
-template <typename T>
+template <typename...>
 concept AlwaysFalse = false;
 
 // Ts가 T와 같은지 확인하는 TypeTrait
