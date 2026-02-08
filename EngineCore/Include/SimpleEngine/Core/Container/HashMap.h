@@ -99,16 +99,9 @@ public:
      * @param value 키에 매핑할 값
      * @return 삽입되거나 업데이트된 값에 대한 참조
      */
-    ValueType& Insert(const KeyType& key, const ValueType& value);
-
-    /**
-     * 새로운 요소를 Map에 추가합니다.
-     * 이미 동일한 키를 가진 요소가 존재할 경우, 해당 요소의 값을 대체합니다.
-     * @param key 삽입 또는 업데이트할 키
-     * @param value 키에 매핑할 값
-     * @return 삽입되거나 업데이트된 값에 대한 참조
-     */
-    ValueType& Insert(const KeyType& key, ValueType&& value);
+    template <typename K = KeyType, typename V = ValueType>
+        requires std::constructible_from<Key, K&&> && std::constructible_from<Value, V&&>
+    ValueType& Insert(K&& key, V&& value);
 
     /**
      * 새로운 요소를 Map에 내부 생성(emplace)하여 추가합니다.
@@ -116,15 +109,18 @@ public:
      * @param key 삽입할 키
      * @param args 요소의 생성자에 전달할 인수들
      */
-    template <typename... Args>
-    ValueType& Emplace(const KeyType& key, Args&&... args);
+    template <typename K = KeyType, typename... Args>
+        requires std::constructible_from<Key, K&&> && std::constructible_from<Value, Args&&...>
+    ValueType& Emplace(K&& key, Args&&... args);
 
     /**
      * 특정 키에 대한 Entry 객체를 반환합니다.
      * @param key 검색 또는 삽입할 키
      * @return 키의 존재 여부에 따라 분기된 Entry 객체
      */
-    [[nodiscard]] EntryType Entry(const KeyType& key);
+    template <typename K = KeyType>
+        requires std::constructible_from<Key, K&&>
+    [[nodiscard]] EntryType Entry(K&& key);
 
     /**
      * Key에 해당하는 값을 찾습니다.

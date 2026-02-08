@@ -44,38 +44,37 @@ void Map<Key, Value, Pred, Allocator>::Clear() noexcept
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(const KeyType& key, const ValueType& value)
+template <typename K, typename V>
+    requires std::constructible_from<Key, K&&> && std::constructible_from<Value, V&&>
+typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(K&& key, V&& value)
 {
-    return Insert(key, ValueType{ value });
-}
-
-template <typename Key, typename Value, typename Pred, typename Allocator>
-typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Insert(const KeyType& key, ValueType&& value)
-{
-    auto [iter, _] = internal_map.insert_or_assign(key, std::move(value));
+    auto [iter, _] = internal_map.insert_or_assign(std::forward<K>(key), std::forward<V>(value));
     return iter->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-template <typename... Args>
-typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Emplace(const KeyType& key, Args&&... args)
+template <typename K, typename ... Args>
+    requires std::constructible_from<Key, K&&> && std::constructible_from<Value, Args&&...>
+typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::Emplace(K&& key, Args&&... args)
 {
     auto [iter, _] = internal_map.emplace(
         std::piecewise_construct,
-        std::forward_as_tuple(key),
+        std::forward_as_tuple(std::forward<K>(key)),
         std::forward_as_tuple(std::forward<Args>(args)...)
     );
     return iter->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Map<Key, Value, Pred, Allocator>::EntryType Map<Key, Value, Pred, Allocator>::Entry(const KeyType& key)
+template <typename K>
+    requires std::constructible_from<Key, K&&>
+typename Map<Key, Value, Pred, Allocator>::EntryType Map<Key, Value, Pred, Allocator>::Entry(K&& key)
 {
-    if (auto it = internal_map.find(key); it != internal_map.end())
+    if (auto it = internal_map.find(std::as_const(key)); it != internal_map.end())
     {
         return EntryType(typename EntryType::OccupiedEntry(it, this));
     }
-    return EntryType(typename EntryType::VacantEntry(key, this));
+    return EntryType(typename EntryType::VacantEntry(std::forward<K>(key), this));
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
