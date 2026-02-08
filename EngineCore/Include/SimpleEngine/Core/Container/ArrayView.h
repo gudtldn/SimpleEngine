@@ -213,7 +213,7 @@ public:
     /** 첫 번째 요소를 반환합니다. */
     [[nodiscard]] constexpr T& FrontChecked() const noexcept
     {
-        SE_CONSTEXPR_ASSERT(Len() > 0, "FrontChecked() called on empty ArrayView");
+        SE_ASSERT(Len() > 0, "FrontChecked() called on empty ArrayView");
         return data_ptr[0];
     }
 
@@ -230,7 +230,7 @@ public:
     /** 마지막 요소를 반환합니다. */
     [[nodiscard]] constexpr T& BackChecked() const noexcept
     {
-        SE_CONSTEXPR_ASSERT(Len() > 0, "BackChecked() called on empty ArrayView");
+        SE_ASSERT(Len() > 0, "BackChecked() called on empty ArrayView");
         return data_ptr[Len() - 1];
     }
 
@@ -267,7 +267,7 @@ public:
         requires (InExtent == DynamicExtent || Count <= InExtent)
     [[nodiscard]] constexpr ArrayView<T, Count> First() const noexcept
     {
-        SE_CONSTEXPR_ASSERT(Count <= Len(), "First<N>() count exceeds view size");
+        SE_ASSERT(Count <= Len(), "First<N>() count exceeds view size");
         return ArrayView<T, Count>(data_ptr);
     }
 
@@ -276,7 +276,7 @@ public:
         requires (InExtent == DynamicExtent || Count <= InExtent)
     [[nodiscard]] constexpr ArrayView<T, Count> Last() const noexcept
     {
-        SE_CONSTEXPR_ASSERT(Count <= Len(), "Last<N>() count exceeds view size");
+        SE_ASSERT(Count <= Len(), "Last<N>() count exceeds view size");
         return ArrayView<T, Count>(data_ptr + Len() - Count);
     }
 
@@ -286,11 +286,11 @@ public:
               && (Count == DynamicExtent || InExtent == DynamicExtent || Offset + Count <= InExtent)
     [[nodiscard]] constexpr auto Subview() const noexcept
     {
-        SE_CONSTEXPR_ASSERT(Offset <= Len(), "Subview<Offset, Count>() offset exceeds view size");
+        SE_ASSERT(Offset <= Len(), "Subview<Offset, Count>() offset exceeds view size");
 
         if constexpr (Count != DynamicExtent)
         {
-            SE_CONSTEXPR_ASSERT(Offset + Count <= Len(), "Subview<Offset, Count>() exceeds view size");
+            SE_ASSERT(Offset + Count <= Len(), "Subview<Offset, Count>() exceeds view size");
             return ArrayView<T, Count>(data_ptr + Offset);
         }
         else if constexpr (InExtent != DynamicExtent)
