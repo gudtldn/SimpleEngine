@@ -72,7 +72,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     // ---------------------------------------------------------
     // 4단계: Factory 실행 (Nodes -> Assets)
     // ---------------------------------------------------------
-    ImportResult result;
+    ImportResult::Builder result_builder;
     HashMap<Guid, std::shared_ptr<IAsset>> created_assets_map;
 
     // Factory가 참조할 Context 생성
@@ -106,7 +106,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
 
                             // ImportResult에 등록 (노드 이름을 Sub-Asset 이름으로 사용)
                             const String& display_name = node->GetDisplayName();
-                            result.RegisterAsset(new_asset, display_name);
+                            result_builder.RegisterAsset(new_asset, display_name);
                         }
                         return;
                     }
@@ -116,6 +116,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
         }
     }
 
+    ImportResult result = result_builder.Build();
     if (result.IsEmpty())
     {
         return Unexpected(ImportError{

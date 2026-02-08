@@ -9,6 +9,7 @@
 #include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::asset
@@ -31,15 +32,20 @@ public:
     };
 
 public:
-    ImportError(ECode code, String message, Path file_path = {});
+    ImportError(ECode code, String message, Path file_path = {})
+        : code(code)
+        , message(std::move(message))
+        , file_path(std::move(file_path))
+    {
+    }
 
-    [[nodiscard]] virtual const char* What() const noexcept override;
-    [[nodiscard]] virtual const IError* Source() const noexcept override;
+    [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
+    [[nodiscard]] virtual const IError* Source() const noexcept override { return source_error.get(); }
 
-    [[nodiscard]] ECode GetCode() const noexcept;
-    [[nodiscard]] const Path& GetFilePath() const noexcept;
+    [[nodiscard]] ECode GetCode() const noexcept { return code; }
+    [[nodiscard]] const Path& GetFilePath() const noexcept { return file_path; }
 
-    void SetSource(std::unique_ptr<IError> source);
+    void SetSource(std::unique_ptr<IError> source) { source_error = std::move(source); }
 
 private:
     ECode code;
@@ -49,18 +55,21 @@ private:
 };
 
 /**
- * Asset Import 결과를 담는 구조체
+ * Asset Import 결과를 담는 불변(Immutable) 클래스
  */
-struct SE_CORE_API ImportResult
+class SE_CORE_API ImportResult final
 {
-    /** 생성된 모든 Asset 목록 */
-    Array<std::shared_ptr<IAsset>> assets;
+public:
+    class Builder; // Forward Declaration
 
-    /** Sub-Asset 이름 -> 인덱스 매핑 */
-    HashMap<String, uint32> name_to_index;
+public:
+    ImportResult() = default;
 
-    /** 메인 Asset 인덱스 */
-    uint32 main_asset_index = 0;
+    // 복사만 금지
+    ImportResult(const ImportResult&) = delete;
+    ImportResult& operator=(const ImportResult&) = delete;
+    ImportResult(ImportResult&&) noexcept = default;
+    ImportResult& operator=(ImportResult&&) noexcept = default;
 
 public:
     /** Asset이 존재하는지 확인합니다. */
@@ -72,165 +81,138 @@ public:
     /** 메인 Asset을 반환합니다. (없으면 nullptr) */
     [[nodiscard]] std::shared_ptr<IAsset> GetMainAsset() const;
 
-    /** 메인 Asset을 특정 타입으로 반환합니다. */
-    template <typename T>
-        requires std::derived_from<T, IAsset>
-    [[nodiscard]] std::shared_ptr<T> GetMainAsset() const;
-
-    /** 이름으로 Sub-Asset을 조회합니다. (없으면 nullptr) */
-    [[nodiscard]] std::shared_ptr<IAsset> FindByName(StringView name) const;
-
-    /** 이름으로 특정 타입의 Sub-Asset을 조회합니다. */
-    template <typename T>
-        requires std::derived_from<T, IAsset>
-    [[nodiscard]] std::shared_ptr<T> FindByName(StringView name) const;
-
     /** 인덱스로 Asset을 조회합니다. */
     [[nodiscard]] std::shared_ptr<IAsset> GetAsset(uint32 index) const;
 
-    /** 인덱스로 특정 타입의 Asset을 조회합니다. */
-    template <typename T>
-        requires std::derived_from<T, IAsset>
-    [[nodiscard]] std::shared_ptr<T> GetAsset(uint32 index) const;
-
-    /** 특정 타입의 모든 Asset을 반환합니다. */
-    template <typename T>
-        requires std::derived_from<T, IAsset>
-    [[nodiscard]] Array<std::shared_ptr<T>> GetAllOfType() const;
-
-    /** 첫 번째로 발견되는 특정 타입의 Asset을 반환합니다. */
-    template <typename T>
-        requires std::derived_from<T, IAsset>
-    [[nodiscard]] std::shared_ptr<T> GetFirstOfType() const;
+    /** 이름으로 Sub-Asset을 조회합니다. (없으면 nullptr) */
+    [[nodiscard]] std::shared_ptr<IAsset> FindByName(StringView name) const;
 
     /** 새로 만들어진 모든 에셋의 이름 목록을 반환합니다. */
     [[nodiscard]] Array<StringView> GetAllNames() const;
 
 public:
-    /**
-     * Sub-Asset을 등록합니다. (Importer 내부용)
-     * @param asset 등록할 Asset
-     * @param name Sub-Asset 이름 (중복 시 자동으로 suffix 추가: Name_1, Name_2, ...)
-     */
-    void RegisterAsset(std::shared_ptr<IAsset> asset, StringView name = {})
+    /** 메인 Asset을 특정 타입으로 반환합니다. */
+    template <typename T>
+        requires std::derived_from<T, IAsset>
+    [[nodiscard]] std::shared_ptr<T> GetMainAsset() const
     {
-        const uint32 index = static_cast<uint32>(assets.Len());
-        assets.Push(std::move(asset));
+        return CastAsset<T>(GetMainAsset());
+    }
 
-        if (!name.IsEmpty())
+    /** 이름으로 특정 타입의 Sub-Asset을 조회합니다. */
+    template <typename T>
+        requires std::derived_from<T, IAsset>
+    [[nodiscard]] std::shared_ptr<T> FindByName(StringView name) const
+    {
+        return CastAsset<T>(FindByName(name));
+    }
+
+    /** 인덱스로 특정 타입의 Asset을 조회합니다. */
+    template <typename T>
+        requires std::derived_from<T, IAsset>
+    [[nodiscard]] std::shared_ptr<T> GetAsset(uint32 index) const
+    {
+        return CastAsset<T>(GetAsset(index));
+    }
+
+    /** 특정 타입의 모든 Asset을 반환합니다. */
+    template <typename T>
+        requires std::derived_from<T, IAsset>
+    [[nodiscard]] Array<std::shared_ptr<T>> GetAllOfType() const
+    {
+        Array<std::shared_ptr<T>> result;
+        const TypeId target_type = TypeId::Get<T>();
+
+        result.Reserve(assets.Len());
+        for (const auto& asset : assets)
         {
-            String unique_name = MakeUniqueName(name);
-            name_to_index.Insert(std::move(unique_name), index);
+            if (asset && asset->GetAssetType() == target_type)
+            {
+                result.Push(std::static_pointer_cast<T>(asset));
+            }
         }
+        return result;
+    }
+
+    /** 첫 번째로 발견되는 특정 타입의 Asset을 반환합니다. */
+    template <typename T>
+        requires std::derived_from<T, IAsset>
+    [[nodiscard]] std::shared_ptr<T> GetFirstOfType() const
+    {
+        const TypeId target_type = TypeId::Get<T>();
+
+        for (const auto& asset : assets)
+        {
+            if (asset && asset->GetAssetType() == target_type)
+            {
+                return std::static_pointer_cast<T>(asset);
+            }
+        }
+        return nullptr;
     }
 
 private:
-    /** 중복되지 않는 고유한 이름을 생성합니다. */
-    [[nodiscard]] String MakeUniqueName(StringView base_name)
+    ImportResult(
+        Array<std::shared_ptr<IAsset>> assets,
+        HashMap<String, uint32> name_to_index,
+        uint32 main_asset_index
+    );
+
+    template <typename T>
+    [[nodiscard]] std::shared_ptr<T> CastAsset(const std::shared_ptr<IAsset>& asset) const
     {
-        String candidate{ base_name };
-
-        // 이름이 이미 존재하지 않으면 그대로 반환
-        if (!name_to_index.Contains(candidate))
+        if (asset)
         {
-            return candidate;
+            const TypeId target_type = TypeId::Get<T>();
+            if (SE_ENSURE(asset->GetAssetType() == target_type, "Asset type mismatch! Asset: {}, Requested: {}", asset->GetAssetType().GetName(), target_type.GetName()))
+            {
+                return std::static_pointer_cast<T>(asset);
+            }
         }
-
-        // 중복 시 suffix 추가: Name_1, Name_2, ...
-        uint32& next_suffix = next_suffix_map.Entry(candidate).OrInsert(1);
-        do
-        {
-            candidate = String::Format("{}_{}", base_name, next_suffix++);
-        }
-        while (name_to_index.Contains(candidate));
-
-        return candidate;
+        return nullptr;
     }
 
-    HashMap<String, uint32> next_suffix_map;
+private:
+    /** 생성된 모든 Asset 목록 */
+    Array<std::shared_ptr<IAsset>> assets;
+
+    /** Sub-Asset 이름 -> 인덱스 매핑 */
+    HashMap<String, uint32> name_to_index;
+
+    /** 메인 Asset 인덱스 */
+    uint32 main_asset_index = 0;
 };
 
-template <typename T>
-    requires std::derived_from<T, IAsset>
-std::shared_ptr<T> ImportResult::GetMainAsset() const
+/**
+ * ImportResult 생성을 담당하는 Builder 클래스
+ */
+class SE_CORE_API ImportResult::Builder
 {
-    if (const auto main_asset = GetMainAsset())
-    {
-        [[maybe_unused]] const TypeId target_type = TypeId::Get<T>();
-        SE_ASSERT(
-            main_asset->GetAssetType() == target_type,
-            "Asset type mismatch! Asset: {}, Requested: {}",
-            main_asset->GetAssetType().GetName(), target_type.GetName()
-        );
-        return std::static_pointer_cast<T>(main_asset);
-    }
-    return nullptr;
-}
+public:
+    Builder() = default;
 
-template <typename T>
-    requires std::derived_from<T, IAsset>
-std::shared_ptr<T> ImportResult::FindByName(StringView name) const
-{
-    if (const auto asset = FindByName(name))
-    {
-        [[maybe_unused]] const TypeId target_type = TypeId::Get<T>();
-        SE_ASSERT(
-            asset->GetAssetType() == target_type,
-            "Asset type mismatch! Asset: {}, Requested: {}",
-            asset->GetAssetType().GetName(), target_type.GetName()
-        );
-        return std::static_pointer_cast<T>(asset);
-    }
-    return nullptr;
-}
+    /**
+     * Asset을 등록하고 인덱스를 반환합니다.
+     * @param asset 등록할 Asset
+     * @param name 식별 이름 (중복 시 자동 변경됨)
+     */
+    uint32 RegisterAsset(std::shared_ptr<IAsset> asset, const String& name = {});
 
-template <typename T>
-    requires std::derived_from<T, IAsset>
-std::shared_ptr<T> ImportResult::GetAsset(uint32 index) const
-{
-    if (const auto asset = GetAsset(index))
-    {
-        [[maybe_unused]] const TypeId target_type = TypeId::Get<T>();
-        SE_ASSERT(
-            asset->GetAssetType() == target_type,
-            "Asset type mismatch! Asset: {}, Requested: {}",
-            asset->GetAssetType().GetName(), target_type.GetName()
-        );
-        return std::static_pointer_cast<T>(asset);
-    }
-    return nullptr;
-}
+    /** 메인 에셋의 인덱스를 설정합니다. */
+    void SetMainAssetIndex(uint32 index);
 
-template <typename T>
-    requires std::derived_from<T, IAsset>
-Array<std::shared_ptr<T>> ImportResult::GetAllOfType() const
-{
-    Array<std::shared_ptr<T>> result;
-    [[maybe_unused]] const TypeId target_type = TypeId::Get<T>();
+    /** 최종 결과 객체를 생성합니다. 호출 후 빌더는 초기화됩니다. */
+    [[nodiscard]] ImportResult Build();
 
-    for (const auto& asset : assets)
-    {
-        if (asset && asset->GetAssetType() == target_type)
-        {
-            result.Push(std::static_pointer_cast<T>(asset));
-        }
-    }
-    return result;
-}
+private:
+    /** 중복되지 않는 고유한 이름을 생성합니다. */
+    [[nodiscard]] String MakeUniqueName(const String& base_name);
 
-template <typename T>
-    requires std::derived_from<T, IAsset>
-std::shared_ptr<T> ImportResult::GetFirstOfType() const
-{
-    [[maybe_unused]] const TypeId target_type = TypeId::Get<T>();
+private:
+    Array<std::shared_ptr<IAsset>> assets;
+    HashMap<String, uint32> name_to_index;
+    HashMap<String, uint32> next_suffix_map; // 임시 상태 저장용
+    uint32 main_asset_index = 0;
+};
 
-    for (const auto& asset : assets)
-    {
-        if (asset && asset->GetAssetType() == target_type)
-        {
-            return std::static_pointer_cast<T>(asset);
-        }
-    }
-    return nullptr;
-}
 }  // namespace se::asset
