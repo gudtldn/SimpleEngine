@@ -285,7 +285,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 // Index Buffer 바인딩
                 const SDL_GPUBufferBinding index_binding = {
                     .buffer = slice.buffer,
-                    .offset = slice.offset + slice.index_offset
+                    .offset = slice.index_offset
                 };
                 SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             }
