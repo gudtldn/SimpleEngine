@@ -36,6 +36,7 @@ public:
      */
     [[nodiscard]] T* Get() const
     {
+        SE_ASSERT(!slot || slot->GetAssetType() == TypeId::Get<AssetType>());
         if (slot)
         {
             IAsset* asset_ptr = slot->GetRawAsset();
@@ -50,6 +51,7 @@ public:
      */
     [[nodiscard]] std::shared_ptr<T> GetShared() const
     {
+        SE_ASSERT(!slot || slot->GetAssetType() == TypeId::Get<AssetType>());
         if (slot)
         {
             const std::shared_ptr<IAsset> asset = slot->GetAsset();
