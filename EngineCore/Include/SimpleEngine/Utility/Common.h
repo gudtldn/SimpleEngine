@@ -7,13 +7,26 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 #define SE_CONCAT_NAME_IMPL(a, b) a##b
+
+/** 두 토큰을 하나로 결합합니다. */
 #define SE_CONCAT_NAME(a, b) SE_CONCAT_NAME_IMPL(a, b)
+
+/** 중복되지 않는 이름을 생성합니다. */
 #define SE_UNIQUE_NAME(name) SE_CONCAT_NAME(name, __COUNTER__)
+
+/** 전달된 인자를 문자열로 변환합니다. */
 #define SE_STRINGIFY(x) #x
 
-#define SE_SCOPE_DEFER(stmt) \
-    const LambdaScopeGuard SE_UNIQUE_TOKEN(defer_guard_){ [&] { stmt; } }
-
+/**
+ * 스코프 종료 시 실행될 코드 블록을 정의합니다. (Defer)
+ * @code
+ * SE_SCOPE_DEFER {
+ *     // ...
+ * };
+ * @endcode
+ */
+#define SE_SCOPE_DEFER \
+    const LambdaScopeGuard SE_UNIQUE_NAME(defer_guard_) = [&] -> void
 
 namespace se
 {
@@ -60,10 +73,10 @@ constexpr usize AlignedSize()
  */
 template <typename Fn>
     requires std::invocable<Fn&>
-class LambdaScopeGuard
+class [[nodiscard]] LambdaScopeGuard
 {
 public:
-    explicit LambdaScopeGuard(Fn&& in_exit_func)
+    LambdaScopeGuard(Fn&& in_exit_func)
         : exit_func(std::forward<Fn>(in_exit_func))
     {
     }
@@ -73,13 +86,15 @@ public:
         exit_func();
     }
 
-    // 복사만 금지
     LambdaScopeGuard(const LambdaScopeGuard&) = delete;
     LambdaScopeGuard& operator=(const LambdaScopeGuard&) = delete;
-    LambdaScopeGuard(LambdaScopeGuard&&) = default;
-    LambdaScopeGuard& operator=(LambdaScopeGuard&&) = default;
+    LambdaScopeGuard(LambdaScopeGuard&&) noexcept = delete;
+    LambdaScopeGuard& operator=(LambdaScopeGuard&&) noexcept = delete;
 
 private:
     Fn exit_func;
 };
+
+template<typename Fn>
+LambdaScopeGuard(Fn) -> LambdaScopeGuard<Fn>;
 }  // namespace se
