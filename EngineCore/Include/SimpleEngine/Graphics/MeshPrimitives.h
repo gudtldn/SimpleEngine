@@ -32,8 +32,8 @@ struct MeshSection
     uint32 index_start;
     uint32 index_count;
     // uint32 vertex_start; // 나중에 하나의 큰 버퍼로 합칠 때 필요
-
     uint32 material_index;
-    // TODO: AABB bounding_box; 추가하기
+
+    AABBf bounds;
 };
 }  // namespace se::graphics

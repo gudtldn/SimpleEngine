@@ -41,7 +41,8 @@ struct SE_CORE_API StaticMesh : Asset<StaticMesh>
     // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Material> materials;
 
-    // TODO: AABB bounds; 추가
+    SE_PROPERTY(=::se::meta::ReadOnly)
+    AABBf bounds;
 };
 
 /**
@@ -63,6 +64,9 @@ struct SE_CORE_API SkeletalMesh : Asset<SkeletalMesh>
 
     // SE_PROPERTY(=::se::meta::ReadOnly)
     // Array<Material> materials;
+
+    SE_PROPERTY(=::se::meta::ReadOnly)
+    AABBf bounds;
 
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리
     // Array<BoneInfo> ref_skeleton;
