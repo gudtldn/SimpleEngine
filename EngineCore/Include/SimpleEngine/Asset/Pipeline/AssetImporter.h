@@ -42,7 +42,7 @@ public:
     void RegisterFactory(Args&&... args);
 
     /**
-     * 파일을 불러와 ImportResult를 반환합니다.
+     * 파일을 불러와 ImportResult를 반환합니다. (우선 Main Thread 전용)
      * @param file_path 소스 파일 경로
      * @param import_config Import 설정
      * @param processor_stack 파이프라인 처리 스택 (선택)
