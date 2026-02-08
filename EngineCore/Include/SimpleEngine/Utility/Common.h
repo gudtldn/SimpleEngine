@@ -6,9 +6,9 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Utility/Debug.h"
 
-#define SE_CONCAT_TOKEN_IMPL(a, b) a##b
-#define SE_CONCAT_TOKEN(a, b) SE_CONCAT_TOKEN_IMPL(a, b)
-#define SE_UNIQUE_TOKEN(name) SE_CONCAT_TOKEN(name, __COUNTER__)
+#define SE_CONCAT_NAME_IMPL(a, b) a##b
+#define SE_CONCAT_NAME(a, b) SE_CONCAT_NAME_IMPL(a, b)
+#define SE_UNIQUE_NAME(name) SE_CONCAT_NAME(name, __COUNTER__)
 #define SE_STRINGIFY(x) #x
 
 #define SE_SCOPE_DEFER(stmt) \

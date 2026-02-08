@@ -159,5 +159,5 @@ inline static const struct type##_Registrar \
             ::se::ecs::ComponentRegistry::Register<type>(); \
         } \
     } \
-} SE_UNIQUE_TOKEN(SE_CONCAT_TOKEN(type, _Registrar)){}; \
+} SE_UNIQUE_NAME(SE_CONCAT_NAME(type, _Registrar)){}; \
 } // se::registration
