@@ -62,6 +62,9 @@ class SE_CORE_API ImportResult final
 public:
     class Builder; // Forward Declaration
 
+    using IteratorType = Array<std::shared_ptr<IAsset>>::IteratorType;
+    using ConstIteratorType = Array<std::shared_ptr<IAsset>>::ConstIteratorType;
+
 public:
     ImportResult() = default;
 
@@ -150,6 +153,12 @@ public:
         }
         return nullptr;
     }
+
+public:
+    [[nodiscard]] IteratorType begin() { return assets.begin(); }
+    [[nodiscard]] IteratorType end() { return assets.end(); }
+    [[nodiscard]] ConstIteratorType begin() const { return assets.begin(); }
+    [[nodiscard]] ConstIteratorType end() const { return assets.end(); }
 
 private:
     ImportResult(
