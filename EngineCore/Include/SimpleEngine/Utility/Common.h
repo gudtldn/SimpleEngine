@@ -17,6 +17,9 @@
 /** 전달된 인자를 문자열로 변환합니다. */
 #define SE_STRINGIFY(x) #x
 
+/** MSVC에서 매크로 확장 문제를 해결하기 위한 매크로 */
+#define SE_EXPAND_MACRO(x) x
+
 /**
  * 스코프 종료 시 실행될 코드 블록을 정의합니다. (Defer)
  * @code
