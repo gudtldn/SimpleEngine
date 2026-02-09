@@ -17,7 +17,7 @@ struct ComponentInterface
      * ComponentStorage를 초기화합니다.
      * @param world 작업을 수행할 World
      */
-    void (*ensure_storage)(World& world);
+    IStorage* (*ensure_storage)(World& world);
 
     /**
      * Entity에 컴포넌트를 추가합니다. (기본 생성자 호출)
@@ -39,7 +39,7 @@ struct ComponentInterface
      * @param entity 확인할 Entity
      * @return 컴포넌트 보유 여부 (bool)
      */
-    bool (*has_component)(const World& world, Entity entity);
+    [[nodiscard]] bool (*has_component)(const World& world, Entity entity);
 
     /**
      * 컴포넌트의 읽기 전용 포인터를 획득합니다.
@@ -47,7 +47,7 @@ struct ComponentInterface
      * @param entity 확인할 Entity
      * @return 컴포넌트의 상수 포인터 (const void*)
      */
-    const void* (*get_component)(const World& world, Entity entity);
+    [[nodiscard]] const void* (*get_component)(const World& world, Entity entity);
 
     /**
      * 컴포넌트의 수정 가능한 포인터를 획득합니다.
@@ -55,7 +55,7 @@ struct ComponentInterface
      * @param entity 확인할 Entity
      * @return 컴포넌트의 포인터 (void*)
      */
-    void* (*get_component_mutable)(World& world, Entity entity);
+    [[nodiscard]] void* (*get_component_mutable)(World& world, Entity entity);
 };
 
 /**
@@ -86,9 +86,9 @@ public:
         SE_ASSERT(!interfaces.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
 
         interfaces.Insert(type_id, ComponentInterface{
-            .ensure_storage = [](World& world) static
+            .ensure_storage = [](World& world) static -> IStorage*
             {
-                world.GetOrCreateStorage<T>();
+                return &world.GetOrCreateStorageImpl<T>();
             },
             .add_component = [](World& world, Entity entity) static
             {
