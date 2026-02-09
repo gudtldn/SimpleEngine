@@ -191,4 +191,4 @@ inline static const struct type##_Registrar \
             ::se::ecs::ComponentRegistry::Get().RegisterInterface<type>(); \
         } \
     } \
-} SE_UNIQUE_NAME(SE_CONCAT_NAME(type, _Registrar)){};
+} SE_CONCAT_NAME(_, SE_CONCAT_NAME(type, _Registrar)){};
