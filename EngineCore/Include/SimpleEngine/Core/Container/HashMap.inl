@@ -160,7 +160,7 @@ typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, 
     {
         return it->second;
     }
-    std::unreachable();
+    SE_UNREACHABLE();
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
@@ -172,7 +172,7 @@ const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap
     {
         return it->second;
     }
-    std::unreachable();
+    SE_UNREACHABLE();
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>

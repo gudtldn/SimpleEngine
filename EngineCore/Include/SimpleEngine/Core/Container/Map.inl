@@ -134,7 +134,7 @@ typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allo
     {
         return it->second;
     }
-    std::unreachable();
+    SE_UNREACHABLE();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -144,7 +144,7 @@ const typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred
     {
         return it->second;
     }
-    std::unreachable();
+    SE_UNREACHABLE();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
