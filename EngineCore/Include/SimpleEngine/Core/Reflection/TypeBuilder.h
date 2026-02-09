@@ -55,7 +55,7 @@ public:
 
 public:
     /** 타입의 특성 플래그(예: Abstract, Transient 등)를 추가합니다. */
-    TypeBuilder& AddFlags(ETypeFlags flags)
+    TypeBuilder& AddFlags(BitFlags<ETypeFlags> flags)
     {
         info_ptr->flags |= flags;
         return *this;
@@ -68,25 +68,13 @@ public:
         return *this;
     }
 
-    // /**
-    //  * 부모 클래스 관계를 등록합니다.
-    //  * @tparam BaseType T가 상속받는 부모 클래스
-    //  */
-    // template <typename BaseType>
-    //     requires std::derived_from<T, BaseType>
-    // TypeBuilder& Base()
-    // {
-    //     static_assert(!std::same_as<std::decay_t<T>, std::decay_t<BaseType>>, "Base type cannot be same as self");
-    //     info_ptr->base_or_inner_id = TypeId::Get<BaseType>();
-    //     return *this;
-    // }
-
     /**
      * 멤버 변수(Property)를 리플렉션 시스템에 등록합니다.
      * @tparam MemberPtr 등록할 멤버의 주소 (&MyClass::Value)
+     * @param name property의 이름
      */
     template <auto MemberPtr>
-    TypeBuilder& Property(StringView name, StringView display_name = "", StringView category = "Default")
+    TypeBuilder& Property(StringView name)
     {
         using MemberType = MemberPointerTraits<MemberPtr>::MemberType;
 
@@ -97,11 +85,6 @@ public:
 
         // 오프셋 계산
         prop.offset = reinterpret_cast<usize>(&(static_cast<T*>(nullptr)->*MemberPtr));
-
-        // 메타데이터 설정
-        prop.metadata.display_name = display_name.IsEmpty() ? name : display_name;
-        prop.metadata.category = category;
-        prop.metadata.tooltip = ""; // TODO: 나중에 metadata를 외부에서 받던가 해서 수정
 
         // 접근자(Accessor) 생성
         prop.accessor.get_ptr = [](void* instance) static -> void*
@@ -133,6 +116,20 @@ public:
         };
 
         info_ptr->properties.Push(prop);
+        return *this;
+    }
+
+    /**
+     * 방금 등록된 프로퍼티에 메타데이터를 적용합니다.
+     * 매크로에서 생성된 PropertyMetadata 구조체를 받아 병합합니다.
+     */
+    TypeBuilder& ApplyMetadata(const PropertyMetadata& meta)
+    {
+        SE_ASSERT(!info_ptr->properties.IsEmpty(), "No property registered yet! Call Property() before ApplyMetadata().");
+
+        PropertyInfo& last_prop = info_ptr->properties.Back().Value();
+        last_prop.metadata = meta;
+
         return *this;
     }
 
