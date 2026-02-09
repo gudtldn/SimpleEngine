@@ -1,7 +1,7 @@
 #pragma once
 #include "SimpleEngine/Asset/Types/IAsset.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Meta/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Annotations.h"
 
 
 namespace se::asset

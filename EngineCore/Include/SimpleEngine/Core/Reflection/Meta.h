@@ -2,12 +2,15 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/StringView.h"
-#include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Types/BitFlags.h"
 
 
 namespace se
 {
+// forward declaration
+class Archive;
+
 /** 타입 속성 비트 플래그 */
 enum class ETypeFlags : uint32
 {
@@ -45,28 +48,66 @@ enum class EPropertyFlags : uint32
 };
 SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 
+/** 리플렉션 타입 분류 */
+enum class ETypeKind : uint8
+{
+    Primitive, // 기본 자료형 (int, float, string 등)
+    Struct,    // 구조체 및 클래스
+    Container, // 배열, 맵 등의 컨테이너
+    Enum,      // 열거형
+};
+
 /**
  * 멤버 변수(Property)의 추가 메타데이터 정보
  * @todo C++26 Custom Annotation 이용해서 구조체 채워넣기
  */
 struct PropertyMetadata
 {
-    // 에디터에 표시될 이름
+    /** 에디터에 표시될 이름 */
     StringView display_name;
 
-    // 에디터에 표시될 ToopTip
+    /** 카테고리 이름 */
+    StringView category;
+
+    /** 에디터에 표시될 Tooltip */
     StringView tooltip;
 
-    // Property 비트 플래그
-    BitFlags<EPropertyFlags> flags;
+    /** Property의 리플렉션 속성 */
+    BitFlags<EPropertyFlags> flags{ EPropertyFlags::DefaultEdit };
 
-    // 숫자 슬라이더 min/max
+    // Range (for Sliders)
+    bool has_range = false;
     float range_min = 0.0f;
     float range_max = 0.0f;
-    bool has_range = false;
 
     // // 네트워크 리플리케이트
     // bool is_replicated = false;
+};
+
+/**
+ * 멤버 변수(Property)의 접근자
+ */
+struct PropertyAccessor
+{
+    using PtrFunc    = void*(*)(void* instance);
+    using GetterFunc = void(*)(const void* instance, void* out_value);
+    using SetterFunc = void(*)(void* instance, const void* in_value);
+
+public:
+    /** Property의 실제 메모리 주소를 반환합니다. */
+    PtrFunc get_ptr;
+
+    /** Property의 값을 가져옵니다.
+     * @param instance: 해당 변수를 가진 객체의 주소
+     * @param out_value: 복사된 값을 저장할 버퍼의 주소
+     */
+    GetterFunc getter;
+
+    /** Property에 값을 설정합니다.
+     * @param instance: 해당 변수를 가진 객체의 주소
+     * @param in_value: 설정할 값이 들어있는 버퍼의 주소
+     */
+    SetterFunc setter;
 };
 
 /**
@@ -74,20 +115,28 @@ struct PropertyMetadata
  */
 struct PropertyInfo
 {
-    // Property 이름
-    StringView name;
-
-    // Property 크기
-    usize size;
-
-    // Property가 속하는 클래스/구조체로부터 떨어진 거리
-    usize offset;
-
-    // Property에 대한 컴파일타임 타입 식별자
+    /** Property에 대한 컴파일타임 타입 식별자 */
     TypeId type_id;
 
-    // Property의 추가 메타데이터 정보
+    /** Property의 이름 */
+    StringView name;
+
+    /** Property 타입의 메모리 크기 (sizeof) */
+    usize size;
+
+    /** Property가 속하는 클래스/구조체로부터 떨어진 바이트 거리(Memory Offset) */
+    usize offset;
+
+public:
+    /** Property에 부여된 부가적인 메타 정보 (예: 에디터 노출 여부, 범위 제한 등) */
     PropertyMetadata metadata;
+
+    /** Property의 값을 읽거나 쓰기 위한 함수형 접근자 (Getter/Setter 인터페이스) */
+    PropertyAccessor accessor;
+
+public:
+    template <typename T>
+    [[nodiscard]] bool Is() const { return type_id == TypeId::Get<T>(); }
 };
 
 /**
@@ -95,22 +144,52 @@ struct PropertyInfo
  */
 struct TypeInfo
 {
-    // 클래스/구조체 이름
-    StringView name;
+    using ConstructorFunc = void*(*)();
+    using DestructorFunc  = void(*)(void*);
+    using SerializeFunc   = void(*)(void* instance, Archive& ar);
+    using DrawUIFunc      = void(*)(void* instance);
 
-    // 클래스/구조체 총합 크기
-    usize size;
-
-    // 타입 메타데이터 flag
-    BitFlags<ETypeFlags> flags;
-
-    // 클래스/구조체의 멤버 변수(Property) 목록
-    Array<PropertyInfo> properties; // TODO: C++26때 FixedArray로 바꿔야 할 수 있음
-
-    // 컴파일타임 타입 식별자
+public:
+    /** Type의 컴파일타임 타입 식별자 */
     TypeId type_id;
 
-    // TODO: 상속 정보 추가
+    /**
+     * 부모 타입 or 컨테이너/Enum 내부타입의 식별자
+     * - Struct: 부모 클래스의 TypeId
+     * - Container: 요소(Element)의 TypeId
+     * - Enum: Underlying Type의 TypeId
+     */
+    TypeId base_or_inner_id;
+
+    /** Type의 이름 */
+    StringView name;
+
+    /** Type의 전체 메모리 크기 (sizeof) */
+    usize size;
+
+    /** Type의 메모리 정렬 요구사항 (alignof) */
+    usize alignment;
+
+    /** 타입의 종류 (Primitive, Struct, Enum, Container등) */
+    ETypeKind kind;
+
+    /** 타입의 특성 Flag */
+    BitFlags<ETypeFlags> flags;
+
+    /** 해당 타입이 포함하는 멤버 변수(Property)들의 목록 */
+    Array<PropertyInfo> properties;
+
+public:
+    /** Instance를 생성하는 함수 (new T()) */
+    ConstructorFunc constructor = nullptr;
+
+    /** Instance를 소멸시키는 함수 (delete T) */
+    DestructorFunc destructor = nullptr;
+
+    /** 객체의 상태를 바이너리나 텍스트로 저장/불러오기 하는 함수 */
+    SerializeFunc serialize = nullptr;
+
+    /** 엔진 에디터나 디버그 도구에서 해당 객체를 UI로 렌더링하는 함수 */
+    DrawUIFunc draw_ui = nullptr;
 };
 } // namespace se
-

@@ -229,17 +229,22 @@ private:
 
 private:
     template <typename ComponentType>
-    SparseSet<std::decay_t<ComponentType>>& GetOrCreateStorage()
+    ComponentStorage<std::decay_t<ComponentType>>& GetOrCreateStorageImpl()
     {
         using RawType = std::decay_t<ComponentType>;
 
         const auto type_id = TypeId::Get<RawType>();
-        IStorage* storage = component_storages
+        auto& storage_ptr = component_storages
             .Entry(type_id)
-            .OrInsert(std::make_unique<ComponentStorage<RawType>>()).get();
+            .OrInsertWith([]{ return std::make_unique<ComponentStorage<RawType>>(); });
 
-        auto* wrapper = static_cast<ComponentStorage<RawType>*>(storage);
-        return wrapper->GetStorage();
+        return *static_cast<ComponentStorage<RawType>*>(storage_ptr.get());
+    }
+
+    template <typename ComponentType>
+    SparseSet<std::decay_t<ComponentType>>& GetOrCreateStorage()
+    {
+        return GetOrCreateStorageImpl<ComponentType>().GetStorage();
     }
 
     template <typename ComponentType, typename Self>
@@ -258,10 +263,13 @@ private:
     traits::DeduceRetType<Self, IStorage*> GetIStorage(this Self&& self)
     {
         using RawType = std::decay_t<ComponentType>;
-        std::unique_ptr<IStorage> null_ptr;
 
         const auto type_id = TypeId::Get<RawType>();
-        return self.component_storages.Find(type_id).ValueOr(null_ptr).get();
+        if (Optional storage_opt = self.component_storages.Find(type_id))
+        {
+            return storage_opt->get();
+        }
+        return nullptr;
     }
 
 public:
