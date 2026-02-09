@@ -28,10 +28,9 @@ IStorage* World::GetStorage(const TypeId& type_id)
         return storage_opt->get();
     }
 
-    if (ComponentRegistry::Get().EnsureStorage(*this, type_id))
+    if (const Optional interface_opt = ComponentRegistry::Get().GetInterface(type_id))
     {
-        std::unique_ptr<IStorage> null_ptr;
-        return component_storages.Find(type_id).ValueOr(null_ptr).get();
+        return interface_opt->ensure_storage(*this);
     }
     return nullptr;
 }
