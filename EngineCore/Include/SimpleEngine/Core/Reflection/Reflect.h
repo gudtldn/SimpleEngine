@@ -1,11 +1,8 @@
 #pragma once
 #include <concepts>
-#include <cstddef>
 
-#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/ECS/ComponentRegistry.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -122,42 +119,75 @@ consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
 }
 } // namespace se::detail
 
+/** */
+#define SE_INTERNAL_CLASS_BODY(this_class, base_class, override_keyword) \
+private: \
+    using Super = base_class; \
+    using ThisClass = this_class; \
+public: \
+    static const ::se::TypeInfo& StaticTypeInfo() \
+    { \
+        static const TypeInfo& info = ::se::TypeRegistry::Get().FindChecked<this_class>(); \
+        return info; \
+    } \
+    virtual const ::se::TypeInfo& GetTypeInfo() const override_keyword \
+    { \
+        return StaticTypeInfo(); \
+    } \
+    virtual ::se::TypeId GetTypeId() const override_keyword \
+    { \
+        return ::se::TypeId::Get<this_class>(); \
+    } \
+private: \
+    friend class ::se::detail::TypeBuilder<this_class>; \
+    friend void se_reflect_register_##this_class();
 
-/** 타입의 리플렉션 정보 등록을 시작합니다. */
+#define SE_INTERNAL_CLASS_DEFAULT(this_class) SE_INTERNAL_CLASS_BODY(this_class, void,)
+#define SE_INTERNAL_CLASS_WITH_BASE(this_class, base_class) SE_INTERNAL_CLASS_BODY(this_class, base_class, override)
+
+#define SE_INTERNAL_GET_OVERLOADED_CLASS_MACRO(_1, _2, macro, ...) macro
+
+/**
+ * 클래스 정의 내부에 선언해야 하는 리플렉션 매크로입니다.
+ * 인자 개수에 따라 부모 클래스 유무를 자동으로 판단하여 적절한 코드를 생성합니다.
+ *
+ * 사용법:
+ * - 루트 클래스: SE_CLASS(MyClass)
+ * - 파생 클래스: SE_CLASS(MyClass, MyBaseClass)
+ */
+#define SE_CLASS(...) \
+    SE_EXPAND_MACRO(SE_INTERNAL_GET_OVERLOADED_CLASS_MACRO(__VA_ARGS__, SE_INTERNAL_CLASS_WITH_BASE, SE_INTERNAL_CLASS_DEFAULT))(__VA_ARGS__)
+
+/**
+ * 타입의 리플렉션 정보 등록을 시작합니다.
+ * @param type 등록할 클래스/구조체 이름
+ * @param ... 클래스 속성 태그
+ */
 #define SE_BEGIN_REFLECT(type, ...) \
-namespace se::registration \
-{ \
 inline static const struct type##_Registrar \
 { \
     type##_Registrar() \
     { \
         using T = type; \
         constexpr auto type_flags = ::se::detail::MakeTypeFlags<T>(__VA_ARGS__); \
-        ::se::Array<::se::PropertyInfo> properties;
+        ::se::TypeRegistry::Get().Register<T>() \
+            .AddFlags(type_flags)
 
-/** 멤버 변수를 기본 메타데이터로 리플렉션에 등록합니다. */ // TODO: 추후 offset 대신 멤버 포인터를 저장
-#define SE_REFLECT_PROPERTY(property_name, ...) \
-        properties.Emplace( \
-            /* .name     = */ SE_STRINGIFY(property_name), \
-            /* .size     = */ sizeof(T::property_name), \
-            /* .offset   = */ offsetof(T, property_name), \
-            /* .type_id  = */ ::se::TypeId::Get<decltype(T::property_name)>(), \
-            /* .metadata = */ ::se::detail::MakePropertyMetadata(__VA_ARGS__) \
-        );
+/**
+ * 멤버 변수(Property)를 등록합니다.
+ * @param member 멤버 변수
+ * @param ... 프로퍼티 속성 태그
+ */
+#define SE_REFLECT_PROPERTY(member, ...) \
+            .Property<&T::member>(SE_STRINGIFY(member)) \
+            .ApplyMetadata(::se::detail::MakePropertyMetadata(__VA_ARGS__))
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
-        ::se::TypeRegistry::Get().RegisterType({ \
-            .name = ::se::GetFullTypeName<type>(), \
-            .size = sizeof(type), \
-            .flags = type_flags, \
-            .properties = std::move(properties), \
-            .type_id = ::se::TypeId::Get<type>(), \
-        }); \
+        ; /* 체이닝 종료 */ \
         if constexpr (type_flags.IsAnySet(::se::ETypeFlags::Component)) \
         { \
-            ::se::ecs::ComponentRegistry::Register<type>(); \
+            ::se::ecs::ComponentRegistry::Get().RegisterInterface<type>(); \
         } \
     } \
-} SE_UNIQUE_NAME(SE_CONCAT_NAME(type, _Registrar)){}; \
-} // se::registration
+} SE_UNIQUE_NAME(SE_CONCAT_NAME(type, _Registrar)){};
