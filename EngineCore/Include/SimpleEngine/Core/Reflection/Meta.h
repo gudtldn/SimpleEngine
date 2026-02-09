@@ -153,14 +153,13 @@ public:
     /** Type의 컴파일타임 타입 식별자 */
     TypeId type_id;
 
-    union
-    {
-        // Kind == Struct 인 경우, 부모 클래스 ID
-        TypeId base_type_id;
-
-        // Kind == Container or Enum, InnerType or UnderlyingType의 ID
-        TypeId inner_type_id;
-    };
+    /**
+     * 부모 타입 or 컨테이너/Enum 내부타입의 식별자
+     * - Struct: 부모 클래스의 TypeId
+     * - Container: 요소(Element)의 TypeId
+     * - Enum: Underlying Type의 TypeId
+     */
+    TypeId base_or_inner_id;
 
     /** Type의 이름 */
     StringView name;
@@ -192,9 +191,5 @@ public:
 
     /** 엔진 에디터나 디버그 도구에서 해당 객체를 UI로 렌더링하는 함수 */
     DrawUIFunc draw_ui = nullptr;
-
-public:
-    [[nodiscard]] TypeId GetBaseType() const { return kind == ETypeKind::Struct ? base_type_id : TypeId{}; }
-    [[nodiscard]] TypeId GetInnerType() const { return (kind == ETypeKind::Container || kind == ETypeKind::Enum) ? inner_type_id : TypeId{}; }
 };
 } // namespace se
