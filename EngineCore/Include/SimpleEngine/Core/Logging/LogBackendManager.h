@@ -3,7 +3,7 @@
 #include <memory>
 #include <mutex>
 
-#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/FlatMap.h"
 #include "SimpleEngine/Core/Logging/LogData.h"
 #include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
@@ -57,6 +57,6 @@ public:
 
 private:
     mutable std::mutex backends_mutex;
-    HashMap<TypeId, std::unique_ptr<ILogBackend>> backends{}; // TODO: flat_map 나오면 변경
+    FlatMap<TypeId, std::unique_ptr<ILogBackend>> backends{};
 };
 }  // namespace se

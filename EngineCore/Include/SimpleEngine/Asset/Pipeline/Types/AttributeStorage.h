@@ -121,6 +121,6 @@ public:
     }
 
 private:
-    HashMap<AttributeKey, AttributeValue> attributes; // TODO: MSVC flat_map 나오면 수정
+    HashMap<AttributeKey, AttributeValue> attributes;
 };
 } // namespace se::asset
