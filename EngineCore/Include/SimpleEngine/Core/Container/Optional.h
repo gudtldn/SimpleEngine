@@ -41,11 +41,7 @@ public:
 
 public:
     constexpr Optional() noexcept = default;
-
-    constexpr Optional(std::nullopt_t) noexcept
-        : storage{}
-    {
-    }
+    constexpr Optional(std::nullopt_t) noexcept {}
 
     constexpr Optional(const T& in_value)
     {

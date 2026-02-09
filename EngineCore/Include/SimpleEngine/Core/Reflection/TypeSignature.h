@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include <array>
-
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
@@ -40,7 +39,7 @@ namespace detail
  * @return 한정자가 제거된 시그니처를 반환
  */
 template <usize N>
-consteval StringView RemoveKeywords(StringView signature, const std::array<StringView, N>& keywords) noexcept
+consteval StringView RemoveKeywords(StringView signature, const FixedArray<StringView, N>& keywords) noexcept
 {
     bool modified;
     do
@@ -221,7 +220,7 @@ template <typename T>
     constexpr auto signature = detail::ExtractTypeName<CleanType>();
 
     // 선행 타입 키워드 ("class", "struct", "enum", "union") 제거
-    constexpr std::array<StringView, 5> leading_keywords = { "class", "struct", "enum", "union", "typename" };
+    constexpr FixedArray<StringView, 5> leading_keywords = { "class", "struct", "enum", "union", "typename" };
     constexpr auto ret = detail::RemoveKeywords(signature, leading_keywords);
 
     // IDE 버그 때문에 일단 주석
