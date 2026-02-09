@@ -3,7 +3,7 @@
 #include <cstddef>
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Meta/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
