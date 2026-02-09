@@ -39,7 +39,7 @@ struct ComponentInterface
      * @param entity 확인할 Entity
      * @return 컴포넌트 보유 여부 (bool)
      */
-    [[nodiscard]] bool (*has_component)(const World& world, Entity entity);
+    bool (*has_component)(const World& world, Entity entity);
 
     /**
      * 컴포넌트의 읽기 전용 포인터를 획득합니다.
@@ -47,7 +47,7 @@ struct ComponentInterface
      * @param entity 확인할 Entity
      * @return 컴포넌트의 상수 포인터 (const void*)
      */
-    [[nodiscard]] const void* (*get_component)(const World& world, Entity entity);
+    const void* (*get_component)(const World& world, Entity entity);
 
     /**
      * 컴포넌트의 수정 가능한 포인터를 획득합니다.
@@ -55,7 +55,7 @@ struct ComponentInterface
      * @param entity 확인할 Entity
      * @return 컴포넌트의 포인터 (void*)
      */
-    [[nodiscard]] void* (*get_component_mutable)(World& world, Entity entity);
+    void* (*get_component_mutable)(World& world, Entity entity);
 };
 
 /**
