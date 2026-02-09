@@ -69,7 +69,7 @@ struct PropertyMetadata
     /** 카테고리 이름 */
     StringView category;
 
-    /** 에디터에 표시될 ToopTip */
+    /** 에디터에 표시될 Tooltip */
     StringView tooltip;
 
     /** Property의 리플렉션 속성 */
