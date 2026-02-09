@@ -68,8 +68,8 @@ class SE_CORE_API ComponentRegistry
 public:
     ComponentRegistry(const ComponentRegistry&) = delete;
     ComponentRegistry& operator=(const ComponentRegistry&) = delete;
-    ComponentRegistry(const ComponentRegistry&&) = delete;
-    ComponentRegistry& operator=(const ComponentRegistry&&) = delete;
+    ComponentRegistry(ComponentRegistry&&) = delete;
+    ComponentRegistry& operator=(ComponentRegistry&&) = delete;
     ~ComponentRegistry() = default;
 
     [[nodiscard]] static ComponentRegistry& Get();
