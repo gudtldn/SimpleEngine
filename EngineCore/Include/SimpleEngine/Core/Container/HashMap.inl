@@ -62,37 +62,73 @@ void HashMap<Key, Value, Hasher, KeyEq, Allocator>::Clear() noexcept
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-template <typename K, typename V>
-    requires std::constructible_from<Key, K&&> && std::constructible_from<Value, V&&>
-typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Insert(K&& key, V&& value)
+template <typename V>
+    requires std::constructible_from<Value, V&&>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Insert(
+    const KeyType& key, V&& value
+)
 {
-    auto [iter, _] = internal_map.insert_or_assign(std::forward<K>(key), std::forward<V>(value));
+    auto [iter, _] = internal_map.insert_or_assign(key, std::forward<V>(value));
     return iter->second;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-template <typename K, typename ... Args>
-    requires std::constructible_from<Key, K&&> && std::constructible_from<Value, Args&&...>
-typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Emplace(K&& key, Args&&... args)
+template <typename V>
+    requires std::constructible_from<Value, V&&>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Insert(KeyType&& key, V&& value)
+{
+    auto [iter, _] = internal_map.insert_or_assign(std::move(key), std::forward<V>(value));
+    return iter->second;
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+template <typename ... Args>
+    requires std::constructible_from<Value, Args&&...>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Emplace(
+    const KeyType& key, Args&&... args
+)
 {
     auto [iter, _] = internal_map.emplace(
         std::piecewise_construct,
-        std::forward_as_tuple(std::forward<K>(key)),
+        std::forward_as_tuple(key),
         std::forward_as_tuple(std::forward<Args>(args)...)
     );
     return iter->second;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-template <typename K>
-    requires std::constructible_from<Key, K&&>
-typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::EntryType HashMap<Key, Value, Hasher, KeyEq, Allocator>::Entry(K&& key)
+template <typename ... Args>
+    requires std::constructible_from<Value, Args&&...>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::Emplace(
+    KeyType&& key, Args&&... args
+)
+{
+    auto [iter, _] = internal_map.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple(std::move(key)),
+        std::forward_as_tuple(std::forward<Args>(args)...)
+    );
+    return iter->second;
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::EntryType HashMap<Key, Value, Hasher, KeyEq, Allocator>::Entry(const KeyType& key)
 {
     if (auto it = internal_map.find(std::as_const(key)); it != internal_map.end())
     {
         return EntryType(typename EntryType::OccupiedEntry(it, this));
     }
-    return EntryType(typename EntryType::VacantEntry(std::forward<K>(key), this));
+    return EntryType(typename EntryType::VacantEntry(key, this));
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::EntryType HashMap<Key, Value, Hasher, KeyEq, Allocator>::Entry(KeyType&& key)
+{
+    if (auto it = internal_map.find(std::as_const(key)); it != internal_map.end())
+    {
+        return EntryType(typename EntryType::OccupiedEntry(it, this));
+    }
+    return EntryType(typename EntryType::VacantEntry(std::move(key), this));
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
