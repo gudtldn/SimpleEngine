@@ -84,7 +84,12 @@ public:
         prop.size = sizeof(MemberType);
 
         // 오프셋 계산
-        prop.offset = reinterpret_cast<usize>(&(static_cast<T*>(nullptr)->*MemberPtr));
+        prop.offset = [] static -> usize
+        {
+            alignas(T) uint8 dummy[sizeof(T)];
+            T* obj_ptr = reinterpret_cast<T*>(dummy);
+            return reinterpret_cast<usize>(&(obj_ptr->*MemberPtr)) - reinterpret_cast<usize>(obj_ptr);
+        }();
 
         // 접근자(Accessor) 생성
         prop.accessor.get_ptr = [](void* instance) static -> void*
