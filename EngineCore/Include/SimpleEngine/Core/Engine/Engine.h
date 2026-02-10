@@ -79,6 +79,13 @@ private:
     [[nodiscard]] bool SortSubsystems();
 
 private:
+    struct UpdatableEntry
+    {
+        IUpdatable* updatable;
+        StringView name;
+    };
+
+private:
     static Engine* Instance;
 
     // Type별 Subsystem 목록
@@ -88,7 +95,7 @@ private:
     Array<SubsystemBase*> sorted_subsystems;
 
     // Update가 필요한 Subsystem 목록
-    Array<IUpdatable*> updatable_systems;
+    Array<UpdatableEntry> updatable_systems;
 
     std::unique_ptr<TaskScheduler> task_scheduler;
 };

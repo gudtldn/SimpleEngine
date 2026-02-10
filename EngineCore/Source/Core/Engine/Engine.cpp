@@ -9,6 +9,7 @@
 #include "Core/Container/Queue.h"
 #include "Core/FileSystem/VFS.h"
 #include "Core/Logging/Logging.h"
+#include "Core/Reflection/Cast.h"
 #include "Core/Subsystem/IUpdatable.h"
 #include "Core/Subsystem/SubsystemBase.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
@@ -66,9 +67,12 @@ void Engine::LoadRegisteredSubsystems()
 
         if (std::unique_ptr<SubsystemBase> subsystem = metadata.factory())
         {
-            if (IUpdatable* updatable = dynamic_cast<IUpdatable*>(subsystem.get()))
+            if (IUpdatable* updatable = Cast<IUpdatable>(subsystem.get()))
             {
-                updatable_systems.Push(updatable);
+                updatable_systems.Push({
+                    .updatable = updatable,
+                    .name = subsystem->GetTypeId().GetName(),
+                });
             }
 
             subsystems.Emplace(type_id, std::move(subsystem));
@@ -154,23 +158,20 @@ void Engine::UpdateFrame(float delta_time)
         ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
     })
 
-    for (IUpdatable* sub_system : updatable_systems)
+    for (const auto& [subsystem, name] : updatable_systems)
     {
-        SE_TODO("SE_PROFILE_SCOPE(\"PreUpdate | SubSystem: {}\", static_cast<SubsystemBase*>(sub_system)->GetTypeId().GetName());")
-        SE_PROFILE_SCOPE("PreUpdate | SubSystem: {}", typeid(*sub_system).name());
-        sub_system->PreUpdate();
+        SE_PROFILE_SCOPE("PreUpdate | SubSystem: {}", name);
+        subsystem->PreUpdate();
     }
-    for (IUpdatable* sub_system : updatable_systems)
+    for (const auto& [subsystem, name] : updatable_systems)
     {
-        SE_TODO("SE_PROFILE_SCOPE(\"Update | SubSystem: {}\", static_cast<SubsystemBase*>(sub_system)->GetTypeId().GetName());")
-        SE_PROFILE_SCOPE("Update | SubSystem: {}", typeid(*sub_system).name());
-        sub_system->Update(delta_time);
+        SE_PROFILE_SCOPE("Update | SubSystem: {}", name);
+        subsystem->Update(delta_time);
     }
-    for (IUpdatable* sub_system : updatable_systems)
+    for (const auto& [subsystem, name] : updatable_systems)
     {
-        SE_TODO("SE_PROFILE_SCOPE(\"PostUpdate | SubSystem: {}\", static_cast<SubsystemBase*>(sub_system)->GetTypeId().GetName());")
-        SE_PROFILE_SCOPE("PostUpdate | SubSystem: {}", typeid(*sub_system).name());
-        sub_system->PostUpdate();
+        SE_PROFILE_SCOPE("PostUpdate | SubSystem: {}", name);
+        subsystem->PostUpdate();
     }
 
     {
