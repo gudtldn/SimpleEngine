@@ -6,7 +6,7 @@
 #include "SimpleEngine/Asset/AssetSlot.h"
 #include "SimpleEngine/Asset/Pipeline/AssetImporter.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -19,17 +19,19 @@ class AssetRegistry;
 /**
  * @todo docs
  */
-class SE_CORE_API AssetSubsystem : public ISubsystem
+class SE_CORE_API AssetSubsystem : public SubsystemBase
 {
+    SE_CLASS(AssetSubsystem, SubsystemBase)
+
 public:
     AssetSubsystem();
     virtual ~AssetSubsystem() override;
 
 public:
-    //~ Begin ISubsystem
+    //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
-    //~ End ISubsystem
+    //~ End SubsystemBase
 
 public:
     /**

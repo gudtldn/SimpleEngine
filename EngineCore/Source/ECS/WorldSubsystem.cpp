@@ -10,6 +10,9 @@ using namespace ecs;
 
 SE_REGISTER_SUBSYSTEM(WorldSubsystem);
 
+SE_BEGIN_REFLECT(WorldSubsystem)
+SE_END_REFLECT(WorldSubsystem)
+
 bool WorldSubsystem::Initialize()
 {
     world = std::make_unique<World>();

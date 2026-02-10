@@ -7,12 +7,12 @@
 #include "Core/Container/Array.h"
 #include "Core/Container/HashMap.h"
 #include "Core/Container/Queue.h"
+#include "Core/FileSystem/VFS.h"
 #include "Core/Logging/Logging.h"
-#include "Core/Subsystem/ISubsystem.h"
 #include "Core/Subsystem/IUpdatable.h"
+#include "Core/Subsystem/SubsystemBase.h"
 #include "Core/Subsystem/SubsystemRegistration.h"
 #include "Graphics/RenderSubsystem.h"
-#include "Core/FileSystem/VFS.h"
 
 #include "SDL3/SDL_gpu.h"
 #include "tracy/Tracy.hpp"
@@ -64,7 +64,7 @@ void Engine::LoadRegisteredSubsystems()
             continue;
         }
 
-        if (std::unique_ptr<ISubsystem> subsystem = metadata.factory())
+        if (std::unique_ptr<SubsystemBase> subsystem = metadata.factory())
         {
             if (IUpdatable* updatable = dynamic_cast<IUpdatable*>(subsystem.get()))
             {
@@ -113,10 +113,10 @@ bool Engine::InitializeAllSubsystems()
     {
         if (!sub_system->Initialize())
         {
-            ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", typeid(*sub_system).name());
+            ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", sub_system->GetTypeId().GetName());
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
-            for (ISubsystem* rev_subsystem : subrange | std::views::reverse)
+            for (SubsystemBase* rev_subsystem : subrange | std::views::reverse)
             {
                 rev_subsystem->Release();
             }
@@ -137,7 +137,7 @@ void Engine::ReleaseAllSubsystems()
         SDL_WaitForGPUIdle(render_subsystem->GetGpuDevice());
     }
 
-    for (ISubsystem* sub_system : sorted_subsystems | std::views::reverse)
+    for (SubsystemBase* sub_system : sorted_subsystems | std::views::reverse)
     {
         sub_system->Release();
     }
@@ -156,16 +156,19 @@ void Engine::UpdateFrame(float delta_time)
 
     for (IUpdatable* sub_system : updatable_systems)
     {
+        SE_TODO("SE_PROFILE_SCOPE(\"PreUpdate | SubSystem: {}\", static_cast<SubsystemBase*>(sub_system)->GetTypeId().GetName());")
         SE_PROFILE_SCOPE("PreUpdate | SubSystem: {}", typeid(*sub_system).name());
         sub_system->PreUpdate();
     }
     for (IUpdatable* sub_system : updatable_systems)
     {
+        SE_TODO("SE_PROFILE_SCOPE(\"Update | SubSystem: {}\", static_cast<SubsystemBase*>(sub_system)->GetTypeId().GetName());")
         SE_PROFILE_SCOPE("Update | SubSystem: {}", typeid(*sub_system).name());
         sub_system->Update(delta_time);
     }
     for (IUpdatable* sub_system : updatable_systems)
     {
+        SE_TODO("SE_PROFILE_SCOPE(\"PostUpdate | SubSystem: {}\", static_cast<SubsystemBase*>(sub_system)->GetTypeId().GetName());")
         SE_PROFILE_SCOPE("PostUpdate | SubSystem: {}", typeid(*sub_system).name());
         sub_system->PostUpdate();
     }
@@ -262,7 +265,7 @@ bool Engine::SortSubsystems()
     ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
     for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, "  - Order {}: {}", n, typeid(*sub_system).name());
+        ConsoleLog(ELogLevel::Debug, "  - Order {}: {}", n, sub_system->GetTypeId().GetName());
     }
 
     return true;

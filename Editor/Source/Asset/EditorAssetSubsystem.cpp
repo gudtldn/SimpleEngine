@@ -7,6 +7,9 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::asset::AssetSubsystem>();
 
+SE_BEGIN_REFLECT(EditorAssetSubsystem)
+SE_END_REFLECT(EditorAssetSubsystem)
+
 bool EditorAssetSubsystem::Initialize()
 {
     // TODO: 캐시 불러오는 로직

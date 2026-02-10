@@ -1,12 +1,14 @@
 ﻿#pragma once
 #include "Core/EditorSelection.h"
-#include "SimpleEngine/Core/Subsystem//ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem//SubsystemBase.h"
 
 
 namespace se::editor
 {
-class EditorSubsystem : public ISubsystem
+class EditorSubsystem : public SubsystemBase
 {
+    SE_CLASS(EditorSubsystem, SubsystemBase)
+
 public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;

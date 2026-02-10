@@ -4,22 +4,23 @@
 #include "UI/Panels/IEditorPanel.h"
 
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
-#include "SimpleEngine/ECS/World.h"
 
 
 namespace se::editor
 {
-class EditorUISubsystem : public ISubsystem, public IUpdatable
+class EditorUISubsystem : public SubsystemBase, public IUpdatable
 {
+    SE_CLASS(EditorUISubsystem, SubsystemBase)
+
 public:
-    //~ Begin ISubsystem
+    //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
-    //~ End ISubsystem
+    //~ End SubsystemBase
 
     //~ Begin IUpdatable
     virtual void PreUpdate() override;

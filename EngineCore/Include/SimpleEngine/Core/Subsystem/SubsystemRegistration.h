@@ -10,7 +10,7 @@
 
 namespace se
 {
-class ISubsystem;
+class SubsystemBase;
 
 namespace detail
 {
@@ -19,7 +19,7 @@ namespace detail
  */
 struct SubsystemMetadata
 {
-    using SubsystemFactory = Function<std::unique_ptr<ISubsystem>()>;
+    using SubsystemFactory = Function<std::unique_ptr<SubsystemBase>()>;
 
     SubsystemFactory factory;
     Array<TypeId> dependencies;
@@ -34,7 +34,7 @@ struct SubsystemBuilder
     TypeId target_id;
 
     template <typename... Dependencies>
-        requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, ISubsystem> && ...))
+        requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
     SubsystemBuilder& DependsOn()
     {
         (AddDependency<Dependencies>(), ...);
@@ -70,13 +70,13 @@ public:
 public:
     /** 서브시스템을 등록합니다. */
     template <typename Subsystem>
-        requires std::derived_from<Subsystem, ISubsystem>
+        requires std::derived_from<Subsystem, SubsystemBase>
     static SubsystemBuilder<Subsystem> Register()
     {
         TypeId id = TypeId::Get<Subsystem>();
 
         GetInstance().metadata_map.Emplace(id, SubsystemMetadata{
-            .factory = [] static -> std::unique_ptr<ISubsystem>
+            .factory = [] static -> std::unique_ptr<SubsystemBase>
             {
                 return std::make_unique<Subsystem>();
             },

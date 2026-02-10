@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/ECS/World.h"
 
@@ -9,13 +9,15 @@ namespace se
 /**
  *
  */
-class SE_CORE_API WorldSubsystem : public se::ISubsystem, public se::IUpdatable
+class SE_CORE_API WorldSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
+    SE_CLASS(WorldSubsystem, SubsystemBase)
+
 public:
-    //~ Begin ISubsystem
+    //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
-    //~ End ISubsystem
+    //~ End SubsystemBase
 
     //~ Begin IUpdatable
     virtual void PreUpdate() override;

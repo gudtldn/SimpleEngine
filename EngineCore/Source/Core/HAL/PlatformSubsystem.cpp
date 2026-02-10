@@ -17,6 +17,9 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(PlatformSubsystem);
 
+SE_BEGIN_REFLECT(PlatformSubsystem)
+SE_END_REFLECT(PlatformSubsystem)
+
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     : sdl_init_flags(in_sdl_init_flags)
 {

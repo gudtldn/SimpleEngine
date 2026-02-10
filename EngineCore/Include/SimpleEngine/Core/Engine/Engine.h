@@ -16,7 +16,7 @@ class ThreadPool;
 namespace se
 {
 class IUpdatable;
-class ISubsystem;
+class SubsystemBase;
 
 /**
  * 엔진의 핵심 기능을 담당하는 클래스입니다.
@@ -50,7 +50,7 @@ public:
      * @return 등록된 T 타입의 Subsystem 포인터. 없을 경우 nullptr를 반환합니다.
      */
     template <typename T>
-        requires std::derived_from<T, ISubsystem>
+        requires std::derived_from<T, SubsystemBase>
     [[nodiscard]] T* GetSubsystem() const;
 
 public:
@@ -82,10 +82,10 @@ private:
     static Engine* Instance;
 
     // Type별 Subsystem 목록
-    HashMap<TypeId, std::unique_ptr<ISubsystem>> subsystems;
+    HashMap<TypeId, std::unique_ptr<SubsystemBase>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
-    Array<ISubsystem*> sorted_subsystems;
+    Array<SubsystemBase*> sorted_subsystems;
 
     // Update가 필요한 Subsystem 목록
     Array<IUpdatable*> updatable_systems;
@@ -95,7 +95,7 @@ private:
 
 
 template <typename T>
-    requires std::derived_from<T, ISubsystem>
+    requires std::derived_from<T, SubsystemBase>
 T* Engine::GetSubsystem() const
 {
     const auto type_id = TypeId::Get<T>();

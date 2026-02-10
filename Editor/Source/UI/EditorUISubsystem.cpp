@@ -29,6 +29,9 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
     .DependsOn<PlatformSubsystem, RenderSubsystem, EditorSubsystem>();
 
+SE_BEGIN_REFLECT(EditorUISubsystem)
+SE_END_REFLECT(EditorUISubsystem)
+
 bool EditorUISubsystem::Initialize()
 {
     const auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, const RenderSubsystem>();

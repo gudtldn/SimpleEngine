@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraph.h"
@@ -12,8 +12,10 @@
 
 namespace se
 {
-class SE_CORE_API RenderSubsystem : public ISubsystem
+class SE_CORE_API RenderSubsystem : public SubsystemBase
 {
+    SE_CLASS(RenderSubsystem, SubsystemBase)
+
 public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;

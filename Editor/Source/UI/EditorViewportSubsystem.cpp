@@ -9,6 +9,9 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
     .DependsOn<RenderSubsystem>();
 
+SE_BEGIN_REFLECT(EditorViewportSubsystem)
+SE_END_REFLECT(EditorViewportSubsystem)
+
 bool EditorViewportSubsystem::Initialize()
 {
     gpu_device = GetSubsystemChecked<RenderSubsystem>().GetGpuDevice();

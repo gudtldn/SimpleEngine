@@ -12,6 +12,9 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
     .DependsOn<PlatformSubsystem>();
 
+SE_BEGIN_REFLECT(ShaderCompileSubsystem)
+SE_END_REFLECT(ShaderCompileSubsystem)
+
 bool ShaderCompileSubsystem::Initialize()
 {
     if (!SDL_ShaderCross_Init())

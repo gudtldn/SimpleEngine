@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/Event/EventDispatcher.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include "SDL3/SDL.h"
 
@@ -28,7 +28,7 @@ struct WindowDesc
     bool prefer_linear_color_space = false;
 };
 
-class WindowCreateError : public IError
+class SE_CORE_API WindowCreateError : public IError
 {
 public:
     enum class Type
@@ -55,8 +55,13 @@ private:
     String message;
 };
 
-class SE_CORE_API PlatformSubsystem : public ISubsystem
+/**
+ * @todo docs
+ */
+class SE_CORE_API PlatformSubsystem : public SubsystemBase
 {
+    SE_CLASS(PlatformSubsystem, SubsystemBase)
+
 public:
     /**
      * PlatformSubsystem을 새로 생성합니다.
@@ -70,10 +75,10 @@ public:
             | SDL_INIT_EVENTS
     );
 
-    //~ Begin ISubsystem
+    //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
-    //~ End ISubsystem
+    //~ End SubsystemBase
 
     void PollEvents();
 

@@ -19,6 +19,9 @@ namespace se
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<PlatformSubsystem>();
 
+SE_BEGIN_REFLECT(RenderSubsystem)
+SE_END_REFLECT(RenderSubsystem)
+
 bool RenderSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Render subsystem...");

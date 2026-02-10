@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 
 namespace se::editor
@@ -7,12 +7,14 @@ namespace se::editor
 /**
  * @todo docs
  */
-class ShaderCompileSubsystem : public se::ISubsystem
+class ShaderCompileSubsystem : public se::SubsystemBase
 {
+    SE_CLASS(ShaderCompileSubsystem, SubsystemBase)
+
 public:
-    //~ Begin ISubsystem
+    //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
-    //~ End ISubsystem
+    //~ End SubsystemBase
 };
 }

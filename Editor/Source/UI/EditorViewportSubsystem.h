@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Subsystem/ISubsystem.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 
@@ -30,8 +30,10 @@ struct ViewportRenderInfo
 /**
  * @todo docs
  */
-class EditorViewportSubsystem : public ISubsystem
+class EditorViewportSubsystem : public SubsystemBase
 {
+    SE_CLASS(EditorViewportSubsystem, SubsystemBase)
+
 public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
