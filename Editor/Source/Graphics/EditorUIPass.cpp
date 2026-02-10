@@ -14,6 +14,9 @@ RGResourceHandle back_buffer_handle;
 
 namespace se::editor
 {
+SE_BEGIN_REFLECT(EditorUIPass)
+SE_END_REFLECT(EditorUIPass)
+
 void EditorUIPass::Setup(RenderGraphBuilder& builder)
 {
     back_buffer_handle = builder.GetResourceHandleByName("BackBuffer");

@@ -1,4 +1,5 @@
 #pragma once
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se::graphics
@@ -9,10 +10,12 @@ class RGExecutionContext;
 /**
  * Render Graph의 각 렌더링 단계를 정의하기 위한 인터페이스
  */
-class IRenderPass
+class SE_CORE_API RenderPassBase
 {
+    SE_CLASS(RenderPassBase)
+
 public:
-    virtual ~IRenderPass() = default;
+    virtual ~RenderPassBase() = default;
 
     /**
     * Render Graph가 Compile될 때 호출됩니다.

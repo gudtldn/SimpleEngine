@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Reflection/TypeSignature.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResources.h"
-#include "SimpleEngine/Graphics/RenderPass/IRenderPass.h"
+#include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 
 
 namespace se::graphics
@@ -23,7 +23,7 @@ class RGExecutionContext;
 struct RGPassNode
 {
     StringName name;
-    std::unique_ptr<IRenderPass> pass_object;
+    std::unique_ptr<RenderPassBase> pass_object;
     HashSet<RGResourceHandle> reads;
     HashSet<RGResourceHandle> writes;
 
@@ -71,7 +71,7 @@ public:
      * @return 추가된 패스에 대한 참조
      */
     template <typename PassType, typename... Args>
-        requires std::derived_from<PassType, IRenderPass>
+        requires std::derived_from<PassType, RenderPassBase>
     PassType& AddPass(Args&&... args);
 
     void Compile();
@@ -101,7 +101,7 @@ private:
 };
 
 /**
- * IRenderPass::Setup() 내에서 RenderGraph의 상태를 안전하게 조작하기 위한 빌더 클래스
+ * RenderPassBase::Setup() 내에서 RenderGraph의 상태를 안전하게 조작하기 위한 빌더 클래스
  */
 class SE_CORE_API RenderGraphBuilder
 {
@@ -127,7 +127,7 @@ private:
 };
 
 /**
- * IRenderPass::Execute()에 전달되어 사용되는 컨텍스트 클래스
+ * RenderPassBase::Execute()에 전달되어 사용되는 컨텍스트 클래스
  */
 class SE_CORE_API RGExecutionContext
 {
@@ -156,7 +156,7 @@ private:
 
 
 template <typename PassType, typename... Args>
-    requires std::derived_from<PassType, IRenderPass>
+    requires std::derived_from<PassType, RenderPassBase>
 PassType& RenderGraph::AddPass(Args&&... args)
 {
     using namespace se;

@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
-#include "SimpleEngine/Graphics/RenderPass/IRenderPass.h"
+#include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 
 
 namespace se::ecs
@@ -27,8 +27,10 @@ struct EntityDrawInfo
 /**
  * World에 있는 Entity를 그리는 Pass
  */
-class SE_CORE_API ForwardScenePass : public IRenderPass
+class SE_CORE_API ForwardScenePass : public RenderPassBase
 {
+    SE_CLASS(ForwardScenePass, RenderPassBase)
+
 public:
     explicit ForwardScenePass(
         ecs::World& in_world_ref,

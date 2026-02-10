@@ -21,6 +21,9 @@ using namespace se::ecs;
 
 namespace se::graphics
 {
+SE_BEGIN_REFLECT(ForwardScenePass)
+SE_END_REFLECT(ForwardScenePass)
+
 ForwardScenePass::ForwardScenePass(
     World& in_world_ref,
     const Matrix4x4& in_vp_matrix,

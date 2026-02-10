@@ -54,11 +54,11 @@ void RenderGraph::Compile()
             // 리소스가 존재하는지 확인
             if (!(write_handle && write_handle.index < resource_nodes.Len()))
             {
-                const IRenderPass* const pass_object = pass_node.pass_object.get();
+                const RenderPassBase* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
                     ELogLevel::Error,
                     "Invalid resource handle. Check the {}::Setup() logic",
-                    typeid(*pass_object).name()
+                    pass_object->GetTypeId().GetName()
                 );
                 SE_ASSERT(false, "Invalid resource handle.");
             }
@@ -70,12 +70,12 @@ void RenderGraph::Compile()
             // 리소스가 만들어졌는지 확인
             if (!resource_node.resource)
             {
-                const IRenderPass* const pass_object = pass_node.pass_object.get();
+                const RenderPassBase* const pass_object = pass_node.pass_object.get();
                 ConsoleLog(
                     ELogLevel::Error,
                     "Resource {} is not initialized. Check the {}::Setup() logic",
                     resource_node.name.ToString(),
-                    typeid(*pass_object).name()
+                    pass_object->GetTypeId().GetName()
                 );
                 SE_ASSERT(false, "Resource is not initialized.");
             }
@@ -83,8 +83,8 @@ void RenderGraph::Compile()
             // 리소스가 이미 다른 패스에서 쓰고 있는지 확인
             if (resource_node.writer && resource_node.writer != &pass_node)
             {
-                const IRenderPass* const existing_writer_pass = resource_node.writer->pass_object.get();
-                const IRenderPass* const pass_object = pass_node.pass_object.get();
+                const RenderPassBase* const existing_writer_pass = resource_node.writer->pass_object.get();
+                const RenderPassBase* const pass_object = pass_node.pass_object.get();
                 // 각 리소스는 한 프레임에 하나의 패스에서만 쓰여야함
                 ConsoleLog(
                     ELogLevel::Error,
@@ -93,8 +93,8 @@ void RenderGraph::Compile()
                     "  - Existing Writer Pass: {}\n"
                     "  - Conflicting Writer Pass: {}",
                     resource_node.name.ToString(),
-                    typeid(*existing_writer_pass).name(),
-                    typeid(*pass_object).name()
+                    existing_writer_pass->GetTypeId().GetName(),
+                    pass_object->GetTypeId().GetName()
                 );
                 SE_ASSERT(false, "A resource can only be written by a single pass per frame.");
             }
