@@ -4,6 +4,7 @@
 
 #include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Reflection/Cast.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -63,7 +64,11 @@ public:
     {
         return GetNode(uid).AndThen([](PipelineBaseNode& node) -> Optional<NodeType&>
         {
-            return static_cast<NodeType&>(node);
+            if (NodeType* casted = Cast<NodeType>(&node))
+            {
+                return *casted;
+            }
+            return {};
         });
     }
 
@@ -71,13 +76,8 @@ public:
         requires std::derived_from<NodeType, PipelineBaseNode>
     [[nodiscard]] NodeType& GetNodeChecked(const Guid& uid) const
     {
-        const auto& node = GetNodeChecked(uid);
-        SE_ASSERT(
-            node.GetTypeId() == TypeId::Get<NodeType>(),
-            "Node Type Mismatch! Expected: {}, Actual: {}",
-            TypeId::Get<NodeType>().GetName(), node.GetTypeId().GetName()
-        );
-        return static_cast<NodeType&>(node);
+        auto& node = GetNodeChecked(uid);
+        return *CastChecked<NodeType>(&node);
     }
 
     [[nodiscard]] bool Contains(const Guid& uid) const

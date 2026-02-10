@@ -9,6 +9,7 @@
 #include "Core/Container/HashMap.h"
 #include "Core/Container/Queue.h"
 #include "Core/Logging/Logging.h"
+#include "Core/Reflection/Cast.h"
 #include "Graphics/Manager/PSOManager.h"
 #include "Utility/Debug.h"
 
@@ -108,11 +109,8 @@ void RenderGraph::Compile()
     Queue<RGResourceHandle> active_resources;
     for (const auto [n, resource_node] : resource_nodes | std::views::enumerate)
     {
-        IRGResource* resource = resource_node.resource.get();
-        if (
-            dynamic_cast<RGExternalTexture*>(resource)
-            || dynamic_cast<RGExternalBuffer*>(resource)
-        )
+        const IRGResource* resource = resource_node.resource.get();
+        if (IsA<RGExternalTexture>(resource) || IsA<RGExternalBuffer>(resource))
         {
             active_resources.Push({ static_cast<usize>(n) });
         }
@@ -379,7 +377,7 @@ SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) co
     if (handle.index < graph_ref.resource_nodes.Len())
     {
         IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
-        if (const IRGTexture* resource = dynamic_cast<IRGTexture*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
+        if (const IRGTexture* resource = Cast<IRGTexture>(raw_ptr))
         {
             return resource->GetActualTexture();
         }
@@ -392,7 +390,7 @@ SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGResourceHandle handle) cons
     if (handle.index < graph_ref.resource_nodes.Len())
     {
         IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
-        if (const IRGBuffer* resource = dynamic_cast<IRGBuffer*>(raw_ptr)) // TODO: 나중에 dynamic_cast를 대체하는 방향으로 수정
+        if (const IRGBuffer* resource = Cast<IRGBuffer>(raw_ptr))
         {
             return resource->GetActualBuffer();
         }

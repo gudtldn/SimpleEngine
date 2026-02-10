@@ -2,6 +2,7 @@
 
 #include "Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 #include "Asset/Types/MeshTypes.h"
+#include "Core/Reflection/Cast.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -15,7 +16,7 @@ TypeId StaticMeshFactory::GetAssetType() const
 
 bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
 {
-    return node->GetTypeId() == TypeId::Get<StaticMeshPipelineNode>();
+    return IsA<StaticMeshPipelineNode>(node);
 }
 
 std::shared_ptr<IAsset> StaticMeshFactory::CreateAsset(
@@ -25,7 +26,7 @@ std::shared_ptr<IAsset> StaticMeshFactory::CreateAsset(
 {
     ZoneScopedN("StaticMeshFactory::CreateAsset");
 
-    StaticMeshPipelineNode* mesh_node = static_cast<StaticMeshPipelineNode*>(node);
+    StaticMeshPipelineNode* mesh_node = CastChecked<StaticMeshPipelineNode>(node);
 
     auto static_mesh = std::make_shared<StaticMesh>();
     static_mesh->vertices = std::move(mesh_node->vertices);

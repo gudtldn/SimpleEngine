@@ -1,5 +1,7 @@
 #pragma once
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Graphics/RenderGraph/FrameResourcePool.h"
+
 #include "SDL3/SDL_gpu.h"
 
 
@@ -7,6 +9,8 @@ namespace se::graphics
 {
 class IRGResource
 {
+    SE_CLASS(IRGResource)
+
 public:
     virtual ~IRGResource() = default;
 
@@ -16,6 +20,8 @@ public:
 
 class IRGTexture : public IRGResource
 {
+    SE_CLASS(IRGTexture, IRGResource)
+
 public:
     virtual ~IRGTexture() override = default;
 
@@ -27,6 +33,8 @@ protected:
 
 class IRGBuffer : public IRGResource
 {
+    SE_CLASS(IRGBuffer, IRGResource)
+
 public:
     virtual ~IRGBuffer() override = default;
 
@@ -41,6 +49,8 @@ protected:
  */
 class RGTransientTexture : public IRGTexture
 {
+    SE_CLASS(RGTransientTexture, IRGTexture)
+
 public:
     virtual void Realize(FrameResourcePool& pool) override
     {
@@ -68,6 +78,8 @@ public:
  */
 class RGExternalTexture : public IRGTexture
 {
+    SE_CLASS(RGExternalTexture, IRGTexture)
+
 public:
     explicit RGExternalTexture(SDL_GPUTexture* texture)
     {
@@ -83,6 +95,8 @@ public:
  */
 class RGTransientBuffer : public IRGBuffer
 {
+    SE_CLASS(RGTransientBuffer, IRGBuffer)
+
 public:
     virtual void Realize(FrameResourcePool& pool) override
     {
@@ -110,6 +124,8 @@ public:
  */
 class RGExternalBuffer : public IRGBuffer
 {
+    SE_CLASS(RGExternalBuffer, IRGBuffer)
+
 public:
     explicit RGExternalBuffer(SDL_GPUBuffer* buffer)
     {
