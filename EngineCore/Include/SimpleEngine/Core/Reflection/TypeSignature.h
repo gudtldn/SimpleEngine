@@ -8,18 +8,6 @@ namespace se
 {
 namespace detail
 {
-/** 문자열 앞뒤의 공백을 제거합니다. */
-[[nodiscard]] consteval StringView TrimWhitespace(StringView sv) noexcept
-{
-    constexpr StringView whitespace_chars = " \t\n\r\f\v";
-    if (const auto first_opt = sv.FindFirstNotOf(whitespace_chars))
-    {
-        const auto last = sv.FindLastNotOf(whitespace_chars);
-        return sv.Substr(*first_opt, *last - *first_opt + 1);
-    }
-    return {};
-}
-
 /** 들어온 값이 토큰 경계 문자인지 여부를 구합니다. */
 [[nodiscard]] consteval bool IsTokenBoundary(char c) noexcept
 {
@@ -63,7 +51,7 @@ consteval StringView RemoveKeywords(StringView signature, const FixedArray<Strin
 
         if (modified)
         {
-            signature = TrimWhitespace(signature);
+            signature = signature.Trim();
         }
     }
     while (modified);
@@ -140,7 +128,7 @@ consteval StringView ExtractType_MSVC(StringView signature) noexcept
     }
 
     // <>안 Type 정보만 추출
-    const StringView extracted_typename = TrimWhitespace(signature.Substr(start_pos, *end_pos_opt - start_pos));
+    const StringView extracted_typename = signature.Substr(start_pos, *end_pos_opt - start_pos).Trim();
     return extracted_typename;
 }
 

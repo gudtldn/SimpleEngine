@@ -148,6 +148,60 @@ public:
         data_len -= n;
     }
 
+    /** 문자열 앞뒤의 공백을 제거한 새 View를 반환합니다. */
+    [[nodiscard]] constexpr StringView Trim() const noexcept
+    {
+        if (IsEmpty())
+        {
+            return {};
+        }
+
+        SizeType start = 0;
+        SizeType end = data_len;
+
+        // 앞쪽 공백 스킵
+        while (start < end && IsWhitespace(data_ptr[start]))
+        {
+            start++;
+        }
+
+        // 뒤쪽 공백 스킵
+        while (end > start && IsWhitespace(data_ptr[end - 1]))
+        {
+            end--;
+        }
+
+        return Substr(start, end - start);
+    }
+
+    /** 문자열 앞쪽(왼쪽)의 공백만 제거합니다. */
+    [[nodiscard]] constexpr StringView TrimStart() const noexcept
+    {
+        if (IsEmpty()) return {};
+
+        SizeType start = 0;
+        while (start < data_len && IsWhitespace(data_ptr[start]))
+        {
+            start++;
+        }
+
+        return Substr(start, data_len - start);
+    }
+
+    /** 문자열 뒤쪽(오른쪽)의 공백만 제거합니다. */
+    [[nodiscard]] constexpr StringView TrimEnd() const noexcept
+    {
+        if (IsEmpty()) return {};
+
+        SizeType end = data_len;
+        while (end > 0 && IsWhitespace(data_ptr[end - 1]))
+        {
+            end--;
+        }
+
+        return Substr(0, end);
+    }
+
 public:
     /** 부분 문자열 View를 반환합니다. */
     [[nodiscard]] constexpr StringView Substr(SizeType pos, SizeType count = static_cast<SizeType>(-1)) const noexcept
@@ -422,6 +476,11 @@ public:
     }
 
 private:
+    [[nodiscard]] static constexpr bool IsWhitespace(char c) noexcept
+    {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
+    }
+
     [[nodiscard]] static constexpr SizeType StrLen(const CharType* str) noexcept
     {
         SizeType len = 0;
