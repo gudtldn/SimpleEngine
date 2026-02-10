@@ -117,15 +117,16 @@ bool InputSubsystem::IsCursorVisible() const
 
 void InputSubsystem::SetRelativeMouseMode(bool enabled)
 {
-    (void)enabled;
-    SE_UNIMPLEMENTED();
-    // SDL_SetWindowRelativeMouseMode(..., enabled);
+    // TODO: 다중 윈도우 지원하게되면 여기 수정해야함
+    const PlatformSubsystem& platform = GetSubsystemChecked<PlatformSubsystem>();
+    SDL_SetWindowRelativeMouseMode(platform.GetMainWindow(), enabled);
 }
 
 bool InputSubsystem::IsRelativeMouseMode() const
 {
-    SE_UNIMPLEMENTED();
-    // return SDL_GetWindowRelativeMouseMode(...);
+    // TODO: 다중 윈도우 지원하게되면 여기 수정해야함
+    const PlatformSubsystem& platform = GetSubsystemChecked<const PlatformSubsystem>();
+    return SDL_GetWindowRelativeMouseMode(platform.GetMainWindow());
 }
 
 // ── SDL Event Processing ────────────────────────────
