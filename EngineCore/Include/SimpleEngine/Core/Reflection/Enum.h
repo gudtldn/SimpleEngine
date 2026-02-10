@@ -1,4 +1,6 @@
+// ReSharper disable CppDFAUnreachableFunctionCall
 #pragma once
+#include <ranges>
 #include <utility>
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
@@ -6,9 +8,41 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+/**
+ * 일반 Enum의 탐색 범위를 확장합니다.
+ * 예: SE_ENUM_RANGE(MyEnum, 0, 500);
+ */
+#define SE_ENUM_SET_RANGE(Enum, MinVal, MaxVal) \
+    template <> struct se::EnumTraits<Enum> \
+    { \
+        static constexpr bool IsBitFlag = false; \
+        static constexpr int32 Min = static_cast<int32>(MinVal); \
+        static constexpr int32 Max = static_cast<int32>(MaxVal); \
+    };
+
+/**
+ * 비트 플래그 Enum으로 지정합니다. (0~63 비트 자동 탐색)
+ * 예: SE_ENUM_BITFLAG(MyFlags);
+ */
+#define SE_ENUM_SET_BITFLAG(Enum) \
+    template <> struct se::EnumTraits<Enum> \
+    { \
+        static constexpr bool IsBitFlag = true; \
+        static constexpr int32 Min = 0; \
+        static constexpr int32 Max = 0; \
+    };
 
 namespace se
 {
+/** Enum 리플렉션 동작 방식을 정의하는 구조체 */
+template <traits::EnumType E>
+struct EnumTraits
+{
+    static constexpr bool IsBitFlag = false;
+    static constexpr int32 Min = -128;
+    static constexpr int32 Max = 127;
+};
+
 namespace detail
 {
 /** 문자가 유효한 식별자인지 확인합니다. */
@@ -156,47 +190,98 @@ consteval bool IsValidEnum() noexcept
     return !name.IsEmpty();
 }
 
-// 자동 Enum 탐색을 위한 기본 범위
-constexpr int32 ENUM_MIN = -128;
-constexpr int32 ENUM_MAX = 127;
-
-template <typename E, typename Seq>
-struct EnumStorage;
-
-template <typename E, int32... I>
-struct EnumStorage<E, std::integer_sequence<int32, I...>>
+/** 단일 Enum 항목 정보 */
+template <typename E>
+struct EnumEntry
 {
-    using UnderlyingType = std::underlying_type_t<E>;
+    E value;
+    StringView name;
 
-    /** 인덱스를 실제 Enum 값으로 변환합니다. */
-    static constexpr E IndexToEnum(int32 index)
+    constexpr auto operator<=>(const EnumEntry& other) const { return value <=> other.value; }
+};
+
+/** Enum 값 생성기 */
+template <typename E, bool IsBitFlag>
+struct EnumValueGenerator;
+
+/** 일반 범위 (Min ~ Max) */
+template <typename E>
+struct EnumValueGenerator<E, false>
+{
+    static constexpr int32 Min = EnumTraits<E>::Min;
+    static constexpr int32 Max = EnumTraits<E>::Max;
+    static constexpr usize RangeSize = (Max - Min) + 1;
+
+    // Sequence: 0, 1, 2 ...RangeSize
+    using IndexSequence = std::make_integer_sequence<int32, RangeSize>;
+
+    static constexpr E GetValue(int32 index)
     {
-        return static_cast<E>(static_cast<UnderlyingType>(index + ENUM_MIN));
+        return static_cast<E>(index + Min);
+    }
+};
+
+/** 비트 플래그 (1<<0 ~ 1<<63) */
+template <typename E>
+struct EnumValueGenerator<E, true>
+{
+    // Sequence: 0, 1, 2 ... 63
+    using IndexSequence = std::make_integer_sequence<int32, 64>;
+
+    static constexpr E GetValue(int32 index)
+    {
+        return static_cast<E>(1ULL << index);
+    }
+};
+
+/** 실제 데이터를 저장하는 구조체 */
+template <typename E, typename Generator, typename Indices>
+struct EnumStorageImpl;
+
+template <typename E, typename Generator, int32... I>
+struct EnumStorageImpl<E, Generator, std::integer_sequence<int32, I...>>
+{
+    template <int32 Idx>
+    static consteval std::pair<E, StringView> GetEntryIfValid()
+    {
+        constexpr E val = Generator::GetValue(Idx);
+        constexpr StringView name = ExtractEnumName<E, val>();
+        return { val, name };
     }
 
 public:
-    static constexpr usize Count = ((IsValidEnum<E, IndexToEnum(I)>() ? 1 : 0) + ...);
+    /** 유효한 Enum 개수 */
+    static constexpr usize Count = ((GetEntryIfValid<I>().second.IsEmpty() ? 0 : 1) + ...);
 
-    static constexpr FixedArray<E, Count> Values = []
+    /** 각 Entry를 모아서 배열 생성 */
+    static constexpr FixedArray<EnumEntry<E>, Count> Entries = []
     {
-        FixedArray<E, Count> values{};
+        FixedArray<EnumEntry<E>, Count> entries{};
         usize idx = 0;
-        ((IsValidEnum<E, IndexToEnum(I)>() ? (values[idx++] = IndexToEnum(I), 0) : 0), ...);
-        return values;
-    }();
-
-    static constexpr FixedArray<StringView, Count> Names = []
-    {
-        FixedArray<StringView, Count> names{};
-        usize idx = 0;
-        ((IsValidEnum<E, IndexToEnum(I)>() ? (names[idx++] = ExtractEnumName<E, IndexToEnum(I)>(), 0) : 0), ...);
-        return names;
+        auto process = [&]<int32 Idx>()
+        {
+            constexpr auto entry = GetEntryIfValid<Idx>();
+            if constexpr (!entry.second.IsEmpty())
+            {
+                entries[idx++] = { entry.first, entry.second };
+            }
+        };
+        (process.template operator()<I>(), ...);
+        return entries;
     }();
 };
 
 /** Enum 정보를 저장하는 리플렉터 */
 template <typename E>
-using EnumReflector = EnumStorage<E, std::make_integer_sequence<int32, ENUM_MAX - ENUM_MIN + 1>>;
+struct EnumReflector
+{
+    static constexpr bool IsBitFlag = EnumTraits<E>::IsBitFlag;
+    using Generator = EnumValueGenerator<E, IsBitFlag>;
+    using Storage = EnumStorageImpl<E, Generator, typename Generator::IndexSequence>;
+
+    static constexpr auto& Entries = Storage::Entries;
+    static constexpr usize Count = Storage::Count;
+};
 } // namespace detail
 
 /**
@@ -218,15 +303,15 @@ template <auto V>
 template <traits::EnumType E>
 [[nodiscard]] constexpr StringView EnumName(E value) noexcept
 {
-    constexpr auto& values = detail::EnumReflector<E>::Values;
-    constexpr auto& names = detail::EnumReflector<E>::Names;
-
-    for (usize i = 0; i < values.Len(); ++i)
+    constexpr auto& entries = detail::EnumReflector<E>::Entries;
+    auto it = std::lower_bound(entries.begin(), entries.end(), value, [](const auto& entry, E val)
     {
-        if (values[i] == value)
-        {
-            return names[i];
-        }
+        return entry.value < val;
+    });
+
+    if (it != entries.end() && it->value == value)
+    {
+        return it->name;
     }
     return {};
 }
@@ -235,31 +320,57 @@ template <traits::EnumType E>
 template <traits::EnumType E>
 [[nodiscard]] constexpr Optional<E> EnumCast(StringView name) noexcept
 {
-    constexpr auto& values = detail::EnumReflector<E>::Values;
-    constexpr auto& names = detail::EnumReflector<E>::Names;
-
-    for (usize i = 0; i < names.Len(); ++i)
+    constexpr auto& entries = detail::EnumReflector<E>::Entries;
+    for (const auto& entry : entries)
     {
-        if (names[i] == name)
+        if (entry.name == name)
         {
-            return values[i];
+            return entry.value;
         }
     }
     return {};
+}
+/** 열거형의 유효한 모든 항목을 반환합니다. */
+template <traits::EnumType E>
+[[nodiscard]] constexpr const auto& EnumEntries() noexcept
+{
+    return detail::EnumReflector<E>::Entries;
 }
 
 /** 열거형의 유효한 모든 값을 반환합니다. */
 template <traits::EnumType E>
 [[nodiscard]] constexpr const auto& EnumValues() noexcept
 {
-    return detail::EnumReflector<E>::Values;
+    using Reflector = detail::EnumReflector<E>;
+    static constexpr auto values = []
+    {
+        FixedArray<E, Reflector::Count> ret{};
+        std::ranges::copy(
+            Reflector::Entries | std::views::transform([](const auto& entry) { return entry.value; }),
+            ret.begin()
+        );
+
+        return ret;
+    }();
+    return values;
 }
 
 /** 열거형의 유효한 모든 이름들을 반환합니다. */
 template <traits::EnumType E>
 [[nodiscard]] constexpr const auto& EnumNames() noexcept
 {
-    return detail::EnumReflector<E>::Names;
+    using Reflector = detail::EnumReflector<E>;
+    static constexpr auto names = []
+    {
+        FixedArray<StringView, Reflector::Count> ret{};
+        std::ranges::copy(
+            Reflector::Entries | std::views::transform([](const auto& entry) { return entry.name; }),
+            ret.begin()
+        );
+
+        return ret;
+    }();
+    return names;
 }
 
 /** 열거형의 유효한 값 개수를 반환합니다. */
