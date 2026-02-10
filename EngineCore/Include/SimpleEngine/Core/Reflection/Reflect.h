@@ -121,13 +121,14 @@ consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
 } // namespace se::detail
 
 /** */
-#define SE_INTERNAL_CLASS_BODY(this_class, base_class, override_keyword) \
+#define SE_INTERNAL_CLASS_BODY(this_class, base_class, override_keyword, static_assert_expr) \
 private: \
     using Super = base_class; \
     using ThisClass = this_class; \
 public: \
     static const ::se::TypeInfo& StaticTypeInfo() \
     { \
+        static_assert_expr \
         static const TypeInfo& info = ::se::TypeRegistry::Get().FindChecked<this_class>(); \
         return info; \
     } \
@@ -141,10 +142,13 @@ public: \
     } \
 private: \
     friend class ::se::detail::TypeBuilder<this_class>; \
-    friend void se_reflect_register_##this_class();
+    friend struct this_class##_Registrar;
 
-#define SE_INTERNAL_CLASS_DEFAULT(this_class) SE_INTERNAL_CLASS_BODY(this_class, void,)
-#define SE_INTERNAL_CLASS_WITH_BASE(this_class, base_class) SE_INTERNAL_CLASS_BODY(this_class, base_class, override)
+#define SE_INTERNAL_CLASS_DEFAULT(this_class) \
+    SE_INTERNAL_CLASS_BODY(this_class, void,,)
+
+#define SE_INTERNAL_CLASS_WITH_BASE(this_class, base_class) \
+    SE_INTERNAL_CLASS_BODY(this_class, base_class, override, static_assert(std::derived_from<this_class, base_class>, #this_class " must inherit from " #base_class);)
 
 #define SE_INTERNAL_GET_OVERLOADED_CLASS_MACRO(_1, _2, macro, ...) macro
 
