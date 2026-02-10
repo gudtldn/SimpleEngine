@@ -180,6 +180,13 @@ inline static const struct type##_Registrar \
             .AddFlags(type_flags)
 
 /**
+ * 인터페이스(Interface)를 등록합니다.
+ * @param ... 인터페이스 목록
+ */
+#define SE_REFLECT_INTERFACE(...) \
+            .Implements<__VA_ARGS__>()
+
+/**
  * 멤버 변수(Property)를 등록합니다.
  * @param member 멤버 변수
  * @param ... 프로퍼티 속성 태그

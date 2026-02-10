@@ -1,22 +1,14 @@
 #pragma once
 #include <concepts>
 
+#include "SimpleEngine/Core/Reflection/Concepts.h"
+#include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
 {
-/**
- * 리플렉션 기반 캐스팅이 가능한 타입인지 검사하는 Concept
- * SE_CLASS 매크로를 통해 GetTypeId()가 구현된 타입만 사용 가능합니다.
- */
-template <typename T>
-concept Castable = requires(const T& obj)
-{
-    { obj.GetTypeId() } -> std::same_as<TypeId>;
-};
-
 namespace detail
 {
 /**
@@ -25,26 +17,24 @@ namespace detail
  * @param base_id 기준이 되는 (부모 클래스) TypeId
  * @return derived_id가 base_id이거나, base_id의 파생 클래스이면 true
  */
-[[nodiscard]] inline bool IsTypeDerivedFrom(const TypeId& derived_id, const TypeId& base_id)
-{
-    TypeId current = derived_id;
-    while (current.IsValid())
-    {
-        if (current == base_id)
-        {
-            return true;
-        }
+[[nodiscard]] SE_CORE_API bool IsTypeDerivedFrom(const TypeId& derived_id, const TypeId& base_id);
 
-        const Optional info_opt = TypeRegistry::Get().Find(current);
-        if (!info_opt.HasValue())
-        {
-            break;
-        }
+/**
+ * 주어진 TypeId가 특정 인터페이스를 구현하는지 확인합니다.
+ * @param type_id 검사 대상 타입의 TypeId
+ * @param interface_id 검사할 인터페이스의 TypeId
+ * @return type_id가 interface_id를 구현하면 true
+ */
+[[nodiscard]] SE_CORE_API bool IsTypeImplementsInterface(const TypeId& type_id, const TypeId& interface_id);
 
-        current = info_opt->base_or_inner_id;
-    }
-    return false;
-}
+/**
+ * 주어진 TypeId를 특정 인터페이스 포인터로 캐스팅합니다.
+ * @param instance 원본 객체의 포인터
+ * @param type_id 원본 객체의 TypeId
+ * @param interface_id 캐스팅할 인터페이스의 TypeId
+ * @return 성공 시 인터페이스 포인터, 실패 시 nullptr
+ */
+[[nodiscard]] SE_CORE_API void* CastToInterface(void* instance, const TypeId& type_id, const TypeId& interface_id);
 } // namespace detail
 
 /**
@@ -53,7 +43,7 @@ namespace detail
  * @param obj 검사할 객체의 포인터 (nullptr일 경우 false)
  * @return obj의 런타임 타입이 T이거나 T로부터 파생되었으면 true
  */
-template <typename T, Castable From>
+template <typename T, Reflectable From>
 [[nodiscard]] bool IsA(const From* obj)
 {
     if (!obj)
@@ -63,7 +53,7 @@ template <typename T, Castable From>
     return detail::IsTypeDerivedFrom(obj->GetTypeId(), TypeId::Get<T>());
 }
 
-template <typename T, Castable From>
+template <typename T, Reflectable From>
 [[nodiscard]] bool IsA(const From& obj)
 {
     return detail::IsTypeDerivedFrom(obj.GetTypeId(), TypeId::Get<T>());
@@ -75,7 +65,7 @@ template <typename T, Castable From>
  * @tparam Base 부모 타입
  * @return Derived가 Base이거나 Base로부터 파생되었으면 true
  */
-template <typename Derived, typename Base>
+template <Reflectable Derived, Reflectable Base>
 [[nodiscard]] bool IsChildOf()
 {
     return detail::IsTypeDerivedFrom(TypeId::Get<Derived>(), TypeId::Get<Base>());
@@ -87,10 +77,38 @@ template <typename Derived, typename Base>
  * @param derived_id 검사할 TypeId
  * @return derived_id가 Base이거나 Base로부터 파생되었으면 true
  */
-template <typename Base>
+template <Reflectable Base>
 [[nodiscard]] bool IsChildOf(TypeId derived_id)
 {
     return detail::IsTypeDerivedFrom(derived_id, TypeId::Get<Base>());
+}
+
+/**
+ * 객체가 특정 인터페이스를 구현하는지 검사합니다.
+ * @tparam Interface 검사할 인터페이스 타입
+ * @param obj 검사할 객체의 포인터 (nullptr일 경우 false)
+ * @return obj가 Interface를 구현하면 true
+ */
+template <typename Interface, Reflectable From>
+[[nodiscard]] bool Implements(const From* obj)
+{
+    if (!obj)
+    {
+        return false;
+    }
+    return detail::IsTypeImplementsInterface(obj->GetTypeId(), TypeId::Get<Interface>());
+}
+
+/**
+ * 주어진 TypeId가 특정 인터페이스를 구현하는지 검사합니다.
+ * @tparam Interface 검사할 인터페이스 타입
+ * @param type_id 검사할 TypeId
+ * @return type_id가 Interface를 구현하면 true
+ */
+template <typename Interface>
+[[nodiscard]] bool Implements(TypeId type_id)
+{
+    return detail::IsTypeImplementsInterface(type_id, TypeId::Get<Interface>());
 }
 
 /**
@@ -101,9 +119,14 @@ template <typename Base>
  * @param obj 캐스팅할 객체의 포인터
  * @return 캐스팅에 성공하면 To* 포인터, 실패하면 nullptr
  */
-template <typename To, Castable From>
+template <typename To, Reflectable From>
 [[nodiscard]] To* Cast(From* obj)
 {
+    if (!obj)
+    {
+        return nullptr;
+    }
+
     // From이 To를 상속 받았는지? (up-cast)
     if constexpr (std::derived_from<From, To>)
     {
@@ -111,18 +134,26 @@ template <typename To, Castable From>
     }
     else
     {
-        // obj가 원래 From이었는지? (down-cast)
+        // obj가 원래 To였는지? (down-cast)
         if (IsA<To>(obj))
         {
             return reinterpret_cast<To*>(obj);
         }
+
+        // 인터페이스 캐스팅 시도
+        void* result = detail::CastToInterface(obj, obj->GetTypeId(), TypeId::Get<To>());
+        return static_cast<To*>(result);
     }
-    return nullptr;
 }
 
-template <typename To, Castable From>
+template <typename To, Reflectable From>
 [[nodiscard]] const To* Cast(const From* obj)
 {
+    if (!obj)
+    {
+        return nullptr;
+    }
+
     // From이 To를 상속 받았는지? (up-cast)
     if constexpr (std::derived_from<From, To>)
     {
@@ -130,13 +161,16 @@ template <typename To, Castable From>
     }
     else
     {
-        // obj가 원래 From이었는지? (down-cast)
+        // obj가 원래 To였는지? (down-cast)
         if (IsA<To>(obj))
         {
             return reinterpret_cast<const To*>(obj);
         }
+
+        // 인터페이스 캐스팅 시도
+        void* result = detail::CastToInterface(const_cast<From*>(obj), obj->GetTypeId(), TypeId::Get<To>());
+        return static_cast<const To*>(result);
     }
-    return nullptr;
 }
 
 /**
@@ -148,28 +182,46 @@ template <typename To, Castable From>
  * @param obj 캐스팅할 객체의 포인터 (nullptr 불가)
  * @return 캐스팅된 To* 포인터
  */
-template <typename To, Castable From>
+template <typename To, Reflectable From>
 [[nodiscard]] To* CastChecked(From* obj)
 {
     SE_ASSERT(obj != nullptr, "CastChecked failed: Source pointer is null!");
+
+    // 상속 기반 다운캐스팅 시도
+    if (IsA<To>(obj))
+    {
+        return reinterpret_cast<To*>(obj);
+    }
+
+    // 인터페이스 캐스팅 시도
+    void* result = detail::CastToInterface(obj, obj->GetTypeId(), TypeId::Get<To>());
     SE_ASSERT(
-        IsA<To>(obj),
+        result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
         obj->GetTypeId().GetName(), TypeId::Get<To>().GetName()
     );
-    return reinterpret_cast<To*>(obj);
+    return static_cast<To*>(result);
 }
 
-template <typename To, Castable From>
+template <typename To, Reflectable From>
 [[nodiscard]] const To* CastChecked(const From* obj)
 {
     SE_ASSERT(obj != nullptr, "CastChecked failed: Source pointer is null!");
+
+    // 상속 기반 다운캐스팅 시도
+    if (IsA<To>(obj))
+    {
+        return reinterpret_cast<const To*>(obj);
+    }
+
+    // 인터페이스 캐스팅 시도
+    void* result = detail::CastToInterface(const_cast<From*>(obj), obj->GetTypeId(), TypeId::Get<To>());
     SE_ASSERT(
-        IsA<To>(obj),
+        result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
         obj->GetTypeId().GetName(), TypeId::Get<To>().GetName()
     );
-    return reinterpret_cast<const To*>(obj);
+    return static_cast<const To*>(result);
 }
 
 /**
@@ -180,7 +232,7 @@ template <typename To, Castable From>
  * @param obj 캐스팅할 객체의 포인터
  * @return 런타임 타입이 To와 동일하면 To* 포인터, 아니면 nullptr
  */
-template <typename To, Castable From>
+template <typename To, Reflectable From>
 [[nodiscard]] To* ExactCast(From* obj)
 {
     if (obj && obj->GetTypeId() == TypeId::Get<To>())
@@ -190,7 +242,7 @@ template <typename To, Castable From>
     return nullptr;
 }
 
-template <typename To, Castable From>
+template <typename To, Reflectable From>
 [[nodiscard]] const To* ExactCast(const From* obj)
 {
     if (obj && obj->GetTypeId() == TypeId::Get<To>())

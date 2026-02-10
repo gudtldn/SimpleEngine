@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
@@ -140,6 +141,22 @@ public:
 };
 
 /**
+ * Interface의 메타데이터 정보
+ */
+struct InterfaceInfo
+{
+    /** Interface의 컴파일타임 타입 식별자 */
+    TypeId type_id;
+
+    /**
+     * 객체 포인터를 해당 인터페이스 주소로 변환합니다. (Offset 조정)
+     * @param instance 원본 객체의 포인터
+     * @return 변환된 인터페이스 포인터 (다중 상속 대응)
+     */
+    void* (*caster)(void* instance) = nullptr;
+};
+
+/**
  * 클래스/구조체의 리플렉션 정보
  */
 struct TypeInfo
@@ -178,6 +195,9 @@ public:
 
     /** 해당 타입이 포함하는 멤버 변수(Property)들의 목록 */
     Array<PropertyInfo> properties;
+
+    /** 해당 타입이 구현(상속)하는 인터페이스 목록 */
+    HashMap<TypeId, InterfaceInfo> interfaces;
 
 public:
     /** Instance를 생성하는 함수 (new T()) */

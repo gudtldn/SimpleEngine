@@ -69,6 +69,18 @@ public:
     }
 
     /**
+     * 현재 타입(T)이 구현하는 인터페이스 목록을 등록합니다.
+     * @tparam InterfaceTypes T가 상속받는 하나 이상의 인터페이스 타입들
+     */
+    template <typename... InterfaceTypes>
+        requires (std::derived_from<T, InterfaceTypes> && ...)
+    TypeBuilder& Implements()
+    {
+        (ImplementInterface<InterfaceTypes>(), ...);
+        return *this;
+    }
+
+    /**
      * 멤버 변수(Property)를 리플렉션 시스템에 등록합니다.
      * @tparam MemberPtr 등록할 멤버의 주소 (&MyClass::Value)
      * @param name property의 이름
@@ -151,6 +163,24 @@ public:
     {
         info_ptr->draw_ui = func;
         return *this;
+    }
+
+private:
+    template <typename InterfaceType>
+        requires std::derived_from<T, InterfaceType>
+    // ReSharper disable once CppMemberFunctionMayBeConst
+    void ImplementInterface()
+    {
+        constexpr TypeId type_id = TypeId::Get<InterfaceType>();
+        info_ptr->interfaces.Insert(type_id, InterfaceInfo{
+            .type_id = type_id,
+            .caster = [](void* instance) static -> void*
+            {
+                // 주소 보정 (Pointer Adjustment)
+                T* typed = static_cast<T*>(instance);
+                return static_cast<InterfaceType*>(typed);
+            }
+        });
     }
 
 private:

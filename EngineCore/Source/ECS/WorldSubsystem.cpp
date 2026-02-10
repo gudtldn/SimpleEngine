@@ -11,6 +11,7 @@ using namespace ecs;
 SE_REGISTER_SUBSYSTEM(WorldSubsystem);
 
 SE_BEGIN_REFLECT(WorldSubsystem)
+    SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(WorldSubsystem)
 
 bool WorldSubsystem::Initialize()
