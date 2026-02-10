@@ -104,17 +104,17 @@ template <typename Base>
 template <typename To, Castable From>
 [[nodiscard]] To* Cast(From* obj)
 {
-    // From이 To를 상속 받았는지? (up casting)
+    // From이 To를 상속 받았는지? (up-cast)
     if constexpr (std::derived_from<From, To>)
     {
         return static_cast<To*>(obj);
     }
     else
     {
-        // obj가 원래 From이었는지? (down casting)
+        // obj가 원래 From이었는지? (down-cast)
         if (IsA<To>(obj))
         {
-            return static_cast<To*>(obj);
+            return reinterpret_cast<To*>(obj);
         }
     }
     return nullptr;
@@ -123,17 +123,17 @@ template <typename To, Castable From>
 template <typename To, Castable From>
 [[nodiscard]] const To* Cast(const From* obj)
 {
-    // From이 To를 상속 받았는지? (up casting)
+    // From이 To를 상속 받았는지? (up-cast)
     if constexpr (std::derived_from<From, To>)
     {
         return static_cast<const To*>(obj);
     }
     else
     {
-        // obj가 원래 From이었는지? (down casting)
+        // obj가 원래 From이었는지? (down-cast)
         if (IsA<To>(obj))
         {
-            return static_cast<const To*>(obj);
+            return reinterpret_cast<const To*>(obj);
         }
     }
     return nullptr;
@@ -157,7 +157,7 @@ template <typename To, Castable From>
         "CastChecked failed: Cannot cast '{}' to '{}'!",
         obj->GetTypeId().GetName(), TypeId::Get<To>().GetName()
     );
-    return static_cast<To*>(obj);
+    return reinterpret_cast<To*>(obj);
 }
 
 template <typename To, Castable From>
@@ -169,7 +169,7 @@ template <typename To, Castable From>
         "CastChecked failed: Cannot cast '{}' to '{}'!",
         obj->GetTypeId().GetName(), TypeId::Get<To>().GetName()
     );
-    return static_cast<const To*>(obj);
+    return reinterpret_cast<const To*>(obj);
 }
 
 /**
@@ -185,7 +185,7 @@ template <typename To, Castable From>
 {
     if (obj && obj->GetTypeId() == TypeId::Get<To>())
     {
-        return static_cast<To*>(obj);
+        return reinterpret_cast<To*>(obj);
     }
     return nullptr;
 }
@@ -195,7 +195,7 @@ template <typename To, Castable From>
 {
     if (obj && obj->GetTypeId() == TypeId::Get<To>())
     {
-        return static_cast<const To*>(obj);
+        return reinterpret_cast<const To*>(obj);
     }
     return nullptr;
 }
