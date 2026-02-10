@@ -4,6 +4,7 @@
 #include "Core/Engine/Engine.h"
 #include "Core/HAL/CpuFeature.h"
 #include "Core/HAL/PlatformSubsystem.h"
+#include "Core/Input/InputSubsystem.h"
 #include "Core/Logging/LogBackendManager.h"
 #include "Core/Logging/Logging.h"
 #include "Core/Logging/LogSettings.h"
@@ -245,6 +246,12 @@ bool Application::PostInitialize()
 
 void Application::ProcessPlatformEvents()
 {
+    // 입력 상태 프레임 초기화 (PollEvents 전에 호출되어야 함)
+    if (InputSubsystem* input_sys = engine_instance->GetSubsystem<InputSubsystem>())
+    {
+        input_sys->BeginFrame();
+    }
+
     PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
     platform_sys->PollEvents();
 }
