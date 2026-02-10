@@ -67,14 +67,6 @@ void Engine::LoadRegisteredSubsystems()
 
         if (std::unique_ptr<SubsystemBase> subsystem = metadata.factory())
         {
-            if (IUpdatable* updatable = Cast<IUpdatable>(subsystem.get()))
-            {
-                updatable_systems.Push({
-                    .updatable = updatable,
-                    .name = subsystem->GetTypeId().GetName(),
-                });
-            }
-
             subsystems.Emplace(type_id, std::move(subsystem));
             ConsoleLog(ELogLevel::Debug, "Instantiated Subsystem: {}", type_id.GetName());
         }
@@ -261,7 +253,18 @@ bool Engine::SortSubsystems()
         return false;
     }
 
-    // Update 순서는 한번 보고 나중에 필요시 변경
+    // 일단 sorted_subsystems 순서에 따라 updatable_systems 등록
+    updatable_systems.Clear();
+    for (SubsystemBase* sub_system : sorted_subsystems)
+    {
+        if (IUpdatable* updatable = Cast<IUpdatable>(sub_system))
+        {
+            updatable_systems.Push({
+                .updatable = updatable,
+                .name = sub_system->GetTypeId().GetName(),
+            });
+        }
+    }
 
     ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
     for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
