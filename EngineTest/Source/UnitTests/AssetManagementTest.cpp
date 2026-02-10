@@ -6,7 +6,7 @@
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSlot.h"
 #include "SimpleEngine/Asset/Types/IAsset.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
 using namespace se;
@@ -23,8 +23,10 @@ AssetId GenerateAssetId()
 
 // --- Mock Assets for Testing ---
 
-class MockTexture : public Asset<MockTexture>
+class MockTexture : public IAsset
 {
+    SE_CLASS(MockTexture, IAsset)
+
 public:
     MockTexture() = default;
 
@@ -32,13 +34,21 @@ public:
     int height = 1024;
 };
 
-class MockMesh : public Asset<MockMesh>
+SE_BEGIN_REFLECT(MockTexture)
+SE_END_REFLECT(MockTexture)
+
+class MockMesh : public IAsset
 {
+    SE_CLASS(MockMesh, IAsset)
+
 public:
     MockMesh() = default;
 
     uint32 vertex_count = 100;
 };
+
+SE_BEGIN_REFLECT(MockMesh)
+SE_END_REFLECT(MockMesh)
 
 // =============================================================================
 // AssetPath Tests

@@ -132,7 +132,7 @@ public:
         result.Reserve(assets.Len());
         for (const auto& asset : assets)
         {
-            if (asset && asset->GetAssetType() == target_type)
+            if (asset && asset->GetTypeId() == target_type)
             {
                 result.Push(std::static_pointer_cast<T>(asset));
             }
@@ -149,7 +149,7 @@ public:
 
         for (const auto& asset : assets)
         {
-            if (asset && asset->GetAssetType() == target_type)
+            if (asset && asset->GetTypeId() == target_type)
             {
                 return std::static_pointer_cast<T>(asset);
             }
@@ -176,7 +176,7 @@ private:
         if (asset)
         {
             const TypeId target_type = TypeId::Get<T>();
-            if (SE_ENSURE(asset->GetAssetType() == target_type, "Asset type mismatch! Asset: {}, Requested: {}", asset->GetAssetType().GetName(), target_type.GetName()))
+            if (SE_ENSURE(asset->GetTypeId() == target_type, "Asset type mismatch! Asset: {}, Requested: {}", asset->GetTypeId().GetName(), target_type.GetName()))
             {
                 return std::static_pointer_cast<T>(asset);
             }

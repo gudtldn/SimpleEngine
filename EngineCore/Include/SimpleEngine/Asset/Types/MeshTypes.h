@@ -10,8 +10,11 @@ namespace se::asset
 /**
  * @todo docs
  */
-struct SE_CORE_API StaticMesh : Asset<StaticMesh>
+class SE_CORE_API StaticMesh : public IAsset
 {
+    SE_CLASS(StaticMesh, IAsset)
+
+public:
     // 추후 Depth Prepass를 위한 Position정보와 나머지 Vertex정보를 분리해서
     // 하이브리드 SoA 방식으로 구조를 변경해 볼 수도 있음.
     // (GPU Buffer를 positions +(pad) attributes +(pad) indices로 할당해서, Buffer를 2개로 나눠 Slot0, 1에 할당)
@@ -48,8 +51,11 @@ struct SE_CORE_API StaticMesh : Asset<StaticMesh>
 /**
  * @todo docs
  */
-struct SE_CORE_API SkeletalMesh : Asset<SkeletalMesh>
+class SE_CORE_API SkeletalMesh : public IAsset
 {
+    SE_CLASS(SkeletalMesh, IAsset)
+
+public:
     SE_PROPERTY(=::se::meta::ReadOnly)
     Array<graphics::Vertex> vertices;
 

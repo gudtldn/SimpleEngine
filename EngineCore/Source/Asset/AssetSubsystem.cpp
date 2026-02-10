@@ -166,7 +166,7 @@ bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
         }
 
         AssetId asset_id = AssetId{ Guid::NewGuid() };
-        const TypeId asset_type = asset->GetAssetType();
+        const TypeId asset_type = asset->GetTypeId();
         AssetPath asset_path = AssetPath{ file_path, name };
 
         // Registry에 등록
