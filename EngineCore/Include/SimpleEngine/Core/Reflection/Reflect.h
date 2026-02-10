@@ -21,6 +21,13 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags(Tags&&... tags)
     using namespace se::meta::detail;
 
     BitFlags<ETypeFlags> flags;
+
+    // Abstract 클래스 자동 감지
+    if constexpr (std::is_abstract_v<T>)
+    {
+        flags |= ETypeFlags::Abstract;
+    }
+
     auto process_tag = [&flags]<typename Tag>([[maybe_unused]] Tag&& tag)
     {
         using DecayedTag = std::decay_t<Tag>;
@@ -43,10 +50,6 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags(Tags&&... tags)
         else if constexpr (std::same_as<DecayedTag, TransientTag>)
         {
             flags |= ETypeFlags::Transient;
-        }
-        else if constexpr (std::is_abstract_v<T>)
-        {
-            flags |= ETypeFlags::Abstract;
         }
         else
         {
