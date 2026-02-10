@@ -157,22 +157,31 @@ consteval bool IsValidEnum() noexcept
 }
 
 // 자동 Enum 탐색을 위한 기본 범위
-constexpr int ENUM_MIN = -128;
-constexpr int ENUM_MAX = 127;
+constexpr int32 ENUM_MIN = -128;
+constexpr int32 ENUM_MAX = 127;
 
 template <typename E, typename Seq>
 struct EnumStorage;
 
-template <typename E, int... I>
-struct EnumStorage<E, std::integer_sequence<int, I...>>
+template <typename E, int32... I>
+struct EnumStorage<E, std::integer_sequence<int32, I...>>
 {
-    static constexpr usize Count = ((IsValidEnum<E, static_cast<E>(I + ENUM_MIN)>() ? 1 : 0) + ...);
+    using UnderlyingType = std::underlying_type_t<E>;
+
+    /** 인덱스를 실제 Enum 값으로 변환합니다. */
+    static constexpr E IndexToEnum(int32 index)
+    {
+        return static_cast<E>(static_cast<UnderlyingType>(index + ENUM_MIN));
+    }
+
+public:
+    static constexpr usize Count = ((IsValidEnum<E, IndexToEnum(I)>() ? 1 : 0) + ...);
 
     static constexpr FixedArray<E, Count> Values = []
     {
         FixedArray<E, Count> values{};
         usize idx = 0;
-        ((IsValidEnum<E, static_cast<E>(I + ENUM_MIN)>() ? (values[idx++] = static_cast<E>(I + ENUM_MIN), 0) : 0), ...);
+        ((IsValidEnum<E, IndexToEnum(I)>() ? (values[idx++] = IndexToEnum(I), 0) : 0), ...);
         return values;
     }();
 
@@ -180,14 +189,14 @@ struct EnumStorage<E, std::integer_sequence<int, I...>>
     {
         FixedArray<StringView, Count> names{};
         usize idx = 0;
-        ((IsValidEnum<E, static_cast<E>(I + ENUM_MIN)>() ? (names[idx++] = ExtractEnumName<E, static_cast<E>(I + ENUM_MIN)>(), 0) : 0), ...);
+        ((IsValidEnum<E, IndexToEnum(I)>() ? (names[idx++] = ExtractEnumName<E, IndexToEnum(I)>(), 0) : 0), ...);
         return names;
     }();
 };
 
 /** Enum 정보를 저장하는 리플렉터 */
 template <typename E>
-using EnumReflector = EnumStorage<E, std::make_integer_sequence<int, ENUM_MAX - ENUM_MIN + 1>>;
+using EnumReflector = EnumStorage<E, std::make_integer_sequence<int32, ENUM_MAX - ENUM_MIN + 1>>;
 } // namespace detail
 
 /**
