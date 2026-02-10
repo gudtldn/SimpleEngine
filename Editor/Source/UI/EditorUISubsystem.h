@@ -3,6 +3,7 @@
 #include "Core/EditorSubsystem.h"
 #include "UI/Panels/IEditorPanel.h"
 
+#include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
@@ -41,6 +42,7 @@ private:
 
 private:
     HashMap<StringName, std::unique_ptr<IEditorPanel>> panels; // TODO: Key GUID로 바꿀까
+    DelegateHandle sdl_event_handle;
 };
 
 template <typename PanelType, typename... Args>

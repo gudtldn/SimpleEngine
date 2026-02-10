@@ -10,8 +10,6 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_gpu.h"
 
-using namespace se::event;
-using namespace se;
 
 namespace se
 {
@@ -92,13 +90,24 @@ void PlatformSubsystem::Release()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void PlatformSubsystem::PollEvents()
 {
-    EventDispatcher& dispatcher = GetEventDispatcher();
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        PlatformEvent platform_event = { .sdl_event = event };
-        dispatcher.Dispatch(platform_event);
+        on_sdl_event.Broadcast(event);
+
+        switch (event.type)
+        {
+        case SDL_EVENT_QUIT:
+            on_quit_requested.Broadcast();
+            break;
+
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+            on_window_close_requested.Broadcast(event.window.windowID);
+            break;
+
+        default:
+            break;
+        }
     }
 }
 

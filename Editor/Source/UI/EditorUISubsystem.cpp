@@ -21,8 +21,6 @@
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
 
-using namespace se::event;
-
 
 namespace se::editor
 {
@@ -80,12 +78,10 @@ bool EditorUISubsystem::Initialize()
     ImGui_ImplSDLGPU3_Init(&init_info);
 
     // Platform Event 등록
-    platform_subsystem->GetEventDispatcher().Subscribe(
-        EventPriority::High, [](const PlatformEvent& event)
-        {
-            ImGui_ImplSDL3_ProcessEvent(&event.sdl_event);
-        }
-    );
+    sdl_event_handle = platform_subsystem->on_sdl_event.AddLambda([](const SDL_Event& event)
+    {
+        ImGui_ImplSDL3_ProcessEvent(&event);
+    });
 
     // 일단 명시적으로 Register 코드 작성
     RegisterPanel<ImGuiDemoPanel>(GetTypeName<ImGuiDemoPanel>());
@@ -102,6 +98,16 @@ bool EditorUISubsystem::Initialize()
 void EditorUISubsystem::Release()
 {
     panels.Clear();
+
+    // SDL 이벤트 구독 해제
+    if (sdl_event_handle.IsValid())
+    {
+        if (PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>())
+        {
+            platform_subsystem->on_sdl_event.Remove(sdl_event_handle);
+        }
+        sdl_event_handle.Invalidate();
+    }
 
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();

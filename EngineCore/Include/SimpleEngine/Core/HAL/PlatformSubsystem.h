@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Error/IError.h"
-#include "SimpleEngine/Core/Event/EventDispatcher.h"
+#include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
@@ -82,8 +82,23 @@ public:
 
     void PollEvents();
 
-    [[nodiscard]] event::EventDispatcher& GetEventDispatcher() { return platform_event_dispatcher; }
-    [[nodiscard]] const event::EventDispatcher& GetEventDispatcher() const { return platform_event_dispatcher; }
+public:
+    /**
+     * SDL 이벤트가 발생할 때마다 Broadcast됩니다.
+     * ImGui 등 모든 raw SDL 이벤트를 받아야 하는 시스템용입니다.
+     */
+    MultiDelegate<void(SDL_Event&)> on_sdl_event;
+
+    /**
+     * SDL_EVENT_QUIT 이벤트 발생 시 Broadcast됩니다.
+     */
+    MultiDelegate<void()> on_quit_requested;
+
+    /**
+     * SDL_EVENT_WINDOW_CLOSE_REQUESTED 이벤트 발생 시 Broadcast됩니다.
+     * @param SDL_WindowID 닫기가 요청된 윈도우의 ID
+     */
+    MultiDelegate<void(SDL_WindowID)> on_window_close_requested;
 
 public:
     // TODO: 다중 윈도우에 대해 작동할 수 있도록 수?정 | Main이 아닌 Window가 Fullscreen이 필요한가?
@@ -130,6 +145,5 @@ private:
     SDL_WindowID main_window_id = 0;
 
     HashMap<SDL_WindowID, SDL_Window*> windows;
-    event::EventDispatcher platform_event_dispatcher;
 };
 }
