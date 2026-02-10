@@ -1,9 +1,13 @@
 #include "UI/Panels/DebugPanel.h"
 
-#include "imgui.h"
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Engine/Engine.h"
+#include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Memory/MemoryStats.h"
+
+#include "imgui.h"
+
 
 namespace
 {
@@ -50,6 +54,7 @@ void DebugPanel::Draw()
     }
     ImGui::EndMenuBar();
 
+    if (ImGui::CollapsingHeader("Frame Counter", ImGuiTreeNodeFlags_DefaultOpen))
     {
         static constexpr int32 max_samples = 200;
         static Array fps_history(max_samples, 0.0f);
@@ -74,9 +79,113 @@ void DebugPanel::Draw()
         );
 
         int32 target_fps = static_cast<int32>(Application::GetTargetFps());
-        if (ImGui::SliderInt("Target FPS", &target_fps, 1, 1000))
+        if (ImGui::SliderInt("Target FPS", &target_fps, 1, 2400))
         {
             Application::SetTargetFps(target_fps);
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Input Status", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (auto* input = Engine::Get().GetSubsystem<InputSubsystem>())
+        {
+            if (ImGui::BeginTable("InputLayout", 2, ImGuiTableFlags_Resizable))
+            {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0);
+
+                // --- Mouse Section ---
+                if (ImGui::TreeNodeEx("Mouse", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    SE_SCOPE_DEFER{ ImGui::TreePop(); };
+
+                    ImGui::Text("Position: (%.2f, %.2f)", input->GetMouseX(), input->GetMouseY());
+                    ImGui::Text("Wheel: (%.2f, %.2f)", input->GetMouseWheelX(), input->GetMouseWheelY());
+
+                    ImGui::SeparatorText("Delta Visualizer");
+                    const ImVec2 canvas_p = ImGui::GetCursorScreenPos();
+                    constexpr ImVec2 canvas_sz = ImVec2(120, 120);
+                    const float center_x = canvas_p.x + canvas_sz.x * 0.5f;
+                    const float center_y = canvas_p.y + canvas_sz.y * 0.5f;
+
+                    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                    draw_list->AddRectFilled(canvas_p, ImVec2(canvas_p.x + canvas_sz.x, canvas_p.y + canvas_sz.y), IM_COL32(30, 30, 30, 255));
+                    draw_list->AddRect(canvas_p, ImVec2(canvas_p.x + canvas_sz.x, canvas_p.y + canvas_sz.y), IM_COL32(100, 100, 100, 255));
+                    
+                    // Grid
+                    draw_list->AddLine(ImVec2(center_x, canvas_p.y), ImVec2(center_x, canvas_p.y + canvas_sz.y), IM_COL32(60, 60, 60, 255));
+                    draw_list->AddLine(ImVec2(canvas_p.x, center_y), ImVec2(canvas_p.x + canvas_sz.x, center_y), IM_COL32(60, 60, 60, 255));
+
+                    // Delta Point
+                    const float dx = input->GetMouseDeltaX();
+                    const float dy = input->GetMouseDeltaY();
+                    constexpr float scale = 2.0f;
+                    draw_list->AddCircleFilled(ImVec2(center_x + dx * scale, center_y + dy * scale), 3.0f, IM_COL32(255, 255, 0, 255));
+                    draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + dx * scale, center_y + dy * scale), IM_COL32(255, 255, 0, 150));
+
+                    ImGui::Dummy(canvas_sz);
+                    ImGui::Text("Delta: (%.2f, %.2f)", dx, dy);
+
+                    ImGui::SeparatorText("Buttons");
+                    auto DrawMouseButton = [&](const char* label, MouseButton btn)
+                    {
+                        const bool is_down = input->IsMouseButtonDown(btn);
+                        if (is_down) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+                        ImGui::Button(label, ImVec2(40, 40));
+                        if (is_down) ImGui::PopStyleColor();
+                    };
+
+                    DrawMouseButton("L", MouseButton::Left); ImGui::SameLine();
+                    DrawMouseButton("M", MouseButton::Middle); ImGui::SameLine();
+                    DrawMouseButton("R", MouseButton::Right);
+                    DrawMouseButton("X1", MouseButton::X1); ImGui::SameLine();
+                    DrawMouseButton("X2", MouseButton::X2);
+
+                    ImGui::Separator();
+
+                    bool visible = input->IsCursorVisible();
+                    if (ImGui::Checkbox("Cursor Visible", &visible))
+                    {
+                        input->SetCursorVisible(visible);
+                    }
+
+                    bool relative = input->IsRelativeMouseMode();
+                    if (ImGui::Checkbox("Relative Mode", &relative))
+                    {
+                        input->SetRelativeMouseMode(relative);
+                    }
+                }
+
+                ImGui::TableSetColumnIndex(1);
+
+                // --- Keyboard Section ---
+                if (ImGui::TreeNodeEx("Keyboard", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    SE_SCOPE_DEFER{ ImGui::TreePop(); };
+
+                    ImGui::Text("Active Keys:");
+                    ImGui::BeginChild("KeyLog", ImVec2(0, 250), true);
+                    for (uint16 i = 0; i < static_cast<uint16>(KeyCode::Max); ++i)
+                    {
+                        KeyCode key = static_cast<KeyCode>(i);
+                        if (input->IsKeyDown(key))
+                        {
+                            const char* key_name = SDL_GetScancodeName(static_cast<SDL_Scancode>(i));
+                            if (key_name && key_name[0] != '\0')
+                            {
+                                ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), " [ %s ] ", key_name);
+                            }
+                        }
+                    }
+                    ImGui::EndChild();
+                }
+
+                ImGui::EndTable();
+            }
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "InputSubsystem not found!");
         }
     }
 
