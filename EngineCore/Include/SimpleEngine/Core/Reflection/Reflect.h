@@ -120,9 +120,10 @@ consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
 }
 } // namespace se::detail
 
-/** */
 #define SE_INTERNAL_CLASS_BODY(this_class, base_class, override_keyword, static_assert_expr) \
 private: \
+    friend class ::se::detail::TypeBuilder<this_class>; \
+    friend struct this_class##_Registrar; \
     using Super = base_class; \
     using ThisClass = this_class; \
 public: \
@@ -139,10 +140,7 @@ public: \
     virtual ::se::TypeId GetTypeId() const override_keyword \
     { \
         return ::se::TypeId::Get<this_class>(); \
-    } \
-private: \
-    friend class ::se::detail::TypeBuilder<this_class>; \
-    friend struct this_class##_Registrar;
+    }
 
 #define SE_INTERNAL_CLASS_DEFAULT(this_class) \
     SE_INTERNAL_CLASS_BODY(this_class, void,,)
