@@ -7,6 +7,7 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/OsMemory.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -18,28 +19,22 @@ constexpr usize SBO_BUFFER_SIZE = sizeof(void*) * 3;
 }
 
 template <typename Signature>
-struct Function;
+class Function;
 
 template <typename ReturnType, typename... ParamsType>
-struct Function<ReturnType(ParamsType...)>
+class Function<ReturnType(ParamsType...)>
 {
 private:
     // 내부 저장소 및 호출을 위한 인터페이스
     struct ICallable
     {
-        ICallable() = default;
         virtual ~ICallable() = default;
 
-        ICallable(const ICallable&) = default;
-        ICallable& operator=(const ICallable&) = default;
-        ICallable(ICallable&&) noexcept = default;
-        ICallable& operator=(ICallable&&) noexcept = default;
+        virtual ReturnType Invoke(ParamsType... args) = 0;
 
-        virtual ReturnType Invoke(ParamsType&&...) = 0;
-
-        virtual ICallable* Clone() const = 0;
-        virtual ICallable* CloneTo(void* dest) const = 0;
-        virtual ICallable* MoveTo(void* dest) noexcept = 0;
+        virtual ICallable* Clone() const = 0;               // Heap 복사
+        virtual ICallable* CloneTo(void* dest) const = 0;   // SBO 복사
+        virtual ICallable* MoveTo(void* dest) noexcept = 0; // 이동
     };
 
     template <typename Fn>
@@ -54,7 +49,7 @@ private:
         {
         }
 
-        virtual ReturnType Invoke(ParamsType&&... args) override
+        virtual ReturnType Invoke(ParamsType... args) override
         {
             return std::invoke(functor, std::forward<ParamsType>(args)...);
         }
@@ -77,21 +72,31 @@ private:
         }
     };
 
-    // Function이 가지고 있는 Callable 객체
-    union FunctionStorage
+private:
+    [[nodiscard]] bool IsOnHeap() const noexcept
     {
-        ICallable* Heap_Storage = nullptr;
-        alignas(detail::SBOAlign) uint8 SBO_Storage[detail::SBO_BUFFER_SIZE];
-    } Storage;
+        return static_cast<const void*>(callable_ptr) != static_cast<const void*>(sbo_storage);
+    }
 
-    ICallable* CallablePtr = nullptr;
+    void Reset() noexcept
+    {
+        if (callable_ptr)
+        {
+            // 소멸자 호출
+            std::destroy_at(callable_ptr);
+
+            if (IsOnHeap())
+            {
+                OsMemory::Free(callable_ptr);
+            }
+
+            callable_ptr = nullptr;
+        }
+    }
 
 public:
     Function() noexcept = default;
-
-    Function(std::nullptr_t) noexcept
-    {
-    }
+    Function(std::nullptr_t) noexcept {}
 
     ~Function()
     {
@@ -100,36 +105,33 @@ public:
 
     Function(const Function& other)
     {
-        if (other.CallablePtr)
+        if (other.callable_ptr)
         {
             if (other.IsOnHeap())
             {
-                CallablePtr = other.CallablePtr->Clone();
-                Storage.Heap_Storage = CallablePtr;
+                callable_ptr = other.callable_ptr->Clone();
             }
             else
             {
-                CallablePtr = other.CallablePtr->CloneTo(Storage.SBO_Storage);
+                callable_ptr = other.callable_ptr->CloneTo(sbo_storage);
             }
         }
     }
 
     Function(Function&& other) noexcept
     {
-        if (other.CallablePtr)
+        if (other.callable_ptr)
         {
             if (other.IsOnHeap())
             {
-                Storage.Heap_Storage = other.Storage.Heap_Storage;
-                CallablePtr = other.CallablePtr;
+                callable_ptr = other.callable_ptr;
             }
             else
             {
-                CallablePtr = other.CallablePtr->MoveTo(Storage.SBO_Storage);
+                callable_ptr = other.callable_ptr->MoveTo(sbo_storage);
+                std::destroy_at(other.callable_ptr); // other.sbo_storage 정리
             }
-
-            other.Storage.Heap_Storage = nullptr;
-            other.CallablePtr = nullptr;
+            other.callable_ptr = nullptr;
         }
     }
 
@@ -137,29 +139,40 @@ public:
     {
         if (this != &other)
         {
-            Function temp(other);
-            std::swap(temp, *this);
+            Reset();
+            if (other.callable_ptr)
+            {
+                if (other.IsOnHeap())
+                {
+                    callable_ptr = other.callable_ptr->Clone();
+                }
+                else
+                {
+                    callable_ptr = other.callable_ptr->CloneTo(sbo_storage);
+                }
+            }
         }
         return *this;
     }
 
     Function& operator=(Function&& other) noexcept
     {
-        Reset();
-        if (other.CallablePtr)
+        if (this != &other)
         {
-            if (other.IsOnHeap())
+            Reset();
+            if (other.callable_ptr)
             {
-                Storage.Heap_Storage = other.Storage.Heap_Storage;
-                CallablePtr = other.CallablePtr;
+                if (other.IsOnHeap())
+                {
+                    callable_ptr = other.callable_ptr;
+                }
+                else
+                {
+                    callable_ptr = other.callable_ptr->MoveTo(sbo_storage);
+                    std::destroy_at(other.callable_ptr); // other.sbo_storage 정리
+                }
+                other.callable_ptr = nullptr;
             }
-            else
-            {
-                CallablePtr = other.CallablePtr->MoveTo(Storage.SBO_Storage);
-            }
-
-            other.Storage.Heap_Storage = nullptr;
-            other.CallablePtr = nullptr;
         }
         return *this;
     }
@@ -167,54 +180,56 @@ public:
     // 람다 및 기타 Callable한 객체를 받는 생성자
     template <typename Fn>
         requires (
-            !std::same_as<std::decay_t<Fn>, Function>                // 자기 자신은 제외
-            && !std::is_null_pointer_v<std::decay_t<Fn>>             // nullptr_t는 별도 생성자에서 처리
-            && std::is_invocable_r_v<ReturnType, Fn&, ParamsType...> // 호출 가능성 검사 (반환 타입 포함)
+            !std::same_as<std::decay_t<Fn>, Function>                              // 자기 자신은 제외
+            && !std::is_null_pointer_v<std::decay_t<Fn>>                           // nullptr_t는 별도 생성자에서 처리
+            && std::is_invocable_r_v<ReturnType, std::decay_t<Fn>&, ParamsType...> // 호출 가능성 검사 (반환 타입 포함)
         )
     Function(Fn&& in_func)
     {
-        using DecayedFunctorType = std::decay_t<Fn>;
-        using Callable = CallableImpl<DecayedFunctorType>;
+        using DecayedFn = std::decay_t<Fn>;
+        using ImplType = CallableImpl<DecayedFn>;
 
         // SBO 조건: 객체 크기가 버퍼보다 작고, 이동 생성이 noexcept여야 함
-        if constexpr (sizeof(Callable) <= detail::SBO_BUFFER_SIZE && std::is_nothrow_move_constructible_v<Fn>)
+        constexpr bool use_sbo =
+            sizeof(ImplType) <= detail::SBO_BUFFER_SIZE
+            && alignof(ImplType) <= alignof(detail::SBOAlign)
+            && std::is_nothrow_move_constructible_v<DecayedFn>;
+
+        if constexpr (use_sbo)
         {
-            CallablePtr = std::construct_at(reinterpret_cast<Callable*>(Storage.SBO_Storage), std::forward<Fn>(in_func));
+            callable_ptr = std::construct_at(reinterpret_cast<ImplType*>(sbo_storage), std::forward<Fn>(in_func));
         }
         else
         {
-            Callable* dest = OsMemory::Allocate<Callable>();
-            std::construct_at(dest, std::forward<Fn>(in_func));
-            Storage.Heap_Storage = dest;
-            CallablePtr = Storage.Heap_Storage;
+            ImplType* dest = OsMemory::Allocate<ImplType>();
+            callable_ptr = std::construct_at(dest, std::forward<Fn>(in_func));
         }
     }
 
     [[nodiscard]] bool IsValid() const noexcept
     {
-        return CallablePtr != nullptr;
+        return callable_ptr != nullptr;
     }
 
-    ReturnType Invoke(ParamsType&&... args) const
+    ReturnType Invoke(ParamsType... args) const
     {
-        if (!CallablePtr)
-        {
-            throw std::bad_function_call{};
-        }
-        return CallablePtr->Invoke(std::forward<ParamsType>(args)...);
+        SE_ASSERT(callable_ptr, "callable_ptr is nullptr!");
+        return callable_ptr->Invoke(std::forward<ParamsType>(args)...);
     }
 
-    ReturnType operator()(ParamsType&&... args) const
+    ReturnType operator()(ParamsType... args) const
     {
-        return Invoke(std::forward<ParamsType>(args)...);
+        SE_ASSERT(callable_ptr, "callable_ptr is nullptr!");
+        return callable_ptr->Invoke(std::forward<ParamsType>(args)...);
     }
 
+public:
     [[nodiscard]] bool operator==(const Function& other) const
     {
-        return CallablePtr == other.CallablePtr;
+        return callable_ptr == other.callable_ptr;
     }
 
-    [[nodiscard]] bool operator==(std::nullptr_t) const
+    [[nodiscard]] bool operator==(std::nullptr_t) const noexcept
     {
         return !IsValid();
     }
@@ -225,26 +240,10 @@ public:
     }
 
 private:
-    [[nodiscard]] bool IsOnHeap() const noexcept
-    {
-        return CallablePtr && CallablePtr != reinterpret_cast<const ICallable*>(Storage.SBO_Storage);
-    }
+    // SBO 버퍼
+    alignas(detail::SBOAlign) uint8 sbo_storage[detail::SBO_BUFFER_SIZE]{};
 
-    void Reset() noexcept
-    {
-        if (CallablePtr)
-        {
-            if (IsOnHeap())
-            {
-                std::destroy_at(CallablePtr);
-                OsMemory::Free(CallablePtr);
-            }
-            else
-            {
-                std::destroy_at(CallablePtr);
-            }
-            CallablePtr = nullptr;
-        }
-    }
+    // 현재 활성화된 Callable 포인터
+    ICallable* callable_ptr = nullptr;
 };
 }
