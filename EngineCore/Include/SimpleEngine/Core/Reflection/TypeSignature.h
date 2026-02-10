@@ -38,7 +38,7 @@ consteval StringView RemoveKeywords(StringView signature, const FixedArray<Strin
         {
             if (signature.StartsWith(keyword))
             {
-                // qualifier 다음 문자가 토큰 경계인지 확인
+                // keyword 다음 문자가 토큰 경계인지 확인
                 const char next = signature.ByteLen() > keyword.ByteLen() ? signature[keyword.ByteLen()] : '\0';
                 if (IsTokenBoundary(next))
                 {
@@ -112,56 +112,56 @@ consteval StringView GetRawTypeSignature() noexcept
 /** MSVC 시그니처에서 타입 이름을 추출합니다. */
 consteval StringView ExtractType_MSVC(StringView signature) noexcept
 {
-    constexpr StringView prefix = "GetRawTypeSignature<";
-    auto start_pos_opt = signature.Find(prefix);
-    if (!start_pos_opt.HasValue())
+    constexpr StringView prefix_marker = "GetRawTypeSignature<";
+    auto start_param = signature.Find(prefix_marker);
+    if (!start_param.HasValue())
     {
         return {};
     }
-    const usize start_pos = *start_pos_opt + prefix.ByteLen();
+    const usize search_start = *start_param + prefix_marker.ByteLen();
 
-    constexpr StringView suffix = ">(void) noexcept";
-    const auto end_pos_opt = signature.FindLast(suffix);
-    if (!end_pos_opt.HasValue() || *end_pos_opt <= start_pos)
+    constexpr StringView suffix_marker = ">(void) noexcept";
+    const auto end_param = signature.FindLast(suffix_marker);
+    if (!end_param.HasValue() || *end_param <= search_start)
     {
         return {};
     }
 
     // <>안 Type 정보만 추출
-    const StringView extracted_typename = signature.Substr(start_pos, *end_pos_opt - start_pos).Trim();
-    return extracted_typename;
+    const StringView type_part = signature.Substr(search_start, *end_param - search_start).Trim();
+    return type_part;
 }
 
 /** GCC/Clang 시그니처에서 타입 이름을 추출합니다. */
 consteval StringView ExtractType_GCC_Clang(StringView signature) noexcept
 {
 #if SE_COMPILER_CLANG
-    constexpr StringView prefix = "[T = ";
+    constexpr StringView prefix_marker = "[T = ";
 #else
-    constexpr StringView prefix = "[with T = ";
+    constexpr StringView prefix_marker = "[with T = ";
 #endif
-    auto start_pos_opt = signature.Find(prefix);
-    if (!start_pos_opt.HasValue())
+    auto start_param = signature.Find(prefix_marker);
+    if (!start_param.HasValue())
     {
         return {};
     }
-    const usize start_pos = *start_pos_opt + prefix.ByteLen();
+    const usize search_start = *start_param + prefix_marker.ByteLen();
 
 
 #if SE_COMPILER_CLANG
-    constexpr StringView suffix = "]";
+    constexpr StringView suffix_marker = "]";
 #else
-    constexpr StringView suffix = ";";
+    constexpr StringView suffix_marker = ";";
 #endif
-    const auto end_pos_opt = signature.FindLast(suffix);
-    if (!end_pos_opt.HasValue() || *end_pos_opt <= start_pos)
+    const auto end_param = signature.FindLast(suffix_marker);
+    if (!end_param.HasValue() || *end_param <= search_start)
     {
         return {};
     }
 
-    // [with T = ;]안 Type 정보만 추출
-    const StringView extracted_typename = signature.Substr(start_pos, *end_pos_opt - start_pos);
-    return extracted_typename;
+    // [with T = ;] 또는 [T = ] 안 Type 정보만 추출
+    const StringView type_part = signature.Substr(search_start, *end_param - search_start);
+    return type_part;
 }
 
 
