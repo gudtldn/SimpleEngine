@@ -2,7 +2,7 @@
 #include "SimpleEngine/Asset/Pipeline/Types/AttributeStorage.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Types/Guid.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se::asset
@@ -12,11 +12,10 @@ namespace se::asset
  */
 class SE_CORE_API PipelineBaseNode
 {
+    SE_CLASS(PipelineBaseNode)
+
 public:
     virtual ~PipelineBaseNode() = default;
-
-    /** 노드의 고유 타입 식별자를 반환합니다. */
-    [[nodiscard]] virtual TypeId GetTypeId() const = 0;
 
     /** 팩토리 정렬(Topological Sort)을 위해 이 노드가 참조하는 다른 노드들의 ID 반환합니다. */
     virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const
@@ -46,26 +45,5 @@ protected:
     String display_name;
 
     AttributeStorage attributes;
-};
-
-/**
- * CRTP 패턴을 활용한 Pipeline 기본 노드 템플릿 클래스
- * @tparam Derived 실제 이 클래스를 상속받는 하위 클래스 타입
- */
-template <typename Derived>
-class PipelineNode : public PipelineBaseNode
-{
-    friend Derived;
-
-protected:
-    PipelineNode() = default;
-    virtual ~PipelineNode() override = default;
-
-public:
-    [[nodiscard]] virtual TypeId GetTypeId() const override final
-    {
-        static_assert(std::derived_from<Derived, PipelineNode>, "CRTP Error: Derived class must inherit from PipelineNode<Derived>");
-        return TypeId::Get<Derived>();
-    }
 };
 }  // namespace se::asset

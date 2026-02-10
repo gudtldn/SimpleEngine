@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se::asset
@@ -7,8 +8,10 @@ namespace se::asset
 /**
  * Texture의 원본 파일 정보 및 임포트 설정을 담당하는 노드
  */
-class SE_CORE_API PipelineTextureNode final : public PipelineNode<PipelineTextureNode>
+class SE_CORE_API PipelineTextureNode final : public PipelineBaseNode
 {
+    SE_CLASS(PipelineTextureNode, PipelineBaseNode)
+
 public:
     struct Keys
     {

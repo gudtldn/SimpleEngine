@@ -1,12 +1,15 @@
 #pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
 
 
 namespace se::asset
 {
-class SE_CORE_API PipelineMaterialNode final : public PipelineNode<PipelineMaterialNode>
+class SE_CORE_API PipelineMaterialNode final : public PipelineBaseNode
 {
+    SE_CLASS(PipelineMaterialNode, PipelineBaseNode)
+
 public:
     struct Keys
     {

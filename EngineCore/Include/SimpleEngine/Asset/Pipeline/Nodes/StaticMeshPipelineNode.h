@@ -1,12 +1,14 @@
 #pragma once
-#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineNode.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 
 namespace se::asset
 {
-class SE_CORE_API StaticMeshPipelineNode : public PipelineNode<StaticMeshPipelineNode>
+class SE_CORE_API StaticMeshPipelineNode : public PipelineBaseNode
 {
+    SE_CLASS(StaticMeshPipelineNode, PipelineBaseNode)
+
 public:
     // Mesh Data
     Array<graphics::Vertex> vertices;

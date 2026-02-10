@@ -3,6 +3,9 @@
 
 namespace se::asset
 {
+SE_BEGIN_REFLECT(PipelineTextureNode)
+SE_END_REFLECT(PipelineTextureNode)
+
 Optional<const String&> PipelineTextureNode::GetSourceFile() const
 {
     return attributes.GetAttribute<String>(Keys::SOURCE_FILE);

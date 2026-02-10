@@ -1,15 +1,15 @@
 #include "gtest/gtest.h"
 
-#include <ranges>
 #include <filesystem>
+#include <ranges>
 
+#include "SimpleEngine/Asset/ImportSettings/ImportSettingsBase.h"
 #include "SimpleEngine/Asset/Pipeline/AssetImporter.h"
-#include "SimpleEngine/Asset/Pipeline/Processors/IPipelineProcessor.h"
-#include "SimpleEngine/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 #include "SimpleEngine/Asset/Pipeline/Factories/StaticMeshFactory.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
+#include "SimpleEngine/Asset/Pipeline/Processors/IPipelineProcessor.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Asset/ImportSettings/ImportSettings.h"
 
 using namespace se;
 using namespace se::asset;
@@ -18,12 +18,19 @@ using namespace se::graphics;
 // --- Mock Classes ---
 
 // 테스트용 Import Settings
-struct MockImportSettings : public ImportSettings<MockImportSettings>
+struct MockImportSettings : public ImportSettingsBase
 {
+    SE_CLASS(MockImportSettings, ImportSettingsBase)
+
+public:
     bool combine_meshes = true;
 
     virtual void Serialize([[maybe_unused]] Archive& ar) override {}
 };
+
+SE_BEGIN_REFLECT(MockImportSettings)
+    SE_REFLECT_PROPERTY(combine_meshes)
+SE_END_REFLECT(MockImportSettings)
 
 // 테스트용 간단한 Translator
 class MockMeshTranslator : public IPipelineTranslator
