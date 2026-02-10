@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include "SimpleEngine/Asset/ImportSettings/ImportSettings.h"
+#include "SimpleEngine/Asset/ImportSettings/ImportSettingsBase.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"

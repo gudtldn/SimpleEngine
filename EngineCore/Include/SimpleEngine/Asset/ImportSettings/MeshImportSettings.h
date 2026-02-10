@@ -1,6 +1,6 @@
 #pragma once
-#include "SimpleEngine/Asset/ImportSettings/ImportSettings.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "SimpleEngine/Asset/ImportSettings/ImportSettingsBase.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se::asset
@@ -8,8 +8,10 @@ namespace se::asset
 /**
  * 3D Model 파일(FBX, OBJ, GLTF 등)을 임포트할 때 적용할 Mesh 처리 옵션
  */
-class SE_CORE_API SE_TYPE_ANNOTATION() MeshImportSettings : public ImportSettings<MeshImportSettings>
+class SE_CORE_API SE_TYPE_ANNOTATION() MeshImportSettings : public ImportSettingsBase
 {
+    SE_CLASS(MeshImportSettings, ImportSettingsBase)
+
 public:
     /**
      * 소스 파일 내의 모든 서브 메쉬(Sub-mesh)를 하나의 거대한 StaticMesh로 병합할지 여부
