@@ -248,10 +248,10 @@
   <!-- Optional<T> -->
   <Type Name="Optional&lt;*&gt;">
     <DisplayString Condition="!is_value_set">nullopt</DisplayString>
-    <DisplayString Condition="is_value_set">{*($T1*)storage}</DisplayString>
+    <DisplayString Condition="is_value_set">{(const $T1&amp;)storage}</DisplayString>
     <Expand>
       <Item Name="[has_value]" ExcludeView="simple">is_value_set</Item>
-      <Item Name="[value]" Condition="is_value_set">*($T1*)storage</Item>
+      <Item Name="[value]" Condition="is_value_set">(const $T1&amp;)storage</Item>
     </Expand>
   </Type>
 
