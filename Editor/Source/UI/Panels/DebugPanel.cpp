@@ -105,8 +105,8 @@ void DebugPanel::Draw()
                     ImGui::SeparatorText("Delta Visualizer");
                     const ImVec2 canvas_p = ImGui::GetCursorScreenPos();
                     constexpr ImVec2 canvas_sz = ImVec2(120, 120);
-                    const float center_x = canvas_p.x + canvas_sz.x * 0.5f;
-                    const float center_y = canvas_p.y + canvas_sz.y * 0.5f;
+                    const float center_x = canvas_p.x + (canvas_sz.x * 0.5f);
+                    const float center_y = canvas_p.y + (canvas_sz.y * 0.5f);
 
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
                     draw_list->AddRectFilled(canvas_p, ImVec2(canvas_p.x + canvas_sz.x, canvas_p.y + canvas_sz.y), IM_COL32(30, 30, 30, 255));
@@ -120,8 +120,8 @@ void DebugPanel::Draw()
                     const float dx = input->GetMouseDeltaX();
                     const float dy = input->GetMouseDeltaY();
                     constexpr float scale = 2.0f;
-                    draw_list->AddCircleFilled(ImVec2(center_x + dx * scale, center_y + dy * scale), 3.0f, IM_COL32(255, 255, 0, 255));
-                    draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + dx * scale, center_y + dy * scale), IM_COL32(255, 255, 0, 150));
+                    draw_list->AddCircleFilled(ImVec2(center_x + (dx * scale), center_y + (dy * scale)), 3.0f, IM_COL32(255, 255, 0, 255));
+                    draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + (dx * scale), center_y + (dy * scale)), IM_COL32(255, 255, 0, 150));
 
                     ImGui::Dummy(canvas_sz);
                     ImGui::Text("Delta: (%.2f, %.2f)", dx, dy);
@@ -130,9 +130,15 @@ void DebugPanel::Draw()
                     auto DrawMouseButton = [&](const char* label, MouseButton btn)
                     {
                         const bool is_down = input->IsMouseButtonDown(btn);
-                        if (is_down) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+                        if (is_down)
+                        {
+                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+                        }
                         ImGui::Button(label, ImVec2(40, 40));
-                        if (is_down) ImGui::PopStyleColor();
+                        if (is_down)
+                        {
+                            ImGui::PopStyleColor();
+                        }
                     };
 
                     DrawMouseButton("L", MouseButton::Left); ImGui::SameLine();
