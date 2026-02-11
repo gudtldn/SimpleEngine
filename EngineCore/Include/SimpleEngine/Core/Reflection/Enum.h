@@ -12,37 +12,49 @@
  * 일반 Enum의 탐색 범위를 확장합니다.
  * 예: SE_ENUM_RANGE(MyEnum, 0, 500);
  */
-#define SE_ENUM_SET_RANGE(Enum, MinVal, MaxVal) \
-    template <> struct se::EnumTraits<Enum> \
+#define SE_ENUM_SET_RANGE(enum_type, min_value, max_value) \
+    template <> struct se::detail::EnumTraits<enum_type> \
     { \
         static constexpr bool IsBitFlag = false; \
-        static constexpr int32 Min = static_cast<int32>(MinVal); \
-        static constexpr int32 Max = static_cast<int32>(MaxVal); \
+        static constexpr bool UseExplicitValues = false; \
+        static constexpr int32 Min = static_cast<int32>(min_value); \
+        static constexpr int32 Max = static_cast<int32>(max_value); \
     };
 
 /**
  * 비트 플래그 Enum으로 지정합니다. (0~63 비트 자동 탐색)
  * 예: SE_ENUM_BITFLAG(MyFlags);
  */
-#define SE_ENUM_SET_BITFLAG(Enum) \
-    template <> struct se::EnumTraits<Enum> \
+#define SE_ENUM_SET_BITFLAG(enum_type) \
+    template <> struct se::detail::EnumTraits<enum_type> \
     { \
         static constexpr bool IsBitFlag = true; \
+        static constexpr bool UseExplicitValues = false; \
         static constexpr int32 Min = 0; \
         static constexpr int32 Max = 0; \
     };
 
+/**
+ * Enum을 지정한 값 목록으로 탐색합니다.
+ * 예: SE_ENUM_SET_VALUES(1, 2, 3, ...);
+ */
+#define SE_ENUM_SET_VALUES(enum_type, ...) \
+    template <> struct se::detail::EnumTraits<enum_type> \
+    { \
+        static constexpr bool IsBitFlag = false; \
+        static constexpr bool UseExplicitValues = true; \
+        static constexpr int32 Min = 0; \
+        static constexpr int32 Max = 0; \
+    }; \
+    template <> struct se::detail::EnumExplicitValues<enum_type> \
+    { \
+        template <auto... Vs> \
+        static consteval usize SizeOf() { return sizeof...(Vs); }\
+        static constexpr FixedArray<enum_type, SizeOf<__VA_ARGS__>()> Values = { __VA_ARGS__ }; \
+    };
+
 namespace se
 {
-/** Enum 리플렉션 동작 방식을 정의하는 구조체 */
-template <traits::EnumType E>
-struct EnumTraits
-{
-    static constexpr bool IsBitFlag = false;
-    static constexpr int32 Min = -128;
-    static constexpr int32 Max = 127;
-};
-
 namespace detail
 {
 /** 문자가 유효한 식별자인지 확인합니다. */
@@ -74,8 +86,29 @@ consteval StringView ExtractEnumName_MSVC(StringView signature) noexcept
     // "... GetRawEnumSignature<enum EnumType,EnumType::Value>(void) ..."
     // "... GetRawEnumSignature<enum EnumType,0>(void) ..."
 
-    constexpr StringView prefix_marker = "GetRawEnumSignature<";
-    auto start_param = signature.Find(prefix_marker);
+    // constexpr StringView prefix_marker = "GetRawEnumSignature<";
+    // auto start_param = signature.Find(prefix_marker);
+    // if (!start_param.HasValue())
+    // {
+    //     return {};
+    // }
+    //
+    // // prefix_marker 앞에서 시작
+    // const usize search_start = *start_param + prefix_marker.ByteLen();
+    //
+    // constexpr StringView suffix_marker = ">(void)";
+    // auto end_param = signature.FindLast(suffix_marker);
+    // if (!end_param.HasValue())
+    // {
+    //     return {};
+    // }
+    //
+    // // "< >" 사이의 문자열("enum MyEnum,MyEnum::Value" or "enum MyEnum,0") 추출
+    // const StringView content = signature.Substr(search_start, *end_param - search_start);
+
+    // 템플릿 인자 구분자 찾기 (Enum 이름 시작 위치)
+    constexpr StringView prefix_marker = ",";
+    auto start_param = signature.FindLast(prefix_marker);
     if (!start_param.HasValue())
     {
         return {};
@@ -91,17 +124,8 @@ consteval StringView ExtractEnumName_MSVC(StringView signature) noexcept
         return {};
     }
 
-    // "< >" 사이의 문자열("enum MyEnum,MyEnum::Value" or "enum MyEnum,0") 추출
-    const StringView content = signature.Substr(search_start, *end_param - search_start);
-
-    // 템플릿 인자 구분자 찾기
-    auto last_comma = content.FindLast(",");
-    if (!last_comma.HasValue())
-    {
-        return {};
-    }
-
-    const StringView value_part = content.Substr(*last_comma + 1).Trim();
+    // ",...>(void)" 사이의 문자열 추출
+    const StringView value_part = signature.Substr(search_start, *end_param - search_start);
     if (value_part.IsEmpty())
     {
         return {};
@@ -118,6 +142,7 @@ consteval StringView ExtractEnumName_MSVC(StringView signature) noexcept
     {
         return value_part.Substr(*last_scope + 2);
     }
+
     return value_part;
 }
 
@@ -182,13 +207,19 @@ consteval StringView ExtractEnumName() noexcept
 #endif
 }
 
-/** 주어진 Enum 값이 유효한지(이름이 있는지) 확인합니다. */
-template <typename EnumType, EnumType Value>
-consteval bool IsValidEnum() noexcept
+/** Enum 리플렉션 동작 방식을 정의하는 구조체 */
+template <traits::EnumType E>
+struct EnumTraits
 {
-    constexpr StringView name = ExtractEnumName<EnumType, Value>();
-    return !name.IsEmpty();
-}
+    static constexpr bool IsBitFlag = false;
+    static constexpr bool UseExplicitValues = false;
+    static constexpr int32 Min = 0;
+    static constexpr int32 Max = 64;
+};
+
+/** 탐색할 리스트를 지정하는 구조체 */
+template <typename E>
+struct EnumExplicitValues;
 
 /** 단일 Enum 항목 정보 */
 template <typename E>
@@ -201,12 +232,12 @@ struct EnumEntry
 };
 
 /** Enum 값 생성기 */
-template <typename E, bool IsBitFlag>
+template <typename E, bool IsBitFlag, bool UseExplicitValues>
 struct EnumValueGenerator;
 
 /** 일반 범위 (Min ~ Max) */
 template <typename E>
-struct EnumValueGenerator<E, false>
+struct EnumValueGenerator<E, false, false>
 {
     static constexpr int32 Min = EnumTraits<E>::Min;
     static constexpr int32 Max = EnumTraits<E>::Max;
@@ -214,24 +245,26 @@ struct EnumValueGenerator<E, false>
 
     // Sequence: 0, 1, 2 ...RangeSize
     using IndexSequence = std::make_integer_sequence<int32, RangeSize>;
-
-    static constexpr E GetValue(int32 index)
-    {
-        return static_cast<E>(index + Min);
-    }
+    static constexpr E GetValue(int32 index) { return static_cast<E>(index + Min); }
 };
 
 /** 비트 플래그 (1<<0 ~ 1<<63) */
 template <typename E>
-struct EnumValueGenerator<E, true>
+struct EnumValueGenerator<E, true, false>
 {
     // Sequence: 0, 1, 2 ... 63
     using IndexSequence = std::make_integer_sequence<int32, 64>;
+    static constexpr E GetValue(int32 index) { return static_cast<E>(1ULL << index); }
+};
 
-    static constexpr E GetValue(int32 index)
-    {
-        return static_cast<E>(1ULL << index);
-    }
+template <typename E>
+struct EnumValueGenerator<E, false, true>
+{
+    static constexpr auto& Values = EnumExplicitValues<E>::Values;
+    static constexpr usize Count = Values.Len();
+
+    using IndexSequence = std::make_integer_sequence<int32, Count>;
+    static constexpr E GetValue(int32 index) { return Values[index]; }
 };
 
 /** 실제 데이터를 저장하는 구조체 */
@@ -241,32 +274,34 @@ struct EnumStorageImpl;
 template <typename E, typename Generator, int32... I>
 struct EnumStorageImpl<E, Generator, std::integer_sequence<int32, I...>>
 {
+private:
     template <int32 Idx>
-    static consteval std::pair<E, StringView> GetEntryIfValid()
+    static consteval EnumEntry<E> GetEntryIfValid()
     {
         constexpr E val = Generator::GetValue(Idx);
         constexpr StringView name = ExtractEnumName<E, val>();
-        return { val, name };
+        return EnumEntry<E>{ .value = val, .name = name };
     }
+
+    static constexpr FixedArray<EnumEntry<E>, sizeof...(I)> RawEntries = { GetEntryIfValid<I>()... };
 
 public:
     /** 유효한 Enum 개수 */
-    static constexpr usize Count = ((GetEntryIfValid<I>().second.IsEmpty() ? 0 : 1) + ...);
+    static constexpr usize Count = std::ranges::count_if(RawEntries, [](const EnumEntry<E>& entry) -> bool
+    {
+        return !entry.name.IsEmpty();
+    });
 
     /** 각 Entry를 모아서 배열 생성 */
     static constexpr FixedArray<EnumEntry<E>, Count> Entries = []
     {
         FixedArray<EnumEntry<E>, Count> entries{};
-        usize idx = 0;
-        auto process = [&]<int32 Idx>()
-        {
-            constexpr auto entry = GetEntryIfValid<Idx>();
-            if constexpr (!entry.second.IsEmpty())
+        std::ranges::copy_if(
+            RawEntries, entries.begin(), [](const EnumEntry<E>& entry) -> bool
             {
-                entries[idx++] = { entry.first, entry.second };
+                return !entry.name.IsEmpty();
             }
-        };
-        (process.template operator()<I>(), ...);
+        );
         return entries;
     }();
 };
@@ -276,7 +311,9 @@ template <typename E>
 struct EnumReflector
 {
     static constexpr bool IsBitFlag = EnumTraits<E>::IsBitFlag;
-    using Generator = EnumValueGenerator<E, IsBitFlag>;
+    static constexpr bool UseExplicit = EnumTraits<E>::UseExplicitValues;
+
+    using Generator = EnumValueGenerator<E, IsBitFlag, UseExplicit>;
     using Storage = EnumStorageImpl<E, Generator, typename Generator::IndexSequence>;
 
     static constexpr auto& Entries = Storage::Entries;
@@ -303,15 +340,30 @@ template <auto V>
 template <traits::EnumType E>
 [[nodiscard]] constexpr StringView EnumName(E value) noexcept
 {
+    using Reflector = detail::EnumReflector<E>;
     constexpr auto& entries = detail::EnumReflector<E>::Entries;
-    auto it = std::lower_bound(entries.begin(), entries.end(), value, [](const auto& entry, E val)
-    {
-        return entry.value < val;
-    });
 
-    if (it != entries.end() && it->value == value)
+    if constexpr (Reflector::UseExplicit)
     {
-        return it->name;
+        for (const auto& entry : entries)
+        {
+            if (entry.value == value)
+            {
+                return entry.name;
+            }
+        }
+    }
+    else
+    {
+        auto it = std::lower_bound(entries.begin(), entries.end(), value, [](const auto& entry, E val)
+        {
+            return entry.value < val;
+        });
+
+        if (it != entries.end() && it->value == value)
+        {
+            return it->name;
+        }
     }
     return {};
 }
