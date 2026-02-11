@@ -36,7 +36,10 @@ public:
     constexpr StringView() noexcept = default;
 
     /** null-terminated 문자열로부터 View를 생성합니다. */
-    constexpr StringView(const CharType* str) noexcept
+    template <typename T>
+    requires std::is_convertible_v<T, const CharType*>
+        && (!std::is_array_v<std::remove_cvref_t<T>>)
+    constexpr StringView(T str) noexcept
         : data_ptr(str)
         , data_len(str ? StrLen(str) : 0)
     {
@@ -47,6 +50,21 @@ public:
         : data_ptr(str)
         , data_len(len)
     {
+    }
+
+    /** 리터럴 문자열 및 고정 크기 배열로부터 View를 생성합니다. */
+    template <SizeType N>
+        requires (N > 0)
+    constexpr StringView(const CharType (&str)[N]) noexcept
+        : data_ptr(str)
+        , data_len(N - 1) // null-terminator 제외
+    {
+        SE_ASSERT(
+            str[N - 1] == '\0',
+            "StringView(const char(&)[N]) requires a null-terminated array. "
+            "If you are using a raw buffer without a null-terminator, "
+            "use StringView(const char* ptr, SizeType len) instead."
+        );
     }
 
     /** std::string_view로부터 변환합니다. */
@@ -177,7 +195,10 @@ public:
     /** 문자열 앞쪽(왼쪽)의 공백만 제거합니다. */
     [[nodiscard]] constexpr StringView TrimStart() const noexcept
     {
-        if (IsEmpty()) return {};
+        if (IsEmpty())
+        {
+            return {};
+        }
 
         SizeType start = 0;
         while (start < data_len && IsWhitespace(data_ptr[start]))
@@ -191,7 +212,10 @@ public:
     /** 문자열 뒤쪽(오른쪽)의 공백만 제거합니다. */
     [[nodiscard]] constexpr StringView TrimEnd() const noexcept
     {
-        if (IsEmpty()) return {};
+        if (IsEmpty())
+        {
+            return {};
+        }
 
         SizeType end = data_len;
         while (end > 0 && IsWhitespace(data_ptr[end - 1]))
