@@ -17,8 +17,6 @@ namespace se
 template <typename T, usize N>
 class FixedArray
 {
-    static_assert(N > 0, "FixedArray size must be greater than 0");
-
 public:
     using ValueType = T;
 
@@ -77,6 +75,49 @@ public:
 
 public:
     T data[N];
+};
+
+template <typename T>
+class FixedArray<T, 0>
+{
+public:
+    using ValueType = T;
+
+public:
+    constexpr void Fill(const T&) {}
+
+    [[nodiscard]] constexpr usize Len() const { return 0; }
+    [[nodiscard]] constexpr usize Capacity() const { return 0; }
+    [[nodiscard]] constexpr bool IsEmpty() const { return true; }
+
+    [[nodiscard]] constexpr Optional<T&> Front() { return std::nullopt; }
+    [[nodiscard]] constexpr Optional<const T&> Front() const { return std::nullopt; }
+
+    [[nodiscard]] constexpr Optional<T&> Back() { return std::nullopt; }
+    [[nodiscard]] constexpr Optional<const T&> Back() const { return std::nullopt; }
+
+    [[nodiscard]] constexpr Optional<T&> At(usize) { return std::nullopt; }
+    [[nodiscard]] constexpr Optional<const T&> At(usize) const { return std::nullopt; }
+
+    [[nodiscard]] constexpr T* Data() { return nullptr; }
+    [[nodiscard]] constexpr const T* Data() const { return nullptr; }
+
+public:
+    [[nodiscard]] constexpr bool operator==(const FixedArray& other) const { return other.IsEmpty(); }
+
+    [[nodiscard]] constexpr T& operator[](usize) noexcept = delete;
+    [[nodiscard]] constexpr const T& operator[](usize) const noexcept = delete;
+
+    // Iterator
+    [[nodiscard]] constexpr T* begin() noexcept { return nullptr; }
+    [[nodiscard]] constexpr T* end() noexcept { return nullptr; }
+    [[nodiscard]] constexpr const T* begin() const noexcept { return nullptr; }
+    [[nodiscard]] constexpr const T* end() const noexcept { return nullptr; }
+
+    [[nodiscard]] constexpr std::reverse_iterator<T*> rbegin() noexcept { return nullptr; }
+    [[nodiscard]] constexpr std::reverse_iterator<T*> rend() noexcept { return nullptr; }
+    [[nodiscard]] constexpr std::reverse_iterator<const T*> rbegin() const noexcept { return nullptr; }
+    [[nodiscard]] constexpr std::reverse_iterator<const T*> rend() const noexcept { return nullptr; }
 };
 
 template <typename T, typename... U>
