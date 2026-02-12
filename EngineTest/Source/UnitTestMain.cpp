@@ -2,7 +2,8 @@
 #include "UnitTestEnvironment.h"
 
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
-#include "SimpleEngine/Core/Concurrency/ThreadPool.h"
+#include "SimpleEngine/Core/Logging/LogBackendManager.h"
+#include "SimpleEngine/Core/Logging/Backends/ConsoleBackend.h"
 
 
 int main(int argc, char* argv[])
@@ -14,6 +15,9 @@ int main(int argc, char* argv[])
     ::testing::AddGlobalTestEnvironment(new ConfigTestEnvironment());
 
     auto task_scheduler = std::make_unique<se::TaskScheduler>(std::this_thread::get_id());
+    {
+        se::LogBackendManager::Get().AddBackend<se::ConsoleBackend>();
+    }
 
     // 테스트 실행
     const int res = RUN_ALL_TESTS();

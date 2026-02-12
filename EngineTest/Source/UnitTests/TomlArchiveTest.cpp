@@ -6,6 +6,9 @@
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/ECS/Components/TransformComponent.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include <limits>
 
@@ -391,6 +394,56 @@ struct LongStringData
     friend void Serialize(Archive& ar, LongStringData& data)
     {
         ar("long_str") << data.long_str;
+    }
+};
+
+struct GuidKeyMapData
+{
+    HashMap<Guid, String> guid_map;
+
+    friend void Serialize(Archive& ar, GuidKeyMapData& data)
+    {
+        ar("guid_map") << data.guid_map;
+    }
+};
+
+struct StringNameKeyMapData
+{
+    HashMap<StringName, int32> sn_map;
+
+    friend void Serialize(Archive& ar, StringNameKeyMapData& data)
+    {
+        ar("sn_map") << data.sn_map;
+    }
+};
+
+struct GuidKeyNestedMapData
+{
+    HashMap<Guid, NestedData> guid_nested_map;
+
+    friend void Serialize(Archive& ar, GuidKeyNestedMapData& data)
+    {
+        ar("guid_nested_map") << data.guid_nested_map;
+    }
+};
+
+struct TypeIdKeyMapData
+{
+    HashMap<TypeId, String> type_map;
+
+    friend void Serialize(Archive& ar, TypeIdKeyMapData& data)
+    {
+        ar("type_map") << data.type_map;
+    }
+};
+
+struct TypeIdKeyNestedMapData
+{
+    HashMap<TypeId, NestedData> type_nested_map;
+
+    friend void Serialize(Archive& ar, TypeIdKeyNestedMapData& data)
+    {
+        ar("type_nested_map") << data.type_nested_map;
     }
 };
 }
@@ -1062,4 +1115,150 @@ TEST_F(TomlArchiveTest, VeryLongStrings)
 
     EXPECT_EQ(read_data, original_data);
     EXPECT_EQ(read_data.long_str.ByteLen(), 10000);
+}
+
+// HashMap with Guid as key
+TEST_F(TomlArchiveTest, GuidAsMapKey)
+{
+    GuidKeyMapData original_data;
+
+    Guid g1 = Guid::NewGuid();
+    Guid g2 = Guid::NewGuid();
+    Guid g3 = Guid::NewGuid();
+
+    original_data.guid_map[g1] = "First";
+    original_data.guid_map[g2] = "Second";
+    original_data.guid_map[g3] = "Third";
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original_data;
+    }
+
+    GuidKeyMapData read_data;
+    {
+        TomlReader reader(tbl);
+        reader << read_data;
+    }
+
+    EXPECT_EQ(read_data.guid_map.Len(), 3);
+    EXPECT_EQ(read_data.guid_map[g1], "First");
+    EXPECT_EQ(read_data.guid_map[g2], "Second");
+    EXPECT_EQ(read_data.guid_map[g3], "Third");
+}
+
+// HashMap with Guid as key, NestedData as value
+TEST_F(TomlArchiveTest, GuidAsMapKeyWithNestedValue)
+{
+    GuidKeyNestedMapData original_data;
+
+    Guid g1 = Guid::NewGuid();
+    Guid g2 = Guid::NewGuid();
+
+    original_data.guid_nested_map[g1] = NestedData{ "nested_g1", 1.1f };
+    original_data.guid_nested_map[g2] = NestedData{ "nested_g2", 2.2f };
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original_data;
+    }
+
+    GuidKeyNestedMapData read_data;
+    {
+        TomlReader reader(tbl);
+        reader << read_data;
+    }
+
+    EXPECT_EQ(read_data.guid_nested_map.Len(), 2);
+    EXPECT_EQ(read_data.guid_nested_map[g1].str, "nested_g1");
+    EXPECT_FLOAT_EQ(read_data.guid_nested_map[g1].val, 1.1f);
+    EXPECT_EQ(read_data.guid_nested_map[g2].str, "nested_g2");
+    EXPECT_FLOAT_EQ(read_data.guid_nested_map[g2].val, 2.2f);
+}
+
+// HashMap with StringName as key
+TEST_F(TomlArchiveTest, StringNameAsMapKey)
+{
+    StringNameKeyMapData original_data;
+
+    original_data.sn_map["alpha"] = 100;
+    original_data.sn_map["beta"] = 200;
+    original_data.sn_map["gamma"] = 300;
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original_data;
+    }
+
+    StringNameKeyMapData read_data;
+    {
+        TomlReader reader(tbl);
+        reader << read_data;
+    }
+
+    EXPECT_EQ(read_data.sn_map.Len(), 3);
+    EXPECT_EQ(read_data.sn_map["alpha"], 100);
+    EXPECT_EQ(read_data.sn_map["beta"], 200);
+    EXPECT_EQ(read_data.sn_map["gamma"], 300);
+}
+
+// HashMap with TypeId as key (simple value)
+TEST_F(TomlArchiveTest, TypeIdAsMapKey)
+{
+    TypeIdKeyMapData original_data;
+
+    const TypeId transform_id = TypeId::Get<TransformComponent>();
+    const TypeId subsystem_id = TypeId::Get<SubsystemBase>();
+
+    original_data.type_map[transform_id] = "transform_value";
+    original_data.type_map[subsystem_id] = "subsystem_value";
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original_data;
+    }
+
+    TypeIdKeyMapData read_data;
+    {
+        TomlReader reader(tbl);
+        reader << read_data;
+    }
+
+    EXPECT_EQ(read_data.type_map.Len(), 2);
+    EXPECT_EQ(read_data.type_map[transform_id], "transform_value");
+    EXPECT_EQ(read_data.type_map[subsystem_id], "subsystem_value");
+}
+
+// HashMap with TypeId as key (nested value)
+TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
+{
+    TypeIdKeyNestedMapData original_data;
+
+    const TypeId transform_id = TypeId::Get<TransformComponent>();
+    const TypeId subsystem_id = TypeId::Get<SubsystemBase>();
+
+    original_data.type_nested_map[transform_id] = NestedData{ "nested_transform", 1.5f };
+    original_data.type_nested_map[subsystem_id] = NestedData{ "nested_subsystem", 2.5f };
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original_data;
+    }
+
+    TypeIdKeyNestedMapData read_data;
+    {
+        TomlReader reader(tbl);
+        reader << read_data;
+    }
+
+    EXPECT_EQ(read_data.type_nested_map.Len(), 2);
+    EXPECT_EQ(read_data.type_nested_map[transform_id].str, "nested_transform");
+    EXPECT_FLOAT_EQ(read_data.type_nested_map[transform_id].val, 1.5f);
+    EXPECT_EQ(read_data.type_nested_map[subsystem_id].str, "nested_subsystem");
+    EXPECT_FLOAT_EQ(read_data.type_nested_map[subsystem_id].val, 2.5f);
 }
