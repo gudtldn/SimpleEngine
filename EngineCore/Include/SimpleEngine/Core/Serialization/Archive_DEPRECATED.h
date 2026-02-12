@@ -1,4 +1,8 @@
 ﻿#pragma once
+/**
+ * @file Archive_DEPRECATED.h
+ * @deprecated 이 파일은 ArchiveV2.h로 대체될 예정입니다. 새 코드에서는 ArchiveV2.h를 사용하세요.
+ */
 #include <type_traits>
 
 #include "SimpleEngine/Core/Container/StringView.h"
@@ -15,7 +19,7 @@ class TypeId;
 
 namespace se
 {
-class Archive;
+class Archive_DEPRECATED;
 
 /**
  * Archive의 동작 모드
@@ -30,10 +34,10 @@ enum class EArchiveMode : uint8
 
 /** 사용자 정의 타입(UDT)에 대한 직렬화 함수의 기본 템플릿 */
 template <typename T>
-void Serialize([[maybe_unused]] Archive& ar, [[maybe_unused]] T& value)
+void Serialize([[maybe_unused]] Archive_DEPRECATED& ar, [[maybe_unused]] T& value)
 {
     static_assert(traits::AlwaysFalse<T>,
-        "No 'Serialize(Archive&, T&)' function found for this type. "
+        "No 'Serialize(Archive_DEPRECATED&, T&)' function found for this type. "
         "Please define a non-intrusive Serialize function in the same namespace as your type."
     );
 }
@@ -68,17 +72,18 @@ private:
 
 /**
  * 모든 직렬화(Serialization) 작업의 추상 기본 클래스
+ * @deprecated ArchiveV2로 대체될 예정입니다. 새 코드에서는 ArchiveV2를 사용하세요.
  * @todo Error이 IsSetError(), SetError() 같은 로직 추가. 버전 불일치나, 잘못된 파일 역직렬화 방지용으로
  */
-class SE_CORE_API Archive
+class [[deprecated("Use ArchiveV2 instead.")]] SE_CORE_API Archive_DEPRECATED
 {
 public:
-    virtual ~Archive() = default;
+    virtual ~Archive_DEPRECATED() = default;
 
-    Archive(const Archive&) = default;
-    Archive& operator=(const Archive&) = default;
-    Archive(Archive&&) = default;
-    Archive& operator=(Archive&&) = default;
+    Archive_DEPRECATED(const Archive_DEPRECATED&) = default;
+    Archive_DEPRECATED& operator=(const Archive_DEPRECATED&) = default;
+    Archive_DEPRECATED(Archive_DEPRECATED&&) = default;
+    Archive_DEPRECATED& operator=(Archive_DEPRECATED&&) = default;
 
 public:
     /** 현재 Archive가 로드(읽기) 모드인지 확인합니다. */
@@ -139,37 +144,37 @@ protected:
     }
 
 public:
-    Archive& operator()(const char* name)
+    Archive_DEPRECATED& operator()(const char* name)
     {
         HintNextName(name);
         return *this;
     }
 
-    Archive& operator<<(Archive&);
+    Archive_DEPRECATED& operator<<(Archive_DEPRECATED&);
 
     // POD
-    virtual Archive& operator<<(int8& value);
-    virtual Archive& operator<<(uint8& value);
-    virtual Archive& operator<<(int16& value);
-    virtual Archive& operator<<(uint16& value);
-    virtual Archive& operator<<(int32& value);
-    virtual Archive& operator<<(uint32& value);
-    virtual Archive& operator<<(int64& value);
-    virtual Archive& operator<<(uint64& value);
-    virtual Archive& operator<<(float& value);
-    virtual Archive& operator<<(double& value);
-    virtual Archive& operator<<(bool& value);
+    virtual Archive_DEPRECATED& operator<<(int8& value);
+    virtual Archive_DEPRECATED& operator<<(uint8& value);
+    virtual Archive_DEPRECATED& operator<<(int16& value);
+    virtual Archive_DEPRECATED& operator<<(uint16& value);
+    virtual Archive_DEPRECATED& operator<<(int32& value);
+    virtual Archive_DEPRECATED& operator<<(uint32& value);
+    virtual Archive_DEPRECATED& operator<<(int64& value);
+    virtual Archive_DEPRECATED& operator<<(uint64& value);
+    virtual Archive_DEPRECATED& operator<<(float& value);
+    virtual Archive_DEPRECATED& operator<<(double& value);
+    virtual Archive_DEPRECATED& operator<<(bool& value);
 
     // Engine Type
-    virtual Archive& operator<<(String& value);
-    virtual Archive& operator<<(StringName& value);
-    virtual Archive& operator<<(Guid& value);
-    virtual Archive& operator<<(TypeId& value);
+    virtual Archive_DEPRECATED& operator<<(String& value);
+    virtual Archive_DEPRECATED& operator<<(StringName& value);
+    virtual Archive_DEPRECATED& operator<<(Guid& value);
+    virtual Archive_DEPRECATED& operator<<(TypeId& value);
 
     // Enum
     template <typename EnumType>
         requires std::is_enum_v<EnumType>
-    Archive& operator<<(EnumType& value)
+    Archive_DEPRECATED& operator<<(EnumType& value)
     {
         using UnderlyingType = std::underlying_type_t<EnumType>;
 
@@ -184,7 +189,7 @@ public:
     }
 
     // BinaryData를 직접 다루는 경우
-    friend Archive& operator<<(Archive& ar, const BinaryData& value)
+    friend Archive_DEPRECATED& operator<<(Archive_DEPRECATED& ar, const BinaryData& value)
     {
         ar.ProcessBytes(value.data, value.size);
         return ar;
@@ -193,7 +198,7 @@ public:
     // 사용자 정의 타입 (UDT)
     template <typename T>
         requires (!std::is_arithmetic_v<T> && !std::is_enum_v<T>)
-    friend Archive& operator<<(Archive& ar, T& value)
+    friend Archive_DEPRECATED& operator<<(Archive_DEPRECATED& ar, T& value)
     {
         ar.BeginNode();
         {
@@ -204,7 +209,7 @@ public:
     }
 
 protected:
-    explicit Archive(EArchiveMode in_mode) : mode(in_mode) {}
+    explicit Archive_DEPRECATED(EArchiveMode in_mode) : mode(in_mode) {}
     EArchiveMode mode;
 };
 }  // namespace se

@@ -1,5 +1,5 @@
 #pragma once
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Archive_DEPRECATED.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
@@ -16,10 +16,10 @@ public:
     virtual ~ImportSettingsBase() = default;
 
     /** ImportSettings를 Archive로 직렬화합니다. */
-    virtual void Serialize(Archive& ar) = 0;
+    virtual void Serialize(Archive_DEPRECATED& ar) = 0;
 
 public:
-    friend void Serialize(Archive& ar, ImportSettingsBase& settings)
+    friend void Serialize(Archive_DEPRECATED& ar, ImportSettingsBase& settings)
     {
         settings.Serialize(ar);
     }

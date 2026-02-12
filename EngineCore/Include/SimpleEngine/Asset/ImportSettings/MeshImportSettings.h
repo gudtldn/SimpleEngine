@@ -30,6 +30,6 @@ public:
     float global_scale = 1.0f;
 
 public:
-    virtual void Serialize(Archive& ar) override;
+    virtual void Serialize(Archive_DEPRECATED& ar) override;
 };
 }  // namespace se::asset

@@ -1,4 +1,4 @@
-﻿#include "Core/Serialization/MemoryArchive.h"
+﻿#include "Core/Serialization/MemoryArchive_DEPRECATED.h"
 
 #include <cstring>
 
@@ -7,23 +7,23 @@
 
 namespace se
 {
-usize MemoryArchive::Tell() const
+usize MemoryArchive_DEPRECATED::Tell() const
 {
     return offset;
 }
 
-void MemoryArchive::Seek(usize pos)
+void MemoryArchive_DEPRECATED::Seek(usize pos)
 {
     offset = pos;
 }
 
-MemoryReader::MemoryReader(const Array<uint8>& in_buffer)
-    : MemoryArchive(EArchiveMode::LoadBinary)
+MemoryReader_DEPRECATED::MemoryReader_DEPRECATED(const Array<uint8>& in_buffer)
+    : MemoryArchive_DEPRECATED(EArchiveMode::LoadBinary)
     , buffer(in_buffer)
 {
 }
 
-void MemoryReader::ProcessBytes(void* value, uint64 byte_size)
+void MemoryReader_DEPRECATED::ProcessBytes(void* value, uint64 byte_size)
 {
     SE_ASSERT(offset + byte_size <= buffer.Len(), "MemoryReader Overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer.Len());
 
@@ -31,14 +31,14 @@ void MemoryReader::ProcessBytes(void* value, uint64 byte_size)
     offset += byte_size;
 }
 
-MemoryWriter::MemoryWriter(Array<uint8>& out_buffer)
-    : MemoryArchive(EArchiveMode::SaveBinary)
+MemoryWriter_DEPRECATED::MemoryWriter_DEPRECATED(Array<uint8>& out_buffer)
+    : MemoryArchive_DEPRECATED(EArchiveMode::SaveBinary)
     , buffer(out_buffer)
 {
     offset = buffer.Len();
 }
 
-void MemoryWriter::ProcessBytes(void* value, uint64 byte_size)
+void MemoryWriter_DEPRECATED::ProcessBytes(void* value, uint64 byte_size)
 {
     // buffer가 충분히 크지 않으면 확장
     const uint64 required_size = offset + byte_size;
