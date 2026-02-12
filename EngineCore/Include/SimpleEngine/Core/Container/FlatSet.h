@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se
@@ -144,35 +143,6 @@ private:
     Array<T, Allocator> internal_array;
     [[no_unique_address]] Pred compare;
 };
-
-template <typename T, typename Pred, typename Alloc>
-Archive& operator<<(Archive& ar, FlatSet<T, Pred, Alloc>& set)
-{
-    uint64 size = set.Len();
-    ar.BeginArray(size);
-
-    if (ar.IsLoading())
-    {
-        set.Clear();
-        set.Reserve(size);
-        for (uint64 i = 0; i < size; ++i)
-        {
-            T value;
-            ar << value;
-            set.Insert(std::move(value));
-        }
-    }
-    else
-    {
-        for (const T& value : set)
-        {
-            ar << const_cast<T&>(value);
-        }
-    }
-
-    ar.EndArray();
-    return ar;
-}
 }  // namespace se
 
 #include "SimpleEngine/Core/Container/FlatSet.inl"

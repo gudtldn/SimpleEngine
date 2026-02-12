@@ -2,6 +2,8 @@
 #pragma once
 #include <utility>
 
+#include "SimpleEngine/Utility/Debug.h"
+
 
 namespace se
 {

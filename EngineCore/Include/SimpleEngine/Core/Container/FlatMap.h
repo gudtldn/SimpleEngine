@@ -5,7 +5,6 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se
@@ -225,40 +224,6 @@ private:
     Array<PairType, Allocator> internal_array;
     [[no_unique_address]] PairCompare pair_compare;
 };
-
-template <typename Key, typename Value, typename Pred, typename Alloc>
-Archive& operator<<(Archive& ar, FlatMap<Key, Value, Pred, Alloc>& map)
-{
-    uint64 total_elements;
-    if (ar.IsSaving())
-    {
-        total_elements = map.Len() * 2;
-    }
-    ar.BeginArray(total_elements);
-
-    if (ar.IsLoading())
-    {
-        map.Clear();
-        map.Reserve(total_elements);
-        for (uint64 i = 0; i < total_elements; ++i)
-        {
-            Key key;
-            Value value;
-            ar << key << value;
-            map.Emplace(std::move(key), std::move(value));
-        }
-    }
-    else
-    {
-        for (auto& [key, value] : map)
-        {
-            ar << const_cast<Key&>(key) << value;
-        }
-    }
-
-    ar.EndArray();
-    return ar;
-}
 }  // namespace se
 
 #include "SimpleEngine/Core/Container/FlatMap.inl"
