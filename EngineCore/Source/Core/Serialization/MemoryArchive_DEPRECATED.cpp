@@ -18,7 +18,7 @@ void MemoryArchive_DEPRECATED::Seek(usize pos)
 }
 
 MemoryReader_DEPRECATED::MemoryReader_DEPRECATED(const Array<uint8>& in_buffer)
-    : MemoryArchive_DEPRECATED(EArchiveMode::LoadBinary)
+    : MemoryArchive_DEPRECATED(EArchiveMode_DEPRECATED::LoadBinary)
     , buffer(in_buffer)
 {
 }
@@ -32,7 +32,7 @@ void MemoryReader_DEPRECATED::ProcessBytes(void* value, uint64 byte_size)
 }
 
 MemoryWriter_DEPRECATED::MemoryWriter_DEPRECATED(Array<uint8>& out_buffer)
-    : MemoryArchive_DEPRECATED(EArchiveMode::SaveBinary)
+    : MemoryArchive_DEPRECATED(EArchiveMode_DEPRECATED::SaveBinary)
     , buffer(out_buffer)
 {
     offset = buffer.Len();
