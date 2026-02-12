@@ -18,6 +18,7 @@ usize MemoryArchive::Tell() const
 
 void MemoryArchive::Seek(usize pos)
 {
+    SE_ENSURE(pos <= offset, "MemoryArchive::Seek - Seeking beyond written range. (pos: {}, written: {})", pos, offset);
     offset = pos;
 }
 
@@ -98,18 +99,26 @@ void MemoryReader::SerializeTypeId(TypeId& value)
     uint64 hash = 0;
     ReadPrimitive(hash);
     value = TypeId::FromHash(hash);
-    if (!value.IsValid())
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash);
-    }
+    SE_ENSURE(value.IsValid(), "MemoryReader::SerializeTypeId - Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash);
 }
 
 void MemoryReader::ReadBytes(void* dest, uint64 byte_size)
 {
-    SE_ASSERT(
+    if (!SE_ENSURE(
         offset + byte_size <= buffer.Len(),
-        "MemoryReader Overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer.Len()
-    );
+        "MemoryReader::ReadBytes - Buffer overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer.Len()
+    ))
+    {
+        // 릴리스에서 오버플로우 시 남은 만큼만 읽고 나머지는 0으로 채움
+        const uint64 readable = (offset < buffer.Len()) ? buffer.Len() - offset : 0;
+        if (readable > 0)
+        {
+            std::memcpy(dest, buffer.Data() + offset, readable);
+        }
+        std::memset(static_cast<uint8*>(dest) + readable, 0, byte_size - readable);
+        offset = buffer.Len();
+        return;
+    }
 
     std::memcpy(dest, buffer.Data() + offset, byte_size);
     offset += byte_size;

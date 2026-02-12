@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"
@@ -178,13 +179,14 @@ private:
         {
             ctx.node->as_array()->push_back(std::forward<T>(val));
         }
+        else if (!pending_key.IsEmpty())
+        {
+            ctx.node->as_table()->insert_or_assign(pending_key, std::forward<T>(val));
+            pending_key = "";
+        }
         else
         {
-            if (!pending_key.IsEmpty())
-            {
-                ctx.node->as_table()->insert_or_assign(pending_key, std::forward<T>(val));
-                pending_key = "";
-            }
+            SE_ENSURE(false, "TomlWriter::WriteValue - No valid target. (IsArray: false, pending_key: empty)");
         }
     }
 
@@ -194,9 +196,8 @@ private:
     {
         Context& ctx = GetCurrentContext();
 
-        if (!ctx.node)
+        if (!SE_ENSURE(ctx.node, "TomlWriter::InsertNewNode - Current node is null!"))
         {
-            ConsoleLog(ELogLevel::Error, "TomlWriter: Current node is null!");
             return nullptr;
         }
 
@@ -206,9 +207,8 @@ private:
             return ref.template as<NodeType>();
         }
 
-        if (pending_key.IsEmpty())
+        if (!SE_ENSURE(!pending_key.IsEmpty(), "TomlWriter::InsertNewNode - pending_key is empty! Cannot insert into table without a key."))
         {
-            ConsoleLog(ELogLevel::Error, "TomlWriter: Pending key is empty!");
             return nullptr;
         }
 
