@@ -24,7 +24,7 @@ class Archive_DEPRECATED;
 /**
  * Archive의 동작 모드
  */
-enum class EArchiveMode : uint8
+enum class EArchiveMode_DEPRECATED : uint8
 {
     LoadText   = 0, // 00 (Load | Text)
     SaveText   = 1, // 01 (Save | Text)
@@ -45,26 +45,26 @@ void Serialize([[maybe_unused]] Archive_DEPRECATED& ar, [[maybe_unused]] T& valu
 /**
  * Raw Memory 처리를 위한 래퍼 구조체
  */
-class BinaryData
+class BinaryData_DEPRECATED
 {
 public:
     void* data;
     uint64 size;
 
-    static BinaryData FromBytes(void* in_data, uint64 in_byte_size)
+    static BinaryData_DEPRECATED FromBytes(void* in_data, uint64 in_byte_size)
     {
         return { in_data, in_byte_size };
     }
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    static BinaryData FromItems(T* in_data, uint64 count = 1)
+    static BinaryData_DEPRECATED FromItems(T* in_data, uint64 count = 1)
     {
         return { in_data, count * sizeof(T) };
     }
 
 private:
-    BinaryData(void* in_data, uint64 in_size)
+    BinaryData_DEPRECATED(void* in_data, uint64 in_size)
         : data(in_data), size(in_size)
     {
     }
@@ -189,7 +189,7 @@ public:
     }
 
     // BinaryData를 직접 다루는 경우
-    friend Archive_DEPRECATED& operator<<(Archive_DEPRECATED& ar, const BinaryData& value)
+    friend Archive_DEPRECATED& operator<<(Archive_DEPRECATED& ar, const BinaryData_DEPRECATED& value)
     {
         ar.ProcessBytes(value.data, value.size);
         return ar;
@@ -209,7 +209,7 @@ public:
     }
 
 protected:
-    explicit Archive_DEPRECATED(EArchiveMode in_mode) : mode(in_mode) {}
-    EArchiveMode mode;
+    explicit Archive_DEPRECATED(EArchiveMode_DEPRECATED in_mode) : mode(in_mode) {}
+    EArchiveMode_DEPRECATED mode;
 };
 }  // namespace se

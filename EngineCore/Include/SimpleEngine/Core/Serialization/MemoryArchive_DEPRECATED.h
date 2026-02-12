@@ -21,7 +21,7 @@ public:
     void Seek(usize pos);
 
 protected:
-    explicit MemoryArchive_DEPRECATED(EArchiveMode mode) : Archive_DEPRECATED(mode) {}
+    explicit MemoryArchive_DEPRECATED(EArchiveMode_DEPRECATED mode) : Archive_DEPRECATED(mode) {}
     usize offset = 0;
 };
 

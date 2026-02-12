@@ -38,7 +38,7 @@ public:
     virtual void HintNextName(const char* name) override;
 
 protected:
-    explicit TomlArchive_DEPRECATED(EArchiveMode mode) : Archive_DEPRECATED(mode) {}
+    explicit TomlArchive_DEPRECATED(EArchiveMode_DEPRECATED mode) : Archive_DEPRECATED(mode) {}
     virtual void ProcessBytes(void* value, uint64 byte_size) override;
 
     [[nodiscard]] Context& GetCurrentContext();

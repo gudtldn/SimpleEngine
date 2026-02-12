@@ -25,7 +25,7 @@ TomlArchive_DEPRECATED::Context& TomlArchive_DEPRECATED::GetCurrentContext()
 }
 
 TomlReader_DEPRECATED::TomlReader_DEPRECATED(const toml::table& root)
-    : TomlArchive_DEPRECATED(EArchiveMode::LoadText)
+    : TomlArchive_DEPRECATED(EArchiveMode_DEPRECATED::LoadText)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
@@ -178,7 +178,7 @@ toml::node* TomlReader_DEPRECATED::GetCurrentNode()
 }
 
 TomlWriter_DEPRECATED::TomlWriter_DEPRECATED(toml::table& root)
-    : TomlArchive_DEPRECATED(EArchiveMode::SaveText)
+    : TomlArchive_DEPRECATED(EArchiveMode_DEPRECATED::SaveText)
 {
     context_stack.Push({
         .node = &root,
