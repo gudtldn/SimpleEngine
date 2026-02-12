@@ -1,4 +1,4 @@
-#include "Core/Serialization/Archive.h"
+#include "Core/Serialization/Archive_DEPRECATED.h"
 
 #include "Core/Container/String.h"
 #include "Core/Logging/Logging.h"
@@ -12,14 +12,14 @@ namespace se
 {
 // NOLINTBEGIN(bugprone-macro-parentheses)
 #define IMPL_ARCHIVE_OPERATOR(Type) \
-    Archive& Archive::operator<<(Type& value) \
+    Archive_DEPRECATED& Archive_DEPRECATED::operator<<(Type& value) \
     { \
         ProcessBytes(&value, sizeof(Type)); \
         return *this; \
     }
 // NOLINTEND(bugprone-macro-parentheses)
 
-Archive& Archive::operator<<(Archive&)
+Archive_DEPRECATED& Archive_DEPRECATED::operator<<(Archive_DEPRECATED&)
 {
     return *this;
 }
@@ -38,7 +38,7 @@ IMPL_ARCHIVE_OPERATOR(double)
 #undef IMPL_ARCHIVE_OPERATOR
 
 
-Archive& Archive::operator<<(bool& value)
+Archive_DEPRECATED& Archive_DEPRECATED::operator<<(bool& value)
 {
     uint8 bool_value = value ? 1 : 0;
     *this << bool_value;
@@ -50,7 +50,7 @@ Archive& Archive::operator<<(bool& value)
     return *this;
 }
 
-Archive& Archive::operator<<(String& value)
+Archive_DEPRECATED& Archive_DEPRECATED::operator<<(String& value)
 {
     uint64 length;
     if (IsSaving())
@@ -67,7 +67,7 @@ Archive& Archive::operator<<(String& value)
     return *this;
 }
 
-Archive& Archive::operator<<(StringName& value)
+Archive_DEPRECATED& Archive_DEPRECATED::operator<<(StringName& value)
 {
     String name_str;
     if (IsSaving())
@@ -85,13 +85,13 @@ Archive& Archive::operator<<(StringName& value)
     return *this;
 }
 
-Archive& Archive::operator<<(Guid& value)
+Archive_DEPRECATED& Archive_DEPRECATED::operator<<(Guid& value)
 {
     ProcessBytes(&value, sizeof(Guid));
     return *this;
 }
 
-Archive& Archive::operator<<(TypeId& value)
+Archive_DEPRECATED& Archive_DEPRECATED::operator<<(TypeId& value)
 {
     if (IsBinary())
     {

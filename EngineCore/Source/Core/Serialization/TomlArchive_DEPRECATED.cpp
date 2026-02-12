@@ -1,4 +1,4 @@
-﻿#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+﻿#include "SimpleEngine/Core/Serialization/TomlArchive_DEPRECATED.h"
 
 #include "Core/Types/Guid.h"
 #include "Core/Types/StringName.h"
@@ -8,24 +8,24 @@
 
 namespace se
 {
-void TomlArchive::HintNextName(const char* name)
+void TomlArchive_DEPRECATED::HintNextName(const char* name)
 {
     pending_key = name;
 }
 
-void TomlArchive::ProcessBytes([[maybe_unused]] void* value, [[maybe_unused]] uint64 byte_size)
+void TomlArchive_DEPRECATED::ProcessBytes([[maybe_unused]] void* value, [[maybe_unused]] uint64 byte_size)
 {
     // TomlArchive는 BinaryData를 사용 안함. (나중에 Base64로 해도 되고)
 }
 
-TomlArchive::Context& TomlArchive::GetCurrentContext()
+TomlArchive_DEPRECATED::Context& TomlArchive_DEPRECATED::GetCurrentContext()
 {
     SE_ASSERT(!context_stack.IsEmpty(), "Context stack underflow!");
     return context_stack.Top().Value();
 }
 
-TomlReader::TomlReader(const toml::table& root)
-    : TomlArchive(EArchiveMode::LoadText)
+TomlReader_DEPRECATED::TomlReader_DEPRECATED(const toml::table& root)
+    : TomlArchive_DEPRECATED(EArchiveMode::LoadText)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
@@ -33,7 +33,7 @@ TomlReader::TomlReader(const toml::table& root)
     });
 }
 
-void TomlReader::BeginNode()
+void TomlReader_DEPRECATED::BeginNode()
 {
     const Context& ctx = GetCurrentContext();
     if (!ctx.IsArray() && pending_key.IsEmpty())
@@ -61,12 +61,12 @@ void TomlReader::BeginNode()
     }
 }
 
-void TomlReader::EndNode()
+void TomlReader_DEPRECATED::EndNode()
 {
     context_stack.Pop();
 }
 
-void TomlReader::BeginArray(uint64& count)
+void TomlReader_DEPRECATED::BeginArray(uint64& count)
 {
     toml::node* sub_node = GetCurrentNode();
     if (sub_node && sub_node->is_array())
@@ -88,13 +88,13 @@ void TomlReader::BeginArray(uint64& count)
     }
 }
 
-void TomlReader::EndArray()
+void TomlReader_DEPRECATED::EndArray()
 {
     context_stack.Pop();
 }
 
 #define OVERRIDE_TOML_READ(type) \
-Archive& TomlReader::operator<<(type& value) { ReadValue(value); return *this; }
+Archive_DEPRECATED& TomlReader_DEPRECATED::operator<<(type& value) { ReadValue(value); return *this; }
 
 OVERRIDE_TOML_READ(int8)
 OVERRIDE_TOML_READ(uint8)
@@ -103,7 +103,7 @@ OVERRIDE_TOML_READ(uint16)
 OVERRIDE_TOML_READ(int32)
 OVERRIDE_TOML_READ(uint32)
 OVERRIDE_TOML_READ(int64)
-Archive& TomlReader::operator<<(uint64& value)
+Archive_DEPRECATED& TomlReader_DEPRECATED::operator<<(uint64& value)
 {
     int64 temp = 0;
     if (ReadValue(temp))
@@ -118,7 +118,7 @@ OVERRIDE_TOML_READ(bool)
 
 #undef OVERRIDE_TOML_READ
 
-Archive& TomlReader::operator<<(String& value)
+Archive_DEPRECATED& TomlReader_DEPRECATED::operator<<(String& value)
 {
     std::u8string_view sv;
     if (ReadValue(sv))
@@ -128,7 +128,7 @@ Archive& TomlReader::operator<<(String& value)
     return *this;
 }
 
-Archive& TomlReader::operator<<(StringName& value)
+Archive_DEPRECATED& TomlReader_DEPRECATED::operator<<(StringName& value)
 {
     std::u8string_view sv;
     if (ReadValue(sv))
@@ -138,7 +138,7 @@ Archive& TomlReader::operator<<(StringName& value)
     return *this;
 }
 
-Archive& TomlReader::operator<<(Guid& value)
+Archive_DEPRECATED& TomlReader_DEPRECATED::operator<<(Guid& value)
 {
     std::u8string_view sv;
     if (ReadValue(sv))
@@ -148,7 +148,7 @@ Archive& TomlReader::operator<<(Guid& value)
     return *this;
 }
 
-toml::node* TomlReader::GetCurrentNode()
+toml::node* TomlReader_DEPRECATED::GetCurrentNode()
 {
     Context& ctx = GetCurrentContext();
     if (!ctx.node)
@@ -177,8 +177,8 @@ toml::node* TomlReader::GetCurrentNode()
     return nullptr;
 }
 
-TomlWriter::TomlWriter(toml::table& root)
-    : TomlArchive(EArchiveMode::SaveText)
+TomlWriter_DEPRECATED::TomlWriter_DEPRECATED(toml::table& root)
+    : TomlArchive_DEPRECATED(EArchiveMode::SaveText)
 {
     context_stack.Push({
         .node = &root,
@@ -186,7 +186,7 @@ TomlWriter::TomlWriter(toml::table& root)
     });
 }
 
-void TomlWriter::BeginNode()
+void TomlWriter_DEPRECATED::BeginNode()
 {
     const Context& ctx = GetCurrentContext();
 
@@ -203,12 +203,12 @@ void TomlWriter::BeginNode()
     });
 }
 
-void TomlWriter::EndNode()
+void TomlWriter_DEPRECATED::EndNode()
 {
     context_stack.Pop();
 }
 
-void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
+void TomlWriter_DEPRECATED::BeginArray([[maybe_unused]] uint64& count)
 {
     context_stack.Push({
         .node = InsertNewNode<toml::array>(toml::array{}),
@@ -216,13 +216,13 @@ void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
     });
 }
 
-void TomlWriter::EndArray()
+void TomlWriter_DEPRECATED::EndArray()
 {
     context_stack.Pop();
 }
 
 #define OVERRIDE_TOML_WRITE(type) \
-Archive& TomlWriter::operator<<(type& value) { WriteValue(value); return *this; }
+Archive_DEPRECATED& TomlWriter_DEPRECATED::operator<<(type& value) { WriteValue(value); return *this; }
 
 OVERRIDE_TOML_WRITE(int8)
 OVERRIDE_TOML_WRITE(uint8)
@@ -231,7 +231,7 @@ OVERRIDE_TOML_WRITE(uint16)
 OVERRIDE_TOML_WRITE(int32)
 OVERRIDE_TOML_WRITE(uint32)
 OVERRIDE_TOML_WRITE(int64)
-Archive& TomlWriter::operator<<(uint64& value)
+Archive_DEPRECATED& TomlWriter_DEPRECATED::operator<<(uint64& value)
 {
     WriteValue(static_cast<int64_t>(value));
     return *this;
@@ -242,19 +242,19 @@ OVERRIDE_TOML_WRITE(bool)
 
 #undef OVERRIDE_TOML_WRITE
 
-Archive& TomlWriter::operator<<(String& value)
+Archive_DEPRECATED& TomlWriter_DEPRECATED::operator<<(String& value)
 {
     WriteValue(std::string_view{ value.Bytes() });
     return *this;
 }
 
-Archive& TomlWriter::operator<<(StringName& value)
+Archive_DEPRECATED& TomlWriter_DEPRECATED::operator<<(StringName& value)
 {
     WriteValue(value.CStr());
     return *this;
 }
 
-Archive& TomlWriter::operator<<(Guid& value)
+Archive_DEPRECATED& TomlWriter_DEPRECATED::operator<<(Guid& value)
 {
     WriteValue(value.ToString().CStr());
     return *this;

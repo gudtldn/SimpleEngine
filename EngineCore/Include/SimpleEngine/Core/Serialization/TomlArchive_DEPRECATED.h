@@ -1,9 +1,13 @@
 ﻿#pragma once
+/**
+ * @file TomlArchive.h
+ * @deprecated 이 파일은 TomlArchiveV2.h로 대체될 예정입니다. 새 코드에서는 TomlArchiveV2.h를 사용하세요.
+ */
 #include "SimpleEngine/Core/Container/Stack.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Archive_DEPRECATED.h"
 
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"
@@ -16,7 +20,7 @@ namespace se
  * toml++ 라이브러리를 기반으로 하는 TOML 직렬화 시스템의 기반 클래스
  * 현재 탐색 중인 노드의 위치(Context) 관리와 키(Key)와 값(Value)의 매핑 상태를 추적합니다.
  */
-class SE_CORE_API TomlArchive : public Archive
+class SE_CORE_API TomlArchive_DEPRECATED : public Archive_DEPRECATED
 {
 protected:
     struct Context
@@ -28,13 +32,13 @@ protected:
     };
 
 public:
-    virtual ~TomlArchive() override = default;
+    virtual ~TomlArchive_DEPRECATED() override = default;
 
     /** 다음에 처리할 필드(Key)의 이름을 임시 저장합니다. */
     virtual void HintNextName(const char* name) override;
 
 protected:
-    explicit TomlArchive(EArchiveMode mode) : Archive(mode) {}
+    explicit TomlArchive_DEPRECATED(EArchiveMode mode) : Archive_DEPRECATED(mode) {}
     virtual void ProcessBytes(void* value, uint64 byte_size) override;
 
     [[nodiscard]] Context& GetCurrentContext();
@@ -48,31 +52,31 @@ protected:
  * TOML 데이터 구조를 순회하며 값을 읽어오는 역직렬화(Deserialization) 클래스
  * toml++의 노드 트리에서 데이터를 추출하여 엔진의 타입으로 변환합니다.
  */
-class SE_CORE_API TomlReader : public TomlArchive
+class SE_CORE_API TomlReader_DEPRECATED : public TomlArchive_DEPRECATED
 {
 public:
-    explicit TomlReader(const toml::table& root);
+    explicit TomlReader_DEPRECATED(const toml::table& root);
 
     virtual void BeginNode() override;
     virtual void EndNode() override;
     virtual void BeginArray(uint64& count) override;
     virtual void EndArray() override;
 
-    virtual Archive& operator<<(int8& value) override;
-    virtual Archive& operator<<(uint8& value) override;
-    virtual Archive& operator<<(int16& value) override;
-    virtual Archive& operator<<(uint16& value) override;
-    virtual Archive& operator<<(int32& value) override;
-    virtual Archive& operator<<(uint32& value) override;
-    virtual Archive& operator<<(int64& value) override;
-    virtual Archive& operator<<(uint64& value) override;
-    virtual Archive& operator<<(float& value) override;
-    virtual Archive& operator<<(double& value) override;
-    virtual Archive& operator<<(bool& value) override;
+    virtual Archive_DEPRECATED& operator<<(int8& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint8& value) override;
+    virtual Archive_DEPRECATED& operator<<(int16& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint16& value) override;
+    virtual Archive_DEPRECATED& operator<<(int32& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint32& value) override;
+    virtual Archive_DEPRECATED& operator<<(int64& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint64& value) override;
+    virtual Archive_DEPRECATED& operator<<(float& value) override;
+    virtual Archive_DEPRECATED& operator<<(double& value) override;
+    virtual Archive_DEPRECATED& operator<<(bool& value) override;
 
-    virtual Archive& operator<<(String& value) override;
-    virtual Archive& operator<<(StringName& value) override;
-    virtual Archive& operator<<(Guid& value) override;
+    virtual Archive_DEPRECATED& operator<<(String& value) override;
+    virtual Archive_DEPRECATED& operator<<(StringName& value) override;
+    virtual Archive_DEPRECATED& operator<<(Guid& value) override;
 
 private:
     toml::node* GetCurrentNode();
@@ -97,31 +101,31 @@ private:
  * 데이터를 TOML 포맷으로 변환하여 저장하는 직렬화(Serialization) 클래스
  * 데이터 구조에 따라 Table이나 Array 노드를 동적으로 생성하고 값을 삽입합니다.
  */
-class SE_CORE_API TomlWriter : public TomlArchive
+class SE_CORE_API TomlWriter_DEPRECATED : public TomlArchive_DEPRECATED
 {
 public:
-    explicit TomlWriter(toml::table& root);
+    explicit TomlWriter_DEPRECATED(toml::table& root);
 
     virtual void BeginNode() override;
     virtual void EndNode() override;
     virtual void BeginArray(uint64& count) override;
     virtual void EndArray() override;
 
-    virtual Archive& operator<<(int8& value) override;
-    virtual Archive& operator<<(uint8& value) override;
-    virtual Archive& operator<<(int16& value) override;
-    virtual Archive& operator<<(uint16& value) override;
-    virtual Archive& operator<<(int32& value) override;
-    virtual Archive& operator<<(uint32& value) override;
-    virtual Archive& operator<<(int64& value) override;
-    virtual Archive& operator<<(uint64& value) override;
-    virtual Archive& operator<<(float& value) override;
-    virtual Archive& operator<<(double& value) override;
-    virtual Archive& operator<<(bool& value) override;
+    virtual Archive_DEPRECATED& operator<<(int8& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint8& value) override;
+    virtual Archive_DEPRECATED& operator<<(int16& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint16& value) override;
+    virtual Archive_DEPRECATED& operator<<(int32& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint32& value) override;
+    virtual Archive_DEPRECATED& operator<<(int64& value) override;
+    virtual Archive_DEPRECATED& operator<<(uint64& value) override;
+    virtual Archive_DEPRECATED& operator<<(float& value) override;
+    virtual Archive_DEPRECATED& operator<<(double& value) override;
+    virtual Archive_DEPRECATED& operator<<(bool& value) override;
 
-    virtual Archive& operator<<(String& value) override;
-    virtual Archive& operator<<(StringName& value) override;
-    virtual Archive& operator<<(Guid& value) override;
+    virtual Archive_DEPRECATED& operator<<(String& value) override;
+    virtual Archive_DEPRECATED& operator<<(StringName& value) override;
+    virtual Archive_DEPRECATED& operator<<(Guid& value) override;
 
 private:
     template <typename T>
