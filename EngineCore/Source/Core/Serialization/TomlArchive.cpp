@@ -25,11 +25,11 @@ void FromChars(const se::String& str, T& value)
     {
         if (result.ec == std::errc::invalid_argument)
         {
-            se::ConsoleLog(se::ELogLevel::Warning, "FromChars: Invalid argument when parsing '{}' as numeric value", str);
+            SE_ENSURE(false, "FromChars: Invalid argument when parsing '{}' as numeric value", str);
         }
         else if (result.ec == std::errc::result_out_of_range)
         {
-            se::ConsoleLog(se::ELogLevel::Warning, "FromChars: Result out of range when parsing '{}' as numeric value", str);
+            SE_ENSURE(false, "FromChars: Result out of range when parsing '{}' as numeric value", str);
         }
         value = T{};
     }
@@ -66,7 +66,7 @@ void TomlReader::BeginObject()
     }
 
     toml::node* sub_node = GetCurrentNode();
-    if (sub_node && sub_node->is_table())
+    if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader::BeginObject - Expected a table node. (pending_key: '{}')", pending_key))
     {
         context_stack.Push({
             .node = sub_node,
@@ -75,7 +75,6 @@ void TomlReader::BeginObject()
     }
     else
     {
-        ConsoleLog(ELogLevel::Warning, "TomlReader::BeginObject - Expected a table but found something else.");
         context_stack.Push({
             .node = nullptr,
             .mode = EMode::None,
@@ -91,7 +90,7 @@ void TomlReader::EndObject()
 void TomlReader::BeginArray(uint64& count)
 {
     toml::node* sub_node = GetCurrentNode();
-    if (sub_node && sub_node->is_array())
+    if (SE_ENSURE(sub_node && sub_node->is_array(), "TomlReader::BeginArray - Expected an array node. (pending_key: '{}')", pending_key))
     {
         toml::array* arr = sub_node->as_array();
         count = arr->size();
@@ -120,7 +119,7 @@ void TomlReader::EndArray()
 void TomlReader::BeginMap(uint64& count)
 {
     toml::node* sub_node = GetCurrentNode();
-    if (sub_node && sub_node->is_table())
+    if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader::BeginMap - Expected a table node. (pending_key: '{}')", pending_key))
     {
         toml::table* tbl = sub_node->as_table();
         count = tbl->size();
@@ -152,11 +151,12 @@ void TomlReader::EndMap()
 void TomlReader::BeginMapKey()
 {
     Context& ctx = GetCurrentContext();
-    if (!ctx.node || !ctx.IsMap())
+    if (!SE_ENSURE(ctx.node && ctx.IsMap(), "TomlReader::BeginMapKey - Invalid context. (node: {}, IsMap: {})", (void*)ctx.node, ctx.IsMap()))
     {
         return;
     }
 
+    SE_ENSURE(ctx.map_it != ctx.map_end, "TomlReader::BeginMapKey - Map iterator already at end.");
     if (ctx.map_it != ctx.map_end)
     {
         current_map_key = StringUtils::ToString(ctx.map_it->first);
@@ -378,6 +378,12 @@ void TomlReader::SerializeStringName(StringName& value)
 
 void TomlReader::SerializeGuid(Guid& value)
 {
+    if (reading_map_key)
+    {
+        value = Guid::FromString(current_map_key);
+        return;
+    }
+
     std::u8string_view sv;
     if (ReadValue(sv))
     {
@@ -391,11 +397,7 @@ void TomlReader::SerializeTypeId(TypeId& value)
     SerializeString(type_name);
 
     value = TypeId::FromName(type_name);
-    if (!value.IsValid())
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name);
-        SE_BREAKPOINT();
-    }
+    SE_ENSURE(value.IsValid(), "TomlReader::SerializeTypeId - Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name);
 }
 
 toml::node* TomlReader::GetCurrentNode()
@@ -458,8 +460,10 @@ void TomlWriter::EndObject()
 
 void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
 {
+    toml::array* arr = InsertNewNode<toml::array>(toml::array{});
+    SE_ENSURE(arr, "TomlWriter::BeginArray - Failed to insert new array node.");
     context_stack.Push({
-        .node = InsertNewNode<toml::array>(toml::array{}),
+        .node = arr,
         .mode = EMode::ArrayMode,
         .array_idx = 0,
     });
@@ -473,8 +477,10 @@ void TomlWriter::EndArray()
 void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
 {
     // Map을 TOML table로 표현
+    toml::table* tbl = InsertNewNode<toml::table>(toml::table{});
+    SE_ENSURE(tbl, "TomlWriter::BeginMap - Failed to insert new table node.");
     context_stack.Push({
-        .node = InsertNewNode<toml::table>(toml::table{}),
+        .node = tbl,
         .mode = EMode::MapMode,
     });
 }
@@ -494,6 +500,7 @@ void TomlWriter::BeginMapKey()
 void TomlWriter::EndMapKey()
 {
     // 캡처 모드 OFF, 캡처된 key를 pending_key로 설정
+    SE_ENSURE(!current_map_key.IsEmpty(), "TomlWriter::EndMapKey - Captured map key is empty.");
     capturing_map_key = false;
     pending_key = current_map_key;
 }
@@ -646,7 +653,12 @@ void TomlWriter::SerializeStringName(StringName& value)
 
 void TomlWriter::SerializeGuid(Guid& value)
 {
-    WriteValue(ToU8StringView(value.ToString().CStr()));
+    if (capturing_map_key)
+    {
+        current_map_key = value.ToString();
+        return;
+    }
+    WriteValue(ToU8StringView(value.ToString()));
 }
 
 void TomlWriter::SerializeTypeId(TypeId& value)
