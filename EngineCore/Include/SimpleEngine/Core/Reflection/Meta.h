@@ -10,7 +10,7 @@
 namespace se
 {
 // forward declaration
-class Archive_DEPRECATED;
+class Archive;
 
 /** 타입 속성 비트 플래그 */
 enum class ETypeFlags : uint32
@@ -163,7 +163,7 @@ struct TypeInfo
 {
     using ConstructorFunc = void*(*)();
     using DestructorFunc  = void(*)(void*);
-    using SerializeFunc   = void(*)(void* instance, Archive_DEPRECATED& ar);
+    using SerializeFunc   = void(*)(void* instance, Archive& ar);
     using DrawUIFunc      = void(*)(void* instance);
 
 public:

@@ -68,7 +68,7 @@ public:
         return Get<T>().Copy().ValueOrDefault();
     }
 
-    friend void Serialize([[maybe_unused]] Archive_DEPRECATED& ar, [[maybe_unused]] ImportConfig& config)
+    friend void Serialize([[maybe_unused]] Archive& ar, [[maybe_unused]] ImportConfig& config)
     {
         // TODO: ImportConfig Serialize 구현
         SE_UNIMPLEMENTED();
