@@ -1,5 +1,6 @@
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "Core/Serialization/TomlArchive.h"
 
+#include <charconv>
 #include <string_view>
 
 #include "Core/Reflection/TypeId.h"
@@ -14,6 +15,24 @@ namespace
 std::u8string_view ToU8StringView(se::StringView sv)
 {
     return { reinterpret_cast<const char8_t*>(sv.Data()), sv.ByteLen() };
+}
+
+template <typename T>
+void FromChars(const se::String& str, T& value)
+{
+    const auto result = std::from_chars(str.Data(), str.Data() + str.ByteLen(), value);
+    if (result.ec != std::errc{})
+    {
+        if (result.ec == std::errc::invalid_argument)
+        {
+            se::ConsoleLog(se::ELogLevel::Warning, "FromChars: Invalid argument when parsing '{}' as numeric value", str);
+        }
+        else if (result.ec == std::errc::result_out_of_range)
+        {
+            se::ConsoleLog(se::ELogLevel::Warning, "FromChars: Result out of range when parsing '{}' as numeric value", str);
+        }
+        value = T{};
+    }
 }
 }
 
@@ -33,7 +52,7 @@ TomlReader::TomlReader(const toml::table& root)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
-        .array_idx_opt = std::nullopt,
+        .mode = EMode::None,
     });
 }
 
@@ -51,7 +70,7 @@ void TomlReader::BeginObject()
     {
         context_stack.Push({
             .node = sub_node,
-            .array_idx_opt = std::nullopt,
+            .mode = EMode::None,
         });
     }
     else
@@ -59,7 +78,7 @@ void TomlReader::BeginObject()
         ConsoleLog(ELogLevel::Warning, "TomlReader::BeginObject - Expected a table but found something else.");
         context_stack.Push({
             .node = nullptr,
-            .array_idx_opt = std::nullopt,
+            .mode = EMode::None,
         });
     }
 }
@@ -78,7 +97,8 @@ void TomlReader::BeginArray(uint64& count)
         count = arr->size();
         context_stack.Push({
             .node = arr,
-            .array_idx_opt = 0,
+            .mode = EMode::ArrayMode,
+            .array_idx = 0,
         });
     }
     else
@@ -86,7 +106,8 @@ void TomlReader::BeginArray(uint64& count)
         count = 0;
         context_stack.Push({
             .node = nullptr,
-            .array_idx_opt = 0,
+            .mode = EMode::ArrayMode,
+            .array_idx = 0,
         });
     }
 }
@@ -105,19 +126,20 @@ void TomlReader::BeginMap(uint64& count)
         count = tbl->size();
         context_stack.Push({
             .node = tbl,
-            .array_idx_opt = std::nullopt,
-            .is_map_mode = true,
-            .map_key_idx = 0,
+            .mode = EMode::MapMode,
+            .map_it = tbl->begin(),
+            .map_end = tbl->end(),
         });
     }
     else
     {
         count = 0;
+        static toml::table empty_table;
         context_stack.Push({
             .node = nullptr,
-            .array_idx_opt = std::nullopt,
-            .is_map_mode = true,
-            .map_key_idx = 0,
+            .mode = EMode::MapMode,
+            .map_it = empty_table.begin(),
+            .map_end = empty_table.end(),
         });
     }
 }
@@ -135,14 +157,9 @@ void TomlReader::BeginMapKey()
         return;
     }
 
-    toml::table* tbl = ctx.node->as_table();
-    const usize idx = *ctx.map_key_idx;
-
-    auto it = tbl->begin();
-    std::advance(it, idx);
-    if (it != tbl->end())
+    if (ctx.map_it != ctx.map_end)
     {
-        current_map_key = StringUtils::ToString(it->first);
+        current_map_key = StringUtils::ToString(ctx.map_it->first);
     }
 
     reading_map_key = true;
@@ -160,11 +177,11 @@ void TomlReader::BeginMapValue()
 
 void TomlReader::EndMapValue()
 {
-    // key 인덱스 증가
+    // iterator 전진
     Context& ctx = GetCurrentContext();
-    if (ctx.IsMap() && ctx.map_key_idx.HasValue())
+    if (ctx.IsMap() && ctx.map_it != ctx.map_end)
     {
-        ++(*ctx.map_key_idx);
+        ++ctx.map_it;
     }
 }
 
@@ -193,7 +210,7 @@ void TomlReader::SerializeInt8(int8& value)
 {
     if (reading_map_key)
     {
-        value = static_cast<int8>(std::stoi(current_map_key.Data()));
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -208,7 +225,7 @@ void TomlReader::SerializeUInt8(uint8& value)
 {
     if (reading_map_key)
     {
-        value = static_cast<uint8>(std::stoul(current_map_key.Data()));
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -223,7 +240,7 @@ void TomlReader::SerializeInt16(int16& value)
 {
     if (reading_map_key)
     {
-        value = static_cast<int16>(std::stoi(current_map_key.Data()));
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -238,7 +255,7 @@ void TomlReader::SerializeUInt16(uint16& value)
 {
     if (reading_map_key)
     {
-        value = static_cast<uint16>(std::stoul(current_map_key.Data()));
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -253,7 +270,7 @@ void TomlReader::SerializeInt32(int32& value)
 {
     if (reading_map_key)
     {
-        value = static_cast<int32>(std::stoi(current_map_key.Data()));
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -268,7 +285,7 @@ void TomlReader::SerializeUInt32(uint32& value)
 {
     if (reading_map_key)
     {
-        value = static_cast<uint32>(std::stoul(current_map_key.Data()));
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -283,7 +300,7 @@ void TomlReader::SerializeInt64(int64& value)
 {
     if (reading_map_key)
     {
-        value = std::stoll(current_map_key.Data());
+        FromChars(current_map_key, value);
         return;
     }
     ReadValue(value);
@@ -293,7 +310,7 @@ void TomlReader::SerializeUInt64(uint64& value)
 {
     if (reading_map_key)
     {
-        value = std::stoull(current_map_key.Data());
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -308,7 +325,7 @@ void TomlReader::SerializeFloat(float& value)
 {
     if (reading_map_key)
     {
-        value = std::stof(current_map_key.Data());
+        FromChars(current_map_key, value);
         return;
     }
 
@@ -323,7 +340,7 @@ void TomlReader::SerializeDouble(double& value)
 {
     if (reading_map_key)
     {
-        value = std::stod(current_map_key.Data());
+        FromChars(current_map_key, value);
         return;
     }
     ReadValue(value);
@@ -392,9 +409,9 @@ toml::node* TomlReader::GetCurrentNode()
     if (ctx.IsArray())
     {
         toml::array* arr = ctx.node->as_array();
-        if (*ctx.array_idx_opt < arr->size())
+        if (ctx.array_idx < arr->size())
         {
-            return arr->get((*ctx.array_idx_opt)++);
+            return arr->get(ctx.array_idx++);
         }
         return nullptr;
     }
@@ -415,7 +432,7 @@ TomlWriter::TomlWriter(toml::table& root)
 {
     context_stack.Push({
         .node = &root,
-        .array_idx_opt = std::nullopt,
+        .mode = EMode::None,
     });
 }
 
@@ -430,7 +447,7 @@ void TomlWriter::BeginObject()
 
     context_stack.Push({
         .node = InsertNewNode<toml::table>(toml::table{}),
-        .array_idx_opt = std::nullopt,
+        .mode = EMode::None,
     });
 }
 
@@ -443,7 +460,8 @@ void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
 {
     context_stack.Push({
         .node = InsertNewNode<toml::array>(toml::array{}),
-        .array_idx_opt = 0,
+        .mode = EMode::ArrayMode,
+        .array_idx = 0,
     });
 }
 
@@ -457,8 +475,7 @@ void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
     // Map을 TOML table로 표현
     context_stack.Push({
         .node = InsertNewNode<toml::table>(toml::table{}),
-        .array_idx_opt = std::nullopt,
-        .is_map_mode = true,
+        .mode = EMode::MapMode,
     });
 }
 
