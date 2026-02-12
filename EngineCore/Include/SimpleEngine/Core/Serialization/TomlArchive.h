@@ -19,18 +19,26 @@ namespace se
 class SE_CORE_API TomlArchive : public Archive
 {
 protected:
+    /** 현재 탐색 중인 노드의 모드를 나타내는 Enum */
+    enum class EMode : uint8
+    {
+        None,
+        ArrayMode,
+        MapMode,
+    };
+
     /** 현재 탐색 중인 노드의 상태를 나타내는 컨텍스트 */
     struct Context
     {
-        toml::node* node = nullptr;    // 현재 포커스된 노드 (Table or Array)
-        Optional<usize> array_idx_opt; // 배열 인덱스 (배열 모드일 때만)
+        toml::node* node = nullptr; // 현재 포커스된 노드 (Table or Array)
+        EMode mode = EMode::None;
 
-        /** Map 모드: Key들을 순서대로 순회하기 위한 상태 */
-        bool is_map_mode = false;
-        Optional<usize> map_key_idx;   // 현재 순회 중인 Map key 인덱스
+        usize array_idx = 0;           // 배열 인덱스 (ArrayMode일 때만 유효)
+        toml::table::iterator map_it;  // 현재 순회 중인 Map iterator (MapMode일 때만 유효)
+        toml::table::iterator map_end; // Map 끝 iterator (MapMode일 때만 유효)
 
-        [[nodiscard]] bool IsArray() const { return array_idx_opt.HasValue(); }
-        [[nodiscard]] bool IsMap() const { return is_map_mode; }
+        [[nodiscard]] bool IsArray() const { return mode == EMode::ArrayMode; }
+        [[nodiscard]] bool IsMap() const { return mode == EMode::MapMode; }
     };
 
 public:
@@ -44,7 +52,10 @@ protected:
     [[nodiscard]] Context& GetCurrentContext();
 
 protected:
+    /** 다음 노드 접근 시 사용할 TOML Table의 Key */
     StringView pending_key;
+
+    /** TOML 직렬화 시스템에서 노드 탐색 상태를 관리하기 위한 Context Stack */
     Stack<Context> context_stack;
 };
 
