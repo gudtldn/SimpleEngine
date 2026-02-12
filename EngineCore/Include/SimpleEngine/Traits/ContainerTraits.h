@@ -1,6 +1,8 @@
 #pragma once
 #include <type_traits>
 
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
 
 namespace se
 {
