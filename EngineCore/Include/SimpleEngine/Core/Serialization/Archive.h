@@ -1,5 +1,6 @@
 #pragma once
 #include <concepts>
+#include <memory>
 #include <type_traits>
 
 #include "SimpleEngine/Core/Container/StringView.h"
@@ -61,13 +62,13 @@ private:
 class SE_CORE_API Archive
 {
 public:
-    virtual ~Archive() = default;
+    virtual ~Archive();
 
     // 복사 금지 & 이동만 허용
     Archive(const Archive&) = delete;
     Archive& operator=(const Archive&) = delete;
-    Archive(Archive&&) = default;
-    Archive& operator=(Archive&&) = default;
+    Archive(Archive&&) noexcept;
+    Archive& operator=(Archive&&) noexcept;
 
 public:
     /** 현재 Archive가 로드(읽기) 모드인지 확인합니다. */
@@ -84,10 +85,10 @@ public:
 
 public:
     /** 에러가 발생했는지 확인합니다. */
-    [[nodiscard]] bool HasError() const { return has_error; }
+    [[nodiscard]] bool HasError() const { return error_message != nullptr; }
 
     /** 에러 메시지를 반환합니다. */
-    [[nodiscard]] StringView GetError() const { return error_message; }
+    [[nodiscard]] StringView GetError() const { return *error_message; }
 
     /** 에러 상태를 설정합니다. */
     void SetError(StringView reason);
@@ -188,11 +189,10 @@ protected:
     virtual void SerializeTypeId(TypeId& value) = 0;
 
 protected:
-    explicit Archive(EArchiveMode in_mode) : mode(in_mode) {}
+    explicit Archive(EArchiveMode in_mode);
 
     EArchiveMode mode;
-    bool has_error = false;
-    StringView error_message;
+    std::unique_ptr<String> error_message;
 };
 
 namespace detail
