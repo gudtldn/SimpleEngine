@@ -11,8 +11,6 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -218,46 +216,6 @@ public:
 private:
     InternalMapType internal_map;
 };
-
-template <typename Key, typename Value>
-Archive& operator<<(Archive& ar, Map<Key, Value>& map)
-{
-    // TODO: 추후에 Array 대신 더 나은 방법으로 수정
-
-    uint64 total_elements;
-    if (ar.IsSaving())
-    {
-        total_elements = map.Len() * 2;
-    }
-    ar.BeginArray(total_elements);
-
-    if (ar.IsLoading())
-    {
-        SE_ASSERT(total_elements % 2 == 0, "");
-        const uint64 map_count = total_elements / 2;
-
-        map.Clear();
-        for (uint64 i = 0; i < map_count; ++i)
-        {
-            Key key;
-            Value value;
-
-            // 키와 값을 순서대로 읽음
-            ar << key << value;
-            map.Emplace(std::move(key), std::move(value));
-        }
-    }
-    else
-    {
-        for (auto& [key, value] : map)
-        {
-            ar << const_cast<Key&>(key) << value;
-        }
-    }
-
-    ar.EndArray();
-    return ar;
-}
 }  // namespace se
 
 #include "SimpleEngine/Core/Container/Map.inl"

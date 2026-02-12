@@ -7,7 +7,6 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se
@@ -260,47 +259,6 @@ private:
 
     [[no_unique_address]] AllocatorType allocator;
 };
-
-template <typename T, typename Alloc>
-Archive& operator<<(Archive& ar, Array<T, Alloc>& array)
-{
-    uint64 size = array.Len();
-    ar.BeginArray(size);
-
-    if (ar.IsLoading())
-    {
-        if constexpr (std::is_trivially_default_constructible_v<T>)
-        {
-            array.ResizeUninitialized(size);
-        }
-        else
-        {
-            array.Resize(size);
-        }
-    }
-
-    bool processed_as_binary = false;
-    if constexpr (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    {
-        if (ar.IsBinary())
-        {
-            // Binary Serialize시 memcpy를 사용하도록 최적화
-            ar << BinaryData::FromItems(array.Data(), size);
-            processed_as_binary = true;
-        }
-    }
-
-    if (!processed_as_binary)
-    {
-        for (uint64 i = 0; i < size; ++i)
-        {
-            ar << array[i];
-        }
-    }
-
-    ar.EndArray();
-    return ar;
-}
 }  // namespace se
 
 #include "SimpleEngine/Core/Container/Array.inl"
