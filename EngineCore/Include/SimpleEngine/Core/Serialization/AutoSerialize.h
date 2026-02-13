@@ -20,5 +20,5 @@ class TypeRegistry;
  * @param instance 직렬화할 객체의 포인터
  */
 SE_CORE_API void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance);
-SE_CORE_API void AutoSerialize(Archive& ar, TypeId type_id, void* instance);
+SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
 }  // namespace se

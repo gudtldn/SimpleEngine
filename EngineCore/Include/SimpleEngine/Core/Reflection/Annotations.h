@@ -1,43 +1,99 @@
 ﻿#pragma once
 
-/** 클래스나 구조체에 리플렉션용 메타데이터를 부여하는 매크로입니다. */
-#define SE_TYPE_ANNOTATION(...)
-/** 멤버 변수(프로퍼티)에 리플렉션용 메타데이터를 부여하는 매크로입니다. */
-#define SE_PROPERTY(...)
+#include "SimpleEngine/Core/Container/StringView.h"
+
+/** C++26으로 마이그레이션 시 CustomAnnotation을 바로 적용할 수 있도록 도와주는 헬퍼 매크로입니다. */
+#define SE_ANNOTATION(...)
+
 
 namespace se::meta
 {
-namespace detail
+namespace target
 {
-// ECS Architecture Tags
-struct ComponentTag {}; // ECS 엔티티 컴포넌트
-struct ResourceTag {};  // 전역 리소스 (싱글톤 데이터)
-struct EventTag {};     // 이벤트 메시지
+struct Annotation {};
 
-// Editor UI Tags
-struct EditTag {};      // 에디터에서 읽기/쓰기가 가능하게 설정 (+직렬화 기본값)
-struct ReadOnlyTag {};  // 에디터에서 읽기만 가능하게 설정 (+직렬화 기본값)
-struct ColorTag {};     // Vector3/4를 색상 피커로 표시
+// Annotation 사용 위치 제한
+struct Type   : Annotation {}; // 클래스, 구조체
+struct Field  : Annotation {}; // 멤버 변수
+struct Method : Annotation {}; // 멤버 함수
 
-struct SerializeTag {}; // 직렬화/역직렬화 강제
-struct TransientTag {}; // 직렬화/역직렬화 제외
-}  // namespace detail
+struct Member : Field, Method {};       // 멤버 변수 + 함수
+struct Any    : Type, Field, Method {}; // 어디든 가능
+} // namespace target
 
-constexpr detail::ComponentTag Component; // ECS 엔티티 컴포넌트
-constexpr detail::ResourceTag Resource;   // 전역 리소스 (싱글톤 데이터)
-constexpr detail::EventTag Event;         // 이벤트 메시지
+/** 클래스/구조체의 리플렉션 목적 정의 */
+enum class EReflectUsage : uint8
+{
+    Default,       // (기본) 에디터 UI + 직렬화
+    SerializeOnly, // UI 숨김 + 직렬화 (데이터 구조체, 패킷)
+    EditorOnly,    // UI 표시 + 직렬화 제외 (런타임 디버그 윈도우 등)
+    Internal       // UI 숨김 + 직렬화 제외 (코드 레벨 리플렉션만 필요)
+};
 
-constexpr detail::EditTag Edit;           // 값 표시 및 수정 가능
-constexpr detail::ReadOnlyTag ReadOnly;   // 값 표시는 하되 수정 불가
-constexpr detail::ColorTag Color;         // Vector3/4를 색상 피커로 표시
+namespace tags
+{
+// --- Type Tags ---
+/** 리플렉션 진입점 태그 (Unreal의 UCLASS/USTRUCT 역할) */
+struct Reflect : target::Type
+{
+    EReflectUsage usage;
 
-constexpr detail::SerializeTag Serialize; // 직렬화 강제
-constexpr detail::TransientTag Transient; // 직렬화(저장) 제외
+    explicit constexpr Reflect(EReflectUsage in_usage = EReflectUsage::Default)
+        : usage(in_usage) {}
+};
 
-/**
- * 숫자 데이터에 슬라이더 UI를 제공하고 입력 범위를 제한합니다.
- */
-struct Range
+/** ECS 컴포넌트 마킹 */
+struct Component : target::Type {};
+
+/** 추상 클래스 마킹 (인스턴스화 방지) */
+struct Abstract  : target::Type {};
+
+// --- Field Tags ---
+/** 리플렉션 프로퍼티 진입점 태그 (Unreal의 UPROPERTY 역할) */
+struct Property  : target::Field {};
+
+// Access & Visibility
+struct ReadOnly  : target::Field {}; // 에디터에서 읽기만 가능하게 설정 (Read Only)
+struct Hidden    : target::Field {}; // 에디터 UI에 표시하지 않음 (Internal Data)
+
+// Serialization
+struct Transient : target::Field {}; // 직렬화/역직렬화 대상에서 제외
+
+// UI Hints
+struct Color     : target::Field {}; // Vector3/4를 색상 피커로 표시
+struct Advanced  : target::Field {}; // 별도의 상세 탭(Advanced)에 표시
+
+
+// --- Payload Tags ---
+/** 에디터에서 표시할 이름입니다. */
+struct DisplayName : target::Member
+{
+    StringView name;
+
+    explicit constexpr DisplayName(StringView in_name)
+        : name(in_name) {}
+};
+
+/** 에디터에서 카테고리를 나누는 용도로 사용합니다. */
+struct Category : target::Member
+{
+    StringView category;
+
+    explicit constexpr Category(StringView in_category)
+        : category(in_category) {}
+};
+
+/** 에디터에서 마우스를 올렸을 때 표시할 도움말입니다. */
+struct Tooltip : target::Member
+{
+    StringView message;
+
+    explicit constexpr Tooltip(StringView in_message)
+        : message(in_message) {}
+};
+
+/** 숫자 데이터에 슬라이더 UI를 제공합니다. */
+struct Range : target::Field
 {
     float min;
     float max;
@@ -46,25 +102,48 @@ struct Range
         : min(in_min), max(in_max) {}
 };
 
-/**
- * 에디터에서 마우스를 올렸을 때 표시할 도움말입니다.
- */
-struct Tooltip
+/** 숫자 데이터에 슬라이더 UI를 제공하고 실제 데이터의 논리적 범위를 제한합니다. */
+struct Clamp : target::Field
 {
-    const char* message;
+    float min;
+    float max;
 
-    explicit constexpr Tooltip(const char* msg)
-        : message(msg) {}
+    constexpr Clamp(float in_min, float in_max)
+        : min(in_min), max(in_max) {}
 };
+} // namespace tags
 
-/**
- * 에디터에서 표시할 이름입니다.
- */
-struct DisplayName
-{
-    const char* name;
+// --- Type Annotation ---
+constexpr tags::Reflect   Reflect;                                       // (기본) 에디터 UI + 직렬화
+constexpr tags::Reflect   SerializeOnly{ EReflectUsage::SerializeOnly }; // UI 숨김 + 직렬화 (데이터 구조체, 패킷)
+constexpr tags::Reflect   EditorOnly{ EReflectUsage::EditorOnly };       // UI 표시 + 직렬화 제외 (런타임 디버그 윈도우 등)
+constexpr tags::Reflect   Internal{ EReflectUsage::Internal };           // UI 숨김 + 직렬화 제외 (코드 레벨 리플렉션만 필요)
 
-    explicit constexpr DisplayName(const char* name)
-        : name(name) {}
-};
-}  // namespace se::meta
+constexpr tags::Component Component;  // ECS 엔티티 컴포넌트
+constexpr tags::Abstract  Abstract;   // 추상 클래스
+
+// --- Field Annotation ---
+constexpr tags::Property  Property;  // 기본적으로 R/W + 직렬화 대상
+
+constexpr tags::ReadOnly  ReadOnly;  // 값 표시는 하되 수정 불가
+constexpr tags::Hidden    Hidden;    // 리플렉션에 등록은 하나, 아무런 표시를 하지 않음.
+constexpr tags::Transient Transient; // 직렬화 대상에서 제외
+constexpr tags::Color     Color;     // Vector3/4를 색상 피커로 표시
+constexpr tags::Advanced  Advanced;  // 별도의 상세 탭(Advanced)에 표시
+
+// --- Payload Annotations ---
+/** 에디터에서 표시할 이름입니다. */
+using DisplayName = tags::DisplayName;
+
+/** 에디터에서 카테고리를 나누는 용도로 사용합니다. */
+using Category = tags::Category;
+
+/** 에디터에서 마우스를 올렸을 때 표시할 도움말입니다. */
+using Tooltip = tags::Tooltip;
+
+/** 숫자 데이터에 슬라이더 UI를 제공하고 입력 범위를 제한합니다. */
+using Range = tags::Range;
+
+/** 숫자 데이터에 슬라이더 UI를 제공하고 실제 값의 입력 범위를 제한합니다. */
+using Clamp = tags::Clamp;
+} // namespace se::meta

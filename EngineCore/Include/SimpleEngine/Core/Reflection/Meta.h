@@ -17,20 +17,15 @@ enum class ETypeFlags : uint32
 {
     None        = 0,
 
-    // --- ECS Architecture ---
-    Component   = 1 << 0, // 이 클래스는 ECS 컴포넌트입니다.
-    Resource    = 1 << 1, // 이 클래스는 전역 리소스입니다.
-    System      = 1 << 2, // 이 클래스는 로직 시스템입니다.
-    Event       = 1 << 3, // 이 클래스는 이벤트 구조체입니다.
+    // Identity
+    IsComponent = 1 << 0, // ECS 컴포넌트 여부
+    IsAbstract  = 1 << 1, // 추상 클래스 (인스턴스화 불가)
 
-    // --- Object Nature ---
-    Abstract    = 1 << 4, // 추상 클래스입니다 (인스턴스화 불가능).
+    // Serialization
+    Transient   = 1 << 2, // 직렬화 대상에서 제외
 
-    // --- Serialization ---
-    Transient   = 1 << 5, // 이 타입 자체를 직렬화 대상에서 제외합니다.
-
-    // --- Editor ---
-    Hidden      = 1 << 6, // 에디터(ex: Add Component 메뉴)에서 숨깁니다.
+    // Editor Visibility
+    Hidden      = 1 << 3, // 에디터(ex: Add Component 메뉴)에서 숨기기
 };
 SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
 
@@ -38,14 +33,25 @@ SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
 enum class EPropertyFlags : uint32
 {
     None        = 0,
-    Edit        = 1 << 0, // 에디터 수정 가능
-    ReadOnly    = 1 << 1, // 에디터 읽기 전용
-    Serialized  = 1 << 2, // 직렬화 대상
-    Transient   = 1 << 3, // 직렬화 제외
-    ColorPicker = 1 << 4, // 색상 피커 사용
 
-    DefaultEdit = Edit | Serialized,
-    DefaultReadOnly = ReadOnly | Serialized
+    // Access
+    // 기본 Access 권한은 Edit
+    ReadOnly    = 1 << 0, // 에디터에서 값 확인만 가능 (ReadOnly)
+    Hidden      = 1 << 1, // 에디터 UI에 표시하지 않음 (Internal)
+
+    // Serialization
+    // 기본적으로는 직렬화 대상이며, Transient가 켜져있으면 제외합니다.
+    Transient   = 1 << 2, // 직렬화(저장) 대상에서 제외
+
+    // Networking
+    // Replicated  = 1 << 3, // // 서버의 프로퍼티 변경사항을 클라이언트로 동기화(복제)
+    // ReNotify 같은것도 있어야 함
+
+    // UI Hints & Constraints
+    Advanced    = 1 << 4, // 별도의 상세 탭(Advanced)에 표시
+    IsColor     = 1 << 5, // Vector3/4를 색상 피커로 표시
+    HasRange    = 1 << 6, // range_min/max 값이 유효함 (UI Slider)
+    HasClamp    = 1 << 7, // clamp_min/max 값이 유효함 (Logic Limit)
 };
 SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 
@@ -73,12 +79,15 @@ struct PropertyMetadata
     StringView tooltip;
 
     /** Property의 리플렉션 속성 */
-    BitFlags<EPropertyFlags> flags{ EPropertyFlags::DefaultEdit };
+    BitFlags<EPropertyFlags> flags{ EPropertyFlags::None };
 
-    // Range (for Sliders)
-    bool has_range = false;
+    // se::meta::Range (UI Slider)
     float range_min = 0.0f;
     float range_max = 0.0f;
+
+    // se::meta::Clamp (Logic Hard Limit)
+    double clamp_min = 0.0;
+    double clamp_max = 0.0;
 
     // // 네트워크 리플리케이트
     // bool is_replicated = false;
@@ -98,21 +107,21 @@ public:
      * Property의 실제 메모리 주소를 반환합니다.
      * @param instance 해당 변수를 가진 객체의 주소
      */
-    PtrFunc get_ptr;
+    PtrFunc get_ptr = nullptr;
 
     /**
      * Property의 값을 가져옵니다.
      * @param instance 해당 변수를 가진 객체의 주소
      * @param out_value 복사된 값을 저장할 버퍼의 주소
      */
-    GetterFunc getter;
+    GetterFunc getter = nullptr;
 
     /**
      * Property에 값을 설정합니다.
      * @param instance 해당 변수를 가진 객체의 주소
      * @param in_value 설정할 값이 들어있는 버퍼의 주소
      */
-    SetterFunc setter;
+    SetterFunc setter = nullptr;
 };
 
 /**

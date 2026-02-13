@@ -26,12 +26,6 @@ void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
             continue;
         }
 
-        // Serialized 플래그가 없으면 건너뜀
-        if (!prop.metadata.flags.IsAnySet(EPropertyFlags::Serialized))
-        {
-            continue;
-        }
-
         // serialize 콜백이 없으면 건너뜀
         if (!prop.serialize)
         {
@@ -44,7 +38,7 @@ void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
     }
 }
 
-void AutoSerialize(Archive& ar, TypeId type_id, void* instance)
+void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance)
 {
     const TypeInfo& info = TypeRegistry::Get().FindChecked(type_id);
     AutoSerialize(ar, info, instance);

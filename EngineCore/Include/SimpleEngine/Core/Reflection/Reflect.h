@@ -1,5 +1,6 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
+#include <type_traits>
 #include <concepts>
 
 #include "SimpleEngine/Core/Math/MathSerialize.h"
@@ -15,111 +16,144 @@
 
 namespace se::detail
 {
-template <typename T, typename... Tags>
-consteval BitFlags<ETypeFlags> MakeTypeFlags(Tags&&... tags)
+template <typename T, auto... Tags>
+    requires (std::derived_from<decltype(Tags), se::meta::target::Type> && ...)
+consteval BitFlags<ETypeFlags> MakeTypeFlags()
 {
-    using namespace se;
-    using namespace se::meta::detail;
+    using namespace se::meta;
 
     BitFlags<ETypeFlags> flags;
 
     // Abstract 클래스 자동 감지
     if constexpr (std::is_abstract_v<T>)
     {
-        flags |= ETypeFlags::Abstract;
+        flags |= ETypeFlags::IsAbstract;
     }
 
-    auto process_tag = [&flags]<typename Tag>([[maybe_unused]] Tag&& tag)
+    auto process_tag = [&flags]<auto Tag>()
     {
-        using DecayedTag = std::decay_t<Tag>;
+        using TagType = std::remove_cvref_t<decltype(Tag)>;
 
-        // ECS Tags
-        if constexpr (std::same_as<DecayedTag, ComponentTag>)
+        // Main Reflect Tag (Usage)
+        if constexpr (std::same_as<TagType, tags::Reflect>)
         {
-            flags |= ETypeFlags::Component;
-        }
-        else if constexpr (std::same_as<DecayedTag, ResourceTag>)
-        {
-            flags |= ETypeFlags::Resource;
-        }
-        else if constexpr (std::same_as<DecayedTag, EventTag>)
-        {
-            flags |= ETypeFlags::Event;
+            if constexpr (Tag.usage == EReflectUsage::Default)
+            {
+                // ...
+            }
+            else if constexpr (Tag.usage == EReflectUsage::SerializeOnly)
+            {
+                flags |= ETypeFlags::Hidden; // 에디터에서만 숨김
+            }
+            else if constexpr (Tag.usage == EReflectUsage::EditorOnly)
+            {
+                flags |= ETypeFlags::Transient; // 저장만 안 함
+            }
+            else if constexpr (Tag.usage == EReflectUsage::Internal)
+            {
+                flags |= ETypeFlags::Hidden | ETypeFlags::Transient;
+            }
+            else
+            {
+                static_assert(se::traits::AlwaysFalse<TagType>, "Invalid reflect usage tag.");
+            }
         }
 
-        // General Tags
-        else if constexpr (std::same_as<DecayedTag, TransientTag>)
+        // Component Tag (Architecture)
+        else if constexpr (std::same_as<TagType, tags::Component>)
         {
-            flags |= ETypeFlags::Transient;
+            flags |= ETypeFlags::IsComponent;
         }
+
+        // Manual Override Tags
+        else if constexpr (std::same_as<TagType, tags::Abstract>)
+        {
+            flags |= ETypeFlags::IsAbstract;
+        }
+
+        // Fallback
         else
         {
-            static_assert(se::traits::AlwaysFalse<DecayedTag>, "Invalid type tag");
+            static_assert(se::traits::AlwaysFalse<TagType>, "Invalid type tag");
         }
     };
 
-    (process_tag(std::forward<Tags>(tags)), ...);
+    (process_tag.template operator()<Tags>(), ...);
     return flags;
 }
 
-template <typename... Tags>
-consteval PropertyMetadata MakePropertyMetadata(Tags&&... tags)
+template <auto... Tags>
+    requires (std::derived_from<decltype(Tags), se::meta::target::Field> && ...)
+consteval PropertyMetadata MakePropertyMetadata()
 {
-    using namespace se;
     using namespace se::meta;
-    using namespace se::meta::detail;
 
     PropertyMetadata meta{};
-    auto process_tag = [&meta]<typename Tag>(Tag&& tag)
+    auto process_tag = [&meta]<auto Tag>()
     {
-        using DecayedTag = std::decay_t<Tag>;
+        using TagType = std::remove_cvref_t<decltype(Tag)>;
 
-        // --- 1. Marker Tags (Flags) ---
-        if constexpr (std::same_as<DecayedTag, EditTag>)
+        // --- Marker Tags (Flags) ---
+        if constexpr (std::same_as<TagType, tags::ReadOnly>)
         {
-            meta.flags |= EPropertyFlags::DefaultEdit;
+            meta.flags |= EPropertyFlags::ReadOnly;
         }
-        else if constexpr (std::same_as<DecayedTag, ReadOnlyTag>)
+        else if constexpr (std::same_as<TagType, tags::Advanced>)
         {
-            meta.flags |= EPropertyFlags::DefaultReadOnly;
+            meta.flags |= EPropertyFlags::Advanced;
         }
-        else if constexpr (std::same_as<DecayedTag, SerializeTag>)
+        else if constexpr (std::same_as<TagType, tags::Hidden>)
         {
-            meta.flags |= EPropertyFlags::Serialized;
+            meta.flags |= EPropertyFlags::Hidden;
         }
-        else if constexpr (std::same_as<DecayedTag, TransientTag>)
+        else if constexpr (std::same_as<TagType, tags::Transient>)
         {
-            // Transient 추가 및 Serialized 제거
             meta.flags |= EPropertyFlags::Transient;
-            meta.flags = meta.flags & ~EPropertyFlags::Serialized;
         }
-        else if constexpr (std::same_as<DecayedTag, ColorTag>)
+        else if constexpr (std::same_as<TagType, tags::Color>)
         {
-            meta.flags |= EPropertyFlags::ColorPicker;
+            meta.flags |= EPropertyFlags::IsColor;
         }
 
-        // --- 2. Payload Tags (Data) ---
-        else if constexpr (std::same_as<DecayedTag, Range>)
+        // --- Payload Tags (Data) ---
+        else if constexpr (std::same_as<TagType, tags::DisplayName>)
         {
-            meta.has_range = true;
-            meta.range_min = tag.min;
-            meta.range_max = tag.max;
+            meta.display_name = Tag.name;
         }
-        else if constexpr (std::same_as<DecayedTag, Tooltip>)
+        else if constexpr (std::same_as<TagType, tags::Category>)
         {
-            meta.tooltip = tag.message;
+            meta.category = Tag.category;
         }
-        else if constexpr (std::same_as<DecayedTag, DisplayName>)
+        else if constexpr (std::same_as<TagType, tags::Tooltip>)
         {
-            meta.display_name = tag.name;
+            meta.tooltip = Tag.message;
         }
+        else if constexpr (std::same_as<TagType, tags::Range>)
+        {
+            meta.flags |= EPropertyFlags::HasRange;
+            meta.range_min = Tag.min;
+            meta.range_max = Tag.max;
+        }
+        else if constexpr (std::same_as<TagType, tags::Clamp>)
+        {
+            meta.flags |= EPropertyFlags::HasClamp;
+            meta.range_min = Tag.min;
+            meta.range_max = Tag.max;
+        }
+
+        // Fallback
         else
         {
-            static_assert(se::traits::AlwaysFalse<DecayedTag>, "Invalid property tag");
+            // se::meta::Property 태그는 단순 마커이므로 여기서 무시해도 됨
+            // 추후 C++26에서 properties를 순회할 때, tags::Property가 있어야지만 리플렉션 대상으로 등록
+            if constexpr (!std::same_as<TagType, tags::Property>)
+            {
+                static_assert(se::traits::AlwaysFalse<TagType>, "Unhandled property tag encountered.");
+            }
         }
     };
 
-    (process_tag(std::forward<Tags>(tags)), ...);
+    (process_tag.template operator()<Tags>(), ...);
     return meta;
 }
 } // namespace se::detail
@@ -174,7 +208,7 @@ public: \
 [[maybe_unused]] inline static const bool SE_CONCAT_NAME(_Reflect_Init_, type) = [] static -> bool \
 { \
     using T = type; \
-    constexpr auto type_flags = ::se::detail::MakeTypeFlags<T>(__VA_ARGS__); \
+    constexpr auto type_flags = ::se::detail::MakeTypeFlags<T __VA_OPT__(,) __VA_ARGS__>(); \
     ::se::TypeRegistry::Get().Register<T>() \
         .AddFlags(type_flags)
 
@@ -192,13 +226,13 @@ public: \
  */
 #define SE_REFLECT_PROPERTY(member, ...) \
         .Property<&T::member>(SE_STRINGIFY(member)) \
-        .ApplyMetadata(::se::detail::MakePropertyMetadata(__VA_ARGS__))
+        .ApplyMetadata(::se::detail::MakePropertyMetadata<__VA_ARGS__>())
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
     ; /* 체이닝 종료 */ \
     static_assert(std::same_as<std::decay_t<T>, std::decay_t<type>>, "Type mismatch between BEGIN and END reflect macros."); \
-    if constexpr (type_flags.IsAnySet(::se::ETypeFlags::Component)) \
+    if constexpr (type_flags.IsAnySet(::se::ETypeFlags::IsComponent)) \
     { \
         ::se::ecs::ComponentRegistry::Get().RegisterInterface<type>(); \
     } \
