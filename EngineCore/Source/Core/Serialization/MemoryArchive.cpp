@@ -54,7 +54,7 @@ void MemoryReader::SerializeBytes(void* data, uint64 size)
 }
 
 // 이름 힌트 (바이너리에서는 무시)
-void MemoryReader::HintNextName([[maybe_unused]] const char* name) {}
+void MemoryReader::HintNextName([[maybe_unused]] StringView name) {}
 
 void MemoryReader::SerializeBool(bool& value)
 {
@@ -104,7 +104,7 @@ void MemoryReader::SerializeTypeId(TypeId& value)
 
 void MemoryReader::ReadBytes(void* dest, uint64 byte_size)
 {
-    if (!SE_ENSURE(
+    if (!SE_ENSURE( // NOLINT(*-simplify-boolean-expr)
         offset + byte_size <= buffer.Len(),
         "MemoryReader::ReadBytes - Buffer overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer.Len()
     ))
@@ -156,7 +156,7 @@ void MemoryWriter::SerializeBytes(void* data, uint64 size)
 }
 
 // 이름 힌트 (바이너리에서는 무시)
-void MemoryWriter::HintNextName([[maybe_unused]] const char* name) {}
+void MemoryWriter::HintNextName([[maybe_unused]] StringView name) {}
 
 void MemoryWriter::SerializeBool(bool& value)
 {

@@ -103,7 +103,7 @@ public:
      * @param name 변수의 이름
      * @return 체이닝을 위한 자기 자신 참조
      */
-    Archive& operator()(const char* name)
+    Archive& operator()(StringView name)
     {
         HintNextName(name);
         return *this;
@@ -167,7 +167,7 @@ protected:
      * 다음에 직렬화될 값의 이름(Key)에 대한 힌트를 제공합니다.
      * @param name 변수의 이름
      */
-    virtual void HintNextName(const char* name) = 0;
+    virtual void HintNextName(StringView name) = 0;
 
     // --- 스칼라(Primitive) 타입 처리 ---
     virtual void SerializeBool(bool& value) = 0;

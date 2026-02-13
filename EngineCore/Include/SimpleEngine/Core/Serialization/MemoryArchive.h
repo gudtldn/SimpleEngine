@@ -51,7 +51,7 @@ public:
     virtual void SerializeBytes(void* data, uint64 size) override;
 
 protected:
-    virtual void HintNextName(const char* name) override;
+    virtual void HintNextName(StringView name) override;
 
     virtual void SerializeBool(bool& value) override;
     virtual void SerializeInt8(int8& value) override;
@@ -106,7 +106,7 @@ public:
     virtual void SerializeBytes(void* data, uint64 size) override;
 
 protected:
-    virtual void HintNextName(const char* name) override;
+    virtual void HintNextName(StringView name) override;
 
     virtual void SerializeBool(bool& value) override;
     virtual void SerializeInt8(int8& value) override;

@@ -21,7 +21,7 @@ template <typename T>
 void FromChars(const se::String& str, T& value)
 {
     const auto result = std::from_chars(str.Data(), str.Data() + str.ByteLen(), value);
-    if (result.ec != std::errc{})
+    if (static_cast<int>(result.ec) != 0)
     {
         if (result.ec == std::errc::invalid_argument)
         {
@@ -34,7 +34,7 @@ void FromChars(const se::String& str, T& value)
         value = T{};
     }
 }
-}
+} // namespace
 
 namespace se
 {
@@ -151,7 +151,11 @@ void TomlReader::EndMap()
 void TomlReader::BeginMapKey()
 {
     Context& ctx = GetCurrentContext();
-    if (!SE_ENSURE(ctx.node && ctx.IsMap(), "TomlReader::BeginMapKey - Invalid context. (node: {}, IsMap: {})", (void*)ctx.node, ctx.IsMap()))
+    if (!SE_ENSURE(  // NOLINT(*-simplify-boolean-expr)
+        ctx.node && ctx.IsMap(),
+        "TomlReader::BeginMapKey - Invalid context. (node: {}, IsMap: {})",
+        static_cast<void*>(ctx.node), ctx.IsMap()
+    ))
     {
         return;
     }
@@ -191,7 +195,7 @@ void TomlReader::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] ui
     // TODO: Base64 디코딩 지원
 }
 
-void TomlReader::HintNextName(const char* name)
+void TomlReader::HintNextName(StringView name)
 {
     pending_key = name;
 }
@@ -514,7 +518,7 @@ void TomlWriter::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] ui
     // TODO: Base64 인코딩 지원
 }
 
-void TomlWriter::HintNextName(const char* name)
+void TomlWriter::HintNextName(StringView name)
 {
     pending_key = name;
 }
