@@ -1,5 +1,5 @@
 #pragma once
-#include "SimpleEngine/Asset/Types/IAsset.h"
+#include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
@@ -10,9 +10,9 @@ namespace se::asset
 /**
  * @todo docs
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect) StaticMesh : public IAsset
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect) StaticMesh : public AssetBase
 {
-    SE_CLASS(StaticMesh, IAsset)
+    SE_CLASS(StaticMesh, AssetBase)
 
 public:
     // 추후 Depth Prepass를 위한 Position정보와 나머지 Vertex정보를 분리해서
@@ -51,9 +51,9 @@ public:
 /**
  * @todo docs
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public IAsset
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public AssetBase
 {
-    SE_CLASS(SkeletalMesh, IAsset)
+    SE_CLASS(SkeletalMesh, AssetBase)
 
 public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)

@@ -19,7 +19,7 @@ bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
     return IsA<StaticMeshPipelineNode>(node);
 }
 
-std::shared_ptr<IAsset> StaticMeshFactory::CreateAsset(
+std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
     PipelineBaseNode* node,
     const PipelineImportContext& context
 )

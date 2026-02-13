@@ -1,6 +1,6 @@
 #pragma once
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
-#include "SimpleEngine/Asset/Types/IAsset.h"
+#include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
@@ -13,9 +13,9 @@ namespace se::asset
 struct SE_CORE_API PipelineImportContext
 {
     const PipelineNodeContainer& container;
-    const HashMap<Guid, std::shared_ptr<IAsset>>& created_assets;
+    const HashMap<Guid, std::shared_ptr<AssetBase>>& created_assets;
 
-    [[nodiscard]] std::shared_ptr<IAsset> GetCreatedAsset(const Guid& node_uid) const
+    [[nodiscard]] std::shared_ptr<AssetBase> GetCreatedAsset(const Guid& node_uid) const
     {
         return created_assets.Find(node_uid).ValueOr(nullptr);
     }
@@ -41,7 +41,7 @@ public:
      * @param context 다른 노드나 에셋에 접근하기 위한 Context
      * @return 생성된 에셋 (실패 시 nullptr)
      */
-    virtual std::shared_ptr<IAsset> CreateAsset(
+    virtual std::shared_ptr<AssetBase> CreateAsset(
         PipelineBaseNode* node,
         const PipelineImportContext& context
     ) = 0;

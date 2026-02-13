@@ -4,7 +4,7 @@
 namespace se::asset
 {
 ImportResult::ImportResult(
-    Array<std::shared_ptr<IAsset>> assets,
+    Array<std::shared_ptr<AssetBase>> assets,
     HashMap<String, uint32> name_to_index,
     uint32 main_asset_index
 )
@@ -14,7 +14,7 @@ ImportResult::ImportResult(
 {
 }
 
-std::shared_ptr<IAsset> ImportResult::GetMainAsset() const
+std::shared_ptr<AssetBase> ImportResult::GetMainAsset() const
 {
     if (main_asset_index < assets.Len())
     {
@@ -23,7 +23,7 @@ std::shared_ptr<IAsset> ImportResult::GetMainAsset() const
     return nullptr;
 }
 
-std::shared_ptr<IAsset> ImportResult::GetAsset(uint32 index) const
+std::shared_ptr<AssetBase> ImportResult::GetAsset(uint32 index) const
 {
     if (index < assets.Len())
     {
@@ -32,7 +32,7 @@ std::shared_ptr<IAsset> ImportResult::GetAsset(uint32 index) const
     return nullptr;
 }
 
-std::shared_ptr<IAsset> ImportResult::FindByName(StringView name) const
+std::shared_ptr<AssetBase> ImportResult::FindByName(StringView name) const
 {
     if (const auto index_opt = name_to_index.Find(name))
     {
@@ -50,7 +50,7 @@ Array<StringView> ImportResult::GetAllNames() const
 }
 
 
-uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<IAsset> asset, const String& name)
+uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<AssetBase> asset, const String& name)
 {
     const uint32 index = static_cast<uint32>(assets.Len());
     assets.Push(std::move(asset));

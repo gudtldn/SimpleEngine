@@ -8,12 +8,12 @@ namespace se::asset
 /**
  * Asset을 나타내는 가장 기본적인 타입
  */
-class SE_CORE_API SE_ANNOTATION(=meta::SerializeOnly) IAsset SE_TODO("Renaming to IAsset -> AssetBase")
+class SE_CORE_API SE_ANNOTATION(=meta::SerializeOnly) AssetBase
 {
-    SE_CLASS(IAsset)
+    SE_CLASS(AssetBase)
 
 public:
-    virtual ~IAsset() = default;
+    virtual ~AssetBase() = default;
 
     /** 이 Asset의 표시 이름을 반환합니다. (디버깅/에디터용) */
     [[nodiscard]] virtual StringView GetDisplayName() const { return {}; }

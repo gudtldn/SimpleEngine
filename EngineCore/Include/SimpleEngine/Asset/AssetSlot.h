@@ -6,7 +6,7 @@
 #include "AssetId.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Asset/Types/IAsset.h"
+#include "SimpleEngine/Asset/Types/AssetBase.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -43,16 +43,16 @@ public:
      * 현재 로드된 에셋을 Raw Pointer로 가져옵니다.
      * 로딩 중이거나 실패했다면 nullptr을 반환할 수 있습니다.
      */
-    [[nodiscard]] IAsset* GetRawAsset() const;
+    [[nodiscard]] AssetBase* GetRawAsset() const;
 
     /**
      * 현재 로드된 에셋을 가져옵니다.
      * 로딩 중이거나 실패했다면 nullptr을 반환할 수 있습니다.
      */
-    [[nodiscard]] std::shared_ptr<IAsset> GetAsset() const;
+    [[nodiscard]] std::shared_ptr<AssetBase> GetAsset() const;
 
     /** 에셋 데이터를 교체 후, 이전 에셋을 반환합니다. */
-    [[nodiscard]] std::shared_ptr<IAsset> ExchangeAsset(std::shared_ptr<IAsset> new_asset, ELoadingState new_state = ELoadingState::Loaded);
+    [[nodiscard]] std::shared_ptr<AssetBase> ExchangeAsset(std::shared_ptr<AssetBase> new_asset, ELoadingState new_state = ELoadingState::Loaded);
 
     /** 현재 에셋의 로딩 상태를 가져옵니다.*/
     [[nodiscard]] ELoadingState GetState() const;
@@ -70,14 +70,14 @@ public:
     [[nodiscard]] FORCE_INLINE const Path& GetSourcePath() const { return source_path; }
 
     /** 에셋을 무효화 후, 이전 에셋을 반환합니다. */
-    [[nodiscard]] std::shared_ptr<IAsset> Invalidate();
+    [[nodiscard]] std::shared_ptr<AssetBase> Invalidate();
 
 private:
     mutable TracySharedLockable(std::shared_mutex, mutex);
-    std::shared_ptr<IAsset> asset;
+    std::shared_ptr<AssetBase> asset;
 
     // lock-free 읽기 전용 포인터
-    std::atomic<IAsset*> cached_asset;
+    std::atomic<AssetBase*> cached_asset;
 
     // Asset Metadata
     const AssetId asset_id;

@@ -39,7 +39,7 @@ public:
      * @param asset_path Asset 경로 (예: "meshes/model.fbx#Mesh_01")
      */
     template <typename T>
-        requires std::derived_from<T, IAsset>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] AssetHandle<T> Load(const AssetPath& asset_path);
 
     /**
@@ -47,11 +47,11 @@ public:
      * @param asset_id Asset의 고유 ID
      */
     template <typename T>
-        requires std::derived_from<T, IAsset>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] AssetHandle<T> Find(const AssetId& asset_id) const;
 
     /** Asset을 프레임 마지막에 안전하게 해제할 수 있도록 대기 큐(Pending Queue)에 삽입합니다. */
-    void DeferRelease(std::shared_ptr<IAsset> asset);
+    void DeferRelease(std::shared_ptr<AssetBase> asset);
 
     /** 프레임 끝에서 대기 큐(Pending Queue)를 정리합니다. */
     void EndFrame();
@@ -74,11 +74,11 @@ private:
 
     // Deferred Release
     TracyLockable(std::mutex, pending_mutex);
-    Array<std::shared_ptr<IAsset>> pending_release;
+    Array<std::shared_ptr<AssetBase>> pending_release;
 };
 
 template <typename T>
-    requires std::derived_from<T, IAsset>
+    requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path)
 {
     std::shared_ptr<AssetSlot> slot = LoadInternal(TypeId::Get<T>(), asset_path);
@@ -86,7 +86,7 @@ AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path)
 }
 
 template <typename T>
-    requires std::derived_from<T, IAsset>
+    requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
 {
     std::shared_ptr<AssetSlot> slot = FindInternal(TypeId::Get<T>(), asset_id);

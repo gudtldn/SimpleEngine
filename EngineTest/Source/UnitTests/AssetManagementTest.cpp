@@ -5,7 +5,7 @@
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSlot.h"
-#include "SimpleEngine/Asset/Types/IAsset.h"
+#include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
@@ -23,9 +23,9 @@ AssetId GenerateAssetId()
 
 // --- Mock Assets for Testing ---
 
-class SE_ANNOTATION(=meta::Internal) MockTexture : public IAsset
+class SE_ANNOTATION(=meta::Internal) MockTexture : public AssetBase
 {
-    SE_CLASS(MockTexture, IAsset)
+    SE_CLASS(MockTexture, AssetBase)
 
 public:
     MockTexture() = default;
@@ -37,9 +37,9 @@ public:
 SE_BEGIN_REFLECT(MockTexture, meta::Internal)
 SE_END_REFLECT(MockTexture)
 
-class SE_ANNOTATION(=meta::Internal) MockMesh : public IAsset
+class SE_ANNOTATION(=meta::Internal) MockMesh : public AssetBase
 {
-    SE_CLASS(MockMesh, IAsset)
+    SE_CLASS(MockMesh, AssetBase)
 
 public:
     MockMesh() = default;
@@ -212,7 +212,7 @@ TEST_F(AssetSlotTest, LockFreeRead)
     // GetRawAsset should be lock-free (atomic read)
     for (int i = 0; i < 100; ++i)
     {
-        IAsset* raw = slot.GetRawAsset();
+        AssetBase* raw = slot.GetRawAsset();
         ASSERT_NE(raw, nullptr);
         EXPECT_EQ(static_cast<MockTexture*>(raw)->width, 2048);
     }

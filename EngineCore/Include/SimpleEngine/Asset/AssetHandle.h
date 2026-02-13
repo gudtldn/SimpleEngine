@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "SimpleEngine/Asset/AssetSlot.h"
-#include "SimpleEngine/Asset/Types/IAsset.h"
+#include "SimpleEngine/Asset/Types/AssetBase.h"
 
 
 namespace se::asset
@@ -15,7 +15,7 @@ namespace se::asset
  * @tparam T 핸들이 참조하는 Asset의 타입 (ex: Texture, Material, Mesh)
  */
 template <typename T>
-    requires std::derived_from<T, IAsset>
+    requires std::derived_from<T, AssetBase>
 class AssetHandle
 {
 public:
@@ -39,7 +39,7 @@ public:
         SE_ASSERT(!slot || slot->GetAssetType() == TypeId::Get<AssetType>());
         if (slot)
         {
-            IAsset* asset_ptr = slot->GetRawAsset();
+            AssetBase* asset_ptr = slot->GetRawAsset();
             return static_cast<T*>(asset_ptr);
         }
         return nullptr;
@@ -54,7 +54,7 @@ public:
         SE_ASSERT(!slot || slot->GetAssetType() == TypeId::Get<AssetType>());
         if (slot)
         {
-            const std::shared_ptr<IAsset> asset = slot->GetAsset();
+            const std::shared_ptr<AssetBase> asset = slot->GetAsset();
             return std::static_pointer_cast<T>(asset);
         }
         return nullptr;

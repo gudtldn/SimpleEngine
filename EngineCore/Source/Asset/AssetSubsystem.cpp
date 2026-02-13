@@ -51,7 +51,7 @@ void AssetSubsystem::Release()
     importer.reset();
 }
 
-void AssetSubsystem::DeferRelease(std::shared_ptr<IAsset> asset)
+void AssetSubsystem::DeferRelease(std::shared_ptr<AssetBase> asset)
 {
     // if (asset.use_count() > 2) {} TODO: 검사 할까?
     std::scoped_lock lock(pending_mutex);
@@ -162,7 +162,7 @@ bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
     // 모든 Asset을 Registry + Cache에 등록
     for (const auto& [name, idx] : result.GetNameToIndexMap())
     {
-        std::shared_ptr<IAsset> asset = result.GetAsset(idx);
+        std::shared_ptr<AssetBase> asset = result.GetAsset(idx);
         if (!asset)
         {
             continue;
