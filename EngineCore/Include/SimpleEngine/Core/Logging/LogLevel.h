@@ -15,4 +15,4 @@ enum class ELogLevel : uint8
     Error,
     Fatal,
 };
-}
+} // namespace se

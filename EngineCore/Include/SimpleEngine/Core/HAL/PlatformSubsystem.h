@@ -31,27 +31,27 @@ struct WindowDesc
 class SE_CORE_API WindowCreateError : public IError
 {
 public:
-    enum class Type
+    enum class EType
     {
         WindowCreationFailed,
         GPUDeviceClaimFailed,
         SwapchainSetupFailed,
     };
 
-    static WindowCreateError WindowCreation(String&& sdl_error) { return { Type::WindowCreationFailed, std::move(sdl_error) }; }
-    static WindowCreateError GPUDeviceClaim(String&& sdl_error) { return { Type::GPUDeviceClaimFailed, std::move(sdl_error) }; }
-    static WindowCreateError SwapchainSetup(String&& sdl_error) { return { Type::SwapchainSetupFailed, std::move(sdl_error) }; }
+    static WindowCreateError WindowCreation(String&& sdl_error) { return { EType::WindowCreationFailed, std::move(sdl_error) }; }
+    static WindowCreateError GPUDeviceClaim(String&& sdl_error) { return { EType::GPUDeviceClaimFailed, std::move(sdl_error) }; }
+    static WindowCreateError SwapchainSetup(String&& sdl_error) { return { EType::SwapchainSetupFailed, std::move(sdl_error) }; }
 
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
 
-    [[nodiscard]] Type GetType() const noexcept { return type; }
+    [[nodiscard]] EType GetType() const noexcept { return type; }
 
 private:
-    WindowCreateError(Type in_type, String&& message)
+    WindowCreateError(EType in_type, String&& message)
         : type(in_type), message(std::move(message)) {}
 
-    Type type;
+    EType type;
     String message;
 };
 

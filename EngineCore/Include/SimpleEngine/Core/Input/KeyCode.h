@@ -9,7 +9,7 @@ namespace se
 /**
  * 물리적 키보드 키를 나타내는 열거형
  */
-enum class KeyCode : uint16
+enum class EKeyCode : uint16
 {
     Unknown = SDL_SCANCODE_UNKNOWN,
 
@@ -139,13 +139,13 @@ enum class KeyCode : uint16
 };
 
 /** SDL_Scancode를 KeyCode로 변환합니다. */
-[[nodiscard]] constexpr KeyCode ToKeyCode(SDL_Scancode scancode) noexcept
+[[nodiscard]] constexpr EKeyCode ToKeyCode(SDL_Scancode scancode) noexcept
 {
-    return static_cast<KeyCode>(scancode);
+    return static_cast<EKeyCode>(scancode);
 }
 
 /** KeyCode를 SDL_Scancode로 변환합니다. */
-[[nodiscard]] constexpr SDL_Scancode ToSDLScancode(KeyCode key) noexcept
+[[nodiscard]] constexpr SDL_Scancode ToSDLScancode(EKeyCode key) noexcept
 {
     return static_cast<SDL_Scancode>(key);
 }

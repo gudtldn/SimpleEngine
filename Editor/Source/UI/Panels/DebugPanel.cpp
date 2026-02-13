@@ -127,7 +127,7 @@ void DebugPanel::Draw()
                     ImGui::Text("Delta: (%.2f, %.2f)", dx, dy);
 
                     ImGui::SeparatorText("Buttons");
-                    auto DrawMouseButton = [&](const char* label, MouseButton btn)
+                    auto DrawMouseButton = [&](const char* label, EMouseButton btn)
                     {
                         const bool is_down = input->IsMouseButtonDown(btn);
                         if (is_down)
@@ -141,11 +141,11 @@ void DebugPanel::Draw()
                         }
                     };
 
-                    DrawMouseButton("L", MouseButton::Left); ImGui::SameLine();
-                    DrawMouseButton("M", MouseButton::Middle); ImGui::SameLine();
-                    DrawMouseButton("R", MouseButton::Right);
-                    DrawMouseButton("X1", MouseButton::X1); ImGui::SameLine();
-                    DrawMouseButton("X2", MouseButton::X2);
+                    DrawMouseButton("L", EMouseButton::Left); ImGui::SameLine();
+                    DrawMouseButton("M", EMouseButton::Middle); ImGui::SameLine();
+                    DrawMouseButton("R", EMouseButton::Right);
+                    DrawMouseButton("X1", EMouseButton::X1); ImGui::SameLine();
+                    DrawMouseButton("X2", EMouseButton::X2);
 
                     ImGui::Separator();
 
@@ -171,9 +171,9 @@ void DebugPanel::Draw()
 
                     ImGui::Text("Active Keys:");
                     ImGui::BeginChild("KeyLog", ImVec2(0, 250), true);
-                    for (uint16 i = 0; i < static_cast<uint16>(KeyCode::Max); ++i)
+                    for (uint16 i = 0; i < static_cast<uint16>(EKeyCode::Max); ++i)
                     {
-                        KeyCode key = static_cast<KeyCode>(i);
+                        EKeyCode key = static_cast<EKeyCode>(i);
                         if (input->IsKeyDown(key))
                         {
                             const char* key_name = SDL_GetScancodeName(static_cast<SDL_Scancode>(i));

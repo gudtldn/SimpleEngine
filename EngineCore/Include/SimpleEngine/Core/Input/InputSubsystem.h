@@ -40,25 +40,25 @@ public:
     // Keyboard Event
 
     /** 키가 현재 프레임에서 눌려있는지 확인합니다. */
-    [[nodiscard]] bool IsKeyDown(KeyCode key) const;
+    [[nodiscard]] bool IsKeyDown(EKeyCode key) const;
 
     /** 키가 이번 프레임에 새로 눌렸는지 확인합니다. (이전 프레임에 안 눌림 → 현재 눌림) */
-    [[nodiscard]] bool IsKeyPressed(KeyCode key) const;
+    [[nodiscard]] bool IsKeyPressed(EKeyCode key) const;
 
     /** 키가 이번 프레임에 떼어졌는지 확인합니다. (이전 프레임에 눌림 → 현재 안 눌림) */
-    [[nodiscard]] bool IsKeyReleased(KeyCode key) const;
+    [[nodiscard]] bool IsKeyReleased(EKeyCode key) const;
 
 public:
     // Mouse Event
 
     /** 마우스 버튼이 현재 프레임에서 눌려있는지 확인합니다. */
-    [[nodiscard]] bool IsMouseButtonDown(MouseButton button) const;
+    [[nodiscard]] bool IsMouseButtonDown(EMouseButton button) const;
 
     /** 마우스 버튼이 이번 프레임에 새로 눌렸는지 확인합니다. */
-    [[nodiscard]] bool IsMouseButtonPressed(MouseButton button) const;
+    [[nodiscard]] bool IsMouseButtonPressed(EMouseButton button) const;
 
     /** 마우스 버튼이 이번 프레임에 떼어졌는지 확인합니다. */
-    [[nodiscard]] bool IsMouseButtonReleased(MouseButton button) const;
+    [[nodiscard]] bool IsMouseButtonReleased(EMouseButton button) const;
 
     /** 마우스의 현재 위치를 가져옵니다. (윈도우 기준 픽셀 좌표) */
     [[nodiscard]] float GetMouseX() const { return mouse_x; }
@@ -92,8 +92,8 @@ private:
     void ProcessSDLEvent(const SDL_Event& event);
 
 private:
-    static constexpr uint16 KEY_COUNT = static_cast<uint16>(KeyCode::Max);
-    static constexpr uint8 MOUSE_BUTTON_COUNT = static_cast<uint8>(MouseButton::Max);
+    static constexpr uint16 KEY_COUNT = static_cast<uint16>(EKeyCode::Max);
+    static constexpr uint8 MOUSE_BUTTON_COUNT = static_cast<uint8>(EMouseButton::Max);
 
     // Keyboard State
     FixedArray<bool, KEY_COUNT> current_keys = {};

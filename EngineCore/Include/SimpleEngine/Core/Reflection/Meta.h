@@ -54,7 +54,6 @@ enum class ETypeKind : uint8
 {
     Primitive, // 기본 자료형 (int, float, string 등)
     Struct,    // 구조체 및 클래스
-    Container, // 배열, 맵 등의 컨테이너
     Enum,      // 열거형
 };
 

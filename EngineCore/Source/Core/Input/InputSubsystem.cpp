@@ -58,19 +58,19 @@ void InputSubsystem::BeginFrame()
 
 // ── Keyboard Event ──────────────────────────────────
 
-bool InputSubsystem::IsKeyDown(KeyCode key) const
+bool InputSubsystem::IsKeyDown(EKeyCode key) const
 {
     const auto index = static_cast<uint16>(key);
     return index < KEY_COUNT && current_keys[index];
 }
 
-bool InputSubsystem::IsKeyPressed(KeyCode key) const
+bool InputSubsystem::IsKeyPressed(EKeyCode key) const
 {
     const auto index = static_cast<uint16>(key);
     return index < KEY_COUNT && current_keys[index] && !previous_keys[index];
 }
 
-bool InputSubsystem::IsKeyReleased(KeyCode key) const
+bool InputSubsystem::IsKeyReleased(EKeyCode key) const
 {
     const auto index = static_cast<uint16>(key);
     return index < KEY_COUNT && !current_keys[index] && previous_keys[index];
@@ -78,19 +78,19 @@ bool InputSubsystem::IsKeyReleased(KeyCode key) const
 
 // ── Mouse Event ─────────────────────────────────────
 
-bool InputSubsystem::IsMouseButtonDown(MouseButton button) const
+bool InputSubsystem::IsMouseButtonDown(EMouseButton button) const
 {
     const auto index = static_cast<uint8>(button);
     return index < MOUSE_BUTTON_COUNT && current_mouse_buttons[index];
 }
 
-bool InputSubsystem::IsMouseButtonPressed(MouseButton button) const
+bool InputSubsystem::IsMouseButtonPressed(EMouseButton button) const
 {
     const auto index = static_cast<uint8>(button);
     return index < MOUSE_BUTTON_COUNT && current_mouse_buttons[index] && !previous_mouse_buttons[index];
 }
 
-bool InputSubsystem::IsMouseButtonReleased(MouseButton button) const
+bool InputSubsystem::IsMouseButtonReleased(EMouseButton button) const
 {
     const auto index = static_cast<uint8>(button);
     return index < MOUSE_BUTTON_COUNT && !current_mouse_buttons[index] && previous_mouse_buttons[index];

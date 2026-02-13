@@ -13,7 +13,7 @@ namespace se
 class FileReadError : public IError
 {
 public:
-    enum class Type
+    enum class EType
     {
         FileNotFound,     // 파일이 존재하지 않음
         FileOpenFailed,   // 파일 열기 실패
@@ -26,26 +26,26 @@ public:
         UnknownError      // 알 수 없는 에러
     };
 
-    static FileReadError NotFound(String&& msg) { return { Type::FileNotFound, std::move(msg) }; }
-    static FileReadError OpenFailed(String&& msg) { return { Type::FileOpenFailed, std::move(msg) }; }
-    static FileReadError Permission(String&& msg) { return { Type::PermissionDenied, std::move(msg) }; }
-    static FileReadError Format(String&& msg) { return { Type::InvalidFormat, std::move(msg) }; }
-    static FileReadError Read(String&& msg) { return { Type::ReadFailed, std::move(msg) }; }
-    static FileReadError Write(String&& msg) { return { Type::WriteFailed, std::move(msg) }; }
-    static FileReadError EndOfFile(String&& msg) { return { Type::UnexpectedEOF, std::move(msg) }; }
-    static FileReadError OutOfMem(String&& msg) { return { Type::OutOfMemory, std::move(msg) }; }
-    static FileReadError Unknown(String&& msg) { return { Type::UnknownError, std::move(msg) }; }
+    static FileReadError NotFound(String&& msg) { return { EType::FileNotFound, std::move(msg) }; }
+    static FileReadError OpenFailed(String&& msg) { return { EType::FileOpenFailed, std::move(msg) }; }
+    static FileReadError Permission(String&& msg) { return { EType::PermissionDenied, std::move(msg) }; }
+    static FileReadError Format(String&& msg) { return { EType::InvalidFormat, std::move(msg) }; }
+    static FileReadError Read(String&& msg) { return { EType::ReadFailed, std::move(msg) }; }
+    static FileReadError Write(String&& msg) { return { EType::WriteFailed, std::move(msg) }; }
+    static FileReadError EndOfFile(String&& msg) { return { EType::UnexpectedEOF, std::move(msg) }; }
+    static FileReadError OutOfMem(String&& msg) { return { EType::OutOfMemory, std::move(msg) }; }
+    static FileReadError Unknown(String&& msg) { return { EType::UnknownError, std::move(msg) }; }
 
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
 
-    [[nodiscard]] Type GetType() const noexcept { return type; }
+    [[nodiscard]] EType GetType() const noexcept { return type; }
 
 private:
-    FileReadError(Type in_type, String&& message)
+    FileReadError(EType in_type, String&& message)
         : type(in_type), message(std::move(message)) {}
 
-    Type type;
+    EType type;
     String message;
 };
 
