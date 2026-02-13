@@ -196,6 +196,7 @@ public: \
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
     ; /* 체이닝 종료 */ \
+    static_assert(std::same_as<std::decay_t<T>, std::decay_t<type>>, "Type mismatch between BEGIN and END reflect macros."); \
     if constexpr (type_flags.IsAnySet(::se::ETypeFlags::Component)) \
     { \
         ::se::ecs::ComponentRegistry::Get().RegisterInterface<type>(); \
