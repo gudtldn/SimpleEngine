@@ -13,8 +13,6 @@
     - 생성자로 Fn&&을 받아서 시스템 끼리의 순서나 여러가지 상호작용을 할 수 있도록 하기
 - [ ] RenderWorld 구현
     - 매 프레임 렌더링에 필요한 컴포넌트만 추출해서
-- [ ] InputSystem 구현
-- [ ] PlatformEventDispatcher 리펙토링
 - [ ] Entity를 Spawn할 때, 한번에 Entity + Components... 로 Spawn할 수 있도록 Bundle 기능 추가
 
 - [ ] 프로파일러 만들기
@@ -67,3 +65,5 @@
 - [x] 나중에 icu4c를 submodule로 추가하기 (vcpkg로 관리)
 - [x] Optional constexpr로 만들기
   - 주석 다시한번 확인하고, 함수이름과 requires절 가독성 개선
+- [x] InputSubsystemSystem 구현
+- [x] PlatformEventDispatcher 리펙토링
