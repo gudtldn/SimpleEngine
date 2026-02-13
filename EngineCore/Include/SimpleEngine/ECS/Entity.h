@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
 
@@ -32,6 +33,12 @@ public:
 
 private:
     friend class se::ecs::EntityManager;
+
+    friend void Serialize(Archive& ar, Entity& entity)
+    {
+        ar("id") << entity.id;
+        ar("generation") << entity.generation;
+    }
 
     Entity(uint32 in_id, uint32 in_generation) noexcept
         : id(in_id)

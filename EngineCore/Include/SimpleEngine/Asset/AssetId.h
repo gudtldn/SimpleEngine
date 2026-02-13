@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
 
@@ -23,6 +25,11 @@ public:
     [[nodiscard]] bool operator==(const AssetId&) const noexcept = default;
 
 private:
+    friend void Serialize(Archive& ar, AssetId& asset_id)
+    {
+        ar("guid") << asset_id.guid;
+    }
+
     Guid guid;
 };
 }  // namespace se::asset

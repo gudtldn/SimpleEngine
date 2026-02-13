@@ -2,6 +2,7 @@
 #pragma once
 #include <concepts>
 
+#include "SimpleEngine/Core/Math/MathSerialize.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"

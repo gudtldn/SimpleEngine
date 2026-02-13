@@ -6,7 +6,7 @@
 
 namespace se::asset
 {
-enum class ETextureFormat
+enum class ETextureFormat : uint8
 {
     None = 0,
     R8,
