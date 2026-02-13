@@ -41,6 +41,15 @@ public:
     template <typename T>
     detail::TypeBuilder<T> RegisterPrimitive();
 
+    /**
+     * Registry에 열거형(Enum)을 등록합니다.
+     * base_or_inner_id에 underlying type의 TypeId를 자동 설정합니다.
+     * @tparam T 열거형 타입
+     */
+    template <typename T>
+        requires traits::EnumType<T>
+    detail::TypeBuilder<T> RegisterEnum();
+
 public:
     template <typename T>
     [[nodiscard]] Optional<const TypeInfo&> Find() const;
@@ -85,19 +94,52 @@ detail::TypeBuilder<T> TypeRegistry::Register()
     info.name = id.GetName();
     info.size = sizeof(T);
     info.alignment = alignof(T);
-    info.kind = ETypeKind::Struct;
 
     SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
     name_map.Insert(info.name, id);
 
-    return detail::TypeBuilder<T>(&info);
+    return detail::TypeBuilder<T>(&info, ETypeKind::Struct);
 }
 
 template <typename T>
 detail::TypeBuilder<T> TypeRegistry::RegisterPrimitive()
 {
-    auto builder = Register<T>();
-    builder.SetKind(ETypeKind::Primitive);
-    return builder;
+    const TypeId id = TypeId::Get<T>();
+
+    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
+    TypeInfo& info = type_map.Emplace(id);
+
+    // 기본 정보 채우기
+    info.type_id = id;
+    info.name = id.GetName();
+    info.size = sizeof(T);
+    info.alignment = alignof(T);
+
+    SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
+    name_map.Insert(info.name, id);
+
+    return detail::TypeBuilder<T>(&info, ETypeKind::Primitive);
+}
+
+template <typename T>
+    requires traits::EnumType<T>
+detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
+{
+    const TypeId id = TypeId::Get<T>();
+
+    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
+    TypeInfo& info = type_map.Emplace(id);
+
+    // 기본 정보 채우기
+    info.type_id = id;
+    info.name = id.GetName();
+    info.size = sizeof(T);
+    info.alignment = alignof(T);
+    info.base_or_inner_id = TypeId::Get<std::underlying_type_t<T>>();
+
+    SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
+    name_map.Insert(info.name, id);
+
+    return detail::TypeBuilder<T>(&info, ETypeKind::Enum);
 }
 } // namespace se

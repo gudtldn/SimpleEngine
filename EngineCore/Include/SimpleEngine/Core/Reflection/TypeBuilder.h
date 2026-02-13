@@ -31,9 +31,12 @@ template <typename T>
 class TypeBuilder
 {
 public:
-    explicit TypeBuilder(TypeInfo* info)
+    explicit TypeBuilder(TypeInfo* info, ETypeKind kind)
         : info_ptr(info)
     {
+        // info가 어떤 타입 종류인지 설정
+        info_ptr->kind = kind;
+
         // Super가 존재하면 Info에 부모의 TypeId를 저장
         if constexpr (requires{ typename T::Super; })
         {
@@ -58,13 +61,6 @@ public:
     TypeBuilder& AddFlags(BitFlags<ETypeFlags> flags)
     {
         info_ptr->flags |= flags;
-        return *this;
-    }
-
-    /** 타입의 종류(Struct, Class, Enum 등) 설정합니다. */
-    TypeBuilder& SetKind(ETypeKind kind)
-    {
-        info_ptr->kind = kind;
         return *this;
     }
 

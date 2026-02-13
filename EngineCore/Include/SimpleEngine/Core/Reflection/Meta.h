@@ -95,18 +95,23 @@ struct PropertyAccessor
     using SetterFunc = void(*)(void* instance, const void* in_value);
 
 public:
-    /** Property의 실제 메모리 주소를 반환합니다. */
+    /**
+     * Property의 실제 메모리 주소를 반환합니다.
+     * @param instance 해당 변수를 가진 객체의 주소
+     */
     PtrFunc get_ptr;
 
-    /** Property의 값을 가져옵니다.
-     * @param instance: 해당 변수를 가진 객체의 주소
-     * @param out_value: 복사된 값을 저장할 버퍼의 주소
+    /**
+     * Property의 값을 가져옵니다.
+     * @param instance 해당 변수를 가진 객체의 주소
+     * @param out_value 복사된 값을 저장할 버퍼의 주소
      */
     GetterFunc getter;
 
-    /** Property에 값을 설정합니다.
-     * @param instance: 해당 변수를 가진 객체의 주소
-     * @param in_value: 설정할 값이 들어있는 버퍼의 주소
+    /**
+     * Property에 값을 설정합니다.
+     * @param instance 해당 변수를 가진 객체의 주소
+     * @param in_value 설정할 값이 들어있는 버퍼의 주소
      */
     SetterFunc setter;
 };
@@ -163,7 +168,7 @@ struct TypeInfo
 {
     using ConstructorFunc = void*(*)();
     using DestructorFunc  = void(*)(void*);
-    using SerializeFunc   = void(*)(void* instance, Archive& ar);
+    using SerializeFunc   = void(*)(Archive& ar, void* instance);
     using DrawUIFunc      = void(*)(void* instance);
 
 public:
@@ -171,12 +176,19 @@ public:
     TypeId type_id;
 
     /**
-     * 부모 타입 or 컨테이너/Enum 내부타입의 식별자
+     * 문맥에 따라 다른 역할의 타입 식별자
      * - Struct: 부모 클래스의 TypeId
-     * - Container: 요소(Element)의 TypeId
+     * - Array/Set: Element의 TypeId
+     * - Map: Key의 TypeId
      * - Enum: Underlying Type의 TypeId
      */
     TypeId base_or_inner_id;
+
+    /**
+     * Map 전용: Value 타입의 TypeId
+     * Map이 아닌 경우에는 사용되지 않습니다 (기본값: 빈 TypeId).
+     */
+    TypeId secondary_type_id;
 
     /** Type의 이름 */
     StringView name;
