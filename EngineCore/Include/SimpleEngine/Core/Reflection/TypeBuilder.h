@@ -9,6 +9,7 @@ namespace se
 {
 // forward declaration
 class TypeRegistry;
+SE_CORE_API void AutoSerialize(Archive& ar, TypeId type_id, void* instance);
 
 namespace detail
 {
@@ -54,6 +55,18 @@ public:
             info_ptr->constructor = []() static -> void* { return new T(); };
         }
         info_ptr->destructor = [](void* ptr) static { delete static_cast<T*>(ptr); };
+    }
+
+    ~TypeBuilder()
+    {
+        // 체이닝 종료 후 serialize 콜백이 미등록된 Struct에 AutoSerialize를 자동 연결합니다.
+        if (info_ptr && !info_ptr->serialize && info_ptr->kind == ETypeKind::Struct)
+        {
+            info_ptr->serialize = [](Archive& ar, void* instance) static
+            {
+                AutoSerialize(ar, TypeId::Get<T>(), instance);
+            };
+        }
     }
 
 public:
