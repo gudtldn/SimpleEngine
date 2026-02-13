@@ -170,21 +170,19 @@ public: \
  * @param ... 클래스 속성 태그
  */
 #define SE_BEGIN_REFLECT(type, ...) \
-inline static const struct type##_Registrar \
+[[maybe_unused]] inline static const bool SE_CONCAT_NAME(_Reflect_Init_, type) = [] static -> bool \
 { \
-    type##_Registrar() \
-    { \
-        using T = type; \
-        constexpr auto type_flags = ::se::detail::MakeTypeFlags<T>(__VA_ARGS__); \
-        ::se::TypeRegistry::Get().Register<T>() \
-            .AddFlags(type_flags)
+    using T = type; \
+    constexpr auto type_flags = ::se::detail::MakeTypeFlags<T>(__VA_ARGS__); \
+    ::se::TypeRegistry::Get().Register<T>() \
+        .AddFlags(type_flags)
 
 /**
  * 인터페이스(Interface)를 등록합니다.
  * @param ... 인터페이스 목록
  */
 #define SE_REFLECT_INTERFACE(...) \
-            .Implements<__VA_ARGS__>()
+        .Implements<__VA_ARGS__>()
 
 /**
  * 멤버 변수(Property)를 등록합니다.
@@ -192,15 +190,15 @@ inline static const struct type##_Registrar \
  * @param ... 프로퍼티 속성 태그
  */
 #define SE_REFLECT_PROPERTY(member, ...) \
-            .Property<&T::member>(SE_STRINGIFY(member)) \
-            .ApplyMetadata(::se::detail::MakePropertyMetadata(__VA_ARGS__))
+        .Property<&T::member>(SE_STRINGIFY(member)) \
+        .ApplyMetadata(::se::detail::MakePropertyMetadata(__VA_ARGS__))
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
-        ; /* 체이닝 종료 */ \
-        if constexpr (type_flags.IsAnySet(::se::ETypeFlags::Component)) \
-        { \
-            ::se::ecs::ComponentRegistry::Get().RegisterInterface<type>(); \
-        } \
+    ; /* 체이닝 종료 */ \
+    if constexpr (type_flags.IsAnySet(::se::ETypeFlags::Component)) \
+    { \
+        ::se::ecs::ComponentRegistry::Get().RegisterInterface<type>(); \
     } \
-} SE_CONCAT_NAME(_, SE_CONCAT_NAME(type, _Registrar)){};
+    return true; \
+}();
