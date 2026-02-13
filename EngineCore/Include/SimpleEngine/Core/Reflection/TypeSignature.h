@@ -219,12 +219,18 @@ template <typename T>
 
 /**
  * 타입에서 네임스페이스를 제외한 순수 타입 이름을 반환합니다. (예: "MyClass")
+ * @warning 템플릿 타입(예: Array<se::String>)에는 사용할 수 없습니다.
+ *          RemoveNamespace가 마지막 "::"을 기준으로 잘라내므로 템플릿 인자 안의 "::"에서 잘립니다.
+ *          템플릿 타입의 전체 이름이 필요하면 GetFullTypeName<T>()을 사용하세요.
  * @tparam T 타입 이름을 추출할 대상 타입
  */
 template <typename T>
     requires (!se::traits::IsFunctionType<T>)
 [[nodiscard]] consteval StringView GetTypeName() noexcept
 {
+    // TODO: traits::IsTemplateInstance<T> 만들어야 함
+    // static_assert(traits::IsTemplateInstance<T>, "GetTypeName<T>() cannot be used with template types. Use GetFullTypeName<T>() instead.");
+
     constexpr auto ret = GetFullTypeName<T>();
     return detail::RemoveNamespace(ret);
 }
