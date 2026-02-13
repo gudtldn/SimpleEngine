@@ -109,7 +109,7 @@ void RenderGraph::Compile()
     Queue<RGResourceHandle> active_resources;
     for (const auto [n, resource_node] : resource_nodes | std::views::enumerate)
     {
-        const IRGResource* resource = resource_node.resource.get();
+        const RGResourceBase* resource = resource_node.resource.get();
         if (IsA<RGExternalTexture>(resource) || IsA<RGExternalBuffer>(resource))
         {
             active_resources.Push({ static_cast<usize>(n) });
@@ -376,8 +376,8 @@ SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGResourceHandle handle) co
 {
     if (handle.index < graph_ref.resource_nodes.Len())
     {
-        IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
-        if (const IRGTexture* resource = Cast<IRGTexture>(raw_ptr))
+        RGResourceBase* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
+        if (const RGTextureBase* resource = Cast<RGTextureBase>(raw_ptr))
         {
             return resource->GetActualTexture();
         }
@@ -389,8 +389,8 @@ SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGResourceHandle handle) cons
 {
     if (handle.index < graph_ref.resource_nodes.Len())
     {
-        IRGResource* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
-        if (const IRGBuffer* resource = Cast<IRGBuffer>(raw_ptr))
+        RGResourceBase* raw_ptr = graph_ref.resource_nodes[handle.index].resource.get();
+        if (const RGBufferBase* resource = Cast<RGBufferBase>(raw_ptr))
         {
             return resource->GetActualBuffer();
         }

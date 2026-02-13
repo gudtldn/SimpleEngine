@@ -35,7 +35,7 @@ struct RGPassNode
 struct RGResourceNode
 {
     StringName name;
-    std::unique_ptr<IRGResource> resource;
+    std::unique_ptr<RGResourceBase> resource;
 
     // RenderGraph::Compile() 단계에서 채워질 정보들
     const RGPassNode* writer = nullptr; // 이 리소스를 쓰는 패스 (프레임당 하나여야 함)

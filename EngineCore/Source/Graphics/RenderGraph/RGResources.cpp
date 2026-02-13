@@ -4,14 +4,14 @@
 
 namespace se::graphics
 {
-SE_BEGIN_REFLECT(IRGResource, meta::Internal)
-SE_END_REFLECT(IRGResource)
+SE_BEGIN_REFLECT(RGResourceBase, meta::Internal)
+SE_END_REFLECT(RGResourceBase)
 
-SE_BEGIN_REFLECT(IRGTexture, meta::Internal)
-SE_END_REFLECT(IRGTexture)
+SE_BEGIN_REFLECT(RGTextureBase, meta::Internal)
+SE_END_REFLECT(RGTextureBase)
 
-SE_BEGIN_REFLECT(IRGBuffer, meta::Internal)
-SE_END_REFLECT(IRGBuffer)
+SE_BEGIN_REFLECT(RGBufferBase, meta::Internal)
+SE_END_REFLECT(RGBufferBase)
 
 SE_BEGIN_REFLECT(RGTransientTexture, meta::Internal)
 SE_END_REFLECT(RGTransientTexture)
