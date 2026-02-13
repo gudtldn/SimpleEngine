@@ -100,32 +100,37 @@ public:
         }();
 
         // 접근자(Accessor) 생성
-        prop.accessor.get_ptr = [](void* instance) static -> void*
-        {
-            SE_ASSERT(instance, "Instance pointer is null in get_ptr");
+        prop.accessor = {
+            .get_ptr = [](void* instance) static -> void*
+            {
+                SE_ASSERT(instance, "Instance pointer is null in get_ptr");
 
-            T* typed = static_cast<T*>(instance);
-            return &(typed->*MemberPtr);
+                T* typed = static_cast<T*>(instance);
+                return &(typed->*MemberPtr);
+            },
+            .getter = [](const void* instance, void* out_value) static
+            {
+                SE_ASSERT(instance, "Instance pointer is null in getter");
+                SE_ASSERT(out_value, "Target buffer (out_value) is null in getter");
+
+                const T* typed = static_cast<const T*>(instance);
+                MemberType* out = static_cast<MemberType*>(out_value);
+                *out = typed->*MemberPtr;
+            },
+            .setter = [](void* instance, const void* in_value) static
+            {
+                SE_ASSERT(instance, "Instance pointer is null in setter");
+                SE_ASSERT(in_value, "Source value (in_value) is null in setter");
+
+                T* typed = static_cast<T*>(instance);
+                const MemberType* in = static_cast<const MemberType*>(in_value);
+                typed->*MemberPtr = *in;
+            },
         };
 
-        prop.accessor.getter = [](const void* instance, void* out_value) static
+        prop.serialize = [](Archive& ar, void* ptr) static
         {
-            SE_ASSERT(instance, "Instance pointer is null in getter");
-            SE_ASSERT(out_value, "Target buffer (out_value) is null in getter");
-
-            const T* typed = static_cast<const T*>(instance);
-            MemberType* out = static_cast<MemberType*>(out_value);
-            *out = typed->*MemberPtr;
-        };
-
-        prop.accessor.setter = [](void* instance, const void* in_value) static
-        {
-            SE_ASSERT(instance, "Instance pointer is null in setter");
-            SE_ASSERT(in_value, "Source value (in_value) is null in setter");
-
-            T* typed = static_cast<T*>(instance);
-            const MemberType* in = static_cast<const MemberType*>(in_value);
-            typed->*MemberPtr = *in;
+            ar << *static_cast<MemberType*>(ptr);
         };
 
         info_ptr->properties.Push(prop);

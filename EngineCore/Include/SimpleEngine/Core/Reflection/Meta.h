@@ -121,6 +121,9 @@ public:
  */
 struct PropertyInfo
 {
+    using SerializeFunc = void(*)(Archive& ar, void* prop_ptr);
+
+public:
     /** Property에 대한 컴파일타임 타입 식별자 */
     TypeId type_id;
 
@@ -139,6 +142,9 @@ public:
 
     /** Property의 값을 읽거나 쓰기 위한 함수형 접근자 (Getter/Setter 인터페이스) */
     PropertyAccessor accessor;
+
+    /** Property 단위 직렬화 콜백 (Archive::operator<< 디스패치를 통해 자동 생성됨) */
+    SerializeFunc serialize = nullptr;
 
 public:
     template <typename T>
