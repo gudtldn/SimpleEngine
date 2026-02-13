@@ -27,7 +27,7 @@ struct EntityDrawInfo
 /**
  * World에 있는 Entity를 그리는 Pass
  */
-class SE_CORE_API ForwardScenePass : public RenderPassBase
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) ForwardScenePass : public RenderPassBase
 {
     SE_CLASS(ForwardScenePass, RenderPassBase)
 

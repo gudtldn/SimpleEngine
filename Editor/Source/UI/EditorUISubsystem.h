@@ -13,7 +13,7 @@
 
 namespace se::editor
 {
-class EditorUISubsystem : public SubsystemBase, public IUpdatable
+class SE_ANNOTATION(meta::Internal) EditorUISubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(EditorUISubsystem, SubsystemBase)
 

@@ -12,7 +12,7 @@ namespace se
 SE_REGISTER_SUBSYSTEM(InputSubsystem)
     .DependsOn<PlatformSubsystem>();
 
-SE_BEGIN_REFLECT(InputSubsystem)
+SE_BEGIN_REFLECT(InputSubsystem, meta::Internal)
 SE_END_REFLECT(InputSubsystem)
 
 

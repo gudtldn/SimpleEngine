@@ -66,30 +66,41 @@ T RoundTripViaTypeInfo(const T& original)
 namespace autoserialize_test
 {
 // 단순 구조체
-struct SimpleData
+struct SE_ANNOTATION(=meta::SerializeOnly) SimpleData
 {
+    SE_ANNOTATION(=meta::Property)
     int32 x = 0;
+
+    SE_ANNOTATION(=meta::Property)
     float y = 0.0f;
+
+    SE_ANNOTATION(=meta::Property)
     String name;
 
     bool operator==(const SimpleData&) const = default;
 };
 
 // 상속 테스트용 Base
-struct BaseData
+struct SE_ANNOTATION(=meta::SerializeOnly) BaseData
 {
+    SE_ANNOTATION(=meta::Property)
     int32 base_val = 0;
+
+    SE_ANNOTATION(=meta::Property)
     String base_name;
 
     bool operator==(const BaseData&) const = default;
 };
 
 // 상속 테스트용 Derived
-struct DerivedData : BaseData
+struct SE_ANNOTATION(=meta::SerializeOnly) DerivedData : BaseData
 {
     using Super = BaseData;
 
+    SE_ANNOTATION(=meta::Property)
     float derived_val = 0.0f;
+
+    SE_ANNOTATION(=meta::Property)
     int32 derived_extra = 0;
 
     bool operator==(const DerivedData& other) const
@@ -101,24 +112,30 @@ struct DerivedData : BaseData
 };
 
 // Transient 프로퍼티 테스트용
-struct TransientData
+struct SE_ANNOTATION(=meta::SerializeOnly) TransientData
 {
+    SE_ANNOTATION(=meta::Property)
     int32 saved_val = 0;
+
+    SE_ANNOTATION(=meta::Property, =meta::Transient)
     int32 transient_val = 0;  // Transient → 직렬화에서 제외
 
     bool operator==(const TransientData&) const = default;
 };
 
 // 빈 구조체 (프로퍼티 없음)
-struct EmptyReflected
+struct SE_ANNOTATION(=meta::SerializeOnly) EmptyReflected
 {
     bool operator==(const EmptyReflected&) const = default;
 };
 
 // 컨테이너 프로퍼티를 가진 구조체
-struct ContainerData
+struct SE_ANNOTATION(=meta::SerializeOnly) ContainerData
 {
+    SE_ANNOTATION(=meta::Property)
     Array<int32> numbers;
+
+    SE_ANNOTATION(=meta::Property)
     HashMap<String, float> scores;
 
     bool operator==(const ContainerData&) const = default;
@@ -139,33 +156,33 @@ enum class ETestColor : uint8
 // ============================================================================
 using namespace autoserialize_test;
 
-SE_BEGIN_REFLECT(SimpleData)
-SE_REFLECT_PROPERTY(x, ::se::meta::Edit)
-SE_REFLECT_PROPERTY(y, ::se::meta::Edit)
-SE_REFLECT_PROPERTY(name, ::se::meta::Edit)
+SE_BEGIN_REFLECT(SimpleData, meta::SerializeOnly)
+SE_REFLECT_PROPERTY(x, meta::Property)
+SE_REFLECT_PROPERTY(y, meta::Property)
+SE_REFLECT_PROPERTY(name, meta::Property)
 SE_END_REFLECT(SimpleData)
 
-SE_BEGIN_REFLECT(BaseData)
-SE_REFLECT_PROPERTY(base_val, ::se::meta::Edit)
-SE_REFLECT_PROPERTY(base_name, ::se::meta::Edit)
+SE_BEGIN_REFLECT(BaseData, meta::SerializeOnly)
+SE_REFLECT_PROPERTY(base_val, meta::Property)
+SE_REFLECT_PROPERTY(base_name, meta::Property)
 SE_END_REFLECT(BaseData)
 
-SE_BEGIN_REFLECT(DerivedData)
-SE_REFLECT_PROPERTY(derived_val, ::se::meta::Edit)
-SE_REFLECT_PROPERTY(derived_extra, ::se::meta::Edit)
+SE_BEGIN_REFLECT(DerivedData, meta::SerializeOnly)
+SE_REFLECT_PROPERTY(derived_val, meta::Property)
+SE_REFLECT_PROPERTY(derived_extra, meta::Property)
 SE_END_REFLECT(DerivedData)
 
-SE_BEGIN_REFLECT(TransientData)
-SE_REFLECT_PROPERTY(saved_val, ::se::meta::Edit)
-SE_REFLECT_PROPERTY(transient_val, ::se::meta::Transient)
+SE_BEGIN_REFLECT(TransientData, meta::SerializeOnly)
+SE_REFLECT_PROPERTY(saved_val, meta::Property)
+SE_REFLECT_PROPERTY(transient_val, meta::Transient)
 SE_END_REFLECT(TransientData)
 
-SE_BEGIN_REFLECT(EmptyReflected)
+SE_BEGIN_REFLECT(EmptyReflected, meta::SerializeOnly)
 SE_END_REFLECT(EmptyReflected)
 
-SE_BEGIN_REFLECT(ContainerData)
-SE_REFLECT_PROPERTY(numbers, ::se::meta::Edit)
-SE_REFLECT_PROPERTY(scores, ::se::meta::Edit)
+SE_BEGIN_REFLECT(ContainerData, meta::SerializeOnly)
+SE_REFLECT_PROPERTY(numbers, meta::Property)
+SE_REFLECT_PROPERTY(scores, meta::Property)
 SE_END_REFLECT(ContainerData)
 
 SE_REFLECT_ENUM(ETestColor)

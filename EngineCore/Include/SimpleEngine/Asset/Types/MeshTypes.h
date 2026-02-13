@@ -10,7 +10,7 @@ namespace se::asset
 /**
  * @todo docs
  */
-class SE_CORE_API StaticMesh : public IAsset
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect) StaticMesh : public IAsset
 {
     SE_CLASS(StaticMesh, IAsset)
 
@@ -26,52 +26,52 @@ public:
     //     Vector4f tangent;
     // }
     //
-    // SE_PROPERTY(=::se::meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<Vector3f> positions;
     //
-    // SE_PROPERTY(=::se::meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<graphics::VertexAttributes> attributes;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<graphics::Vertex> vertices;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<graphics::MeshSection> sections;
 
-    // SE_PROPERTY(=::se::meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<Material> materials;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     AABBf bounds;
 };
 
 /**
  * @todo docs
  */
-class SE_CORE_API SkeletalMesh : public IAsset
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public IAsset
 {
     SE_CLASS(SkeletalMesh, IAsset)
 
 public:
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<graphics::Vertex> vertices;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<graphics::SkinVertex> skin_vertices;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<graphics::MeshSection> sections;
 
-    // SE_PROPERTY(=::se::meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<Material> materials;
 
-    SE_PROPERTY(=::se::meta::ReadOnly)
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     AABBf bounds;
 
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리

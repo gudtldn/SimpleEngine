@@ -7,7 +7,7 @@
 
 namespace se::graphics
 {
-class IRGResource
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) IRGResource SE_TODO("Remaing to IRGResource -> RGResourceBase")
 {
     SE_CLASS(IRGResource)
 
@@ -18,7 +18,7 @@ public:
     virtual void Unrealize(FrameResourcePool& pool) = 0;
 };
 
-class IRGTexture : public IRGResource
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) IRGTexture : public IRGResource
 {
     SE_CLASS(IRGTexture, IRGResource)
 
@@ -31,7 +31,7 @@ protected:
     SDL_GPUTexture* actual_texture = nullptr;
 };
 
-class IRGBuffer : public IRGResource
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) IRGBuffer : public IRGResource
 {
     SE_CLASS(IRGBuffer, IRGResource)
 
@@ -47,7 +47,7 @@ protected:
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 텍스처
  */
-class RGTransientTexture : public IRGTexture
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGTransientTexture : public IRGTexture
 {
     SE_CLASS(RGTransientTexture, IRGTexture)
 
@@ -76,7 +76,7 @@ public:
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class RGExternalTexture : public IRGTexture
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGExternalTexture : public IRGTexture
 {
     SE_CLASS(RGExternalTexture, IRGTexture)
 
@@ -93,7 +93,7 @@ public:
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 버퍼
  */
-class RGTransientBuffer : public IRGBuffer
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGTransientBuffer : public IRGBuffer
 {
     SE_CLASS(RGTransientBuffer, IRGBuffer)
 
@@ -122,7 +122,7 @@ public:
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class RGExternalBuffer : public IRGBuffer
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGExternalBuffer : public IRGBuffer
 {
     SE_CLASS(RGExternalBuffer, IRGBuffer)
 

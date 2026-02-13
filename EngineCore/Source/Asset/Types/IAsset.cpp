@@ -4,6 +4,6 @@
 
 namespace se::asset
 {
-SE_BEGIN_REFLECT(IAsset)
+SE_BEGIN_REFLECT(IAsset, meta::SerializeOnly)
 SE_END_REFLECT(IAsset)
 }  // namespace se::asset

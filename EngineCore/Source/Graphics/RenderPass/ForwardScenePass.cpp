@@ -21,7 +21,7 @@ using namespace se::ecs;
 
 namespace se::graphics
 {
-SE_BEGIN_REFLECT(ForwardScenePass)
+SE_BEGIN_REFLECT(ForwardScenePass, meta::Internal)
 SE_END_REFLECT(ForwardScenePass)
 
 ForwardScenePass::ForwardScenePass(

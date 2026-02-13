@@ -18,18 +18,19 @@ using namespace se::graphics;
 // --- Mock Classes ---
 
 // 테스트용 Import Settings
-struct MockImportSettings : public ImportSettingsBase
+struct SE_ANNOTATION(=meta::Reflect) MockImportSettings : public ImportSettingsBase
 {
     SE_CLASS(MockImportSettings, ImportSettingsBase)
 
 public:
+    SE_ANNOTATION(=meta::Property)
     bool combine_meshes = true;
 
     virtual void Serialize([[maybe_unused]] Archive& ar) override {}
 };
 
-SE_BEGIN_REFLECT(MockImportSettings)
-    SE_REFLECT_PROPERTY(combine_meshes)
+SE_BEGIN_REFLECT(MockImportSettings, meta::Reflect)
+    SE_REFLECT_PROPERTY(combine_meshes, meta::Property)
 SE_END_REFLECT(MockImportSettings)
 
 // 테스트용 간단한 Translator

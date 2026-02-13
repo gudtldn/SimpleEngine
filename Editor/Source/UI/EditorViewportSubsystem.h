@@ -30,7 +30,7 @@ struct ViewportRenderInfo
 /**
  * @todo docs
  */
-class EditorViewportSubsystem : public SubsystemBase
+class SE_ANNOTATION(=meta::Internal) EditorViewportSubsystem : public SubsystemBase
 {
     SE_CLASS(EditorViewportSubsystem, SubsystemBase)
 

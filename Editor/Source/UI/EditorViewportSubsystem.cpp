@@ -9,7 +9,7 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
     .DependsOn<RenderSubsystem>();
 
-SE_BEGIN_REFLECT(EditorViewportSubsystem)
+SE_BEGIN_REFLECT(EditorViewportSubsystem, meta::Internal)
 SE_END_REFLECT(EditorViewportSubsystem)
 
 bool EditorViewportSubsystem::Initialize()

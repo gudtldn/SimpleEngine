@@ -5,7 +5,7 @@
 
 namespace se::editor
 {
-class EditorSubsystem : public SubsystemBase
+class SE_ANNOTATION(=meta::Internal) EditorSubsystem : public SubsystemBase
 {
     SE_CLASS(EditorSubsystem, SubsystemBase)
 

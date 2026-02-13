@@ -12,7 +12,7 @@
 
 namespace se
 {
-class SE_CORE_API RenderSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) RenderSubsystem : public SubsystemBase
 {
     SE_CLASS(RenderSubsystem, SubsystemBase)
 

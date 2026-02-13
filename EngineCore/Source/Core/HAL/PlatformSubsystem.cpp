@@ -15,14 +15,12 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(PlatformSubsystem);
 
-SE_BEGIN_REFLECT(PlatformSubsystem)
+SE_BEGIN_REFLECT(PlatformSubsystem, meta::Internal)
 SE_END_REFLECT(PlatformSubsystem)
 
 PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     : sdl_init_flags(in_sdl_init_flags)
 {
-    using namespace se;
-
     // SDL_SetMemoryFunctions(
     //     [](usize size) static -> void*
     //     {

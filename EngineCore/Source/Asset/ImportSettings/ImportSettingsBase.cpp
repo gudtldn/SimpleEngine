@@ -4,6 +4,6 @@
 
 namespace se::asset
 {
-SE_BEGIN_REFLECT(ImportSettingsBase)
+SE_BEGIN_REFLECT(ImportSettingsBase, meta::Reflect)
 SE_END_REFLECT(ImportSettingsBase)
 }

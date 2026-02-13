@@ -1,10 +1,11 @@
 #include "ECS/Components/StaticMeshComponent.h"
 #include "Core/Reflection/Reflect.h"
 
-using namespace se;
 
-
+namespace se
+{
 // Reflection for StaticMeshComponent
-SE_BEGIN_REFLECT(StaticMeshComponent, ::se::meta::Component)
-    SE_REFLECT_PROPERTY(mesh_id, ::se::meta::Edit)
+SE_BEGIN_REFLECT(StaticMeshComponent, meta::Reflect, meta::Component)
+    SE_REFLECT_PROPERTY(mesh_id, meta::Property)
 SE_END_REFLECT(StaticMeshComponent)
+}

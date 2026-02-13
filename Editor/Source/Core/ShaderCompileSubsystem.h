@@ -7,7 +7,7 @@ namespace se::editor
 /**
  * @todo docs
  */
-class ShaderCompileSubsystem : public se::SubsystemBase
+class SE_ANNOTATION(=meta::Internal) ShaderCompileSubsystem : public se::SubsystemBase
 {
     SE_CLASS(ShaderCompileSubsystem, SubsystemBase)
 

@@ -12,7 +12,7 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
     .DependsOn<PlatformSubsystem>();
 
-SE_BEGIN_REFLECT(ShaderCompileSubsystem)
+SE_BEGIN_REFLECT(ShaderCompileSubsystem, meta::Internal)
 SE_END_REFLECT(ShaderCompileSubsystem)
 
 bool ShaderCompileSubsystem::Initialize()

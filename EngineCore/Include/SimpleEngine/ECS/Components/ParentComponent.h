@@ -8,10 +8,10 @@ namespace se
 /**
  * 현재 Entity의 부모 Entity를 지정합니다.
  */
-struct SE_CORE_API SE_TYPE_ANNOTATION(=::se::meta::Component) ParentComponent
+struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) ParentComponent
 {
 public:
-    SE_PROPERTY(=::se::meta::Edit)
+    SE_ANNOTATION(=meta::Property)
     Entity parent;
 };
 }  // namespace se

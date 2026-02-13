@@ -10,7 +10,7 @@ namespace se::asset
 /**
  * Asset Import Pipeline의 기본 노드 클래스
  */
-class SE_CORE_API PipelineBaseNode
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) PipelineBaseNode
 {
     SE_CLASS(PipelineBaseNode)
 

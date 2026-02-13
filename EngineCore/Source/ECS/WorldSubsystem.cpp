@@ -10,7 +10,7 @@ using namespace ecs;
 
 SE_REGISTER_SUBSYSTEM(WorldSubsystem);
 
-SE_BEGIN_REFLECT(WorldSubsystem)
+SE_BEGIN_REFLECT(WorldSubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(WorldSubsystem)
 

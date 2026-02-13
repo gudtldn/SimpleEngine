@@ -7,7 +7,7 @@ namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorSubsystem);
 
-SE_BEGIN_REFLECT(EditorSubsystem)
+SE_BEGIN_REFLECT(EditorSubsystem, meta::Internal)
 SE_END_REFLECT(EditorSubsystem)
 
 bool EditorSubsystem::Initialize()

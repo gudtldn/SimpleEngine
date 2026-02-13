@@ -9,7 +9,7 @@ namespace se
 /**
  *
  */
-class SE_CORE_API WorldSubsystem : public se::SubsystemBase, public se::IUpdatable
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) WorldSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
     SE_CLASS(WorldSubsystem, SubsystemBase)
 

@@ -8,7 +8,7 @@ namespace se::asset
 /**
  * Asset을 나타내는 가장 기본적인 타입
  */
-class SE_CORE_API IAsset
+class SE_CORE_API SE_ANNOTATION(=meta::SerializeOnly) IAsset SE_TODO("Renaming to IAsset -> AssetBase")
 {
     SE_CLASS(IAsset)
 

@@ -8,7 +8,7 @@ namespace se::editor
 /**
  * @todo docs
  */
-class EditorUIPass : public se::graphics::RenderPassBase
+class SE_ANNOTATION(=meta::Internal) EditorUIPass : public se::graphics::RenderPassBase
 {
     SE_CLASS(EditorUIPass, se::graphics::RenderPassBase)
 

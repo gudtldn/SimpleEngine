@@ -19,7 +19,7 @@ class AssetRegistry;
 /**
  * @todo docs
  */
-class SE_CORE_API AssetSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) AssetSubsystem : public SubsystemBase
 {
     SE_CLASS(AssetSubsystem, SubsystemBase)
 

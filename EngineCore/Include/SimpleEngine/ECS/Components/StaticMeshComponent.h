@@ -8,10 +8,10 @@ namespace se
 /**
  * Entity가 렌더링할 메시(Mesh) 리소스의 ID를 지정하는 컴포넌트
  */
-struct SE_CORE_API SE_TYPE_ANNOTATION(=::se::meta::Component) StaticMeshComponent
+struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) StaticMeshComponent
 {
     // Mesh Resource ID
-    SE_PROPERTY(=::se::meta::Edit)
+    SE_ANNOTATION(=meta::Property)
     asset::AssetId mesh_id;
 
     // RenderData Cache 추가

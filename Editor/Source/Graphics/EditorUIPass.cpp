@@ -14,7 +14,7 @@ RGResourceHandle back_buffer_handle;
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(EditorUIPass)
+SE_BEGIN_REFLECT(EditorUIPass, meta::Internal)
 SE_END_REFLECT(EditorUIPass)
 
 void EditorUIPass::Setup(RenderGraphBuilder& builder)

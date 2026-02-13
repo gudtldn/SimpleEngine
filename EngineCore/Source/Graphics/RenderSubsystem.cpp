@@ -19,7 +19,7 @@ namespace se
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<PlatformSubsystem>();
 
-SE_BEGIN_REFLECT(RenderSubsystem)
+SE_BEGIN_REFLECT(RenderSubsystem, meta::Internal)
 SE_END_REFLECT(RenderSubsystem)
 
 bool RenderSubsystem::Initialize()

@@ -16,7 +16,7 @@ DetailPanel::DetailPanel()
     : components{
         decltype(components)::FromRange(TypeRegistry::Get().GetAllTypes().Values() | std::views::filter([](const TypeInfo& info) -> bool
         {
-            return info.flags.IsAnySet(ETypeFlags::Component);
+            return info.flags.IsAnySet(ETypeFlags::IsComponent);
         }))
     }
 {

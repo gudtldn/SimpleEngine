@@ -5,7 +5,7 @@
 
 namespace se::asset
 {
-class SE_CORE_API StaticMeshPipelineNode : public PipelineBaseNode
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) StaticMeshPipelineNode : public PipelineBaseNode
 {
     SE_CLASS(StaticMeshPipelineNode, PipelineBaseNode)
 

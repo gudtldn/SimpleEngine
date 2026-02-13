@@ -10,7 +10,7 @@ class RGExecutionContext;
 /**
  * Render Graph의 각 렌더링 단계를 정의하기 위한 인터페이스
  */
-class SE_CORE_API RenderPassBase
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) RenderPassBase
 {
     SE_CLASS(RenderPassBase)
 

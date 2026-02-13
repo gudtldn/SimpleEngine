@@ -6,7 +6,7 @@
 
 namespace se::asset
 {
-class SE_CORE_API PipelineMaterialNode final : public PipelineBaseNode
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) PipelineMaterialNode final : public PipelineBaseNode
 {
     SE_CLASS(PipelineMaterialNode, PipelineBaseNode)
 

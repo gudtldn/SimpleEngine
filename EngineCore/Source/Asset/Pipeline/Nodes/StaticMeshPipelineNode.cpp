@@ -4,6 +4,6 @@
 
 namespace se::asset
 {
-SE_BEGIN_REFLECT(StaticMeshPipelineNode)
+SE_BEGIN_REFLECT(StaticMeshPipelineNode, meta::Internal)
 SE_END_REFLECT(StaticMeshPipelineNode)
 }

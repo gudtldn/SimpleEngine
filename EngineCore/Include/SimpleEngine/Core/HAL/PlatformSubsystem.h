@@ -58,7 +58,7 @@ private:
 /**
  * @todo docs
  */
-class SE_CORE_API PlatformSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) PlatformSubsystem : public SubsystemBase
 {
     SE_CLASS(PlatformSubsystem, SubsystemBase)
 

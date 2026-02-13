@@ -3,7 +3,7 @@
 
 namespace se::asset
 {
-SE_BEGIN_REFLECT(PipelineTextureNode)
+SE_BEGIN_REFLECT(PipelineTextureNode, meta::Internal)
 SE_END_REFLECT(PipelineTextureNode)
 
 Optional<const String&> PipelineTextureNode::GetSourceFile() const

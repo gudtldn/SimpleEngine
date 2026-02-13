@@ -3,7 +3,7 @@
 
 namespace se::asset
 {
-SE_BEGIN_REFLECT(PipelineMaterialNode)
+SE_BEGIN_REFLECT(PipelineMaterialNode, meta::Internal)
 SE_END_REFLECT(PipelineMaterialNode)
 
 void PipelineMaterialNode::GetFactoryDependencies(Array<Guid>& out_dependencies) const

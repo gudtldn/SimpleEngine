@@ -7,7 +7,7 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::asset::AssetSubsystem>();
 
-SE_BEGIN_REFLECT(EditorAssetSubsystem)
+SE_BEGIN_REFLECT(EditorAssetSubsystem, meta::Internal)
 SE_END_REFLECT(EditorAssetSubsystem)
 
 bool EditorAssetSubsystem::Initialize()

@@ -27,7 +27,7 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
     .DependsOn<PlatformSubsystem, RenderSubsystem, EditorSubsystem>();
 
-SE_BEGIN_REFLECT(EditorUISubsystem)
+SE_BEGIN_REFLECT(EditorUISubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(EditorUISubsystem)
 
