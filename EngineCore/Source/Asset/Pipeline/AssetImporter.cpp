@@ -1,8 +1,8 @@
 ﻿// NOLINTBEGIN(*-reserved-identifier)
-#include "Asset/Pipeline/AssetImporter.h"
-#include "Core/Container/Queue.h"
-#include "Core/Logging/Logging.h"
-#include "Utility/StringUtils.h"
+#include "SimpleEngine/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEngine/Core/Container/Queue.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "tracy/Tracy.hpp"
 

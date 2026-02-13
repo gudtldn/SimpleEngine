@@ -1,9 +1,9 @@
-#include "Graphics/Memory/GpuResourceManager.h"
+#include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 
 #include <cmath>
 
-#include "Core/Logging/Logging.h"
-#include "Utility/Debug.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::graphics

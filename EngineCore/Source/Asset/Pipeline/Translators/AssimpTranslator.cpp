@@ -1,11 +1,11 @@
 // NOLINTBEGIN(*-reserved-identifier)
-#include "Asset/Pipeline/Translators/AssimpTranslator.h"
+#include "SimpleEngine/Asset/Pipeline/Translators/AssimpTranslator.h"
 
-#include "Asset/ImportSettings/MeshImportSettings.h"
-#include "Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
-#include "Core/Container/HashSet.h"
-#include "Core/Logging/Logging.h"
-#include "Utility/StringUtils.h"
+#include "SimpleEngine/Asset/ImportSettings/MeshImportSettings.h"
+#include "SimpleEngine/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"

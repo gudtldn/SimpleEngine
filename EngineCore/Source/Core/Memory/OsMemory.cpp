@@ -1,6 +1,6 @@
 ﻿// ReSharper disable CppDFAMemoryLeak
-#include "Core/Memory/OsMemory.h"
-#include "Core/Memory/MemoryStats.h"
+#include "SimpleEngine/Core/Memory/OsMemory.h"
+#include "SimpleEngine/Core/Memory/MemoryStats.h"
 
 #include <cstring>
 #include <memory>

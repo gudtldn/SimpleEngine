@@ -4,8 +4,8 @@
 #include <functional>
 #include <shared_mutex>
 
-#include "Core/Logging/Logging.h"
-#include "Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 
 namespace se

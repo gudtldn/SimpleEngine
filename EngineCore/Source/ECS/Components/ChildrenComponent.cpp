@@ -1,5 +1,5 @@
-#include "ECS/Components/ChildrenComponent.h"
-#include "Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/Components/ChildrenComponent.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se

@@ -1,7 +1,7 @@
-#include "ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
 
-#include "Core/Subsystem/SubsystemRegistration.h"
-#include "ECS/World.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/ECS/World.h"
 
 
 namespace se

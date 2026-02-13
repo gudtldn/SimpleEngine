@@ -1,4 +1,4 @@
-﻿#include "Core/Logging/LogBackendManager.h"
+﻿#include "SimpleEngine/Core/Logging/LogBackendManager.h"
 
 #include <ranges>
 

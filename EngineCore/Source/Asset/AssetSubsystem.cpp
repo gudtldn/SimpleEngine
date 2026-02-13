@@ -1,11 +1,11 @@
-﻿#include "Asset/AssetSubsystem.h"
+﻿#include "SimpleEngine/Asset/AssetSubsystem.h"
 
-#include "Asset/AssetCache.h"
-#include "Asset/AssetRegistry.h"
-#include "Asset/Pipeline/Factories/StaticMeshFactory.h"
-#include "Asset/Pipeline/Translators/AssimpTranslator.h"
-#include "Core/Logging/Logging.h"
-#include "Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Asset/AssetCache.h"
+#include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/Pipeline/Factories/StaticMeshFactory.h"
+#include "SimpleEngine/Asset/Pipeline/Translators/AssimpTranslator.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 
 
 namespace se::asset

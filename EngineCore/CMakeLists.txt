@@ -64,10 +64,6 @@ target_include_directories(EngineCore PUBLIC
         # 빌드 중 사용할 공개 헤더 경로 (EngineCore/Include)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
 )
-target_include_directories(EngineCore PRIVATE
-        # 내부 구현에서 짧은 경로를 사용하기 위한 경로
-        ${CMAKE_CURRENT_SOURCE_DIR}/Include/SimpleEngine
-)
 
 target_compile_definitions(EngineCore PRIVATE
         PROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}"

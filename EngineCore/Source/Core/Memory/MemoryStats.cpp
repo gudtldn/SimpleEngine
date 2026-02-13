@@ -1,7 +1,7 @@
-﻿#include "Core/Memory/MemoryStats.h"
+﻿#include "SimpleEngine/Core/Memory/MemoryStats.h"
 
 #if SE_ENABLE_MEMORY_TRACKING
-#include "Utility/Debug.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se

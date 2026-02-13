@@ -1,10 +1,10 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
-#include "Core/Input/InputSubsystem.h"
+#include "SimpleEngine/Core/Input/InputSubsystem.h"
 
-#include "Core/HAL/PlatformSubsystem.h"
-#include "Core/Logging/Logging.h"
-#include "Core/Subsystem/SubsystemRegistration.h"
-#include "Utility/SubsystemUtils.h"
+#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 
 namespace se

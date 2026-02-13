@@ -1,4 +1,4 @@
-﻿#include "Core/Types/StringName.h"
+﻿#include "SimpleEngine/Core/Types/StringName.h"
 #include "StringNamePool.h"
 
 

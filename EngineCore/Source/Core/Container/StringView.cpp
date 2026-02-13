@@ -1,5 +1,5 @@
-#include "Core/Container/StringView.h"
-#include "Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/Container/String.h"
 
 
 namespace se

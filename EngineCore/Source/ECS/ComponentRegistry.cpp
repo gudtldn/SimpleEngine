@@ -1,4 +1,4 @@
-﻿#include "ECS/ComponentRegistry.h"
+﻿#include "SimpleEngine/ECS/ComponentRegistry.h"
 
 
 namespace se::ecs

@@ -1,5 +1,5 @@
-#include "ECS/Components/StaticMeshComponent.h"
-#include "Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se

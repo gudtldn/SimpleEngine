@@ -1,5 +1,5 @@
-﻿#include "Core/Reflection/Cast.h"
-#include "Core/Reflection/TypeRegistry.h"
+﻿#include "SimpleEngine/Core/Reflection/Cast.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 
 
 namespace se::detail

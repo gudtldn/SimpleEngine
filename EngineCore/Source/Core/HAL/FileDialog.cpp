@@ -1,18 +1,15 @@
 ﻿#include "SimpleEngine/Core/HAL/FileDialog.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 
 #include <atomic>
 #include <variant>
-
-#include "Core/Logging/Logging.h"
 
 
 namespace
 {
 using namespace se;
-using namespace se;
 
 std::atomic<bool> IsDialogOpen = false;
-
 
 // SDL 콜백에 사용자 데이터를 전달하기 위한 프록시 구조체
 struct DialogCallbackProxy

@@ -1,4 +1,4 @@
-#include "Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"

@@ -1,7 +1,7 @@
-#include "Graphics/ShaderProvider/PrecompiledShaderProvider.h"
+#include "SimpleEngine/Graphics/ShaderProvider/PrecompiledShaderProvider.h"
 
-#include "Core/Logging/Logging.h"
-#include "Graphics/ShaderUtils.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Graphics/ShaderUtils.h"
 
 
 namespace se::graphics

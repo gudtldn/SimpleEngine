@@ -1,6 +1,6 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
-#include "Core/Concurrency/Coroutine/Awaitables.h"
-#include "Core/Concurrency/TaskScheduler.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/Awaitables.h"
+#include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 
 
 namespace se

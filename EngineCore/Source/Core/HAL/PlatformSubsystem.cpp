@@ -1,11 +1,11 @@
-#include "Core/HAL/PlatformSubsystem.h"
+#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 
 #include <ranges>
 
-#include "Core/Logging/Logging.h"
-#include "Core/Subsystem/SubsystemRegistration.h"
-#include "Graphics/RenderSubsystem.h"
-#include "Utility/SubsystemUtils.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Graphics/RenderSubsystem.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_gpu.h"

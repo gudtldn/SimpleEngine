@@ -1,8 +1,8 @@
-#include "Graphics/ShaderUtils.h"
+#include "SimpleEngine/Graphics/ShaderUtils.h"
 
-#include "Core/HAL/PlatformTypes.h"
-#include "Core/Logging/Logging.h"
-#include "Utility/FileUtils.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/FileUtils.h"
 
 
 namespace se::graphics

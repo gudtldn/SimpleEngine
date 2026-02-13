@@ -1,13 +1,13 @@
-#include "Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/TomlArchive.h"
 
 #include <charconv>
 #include <string_view>
 
-#include "Core/Reflection/TypeId.h"
-#include "Core/Types/Guid.h"
-#include "Core/Types/StringName.h"
-#include "Utility/Debug.h"
-#include "Utility/StringUtils.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Utility/Debug.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 
 namespace

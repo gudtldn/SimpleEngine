@@ -1,8 +1,8 @@
-#include "ECS/World.h"
+#include "SimpleEngine/ECS/World.h"
 
 #include <ranges>
-#include "ECS/SparseSet.h"
-#include "ECS/ComponentRegistry.h"
+#include "SimpleEngine/ECS/SparseSet.h"
+#include "SimpleEngine/ECS/ComponentRegistry.h"
 
 
 namespace se::ecs

@@ -1,5 +1,5 @@
-#include "ECS/Components/TransformComponent.h"
-#include "Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/Components/TransformComponent.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se

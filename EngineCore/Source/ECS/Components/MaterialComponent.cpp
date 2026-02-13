@@ -1,5 +1,5 @@
-#include "ECS/Components/MaterialComponent.h"
-#include "Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/Components/MaterialComponent.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se

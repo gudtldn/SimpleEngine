@@ -1,5 +1,5 @@
-#include "Core/Serialization/Archive.h"
-#include "Core/Container/String.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Container/String.h"
 
 
 namespace se

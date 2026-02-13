@@ -1,7 +1,7 @@
-﻿#include "Core/Concurrency/ThreadPool.h"
+﻿#include "SimpleEngine/Core/Concurrency/ThreadPool.h"
 
-#include "Core/Logging/Logging.h"
-#include "Utility/StringUtils.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 
 namespace se

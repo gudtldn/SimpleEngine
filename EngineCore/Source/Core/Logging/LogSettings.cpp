@@ -1,11 +1,11 @@
-﻿#include "Core/Logging/LogSettings.h"
+﻿#include "SimpleEngine/Core/Logging/LogSettings.h"
 
 #ifdef SE_PLATFORM_WINDOWS
 #include <Windows.h>
 
 #else
 #include <cstdlib>
-#include "Core/Container/StringView.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #endif
 
 

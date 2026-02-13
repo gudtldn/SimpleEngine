@@ -1,7 +1,7 @@
-#include "Core/Config/Config.h"
+#include "SimpleEngine/Core/Config/Config.h"
 
-#include "Core/Types/VPath.h"
-#include "Utility/FileUtils.h"
+#include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Utility/FileUtils.h"
 
 
 namespace se

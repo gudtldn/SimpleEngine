@@ -1,9 +1,9 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeConst
-#include "Core/Concurrency/TaskScheduler.h"
+#include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 
-#include "Core/Concurrency/ThreadPool.h"
-#include "Core/Logging/Logging.h"
-#include "Utility/Debug.h"
+#include "SimpleEngine/Core/Concurrency/ThreadPool.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"
 

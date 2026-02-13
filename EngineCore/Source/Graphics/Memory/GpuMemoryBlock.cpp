@@ -1,5 +1,5 @@
-#include "Graphics/Memory/GpuMemoryBlock.h"
-#include "Utility/Common.h"
+#include "SimpleEngine/Graphics/Memory/GpuMemoryBlock.h"
+#include "SimpleEngine/Utility/Common.h"
 
 
 namespace se::graphics

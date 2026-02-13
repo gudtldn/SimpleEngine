@@ -1,5 +1,5 @@
-#include "ECS/Components/ParentComponent.h"
-#include "Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/Components/ParentComponent.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
 namespace se

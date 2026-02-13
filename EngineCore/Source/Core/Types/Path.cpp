@@ -1,7 +1,7 @@
-#include "Core/Types/Path.h"
-#include "Core/Types/VPath.h"
-#include "Utility/StringUtils.h"
-#include "Core/FileSystem/VFS.h"
+#include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Utility/StringUtils.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 #include <string>
 #include <utility>

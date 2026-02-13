@@ -1,5 +1,5 @@
-#include "Core/Logging/Backends/FileBackend.h"
-#include "Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/Logging/Backends/FileBackend.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 
 namespace se

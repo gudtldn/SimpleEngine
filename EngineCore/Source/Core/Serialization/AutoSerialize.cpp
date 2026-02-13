@@ -1,7 +1,7 @@
-#include "Core/Serialization/AutoSerialize.h"
+#include "SimpleEngine/Core/Serialization/AutoSerialize.h"
 
-#include "Core/Reflection/TypeRegistry.h"
-#include "Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se

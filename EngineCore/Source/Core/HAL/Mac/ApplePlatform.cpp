@@ -1,4 +1,4 @@
-#include "Core/HAL/Platform.h"
+#include "SimpleEngine/Core/HAL/Platform.h"
 
 #if SE_PLATFORM_MACOS
 #include <cstdlib>
@@ -6,10 +6,10 @@
 #include <pthread.h>
 #include <string.h>
 
-#include "Core/Logging/Logging.h"
-#include "Core/FileSystem/FileSystem.h"
-#include "Utility/StringUtils.h"
-#include "Utility/Debug.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Utility/StringUtils.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se

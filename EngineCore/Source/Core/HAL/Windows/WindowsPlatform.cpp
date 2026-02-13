@@ -1,4 +1,4 @@
-#include "Core/HAL/Platform.h"
+#include "SimpleEngine/Core/HAL/Platform.h"
 
 #if SE_PLATFORM_WINDOWS
 #include <string>
@@ -8,9 +8,9 @@
 #include <Windows.h>
 #include <shellapi.h>
 
-#include "Core/Logging/Logging.h"
-#include "Core/FileSystem/FileSystem.h"
-#include "Utility/StringUtils.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 
 namespace

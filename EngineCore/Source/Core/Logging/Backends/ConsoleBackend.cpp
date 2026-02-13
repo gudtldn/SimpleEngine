@@ -1,9 +1,9 @@
-﻿#include "Core/Logging/Backends/ConsoleBackend.h"
+﻿#include "SimpleEngine/Core/Logging/Backends/ConsoleBackend.h"
 
 #include <iostream>
 #include <print>
 
-#include "Core/Logging/LogSettings.h"
+#include "SimpleEngine/Core/Logging/LogSettings.h"
 
 
 namespace

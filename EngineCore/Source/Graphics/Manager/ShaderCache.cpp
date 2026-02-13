@@ -1,7 +1,7 @@
-#include "Graphics/Manager/ShaderCache.h"
+#include "SimpleEngine/Graphics/Manager/ShaderCache.h"
 
 #include <ranges>
-#include "Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 
 
 namespace se::graphics

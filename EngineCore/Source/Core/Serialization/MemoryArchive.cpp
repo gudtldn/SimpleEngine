@@ -1,11 +1,11 @@
-#include "Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
-#include "Core/Container/String.h"
-#include "Core/Logging/Logging.h"
-#include "Core/Reflection/TypeId.h"
-#include "Core/Types/Guid.h"
-#include "Core/Types/StringName.h"
-#include "Utility/Debug.h"
+#include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se

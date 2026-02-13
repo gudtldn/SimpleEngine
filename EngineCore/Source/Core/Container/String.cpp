@@ -1,6 +1,6 @@
-﻿#include "Core/Container/String.h"
-#include "Core/Container/StringView.h"
-#include "Utility/Debug.h"
+﻿#include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include <unicode/locid.h>
 #include <unicode/unistr.h>

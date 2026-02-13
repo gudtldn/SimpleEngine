@@ -1,10 +1,10 @@
-#include "Utility/FileUtils.h"
+#include "SimpleEngine/Utility/FileUtils.h"
 
 #include <fstream>
 
-#include "Core/Container/StringView.h"
-#include "Core/FileSystem/FileSystem.h"
-#include "Utility/StringUtils.h"
+#include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 
 namespace se
