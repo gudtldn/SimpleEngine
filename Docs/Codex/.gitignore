@@ -1,0 +1,14 @@
+# 내 컴퓨터의 창 배치, 열린 파일 목록 등은 동기화 X
+.obsidian/workspace
+.obsidian/workspace.json
+.obsidian/workspace-mobile
+
+# 캐시 및 임시 파일
+.obsidian/cache
+.obsidian/daily-notes.json
+
+# Obsidian 휴지통
+.trash/
+
+# (선택) 백업 파일이나 자동 생성된 파일이 있다면 추가
+# *.bak
