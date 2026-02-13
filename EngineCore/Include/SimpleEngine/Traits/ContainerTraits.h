@@ -63,6 +63,12 @@ concept Reservable = requires(T& container, usize size)
     container.Reserve(size);
 };
 
+/** Resize(), ResizeUninitialized()를 지원하는 컨테이너인지 확인합니다. */
+template <typename T>
+concept Resizable = requires(T& container, usize size) { container.Resize(size); }
+    || requires(T& container, usize size) { container.ResizeUninitialized(size); };
+
+
 /** 컨테이너의 요소(Element) 타입을 추출합니다. */
 template <typename T>
 using ElementOf = detail::ElementTypeImpl<std::remove_cvref_t<T>>::Type;

@@ -14,15 +14,22 @@ void SerializeArrayContainer(Archive& ar, Container& container)
     uint64 count = container.Len();
     ar.BeginArray(count);
 
-    if (ar.IsLoading())
+    // Resize가 있을 때만 코드 적용 (FixedArray에는 Resize가 없음)
+    if constexpr (traits::Resizable<Container>)
     {
-        if constexpr (std::is_trivially_default_constructible_v<ElementType>)
+        if (ar.IsLoading())
         {
-            container.ResizeUninitialized(count);
-        }
-        else
-        {
-            container.Resize(count);
+            if constexpr (
+                std::is_trivially_default_constructible_v<ElementType>
+                && requires { container.ResizeUninitialized(count); }
+            )
+            {
+                container.ResizeUninitialized(count);
+            }
+            else
+            {
+                container.Resize(count);
+            }
         }
     }
 
