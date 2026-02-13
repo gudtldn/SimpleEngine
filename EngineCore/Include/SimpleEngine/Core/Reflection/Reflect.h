@@ -202,3 +202,20 @@ public: \
     } \
     return true; \
 }();
+
+/**
+ * 열거형(Enum)의 리플렉션 정보를 등록합니다.
+ * underlying type의 TypeId가 자동으로 base_or_inner_id에 설정되며,
+ * underlying type 기반 직렬화 콜백이 자동 등록됩니다.
+ *
+ * @note 이 매크로를 사용하는 파일에서 Archive.h가 포함되어야 합니다.
+ * @param enum_type 등록할 열거형 이름
+ */
+#define SE_REFLECT_ENUM(enum_type) \
+inline static const bool SE_CONCAT_NAME(_Reflect_Init_Enum_, enum_type) = [] static -> bool \
+{ \
+    using T = enum_type; \
+    ::se::TypeRegistry::Get().RegisterEnum<T>() \
+        .Serialize([](::se::Archive& ar, void* p) static { ar << *static_cast<T*>(p); }); \
+    return true; \
+}();
