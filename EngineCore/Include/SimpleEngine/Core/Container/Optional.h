@@ -8,27 +8,23 @@
 #include <utility>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
-// forward declaration
-template <typename T>
-class Optional;
 
-
-namespace se::detail
+namespace se
 {
-    template <typename T>
-    concept IsOptional = traits::IsSpecializationOf<T, Optional>;
+namespace detail
+{
+template <typename T>
+concept NotOptionalOrInPlace =
+    !traits::OptionalLike<std::remove_cvref_t<T>>
+    && !std::same_as<std::remove_cvref_t<T>, std::in_place_t>
+    && !std::same_as<std::remove_cvref_t<T>, std::nullopt_t>;
 
-    template <typename T>
-    concept NotOptionalOrInPlace =
-        !IsOptional<std::remove_cvref_t<T>>
-        && !std::same_as<std::remove_cvref_t<T>, std::in_place_t>
-        && !std::same_as<std::remove_cvref_t<T>, std::nullopt_t>;
-
-    template <typename T>
-    concept IsValidResultType = !std::is_array_v<T> && std::is_object_v<T>;
+template <typename T>
+concept IsValidResultType = !std::is_array_v<T> && std::is_object_v<T>;
 } // namespace se::detail
 
 template <typename T>
@@ -219,7 +215,7 @@ public:
 
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
     template <typename Self, typename Fn>
-        requires se::detail::IsOptional<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>
+        requires se::traits::OptionalLike<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>
     constexpr auto AndThen(this Self&& self, Fn&& func)
     {
         using ResultT = std::invoke_result_t<Fn, decltype(std::forward<Self>(self).Value())>;
@@ -306,14 +302,14 @@ public:
     }
 
     template <typename U>
-        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
+        requires (!se::traits::OptionalLike<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
     [[nodiscard]] constexpr bool operator==(const U& value) const
     {
         return HasValue() && GetStoredValue() == value;
     }
 
     template <typename U>
-        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
+        requires (!se::traits::OptionalLike<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
     [[nodiscard]] friend constexpr bool operator==(const U& value, const Optional& other) { return other == value; }
 
     [[nodiscard]] friend constexpr bool operator==(std::nullopt_t, const Optional& other) noexcept { return !other; }
@@ -451,7 +447,7 @@ public:
 
     template <typename Fn>
         requires std::invocable<Fn, T&>
-        && se::detail::IsOptional<std::invoke_result_t<Fn, T&>>
+        && se::traits::OptionalLike<std::invoke_result_t<Fn, T&>>
     constexpr auto AndThen(Fn&& func) const
     {
         using ResultT = std::invoke_result_t<Fn, T&>;
@@ -514,16 +510,17 @@ public:
     }
 
     template <typename U>
-        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
+        requires (!se::traits::OptionalLike<std::remove_cvref_t<U>> && std::equality_comparable_with<T, U>)
     [[nodiscard]] constexpr bool operator==(const U& value) const
     {
         return HasValue() && *ref_ptr == value;
     }
 
     template <typename U>
-        requires (!se::detail::IsOptional<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
+        requires (!se::traits::OptionalLike<std::remove_cvref_t<U>> && std::equality_comparable_with<U, T>)
     [[nodiscard]] friend constexpr bool operator==(const U& value, const Optional& other) { return other == value; }
 
 private:
     T* ref_ptr = nullptr;
 };
+} // namespace se

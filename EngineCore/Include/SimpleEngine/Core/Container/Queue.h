@@ -71,90 +71,90 @@ public:
 private:
     ContainerType container;
 };
-}  // namespace se
 
 
 template <typename T, typename Container>
-se::Queue<T, Container>::Queue(const ContainerType& cont)
+Queue<T, Container>::Queue(const ContainerType& cont)
     : container(cont)
 {
 }
 
 template <typename T, typename Container>
-se::Queue<T, Container>::Queue(ContainerType&& cont)
+Queue<T, Container>::Queue(ContainerType&& cont)
     : container(std::move(cont))
 {
 }
 
 template <typename T, typename Container>
-bool se::Queue<T, Container>::IsEmpty() const
+bool Queue<T, Container>::IsEmpty() const
 {
     return container.IsEmpty();
 }
 
 template <typename T, typename Container>
- se::Queue<T, Container>::SizeType se::Queue<T, Container>::Len() const
+Queue<T, Container>::SizeType Queue<T, Container>::Len() const
 {
     return container.Len();
 }
 
 template <typename T, typename Container>
-void se::Queue<T, Container>::Clear() noexcept
+void Queue<T, Container>::Clear() noexcept
 {
     container.Clear();
 }
 
 template <typename T, typename Container>
-Optional<typename se::Queue<T, Container>::ValueType&> se::Queue<T, Container>::Front()
+Optional<typename Queue<T, Container>::ValueType&> Queue<T, Container>::Front()
 {
     return container.Front();
 }
 
 template <typename T, typename Container>
-Optional<const typename se::Queue<T, Container>::ValueType&> se::Queue<T, Container>::Front() const
+Optional<const typename Queue<T, Container>::ValueType&> Queue<T, Container>::Front() const
 {
     return container.Front();
 }
 
 template <typename T, typename Container>
-Optional<typename se::Queue<T, Container>::ValueType&> se::Queue<T, Container>::Back()
+Optional<typename Queue<T, Container>::ValueType&> Queue<T, Container>::Back()
 {
     return container.Back();
 }
 
 template <typename T, typename Container>
-Optional<const typename se::Queue<T, Container>::ValueType&> se::Queue<T, Container>::Back() const
+Optional<const typename Queue<T, Container>::ValueType&> Queue<T, Container>::Back() const
 {
     return container.Back();
 }
 
 template <typename T, typename Container>
-void se::Queue<T, Container>::Push(const ValueType& value)
+void Queue<T, Container>::Push(const ValueType& value)
 {
     container.PushBack(value);
 }
 
 template <typename T, typename Container>
-void se::Queue<T, Container>::Push(ValueType&& value)
+void Queue<T, Container>::Push(ValueType&& value)
 {
     container.PushBack(std::move(value));
 }
 
 template <typename T, typename Container>
 template <typename... Args>
- se::Queue<T, Container>::ValueType& se::Queue<T, Container>::Emplace(Args&&... args)
+Queue<T, Container>::ValueType& Queue<T, Container>::Emplace(Args&&... args)
 {
     return container.EmplaceBack(std::forward<Args>(args)...);
 }
 
 template <typename T, typename Container>
-Optional<typename se::Queue<T, Container>::ValueType> se::Queue<T, Container>::Pop()
+Optional<typename Queue<T, Container>::ValueType> Queue<T, Container>::Pop()
 {
     return container.PopFront();
 }
 
 template <typename T, typename Container>
-void se::Queue<T, Container>::Swap(Queue& other) noexcept
+void Queue<T, Container>::Swap(Queue& other) noexcept
 {
     container.Swap(other.container);
 }
+}  // namespace se

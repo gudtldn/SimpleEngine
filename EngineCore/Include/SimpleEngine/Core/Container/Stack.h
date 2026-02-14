@@ -67,78 +67,78 @@ public:
 private:
     ContainerType container;
 };
-}  // namespace se
 
 
 template <typename T, typename Container>
-se::Stack<T, Container>::Stack(const ContainerType& cont)
+Stack<T, Container>::Stack(const ContainerType& cont)
     : container(cont)
 {
 }
 
 template <typename T, typename Container>
-se::Stack<T, Container>::Stack(ContainerType&& cont)
+Stack<T, Container>::Stack(ContainerType&& cont)
     : container(std::move(cont))
 {
 }
 
 template <typename T, typename Container>
-bool se::Stack<T, Container>::IsEmpty() const
+bool Stack<T, Container>::IsEmpty() const
 {
     return container.IsEmpty();
 }
 
 template <typename T, typename Container>
-se::Stack<T, Container>::SizeType se::Stack<T, Container>::Len() const
+Stack<T, Container>::SizeType Stack<T, Container>::Len() const
 {
     return container.Len();
 }
 
 template <typename T, typename Container>
-void se::Stack<T, Container>::Clear() noexcept
+void Stack<T, Container>::Clear() noexcept
 {
     container.Clear();
 }
 
 template <typename T, typename Container>
-Optional<typename se::Stack<T, Container>::ValueType&> se::Stack<T, Container>::Top()
+Optional<typename Stack<T, Container>::ValueType&> Stack<T, Container>::Top()
 {
     return container.Back();
 }
 
 template <typename T, typename Container>
-Optional<const typename se::Stack<T, Container>::ValueType&> se::Stack<T, Container>::Top() const
+Optional<const typename Stack<T, Container>::ValueType&> Stack<T, Container>::Top() const
 {
     return container.Back();
 }
 
 template <typename T, typename Container>
-void se::Stack<T, Container>::Push(const ValueType& value)
+void Stack<T, Container>::Push(const ValueType& value)
 {
     container.PushBack(value);
 }
 
 template <typename T, typename Container>
-void se::Stack<T, Container>::Push(ValueType&& value)
+void Stack<T, Container>::Push(ValueType&& value)
 {
     container.PushBack(std::move(value));
 }
 
 template <typename T, typename Container>
 template <typename... Args>
-se::Stack<T, Container>::ValueType& se::Stack<T, Container>::Emplace(Args&&... args)
+Stack<T, Container>::ValueType& Stack<T, Container>::Emplace(Args&&... args)
 {
     return container.EmplaceBack(std::forward<Args>(args)...);
 }
 
 template <typename T, typename Container>
-Optional<typename se::Stack<T, Container>::ValueType> se::Stack<T, Container>::Pop()
+Optional<typename Stack<T, Container>::ValueType> Stack<T, Container>::Pop()
 {
     return container.PopBack();
 }
 
 template <typename T, typename Container>
-void se::Stack<T, Container>::Swap(Stack& other) noexcept
+void Stack<T, Container>::Swap(Stack& other) noexcept
 {
     container.Swap(other.container);
 }
+}  // namespace se

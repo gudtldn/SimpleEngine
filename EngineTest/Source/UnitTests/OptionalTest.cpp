@@ -3,6 +3,8 @@
 #include <string>
 #include "SimpleEngine/Core/Container/Optional.h"
 
+using namespace se;
+
 class OptionalAPI_Test : public ::testing::Test {};
 
 
