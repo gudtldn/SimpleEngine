@@ -7,22 +7,12 @@
 
 #include "UI/ImGui/ImGuiString.h"
 #include "imgui.h"
+#include "UI/PropertyDrawer/PropertyDrawer.h"
 
 
 namespace
 {
 const se::VPath ConfigPath = "Config://EngineConfig.toml";
-
-const char* category_names[] = {
-    "Window",
-    "UI",
-    "Console",
-    "Asset Browser",
-    "Performance",
-    "Graphics",
-};
-
-static_assert(std::size(category_names) == static_cast<size_t>(se::editor::SettingsPanel::ECategory::COUNT));
 } // namespace
 
 namespace se::editor
@@ -71,12 +61,31 @@ void SettingsPanel::Draw()
         ImGui::TableNextColumn();
         ImGui::BeginChild("CategoryList");
         {
-            for (int i = 0; i < static_cast<int32>(ECategory::COUNT); ++i)
+            struct CategoryEntry
             {
-                const bool is_selected = (current_category == static_cast<ECategory>(i));
-                if (ImGui::Selectable(category_names[i], is_selected))
+                ECategory value;
+                String name;
+            };
+
+            static auto category_entries = []
+            {
+                FixedArray<CategoryEntry, EnumCount<ECategory>()> ret{};
+                std::ranges::transform(EnumEntries<ECategory>(), ret.begin(), [](const auto& entry) -> CategoryEntry
                 {
-                    current_category = static_cast<ECategory>(i);
+                    return {
+                        .value = static_cast<ECategory>(entry.value),
+                        .name = entry.name,
+                    };
+                });
+                return ret;
+            }();
+
+            for (const auto& [value, name] : category_entries)
+            {
+                const bool is_selected = (current_category == value);
+                if (ImGui::Selectable(name.CStr(), is_selected))
+                {
+                    current_category = value;
                 }
             }
         }
@@ -89,24 +98,42 @@ void SettingsPanel::Draw()
             switch (current_category)
             {
             case ECategory::Window:
-                DrawWindowSettings();
+            {
+                needs_save |= DrawSettings("Window", TypeId::Get<WindowSettings>(), &window_settings);
+                ImGui::TextDisabled("(Window settings apply on next launch)");
                 break;
+            }
             case ECategory::UI:
-                DrawUISettings();
+            {
+                needs_save |= DrawSettings("Editor UI", TypeId::Get<EditorUISettings>(), &ui_settings);
+                ImGui::TextDisabled("(Font and theme changes apply on next launch)");
                 break;
+            }
             case ECategory::Console:
-                DrawConsoleSettings();
+            {
+                needs_save |= DrawSettings("Console", TypeId::Get<ConsoleSettings>(), &console_settings);
                 break;
+            }
             case ECategory::AssetBrowser:
-                DrawAssetBrowserSettings();
+            {
+                needs_save |= DrawSettings("Asset Browser", TypeId::Get<AssetBrowserSettings>(), &asset_browser_settings);
                 break;
+            }
             case ECategory::Performance:
-                DrawPerformanceSettings();
+            {
+                needs_save |= DrawSettings("Performance", TypeId::Get<PerformanceSettings>(), &performance_settings);
+                ImGui::TextDisabled("Target FPS applies immediately on save.");
+                ImGui::TextDisabled("Busy wait ratio affects frame timing precision vs CPU usage.");
                 break;
+            }
             case ECategory::Graphics:
-                DrawGraphicsSettings();
+            {
+                needs_save |= DrawSettings("Graphics", TypeId::Get<GraphicsSettings>(), &graphics_settings);
+                ImGui::TextDisabled("(Present mode applies on next launch)");
                 break;
-            default: break;
+            }
+            default:
+                SE_UNREACHABLE();
             }
         }
         ImGui::EndChild();
@@ -181,162 +208,11 @@ void SettingsPanel::SaveSettings()
     }
 }
 
-// ============================================================================
-//  카테고리별 UI
-// ============================================================================
-
-void SettingsPanel::DrawWindowSettings()
+bool SettingsPanel::DrawSettings(const char* label, const TypeId& type_id, void* settings_ptr)
 {
-    ImGui::SeparatorText("Window");
+    ImGui::SeparatorText(label);
 
-    // Title
-    if (ImGui::InputText("Title", &window_settings.title))
-    {
-        needs_save = true;
-    }
-
-    // Width / Height
-    int w = static_cast<int>(window_settings.width);
-    int h = static_cast<int>(window_settings.height);
-    if (ImGui::DragInt("Width", &w, 1.0f, 320, 7680))
-    {
-        window_settings.width = static_cast<uint32>(w);
-        needs_save = true;
-    }
-    if (ImGui::DragInt("Height", &h, 1.0f, 240, 4320))
-    {
-        window_settings.height = static_cast<uint32>(h);
-        needs_save = true;
-    }
-
-    // Flags
-    needs_save |= ImGui::Checkbox("Fullscreen", &window_settings.fullscreen);
-    needs_save |= ImGui::Checkbox("Borderless", &window_settings.borderless);
-    needs_save |= ImGui::Checkbox("Resizable", &window_settings.resizable);
-
-    ImGui::TextDisabled("(Window settings apply on next launch)");
-}
-
-void SettingsPanel::DrawUISettings()
-{
-    ImGui::SeparatorText("Editor UI");
-
-    // Font Path
-    if (ImGui::InputText("Font Path", &ui_settings.font_path))
-    {
-        needs_save = true;
-    }
-
-    // Font Size
-    if (ImGui::DragFloat("Font Size", &ui_settings.font_size, 0.5f, 8.0f, 48.0f, "%.1f"))
-    {
-        needs_save = true;
-    }
-
-    // Theme
-    const char* themes[] = { "dark", "light", "classic" };
-    int current_theme = 0;
-    if (ui_settings.theme == "light")
-    {
-        current_theme = 1;
-    }
-    else if (ui_settings.theme == "classic")
-    {
-        current_theme = 2;
-    }
-
-    if (ImGui::Combo("Theme", &current_theme, themes, 3))
-    {
-        ui_settings.theme = themes[current_theme];
-        needs_save = true;
-    }
-
-    ImGui::TextDisabled("(Font and theme changes apply on next launch)");
-}
-
-void SettingsPanel::DrawConsoleSettings()
-{
-    ImGui::SeparatorText("Console");
-
-    needs_save |= ImGui::Checkbox("Auto Scroll", &console_settings.auto_scroll);
-    needs_save |= ImGui::Checkbox("Show Timestamp", &console_settings.show_timestamp);
-    needs_save |= ImGui::Checkbox("Show Thread Name", &console_settings.show_thread_name);
-    needs_save |= ImGui::Checkbox("Show Location", &console_settings.show_location);
-
-    int max_lines = static_cast<int>(console_settings.max_log_lines);
-    if (ImGui::DragInt("Max Log Lines", &max_lines, 10.0f, 100, 50000))
-    {
-        console_settings.max_log_lines = static_cast<uint32>(max_lines);
-        needs_save = true;
-    }
-}
-
-void SettingsPanel::DrawAssetBrowserSettings()
-{
-    ImGui::SeparatorText("Asset Browser");
-
-    needs_save |= ImGui::DragFloat("Grid Padding", &asset_browser_settings.grid_padding, 0.5f, 0.0f, 64.0f, "%.1f");
-    needs_save |= ImGui::DragFloat("Thumbnail Size", &asset_browser_settings.thumbnail_size, 1.0f, 32.0f, 256.0f, "%.0f");
-    needs_save |= ImGui::DragFloat("Tree Column Width", &asset_browser_settings.tree_column_width, 1.0f, 80.0f, 400.0f, "%.0f");
-}
-
-void SettingsPanel::DrawPerformanceSettings()
-{
-    ImGui::SeparatorText("Performance");
-
-    int fps = static_cast<int>(performance_settings.target_fps);
-    if (ImGui::DragInt("Target FPS", &fps, 1.0f, 1, 2400))
-    {
-        performance_settings.target_fps = static_cast<uint32>(fps);
-        needs_save = true;
-    }
-
-    if (ImGui::DragFloat("Busy Wait Ratio", &performance_settings.busy_wait_ratio, 0.01f, 0.0f, 1.0f, "%.2f"))
-    {
-        needs_save = true;
-    }
-
-    ImGui::TextDisabled("Target FPS applies immediately on save.");
-    ImGui::TextDisabled("Busy wait ratio affects frame timing precision vs CPU usage.");
-}
-
-void SettingsPanel::DrawGraphicsSettings()
-{
-    ImGui::SeparatorText("Graphics");
-
-    // Present Mode
-    const char* modes[] = { "mailbox", "vsync", "immediate" };
-    int current_mode = 0;
-    if (graphics_settings.present_mode == "vsync")
-    {
-        current_mode = 1;
-    }
-    else if (graphics_settings.present_mode == "immediate")
-    {
-        current_mode = 2;
-    }
-
-    if (ImGui::Combo("Present Mode", &current_mode, modes, 3))
-    {
-        graphics_settings.present_mode = modes[current_mode];
-        needs_save = true;
-    }
-
-    // Clear Color
-    ImGui::Text("Scene Clear Color");
-    float clear_color[3] = {
-        graphics_settings.clear_color_r,
-        graphics_settings.clear_color_g,
-        graphics_settings.clear_color_b,
-    };
-    if (ImGui::ColorEdit3("Clear Color", clear_color))
-    {
-        graphics_settings.clear_color_r = clear_color[0];
-        graphics_settings.clear_color_g = clear_color[1];
-        graphics_settings.clear_color_b = clear_color[2];
-        needs_save = true;
-    }
-
-    ImGui::TextDisabled("(Present mode applies on next launch)");
+    const TypeInfo& settings = TypeRegistry::Get().FindChecked(type_id);
+    return DrawerRegistry::Get().DrawProperties(settings, settings_ptr);
 }
 }  // namespace se::editor

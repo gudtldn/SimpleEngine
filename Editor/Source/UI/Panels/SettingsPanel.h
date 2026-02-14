@@ -2,6 +2,7 @@
 
 #include "UI/Panels/IEditorPanel.h"
 #include "Config/EditorSettings.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
 namespace se::editor
@@ -21,15 +22,14 @@ public:
     [[nodiscard]] virtual const char* GetName() const override;
     virtual void Draw() override;
 
-    enum class ECategory : int32
+    enum class ECategory : uint8
     {
-        Window = 0,
+        Window,
         UI,
         Console,
         AssetBrowser,
         Performance,
         Graphics,
-        COUNT,
     };
 
 private:
@@ -39,13 +39,8 @@ private:
     /** 현재 구조체 값을 파일에 저장합니다. */
     void SaveSettings();
 
-    /** 각 카테고리별 UI 그리기 */
-    void DrawWindowSettings();
-    void DrawUISettings();
-    void DrawConsoleSettings();
-    void DrawAssetBrowserSettings();
-    void DrawPerformanceSettings();
-    void DrawGraphicsSettings();
+    /** Category UI 그리기 */
+    [[nodiscard]] static bool DrawSettings(const char* label, const TypeId& type_id, void* settings_ptr);
 
 private:
     ECategory current_category = ECategory::Window;

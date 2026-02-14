@@ -16,7 +16,6 @@ SE_END_REFLECT(WindowSettings)
 SE_BEGIN_REFLECT(EditorUISettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(font_path, meta::Property)
     SE_REFLECT_PROPERTY(font_size, meta::Property)
-    SE_REFLECT_PROPERTY(theme, meta::Property)
 SE_END_REFLECT(EditorUISettings)
 
 SE_BEGIN_REFLECT(ConsoleSettings, meta::SerializeOnly)
@@ -35,13 +34,10 @@ SE_END_REFLECT(AssetBrowserSettings)
 
 SE_BEGIN_REFLECT(PerformanceSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(target_fps, meta::Property)
-    SE_REFLECT_PROPERTY(busy_wait_ratio, meta::Property)
+    SE_REFLECT_PROPERTY(busy_wait_ratio, meta::Property, meta::Range(0.0f, 1.0f))
 SE_END_REFLECT(PerformanceSettings)
 
 SE_BEGIN_REFLECT(GraphicsSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(present_mode, meta::Property)
-    SE_REFLECT_PROPERTY(clear_color_r, meta::Property)
-    SE_REFLECT_PROPERTY(clear_color_g, meta::Property)
-    SE_REFLECT_PROPERTY(clear_color_b, meta::Property)
 SE_END_REFLECT(GraphicsSettings)
 } // namespace se::editor

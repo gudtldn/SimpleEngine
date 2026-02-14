@@ -44,10 +44,6 @@ struct SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
     SE_ANNOTATION(=meta::Property)
     float font_size = 17.0f;
 
-    /** 에디터 테마: "dark", "light", "classic" */
-    SE_ANNOTATION(=meta::Property)
-    String theme = "dark";
-
     bool operator==(const EditorUISettings&) const = default;
 };
 
@@ -100,7 +96,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
     uint32 target_fps = 240;
 
     /** 프레임 대기 시 Busy-wait 비율 (0.0 ~ 1.0) */
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 1.0f))
     float busy_wait_ratio = 0.1f;
 
     bool operator==(const PerformanceSettings&) const = default;
@@ -113,17 +109,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
 {
     /** 프레젠트 모드: "mailbox", "vsync", "immediate" */
     SE_ANNOTATION(=meta::Property)
-    String present_mode = "mailbox";
-
-    /** 씬 클리어 색상 (R, G, B) */
-    SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 1.0f))
-    float clear_color_r = 0.15f;
-
-    SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 1.0f))
-    float clear_color_g = 0.15f;
-
-    SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 1.0f))
-    float clear_color_b = 0.15f;
+    String present_mode = "mailbox"; // TODO: 나중에 Enum으로 변경
 
     bool operator==(const GraphicsSettings&) const = default;
 };
