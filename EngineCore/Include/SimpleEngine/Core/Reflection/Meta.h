@@ -27,6 +27,10 @@ enum class ETypeFlags : uint32
 
     // Editor Visibility
     Hidden      = 1 << 3, // 에디터(ex: Add Component 메뉴)에서 숨기기
+
+    // Enum-specific
+    IsBitFlag   = 1 << 4, // 비트 플래그 조합 (체크박스 UI)
+    IsUnsigned  = 1 << 5, // underlying type이 unsigned
 };
 SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
 

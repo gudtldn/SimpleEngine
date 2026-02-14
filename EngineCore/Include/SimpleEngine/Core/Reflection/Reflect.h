@@ -250,7 +250,17 @@ public: \
 inline static const bool SE_CONCAT_NAME(_Reflect_Init_Enum_, enum_type) = [] static -> bool \
 { \
     using T = enum_type; \
+    ::se::BitFlags<::se::ETypeFlags> enum_flags; \
+    if constexpr (::se::detail::EnumReflector<T>::IsBitFlag) \
+    { \
+        enum_flags |= ::se::ETypeFlags::IsBitFlag; \
+    } \
+    if constexpr (std::is_unsigned_v<std::underlying_type_t<T>>) \
+    { \
+        enum_flags |= ::se::ETypeFlags::IsUnsigned; \
+    } \
     ::se::TypeRegistry::Get().RegisterEnum<T>() \
+        .AddFlags(enum_flags) \
         .Serialize([](::se::Archive& ar, void* p) static { ar << *static_cast<T*>(p); }) \
         .EnumEntries([](const ::se::EnumEntry*& out_data, usize& out_count) static \
         { \
