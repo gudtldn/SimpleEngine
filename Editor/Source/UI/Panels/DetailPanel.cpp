@@ -1,9 +1,12 @@
 #include "UI/Panels/DetailPanel.h"
 
 #include "Core/EditorSubsystem.h"
+#include "UI/PropertyDrawer/PropertyDrawer.h"
+
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/ECS/ComponentRegistry.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
@@ -94,7 +97,24 @@ void DetailPanel::Draw()
 
             ImGui::Separator();
 
-            // TODO: 선택된 Component 정보 띄우기
+            // 선택된 Component의 프로퍼티 렌더링
+            if (selected_id.IsValid())
+            {
+                if (const Optional type_info_opt = TypeRegistry::Get().Find(selected_id))
+                {
+                    ecs::World* world = world_subsystem->GetWorld();
+                    if (const Optional interface_opt = ecs::ComponentRegistry::Get().GetInterface(selected_id))
+                    {
+                        if (void* component_data = interface_opt->get_component_mutable(*world, entity))
+                        {
+                            const StringView& view = type_info_opt->name;
+                            ImGui::Text("[%.*s]", static_cast<int>(view.ByteLen()), view.Data());
+                            ImGui::Separator();
+                            DrawerRegistry::Get().DrawProperties(*type_info_opt, component_data);
+                        }
+                    }
+                }
+            }
         }
     }();
     ImGui::End();
