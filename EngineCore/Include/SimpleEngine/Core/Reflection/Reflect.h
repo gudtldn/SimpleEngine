@@ -5,6 +5,7 @@
 
 #include "SimpleEngine/Core/Math/MathSerialize.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Enum.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/ECS/ComponentRegistry.h"
@@ -240,7 +241,7 @@ public: \
 /**
  * 열거형(Enum)의 리플렉션 정보를 등록합니다.
  * underlying type의 TypeId가 자동으로 base_or_inner_id에 설정되며,
- * underlying type 기반 직렬화 콜백이 자동 등록됩니다.
+ * underlying type 기반 직렬화 콜백과 Enum 항목 목록 접근자가 자동 등록됩니다.
  *
  * @note 이 매크로를 사용하는 파일에서 Archive.h가 포함되어야 합니다.
  * @param enum_type 등록할 열거형 이름
@@ -250,6 +251,12 @@ inline static const bool SE_CONCAT_NAME(_Reflect_Init_Enum_, enum_type) = [] sta
 { \
     using T = enum_type; \
     ::se::TypeRegistry::Get().RegisterEnum<T>() \
-        .Serialize([](::se::Archive& ar, void* p) static { ar << *static_cast<T*>(p); }); \
+        .Serialize([](::se::Archive& ar, void* p) static { ar << *static_cast<T*>(p); }) \
+        .EnumEntries([](const ::se::EnumEntry*& out_data, usize& out_count) static \
+        { \
+            constexpr auto& entries = ::se::detail::EnumReflector<T>::Entries; \
+            out_data = entries.Data(); \
+            out_count = entries.Len(); \
+        }); \
     return true; \
 }();

@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/Reflection/Enum.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 
@@ -182,7 +183,7 @@ struct TypeInfo
     using ConstructorFunc = void*(*)();
     using DestructorFunc  = void(*)(void*);
     using SerializeFunc   = void(*)(Archive& ar, void* instance);
-    using DrawUIFunc      = void(*)(void* instance);
+    using EnumEntriesFunc = void(*)(const EnumEntry*& out_data, usize& out_count);
 
 public:
     /** Type의 컴파일타임 타입 식별자 */
@@ -234,7 +235,10 @@ public:
     /** 객체의 상태를 바이너리나 텍스트로 저장/불러오기 하는 함수 */
     SerializeFunc serialize = nullptr;
 
-    /** 엔진 에디터나 디버그 도구에서 해당 객체를 UI로 렌더링하는 함수 */
-    DrawUIFunc draw_ui = nullptr;
+    /**
+     * 타입이 소거된 Enum 항목 목록에 접근하는 함수
+     * @note Struct/Primitive 타입에서는 nullptr
+     */
+    EnumEntriesFunc enum_entries = nullptr;
 };
 } // namespace se

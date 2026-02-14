@@ -173,10 +173,10 @@ public:
         return *this;
     }
 
-    /** 외부에서 정의한 UI 렌더링 로직을 연결합니다. */
-    TypeBuilder& DrawUI(TypeInfo::DrawUIFunc func)
+    /** Enum 항목 목록 접근자를 연결합니다. (SE_REFLECT_ENUM 전용) */
+    TypeBuilder& EnumEntries(TypeInfo::EnumEntriesFunc func)
     {
-        info_ptr->draw_ui = func;
+        info_ptr->enum_entries = func;
         return *this;
     }
 
