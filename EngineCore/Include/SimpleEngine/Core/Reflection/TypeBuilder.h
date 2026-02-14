@@ -195,17 +195,18 @@ public:
     }
 
 public:
-    /** 외부에서 정의한 직렬화 로직을 연결합니다. */
-    TypeBuilder& Serialize(TypeInfo::SerializeFunc func)
-    {
-        info_ptr->serialize = func;
-        return *this;
-    }
-
     /** Enum 항목 목록 접근자를 연결합니다. (SE_REFLECT_ENUM 전용) */
     TypeBuilder& EnumEntries(TypeInfo::EnumEntriesFunc func)
     {
         info_ptr->enum_entries = func;
+        return *this;
+    }
+
+public:
+    /** 외부에서 정의한 직렬화 로직을 연결합니다. */
+    TypeBuilder& Serialize(TypeInfo::SerializeFunc func)
+    {
+        info_ptr->serialize = func;
         return *this;
     }
 
