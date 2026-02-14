@@ -530,10 +530,15 @@ bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& 
         usize count;
     };
 
-    IterState state{
-        &registry, ops.element_type_id,
-        ops.element_container_ops, ops.element_optional_ops,
-        read_only, false, count, count
+    IterState state = {
+        .registry = &registry,
+        .elem_type_id = ops.element_type_id,
+        .elem_container_ops = ops.element_container_ops,
+        .elem_optional_ops = ops.element_optional_ops,
+        .read_only = read_only,
+        .modified = false,
+        .remove_idx = count,
+        .count = count
     };
 
     ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
@@ -590,10 +595,15 @@ bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& re
         usize count;
     };
 
-    IterState state{
-        &registry, ops.element_type_id,
-        ops.element_container_ops, ops.element_optional_ops,
-        read_only, false, count, count
+    IterState state = {
+        .registry = &registry,
+        .elem_type_id = ops.element_type_id,
+        .elem_container_ops = ops.element_container_ops,
+        .elem_optional_ops = ops.element_optional_ops,
+        .read_only = read_only,
+        .modified = false,
+        .remove_idx = count,
+        .count = count
     };
 
     ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
@@ -657,11 +667,15 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
         usize count;
     };
 
-    IterState state{
-        &registry, ops.element_type_id, ops.value_type_id,
-        ops.element_container_ops, ops.element_optional_ops,
-        ops.value_container_ops, ops.value_optional_ops,
-        read_only, false, count, count
+    IterState state = {
+        .registry = &registry,
+        .key_type_id = ops.element_type_id, .value_type_id = ops.value_type_id,
+        .key_container_ops = ops.element_container_ops, .key_optional_ops = ops.element_optional_ops,
+        .value_container_ops = ops.value_container_ops, .value_optional_ops = ops.value_optional_ops,
+        .read_only = read_only,
+        .modified = false,
+        .remove_idx = count,
+        .count = count
     };
 
     ops.for_each(container, [](usize idx, void* key, void* value, void* user) -> bool
@@ -714,16 +728,14 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
 
     return modified;
 }
-} // namespace
 
-namespace detail
-{
 bool DrawContainerProperty(
     const char* label,
     void* container,
     const ContainerOps& ops,
     DrawerRegistry& registry,
-    bool read_only)
+    bool read_only
+)
 {
     const usize count = ops.size(container);
 
@@ -786,7 +798,8 @@ bool DrawOptionalProperty(
     void* optional,
     const OptionalOps& ops,
     DrawerRegistry& registry,
-    bool read_only)
+    bool read_only
+)
 {
     bool modified = false;
     bool has_value = ops.has_value(optional);
@@ -844,7 +857,8 @@ bool DrawOptionalProperty(
 
     return modified;
 }
-} // namespace detail
+} // namespace
+
 
 // ============================================================================
 // DrawerRegistry
@@ -868,7 +882,7 @@ void DrawerRegistry::Register(const TypeId& type_id, PropertyDrawFunc drawer)
 
 PropertyDrawFunc DrawerRegistry::Find(const TypeId& type_id) const
 {
-    if (auto opt = drawers.Find(type_id))
+    if (const Optional opt = drawers.Find(type_id))
     {
         return *opt;
     }
@@ -970,7 +984,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
                 ImGui::EndDisabled();
             }
 
-            modified |= detail::DrawContainerProperty(label, prop_data, *prop.container_ops, *this, read_only);
+            modified |= DrawContainerProperty(label, prop_data, *prop.container_ops, *this, read_only);
 
             if (read_only)
             {
@@ -987,7 +1001,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
                 ImGui::EndDisabled();
             }
 
-            modified |= detail::DrawOptionalProperty(label, prop_data, *prop.optional_ops, *this, read_only);
+            modified |= DrawOptionalProperty(label, prop_data, *prop.optional_ops, *this, read_only);
 
             if (read_only)
             {
@@ -1061,18 +1075,19 @@ bool DrawerRegistry::DrawValue(
     const char* label,
     void* value,
     const ContainerOps* container_ops,
-    const OptionalOps* optional_ops)
+    const OptionalOps* optional_ops
+)
 {
     // 컨테이너 타입: 중첩 ContainerOps를 통해 렌더링
     if (container_ops)
     {
-        return detail::DrawContainerProperty(label, value, *container_ops, *this, false);
+        return DrawContainerProperty(label, value, *container_ops, *this, false);
     }
 
     // Optional 타입: 중첩 OptionalOps를 통해 렌더링
     if (optional_ops)
     {
-        return detail::DrawOptionalProperty(label, value, *optional_ops, *this, false);
+        return DrawOptionalProperty(label, value, *optional_ops, *this, false);
     }
 
     // 등록된 Drawer가 있으면 사용
