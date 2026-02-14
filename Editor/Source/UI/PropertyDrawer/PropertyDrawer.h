@@ -17,7 +17,7 @@ namespace se::editor
 using PropertyDrawFunc = bool(*)(const char* label, void* value, const PropertyInfo& prop);
 
 /**
- * Asset Drag&Drop 시 파일 경로 → AssetId 변환 콜백
+ * Asset Drag&Drop 시 파일 경로 -> AssetId 변환 콜백
  * @param dropped_path 드롭된 파일 경로 (null-terminated)
  * @return 변환된 AssetId (유효하지 않으면 AssetId::Invalid)
  */
@@ -51,7 +51,7 @@ public:
     [[nodiscard]] PropertyDrawFunc Find(const TypeId& type_id) const;
 
     /**
-     * Asset Drag&Drop 시 경로 → AssetId 변환 콜백을 설정합니다.
+     * Asset Drag&Drop 시 경로 -> AssetId 변환 콜백을 설정합니다.
      * AssetSubsystem 등 외부 시스템에서 초기화 시 등록합니다.
      */
     void SetAssetDropResolver(AssetDropResolverFunc resolver) { asset_drop_resolver = resolver; }

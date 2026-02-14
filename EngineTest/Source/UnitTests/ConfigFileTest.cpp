@@ -371,7 +371,7 @@ TEST_F(ConfigFileTest, TransientPropertyNotSerialized)
 
     auto loaded = new_config.GetSection<TransientSettings>("settings");
     EXPECT_EQ(loaded.saved_val, 42);
-    EXPECT_EQ(loaded.transient_val, 0);  // Transient → 직렬화되지 않아 기본값
+    EXPECT_EQ(loaded.transient_val, 0);  // Transient -> 직렬화되지 않아 기본값
 }
 
 TEST_F(ConfigFileTest, EmptyStructRoundTrip)
@@ -567,7 +567,7 @@ TEST_F(ConfigFileTest, MultiSectionSaveAndReload)
 TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
 {
     // EditorApplication 패턴 재현:
-    // TOML에서 읽고 → 구조체의 기본값으로 누락분 보충 → 다시 저장
+    // TOML에서 읽고 -> 구조체의 기본값으로 누락분 보충 -> 다시 저장
     ConfigFile new_config;
 
     // window 섹션에 일부 키만 넣음

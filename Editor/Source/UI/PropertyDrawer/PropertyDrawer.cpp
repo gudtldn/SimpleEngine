@@ -152,7 +152,7 @@ bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
         {
             const char* dropped_path = static_cast<const char*>(payload->Data);
 
-            // DrawerRegistry에 등록된 resolver를 통해 경로 → AssetId 변환
+            // DrawerRegistry에 등록된 resolver를 통해 경로 -> AssetId 변환
             if (const auto resolver = DrawerRegistry::Get().GetAssetDropResolver())
             {
                 const asset::AssetId resolved = resolver(dropped_path);

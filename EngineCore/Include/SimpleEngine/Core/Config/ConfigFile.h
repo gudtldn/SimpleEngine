@@ -150,7 +150,7 @@ T ConfigFile::GetSection(StringView section_name) const
     const toml::table* target = FindSectionTable(section_name);
     if (!target)
     {
-        return result; // 섹션 미존재 → 기본 생성된 T 반환
+        return result; // 섹션 미존재 -> 기본 생성된 T 반환
     }
 
     TomlReader reader(*target);
@@ -162,7 +162,7 @@ T ConfigFile::GetSection(StringView section_name) const
     }
     else
     {
-        // 리플렉션 등록된 타입 → TypeInfo::serialize 사용
+        // 리플렉션 등록된 타입 -> TypeInfo::serialize 사용
         const TypeInfo& info = TypeRegistry::Get().FindChecked<T>();
         if (info.serialize)
         {
