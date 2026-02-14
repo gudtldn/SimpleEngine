@@ -33,7 +33,7 @@ using ParseResult = Expected<Config, toml::parse_error>;
 /**
  * TOML 파일을 읽고 쓰는 설정 관리 클래스입니다.
  */
-class SE_CORE_API Config
+class SE_CORE_API [[deprecated("Use ConfigFile instead.")]] Config
 {
 public:
     Config() = default;
