@@ -37,6 +37,13 @@
 - [ ] 나중에 I18n을 지원할 때, ICU4X도 한번 검토하기
   - ICU4X를 링크하려면 rust compiler가 필요한데, 엔진에서 진짜 필요한지 봐야할 듯.
 
+- [ ] ConfigFile 나머지 할 일
+  - [ ] `EditorConsolePanel`에서 `ConsoleSettings` 직접 읽어 동작 반영
+  - [ ] `AssetsBrowserPanel`에서 `AssetBrowserSettings` 직접 읽어 레이아웃 반영
+  - [ ] `EditorUISubsystem`에서 `EditorUISettings` (폰트/테마) 반영
+  - [ ] Project 별 설정 파일 분리 (Editor Settings vs Project Settings)
+  - [ ] 리플렉션 기반 자동 Settings UI 생성 (TypeInfo 순회)
+
 ## 완료
 
 - [x] 모듈명, 넴스 이름 규칙 정하고 다시 점검하기
