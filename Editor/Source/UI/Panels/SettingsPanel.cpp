@@ -1,13 +1,12 @@
 #include "UI/Panels/SettingsPanel.h"
+#include "UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
-#include "UI/ImGui/ImGuiString.h"
 #include "imgui.h"
-#include "UI/PropertyDrawer/PropertyDrawer.h"
 
 
 namespace
