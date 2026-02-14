@@ -60,7 +60,6 @@ struct Hidden    : target::Field {}; // 에디터 UI에 표시하지 않음 (Int
 struct Transient : target::Field {}; // 직렬화/역직렬화 대상에서 제외
 
 // UI Hints
-struct Color     : target::Field {}; // Vector3/4를 색상 피커로 표시
 struct Advanced  : target::Field {}; // 별도의 상세 탭(Advanced)에 표시
 
 
@@ -128,7 +127,6 @@ constexpr tags::Property  Property;  // 기본적으로 R/W + 직렬화 대상
 constexpr tags::ReadOnly  ReadOnly;  // 값 표시는 하되 수정 불가
 constexpr tags::Hidden    Hidden;    // 리플렉션에 등록은 하나, 아무런 표시를 하지 않음.
 constexpr tags::Transient Transient; // 직렬화 대상에서 제외
-constexpr tags::Color     Color;     // Vector3/4를 색상 피커로 표시
 constexpr tags::Advanced  Advanced;  // 별도의 상세 탭(Advanced)에 표시
 
 // --- Payload Annotations ---

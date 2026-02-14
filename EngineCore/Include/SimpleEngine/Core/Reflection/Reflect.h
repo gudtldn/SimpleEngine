@@ -110,10 +110,6 @@ consteval PropertyMetadata MakePropertyMetadata()
         {
             meta.flags |= EPropertyFlags::Transient;
         }
-        else if constexpr (std::same_as<TagType, tags::Color>)
-        {
-            meta.flags |= EPropertyFlags::IsColor;
-        }
 
         // --- Payload Tags (Data) ---
         else if constexpr (std::same_as<TagType, tags::DisplayName>)

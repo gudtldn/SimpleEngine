@@ -49,9 +49,8 @@ enum class EPropertyFlags : uint32
 
     // UI Hints & Constraints
     Advanced    = 1 << 4, // 별도의 상세 탭(Advanced)에 표시
-    IsColor     = 1 << 5, // Vector3/4를 색상 피커로 표시
-    HasRange    = 1 << 6, // range_min/max 값이 유효함 (UI Slider)
-    HasClamp    = 1 << 7, // clamp_min/max 값이 유효함 (Logic Limit)
+    HasRange    = 1 << 5, // range_min/max 값이 유효함 (UI Slider)
+    HasClamp    = 1 << 6, // clamp_min/max 값이 유효함 (Logic Limit)
 };
 SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 
