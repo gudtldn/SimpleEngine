@@ -219,6 +219,7 @@ public: \
 #define SE_REFLECT_INTERFACE(...) \
         .Implements<__VA_ARGS__>()
 
+// NOLINTBEGIN(bugprone-macro-parentheses)
 /**
  * 멤버 변수(Property)를 등록합니다.
  * @param member 멤버 변수
@@ -227,6 +228,7 @@ public: \
 #define SE_REFLECT_PROPERTY(member, ...) \
         .Property<&T::member>(SE_STRINGIFY(member)) \
         .ApplyMetadata(::se::detail::MakePropertyMetadata<__VA_ARGS__>())
+// NOLINTEND(bugprone-macro-parentheses)
 
 /** 타입의 리플렉션 정보 등록을 마칩니다. */
 #define SE_END_REFLECT(type) \
