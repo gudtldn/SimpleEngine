@@ -10,11 +10,13 @@
 
 #include "imgui.h"
 
+#include <cstdio>
 
+
+namespace se::editor
+{
 namespace
 {
-using namespace se;
-
 // ============================================================================
 // ImGuiDataType Mapping
 // ============================================================================
@@ -481,10 +483,259 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
     }
     return modified;
 }
+
+// ============================================================================
+// Container Drawer Helpers
+// ============================================================================
+
+bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& registry, bool read_only)
+{
+    bool modified = false;
+    const usize count = ops.size(container);
+
+    struct IterState
+    {
+        DrawerRegistry* registry;
+        TypeId elem_type_id;
+        bool read_only;
+        bool modified;
+        usize remove_idx;
+        usize count;
+    };
+
+    IterState state{ &registry, ops.element_type_id, read_only, false, count, count };
+
+    ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
+    {
+        auto& s = *static_cast<IterState*>(user);
+
+        ImGui::PushID(static_cast<int>(idx));
+
+        // [×] 삭제 버튼
+        if (!s.read_only)
+        {
+            if (ImGui::SmallButton("x"))
+            {
+                s.remove_idx = idx;
+                s.modified = true;
+            }
+            ImGui::SameLine();
+        }
+
+        // 인덱스 라벨 + 요소 렌더링
+        char label[32];
+        std::snprintf(label, sizeof(label), "[%zu]", idx);
+        s.modified |= s.registry->DrawValue(s.elem_type_id, label, elem);
+
+        ImGui::PopID();
+        return true;
+    }, &state);
+
+    modified = state.modified;
+
+    // 지연 삭제
+    if (state.remove_idx < count)
+    {
+        ops.remove_at(container, state.remove_idx);
+    }
+
+    return modified;
+}
+
+bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& registry, bool read_only)
+{
+    bool modified = false;
+    const usize count = ops.size(container);
+
+    struct IterState
+    {
+        DrawerRegistry* registry;
+        TypeId elem_type_id;
+        bool read_only;
+        bool modified;
+        usize remove_idx;
+        usize count;
+    };
+
+    IterState state{ &registry, ops.element_type_id, read_only, false, count, count };
+
+    ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
+    {
+        auto& s = *static_cast<IterState*>(user);
+
+        ImGui::PushID(static_cast<int>(idx));
+
+        // [×] 삭제 버튼
+        if (!s.read_only)
+        {
+            if (ImGui::SmallButton("x"))
+            {
+                s.remove_idx = idx;
+                s.modified = true;
+            }
+            ImGui::SameLine();
+        }
+
+        char label[32];
+        std::snprintf(label, sizeof(label), "[%zu]", idx);
+
+        // Set 요소는 읽기 전용 (값을 변경하면 해시가 깨짐)
+        ImGui::BeginDisabled();
+        s.registry->DrawValue(s.elem_type_id, label, elem);
+        ImGui::EndDisabled();
+
+        ImGui::PopID();
+        return true;
+    }, &state);
+
+    modified = state.modified;
+
+    // 지연 삭제
+    if (state.remove_idx < count)
+    {
+        ops.remove_at(container, state.remove_idx);
+        modified = true;
+    }
+
+    return modified;
+}
+
+bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& registry, bool read_only)
+{
+    bool modified = false;
+    const usize count = ops.size(container);
+
+    struct IterState
+    {
+        DrawerRegistry* registry;
+        TypeId key_type_id;
+        TypeId value_type_id;
+        bool read_only;
+        bool modified;
+        usize remove_idx;
+        usize count;
+    };
+
+    IterState state{ &registry, ops.element_type_id, ops.value_type_id, read_only, false, count, count };
+
+    ops.for_each(container, [](usize idx, void* key, void* value, void* user) -> bool
+    {
+        auto& s = *static_cast<IterState*>(user);
+
+        ImGui::PushID(static_cast<int>(idx));
+
+        char entry_label[32];
+        std::snprintf(entry_label, sizeof(entry_label), "[%zu]", idx);
+
+        // [×] 삭제 버튼을 TreeNode 앞에 배치
+        bool want_remove = false;
+        if (!s.read_only)
+        {
+            if (ImGui::SmallButton("x"))
+            {
+                s.remove_idx = idx;
+                s.modified = true;
+                want_remove = true;
+            }
+            ImGui::SameLine();
+        }
+
+        if (!want_remove && ImGui::TreeNode(entry_label))
+        {
+            // Key는 읽기 전용 (변경하면 해시가 깨짐)
+            ImGui::BeginDisabled();
+            s.registry->DrawValue(s.key_type_id, "Key", key);
+            ImGui::EndDisabled();
+
+            // Value는 편집 가능
+            s.modified |= s.registry->DrawValue(s.value_type_id, "Value", value);
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+        return true;
+    }, &state);
+
+    modified = state.modified;
+
+    // 지연 삭제
+    if (state.remove_idx < count)
+    {
+        ops.remove_at(container, state.remove_idx);
+        modified = true;
+    }
+
+    return modified;
+}
 } // namespace
 
-namespace se::editor
+namespace detail_internal
 {
+bool DrawContainerProperty(
+    const char* label,
+    void* container,
+    const ContainerOps& ops,
+    DrawerRegistry& registry,
+    bool read_only)
+{
+    const usize count = ops.size(container);
+
+    // 헤더: "label (N elements)"
+    char header[256];
+    std::snprintf(header, sizeof(header), "%s (%zu)", label, count);
+
+    bool modified = false;
+    if (ImGui::TreeNode(header))
+    {
+        // [+] [Clear] 버튼
+        if (!read_only)
+        {
+            if (ops.add)
+            {
+                if (ImGui::SmallButton("+"))
+                {
+                    ops.add(container);
+                    modified = true;
+                }
+                ImGui::SameLine();
+            }
+
+            if (count > 0)
+            {
+                if (ImGui::SmallButton("Clear"))
+                {
+                    ops.clear(container);
+                    modified = true;
+                    ImGui::TreePop();
+                    return modified;
+                }
+            }
+        }
+
+        // 요소 렌더링
+        switch (ops.kind)
+        {
+        case EContainerKind::Array:
+            modified |= DrawArrayContent(ops, container, registry, read_only);
+            break;
+        case EContainerKind::Set:
+            modified |= DrawSetContent(ops, container, registry, read_only);
+            break;
+        case EContainerKind::Map:
+            modified |= DrawMapContent(ops, container, registry, read_only);
+            break;
+        default:
+            break;
+        }
+
+        ImGui::TreePop();
+    }
+
+    return modified;
+}
+} // namespace detail_internal
+
 // ============================================================================
 // DrawerRegistry
 // ============================================================================
@@ -600,8 +851,25 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
             ? prop.name.Data()
             : prop.metadata.display_name.Data();
 
+        // 컨테이너 프로퍼티 (ContainerOps가 설정된 경우)
+        if (prop.container_ops)
+        {
+            // 컨테이너는 ReadOnly를 자체적으로 처리 (BeginDisabled 중첩 방지)
+            if (read_only)
+            {
+                ImGui::EndDisabled();
+            }
+
+            modified |= detail_internal::DrawContainerProperty(label, prop_data, *prop.container_ops, *this, read_only);
+
+            if (read_only)
+            {
+                ImGui::BeginDisabled();
+            }
+        }
+
         // 등록된 Drawer가 있으면 사용
-        if (const PropertyDrawFunc drawer = Find(prop.type_id))
+        else if (const PropertyDrawFunc drawer = Find(prop.type_id))
         {
             modified |= drawer(label, prop_data, prop);
         }
@@ -659,5 +927,49 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
     }
 
     return modified;
+}
+
+bool DrawerRegistry::DrawValue(const TypeId& type_id, const char* label, void* value)
+{
+    // 등록된 Drawer가 있으면 사용
+    if (const PropertyDrawFunc drawer = Find(type_id))
+    {
+        // 빈 PropertyInfo 생성 (메타데이터 없음)
+        PropertyInfo dummy_prop;
+        dummy_prop.type_id = type_id;
+        return drawer(label, value, dummy_prop);
+    }
+
+    // TypeRegistry에서 타입 정보 조회하여 분기
+    if (const Optional type_opt = TypeRegistry::Get().Find(type_id))
+    {
+        if (type_opt->kind == ETypeKind::Enum && type_opt->enum_entries)
+        {
+            PropertyInfo dummy_prop;
+            dummy_prop.type_id = type_id;
+
+            if (type_opt->flags.IsAnySet(ETypeFlags::IsBitFlag))
+            {
+                return DrawBitFlags(label, value, dummy_prop);
+            }
+            return DrawEnum(label, value, dummy_prop);
+        }
+
+        if (type_opt->kind == ETypeKind::Struct && !type_opt->properties.IsEmpty())
+        {
+            if (ImGui::TreeNode(label))
+            {
+                const bool modified = DrawProperties(*type_opt, value);
+                ImGui::TreePop();
+                return modified;
+            }
+            return false;
+        }
+    }
+
+    // 3) 미지원 타입: 타입명만 표시
+    const StringView view = type_id.GetName();
+    ImGui::LabelText(label, "[%.*s]", static_cast<int>(view.ByteLen()), view.Data());
+    return false;
 }
 } // namespace se::editor

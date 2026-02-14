@@ -4,6 +4,7 @@
 
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Traits/ContainerTraits.h"
 
 
 namespace se
@@ -147,6 +148,27 @@ public:
             ar << *static_cast<MemberType*>(ptr);
         };
 
+        // 컨테이너 타입 감지 및 ContainerOps 자동 생성
+        if constexpr (traits::ArrayLike<MemberType>)
+        {
+            using ElemType = traits::ElementOf<MemberType>;
+            static constexpr ContainerOps ops = MakeArrayOps<MemberType, ElemType>();
+            prop.container_ops = &ops;
+        }
+        else if constexpr (traits::SetLike<MemberType>)
+        {
+            using ElemType = traits::ElementOf<MemberType>;
+            static constexpr ContainerOps ops = MakeSetOps<MemberType, ElemType>();
+            prop.container_ops = &ops;
+        }
+        else if constexpr (traits::MapLike<MemberType>)
+        {
+            using KeyType = traits::KeyOf<MemberType>;
+            using ValType = traits::ValueOf<MemberType>;
+            static constexpr ContainerOps ops = MakeMapOps<MemberType, KeyType, ValType>();
+            prop.container_ops = &ops;
+        }
+
         info_ptr->properties.Push(prop);
         return *this;
     }
@@ -196,6 +218,171 @@ private:
                 return static_cast<InterfaceType*>(typed);
             }
         });
+    }
+
+    /** Array-like 컨테이너의 ContainerOps 생성 */
+    template <typename Container, typename ElemType>
+    static constexpr ContainerOps MakeArrayOps()
+    {
+        ContainerOps ops;
+        ops.kind = EContainerKind::Array;
+        ops.element_type_id = TypeId::Get<ElemType>();
+
+        ops.size = [](const void* c) static -> usize
+        {
+            return static_cast<const Container*>(c)->Len();
+        };
+
+        ops.clear = [](void* c) static
+        {
+            static_cast<Container*>(c)->Clear();
+        };
+
+        if constexpr (std::is_default_constructible_v<ElemType>)
+        {
+            ops.add = [](void* c) static
+            {
+                static_cast<Container*>(c)->Emplace();
+            };
+        }
+
+        ops.remove_at = [](void* c, usize index) static
+        {
+            static_cast<Container*>(c)->RemoveAt(index);
+        };
+
+        ops.for_each = [](void* c, bool (*callback)(usize idx, void* key_or_elem, void* value_or_null, void* user_data), void* user) static
+        {
+            auto& container = *static_cast<Container*>(c);
+            usize idx = 0;
+            for (auto& elem : container)
+            {
+                if (!callback(idx, &elem, nullptr, user))
+                {
+                    break;
+                }
+                ++idx;
+            }
+        };
+
+        return ops;
+    }
+
+    /** Set-like 컨테이너의 ContainerOps 생성 */
+    template <typename Container, typename ElemType>
+    static constexpr ContainerOps MakeSetOps()
+    {
+        ContainerOps ops;
+        ops.kind = EContainerKind::Set;
+        ops.element_type_id = TypeId::Get<ElemType>();
+
+        ops.size = [](const void* c) static -> usize
+        {
+            return static_cast<const Container*>(c)->Len();
+        };
+
+        ops.clear = [](void* c) static
+        {
+            static_cast<Container*>(c)->Clear();
+        };
+
+        if constexpr (std::is_default_constructible_v<ElemType>)
+        {
+            ops.add = [](void* c) static
+            {
+                static_cast<Container*>(c)->Emplace();
+            };
+        }
+
+        ops.remove_at = [](void* c, usize target_idx) static
+        {
+            auto& container = *static_cast<Container*>(c);
+            usize idx = 0;
+            for (auto it = container.begin(); it != container.end(); ++it, ++idx)
+            {
+                if (idx == target_idx)
+                {
+                    container.Remove(*it);
+                    return;
+                }
+            }
+        };
+
+        ops.for_each = [](void* c, bool(*callback)(usize, void*, void*, void*), void* user) static
+        {
+            auto& container = *static_cast<Container*>(c);
+            usize idx = 0;
+            for (auto& elem : container)
+            {
+                // Set의 요소는 const이므로 표시 전용으로 const_cast
+                if (!callback(idx, const_cast<ElemType*>(&elem), nullptr, user))
+                {
+                    break;
+                }
+                ++idx;
+            }
+        };
+
+        return ops;
+    }
+
+    /** Map-like 컨테이너의 ContainerOps 생성 */
+    template <typename Container, typename KeyType, typename ValType>
+    static constexpr ContainerOps MakeMapOps()
+    {
+        ContainerOps ops;
+        ops.kind = EContainerKind::Map;
+        ops.element_type_id = TypeId::Get<KeyType>();
+        ops.value_type_id = TypeId::Get<ValType>();
+
+        ops.size = [](const void* c) static -> usize
+        {
+            return static_cast<const Container*>(c)->Len();
+        };
+
+        ops.clear = [](void* c) static
+        {
+            static_cast<Container*>(c)->Clear();
+        };
+
+        if constexpr (std::is_default_constructible_v<KeyType> && std::is_default_constructible_v<ValType>)
+        {
+            ops.add = [](void* c) static
+            {
+                static_cast<Container*>(c)->Emplace(KeyType{});
+            };
+        }
+
+        ops.remove_at = [](void* c, usize target_idx) static
+        {
+            auto& container = *static_cast<Container*>(c);
+            usize idx = 0;
+            for (auto it = container.begin(); it != container.end(); ++it, ++idx)
+            {
+                if (idx == target_idx)
+                {
+                    container.Remove(it->first);
+                    return;
+                }
+            }
+        };
+
+        ops.for_each = [](void* c, bool(*callback)(usize, void*, void*, void*), void* user) static
+        {
+            auto& container = *static_cast<Container*>(c);
+            usize idx = 0;
+            for (auto& [key, value] : container)
+            {
+                // Map의 key는 const이므로 표시 전용으로 const_cast
+                if (!callback(idx, const_cast<KeyType*>(&key), &value, user))
+                {
+                    break;
+                }
+                ++idx;
+            }
+        };
+
+        return ops;
     }
 
 private:

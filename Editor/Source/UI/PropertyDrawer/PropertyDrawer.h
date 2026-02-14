@@ -54,6 +54,17 @@ public:
      */
     bool DrawProperties(const TypeInfo& type_info, void* instance);
 
+    /**
+     * 단일 값을 TypeId 기반으로 ImGui 위젯으로 렌더링합니다.
+     * 컨테이너 요소의 재귀 렌더링에 사용됩니다.
+     *
+     * @param type_id 렌더링할 값의 타입 ID
+     * @param label ImGui 위젯의 라벨
+     * @param value 값 데이터의 포인터
+     * @return 값이 수정되었으면 true
+     */
+    bool DrawValue(const TypeId& type_id, const char* label, void* value);
+
 private:
     void RegisterBuiltinDrawers();
 

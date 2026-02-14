@@ -67,6 +67,59 @@ enum class ETypeKind : uint8
     Enum,      // 열거형
 };
 
+/** 컨테이너 타입 분류 */
+enum class EContainerKind : uint8
+{
+    None,  // 컨테이너가 아님
+    Array, // Array, FixedArray 등 (순서 보장, 인덱스 접근)
+    Set,   // HashSet, Set, FlatSet 등 (순서 미보장, 중복 불가)
+    Map,   // HashMap, Map, FlatMap 등 (Key-Value 쌍)
+};
+
+/**
+ * 컨테이너 프로퍼티의 타입 소거(type-erased) 연산 인터페이스
+ */
+struct ContainerOps
+{
+    /** 컨테이너 종류 */
+    EContainerKind kind = EContainerKind::None;
+
+    /** 요소 타입 ID (Array/Set: 요소, Map: Key) */
+    TypeId element_type_id;
+
+    /** Value 타입 ID (Map 전용, Array/Set에서는 빈 TypeId) */
+    TypeId value_type_id;
+
+    /** 컨테이너의 현재 요소 수를 반환합니다. */
+    usize(*size)(const void* container) = nullptr;
+
+    /** 컨테이너의 모든 요소를 제거합니다. */
+    void(*clear)(void* container) = nullptr;
+
+    /**
+     * 기본 생성된 요소 (또는 Key-Value 쌍)를 추가합니다.
+     * @note 요소 타입이 default constructible이 아니면 nullptr
+     */
+    void(*add)(void* container) = nullptr;
+
+    /**
+     * 반복 순서 기준 index번째 요소를 제거합니다.
+     * Array: O(n) 이동, Set/Map: O(n) 탐색 + O(1) 제거
+     */
+    void(*remove_at)(void* container, usize index) = nullptr;
+
+    /**
+     * 모든 요소를 순회합니다.
+     * callback(idx, key_or_elem, value_or_null, user_data)
+     * - Array/Set: value_or_null == nullptr
+     * - Map: key_or_elem == &key (읽기 전용), value_or_null == &value (편집 가능)
+     * callback이 false를 반환하면 순회를 중단합니다.
+     */
+    void (*for_each)(
+        void* container, bool (*callback)(usize idx, void* key_or_elem, void* value_or_null, void* user_data), void* user_data
+    ) = nullptr;
+};
+
 /**
  * 멤버 변수(Property)의 추가 메타데이터 정보
  * @todo C++26 Custom Annotation 이용해서 구조체 채워넣기
@@ -157,6 +210,9 @@ public:
 
     /** Property 단위 직렬화 콜백 (Archive::operator<< 디스패치를 통해 자동 생성됨) */
     SerializeFunc serialize = nullptr;
+
+    /** 컨테이너 프로퍼티의 타입 소거 연산 (Array/Set/Map) */
+    const ContainerOps* container_ops = nullptr;
 
 public:
     template <typename T>
