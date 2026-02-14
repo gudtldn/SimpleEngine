@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 
@@ -14,6 +15,13 @@ namespace se::editor
  * @return 값이 수정되었으면 true
  */
 using PropertyDrawFunc = bool(*)(const char* label, void* value, const PropertyInfo& prop);
+
+/**
+ * Asset Drag&Drop 시 파일 경로 → AssetId 변환 콜백
+ * @param dropped_path 드롭된 파일 경로 (null-terminated)
+ * @return 변환된 AssetId (유효하지 않으면 AssetId::Invalid)
+ */
+using AssetDropResolverFunc = asset::AssetId(*)(const char* dropped_path);
 
 /**
  * TypeId별 PropertyDrawer 저장소
@@ -43,6 +51,15 @@ public:
     [[nodiscard]] PropertyDrawFunc Find(const TypeId& type_id) const;
 
     /**
+     * Asset Drag&Drop 시 경로 → AssetId 변환 콜백을 설정합니다.
+     * AssetSubsystem 등 외부 시스템에서 초기화 시 등록합니다.
+     */
+    void SetAssetDropResolver(AssetDropResolverFunc resolver) { asset_drop_resolver = resolver; }
+
+    /** 현재 등록된 Asset Drop Resolver를 반환합니다. */
+    [[nodiscard]] AssetDropResolverFunc GetAssetDropResolver() const { return asset_drop_resolver; }
+
+    /**
      * TypeInfo가 가진 모든 프로퍼티를 ImGui 위젯으로 렌더링합니다.
      * Hidden 프로퍼티는 건너뛰고, ReadOnly 프로퍼티는 비활성(disabled) 상태로 표시됩니다.
      * Enum 타입은 TypeInfo::enum_entries를 통해 Combo 위젯으로 자동 렌더링됩니다.
@@ -61,14 +78,23 @@ public:
      * @param type_id 렌더링할 값의 타입 ID
      * @param label ImGui 위젯의 라벨
      * @param value 값 데이터의 포인터
+     * @param container_ops 값이 컨테이너인 경우의 타입 소거 연산 (없으면 nullptr)
+     * @param optional_ops 값이 Optional인 경우의 타입 소거 연산 (없으면 nullptr)
      * @return 값이 수정되었으면 true
      */
-    bool DrawValue(const TypeId& type_id, const char* label, void* value);
+    bool DrawValue(
+        const TypeId& type_id,
+        const char* label,
+        void* value,
+        const ContainerOps* container_ops = nullptr,
+        const OptionalOps* optional_ops = nullptr
+    );
 
 private:
     void RegisterBuiltinDrawers();
 
 private:
     HashMap<TypeId, PropertyDrawFunc> drawers;
+    AssetDropResolverFunc asset_drop_resolver = nullptr;
 };
 }  // namespace se::editor

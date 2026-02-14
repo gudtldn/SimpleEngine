@@ -127,11 +127,13 @@ bool DrawTypeId(const char* label, void* value, const PropertyInfo& /*prop*/)
     return false;
 }
 
-// --- AssetId (read-only: GUID 표시) ---
+// --- AssetId (GUID 표시 + Asset Drag&Drop Target) ---
 
 bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
-    const asset::AssetId& asset_id = *static_cast<asset::AssetId*>(value);
+    asset::AssetId& asset_id = *static_cast<asset::AssetId*>(value);
+    bool modified = false;
+
     if (asset_id.IsValid())
     {
         const String str = asset_id.GetGuid().ToString();
@@ -139,9 +141,32 @@ bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
     }
     else
     {
-        ImGui::LabelText(label, "(none)");
+        // 드롭 대상임을 시각적으로 표시
+        ImGui::LabelText(label, "(none \xe2\x80\x94 drop asset here)");
     }
-    return false;
+
+    // Drag&Drop 수신 (AssetsBrowserPanel의 "CONTENT_BROWSER_ITEM" 페이로드)
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+        {
+            const char* dropped_path = static_cast<const char*>(payload->Data);
+
+            // DrawerRegistry에 등록된 resolver를 통해 경로 → AssetId 변환
+            if (const auto resolver = DrawerRegistry::Get().GetAssetDropResolver())
+            {
+                const asset::AssetId resolved = resolver(dropped_path);
+                if (resolved.IsValid())
+                {
+                    asset_id = resolved;
+                    modified = true;
+                }
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    return modified;
 }
 
 // --- Entity (read-only) ---
@@ -497,13 +522,19 @@ bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& 
     {
         DrawerRegistry* registry;
         TypeId elem_type_id;
+        const ContainerOps* elem_container_ops;
+        const OptionalOps* elem_optional_ops;
         bool read_only;
         bool modified;
         usize remove_idx;
         usize count;
     };
 
-    IterState state{ &registry, ops.element_type_id, read_only, false, count, count };
+    IterState state{
+        &registry, ops.element_type_id,
+        ops.element_container_ops, ops.element_optional_ops,
+        read_only, false, count, count
+    };
 
     ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
     {
@@ -525,7 +556,7 @@ bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& 
         // 인덱스 라벨 + 요소 렌더링
         char label[32];
         std::snprintf(label, sizeof(label), "[%zu]", idx);
-        s.modified |= s.registry->DrawValue(s.elem_type_id, label, elem);
+        s.modified |= s.registry->DrawValue(s.elem_type_id, label, elem, s.elem_container_ops, s.elem_optional_ops);
 
         ImGui::PopID();
         return true;
@@ -551,13 +582,19 @@ bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& re
     {
         DrawerRegistry* registry;
         TypeId elem_type_id;
+        const ContainerOps* elem_container_ops;
+        const OptionalOps* elem_optional_ops;
         bool read_only;
         bool modified;
         usize remove_idx;
         usize count;
     };
 
-    IterState state{ &registry, ops.element_type_id, read_only, false, count, count };
+    IterState state{
+        &registry, ops.element_type_id,
+        ops.element_container_ops, ops.element_optional_ops,
+        read_only, false, count, count
+    };
 
     ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
     {
@@ -581,7 +618,7 @@ bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& re
 
         // Set 요소는 읽기 전용 (값을 변경하면 해시가 깨짐)
         ImGui::BeginDisabled();
-        s.registry->DrawValue(s.elem_type_id, label, elem);
+        s.registry->DrawValue(s.elem_type_id, label, elem, s.elem_container_ops, s.elem_optional_ops);
         ImGui::EndDisabled();
 
         ImGui::PopID();
@@ -610,13 +647,22 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
         DrawerRegistry* registry;
         TypeId key_type_id;
         TypeId value_type_id;
+        const ContainerOps* key_container_ops;
+        const OptionalOps* key_optional_ops;
+        const ContainerOps* value_container_ops;
+        const OptionalOps* value_optional_ops;
         bool read_only;
         bool modified;
         usize remove_idx;
         usize count;
     };
 
-    IterState state{ &registry, ops.element_type_id, ops.value_type_id, read_only, false, count, count };
+    IterState state{
+        &registry, ops.element_type_id, ops.value_type_id,
+        ops.element_container_ops, ops.element_optional_ops,
+        ops.value_container_ops, ops.value_optional_ops,
+        read_only, false, count, count
+    };
 
     ops.for_each(container, [](usize idx, void* key, void* value, void* user) -> bool
     {
@@ -644,11 +690,11 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
         {
             // Key는 읽기 전용 (변경하면 해시가 깨짐)
             ImGui::BeginDisabled();
-            s.registry->DrawValue(s.key_type_id, "Key", key);
+            s.registry->DrawValue(s.key_type_id, "Key", key, s.key_container_ops, s.key_optional_ops);
             ImGui::EndDisabled();
 
             // Value는 편집 가능
-            s.modified |= s.registry->DrawValue(s.value_type_id, "Value", value);
+            s.modified |= s.registry->DrawValue(s.value_type_id, "Value", value, s.value_container_ops, s.value_optional_ops);
 
             ImGui::TreePop();
         }
@@ -670,7 +716,7 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
 }
 } // namespace
 
-namespace detail_internal
+namespace detail
 {
 bool DrawContainerProperty(
     const char* label,
@@ -734,7 +780,71 @@ bool DrawContainerProperty(
 
     return modified;
 }
-} // namespace detail_internal
+
+bool DrawOptionalProperty(
+    const char* label,
+    void* optional,
+    const OptionalOps& ops,
+    DrawerRegistry& registry,
+    bool read_only)
+{
+    bool modified = false;
+    bool has_value = ops.has_value(optional);
+
+    // "label" TreeNode 또는 인라인 Checkbox로 표시
+    if (ImGui::TreeNode(label))
+    {
+        // Checkbox: 값 존재 여부 토글
+        if (!read_only && ops.emplace_default)
+        {
+            if (ImGui::Checkbox("Has Value", &has_value))
+            {
+                if (has_value)
+                {
+                    ops.emplace_default(optional);
+                }
+                else
+                {
+                    ops.reset(optional);
+                }
+                modified = true;
+            }
+        }
+        else
+        {
+            // 기본 생성 불가능하거나 ReadOnly인 경우 표시만
+            ImGui::BeginDisabled();
+            ImGui::Checkbox("Has Value", &has_value);
+            ImGui::EndDisabled();
+        }
+
+        // 값이 있으면 내부 값 렌더링
+        if (has_value)
+        {
+            void* inner_value = ops.get_value(optional);
+
+            if (read_only)
+            {
+                ImGui::BeginDisabled();
+            }
+
+            modified |= registry.DrawValue(
+                ops.inner_type_id, "Value", inner_value,
+                ops.inner_container_ops, ops.inner_optional_ops
+            );
+
+            if (read_only)
+            {
+                ImGui::EndDisabled();
+            }
+        }
+
+        ImGui::TreePop();
+    }
+
+    return modified;
+}
+} // namespace detail
 
 // ============================================================================
 // DrawerRegistry
@@ -860,7 +970,24 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
                 ImGui::EndDisabled();
             }
 
-            modified |= detail_internal::DrawContainerProperty(label, prop_data, *prop.container_ops, *this, read_only);
+            modified |= detail::DrawContainerProperty(label, prop_data, *prop.container_ops, *this, read_only);
+
+            if (read_only)
+            {
+                ImGui::BeginDisabled();
+            }
+        }
+
+        // Optional 프로퍼티 (OptionalOps가 설정된 경우)
+        else if (prop.optional_ops)
+        {
+            // Optional도 ReadOnly를 자체적으로 처리 (BeginDisabled 중첩 방지)
+            if (read_only)
+            {
+                ImGui::EndDisabled();
+            }
+
+            modified |= detail::DrawOptionalProperty(label, prop_data, *prop.optional_ops, *this, read_only);
 
             if (read_only)
             {
@@ -929,8 +1056,25 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
     return modified;
 }
 
-bool DrawerRegistry::DrawValue(const TypeId& type_id, const char* label, void* value)
+bool DrawerRegistry::DrawValue(
+    const TypeId& type_id,
+    const char* label,
+    void* value,
+    const ContainerOps* container_ops,
+    const OptionalOps* optional_ops)
 {
+    // 컨테이너 타입: 중첩 ContainerOps를 통해 렌더링
+    if (container_ops)
+    {
+        return detail::DrawContainerProperty(label, value, *container_ops, *this, false);
+    }
+
+    // Optional 타입: 중첩 OptionalOps를 통해 렌더링
+    if (optional_ops)
+    {
+        return detail::DrawOptionalProperty(label, value, *optional_ops, *this, false);
+    }
+
     // 등록된 Drawer가 있으면 사용
     if (const PropertyDrawFunc drawer = Find(type_id))
     {
@@ -967,7 +1111,7 @@ bool DrawerRegistry::DrawValue(const TypeId& type_id, const char* label, void* v
         }
     }
 
-    // 3) 미지원 타입: 타입명만 표시
+    // 지원하지 않는 타입은 타입명만 표시
     const StringView view = type_id.GetName();
     ImGui::LabelText(label, "[%.*s]", static_cast<int>(view.ByteLen()), view.Data());
     return false;
