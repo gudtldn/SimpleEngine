@@ -51,15 +51,6 @@ public:
     [[nodiscard]] PropertyDrawFunc Find(const TypeId& type_id) const;
 
     /**
-     * Asset Drag&Drop 시 경로 -> AssetId 변환 콜백을 설정합니다.
-     * AssetSubsystem 등 외부 시스템에서 초기화 시 등록합니다.
-     */
-    void SetAssetDropResolver(AssetDropResolverFunc resolver) { asset_drop_resolver = resolver; }
-
-    /** 현재 등록된 Asset Drop Resolver를 반환합니다. */
-    [[nodiscard]] AssetDropResolverFunc GetAssetDropResolver() const { return asset_drop_resolver; }
-
-    /**
      * TypeInfo가 가진 모든 프로퍼티를 ImGui 위젯으로 렌더링합니다.
      * Hidden 프로퍼티는 건너뛰고, ReadOnly 프로퍼티는 비활성(disabled) 상태로 표시됩니다.
      * Enum 타입은 TypeInfo::enum_entries를 통해 Combo 위젯으로 자동 렌더링됩니다.
@@ -89,6 +80,16 @@ public:
         const ContainerOps* container_ops = nullptr,
         const OptionalOps* optional_ops = nullptr
     );
+
+public:
+    /**
+     * Asset Drag&Drop 시 경로 -> AssetId 변환 콜백을 설정합니다.
+     * AssetSubsystem 등 외부 시스템에서 초기화 시 등록합니다.
+     */
+    void SetAssetDropResolver(AssetDropResolverFunc resolver) { asset_drop_resolver = resolver; }
+
+    /** 현재 등록된 Asset Drop Resolver를 반환합니다. */
+    [[nodiscard]] AssetDropResolverFunc GetAssetDropResolver() const { return asset_drop_resolver; }
 
 private:
     void RegisterBuiltinDrawers();

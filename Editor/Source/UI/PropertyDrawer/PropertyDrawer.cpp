@@ -1,5 +1,9 @@
 #include "UI/PropertyDrawer/PropertyDrawer.h"
 
+#include <cstdio>
+
+#include "UI/ImGui/ImGuiString.h"
+
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Math/Math.h"
@@ -8,10 +12,7 @@
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/ECS/Entity.h"
 
-#include "UI/ImGui/ImGuiString.h"
 #include "imgui.h"
-
-#include <cstdio>
 
 
 namespace se::editor
@@ -879,54 +880,6 @@ PropertyDrawFunc DrawerRegistry::Find(const TypeId& type_id) const
     return nullptr;
 }
 
-void DrawerRegistry::RegisterBuiltinDrawers()
-{
-    // --- Primitive ---
-    Register(TypeId::Get<bool>(),   &DrawBool);
-    Register(TypeId::Get<int8>(),   &DrawArithmetic<int8>);
-    Register(TypeId::Get<uint8>(),  &DrawArithmetic<uint8>);
-    Register(TypeId::Get<int16>(),  &DrawArithmetic<int16>);
-    Register(TypeId::Get<uint16>(), &DrawArithmetic<uint16>);
-    Register(TypeId::Get<int32>(),  &DrawArithmetic<int32>);
-    Register(TypeId::Get<uint32>(), &DrawArithmetic<uint32>);
-    Register(TypeId::Get<int64>(),  &DrawArithmetic<int64>);
-    Register(TypeId::Get<uint64>(), &DrawArithmetic<uint64>);
-    Register(TypeId::Get<float>(),  &DrawArithmetic<float>);
-    Register(TypeId::Get<double>(), &DrawArithmetic<double>);
-
-    // --- String ---
-    Register(TypeId::Get<String>(),     &DrawString);
-    Register(TypeId::Get<StringName>(), &DrawStringName);
-
-    // --- Identifiers ---
-    Register(TypeId::Get<Guid>(),           &DrawGuid);
-    Register(TypeId::Get<TypeId>(),         &DrawTypeId);
-    Register(TypeId::Get<asset::AssetId>(), &DrawAssetId);
-    Register(TypeId::Get<Entity>(),         &DrawEntity);
-
-    // --- Math (double precision) ---
-    Register(TypeId::Get<Vector2>(),    &DrawVector2<double>);
-    Register(TypeId::Get<Vector3>(),    &DrawVector3<double>);
-    Register(TypeId::Get<Vector4>(),    &DrawVector4<double>);
-    Register(TypeId::Get<Quaternion>(), &DrawQuaternion<double>);
-    Register(TypeId::Get<Rotator>(),    &DrawRotator<double>);
-
-    // --- Math (single precision) ---
-    Register(TypeId::Get<Vector2f>(),    &DrawVector2<float>);
-    Register(TypeId::Get<Vector3f>(),    &DrawVector3<float>);
-    Register(TypeId::Get<Vector4f>(),    &DrawVector4<float>);
-    Register(TypeId::Get<Quaternionf>(), &DrawQuaternion<float>);
-    Register(TypeId::Get<Rotatorf>(),    &DrawRotator<float>);
-
-    // --- Color ---
-    Register(TypeId::Get<LinearColor>(), &DrawLinearColor);
-    Register(TypeId::Get<Color>(),       &DrawColor);
-
-    // --- Angles ---
-    Register(TypeId::Get<Degree<double>>(), &DrawDegree<double>);
-    Register(TypeId::Get<Degree<float>>(),  &DrawDegree<float>);
-}
-
 bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
 {
     bool modified = false;
@@ -962,8 +915,8 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
 
         // 표시 이름 결정
         const char* label = prop.metadata.display_name.IsEmpty()
-            ? prop.name.Data()
-            : prop.metadata.display_name.Data();
+                                ? prop.name.Data()
+                                : prop.metadata.display_name.Data();
 
         // 컨테이너 프로퍼티 (ContainerOps가 설정된 경우)
         if (prop.container_ops)
@@ -1120,5 +1073,53 @@ bool DrawerRegistry::DrawValue(
     const StringView view = type_id.GetName();
     ImGui::LabelText(label, "[%.*s]", static_cast<int>(view.ByteLen()), view.Data());
     return false;
+}
+
+void DrawerRegistry::RegisterBuiltinDrawers()
+{
+    // --- Primitive ---
+    Register(TypeId::Get<bool>(),   &DrawBool);
+    Register(TypeId::Get<int8>(),   &DrawArithmetic<int8>);
+    Register(TypeId::Get<uint8>(),  &DrawArithmetic<uint8>);
+    Register(TypeId::Get<int16>(),  &DrawArithmetic<int16>);
+    Register(TypeId::Get<uint16>(), &DrawArithmetic<uint16>);
+    Register(TypeId::Get<int32>(),  &DrawArithmetic<int32>);
+    Register(TypeId::Get<uint32>(), &DrawArithmetic<uint32>);
+    Register(TypeId::Get<int64>(),  &DrawArithmetic<int64>);
+    Register(TypeId::Get<uint64>(), &DrawArithmetic<uint64>);
+    Register(TypeId::Get<float>(),  &DrawArithmetic<float>);
+    Register(TypeId::Get<double>(), &DrawArithmetic<double>);
+
+    // --- String ---
+    Register(TypeId::Get<String>(),     &DrawString);
+    Register(TypeId::Get<StringName>(), &DrawStringName);
+
+    // --- Identifiers ---
+    Register(TypeId::Get<Guid>(),           &DrawGuid);
+    Register(TypeId::Get<TypeId>(),         &DrawTypeId);
+    Register(TypeId::Get<asset::AssetId>(), &DrawAssetId);
+    Register(TypeId::Get<Entity>(),         &DrawEntity);
+
+    // --- Math (double precision) ---
+    Register(TypeId::Get<Vector2>(),    &DrawVector2<double>);
+    Register(TypeId::Get<Vector3>(),    &DrawVector3<double>);
+    Register(TypeId::Get<Vector4>(),    &DrawVector4<double>);
+    Register(TypeId::Get<Quaternion>(), &DrawQuaternion<double>);
+    Register(TypeId::Get<Rotator>(),    &DrawRotator<double>);
+
+    // --- Math (single precision) ---
+    Register(TypeId::Get<Vector2f>(),    &DrawVector2<float>);
+    Register(TypeId::Get<Vector3f>(),    &DrawVector3<float>);
+    Register(TypeId::Get<Vector4f>(),    &DrawVector4<float>);
+    Register(TypeId::Get<Quaternionf>(), &DrawQuaternion<float>);
+    Register(TypeId::Get<Rotatorf>(),    &DrawRotator<float>);
+
+    // --- Color ---
+    Register(TypeId::Get<LinearColor>(), &DrawLinearColor);
+    Register(TypeId::Get<Color>(),       &DrawColor);
+
+    // --- Angles ---
+    Register(TypeId::Get<Degree<double>>(), &DrawDegree<double>);
+    Register(TypeId::Get<Degree<float>>(),  &DrawDegree<float>);
 }
 } // namespace se::editor
