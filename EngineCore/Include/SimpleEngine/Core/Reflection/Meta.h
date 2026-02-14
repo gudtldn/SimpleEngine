@@ -12,6 +12,7 @@ namespace se
 {
 // forward declaration
 class Archive;
+struct OptionalOps;
 
 /** 타입 속성 비트 플래그 */
 enum class ETypeFlags : uint32
@@ -90,6 +91,19 @@ struct ContainerOps
     /** Value 타입 ID (Map 전용, Array/Set에서는 빈 TypeId) */
     TypeId value_type_id;
 
+    /** 요소가 컨테이너인 경우의 중첩 ContainerOps (Array<Array<T>> 등) */
+    const ContainerOps* element_container_ops = nullptr;
+
+    /** Map의 Value가 컨테이너인 경우의 중첩 ContainerOps (Map<K, Array<V>> 등) */
+    const ContainerOps* value_container_ops = nullptr;
+
+    /** 요소가 Optional인 경우의 OptionalOps */
+    const OptionalOps* element_optional_ops = nullptr;
+
+    /** Map의 Value가 Optional인 경우의 OptionalOps */
+    const OptionalOps* value_optional_ops = nullptr;
+
+public:
     /** 컨테이너의 현재 요소 수를 반환합니다. */
     usize(*size)(const void* container) = nullptr;
 
@@ -118,6 +132,37 @@ struct ContainerOps
     void (*for_each)(
         void* container, bool (*callback)(usize idx, void* key_or_elem, void* value_or_null, void* user_data), void* user_data
     ) = nullptr;
+};
+
+/**
+ * Optional 프로퍼티의 타입 소거(type-erased) 연산 인터페이스
+ */
+struct OptionalOps
+{
+    /** 내부 값의 타입 ID */
+    TypeId inner_type_id;
+
+    /** 내부 값이 컨테이너인 경우의 ContainerOps (없으면 nullptr) */
+    const ContainerOps* inner_container_ops = nullptr;
+
+    /** 내부 값이 Optional인 경우의 OptionalOps (없으면 nullptr) */
+    const OptionalOps* inner_optional_ops = nullptr;
+
+public:
+    /** 값이 존재하는지 반환합니다. */
+    bool(*has_value)(const void* optional) = nullptr;
+
+    /** 내부 값의 포인터를 반환합니다. (has_value가 true일 때만 유효) */
+    void*(*get_value)(void* optional) = nullptr;
+
+    /** 값을 제거합니다. */
+    void(*reset)(void* optional) = nullptr;
+
+    /**
+     * 기본 생성된 값을 설정합니다.
+     * @note 내부 타입이 default constructible이 아니면 nullptr
+     */
+    void(*emplace_default)(void* optional) = nullptr;
 };
 
 /**
@@ -213,6 +258,9 @@ public:
 
     /** 컨테이너 프로퍼티의 타입 소거 연산 (Array/Set/Map) */
     const ContainerOps* container_ops = nullptr;
+
+    /** Optional 프로퍼티의 타입 소거 연산 */
+    const OptionalOps* optional_ops = nullptr;
 
 public:
     template <typename T>

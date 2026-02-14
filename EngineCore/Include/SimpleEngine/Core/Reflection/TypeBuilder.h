@@ -168,6 +168,13 @@ public:
             static constexpr ContainerOps ops = MakeMapOps<MemberType, KeyType, ValType>();
             prop.container_ops = &ops;
         }
+        // Optional 타입 감지 및 OptionalOps 자동 생성
+        else if constexpr (traits::OptionalLike<MemberType>)
+        {
+            using InnerType = traits::InnerOf<MemberType>;
+            static constexpr OptionalOps ops = MakeOptionalOps<MemberType, InnerType>();
+            prop.optional_ops = &ops;
+        }
 
         info_ptr->properties.Push(prop);
         return *this;
@@ -220,6 +227,59 @@ private:
         });
     }
 
+    // ============================================================================
+    // 중첩 타입의 Ops를 생성하는 Helper 함수
+    // ============================================================================
+
+    /** 요소 타입이 컨테이너인 경우 중첩 ContainerOps 포인터를 반환합니다. */
+    template <typename ElemType>
+    static constexpr const ContainerOps* GetNestedContainerOps()
+    {
+        if constexpr (traits::ArrayLike<ElemType>)
+        {
+            using Inner = traits::ElementOf<ElemType>;
+            static constexpr ContainerOps nested = MakeArrayOps<ElemType, Inner>();
+            return &nested;
+        }
+        else if constexpr (traits::SetLike<ElemType>)
+        {
+            using Inner = traits::ElementOf<ElemType>;
+            static constexpr ContainerOps nested = MakeSetOps<ElemType, Inner>();
+            return &nested;
+        }
+        else if constexpr (traits::MapLike<ElemType>)
+        {
+            using K = traits::KeyOf<ElemType>;
+            using V = traits::ValueOf<ElemType>;
+            static constexpr ContainerOps nested = MakeMapOps<ElemType, K, V>();
+            return &nested;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    /** 요소 타입이 Optional인 경우 중첩 OptionalOps 포인터를 반환합니다. */
+    template <typename ElemType>
+    static constexpr const OptionalOps* GetNestedOptionalOps()
+    {
+        if constexpr (traits::OptionalLike<ElemType>)
+        {
+            using Inner = traits::InnerOf<ElemType>;
+            static constexpr OptionalOps nested = MakeOptionalOps<ElemType, Inner>();
+            return &nested;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    // ============================================================================
+    // ContainerOps / OptionalOps 팩토리 함수
+    // ============================================================================
+
     /** Array-like 컨테이너의 ContainerOps 생성 */
     template <typename Container, typename ElemType>
     static constexpr ContainerOps MakeArrayOps()
@@ -264,6 +324,10 @@ private:
                 ++idx;
             }
         };
+
+        // 요소 타입의 중첩 ops
+        ops.element_container_ops = GetNestedContainerOps<ElemType>();
+        ops.element_optional_ops  = GetNestedOptionalOps<ElemType>();
 
         return ops;
     }
@@ -323,6 +387,10 @@ private:
             }
         };
 
+        // 요소 타입의 중첩 ops
+        ops.element_container_ops = GetNestedContainerOps<ElemType>();
+        ops.element_optional_ops  = GetNestedOptionalOps<ElemType>();
+
         return ops;
     }
 
@@ -381,6 +449,51 @@ private:
                 ++idx;
             }
         };
+
+        // Key(element)의 중첩 ops
+        ops.element_container_ops = GetNestedContainerOps<KeyType>();
+        ops.element_optional_ops  = GetNestedOptionalOps<KeyType>();
+
+        // Value의 중첩 ops
+        ops.value_container_ops = GetNestedContainerOps<ValType>();
+        ops.value_optional_ops  = GetNestedOptionalOps<ValType>();
+
+        return ops;
+    }
+
+    /** Optional 타입의 OptionalOps 생성 */
+    template <typename Opt, typename InnerType>
+    static constexpr OptionalOps MakeOptionalOps()
+    {
+        OptionalOps ops;
+        ops.inner_type_id = TypeId::Get<InnerType>();
+
+        ops.has_value = [](const void* o) static -> bool
+        {
+            return static_cast<const Opt*>(o)->HasValue();
+        };
+
+        ops.get_value = [](void* o) static -> void*
+        {
+            return &static_cast<Opt*>(o)->Value();
+        };
+
+        ops.reset = [](void* o) static
+        {
+            static_cast<Opt*>(o)->Reset();
+        };
+
+        if constexpr (std::is_default_constructible_v<InnerType>)
+        {
+            ops.emplace_default = [](void* o) static
+            {
+                static_cast<Opt*>(o)->Emplace();
+            };
+        }
+
+        // 내부 타입의 중첩 ops
+        ops.inner_container_ops = GetNestedContainerOps<InnerType>();
+        ops.inner_optional_ops  = GetNestedOptionalOps<InnerType>();
 
         return ops;
     }
