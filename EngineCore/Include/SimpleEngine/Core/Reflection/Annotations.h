@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/Container/FixedString.h"
 
 /** C++26으로 마이그레이션 시 CustomAnnotation을 바로 적용할 수 있도록 도와주는 헬퍼 매크로입니다. */
 #define SE_ANNOTATION(...)
@@ -64,31 +64,38 @@ struct Advanced  : target::Field {}; // 별도의 상세 탭(Advanced)에 표시
 
 
 // --- Payload Tags ---
-/** 에디터에서 표시할 이름입니다. */
-struct DisplayName : target::Member
-{
-    StringView name;
+/**
+ * 문자열 Payload를 가지는 태그의 기반 클래스입니다.
+ * FixedString<N>은 N에 따라 다른 타입이 되므로, std::derived_from으로 통일 감지합니다.
+ *
+ * @note C++20에서 const char*(포인터)를 포함하는 타입은 NTTP로 사용할 수 없습니다.
+ *       C++26 Custom Annotation에서도 동일한 제약이 적용됩니다.
+ *       FixedString<N>은 char[N] 배열을 직접 저장하여 structural type 요구사항을 만족합니다.
+ */
+struct DisplayNameBase : target::Member {};
+struct CategoryBase    : target::Member {};
+struct TooltipBase     : target::Member {};
 
-    explicit constexpr DisplayName(StringView in_name)
-        : name(in_name) {}
+/** 에디터에서 표시할 이름입니다. */
+template <FixedString Str>
+struct DisplayName : DisplayNameBase
+{
+    /** static constexpr 이므로 StringView가 가리킬 수 있는 영구 저장소를 제공합니다. */
+    static constexpr FixedString value = Str;
 };
 
 /** 에디터에서 카테고리를 나누는 용도로 사용합니다. */
-struct Category : target::Member
+template <FixedString Str>
+struct Category : CategoryBase
 {
-    StringView category;
-
-    explicit constexpr Category(StringView in_category)
-        : category(in_category) {}
+    static constexpr FixedString value = Str;
 };
 
 /** 에디터에서 마우스를 올렸을 때 표시할 도움말입니다. */
-struct Tooltip : target::Member
+template <FixedString Str>
+struct Tooltip : TooltipBase
 {
-    StringView message;
-
-    explicit constexpr Tooltip(StringView in_message)
-        : message(in_message) {}
+    static constexpr FixedString value = Str;
 };
 
 /** 숫자 데이터에 슬라이더 UI를 제공합니다. */
@@ -130,14 +137,32 @@ constexpr tags::Transient Transient; // 직렬화 대상에서 제외
 constexpr tags::Advanced  Advanced;  // 별도의 상세 탭(Advanced)에 표시
 
 // --- Payload Annotations ---
-/** 에디터에서 표시할 이름입니다. */
-using DisplayName = tags::DisplayName;
+/**
+ * 에디터에서 표시할 이름입니다.
+ * @code
+ * SE_REFLECT_PROPERTY(member, meta::Property, meta::DisplayName<"Title">{})
+ * @endcode
+ */
+template <FixedString Str>
+using DisplayName = tags::DisplayName<Str>;
 
-/** 에디터에서 카테고리를 나누는 용도로 사용합니다. */
-using Category = tags::Category;
+/**
+ * 에디터에서 카테고리를 나누는 용도로 사용합니다.
+ * @code
+ * SE_REFLECT_PROPERTY(member, meta::Property, meta::Category<"Physics">{})
+ * @endcode
+ */
+template <FixedString Str>
+using Category = tags::Category<Str>;
 
-/** 에디터에서 마우스를 올렸을 때 표시할 도움말입니다. */
-using Tooltip = tags::Tooltip;
+/**
+ * 에디터에서 마우스를 올렸을 때 표시할 도움말입니다.
+ * @code
+ * SE_REFLECT_PROPERTY(member, meta::Property, meta::Tooltip<"Help text">{})
+ * @endcode
+ */
+template <FixedString Str>
+using Tooltip = tags::Tooltip<Str>;
 
 /** 숫자 데이터에 슬라이더 UI를 제공하고 입력 범위를 제한합니다. */
 using Range = tags::Range;

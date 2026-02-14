@@ -113,18 +113,19 @@ consteval PropertyMetadata MakePropertyMetadata()
         }
 
         // --- Payload Tags (Data) ---
-        else if constexpr (std::same_as<TagType, tags::DisplayName>)
+        else if constexpr (std::derived_from<TagType, tags::DisplayNameBase>)
         {
-            meta.display_name = Tag.name;
+            meta.display_name = TagType::value;
         }
-        else if constexpr (std::same_as<TagType, tags::Category>)
+        else if constexpr (std::derived_from<TagType, tags::CategoryBase>)
         {
-            meta.category = Tag.category;
+            meta.category = TagType::value;
         }
-        else if constexpr (std::same_as<TagType, tags::Tooltip>)
+        else if constexpr (std::derived_from<TagType, tags::TooltipBase>)
         {
-            meta.tooltip = Tag.message;
+            meta.tooltip = TagType::value;
         }
+
         else if constexpr (std::same_as<TagType, tags::Range>)
         {
             meta.flags |= EPropertyFlags::HasRange;
