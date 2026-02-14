@@ -28,8 +28,5 @@ public:
     /** 메쉬 전체에 적용할 크기 배율 */
     SE_ANNOTATION(=meta::Property, =meta::Range(0.01f, 1000.0f), =meta::DisplayName<"Global Scale">{})
     float global_scale = 1.0f;
-
-public:
-    virtual void Serialize(Archive& ar) override;
 };
 }  // namespace se::asset

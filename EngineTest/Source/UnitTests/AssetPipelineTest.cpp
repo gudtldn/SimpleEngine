@@ -25,8 +25,6 @@ struct SE_ANNOTATION(=meta::Reflect) MockImportSettings : public ImportSettingsB
 public:
     SE_ANNOTATION(=meta::Property)
     bool combine_meshes = true;
-
-    virtual void Serialize([[maybe_unused]] Archive& ar) override {}
 };
 
 SE_BEGIN_REFLECT(MockImportSettings, meta::Reflect)

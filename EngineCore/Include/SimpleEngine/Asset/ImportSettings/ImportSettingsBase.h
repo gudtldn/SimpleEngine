@@ -14,14 +14,5 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) ImportSettingsBase
 
 public:
     virtual ~ImportSettingsBase() = default;
-
-    /** ImportSettings를 Archive로 직렬화합니다. */
-    virtual void Serialize(Archive& ar) = 0;
-
-public:
-    friend void Serialize(Archive& ar, ImportSettingsBase& settings)
-    {
-        settings.Serialize(ar);
-    }
 };
 }  // namespace se::asset
