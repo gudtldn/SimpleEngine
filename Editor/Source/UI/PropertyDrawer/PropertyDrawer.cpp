@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/ECS/Entity.h"
 
+#include "UI/ImGui/ImGuiString.h"
 #include "imgui.h"
 
 #include <cstdio>
@@ -84,18 +85,7 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
 bool DrawString(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     String& str = *static_cast<String*>(value);
-
-    char buf[1024];
-    const usize len = std::min(str.ByteLen(), sizeof(buf) - 1);
-    std::memcpy(buf, str.CStr(), len);
-    buf[len] = '\0';
-
-    if (ImGui::InputText(label, buf, sizeof(buf)))
-    {
-        str = String(buf);
-        return true;
-    }
-    return false;
+    return ImGui::InputText(label, &str);
 }
 
 // --- StringName (read-only: interned string) ---
