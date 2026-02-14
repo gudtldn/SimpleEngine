@@ -1,17 +1,18 @@
 ﻿#include "App/EditorApplication.h"
 
+#include "Config/EditorSettings.h"
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Graphics/EditorUIPass.h"
 #include "Graphics/Compiler/Provider.h"
 #include "UI/EditorUISubsystem.h"
 #include "UI/EditorViewportSubsystem.h"
 
+#include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
-#include "SimpleEngine/Core/Config/Config.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 
@@ -43,45 +44,46 @@ void EditorApplication::RegisterSubsystems()
         using namespace se;
 
         const VPath config_path = "Config://EngineConfig.toml";
-        ParseResult result = Config::ReadConfig(config_path);
-        if (!result.HasValue())
+
+        // ConfigFile로 설정 로드 (파일이 없으면 기본값 사용)
+        WindowSettings window_settings;
+        GraphicsSettings graphics_settings;
+
+        if (auto result = ConfigFile::Load(config_path))
         {
-            ConsoleLog(ELogLevel::Error, "Failed to read config file: {}", result.Error().description());
-            return;
+            const ConfigFile& config = result.Value();
+            window_settings = config.GetSection<WindowSettings>("window");
+            graphics_settings = config.GetSection<GraphicsSettings>("graphics");
+        }
+        else
+        {
+            ConsoleLog(ELogLevel::Warning, "Config file not found, using defaults: {}", result.Error());
         }
 
-        Config& config = result.Value();
         uint32 flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+        if (window_settings.fullscreen) { flags |= SDL_WINDOW_FULLSCREEN; }
+        if (window_settings.borderless) { flags |= SDL_WINDOW_BORDERLESS; }
+        if (window_settings.resizable)  { flags |= SDL_WINDOW_RESIZABLE;  }
 
-        if (config.GetValueOrStore<bool>("window.fullscreen", false))
+        // Present Mode 변환
+        SDL_GPUPresentMode present_mode = SDL_GPU_PRESENTMODE_MAILBOX;
+        if (graphics_settings.present_mode == "vsync")
         {
-            flags |= SDL_WINDOW_FULLSCREEN;
+            present_mode = SDL_GPU_PRESENTMODE_VSYNC;
         }
-
-        if (config.GetValueOrStore<bool>("window.borderless", false))
+        else if (graphics_settings.present_mode == "immediate")
         {
-            flags |= SDL_WINDOW_BORDERLESS;
-        }
-
-        if (config.GetValueOrStore<bool>("window.resizable", true))
-        {
-            flags |= SDL_WINDOW_RESIZABLE;
+            present_mode = SDL_GPU_PRESENTMODE_IMMEDIATE;
         }
 
         platform_subsystem->PrepareWindow({
-            .title = config.GetValueOrStore<String>("window.title", "SimpleEngine Editor"),
-            .width = config.GetValueOrStore<uint32>("window.width", 1280),
-            .height = config.GetValueOrStore<uint32>("window.height", 720),
+            .title = window_settings.title,
+            .width = window_settings.width,
+            .height = window_settings.height,
             .sdl_window_flags = flags,
             .swapchain_composition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
-            .present_mode = SDL_GPU_PRESENTMODE_MAILBOX,
+            .present_mode = present_mode,
         });
-
-        if (!config.WriteConfig(config_path))
-        {
-            ConsoleLog(ELogLevel::Error, "Failed to write config file: {}", config_path.ToString());
-            return;
-        }
     }
 }
 
