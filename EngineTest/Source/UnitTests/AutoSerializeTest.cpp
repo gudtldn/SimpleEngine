@@ -24,7 +24,7 @@ using namespace se::asset;
 using namespace se::graphics;
 
 // ============================================================================
-//  Helper: Write → Read 라운드트립 유틸
+//  Helper: Write -> Read 라운드트립 유틸
 // ============================================================================
 namespace
 {
@@ -118,7 +118,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) TransientData
     int32 saved_val = 0;
 
     SE_ANNOTATION(=meta::Property, =meta::Transient)
-    int32 transient_val = 0;  // Transient → 직렬화에서 제외
+    int32 transient_val = 0;  // Transient -> 직렬화에서 제외
 
     bool operator==(const TransientData&) const = default;
 };
@@ -272,7 +272,7 @@ TEST_F(AutoSerializeTest, Entity_RoundTrip)
     EXPECT_EQ(loaded.GetGeneration(), 7u);
     EXPECT_TRUE(loaded.IsValid());
 
-    // 다시 저장 → 재로드 라운드트립
+    // 다시 저장 -> 재로드 라운드트립
     Entity reloaded = RoundTrip(loaded);
     EXPECT_EQ(reloaded, loaded);
 }
@@ -466,7 +466,7 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
 {
     TransientData original{ .saved_val = 42, .transient_val = 999 };
 
-    // AutoSerialize로 직렬화 → saved_val만 저장, transient_val은 건너뜀
+    // AutoSerialize로 직렬화 -> saved_val만 저장, transient_val은 건너뜀
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<TransientData>());
 
     Array<uint8> buffer;

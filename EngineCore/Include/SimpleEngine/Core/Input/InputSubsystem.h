@@ -42,10 +42,10 @@ public:
     /** 키가 현재 프레임에서 눌려있는지 확인합니다. */
     [[nodiscard]] bool IsKeyDown(EKeyCode key) const;
 
-    /** 키가 이번 프레임에 새로 눌렸는지 확인합니다. (이전 프레임에 안 눌림 → 현재 눌림) */
+    /** 키가 이번 프레임에 새로 눌렸는지 확인합니다. (이전 프레임에 안 눌림 -> 현재 눌림) */
     [[nodiscard]] bool IsKeyPressed(EKeyCode key) const;
 
-    /** 키가 이번 프레임에 떼어졌는지 확인합니다. (이전 프레임에 눌림 → 현재 안 눌림) */
+    /** 키가 이번 프레임에 떼어졌는지 확인합니다. (이전 프레임에 눌림 -> 현재 안 눌림) */
     [[nodiscard]] bool IsKeyReleased(EKeyCode key) const;
 
 public:
