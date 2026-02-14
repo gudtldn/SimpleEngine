@@ -55,6 +55,15 @@
 
 namespace se
 {
+/** 단일 Enum 항목 정보 (type-erased) */
+struct EnumEntry
+{
+    int64 value;
+    StringView name;
+
+    constexpr auto operator<=>(const EnumEntry& other) const { return value <=> other.value; }
+};
+
 namespace detail
 {
 /** 문자가 유효한 식별자인지 확인합니다. */
@@ -221,16 +230,6 @@ struct EnumTraits
 template <typename E>
 struct EnumExplicitValues;
 
-/** 단일 Enum 항목 정보 */
-template <typename E>
-struct EnumEntry
-{
-    E value;
-    StringView name;
-
-    constexpr auto operator<=>(const EnumEntry& other) const { return value <=> other.value; }
-};
-
 /** Enum 값 생성기 */
 template <typename E, bool IsBitFlag, bool UseExplicitValues>
 struct EnumValueGenerator;
@@ -276,28 +275,28 @@ struct EnumStorageImpl<E, Generator, std::integer_sequence<int32, I...>>
 {
 private:
     template <int32 Idx>
-    static consteval EnumEntry<E> GetEntryIfValid()
+    static consteval EnumEntry GetEntryIfValid()
     {
         constexpr E val = Generator::GetValue(Idx);
         constexpr StringView name = ExtractEnumName<E, val>();
-        return EnumEntry<E>{ .value = val, .name = name };
+        return EnumEntry{ .value = static_cast<int64>(val), .name = name };
     }
 
-    static constexpr FixedArray<EnumEntry<E>, sizeof...(I)> RawEntries = { GetEntryIfValid<I>()... };
+    static constexpr FixedArray<EnumEntry, sizeof...(I)> RawEntries = { GetEntryIfValid<I>()... };
 
 public:
     /** 유효한 Enum 개수 */
-    static constexpr usize Count = std::ranges::count_if(RawEntries, [](const EnumEntry<E>& entry) -> bool
+    static constexpr usize Count = std::ranges::count_if(RawEntries, [](const EnumEntry& entry) -> bool
     {
         return !entry.name.IsEmpty();
     });
 
     /** 각 Entry를 모아서 배열 생성 */
-    static constexpr FixedArray<EnumEntry<E>, Count> Entries = []
+    static constexpr FixedArray<EnumEntry, Count> Entries = []
     {
-        FixedArray<EnumEntry<E>, Count> entries{};
+        FixedArray<EnumEntry, Count> entries{};
         std::ranges::copy_if(
-            RawEntries, entries.begin(), [](const EnumEntry<E>& entry) -> bool
+            RawEntries, entries.begin(), [](const EnumEntry& entry) -> bool
             {
                 return !entry.name.IsEmpty();
             }
@@ -343,11 +342,13 @@ template <traits::EnumType E>
     using Reflector = detail::EnumReflector<E>;
     constexpr auto& entries = detail::EnumReflector<E>::Entries;
 
+    const int64 int_value = static_cast<int64>(value);
+
     if constexpr (Reflector::UseExplicit)
     {
         for (const auto& entry : entries)
         {
-            if (entry.value == value)
+            if (entry.value == int_value)
             {
                 return entry.name;
             }
@@ -355,12 +356,12 @@ template <traits::EnumType E>
     }
     else
     {
-        auto it = std::lower_bound(entries.begin(), entries.end(), value, [](const auto& entry, E val)
+        auto it = std::lower_bound(entries.begin(), entries.end(), int_value, [](const auto& entry, int64 val)
         {
             return entry.value < val;
         });
 
-        if (it != entries.end() && it->value == value)
+        if (it != entries.end() && it->value == int_value)
         {
             return it->name;
         }
@@ -377,7 +378,7 @@ template <traits::EnumType E>
     {
         if (entry.name == name)
         {
-            return entry.value;
+            return static_cast<E>(entry.value);
         }
     }
     return {};
@@ -398,7 +399,7 @@ template <traits::EnumType E>
     {
         FixedArray<E, Reflector::Count> ret{};
         std::ranges::copy(
-            Reflector::Entries | std::views::transform([](const auto& entry) { return entry.value; }),
+            Reflector::Entries | std::views::transform([](const auto& entry) { return static_cast<E>(entry.value); }),
             ret.begin()
         );
 
