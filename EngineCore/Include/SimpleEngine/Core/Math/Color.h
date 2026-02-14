@@ -362,14 +362,12 @@ constexpr Color LinearColor::ToColor(bool is_srgb) const
         clamped.b = detail::LinearToSrgb(clamped.b);
     }
 
-    // NOLINTBEGIN(*-incorrect-roundings)
     return {
-        static_cast<uint8>((clamped.r * 255.0f) + 0.5f),
-        static_cast<uint8>((clamped.g * 255.0f) + 0.5f),
-        static_cast<uint8>((clamped.b * 255.0f) + 0.5f),
-        static_cast<uint8>((clamped.a * 255.0f) + 0.5f),
+        static_cast<uint8>(RoundToInt(clamped.r * 255.0f)),
+        static_cast<uint8>(RoundToInt(clamped.g * 255.0f)),
+        static_cast<uint8>(RoundToInt(clamped.b * 255.0f)),
+        static_cast<uint8>(RoundToInt(clamped.a * 255.0f)),
     };
-    // NOLINTEND(*-incorrect-roundings)
 }
 
 constexpr Color::Color(const LinearColor& linear_color, bool is_srgb)

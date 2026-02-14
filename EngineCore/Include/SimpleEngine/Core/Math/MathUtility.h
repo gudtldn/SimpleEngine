@@ -140,6 +140,27 @@ template <typename T>
 {
     return (sign >= T(0)) ? AbsImpl(num) : -AbsImpl(num);
 }
+
+template <typename T>
+constexpr T FloorImpl(T x)
+{
+    const int64 i = static_cast<int64>(x);
+    return (x < T(0) && x != static_cast<T>(i)) ? static_cast<T>(i - 1) : static_cast<T>(i);
+}
+
+template <typename T>
+constexpr T CeilImpl(T x)
+{
+    const int64 i = static_cast<int64>(x);
+    return (x > T(0) && x != static_cast<T>(i)) ? static_cast<T>(i + 1) : static_cast<T>(i);
+}
+
+/** 반올림 (Round) - .5일 때 0에서 먼 쪽으로 */
+template <typename T>
+constexpr T RoundImpl(T x)
+{
+    return (x >= T(0)) ? FloorImpl(x + T(0.5)) : CeilImpl(x - T(0.5));
+}
 }  // namespace detail
 
 
@@ -186,10 +207,7 @@ template <traits::NumberType T>
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr bool IsFinite(T value)
 {
-    if consteval
-    {
-        return detail::IsFinite(value);
-    }
+    if consteval { return detail::IsFinite(value); }
     return std::isfinite(value);
 }
 
@@ -201,10 +219,7 @@ template <typename T>
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T Pow(T a, T b)
 {
-    if consteval
-    {
-        return detail::Pow(a, b);
-    }
+    if consteval { return detail::Pow(a, b); }
     return std::pow(a, b);
 }
 
@@ -212,10 +227,7 @@ template <traits::FloatingType T>
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T Sqrt(T value)
 {
-    if consteval
-    {
-        return detail::Sqrt(value);
-    }
+    if consteval { return detail::Sqrt(value); }
     return std::sqrt(value);
 }
 
@@ -226,10 +238,7 @@ template <traits::FloatingType T>
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T Fmod(T value, T mod)
 {
-    if consteval
-    {
-        return detail::Fmod(value, mod);
-    }
+    if consteval { return detail::Fmod(value, mod); }
     return std::fmod(value, mod);
 }
 
@@ -258,11 +267,53 @@ template <traits::FloatingType T>
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T CopySign(T num, T sign)
 {
-    if consteval
-    {
-        return detail::CopySign(num, sign);
-    }
+    if consteval { return detail::CopySign(num, sign); }
     return std::copysign(num, sign);
+}
+
+/** value를 내림합니다. */
+template <traits::FloatingType T>
+[[nodiscard]] static constexpr T Floor(T value)
+{
+    if consteval { return detail::FloorImpl(value); }
+    return std::floor(value);
+}
+
+/** value를 올립니다. */
+template <traits::FloatingType T>
+[[nodiscard]] static constexpr T Ceil(T value)
+{
+    if consteval { return detail::CeilImpl(value); }
+    return std::ceil(value);
+}
+
+/** 가장 가까운 정수로 반올림합니다. */
+template <traits::FloatingType T>
+[[nodiscard]] static constexpr T Round(T value)
+{
+    if consteval { return detail::RoundImpl(value); }
+    return std::round(value);
+}
+
+/** 반올림 후 원하는 정수 타입으로 캐스팅하여 반환합니다. */
+template <typename IntType = int32, traits::FloatingType FloatType>
+[[nodiscard]] static constexpr IntType RoundToInt(FloatType value)
+{
+    return static_cast<IntType>(Round(value));
+}
+
+/** 내림 후 원하는 정수 타입으로 캐스팅하여 반환합니다. */
+template <typename IntType = int32, traits::FloatingType FloatType>
+[[nodiscard]] static constexpr IntType FloorToInt(FloatType value)
+{
+    return static_cast<IntType>(Floor(value));
+}
+
+/** 올림 후 원하는 정수 타입으로 캐스팅하여 반환합니다. */
+template <typename IntType = int32, traits::FloatingType FloatType>
+[[nodiscard]] static constexpr IntType CeilToInt(FloatType value)
+{
+    return static_cast<IntType>(Ceil(value));
 }
 
 /** value가 거의 0에 가까운지 확인합니다. */
