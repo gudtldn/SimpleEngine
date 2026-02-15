@@ -119,41 +119,41 @@ struct SE_ANNOTATION(=meta::SerializeOnly) RootSettings
 using namespace config_test;
 
 SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(width, meta::Property)
-SE_REFLECT_PROPERTY(height, meta::Property)
-SE_REFLECT_PROPERTY(fullscreen, meta::Property)
-SE_REFLECT_PROPERTY(title, meta::Property)
-SE_REFLECT_PROPERTY(scale, meta::Property)
+    SE_REFLECT_PROPERTY(width, meta::Property)
+    SE_REFLECT_PROPERTY(height, meta::Property)
+    SE_REFLECT_PROPERTY(fullscreen, meta::Property)
+    SE_REFLECT_PROPERTY(title, meta::Property)
+    SE_REFLECT_PROPERTY(scale, meta::Property)
 SE_END_REFLECT(WindowSettings)
 
 SE_BEGIN_REFLECT(GraphicsSettings, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(vsync, meta::Property)
-SE_REFLECT_PROPERTY(max_fps, meta::Property)
-SE_REFLECT_PROPERTY(shaders, meta::Property)
+    SE_REFLECT_PROPERTY(vsync, meta::Property)
+    SE_REFLECT_PROPERTY(max_fps, meta::Property)
+    SE_REFLECT_PROPERTY(shaders, meta::Property)
 SE_END_REFLECT(GraphicsSettings)
 
 SE_BEGIN_REFLECT(LoggingSettings, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(level, meta::Property)
-SE_REFLECT_PROPERTY(output_to_file, meta::Property)
-SE_REFLECT_PROPERTY(log_file_path, meta::Property)
+    SE_REFLECT_PROPERTY(level, meta::Property)
+    SE_REFLECT_PROPERTY(output_to_file, meta::Property)
+    SE_REFLECT_PROPERTY(log_file_path, meta::Property)
 SE_END_REFLECT(LoggingSettings)
 
 SE_BEGIN_REFLECT(TransientSettings, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(saved_val, meta::Property)
-SE_REFLECT_PROPERTY(transient_val, meta::Transient)
+    SE_REFLECT_PROPERTY(saved_val, meta::Property)
+    SE_REFLECT_PROPERTY(transient_val, meta::Transient)
 SE_END_REFLECT(TransientSettings)
 
 SE_BEGIN_REFLECT(EmptySettings, meta::SerializeOnly)
 SE_END_REFLECT(EmptySettings)
 
 SE_BEGIN_REFLECT(ContainerSettings, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(numbers, meta::Property)
-SE_REFLECT_PROPERTY(scores, meta::Property)
+    SE_REFLECT_PROPERTY(numbers, meta::Property)
+    SE_REFLECT_PROPERTY(scores, meta::Property)
 SE_END_REFLECT(ContainerSettings)
 
 SE_BEGIN_REFLECT(RootSettings, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(title, meta::Property)
-SE_REFLECT_PROPERTY(engine_version, meta::Property)
+    SE_REFLECT_PROPERTY(title, meta::Property)
+    SE_REFLECT_PROPERTY(engine_version, meta::Property)
 SE_END_REFLECT(RootSettings)
 
 
@@ -163,8 +163,9 @@ SE_END_REFLECT(RootSettings)
 class ConfigFileTest : public ::testing::Test
 {
 protected:
-    void SetUp() override
+    virtual void SetUp() override
     {
+        ConfigFile::InvalidateAllCaches();
         auto result = ConfigFile::Load(test_toml_path);
         ASSERT_TRUE(result.HasValue()) << "Failed to load test config: " << result.Error().CStr();
         config = std::move(result).Value();
@@ -504,7 +505,7 @@ TEST_F(ConfigFileTest, SaveAndReloadPreservesValues)
     struct FileDeleter
     {
         Path path;
-        ~FileDeleter() { if (path.Exists()) FileSystem::Remove(path); }
+        ~FileDeleter() { if (path.Exists()) { FileSystem::Remove(path); } }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.Save(save_test_path));
@@ -543,7 +544,7 @@ TEST_F(ConfigFileTest, MultiSectionSaveAndReload)
     struct FileDeleter
     {
         Path path;
-        ~FileDeleter() { if (path.Exists()) FileSystem::Remove(path); }
+        ~FileDeleter() { if (path.Exists()) { FileSystem::Remove(path); } }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.Save(save_test_path));
@@ -587,7 +588,7 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
     struct FileDeleter
     {
         Path path;
-        ~FileDeleter() { if (path.Exists()) FileSystem::Remove(path); }
+        ~FileDeleter() { if (path.Exists()) { FileSystem::Remove(path); } }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.Save(save_test_path));

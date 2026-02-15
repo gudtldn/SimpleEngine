@@ -1,4 +1,5 @@
 #pragma once
+#include <concepts>
 #include <type_traits>
 
 #include "SimpleEngine/Core/Container/Optional.h"
@@ -32,10 +33,10 @@ class VPath;
  *     String title = "SimpleEngine";
  * };
  * SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
- * SE_REFLECT_PROPERTY(width, meta::Property)
- * SE_REFLECT_PROPERTY(height, meta::Property)
- * SE_REFLECT_PROPERTY(fullscreen, meta::Property)
- * SE_REFLECT_PROPERTY(title, meta::Property)
+ *     SE_REFLECT_PROPERTY(width, meta::Property)
+ *     SE_REFLECT_PROPERTY(height, meta::Property)
+ *     SE_REFLECT_PROPERTY(fullscreen, meta::Property)
+ *     SE_REFLECT_PROPERTY(title, meta::Property)
  * SE_END_REFLECT(WindowSettings)
  *
  * // 2. 사용
@@ -53,8 +54,8 @@ public:
     ~ConfigFile() = default;
 
     ConfigFile(const ConfigFile&) = default;
-    ConfigFile(ConfigFile&&) noexcept = default;
     ConfigFile& operator=(const ConfigFile&) = default;
+    ConfigFile(ConfigFile&&) noexcept = default;
     ConfigFile& operator=(ConfigFile&&) noexcept = default;
 
 public:
@@ -71,6 +72,15 @@ public:
      * @return 저장 성공 여부
      */
     [[nodiscard]] bool Save(const VPath& config_file_path) const;
+
+    /**
+     * 특정 파일의 캐시를 무효화합니다.
+     * 다음 Load 호출 시 디스크에서 다시 읽습니다.
+     */
+    static void InvalidateCache(const VPath& config_file_path);
+
+    /** 모든 캐시를 무효화합니다. */
+    static void InvalidateAllCaches();
 
 public:
     /**
@@ -119,6 +129,18 @@ public:
     /** 설정이 비어있는지 확인합니다. */
     [[nodiscard]] bool IsEmpty() const;
 
+    /**
+     * 지정된 섹션의 모든 문자열 key-value 쌍을 순회합니다.
+     * VFS 마운트 등 동적으로 key를 읽어야 할 때 사용합니다.
+     *
+     * @tparam Fn (StringView key, StringView value) 시그니처의 호출 가능 타입
+     * @param section_name TOML 테이블 이름
+     * @param visitor 각 문자열 항목에 대해 호출될 콜백
+     */
+    template <typename Fn>
+        requires std::invocable<Fn, StringView, StringView>
+    void VisitSectionEntries(StringView section_name, Fn&& visitor) const;
+
 private:
     explicit ConfigFile(toml::table&& table);
 
@@ -135,9 +157,12 @@ private:
      * @param[out] out_final_key 마지막 키 이름
      * @return 부모 테이블 포인터. 경로가 잘못되면 nullptr.
      */
-    [[nodiscard]] toml::table* NavigateOrCreate(StringView key_path, std::string_view& out_final_key);
+    [[nodiscard]] toml::table* NavigateOrCreate(StringView key_path, StringView& out_final_key);
 
 private:
+    /** 파일 경로 -> 파싱된 TOML 테이블 캐시 (물리 경로 기준) */
+    static HashMap<String, toml::table> table_cache;
+
     toml::table root_table;
 };
 
@@ -211,14 +236,14 @@ void ConfigFile::SetSection(const T& settings, StringView section_name)
     }
     else
     {
-        root_table.insert_or_assign(std::string_view{ section_name }, std::move(section_table));
+        root_table.insert_or_assign(section_name, std::move(section_table));
     }
 }
 
 template <typename T>
 Optional<T> ConfigFile::GetValue(StringView key) const
 {
-    const auto node = root_table.at_path(std::string_view{ key });
+    const auto node = root_table.at_path(key);
     if (!node)
     {
         return std::nullopt;
@@ -226,9 +251,9 @@ Optional<T> ConfigFile::GetValue(StringView key) const
 
     if constexpr (std::same_as<T, String>)
     {
-        if (const auto val = node.value<std::u8string>())
+        if (const auto val_opt = node.value<std::u8string>())
         {
-            return StringUtils::ToString(*val);
+            return StringUtils::ToString(*val_opt);
         }
         return std::nullopt;
     }
@@ -247,14 +272,35 @@ bool ConfigFile::SetValue(StringView key, T&& value)
         return false;
     }
 
-    std::string_view out_final_key;
+    StringView out_final_key;
     toml::table* parent = NavigateOrCreate(key, out_final_key);
-    if (!parent || out_final_key.empty())
+    if (!parent || out_final_key.IsEmpty())
     {
         return false;
     }
 
     parent->insert_or_assign(out_final_key, std::forward<T>(value));
     return true;
+}
+
+template <typename Fn>
+    requires std::invocable<Fn, StringView, StringView>
+void ConfigFile::VisitSectionEntries(StringView section_name, Fn&& visitor) const
+{
+    const toml::table* target = FindSectionTable(section_name);
+    if (!target)
+    {
+        return;
+    }
+
+    for (const auto& [key, value] : *target)
+    {
+        if (const auto* str = value.as_string())
+        {
+            const StringView key_sv{ key };
+            const StringView val_sv{ str->get() };
+            visitor(key_sv, val_sv);
+        }
+    }
 }
 }  // namespace se
