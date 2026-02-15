@@ -279,7 +279,15 @@ bool ConfigFile::SetValue(StringView key, T&& value)
         return false;
     }
 
-    parent->insert_or_assign(out_final_key, std::forward<T>(value));
+    if constexpr (std::same_as<T, String>)
+    {
+        std::u8string str{ reinterpret_cast<char8_t*>(value.Data()), value.ByteLen() };
+        parent->insert_or_assign(out_final_key, str);
+    }
+    else
+    {
+        parent->insert_or_assign(out_final_key, std::forward<T>(value));
+    }
     return true;
 }
 
