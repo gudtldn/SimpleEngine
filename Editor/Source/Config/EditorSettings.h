@@ -86,13 +86,23 @@ struct SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
 };
 
 /**
+ * 프레젠트 모드 열거형
+ */
+enum class EPresentMode : uint8
+{
+    Mailbox,
+    VSync,
+    Immediate,
+};
+
+/**
  * [graphics] 섹션 - 렌더링 설정
  */
 struct SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
 {
-    /** 프레젠트 모드: "mailbox", "vsync", "immediate" */
+    /** 프레젠트 모드 */
     SE_ANNOTATION(=meta::Property)
-    String present_mode = "mailbox"; // TODO: 나중에 Enum으로 변경
+    EPresentMode present_mode = EPresentMode::Mailbox;
 
     bool operator==(const GraphicsSettings&) const = default;
 };

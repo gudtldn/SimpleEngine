@@ -11,7 +11,8 @@
 
 namespace
 {
-const se::VPath ConfigPath = "Config://EngineConfig.toml";
+const se::VPath EngineConfigPath = "Config://EngineConfig.toml";
+const se::VPath EditorConfigPath = "Config://EditorConfig.toml";
 } // namespace
 
 namespace se::editor
@@ -147,55 +148,88 @@ void SettingsPanel::Draw()
 
 void SettingsPanel::LoadSettings()
 {
-    auto result = ConfigFile::Load(ConfigPath);
-    if (!result.HasValue())
+    // Engine 설정 로드
+    if (auto result = ConfigFile::Load(EngineConfigPath))
     {
-        ConsoleLog(ELogLevel::Warning, "SettingsPanel: Config file not found, using defaults. ({})", result.Error());
-        // 기본값 구조체 그대로 사용
+        const ConfigFile& config = result.Value();
+        window_settings = config.GetSection<WindowSettings>("window");
+        performance_settings = config.GetSection<PerformanceSettings>("performance");
+        graphics_settings = config.GetSection<GraphicsSettings>("graphics");
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Warning, "Engine config not found, using defaults. ({})", result.Error());
         window_settings = {};
-        ui_settings = {};
-        console_settings = {};
         performance_settings = {};
         graphics_settings = {};
-        return;
     }
 
-    ConfigFile& config = result.Value();
-    window_settings = config.GetSection<WindowSettings>("window");
-    ui_settings = config.GetSection<EditorUISettings>("editor.ui");
-    console_settings = config.GetSection<ConsoleSettings>("editor.console");
-    performance_settings = config.GetSection<PerformanceSettings>("performance");
-    graphics_settings = config.GetSection<GraphicsSettings>("graphics");
+    // Editor 설정 로드
+    if (auto result = ConfigFile::Load(EditorConfigPath))
+    {
+        const ConfigFile& config = result.Value();
+        ui_settings = config.GetSection<EditorUISettings>("ui");
+        console_settings = config.GetSection<ConsoleSettings>("console");
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Warning, "Editor config not found, using defaults. ({})", result.Error());
+        ui_settings = {};
+        console_settings = {};
+    }
 
     needs_save = false;
 }
 
 void SettingsPanel::SaveSettings()
 {
-    // 기존 파일을 로드 (다른 섹션 보존)
-    ConfigFile config;
-    if (auto result = ConfigFile::Load(ConfigPath))
+    bool saved = true;
+
+    // Engine 설정 저장
     {
-        config = std::move(result).Value();
+        ConfigFile config;
+        if (auto result = ConfigFile::Load(EngineConfigPath))
+        {
+            config = std::move(result).Value();
+        }
+
+        config.SetSection(window_settings, "window");
+        config.SetSection(performance_settings, "performance");
+        config.SetSection(graphics_settings, "graphics");
+
+        if (!config.Save(EngineConfigPath))
+        {
+            ConsoleLog(ELogLevel::Error, "Failed to save engine settings to {}", EngineConfigPath.ToString());
+            saved = false;
+        }
     }
 
-    config.SetSection(window_settings, "window");
-    config.SetSection(ui_settings, "editor.ui");
-    config.SetSection(console_settings, "editor.console");
-    config.SetSection(performance_settings, "performance");
-    config.SetSection(graphics_settings, "graphics");
-
-    if (config.Save(ConfigPath))
+    // Editor 설정 저장
     {
-        ConsoleLog(ELogLevel::Info, "Settings saved to {}", ConfigPath.ToString());
+        ConfigFile config;
+        if (auto result = ConfigFile::Load(EditorConfigPath))
+        {
+            config = std::move(result).Value();
+        }
+
+        config.SetSection(ui_settings, "ui");
+        config.SetSection(console_settings, "console");
+
+        if (!config.Save(EditorConfigPath))
+        {
+            ConsoleLog(ELogLevel::Error, "Failed to save editor settings to {}", EditorConfigPath.ToString());
+            saved = false;
+        }
+    }
+
+    if (saved)
+    {
+        ConsoleLog(ELogLevel::Info, "Settings saved.");
         needs_save = false;
 
         // 즉시 적용 가능한 설정 반영
         Application::SetTargetFps(performance_settings.target_fps);
-    }
-    else
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to save settings to {}", ConfigPath.ToString());
+        Application::SetBusyWaitRatio(performance_settings.busy_wait_ratio);
     }
 }
 

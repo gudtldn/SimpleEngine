@@ -4,6 +4,8 @@
 
 namespace se::editor
 {
+SE_REFLECT_ENUM(EPresentMode)
+
 SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(title, meta::Property)
     SE_REFLECT_PROPERTY(width, meta::Property)

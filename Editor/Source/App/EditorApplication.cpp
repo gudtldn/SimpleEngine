@@ -48,17 +48,23 @@ void EditorApplication::RegisterSubsystems()
         // ConfigFile로 설정 로드 (파일이 없으면 기본값 사용)
         WindowSettings window_settings;
         GraphicsSettings graphics_settings;
+        PerformanceSettings performance_settings;
 
         if (auto result = ConfigFile::Load(config_path))
         {
             const ConfigFile& config = result.Value();
             window_settings = config.GetSection<WindowSettings>("window");
             graphics_settings = config.GetSection<GraphicsSettings>("graphics");
+            performance_settings = config.GetSection<PerformanceSettings>("performance");
         }
         else
         {
             ConsoleLog(ELogLevel::Warning, "Config file not found, using defaults: {}", result.Error());
         }
+
+        // Performance 설정 즉시 적용
+        SetTargetFps(performance_settings.target_fps);
+        SetBusyWaitRatio(performance_settings.busy_wait_ratio);
 
         uint32 flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
         if (window_settings.fullscreen) { flags |= SDL_WINDOW_FULLSCREEN; }
@@ -67,13 +73,17 @@ void EditorApplication::RegisterSubsystems()
 
         // Present Mode 변환
         SDL_GPUPresentMode present_mode = SDL_GPU_PRESENTMODE_MAILBOX;
-        if (graphics_settings.present_mode == "vsync")
+        switch (graphics_settings.present_mode)
         {
+        case EPresentMode::VSync:
             present_mode = SDL_GPU_PRESENTMODE_VSYNC;
-        }
-        else if (graphics_settings.present_mode == "immediate")
-        {
+            break;
+        case EPresentMode::Immediate:
             present_mode = SDL_GPU_PRESENTMODE_IMMEDIATE;
+            break;
+        case EPresentMode::Mailbox:
+        default:
+            break;
         }
 
         platform_subsystem->PrepareWindow({
