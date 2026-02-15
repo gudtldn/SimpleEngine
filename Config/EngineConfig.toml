@@ -1,25 +1,16 @@
-['editor.asset_browser']
-grid_padding = 16.0
-thumbnail_size = 64.0
-tree_column_width = 150.0
-
-['editor.console']
-auto_scroll = true
-max_log_lines = 2000
-show_location = true
-show_thread_name = false
-show_timestamp = false
-
-['editor.ui']
-font_path = 'CoreAssets://Font/malgun.ttf'
-font_size = 17.0
-
 [graphics]
-present_mode = 'mailbox'
+present_mode = 0
 
 [performance]
 busy_wait_ratio = 0.10000000149011612
 target_fps = 240
+
+[vfs]
+CoreAssets = 'EngineCore/Assets'
+CoreShader = 'EngineCore/Shaders'
+EditorAssets = 'Editor/Assets'
+EditorShader = 'Editor/Shaders'
+Logs = 'Logs'
 
 [window]
 borderless = false

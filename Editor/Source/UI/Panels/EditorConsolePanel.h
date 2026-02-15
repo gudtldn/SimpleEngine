@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config/EditorSettings.h"
 #include "SimpleEngine/Core/Container/Deque.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "UI/Panels/IEditorPanel.h"
@@ -21,19 +22,18 @@ namespace se::editor
 class EditorConsolePanel : public IEditorPanel
 {
 public:
+    EditorConsolePanel();
+
     [[nodiscard]] virtual const char* GetName() const override;
     virtual void Draw() override;
 
 private:
-    void RefreshFilterList(const Deque<se::LogEntry>& logs);
+    void LoadSettings();
+    void SaveSettings();
+    void RefreshFilterList(const Deque<LogEntry>& logs);
 
 private:
-    // TODO: EngineConfig.toml에 기록
-    // --- Settings ---
-    bool auto_scroll = true;
-    bool show_timestamp = false;
-    bool show_thread_name = false;
-    bool show_location = true;
+    ConsoleSettings settings;
 
     // --- Filters ---
     bool filter_debug = true;

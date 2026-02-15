@@ -5,7 +5,7 @@ namespace se::editor
 {
 void EditorConsoleBackend::WriteLog(const LogEntry& entry)
 {
-    if (log_history.Len() >= MAX_LOG_LINES)
+    if (log_history.Len() >= max_log_lines)
     {
         log_history.PopFront(); // Deque라 앞부분 삭제가 빠름
     }

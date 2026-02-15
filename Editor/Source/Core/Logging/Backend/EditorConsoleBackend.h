@@ -22,8 +22,11 @@ public:
     void Clear();
     void ReadLogs(const Function<void(const Deque<LogEntry>&)>& visitor) const;
 
+    void SetMaxLogLines(usize max_lines) { max_log_lines = max_lines; }
+    [[nodiscard]] usize GetMaxLogLines() const { return max_log_lines; }
+
 private:
-    static constexpr usize MAX_LOG_LINES = 2000;
+    usize max_log_lines = 2000;
 
 private:
     Deque<LogEntry> log_history;

@@ -1,9 +1,11 @@
 #include "UI/Panels/EditorConsolePanel.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
+#include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include "imgui.h"
@@ -44,6 +46,11 @@ namespace
 
 namespace se::editor
 {
+EditorConsolePanel::EditorConsolePanel()
+{
+    LoadSettings();
+}
+
 const char* EditorConsolePanel::GetName() const
 {
     return "Console";
@@ -78,11 +85,17 @@ void EditorConsolePanel::Draw()
 
         if (ImGui::BeginPopup("OptionsPopup"))
         {
-            ImGui::Checkbox("Auto-scroll", &auto_scroll);
+            bool options_changed = false;
+            options_changed |= ImGui::Checkbox("Auto-scroll", &settings.auto_scroll);
             ImGui::Separator();
-            ImGui::Checkbox("Show Timestamp", &show_timestamp);
-            ImGui::Checkbox("Show Thread Name", &show_thread_name);
-            ImGui::Checkbox("Show Location", &show_location);
+            options_changed |= ImGui::Checkbox("Show Timestamp", &settings.show_timestamp);
+            options_changed |= ImGui::Checkbox("Show Thread Name", &settings.show_thread_name);
+            options_changed |= ImGui::Checkbox("Show Location", &settings.show_location);
+
+            if (options_changed)
+            {
+                SaveSettings();
+            }
             ImGui::EndPopup();
         }
 
@@ -144,7 +157,7 @@ void EditorConsolePanel::Draw()
                         const auto& entry = entries[log_idx];
 
                         // Rendering Timestamp (Gray)
-                        if (show_timestamp)
+                        if (settings.show_timestamp)
                         {
                             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
                             ImGui::TextUnformatted(entry.GetTimestampString().c_str());
@@ -153,7 +166,7 @@ void EditorConsolePanel::Draw()
                         }
 
                         // Rendering Thread Name (Cyan)
-                        if (show_thread_name)
+                        if (settings.show_thread_name)
                         {
                             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.8f, 0.8f, 1.0f));
                             ImGui::Text("[%s]", entry.thread_name.CStr());
@@ -168,7 +181,7 @@ void EditorConsolePanel::Draw()
                         ImGui::SameLine();
 
                         // Rendering File Location (Dimmed White)
-                        if (show_location)
+                        if (settings.show_location)
                         {
                             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
                             const StringView pretty_name = entry.GetPrettyFileName();
@@ -190,7 +203,7 @@ void EditorConsolePanel::Draw()
             });
 
             // Auto Scroll 처리
-            if (auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+            if (settings.auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
             {
                 ImGui::SetScrollHereY(1.0f);
             }
@@ -198,6 +211,33 @@ void EditorConsolePanel::Draw()
         ImGui::EndChild();
     }
     ImGui::End();
+}
+
+void EditorConsolePanel::LoadSettings()
+{
+    const VPath config_path = "Config://EditorConfig.toml";
+    if (auto result = ConfigFile::Load(config_path))
+    {
+        settings = result.Value().GetSection<ConsoleSettings>("console");
+    }
+
+    // Backend에 max_log_lines 반영
+    if (EditorConsoleBackend* backend = LogBackendManager::Get().GetBackend<EditorConsoleBackend>())
+    {
+        backend->SetMaxLogLines(settings.max_log_lines);
+    }
+}
+
+void EditorConsolePanel::SaveSettings()
+{
+    const VPath config_path = "Config://EditorConfig.toml";
+    ConfigFile config;
+    if (auto result = ConfigFile::Load(config_path))
+    {
+        config = std::move(result).Value();
+    }
+    config.SetSection(settings, "console");
+    std::ignore = config.Save(config_path);
 }
 
 void EditorConsolePanel::RefreshFilterList(const Deque<se::LogEntry>& logs)

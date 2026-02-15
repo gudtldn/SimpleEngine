@@ -1,0 +1,10 @@
+[console]
+auto_scroll = true
+max_log_lines = 2000
+show_location = true
+show_thread_name = false
+show_timestamp = false
+
+[ui]
+font_path = 'CoreAssets://Font/malgun.ttf'
+font_size = 17.0

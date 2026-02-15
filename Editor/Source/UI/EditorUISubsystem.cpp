@@ -1,5 +1,6 @@
 #include "UI/EditorUISubsystem.h"
 
+#include "Config/EditorSettings.h"
 #include "Panels/AssetsBrowserPanel.h"
 #include "Panels/DebugPanel.h"
 #include "Panels/DetailPanel.h"
@@ -11,6 +12,7 @@
 
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -51,6 +53,13 @@ bool EditorUISubsystem::Initialize()
 
     ImGui::StyleColorsDark();
 
+    // EditorUI 설정 로드
+    EditorUISettings ui_settings;
+    if (auto result = ConfigFile::Load("Config://EditorConfig.toml"))
+    {
+        ui_settings = result.Value().GetSection<EditorUISettings>("ui");
+    }
+
     // TODO: 나중에 다중모니터 지원하도록 변경
     const float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 
@@ -60,14 +69,14 @@ bool EditorUISubsystem::Initialize()
     io.ConfigDpiScaleFonts = true;
     io.ConfigDpiScaleViewports = true;
 
-    // 한글 폰트 추가
-    if (const Optional ttf_path_opt = VPath("CoreAssets://Font/malgun.ttf").Resolve())
+    // 폰트 로드 (설정 파일에서 읽은 경로/크기 사용)
+    if (const Optional ttf_path_opt = VPath(ui_settings.font_path).Resolve())
     {
-        io.Fonts->AddFontFromFileTTF(ttf_path_opt->ToString().CStr(), 17.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
+        io.Fonts->AddFontFromFileTTF(ttf_path_opt->ToString().CStr(), ui_settings.font_size, nullptr, io.Fonts->GetGlyphRangesKorean());
     }
     else
     {
-        ConsoleLog(ELogLevel::Warning, "Failed to load font: CoreAssets://Font/malgun.ttf");
+        ConsoleLog(ELogLevel::Warning, "Failed to load font: {}", ui_settings.font_path);
     }
 
     ImGui_ImplSDL3_InitForSDLGPU(main_window);
