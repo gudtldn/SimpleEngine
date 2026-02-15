@@ -1,13 +1,15 @@
 ﻿#pragma once
+#include <algorithm>
 #include <atomic>
 #include <memory>
-#include <memory_resource>
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
+
 namespace se
 {
+// forward declaration
 class Engine;
 
 enum class EApplicationMode : uint8
@@ -83,12 +85,26 @@ public:
     [[nodiscard]] static double GetFixedDeltaTime() { return FixedDeltaTime; }
     [[nodiscard]] static uint64 GetTotalElapsedTime() { return TotalElapsedTime; }
 
-    [[nodiscard]] static uint32 GetTargetFps() { return TargetFps; }
+    [[nodiscard]] static uint32 GetTargetFps()
+    {
+        return TargetFps;
+    }
 
     static void SetTargetFps(uint32 new_fps)
     {
         TargetFps = new_fps;
         TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
+        BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
+    }
+
+    [[nodiscard]] static double GetBusyWaitRatio()
+    {
+        return BusyWaitRatio;
+    }
+
+    static void SetBusyWaitRatio(double new_ratio)
+    {
+        BusyWaitRatio = std::clamp(new_ratio, 0.0, 1.0);
         BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
     }
 
@@ -116,8 +132,5 @@ private:
     bool is_initialized = false;
     bool is_running = false;
     std::atomic<bool> quit_requested = false;
-
-    // 메모리 관련
-    std::pmr::memory_resource* original_resource;
 };
 }  // namespace se
