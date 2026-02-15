@@ -1,4 +1,6 @@
 ﻿#include "SimpleEngine/Core/HAL/Platform.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 
 #include "SDL3/SDL.h"
 
@@ -16,17 +18,25 @@ Path Platform::FindProjectRoot()
     static const Path cached = [] static -> Path
     {
         constexpr uint32 max_traversal_depth = 10;
-
-        // TODO: 나중에 실제 프로젝트에 맞는 이름을 자동으로 찾도록 수정
-        constexpr const char* sentinel_file_name = "SimpleEngine.project";
+        constexpr const char* sentinel_extension = ".seproject";
 
         Path current = GetExecutableDirectory();
 
         for (uint32 i = 0; i < max_traversal_depth; ++i)
         {
-            if ((current / sentinel_file_name).Exists())
+            // 현재 디렉토리에서 *.seproject 파일 탐색
+            for (const DirectoryEntry& entry : FileSystem::ReadDir(current))
             {
-                return current;
+                if (entry.IsFile())
+                {
+                    if (const Optional ext_opt = entry.GetPath().Extension())
+                    {
+                        if (*ext_opt == sentinel_extension)
+                        {
+                            return current;
+                        }
+                    }
+                }
             }
 
             const Optional<Path> parent = current.Parent();
@@ -38,7 +48,12 @@ Path Platform::FindProjectRoot()
         }
 
         // 센티넬 파일을 찾지 못한 경우, 실행 파일 디렉토리를 폴백으로 반환
-        return GetExecutableDirectory();
+        const Path fallback = GetExecutableDirectory();
+        ConsoleLog(
+            ELogLevel::Warning,
+            "Failed to find '*.seproject' sentinel file. Using executable directory as project root: {}", fallback
+        );
+        return fallback;
     }();
 
     return cached;

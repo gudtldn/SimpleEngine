@@ -33,17 +33,8 @@ Engine::Engine()
 
     VFS& vfs = VFS::Get();
 
-    // 센티넬 파일(SimpleEngine.project) 탐색으로 프로젝트 루트 결정
+    // 센티넬 파일(*.seproject) 탐색으로 프로젝트 루트 결정
     const Path root_path = Platform::FindProjectRoot();
-
-    // TODO: 나중에 실제 프로젝트에 맞는 이름을 자동으로 찾도록 수정
-    if (!(root_path / "SimpleEngine.project").Exists())
-    {
-        ConsoleLog(
-            ELogLevel::Warning,
-            "Failed to find 'SimpleEngine.project' sentinel file. Using executable directory as project root: {}", root_path
-        );
-    }
 
     // bootstrap: Mount "Config://"
     vfs.Mount("Config", root_path / "Config");
