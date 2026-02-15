@@ -65,10 +65,6 @@ target_include_directories(EngineCore PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
 )
 
-target_compile_definitions(EngineCore PRIVATE
-        PROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}"
-)
-
 if(MSVC)
     target_compile_options(EngineCore PRIVATE
             /utf-8           # 소스/실행 파일 인코딩을 UTF-8로 사용

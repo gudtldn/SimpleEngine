@@ -33,7 +33,11 @@ public:
     Engine(Engine&&) = delete;
     Engine& operator=(Engine&&) = delete;
 
+public:
     static Engine& Get();
+
+    /** EngineConfig.toml이 없을 때 기본 설정 파일을 생성합니다. */
+    static void GenerateDefaultEngineConfig();
 
 public:
     /**

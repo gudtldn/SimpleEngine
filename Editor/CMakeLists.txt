@@ -28,10 +28,6 @@ target_include_directories(Editor PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
-target_compile_definitions(Editor PRIVATE
-        PROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}"
-)
-
 if(MSVC)
     target_compile_options(Editor PRIVATE
             /utf-8           # 소스/실행 파일 인코딩을 UTF-8로 사용

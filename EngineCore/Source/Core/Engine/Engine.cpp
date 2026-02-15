@@ -4,10 +4,13 @@
 
 #include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Concurrency/ThreadPool.h"
+#include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Queue.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/Cast.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
@@ -30,17 +33,46 @@ Engine::Engine()
 
     VFS& vfs = VFS::Get();
 
-    // TODO: Shipping일 때 GetExecutableDirectory로 수정해야함!!!
-    const Path solution_path = PROJECT_ROOT_DIR;
+    // 센티넬 파일(SimpleEngine.project) 탐색으로 프로젝트 루트 결정
+    const Path root_path = Platform::FindProjectRoot();
 
-    // Core
-    vfs.Mount("Config", solution_path / "Config");
-    vfs.Mount("CoreAssets", solution_path / "EngineCore/Assets");
-    vfs.Mount("CoreShader", solution_path / "EngineCore/Shaders");
+    // TODO: 나중에 실제 프로젝트에 맞는 이름을 자동으로 찾도록 수정
+    if (!(root_path / "SimpleEngine.project").Exists())
+    {
+        ConsoleLog(
+            ELogLevel::Warning,
+            "Failed to find 'SimpleEngine.project' sentinel file. Using executable directory as project root: {}", root_path
+        );
+    }
 
-    // Editor
-    vfs.Mount("EditorAssets", solution_path / "Editor/Assets");
-    vfs.Mount("EditorShader", solution_path / "Editor/Shaders");
+    // bootstrap: Mount "Config://"
+    vfs.Mount("Config", root_path / "Config");
+
+    // EngineConfig.toml에서 VFS 마운트 포인트 로드
+    if (auto result = ConfigFile::Load("Config://EngineConfig.toml"))
+    {
+        result.Value().VisitSectionEntries("vfs", [&](StringView scheme, StringView relative_path)
+        {
+            vfs.Mount(scheme, root_path / relative_path);
+        });
+    }
+    else
+    {
+        ConsoleLog(
+            ELogLevel::Warning,
+            "Failed to find 'EngineConfig.toml'. Using default VFS mounts and generating a default configuration file: {}", result.Error()
+        );
+
+        // 기본 VFS 마운트
+        vfs.Mount("CoreAssets", root_path / "EngineCore/Assets");
+        vfs.Mount("CoreShader", root_path / "EngineCore/Shaders");
+        vfs.Mount("EditorAssets", root_path / "Editor/Assets");
+        vfs.Mount("EditorShader", root_path / "Editor/Shaders");
+        vfs.Mount("Logs", root_path / "Logs");
+
+        // 기본 EngineConfig.toml 자동 생성
+        GenerateDefaultEngineConfig();
+    }
 }
 
 Engine::~Engine()
@@ -53,6 +85,32 @@ Engine& Engine::Get()
 {
     SE_ASSERT(Instance, "Engine instance is not initialized.");
     return *Instance;
+}
+
+void Engine::GenerateDefaultEngineConfig()
+{
+    // Config 디렉토리가 없을 수 있으므로 생성
+    const Path config_dir = Platform::FindProjectRoot() / "Config";
+    if (!config_dir.Exists())
+    {
+        FileSystem::CreateDirectories(config_dir);
+    }
+
+    ConfigFile config;
+    config.SetValue("vfs.CoreAssets", String("EngineCore/Assets"));
+    config.SetValue("vfs.CoreShader", String("EngineCore/Shaders"));
+    config.SetValue("vfs.EditorAssets", String("Editor/Assets"));
+    config.SetValue("vfs.EditorShader", String("Editor/Shaders"));
+    config.SetValue("vfs.Logs", String("Logs"));
+
+    if (config.Save("Config://EngineConfig.toml"))
+    {
+        ConsoleLog(ELogLevel::Info, "Successfully created default 'EngineConfig.toml'.");
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Error, "Failed to create default 'EngineConfig.toml'.");
+    }
 }
 
 void Engine::LoadRegisteredSubsystems()
@@ -102,6 +160,42 @@ void Engine::Release()
     task_scheduler.reset();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+void Engine::UpdateFrame(float delta_time)
+{
+#define SE_PROFILE_SCOPE(scope_fmt, ...) \
+    ZoneScoped; \
+    SE_DEBUG_EXPRESION({ \
+        const se::String zone_name = se::String::Format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
+        ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
+    })
+
+    for (const auto& [subsystem, name] : updatable_systems)
+    {
+        SE_PROFILE_SCOPE("PreUpdate | SubSystem: {}", name);
+        subsystem->PreUpdate();
+    }
+    for (const auto& [subsystem, name] : updatable_systems)
+    {
+        SE_PROFILE_SCOPE("Update | SubSystem: {}", name);
+        subsystem->Update(delta_time);
+    }
+    for (const auto& [subsystem, name] : updatable_systems)
+    {
+        SE_PROFILE_SCOPE("PostUpdate | SubSystem: {}", name);
+        subsystem->PostUpdate();
+    }
+
+    {
+        SE_PROFILE_SCOPE("MainThreadTasks");
+
+        // 비동기 태스크를 마저 실행
+        task_scheduler->ProcessMainThreadTasks();
+    }
+
+#undef SE_PROFILE_SCOPE
+}
+
 bool Engine::InitializeAllSubsystems()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Subsystems...");
@@ -138,42 +232,6 @@ void Engine::ReleaseAllSubsystems()
         sub_system->Release();
     }
     ConsoleLog(ELogLevel::Info, "All Subsystems released successfully");
-}
-
-// ReSharper disable once CppMemberFunctionMayBeConst
-void Engine::UpdateFrame(float delta_time)
-{
-#define SE_PROFILE_SCOPE(scope_fmt, ...) \
-    ZoneScoped; \
-    SE_DEBUG_EXPRESION({ \
-        const se::String zone_name = se::String::Format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
-        ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
-    })
-
-    for (const auto& [subsystem, name] : updatable_systems)
-    {
-        SE_PROFILE_SCOPE("PreUpdate | SubSystem: {}", name);
-        subsystem->PreUpdate();
-    }
-    for (const auto& [subsystem, name] : updatable_systems)
-    {
-        SE_PROFILE_SCOPE("Update | SubSystem: {}", name);
-        subsystem->Update(delta_time);
-    }
-    for (const auto& [subsystem, name] : updatable_systems)
-    {
-        SE_PROFILE_SCOPE("PostUpdate | SubSystem: {}", name);
-        subsystem->PostUpdate();
-    }
-
-    {
-        SE_PROFILE_SCOPE("MainThreadTasks");
-
-        // 비동기 태스크를 마저 실행
-        task_scheduler->ProcessMainThreadTasks();
-    }
-
-#undef SE_PROFILE_SCOPE
 }
 
 bool Engine::SortSubsystems()

@@ -1,13 +1,14 @@
 #include "SimpleEngine/Core/Logging/Backends/FileBackend.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/HAL/Platform.h"
 
 
 namespace se
 {
 FileBackend::FileBackend()
 {
-    const Path solution_path = PROJECT_ROOT_DIR;
-    file_path = solution_path / "Logs/latest.log";
+    const Path root_path = Platform::FindProjectRoot();
+    file_path = root_path / "Logs/latest.log";
     OpenFile();
 }
 

@@ -46,6 +46,16 @@ struct SE_CORE_API Platform
     [[nodiscard]] static Path GetExecutableDirectory();
 
     /**
+     * 프로젝트 루트 디렉토리를 탐색합니다.
+     *
+     * 실행 파일 위치에서 상위 디렉토리를 순회하며 SimpleEngine.project 센티넬 파일을 찾습니다.
+     * 결과는 내부적으로 캐싱되어 이후 호출 시 즉시 반환됩니다.
+     *
+     * @return 프로젝트 루트 디렉토리 경로. 센티넬 파일을 찾지 못하면 실행 파일 디렉토리를 반환합니다.
+     */
+    [[nodiscard]] static Path FindProjectRoot();
+
+    /**
      * 운영체제의 파일 탐색기를 열어 해당 경로를 보여줍니다.
      */
     static void RevealInExplorer(const Path& path);
