@@ -420,15 +420,17 @@ bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
         }
     }
 
-    const char* preview = (current_idx < count) ? entries[current_idx].name.Data() : "???";
+    // TODO: 나중에 최적화 하려면 LinearAllocator로 최적화
+    const String preview = (current_idx < count) ? entries[current_idx].name : "???";
 
     bool modified = false;
-    if (ImGui::BeginCombo(label, preview))
+    if (ImGui::BeginCombo(label, preview.CStr()))
     {
         for (usize i = 0; i < count; ++i)
         {
+            const String entry_name = entries[i].name;
             const bool is_selected = (i == current_idx);
-            if (ImGui::Selectable(entries[i].name.Data(), is_selected))
+            if (ImGui::Selectable(entry_name.CStr(), is_selected))
             {
                 WriteEnumValue(value, entries[i].value, type_info_opt->size, is_unsigned);
                 modified = true;
@@ -476,7 +478,8 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
             const int64 flag = entries[i].value;
             bool has_flag = (current_value & flag) == flag;
 
-            if (ImGui::Checkbox(entries[i].name.Data(), &has_flag))
+            const String entry_name = entries[i].name;
+            if (ImGui::Checkbox(entry_name.CStr(), &has_flag))
             {
                 if (has_flag)
                 {
