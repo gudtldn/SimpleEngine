@@ -71,23 +71,6 @@ struct SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
 };
 
 /**
- * [editor.asset_browser] 섹션 - 에셋 브라우저 설정
- */
-struct SE_ANNOTATION(=meta::SerializeOnly) AssetBrowserSettings
-{
-    SE_ANNOTATION(=meta::Property)
-    float grid_padding = 16.0f;
-
-    SE_ANNOTATION(=meta::Property)
-    float thumbnail_size = 64.0f;
-
-    SE_ANNOTATION(=meta::Property)
-    float tree_column_width = 150.0f;
-
-    bool operator==(const AssetBrowserSettings&) const = default;
-};
-
-/**
  * [performance] 섹션 - 성능 설정
  */
 struct SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings

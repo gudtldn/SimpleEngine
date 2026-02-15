@@ -27,7 +27,6 @@ public:
         Window,
         UI,
         Console,
-        AssetBrowser,
         Performance,
         Graphics,
     };
@@ -51,7 +50,6 @@ private:
     WindowSettings window_settings;
     EditorUISettings ui_settings;
     ConsoleSettings console_settings;
-    AssetBrowserSettings asset_browser_settings;
     PerformanceSettings performance_settings;
     GraphicsSettings graphics_settings;
 };

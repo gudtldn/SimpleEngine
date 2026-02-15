@@ -7,7 +7,6 @@
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "imgui.h"
 

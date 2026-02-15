@@ -26,12 +26,6 @@ SE_BEGIN_REFLECT(ConsoleSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(max_log_lines, meta::Property)
 SE_END_REFLECT(ConsoleSettings)
 
-SE_BEGIN_REFLECT(AssetBrowserSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(grid_padding, meta::Property)
-    SE_REFLECT_PROPERTY(thumbnail_size, meta::Property)
-    SE_REFLECT_PROPERTY(tree_column_width, meta::Property)
-SE_END_REFLECT(AssetBrowserSettings)
-
 SE_BEGIN_REFLECT(PerformanceSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(target_fps, meta::Property)
     SE_REFLECT_PROPERTY(busy_wait_ratio, meta::Property, meta::Range(0.0f, 1.0f))

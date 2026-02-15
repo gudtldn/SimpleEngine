@@ -113,11 +113,6 @@ void SettingsPanel::Draw()
                 needs_save |= DrawSettings("Console", TypeId::Get<ConsoleSettings>(), &console_settings);
                 break;
             }
-            case ECategory::AssetBrowser:
-            {
-                needs_save |= DrawSettings("Asset Browser", TypeId::Get<AssetBrowserSettings>(), &asset_browser_settings);
-                break;
-            }
             case ECategory::Performance:
             {
                 needs_save |= DrawSettings("Performance", TypeId::Get<PerformanceSettings>(), &performance_settings);
@@ -160,7 +155,6 @@ void SettingsPanel::LoadSettings()
         window_settings = {};
         ui_settings = {};
         console_settings = {};
-        asset_browser_settings = {};
         performance_settings = {};
         graphics_settings = {};
         return;
@@ -170,7 +164,6 @@ void SettingsPanel::LoadSettings()
     window_settings = config.GetSection<WindowSettings>("window");
     ui_settings = config.GetSection<EditorUISettings>("editor.ui");
     console_settings = config.GetSection<ConsoleSettings>("editor.console");
-    asset_browser_settings = config.GetSection<AssetBrowserSettings>("editor.asset_browser");
     performance_settings = config.GetSection<PerformanceSettings>("performance");
     graphics_settings = config.GetSection<GraphicsSettings>("graphics");
 
@@ -189,7 +182,6 @@ void SettingsPanel::SaveSettings()
     config.SetSection(window_settings, "window");
     config.SetSection(ui_settings, "editor.ui");
     config.SetSection(console_settings, "editor.console");
-    config.SetSection(asset_browser_settings, "editor.asset_browser");
     config.SetSection(performance_settings, "performance");
     config.SetSection(graphics_settings, "graphics");
 
