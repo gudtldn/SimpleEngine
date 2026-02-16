@@ -1,5 +1,5 @@
 #include "UI/Panels/SettingsPanel.h"
-#include "UI/PropertyDrawer/PropertyDrawer.h"
+#include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
@@ -240,4 +240,4 @@ bool SettingsPanel::DrawSettings(const char* label, const TypeId& type_id, void*
     const TypeInfo& settings = TypeRegistry::Get().FindChecked(type_id);
     return DrawerRegistry::Get().DrawProperties(settings, settings_ptr);
 }
-}  // namespace se::editor
+} // namespace se::editor

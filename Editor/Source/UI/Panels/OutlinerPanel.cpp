@@ -1,7 +1,7 @@
 #include "UI/Panels/OutlinerPanel.h"
 
-#include "Core/EditorSubsystem.h"
-#include "UI/EditorUISubsystem.h"
+#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/UI/EditorUISubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/Query.h"
@@ -59,4 +59,4 @@ void OutlinerPanel::Draw()
     }
     ImGui::End();
 }
-}  // namespace se::editor
+} // namespace se::editor

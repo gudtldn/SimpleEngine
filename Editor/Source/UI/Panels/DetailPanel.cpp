@@ -1,7 +1,7 @@
 #include "UI/Panels/DetailPanel.h"
 
-#include "Core/EditorSubsystem.h"
-#include "UI/PropertyDrawer/PropertyDrawer.h"
+#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/ECS/ComponentRegistry.h"

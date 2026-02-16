@@ -1,6 +1,7 @@
 #pragma once
+
+#include "SimpleEditor/UI/IEditorPanel.h"
 #include "SimpleEngine/Core/Types/StringName.h"
-#include "UI/Panels/IEditorPanel.h"
 
 
 namespace se::editor
@@ -19,4 +20,4 @@ public:
 private:
     StringName viewport_id;
 };
-}  // namespace se::editor
+} // namespace se::editor

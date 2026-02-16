@@ -1,4 +1,4 @@
-﻿#include "EditorSubsystem.h"
+﻿#include "SimpleEditor/Core/EditorSubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 
@@ -18,4 +18,4 @@ bool EditorSubsystem::Initialize()
 void EditorSubsystem::Release()
 {
 }
-}
+} // namespace se::editor

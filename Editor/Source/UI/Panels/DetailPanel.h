@@ -1,5 +1,6 @@
 #pragma once
-#include "UI/Panels/IEditorPanel.h"
+
+#include "SimpleEditor/UI/IEditorPanel.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 

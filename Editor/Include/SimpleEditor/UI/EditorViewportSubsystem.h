@@ -5,6 +5,8 @@
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 
+#include <editor_export.h>
+
 #include "SDL3/SDL_gpu.h"
 
 
@@ -30,7 +32,7 @@ struct ViewportRenderInfo
 /**
  * @todo docs
  */
-class SE_ANNOTATION(=meta::Internal) EditorViewportSubsystem : public SubsystemBase
+class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) EditorViewportSubsystem : public SubsystemBase
 {
     SE_CLASS(EditorViewportSubsystem, SubsystemBase)
 
@@ -43,7 +45,7 @@ public:
     [[nodiscard]] SDL_GPUTexture* UpdateAndGetViewportTexture(const StringName& viewport_id, uint32 new_width, uint32 new_height);
 
     /** TODO: docs */
-    [[nodiscard]] const auto& GetActiveViewportInfo() const { return viewport_data; }
+    [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetActiveViewportInfo() const { return viewport_data; }
 
 private:
     SDL_GPUDevice* gpu_device = nullptr;

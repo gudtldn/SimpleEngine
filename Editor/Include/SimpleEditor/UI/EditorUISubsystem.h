@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/EditorSubsystem.h"
-#include "UI/Panels/IEditorPanel.h"
+#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/UI/IEditorPanel.h"
 
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
@@ -10,12 +10,24 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
 
+#include <editor_export.h>
+
 
 namespace se::editor
 {
-class SE_ANNOTATION(meta::Internal) EditorUISubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API SE_ANNOTATION(meta::Internal) EditorUISubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(EditorUISubsystem, SubsystemBase)
+
+public:
+    EditorUISubsystem() = default;
+    virtual ~EditorUISubsystem() override = default;
+
+    // unique_ptr 멤버로 인해 복사/이동 불가
+    EditorUISubsystem(const EditorUISubsystem&) = delete;
+    EditorUISubsystem& operator=(const EditorUISubsystem&) = delete;
+    EditorUISubsystem(EditorUISubsystem&&) = delete;
+    EditorUISubsystem& operator=(EditorUISubsystem&&) = delete;
 
 public:
     //~ Begin SubsystemBase
@@ -57,4 +69,4 @@ PanelType& EditorUISubsystem::RegisterPanel(const StringName& panel_id, Args&&..
     panels.Emplace(panel_id, std::move(panel));
     return panel_ref;
 }
-}  // namespace se::editor
+} // namespace se::editor

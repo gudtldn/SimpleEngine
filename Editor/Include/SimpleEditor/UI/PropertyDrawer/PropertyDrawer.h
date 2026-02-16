@@ -4,6 +4,8 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 
+#include <editor_export.h>
+
 
 namespace se::editor
 {
@@ -30,18 +32,18 @@ using AssetDropResolverFunc = asset::AssetId(*)(const char* dropped_path);
  * 내장 타입(Primitive, Math, String 등)의 Drawer는 생성 시 자동으로 등록되며,
  * Enum 타입은 TypeInfo::enum_entries를 통해 자동 처리됩니다.
  */
-class DrawerRegistry
+class SE_EDITOR_API DrawerRegistry
 {
     DrawerRegistry();
 
 public:
     static DrawerRegistry& Get();
 
+    ~DrawerRegistry() = default;
     DrawerRegistry(const DrawerRegistry&) = delete;
     DrawerRegistry& operator=(const DrawerRegistry&) = delete;
     DrawerRegistry(DrawerRegistry&&) = delete;
     DrawerRegistry& operator=(DrawerRegistry&&) = delete;
-    ~DrawerRegistry() = default;
 
 public:
     /** 특정 타입에 대한 Drawer 함수를 등록합니다. */

@@ -1,4 +1,4 @@
-﻿#include "Core/EditorSelection.h"
+﻿#include "SimpleEditor/Core/EditorSelection.h"
 
 
 namespace se::editor
@@ -41,4 +41,4 @@ Optional<Entity> EditorSelection::GetPrimarySelectedEntity() const
     // HashSet이라 순서가 보장되진 않지만, 단일 선택 모드에서는 유효함
     return *selected_entities.begin();
 }
-}
+} // namespace se::editor

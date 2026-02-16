@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Config/EditorSettings.h"
+#include "SimpleEditor/Config/EditorSettings.h"
+#include "SimpleEditor/UI/IEditorPanel.h"
 #include "SimpleEngine/Core/Container/Deque.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "UI/Panels/IEditorPanel.h"
 
 #include "imgui.h"
 #include "SimpleEngine/Core/Container/Array.h"

@@ -1,11 +1,13 @@
-﻿#pragma once
-#include "Core/EditorSelection.h"
-#include "SimpleEngine/Core/Subsystem//SubsystemBase.h"
+#pragma once
+#include "SimpleEditor/Core/EditorSelection.h"
+#include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+
+#include <editor_export.h>
 
 
 namespace se::editor
 {
-class SE_ANNOTATION(=meta::Internal) EditorSubsystem : public SubsystemBase
+class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) EditorSubsystem : public SubsystemBase
 {
     SE_CLASS(EditorSubsystem, SubsystemBase)
 
@@ -20,4 +22,4 @@ public:
 private:
     EditorSelection selection;
 };
-}
+} // namespace se::editor
