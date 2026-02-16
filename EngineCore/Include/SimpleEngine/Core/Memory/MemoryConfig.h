@@ -3,7 +3,7 @@
 
 
 // 메모리 추적 활성화 매크로
-#if SE_DEBUG_BUILD || TRACY_ENABLE
+#if SE_BUILD_DEBUG || TRACY_ENABLE
     #define SE_ENABLE_MEMORY_TRACKING true
 #else
     #define SE_ENABLE_MEMORY_TRACKING false

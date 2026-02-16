@@ -105,19 +105,19 @@
 // Build Configuration
 // -----------------------------------------------------------------------------
 #if defined(_DEBUG) || defined(DEBUG)
-    #define SE_DEBUG_BUILD true
-    #define SE_DEBUG_EXPRESION(x) x
+    #define SE_BUILD_DEBUG true
+    #define SE_DEBUG_EXPRESSION(x) x
 #else
-    #define SE_DEBUG_BUILD false
-    #define SE_DEBUG_EXPRESION(x)
+    #define SE_BUILD_DEBUG false
+    #define SE_DEBUG_EXPRESSION(x)
 #endif
 
 #if defined(NDEBUG)
-    #define SE_RELEASE_BUILD true
-    #define SE_RELEASE_EXPRESION(x) x
+    #define SE_BUILD_RELEASE true
+    #define SE_RELEASE_EXPRESSION(x) x
 #else
-    #define SE_RELEASE_BUILD false
-    #define SE_RELEASE_EXPRESION(x)
+    #define SE_BUILD_RELEASE false
+    #define SE_RELEASE_EXPRESSION(x)
 #endif
 
 // 정수형

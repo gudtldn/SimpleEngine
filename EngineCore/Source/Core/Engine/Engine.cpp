@@ -156,7 +156,7 @@ void Engine::UpdateFrame(float delta_time)
 {
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
     ZoneScoped; \
-    SE_DEBUG_EXPRESION({ \
+    SE_DEBUG_EXPRESSION({ \
         const se::String zone_name = se::String::Format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
         ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
     })

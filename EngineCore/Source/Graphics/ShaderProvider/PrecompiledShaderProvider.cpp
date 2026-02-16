@@ -8,7 +8,7 @@ namespace se::graphics
 {
 SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
 {
-    if constexpr (SE_DEBUG_BUILD)
+    if constexpr (SE_BUILD_DEBUG)
     {
         const Optional ext_opt = request.source_path.Extension();
         if (!ext_opt.HasValue())

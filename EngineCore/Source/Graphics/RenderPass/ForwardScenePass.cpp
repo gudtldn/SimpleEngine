@@ -260,7 +260,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             const GpuBufferSlice& slice = gpu_manager.GetSlice(info.mesh_id);
             if (!slice.IsValid())
             {
-#if SE_DEBUG_BUILD
+#if SE_BUILD_DEBUG
                 static HashSet<asset::AssetId> logged_asset_ids;
                 if (!logged_asset_ids.Contains(info.mesh_id))
                 {
