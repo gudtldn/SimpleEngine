@@ -1,10 +1,10 @@
 #pragma once
 
+#include "SimpleEditor/EditorCommon.h"
+
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
-
-#include <editor_export.h>
 
 
 namespace se::editor

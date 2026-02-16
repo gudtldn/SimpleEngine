@@ -1,5 +1,6 @@
 #pragma once
-#include <editor_export.h>
+
+#include "SimpleEditor/EditorCommon.h"
 
 
 namespace se::editor

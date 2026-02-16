@@ -1,8 +1,9 @@
 #pragma once
+
+#include "SimpleEditor/EditorCommon.h"
+
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/ECS/Entity.h"
-
-#include <editor_export.h>
 
 
 namespace se::editor

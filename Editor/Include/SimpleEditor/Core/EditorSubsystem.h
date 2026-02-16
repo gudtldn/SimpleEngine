@@ -1,8 +1,9 @@
 #pragma once
+
+#include "SimpleEditor/EditorCommon.h"
+
 #include "SimpleEditor/Core/EditorSelection.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
-
-#include <editor_export.h>
 
 
 namespace se::editor
