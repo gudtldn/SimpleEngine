@@ -1,16 +1,16 @@
-﻿# Source 폴더 및 하위 폴더의 모든 .cpp 파일을 찾아 ENGINE_SOURCES에 추가
-file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp")
-
-# EngineCore를 동적 라이브러리(.dll)로 정의
-add_library(EngineCore SHARED
-        ${ENGINE_SOURCES}
+﻿# Source 폴더 및 하위 폴더의 모든 .cpp / .h 파일을 찾아 ENGINE_SOURCES에 추가
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h"
 )
 
-# C++17 이상에서 SHARED 라이브러리를 빌드할 때 필요한 프로퍼티 설정
-set_target_properties(EngineCore PROPERTIES
-        CXX_STANDARD 23
-        CXX_EXTENSIONS OFF
-        CXX_STANDARD_REQUIRED ON
+file(GLOB_RECURSE ENGINE_PUBLIC_HEADERS CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Include/*.h"
+)
+
+add_library(EngineCore SHARED
+        ${ENGINE_SOURCES}
+        ${ENGINE_PUBLIC_HEADERS}
 )
 
 # DLL export/import 매크로를 자동으로 생성
@@ -27,7 +27,8 @@ find_package(SDL3_image REQUIRED)
 find_package(stduuid REQUIRED)
 
 # EngineCore 라이브러리에 의존 라이브러리들을 연결
-target_link_libraries(EngineCore PUBLIC
+target_link_libraries(EngineCore
+PUBLIC
         # tomlplusplus
         tomlplusplus::tomlplusplus
 
@@ -38,8 +39,8 @@ target_link_libraries(EngineCore PUBLIC
         SDL3::SDL3
         SDL3_image::SDL3_image
         SDL3_shadercross::SDL3_shadercross
-)
-target_link_libraries(EngineCore PRIVATE
+
+PRIVATE
         # Project Default Options
         SE_DefaultOptions
 
@@ -60,8 +61,6 @@ target_link_libraries(EngineCore PRIVATE
 
 # 공개 헤더 파일의 경로를 지정 (다른 프로젝트에서 #include <SimpleEngine/Core/Engine.h> 와 같이 사용할 수 있게 하기 위함)
 target_include_directories(EngineCore PUBLIC
-        # 설치 시 사용할 include 경로
-        $<INSTALL_INTERFACE:Include>
         # enginecore_export.h가 생성되는 빌드 디렉토리
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         # 빌드 중 사용할 공개 헤더 경로 (EngineCore/Include)
