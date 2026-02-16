@@ -1,9 +1,4 @@
-﻿# Test와 Benchmark에 사용되는 라이브러리가 있는지 확인
-find_package(GTest CONFIG REQUIRED)
-find_package(benchmark CONFIG REQUIRED)
-
-
-# 유닛 테스트용 실행 파일
+﻿# 유닛 테스트용 실행 파일
 file(GLOB_RECURSE ENGINE_UNIT_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp")
 
 add_executable(UnitTests ${ENGINE_UNIT_TEST_SOURCES} "Source/UnitTestMain.cpp")

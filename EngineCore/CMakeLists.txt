@@ -20,12 +20,6 @@ generate_export_header(EngineCore
 )
 
 
-# 외부 라이브러리 관리
-find_package(ICU REQUIRED COMPONENTS uc i18n data)
-find_package(SDL3 REQUIRED)
-find_package(SDL3_image REQUIRED)
-find_package(stduuid REQUIRED)
-
 # EngineCore 라이브러리에 의존 라이브러리들을 연결
 target_link_libraries(EngineCore
 PUBLIC

@@ -3,7 +3,6 @@ add_executable(EditorApp
         Source/Launch.cpp
 )
 
-find_package(SDL3 REQUIRED)
 target_link_libraries(EditorApp PRIVATE
         # Project Default Options
         SE_DefaultOptions
