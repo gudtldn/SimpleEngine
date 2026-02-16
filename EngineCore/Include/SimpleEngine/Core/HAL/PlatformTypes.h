@@ -104,7 +104,7 @@
 // -----------------------------------------------------------------------------
 // Build Configuration
 // -----------------------------------------------------------------------------
-#if defined(_DEBUG) || defined(DEBUG)
+#ifdef SE_CMAKE_CONFIGURATION_DEBUG
     #define SE_BUILD_DEBUG true
     #define SE_DEBUG_EXPRESSION(x) x
 #else
@@ -112,13 +112,34 @@
     #define SE_DEBUG_EXPRESSION(x)
 #endif
 
-#if defined(NDEBUG)
+#ifdef SE_CMAKE_CONFIGURATION_DEVELOPMENT
+    #define SE_BUILD_DEVELOPMENT true
+    #define SE_DEVELOPMENT_EXPRESSION(x) x
+#else
+    #define SE_BUILD_DEVELOPMENT false
+    #define SE_DEVELOPMENT_EXPRESSION(x)
+#endif
+
+#ifdef SE_CMAKE_CONFIGURATION_RELEASE
     #define SE_BUILD_RELEASE true
     #define SE_RELEASE_EXPRESSION(x) x
 #else
     #define SE_BUILD_RELEASE false
     #define SE_RELEASE_EXPRESSION(x)
 #endif
+
+#ifdef SE_CMAKE_OPTION_ENABLE_ASSERTS
+    #define SE_ENABLE_ASSERTS true
+#else
+    #define SE_ENABLE_ASSERTS false
+#endif
+
+#if SE_BUILD_DEBUG || SE_BUILD_DEVELOPMENT || SE_ENABLE_ASSERTS
+    #define SE_ENABLE_DEBUG_TOOLS true
+#else
+    #define SE_ENABLE_DEBUG_TOOLS false
+#endif
+
 
 // 정수형
 using int8 = std::int8_t;
