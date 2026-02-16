@@ -6,7 +6,7 @@ project(SimpleEngine
         LANGUAGES C CXX
 )
 
-# --- 아키텍처 이름 설정 (x64 / x86) ---
+# 아키텍처 이름 설정 (x64 / x86)
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(PROJECT_ARCHITECTURE "x64")
 else ()
@@ -29,20 +29,12 @@ foreach (OUTPUT_CONFIG ${CMAKE_CONFIGURATION_TYPES})
     set(CMAKE_PDB_OUTPUT_DIRECTORY_${OUTPUT_CONFIG_UPPER} ${BINARY_OUTPUT_PATH}/${OUTPUT_CONFIG})
 endforeach ()
 
+# 공용 CMake 모듈 추가
+include(Tools/CMake/SEDefaultOptions.cmake)
 
-# C++ 표준 설정
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 컴파일러 빌드 설정
-add_compile_definitions(
-        $<$<CONFIG:Debug>:_DEBUG>
-        $<$<CONFIG:Release>:NDEBUG>
-)
-
-# 하위 프로젝트 추가
-add_subdirectory(Editor)
-add_subdirectory(EngineCore)
-add_subdirectory(EngineTest)
+# 하위 프로젝트 추가 (의존성 순서)
 add_subdirectory(ThirdParty)
+add_subdirectory(EngineCore)
+add_subdirectory(Editor)
+add_subdirectory(EngineTest)
