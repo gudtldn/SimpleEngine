@@ -4,13 +4,15 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 
+#include <editor_export.h>
+
 
 namespace se::editor
 {
 /**
  * [window] 섹션 - 에디터 윈도우 설정
  */
-struct SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
 {
     SE_ANNOTATION(=meta::Property)
     String title = "SimpleEngine Editor";
@@ -36,7 +38,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
 /**
  * [editor.ui] 섹션 - 에디터 UI 설정
  */
-struct SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
 {
     SE_ANNOTATION(=meta::Property)
     String font_path = "CoreAssets://Font/malgun.ttf";
@@ -50,7 +52,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
 /**
  * [editor.console] 섹션 - 콘솔 패널 설정
  */
-struct SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
 {
     SE_ANNOTATION(=meta::Property)
     bool auto_scroll = true;
@@ -73,7 +75,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
 /**
  * [performance] 섹션 - 성능 설정
  */
-struct SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
 {
     SE_ANNOTATION(=meta::Property)
     uint32 target_fps = 240;
@@ -98,7 +100,7 @@ enum class EPresentMode : uint8
 /**
  * [graphics] 섹션 - 렌더링 설정
  */
-struct SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
 {
     /** 프레젠트 모드 */
     SE_ANNOTATION(=meta::Property)

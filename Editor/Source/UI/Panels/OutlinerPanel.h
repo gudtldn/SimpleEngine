@@ -1,5 +1,5 @@
 #pragma once
-#include "UI/Panels/IEditorPanel.h"
+#include "SimpleEditor/UI/IEditorPanel.h"
 
 
 namespace se::editor

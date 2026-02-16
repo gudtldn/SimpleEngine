@@ -1,6 +1,5 @@
-#include "UI/EditorUISubsystem.h"
+#include "SimpleEditor/UI/EditorUISubsystem.h"
 
-#include "Config/EditorSettings.h"
 #include "Panels/AssetsBrowserPanel.h"
 #include "Panels/DebugPanel.h"
 #include "Panels/DetailPanel.h"
@@ -9,6 +8,7 @@
 #include "Panels/OutlinerPanel.h"
 #include "Panels/SettingsPanel.h"
 #include "Panels/ViewportPanel.h"
+#include "SimpleEditor/Config/EditorSettings.h"
 
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
@@ -215,4 +215,4 @@ void EditorUISubsystem::DrawMainMenu()
         ImGui::EndMainMenuBar();
     }
 }
-}  // namespace se::editor
+} // namespace se::editor

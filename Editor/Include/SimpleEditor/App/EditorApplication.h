@@ -1,12 +1,14 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/App/Application.h"
+
+#include <editor_export.h>
 
 #include "SDL3/SDL.h"
 
 
 namespace se::editor
 {
-class EditorApplication : public se::Application
+class SE_EDITOR_API EditorApplication : public se::Application
 {
 public:
     EditorApplication();
@@ -25,4 +27,4 @@ private:
     SDL_Window* cached_window = nullptr;
     SDL_GPUDevice* cached_gpu_device = nullptr;
 };
-}
+} // namespace se::editor

@@ -1,11 +1,11 @@
-﻿#include "App/EditorApplication.h"
+﻿#include "SimpleEditor/App/EditorApplication.h"
 
-#include "Config/EditorSettings.h"
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Graphics/EditorUIPass.h"
 #include "Graphics/Compiler/Provider.h"
-#include "UI/EditorUISubsystem.h"
-#include "UI/EditorViewportSubsystem.h"
+#include "SimpleEditor/Config/EditorSettings.h"
+#include "SimpleEditor/UI/EditorUISubsystem.h"
+#include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/HAL/PlatformSubsystem.h"

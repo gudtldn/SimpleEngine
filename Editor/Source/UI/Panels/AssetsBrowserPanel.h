@@ -1,7 +1,7 @@
 #pragma once
 
+#include "SimpleEditor/UI/IEditorPanel.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "UI/Panels/IEditorPanel.h"
 
 
 namespace se::editor

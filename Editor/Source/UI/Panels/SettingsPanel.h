@@ -1,7 +1,7 @@
 #pragma once
 
-#include "UI/Panels/IEditorPanel.h"
-#include "Config/EditorSettings.h"
+#include "SimpleEditor/UI/IEditorPanel.h"
+#include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
 
@@ -11,7 +11,7 @@ namespace se::editor
  * 에디터/프로젝트 설정을 관리하는 패널입니다.
  * EngineConfig.toml 파일을 읽고 쓰며, 리플렉션 구조체 기반으로 설정을 편집합니다.
  *
- * 좌측: 설정 카테고리 목록 (Window, UI, Console, Asset Browser, Performance, Graphics)
+ * 좌측: 설정 카테고리 목록
  * 우측: 선택된 카테고리의 설정 편집기
  */
 class SettingsPanel : public IEditorPanel

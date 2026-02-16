@@ -1,9 +1,13 @@
 #pragma once
+#include <editor_export.h>
 
 
 namespace se::editor
 {
-class IEditorPanel
+/**
+ * Editor Panel의 기본 인터페이스
+ */
+class SE_EDITOR_API IEditorPanel
 {
 public:
     virtual ~IEditorPanel() = default;
