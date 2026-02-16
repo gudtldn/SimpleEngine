@@ -5,7 +5,7 @@
 #include <cstdint>
 
 // CMake DLL import/export Macro
-#include <enginecore_export.h>
+#include "SimpleEngine/EngineCoreAPI.h"
 
 
 // -----------------------------------------------------------------------------

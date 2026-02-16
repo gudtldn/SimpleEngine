@@ -18,7 +18,7 @@ add_library(Editor SHARED
 # DLL Export 매크로 생성 (SE_EDITOR_API)
 generate_export_header(Editor
         EXPORT_MACRO_NAME SE_EDITOR_API
-        EXPORT_FILE_NAME  editor_export.h
+        EXPORT_FILE_NAME Include/SimpleEditor/EditorAPI.h
 )
 
 # Editor가 EngineCore 및 다른 라이브러리들에 의존하도록 설정
@@ -46,8 +46,9 @@ target_include_directories(Editor
 PUBLIC
         # 공개 헤더 경로 (SimpleEditor/ prefix로 접근)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
-        # generate_export_header가 생성하는 editor_export.h 경로
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+
+        # GenerateExportHeader가 생성하는 EditorAPI.h 경로
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/Include>
 
 PRIVATE
         # 내부 구현에서 짧은 경로를 사용하기 위한 경로
