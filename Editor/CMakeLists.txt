@@ -22,7 +22,6 @@ generate_export_header(Editor
 )
 
 # Editor가 EngineCore 및 다른 라이브러리들에 의존하도록 설정
-find_package(SDL3 REQUIRED)
 target_link_libraries(Editor
 PUBLIC
         # EngineCore는 Editor를 사용하는 쪽에서도 필요

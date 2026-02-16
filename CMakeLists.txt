@@ -56,10 +56,10 @@ endforeach ()
 
 # 공용 CMake 모듈 추가
 include(Tools/CMake/SEDefaultOptions.cmake)
+include(Tools/CMake/SEDependencies.cmake)
 
 
 # 하위 프로젝트 추가 (의존성 순서)
-add_subdirectory(ThirdParty)
 add_subdirectory(EngineCore)
 add_subdirectory(Editor)
 add_subdirectory(EditorApp)

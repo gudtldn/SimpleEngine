@@ -1,9 +1,3 @@
-find_package(SDL3 REQUIRED)
-find_package(SDL3_image REQUIRED)
-find_package(GTest CONFIG REQUIRED)
-find_package(benchmark CONFIG REQUIRED)
-find_package(stduuid REQUIRED)
-
 add_subdirectory(tracy EXCLUDE_FROM_ALL)
 set_property(TARGET TracyClient PROPERTY POSITION_INDEPENDENT_CODE ON)
 
