@@ -54,9 +54,14 @@ PRIVATE
 )
 
 # 공개 헤더 파일의 경로를 지정 (다른 프로젝트에서 #include <SimpleEngine/Core/Engine.h> 와 같이 사용할 수 있게 하기 위함)
-target_include_directories(EngineCore PUBLIC
+target_include_directories(EngineCore
+PUBLIC
         # enginecore_export.h가 생성되는 빌드 디렉토리
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         # 빌드 중 사용할 공개 헤더 경로 (EngineCore/Include)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
+
+PRIVATE
+        # 내부 구현용 헤더 (EngineCore 내부 cpp 파일들이 편하게 include 하기 위함)
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )

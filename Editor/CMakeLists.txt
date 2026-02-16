@@ -51,5 +51,5 @@ PUBLIC
 
 PRIVATE
         # 내부 구현에서 짧은 경로를 사용하기 위한 경로
-        ${CMAKE_CURRENT_SOURCE_DIR}/Source # TODO: 추후 제거
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
