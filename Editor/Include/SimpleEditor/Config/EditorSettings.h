@@ -1,10 +1,9 @@
 #pragma once
 
-#include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "SimpleEditor/EditorCommon.h"
 
-#include <editor_export.h>
+#include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Reflection/Annotations.h"
 
 
 namespace se::editor

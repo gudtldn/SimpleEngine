@@ -1,7 +1,6 @@
 #pragma once
+#include "SimpleEditor/EditorCommon.h"
 #include "SimpleEngine/App/Application.h"
-
-#include <editor_export.h>
 
 #include "SDL3/SDL.h"
 

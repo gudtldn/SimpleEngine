@@ -1,11 +1,11 @@
 #pragma once
 
+#include "SimpleEditor/EditorCommon.h"
+
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
-
-#include <editor_export.h>
 
 #include "SDL3/SDL_gpu.h"
 

@@ -9,6 +9,7 @@
 #include "Panels/SettingsPanel.h"
 #include "Panels/ViewportPanel.h"
 #include "SimpleEditor/Config/EditorSettings.h"
+#include "SimpleEditor/Core/EditorSubsystem.h"
 
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"

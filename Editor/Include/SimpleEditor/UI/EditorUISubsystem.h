@@ -1,16 +1,13 @@
 #pragma once
 
-#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/UI/IEditorPanel.h"
 
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
-#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
-
-#include <editor_export.h>
 
 
 namespace se::editor
