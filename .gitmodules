@@ -1,6 +1,3 @@
-[submodule "ThirdParty/SDL_shadercross"]
-	path = ThirdParty/SDL_shadercross
-	url = https://github.com/libsdl-org/SDL_shadercross
 [submodule "ThirdParty/tracy"]
 	path = ThirdParty/tracy
 	url = https://github.com/wolfpld/tracy
