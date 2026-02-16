@@ -20,11 +20,21 @@ set(ASSIMP_BUILD_TESTS           OFF  CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS    OFF  CACHE BOOL "" FORCE)
 set(ASSIMP_NO_EXPORT             ON   CACHE BOOL "" FORCE)
 
+# Assimp이 CMAKE_DEBUG_POSTFIX를 "d"로 전역 오염시키므로,
+# 이후 서드파티 타겟에 영향을 주지 않도록 비활성화
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(assimp EXCLUDE_FROM_ALL)
 # ---------------------------------------------------------------------------
 
 add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
+
+# cpu_features는 dllexport를 지원하지 않으므로 반드시 정적 빌드
+set(BUILD_SHARED_LIBS_BACKUP ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(cpu_features EXCLUDE_FROM_ALL)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_BACKUP})
+unset(BUILD_SHARED_LIBS_BACKUP)
 
 if(MSVC)
     target_compile_options(cpu_features PRIVATE
