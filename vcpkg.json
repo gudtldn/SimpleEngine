@@ -26,5 +26,12 @@
   }, {
     "name" : "sdl3-image",
     "version>=" : "3.2.4"
+  }, {
+    "name" : "sdl3-shadercross",
+    "features" : [ "dxc" ],
+    "platform" : "windows"
+  }, {
+    "name" : "sdl3-shadercross",
+    "platform" : "!windows"
   } ]
 }
