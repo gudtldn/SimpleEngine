@@ -63,7 +63,7 @@ void Application::Startup(const String& cmd_line)
 {
     Platform::SetCurrentThreadName("Main Thread");
 
-    if constexpr (SE_DEBUG_BUILD)
+    if constexpr (SE_BUILD_DEBUG)
     {
         LogSettings::EnableColor(true);
         LogSettings::SetForceColor(true);

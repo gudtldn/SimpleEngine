@@ -50,7 +50,7 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
 }
 } // namespace se::detail
 
-#if SE_DEBUG_BUILD
+#if SE_BUILD_DEBUG
     #define SE_ENABLE_DEBUG_TOOLS true
     #define SE_ENABLE_ASSERTS true
 #else
