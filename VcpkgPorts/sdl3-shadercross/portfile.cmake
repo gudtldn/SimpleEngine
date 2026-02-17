@@ -11,6 +11,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO libsdl-org/SDL_shadercross
+
+    # 공식 릴리스가 없어 main 브랜치의 특정 커밋을 사용함 (Pre-release snapshot)
     REF  7b7365a86611b2a7b6462e521cf1c43a037d0970 # main @ 2026-02 (v3.0.0-dev)
     SHA512 52efd2c2507d6ae874cdc177945e15494920f11148e9e9cf8da27fb5ccacb5fcbe44581005e132a84631e9d438616aa1247b7ae23f4ef1785203cdcb08af19af
     HEAD_REF main
