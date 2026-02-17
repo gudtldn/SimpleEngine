@@ -24,6 +24,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_DEVELOPMENT "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}"
 # Development에서 PDB(디버그 정보) 생성
 if (MSVC)
     # 컴파일러 옵션: /Zi (디버그 정보 생성)
+    string(APPEND CMAKE_C_FLAGS_DEVELOPMENT   " /Zi")
     string(APPEND CMAKE_CXX_FLAGS_DEVELOPMENT " /Zi")
 
     # 링커 옵션: /DEBUG (PDB 생성 및 디버그 가능하게 함)
