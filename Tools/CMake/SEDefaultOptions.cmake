@@ -5,10 +5,17 @@
 
 # SE_DefaultOptions Interface Lib 추가
 add_library(SE_DefaultOptions INTERFACE)
+add_library(SE::DefaultOptions ALIAS SE_DefaultOptions)
 
 # C++ 표준 설정
 target_compile_features(SE_DefaultOptions INTERFACE
         cxx_std_23
+)
+
+# 컴파일러 정책 설정 (Extension 금지 및 강제성)
+set_target_properties(SE_DefaultOptions PROPERTIES
+        INTERFACE_CXX_EXTENSIONS OFF
+        INTERFACE_CXX_STANDARD_REQUIRED ON
 )
 
 # 컴파일러 빌드 설정
@@ -57,7 +64,6 @@ if(MSVC)
 
 else()
     target_compile_options(SE_DefaultOptions INTERFACE
-            -std=c++23            # GNU/Clang 확장 대신 표준 C++23 강제 (Extensions OFF)
             -pedantic             # 비표준 문법 경고 (MSVC /permissive- 대응)
 
             -finput-charset=UTF-8 # 소스 파일 인코딩을 UTF-8로 설정
