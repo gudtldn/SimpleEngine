@@ -1,4 +1,6 @@
-﻿# Source 폴더 및 하위 폴더의 모든 .cpp / .h 파일을 찾아 ENGINE_SOURCES에 추가
+﻿include(GenerateExportHeader)
+
+# Source 폴더 및 하위 폴더의 모든 .cpp / .h 파일을 찾아 ENGINE_SOURCES에 추가
 file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h"
@@ -14,7 +16,6 @@ add_library(EngineCore SHARED
 )
 
 # DLL export/import 매크로를 자동으로 생성
-include(GenerateExportHeader)
 generate_export_header(EngineCore
         EXPORT_MACRO_NAME SE_CORE_API
         EXPORT_FILE_NAME Include/SimpleEngine/EngineCoreAPI.h
