@@ -43,3 +43,14 @@ concept NonIntrusiveReflectable = ReflectionTraits<T>::Enabled;
 template <typename T>
 concept Reflectable = IntrusiveReflectable<T> || NonIntrusiveReflectable<T>;
 } // namespace se
+
+
+/**
+ * 비침투형(Non-intrusive) 리플렉션 타입을 등록합니다.
+ * @param type 등록할 클래스/구조체 이름
+ */
+#define SE_DECLARE_REFLECTION(type) \
+template<> struct ::se::ReflectionTraits<type> \
+{ \
+    static constexpr bool Enabled = true; \
+};

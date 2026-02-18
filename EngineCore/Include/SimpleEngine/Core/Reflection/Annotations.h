@@ -1,5 +1,7 @@
-﻿#pragma once
+﻿// ReSharper disable CppUnusedIncludeDirective
+#pragma once
 
+#include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Container/FixedString.h"
 
 /** C++26으로 마이그레이션 시 CustomAnnotation을 바로 적용할 수 있도록 도와주는 헬퍼 매크로입니다. */
