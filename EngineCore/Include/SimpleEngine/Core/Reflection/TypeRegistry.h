@@ -87,7 +87,7 @@ detail::TypeBuilder<T> TypeRegistry::Register()
 {
     static_assert(
         Reflectable<T>,
-        "Type T is not reflectable. Please use SE_CLASS() macro (intrusive) or specialize ReflectionTraits<T> (non-intrusive)."
+        "Type T is not reflectable. Please use SE_CLASS() macro (intrusive) or SE_DECLARE_REFLECTION() macro (non-intrusive)."
     );
 
     const TypeId id = TypeId::Get<T>();
