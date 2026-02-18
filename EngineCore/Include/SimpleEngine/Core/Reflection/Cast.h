@@ -1,7 +1,7 @@
 #pragma once
 #include <concepts>
 
-#include "SimpleEngine/Core/Reflection/Concepts.h"
+#include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -43,7 +43,7 @@ namespace detail
  * @param obj 검사할 객체의 포인터 (nullptr일 경우 false)
  * @return obj의 런타임 타입이 T이거나 T로부터 파생되었으면 true
  */
-template <typename T, Reflectable From>
+template <typename T, IntrusiveReflectable From>
 [[nodiscard]] bool IsA(const From* obj)
 {
     if (!obj)
@@ -53,7 +53,7 @@ template <typename T, Reflectable From>
     return detail::IsTypeDerivedFrom(obj->GetTypeId(), TypeId::Get<T>());
 }
 
-template <typename T, Reflectable From>
+template <typename T, IntrusiveReflectable From>
 [[nodiscard]] bool IsA(const From& obj)
 {
     return detail::IsTypeDerivedFrom(obj.GetTypeId(), TypeId::Get<T>());
@@ -65,7 +65,7 @@ template <typename T, Reflectable From>
  * @tparam Base 부모 타입
  * @return Derived가 Base이거나 Base로부터 파생되었으면 true
  */
-template <Reflectable Derived, Reflectable Base>
+template <IntrusiveReflectable Derived, IntrusiveReflectable Base>
 [[nodiscard]] bool IsChildOf()
 {
     return detail::IsTypeDerivedFrom(TypeId::Get<Derived>(), TypeId::Get<Base>());
@@ -77,7 +77,7 @@ template <Reflectable Derived, Reflectable Base>
  * @param derived_id 검사할 TypeId
  * @return derived_id가 Base이거나 Base로부터 파생되었으면 true
  */
-template <Reflectable Base>
+template <IntrusiveReflectable Base>
 [[nodiscard]] bool IsChildOf(TypeId derived_id)
 {
     return detail::IsTypeDerivedFrom(derived_id, TypeId::Get<Base>());
@@ -89,7 +89,7 @@ template <Reflectable Base>
  * @param obj 검사할 객체의 포인터 (nullptr일 경우 false)
  * @return obj가 Interface를 구현하면 true
  */
-template <typename Interface, Reflectable From>
+template <typename Interface, IntrusiveReflectable From>
 [[nodiscard]] bool Implements(const From* obj)
 {
     if (!obj)
@@ -119,7 +119,7 @@ template <typename Interface>
  * @param obj 캐스팅할 객체의 포인터
  * @return 캐스팅에 성공하면 To* 포인터, 실패하면 nullptr
  */
-template <typename To, Reflectable From>
+template <typename To, IntrusiveReflectable From>
 [[nodiscard]] To* Cast(From* obj)
 {
     if (!obj)
@@ -146,7 +146,7 @@ template <typename To, Reflectable From>
     }
 }
 
-template <typename To, Reflectable From>
+template <typename To, IntrusiveReflectable From>
 [[nodiscard]] const To* Cast(const From* obj)
 {
     if (!obj)
@@ -182,7 +182,7 @@ template <typename To, Reflectable From>
  * @param obj 캐스팅할 객체의 포인터 (nullptr 불가)
  * @return 캐스팅된 To* 포인터
  */
-template <typename To, Reflectable From>
+template <typename To, IntrusiveReflectable From>
 [[nodiscard]] To* CastChecked(From* obj)
 {
     SE_ASSERT(obj != nullptr, "CastChecked failed: Source pointer is null!");
@@ -203,7 +203,7 @@ template <typename To, Reflectable From>
     return static_cast<To*>(result);
 }
 
-template <typename To, Reflectable From>
+template <typename To, IntrusiveReflectable From>
 [[nodiscard]] const To* CastChecked(const From* obj)
 {
     SE_ASSERT(obj != nullptr, "CastChecked failed: Source pointer is null!");
@@ -232,7 +232,7 @@ template <typename To, Reflectable From>
  * @param obj 캐스팅할 객체의 포인터
  * @return 런타임 타입이 To와 동일하면 To* 포인터, 아니면 nullptr
  */
-template <typename To, Reflectable From>
+template <typename To, IntrusiveReflectable From>
 [[nodiscard]] To* ExactCast(From* obj)
 {
     if (obj && obj->GetTypeId() == TypeId::Get<To>())
@@ -242,7 +242,7 @@ template <typename To, Reflectable From>
     return nullptr;
 }
 
-template <typename To, Reflectable From>
+template <typename To, IntrusiveReflectable From>
 [[nodiscard]] const To* ExactCast(const From* obj)
 {
     if (obj && obj->GetTypeId() == TypeId::Get<To>())
