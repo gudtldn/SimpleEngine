@@ -65,3 +65,9 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
+
+# picosha2 (header-only SHA-256 라이브러리)
+add_library(picosha2 INTERFACE)
+target_include_directories(picosha2 INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/picosha2
+)
