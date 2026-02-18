@@ -47,10 +47,6 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
     SE_ANNOTATION(=meta::Property)
     String source_hash;
 
-    /** 사용할 Importer/Translator의 타입 식별자 */
-    SE_ANNOTATION(=meta::Property)
-    TypeId importer_type;
-
     /** 캐시 바이너리의 스키마 버전 (Importer 출력 포맷 변경 시 증가) */
     SE_ANNOTATION(=meta::Property)
     uint32 cache_version = 0;
