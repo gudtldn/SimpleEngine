@@ -5,7 +5,7 @@
 namespace se
 {
 // forward declaration
-struct TypeId;
+class TypeId;
 struct TypeInfo;
 
 /**
