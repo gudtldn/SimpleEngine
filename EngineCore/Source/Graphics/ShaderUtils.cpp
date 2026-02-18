@@ -1,8 +1,8 @@
 #include "SimpleEngine/Graphics/ShaderUtils.h"
 
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Utility/FileUtils.h"
 
 
 namespace se::graphics
@@ -47,7 +47,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
 {
     // read shader file
     Array<uint8> source;
-    if (auto result = FileIO::ReadBytes(shader_path))
+    if (auto result = FileSystem::ReadBytes(shader_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

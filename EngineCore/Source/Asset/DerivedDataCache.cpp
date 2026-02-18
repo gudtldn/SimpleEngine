@@ -98,7 +98,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 
     const Path cache_path = BuildCachePath(guid);
 
-    const Optional buffer_opt = FileSystem::Read(cache_path);
+    const auto buffer_opt = FileSystem::ReadBytes(cache_path);
     if (!buffer_opt.HasValue())
     {
         return std::nullopt;
@@ -222,7 +222,7 @@ bool DerivedDataCache::ReadHeader(
     uint32& out_cache_version
 )
 {
-    const Optional buffer_opt = FileSystem::Read(cache_path);
+    const auto buffer_opt = FileSystem::ReadBytes(cache_path);
     if (!buffer_opt.HasValue())
     {
         return false;

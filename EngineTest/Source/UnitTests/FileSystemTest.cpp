@@ -250,7 +250,7 @@ TEST_F(FileSystemReadWriteTest, WriteStringAndReadToString)
     ASSERT_TRUE(write_result);
     ASSERT_TRUE(file_path.Exists());
 
-    Optional<String> read_result = FileSystem::ReadToString(file_path);
+    auto read_result = FileSystem::ReadToString(file_path);
     ASSERT_TRUE(read_result.HasValue());
     EXPECT_EQ(StringView(read_result->CStr(), read_result->ByteLen()), content);
 }
@@ -269,7 +269,7 @@ TEST_F(FileSystemReadWriteTest, WriteAndReadBinaryData)
     bool write_result = FileSystem::Write(file_path, original_data);
     ASSERT_TRUE(write_result);
 
-    Optional<Array<uint8>> read_result = FileSystem::Read(file_path);
+    auto read_result = FileSystem::ReadBytes(file_path);
     ASSERT_TRUE(read_result.HasValue());
     EXPECT_EQ(read_result->Len(), original_data.Len());
 
@@ -282,7 +282,7 @@ TEST_F(FileSystemReadWriteTest, WriteAndReadBinaryData)
 TEST_F(FileSystemReadWriteTest, ReadToStringReturnsNulloptForNonExistent)
 {
     Path non_existent = temp_dir / "non_existent.txt";
-    Optional<String> result = FileSystem::ReadToString(non_existent);
+    auto result = FileSystem::ReadToString(non_existent);
 
     EXPECT_FALSE(result.HasValue());
 }
@@ -290,7 +290,7 @@ TEST_F(FileSystemReadWriteTest, ReadToStringReturnsNulloptForNonExistent)
 TEST_F(FileSystemReadWriteTest, ReadReturnsNulloptForNonExistent)
 {
     Path non_existent = temp_dir / "non_existent.bin";
-    Optional<Array<uint8>> result = FileSystem::Read(non_existent);
+    auto result = FileSystem::ReadBytes(non_existent);
 
     EXPECT_FALSE(result.HasValue());
 }
@@ -469,7 +469,7 @@ TEST_F(FileSystemUtf8Test, WriteAndReadFileWithKoreanPath)
     bool write_result = FileSystem::WriteString(korean_path, content);
     ASSERT_TRUE(write_result);
 
-    Optional<String> read_result = FileSystem::ReadToString(korean_path);
+    auto read_result = FileSystem::ReadToString(korean_path);
     ASSERT_TRUE(read_result.HasValue());
     EXPECT_EQ(StringView(read_result->CStr(), read_result->ByteLen()), content);
 }

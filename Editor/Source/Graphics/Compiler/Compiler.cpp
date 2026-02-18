@@ -2,9 +2,9 @@
 
 #include <ranges>
 
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Graphics/ShaderUtils.h"
-#include "SimpleEngine/Utility/FileUtils.h"
 
 #include "SDL3_shadercross/SDL_shadercross.h"
 
@@ -22,7 +22,7 @@ SDL_GPUShader* CompileFromHLSL(
 {
     // read shader file
     Array<uint8> source;
-    if (auto result = FileIO::ReadBytes(shader_path))
+    if (auto result = FileSystem::ReadBytes(shader_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

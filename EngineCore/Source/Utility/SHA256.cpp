@@ -1,7 +1,7 @@
 #include "SimpleEngine/Utility/SHA256.h"
 
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Utility/FileUtils.h"
 
 #include "picosha2.h"
 
@@ -12,7 +12,7 @@ namespace se
 {
 String SHA256::HashFile(const Path& file_path)
 {
-    const FileResult<Array<uint8>> result = FileIO::ReadBytes(file_path);
+    const FileResult<Array<uint8>> result = FileSystem::ReadBytes(file_path);
     if (!result.HasValue())
     {
         ConsoleLog(ELogLevel::Error, "SHA256::HashFile - Failed to read file: {}, ", file_path, result.Error().What());
