@@ -5,6 +5,8 @@
 
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Traits.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/SerializationTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -15,7 +17,9 @@ namespace se
 // Forward declarations
 class Guid;
 class StringName;
-class TypeId;
+
+/** 리플렉션 기반 자동 직렬화 (TypeId 조회 후 프로퍼티 순회) */
+SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
 
 class Archive;
 
@@ -242,9 +246,9 @@ Archive& Archive::operator<<(T& value)
     }
 
     // Enum -> underlying type으로 변환 후 재귀
-    else if constexpr (std::is_enum_v<T>)
+    else if constexpr (std::is_enum_v<PureType>)
     {
-        using UnderlyingType = std::underlying_type_t<T>;
+        using UnderlyingType = std::underlying_type_t<PureType>;
         UnderlyingType temp = static_cast<UnderlyingType>(value);
         *this << temp;
         if (IsLoading())
@@ -288,10 +292,18 @@ Archive& Archive::operator<<(T& value)
     }
 
     // 커스텀 직렬화 함수가 있는 UDT (ADL 또는 멤버)
-    else if constexpr (traits::Serializable<T>)
+    else if constexpr (traits::Serializable<PureType>)
     {
         BeginObject();
         Serialize(*this, value);
+        EndObject();
+    }
+
+    // Fallback - 리플렉션 시스템에 등록된 타입은 AutoSerialize로 직렬화
+    else if constexpr (Reflectable<PureType>)
+    {
+        BeginObject();
+        AutoSerialize(*this, TypeId::Get<PureType>(), &value);
         EndObject();
     }
 
