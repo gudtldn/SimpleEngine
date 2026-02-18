@@ -8,7 +8,7 @@
 namespace se::asset
 {
 /**
- * @todo docs
+ * 소스 파일을 PipelineNode로 변환하는 인터페이스
  */
 class SE_CORE_API IPipelineTranslator
 {
