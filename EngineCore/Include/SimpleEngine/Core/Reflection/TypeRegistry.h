@@ -2,8 +2,9 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Reflection/TypeBuilder.h"
+#include "SimpleEngine/Core/Types/StringName.h"
 
 
 namespace se
@@ -84,6 +85,11 @@ const TypeInfo& TypeRegistry::FindChecked() const
 template <typename T>
 detail::TypeBuilder<T> TypeRegistry::Register()
 {
+    static_assert(
+        Reflectable<T>,
+        "Type T is not reflectable. Please use SE_CLASS() macro (intrusive) or specialize ReflectionTraits<T> (non-intrusive)."
+    );
+
     const TypeId id = TypeId::Get<T>();
 
     SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
