@@ -38,7 +38,7 @@ struct Reflect : target::Type
 {
     EReflectUsage usage;
 
-    explicit constexpr Reflect(EReflectUsage in_usage = EReflectUsage::Default)
+    constexpr Reflect(EReflectUsage in_usage)
         : usage(in_usage) {}
 };
 
@@ -120,10 +120,10 @@ struct Clamp : target::Field
 } // namespace tags
 
 // --- Type Annotation ---
-constexpr tags::Reflect   Reflect;                                       // (기본) 에디터 UI + 직렬화
-constexpr tags::Reflect   SerializeOnly{ EReflectUsage::SerializeOnly }; // UI 숨김 + 직렬화 (데이터 구조체, 패킷)
-constexpr tags::Reflect   EditorOnly{ EReflectUsage::EditorOnly };       // UI 표시 + 직렬화 제외 (런타임 디버그 윈도우 등)
-constexpr tags::Reflect   Internal{ EReflectUsage::Internal };           // UI 숨김 + 직렬화 제외 (코드 레벨 리플렉션만 필요)
+constexpr tags::Reflect   Reflect       = EReflectUsage::Default;       // (기본) 에디터 UI + 직렬화
+constexpr tags::Reflect   SerializeOnly = EReflectUsage::SerializeOnly; // UI 숨김 + 직렬화 (데이터 구조체, 패킷)
+constexpr tags::Reflect   EditorOnly    = EReflectUsage::EditorOnly;    // UI 표시 + 직렬화 제외 (런타임 디버그 윈도우 등)
+constexpr tags::Reflect   Internal      = EReflectUsage::Internal;      // UI 숨김 + 직렬화 제외 (코드 레벨 리플렉션만 필요)
 
 constexpr tags::Component Component;  // ECS 엔티티 컴포넌트
 constexpr tags::Abstract  Abstract;   // 추상 클래스
