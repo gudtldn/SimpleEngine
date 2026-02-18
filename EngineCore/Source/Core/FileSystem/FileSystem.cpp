@@ -183,22 +183,27 @@ Optional<usize> FileSystem::FileSize(const Path& path)
     return static_cast<usize>(size);
 }
 
-Optional<String> FileSystem::ReadToString(const Path& path)
+FileResult<String> FileSystem::ReadToString(const Path& path)
 {
+    const String path_str = path.ToString();
+
     std::ifstream file(ToStdPath(path), std::ios::in | std::ios::binary);
     if (!file.is_open())
     {
-        return std::nullopt;
+        if (!path.Exists())
+        {
+            return Unexpected{ FileReadError::NotFound("File not found: " + path_str) };
+        }
+        return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path_str) };
     }
 
-    // 파일 크기 확인
     file.seekg(0, std::ios::end);
     const auto size = file.tellg();
     file.seekg(0, std::ios::beg);
 
     if (size < 0)
     {
-        return std::nullopt;
+        return Unexpected{ FileReadError::EndOfFile("File size error: " + path_str) };
     }
 
     // 문자열로 읽기
@@ -208,28 +213,33 @@ Optional<String> FileSystem::ReadToString(const Path& path)
 
     if (file.fail() && !file.eof())
     {
-        return std::nullopt;
+        return Unexpected{ FileReadError::Read("Failed to read file: " + path_str) };
     }
 
     return content;
 }
 
-Optional<Array<uint8>> FileSystem::Read(const Path& path)
+FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
 {
+    const String path_str = path.ToString();
+
     std::ifstream file(ToStdPath(path), std::ios::in | std::ios::binary);
     if (!file.is_open())
     {
-        return std::nullopt;
+        if (!path.Exists())
+        {
+            return Unexpected{ FileReadError::NotFound("File not found: " + path_str) };
+        }
+        return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path_str) };
     }
 
-    // 파일 크기 확인
     file.seekg(0, std::ios::end);
     const auto size = file.tellg();
     file.seekg(0, std::ios::beg);
 
     if (size < 0)
     {
-        return std::nullopt;
+        return Unexpected{ FileReadError::EndOfFile("File size error: " + path_str) };
     }
 
     // 바이트 배열로 읽기
@@ -239,7 +249,7 @@ Optional<Array<uint8>> FileSystem::Read(const Path& path)
 
     if (file.fail() && !file.eof())
     {
-        return std::nullopt;
+        return Unexpected{ FileReadError::Read("Failed to read file: " + path_str) };
     }
 
     return data;

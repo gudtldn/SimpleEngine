@@ -6,12 +6,65 @@
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/Error/Expected.h"
+#include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se
 {
+// =============================================================================
+// FileReadError / FileResult
+// =============================================================================
+
+class FileReadError : public IError
+{
+public:
+    enum class EType
+    {
+        FileNotFound,     // 파일이 존재하지 않음
+        FileOpenFailed,   // 파일 열기 실패
+        PermissionDenied, // 권한 문제
+        InvalidFormat,    // 파일/데이터 포맷 이상
+        ReadFailed,       // 읽기 실패
+        WriteFailed,      // 쓰기 실패
+        UnexpectedEOF,    // 끝까지 읽지 못함, 예기치 않은 EOF
+        OutOfMemory,      // 메모리 부족
+        UnknownError      // 알 수 없는 에러
+    };
+
+    static FileReadError NotFound(String&& msg)   { return { EType::FileNotFound,     std::move(msg) }; }
+    static FileReadError OpenFailed(String&& msg) { return { EType::FileOpenFailed,   std::move(msg) }; }
+    static FileReadError Permission(String&& msg) { return { EType::PermissionDenied, std::move(msg) }; }
+    static FileReadError Format(String&& msg)     { return { EType::InvalidFormat,    std::move(msg) }; }
+    static FileReadError Read(String&& msg)       { return { EType::ReadFailed,       std::move(msg) }; }
+    static FileReadError Write(String&& msg)      { return { EType::WriteFailed,      std::move(msg) }; }
+    static FileReadError EndOfFile(String&& msg)  { return { EType::UnexpectedEOF,    std::move(msg) }; }
+    static FileReadError OutOfMem(String&& msg)   { return { EType::OutOfMemory,      std::move(msg) }; }
+    static FileReadError Unknown(String&& msg)    { return { EType::UnknownError,     std::move(msg) }; }
+
+    [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
+    [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
+
+    [[nodiscard]] EType GetType() const noexcept { return type; }
+
+private:
+    FileReadError(EType in_type, String&& msg)
+        : type(in_type), message(std::move(msg)) {}
+
+    EType type;
+    String message;
+};
+
+template <typename T>
+using FileResult = Expected<T, FileReadError>;
+
+
+// =============================================================================
+// DirectoryEntry / DirectoryIterator
+// =============================================================================
+
 /**
  * 파일 또는 디렉토리의 정보를 담고 있는 구조체
  */
@@ -175,16 +228,16 @@ struct SE_CORE_API FileSystem
     /**
      * 파일 전체 내용을 문자열로 읽습니다.
      * @param path 파일 경로
-     * @return 파일 내용. 실패 시 nullopt
+     * @return 파일 내용. 실패 시 FileReadError
      */
-    [[nodiscard]] static Optional<String> ReadToString(const Path& path);
+    [[nodiscard]] static FileResult<String> ReadToString(const Path& path);
 
     /**
      * 파일 전체 내용을 바이트 배열로 읽습니다.
      * @param path 파일 경로
-     * @return 파일 내용. 실패 시 nullopt
+     * @return 파일 내용. 실패 시 FileReadError
      */
-    [[nodiscard]] static Optional<Array<uint8>> Read(const Path& path);
+    [[nodiscard]] static FileResult<Array<uint8>> ReadBytes(const Path& path);
 
     /**
      * 문자열을 파일에 씁니다. (기존 내용 덮어쓰기)

@@ -211,7 +211,7 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
 {
     ZoneScopedN("AssetRegistry::LoadFromFile");
 
-    const Optional buffer_opt = FileSystem::Read(file_path);
+    const auto buffer_opt = FileSystem::ReadBytes(file_path);
     if (!buffer_opt.HasValue())
     {
         ConsoleLog(ELogLevel::Warning, "AssetRegistry::LoadFromFile - File not found: {}", file_path);
