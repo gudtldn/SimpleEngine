@@ -14,3 +14,5 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) MaterialHandl
     asset::AssetId material_id;
 };
 }  // namespace se
+
+SE_DECLARE_REFLECTION(se::MaterialHandleComponent)

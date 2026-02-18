@@ -15,3 +15,5 @@ public:
     Entity parent;
 };
 }  // namespace se
+
+SE_DECLARE_REFLECTION(se::ParentComponent)

@@ -20,3 +20,5 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) Camera3dCompo
     double far_plane = 10'000.0;
 };
 }  // namespace se
+
+SE_DECLARE_REFLECTION(se::Camera3dComponent)

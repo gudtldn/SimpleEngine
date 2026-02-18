@@ -156,33 +156,39 @@ enum class ETestColor : uint8
 // ============================================================================
 using namespace autoserialize_test;
 
+SE_DECLARE_REFLECTION(SimpleData)
 SE_BEGIN_REFLECT(SimpleData, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(x, meta::Property)
-SE_REFLECT_PROPERTY(y, meta::Property)
-SE_REFLECT_PROPERTY(name, meta::Property)
+    SE_REFLECT_PROPERTY(x, meta::Property)
+    SE_REFLECT_PROPERTY(y, meta::Property)
+    SE_REFLECT_PROPERTY(name, meta::Property)
 SE_END_REFLECT(SimpleData)
 
+SE_DECLARE_REFLECTION(BaseData)
 SE_BEGIN_REFLECT(BaseData, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(base_val, meta::Property)
-SE_REFLECT_PROPERTY(base_name, meta::Property)
+    SE_REFLECT_PROPERTY(base_val, meta::Property)
+    SE_REFLECT_PROPERTY(base_name, meta::Property)
 SE_END_REFLECT(BaseData)
 
+SE_DECLARE_REFLECTION(DerivedData)
 SE_BEGIN_REFLECT(DerivedData, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(derived_val, meta::Property)
-SE_REFLECT_PROPERTY(derived_extra, meta::Property)
+    SE_REFLECT_PROPERTY(derived_val, meta::Property)
+    SE_REFLECT_PROPERTY(derived_extra, meta::Property)
 SE_END_REFLECT(DerivedData)
 
+SE_DECLARE_REFLECTION(TransientData)
 SE_BEGIN_REFLECT(TransientData, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(saved_val, meta::Property)
-SE_REFLECT_PROPERTY(transient_val, meta::Transient)
+    SE_REFLECT_PROPERTY(saved_val, meta::Property)
+    SE_REFLECT_PROPERTY(transient_val, meta::Transient)
 SE_END_REFLECT(TransientData)
 
+SE_DECLARE_REFLECTION(EmptyReflected)
 SE_BEGIN_REFLECT(EmptyReflected, meta::SerializeOnly)
 SE_END_REFLECT(EmptyReflected)
 
+SE_DECLARE_REFLECTION(ContainerData)
 SE_BEGIN_REFLECT(ContainerData, meta::SerializeOnly)
-SE_REFLECT_PROPERTY(numbers, meta::Property)
-SE_REFLECT_PROPERTY(scores, meta::Property)
+    SE_REFLECT_PROPERTY(numbers, meta::Property)
+    SE_REFLECT_PROPERTY(scores, meta::Property)
 SE_END_REFLECT(ContainerData)
 
 SE_REFLECT_ENUM(ETestColor)

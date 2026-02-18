@@ -118,6 +118,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) RootSettings
 // ============================================================================
 using namespace config_test;
 
+SE_DECLARE_REFLECTION(WindowSettings)
 SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(width, meta::Property)
     SE_REFLECT_PROPERTY(height, meta::Property)
@@ -126,31 +127,37 @@ SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(scale, meta::Property)
 SE_END_REFLECT(WindowSettings)
 
+SE_DECLARE_REFLECTION(GraphicsSettings)
 SE_BEGIN_REFLECT(GraphicsSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(vsync, meta::Property)
     SE_REFLECT_PROPERTY(max_fps, meta::Property)
     SE_REFLECT_PROPERTY(shaders, meta::Property)
 SE_END_REFLECT(GraphicsSettings)
 
+SE_DECLARE_REFLECTION(LoggingSettings)
 SE_BEGIN_REFLECT(LoggingSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(level, meta::Property)
     SE_REFLECT_PROPERTY(output_to_file, meta::Property)
     SE_REFLECT_PROPERTY(log_file_path, meta::Property)
 SE_END_REFLECT(LoggingSettings)
 
+SE_DECLARE_REFLECTION(TransientSettings)
 SE_BEGIN_REFLECT(TransientSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(saved_val, meta::Property)
     SE_REFLECT_PROPERTY(transient_val, meta::Transient)
 SE_END_REFLECT(TransientSettings)
 
+SE_DECLARE_REFLECTION(EmptySettings)
 SE_BEGIN_REFLECT(EmptySettings, meta::SerializeOnly)
 SE_END_REFLECT(EmptySettings)
 
+SE_DECLARE_REFLECTION(ContainerSettings)
 SE_BEGIN_REFLECT(ContainerSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(numbers, meta::Property)
     SE_REFLECT_PROPERTY(scores, meta::Property)
 SE_END_REFLECT(ContainerSettings)
 
+SE_DECLARE_REFLECTION(RootSettings)
 SE_BEGIN_REFLECT(RootSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(title, meta::Property)
     SE_REFLECT_PROPERTY(engine_version, meta::Property)

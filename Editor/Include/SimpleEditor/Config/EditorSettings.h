@@ -108,3 +108,9 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
     bool operator==(const GraphicsSettings&) const = default;
 };
 }  // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::WindowSettings)
+SE_DECLARE_REFLECTION(se::editor::EditorUISettings)
+SE_DECLARE_REFLECTION(se::editor::ConsoleSettings)
+SE_DECLARE_REFLECTION(se::editor::PerformanceSettings)
+SE_DECLARE_REFLECTION(se::editor::GraphicsSettings)

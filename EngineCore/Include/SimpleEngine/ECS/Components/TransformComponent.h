@@ -20,3 +20,5 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) TransformComp
     Vector3 scale = Vector3::One();
 };
 }  // namespace se
+
+SE_DECLARE_REFLECTION(se::TransformComponent)
