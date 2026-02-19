@@ -13,3 +13,6 @@
 [submodule "ThirdParty/assimp"]
 	path = ThirdParty/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "ThirdParty/picosha2"]
+	path = ThirdParty/picosha2
+	url = https://github.com/okdshin/PicoSHA2.git
