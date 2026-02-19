@@ -12,14 +12,29 @@ namespace se
 {
 String SHA256::HashFile(const Path& file_path)
 {
-    const FileResult<Array<uint8>> result = FileSystem::ReadBytes(file_path);
-    if (!result.HasValue())
+    picosha2::hash256_one_by_one hasher;
+
+    // 청크 사이즈 설정 (4MB)
+    constexpr usize chunk_size = 4ULL * 1024 * 1024;
+
+    const FileResult result = FileSystem::ReadChunked(file_path, chunk_size, [&hasher](ArrayView<const uint8> chunk)
     {
-        ConsoleLog(ELogLevel::Error, "SHA256::HashFile - Failed to read file: {}, ", file_path, result.Error().What());
+        hasher.process(chunk.begin(), chunk.end());
+        return true;
+    });
+
+    if (!result)
+    {
+        ConsoleLog(ELogLevel::Error, "SHA256::HashFile - {}", result.Error().What());
         return {};
     }
 
-    return HashBytes(result.Value());
+    hasher.finish();
+
+    std::string hex_str;
+    picosha2::get_hash_hex_string(hasher, hex_str);
+
+    return String::Format("sha256:{}", hex_str.c_str());
 }
 
 String SHA256::HashBytes(const Array<uint8>& data)
