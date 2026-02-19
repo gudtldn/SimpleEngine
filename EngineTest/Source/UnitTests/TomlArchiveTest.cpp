@@ -446,6 +446,118 @@ struct TypeIdKeyNestedMapData
         ar("type_nested_map") << data.type_nested_map;
     }
 };
+
+// -------------------------------------------------------------------------
+// BeginMap-with-no-pending-key Fix 관련 TC용 구조체
+// -------------------------------------------------------------------------
+
+// ImportConfig 패턴 재현:
+// Serialize 내부에서 직접 BeginMap/EndMap을 호출하는 Serializable 타입.
+// 이 타입을 루트에 직접 쓰면, operator<< 가 BeginObject(pending_key 없음)로 감싼 뒤
+// Serialize 안에서 BeginMap(pending_key 없음)을 호출한다.
+// 수정 전에는 InsertNewNode assert로 crash.
+struct ExplicitMapStruct
+{
+    HashMap<String, int32> entries;
+
+    bool operator==(const ExplicitMapStruct&) const = default;
+
+    friend void Serialize(Archive& ar, ExplicitMapStruct& data)
+    {
+        uint64 count = data.entries.Len();
+        ar.BeginMap(count);
+        if (ar.IsLoading())
+        {
+            data.entries.Clear();
+            for (uint64 i = 0; i < count; ++i)
+            {
+                String key;
+                ar.BeginMapKey();
+                ar << key;
+                ar.EndMapKey();
+
+                int32 value = 0;
+                ar.BeginMapValue();
+                ar << value;
+                ar.EndMapValue();
+
+                data.entries.Insert(std::move(key), value);
+            }
+        }
+        else
+        {
+            for (auto& [k, v] : data.entries)
+            {
+                ar.BeginMapKey();
+                ar << const_cast<String&>(k);
+                ar.EndMapKey();
+
+                ar.BeginMapValue();
+                ar << v;
+                ar.EndMapValue();
+            }
+        }
+        ar.EndMap();
+    }
+};
+
+// ExplicitMapStruct를 키가 있는 필드로 포함하는 외부 구조체
+struct OuterWithExplicitMap
+{
+    int32 prefix = 0;
+    ExplicitMapStruct inner;
+    int32 suffix = 0;
+
+    bool operator==(const OuterWithExplicitMap&) const = default;
+
+    friend void Serialize(Archive& ar, OuterWithExplicitMap& data)
+    {
+        ar("prefix") << data.prefix;
+        ar("inner") << data.inner;
+        ar("suffix") << data.suffix;
+    }
+};
+
+// ExplicitMapStruct의 배열
+struct ArrayOfExplicitMap
+{
+    Array<ExplicitMapStruct> items;
+
+    bool operator==(const ArrayOfExplicitMap&) const = default;
+
+    friend void Serialize(Archive& ar, ArrayOfExplicitMap& data)
+    {
+        ar("items") << data.items;
+    }
+};
+
+// ExplicitMapStruct를 값으로 갖는 Map
+struct MapValueIsExplicitMap
+{
+    HashMap<String, ExplicitMapStruct> map;
+
+    friend void Serialize(Archive& ar, MapValueIsExplicitMap& data)
+    {
+        ar("map") << data.map;
+    }
+};
+
+// MetaFileContent 패턴 재현:
+// Serializable 타입 A(metadata)와 명시적 BeginMap을 쓰는 Serializable 타입 B(import_settings)를
+// 키를 붙여 순서대로 직렬화하는 래퍼 구조체.
+struct SimulatedMetaContent
+{
+    NestedData metadata;
+    ExplicitMapStruct import_settings;
+
+    bool operator==(const SimulatedMetaContent&) const = default;
+
+    friend void Serialize(Archive& ar, SimulatedMetaContent& content)
+    {
+        ar("metadata") << content.metadata;
+        ar("import_settings") << content.import_settings;
+    }
+};
 }
 
 TEST_F(TomlArchiveTest, ReadAndWrite)
@@ -1262,4 +1374,223 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
     EXPECT_FLOAT_EQ(read_data.type_nested_map[transform_id].val, 1.5f);
     EXPECT_EQ(read_data.type_nested_map[subsystem_id].str, "nested_subsystem");
     EXPECT_FLOAT_EQ(read_data.type_nested_map[subsystem_id].val, 2.5f);
+}
+
+// =========================================================================
+// BeginMap with no pending_key Fix 검증 TC
+//
+// 배경: operator<< 가 Serializable 타입을 BeginObject/EndObject 로 감싸고, 그 안의
+//       Serialize 에서 BeginMap 을 호출하면 pending_key 가 이미 소비된 상태(비어있음).
+//       수정 전 TomlWriter::BeginMap / TomlReader::BeginMap 은 pending_key 가 없으면
+//       InsertNewNode assert 로 crash. 수정 후에는 BeginObject 와 동일하게
+//       현재 컨텍스트를 MapMode 로 재사용한다.
+// =========================================================================
+
+// 1. ExplicitMapStruct 를 루트에 직접 쓰는 경우
+//    operator<<(Serializable) → BeginObject(no key) → Serialize → BeginMap(no key)
+TEST_F(TomlArchiveTest, ExplicitMapStructAtRoot)
+{
+    ExplicitMapStruct original;
+    original.entries.Insert("alpha", 1);
+    original.entries.Insert("beta",  2);
+    original.entries.Insert("gamma", 3);
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    ExplicitMapStruct result;
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_EQ(result, original);
+    EXPECT_EQ(result.entries.Len(), 3);
+    EXPECT_EQ(result.entries["alpha"], 1);
+    EXPECT_EQ(result.entries["beta"],  2);
+    EXPECT_EQ(result.entries["gamma"], 3);
+}
+
+// 2. ExplicitMapStruct 를 키가 있는 필드로 포함하는 외부 구조체
+//    inner 필드는 BeginObject("inner") → Serialize → BeginMap(no key) 경로
+TEST_F(TomlArchiveTest, ExplicitMapStructNestedUnderKey)
+{
+    OuterWithExplicitMap original;
+    original.prefix = 100;
+    original.inner.entries.Insert("x", 10);
+    original.inner.entries.Insert("y", 20);
+    original.suffix = 200;
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    OuterWithExplicitMap result;
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_EQ(result, original);
+    EXPECT_EQ(result.prefix, 100);
+    EXPECT_EQ(result.suffix, 200);
+    EXPECT_EQ(result.inner.entries.Len(), 2);
+    EXPECT_EQ(result.inner.entries["x"], 10);
+    EXPECT_EQ(result.inner.entries["y"], 20);
+}
+
+// 3. ExplicitMapStruct 의 배열
+//    배열 요소마다 BeginObject(array mode) → Serialize → BeginMap(array mode, no key)
+//    → 기존 array element 컨텍스트를 MapMode 로 재사용해야 함
+TEST_F(TomlArchiveTest, ArrayOfExplicitMapStruct)
+{
+    ArrayOfExplicitMap original;
+    ExplicitMapStruct elem0;
+    elem0.entries.Insert("a", 1);
+    elem0.entries.Insert("b", 2);
+    ExplicitMapStruct elem1;
+    elem1.entries.Insert("c", 3);
+    original.items.Push(std::move(elem0));
+    original.items.Push(std::move(elem1));
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    ArrayOfExplicitMap result;
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_EQ(result, original);
+    ASSERT_EQ(result.items.Len(), 2);
+    EXPECT_EQ(result.items[0].entries.Len(), 2);
+    EXPECT_EQ(result.items[0].entries["a"], 1);
+    EXPECT_EQ(result.items[0].entries["b"], 2);
+    EXPECT_EQ(result.items[1].entries.Len(), 1);
+    EXPECT_EQ(result.items[1].entries["c"], 3);
+}
+
+// 4. ExplicitMapStruct 를 값으로 갖는 Map
+//    Map value = Serializable(ExplicitMapStruct) → BeginObject(key 有) → Serialize → BeginMap(no key)
+TEST_F(TomlArchiveTest, MapValueIsExplicitMapStruct)
+{
+    MapValueIsExplicitMap original;
+    ExplicitMapStruct v1;
+    v1.entries.Insert("p", 10);
+    v1.entries.Insert("q", 20);
+    ExplicitMapStruct v2;
+    v2.entries.Insert("r", 30);
+    original.map.Insert("first",  std::move(v1));
+    original.map.Insert("second", std::move(v2));
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    MapValueIsExplicitMap result;
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_EQ(result.map.Len(), 2);
+    EXPECT_EQ(result.map["first"].entries.Len(), 2);
+    EXPECT_EQ(result.map["first"].entries["p"], 10);
+    EXPECT_EQ(result.map["first"].entries["q"], 20);
+    EXPECT_EQ(result.map["second"].entries.Len(), 1);
+    EXPECT_EQ(result.map["second"].entries["r"], 30);
+}
+
+// 5. MetaFileContent 패턴 재현
+//    NestedData(Reflectable) + ExplicitMapStruct(Serializable with explicit BeginMap)
+//    를 각각 키를 붙여 직렬화한다.
+//    ar("metadata") << nested   → BeginObject("metadata") → AutoSerialize
+//    ar("import_settings") << explicit_map → BeginObject("import_settings") → BeginMap(no key)
+TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
+{
+    SimulatedMetaContent original;
+    original.metadata = { "meta_string", 9.9f };
+    original.import_settings.entries.Insert("scale",   100);
+    original.import_settings.entries.Insert("lod_bias", 2);
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    // TOML 구조 sanity check
+    ASSERT_TRUE(tbl["metadata"].is_table());
+    ASSERT_TRUE(tbl["import_settings"].is_table());
+
+    SimulatedMetaContent result;
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_EQ(result, original);
+    EXPECT_EQ(result.metadata.str, "meta_string");
+    EXPECT_FLOAT_EQ(result.metadata.val, 9.9f);
+    EXPECT_EQ(result.import_settings.entries.Len(), 2);
+    EXPECT_EQ(result.import_settings.entries["scale"],    100);
+    EXPECT_EQ(result.import_settings.entries["lod_bias"],   2);
+}
+
+// 6. HashMap 을 루트에 직접 쓰는 경우 (operator<<(MapLike) → BeginMap(no key))
+TEST_F(TomlArchiveTest, HashMapAtRoot)
+{
+    HashMap<String, int32> original;
+    original.Insert("one",   1);
+    original.Insert("two",   2);
+    original.Insert("three", 3);
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    HashMap<String, int32> result;
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_EQ(result.Len(), 3);
+    EXPECT_EQ(result["one"],   1);
+    EXPECT_EQ(result["two"],   2);
+    EXPECT_EQ(result["three"], 3);
+}
+
+// 7. ExplicitMapStruct 가 비어있을 때 루트에 직접 쓰는 경우
+TEST_F(TomlArchiveTest, ExplicitMapStructEmptyAtRoot)
+{
+    ExplicitMapStruct original; // entries 비어있음
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    ExplicitMapStruct result;
+    result.entries.Insert("should_be_cleared", 999); // 기존값이 있어도 clear 되어야 함
+    {
+        TomlReader reader(tbl);
+        reader << result;
+    }
+
+    EXPECT_TRUE(result.entries.IsEmpty());
 }

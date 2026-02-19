@@ -118,6 +118,30 @@ void TomlReader::EndArray()
 
 void TomlReader::BeginMap(uint64& count)
 {
+    const Context& ctx = GetCurrentContext();
+
+    // Key가 지정되지 않은 경우
+    if (pending_key.IsEmpty())
+    {
+        // 최상위 Root 노드 자체를 Map으로 열려는 의도인지 확인
+        const toml::node* root_node = context_stack.Front().Value().node;
+        if (SE_ENSURE(ctx.node == root_node, "TomlReader::BeginMap - Missing key! This is not the Root node."))
+        {
+            if (SE_ENSURE(ctx.node && ctx.node->is_table(), "TomlReader::BeginMap - Root node is not a table."))
+            {
+                toml::table* tbl = ctx.node->as_table();
+                count = tbl->size();
+                context_stack.Push({
+                    .node = tbl,
+                    .mode = EContextMode::MapMode,
+                    .map_it = tbl->begin(),
+                    .map_end = tbl->end(),
+                });
+            }
+            return;
+        }
+    }
+
     toml::node* sub_node = GetCurrentNode();
     if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader::BeginMap - Expected a table node. (pending_key: '{}')", pending_key))
     {
@@ -480,6 +504,23 @@ void TomlWriter::EndArray()
 
 void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
 {
+    const Context& ctx = GetCurrentContext();
+
+    // Key가 지정되지 않은 경우
+    if (pending_key.IsEmpty())
+    {
+        // 최상위 Root 노드 자체를 Map으로 열려는 의도인지 확인
+        const toml::node* root_node = context_stack.Front().Value().node;
+        if (SE_ENSURE(ctx.node == root_node, "TomlWriter::BeginMap - Missing key! Cannot open an anonymous map unless it is the Root node."))
+        {
+            context_stack.Push({
+                .node = ctx.node,
+                .mode = EContextMode::MapMode,
+            });
+        }
+        return;
+    }
+
     // Map을 TOML table로 표현
     toml::table* tbl = InsertNewNode<toml::table>(toml::table{});
     SE_ENSURE(tbl, "TomlWriter::BeginMap - Failed to insert new table node.");
