@@ -5,6 +5,7 @@
     <mapping directory="$PROJECT_DIR$/ThirdParty/assimp" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/cpu_features" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ThirdParty/picosha2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/tomlplusplus" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/tracy" vcs="Git" />
   </component>

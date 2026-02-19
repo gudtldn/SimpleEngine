@@ -1,6 +1,9 @@
 add_subdirectory(tracy EXCLUDE_FROM_ALL)
 set_property(TARGET TracyClient PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
+add_subdirectory(picosha2 EXCLUDE_FROM_ALL)
+
 # ---------------------------------------------------------------------------
 # Assimp CMake Option
 # https://github.com/assimp/assimp/blob/master/Build.md#cmake-build-options
@@ -26,8 +29,6 @@ set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(assimp EXCLUDE_FROM_ALL)
 # ---------------------------------------------------------------------------
-
-add_subdirectory(tomlplusplus EXCLUDE_FROM_ALL)
 
 # cpu_features는 dllexport를 지원하지 않으므로 반드시 정적 빌드
 set(BUILD_SHARED_LIBS_BACKUP ${BUILD_SHARED_LIBS})
@@ -65,9 +66,3 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui PRIVATE SDL3::SDL3)
-
-# picosha2 (header-only SHA-256 라이브러리)
-add_library(picosha2 INTERFACE)
-target_include_directories(picosha2 INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/picosha2
-)
