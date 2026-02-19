@@ -1,5 +1,6 @@
 #pragma once
-#include "SimpleEngine/Core/Container/Stack.h"
+
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
@@ -21,7 +22,7 @@ class SE_CORE_API TomlArchive : public Archive
 {
 protected:
     /** 현재 탐색 중인 노드의 모드를 나타내는 Enum */
-    enum class EMode : uint8
+    enum class EContextMode : uint8
     {
         None,
         ArrayMode,
@@ -31,15 +32,18 @@ protected:
     /** 현재 탐색 중인 노드의 상태를 나타내는 컨텍스트 */
     struct Context
     {
-        toml::node* node = nullptr; // 현재 포커스된 노드 (Table or Array)
-        EMode mode = EMode::None;
+        // 현재 포커스된 노드 (Table or Array)
+        toml::node* node = nullptr;
+
+        // 현재 node의 모드
+        EContextMode mode = EContextMode::None;
 
         usize array_idx = 0;           // 배열 인덱스 (ArrayMode일 때만 유효)
         toml::table::iterator map_it;  // 현재 순회 중인 Map iterator (MapMode일 때만 유효)
         toml::table::iterator map_end; // Map 끝 iterator (MapMode일 때만 유효)
 
-        [[nodiscard]] bool IsArray() const { return mode == EMode::ArrayMode; }
-        [[nodiscard]] bool IsMap() const { return mode == EMode::MapMode; }
+        [[nodiscard]] bool IsArray() const { return mode == EContextMode::ArrayMode; }
+        [[nodiscard]] bool IsMap() const { return mode == EContextMode::MapMode; }
     };
 
 public:
@@ -57,7 +61,7 @@ protected:
     StringView pending_key;
 
     /** TOML 직렬화 시스템에서 노드 탐색 상태를 관리하기 위한 Context Stack */
-    Stack<Context> context_stack;
+    Array<Context> context_stack;
 };
 
 

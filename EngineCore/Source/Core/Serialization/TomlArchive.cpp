@@ -42,7 +42,7 @@ namespace se
 TomlArchive::Context& TomlArchive::GetCurrentContext()
 {
     SE_ASSERT(!context_stack.IsEmpty(), "Context stack underflow!");
-    return context_stack.Top().Value();
+    return context_stack.Back().Value();
 }
 
 
@@ -52,7 +52,7 @@ TomlReader::TomlReader(const toml::table& root)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
-        .mode = EMode::None,
+        .mode = EContextMode::None,
     });
 }
 
@@ -70,14 +70,14 @@ void TomlReader::BeginObject()
     {
         context_stack.Push({
             .node = sub_node,
-            .mode = EMode::None,
+            .mode = EContextMode::None,
         });
     }
     else
     {
         context_stack.Push({
             .node = nullptr,
-            .mode = EMode::None,
+            .mode = EContextMode::None,
         });
     }
 }
@@ -96,7 +96,7 @@ void TomlReader::BeginArray(uint64& count)
         count = arr->size();
         context_stack.Push({
             .node = arr,
-            .mode = EMode::ArrayMode,
+            .mode = EContextMode::ArrayMode,
             .array_idx = 0,
         });
     }
@@ -105,7 +105,7 @@ void TomlReader::BeginArray(uint64& count)
         count = 0;
         context_stack.Push({
             .node = nullptr,
-            .mode = EMode::ArrayMode,
+            .mode = EContextMode::ArrayMode,
             .array_idx = 0,
         });
     }
@@ -125,7 +125,7 @@ void TomlReader::BeginMap(uint64& count)
         count = tbl->size();
         context_stack.Push({
             .node = tbl,
-            .mode = EMode::MapMode,
+            .mode = EContextMode::MapMode,
             .map_it = tbl->begin(),
             .map_end = tbl->end(),
         });
@@ -136,7 +136,7 @@ void TomlReader::BeginMap(uint64& count)
         static toml::table empty_table;
         context_stack.Push({
             .node = nullptr,
-            .mode = EMode::MapMode,
+            .mode = EContextMode::MapMode,
             .map_it = empty_table.begin(),
             .map_end = empty_table.end(),
         });
@@ -438,7 +438,7 @@ TomlWriter::TomlWriter(toml::table& root)
 {
     context_stack.Push({
         .node = &root,
-        .mode = EMode::None,
+        .mode = EContextMode::None,
     });
 }
 
@@ -453,7 +453,7 @@ void TomlWriter::BeginObject()
 
     context_stack.Push({
         .node = InsertNewNode<toml::table>(toml::table{}),
-        .mode = EMode::None,
+        .mode = EContextMode::None,
     });
 }
 
@@ -468,7 +468,7 @@ void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
     SE_ENSURE(arr, "TomlWriter::BeginArray - Failed to insert new array node.");
     context_stack.Push({
         .node = arr,
-        .mode = EMode::ArrayMode,
+        .mode = EContextMode::ArrayMode,
         .array_idx = 0,
     });
 }
@@ -485,7 +485,7 @@ void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
     SE_ENSURE(tbl, "TomlWriter::BeginMap - Failed to insert new table node.");
     context_stack.Push({
         .node = tbl,
-        .mode = EMode::MapMode,
+        .mode = EContextMode::MapMode,
     });
 }
 
