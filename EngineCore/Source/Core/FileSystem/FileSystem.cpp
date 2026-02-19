@@ -255,6 +255,54 @@ FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
     return data;
 }
 
+FileResult<void> FileSystem::ReadChunked(const Path& path, usize chunk_size, const Function<bool(ArrayView<const uint8>)>& callback)
+{
+    const String path_str = path.ToString();
+
+    std::ifstream file(ToStdPath(path), std::ios::in | std::ios::binary);
+    if (!file.is_open())
+    {
+        if (!path.Exists())
+        {
+            return Unexpected{ FileReadError::NotFound("File not found: " + path_str) };
+        }
+        return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path_str) };
+    }
+
+    // 청크 버퍼 할당
+    Array<uint8> buffer;
+    buffer.ResizeUninitialized(chunk_size);
+
+    while (file)
+    {
+        // 파일에서 청크 사이즈만큼 읽기 시도
+        file.read(reinterpret_cast<char*>(buffer.Data()), static_cast<std::streamsize>(chunk_size));
+        const std::streamsize bytes_read = file.gcount();
+
+        if (bytes_read > 0)
+        {
+            // 실제 읽어들인 크기만큼 ArrayView를 만들어 Callback으로 전달
+            ArrayView<const uint8> chunk_view(buffer.Data(), static_cast<usize>(bytes_read));
+            if (!callback(chunk_view))
+            {
+                break;
+            }
+        }
+
+        if (file.eof())
+        {
+            break;
+        }
+
+        if (file.fail())
+        {
+            return Unexpected{ FileReadError::Read("Failed to read file: " + path_str) };
+        }
+    }
+
+    return {};
+}
+
 bool FileSystem::WriteString(const Path& path, StringView content)
 {
     std::ofstream file(ToStdPath(path), std::ios::out | std::ios::binary | std::ios::trunc);
@@ -283,5 +331,4 @@ DirectoryIterator FileSystem::ReadDir(const Path& path)
 {
     return DirectoryIterator{ path };
 }
-
-}  // namespace se
+} // namespace se

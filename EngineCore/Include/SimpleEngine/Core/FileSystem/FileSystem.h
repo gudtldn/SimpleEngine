@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Error/IError.h"
+#include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
@@ -238,6 +239,18 @@ struct SE_CORE_API FileSystem
      * @return 파일 내용. 실패 시 FileReadError
      */
     [[nodiscard]] static FileResult<Array<uint8>> ReadBytes(const Path& path);
+
+    /**
+     * 파일을 고정된 크기의 청크 단위로 읽어 Callback으로 전달합니다.
+     * @param path 파일 경로
+     * @param chunk_size 한 번에 읽을 데이터의 최대 크기 (Bytes)
+     * @param callback 읽은 데이터를 처리할 Callback 함수. false를 반환하면 읽기가 즉시 중단됩니다.
+     */
+    static FileResult<void> ReadChunked(
+        const Path& path,
+        usize chunk_size,
+        const Function<bool(ArrayView<const uint8>)>& callback
+    );
 
     /**
      * 문자열을 파일에 씁니다. (기존 내용 덮어쓰기)
