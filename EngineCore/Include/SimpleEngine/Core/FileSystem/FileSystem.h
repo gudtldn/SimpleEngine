@@ -90,6 +90,9 @@ public:
     /** 파일 크기를 반환합니다. (파일이 아닌 경우 0) */
     [[nodiscard]] usize FileSize() const;
 
+    /** 마지막 수정 시간을 반환합니다. */
+    [[nodiscard]] uint64 LastWriteTime() const;
+
 private:
     std::filesystem::directory_entry internal_entry;
 };
@@ -221,9 +224,15 @@ struct SE_CORE_API FileSystem
      */
     [[nodiscard]] static Optional<usize> FileSize(const Path& path);
 
+    /**
+     * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다.
+     * @param path 대상 경로
+     * @return 마지막 수정 시간 (uint64). 실패 시 nullopt
+     */
+    [[nodiscard]] static Optional<uint64> LastWriteTime(const Path& path);
 
     // =========================================================================
-    // File Read/Write (Rust-style)
+    // File Read/Write
     // =========================================================================
 
     /**
