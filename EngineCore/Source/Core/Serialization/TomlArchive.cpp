@@ -127,11 +127,12 @@ void TomlReader::BeginMap(uint64& count)
 {
     const Context& ctx = GetCurrentContext();
 
-    // Key가 지정되지 않은 경우
-    if (pending_key.IsEmpty())
+    // Array가 아닌데, Key가 지정되지 않은 경우
+    if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        // 최상위 Root 노드 자체를 Map으로 열려는 의도인지 확인
-        SE_ASSERT(IsRootNode(ctx.node), "TomlReader::BeginMap - Missing key! This is not the Root node.");
+        // Root 노드이거나, Archive::operator<<에 의해 방금 열린 Object일 경우,
+        // 이 노드 자체를 Map으로 취급하여 현재 테이블에 그대로 데이터를 읽습니다.
+        SE_ASSERT(ctx.IsObject(), "TomlReader::BeginMap - Invalid state! Cannot open anonymous map.");
 
         // Root 노드가 테이블 형태가 아닌 것은 파일 포맷 자체가 깨진 것이므로 방어
         if (SE_ENSURE(ctx.node && ctx.node->is_table(), "TomlReader::BeginMap - Root node is not a table."))
@@ -524,11 +525,12 @@ void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
 {
     const Context& ctx = GetCurrentContext();
 
-    // Key가 지정되지 않은 경우
-    if (pending_key.IsEmpty())
+    // ArrayMode가 아닌데, Key가 지정되지 않은 경우
+    if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        // 최상위 Root 노드 자체를 Map으로 열려는 의도인지 확인
-        SE_ASSERT(IsRootNode(ctx.node), "TomlWriter::BeginMap - Missing key! Cannot open an anonymous map unless it is the Root node.");
+        // Root 노드이거나, Archive::operator<<에 의해 방금 열린 Object일 경우,
+        // 이 노드 자체를 Map으로 취급하여 현재 테이블에 그대로 데이터를 씁니다.
+        SE_ASSERT(ctx.IsObject(), "TomlWriter::BeginMap - Invalid state! Cannot open anonymous map.");
 
         context_stack.Push({
             .node = ctx.node,

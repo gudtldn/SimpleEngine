@@ -43,6 +43,7 @@ protected:
         toml::table::iterator map_it;
         toml::table::iterator map_end;
 
+        [[nodiscard]] bool IsObject() const { return mode == EContextMode::Object; }
         [[nodiscard]] bool IsArray() const { return mode == EContextMode::Array; }
         [[nodiscard]] bool IsMap() const { return mode == EContextMode::Map; }
     };
