@@ -45,6 +45,12 @@ TomlArchive::Context& TomlArchive::GetCurrentContext()
     return context_stack.Back().Value();
 }
 
+bool TomlArchive::IsRootNode(const toml::node* node) const
+{
+    SE_ASSERT(!context_stack.IsEmpty(), "Context stack underflow!");
+    return node == context_stack.Front().Value().node;
+}
+
 
 // TomlReader
 TomlReader::TomlReader(const toml::table& root)
@@ -52,16 +58,17 @@ TomlReader::TomlReader(const toml::table& root)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
-        .mode = EContextMode::None,
+        .mode = EContextMode::Object,
     });
 }
 
 void TomlReader::BeginObject()
 {
-    const Context& ctx = GetCurrentContext();
+    Context ctx = GetCurrentContext();
     if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        context_stack.Push(ctx);
+        SE_ASSERT(IsRootNode(ctx.node), "TomlReader::BeginObject - Missing key! This is not the Root node.");
+        context_stack.Push(std::move(ctx));
         return;
     }
 
@@ -70,14 +77,14 @@ void TomlReader::BeginObject()
     {
         context_stack.Push({
             .node = sub_node,
-            .mode = EContextMode::None,
+            .mode = EContextMode::Object,
         });
     }
     else
     {
         context_stack.Push({
             .node = nullptr,
-            .mode = EContextMode::None,
+            .mode = EContextMode::Object,
         });
     }
 }
@@ -96,7 +103,7 @@ void TomlReader::BeginArray(uint64& count)
         count = arr->size();
         context_stack.Push({
             .node = arr,
-            .mode = EContextMode::ArrayMode,
+            .mode = EContextMode::Array,
             .array_idx = 0,
         });
     }
@@ -105,7 +112,7 @@ void TomlReader::BeginArray(uint64& count)
         count = 0;
         context_stack.Push({
             .node = nullptr,
-            .mode = EContextMode::ArrayMode,
+            .mode = EContextMode::Array,
             .array_idx = 0,
         });
     }
@@ -124,22 +131,32 @@ void TomlReader::BeginMap(uint64& count)
     if (pending_key.IsEmpty())
     {
         // 최상위 Root 노드 자체를 Map으로 열려는 의도인지 확인
-        const toml::node* root_node = context_stack.Front().Value().node;
-        if (SE_ENSURE(ctx.node == root_node, "TomlReader::BeginMap - Missing key! This is not the Root node."))
+        SE_ASSERT(IsRootNode(ctx.node), "TomlReader::BeginMap - Missing key! This is not the Root node.");
+
+        // Root 노드가 테이블 형태가 아닌 것은 파일 포맷 자체가 깨진 것이므로 방어
+        if (SE_ENSURE(ctx.node && ctx.node->is_table(), "TomlReader::BeginMap - Root node is not a table."))
         {
-            if (SE_ENSURE(ctx.node && ctx.node->is_table(), "TomlReader::BeginMap - Root node is not a table."))
-            {
-                toml::table* tbl = ctx.node->as_table();
-                count = tbl->size();
-                context_stack.Push({
-                    .node = tbl,
-                    .mode = EContextMode::MapMode,
-                    .map_it = tbl->begin(),
-                    .map_end = tbl->end(),
-                });
-            }
-            return;
+            toml::table* tbl = ctx.node->as_table();
+            count = tbl->size();
+            context_stack.Push({
+                .node = tbl,
+                .mode = EContextMode::Map,
+                .map_it = tbl->begin(),
+                .map_end = tbl->end(),
+            });
         }
+        else
+        {
+            count = 0;
+            static toml::table empty_table;
+            context_stack.Push({
+                .node = nullptr,
+                .mode = EContextMode::Map,
+                .map_it = empty_table.begin(),
+                .map_end = empty_table.end(),
+            });
+        }
+        return;
     }
 
     toml::node* sub_node = GetCurrentNode();
@@ -149,7 +166,7 @@ void TomlReader::BeginMap(uint64& count)
         count = tbl->size();
         context_stack.Push({
             .node = tbl,
-            .mode = EContextMode::MapMode,
+            .mode = EContextMode::Map,
             .map_it = tbl->begin(),
             .map_end = tbl->end(),
         });
@@ -160,7 +177,7 @@ void TomlReader::BeginMap(uint64& count)
         static toml::table empty_table;
         context_stack.Push({
             .node = nullptr,
-            .mode = EContextMode::MapMode,
+            .mode = EContextMode::Map,
             .map_it = empty_table.begin(),
             .map_end = empty_table.end(),
         });
@@ -175,16 +192,13 @@ void TomlReader::EndMap()
 void TomlReader::BeginMapKey()
 {
     Context& ctx = GetCurrentContext();
-    if (!SE_ENSURE(  // NOLINT(*-simplify-boolean-expr)
-        ctx.node && ctx.IsMap(),
-        "TomlReader::BeginMapKey - Invalid context. (node: {}, IsMap: {})",
-        static_cast<void*>(ctx.node), ctx.IsMap()
-    ))
-    {
-        return;
-    }
 
-    SE_ENSURE(ctx.map_it != ctx.map_end, "TomlReader::BeginMapKey - Map iterator already at end.");
+    // Map 모드가 아닌데 BeginMapKey를 호출한 경우 Assert (직렬화 코드 작성 오류)
+    SE_ASSERT(ctx.node && ctx.IsMap(), "TomlReader::BeginMapKey - Invalid context. (node: {}, IsMap: {})", static_cast<void*>(ctx.node), ctx.IsMap());
+
+    // 모든 Iterator를 소모했으나, BeginMapKey를 호출한 경우 Assert (직렬화 코드 작성 오류)
+    SE_ASSERT(ctx.map_it != ctx.map_end, "TomlReader::BeginMapKey - Map iterator already at end.");
+
     if (ctx.map_it != ctx.map_end)
     {
         current_map_key = StringUtils::ToString(ctx.map_it->first);
@@ -462,22 +476,26 @@ TomlWriter::TomlWriter(toml::table& root)
 {
     context_stack.Push({
         .node = &root,
-        .mode = EContextMode::None,
+        .mode = EContextMode::Object,
     });
 }
 
 void TomlWriter::BeginObject()
 {
-    const Context& ctx = GetCurrentContext();
+    Context ctx = GetCurrentContext();
     if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        context_stack.Push(ctx);
+        SE_ASSERT(IsRootNode(ctx.node), "TomlWriter::BeginObject - Missing key! Cannot open an anonymous object unless it is the Root node.");
+        context_stack.Push(std::move(ctx));
         return;
     }
 
+    toml::table* tbl = InsertNewNode<toml::table>(toml::table{});
+    SE_ASSERT(tbl, "TomlWriter::BeginObject - Failed to insert new table node.");
+
     context_stack.Push({
-        .node = InsertNewNode<toml::table>(toml::table{}),
-        .mode = EContextMode::None,
+        .node = tbl,
+        .mode = EContextMode::Object,
     });
 }
 
@@ -489,10 +507,10 @@ void TomlWriter::EndObject()
 void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
 {
     toml::array* arr = InsertNewNode<toml::array>(toml::array{});
-    SE_ENSURE(arr, "TomlWriter::BeginArray - Failed to insert new array node.");
+    SE_ASSERT(arr, "TomlWriter::BeginArray - Failed to insert new array node.");
     context_stack.Push({
         .node = arr,
-        .mode = EContextMode::ArrayMode,
+        .mode = EContextMode::Array,
         .array_idx = 0,
     });
 }
@@ -510,23 +528,22 @@ void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
     if (pending_key.IsEmpty())
     {
         // 최상위 Root 노드 자체를 Map으로 열려는 의도인지 확인
-        const toml::node* root_node = context_stack.Front().Value().node;
-        if (SE_ENSURE(ctx.node == root_node, "TomlWriter::BeginMap - Missing key! Cannot open an anonymous map unless it is the Root node."))
-        {
-            context_stack.Push({
-                .node = ctx.node,
-                .mode = EContextMode::MapMode,
-            });
-        }
+        SE_ASSERT(IsRootNode(ctx.node), "TomlWriter::BeginMap - Missing key! Cannot open an anonymous map unless it is the Root node.");
+
+        context_stack.Push({
+            .node = ctx.node,
+            .mode = EContextMode::Map,
+        });
         return;
     }
 
     // Map을 TOML table로 표현
     toml::table* tbl = InsertNewNode<toml::table>(toml::table{});
-    SE_ENSURE(tbl, "TomlWriter::BeginMap - Failed to insert new table node.");
+    SE_ASSERT(tbl, "TomlWriter::BeginMap - Failed to insert new table node.");
+
     context_stack.Push({
         .node = tbl,
-        .mode = EContextMode::MapMode,
+        .mode = EContextMode::Map,
     });
 }
 
@@ -544,8 +561,10 @@ void TomlWriter::BeginMapKey()
 
 void TomlWriter::EndMapKey()
 {
+    // Key 캡처 모드를 켰으나, 아무 값도 쓰지 않은 경우 Assert
+    SE_ASSERT(!current_map_key.IsEmpty(), "TomlWriter::EndMapKey - Captured map key is empty.");
+
     // 캡처 모드 OFF, 캡처된 key를 pending_key로 설정
-    SE_ENSURE(!current_map_key.IsEmpty(), "TomlWriter::EndMapKey - Captured map key is empty.");
     capturing_map_key = false;
     pending_key = current_map_key;
 }
