@@ -55,6 +55,13 @@ usize DirectoryEntry::FileSize() const
     return ec ? 0 : static_cast<usize>(size);
 }
 
+uint64 DirectoryEntry::LastWriteTime() const
+{
+    std::error_code ec;
+    const auto time = internal_entry.last_write_time(ec);
+    return ec ? 0 : time.time_since_epoch().count();
+}
+
 
 // =============================================================================
 // DirectoryIterator
@@ -181,6 +188,17 @@ Optional<usize> FileSystem::FileSize(const Path& path)
         return std::nullopt;
     }
     return static_cast<usize>(size);
+}
+
+Optional<uint64> FileSystem::LastWriteTime(const Path& path)
+{
+    std::error_code ec;
+    const auto time = std::filesystem::last_write_time(ToStdPath(path), ec);
+    if (ec)
+    {
+        return std::nullopt;
+    }
+    return time.time_since_epoch().count();
 }
 
 FileResult<String> FileSystem::ReadToString(const Path& path)
