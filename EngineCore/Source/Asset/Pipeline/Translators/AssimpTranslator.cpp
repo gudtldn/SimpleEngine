@@ -194,6 +194,10 @@ void ProcessNodeIterative(const aiNode* root_node, const aiScene* scene, Pipelin
 
 namespace se::asset
 {
+SE_BEGIN_REFLECT(AssimpTranslator, meta::Internal)
+    SE_REFLECT_INTERFACE(IPipelineTranslator)
+SE_END_REFLECT(AssimpTranslator)
+
 ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 {
     static constexpr FixedArray supported_extensions = MakeFixedArray<StringView>(
