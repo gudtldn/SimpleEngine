@@ -301,4 +301,19 @@ constexpr std::reverse_iterator<const T*> FixedArray<T, N>::rend() const noexcep
 {
     return std::reverse_iterator(begin());
 }
+
+template <typename T, typename... Ts>
+    requires (std::convertible_to<Ts, T> && ...)
+constexpr auto MakeFixedArray(Ts&&... args)
+{
+    return FixedArray<T, sizeof...(Ts)>{ { static_cast<T>(std::forward<Ts>(args))... } };
+}
+
+template <typename... Ts>
+    requires (sizeof...(Ts) > 0)
+constexpr auto MakeFixedArray(Ts&&... args)
+{
+    using CommonType = std::common_type_t<Ts...>;
+    return MakeFixedArray<CommonType>(std::forward<Ts>(args)...);
+}
 }  // namespace se
