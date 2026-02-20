@@ -16,10 +16,22 @@ public:
     virtual ~IPipelineTranslator() = default;
 
     /**
+     * Translator가 지원하는 파일 확장자 목록을 반환합니다.
+     * @return 지원하는 파일 확장자 목록
+     */
+    [[nodiscard]] virtual ArrayView<const StringView> GetSupportedExtensions() const = 0;
+
+    /**
      * Translator가 지원하는 파일 확장자인지 확인합니다.
      * @param file_extension 파일 확장자 (ex: .obj)
      */
-    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const = 0;
+    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const
+    {
+        return std::ranges::any_of(GetSupportedExtensions(), [&](const StringView& ext)
+        {
+            return ext == file_extension;
+        });
+    }
 
     /**
      * 파일을 읽고 Container에 Node를 채웁니다.
@@ -33,4 +45,4 @@ public:
         PipelineNodeContainer& out_container
     ) = 0;
 };
-}  // namespace se::asset
+} // namespace se::asset

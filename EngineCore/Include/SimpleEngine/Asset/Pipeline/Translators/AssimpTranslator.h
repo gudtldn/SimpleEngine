@@ -10,7 +10,7 @@ namespace se::asset
 class SE_CORE_API AssimpTranslator : public IPipelineTranslator
 {
 public:
-    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const override;
+    [[nodiscard]] virtual ArrayView<const StringView> GetSupportedExtensions() const override;
 
     virtual void Translate(
         const Path& file_path,

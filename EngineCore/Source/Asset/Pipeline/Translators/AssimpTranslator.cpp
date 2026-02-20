@@ -194,10 +194,12 @@ void ProcessNodeIterative(const aiNode* root_node, const aiScene* scene, Pipelin
 
 namespace se::asset
 {
-bool AssimpTranslator::CanTranslate(const String& file_extension) const
+ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 {
-    static HashSet<String> supported_extensions = { ".obj", ".fbx", ".gltf", ".glb", ".blend", ".vrm" };
-    return supported_extensions.Contains(file_extension);
+    static constexpr FixedArray supported_extensions = MakeFixedArray<StringView>(
+        ".obj", ".fbx", ".gltf", ".glb", ".blend", ".vrm"
+    );
+    return supported_extensions;
 }
 
 void AssimpTranslator::Translate(
