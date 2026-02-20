@@ -35,9 +35,10 @@ SE_END_REFLECT(MockImportSettings)
 class MockMeshTranslator : public IPipelineTranslator
 {
 public:
-    [[nodiscard]] virtual bool CanTranslate(const String& file_extension) const override
+    [[nodiscard]] virtual ArrayView<const StringView> GetSupportedExtensions() const override
     {
-        return file_extension == ".mock";
+        static constexpr FixedArray<StringView, 1> exts = { ".mock" };
+        return exts;
     }
 
     virtual void Translate(
