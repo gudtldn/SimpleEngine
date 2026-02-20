@@ -47,6 +47,14 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
     SE_ANNOTATION(=meta::Property)
     String source_hash;
 
+    /** 소스 파일의 마지막 수정 시간 */
+    SE_ANNOTATION(=meta::Property)
+    uint64 source_mtime = 0;
+
+    /** 소스 파일의 크기 */
+    SE_ANNOTATION(=meta::Property)
+    uint64 source_size = 0;
+
     /** 캐시 바이너리의 스키마 버전 (Importer 출력 포맷 변경 시 증가) */
     SE_ANNOTATION(=meta::Property)
     uint32 cache_version = 0;
