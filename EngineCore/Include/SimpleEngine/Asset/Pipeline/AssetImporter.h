@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <memory>
 
 #include "SimpleEngine/Asset/Pipeline/ImportResult.h"
 #include "SimpleEngine/Asset/Pipeline/PipelineNodeContainer.h"
@@ -7,8 +6,12 @@
 #include "SimpleEngine/Asset/Pipeline/Factories/IPipelineFactory.h"
 #include "SimpleEngine/Asset/Pipeline/Translators/IPipelineTranslator.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Types/Path.h"
+
+#include <memory>
+
 
 
 namespace se::asset
@@ -40,6 +43,16 @@ public:
     template <typename Factory, typename... Args>
         requires std::derived_from<Factory, IPipelineFactory>
     void RegisterFactory(Args&&... args);
+
+    /**
+     * 파일을 Import할 수 있는 Translator가 등록되어 있는지 확인합니다.
+     * @param file_path Import가 가능한지 확인할 파일 경로 (확장자가 아님에 주의!)
+     * @return 가능 여부
+     */
+    [[nodiscard]] bool CanImport(const Path& file_path) const;
+
+    /** 등록된 모든 Translator가 지원하는 확장자를 반환합니다. */
+    [[nodiscard]] HashSet<StringView> GetAllSupportedExtensions() const;
 
     /**
      * 파일을 불러와 ImportResult를 반환합니다. (우선 Main Thread 전용)

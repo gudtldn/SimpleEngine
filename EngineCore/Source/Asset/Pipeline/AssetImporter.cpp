@@ -9,6 +9,24 @@
 
 namespace se::asset
 {
+bool AssetImporter::CanImport(const Path& file_path) const
+{
+    return FindTranslator(file_path).HasValue();
+}
+
+HashSet<StringView> AssetImporter::GetAllSupportedExtensions() const
+{
+    HashSet<StringView> result;
+    for (const auto& translator : translators)
+    {
+        for (const StringView ext : translator->GetSupportedExtensions())
+        {
+            result.Insert(ext);
+        }
+    }
+    return result;
+}
+
 Expected<ImportResult, ImportError> AssetImporter::Import(
     const Path& file_path,
     const ImportConfig& import_config,
@@ -17,8 +35,8 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
 {
     ZoneScopedN("AssetImporter::Import");
 #if TRACY_ENABLE
-        const String filename = file_path.FileName().ValueOr("Unknown");
-        ZoneText(filename.CStr(), filename.ByteLen());
+    const String filename = file_path.FileName().ValueOr("Unknown");
+    ZoneText(filename.CStr(), filename.ByteLen());
 #endif
 
     // ---------------------------------------------------------
@@ -242,5 +260,5 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
 
     return result;
 }
-}  // namespace se::asset
+} // namespace se::asset
 // NOLINTEND(*-reserved-identifier)
