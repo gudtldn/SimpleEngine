@@ -25,4 +25,4 @@ struct SE_CORE_API CpuFeature
     // ARM SIMD Support
     [[nodiscard]] static bool HasNEON();
 };
-}
+} // namespace se
