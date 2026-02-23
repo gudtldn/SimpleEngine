@@ -446,6 +446,15 @@ TEST_F(AssetHandleTest, InvalidHandle_ReturnsNull)
 class AssetRegistryTest : public ::testing::Test
 {
 protected:
+    static AssetMetadata CreateDummyMeta()
+    {
+        AssetMetadata meta;
+        meta.guid = Guid::NewGuid();
+        meta.cache_version = 1;
+        return meta;
+    }
+
+protected:
     AssetRegistry registry;
 };
 
@@ -455,15 +464,26 @@ TEST_F(AssetRegistryTest, RegisterAsset)
     TypeId type = TypeId::Get<MockTexture>();
     AssetPath path("textures/diffuse.png");
 
-    registry.RegisterAsset(id, type, AssetPath(path));
+    registry.RegisterAsset(id, type, path, CreateDummyMeta());
 
     auto retrieved_id = registry.GetAssetId(path);
     ASSERT_TRUE(retrieved_id.HasValue());
     EXPECT_EQ(retrieved_id.Value(), id);
 
-    auto retrieved_path = registry.GetAssetPath(id);
-    ASSERT_TRUE(retrieved_path.HasValue());
-    EXPECT_EQ(retrieved_path.Value(), path);
+    // Then 2: AssetId로 레코드 전체 조회 (Visitor 패턴 검증)
+    bool is_record_found = registry.ReadRecord(id, [&](const AssetRecord& record)
+    {
+        // 콜백 내부에서 안전하게 모든 프로퍼티를 한 번에 검증할 수 있습니다.
+        EXPECT_EQ(record.id, id);
+        EXPECT_EQ(record.type, type);
+        EXPECT_EQ(record.logical_path, path);
+
+        // 메타데이터 내부의 값도 여기서 검증 가능합니다.
+        // EXPECT_EQ(record.metadata.source_hash, "...");
+    });
+
+    // ReadRecord 자체가 성공적으로 콜백을 호출했는지 검증
+    EXPECT_TRUE(is_record_found);
 }
 
 TEST_F(AssetRegistryTest, GetAssetId_NonExistent)
@@ -476,10 +496,15 @@ TEST_F(AssetRegistryTest, GetAssetId_NonExistent)
 
 TEST_F(AssetRegistryTest, GetAssetPath_NonExistent)
 {
-    AssetId id = GenerateAssetId();
-    auto result = registry.GetAssetPath(id);
+    AssetId id = GenerateAssetId(); // 등록되지 않은 랜덤 ID
 
-    EXPECT_FALSE(result.HasValue());
+    bool is_record_found = registry.ReadRecord(id, [](const AssetRecord& /*record*/)
+    {
+        // 이 콜백은 절대 실행되어서는 안 됩니다.
+        FAIL() << "Callback should not be invoked for a non-existent AssetId.";
+    });
+
+    EXPECT_FALSE(is_record_found);
 }
 
 TEST_F(AssetRegistryTest, MultipleAssetsInSameFile)
@@ -492,26 +517,27 @@ TEST_F(AssetRegistryTest, MultipleAssetsInSameFile)
     AssetPath path1(file_path, "Mesh_01");
     AssetPath path2(file_path, "Mesh_02");
 
-    registry.RegisterAsset(id1, mesh_type, AssetPath(path1));
-    registry.RegisterAsset(id2, mesh_type, AssetPath(path2));
+    registry.RegisterAsset(id1, mesh_type, AssetPath(path1), CreateDummyMeta());
+    registry.RegisterAsset(id2, mesh_type, AssetPath(path2), CreateDummyMeta());
 
     EXPECT_TRUE(registry.GetAssetId(path1).HasValue());
     EXPECT_TRUE(registry.GetAssetId(path2).HasValue());
     EXPECT_NE(registry.GetAssetId(path1).Value(), registry.GetAssetId(path2).Value());
 
     auto assets = registry.GetAssetsInFile(file_path);
-    ASSERT_TRUE(assets.HasValue());
-    EXPECT_EQ(assets.Value().Len(), 2u);
+    EXPECT_EQ(assets.Len(), 2u);
 }
 
-TEST_F(AssetRegistryTest, MarkFileAsImported)
+TEST_F(AssetRegistryTest, IsFileImported_AutoTracking)
 {
     Path file_path("textures/test.png");
+    AssetPath asset_path{ file_path, {} };
 
     EXPECT_FALSE(registry.IsFileImported(file_path));
 
-    registry.MarkFileAsImported(file_path);
+    registry.RegisterAsset(GenerateAssetId(), TypeId::Get<MockTexture>(), asset_path, CreateDummyMeta());
 
+    // 보조 인덱스(file_to_assets)가 정상적으로 동작하여 true 반환하는지 확인
     EXPECT_TRUE(registry.IsFileImported(file_path));
 }
 
@@ -521,8 +547,8 @@ TEST_F(AssetRegistryTest, FindFirstOfType)
     AssetId mesh_id = GenerateAssetId();
     AssetId texture_id = GenerateAssetId();
 
-    registry.RegisterAsset(mesh_id, TypeId::Get<MockMesh>(), AssetPath(file_path, "MainMesh"));
-    registry.RegisterAsset(texture_id, TypeId::Get<MockTexture>(), AssetPath(file_path, "Texture"));
+    registry.RegisterAsset(mesh_id, TypeId::Get<MockMesh>(), AssetPath(file_path, "MainMesh"), CreateDummyMeta());
+    registry.RegisterAsset(texture_id, TypeId::Get<MockTexture>(), AssetPath(file_path, "Texture"), CreateDummyMeta());
 
     auto found_mesh = registry.FindFirstOfType(file_path, TypeId::Get<MockMesh>());
     ASSERT_TRUE(found_mesh.HasValue());
@@ -538,7 +564,7 @@ TEST_F(AssetRegistryTest, GetAssetsInFile_Empty)
     Path file_path("empty/file.fbx");
 
     auto assets = registry.GetAssetsInFile(file_path);
-    EXPECT_FALSE(assets.HasValue());
+    EXPECT_TRUE(assets.IsEmpty());
 }
 
 // =============================================================================
@@ -547,6 +573,14 @@ TEST_F(AssetRegistryTest, GetAssetsInFile_Empty)
 
 class AssetManagementIntegrationTest : public ::testing::Test
 {
+protected:
+    static AssetMetadata CreateDummyMeta()
+    {
+        AssetMetadata meta;
+        meta.guid = Guid::NewGuid();
+        return meta;
+    }
+
 protected:
     AssetCache cache;
     AssetRegistry registry;
@@ -559,7 +593,7 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
     TypeId type = TypeId::Get<MockTexture>();
     AssetPath path("textures/diffuse.png");
 
-    registry.RegisterAsset(id, type, AssetPath(path));
+    registry.RegisterAsset(id, type, path, CreateDummyMeta());
 
     // 2. Create slot in cache
     auto slot = cache.FindOrCreate(id, type, path.GetFilePath());
@@ -614,10 +648,9 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
 
     TypeId mesh_type = TypeId::Get<MockMesh>();
 
-    // Register both sub-assets
-    registry.RegisterAsset(main_mesh_id, mesh_type, AssetPath(main_path));
-    registry.RegisterAsset(weapon_mesh_id, mesh_type, AssetPath(weapon_path));
-    registry.MarkFileAsImported(file_path);
+    // Register both sub-assets with metadata
+    registry.RegisterAsset(main_mesh_id, mesh_type, AssetPath(main_path), CreateDummyMeta());
+    registry.RegisterAsset(weapon_mesh_id, mesh_type, AssetPath(weapon_path), CreateDummyMeta());
 
     // Create slots
     auto main_slot = cache.FindOrCreate(main_mesh_id, mesh_type, file_path);
@@ -636,8 +669,7 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
     EXPECT_TRUE(registry.IsFileImported(file_path));
 
     auto assets = registry.GetAssetsInFile(file_path);
-    ASSERT_TRUE(assets.HasValue());
-    EXPECT_EQ(assets.Value().Len(), 2u);
+    EXPECT_EQ(assets.Len(), 2u);
 
     AssetHandle<MockMesh> main_handle(main_slot);
     AssetHandle<MockMesh> weapon_handle(weapon_slot);
