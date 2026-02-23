@@ -13,11 +13,24 @@
 
 namespace se::asset
 {
+// forward declaration
 class AssetCache;
 class AssetRegistry;
+class DerivedDataCache;
+class AssetSubsystem;
+
+// DDC Miss Handler
+using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const Path& file_path)>;
 
 /**
- * @todo docs
+ * Asset 로딩, 캐싱, DDC 통합을 관리하는 Core 서브시스템
+ *
+ * 로딩 흐름:
+ *   1. Registry에서 AssetId 조회
+ *   2. AssetCache(메모리) Hit -> 즉시 반환
+ *   3. DDC Hit (source_hash/cache_version 일치) -> 역직렬화 -> Cache 적재 -> 반환
+ *   4. DDC Miss -> Import 파이프라인 실행 -> DDC에 저장 -> Cache 적재 -> 반환
+ *   5. Registry 미등록 (런타임 fallback) -> ImportAndRegisterAll
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Internal) AssetSubsystem : public SubsystemBase
 {
@@ -57,20 +70,31 @@ public:
     void EndFrame();
 
 public:
+    /** Asset을 DDC payload로 직렬화합니다. */
+    [[nodiscard]] static Array<uint8> SerializeAssetPayload(const AssetBase& asset);
+
+    /** DDC payload에서 Asset을 역직렬화합니다. */
+    [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
+
+public:
     [[nodiscard]] FORCE_INLINE AssetImporter& GetImporter() const { return *importer; }
     [[nodiscard]] FORCE_INLINE AssetCache& GetCache() const { return *cache; }
+    [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
+    [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
 private:
     [[nodiscard]] std::shared_ptr<AssetSlot> LoadInternal(const TypeId& expected_type, const AssetPath& source_path);
     [[nodiscard]] std::shared_ptr<AssetSlot> FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
 
     /** 파일 Import 후 모든 Sub-Asset을 캐시에 등록합니다. */
+    [[deprecated("Use EditorAssetSubsystem for importing. This will be removed soon.")]]
     bool ImportAndRegisterAll(const Path& file_path);
 
 private:
     std::unique_ptr<AssetImporter> importer;
     std::unique_ptr<AssetCache> cache;
     std::unique_ptr<AssetRegistry> registry;
+    std::unique_ptr<DerivedDataCache> ddc;
 
     // Deferred Release
     TracyLockable(std::mutex, pending_mutex);

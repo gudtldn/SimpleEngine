@@ -2,147 +2,136 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
 
 namespace se::asset
 {
-// ---- 데이터 등록 ----
+SE_BEGIN_REFLECT(AssetRecord, meta::SerializeOnly)
+    SE_REFLECT_PROPERTY(id, meta::Property)
+    SE_REFLECT_PROPERTY(type, meta::Property)
+    SE_REFLECT_PROPERTY(logical_path, meta::Property)
+    SE_REFLECT_PROPERTY(metadata, meta::Property)
+SE_END_REFLECT(AssetRecord)
 
-void AssetRegistry::RegisterAsset(const AssetId& asset_id, const TypeId& asset_type, AssetPath&& asset_path)
+
+void AssetRegistry::RegisterAsset(
+    const AssetId& asset_id, const TypeId& asset_type,
+    AssetPath asset_path, AssetMetadata meta
+)
 {
     std::unique_lock lock(registry_mutex);
 
     Path file_path = asset_path.GetFilePath();
-
-    path_to_id.Insert(asset_path, asset_id);
-    id_to_path.Insert(asset_id, std::move(asset_path));
-    id_to_type.Insert(asset_id, asset_type);
-
-    file_to_assets.Emplace(std::move(file_path)).Push({
+    records.Insert(asset_id, {
         .id = asset_id,
         .type = asset_type,
+        .logical_path = asset_path,
+        .metadata = std::move(meta),
     });
-}
 
-void AssetRegistry::RegisterMeta(const AssetId& asset_id, AssetMetadata&& meta)
-{
-    std::unique_lock lock(registry_mutex);
-    id_to_meta.Insert(asset_id, std::move(meta));
+    path_to_id.Insert(std::move(asset_path), asset_id);
+    file_to_assets.Emplace(std::move(file_path)).Push(asset_id);
 }
 
 void AssetRegistry::UnregisterAsset(const AssetId& asset_id)
 {
     std::unique_lock lock(registry_mutex);
 
-    // id_to_path에서 경로를 먼저 꺼내야 path_to_id에서도 제거 가능
-    if (const Optional path_opt = id_to_path.Find(asset_id))
+    // records에서 Asset을 찾은 뒤 연쇄적으로 제거
+    if (const Optional record_opt = records.Find(asset_id))
     {
-        const Path file_path = path_opt->GetFilePath();
+        const Path file_path = record_opt->logical_path.GetFilePath();
 
-        path_to_id.Remove(*path_opt);
+        // AssetPath 인덱스 제거
+        path_to_id.Remove(record_opt->logical_path);
 
-        // file_to_assets에서 해당 엔트리 제거
+        // file_to_assets에서 해당 ID 제거
         if (const Optional entries_opt = file_to_assets.Find(file_path))
         {
-            Array<AssetEntry>& entries = const_cast<Array<AssetEntry>&>(*entries_opt);
-            entries.RemoveIf([&asset_id](const AssetEntry& e) { return e.id == asset_id; });
+            entries_opt->RemoveIf([&asset_id](const AssetId& id)
+            {
+                return id == asset_id;
+            });
 
-            if (entries.IsEmpty())
+            if (entries_opt->IsEmpty())
             {
                 file_to_assets.Remove(file_path);
-                imported_files.Remove(file_path);
             }
         }
     }
 
-    id_to_path.Remove(asset_id);
-    id_to_type.Remove(asset_id);
-    id_to_meta.Remove(asset_id);
+    records.Remove(asset_id);
 }
 
 void AssetRegistry::Clear()
 {
     std::unique_lock lock(registry_mutex);
 
-    imported_files.Clear();
+    records.Clear();
     path_to_id.Clear();
-    id_to_path.Clear();
-    id_to_type.Clear();
     file_to_assets.Clear();
-    id_to_meta.Clear();
 }
 
 // ---- 조회 ----
 
-Optional<const AssetId&> AssetRegistry::GetAssetId(const AssetPath& asset_path) const
+Optional<AssetId> AssetRegistry::GetAssetId(const AssetPath& asset_path) const
 {
     std::shared_lock lock(registry_mutex);
-    return path_to_id.Find(asset_path);
+    return path_to_id.Find(asset_path).Copy();
 }
 
-Optional<const AssetPath&> AssetRegistry::GetAssetPath(const AssetId& asset_id) const
+Optional<TypeId> AssetRegistry::GetAssetType(const AssetId& asset_id) const
 {
     std::shared_lock lock(registry_mutex);
-    return id_to_path.Find(asset_id);
+    return records.Find(asset_id).Transform([](const AssetRecord& record)
+    {
+        return record.type;
+    });
 }
 
-Optional<const TypeId&> AssetRegistry::GetAssetType(const AssetId& asset_id) const
-{
-    std::shared_lock lock(registry_mutex);
-    return id_to_type.Find(asset_id);
-}
-
-Optional<const AssetId&> AssetRegistry::FindFirstOfType(const Path& file_path, const TypeId& type) const
+Optional<AssetId> AssetRegistry::FindFirstOfType(const Path& file_path, const TypeId& type) const
 {
     std::shared_lock lock(registry_mutex);
 
     if (const Optional entries_opt = file_to_assets.Find(file_path))
     {
-        for (const AssetEntry& entry : *entries_opt)
+        for (const AssetId& id : *entries_opt)
         {
-            if (entry.type == type)
+            if (const Optional record_opt = records.Find(id))
             {
-                return entry.id;
+                if (record_opt->type == type)
+                {
+                    return id;
+                }
             }
         }
     }
     return std::nullopt;
 }
 
-Optional<const Array<AssetEntry>&> AssetRegistry::GetAssetsInFile(const Path& file_path) const
+Array<AssetId> AssetRegistry::GetAssetsInFile(const Path& file_path) const
 {
     std::shared_lock lock(registry_mutex);
-    return file_to_assets.Find(file_path);
-}
-
-Optional<const AssetMetadata&> AssetRegistry::GetMeta(const AssetId& asset_id) const
-{
-    std::shared_lock lock(registry_mutex);
-    return id_to_meta.Find(asset_id);
-}
-
-void AssetRegistry::MarkFileAsImported(const Path& file_path)
-{
-    std::unique_lock lock(registry_mutex);
-    imported_files.Insert(file_path);
+    return file_to_assets.Find(file_path).Copy().ValueOrDefault();
 }
 
 bool AssetRegistry::IsFileImported(const Path& file_path) const
 {
     std::shared_lock lock(registry_mutex);
-    return imported_files.Contains(file_path);
+    return file_to_assets.Contains(file_path);
 }
 
 uint32 AssetRegistry::GetAssetCount() const
 {
     std::shared_lock lock(registry_mutex);
-    return static_cast<uint32>(id_to_path.Len());
+    return static_cast<uint32>(records.Len());
 }
 
 // ---- 바이너리 역/직렬화 ----
 
-/** 레지스트리 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
+/** AssetRegistry 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
 static constexpr uint32 REGISTRY_MAGIC =
     static_cast<uint32>('S')
     | (static_cast<uint32>('E') << 8)
@@ -165,45 +154,17 @@ bool AssetRegistry::SaveToFile(const Path& file_path) const
     writer << magic;
     writer << version;
 
-    // 에셋 개수
-    uint64 asset_count = id_to_path.Len();
-    writer << asset_count;
+    // records만 직렬화
+    writer << const_cast<HashMap<AssetId, AssetRecord>&>(records);
 
-    // 각 에셋 정보 기록
-    for (auto& [id, path] : id_to_path)
-    {
-        AssetId id_copy = id;
-        writer << id_copy;
-
-        AssetPath path_copy = path;
-        writer << path_copy;
-
-        TypeId type_id;
-        if (const Optional type_opt = id_to_type.Find(id))
-        {
-            type_id = *type_opt;
-        }
-        writer << type_id;
-
-        // Metadata
-        bool has_meta = id_to_meta.Contains(id);
-        writer << has_meta;
-
-        if (has_meta)
-        {
-            AssetMetadata meta_copy = *id_to_meta.Find(id);
-            writer << meta_copy;
-        }
-    }
-
-    // 파일에 쓰기
+    // 디스크 I/O
     if (!FileSystem::Write(file_path, buffer))
     {
         ConsoleLog(ELogLevel::Error, "AssetRegistry::SaveToFile - Failed to write file: {}", file_path);
         return false;
     }
 
-    ConsoleLog(ELogLevel::Info, "AssetRegistry saved: {} assets -> {}", asset_count, file_path);
+    ConsoleLog(ELogLevel::Info, "AssetRegistry saved: {} assets -> {}", records.Len(), file_path);
     return true;
 }
 
@@ -214,7 +175,6 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
     const auto buffer_opt = FileSystem::ReadBytes(file_path);
     if (!buffer_opt.HasValue())
     {
-        ConsoleLog(ELogLevel::Warning, "AssetRegistry::LoadFromFile - File not found: {}", file_path);
         return false;
     }
 
@@ -240,50 +200,23 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
 
     // 기존 데이터 초기화 후 로드
     std::unique_lock lock(registry_mutex);
-    imported_files.Clear();
+    records.Clear();
     path_to_id.Clear();
-    id_to_path.Clear();
-    id_to_type.Clear();
     file_to_assets.Clear();
-    id_to_meta.Clear();
 
-    uint64 asset_count = 0;
-    reader << asset_count;
+    // records 역직렬화
+    reader << records;
 
-    for (uint64 i = 0; i < asset_count; ++i)
+    // 보조 인덱스 재구축
+    for (const auto& [id, record] : records)
     {
-        AssetId asset_id;
-        reader << asset_id;
+        const Path source_file = record.logical_path.GetFilePath();
 
-        AssetPath asset_path;
-        reader << asset_path;
-
-        TypeId type_id;
-        reader << type_id;
-
-        const Path source_file = asset_path.GetFilePath();
-
-        path_to_id.Insert(asset_path, asset_id);
-        id_to_path.Insert(asset_id, std::move(asset_path));
-        id_to_type.Insert(asset_id, type_id);
-
-        file_to_assets.Emplace(std::move(source_file)).Push({
-            .id = asset_id,
-            .type = type_id,
-        });
-
-        bool has_meta = false;
-        reader << has_meta;
-
-        if (has_meta)
-        {
-            AssetMetadata meta;
-            reader << meta;
-            id_to_meta.Insert(asset_id, std::move(meta));
-        }
+        path_to_id.Insert(record.logical_path, id);
+        file_to_assets.Emplace(source_file).Push(id);
     }
 
-    ConsoleLog(ELogLevel::Info, "AssetRegistry loaded: {} assets from {}", asset_count, file_path);
+    ConsoleLog(ELogLevel::Info, "AssetRegistry loaded: {} assets from {}", records.Len(), file_path);
     return true;
 }
 } // namespace se::asset
