@@ -451,7 +451,7 @@ struct TypeIdKeyNestedMapData
 // BeginMap-with-no-pending-key Fix 관련 TC용 구조체
 // -------------------------------------------------------------------------
 
-// ImportConfig 패턴 재현:
+// ImportProfile 패턴 재현:
 // Serialize 내부에서 직접 BeginMap/EndMap을 호출하는 Serializable 타입.
 // 이 타입을 루트에 직접 쓰면, operator<< 가 BeginObject(pending_key 없음)로 감싼 뒤
 // Serialize 안에서 BeginMap(pending_key 없음)을 호출한다.

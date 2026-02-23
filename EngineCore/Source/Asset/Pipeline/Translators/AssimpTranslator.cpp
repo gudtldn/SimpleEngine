@@ -208,14 +208,14 @@ ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 
 void AssimpTranslator::Translate(
     const Path& file_path,
-    const ImportConfig& import_config,
+    const ImportProfile& import_profile,
     PipelineNodeContainer& out_container
 )
 {
     Assimp::Importer importer;
 
     // 설정 불러오기 (없으면 기본값)
-    const MeshImportSettings mesh_settings = import_config.GetOrDefault<MeshImportSettings>();
+    const MeshImportSettings mesh_settings = import_profile.GetOrDefault<MeshImportSettings>();
 
     // 기본 플래그 설정
     uint32 flags =

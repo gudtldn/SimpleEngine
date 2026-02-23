@@ -5,7 +5,6 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::asset
@@ -16,7 +15,7 @@ namespace se::asset
  * TypeId를 키로 하여 다양한 ImportSettingsBase 파생 객체를 보관합니다.
  * 리플렉션 기반 직렬화를 지원하여 .meta 파일의 import_settings 섹션에 사용할 수 있습니다.
  */
-class SE_CORE_API ImportConfig
+class SE_CORE_API ImportProfile
 {
 public:
     using SettingsMap = HashMap<TypeId, std::shared_ptr<ImportSettingsBase>>;
@@ -80,7 +79,7 @@ public:
      * 직렬화(Save): 등록된 각 설정의 TypeId를 키로 사용하여 serialize 합니다.
      * 역직렬화(Load): TypeId로 TypeRegistry에서 TypeInfo를 찾고, constructor로 인스턴스를 생성한 뒤 deserialize 합니다.
      */
-    friend void Serialize(Archive& ar, ImportConfig& config)
+    friend void Serialize(Archive& ar, ImportProfile& config)
     {
         if (ar.IsLoading())
         {
