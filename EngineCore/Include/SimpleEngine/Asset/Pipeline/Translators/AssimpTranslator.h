@@ -16,7 +16,7 @@ public:
 
     virtual void Translate(
         const Path& file_path,
-        const ImportConfig& import_config,
+        const ImportProfile& import_profile,
         PipelineNodeContainer& out_container
     ) override;
 };

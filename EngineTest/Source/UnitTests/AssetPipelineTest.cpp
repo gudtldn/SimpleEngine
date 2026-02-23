@@ -43,7 +43,7 @@ public:
 
     virtual void Translate(
         const Path& file_path,
-        const ImportConfig& import_config,
+        const ImportProfile& import_profile,
         PipelineNodeContainer& out_container
     ) override
     {
@@ -53,7 +53,7 @@ public:
             return;
         }
 
-        auto settings = import_config.GetOrDefault<MockImportSettings>();
+        auto settings = import_profile.GetOrDefault<MockImportSettings>();
 
         if (settings.combine_meshes)
         {
@@ -194,7 +194,7 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     constexpr float scale_factor = 100.0f;
     pipeline_stack.AddProcessor<MeshScaleProcessor>(scale_factor);
 
-    ImportConfig config;
+    ImportProfile config;
 
     auto assets_exp = importer.Import("Test.mock", config, pipeline_stack);
     EXPECT_TRUE(assets_exp.HasValue());
@@ -220,14 +220,14 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
 
 TEST_F(AssetPipelineTest, ImportPipeline_ConfigTest)
 {
-    // Config 테스트: ImportConfig에 combine_meshes = false를 넣었을 때 동작 확인
+    // Config 테스트: ImportProfile에 combine_meshes = false를 넣었을 때 동작 확인
     AssetImporter importer;
     importer.RegisterTranslator<MockMeshTranslator>();
     importer.RegisterFactory<StaticMeshFactory>();
 
     // 1. combine_meshes = false
     {
-        ImportConfig config;
+        ImportProfile config;
         MockImportSettings settings;
         settings.combine_meshes = false;
         config.Set(settings);
@@ -241,7 +241,7 @@ TEST_F(AssetPipelineTest, ImportPipeline_ConfigTest)
 
     // 2. combine_meshes = true (기본값)
     {
-        ImportConfig config;
+        ImportProfile config;
         MockImportSettings settings;
         settings.combine_meshes = true;
         config.Set(settings);
@@ -267,7 +267,7 @@ TEST_F(AssetPipelineTest, ImportPipeline_MultiProcessorTest)
     // 그 다음 (1, 0, 0) 만큼 이동
     pipeline_stack.AddProcessor<MeshOffsetProcessor>(Vector3f(1.0f, 0.0f, 0.0f));
 
-    ImportConfig config;
+    ImportProfile config;
     auto assets = importer.Import("Test.mock", config, pipeline_stack);
     EXPECT_TRUE(assets.HasValue());
 
@@ -289,7 +289,7 @@ TEST_F(AssetPipelineTest, ImportPipeline_EmptyResultTest)
     importer.RegisterTranslator<MockMeshTranslator>();
     importer.RegisterFactory<StaticMeshFactory>();
 
-    ImportConfig config;
+    ImportProfile config;
     // "Empty"가 포함된 파일명은 MockMeshTranslator에서 무시됨
     auto assets = importer.Import("Empty.mock", config);
     EXPECT_TRUE(assets.HasError());

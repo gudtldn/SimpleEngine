@@ -29,7 +29,7 @@ HashSet<StringView> AssetImporter::GetAllSupportedExtensions() const
 
 Expected<ImportResult, ImportError> AssetImporter::Import(
     const Path& file_path,
-    const ImportConfig& import_config,
+    const ImportProfile& import_profile,
     Optional<const PipelineProcessorStack&> processor_stack
 )
 {
@@ -56,7 +56,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     PipelineNodeContainer container;
     {
         ZoneScopedN("Translator::Translate");
-        translator_opt->Translate(file_path, import_config, container);
+        translator_opt->Translate(file_path, import_profile, container);
     }
 
     // ---------------------------------------------------------
