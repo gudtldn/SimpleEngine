@@ -216,6 +216,14 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
         file_to_assets.Emplace(source_file).Push(id);
     }
 
+    for (Array<AssetId>& asset_ids : file_to_assets | std::views::values)
+    {
+        std::ranges::sort(asset_ids, [this](const AssetId& a, const AssetId& b)
+        {
+            return records.FindChecked(a).logical_path < records.FindChecked(b).logical_path;
+        });
+    }
+
     ConsoleLog(ELogLevel::Info, "AssetRegistry loaded: {} assets from {}", records.Len(), file_path);
     return true;
 }
