@@ -184,17 +184,21 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
     // Header 불러오기
     reader << cache_internal.header;
 
+    if (reader.HasError())
+    {
+        ConsoleLog(ELogLevel::Warning, "DDC::Load - Serialization error: {} in {}", reader.GetError(), cache_path);
+        return std::nullopt;
+    }
+
     // Magic 검증
-    reader << cache_internal.header.magic;
-    if (reader.HasError() || cache_internal.header.magic != CACHE_MAGIC)
+    if (cache_internal.header.magic != CACHE_MAGIC)
     {
         ConsoleLog(ELogLevel::Warning, "DDC::Load - Invalid magic in: {}", cache_path);
         return std::nullopt;
     }
 
     // Format Version 검증
-    reader << cache_internal.header.format_version;
-    if (reader.HasError() || cache_internal.header.format_version != CACHE_FORMAT_VERSION)
+    if (cache_internal.header.format_version != CACHE_FORMAT_VERSION)
     {
         ConsoleLog(
             ELogLevel::Warning,
@@ -206,12 +210,6 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 
     // Payload 역직렬화
     reader << cache_internal.payload;
-
-    if (reader.HasError())
-    {
-        ConsoleLog(ELogLevel::Warning, "DDC::Load - Serialization error: {} in {}", reader.GetError(), cache_path);
-        return std::nullopt;
-    }
 
     return CacheEntry{
         .source_hash = std::move(cache_internal.header.source_hash),
