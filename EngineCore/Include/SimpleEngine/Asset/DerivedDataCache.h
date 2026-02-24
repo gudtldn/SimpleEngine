@@ -120,19 +120,6 @@ private:
     /** GUID로부터 임시 파일의 전체 경로를 계산합니다. (atomic write용) */
     [[nodiscard]] Path BuildTempPath(const Guid& guid) const;
 
-    /**
-     * 캐시 파일의 헤더만 읽어서 검증 정보를 반환합니다.
-     * @param cache_path 읽을 캐시 파일 경로
-     * @param out_source_hash 읽어온 소스 해시 (출력)
-     * @param out_cache_version 읽어온 캐시 버전 (출력)
-     * @return 헤더가 유효하면 true
-     */
-    [[nodiscard]] static bool ReadHeader(
-        const Path& cache_path,
-        String& out_source_hash,
-        uint32& out_cache_version
-    );
-
 private:
     Path root_path;
 };
