@@ -1,5 +1,10 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
+#if SE_PLATFORM_WINDOWS
+#include <Windows.h>
+#undef CreateDirectory
+#endif
+
 #include <filesystem>
 #include <fstream>
 
@@ -174,9 +179,38 @@ bool FileSystem::Copy(const Path& from, const Path& to)
 
 bool FileSystem::Rename(const Path& from, const Path& to)
 {
+    const std::filesystem::path std_from = ToStdPath(from);
+    const std::filesystem::path std_to = ToStdPath(to);
+
+#if SE_PLATFORM_WINDOWS
+    // Windows에서는 std::filesystem::rename시,
+    // 이미 같은 이름의 파일이 있을 경우 실패하기 때문에 ReplaceFileW를 대신 사용
+    const std::wstring& wide_from = std_from.native();
+    const std::wstring& wide_to = std_to.native();
+
+    // ReplaceFileW 시도
+    if (::ReplaceFileW(wide_to.c_str(), wide_from.c_str(), nullptr, REPLACEFILE_IGNORE_MERGE_ERRORS, nullptr, nullptr))
+    {
+        return true;
+    }
+
+    // ReplaceFileW가 실패한 경우 원인 파악
+    const DWORD last_error = ::GetLastError();
+
+    // 대상 파일이 없어서 실패한 것이라면, 단순 MoveFileEx로 처리 가능
+    if (last_error == ERROR_FILE_NOT_FOUND || last_error == ERROR_PATH_NOT_FOUND)
+    {
+        return ::MoveFileExW(wide_from.c_str(), wide_to.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+    }
+
+    // 그 외의 에러(권한, 공유 위반 등)는 실패로 처리
+    return false;
+
+#else
     std::error_code ec;
-    std::filesystem::rename(ToStdPath(from), ToStdPath(to), ec);
+    std::filesystem::rename(std_from, std_to, ec);
     return !ec;
+#endif
 }
 
 Optional<usize> FileSystem::FileSize(const Path& path)
