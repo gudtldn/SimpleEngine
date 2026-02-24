@@ -10,21 +10,104 @@
 
 namespace se::asset
 {
+namespace
+{
 /** 캐시 파일 매직 넘버 ("SEDC" = SimpleEngine Derived Cache) */
-static constexpr uint32 CACHE_MAGIC =
+constexpr uint32 CACHE_MAGIC =
     static_cast<uint32>('S')
     | (static_cast<uint32>('E') << 8)
     | (static_cast<uint32>('D') << 16)
     | (static_cast<uint32>('C') << 24);
 
 /** 캐시 파일 포맷 버전 */
-static constexpr uint32 CACHE_FORMAT_VERSION = 1;
+constexpr uint32 CACHE_FORMAT_VERSION = 1;
 
 /** 캐시 파일 확장자 */
-static constexpr StringView CACHE_EXTENSION = ".cache";
+constexpr StringView CACHE_EXTENSION = ".cache";
 
 /** 임시 파일 확장자 (atomic write용) */
-static constexpr StringView TEMP_EXTENSION = ".cache.tmp";
+constexpr StringView TEMP_EXTENSION = ".cache.tmp";
+
+/**
+ * DDC 캐시 파일에서 읽어온 엔트리 정보 (Internal)
+ */
+struct DDC_CacheEntryInternal
+{
+    struct Header
+    {
+        uint32 magic = CACHE_MAGIC;
+        uint32 format_version = CACHE_FORMAT_VERSION;
+        uint32 cache_version = 0;
+        String source_hash;
+
+        friend void Serialize(Archive& ar, Header& ar_header)
+        {
+            ar("magic") << ar_header.magic;
+            ar("format_version") << ar_header.format_version;
+            ar("cache_version") << ar_header.cache_version;
+            ar("source_hash") << ar_header.source_hash;
+        }
+    } header;
+
+    Array<uint8> payload;
+
+    friend void Serialize(Archive& ar, DDC_CacheEntryInternal& entry)
+    {
+        ar("header") << entry.header;
+        ar("payload") << entry.payload;
+    }
+};
+
+bool ReadHeader(
+    const Path& cache_path,
+    DDC_CacheEntryInternal::Header& out_header
+)
+{
+    static constexpr usize chunk_size = 128;
+    static_assert(sizeof(DDC_CacheEntryInternal::Header) <= chunk_size);
+
+    DDC_CacheEntryInternal::Header header;
+    bool deserialize_success = false;
+
+    const auto result = FileSystem::ReadChunked(cache_path, chunk_size, [&](ArrayView<const uint8> chunk)
+    {
+        const Array<uint8> buffer = Array<uint8>::FromRange(chunk);
+        MemoryReader reader(buffer);
+        reader << header;
+
+        deserialize_success = !reader.HasError();
+        return false;
+    });
+
+    // 파일 시스템 에러 체크
+    if (result.HasError())
+    {
+        ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - IO Error: {}, {}", cache_path, result.Error().What());
+        return false;
+    }
+
+    // 역직렬화 실패 체크
+    if (!deserialize_success)
+    {
+        ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - Deserialize failed: {}", cache_path);
+        return false;
+    }
+
+    // Magic + Format Version 검증
+    if (header.magic != CACHE_MAGIC || header.format_version != CACHE_FORMAT_VERSION)
+    {
+        ConsoleLog(
+            ELogLevel::Warning,
+            "DDC::ReadHeader - Invalid Format (Magic: {:#x}, Ver: {}): {}",
+            header.magic, header.format_version, cache_path
+        );
+        return false;
+    }
+
+    out_header = std::move(header);
+    return deserialize_success;
+}
+} // namespace
 
 
 DerivedDataCache::DerivedDataCache(Path in_root_path)
@@ -57,17 +140,15 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
     Array<uint8> buffer;
     MemoryWriter writer(buffer);
 
-    uint32 magic = CACHE_MAGIC;
-    uint32 format_ver = CACHE_FORMAT_VERSION;
+    DDC_CacheEntryInternal cache_internal;
+    cache_internal.header = {
+        .cache_version = entry.cache_version,
+        .source_hash = std::move(entry.source_hash),
+    };
+    cache_internal.payload = std::move(entry.payload);
 
-    // 기본 Header 직렬화
-    writer << magic
-           << format_ver
-           << entry.source_hash
-           << entry.cache_version;
-
-    // Payload 직렬화
-    writer << entry.payload;
+    // Cache Entry 직렬화
+    writer << cache_internal;
 
     // Atomic Write: 임시 파일에 먼저 쓰고 rename
     if (!FileSystem::Write(temp_path, buffer))
@@ -76,16 +157,9 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
         return false;
     }
 
-    // 기존 캐시 파일이 있으면 먼저 삭제 (Rename이 대상 파일 존재 시 실패할 수 있음)
-    if (cache_path.Exists())
-    {
-        FileSystem::Remove(cache_path);
-    }
-
     if (!FileSystem::Rename(temp_path, cache_path))
     {
         ConsoleLog(ELogLevel::Error, "DDC::Store - Failed to rename temp -> cache: {} -> {}", temp_path, cache_path);
-        FileSystem::Remove(temp_path);
         return false;
     }
 
@@ -105,36 +179,33 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
     }
 
     MemoryReader reader(buffer_opt.Value());
+    DDC_CacheEntryInternal cache_internal;
+
+    // Header 불러오기
+    reader << cache_internal.header;
 
     // Magic 검증
-    uint32 magic = 0;
-    reader << magic;
-    if (reader.HasError() || magic != CACHE_MAGIC)
+    reader << cache_internal.header.magic;
+    if (reader.HasError() || cache_internal.header.magic != CACHE_MAGIC)
     {
         ConsoleLog(ELogLevel::Warning, "DDC::Load - Invalid magic in: {}", cache_path);
         return std::nullopt;
     }
 
     // Format Version 검증
-    uint32 format_ver = 0;
-    reader << format_ver;
-    if (reader.HasError() || format_ver != CACHE_FORMAT_VERSION)
+    reader << cache_internal.header.format_version;
+    if (reader.HasError() || cache_internal.header.format_version != CACHE_FORMAT_VERSION)
     {
         ConsoleLog(
             ELogLevel::Warning,
             "DDC::Load - Format version mismatch (expected: {}, got: {}): {}",
-            CACHE_FORMAT_VERSION, format_ver, cache_path
+            CACHE_FORMAT_VERSION, cache_internal.header.format_version, cache_path
         );
         return std::nullopt;
     }
 
-    // Source Hash + Cache Version
-    CacheEntry entry;
-    reader << entry.source_hash;
-    reader << entry.cache_version;
-
     // Payload 역직렬화
-    reader << entry.payload;
+    reader << cache_internal.payload;
 
     if (reader.HasError())
     {
@@ -142,7 +213,11 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
         return std::nullopt;
     }
 
-    return entry;
+    return CacheEntry{
+        .source_hash = std::move(cache_internal.header.source_hash),
+        .cache_version = cache_internal.header.cache_version,
+        .payload = std::move(cache_internal.payload),
+    };
 }
 
 // source_hash와 cache_version이 모두 일치해야 유효한 것으로 판단.
@@ -154,15 +229,14 @@ bool DerivedDataCache::IsValid(
 {
     const Path cache_path = BuildCachePath(guid);
 
-    String stored_hash;
-    uint32 stored_version = 0;
-
-    if (!ReadHeader(cache_path, stored_hash, stored_version))
+    DDC_CacheEntryInternal::Header stored_header;
+    if (!ReadHeader(cache_path, stored_header))
     {
         return false;
     }
 
-    return stored_hash == source_hash && stored_version == cache_version;
+    return stored_header.source_hash == source_hash
+        && stored_header.cache_version == cache_version;
 }
 
 bool DerivedDataCache::Contains(const Guid& guid) const
@@ -214,41 +288,5 @@ Path DerivedDataCache::BuildTempPath(const Guid& guid) const
     const String filename = guid_str + String{ TEMP_EXTENSION };
 
     return root_path / Path{ bucket } / Path{ filename };
-}
-
-bool DerivedDataCache::ReadHeader(
-    const Path& cache_path,
-    String& out_source_hash,
-    uint32& out_cache_version
-)
-{
-    const auto buffer_opt = FileSystem::ReadBytes(cache_path);
-    if (!buffer_opt.HasValue())
-    {
-        return false;
-    }
-
-    MemoryReader reader(buffer_opt.Value());
-
-    // Magic + Format Version 검증
-    uint32 magic = 0;
-    reader << magic;
-    if (reader.HasError() || magic != CACHE_MAGIC)
-    {
-        return false;
-    }
-
-    uint32 format_ver = 0;
-    reader << format_ver;
-    if (reader.HasError() || format_ver != CACHE_FORMAT_VERSION)
-    {
-        return false;
-    }
-
-    // Source Hash + Cache Version만 읽고 payload는 건너뜀
-    reader << out_source_hash;
-    reader << out_cache_version;
-
-    return !reader.HasError();
 }
 }  // namespace se::asset
