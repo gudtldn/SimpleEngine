@@ -1,14 +1,15 @@
 ﻿#pragma once
-#include <memory>
-#include <shared_mutex>
-#include <atomic>
 
-#include "AssetId.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Asset/AssetId.h"
+#include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <atomic>
+#include <memory>
+#include <shared_mutex>
 
 
 namespace se::asset
@@ -30,7 +31,7 @@ enum class ELoadingState : uint8
 class SE_CORE_API AssetSlot
 {
 public:
-    explicit AssetSlot(const AssetId& id, const TypeId& type_id, Path path);
+    explicit AssetSlot(const AssetId& id, const TypeId& type_id, AssetPath path);
 
     // 복사 & 이동 금지
     AssetSlot(const AssetSlot&) = delete;
@@ -67,7 +68,7 @@ public:
     [[nodiscard]] FORCE_INLINE TypeId GetAssetType() const { return asset_type; }
 
     /** 이 Slot이 소유하는 Asset의 실제 물리적 위치를 반환합니다. */
-    [[nodiscard]] FORCE_INLINE const Path& GetSourcePath() const { return source_path; }
+    [[nodiscard]] FORCE_INLINE const AssetPath& GetSourcePath() const { return source_path; }
 
     /** 에셋을 무효화 후, 이전 에셋을 반환합니다. */
     [[nodiscard]] std::shared_ptr<AssetBase> Invalidate();
@@ -82,7 +83,7 @@ private:
     // Asset Metadata
     const AssetId asset_id;
     const TypeId asset_type;
-    Path source_path;
+    AssetPath source_path;
     std::atomic<ELoadingState> loading_state;
 };
 } // namespace se::asset

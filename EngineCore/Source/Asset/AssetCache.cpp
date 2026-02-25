@@ -13,7 +13,7 @@ std::shared_ptr<AssetSlot> AssetCache::Find(const AssetId& id) const
     return nullptr;
 }
 
-std::shared_ptr<AssetSlot> AssetCache::FindOrCreate(const AssetId& id, const TypeId& type_id, const Path& path)
+std::shared_ptr<AssetSlot> AssetCache::FindOrCreate(const AssetId& id, const TypeId& type_id, const AssetPath& asset_path)
 {
     {
         std::shared_lock read_lock(slot_mutex);
@@ -26,7 +26,7 @@ std::shared_ptr<AssetSlot> AssetCache::FindOrCreate(const AssetId& id, const Typ
     std::unique_lock write_lock(slot_mutex);
     return slots.Entry(id).OrInsertWith([&]
     {
-        return std::make_shared<AssetSlot>(id, type_id, path);
+        return std::make_shared<AssetSlot>(id, type_id, asset_path);
     });
 }
 

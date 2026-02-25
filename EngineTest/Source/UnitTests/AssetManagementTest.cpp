@@ -123,7 +123,7 @@ TEST_F(AssetSlotTest, InitialState)
 {
     AssetId id = GenerateAssetId();
     TypeId type_id = TypeId::Get<MockTexture>();
-    Path path("textures/test.png");
+    AssetPath path("textures/test.png");
 
     AssetSlot slot(id, type_id, path);
 
@@ -137,7 +137,7 @@ TEST_F(AssetSlotTest, InitialState)
 TEST_F(AssetSlotTest, ExchangeAsset)
 {
     AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), "test.png");
+    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     auto asset = std::make_shared<MockTexture>();
     asset->width = 512;
@@ -154,7 +154,7 @@ TEST_F(AssetSlotTest, ExchangeAsset)
 TEST_F(AssetSlotTest, GetAsset_SharedPointer)
 {
     AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockMesh>(), "mesh.obj");
+    AssetSlot slot(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
 
     auto asset = std::make_shared<MockMesh>();
     asset->vertex_count = 200;
@@ -169,7 +169,7 @@ TEST_F(AssetSlotTest, GetAsset_SharedPointer)
 TEST_F(AssetSlotTest, StateTransitions)
 {
     AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), "test.png");
+    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     EXPECT_EQ(slot.GetState(), ELoadingState::Unloaded);
 
@@ -187,7 +187,7 @@ TEST_F(AssetSlotTest, StateTransitions)
 TEST_F(AssetSlotTest, Invalidate)
 {
     AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), "test.png");
+    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     auto asset = std::make_shared<MockTexture>();
     (void)slot.ExchangeAsset(asset, ELoadingState::Loaded);
@@ -203,7 +203,7 @@ TEST_F(AssetSlotTest, Invalidate)
 TEST_F(AssetSlotTest, LockFreeRead)
 {
     AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), "test.png");
+    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     auto asset = std::make_shared<MockTexture>();
     asset->width = 2048;
@@ -232,7 +232,7 @@ TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
 {
     AssetId id = GenerateAssetId();
     TypeId type = TypeId::Get<MockTexture>();
-    Path path("textures/new.png");
+    AssetPath path("textures/new.png");
 
     auto slot = cache.FindOrCreate(id, type, path);
 
@@ -247,7 +247,7 @@ TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
 {
     AssetId id = GenerateAssetId();
     TypeId type = TypeId::Get<MockTexture>();
-    Path path("textures/existing.png");
+    AssetPath path("textures/existing.png");
 
     auto slot1 = cache.FindOrCreate(id, type, path);
     auto slot2 = cache.FindOrCreate(id, type, path);
@@ -267,7 +267,7 @@ TEST_F(AssetCacheTest, Find_NonExistent)
 TEST_F(AssetCacheTest, Find_Existing)
 {
     AssetId id = GenerateAssetId();
-    auto created = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), "mesh.obj");
+    auto created = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
 
     auto found = cache.Find(id);
     ASSERT_NE(found, nullptr);
@@ -277,7 +277,7 @@ TEST_F(AssetCacheTest, Find_Existing)
 TEST_F(AssetCacheTest, Remove)
 {
     AssetId id = GenerateAssetId();
-    (void)cache.FindOrCreate(id, TypeId::Get<MockTexture>(), "test.png");
+    (void)cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     EXPECT_EQ(cache.GetCount(), 1u);
 
@@ -291,8 +291,8 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
 
-    auto slot1 = cache.FindOrCreate(id1, TypeId::Get<MockTexture>(), "tex1.png");
-    auto slot2 = cache.FindOrCreate(id2, TypeId::Get<MockTexture>(), "tex2.png");
+    auto slot1 = cache.FindOrCreate(id1, TypeId::Get<MockTexture>(), AssetPath("tex1.png"));
+    auto slot2 = cache.FindOrCreate(id2, TypeId::Get<MockTexture>(), AssetPath("tex2.png"));
 
     EXPECT_EQ(cache.GetCount(), 2u);
 
@@ -311,7 +311,7 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
 TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
 {
     AssetId id = GenerateAssetId();
-    auto slot = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), "test.png");
+    auto slot = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     uint32 removed = cache.CollectGarbage();
     EXPECT_EQ(removed, 0u);  // slot is still held by 'slot' variable
@@ -329,7 +329,7 @@ protected:
 
     std::shared_ptr<AssetSlot> CreateSlotWithAsset(const AssetId& id)
     {
-        auto slot = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), "test.png");
+        auto slot = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
         auto asset = std::make_shared<MockTexture>();
         asset->width = 512;
         (void)slot->ExchangeAsset(asset, ELoadingState::Loaded);
@@ -596,7 +596,7 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
     registry.RegisterAsset(id, type, path, CreateDummyMeta());
 
     // 2. Create slot in cache
-    auto slot = cache.FindOrCreate(id, type, path.GetFilePath());
+    auto slot = cache.FindOrCreate(id, type, path);
 
     // 3. Load asset into slot
     auto asset = std::make_shared<MockTexture>();
@@ -619,7 +619,7 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
 TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 {
     AssetId id = GenerateAssetId();
-    auto slot = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), "mesh.obj");
+    auto slot = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
 
     auto asset = std::make_shared<MockMesh>();
     asset->vertex_count = 500;
@@ -653,8 +653,8 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
     registry.RegisterAsset(weapon_mesh_id, mesh_type, AssetPath(weapon_path), CreateDummyMeta());
 
     // Create slots
-    auto main_slot = cache.FindOrCreate(main_mesh_id, mesh_type, file_path);
-    auto weapon_slot = cache.FindOrCreate(weapon_mesh_id, mesh_type, file_path);
+    auto main_slot = cache.FindOrCreate(main_mesh_id, mesh_type, main_path);
+    auto weapon_slot = cache.FindOrCreate(weapon_mesh_id, mesh_type, weapon_path);
 
     // Load assets
     auto main_mesh = std::make_shared<MockMesh>();
