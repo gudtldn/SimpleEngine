@@ -74,8 +74,6 @@ void AssetRegistry::Clear()
     file_to_assets.Clear();
 }
 
-// ---- 조회 ----
-
 Optional<AssetId> AssetRegistry::GetAssetId(const AssetPath& asset_path) const
 {
     std::shared_lock lock(registry_mutex);
@@ -128,8 +126,6 @@ uint32 AssetRegistry::GetAssetCount() const
     std::shared_lock lock(registry_mutex);
     return static_cast<uint32>(records.Len());
 }
-
-// ---- 바이너리 역/직렬화 ----
 
 /** AssetRegistry 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
 static constexpr uint32 REGISTRY_MAGIC =
