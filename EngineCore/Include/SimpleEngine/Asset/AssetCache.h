@@ -37,9 +37,9 @@ public:
      * ID에 해당하는 Slot을 찾거나, 없으면 새로 생성하여 등록합니다. (Thread-Safe)
      * @param id 에셋 ID
      * @param type_id 에셋 타입 (새로 생성될 경우 사용)
-     * @param path 에셋 경로 (새로 생성될 경우 사용)
+     * @param asset_path 에셋 경로 (새로 생성될 경우 사용)
      */
-    [[nodiscard]] std::shared_ptr<AssetSlot> FindOrCreate(const AssetId& id, const TypeId& type_id, const Path& path);
+    [[nodiscard]] std::shared_ptr<AssetSlot> FindOrCreate(const AssetId& id, const TypeId& type_id, const AssetPath& asset_path);
 
     /**
      * 특정 Slot을 캐시에서 강제로 제거합니다. (Unload)
