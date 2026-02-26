@@ -49,10 +49,7 @@ Path Platform::FindProjectRoot()
 
         // 센티넬 파일을 찾지 못한 경우, 실행 파일 디렉토리를 폴백으로 반환
         const Path fallback = GetExecutableDirectory();
-        ConsoleLog(
-            ELogLevel::Warning,
-            "Failed to find '*.seproject' sentinel file. Using executable directory as project root: {}", fallback
-        );
+        SE_ENSURE(false, "Failed to find '*.seproject' sentinel file. Using executable directory as project root: {}", fallback);
         return fallback;
     }();
 
