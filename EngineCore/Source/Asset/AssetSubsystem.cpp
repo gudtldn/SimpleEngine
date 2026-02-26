@@ -152,32 +152,33 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
         }
 
         // 2) DDC Hit: Meta가 존재하고, DDC가 유효하면 역직렬화
-        std::shared_ptr<AssetSlot> loaded_slot = nullptr;
-
-        registry->ReadRecord(current_id, [&](const AssetRecord& record)
+        String source_hash;
+        uint32 cache_version;
+        const bool has_meta = registry->ReadRecord(current_id, [&source_hash, &cache_version](const AssetRecord& record)
         {
-            const AssetMetadata& meta = record.metadata;
+            source_hash = record.metadata.source_hash;
+            cache_version = record.metadata.cache_version;
+        });
 
-            if (ddc->IsValid(current_id.GetGuid(), meta.source_hash, meta.cache_version))
+        if (has_meta)
+        {
+            if (ddc->IsValid(current_id.GetGuid(), source_hash, cache_version))
             {
                 if (auto entry_opt = ddc->Load(current_id.GetGuid()))
                 {
                     if (auto asset_ptr = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
-                        loaded_slot = cache->FindOrCreate(current_id, expected_type, file_path);
+                        std::shared_ptr<AssetSlot> loaded_slot = cache->FindOrCreate(current_id, expected_type, source_path);
                         if (auto old_asset = loaded_slot->ExchangeAsset(std::move(asset_ptr)))
                         {
                             DeferRelease(std::move(old_asset));
                         }
+
+                        ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
+                        return loaded_slot;
                     }
                 }
             }
-        });
-
-        if (loaded_slot)
-        {
-            ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
-            return loaded_slot;
         }
 
         // 여기까지 왔다면 DDC가 없거나 손상된 것.
@@ -232,6 +233,8 @@ std::shared_ptr<AssetSlot> AssetSubsystem::FindInternal(const TypeId& expected_t
     return nullptr;
 }
 
+
+// DEPRECATED
 bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
 {
     ZoneScopedN("AssetSubsystem::ImportAndRegisterAll");
@@ -308,7 +311,7 @@ bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
         }
 
         // Cache에 등록
-        const auto slot = cache->FindOrCreate(asset_id, asset_type, file_path);
+        const auto slot = cache->FindOrCreate(asset_id, asset_type, AssetPath{ file_path, "" });
         if (auto old_asset = slot->ExchangeAsset(std::move(asset)))
         {
             DeferRelease(std::move(old_asset));
