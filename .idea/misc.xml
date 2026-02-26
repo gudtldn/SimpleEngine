@@ -10,8 +10,10 @@
   <component name="CidrRootsConfiguration">
     <sourceRoots>
       <file path="$PROJECT_DIR$/Editor" />
+      <file path="$PROJECT_DIR$/EditorApp" />
       <file path="$PROJECT_DIR$/EngineCore" />
       <file path="$PROJECT_DIR$/EngineTest" />
+      <file path="$PROJECT_DIR$/RuntimeApp" />
     </sourceRoots>
     <libraryRoots>
       <file path="$PROJECT_DIR$/ThirdParty" />
@@ -21,5 +23,5 @@
       <file path="$PROJECT_DIR$/Build" />
     </excludeRoots>
   </component>
-  <component name="WestSettings"><![CDATA[{}]]></component>
+  <component name="WestSettings">{}</component>
 </project>
