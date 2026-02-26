@@ -4,8 +4,6 @@
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
-#include "SimpleEngine/Asset/Pipeline/Factories/StaticMeshFactory.h"
-#include "SimpleEngine/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
@@ -27,17 +25,6 @@ bool AssetSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Asset subsystem...");
 
-    {
-        // Create AssetImporter Instance
-        importer = std::make_unique<AssetImporter>();
-
-        // Register Translator
-        importer->RegisterTranslator<AssimpTranslator>();
-
-        // Register Factory
-        importer->RegisterFactory<StaticMeshFactory>();
-    }
-
     // Create AssetCache Instance
     cache = std::make_unique<AssetCache>();
 
@@ -57,7 +44,6 @@ void AssetSubsystem::Release()
     ddc.reset();
     registry.reset();
     cache.reset();
-    importer.reset();
 }
 
 void AssetSubsystem::SetDDCMissHandler(DDCMissHandler handler)

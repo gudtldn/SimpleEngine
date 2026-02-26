@@ -7,6 +7,8 @@ target_link_libraries(UnitTests PRIVATE
         SE_DefaultOptions
 
         EngineCore
+        Editor
+
         GTest::gtest
 )
 add_custom_command(TARGET UnitTests POST_BUILD
@@ -24,6 +26,8 @@ target_link_libraries(Benchmarks PRIVATE
         SE_DefaultOptions
 
         EngineCore
+        Editor
+
         benchmark::benchmark_main
 )
 add_custom_command(TARGET Benchmarks POST_BUILD

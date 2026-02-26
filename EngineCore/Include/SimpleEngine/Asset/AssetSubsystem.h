@@ -3,7 +3,6 @@
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/AssetSlot.h"
-#include "SimpleEngine/Asset/Pipeline/AssetImporter.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
@@ -81,7 +80,6 @@ public:
     [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
 
 public:
-    [[nodiscard]] FORCE_INLINE AssetImporter& GetImporter() const { return *importer; }
     [[nodiscard]] FORCE_INLINE AssetCache& GetCache() const { return *cache; }
     [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
@@ -91,7 +89,6 @@ private:
     [[nodiscard]] std::shared_ptr<AssetSlot> FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
 
 private:
-    [[deprecated]] std::unique_ptr<AssetImporter> importer;
     std::unique_ptr<AssetCache> cache;
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;

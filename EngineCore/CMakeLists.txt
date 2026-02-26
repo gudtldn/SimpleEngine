@@ -51,9 +51,6 @@ PRIVATE
         # GUID Generator
         stduuid
 
-        # Assimp
-        assimp
-
         # SHA-256
         picosha2
 )

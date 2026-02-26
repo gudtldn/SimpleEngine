@@ -1,0 +1,52 @@
+#pragma once
+
+#include "SimpleEditor/EditorCommon.h"
+#include "SimpleEditor/Asset/Pipeline/Types/AttributeStorage.h"
+
+#include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Reflection/Reflect.h"
+
+
+namespace se::editor
+{
+/**
+ * Asset Import Pipeline의 기본 노드 클래스
+ */
+class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) PipelineBaseNode
+{
+    SE_CLASS(PipelineBaseNode)
+
+public:
+    virtual ~PipelineBaseNode() = default;
+
+    /** 팩토리 정렬(Topological Sort)을 위해 이 노드가 참조하는 다른 노드들의 ID 반환합니다. */
+    virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const
+    {
+        if (parent_uid.IsValid())
+        {
+            out_dependencies.Push(parent_uid);
+        }
+    }
+
+public:
+    [[nodiscard]] FORCE_INLINE const Guid& GetUid() const { return self_uid; }
+    FORCE_INLINE void SetUid(const Guid& new_uid) { self_uid = new_uid; }
+
+    [[nodiscard]] FORCE_INLINE const Guid& GetParentUid() const { return parent_uid; }
+    FORCE_INLINE void SetParentUid(const Guid& parent) { parent_uid = parent; }
+
+    [[nodiscard]] FORCE_INLINE const String& GetDisplayName() const { return display_name; }
+    FORCE_INLINE void SetDisplayName(const String& new_name) { display_name = new_name; }
+
+    [[nodiscard]] FORCE_INLINE AttributeStorage& GetAttributes() { return attributes; }
+    [[nodiscard]] FORCE_INLINE const AttributeStorage& GetAttributes() const { return attributes; }
+
+protected:
+    Guid self_uid;
+    Guid parent_uid;
+    String display_name;
+
+    AttributeStorage attributes;
+};
+} // namespace se::editor

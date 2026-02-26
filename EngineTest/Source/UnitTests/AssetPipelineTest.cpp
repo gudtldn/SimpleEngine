@@ -3,16 +3,18 @@
 #include <filesystem>
 #include <ranges>
 
-#include "SimpleEngine/Asset/ImportSettings/ImportSettingsBase.h"
-#include "SimpleEngine/Asset/Pipeline/AssetImporter.h"
-#include "SimpleEngine/Asset/Pipeline/Factories/StaticMeshFactory.h"
-#include "SimpleEngine/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
-#include "SimpleEngine/Asset/Pipeline/Processors/IPipelineProcessor.h"
+#include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
+#include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
+#include "SimpleEditor/Asset/Pipeline/Processors/IPipelineProcessor.h"
+#include "SimpleEditor/Asset/ImportSettings/ImportSettingsBase.h"
+
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 
 using namespace se;
 using namespace se::asset;
+using namespace se::editor;
 using namespace se::graphics;
 
 // --- Mock Classes ---
