@@ -11,7 +11,6 @@ namespace se
 {
 // forward declaration
 class TypeRegistry;
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
 
 namespace detail
 {
