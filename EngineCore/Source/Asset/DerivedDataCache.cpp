@@ -274,17 +274,19 @@ Path DerivedDataCache::BuildCachePath(const Guid& guid) const
 
     // 앞 2글자를 버킷 디렉토리로 사용 (예: "ab" / "abcdef01-...")
     const String bucket = guid_str.Substring(0, 2);
-    const String filename = guid_str + String{ CACHE_EXTENSION };
+    const String filename = String::Format("{}{}", guid_str, CACHE_EXTENSION);
 
-    return root_path / Path{ bucket } / Path{ filename };
+    return root_path / bucket / filename;
 }
 
 Path DerivedDataCache::BuildTempPath(const Guid& guid) const
 {
     const String guid_str = guid.ToString();
     const String bucket = guid_str.Substring(0, 2);
-    const String filename = guid_str + String{ TEMP_EXTENSION };
 
-    return root_path / Path{ bucket } / Path{ filename };
+    const size_t thread_id_hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    const String filename = String::Format("{}_{}{}", guid_str, thread_id_hash, TEMP_EXTENSION);
+
+    return root_path / bucket / filename;
 }
 }  // namespace se::asset
