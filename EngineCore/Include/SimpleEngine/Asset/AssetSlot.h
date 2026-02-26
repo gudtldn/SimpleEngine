@@ -61,6 +61,12 @@ public:
     /** 현재 에셋의 로딩 상태를 설정합니다.*/
     void SetState(ELoadingState state);
 
+    /** 로딩 권한을 원자적으로 획득합니다. (Unloaded/Failed -> Loading) */
+    [[nodiscard]] bool BeginLoad();
+
+    /** 만약 상태가 Loading인 경우 완료(Loaded 또는 Failed)될 때까지 대기합니다. */
+    void WaitForLoadComplete() const;
+
     /** 이 Slot의 소유하는 Asset의 고유 ID를 반환합니다. */
     [[nodiscard]] FORCE_INLINE AssetId GetAssetId() const { return asset_id; }
 

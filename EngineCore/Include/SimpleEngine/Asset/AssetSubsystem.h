@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <mutex>
 
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
@@ -9,6 +8,8 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <mutex>
 
 
 namespace se::asset
@@ -89,12 +90,8 @@ private:
     [[nodiscard]] std::shared_ptr<AssetSlot> LoadInternal(const TypeId& expected_type, const AssetPath& source_path);
     [[nodiscard]] std::shared_ptr<AssetSlot> FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
 
-    /** 파일 Import 후 모든 Sub-Asset을 캐시에 등록합니다. */
-    [[deprecated("Use EditorAssetSubsystem for importing. This will be removed soon.")]]
-    bool ImportAndRegisterAll(const Path& file_path);
-
 private:
-    std::unique_ptr<AssetImporter> importer;
+    [[deprecated]] std::unique_ptr<AssetImporter> importer;
     std::unique_ptr<AssetCache> cache;
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;
@@ -104,6 +101,10 @@ private:
     Array<std::shared_ptr<AssetBase>> pending_release;
 
     DDCMissHandler ddc_miss_handler;
+
+    TracyLockable(std::mutex, loading_mutex);
+    std::condition_variable_any import_cv;
+    HashSet<Path> files_currently_importing;
 };
 
 template <typename T>

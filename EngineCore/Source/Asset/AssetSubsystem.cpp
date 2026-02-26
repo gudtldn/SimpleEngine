@@ -11,7 +11,6 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Utility/SHA256.h"
 
 
 namespace se::asset
@@ -116,9 +115,8 @@ std::shared_ptr<AssetBase> AssetSubsystem::DeserializeAssetPayload(const TypeId&
     info_opt->serialize(reader, raw);
 
     // shared_ptr로 변환 (destructor 연결)
-    auto* asset = static_cast<AssetBase*>(raw);
-    const auto destructor = info_opt->destructor;
-    return std::shared_ptr<AssetBase>(asset, [destructor](AssetBase* p) { destructor(p); });
+    AssetBase* asset = static_cast<AssetBase*>(raw);
+    return { asset, [destructor = info_opt->destructor](AssetBase* p) { destructor(p); } };
 }
 
 std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path)
@@ -145,72 +143,135 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
         return registry->FindFirstOfType(file_path, expected_type);
     };
 
-    // 이미 등록된 Asset인지 확인
-    if (const Optional id_opt = find_asset_id())
+    std::shared_ptr<AssetSlot> slot = nullptr;
+    for (usize attempt = 0; attempt < 2; ++attempt)
     {
-        const AssetId& current_id = id_opt.Value();
+        bool ddc_missing_or_corrupted = false;
 
-        // 1) 메모리 Cache Hit
-        if (auto slot = FindInternal(expected_type, current_id))
+        // 이미 등록된 Asset인지 확인
+        if (const Optional id_opt = find_asset_id())
         {
-            return slot;
-        }
+            const AssetId& current_id = id_opt.Value();
+            slot = cache->FindOrCreate(current_id, expected_type, source_path);
 
-        // 2) DDC Hit: Meta가 존재하고, DDC가 유효하면 역직렬화
-        String source_hash;
-        uint32 cache_version;
-        const bool has_meta = registry->ReadRecord(current_id, [&source_hash, &cache_version](const AssetRecord& record)
-        {
-            source_hash = record.metadata.source_hash;
-            cache_version = record.metadata.cache_version;
-        });
+            // [Slot-Level Lock] 로딩 상태 동기화
+            while (true)
+            {
+                const ELoadingState state = slot->GetState();
+                if (state == ELoadingState::Loaded)
+                {
+                    // 메모리 Cache Hit
+                    if (slot->GetAssetType() == expected_type)
+                    {
+                        return slot;
+                    }
+                    ConsoleLog(ELogLevel::Error, "Asset Type Mismatch!");
+                    return nullptr;
+                }
 
-        if (has_meta)
-        {
-            if (ddc->IsValid(current_id.GetGuid(), source_hash, cache_version))
+                if (state == ELoadingState::Loading)
+                {
+                    // 다른 스레드가 DDC를 읽거나 Import 중이므로 Sleep
+                    slot->WaitForLoadComplete();
+                    continue; // 깨어나면 상태를 다시 확인
+                }
+
+                // Unloaded 또는 Failed 라면, 현재 스레드에서 로딩 시작
+                if (slot->BeginLoad())
+                {
+                    break;
+                }
+            }
+
+            // DDC Hit 검사 및 로드 수행
+            String source_hash;
+            uint32 cache_version;
+            const bool has_meta = registry->ReadRecord(current_id, [&source_hash, &cache_version](const AssetRecord& record)
+            {
+                source_hash = record.metadata.source_hash;
+                cache_version = record.metadata.cache_version;
+            });
+
+            if (has_meta && ddc->IsValid(current_id.GetGuid(), source_hash, cache_version))
             {
                 if (auto entry_opt = ddc->Load(current_id.GetGuid()))
                 {
                     if (auto asset_ptr = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
-                        std::shared_ptr<AssetSlot> loaded_slot = cache->FindOrCreate(current_id, expected_type, source_path);
-                        if (auto old_asset = loaded_slot->ExchangeAsset(std::move(asset_ptr)))
+                        if (auto old_asset = slot->ExchangeAsset(std::move(asset_ptr)))
                         {
                             DeferRelease(std::move(old_asset));
                         }
-
                         ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
-                        return loaded_slot;
+                        return slot;
                     }
                 }
             }
+
+            // 여기까지 왔다면 DDC가 없거나 손상된 것.
+            ConsoleLog(ELogLevel::Warning, "DDC entry missing or corrupted for: {}", source_path.ToString());
+            ddc_missing_or_corrupted = true;
         }
 
-        // 여기까지 왔다면 DDC가 없거나 손상된 것.
-        ConsoleLog(ELogLevel::Warning, "DDC entry missing or corrupted for: {}", source_path.ToString());
-    }
-
-    // TODO: ImportAndRegisterAll 대신 ddc_miss_handler를 사용해서 개선
-
-    // 아직 Import가 안 됐다면, Import 수행
-    if (!registry->IsFileImported(file_path))
-    {
-        if (!ImportAndRegisterAll(file_path))
+        /* Import 여부 결정
+         *  - 파일 자체가 한 번도 Import 안 된 새 파일이거나 (!IsFileImported)
+         *  - 파일은 Import 되었는데 DDC가 날아갔을 때만 (ddc_missing_or_corrupted) Import 수행
+         *  (※ 파일이 Import 되었는데 id_opt가 없는 경우는 '없는 에셋(오타 등)'을 찾은 것이므로 건너뜀)
+         */
+        if (!registry->IsFileImported(file_path) || ddc_missing_or_corrupted)
         {
-            return nullptr;
-        }
-    }
+            std::unique_lock lock(loading_mutex);
 
-    // 다시 Cache에서 조회
-    if (const Optional id_opt = find_asset_id())
-    {
-        if (auto slot = FindInternal(expected_type, *id_opt))
-        {
-            return slot;
+            // 다른 스레드에서 이미 이 파일을 Import 중이라면 대기
+            import_cv.wait(lock, [&] { return !files_currently_importing.Contains(file_path); });
+
+            // double-check
+            if (slot && slot->GetState() == ELoadingState::Loaded)
+            {
+                return slot;
+            }
+
+            // 아직 Import 안 됨 -> 현재 스레드에서 Import 권한을 획득함
+            if (ddc_miss_handler)
+            {
+                files_currently_importing.Insert(file_path);
+                lock.unlock(); // 무거운 Import 도중 락 해제
+
+                ConsoleLog(ELogLevel::Info, "Triggering DDC Miss Handler for: {}", file_path.ToString());
+                const bool import_success = ddc_miss_handler(*this, file_path);
+
+                // Import 완료 (성공/실패 무관)
+                lock.lock();
+                files_currently_importing.Remove(file_path);
+                import_cv.notify_all(); // 대기 중이던 다른 스레드들을 깨움
+
+                if (import_success)
+                {
+                    // 성공했다면, 내가 쥐고 있던 Slot의 상태를 Unloaded로 초기화
+                    // 그리고 continue 후, 위에서 다시 BeginLoad()를 획득하고 DDC를 읽도록 함.
+                    if (slot)
+                    {
+                        slot->SetState(ELoadingState::Unloaded);
+                    }
+                    continue;
+                }
+            }
+            else
+            {
+                ConsoleLog(ELogLevel::Error, "DDC Miss in Runtime mode. Asset not cooked.");
+            }
         }
+
+        // 임포트를 할 수 없거나, 임포트에 실패했으면 더 시도할 필요 없이 루프 탈출
+        break;
     }
 
     // 실패 처리
+    if (slot)
+    {
+        slot->SetState(ELoadingState::Failed);
+    }
+
     if (has_sub_name)
     {
         ConsoleLog(ELogLevel::Error, "Sub-asset not found: {}", source_path.ToString());
@@ -236,94 +297,5 @@ std::shared_ptr<AssetSlot> AssetSubsystem::FindInternal(const TypeId& expected_t
         );
     }
     return nullptr;
-}
-
-
-// DEPRECATED
-bool AssetSubsystem::ImportAndRegisterAll(const Path& file_path)
-{
-    ZoneScopedN("AssetSubsystem::ImportAndRegisterAll");
-
-    // Import 수행
-    const auto result_exp = importer->Import(file_path);
-    if (!result_exp.HasValue())
-    {
-        ConsoleLog(ELogLevel::Error, "Import failed: {}", result_exp.Error().What());
-        return false;
-    }
-    const ImportResult& result = result_exp.Value();
-
-    // 소스 파일 해시 계산 (DDC 저장용)
-    const String source_hash = SHA256::HashFile(file_path);
-    constexpr uint32 current_cache_version = 1;
-    const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
-    const uint64 file_size = FileSystem::FileSize(file_path).ValueOrDefault();
-
-    // 모든 Asset을 Registry + Cache에 등록하고 DDC에 저장
-    for (const auto& [name, idx] : result.GetNameToIndexMap())
-    {
-        std::shared_ptr<AssetBase> asset = result.GetAsset(idx);
-        if (!asset)
-        {
-            continue;
-        }
-
-        const TypeId asset_type = asset->GetTypeId();
-        AssetPath asset_path = AssetPath{ file_path, name };
-
-        // Registry에 이미 등록된 AssetId가 있으면 재사용, 없으면 새로 생성
-        AssetId asset_id = [&]
-        {
-            if (const auto existing = registry->GetAssetId(asset_path))
-            {
-                return *existing;
-            }
-            return AssetId{ Guid::NewGuid() };
-        }();
-
-        // ---------------------------------------------------------
-        // [임시 조치] 바뀐 Registry API 스펙에 맞추기 위한 임시 Meta 생성
-        // ---------------------------------------------------------
-        AssetMetadata meta;
-        meta.guid = asset_id.GetGuid();
-        meta.source_hash = source_hash;
-        meta.source_mtime = file_mtime;
-        meta.source_size = file_size;
-        meta.cache_version = current_cache_version;
-
-        meta.sub_assets.Push({
-            .name = name,
-            .guid = asset_id.GetGuid(),
-            .type = asset_type
-        });
-
-        // Registry에 등록 (Atomic하게 한 번에 밀어넣음)
-        registry->RegisterAsset(asset_id, asset_type, asset_path, std::move(meta));
-
-        // DDC에 저장
-        if (!source_hash.IsEmpty())
-        {
-            Array<uint8> payload = SerializeAssetPayload(*asset);
-
-            if (!payload.IsEmpty())
-            {
-                CacheEntry entry;
-                entry.source_hash = source_hash;
-                entry.cache_version = current_cache_version;
-                entry.payload = std::move(payload);
-                ddc->Store(asset_id.GetGuid(), std::move(entry));
-            }
-        }
-
-        // Cache에 등록
-        const auto slot = cache->FindOrCreate(asset_id, asset_type, AssetPath{ file_path, "" });
-        if (auto old_asset = slot->ExchangeAsset(std::move(asset)))
-        {
-            DeferRelease(std::move(old_asset));
-        }
-    }
-
-    ConsoleLog(ELogLevel::Debug, "Imported {} assets from: {}", result.GetCount(), file_path);
-    return true;
 }
 } // namespace se::asset
