@@ -47,6 +47,9 @@ public:
     //~ End SubsystemBase
 
 public:
+    /** DDC Miss 시 호출될 핸들러를 등록합니다. */
+    void SetDDCMissHandler(DDCMissHandler handler);
+
     /**
      * 지정된 경로의 Asset을 로드하고 Handle을 반환합니다.
      * @param asset_path Asset 경로 (예: "meshes/model.fbx#Mesh_01")
@@ -99,6 +102,8 @@ private:
     // Deferred Release
     TracyLockable(std::mutex, pending_mutex);
     Array<std::shared_ptr<AssetBase>> pending_release;
+
+    DDCMissHandler ddc_miss_handler;
 };
 
 template <typename T>

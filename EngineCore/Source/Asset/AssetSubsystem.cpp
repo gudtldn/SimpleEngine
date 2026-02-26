@@ -61,6 +61,11 @@ void AssetSubsystem::Release()
     importer.reset();
 }
 
+void AssetSubsystem::SetDDCMissHandler(DDCMissHandler handler)
+{
+    ddc_miss_handler = std::move(handler);
+}
+
 void AssetSubsystem::DeferRelease(std::shared_ptr<AssetBase> asset)
 {
     // if (asset.use_count() > 2) {} TODO: 검사 할까?
