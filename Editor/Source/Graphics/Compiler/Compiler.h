@@ -18,8 +18,8 @@ struct HLSL_Define
 [[nodiscard]] SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
     const Path& shader_path,
-    Optional<const Path&> include_dir_opt = std::nullopt,
-    Optional<const Array<HLSL_Define>&> defines_opt = std::nullopt
+    Optional<const Path&> include_dir_opt = NullOpt,
+    Optional<const Array<HLSL_Define>&> defines_opt = NullOpt
 );
 
 // TODO: CreateComputeShader 구현하기

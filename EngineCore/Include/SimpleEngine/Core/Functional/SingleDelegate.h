@@ -48,7 +48,7 @@ public:
         {
             return callable(std::forward<Args>(args)...);
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
 private:

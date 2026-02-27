@@ -90,14 +90,14 @@ public:
     [[nodiscard]] constexpr usize Capacity() const { return 0; }
     [[nodiscard]] constexpr bool IsEmpty() const { return true; }
 
-    [[nodiscard]] constexpr Optional<T&> Front() { return std::nullopt; }
-    [[nodiscard]] constexpr Optional<const T&> Front() const { return std::nullopt; }
+    [[nodiscard]] constexpr Optional<T&> Front() { return NullOpt; }
+    [[nodiscard]] constexpr Optional<const T&> Front() const { return NullOpt; }
 
-    [[nodiscard]] constexpr Optional<T&> Back() { return std::nullopt; }
-    [[nodiscard]] constexpr Optional<const T&> Back() const { return std::nullopt; }
+    [[nodiscard]] constexpr Optional<T&> Back() { return NullOpt; }
+    [[nodiscard]] constexpr Optional<const T&> Back() const { return NullOpt; }
 
-    [[nodiscard]] constexpr Optional<T&> At(usize) { return std::nullopt; }
-    [[nodiscard]] constexpr Optional<const T&> At(usize) const { return std::nullopt; }
+    [[nodiscard]] constexpr Optional<T&> At(usize) { return NullOpt; }
+    [[nodiscard]] constexpr Optional<const T&> At(usize) const { return NullOpt; }
 
     [[nodiscard]] constexpr T* Data() { return nullptr; }
     [[nodiscard]] constexpr const T* Data() const { return nullptr; }
@@ -159,7 +159,7 @@ constexpr Optional<T&> FixedArray<T, N>::Front()
     }
     else
     {
-        return std::nullopt;
+        return NullOpt;
     }
 }
 
@@ -172,7 +172,7 @@ constexpr Optional<const T&> FixedArray<T, N>::Front() const
     }
     else
     {
-        return std::nullopt;
+        return NullOpt;
     }
 }
 
@@ -185,7 +185,7 @@ constexpr Optional<T&> FixedArray<T, N>::Back()
     }
     else
     {
-        return std::nullopt;
+        return NullOpt;
     }
 }
 
@@ -198,7 +198,7 @@ constexpr Optional<const T&> FixedArray<T, N>::Back() const
     }
     else
     {
-        return std::nullopt;
+        return NullOpt;
     }
 }
 
@@ -207,7 +207,7 @@ constexpr Optional<T&> FixedArray<T, N>::At(usize index)
 {
     if (index >= N)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return data[index];
 }
@@ -217,7 +217,7 @@ constexpr Optional<const T&> FixedArray<T, N>::At(usize index) const
 {
     if (index >= N)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return data[index];
 }

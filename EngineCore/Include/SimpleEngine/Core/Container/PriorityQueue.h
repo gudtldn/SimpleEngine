@@ -183,7 +183,7 @@ Optional<typename PriorityQueue<T, Container, Compare>::ValueType> PriorityQueue
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     std::ranges::pop_heap(container, comp);
     return container.Pop();

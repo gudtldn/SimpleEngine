@@ -77,7 +77,7 @@ public:
 
     /**
      * 가상 경로를 물리적 경로로 해석하고, 파일이 존재하는지 확인합니다.
-     * @return 물리적 경로. 해석 실패 또는 파일 없음 시 std::nullopt
+     * @return 물리적 경로. 해석 실패 또는 파일 없음 시 NullOpt
      */
     [[nodiscard]] Optional<Path> Resolve() const;
 

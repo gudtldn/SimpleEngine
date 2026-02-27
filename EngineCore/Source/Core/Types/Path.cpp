@@ -119,7 +119,7 @@ Optional<Path> Path::RelativeTo(const Path& base) const
 
     if (relative.empty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return Path{ std::move(relative) };
 }
@@ -129,14 +129,14 @@ Optional<Path> Path::Parent() const
     // 기본적으로 상위 경로가 없다고 판단되는 경우 (예: "filename", ".")
     if (!internal_path.has_parent_path())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     // 만약 .parent_path()를 해도 경로가 같다면, 이미 Root 경로인것으로 판정
     auto parent = internal_path.parent_path();
     if (parent == internal_path)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return Path{ std::move(parent) };
 }
@@ -145,7 +145,7 @@ Optional<String> Path::FileName() const
 {
     if (!internal_path.has_filename())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     const std::u8string u8_str = internal_path.filename().generic_u8string();
     return StringUtils::ToString(u8_str);
@@ -155,7 +155,7 @@ Optional<String> Path::FileStem() const
 {
     if (!internal_path.has_stem())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     const std::u8string u8_str = internal_path.stem().generic_u8string();
@@ -166,7 +166,7 @@ Optional<String> Path::Extension() const
 {
     if (!internal_path.has_extension())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     const std::u8string u8_str = internal_path.extension().generic_u8string();

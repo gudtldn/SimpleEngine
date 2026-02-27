@@ -140,7 +140,7 @@ Optional<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType&> Has
     {
         return it->second;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
@@ -152,7 +152,7 @@ Optional<const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType
     {
         return it->second;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>

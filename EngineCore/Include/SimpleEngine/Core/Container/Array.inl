@@ -262,7 +262,7 @@ Optional<T&> Array<T, Allocator>::At(SizeType index)
 {
     if (index >= size)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return data[index];
 }
@@ -272,7 +272,7 @@ Optional<const T&> Array<T, Allocator>::At(SizeType index) const
 {
     if (index >= size)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return data[index];
 }
@@ -318,7 +318,7 @@ Optional<typename Array<T, Allocator>::ValueType> Array<T, Allocator>::Pop()
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     T value = std::move(BackUnsafe());
@@ -565,7 +565,7 @@ Optional<typename Array<T, Allocator>::SizeType> Array<T, Allocator>::Find(const
     {
         return std::distance(begin(), it);
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename T, typename Allocator>

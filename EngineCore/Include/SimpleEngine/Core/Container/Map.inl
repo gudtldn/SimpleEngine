@@ -116,7 +116,7 @@ Optional<typename Map<Key, Value, Pred, Allocator>::ValueType&> Map<Key, Value, 
     {
         return it->second;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -126,7 +126,7 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::ValueType&> Map<Key, V
     {
         return it->second;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -154,7 +154,7 @@ Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, P
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return *internal_map.begin();
 }
@@ -164,7 +164,7 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Va
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return *internal_map.begin();
 }
@@ -174,7 +174,7 @@ Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, P
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return *(--internal_map.end());
 }
@@ -184,7 +184,7 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Va
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return *(--internal_map.end());
 }
@@ -196,7 +196,7 @@ Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, P
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -206,7 +206,7 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Va
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -216,7 +216,7 @@ Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, P
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -226,7 +226,7 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Va
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>

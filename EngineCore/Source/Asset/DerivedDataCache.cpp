@@ -175,7 +175,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
     const auto buffer_opt = FileSystem::ReadBytes(cache_path);
     if (!buffer_opt.HasValue())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     MemoryReader reader(buffer_opt.Value());
@@ -187,14 +187,14 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
     if (reader.HasError())
     {
         ConsoleLog(ELogLevel::Warning, "DDC::Load - Serialization error: {} in {}", reader.GetError(), cache_path);
-        return std::nullopt;
+        return NullOpt;
     }
 
     // Magic 검증
     if (cache_internal.header.magic != CACHE_MAGIC)
     {
         ConsoleLog(ELogLevel::Warning, "DDC::Load - Invalid magic in: {}", cache_path);
-        return std::nullopt;
+        return NullOpt;
     }
 
     // Format Version 검증
@@ -205,7 +205,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
             "DDC::Load - Format version mismatch (expected: {}, got: {}): {}",
             CACHE_FORMAT_VERSION, cache_internal.header.format_version, cache_path
         );
-        return std::nullopt;
+        return NullOpt;
     }
 
     // Payload 역직렬화

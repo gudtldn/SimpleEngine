@@ -156,7 +156,7 @@ Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const Path& file_pa
     if (!ext_opt.HasValue())
     {
         ConsoleLog(ELogLevel::Warning, "Cannot find translator: file path has no extension: {}", file_path);
-        return std::nullopt;
+        return NullOpt;
     }
 
     const String ext = ext_opt->ToLower();
@@ -167,7 +167,7 @@ Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const Path& file_pa
             return *translator;
         }
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNodeContainer& container)

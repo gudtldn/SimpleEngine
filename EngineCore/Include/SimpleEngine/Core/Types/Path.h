@@ -145,7 +145,7 @@ public:
     /**
      * 물리적 경로를 가상 경로로 변환합니다.
      * 마운트된 경로 내에 있을 경우에만 변환됩니다.
-     * @return 가상 경로. 변환 불가 시 std::nullopt
+     * @return 가상 경로. 변환 불가 시 NullOpt
      */
     [[nodiscard]] Optional<VPath> ToVirtual() const;
 

@@ -65,7 +65,7 @@ public:
      *
      * @param virtual_path 해석할 가상 경로
      * @param check_existence true이면 파일이 존재할 때만 반환, false이면 최우선 경로 반환
-     * @return 물리적 경로. 해석 실패 시 std::nullopt
+     * @return 물리적 경로. 해석 실패 시 NullOpt
      */
     [[nodiscard]] Optional<Path> Resolve(const VPath& virtual_path, bool check_existence = true) const;
 
@@ -73,7 +73,7 @@ public:
      * 물리적 경로를 가상 경로로 역해석합니다.
      *
      * @param physical_path 역해석할 물리적 경로
-     * @return 가상 경로. 해석 실패 시 std::nullopt
+     * @return 가상 경로. 해석 실패 시 NullOpt
      */
     [[nodiscard]] Optional<VPath> Unresolve(const Path& physical_path) const;
 

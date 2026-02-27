@@ -195,7 +195,7 @@ public:
     {
         if (idx >= Len())
         {
-            return std::nullopt;
+            return NullOpt;
         }
         return data_ptr[idx];
     }
@@ -205,7 +205,7 @@ public:
     {
         if (Len() == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
         return data_ptr[0];
     }
@@ -222,7 +222,7 @@ public:
     {
         if (Len() == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
         return data_ptr[Len() - 1];
     }

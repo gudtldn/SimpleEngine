@@ -109,7 +109,7 @@ public:
      *
      * @tparam T 반환받을 값의 타입 (bool, 정수, 실수, se::String)
      * @param key 점(.)으로 구분된 키 경로 (예: "window.width")
-     * @return 값이 존재하고 변환 가능하면 값을, 아니면 std::nullopt를 반환합니다.
+     * @return 값이 존재하고 변환 가능하면 값을, 아니면 NullOpt를 반환합니다.
      */
     template <typename T>
     [[nodiscard]] Optional<T> GetValue(StringView key) const;
@@ -246,7 +246,7 @@ Optional<T> ConfigFile::GetValue(StringView key) const
     const auto node = root_table.at_path(key);
     if (!node)
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     if constexpr (std::same_as<T, String>)
@@ -255,7 +255,7 @@ Optional<T> ConfigFile::GetValue(StringView key) const
         {
             return StringUtils::ToString(*val_opt);
         }
-        return std::nullopt;
+        return NullOpt;
     }
     else
     {

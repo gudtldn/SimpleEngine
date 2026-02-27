@@ -20,8 +20,8 @@ struct ShaderRequest
     Path source_path;
 
     // HLSL 컴파일 시 사용
-    Optional<Path> hlsl_include_dir_opt = std::nullopt;
-    Optional<Array<std::pair<const char*, const char*>>> hlsl_defines_opt = std::nullopt;
+    Optional<Path> hlsl_include_dir_opt = NullOpt;
+    Optional<Array<std::pair<const char*, const char*>>> hlsl_defines_opt = NullOpt;
 
     bool operator==(const ShaderRequest& other) const = default;
 };

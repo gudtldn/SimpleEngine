@@ -161,7 +161,7 @@ Optional<typename FlatMap<Key, Value, Pred, Allocator>::ValueType&> FlatMap<Key,
     {
         return it->second;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -172,7 +172,7 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::ValueType&> FlatMa
     {
         return it->second;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -229,7 +229,7 @@ Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, 
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -240,7 +240,7 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -251,7 +251,7 @@ Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, 
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -262,7 +262,7 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap
     {
         return *it;
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>

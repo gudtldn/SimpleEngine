@@ -141,7 +141,7 @@ Optional<Path> FileSystem::Canonical(const Path& path)
     std::filesystem::path result = std::filesystem::canonical(ToStdPath(path), ec);
     if (ec)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return Path{ std::move(result) };
 }
@@ -219,7 +219,7 @@ Optional<usize> FileSystem::FileSize(const Path& path)
     const auto size = std::filesystem::file_size(ToStdPath(path), ec);
     if (ec)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return static_cast<usize>(size);
 }
@@ -230,7 +230,7 @@ Optional<uint64> FileSystem::LastWriteTime(const Path& path)
     const auto time = std::filesystem::last_write_time(ToStdPath(path), ec);
     if (ec)
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return time.time_since_epoch().count();
 }

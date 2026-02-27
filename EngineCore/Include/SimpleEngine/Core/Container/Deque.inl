@@ -87,7 +87,7 @@ Optional<T&> Deque<T, Allocator>::At(SizeType index)
 {
     if (index >= internal_deque.size())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return internal_deque[index];
 }
@@ -97,7 +97,7 @@ Optional<const T&> Deque<T, Allocator>::At(SizeType index) const
 {
     if (index >= internal_deque.size())
     {
-        return std::nullopt;
+        return NullOpt;
     }
     return internal_deque[index];
 }
@@ -171,7 +171,7 @@ Optional<typename Deque<T, Allocator>::ValueType> Deque<T, Allocator>::PopFront(
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     ValueType value = std::move(internal_deque.front());
@@ -184,7 +184,7 @@ Optional<typename Deque<T, Allocator>::ValueType> Deque<T, Allocator>::PopBack()
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     ValueType value = std::move(internal_deque.back());

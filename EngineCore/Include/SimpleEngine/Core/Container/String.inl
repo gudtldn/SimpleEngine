@@ -201,7 +201,7 @@ Optional<char32> BaseString<Allocator>::Pop()
 {
     if (IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     Optional decode_result = detail::DecodeLastCodePoint(StringView{ *this });

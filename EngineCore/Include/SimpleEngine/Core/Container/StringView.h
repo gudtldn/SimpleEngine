@@ -94,7 +94,7 @@ public:
     {
         if (idx >= data_len)
         {
-            return std::nullopt;
+            return NullOpt;
         }
         return data_ptr[idx];
     }
@@ -104,7 +104,7 @@ public:
     {
         if (data_len == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
         return data_ptr[0];
     }
@@ -121,7 +121,7 @@ public:
     {
         if (data_len == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
         return data_ptr[data_len - 1];
     }
@@ -289,7 +289,7 @@ public:
                 return i;
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 특정 문자열을 찾습니다. */
@@ -297,11 +297,11 @@ public:
     {
         if (sv.data_len == 0)
         {
-            return pos <= data_len ? Optional<SizeType>(pos) : std::nullopt;
+            return pos <= data_len ? Optional<SizeType>(pos) : NullOpt;
         }
         if (sv.data_len > data_len)
         {
-            return std::nullopt;
+            return NullOpt;
         }
 
         for (SizeType i = pos; i <= data_len - sv.data_len; ++i)
@@ -311,7 +311,7 @@ public:
                 return i;
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 마지막으로 특정 문자가 나타나는 위치를 찾습니다. */
@@ -319,7 +319,7 @@ public:
     {
         if (data_len == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
 
         const SizeType start = (pos >= data_len) ? data_len - 1 : pos;
@@ -330,7 +330,7 @@ public:
                 return i - 1;
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 마지막으로 특정 문자열이 나타나는 위치를 찾습니다. */
@@ -338,11 +338,11 @@ public:
     {
         if (sv.data_len == 0)
         {
-            return pos <= data_len ? Optional<SizeType>(std::min(pos, data_len)) : std::nullopt;
+            return pos <= data_len ? Optional<SizeType>(std::min(pos, data_len)) : NullOpt;
         }
         if (sv.data_len > data_len)
         {
-            return std::nullopt;
+            return NullOpt;
         }
 
         const SizeType start = std::min(pos, data_len - sv.data_len);
@@ -353,7 +353,7 @@ public:
                 return i - 1;
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 주어진 문자들 중 하나가 처음으로 나타나지 않는 위치를 찾습니다. */
@@ -375,7 +375,7 @@ public:
                 return i;
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 주어진 문자들 중 하나가 마지막으로 나타나지 않는 위치를 찾습니다. */
@@ -383,7 +383,7 @@ public:
     {
         if (data_len == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
 
         const SizeType start = (pos >= data_len) ? data_len - 1 : pos;
@@ -403,7 +403,7 @@ public:
                 return i - 1;
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 주어진 문자들 중 하나가 처음으로 나타나는 위치를 찾습니다. */
@@ -419,7 +419,7 @@ public:
                 }
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 특정 문자가 처음으로 나타나는 위치를 찾습니다. */
@@ -433,7 +433,7 @@ public:
     {
         if (data_len == 0)
         {
-            return std::nullopt;
+            return NullOpt;
         }
 
         const SizeType start = (pos >= data_len) ? data_len - 1 : pos;
@@ -447,7 +447,7 @@ public:
                 }
             }
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 특정 문자가 마지막으로 나타나는 위치를 찾습니다. */

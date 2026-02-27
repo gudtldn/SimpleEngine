@@ -20,8 +20,8 @@ struct WindowDesc
     uint32 height = 720;
     uint32 sdl_window_flags = 0;
 
-    Optional<SDL_GPUSwapchainComposition> swapchain_composition = std::nullopt;
-    Optional<SDL_GPUPresentMode> present_mode = std::nullopt;
+    Optional<SDL_GPUSwapchainComposition> swapchain_composition = NullOpt;
+    Optional<SDL_GPUPresentMode> present_mode = NullOpt;
 
     // HDR 및 고급 색공간 설정
     bool enable_hdr = false;
@@ -141,7 +141,7 @@ private:
 private:
     const uint32 sdl_init_flags;
 
-    Optional<WindowDesc> main_window_info = std::nullopt;
+    Optional<WindowDesc> main_window_info = NullOpt;
     SDL_WindowID main_window_id = 0;
 
     HashMap<SDL_WindowID, SDL_Window*> windows;

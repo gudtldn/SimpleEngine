@@ -60,7 +60,7 @@ void AssetsBrowserPanel::Draw()
 
         const Optional<String> selected_path = GetSelectedDirPath()
             .ToVirtual()
-            .Transform([](const VPath& vpath)
+            .Map([](const VPath& vpath)
             {
                 return vpath.ToString();
             });

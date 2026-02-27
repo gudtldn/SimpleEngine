@@ -32,7 +32,7 @@ public:
     {
         if (entity.GetId() >= sparse.Len())
         {
-            sparse.Resize(entity.GetId() + 1, std::nullopt);
+            sparse.Resize(entity.GetId() + 1, NullOpt);
         }
 
         // 이미 존재하면 덮어쓰기
@@ -73,7 +73,7 @@ public:
 
         dense.Pop();
         components.Pop();
-        sparse[entity.GetId()] = std::nullopt;
+        sparse[entity.GetId()] = NullOpt;
     }
 
     /** Set에 Entity가 있는지 확인합니다. */
@@ -100,7 +100,7 @@ public:
         {
             return dense[index];
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** Set에 등록된 Entity의 개수를 반환합니다. */
@@ -116,7 +116,7 @@ public:
         {
             return components[*sparse[entity.GetId()]];
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     [[nodiscard]] Optional<const ComponentType&> TryGet(Entity entity) const
@@ -125,7 +125,7 @@ public:
         {
             return components[*sparse[entity.GetId()]];
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     template <typename Self>
@@ -135,7 +135,7 @@ public:
         {
             return self.components[*self.sparse[entity.GetId()]];
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** Entity의 Component&를 반환합니다. */

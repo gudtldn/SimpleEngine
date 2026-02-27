@@ -15,7 +15,7 @@ StringName StringName::Find(StringView in_str)
 {
     const StringNamePool& pool = StringNamePool::Get();
     return pool.Find(in_str)
-        .Transform([](const StringNameEntry& entry)
+        .Map([](const StringNameEntry& entry)
         {
             StringName result;
             result.display_name = entry.display_name;

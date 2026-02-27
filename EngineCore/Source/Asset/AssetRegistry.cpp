@@ -83,7 +83,7 @@ Optional<AssetId> AssetRegistry::GetAssetId(const AssetPath& asset_path) const
 Optional<TypeId> AssetRegistry::GetAssetType(const AssetId& asset_id) const
 {
     std::shared_lock lock(registry_mutex);
-    return records.Find(asset_id).Transform([](const AssetRecord& record)
+    return records.Find(asset_id).Map([](const AssetRecord& record)
     {
         return record.type;
     });
@@ -106,7 +106,7 @@ Optional<AssetId> AssetRegistry::FindFirstOfType(const Path& file_path, const Ty
             }
         }
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 Array<AssetId> AssetRegistry::GetAssetsInFile(const Path& file_path) const

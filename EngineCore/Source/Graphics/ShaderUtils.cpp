@@ -40,7 +40,7 @@ Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const Path& shader_pa
         return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
     }
 
-    return std::nullopt;
+    return NullOpt;
 }
 
 SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)

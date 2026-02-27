@@ -223,7 +223,7 @@ Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::Get(Entity entity)
             return FetchTypes{ GetComponentHelper<FetchComps>(world, entity)... };
         });
     }
-    return std::nullopt;
+    return NullOpt;
 }
 
 template <typename... Ts> requires QueryParameterPack<Ts...>
@@ -232,14 +232,14 @@ Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::GetSingle()
     auto it = begin();
     if (it == end())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     FetchTypes result = *it;
     ++it;
     if (it != end())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     return result;

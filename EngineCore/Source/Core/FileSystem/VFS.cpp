@@ -58,7 +58,7 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
 {
     if (!virtual_path.IsValid() || !virtual_path.HasScheme())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     std::shared_lock lock(mutex);
@@ -69,7 +69,7 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
     if (!point_opt.HasValue() || point_opt->IsEmpty())
     {
         ConsoleLog(ELogLevel::Warning, "VFS: Scheme '{}' is not mounted.", scheme);
-        return std::nullopt;
+        return NullOpt;
     }
 
     // 경로 부분에서 맨 앞의 '/' 제거
@@ -99,7 +99,7 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
     }
 
     ConsoleLog(ELogLevel::Warning, "VFS: '{}' not found in any mounted path for scheme '{}'.", virtual_path.ToString(), scheme);
-    return std::nullopt;
+    return NullOpt;
 }
 
 Optional<VPath> VFS::Unresolve(const Path& physical_path) const
@@ -153,6 +153,6 @@ Optional<VPath> VFS::Unresolve(const Path& physical_path) const
         return VPath{ String::Format("{}://{}", best_scheme->ToString(), relative_str) };
     }
 
-    return std::nullopt;
+    return NullOpt;
 }
 }  // namespace se

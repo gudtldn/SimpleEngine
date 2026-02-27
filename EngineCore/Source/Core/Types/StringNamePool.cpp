@@ -82,7 +82,7 @@ Optional<const StringNameEntry&> StringNamePool::Find(StringView view) const
 {
     if (view.IsEmpty() || IsNoneString(view))
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     const uint64 comparison_hash = HashUtils::FNVCaseInsensitive(view);

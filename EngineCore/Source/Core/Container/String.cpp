@@ -69,7 +69,7 @@ Optional<std::pair<char32, usize>> DecodeLastCodePoint(StringView view)
 {
     if (view.IsEmpty())
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     const char* s = view.Data();
@@ -82,7 +82,7 @@ Optional<std::pair<char32, usize>> DecodeLastCodePoint(StringView view)
 
     if (U_IS_SURROGATE(c))
     {
-        return std::nullopt;
+        return NullOpt;
     }
 
     auto byte_len = static_cast<String::SizeType>(prev_i - i);

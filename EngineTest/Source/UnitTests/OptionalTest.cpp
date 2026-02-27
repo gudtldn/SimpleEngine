@@ -15,11 +15,11 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
         Optional<int> opt1;
         EXPECT_FALSE(opt1.HasValue());
         EXPECT_FALSE(opt1);
-        EXPECT_EQ(opt1, std::nullopt);
+        EXPECT_EQ(opt1, NullOpt);
 
-        Optional<std::string> opt2(std::nullopt);
+        Optional<std::string> opt2(NullOpt);
         EXPECT_FALSE(opt2.HasValue());
-        EXPECT_EQ(opt2, std::nullopt);
+        EXPECT_EQ(opt2, NullOpt);
     }
 
     // Value construction
@@ -37,14 +37,6 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
         Optional<std::string> opt3("world");
         EXPECT_TRUE(opt3.HasValue());
         EXPECT_EQ(*opt3, "world");
-    }
-
-    // In-place construction
-    {
-        Optional<std::pair<int, std::string>> opt(std::in_place, 1, "test");
-        EXPECT_TRUE(opt.HasValue());
-        EXPECT_EQ(opt->first, 1);
-        EXPECT_EQ(opt->second, "test");
     }
 
     // Copy and Move construction
@@ -83,7 +75,7 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
         EXPECT_TRUE(opt3.HasValue());
         EXPECT_EQ(*opt3, "two");
 
-        opt1 = std::nullopt; // Reset via assignment
+        opt1 = NullOpt; // Reset via assignment
         EXPECT_FALSE(opt1.HasValue());
     }
 
@@ -137,9 +129,9 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
         EXPECT_NE(o1, o3);
         EXPECT_NE(o1, o4);
 
-        EXPECT_EQ(o4, std::nullopt);
-        EXPECT_NE(o1, std::nullopt);
-        EXPECT_NE(o1, std::nullopt);
+        EXPECT_EQ(o4, NullOpt);
+        EXPECT_NE(o1, NullOpt);
+        EXPECT_NE(o1, NullOpt);
 
         EXPECT_EQ(o1, 10);
         EXPECT_EQ(10, o1);
@@ -150,12 +142,12 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
     // transform
     {
         Optional<int> opt(21);
-        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
         EXPECT_TRUE(transformed.HasValue());
         EXPECT_EQ(*transformed, "42");
 
         Optional<int> empty_opt;
-        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         EXPECT_FALSE(transformed_empty.HasValue());
     }
 
@@ -167,7 +159,7 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
             {
                 return Optional<double>(n / 2.0);
             }
-            return std::nullopt;
+            return NullOpt;
         };
 
         Optional<int> opt1(10);
@@ -207,7 +199,7 @@ TEST_F(OptionalAPI_Test, OptionalForReferenceTypes) // Optional<T&>
         EXPECT_FALSE(empty_opt.HasValue());
         EXPECT_FALSE(empty_opt);
 
-        Optional<int&> null_opt(std::nullopt);
+        Optional<int&> null_opt(NullOpt);
         EXPECT_FALSE(null_opt.HasValue());
     }
 
@@ -237,7 +229,7 @@ TEST_F(OptionalAPI_Test, OptionalForReferenceTypes) // Optional<T&>
         EXPECT_TRUE(opt_x.HasValue());
         EXPECT_EQ(&(*opt_x), &y);
 
-        opt_x = std::nullopt;
+        opt_x = NullOpt;
         EXPECT_FALSE(opt_x.HasValue());
     }
 
@@ -284,12 +276,12 @@ TEST_F(OptionalAPI_Test, OptionalForReferenceTypes) // Optional<T&>
     {
         int x = 21;
         Optional<int&> opt(x);
-        auto transformed = opt.Transform([](int n) { return std::to_string(n * 2); });
+        auto transformed = opt.Map([](int n) { return std::to_string(n * 2); });
         EXPECT_TRUE(transformed.HasValue());
         EXPECT_EQ(*transformed, "42");
 
         Optional<int&> empty_opt;
-        auto transformed_empty = empty_opt.Transform([](int n) { return std::to_string(n); });
+        auto transformed_empty = empty_opt.Map([](int n) { return std::to_string(n); });
         EXPECT_FALSE(transformed_empty.HasValue());
     }
 }
@@ -305,19 +297,13 @@ TEST_F(OptionalAPI_Test, ConstexprConstruction)
     static_assert(!empty_opt.HasValue());
 
     // constexpr nullopt 생성
-    constexpr Optional<int> null_opt(std::nullopt);
+    constexpr Optional<int> null_opt(NullOpt);
     static_assert(!null_opt.HasValue());
 
     // constexpr 값 생성
     constexpr Optional<int> opt(42);
     static_assert(opt.HasValue());
     static_assert(opt.Value() == 42);
-
-    // constexpr in_place 생성
-    constexpr Optional<std::pair<int, int>> pair_opt(std::in_place, 1, 2);
-    static_assert(pair_opt.HasValue());
-    static_assert(pair_opt.Value().first == 1);
-    static_assert(pair_opt.Value().second == 2);
 }
 
 TEST_F(OptionalAPI_Test, ConstexprOperations)
@@ -335,8 +321,8 @@ TEST_F(OptionalAPI_Test, ConstexprOperations)
 
     // constexpr 비교
     static_assert(opt == 42);
-    static_assert(empty_opt == std::nullopt);
-    static_assert(opt != std::nullopt);
+    static_assert(empty_opt == NullOpt);
+    static_assert(opt != NullOpt);
 }
 
 TEST_F(OptionalAPI_Test, ConstexprTransformAndAndThen)
@@ -344,7 +330,7 @@ TEST_F(OptionalAPI_Test, ConstexprTransformAndAndThen)
     // constexpr Transform
     constexpr auto transform_result = []() constexpr {
         Optional<int> opt(21);
-        return opt.Transform([](int n) { return n * 2; });
+        return opt.Map([](int n) { return n * 2; });
     }();
     static_assert(transform_result.HasValue());
     static_assert(transform_result.Value() == 42);
@@ -354,7 +340,7 @@ TEST_F(OptionalAPI_Test, ConstexprTransformAndAndThen)
         Optional<int> opt(10);
         return opt.AndThen([](int n) -> Optional<int> {
             if (n > 0) return n * 2;
-            return std::nullopt;
+            return NullOpt;
         });
     }();
     static_assert(and_then_result.HasValue());
@@ -414,11 +400,11 @@ TEST_F(OptionalAPI_Test, DeducingThisValueCategories)
         Optional<int> opt(10);
 
         // lvalue
-        auto res1 = opt.Transform([](int& n) { return n * 2; });
+        auto res1 = opt.Map([](int& n) { return n * 2; });
         EXPECT_EQ(res1.Value(), 20);
 
         // rvalue
-        auto res2 = std::move(opt).Transform([](int&& n) { return n * 3; });
+        auto res2 = std::move(opt).Map([](int&& n) { return n * 3; });
         EXPECT_EQ(res2.Value(), 30);
     }
 }

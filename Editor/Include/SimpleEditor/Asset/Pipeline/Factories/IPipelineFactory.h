@@ -19,7 +19,11 @@ struct SE_EDITOR_API PipelineImportContext
 
     [[nodiscard]] std::shared_ptr<asset::AssetBase> GetCreatedAsset(const Guid& node_uid) const
     {
-        return created_assets.Find(node_uid).ValueOr(nullptr);
+        if (const Optional asset_opt = created_assets.Find(node_uid))
+        {
+            return *asset_opt;
+        }
+        return nullptr;
     }
 };
 

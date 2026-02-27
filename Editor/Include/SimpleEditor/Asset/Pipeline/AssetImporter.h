@@ -66,7 +66,7 @@ public:
     [[nodiscard]] Expected<ImportResult, ImportError> Import(
         const Path& file_path,
         const ImportProfile& import_profile = {},
-        Optional<const PipelineProcessorStack&> processor_stack = std::nullopt
+        Optional<const PipelineProcessorStack&> processor_stack = NullOpt
     );
 
 private:

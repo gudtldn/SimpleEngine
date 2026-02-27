@@ -124,7 +124,7 @@ public:
         {
             return opt_storage->TryGet(entity);
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
@@ -135,7 +135,7 @@ public:
         {
             return opt_storage->TryGet(entity);
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** Entity가 특정 Component를 가지고 있는지 확인합니다. */
@@ -255,7 +255,7 @@ private:
         {
             return static_cast<traits::DeduceRetType<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
         }
-        return std::nullopt;
+        return NullOpt;
     }
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
