@@ -1,6 +1,6 @@
 ﻿#include "Core/ShaderCompileSubsystem.h"
 
-#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
+#include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 
@@ -10,7 +10,7 @@
 namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
-    .DependsOn<PlatformSubsystem>();
+    .DependsOn<EventSubsystem>();
 
 SE_BEGIN_REFLECT(ShaderCompileSubsystem, meta::Internal)
 SE_END_REFLECT(ShaderCompileSubsystem)

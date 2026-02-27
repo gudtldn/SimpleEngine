@@ -3,7 +3,8 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/HAL/CpuFeature.h"
-#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
+#include "SimpleEngine/Core/HAL/EventSubsystem.h"
+#include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
@@ -222,22 +223,23 @@ bool Application::InitializeEngine()
 
 bool Application::PostInitialize()
 {
-    PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
+    EventSubsystem* event_sys = engine_instance->GetSubsystem<EventSubsystem>();
+    WindowSubsystem* window_sys = engine_instance->GetSubsystem<WindowSubsystem>();
 
-    platform_sys->on_quit_requested.AddLambda([this]
+    event_sys->on_quit_requested.AddLambda([this]
     {
         RequestQuit();
     });
 
-    platform_sys->on_window_close_requested.AddLambda([this, platform_sys](SDL_WindowID window_id)
+    window_sys->on_window_close_requested.AddLambda([this, window_sys](SDL_WindowID window_id)
     {
-        if (window_id == platform_sys->GetMainWindowID())
+        if (window_id == window_sys->GetMainWindowID())
         {
             RequestQuit();
         }
         else
         {
-            platform_sys->DestroyWindow(window_id);
+            window_sys->DestroyWindow(window_id);
         }
     });
 
@@ -252,8 +254,8 @@ void Application::ProcessPlatformEvents()
         input_sys->BeginFrame();
     }
 
-    PlatformSubsystem* platform_sys = engine_instance->GetSubsystem<PlatformSubsystem>();
-    platform_sys->PollEvents();
+    EventSubsystem* event_sys = engine_instance->GetSubsystem<EventSubsystem>();
+    event_sys->PollEvents();
 }
 
 void Application::Update(float delta_time)

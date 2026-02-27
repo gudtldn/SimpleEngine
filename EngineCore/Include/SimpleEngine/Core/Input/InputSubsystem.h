@@ -60,7 +60,7 @@ public:
     /** 마우스 버튼이 이번 프레임에 떼어졌는지 확인합니다. */
     [[nodiscard]] bool IsMouseButtonReleased(EMouseButton button) const;
 
-    /** 마우스의 현재 위치를 가져옵니다. (윈도우 기준 픽셀 좌표) */
+    /** 마우스의 현재 위치를 가져옵니다. (포커스된 윈도우 기준 픽셀 좌표) */
     [[nodiscard]] float GetMouseX() const { return mouse_x; }
     [[nodiscard]] float GetMouseY() const { return mouse_y; }
 
@@ -81,15 +81,21 @@ public:
     /** 커서가 현재 보이는 상태인지 확인합니다. */
     [[nodiscard]] bool IsCursorVisible() const;
 
-    /** 상대 마우스 모드를 설정합니다. (커서 잠금 + 무한 이동) */
+    /** 포커스된 윈도우에 상대 마우스 모드를 설정합니다. (커서 잠금 + 무한 이동) */
     void SetRelativeMouseMode(bool enabled);
 
-    /** 상대 마우스 모드가 활성화되어 있는지 확인합니다. */
+    /** 특정 윈도우에 상대 마우스 모드를 설정합니다. */
+    void SetRelativeMouseMode(SDL_WindowID window_id, bool enabled);
+
+    /** 포커스된 윈도우의 상대 마우스 모드가 활성화되어 있는지 확인합니다. */
     [[nodiscard]] bool IsRelativeMouseMode() const;
 
+    /** 특정 윈도우의 상대 마우스 모드가 활성화되어 있는지 확인합니다. */
+    [[nodiscard]] bool IsRelativeMouseMode(SDL_WindowID window_id) const;
+
 private:
-    /** PlatformSubsystem의 on_sdl_event에 등록되는 콜백입니다. */
-    void ProcessSDLEvent(const SDL_Event& event);
+    /** EventSubsystem의 on_sdl_event에 등록되는 콜백입니다. */
+    void OnSDLEvent(const SDL_Event& event);
 
 private:
     static constexpr uint16 KEY_COUNT = static_cast<uint16>(EKeyCode::Max);

@@ -14,7 +14,9 @@
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
+#include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/HAL/FileDialog.h"
+#include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -29,7 +31,12 @@
 namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
-    .DependsOn<PlatformSubsystem, RenderSubsystem, EditorSubsystem>();
+    .DependsOn<
+        EventSubsystem,
+        WindowSubsystem,
+        RenderSubsystem,
+        EditorSubsystem
+    >();
 
 SE_BEGIN_REFLECT(EditorUISubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)
@@ -37,9 +44,9 @@ SE_END_REFLECT(EditorUISubsystem)
 
 bool EditorUISubsystem::Initialize()
 {
-    const auto [platform_subsystem, render_subsystem] = GetSubsystems<PlatformSubsystem, const RenderSubsystem>();
+    const auto [window_subsystem, render_subsystem] = GetSubsystems<WindowSubsystem, const RenderSubsystem>();
 
-    SDL_Window* main_window = platform_subsystem->GetMainWindow();
+    SDL_Window* main_window = window_subsystem->GetMainWindow();
     SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
 
     // ImGui 초기화
@@ -89,7 +96,8 @@ bool EditorUISubsystem::Initialize()
     ImGui_ImplSDLGPU3_Init(&init_info);
 
     // Platform Event 등록
-    sdl_event_handle = platform_subsystem->on_sdl_event.AddLambda([](const SDL_Event& event)
+    EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
+    sdl_event_handle = event_subsystem.on_sdl_event.AddLambda([](const SDL_Event& event)
     {
         ImGui_ImplSDL3_ProcessEvent(&event);
     });
@@ -114,10 +122,8 @@ void EditorUISubsystem::Release()
     // SDL 이벤트 구독 해제
     if (sdl_event_handle.IsValid())
     {
-        if (PlatformSubsystem* platform_subsystem = GetSubsystem<PlatformSubsystem>())
-        {
-            platform_subsystem->on_sdl_event.Remove(sdl_event_handle);
-        }
+        EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
+        event_subsystem.on_sdl_event.Remove(sdl_event_handle);
         sdl_event_handle.Invalidate();
     }
 
