@@ -8,7 +8,7 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Config/ConfigFile.h"
-#include "SimpleEngine/Core/HAL/PlatformSubsystem.h"
+#include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
@@ -39,7 +39,7 @@ void EditorApplication::RegisterSubsystems()
     Application::RegisterSubsystems();
 
     // Window 초기화
-    if (PlatformSubsystem* platform_subsystem = se::GetSubsystem<PlatformSubsystem>())
+    if (WindowSubsystem* window_subsystem = se::GetSubsystem<WindowSubsystem>())
     {
         using namespace se;
 
@@ -86,7 +86,7 @@ void EditorApplication::RegisterSubsystems()
             break;
         }
 
-        platform_subsystem->PrepareWindow({
+        window_subsystem->PrepareWindow({
             .title = window_settings.title,
             .width = window_settings.width,
             .height = window_settings.height,
