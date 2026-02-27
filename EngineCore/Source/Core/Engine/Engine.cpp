@@ -124,6 +124,13 @@ void Engine::LoadRegisteredSubsystems()
 
 bool Engine::Initialize()
 {
+    // SDL 코어 시스템 초기화
+    if (!SDL_Init(0))
+    {
+        ConsoleLog(ELogLevel::Fatal, "SDL_Init failed: {}", SDL_GetError());
+        return false;
+    }
+
     task_scheduler = std::make_unique<TaskScheduler>(std::this_thread::get_id());
 
     // 의존성에 따라서 정렬
@@ -149,6 +156,8 @@ void Engine::Release()
     subsystems.Clear();
 
     task_scheduler.reset();
+
+    SDL_Quit();
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

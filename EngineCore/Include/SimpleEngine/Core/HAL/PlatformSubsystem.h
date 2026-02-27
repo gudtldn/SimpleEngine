@@ -63,18 +63,6 @@ class SE_CORE_API SE_ANNOTATION(=meta::Internal) PlatformSubsystem : public Subs
     SE_CLASS(PlatformSubsystem, SubsystemBase)
 
 public:
-    /**
-     * PlatformSubsystem을 새로 생성합니다.
-     * @param in_sdl_init_flags SDL_Init에 들어갈 Flag목록
-     */
-    explicit PlatformSubsystem(
-        uint32 in_sdl_init_flags =
-            SDL_INIT_VIDEO
-            | SDL_INIT_AUDIO
-            | SDL_INIT_GAMEPAD
-            | SDL_INIT_EVENTS
-    );
-
     //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
@@ -139,11 +127,9 @@ private:
     void UnregisterWindow(SDL_WindowID window_id);
 
 private:
-    const uint32 sdl_init_flags;
-
     Optional<WindowDesc> main_window_info = NullOpt;
     SDL_WindowID main_window_id = 0;
 
     HashMap<SDL_WindowID, SDL_Window*> windows;
 };
-}
+} // namespace se

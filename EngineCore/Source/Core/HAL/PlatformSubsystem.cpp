@@ -18,9 +18,8 @@ SE_REGISTER_SUBSYSTEM(PlatformSubsystem);
 SE_BEGIN_REFLECT(PlatformSubsystem, meta::Internal)
 SE_END_REFLECT(PlatformSubsystem)
 
-PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
-    : sdl_init_flags(in_sdl_init_flags)
-{
+// PlatformSubsystem::PlatformSubsystem()
+// {
     // SDL_SetMemoryFunctions(
     //     [](usize size) static -> void*
     //     {
@@ -39,17 +38,17 @@ PlatformSubsystem::PlatformSubsystem(uint32 in_sdl_init_flags)
     //     },
     //     OsMemory::Free
     // );
-}
+// }
 
 bool PlatformSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Platform Subsystem...");
-    if (!SDL_Init(sdl_init_flags))
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
     {
-        ConsoleLog(ELogLevel::Error, "SDL_Init failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "SDL_InitSubSystem failed: {}", SDL_GetError());
         return false;
     }
-    ConsoleLog(ELogLevel::Info, "SDL_Init succeeded");
+    ConsoleLog(ELogLevel::Info, "SDL_InitSubSystem succeeded");
 
     if (main_window_info.HasValue())
     {
@@ -82,11 +81,11 @@ void PlatformSubsystem::Release()
     windows.Clear();
     main_window_id = 0;
 
-    SDL_Quit();
+    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-void PlatformSubsystem::PollEvents()
+void PlatformSubsystem::PollEvents() // NOLINT(*-make-member-function-const)
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))

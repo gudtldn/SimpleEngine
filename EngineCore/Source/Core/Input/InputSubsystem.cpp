@@ -20,6 +20,12 @@ bool InputSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Input Subsystem...");
 
+    if (!SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_GAMEPAD))
+    {
+        ConsoleLog(ELogLevel::Error, "SDL_InitSubSystem failed: {}", SDL_GetError());
+        return false;
+    }
+
     // PlatformSubsystem의 SDL 이벤트를 구독
     PlatformSubsystem& platform = GetSubsystemChecked<PlatformSubsystem>();
     sdl_event_handle = platform.on_sdl_event.AddLambda([this](const SDL_Event& event)
@@ -41,6 +47,8 @@ void InputSubsystem::Release()
         platform.on_sdl_event.Remove(sdl_event_handle);
         sdl_event_handle.Invalidate();
     }
+
+    SDL_QuitSubSystem(SDL_INIT_EVENTS | SDL_INIT_GAMEPAD);
 }
 
 void InputSubsystem::BeginFrame()
