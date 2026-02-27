@@ -58,7 +58,7 @@ private:
 /**
  * @todo docs
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) PlatformSubsystem : public SubsystemBase
+class [[deprecated("use instead EventSubsystem and WindowSubsystem")]] SE_CORE_API SE_ANNOTATION(=meta::Internal) PlatformSubsystem : public SubsystemBase
 {
     SE_CLASS(PlatformSubsystem, SubsystemBase)
 
