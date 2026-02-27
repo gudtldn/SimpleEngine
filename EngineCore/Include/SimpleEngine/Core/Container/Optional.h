@@ -488,8 +488,11 @@ public:
 public:
     [[nodiscard]] constexpr explicit operator bool() const { return HasValue(); }
 
-    [[nodiscard]] constexpr T* operator*() const { return value_ptr; }
-    [[nodiscard]] constexpr T& operator->() const { return *value_ptr; }
+    [[nodiscard]] constexpr T* const& operator*() const { return value_ptr; }
+    [[nodiscard]] constexpr T*& operator*() { return value_ptr; }
+
+    [[nodiscard]] constexpr T* const* operator->() const { return &value_ptr; }
+    [[nodiscard]] constexpr T** operator->() { return &value_ptr; }
 
     [[nodiscard]] constexpr bool operator==(NullOptType) const noexcept { return !HasValue(); }
     [[nodiscard]] friend constexpr bool operator==(NullOptType, const Optional& other) noexcept { return !other; }
