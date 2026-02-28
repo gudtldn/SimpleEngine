@@ -15,6 +15,22 @@ bool AssetImporter::CanImport(const Path& file_path) const
     return FindTranslator(file_path).HasValue();
 }
 
+Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) const
+{
+    if (const Optional ext_opt = file_path.Extension())
+    {
+        const String ext = ext_opt->ToLower();
+        for (const auto [n, translator] : translators | std::views::enumerate)
+        {
+            if (translator->CanTranslate(ext))
+            {
+                return translator_type_ids[n];
+            }
+        }
+    }
+    return NullOpt;
+}
+
 HashSet<StringView> AssetImporter::GetAllSupportedExtensions() const
 {
     HashSet<StringView> result;
