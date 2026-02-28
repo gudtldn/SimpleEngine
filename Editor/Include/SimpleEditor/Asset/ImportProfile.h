@@ -103,10 +103,12 @@ public:
                     void* raw = info_opt->constructor();
                     ImportSettingsBase* settings = static_cast<ImportSettingsBase*>(raw);
 
+                    ar.BeginObject();
                     if (info_opt->serialize)
                     {
                         info_opt->serialize(ar, settings);
                     }
+                    ar.EndObject();
 
                     config.settings_map.Insert(type_id, std::shared_ptr<ImportSettingsBase>(settings));
                 }
@@ -121,8 +123,7 @@ public:
             for (auto& [type_id, settings_ptr] : config.settings_map)
             {
                 ar.BeginMapKey();
-                TypeId id_copy = type_id;
-                ar << id_copy;
+                ar << type_id;
                 ar.EndMapKey();
 
                 ar.BeginMapValue();
@@ -130,7 +131,9 @@ public:
                 const Optional info_opt = registry.Find(type_id);
                 if (info_opt.HasValue() && info_opt->serialize && settings_ptr)
                 {
+                    ar.BeginObject();
                     info_opt->serialize(ar, settings_ptr.get());
+                    ar.EndObject();
                 }
                 ar.EndMapValue();
             }
