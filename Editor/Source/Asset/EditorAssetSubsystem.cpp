@@ -54,8 +54,8 @@ bool EditorAssetSubsystem::Initialize()
         return CookAsset(file_path);
     });
 
-    // Registry 스냅샷 복원 시도
-    const bool snapshot_loaded = LoadRegistrySnapshot();
+    // Registry 스냅샷 복원 시도 (성공 시 Hot Start, 실패 시 Cold Start)
+    const bool is_hot_start = LoadRegistrySnapshot();
 
     // VFS "Assets" 스킴에 마운트된 디렉토리를 스캔
     // TODO: [VPath] 스캔 대상 스킴을 설정 파일에서 읽도록 변경
@@ -66,16 +66,7 @@ bool EditorAssetSubsystem::Initialize()
             return;
         }
 
-        if (snapshot_loaded)
-        {
-            // Hot Start: 스냅샷과 파일 시스템 비교
-            ScanAndReconcile(physical_path);
-        }
-        else
-        {
-            // Cold Start: 전체 스캔
-            ScanDirectory(physical_path);
-        }
+        ScanWorkspace(physical_path, is_hot_start);
     });
 
     return true;
@@ -93,20 +84,29 @@ void EditorAssetSubsystem::Release()
     importer.reset();
 }
 
-void EditorAssetSubsystem::ScanDirectory(const Path& root_path)
+void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_start)
 {
-    ZoneScopedN("EditorAssetSubsystem::ScanDirectory");
+    ZoneScopedN("EditorAssetSubsystem::ScanWorkspace");
 
     if (!root_path.Exists() || !root_path.IsDirectory())
     {
-        ConsoleLog(ELogLevel::Warning, "ScanDirectory: Invalid directory: {}", root_path);
+        ConsoleLog(ELogLevel::Warning, "ScanWorkspace: Invalid directory: {}", root_path);
         return;
     }
 
-    uint32 scanned_count = 0;
+    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+
+    // 삭제된 파일 감지를 위한 Set
+    HashSet<Path> found_files;
 
     Array<Path> stack;
     stack.Push(root_path);
+
+    uint32 new_count = 0;
+    uint32 dirty_count = 0;
+    uint32 clean_count = 0;
+
+    // 디렉토리 순회 및 파일 상태 검사
     while (const Optional dir = stack.Pop())
     {
         for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
@@ -139,23 +139,74 @@ void EditorAssetSubsystem::ScanDirectory(const Path& root_path)
                 continue;
             }
 
-            // .meta 파일 보장
-            if (Optional content_opt = EnsureMetaFile(entry_path))
+            // 발견된 파일 기록 (Hot Start 시 고아 파일 감지용)
+            if (is_hot_start)
             {
-                // Registry에 등록
-                RegisterFromMeta(entry_path, content_opt->metadata);
-
-                if (content_opt->metadata.sub_assets.IsEmpty())
-                {
-                    // TODO: [Phase 6] CookAsset을 Background thread로 dispatch (초기 대량 굽기)
-                }
-
-                ++scanned_count;
+                found_files.Insert(entry_path);
             }
+
+            // .meta 파일 보장
+            Optional content_opt = EnsureMetaFile(entry_path);
+            if (!content_opt.HasValue())
+            {
+                continue;
+            }
+
+            const asset::AssetMetadata& meta = content_opt->metadata;
+
+            // 상태 판별
+            const bool is_new = meta.sub_assets.IsEmpty();
+            const bool is_dirty = !is_new && IsAssetDirty(entry_path, meta);
+
+            if (is_new || is_dirty)
+            {
+                // TODO: [Phase 6] BackgroundWorker::PushCookTask(entry_path) 호출하여 백그라운드 굽기
+                if (is_new)
+                {
+                    ++new_count;
+                }
+                if (is_dirty)
+                {
+                    ++dirty_count;
+                }
+            }
+            else
+            {
+                ++clean_count;
+            }
+
+            // Registry에 등록 (Sub-asset이 비어있으면 함수 내부에서 알아서 스킵됨)
+            RegisterFromMeta(entry_path, meta);
         }
     }
 
-    ConsoleLog(ELogLevel::Info, "ScanDirectory: Registered {} assets from: {}", scanned_count, root_path);
+    // 삭제된 파일 감지 (Hot Start 전용 로직)
+    uint32 orphaned_count = 0;
+    if (is_hot_start)
+    {
+        Array<Path> orphaned;
+        registry.VisitAllPaths([&found_files, &orphaned](const Path& registered_path)
+        {
+            if (!found_files.Contains(registered_path))
+            {
+                orphaned.Push(registered_path);
+            }
+        });
+
+        for (const Path& path : orphaned)
+        {
+            ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", path);
+            registry.UnregisterByPath(path);
+            MetaFileManager::DeleteMeta(path);
+            ++orphaned_count;
+        }
+    }
+
+    ConsoleLog(
+        ELogLevel::Info,
+        "ScanWorkspace Complete [HotStart: {}]: new={}, dirty={}, clean={}, orphaned={} in: {}",
+        is_hot_start, new_count, dirty_count, clean_count, orphaned_count, root_path
+    );
 }
 
 Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& source_path)
@@ -317,104 +368,6 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
 
     ConsoleLog(ELogLevel::Info, "Successfully cooked {} assets from: {}", result.GetCount(), file_path);
     return true;
-}
-
-void EditorAssetSubsystem::ScanAndReconcile(const Path& root_path)
-{
-    ZoneScopedN("EditorAssetSubsystem::ScanAndReconcile");
-
-    auto& registry = asset_subsystem->GetRegistry();
-
-    // 파일 시스템에서 발견된 Import 가능 파일을 추적
-    HashSet<Path> found_files;
-
-    // 반복적 DFS로 디렉토리 순회 (깊은 계층 구조에서 스택 오버플로 방지)
-    Array<Path> stack;
-    stack.Push(root_path);
-
-    uint32 new_count = 0;
-    uint32 dirty_count = 0;
-
-    while (const Optional dir = stack.Pop())
-    {
-        for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
-        {
-            if (entry.IsDirectory())
-            {
-                stack.Push(entry.GetPath());
-                continue;
-            }
-
-            if (!entry.IsFile())
-            {
-                continue;
-            }
-
-            const Path file_path = entry.GetPath();
-
-            // .meta 파일 자체는 스킵
-            if (file_path.Extension() == ".meta")
-            {
-                continue;
-            }
-
-            // Import 불가능한 파일은 스킵
-            if (!importer->CanImport(file_path))
-            {
-                continue;
-            }
-
-            found_files.Insert(file_path);
-
-            if (!MetaFileManager::HasMeta(file_path))
-            {
-                // 새 파일: .meta 생성 -> Registry 등록
-                // TODO: [Phase 6] CookAsset을 Background thread로 dispatch
-                if (Optional content_opt = EnsureMetaFile(file_path))
-                {
-                    RegisterFromMeta(file_path, content_opt->metadata);
-                    ++new_count;
-                }
-                continue;
-            }
-
-            // 기존 파일: 변경 여부 확인
-            if (Optional content_opt = MetaFileManager::Load(file_path))
-            {
-                if (IsAssetDirty(file_path, content_opt->metadata))
-                {
-                    ConsoleLog(ELogLevel::Info, "Dirty asset detected: {}", file_path);
-                    ++dirty_count;
-                }
-
-                // Registry에 등록 (Sub-asset이 비어있으면 RegisterFromMeta가 스킵)
-                RegisterFromMeta(file_path, content_opt->metadata);
-            }
-        }
-    }
-
-    // 삭제된 파일 감지: Registry에 있지만 파일 시스템에 없는 에셋 제거
-    Array<Path> orphaned;
-    registry.VisitAllPaths([&found_files, &orphaned](const Path& registered_path)
-    {
-        if (!found_files.Contains(registered_path))
-        {
-            orphaned.Push(registered_path);
-        }
-    });
-
-    for (const Path& path : orphaned)
-    {
-        ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", path);
-        registry.UnregisterByPath(path);
-        MetaFileManager::DeleteMeta(path);
-    }
-
-    ConsoleLog(
-        ELogLevel::Info,
-        "ScanAndReconcile: new={}, dirty={}, orphaned={} in: {}",
-        new_count, dirty_count, orphaned.Len(), root_path
-    );
 }
 
 bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const asset::AssetMetadata& meta) const
