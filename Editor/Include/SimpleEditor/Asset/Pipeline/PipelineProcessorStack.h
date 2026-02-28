@@ -32,6 +32,12 @@ public:
         processors.Push(std::make_unique<T>(std::forward<Args>(args)...));
     }
 
+    /** 이미 생성된 프로세서 인스턴스를 Stack 끝에 추가합니다. */
+    void AddProcessor(std::unique_ptr<IPipelineProcessor> processor)
+    {
+        processors.Push(std::move(processor));
+    }
+
     /** Stack에 있는 모든 프로세서를 순차적으로 실행하여 노드를 가공합니다. */
     void ExecuteStack(PipelineNodeContainer& container) const
     {
