@@ -36,7 +36,6 @@ Optional<MetaFileContent> MetaFileManager::Load(const Path& source_path)
     const Path meta_path = GetMetaPath(source_path);
     if (!meta_path.Exists())
     {
-        ConsoleLog(ELogLevel::Warning, "Meta file not found: {}", meta_path.ToString());
         return NullOpt;
     }
 
@@ -44,7 +43,7 @@ Optional<MetaFileContent> MetaFileManager::Load(const Path& source_path)
     const auto file_content = FileSystem::ReadToString(meta_path);
     if (!file_content.HasValue())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read meta file: {}", meta_path.ToString());
+        ConsoleLog(ELogLevel::Error, "Failed to read meta file: {}", meta_path);
         return NullOpt;
     }
 
@@ -52,8 +51,7 @@ Optional<MetaFileContent> MetaFileManager::Load(const Path& source_path)
     const toml::parse_result parse_result = toml::parse(file_content.Value().CStr());
     if (!parse_result)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to parse meta file: {} - {}",
-            meta_path.ToString(), parse_result.error().description());
+        ConsoleLog(ELogLevel::Error, "Failed to parse meta file: {} - {}", meta_path, parse_result.error().description());
         return NullOpt;
     }
 
