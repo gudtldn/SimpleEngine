@@ -81,7 +81,6 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
     // TOML 트리에 직렬화
     toml::table root;
     TomlWriter writer(root);
-
     writer << content;
 
     // TOML 문자열 생성
