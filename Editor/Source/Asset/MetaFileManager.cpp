@@ -25,7 +25,7 @@ constexpr StringView TEMP_EXTENSION = ".tmp";
 Path BuildTempPath(const Path& meta_path)
 {
     const size_t thread_hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
-    return String::Format("_{}_{}{}", thread_hash, meta_path, TEMP_EXTENSION);
+    return String::Format("{}_{}{}", meta_path, thread_hash, TEMP_EXTENSION);
 }
 } // namespace
 
