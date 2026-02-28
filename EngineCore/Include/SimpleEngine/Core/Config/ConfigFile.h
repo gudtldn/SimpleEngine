@@ -210,7 +210,7 @@ void ConfigFile::SetSection(const T& settings, StringView section_name)
 
     if constexpr (traits::Serializable<T>)
     {
-        writer << const_cast<T&>(settings);
+        writer << settings;
     }
     else
     {
