@@ -34,11 +34,12 @@ public:
 
 public:
     /**
-     * 디렉토리를 재귀적으로 순회하며, Import 가능한 파일에 대해
-     * .meta 파일 보장 및 AssetRegistry 등록을 수행합니다.
+     * 작업 공간(Workspace)의 디렉토리를 순회하며 에셋의 상태를 스캔하고 레지스트리를 갱신합니다.
+     * Import 가능한 파일에 대해 .meta 파일을 보장하고, 변경(New/Dirty) 상태를 감지하여 등록합니다.
      * @param root_path 스캔할 루트 디렉토리 경로
+     * @param is_hot_start true일 경우 레지스트리 스냅샷과 비교하여 삭제된(Orphaned) 에셋을 찾아 등록 해제합니다.
      */
-    void ScanDirectory(const Path& root_path);
+    void ScanWorkspace(const Path& root_path, bool is_hot_start);
 
     /**
      * 소스 파일에 대한 .meta 파일이 존재하는지 확인하고,
@@ -47,13 +48,6 @@ public:
      * @return .meta 파일이 존재하거나 생성에 성공하면 true
      */
     [[nodiscard]] Optional<MetaFileContent> EnsureMetaFile(const Path& source_path);
-
-    /**
-     * Registry 스냅샷과 파일 시스템을 비교하여 변경 사항을 감지합니다.
-     * 새 파일 -> .meta 생성 + 등록, 수정됨 -> Dirty 감지, 삭제됨 -> 등록 해제
-     * @param root_path 스캔할 루트 디렉토리 경로
-     */
-    void ScanAndReconcile(const Path& root_path);
 
 private:
     /**
