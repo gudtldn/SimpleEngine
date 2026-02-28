@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEditor/Asset/ImportProfile.h"
+#include "SimpleEditor/Asset/Pipeline/ProcessorEntry.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
@@ -21,6 +22,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) MetaFileContent
     /** 임포트 설정 (Translator별 설정값) */
     SE_ANNOTATION(=meta::Property)
     ImportProfile import_settings;
+
+    /** 파이프라인 Processor 실행 목록 (순서 보존) */
+    SE_ANNOTATION(=meta::Property)
+    Array<ProcessorEntry> processor_stack;
 };
 } // namespace se::editor
 
