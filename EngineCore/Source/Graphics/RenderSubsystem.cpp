@@ -114,16 +114,19 @@ void RenderSubsystem::Release()
     }
 
     // Delegate 구독 해제
-    WindowSubsystem& window_subsystem = se::GetSubsystemChecked<WindowSubsystem>();
-    if (window_created_handle.IsValid())
+    WindowSubsystem* window_subsystem = se::GetSubsystem<WindowSubsystem>();
+    if (window_subsystem)
     {
-        window_subsystem.on_window_created.Remove(window_created_handle);
-        window_created_handle.Invalidate();
-    }
-    if (window_destroyed_handle.IsValid())
-    {
-        window_subsystem.on_window_destroyed.Remove(window_destroyed_handle);
-        window_destroyed_handle.Invalidate();
+        if (window_created_handle.IsValid())
+        {
+            window_subsystem->on_window_created.Remove(window_created_handle);
+            window_created_handle.Invalidate();
+        }
+        if (window_destroyed_handle.IsValid())
+        {
+            window_subsystem->on_window_destroyed.Remove(window_destroyed_handle);
+            window_destroyed_handle.Invalidate();
+        }
     }
 
     render_graph.reset();
@@ -131,10 +134,13 @@ void RenderSubsystem::Release()
     resource_manager.reset();
 
     // 모든 윈도우에서 GPU 디바이스 릴리스
-    window_subsystem.ForEachWindow([this](SDL_WindowID, SDL_Window* window, const WindowDesc&)
+    if (window_subsystem)
     {
-        SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
-    });
+        window_subsystem->ForEachWindow([this](SDL_WindowID, SDL_Window* window, const WindowDesc&)
+        {
+            SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
+        });
+    }
 
     SDL_DestroyGPUDevice(gpu_device);
     gpu_device = nullptr;
