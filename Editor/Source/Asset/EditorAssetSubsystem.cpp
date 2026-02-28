@@ -295,8 +295,8 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
     const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
     const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
 
-    auto& registry = asset_subsystem->GetRegistry();
-    auto& ddc = asset_subsystem->GetDDC();
+    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    asset::DerivedDataCache& ddc = asset_subsystem->GetDDC();
 
     // MetaFileContent 갱신 준비
     MetaFileContent updated_content = std::move(meta_content_opt).ValueOrDefault();
