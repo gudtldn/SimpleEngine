@@ -151,7 +151,7 @@ bool AssetRegistry::SaveToFile(const Path& file_path) const
     writer << version;
 
     // records만 직렬화
-    writer << const_cast<HashMap<AssetId, AssetRecord>&>(records);
+    writer << records;
 
     // 디스크 I/O
     if (!FileSystem::Write(file_path, buffer))

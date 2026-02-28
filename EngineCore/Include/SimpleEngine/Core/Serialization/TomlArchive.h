@@ -172,12 +172,6 @@ public:
 
     virtual void SerializeBytes(void* data, uint64 size) override;
 
-    template <typename T>
-    TomlWriter& operator<<(const T& val)
-    {
-        return *this << const_cast<T&>(val);
-    }
-
 protected:
     virtual void HintNextName(StringView name) override;
 

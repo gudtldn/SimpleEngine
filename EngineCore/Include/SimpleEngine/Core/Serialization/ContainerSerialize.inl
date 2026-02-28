@@ -83,7 +83,7 @@ void SerializeSetContainer(Archive& ar, Container& container)
     {
         for (const auto& value : container)
         {
-            ar << const_cast<ElementType&>(value);
+            ar << value;
         }
     }
 
@@ -128,7 +128,7 @@ void SerializeMapContainer(Archive& ar, Container& container)
         for (auto& [key, value] : container)
         {
             ar.BeginMapKey();
-            ar << const_cast<KeyType&>(key);
+            ar << key;
             ar.EndMapKey();
 
             ar.BeginMapValue();

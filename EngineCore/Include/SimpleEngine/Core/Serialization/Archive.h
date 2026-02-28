@@ -120,6 +120,13 @@ public:
     template <typename T>
     Archive& operator<<(T& value);
 
+    /**
+     * 상수(const) 객체를 위한 저장(Save) 전용 진입점.
+     * 복사 오버헤드 방지를 위해 내부에서 const_cast<T&>후 전달합니다. Load 모드에서 호출 시 Assert를 발생시킵니다.
+     */
+    template <typename T>
+    Archive& operator<<(const T& value);
+
     /** BinaryBlob을 직접 다루는 경우 */
     friend Archive& operator<<(Archive& ar, const BinaryBlob& blob)
     {
@@ -319,7 +326,14 @@ Archive& Archive::operator<<(T& value)
 
     return *this;
 }
-}  // namespace se
+
+template <typename T>
+Archive& Archive::operator<<(const T& value)
+{
+    SE_ASSERT(IsSaving() && "Cannot deserialize (Load) into a const object!");
+    return operator<<(const_cast<T&>(value));
+}
+} // namespace se
 
 
 // 컨테이너 직렬화 구현

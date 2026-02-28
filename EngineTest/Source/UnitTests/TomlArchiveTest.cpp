@@ -489,7 +489,7 @@ struct ExplicitMapStruct
             for (auto& [k, v] : data.entries)
             {
                 ar.BeginMapKey();
-                ar << const_cast<String&>(k);
+                ar << k;
                 ar.EndMapKey();
 
                 ar.BeginMapValue();
