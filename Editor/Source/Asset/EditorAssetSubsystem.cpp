@@ -421,6 +421,6 @@ bool EditorAssetSubsystem::LoadRegistrySnapshot()
 Path EditorAssetSubsystem::GetRegistrySnapshotPath()
 {
     // TODO: [VPath] VFS를 통해 프로젝트 빌드 디렉토리를 resolve하도록 변경
-    return Path{ "Build" } / "registry.bin";
+    return "registry.bin";
 }
 } // namespace se::editor
