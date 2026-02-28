@@ -122,8 +122,10 @@ void EditorUISubsystem::Release()
     // SDL 이벤트 구독 해제
     if (sdl_event_handle.IsValid())
     {
-        EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
-        event_subsystem.on_sdl_event.Remove(sdl_event_handle);
+        if (EventSubsystem* event_subsystem = GetSubsystem<EventSubsystem>())
+        {
+            event_subsystem->on_sdl_event.Remove(sdl_event_handle);
+        }
         sdl_event_handle.Invalidate();
     }
 
