@@ -53,6 +53,13 @@ public:
      */
     [[nodiscard]] bool CanImport(const Path& file_path) const;
 
+    /**
+     * 파일에 대응하는 Translator의 TypeId를 반환합니다.
+     * @param file_path 소스 파일 경로
+     * @return Translator의 TypeId, 없으면 NullOpt
+     */
+    [[nodiscard]] Optional<TypeId> FindTranslatorTypeId(const Path& file_path) const;
+
     /** 등록된 모든 Translator가 지원하는 확장자를 반환합니다. */
     [[nodiscard]] HashSet<StringView> GetAllSupportedExtensions() const;
 
@@ -77,6 +84,7 @@ private:
     [[nodiscard]] static Array<PipelineBaseNode*> SortNodesByDependency(const PipelineNodeContainer& container);
 
 private:
+    Array<TypeId> translator_type_ids;
     Array<std::unique_ptr<IPipelineTranslator>> translators;
     Array<std::unique_ptr<IPipelineFactory>> factories;
 };
@@ -86,6 +94,7 @@ template <typename Translator, typename ... Args>
 void AssetImporter::RegisterTranslator(Args&&... args)
 {
     translators.Push(std::make_unique<Translator>(std::forward<Args>(args)...));
+    translator_type_ids.Push(TypeId::Get<Translator>());
 }
 
 template <typename Factory, typename ... Args>
