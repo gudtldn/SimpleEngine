@@ -29,7 +29,10 @@
  * @endcode
  */
 #define SE_SCOPE_DEFER \
-    const LambdaScopeGuard SE_UNIQUE_NAME(defer_guard_) = [&] -> void
+    const LambdaScopeGuard SE_UNIQUE_NAME(_defer_guard_) = [&] -> void
+
+#define SE_SCOPE_DEFER_NAMED(name) \
+    LambdaScopeGuard name = [&] -> void
 
 namespace se
 {
@@ -86,7 +89,10 @@ public:
 
     ~LambdaScopeGuard()
     {
-        exit_func();
+        if (!is_discarded)
+        {
+            exit_func();
+        }
     }
 
     LambdaScopeGuard(const LambdaScopeGuard&) = delete;
@@ -94,7 +100,14 @@ public:
     LambdaScopeGuard(LambdaScopeGuard&&) noexcept = delete;
     LambdaScopeGuard& operator=(LambdaScopeGuard&&) noexcept = delete;
 
+    /** Defer로 예약된 함수를 취소합니다. */
+    void Discard()
+    {
+        is_discarded = true;
+    }
+
 private:
+    bool is_discarded = false;
     Fn exit_func;
 };
 
