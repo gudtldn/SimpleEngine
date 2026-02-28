@@ -140,27 +140,31 @@ void EditorAssetSubsystem::ScanDirectory(const Path& root_path)
             }
 
             // .meta 파일 보장
-            if (!EnsureMetaFile(entry_path))
+            if (Optional content_opt = EnsureMetaFile(entry_path))
             {
-                continue;
-            }
+                // Registry에 등록
+                RegisterFromMeta(entry_path, content_opt->metadata);
 
-            // Registry에 등록
-            RegisterFromMeta(entry_path);
-            ++scanned_count;
+                if (content_opt->metadata.sub_assets.IsEmpty())
+                {
+                    // TODO: [Phase 6] CookAsset을 Background thread로 dispatch (초기 대량 굽기)
+                }
+
+                ++scanned_count;
+            }
         }
     }
 
     ConsoleLog(ELogLevel::Info, "ScanDirectory: Registered {} assets from: {}", scanned_count, root_path);
 }
 
-bool EditorAssetSubsystem::EnsureMetaFile(const Path& source_path)
+Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& source_path)
 {
     ZoneScopedN("EditorAssetSubsystem::EnsureMetaFile");
 
-    if (MetaFileManager::HasMeta(source_path))
+    if (Optional existing_content = MetaFileManager::Load(source_path))
     {
-        return true;
+        return existing_content;
     }
 
     // 새 MetaFileContent 생성
@@ -179,25 +183,17 @@ bool EditorAssetSubsystem::EnsureMetaFile(const Path& source_path)
     if (!MetaFileManager::Save(source_path, content))
     {
         ConsoleLog(ELogLevel::Error, "Failed to create .meta for: {}", source_path);
-        return false;
+        return NullOpt;
     }
 
     ConsoleLog(ELogLevel::Info, "Created .meta for: {}", source_path);
-    return true;
+    return content;
 }
 
-void EditorAssetSubsystem::RegisterFromMeta(const Path& source_path)
+void EditorAssetSubsystem::RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta)
 {
     ZoneScopedN("EditorAssetSubsystem::RegisterFromMeta");
 
-    const Optional content_opt = MetaFileManager::Load(source_path);
-    if (!content_opt.HasValue())
-    {
-        ConsoleLog(ELogLevel::Error, "RegisterFromMeta: No .meta file for: {}", source_path);
-        return;
-    }
-
-    const asset::AssetMetadata& meta = content_opt->metadata;
     asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
 
     // Sub-asset 목록이 비어있으면 아직 Import가 안 된 상태이므로 스킵
@@ -374,28 +370,26 @@ void EditorAssetSubsystem::ScanAndReconcile(const Path& root_path)
             {
                 // 새 파일: .meta 생성 -> Registry 등록
                 // TODO: [Phase 6] CookAsset을 Background thread로 dispatch
-                EnsureMetaFile(file_path);
-                RegisterFromMeta(file_path);
-                ++new_count;
+                if (Optional content_opt = EnsureMetaFile(file_path))
+                {
+                    RegisterFromMeta(file_path, content_opt->metadata);
+                    ++new_count;
+                }
                 continue;
             }
 
             // 기존 파일: 변경 여부 확인
-            const Optional content_opt = MetaFileManager::Load(file_path);
-            if (!content_opt.HasValue())
+            if (Optional content_opt = MetaFileManager::Load(file_path))
             {
-                continue;
-            }
+                if (IsAssetDirty(file_path, content_opt->metadata))
+                {
+                    ConsoleLog(ELogLevel::Info, "Dirty asset detected: {}", file_path);
+                    ++dirty_count;
+                }
 
-            if (IsAssetDirty(file_path, content_opt->metadata))
-            {
-                // TODO: [Phase 6] Dirty 에셋을 Background thread cook queue에 추가
-                ConsoleLog(ELogLevel::Info, "Dirty asset detected: {}", file_path);
-                ++dirty_count;
+                // Registry에 등록 (Sub-asset이 비어있으면 RegisterFromMeta가 스킵)
+                RegisterFromMeta(file_path, content_opt->metadata);
             }
-
-            // Registry에 등록 (아직 없다면 — Sub-asset이 비어있으면 RegisterFromMeta가 스킵)
-            RegisterFromMeta(file_path);
         }
     }
 
