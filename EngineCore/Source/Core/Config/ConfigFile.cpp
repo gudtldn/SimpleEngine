@@ -1,6 +1,11 @@
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
+#include <ostream>
+
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Utility/Common.h"
+
 
 namespace se
 {
@@ -47,32 +52,31 @@ bool ConfigFile::Save(const VPath& config_file_path) const
         return false;
     }
 
+    std::ostringstream oss;
+    oss << root_table;
+
     const String physical_path_str = physical_path.ToString();
-    std::ofstream file_stream(physical_path_str.CStr(), std::ios::binary | std::ios::trunc);
-    if (!file_stream.is_open())
+    const Path temp_path = Path{ physical_path_str + ".tmp" };
+    SE_SCOPE_DEFER_NAMED(rollback) {
+        FileSystem::Remove(temp_path);
+    };
+
+    if (!FileSystem::WriteString(temp_path, oss.view()))
     {
-        ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to open file for writing: {}", physical_path_str);
+        ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to write temp file: {}", temp_path.ToString());
         return false;
     }
 
-    file_stream << root_table;
-
-    if (file_stream.fail())
+    if (!FileSystem::Rename(temp_path, physical_path))
     {
-        ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to write file: {}", physical_path_str);
-        return false;
-    }
-
-    file_stream.close();
-    if (file_stream.fail())
-    {
-        ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to write file: {}", physical_path_str);
+        ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to rename temp -> config: {} -> {}", temp_path.ToString(), physical_path.ToString());
         return false;
     }
 
     // 저장 성공 시 캐시 갱신
     table_cache[physical_path_str] = root_table;
 
+    rollback.Discard();
     return true;
 }
 
