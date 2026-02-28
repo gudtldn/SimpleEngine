@@ -4,6 +4,7 @@
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
@@ -97,6 +98,18 @@ public:
 
     /** 현재 등록된 Asset의 총 개수를 반환합니다. */
     [[nodiscard]] uint32 GetAssetCount() const;
+
+    /**
+     * Registry에 등록된 모든 소스 파일 경로를 순회합니다.
+     * @param visitor 각 소스 파일 경로에 대해 호출되는 콜백
+     */
+    void VisitAllPaths(const Function<void(const Path&)>& visitor) const;
+
+    /**
+     * 소스 파일 경로에 연결된 모든 Sub-asset을 일괄 제거합니다.
+     * @param source_path 제거할 소스 파일 경로
+     */
+    void UnregisterByPath(const Path& source_path);
 
 public:
     /**

@@ -127,6 +127,40 @@ uint32 AssetRegistry::GetAssetCount() const
     return static_cast<uint32>(records.Len());
 }
 
+void AssetRegistry::VisitAllPaths(const Function<void(const Path&)>& visitor) const
+{
+    std::shared_lock lock(registry_mutex);
+    for (const Path& path : file_to_assets | std::views::keys)
+    {
+        visitor(path);
+    }
+}
+
+void AssetRegistry::UnregisterByPath(const Path& source_path)
+{
+    std::unique_lock lock(registry_mutex);
+
+    const Optional entries_opt = file_to_assets.Find(source_path);
+    if (!entries_opt.HasValue())
+    {
+        return;
+    }
+
+    // ID 목록을 복사 (순회 중 삭제 방지)
+    const Array<AssetId> ids_to_remove = *entries_opt;
+
+    for (const AssetId& id : ids_to_remove)
+    {
+        if (const Optional record_opt = records.Find(id))
+        {
+            path_to_id.Remove(record_opt->logical_path);
+        }
+        records.Remove(id);
+    }
+
+    file_to_assets.Remove(source_path);
+}
+
 /** AssetRegistry 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
 static constexpr uint32 REGISTRY_MAGIC =
     static_cast<uint32>('S')
