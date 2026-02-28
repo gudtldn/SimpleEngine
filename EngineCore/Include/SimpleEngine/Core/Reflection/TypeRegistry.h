@@ -1,10 +1,13 @@
 #pragma once
 
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Reflection/TypeBuilder.h"
 #include "SimpleEngine/Core/Types/StringName.h"
+
+#include <ranges>
 
 
 namespace se
@@ -62,6 +65,14 @@ public:
     [[nodiscard]] const TypeInfo& FindChecked(const TypeId& type_id) const;
 
     [[nodiscard]] const HashMap<TypeId, TypeInfo>& GetAllTypes() const { return type_map; }
+
+    /**
+     * 특정 인터페이스를 구현(Implements)하는 모든 등록된 타입의 TypeInfo 목록을 반환합니다.
+     * @tparam T 인터페이스 타입
+     * @return 해당 인터페이스를 구현하는 TypeInfo 포인터 목록
+     */
+    template <typename T>
+    [[nodiscard]] Array<const TypeInfo*> GetImplementations() const;
 
 private:
     HashMap<StringName, TypeId> name_map;
@@ -147,5 +158,21 @@ detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
     name_map.Insert(info.name, id);
 
     return detail::TypeBuilder<T>(&info, ETypeKind::Enum);
+}
+
+template <typename T>
+Array<const TypeInfo*> TypeRegistry::GetImplementations() const
+{
+    // TODO: 나중에 HashMap<interface_id, Array<TypeInfo*>>로 최적화할 수 있을 듯
+    const TypeId interface_id = TypeId::Get<T>();
+    Array<const TypeInfo*> result;
+    for (const TypeInfo& info : type_map | std::views::values)
+    {
+        if (info.interfaces.Contains(interface_id))
+        {
+            result.Push(&info);
+        }
+    }
+    return result;
 }
 } // namespace se
