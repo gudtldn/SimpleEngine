@@ -172,7 +172,7 @@ public:
 private:
     void RegisterWindow(SDL_WindowID window_id, SDL_Window* window, const WindowDesc& desc);
     void UnregisterWindow(SDL_WindowID window_id);
-    void OnSDLEvent(SDL_Event& event);
+    void OnSDLEvent(const SDL_Event& event);
 
 private:
     Optional<WindowDesc> prepared_main_window_desc = NullOpt;
