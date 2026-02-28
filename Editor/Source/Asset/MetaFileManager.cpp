@@ -84,13 +84,11 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
     toml::table root;
     TomlWriter writer(root);
 
-    MetaFileContent mutable_content = content;
-    writer << mutable_content;
+    writer << content;
 
     // TOML 문자열 생성
     std::ostringstream oss;
     oss << root;
-    const String toml_string = StringUtils::ToString(oss.str());
 
     // Atomic Write: .tmp에 먼저 쓰고 rename
     const Path temp_path = BuildTempPath(meta_path);
@@ -98,7 +96,7 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
         FileSystem::Remove(temp_path);
     };
 
-    if (!FileSystem::WriteString(temp_path, toml_string))
+    if (!FileSystem::WriteString(temp_path, oss.view()))
     {
         ConsoleLog(ELogLevel::Error, "MetaFileManager::Save - Failed to write temp file: {}", temp_path.ToString());
         return false;
