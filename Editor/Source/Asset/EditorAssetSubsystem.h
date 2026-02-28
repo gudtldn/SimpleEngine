@@ -12,6 +12,7 @@ namespace se::editor
 {
 // forward declarations
 class AssetImporter;
+struct MetaFileContent;
 
 /**
  * Editor 전용 에셋 서브시스템
@@ -45,7 +46,7 @@ public:
      * @param source_path 소스 파일 경로
      * @return .meta 파일이 존재하거나 생성에 성공하면 true
      */
-    bool EnsureMetaFile(const Path& source_path);
+    [[nodiscard]] Optional<MetaFileContent> EnsureMetaFile(const Path& source_path);
 
     /**
      * Registry 스냅샷과 파일 시스템을 비교하여 변경 사항을 감지합니다.
@@ -58,8 +59,9 @@ private:
     /**
      * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
      * @param source_path 소스 파일 경로
+     * @param meta
      */
-    void RegisterFromMeta(const Path& source_path);
+    void RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta);
 
     /**
      * Asset을 Import하여 Registry 등록과 DDC 바이너리를 생성합니다.
