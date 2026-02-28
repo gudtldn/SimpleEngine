@@ -32,7 +32,7 @@ public:
      * SDL 이벤트가 발생할 때마다 Broadcast됩니다.
      * ImGui 등 모든 raw SDL 이벤트를 받아야 하는 시스템용입니다.
      */
-    MultiDelegate<void(SDL_Event&)> on_sdl_event;
+    MultiDelegate<void(const SDL_Event&)> on_sdl_event;
 
     /**
      * SDL_EVENT_QUIT 이벤트 발생 시 Broadcast됩니다.

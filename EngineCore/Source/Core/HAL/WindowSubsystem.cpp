@@ -35,7 +35,7 @@ bool WindowSubsystem::Initialize()
 
     // EventSubsystem의 raw SDL 이벤트를 구독
     EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
-    sdl_event_handle = event_subsystem.on_sdl_event.AddLambda([this](SDL_Event& event)
+    sdl_event_handle = event_subsystem.on_sdl_event.AddLambda([this](const SDL_Event& event)
     {
         OnSDLEvent(event);
     });
@@ -204,8 +204,7 @@ void WindowSubsystem::UnregisterWindow(SDL_WindowID window_id)
     windows.Remove(window_id);
 }
 
-// ReSharper disable once CppParameterMayBeConstPtrOrRef
-void WindowSubsystem::OnSDLEvent(SDL_Event& event)
+void WindowSubsystem::OnSDLEvent(const SDL_Event& event)
 {
     switch (event.type)
     {
