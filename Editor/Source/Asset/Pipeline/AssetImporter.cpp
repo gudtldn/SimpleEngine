@@ -20,11 +20,11 @@ Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) cons
     if (const Optional ext_opt = file_path.Extension())
     {
         const String ext = ext_opt->ToLower();
-        for (const auto [n, translator] : translators | std::views::enumerate)
+        for (const auto [n, entry] : translators | std::views::enumerate)
         {
-            if (translator->CanTranslate(ext))
+            if (entry.translator->CanTranslate(ext))
             {
-                return translator_type_ids[n];
+                return entry.type_id;
             }
         }
     }
@@ -34,7 +34,7 @@ Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) cons
 HashSet<StringView> AssetImporter::GetAllSupportedExtensions() const
 {
     HashSet<StringView> result;
-    for (const auto& translator : translators)
+    for (const auto& [_, translator] : translators)
     {
         for (const StringView ext : translator->GetSupportedExtensions())
         {
@@ -176,7 +176,7 @@ Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const Path& file_pa
     }
 
     const String ext = ext_opt->ToLower();
-    for (const auto& translator : translators)
+    for (const auto& [_, translator] : translators)
     {
         if (translator->CanTranslate(ext))
         {
