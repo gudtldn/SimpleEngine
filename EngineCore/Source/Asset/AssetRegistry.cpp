@@ -23,6 +23,26 @@ void AssetRegistry::RegisterAsset(
 {
     std::unique_lock lock(registry_mutex);
 
+    // 동일 ID로 재등록 시 이전 경로 인덱스를 정리 (Asset 이동/재스캔 시 stale 인덱스 방지)
+    if (const Optional old_record = records.Find(asset_id))
+    {
+        const Path old_file = old_record->logical_path.GetFilePath();
+        path_to_id.Remove(old_record->logical_path);
+
+        if (const Optional old_entries = file_to_assets.Find(old_file))
+        {
+            old_entries->RemoveIf([&asset_id](const AssetId& id)
+            {
+                return id == asset_id;
+            });
+
+            if (old_entries->IsEmpty())
+            {
+                file_to_assets.Remove(old_file);
+            }
+        }
+    }
+
     Path file_path = asset_path.GetFilePath();
     records.Insert(asset_id, {
         .id = asset_id,

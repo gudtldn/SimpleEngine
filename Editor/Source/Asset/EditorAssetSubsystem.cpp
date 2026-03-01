@@ -105,91 +105,159 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
     asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
 
-    // 삭제된 파일 감지를 위한 Set
+    // === 디렉토리 순회, 파일 분류 ===
+    struct OrphanMeta
+    {
+        Path source_path; // 빈 경로면 소비됨(이동 매칭 완료) 표시
+        MetaFileContent content;
+    };
+
+    Array<Path> source_files;
+    Array<OrphanMeta> orphan_metas;
     HashSet<Path> found_files;
 
-    Array<Path> stack;
-    stack.Push(root_path);
-
-    uint32 new_count = 0;
-    uint32 dirty_count = 0;
-    uint32 clean_count = 0;
-
-    // 디렉토리 순회 및 파일 상태 검사
-    while (const Optional dir = stack.Pop())
     {
-        for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
+        Array<Path> stack;
+        stack.Push(root_path);
+
+        while (const Optional dir = stack.Pop())
         {
-            const Path entry_path = entry.GetPath();
-
-            // 디렉토리는 재귀적으로 스캔
-            if (entry.IsDirectory())
+            for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
             {
-                stack.Push(entry_path);
-                continue;
-            }
+                const Path entry_path = entry.GetPath();
 
-            // 일반 파일이 아닌 경우 스킵
-            if (!entry.IsFile())
-            {
-                continue;
-            }
-
-            // .meta 파일 자체는 스킵
-            const Optional ext = entry_path.Extension();
-            if (ext == ".meta")
-            {
-                continue;
-            }
-
-            // Import 불가능한 파일은 스킵
-            if (!importer->CanImport(entry_path))
-            {
-                continue;
-            }
-
-            // 발견된 파일 기록 (Hot Start 시 고아 파일 감지용)
-            if (is_hot_start)
-            {
-                found_files.Insert(entry_path);
-            }
-
-            // .meta 파일 보장
-            Optional content_opt = EnsureMetaFile(entry_path);
-            if (!content_opt.HasValue())
-            {
-                continue;
-            }
-
-            const asset::AssetMetadata& meta = content_opt->metadata;
-
-            // 상태 판별
-            const bool is_new = meta.sub_assets.IsEmpty();
-            const bool is_dirty = !is_new && IsAssetDirty(entry_path, meta);
-
-            if (is_new || is_dirty)
-            {
-                // TODO: BackgroundWorker::PushCookTask(entry_path) 호출하여 백그라운드 굽기
-                if (is_new)
+                // 디렉토리는 재귀적으로 스캔
+                if (entry.IsDirectory())
                 {
-                    ++new_count;
+                    stack.Push(entry_path);
+                    continue;
                 }
-                if (is_dirty)
+
+                // 일반 파일이 아닌 경우 스킵
+                if (!entry.IsFile())
                 {
-                    ++dirty_count;
+                    continue;
+                }
+
+                // 실제 Source 파일도 같이 존재하는지 확인
+                const Optional ext = entry_path.Extension();
+                if (ext == ".meta")
+                {
+                    // .meta 파일의 소스 파일 존재 여부 확인 -> 없으면 고아 .meta
+                    Path source = MetaFileManager::GetSourcePath(entry_path);
+                    if (!source.Exists())
+                    {
+                        if (Optional content = MetaFileManager::Load(source))
+                        {
+                            orphan_metas.Push({ std::move(source), std::move(content).Value() });
+                        }
+                    }
+                    continue;
+                }
+
+                // Import 불가능한 파일은 스킵
+                if (!importer->CanImport(entry_path))
+                {
+                    continue;
+                }
+
+                source_files.Push(entry_path);
+                if (is_hot_start)
+                {
+                    found_files.Insert(entry_path);
                 }
             }
-            else
-            {
-                ++clean_count;
-            }
-
-            // Registry에 등록 (Sub-asset이 비어있으면 함수 내부에서 알아서 스킵됨)
-            RegisterFromMeta(entry_path, meta);
         }
     }
 
-    // 삭제된 파일 감지 (Hot Start 전용 로직)
+    // === 고아 .meta 해시 인덱스 구축 (이동 감지용) ===
+    HashMap<String, uint32> orphan_by_hash;
+    for (const auto [n, orphan_meta] : orphan_metas | std::views::enumerate)
+    {
+        const String& hash = orphan_meta.content.metadata.source_hash;
+        if (!hash.IsEmpty())
+        {
+            orphan_by_hash.Insert(hash, static_cast<uint32>(n));
+        }
+    }
+
+    // === 소스 파일별 처리 ===
+    uint32 new_count = 0;
+    uint32 dirty_count = 0;
+    uint32 clean_count = 0;
+    uint32 moved_count = 0;
+
+    for (const Path& file_path : source_files)
+    {
+        Optional<MetaFileContent> content_opt;
+
+        if (MetaFileManager::HasMeta(file_path))
+        {
+            // 기존 .meta 로드
+            content_opt = MetaFileManager::Load(file_path);
+        }
+        else if (!orphan_by_hash.IsEmpty())
+        {
+            // .meta 없음 -> 해시 매칭으로 오프라인 이동 감지
+            const String hash = SHA256::HashFile(file_path);
+            if (const Optional idx = orphan_by_hash.Find(hash))
+            {
+                OrphanMeta& orphan = orphan_metas[*idx];
+
+                ConsoleLog(ELogLevel::Info, "Asset moved (offline): {} -> {}", orphan.source_path, file_path);
+
+                // 고아 .meta의 GUID를 계승하여 새 위치에 저장
+                MetaFileContent adopted = std::move(orphan.content);
+                adopted.metadata.source_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
+                adopted.metadata.source_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
+
+                MetaFileManager::Save(file_path, adopted);
+                MetaFileManager::DeleteMeta(orphan.source_path);
+
+                orphan.source_path = {}; // 소비됨 표시
+                orphan_by_hash.Remove(hash);
+                ++moved_count;
+
+                content_opt = std::move(adopted);
+            }
+        }
+
+        // 이동 매칭 실패 시 새 .meta 생성
+        if (!content_opt.HasValue())
+        {
+            content_opt = EnsureMetaFile(file_path);
+        }
+
+        if (!content_opt.HasValue())
+        {
+            continue;
+        }
+
+        const asset::AssetMetadata& meta = content_opt->metadata;
+        const bool is_new = meta.sub_assets.IsEmpty();
+        const bool is_dirty = !is_new && IsAssetDirty(file_path, meta);
+
+        if (is_new || is_dirty)
+        {
+            // TODO: BackgroundWorker::PushCookTask(file_path) 호출하여 백그라운드 굽기
+            if (is_new)
+            {
+                ++new_count;
+            }
+            if (is_dirty)
+            {
+                ++dirty_count;
+            }
+        }
+        else
+        {
+            ++clean_count;
+        }
+
+        RegisterFromMeta(file_path, meta);
+    }
+
+    // === 삭제된 파일 감지 (Hot Start 전용) ===
     uint32 orphaned_count = 0;
     if (is_hot_start)
     {
@@ -211,10 +279,22 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         }
     }
 
+    // === 매칭되지 않은 고아 .meta 정리 ===
+    uint32 orphan_meta_count = 0;
+    for (const OrphanMeta& orphan : orphan_metas)
+    {
+        if (!orphan.source_path.IsEmpty())
+        {
+            ConsoleLog(ELogLevel::Info, "Deleted orphan .meta: {}", MetaFileManager::GetMetaPath(orphan.source_path));
+            MetaFileManager::DeleteMeta(orphan.source_path);
+            ++orphan_meta_count;
+        }
+    }
+
     ConsoleLog(
         ELogLevel::Info,
-        "ScanWorkspace Complete [HotStart: {}]: new={}, dirty={}, clean={}, orphaned={} in: {}",
-        is_hot_start, new_count, dirty_count, clean_count, orphaned_count, root_path
+        "ScanWorkspace Complete [HotStart: {}]: new={}, dirty={}, clean={}, moved={}, orphaned={}, orphan_meta={} in: {}",
+        is_hot_start, new_count, dirty_count, clean_count, moved_count, orphaned_count, orphan_meta_count, root_path
     );
 }
 
