@@ -1,14 +1,21 @@
 #include "UI/Panels/AssetsBrowserPanel.h"
 
-#include <compare>
+#include "Asset/EditorAssetSubsystem.h"
+#include "SimpleEditor/Asset/MetaFileManager.h"
+#include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
+
+#include <compare>
+
 
 namespace
 {
@@ -39,6 +46,7 @@ const char* AssetsBrowserPanel::GetName() const
 void AssetsBrowserPanel::Draw()
 {
     ImGui::Begin(GetName(), &is_visible, ImGuiWindowFlags_MenuBar);
+    SE_SCOPE_DEFER{ ImGui::End(); };
 
     // TreeView | GridView를 분할
     if (ImGui::BeginTable("AssetsBrowser_PanelSplit", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV))
@@ -77,7 +85,14 @@ void AssetsBrowserPanel::Draw()
         ImGui::EndTable();
     }
 
-    ImGui::End();
+    if (pending_open_import_settings)
+    {
+        ImGui::OpenPopup("Import Settings");
+        pending_open_import_settings = false;
+    }
+
+    // Import Settings 모달은 AssetsBrowser 윈도우 밖에서 렌더
+    DrawImportSettingsModal();
 }
 
 void AssetsBrowserPanel::DrawAssetTree()
@@ -338,6 +353,13 @@ void AssetsBrowserPanel::DrawFileContextMenu(const Path& path)
     ImGui::TextDisabled("%s", path.FileName().ValueOr("(Unknown)").CStr());
     ImGui::Separator();
 
+    if (ImGui::MenuItem("Import Settings..."))
+    {
+        OpenImportSettingsModal(path);
+    }
+
+    ImGui::Separator();
+
     if (ImGui::MenuItem("Open"))
     {
         // TODO: 에셋 타입에 맞는 에디터 열기
@@ -363,5 +385,184 @@ void AssetsBrowserPanel::DrawFileContextMenu(const Path& path)
         ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path);
         Platform::RevealInExplorer(path);
     }
+}
+
+void AssetsBrowserPanel::OpenImportSettingsModal(const Path& asset_path)
+{
+    modal_asset_path = asset_path;
+    modal_content = MetaFileManager::Load(asset_path);
+    modal_dirty = false;
+    pending_open_import_settings = true;
+}
+
+void AssetsBrowserPanel::DrawImportSettingsModal()
+{
+    const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Appearing);
+
+    if (!ImGui::BeginPopupModal("Import Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        return;
+    }
+
+    if (!modal_content.HasValue())
+    {
+        ImGui::TextDisabled("No .meta file found for this asset.");
+        if (ImGui::Button("Close"))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+        return;
+    }
+
+    // 헤더: 파일 이름
+    const String filename = modal_asset_path.FileName().ValueOr("(Unknown)");
+    ImGui::Text("%s", filename.CStr());
+    ImGui::Separator();
+
+    // GUID (읽기 전용)
+    {
+        const String guid_str = modal_content->metadata.guid.ToString();
+        ImGui::BeginDisabled();
+        ImGui::InputText("GUID", const_cast<char*>(guid_str.CStr()), guid_str.ByteLen(), ImGuiInputTextFlags_ReadOnly);
+        ImGui::EndDisabled();
+    }
+
+    ImGui::Spacing();
+
+    // Import Settings 섹션
+    if (ImGui::CollapsingHeader("Import Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        modal_dirty |= DrawImportSettings();
+    }
+
+    // Processor Stack 섹션
+    if (ImGui::CollapsingHeader("Processor Stack"))
+    {
+        modal_dirty |= DrawProcessorStack();
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+
+    // Apply / Revert / Cancel 버튼
+    ImGui::BeginDisabled(!modal_dirty);
+    if (ImGui::Button("Apply"))
+    {
+        if (MetaFileManager::Save(modal_asset_path, *modal_content))
+        {
+            if (EditorAssetSubsystem* asset_sub = GetSubsystem<EditorAssetSubsystem>())
+            {
+                asset_sub->CookAsset(modal_asset_path);
+            }
+        }
+        else
+        {
+            ConsoleLog(ELogLevel::Error, "Failed to save .meta for: {}", modal_asset_path);
+        }
+        modal_dirty = false;
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    ImGui::BeginDisabled(!modal_dirty);
+    if (ImGui::Button("Revert"))
+    {
+        modal_content = MetaFileManager::Load(modal_asset_path);
+        modal_dirty = false;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Cancel"))
+    {
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+}
+
+bool AssetsBrowserPanel::DrawImportSettings()
+{
+    bool modified = false;
+
+    const ImportProfile::SettingsMap& settings_map = modal_content->import_settings.GetSettingsMap();
+    if (settings_map.IsEmpty())
+    {
+        ImGui::TextDisabled("No import settings.");
+        return false;
+    }
+
+    const TypeRegistry& registry = TypeRegistry::Get();
+    DrawerRegistry& drawer = DrawerRegistry::Get();
+
+    for (auto& [type_id, settings_ptr] : settings_map)
+    {
+        if (!settings_ptr)
+        {
+            continue;
+        }
+
+        const Optional info_opt = registry.Find(type_id);
+        if (!info_opt.HasValue())
+        {
+            const StringView view = type_id.GetName();
+            ImGui::TextDisabled("Unknown settings type: %.*s", static_cast<int>(view.ByteLen()), view.Data());
+            continue;
+        }
+
+        // 설정 타입 이름을 서브 헤더로 표시
+        const StringView& type_name = info_opt->name;
+        if (ImGui::TreeNodeEx(String(type_name).CStr(), ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            if (drawer.DrawProperties(*info_opt, settings_ptr.get()))
+            {
+                modified = true;
+            }
+            ImGui::TreePop();
+        }
+    }
+
+    return modified;
+}
+
+bool AssetsBrowserPanel::DrawProcessorStack()
+{
+    bool modified = false;
+
+    Array<ProcessorEntry>& entries = modal_content->processor_stack;
+    if (entries.IsEmpty())
+    {
+        ImGui::TextDisabled("No processors configured.");
+        return false;
+    }
+
+    const TypeRegistry& registry = TypeRegistry::Get();
+
+    for (usize i = 0; i < entries.Len(); ++i)
+    {
+        ProcessorEntry& entry = entries[i];
+        ImGui::PushID(static_cast<int>(i));
+
+        String label = "Unknown Processor";
+        if (const Optional info_opt = registry.Find(entry.processor_type))
+        {
+            label = String(info_opt->name);
+        }
+
+        if (ImGui::Checkbox(label.CStr(), &entry.enabled))
+        {
+            modified = true;
+        }
+
+        ImGui::PopID();
+    }
+
+    return modified;
 }
 }  // namespace se::editor
