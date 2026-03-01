@@ -20,11 +20,15 @@ Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) cons
     if (const Optional ext_opt = file_path.Extension())
     {
         const String ext = ext_opt->ToLower();
-        for (const auto [n, entry] : translators | std::views::enumerate)
+        if (const auto indices_opt = extension_to_translator_indices.Find(ext))
         {
-            if (entry.translator->CanTranslate(ext))
+            for (const usize idx : *indices_opt)
             {
-                return entry.type_id;
+                const TranslatorEntry& entry = translators[idx];
+                if (entry.translator->CanTranslate(ext))
+                {
+                    return entry.type_id;
+                }
             }
         }
     }

@@ -8,6 +8,7 @@
 #include "SimpleEditor/Asset/Pipeline/Translators/IPipelineTranslator.h"
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -94,6 +95,8 @@ private:
     };
 
     Array<TranslatorEntry> translators;
+    HashMap<String, Array<usize>> extension_to_translator_indices;
+
     Array<std::unique_ptr<IPipelineFactory>> factories;
 };
 
@@ -101,9 +104,17 @@ template <typename Translator, typename ... Args>
     requires std::derived_from<Translator, IPipelineTranslator>
 void AssetImporter::RegisterTranslator(Args&&... args)
 {
+    const usize new_index = translators.Len();
+    auto instance = std::make_unique<Translator>(std::forward<Args>(args)...);
+
+    for (const StringView& ext : instance->GetSupportedExtensions())
+    {
+        extension_to_translator_indices[String(ext).ToLower()].Push(new_index);
+    }
+
     translators.Push({
         .type_id = TypeId::Get<Translator>(),
-        .translator = std::make_unique<Translator>(std::forward<Args>(args)...),
+        .translator = std::move(instance),
     });
 }
 
