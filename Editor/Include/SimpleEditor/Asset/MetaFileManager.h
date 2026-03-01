@@ -57,5 +57,12 @@ struct SE_EDITOR_API MetaFileManager
      * @return .meta 파일 경로 (source_path + ".meta")
      */
     [[nodiscard]] static Path GetMetaPath(const Path& source_path);
+
+    /**
+     * .meta 파일 경로에서 원본 소스 파일 경로를 역산합니다.
+     * @param meta_path .meta 파일 경로 (예: "Assets/Models/character.fbx.meta")
+     * @return 소스 파일 경로 (예: "Assets/Models/character.fbx")
+     */
+    [[nodiscard]] static Path GetSourcePath(const Path& meta_path);
 };
 } // namespace se::editor
