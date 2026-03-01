@@ -35,8 +35,9 @@ public:
     [[nodiscard]] ImportProfile GetDefaultProfile(const TypeId& translator_type) const;
 
     /**
-     * 소스 파일 확장자로부터 적절한 Translator TypeId를 찾아 기본 프로파일을 반환합니다.
-     * 이 메서드는 등록된 모든 프리셋을 순회하지 않고, 호출자가 Translator TypeId를 이미 알고 있는 경우에 사용합니다.
+     * 주어진 Translator TypeId에 대한 기본 프리셋 등록 여부를 확인합니다.
+     * @param translator_type Translator의 TypeId
+     * @return 해당 TypeId에 대한 프리셋이 등록되어 있으면 true, 아니면 false
      */
     [[nodiscard]] bool HasPreset(const TypeId& translator_type) const;
 
