@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SimpleEditor/Asset/ImportPresetManager.h"
+
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
@@ -49,14 +51,6 @@ public:
      */
     [[nodiscard]] Optional<MetaFileContent> EnsureMetaFile(const Path& source_path);
 
-private:
-    /**
-     * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
-     * @param source_path 소스 파일 경로
-     * @param meta
-     */
-    void RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta);
-
     /**
      * Asset을 Import하여 Registry 등록과 DDC 바이너리를 생성합니다.
      * .meta 파일이 존재하면 ImportProfile을 획득하여 Import에 전달합니다.
@@ -64,6 +58,14 @@ private:
      * @return 성공 여부
      */
     bool CookAsset(const Path& file_path);
+
+private:
+    /**
+     * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
+     * @param source_path 소스 파일 경로
+     * @param meta
+     */
+    void RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta);
 
     /**
      * 소스 파일의 mtime/size와 .meta의 기록값을 비교하여 변경 여부를 판별합니다.
@@ -86,5 +88,6 @@ private:
 private:
     std::unique_ptr<AssetImporter> importer;
     asset::AssetSubsystem* asset_subsystem = nullptr;
+    ImportPresetManager preset_manager;
 };
 }  // namespace se::editor

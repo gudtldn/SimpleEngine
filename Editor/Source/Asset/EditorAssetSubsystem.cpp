@@ -4,7 +4,9 @@
 
 #include "SimpleEditor/Asset/MetaFileContent.h"
 #include "SimpleEditor/Asset/MetaFileManager.h"
+#include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 
@@ -16,6 +18,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SHA256.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -47,6 +50,12 @@ bool EditorAssetSubsystem::Initialize()
         // Register Factories
         importer->RegisterFactory<StaticMeshFactory>();
     }
+
+    // Translator별 기본 ImportProfile 프리셋 등록
+    preset_manager.RegisterPreset(TypeId::Get<AssimpTranslator>(), [](ImportProfile& profile)
+    {
+        profile.Set(MeshImportSettings{});
+    });
 
     asset_subsystem = &GetSubsystemChecked<asset::AssetSubsystem>();
     asset_subsystem->SetDDCMissHandler([this](asset::AssetSubsystem&, const Path& file_path) -> bool
@@ -160,7 +169,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
             if (is_new || is_dirty)
             {
-                // TODO: [Phase 6] BackgroundWorker::PushCookTask(entry_path) 호출하여 백그라운드 굽기
+                // TODO: BackgroundWorker::PushCookTask(entry_path) 호출하여 백그라운드 굽기
                 if (is_new)
                 {
                     ++new_count;
@@ -228,8 +237,11 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
         .cache_version = 1,
     };
 
-    // ImportProfile은 기본값 (빈 프로파일)으로 생성
-    // TODO: ImportPresetManager에서 Translator별 기본 프리셋 로드
+    // Translator에 맞는 기본 ImportProfile 설정
+    if (const Optional translator_type = importer->FindTranslatorTypeId(source_path))
+    {
+        content.import_settings = preset_manager.GetDefaultProfile(*translator_type);
+    }
 
     if (!MetaFileManager::Save(source_path, content))
     {
@@ -239,32 +251,6 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
 
     ConsoleLog(ELogLevel::Info, "Created .meta for: {}", source_path);
     return content;
-}
-
-void EditorAssetSubsystem::RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta)
-{
-    ZoneScopedN("EditorAssetSubsystem::RegisterFromMeta");
-
-    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-
-    // Sub-asset 목록이 비어있으면 아직 Import가 안 된 상태이므로 스킵
-    if (meta.sub_assets.IsEmpty())
-    {
-        return;
-    }
-
-    // 각 Sub-asset을 Registry에 등록
-    for (const asset::SubAssetMeta& sub : meta.sub_assets)
-    {
-        const asset::AssetId asset_id{ sub.guid };
-        // TODO: [VPath] 물리 경로 대신 VPath를 AssetPath에 사용하도록 마이그레이션
-        asset::AssetPath asset_path{ source_path, sub.name };
-
-        asset::AssetMetadata sub_meta = meta;
-        sub_meta.guid = sub.guid;
-
-        registry.RegisterAsset(asset_id, sub.type, std::move(asset_path), std::move(sub_meta));
-    }
 }
 
 bool EditorAssetSubsystem::CookAsset(const Path& file_path)
@@ -280,8 +266,40 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
         })
         .ValueOrDefault();
 
+    // .meta에서 ProcessorStack 복원
+    Optional<PipelineProcessorStack> stack_opt;
+    if (meta_content_opt.HasValue() && !meta_content_opt->processor_stack.IsEmpty())
+    {
+        PipelineProcessorStack stack;
+        const TypeRegistry& type_registry = TypeRegistry::Get();
+
+        for (const ProcessorEntry& entry : meta_content_opt->processor_stack)
+        {
+            if (!entry.enabled)
+            {
+                continue;
+            }
+
+            const Optional info_opt = type_registry.Find(entry.processor_type);
+            if (!info_opt.HasValue() || !info_opt->constructor)
+            {
+                ConsoleLog(
+                    ELogLevel::Warning,
+                    "CookAsset: Processor type not found or not constructible: {}",
+                    entry.processor_type.GetName()
+                );
+                continue;
+            }
+
+            IPipelineProcessor* raw = static_cast<IPipelineProcessor*>(info_opt->constructor());
+            stack.AddProcessor(std::unique_ptr<IPipelineProcessor>(raw));
+        }
+
+        stack_opt.Emplace(std::move(stack));
+    }
+
     // Import 수행
-    const auto result_exp = importer->Import(file_path, import_profile);
+    const auto result_exp = importer->Import(file_path, import_profile, stack_opt);
     if (!result_exp.HasValue())
     {
         ConsoleLog(ELogLevel::Error, "Cook failed: {}", result_exp.Error().What());
@@ -356,8 +374,8 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
 
         // AssetCache 등록은 Callback 후 자동으로 이루어짐
         // [AssetSubsystem::LoadInternal 참고]
-        // TODO: [Phase 5] AssetDependency 추적 — import 결과의 의존 파일 목록을 DependencyGraph에 등록
-        // TODO: [Phase 7] Hot-reload 시 AssetCache::FindOrCreate + ExchangeAsset으로 메모리 교체
+        // TODO: AssetDependency 추적 — import 결과의 의존 파일 목록을 DependencyGraph에 등록
+        // TODO: Hot-reload 시 AssetCache::FindOrCreate + ExchangeAsset으로 메모리 교체
     }
 
     // .meta 파일 갱신 (Sub-asset 정보 기록)
@@ -368,6 +386,32 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
 
     ConsoleLog(ELogLevel::Info, "Successfully cooked {} assets from: {}", result.GetCount(), file_path);
     return true;
+}
+
+void EditorAssetSubsystem::RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta)
+{
+    ZoneScopedN("EditorAssetSubsystem::RegisterFromMeta");
+
+    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+
+    // Sub-asset 목록이 비어있으면 아직 Import가 안 된 상태이므로 스킵
+    if (meta.sub_assets.IsEmpty())
+    {
+        return;
+    }
+
+    // 각 Sub-asset을 Registry에 등록
+    for (const asset::SubAssetMeta& sub : meta.sub_assets)
+    {
+        const asset::AssetId asset_id{ sub.guid };
+        // TODO: [VPath] 물리 경로 대신 VPath를 AssetPath에 사용하도록 마이그레이션
+        asset::AssetPath asset_path{ source_path, sub.name };
+
+        asset::AssetMetadata sub_meta = meta;
+        sub_meta.guid = sub.guid;
+
+        registry.RegisterAsset(asset_id, sub.type, std::move(asset_path), std::move(sub_meta));
+    }
 }
 
 bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const asset::AssetMetadata& meta) const
