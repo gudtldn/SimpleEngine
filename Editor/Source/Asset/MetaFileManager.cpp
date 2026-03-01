@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "tracy/Tracy.hpp"
 
