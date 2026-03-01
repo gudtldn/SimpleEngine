@@ -84,8 +84,16 @@ private:
     [[nodiscard]] static Array<PipelineBaseNode*> SortNodesByDependency(const PipelineNodeContainer& container);
 
 private:
-    Array<TypeId> translator_type_ids;
-    Array<std::unique_ptr<IPipelineTranslator>> translators;
+    struct TranslatorEntry
+    {
+        /** Translator의 TypeId */
+        TypeId type_id;
+
+        /** 실제 Translator의 Instance */
+        std::unique_ptr<IPipelineTranslator> translator;
+    };
+
+    Array<TranslatorEntry> translators;
     Array<std::unique_ptr<IPipelineFactory>> factories;
 };
 
@@ -93,8 +101,10 @@ template <typename Translator, typename ... Args>
     requires std::derived_from<Translator, IPipelineTranslator>
 void AssetImporter::RegisterTranslator(Args&&... args)
 {
-    translators.Push(std::make_unique<Translator>(std::forward<Args>(args)...));
-    translator_type_ids.Push(TypeId::Get<Translator>());
+    translators.Push({
+        .type_id = TypeId::Get<Translator>(),
+        .translator = std::make_unique<Translator>(std::forward<Args>(args)...),
+    });
 }
 
 template <typename Factory, typename ... Args>
