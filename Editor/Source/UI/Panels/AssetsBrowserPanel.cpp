@@ -1,15 +1,17 @@
 #include "UI/Panels/AssetsBrowserPanel.h"
 
 #include "Asset/EditorAssetSubsystem.h"
+#include "UI/ImGui/ImGuiString.h"
+
 #include "SimpleEditor/Asset/MetaFileManager.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Core/FileSystem/FileSystem.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -424,9 +426,9 @@ void AssetsBrowserPanel::DrawImportSettingsModal()
 
     // GUID (읽기 전용)
     {
-        const String guid_str = modal_content->metadata.guid.ToString();
+        String guid_str = modal_content->metadata.guid.ToString();
         ImGui::BeginDisabled();
-        ImGui::InputText("GUID", const_cast<char*>(guid_str.CStr()), guid_str.ByteLen(), ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputText("GUID", &guid_str, ImGuiInputTextFlags_ReadOnly);
         ImGui::EndDisabled();
     }
 
