@@ -112,6 +112,36 @@ template <typename Interface>
 }
 
 /**
+ * 리플렉션을 통해 생성된 원시 포인터(void*)를 특정 타입(클래스 또는 인터페이스)으로 안전하게 캐스팅합니다.
+ * @tparam To 대상 타입 (클래스 또는 인터페이스)
+ * @param raw_instance 원본 객체의 포인터
+ * @param actual_type_id 원본 객체의 실제 런타임 TypeId
+ * @return 성공 시 To* 포인터, 실패 시 nullptr
+ */
+template <typename To>
+[[nodiscard]] To* CastFromRaw(void* raw_instance, TypeId actual_type_id)
+{
+    if (!raw_instance)
+    {
+        return nullptr;
+    }
+
+    // 일반 상속 (Base Class) 캐스팅 시도
+    if (detail::IsTypeDerivedFrom(actual_type_id, TypeId::Get<To>()))
+    {
+        return static_cast<To*>(raw_instance);
+    }
+
+    // 인터페이스 캐스팅 시도
+    if (void* result = detail::CastToInterface(raw_instance, actual_type_id, TypeId::Get<To>()))
+    {
+        return static_cast<To*>(result);
+    }
+
+    return nullptr;
+}
+
+/**
  * 안전한 다운캐스팅을 수행합니다.
  * 상속 체인을 검사한 뒤, 유효하지 않으면 nullptr을 반환합니다.
  *
