@@ -134,12 +134,12 @@ Path MetaFileManager::GetMetaPath(const Path& source_path)
 
 Path MetaFileManager::GetSourcePath(const Path& meta_path)
 {
-    // "dir/foo.fbx.meta" → FileStem()="foo.fbx", Parent()="dir" → "dir/foo.fbx"
+    // "dir/foo.fbx.meta" -> FileStem()="foo.fbx", Parent()="dir" -> "dir/foo.fbx"
     const String stem = meta_path.FileStem().ValueOrDefault();
     if (const Optional parent = meta_path.Parent())
     {
-        return *parent / Path(stem);
+        return *parent / stem;
     }
-    return Path(stem);
+    return stem;
 }
 } // namespace se::editor
