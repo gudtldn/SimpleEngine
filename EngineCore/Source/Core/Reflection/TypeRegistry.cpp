@@ -14,6 +14,27 @@ TypeRegistry& TypeRegistry::Get()
     return instance;
 }
 
+void TypeRegistry::Resolve()
+{
+    if (is_resolved)
+    {
+        return;
+    }
+
+    interface_implementations_map.Clear();
+
+    for (const TypeInfo& info : type_map | std::views::values)
+    {
+        // info가 구현하는 모든 인터페이스를 순회
+        for (const TypeId& interface_id : info.interfaces | std::views::keys)
+        {
+            interface_implementations_map[interface_id].Push(&info);
+        }
+    }
+
+    is_resolved = true;
+}
+
 Optional<const TypeInfo&> TypeRegistry::Find(const TypeId& type_id) const
 {
     return type_map.Find(type_id);
@@ -32,6 +53,12 @@ const TypeInfo& TypeRegistry::FindChecked(const TypeId& type_id) const
     SE_ASSERT(type_map.Contains(type_id), "Type '{}' is not registered yet! Make sure SE_END_REFLECT is called.", type_id.GetName());
     return type_map.FindChecked(type_id);
 }
+
+Array<const TypeInfo*> TypeRegistry::GetImplementations(const TypeId& interface_id) const
+{
+    SE_ASSERT(is_resolved, "TypeRegistry::Resolve() must be called before querying implementations!");
+    return interface_implementations_map.Find(interface_id).Copy().ValueOrDefault();
+}
 } // namespace se
 
 namespace
@@ -46,7 +73,7 @@ void MakeSerialize(Archive& ar, void* ptr)
 
 [[maybe_unused]] const bool Primitive_Registrar = [] -> bool
 {
-    [[maybe_unused]] TypeRegistry& registry = TypeRegistry::Get();
+    TypeRegistry& registry = TypeRegistry::Get();
 
     // 기본 산술 타입
     registry.RegisterPrimitive<bool>()   .Serialize(&MakeSerialize<bool>);
