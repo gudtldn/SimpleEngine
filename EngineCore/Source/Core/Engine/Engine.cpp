@@ -31,6 +31,9 @@ Engine::Engine()
     SE_ASSERT(!Instance, "Engine instance already exists.");
     Instance = this;
 
+    // Interface Cache 구축
+    TypeRegistry::Get().Resolve();
+
     VFS& vfs = VFS::Get();
 
     // 센티넬 파일(*.seproject) 탐색으로 프로젝트 루트 결정

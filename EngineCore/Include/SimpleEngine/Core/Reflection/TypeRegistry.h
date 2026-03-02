@@ -31,6 +31,9 @@ public:
     static TypeRegistry& Get();
 
 public:
+    /** 등록된 모든 리플렉션 데이터를 순회하여 인터페이스 캐시 등을 구축합니다. */
+    void Resolve();
+
     /**
      * Registry에 타입을 등록합니다.
      * @tparam T 등록할 타입
@@ -74,9 +77,14 @@ public:
     template <typename T>
     [[nodiscard]] Array<const TypeInfo*> GetImplementations() const;
 
+    [[nodiscard]] Array<const TypeInfo*> GetImplementations(const TypeId& interface_id) const;
+
 private:
     HashMap<StringName, TypeId> name_map;
     HashMap<TypeId, TypeInfo> type_map;
+
+    bool is_resolved = false;
+    HashMap<TypeId, Array<const TypeInfo*>> interface_implementations_map;
 };
 
 template <typename T>
@@ -115,6 +123,7 @@ detail::TypeBuilder<T> TypeRegistry::Register()
     SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
     name_map.Insert(info.name, id);
 
+    is_resolved = false; // Resolve 캐시 무효화
     return detail::TypeBuilder<T>(&info, ETypeKind::Struct);
 }
 
@@ -135,6 +144,7 @@ detail::TypeBuilder<T> TypeRegistry::RegisterPrimitive()
     SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
     name_map.Insert(info.name, id);
 
+    is_resolved = false; // Resolve 캐시 무효화
     return detail::TypeBuilder<T>(&info, ETypeKind::Primitive);
 }
 
@@ -157,22 +167,14 @@ detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
     SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
     name_map.Insert(info.name, id);
 
+    is_resolved = false; // Resolve 캐시 무효화
     return detail::TypeBuilder<T>(&info, ETypeKind::Enum);
 }
 
 template <typename T>
 Array<const TypeInfo*> TypeRegistry::GetImplementations() const
 {
-    // TODO: 나중에 HashMap<interface_id, Array<TypeInfo*>>로 최적화할 수 있을 듯
     const TypeId interface_id = TypeId::Get<T>();
-    Array<const TypeInfo*> result;
-    for (const TypeInfo& info : type_map | std::views::values)
-    {
-        if (info.interfaces.Contains(interface_id))
-        {
-            result.Push(&info);
-        }
-    }
-    return result;
+    return GetImplementations(interface_id);
 }
 } // namespace se
