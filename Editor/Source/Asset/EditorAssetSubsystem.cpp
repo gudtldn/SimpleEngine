@@ -54,7 +54,7 @@ bool EditorAssetSubsystem::Initialize()
     // Translator별 기본 ImportProfile 프리셋 등록
     preset_manager.RegisterPreset(TypeId::Get<AssimpTranslator>(), [](ImportProfile& profile)
     {
-        profile.Set(MeshImportSettings{});
+        profile.Emplace<MeshImportSettings>();
     });
 
     asset_subsystem = &GetSubsystemChecked<asset::AssetSubsystem>();
