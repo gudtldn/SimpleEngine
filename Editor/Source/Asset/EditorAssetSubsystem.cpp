@@ -103,8 +103,6 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         return;
     }
 
-    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-
     // === 디렉토리 순회, 파일 분류 ===
     struct OrphanMeta
     {
@@ -225,15 +223,16 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
             }
         }
 
-        // 이동 매칭 실패 시 새 .meta 생성
+        // 새로운 파일인 경우, .meta 파일 생성
         if (!content_opt.HasValue())
         {
             content_opt = EnsureMetaFile(file_path);
-        }
 
-        if (!content_opt.HasValue())
-        {
-            continue;
+            // EnsureMetaFile이 실패한 경우 (로그는 내부에서 남김)
+            if (!content_opt.HasValue())
+            {
+                continue;
+            }
         }
 
         const asset::AssetMetadata& meta = content_opt->metadata;
@@ -242,7 +241,8 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
         if (is_new || is_dirty)
         {
-            // TODO: BackgroundWorker::PushCookTask(file_path) 호출하여 백그라운드 굽기
+            // TODO: BackgroundWorker::PushCookTask(file_path) 호출하여 백그라운드에서 DDC 굽기
+            // 이후 RegisterFromMeta로 Registry에 등록
             if (is_new)
             {
                 ++new_count;
@@ -257,6 +257,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
             ++clean_count;
         }
 
+        // AssetRegistry에 각 Sub-asset을 등록 (없으면 무시)
         RegisterFromMeta(file_path, meta);
     }
 
@@ -264,6 +265,8 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
     uint32 orphaned_count = 0;
     if (is_hot_start)
     {
+        asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+
         Array<Path> orphaned;
         registry.VisitAllPaths([&found_files, &orphaned](const Path& registered_path)
         {
