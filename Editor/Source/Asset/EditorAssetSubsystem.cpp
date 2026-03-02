@@ -149,7 +149,10 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
                     {
                         if (Optional content = MetaFileManager::Load(source))
                         {
-                            orphan_metas.Push({ std::move(source), std::move(content).Value() });
+                            orphan_metas.Push({
+                                .source_path = std::move(source),
+                                .content = std::move(content).Value(),
+                            });
                         }
                     }
                     continue;
