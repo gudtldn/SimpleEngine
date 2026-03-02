@@ -7,9 +7,15 @@
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
+#include <concepts>
+
 
 namespace se::editor
 {
+// forward declaration
+class IPipelineTranslator;
+
+
 /**
  * Translator 타입별 기본 ImportProfile을 관리하는 매니저
  *
@@ -25,6 +31,16 @@ public:
      * @param initializer ImportProfile에 기본 설정을 채우는 콜백
      */
     void RegisterPreset(const TypeId& translator_type, Function<void(ImportProfile&)> initializer);
+
+    /**
+     * 템플릿 인자 T를 통해 Translator 타입을 자동으로 추론하여 프리셋 초기화 함수를 등록합니다.
+     * @tparam T 등록할 Translator 클래스 타입 (IPipelineTranslator를 상속받아야 함)
+     * @param initializer ImportProfile에 기본 설정을 채우는 콜백
+     */
+    template <typename T, typename Fn>
+        requires std::derived_from<T, IPipelineTranslator>
+        && std::invocable<Fn, ImportProfile&>
+    void RegisterPreset(Fn&& initializer);
 
     /**
      * Translator 타입에 맞는 기본 ImportProfile을 생성하여 반환합니다.
@@ -44,4 +60,12 @@ public:
 private:
     HashMap<TypeId, Function<void(ImportProfile&)>> preset_map;
 };
+
+template <typename T, typename Fn>
+    requires std::derived_from<T, IPipelineTranslator>
+    && std::invocable<Fn, ImportProfile&>
+void ImportPresetManager::RegisterPreset(Fn&& initializer)
+{
+    RegisterPreset(TypeId::Get<T>(), std::forward<Fn>(initializer));
+}
 } // namespace se::editor
