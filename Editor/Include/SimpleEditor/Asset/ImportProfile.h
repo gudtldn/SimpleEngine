@@ -5,6 +5,7 @@
 #include "SimpleEditor/Asset/ImportSettings/ImportSettingsBase.h"
 
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Input/KeyCode.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 
@@ -30,13 +31,28 @@ public:
      * @param settings 저장할 설정 객체
      */
     template <typename T>
-        requires std::derived_from<T, ImportSettingsBase>
-    void Set(const T& settings)
+        requires std::derived_from<std::remove_cvref_t<T>, ImportSettingsBase>
+    void Set(T&& settings)
     {
-        // 내부적으로 복사본을 만들어 shared_ptr로 관리
+        using PureType = std::remove_cvref_t<T>;
         settings_map.Insert(
+            TypeId::Get<PureType>(),
+            std::make_shared<PureType>(std::forward<T>(settings))
+        );
+    }
+
+    /**
+     * 특정 타입의 임포트 설정을 In-place로 생성하여 저장합니다.
+     * @tparam T ImportSettingsBase를 상속받은 구체적인 설정 클래스
+     * @param args 생성자에 전달할 인자
+     */
+    template <typename T, typename... Args>
+        requires std::derived_from<T, ImportSettingsBase>
+    void Emplace(Args&&... args)
+    {
+        settings_map.Emplace(
             TypeId::Get<T>(),
-            std::make_shared<T>(settings)
+            std::make_shared<T>(std::forward<Args>(args)...)
         );
     }
 
