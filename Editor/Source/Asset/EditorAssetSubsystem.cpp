@@ -305,9 +305,17 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
 {
     ZoneScopedN("EditorAssetSubsystem::EnsureMetaFile");
 
-    if (Optional existing_content = MetaFileManager::Load(source_path))
+    // .meta가 있는지 확인
+    if (MetaFileManager::HasMeta(source_path))
     {
-        return existing_content;
+        // 있다면 Load
+        if (Optional existing_content = MetaFileManager::Load(source_path))
+        {
+            return existing_content;
+        }
+
+        ConsoleLog(ELogLevel::Error, "EnsureMetaFile: .meta exists but failed to load for {}. Aborting to prevent data loss.", source_path);
+        return NullOpt;
     }
 
     // 새 MetaFileContent 생성
@@ -374,8 +382,20 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
                 continue;
             }
 
-            IPipelineProcessor* raw = static_cast<IPipelineProcessor*>(info_opt->constructor());
-            stack.AddProcessor(std::unique_ptr<IPipelineProcessor>(raw));
+            if (!Implements<IPipelineProcessor>(info_opt->type_id))
+            {
+                ConsoleLog(
+                    ELogLevel::Warning,
+                    "CookAsset: Processor type does not implement IPipelineProcessor (Skipping): {}",
+                    entry.processor_type.GetName()
+                );
+                continue;
+            }
+
+            void* raw = info_opt->constructor();
+            IPipelineProcessor* processor = CastFromRaw<IPipelineProcessor>(raw, info_opt->type_id);
+
+            stack.AddProcessor(std::unique_ptr<IPipelineProcessor>(processor));
         }
 
         stack_opt.Emplace(std::move(stack));
