@@ -36,7 +36,7 @@ struct AssetItem
         return name <=> other.name;
     }
 };
-}  // namespace
+} // namespace
 
 namespace se::editor
 {
@@ -53,6 +53,8 @@ void AssetsBrowserPanel::Draw()
     // TreeView | GridView를 분할
     if (ImGui::BeginTable("AssetsBrowser_PanelSplit", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV))
     {
+        SE_SCOPE_DEFER{ ImGui::EndTable(); };
+
         // 좌측 컬럼 너비 초기값 설정
         ImGui::TableSetupColumn("Tree", ImGuiTableColumnFlags_WidthFixed, 150.0f);
         ImGui::TableSetupColumn("Assets", ImGuiTableColumnFlags_WidthStretch);
@@ -83,8 +85,6 @@ void AssetsBrowserPanel::Draw()
             DrawAssetGrid();
         }
         ImGui::EndChild();
-
-        ImGui::EndTable();
     }
 
     if (pending_open_import_settings)
@@ -256,14 +256,10 @@ void AssetsBrowserPanel::DrawAssetGrid()
 
 bool AssetsBrowserPanel::HasSubDirectories(const Path& path)
 {
-    for (const auto& entry : FileSystem::ReadDir(path))
+    return std::ranges::any_of(FileSystem::ReadDir(path), [](const DirectoryEntry& entry)
     {
-        if (entry.IsDirectory())
-        {
-            return true;
-        }
-    }
-    return false;
+        return entry.IsDirectory();
+    });
 }
 
 const Path& AssetsBrowserPanel::GetSelectedDirPath() const noexcept
@@ -503,7 +499,7 @@ bool AssetsBrowserPanel::DrawImportSettings()
     const TypeRegistry& registry = TypeRegistry::Get();
     DrawerRegistry& drawer = DrawerRegistry::Get();
 
-    for (auto& [type_id, settings_ptr] : settings_map)
+    for (const auto& [type_id, settings_ptr] : settings_map)
     {
         if (!settings_ptr)
         {
@@ -546,10 +542,9 @@ bool AssetsBrowserPanel::DrawProcessorStack()
 
     const TypeRegistry& registry = TypeRegistry::Get();
 
-    for (usize i = 0; i < entries.Len(); ++i)
+    for (const auto [n, entry] : entries | std::views::enumerate)
     {
-        ProcessorEntry& entry = entries[i];
-        ImGui::PushID(static_cast<int>(i));
+        ImGui::PushID(static_cast<int>(n));
 
         String label = "Unknown Processor";
         if (const Optional info_opt = registry.Find(entry.processor_type))
@@ -567,4 +562,4 @@ bool AssetsBrowserPanel::DrawProcessorStack()
 
     return modified;
 }
-}  // namespace se::editor
+} // namespace se::editor

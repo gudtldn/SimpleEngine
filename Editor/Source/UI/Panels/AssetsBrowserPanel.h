@@ -36,12 +36,13 @@ private:
     bool DrawProcessorStack();
 
 private:
+    // 선택된 Directory 경로
     Path selected_dir_path;
 
     // Import Settings 모달 상태
-    Path modal_asset_path;
-    Optional<MetaFileContent> modal_content;
-    bool modal_dirty = false;
-    bool pending_open_import_settings = false;
+    Path modal_asset_path;                     // Import Settings를 띄울 에셋의 경로
+    Optional<MetaFileContent> modal_content;   // 에셋의 Import Settings 정보
+    bool modal_dirty = false;                  // Import Settings가 수정되었는지 여부
+    bool pending_open_import_settings = false; // Modal을 띄우기 위한 Flag
 };
 }  // namespace se::editor
