@@ -1,16 +1,18 @@
 #include "SimpleEngine/Core/HAL/Platform.h"
 
 #if SE_PLATFORM_WINDOWS
-#include <string>
+
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Utility/StringUtils.h"
 
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <shellapi.h>
 
-#include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/FileSystem/FileSystem.h"
-#include "SimpleEngine/Utility/StringUtils.h"
+#include <string>
+#include <format>
 
 
 namespace
@@ -90,7 +92,9 @@ void Platform::RevealInExplorer(const Path& path)
     }
 
     const Path absolute_path = FileSystem::Absolute(path);
-    const std::wstring wstr_path = ConvertToWString(absolute_path.ToString());
+    std::wstring wstr_path = ConvertToWString(absolute_path.ToString());
+    std::ranges::replace(wstr_path, L'/', L'\\');
+
     if (absolute_path.IsDirectory())
     {
         ShellExecuteW(nullptr, L"explore", wstr_path.c_str(), nullptr, nullptr, SW_SHOWDEFAULT);
@@ -98,7 +102,7 @@ void Platform::RevealInExplorer(const Path& path)
     else
     {
         // 파일인 경우: explorer.exe /select,"C:\Path\To\File.txt"
-        const std::wstring param = L"/select,\"" + wstr_path + L"\"";
+        const std::wstring param = std::format(L"/select,\"{}\"", wstr_path);
         ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
     }
 }
