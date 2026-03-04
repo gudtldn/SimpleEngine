@@ -1,12 +1,14 @@
 #pragma once
-#include <shared_mutex>
 
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <shared_mutex>
 
 
 namespace se
@@ -78,6 +80,13 @@ public:
     [[nodiscard]] Optional<VPath> Unresolve(const Path& physical_path) const;
 
 public:
+    /**
+     * 지정된 스킴들의 마운트 포인트 물리 디렉토리가 존재하지 않으면 생성합니다.
+     * Cache, Logs 등 쓰기 대상 스킴에 사용합니다.
+     * @param schemes 디렉토리를 보장할 스킴 목록
+     */
+    void EnsureDirectories(ArrayView<const StringView> schemes);
+
     /**
      * 등록된 모든 마운트 포인트를 순회합니다.
      * @param visitor 콜백 함수 (scheme, physical_path, priority)

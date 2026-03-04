@@ -4,6 +4,7 @@
 
 [B|b]inaries/
 [B|b]uild/
+[C|c]ache/
 [I|i]ntermediate/
 
 /packages/

@@ -10,6 +10,7 @@ CoreAssets = 'EngineCore/Assets'
 CoreShader = 'EngineCore/Shaders'
 EditorAssets = 'Editor/Assets'
 EditorShader = 'Editor/Shaders'
+Cache = 'Cache'
 Logs = 'Logs'
 
 [window]

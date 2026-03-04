@@ -62,11 +62,15 @@ Engine::Engine()
         vfs.Mount("CoreShader", root_path / "EngineCore/Shaders");
         vfs.Mount("EditorAssets", root_path / "Editor/Assets");
         vfs.Mount("EditorShader", root_path / "Editor/Shaders");
+        vfs.Mount("Cache", root_path / "Cache");
         vfs.Mount("Logs", root_path / "Logs");
 
         // 기본 EngineConfig.toml 자동 생성
         GenerateDefaultEngineConfig();
     }
+
+    // 쓰기 대상 스킴의 물리 디렉토리 보장
+    vfs.EnsureDirectories({ "Cache", "Logs" });
 }
 
 Engine::~Engine()
@@ -95,6 +99,7 @@ void Engine::GenerateDefaultEngineConfig()
     config.SetValue("vfs.CoreShader", String("EngineCore/Shaders"));
     config.SetValue("vfs.EditorAssets", String("Editor/Assets"));
     config.SetValue("vfs.EditorShader", String("Editor/Shaders"));
+    config.SetValue("vfs.Cache", String("Cache"));
     config.SetValue("vfs.Logs", String("Logs"));
 
     if (config.Save("Config://EngineConfig.toml"))

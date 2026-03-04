@@ -102,6 +102,29 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
     return NullOpt;
 }
 
+void VFS::EnsureDirectories(ArrayView<const StringView> schemes)
+{
+    std::shared_lock lock(mutex);
+
+    for (const StringView scheme : schemes)
+    {
+        const Optional point_opt = mount_points.Find(scheme);
+        if (!point_opt.HasValue())
+        {
+            continue;
+        }
+
+        for (const MountPoint& point : *point_opt)
+        {
+            if (!point.physical_path.Exists())
+            {
+                FileSystem::CreateDirectories(point.physical_path);
+                ConsoleLog(ELogLevel::Info, "VFS: Created directory for '{}://': '{}'", scheme, point.physical_path);
+            }
+        }
+    }
+}
+
 Optional<VPath> VFS::Unresolve(const Path& physical_path) const
 {
     std::shared_lock lock(mutex);
