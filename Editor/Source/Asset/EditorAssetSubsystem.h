@@ -6,6 +6,7 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 
 #include <memory>
 
@@ -38,7 +39,7 @@ public:
     /**
      * 작업 공간(Workspace)의 디렉토리를 순회하며 에셋의 상태를 스캔하고 레지스트리를 갱신합니다.
      * Import 가능한 파일에 대해 .meta 파일을 보장하고, 변경(New/Dirty) 상태를 감지하여 등록합니다.
-     * @param root_path 스캔할 루트 디렉토리 경로
+     * @param root_path 스캔할 루트 디렉토리의 물리 경로
      * @param is_hot_start true일 경우 레지스트리 스냅샷과 비교하여 삭제된(Orphaned) 에셋을 찾아 등록 해제합니다.
      */
     void ScanWorkspace(const Path& root_path, bool is_hot_start);
@@ -46,31 +47,31 @@ public:
     /**
      * 소스 파일에 대한 .meta 파일이 존재하는지 확인하고,
      * 없으면 새로 생성합니다.
-     * @param source_path 소스 파일 경로
-     * @return .meta 파일이 존재하거나 생성에 성공하면 true
+     * @param source_path 소스 파일의 물리 경로
+     * @return .meta 파일이 존재하거나 생성에 성공하면 MetaFileContent
      */
     [[nodiscard]] Optional<MetaFileContent> EnsureMetaFile(const Path& source_path);
 
     /**
      * Asset을 Import하여 Registry 등록과 DDC 바이너리를 생성합니다.
      * .meta 파일이 존재하면 ImportProfile을 획득하여 Import에 전달합니다.
-     * @param file_path 소스 파일 경로
+     * @param file_vpath 소스 파일의 가상 경로
      * @return 성공 여부
      */
-    bool CookAsset(const Path& file_path);
+    bool CookAsset(const VPath& file_vpath);
 
 private:
     /**
      * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
-     * @param source_path 소스 파일 경로
-     * @param meta
+     * @param source_vpath 소스 파일의 가상 경로
+     * @param meta 메타데이터
      */
-    void RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta);
+    void RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta);
 
     /**
      * 소스 파일의 mtime/size와 .meta의 기록값을 비교하여 변경 여부를 판별합니다.
      * mtime 비교 -> size 비교 -> hash 비교 순서의 단계적 검증을 수행합니다.
-     * @param source_path 소스 파일 경로
+     * @param source_path 소스 파일의 물리 경로
      * @param meta 저장된 메타데이터
      * @return 소스 파일이 수정되었으면 true
      */
@@ -82,8 +83,8 @@ private:
     /** 바이너리 스냅샷에서 Registry를 복원합니다. */
     [[nodiscard]] bool LoadRegistrySnapshot();
 
-    /** Registry 스냅샷 파일 경로를 반환합니다. */
-    [[nodiscard]] static Path GetRegistrySnapshotPath();
+    /** Registry 스냅샷 파일의 가상 경로를 반환합니다. */
+    [[nodiscard]] static VPath GetRegistrySnapshotVPath();
 
 private:
     std::unique_ptr<AssetImporter> importer;

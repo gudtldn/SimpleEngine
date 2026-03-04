@@ -58,16 +58,16 @@ bool EditorAssetSubsystem::Initialize()
     });
 
     asset_subsystem = &GetSubsystemChecked<asset::AssetSubsystem>();
-    asset_subsystem->SetDDCMissHandler([this](asset::AssetSubsystem&, const Path& file_path) -> bool
+    asset_subsystem->SetDDCMissHandler([this](asset::AssetSubsystem&, const VPath& file_vpath) -> bool
     {
-        return CookAsset(file_path);
+        return CookAsset(file_vpath);
     });
 
     // Registry 스냅샷 복원 시도 (성공 시 Hot Start, 실패 시 Cold Start)
     const bool is_hot_start = LoadRegistrySnapshot();
 
     // VFS "Assets" 스킴에 마운트된 디렉토리를 스캔
-    // TODO: [VPath] 스캔 대상 스킴을 설정 파일에서 읽도록 변경
+    // TODO: VisitMounts + Contains 대신 직접 스캔 대상을 설정에서 읽도록 변경
     VFS::Get().VisitMounts([&](StringView scheme, const Path& physical_path, int32)
     {
         if (!scheme.Contains("Assets"))
@@ -97,6 +97,8 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 {
     ZoneScopedN("EditorAssetSubsystem::ScanWorkspace");
 
+    const VFS& vfs_instance = VFS::Get();
+
     if (!root_path.Exists() || !root_path.IsDirectory())
     {
         ConsoleLog(ELogLevel::Warning, "ScanWorkspace: Invalid directory: {}", root_path);
@@ -112,7 +114,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
     Array<Path> source_files;
     Array<OrphanMeta> orphan_metas;
-    HashSet<Path> found_files;
+    HashSet<VPath> found_vpaths;
 
     {
         Array<Path> stack;
@@ -165,7 +167,14 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
                 source_files.Push(entry_path);
                 if (is_hot_start)
                 {
-                    found_files.Insert(entry_path);
+                    if (Optional vpath_opt = vfs_instance.Unresolve(entry_path))
+                    {
+                        found_vpaths.Insert(std::move(vpath_opt).Value());
+                    }
+                    else
+                    {
+                        ConsoleLog(ELogLevel::Warning, "ScanWorkspace: File is outside VFS bounds: {}", entry_path);
+                    }
                 }
             }
         }
@@ -241,8 +250,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
         if (is_new || is_dirty)
         {
-            // TODO: BackgroundWorker::PushCookTask(file_path) 호출하여 백그라운드에서 DDC 굽기
-            // 이후 RegisterFromMeta로 Registry에 등록
+            // TODO: BackgroundWorker::PushCookTask(file_vpath) 호출하여 백그라운드에서 DDC 굽기
             if (is_new)
             {
                 ++new_count;
@@ -257,8 +265,15 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
             ++clean_count;
         }
 
-        // AssetRegistry에 각 Sub-asset을 등록 (없으면 무시)
-        RegisterFromMeta(file_path, meta);
+        // 물리 경로 -> VPath 변환 후 Registry에 등록
+        if (Optional file_vpath = vfs_instance.Unresolve(file_path))
+        {
+            RegisterFromMeta(*file_vpath, meta);
+        }
+        else
+        {
+            ConsoleLog(ELogLevel::Error, "ScanWorkspace: Fatal error, lost VFS tracking for: {}", file_path);
+        }
     }
 
     // === 삭제된 파일 감지 (Hot Start 전용) ===
@@ -267,20 +282,25 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
     {
         asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
 
-        Array<Path> orphaned;
-        registry.VisitAllPaths([&found_files, &orphaned](const Path& registered_path)
+        Array<VPath> orphaned;
+        registry.VisitAllPaths([&found_vpaths, &orphaned](const VPath& registered_vpath)
         {
-            if (!found_files.Contains(registered_path))
+            if (!found_vpaths.Contains(registered_vpath))
             {
-                orphaned.Push(registered_path);
+                orphaned.Push(registered_vpath);
             }
         });
 
-        for (const Path& path : orphaned)
+        for (const VPath& vpath : orphaned)
         {
-            ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", path);
-            registry.UnregisterByPath(path);
-            MetaFileManager::DeleteMeta(path);
+            ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
+            registry.UnregisterByPath(vpath);
+
+            // VPath -> 물리 경로로 변환하여 .meta 삭제
+            if (const Optional physical = vfs_instance.Resolve(vpath, false))
+            {
+                MetaFileManager::DeleteMeta(*physical);
+            }
             ++orphaned_count;
         }
     }
@@ -347,9 +367,18 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
     return content;
 }
 
-bool EditorAssetSubsystem::CookAsset(const Path& file_path)
+bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 {
     ZoneScopedN("EditorAssetSubsystem::CookAsset");
+
+    // VPath -> 물리 경로 변환 (파일 I/O에 필요)
+    const Optional physical_opt = VFS::Get().Resolve(file_vpath);
+    if (!physical_opt.HasValue())
+    {
+        ConsoleLog(ELogLevel::Error, "CookAsset: Failed to resolve VPath: {}", file_vpath);
+        return false;
+    }
+    const Path& file_path = *physical_opt;
 
     // .meta에서 ImportProfile 획득 (없으면 기본값)
     Optional meta_content_opt = MetaFileManager::Load(file_path);
@@ -446,7 +475,7 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
         }
 
         const TypeId asset_type = asset->GetTypeId();
-        asset::AssetPath asset_path = asset::AssetPath{ file_path, name };
+        asset::AssetPath asset_path = asset::AssetPath{ file_vpath, name };
 
         // 기존 ID 재사용 또는 새 GUID 발급
         asset::AssetId asset_id = registry.GetAssetId(asset_path).ValueOr(asset::AssetId{ Guid::NewGuid() });
@@ -494,7 +523,7 @@ bool EditorAssetSubsystem::CookAsset(const Path& file_path)
     return true;
 }
 
-void EditorAssetSubsystem::RegisterFromMeta(const Path& source_path, const asset::AssetMetadata& meta)
+void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta)
 {
     ZoneScopedN("EditorAssetSubsystem::RegisterFromMeta");
 
@@ -510,8 +539,7 @@ void EditorAssetSubsystem::RegisterFromMeta(const Path& source_path, const asset
     for (const asset::SubAssetMeta& sub : meta.sub_assets)
     {
         const asset::AssetId asset_id{ sub.guid };
-        // TODO: [VPath] 물리 경로 대신 VPath를 AssetPath에 사용하도록 마이그레이션
-        asset::AssetPath asset_path{ source_path, sub.name };
+        asset::AssetPath asset_path{ source_vpath, sub.name };
 
         asset::AssetMetadata sub_meta = meta;
         sub_meta.guid = sub.guid;
@@ -547,11 +575,17 @@ void EditorAssetSubsystem::SaveRegistrySnapshot()
     ZoneScopedN("EditorAssetSubsystem::SaveRegistrySnapshot");
 
     const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-    const Path snapshot_path = GetRegistrySnapshotPath();
-
-    if (registry.SaveToFile(snapshot_path))
+    const VPath snapshot_vpath = GetRegistrySnapshotVPath();
+    const Optional snapshot_path = VFS::Get().Resolve(snapshot_vpath, false);
+    if (!snapshot_path.HasValue())
     {
-        ConsoleLog(ELogLevel::Info, "Registry snapshot saved: {}", snapshot_path);
+        ConsoleLog(ELogLevel::Error, "SaveRegistrySnapshot: Failed to resolve VPath: {}", snapshot_vpath);
+        return;
+    }
+
+    if (registry.SaveToFile(*snapshot_path))
+    {
+        ConsoleLog(ELogLevel::Info, "Registry snapshot saved: {}", snapshot_vpath);
     }
 }
 
@@ -559,18 +593,18 @@ bool EditorAssetSubsystem::LoadRegistrySnapshot()
 {
     ZoneScopedN("EditorAssetSubsystem::LoadRegistrySnapshot");
 
-    const Path snapshot_path = GetRegistrySnapshotPath();
-    if (!snapshot_path.Exists())
+    const VPath snapshot_vpath = GetRegistrySnapshotVPath();
+    const Optional snapshot_path = VFS::Get().Resolve(snapshot_vpath);
+    if (!snapshot_path.HasValue())
     {
         return false;
     }
 
-    return asset_subsystem->GetRegistry().LoadFromFile(snapshot_path);
+    return asset_subsystem->GetRegistry().LoadFromFile(*snapshot_path);
 }
 
-Path EditorAssetSubsystem::GetRegistrySnapshotPath()
+VPath EditorAssetSubsystem::GetRegistrySnapshotVPath()
 {
-    // TODO: [VPath] VFS를 통해 프로젝트 빌드 디렉토리를 resolve하도록 변경
-    return "registry.bin";
+    return VPath{ "Cache://registry.bin" };
 }
 } // namespace se::editor

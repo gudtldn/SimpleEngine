@@ -5,6 +5,7 @@
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
@@ -32,7 +33,14 @@ bool AssetSubsystem::Initialize()
     registry = std::make_unique<AssetRegistry>();
 
     // Create DerivedDataCache Instance
-    ddc = std::make_unique<DerivedDataCache>("DDC");
+    const VPath ddc_vpath{ "Cache://DDC" };
+    const Optional ddc_path = VFS::Get().Resolve(ddc_vpath, false);
+    if (!ddc_path.HasValue())
+    {
+        ConsoleLog(ELogLevel::Error, "Failed to resolve DDC path: {}", ddc_vpath);
+        return false;
+    }
+    ddc = std::make_unique<DerivedDataCache>(*ddc_path);
 
     return true;
 }
@@ -113,7 +121,7 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
         ZoneText(zone_text.CStr(), zone_text.ByteLen());
     }
 
-    Path file_path = source_path.GetFilePath();
+    VPath file_vpath = source_path.GetFilePath();
     const bool has_sub_name = source_path.HasSubAsset();
 
     // Registry에서 AssetId 조회
@@ -126,7 +134,7 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
         }
 
         // Case B: sub_name 없음 -> 해당 타입의 첫 번째 Asset
-        return registry->FindFirstOfType(file_path, expected_type);
+        return registry->FindFirstOfType(file_vpath, expected_type);
     };
 
     std::shared_ptr<AssetSlot> slot = nullptr;
@@ -204,12 +212,12 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
          *  - 파일은 Import 되었는데 DDC가 날아갔을 때만 (ddc_missing_or_corrupted) Import 수행
          *  (※ 파일이 Import 되었는데 id_opt가 없는 경우는 '없는 에셋(오타 등)'을 찾은 것이므로 건너뜀)
          */
-        if (!registry->IsFileImported(file_path) || ddc_missing_or_corrupted)
+        if (!registry->IsFileImported(file_vpath) || ddc_missing_or_corrupted)
         {
             std::unique_lock lock(loading_mutex);
 
             // 다른 스레드에서 이미 이 파일을 Import 중이라면 대기
-            import_cv.wait(lock, [&] { return !files_currently_importing.Contains(file_path); });
+            import_cv.wait(lock, [&] { return !files_currently_importing.Contains(file_vpath); });
 
             // double-check
             if (slot && slot->GetState() == ELoadingState::Loaded)
@@ -220,15 +228,15 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
             // 아직 Import 안 됨 -> 현재 스레드에서 Import 권한을 획득함
             if (ddc_miss_handler)
             {
-                files_currently_importing.Insert(file_path);
+                files_currently_importing.Insert(file_vpath);
                 lock.unlock(); // 무거운 Import 도중 락 해제
 
-                ConsoleLog(ELogLevel::Info, "Triggering DDC Miss Handler for: {}", file_path.ToString());
-                const bool import_success = ddc_miss_handler(*this, file_path);
+                ConsoleLog(ELogLevel::Info, "Triggering DDC Miss Handler for: {}", file_vpath.ToString());
+                const bool import_success = ddc_miss_handler(*this, file_vpath);
 
                 // Import 완료 (성공/실패 무관)
                 lock.lock();
-                files_currently_importing.Remove(file_path);
+                files_currently_importing.Remove(file_vpath);
                 import_cv.notify_all(); // 대기 중이던 다른 스레드들을 깨움
 
                 if (import_success)
@@ -264,7 +272,7 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "No asset of type '{}' found in file: {}", expected_type.GetName(), file_path);
+        ConsoleLog(ELogLevel::Error, "No asset of type '{}' found in file: {}", expected_type.GetName(), file_vpath);
     }
     return nullptr;
 }

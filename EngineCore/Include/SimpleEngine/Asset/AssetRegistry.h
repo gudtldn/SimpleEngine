@@ -7,6 +7,7 @@
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -88,13 +89,13 @@ public:
     [[nodiscard]] Optional<TypeId> GetAssetType(const AssetId& asset_id) const;
 
     /** 파일 내에서 특정 타입의 첫 번째 Asset ID를 찾습니다. */
-    [[nodiscard]] Optional<AssetId> FindFirstOfType(const Path& file_path, const TypeId& type) const;
+    [[nodiscard]] Optional<AssetId> FindFirstOfType(const VPath& file_path, const TypeId& type) const;
 
     /** 파일에 등록된 모든 sub-asset의 AssetId 목록을 반환합니다. */
-    [[nodiscard]] Array<AssetId> GetAssetsInFile(const Path& file_path) const;
+    [[nodiscard]] Array<AssetId> GetAssetsInFile(const VPath& file_path) const;
 
-    /** Path에 있는 파일이 Import되었는지 확인합니다. */
-    [[nodiscard]] bool IsFileImported(const Path& file_path) const;
+    /** VPath에 있는 파일이 Import되었는지 확인합니다. */
+    [[nodiscard]] bool IsFileImported(const VPath& file_path) const;
 
     /** 현재 등록된 Asset의 총 개수를 반환합니다. */
     [[nodiscard]] uint32 GetAssetCount() const;
@@ -103,13 +104,13 @@ public:
      * Registry에 등록된 모든 소스 파일 경로를 순회합니다.
      * @param visitor 각 소스 파일 경로에 대해 호출되는 콜백
      */
-    void VisitAllPaths(const Function<void(const Path&)>& visitor) const;
+    void VisitAllPaths(const Function<void(const VPath&)>& visitor) const;
 
     /**
      * 소스 파일 경로에 연결된 모든 Sub-asset을 일괄 제거합니다.
-     * @param source_path 제거할 소스 파일 경로
+     * @param source_path 제거할 소스 파일 경로 (VPath)
      */
-    void UnregisterByPath(const Path& source_path);
+    void UnregisterByPath(const VPath& source_path);
 
 public:
     /**
@@ -135,8 +136,8 @@ private:
     // AssetPath를 통해 Asset의 AssetId를 조회하기 위한 역방향 인덱스
     HashMap<AssetPath, AssetId> path_to_id;
 
-    // 소스 파일별 sub-asset의 AssetId 목록
-    HashMap<Path, Array<AssetId>> file_to_assets;
+    // 소스 파일(VPath)별 sub-asset의 AssetId 목록
+    HashMap<VPath, Array<AssetId>> file_to_assets;
 };
 
 template <typename Fn>

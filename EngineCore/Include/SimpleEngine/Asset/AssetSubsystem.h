@@ -5,6 +5,7 @@
 #include "SimpleEngine/Asset/AssetSlot.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -20,7 +21,7 @@ class DerivedDataCache;
 class AssetSubsystem;
 
 // DDC Miss Handler
-using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const Path& file_path)>;
+using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& file_path)>;
 
 /**
  * Asset 로딩, 캐싱, DDC 통합을 관리하는 Core 서브시스템
@@ -101,7 +102,7 @@ private:
 
     TracyLockable(std::mutex, loading_mutex);
     std::condition_variable_any import_cv;
-    HashSet<Path> files_currently_importing;
+    HashSet<VPath> files_currently_importing;
 };
 
 template <typename T>

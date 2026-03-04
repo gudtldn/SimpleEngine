@@ -26,7 +26,7 @@ void AssetRegistry::RegisterAsset(
     // 동일 ID로 재등록 시 이전 경로 인덱스를 정리 (Asset 이동/재스캔 시 stale 인덱스 방지)
     if (const Optional old_record = records.Find(asset_id))
     {
-        const Path old_file = old_record->logical_path.GetFilePath();
+        const VPath old_file = old_record->logical_path.GetFilePath();
         path_to_id.Remove(old_record->logical_path);
 
         if (const Optional old_entries = file_to_assets.Find(old_file))
@@ -43,7 +43,6 @@ void AssetRegistry::RegisterAsset(
         }
     }
 
-    Path file_path = asset_path.GetFilePath();
     records.Insert(asset_id, {
         .id = asset_id,
         .type = asset_type,
@@ -51,6 +50,7 @@ void AssetRegistry::RegisterAsset(
         .metadata = std::move(meta),
     });
 
+    VPath file_path = asset_path.GetFilePath();
     path_to_id.Insert(std::move(asset_path), asset_id);
     file_to_assets.Emplace(std::move(file_path)).Push(asset_id);
 }
@@ -62,7 +62,7 @@ void AssetRegistry::UnregisterAsset(const AssetId& asset_id)
     // records에서 Asset을 찾은 뒤 연쇄적으로 제거
     if (const Optional record_opt = records.Find(asset_id))
     {
-        const Path file_path = record_opt->logical_path.GetFilePath();
+        const VPath file_path = record_opt->logical_path.GetFilePath();
 
         // AssetPath 인덱스 제거
         path_to_id.Remove(record_opt->logical_path);
@@ -109,7 +109,7 @@ Optional<TypeId> AssetRegistry::GetAssetType(const AssetId& asset_id) const
     });
 }
 
-Optional<AssetId> AssetRegistry::FindFirstOfType(const Path& file_path, const TypeId& type) const
+Optional<AssetId> AssetRegistry::FindFirstOfType(const VPath& file_path, const TypeId& type) const
 {
     std::shared_lock lock(registry_mutex);
 
@@ -129,13 +129,13 @@ Optional<AssetId> AssetRegistry::FindFirstOfType(const Path& file_path, const Ty
     return NullOpt;
 }
 
-Array<AssetId> AssetRegistry::GetAssetsInFile(const Path& file_path) const
+Array<AssetId> AssetRegistry::GetAssetsInFile(const VPath& file_path) const
 {
     std::shared_lock lock(registry_mutex);
     return file_to_assets.Find(file_path).Copy().ValueOrDefault();
 }
 
-bool AssetRegistry::IsFileImported(const Path& file_path) const
+bool AssetRegistry::IsFileImported(const VPath& file_path) const
 {
     std::shared_lock lock(registry_mutex);
     return file_to_assets.Contains(file_path);
@@ -147,16 +147,16 @@ uint32 AssetRegistry::GetAssetCount() const
     return static_cast<uint32>(records.Len());
 }
 
-void AssetRegistry::VisitAllPaths(const Function<void(const Path&)>& visitor) const
+void AssetRegistry::VisitAllPaths(const Function<void(const VPath&)>& visitor) const
 {
     std::shared_lock lock(registry_mutex);
-    for (const Path& path : file_to_assets | std::views::keys)
+    for (const VPath& path : file_to_assets | std::views::keys)
     {
         visitor(path);
     }
 }
 
-void AssetRegistry::UnregisterByPath(const Path& source_path)
+void AssetRegistry::UnregisterByPath(const VPath& source_path)
 {
     std::unique_lock lock(registry_mutex);
 
@@ -187,7 +187,7 @@ static constexpr uint32 REGISTRY_MAGIC =
     | (static_cast<uint32>('E') << 8)
     | (static_cast<uint32>('A') << 16)
     | (static_cast<uint32>('R') << 24);
-static constexpr uint32 REGISTRY_VERSION = 1;
+static constexpr uint32 REGISTRY_VERSION = 2;
 
 bool AssetRegistry::SaveToFile(const Path& file_path) const
 {
@@ -260,7 +260,7 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
     // 보조 인덱스 재구축
     for (const auto& [id, record] : records)
     {
-        const Path source_file = record.logical_path.GetFilePath();
+        const VPath source_file = record.logical_path.GetFilePath();
 
         path_to_id.Insert(record.logical_path, id);
         file_to_assets.Emplace(source_file).Push(id);

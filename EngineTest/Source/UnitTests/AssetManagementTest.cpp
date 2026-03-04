@@ -8,6 +8,7 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 
 using namespace se;
 using namespace se::asset;
@@ -76,7 +77,7 @@ TEST_F(AssetPathTest, Construction_WithSubAsset)
 
 TEST_F(AssetPathTest, Construction_Separate)
 {
-    AssetPath path(Path("models/weapon.obj"), "Blade");
+    AssetPath path(VPath("models/weapon.obj"), "Blade");
 
     EXPECT_EQ(path.GetFilePath().ToString(), "models/weapon.obj");
     EXPECT_EQ(path.GetSubAssetName(), "Blade");
@@ -509,7 +510,7 @@ TEST_F(AssetRegistryTest, GetAssetPath_NonExistent)
 
 TEST_F(AssetRegistryTest, MultipleAssetsInSameFile)
 {
-    Path file_path("models/character.fbx");
+    VPath file_path("models/character.fbx");
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
     TypeId mesh_type = TypeId::Get<MockMesh>();
@@ -530,7 +531,7 @@ TEST_F(AssetRegistryTest, MultipleAssetsInSameFile)
 
 TEST_F(AssetRegistryTest, IsFileImported_AutoTracking)
 {
-    Path file_path("textures/test.png");
+    VPath file_path("textures/test.png");
     AssetPath asset_path{ file_path, {} };
 
     EXPECT_FALSE(registry.IsFileImported(file_path));
@@ -543,7 +544,7 @@ TEST_F(AssetRegistryTest, IsFileImported_AutoTracking)
 
 TEST_F(AssetRegistryTest, FindFirstOfType)
 {
-    Path file_path("models/multi.fbx");
+    VPath file_path("models/multi.fbx");
     AssetId mesh_id = GenerateAssetId();
     AssetId texture_id = GenerateAssetId();
 
@@ -561,7 +562,7 @@ TEST_F(AssetRegistryTest, FindFirstOfType)
 
 TEST_F(AssetRegistryTest, GetAssetsInFile_Empty)
 {
-    Path file_path("empty/file.fbx");
+    VPath file_path("empty/file.fbx");
 
     auto assets = registry.GetAssetsInFile(file_path);
     EXPECT_TRUE(assets.IsEmpty());
@@ -638,7 +639,7 @@ TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 
 TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
 {
-    Path file_path("models/character.fbx");
+    VPath file_path("models/character.fbx");
 
     AssetId main_mesh_id = GenerateAssetId();
     AssetId weapon_mesh_id = GenerateAssetId();
