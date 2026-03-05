@@ -1,6 +1,7 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/World.h"
@@ -112,8 +113,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_GPUGraphicsPipeline* pipeline;
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
-        static const Path VSPath = VPath("CoreShader://Default.vert.hlsl").ToPath();
-        static const Path FSPath = VPath("CoreShader://Default.frag.hlsl").ToPath();
+        static const Path VSPath = VFS::ToPath(VPath("CoreShader://Default.vert.hlsl"));
+        static const Path FSPath = VFS::ToPath(VPath("CoreShader://Default.frag.hlsl"));
 
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description

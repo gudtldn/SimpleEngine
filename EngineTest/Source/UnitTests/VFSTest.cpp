@@ -89,7 +89,7 @@ protected:
 TEST_F(VFSTest, ResolveFailsIfFileDoesNotExist)
 {
     VPath virtual_path("Assets://textures/non_existent.png");
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
     EXPECT_FALSE(resolved_path.HasValue());
 }
 
@@ -98,7 +98,7 @@ TEST_F(VFSTest, ResolveSucceedsIfFileExists)
     assets_dir.CreateDummyFile("textures/player.png");
 
     VPath virtual_path("Assets://textures/player.png");
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
 
     ASSERT_TRUE(resolved_path.HasValue());
 
@@ -109,14 +109,14 @@ TEST_F(VFSTest, ResolveSucceedsIfFileExists)
 TEST_F(VFSTest, ResolveFailsForUnmountedScheme)
 {
     VPath virtual_path("InvalidScheme://some/path.txt");
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
     EXPECT_FALSE(resolved_path.HasValue());
 }
 
 TEST_F(VFSTest, ResolveFailsForPathWithNoScheme)
 {
     VPath virtual_path("some/relative/path.txt");
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
     EXPECT_FALSE(resolved_path.HasValue());
 }
 
@@ -125,7 +125,7 @@ TEST_F(VFSTest, ResolveFailsForPathWithNoScheme)
 TEST_F(VFSTest, UnresolveSucceedsForPathWithinMountPoint)
 {
     Path physical_path = assets_dir.temp_path / "scripts/main.lua";
-    Optional<VPath> virtual_path = physical_path.ToVirtual();
+    Optional<VPath> virtual_path = VFS::Unresolve(physical_path);
 
     ASSERT_TRUE(virtual_path.HasValue());
     EXPECT_EQ(virtual_path.Value().ToString(), "Assets://scripts/main.lua");
@@ -134,7 +134,7 @@ TEST_F(VFSTest, UnresolveSucceedsForPathWithinMountPoint)
 TEST_F(VFSTest, UnresolveFailsForPathOutsideMountPoint)
 {
     Path physical_path = std::filesystem::temp_directory_path() / "unrelated_file.txt";
-    Optional<VPath> virtual_path = physical_path.ToVirtual();
+    Optional<VPath> virtual_path = VFS::Unresolve(physical_path);
     EXPECT_FALSE(virtual_path.HasValue());
 }
 
@@ -164,7 +164,7 @@ TEST_F(VFSPriorityTest, ResolveUsesHigherPriorityPathIfExists)
     mod_override_dir.CreateDummyFile("config/settings.ini");
     base_game_dir.CreateDummyFile("config/settings.ini");
 
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
 
     ASSERT_TRUE(resolved_path.HasValue());
     Path expected_path = std::filesystem::absolute(mod_override_dir.temp_path / "config/settings.ini");
@@ -175,7 +175,7 @@ TEST_F(VFSPriorityTest, ResolveFallsBackToLowerPriorityPath)
 {
     base_game_dir.CreateDummyFile("config/settings.ini");
 
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
 
     ASSERT_TRUE(resolved_path.HasValue());
     Path expected_path = std::filesystem::absolute(base_game_dir.temp_path / "config/settings.ini");
@@ -184,7 +184,7 @@ TEST_F(VFSPriorityTest, ResolveFallsBackToLowerPriorityPath)
 
 TEST_F(VFSPriorityTest, ResolveFailsIfFileExistsInNeither)
 {
-    Optional<Path> resolved_path = virtual_path.Resolve();
+    Optional<Path> resolved_path = VFS::Resolve(virtual_path);
     EXPECT_FALSE(resolved_path.HasValue());
 }
 
@@ -203,7 +203,7 @@ TEST_F(VFSUnresolvePriorityTest, UnresolvePrefersLongestPathMatch)
     guard.Mount("Specific", common_dir.temp_path / "specific", 0);
 
     Path physical_path = common_dir.temp_path / "specific" / "file.txt";
-    Optional<VPath> virtual_path = physical_path.ToVirtual();
+    Optional<VPath> virtual_path = VFS::Unresolve(physical_path);
 
     ASSERT_TRUE(virtual_path.HasValue());
     // 더 긴 경로인 "Specific"을 선택해야 함
@@ -216,7 +216,7 @@ TEST_F(VFSUnresolvePriorityTest, UnresolvePrefersHigherPriorityForSameLengthPath
     guard.Mount("Mod", common_dir.temp_path, 10);
 
     Path physical_path = common_dir.temp_path / "file.txt";
-    Optional<VPath> virtual_path = physical_path.ToVirtual();
+    Optional<VPath> virtual_path = VFS::Unresolve(physical_path);
 
     ASSERT_TRUE(virtual_path.HasValue());
     // 경로 길이가 같으므로 우선순위가 높은 "Mod"를 선택해야 함

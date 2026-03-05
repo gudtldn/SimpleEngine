@@ -70,7 +70,7 @@ void AssetsBrowserPanel::Draw()
         // GridView
         ImGui::TableNextColumn();
 
-        const Optional<String> selected_path = VFS::Get().Unresolve(GetSelectedDirPath())
+        const Optional<String> selected_path = VFS::Unresolve(GetSelectedDirPath())
             .Map([](const VPath& vpath)
             {
                 return vpath.ToString();
@@ -452,7 +452,7 @@ void AssetsBrowserPanel::DrawImportSettingsModal()
         {
             if (EditorAssetSubsystem* asset_sub = GetSubsystem<EditorAssetSubsystem>())
             {
-                if (const Optional vpath = VFS::Get().Unresolve(modal_asset_path))
+                if (const Optional vpath = VFS::Unresolve(modal_asset_path))
                 {
                     asset_sub->CookAsset(*vpath);
                 }

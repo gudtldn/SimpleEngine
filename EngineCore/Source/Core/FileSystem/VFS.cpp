@@ -1,11 +1,10 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 #include <algorithm>
 #include <functional>
 #include <shared_mutex>
-
-#include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 
 namespace se
@@ -14,6 +13,26 @@ VFS& VFS::Get()
 {
     static VFS instance;
     return instance;
+}
+
+Optional<Path> VFS::Resolve(const VPath& vpath)
+{
+    return Get().ResolveImpl(vpath, true);
+}
+
+Path VFS::ToPath(const VPath& vpath)
+{
+    return Get().ResolveImpl(vpath, false).ValueOrDefault();
+}
+
+Optional<VPath> VFS::Unresolve(const Path& path)
+{
+    return Get().UnresolveImpl(path);
+}
+
+bool VFS::Exists(const VPath& vpath)
+{
+    return Get().ResolveImpl(vpath, true).HasValue();
 }
 
 void VFS::Mount(StringView scheme, const Path& physical_path, int32 priority)
@@ -54,7 +73,30 @@ void VFS::Unmount(StringView scheme)
     ConsoleLog(ELogLevel::Info, "VFS: Unmounted '{}://'", scheme);
 }
 
-Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) const
+void VFS::EnsureDirectories(ArrayView<const StringView> schemes)
+{
+    std::shared_lock lock(mutex);
+
+    for (const StringView scheme : schemes)
+    {
+        const Optional point_opt = mount_points.Find(scheme);
+        if (!point_opt.HasValue())
+        {
+            continue;
+        }
+
+        for (const MountPoint& point : *point_opt)
+        {
+            if (!point.physical_path.Exists())
+            {
+                FileSystem::CreateDirectories(point.physical_path);
+                ConsoleLog(ELogLevel::Info, "VFS: Created directory for '{}://': '{}'", scheme, point.physical_path);
+            }
+        }
+    }
+}
+
+Optional<Path> VFS::ResolveImpl(const VPath& virtual_path, bool check_existence) const
 {
     if (!virtual_path.IsValid() || !virtual_path.HasScheme())
     {
@@ -102,30 +144,7 @@ Optional<Path> VFS::Resolve(const VPath& virtual_path, bool check_existence) con
     return NullOpt;
 }
 
-void VFS::EnsureDirectories(ArrayView<const StringView> schemes)
-{
-    std::shared_lock lock(mutex);
-
-    for (const StringView scheme : schemes)
-    {
-        const Optional point_opt = mount_points.Find(scheme);
-        if (!point_opt.HasValue())
-        {
-            continue;
-        }
-
-        for (const MountPoint& point : *point_opt)
-        {
-            if (!point.physical_path.Exists())
-            {
-                FileSystem::CreateDirectories(point.physical_path);
-                ConsoleLog(ELogLevel::Info, "VFS: Created directory for '{}://': '{}'", scheme, point.physical_path);
-            }
-        }
-    }
-}
-
-Optional<VPath> VFS::Unresolve(const Path& physical_path) const
+Optional<VPath> VFS::UnresolveImpl(const Path& physical_path) const
 {
     std::shared_lock lock(mutex);
 
@@ -178,4 +197,4 @@ Optional<VPath> VFS::Unresolve(const Path& physical_path) const
 
     return NullOpt;
 }
-}  // namespace se
+} // namespace se

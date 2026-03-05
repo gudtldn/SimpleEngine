@@ -6,6 +6,7 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
@@ -210,7 +211,7 @@ TEST_F(ConfigFileTest, LoadNonExistentFileFails)
 
 TEST_F(ConfigFileTest, LoadInvalidTomlFails)
 {
-    const auto physical_path = invalid_toml_path.ToPath();
+    const auto physical_path = VFS::ToPath(invalid_toml_path);
     FileSystem::WriteString(physical_path, "this = is not valid toml' syntax");
 
     auto result = ConfigFile::Load(invalid_toml_path);
@@ -508,7 +509,7 @@ TEST_F(ConfigFileTest, SaveAndReloadPreservesValues)
 
     new_config.SetSection(window, "window");
 
-    const auto physical_path = save_test_path.ToPath();
+    const auto physical_path = VFS::ToPath(save_test_path);
     struct FileDeleter
     {
         Path path;
@@ -547,7 +548,7 @@ TEST_F(ConfigFileTest, MultiSectionSaveAndReload)
     new_config.SetSection(gfx, "graphics");
     new_config.SetSection(logging, "logging");
 
-    const auto physical_path = save_test_path.ToPath();
+    const auto physical_path = VFS::ToPath(save_test_path);
     struct FileDeleter
     {
         Path path;
@@ -591,7 +592,7 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
     new_config.SetSection(window, "window");
 
     // 파일 라운드트립
-    const auto physical_path = save_test_path.ToPath();
+    const auto physical_path = VFS::ToPath(save_test_path);
     struct FileDeleter
     {
         Path path;

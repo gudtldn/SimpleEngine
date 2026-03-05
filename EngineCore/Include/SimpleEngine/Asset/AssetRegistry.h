@@ -7,6 +7,7 @@
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
 #include "tracy/Tracy.hpp"

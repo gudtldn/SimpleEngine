@@ -43,10 +43,34 @@ public:
     VFS(VFS&&) = delete;
     VFS& operator=(VFS&&) = delete;
 
-public:
     /** 싱글톤 인스턴스를 반환합니다. */
     [[nodiscard]] static VFS& Get();
 
+public:
+    /**
+     * VPath를 물리적 경로로 해석합니다. (존재 여부 확인)
+     * 파일이 실제로 존재하는 마운트 포인트에서 경로를 반환합니다.
+     * @return 물리적 경로. 파일이 없거나 스킴 미등록 시 NullOpt
+     */
+    [[nodiscard]] static Optional<Path> Resolve(const VPath& vpath);
+
+    /**
+     * VPath를 물리적 경로로 변환합니다. (존재 여부 미확인)
+     * 쓰기 대상 경로 획득 등 파일이 아직 없는 경우에 사용합니다.
+     * @return 물리적 경로. 스킴 미등록 시 빈 Path
+     */
+    [[nodiscard]] static Path ToPath(const VPath& vpath);
+
+    /**
+     * 물리적 경로를 가상 경로로 역해석합니다.
+     * @return 가상 경로. 마운트된 경로 범위 밖이면 NullOpt
+     */
+    [[nodiscard]] static Optional<VPath> Unresolve(const Path& path);
+
+    /** VPath가 가리키는 파일/폴더가 존재하는지 확인합니다. */
+    [[nodiscard]] static bool Exists(const VPath& vpath);
+
+public:
     /**
      * 가상 경로 스킴(scheme)을 물리적 경로에 마운트합니다.
      *
@@ -63,24 +87,6 @@ public:
     void Unmount(StringView scheme);
 
     /**
-     * VPath를 물리적 경로로 해석합니다.
-     *
-     * @param virtual_path 해석할 가상 경로
-     * @param check_existence true이면 파일이 존재할 때만 반환, false이면 최우선 경로 반환
-     * @return 물리적 경로. 해석 실패 시 NullOpt
-     */
-    [[nodiscard]] Optional<Path> Resolve(const VPath& virtual_path, bool check_existence = true) const;
-
-    /**
-     * 물리적 경로를 가상 경로로 역해석합니다.
-     *
-     * @param physical_path 역해석할 물리적 경로
-     * @return 가상 경로. 해석 실패 시 NullOpt
-     */
-    [[nodiscard]] Optional<VPath> Unresolve(const Path& physical_path) const;
-
-public:
-    /**
      * 지정된 스킴들의 마운트 포인트 물리 디렉토리가 존재하지 않으면 생성합니다.
      * Cache, Logs 등 쓰기 대상 스킴에 사용합니다.
      * @param schemes 디렉토리를 보장할 스킴 목록
@@ -94,6 +100,10 @@ public:
     template <typename Fn>
         requires std::invocable<Fn, StringView, const Path&, int32>
     void VisitMounts(Fn&& visitor) const;
+
+private:
+    [[nodiscard]] Optional<Path> ResolveImpl(const VPath& vpath, bool check_existence) const;
+    [[nodiscard]] Optional<VPath> UnresolveImpl(const Path& path) const;
 
 private:
     struct MountPoint
@@ -124,4 +134,4 @@ void VFS::VisitMounts(Fn&& visitor) const
         }
     }
 }
-}  // namespace se
+} // namespace se

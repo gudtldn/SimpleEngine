@@ -97,8 +97,6 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 {
     ZoneScopedN("EditorAssetSubsystem::ScanWorkspace");
 
-    const VFS& vfs_instance = VFS::Get();
-
     if (!root_path.Exists() || !root_path.IsDirectory())
     {
         ConsoleLog(ELogLevel::Warning, "ScanWorkspace: Invalid directory: {}", root_path);
@@ -167,7 +165,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
                 source_files.Push(entry_path);
                 if (is_hot_start)
                 {
-                    if (Optional vpath_opt = vfs_instance.Unresolve(entry_path))
+                    if (Optional vpath_opt = VFS::Unresolve(entry_path))
                     {
                         found_vpaths.Insert(std::move(vpath_opt).Value());
                     }
@@ -266,7 +264,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         }
 
         // 물리 경로 -> VPath 변환 후 Registry에 등록
-        if (Optional file_vpath = vfs_instance.Unresolve(file_path))
+        if (Optional file_vpath = VFS::Unresolve(file_path))
         {
             RegisterFromMeta(*file_vpath, meta);
         }
@@ -297,9 +295,9 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
             registry.UnregisterByPath(vpath);
 
             // VPath -> 물리 경로로 변환하여 .meta 삭제
-            if (const Optional physical = vfs_instance.Resolve(vpath, false))
+            if (const Path physical = VFS::ToPath(vpath); !physical.IsEmpty())
             {
-                MetaFileManager::DeleteMeta(*physical);
+                MetaFileManager::DeleteMeta(physical);
             }
             ++orphaned_count;
         }
@@ -372,7 +370,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     ZoneScopedN("EditorAssetSubsystem::CookAsset");
 
     // VPath -> 물리 경로 변환 (파일 I/O에 필요)
-    const Optional physical_opt = VFS::Get().Resolve(file_vpath);
+    const Optional physical_opt = VFS::Resolve(file_vpath);
     if (!physical_opt.HasValue())
     {
         ConsoleLog(ELogLevel::Error, "CookAsset: Failed to resolve VPath: {}", file_vpath);
@@ -576,14 +574,14 @@ void EditorAssetSubsystem::SaveRegistrySnapshot()
 
     const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
     const VPath snapshot_vpath = GetRegistrySnapshotVPath();
-    const Optional snapshot_path = VFS::Get().Resolve(snapshot_vpath, false);
-    if (!snapshot_path.HasValue())
+    const Path snapshot_path = VFS::ToPath(snapshot_vpath);
+    if (snapshot_path.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "SaveRegistrySnapshot: Failed to resolve VPath: {}", snapshot_vpath);
         return;
     }
 
-    if (registry.SaveToFile(*snapshot_path))
+    if (registry.SaveToFile(snapshot_path))
     {
         ConsoleLog(ELogLevel::Info, "Registry snapshot saved: {}", snapshot_vpath);
     }
@@ -594,7 +592,7 @@ bool EditorAssetSubsystem::LoadRegistrySnapshot()
     ZoneScopedN("EditorAssetSubsystem::LoadRegistrySnapshot");
 
     const VPath snapshot_vpath = GetRegistrySnapshotVPath();
-    const Optional snapshot_path = VFS::Get().Resolve(snapshot_vpath);
+    const Optional snapshot_path = VFS::Resolve(snapshot_vpath);
     if (!snapshot_path.HasValue())
     {
         return false;

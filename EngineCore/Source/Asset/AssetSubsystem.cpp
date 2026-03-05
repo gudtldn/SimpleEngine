@@ -33,14 +33,14 @@ bool AssetSubsystem::Initialize()
     registry = std::make_unique<AssetRegistry>();
 
     // Create DerivedDataCache Instance
-    const VPath ddc_vpath{ "Cache://DDC" };
-    const Optional ddc_path = VFS::Get().Resolve(ddc_vpath, false);
-    if (!ddc_path.HasValue())
+    const VPath ddc_vpath = "Cache://DDC";
+    const Path ddc_path = VFS::ToPath(ddc_vpath);
+    if (ddc_path.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "Failed to resolve DDC path: {}", ddc_vpath);
         return false;
     }
-    ddc = std::make_unique<DerivedDataCache>(*ddc_path);
+    ddc = std::make_unique<DerivedDataCache>(ddc_path);
 
     return true;
 }

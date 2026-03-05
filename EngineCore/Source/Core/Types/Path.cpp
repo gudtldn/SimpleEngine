@@ -1,7 +1,5 @@
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/StringUtils.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 #include <string>
 #include <utility>
@@ -224,11 +222,6 @@ String Path::ToString() const
 {
     const std::u8string u8_str = internal_path.generic_u8string();
     return StringUtils::ToString(u8_str);
-}
-
-Optional<VPath> Path::ToVirtual() const
-{
-    return VFS::Get().Unresolve(*this);
 }
 
 void Path::Swap(Path& other) noexcept

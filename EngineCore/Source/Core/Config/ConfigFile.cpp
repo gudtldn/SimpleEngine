@@ -4,6 +4,7 @@
 #include <ostream>
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Utility/Common.h"
 
 
@@ -13,7 +14,7 @@ HashMap<String, toml::table> ConfigFile::table_cache;
 
 Expected<ConfigFile, String> ConfigFile::Load(const VPath& config_file_path)
 {
-    const Optional physical_path_opt = config_file_path.Resolve();
+    const Optional physical_path_opt = VFS::Resolve(config_file_path);
     if (!physical_path_opt.HasValue())
     {
         return Unexpected{ String::Format("Failed to resolve config file path: {}", config_file_path.ToString()) };
@@ -45,7 +46,7 @@ Expected<ConfigFile, String> ConfigFile::Load(const VPath& config_file_path)
 
 bool ConfigFile::Save(const VPath& config_file_path) const
 {
-    const Path physical_path = config_file_path.ToPath();
+    const Path physical_path = VFS::ToPath(config_file_path);
     if (physical_path.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to resolve config file path: {}", config_file_path);
@@ -82,7 +83,7 @@ bool ConfigFile::Save(const VPath& config_file_path) const
 
 void ConfigFile::InvalidateCache(const VPath& config_file_path)
 {
-    if (const Optional resolved_opt = config_file_path.Resolve())
+    if (const Optional resolved_opt = VFS::Resolve(config_file_path))
     {
         table_cache.Remove(resolved_opt->ToString());
     }

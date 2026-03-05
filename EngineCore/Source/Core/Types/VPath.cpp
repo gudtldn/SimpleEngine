@@ -1,6 +1,4 @@
 ﻿#include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 
 
 namespace se
@@ -10,7 +8,7 @@ VPath::VPath(const char* path)
 {
 }
 
-VPath::VPath(const se::String& path)
+VPath::VPath(const String& path)
     : VPath(StringView{ path })
 {
 }
@@ -31,7 +29,7 @@ VPath VPath::operator/(StringView relative_path) const
     new_path.full_path = full_path;
 
     // 슬래시 중복 방지
-    se::String& new_path_str = new_path.full_path;
+    String& new_path_str = new_path.full_path;
     const StringView view{ new_path_str };
     if (view.Back() != '/' && relative_path.Front() != '/')
     {
@@ -155,19 +153,4 @@ void VPath::ParseAndNormalize(StringView path)
         path_offset = 0;
     }
 }
-
-Path VPath::ToPath() const
-{
-    return VFS::Get().Resolve(*this, false).ValueOrDefault();
-}
-
-Optional<Path> VPath::Resolve() const
-{
-    return VFS::Get().Resolve(*this, true);
-}
-
-bool VPath::Exists() const
-{
-    return Resolve().HasValue();
-}
-}  // namespace se
+} // namespace se

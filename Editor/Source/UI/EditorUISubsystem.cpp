@@ -19,6 +19,7 @@
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -78,7 +79,7 @@ bool EditorUISubsystem::Initialize()
     io.ConfigDpiScaleViewports = true;
 
     // 폰트 로드 (설정 파일에서 읽은 경로/크기 사용)
-    if (const Optional ttf_path_opt = VPath(ui_settings.font_path).Resolve())
+    if (const Optional ttf_path_opt = VFS::Resolve(VPath(ui_settings.font_path)))
     {
         io.Fonts->AddFontFromFileTTF(ttf_path_opt->ToString().CStr(), ui_settings.font_size, nullptr, io.Fonts->GetGlyphRangesKorean());
     }
