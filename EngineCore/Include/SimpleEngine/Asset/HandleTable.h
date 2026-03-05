@@ -83,6 +83,12 @@ public:
      */
     void EvictSlot(uint32 index);
 
+    /**
+     * strong_count가 0인 모든 Occupied 슬롯을 해제합니다. (Thread-Safe)
+     * @return 해제된 슬롯의 수
+     */
+    uint32 CollectGarbage();
+
     /** 현재 사용 중인(Occupied) 슬롯의 개수를 반환합니다. */
     [[nodiscard]] uint32 GetCount() const;
 
@@ -90,6 +96,9 @@ public:
     [[nodiscard]] uint32 GetCapacity() const;
 
 private:
+    /** 락이 이미 획득된 상태에서 슬롯을 실제로 해제하는 내부 헬퍼 함수입니다. */
+    void EvictSlotInternal(uint32 index, SlotEntry& entry);
+
     /** 에셋 포인터를 등록된 소멸자(destructor)를 사용하여 안전하게 해제하는 내부 헬퍼 함수입니다. */
     static void DestroyAssetData(SlotEntry& entry);
 

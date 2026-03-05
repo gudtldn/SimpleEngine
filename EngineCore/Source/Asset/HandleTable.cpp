@@ -1,6 +1,7 @@
 #include "SimpleEngine/Asset/HandleTable.h"
 #include "SimpleEngine/Utility/Debug.h"
 
+#include <ranges>
 #include <utility>
 
 
@@ -119,17 +120,30 @@ void HandleTable::EvictSlot(uint32 index)
     SE_ASSERT(entry.slot_state == SlotEntry::ESlotState::Occupied, "HandleTable::EvictSlot - slot is not Occupied");
     SE_ASSERT(entry.strong_count.load(std::memory_order_relaxed) == 0, "HandleTable::EvictSlot - strong_count != 0");
 
-    // 에셋 데이터 해제
-    DestroyAssetData(entry);
+    // Slot 해제
+    EvictSlotInternal(index, entry);
+}
 
-    // guid_index에서 제거
-    guid_index.Remove(entry.asset_id);
+uint32 HandleTable::CollectGarbage()
+{
+    ZoneScopedN("HandleTable::CollectGarbage");
 
-    // 슬롯을 Free 상태로 전환 + 내부적으로 세대 번호 증가
-    entry.Clear();
+    std::unique_lock write_lock(pool_mutex);
 
-    // free_list에 반환 (LIFO)
-    free_list.Push(index);
+    uint32 evict_count = 0;
+    for (const auto [idx, entry] : slots | std::views::enumerate)
+    {
+        if (
+            entry.slot_state == SlotEntry::ESlotState::Occupied
+            && entry.strong_count.load(std::memory_order_relaxed) == 0
+        )
+        {
+            EvictSlotInternal(idx, entry);
+            ++evict_count;
+        }
+    }
+
+    return evict_count;
 }
 
 uint32 HandleTable::GetCount() const
@@ -142,6 +156,21 @@ uint32 HandleTable::GetCapacity() const
 {
     std::shared_lock read_lock(pool_mutex);
     return static_cast<uint32>(slots.Len());
+}
+
+void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry)
+{
+    // 에셋 데이터 해제
+    DestroyAssetData(entry);
+
+    // guid_index에서 제거
+    guid_index.Remove(entry.asset_id);
+
+    // 슬롯을 Free 상태로 전환 + 내부적으로 세대 번호 증가
+    entry.Clear();
+
+    // free_list에 반환 (LIFO)
+    free_list.Push(index);
 }
 
 void HandleTable::DestroyAssetData(SlotEntry& entry)
