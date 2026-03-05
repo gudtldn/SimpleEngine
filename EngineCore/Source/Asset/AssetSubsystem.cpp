@@ -126,11 +126,6 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, cons
     return AssetPayload{ static_cast<AssetBase*>(raw), info_opt->destructor };
 }
 
-std::shared_ptr<AssetBase> AssetSubsystem::DeserializeAssetPayload_DEPRECATED(const TypeId& type_id, const Array<uint8>& payload)
-{
-    return DeserializeAssetPayload(type_id, payload).ToSharedPtr();
-}
-
 HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path)
 {
     ZoneScopedN("AssetSubsystem::LoadInternal");

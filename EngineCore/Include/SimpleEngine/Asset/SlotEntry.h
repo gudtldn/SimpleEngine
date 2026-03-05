@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/AssetPath.h"
-#include "SimpleEngine/Asset/AssetSlot.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
@@ -11,6 +10,17 @@
 
 namespace se::asset
 {
+/**
+ * Asset의 로딩 상태
+ */
+enum class ELoadingState : uint8
+{
+    Unloaded, // 데이터 없음 (초기 상태)
+    Loading,  // 로딩 중 (Placeholder)
+    Loaded,   // 사용 가능
+    Failed,   // 로딩 실패
+};
+
 /**
  * 에셋 수명 범위 (Eviction 우선순위 결정)
  */

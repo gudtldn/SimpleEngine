@@ -25,25 +25,5 @@ struct AssetPayload
 
     /** 명시적 bool 변환 연산자입니다. IsValid()와 동일합니다. */
     [[nodiscard]] explicit operator bool() const { return IsValid(); }
-
-    /**
-     * 소유권을 shared_ptr로 이전합니다. (Adapter 용도)
-     * 호출 후 이 Payload는 무효화됩니다.
-     *
-     * @deprecated M4에서 삭제 예정. AssetHandle이 HandleTable 기반으로 교체되어 더 이상 필요하지 않습니다.
-     */
-    [[deprecated("M4: Adapter no longer needed")]]
-    [[nodiscard]] std::shared_ptr<AssetBase> ToSharedPtr() &&
-    {
-        if (!ptr)
-        {
-            return nullptr;
-        }
-
-        auto dtor = destructor;
-        AssetBase* p = ptr;
-        ptr = nullptr;
-        return { p, [dtor](AssetBase* raw) { dtor(raw); } };
-    }
 };
 } // namespace se::asset

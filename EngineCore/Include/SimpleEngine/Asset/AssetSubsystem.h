@@ -83,10 +83,6 @@ public:
      */
     [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
 
-    /** DDC payload에서 Asset을 역직렬화합니다. (shared_ptr 어댑터) */
-    [[deprecated("M4: Use DeserializeAssetPayload instead")]]
-    [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload_DEPRECATED(const TypeId& type_id, const Array<uint8>& payload);
-
 public:
     [[nodiscard]] FORCE_INLINE AssetPool& GetCache() const { return *cache; }
     [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
