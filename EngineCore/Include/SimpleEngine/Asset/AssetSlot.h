@@ -27,8 +27,9 @@ enum class ELoadingState : uint8
 
 /**
  * Asset의 상태와 데이터를 관리하는 제어 블록 클래스
+ * @deprecated M4에서 삭제 예정. SlotEntry로 완전 대체되었습니다.
  */
-class SE_CORE_API AssetSlot
+class [[deprecated("M4: Replaced by SlotEntry")]] SE_CORE_API AssetSlot
 {
 public:
     explicit AssetSlot(const AssetId& id, const TypeId& type_id, AssetPath path);

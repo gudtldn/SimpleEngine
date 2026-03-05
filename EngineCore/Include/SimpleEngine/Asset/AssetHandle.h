@@ -1,17 +1,20 @@
 ﻿#pragma once
-#include <concepts>
-#include <memory>
-#include <utility>
 
-#include "SimpleEngine/Asset/AssetSlot.h"
+#include "SimpleEngine/Asset/HandleTable.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
+
+#include <concepts>
+#include <utility>
 
 
 namespace se::asset
 {
 /**
- * AssetSlot을 가리키는 경량 핸들 클래스
- * 엔진의 생명주기 관리(Frame-based GC)를 통해 Raw Pointer 접근의 안전성을 보장받습니다.
+ * SlotEntry를 가리키는 Generational Handle 클래스
+ *
+ * 내부적으로 { index, generation, table* }을 관리하며,
+ * strong_count 기반의 참조 카운팅을 통해 에셋의 수명을 제어합니다.
+ *
  * @tparam T 핸들이 참조하는 Asset의 타입 (ex: Texture, Material, Mesh)
  */
 template <typename T>
@@ -20,13 +23,71 @@ class AssetHandle
 {
 public:
     using AssetType = T;
+    static constexpr uint32 INVALID_INDEX = HandleData::INVALID_INDEX;
 
 public:
     AssetHandle() = default;
 
-    explicit AssetHandle(std::shared_ptr<AssetSlot> in_slot)
-        : slot(std::move(in_slot))
+    AssetHandle(HandleData handle_data, HandleTable* in_table)
+        : index(handle_data.index)
+        , generation(handle_data.generation)
+        , table(in_table)
     {
+        if (table && index != INVALID_INDEX)
+        {
+            table->GetSlot(index).strong_count.fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+
+    ~AssetHandle()
+    {
+        Release();
+    }
+
+    AssetHandle(const AssetHandle& other)
+        : index(other.index)
+        , generation(other.generation)
+        , table(other.table)
+    {
+        if (table && index != INVALID_INDEX)
+        {
+            table->GetSlot(index).strong_count.fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+
+    AssetHandle& operator=(const AssetHandle& other)
+    {
+        if (this != &other)
+        {
+            Release();
+            index = other.index;
+            generation = other.generation;
+            table = other.table;
+            if (table && index != INVALID_INDEX)
+            {
+                table->GetSlot(index).strong_count.fetch_add(1, std::memory_order_relaxed);
+            }
+        }
+        return *this;
+    }
+
+    AssetHandle(AssetHandle&& other) noexcept
+        : index(std::exchange(other.index, INVALID_INDEX))
+        , generation(std::exchange(other.generation, 0))
+        , table(std::exchange(other.table, nullptr))
+    {
+    }
+
+    AssetHandle& operator=(AssetHandle&& other) noexcept
+    {
+        if (this != &other)
+        {
+            Release();
+            index = std::exchange(other.index, INVALID_INDEX);
+            generation = std::exchange(other.generation, 0);
+            table = std::exchange(other.table, nullptr);
+        }
+        return *this;
     }
 
 public:
@@ -36,43 +97,51 @@ public:
      */
     [[nodiscard]] T* Get() const
     {
-        SE_ASSERT(!slot || slot->GetAssetType() == TypeId::Get<AssetType>());
-        if (slot)
+        if (!table || index == INVALID_INDEX)
         {
-            AssetBase* asset_ptr = slot->GetRawAsset();
-            return static_cast<T*>(asset_ptr);
+            return nullptr;
         }
-        return nullptr;
-    }
 
-    /**
-     * 에셋의 Shared Pointer를 반환합니다.
-     * @return 유효한 에셋 Shared Pointer 또는 nullptr
-     */
-    [[nodiscard]] std::shared_ptr<T> GetShared() const
-    {
-        SE_ASSERT(!slot || slot->GetAssetType() == TypeId::Get<AssetType>());
-        if (slot)
+        const SlotEntry& entry = table->GetSlot(index);
+        if (entry.generation != generation)
         {
-            const std::shared_ptr<AssetBase> asset = slot->GetAsset();
-            return std::static_pointer_cast<T>(asset);
+            return nullptr; // stale handle
         }
-        return nullptr;
+
+        SE_ASSERT(entry.asset_type == TypeId::Get<AssetType>());
+        return static_cast<T*>(entry.asset.load(std::memory_order_acquire));
     }
 
     /** 현재 핸들이 유효한 에셋을 가리키고 있는지 확인합니다. */
     [[nodiscard]] bool IsValid() const
     {
-        return slot && slot->GetState() == ELoadingState::Loaded;
+        if (!table || index == INVALID_INDEX)
+        {
+            return false;
+        }
+
+        const SlotEntry& entry = table->GetSlot(index);
+        return entry.generation == generation
+            && entry.GetState() == ELoadingState::Loaded;
     }
 
     /**
      * 이 핸들이 가리키는 에셋의 고유 ID를 반환합니다.
-     * 핸들이 무효하거나 슬롯이 없으면 AssetId::Invalid를 반환합니다.
+     * 핸들이 무효한 경우 AssetId::Invalid를 반환합니다.
      */
     [[nodiscard]] AssetId GetAssetId() const
     {
-        return slot ? slot->GetAssetId() : AssetId::Invalid;
+        if (!table || index == INVALID_INDEX)
+        {
+            return AssetId::Invalid;
+        }
+
+        const SlotEntry& entry = table->GetSlot(index);
+        if (entry.generation != generation)
+        {
+            return AssetId::Invalid; // stale handle
+        }
+        return entry.asset_id;
     }
 
 public:
@@ -83,14 +152,37 @@ public:
 
     [[nodiscard]] T& operator*() const
     {
-        SE_ASSERT(Get());
+        SE_ASSERT(Get() != nullptr, "AssetHandle is invalid");
         return *Get();
     }
 
     [[nodiscard]] explicit operator bool() const { return IsValid(); }
-    [[nodiscard]] bool operator==(const AssetHandle& other) const = default;
+
+    [[nodiscard]] bool operator==(const AssetHandle& other) const
+    {
+        return index == other.index
+            && generation == other.generation
+            && table == other.table;
+    }
 
 private:
-    std::shared_ptr<AssetSlot> slot;
+    void Release()
+    {
+        if (table && index != INVALID_INDEX)
+        {
+            if (table->GetSlot(index).strong_count.fetch_sub(1, std::memory_order_acq_rel) == 1)
+            {
+                table->MarkForEviction(index);
+            }
+        }
+        index = INVALID_INDEX;
+        generation = 0;
+        table = nullptr;
+    }
+
+private:
+    uint32 index = INVALID_INDEX;
+    uint32 generation = 0;
+    HandleTable* table = nullptr;
 };
-}  // namespace se::asset
+} // namespace se::asset

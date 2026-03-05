@@ -28,6 +28,7 @@ struct HandleData
      */
     [[nodiscard]] FORCE_INLINE bool IsValid() const noexcept { return index != INVALID_INDEX; }
 
+    [[nodiscard]] explicit operator bool() const noexcept { return IsValid(); }
     [[nodiscard]] bool operator==(const HandleData&) const noexcept = default;
 };
 

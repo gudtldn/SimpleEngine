@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
-#include "SimpleEngine/Asset/AssetSlot.h"
+#include "SimpleEngine/Asset/AssetPayload.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -67,8 +67,8 @@ public:
         requires std::derived_from<T, AssetBase>
     [[nodiscard]] AssetHandle<T> Find(const AssetId& asset_id) const;
 
-    /** Asset을 프레임 마지막에 안전하게 해제할 수 있도록 대기 큐(Pending Queue)에 삽입합니다. */
-    void DeferRelease(std::shared_ptr<AssetBase> asset);
+    /** Asset payload를 프레임 마지막에 안전하게 해제할 수 있도록 대기 큐(Pending Queue)에 삽입합니다. */
+    void DeferRelease(AssetPayload payload);
 
     /** 프레임 끝에서 대기 큐(Pending Queue)를 정리합니다. */
     void EndFrame();
@@ -77,8 +77,15 @@ public:
     /** Asset을 DDC payload로 직렬화합니다. */
     [[nodiscard]] static Array<uint8> SerializeAssetPayload(const AssetBase& asset);
 
-    /** DDC payload에서 Asset을 역직렬화합니다. */
-    [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
+    /**
+     * DDC payload에서 Asset을 역직렬화하여 AssetPayload로 반환합니다.
+     * ptr과 destructor가 분리된 상태로 반환되므로, SlotEntry에 직접 저장할 수 있습니다.
+     */
+    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
+
+    /** DDC payload에서 Asset을 역직렬화합니다. (shared_ptr 어댑터) */
+    [[deprecated("M4: Use DeserializeAssetPayload instead")]]
+    [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload_DEPRECATED(const TypeId& type_id, const Array<uint8>& payload);
 
 public:
     [[nodiscard]] FORCE_INLINE AssetPool& GetCache() const { return *cache; }
@@ -86,19 +93,20 @@ public:
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
 private:
-    [[nodiscard]] std::shared_ptr<AssetSlot> LoadInternal(const TypeId& expected_type, const AssetPath& source_path);
-    [[nodiscard]] std::shared_ptr<AssetSlot> FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
+    [[nodiscard]] HandleData LoadInternal(const TypeId& expected_type, const AssetPath& source_path);
+    [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
+    [[nodiscard]] HandleTable& GetHandleTable() const;
 
 private:
     std::unique_ptr<AssetPool> cache;
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;
 
+    DDCMissHandler ddc_miss_handler;
+
     // Deferred Release
     TracyLockable(std::mutex, pending_mutex);
-    Array<std::shared_ptr<AssetBase>> pending_release;
-
-    DDCMissHandler ddc_miss_handler;
+    Array<AssetPayload> pending_release;
 
     TracyLockable(std::mutex, loading_mutex);
     std::condition_variable_any import_cv;
@@ -109,15 +117,21 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path)
 {
-    std::shared_ptr<AssetSlot> slot = LoadInternal(TypeId::Get<T>(), asset_path);
-    return AssetHandle<T>{ std::move(slot) };
+    if (HandleData handle_data = LoadInternal(TypeId::Get<T>(), asset_path))
+    {
+        return AssetHandle<T>{ handle_data, &GetHandleTable() };
+    }
+    return {};
 }
 
 template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
 {
-    std::shared_ptr<AssetSlot> slot = FindInternal(TypeId::Get<T>(), asset_id);
-    return AssetHandle<T>{ std::move(slot) };
+    if (HandleData handle_data = FindInternal(TypeId::Get<T>(), asset_id))
+    {
+        return AssetHandle<T>{ handle_data, &GetHandleTable() };
+    }
+    return {};
 }
 }  // namespace se::asset
