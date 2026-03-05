@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "SimpleEngine/Asset/AssetCache.h"
+#include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
@@ -220,13 +220,13 @@ TEST_F(AssetSlotTest, LockFreeRead)
 }
 
 // =============================================================================
-// AssetCache Tests
+// AssetPool Tests
 // =============================================================================
 
 class AssetCacheTest : public ::testing::Test
 {
 protected:
-    AssetCache cache;
+    AssetPool cache;
 };
 
 TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
@@ -326,7 +326,7 @@ TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
 class AssetHandleTest : public ::testing::Test
 {
 protected:
-    AssetCache cache;
+    AssetPool cache;
 
     std::shared_ptr<AssetSlot> CreateSlotWithAsset(const AssetId& id)
     {
@@ -583,7 +583,7 @@ protected:
     }
 
 protected:
-    AssetCache cache;
+    AssetPool cache;
     AssetRegistry registry;
 };
 

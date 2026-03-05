@@ -1,9 +1,9 @@
-﻿#include "SimpleEngine/Asset/AssetCache.h"
+﻿#include "SimpleEngine/Asset/AssetPool.h"
 
 
 namespace se::asset
 {
-std::shared_ptr<AssetSlot> AssetCache::Find(const AssetId& id) const
+std::shared_ptr<AssetSlot> AssetPool::Find(const AssetId& id) const
 {
     std::shared_lock read_lock(slot_mutex);
     if (const Optional slot_opt = slots.Find(id))
@@ -13,7 +13,7 @@ std::shared_ptr<AssetSlot> AssetCache::Find(const AssetId& id) const
     return nullptr;
 }
 
-std::shared_ptr<AssetSlot> AssetCache::FindOrCreate(const AssetId& id, const TypeId& type_id, const AssetPath& asset_path)
+std::shared_ptr<AssetSlot> AssetPool::FindOrCreate(const AssetId& id, const TypeId& type_id, const AssetPath& asset_path)
 {
     {
         std::shared_lock read_lock(slot_mutex);
@@ -30,13 +30,13 @@ std::shared_ptr<AssetSlot> AssetCache::FindOrCreate(const AssetId& id, const Typ
     });
 }
 
-void AssetCache::Remove(const AssetId& id)
+void AssetPool::Remove(const AssetId& id)
 {
     std::unique_lock write_lock(slot_mutex);
     slots.Remove(id);
 }
 
-uint32 AssetCache::CollectGarbage()
+uint32 AssetPool::CollectGarbage()
 {
     using SlotKey = decltype(slots)::KeyType;
     using SlotValue = decltype(slots)::ValueType;
@@ -50,7 +50,7 @@ uint32 AssetCache::CollectGarbage()
     return static_cast<uint32>(remove_count);
 }
 
-uint32 AssetCache::GetCount() const
+uint32 AssetPool::GetCount() const
 {
     std::shared_lock read_lock(slot_mutex);
     return static_cast<uint32>(slots.Len());

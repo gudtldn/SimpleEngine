@@ -1,6 +1,6 @@
 ﻿#include "SimpleEngine/Asset/AssetSubsystem.h"
 
-#include "SimpleEngine/Asset/AssetCache.h"
+#include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
@@ -26,8 +26,8 @@ bool AssetSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Asset subsystem...");
 
-    // Create AssetCache Instance
-    cache = std::make_unique<AssetCache>();
+    // Create AssetPool Instance
+    cache = std::make_unique<AssetPool>();
 
     // Create Asset Registry Instance
     registry = std::make_unique<AssetRegistry>();

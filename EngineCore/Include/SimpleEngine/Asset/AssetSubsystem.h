@@ -15,7 +15,7 @@
 namespace se::asset
 {
 // forward declaration
-class AssetCache;
+class AssetPool;
 class AssetRegistry;
 class DerivedDataCache;
 class AssetSubsystem;
@@ -81,7 +81,7 @@ public:
     [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
 
 public:
-    [[nodiscard]] FORCE_INLINE AssetCache& GetCache() const { return *cache; }
+    [[nodiscard]] FORCE_INLINE AssetPool& GetCache() const { return *cache; }
     [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
@@ -90,7 +90,7 @@ private:
     [[nodiscard]] std::shared_ptr<AssetSlot> FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
 
 private:
-    std::unique_ptr<AssetCache> cache;
+    std::unique_ptr<AssetPool> cache;
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;
 

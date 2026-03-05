@@ -505,10 +505,10 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             }
         }
 
-        // AssetCache 등록은 Callback 후 자동으로 이루어짐
+        // AssetPool 등록은 Callback 후 자동으로 이루어짐
         // [AssetSubsystem::LoadInternal 참고]
         // TODO: AssetDependency 추적 — import 결과의 의존 파일 목록을 DependencyGraph에 등록
-        // TODO: Hot-reload 시 AssetCache::FindOrCreate + ExchangeAsset으로 메모리 교체
+        // TODO: Hot-reload 시 AssetPool::FindOrCreate + ExchangeAsset으로 메모리 교체
     }
 
     // .meta 파일 갱신 (Sub-asset 정보 기록)

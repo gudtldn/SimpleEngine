@@ -14,17 +14,17 @@ namespace se::asset
  * 로드된 Asset의 Slot(MemoryBlock)을 관리하는 런타임 저장소
  * Slot의 생명주기(생성 및 제거)를 관리합니다.
  */
-class SE_CORE_API AssetCache
+class SE_CORE_API AssetPool
 {
 public:
-    AssetCache() = default;
-    ~AssetCache() = default;
+    AssetPool() = default;
+    ~AssetPool() = default;
 
     // 복사 & 이동 금지
-    AssetCache(const AssetCache&) = delete;
-    AssetCache& operator=(const AssetCache&) = delete;
-    AssetCache(AssetCache&&) = delete;
-    AssetCache& operator=(AssetCache&&) = delete;
+    AssetPool(const AssetPool&) = delete;
+    AssetPool& operator=(const AssetPool&) = delete;
+    AssetPool(AssetPool&&) = delete;
+    AssetPool& operator=(AssetPool&&) = delete;
 
 public:
     /**
