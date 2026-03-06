@@ -76,6 +76,11 @@ void AssetPool::SetMaxEvictionsPerFrame(uint32 count)
     max_evictions_per_frame = count;
 }
 
+void AssetPool::SetMaxDestructionsPerFrame(uint32 count)
+{
+    max_destructions_per_frame = count;
+}
+
 void AssetPool::DeferDestroy(AssetPayload payload, uint64 current_frame)
 {
     if (!payload.ptr)
@@ -97,32 +102,43 @@ void AssetPool::ProcessPendingDestroy(uint64 current_frame)
 {
     ZoneScopedN("AssetPool::ProcessPendingDestroy");
 
-    std::scoped_lock lock(pending_destroy_mutex);
+    Array<AssetPayload> to_destroy;
+    to_destroy.Reserve(max_destructions_per_frame);
 
-    usize write = 0;
-    uint32 total_released = 0;
-
-    for (usize read = 0; read < pending_destroy.Len(); ++read)
     {
-        auto& [ptr, destructor, release_frame] = pending_destroy[read];
+        std::scoped_lock lock(pending_destroy_mutex);
 
-        // 지정된 유예 프레임이 지났으므로 안전하게 실제 메모리 해제
-        if (release_frame <= current_frame && total_released < max_destructions_per_frame)
+        usize write = 0;
+        uint32 total_released = 0;
+
+        for (usize read = 0; read < pending_destroy.Len(); ++read)
         {
-            destructor(ptr);
-            ++total_released;
-        }
-        else
-        {
-            // 아직 수명이 남은 포인터는 배열 앞쪽의 빈자리(write)로 당겨서 보존
-            if (write != read)
+            PendingDestroy& item = pending_destroy[read];
+
+            // 지정된 유예 프레임이 지났으므로 안전하게 실제 메모리 해제
+            if (item.release_frame <= current_frame && total_released < max_destructions_per_frame)
             {
-                pending_destroy[write] = std::move(pending_destroy[read]);
+                to_destroy.Push(AssetPayload{ item.ptr, item.destructor });
+                ++total_released;
             }
-            ++write;
+            else
+            {
+                // 아직 수명이 남은 포인터는 배열 앞쪽의 빈자리(write)로 당겨서 보존
+                if (write != read)
+                {
+                    pending_destroy[write] = std::move(item);
+                }
+                ++write;
+            }
         }
+        pending_destroy.Truncate(write);
     }
-    pending_destroy.Truncate(write);
+
+    // 임계 구역 종료 후, 실제 소멸자 호출
+    for (const auto& [ptr, destructor] : to_destroy)
+    {
+        destructor(ptr);
+    }
 }
 
 uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)

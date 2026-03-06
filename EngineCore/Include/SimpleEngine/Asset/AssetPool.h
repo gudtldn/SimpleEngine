@@ -78,6 +78,9 @@ public:
     /** EvictIfOverBudget에서 프레임당 최대 해제 슬롯 수를 설정합니다. */
     void SetMaxEvictionsPerFrame(uint32 count);
 
+    /** ProcessPendingDestroy에서 프레임당 최대 해제 슬롯 수를 설정합니다. */
+    void SetMaxDestructionsPerFrame(uint32 count);
+
 public:
     /**
      * Asset payload를 지연 파괴 큐에 삽입합니다. (Frame-Epoch 보장)
