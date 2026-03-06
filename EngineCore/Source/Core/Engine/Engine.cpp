@@ -62,7 +62,7 @@ Engine::Engine()
         vfs.Mount("CoreShader", root_path / "EngineCore/Shaders");
         vfs.Mount("EditorAssets", root_path / "Editor/Assets");
         vfs.Mount("EditorShader", root_path / "Editor/Shaders");
-        vfs.Mount("Cache", root_path / "Cache");
+        vfs.Mount("Cache", root_path / "Build/Cache");
         vfs.Mount("Logs", root_path / "Logs");
 
         // 기본 EngineConfig.toml 자동 생성
