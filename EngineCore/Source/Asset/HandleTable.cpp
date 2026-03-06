@@ -217,7 +217,7 @@ uint32 HandleTable::EvictWhere(
 void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred)
 {
     // 메모리 사용량 차감
-    total_memory.fetch_sub(entry.asset_size_bytes, std::memory_order_relaxed);
+    UntrackMemoryUsage(entry.asset_size_bytes);
 
     // 에셋 데이터를 지연 파괴 목록으로 이동 (Frame-Epoch 보장)
     if (AssetBase* ptr = entry.asset.exchange(nullptr, std::memory_order_acq_rel))
