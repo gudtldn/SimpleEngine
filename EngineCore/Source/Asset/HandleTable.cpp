@@ -126,7 +126,7 @@ void HandleTable::MarkForEviction(uint32 index)
     entry.last_access_frame = current_frame.load(std::memory_order_relaxed);
 }
 
-void HandleTable::EvictSlot(uint32 index)
+void HandleTable::EvictSlot(uint32 index, Array<AssetPayload>& out_deferred)
 {
     ZoneScopedN("HandleTable::EvictSlot");
 
@@ -138,10 +138,10 @@ void HandleTable::EvictSlot(uint32 index)
     SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::EvictSlot - ref_count != 0");
 
     // Slot 해제
-    EvictSlotInternal(index, entry);
+    EvictSlotInternal(index, entry, out_deferred);
 }
 
-uint32 HandleTable::CollectGarbage()
+uint32 HandleTable::CollectGarbage(Array<AssetPayload>& out_deferred)
 {
     ZoneScopedN("HandleTable::CollectGarbage");
 
@@ -155,7 +155,7 @@ uint32 HandleTable::CollectGarbage()
             && entry.ref_count.load(std::memory_order_relaxed) == 0
         )
         {
-            EvictSlotInternal(static_cast<uint32>(idx), entry);
+            EvictSlotInternal(static_cast<uint32>(idx), entry, out_deferred);
             ++evict_count;
         }
     }
@@ -177,6 +177,7 @@ uint32 HandleTable::GetCapacity() const
 
 uint32 HandleTable::EvictWhere(
     FunctionRef<bool(uint32, const SlotEntry&)> filter,
+    Array<AssetPayload>& out_deferred,
     uint32 max_count
 )
 {
@@ -206,20 +207,27 @@ uint32 HandleTable::EvictWhere(
             continue;
         }
 
-        EvictSlotInternal(slot_index, entry);
+        EvictSlotInternal(slot_index, entry, out_deferred);
         ++count;
     }
 
     return count;
 }
 
-void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry)
+void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred)
 {
     // 메모리 사용량 차감
     total_memory.fetch_sub(entry.asset_size_bytes, std::memory_order_relaxed);
 
-    // 에셋 데이터 해제
-    DestroyAssetData(entry);
+    // 에셋 데이터를 지연 파괴 목록으로 이동 (Frame-Epoch 보장)
+    if (AssetBase* ptr = entry.asset.exchange(nullptr, std::memory_order_acq_rel))
+    {
+        SE_ASSERT(
+            entry.destructor != nullptr,
+            "HandleTable::EvictSlotInternal - Asset has no destructor! (Type: {})", entry.asset_type.GetName()
+        );
+        out_deferred.Push(AssetPayload{ ptr, entry.destructor });
+    }
 
     // guid_index에서 제거
     guid_index.Remove(entry.asset_id);
@@ -242,8 +250,7 @@ void HandleTable::DestroyAssetData(SlotEntry& entry)
     SE_ASSERT(
         entry.destructor != nullptr,
         "HandleTable::DestroyAssetData - Asset has no destructor! "
-        "Did you forget to register this asset type in the TypeRegistry? (Type: {})",
-        entry.asset_type.GetName()
+        "Did you forget to register this asset type in the TypeRegistry? (Type: {})", entry.asset_type.GetName()
     );
 
     entry.destructor(ptr);

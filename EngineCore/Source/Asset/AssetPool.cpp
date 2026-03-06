@@ -32,13 +32,28 @@ void AssetPool::Remove(const AssetId& id)
 {
     if (const Optional<HandleData> handle_data = table.Find(id))
     {
-        table.EvictSlot(handle_data->index);
+        Array<AssetPayload> deferred;
+        table.EvictSlot(handle_data->index, deferred);
+
+        const uint64 frame = table.GetCurrentFrame();
+        for (AssetPayload& payload : deferred)
+        {
+            DeferDestroy(std::move(payload), frame);
+        }
     }
 }
 
 uint32 AssetPool::CollectGarbage()
 {
-    return table.CollectGarbage();
+    Array<AssetPayload> deferred;
+    const uint32 count = table.CollectGarbage(deferred);
+
+    const uint64 frame = table.GetCurrentFrame();
+    for (AssetPayload& payload : deferred)
+    {
+        DeferDestroy(std::move(payload), frame);
+    }
+    return count;
 }
 
 uint32 AssetPool::GetCount() const
@@ -127,6 +142,7 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
         EScopeLayer::Session
     };
 
+    Array<AssetPayload> deferred;
     uint32 total_evicted = 0;
     for (EScopeLayer target_scope : eviction_order)
     {
@@ -159,9 +175,13 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
 
             // 메모리 상한에 도달하면 제거
             return table.GetTotalMemoryUsage() > memory_budget;
-        }, remaining);
+        }, deferred, remaining);
     }
 
+    for (AssetPayload& payload : deferred)
+    {
+        DeferDestroy(std::move(payload), current_frame);
+    }
     return total_evicted;
 }
 
@@ -178,9 +198,17 @@ uint32 AssetPool::UnloadScope(EScopeLayer layer)
         return 0;
     }
 
-    return table.EvictWhere([layer](uint32, const SlotEntry& entry)
+    Array<AssetPayload> deferred;
+    const uint32 count = table.EvictWhere([layer](uint32, const SlotEntry& entry)
     {
         return entry.scope == layer;
-    });
+    }, deferred);
+
+    const uint64 frame = table.GetCurrentFrame();
+    for (AssetPayload& payload : deferred)
+    {
+        DeferDestroy(std::move(payload), frame);
+    }
+    return count;
 }
 } // namespace se::asset

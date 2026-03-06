@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Asset/AssetPayload.h"
 #include "SimpleEngine/Asset/SlotEntry.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -82,17 +83,18 @@ public:
     void MarkForEviction(uint32 index);
 
     /**
-     * 슬롯을 즉시 해제합니다. (Thread-Safe)
+     * 슬롯을 해제하고, 에셋 데이터를 지연 파괴 목록에 추가합니다. (Thread-Safe)
      * @pre slots[index].ref_count == 0
      * @pre slots[index].slot_state == Occupied
      */
-    void EvictSlot(uint32 index);
+    void EvictSlot(uint32 index, Array<AssetPayload>& out_deferred);
 
     /**
      * ref_count가 0인 모든 Occupied 슬롯을 해제합니다. (Thread-Safe)
+     * @param out_deferred 조건에 부합하는 AssetPayload를 추가할 Array
      * @return 해제된 슬롯의 수
      */
-    uint32 CollectGarbage();
+    uint32 CollectGarbage(Array<AssetPayload>& out_deferred);
 
     /** 현재 사용 중인(Occupied) 슬롯의 개수를 반환합니다. */
     [[nodiscard]] uint32 GetCount() const;
@@ -103,11 +105,13 @@ public:
     /**
      * 조건에 부합하는 슬롯을 일괄 해제합니다. (Thread-Safe)
      * @param filter ref_count == 0인 Occupied 슬롯 중, true를 반환하는 슬롯만 해제합니다.
+     * @param out_deferred 조건에 부합하는 AssetPayload를 추가할 Array
      * @param max_count 최대 해제 개수
      * @return 해제된 슬롯의 수
      */
     uint32 EvictWhere(
         FunctionRef<bool(uint32, const SlotEntry&)> filter,
+        Array<AssetPayload>& out_deferred,
         uint32 max_count = std::numeric_limits<uint32>::max()
     );
 
@@ -135,9 +139,15 @@ public:
         current_frame.store(frame, std::memory_order_relaxed);
     }
 
+    /** 현재 프레임 번호를 반환합니다. */
+    [[nodiscard]] FORCE_INLINE uint64 GetCurrentFrame() const noexcept
+    {
+        return current_frame.load(std::memory_order_relaxed);
+    }
+
 private:
     /** 락이 이미 획득된 상태에서 슬롯을 실제로 해제하는 내부 헬퍼 함수입니다. */
-    void EvictSlotInternal(uint32 index, SlotEntry& entry);
+    void EvictSlotInternal(uint32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred);
 
     /** 에셋 포인터를 등록된 소멸자(destructor)를 사용하여 안전하게 해제하는 내부 헬퍼 함수입니다. */
     static void DestroyAssetData(SlotEntry& entry);
