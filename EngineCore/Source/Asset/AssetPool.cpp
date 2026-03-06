@@ -184,7 +184,7 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
             }
 
             // 아직 유예기간인 경우
-            if (current_frame - entry.last_access_frame < grace_frames)
+            if (current_frame - entry.last_access_frame.load(std::memory_order_relaxed) < grace_frames)
             {
                 return false;
             }

@@ -117,13 +117,13 @@ bool HandleTable::IsHandleValid(const HandleData& handle) const
 void HandleTable::MarkForEviction(uint32 index)
 {
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::MarkForEviction - index out of range");
-
     SlotEntry& entry = slots[index];
+
     SE_ASSERT(entry.slot_state == SlotEntry::ESlotState::Occupied, "HandleTable::MarkForEviction - slot is not Occupied");
     SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::MarkForEviction - ref_count is not 0");
 
     // LRU 판단을 위해 "마지막으로 사용된 프레임"을 기록
-    entry.last_access_frame = current_frame.load(std::memory_order_relaxed);
+    entry.last_access_frame.store(current_frame.load(std::memory_order_relaxed), std::memory_order_relaxed);
 }
 
 void HandleTable::EvictSlot(uint32 index, Array<AssetPayload>& out_deferred)
@@ -134,6 +134,7 @@ void HandleTable::EvictSlot(uint32 index, Array<AssetPayload>& out_deferred)
 
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::EvictSlot - index out of range");
     SlotEntry& entry = slots[index];
+
     SE_ASSERT(entry.slot_state == SlotEntry::ESlotState::Occupied, "HandleTable::EvictSlot - slot is not Occupied");
     SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::EvictSlot - ref_count != 0");
 

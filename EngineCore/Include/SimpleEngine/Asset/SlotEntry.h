@@ -59,7 +59,7 @@ struct SE_CORE_API SlotEntry
     DestructorFn destructor = nullptr; // TypeRegistry에서 획득한 리플렉션 소멸자
 
     // Eviction 메타데이터
-    uint64 last_access_frame = 0;
+    std::atomic<uint64> last_access_frame = 0;
     uint64 asset_size_bytes = 0;
     EScopeLayer scope = EScopeLayer::Scene;
     ESlotState slot_state = ESlotState::Free;

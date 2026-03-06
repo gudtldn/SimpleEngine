@@ -30,7 +30,8 @@ SlotEntry& SlotEntry::operator=(SlotEntry&& other) noexcept
         asset_id = std::move(other.asset_id);
 
         destructor = std::exchange(other.destructor, nullptr);
-        last_access_frame = std::exchange(other.last_access_frame, 0);
+
+        last_access_frame.exchange(other.last_access_frame.exchange(0, std::memory_order_relaxed), std::memory_order_relaxed);
         asset_size_bytes = std::exchange(other.asset_size_bytes, 0);
         scope = other.scope;
         slot_state = std::exchange(other.slot_state, ESlotState::Free);

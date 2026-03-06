@@ -219,7 +219,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
                         const uint64 old_size = current_slot.asset_size_bytes;
                         const uint64 new_size = entry_opt->payload.Len();
                         current_slot.asset_size_bytes = new_size;
-                        current_slot.last_access_frame = frame_count;
+                        current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
                         current_slot.scope = scope;
 
                         if (new_size > old_size)
