@@ -81,6 +81,7 @@ void AssetSubsystem::EndFrame()
     ZoneScopedN("AssetSubsystem::EndFrame");
 
     ++frame_count;
+    cache->GetTable().SetCurrentFrame(frame_count);
     cache->ProcessPendingDestroy(frame_count);
     cache->EvictIfOverBudget(frame_count);
 }

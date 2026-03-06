@@ -74,8 +74,8 @@ public:
 
 public:
     /**
-     * 슬롯을 eviction(해제) 후보로 표시합니다.
-     * 현재는 strong_count가 0인지만 검증합니다.
+     * 마지막 AssetHandle이 소멸하여 ref_count가 0이 될 때 호출됩니다.
+     * LRU 판단을 위해 last_access_frame을 현재 프레임으로 갱신합니다.
      */
     void MarkForEviction(uint32 index);
 
@@ -116,10 +116,22 @@ public:
     }
 
     /** 에셋 메모리 사용량을 추가합니다. (에셋 로딩 완료 시 호출) */
-    void TrackMemoryUsage(uint64 bytes);
+    FORCE_INLINE void TrackMemoryUsage(uint64 bytes)
+    {
+        total_memory.fetch_add(bytes, std::memory_order_relaxed);
+    }
 
     /** 에셋 메모리 사용량을 감소합니다. */
-    void UntrackMemoryUsage(uint64 bytes);
+    FORCE_INLINE void UntrackMemoryUsage(uint64 bytes)
+    {
+        total_memory.fetch_sub(bytes, std::memory_order_relaxed);
+    }
+
+    /** 현재 프레임 번호를 설정합니다. (EndFrame에서 매 프레임 호출) */
+    FORCE_INLINE void SetCurrentFrame(uint64 frame) noexcept
+    {
+        current_frame.store(frame, std::memory_order_relaxed);
+    }
 
 private:
     /** 락이 이미 획득된 상태에서 슬롯을 실제로 해제하는 내부 헬퍼 함수입니다. */
@@ -141,6 +153,9 @@ private:
     HashMap<AssetId, uint32> guid_index;
 
     // 총 에셋 메모리 사용량 (Eviction 예산 계산용)
-    std::atomic<uint64> total_memory{0};
+    std::atomic<uint64> total_memory = 0;
+
+    // 현재 엔진 프레임 번호 (MarkForEviction -> last_access_frame 갱신용)
+    std::atomic<uint64> current_frame = 0; // TODO: 나중에 중앙에서 한번에 관리할까?
 };
 } // namespace se::asset

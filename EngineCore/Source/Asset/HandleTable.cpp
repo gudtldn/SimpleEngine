@@ -104,9 +104,12 @@ void HandleTable::MarkForEviction(uint32 index)
 {
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::MarkForEviction - index out of range");
 
-    const SlotEntry& entry = slots[index];
+    SlotEntry& entry = slots[index];
     SE_ASSERT(entry.slot_state == SlotEntry::ESlotState::Occupied, "HandleTable::MarkForEviction - slot is not Occupied");
     SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::MarkForEviction - ref_count is not 0");
+
+    // LRU 판단을 위해 "마지막으로 사용된 프레임"을 기록
+    entry.last_access_frame = current_frame.load(std::memory_order_relaxed);
 }
 
 void HandleTable::EvictSlot(uint32 index)
@@ -194,16 +197,6 @@ uint32 HandleTable::EvictWhere(
     }
 
     return count;
-}
-
-void HandleTable::TrackMemoryUsage(uint64 bytes)
-{
-    total_memory.fetch_add(bytes, std::memory_order_relaxed);
-}
-
-void HandleTable::UntrackMemoryUsage(uint64 bytes)
-{
-    total_memory.fetch_sub(bytes, std::memory_order_relaxed);
 }
 
 void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry)
