@@ -43,7 +43,9 @@ struct HandleData
 class SE_CORE_API HandleTable
 {
 public:
-    HandleTable() = default;
+    static constexpr uint32 DEFAULT_SLOT_CAPACITY = 16384;
+
+    HandleTable();
     ~HandleTable();
 
     // 복사 & 이동 금지

@@ -7,6 +7,12 @@
 
 namespace se::asset
 {
+HandleTable::HandleTable()
+{
+    // TODO: 나중에 ChunkedArray 같은 컨테이너로 개선
+    slots.Reserve(DEFAULT_SLOT_CAPACITY);
+}
+
 HandleTable::~HandleTable()
 {
     // 모든 Occupied 슬롯의 에셋 데이터를 해제
@@ -53,6 +59,14 @@ HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId& type, cons
     }
     else
     {
+        if (!SE_ENSURE(
+            slots.Len() < slots.Capacity(),
+            "HandleTable: slot capacity exhausted! (capacity: {})", slots.Capacity()
+        ))
+        {
+            return {};
+        }
+
         index = static_cast<uint32>(slots.Len());
         slots.Emplace(id, type, path);
     }
