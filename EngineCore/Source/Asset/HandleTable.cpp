@@ -172,7 +172,7 @@ uint32 HandleTable::GetCount() const
 uint32 HandleTable::GetCapacity() const
 {
     std::shared_lock read_lock(pool_mutex);
-    return static_cast<uint32>(slots.Len());
+    return static_cast<uint32>(slots.Capacity());
 }
 
 uint32 HandleTable::EvictWhere(
