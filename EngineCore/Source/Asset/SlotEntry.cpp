@@ -24,7 +24,7 @@ SlotEntry& SlotEntry::operator=(SlotEntry&& other) noexcept
         ref_count.store(other.ref_count.exchange(0, std::memory_order_relaxed), std::memory_order_relaxed);
         state.store(other.state.exchange(ELoadingState::Unloaded, std::memory_order_relaxed), std::memory_order_relaxed);
 
-        generation = other.generation; // generation은 이동 시에도 유지하는 것이 안전함
+        generation = std::exchange(other.generation, 0);
         asset_type = std::move(other.asset_type);
         source_path = std::move(other.source_path);
         asset_id = std::move(other.asset_id);
