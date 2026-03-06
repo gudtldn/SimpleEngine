@@ -60,7 +60,7 @@ AssetPayload SlotEntry::ExchangePayload(AssetPayload new_payload)
 {
     return {
         .ptr = asset.exchange(std::exchange(new_payload.ptr, nullptr), std::memory_order_acq_rel),
-        .destructor = std::exchange(new_payload.destructor, nullptr),
+        .destructor = std::exchange(destructor, std::exchange(new_payload.destructor, nullptr)),
     };
 }
 
