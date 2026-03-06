@@ -106,7 +106,7 @@ void HandleTable::MarkForEviction(uint32 index)
 
     const SlotEntry& entry = slots[index];
     SE_ASSERT(entry.slot_state == SlotEntry::ESlotState::Occupied, "HandleTable::MarkForEviction - slot is not Occupied");
-    SE_ASSERT(entry.strong_count.load(std::memory_order_relaxed) == 0, "HandleTable::MarkForEviction - strong_count is not 0");
+    SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::MarkForEviction - ref_count is not 0");
 }
 
 void HandleTable::EvictSlot(uint32 index)
@@ -118,7 +118,7 @@ void HandleTable::EvictSlot(uint32 index)
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::EvictSlot - index out of range");
     SlotEntry& entry = slots[index];
     SE_ASSERT(entry.slot_state == SlotEntry::ESlotState::Occupied, "HandleTable::EvictSlot - slot is not Occupied");
-    SE_ASSERT(entry.strong_count.load(std::memory_order_relaxed) == 0, "HandleTable::EvictSlot - strong_count != 0");
+    SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::EvictSlot - ref_count != 0");
 
     // Slot 해제
     EvictSlotInternal(index, entry);
@@ -135,7 +135,7 @@ uint32 HandleTable::CollectGarbage()
     {
         if (
             entry.slot_state == SlotEntry::ESlotState::Occupied
-            && entry.strong_count.load(std::memory_order_relaxed) == 0
+            && entry.ref_count.load(std::memory_order_relaxed) == 0
         )
         {
             EvictSlotInternal(static_cast<uint32>(idx), entry);
@@ -180,7 +180,7 @@ uint32 HandleTable::EvictWhere(
         {
             continue;
         }
-        if (entry.strong_count.load(std::memory_order_relaxed) != 0)
+        if (entry.ref_count.load(std::memory_order_relaxed) != 0)
         {
             continue;
         }

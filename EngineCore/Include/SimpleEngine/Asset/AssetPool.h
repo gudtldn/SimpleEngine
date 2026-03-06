@@ -54,7 +54,7 @@ public:
     void Remove(const AssetId& id);
 
     /**
-     * strong_count가 0인(외부 Handle이 없는) 슬롯들을 정리합니다.
+     * ref_count가 0인(외부 Handle이 없는) 슬롯들을 정리합니다.
      * @return 제거된 슬롯의 개수
      */
     uint32 CollectGarbage();

@@ -35,7 +35,7 @@ enum class EScopeLayer : uint8
 /**
  * Asset의 상태와 데이터를 관리하는 제어 블록 클래스
  *
- * - Atomic 필드: lock-free 접근이 가능합니다. (Get, strong_count 증감, ExchangeAsset 등)
+ * - Atomic 필드: lock-free 접근이 가능합니다.
  * - Non-atomic 필드: pool_mutex의 unique_lock 하에서만 변경해야 합니다.
  * - generation: Eviction 시 증가하여 유효하지 않은(stale) 핸들을 감지합니다.
  */
@@ -45,8 +45,7 @@ struct SE_CORE_API SlotEntry
 
     // === Atomic fields ===
     std::atomic<AssetBase*> asset = nullptr;
-    std::atomic<uint32> strong_count = 0;
-    std::atomic<uint32> weak_count = 0;
+    std::atomic<uint32> ref_count = 0;
     std::atomic<ELoadingState> state = ELoadingState::Unloaded;
 
     // === Non-atomic fields ===

@@ -81,13 +81,13 @@ public:
 
     /**
      * 슬롯을 즉시 해제합니다. (Thread-Safe)
-     * @pre slots[index].strong_count == 0
+     * @pre slots[index].ref_count == 0
      * @pre slots[index].slot_state == Occupied
      */
     void EvictSlot(uint32 index);
 
     /**
-     * strong_count가 0인 모든 Occupied 슬롯을 해제합니다. (Thread-Safe)
+     * ref_count가 0인 모든 Occupied 슬롯을 해제합니다. (Thread-Safe)
      * @return 해제된 슬롯의 수
      */
     uint32 CollectGarbage();
@@ -100,7 +100,7 @@ public:
 
     /**
      * 조건에 부합하는 슬롯을 일괄 해제합니다. (Thread-Safe)
-     * @param filter strong_count == 0인 Occupied 슬롯 중, true를 반환하는 슬롯만 해제합니다.
+     * @param filter ref_count == 0인 Occupied 슬롯 중, true를 반환하는 슬롯만 해제합니다.
      * @param max_count 최대 해제 개수
      * @return 해제된 슬롯의 수
      */

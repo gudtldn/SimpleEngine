@@ -21,8 +21,7 @@ SlotEntry& SlotEntry::operator=(SlotEntry&& other) noexcept
     if (this != &other)
     {
         asset.store(other.asset.exchange(nullptr, std::memory_order_relaxed), std::memory_order_relaxed);
-        strong_count.store(other.strong_count.exchange(0, std::memory_order_relaxed), std::memory_order_relaxed);
-        weak_count.store(other.weak_count.exchange(0, std::memory_order_relaxed), std::memory_order_relaxed);
+        ref_count.store(other.ref_count.exchange(0, std::memory_order_relaxed), std::memory_order_relaxed);
         state.store(other.state.exchange(ELoadingState::Unloaded, std::memory_order_relaxed), std::memory_order_relaxed);
 
         generation = other.generation; // generation은 이동 시에도 유지하는 것이 안전함

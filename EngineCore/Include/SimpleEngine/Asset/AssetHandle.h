@@ -13,7 +13,7 @@ namespace se::asset
  * SlotEntry를 가리키는 Generational Handle 클래스
  *
  * 내부적으로 { index, generation, table* }을 관리하며,
- * strong_count 기반의 참조 카운팅을 통해 에셋의 수명을 제어합니다.
+ * ref_count 기반의 참조 카운팅을 통해 에셋의 수명을 제어합니다.
  *
  * @tparam T 핸들이 참조하는 Asset의 타입 (ex: Texture, Material, Mesh)
  */
@@ -35,7 +35,7 @@ public:
     {
         if (table && index != INVALID_INDEX)
         {
-            table->GetSlot(index).strong_count.fetch_add(1, std::memory_order_relaxed);
+            table->GetSlot(index).ref_count.fetch_add(1, std::memory_order_relaxed);
         }
     }
 
@@ -51,7 +51,7 @@ public:
     {
         if (table && index != INVALID_INDEX)
         {
-            table->GetSlot(index).strong_count.fetch_add(1, std::memory_order_relaxed);
+            table->GetSlot(index).ref_count.fetch_add(1, std::memory_order_relaxed);
         }
     }
 
@@ -65,7 +65,7 @@ public:
             table = other.table;
             if (table && index != INVALID_INDEX)
             {
-                table->GetSlot(index).strong_count.fetch_add(1, std::memory_order_relaxed);
+                table->GetSlot(index).ref_count.fetch_add(1, std::memory_order_relaxed);
             }
         }
         return *this;
@@ -170,7 +170,7 @@ private:
     {
         if (table && index != INVALID_INDEX)
         {
-            if (table->GetSlot(index).strong_count.fetch_sub(1, std::memory_order_acq_rel) == 1)
+            if (table->GetSlot(index).ref_count.fetch_sub(1, std::memory_order_acq_rel) == 1)
             {
                 table->MarkForEviction(index);
             }

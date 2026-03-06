@@ -33,7 +33,7 @@ void DestroyAsset(void* p) { delete static_cast<EvictionTestAsset*>(p); }
 
 /**
  * 슬롯에 에셋을 시뮬레이션 로드합니다.
- * @return 생성된 HandleData (strong_count == 0)
+ * @return 생성된 HandleData (ref_count == 0)
  */
 HandleData SimulateLoad(
     AssetPool& pool, uint64 size_bytes, uint64 frame,
@@ -88,7 +88,7 @@ TEST_F(EvictionTest, TrackMemoryUsage_DecrementsOnEvict)
     SimulateLoad(pool, 1024, 0);
     SimulateLoad(pool, 2048, 0);
 
-    pool.CollectGarbage(); // strong_count == 0이므로 모두 해제
+    pool.CollectGarbage(); // ref_count == 0이므로 모두 해제
     EXPECT_EQ(pool.GetTotalMemoryUsage(), 0u);
     EXPECT_EQ(pool.GetCount(), 0u);
 }
@@ -210,7 +210,7 @@ TEST_F(EvictionTest, EvictIfOverBudget_ActiveHandlesProtected)
 
     HandleData hd = SimulateLoad(pool, 1024, 0);
 
-    // AssetHandle 생성 -> strong_count = 1
+    // AssetHandle 생성 -> ref_count = 1
     AssetHandle<EvictionTestAsset> handle(hd, &pool.GetTable());
 
     // Handle이 있으므로 해제 불가

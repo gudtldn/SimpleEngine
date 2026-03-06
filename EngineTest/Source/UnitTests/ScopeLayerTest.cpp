@@ -33,7 +33,7 @@ void DestroyAsset(void* p) { delete static_cast<ScopeTestAsset*>(p); }
 
 /**
  * 슬롯에 에셋을 시뮬레이션 로드합니다.
- * @return 생성된 HandleData (strong_count == 0)
+ * @return 생성된 HandleData (ref_count == 0)
  */
 HandleData SimulateLoad(
     AssetPool& pool, EScopeLayer scope,
@@ -96,7 +96,7 @@ TEST_F(ScopeLayerTest, UnloadScope_SkipsActiveHandles)
 {
     HandleData hd = SimulateLoad(pool, EScopeLayer::Scene);
 
-    // AssetHandle 생성 -> strong_count = 1
+    // AssetHandle 생성 -> ref_count = 1
     AssetHandle<ScopeTestAsset> handle(hd, &pool.GetTable());
 
     uint32 evicted = pool.UnloadScope(EScopeLayer::Scene);

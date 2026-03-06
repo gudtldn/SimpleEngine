@@ -194,7 +194,7 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     EXPECT_EQ(cache.GetCount(), 2u);
 
     // slot1에 strong handle 유지, slot2에는 없음
-    cache.GetTable().GetSlot(hd1.index).strong_count.fetch_add(1, std::memory_order_relaxed);
+    cache.GetTable().GetSlot(hd1.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
     uint32 removed = cache.CollectGarbage();
     EXPECT_EQ(removed, 1u);
@@ -205,7 +205,7 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     EXPECT_FALSE(cache.Find(id2).HasValue());
 
     // cleanup
-    cache.GetTable().GetSlot(hd1.index).strong_count.fetch_sub(1, std::memory_order_relaxed);
+    cache.GetTable().GetSlot(hd1.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
@@ -213,15 +213,15 @@ TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
     AssetId id = GenerateAssetId();
     HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
-    // strong_count를 1로 설정하여 사용 중으로 표시
-    cache.GetTable().GetSlot(hd.index).strong_count.fetch_add(1, std::memory_order_relaxed);
+    // ref_count를 1로 설정하여 사용 중으로 표시
+    cache.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
     uint32 removed = cache.CollectGarbage();
     EXPECT_EQ(removed, 0u);
     EXPECT_EQ(cache.GetCount(), 1u);
 
     // cleanup
-    cache.GetTable().GetSlot(hd.index).strong_count.fetch_sub(1, std::memory_order_relaxed);
+    cache.GetTable().GetSlot(hd.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 // =============================================================================
@@ -316,8 +316,8 @@ TEST_F(AssetHandleTest, CopyConstruction)
     EXPECT_EQ(handle1.Get(), handle2.Get());
     EXPECT_EQ(handle1.GetAssetId(), handle2.GetAssetId());
 
-    // strong_count가 2여야 함 (handle1 + handle2)
-    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).strong_count.load(), 2u);
+    // ref_count가 2여야 함 (handle1 + handle2)
+    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 2u);
 }
 
 TEST_F(AssetHandleTest, MoveConstruction)
@@ -331,8 +331,8 @@ TEST_F(AssetHandleTest, MoveConstruction)
     EXPECT_TRUE(handle2.IsValid());
     EXPECT_EQ(handle2.GetAssetId(), id);
 
-    // strong_count가 1이어야 함 (handle2만)
-    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).strong_count.load(), 1u);
+    // ref_count가 1이어야 함 (handle2만)
+    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 1u);
 }
 
 TEST_F(AssetHandleTest, InvalidHandle_ReturnsNull)
@@ -350,10 +350,10 @@ TEST_F(AssetHandleTest, StrongCount_DecrementOnDestruct)
 
     {
         AssetHandle<MockTexture> handle(hd, &cache.GetTable());
-        EXPECT_EQ(cache.GetTable().GetSlot(hd.index).strong_count.load(), 1u);
+        EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 1u);
     }
-    // handle이 소멸되면 strong_count가 0이 되어야 함
-    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).strong_count.load(), 0u);
+    // handle이 소멸되면 ref_count가 0이 되어야 함
+    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 0u);
 }
 
 // =============================================================================
@@ -558,8 +558,8 @@ TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
     EXPECT_EQ(handle2->vertex_count, 500);
     EXPECT_EQ(handle3->vertex_count, 500);
 
-    // strong_count: handle1 + handle2 + handle3 = 3
-    EXPECT_EQ(slot.strong_count.load(), 3u);
+    // ref_count: handle1 + handle2 + handle3 = 3
+    EXPECT_EQ(slot.ref_count.load(), 3u);
 }
 
 TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
