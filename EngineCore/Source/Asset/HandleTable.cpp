@@ -151,8 +151,9 @@ uint32 HandleTable::CollectGarbage(Array<AssetPayload>& out_deferred)
     for (const auto [idx, entry] : slots | std::views::enumerate)
     {
         if (
-            entry.slot_state == SlotEntry::ESlotState::Occupied
-            && entry.ref_count.load(std::memory_order_relaxed) == 0
+            entry.slot_state == SlotEntry::ESlotState::Occupied                     // 슬롯이 사용중이고,
+            && entry.ref_count.load(std::memory_order_relaxed) == 0                 // 참조 카운트가 0이며,
+            && entry.state.load(std::memory_order_acquire) == ELoadingState::Loaded // 에셋이 완전히 로딩된 경우
         )
         {
             EvictSlotInternal(static_cast<uint32>(idx), entry, out_deferred);
@@ -190,18 +191,31 @@ uint32 HandleTable::EvictWhere(
     {
         const uint32 slot_index = static_cast<uint32>(idx);
 
+        // max_count를 넘어간 경우
         if (count >= max_count)
         {
             break;
         }
+
+        // 아직 할당되지 않은 슬롯의 경우 (빈 슬롯)
         if (entry.slot_state != SlotEntry::ESlotState::Occupied)
         {
             continue;
         }
+
+        // 아직 참조하고 있는 Handle이 있는 경우
         if (entry.ref_count.load(std::memory_order_relaxed) != 0)
         {
             continue;
         }
+
+        // Asset이 로딩중인 경우
+        if (entry.state.load(std::memory_order_acquire) == ELoadingState::Loading)
+        {
+            continue;
+        }
+
+        // Filter에 부합하지 않는경우
         if (!filter(slot_index, entry))
         {
             continue;
