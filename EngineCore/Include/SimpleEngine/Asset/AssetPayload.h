@@ -2,8 +2,6 @@
 
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 
-#include <memory>
-
 
 namespace se::asset
 {
