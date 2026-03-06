@@ -212,8 +212,8 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
                     {
                         SlotEntry& current_slot = get_slot();
 
-                        current_slot.destructor = payload.destructor;
-                        AssetBase* old_ptr = current_slot.ExchangeAsset(std::exchange(payload.ptr, nullptr)); // ownership transferred to SlotEntry
+                        // 기존 슬롯에 있던 Asset을 교체
+                        AssetPayload old_payload = current_slot.ExchangePayload(std::move(payload)); // ownership transferred to SlotEntry
 
                         // Eviction 메타데이터 설정
                         const uint64 old_size = current_slot.asset_size_bytes;
@@ -221,6 +221,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
                         current_slot.asset_size_bytes = new_size;
                         current_slot.last_access_frame = frame_count;
                         current_slot.scope = scope;
+
                         if (new_size > old_size)
                         {
                             table.TrackMemoryUsage(new_size - old_size);
@@ -233,9 +234,9 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
                         // 로딩 완료
                         current_slot.SetState(ELoadingState::Loaded);
 
-                        if (old_ptr)
+                        if (old_payload)
                         {
-                            DeferRelease(AssetPayload{ old_ptr, current_slot.destructor });
+                            DeferRelease(std::move(old_payload));
                         }
                         ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
                         return handle_data;

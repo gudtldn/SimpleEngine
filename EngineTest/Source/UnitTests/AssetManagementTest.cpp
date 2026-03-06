@@ -241,8 +241,10 @@ protected:
 
         auto* texture = new MockTexture();
         texture->width = 512;
-        slot.destructor = [](void* p) { delete static_cast<MockTexture*>(p); };
-        (void)slot.ExchangeAsset(texture);
+        (void)slot.ExchangePayload({
+            .ptr = texture,
+            .destructor = [](void* p) { delete static_cast<MockTexture*>(p); }
+        });
         slot.SetState(ELoadingState::Loaded);
 
         return hd;
@@ -519,8 +521,10 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
     // 3. Load asset into slot
     auto* texture = new MockTexture();
     texture->width = 2048;
-    slot.destructor = [](void* p) { delete static_cast<MockTexture*>(p); };
-    (void)slot.ExchangeAsset(texture);
+    (void)slot.ExchangePayload({
+        .ptr = texture,
+        .destructor = [](void* p) { delete static_cast<MockTexture*>(p); },
+    });
     slot.SetState(ELoadingState::Loaded);
 
     // 4. Create handle
@@ -544,8 +548,10 @@ TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 
     auto* mesh = new MockMesh();
     mesh->vertex_count = 500;
-    slot.destructor = [](void* p) { delete static_cast<MockMesh*>(p); };
-    (void)slot.ExchangeAsset(mesh);
+    (void)slot.ExchangePayload({
+        .ptr = mesh,
+        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
+    });
     slot.SetState(ELoadingState::Loaded);
 
     AssetHandle<MockMesh> handle1(hd, &cache.GetTable());
@@ -588,14 +594,18 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
     // Load assets
     auto* main_mesh = new MockMesh();
     main_mesh->vertex_count = 1000;
-    main_slot.destructor = [](void* p) { delete static_cast<MockMesh*>(p); };
-    (void)main_slot.ExchangeAsset(main_mesh);
+    (void)main_slot.ExchangePayload({
+        .ptr = main_mesh,
+        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
+    });
     main_slot.SetState(ELoadingState::Loaded);
 
     auto* weapon_mesh = new MockMesh();
     weapon_mesh->vertex_count = 200;
-    weapon_slot.destructor = [](void* p) { delete static_cast<MockMesh*>(p); };
-    (void)weapon_slot.ExchangeAsset(weapon_mesh);
+    (void)weapon_slot.ExchangePayload({
+        .ptr = weapon_mesh,
+        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
+    });
     weapon_slot.SetState(ELoadingState::Loaded);
 
     // Verify

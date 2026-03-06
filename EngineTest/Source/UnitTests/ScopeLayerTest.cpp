@@ -44,8 +44,10 @@ HandleData SimulateLoad(
     HandleTable& table = pool.GetTable();
     SlotEntry& slot = table.GetSlot(hd.index);
 
-    slot.destructor = &DestroyAsset;
-    (void)slot.ExchangeAsset(new ScopeTestAsset());
+    (void)slot.ExchangePayload({
+        .ptr = new ScopeTestAsset(),
+        .destructor = &DestroyAsset
+    });
     slot.SetState(ELoadingState::Loaded);
     slot.asset_size_bytes = size_bytes;
     slot.last_access_frame = frame;

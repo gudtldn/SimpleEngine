@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/AssetPath.h"
+#include "SimpleEngine/Asset/AssetPayload.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
@@ -89,10 +90,10 @@ public:
     void Clear();
 
     /**
-     * 에셋 포인터를 원자적으로 교체하고 이전 포인터를 반환합니다.
-     * @note 반환된 이전 포인터는 Frame-Epoch 규약에 따라 최소 1프레임 동안 유지해야 합니다.
+     * 에셋 Payload(포인터 + 소멸자)를 교체하고, 이전 Payload를 반환합니다.
+     * @note 반환된 이전 Payload는 Frame-Epoch 규약에 따라 최소 1프레임 동안 유지해야 합니다.
      */
-    [[nodiscard]] AssetBase* ExchangeAsset(AssetBase* new_asset);
+    [[nodiscard]] AssetPayload ExchangePayload(AssetPayload new_payload);
 
     /**
      * CAS(Compare-And-Swap) 기반으로 로딩을 시작합니다. (Unloaded/Failed -> Loading)

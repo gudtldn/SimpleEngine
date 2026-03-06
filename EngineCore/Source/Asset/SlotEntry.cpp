@@ -56,9 +56,12 @@ void SlotEntry::Clear()
     generation = next_generation;
 }
 
-AssetBase* SlotEntry::ExchangeAsset(AssetBase* new_asset)
+AssetPayload SlotEntry::ExchangePayload(AssetPayload new_payload)
 {
-    return asset.exchange(new_asset, std::memory_order_acq_rel);
+    return {
+        .ptr = asset.exchange(std::exchange(new_payload.ptr, nullptr), std::memory_order_acq_rel),
+        .destructor = std::exchange(new_payload.destructor, nullptr),
+    };
 }
 
 bool SlotEntry::BeginLoad()
