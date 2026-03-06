@@ -85,8 +85,7 @@ public:
     [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
 
 public:
-    // TODO: 이름 변경
-    [[nodiscard]] FORCE_INLINE AssetPool& GetCache() const { return *cache; }
+    [[nodiscard]] FORCE_INLINE AssetPool& GetPool() const { return *pool; }
     [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
@@ -96,7 +95,7 @@ private:
     [[nodiscard]] HandleTable& GetHandleTable() const;
 
 private:
-    std::unique_ptr<AssetPool> cache; // TODO: 이름 변경
+    std::unique_ptr<AssetPool> pool;
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;
 

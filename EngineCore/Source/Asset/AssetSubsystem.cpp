@@ -28,7 +28,7 @@ bool AssetSubsystem::Initialize()
     ConsoleLog(ELogLevel::Info, "Initializing Asset subsystem...");
 
     // Create AssetPool Instance
-    cache = std::make_unique<AssetPool>();
+    pool = std::make_unique<AssetPool>();
 
     // Create Asset Registry Instance
     registry = std::make_unique<AssetRegistry>();
@@ -52,7 +52,7 @@ void AssetSubsystem::Release()
 
     ddc.reset();
     registry.reset();
-    cache.reset();
+    pool.reset();
 }
 
 void AssetSubsystem::SetDDCMissHandler(DDCMissHandler handler)
@@ -73,7 +73,7 @@ void AssetSubsystem::DeferRelease(AssetPayload payload)
         return;
     }
 
-    cache->DeferDestroy(std::move(payload), frame_count);
+    pool->DeferDestroy(std::move(payload), frame_count);
 }
 
 void AssetSubsystem::EndFrame()
@@ -81,9 +81,9 @@ void AssetSubsystem::EndFrame()
     ZoneScopedN("AssetSubsystem::EndFrame");
 
     ++frame_count;
-    cache->GetTable().SetCurrentFrame(frame_count);
-    cache->ProcessPendingDestroy(frame_count);
-    cache->EvictIfOverBudget(frame_count);
+    pool->GetTable().SetCurrentFrame(frame_count);
+    pool->ProcessPendingDestroy(frame_count);
+    pool->EvictIfOverBudget(frame_count);
 }
 
 Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
@@ -148,7 +148,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
     };
 
     HandleData handle_data;
-    HandleTable& table = cache->GetTable();
+    HandleTable& table = pool->GetTable();
 
     // Dangling Reference 방지를 위해, 매번 직접 인덱스로 접근
     const auto get_slot = [&] -> SlotEntry&
@@ -164,7 +164,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
         if (const Optional id_opt = find_asset_id())
         {
             const AssetId& current_id = id_opt.Value();
-            handle_data = cache->FindOrCreate(current_id, expected_type, source_path);
+            handle_data = pool->FindOrCreate(current_id, expected_type, source_path);
 
             // [Slot-Level Lock] 로딩 상태 동기화
             while (true)
@@ -320,14 +320,14 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
 
 HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
 {
-    Optional<HandleData> handle_opt = cache->Find(asset_id);
+    Optional<HandleData> handle_opt = pool->Find(asset_id);
     if (!handle_opt.HasValue())
     {
         return {};
     }
 
     const HandleData& handle_data = handle_opt.Value();
-    const SlotEntry& slot = cache->GetTable().GetSlot(handle_data.index);
+    const SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
 
     if (slot.asset_type != expected_type)
     {
@@ -343,6 +343,6 @@ HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const Asset
 
 HandleTable& AssetSubsystem::GetHandleTable() const
 {
-    return cache->GetTable();
+    return pool->GetTable();
 }
 } // namespace se::asset
