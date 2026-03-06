@@ -138,7 +138,7 @@ uint32 HandleTable::CollectGarbage()
             && entry.strong_count.load(std::memory_order_relaxed) == 0
         )
         {
-            EvictSlotInternal(idx, entry);
+            EvictSlotInternal(static_cast<uint32>(idx), entry);
             ++evict_count;
         }
     }
@@ -158,8 +158,59 @@ uint32 HandleTable::GetCapacity() const
     return static_cast<uint32>(slots.Len());
 }
 
+uint32 HandleTable::EvictWhere(
+    FunctionRef<bool(uint32, const SlotEntry&)> filter,
+    uint32 max_count
+)
+{
+    ZoneScopedN("HandleTable::EvictWhere");
+
+    std::unique_lock write_lock(pool_mutex);
+
+    uint32 count = 0;
+    for (auto [idx, entry] : slots | std::views::enumerate)
+    {
+        const uint32 slot_index = static_cast<uint32>(idx);
+
+        if (count >= max_count)
+        {
+            break;
+        }
+        if (entry.slot_state != SlotEntry::ESlotState::Occupied)
+        {
+            continue;
+        }
+        if (entry.strong_count.load(std::memory_order_relaxed) != 0)
+        {
+            continue;
+        }
+        if (!filter(slot_index, entry))
+        {
+            continue;
+        }
+
+        EvictSlotInternal(slot_index, entry);
+        ++count;
+    }
+
+    return count;
+}
+
+void HandleTable::TrackMemoryUsage(uint64 bytes)
+{
+    total_memory.fetch_add(bytes, std::memory_order_relaxed);
+}
+
+void HandleTable::UntrackMemoryUsage(uint64 bytes)
+{
+    total_memory.fetch_sub(bytes, std::memory_order_relaxed);
+}
+
 void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry)
 {
+    // 메모리 사용량 차감
+    total_memory.fetch_sub(entry.asset_size_bytes, std::memory_order_relaxed);
+
     // 에셋 데이터 해제
     DestroyAssetData(entry);
 

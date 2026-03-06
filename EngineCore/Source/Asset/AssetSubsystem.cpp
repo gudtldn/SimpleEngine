@@ -73,20 +73,16 @@ void AssetSubsystem::DeferRelease(AssetPayload payload)
         return;
     }
 
-    std::scoped_lock lock(pending_mutex);
-    pending_release.Push(std::move(payload));
+    cache->DeferDestroy(std::move(payload), frame_count);
 }
 
 void AssetSubsystem::EndFrame()
 {
     ZoneScopedN("AssetSubsystem::EndFrame");
 
-    std::scoped_lock lock(pending_mutex);
-    for (auto& [ptr, destructor] : pending_release)
-    {
-        destructor(ptr);
-    }
-    pending_release.Clear();
+    ++frame_count;
+    cache->ProcessPendingDestroy(frame_count);
+    cache->EvictIfOverBudget(frame_count);
 }
 
 Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
@@ -126,7 +122,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, cons
     return AssetPayload{ static_cast<AssetBase*>(raw), info_opt->destructor };
 }
 
-HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path)
+HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope)
 {
     ZoneScopedN("AssetSubsystem::LoadInternal");
     {
@@ -213,13 +209,32 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
                 {
                     if (AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
-                        get_slot().destructor = payload.destructor;
-                        AssetBase* old_ptr = get_slot().ExchangeAsset(std::exchange(payload.ptr, nullptr)); // ownership transferred to SlotEntry
-                        get_slot().SetState(ELoadingState::Loaded);
+                        SlotEntry& current_slot = get_slot();
+
+                        current_slot.destructor = payload.destructor;
+                        AssetBase* old_ptr = current_slot.ExchangeAsset(std::exchange(payload.ptr, nullptr)); // ownership transferred to SlotEntry
+
+                        // Eviction 메타데이터 설정
+                        const uint64 old_size = current_slot.asset_size_bytes;
+                        const uint64 new_size = entry_opt->payload.Len();
+                        current_slot.asset_size_bytes = new_size;
+                        current_slot.last_access_frame = frame_count;
+                        current_slot.scope = scope;
+                        if (new_size > old_size)
+                        {
+                            table.TrackMemoryUsage(new_size - old_size);
+                        }
+                        else if (new_size < old_size)
+                        {
+                            table.UntrackMemoryUsage(old_size - new_size);
+                        }
+
+                        // 로딩 완료
+                        current_slot.SetState(ELoadingState::Loaded);
 
                         if (old_ptr)
                         {
-                            DeferRelease(AssetPayload{ old_ptr, get_slot().destructor });
+                            DeferRelease(AssetPayload{ old_ptr, current_slot.destructor });
                         }
                         ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
                         return handle_data;
@@ -245,7 +260,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
             import_cv.wait(lock, [&] { return !files_currently_importing.Contains(file_vpath); });
 
             // double-check
-            if (handle_data.IsValid() && table.GetSlot(handle_data.index).GetState() == ELoadingState::Loaded)
+            if (handle_data.IsValid() && get_slot().GetState() == ELoadingState::Loaded)
             {
                 return handle_data;
             }
@@ -270,7 +285,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
                     // 그리고 continue 후, 위에서 다시 BeginLoad()를 획득하고 DDC를 읽도록 함.
                     if (handle_data.IsValid())
                     {
-                        table.GetSlot(handle_data.index).SetState(ELoadingState::Unloaded);
+                        get_slot().SetState(ELoadingState::Unloaded);
                     }
                     continue;
                 }
@@ -288,7 +303,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
     // 실패 처리
     if (handle_data.IsValid())
     {
-        table.GetSlot(handle_data.index).SetState(ELoadingState::Failed);
+        get_slot().SetState(ELoadingState::Failed);
     }
 
     if (has_sub_name)

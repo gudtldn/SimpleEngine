@@ -3,9 +3,11 @@
 #include "SimpleEngine/Asset/SlotEntry.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Functional/FunctionRef.h"
 
 #include "tracy/Tracy.hpp"
 
+#include <atomic>
 #include <limits>
 #include <shared_mutex>
 
@@ -96,6 +98,29 @@ public:
     /** 전체 슬롯 배열의 크기(사용 중인 슬롯 + 유휴 슬롯)를 반환합니다. */
     [[nodiscard]] uint32 GetCapacity() const;
 
+    /**
+     * 조건에 부합하는 슬롯을 일괄 해제합니다. (Thread-Safe)
+     * @param filter strong_count == 0인 Occupied 슬롯 중, true를 반환하는 슬롯만 해제합니다.
+     * @param max_count 최대 해제 개수
+     * @return 해제된 슬롯의 수
+     */
+    uint32 EvictWhere(
+        FunctionRef<bool(uint32, const SlotEntry&)> filter,
+        uint32 max_count = std::numeric_limits<uint32>::max()
+    );
+
+    /** 현재 추적 중인 총 에셋 메모리 사용량을 반환합니다. */
+    [[nodiscard]] FORCE_INLINE uint64 GetTotalMemoryUsage() const noexcept
+    {
+        return total_memory.load(std::memory_order_relaxed);
+    }
+
+    /** 에셋 메모리 사용량을 추가합니다. (에셋 로딩 완료 시 호출) */
+    void TrackMemoryUsage(uint64 bytes);
+
+    /** 에셋 메모리 사용량을 감소합니다. */
+    void UntrackMemoryUsage(uint64 bytes);
+
 private:
     /** 락이 이미 획득된 상태에서 슬롯을 실제로 해제하는 내부 헬퍼 함수입니다. */
     void EvictSlotInternal(uint32 index, SlotEntry& entry);
@@ -114,5 +139,8 @@ private:
 
     // AssetId <-> SlotIndex 매핑
     HashMap<AssetId, uint32> guid_index;
+
+    // 총 에셋 메모리 사용량 (Eviction 예산 계산용)
+    std::atomic<uint64> total_memory{0};
 };
 } // namespace se::asset

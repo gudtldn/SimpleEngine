@@ -37,21 +37,33 @@ class FunctionRef<R(Args...)>
 public:
     FunctionRef() = delete;
 
-    // callable 객체 또는 함수 포인터를 받는 생성자
+    // callable 객체를 받는 생성자
     template <typename Fn>
         requires (
             !std::same_as<std::decay_t<Fn>, FunctionRef>
-            && std::is_invocable_r_v<R, std::remove_reference_t<Fn>&, Args...>
+            && !std::is_pointer_v<std::decay_t<Fn>>
+            && std::is_invocable_r_v<R, std::decay_t<Fn>&, Args...>
         )
     /* implicit */ FunctionRef(Fn&& in_fn) noexcept
-        : data_ptr(static_cast<const void*>(std::addressof(in_fn)))
+        : data_ptr(std::addressof(in_fn))
         , thunk([](const void* ptr, Args... args) -> R
         {
-            using T = std::remove_reference_t<Fn>;
+            using Decayed = std::decay_t<Fn>;
             return std::invoke(
-                const_cast<T&>(*static_cast<const T*>(ptr)),
+                const_cast<Decayed&>(*static_cast<const Decayed*>(ptr)),
                 std::forward<Args>(args)...
             );
+        })
+    {
+    }
+
+    // 함수 포인터를 받는 생성자
+    /* implicit */ FunctionRef(R (*fnptr)(Args...)) noexcept
+        : data_ptr(reinterpret_cast<const void*>(fnptr))
+        , thunk([](const void* ptr, Args... args) -> R
+        {
+            auto original_fnptr = reinterpret_cast<R(*)(Args...)>(const_cast<void*>(ptr));
+            return std::invoke(original_fnptr, std::forward<Args>(args)...);
         })
     {
     }

@@ -28,10 +28,10 @@ using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& fil
  *
  * 로딩 흐름:
  *   1. Registry에서 AssetId 조회
- *   2. AssetCache(메모리) Hit -> 즉시 반환
- *   3. DDC Hit (source_hash/cache_version 일치) -> 역직렬화 -> Cache 적재 -> 반환
- *   4. DDC Miss -> Import 파이프라인 실행 -> DDC에 저장 -> Cache 적재 -> 반환
- *   5. Registry 미등록 (런타임 fallback) -> ImportAndRegisterAll
+ *   2. AssetPool(메모리) Hit -> 즉시 반환
+ *   3. DDC Hit (source_hash/cache_version 일치) -> 역직렬화 -> Pool 적재 -> 반환
+ *   4. DDC Miss -> (Editor) Import 파이프라인 실행 -> DDC에 저장 -> Pool 적재 -> 반환
+ *   5. DDC Miss Handler 미등록 (런타임 fallback) -> Invalid Handle
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Internal) AssetSubsystem : public SubsystemBase
 {
@@ -54,10 +54,11 @@ public:
     /**
      * 지정된 경로의 Asset을 로드하고 Handle을 반환합니다.
      * @param asset_path Asset 경로 (예: "meshes/model.fbx#Mesh_01")
+     * @param scope 에셋의 수명 범위 및 관리 우선순위 (기본값: Scene)
      */
     template <typename T>
         requires std::derived_from<T, AssetBase>
-    [[nodiscard]] AssetHandle<T> Load(const AssetPath& asset_path);
+    [[nodiscard]] AssetHandle<T> Load(const AssetPath& asset_path, EScopeLayer scope = EScopeLayer::Scene);
 
     /**
      * 캐시에서 Asset을 찾습니다. (Import 수행 안함)
@@ -84,36 +85,36 @@ public:
     [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
 
 public:
+    // TODO: 이름 변경
     [[nodiscard]] FORCE_INLINE AssetPool& GetCache() const { return *cache; }
     [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
 private:
-    [[nodiscard]] HandleData LoadInternal(const TypeId& expected_type, const AssetPath& source_path);
+    [[nodiscard]] HandleData LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope);
     [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
     [[nodiscard]] HandleTable& GetHandleTable() const;
 
 private:
-    std::unique_ptr<AssetPool> cache;
+    std::unique_ptr<AssetPool> cache; // TODO: 이름 변경
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;
 
     DDCMissHandler ddc_miss_handler;
 
-    // Deferred Release
-    TracyLockable(std::mutex, pending_mutex);
-    Array<AssetPayload> pending_release;
+    // Frame counter (Eviction 정책용)
+    uint64 frame_count = 0;
 
     TracyLockable(std::mutex, loading_mutex);
-    std::condition_variable_any import_cv;
-    HashSet<VPath> files_currently_importing;
+    std::condition_variable_any import_cv;    // 하나의 스레드에서만 Import를 보장하는 cv
+    HashSet<VPath> files_currently_importing; // 현재 Import 중인 File 목록
 };
 
 template <typename T>
     requires std::derived_from<T, AssetBase>
-AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path)
+AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path, EScopeLayer scope)
 {
-    if (HandleData handle_data = LoadInternal(TypeId::Get<T>(), asset_path))
+    if (HandleData handle_data = LoadInternal(TypeId::Get<T>(), asset_path, scope))
     {
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
