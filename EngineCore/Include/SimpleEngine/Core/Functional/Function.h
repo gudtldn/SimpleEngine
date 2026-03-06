@@ -1,107 +1,85 @@
 ﻿#pragma once
-#include <cstddef>
+
+#include "SimpleEngine/Core/Functional/detail/FunctionDetail.h"
+
 #include <functional>
-#include <memory>
 #include <type_traits>
 #include <utility>
-
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Memory/OsMemory.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
 {
-namespace detail
-{
-using SBOAlign = std::max_align_t;
-constexpr usize SBO_BUFFER_SIZE = sizeof(void*) * 3;
-}
-
 template <typename Signature>
 class Function;
 
-template <typename ReturnType, typename... ParamsType>
-class Function<ReturnType(ParamsType...)>
+/**
+ * 복사·이동 모두 가능한 소유(owning) callable 래퍼
+ *
+ * @tparam R 반환 타입
+ * @tparam Args 인자 타입 팩
+ */
+template <typename R, typename... Args>
+class Function<R(Args...)> final : public detail::TFunctionBase<R, Args...>
 {
-private:
-    // 내부 저장소 및 호출을 위한 인터페이스
-    struct ICallable
+    using Base = detail::TFunctionBase<R, Args...>;
+
+    struct ICopyableCallable : detail::ICallable<R, Args...>
     {
-        virtual ~ICallable() = default;
-
-        virtual ReturnType Invoke(ParamsType... args) = 0;
-
-        virtual ICallable* Clone() const = 0;               // Heap 복사
-        virtual ICallable* CloneTo(void* dest) const = 0;   // SBO 복사
-        virtual ICallable* MoveTo(void* dest) noexcept = 0; // 이동
+        virtual ICopyableCallable* Clone() const = 0;             // 힙 복사
+        virtual ICopyableCallable* CloneTo(void* dest) const = 0; // SBO 복사
     };
 
     template <typename Fn>
-    struct CallableImpl final : ICallable
+    struct CopyableCallableImpl final : ICopyableCallable
     {
+        static_assert(
+            std::is_copy_constructible_v<Fn>,
+            "Function<> requires a copy-constructible functor. Use UniqueFunction<> instead."
+        );
+
         Fn functor;
 
         template <typename F>
-            requires (!std::same_as<std::decay_t<F>, CallableImpl>)
-        explicit CallableImpl(F&& f)
-            : functor(std::forward<F>(f))
+            requires (!std::same_as<std::decay_t<F>, CopyableCallableImpl>)
+        explicit CopyableCallableImpl(F&& in_f)
+            : functor(std::forward<F>(in_f))
         {
         }
 
-        virtual ReturnType Invoke(ParamsType... args) override
+        virtual R Invoke(Args... args) override
         {
-            return std::invoke(functor, std::forward<ParamsType>(args)...);
+            return std::invoke(functor, std::forward<Args>(args)...);
         }
 
-        virtual ICallable* Clone() const override
+        virtual detail::ICallable<R, Args...>* MoveTo(void* dest) noexcept override
         {
-            CallableImpl* dest = OsMemory::Allocate<CallableImpl>();
-            std::construct_at(dest, functor);
-            return dest;
+            return std::construct_at(static_cast<CopyableCallableImpl*>(dest), std::move(functor));
         }
 
-        virtual ICallable* CloneTo(void* dest) const override
+        virtual ICopyableCallable* Clone() const override
         {
-            return std::construct_at(static_cast<CallableImpl*>(dest), functor);
+            CopyableCallableImpl* dest = OsMemory::Allocate<CopyableCallableImpl>();
+            return std::construct_at(dest, functor);
         }
 
-        virtual ICallable* MoveTo(void* dest) noexcept override
+        virtual ICopyableCallable* CloneTo(void* dest) const override
         {
-            return std::construct_at(static_cast<CallableImpl*>(dest), std::move(functor));
+            return std::construct_at(static_cast<CopyableCallableImpl*>(dest), functor);
         }
     };
 
-private:
-    [[nodiscard]] bool IsOnHeap() const noexcept
+    [[nodiscard]] ICopyableCallable* AsCopyable() const noexcept
     {
-        return static_cast<const void*>(callable_ptr) != static_cast<const void*>(sbo_storage);
-    }
-
-    void Reset() noexcept
-    {
-        if (callable_ptr)
-        {
-            // 소멸자 호출
-            std::destroy_at(callable_ptr);
-
-            if (IsOnHeap())
-            {
-                OsMemory::Free(callable_ptr);
-            }
-
-            callable_ptr = nullptr;
-        }
+        // callable_ptr는 항상 CopyableCallableImpl 이므로 안전하게 캐스트 가능
+        return static_cast<ICopyableCallable*>(this->callable_ptr);
     }
 
 public:
     Function() noexcept = default;
     Function(std::nullptr_t) noexcept {}
 
-    ~Function()
-    {
-        Reset();
-    }
+    Function(Function&& other) noexcept = default;
+    Function& operator=(Function&& other) noexcept = default;
 
     Function(const Function& other)
     {
@@ -109,29 +87,12 @@ public:
         {
             if (other.IsOnHeap())
             {
-                callable_ptr = other.callable_ptr->Clone();
+                this->callable_ptr = other.AsCopyable()->Clone();
             }
             else
             {
-                callable_ptr = other.callable_ptr->CloneTo(sbo_storage);
+                this->callable_ptr = other.AsCopyable()->CloneTo(this->sbo_storage);
             }
-        }
-    }
-
-    Function(Function&& other) noexcept
-    {
-        if (other.callable_ptr)
-        {
-            if (other.IsOnHeap())
-            {
-                callable_ptr = other.callable_ptr;
-            }
-            else
-            {
-                callable_ptr = other.callable_ptr->MoveTo(sbo_storage);
-                std::destroy_at(other.callable_ptr); // other.sbo_storage 정리
-            }
-            other.callable_ptr = nullptr;
         }
     }
 
@@ -139,111 +100,42 @@ public:
     {
         if (this != &other)
         {
-            Reset();
+            this->Reset();
             if (other.callable_ptr)
             {
                 if (other.IsOnHeap())
                 {
-                    callable_ptr = other.callable_ptr->Clone();
+                    this->callable_ptr = other.AsCopyable()->Clone();
                 }
                 else
                 {
-                    callable_ptr = other.callable_ptr->CloneTo(sbo_storage);
+                    this->callable_ptr = other.AsCopyable()->CloneTo(this->sbo_storage);
                 }
             }
         }
         return *this;
     }
 
-    Function& operator=(Function&& other) noexcept
-    {
-        if (this != &other)
-        {
-            Reset();
-            if (other.callable_ptr)
-            {
-                if (other.IsOnHeap())
-                {
-                    callable_ptr = other.callable_ptr;
-                }
-                else
-                {
-                    callable_ptr = other.callable_ptr->MoveTo(sbo_storage);
-                    std::destroy_at(other.callable_ptr); // other.sbo_storage 정리
-                }
-                other.callable_ptr = nullptr;
-            }
-        }
-        return *this;
-    }
-
-    // 람다 및 기타 Callable한 객체를 받는 생성자
+    // 람다 및 기타 callable 객체를 받는 생성자
+    // - 자기 자신(Function) 제외
+    // - nullptr_t 제외 (별도 생성자에서 처리)
+    // - 반환 타입을 포함한 호출 가능 여부 검사
     template <typename Fn>
         requires (
-            !std::same_as<std::decay_t<Fn>, Function>                              // 자기 자신은 제외
-            && !std::is_null_pointer_v<std::decay_t<Fn>>                           // nullptr_t는 별도 생성자에서 처리
-            && std::is_invocable_r_v<ReturnType, std::decay_t<Fn>&, ParamsType...> // 호출 가능성 검사 (반환 타입 포함)
+            !std::same_as<std::decay_t<Fn>, Function>
+            && !std::is_null_pointer_v<std::decay_t<Fn>>
+            && std::is_invocable_r_v<R, std::decay_t<Fn>&, Args...>
         )
     Function(Fn&& in_func)
     {
-        using DecayedFn = std::decay_t<Fn>;
-        using ImplType = CallableImpl<DecayedFn>;
-
-        // SBO 조건: 객체 크기가 버퍼보다 작고, 이동 생성이 noexcept여야 함
-        constexpr bool use_sbo =
-            sizeof(ImplType) <= detail::SBO_BUFFER_SIZE
-            && alignof(ImplType) <= alignof(detail::SBOAlign)
-            && std::is_nothrow_move_constructible_v<DecayedFn>;
-
-        if constexpr (use_sbo)
-        {
-            callable_ptr = std::construct_at(reinterpret_cast<ImplType*>(sbo_storage), std::forward<Fn>(in_func));
-        }
-        else
-        {
-            ImplType* dest = OsMemory::Allocate<ImplType>();
-            callable_ptr = std::construct_at(dest, std::forward<Fn>(in_func));
-        }
+        this->template Emplace<CopyableCallableImpl<std::decay_t<Fn>>>(std::forward<Fn>(in_func));
     }
 
-    [[nodiscard]] bool IsValid() const noexcept
-    {
-        return callable_ptr != nullptr;
-    }
+    using Base::operator==;
 
-    ReturnType Invoke(ParamsType... args) const
-    {
-        SE_ASSERT(callable_ptr, "callable_ptr is nullptr!");
-        return callable_ptr->Invoke(std::forward<ParamsType>(args)...);
-    }
-
-    ReturnType operator()(ParamsType... args) const
-    {
-        SE_ASSERT(callable_ptr, "callable_ptr is nullptr!");
-        return callable_ptr->Invoke(std::forward<ParamsType>(args)...);
-    }
-
-public:
     [[nodiscard]] bool operator==(const Function& other) const
     {
-        return callable_ptr == other.callable_ptr;
+        return this->callable_ptr == other.callable_ptr;
     }
-
-    [[nodiscard]] bool operator==(std::nullptr_t) const noexcept
-    {
-        return !IsValid();
-    }
-
-    [[nodiscard]] explicit operator bool() const noexcept
-    {
-        return IsValid();
-    }
-
-private:
-    // SBO 버퍼
-    alignas(detail::SBOAlign) uint8 sbo_storage[detail::SBO_BUFFER_SIZE]{};
-
-    // 현재 활성화된 Callable 포인터
-    ICallable* callable_ptr = nullptr;
 };
-}
+} // namespace se
