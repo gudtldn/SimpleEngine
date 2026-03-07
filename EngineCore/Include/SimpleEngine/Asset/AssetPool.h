@@ -23,7 +23,7 @@ public:
      * Frame-Epoch 규약을 위한 지연 파괴 엔트리
      * ExchangeAsset의 이전 포인터를 최소 1프레임 이후에 안전하게 해제합니다.
      */
-    struct PendingDestroy
+    struct PendingDestroyEntry
     {
         AssetBase* ptr = nullptr;
         void(*destructor)(void*) = nullptr;
@@ -128,7 +128,7 @@ private:
 
     // === Deferred Destruction ===
     TracyLockable(std::mutex, pending_destroy_mutex);
-    Array<PendingDestroy> pending_destroy;
+    Array<PendingDestroyEntry> pending_destroy;
 
     // === Eviction Configuration === TODO: 여기 EngineConfig.toml로 뺄 수 있을 듯
     uint64 memory_budget = std::numeric_limits<uint64>::max();

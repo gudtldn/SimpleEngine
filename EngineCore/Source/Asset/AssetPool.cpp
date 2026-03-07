@@ -113,7 +113,7 @@ void AssetPool::ProcessPendingDestroy(uint64 current_frame)
 
         for (usize read = 0; read < pending_destroy.Len(); ++read)
         {
-            PendingDestroy& item = pending_destroy[read];
+            PendingDestroyEntry& item = pending_destroy[read];
 
             // 지정된 유예 프레임이 지났으므로 안전하게 실제 메모리 해제
             if (item.release_frame <= current_frame && total_released < max_destructions_per_frame)
