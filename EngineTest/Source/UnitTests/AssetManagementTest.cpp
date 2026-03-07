@@ -194,7 +194,15 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     EXPECT_EQ(pool.GetCount(), 2u);
 
     // slot1에 strong handle 유지, slot2에는 없음
-    pool.GetTable().GetSlot(hd1.index).ref_count.fetch_add(1, std::memory_order_relaxed);
+    {
+        SlotEntry& slot = pool.GetTable().GetSlot(hd1.index);
+        slot.ref_count.fetch_add(1, std::memory_order_relaxed);
+        slot.state = ELoadingState::Loaded;
+    }
+    {
+        SlotEntry& slot = pool.GetTable().GetSlot(hd2.index);
+        slot.state = ELoadingState::Loaded;
+    }
 
     uint32 removed = pool.CollectGarbage();
     EXPECT_EQ(removed, 1u);
