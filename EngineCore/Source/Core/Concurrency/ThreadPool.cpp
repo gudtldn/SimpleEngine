@@ -15,9 +15,9 @@ ThreadPool::ThreadPool(String in_pool_name, uint32 num_threads)
     worker_threads.Reserve(num_threads);
     for (uint32 n = 0; n < num_threads; ++n)
     {
-        worker_threads.Emplace([this, n](const std::stop_token& token)
+        worker_threads.Emplace([this, n](const std::stop_token& stoken)
         {
-            WorkerLoop(token, n);
+            WorkerLoop(stoken, n);
         });
     }
 }
@@ -44,23 +44,23 @@ ThreadPool::~ThreadPool()
     ConsoleLog(ELogLevel::Info, "ThreadPool: [{}] destroyed successfully.", pool_name);
 }
 
-void ThreadPool::WorkerLoop(const std::stop_token& token, uint32 thread_id)
+void ThreadPool::WorkerLoop(const std::stop_token& stoken, uint32 thread_id)
 {
     const String thread_name = String::Format("{} {}", pool_name, thread_id);
     Platform::SetCurrentThreadName(thread_name);
 
-    while (!token.stop_requested())
+    while (true)
     {
         std::move_only_function<void()> current_task;
         {
             // stop이 요청되거나 작업이 생길 때까지 대기
             std::unique_lock lock(mutex);
-            condition.wait(lock, token, [this, &token]
+            const bool has_task = condition.wait(lock, stoken, [this]
             {
-                return !tasks.IsEmpty() || token.stop_requested();
+                return !tasks.IsEmpty();
             });
 
-            if (tasks.IsEmpty() && token.stop_requested())
+            if (!has_task)
             {
                 break;
             }

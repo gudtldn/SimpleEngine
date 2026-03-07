@@ -38,7 +38,7 @@ public:
 
 private:
     /** Worker Thread가 실행할 메인 루프 함수 */
-    void WorkerLoop(const std::stop_token& token, uint32 thread_id);
+    void WorkerLoop(const std::stop_token& stoken, uint32 thread_id);
 
 private:
     String pool_name;
