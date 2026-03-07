@@ -4,7 +4,7 @@
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
-#include "SimpleEngine/Asset/AssetSlot.h"
+#include "SimpleEngine/Asset/SlotEntry.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
@@ -115,111 +115,6 @@ TEST_F(AssetPathTest, Hash)
 }
 
 // =============================================================================
-// AssetSlot Tests
-// =============================================================================
-
-class AssetSlotTest : public ::testing::Test {};
-
-TEST_F(AssetSlotTest, InitialState)
-{
-    AssetId id = GenerateAssetId();
-    TypeId type_id = TypeId::Get<MockTexture>();
-    AssetPath path("textures/test.png");
-
-    AssetSlot slot(id, type_id, path);
-
-    EXPECT_EQ(slot.GetAssetId(), id);
-    EXPECT_EQ(slot.GetAssetType(), type_id);
-    EXPECT_EQ(slot.GetSourcePath().ToString(), path.ToString());
-    EXPECT_EQ(slot.GetState(), ELoadingState::Unloaded);
-    EXPECT_EQ(slot.GetRawAsset(), nullptr);
-}
-
-TEST_F(AssetSlotTest, ExchangeAsset)
-{
-    AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
-
-    auto asset = std::make_shared<MockTexture>();
-    asset->width = 512;
-
-    // Exchange asset
-    auto old_asset = slot.ExchangeAsset(asset, ELoadingState::Loaded);
-
-    EXPECT_EQ(old_asset, nullptr);  // No previous asset
-    EXPECT_EQ(slot.GetState(), ELoadingState::Loaded);
-    EXPECT_NE(slot.GetRawAsset(), nullptr);
-    EXPECT_EQ(static_cast<MockTexture*>(slot.GetRawAsset())->width, 512);
-}
-
-TEST_F(AssetSlotTest, GetAsset_SharedPointer)
-{
-    AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
-
-    auto asset = std::make_shared<MockMesh>();
-    asset->vertex_count = 200;
-
-    (void)slot.ExchangeAsset(asset, ELoadingState::Loaded);
-
-    auto retrieved = slot.GetAsset();
-    ASSERT_NE(retrieved, nullptr);
-    EXPECT_EQ(std::static_pointer_cast<MockMesh>(retrieved)->vertex_count, 200);
-}
-
-TEST_F(AssetSlotTest, StateTransitions)
-{
-    AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
-
-    EXPECT_EQ(slot.GetState(), ELoadingState::Unloaded);
-
-    slot.SetState(ELoadingState::Loading);
-    EXPECT_EQ(slot.GetState(), ELoadingState::Loading);
-
-    auto asset = std::make_shared<MockTexture>();
-    (void)slot.ExchangeAsset(asset, ELoadingState::Loaded);
-    EXPECT_EQ(slot.GetState(), ELoadingState::Loaded);
-
-    slot.SetState(ELoadingState::Failed);
-    EXPECT_EQ(slot.GetState(), ELoadingState::Failed);
-}
-
-TEST_F(AssetSlotTest, Invalidate)
-{
-    AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
-
-    auto asset = std::make_shared<MockTexture>();
-    (void)slot.ExchangeAsset(asset, ELoadingState::Loaded);
-
-    ASSERT_NE(slot.GetRawAsset(), nullptr);
-
-    auto old = slot.Invalidate();
-    EXPECT_NE(old, nullptr);
-    EXPECT_EQ(slot.GetRawAsset(), nullptr);
-    EXPECT_EQ(slot.GetState(), ELoadingState::Unloaded);
-}
-
-TEST_F(AssetSlotTest, LockFreeRead)
-{
-    AssetId id = GenerateAssetId();
-    AssetSlot slot(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
-
-    auto asset = std::make_shared<MockTexture>();
-    asset->width = 2048;
-    (void)slot.ExchangeAsset(asset, ELoadingState::Loaded);
-
-    // GetRawAsset should be lock-free (atomic read)
-    for (int i = 0; i < 100; ++i)
-    {
-        AssetBase* raw = slot.GetRawAsset();
-        ASSERT_NE(raw, nullptr);
-        EXPECT_EQ(static_cast<MockTexture*>(raw)->width, 2048);
-    }
-}
-
-// =============================================================================
 // AssetPool Tests
 // =============================================================================
 
@@ -235,12 +130,13 @@ TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
     TypeId type = TypeId::Get<MockTexture>();
     AssetPath path("textures/new.png");
 
-    auto slot = cache.FindOrCreate(id, type, path);
+    HandleData hd = cache.FindOrCreate(id, type, path);
 
-    ASSERT_NE(slot, nullptr);
-    EXPECT_EQ(slot->GetAssetId(), id);
-    EXPECT_EQ(slot->GetAssetType(), type);
-    EXPECT_EQ(slot->GetSourcePath(), path);
+    ASSERT_TRUE(hd.IsValid());
+    const SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
+    EXPECT_EQ(slot.asset_id, id);
+    EXPECT_EQ(slot.asset_type, type);
+    EXPECT_EQ(slot.source_path, path);
     EXPECT_EQ(cache.GetCount(), 1u);
 }
 
@@ -250,29 +146,29 @@ TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
     TypeId type = TypeId::Get<MockTexture>();
     AssetPath path("textures/existing.png");
 
-    auto slot1 = cache.FindOrCreate(id, type, path);
-    auto slot2 = cache.FindOrCreate(id, type, path);
+    HandleData hd1 = cache.FindOrCreate(id, type, path);
+    HandleData hd2 = cache.FindOrCreate(id, type, path);
 
-    EXPECT_EQ(slot1, slot2);  // Same slot
+    EXPECT_EQ(hd1, hd2);  // Same handle
     EXPECT_EQ(cache.GetCount(), 1u);
 }
 
 TEST_F(AssetCacheTest, Find_NonExistent)
 {
     AssetId id = GenerateAssetId();
-    auto slot = cache.Find(id);
+    auto result = cache.Find(id);
 
-    EXPECT_EQ(slot, nullptr);
+    EXPECT_FALSE(result.HasValue());
 }
 
 TEST_F(AssetCacheTest, Find_Existing)
 {
     AssetId id = GenerateAssetId();
-    auto created = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
+    HandleData created = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
 
     auto found = cache.Find(id);
-    ASSERT_NE(found, nullptr);
-    EXPECT_EQ(found, created);
+    ASSERT_TRUE(found.HasValue());
+    EXPECT_EQ(found.Value(), created);
 }
 
 TEST_F(AssetCacheTest, Remove)
@@ -284,7 +180,7 @@ TEST_F(AssetCacheTest, Remove)
 
     cache.Remove(id);
     EXPECT_EQ(cache.GetCount(), 0u);
-    EXPECT_EQ(cache.Find(id), nullptr);
+    EXPECT_FALSE(cache.Find(id).HasValue());
 }
 
 TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
@@ -292,31 +188,40 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
 
-    auto slot1 = cache.FindOrCreate(id1, TypeId::Get<MockTexture>(), AssetPath("tex1.png"));
-    auto slot2 = cache.FindOrCreate(id2, TypeId::Get<MockTexture>(), AssetPath("tex2.png"));
+    HandleData hd1 = cache.FindOrCreate(id1, TypeId::Get<MockTexture>(), AssetPath("tex1.png"));
+    [[maybe_unused]] HandleData hd2 = cache.FindOrCreate(id2, TypeId::Get<MockTexture>(), AssetPath("tex2.png"));
 
     EXPECT_EQ(cache.GetCount(), 2u);
 
-    // Keep slot1 alive, let slot2 go
-    slot2.reset();
+    // slot1에 strong handle 유지, slot2에는 없음
+    cache.GetTable().GetSlot(hd1.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
     uint32 removed = cache.CollectGarbage();
     EXPECT_EQ(removed, 1u);
     EXPECT_EQ(cache.GetCount(), 1u);
 
     // slot1 still exists
-    EXPECT_NE(cache.Find(id1), nullptr);
-    EXPECT_EQ(cache.Find(id2), nullptr);
+    EXPECT_TRUE(cache.Find(id1).HasValue());
+    EXPECT_FALSE(cache.Find(id2).HasValue());
+
+    // cleanup
+    cache.GetTable().GetSlot(hd1.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
 {
     AssetId id = GenerateAssetId();
-    auto slot = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+    HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+
+    // ref_count를 1로 설정하여 사용 중으로 표시
+    cache.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
     uint32 removed = cache.CollectGarbage();
-    EXPECT_EQ(removed, 0u);  // slot is still held by 'slot' variable
+    EXPECT_EQ(removed, 0u);
     EXPECT_EQ(cache.GetCount(), 1u);
+
+    // cleanup
+    cache.GetTable().GetSlot(hd.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 // =============================================================================
@@ -328,13 +233,21 @@ class AssetHandleTest : public ::testing::Test
 protected:
     AssetPool cache;
 
-    std::shared_ptr<AssetSlot> CreateSlotWithAsset(const AssetId& id)
+    /** HandleTable에 슬롯을 만들고 MockTexture를 로드한 HandleData를 반환합니다. */
+    HandleData CreateSlotWithAsset(const AssetId& id)
     {
-        auto slot = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
-        auto asset = std::make_shared<MockTexture>();
-        asset->width = 512;
-        (void)slot->ExchangeAsset(asset, ELoadingState::Loaded);
-        return slot;
+        HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+        SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
+
+        auto* texture = new MockTexture();
+        texture->width = 512;
+        (void)slot.ExchangePayload({
+            .ptr = texture,
+            .destructor = [](void* p) { delete static_cast<MockTexture*>(p); }
+        });
+        slot.SetState(ELoadingState::Loaded);
+
+        return hd;
     }
 };
 
@@ -344,15 +257,14 @@ TEST_F(AssetHandleTest, DefaultConstruction)
 
     EXPECT_FALSE(handle.IsValid());
     EXPECT_EQ(handle.Get(), nullptr);
-    EXPECT_EQ(handle.GetShared(), nullptr);
 }
 
-TEST_F(AssetHandleTest, ConstructionWithSlot)
+TEST_F(AssetHandleTest, ConstructionWithHandleData)
 {
     AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
+    HandleData hd = CreateSlotWithAsset(id);
 
-    AssetHandle<MockTexture> handle(slot);
+    AssetHandle<MockTexture> handle(hd, &cache.GetTable());
 
     EXPECT_TRUE(handle.IsValid());
     EXPECT_NE(handle.Get(), nullptr);
@@ -362,33 +274,21 @@ TEST_F(AssetHandleTest, ConstructionWithSlot)
 TEST_F(AssetHandleTest, Get_RawPointer)
 {
     AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
+    HandleData hd = CreateSlotWithAsset(id);
 
-    AssetHandle<MockTexture> handle(slot);
+    AssetHandle<MockTexture> handle(hd, &cache.GetTable());
 
     MockTexture* ptr = handle.Get();
     ASSERT_NE(ptr, nullptr);
     EXPECT_EQ(ptr->width, 512);
 }
 
-TEST_F(AssetHandleTest, GetShared_SharedPointer)
-{
-    AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
-
-    AssetHandle<MockTexture> handle(slot);
-
-    auto shared_ptr = handle.GetShared();
-    ASSERT_NE(shared_ptr, nullptr);
-    EXPECT_EQ(shared_ptr->width, 512);
-}
-
 TEST_F(AssetHandleTest, OperatorArrow)
 {
     AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
+    HandleData hd = CreateSlotWithAsset(id);
 
-    AssetHandle<MockTexture> handle(slot);
+    AssetHandle<MockTexture> handle(hd, &cache.GetTable());
 
     EXPECT_EQ(handle->width, 512);
     handle->width = 1024;
@@ -401,34 +301,40 @@ TEST_F(AssetHandleTest, OperatorBool)
     EXPECT_FALSE(static_cast<bool>(invalid_handle));
 
     AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
-    AssetHandle<MockTexture> valid_handle(slot);
+    HandleData hd = CreateSlotWithAsset(id);
+    AssetHandle<MockTexture> valid_handle(hd, &cache.GetTable());
     EXPECT_TRUE(static_cast<bool>(valid_handle));
 }
 
 TEST_F(AssetHandleTest, CopyConstruction)
 {
     AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
+    HandleData hd = CreateSlotWithAsset(id);
 
-    AssetHandle<MockTexture> handle1(slot);
+    AssetHandle<MockTexture> handle1(hd, &cache.GetTable());
     AssetHandle<MockTexture> handle2(handle1);
 
     EXPECT_TRUE(handle2.IsValid());
     EXPECT_EQ(handle1.Get(), handle2.Get());
     EXPECT_EQ(handle1.GetAssetId(), handle2.GetAssetId());
+
+    // ref_count가 2여야 함 (handle1 + handle2)
+    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 2u);
 }
 
 TEST_F(AssetHandleTest, MoveConstruction)
 {
     AssetId id = GenerateAssetId();
-    auto slot = CreateSlotWithAsset(id);
+    HandleData hd = CreateSlotWithAsset(id);
 
-    AssetHandle<MockTexture> handle1(slot);
+    AssetHandle<MockTexture> handle1(hd, &cache.GetTable());
     AssetHandle<MockTexture> handle2(std::move(handle1));
 
     EXPECT_TRUE(handle2.IsValid());
     EXPECT_EQ(handle2.GetAssetId(), id);
+
+    // ref_count가 1이어야 함 (handle2만)
+    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 1u);
 }
 
 TEST_F(AssetHandleTest, InvalidHandle_ReturnsNull)
@@ -436,8 +342,20 @@ TEST_F(AssetHandleTest, InvalidHandle_ReturnsNull)
     AssetHandle<MockTexture> handle;
 
     EXPECT_EQ(handle.Get(), nullptr);
-    EXPECT_EQ(handle.GetShared(), nullptr);
     EXPECT_EQ(handle.GetAssetId(), AssetId::Invalid);
+}
+
+TEST_F(AssetHandleTest, StrongCount_DecrementOnDestruct)
+{
+    AssetId id = GenerateAssetId();
+    HandleData hd = CreateSlotWithAsset(id);
+
+    {
+        AssetHandle<MockTexture> handle(hd, &cache.GetTable());
+        EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 1u);
+    }
+    // handle이 소멸되면 ref_count가 0이 되어야 함
+    EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 0u);
 }
 
 // =============================================================================
@@ -597,15 +515,20 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
     registry.RegisterAsset(id, type, path, CreateDummyMeta());
 
     // 2. Create slot in cache
-    auto slot = cache.FindOrCreate(id, type, path);
+    HandleData hd = cache.FindOrCreate(id, type, path);
+    SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
 
     // 3. Load asset into slot
-    auto asset = std::make_shared<MockTexture>();
-    asset->width = 2048;
-    (void)slot->ExchangeAsset(asset, ELoadingState::Loaded);
+    auto* texture = new MockTexture();
+    texture->width = 2048;
+    (void)slot.ExchangePayload({
+        .ptr = texture,
+        .destructor = [](void* p) { delete static_cast<MockTexture*>(p); },
+    });
+    slot.SetState(ELoadingState::Loaded);
 
     // 4. Create handle
-    AssetHandle<MockTexture> handle(slot);
+    AssetHandle<MockTexture> handle(hd, &cache.GetTable());
 
     // 5. Use handle
     ASSERT_TRUE(handle.IsValid());
@@ -620,14 +543,19 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
 TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 {
     AssetId id = GenerateAssetId();
-    auto slot = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
+    HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
+    SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
 
-    auto asset = std::make_shared<MockMesh>();
-    asset->vertex_count = 500;
-    (void)slot->ExchangeAsset(asset, ELoadingState::Loaded);
+    auto* mesh = new MockMesh();
+    mesh->vertex_count = 500;
+    (void)slot.ExchangePayload({
+        .ptr = mesh,
+        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
+    });
+    slot.SetState(ELoadingState::Loaded);
 
-    AssetHandle<MockMesh> handle1(slot);
-    AssetHandle<MockMesh> handle2(slot);
+    AssetHandle<MockMesh> handle1(hd, &cache.GetTable());
+    AssetHandle<MockMesh> handle2(hd, &cache.GetTable());
     AssetHandle<MockMesh> handle3(handle1);
 
     EXPECT_EQ(handle1.Get(), handle2.Get());
@@ -635,6 +563,9 @@ TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
     EXPECT_EQ(handle1->vertex_count, 500);
     EXPECT_EQ(handle2->vertex_count, 500);
     EXPECT_EQ(handle3->vertex_count, 500);
+
+    // ref_count: handle1 + handle2 + handle3 = 3
+    EXPECT_EQ(slot.ref_count.load(), 3u);
 }
 
 TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
@@ -654,17 +585,28 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
     registry.RegisterAsset(weapon_mesh_id, mesh_type, AssetPath(weapon_path), CreateDummyMeta());
 
     // Create slots
-    auto main_slot = cache.FindOrCreate(main_mesh_id, mesh_type, main_path);
-    auto weapon_slot = cache.FindOrCreate(weapon_mesh_id, mesh_type, weapon_path);
+    HandleData main_hd = cache.FindOrCreate(main_mesh_id, mesh_type, main_path);
+    HandleData weapon_hd = cache.FindOrCreate(weapon_mesh_id, mesh_type, weapon_path);
+
+    SlotEntry& main_slot = cache.GetTable().GetSlot(main_hd.index);
+    SlotEntry& weapon_slot = cache.GetTable().GetSlot(weapon_hd.index);
 
     // Load assets
-    auto main_mesh = std::make_shared<MockMesh>();
+    auto* main_mesh = new MockMesh();
     main_mesh->vertex_count = 1000;
-    (void)main_slot->ExchangeAsset(main_mesh, ELoadingState::Loaded);
+    (void)main_slot.ExchangePayload({
+        .ptr = main_mesh,
+        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
+    });
+    main_slot.SetState(ELoadingState::Loaded);
 
-    auto weapon_mesh = std::make_shared<MockMesh>();
+    auto* weapon_mesh = new MockMesh();
     weapon_mesh->vertex_count = 200;
-    (void)weapon_slot->ExchangeAsset(weapon_mesh, ELoadingState::Loaded);
+    (void)weapon_slot.ExchangePayload({
+        .ptr = weapon_mesh,
+        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
+    });
+    weapon_slot.SetState(ELoadingState::Loaded);
 
     // Verify
     EXPECT_TRUE(registry.IsFileImported(file_path));
@@ -672,8 +614,8 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
     auto assets = registry.GetAssetsInFile(file_path);
     EXPECT_EQ(assets.Len(), 2u);
 
-    AssetHandle<MockMesh> main_handle(main_slot);
-    AssetHandle<MockMesh> weapon_handle(weapon_slot);
+    AssetHandle<MockMesh> main_handle(main_hd, &cache.GetTable());
+    AssetHandle<MockMesh> weapon_handle(weapon_hd, &cache.GetTable());
 
     EXPECT_EQ(main_handle->vertex_count, 1000);
     EXPECT_EQ(weapon_handle->vertex_count, 200);

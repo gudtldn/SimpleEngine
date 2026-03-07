@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
-#include "SimpleEngine/Asset/AssetSlot.h"
+#include "SimpleEngine/Asset/AssetPayload.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -28,10 +28,10 @@ using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& fil
  *
  * 로딩 흐름:
  *   1. Registry에서 AssetId 조회
- *   2. AssetCache(메모리) Hit -> 즉시 반환
- *   3. DDC Hit (source_hash/cache_version 일치) -> 역직렬화 -> Cache 적재 -> 반환
- *   4. DDC Miss -> Import 파이프라인 실행 -> DDC에 저장 -> Cache 적재 -> 반환
- *   5. Registry 미등록 (런타임 fallback) -> ImportAndRegisterAll
+ *   2. AssetPool(메모리) Hit -> 즉시 반환
+ *   3. DDC Hit (source_hash/cache_version 일치) -> 역직렬화 -> Pool 적재 -> 반환
+ *   4. DDC Miss -> (Editor) Import 파이프라인 실행 -> DDC에 저장 -> Pool 적재 -> 반환
+ *   5. DDC Miss Handler 미등록 (런타임 fallback) -> Invalid Handle
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Internal) AssetSubsystem : public SubsystemBase
 {
@@ -54,10 +54,11 @@ public:
     /**
      * 지정된 경로의 Asset을 로드하고 Handle을 반환합니다.
      * @param asset_path Asset 경로 (예: "meshes/model.fbx#Mesh_01")
+     * @param scope 에셋의 수명 범위 및 관리 우선순위 (기본값: Scene)
      */
     template <typename T>
         requires std::derived_from<T, AssetBase>
-    [[nodiscard]] AssetHandle<T> Load(const AssetPath& asset_path);
+    [[nodiscard]] AssetHandle<T> Load(const AssetPath& asset_path, EScopeLayer scope = EScopeLayer::Scene);
 
     /**
      * 캐시에서 Asset을 찾습니다. (Import 수행 안함)
@@ -67,8 +68,8 @@ public:
         requires std::derived_from<T, AssetBase>
     [[nodiscard]] AssetHandle<T> Find(const AssetId& asset_id) const;
 
-    /** Asset을 프레임 마지막에 안전하게 해제할 수 있도록 대기 큐(Pending Queue)에 삽입합니다. */
-    void DeferRelease(std::shared_ptr<AssetBase> asset);
+    /** Asset payload를 프레임 마지막에 안전하게 해제할 수 있도록 대기 큐(Pending Queue)에 삽입합니다. */
+    void DeferRelease(AssetPayload payload);
 
     /** 프레임 끝에서 대기 큐(Pending Queue)를 정리합니다. */
     void EndFrame();
@@ -77,47 +78,56 @@ public:
     /** Asset을 DDC payload로 직렬화합니다. */
     [[nodiscard]] static Array<uint8> SerializeAssetPayload(const AssetBase& asset);
 
-    /** DDC payload에서 Asset을 역직렬화합니다. */
-    [[nodiscard]] static std::shared_ptr<AssetBase> DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
+    /**
+     * DDC payload에서 Asset을 역직렬화하여 AssetPayload로 반환합니다.
+     * ptr과 destructor가 분리된 상태로 반환되므로, SlotEntry에 직접 저장할 수 있습니다.
+     */
+    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
 
 public:
-    [[nodiscard]] FORCE_INLINE AssetPool& GetCache() const { return *cache; }
+    [[nodiscard]] FORCE_INLINE AssetPool& GetPool() const { return *pool; }
     [[nodiscard]] FORCE_INLINE AssetRegistry& GetRegistry() const { return *registry; }
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
 private:
-    [[nodiscard]] std::shared_ptr<AssetSlot> LoadInternal(const TypeId& expected_type, const AssetPath& source_path);
-    [[nodiscard]] std::shared_ptr<AssetSlot> FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
+    [[nodiscard]] HandleData LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope);
+    [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
+    [[nodiscard]] HandleTable& GetHandleTable() const;
 
 private:
-    std::unique_ptr<AssetPool> cache;
+    std::unique_ptr<AssetPool> pool;
     std::unique_ptr<AssetRegistry> registry;
     std::unique_ptr<DerivedDataCache> ddc;
 
-    // Deferred Release
-    TracyLockable(std::mutex, pending_mutex);
-    Array<std::shared_ptr<AssetBase>> pending_release;
-
     DDCMissHandler ddc_miss_handler;
 
+    // Frame counter (Eviction 정책용)
+    uint64 frame_count = 0;
+
     TracyLockable(std::mutex, loading_mutex);
-    std::condition_variable_any import_cv;
-    HashSet<VPath> files_currently_importing;
+    std::condition_variable_any import_cv;    // 하나의 스레드에서만 Import를 보장하는 cv
+    HashSet<VPath> files_currently_importing; // 현재 Import 중인 File 목록
 };
 
 template <typename T>
     requires std::derived_from<T, AssetBase>
-AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path)
+AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path, EScopeLayer scope)
 {
-    std::shared_ptr<AssetSlot> slot = LoadInternal(TypeId::Get<T>(), asset_path);
-    return AssetHandle<T>{ std::move(slot) };
+    if (HandleData handle_data = LoadInternal(TypeId::Get<T>(), asset_path, scope))
+    {
+        return AssetHandle<T>{ handle_data, &GetHandleTable() };
+    }
+    return {};
 }
 
 template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
 {
-    std::shared_ptr<AssetSlot> slot = FindInternal(TypeId::Get<T>(), asset_id);
-    return AssetHandle<T>{ std::move(slot) };
+    if (HandleData handle_data = FindInternal(TypeId::Get<T>(), asset_id))
+    {
+        return AssetHandle<T>{ handle_data, &GetHandleTable() };
+    }
+    return {};
 }
 }  // namespace se::asset

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Utility/Debug.h"
 

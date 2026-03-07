@@ -1,7 +1,7 @@
 ﻿#include "SimpleEngine/Asset/AssetSubsystem.h"
 
-#include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetMetadata.h"
+#include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
@@ -10,6 +10,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::asset
@@ -27,7 +28,7 @@ bool AssetSubsystem::Initialize()
     ConsoleLog(ELogLevel::Info, "Initializing Asset subsystem...");
 
     // Create AssetPool Instance
-    cache = std::make_unique<AssetPool>();
+    pool = std::make_unique<AssetPool>();
 
     // Create Asset Registry Instance
     registry = std::make_unique<AssetRegistry>();
@@ -51,7 +52,7 @@ void AssetSubsystem::Release()
 
     ddc.reset();
     registry.reset();
-    cache.reset();
+    pool.reset();
 }
 
 void AssetSubsystem::SetDDCMissHandler(DDCMissHandler handler)
@@ -59,19 +60,30 @@ void AssetSubsystem::SetDDCMissHandler(DDCMissHandler handler)
     ddc_miss_handler = std::move(handler);
 }
 
-void AssetSubsystem::DeferRelease(std::shared_ptr<AssetBase> asset)
+void AssetSubsystem::DeferRelease(AssetPayload payload)
 {
-    // if (asset.use_count() > 2) {} TODO: 검사 할까?
-    std::scoped_lock lock(pending_mutex);
-    pending_release.Push(std::move(asset));
+    if (!payload.ptr)
+    {
+        return;
+    }
+
+    if (!SE_ENSURE(payload.destructor))
+    {
+        ConsoleLog(ELogLevel::Error, "AssetSubsystem::DeferRelease - Destructor is null for a valid asset pointer! Memory leak occurred.");
+        return;
+    }
+
+    pool->DeferDestroy(std::move(payload), frame_count);
 }
 
 void AssetSubsystem::EndFrame()
 {
     ZoneScopedN("AssetSubsystem::EndFrame");
 
-    std::scoped_lock lock(pending_mutex);
-    pending_release.Clear();
+    ++frame_count;
+    pool->GetTable().SetCurrentFrame(frame_count);
+    pool->ProcessPendingDestroy(frame_count);
+    pool->EvictIfOverBudget(frame_count);
 }
 
 Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
@@ -90,30 +102,28 @@ Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     return payload;
 }
 
-std::shared_ptr<AssetBase> AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload)
+AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload)
 {
     const auto info_opt = TypeRegistry::Get().Find(type_id);
     if (!info_opt || !info_opt->constructor || !info_opt->serialize)
     {
         ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type: {}", type_id.GetName());
-        return nullptr;
+        return {};
     }
 
     void* raw = info_opt->constructor();
     if (!raw)
     {
-        return nullptr;
+        return {};
     }
 
     MemoryReader reader(payload);
     info_opt->serialize(reader, raw);
 
-    // shared_ptr로 변환 (destructor 연결)
-    AssetBase* asset = static_cast<AssetBase*>(raw);
-    return { asset, [destructor = info_opt->destructor](AssetBase* p) { destructor(p); } };
+    return AssetPayload{ static_cast<AssetBase*>(raw), info_opt->destructor };
 }
 
-std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path)
+HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope)
 {
     ZoneScopedN("AssetSubsystem::LoadInternal");
     {
@@ -137,7 +147,15 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
         return registry->FindFirstOfType(file_vpath, expected_type);
     };
 
-    std::shared_ptr<AssetSlot> slot = nullptr;
+    HandleData handle_data;
+    HandleTable& table = pool->GetTable();
+
+    // Dangling Reference 방지를 위해, 매번 직접 인덱스로 접근
+    const auto get_slot = [&] -> SlotEntry&
+    {
+        return table.GetSlot(handle_data.index);
+    };
+
     for (usize attempt = 0; attempt < 2; ++attempt)
     {
         bool ddc_missing_or_corrupted = false;
@@ -146,32 +164,32 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
         if (const Optional id_opt = find_asset_id())
         {
             const AssetId& current_id = id_opt.Value();
-            slot = cache->FindOrCreate(current_id, expected_type, source_path);
+            handle_data = pool->FindOrCreate(current_id, expected_type, source_path);
 
             // [Slot-Level Lock] 로딩 상태 동기화
             while (true)
             {
-                const ELoadingState state = slot->GetState();
+                const ELoadingState state = get_slot().GetState();
                 if (state == ELoadingState::Loaded)
                 {
                     // 메모리 Cache Hit
-                    if (slot->GetAssetType() == expected_type)
+                    if (get_slot().asset_type == expected_type)
                     {
-                        return slot;
+                        return handle_data;
                     }
                     ConsoleLog(ELogLevel::Error, "Asset Type Mismatch!");
-                    return nullptr;
+                    return {};
                 }
 
                 if (state == ELoadingState::Loading)
                 {
                     // 다른 스레드가 DDC를 읽거나 Import 중이므로 Sleep
-                    slot->WaitForLoadComplete();
+                    get_slot().WaitForLoadComplete();
                     continue; // 깨어나면 상태를 다시 확인
                 }
 
                 // Unloaded 또는 Failed 라면, 현재 스레드에서 로딩 시작
-                if (slot->BeginLoad())
+                if (get_slot().BeginLoad())
                 {
                     break;
                 }
@@ -190,14 +208,38 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
             {
                 if (auto entry_opt = ddc->Load(current_id.GetGuid()))
                 {
-                    if (auto asset_ptr = DeserializeAssetPayload(expected_type, entry_opt->payload))
+                    if (AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
-                        if (auto old_asset = slot->ExchangeAsset(std::move(asset_ptr)))
+                        SlotEntry& current_slot = get_slot();
+
+                        // 기존 슬롯에 있던 Asset을 교체
+                        AssetPayload old_payload = current_slot.ExchangePayload(std::move(payload)); // ownership transferred to SlotEntry
+
+                        // Eviction 메타데이터 설정
+                        const uint64 old_size = current_slot.asset_size_bytes;
+                        const uint64 new_size = entry_opt->payload.Len();
+                        current_slot.asset_size_bytes = new_size;
+                        current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
+                        current_slot.scope = scope;
+
+                        if (new_size > old_size)
                         {
-                            DeferRelease(std::move(old_asset));
+                            table.TrackMemoryUsage(new_size - old_size);
+                        }
+                        else if (new_size < old_size)
+                        {
+                            table.UntrackMemoryUsage(old_size - new_size);
+                        }
+
+                        // 로딩 완료
+                        current_slot.SetState(ELoadingState::Loaded);
+
+                        if (old_payload)
+                        {
+                            DeferRelease(std::move(old_payload));
                         }
                         ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
-                        return slot;
+                        return handle_data;
                     }
                 }
             }
@@ -220,9 +262,9 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
             import_cv.wait(lock, [&] { return !files_currently_importing.Contains(file_vpath); });
 
             // double-check
-            if (slot && slot->GetState() == ELoadingState::Loaded)
+            if (handle_data.IsValid() && get_slot().GetState() == ELoadingState::Loaded)
             {
-                return slot;
+                return handle_data;
             }
 
             // 아직 Import 안 됨 -> 현재 스레드에서 Import 권한을 획득함
@@ -243,9 +285,9 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
                 {
                     // 성공했다면, 내가 쥐고 있던 Slot의 상태를 Unloaded로 초기화
                     // 그리고 continue 후, 위에서 다시 BeginLoad()를 획득하고 DDC를 읽도록 함.
-                    if (slot)
+                    if (handle_data.IsValid())
                     {
-                        slot->SetState(ELoadingState::Unloaded);
+                        get_slot().SetState(ELoadingState::Unloaded);
                     }
                     continue;
                 }
@@ -261,9 +303,9 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
     }
 
     // 실패 처리
-    if (slot)
+    if (handle_data.IsValid())
     {
-        slot->SetState(ELoadingState::Failed);
+        get_slot().SetState(ELoadingState::Failed);
     }
 
     if (has_sub_name)
@@ -274,22 +316,34 @@ std::shared_ptr<AssetSlot> AssetSubsystem::LoadInternal(const TypeId& expected_t
     {
         ConsoleLog(ELogLevel::Error, "No asset of type '{}' found in file: {}", expected_type.GetName(), file_vpath);
     }
-    return nullptr;
+    return {};
 }
 
-std::shared_ptr<AssetSlot> AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
+HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
 {
-    if (auto slot = cache->Find(asset_id))
+    Optional<HandleData> handle_opt = pool->Find(asset_id);
+    if (!handle_opt.HasValue())
     {
-        if (slot->GetAssetType() == expected_type)
-        {
-            return slot;
-        }
+        return {};
+    }
+
+    const HandleData& handle_data = handle_opt.Value();
+    const SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
+
+    if (slot.asset_type != expected_type)
+    {
         ConsoleLog(
             ELogLevel::Error, "Asset Type Mismatch! Requested: {}, Found: {}",
-            expected_type.GetName(), slot->GetAssetType().GetName()
+            expected_type.GetName(), slot.asset_type.GetName()
         );
+        return {};
     }
-    return nullptr;
+
+    return handle_data;
+}
+
+HandleTable& AssetSubsystem::GetHandleTable() const
+{
+    return pool->GetTable();
 }
 } // namespace se::asset
