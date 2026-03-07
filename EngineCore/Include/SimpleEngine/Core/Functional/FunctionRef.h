@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -32,7 +32,13 @@ class FunctionRef;
 template <typename R, typename... Args>
 class FunctionRef<R(Args...)>
 {
-    using ThunkFn = R(*)(const void*, Args...);
+    union Storage
+    {
+        const void* obj_ptr;  // 람다, 객체용
+        R (*fn_ptr)(Args...); // 일반 함수 포인터용
+    };
+
+    using ThunkFn = R(*)(Storage, Args...);
 
 public:
     FunctionRef() = delete;
@@ -40,32 +46,31 @@ public:
     // callable 객체를 받는 생성자
     template <typename Fn>
         requires (
-            !std::same_as<std::decay_t<Fn>, FunctionRef>
+            !std::same_as<std::remove_cvref_t<Fn>, FunctionRef>
             && !std::is_pointer_v<std::decay_t<Fn>>
             && std::is_invocable_r_v<R, std::decay_t<Fn>&, Args...>
         )
-    /* implicit */ FunctionRef(Fn&& in_fn) noexcept
-        : data_ptr(std::addressof(in_fn))
-        , thunk([](const void* ptr, Args... args) -> R
+    /* implicit */ FunctionRef(Fn&& func) noexcept
+    {
+        storage.obj_ptr = std::addressof(func);
+        thunk = [](Storage s, Args... args) -> R
         {
-            using Decayed = std::decay_t<Fn>;
+            using RawFn = std::decay_t<Fn>;
             return std::invoke(
-                const_cast<Decayed&>(*static_cast<const Decayed*>(ptr)),
+                *const_cast<RawFn*>(static_cast<const RawFn*>(s.obj_ptr)),
                 std::forward<Args>(args)...
             );
-        })
-    {
+        };
     }
 
     // 함수 포인터를 받는 생성자
     /* implicit */ FunctionRef(R (*fnptr)(Args...)) noexcept
-        : data_ptr(reinterpret_cast<const void*>(fnptr))
-        , thunk([](const void* ptr, Args... args) -> R
-        {
-            auto original_fnptr = reinterpret_cast<R(*)(Args...)>(const_cast<void*>(ptr));
-            return std::invoke(original_fnptr, std::forward<Args>(args)...);
-        })
     {
+        storage.fn_ptr = fnptr;
+        thunk = [](Storage s, Args... args) -> R
+        {
+            return std::invoke(s.fn_ptr, std::forward<Args>(args)...);
+        };
     }
 
     [[nodiscard]] bool IsValid() const noexcept
@@ -76,13 +81,13 @@ public:
     R Invoke(Args... args) const
     {
         SE_ASSERT(thunk, "FunctionRef is not bound!");
-        return thunk(data_ptr, std::forward<Args>(args)...);
+        return thunk(storage, std::forward<Args>(args)...);
     }
 
     R operator()(Args... args) const
     {
         SE_ASSERT(thunk, "FunctionRef is not bound!");
-        return thunk(data_ptr, std::forward<Args>(args)...);
+        return thunk(storage, std::forward<Args>(args)...);
     }
 
     [[nodiscard]] explicit operator bool() const noexcept
@@ -91,7 +96,7 @@ public:
     }
 
 private:
-    const void* data_ptr = nullptr;
+    Storage storage;
     ThunkFn thunk = nullptr;
 };
 } // namespace se
