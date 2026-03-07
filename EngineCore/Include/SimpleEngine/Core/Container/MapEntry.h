@@ -160,6 +160,12 @@ public:
         return AsVacant().OrInsert(std::forward<Fn>(func)());
     }
 
+    /** 키가 없으면 기본 생성자로 생성된 값을 삽입하고, 있으면 기존 값의 참조를 반환합니다. */
+    ValueType& OrDefault() requires std::default_initializable<ValueType>
+    {
+        return OrInsert(ValueType{});
+    }
+
     template <typename Fn>
         requires std::invocable<Fn, ValueType&>
     MapEntry& AndModify(Fn&& func)
