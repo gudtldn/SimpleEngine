@@ -121,7 +121,7 @@ TEST_F(AssetPathTest, Hash)
 class AssetCacheTest : public ::testing::Test
 {
 protected:
-    AssetPool cache;
+    AssetPool pool;
 };
 
 TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
@@ -130,14 +130,14 @@ TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
     TypeId type = TypeId::Get<MockTexture>();
     AssetPath path("textures/new.png");
 
-    HandleData hd = cache.FindOrCreate(id, type, path);
+    HandleData hd = pool.FindOrCreate(id, type, path);
 
     ASSERT_TRUE(hd.IsValid());
-    const SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
+    const SlotEntry& slot = pool.GetTable().GetSlot(hd.index);
     EXPECT_EQ(slot.asset_id, id);
     EXPECT_EQ(slot.asset_type, type);
     EXPECT_EQ(slot.source_path, path);
-    EXPECT_EQ(cache.GetCount(), 1u);
+    EXPECT_EQ(pool.GetCount(), 1u);
 }
 
 TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
@@ -146,17 +146,17 @@ TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
     TypeId type = TypeId::Get<MockTexture>();
     AssetPath path("textures/existing.png");
 
-    HandleData hd1 = cache.FindOrCreate(id, type, path);
-    HandleData hd2 = cache.FindOrCreate(id, type, path);
+    HandleData hd1 = pool.FindOrCreate(id, type, path);
+    HandleData hd2 = pool.FindOrCreate(id, type, path);
 
     EXPECT_EQ(hd1, hd2);  // Same handle
-    EXPECT_EQ(cache.GetCount(), 1u);
+    EXPECT_EQ(pool.GetCount(), 1u);
 }
 
 TEST_F(AssetCacheTest, Find_NonExistent)
 {
     AssetId id = GenerateAssetId();
-    auto result = cache.Find(id);
+    auto result = pool.Find(id);
 
     EXPECT_FALSE(result.HasValue());
 }
@@ -164,9 +164,9 @@ TEST_F(AssetCacheTest, Find_NonExistent)
 TEST_F(AssetCacheTest, Find_Existing)
 {
     AssetId id = GenerateAssetId();
-    HandleData created = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
+    HandleData created = pool.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
 
-    auto found = cache.Find(id);
+    auto found = pool.Find(id);
     ASSERT_TRUE(found.HasValue());
     EXPECT_EQ(found.Value(), created);
 }
@@ -174,13 +174,13 @@ TEST_F(AssetCacheTest, Find_Existing)
 TEST_F(AssetCacheTest, Remove)
 {
     AssetId id = GenerateAssetId();
-    (void)cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+    (void)pool.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
-    EXPECT_EQ(cache.GetCount(), 1u);
+    EXPECT_EQ(pool.GetCount(), 1u);
 
-    cache.Remove(id);
-    EXPECT_EQ(cache.GetCount(), 0u);
-    EXPECT_FALSE(cache.Find(id).HasValue());
+    pool.Remove(id);
+    EXPECT_EQ(pool.GetCount(), 0u);
+    EXPECT_FALSE(pool.Find(id).HasValue());
 }
 
 TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
@@ -188,40 +188,40 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
 
-    HandleData hd1 = cache.FindOrCreate(id1, TypeId::Get<MockTexture>(), AssetPath("tex1.png"));
-    [[maybe_unused]] HandleData hd2 = cache.FindOrCreate(id2, TypeId::Get<MockTexture>(), AssetPath("tex2.png"));
+    HandleData hd1 = pool.FindOrCreate(id1, TypeId::Get<MockTexture>(), AssetPath("tex1.png"));
+    [[maybe_unused]] HandleData hd2 = pool.FindOrCreate(id2, TypeId::Get<MockTexture>(), AssetPath("tex2.png"));
 
-    EXPECT_EQ(cache.GetCount(), 2u);
+    EXPECT_EQ(pool.GetCount(), 2u);
 
     // slot1에 strong handle 유지, slot2에는 없음
-    cache.GetTable().GetSlot(hd1.index).ref_count.fetch_add(1, std::memory_order_relaxed);
+    pool.GetTable().GetSlot(hd1.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
-    uint32 removed = cache.CollectGarbage();
+    uint32 removed = pool.CollectGarbage();
     EXPECT_EQ(removed, 1u);
-    EXPECT_EQ(cache.GetCount(), 1u);
+    EXPECT_EQ(pool.GetCount(), 1u);
 
     // slot1 still exists
-    EXPECT_TRUE(cache.Find(id1).HasValue());
-    EXPECT_FALSE(cache.Find(id2).HasValue());
+    EXPECT_TRUE(pool.Find(id1).HasValue());
+    EXPECT_FALSE(pool.Find(id2).HasValue());
 
     // cleanup
-    cache.GetTable().GetSlot(hd1.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
+    pool.GetTable().GetSlot(hd1.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
 {
     AssetId id = GenerateAssetId();
-    HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+    HandleData hd = pool.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
 
     // ref_count를 1로 설정하여 사용 중으로 표시
-    cache.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
+    pool.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
-    uint32 removed = cache.CollectGarbage();
+    uint32 removed = pool.CollectGarbage();
     EXPECT_EQ(removed, 0u);
-    EXPECT_EQ(cache.GetCount(), 1u);
+    EXPECT_EQ(pool.GetCount(), 1u);
 
     // cleanup
-    cache.GetTable().GetSlot(hd.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
+    pool.GetTable().GetSlot(hd.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
 // =============================================================================
@@ -514,7 +514,7 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
 
     registry.RegisterAsset(id, type, path, CreateDummyMeta());
 
-    // 2. Create slot in cache
+    // 2. Create slot in pool
     HandleData hd = cache.FindOrCreate(id, type, path);
     SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
 
