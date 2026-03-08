@@ -268,6 +268,25 @@
   <!--    </Expand>-->
   <!--  </Type>-->
 
+  <!-- Expected<T, E> -->
+  <Type Name="se::Expected&lt;*,*&gt;">
+    <DisplayString Condition="has_value">Ok({storage.value})</DisplayString>
+    <DisplayString Condition="!has_value">Err({storage.error})</DisplayString>
+    <Expand>
+      <ExpandedItem Condition="has_value">storage.value</ExpandedItem>
+      <ExpandedItem Condition="!has_value">storage.error</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- Expected<void, E> -->
+  <Type Name="se::Expected&lt;void,*&gt;">
+    <DisplayString Condition="has_value">Ok(void)</DisplayString>
+    <DisplayString Condition="!has_value">Err({storage.error})</DisplayString>
+    <Expand>
+      <ExpandedItem Condition="!has_value">storage.error</ExpandedItem>
+    </Expand>
+  </Type>
+
   <!-- StringName -->
   <Type Name="se::StringName">
     <DisplayString>{display_name,s8}</DisplayString>
@@ -406,6 +425,77 @@
       <Item Name="[length]">data_len</Item>
       <Item Name="[data]">data_ptr,[data_len]s8</Item>
       <Item Name="[is_empty]">data_len == 0</Item>
+    </Expand>
+  </Type>
+
+  <!-- Guid -->
+  <Type Name="se::Guid">
+    <DisplayString>
+      <!-- https://stackoverflow.com/questions/17436643/i-am-looking-for-a-proper-way-to-display-a-uuid-via-natvis-in-vs2012 -->
+      {data[0],nvoXb}{data[1],nvoXb}{data[2],nvoXb}{data[3],nvoXb}-{data[4],nvoXb}{data[5],nvoXb}-{data[6],nvoXb}{data[7],nvoXb}-{data[8],nvoXb}{data[9],nvoXb}-{data[10],nvoXb}{data[11],nvoXb}{data[12],nvoXb}{data[13],nvoXb}{data[14],nvoXb}{data[15],nvoXb}
+    </DisplayString>
+    <Expand>
+      <Item Name="[Raw Bytes]">data</Item>
+    </Expand>
+  </Type>
+
+  <!-- AssetId -->
+  <Type Name="se::asset::AssetId">
+    <DisplayString>{guid}</DisplayString>
+    <Expand>
+      <Item Name="guid">guid</Item>
+    </Expand>
+  </Type>
+
+  <!-- Path -->
+  <Type Name="se::Path">
+    <DisplayString>{internal_path}</DisplayString>
+    <Expand>
+      <ExpandedItem>internal_path</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- VPath -->
+  <Type Name="se::VPath">
+    <DisplayString>{full_path}</DisplayString>
+    <Expand>
+      <Item Name="[full_path]">full_path</Item>
+      <Synthetic Name="[scheme]" Condition="scheme_len > 0">
+        <DisplayString>{full_path.data.data,[scheme_len]s8}</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[path]">
+        <DisplayString>{full_path.data.data + path_offset,s8}</DisplayString>
+      </Synthetic>
+    </Expand>
+  </Type>
+
+  <!-- AssetPath -->
+  <Type Name="se::asset::AssetPath">
+    <DisplayString Condition="sub_asset_name.data.size == 0">{file_path}</DisplayString>
+    <DisplayString Condition="sub_asset_name.data.size != 0">{file_path}#{sub_asset_name}</DisplayString>
+    <Expand>
+      <Item Name="file_path">file_path</Item>
+      <Item Name="sub_asset_name">sub_asset_name</Item>
+    </Expand>
+  </Type>
+
+  <!-- AssetHandle<T> -->
+  <Type Name="se::asset::AssetHandle&lt;*&gt;">
+    <Intrinsic Name="GetSlot" Expression="table->slots.data[index]"/>
+    <Intrinsic Name="IsStale" Expression="GetSlot().generation != generation"/>
+    <Intrinsic Name="GetAsset" Expression="($T1*)GetSlot().asset._Storage._Value"/>
+
+    <DisplayString Condition="table == 0 || index == 0xFFFFFFFF">invalid</DisplayString>
+    <DisplayString Condition="IsStale()">stale</DisplayString>
+    <DisplayString Condition="!IsStale()">{GetAsset()}</DisplayString>
+    <Expand>
+      <Item Name="[asset]" Condition="!IsStale()">GetAsset()</Item>
+      <Item Name="[state]" Condition="!IsStale()">GetSlot().state._Storage._Value</Item>
+      <Item Name="[ref_count]" Condition="!IsStale()">GetSlot().ref_count._Storage._Value</Item>
+      <Item Name="[path]" Condition="!IsStale()">GetSlot().source_path</Item>
+      <Item Name="[index]">index</Item>
+      <Item Name="[generation]">generation</Item>
+      <Item Name="[table]">table</Item>
     </Expand>
   </Type>
 </AutoVisualizer>
