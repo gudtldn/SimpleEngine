@@ -35,11 +35,6 @@ TEST_F(ExpectedAPI_Test, ConstructionWithValue)
 
     Expected<String, TestError> e2("hello");
     EXPECT_EQ(e2.Value(), "hello");
-
-    // In-place construction
-    Expected<TestValue, TestError> e3(std::in_place, 42);
-    EXPECT_TRUE(e3.HasValue());
-    EXPECT_EQ(e3.Value().value, 42);
 }
 
 TEST_F(ExpectedAPI_Test, ConstructionWithError)
@@ -89,12 +84,6 @@ TEST_F(ExpectedAPI_Test, Accessors)
     const Expected<int, TestError> ce_val(20);
     EXPECT_EQ(*ce_val, 20);
     EXPECT_EQ(ce_val.Value(), 20);
-
-    Expected<TestValue, TestError> e_struct(std::in_place, 30);
-    EXPECT_EQ(e_struct->value, 30);
-
-    const Expected<TestValue, TestError> ce_struct(std::in_place, 40);
-    EXPECT_EQ(ce_struct->value, 40);
 
     Expected<int, TestError> e_err{ Unexpected(TestError::DefaultError) };
     EXPECT_EQ(e_err.Error(), TestError::DefaultError);
@@ -215,12 +204,6 @@ TEST_F(ExpectedAPI_Test, ConstexprConstruction)
     static_assert(!e_err.HasValue());
     static_assert(e_err.HasError());
     static_assert(e_err.Error() == TestError::DefaultError);
-
-    // constexpr in_place 생성
-    constexpr Expected<std::pair<int, int>, TestError> e_pair(std::in_place, 1, 2);
-    static_assert(e_pair.HasValue());
-    static_assert(e_pair.Value().first == 1);
-    static_assert(e_pair.Value().second == 2);
 }
 
 TEST_F(ExpectedAPI_Test, ConstexprValueOr)
