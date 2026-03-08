@@ -24,6 +24,7 @@ void DependencyGraph::SetDependencies(
     {
         HashSet<asset::AssetId> seen;
         seen.Reserve(dependencies.Len());
+
         for (const asset::AssetId& dep : dependencies)
         {
             if (dep == id)
@@ -51,6 +52,8 @@ void DependencyGraph::SetDependencies(
             if (const auto rev = reverse_deps.Find(old_dep))
             {
                 Array<asset::AssetId>& arr = *rev;
+
+                // 추후 성능상 문제가 생기면 HashSet이나, FlatSet으로 변경
                 if (const auto idx = arr.Find(id))
                 {
                     arr.RemoveAtSwap(*idx);
@@ -69,6 +72,7 @@ void DependencyGraph::SetDependencies(
     // 2) 순환 의존성 필터링 (동일 unique_lock 내에서 원자적으로 수행 - TOCTOU 방지)
     Array<asset::AssetId> safe_deps;
     safe_deps.Reserve(unique_deps.Len());
+
     for (const asset::AssetId& dep : unique_deps)
     {
         if (HasPathInternal(dep, id))
@@ -87,10 +91,10 @@ void DependencyGraph::SetDependencies(
     {
         return;
     }
-    forward_deps.Insert(id, std::move(safe_deps));
+    const Array<asset::AssetId>& inserted_deps = forward_deps.Insert(id, std::move(safe_deps));
 
     // 4) 새 역방향 인덱스 등록
-    for (const asset::AssetId& dep : forward_deps.FindChecked(id))
+    for (const asset::AssetId& dep : inserted_deps)
     {
         reverse_deps.Entry(dep).OrDefault().Push(id);
     }
@@ -131,7 +135,6 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
     // 2) 역방향 의존성에서 순방향 인덱스 정리 (이 노드에 의존하던 다른 노드들)
     if (const auto rev = reverse_deps.Find(id))
     {
-        // 나를 참조하는 대상이 있다면 런타임 경고 발생
         if (!rev->IsEmpty())
         {
             // 나를 참조하는 대상이 있다면 경고
@@ -139,6 +142,8 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
 
             for (const asset::AssetId& dependent : *rev)
             {
+                ConsoleLog(ELogLevel::Warning, "  - Dependent: {}", dependent.GetGuid());
+
                 if (const auto fwd = forward_deps.Find(dependent))
                 {
                     Array<asset::AssetId>& arr = *fwd;
@@ -168,12 +173,16 @@ void DependencyGraph::Clear()
 
 Array<asset::AssetId> DependencyGraph::GetDependencies(const asset::AssetId& id) const
 {
+    SE_ASSERT(id.IsValid(), "Invalid asset ID");
+
     std::shared_lock lock(graph_mutex);
     return forward_deps.Find(id).Copy().ValueOrDefault();
 }
 
 Array<asset::AssetId> DependencyGraph::GetDependents(const asset::AssetId& id) const
 {
+    SE_ASSERT(id.IsValid(), "Invalid asset ID");
+
     std::shared_lock lock(graph_mutex);
     return reverse_deps.Find(id).Copy().ValueOrDefault();
 }
@@ -181,6 +190,7 @@ Array<asset::AssetId> DependencyGraph::GetDependents(const asset::AssetId& id) c
 Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::AssetId& id) const
 {
     ZoneScopedN("DependencyGraph::GetTransitiveDependents");
+    SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
     std::shared_lock lock(graph_mutex);
 
@@ -232,6 +242,7 @@ bool DependencyGraph::HasCyclicDependency(
 ) const
 {
     ZoneScopedN("DependencyGraph::HasCyclicDependency");
+    SE_ASSERT(from.IsValid() && to.IsValid(), "Invalid asset ID");
 
     if (from == to)
     {
@@ -340,10 +351,13 @@ bool DependencyGraph::HasPathInternal(
     const asset::AssetId& target
 ) const
 {
+    ZoneScopedN("DependencyGraph::HasPathInternal");
+
     // target에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
     HashSet<asset::AssetId> visited;
     Array<asset::AssetId> queue;
 
+    // BFS 초기 세팅
     if (const auto fwd = forward_deps.Find(from))
     {
         // 예상 의존성 개수만큼 예약
@@ -356,7 +370,7 @@ bool DependencyGraph::HasPathInternal(
         {
             if (dep == target)
             {
-                return true; // 순환 의존성 감지
+                return true;
             }
             visited.Insert(dep);
             queue.Push(dep);
@@ -366,14 +380,14 @@ bool DependencyGraph::HasPathInternal(
     usize read_idx = 0;
     while (read_idx < queue.Len())
     {
-        const asset::AssetId current = queue[read_idx++];
+        const asset::AssetId& current = queue[read_idx++];
         if (const auto fwd = forward_deps.Find(current))
         {
             for (const asset::AssetId& dep : *fwd)
             {
                 if (dep == target)
                 {
-                    return true; // 순환 의존성 감지
+                    return true;
                 }
 
                 if (!visited.Contains(dep))
