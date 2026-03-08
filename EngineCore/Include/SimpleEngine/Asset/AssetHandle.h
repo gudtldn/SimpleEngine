@@ -24,6 +24,7 @@ class AssetHandle
 public:
     using AssetType = T;
     static constexpr uint32 INVALID_INDEX = HandleData::INVALID_INDEX;
+    static constexpr uint32 INVALID_GENERATION = HandleData::INVALID_GENERATION;
 
 public:
     AssetHandle() = default;
@@ -73,7 +74,7 @@ public:
 
     AssetHandle(AssetHandle&& other) noexcept
         : index(std::exchange(other.index, INVALID_INDEX))
-        , generation(std::exchange(other.generation, 0))
+        , generation(std::exchange(other.generation, INVALID_GENERATION))
         , table(std::exchange(other.table, nullptr))
     {
     }
@@ -84,7 +85,7 @@ public:
         {
             Release();
             index = std::exchange(other.index, INVALID_INDEX);
-            generation = std::exchange(other.generation, 0);
+            generation = std::exchange(other.generation, INVALID_GENERATION);
             table = std::exchange(other.table, nullptr);
         }
         return *this;
@@ -176,13 +177,13 @@ private:
             }
         }
         index = INVALID_INDEX;
-        generation = 0;
+        generation = INVALID_GENERATION;
         table = nullptr;
     }
 
 private:
     uint32 index = INVALID_INDEX;
-    uint32 generation = 0;
+    uint32 generation = INVALID_GENERATION;
     HandleTable* table = nullptr;
 };
 } // namespace se::asset

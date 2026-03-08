@@ -21,9 +21,10 @@ namespace se::asset
 struct HandleData
 {
     static constexpr uint32 INVALID_INDEX = std::numeric_limits<uint32>::max();
+    static constexpr uint32 INVALID_GENERATION = std::numeric_limits<uint32>::max();
 
     uint32 index = INVALID_INDEX;
-    uint32 generation = 0;
+    uint32 generation = INVALID_GENERATION;
 
     /**
      * 유효한 핸들인지 확인합니다.
