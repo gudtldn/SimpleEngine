@@ -10,6 +10,7 @@ namespace se::asset
 HandleTable::HandleTable()
 {
     // TODO: 나중에 ChunkedArray 같은 컨테이너로 개선
+    // 멀티스레드 환경에서 Reallocation시 Dangling Ref 위험이 있기에 임시로 Reserve로 메모리 예약
     slots.Reserve(DEFAULT_SLOT_CAPACITY);
 }
 
