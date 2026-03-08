@@ -22,7 +22,7 @@ enum class EAssetDependencyType : uint8
  * .meta 파일에 기록되는 개별 의존성 항목
  *
  * Import/Cook 시 Translator가 반환한 의존 파일 목록을 이 구조체로 표현합니다.
- * .meta의 [[metadata.dependencies]] 섹션에 직렬화됩니다.
+ * .meta의 [[metadata.sub_assets.dependencies]] 섹션에 직렬화됩니다.
  */
 struct SE_ANNOTATION(=meta::SerializeOnly) AssetDependencyEntry
 {
@@ -61,6 +61,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) SubAssetMeta
     SE_ANNOTATION(=meta::Property)
     TypeId type;
 
+    /** 이 Sub-Asset이 의존하는 다른 에셋 목록 */
+    SE_ANNOTATION(=meta::Property)
+    Array<AssetDependencyEntry> dependencies;
+
     bool operator==(const SubAssetMeta&) const = default;
 };
 
@@ -95,10 +99,6 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
     /** 이 소스 파일에서 생성된 Sub-Asset 목록 */
     SE_ANNOTATION(=meta::Property)
     Array<SubAssetMeta> sub_assets;
-
-    /** 이 소스 파일이 의존하는 다른 에셋 목록 (.meta에서 직렬화) */
-    SE_ANNOTATION(=meta::Property)
-    Array<AssetDependencyEntry> dependencies;
 
     bool operator==(const AssetMetadata&) const = default;
 };
