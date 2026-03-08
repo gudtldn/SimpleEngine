@@ -226,59 +226,6 @@ Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::Asse
     return result;
 }
 
-bool DependencyGraph::HasPathInternal(
-    const asset::AssetId& from,
-    const asset::AssetId& target
-) const
-{
-    // target에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
-    HashSet<asset::AssetId> visited;
-    Array<asset::AssetId> queue;
-
-    if (const auto fwd = forward_deps.Find(from))
-    {
-        // 예상 의존성 개수만큼 예약
-        const usize initial_guess = fwd->Len() * 2;
-        visited.Reserve(initial_guess);
-        queue.Reserve(initial_guess);
-
-        visited.Insert(from);
-        for (const asset::AssetId& dep : *fwd)
-        {
-            if (dep == target)
-            {
-                return true; // 순환 의존성 감지
-            }
-            visited.Insert(dep);
-            queue.Push(dep);
-        }
-    }
-
-    usize read_idx = 0;
-    while (read_idx < queue.Len())
-    {
-        const asset::AssetId current = queue[read_idx++];
-        if (const auto fwd = forward_deps.Find(current))
-        {
-            for (const asset::AssetId& dep : *fwd)
-            {
-                if (dep == target)
-                {
-                    return true; // 순환 의존성 감지
-                }
-
-                if (!visited.Contains(dep))
-                {
-                    visited.Insert(dep);
-                    queue.Push(dep);
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
 bool DependencyGraph::HasCyclicDependency(
     const asset::AssetId& from,
     const asset::AssetId& to
@@ -386,5 +333,58 @@ uint32 DependencyGraph::GetNodeCount() const
 
     // |A ∪ B| = |A| + |B| - |A ∩ B|
     return total_keys - intersection_count;
+}
+
+bool DependencyGraph::HasPathInternal(
+    const asset::AssetId& from,
+    const asset::AssetId& target
+) const
+{
+    // target에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
+    HashSet<asset::AssetId> visited;
+    Array<asset::AssetId> queue;
+
+    if (const auto fwd = forward_deps.Find(from))
+    {
+        // 예상 의존성 개수만큼 예약
+        const usize initial_guess = fwd->Len() * 2;
+        visited.Reserve(initial_guess);
+        queue.Reserve(initial_guess);
+
+        visited.Insert(from);
+        for (const asset::AssetId& dep : *fwd)
+        {
+            if (dep == target)
+            {
+                return true; // 순환 의존성 감지
+            }
+            visited.Insert(dep);
+            queue.Push(dep);
+        }
+    }
+
+    usize read_idx = 0;
+    while (read_idx < queue.Len())
+    {
+        const asset::AssetId current = queue[read_idx++];
+        if (const auto fwd = forward_deps.Find(current))
+        {
+            for (const asset::AssetId& dep : *fwd)
+            {
+                if (dep == target)
+                {
+                    return true; // 순환 의존성 감지
+                }
+
+                if (!visited.Contains(dep))
+                {
+                    visited.Insert(dep);
+                    queue.Push(dep);
+                }
+            }
+        }
+    }
+
+    return false;
 }
 } // namespace se::editor
