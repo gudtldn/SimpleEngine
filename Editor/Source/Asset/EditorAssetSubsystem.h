@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEditor/Asset/DependencyGraph.h"
 #include "SimpleEditor/Asset/ImportPresetManager.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
@@ -60,6 +61,9 @@ public:
      */
     bool CookAsset(const VPath& file_vpath);
 
+    /** DependencyGraph에 대한 읽기 전용 접근자 */
+    [[nodiscard]] const DependencyGraph& GetDependencyGraph() const { return dep_graph; }
+
 private:
     /**
      * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
@@ -86,9 +90,26 @@ private:
     /** Registry 스냅샷 파일의 가상 경로를 반환합니다. */
     [[nodiscard]] static VPath GetRegistrySnapshotVPath();
 
+    /**
+     * Registry에 등록된 모든 에셋의 메타데이터를 읽어 DependencyGraph를 구축합니다.
+     * ScanWorkspace 완료 직후 호출됩니다.
+     */
+    void BuildDependencyGraph();
+
+    /**
+     * 단일 에셋의 의존성 항목을 AssetId로 변환하여 DependencyGraph에 동기화합니다.
+     * @param asset_id 의존성을 갱신할 에셋의 ID
+     * @param dependencies .meta에서 읽은 의존성 항목 목록
+     */
+    void SyncDependencies(
+        const asset::AssetId& asset_id,
+        const Array<asset::AssetDependencyEntry>& dependencies
+    );
+
 private:
     std::unique_ptr<AssetImporter> importer;
     asset::AssetSubsystem* asset_subsystem = nullptr;
     ImportPresetManager preset_manager;
+    DependencyGraph dep_graph;
 };
 }  // namespace se::editor

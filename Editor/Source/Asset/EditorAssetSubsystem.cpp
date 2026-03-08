@@ -292,6 +292,13 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         for (const VPath& vpath : orphaned)
         {
             ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
+
+            // DependencyGraph에서 먼저 제거 (Registry 삭제 전에 ID 목록 확보)
+            for (const asset::AssetId& id : registry.GetAssetsInFile(vpath))
+            {
+                dep_graph.RemoveNode(id);
+            }
+
             registry.UnregisterByPath(vpath);
 
             // VPath -> 물리 경로로 변환하여 .meta 삭제
@@ -320,6 +327,11 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         "ScanWorkspace Complete [HotStart: {}]: new={}, dirty={}, clean={}, moved={}, orphaned={}, orphan_meta={} in: {}",
         is_hot_start, new_count, dirty_count, clean_count, moved_count, orphaned_count, orphan_meta_count, root_path
     );
+
+    // === DependencyGraph 초기 구축 ===
+    // TODO: BackgroundWorker 전환 시, BuildDependencyGraph()와 CookAsset()이 동시에
+    //       dep_graph을 수정하는 logic race 방지 필요 (incremental update 또는 batch lock)
+    BuildDependencyGraph();
 }
 
 Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& source_path)
@@ -507,8 +519,14 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
         // AssetPool 등록은 Callback 후 자동으로 이루어짐
         // [AssetSubsystem::LoadInternal 참고]
-        // TODO: AssetDependency 추적 — import 결과의 의존 파일 목록을 DependencyGraph에 등록
         // TODO: Hot-reload 시 AssetPool::FindOrCreate + ExchangeAsset으로 메모리 교체
+    }
+
+    // DependencyGraph 동기화, 모든 sub-asset에 동일한 의존성을 설정
+    // TODO: sub-asset별 개별 의존성이 필요하면 .meta 구조 확장 시 반영
+    for (const asset::SubAssetMeta& sub : updated_content.metadata.sub_assets)
+    {
+        SyncDependencies(asset::AssetId{ sub.guid }, updated_content.metadata.dependencies);
     }
 
     // .meta 파일 갱신 (Sub-asset 정보 기록)
@@ -604,5 +622,106 @@ bool EditorAssetSubsystem::LoadRegistrySnapshot()
 VPath EditorAssetSubsystem::GetRegistrySnapshotVPath()
 {
     return VPath{ "Cache://registry.bin" };
+}
+
+void EditorAssetSubsystem::BuildDependencyGraph()
+{
+    ZoneScopedN("EditorAssetSubsystem::BuildDependencyGraph");
+
+    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    dep_graph.Clear();
+
+    Array<VPath> all_paths;
+    registry.VisitAllPaths([&](const VPath& source_vpath)
+    {
+        all_paths.Push(source_vpath);
+    });
+
+    // Registry에 등록된 모든 소스 파일을 순회하며 의존성 그래프를 구축
+    for (const VPath& source_vpath : all_paths)
+    {
+        const Array<asset::AssetId> assets_in_file = registry.GetAssetsInFile(source_vpath);
+        if (assets_in_file.IsEmpty())
+        {
+            continue;
+        }
+
+        // 첫 번째 sub-asset의 메타데이터에서 dependencies 배열 읽기 (모든 sub-asset이 동일한 소스 파일의 의존성을 공유함)
+        const asset::AssetId& first_id = assets_in_file.Front().Value();
+        Array<asset::AssetDependencyEntry> deps;
+        registry.ReadRecord(first_id, [&](const asset::AssetRecord& record)
+        {
+            deps = record.metadata.dependencies;
+        });
+
+        if (deps.IsEmpty())
+        {
+            continue;
+        }
+
+        // 파일 내 모든 sub-asset에 동일한 의존성을 등록 (lock 해제 후 안전하게 호출)
+        for (const asset::AssetId& asset_id : assets_in_file)
+        {
+            SyncDependencies(asset_id, deps);
+        }
+    }
+
+    ConsoleLog(ELogLevel::Info, "DependencyGraph built: {} nodes", dep_graph.GetNodeCount());
+}
+
+void EditorAssetSubsystem::SyncDependencies(
+    const asset::AssetId& asset_id,
+    const Array<asset::AssetDependencyEntry>& dependencies
+)
+{
+    if (dependencies.IsEmpty())
+    {
+        dep_graph.SetDependencies(asset_id, {});
+        return;
+    }
+
+    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    Array<asset::AssetId> resolved_ids;
+    resolved_ids.Reserve(dependencies.Len());
+
+    for (const asset::AssetDependencyEntry& entry : dependencies)
+    {
+        // 1) 명시적 GUID가 있으면 직접 사용
+        if (entry.asset_guid.IsValid())
+        {
+            resolved_ids.Push(asset::AssetId{ entry.asset_guid });
+            continue;
+        }
+
+        // 2) VPath로 Registry에서 해당 파일의 첫 번째 sub-asset ID를 찾는다
+        // TODO: entry.type (Hard/Soft/BuildOnly) 미반영 - 현재 모든 의존성을 Hard로 취급
+        //       DependencyGraph가 type을 저장하도록 확장 시 반영 예정
+        if (!entry.source_vpath.IsEmpty())
+        {
+            const VPath dep_vpath{ entry.source_vpath };
+            const Array<asset::AssetId> dep_assets = registry.GetAssetsInFile(dep_vpath);
+            if (!dep_assets.IsEmpty())
+            {
+                resolved_ids.Push(dep_assets[0]);
+            }
+            else
+            {
+                ConsoleLog(
+                    ELogLevel::Warning,
+                    "SyncDependencies: Unresolved VPath dependency '{}' for asset '{}'",
+                    entry.source_vpath, asset_id.GetGuid()
+                );
+            }
+        }
+        else
+        {
+            ConsoleLog(
+                ELogLevel::Warning,
+                "SyncDependencies: Dependency entry has no GUID and no VPath for asset '{}'", asset_id.GetGuid()
+            );
+        }
+    }
+
+    dep_graph.SetDependencies(asset_id, resolved_ids);
 }
 } // namespace se::editor
