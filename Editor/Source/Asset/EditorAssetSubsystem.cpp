@@ -524,6 +524,10 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
     // DependencyGraph 동기화, 모든 sub-asset에 동일한 의존성을 설정
     // TODO: sub-asset별 개별 의존성이 필요하면 .meta 구조 확장 시 반영
+    // TODO: 현재 Import 파이프라인이 의존성 목록을 산출하지 않아
+    //       updated_content.metadata.dependencies가 빈 배열이거나 기존 .meta 값이 그대로 유지됨.
+    //       Translator(예: AssimpTranslator)에서 참조 텍스처/머티리얼 등을 분석하여
+    //       dependencies를 채우도록 확장 필요.
     for (const asset::SubAssetMeta& sub : updated_content.metadata.sub_assets)
     {
         SyncDependencies(asset::AssetId{ sub.guid }, updated_content.metadata.dependencies);
@@ -693,7 +697,8 @@ void EditorAssetSubsystem::SyncDependencies(
             continue;
         }
 
-        // 2) VPath로 Registry에서 해당 파일의 첫 번째 sub-asset ID를 찾는다
+        // 2) VPath로 Registry에서 파일 내 에셋 ID를 찾음
+        // asset_guid가 비어있으면 "파일 전체에 의존" - 파일 내 모든 sub-asset을 등록
         // TODO: entry.type (Hard/Soft/BuildOnly) 미반영 - 현재 모든 의존성을 Hard로 취급
         //       DependencyGraph가 type을 저장하도록 확장 시 반영 예정
         if (!entry.source_vpath.IsEmpty())
@@ -702,7 +707,10 @@ void EditorAssetSubsystem::SyncDependencies(
             const Array<asset::AssetId> dep_assets = registry.GetAssetsInFile(dep_vpath);
             if (!dep_assets.IsEmpty())
             {
-                resolved_ids.Push(dep_assets[0]);
+                for (const asset::AssetId& dep_id : dep_assets)
+                {
+                    resolved_ids.Push(dep_id);
+                }
             }
             else
             {
@@ -722,6 +730,8 @@ void EditorAssetSubsystem::SyncDependencies(
         }
     }
 
+    // 순환 의존성 검사 및 자기 참조 필터링은 SetDependencies 내부에서
+    // unique_lock 하에 원자적으로 수행됨 (TOCTOU 방지)
     dep_graph.SetDependencies(asset_id, resolved_ids);
 }
 } // namespace se::editor
