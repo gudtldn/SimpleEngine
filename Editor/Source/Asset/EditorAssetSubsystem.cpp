@@ -491,10 +491,13 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         asset::AssetId asset_id = registry.GetAssetId(asset_path).ValueOr(asset::AssetId{ Guid::NewGuid() });
 
         // Meta에 Sub-asset 정보 추가
+        // TODO: Translator에서 참조 텍스처/머티리얼 등을 분석하여
+        //       per-sub-asset dependencies를 산출하도록 확장 필요
         updated_content.metadata.sub_assets.Push({
             .name = name,
             .guid = asset_id.GetGuid(),
             .type = asset_type,
+            .dependencies = {},
         });
 
         // Registry 등록
@@ -522,15 +525,10 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         // TODO: Hot-reload 시 AssetPool::FindOrCreate + ExchangeAsset으로 메모리 교체
     }
 
-    // DependencyGraph 동기화, 모든 sub-asset에 동일한 의존성을 설정
-    // TODO: sub-asset별 개별 의존성이 필요하면 .meta 구조 확장 시 반영
-    // TODO: 현재 Import 파이프라인이 의존성 목록을 산출하지 않아
-    //       updated_content.metadata.dependencies가 빈 배열이거나 기존 .meta 값이 그대로 유지됨.
-    //       Translator(예: AssimpTranslator)에서 참조 텍스처/머티리얼 등을 분석하여
-    //       dependencies를 채우도록 확장 필요.
+    // DependencyGraph 동기화 (각 sub-asset의 개별 의존성 사용)
     for (const asset::SubAssetMeta& sub : updated_content.metadata.sub_assets)
     {
-        SyncDependencies(asset::AssetId{ sub.guid }, updated_content.metadata.dependencies);
+        SyncDependencies(asset::AssetId{ sub.guid }, sub.dependencies);
     }
 
     // .meta 파일 갱신 (Sub-asset 정보 기록)
@@ -641,7 +639,7 @@ void EditorAssetSubsystem::BuildDependencyGraph()
         all_paths.Push(source_vpath);
     });
 
-    // Registry에 등록된 모든 소스 파일을 순회하며 의존성 그래프를 구축
+    // Registry에 등록된 모든 소스 파일을 순회하며, 각 sub-asset의 개별 의존성으로 그래프를 구축
     for (const VPath& source_vpath : all_paths)
     {
         const Array<asset::AssetId> assets_in_file = registry.GetAssetsInFile(source_vpath);
@@ -650,23 +648,19 @@ void EditorAssetSubsystem::BuildDependencyGraph()
             continue;
         }
 
-        // 첫 번째 sub-asset의 메타데이터에서 dependencies 배열 읽기 (모든 sub-asset이 동일한 소스 파일의 의존성을 공유함)
-        const asset::AssetId& first_id = assets_in_file.Front().Value();
-        Array<asset::AssetDependencyEntry> deps;
-        registry.ReadRecord(first_id, [&](const asset::AssetRecord& record)
+        // 파일의 SubAssetMeta 목록을 한 번만 읽음 (같은 파일의 모든 레코드가 동일한 sub_assets를 공유)
+        Array<asset::SubAssetMeta> sub_assets;
+        registry.ReadRecord(assets_in_file.Front().Value(), [&](const asset::AssetRecord& record)
         {
-            deps = record.metadata.dependencies;
+            sub_assets = record.metadata.sub_assets;
         });
 
-        if (deps.IsEmpty())
+        for (const asset::SubAssetMeta& sub : sub_assets)
         {
-            continue;
-        }
-
-        // 파일 내 모든 sub-asset에 동일한 의존성을 등록 (lock 해제 후 안전하게 호출)
-        for (const asset::AssetId& asset_id : assets_in_file)
-        {
-            SyncDependencies(asset_id, deps);
+            if (!sub.dependencies.IsEmpty())
+            {
+                SyncDependencies(asset::AssetId{ sub.guid }, sub.dependencies);
+            }
         }
     }
 
