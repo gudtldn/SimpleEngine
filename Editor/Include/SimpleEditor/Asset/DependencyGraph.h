@@ -100,6 +100,12 @@ public:
     [[nodiscard]] uint32 GetNodeCount() const;
 
 private:
+    /**
+     * from에서 target까지 순방향으로 도달 가능한지 BFS로 검사합니다. (내부 전용)
+     * @pre graph_mutex를 호출자가 이미 보유해야 합니다. (shared 또는 unique)
+     */
+    [[nodiscard]] bool HasPathInternal(const asset::AssetId& from, const asset::AssetId& target) const;
+
     mutable TracySharedLockable(std::shared_mutex, graph_mutex);
 
     /** 순방향 인덱스: A -> {B, C} (A가 B, C에 의존) */

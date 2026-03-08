@@ -6,6 +6,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <tuple>
+
 
 namespace se::editor
 {
@@ -16,6 +18,28 @@ void DependencyGraph::SetDependencies(
 {
     ZoneScopedN("DependencyGraph::SetDependencies");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
+
+    // 0) 입력 중복 제거 + 자기 참조 필터링
+    Array<asset::AssetId> unique_deps;
+    {
+        HashSet<asset::AssetId> seen;
+        seen.Reserve(dependencies.Len());
+        for (const asset::AssetId& dep : dependencies)
+        {
+            if (dep == id)
+            {
+                ConsoleLog(
+                    ELogLevel::Warning,
+                    "SetDependencies: Self-dependency filtered for asset '{}'", id.GetGuid()
+                );
+                continue;
+            }
+            if (seen.Insert(dep))
+            {
+                unique_deps.Push(dep);
+            }
+        }
+    }
 
     std::unique_lock lock(graph_mutex);
 
@@ -39,20 +63,35 @@ void DependencyGraph::SetDependencies(
                 }
             }
         }
+        forward_deps.Remove(id);
     }
 
-    // 2) 순방향 의존성 교체
-    if (dependencies.IsEmpty())
+    // 2) 순환 의존성 필터링 (동일 unique_lock 내에서 원자적으로 수행 - TOCTOU 방지)
+    Array<asset::AssetId> safe_deps;
+    safe_deps.Reserve(unique_deps.Len());
+    for (const asset::AssetId& dep : unique_deps)
     {
-        forward_deps.Remove(id);
+        if (HasPathInternal(dep, id))
+        {
+            ConsoleLog(
+                ELogLevel::Warning,
+                "SetDependencies: Cyclic dependency '{}' -> '{}' rejected", id.GetGuid(), dep.GetGuid()
+            );
+            continue;
+        }
+        safe_deps.Push(dep);
+    }
+
+    // 3) 순방향 의존성 등록
+    if (safe_deps.IsEmpty())
+    {
         return;
     }
-    forward_deps.Insert(id, Array<asset::AssetId>::FromRange(dependencies));
+    forward_deps.Insert(id, std::move(safe_deps));
 
-    // 3) 새 역방향 인덱스 등록
-    for (const asset::AssetId& dep : dependencies)
+    // 4) 새 역방향 인덱스 등록
+    for (const asset::AssetId& dep : forward_deps.FindChecked(id))
     {
-        SE_ASSERT(id != dep, "Self-dependency detected");
         reverse_deps.Entry(dep).OrDefault().Push(id);
     }
 }
@@ -72,6 +111,8 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
             if (const auto rev = reverse_deps.Find(dep))
             {
                 Array<asset::AssetId>& arr = *rev;
+
+                // 추후 성능상 문제가 생기면 HashSet이나, FlatSet으로 변경
                 if (const auto idx = arr.Find(id))
                 {
                     arr.RemoveAtSwap(*idx);
@@ -185,36 +226,26 @@ Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::Asse
     return result;
 }
 
-bool DependencyGraph::HasCyclicDependency(
+bool DependencyGraph::HasPathInternal(
     const asset::AssetId& from,
-    const asset::AssetId& to
+    const asset::AssetId& target
 ) const
 {
-    ZoneScopedN("DependencyGraph::HasCyclicDependency");
-
-    if (from == to)
-    {
-        return true;
-    }
-
-    std::shared_lock lock(graph_mutex);
-
-    // to에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
+    // target에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
     HashSet<asset::AssetId> visited;
     Array<asset::AssetId> queue;
 
-    if (const auto fwd = forward_deps.Find(to))
+    if (const auto fwd = forward_deps.Find(from))
     {
         // 예상 의존성 개수만큼 예약
         const usize initial_guess = fwd->Len() * 2;
-
         visited.Reserve(initial_guess);
         queue.Reserve(initial_guess);
 
-        visited.Insert(to);
+        visited.Insert(from);
         for (const asset::AssetId& dep : *fwd)
         {
-            if (dep == from)
+            if (dep == target)
             {
                 return true; // 순환 의존성 감지
             }
@@ -231,7 +262,7 @@ bool DependencyGraph::HasCyclicDependency(
         {
             for (const asset::AssetId& dep : *fwd)
             {
-                if (dep == from)
+                if (dep == target)
                 {
                     return true; // 순환 의존성 감지
                 }
@@ -248,6 +279,22 @@ bool DependencyGraph::HasCyclicDependency(
     return false;
 }
 
+bool DependencyGraph::HasCyclicDependency(
+    const asset::AssetId& from,
+    const asset::AssetId& to
+) const
+{
+    ZoneScopedN("DependencyGraph::HasCyclicDependency");
+
+    if (from == to)
+    {
+        return true;
+    }
+
+    std::shared_lock lock(graph_mutex);
+    return HasPathInternal(to, from);
+}
+
 Array<asset::AssetId> DependencyGraph::TopologicalSort() const
 {
     ZoneScopedN("DependencyGraph::TopologicalSort");
@@ -255,30 +302,30 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
     std::shared_lock lock(graph_mutex);
 
     // 1) 모든 노드 수집
-    HashMap<asset::AssetId, uint32> in_degree;
+    HashMap<asset::AssetId, uint32> dependency_count;
 
     // forward_deps와 reverse_deps의 Key가 곧 전체 노드 집합
     for (const auto& [node, deps] : forward_deps)
     {
-        // forward_deps의 크기가 곧 그 노드의 In-degree (의존하는 개수)
-        in_degree.Insert(node, static_cast<uint32>(deps.Len()));
+        // node가 의존하는 다른 노드의 수 (forward_deps의 크기)
+        dependency_count.Insert(node, static_cast<uint32>(deps.Len()));
     }
     for (const asset::AssetId& node : reverse_deps | std::views::keys)
     {
-        if (!in_degree.Contains(node))
+        if (!dependency_count.Contains(node))
         {
-            in_degree.Insert(node, 0);
+            dependency_count.Insert(node, 0);
         }
     }
 
     // 2) result 배열을 큐(Queue) 겸 최종 반환 배열로 사용
     Array<asset::AssetId> result;
-    result.Reserve(in_degree.Len());
+    result.Reserve(dependency_count.Len());
 
     // 의존성이 없는 노드부터 탐색
-    for (const auto& [node, degree] : in_degree)
+    for (const auto& [node, count] : dependency_count)
     {
-        if (degree == 0)
+        if (count == 0)
         {
             result.Push(node);
         }
@@ -290,15 +337,15 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
     {
         const asset::AssetId current = result[read_idx++];
 
-        // 나를 의존하던 노드(Dependents)의 In-degree를 하나씩 감소
+        // 나를 의존하던 노드(Dependents)의 미해결 의존성 수를 1 감소
         if (const auto rev = reverse_deps.Find(current))
         {
             for (const asset::AssetId& dependent : *rev)
             {
-                uint32& deg = in_degree.FindChecked(dependent);
+                uint32& deg = dependency_count.FindChecked(dependent);
                 SE_ASSERT(deg > 0);
 
-                // 의존성이 모두 해결되면 결과 배열 끝에 추가 (다음 탐색 대상)
+                // 모든 의존성이 해결되면 결과 배열 끝에 추가 (다음 탐색 대상)
                 if (--deg == 0)
                 {
                     result.Push(dependent);
@@ -308,8 +355,8 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
     }
 
     // 4) 순환(Cycle) 검증
-    // 순환이 발생했다면 특정 노드들의 in_degree가 0이 되지 못해 result에 들어오지 못함
-    if (result.Len() != in_degree.Len())
+    // 순환이 있으면 특정 노드의 dependency_count가 0이 되지 못해 result에 포함되지 않음
+    if (result.Len() != dependency_count.Len())
     {
         ConsoleLog(ELogLevel::Error, "Cyclic dependency detected!");
         return {};
@@ -332,10 +379,10 @@ uint32 DependencyGraph::GetNodeCount() const
                                         ? std::tie(forward_deps, reverse_deps)
                                         : std::tie(reverse_deps, forward_deps);
 
-    const uint32 intersection_count = std::ranges::count_if(smaller | std::views::keys, [&](const auto& key)
+    const uint32 intersection_count = static_cast<uint32>(std::ranges::count_if(smaller | std::views::keys, [&](const auto& key)
     {
         return larger.Contains(key);
-    });
+    }));
 
     // |A ∪ B| = |A| + |B| - |A ∩ B|
     return total_keys - intersection_count;

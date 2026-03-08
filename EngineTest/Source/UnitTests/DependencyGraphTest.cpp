@@ -327,23 +327,28 @@ TEST(DependencyGraph, TopologicalSort_LinearChain)
     EXPECT_LT(idx_b, idx_c);
 }
 
-TEST(DependencyGraph, TopologicalSort_CycleReturnsEmpty)
+TEST(DependencyGraph, TopologicalSort_CyclePreventedBySetDependencies)
 {
     DependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
-    // A -> B, B -> A (순환)
+    // A -> B 설정
     Array<AssetId> a_deps;
     a_deps.Push(b);
     graph.SetDependencies(a, a_deps);
 
+    // B -> A 시도 — SetDependencies 내부에서 순환 감지, A가 거부됨
     Array<AssetId> b_deps;
     b_deps.Push(a);
     graph.SetDependencies(b, b_deps);
 
+    // B의 의존성은 비어있어야 함 (순환 엣지 거부)
+    EXPECT_TRUE(graph.GetDependencies(b).IsEmpty());
+
+    // TopologicalSort는 정상 작동 (순환이 그래프에 진입하지 못함)
     auto sorted = graph.TopologicalSort();
-    EXPECT_TRUE(sorted.IsEmpty());
+    EXPECT_EQ(sorted.Len(), 2);
 }
 
 TEST(DependencyGraph, TopologicalSort_EmptyGraph)
@@ -389,4 +394,77 @@ TEST(DependencyGraph, GetNodeCount_CountsAllUniqueNodes)
 
     // A, B, C 총 3개 노드
     EXPECT_EQ(graph.GetNodeCount(), 3);
+}
+
+// ── 중복 입력 방어 ────────────────────────────────────────────────
+
+TEST(DependencyGraph, SetDependencies_DeduplicatesInput)
+{
+    DependencyGraph graph;
+    const AssetId a = NewId();
+    const AssetId b = NewId();
+
+    // 동일한 ID를 여러 번 포함한 의존성 목록
+    Array<AssetId> deps;
+    deps.Push(b);
+    deps.Push(b);
+    deps.Push(b);
+    graph.SetDependencies(a, deps);
+
+    // 순방향에 중복 없이 1개만 등록되어야 함
+    const auto fwd = graph.GetDependencies(a);
+    EXPECT_EQ(fwd.Len(), 1);
+    EXPECT_TRUE(Contains(fwd, b));
+
+    // 역방향에도 A가 1번만 등록되어야 함
+    const auto rev = graph.GetDependents(b);
+    EXPECT_EQ(rev.Len(), 1);
+    EXPECT_TRUE(Contains(rev, a));
+}
+
+TEST(DependencyGraph, SetDependencies_FiltersSelfDependency)
+{
+    DependencyGraph graph;
+    const AssetId a = NewId();
+    const AssetId b = NewId();
+
+    // 자기 자신(A)을 의존성에 포함 — Assert 대신 조용히 필터링되어야 함
+    Array<AssetId> deps;
+    deps.Push(a);
+    deps.Push(b);
+    graph.SetDependencies(a, deps);
+
+    // 자기 참조는 제거되고 B만 남아야 함
+    const auto fwd = graph.GetDependencies(a);
+    EXPECT_EQ(fwd.Len(), 1);
+    EXPECT_TRUE(Contains(fwd, b));
+}
+
+TEST(DependencyGraph, SetDependencies_RejectsCyclicDependency)
+{
+    DependencyGraph graph;
+    const AssetId a = NewId();
+    const AssetId b = NewId();
+    const AssetId c = NewId();
+
+    // A -> B -> C 체인 구축
+    Array<AssetId> a_deps;
+    a_deps.Push(b);
+    graph.SetDependencies(a, a_deps);
+
+    Array<AssetId> b_deps;
+    b_deps.Push(c);
+    graph.SetDependencies(b, b_deps);
+
+    // C -> A 시도 — 간접 순환(A->B->C->A)이므로 거부되어야 함
+    Array<AssetId> c_deps;
+    c_deps.Push(a);
+    graph.SetDependencies(c, c_deps);
+
+    // C의 의존성은 비어있어야 함
+    EXPECT_TRUE(graph.GetDependencies(c).IsEmpty());
+
+    // HasCyclicDependency도 여전히 정상 동작 확인
+    EXPECT_TRUE(graph.HasCyclicDependency(c, a));
+    EXPECT_FALSE(graph.HasCyclicDependency(c, NewId()));
 }
