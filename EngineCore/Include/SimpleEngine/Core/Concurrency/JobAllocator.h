@@ -1,11 +1,13 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-
-#include <atomic>
-
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include "tracy/Tracy.hpp"
+
+#include <atomic>
+#include <mutex>
 
 
 namespace se
@@ -17,15 +19,16 @@ namespace se
  * 4개의 Size Class (64/128/256/512 Byte) 별 Pool을 유지하며, Lock-Free로 할당됩니다.
  *
  * @detail 할당 흐름:
- *         1) 요청 크기에 맞는 Size Class 결정 (유저 크기 + 헤더 8 Byte)
- *         2) TLS Free List에서 Pop (단일 스레드, 무경합)
- *         3) Free List 비었으면 Slab에서 BLOCKS_PER_SLAB개 Batch Allocate
- *         4) 512B 초과 시 OS 직접 할당 (Fallback)
+ * 1) 요청 크기에 맞는 Size Class 결정 (유저 크기 + 헤더 16 Byte)
+ * 2) TLS 캐시에서 Pop 시도 (단일 스레드, 무경합 Lock-Free)
+ * 3) TLS가 비어있다면, Global Pool에서 여러 블록을 한 번에 Steal (Amortized O(1) Lock)
+ * 4) Global Pool도 비어있다면, OS에서 새 Slab을 할당받아 분할
+ * 5) 512B 초과 시 OS 직접 할당 (Oversized Fallback)
  *
- *         해제 흐름:
- *         1) 블록 헤더에서 Size Class 복원
- *         2) 호출 스레드의 TLS Free List에 Push
- *         3) (다른 스레드에서 해제해도 안전 - 해당 스레드의 Free List에 귀속)
+ * 해제 흐름:
+ * 1) 블록 헤더에서 Size Class 복원
+ * 2) 호출 스레드의 TLS 캐시에 Push (무경합)
+ * 3) TLS 캐시가 한도(MAX_CACHED_BLOCKS)를 초과하면, 절반을 떼어내어 Global Pool로 반환 (메모리 밸런싱 및 누수 방지)
  */
 class SE_CORE_API JobAllocator
 {
@@ -36,11 +39,14 @@ public:
     /** Size Class 개수 */
     static constexpr usize NUM_SIZE_CLASSES = SIZE_CLASSES.Len();
 
-    /** 블록 헤더 크기 - 유저 포인터 앞에 위치 (8바이트 정렬) */
-    static constexpr usize BLOCK_HEADER_SIZE = 8;
+    /** 블록 정렬 크기 - 유저 포인터 앞에 위치 (16바이트 정렬) */
+    static constexpr usize BLOCK_ALIGNMENT = 16;
 
     /** Slab당 블록 수 (배치 할당 단위) */
     static constexpr uint32 BLOCKS_PER_SLAB = 64;
+
+    // TLS 큐가 이 개수를 넘으면 절반을 Global Pool로 반환
+    static constexpr uint32 MAX_CACHED_BLOCKS = 128;
 
     /**
      * 각 Size Class에서 유저가 실제로 사용할 수 있는 데이터 크기를 계산합니다.
@@ -49,7 +55,7 @@ public:
     static constexpr usize UsableSize(usize in_class_index)
     {
         SE_ASSERT(in_class_index < NUM_SIZE_CLASSES);
-        return SIZE_CLASSES[in_class_index] - BLOCK_HEADER_SIZE;
+        return SIZE_CLASSES[in_class_index] - BLOCK_ALIGNMENT;
     }
 
 public:
@@ -57,7 +63,7 @@ public:
      * 지정된 크기 이상의 메모리 블록을 할당합니다.
      *
      * @param in_size 필요한 유저 데이터 크기 (바이트 단위)
-     * @return 할당된 메모리의 시작 포인터 (최소 8바이트 정렬)
+     * @return 할당된 메모리의 시작 포인터 (최소 16바이트 정렬 보장)
      * @note 512B 이하의 요청은 TLS 캐시에서 즉시 할당되며, 초과 시 OS 직접 할당(Fallback)으로 전환됩니다.
      */
     [[nodiscard]] static void* Allocate(usize in_size);
@@ -82,9 +88,9 @@ private:
 
     /**
      * 블록 헤더
-     * 실제 유저 포인터 바로 앞 8바이트에 위치하여 해제 시 Size Class 정보를 복원하는 데 사용됩니다.
+     * 실제 유저 포인터 바로 앞 16바이트에 위치하여 해제 시 Size Class 정보를 복원하는 데 사용됩니다.
      */
-    struct BlockHeader
+    struct alignas(BLOCK_ALIGNMENT) BlockHeader
     {
         uint8 size_class_index; // 0~3: Pool 클래스 Idx, 0xFF: Oversized
     };
@@ -108,7 +114,8 @@ private:
     /** 각 스레드별로 유지되는 독립적인 Free List 캐시 */
     struct ThreadCache
     {
-        FreeNode* free_lists[NUM_SIZE_CLASSES] = {};
+        FixedArray<FreeNode*, NUM_SIZE_CLASSES> free_lists = {};
+        FixedArray<uint32, NUM_SIZE_CLASSES> counts = {};
     };
 
     /** 요청된 크기에 적합한 Size Class 인덱스를 탐색합니다. */
@@ -120,8 +127,30 @@ private:
     /** 호출 스레드 전용 TLS 캐시 객체를 반환합니다. */
     static ThreadCache& GetThreadCache();
 
+    /**
+     * TLS 캐시가 MAX_CACHED_BLOCKS를 초과했을 때, 절반을 GlobalPool로 반환합니다.
+     * @param in_class_index 넘친 Size Class 인덱스
+     */
+    static void EvictToGlobal(usize in_class_index);
+
+    /**
+     * GlobalPool에서 블록 뭉치를 TLS 캐시로 가져옵니다.
+     * @param in_class_index 요청 Size Class 인덱스
+     * @return GlobalPool에 블록이 있어서 성공했으면 true
+     */
+    static bool StealFromGlobal(usize in_class_index);
+
 private:
+    // Slow path용 전역 자원 (ABA 방지를 위해 mutex 사용)
+    struct GlobalPool
+    {
+        TracyLockable(std::mutex, lock);
+        FreeNode* head = nullptr;
+        uint32 count = 0;
+    };
+    static FixedArray<GlobalPool, NUM_SIZE_CLASSES> global_pools;
+
     /** 각 Size Class별로 할당된 Slab 리스트의 Head 포인터 목록 */
-    static std::atomic<SlabRecord*> slab_lists[NUM_SIZE_CLASSES];
+    static FixedArray<std::atomic<SlabRecord*>, NUM_SIZE_CLASSES> slab_lists;
 };
 } // namespace se
