@@ -467,6 +467,17 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     updated_content.metadata.source_mtime = file_mtime;
     updated_content.metadata.source_size = file_size;
     updated_content.metadata.cache_version = current_cache_version;
+
+    // 기존 sub-asset의 dependencies를 이름 기준으로 임시 보존
+    // (Translator가 per-sub-asset deps를 직접 산출할 때까지 .meta에 저장된 값을 유지)
+    HashMap<String, Array<asset::AssetDependencyEntry>> prev_sub_deps;
+    for (const asset::SubAssetMeta& old_sub : updated_content.metadata.sub_assets)
+    {
+        if (!old_sub.dependencies.IsEmpty())
+        {
+            prev_sub_deps.Insert(old_sub.name, old_sub.dependencies);
+        }
+    }
     updated_content.metadata.sub_assets.Clear();
 
     // Primary GUID 보장
@@ -497,7 +508,8 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             .name = name,
             .guid = asset_id.GetGuid(),
             .type = asset_type,
-            .dependencies = {},
+            // Translator가 deps를 산출할 때까지 기존 .meta 값을 보존
+            .dependencies = prev_sub_deps.Find(name).Copy().ValueOrDefault(),
         });
 
         // Registry 등록
@@ -554,6 +566,9 @@ void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const ass
     }
 
     // 각 Sub-asset을 Registry에 등록
+    // TODO(memory): 현재 sub_meta = meta를 sub-asset마다 복사하므로, N개의 sub-asset이 있으면
+    //   sub_assets[] 배열이 N번 복제됨 (O(N²) 메모리). AssetRecord를 shared_ptr<AssetFileMetadata>로
+    //   분리하면 파일 수준 데이터를 한 번만 저장할 수 있음.
     for (const asset::SubAssetMeta& sub : meta.sub_assets)
     {
         const asset::AssetId asset_id{ sub.guid };
