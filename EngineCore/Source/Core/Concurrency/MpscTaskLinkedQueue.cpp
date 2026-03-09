@@ -1,5 +1,6 @@
 // ReSharper disable CppDFAMemoryLeak
 #include "SimpleEngine/Core/Concurrency/MpscTaskLinkedQueue.h"
+#include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 
 
 namespace se
@@ -86,5 +87,15 @@ bool MpscTaskLinkedQueue::IsEmpty() const
 {
     // tail의 다음이 없다면 현재 소비할 수 있는 작업이 없는 상태
     return tail_node->next.load(std::memory_order_acquire) == nullptr;
+}
+
+void* MpscTaskLinkedQueue::Node::operator new(usize size)
+{
+    return JobAllocator::Allocate(size);
+}
+
+void MpscTaskLinkedQueue::Node::operator delete(void* ptr)
+{
+    JobAllocator::Free(ptr);
 }
 } // namespace se

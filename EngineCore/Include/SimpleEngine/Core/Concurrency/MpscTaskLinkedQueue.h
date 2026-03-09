@@ -53,7 +53,7 @@ public:
 
 private:
     /** MPSC Queue Node */
-    struct Node
+    struct SE_CORE_API Node
     {
         UniqueFunction<void()> work;
         std::atomic<Node*> next = nullptr;
