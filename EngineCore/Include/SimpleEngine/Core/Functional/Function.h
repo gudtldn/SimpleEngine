@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Core/Functional/detail/FunctionDetail.h"
+#include "SimpleEngine/Core/Functional/FunctionDetail.h"
 
 #include <functional>
 #include <type_traits>

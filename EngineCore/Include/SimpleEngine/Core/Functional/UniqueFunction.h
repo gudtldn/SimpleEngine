@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "SimpleEngine/Core/Functional/detail/FunctionDetail.h"
+#include "SimpleEngine/Core/Functional/FunctionDetail.h"
 
 
 namespace se
