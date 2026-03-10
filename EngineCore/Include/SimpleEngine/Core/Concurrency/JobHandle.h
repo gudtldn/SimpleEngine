@@ -21,7 +21,7 @@ namespace se
 class SE_CORE_API JobCounter
 {
 public:
-    explicit JobCounter(uint32 in_initial_count);
+    explicit JobCounter(usize in_initial_count);
     ~JobCounter();
 
     // 복사/이동 금지
@@ -41,7 +41,7 @@ public:
     [[nodiscard]] bool IsComplete() const;
 
     /** 현재 카운터의 값을 반환합니다. */
-    [[nodiscard]] uint32 GetCount() const;
+    [[nodiscard]] usize GetCount() const;
 
     /**
      * 코루틴 Waiter를 등록합니다.
@@ -81,7 +81,7 @@ private:
     // False Sharing 방지를 위한 캐시라인 정렬
 
     /** 카운터 값. 0이면 완료 상태 */
-    alignas(SE_CACHE_LINE) std::atomic<uint32> count;
+    alignas(SE_CACHE_LINE) std::atomic<usize> count;
 
     /** Waiter 리스트. waiters == CompletedSentinel()이면 완료 상태 */
     alignas(SE_CACHE_LINE) std::atomic<WaiterNode*> waiters = nullptr;
@@ -98,17 +98,18 @@ class SE_CORE_API JobHandle
     {
         JobCounter* counter;
 
-        bool await_ready() const noexcept
+        bool await_ready() const noexcept // NOLINT(*-use-nodiscard)
         {
             return !counter || counter->IsComplete();
         }
 
-        bool await_suspend(std::coroutine_handle<> in_handle) const
+        bool await_suspend(std::coroutine_handle<> in_handle) const // NOLINT(*-use-nodiscard)
         {
             // 등록 성공 시(NullOpt) true를 반환하여 코루틴을 중단(suspend)
             return counter && !counter->AddWaiter(in_handle).HasValue();
         }
 
+        // ReSharper disable once CppMemberFunctionMayBeStatic
         void await_resume() const noexcept {}
     };
 
@@ -121,7 +122,7 @@ public:
     }
 
     /** 지정된 카운트를 가진 새 JobCounter를 생성하여 핸들을 반환합니다. */
-    static JobHandle Create(uint32 in_count)
+    static JobHandle Create(usize in_count)
     {
         return JobHandle{ std::make_shared<JobCounter>(in_count) };
     }
@@ -135,6 +136,9 @@ public:
         return !counter || counter->IsComplete();
     }
 
+    /** 유효한 카운터를 보유하고 있는지 확인합니다. */
+    [[nodiscard]] bool IsValid() const { return counter != nullptr; }
+
     /**
      * 작업이 완료될 때까지 현재 스레드를 블로킹합니다.
      * @note 추후 Job Stealing 방식의 워커 스레드 대기 로직으로 확장될 예정입니다.
@@ -144,9 +148,7 @@ public:
     /** 내부 카운터 포인터를 반환합니다. (nullptr일 수 있음) */
     [[nodiscard]] FORCE_INLINE JobCounter* GetCounter() const { return counter.get(); }
 
-    /** 유효한 카운터를 보유하고 있는지 확인합니다. */
-    [[nodiscard]] explicit operator bool() const { return counter != nullptr; }
-
+    [[nodiscard]] explicit operator bool() const { return IsValid(); }
     Awaiter operator co_await() const { return { GetCounter() }; }
 
 private:
