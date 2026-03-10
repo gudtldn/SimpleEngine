@@ -1,6 +1,7 @@
 // ReSharper disable CppDFAMemoryLeak
 #include "SimpleEngine/Core/Concurrency/JobHandle.h"
 
+#include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -107,6 +108,16 @@ Optional<UniqueFunction<void()>> JobCounter::AddWaiter(UniqueFunction<void()>&& 
     ));
 
     return NullOpt;
+}
+
+void* JobCounter::WaiterNode::operator new(usize size)
+{
+    return JobAllocator::Allocate(size);
+}
+
+void JobCounter::WaiterNode::operator delete(void* ptr)
+{
+    JobAllocator::Free(ptr);
 }
 
 JobCounter::WaiterNode* JobCounter::CompletedSentinel()
