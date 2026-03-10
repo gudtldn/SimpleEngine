@@ -10,7 +10,7 @@
 
 namespace se
 {
-JobCounter::JobCounter(uint32 in_initial_count)
+JobCounter::JobCounter(usize in_initial_count)
     : count(in_initial_count)
 {
     if (in_initial_count == 0)
@@ -39,7 +39,7 @@ JobCounter::~JobCounter()
 
 void JobCounter::Decrement()
 {
-    const uint32 prev = count.fetch_sub(1, std::memory_order_acq_rel);
+    const usize prev = count.fetch_sub(1, std::memory_order_acq_rel);
     SE_ASSERT(prev > 0, "Decrement called on already-zero counter");
 
     if (prev == 1)
@@ -55,7 +55,7 @@ bool JobCounter::IsComplete() const
     return count.load(std::memory_order_acquire) == 0;
 }
 
-uint32 JobCounter::GetCount() const
+usize JobCounter::GetCount() const
 {
     return count.load(std::memory_order_acquire);
 }
