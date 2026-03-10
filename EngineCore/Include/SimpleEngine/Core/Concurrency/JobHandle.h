@@ -63,6 +63,9 @@ private:
         WaiterNode* next = nullptr;
         std::coroutine_handle<> coroutine; // 값이 존재하면 코루틴 resume
         UniqueFunction<void()> callback;   // 코루틴이 null이면 콜백 호출
+
+        void* operator new(usize size);
+        void operator delete(void* ptr);
     };
 
     /**
