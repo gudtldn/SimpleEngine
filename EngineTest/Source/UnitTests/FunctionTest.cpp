@@ -285,7 +285,7 @@ TEST_F(UniqueFunctionAPI_Test, MoveSemantics)
         EXPECT_EQ(f2(10), 40);
     }
 
-    // Move assigning — Heap → SBO
+    // Move assigning — Heap -> SBO
     {
         UniqueFunction<int(int)> f1 = LargeFunctor{};
         UniqueFunction<int(int)> f2 = [](int i) { return i * 5; };

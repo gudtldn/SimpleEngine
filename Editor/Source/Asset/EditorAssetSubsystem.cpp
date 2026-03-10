@@ -699,14 +699,14 @@ void EditorAssetSubsystem::SyncDependencies(
 
     for (const asset::AssetDependencyEntry& entry : dependencies)
     {
-        // 1) 명시적 GUID가 있으면 직접 사용
+        // 1. 명시적 GUID가 있으면 직접 사용
         if (entry.asset_guid.IsValid())
         {
             resolved_ids.Push(asset::AssetId{ entry.asset_guid });
             continue;
         }
 
-        // 2) VPath로 Registry에서 파일 내 에셋 ID를 찾음
+        // 2. VPath로 Registry에서 파일 내 에셋 ID를 찾음
         // asset_guid가 비어있으면 "파일 전체에 의존" - 파일 내 모든 sub-asset을 등록
         // TODO: entry.type (Hard/Soft/BuildOnly) 미반영 - 현재 모든 의존성을 Hard로 취급
         //       DependencyGraph가 type을 저장하도록 확장 시 반영 예정

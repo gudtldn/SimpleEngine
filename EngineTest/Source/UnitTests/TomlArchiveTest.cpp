@@ -1387,7 +1387,7 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
 // =========================================================================
 
 // 1. ExplicitMapStruct 를 루트에 직접 쓰는 경우
-//    operator<<(Serializable) → BeginObject(no key) → Serialize → BeginMap(no key)
+//    operator<<(Serializable) -> BeginObject(no key) -> Serialize -> BeginMap(no key)
 TEST_F(TomlArchiveTest, ExplicitMapStructAtRoot)
 {
     ExplicitMapStruct original;
@@ -1415,7 +1415,7 @@ TEST_F(TomlArchiveTest, ExplicitMapStructAtRoot)
 }
 
 // 2. ExplicitMapStruct 를 키가 있는 필드로 포함하는 외부 구조체
-//    inner 필드는 BeginObject("inner") → Serialize → BeginMap(no key) 경로
+//    inner 필드는 BeginObject("inner") -> Serialize -> BeginMap(no key) 경로
 TEST_F(TomlArchiveTest, ExplicitMapStructNestedUnderKey)
 {
     OuterWithExplicitMap original;
@@ -1445,8 +1445,8 @@ TEST_F(TomlArchiveTest, ExplicitMapStructNestedUnderKey)
 }
 
 // 3. ExplicitMapStruct 의 배열
-//    배열 요소마다 BeginObject(array mode) → Serialize → BeginMap(array mode, no key)
-//    → 기존 array element 컨텍스트를 MapMode 로 재사용해야 함
+//    배열 요소마다 BeginObject(array mode) -> Serialize -> BeginMap(array mode, no key)
+//    -> 기존 array element 컨텍스트를 MapMode 로 재사용해야 함
 TEST_F(TomlArchiveTest, ArrayOfExplicitMapStruct)
 {
     ArrayOfExplicitMap original;
@@ -1480,7 +1480,7 @@ TEST_F(TomlArchiveTest, ArrayOfExplicitMapStruct)
 }
 
 // 4. ExplicitMapStruct 를 값으로 갖는 Map
-//    Map value = Serializable(ExplicitMapStruct) → BeginObject(key 有) → Serialize → BeginMap(no key)
+//    Map value = Serializable(ExplicitMapStruct) -> BeginObject(key 有) -> Serialize -> BeginMap(no key)
 TEST_F(TomlArchiveTest, MapValueIsExplicitMapStruct)
 {
     MapValueIsExplicitMap original;
@@ -1515,8 +1515,8 @@ TEST_F(TomlArchiveTest, MapValueIsExplicitMapStruct)
 // 5. MetaFileContent 패턴 재현
 //    NestedData(Reflectable) + ExplicitMapStruct(Serializable with explicit BeginMap)
 //    를 각각 키를 붙여 직렬화한다.
-//    ar("metadata") << nested   → BeginObject("metadata") → AutoSerialize
-//    ar("import_settings") << explicit_map → BeginObject("import_settings") → BeginMap(no key)
+//    ar("metadata") << nested   -> BeginObject("metadata") -> AutoSerialize
+//    ar("import_settings") << explicit_map -> BeginObject("import_settings") -> BeginMap(no key)
 TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
 {
     SimulatedMetaContent original;
@@ -1548,7 +1548,7 @@ TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
     EXPECT_EQ(result.import_settings.entries["lod_bias"],   2);
 }
 
-// 6. HashMap 을 루트에 직접 쓰는 경우 (operator<<(MapLike) → BeginMap(no key))
+// 6. HashMap 을 루트에 직접 쓰는 경우 (operator<<(MapLike) -> BeginMap(no key))
 TEST_F(TomlArchiveTest, HashMapAtRoot)
 {
     HashMap<String, int32> original;

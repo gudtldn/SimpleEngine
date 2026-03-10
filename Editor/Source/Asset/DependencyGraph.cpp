@@ -19,7 +19,7 @@ void DependencyGraph::SetDependencies(
     ZoneScopedN("DependencyGraph::SetDependencies");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
-    // 0) 입력 중복 제거 + 자기 참조 필터링
+    // 0. 입력 중복 제거 + 자기 참조 필터링
     Array<asset::AssetId> unique_deps;
     {
         HashSet<asset::AssetId> seen;
@@ -44,7 +44,7 @@ void DependencyGraph::SetDependencies(
 
     std::unique_lock lock(graph_mutex);
 
-    // 1) 기존 순방향 의존성에서 역방향 인덱스 정리
+    // 1. 기존 순방향 의존성에서 역방향 인덱스 정리
     if (const auto old_fwd = forward_deps.Find(id))
     {
         for (const asset::AssetId& old_dep : *old_fwd)
@@ -69,7 +69,7 @@ void DependencyGraph::SetDependencies(
         forward_deps.Remove(id);
     }
 
-    // 2) 순환 의존성 필터링 (동일 unique_lock 내에서 원자적으로 수행 - TOCTOU 방지)
+    // 2. 순환 의존성 필터링 (동일 unique_lock 내에서 원자적으로 수행 - TOCTOU 방지)
     Array<asset::AssetId> safe_deps;
     safe_deps.Reserve(unique_deps.Len());
 
@@ -86,14 +86,14 @@ void DependencyGraph::SetDependencies(
         safe_deps.Push(dep);
     }
 
-    // 3) 순방향 의존성 등록
+    // 3. 순방향 의존성 등록
     if (safe_deps.IsEmpty())
     {
         return;
     }
     const Array<asset::AssetId>& inserted_deps = forward_deps.Insert(id, std::move(safe_deps));
 
-    // 4) 새 역방향 인덱스 등록
+    // 4. 새 역방향 인덱스 등록
     for (const asset::AssetId& dep : inserted_deps)
     {
         reverse_deps.Entry(dep).OrDefault().Push(id);
@@ -107,7 +107,7 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
 
     std::unique_lock lock(graph_mutex);
 
-    // 1) 순방향 의존성에서 역방향 인덱스 정리
+    // 1. 순방향 의존성에서 역방향 인덱스 정리
     if (const auto fwd = forward_deps.Find(id))
     {
         for (const asset::AssetId& dep : *fwd)
@@ -132,7 +132,7 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
         forward_deps.Remove(id);
     }
 
-    // 2) 역방향 의존성에서 순방향 인덱스 정리 (이 노드에 의존하던 다른 노드들)
+    // 2. 역방향 의존성에서 순방향 인덱스 정리 (이 노드에 의존하던 다른 노드들)
     if (const auto rev = reverse_deps.Find(id))
     {
         if (!rev->IsEmpty())
@@ -259,7 +259,7 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
 
     std::shared_lock lock(graph_mutex);
 
-    // 1) 모든 노드 수집
+    // 1. 모든 노드 수집
     HashMap<asset::AssetId, uint32> dependency_count;
 
     // forward_deps와 reverse_deps의 Key가 곧 전체 노드 집합
@@ -276,7 +276,7 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
         }
     }
 
-    // 2) result 배열을 큐(Queue) 겸 최종 반환 배열로 사용
+    // 2. result 배열을 큐(Queue) 겸 최종 반환 배열로 사용
     Array<asset::AssetId> result;
     result.Reserve(dependency_count.Len());
 
@@ -289,7 +289,7 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
         }
     }
 
-    // 3) Index-based BFS 진행
+    // 3. Index-based BFS 진행
     usize read_idx = 0;
     while (read_idx < result.Len())
     {
@@ -312,7 +312,7 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
         }
     }
 
-    // 4) 순환(Cycle) 검증
+    // 4. 순환(Cycle) 검증
     // 순환이 있으면 특정 노드의 dependency_count가 0이 되지 못해 result에 포함되지 않음
     if (result.Len() != dependency_count.Len())
     {
