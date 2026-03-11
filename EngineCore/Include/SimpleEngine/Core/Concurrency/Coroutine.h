@@ -1,11 +1,12 @@
 ﻿#pragma once
-#include "Coroutine/Promise.h"
-#include "Coroutine/Task.h"
+
+#include "Coroutine/CoroutinePrimitives.h"
+#include "Coroutine/JobTask.h"
 
 
 namespace se
 {
-/** C++20 Coroutine Task 타입  */
+/** 후방 호환성을 위한 별칭. 새 코드에서는 JobTask<T>를 직접 사용하세요. */
 template <typename T>
-using Task = detail::TaskImpl<T, detail::Promise<T>>;
+using Task [[deprecated("Use instead JobTask<T>")]] = JobTask<T>;
 }
