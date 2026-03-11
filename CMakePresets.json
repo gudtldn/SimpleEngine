@@ -1,0 +1,182 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+
+    "configurePresets": [
+        {
+            "name": "_debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TRACY_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "_development",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Development",
+                "TRACY_ENABLE": "ON"
+            }
+        },
+        {
+            "name": "_release",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "TRACY_ENABLE": "OFF"
+            }
+        },
+        {
+            "name": "_msvc",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl"
+            }
+        },
+        {
+            "name": "_clang-cl",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang-cl",
+                "CMAKE_CXX_COMPILER": "clang-cl"
+            }
+        },
+        {
+            "name": "_gcc",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
+            "name": "_clang",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "debug-msvc",
+            "displayName": "Debug (MSVC)",
+            "description": "Debug 빌드, Tracy ON. x64 Native Tools Command Prompt 필요.",
+            "inherits": ["_debug", "_msvc"],
+            "binaryDir": "${sourceDir}/Build/Debug_MSVC"
+        },
+        {
+            "name": "development-msvc",
+            "displayName": "Development (MSVC)",
+            "description": "Release 최적화 + PDB 디버그 심볼 (/Zi), Tracy ON.",
+            "inherits": ["_development", "_msvc"],
+            "binaryDir": "${sourceDir}/Build/Development_MSVC"
+        },
+        {
+            "name": "release-msvc",
+            "displayName": "Release (MSVC)",
+            "description": "Release 빌드, Tracy OFF.",
+            "inherits": ["_release", "_msvc"],
+            "binaryDir": "${sourceDir}/Build/Release_MSVC"
+        },
+        {
+            "name": "debug-clang-cl",
+            "displayName": "Debug (Clang-CL)",
+            "description": "Debug 빌드, Tracy ON. LLVM for Windows + VS Dev Shell 필요.",
+            "inherits": ["_debug", "_clang-cl"],
+            "binaryDir": "${sourceDir}/Build/Debug_ClangVS"
+        },
+        {
+            "name": "release-clang-cl",
+            "displayName": "Release (Clang-CL)",
+            "description": "Release 빌드, Tracy OFF.",
+            "inherits": ["_release", "_clang-cl"],
+            "binaryDir": "${sourceDir}/Build/Release_ClangVS"
+        },
+        {
+            "name": "debug-gcc",
+            "displayName": "Debug (GCC)",
+            "description": "Debug 빌드, Tracy ON.",
+            "inherits": ["_debug", "_gcc"],
+            "binaryDir": "${sourceDir}/Build/Debug_GCC"
+        },
+        {
+            "name": "development-gcc",
+            "displayName": "Development (GCC)",
+            "description": "Development 빌드, Tracy ON. (Linux에서는 -g를 CMakeUserPresets.json으로 추가 권장)",
+            "inherits": ["_development", "_gcc"],
+            "binaryDir": "${sourceDir}/Build/Development_GCC"
+        },
+        {
+            "name": "release-gcc",
+            "displayName": "Release (GCC)",
+            "description": "Release 빌드, Tracy OFF.",
+            "inherits": ["_release", "_gcc"],
+            "binaryDir": "${sourceDir}/Build/Release_GCC"
+        },
+        {
+            "name": "debug-clang",
+            "displayName": "Debug (Clang)",
+            "description": "Debug 빌드, Tracy ON.",
+            "inherits": ["_debug", "_clang"],
+            "binaryDir": "${sourceDir}/Build/Debug_Clang"
+        },
+        {
+            "name": "development-clang",
+            "displayName": "Development (Clang)",
+            "description": "Development 빌드, Tracy ON. (Linux/macOS에서는 -g를 CMakeUserPresets.json으로 추가 권장)",
+            "inherits": ["_development", "_clang"],
+            "binaryDir": "${sourceDir}/Build/Development_Clang"
+        },
+        {
+            "name": "release-clang",
+            "displayName": "Release (Clang)",
+            "description": "Release 빌드, Tracy OFF.",
+            "inherits": ["_release", "_clang"],
+            "binaryDir": "${sourceDir}/Build/Release_Clang"
+        }
+    ],
+
+    "buildPresets": [
+        { "name": "debug-msvc",        "displayName": "Debug (MSVC)",        "configurePreset": "debug-msvc"        },
+        { "name": "development-msvc",  "displayName": "Development (MSVC)",  "configurePreset": "development-msvc"  },
+        { "name": "release-msvc",      "displayName": "Release (MSVC)",      "configurePreset": "release-msvc"      },
+        { "name": "debug-clang-cl",    "displayName": "Debug (Clang-CL)",    "configurePreset": "debug-clang-cl"    },
+        { "name": "release-clang-cl",  "displayName": "Release (Clang-CL)",  "configurePreset": "release-clang-cl"  },
+        { "name": "debug-gcc",         "displayName": "Debug (GCC)",         "configurePreset": "debug-gcc"         },
+        { "name": "development-gcc",   "displayName": "Development (GCC)",   "configurePreset": "development-gcc"   },
+        { "name": "release-gcc",       "displayName": "Release (GCC)",       "configurePreset": "release-gcc"       },
+        { "name": "debug-clang",       "displayName": "Debug (Clang)",       "configurePreset": "debug-clang"       },
+        { "name": "development-clang", "displayName": "Development (Clang)", "configurePreset": "development-clang" },
+        { "name": "release-clang",     "displayName": "Release (Clang)",     "configurePreset": "release-clang"     }
+    ],
+
+    "testPresets": [
+        {
+            "name": "debug-msvc",
+            "displayName": "Test (Debug, MSVC)",
+            "configurePreset": "debug-msvc",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        },
+        {
+            "name": "debug-gcc",
+            "displayName": "Test (Debug, GCC)",
+            "configurePreset": "debug-gcc",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        },
+        {
+            "name": "debug-clang",
+            "displayName": "Test (Debug, Clang)",
+            "configurePreset": "debug-clang",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        }
+    ]
+}

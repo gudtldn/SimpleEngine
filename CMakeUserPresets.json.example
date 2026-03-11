@@ -1,0 +1,26 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+
+    "configurePresets": [
+        {
+            "name": "_local-vcpkg",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "C:/path/to/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            }
+        },
+
+        { "name": "debug-msvc",        "inherits": ["debug-msvc",        "_local-vcpkg"] },
+        { "name": "development-msvc",  "inherits": ["development-msvc",  "_local-vcpkg"] },
+        { "name": "release-msvc",      "inherits": ["release-msvc",      "_local-vcpkg"] },
+        { "name": "debug-clang-cl",    "inherits": ["debug-clang-cl",    "_local-vcpkg"] },
+        { "name": "release-clang-cl",  "inherits": ["release-clang-cl",  "_local-vcpkg"] },
+        { "name": "debug-gcc",         "inherits": ["debug-gcc",         "_local-vcpkg"] },
+        { "name": "development-gcc",   "inherits": ["development-gcc",   "_local-vcpkg"] },
+        { "name": "release-gcc",       "inherits": ["release-gcc",       "_local-vcpkg"] },
+        { "name": "debug-clang",       "inherits": ["debug-clang",       "_local-vcpkg"] },
+        { "name": "development-clang", "inherits": ["development-clang", "_local-vcpkg"] },
+        { "name": "release-clang",     "inherits": ["release-clang",     "_local-vcpkg"] }
+    ]
+}

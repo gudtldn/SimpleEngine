@@ -1,5 +1,12 @@
 ﻿cmake_minimum_required(VERSION 3.28)
 
+# VCPKG_ROOT 환경변수가 설정된 경우 자동으로 vcpkg 툴체인 적용
+# CMakeUserPresets.json이나 -DCMAKE_TOOLCHAIN_FILE= 로 직접 지정한 경우 우선됨
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "vcpkg toolchain (auto-detected from VCPKG_ROOT)")
+endif()
+
 # 커스텀 빌드 구성 정의
 # Multi-config 생성기용 (Visual Studio, Ninja Multi-Config)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Development;Release" CACHE STRING "" FORCE)

@@ -15,3 +15,5 @@ riderModule.iml
 *.user
 imgui.ini
 GEMINI.md
+
+CMakeUserPresets.json
