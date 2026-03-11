@@ -75,7 +75,7 @@ private:
     static WaiterNode* CompletedSentinel();
 
     /** Waiter 리스트를 순회하며 모두 깨웁니다. */
-    static void NotifyWaiters(const WaiterNode* in_list);
+    static void NotifyWaiters(WaiterNode* in_list);
 
 private:
     // False Sharing 방지를 위한 캐시라인 정렬
