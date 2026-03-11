@@ -2,6 +2,7 @@
 #include "SimpleEngine/Core/Concurrency/JobHandle.h"
 
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -153,9 +154,15 @@ void JobHandle::Wait() const
         return;
     }
 
+    // JobSystem이 초기화되지 않은 환경에서는 단순 Spin-Yield로 대기
+    const bool has_job_system = JobSystem::IsInitialized();
+
     while (!counter->IsComplete())
     {
-        // TODO: Steal Work로 교체 예정
+        if (has_job_system && JobSystem::Get().TryExecuteOne())
+        {
+            continue;
+        }
         std::this_thread::yield();
     }
 }
