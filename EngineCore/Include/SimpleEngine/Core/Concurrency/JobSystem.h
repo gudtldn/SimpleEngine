@@ -151,9 +151,6 @@ private:
     /** 글로벌 인박스에서 Payload를 하나 꺼냅니다. (Treiber Stack Pop) */
     JobPayload* TryPopGlobal();
 
-    /** 현재 스레드의 워커 인덱스를 반환합니다. (비워커 스레드는 SIZE_MAX) */
-    static usize& GetCurrentWorkerIndex();
-
 private:
     /** 워커 스레드별 데이터. False Sharing 방지를 위해 캐시 라인 정렬됩니다. */
     struct alignas(SE_CACHE_LINE) Worker
