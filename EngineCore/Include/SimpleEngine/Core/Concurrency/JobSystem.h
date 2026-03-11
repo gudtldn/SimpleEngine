@@ -56,6 +56,17 @@ public:
 
 public:
     /**
+     * 완료 추적 없이 작업을 워커 스레드에 스케줄링합니다. (Fire-and-Forget)
+     *
+     * @tparam Fn void()로 호출 가능한 callable 타입
+     * @param work_func 실행할 callable
+     * @param priority 실행 우선순위
+     */
+    template <typename Fn>
+        requires std::invocable<Fn>
+    void Schedule(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
+
+    /**
      * 작업을 워커 스레드에 제출합니다.
      *
      * @tparam Fn void()로 호출 가능한 callable 타입
@@ -176,6 +187,14 @@ private:
     TracyLockable(std::mutex, wake_mutex);
     std::condition_variable_any wake_cv;
 };
+
+template <typename Fn>
+    requires std::invocable<Fn>
+void JobSystem::Schedule(Fn&& work_func, EJobPriority priority)
+{
+    JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
+    SchedulePayload(payload);
+}
 
 template <typename Fn>
     requires std::invocable<Fn>
