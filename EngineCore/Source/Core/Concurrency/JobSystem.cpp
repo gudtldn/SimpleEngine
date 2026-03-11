@@ -21,6 +21,9 @@ constexpr usize IDLE_SPIN_COUNT = 32;
 
 /** condition_variable 대기 타임아웃 */
 constexpr std::chrono::milliseconds IDLE_WAIT_TIMEOUT = 1ms;
+
+/** TLS에 워커 인덱스를 저장하는 변수. max()면 비워커 스레드 */
+thread_local usize CurrentWorkerIndex = std::numeric_limits<usize>::max();
 } // namespace
 
 JobSystem* JobSystem::instance = nullptr;
@@ -112,13 +115,12 @@ usize JobSystem::ExecuteMainThreadJobs()
 
 bool JobSystem::TryExecuteOne()
 {
-    const usize self_idx = GetCurrentWorkerIndex();
     JobPayload* payload = nullptr;
 
     // 워커 스레드라면 자신의 Deque에서 먼저 시도
-    if (self_idx < worker_count)
+    if (CurrentWorkerIndex < worker_count)
     {
-        payload = TryPopLocal(self_idx);
+        payload = TryPopLocal(CurrentWorkerIndex);
     }
 
     // Global Inbox에서 시도
@@ -130,7 +132,7 @@ bool JobSystem::TryExecuteOne()
     // 다른 워커에서 Steal을 시도
     if (!payload)
     {
-        payload = TryStealFromOthers(self_idx);
+        payload = TryStealFromOthers(CurrentWorkerIndex);
     }
 
     if (payload)
@@ -149,12 +151,11 @@ usize JobSystem::GetWorkerCount() const
 
 void JobSystem::SchedulePayload(JobPayload* payload)
 {
-    const usize self_idx = GetCurrentWorkerIndex();
-    if (self_idx < worker_count)
+    if (CurrentWorkerIndex < worker_count)
     {
         // 워커 스레드라면 자신의 Deque에 직접 Push (Owner만 Push 가능)
         const usize priority = static_cast<usize>(payload->priority);
-        workers[self_idx].deques[priority].Push(payload);
+        workers[CurrentWorkerIndex].deques[priority].Push(payload);
     }
     else
     {
@@ -216,7 +217,7 @@ void JobSystem::ExecutePayload(JobPayload* payload)
 void JobSystem::WorkerLoop(const std::stop_token& stoken, usize worker_index)
 {
     // TLS에 워커 인덱스를 기록
-    GetCurrentWorkerIndex() = worker_index;
+    CurrentWorkerIndex = worker_index;
 
     // 스레드 이름 설정
     const String thread_name = String::Format("JobWorker {}", worker_index);
@@ -316,13 +317,5 @@ JobPayload* JobSystem::TryPopGlobal()
         }
     }
     return nullptr;
-}
-
-usize& JobSystem::GetCurrentWorkerIndex()
-{
-    // TODO: 이거 꼭 멤버로 둬야하나?
-    // MSVC에서 thread_local 변수에 __declspec(dllexport)를 적용할 수 없으므로, 함수 thread_local 패턴을 사용
-    thread_local usize index = std::numeric_limits<usize>::max();
-    return index;
 }
 } // namespace se
