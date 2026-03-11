@@ -28,7 +28,7 @@ struct SwitchToIOThread;
 /**
  * 비동기 시스템을 관리하는 스케줄러
  */
-class SE_CORE_API TaskScheduler
+class [[deprecated("Use instead JobSystem")]] SE_CORE_API TaskScheduler
 {
 private:
     // ProcessMainThreadTasks 호출을 위해서

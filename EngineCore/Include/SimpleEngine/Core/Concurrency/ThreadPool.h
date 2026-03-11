@@ -20,7 +20,7 @@ namespace se
  *
  * @todo 추후 Work Stealing 방식으로 개선
  */
-class SE_CORE_API ThreadPool
+class [[deprecated("Use instead JobSystem")]] SE_CORE_API ThreadPool
 {
 public:
     explicit ThreadPool(String in_pool_name, uint32 num_threads);
