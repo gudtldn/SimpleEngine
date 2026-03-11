@@ -46,7 +46,7 @@ void JobCounter::Decrement()
     if (prev == 1)
     {
         // Waiter 리스트를 COMPLETED로 교체하고 모든 Waiter에 대해 Notify 호출
-        const WaiterNode* list = waiters.exchange(CompletedSentinel(), std::memory_order_acq_rel);
+        WaiterNode* list = waiters.exchange(CompletedSentinel(), std::memory_order_acq_rel);
         NotifyWaiters(list);
     }
 }
@@ -127,11 +127,12 @@ JobCounter::WaiterNode* JobCounter::CompletedSentinel()
     return reinterpret_cast<WaiterNode*>(static_cast<usize>(1));
 }
 
-void JobCounter::NotifyWaiters(const WaiterNode* in_list)
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void JobCounter::NotifyWaiters(WaiterNode* in_list)
 {
     while (in_list && in_list != CompletedSentinel())
     {
-        const WaiterNode* next = in_list->next;
+        WaiterNode* next = in_list->next;
 
         if (in_list->coroutine)
         {
