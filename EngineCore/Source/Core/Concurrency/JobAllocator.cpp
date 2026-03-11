@@ -99,7 +99,8 @@ void JobAllocator::Shutdown()
     for (std::atomic<SlabRecord*>& slab_list : slab_lists)
     {
         // Slab 한꺼번에 해제
-        while (const SlabRecord* record = slab_list.exchange(nullptr, std::memory_order_acquire))
+        const SlabRecord* record = slab_list.exchange(nullptr, std::memory_order_acquire);
+        while (record != nullptr)
         {
             const SlabRecord* next = record->next;
             OsMemory::Free(record->memory);
