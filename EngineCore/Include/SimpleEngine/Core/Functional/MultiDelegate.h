@@ -1,11 +1,13 @@
 ﻿#pragma once
-#include <atomic>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <atomic>
+#include <mutex>
 
 
 namespace se
@@ -108,4 +110,4 @@ private:
     mutable TracyLockable(std::mutex, mutex);
     Array<Binding> bindings;
 };
-}
+} // namespace se
