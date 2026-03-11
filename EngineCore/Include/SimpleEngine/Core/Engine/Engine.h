@@ -9,13 +9,9 @@
 
 namespace se
 {
-class TaskScheduler;
-class ThreadPool;
-}
-
-namespace se
-{
+// forward declaration
 class IUpdatable;
+class JobSystem;
 class SubsystemBase;
 
 /**
@@ -101,7 +97,8 @@ private:
     // Update가 필요한 Subsystem 목록
     Array<UpdatableEntry> updatable_systems;
 
-    std::unique_ptr<TaskScheduler> task_scheduler;
+    // JobSystem의 싱글톤 Instance를 Engine에서 관리하기 위한 포인터
+    std::unique_ptr<JobSystem> job_system;
 };
 
 

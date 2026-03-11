@@ -2,8 +2,7 @@
 
 #include <ranges>
 
-#include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
-#include "SimpleEngine/Core/Concurrency/ThreadPool.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -139,7 +138,7 @@ bool Engine::Initialize()
         return false;
     }
 
-    task_scheduler = std::make_unique<TaskScheduler>(std::this_thread::get_id());
+    job_system = std::make_unique<JobSystem>();
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
@@ -163,7 +162,7 @@ void Engine::Release()
     sorted_subsystems.Clear();
     subsystems.Clear();
 
-    task_scheduler.reset();
+    job_system.reset();
 
     SDL_Quit();
 }
@@ -198,7 +197,7 @@ void Engine::UpdateFrame(float delta_time)
         SE_PROFILE_SCOPE("MainThreadTasks");
 
         // 비동기 태스크를 마저 실행
-        task_scheduler->ProcessMainThreadTasks();
+        job_system->ExecuteMainThreadJobs();
     }
 
 #undef SE_PROFILE_SCOPE

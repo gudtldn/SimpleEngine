@@ -195,21 +195,6 @@ TEST_F(CoroutineTest, JobTask_SymmetricTransfer_VoidChild)
 
 
 // ═══════════════════════════════════════════════════════════════════
-//  Task alias: 후방 호환성 확인
-// ═══════════════════════════════════════════════════════════════════
-
-TEST_F(CoroutineTest, TaskAlias_BackwardCompatible)
-{
-    // Task<T> alias가 JobTask<T>와 동일하게 동작합니다.
-    auto task = []() -> Task<int> { co_return 777; }();
-    task.handle.resume();
-
-    EXPECT_TRUE(task.handle.done());
-    EXPECT_EQ(task.handle.promise().result.Value(), 777);
-}
-
-
-// ═══════════════════════════════════════════════════════════════════
 //  ResumeOn: 스레드 전환
 // ═══════════════════════════════════════════════════════════════════
 
