@@ -1,7 +1,6 @@
 ﻿#include "gtest/gtest.h"
 #include "UnitTestEnvironment.h"
 
-#include "SimpleEngine/Core/Concurrency/TaskScheduler.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/Backends/ConsoleBackend.h"
 
@@ -14,7 +13,7 @@ int main(int argc, char* argv[])
     // Environment 추가
     ::testing::AddGlobalTestEnvironment(new ConfigTestEnvironment());
 
-    auto task_scheduler = std::make_unique<se::TaskScheduler>(std::this_thread::get_id());
+    // Log Backend 추가
     {
         se::LogBackendManager::Get().AddBackend<se::ConsoleBackend>();
     }
