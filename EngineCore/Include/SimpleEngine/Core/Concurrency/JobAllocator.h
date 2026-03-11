@@ -1,7 +1,8 @@
 #pragma once
 
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Concurrency/Common.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"
@@ -142,7 +143,7 @@ private:
 
 private:
     // Slow path용 전역 자원 (ABA 방지를 위해 mutex 사용)
-    struct GlobalPool
+    struct alignas(SE_CACHE_LINE) GlobalPool
     {
         TracyLockable(std::mutex, lock);
         FreeNode* head = nullptr;
