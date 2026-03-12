@@ -145,6 +145,9 @@ public:
     /** 내부 카운터 포인터를 반환합니다. (nullptr일 수 있음) */
     [[nodiscard]] FORCE_INLINE JobCounter* GetCounter() const { return counter.get(); }
 
+    /** 내부 카운터의 공유 소유권을 반환합니다. (JobPayload의 수명 보장용) */
+    [[nodiscard]] FORCE_INLINE const std::shared_ptr<JobCounter>& GetSharedCounter() const { return counter; }
+
     [[nodiscard]] explicit operator bool() const { return IsValid(); }
     Awaiter operator co_await() const { return { GetCounter() }; }
 

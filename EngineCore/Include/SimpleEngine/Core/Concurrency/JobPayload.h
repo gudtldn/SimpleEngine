@@ -51,8 +51,11 @@ public:
     /** 이 Job의 우선순위 */
     EJobPriority priority = EJobPriority::Normal;
 
-    /** 이 Job 실행 완료 시 Decrement할 카운터 (nullptr이면 독립 실행) */
-    JobCounter* completion_counter = nullptr;
+    /**
+     * 이 Job 실행 완료 시 Decrement할 카운터 (nullptr이면 독립 실행)
+     * shared_ptr로 보유하여 Decrement() 완료 전까지 JobCounter의 수명을 보장합니다.
+     */
+    std::shared_ptr<JobCounter> completion_counter = nullptr;
 
     /** 미해소 의존성 개수. 0이 되면 워커 Deque에 삽입됩니다. */
     std::atomic<usize> pending_deps = 0;
