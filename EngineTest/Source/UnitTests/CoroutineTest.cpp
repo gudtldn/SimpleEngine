@@ -64,8 +64,8 @@ TEST_F(CoroutineTest, Promise_AllocatedViaJobAllocator)
     task.handle.resume();
 
     EXPECT_TRUE(task.handle.done());
-    EXPECT_TRUE(task.handle.promise().result.HasValue());
-    EXPECT_EQ(task.handle.promise().result.Value(), 42);
+    EXPECT_TRUE(task.handle.promise().storage.HasValue());
+    EXPECT_EQ(task.handle.promise().storage.Value(), 42);
 }
 
 
@@ -79,7 +79,7 @@ TEST_F(CoroutineTest, JobTask_CoReturnInt)
     task.handle.resume();
 
     EXPECT_TRUE(task.handle.done());
-    EXPECT_EQ(task.handle.promise().result.Value(), 123);
+    EXPECT_EQ(task.handle.promise().storage.Value(), 123);
 }
 
 TEST_F(CoroutineTest, JobTask_CoReturnVoid)
@@ -117,7 +117,7 @@ TEST_F(CoroutineTest, JobTask_SymmetricTransfer_NestedCoAwait)
 
     // Symmetric Transfer: resume 한 번으로 parent+child 모두 완료
     EXPECT_TRUE(task.handle.done());
-    EXPECT_EQ(task.handle.promise().result.Value(), 42);
+    EXPECT_EQ(task.handle.promise().storage.Value(), 42);
 }
 
 TEST_F(CoroutineTest, JobTask_SymmetricTransfer_DeepNesting)
@@ -139,7 +139,7 @@ TEST_F(CoroutineTest, JobTask_SymmetricTransfer_DeepNesting)
     // parent -> child -> grandchild -> FinalAwaiter(child) -> FinalAwaiter(parent)
     // 전부 한 번의 resume 호출로 완료
     EXPECT_TRUE(task.handle.done());
-    EXPECT_EQ(task.handle.promise().result.Value(), 21);
+    EXPECT_EQ(task.handle.promise().storage.Value(), 21);
 }
 
 TEST_F(CoroutineTest, JobTask_SymmetricTransfer_SameThread)
@@ -190,7 +190,7 @@ TEST_F(CoroutineTest, JobTask_SymmetricTransfer_VoidChild)
 
     EXPECT_TRUE(task.handle.done());
     EXPECT_TRUE(child_executed.load(std::memory_order_acquire));
-    EXPECT_EQ(task.handle.promise().result.Value(), 99);
+    EXPECT_EQ(task.handle.promise().storage.Value(), 99);
 }
 
 
@@ -335,7 +335,7 @@ TEST_F(CoroutineTest, WhenAll_Empty)
     task.handle.resume();
 
     EXPECT_TRUE(task.handle.done());
-    EXPECT_EQ(task.handle.promise().result.Value(), 1);
+    EXPECT_EQ(task.handle.promise().storage.Value(), 1);
 }
 
 
