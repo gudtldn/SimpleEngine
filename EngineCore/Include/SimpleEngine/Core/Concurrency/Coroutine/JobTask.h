@@ -20,7 +20,7 @@ class JobTask;
 namespace detail
 {
 /**
- * co_return 핸들링을 분리하는 Mixin 기저 클래스입니다.
+ * co_return 핸들링을 분리하는 Mixin 클래스
  * C++ 표준상 promise_type에 return_value와 return_void가 동시에
  * 선언되면 컴파일 에러가 발생하므로, 특수화로 분리합니다.
  *
@@ -28,19 +28,27 @@ namespace detail
  * @tparam Derived CRTP 파생 Promise 타입
  */
 template <typename T, typename Derived>
-struct PromiseReturnMixin
+class PromiseReturnMixin
 {
+    friend Derived;
+    PromiseReturnMixin() = default;
+
+public:
     template <typename U>
         requires std::convertible_to<U, T>
     void return_value(U&& value)
     {
-        static_cast<Derived*>(this)->result.Emplace(std::forward<U>(value));
+        static_cast<Derived*>(this)->storage.Emplace(std::forward<U>(value));
     }
 };
 
 template <typename Derived>
-struct PromiseReturnMixin<void, Derived>
+class PromiseReturnMixin<void, Derived>
 {
+    friend Derived;
+    PromiseReturnMixin() = default;
+
+public:
     void return_void() noexcept {}
 };
 } // namespace detail
@@ -60,8 +68,8 @@ struct PromiseReturnMixin<void, Derived>
 template <typename T>
 struct JobTaskPromise : detail::PromiseReturnMixin<T, JobTaskPromise<T>>
 {
-    // PromiseReturnMixin이 result에 접근해야 합니다.
-    friend struct detail::PromiseReturnMixin<T, JobTaskPromise<T>>;
+    // T가 void일 경우, EmptyType을 사용하여 메모리 최적화
+    using StorageType = std::conditional_t<std::is_void_v<T>, EmptyType, Optional<T>>;
 
 public:
     /** 코루틴 객체(JobTask)를 생성하여 호출자에게 반환합니다. */
@@ -110,51 +118,15 @@ public:
     /** 이 코루틴이 완료된 후 재개할 부모 코루틴 핸들 */
     std::coroutine_handle<> continuation;
 
-    /** 코루틴의 반환 값. void 특수화에서는 사용되지 않습니다. */
-    Optional<T> result;
+    /**
+     * 코루틴의 반환 값.
+     * T가 void일 경우 [[no_unique_address]]에 의해 메모리가 최적화 됩니다.
+     */
+    NO_UNIQUE_ADDRESS StorageType storage;
 };
-
-/** void 특수화 */
-template <>
-struct JobTaskPromise<void> : detail::PromiseReturnMixin<void, JobTaskPromise<void>>
-{
-    JobTask<void> get_return_object();
-
-    std::suspend_always initial_suspend() const noexcept { return {}; }
-
-    struct FinalAwaiter
-    {
-        bool await_ready() const noexcept { return false; }
-
-        std::coroutine_handle<> await_suspend(std::coroutine_handle<JobTaskPromise> handle) noexcept
-        {
-            const JobTaskPromise& promise = handle.promise();
-            return promise.continuation ? promise.continuation : std::noop_coroutine();
-        }
-
-        void await_resume() const noexcept {}
-    };
-
-    FinalAwaiter final_suspend() noexcept { return {}; }
-
-    void unhandled_exception() noexcept
-    {
-        SE_FATAL_ERROR(
-            "Unhandled exception detected in JobTask. "
-            "Exceptions must not propagate through coroutines to ensure engine stability."
-        );
-    }
-
-    void* operator new(usize size) { return JobAllocator::Allocate(size); }
-    void operator delete(void* ptr, usize) { JobAllocator::Free(ptr); }
-
-public:
-    std::coroutine_handle<> continuation;
-};
-
 
 /**
- * JobSystem과 네이티브하게 통합되는 C++20 코루틴 타입입니다.
+ * 엔진에서 사용하는 기본적인 C++20 코루틴 타입
  *
  * 핵심 시맨틱스:
  * - `co_await child_task`: **Symmetric Transfer** (Zero-Cost, 스레드 전환 없음)
@@ -241,15 +213,15 @@ public:
      */
     T await_resume()
     {
-        if constexpr (!std::is_void_v<T>)
-        {
-            SE_ASSERT(handle.promise().result.HasValue(), "JobTask completed without a return value.");
-            return std::move(handle.promise().result).Value();
-        }
-        else
+        if constexpr (std::is_void_v<T>)
         {
             // void는 그냥 return
             return;
+        }
+        else
+        {
+            SE_ASSERT(handle.promise().storage.HasValue(), "JobTask completed without a return value.");
+            return std::move(handle.promise().storage).Value();
         }
     }
 };
@@ -258,10 +230,5 @@ template <typename T>
 JobTask<T> JobTaskPromise<T>::get_return_object()
 {
     return JobTask<T>{ std::coroutine_handle<JobTaskPromise>::from_promise(*this) };
-}
-
-inline JobTask<void> JobTaskPromise<void>::get_return_object()
-{
-    return JobTask{ std::coroutine_handle<JobTaskPromise>::from_promise(*this) };
 }
 } // namespace se
