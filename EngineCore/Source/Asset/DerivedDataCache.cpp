@@ -69,21 +69,21 @@ bool ReadHeader(
     DDC_CacheEntryInternal::Header header;
     bool deserialize_success = false;
 
-    const auto result = FileSystem::ReadChunked(cache_path, chunk_size, [&](ArrayView<const uint8> chunk)
+    for (auto&& result : FileSystem::ReadChunked(cache_path, chunk_size))
     {
-        const Array<uint8> buffer = Array<uint8>::FromRange(chunk);
+        // 파일 시스템 에러 체크
+        if (result.HasError())
+        {
+            ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - IO Error: {}, {}", cache_path, result.Error().What());
+            return false;
+        }
+
+        const Array<uint8> buffer = Array<uint8>::FromRange(*result);
         MemoryReader reader(buffer);
         reader << header;
 
         deserialize_success = !reader.HasError();
-        return false;
-    });
-
-    // 파일 시스템 에러 체크
-    if (result.HasError())
-    {
-        ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - IO Error: {}, {}", cache_path, result.Error().What());
-        return false;
+        break;
     }
 
     // 역직렬화 실패 체크

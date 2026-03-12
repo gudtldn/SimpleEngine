@@ -17,16 +17,16 @@ String SHA256::HashFile(const Path& file_path)
     // 청크 사이즈 설정 (4MB)
     constexpr usize chunk_size = 4ULL * 1024 * 1024;
 
-    const FileResult result = FileSystem::ReadChunked(file_path, chunk_size, [&hasher](ArrayView<const uint8> chunk)
+    for (auto&& result : FileSystem::ReadChunked(file_path, chunk_size))
     {
-        hasher.process(chunk.begin(), chunk.end());
-        return true;
-    });
+        if (result.HasError())
+        {
+            ConsoleLog(ELogLevel::Error, "SHA256::HashFile - {}", result.Error().What());
+            return {};
+        }
 
-    if (!result)
-    {
-        ConsoleLog(ELogLevel::Error, "SHA256::HashFile - {}", result.Error().What());
-        return {};
+        const ArrayView<const uint8> chunk = result.Value();
+        hasher.process(chunk.begin(), chunk.end());
     }
 
     hasher.finish();

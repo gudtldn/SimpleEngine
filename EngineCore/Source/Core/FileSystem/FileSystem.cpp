@@ -1,12 +1,19 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
+#include "SDL3/SDL.h"
+
+
 #if SE_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 #undef CreateDirectory
 #endif
 
 #include <filesystem>
 #include <fstream>
+
+#include "SimpleEngine/Utility/Common.h"
 
 
 namespace
@@ -307,52 +314,61 @@ FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
     return data;
 }
 
-FileResult<void> FileSystem::ReadChunked(const Path& path, usize chunk_size, const Function<bool(ArrayView<const uint8>)>& callback)
+std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path path, usize chunk_size)
 {
     const String path_str = path.ToString();
 
-    std::ifstream file(ToStdPath(path), std::ios::in | std::ios::binary);
-    if (!file.is_open())
+    // 바이너리 읽기모드
+    SDL_IOStream* stream = SDL_IOFromFile(path_str.CStr(), "rb");
+
+    // 파일 읽기 실패 처리
+    if (!stream)
     {
         if (!path.Exists())
         {
-            return Unexpected{ FileReadError::NotFound("File not found: " + path_str) };
+            co_yield Unexpected{
+                FileReadError::NotFound(String::Format("File not found: {}", path_str))
+            };
         }
-        return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path_str) };
+        else
+        {
+            co_yield Unexpected{
+                FileReadError::OpenFailed(String::Format("Failed to open file: {} ({})", path_str, SDL_GetError()))
+            };
+        }
+        co_return;
     }
+
+    // 코루틴 종료 시, 파일 닫기
+    SE_SCOPE_DEFER {
+        SDL_CloseIO(stream);
+    };
 
     // 청크 버퍼 할당
     Array<uint8> buffer;
     buffer.ResizeUninitialized(chunk_size);
 
-    while (file)
+    while (true)
     {
-        // 파일에서 청크 사이즈만큼 읽기 시도
-        file.read(reinterpret_cast<char*>(buffer.Data()), static_cast<std::streamsize>(chunk_size));
-        const std::streamsize bytes_read = file.gcount();
+        const usize bytes_read = SDL_ReadIO(stream, buffer.Data(), chunk_size);
 
         if (bytes_read > 0)
         {
-            // 실제 읽어들인 크기만큼 ArrayView를 만들어 Callback으로 전달
-            ArrayView<const uint8> chunk_view(buffer.Data(), static_cast<usize>(bytes_read));
-            if (!callback(chunk_view))
-            {
-                break;
-            }
+            co_yield ArrayView<const uint8>{ buffer.Data(), bytes_read };
         }
 
-        if (file.eof())
+        if (bytes_read < chunk_size)
         {
+            // 에러인지 단순 EOF인지 판별
+            if (SDL_GetIOStatus(stream) == SDL_IO_STATUS_ERROR)
+            {
+                co_yield Unexpected{
+                    FileReadError::Read(String::Format("Failed to read file: {} ({})", path_str, SDL_GetError()))
+                };
+            }
             break;
         }
-
-        if (file.fail())
-        {
-            return Unexpected{ FileReadError::Read("Failed to read file: " + path_str) };
-        }
     }
-
-    return {};
 }
 
 bool FileSystem::WriteString(const Path& path, StringView content)
