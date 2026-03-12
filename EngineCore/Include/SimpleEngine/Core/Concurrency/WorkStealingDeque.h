@@ -6,6 +6,7 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <atomic>
+#include <bit>
 #include <utility>
 
 
@@ -110,8 +111,7 @@ private:
         CircularBuffer* Grow(int64 in_top, int64 in_bottom) const
         {
             // capacity의 log2를 재계산
-            usize log2_cap = 0;
-            for (int64 c = capacity; c > 1; c >>= 1) { ++log2_cap; }
+            const usize log2_cap = std::bit_width(static_cast<usize>(capacity)) - 1;
 
             CircularBuffer* new_buf = new CircularBuffer(log2_cap + 1);
             for (int64 i = in_top; i < in_bottom; ++i)

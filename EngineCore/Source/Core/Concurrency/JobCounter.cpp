@@ -123,8 +123,8 @@ void JobCounter::WaiterNode::operator delete(void* ptr)
 
 JobCounter::WaiterNode* JobCounter::CompletedSentinel()
 {
-    // 유효한 힙/스택 주소가 될 수 없는 값. 비교 전용으로 역참조시 UB
-    return reinterpret_cast<WaiterNode*>(static_cast<usize>(1));
+    static WaiterNode sentinel;
+    return &sentinel;
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
