@@ -21,7 +21,7 @@ namespace se
 class SE_CORE_API JobCounter
 {
 public:
-    explicit JobCounter(usize in_initial_count);
+    explicit JobCounter(usize initial_count);
     ~JobCounter();
 
     // 복사/이동 금지
@@ -45,17 +45,17 @@ public:
 
     /**
      * 코루틴 Waiter를 등록합니다.
-     * @param in_handle 완료 시 resume할 코루틴 핸들
+     * @param handle 완료 시 resume할 코루틴 핸들
      * @return 등록에 성공 시 NullOpt 반환, 실패 시(카운터가 완료된 경우) in_handle을 그대로 반환
      */
-    Optional<std::coroutine_handle<>> AddWaiter(std::coroutine_handle<> in_handle);
+    Optional<std::coroutine_handle<>> AddWaiter(std::coroutine_handle<> handle);
 
     /**
      * 콜백 Waiter를 등록합니다.
-     * @param in_callback 완료 시 호출할 함수
+     * @param callback 완료 시 호출할 함수
      * @return 등록에 성공 시 NullOpt 반환, 실패 시(카운터가 완료된 경우) Callback의 소유권을 다시 반환
      */
-    [[nodiscard]] Optional<UniqueFunction<void()>> AddWaiter(UniqueFunction<void()>&& in_callback);
+    [[nodiscard]] Optional<UniqueFunction<void()>> AddWaiter(UniqueFunction<void()>&& callback);
 
 private:
     struct WaiterNode
@@ -72,7 +72,7 @@ private:
     static WaiterNode* CompletedSentinel();
 
     /** Waiter 리스트를 순회하며 모두 깨웁니다. */
-    static void NotifyWaiters(WaiterNode* in_list);
+    static void NotifyWaiters(WaiterNode* waiter_list);
 
 private:
     // False Sharing 방지를 위한 캐시라인 정렬
