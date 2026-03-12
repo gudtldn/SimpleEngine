@@ -68,10 +68,7 @@ private:
         void operator delete(void* ptr);
     };
 
-    /**
-     * 완료 상태를 나타내는 센티널 포인터를 가져옵니다.
-     * @warning 절대로 역참조를 해서는 안됩니다. (UB)
-     */
+    /** 완료 상태를 나타내는 센티널 포인터를 가져옵니다. */
     static WaiterNode* CompletedSentinel();
 
     /** Waiter 리스트를 순회하며 모두 깨웁니다. */
