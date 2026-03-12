@@ -11,10 +11,10 @@
 
 namespace se
 {
-JobCounter::JobCounter(usize in_initial_count)
-    : count(in_initial_count)
+JobCounter::JobCounter(usize initial_count)
+    : count(initial_count)
 {
-    if (in_initial_count == 0)
+    if (initial_count == 0)
     {
         // 완료 상태로 설정
         waiters.store(CompletedSentinel(), std::memory_order_relaxed);
@@ -61,10 +61,10 @@ usize JobCounter::GetCount() const
     return count.load(std::memory_order_acquire);
 }
 
-Optional<std::coroutine_handle<>> JobCounter::AddWaiter(std::coroutine_handle<> in_handle)
+Optional<std::coroutine_handle<>> JobCounter::AddWaiter(std::coroutine_handle<> handle)
 {
     WaiterNode* node = new WaiterNode();
-    node->coroutine = in_handle;
+    node->coroutine = handle;
 
     WaiterNode* old_head = waiters.load(std::memory_order_acquire);
     do
@@ -73,7 +73,7 @@ Optional<std::coroutine_handle<>> JobCounter::AddWaiter(std::coroutine_handle<> 
         if (old_head == CompletedSentinel())
         {
             delete node;
-            return in_handle;
+            return handle;
         }
         node->next = old_head;
     }
@@ -85,10 +85,10 @@ Optional<std::coroutine_handle<>> JobCounter::AddWaiter(std::coroutine_handle<> 
     return NullOpt;
 }
 
-Optional<UniqueFunction<void()>> JobCounter::AddWaiter(UniqueFunction<void()>&& in_callback)
+Optional<UniqueFunction<void()>> JobCounter::AddWaiter(UniqueFunction<void()>&& callback)
 {
     WaiterNode* node = new WaiterNode();
-    node->callback = std::move(in_callback);
+    node->callback = std::move(callback);
 
     WaiterNode* old_head = waiters.load(std::memory_order_acquire);
     do
@@ -96,10 +96,10 @@ Optional<UniqueFunction<void()>> JobCounter::AddWaiter(UniqueFunction<void()>&& 
         // 이미 완료된 상태인지?
         if (old_head == CompletedSentinel())
         {
-            in_callback = std::move(node->callback);
+            callback = std::move(node->callback);
             delete node;
 
-            return in_callback;
+            return callback;
         }
         node->next = old_head;
     }
@@ -128,23 +128,23 @@ JobCounter::WaiterNode* JobCounter::CompletedSentinel()
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
-void JobCounter::NotifyWaiters(WaiterNode* in_list)
+void JobCounter::NotifyWaiters(WaiterNode* waiter_list)
 {
-    while (in_list && in_list != CompletedSentinel())
+    while (waiter_list && waiter_list != CompletedSentinel())
     {
-        WaiterNode* next = in_list->next;
+        WaiterNode* next = waiter_list->next;
 
-        if (in_list->coroutine)
+        if (waiter_list->coroutine)
         {
-            in_list->coroutine.resume();
+            waiter_list->coroutine.resume();
         }
-        else if (in_list->callback)
+        else if (waiter_list->callback)
         {
-            in_list->callback();
+            waiter_list->callback();
         }
 
-        delete in_list;
-        in_list = next;
+        delete waiter_list;
+        waiter_list = next;
     }
 }
 
