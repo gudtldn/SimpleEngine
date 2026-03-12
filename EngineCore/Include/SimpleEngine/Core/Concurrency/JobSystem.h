@@ -56,7 +56,7 @@ public:
 
 public:
     /**
-     * 완료 추적 없이 작업을 워커 스레드에 스케줄링합니다. (Fire-and-Forget)
+     * 완료 추적 없이 작업을 워커 스레드로 전송합니다. (Fire-and-Forget)
      *
      * @tparam Fn void()로 호출 가능한 callable 타입
      * @param work_func 실행할 callable
@@ -64,10 +64,17 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn>
-    void Schedule(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
+    void Dispatch(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
-     * 작업을 워커 스레드에 제출합니다.
+     * 완료 추적 없이 작업을 메인 스레드 큐로 전송합니다. (모든 스레드에서 호출 가능)
+     *
+     * @param work_func 메인 스레드에서 실행할 작업
+     */
+    void DispatchToMain(UniqueFunction<void()>&& work_func);
+
+    /**
+     * 작업을 워커 스레드에 제출하고, 완료 상태를 추적할 수 있는 핸들을 반환합니다.
      *
      * @tparam Fn void()로 호출 가능한 callable 타입
      * @param work_func 실행할 callable (람다, 함수 객체 등)
@@ -79,10 +86,7 @@ public:
     JobHandle Submit(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
-     * 선행 작업 완료 후 실행될 의존성 작업을 제출합니다.
-     *
-     * 모든 선행 작업(deps)이 완료되면 자동으로 워커 Deque에 삽입됩니다.
-     * JobCounter의 Waiter 메커니즘을 활용하여 원자적으로 의존성을 해소합니다.
+     * 선행 작업들이 모두 완료된 후 실행될 의존성 작업을 제출합니다.
      *
      * @tparam Fn void()로 호출 가능한 callable 타입
      * @param work_func 실행할 callable
@@ -95,27 +99,22 @@ public:
     JobHandle Submit(Fn&& work_func, ArrayView<const JobHandle> dependencies, EJobPriority priority = EJobPriority::Normal);
 
     /**
-     * 메인 스레드에서 실행될 작업을 제출합니다. (모든 스레드에서 호출 가능)
-     * @param work_func 메인 스레드에서 실행할 작업
-     */
-    void SubmitMain(UniqueFunction<void()>&& work_func);
-
-    /**
-     * 범위를 배치 단위로 분할하여 병렬 실행합니다.
+     * 지정된 범위를 배치 단위로 분할하여 워커 스레드들에 병렬로 제출합니다.
      *
      * @tparam Fn void(usize index)로 호출 가능한 callable 타입
      * @param in_count 총 반복 횟수
      * @param batch_size 배치당 반복 횟수
      * @param work_func 각 인덱스에 대해 호출될 callable
      * @param priority 실행 우선순위
-     * @return 모든 배치 완료를 추적하는 핸들
+     * @return 모든 배치의 완료를 통합하여 추적하는 단일 핸들
      */
     template <typename Fn>
         requires std::invocable<Fn, usize>
     JobHandle ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
-     * 메인 스레드 큐에 쌓인 작업을 모두 실행합니다. (메인 스레드 전용)
+     * 현재 메인 스레드 큐에 대기 중인 모든 작업을 일괄 실행(Drain)합니다. (메인 스레드 전용)
+     *
      * @return 실행된 작업 수
      * @warning 반드시 메인 스레드에서만 호출해야 합니다.
      */
@@ -123,32 +122,31 @@ public:
 
 public:
     /**
-     * 대기 중에 다른 Job을 하나 훔쳐서 실행합니다.
-     * JobHandle::Wait()에서 CPU 유휴를 방지하기 위해 사용됩니다.
-     * @return 작업을 실행했으면 true
+     * 현재 스레드가 대기(Wait) 상태일 때, CPU 유휴를 방지하기 위해 다른 Job을 훔쳐서 실행합니다.
+     * @return 작업을 성공적으로 찾아 실행했다면 true
      */
-    bool TryExecuteOne();
+    bool TryExecuteOneJob();
 
     /** 워커 스레드 수를 반환합니다. */
     [[nodiscard]] usize GetWorkerCount() const;
 
 private:
-    /** JobPayload를 적절한 워커 Deque에 삽입하고 워커를 깨웁니다. */
-    void SchedulePayload(JobPayload* payload);
+    /** 생성된 JobPayload를 현재 스레드 컨텍스트에 맞춰 적절한 큐(Local Deque 또는 Global Inbox)에 삽입합니다. */
+    void EnqueuePayload(JobPayload* payload);
 
-    /** JobPayload를 실행하고 완료 카운터를 감소시킨 뒤 메모리를 해제합니다. */
+    /** JobPayload를 실행하고, 완료 카운터를 감소시킨 뒤 메모리를 해제합니다. */
     static void ExecutePayload(JobPayload* payload);
 
     /** 워커 스레드의 메인 루프 */
     void WorkerLoop(const std::stop_token& stoken, usize worker_index);
 
-    /** 자신의 Deque에서 우선순위 순으로 Pop을 시도합니다. */
+    /** 자신의 Deque에서 우선순위가 높은 순서대로 Pop을 시도합니다. */
     JobPayload* TryPopLocal(usize worker_index);
 
-    /** 다른 워커의 Deque에서 우선순위 순으로 Steal을 시도합니다. */
+    /** 다른 워커들의 Deque에서 우선순위가 높은 순서대로 Steal을 시도합니다. */
     JobPayload* TryStealFromOthers(usize thief_index);
 
-    /** 글로벌 인박스에서 Payload를 하나 꺼냅니다. (Treiber Stack Pop) */
+    /** 글로벌 인박스(Treiber Stack)에서 최신 Payload를 하나 꺼냅니다. */
     JobPayload* TryPopGlobal();
 
 private:
@@ -187,10 +185,10 @@ private:
 
 template <typename Fn>
     requires std::invocable<Fn>
-void JobSystem::Schedule(Fn&& work_func, EJobPriority priority)
+void JobSystem::Dispatch(Fn&& work_func, EJobPriority priority)
 {
     JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
-    SchedulePayload(payload);
+    EnqueuePayload(payload);
 }
 
 template <typename Fn>
@@ -202,7 +200,7 @@ JobHandle JobSystem::Submit(Fn&& work_func, EJobPriority priority)
     JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
     payload->completion_counter = handle.GetSharedCounter();
 
-    SchedulePayload(payload);
+    EnqueuePayload(payload);
     return handle;
 }
 
@@ -225,14 +223,14 @@ JobHandle JobSystem::Submit(
         return dep.IsValid();
     });
 
-    // 의존성이 없으면 바로 스케줄링
+    // 의존성이 없으면 바로 전송(Enqueue)
     if (dep_count == 0)
     {
-        SchedulePayload(payload);
+        EnqueuePayload(payload);
         return handle;
     }
 
-    // 가드 카운트(+1): 등록 도중 모든 의존성이 해소되어도 payload가 조기 스케줄링되는 것을 방지하기 위함
+    // 가드 카운트(+1): 등록 도중 모든 의존성이 해소되어도 payload가 조기 전송되는 것을 방지
     payload->pending_deps.store(dep_count + 1, std::memory_order_relaxed);
 
     // 각 의존성의 JobCounter에 Waiter를 등록
@@ -249,11 +247,11 @@ JobHandle JobSystem::Submit(
             // 가장 마지막 의존성이 payload를 Deque에 추가
             if (payload->pending_deps.fetch_sub(1, std::memory_order_acq_rel) == 1)
             {
-                SchedulePayload(payload);
+                EnqueuePayload(payload);
             }
         });
 
-        // dep이 이미 완료된 상태인 경우, AddWaiter가 콜백을 반환하기 때문에 따로 Invoke()
+        // 등록 시점에 이미 선행 작업이 완료된 경우, 반환된 콜백을 바로 Invoke()
         if (result.HasValue())
         {
             result->Invoke();
@@ -263,7 +261,7 @@ JobHandle JobSystem::Submit(
     // 가드 카운트를 해제
     if (payload->pending_deps.fetch_sub(1, std::memory_order_acq_rel) == 1)
     {
-        SchedulePayload(payload);
+        EnqueuePayload(payload);
     }
 
     return handle;
@@ -295,7 +293,7 @@ JobHandle JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func,
         }, priority);
         payload->completion_counter = handle.GetSharedCounter();
 
-        SchedulePayload(payload);
+        EnqueuePayload(payload);
     }
 
     return handle;

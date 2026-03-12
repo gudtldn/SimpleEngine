@@ -326,7 +326,7 @@ TEST_F(JobSystemTest, SubmitMain_ExecuteOnDrain)
 {
     std::atomic<int> value{0};
 
-    system->SubmitMain([&value]() { value.store(99); });
+    system->DispatchToMain([&value]() { value.store(99); });
 
     // Drain 전에는 실행되지 않습니다
     EXPECT_EQ(value.load(), 0);
@@ -341,9 +341,9 @@ TEST_F(JobSystemTest, SubmitMain_MultipleTasksDrained)
 {
     int total = 0;
 
-    system->SubmitMain([&total]() { total += 10; });
-    system->SubmitMain([&total]() { total += 20; });
-    system->SubmitMain([&total]() { total += 30; });
+    system->DispatchToMain([&total]() { total += 10; });
+    system->DispatchToMain([&total]() { total += 20; });
+    system->DispatchToMain([&total]() { total += 30; });
 
     usize count = system->ExecuteMainThreadJobs();
 
