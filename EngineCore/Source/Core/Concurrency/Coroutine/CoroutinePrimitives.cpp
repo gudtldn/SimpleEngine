@@ -15,7 +15,7 @@ namespace
 /** 코루틴 핸들을 JobSystem 워커에 fire-and-forget으로 스케줄링합니다. */
 void ScheduleCoroutineResume(std::coroutine_handle<> handle)
 {
-    JobSystem::Get().Schedule([h = handle]
+    JobSystem::Get().Dispatch([h = handle]
     {
         h.resume();
     });
@@ -24,7 +24,7 @@ void ScheduleCoroutineResume(std::coroutine_handle<> handle)
 /** 코루틴 핸들을 메인 스레드 큐에 등록합니다. */
 void ScheduleCoroutineResumeOnMain(std::coroutine_handle<> handle)
 {
-    JobSystem::Get().SubmitMain([h = handle]
+    JobSystem::Get().DispatchToMain([h = handle]
     {
         h.resume();
     });

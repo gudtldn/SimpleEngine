@@ -103,7 +103,7 @@ bool JobSystem::IsInitialized()
     return JobSystem::instance != nullptr;
 }
 
-void JobSystem::SubmitMain(UniqueFunction<void()>&& work_func)
+void JobSystem::DispatchToMain(UniqueFunction<void()>&& work_func)
 {
     main_queue.Push(std::move(work_func));
 }
@@ -113,7 +113,7 @@ usize JobSystem::ExecuteMainThreadJobs()
     return main_queue.Drain();
 }
 
-bool JobSystem::TryExecuteOne()
+bool JobSystem::TryExecuteOneJob()
 {
     JobPayload* payload = nullptr;
 
@@ -149,7 +149,7 @@ usize JobSystem::GetWorkerCount() const
     return worker_count;
 }
 
-void JobSystem::SchedulePayload(JobPayload* payload)
+void JobSystem::EnqueuePayload(JobPayload* payload)
 {
     if (CurrentWorkerIndex < worker_count)
     {

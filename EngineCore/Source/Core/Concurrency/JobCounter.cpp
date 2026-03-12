@@ -160,7 +160,7 @@ void JobHandle::Wait() const
 
     while (!counter->IsComplete())
     {
-        if (has_job_system && JobSystem::Get().TryExecuteOne())
+        if (has_job_system && JobSystem::Get().TryExecuteOneJob())
         {
             continue;
         }
