@@ -160,3 +160,9 @@ using char32 = char32_t;
 using size_t = std::size_t;
 using isize = std::ptrdiff_t;
 using usize = std::uintptr_t;
+
+/**
+ * TMP에서 void를 대체하거나, [[no_unique_address]]와 함께 사용하여
+ * Zero-Sized Type 최적화를 수행할 때 사용하는 구조체
+ */
+struct EmptyType{};

@@ -30,8 +30,7 @@ class Query
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
 
-    struct EmptyCache{};
-    using CacheType = std::conditional_t<HasBasePool, EmptyCache, Array<Entity>>;
+    using CacheType = std::conditional_t<HasBasePool, EmptyType, Array<Entity>>;
 
 public:
     explicit Query(World* in_world)
