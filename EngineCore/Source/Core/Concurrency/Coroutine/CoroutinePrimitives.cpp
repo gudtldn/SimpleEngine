@@ -183,7 +183,7 @@ bool WhenAll::await_suspend(std::coroutine_handle<> awaiting)
     if (state->remaining.fetch_sub(1, std::memory_order_acq_rel) == 1)
     {
         delete state;
-        return false;
+        return false; // 코루틴을 멈추지 않고 계속 진행
     }
 
     return true;
@@ -218,7 +218,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
         if (handle.IsComplete())
         {
             state->Release();
-            return false;
+            return false; // 코루틴을 멈추지 않고 계속 진행
         }
 
         state->AddRef();
@@ -259,6 +259,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
     // 콜백이 이미 승리하여 완료되었으나 가드 상태로 인해 재개하지 못하고 대기했다면, 여기서 false를 반환하여 바로 resume
     if (old_phase & WhenAnyState::CALLBACK_WON)
     {
+        // 코루틴을 멈추지 않고 계속 진행
         return false;
     }
 
