@@ -47,13 +47,13 @@ JobSystem::JobSystem(usize in_worker_count)
     ConsoleLog(ELogLevel::Info, "JobSystem: Initializing with {} worker threads", worker_count);
 
     // 워커 데이터 배열 할당
-    workers = std::make_unique<Worker[]>(worker_count);
+    worker_states = std::make_unique<WorkerState[]>(worker_count);
 
     // 워커 스레드 생성
-    threads.Reserve(worker_count);
+    worker_threads.Reserve(worker_count);
     for (usize idx = 0; idx < worker_count; ++idx)
     {
-        threads.Emplace([this, idx](const std::stop_token& st)
+        worker_threads.Emplace([this, idx](const std::stop_token& st)
         {
             WorkerLoop(st, idx);
         });
@@ -65,7 +65,7 @@ JobSystem::~JobSystem()
     SE_ASSERT(JobSystem::instance == this, "JobSystem instance mismatch!");
 
     // jthread 소멸자에서 request_stop() + join()을 호출
-    threads.Clear();
+    worker_threads.Clear();
 
     // Global Inbox 모두 해제
     const JobPayload* inbox_head = global_inbox.exchange(nullptr, std::memory_order_acquire);
@@ -81,7 +81,7 @@ JobSystem::~JobSystem()
     {
         for (usize p = 0; p < NUM_JOB_PRIORITIES; ++p)
         {
-            while (Optional<JobPayload*> opt = workers[w].deques[p].Pop())
+            while (Optional<JobPayload*> opt = worker_states[w].deques[p].Pop())
             {
                 delete *opt;
             }
@@ -155,7 +155,7 @@ void JobSystem::EnqueuePayload(JobPayload* payload)
     {
         // 워커 스레드라면 자신의 Deque에 직접 Push (Owner만 Push 가능)
         const usize priority = static_cast<usize>(payload->priority);
-        workers[CurrentWorkerIndex].deques[priority].Push(payload);
+        worker_states[CurrentWorkerIndex].deques[priority].Push(payload);
     }
     else
     {
@@ -230,7 +230,7 @@ void JobSystem::WorkerLoop(const std::stop_token& stoken, usize worker_index)
         if (JobPayload* inbox_item = TryPopGlobal())
         {
             const usize priority = static_cast<usize>(inbox_item->priority);
-            workers[worker_index].deques[priority].Push(inbox_item);
+            worker_states[worker_index].deques[priority].Push(inbox_item);
         }
 
         // 2. 자신의 Deque에서 우선순위 순으로 Pop 시도
@@ -269,7 +269,7 @@ JobPayload* JobSystem::TryPopLocal(usize worker_index)
     // 높은 우선순위부터 순차적으로 확인
     for (usize p = 0; p < NUM_JOB_PRIORITIES; ++p)
     {
-        if (const Optional<JobPayload*> result = workers[worker_index].deques[p].Pop())
+        if (const Optional<JobPayload*> result = worker_states[worker_index].deques[p].Pop())
         {
             return *result;
         }
@@ -292,7 +292,7 @@ JobPayload* JobSystem::TryStealFromOthers(usize thief_index)
                 continue;
             }
 
-            if (const Optional<JobPayload*> result = workers[target].deques[p].Steal())
+            if (const Optional<JobPayload*> result = worker_states[target].deques[p].Steal())
             {
                 return *result;
             }

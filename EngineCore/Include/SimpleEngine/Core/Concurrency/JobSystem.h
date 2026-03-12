@@ -150,24 +150,24 @@ private:
     JobPayload* TryPopGlobal();
 
 private:
-    /** 워커 스레드별 데이터. False Sharing 방지를 위해 캐시 라인 정렬됩니다. */
-    struct alignas(SE_CACHE_LINE) Worker
+    /** 워커 스레드 수 */
+    usize worker_count = 0;
+
+    /** 워커 스레드별 데이터. False Sharing 방지를 위해 캐시 라인에 정렬합니다. */
+    struct alignas(SE_CACHE_LINE) WorkerState
     {
         /** 우선순위별 Work-Stealing Deque (Critical=0, Normal=1, Low=2) */
         FixedArray<WorkStealingDeque<JobPayload*>, NUM_JOB_PRIORITIES> deques;
     };
 
-    /** 워커 데이터 배열 (Deque 포함) */
-    std::unique_ptr<Worker[]> workers;
+    /** 워커 상태 배열 (각 워커의 Deque 포함) */
+    std::unique_ptr<WorkerState[]> worker_states;
 
-    /** 워커 스레드 배열 */
-    Array<std::jthread> threads;
+    /** 워커 스레드 객체 배열 */
+    Array<std::jthread> worker_threads;
 
     /** 메인 스레드 전용 MPSC 큐 */
     MpscTaskLinkedQueue main_queue;
-
-    /** 워커 스레드 수 */
-    usize worker_count = 0;
 
     /**
      * 글로벌 인박스 (Treiber Stack)
@@ -178,7 +178,7 @@ private:
      */
     alignas(SE_CACHE_LINE) std::atomic<JobPayload*> global_inbox = nullptr;
 
-    /** 워커 대기/깨우기용 동기화 프리미티브 */
+    /** 워커 대기/깨우기용 동기화 객체 */
     TracyLockable(std::mutex, wake_mutex);
     std::condition_variable_any wake_cv;
 };
