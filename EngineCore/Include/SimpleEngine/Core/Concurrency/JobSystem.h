@@ -200,7 +200,7 @@ JobHandle JobSystem::Submit(Fn&& work_func, EJobPriority priority)
     JobHandle handle = JobHandle::Create(1);
 
     JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
-    payload->completion_counter = handle.GetCounter();
+    payload->completion_counter = handle.GetSharedCounter();
 
     SchedulePayload(payload);
     return handle;
@@ -217,7 +217,7 @@ JobHandle JobSystem::Submit(
     JobHandle handle = JobHandle::Create(1);
 
     JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
-    payload->completion_counter = handle.GetCounter();
+    payload->completion_counter = handle.GetSharedCounter();
 
     // 유효한 의존성 개수를 카운트
     const usize dep_count = std::ranges::count_if(dependencies, [](const JobHandle& dep)
@@ -280,7 +280,6 @@ JobHandle JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func,
 
     const usize batch_count = (in_count + batch_size - 1) / batch_size;
     JobHandle handle = JobHandle::Create(batch_count);
-    JobCounter* counter = handle.GetCounter();
 
     for (usize batch = 0; batch < batch_count; ++batch)
     {
@@ -294,7 +293,7 @@ JobHandle JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func,
                 work(i);
             }
         }, priority);
-        payload->completion_counter = counter;
+        payload->completion_counter = handle.GetSharedCounter();
 
         SchedulePayload(payload);
     }
