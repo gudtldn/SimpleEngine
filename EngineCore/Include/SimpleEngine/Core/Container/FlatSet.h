@@ -141,7 +141,7 @@ public:
 
 private:
     Array<T, Allocator> internal_array;
-    [[no_unique_address]] Pred compare;
+    NO_UNIQUE_ADDRESS Pred compare;
 };
 }  // namespace se
 

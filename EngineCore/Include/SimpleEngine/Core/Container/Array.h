@@ -257,7 +257,7 @@ private:
     SizeType size = 0;
     SizeType capacity = 0;
 
-    [[no_unique_address]] AllocatorType allocator;
+    NO_UNIQUE_ADDRESS AllocatorType allocator;
 };
 }  // namespace se
 

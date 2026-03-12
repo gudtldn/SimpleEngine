@@ -202,7 +202,7 @@ public:
 
 private:
     QueryDataType query_data;
-    [[no_unique_address]] CacheType alive_entities_cache;
+    NO_UNIQUE_ADDRESS CacheType alive_entities_cache;
 };
 
 template <typename... Ts> requires QueryParameterPack<Ts...>

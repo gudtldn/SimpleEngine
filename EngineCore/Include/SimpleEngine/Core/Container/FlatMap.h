@@ -215,14 +215,14 @@ public:
 private:
     struct PairCompare
     {
-        [[no_unique_address]] Pred compare;
+        NO_UNIQUE_ADDRESS Pred compare;
         bool operator()(const PairType& lhs, const KeyType& rhs) const { return compare(lhs.first, rhs); }
         bool operator()(const KeyType& lhs, const PairType& rhs) const { return compare(lhs, rhs.first); }
         bool operator()(const PairType& lhs, const PairType& rhs) const { return compare(lhs.first, rhs.first); }
     };
 
     Array<PairType, Allocator> internal_array;
-    [[no_unique_address]] PairCompare pair_compare;
+    NO_UNIQUE_ADDRESS PairCompare pair_compare;
 };
 }  // namespace se
 
