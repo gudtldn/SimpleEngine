@@ -8,7 +8,7 @@
 
 using namespace se;
 
-class FunctionAPI_Test      : public ::testing::Test {};
+class FunctionAPI_Test       : public ::testing::Test {};
 class UniqueFunctionAPI_Test : public ::testing::Test {};
 class FunctionRefAPI_Test    : public ::testing::Test {};
 
@@ -322,7 +322,8 @@ TEST_F(UniqueFunctionAPI_Test, ResetAndReassignment)
 TEST_F(FunctionRefAPI_Test, InvocationFromLambda)
 {
     int val = 4;
-    FunctionRef<int(int)> ref([val](int i) { return i * val; });
+    auto lambda = [val](int i) { return i * val; };
+    FunctionRef<int(int)> ref(lambda);
     EXPECT_TRUE(ref);
     EXPECT_EQ(ref(5), 20);
 }
@@ -346,7 +347,7 @@ TEST_F(FunctionRefAPI_Test, NonOwning_ReflectsOriginalMutation)
 {
     // FunctionRef 는 원본을 참조하므로, 원본 변경이 호출 결과에 반영됨
     int multiplier = 2;
-    auto lambda   = [&multiplier](int i) { return i * multiplier; };
+    auto lambda = [&multiplier](int i) { return i * multiplier; };
 
     FunctionRef<int(int)> ref(lambda);
     EXPECT_EQ(ref(5), 10);
@@ -367,7 +368,8 @@ TEST_F(FunctionRefAPI_Test, PassAsParameter)
 TEST_F(FunctionRefAPI_Test, BoolConversion)
 {
     int x = 0;
-    FunctionRef<void()> ref([&x] { ++x; });
+    auto lambda = [&x] { ++x; };
+    FunctionRef<void()> ref(lambda);
     EXPECT_TRUE(static_cast<bool>(ref));
     EXPECT_TRUE(ref.IsValid());
     ref();
