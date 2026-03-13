@@ -303,19 +303,54 @@ JobPayload* JobSystem::TryStealFromOthers(usize thief_index)
 
 JobPayload* JobSystem::TryPopGlobal()
 {
-    // Global Inbox에서 Payload를 하나 꺼낸다
-    JobPayload* head = global_inbox.load(std::memory_order_acquire);
-    while (head)
+    // Global Inbox 전체를 통째로 뜯어 옴 (Lock-Free Batch Pop)
+    JobPayload* list = global_inbox.exchange(nullptr, std::memory_order_acquire);
+
+    if (!list)
     {
-        if (global_inbox.compare_exchange_weak(
-            head, head->next_pending,
-            std::memory_order_acq_rel, std::memory_order_acquire
-        ))
+        return nullptr;
+    }
+
+    // 첫 번째 작업은 현재 스레드에서 실행하기 위해 Pop
+    JobPayload* first_to_run = list;
+    JobPayload* remainder = std::exchange(first_to_run->next_pending, nullptr);
+
+    // 워커 스레드인 경우, 남은 작업들을 모두 자신의 로컬 Deque에 Push
+    if (CurrentWorkerIndex < worker_count)
+    {
+        while (remainder)
         {
-            head->next_pending = nullptr;
-            return head;
+            JobPayload* next = std::exchange(remainder->next_pending, nullptr);
+
+            const usize priority = static_cast<usize>(remainder->priority);
+            worker_states[CurrentWorkerIndex].deques[priority].Push(remainder);
+
+            remainder = next;
         }
     }
-    return nullptr;
+
+    // 외부 스레드(Main 등)가 훔쳐간 경우, 남은 작업들을 다시 Global Inbox에 Push
+    else if (remainder)
+    {
+        // 남은 리스트의 끝(tail)을 구하고,
+        JobPayload* tail = remainder;
+        while (tail->next_pending)
+        {
+            tail = tail->next_pending;
+        }
+
+        // tail->next_pending에 Global Inbox의 head를 연결
+        JobPayload* old_head = global_inbox.load(std::memory_order_relaxed);
+        do
+        {
+            tail->next_pending = old_head;
+        }
+        while (!global_inbox.compare_exchange_weak(
+            old_head, remainder,
+            std::memory_order_release, std::memory_order_relaxed
+        ));
+    }
+
+    return first_to_run;
 }
 } // namespace se
