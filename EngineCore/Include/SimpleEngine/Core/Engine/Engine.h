@@ -10,6 +10,7 @@
 namespace se
 {
 // forward declaration
+class AsyncFileIO;
 class IUpdatable;
 class JobSystem;
 class SubsystemBase;
@@ -99,6 +100,9 @@ private:
 
     // JobSystem의 싱글톤 Instance를 Engine에서 관리하기 위한 포인터
     std::unique_ptr<JobSystem> job_system;
+
+    // AsyncFileIO의 싱글톤 Instance를 Engine에서 관리하기 위한 포인터
+    std::unique_ptr<AsyncFileIO> async_io_service;
 };
 
 
