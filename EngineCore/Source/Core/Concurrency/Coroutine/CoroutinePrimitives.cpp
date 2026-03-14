@@ -46,12 +46,6 @@ void ResumeOn::await_suspend(std::coroutine_handle<> handle) const
         break;
 
     case EJobThread::Worker:
-    case EJobThread::Auto:
-        ScheduleCoroutineResume(handle);
-        break;
-
-    case EJobThread::IO:
-        // TODO: SDL3_AsyncIO로 IO 전용 스레드 구현. 일단 Worker로 Fallback
         ScheduleCoroutineResume(handle);
         break;
     }
