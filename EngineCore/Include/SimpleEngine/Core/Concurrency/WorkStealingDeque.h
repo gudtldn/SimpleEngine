@@ -180,9 +180,8 @@ void WorkStealingDeque<T>::Push(T in_item)
 
     buf->Set(bottom_idx, std::move(in_item));
 
-    // 다른 스레드가 이 항목을 Steal하기 전에 Set이 완료되어야 함
-    std::atomic_thread_fence(std::memory_order_release);
-    bottom.store(bottom_idx + 1, std::memory_order_relaxed);
+    // Steal()이 안전하게 데이터를 읽을 수 있도록 bottom 갱신 전에 .store()의 메모리 가시성을 보장
+    bottom.store(bottom_idx + 1, std::memory_order_release);
 }
 
 template <typename T>
@@ -192,7 +191,7 @@ Optional<T> WorkStealingDeque<T>::Pop()
     CircularBuffer* buf = buffer.load(std::memory_order_relaxed);
     bottom.store(bottom_idx, std::memory_order_relaxed);
 
-    // bottom 변경이 top 읽기 전에 다른 스레드에 가시적이어야 함
+    // Pop()과 Steal()이 마지막 항목을 동시에 가져가지 않도록 Store-Load 재정렬을 방지
     std::atomic_thread_fence(std::memory_order_seq_cst);
 
     const int64 top_idx = top.load(std::memory_order_relaxed);
@@ -228,7 +227,7 @@ Optional<T> WorkStealingDeque<T>::Steal()
 {
     const int64 top_idx = top.load(std::memory_order_acquire);
 
-    // top 읽기 이후에 bottom과 buffer를 읽어야 함
+    // Push된 최신 bottom 값을 놓치지 않도록 top과 bottom load 사이의 Store-Load 재정렬을 방지
     std::atomic_thread_fence(std::memory_order_seq_cst);
 
     const int64 bottom_idx = bottom.load(std::memory_order_acquire);
@@ -242,7 +241,7 @@ Optional<T> WorkStealingDeque<T>::Steal()
     T item = buf->Get(top_idx);
 
     // CAS로 top을 전진시킨다.
-    // 실패하면 다른 Thief가 먼저 훔친 것이므로 포기한다.
+    // 실패하면 다른 Worker가 먼저 훔친 것이므로 포기한다.
     int64 expected_top = top_idx;
     if (!top.compare_exchange_strong(expected_top, top_idx + 1, std::memory_order_seq_cst, std::memory_order_relaxed))
     {
