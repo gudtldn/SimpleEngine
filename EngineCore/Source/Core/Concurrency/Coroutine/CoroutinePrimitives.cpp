@@ -80,11 +80,11 @@ struct WhenAllState
 
 /**
  * WhenAny에서 공유하는 상태
- * 
+ *
  * 2-bit phase 프로토콜로 콜백과 가드 사이의 resume 결정을 원자적으로 조율합니다
  *   - CALLBACK_WON (bit 0): 첫 번째 콜백이 resumed 경쟁에서 승리
  *   - GUARD_DONE   (bit 1): await_suspend가 모든 등록을 완료하고 반환 준비 완료
- * 
+ *
  * 콜백이 이기면 CALLBACK_WON을 설정하고, GUARD_DONE이 이미 설정되어 있으면 직접 resume합니다.
  * 그렇지 않으면 await_suspend가 false를 반환하여 resume을 처리합니다.
  */
@@ -139,28 +139,23 @@ bool WhenAll::await_ready() const noexcept
 
 bool WhenAll::await_suspend(std::coroutine_handle<> awaiting)
 {
-    // 미완료 핸들 수를 카운트
-    const usize pending = std::ranges::count_if(handles, [](const JobHandle& handle)
-    {
-        return handle.IsValid() && !handle.IsComplete();
-    });
+    WhenAllState* state = new WhenAllState{};
 
-    if (pending == 0)
-    {
-        return false;
-    }
-
-    // 가드 카운트(+1): 등록 도중 카운터가 0이 되어 조기 resume 되는 것을 막기 위함
-    WhenAllState* state = new WhenAllState{ pending + 1, awaiting };
+    // 가드 카운트(+1)
+    state->remaining.store(1, std::memory_order_relaxed);
+    state->handle = awaiting;
 
     for (const JobHandle& handle : handles)
     {
-        if (!handle.IsValid() || handle.IsComplete())
+        if (!handle.IsValid())
         {
             continue;
         }
 
-        // handle의 Counter가 완료될 때 coroutine.resume()을 호출하는 콜백 등록
+        // 등록 전에 카운트 증가
+        state->remaining.fetch_add(1, std::memory_order_relaxed);
+
+        // 이미 완료된 handle은 콜백을 반환받고, 진행 중인 Job은 대기열에 등록(NullOpt)
         Optional<UniqueFunction<void()>> result = handle.GetCounter()->AddWaiter([state]
         {
             // 가장 마지막 handle이 coroutine.resume()을 호출

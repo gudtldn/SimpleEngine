@@ -339,6 +339,61 @@ TEST_F(CoroutineTest, WhenAll_Empty)
 }
 
 
+TEST_F(CoroutineTest, WhenAll_AllAlreadyComplete)
+{
+    // 모든 핸들이 이미 완료된 상태에서 WhenAll 호출 (사전 카운트 레이스 컨디션 검증)
+    auto h1 = JobSystem::Get().Submit([] {});
+    auto h2 = JobSystem::Get().Submit([] {});
+    auto h3 = JobSystem::Get().Submit([] {});
+
+    h1.Wait();
+    h2.Wait();
+    h3.Wait();
+
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAll{ { h1, h2, h3 } };
+        promise.set_value(true);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    WaitForDone(task);
+}
+
+TEST_F(CoroutineTest, WhenAll_MixedComplete)
+{
+    // 일부는 이미 완료, 일부는 미완료인 핸들로 WhenAll 호출
+    auto already_done = JobSystem::Get().Submit([] {});
+    already_done.Wait();
+
+    std::atomic<int> counter = 0;
+    auto pending = JobSystem::Get().Submit([&] { counter.fetch_add(1, std::memory_order_relaxed); });
+
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAll{ { already_done, pending } };
+        promise.set_value(counter.load(std::memory_order_relaxed) == 1);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    WaitForDone(task);
+}
+
+
 // ═══════════════════════════════════════════════════════════════════
 //  WhenAny
 // ═══════════════════════════════════════════════════════════════════
@@ -373,6 +428,57 @@ TEST_F(CoroutineTest, WhenAny_FirstComplete)
 
     slow_done.store(true, std::memory_order_release);
     slow.Wait();
+    WaitForDone(task);
+}
+
+TEST_F(CoroutineTest, WhenAny_ConcurrentStress)
+{
+    // 다수의 핸들을 동시에 Submit하고 WhenAny 호출 → 정확히 1회만 resume되는지 검증
+    constexpr usize HANDLE_COUNT = 100;
+
+    Array<JobHandle> handles;
+    handles.Reserve(HANDLE_COUNT);
+    for (usize i = 0; i < HANDLE_COUNT; ++i)
+    {
+        handles.Push(JobSystem::Get().Submit([] { std::this_thread::yield(); }));
+    }
+
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAny{ std::move(handles) };
+        promise.set_value(true);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    WaitForDone(task);
+}
+
+TEST_F(CoroutineTest, WhenAny_AlreadyComplete)
+{
+    auto handle = JobSystem::Get().Submit([] {});
+    handle.Wait();
+
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAny{ { handle } };
+        promise.set_value(true);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
     WaitForDone(task);
 }
 
