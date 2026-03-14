@@ -14,10 +14,8 @@ constexpr usize SE_CACHE_LINE = std::hardware_destructive_interference_size;
 /** Job이 실행될 스레드를 지정하는 열거형 */
 enum class EJobThread : uint8
 {
-    Auto,   // 스케줄러가 자동으로 결정 (기본값)
     Main,   // 메인 스레드에서 실행
     Worker, // Compute Worker 스레드에서 실행
-    IO,     // I/O 전용 스레드에서 실행
 };
 
 /** Job의 실행 우선순위를 지정하는 열거형 */
