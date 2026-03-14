@@ -2,6 +2,8 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/HAL/Platform.h"
 
+#include "SDL3/SDL.h"
+
 
 namespace se
 {
