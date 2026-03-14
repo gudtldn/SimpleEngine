@@ -30,6 +30,7 @@ namespace se
  * - Sequential Consistency: Pop과 Steal이 마지막 남은 한 개의 항목을 두고 경쟁할 때,
  *   Store-Load 재정렬을 방지하기 위해 강한 메모리 배리어(seq_cst)를 사용합니다.
  * - Circular Buffer: 인덱스(top/bottom)는 무한히 증가하는 64비트 정수이며, 실제 버퍼 접근 시 마스크 연산으로 래핑합니다.
+ *   (버퍼 크기가 2의 거듭제곱일 때, 나머지 연산(%) 대신 & (size - 1) 비트 연산으로 빠르게 순회하는 원리)
  *
  * @tparam T Deque에 저장할 요소 타입 (T must be trivially copyable)
  */
