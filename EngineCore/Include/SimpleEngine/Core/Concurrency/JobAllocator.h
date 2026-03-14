@@ -43,7 +43,10 @@ public:
     /** 블록 정렬 크기 - 유저 포인터 앞에 위치 (16바이트 정렬) */
     static constexpr usize BLOCK_ALIGNMENT = 16;
 
-    /** Slab당 블록 수 (배치 할당 단위) */
+    /**
+     * Slab당 블록 수 (배치 할당 단위)
+     * @note L1 캐시(32KB~)에 수용 가능한 범위에서 할당 오버헤드를 최소화 할 Slab 배치 단위
+     */
     static constexpr uint32 BLOCKS_PER_SLAB = 64;
 
     // TLS 큐가 이 개수를 넘으면 절반을 Global Pool로 반환

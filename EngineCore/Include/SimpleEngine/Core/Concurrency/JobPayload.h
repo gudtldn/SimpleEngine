@@ -21,7 +21,10 @@ class JobCounter;
  */
 struct JobPayload
 {
-    /** 인라인 SBO 버퍼 용량 (바이트). [this, a, b, c, d, e] 수준의 캡처를 커버합니다. */
+    /**
+     * 인라인 SBO 버퍼 용량 (바이트).
+     * @note 64비트 포인터 6개(this + 캡처 5개) = 48바이트로, 대부분의 Job 람다를 커버합니다.
+     */
     static constexpr usize SBO_CAPACITY = 48;
 
     /** SBO 버퍼 정렬 단위 */
