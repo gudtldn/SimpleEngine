@@ -1,7 +1,7 @@
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 
-#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Concurrency/Common.h"
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Memory/OsMemory.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -10,6 +10,7 @@
 #include <atomic>
 #include <mutex>
 #include <ranges>
+#include <utility>
 
 
 namespace se
@@ -143,8 +144,7 @@ void AllocateSlab(usize in_class_index)
         // 유저 영역을 FreeNode로 사용
         FreeNode* node = reinterpret_cast<FreeNode*>(block_ptr + BLOCK_ALIGNMENT);
         ThreadCache& cache = GetThreadCache();
-        node->next = cache.free_lists[in_class_index];
-        cache.free_lists[in_class_index] = node;
+        node->next = std::exchange(cache.free_lists[in_class_index], node);
         ++cache.counts[in_class_index];
     }
 }
@@ -179,8 +179,7 @@ void EvictToGlobal(usize in_class_index)
         GlobalPool& pool = GlobalPools[in_class_index];
 
         std::scoped_lock lock{ pool.lock };
-        evict_tail->next = pool.head;
-        pool.head = evict_head;
+        evict_tail->next = std::exchange(pool.head, evict_head);
         pool.count += evict_count;
     }
 }
@@ -216,17 +215,15 @@ bool StealFromGlobal(usize in_class_index)
                 ++stolen_count;
             }
 
-            pool.head = cursor->next;
+            pool.head = std::exchange(cursor->next, nullptr);
             pool.count -= stolen_count;
-            cursor->next = nullptr;
 
             stolen_tail = cursor;
         }
 
         // TLS 캐시에 연결
         ThreadCache& cache = GetThreadCache();
-        stolen_tail->next = cache.free_lists[in_class_index];
-        cache.free_lists[in_class_index] = stolen_head;
+        stolen_tail->next = std::exchange(cache.free_lists[in_class_index], stolen_head);
         cache.counts[in_class_index] += stolen_count;
 
         return true;
@@ -258,8 +255,7 @@ void* JobAllocator::Allocate(usize in_size)
     }
 
     // TLS Free List에서 Pop
-    FreeNode* node = list;
-    list = node->next;
+    FreeNode* node = std::exchange(list, list->next);
     --cache.counts[class_index];
     return node;
 }
@@ -289,8 +285,7 @@ void JobAllocator::Free(void* in_ptr)
     // 호출 스레드의 TLS Free List에 Push
     ThreadCache& cache = GetThreadCache();
     FreeNode* node = static_cast<FreeNode*>(in_ptr);
-    node->next = cache.free_lists[class_index];
-    cache.free_lists[class_index] = node;
+    node->next = std::exchange(cache.free_lists[class_index], node);
     ++cache.counts[class_index];
 
     // Eviction: TLS가 넘치면 절반을 GlobalPool로 반환
