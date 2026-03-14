@@ -2,6 +2,7 @@
 
 #include <ranges>
 
+#include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/Array.h"
@@ -139,6 +140,7 @@ bool Engine::Initialize()
     }
 
     job_system = std::make_unique<JobSystem>();
+    async_io_service = std::make_unique<AsyncFileIO>();
 
     // 의존성에 따라서 정렬
     if (!SortSubsystems())
@@ -162,6 +164,7 @@ void Engine::Release()
     sorted_subsystems.Clear();
     subsystems.Clear();
 
+    async_io_service.reset();
     job_system.reset();
     JobAllocator::Shutdown();
 
