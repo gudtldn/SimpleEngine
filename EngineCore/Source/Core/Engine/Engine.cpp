@@ -163,6 +163,7 @@ void Engine::Release()
     subsystems.Clear();
 
     job_system.reset();
+    JobAllocator::Shutdown();
 
     SDL_Quit();
 }
