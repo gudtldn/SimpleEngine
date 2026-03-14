@@ -16,7 +16,10 @@ namespace
 {
 using namespace std::literals;
 
-/** 유휴 상태에서 대기 전 스핀 반복 횟수 */
+/**
+ * 유휴 상태에서 대기 전 스핀 반복 횟수
+ * @note yield()의 컨텍스트 스위칭 비용과 응답성 사이의 균형점
+ */
 constexpr usize IDLE_SPIN_COUNT = 32;
 
 /** condition_variable 대기 타임아웃 */
@@ -277,17 +280,17 @@ JobPayload* JobSystem::TryPopLocal(usize worker_index)
     return nullptr;
 }
 
-JobPayload* JobSystem::TryStealFromOthers(usize thief_index)
+JobPayload* JobSystem::TryStealFromOthers(usize worker_index)
 {
     // 높은 우선순위부터, 각 워커를 순회하며 Steal을 시도
     for (usize p = 0; p < NUM_JOB_PRIORITIES; ++p)
     {
         for (usize w = 0; w < worker_count; ++w)
         {
-            const usize target = (thief_index + 1 + w) % worker_count;
+            const usize target = (worker_index + 1 + w) % worker_count;
 
             // 자기 자신은 스킵
-            if (target == thief_index)
+            if (target == worker_index)
             {
                 continue;
             }

@@ -143,8 +143,11 @@ private:
     /** 자신의 Deque에서 우선순위가 높은 순서대로 Pop을 시도합니다. */
     JobPayload* TryPopLocal(usize worker_index);
 
-    /** 다른 워커들의 Deque에서 우선순위가 높은 순서대로 Steal을 시도합니다. */
-    JobPayload* TryStealFromOthers(usize thief_index);
+    /**
+     * 다른 워커들의 Deque에서 우선순위가 높은 순서대로 Steal을 시도합니다.
+     * 만약 비워커 스레드(usize::MAX)에서 호출 시, 오버플로우를 이용해 0번 워커부터 Steal을 시도합니다.
+     */
+    JobPayload* TryStealFromOthers(usize worker_index);
 
     /** 글로벌 인박스(Treiber Stack)에서 최신 Payload를 하나 꺼냅니다. */
     JobPayload* TryPopGlobal();
@@ -231,6 +234,8 @@ JobHandle JobSystem::Submit(
     }
 
     // 가드 카운트(+1): 등록 도중 모든 의존성이 해소되어도 payload가 조기 전송되는 것을 방지
+    // relaxed가 안전한 이유: 이 store는 아래 AddWaiter CAS(release)보다 sequenced-before이며,
+    // 콜백 스레드는 Decrement()의 exchange(acq_rel)를 통해 AddWaiter의 release와 동기화됩니다.
     payload->pending_deps.store(dep_count + 1, std::memory_order_relaxed);
 
     // 각 의존성의 JobCounter에 Waiter를 등록
