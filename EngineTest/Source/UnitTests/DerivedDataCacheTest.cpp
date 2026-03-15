@@ -1,11 +1,11 @@
 #include "gtest/gtest.h"
 
-#include <filesystem>
-
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+
+#include "SDL3/SDL_filesystem.h"
 
 using namespace se;
 using namespace se::asset;
@@ -18,21 +18,22 @@ class TempDir
 {
 public:
     explicit TempDir(StringView name)
-        : root_path(std::filesystem::temp_directory_path() / "SimpleEngineTest" / "DDCTest" / std::string(std::string_view{ name }))
     {
-        std::filesystem::create_directories(root_path);
+        char* pref = SDL_GetPrefPath("SimpleEngine", "Tests");
+        root_path = Path(pref) / Path("DDCTest") / Path(name);
+        SDL_free(pref);
+        FileSystem::CreateDirectories(root_path);
     }
 
     ~TempDir()
     {
-        std::error_code ec;
-        std::filesystem::remove_all(root_path, ec);
+        FileSystem::RemoveAll(root_path);
     }
 
-    [[nodiscard]] Path GetPath() const { return Path{ root_path }; }
+    [[nodiscard]] const Path& GetPath() const { return root_path; }
 
 private:
-    std::filesystem::path root_path;
+    Path root_path;
 };
 
 // 테스트용 페이로드 생성
