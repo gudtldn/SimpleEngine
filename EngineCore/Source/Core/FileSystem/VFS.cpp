@@ -39,16 +39,13 @@ void VFS::Mount(StringView scheme, const Path& physical_path, int32 priority)
 {
     std::unique_lock lock(mutex);
 
-    // 경로를 정규화하여 저장
-    Path abs_path = physical_path.GetNormalized();
-
     const StringName scheme_name{ scheme };
     Array<MountPoint>& points = mount_points[scheme_name];
 
     // 이미 존재하는지 확인
     const MountPoint* it = std::ranges::find_if(points, [&](const MountPoint& point)
     {
-        return point.priority == priority && point.physical_path == abs_path;
+        return point.priority == priority && point.physical_path == physical_path;
     });
 
     if (it != points.end())
@@ -57,7 +54,7 @@ void VFS::Mount(StringView scheme, const Path& physical_path, int32 priority)
     }
 
     points.Push({
-        .physical_path = std::move(abs_path),
+        .physical_path = physical_path,
         .priority = priority
     });
 
@@ -144,13 +141,14 @@ Optional<Path> VFS::ResolveImpl(const VPath& virtual_path, bool check_existence)
     return NullOpt;
 }
 
+// TODO: [Performance] 모든 마운트 포인트를 선형 탐색함. 마운트 수가 많아지면
+//       경로 접두사 기반 trie 또는 정렬된 배열 + 이진 탐색으로 전환 검토.
 Optional<VPath> VFS::UnresolveImpl(const Path& physical_path) const
 {
     std::shared_lock lock(mutex);
 
     Path abs_input = FileSystem::Absolute(physical_path);
-    abs_input.Normalize();
-    const String input_str = abs_input.ToString();
+    const String& input_str = abs_input.ToString();
     const StringView input_view{ input_str };
 
     const StringName* best_scheme = nullptr;
@@ -161,7 +159,7 @@ Optional<VPath> VFS::UnresolveImpl(const Path& physical_path) const
     {
         for (const MountPoint& point : points)
         {
-            const String root_str = point.physical_path.ToString();
+            const String& root_str = point.physical_path.ToString();
             const StringView root_view{ root_str };
 
             // 물리적 경로가 마운트 포인트의 하위 경로인지 확인
