@@ -52,7 +52,7 @@ TEST_F(JobPayloadTest, SBO_SmallLambda)
         EJobPriority::Normal
     );
 
-    EXPECT_EQ(payload->heap_block, nullptr);  // SBO 사용 확인
+    EXPECT_EQ(payload->storage_type, JobPayload::EStorageType::Inline);  // SBO 사용 확인
     EXPECT_EQ(payload->priority, EJobPriority::Normal);
 
     payload->Invoke();
@@ -78,7 +78,7 @@ TEST_F(JobPayloadTest, SBO_MaxCaptureFitsInline)
         EJobPriority::Critical
     );
 
-    EXPECT_EQ(payload->heap_block, nullptr);  // SBO 사용
+    EXPECT_EQ(payload->storage_type, JobPayload::EStorageType::Inline);  // SBO 사용
     payload->Invoke();
     EXPECT_EQ(result, 15u);
 
