@@ -261,7 +261,30 @@ void JobSystem::WorkerLoop(const std::stop_token& stoken, usize worker_index)
         {
             // 스핀 한도 초과 -> condition_variable로 수면
             std::unique_lock lock{ wake_mutex };
-            wake_cv.wait_for(lock, stoken, IDLE_WAIT_TIMEOUT, [] { return false; });
+            wake_cv.wait_for(lock, stoken, IDLE_WAIT_TIMEOUT, [this]
+            {
+                // Global Inbox 체크 (가장 빠름, 원자적 포인터 비교 1회)
+                if (global_inbox.load(std::memory_order_relaxed) != nullptr)
+                {
+                    return true;
+                }
+
+                // 시스템 전체 워커의 Deque 체크
+                // notify_one은 랜덤한 스레드를 깨우므로, 내가 아닌 다른 스레드에 일이 들어왔을 수 있음
+                for (usize i = 0; i < worker_count; ++i)
+                {
+                    for (usize p = 0; p < NUM_JOB_PRIORITIES; ++p)
+                    {
+                        if (!worker_states[i].deques[p].IsEmpty())
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                // 아무 일도 없으면 다시 수면
+                return false;
+            });
             idle_spins = 0;
         }
     }
