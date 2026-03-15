@@ -467,15 +467,11 @@ TEST(PathHiddenFileTest, FileNameWithOnlyDot)
 
 TEST(PathSetExtensionTest, ExtensionWithPathSeparator)
 {
-    // SetExtension에 경로 구분자가 포함된 경우
-    // 현재 구현에서는 재정규화하지 않으므로 비정규화 상태가 될 수 있음
+    // "dir/file.jpg/../../../etc/passwd" → 정규화 → "../etc/passwd"
+    // (dir, file.jpg 2개 소진 후 ".." 1개 잔여 → "../etc/passwd")
     Path p("dir/file.txt");
     p.SetExtension(".jpg/../../../etc/passwd");
-
-    // BUG: SetExtension은 NormalizePath를 호출하지 않아 path traversal이 가능함.
-    // 이 테스트는 현재 동작을 문서화함. 수정 후 아래 주석의 기대값으로 변경해야 함.
-    // EXPECT_EQ(p.ToString(), "dir/file.jpg/../../../etc/passwd"); // 현재 동작 (비정규화)
-    // 수정 후 기대값 예시: NormalizePath 적용 시 "../../etc/passwd" 또는 유사 결과
+    EXPECT_EQ(p.ToString(), "../etc/passwd");
 }
 
 TEST(PathSetExtensionTest, RemoveExtension)

@@ -248,34 +248,24 @@ protected:
 
 TEST_F(VFSPathTraversalTest, DotDotDoesNotEscapeMountPoint)
 {
-    // RISK-3: "../../../" 패턴으로 마운트 포인트 탈출 시도
-    // Path::operator/가 ".."을 해소하므로 결과가 마운트 포인트 내부로 한정됨
-    // 하지만 해소 결과가 실제로 마운트 포인트 내부인지 확인하는 containment check는 없음
+    // "../../../" 패턴으로 마운트 포인트 탈출 시도
+    // containment check가 이를 차단하여 NullOpt을 반환해야 함
     VPath traversal_path("Sandbox://../../secret.txt");
-
-    // Resolve는 실제 파일이 존재하는지 확인하므로 여기서는 파일이 없으면 NullOpt
     Optional<Path> resolved = VFS::Resolve(traversal_path);
 
-    if (resolved.HasValue())
-    {
-        // resolve가 성공했다면, 결과가 마운트 포인트 내부인지 확인
-        EXPECT_TRUE(resolved->IsSubPathOf(mount_dir.temp_path))
-            << "Path traversal escaped mount point! Resolved to: " << resolved->ToString().CStr();
-    }
+    // 마운트 포인트 외부 경로이므로 resolve 자체가 실패해야 함
+    EXPECT_FALSE(resolved.HasValue());
 }
 
 TEST_F(VFSPathTraversalTest, ToPathWithDotDot)
 {
-    // ToPath는 존재 여부를 확인하지 않으므로 항상 경로를 반환
+    // ToPath도 containment check에 의해 탈출 경로를 거부해야 함
     VPath traversal_path("Sandbox://../../escape");
     Path result = VFS::ToPath(traversal_path);
 
-    if (!result.IsEmpty())
-    {
-        // 결과 경로가 마운트 포인트를 벗어나지 않아야 함
-        EXPECT_TRUE(result.IsSubPathOf(mount_dir.temp_path))
-            << "ToPath escaped mount point! Result: " << result.ToString().CStr();
-    }
+    // 모든 마운트 포인트에서 containment 위반 → 빈 Path 반환
+    EXPECT_TRUE(result.IsEmpty())
+        << "ToPath should return empty for path traversal! Got: " << result.ToString().CStr();
 }
 
 
