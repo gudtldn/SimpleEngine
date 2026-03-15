@@ -1,18 +1,25 @@
 #pragma once
 
-#include <filesystem>
-#include <compare>
-#include <functional>
-
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
+
+#include <compare>
+#include <functional>
 
 
 namespace se
 {
 /**
  * 파일 시스템 경로를 다루는 클래스
+ *
+ * 내부적으로 se::String으로 관리하며, 항상 정규화된 상태를 유지합니다.
+ * - 구분자는 '/'로 통일
+ * - 불필요한 "./" 제거, "A/B/../C"는 "A/C"로 압축
+ * - 연속된 슬래시 "//" 제거, 후행 슬래시 제거
+ *
+ * @note 경로 비교(==, <=>)는 모든 플랫폼에서 case-sensitive로 동작합니다.
+ *       크로스 플랫폼 예측 가능성을 위한 의도적 설계입니다.
  */
 class SE_CORE_API Path
 {
@@ -21,7 +28,6 @@ public:
     Path(const char* in_path);
     Path(const String& in_path);
     Path(StringView in_path);
-    Path(std::filesystem::path in_path);
 
     Path(const Path&) = default;
     Path& operator=(const Path&) = default;
@@ -44,13 +50,6 @@ public:
      */
     Path& Concat(const String& str);
     Path& operator+=(const String& str);
-
-    /**
-     * 경로를 정규화합니다.
-     * ".." (상위 폴더), "." (현재 폴더) 등의 참조를 정리하여 최단 경로로 만듭니다.
-     * 예: "A/./B/../C" -> "A/C"
-     */
-    Path& Normalize();
 
     /**
      * 파일명을 변경합니다.
@@ -77,13 +76,11 @@ public:
     /** 확장자가 변경된 새로운 Path를 반환합니다. */
     [[nodiscard]] Path WithExtension(const String& extension) const;
 
-    /** 정규화된 새로운 Path를 반환합니다. */
-    [[nodiscard]] Path GetNormalized() const;
-
     /**
      * base 경로를 기준으로 한 상대 경로를 계산하여 반환합니다.
      * 예: (*this)"/A/B/C", base="/A" -> "B/C"
-     * @note 경로가 base 내부에 있지 않거나 계산 불가능할 경우 nullopt를 반환할 수 있습니다.
+     * @note 절대/상대 불일치, 루트 접두사 불일치, 공통 접두사가 없는 경우 nullopt를 반환합니다.
+     *       (예: "/A/B"와 "/C/D"처럼 공통 경로가 없는 경우)
      */
     [[nodiscard]] Optional<Path> RelativeTo(const Path& base) const;
 
@@ -136,18 +133,16 @@ public:
 
     // --- Conversions ---
 
-    /** 경로를 UTF-8 문자열로 변환하여 반환합니다. */
-    [[nodiscard]] String ToString() const;
+    /** 경로를 UTF-8 문자열로 반환합니다. (내부 문자열의 const 참조) */
+    [[nodiscard]] const String& ToString() const;
 
-    // [[nodiscard]] const char* CStr() const; // 필요 시 주석 해제
+    /** 경로를 C 문자열(null-terminated)로 반환합니다. */
+    [[nodiscard]] const char* CStr() const;
 
     void Swap(Path& other) noexcept;
 
 public:
     // --- Operators ---
-
-    /** 내부 std::filesystem::path 객체를 반환합니다. (나중에 API 변경 가능성 있음) */
-    [[nodiscard]] explicit operator const std::filesystem::path&() const { return internal_path; }
 
     [[nodiscard]] bool operator==(const Path& other) const;
     [[nodiscard]] std::strong_ordering operator<=>(const Path& other) const;
@@ -155,8 +150,14 @@ public:
     friend void swap(Path& lhs, Path& rhs) noexcept { lhs.Swap(rhs); }
 
 private:
+    /** 입력 문자열을 정규화하여 반환합니다. O(n) 단일 패스. */
+    static String NormalizePath(StringView input);
+
+    /** 경로 문자열에서 루트 접두사 길이를 반환합니다. (예: "/" -> 1, "C:/" -> 3) */
+    static usize DetectRootLength(StringView view);
+
     friend struct std::hash<Path>;
-    std::filesystem::path internal_path;
+    String path;
 };
 } // namespace se
 
@@ -165,7 +166,7 @@ struct std::hash<se::Path>
 {
     size_t operator()(const se::Path& in_path) const noexcept
     {
-        return std::filesystem::hash_value(in_path.internal_path);
+        return std::hash<se::String>{}(in_path.path);
     }
 };
 
@@ -174,7 +175,6 @@ struct std::formatter<se::Path> : std::formatter<se::String>
 {
     auto format(const se::Path& path, std::format_context& ctx) const
     {
-        const se::String str = path.ToString();
-        return std::formatter<se::String>::format(str, ctx);
+        return std::formatter<se::String>::format(path.ToString(), ctx);
     }
 };
