@@ -72,7 +72,7 @@ public:
      */
     [[nodiscard]] usize ApproxSize() const;
 
-    /** Deque가 비어있는지 대략적으로 확인합니다. (Thief 가능) */
+    /** Deque가 비어있는지 확인합니다. (Thief 가능) */
     [[nodiscard]] bool IsEmpty() const;
 
 private:
@@ -265,7 +265,8 @@ usize WorkStealingDeque<T>::ApproxSize() const
 template <typename T>
 bool WorkStealingDeque<T>::IsEmpty() const
 {
-    return ApproxSize() == 0;
+    // Chase-Lev Deque에서 bottom이 top보다 작거나 같으면 큐가 비어있음을 의미
+    return bottom.load(std::memory_order_relaxed) <= top.load(std::memory_order_relaxed);;
 }
 
 template <typename T>
