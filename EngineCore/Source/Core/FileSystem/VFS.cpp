@@ -123,6 +123,17 @@ Optional<Path> VFS::ResolveImpl(const VPath& virtual_path, bool check_existence)
     {
         Path candidate = mount_point.physical_path / relative_part;
 
+        // ".."을 포함하는 가상 경로가 마운트 포인트 외부로 탈출하는 것을 방지
+        if (!candidate.IsSubPathOf(mount_point.physical_path))
+        {
+            ConsoleLog(
+                ELogLevel::Warning,
+                "VFS: Path traversal blocked. '{}' escapes mount point '{}'.",
+                virtual_path.ToString(), mount_point.physical_path
+            );
+            continue;
+        }
+
         if (check_existence)
         {
             if (candidate.Exists())

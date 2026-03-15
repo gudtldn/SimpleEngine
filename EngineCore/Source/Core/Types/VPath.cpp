@@ -1,4 +1,4 @@
-﻿#include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 
 
 namespace se
@@ -25,17 +25,19 @@ VPath VPath::operator/(StringView relative_path) const
         return *this;
     }
 
-    VPath new_path;
-    new_path.full_path = full_path;
+    VPath new_path = *this;
+    String& str = new_path.full_path;
+    const StringView view{ str };
 
-    // 슬래시 중복 방지
-    String& new_path_str = new_path.full_path;
-    const StringView view{ new_path_str };
-    if (view.Back() != '/' && relative_path.Front() != '/')
+    const bool trail = (view.Back() == '/');
+    const bool lead = (relative_path.Front() == '/');
+
+    if (!trail && !lead)
     {
-        new_path_str += '/';
+        str += '/';
     }
-    new_path_str += relative_path;
+
+    str += (trail && lead) ? relative_path.Substr(1) : relative_path;
 
     return new_path;
 }
@@ -100,9 +102,9 @@ StringView VPath::GetExtension() const noexcept
     }
 
     const auto last_dot = filename.FindLastOf('.');
-    if (!last_dot.HasValue())
+    if (!last_dot.HasValue() || *last_dot == 0)
     {
-        return {}; // 확장자 없음
+        return {}; // 확장자 없음 또는 숨김파일(.gitignore 등)
     }
     return filename.Substr(*last_dot);
 }
@@ -116,9 +118,9 @@ StringView VPath::GetStem() const noexcept
     }
 
     const Optional last_dot = filename.FindLastOf('.');
-    if (!last_dot.HasValue())
+    if (!last_dot.HasValue() || *last_dot == 0)
     {
-        return filename; // 확장자 없음
+        return filename; // 확장자 없음 또는 숨김파일(.gitignore 등)
     }
     return filename.Substr(0, *last_dot);
 }

@@ -132,6 +132,9 @@ Path& Path::SetExtension(const String& extension)
         path.Append(extension);
     }
 
+    // 확장자를 통한 Path Traversal 방지(예: ".ext/../") 및 정규화 불변식 유지
+    path = NormalizePath(path);
+
     return *this;
 }
 
@@ -544,8 +547,8 @@ String Path::NormalizePath(StringView input)
             continue;
         }
 
-        // 일반 세그먼트
-        if (write > root_len)
+        // 일반 세그먼트 - UNC 루트("//server/share")는 '/'로 끝나지 않으므로 구분자 보충
+        if (write > root_len || (write == root_len && root_len >= 2 && buf[0] == '/' && buf[1] == '/'))
         {
             buf[write++] = '/';
         }
