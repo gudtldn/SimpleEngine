@@ -9,7 +9,6 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
-#include <filesystem>
 #include <generator>
 
 
@@ -71,12 +70,13 @@ using FileResult = Expected<T, FileReadError>;
  */
 class SE_CORE_API DirectoryEntry
 {
+    friend class DirectoryIterator;
+
 public:
     DirectoryEntry() = default;
-    explicit DirectoryEntry(std::filesystem::directory_entry entry);
 
     /** 엔트리의 경로를 반환합니다. */
-    [[nodiscard]] Path GetPath() const;
+    [[nodiscard]] const Path& GetPath() const;
 
     /** 디렉토리인지 확인합니다. */
     [[nodiscard]] bool IsDirectory() const;
@@ -84,17 +84,21 @@ public:
     /** 일반 파일인지 확인합니다. */
     [[nodiscard]] bool IsFile() const;
 
-    /** 심볼릭 링크인지 확인합니다. */
+    /** 심볼릭 링크인지 확인합니다. (SDL3 한계로 항상 false 반환) */
     [[nodiscard]] bool IsSymlink() const;
 
     /** 파일 크기를 반환합니다. (파일이 아닌 경우 0) */
     [[nodiscard]] usize FileSize() const;
 
-    /** 마지막 수정 시간을 반환합니다. */
+    /** 마지막 수정 시간을 반환합니다. (SDL3 시간: Unix epoch 초 단위) */
     [[nodiscard]] uint64 LastWriteTime() const;
 
 private:
-    std::filesystem::directory_entry internal_entry;
+    Path entry_path;
+    bool is_directory = false;
+    bool is_file = false;
+    usize file_size = 0;
+    uint64 last_write_time = 0;
 };
 
 
@@ -114,10 +118,10 @@ public:
     explicit DirectoryIterator(const Path& path);
 
     DirectoryIterator& operator++();
-    DirectoryIterator operator++(int);
+    void operator++(int);
 
-    [[nodiscard]] reference operator*() const { return current_entry; }
-    [[nodiscard]] pointer operator->() const { return &current_entry; }
+    [[nodiscard]] reference operator*() const { return entries[current_index]; }
+    [[nodiscard]] pointer operator->() const { return &entries[current_index]; }
 
     [[nodiscard]] bool operator==(const DirectoryIterator& other) const;
     [[nodiscard]] bool operator!=(const DirectoryIterator& other) const { return !(*this == other); }
@@ -126,9 +130,10 @@ public:
     [[nodiscard]] DirectoryIterator end() const { return {}; }
 
 private:
-    std::filesystem::directory_iterator internal_iter;
-    DirectoryEntry current_entry;
-    bool is_end = true;
+    [[nodiscard]] bool IsEnd() const { return current_index >= entries.Len(); }
+
+    Array<DirectoryEntry> entries;
+    usize current_index = 0;
 };
 
 
@@ -152,7 +157,7 @@ struct SE_CORE_API FileSystem
 
     /**
      * 경로를 정규화된 절대 경로(canonical path)로 변환합니다.
-     * 심볼릭 링크를 해석하고 `.`, `..`을 제거합니다.
+     * @note SDL3에는 심볼릭 링크 해소 API가 없으므로 Absolute + 존재 확인만 수행합니다.
      * @param path 변환할 경로 (반드시 존재해야 함)
      * @return 정규화된 절대 경로. 실패 시 nullopt를 반환합니다.
      */
@@ -164,14 +169,7 @@ struct SE_CORE_API FileSystem
     // =========================================================================
 
     /**
-     * 디렉토리를 생성합니다.
-     * @param path 생성할 디렉토리 경로
-     * @return 성공 시 true, 실패 시 false (이미 존재하는 경우도 true)
-     */
-    static bool CreateDirectory(const Path& path);
-
-    /**
-     * 디렉토리를 재귀적으로 생성합니다.
+     * 디렉토리를 생성합니다. 중간 디렉토리가 없으면 함께 생성합니다.
      * @param path 생성할 디렉토리 경로
      * @return 성공 시 true, 실패 시 false (이미 존재하는 경우도 true)
      */
@@ -225,7 +223,7 @@ struct SE_CORE_API FileSystem
     [[nodiscard]] static Optional<usize> FileSize(const Path& path);
 
     /**
-     * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다.
+     * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다. (SDL3: Unix epoch 초 단위)
      * @param path 대상 경로
      * @return 마지막 수정 시간 (uint64). 실패 시 nullopt
      */

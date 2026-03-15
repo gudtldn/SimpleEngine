@@ -18,14 +18,19 @@ FileBackend::FileBackend(Path path)
     OpenFile();
 }
 
+FileBackend::~FileBackend()
+{
+    CloseFile();
+}
+
 void FileBackend::WriteLog(const LogEntry& entry)
 {
-    if (!file.is_open())
+    if (!io_stream)
     {
         return;
     }
 
-    const std::string formatted = std::format(
+    const String formatted = String::Format(
         "{} {:<7} {:<16} [{}:{}] {}\n",
         entry.GetTimestampString(),
         entry.GetLevelString(),
@@ -35,8 +40,8 @@ void FileBackend::WriteLog(const LogEntry& entry)
         entry.formatted_message
     );
 
-    file << formatted;
-    current_file_size += formatted.size();
+    SDL_WriteIO(io_stream, formatted.Data(), formatted.ByteLen());
+    current_file_size += formatted.ByteLen();
 
     if (CheckRotation())
     {
@@ -46,9 +51,9 @@ void FileBackend::WriteLog(const LogEntry& entry)
 
 void FileBackend::Flush()
 {
-    if (file.is_open())
+    if (io_stream)
     {
-        file.flush();
+        SDL_FlushIO(io_stream);
     }
 }
 
@@ -62,17 +67,26 @@ void FileBackend::OpenFile()
         }
     }
 
-    const String file_path_str = file_path.ToString();
-    file.open(file_path_str.CStr(), std::ios::out | std::ios::app);
-    if (file.is_open())
+    io_stream = SDL_IOFromFile(file_path.CStr(), "ab");
+    if (io_stream)
     {
         current_file_size = FileSystem::FileSize(file_path).ValueOr(0);
     }
 }
 
+void FileBackend::CloseFile()
+{
+    if (io_stream)
+    {
+        SDL_FlushIO(io_stream);
+        SDL_CloseIO(io_stream);
+        io_stream = nullptr;
+    }
+}
+
 void FileBackend::RotateFile()
 {
-    file.close();
+    CloseFile();
 
     namespace chrono = std::chrono;
     auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::system_clock::now() };

@@ -1,10 +1,10 @@
 #include "gtest/gtest.h"
 
-#include <filesystem>
-
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+
+#include "SDL3/SDL_filesystem.h"
 
 using namespace se;
 
@@ -16,29 +16,27 @@ class TempDir
 {
 public:
     TempDir(StringView name)
-        : root_path(std::filesystem::temp_directory_path() / "SimpleEngineTest" / "FileSystemTest" / std::string(std::string_view{ name }))
     {
-        std::filesystem::create_directories(root_path);
+        char* pref = SDL_GetPrefPath("SimpleEngine", "Tests");
+        root_path = Path(pref) / Path("FileSystemTest") / Path(name);
+        SDL_free(pref);
+        FileSystem::CreateDirectories(root_path);
     }
 
     ~TempDir()
     {
-        std::error_code ec;
-        std::filesystem::remove_all(root_path, ec);
+        FileSystem::RemoveAll(root_path);
     }
 
-    Path GetPath() const { return Path{ root_path }; }
+    const Path& GetPath() const { return root_path; }
 
-    // UTF-8 문자열을 올바르게 처리하기 위해 char8_t로 변환
     Path operator/(StringView relative) const
     {
-        std::filesystem::path relative_path{ reinterpret_cast<const char8_t*>(relative.Data()),
-                                             reinterpret_cast<const char8_t*>(relative.Data() + relative.ByteLen()) };
-        return Path{ root_path / relative_path };
+        return root_path / Path(relative);
     }
 
 private:
-    std::filesystem::path root_path;
+    Path root_path;
 };
 }  // namespace
 
@@ -78,7 +76,7 @@ TEST_F(FileSystemPathTest, CanonicalNormalizesExistingPath)
 
     // 정규화 테스트 (. 과 .. 포함)
     Path with_dots = temp_dir / "subdir/../canonical_test.txt";
-    FileSystem::CreateDirectory(temp_dir / "subdir");
+    FileSystem::CreateDirectories(temp_dir / "subdir");
 
     Optional<Path> canonical = FileSystem::Canonical(with_dots);
     ASSERT_TRUE(canonical.HasValue());
@@ -96,25 +94,25 @@ protected:
     TempDir temp_dir{ "DirOps" };
 };
 
-TEST_F(FileSystemDirTest, CreateDirectorySucceeds)
+TEST_F(FileSystemDirTest, CreateDirectoriesSucceeds)
 {
     Path new_dir = temp_dir / "new_directory";
     EXPECT_FALSE(new_dir.Exists());
 
-    bool result = FileSystem::CreateDirectory(new_dir);
+    bool result = FileSystem::CreateDirectories(new_dir);
 
     EXPECT_TRUE(result);
     EXPECT_TRUE(new_dir.Exists());
     EXPECT_TRUE(new_dir.IsDirectory());
 }
 
-TEST_F(FileSystemDirTest, CreateDirectoryReturnsTrueIfAlreadyExists)
+TEST_F(FileSystemDirTest, CreateDirectoriesReturnsTrueIfAlreadyExists)
 {
     Path existing_dir = temp_dir / "existing_directory";
-    FileSystem::CreateDirectory(existing_dir);
+    FileSystem::CreateDirectories(existing_dir);
     ASSERT_TRUE(existing_dir.Exists());
 
-    bool result = FileSystem::CreateDirectory(existing_dir);
+    bool result = FileSystem::CreateDirectories(existing_dir);
     EXPECT_TRUE(result);
 }
 
@@ -344,8 +342,8 @@ protected:
     void SetUp() override
     {
         // 테스트용 파일/디렉토리 구조 생성
-        FileSystem::CreateDirectory(temp_dir / "subdir1");
-        FileSystem::CreateDirectory(temp_dir / "subdir2");
+        FileSystem::CreateDirectories(temp_dir / "subdir1");
+        FileSystem::CreateDirectories(temp_dir / "subdir2");
         FileSystem::WriteString(temp_dir / "file1.txt", "1");
         FileSystem::WriteString(temp_dir / "file2.txt", "2");
         FileSystem::WriteString(temp_dir / "subdir1/nested.txt", "nested");
@@ -410,7 +408,7 @@ TEST_F(FileSystemIteratorTest, DirectoryEntryFileSizeReturnsCorrectSize)
 TEST_F(FileSystemIteratorTest, ReadDirOnEmptyDirectoryProducesNoEntries)
 {
     Path empty_dir = temp_dir / "empty_dir";
-    FileSystem::CreateDirectory(empty_dir);
+    FileSystem::CreateDirectories(empty_dir);
 
     int count = 0;
     for ([[maybe_unused]] const auto& entry : FileSystem::ReadDir(empty_dir))
@@ -474,11 +472,11 @@ TEST_F(FileSystemUtf8Test, WriteAndReadFileWithKoreanPath)
     EXPECT_EQ(StringView(read_result->CStr(), read_result->ByteLen()), content);
 }
 
-TEST_F(FileSystemUtf8Test, CreateDirectoryWithUnicodeName)
+TEST_F(FileSystemUtf8Test, CreateDirectoriesWithUnicodeName)
 {
     Path unicode_dir = temp_dir / "日本語フォルダ";
 
-    bool result = FileSystem::CreateDirectory(unicode_dir);
+    bool result = FileSystem::CreateDirectories(unicode_dir);
 
     EXPECT_TRUE(result);
     EXPECT_TRUE(unicode_dir.Exists());
@@ -497,4 +495,352 @@ TEST_F(FileSystemUtf8Test, ReadDirWithUnicodeNames)
     }
 
     EXPECT_EQ(count, 3);
+}
+
+TEST_F(FileSystemUtf8Test, CopyFileWithUnicodeName)
+{
+    Path src = temp_dir / "원본파일.txt";
+    Path dst = temp_dir / "복사본ファイル.txt";
+    FileSystem::WriteString(src, "UTF-8 내용");
+
+    EXPECT_TRUE(FileSystem::Copy(src, dst));
+    EXPECT_TRUE(dst.Exists());
+
+    auto content = FileSystem::ReadToString(dst);
+    ASSERT_TRUE(content.HasValue());
+    EXPECT_EQ(StringView(content->CStr(), content->ByteLen()), "UTF-8 내용");
+}
+
+TEST_F(FileSystemUtf8Test, RenameFileWithUnicodeName)
+{
+    Path old_path = temp_dir / "이전이름.txt";
+    Path new_path = temp_dir / "새이름_新名前.txt";
+    FileSystem::WriteString(old_path, "rename test");
+
+    EXPECT_TRUE(FileSystem::Rename(old_path, new_path));
+    EXPECT_FALSE(old_path.Exists());
+    EXPECT_TRUE(new_path.Exists());
+}
+
+TEST_F(FileSystemUtf8Test, SpacesInPath)
+{
+    Path file = temp_dir / "path with spaces/sub dir/file name.txt";
+    FileSystem::CreateDirectories(temp_dir / "path with spaces/sub dir");
+    FileSystem::WriteString(file, "spaces content");
+
+    EXPECT_TRUE(file.Exists());
+    auto content = FileSystem::ReadToString(file);
+    ASSERT_TRUE(content.HasValue());
+    EXPECT_EQ(StringView(content->CStr(), content->ByteLen()), "spaces content");
+}
+
+TEST_F(FileSystemUtf8Test, SpecialCharactersInFilename)
+{
+    // 괄호, 하이픈, 플러스 등 특수문자
+    Path file = temp_dir / "file (1) - copy [backup]+test.txt";
+    FileSystem::WriteString(file, "special chars");
+
+    EXPECT_TRUE(file.Exists());
+    EXPECT_EQ(FileSystem::ReadToString(file).Value(),
+        String("special chars"));
+}
+
+
+// =============================================================================
+// ReadChunked 엣지 케이스 (Chunked Reading Edge Cases)
+// =============================================================================
+
+class FileSystemChunkedTest : public ::testing::Test
+{
+protected:
+    TempDir temp_dir{ "Chunked" };
+};
+
+TEST_F(FileSystemChunkedTest, ReadChunkedEmptyFile)
+{
+    Path file = temp_dir / "empty.bin";
+    FileSystem::WriteString(file, "");
+
+    int chunk_count = 0;
+    for (auto&& chunk_result : FileSystem::ReadChunked(file, 1024))
+    {
+        ASSERT_TRUE(chunk_result.HasValue());
+        ++chunk_count;
+    }
+
+    // 빈 파일은 0바이트 읽기 → 루프 진입하지 않음
+    EXPECT_EQ(chunk_count, 0);
+}
+
+TEST_F(FileSystemChunkedTest, ReadChunkedSmallerThanChunkSize)
+{
+    Path file = temp_dir / "small.bin";
+    FileSystem::WriteString(file, "Hello");
+
+    int chunk_count = 0;
+    usize total_bytes = 0;
+    for (auto&& chunk_result : FileSystem::ReadChunked(file, 1024))
+    {
+        ASSERT_TRUE(chunk_result.HasValue());
+        total_bytes += chunk_result->Len();
+        ++chunk_count;
+    }
+
+    EXPECT_EQ(chunk_count, 1);
+    EXPECT_EQ(total_bytes, 5u);
+}
+
+TEST_F(FileSystemChunkedTest, ReadChunkedExactMultiple)
+{
+    // chunk_size의 정확한 배수 크기 파일
+    const usize chunk_size = 4;
+    String content("ABCDABCD"); // 8바이트 = 4 * 2
+    Path file = temp_dir / "exact.bin";
+    FileSystem::WriteString(file, content);
+
+    int chunk_count = 0;
+    usize total_bytes = 0;
+    for (auto&& chunk_result : FileSystem::ReadChunked(file, chunk_size))
+    {
+        ASSERT_TRUE(chunk_result.HasValue());
+        total_bytes += chunk_result->Len();
+        ++chunk_count;
+    }
+
+    EXPECT_EQ(total_bytes, 8u);
+    // chunk_size 정확히 배수이므로 마지막에 0바이트 read 후 종료
+    // chunk_count는 2 또는 3 (구현에 따라 마지막 0-byte read 포함 여부)
+    EXPECT_GE(chunk_count, 2);
+}
+
+TEST_F(FileSystemChunkedTest, ReadChunkedNonExistentFile)
+{
+    Path non_existent = temp_dir / "no_such_file.bin";
+
+    for (auto&& chunk_result : FileSystem::ReadChunked(non_existent, 1024))
+    {
+        // 첫 yield가 에러여야 함
+        EXPECT_FALSE(chunk_result.HasValue());
+        break;
+    }
+}
+
+
+// =============================================================================
+// Rename 엣지 케이스 (Rename Edge Cases)
+// =============================================================================
+
+class FileSystemRenameTest : public ::testing::Test
+{
+protected:
+    TempDir temp_dir{ "Rename" };
+};
+
+TEST_F(FileSystemRenameTest, RenameOverwritesExistingFile)
+{
+    Path src = temp_dir / "source.txt";
+    Path dst = temp_dir / "destination.txt";
+    FileSystem::WriteString(src, "new content");
+    FileSystem::WriteString(dst, "old content");
+
+    bool result = FileSystem::Rename(src, dst);
+    EXPECT_TRUE(result);
+    EXPECT_FALSE(src.Exists());
+    EXPECT_EQ(FileSystem::ReadToString(dst).Value(), String("new content"));
+}
+
+TEST_F(FileSystemRenameTest, RenameToNonExistentTarget)
+{
+    Path src = temp_dir / "exists.txt";
+    Path dst = temp_dir / "new_name.txt";
+    FileSystem::WriteString(src, "content");
+
+    EXPECT_TRUE(FileSystem::Rename(src, dst));
+    EXPECT_TRUE(dst.Exists());
+}
+
+TEST_F(FileSystemRenameTest, RenameEmptyPaths)
+{
+    EXPECT_FALSE(FileSystem::Rename(Path{}, Path{"target"}));
+    EXPECT_FALSE(FileSystem::Rename(Path{"source"}, Path{}));
+    EXPECT_FALSE(FileSystem::Rename(Path{}, Path{}));
+}
+
+
+// =============================================================================
+// Copy 엣지 케이스 (Copy Edge Cases)
+// =============================================================================
+
+class FileSystemCopyTest : public ::testing::Test
+{
+protected:
+    TempDir temp_dir{ "Copy" };
+};
+
+TEST_F(FileSystemCopyTest, CopyDirectoryOnlyCreatesTarget)
+{
+    // ARCH-2: 디렉토리 Copy는 대상 디렉토리만 생성하고 내용물은 복사하지 않음
+    Path src_dir = temp_dir / "src_dir";
+    FileSystem::CreateDirectories(src_dir);
+    FileSystem::WriteString(src_dir / "inside.txt", "data");
+
+    Path dst_dir = temp_dir / "dst_dir";
+    EXPECT_TRUE(FileSystem::Copy(src_dir, dst_dir));
+    EXPECT_TRUE(dst_dir.IsDirectory());
+
+    // 내용물은 복사되지 않음 (현재 구현 동작 문서화)
+    EXPECT_FALSE((dst_dir / "inside.txt").Exists());
+}
+
+TEST_F(FileSystemCopyTest, CopyNonExistentFile)
+{
+    Path src = temp_dir / "non_existent.txt";
+    Path dst = temp_dir / "destination.txt";
+    EXPECT_FALSE(FileSystem::Copy(src, dst));
+}
+
+TEST_F(FileSystemCopyTest, CopyEmptyPaths)
+{
+    Path valid = temp_dir / "some_file.txt";
+    EXPECT_FALSE(FileSystem::Copy(Path{}, valid));
+    EXPECT_FALSE(FileSystem::Copy(valid, Path{}));
+}
+
+
+// =============================================================================
+// RemoveAll 엣지 케이스
+// =============================================================================
+
+class FileSystemRemoveAllTest : public ::testing::Test
+{
+protected:
+    TempDir temp_dir{ "RemoveAll" };
+};
+
+TEST_F(FileSystemRemoveAllTest, RemoveAllSingleFile)
+{
+    Path file = temp_dir / "single.txt";
+    FileSystem::WriteString(file, "data");
+
+    usize count = FileSystem::RemoveAll(file);
+    EXPECT_EQ(count, 1u);
+    EXPECT_FALSE(file.Exists());
+}
+
+TEST_F(FileSystemRemoveAllTest, RemoveAllDeeplyNested)
+{
+    // 5단계 중첩 디렉토리
+    Path deep = temp_dir / "a/b/c/d/e";
+    FileSystem::CreateDirectories(deep);
+    FileSystem::WriteString(deep / "leaf.txt", "data");
+
+    usize count = FileSystem::RemoveAll(temp_dir / "a");
+    EXPECT_GT(count, 1u);
+    EXPECT_FALSE((temp_dir / "a").Exists());
+}
+
+TEST_F(FileSystemRemoveAllTest, RemoveAllEmptyDirectory)
+{
+    Path empty_dir = temp_dir / "empty";
+    FileSystem::CreateDirectories(empty_dir);
+
+    usize count = FileSystem::RemoveAll(empty_dir);
+    EXPECT_EQ(count, 1u);
+    EXPECT_FALSE(empty_dir.Exists());
+}
+
+TEST_F(FileSystemRemoveAllTest, RemoveAllNonExistentReturnsZero)
+{
+    usize count = FileSystem::RemoveAll(temp_dir / "ghost");
+    EXPECT_EQ(count, 0u);
+}
+
+TEST_F(FileSystemRemoveAllTest, RemoveAllEmptyPathReturnsZero)
+{
+    usize count = FileSystem::RemoveAll(Path{});
+    EXPECT_EQ(count, 0u);
+}
+
+
+// =============================================================================
+// FileInfo 엣지 케이스
+// =============================================================================
+
+TEST_F(FileSystemFileTest, FileSizeOfEmptyFile)
+{
+    Path file = temp_dir / "zero.bin";
+    FileSystem::WriteString(file, "");
+
+    auto size = FileSystem::FileSize(file);
+    ASSERT_TRUE(size.HasValue());
+    EXPECT_EQ(*size, 0u);
+}
+
+TEST_F(FileSystemFileTest, LastWriteTimeReturnedForExistingFile)
+{
+    Path file = temp_dir / "timed.txt";
+    FileSystem::WriteString(file, "hello");
+
+    auto mtime = FileSystem::LastWriteTime(file);
+    ASSERT_TRUE(mtime.HasValue());
+    // Unix epoch 이후 시간이어야 함 (0보다 큰 값)
+    EXPECT_GT(*mtime, 0u);
+}
+
+TEST_F(FileSystemFileTest, LastWriteTimeNulloptForNonExistent)
+{
+    auto mtime = FileSystem::LastWriteTime(temp_dir / "ghost.txt");
+    EXPECT_FALSE(mtime.HasValue());
+}
+
+TEST_F(FileSystemFileTest, FileSizeEmptyPath)
+{
+    auto size = FileSystem::FileSize(Path{});
+    EXPECT_FALSE(size.HasValue());
+}
+
+
+// =============================================================================
+// WriteString 엣지 케이스
+// =============================================================================
+
+TEST_F(FileSystemReadWriteTest, WriteEmptyPathReturnsFalse)
+{
+    EXPECT_FALSE(FileSystem::WriteString(Path{}, "content"));
+}
+
+TEST_F(FileSystemReadWriteTest, WriteBinaryEmptyPathReturnsFalse)
+{
+    Array<uint8> data;
+    data.Push(0x42);
+    EXPECT_FALSE(FileSystem::Write(Path{}, data));
+}
+
+TEST_F(FileSystemReadWriteTest, ReadWriteLargeFile)
+{
+    // 1MB 파일 읽기/쓰기
+    Path file = temp_dir / "large.bin";
+    Array<uint8> data;
+    const usize size = 1024 * 1024;
+    data.ResizeUninitialized(size);
+    for (usize i = 0; i < size; ++i)
+    {
+        data[i] = static_cast<uint8>(i & 0xFF);
+    }
+
+    ASSERT_TRUE(FileSystem::Write(file, data));
+
+    auto read_result = FileSystem::ReadBytes(file);
+    ASSERT_TRUE(read_result.HasValue());
+    EXPECT_EQ(read_result->Len(), size);
+
+    // 첫 1KB와 마지막 1KB 검증
+    for (usize i = 0; i < 1024; ++i)
+    {
+        EXPECT_EQ((*read_result)[i], static_cast<uint8>(i & 0xFF));
+    }
+    for (usize i = size - 1024; i < size; ++i)
+    {
+        EXPECT_EQ((*read_result)[i], static_cast<uint8>(i & 0xFF));
+    }
 }

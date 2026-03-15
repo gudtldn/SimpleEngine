@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 
-#include <filesystem>
 #include <ranges>
 
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
