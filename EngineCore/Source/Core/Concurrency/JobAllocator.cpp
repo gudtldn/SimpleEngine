@@ -1,6 +1,7 @@
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 
 #include "SimpleEngine/Core/Concurrency/Common.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Memory/OsMemory.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -297,6 +298,8 @@ void JobAllocator::Free(void* in_ptr)
 
 void JobAllocator::Shutdown()
 {
+    SE_ASSERT(!JobSystem::IsInitialized(), "JobAllocator::Shutdown must run after JobSystem destruction.");
+
     // 현재 스레드의 TLS 캐시를 먼저 초기화 (댕글링 포인터 방지)
     ThreadCache& cache = GetThreadCache();
     for (usize i = 0; i < NUM_SIZE_CLASSES; ++i)
