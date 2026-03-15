@@ -191,7 +191,19 @@ WhenAny::WhenAny(Array<JobHandle> in_handles)
 
 bool WhenAny::await_ready() const noexcept
 {
-    return std::ranges::any_of(handles, &JobHandle::IsComplete);
+    // 유효한 핸들이 하나도 없는지 확인 (빈 배열 포함)
+    auto valid_view = handles | std::views::filter([](const JobHandle& handle)
+    {
+        return handle.IsValid();
+    });
+
+    if (valid_view.empty())
+    {
+        return true;
+    }
+
+    // 유효한 핸들 중 하나라도 완료되었는지 확인
+    return std::ranges::any_of(valid_view, &JobHandle::IsComplete);
 }
 
 bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
@@ -202,6 +214,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
     // 가드 카운트(+1)
     state->AddRef();
 
+    usize registered = 0;
     for (const JobHandle& handle : handles)
     {
         if (!handle.IsValid())
@@ -216,6 +229,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
             return false; // 코루틴을 멈추지 않고 계속 진행
         }
 
+        ++registered;
         state->AddRef();
 
         Optional<UniqueFunction<void()>> result = handle.GetCounter()->AddWaiter([state]
@@ -241,6 +255,13 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
         {
             result->Invoke();
         }
+    }
+
+    // 만약 유효한(Valid) 핸들이 단 하나도 없었다면 코루틴 재개 (Deadlock 방지)
+    if (registered == 0)
+    {
+        state->Release();
+        return false;
     }
 
     // 모든 핸들의 등록이 완료되었으므로 가드를 해제하기 위해 GUARD_DONE 상태를 기록
