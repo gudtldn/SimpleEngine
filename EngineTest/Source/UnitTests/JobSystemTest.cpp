@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <thread>
 #include <vector>
 
@@ -120,6 +121,68 @@ TEST_F(JobPayloadTest, PriorityPreserved)
     delete p1;
     delete p2;
     delete p3;
+}
+
+TEST_F(JobPayloadTest, HeapFallback_OverAlignedCallable_MustRespectAlignment)
+{
+    struct alignas(32) OverAlignedCapture
+    {
+        uint8 data[64];
+    };
+
+    OverAlignedCapture cap{};
+    auto lambda = [cap]()
+    {
+        (void)cap;
+    };
+
+    static_assert(sizeof(decltype(lambda)) > JobPayload::SBO_CAPACITY);
+    static_assert(alignof(decltype(lambda)) >= 32);
+
+    auto* payload = JobPayload::Create(lambda, EJobPriority::Normal);
+    ASSERT_NE(payload, nullptr);
+    ASSERT_NE(payload->heap_block, nullptr) << "over-aligned callable should take heap path";
+
+    const uintptr_t addr = reinterpret_cast<uintptr_t>(payload->heap_block);
+    EXPECT_EQ(addr % alignof(decltype(lambda)), 0u)
+        << "heap block alignment must satisfy callable alignment requirement";
+
+    payload->Invoke();
+    delete payload;
+}
+
+TEST_F(JobPayloadTest, HeapFallback_AlignmentStress_MultipleInstances)
+{
+    struct alignas(32) OverAlignedCapture
+    {
+        uint8 data[64];
+    };
+
+    constexpr int ITERATIONS = 200;
+    std::vector<JobPayload*> payloads;
+    payloads.reserve(ITERATIONS);
+
+    for (int i = 0; i < ITERATIONS; ++i)
+    {
+        OverAlignedCapture cap{};
+        auto lambda = [cap]()
+        {
+            (void)cap;
+        };
+
+        JobPayload* payload = JobPayload::Create(lambda, EJobPriority::Low);
+        ASSERT_NE(payload, nullptr);
+        ASSERT_NE(payload->heap_block, nullptr);
+
+        const uintptr_t addr = reinterpret_cast<uintptr_t>(payload->heap_block);
+        EXPECT_EQ(addr % alignof(decltype(lambda)), 0u);
+        payloads.push_back(payload);
+    }
+
+    for (JobPayload* payload : payloads)
+    {
+        delete payload;
+    }
 }
 
 
