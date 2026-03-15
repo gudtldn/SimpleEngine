@@ -482,6 +482,123 @@ TEST_F(CoroutineTest, WhenAny_AlreadyComplete)
     WaitForDone(task);
 }
 
+TEST_F(CoroutineTest, WhenAny_EmptyArray_MustCompleteImmediately)
+{
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAny{ {} };
+        promise.set_value(true);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    // 빈 WhenAny는 즉시 통과해야 한다.
+    ASSERT_EQ(future.wait_for(200ms), std::future_status::ready)
+        << "WhenAny with empty handles must not suspend forever";
+    EXPECT_TRUE(future.get());
+    EXPECT_TRUE(task.handle.done());
+}
+
+TEST_F(CoroutineTest, WhenAny_AllInvalidHandles_MustNotSuspend)
+{
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        JobHandle invalid_a;
+        JobHandle invalid_b;
+        co_await WhenAny{ { invalid_a, invalid_b } };
+        promise.set_value(true);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(200ms), std::future_status::ready)
+        << "WhenAny with only invalid handles should not enter permanent suspend";
+    EXPECT_TRUE(future.get());
+    EXPECT_TRUE(task.handle.done());
+}
+
+TEST_F(CoroutineTest, WhenAny_MixedInvalidAndPending_ResumesOnPendingCompletion)
+{
+    std::atomic<bool> run = false;
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    JobHandle invalid;
+    auto pending = JobSystem::Get().Submit([&run]
+    {
+        while (!run.load(std::memory_order_acquire))
+        {
+            std::this_thread::yield();
+        }
+    });
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAny{ { invalid, pending } };
+        promise.set_value(true);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    EXPECT_EQ(future.wait_for(50ms), std::future_status::timeout)
+        << "WhenAny must not complete before pending handle is done";
+
+    run.store(true, std::memory_order_release);
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    pending.Wait();
+    WaitForDone(task);
+}
+
+TEST_F(CoroutineTest, WhenAny_ResumeExactlyOnce_UnderBurstCompletion)
+{
+    constexpr usize HANDLE_COUNT = 256;
+
+    Array<JobHandle> handles;
+    handles.Reserve(HANDLE_COUNT);
+
+    std::atomic<bool> release = false;
+    for (usize i = 0; i < HANDLE_COUNT; ++i)
+    {
+        handles.Push(JobSystem::Get().Submit([&release]
+        {
+            while (!release.load(std::memory_order_acquire))
+            {
+                std::this_thread::yield();
+            }
+        }));
+    }
+
+    std::atomic<int> resume_count = 0;
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await WhenAny{ std::move(handles) };
+        const int count = resume_count.fetch_add(1, std::memory_order_relaxed) + 1;
+        promise.set_value(count == 1);
+        co_return;
+    }();
+
+    task.handle.resume();
+    release.store(true, std::memory_order_release);
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    EXPECT_EQ(resume_count.load(std::memory_order_relaxed), 1);
+    WaitForDone(task);
+}
+
 
 // ═══════════════════════════════════════════════════════════════════
 //  ParallelFor (co_await JobHandle 직접 사용)
@@ -510,4 +627,57 @@ TEST_F(CoroutineTest, ParallelFor_CoAwaitJobHandle)
     ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
     EXPECT_EQ(sum.load(std::memory_order_relaxed), static_cast<usize>(499500));
     WaitForDone(task);
+}
+
+TEST_F(CoroutineTest, CoAwait_TemporaryJobHandle)
+{
+    std::atomic<int> value = 0;
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        co_await JobSystem::Get().Submit([&value]
+        {
+            value.store(42, std::memory_order_release);
+        });
+
+        promise.set_value(value.load(std::memory_order_acquire) == 42);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    WaitForDone(task);
+}
+
+TEST_F(CoroutineTest, DeepChain_CoAwaitJobHandle)
+{
+    constexpr usize CHAIN_DEPTH = 2048;
+    std::atomic<usize> progressed = 0;
+
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    auto task = [&]() -> JobTask<void>
+    {
+        for (usize i = 0; i < CHAIN_DEPTH; ++i)
+        {
+            co_await JobSystem::Get().Submit([&progressed]
+            {
+                progressed.fetch_add(1, std::memory_order_relaxed);
+            });
+        }
+
+        promise.set_value(progressed.load(std::memory_order_relaxed) == CHAIN_DEPTH);
+        co_return;
+    }();
+
+    task.handle.resume();
+
+    ASSERT_EQ(future.wait_for(10s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+    WaitForDone(task, 10s);
 }
