@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Concurrency/Common.h"
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Memory/OsMemory.h"
 
 #include <atomic>
 #include <memory>
@@ -42,14 +42,28 @@ public:
 public:
     // ── 저장 공간 ──────────────────────────────────────────────────
 
-    /** SBO 인라인 버퍼. 작은 callable은 여기에 placement new됩니다. */
-    alignas(SBO_ALIGNMENT) uint8 inline_storage[SBO_CAPACITY];
+    union
+    {
+        /** SBO 인라인 버퍼. 작은 callable은 여기에 placement new됩니다. */
+        alignas(SBO_ALIGNMENT) uint8 inline_storage[SBO_CAPACITY];
 
-    /** SBO 초과 시 JobAllocator에서 할당된 외부 블록 (nullptr이면 인라인) */
-    void* heap_block = nullptr;
+        /** SBO 초과 시 JobAllocator에서 할당된 외부 블록 (nullptr이면 인라인) */
+        void* heap_block = nullptr;
+    };
 
 public:
     // ── 스케줄링 메타데이터 ────────────────────────────────────────
+
+    /** 할당 방식을 추적하기 위한 Tag */
+    enum class EStorageType : uint8
+    {
+        Inline, // 48바이트 이하 & 16바이트 정렬 (Fastest)
+        Pooled, // 48바이트 초과 & 16바이트 정렬 (Fast Pool)
+        Heap,   // 16바이트 초과 정렬 (Fallback)
+    };
+
+    /** 저장 공간의 유형 */
+    EStorageType storage_type = EStorageType::Inline;
 
     /** 이 Job의 우선순위 */
     EJobPriority priority = EJobPriority::Normal;
@@ -74,12 +88,6 @@ public:
             destroy_fn(GetStorage());
             destroy_fn = nullptr;
         }
-
-        if (heap_block)
-        {
-            JobAllocator::Free(heap_block);
-            heap_block = nullptr;
-        }
     }
 
     // 복사 & 이동 금지 (포인터로만 전달)
@@ -102,7 +110,9 @@ public:
     /** callable이 저장된 위치의 포인터를 반환합니다. */
     [[nodiscard]] FORCE_INLINE void* GetStorage() noexcept
     {
-        return heap_block ? heap_block : static_cast<void*>(inline_storage);
+        return storage_type == EStorageType::Inline
+            ? static_cast<void*>(inline_storage)
+            : heap_block;
     }
 
     /** 저장된 callable을 호출합니다. */
@@ -134,34 +144,50 @@ public:
         JobPayload* payload = new JobPayload{};
         payload->priority = in_priority;
 
-        // 타입 소거된 호출/소멸 함수 포인터 설정
+        // 타입 소거된 호출 포인터 설정
         payload->invoke_fn = [](void* storage)
         {
             std::invoke(*static_cast<DecayedFn*>(storage));
         };
 
-        payload->destroy_fn = [](void* storage)
-        {
-            std::destroy_at(static_cast<DecayedFn*>(storage));
-        };
-
-        // SBO 조건: 크기와 정렬이 인라인 버퍼에 맞는지 확인
+        // Inline Storage
         if constexpr (sizeof(DecayedFn) <= SBO_CAPACITY && alignof(DecayedFn) <= SBO_ALIGNMENT)
         {
-            // SBO: 인라인 버퍼에 placement new
+            payload->storage_type = EStorageType::Inline;
             std::construct_at(
                 reinterpret_cast<DecayedFn*>(payload->inline_storage),
                 std::forward<Fn>(in_func)
             );
+
+            payload->destroy_fn = [](void* storage)
+            {
+                std::destroy_at(static_cast<DecayedFn*>(storage));
+            };
+        }
+        // JobAllocator (16-byte aligned Fast-path)
+        else if constexpr (alignof(DecayedFn) <= SBO_ALIGNMENT)
+        {
+            payload->storage_type = EStorageType::Pooled;
+            void* block = JobAllocator::Allocate(sizeof(DecayedFn));
+            payload->heap_block = std::construct_at(static_cast<DecayedFn*>(block), std::forward<Fn>(in_func));
+
+            payload->destroy_fn = [](void* storage)
+            {
+                std::destroy_at(static_cast<DecayedFn*>(storage));
+                JobAllocator::Free(storage);
+            };
         }
         else
         {
-            // 외부 블록: JobAllocator에서 할당 후 placement new
-            void* block = JobAllocator::Allocate(sizeof(DecayedFn));
-            payload->heap_block = std::construct_at(
-                static_cast<DecayedFn*>(block),
-                std::forward<Fn>(in_func)
-            );
+            payload->storage_type = EStorageType::Heap;
+            void* block = OsMemory::Allocate<DecayedFn>();
+            payload->heap_block = std::construct_at(static_cast<DecayedFn*>(block), std::forward<Fn>(in_func));
+
+            payload->destroy_fn = [](void* storage)
+            {
+                std::destroy_at(static_cast<DecayedFn*>(storage));
+                OsMemory::Free(storage);
+            };
         }
 
         return payload;
