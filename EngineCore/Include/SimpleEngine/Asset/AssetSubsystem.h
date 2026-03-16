@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/AssetHandle.h"
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/AssetPayload.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -61,6 +62,21 @@ public:
     [[nodiscard]] AssetHandle<T> Load(const AssetPath& asset_path, EScopeLayer scope = EScopeLayer::Scene);
 
     /**
+     * 지정된 경로의 Asset을 비동기로 로드합니다.
+     *
+     * DDC hit 시 AsyncFileIO를 통해 비동기 I/O를 수행합니다.
+     * DDC miss 시 워커 스레드에서 동기 LoadInternal()로 fallback합니다.
+     * 어느 경우든 호출 스레드는 블로킹되지 않습니다.
+     *
+     * @param asset_path Asset 경로 (예: "meshes/model.fbx#Mesh_01")
+     * @param scope 에셋의 수명 범위 및 관리 우선순위 (기본값: Scene)
+     * @return co_await로 대기 가능한 JobTask. 완료 시 AssetHandle<T>를 반환합니다.
+     */
+    template <typename T>
+        requires std::derived_from<T, AssetBase>
+    [[nodiscard]] JobTask<AssetHandle<T>> LoadAsync(const AssetPath& asset_path, EScopeLayer scope = EScopeLayer::Scene);
+
+    /**
      * 캐시에서 Asset을 찾습니다. (Import 수행 안함)
      * @param asset_id Asset의 고유 ID
      */
@@ -91,6 +107,7 @@ public:
 
 private:
     [[nodiscard]] HandleData LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope);
+    [[nodiscard]] JobTask<HandleData> LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope);
     [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
     [[nodiscard]] HandleTable& GetHandleTable() const;
 
@@ -118,6 +135,17 @@ AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path, EScopeLayer sco
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
     return {};
+}
+
+template <typename T>
+    requires std::derived_from<T, AssetBase>
+JobTask<AssetHandle<T>> AssetSubsystem::LoadAsync(const AssetPath& asset_path, EScopeLayer scope)
+{
+    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId::Get<T>(), asset_path, scope))
+    {
+        co_return AssetHandle<T>{ handle_data, &GetHandleTable() };
+    }
+    co_return {};
 }
 
 template <typename T>
