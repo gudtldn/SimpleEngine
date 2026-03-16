@@ -136,10 +136,7 @@ public:
     /** 유효한 카운터를 보유하고 있는지 확인합니다. */
     [[nodiscard]] bool IsValid() const { return counter != nullptr; }
 
-    /**
-     * 작업이 완료될 때까지 현재 스레드를 블로킹합니다.
-     * @note 추후 Job Stealing 방식의 워커 스레드 대기 로직으로 확장될 예정입니다.
-     */
+    /** 작업이 완료될 때까지 현재 스레드를 블로킹합니다. */
     void Wait() const;
 
     /** 내부 카운터 포인터를 반환합니다. (nullptr일 수 있음) */
