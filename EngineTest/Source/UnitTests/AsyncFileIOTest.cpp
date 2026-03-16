@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -42,20 +43,6 @@ protected:
 
         // 임시 파일 정리
         std::filesystem::remove(test_file_path);
-    }
-
-    template <typename T>
-    static void WaitForDone(const JobTask<T>& task, std::chrono::milliseconds timeout = 5s)
-    {
-        const auto start = std::chrono::steady_clock::now();
-        while (!task.handle.done())
-        {
-            if (std::chrono::steady_clock::now() - start > timeout)
-            {
-                FAIL() << "코루틴이 타임아웃 내에 완료되지 않았습니다.";
-            }
-            std::this_thread::yield();
-        }
     }
 
     std::unique_ptr<JobSystem> job_system;
@@ -145,15 +132,12 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
     std::atomic<bool> done = false;
     IOResult captured_result;
 
-    auto task = [&]() -> JobTask<void>
+    JobHandle h = JobSystem::Get().SubmitTask([&]() -> JobTask<void>
     {
         IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ test_file_path.c_str() });
         captured_result = std::move(result);
         done.store(true, std::memory_order_release);
-    }();
-
-    // 코루틴을 시작 (Lazy Start이므로 수동 resume 필요)
-    task.handle.resume();
+    }());
 
     const auto start = std::chrono::steady_clock::now();
     while (!done.load(std::memory_order_acquire))
@@ -165,7 +149,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
         std::this_thread::yield();
     }
 
-    WaitForDone(task);
+    h.Wait();
 
     EXPECT_TRUE(captured_result.success);
     EXPECT_EQ(captured_result.bytes_transferred, std::strlen(test_content));
@@ -177,14 +161,12 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
     std::atomic<bool> done = false;
     IOResult captured_result;
 
-    auto task = [&]() -> JobTask<void>
+    JobHandle h = JobSystem::Get().SubmitTask([&]() -> JobTask<void>
     {
         IOResult result = co_await AsyncFileIO::Get().ReadFileAsync("__non_existent_file_99999__.txt");
         captured_result = std::move(result);
         done.store(true, std::memory_order_release);
-    }();
-
-    task.handle.resume();
+    }());
 
     const auto start = std::chrono::steady_clock::now();
     while (!done.load(std::memory_order_acquire))
@@ -196,7 +178,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
         std::this_thread::yield();
     }
 
-    WaitForDone(task);
+    h.Wait();
 
     EXPECT_FALSE(captured_result.success);
 }
@@ -240,25 +222,19 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_MultipleCoroutines)
     constexpr int NUM_REQUESTS = 5;
     std::atomic<int> completed_count = 0;
 
-    Array<JobTask<void>> tasks;
-    tasks.Reserve(NUM_REQUESTS);
+    Array<JobHandle> handles;
+    handles.Reserve(NUM_REQUESTS);
 
     for (int i = 0; i < NUM_REQUESTS; ++i)
     {
-        tasks.Emplace([&]() -> JobTask<void>
+        handles.Push(JobSystem::Get().SubmitTask([&]() -> JobTask<void>
         {
             IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ test_file_path.c_str() });
             if (result.success)
             {
                 completed_count.fetch_add(1, std::memory_order_relaxed);
             }
-        }());
-    }
-
-    // 모든 코루틴을 시작
-    for (auto& task : tasks)
-    {
-        task.handle.resume();
+        }()));
     }
 
     const auto start = std::chrono::steady_clock::now();
@@ -272,9 +248,9 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_MultipleCoroutines)
     }
 
     // 모든 코루틴이 정상 종료될 때까지 대기
-    for (const auto& task : tasks)
+    for (const auto& h : handles)
     {
-        WaitForDone(task);
+        h.Wait();
     }
 
     EXPECT_EQ(completed_count.load(), NUM_REQUESTS);
