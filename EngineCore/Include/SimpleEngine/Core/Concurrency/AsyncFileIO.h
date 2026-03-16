@@ -5,7 +5,6 @@
 
 #include "SDL3/SDL.h"
 
-#include <memory>
 #include <thread>
 
 
@@ -24,19 +23,8 @@ class Path;
  */
 struct IOResult
 {
-    struct SDLDeleter
-    {
-        void operator()(void* ptr) const
-        {
-            SDL_free(ptr);
-        }
-    };
-
     /** 읽어들인 파일 데이터 */
-    std::unique_ptr<uint8[], SDLDeleter> data;
-
-    /** 실제로 전송된 바이트 수 */
-    usize bytes_transferred = 0;
+    Array<uint8> data;
 
     /** I/O 작업의 성공 여부 */
     bool success = false;
