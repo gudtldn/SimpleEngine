@@ -48,6 +48,13 @@ void EventSubsystem::PollEvents() // NOLINT(*-make-member-function-const)
             on_quit_requested.Broadcast();
             break;
 
+        case SDL_EVENT_DROP_FILE:
+            if (event.drop.data)
+            {
+                on_file_dropped.Broadcast(Path{ event.drop.data });
+            }
+            break;
+
         default:
             break;
         }
