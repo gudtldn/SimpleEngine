@@ -10,6 +10,7 @@
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Config/EditorSettings.h"
+#include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
@@ -21,6 +22,7 @@
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -117,6 +119,33 @@ bool EditorAssetSubsystem::Initialize()
         ScanWorkspace(physical_path, is_hot_start);
     });
 
+    // OS 파일 드롭 이벤트 구독
+    EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
+    file_drop_handle = event_subsystem.on_file_dropped.AddLambda([this](const Path& file_path)
+    {
+        ImportExternalFile(file_path);
+    });
+
+    // PropertyPanel D&D용 AssetDropResolver 등록
+    DrawerRegistry::Get().SetAssetDropResolver([](const char* dropped_path) -> asset::AssetId
+    {
+        // dropped_path는 AssetsBrowserPanel에서 전달한 물리 경로
+        // VFS 역변환 -> Registry에서 첫 번째 에셋 ID 조회
+        const Optional file_vpath = VFS::Unresolve(Path{ dropped_path });
+        if (!file_vpath)
+        {
+            return {};
+        }
+
+        const asset::AssetRegistry& registry = GetSubsystemChecked<asset::AssetSubsystem>().GetRegistry();
+        const Array<asset::AssetId> assets = registry.GetAssetsInFile(*file_vpath);
+        if (assets.IsEmpty())
+        {
+            return {};
+        }
+        return assets.Front().Value();
+    });
+
     return true;
 }
 
@@ -124,6 +153,18 @@ void EditorAssetSubsystem::Release()
 {
     // 에디터 종료 시 Registry 스냅샷 저장
     SaveRegistrySnapshot();
+
+    // 이벤트 구독 해제
+    if (file_drop_handle.IsValid())
+    {
+        if (EventSubsystem* event_subsystem = GetSubsystem<EventSubsystem>())
+        {
+            event_subsystem->on_file_dropped.Remove(file_drop_handle);
+        }
+    }
+
+    // AssetDropResolver 해제
+    DrawerRegistry::Get().SetAssetDropResolver(nullptr);
 
     if (asset_subsystem)
     {
@@ -630,6 +671,78 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
     ConsoleLog(ELogLevel::Debug, "Successfully cooked {} assets from: {}", result.GetCount(), file_path);
     return true;
+}
+
+bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
+{
+    ZoneScopedN("EditorAssetSubsystem::ImportExternalFile");
+
+    // Import 가능한 파일인지 확인
+    if (!importer->CanImport(source_path))
+    {
+        ConsoleLog(ELogLevel::Warning, "ImportExternalFile: Unsupported file type: {}", source_path);
+        return false;
+    }
+
+    // 첫 번째 스캔 스킴의 물리 경로를 드롭 대상 디렉토리로 사용
+    Path content_dir;
+    AssetScanSettings scan_settings;
+    if (auto config_result = ConfigFile::Load("Config://EditorConfig.toml"))
+    {
+        scan_settings = config_result->GetSection<AssetScanSettings>("asset_scan");
+    }
+
+    if (!scan_settings.schemes.IsEmpty())
+    {
+        const String& first_scheme = scan_settings.schemes.Front().Value();
+        content_dir = VFS::ToPath(VPath{ String::Format("{}://", first_scheme) });
+    }
+
+    if (content_dir.IsEmpty())
+    {
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: No content directory configured");
+        return false;
+    }
+
+    // 파일을 Content 디렉토리로 복사
+    const Optional<String> filename = source_path.FileName();
+    if (!filename)
+    {
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: Cannot extract filename from: {}", source_path);
+        return false;
+    }
+    const Path dest_path = content_dir / *filename;
+    if (dest_path.Exists())
+    {
+        ConsoleLog(ELogLevel::Warning, "ImportExternalFile: File already exists, overwriting: {}", dest_path);
+    }
+
+    if (!FileSystem::Copy(source_path, dest_path))
+    {
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: Failed to copy {} -> {}", source_path, dest_path);
+        return false;
+    }
+
+    // .meta 생성 + Cook
+    if (!EnsureMetaFile(dest_path))
+    {
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: Failed to create .meta for: {}", dest_path);
+        return false;
+    }
+
+    const Optional file_vpath = VFS::Unresolve(dest_path);
+    if (!file_vpath)
+    {
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: Failed to resolve VPath for: {}", dest_path);
+        return false;
+    }
+
+    const bool cook_success = CookAsset(*file_vpath);
+    if (cook_success)
+    {
+        ConsoleLog(ELogLevel::Info, "ImportExternalFile: Successfully imported: {}", *file_vpath);
+    }
+    return cook_success;
 }
 
 void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta)
