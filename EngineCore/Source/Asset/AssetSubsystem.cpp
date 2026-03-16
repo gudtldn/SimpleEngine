@@ -4,6 +4,8 @@
 #include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
+#include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
@@ -73,7 +75,7 @@ void AssetSubsystem::DeferRelease(AssetPayload payload)
         return;
     }
 
-    pool->DeferDestroy(std::move(payload), frame_count);
+    pool->DeferDestroy(payload, frame_count);
 }
 
 void AssetSubsystem::EndFrame()
@@ -120,18 +122,21 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, cons
     MemoryReader reader(payload);
     info_opt->serialize(reader, raw);
 
-    return AssetPayload{ static_cast<AssetBase*>(raw), info_opt->destructor };
+    return {
+        .ptr = static_cast<AssetBase*>(raw),
+        .destructor = info_opt->destructor
+    };
 }
 
 HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope)
 {
     ZoneScopedN("AssetSubsystem::LoadInternal");
-    {
+    SE_DEBUG_EXPRESSION({
         const String zone_text = String::Format("{} | {}", expected_type.GetName(), source_path.ToString());
         ZoneText(zone_text.CStr(), zone_text.ByteLen());
-    }
+    })
 
-    VPath file_vpath = source_path.GetFilePath();
+    const VPath& file_vpath = source_path.GetFilePath();
     const bool has_sub_name = source_path.HasSubAsset();
 
     // Registry에서 AssetId 조회
@@ -208,12 +213,12 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
             {
                 if (auto entry_opt = ddc->Load(current_id.GetGuid()))
                 {
-                    if (AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
+                    if (const AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
                         SlotEntry& current_slot = get_slot();
 
                         // 기존 슬롯에 있던 Asset을 교체
-                        AssetPayload old_payload = current_slot.ExchangePayload(std::move(payload)); // ownership transferred to SlotEntry
+                        const AssetPayload old_payload = current_slot.ExchangePayload(payload); // ownership transferred to SlotEntry
 
                         // Eviction 메타데이터 설정
                         const uint64 old_size = current_slot.asset_size_bytes;
@@ -236,7 +241,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
 
                         if (old_payload)
                         {
-                            DeferRelease(std::move(old_payload));
+                            DeferRelease(old_payload);
                         }
                         ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
                         return handle_data;
@@ -340,6 +345,140 @@ HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const Asset
     }
 
     return handle_data;
+}
+
+JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope)
+{
+    // Worker 스레드로 전환 (호출 스레드 비블로킹 보장)
+    co_await ResumeOn{ EJobThread::Worker };
+
+    ZoneScopedN("AssetSubsystem::LoadAsyncInternal");
+    SE_DEBUG_EXPRESSION({
+        const String zone_text = String::Format("{} | {}", expected_type.GetName(), source_path.ToString());
+        ZoneText(zone_text.CStr(), zone_text.ByteLen());
+    })
+
+    const VPath& file_vpath = source_path.GetFilePath();
+    const bool has_sub_name = source_path.HasSubAsset();
+
+    // Registry에서 AssetId 조회
+    auto find_asset_id = [&] -> Optional<AssetId>
+    {
+        if (has_sub_name)
+        {
+            return registry->GetAssetId(source_path);
+        }
+        return registry->FindFirstOfType(file_vpath, expected_type);
+    };
+
+    const Optional id_opt = find_asset_id();
+    if (!id_opt)
+    {
+        // Registry에 없으면 동기 fallback (DDC miss handler가 Import를 수행할 수 있음)
+        co_return LoadInternal(expected_type, source_path, scope);
+    }
+
+    const AssetId& asset_id = id_opt.Value();
+    HandleData handle_data = pool->FindOrCreate(asset_id, expected_type, source_path);
+    HandleTable& table = pool->GetTable();
+
+    const auto get_slot = [&] -> SlotEntry&
+    {
+        return table.GetSlot(handle_data.index);
+    };
+
+    // 메모리 캐시 hit 또는 다른 스레드가 로딩 중이면 대기
+    while (true)
+    {
+        const ELoadingState state = get_slot().GetState();
+        if (state == ELoadingState::Loaded)
+        {
+            if (get_slot().asset_type == expected_type)
+            {
+                co_return handle_data;
+            }
+            ConsoleLog(ELogLevel::Error, "Asset Type Mismatch!");
+            co_return HandleData{};
+        }
+
+        if (state == ELoadingState::Loading)
+        {
+            // TODO: WaitForLoadComplete는 블로킹 라서,
+            //       만약 병목이 될 경우 co_await 기반의 비동기 대기(SlotEntry에 awaitable notify)로 교체하여
+            //       워커 스레드를 양보할 수 있도록 개선.
+            get_slot().WaitForLoadComplete();
+            continue;
+        }
+
+        if (get_slot().BeginLoad())
+        {
+            break;
+        }
+    }
+
+    // DDC validity 확인
+    String source_hash;
+    uint32 cache_version;
+    const bool has_meta = registry->ReadRecord(asset_id, [&source_hash, &cache_version](const AssetRecord& record)
+    {
+        source_hash = record.metadata.source_hash;
+        cache_version = record.metadata.cache_version;
+    });
+
+    if (has_meta && ddc->IsValid(asset_id.GetGuid(), source_hash, cache_version))
+    {
+        // 비동기 I/O로 DDC 캐시 파일 읽기
+        const Path cache_path = ddc->BuildCachePath(asset_id.GetGuid());
+
+        if (AsyncFileIO::IsInitialized())
+        {
+            IOResult io_result = co_await AsyncFileIO::Get().ReadFileAsync(cache_path);
+
+            if (io_result.success && !io_result.data.IsEmpty())
+            {
+                if (Optional<CacheEntry> entry_opt = DerivedDataCache::ParseFromBuffer(io_result.data))
+                {
+                    if (const AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
+                    {
+                        SlotEntry& current_slot = get_slot();
+
+                        AssetPayload old_payload = current_slot.ExchangePayload(payload);
+
+                        const uint64 old_size = current_slot.asset_size_bytes;
+                        const uint64 new_size = entry_opt->payload.Len();
+                        current_slot.asset_size_bytes = new_size;
+                        current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
+                        current_slot.scope = scope;
+
+                        if (new_size > old_size)
+                        {
+                            table.TrackMemoryUsage(new_size - old_size);
+                        }
+                        else if (new_size < old_size)
+                        {
+                            table.UntrackMemoryUsage(old_size - new_size);
+                        }
+
+                        current_slot.SetState(ELoadingState::Loaded);
+
+                        if (old_payload)
+                        {
+                            DeferRelease(old_payload);
+                        }
+                        ConsoleLog(ELogLevel::Debug, "LoadAsync: Loaded from DDC (async I/O): {}", source_path.ToString());
+                        co_return handle_data;
+                    }
+                }
+            }
+        }
+    }
+
+    // DDC miss 또는 비동기 I/O 실패 -> 동기 fallback
+    // BeginLoad 상태를 되돌려서 LoadInternal이 다시 획득할 수 있게 함
+    get_slot().SetState(ELoadingState::Unloaded);
+
+    ConsoleLog(ELogLevel::Debug, "LoadAsync: Falling back to sync LoadInternal: {}", source_path.ToString());
+    co_return LoadInternal(expected_type, source_path, scope);
 }
 
 HandleTable& AssetSubsystem::GetHandleTable() const
