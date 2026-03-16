@@ -20,14 +20,29 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
 #include "SimpleEngine/Utility/SHA256.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "tracy/Tracy.hpp"
 
+#include <ranges>
+
 
 namespace se::editor
 {
+namespace
+{
+/** ScanWorkspace에서 Dirty 파일을 병렬로 Cook하기 위한 코루틴 함수 */
+JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath)
+{
+    self.CookAsset(vpath);
+    co_return;
+}
+} // namespace
+
+
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::asset::AssetSubsystem>();
 
@@ -195,6 +210,9 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
     uint32 clean_count = 0;
     uint32 moved_count = 0;
 
+    // Background Cook 목록
+    Array<VPath> dirty_vpaths;
+
     for (const Path& file_path : source_files)
     {
         Optional<MetaFileContent> content_opt;
@@ -242,13 +260,22 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
             }
         }
 
+        // VPath 변환 (Registry 등록 + cook dispatch 모두에 필요)
+        Optional file_vpath = VFS::Unresolve(file_path);
+        if (!file_vpath)
+        {
+            ConsoleLog(ELogLevel::Error, "ScanWorkspace: Fatal error, lost VFS tracking for: {}", file_path);
+            continue;
+        }
+
         const asset::AssetMetadata& meta = content_opt->metadata;
         const bool is_new = meta.sub_assets.IsEmpty();
         const bool is_dirty = !is_new && IsAssetDirty(file_path, meta);
 
         if (is_new || is_dirty)
         {
-            // TODO: BackgroundWorker::PushCookTask(file_vpath) 호출하여 백그라운드에서 DDC 굽기
+            // Background Cook 목록에 Push
+            dirty_vpaths.Push(*file_vpath);
             if (is_new)
             {
                 ++new_count;
@@ -263,15 +290,29 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
             ++clean_count;
         }
 
-        // 물리 경로 -> VPath 변환 후 Registry에 등록
-        if (Optional file_vpath = VFS::Unresolve(file_path))
+        RegisterFromMeta(*file_vpath, meta);
+    }
+
+    // 백그라운드 병렬 Cook
+    if (!dirty_vpaths.IsEmpty())
+    {
+        const usize total_tasks = dirty_vpaths.Len();
+        ConsoleLog(ELogLevel::Info, "Dispatching {} background cook tasks", total_tasks);
+
+        Array<JobHandle> cook_handles;
+        cook_handles.Reserve(total_tasks);
+
+        for (const VPath& vpath : dirty_vpaths)
         {
-            RegisterFromMeta(*file_vpath, meta);
+            cook_handles.Push(JobSystem::Get().SubmitTask(MakeCookTask(*this, vpath)));
         }
-        else
+
+        for (const auto[n, handle] : cook_handles | std::views::enumerate)
         {
-            ConsoleLog(ELogLevel::Error, "ScanWorkspace: Fatal error, lost VFS tracking for: {}", file_path);
+            handle.Wait();
+            ConsoleLog(ELogLevel::Debug, "Cooking Progress: [{}/{}]", n + 1, total_tasks);
         }
+        ConsoleLog(ELogLevel::Info, "All cook tasks completed.");
     }
 
     // === 삭제된 파일 감지 (Hot Start 전용) ===
@@ -329,8 +370,6 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
     );
 
     // === DependencyGraph 초기 구축 ===
-    // TODO: BackgroundWorker 전환 시, BuildDependencyGraph()와 CookAsset()이 동시에
-    //       dep_graph을 수정하는 logic race 방지 필요 (incremental update 또는 batch lock)
     BuildDependencyGraph();
 }
 
@@ -380,6 +419,21 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
 bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 {
     ZoneScopedN("EditorAssetSubsystem::CookAsset");
+
+    // 이중 Cook 방지 (병렬 dispatch 또는 DDC miss handler 동시 호출에 대비)
+    {
+        std::scoped_lock lock{ cooking_mutex };
+        if (currently_cooking.Contains(file_vpath))
+        {
+            ConsoleLog(ELogLevel::Debug, "CookAsset: Already cooking, skipping: {}", file_vpath);
+            return false;
+        }
+        currently_cooking.Insert(file_vpath);
+    }
+    SE_SCOPE_DEFER {
+        std::scoped_lock lock{ cooking_mutex };
+        currently_cooking.Remove(file_vpath);
+    };
 
     // VPath -> 물리 경로 변환 (파일 I/O에 필요)
     const Optional physical_opt = VFS::Resolve(file_vpath);

@@ -5,11 +5,15 @@
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
+#include "tracy/Tracy.hpp"
+
 #include <memory>
+#include <mutex>
 
 
 namespace se::editor
@@ -111,5 +115,8 @@ private:
     asset::AssetSubsystem* asset_subsystem = nullptr;
     ImportPresetManager preset_manager;
     DependencyGraph dep_graph;
+
+    TracyLockable(std::mutex, cooking_mutex);
+    HashSet<VPath> currently_cooking;
 };
 }  // namespace se::editor
