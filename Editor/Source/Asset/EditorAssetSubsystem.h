@@ -7,6 +7,7 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
+#include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -69,6 +70,14 @@ public:
     /** DependencyGraph에 대한 읽기 전용 접근자 */
     [[nodiscard]] const DependencyGraph& GetDependencyGraph() const { return dep_graph; }
 
+    /**
+     * 외부 파일을 Content 디렉토리로 복사하고 Import합니다.
+     * OS Drag & Drop으로 받은 파일을 처리하는 데 사용합니다.
+     * @param source_path 드롭된 파일의 물리 경로
+     * @return Import 성공 여부
+     */
+    bool ImportExternalFile(const Path& source_path);
+
 private:
     /**
      * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
@@ -119,5 +128,7 @@ private:
 
     TracyLockable(std::mutex, cooking_mutex);
     HashSet<VPath> currently_cooking;
+
+    DelegateHandle file_drop_handle;
 };
 }  // namespace se::editor
