@@ -102,20 +102,22 @@ struct AsyncReadAwaitable
  */
 IOResult BuildIOResult(SDL_AsyncIOOutcome&& outcome)
 {
+    SE_SCOPE_DEFER {
+        if (outcome.buffer)
+        {
+            SDL_free(outcome.buffer);
+            outcome.buffer = nullptr;
+        }
+    };
+
     IOResult result;
     result.success = outcome.result == SDL_ASYNCIO_COMPLETE;
 
     if (result.success && outcome.buffer && outcome.bytes_transferred > 0)
     {
-        // outcome.buffer의 소유권을 IOResult로 이동
-        result.data.reset(static_cast<uint8*>(outcome.buffer));
-        result.bytes_transferred = static_cast<usize>(outcome.bytes_transferred);
-    }
-    else if (outcome.buffer)
-    {
-        // 실패했거나 바이트가 0일 때만 해제
-        SDL_free(outcome.buffer);
-        outcome.buffer = nullptr;
+        const usize size = static_cast<usize>(outcome.bytes_transferred);
+        result.data.ResizeUninitialized(size);
+        std::memcpy(result.data.Data(), outcome.buffer, size);
     }
 
     return result;

@@ -82,8 +82,8 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_Success)
     const IOResult result = future.get();
 
     EXPECT_TRUE(result.success);
-    EXPECT_EQ(result.bytes_transferred, std::strlen(test_content));
-    EXPECT_EQ(std::memcmp(result.data.get(), test_content, result.bytes_transferred), 0);
+    EXPECT_EQ(result.data.Len(), std::strlen(test_content));
+    EXPECT_EQ(std::memcmp(result.data.Data(), test_content, result.data.Len()), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFile_Callback_NonExistent)
@@ -141,8 +141,8 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
     h.Wait();
 
     EXPECT_TRUE(captured_result.success);
-    EXPECT_EQ(captured_result.bytes_transferred, std::strlen(test_content));
-    EXPECT_EQ(std::memcmp(captured_result.data.get(), test_content, captured_result.bytes_transferred), 0);
+    EXPECT_EQ(captured_result.data.Len(), std::strlen(test_content));
+    EXPECT_EQ(std::memcmp(captured_result.data.Data(), test_content, captured_result.data.Len()), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
