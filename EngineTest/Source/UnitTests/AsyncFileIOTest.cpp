@@ -132,12 +132,13 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
     std::atomic<bool> done = false;
     IOResult captured_result;
 
-    JobHandle h = JobSystem::Get().SubmitTask([&]() -> JobTask<void>
-    {
-        IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ test_file_path.c_str() });
-        captured_result = std::move(result);
-        done.store(true, std::memory_order_release);
-    }());
+    JobHandle h = JobSystem::Get().SubmitTask(
+        [](std::string path, IOResult& captured_result, std::atomic<bool>& done) static -> JobTask<void>
+        {
+            IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ path.c_str() });
+            captured_result = std::move(result);
+            done.store(true, std::memory_order_release);
+        }(test_file_path, captured_result, done));
 
     const auto start = std::chrono::steady_clock::now();
     while (!done.load(std::memory_order_acquire))
@@ -161,12 +162,13 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
     std::atomic<bool> done = false;
     IOResult captured_result;
 
-    JobHandle h = JobSystem::Get().SubmitTask([&]() -> JobTask<void>
-    {
-        IOResult result = co_await AsyncFileIO::Get().ReadFileAsync("__non_existent_file_99999__.txt");
-        captured_result = std::move(result);
-        done.store(true, std::memory_order_release);
-    }());
+    JobHandle h = JobSystem::Get().SubmitTask(
+        [](IOResult& captured_result, std::atomic<bool>& done) static -> JobTask<void>
+        {
+            IOResult result = co_await AsyncFileIO::Get().ReadFileAsync("__non_existent_file_99999__.txt");
+            captured_result = std::move(result);
+            done.store(true, std::memory_order_release);
+        }(captured_result, done));
 
     const auto start = std::chrono::steady_clock::now();
     while (!done.load(std::memory_order_acquire))
@@ -227,14 +229,15 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_MultipleCoroutines)
 
     for (int i = 0; i < NUM_REQUESTS; ++i)
     {
-        handles.Push(JobSystem::Get().SubmitTask([&]() -> JobTask<void>
-        {
-            IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ test_file_path.c_str() });
-            if (result.success)
+        handles.Push(JobSystem::Get().SubmitTask(
+            [](std::string path, std::atomic<int>& count) static -> JobTask<void>
             {
-                completed_count.fetch_add(1, std::memory_order_relaxed);
-            }
-        }()));
+                IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ path.c_str() });
+                if (result.success)
+                {
+                    count.fetch_add(1, std::memory_order_relaxed);
+                }
+            }(test_file_path, completed_count)));
     }
 
     const auto start = std::chrono::steady_clock::now();

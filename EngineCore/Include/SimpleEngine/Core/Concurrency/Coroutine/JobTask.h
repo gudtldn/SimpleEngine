@@ -3,7 +3,7 @@
 
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <concepts>
@@ -74,6 +74,24 @@ struct JobTaskPromise : detail::PromiseReturnMixin<T, JobTaskPromise<T>>
     using StorageType = std::conditional_t<std::is_void_v<T>, EmptyType, Optional<T>>;
 
 public:
+    /** 일반적인 코루틴, static 람다, 일반 함수용 생성자 */
+    JobTaskPromise() = default;
+
+    /** non-static 람다(캡처가 있는 람다)용 생성자 */
+    template <typename ClassType, typename... Args>
+        requires std::invocable<ClassType, Args&&...>
+              && std::same_as<std::invoke_result_t<ClassType, Args&&...>, JobTask<T>>
+              && std::is_class_v<std::remove_cvref_t<ClassType>>
+    JobTaskPromise(ClassType&&, Args&&...)
+    {
+        static_assert(
+            traits::AlwaysFalse<ClassType, Args...>,
+            "[JobTask Error] Stateful (capturing) lambdas are not allowed in JobTask coroutines to prevent dangling references! "
+            "Please use a 'static' lambda and pass required data via parameters. "
+            "(e.g., [](...) static -> JobTask<T> { ... })"
+        );
+    }
+
     /** 코루틴 객체(JobTask)를 생성하여 호출자에게 반환합니다. */
     JobTask<T> get_return_object();
 
