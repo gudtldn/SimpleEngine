@@ -2,10 +2,10 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Functional/UniqueFunction.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 #include "SDL3/SDL.h"
 
+#include <memory>
 #include <thread>
 
 

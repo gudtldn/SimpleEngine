@@ -105,7 +105,7 @@ JobHandle JobSystem::SubmitTask(Fn&& factory, EJobPriority priority)
 {
     static_assert(
         !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
-        "[JobSystem Error] DispatchTask requires a stateless (non-capturing) lambda! "
+        "[JobSystem Error] SubmitTask requires a stateless (non-capturing) lambda! "
         "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
     );
     return SubmitTask(std::invoke(std::forward<Fn>(factory)), priority);
