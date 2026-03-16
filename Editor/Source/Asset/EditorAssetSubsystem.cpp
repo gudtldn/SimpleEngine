@@ -22,12 +22,11 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
+#include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "tracy/Tracy.hpp"
-
-#include <ranges>
 
 
 namespace se::editor
@@ -35,9 +34,20 @@ namespace se::editor
 namespace
 {
 /** ScanWorkspace에서 Dirty 파일을 병렬로 Cook하기 위한 코루틴 함수 */
-JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath)
+JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath, std::atomic<usize>& completed, usize total)
 {
-    self.CookAsset(vpath);
+    const ScopedTimer timer;
+    const bool success = self.CookAsset(vpath);
+    const usize n = completed.fetch_add(1, std::memory_order_relaxed) + 1;
+
+    if (success)
+    {
+        ConsoleLog(ELogLevel::Info, "Cooked [{}/{}] {} ({:.1f}ms)", n, total, vpath, timer.ElapsedMs());
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Warning, "Cook failed [{}/{}] {} ({:.1f}ms)", n, total, vpath, timer.ElapsedMs());
+    }
     co_return;
 }
 } // namespace
@@ -251,7 +261,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         // 새로운 파일인 경우, .meta 파일 생성
         if (!content_opt.HasValue())
         {
-            content_opt = EnsureMetaFile(file_path);
+            content_opt = EnsureMetaFile(file_path); // TODO: 새 파일이 많을 때 여기서 병목이 생김 (Blocking)
 
             // EnsureMetaFile이 실패한 경우 (로그는 내부에서 남김)
             if (!content_opt.HasValue())
@@ -297,6 +307,8 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
     if (!dirty_vpaths.IsEmpty())
     {
         const usize total_tasks = dirty_vpaths.Len();
+        std::atomic<usize> completed = 0;
+
         ConsoleLog(ELogLevel::Info, "Dispatching {} background cook tasks", total_tasks);
 
         Array<JobHandle> cook_handles;
@@ -304,15 +316,14 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
         for (const VPath& vpath : dirty_vpaths)
         {
-            cook_handles.Push(JobSystem::Get().SubmitTask(MakeCookTask(*this, vpath)));
+            cook_handles.Push(JobSystem::Get().SubmitTask(MakeCookTask(*this, vpath, completed, total_tasks)));
         }
 
-        for (const auto[n, handle] : cook_handles | std::views::enumerate)
+        for (const JobHandle& handle : cook_handles)
         {
             handle.Wait();
-            ConsoleLog(ELogLevel::Debug, "Cooking Progress: [{}/{}]", n + 1, total_tasks);
         }
-        ConsoleLog(ELogLevel::Info, "All cook tasks completed.");
+        ConsoleLog(ELogLevel::Info, "All {} cook tasks completed.", total_tasks);
     }
 
     // === 삭제된 파일 감지 (Hot Start 전용) ===
@@ -603,7 +614,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         ConsoleLog(ELogLevel::Warning, "CookAsset: Failed to update .meta for: {}", file_path);
     }
 
-    ConsoleLog(ELogLevel::Info, "Successfully cooked {} assets from: {}", result.GetCount(), file_path);
+    ConsoleLog(ELogLevel::Debug, "Successfully cooked {} assets from: {}", result.GetCount(), file_path);
     return true;
 }
 
