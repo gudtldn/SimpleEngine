@@ -170,8 +170,8 @@ public:
      * @endcode
      */
     template <typename Fn>
-        requires std::is_invocable_r_v<JobTask<void>, Fn>
-              && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+        requires std::invocable<Fn>
+              && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
     void DispatchTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
 
     /**
@@ -185,8 +185,8 @@ public:
      * @endcode
      */
     template <typename Fn>
-        requires std::is_invocable_r_v<JobTask<void>, Fn>
-              && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+        requires std::invocable<Fn>
+              && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
     [[nodiscard]] JobHandle SubmitTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
 
 public:

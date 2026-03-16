@@ -99,18 +99,28 @@ private:
 // JobSystem::SubmitTask / DispatchTask 템플릿 정의
 
 template <typename Fn>
-    requires std::is_invocable_r_v<JobTask<void>, Fn>
-          && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+    requires std::invocable<Fn>
+          && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
 JobHandle JobSystem::SubmitTask(Fn&& factory, EJobPriority priority)
 {
+    static_assert(
+        !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
+        "[JobSystem Error] DispatchTask requires a stateless (non-capturing) lambda! "
+        "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
+    );
     return SubmitTask(std::invoke(std::forward<Fn>(factory)), priority);
 }
 
 template <typename Fn>
-    requires std::is_invocable_r_v<JobTask<void>, Fn>
-          && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+    requires std::invocable<Fn>
+          && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
 void JobSystem::DispatchTask(Fn&& factory, EJobPriority priority)
 {
+    static_assert(
+        !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
+        "[JobSystem Error] DispatchTask requires a stateless (non-capturing) lambda! "
+        "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
+    );
     DispatchTask(std::invoke(std::forward<Fn>(factory)), priority);
 }
 } // namespace se
