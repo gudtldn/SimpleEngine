@@ -62,6 +62,15 @@ public:
 
 public:
     /**
+     * 메모리 버퍼로부터 캐시 엔트리를 파싱합니다.
+     * AsyncFileIO로 읽은 버퍼를 Load() 없이 직접 파싱할 때 사용합니다.
+     * @param buffer 캐시 파일의 전체 바이너리 데이터
+     * @return 파싱된 CacheEntry. 포맷이 유효하지 않으면 nullopt
+     */
+    [[nodiscard]] static Optional<CacheEntry> ParseFromBuffer(const Array<uint8>& buffer);
+
+public:
+    /**
      * Asset 바이너리를 캐시에 저장합니다.
      * @param guid 캐시 키 (Asset의 GUID)
      * @param entry 캐시에 저장할 Entry
@@ -113,10 +122,10 @@ public:
     /** DDC 루트 경로를 반환합니다. */
     [[nodiscard]] FORCE_INLINE const Path& GetRootPath() const { return root_path; }
 
-private:
     /** GUID로부터 캐시 파일의 전체 경로를 계산합니다. (버킷 디렉토리 포함) */
     [[nodiscard]] Path BuildCachePath(const Guid& guid) const;
 
+private:
     /** GUID로부터 임시 파일의 전체 경로를 계산합니다. (atomic write용) */
     [[nodiscard]] Path BuildTempPath(const Guid& guid) const;
 
