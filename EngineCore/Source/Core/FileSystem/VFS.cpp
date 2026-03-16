@@ -54,7 +54,7 @@ void VFS::Mount(StringView scheme, const Path& physical_path, int32 priority)
     }
 
     points.Push({
-        .physical_path = physical_path,
+        .physical_path = FileSystem::Absolute(physical_path),
         .priority = priority
     });
 
