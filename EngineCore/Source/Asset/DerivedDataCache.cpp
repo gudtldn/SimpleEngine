@@ -120,6 +120,48 @@ DerivedDataCache::DerivedDataCache(Path in_root_path)
     }
 }
 
+Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(const Array<uint8>& buffer)
+{
+    MemoryReader reader{ buffer };
+    DDC_CacheEntryInternal cache_internal;
+
+    // Header 역직렬화
+    reader << cache_internal.header;
+
+    if (reader.HasError())
+    {
+        ConsoleLog(ELogLevel::Warning, "DDC::ParseFromBuffer - Header deserialization failed");
+        return NullOpt;
+    }
+
+    // Magic 검증
+    if (cache_internal.header.magic != CACHE_MAGIC)
+    {
+        ConsoleLog(ELogLevel::Warning, "DDC::ParseFromBuffer - Invalid magic: {:#x}", cache_internal.header.magic);
+        return NullOpt;
+    }
+
+    // Format Version 검증
+    if (cache_internal.header.format_version != CACHE_FORMAT_VERSION)
+    {
+        ConsoleLog(
+            ELogLevel::Warning,
+            "DDC::ParseFromBuffer - Format version mismatch (expected: {}, got: {})",
+            CACHE_FORMAT_VERSION, cache_internal.header.format_version
+        );
+        return NullOpt;
+    }
+
+    // Payload 역직렬화
+    reader << cache_internal.payload;
+
+    return CacheEntry{
+        .source_hash = std::move(cache_internal.header.source_hash),
+        .cache_version = cache_internal.header.cache_version,
+        .payload = std::move(cache_internal.payload),
+    };
+}
+
 bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
 {
     ZoneScopedN("DDC::Store");
@@ -178,44 +220,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
         return NullOpt;
     }
 
-    MemoryReader reader(buffer_opt.Value());
-    DDC_CacheEntryInternal cache_internal;
-
-    // Header 불러오기
-    reader << cache_internal.header;
-
-    if (reader.HasError())
-    {
-        ConsoleLog(ELogLevel::Warning, "DDC::Load - Serialization error: {} in {}", reader.GetError(), cache_path);
-        return NullOpt;
-    }
-
-    // Magic 검증
-    if (cache_internal.header.magic != CACHE_MAGIC)
-    {
-        ConsoleLog(ELogLevel::Warning, "DDC::Load - Invalid magic in: {}", cache_path);
-        return NullOpt;
-    }
-
-    // Format Version 검증
-    if (cache_internal.header.format_version != CACHE_FORMAT_VERSION)
-    {
-        ConsoleLog(
-            ELogLevel::Warning,
-            "DDC::Load - Format version mismatch (expected: {}, got: {}): {}",
-            CACHE_FORMAT_VERSION, cache_internal.header.format_version, cache_path
-        );
-        return NullOpt;
-    }
-
-    // Payload 역직렬화
-    reader << cache_internal.payload;
-
-    return CacheEntry{
-        .source_hash = std::move(cache_internal.header.source_hash),
-        .cache_version = cache_internal.header.cache_version,
-        .payload = std::move(cache_internal.payload),
-    };
+    return ParseFromBuffer(buffer_opt.Value());
 }
 
 // source_hash와 cache_version이 모두 일치해야 유효한 것으로 판단.
@@ -289,4 +294,4 @@ Path DerivedDataCache::BuildTempPath(const Guid& guid) const
 
     return root_path / bucket / filename;
 }
-}  // namespace se::asset
+} // namespace se::asset
