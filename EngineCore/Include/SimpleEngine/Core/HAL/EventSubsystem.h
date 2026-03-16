@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+#include "SimpleEngine/Core/Types/Path.h"
 
 #include "SDL3/SDL.h"
 
@@ -38,5 +39,11 @@ public:
      * SDL_EVENT_QUIT 이벤트 발생 시 Broadcast됩니다.
      */
     MultiDelegate<void()> on_quit_requested;
+
+    /**
+     * OS에서 파일이 드롭되었을 때 Broadcast됩니다. (탐색기 -> 에디터 창)
+     * 드롭된 파일의 물리 경로가 전달됩니다.
+     */
+    MultiDelegate<void(const Path& file_path)> on_file_dropped;
 };
 } // namespace se
