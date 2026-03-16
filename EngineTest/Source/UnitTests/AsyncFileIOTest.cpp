@@ -129,26 +129,14 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_ExecutedOnWorker)
 
 TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
 {
-    std::atomic<bool> done = false;
     IOResult captured_result;
 
-    JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::string path, IOResult& captured_result, std::atomic<bool>& done) static -> JobTask<void>
-        {
-            IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ path.c_str() });
-            captured_result = std::move(result);
-            done.store(true, std::memory_order_release);
-        }(test_file_path, captured_result, done));
-
-    const auto start = std::chrono::steady_clock::now();
-    while (!done.load(std::memory_order_acquire))
+    JobHandle h = JobSystem::Get().SubmitTask([](std::string path, IOResult& captured_result) static -> JobTask<void>
     {
-        if (std::chrono::steady_clock::now() - start > 5s)
-        {
-            FAIL() << "ReadFileAsync 타임아웃";
-        }
-        std::this_thread::yield();
-    }
+        IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ path.c_str() });
+        captured_result = std::move(result);
+        co_return;
+    }(test_file_path, captured_result));
 
     h.Wait();
 
