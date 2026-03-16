@@ -96,12 +96,12 @@ public:
     [[nodiscard]] AssetPayload ExchangePayload(AssetPayload new_payload);
 
     /**
-     * CAS(Compare-And-Swap) 기반으로 로딩을 시작합니다. (Unloaded/Failed -> Loading)
+     * 상태를 Loading으로 변경합니다. (Unloaded/Failed -> Loading)
      * @return 상태 전환에 성공하면 true를 반환합니다.
      */
     [[nodiscard]] bool BeginLoad();
 
-    /** Loading 상태가 완료될 때까지 대기합니다. (std::atomic::wait 기반) */
+    /** Loading 상태가 완료될 때까지 대기합니다. */
     void WaitForLoadComplete() const;
 
     /** 현재 로딩 상태를 반환합니다. */
