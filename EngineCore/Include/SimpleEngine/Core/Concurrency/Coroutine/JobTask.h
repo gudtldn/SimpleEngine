@@ -8,14 +8,16 @@
 
 #include <concepts>
 #include <coroutine>
+#include <memory>
 #include <utility>
 
 
 namespace se
 {
-// Forward declaration
+// Forward declarations
 template <typename T>
 class JobTask;
+class JobCounter;
 
 namespace detail
 {
@@ -87,11 +89,35 @@ public:
         /** 코루틴을 중단하고, await_suspend에서 호출자(Continuation)로 제어권을 안전하게 전환합니다. */
         bool await_ready() const noexcept { return false; }
 
-        /** 호출자가 있으면 해당 핸들로 전환하고, 없으면 코루틴 실행을 완전히 종료합니다. */
+        /**
+         * 호출자가 있으면 해당 핸들로 전환하고, 없으면 코루틴 실행을 완전히 종료합니다.
+         * Detached 모드(SubmitTask/DispatchTask로 제출된 코루틴)일 경우, 프레임을 자동 소멸하고 완료 카운터를 감소시킵니다.
+         */
         std::coroutine_handle<> await_suspend(std::coroutine_handle<JobTaskPromise> handle) noexcept
         {
-            const JobTaskPromise& promise = handle.promise();
-            return promise.continuation ? promise.continuation : std::noop_coroutine();
+            JobTaskPromise& promise = handle.promise();
+
+            // 부모 코루틴이 있다면 복귀 (Symmetric Transfer)
+            if (promise.continuation)
+            {
+                return promise.continuation;
+            }
+
+            // Detached 모드인 경우 (코루틴 소멸 + 카운터 통지)
+            if (promise.detached)
+            {
+                // 프레임 소멸 전에 카운터를 추출 (destroy시 promise도 같이 사라지기 때문)
+                auto counter = std::move(promise.completion_counter);
+                handle.destroy();
+
+                if (counter)
+                {
+                    counter->Decrement();
+                }
+            }
+
+            // 코루틴 정상 종료
+            return std::noop_coroutine();
         }
 
         /** 재개 직전에 호출되는 함수 */
@@ -117,6 +143,19 @@ public:
 public:
     /** 이 코루틴이 완료된 후 재개할 부모 코루틴 핸들 */
     std::coroutine_handle<> continuation;
+
+    /**
+     * Detached 모드 플래그.
+     * true일 경우 FinalAwaiter에서 코루틴 프레임을 자동 소멸합니다.
+     * SubmitTask() / DispatchTask()에 의해 설정됩니다.
+     */
+    bool detached = false;
+
+    /**
+     * Detached 모드에서 완료 시 Decrement할 카운터.
+     * SubmitTask()에 의해 설정됩니다. DispatchTask()에서는 null입니다.
+     */
+    std::shared_ptr<JobCounter> completion_counter;
 
     /**
      * 코루틴의 반환 값.
