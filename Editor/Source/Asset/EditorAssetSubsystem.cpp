@@ -9,19 +9,21 @@
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
+#include "SimpleEditor/Config/EditorSettings.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
+#include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Core/Concurrency/JobSystem.h"
-#include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -91,11 +93,23 @@ bool EditorAssetSubsystem::Initialize()
     // Registry 스냅샷 복원 시도 (성공 시 Hot Start, 실패 시 Cold Start)
     const bool is_hot_start = LoadRegistrySnapshot();
 
-    // VFS "Assets" 스킴에 마운트된 디렉토리를 스캔
-    // TODO: VisitMounts + Contains 대신 직접 스캔 대상을 설정에서 읽도록 변경
+    // EditorConfig에서 스캔 대상 스킴 목록 로드
+    AssetScanSettings scan_settings;
+    if (auto config_result = ConfigFile::Load("Config://EditorConfig.toml"))
+    {
+        scan_settings = config_result->GetSection<AssetScanSettings>("asset_scan");
+    }
+
+    // 설정된 스킴에 마운트된 디렉토리를 스캔
+    const HashSet<StringView> scan_schemes = HashSet<StringView>::FromRange(
+        scan_settings.schemes | std::views::transform([](const String& scheme) -> StringView
+        {
+            return scheme;
+        })
+    );
     VFS::Get().VisitMounts([&](StringView scheme, const Path& physical_path, int32)
     {
-        if (!scheme.Contains("Assets"))
+        if (!scan_schemes.Contains(scheme))
         {
             return;
         }
