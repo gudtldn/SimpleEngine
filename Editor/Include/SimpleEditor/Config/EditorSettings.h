@@ -107,6 +107,17 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
 
     bool operator==(const GraphicsSettings&) const = default;
 };
+/**
+ * [asset_scan] 섹션 - Import 스캔 대상 VFS 스킴 목록
+ */
+struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) AssetScanSettings
+{
+    /** 스캔할 VFS 스킴 이름 목록 */
+    SE_ANNOTATION(=meta::Property)
+    Array<String> schemes = { "CoreAssets", "EditorAssets" };
+
+    bool operator==(const AssetScanSettings&) const = default;
+};
 }  // namespace se::editor
 
 SE_DECLARE_REFLECTION(se::editor::WindowSettings)
@@ -114,3 +125,4 @@ SE_DECLARE_REFLECTION(se::editor::EditorUISettings)
 SE_DECLARE_REFLECTION(se::editor::ConsoleSettings)
 SE_DECLARE_REFLECTION(se::editor::PerformanceSettings)
 SE_DECLARE_REFLECTION(se::editor::GraphicsSettings)
+SE_DECLARE_REFLECTION(se::editor::AssetScanSettings)

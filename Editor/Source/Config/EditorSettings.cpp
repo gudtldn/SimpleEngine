@@ -37,4 +37,8 @@ SE_END_REFLECT(PerformanceSettings)
 SE_BEGIN_REFLECT(GraphicsSettings, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(present_mode, meta::Property)
 SE_END_REFLECT(GraphicsSettings)
+
+SE_BEGIN_REFLECT(AssetScanSettings, meta::SerializeOnly)
+    SE_REFLECT_PROPERTY(schemes, meta::Property)
+SE_END_REFLECT(AssetScanSettings)
 } // namespace se::editor
