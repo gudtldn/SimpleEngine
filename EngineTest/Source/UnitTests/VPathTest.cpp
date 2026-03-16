@@ -369,18 +369,13 @@ TEST(VPathSlashOpTest, AppendEmptyReturnsOriginal)
 // 숨김 파일 Extension/Stem 불일치 (BUG-4: Hidden File Handling)
 // =============================================================================
 
-TEST(VPathHiddenFileTest, DotFileExtensionInconsistencyWithPath)
+TEST(VPathHiddenFileTest, DotFileExtensionConsistencyWithPath)
 {
-    // VPath의 GetExtension이 Path::Extension()과 동일하게 동작하는지 검증
-    // ".gitignore"는 숨김파일 — Path는 확장자 없음으로 판단
-    // BUG: VPath는 ".gitignore" 전체를 확장자로 반환할 수 있음
+    // ".gitignore"는 숨김파일 — Path와 동일하게 확장자 없음, stem은 전체 파일명
     VPath vp("Assets://.gitignore");
 
-    // Path와 동일한 동작을 기대: 숨김파일은 확장자 없음
-    // 현재 BUG로 인해 GetExtension()이 ".gitignore"를 반환할 수 있음
-    // 수정 후 기대값:
-    // EXPECT_TRUE(vp.GetExtension().IsEmpty());
-    // EXPECT_EQ(vp.GetStem(), ".gitignore");
+    EXPECT_TRUE(vp.GetExtension().IsEmpty());
+    EXPECT_EQ(vp.GetStem(), ".gitignore");
 }
 
 TEST(VPathHiddenFileTest, DotFileWithExtension)

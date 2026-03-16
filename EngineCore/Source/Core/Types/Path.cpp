@@ -51,10 +51,20 @@ Path& Path::Append(const Path& other)
     // TODO: [Performance] other에 ".."이 없으면 재정규화 없이 직접 연결하는 fast path 도입 검토
     //       대부분의 Append 호출에서 other는 단순 세그먼트(예: "Source")이므로
     //       NormalizePath O(n) 재호출을 피하면 hot-path에서 유의미한 개선 가능
+
+    // "C:" 형태의 드라이브-상대 루트는 '/' 삽입 시 의미가 바뀌므로 생략
+    // C:foo (드라이브-상대) vs C:/foo (드라이브-절대)
+    const bool is_drive_relative_root = (path.ByteLen() == 2 && DetectRootLength(path) == 2);
+
     String combined;
-    combined.Reserve(path.ByteLen() + 1 + other.path.ByteLen());
+    combined.Reserve(path.ByteLen() + (is_drive_relative_root ? 0 : 1) + other.path.ByteLen());
     combined.Append(path);
-    combined += '/';
+
+    if (!is_drive_relative_root)
+    {
+        combined += '/';
+    }
+
     combined.Append(other.path);
     path = NormalizePath(combined);
     return *this;
@@ -386,7 +396,9 @@ bool Path::IsSubPathOf(const Path& base) const
     {
         return false;
     }
-    return !rel->path.StartsWith("..");
+
+    const StringView view{ rel->path };
+    return !(view == ".." || view.StartsWith("../"));
 }
 
 bool Path::Exists() const
