@@ -33,7 +33,9 @@ void ScheduleCoroutineResumeOnMain(std::coroutine_handle<> handle)
 
 bool ResumeOn::await_ready() const noexcept
 {
-    // TODO: 현재 스레드가 target이면 true를 반환하도록 최적화
+    // 항상 false를 반환하여 무조건 재스케줄링합니다.
+    // 최적화 여지: TLS CurrentWorkerIndex를 검사하여 이미 target 스레드에 있으면
+    // true를 반환할 수 있으나, Worker간 재분배가 필요한 경우를 고려하여 보류.
     return false;
 }
 
