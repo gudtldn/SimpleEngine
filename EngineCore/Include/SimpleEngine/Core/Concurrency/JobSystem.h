@@ -20,10 +20,14 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <type_traits>
 
 
 namespace se
 {
+// Forward declaration — Layer 2 (Coroutine) 타입. 전체 정의는 JobTask.h 참조.
+template <typename T>
+class JobTask;
 /**
  * Lambda-Core 기반 Job System (전역 싱글톤)
  *
@@ -83,7 +87,7 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn>
-    JobHandle Submit(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
+    [[nodiscard]] JobHandle Submit(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * 선행 작업들이 모두 완료된 후 실행될 의존성 작업을 제출합니다.
@@ -96,7 +100,7 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn>
-    JobHandle Submit(Fn&& work_func, ArrayView<const JobHandle> dependencies, EJobPriority priority = EJobPriority::Normal);
+    [[nodiscard]] JobHandle Submit(Fn&& work_func, ArrayView<const JobHandle> dependencies, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * 지정된 범위를 배치 단위로 분할하여 워커 스레드들에 병렬로 제출합니다.
@@ -110,7 +114,7 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn, usize>
-    JobHandle ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority = EJobPriority::Normal);
+    [[nodiscard]] JobHandle ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * 현재 메인 스레드 큐에 대기 중인 모든 작업을 일괄 실행(Drain)합니다. (메인 스레드 전용)
@@ -119,6 +123,71 @@ public:
      * @warning 반드시 메인 스레드에서만 호출해야 합니다.
      */
     usize ExecuteMainThreadJobs();
+
+public:
+    /**
+     * 코루틴을 워커 스레드에 전송합니다. (Fire-and-Forget)
+     * 코루틴의 소유권이 이전되며, 완료 시 자동으로 소멸됩니다.
+     *
+     * @param task 전송할 코루틴 (rvalue로 소유권 이전)
+     * @param priority 실행 우선순위
+     *
+     * @code
+     *   JobSystem::Get().DispatchTask([]() static -> JobTask<void>
+     *   {
+     *       co_await SomeAsyncWork();
+     *   }());
+     * @endcode
+     */
+    void DispatchTask(JobTask<void>&& task, EJobPriority priority = EJobPriority::Normal);
+
+    /**
+     * 코루틴을 워커 스레드에 제출하고, 완료를 추적할 수 있는 핸들을 반환합니다.
+     * 코루틴의 소유권이 이전되며, 완료 시 자동으로 소멸됩니다.
+     *
+     * @param task 제출할 코루틴 (rvalue로 소유권 이전)
+     * @param priority 실행 우선순위
+     * @return 코루틴 완료를 추적하는 핸들
+     *
+     * @code
+     *   JobHandle h = JobSystem::Get().SubmitTask([]() static -> JobTask<void>
+     *   {
+     *       co_await SomeAsyncWork();
+     *   }());
+     *   h.Wait();
+     * @endcode
+     */
+    [[nodiscard]] JobHandle SubmitTask(JobTask<void>&& task, EJobPriority priority = EJobPriority::Normal);
+
+    /**
+     * void DispatchTask(JobTask<void>&& task, EJobPriority priority) Factory 오버로딩
+     *
+     * @code
+     *   JobSystem::Get().DispatchTask([] static -> JobTask<void>
+     *   {
+     *       co_await SomeWork();
+     *   }); // () 없이 factory만 전달
+     * @endcode
+     */
+    template <typename Fn>
+        requires std::is_invocable_r_v<JobTask<void>, Fn>
+              && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+    void DispatchTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
+
+    /**
+     * JobHandle SubmitTask(JobTask<void>&& task, EJobPriority priority) Factory 오버로딩
+     *
+     * @code
+     *   JobHandle h = JobSystem::Get().SubmitTask([] static -> JobTask<void>
+     *   {
+     *       co_await SomeWork();
+     *   }); // () 없이 factory만 전달
+     * @endcode
+     */
+    template <typename Fn>
+        requires std::is_invocable_r_v<JobTask<void>, Fn>
+              && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+    [[nodiscard]] JobHandle SubmitTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
 
 public:
     /**

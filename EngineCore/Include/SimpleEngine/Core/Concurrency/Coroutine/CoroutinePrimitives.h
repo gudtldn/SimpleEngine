@@ -2,9 +2,13 @@
 
 #include "SimpleEngine/Core/Concurrency/Common.h"
 #include "SimpleEngine/Core/Concurrency/JobHandle.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/Array.h"
 
+#include <concepts>
 #include <coroutine>
+#include <type_traits>
 
 
 namespace se
@@ -90,4 +94,23 @@ public:
 private:
     Array<JobHandle> handles;
 };
+
+
+// JobSystem::SubmitTask / DispatchTask 템플릿 정의
+
+template <typename Fn>
+    requires std::is_invocable_r_v<JobTask<void>, Fn>
+          && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+JobHandle JobSystem::SubmitTask(Fn&& factory, EJobPriority priority)
+{
+    return SubmitTask(std::invoke(std::forward<Fn>(factory)), priority);
+}
+
+template <typename Fn>
+    requires std::is_invocable_r_v<JobTask<void>, Fn>
+          && std::is_empty_v<std::remove_cvref_t<Fn>> // 캡처가 없는 Functor만 허용
+void JobSystem::DispatchTask(Fn&& factory, EJobPriority priority)
+{
+    DispatchTask(std::invoke(std::forward<Fn>(factory)), priority);
+}
 } // namespace se
