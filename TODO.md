@@ -8,7 +8,6 @@
 - [ ] RenderGraph에 Resource Extract 로직 추가
   - Extract를 하면 ResourcePool에서 std::unique_ptr<ExtractedResource>로 소유권을 넘겨서 반환
   - ExtractedResource가 소멸하면 다시 Pool로 반납
-- [ ] 나중에 Thread-Safe해야하는 로직 확인하기
 - [ ] ECS System클래스 구현
     - 생성자로 Fn&&을 받아서 시스템 끼리의 순서나 여러가지 상호작용을 할 수 있도록 하기
 - [ ] RenderWorld 구현
@@ -48,6 +47,10 @@
   - [x] ConfigFile 캐싱 (동일 파일 중복 읽기 방지)
   - [x] VFS 마운트를 EngineConfig.toml에서 읽기
 
+- [ ] 비동기 아키텍처에 협동적 취소 메커니즘 추가 고려
+- [ ] AssetBrowser의 표시 목록을 정리 (지금 폴더밑에 다 표시중)
+- [ ] FileWatcher 만들어서 에셋 폴더 실시간 감시
+
 ## 완료
 
 - [x] 모듈명, 넴스 이름 규칙 정하고 다시 점검하기
@@ -78,3 +81,4 @@
   - 주석 다시한번 확인하고, 함수이름과 requires절 가독성 개선
 - [x] InputSubsystemSystem 구현
 - [x] PlatformEventDispatcher 리펙토링
+- [x] 나중에 Thread-Safe해야하는 로직 확인하기
