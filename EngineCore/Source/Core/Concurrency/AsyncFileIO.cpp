@@ -189,8 +189,7 @@ void AsyncFileIO::ReadFile(const Path& path, UniqueFunction<void(IOResult)>&& ca
     ctx->mode = IORequestContext::EMode::Callback;
     ctx->callback = std::move(callback);
 
-    const String str_path = path.ToString();
-    if (!SDL_LoadFileAsync(str_path.CStr(), io_queue, ctx))
+    if (!SDL_LoadFileAsync(path.CStr(), io_queue, ctx))
     {
         // Load에 실패한 경우, 에러 결과를 Worker에서 전달 (Poller에서 직접 실행 금지)
         JobSystem::Get().Dispatch([ctx]
@@ -198,7 +197,7 @@ void AsyncFileIO::ReadFile(const Path& path, UniqueFunction<void(IOResult)>&& ca
             IOResult error_result;
             error_result.success = false;
 
-            const auto cb = std::move(ctx->callback);
+            const UniqueFunction<void(IOResult)> cb = std::move(ctx->callback);
             delete ctx;
             cb(std::move(error_result));
         });
@@ -207,7 +206,10 @@ void AsyncFileIO::ReadFile(const Path& path, UniqueFunction<void(IOResult)>&& ca
 
 JobTask<IOResult> AsyncFileIO::ReadFileAsync(const Path& path)
 {
-    co_return co_await AsyncReadAwaitable{ io_queue, path };
+    co_return co_await AsyncReadAwaitable{
+        .queue = io_queue,
+        .path = path
+    };
 }
 
 void AsyncFileIO::PollerLoop(const std::stop_token& stoken)
@@ -236,7 +238,7 @@ void AsyncFileIO::PollerLoop(const std::stop_token& stoken)
         }
 
         // SDL 결과를 엔진 IOResult로 변환
-        IOResult result = BuildIOResult(std::move(outcome));
+        IOResult result = BuildIOResult(std::move(outcome)); // NOLINT(*-move-const-arg)
 
         // Context Mode에 따른 분기
         switch (ctx->mode)
