@@ -11,6 +11,7 @@
 #include "tracy/Tracy.hpp"
 
 #include <mutex>
+#include <utility>
 
 
 namespace se::asset
@@ -74,7 +75,7 @@ public:
      */
     template <typename T>
         requires std::derived_from<T, AssetBase>
-    [[nodiscard]] JobTask<AssetHandle<T>> LoadAsync(const AssetPath& asset_path, EScopeLayer scope = EScopeLayer::Scene);
+    [[nodiscard]] JobTask<AssetHandle<T>> LoadAsync(AssetPath asset_path, EScopeLayer scope = EScopeLayer::Scene);
 
     /**
      * 캐시에서 Asset을 찾습니다. (Import 수행 안함)
@@ -139,9 +140,9 @@ AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path, EScopeLayer sco
 
 template <typename T>
     requires std::derived_from<T, AssetBase>
-JobTask<AssetHandle<T>> AssetSubsystem::LoadAsync(const AssetPath& asset_path, EScopeLayer scope)
+JobTask<AssetHandle<T>> AssetSubsystem::LoadAsync(AssetPath asset_path, EScopeLayer scope)
 {
-    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId::Get<T>(), asset_path, scope))
+    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId::Get<T>(), std::move(asset_path), scope))
     {
         co_return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
