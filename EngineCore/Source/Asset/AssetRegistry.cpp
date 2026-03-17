@@ -222,14 +222,13 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
 {
     ZoneScopedN("AssetRegistry::LoadFromFile");
 
-    const auto buffer_opt = FileSystem::ReadBytes(file_path);
-    if (!buffer_opt.HasValue())
+    const FileResult<Array<uint8>> file_result = FileSystem::ReadBytes(file_path);
+    if (!file_result.HasValue())
     {
         return false;
     }
 
-    const Array<uint8>& buffer = buffer_opt.Value();
-    MemoryReader reader(buffer);
+    MemoryReader reader{ *file_result };
 
     // 헤더 검증
     uint32 magic = 0;

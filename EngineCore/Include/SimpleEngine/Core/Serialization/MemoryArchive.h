@@ -1,5 +1,7 @@
 #pragma once
+
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
 
@@ -34,7 +36,7 @@ protected:
 class SE_CORE_API MemoryReader : public MemoryArchive
 {
 public:
-    explicit MemoryReader(const Array<uint8>& in_buffer);
+    explicit MemoryReader(ArrayView<const uint8> in_view);
 
 public:
     virtual void BeginObject() override;
@@ -79,7 +81,7 @@ private:
     void ReadPrimitive(T& value) { ReadBytes(&value, sizeof(T)); }
 
 private:
-    const Array<uint8>& buffer;
+    ArrayView<const uint8> buffer_view;
 };
 
 

@@ -24,9 +24,9 @@ void MemoryArchive::Seek(usize pos)
 
 
 // MemoryReader
-MemoryReader::MemoryReader(const Array<uint8>& in_buffer)
+MemoryReader::MemoryReader(ArrayView<const uint8> in_view)
     : MemoryArchive(EArchiveMode::Load)
-    , buffer(in_buffer)
+    , buffer_view(in_view)
 {
 }
 
@@ -105,22 +105,22 @@ void MemoryReader::SerializeTypeId(TypeId& value)
 void MemoryReader::ReadBytes(void* dest, uint64 byte_size)
 {
     if (!SE_ENSURE( // NOLINT(*-simplify-boolean-expr)
-        offset + byte_size <= buffer.Len(),
-        "MemoryReader::ReadBytes - Buffer overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer.Len()
+        offset + byte_size <= buffer_view.Len(),
+        "MemoryReader::ReadBytes - Buffer overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer_view.Len()
     ))
     {
         // 릴리스에서 오버플로우 시 남은 만큼만 읽고 나머지는 0으로 채움
-        const uint64 readable = (offset < buffer.Len()) ? buffer.Len() - offset : 0;
+        const uint64 readable = (offset < buffer_view.Len()) ? buffer_view.Len() - offset : 0;
         if (readable > 0)
         {
-            std::memcpy(dest, buffer.Data() + offset, readable);
+            std::memcpy(dest, buffer_view.Data() + offset, readable);
         }
         std::memset(static_cast<uint8*>(dest) + readable, 0, byte_size - readable);
-        offset = buffer.Len();
+        offset = buffer_view.Len();
         return;
     }
 
-    std::memcpy(dest, buffer.Data() + offset, byte_size);
+    std::memcpy(dest, buffer_view.Data() + offset, byte_size);
     offset += byte_size;
 }
 

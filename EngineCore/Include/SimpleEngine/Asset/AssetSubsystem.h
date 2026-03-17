@@ -99,7 +99,7 @@ public:
      * DDC payload에서 Asset을 역직렬화하여 AssetPayload로 반환합니다.
      * ptr과 destructor가 분리된 상태로 반환되므로, SlotEntry에 직접 저장할 수 있습니다.
      */
-    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload);
+    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, ArrayView<const uint8> payload_view);
 
 public:
     [[nodiscard]] FORCE_INLINE AssetPool& GetPool() const { return *pool; }

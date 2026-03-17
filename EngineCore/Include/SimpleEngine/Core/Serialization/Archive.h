@@ -15,13 +15,12 @@
 namespace se
 {
 // Forward declarations
+class Archive;
 class Guid;
 class StringName;
 
 /** 리플렉션 기반 자동 직렬화 (TypeId 조회 후 프로퍼티 순회) */
 SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
-
-class Archive;
 
 /**
  * Archive의 동작 모드

@@ -69,17 +69,16 @@ bool ReadHeader(
     DDC_CacheEntryInternal::Header header;
     bool deserialize_success = false;
 
-    for (auto&& result : FileSystem::ReadChunked(cache_path, chunk_size))
+    for (auto&& file_result : FileSystem::ReadChunked(cache_path, chunk_size))
     {
         // 파일 시스템 에러 체크
-        if (result.HasError())
+        if (file_result.HasError())
         {
-            ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - IO Error: {}, {}", cache_path, result.Error().What());
+            ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - IO Error: {}, {}", cache_path, file_result.Error().What());
             return false;
         }
 
-        const Array<uint8> buffer = Array<uint8>::FromRange(*result);
-        MemoryReader reader(buffer);
+        MemoryReader reader{ *file_result };
         reader << header;
 
         deserialize_success = !reader.HasError();
@@ -120,9 +119,9 @@ DerivedDataCache::DerivedDataCache(Path in_root_path)
     }
 }
 
-Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(const Array<uint8>& buffer)
+Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(ArrayView<const uint8> buffer_view)
 {
-    MemoryReader reader{ buffer };
+    MemoryReader reader{ buffer_view };
     DDC_CacheEntryInternal cache_internal;
 
     // Header 역직렬화

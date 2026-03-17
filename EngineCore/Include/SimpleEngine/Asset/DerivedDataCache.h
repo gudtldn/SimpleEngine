@@ -64,10 +64,10 @@ public:
     /**
      * 메모리 버퍼로부터 캐시 엔트리를 파싱합니다.
      * AsyncFileIO로 읽은 버퍼를 Load() 없이 직접 파싱할 때 사용합니다.
-     * @param buffer 캐시 파일의 전체 바이너리 데이터
+     * @param buffer_view 캐시 파일의 전체 바이너리 데이터
      * @return 파싱된 CacheEntry. 포맷이 유효하지 않으면 nullopt
      */
-    [[nodiscard]] static Optional<CacheEntry> ParseFromBuffer(const Array<uint8>& buffer);
+    [[nodiscard]] static Optional<CacheEntry> ParseFromBuffer(ArrayView<const uint8> buffer_view);
 
 public:
     /**

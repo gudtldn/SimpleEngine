@@ -104,7 +104,7 @@ Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     return payload;
 }
 
-AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, const Array<uint8>& payload)
+AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, ArrayView<const uint8> payload_view)
 {
     const auto info_opt = TypeRegistry::Get().Find(type_id);
     if (!info_opt || !info_opt->constructor || !info_opt->serialize)
@@ -119,10 +119,13 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, cons
         return {};
     }
 
-    MemoryReader reader(payload);
+    MemoryReader reader{ payload_view };
     info_opt->serialize(reader, raw);
 
-    return AssetPayload{ static_cast<AssetBase*>(raw), info_opt->destructor };
+    return {
+        .ptr = static_cast<AssetBase*>(raw),
+        .destructor = info_opt->destructor
+    };
 }
 
 HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope)
