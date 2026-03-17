@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <utility>
 
@@ -412,15 +413,27 @@ void Array<T, Allocator>::Insert(SizeType index, T&& value)
 
     EnsureCapacity(size + 1);
 
-    // 마지막 요소를 비어있는 다음 슬롯으로 이동 생성
-    AllocTraits::construct(allocator, data + size, std::move(BackUnsafe()));
+    if constexpr (std::is_trivially_copyable_v<T>)
+    {
+        // 복사 비용이 없는 타입은 메모리 직접 복사(Bitwise move)로 고속 이동
+        std::memmove(
+            data + index + 1,           // 대상 시작: (index + 1)
+            data + index,               // 소스 시작: (index)
+            (size - index) * sizeof(T)  // 이동 개수: (index부터 끝까지)
+        );
+    }
+    else
+    {
+        // 마지막 요소를 비어있는 다음 슬롯으로 이동 생성
+        AllocTraits::construct(allocator, data + size, std::move(BackUnsafe()));
 
-    // 나머지 요소를 뒤로 한 칸씩 이동
-    std::move_backward(
-        data + index,    // 소스 시작: (index)
-        data + size - 1, // 소스 끝: (size - 1)
-        data + size      // 대상 끝: (size)
-    );
+        // 나머지 요소를 뒤로 한 칸씩 이동
+        std::move_backward(
+            data + index,    // 소스 시작: (index)
+            data + size - 1, // 소스 끝: (size - 1)
+            data + size      // 대상 끝: (size)
+        );
+    }
 
     // index에 새 요소 삽입
     data[index] = std::move(value);
@@ -446,11 +459,24 @@ void Array<T, Allocator>::Insert(SizeType index, It first, It last)
         // 삽입 지점 뒤의 기존 원소들을 뒤로 이동시킬 공간을 생성
         if (index < size)
         {
-            std::uninitialized_move(
-                data + index,
-                data + size,
-                data + index + count
-            );
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                // 복사 비용이 없는 타입은 메모리 직접 복사(Bitwise move)로 고속 이동
+                std::memmove(
+                    data + index + count,      // 대상 시작: (index + count)
+                    data + index,              // 소스 시작: (index)
+                    (size - index) * sizeof(T) // 이동 개수: (index부터 끝까지)
+                );
+            }
+            else
+            {
+                // 이동 생성/대입이 필요한 타입은 초기화되지 않은 영역으로 소유권 이전
+                std::uninitialized_move(
+                    data + index,        // 소스 시작: (index)
+                    data + size,         // 소스 끝: (size)
+                    data + index + count // 대상 시작: (index + count)
+                );
+            }
         }
 
         // 새로운 원소들을 빈 공간에 복사
@@ -490,10 +516,29 @@ void Array<T, Allocator>::RemoveAt(SizeType index)
     SE_ASSERT(index < size, "RemoveAt index out of bounds");
 
     // 제거할 요소 뒤의 모든 요소를 앞으로 한 칸씩 이동
-    std::move(data + index + 1, data + size, data + index);
+    if constexpr (std::is_trivially_copyable_v<T>)
+    {
+        // 복사 비용이 없는 타입은 메모리 직접 복사(Bitwise move)로 고속 덮어쓰기
+        std::memmove(
+            data + index,                  // 대상 시작: (index)
+            data + index + 1,              // 소스 시작: (index + 1)
+            (size - index - 1) * sizeof(T) // 이동 개수: (삭제 지점 다음부터 끝까지)
+        );
+    }
+    else
+    {
+        // 이동 생성/대입이 필요한 타입은 소유권을 앞으로 이동시킨 후 마지막 슬롯 정리
+        std::move(
+            data + index + 1, // 소스 시작: (index + 1)
+            data + size,      // 소스 끝: (size)
+            data + index      // 대상 시작: (index)
+        );
+
+        // 이동 후 남겨진 마지막 요소의 소멸자 호출
+        AllocTraits::destroy(allocator, data + size - 1);
+    }
 
     size -= 1;
-    AllocTraits::destroy(allocator, data + size);
 }
 
 template <typename T, typename Allocator>
@@ -506,14 +551,27 @@ void Array<T, Allocator>::RemoveRange(SizeType index, SizeType count)
     }
 
     // 제거할 범위 뒤의 모든 요소를 앞으로 이동
-    T* const result = std::move(
-        data + index + count,
-        data + size,
-        data + index
-    );
+    if constexpr (std::is_trivially_copyable_v<T>)
+    {
+        // 복사 비용이 없는 타입은 메모리 직접 복사(Bitwise move)로 고속 덮어쓰기
+        std::memmove(
+            data + index,                      // 대상 시작: (index)
+            data + index + count,              // 소스 시작: (index + count)
+            (size - index - count) * sizeof(T) // 이동 개수: (삭제 범위 다음부터 끝까지)
+        );
+    }
+    else
+    {
+        // 이동 생성/대입이 필요한 타입은 소유권을 앞으로 이동시킨 후 남겨진 슬롯들 정리
+        T* const result = std::move(
+            data + index + count, // 소스 시작: (index + count)
+            data + size,          // 소스 끝: (size)
+            data + index          // 대상 시작: (index)
+        );
 
+        std::destroy(result, data + size);
+    }
     size -= count;
-    std::destroy(result, data + size);
 }
 
 template <typename T, typename Allocator>
@@ -638,12 +696,28 @@ void Array<T, Allocator>::Reallocate(SizeType new_capacity)
 {
     SE_ASSERT(new_capacity >= size, "Reallocate new_capacity must be greater than or equal to size");
 
+    // 새로운 메모리 블록 할당
     T* new_data = AllocTraits::allocate(allocator, new_capacity);
 
     if (data)
     {
-        std::uninitialized_move_n(data, size, new_data);
-        std::destroy_n(data, size);
+        if constexpr (std::is_trivially_copyable_v<T>)
+        {
+            // 복사 비용이 없는 타입은 메모리 직접 복사(Bitwise copy)로 고속 이전
+            std::memcpy(
+                new_data,        // 대상 시작: (새 메모리)
+                data,            // 소스 시작: (기존 메모리)
+                size * sizeof(T) // 복사 크기: (전체 데이터)
+            );
+        }
+        else
+        {
+            // 이동 생성/대입이 필요한 타입은 새로운 영역으로 소유권 이전 후 기존 객체 파괴
+            std::uninitialized_move_n(data, size, new_data);
+            std::destroy_n(data, size);
+        }
+
+        // 기존 메모리 블록 해제
         AllocTraits::deallocate(allocator, data, capacity);
     }
 
