@@ -214,13 +214,14 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 
     const Path cache_path = BuildCachePath(guid);
 
-    const auto buffer_opt = FileSystem::ReadBytes(cache_path);
-    if (!buffer_opt.HasValue())
+    const FileResult<Array<uint8>> buffer_result = FileSystem::ReadBytes(cache_path);
+    if (buffer_result)
     {
-        return NullOpt;
+        return ParseFromBuffer(buffer_result.Value());
     }
 
-    return ParseFromBuffer(buffer_opt.Value());
+    ConsoleLog(ELogLevel::Warning, "DDC::Load - Failed to read cache file: {}, Err: {}", cache_path, buffer_result.Error().What());
+    return NullOpt;
 }
 
 // source_hash와 cache_version이 모두 일치해야 유효한 것으로 판단.
