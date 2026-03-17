@@ -568,7 +568,7 @@ TEST_F(FileSystemChunkedTest, ReadChunkedEmptyFile)
         ++chunk_count;
     }
 
-    // 빈 파일은 0바이트 읽기 → 루프 진입하지 않음
+    // 빈 파일은 0바이트 읽기 -> 루프 진입하지 않음
     EXPECT_EQ(chunk_count, 0);
 }
 

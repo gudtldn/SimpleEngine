@@ -349,7 +349,7 @@ TEST(VPathSlashOpTest, GetParentAfterAppendPreservesScheme)
 
 TEST(VPathSlashOpTest, BothTrailingAndLeadingSlash)
 {
-    // base 끝이 '/', relative 시작이 '/' → 이중 슬래시 방지
+    // base 끝이 '/', relative 시작이 '/' -> 이중 슬래시 방지
     VPath base("Assets://Textures/");
     VPath result = base / "/Player.png";
 
@@ -382,7 +382,7 @@ TEST(VPathHiddenFileTest, DotFileWithExtension)
 {
     VPath vp("Assets://.bashrc.bak");
 
-    // ".bashrc.bak" → stem=".bashrc", ext=".bak"
+    // ".bashrc.bak" -> stem=".bashrc", ext=".bak"
     EXPECT_EQ(vp.GetExtension(), ".bak");
     EXPECT_EQ(vp.GetStem(), ".bashrc");
 }
@@ -424,7 +424,7 @@ TEST(VPathNormalizationTest, SchemeWithNumbers)
 
 TEST(VPathNormalizationTest, BackslashInScheme)
 {
-    // "Assets:\\" → 정규화 후 "Assets://" (스킴은 여전히 "Assets")
+    // "Assets:\\" -> 정규화 후 "Assets://" (스킴은 여전히 "Assets")
     VPath p("Assets:\\\\Textures\\file.png");
     EXPECT_EQ(p.GetScheme(), "Assets");
 }
@@ -500,7 +500,7 @@ TEST(VPathParentTest, ParentOfDeepNestedPath)
     VPath p("Assets://A/B/C/D/E/file.txt");
     VPath current = p;
 
-    // 계층 순회: E → D → C → B → A → Assets://
+    // 계층 순회: E -> D -> C -> B -> A -> Assets://
     current = current.GetParentPath();
     EXPECT_EQ(current.ToString(), "Assets://A/B/C/D/E");
 

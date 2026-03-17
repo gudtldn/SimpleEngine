@@ -467,8 +467,8 @@ TEST(PathHiddenFileTest, FileNameWithOnlyDot)
 
 TEST(PathSetExtensionTest, ExtensionWithPathSeparator)
 {
-    // "dir/file.jpg/../../../etc/passwd" → 정규화 → "../etc/passwd"
-    // (dir, file.jpg 2개 소진 후 ".." 1개 잔여 → "../etc/passwd")
+    // "dir/file.jpg/../../../etc/passwd" -> 정규화 -> "../etc/passwd"
+    // (dir, file.jpg 2개 소진 후 ".." 1개 잔여 -> "../etc/passwd")
     Path p("dir/file.txt");
     p.SetExtension(".jpg/../../../etc/passwd");
     EXPECT_EQ(p.ToString(), "../etc/passwd");
@@ -568,7 +568,7 @@ TEST(PathRelativeToTest, BothEmpty)
 {
     Path p1;
     Path p2;
-    // 빈 경로는 상대 경로로 취급, common=0 양쪽 모두 비어있음 → "."
+    // 빈 경로는 상대 경로로 취급, common=0 양쪽 모두 비어있음 -> "."
     auto rel = p1.RelativeTo(p2);
     ASSERT_TRUE(rel.HasValue());
     EXPECT_EQ(rel->ToString(), ".");

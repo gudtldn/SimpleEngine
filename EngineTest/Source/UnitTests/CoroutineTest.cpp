@@ -407,7 +407,7 @@ TEST_F(CoroutineTest, WhenAny_FirstComplete)
 
 TEST_F(CoroutineTest, WhenAny_ConcurrentStress)
 {
-    // 다수의 핸들을 동시에 Submit하고 WhenAny 호출 → 정확히 1회만 resume되는지 검증
+    // 다수의 핸들을 동시에 Submit하고 WhenAny 호출 -> 정확히 1회만 resume되는지 검증
     constexpr usize HANDLE_COUNT = 100;
 
     Array<JobHandle> handles;

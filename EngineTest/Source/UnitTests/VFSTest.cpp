@@ -262,8 +262,8 @@ TEST_F(VFSPathTraversalTest, DotDotDoesNotEscapeMountPoint)
 TEST_F(VFSPathTraversalTest, ResolveDoesNotEscapeMount)
 {
     // Sandbox://../TraversalParent/secret.txt
-    // → pref/Tests/TraversalMount/../TraversalParent/secret.txt
-    // → pref/Tests/TraversalParent/secret.txt ← 실제로 존재하는 파일
+    // -> pref/Tests/TraversalMount/../TraversalParent/secret.txt
+    // -> pref/Tests/TraversalParent/secret.txt ← 실제로 존재하는 파일
     // containment check가 없다면 Resolve가 성공해버리므로 진짜 보안 검사가 됨
     VPath traversal("Sandbox://../TraversalParent/secret.txt");
     Optional<Path> result = VFS::Resolve(traversal);
@@ -278,7 +278,7 @@ TEST_F(VFSPathTraversalTest, ToPathWithDotDot)
     VPath traversal("Sandbox://../TraversalParent/secret.txt");
     Path result = VFS::ToPath(traversal);
 
-    // 모든 마운트 포인트에서 containment 위반 → 빈 Path 반환
+    // 모든 마운트 포인트에서 containment 위반 -> 빈 Path 반환
     EXPECT_TRUE(result.IsEmpty())
         << "ToPath should return empty for path traversal! Got: " << result.ToString().CStr();
 }
