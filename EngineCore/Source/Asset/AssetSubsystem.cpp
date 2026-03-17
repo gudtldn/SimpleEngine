@@ -75,7 +75,7 @@ void AssetSubsystem::DeferRelease(AssetPayload payload)
         return;
     }
 
-    pool->DeferDestroy(payload, frame_count);
+    pool->DeferDestroy(std::move(payload), frame_count);
 }
 
 void AssetSubsystem::EndFrame()
@@ -122,10 +122,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, cons
     MemoryReader reader(payload);
     info_opt->serialize(reader, raw);
 
-    return {
-        .ptr = static_cast<AssetBase*>(raw),
-        .destructor = info_opt->destructor
-    };
+    return AssetPayload{ static_cast<AssetBase*>(raw), info_opt->destructor };
 }
 
 HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope)
@@ -172,32 +169,16 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
             handle_data = pool->FindOrCreate(current_id, expected_type, source_path);
 
             // [Slot-Level Lock] 로딩 상태 동기화
-            while (true)
+            switch (AcquireLoadSlot(handle_data, expected_type))
             {
-                const ELoadingState state = get_slot().GetState();
-                if (state == ELoadingState::Loaded)
-                {
-                    // 메모리 Cache Hit
-                    if (get_slot().asset_type == expected_type)
-                    {
-                        return handle_data;
-                    }
-                    ConsoleLog(ELogLevel::Error, "Asset Type Mismatch!");
-                    return {};
-                }
-
-                if (state == ELoadingState::Loading)
-                {
-                    // 다른 스레드가 DDC를 읽거나 Import 중이므로 Sleep
-                    get_slot().WaitForLoadComplete();
-                    continue; // 깨어나면 상태를 다시 확인
-                }
-
-                // Unloaded 또는 Failed 라면, 현재 스레드에서 로딩 시작
-                if (get_slot().BeginLoad())
-                {
-                    break;
-                }
+            case ESlotAcquireResult::Loaded:
+                return handle_data;
+            case ESlotAcquireResult::Failed:
+                return {};
+            case ESlotAcquireResult::Acquired:
+                break;
+            default:
+                SE_UNREACHABLE();
             }
 
             // DDC Hit 검사 및 로드 수행
@@ -213,36 +194,9 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
             {
                 if (auto entry_opt = ddc->Load(current_id.GetGuid()))
                 {
-                    if (const AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
+                    if (AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
-                        SlotEntry& current_slot = get_slot();
-
-                        // 기존 슬롯에 있던 Asset을 교체
-                        const AssetPayload old_payload = current_slot.ExchangePayload(payload); // ownership transferred to SlotEntry
-
-                        // Eviction 메타데이터 설정
-                        const uint64 old_size = current_slot.asset_size_bytes;
-                        const uint64 new_size = entry_opt->payload.Len();
-                        current_slot.asset_size_bytes = new_size;
-                        current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
-                        current_slot.scope = scope;
-
-                        if (new_size > old_size)
-                        {
-                            table.TrackMemoryUsage(new_size - old_size);
-                        }
-                        else if (new_size < old_size)
-                        {
-                            table.UntrackMemoryUsage(old_size - new_size);
-                        }
-
-                        // 로딩 완료
-                        current_slot.SetState(ELoadingState::Loaded);
-
-                        if (old_payload)
-                        {
-                            DeferRelease(old_payload);
-                        }
+                        CommitLoadedPayload(handle_data, std::move(payload), entry_opt->payload.Len(), scope);
                         ConsoleLog(ELogLevel::Debug, "Loaded from DDC: {}", source_path.ToString());
                         return handle_data;
                     }
@@ -324,6 +278,71 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
     return {};
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
+AssetSubsystem::ESlotAcquireResult AssetSubsystem::AcquireLoadSlot(HandleData handle_data, const TypeId& expected_type)
+{
+    HandleTable& table = pool->GetTable();
+    while (true)
+    {
+        SlotEntry& slot = table.GetSlot(handle_data.index);
+        const ELoadingState state = slot.GetState();
+
+        if (state == ELoadingState::Loaded)
+        {
+            if (slot.asset_type == expected_type)
+            {
+                return ESlotAcquireResult::Loaded;
+            }
+            ConsoleLog(ELogLevel::Error, "Asset Type Mismatch!");
+            return ESlotAcquireResult::Failed;
+        }
+
+        if (state == ELoadingState::Loading)
+        {
+            // TODO: WaitForLoadComplete는 블로킹 함수라서,
+            //       만약 병목이 될 경우 co_await 기반의 비동기 대기(SlotEntry에 awaitable notify)로 교체하여
+            //       워커 스레드를 양보할 수 있도록 개선.
+            slot.WaitForLoadComplete();
+            continue;
+        }
+
+        if (slot.BeginLoad())
+        {
+            return ESlotAcquireResult::Acquired;
+        }
+    }
+}
+
+void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload payload, uint64 payload_size, EScopeLayer scope)
+{
+    HandleTable& table = pool->GetTable();
+    SlotEntry& current_slot = table.GetSlot(handle_data.index);
+
+    AssetPayload old_payload = current_slot.ExchangePayload(std::move(payload));
+
+    const uint64 old_size = current_slot.asset_size_bytes;
+    const uint64 new_size = payload_size;
+    current_slot.asset_size_bytes = new_size;
+    current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
+    current_slot.scope = scope;
+
+    if (new_size > old_size)
+    {
+        table.TrackMemoryUsage(new_size - old_size);
+    }
+    else if (new_size < old_size)
+    {
+        table.UntrackMemoryUsage(old_size - new_size);
+    }
+
+    current_slot.SetState(ELoadingState::Loaded);
+
+    if (old_payload)
+    {
+        DeferRelease(std::move(old_payload));
+    }
+}
+
 HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
 {
     Optional<HandleData> handle_opt = pool->Find(asset_id);
@@ -380,40 +399,18 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
 
     const AssetId& asset_id = id_opt.Value();
     HandleData handle_data = pool->FindOrCreate(asset_id, expected_type, source_path);
-    HandleTable& table = pool->GetTable();
-
-    const auto get_slot = [&] -> SlotEntry&
-    {
-        return table.GetSlot(handle_data.index);
-    };
 
     // 메모리 캐시 hit 또는 다른 스레드가 로딩 중이면 대기
-    while (true)
+    switch (AcquireLoadSlot(handle_data, expected_type))
     {
-        const ELoadingState state = get_slot().GetState();
-        if (state == ELoadingState::Loaded)
-        {
-            if (get_slot().asset_type == expected_type)
-            {
-                co_return handle_data;
-            }
-            ConsoleLog(ELogLevel::Error, "Asset Type Mismatch!");
-            co_return HandleData{};
-        }
-
-        if (state == ELoadingState::Loading)
-        {
-            // TODO: WaitForLoadComplete는 블로킹 함수 라서,
-            //       만약 병목이 될 경우 co_await 기반의 비동기 대기(SlotEntry에 awaitable notify)로 교체하여
-            //       워커 스레드를 양보할 수 있도록 개선.
-            get_slot().WaitForLoadComplete();
-            continue;
-        }
-
-        if (get_slot().BeginLoad())
-        {
-            break;
-        }
+    case ESlotAcquireResult::Loaded:
+        co_return handle_data;
+    case ESlotAcquireResult::Failed:
+        co_return HandleData{};
+    case ESlotAcquireResult::Acquired:
+        break;
+    default:
+        SE_UNREACHABLE();
     }
 
     // DDC validity 확인
@@ -438,33 +435,9 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
             {
                 if (Optional<CacheEntry> entry_opt = DerivedDataCache::ParseFromBuffer(io_result.data))
                 {
-                    if (const AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
+                    if (AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
                     {
-                        SlotEntry& current_slot = get_slot();
-
-                        AssetPayload old_payload = current_slot.ExchangePayload(payload);
-
-                        const uint64 old_size = current_slot.asset_size_bytes;
-                        const uint64 new_size = entry_opt->payload.Len();
-                        current_slot.asset_size_bytes = new_size;
-                        current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
-                        current_slot.scope = scope;
-
-                        if (new_size > old_size)
-                        {
-                            table.TrackMemoryUsage(new_size - old_size);
-                        }
-                        else if (new_size < old_size)
-                        {
-                            table.UntrackMemoryUsage(old_size - new_size);
-                        }
-
-                        current_slot.SetState(ELoadingState::Loaded);
-
-                        if (old_payload)
-                        {
-                            DeferRelease(old_payload);
-                        }
+                        CommitLoadedPayload(handle_data, std::move(payload), entry_opt->payload.Len(), scope);
                         ConsoleLog(ELogLevel::Debug, "LoadAsync: Loaded from DDC (async I/O): {}", source_path.ToString());
                         co_return handle_data;
                     }
@@ -475,7 +448,7 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
 
     // DDC miss 또는 비동기 I/O 실패 -> 동기 fallback
     // BeginLoad 상태를 되돌려서 LoadInternal이 다시 획득할 수 있게 함
-    get_slot().SetState(ELoadingState::Unloaded);
+    pool->GetTable().GetSlot(handle_data.index).SetState(ELoadingState::Unloaded);
 
     ConsoleLog(ELogLevel::Debug, "LoadAsync: Falling back to sync LoadInternal: {}", source_path.ToString());
     co_return LoadInternal(expected_type, source_path, scope);

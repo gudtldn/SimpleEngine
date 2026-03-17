@@ -107,10 +107,26 @@ public:
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
 private:
+    enum class ESlotAcquireResult : uint8
+    {
+        Loaded,   // 메모리 Cache Hit (handle_data를 즉시 반환 가능)
+        Acquired, // BeginLoad 획득 성공 (DDC 읽기 진행)
+        Failed,   // 타입 불일치
+    };
+
     [[nodiscard]] HandleData LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope);
     [[nodiscard]] JobTask<HandleData> LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope);
     [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
     [[nodiscard]] HandleTable& GetHandleTable() const;
+
+    /**
+     * 슬롯 상태를 확인하고 로딩 권한(BeginLoad)을 획득합니다.
+     * @warning WaitForLoadComplete()가 블로킹이므로 코루틴 컨텍스트에서 호출 시 워커 스레드를 점유합니다.
+     */
+    [[nodiscard]] ESlotAcquireResult AcquireLoadSlot(HandleData handle_data, const TypeId& expected_type);
+
+    /** 역직렬화된 payload를 SlotEntry에 커밋합니다. (메모리 추적 + 상태 전환 + 구 payload 지연 해제) */
+    void CommitLoadedPayload(HandleData handle_data, AssetPayload payload, uint64 payload_size, EScopeLayer scope);
 
 private:
     std::unique_ptr<AssetPool> pool;
