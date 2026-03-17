@@ -403,7 +403,7 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
 
         if (state == ELoadingState::Loading)
         {
-            // TODO: WaitForLoadComplete는 블로킹 라서,
+            // TODO: WaitForLoadComplete는 블로킹 함수 라서,
             //       만약 병목이 될 경우 co_await 기반의 비동기 대기(SlotEntry에 awaitable notify)로 교체하여
             //       워커 스레드를 양보할 수 있도록 개선.
             get_slot().WaitForLoadComplete();
