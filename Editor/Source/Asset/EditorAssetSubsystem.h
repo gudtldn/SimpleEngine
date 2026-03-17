@@ -5,6 +5,7 @@
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -107,7 +108,7 @@ private:
      */
     void SyncDependencies(
         const asset::AssetId& asset_id,
-        const Array<asset::AssetDependencyEntry>& dependencies
+        ArrayView<const asset::AssetDependencyEntry> dependencies
     );
 
 private:

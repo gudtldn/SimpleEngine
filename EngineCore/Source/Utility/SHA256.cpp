@@ -37,7 +37,7 @@ String SHA256::HashFile(const Path& file_path)
     return String::Format("sha256:{}", hex_str.c_str());
 }
 
-String SHA256::HashBytes(const Array<uint8>& data)
+String SHA256::HashBytes(ArrayView<const uint8> data)
 {
     std::string hex_str;
     picosha2::hash256_hex_string(

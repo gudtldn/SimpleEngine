@@ -17,7 +17,7 @@ SDL_GPUShader* CompileFromHLSL(
     SDL_GPUDevice* device,
     const Path& shader_path,
     Optional<const Path&> include_dir_opt,
-    Optional<const Array<HLSL_Define>&> defines_opt
+    Optional<ArrayView<const HLSL_Define>> defines_opt
 )
 {
     // read shader file
@@ -61,7 +61,7 @@ SDL_GPUShader* CompileFromHLSL(
     Array<SDL_ShaderCross_HLSL_Define> hlsl_defines;
     if (defines_opt)
     {
-        const Array<HLSL_Define>& defines = *defines_opt;
+        ArrayView<const HLSL_Define> defines = *defines_opt;
         hlsl_defines.Resize(defines.Len());
 
         for (auto [n, hlsl_define] : hlsl_defines | std::views::enumerate)

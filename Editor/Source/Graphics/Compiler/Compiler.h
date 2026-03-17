@@ -1,5 +1,6 @@
 #pragma once
-#include "SimpleEngine/Core/Container/Array.h"
+
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
@@ -19,7 +20,7 @@ struct HLSL_Define
     SDL_GPUDevice* device,
     const Path& shader_path,
     Optional<const Path&> include_dir_opt = NullOpt,
-    Optional<const Array<HLSL_Define>&> defines_opt = NullOpt
+    Optional<ArrayView<const HLSL_Define>> defines_opt = NullOpt
 );
 
 // TODO: CreateComputeShader 구현하기

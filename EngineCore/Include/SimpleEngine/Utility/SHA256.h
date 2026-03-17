@@ -1,5 +1,6 @@
 #pragma once
-#include "SimpleEngine/Core/Container/Array.h"
+
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -29,7 +30,7 @@ struct SE_CORE_API SHA256
      * @param data 해시를 계산할 바이트 배열
      * @return "sha256:<hex>" 형식의 해시 문자열
      */
-    [[nodiscard]] static String HashBytes(const Array<uint8>& data);
+    [[nodiscard]] static String HashBytes(ArrayView<const uint8> data);
 
     /**
      * 문자열 데이터의 SHA-256 해시를 계산합니다.

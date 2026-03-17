@@ -749,7 +749,7 @@ void EditorAssetSubsystem::BuildDependencyGraph()
 
 void EditorAssetSubsystem::SyncDependencies(
     const asset::AssetId& asset_id,
-    const Array<asset::AssetDependencyEntry>& dependencies
+    ArrayView<const asset::AssetDependencyEntry> dependencies
 )
 {
     if (dependencies.IsEmpty())

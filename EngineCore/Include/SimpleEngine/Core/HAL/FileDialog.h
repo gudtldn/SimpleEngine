@@ -22,7 +22,7 @@ class SE_CORE_API FileDialog
 public:
     // 파일 선택 시 호출될 콜백 (경로가 비어있으면 취소/에러)
     using OnFileSelected = Function<void(const Path& path)>;
-    using OnMultiFilesSelected = Function<void(const Array<Path>& paths)>;
+    using OnMultiFilesSelected = Function<void(ArrayView<const Path> paths)>;
 
 public:
     /**
@@ -41,7 +41,7 @@ public:
 
     /**
      * 파일 열기 다이얼로그 (다중 선택)
-     * @param callback 사용자가 파일을 선택하면 호출될 `void(const Array<Path>& paths)` 형식의 함수
+     * @param callback 사용자가 파일을 선택하면 호출될 `void(ArrayView<const Path> paths)` 형식의 함수
      * @param filters 필터 목록 (예: { {"Images", "png;jpg"}, {"All", "*"} })
      * @param default_location 초기 경로 (nullptr 가능)
      * @param window 부모 윈도우 (nullptr이면 현재 포커스된 윈도우 사용)
