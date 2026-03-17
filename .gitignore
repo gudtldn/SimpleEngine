@@ -1,6 +1,7 @@
 .vs/
 .vscode/
 .gemini/
+.claude/
 
 [B|b]inaries/
 [B|b]uild/
@@ -15,5 +16,6 @@ riderModule.iml
 *.user
 imgui.ini
 GEMINI.md
+CLAUDE.md
 
 CMakeUserPresets.json
