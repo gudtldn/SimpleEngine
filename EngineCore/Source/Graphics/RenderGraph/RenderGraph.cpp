@@ -240,40 +240,85 @@ void RenderGraph::Compile()
         return;
     }
 
-    // TODO: 리소스 생명주기 계산
+    // 4. 리소스 생명주기 분석
+    // compiled_passes 순서를 기준으로 각 리소스의 첫 사용/마지막 사용 패스 인덱스를 계산합니다.
+    for (const auto [pass_index, pass_node] : compiled_passes | std::views::enumerate)
+    {
+        const uint32 idx = static_cast<uint32>(pass_index);
+
+        for (const auto [handle_idx] : pass_node->reads)
+        {
+            RGResourceNode& node = resource_nodes[handle_idx];
+            node.first_user_pass_index = std::min(node.first_user_pass_index, idx);
+            node.last_user_pass_index = std::max(node.last_user_pass_index, idx);
+        }
+        for (const auto [handle_idx] : pass_node->writes)
+        {
+            RGResourceNode& node = resource_nodes[handle_idx];
+            node.first_user_pass_index = std::min(node.first_user_pass_index, idx);
+            node.last_user_pass_index = std::max(node.last_user_pass_index, idx);
+        }
+    }
+
+    // 5. 리소스 할당/해제 스케줄 구축
+    resources_to_realize.Clear();
+    resources_to_unrealize.Clear();
+    for (usize i = 0; i < compiled_passes.Len(); ++i)
+    {
+        resources_to_realize.Emplace();
+        resources_to_unrealize.Emplace();
+    }
+
+    for (const auto [idx, node] : resource_nodes | std::views::enumerate)
+    {
+        // first <= last인 리소스만 스케줄에 포함 (미사용 리소스는 first=max, last=0이므로 제외)
+        if (node.first_user_pass_index <= node.last_user_pass_index)
+        {
+            resources_to_realize[node.first_user_pass_index].Push(static_cast<usize>(idx));
+            resources_to_unrealize[node.last_user_pass_index].Push(static_cast<usize>(idx));
+        }
+    }
 }
 
 void RenderGraph::Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
 {
     ZoneScoped;
 
-    // TODO: 컴파일 단계에서 리소스 lifecycle 체크해서 필요한 시점에만 리소스를 할당하고 재사용하게끔 수정
-
-    for (const RGPassNode* pass_node : compiled_passes)
+    for (uint32 pass_index = 0; pass_index < compiled_passes.Len(); ++pass_index)
     {
+        const RGPassNode* pass_node = compiled_passes[pass_index];
+
         ZoneScoped;
         SE_DEBUG_EXPRESSION({
             String zone_name = String::Format("RenderGraph::Execute - {}::Execute", pass_node->name);
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
         })
 
-        for (const auto [write_handle_idx] : pass_node->writes)
+        // 이 패스에서 생명주기가 시작되는 리소스를 할당합니다.
+        for (const usize resource_idx : resources_to_realize[pass_index])
         {
-            resource_nodes[write_handle_idx].resource->Realize(resource_pool);
+            resource_nodes[resource_idx].resource->Realize(resource_pool);
         }
 
         RGExecutionContext context{ cmd, pso_manager, *this };
         pass_node->pass_object->Execute(context);
+
+        // 이 패스에서 생명주기가 끝나는 리소스를 해제합니다.
+        for (const usize resource_idx : resources_to_unrealize[pass_index])
+        {
+            resource_nodes[resource_idx].resource->Unrealize(resource_pool);
+        }
     }
 }
 
 void RenderGraph::Clear()
 {
-    for (const RGPassNode* pass_node : compiled_passes)
+    // Execute()에서 Unrealize되지 못한 리소스가 있을 경우를 대비
+    for (RGResourceNode& node : resource_nodes)
     {
-        for (const auto& [write_handle_idx] : pass_node->writes)
+        if (node.resource)
         {
-            resource_nodes[write_handle_idx].resource->Unrealize(resource_pool);
+            node.resource->Unrealize(resource_pool);
         }
     }
 
@@ -281,6 +326,13 @@ void RenderGraph::Clear()
     resource_nodes.Clear();
     resource_name_map.Clear();
     compiled_passes.Clear();
+    resources_to_realize.Clear();
+    resources_to_unrealize.Clear();
+
+    // 풀 리소스 idle 카운터 증가 + 장기 미사용 리소스 정리
+    static constexpr uint32 MAX_IDLE_FRAMES = 3;
+    resource_pool.IncrementIdleCounters();
+    resource_pool.Trim(MAX_IDLE_FRAMES);
 }
 
 RGResourceHandle RenderGraph::ImportTexture(const StringName& name, SDL_GPUTexture* texture)
