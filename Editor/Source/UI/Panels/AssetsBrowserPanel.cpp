@@ -4,6 +4,7 @@
 #include "UI/ImGui/ImGuiString.h"
 
 #include "SimpleEditor/Asset/MetaFileManager.h"
+#include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Container/StringView.h"
@@ -40,6 +41,11 @@ struct AssetItem
 
 namespace se::editor
 {
+AssetsBrowserPanel::AssetsBrowserPanel()
+    : editor_selection(GetSubsystemChecked<EditorSubsystem>().GetSelection())
+{
+}
+
 const char* AssetsBrowserPanel::GetName() const
 {
     return "AssetsBrowser";
@@ -70,7 +76,8 @@ void AssetsBrowserPanel::Draw()
         // GridView
         ImGui::TableNextColumn();
 
-        const Optional<String> selected_path = VFS::Unresolve(GetSelectedDirPath())
+        const Path& active_dir = editor_selection.GetActiveContentDir();
+        const Optional<String> selected_path = VFS::Unresolve(active_dir)
             .Map([](const VPath& vpath)
             {
                 return vpath.ToString();
@@ -98,10 +105,11 @@ void AssetsBrowserPanel::Draw()
 
 void AssetsBrowserPanel::DrawAssetTree()
 {
-    VFS::Get().VisitMounts([this](StringView scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
+    EditorSelection& selection = editor_selection;
+    VFS::Get().VisitMounts([this, &selection](StringView scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
-        if (GetSelectedDirPath() == physical_path)
+        if (selection.GetActiveContentDir() == physical_path)
         {
             root_flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -116,7 +124,7 @@ void AssetsBrowserPanel::DrawAssetTree()
         const bool is_node_open = ImGui::TreeNodeEx(String(scheme).CStr(), root_flags);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
-            SetSelectedDirPath(physical_path);
+            selection.SetActiveContentDir(physical_path);
         }
 
         // 우클릿 컨텍스트 메뉴
@@ -136,7 +144,7 @@ void AssetsBrowserPanel::DrawAssetTree()
 
 void AssetsBrowserPanel::DrawAssetGrid()
 {
-    const Path& current_path = GetSelectedDirPath();
+    const Path& current_path = editor_selection.GetActiveContentDir();
 
     // 경로 유효성 검사
     if (current_path.IsEmpty() || !current_path.Exists())
@@ -217,7 +225,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
             {
                 if (item.is_directory)
                 {
-                    SetSelectedDirPath(item.path);
+                    editor_selection.SetActiveContentDir(item.path);
                 }
                 else
                 {
@@ -261,30 +269,20 @@ bool AssetsBrowserPanel::HasSubDirectories(const Path& path)
     });
 }
 
-const Path& AssetsBrowserPanel::GetSelectedDirPath() const noexcept
-{
-    return selected_dir_path;
-}
-
-void AssetsBrowserPanel::SetSelectedDirPath(const Path& new_path) noexcept
-{
-    selected_dir_path = new_path;
-}
-
 void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
 {
-    for (const auto& entry : FileSystem::ReadDir(path))
+    for (const DirectoryEntry& entry : FileSystem::ReadDir(path))
     {
         if (!entry.IsDirectory())
         {
             continue;
         }
 
-        const Path entry_path = entry.GetPath();
+        const Path& entry_path = entry.GetPath();
         const String folder_name = entry_path.FileName().ValueOr("(Unknown)");
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-        if (GetSelectedDirPath() == entry_path)
+        if (editor_selection.GetActiveContentDir() == entry_path)
         {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -299,7 +297,7 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
         const bool is_node_open = ImGui::TreeNodeEx(folder_name.CStr(), flags);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
-            SetSelectedDirPath(entry_path);
+            editor_selection.SetActiveContentDir(entry_path);
         }
 
         // 우클릭 컨텍스트 메뉴

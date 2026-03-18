@@ -8,9 +8,14 @@
 
 namespace se::editor
 {
+// forward declaration
+class EditorSelection;
+
 class AssetsBrowserPanel : public IEditorPanel
 {
 public:
+    AssetsBrowserPanel();
+
     [[nodiscard]] virtual const char* GetName() const override;
     virtual void Draw() override;
 
@@ -20,9 +25,6 @@ protected:
 
 protected:
     [[nodiscard]] static bool HasSubDirectories(const Path& path);
-
-    [[nodiscard]] const Path& GetSelectedDirPath() const noexcept;
-    void SetSelectedDirPath(const Path& new_path) noexcept;
 
 private:
     void RenderDirectoryTreeRecursive(const Path& path);
@@ -36,8 +38,7 @@ private:
     bool DrawProcessorStack();
 
 private:
-    // 선택된 Directory 경로
-    Path selected_dir_path;
+    EditorSelection& editor_selection;
 
     // Import Settings 모달 상태
     Path modal_asset_path;                     // Import Settings를 띄울 에셋의 경로
