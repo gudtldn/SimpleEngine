@@ -66,20 +66,19 @@ void FrameResourcePool::ReleaseBuffer(const SDL_GPUBufferCreateInfo& info, SDL_G
 
 void FrameResourcePool::IncrementIdleCounters()
 {
-    for (auto& entry : texture_pool | std::views::values)
+    auto increment_pool_counters = []<typename K, typename T>(HashMap<K, PoolEntry<T>>& pool)
     {
-        for (auto& pooled : entry.available_resources)
+        for (auto& entry : pool | std::views::values)
         {
-            ++pooled.idle_frames;
+            for (auto& pooled : entry.available_resources)
+            {
+                ++pooled.idle_frames;
+            }
         }
-    }
-    for (auto& entry : buffer_pool | std::views::values)
-    {
-        for (auto& pooled : entry.available_resources)
-        {
-            ++pooled.idle_frames;
-        }
-    }
+    };
+
+    increment_pool_counters(texture_pool);
+    increment_pool_counters(buffer_pool);
 }
 
 void FrameResourcePool::Trim(uint32 max_idle_frames)
