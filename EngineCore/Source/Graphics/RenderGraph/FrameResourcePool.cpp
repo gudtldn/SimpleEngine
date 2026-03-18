@@ -1,12 +1,13 @@
 #include "SimpleEngine/Graphics/RenderGraph/FrameResourcePool.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 #include <ranges>
 
 
 namespace se::graphics
 {
-FrameResourcePool::FrameResourcePool(SDL_GPUDevice* in_device)
-    : device(in_device)
+FrameResourcePool::FrameResourcePool(RenderDevice& in_render_device)
+    : render_device(&in_render_device)
 {
 }
 
@@ -16,11 +17,11 @@ FrameResourcePool::~FrameResourcePool()
     {
         for (SDL_GPUTexture* texture : entry.available_resources)
         {
-            SDL_ReleaseGPUTexture(device, texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
         }
         for (SDL_GPUTexture* texture : entry.used_resources)
         {
-            SDL_ReleaseGPUTexture(device, texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
         }
     }
 
@@ -28,11 +29,11 @@ FrameResourcePool::~FrameResourcePool()
     {
         for (SDL_GPUBuffer* buffer : entry.available_resources)
         {
-            SDL_ReleaseGPUBuffer(device, buffer);
+            SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
         }
         for (SDL_GPUBuffer* buffer : entry.used_resources)
         {
-            SDL_ReleaseGPUBuffer(device, buffer);
+            SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
         }
     }
 }
@@ -41,7 +42,7 @@ SDL_GPUTexture* FrameResourcePool::AcquireTexture(const SDL_GPUTextureCreateInfo
 {
     return AcquireResourceInternal(texture_pool[info], [this, &info = std::as_const(info)]
     {
-        return SDL_CreateGPUTexture(device, &info);
+        return SDL_CreateGPUTexture(render_device->GetRawDevice(), &info);
     });
 }
 
@@ -54,7 +55,7 @@ SDL_GPUBuffer* FrameResourcePool::AcquireBuffer(const SDL_GPUBufferCreateInfo& i
 {
     return AcquireResourceInternal(buffer_pool[info], [this, &info = std::as_const(info)]
     {
-        return SDL_CreateGPUBuffer(device, &info);
+        return SDL_CreateGPUBuffer(render_device->GetRawDevice(), &info);
     });
 }
 

@@ -1,11 +1,13 @@
 #include "SimpleEngine/Graphics/Memory/GpuMemoryBlock.h"
+
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/Common.h"
 
 
 namespace se::graphics
 {
-GpuMemoryBlock::GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage)
-    : device(in_device)
+GpuMemoryBlock::GpuMemoryBlock(RenderDevice* in_render_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage)
+    : render_device(in_render_device)
     , usage_flags(in_usage)
     , total_size(in_size)
 {
@@ -13,15 +15,14 @@ GpuMemoryBlock::GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPU
         .usage = in_usage,
         .size = in_size,
     };
-    buffer = SDL_CreateGPUBuffer(device, &buffer_info);
-    // SDL_SetGPUBufferName(device, buffer, 이름 설정);
+    buffer = SDL_CreateGPUBuffer(render_device->GetRawDevice(), &buffer_info);
 }
 
 GpuMemoryBlock::~GpuMemoryBlock()
 {
-    if (buffer)
+    if (buffer && render_device)
     {
-        SDL_ReleaseGPUBuffer(device, buffer);
+        SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
     }
 }
 
@@ -36,13 +37,13 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
     {
          if (buffer)
         {
-            SDL_ReleaseGPUBuffer(device, buffer);
+            SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
         }
 
         static_assert(
             AlignedSize<alignof(GpuMemoryBlock)>(
-                sizeof(device)   // NOLINT(*-sizeof-expression)
-                + sizeof(buffer) // NOLINT(*-sizeof-expression)
+                sizeof(render_device) // NOLINT(*-sizeof-expression)
+                + sizeof(buffer)      // NOLINT(*-sizeof-expression)
                 + sizeof(usage_flags)
                 + sizeof(total_size)
                 + sizeof(used_offset)
@@ -50,7 +51,7 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
             "GpuMemoryBlock size mismatch"
         );
 
-        device = std::exchange(other.device, nullptr);
+        render_device = std::exchange(other.render_device, nullptr);
         buffer = std::exchange(other.buffer, nullptr);
         usage_flags = std::exchange(other.usage_flags, 0);
         total_size = std::exchange(other.total_size, 0);

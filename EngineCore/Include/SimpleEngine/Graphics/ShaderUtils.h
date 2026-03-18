@@ -8,12 +8,15 @@
 
 namespace se::graphics
 {
+// forward declaration
+class RenderDevice;
+
 /** 파일명으로 ShaderStage를 자동으로 탐지합니다. */
 [[nodiscard]] SE_CORE_API Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const Path& shader_path);
 
 /** SPIRV를 컴파일하여 SDL_GPUShader로 변환합니다. */
 [[nodiscard]] SE_CORE_API SDL_GPUShader* CompileFromSPIRV(
-    SDL_GPUDevice* device,
+    const RenderDevice& render_device,
     const Path& shader_path
 );
 }  // namespace se::graphics

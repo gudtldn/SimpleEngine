@@ -10,6 +10,6 @@ class PrecompiledShaderProvider : public IShaderProvider
 {
 public:
     /** SPIR-V 파일을 SDL_GPUShader*로 변환합니다. */
-    virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const ShaderRequest& request) override;
+    virtual SDL_GPUShader* Provide(RenderDevice& render_device, const ShaderRequest& request) override;
 };
 }

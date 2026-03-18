@@ -48,7 +48,7 @@ bool EditorUISubsystem::Initialize()
     const auto [window_subsystem, render_subsystem] = GetSubsystems<WindowSubsystem, const RenderSubsystem>();
 
     SDL_Window* main_window = window_subsystem->GetMainWindow();
-    SDL_GPUDevice* gpu_device = render_subsystem->GetGpuDevice();
+    SDL_GPUDevice* raw_device = render_subsystem->GetRenderDevice().GetRawDevice();
 
     // ImGui 초기화
     IMGUI_CHECKVERSION();
@@ -90,8 +90,8 @@ bool EditorUISubsystem::Initialize()
 
     ImGui_ImplSDL3_InitForSDLGPU(main_window);
     ImGui_ImplSDLGPU3_InitInfo init_info = {
-        .Device = gpu_device,
-        .ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_device, main_window),
+        .Device = raw_device,
+        .ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(raw_device, main_window),
         .MSAASamples = SDL_GPU_SAMPLECOUNT_1,
     };
     ImGui_ImplSDLGPU3_Init(&init_info);

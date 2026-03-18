@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEngine/App/Application.h"
 
@@ -24,6 +25,5 @@ protected:
 
 private:
     SDL_Window* cached_window = nullptr;
-    SDL_GPUDevice* cached_gpu_device = nullptr;
 };
 } // namespace se::editor

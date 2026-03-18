@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 
 namespace se::graphics
@@ -43,7 +44,7 @@ Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const Path& shader_pa
     return NullOpt;
 }
 
-SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
+SDL_GPUShader* CompileFromSPIRV(const RenderDevice& render_device, const Path& shader_path)
 {
     // read shader file
     Array<uint8> source;
@@ -101,7 +102,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
     }
 
     // create gpu shader
-    const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(device);
+    const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(render_device.GetRawDevice());
     if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
         usize bytecode_size;
@@ -118,7 +119,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
             .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
             .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
         };
-        SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
+        SDL_GPUShader* shader = SDL_CreateGPUShader(render_device.GetRawDevice(), &create_info);
         SDL_free(bytecode);
         return shader;
     }
@@ -131,7 +132,7 @@ SDL_GPUShader* CompileFromSPIRV(SDL_GPUDevice* device, const Path& shader_path)
             .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
             .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
         };
-        return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &spirv_info, &resource_info, 0);
+        return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(render_device.GetRawDevice(), &spirv_info, &resource_info, 0);
     }
 
     ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path);

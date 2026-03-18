@@ -56,21 +56,22 @@ bool RenderSubsystem::Initialize()
     SDL_SetHint(SDL_HINT_GPU_DRIVER, "metal");
 #endif
 
-    gpu_device = SDL_CreateGPUDeviceWithProperties(props);
+    SDL_GPUDevice* raw_device = SDL_CreateGPUDeviceWithProperties(props);
     SDL_DestroyProperties(props);
 
-    if (!gpu_device)
+    if (!raw_device)
     {
         ConsoleLog(ELogLevel::Error, "SDL_CreateGPUDeviceWithProperties failed: {}", SDL_GetError());
         return false;
     }
 
+    render_device = std::make_unique<RenderDevice>(raw_device);
+
     // Main Window를 GPU Device에 연결
-    if (!SDL_ClaimWindowForGPUDevice(gpu_device, main_window))
+    if (!SDL_ClaimWindowForGPUDevice(render_device->GetRawDevice(), main_window))
     {
         ConsoleLog(ELogLevel::Error, "SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
-        SDL_DestroyGPUDevice(gpu_device);
-        gpu_device = nullptr;
+        render_device.reset();
         return false;
     }
 
@@ -80,14 +81,14 @@ bool RenderSubsystem::Initialize()
     const SDL_GPUPresentMode present_mode = window_desc_opt->present_mode
         .ValueOr(DetermineBestPresentMode(main_window));
 
-    if (!SDL_SetGPUSwapchainParameters(gpu_device, main_window, swapchain_composition, present_mode))
+    if (!SDL_SetGPUSwapchainParameters(render_device->GetRawDevice(), main_window, swapchain_composition, present_mode))
     {
         ConsoleLog(ELogLevel::Warning, "SDL_SetGPUSwapchainParameters failed: {}", SDL_GetError());
     }
 
-    resource_manager = std::make_unique<GpuResourceManager>(gpu_device);
-    render_graph = std::make_unique<RenderGraph>(gpu_device);
-    pso_manager = std::make_unique<PSOManager>(gpu_device);
+    resource_manager = std::make_unique<GpuResourceManager>(*render_device);
+    render_graph = std::make_unique<RenderGraph>(*render_device);
+    pso_manager = std::make_unique<PSOManager>(*render_device);
 
     // 동적 윈도우 생성/파괴에 대응하기 위해 Delegate 구독
     WindowSubsystem& window_subsystem_mut = se::GetSubsystemChecked<WindowSubsystem>();
@@ -108,7 +109,7 @@ bool RenderSubsystem::Initialize()
 
 void RenderSubsystem::Release()
 {
-    if (!gpu_device)
+    if (!render_device)
     {
         return;
     }
@@ -133,17 +134,17 @@ void RenderSubsystem::Release()
     pso_manager.reset();
     resource_manager.reset();
 
-    // 모든 윈도우에서 GPU 디바이스 릴리스
+    // 모든 윈도우에서 GPU 디바이스 릴리스 (RenderDevice 소멸 전에 수행)
     if (window_subsystem)
     {
         window_subsystem->ForEachWindow([this](SDL_WindowID, SDL_Window* window, const WindowDesc&)
         {
-            SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
+            SDL_ReleaseWindowFromGPUDevice(render_device->GetRawDevice(), window);
         });
     }
 
-    SDL_DestroyGPUDevice(gpu_device);
-    gpu_device = nullptr;
+    // RenderDevice 소멸자에서 SDL_DestroyGPUDevice를 호출
+    render_device.reset();
 }
 
 void RenderSubsystem::RenderFrame() const
@@ -160,7 +161,7 @@ void RenderSubsystem::RenderFrame() const
         }
 
         // Command Buffer 가져오기
-        SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(gpu_device);
+        SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(render_device->GetRawDevice());
         if (!command_buffer)
         {
             render_graph->Clear();
@@ -221,12 +222,12 @@ void RenderSubsystem::SubmitCommands() const
 // ReSharper disable once CppMemberFunctionMayBeConst
 void RenderSubsystem::OnWindowCreated(SDL_WindowID window_id, SDL_Window* window, const WindowDesc& desc)
 {
-    if (!gpu_device)
+    if (!render_device)
     {
         return;
     }
 
-    if (!SDL_ClaimWindowForGPUDevice(gpu_device, window))
+    if (!SDL_ClaimWindowForGPUDevice(render_device->GetRawDevice(), window))
     {
         ConsoleLog(ELogLevel::Warning, "SDL_ClaimWindowForGPUDevice failed for window {}: {}", window_id, SDL_GetError());
         return;
@@ -237,7 +238,7 @@ void RenderSubsystem::OnWindowCreated(SDL_WindowID window_id, SDL_Window* window
     );
     const SDL_GPUPresentMode present_mode = desc.present_mode.ValueOr(DetermineBestPresentMode(window));
 
-    if (!SDL_SetGPUSwapchainParameters(gpu_device, window, composition, present_mode))
+    if (!SDL_SetGPUSwapchainParameters(render_device->GetRawDevice(), window, composition, present_mode))
     {
         ConsoleLog(ELogLevel::Warning, "SDL_SetGPUSwapchainParameters failed for window {}: {}", window_id, SDL_GetError());
     }
@@ -246,12 +247,12 @@ void RenderSubsystem::OnWindowCreated(SDL_WindowID window_id, SDL_Window* window
 // ReSharper disable once CppMemberFunctionMayBeConst
 void RenderSubsystem::OnWindowDestroyed([[maybe_unused]] SDL_WindowID window_id, SDL_Window* window)
 {
-    if (!gpu_device)
+    if (!render_device)
     {
         return;
     }
 
-    SDL_ReleaseWindowFromGPUDevice(gpu_device, window);
+    SDL_ReleaseWindowFromGPUDevice(render_device->GetRawDevice(), window);
 }
 
 SDL_GPUSwapchainComposition RenderSubsystem::DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const
@@ -259,7 +260,7 @@ SDL_GPUSwapchainComposition RenderSubsystem::DetermineBestSwapchainComposition(S
     // HDR이 요청되고 지원되는 경우
     if (
         desc.enable_hdr
-        && SDL_WindowSupportsGPUSwapchainComposition(gpu_device, window, SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR)
+        && SDL_WindowSupportsGPUSwapchainComposition(render_device->GetRawDevice(), window, SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR)
     )
     {
         return SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR;
@@ -268,7 +269,7 @@ SDL_GPUSwapchainComposition RenderSubsystem::DetermineBestSwapchainComposition(S
     // 선형 색공간이 선호되고 지원되는 경우
     if (
         desc.prefer_linear_color_space
-        && SDL_WindowSupportsGPUSwapchainComposition(gpu_device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR)
+        && SDL_WindowSupportsGPUSwapchainComposition(render_device->GetRawDevice(), window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR)
     )
     {
         return SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR;
@@ -281,13 +282,13 @@ SDL_GPUSwapchainComposition RenderSubsystem::DetermineBestSwapchainComposition(S
 SDL_GPUPresentMode RenderSubsystem::DetermineBestPresentMode(SDL_Window* window) const
 {
     // MAILBOX가 지원되면 우선 선택 (낮은 지연시간)
-    if (SDL_WindowSupportsGPUPresentMode(gpu_device, window, SDL_GPU_PRESENTMODE_MAILBOX))
+    if (SDL_WindowSupportsGPUPresentMode(render_device->GetRawDevice(), window, SDL_GPU_PRESENTMODE_MAILBOX))
     {
         return SDL_GPU_PRESENTMODE_MAILBOX;
     }
 
     // IMMEDIATE가 지원되면 다음 선택
-    if (SDL_WindowSupportsGPUPresentMode(gpu_device, window, SDL_GPU_PRESENTMODE_IMMEDIATE))
+    if (SDL_WindowSupportsGPUPresentMode(render_device->GetRawDevice(), window, SDL_GPU_PRESENTMODE_IMMEDIATE))
     {
         return SDL_GPU_PRESENTMODE_IMMEDIATE;
     }

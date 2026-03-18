@@ -1,12 +1,13 @@
 #include "Graphics/Compiler/Compiler.h"
 
-#include <ranges>
-
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/ShaderUtils.h"
 
 #include "SDL3_shadercross/SDL_shadercross.h"
+
+#include <ranges>
 
 
 namespace se::editor
@@ -14,7 +15,7 @@ namespace se::editor
 using namespace se;
 
 SDL_GPUShader* CompileFromHLSL(
-    SDL_GPUDevice* device,
+    const graphics::RenderDevice& render_device,
     const Path& shader_path,
     Optional<const Path&> include_dir_opt,
     Optional<ArrayView<const HLSL_Define>> defines_opt
@@ -90,7 +91,7 @@ SDL_GPUShader* CompileFromHLSL(
 
     SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata = nullptr;
 
-    const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(device);
+    const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(render_device.GetRawDevice());
     if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
     {
         bytecode = SDL_ShaderCross_CompileDXILFromHLSL(&hlsl_info, &bytecode_size);
@@ -121,7 +122,7 @@ SDL_GPUShader* CompileFromHLSL(
             .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
             .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
         };
-        SDL_GPUShader* shader = SDL_CreateGPUShader(device, &create_info);
+        SDL_GPUShader* shader = SDL_CreateGPUShader(render_device.GetRawDevice(), &create_info);
         SDL_free(refl_metadata);
         SDL_free(bytecode);
         return shader;

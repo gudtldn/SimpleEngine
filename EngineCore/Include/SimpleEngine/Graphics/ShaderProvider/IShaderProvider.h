@@ -12,6 +12,9 @@
 
 namespace se::graphics
 {
+// forward declaration
+class RenderDevice;
+
 /**
  * Shader 요청에 필요한 정보
  */
@@ -35,7 +38,7 @@ public:
     virtual ~IShaderProvider() = default;
 
     /** 주어진 Request에 따라 Shader를 가져옵니다. */
-    virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const ShaderRequest& request) = 0;
+    virtual SDL_GPUShader* Provide(RenderDevice& render_device, const ShaderRequest& request) = 0;
 };
 }  // namespace se::graphics
 

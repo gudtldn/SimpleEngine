@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraph.h"
@@ -33,7 +34,7 @@ public:
     void SubmitCommands() const;
 
 public:
-    [[nodiscard]] SDL_GPUDevice* GetGpuDevice() const { return gpu_device; }
+    [[nodiscard]] graphics::RenderDevice& GetRenderDevice() const { return *render_device; }
     [[nodiscard]] graphics::PSOManager& GetPSOManager() const { return *pso_manager; }
     [[nodiscard]] graphics::RenderGraph& GetRenderGraph() const { return *render_graph; }
     [[nodiscard]] graphics::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
@@ -50,8 +51,7 @@ private:
     void OnWindowDestroyed(SDL_WindowID window_id, SDL_Window* window);
 
 private:
-    SDL_GPUDevice* gpu_device = nullptr;
-
+    std::unique_ptr<graphics::RenderDevice> render_device;
     std::unique_ptr<graphics::RenderGraph> render_graph;
     std::unique_ptr<graphics::PSOManager> pso_manager;
     std::unique_ptr<graphics::GpuResourceManager> resource_manager;

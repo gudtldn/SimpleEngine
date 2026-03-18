@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -12,6 +11,9 @@
 
 namespace se::graphics
 {
+// forward declaration
+class RenderDevice;
+
 /**
  * 렌더링 파이프라인에서 일시적으로 필요한 텍스처를 재사용하기 위한 Pool
  */
@@ -27,7 +29,7 @@ private:
     };
 
 public:
-    explicit FrameResourcePool(SDL_GPUDevice* in_device);
+    explicit FrameResourcePool(RenderDevice& in_render_device);
     ~FrameResourcePool();
 
     FrameResourcePool(const FrameResourcePool&) = delete;
@@ -60,7 +62,7 @@ private:
     static void ReleaseResourceInternal(PoolEntry<T>& entry, T* resource);
 
 private:
-    SDL_GPUDevice* device;
+    RenderDevice* render_device;
 
     HashMap<SDL_GPUTextureCreateInfo, PoolEntry<SDL_GPUTexture>> texture_pool;
     HashMap<SDL_GPUBufferCreateInfo, PoolEntry<SDL_GPUBuffer>> buffer_pool;
@@ -90,4 +92,4 @@ void FrameResourcePool::ReleaseResourceInternal(PoolEntry<T>& entry, T* resource
     entry.used_resources.RemoveAtSwap(*remove_idx_opt);
     entry.available_resources.Push(resource);
 }
-}  // namespace se::graphics
+} // namespace se::graphics

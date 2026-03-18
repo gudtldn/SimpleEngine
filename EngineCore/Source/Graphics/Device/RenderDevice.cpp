@@ -28,6 +28,9 @@ RenderDevice::~RenderDevice()
         SDL_ReleaseGPUBuffer(raw_device, resource.handle);
     });
     buffers.Clear();
+
+    // SDL_GPUDevice 정리
+    SDL_DestroyGPUDevice(raw_device);
 }
 
 RID RenderDevice::CreateTexture(const SDL_GPUTextureCreateInfo& desc)

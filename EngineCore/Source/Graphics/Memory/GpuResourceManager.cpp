@@ -1,17 +1,17 @@
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 
-#include <cmath>
-
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <cmath>
 
 
 namespace se::graphics
 {
-GpuResourceManager::GpuResourceManager(SDL_GPUDevice* in_device)
-    : device(in_device)
+GpuResourceManager::GpuResourceManager(RenderDevice& in_render_device)
+    : render_device(&in_render_device)
 {
-    SE_ASSERT(device, "GPU device is null!");
 }
 
 GpuResourceManager::~GpuResourceManager()
@@ -21,7 +21,7 @@ GpuResourceManager::~GpuResourceManager()
     {
         if (gpu_texture.IsValid())
         {
-            SDL_ReleaseGPUTexture(device, gpu_texture.texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), gpu_texture.texture);
         }
     }
     texture_map.Clear();
@@ -62,7 +62,7 @@ bool GpuResourceManager::UploadMesh(
     };
 
     // TODO: transfer_buffer를 매번 할당하는 대신, 추후 Ring Buffer 방식으로 개선
-    SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
+    SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &transfer_info);
     if (!transfer_buffer)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create Transfer Buffer: {}", SDL_GetError());
@@ -70,7 +70,7 @@ bool GpuResourceManager::UploadMesh(
     }
 
     // 메모리 맵핑 및 복사 (CPU -> Transfer Buffer)
-    if (void* mapped_ptr = SDL_MapGPUTransferBuffer(device, transfer_buffer, false))
+    if (void* mapped_ptr = SDL_MapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer, false))
     {
         uint8* cursor = static_cast<uint8*>(mapped_ptr);
 
@@ -83,12 +83,12 @@ bool GpuResourceManager::UploadMesh(
             std::memcpy(cursor + in_vertex_size, in_index_data, in_index_size);
         }
 
-        SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+        SDL_UnmapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
     }
     else
     {
         ConsoleLog(ELogLevel::Error, "Failed to map Transfer Buffer: {}", SDL_GetError());
-        SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+        SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
         return false;
     }
 
@@ -109,7 +109,7 @@ bool GpuResourceManager::UploadMesh(
         SDL_UploadToGPUBuffer(copy_pass, &src_loc, &dst_loc, false);
     }
     SDL_EndGPUCopyPass(copy_pass);
-    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
 
     slice_map.Insert(in_id, slice);
     return true;
@@ -184,7 +184,7 @@ bool GpuResourceManager::UploadTexture(
         .sample_count = SDL_GPU_SAMPLECOUNT_1
     };
 
-    SDL_GPUTexture* texture = SDL_CreateGPUTexture(device, &create_info);
+    SDL_GPUTexture* texture = SDL_CreateGPUTexture(render_device->GetRawDevice(), &create_info);
     if (!texture)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create GPU texture: {}", SDL_GetError());
@@ -198,24 +198,24 @@ bool GpuResourceManager::UploadTexture(
         .size = buffer_size
     };
 
-    SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(device, &transfer_info);
+    SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &transfer_info);
     if (!transfer_buffer)
     {
-        SDL_ReleaseGPUTexture(device, texture);
+        SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
         SDL_DestroySurface(converted_surface);
         return false;
     }
 
     // 메모리 맵핑 및 복사 (CPU -> Transfer Buffer)
-    if (void* mapped_ptr = SDL_MapGPUTransferBuffer(device, transfer_buffer, false))
+    if (void* mapped_ptr = SDL_MapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer, false))
     {
         std::memcpy(mapped_ptr, converted_surface->pixels, buffer_size);
-        SDL_UnmapGPUTransferBuffer(device, transfer_buffer);
+        SDL_UnmapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
     }
     else
     {
-        SDL_ReleaseGPUTexture(device, texture);
-        SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+        SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
+        SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
         SDL_DestroySurface(converted_surface);
         return false;
     }
@@ -248,7 +248,7 @@ bool GpuResourceManager::UploadTexture(
         SDL_GenerateMipmapsForGPUTexture(in_cmd, texture);
     }
 
-    SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+    SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
     SDL_DestroySurface(converted_surface); // 변환된 임시 Surface 해제
 
     texture_map.Insert(in_id, {
@@ -271,7 +271,7 @@ void GpuResourceManager::UnloadTexture(const asset::AssetId& in_id)
     {
         if (texture_opt->IsValid())
         {
-            SDL_ReleaseGPUTexture(device, texture_opt->texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture_opt->texture);
         }
         texture_map.Remove(in_id);
     }
@@ -297,7 +297,7 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
     // Geometry용 Usage: Vertex + Index (Unified)
     // 필요하다면 Storage Buffer Read 플래그도 추가 가능 (SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ)
     constexpr SDL_GPUBufferUsageFlags usage = SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_INDEX;
-    geometry_blocks.Emplace(device, new_block_size, usage);
+    geometry_blocks.Emplace(render_device, new_block_size, usage);
     GpuMemoryBlock& new_block = geometry_blocks.Back().Value();
 
     GpuBufferSlice slice;
