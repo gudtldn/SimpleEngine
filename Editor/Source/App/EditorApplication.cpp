@@ -14,7 +14,7 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
-#include "SimpleEngine/Graphics/View/RenderView.h"
+#include "SimpleEngine/Graphics/View/FramePacket.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 
@@ -131,40 +131,45 @@ void EditorApplication::Render()
         return;
     }
 
+    const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
+        se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
+
+    // 1. FramePacket 조립
+    se::graphics::FramePacket frame_packet;
+    frame_packet.scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
+
+    se::graphics::RenderGraph& graph = render_subsystem->GetRenderGraph();
+    for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
     {
-        const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
-            se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
-
-        // ECS World 렌더링 데이터 스냅샷 (프레임당 1회)
-        se::graphics::SceneDrawData scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
-        const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
-
-        se::graphics::RenderGraph& graph = render_subsystem->GetRenderGraph();
-        for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
+        if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
         {
-            if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
-            {
-                const StringName color_target_name = viewport_id;
-                graph.ImportTexture(color_target_name, info.color_texture);
+            const StringName color_target_name = viewport_id;
+            graph.ImportTexture(color_target_name, info.color_texture);
 
-                const se::graphics::RenderView render_view = {
-                    .view_matrix = info.view_matrix,
-                    .projection_matrix = info.projection_matrix,
-                    .color_target_name = color_target_name,
-                    .depth_target_name = StringName{ se::String::Format("{}_Depth", viewport_id.ToString()) },
-                    .width = info.width,
-                    .height = info.height,
-                };
-
-                graph.AddPass<se::graphics::ForwardScenePass>(
-                    scene_draw_data,
-                    render_view,
-                    gpu_manager
-                );
-            }
+            frame_packet.render_views.Push({
+                .view_matrix = info.view_matrix,
+                .projection_matrix = info.projection_matrix,
+                .color_target_name = color_target_name,
+                .depth_target_name = StringName{ se::String::Format("{}_Depth", viewport_id.ToString()) },
+                .width = info.width,
+                .height = info.height,
+            });
         }
-        graph.AddPass<EditorUIPass>();
     }
+
+    // 2. FramePacket 기반으로 렌더 패스 추가
+    const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    for (const se::graphics::RenderView& view : frame_packet.render_views)
+    {
+        graph.AddPass<se::graphics::ForwardScenePass>(
+            frame_packet.scene_draw_data,
+            view,
+            gpu_manager
+        );
+    }
+    graph.AddPass<EditorUIPass>();
+
+    // frame_packet이 살아있는 동안 실행해야 함. (ForwardScenePass가 const& 참조)
     render_subsystem->RenderFrame();
 }
 }  // namespace se::editor
