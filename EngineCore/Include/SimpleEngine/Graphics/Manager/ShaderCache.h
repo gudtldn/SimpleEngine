@@ -15,7 +15,7 @@ class SE_CORE_API ShaderCache
 {
 public:
     explicit ShaderCache(
-        SDL_GPUDevice* in_device,
+        RenderDevice& in_render_device,
         std::unique_ptr<IShaderProvider> init_provider = std::make_unique<PrecompiledShaderProvider>()
     );
     ~ShaderCache();
@@ -37,7 +37,7 @@ public:
     void ClearCache();
 
 private:
-    SDL_GPUDevice* device;
+    RenderDevice* render_device;
     std::unique_ptr<IShaderProvider> provider;
 
     HashMap<ShaderRequest, SDL_GPUShader*> shader_cache;

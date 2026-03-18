@@ -9,12 +9,15 @@
 
 #include "SDL3/SDL_gpu.h"
 
+// forward declaration
+namespace se
+{
+namespace graphics{ class RenderDevice; }
+namespace editor{ class ViewportPanel; }
+}
 
 namespace se::editor
 {
-class ViewportPanel;
-
-
 /**
  * Viewport Render Data
  */
@@ -48,7 +51,7 @@ public:
     [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetActiveViewportInfo() const { return viewport_data; }
 
 private:
-    SDL_GPUDevice* gpu_device = nullptr;
+    graphics::RenderDevice* render_device = nullptr;
     HashMap<StringName, ViewportRenderInfo> viewport_data;
 };
 }  // namespace se::editor

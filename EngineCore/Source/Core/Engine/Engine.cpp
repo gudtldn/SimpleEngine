@@ -1,7 +1,5 @@
 #include "SimpleEngine/Core/Engine/Engine.h"
 
-#include <ranges>
-
 #include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
@@ -20,6 +18,8 @@
 
 #include "SDL3/SDL_gpu.h"
 #include "tracy/Tracy.hpp"
+
+#include <ranges>
 
 
 namespace se
@@ -235,7 +235,7 @@ void Engine::ReleaseAllSubsystems()
     // RenderSubsystem이 있다면, 해제하기전에 GPU 대기
     if (const RenderSubsystem* render_subsystem = GetSubsystem<const RenderSubsystem>())
     {
-        SDL_WaitForGPUIdle(render_subsystem->GetGpuDevice());
+        SDL_WaitForGPUIdle(render_subsystem->GetRenderDevice().GetRawDevice());
     }
 
     for (SubsystemBase* sub_system : sorted_subsystems | std::views::reverse)

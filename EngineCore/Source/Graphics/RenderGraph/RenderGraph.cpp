@@ -1,25 +1,27 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraph.h"
 
-#include <algorithm>
-#include <memory>
-#include <ranges>
-#include <utility>
-
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Queue.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/Cast.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include "tracy/Tracy.hpp"
 
+#include <algorithm>
+#include <memory>
+#include <ranges>
+#include <utility>
+
+
 namespace se::graphics
 {
-RenderGraph::RenderGraph(SDL_GPUDevice* in_device)
-    : device(in_device)
-    , resource_pool(in_device)
+RenderGraph::RenderGraph(RenderDevice& in_render_device)
+    : render_device(&in_render_device)
+    , resource_pool(in_render_device)
 {
 }
 

@@ -1,14 +1,16 @@
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 
-#include <ranges>
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
+
+#include <ranges>
 
 
 namespace se::graphics
 {
-PSOManager::PSOManager(SDL_GPUDevice* in_device)
-    : device(in_device)
-    , shader_cache(in_device)
+PSOManager::PSOManager(RenderDevice& in_render_device)
+    : render_device(&in_render_device)
+    , shader_cache(in_render_device)
 {
 }
 
@@ -16,13 +18,13 @@ PSOManager::~PSOManager()
 {
     for (SDL_GPUGraphicsPipeline* pipeline : cached_graphics_pipelines | std::views::values)
     {
-        SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
+        SDL_ReleaseGPUGraphicsPipeline(render_device->GetRawDevice(), pipeline);
     }
     cached_graphics_pipelines.Clear();
 
     for (SDL_GPUComputePipeline* pipeline : cached_compute_pipelines | std::views::values)
     {
-        SDL_ReleaseGPUComputePipeline(device, pipeline);
+        SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), pipeline);
     }
     cached_compute_pipelines.Clear();
 }
@@ -60,7 +62,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         .props = create_info.props
     };
 
-    SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(device, &info);
+    SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(render_device->GetRawDevice(), &info);
     if (!pipeline)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create graphics pipeline!, Err: {}", SDL_GetError());
@@ -73,7 +75,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
 
 SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const ComputePipelineCreateInfo& create_info)
 {
-    return SDL_CreateGPUComputePipeline(device, &create_info.compute_pipeline_create_info);
+    return SDL_CreateGPUComputePipeline(render_device->GetRawDevice(), &create_info.compute_pipeline_create_info);
 }
 
 void PSOManager::EndFrame()

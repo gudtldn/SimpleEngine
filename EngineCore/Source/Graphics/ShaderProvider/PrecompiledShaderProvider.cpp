@@ -6,7 +6,7 @@
 
 namespace se::graphics
 {
-SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
+SDL_GPUShader* PrecompiledShaderProvider::Provide(RenderDevice& render_device, const ShaderRequest& request)
 {
     if constexpr (SE_BUILD_DEBUG)
     {
@@ -29,6 +29,6 @@ SDL_GPUShader* PrecompiledShaderProvider::Provide(SDL_GPUDevice* device, const S
         }
     }
 
-    return graphics::CompileFromSPIRV(device, request.source_path);
+    return CompileFromSPIRV(render_device, request.source_path);
 }
 }  // namespace se::graphics

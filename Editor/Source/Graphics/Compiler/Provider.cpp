@@ -1,6 +1,6 @@
 #include "Graphics/Compiler/Provider.h"
-
 #include "Graphics/Compiler/Compiler.h"
+
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
@@ -12,7 +12,7 @@ using namespace se::graphics;
 
 namespace se::editor
 {
-SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const ShaderRequest& request)
+SDL_GPUShader* CompilingShaderProvider::Provide(graphics::RenderDevice& render_device, const ShaderRequest& request)
 {
     const Optional ext_opt = request.source_path.Extension();
     if (!ext_opt.HasValue())
@@ -41,7 +41,7 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
         }
 
         return CompileFromHLSL(
-            device,
+            render_device,
             request.source_path,
             request.hlsl_include_dir_opt,
             defines_opt
@@ -55,7 +55,7 @@ SDL_GPUShader* CompilingShaderProvider::Provide(SDL_GPUDevice* device, const Sha
         || ext.Contains(".spvt")
     )
     {
-        return graphics::CompileFromSPIRV(device, request.source_path);
+        return graphics::CompileFromSPIRV(render_device, request.source_path);
     }
 
     return nullptr;

@@ -1,5 +1,4 @@
 #pragma once
-#include <concepts>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
@@ -7,6 +6,8 @@
 #include "SimpleEngine/Graphics/Traits/CreateInfoHash.h"
 
 #include "SDL3/SDL_gpu.h"
+
+#include <concepts>
 
 
 namespace se::graphics
@@ -17,7 +18,7 @@ namespace se::graphics
 class SE_CORE_API PSOManager
 {
 public:
-    explicit PSOManager(SDL_GPUDevice* in_device);
+    explicit PSOManager(RenderDevice& in_render_device);
     ~PSOManager();
 
     /** 캐싱된 SDL_GPUGraphicsPipeline* 를 가져오거나, 새로 생성합니다. */
@@ -35,7 +36,7 @@ public:
     void EndFrame();
 
 private:
-    SDL_GPUDevice* device;
+    RenderDevice* render_device;
     ShaderCache shader_cache;
 
     HashMap<GraphicsPipelineCreateInfo, SDL_GPUGraphicsPipeline*> cached_graphics_pipelines;

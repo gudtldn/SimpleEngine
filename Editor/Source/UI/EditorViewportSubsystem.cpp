@@ -1,6 +1,7 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 
@@ -14,24 +15,24 @@ SE_END_REFLECT(EditorViewportSubsystem)
 
 bool EditorViewportSubsystem::Initialize()
 {
-    gpu_device = GetSubsystemChecked<RenderSubsystem>().GetGpuDevice();
-    return gpu_device != nullptr;
+    render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
+    return true;
 }
 
 void EditorViewportSubsystem::Release()
 {
-    if (gpu_device)
+    if (render_device)
     {
         for (const ViewportRenderInfo& info : viewport_data | std::views::values)
         {
             if (info.color_texture)
             {
-                SDL_ReleaseGPUTexture(gpu_device, info.color_texture);
+                SDL_ReleaseGPUTexture(render_device->GetRawDevice(), info.color_texture);
             }
         }
     }
     viewport_data.Clear();
-    gpu_device = nullptr;
+    render_device = nullptr;
 }
 
 SDL_GPUTexture* EditorViewportSubsystem::UpdateAndGetViewportTexture(const StringName& viewport_id, uint32 new_width, uint32 new_height)
@@ -43,7 +44,7 @@ SDL_GPUTexture* EditorViewportSubsystem::UpdateAndGetViewportTexture(const Strin
             ViewportRenderInfo& info = data_opt.Value();
             if (info.color_texture)
             {
-                SDL_ReleaseGPUTexture(gpu_device, info.color_texture);
+                SDL_ReleaseGPUTexture(render_device->GetRawDevice(), info.color_texture);
                 info.color_texture = nullptr;
             }
             return nullptr;
@@ -56,7 +57,7 @@ SDL_GPUTexture* EditorViewportSubsystem::UpdateAndGetViewportTexture(const Strin
     {
         if (info.color_texture)
         {
-            SDL_ReleaseGPUTexture(gpu_device, info.color_texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), info.color_texture);
         }
 
         const SDL_GPUTextureCreateInfo color_create_info = {
@@ -72,7 +73,7 @@ SDL_GPUTexture* EditorViewportSubsystem::UpdateAndGetViewportTexture(const Strin
             .num_levels = 1,
             .sample_count = SDL_GPU_SAMPLECOUNT_1,
         };
-        info.color_texture = SDL_CreateGPUTexture(gpu_device, &color_create_info);
+        info.color_texture = SDL_CreateGPUTexture(render_device->GetRawDevice(), &color_create_info);
         info.width = new_width;
         info.height = new_height;
     }

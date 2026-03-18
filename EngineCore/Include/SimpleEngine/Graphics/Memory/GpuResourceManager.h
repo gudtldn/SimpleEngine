@@ -11,6 +11,9 @@
 
 namespace se::graphics
 {
+// forward declaration
+class RenderDevice;
+
 /** 텍스처 업로드 시 적용할 옵션 */
 struct TextureUploadSettings
 {
@@ -40,7 +43,7 @@ struct TextureUploadSettings
 class SE_CORE_API GpuResourceManager
 {
 public:
-    explicit GpuResourceManager(SDL_GPUDevice* in_device);
+    explicit GpuResourceManager(RenderDevice& in_render_device);
     ~GpuResourceManager();
 
     // 이동 & 복사 생성자 제거
@@ -126,7 +129,7 @@ private:
     // TODO: 추후 Unload한 Mesh에 대해서 Defragmentation을 적용 후 VRAM 최적화
 
 private:
-    SDL_GPUDevice* device = nullptr;
+    RenderDevice* render_device;
 
     // Geometry(Vertex+Index)용 메모리 블록 목록
     Array<GpuMemoryBlock> geometry_blocks;

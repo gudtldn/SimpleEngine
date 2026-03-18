@@ -9,6 +9,9 @@
 
 namespace se::graphics
 {
+// forward declaration
+class RenderDevice;
+
 /**
  * GPU VRAM의 거대한 단일 할당 블록을 관리하는 클래스
  * 하나의 SDL_GPUBuffer를 소유하며, 이를 작은 Slice로 나누어 제공합니다.
@@ -16,7 +19,7 @@ namespace se::graphics
 class SE_CORE_API GpuMemoryBlock
 {
 public:
-    GpuMemoryBlock(SDL_GPUDevice* in_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage);
+    GpuMemoryBlock(RenderDevice* in_render_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage);
     ~GpuMemoryBlock();
 
     // 복사 방지
@@ -37,7 +40,7 @@ public:
     [[nodiscard]] SDL_GPUBuffer* GetNativeBuffer() const { return buffer; }
 
 private:
-    SDL_GPUDevice* device = nullptr;
+    RenderDevice* render_device = nullptr;
     SDL_GPUBuffer* buffer = nullptr; // GPU Buffer 리소스
 
     SDL_GPUBufferUsageFlags usage_flags = 0; // Buffer의 사용 용도

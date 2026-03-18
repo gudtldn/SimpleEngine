@@ -1,13 +1,15 @@
 #include "SimpleEngine/Graphics/Manager/ShaderCache.h"
 
-#include <ranges>
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
+
+#include <ranges>
 
 
 namespace se::graphics
 {
-ShaderCache::ShaderCache(SDL_GPUDevice* in_device, std::unique_ptr<IShaderProvider> init_provider)
-    : device(in_device)
+ShaderCache::ShaderCache(RenderDevice& in_render_device, std::unique_ptr<IShaderProvider> init_provider)
+    : render_device(&in_render_device)
     , provider(std::move(init_provider))
 {
 }
@@ -24,7 +26,7 @@ SDL_GPUShader* ShaderCache::GetOrCreate(const ShaderRequest& request)
         return *cache_opt;
     }
 
-    if (SDL_GPUShader* shader = provider->Provide(device, request))
+    if (SDL_GPUShader* shader = provider->Provide(*render_device, request))
     {
         shader_cache[request] = shader;
         return shader;
@@ -38,7 +40,7 @@ void ShaderCache::ClearCache()
 {
     for (SDL_GPUShader* cache : shader_cache | std::views::values)
     {
-        SDL_ReleaseGPUShader(device, cache);
+        SDL_ReleaseGPUShader(render_device->GetRawDevice(), cache);
     }
     shader_cache.Clear();
 }

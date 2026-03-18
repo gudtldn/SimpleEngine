@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Graphics/ShaderProvider/IShaderProvider.h"
 #include "SDL3/SDL_gpu.h"
 
@@ -12,6 +13,6 @@ class CompilingShaderProvider : public se::graphics::IShaderProvider
 {
 public:
     /** HLSL 컴파일 및, SPIR-V을 가져옵니다. */
-    virtual SDL_GPUShader* Provide(SDL_GPUDevice* device, const se::graphics::ShaderRequest& request) override;
+    virtual SDL_GPUShader* Provide(se::graphics::RenderDevice& render_device, const se::graphics::ShaderRequest& request) override;
 };
 }  // namespace se::editor

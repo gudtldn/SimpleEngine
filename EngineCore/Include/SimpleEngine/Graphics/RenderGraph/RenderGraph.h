@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/StringName.h"
@@ -8,15 +7,18 @@
 #include "SimpleEngine/Graphics/RenderGraph/RGResources.h"
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 
+#include <memory>
+
 
 namespace se::graphics
 {
 // forward declaration
-struct GraphicsPipelineCreateInfo;
 struct ComputePipelineCreateInfo;
+struct GraphicsPipelineCreateInfo;
 class PSOManager;
-class RenderGraphBuilder;
 class RGExecutionContext;
+class RenderDevice;
+class RenderGraphBuilder;
 
 
 /** 그래프 내의 렌더 패스를 표현하는 내부 구조체 */
@@ -55,10 +57,10 @@ class SE_CORE_API RenderGraph
     friend class RGExecutionContext;
 
 public:
-    explicit RenderGraph(SDL_GPUDevice* in_device);
+    explicit RenderGraph(RenderDevice& in_render_device);
     ~RenderGraph();
 
-    // 복사 생성자는 제거
+    // 복사만 불가
     RenderGraph(const RenderGraph&) = delete;
     RenderGraph& operator=(const RenderGraph&) = delete;
     RenderGraph(RenderGraph&&) noexcept = default;
@@ -87,7 +89,7 @@ private:
     RGResourceHandle RegisterResource(RGResourceNode&& node);
 
 private:
-    SDL_GPUDevice* device;
+    RenderDevice* render_device;
     FrameResourcePool resource_pool;
 
     // StringName으로 리소스 핸들을 찾기 위한 Map
