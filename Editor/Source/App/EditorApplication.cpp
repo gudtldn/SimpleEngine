@@ -13,6 +13,8 @@
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
+#include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
+#include "SimpleEngine/Graphics/View/RenderView.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 
@@ -133,7 +135,10 @@ void EditorApplication::Render()
         const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
             se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
-        se::ecs::World& world_ref = *world_subsystem.GetWorld();
+        // ECS World 렌더링 데이터 스냅샷 (프레임당 1회)
+        se::graphics::SceneDrawData scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
+        const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+
         se::graphics::RenderGraph& graph = render_subsystem->GetRenderGraph();
         for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
         {
@@ -142,15 +147,19 @@ void EditorApplication::Render()
                 const StringName color_target_name = viewport_id;
                 graph.ImportTexture(color_target_name, info.color_texture);
 
-                // TODO: 나중에 에디터 카메라나, 월드 카메라 분기 처리
-                const Matrix4x4 vp_matrix_to_render = info.view_matrix * info.projection_matrix;
+                const se::graphics::RenderView render_view = {
+                    .view_matrix = info.view_matrix,
+                    .projection_matrix = info.projection_matrix,
+                    .color_target_name = color_target_name,
+                    .depth_target_name = StringName{ se::String::Format("{}_Depth", viewport_id.ToString()) },
+                    .width = info.width,
+                    .height = info.height,
+                };
 
-                const StringName depth_target_name = se::String::Format("{}_Depth", viewport_id.ToString());
                 graph.AddPass<se::graphics::ForwardScenePass>(
-                    world_ref,
-                    vp_matrix_to_render,
-                    color_target_name, depth_target_name,
-                    info.width, info.height
+                    scene_draw_data,
+                    render_view,
+                    gpu_manager
                 );
             }
         }

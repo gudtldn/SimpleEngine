@@ -1,76 +1,61 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
-#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/ECS/Query.h"
-#include "SimpleEngine/ECS/World.h"
-#include "SimpleEngine/ECS/Components/Camera3dComponent.h"
-#include "SimpleEngine/ECS/Components/MaterialComponent.h"
-#include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
-#include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
-#include "SimpleEngine/Graphics/RenderSubsystem.h"
+#include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraph.h"
-#include "SimpleEngine/Utility/SubsystemUtils.h"
+#include "SimpleEngine/Graphics/Scene/SceneDrawData.h"
+#include "SimpleEngine/Graphics/View/RenderView.h"
 
 #include "SDL3/SDL_gpu.h"
-
-using namespace se::math;
-using namespace se::ecs;
 
 
 namespace se::graphics
 {
+using namespace se::math;
+
 SE_BEGIN_REFLECT(ForwardScenePass, meta::Internal)
 SE_END_REFLECT(ForwardScenePass)
 
 ForwardScenePass::ForwardScenePass(
-    World& in_world_ref,
-    const Matrix4x4& in_vp_matrix,
-    const StringName& in_color_target_name,
-    const StringName& in_depth_target_name,
-    uint32 in_width, uint32 in_height
+    const SceneDrawData& in_draw_data,
+    const RenderView& in_render_view,
+    const GpuResourceManager& in_gpu_manager
 )
-    : vp_matrix(in_vp_matrix)
-    , world_ref(in_world_ref)
-    , color_target_name(in_color_target_name)
-    , depth_target_name(in_depth_target_name)
-    , width(in_width)
-    , height(in_height)
+    : draw_data(in_draw_data)
+    , render_view(in_render_view)
+    , gpu_manager(in_gpu_manager)
 {
 }
 
 void ForwardScenePass::Setup(RenderGraphBuilder& builder)
 {
-    // 1. 월드에서 렌더링에 필요한 Entity목록을 가져옴
-    // 엔티티의 렌더 정보 생성
-    draw_infos.Clear();
+    // VP 행렬 계산 (per-view)
+    const Matrix4x4 vp_matrix = render_view.view_matrix * render_view.projection_matrix;
 
-    Query entity_query = world_ref.QueryEntities<const TransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
-    for (const auto [transform, mesh, material] : entity_query)
+    // DrawCommand -> EntityDrawInfo 변환 (MVP 사전 계산)
+    draw_infos.Clear();
+    for (const DrawCommand& cmd : draw_data.opaque_commands)
     {
         draw_infos.Push({
-            .mvp_matrix = TransformUtility::MakeModelMatrix(
-                transform.position,
-                transform.rotation,
-                transform.scale
-            ) * vp_matrix,
-            .mesh_id = mesh.mesh_id,
-            .material_id = material.material_id,
+            .mvp_matrix = cmd.model_matrix * vp_matrix,
+            .mesh_id = cmd.mesh_id,
+            .material_id = cmd.material_id,
         });
     }
 
-    // 2. Pass에서 사용할 Texture를 생성
-    color_target_handle = builder.GetResourceHandleByName(color_target_name);
+    // 렌더 타겟 설정
+    color_target_handle = builder.GetResourceHandleByName(render_view.color_target_name);
     builder.Write(color_target_handle);
 
-    depth_target_handle = builder.CreateTexture(depth_target_name, {
+    depth_target_handle = builder.CreateTexture(render_view.depth_target_name, {
         .type = SDL_GPU_TEXTURETYPE_2D,
         .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,  // 24비트 깊이버퍼 + 8비트 스텐실버퍼
         .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, // 이 텍스처는 깊이/스텐실 버퍼로만 사용될 것임을 의미
-        .width = width,
-        .height = height,
+        .width = render_view.width,
+        .height = render_view.height,
         .layer_count_or_depth = 1,
         .num_levels = 1,
         .sample_count = SDL_GPU_SAMPLECOUNT_1,
@@ -80,15 +65,15 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
 
 void ForwardScenePass::Execute(RGExecutionContext& context)
 {
-    const RenderSubsystem& render_subsystem = GetSubsystemChecked<RenderSubsystem>();
-    const GpuResourceManager& gpu_manager = render_subsystem.GetResourceManager();
-
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 
     SDL_GPUTexture* color_target = context.GetActualTexture(color_target_handle);
     SDL_GPUTexture* depth_target = context.GetActualTexture(depth_target_handle);
 
-    if (!(color_target && depth_target)) { return; }
+    if (!(color_target && depth_target))
+    {
+        return;
+    }
 
     const SDL_GPUColorTargetInfo color_target_info[] = {
         {
@@ -100,7 +85,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             .store_op = SDL_GPU_STOREOP_STORE,
         }
     };
-    const SDL_GPUDepthStencilTargetInfo depth_stencil_target_info{
+    const SDL_GPUDepthStencilTargetInfo depth_stencil_target_info = {
         .texture = depth_target,
         .clear_depth = 1.0f,
         .load_op = SDL_GPU_LOADOP_CLEAR,
@@ -110,7 +95,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         .clear_stencil = 0,
     };
 
-    SDL_GPUGraphicsPipeline* pipeline;
+    SDL_GPUGraphicsPipeline* pipeline = [&context]
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
         static const Path VSPath = VFS::ToPath(VPath("CoreShader://Default.vert.hlsl"));
@@ -123,7 +108,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
             {
                 .slot = 0,                                    // 이 버퍼가 바인딩될 슬롯 번호 (셰이더에서 참조)
-                .pitch = sizeof(Vertex),                 // 정점 하나가 차지하는 총 메모리 크기 (stride)
+                .pitch = sizeof(Vertex),                      // 정점 하나가 차지하는 총 메모리 크기 (stride)
                 .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX, // 버퍼 데이터가 정점마다 바뀌는지(VERTEX) 또는 인스턴스마다 바뀌는지(INSTANCE)
             },
         };
@@ -137,7 +122,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 .location = 0,                                // 셰이더 내에서의 위치(location). HLSL의 :POSITION에 해당
                 .buffer_slot = 0,                             // 이 속성이 어느 버퍼(vertex_buffer_desc)에 속하는지
                 .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, // 데이터 타입 (float 3개)
-                .offset = offsetof(Vertex, position)     // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
+                .offset = offsetof(Vertex, position)          // Vertex 구조체 내에서 이 속성이 시작되는 위치(offset)
             },
             {
                 .location = 1,
@@ -160,7 +145,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         };
 
         /**
-         * 컬러 렌더 타겟에 대한 Description
+         * 렌더 타겟에 대한 Description
          * 파이프라인이 어떤 포맷의 텍스처에 렌더링될 것인지, 그리고 어떻게 색상을 혼합(블렌딩)할지 정의
          */
         SDL_GPUColorTargetDescription color_target_desc[] = {
@@ -189,7 +174,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             }
         };
 
-        pipeline = context.GetOrCreateGraphicsPipeline({
+        return context.GetOrCreateGraphicsPipeline({
             // 사용할 셰이더 지정
             .vertex_shader_request = { .source_path = VSPath, },
             .fragment_shader_request = { .source_path = FSPath, },
@@ -231,25 +216,25 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 .has_depth_stencil_target = true,
             },
         });
-    }
+    }();
 
     SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, color_target_info, std::size(color_target_info), &depth_stencil_target_info);
     {
-        // Pipeline 설정
+        // PSO 설정
         SDL_BindGPUGraphicsPipeline(pass, pipeline);
 
         // Viewport/Scissor 설정
         const SDL_GPUViewport viewport = {
             .x = 0.0f, .y = 0.0f,
-            .w = static_cast<float>(width),
-            .h = static_cast<float>(height),
+            .w = static_cast<float>(render_view.width),
+            .h = static_cast<float>(render_view.height),
             .min_depth = 0.0f, .max_depth = 1.0f,
         };
 
         const SDL_Rect scissor = {
             .x = 0, .y = 0,
-            .w = static_cast<int32>(width),
-            .h = static_cast<int32>(height),
+            .w = static_cast<int32>(render_view.width),
+            .h = static_cast<int32>(render_view.height),
         };
 
         SDL_SetGPUViewport(pass, &viewport);
