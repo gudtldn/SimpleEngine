@@ -31,10 +31,17 @@ class SlotMap
 {
     static constexpr uint32 FREE_SENTINEL = std::numeric_limits<uint32>::max();
 
+    /** generation을 1 증가시키되, INVALID_GENERATION(0)은 건너뛰어 1로 wrap합니다. */
+    [[nodiscard]] static constexpr uint32 NextGeneration(uint32 gen) noexcept
+    {
+        const uint32 next = gen + 1;
+        return next == RID::INVALID_GENERATION ? 1 : next;
+    }
+
     struct Slot
     {
         T data{};
-        uint32 generation = 0;
+        uint32 generation = RID::INVALID_GENERATION; // 0: 미사용 초기값(= INVALID). 활성 슬롯의 generation은 항상 1 이상
 
         // free list 연결: 사용 중이면 FREE_SENTINEL, 아니면 다음 free 슬롯 인덱스
         uint32 next_free = FREE_SENTINEL;
@@ -71,7 +78,7 @@ public:
             slot_index = slots.Len();
             slots.Push(Slot{
                 .data = std::forward<U>(value),
-                .generation = 1,
+                .generation = NextGeneration(0),
                 .next_free = FREE_SENTINEL,
                 .occupied = true,
             });
@@ -114,7 +121,7 @@ public:
         Slot& slot = slots[rid.index];
         slot.data = T{};
         slot.occupied = false;
-        ++slot.generation;
+        slot.generation = NextGeneration(slot.generation);
         slot.next_free = free_head;
         free_head = rid.index;
         --count;

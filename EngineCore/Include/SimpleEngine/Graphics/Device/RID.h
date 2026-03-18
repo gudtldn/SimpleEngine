@@ -17,7 +17,7 @@ namespace se::graphics
 struct RID
 {
     static constexpr uint32 INVALID_INDEX = std::numeric_limits<uint32>::max();
-    static constexpr uint32 INVALID_GENERATION = std::numeric_limits<uint32>::max();
+    static constexpr uint32 INVALID_GENERATION = 0;
 
     uint32 index = INVALID_INDEX;
     uint32 generation = INVALID_GENERATION;
