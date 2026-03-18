@@ -100,6 +100,12 @@ private:
 
     // 컴파일 후 정렬된 Pass의 순서
     Array<const RGPassNode*> compiled_passes;
+
+    // 패스 실행 전에 Realize할 리소스 인덱스 목록 (pass_idx로 접근)
+    Array<Array<usize>> resources_to_realize;
+
+    // 패스 실행 후에 Unrealize할 리소스 인덱스 목록 (pass_idx로 접근)
+    Array<Array<usize>> resources_to_unrealize;
 };
 
 /**
