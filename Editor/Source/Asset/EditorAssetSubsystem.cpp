@@ -10,6 +10,7 @@
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Config/EditorSettings.h"
+#include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
@@ -37,6 +38,23 @@ namespace se::editor
 {
 namespace
 {
+/** D&D Import 후 백그라운드 Cook을 위한 코루틴 함수 */
+JobTask<void> MakeImportCookTask(EditorAssetSubsystem& self, VPath vpath)
+{
+    const ScopedTimer timer;
+    const bool success = self.CookAsset(vpath);
+
+    if (success)
+    {
+        ConsoleLog(ELogLevel::Info, "ImportExternalFile: Cook complete {} ({:.1f}ms)", vpath, timer.ElapsedMs());
+    }
+    else
+    {
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: Cook failed for: {}", vpath);
+    }
+    co_return;
+}
+
 /** ScanWorkspace에서 Dirty 파일을 병렬로 Cook하기 위한 코루틴 함수 */
 JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath, std::atomic<usize>& completed, usize total)
 {
@@ -684,27 +702,17 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
         return false;
     }
 
-    // 첫 번째 스캔 스킴의 물리 경로를 드롭 대상 디렉토리로 사용
-    Path content_dir;
-    AssetScanSettings scan_settings;
-    if (auto config_result = ConfigFile::Load("Config://EditorConfig.toml"))
-    {
-        scan_settings = config_result->GetSection<AssetScanSettings>("asset_scan");
-    }
-
-    if (!scan_settings.schemes.IsEmpty())
-    {
-        const String& first_scheme = scan_settings.schemes.Front().Value();
-        content_dir = VFS::ToPath(VPath{ String::Format("{}://", first_scheme) });
-    }
-
+    // AssetBrowser에서 포커싱된 디렉토리를 드롭 대상으로 사용
+    const Path& content_dir = GetSubsystemChecked<EditorSubsystem>().GetSelection().GetActiveContentDir();
     if (content_dir.IsEmpty())
     {
-        ConsoleLog(ELogLevel::Error, "ImportExternalFile: No content directory configured");
+        ConsoleLog(ELogLevel::Error, "ImportExternalFile: No folder selected in Asset Browser");
         return false;
     }
 
-    // 파일을 Content 디렉토리로 복사
+    ConsoleLog(ELogLevel::Info, "ImportExternalFile: Starting import of '{}' -> '{}'", source_path, content_dir);
+
+    // 파일을 대상 디렉토리로 복사
     const Optional<String> filename = source_path.FileName();
     if (!filename)
     {
@@ -723,7 +731,8 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
         return false;
     }
 
-    // .meta 생성 + Cook
+    // TODO: 나중에 여기서 바로 ImportSetting을 바꿀 수 있도록 개선
+    // .meta 생성
     if (!EnsureMetaFile(dest_path))
     {
         ConsoleLog(ELogLevel::Error, "ImportExternalFile: Failed to create .meta for: {}", dest_path);
@@ -737,12 +746,9 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
         return false;
     }
 
-    const bool cook_success = CookAsset(*file_vpath);
-    if (cook_success)
-    {
-        ConsoleLog(ELogLevel::Info, "ImportExternalFile: Successfully imported: {}", *file_vpath);
-    }
-    return cook_success;
+    // Cook은 백그라운드에서 비동기 실행
+    JobSystem::Get().DispatchTask(MakeImportCookTask(*this, *file_vpath));
+    return true;
 }
 
 void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta)
