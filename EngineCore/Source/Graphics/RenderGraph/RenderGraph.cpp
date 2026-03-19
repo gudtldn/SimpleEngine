@@ -261,13 +261,13 @@ void RenderGraph::Compile()
     }
 
     // 5. 리소스 할당/해제 스케줄 구축
+    const usize pass_count = compiled_passes.Len();
+
     resources_to_realize.Clear();
+    resources_to_realize.Resize(pass_count);
+
     resources_to_unrealize.Clear();
-    for (usize i = 0; i < compiled_passes.Len(); ++i)
-    {
-        resources_to_realize.Emplace();
-        resources_to_unrealize.Emplace();
-    }
+    resources_to_unrealize.Resize(pass_count);
 
     for (const auto [idx, node] : resource_nodes | std::views::enumerate)
     {
