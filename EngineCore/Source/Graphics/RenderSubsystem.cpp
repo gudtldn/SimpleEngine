@@ -205,6 +205,7 @@ void RenderSubsystem::RenderFrame() const
     });
 
     pso_manager->EndFrame();
+    render_device->ProcessDeferredDestructions();
 }
 
 void RenderSubsystem::BeginFrame() const
