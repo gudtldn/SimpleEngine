@@ -146,7 +146,6 @@ void Application::MainLoop()
 
     CurrentTime = get_performance_time();
 
-    // ReSharper disable once CppDFAConstantConditions
     while (is_running && !quit_requested)
     {
         ZoneScoped;
@@ -186,7 +185,6 @@ void Application::MainLoop()
                 }
 
                 // 남은 시간은 바쁜 대기로 대기
-                // ReSharper disable once CppEnforceWhileStatementBraces
                 while (get_performance_time() - CurrentTime < TargetFrameTime);
             }
         }

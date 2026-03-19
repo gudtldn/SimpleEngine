@@ -171,7 +171,6 @@ void Engine::Release()
     SDL_Quit();
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void Engine::UpdateFrame(float delta_time)
 {
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
