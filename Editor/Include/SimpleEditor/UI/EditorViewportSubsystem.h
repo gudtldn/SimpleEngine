@@ -6,8 +6,7 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
-
-#include "SDL3/SDL_gpu.h"
+#include "SimpleEngine/Graphics/View/RenderView.h"
 
 // forward declaration
 namespace se
@@ -16,6 +15,7 @@ namespace graphics{ class RenderDevice; }
 namespace editor{ class ViewportPanel; }
 }
 
+
 namespace se::editor
 {
 /**
@@ -23,17 +23,12 @@ namespace se::editor
  */
 struct ViewportRenderInfo
 {
-    SDL_GPUTexture* color_texture = nullptr;
-    uint32 width = 0;
-    uint32 height = 0;
-
-    Matrix4x4 view_matrix = Matrix4x4::Identity();
-    Matrix4x4 projection_matrix = Matrix4x4::Identity();
-    // TODO: 뷰포트별 카메라, 씬 정보 등 추가
+    graphics::RID color_texture;
+    graphics::RenderView render_view;
 };
 
 /**
- * @todo docs
+ * 에디터 내의 뷰포트(씬 렌더링 창) 상태와 렌더링 리소스를 관리하는 Subsystem
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) EditorViewportSubsystem : public SubsystemBase
 {
@@ -44,14 +39,20 @@ public:
     virtual void Release() override;
 
 public:
-    /** TODO: docs */
-    [[nodiscard]] SDL_GPUTexture* UpdateAndGetViewportTexture(const StringName& viewport_id, uint32 new_width, uint32 new_height);
+    /**
+     * 뷰포트의 크기를 갱신합니다.
+     * @note 크기가 변경되었거나 없을 경우 렌더 타겟을 재생성합니다
+     */
+    void UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height);
 
-    /** TODO: docs */
+    /** ImGui로 렌더링하기 위한 TextureID(void*)를 반환합니다. */
+    [[nodiscard]] void* GetViewportTextureID(const StringName& viewport_id) const;
+
+    /** 현재 관리 중인 모든 활성 뷰포트의 렌더링 정보를 반환합니다. */
     [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetActiveViewportInfo() const { return viewport_data; }
 
 private:
     graphics::RenderDevice* render_device = nullptr;
     HashMap<StringName, ViewportRenderInfo> viewport_data;
 };
-}  // namespace se::editor
+} // namespace se::editor

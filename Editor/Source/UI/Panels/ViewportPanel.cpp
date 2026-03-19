@@ -28,7 +28,10 @@ void ViewportPanel::Draw()
             const uint32 width = static_cast<uint32>(viewport_size.x);
             const uint32 height = static_cast<uint32>(viewport_size.y);
 
-            if (SDL_GPUTexture* texture_to_draw = viewport_sys->UpdateAndGetViewportTexture(viewport_id, width, height))
+            // 화면 크기 업데이트
+            viewport_sys->UpdateViewportSize(viewport_id, width, height);
+
+            if (void* texture_to_draw = viewport_sys->GetViewportTextureID(viewport_id))
             {
                 ImGui::Image(texture_to_draw, viewport_size);
             }

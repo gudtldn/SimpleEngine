@@ -143,17 +143,12 @@ void EditorApplication::Render()
     {
         if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
         {
-            const StringName color_target_name = viewport_id;
-            graph.ImportTexture(color_target_name, info.color_texture);
-
-            frame_packet.render_views.Push({
-                .view_matrix = info.view_matrix,
-                .projection_matrix = info.projection_matrix,
-                .color_target_name = color_target_name,
-                .depth_target_name = StringName{ se::String::Format("{}_Depth", viewport_id.ToString()) },
-                .width = info.width,
-                .height = info.height,
-            });
+            if (const auto tex_resource = render_subsystem->GetRenderDevice().GetTexture(info.color_texture))
+            {
+                const StringName color_target_name = info.render_view.color_target_name;
+                graph.ImportTexture(color_target_name, tex_resource->handle);
+            }
+            frame_packet.render_views.Push(info.render_view);
         }
     }
 
