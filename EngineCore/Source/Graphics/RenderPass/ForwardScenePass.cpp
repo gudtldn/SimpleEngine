@@ -292,13 +292,13 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // if (info.material_id.IsValid())
             // {
             //     // 텍스처 조회
-            //     const GpuTexture& albedo = gpu_manager.GetTexture(material.albedo_id);
+            //     const TextureResource& albedo = gpu_manager.GetTexture(material.albedo_id);
             //
             //     // 바인딩 (Sampler + Texture)
             //     if (albedo.IsValid())
             //     {
             //         const SDL_GPUTextureSamplerBinding binding = {
-            //             .texture = albedo.texture,
+            //             .texture = albedo.handle,
             //             .sampler = render_subsystem.GetSampler(ESamplerType::LinearRepeat) // 샘플러는 미리 만들어두고 재사용
             //         };
             //         // Fragment Shader의 0번 슬롯

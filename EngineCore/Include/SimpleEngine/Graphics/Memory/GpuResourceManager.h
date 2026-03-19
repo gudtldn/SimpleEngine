@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Graphics/Memory/GpuBufferSlice.h"
 #include "SimpleEngine/Graphics/Memory/GpuMemoryBlock.h"
-#include "SimpleEngine/Graphics/Memory/GpuTexture.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 #include "SDL3/SDL_gpu.h"
 
@@ -107,9 +107,9 @@ public:
      * AssetId에 매핑된 GPU Texture 객체 정보를 반환합니다.
      *
      * @param in_id Asset ID
-     * @return 유효한 GpuTexture, 찾지 못하면 EmptyTexture 반환
+     * @return 유효한 TextureResource, 찾지 못하면 EmptyTexture 반환
      */
-    [[nodiscard]] const GpuTexture& GetTexture(const asset::AssetId& in_id) const;
+    [[nodiscard]] const TextureResource& GetTexture(const asset::AssetId& in_id) const;
 
     /**
      * 특정 텍스처를 GPU 메모리에서 즉시 해제합니다.
@@ -121,7 +121,7 @@ private:
     // 기본 블록 크기 (128MB)
     static constexpr uint32 DEFAULT_BLOCK_SIZE = 128 * 1024 * 1024;
     static constexpr GpuBufferSlice EmptySlice{};
-    static constexpr GpuTexture EmptyTexture{};
+    static constexpr TextureResource EmptyTexture{};
 
     /** 사용 가능한 Geometry Block을 찾아 메모리를 할당합니다. */
     [[nodiscard]] GpuBufferSlice AllocateInGeometryBlock(uint32 in_size);
@@ -138,6 +138,6 @@ private:
     HashMap<asset::AssetId, GpuBufferSlice> slice_map;
 
     // AssetId -> GPU Texture 매핑
-    HashMap<asset::AssetId, GpuTexture> texture_map;
+    HashMap<asset::AssetId, TextureResource> texture_map;
 };
 }  // namespace se::graphics

@@ -1,7 +1,6 @@
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <cmath>
@@ -17,11 +16,11 @@ GpuResourceManager::GpuResourceManager(RenderDevice& in_render_device)
 GpuResourceManager::~GpuResourceManager()
 {
     // Texture 해제
-    for (GpuTexture& gpu_texture : texture_map | std::views::values)
+    for (TextureResource& gpu_texture : texture_map | std::views::values)
     {
         if (gpu_texture.IsValid())
         {
-            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), gpu_texture.texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), gpu_texture.handle);
         }
     }
     texture_map.Clear();
@@ -252,7 +251,7 @@ bool GpuResourceManager::UploadTexture(
     SDL_DestroySurface(converted_surface); // 변환된 임시 Surface 해제
 
     texture_map.Insert(in_id, {
-        .texture = texture,
+        .handle = texture,
         .width = width,
         .height = height,
         .format = create_info.format
@@ -260,7 +259,7 @@ bool GpuResourceManager::UploadTexture(
     return true;
 }
 
-const GpuTexture& GpuResourceManager::GetTexture(const asset::AssetId& in_id) const
+const TextureResource& GpuResourceManager::GetTexture(const asset::AssetId& in_id) const
 {
     return texture_map.Find(in_id).ValueOr(EmptyTexture);
 }
@@ -271,7 +270,7 @@ void GpuResourceManager::UnloadTexture(const asset::AssetId& in_id)
     {
         if (texture_opt->IsValid())
         {
-            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture_opt->texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture_opt->handle);
         }
         texture_map.Remove(in_id);
     }
