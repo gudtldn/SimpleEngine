@@ -85,20 +85,40 @@ void FrameResourcePool::Trim(uint32 max_idle_frames)
 {
     SDL_GPUDevice* raw_device = render_device->GetRawDevice();
 
-    for (PoolEntry<SDL_GPUTexture>& entry : texture_pool | std::views::values)
+    auto trim_pool_internal = [max_idle_frames]<typename Key, typename Resource, typename ReleaseFn>(
+        HashMap<Key, PoolEntry<Resource>>& pool,
+        ReleaseFn&& release_fn
+    )
     {
-        TrimEntry(entry, max_idle_frames, [raw_device](SDL_GPUTexture* texture)
+        Array<Key> keys_to_remove;
+        for (auto& [info, entry] : pool)
         {
-            SDL_ReleaseGPUTexture(raw_device, texture);
-        });
-    }
+            // Pool Entry의 사용하지 않는 Resource 정리
+            TrimEntry(entry, max_idle_frames, std::forward<ReleaseFn>(release_fn));
 
-    for (PoolEntry<SDL_GPUBuffer>& entry : buffer_pool | std::views::values)
-    {
-        TrimEntry(entry, max_idle_frames, [raw_device](SDL_GPUBuffer* buffer)
+            if (entry.available_resources.IsEmpty() && entry.used_resources.IsEmpty())
+            {
+                keys_to_remove.Push(info);
+            }
+        }
+
+        // 이제 더 이상 사용하지 않는 Entry를 정리
+        for (const Key& info : keys_to_remove)
         {
-            SDL_ReleaseGPUBuffer(raw_device, buffer);
-        });
-    }
+            pool.Remove(info);
+        }
+    };
+
+    // Texture Pool 정리
+    trim_pool_internal(texture_pool, [raw_device](SDL_GPUTexture* texture)
+    {
+        SDL_ReleaseGPUTexture(raw_device, texture);
+    });
+
+    // Buffer Pool 정리
+    trim_pool_internal(buffer_pool, [raw_device](SDL_GPUBuffer* buffer)
+    {
+        SDL_ReleaseGPUBuffer(raw_device, buffer);
+    });
 }
 }  // namespace se::graphics

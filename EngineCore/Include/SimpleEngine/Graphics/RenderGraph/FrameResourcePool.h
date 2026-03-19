@@ -29,7 +29,7 @@ private:
         uint32 idle_frames = 0;
     };
 
-    /** 특정 CreateInfo에 대한 풀 Entry */
+    /** 특정 CreateInfo에 대한 Pool Entry */
     template <typename T>
     struct PoolEntry
     {
