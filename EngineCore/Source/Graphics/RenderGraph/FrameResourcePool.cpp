@@ -68,9 +68,9 @@ void FrameResourcePool::IncrementIdleCounters()
 {
     auto increment_pool_counters = []<typename K, typename T>(HashMap<K, PoolEntry<T>>& pool)
     {
-        for (auto& entry : pool | std::views::values)
+        for (PoolEntry<T>& entry : pool | std::views::values)
         {
-            for (auto& pooled : entry.available_resources)
+            for (PooledResource<T>& pooled : entry.available_resources)
             {
                 ++pooled.idle_frames;
             }
@@ -85,7 +85,7 @@ void FrameResourcePool::Trim(uint32 max_idle_frames)
 {
     SDL_GPUDevice* raw_device = render_device->GetRawDevice();
 
-    for (auto& entry : texture_pool | std::views::values)
+    for (PoolEntry<SDL_GPUTexture>& entry : texture_pool | std::views::values)
     {
         TrimEntry(entry, max_idle_frames, [raw_device](SDL_GPUTexture* texture)
         {
@@ -93,7 +93,7 @@ void FrameResourcePool::Trim(uint32 max_idle_frames)
         });
     }
 
-    for (auto& entry : buffer_pool | std::views::values)
+    for (PoolEntry<SDL_GPUBuffer>& entry : buffer_pool | std::views::values)
     {
         TrimEntry(entry, max_idle_frames, [raw_device](SDL_GPUBuffer* buffer)
         {

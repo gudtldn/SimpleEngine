@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -115,7 +115,7 @@ void FrameResourcePool::TrimEntry(PoolEntry<T>& entry, uint32 max_idle_frames, R
 {
     for (isize i = static_cast<isize>(entry.available_resources.Len()) - 1; i >= 0; --i)
     {
-        auto& pooled = entry.available_resources[static_cast<usize>(i)];
+        PooledResource<T>& pooled = entry.available_resources[static_cast<usize>(i)];
         if (pooled.idle_frames >= max_idle_frames)
         {
             release_fn(pooled.resource);
