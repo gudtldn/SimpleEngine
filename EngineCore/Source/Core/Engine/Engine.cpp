@@ -45,7 +45,7 @@ Engine::Engine()
     // EngineConfig.toml에서 VFS 마운트 포인트 로드
     if (auto result = ConfigFile::Load("Config://EngineConfig.toml"))
     {
-        result.Value().VisitSectionEntries("vfs", [&](StringView scheme, StringView relative_path)
+        result->VisitSectionEntries("vfs", [&](StringView scheme, StringView relative_path)
         {
             vfs.Mount(scheme, root_path / relative_path);
         });
