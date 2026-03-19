@@ -151,8 +151,10 @@ void RenderSubsystem::RenderFrame() const
 {
     ZoneScoped;
 
+    bool any_window_rendered = false;
+
     const WindowSubsystem& window_subsystem = se::GetSubsystemChecked<const WindowSubsystem>();
-    window_subsystem.ForEachWindow([this](SDL_WindowID, SDL_Window* window, const WindowDesc&)
+    window_subsystem.ForEachWindow([this, &any_window_rendered](SDL_WindowID, SDL_Window* window, const WindowDesc&)
     {
         if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
         {
@@ -202,7 +204,15 @@ void RenderSubsystem::RenderFrame() const
 
         // 다음 프레임을 위해 렌더 그래프 상태를 클리어
         render_graph->Clear();
+
+        any_window_rendered = true;
     });
+
+    // 한번이라도 렌더링이 되었다면 Resource Pool 정리
+    if (any_window_rendered)
+    {
+        render_graph->UpdateResourcePool();
+    }
 
     pso_manager->EndFrame();
     render_device->ProcessDeferredDestructions();

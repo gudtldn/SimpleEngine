@@ -328,7 +328,10 @@ void RenderGraph::Clear()
     compiled_passes.Clear();
     resources_to_realize.Clear();
     resources_to_unrealize.Clear();
+}
 
+void RenderGraph::UpdateResourcePool()
+{
     // 풀 리소스 idle 카운터 증가 + 장기 미사용 리소스 정리
     static constexpr uint32 MAX_IDLE_FRAMES = 3;
     resource_pool.IncrementIdleCounters();
@@ -461,4 +464,4 @@ SDL_GPUComputePipeline* RGExecutionContext::GetOrCreateComputePipeline(const Com
 {
     return pso_manager.GetOrCreateComputePipeline(create_info);
 }
-}  // namespace se::graphics
+} // namespace se::graphics

@@ -80,6 +80,9 @@ public:
     void Execute(SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager);
     void Clear();
 
+    /** 임시 리소스의 idle_frame을 갱신하고, 장기간 미사용된 리소스를 해제합니다. */
+    void UpdateResourcePool();
+
 public:
     RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
     RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
@@ -162,7 +165,6 @@ private:
     const RenderGraph& graph_ref;
 };
 
-
 template <typename PassType, typename... Args>
     requires std::derived_from<PassType, RenderPassBase>
 PassType& RenderGraph::AddPass(Args&&... args)
@@ -178,4 +180,4 @@ PassType& RenderGraph::AddPass(Args&&... args)
 
     return *raw_ptr;
 }
-}  // namespace se::graphics
+} // namespace se::graphics
