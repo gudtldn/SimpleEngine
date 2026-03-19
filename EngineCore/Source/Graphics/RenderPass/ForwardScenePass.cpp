@@ -243,8 +243,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Draw Meshes
         for (const EntityDrawInfo& info : draw_infos)
         {
-            const GpuBufferSlice& slice = gpu_manager.GetSlice(info.mesh_id);
-            if (!slice.IsValid())
+            Optional<const GpuBufferSlice&> slice = gpu_manager.GetSlice(info.mesh_id);
+            if (!slice.HasValue())
             {
 #if SE_BUILD_DEBUG
                 static HashSet<asset::AssetId> logged_asset_ids;
@@ -264,17 +264,17 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // Vertex Buffer 바인딩
             // 셰이더의 Input Slot 0번에 바인딩
             const SDL_GPUBufferBinding vertex_binding = {
-                .buffer = slice.buffer,
-                .offset = slice.offset
+                .buffer = slice->buffer,
+                .offset = slice->offset
             };
             SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
 
-            if (slice.index_count > 0)
+            if (slice->index_count > 0)
             {
                 // Index Buffer 바인딩
                 const SDL_GPUBufferBinding index_binding = {
-                    .buffer = slice.buffer,
-                    .offset = slice.index_offset
+                    .buffer = slice->buffer,
+                    .offset = slice->index_offset
                 };
                 SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             }
@@ -292,10 +292,10 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // if (info.material_id.IsValid())
             // {
             //     // 텍스처 조회
-            //     const TextureResource& albedo = gpu_manager.GetTexture(material.albedo_id);
+            //     Optional<const TextureResource&> albedo = gpu_manager.GetTexture(material.albedo_id);
             //
             //     // 바인딩 (Sampler + Texture)
-            //     if (albedo.IsValid())
+            //     if (albedo.HasValue())
             //     {
             //         const SDL_GPUTextureSamplerBinding binding = {
             //             .texture = albedo.handle,
@@ -314,13 +314,13 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             //     SDL_DrawGPUIndexedPrimitives(render_pass, section.index_count, 1, section.index_start, 0, 0);
             // }
 
-            if (slice.index_count > 0)
+            if (slice->index_count > 0)
             {
-                SDL_DrawGPUIndexedPrimitives(pass, slice.index_count, 1, 0, 0, 0);
+                SDL_DrawGPUIndexedPrimitives(pass, slice->index_count, 1, 0, 0, 0);
             }
             else
             {
-                const uint32 vertex_count = slice.index_offset / sizeof(Vertex);
+                const uint32 vertex_count = slice->index_offset / sizeof(Vertex);
                 SDL_DrawGPUPrimitives(pass, vertex_count, 1, 0, 0);
             }
         }

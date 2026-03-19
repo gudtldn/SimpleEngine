@@ -82,9 +82,9 @@ public:
      * AssetId에 매핑된 GPU 버퍼 슬라이스(위치 정보)를 반환합니다.
      *
      * @param in_id Asset ID
-     * @return 유효한 GpuBufferSlice, 찾지 못하면 EmptySlice 반환
+     * @return 유효한 GpuBufferSlice, 찾지 못하면 NullOpt 반환
      */
-    [[nodiscard]] const GpuBufferSlice& GetSlice(const asset::AssetId& in_id) const;
+    [[nodiscard]] Optional<const GpuBufferSlice&> GetSlice(const asset::AssetId& in_id) const;
 
     /**
      * CPU Surface(이미지)를 GPU Texture로 변환하여 업로드합니다.
@@ -107,9 +107,9 @@ public:
      * AssetId에 매핑된 GPU Texture 객체 정보를 반환합니다.
      *
      * @param in_id Asset ID
-     * @return 유효한 TextureResource, 찾지 못하면 EmptyTexture 반환
+     * @return 유효한 TextureResource, 찾지 못하면 NullOpt 반환
      */
-    [[nodiscard]] const TextureResource& GetTexture(const asset::AssetId& in_id) const;
+    [[nodiscard]] Optional<const TextureResource&> GetTexture(const asset::AssetId& in_id) const;
 
     /**
      * 특정 텍스처를 GPU 메모리에서 즉시 해제합니다.
@@ -120,8 +120,6 @@ public:
 private:
     // 기본 블록 크기 (128MB)
     static constexpr uint32 DEFAULT_BLOCK_SIZE = 128 * 1024 * 1024;
-    static constexpr GpuBufferSlice EmptySlice{};
-    static constexpr TextureResource EmptyTexture{};
 
     /** 사용 가능한 Geometry Block을 찾아 메모리를 할당합니다. */
     [[nodiscard]] GpuBufferSlice AllocateInGeometryBlock(uint32 in_size);
@@ -138,6 +136,6 @@ private:
     HashMap<asset::AssetId, GpuBufferSlice> slice_map;
 
     // AssetId -> GPU Texture 매핑
-    HashMap<asset::AssetId, TextureResource> texture_map;
+    HashMap<asset::AssetId, RID> texture_map;
 };
 }  // namespace se::graphics

@@ -16,14 +16,14 @@ GpuResourceManager::GpuResourceManager(RenderDevice& in_render_device)
 GpuResourceManager::~GpuResourceManager()
 {
     // Texture 해제
-    for (TextureResource& gpu_texture : texture_map | std::views::values)
+    for (const RID gpu_texture_id : texture_map | std::views::values)
     {
-        if (gpu_texture.IsValid())
-        {
-            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), gpu_texture.handle);
-        }
+        render_device->DestroyTexture(gpu_texture_id);
     }
     texture_map.Clear();
+
+    // Deferred Queue에 넣은 Texture를 바로 해제
+    render_device->ProcessDeferredDestructions();
 
     // Buffer 해제
     slice_map.Clear();
@@ -45,7 +45,7 @@ bool GpuResourceManager::UploadMesh(
     }
 
     GpuBufferSlice slice = AllocateInGeometryBlock(total_size);
-    if (!slice.IsValid())
+    if (slice.buffer == nullptr)
     {
         return false;
     }
@@ -120,9 +120,9 @@ void GpuResourceManager::UnloadMesh(const asset::AssetId& in_id)
     slice_map.Remove(in_id);
 }
 
-const GpuBufferSlice& GpuResourceManager::GetSlice(const asset::AssetId& in_id) const
+Optional<const GpuBufferSlice&> GpuResourceManager::GetSlice(const asset::AssetId& in_id) const
 {
-    return slice_map.Find(in_id).ValueOr(EmptySlice);
+    return slice_map.Find(in_id);
 }
 
 bool GpuResourceManager::UploadTexture(
@@ -183,10 +183,9 @@ bool GpuResourceManager::UploadTexture(
         .sample_count = SDL_GPU_SAMPLECOUNT_1
     };
 
-    SDL_GPUTexture* texture = SDL_CreateGPUTexture(render_device->GetRawDevice(), &create_info);
-    if (!texture)
+    const RID texture_rid = render_device->CreateTexture(create_info);
+    if (!texture_rid.IsValid())
     {
-        ConsoleLog(ELogLevel::Error, "Failed to create GPU texture: {}", SDL_GetError());
         SDL_DestroySurface(converted_surface);
         return false;
     }
@@ -200,7 +199,9 @@ bool GpuResourceManager::UploadTexture(
     SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &transfer_info);
     if (!transfer_buffer)
     {
-        SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
+        render_device->DestroyTexture(texture_rid);
+        render_device->ProcessDeferredDestructions();
+
         SDL_DestroySurface(converted_surface);
         return false;
     }
@@ -213,11 +214,16 @@ bool GpuResourceManager::UploadTexture(
     }
     else
     {
-        SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
+        render_device->DestroyTexture(texture_rid);
+        render_device->ProcessDeferredDestructions();
+
         SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
         SDL_DestroySurface(converted_surface);
         return false;
     }
+
+    // Raw Pointer 가져오기
+    SDL_GPUTexture* texture = render_device->GetTexture(texture_rid)->handle;
 
     // GPU에 업로드
     SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(in_cmd);
@@ -250,28 +256,25 @@ bool GpuResourceManager::UploadTexture(
     SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
     SDL_DestroySurface(converted_surface); // 변환된 임시 Surface 해제
 
-    texture_map.Insert(in_id, {
-        .handle = texture,
-        .width = width,
-        .height = height,
-        .format = create_info.format
-    });
+    texture_map.Insert(in_id, texture_rid);
     return true;
 }
 
-const TextureResource& GpuResourceManager::GetTexture(const asset::AssetId& in_id) const
+Optional<const TextureResource&> GpuResourceManager::GetTexture(const asset::AssetId& in_id) const
 {
-    return texture_map.Find(in_id).ValueOr(EmptyTexture);
+    return texture_map
+        .Find(in_id)
+        .AndThen([this](const RID& rid)
+        {
+            return render_device->GetTexture(rid);
+        });
 }
 
 void GpuResourceManager::UnloadTexture(const asset::AssetId& in_id)
 {
-    if (const Optional texture_opt = texture_map.Find(in_id))
+    if (const Optional<RID> texture_rid = texture_map.Find(in_id))
     {
-        if (texture_opt->IsValid())
-        {
-            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture_opt->handle);
-        }
+        render_device->DestroyTexture(*texture_rid);
         texture_map.Remove(in_id);
     }
 }
