@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Core/Reflection/TypeSignature.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
@@ -10,6 +11,7 @@ class StringName;
 
 /**
  * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
+ * @todo C++26 리플렉션 기반으로 바꿀 때, TypeId는 Hash만 가지고 있고, Name은 Registry에서 조회하도록 개선
  */
 class TypeId
 {
