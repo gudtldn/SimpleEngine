@@ -87,6 +87,9 @@ public:
     RGResourceHandle ImportTexture(const StringName& name, SDL_GPUTexture* texture);
     RGResourceHandle ImportBuffer(const StringName& name, SDL_GPUBuffer* buffer);
 
+    RGResourceHandle CreateTexture(const StringName& name, const SDL_GPUTextureCreateInfo& description);
+    RGResourceHandle CreateBuffer(const StringName& name, const SDL_GPUBufferCreateInfo& description);
+
 private:
     [[nodiscard]] RGResourceHandle GetResourceHandleByName(const StringName& name);
     RGResourceHandle RegisterResource(RGResourceNode&& node);

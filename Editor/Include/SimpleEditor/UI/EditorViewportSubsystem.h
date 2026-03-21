@@ -25,6 +25,8 @@ struct ViewportRenderInfo
 {
     graphics::RID color_texture;
     graphics::RenderView render_view;
+    StringName color_target_name;
+    StringName depth_target_name;
 };
 
 /**

@@ -22,11 +22,15 @@ SE_END_REFLECT(ForwardScenePass)
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
     const RenderView& in_render_view,
-    const GpuResourceManager& in_gpu_manager
+    const GpuResourceManager& in_gpu_manager,
+    RGResourceHandle in_color_target,
+    RGResourceHandle in_depth_target
 )
     : draw_data(in_draw_data)
     , render_view(in_render_view)
     , gpu_manager(in_gpu_manager)
+    , color_target_handle(in_color_target)
+    , depth_target_handle(in_depth_target)
 {
 }
 
@@ -46,20 +50,8 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
         });
     }
 
-    // 렌더 타겟 설정
-    color_target_handle = builder.GetResourceHandleByName(render_view.color_target_name);
+    // 렌더 타겟 쓰기로 설정
     builder.Write(color_target_handle);
-
-    depth_target_handle = builder.CreateTexture(render_view.depth_target_name, {
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,  // 24비트 깊이버퍼 + 8비트 스텐실버퍼
-        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET, // 이 텍스처는 깊이/스텐실 버퍼로만 사용될 것임을 의미
-        .width = render_view.width,
-        .height = render_view.height,
-        .layer_count_or_depth = 1,
-        .num_levels = 1,
-        .sample_count = SDL_GPU_SAMPLECOUNT_1,
-    });
     builder.Write(depth_target_handle);
 }
 

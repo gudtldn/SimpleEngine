@@ -79,11 +79,13 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
             // TODO: 카메라 세팅하기
             .view_matrix = Matrix4x4::Identity(),
             .projection_matrix = Matrix4x4::Identity(),
-            .color_target_name = viewport_id,
-            .depth_target_name = String::Format("{}_Depth", viewport_id),
             .width = new_width,
             .height = new_height,
+            .near_plane = 0.1f,
+            .far_plane = 1000.0f,
         };
+        info.color_target_name = viewport_id;
+        info.depth_target_name = String::Format("{}_Depth", viewport_id);
     }
 }
 

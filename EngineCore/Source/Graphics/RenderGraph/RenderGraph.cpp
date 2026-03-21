@@ -360,6 +360,34 @@ RGResourceHandle RenderGraph::ImportBuffer(const StringName& name, SDL_GPUBuffer
     return handle;
 }
 
+RGResourceHandle RenderGraph::CreateTexture(const StringName& name, const SDL_GPUTextureCreateInfo& description)
+{
+    auto texture_resource = std::make_unique<RGTransientTexture>();
+    texture_resource->description = description;
+
+    RGResourceNode node;
+    node.name = name;
+    node.resource = std::move(texture_resource);
+
+    const RGResourceHandle handle = RegisterResource(std::move(node));
+    resource_name_map[name] = handle;
+    return handle;
+}
+
+RGResourceHandle RenderGraph::CreateBuffer(const StringName& name, const SDL_GPUBufferCreateInfo& description)
+{
+    auto buffer_resource = std::make_unique<RGTransientBuffer>();
+    buffer_resource->description = description;
+
+    RGResourceNode node;
+    node.name = name;
+    node.resource = std::move(buffer_resource);
+
+    const RGResourceHandle handle = RegisterResource(std::move(node));
+    resource_name_map[name] = handle;
+    return handle;
+}
+
 RGResourceHandle RenderGraph::GetResourceHandleByName(const StringName& name)
 {
     if (Optional resource_name_opt = resource_name_map.Find(name))

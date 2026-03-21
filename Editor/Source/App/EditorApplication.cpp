@@ -134,37 +134,47 @@ void EditorApplication::Render()
     const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
         se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
-    // 1. FramePacket 조립
+    // 1. FramePacket 조립 + 렌더 패스 추가 (단일 루프)
     se::graphics::FramePacket frame_packet;
     frame_packet.scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
 
     se::graphics::RenderGraph& graph = render_subsystem->GetRenderGraph();
+    const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+
     for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
     {
         if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
         {
             if (const auto tex_resource = render_subsystem->GetRenderDevice().GetTexture(info.color_texture))
             {
-                const StringName color_target_name = info.render_view.color_target_name;
-                graph.ImportTexture(color_target_name, tex_resource->handle);
-            }
-            frame_packet.render_views.Push(info.render_view);
-        }
-    }
+                // ColorTarget Handle 생성
+                const se::graphics::RGResourceHandle color_handle =
+                    graph.ImportTexture(info.color_target_name, tex_resource->handle);
 
-    // 2. FramePacket 기반으로 렌더 패스 추가
-    const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
-    for (const se::graphics::RenderView& view : frame_packet.render_views)
-    {
-        graph.AddPass<se::graphics::ForwardScenePass>(
-            frame_packet.scene_draw_data,
-            view,
-            gpu_manager
-        );
+                // DepthTarget Handle 생성
+                const se::graphics::RGResourceHandle depth_handle =
+                    graph.CreateTexture(info.depth_target_name, {
+                        .type = SDL_GPU_TEXTURETYPE_2D,
+                        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
+                        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+                        .width = info.render_view.width,
+                        .height = info.render_view.height,
+                        .layer_count_or_depth = 1,
+                        .num_levels = 1,
+                        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+                    });
+
+                frame_packet.render_views.Push(info.render_view);
+                graph.AddPass<se::graphics::ForwardScenePass>(
+                    frame_packet.scene_draw_data, info.render_view,
+                    gpu_manager, color_handle, depth_handle
+                );
+            }
+        }
     }
     graph.AddPass<EditorUIPass>();
 
-    // frame_packet이 살아있는 동안 실행해야 함. (ForwardScenePass가 const& 참조)
+    // frame_packet이 살아있는 동안 실행해야 합니다 (ForwardScenePass가 const& 참조)
     render_subsystem->RenderFrame();
 }
 }  // namespace se::editor

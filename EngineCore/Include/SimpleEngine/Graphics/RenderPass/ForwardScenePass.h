@@ -34,7 +34,9 @@ public:
     explicit ForwardScenePass(
         const SceneDrawData& in_draw_data,
         const RenderView& in_render_view,
-        const GpuResourceManager& in_gpu_manager
+        const GpuResourceManager& in_gpu_manager,
+        RGResourceHandle in_color_target,
+        RGResourceHandle in_depth_target
     );
 
     virtual void Setup(RenderGraphBuilder& builder) override;
