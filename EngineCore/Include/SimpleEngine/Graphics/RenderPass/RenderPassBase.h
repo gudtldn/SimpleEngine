@@ -4,8 +4,8 @@
 
 namespace se::graphics
 {
-class RenderGraphBuilder;
 class RGExecutionContext;
+class RGSetupContext;
 
 /**
  * Render Graph의 각 렌더링 단계를 정의하기 위한 인터페이스
@@ -19,9 +19,9 @@ public:
 
     /**
     * Render Graph가 Compile될 때 호출됩니다.
-    * 이 함수 내에서 builder를 사용하여 이 패스가 읽거나 쓰는 리소스를 선언해야 합니다.
+    * 이 함수 내에서 context를 사용하여 이 패스가 읽거나 쓰는 리소스를 선언해야 합니다.
     */
-    virtual void Setup(RenderGraphBuilder& builder) = 0;
+    virtual void Setup(RGSetupContext& context) = 0;
 
     /**
     * Render Graph가 Execute될 때 호출됩니다.
