@@ -14,10 +14,29 @@ RGSetupContext::RGSetupContext(RGPassNode& in_pass_node)
 {
 }
 
-void RGSetupContext::Read(RGTextureHandle handle)  { pass_node_ref.read_indices.Insert(handle.index);  }
-void RGSetupContext::Write(RGTextureHandle handle) { pass_node_ref.write_indices.Insert(handle.index); }
-void RGSetupContext::Read(RGBufferHandle handle)   { pass_node_ref.read_indices.Insert(handle.index);  }
-void RGSetupContext::Write(RGBufferHandle handle)  { pass_node_ref.write_indices.Insert(handle.index); }
+void RGSetupContext::Read(RGTextureHandle handle)
+{
+    pass_node_ref.read_refs.Push({ .resource_index = handle.index, .version = handle.version });
+}
+
+void RGSetupContext::Read(RGBufferHandle handle)
+{
+    pass_node_ref.read_refs.Push({ .resource_index = handle.index, .version = handle.version });
+}
+
+RGTextureHandle RGSetupContext::Write(RGTextureHandle handle)
+{
+    const uint32 out_version = handle.version + 1;
+    pass_node_ref.write_map[handle.index] = out_version;
+    return RGTextureHandle{ .index = handle.index, .version = out_version };
+}
+
+RGBufferHandle RGSetupContext::Write(RGBufferHandle handle)
+{
+    const uint32 out_version = handle.version + 1;
+    pass_node_ref.write_map[handle.index] = out_version;
+    return RGBufferHandle{ .index = handle.index, .version = out_version };
+}
 
 RGExecutionContext::RGExecutionContext(
     SDL_GPUCommandBuffer* in_cmd,

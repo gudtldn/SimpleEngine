@@ -15,7 +15,7 @@ SE_END_REFLECT(EditorUIPass)
 
 void EditorUIPass::Setup(RGSetupContext& context)
 {
-    context.Write(swapchain_handle);
+    swapchain_handle = context.Write(swapchain_handle);
 }
 
 void EditorUIPass::Execute(RGExecutionContext& context)
