@@ -1,7 +1,5 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 
-#include <ranges>
-
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -10,11 +8,11 @@
 #include "SDL3/SDL_hints.h"
 #include "tracy/Tracy.hpp"
 
-using namespace se::graphics;
-
 
 namespace se
 {
+using namespace se::graphics;
+
 // TODO: GameServer는 이거 필요없는데
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<WindowSubsystem>();
@@ -87,7 +85,8 @@ bool RenderSubsystem::Initialize()
     }
 
     resource_manager = std::make_unique<GpuResourceManager>(*render_device);
-    render_graph = std::make_unique<RenderGraph>(*render_device);
+    render_graph_builder = std::make_unique<RenderGraphBuilder>();
+    render_graph_executor = std::make_unique<RenderGraphExecutor>(*render_device);
     pso_manager = std::make_unique<PSOManager>(*render_device);
 
     // 동적 윈도우 생성/파괴에 대응하기 위해 Delegate 구독
@@ -130,7 +129,8 @@ void RenderSubsystem::Release()
         }
     }
 
-    render_graph.reset();
+    render_graph_builder.reset();
+    render_graph_executor.reset();
     pso_manager.reset();
     resource_manager.reset();
 
@@ -147,18 +147,17 @@ void RenderSubsystem::Release()
     render_device.reset();
 }
 
-void RenderSubsystem::RenderFrame() const
+void RenderSubsystem::RenderFrame(FunctionRef<void(RGTextureHandle, RenderGraphBuilder&)> build_fn) const
 {
     ZoneScoped;
 
     bool any_window_rendered = false;
 
     const WindowSubsystem& window_subsystem = se::GetSubsystemChecked<const WindowSubsystem>();
-    window_subsystem.ForEachWindow([this, &any_window_rendered](SDL_WindowID, SDL_Window* window, const WindowDesc&)
+    window_subsystem.ForEachWindow([this, &build_fn, &any_window_rendered](SDL_WindowID, SDL_Window* window, const WindowDesc&)
     {
         if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
         {
-            render_graph->Clear();
             return;
         }
 
@@ -166,68 +165,42 @@ void RenderSubsystem::RenderFrame() const
         SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(render_device->GetRawDevice());
         if (!command_buffer)
         {
-            render_graph->Clear();
-
             ConsoleLog(ELogLevel::Error, "SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
             return;
         }
 
-        // Swapchain Texture 가져오기 (화면에 그릴 캔버스 역할)
-        SDL_GPUTexture* swapchain_texture;
+        // Swapchain Texture 가져오기
+        SDL_GPUTexture* swapchain_texture = nullptr;
         SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
 
         if (!swapchain_texture)
         {
-            render_graph->Clear();
-
             SDL_CancelGPUCommandBuffer(command_buffer);
             return;
         }
 
-        // --- Render Graph 설정 및 실행 ---
+        // Swapchain Import -> 핸들을 build_fn에 전달
+        const RGTextureHandle swapchain_handle =
+            render_graph_builder->ImportTexture("Swapchain", swapchain_texture);
 
-        // 스왑체인 텍스처를 "BackBuffer"라는 이름으로 RenderGraph에 임포트
-        [[maybe_unused]] const RGResourceHandle backbuffer_handle = render_graph->ImportTexture("BackBuffer", swapchain_texture);
+        // 패스 조립
+        build_fn(swapchain_handle, *render_graph_builder);
 
-        // TODO: 여기에 다른 렌더 패스들을 추가 (예: GBuffer, 조명, UI 등).
+        // 컴파일 + 실행 + builder.Clear() (Executor 내부)
+        render_graph_executor->Execute(*render_graph_builder, command_buffer, GetPSOManager());
 
-        // 렌더 그래프를 컴파일 (의존성 분석, 리소스 생명주기 관리 등)
-        render_graph->Compile();
-
-        // 렌더 그래프를 실행하여 커맨드 버퍼에 렌더링 커맨드를 기록
-        render_graph->Execute(command_buffer, GetPSOManager());
-
-        // --- Render Graph 끝 ---
-
-        // Command Buffer 제출
         SDL_SubmitGPUCommandBuffer(command_buffer);
-
-        // 다음 프레임을 위해 렌더 그래프 상태를 클리어
-        render_graph->Clear();
 
         any_window_rendered = true;
     });
 
-    // 한번이라도 렌더링이 되었다면 Resource Pool 정리
     if (any_window_rendered)
     {
-        render_graph->UpdateResourcePool();
+        render_graph_executor->UpdateResourcePool();
     }
 
     pso_manager->EndFrame();
     render_device->ProcessDeferredDestructions();
-}
-
-void RenderSubsystem::BeginFrame() const
-{
-}
-
-void RenderSubsystem::EndFrame() const
-{
-}
-
-void RenderSubsystem::SubmitCommands() const
-{
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

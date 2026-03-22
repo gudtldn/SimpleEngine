@@ -1,12 +1,14 @@
 #pragma once
 
+#include "SimpleEngine/Core/Functional/FunctionRef.h"
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
-#include "SimpleEngine/Graphics/RenderGraph/RenderGraph.h"
+#include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
+#include "SimpleEngine/Graphics/RenderGraph/RenderGraphExecutor.h"
 
 #include "SDL3/SDL.h"
 
@@ -24,19 +26,14 @@ public:
     virtual void Release() override;
 
     /**
-     * 등록된 Subsystem을 렌더링 합니다.
+     * RenderGraph 구축 및 프레임 렌더링을 수행합니다.
+     * @param build_fn (swapchain_handle, builder)를 인자로 받는 함수
      */
-    [[deprecated("Use Begin/EndFrame() instead")]]
-    void RenderFrame() const;
-
-    void BeginFrame() const;
-    void EndFrame() const;
-    void SubmitCommands() const;
+    void RenderFrame(FunctionRef<void(graphics::RGTextureHandle, graphics::RenderGraphBuilder&)> build_fn) const;
 
 public:
     [[nodiscard]] graphics::RenderDevice& GetRenderDevice() const { return *render_device; }
     [[nodiscard]] graphics::PSOManager& GetPSOManager() const { return *pso_manager; }
-    [[nodiscard]] graphics::RenderGraph& GetRenderGraph() const { return *render_graph; }
     [[nodiscard]] graphics::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
 
 public:
@@ -52,11 +49,12 @@ private:
 
 private:
     std::unique_ptr<graphics::RenderDevice> render_device;
-    std::unique_ptr<graphics::RenderGraph> render_graph;
+    std::unique_ptr<graphics::RenderGraphBuilder> render_graph_builder;
+    std::unique_ptr<graphics::RenderGraphExecutor> render_graph_executor;
     std::unique_ptr<graphics::PSOManager> pso_manager;
     std::unique_ptr<graphics::GpuResourceManager> resource_manager;
 
     DelegateHandle window_created_handle;
     DelegateHandle window_destroyed_handle;
 };
-}  // namespace se
+} // namespace se
