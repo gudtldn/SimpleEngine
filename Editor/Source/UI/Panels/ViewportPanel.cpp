@@ -24,6 +24,8 @@ void ViewportPanel::Draw()
     {
         if (EditorViewportSubsystem* viewport_sys = GetSubsystem<EditorViewportSubsystem>())
         {
+            viewport_sys->UpdateViewportFocus(viewport_id, ImGui::IsWindowFocused(), ImGui::IsWindowHovered());
+
             const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
             const uint32 width = static_cast<uint32>(viewport_size.x);
             const uint32 height = static_cast<uint32>(viewport_size.y);

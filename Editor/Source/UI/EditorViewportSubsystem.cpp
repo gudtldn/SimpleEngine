@@ -1,5 +1,6 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
+#include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -7,14 +8,19 @@
 
 namespace se::editor
 {
+using namespace se::math;
+
 SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
-    .DependsOn<RenderSubsystem>();
+    .DependsOn<RenderSubsystem>()
+    .DependsOn<InputSubsystem>();
 
 SE_BEGIN_REFLECT(EditorViewportSubsystem, meta::Internal)
+    SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(EditorViewportSubsystem)
 
 bool EditorViewportSubsystem::Initialize()
 {
+    input_subsystem = &GetSubsystemChecked<InputSubsystem>();
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
     return true;
 }
@@ -32,7 +38,84 @@ void EditorViewportSubsystem::Release()
         }
     }
     viewport_data.Clear();
+    viewport_cameras.Clear();
     render_device = nullptr;
+    input_subsystem = nullptr;
+}
+
+void EditorViewportSubsystem::Update(float delta_time)
+{
+    // 우클릭으로 호버된 뷰포트의 카메라 제어를 활성화
+    if (input_subsystem->IsMouseButtonPressed(EMouseButton::Right))
+    {
+        for (const auto& [id, info] : viewport_data)
+        {
+            if (info.is_hovered)
+            {
+                active_camera_viewport = id;
+                input_subsystem->SetRelativeMouseMode(true);
+                break;
+            }
+        }
+    }
+    else if (input_subsystem->IsMouseButtonReleased(EMouseButton::Right))
+    {
+        if (active_camera_viewport != StringName::None)
+        {
+            input_subsystem->SetRelativeMouseMode(false);
+            active_camera_viewport = StringName::None;
+        }
+    }
+
+    // 활성 카메라 입력 처리
+    if (active_camera_viewport != StringName::None && input_subsystem->IsMouseButtonDown(EMouseButton::Right))
+    {
+        EditorCameraState& camera = viewport_cameras[active_camera_viewport];
+
+        // 마우스 회전 yaw(Z축), pitch(X축) | TODO: 나중에 쿼터니언으로 수정
+        const float dx = input_subsystem->GetMouseDeltaX();
+        const float dy = input_subsystem->GetMouseDeltaY();
+        camera.rotation.yaw -= Degree{ dx * camera.look_sensitivity };
+        camera.rotation.yaw = Degree{ Fmod(*camera.rotation.yaw, 360.0) };
+        camera.rotation.pitch -= Degree{ dy * camera.look_sensitivity };
+        camera.rotation.pitch = Degree{ Clamp(*camera.rotation.pitch, -89.0, 89.0) };
+
+        // WASD/QE 이동
+        const Vector3 forward = camera.rotation.GetForwardVector();
+        const Vector3 right = camera.rotation.GetRightVector();
+
+        Vector3 move_dir = Vector3::Zero();
+        if (input_subsystem->IsKeyDown(EKeyCode::W)) { move_dir += forward; }
+        if (input_subsystem->IsKeyDown(EKeyCode::S)) { move_dir -= forward; }
+        if (input_subsystem->IsKeyDown(EKeyCode::D)) { move_dir += right; }
+        if (input_subsystem->IsKeyDown(EKeyCode::A)) { move_dir -= right; }
+        if (input_subsystem->IsKeyDown(EKeyCode::E)) { move_dir += Vector3::Up(); }
+        if (input_subsystem->IsKeyDown(EKeyCode::Q)) { move_dir -= Vector3::Up(); }
+
+        if (!move_dir.IsNearlyZero())
+        {
+            camera.position += move_dir.GetNormalized() * (camera.move_speed * delta_time);
+        }
+
+        // 스크롤로 이동 속도를 조절
+        const float scroll = input_subsystem->GetMouseWheelY();
+        if (scroll != 0.0f)
+        {
+            camera.move_speed *= (scroll > 0.0f) ? 1.1 : (1.0 / 1.1);
+            camera.move_speed = Clamp(camera.move_speed, 0.1, 1000.0);
+        }
+    }
+
+    // 모든 뷰포트의 RenderView를 카메라 상태로부터 갱신
+    for (auto& [id, info] : viewport_data)
+    {
+        if (info.render_view.width == 0 || info.render_view.height == 0)
+        {
+            continue;
+        }
+        const EditorCameraState& camera = viewport_cameras[id];
+        info.render_view = camera.ComputeRenderView(info.render_view.width, info.render_view.height);
+    }
 }
 
 void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height)
@@ -66,26 +149,29 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
         }
 
         info.color_texture = render_device->CreateTexture({
-            .type = SDL_GPU_TEXTURETYPE_2D,                      // 2D 텍스처
-            .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB, // RGBA 각 채널당 8비트, sRGB 색 공간 사용
+            .type = SDL_GPU_TEXTURETYPE_2D,
+            .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB,
             .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
             .width = new_width,
             .height = new_height,
-            .layer_count_or_depth = 1, // 2D 텍스처이므로 레이어는 1개
+            .layer_count_or_depth = 1,
             .num_levels = 1,
             .sample_count = SDL_GPU_SAMPLECOUNT_1,
         });
-        info.render_view = {
-            // TODO: 카메라 세팅하기
-            .view_matrix = Matrix4x4::Identity(),
-            .projection_matrix = Matrix4x4::Identity(),
-            .width = new_width,
-            .height = new_height,
-            .near_plane = 0.1f,
-            .far_plane = 1000.0f,
-        };
+        info.render_view.width = new_width;
+        info.render_view.height = new_height;
         info.color_target_name = viewport_id;
         info.depth_target_name = String::Format("{}_Depth", viewport_id);
+    }
+}
+
+void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered)
+{
+    if (const Optional data_opt = viewport_data.Find(viewport_id))
+    {
+        ViewportRenderInfo& info = data_opt.Value();
+        info.is_focused = focused;
+        info.is_hovered = hovered;
     }
 }
 
