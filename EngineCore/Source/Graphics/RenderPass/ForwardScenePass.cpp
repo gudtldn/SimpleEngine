@@ -3,9 +3,10 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
-#include "SimpleEngine/Graphics/RenderGraph/RenderGraph.h"
+#include "SimpleEngine/Graphics/MeshPrimitives.h"
+#include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
+#include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 #include "SimpleEngine/Graphics/Scene/SceneDrawData.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
 
@@ -23,8 +24,8 @@ ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
     const RenderView& in_render_view,
     const GpuResourceManager& in_gpu_manager,
-    RGResourceHandle in_color_target,
-    RGResourceHandle in_depth_target
+    RGTextureHandle in_color_target,
+    RGTextureHandle in_depth_target
 )
     : draw_data(in_draw_data)
     , render_view(in_render_view)
@@ -34,7 +35,7 @@ ForwardScenePass::ForwardScenePass(
 {
 }
 
-void ForwardScenePass::Setup(RenderGraphBuilder& builder)
+void ForwardScenePass::Setup(RGSetupContext& context)
 {
     // VP 행렬 계산 (per-view)
     const Matrix4x4 vp_matrix = render_view.view_matrix * render_view.projection_matrix;
@@ -51,8 +52,8 @@ void ForwardScenePass::Setup(RenderGraphBuilder& builder)
     }
 
     // 렌더 타겟 쓰기로 설정
-    builder.Write(color_target_handle);
-    builder.Write(depth_target_handle);
+    context.Write(color_target_handle);
+    context.Write(depth_target_handle);
 }
 
 void ForwardScenePass::Execute(RGExecutionContext& context)

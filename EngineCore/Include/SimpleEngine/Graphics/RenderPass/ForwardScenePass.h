@@ -35,11 +35,11 @@ public:
         const SceneDrawData& in_draw_data,
         const RenderView& in_render_view,
         const GpuResourceManager& in_gpu_manager,
-        RGResourceHandle in_color_target,
-        RGResourceHandle in_depth_target
+        RGTextureHandle in_color_target,
+        RGTextureHandle in_depth_target
     );
 
-    virtual void Setup(RenderGraphBuilder& builder) override;
+    virtual void Setup(RGSetupContext& context) override;
     virtual void Execute(RGExecutionContext& context) override;
 
 private:
@@ -48,7 +48,7 @@ private:
     const GpuResourceManager& gpu_manager;
 
     Array<EntityDrawInfo> draw_infos;
-    RGResourceHandle color_target_handle;
-    RGResourceHandle depth_target_handle;
+    RGTextureHandle color_target_handle;
+    RGTextureHandle depth_target_handle;
 };
 } // namespace se::graphics
