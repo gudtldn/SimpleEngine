@@ -195,64 +195,79 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     }
 
     // 4. 위상정렬 (Kahn's algorithm)
-    HashMap<const RGPassNode*, uint32> in_degrees;
+    const usize pass_count = builder.pass_nodes.Len();
+    const usize resource_count = builder.resource_nodes.Len();
 
-    for (const RGPassNode& pass_node : builder.pass_nodes)
+    // 4-1. 리소스별 reader 역매핑 구축
+    Array<Array<uint32>> resource_to_readers;
+    resource_to_readers.Resize(resource_count);
+
+    for (const auto [pass_idx, pass_node] : builder.pass_nodes | std::views::enumerate)
     {
         if (pass_node.culled)
         {
             continue;
         }
 
+        const uint32 idx = static_cast<uint32>(pass_idx);
         for (const uint32 read_idx : pass_node.read_indices)
         {
-            const uint32 writer_idx = builder.resource_nodes[read_idx].writer_pass_index;
-            if (writer_idx != INVALID_PASS_INDEX && !builder.pass_nodes[writer_idx].culled)
+            resource_to_readers[read_idx].Push(idx);
+        }
+    }
+
+    // 4-2. 패스 간 인접 리스트 구축 + in_degree 계산
+    Array<Array<uint32>> adjacency;
+    adjacency.Resize(pass_count);
+
+    Array<uint32> in_degrees;
+    in_degrees.Resize(pass_count);
+    std::ranges::fill(in_degrees, static_cast<uint32>(0));
+
+    for (const auto [pass_idx, pass_node] : builder.pass_nodes | std::views::enumerate)
+    {
+        if (pass_node.culled)
+        {
+            continue;
+        }
+
+        const uint32 writer_idx = static_cast<uint32>(pass_idx);
+        for (const uint32 write_idx : pass_node.write_indices)
+        {
+            for (const uint32 reader_idx : resource_to_readers[write_idx])
             {
-                ++in_degrees[&pass_node];
+                adjacency[writer_idx].Push(reader_idx);
+                ++in_degrees[reader_idx];
             }
         }
     }
 
-    Queue<const RGPassNode*> ready_queue;
-    for (const RGPassNode& pass_node : builder.pass_nodes)
+    // 4-3. BFS 위상정렬
+    Queue<uint32> ready_queue;
+    for (usize i = 0; i < pass_count; ++i)
     {
-        if (!pass_node.culled && in_degrees[&pass_node] == 0)
+        if (!builder.pass_nodes[i].culled && in_degrees[i] == 0)
         {
-            ready_queue.Push(&pass_node);
+            ready_queue.Push(static_cast<uint32>(i));
         }
     }
 
-    while (Optional pass_opt = ready_queue.Pop())
+    while (Optional idx_opt = ready_queue.Pop())
     {
-        const RGPassNode* pass_node = *pass_opt;
-        compiled_passes.Push(pass_node);
+        const uint32 pass_idx = *idx_opt;
+        compiled_passes.Push(&builder.pass_nodes[pass_idx]);
 
-        for (const uint32 write_idx : pass_node->write_indices)
+        for (const uint32 dependent_idx : adjacency[pass_idx])
         {
-            for (const RGPassNode& potential_reader : builder.pass_nodes)
+            --in_degrees[dependent_idx];
+            if (in_degrees[dependent_idx] == 0)
             {
-                if (potential_reader.culled)
-                {
-                    continue;
-                }
-
-                for (const uint32 read_idx : potential_reader.read_indices)
-                {
-                    if (read_idx == write_idx)
-                    {
-                        --in_degrees[&potential_reader];
-                        if (in_degrees[&potential_reader] == 0)
-                        {
-                            ready_queue.Push(&potential_reader);
-                        }
-                    }
-                }
+                ready_queue.Push(dependent_idx);
             }
         }
     }
 
-    // 순환 의존성 확인
+    // 4-4. 순환 의존성 확인
     const usize active_pass_count = std::ranges::count_if(
         builder.pass_nodes,
         [](const RGPassNode& p) { return !p.culled; }
@@ -261,11 +276,11 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     if (compiled_passes.Len() != active_pass_count)
     {
         ConsoleLog(ELogLevel::Fatal, "A cycle was detected in the render graph!");
-        for (const auto& [pass_node, degree] : in_degrees)
+        for (usize i = 0; i < pass_count; ++i)
         {
-            if (degree > 0)
+            if (!builder.pass_nodes[i].culled && in_degrees[i] > 0)
             {
-                ConsoleLog(ELogLevel::Fatal, "  - {}", pass_node->name.ToString());
+                ConsoleLog(ELogLevel::Fatal, "  - {}", builder.pass_nodes[i].name.ToString());
             }
         }
         SE_ASSERT(false, "A cycle was detected in the render graph!");
@@ -292,9 +307,9 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     }
 
     // 6. 리소스 할당/해제 스케줄 구축
-    const usize pass_count = compiled_passes.Len();
-    resources_to_realize.Resize(pass_count);
-    resources_to_unrealize.Resize(pass_count);
+    const usize compiled_pass_count = compiled_passes.Len();
+    resources_to_realize.Resize(compiled_pass_count);
+    resources_to_unrealize.Resize(compiled_pass_count);
 
     for (const auto [idx, node] : builder.resource_nodes | std::views::enumerate)
     {
