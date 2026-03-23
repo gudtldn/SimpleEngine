@@ -32,7 +32,11 @@ SE_BEGIN_REFLECT(MockImportSettings, meta::Reflect)
     SE_REFLECT_PROPERTY(combine_meshes, meta::Property)
 SE_END_REFLECT(MockImportSettings)
 
-// 테스트용 간단한 Translator
+/**
+ * 테스트용 Translator
+ * combine_meshes=true  -> 1개 노드 (병합, 1 draw call)
+ * combine_meshes=false -> 2개 노드 (분리, 2 draw call)
+ */
 class MockMeshTranslator : public IPipelineTranslator
 {
 public:
@@ -58,43 +62,34 @@ public:
 
         if (settings.combine_meshes)
         {
-            // 간단한 큐브 형태 혹은 단일 점을 가진 StaticMeshNode 생성
+            // combine_meshes=true: 1개의 병합된 StaticMesh (1 draw call)
             auto& node = out_container.CreateNode<StaticMeshPipelineNode>();
             node.SetDisplayName("MockMesh");
 
-            // 정점 하나 추가 (1, 1, 1)
             Vertex v;
             v.position = Vector3f(1.0f, 1.0f, 1.0f);
             v.normal = Vector3f(0.0f, 0.0f, 1.0f);
             v.tex_coord = Vector2f(0.0f, 0.0f);
             v.tangent = Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
-
             node.vertices.Push(v);
             node.indices.Push(0);
-
-            MeshSection section;
-            section.index_start = 0;
-            section.index_count = 1;
-            section.material_index = 0;
-            node.sections.Push(section);
+            node.material_index = 0;
         }
         else
         {
-            // combine_meshes = false 인 경우: 두 개의 노드로 분리
+            // combine_meshes=false: 2개의 독립된 StaticMesh (per-primitive)
             {
                 auto& node1 = out_container.CreateNode<StaticMeshPipelineNode>();
                 node1.SetDisplayName("Mesh1");
 
                 Vertex v;
                 v.position = Vector3f(1.0f, 1.0f, 1.0f);
+                v.normal = Vector3f(0.0f, 0.0f, 1.0f);
+                v.tex_coord = Vector2f(0.0f, 0.0f);
+                v.tangent = Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
                 node1.vertices.Push(v);
                 node1.indices.Push(0);
-
-                MeshSection section;
-                section.index_start = 0;
-                section.index_count = 1;
-                section.material_index = 0;
-                node1.sections.Push(section);
+                node1.material_index = 0;
             }
 
             {
@@ -103,14 +98,12 @@ public:
 
                 Vertex v;
                 v.position = Vector3f(2.0f, 2.0f, 2.0f);
+                v.normal = Vector3f(0.0f, 0.0f, 1.0f);
+                v.tex_coord = Vector2f(0.0f, 0.0f);
+                v.tangent = Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
                 node2.vertices.Push(v);
                 node2.indices.Push(0);
-
-                MeshSection section;
-                section.index_start = 0;
-                section.index_count = 1;
-                section.material_index = 0;
-                node2.sections.Push(section);
+                node2.material_index = 0;
             }
         }
     }
@@ -187,6 +180,7 @@ protected:
 
 TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
 {
+    // combine_meshes=true (기본): 1개의 병합된 StaticMesh가 스케일 처리됨
     AssetImporter importer;
     importer.RegisterTranslator<MockMeshTranslator>();
     importer.RegisterFactory<StaticMeshFactory>();
@@ -204,14 +198,9 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     ASSERT_FALSE(assets.IsEmpty());
     ASSERT_EQ(assets.GetCount(), 1);
 
-    const auto& asset = assets.GetAsset(0);
-    ASSERT_NE(asset, nullptr);
-
-    auto mesh = std::dynamic_pointer_cast<StaticMesh>(asset);
+    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets.GetAsset(0));
     ASSERT_NE(mesh, nullptr);
-
     ASSERT_FALSE(mesh->vertices.IsEmpty());
-    ASSERT_GE(mesh->vertices.Len(), 1);
 
     const auto& pos = mesh->vertices[0].position;
     EXPECT_FLOAT_EQ(pos.x, 1.0f * scale_factor);
@@ -219,28 +208,13 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     EXPECT_FLOAT_EQ(pos.z, 1.0f * scale_factor);
 }
 
-TEST_F(AssetPipelineTest, ImportPipeline_ConfigTest)
+TEST_F(AssetPipelineTest, ImportPipeline_CombineMeshesConfigTest)
 {
-    // Config 테스트: ImportProfile에 combine_meshes = false를 넣었을 때 동작 확인
     AssetImporter importer;
     importer.RegisterTranslator<MockMeshTranslator>();
     importer.RegisterFactory<StaticMeshFactory>();
 
-    // 1. combine_meshes = false
-    {
-        ImportProfile config;
-        MockImportSettings settings;
-        settings.combine_meshes = false;
-        config.Set(settings);
-
-        auto assets = importer.Import("Test.mock", config);
-        EXPECT_TRUE(assets.HasValue());
-
-        // 두 개의 노드가 생성되어 두 개의 에셋이 반환되어야 함
-        ASSERT_EQ(assets->GetCount(), 2);
-    }
-
-    // 2. combine_meshes = true (기본값)
+    // combine_meshes=true: 모든 primitive를 1개의 StaticMesh로 병합 (1 draw call)
     {
         ImportProfile config;
         MockImportSettings settings;
@@ -249,9 +223,27 @@ TEST_F(AssetPipelineTest, ImportPipeline_ConfigTest)
 
         auto assets = importer.Import("Test.mock", config);
         EXPECT_TRUE(assets.HasValue());
-
-        // 하나의 통합된 노드가 생성되어 하나의 에셋이 반환되어야 함
         ASSERT_EQ(assets->GetCount(), 1);
+    }
+
+    // combine_meshes=false: 각 primitive를 독립된 StaticMesh로 분리
+    {
+        ImportProfile config;
+        MockImportSettings settings;
+        settings.combine_meshes = false;
+        config.Set(settings);
+
+        auto assets = importer.Import("Test.mock", config);
+        EXPECT_TRUE(assets.HasValue());
+        ASSERT_EQ(assets->GetCount(), 2);
+
+        // 각 에셋이 독립된 정점 데이터를 보유
+        auto mesh1 = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(0));
+        auto mesh2 = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(1));
+        ASSERT_NE(mesh1, nullptr);
+        ASSERT_NE(mesh2, nullptr);
+        EXPECT_FLOAT_EQ(mesh1->vertices[0].position.x, 1.0f);
+        EXPECT_FLOAT_EQ(mesh2->vertices[0].position.x, 2.0f);
     }
 }
 
@@ -272,6 +264,7 @@ TEST_F(AssetPipelineTest, ImportPipeline_MultiProcessorTest)
     auto assets = importer.Import("Test.mock", config, pipeline_stack);
     EXPECT_TRUE(assets.HasValue());
 
+    // combine_meshes=true (기본): 1개의 병합된 에셋
     ASSERT_EQ(assets->GetCount(), 1);
     auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(0));
     ASSERT_NE(mesh, nullptr);

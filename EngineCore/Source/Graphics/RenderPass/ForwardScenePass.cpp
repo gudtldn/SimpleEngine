@@ -299,14 +299,6 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             //     }
             // }
 
-            // TODO: Mesh Section에 대해서도 렌더링 할 수 있도록 개선
-            // info.mesh_id로 AssetManager에서 실제 CPU Mesh를 가져온 후, 아래 코드처럼
-            // Draw Sections
-            // for (const auto& section : mesh->sections)
-            // {
-            //     SDL_DrawGPUIndexedPrimitives(render_pass, section.index_count, 1, section.index_start, 0, 0);
-            // }
-
             if (slice->index_count > 0)
             {
                 SDL_DrawGPUIndexedPrimitives(pass, slice->index_count, 1, 0, 0, 0);
@@ -320,4 +312,4 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     }
     SDL_EndGPURenderPass(pass);
 }
-}  // namespace se::graphics
+} // namespace se::graphics

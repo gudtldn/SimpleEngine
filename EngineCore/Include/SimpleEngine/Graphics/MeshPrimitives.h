@@ -40,25 +40,4 @@ inline void Serialize(Archive& ar, SkinVertex& v)
     ar("bone_indices") << v.bone_indices;
     ar("bone_weights") << v.bone_weights;
 }
-
-/**
- * 메쉬의 일부분(서브셋)을 정의하는 데이터
- */
-struct MeshSection
-{
-    uint32 index_start;
-    uint32 index_count;
-    // uint32 vertex_start; // 나중에 하나의 큰 버퍼로 합칠 때 필요
-    uint32 material_index;
-
-    AABBf bounds;
-};
-
-inline void Serialize(Archive& ar, MeshSection& s)
-{
-    ar("index_start") << s.index_start;
-    ar("index_count") << s.index_count;
-    ar("material_index") << s.material_index;
-    ar("bounds") << s.bounds;
-}
-}  // namespace se::graphics
+} // namespace se::graphics

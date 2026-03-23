@@ -31,7 +31,6 @@ std::shared_ptr<asset::AssetBase> StaticMeshFactory::CreateAsset(
     auto static_mesh = std::make_shared<asset::StaticMesh>();
     static_mesh->vertices = std::move(mesh_node->vertices);
     static_mesh->indices = std::move(mesh_node->indices);
-    static_mesh->sections = std::move(mesh_node->sections);
 
     // 전체 메쉬 AABB 계산
     static_mesh->bounds = [&]
@@ -39,35 +38,14 @@ std::shared_ptr<asset::AssetBase> StaticMeshFactory::CreateAsset(
         ZoneScopedN("Calculate Mesh AABB");
 
         AABBf mesh_bounds;
-        for (const auto& vertex : static_mesh->vertices)
+        for (const graphics::Vertex& vertex : static_mesh->vertices)
         {
             mesh_bounds.Expand(vertex.position);
         }
         return mesh_bounds;
     }();
 
-    // 섹션별 AABB 계산
-    for (auto& section : static_mesh->sections)
-    {
-        section.bounds = [&]
-        {
-            ZoneScopedN("Calculate Section AABB");
-
-            AABBf section_bounds;
-            const uint32 end = section.index_start + section.index_count;
-            for (uint32 i = section.index_start; i < end; ++i)
-            {
-                section_bounds.Expand(static_mesh->vertices[static_mesh->indices[i]].position);
-            }
-            return section_bounds;
-        }();
-    }
-
-    // TODO: 머티리얼 연결
-    // for (const auto& section : static_mesh->sections)
-    // {
-    //      // context.GetCreatedAsset(...)를 통해 머티리얼 에셋을 찾아서 연결
-    // }
+    // TODO: mesh_node->material_index로 Material 에셋 연결
     (void)context;
 
     return static_mesh;

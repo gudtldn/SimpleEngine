@@ -38,9 +38,6 @@ public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::MeshSection> sections;
-
     // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<Material> materials;
 
@@ -65,9 +62,6 @@ public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::MeshSection> sections;
-
     // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<Material> materials;
 
@@ -77,4 +71,4 @@ public:
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리
     // Array<BoneInfo> ref_skeleton;
 };
-}  // namespace se::asset
+} // namespace se::asset

@@ -427,24 +427,6 @@ TEST_F(AutoSerializeTest, SkinVertex_RoundTrip)
     EXPECT_EQ(loaded.bone_weights, original.bone_weights);
 }
 
-// --- MeshPrimitives: MeshSection ---
-TEST_F(AutoSerializeTest, MeshSection_RoundTrip)
-{
-    MeshSection original;
-    original.index_start = 100;
-    original.index_count = 300;
-    original.material_index = 2;
-    original.bounds.min = { -5.0f, -5.0f, -5.0f };
-    original.bounds.max = { 5.0f, 5.0f, 5.0f };
-
-    MeshSection loaded = RoundTrip(original);
-    EXPECT_EQ(loaded.index_start, original.index_start);
-    EXPECT_EQ(loaded.index_count, original.index_count);
-    EXPECT_EQ(loaded.material_index, original.material_index);
-    EXPECT_EQ(loaded.bounds.min, original.bounds.min);
-    EXPECT_EQ(loaded.bounds.max, original.bounds.max);
-}
-
 // --- Enum: SE_REFLECT_ENUM으로 등록된 enum -> TypeInfo 경유 직렬화 ---
 TEST_F(AutoSerializeTest, ReflectedEnum_ViaTypeInfo)
 {

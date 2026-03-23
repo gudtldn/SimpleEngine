@@ -19,6 +19,13 @@ namespace
 using namespace se;
 using namespace se::editor;
 
+/**
+ * 씬의 모든 primitive를 하나의 StaticMeshPipelineNode로 병합합니다.
+ * combine_meshes=true일 때 1개의 StaticMesh 에셋(1 draw call)을 생성합니다.
+ *
+ * 또한 1개의 material만 지원하며, primitive가 여러 material을 가지더라도 첫 번째 primitive의 material을 사용합니다.
+ * 여러 material이 필요하면 combine_meshes=false를 사용하세요.
+ */
 void ProcessMergedMesh(
     const aiScene* scene,
     const String& mesh_name,
@@ -30,7 +37,7 @@ void ProcessMergedMesh(
     StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
     pipeline_node.SetDisplayName(mesh_name);
 
-    // 전체 크기 계산
+    // 전체 크기 사전 계산 후 예약
     uint32 total_vertices = 0;
     uint32 total_indices = 0;
     for (uint32 i = 0; i < scene->mNumMeshes; ++i)
@@ -41,9 +48,8 @@ void ProcessMergedMesh(
     pipeline_node.vertices.Reserve(total_vertices);
     pipeline_node.indices.Reserve(total_indices);
 
-    // 병합 루프
+    // 모든 primitive를 하나의 버퍼에 병합
     uint32 vertex_offset = 0;
-    uint32 index_offset = 0;
     for (uint32 i = 0; i < scene->mNumMeshes; ++i)
     {
         const aiMesh* mesh = scene->mMeshes[i];
@@ -87,19 +93,13 @@ void ProcessMergedMesh(
             }
         }
 
-        // Section(Submesh) 설정
-        graphics::MeshSection section;
-        section.index_start = index_offset;
-        section.index_count = mesh->mNumFaces * 3;
-        section.material_index = mesh->mMaterialIndex;
-
-        pipeline_node.sections.Push(section);
-
         vertex_offset += mesh->mNumVertices;
-        index_offset += section.index_count;
     }
 
-    // TODO: 여기서 머티리얼 의존성(Material Node UID)을 추가
+    if (scene->mNumMeshes > 0)
+    {
+        pipeline_node.material_index = scene->mMeshes[0]->mMaterialIndex;
+    }
 }
 
 void ProcessSingleMesh(
@@ -156,15 +156,7 @@ void ProcessSingleMesh(
         }
     }
 
-    // Section(Submesh) 설정
-    graphics::MeshSection section;
-    section.index_start = 0;
-    section.index_count = static_cast<uint32>(pipeline_node.indices.Len());
-    section.material_index = mesh->mMaterialIndex;
-
-    pipeline_node.sections.Push(section);
-
-    // TODO: 여기서 머티리얼 의존성(Material Node UID)을 추가
+    pipeline_node.material_index = mesh->mMaterialIndex;
 }
 
 void ProcessNodeIterative(const aiNode* root_node, const aiScene* scene, PipelineNodeContainer& out_container)
@@ -253,7 +245,7 @@ void AssimpTranslator::Translate(
 
     if (mesh_settings.combine_meshes)
     {
-        // 파일명을 메쉬 이름으로 사용
+        // 파일명을 Mesh의 이름으로 사용
         const String filename = file_path.FileStem().ValueOr("Unnamed");
         ProcessMergedMesh(scene, filename, out_container);
     }
