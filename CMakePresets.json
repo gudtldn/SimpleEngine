@@ -8,7 +8,8 @@
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "TRACY_ENABLE": "ON"
+                "TRACY_ENABLE": "ON",
+                "TRACY_ON_DEMAND": "ON"
             }
         },
         {
@@ -16,7 +17,8 @@
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Development",
-                "TRACY_ENABLE": "ON"
+                "TRACY_ENABLE": "ON",
+                "TRACY_ON_DEMAND": "ON"
             }
         },
         {
@@ -24,7 +26,8 @@
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "TRACY_ENABLE": "OFF"
+                "TRACY_ENABLE": "OFF",
+                "TRACY_ON_DEMAND": "OFF"
             }
         },
         {
