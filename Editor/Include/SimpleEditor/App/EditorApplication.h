@@ -2,8 +2,14 @@
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEngine/App/Application.h"
+#include "SimpleEngine/Asset/AssetId.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/String.h"
 
 #include "SDL3/SDL.h"
+
+// forward declaration
+namespace se::graphics { struct SceneDrawData; }
 
 
 namespace se::editor
@@ -24,6 +30,12 @@ protected:
     virtual void Render() override;
 
 private:
+    /** 현재 프레임에 필요한 메시를 GPU 메모리에 미리 올려둡니다. */
+    void EnsureMeshesResident(const graphics::SceneDrawData& in_scene_data);
+
+    // GPU에 업로드된 메시의 source_hash를 추적합니다 (Hot-reload 감지용)
+    HashMap<asset::AssetId, String> uploaded_mesh_hashes;
+
     SDL_Window* cached_window = nullptr;
 };
 } // namespace se::editor

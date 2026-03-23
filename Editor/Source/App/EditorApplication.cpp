@@ -7,10 +7,15 @@
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
+#include "SimpleEngine/Asset/AssetPool.h"
+#include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
@@ -138,6 +143,14 @@ void EditorApplication::Render()
     se::graphics::FramePacket frame_packet;
     frame_packet.scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
 
+    // GPU 메모리에 올라오지 않은 메시를 렌더링 전에 업로드
+    EnsureMeshesResident(frame_packet.scene_draw_data);
+
+    // TODO: GPU 리소스 해제 로직
+    // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
+    // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
+    // - 씬 전환 시: GpuResourceManager 전체 리셋 고려
+
     const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
 
     // RenderFrame 람다 내에서 패스 조립
@@ -181,5 +194,120 @@ void EditorApplication::Render()
             builder.AddPass<EditorUIPass>(swapchain_handle);
         }
     );
+}
+
+void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_scene_data)
+{
+    if (in_scene_data.opaque_commands.IsEmpty())
+    {
+        return;
+    }
+
+    const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
+    auto* asset_subsystem = se::GetSubsystem<asset::AssetSubsystem>();
+    if (!render_subsystem || !asset_subsystem)
+    {
+        return;
+    }
+
+    graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+
+    // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 source_hash 변경)
+    struct PendingUpload
+    {
+        asset::AssetPath path;
+        String source_hash;
+    };
+    HashMap<asset::AssetId, PendingUpload> pending;
+
+    for (const auto& cmd : in_scene_data.opaque_commands)
+    {
+        // 이미 pending에 있으면 건너뜀
+        if (pending.Contains(cmd.mesh_id))
+        {
+            continue;
+        }
+
+        // Registry에서 경로와 source_hash를 조회
+        asset::AssetPath asset_path;
+        String source_hash;
+        if (!registry.ReadRecord(cmd.mesh_id, [&](const asset::AssetRecord& record)
+        {
+            asset_path = record.logical_path;
+            source_hash = record.metadata.source_hash;
+        }))
+        {
+            continue;
+        }
+
+        if (gpu_manager.GetSlice(cmd.mesh_id).HasValue())
+        {
+            // GPU 메모리에 이미 올라와 있음 (source_hash가 동일하면 최신 상태)
+            if (const auto prev_hash = uploaded_mesh_hashes.Find(cmd.mesh_id);
+                prev_hash.HasValue() && *prev_hash == source_hash)
+            {
+                continue;
+            }
+
+            // source_hash 불일치 -> 에셋이 reimport됨 (Pool과 GPU를 무효화)
+            gpu_manager.UnloadMesh(cmd.mesh_id);
+            asset_subsystem->GetPool().Remove(cmd.mesh_id);
+            ConsoleLog(ELogLevel::Info, "GPU mesh invalidated (reimport detected): {}", asset_path.ToString());
+        }
+
+        pending.Insert(cmd.mesh_id, {
+            .path = std::move(asset_path),
+            .source_hash = std::move(source_hash),
+        });
+    }
+
+    if (pending.IsEmpty())
+    {
+        return;
+    }
+
+    // 업로드용 Command Buffer 생성
+    graphics::RenderDevice& device = render_subsystem->GetRenderDevice();
+    SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(device.GetRawDevice());
+    if (!upload_cmd)
+    {
+        return;
+    }
+
+    // 각 메시를 Registry에서 경로 조회 -> Load -> GPU 업로드
+    for (const auto& [mesh_id, info] : pending)
+    {
+        // Load를 호출하여 DDC에서 역직렬화 -> Pool에 등록
+        asset::AssetHandle<asset::StaticMesh> handle = asset_subsystem->Load<asset::StaticMesh>(info.path);
+        if (!handle)
+        {
+            ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Load failed for {}", info.path.ToString());
+            continue;
+        }
+
+        const asset::StaticMesh* mesh = handle.Get();
+        if (!mesh || mesh->vertices.IsEmpty())
+        {
+            ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Empty mesh data for {}", info.path.ToString());
+            continue;
+        }
+
+        const bool success = gpu_manager.UploadMesh(
+            upload_cmd,
+            mesh_id,
+            mesh->vertices.Data(),
+            static_cast<uint32>(mesh->vertices.Len() * sizeof(graphics::Vertex)),
+            mesh->indices.Data(),
+            static_cast<uint32>(mesh->indices.Len() * sizeof(uint32))
+        );
+
+        if (success)
+        {
+            uploaded_mesh_hashes.Insert(mesh_id, info.source_hash);
+        }
+    }
+
+    SDL_SubmitGPUCommandBuffer(upload_cmd);
 }
 } // namespace se::editor
