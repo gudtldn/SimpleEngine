@@ -110,11 +110,11 @@ constexpr QuaternionImpl<T>::QuaternionImpl(const RotatorImpl<T>& rotator)
     const T sr = Sin(half_r), cr = Cos(half_r);
     // NOLINTEND(*-isolate-declaration)
 
-    // Yaw(Z) * Pitch(X) * Roll(Y)
-    x = cy * sp * cr + sy * cp * sr;
-    y = cy * cp * sr - sy * sp * cr;
-    z = sy * cp * cr - cy * sp * sr;
-    w = cy * cp * cr + sy * sp * sr;
+    // Z-Up, Y-Forward, X-Right 기준의 Z-X-Y 회전 쿼터니언 합성
+    x = cy * sp * cr - sy * cp * sr;
+    y = cy * cp * sr + sy * sp * cr;
+    z = cy * sp * sr + sy * cp * cr;
+    w = cy * cp * cr - sy * sp * sr;
 }
 
 template <traits::FloatingType T>
@@ -307,19 +307,20 @@ template <traits::FloatingType T>
 constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
 {
     // sin(pitch) 값을 추출해서 짐벌 락 상태인지 체크 (±1에 가까우면 짐벌 락)
-    const T sin_p = -static_cast<T>(2.0) * (quaternion.y * quaternion.z - quaternion.w * quaternion.x);
+    const T sin_p = static_cast<T>(2.0) * (quaternion.y * quaternion.z + quaternion.w * quaternion.x);
 
-    // 짐벌 락 체크 (Pitch가 +/- 90도인 경우)
+    // 짐벌 락 체크 (Pitch가 +/- 90도에 도달한 경우)
     if (Abs(sin_p) >= static_cast<T>(1.0 - KINDA_SMALL_NUMBER))
     {
-        // Pitch는 90도로 고정
-        pitch = Degree<T>{ CopySign(static_cast<T>(90), sin_p) };
+        // Pitch는 90도 또는 -90도로 고정
+        pitch = Degree<T>{ CopySign(static_cast<T>(90.0), sin_p) };
 
-        // 이때는 Yaw와 Roll이 같은 동작을 하므로, Roll을 0으로 고정하고 Yaw에 회전을 적용
-        yaw = Degree<T>{
-            Atan2(quaternion.y, quaternion.w)
-            * -CopySign(static_cast<T>(2.0), sin_p)
-        };
+        // 짐벌 락 상태에서는 Yaw와 Roll의 축이 일치하게 됨.
+        // Roll을 0으로 강제하고, 모든 회전을 Yaw에 몰아넣어 계산.
+        yaw = Degree<T>{ Atan2(
+            static_cast<T>(2.0) * (quaternion.x * quaternion.y + quaternion.w * quaternion.z),
+            static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.y * quaternion.y + quaternion.z * quaternion.z)
+        ) };
         roll = Degree<T>{ static_cast<T>(0.0) };
     }
     else
@@ -328,14 +329,16 @@ constexpr RotatorImpl<T>::RotatorImpl(const QuaternionImpl<T>& quaternion)
         pitch = Degree<T>{ Asin(sin_p) };
 
         // Yaw
-        const T tan_y_numerator = static_cast<T>(2.0) * (quaternion.x * quaternion.y + quaternion.w * quaternion.z);
-        const T tan_y_denominator = static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.z * quaternion.z);
-        yaw = Degree<T>{ Atan2(tan_y_numerator, tan_y_denominator) };
+        yaw = Degree<T>{ Atan2(
+            static_cast<T>(2.0) * (quaternion.w * quaternion.z - quaternion.x * quaternion.y),
+            static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.z * quaternion.z)
+        ) };
 
         // Roll
-        const T tan_r_numerator = static_cast<T>(2.0) * (quaternion.x * quaternion.z + quaternion.w * quaternion.y);
-        const T tan_r_denominator = static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
-        roll = Degree<T>{ Atan2(tan_r_numerator, tan_r_denominator) };
+        roll = Degree<T>{ Atan2(
+            static_cast<T>(2.0) * (quaternion.w * quaternion.y - quaternion.x * quaternion.z),
+            static_cast<T>(1.0) - static_cast<T>(2.0) * (quaternion.x * quaternion.x + quaternion.y * quaternion.y)
+        ) };
     }
 }
 
@@ -407,20 +410,18 @@ RotatorImpl<T>& RotatorImpl<T>::operator*=(Num scale)
 template <traits::FloatingType T>
 constexpr Vector3Impl<T> RotatorImpl<T>::GetForwardVector() const
 {
-    const Radian<T> rad_p{ pitch }; // X축 회전
-    const Radian<T> rad_r{ roll };  // Y축 회전
-    const Radian<T> rad_y{ yaw };   // Z축 회전
+    const Radian<T> rad_p{ pitch }; // X축 회전 (상하)
+    const Radian<T> rad_y{ yaw };   // Z축 회전 (좌우)
 
     // NOLINTBEGIN(*-isolate-declaration)
     const T sy = Sin(rad_y), cy = Cos(rad_y);
     const T sp = Sin(rad_p), cp = Cos(rad_p);
-    const T sr = Sin(rad_r), cr = Cos(rad_r);
     // NOLINTEND(*-isolate-declaration)
 
     return Vector3Impl<T>{
-        -sy * cr + cy * sp * sr,
-        cy * cp,
-        sy * sr + cy * sp * cr
+        -sy * cp, // X (Right): Yaw 회전에 의해 좌우 방향이 결정됨
+        cy * cp,  // Y (Forward): Pitch가 커질수록(위/아래를 볼수록) 정면 투영 길이는 줄어듦 (Cos 적용)
+        sp        // Z (Up): Yaw에 상관없이 오직 Pitch(상하 고개 각도)에 의해서만 높이가 결정됨
     };
 }
 
@@ -437,10 +438,11 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetRightVector() const
     const T sr = Sin(rad_r), cr = Cos(rad_r);
     // NOLINTEND(*-isolate-declaration)
 
+    // 기본 Right축 (1, 0, 0)에 Roll -> Pitch -> Yaw 순서로 회전 행렬을 곱한 결과
     return Vector3Impl<T>{
-        cy * cr + sy * sp * sr,
-        sy * cp,
-        -cy * sr + sy * sp * cr
+        cy * cr - sy * sp * sr,
+        sy * cr + cy * sp * sr,
+        -cp * sr
     };
 }
 
@@ -452,13 +454,15 @@ constexpr Vector3Impl<T> RotatorImpl<T>::GetUpVector() const
     const Radian<T> rad_y{ yaw };   // Z축 회전
 
     // NOLINTBEGIN(*-isolate-declaration)
+    const T sy = Sin(rad_y), cy = Cos(rad_y);
     const T sp = Sin(rad_p), cp = Cos(rad_p);
     const T sr = Sin(rad_r), cr = Cos(rad_r);
     // NOLINTEND(*-isolate-declaration)
 
+    // 기본 Up축 (0, 0, 1)에 Roll -> Pitch -> Yaw 순서로 회전 행렬을 곱한 결과
     return Vector3Impl<T>{
-        cp * sr,
-        -sp,
+        cy * sr + sy * sp * cr,
+        sy * sr - cy * sp * cr,
         cp * cr
     };
 }
@@ -470,4 +474,4 @@ constexpr QuaternionImpl<T> RotatorImpl<T>::ToQuaternion() const
 }
 
 //~ End RotatorImpl
-}  // namespace se::math
+} // namespace se::math
