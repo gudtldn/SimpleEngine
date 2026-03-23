@@ -31,6 +31,9 @@ private:
     void DrawDirectoryContextMenu(const Path& path);
     void DrawFileContextMenu(const Path& path);
 
+    /** 파일에 포함된 StaticMesh 에셋들을 World에 Spawn합니다. */
+    void SpawnMeshEntitiesFromFile(const Path& file_path);
+
     // Import Settings 모달
     void OpenImportSettingsModal(const Path& asset_path);
     void DrawImportSettingsModal();
@@ -46,4 +49,4 @@ private:
     bool modal_dirty = false;                  // Import Settings가 수정되었는지 여부
     bool pending_open_import_settings = false; // Modal을 띄우기 위한 Flag
 };
-}  // namespace se::editor
+} // namespace se::editor

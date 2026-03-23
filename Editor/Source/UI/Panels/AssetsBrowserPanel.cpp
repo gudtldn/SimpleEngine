@@ -7,12 +7,21 @@
 #include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
+#include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/Components/ChildrenComponent.h"
+#include "SimpleEngine/ECS/Components/MaterialComponent.h"
+#include "SimpleEngine/ECS/Components/ParentComponent.h"
+#include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
+#include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -353,6 +362,11 @@ void AssetsBrowserPanel::DrawFileContextMenu(const Path& path)
         OpenImportSettingsModal(path);
     }
 
+    if (ImGui::MenuItem("Add to Scene"))
+    {
+        SpawnMeshEntitiesFromFile(path);
+    }
+
     ImGui::Separator();
 
     if (ImGui::MenuItem("Open"))
@@ -380,6 +394,77 @@ void AssetsBrowserPanel::DrawFileContextMenu(const Path& path)
         ConsoleLog(ELogLevel::Info, "Show in Explorer: {}", path);
         Platform::RevealInExplorer(path);
     }
+}
+
+void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
+{
+    const Optional<VPath> vpath = VFS::Unresolve(file_path);
+    if (!vpath.HasValue())
+    {
+        ConsoleLog(ELogLevel::Warning, "SpawnMeshEntitiesFromFile: Cannot resolve path: {}", file_path);
+        return;
+    }
+
+    const auto [asset_subsystem, world_subsystem] = GetSubsystems<const asset::AssetSubsystem, WorldSubsystem>();
+    if (!asset_subsystem || !world_subsystem)
+    {
+        return;
+    }
+
+    ecs::World* world = world_subsystem->GetWorld();
+    if (!world)
+    {
+        return;
+    }
+
+    // 파일에 등록된 에셋 중 StaticMesh 타입만 수집
+    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    const Array<asset::AssetId> all_ids = registry.GetAssetsInFile(*vpath);
+
+    Array<asset::AssetId> mesh_ids;
+    for (const asset::AssetId& id : all_ids)
+    {
+        if (registry.GetAssetType(id) == TypeId::Get<asset::StaticMesh>())
+        {
+            mesh_ids.Push(id);
+        }
+    }
+
+    if (mesh_ids.IsEmpty())
+    {
+        ConsoleLog(ELogLevel::Warning, "SpawnMeshEntitiesFromFile: No StaticMesh assets found in: {}", *vpath);
+        return;
+    }
+
+    if (mesh_ids.Len() == 1)
+    {
+        world->SpawnEntity(
+            TransformComponent{},
+            StaticMeshComponent{ .mesh_id = mesh_ids[0] },
+            MaterialHandleComponent{}
+        );
+    }
+    else
+    {
+        // root entity (Transform + ChildrenComponent)
+        const Entity root = world->SpawnEntity(TransformComponent{});
+
+        // N child entities
+        ChildrenComponent children_comp;
+        for (const asset::AssetId& mesh_id : mesh_ids)
+        {
+            const Entity child = world->SpawnEntity(
+                TransformComponent{},
+                StaticMeshComponent{ .mesh_id = mesh_id },
+                MaterialHandleComponent{},
+                ParentComponent{ .parent = root }
+            );
+            children_comp.children.Push(child);
+        }
+        world->AddComponent(root, std::move(children_comp));
+    }
+
+    ConsoleLog(ELogLevel::Info, "Spawned {} mesh entities from: {}", mesh_ids.Len(), *vpath);
 }
 
 void AssetsBrowserPanel::OpenImportSettingsModal(const Path& asset_path)
