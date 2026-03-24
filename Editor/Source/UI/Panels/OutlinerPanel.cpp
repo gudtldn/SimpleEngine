@@ -1,6 +1,7 @@
 #include "UI/Panels/OutlinerPanel.h"
 #include "UI/ImGui/ImGuiString.h"
 
+#include "SimpleEditor/Core/EditorActionSubsystem.h"
 #include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 
@@ -62,7 +63,11 @@ void OutlinerPanel::Draw()
         {
             renaming_entity = Entity{};
         }
-        DeleteEntity(world, selection, entity_to_delete);
+
+        if (EditorActionSubsystem* action_subsystem = GetSubsystem<EditorActionSubsystem>())
+        {
+            action_subsystem->DeleteEntity(entity_to_delete);
+        }
     }
 }
 
@@ -175,30 +180,5 @@ void OutlinerPanel::DrawEntityNode(ecs::World* world, EditorSelection& selection
     }
 
     ImGui::PopID();
-}
-
-void OutlinerPanel::DeleteEntity(ecs::World* world, EditorSelection& selection, Entity entity)
-{
-    // 자식들을 먼저 재귀적으로 삭제
-    if (const Optional children_opt = world->TryGetComponent<ChildrenComponent>(entity))
-    {
-        const Array<Entity> children_copy = children_opt->children;
-        for (const Entity& child : children_copy)
-        {
-            DeleteEntity(world, selection, child);
-        }
-    }
-
-    // 부모의 ChildrenComponent에서 자신을 제거
-    if (const Optional parent_opt = world->TryGetComponent<ParentComponent>(entity))
-    {
-        if (const Optional parent_children_opt = world->TryGetComponent<ChildrenComponent>(parent_opt->parent))
-        {
-            parent_children_opt->children.Remove(entity);
-        }
-    }
-
-    selection.DeselectEntity(entity);
-    world->DestroyEntity(entity);
 }
 } // namespace se::editor
