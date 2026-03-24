@@ -74,6 +74,7 @@ void EditorViewportSubsystem::Update(float delta_time)
         }
     }
 
+    // TODO: 카메라 모드(flythrough/orbit 등)가 추가되거나 Update()가 비대해지면 EditorCameraSubsystem으로 분리할 것
     // 활성 카메라 입력 처리
     if (active_camera_viewport != StringName::None && input_subsystem->IsMouseButtonDown(EMouseButton::Right))
     {
