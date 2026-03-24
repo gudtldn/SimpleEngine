@@ -64,6 +64,16 @@ public:
     /** 현재 관리 중인 모든 활성 뷰포트의 렌더링 정보를 반환합니다. */
     [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetActiveViewportInfo() const { return viewport_data; }
 
+    /** 현재 관리 중인 모든 뷰포트 카메라 상태를 반환합니다. */
+    [[nodiscard]] const HashMap<StringName, EditorCameraState>& GetViewportCameras() const { return viewport_cameras; }
+    [[nodiscard]] HashMap<StringName, EditorCameraState>& GetViewportCameras() { return viewport_cameras; }
+
+    /** 특정 뷰포트의 카메라 상태를 반환합니다. */
+    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id)
+    {
+        return viewport_cameras.Find(viewport_id);
+    }
+
 private:
     InputSubsystem* input_subsystem = nullptr;
 

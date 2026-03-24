@@ -1,6 +1,7 @@
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 
 #include "Panels/AssetsBrowserPanel.h"
+#include "Panels/CameraPanel.h"
 #include "Panels/DebugPanel.h"
 #include "Panels/DetailPanel.h"
 #include "Panels/EditorConsolePanel.h"
@@ -109,6 +110,7 @@ bool EditorUISubsystem::Initialize()
     RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
     RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
+    RegisterPanel<CameraPanel>(GetTypeName<CameraPanel>());
     RegisterPanel<AssetsBrowserPanel>(GetTypeName<AssetsBrowserPanel>());
     RegisterPanel<EditorConsolePanel>(GetTypeName<EditorConsolePanel>());
     RegisterPanel<SettingsPanel>(GetTypeName<SettingsPanel>());
