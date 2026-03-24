@@ -14,20 +14,12 @@
 
 #include "imgui.h"
 
+#include <ranges>
+
 
 namespace se::editor
 {
 using namespace se::math;
-
-DetailPanel::DetailPanel()
-    : components{ // TODO: 여기 ComponentRegistry 순회하는걸로 최적화 가능 | 아니지, 그냥 ComponentRegistry.Keys()로 하면 되지않나?
-        decltype(components)::FromRange(TypeRegistry::Get().GetAllTypes().Values() | std::views::filter([](const TypeInfo& info) -> bool
-        {
-            return info.flags.IsAnySet(ETypeFlags::IsComponent);
-        }))
-    }
-{
-}
 
 const char* DetailPanel::GetName() const
 {
@@ -79,27 +71,33 @@ void DetailPanel::Draw()
     {
         SE_SCOPE_DEFER{ ImGui::EndListBox(); };
 
-        for (const TypeInfo& component_info : components)
+        for (const TypeId& type_id : ecs::ComponentRegistry::Get().GetOperators() | std::views::keys)
         {
-            ecs::IStorage* storage = world->GetStorage(component_info.type_id);
+            ecs::IStorage* storage = world->GetStorage(type_id);
             if (!(storage && storage->Contains(entity)))
             {
                 continue;
             }
 
-            const String label = component_info.name;
+            const Optional type_info_opt = TypeRegistry::Get().Find(type_id);
+            if (!type_info_opt)
+            {
+                continue;
+            }
+
+            const String label = type_info_opt->name;
             ImGui::PushID(label.CStr());
 
             // X 버튼으로 컴포넌트 삭제
             if (ImGui::SmallButton("X"))
             {
-                component_to_remove = component_info.type_id;
+                component_to_remove = type_id;
             }
             ImGui::SameLine();
 
-            if (ImGui::Selectable(label.CStr(), selected_component_id == component_info.type_id))
+            if (ImGui::Selectable(label.CStr(), selected_component_id == type_id))
             {
-                selected_component_id = component_info.type_id;
+                selected_component_id = type_id;
             }
 
             ImGui::PopID();
@@ -123,17 +121,26 @@ void DetailPanel::Draw()
     {
         SE_SCOPE_DEFER{ ImGui::EndCombo(); };
 
-        for (const TypeInfo& component_info : components)
+        for (const TypeId& type_id : ecs::ComponentRegistry::Get().GetOperators() | std::views::keys)
         {
-            if (ecs::IStorage* storage = world->GetStorage(component_info.type_id))
+            ecs::IStorage* storage = world->GetStorage(type_id);
+            if (!storage)
             {
-                const String add_label = component_info.name;
-                if (ImGui::Selectable(add_label.CStr(), false))
+                continue;
+            }
+
+            const Optional type_info_opt = TypeRegistry::Get().Find(type_id);
+            if (!type_info_opt)
+            {
+                continue;
+            }
+
+            const String add_label = type_info_opt->name;
+            if (ImGui::Selectable(add_label.CStr(), false))
+            {
+                if (!storage->Contains(entity))
                 {
-                    if (!storage->Contains(entity))
-                    {
-                        storage->EmplaceDefault(entity);
-                    }
+                    storage->EmplaceDefault(entity);
                 }
             }
         }

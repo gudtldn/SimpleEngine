@@ -125,6 +125,9 @@ public:
     /** 해당 타입의 Ops를 찾습니다. */
     [[nodiscard]] Optional<const ComponentOps&> GetOps(const TypeId& type_id) const;
 
+    /** 등록된 모든 컴포넌트 타입의 Ops 맵을 반환합니다. */
+    [[nodiscard]] const HashMap<TypeId, ComponentOps>& GetOperators() const { return operators; }
+
 private:
     HashMap<TypeId, ComponentOps> operators;
 };
