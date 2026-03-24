@@ -63,8 +63,14 @@ public:
     /** 모니터 전체 기준 마우스의 절대 좌표를 가져옵니다. */
     [[nodiscard]] Vector2f GetGlobalMousePosition() const;
 
+    /** 모니터 전체 기준 특정 좌표로 마우스 커서를 이동시킵니다. */
+    void SetGlobalMousePosition(const Vector2f& pos);
+
     /** 포커싱된 현재 윈도우 기준 마우스의 현재 좌표를 가져옵니다. */
     [[nodiscard]] Vector2f GetLocalMousePosition() const { return mouse_position; }
+
+    /** 윈도우 내 특정 좌표로 마우스 커서를 이동시킵니다. */
+    void SetLocalMousePosition(const Vector2f& pos);
 
     /** 이전 프레임 대비 마우스 이동량을 가져옵니다. */
     [[nodiscard]] Vector2f GetMouseDelta() const { return mouse_delta; }

@@ -110,6 +110,27 @@ Vector2f InputSubsystem::GetGlobalMousePosition() const
     return { x, y };
 }
 
+void InputSubsystem::SetGlobalMousePosition(const Vector2f& pos)
+{
+    SDL_WarpMouseGlobal(pos.x, pos.y);
+}
+
+void InputSubsystem::SetLocalMousePosition(const Vector2f& pos)
+{
+    const WindowSubsystem& window_subsystem = GetSubsystemChecked<const WindowSubsystem>();
+    if (const SDL_WindowID focused_id = window_subsystem.GetFocusedWindowID())
+    {
+        if (SDL_Window* window = window_subsystem.GetWindow(focused_id))
+        {
+            SDL_WarpMouseInWindow(window, pos.x, pos.y);
+        }
+    }
+    else if (SDL_Window* main_window = window_subsystem.GetMainWindow())
+    {
+        SDL_WarpMouseInWindow(main_window, pos.x, pos.y);
+    }
+}
+
 void InputSubsystem::SetCursorVisible(bool visible)
 {
     if (visible)
