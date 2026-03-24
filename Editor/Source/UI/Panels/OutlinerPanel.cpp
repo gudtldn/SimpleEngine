@@ -39,83 +39,11 @@ void OutlinerPanel::Draw()
 
     Entity entity_to_delete;
 
-    for (const auto& [entity, name_opt] : world->QueryEntities<Entity, Optional<NameComponent&>>())
+
+    // ParentComponent가 없는 루트 엔티티만 최상위에서 렌더링
+    for (const auto& [entity] : world->QueryEntities<Entity, ecs::Without<ParentComponent>>())
     {
-        const String display_name = (name_opt && !name_opt->name.IsEmpty())
-            ? name_opt->name
-            : String::Format("Entity {}", entity.GetId());
-
-        ImGui::PushID(static_cast<int>(entity.GetId()));
-
-        if (renaming_entity == entity)
-        {
-            // 이름 편집 모드
-            if (rename_focus_pending)
-            {
-                ImGui::SetKeyboardFocusHere();
-                rename_focus_pending = false;
-            }
-
-            ImGui::SetNextItemWidth(-1.0f);
-            if (ImGui::InputText("##rename", &rename_name, ImGuiInputTextFlags_EnterReturnsTrue))
-            {
-                if (name_opt)
-                {
-                    name_opt->name = rename_name;
-                }
-                else
-                {
-                    world->AddComponent(entity, NameComponent{ .name = rename_name });
-                }
-                renaming_entity = Entity{};
-            }
-
-            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-            {
-                renaming_entity = Entity{};
-            }
-        }
-        else
-        {
-            const bool is_selected = selection.IsSelected(entity);
-            if (ImGui::Selectable(display_name.CStr(), is_selected))
-            {
-                if (ImGui::GetIO().KeyCtrl)
-                {
-                    if (is_selected)
-                    {
-                        selection.DeselectEntity(entity);
-                    }
-                    else
-                    {
-                        selection.SelectEntity(entity, false);
-                    }
-                }
-                else
-                {
-                    selection.SelectEntity(entity, true);
-                }
-            }
-
-            // 우클릭 컨텍스트 메뉴
-            if (ImGui::BeginPopupContextItem())
-            {
-                if (ImGui::MenuItem("Rename"))
-                {
-                    renaming_entity = entity;
-                    rename_name = display_name;
-                    rename_focus_pending = true;
-                }
-
-                if (ImGui::MenuItem("Delete Entity"))
-                {
-                    entity_to_delete = entity;
-                }
-                ImGui::EndPopup();
-            }
-        }
-
-        ImGui::PopID();
+        DrawEntityNode(world, selection, entity, entity_to_delete);
     }
 
     // 순회 완료 후 삭제 처리
@@ -127,6 +55,114 @@ void OutlinerPanel::Draw()
         }
         DeleteEntity(world, selection, entity_to_delete);
     }
+}
+
+void OutlinerPanel::DrawEntityNode(ecs::World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete)
+{
+    const Optional name_opt = world->TryGetComponent<NameComponent>(entity);
+    const Optional children_opt = world->TryGetComponent<ChildrenComponent>(entity);
+    const bool has_children = children_opt && !children_opt->children.IsEmpty();
+
+    const String display_name = (name_opt && !name_opt->name.IsEmpty())
+        ? name_opt->name
+        : String::Format("Entity {}", entity.GetId());
+
+    ImGui::PushID(static_cast<int>(entity.GetId()));
+
+    if (renaming_entity == entity)
+    {
+        // 이름 편집 모드
+        if (rename_focus_pending)
+        {
+            ImGui::SetKeyboardFocusHere();
+            rename_focus_pending = false;
+        }
+
+        ImGui::SetNextItemWidth(-1.0f);
+        if (ImGui::InputText("##rename", &rename_name, ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            if (name_opt)
+            {
+                name_opt->name = rename_name;
+            }
+            else
+            {
+                world->AddComponent(entity, NameComponent{ .name = rename_name });
+            }
+            renaming_entity = Entity{};
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+        {
+            renaming_entity = Entity{};
+        }
+    }
+    else
+    {
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+        if (!has_children)
+        {
+            // 자식이 없는 경우 펼침 화살표 없이 선택만 가능한 리프 노드로 표시
+            flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+        }
+
+        if (selection.IsSelected(entity))
+        {
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+
+        const bool node_open = ImGui::TreeNodeEx(display_name.CStr(), flags);
+
+        // OpenOnArrow 플래그로 인해 화살표 클릭은 토글, 레이블 클릭은 선택으로 분리된다
+        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+        {
+            if (ImGui::GetIO().KeyCtrl)
+            {
+                if (selection.IsSelected(entity))
+                {
+                    selection.DeselectEntity(entity);
+                }
+                else
+                {
+                    selection.SelectEntity(entity, false);
+                }
+            }
+            else
+            {
+                selection.SelectEntity(entity, true);
+            }
+        }
+
+        // 우클릭 컨텍스트 메뉴
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::MenuItem("Rename"))
+            {
+                renaming_entity = entity;
+                rename_name = display_name;
+                rename_focus_pending = true;
+            }
+
+            if (ImGui::MenuItem("Delete Entity"))
+            {
+                entity_to_delete = entity;
+            }
+
+            ImGui::EndPopup();
+        }
+
+        // 자식이 있는 노드가 열려있을 때만 재귀적으로 자식을 그림
+        if (node_open && has_children)
+        {
+            for (const Entity& child : children_opt->children)
+            {
+                DrawEntityNode(world, selection, child, entity_to_delete);
+            }
+            ImGui::TreePop();
+        }
+    }
+
+    ImGui::PopID();
 }
 
 void OutlinerPanel::DeleteEntity(ecs::World* world, EditorSelection& selection, Entity entity)

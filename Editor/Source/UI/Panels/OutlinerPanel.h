@@ -17,6 +17,9 @@ public:
     virtual void Draw() override;
 
 private:
+    /** Entity를 트리 노드로 재귀적으로 그립니다. */
+    void DrawEntityNode(ecs::World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete);
+
     /** Entity와 모든 자식 Entity를 재귀적으로 삭제합니다. */
     static void DeleteEntity(ecs::World* world, EditorSelection& selection, Entity entity);
 
