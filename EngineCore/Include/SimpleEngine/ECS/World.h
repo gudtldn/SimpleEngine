@@ -72,6 +72,9 @@ public:
     /** Entity와 Entity와 연결된 Component를 제거합니다. */
     void DestroyEntity(Entity entity);
 
+    /** Entity가 현재 살아있는지 확인합니다. */
+    [[nodiscard]] bool IsEntityAlive(Entity entity) const { return entity_manager.IsValid(entity); }
+
     /** 현재 살아있는 모든 Entity를 반환합니다. */
     [[nodiscard]] Array<Entity> GetAliveEntities() const;
 
