@@ -99,8 +99,10 @@ void DebugPanel::Draw()
                 {
                     SE_SCOPE_DEFER{ ImGui::TreePop(); };
 
-                    ImGui::Text("Position: (%.2f, %.2f)", input->GetMouseX(), input->GetMouseY());
-                    ImGui::Text("Wheel: (%.2f, %.2f)", input->GetMouseWheelX(), input->GetMouseWheelY());
+                    const Vector2f mouse_pos = input->GetLocalMousePosition();
+                    const Vector2f wheel_delta = input->GetMouseWheel();
+                    ImGui::Text("Position: (%.2f, %.2f)", mouse_pos.x, mouse_pos.y);
+                    ImGui::Text("Wheel: (%.2f, %.2f)", wheel_delta.x, wheel_delta.y);
 
                     ImGui::SeparatorText("Delta Visualizer");
                     const ImVec2 canvas_p = ImGui::GetCursorScreenPos();
@@ -111,20 +113,19 @@ void DebugPanel::Draw()
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
                     draw_list->AddRectFilled(canvas_p, ImVec2(canvas_p.x + canvas_sz.x, canvas_p.y + canvas_sz.y), IM_COL32(30, 30, 30, 255));
                     draw_list->AddRect(canvas_p, ImVec2(canvas_p.x + canvas_sz.x, canvas_p.y + canvas_sz.y), IM_COL32(100, 100, 100, 255));
-                    
+
                     // Grid
                     draw_list->AddLine(ImVec2(center_x, canvas_p.y), ImVec2(center_x, canvas_p.y + canvas_sz.y), IM_COL32(60, 60, 60, 255));
                     draw_list->AddLine(ImVec2(canvas_p.x, center_y), ImVec2(canvas_p.x + canvas_sz.x, center_y), IM_COL32(60, 60, 60, 255));
 
                     // Delta Point
-                    const float dx = input->GetMouseDeltaX();
-                    const float dy = input->GetMouseDeltaY();
                     constexpr float scale = 2.0f;
-                    draw_list->AddCircleFilled(ImVec2(center_x + (dx * scale), center_y + (dy * scale)), 3.0f, IM_COL32(255, 255, 0, 255));
-                    draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + (dx * scale), center_y + (dy * scale)), IM_COL32(255, 255, 0, 150));
+                    const Vector2f mouse_delta = input->GetMouseDelta();
+                    draw_list->AddCircleFilled(ImVec2(center_x + (mouse_delta.x * scale), center_y + (mouse_delta.y * scale)), 3.0f, IM_COL32(255, 255, 0, 255));
+                    draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + (mouse_delta.x * scale), center_y + (mouse_delta.y * scale)), IM_COL32(255, 255, 0, 150));
 
                     ImGui::Dummy(canvas_sz);
-                    ImGui::Text("Delta: (%.2f, %.2f)", dx, dy);
+                    ImGui::Text("Delta: (%.2f, %.2f)", mouse_delta.x, mouse_delta.y);
 
                     ImGui::SeparatorText("Buttons");
                     auto DrawMouseButton = [&](const char* label, EMouseButton btn)

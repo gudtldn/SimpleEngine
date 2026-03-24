@@ -73,11 +73,10 @@ void EditorViewportSubsystem::Update(float delta_time)
         EditorCameraState& camera = viewport_cameras[active_camera_viewport];
 
         // 마우스 회전 yaw(Z축), pitch(X축) | TODO: 나중에 쿼터니언으로 수정
-        const float dx = input_subsystem->GetMouseDeltaX();
-        const float dy = input_subsystem->GetMouseDeltaY();
-        camera.rotation.yaw -= Degree{ dx * camera.look_sensitivity };
+        const Vector2f mouse_delta = input_subsystem->GetMouseDelta();
+        camera.rotation.yaw -= Degree{ mouse_delta.x * camera.look_sensitivity };
         camera.rotation.yaw = Degree{ Fmod(*camera.rotation.yaw, 360.0) };
-        camera.rotation.pitch -= Degree{ dy * camera.look_sensitivity };
+        camera.rotation.pitch -= Degree{ mouse_delta.y * camera.look_sensitivity };
         camera.rotation.pitch = Degree{ Clamp(*camera.rotation.pitch, -89.0, 89.0) };
 
         // WASD/QE 이동
@@ -98,7 +97,7 @@ void EditorViewportSubsystem::Update(float delta_time)
         }
 
         // 스크롤로 이동 속도를 조절
-        const float scroll = input_subsystem->GetMouseWheelY();
+        const float scroll = input_subsystem->GetMouseWheel().y;
         if (scroll != 0.0f)
         {
             camera.move_speed *= (scroll > 0.0f) ? 1.1 : (1.0 / 1.1);

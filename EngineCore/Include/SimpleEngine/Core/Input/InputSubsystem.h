@@ -60,17 +60,17 @@ public:
     /** 마우스 버튼이 이번 프레임에 떼어졌는지 확인합니다. */
     [[nodiscard]] bool IsMouseButtonReleased(EMouseButton button) const;
 
-    /** 마우스의 현재 위치를 가져옵니다. (포커스된 윈도우 기준 픽셀 좌표) */
-    [[nodiscard]] float GetMouseX() const { return mouse_x; }
-    [[nodiscard]] float GetMouseY() const { return mouse_y; }
+    /** 모니터 전체 기준 마우스의 절대 좌표를 가져옵니다. */
+    [[nodiscard]] Vector2f GetGlobalMousePosition() const;
+
+    /** 포커싱된 현재 윈도우 기준 마우스의 현재 좌표를 가져옵니다. */
+    [[nodiscard]] Vector2f GetLocalMousePosition() const { return mouse_position; }
 
     /** 이전 프레임 대비 마우스 이동량을 가져옵니다. */
-    [[nodiscard]] float GetMouseDeltaX() const { return mouse_delta_x; }
-    [[nodiscard]] float GetMouseDeltaY() const { return mouse_delta_y; }
+    [[nodiscard]] Vector2f GetMouseDelta() const { return mouse_delta; }
 
     /** 이번 프레임의 마우스 휠 스크롤량을 가져옵니다. */
-    [[nodiscard]] float GetMouseWheelX() const { return mouse_wheel_x; }
-    [[nodiscard]] float GetMouseWheelY() const { return mouse_wheel_y; }
+    [[nodiscard]] Vector2f GetMouseWheel() const { return mouse_wheel; }
 
 public:
     // Cursor Management
@@ -110,12 +110,9 @@ private:
     FixedArray<bool, MOUSE_BUTTON_COUNT> previous_mouse_buttons = {};
 
     // Mouse Position / Delta
-    float mouse_x = 0.0f;
-    float mouse_y = 0.0f;
-    float mouse_delta_x = 0.0f;
-    float mouse_delta_y = 0.0f;
-    float mouse_wheel_x = 0.0f;
-    float mouse_wheel_y = 0.0f;
+    Vector2f mouse_position = Vector2f::Zero();
+    Vector2f mouse_delta = Vector2f::Zero();
+    Vector2f mouse_wheel = Vector2f::Zero();
 
     // Delegate Handle
     DelegateHandle sdl_event_handle;

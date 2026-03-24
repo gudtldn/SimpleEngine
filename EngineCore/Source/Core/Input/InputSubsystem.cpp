@@ -1,4 +1,6 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
+// NOLINTBEGIN(*-convert-member-functions-to-static)
+
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
@@ -61,10 +63,8 @@ void InputSubsystem::BeginFrame()
     previous_mouse_buttons = current_mouse_buttons;
 
     // 마우스 델타/휠은 매 프레임 리셋
-    mouse_delta_x = 0.0f;
-    mouse_delta_y = 0.0f;
-    mouse_wheel_x = 0.0f;
-    mouse_wheel_y = 0.0f;
+    mouse_delta = Vector2f::Zero();
+    mouse_wheel = Vector2f::Zero();
 }
 
 bool InputSubsystem::IsKeyDown(EKeyCode key) const
@@ -101,6 +101,13 @@ bool InputSubsystem::IsMouseButtonReleased(EMouseButton button) const
 {
     const auto index = static_cast<uint8>(button);
     return index < MOUSE_BUTTON_COUNT && !current_mouse_buttons[index] && previous_mouse_buttons[index];
+}
+
+Vector2f InputSubsystem::GetGlobalMousePosition() const
+{
+    float x, y; // NOLINT(*-isolate-declaration)
+    SDL_GetGlobalMouseState(&x, &y);
+    return { x, y };
 }
 
 void InputSubsystem::SetCursorVisible(bool visible)
@@ -211,16 +218,13 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
     }
     case SDL_EVENT_MOUSE_MOTION:
     {
-        mouse_x = event.motion.x;
-        mouse_y = event.motion.y;
-        mouse_delta_x += event.motion.xrel;
-        mouse_delta_y += event.motion.yrel;
+        mouse_position = { event.motion.x, event.motion.y };
+        mouse_delta += { event.motion.xrel, event.motion.yrel };
         break;
     }
     case SDL_EVENT_MOUSE_WHEEL:
     {
-        mouse_wheel_x += event.wheel.x;
-        mouse_wheel_y += event.wheel.y;
+        mouse_wheel += { event.wheel.x, event.wheel.y };
         break;
     }
     default:
@@ -228,3 +232,5 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
     }
 }
 } // namespace se
+
+// NOLINTEND(*-convert-member-functions-to-static)
