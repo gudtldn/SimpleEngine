@@ -40,10 +40,19 @@ void OutlinerPanel::Draw()
     Entity entity_to_delete;
 
 
-    // ParentComponent가 없는 루트 엔티티만 최상위에서 렌더링
+    // ParentComponent가 없는 루트 엔티티를 최상위에서 렌더링
     for (const auto& [entity] : world->QueryEntities<Entity, ecs::Without<ParentComponent>>())
     {
         DrawEntityNode(world, selection, entity, entity_to_delete);
+    }
+
+    // ParentComponent가 있으나 부모가 이미 소멸된 고아 엔티티를 루트로 렌더링
+    for (const auto& [entity, parent_comp] : world->QueryEntities<Entity, ParentComponent&>())
+    {
+        if (!world->IsEntityAlive(parent_comp.parent))
+        {
+            DrawEntityNode(world, selection, entity, entity_to_delete);
+        }
     }
 
     // 순회 완료 후 삭제 처리
@@ -151,12 +160,15 @@ void OutlinerPanel::DrawEntityNode(ecs::World* world, EditorSelection& selection
             ImGui::EndPopup();
         }
 
-        // 자식이 있는 노드가 열려있을 때만 재귀적으로 자식을 그림
+        // 자식이 있는 노드가 열려있을 때만 재귀적으로 자식을 렌더링
         if (node_open && has_children)
         {
             for (const Entity& child : children_opt->children)
             {
-                DrawEntityNode(world, selection, child, entity_to_delete);
+                if (world->IsEntityAlive(child))
+                {
+                    DrawEntityNode(world, selection, child, entity_to_delete);
+                }
             }
             ImGui::TreePop();
         }
