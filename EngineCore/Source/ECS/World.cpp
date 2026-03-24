@@ -23,15 +23,15 @@ Array<Entity> World::GetAliveEntities() const
 
 IStorage* World::GetStorage(const TypeId& type_id)
 {
-    if (const Optional storage_opt = component_storages.Find(type_id))
+    if (const Optional storage = component_storages.Find(type_id))
     {
-        return storage_opt->get();
+        return storage->get();
     }
 
-    if (const Optional interface_opt = ComponentRegistry::Get().GetInterface(type_id))
+    if (const Optional ops = ComponentRegistry::Get().GetOps(type_id))
     {
-        return interface_opt->ensure_storage(*this);
+        return ops->ensure_storage(*this);
     }
     return nullptr;
 }
-}  // namespace se::ecs
+} // namespace se::ecs

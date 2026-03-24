@@ -1,17 +1,18 @@
 #pragma once
-#include <type_traits>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
+#include <type_traits>
+
 
 namespace se::ecs
 {
 /**
- * 컴포넌트 타입에 구애받지 않고 ECS 작업을 수행하기 위한 인터페이스
+ * 컴포넌트 타입에 구애받지 않고 ECS 작업을 수행하기 위한 Operations
  */
-struct ComponentInterface
+struct ComponentOps
 {
     /**
      * ComponentStorage를 초기화합니다.
@@ -77,15 +78,15 @@ public:
 public:
     /** 컴포넌트 T에 대한 ComponentInterface를 등록합니다. */
     template <typename T>
-    void RegisterInterface()
+    void RegisterComponentOps()
     {
         static_assert(std::is_default_constructible_v<T>, "Component T must be default constructible.");
         static_assert(std::is_move_constructible_v<T>, "Component T must be move constructible.");
 
         const TypeId type_id = TypeId::Get<T>();
-        SE_ASSERT(!interfaces.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
+        SE_ASSERT(!operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
 
-        interfaces.Insert(type_id, ComponentInterface{
+        operators.Insert(type_id, ComponentOps{
             .ensure_storage = [](World& world) static -> IStorage*
             {
                 return &world.GetOrCreateStorageImpl<T>();
@@ -121,10 +122,10 @@ public:
         });
     }
 
-    /** 해당 타입의 Interface를 찾습니다. */
-    [[nodiscard]] Optional<const ComponentInterface&> GetInterface(const TypeId& type_id) const;
+    /** 해당 타입의 Ops를 찾습니다. */
+    [[nodiscard]] Optional<const ComponentOps&> GetOps(const TypeId& type_id) const;
 
 private:
-    HashMap<TypeId, ComponentInterface> interfaces;
+    HashMap<TypeId, ComponentOps> operators;
 };
-}  // namespace se::ecs
+} // namespace se::ecs

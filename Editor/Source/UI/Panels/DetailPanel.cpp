@@ -109,9 +109,9 @@ void DetailPanel::Draw()
     // 컴포넌트 삭제 처리 (순회 완료 후)
     if (component_to_remove.IsValid())
     {
-        if (const Optional interface_opt = ecs::ComponentRegistry::Get().GetInterface(component_to_remove))
+        if (const Optional ops = ecs::ComponentRegistry::Get().GetOps(component_to_remove))
         {
-            interface_opt->remove_component(*world, entity);
+            ops->remove_component(*world, entity);
         }
         if (selected_component_id == component_to_remove)
         {
@@ -153,7 +153,7 @@ void DetailPanel::Draw()
         return;
     }
 
-    const Optional interface_opt = ecs::ComponentRegistry::Get().GetInterface(selected_component_id);
+    const Optional interface_opt = ecs::ComponentRegistry::Get().GetOps(selected_component_id);
     if (!interface_opt)
     {
         return;

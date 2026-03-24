@@ -9,8 +9,8 @@ ComponentRegistry& ComponentRegistry::Get()
     return instance;
 }
 
-Optional<const ComponentInterface&> ComponentRegistry::GetInterface(const TypeId& type_id) const
+Optional<const ComponentOps&> ComponentRegistry::GetOps(const TypeId& type_id) const
 {
-    return interfaces.Find(type_id);
+    return operators.Find(type_id);
 }
-}  // namespace se::ecs
+} // namespace se::ecs
