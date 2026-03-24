@@ -235,6 +235,22 @@ template <traits::FloatingType T>
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T InvSqrt(T value) { return static_cast<T>(1) / Sqrt(value); }
 
+/** e^value를 반환합니다. */
+template <traits::FloatingType T>
+[[nodiscard]] static constexpr T Exp(T value)
+{
+    if consteval { return detail::Exp(value); }
+    return std::exp(value);
+}
+
+/** 자연로그 ln(value)를 반환합니다. */
+template <traits::FloatingType T>
+[[nodiscard]] static constexpr T Ln(T value)
+{
+    if consteval { return detail::Ln(value); }
+    return std::log(value);
+}
+
 template <traits::FloatingType T>
 [[nodiscard]] static constexpr T Fmod(T value, T mod)
 {
