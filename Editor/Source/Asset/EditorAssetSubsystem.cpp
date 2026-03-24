@@ -606,17 +606,23 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     updated_content.metadata.source_size = file_size;
     updated_content.metadata.cache_version = current_cache_version;
 
-    // 기존 sub-asset의 dependencies를 이름 기준으로 임시 보존
-    // (Translator가 per-sub-asset deps를 직접 산출할 때까지 .meta에 저장된 값을 유지)
+    // 기존 sub-asset의 GUID와 dependencies를 이름 기준으로 임시 보존
+    // (설정 변경으로 sub-asset 목록이 달라져도 동일 이름은 GUID를 재사용하고, Translator가 per-sub-asset deps를 직접 산출할 때까지 .meta에 저장된 값을 유지)
+    HashMap<String, Guid> prev_sub_guids;
     HashMap<String, Array<asset::AssetDependencyEntry>> prev_sub_deps;
     for (const asset::SubAssetMeta& old_sub : updated_content.metadata.sub_assets)
     {
+        prev_sub_guids.Insert(old_sub.name, old_sub.guid);
         if (!old_sub.dependencies.IsEmpty())
         {
             prev_sub_deps.Insert(old_sub.name, old_sub.dependencies);
         }
     }
     updated_content.metadata.sub_assets.Clear();
+
+    // Reimport 시 ImportSettings 변경으로 sub-asset의 개수와 이름이 달라질 수 있으므로
+    // 이전 Cook의 Registry 항목을 먼저 제거하여 stale 항목을 방지
+    registry.UnregisterByPath(file_vpath);
 
     // Primary GUID 보장
     if (!updated_content.metadata.guid.IsValid())
@@ -636,8 +642,9 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         const TypeId asset_type = asset->GetTypeId();
         asset::AssetPath asset_path = asset::AssetPath{ file_vpath, name };
 
-        // 기존 ID 재사용 또는 새 GUID 발급
-        asset::AssetId asset_id = registry.GetAssetId(asset_path).ValueOr(asset::AssetId{ Guid::NewGuid() });
+        // .meta 스냅샷에서 기존 GUID 재사용, 없으면 새 GUID 발급
+        // (Registry는 이미 비워진 상태이므로 .meta 기준으로 조회)
+        asset::AssetId asset_id{ prev_sub_guids.Find(name).Copy().ValueOr(Guid::NewGuid()) };
 
         // Meta에 Sub-asset 정보 추가
         // TODO: Translator에서 참조 텍스처/머티리얼 등을 분석하여
