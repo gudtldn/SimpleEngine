@@ -53,6 +53,8 @@ void EditorViewportSubsystem::Update(float delta_time)
             if (info.is_hovered)
             {
                 active_camera_viewport = id;
+                last_mouse_pos = input_subsystem->GetLocalMousePosition();
+
                 input_subsystem->SetRelativeMouseMode(true);
                 break;
             }
@@ -62,8 +64,11 @@ void EditorViewportSubsystem::Update(float delta_time)
     {
         if (active_camera_viewport != StringName::None)
         {
+            input_subsystem->SetLocalMousePosition(last_mouse_pos);
             input_subsystem->SetRelativeMouseMode(false);
+
             active_camera_viewport = StringName::None;
+            last_mouse_pos = Vector2f::Zero();
         }
     }
 
@@ -103,6 +108,9 @@ void EditorViewportSubsystem::Update(float delta_time)
             camera.move_speed *= (scroll > 0.0f) ? 1.1 : (1.0 / 1.1);
             camera.move_speed = Clamp(camera.move_speed, 0.1, 1000.0);
         }
+
+        // 카메라가 활성화 되어있는 동안, 마우스를 last_pos에 고정
+        input_subsystem->SetLocalMousePosition(last_mouse_pos);
     }
 
     // 모든 뷰포트의 RenderView를 카메라 상태로부터 갱신

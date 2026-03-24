@@ -70,6 +70,8 @@ private:
     graphics::RenderDevice* render_device = nullptr;
     HashMap<StringName, ViewportRenderInfo> viewport_data;
     HashMap<StringName, EditorCameraState> viewport_cameras;
+
     StringName active_camera_viewport;
+    Vector2f last_mouse_pos;
 };
 } // namespace se::editor
