@@ -64,6 +64,8 @@ void EditorViewportSubsystem::Update(float delta_time)
     {
         if (active_camera_viewport != StringName::None)
         {
+            viewport_cameras[active_camera_viewport].velocity = Vector3::Zero();
+
             input_subsystem->SetLocalMousePosition(last_mouse_pos);
             input_subsystem->SetRelativeMouseMode(false);
 
@@ -88,18 +90,25 @@ void EditorViewportSubsystem::Update(float delta_time)
         const Vector3 forward = camera.rotation.GetForwardVector();
         const Vector3 right = camera.rotation.GetRightVector();
 
-        Vector3 move_dir = Vector3::Zero();
-        if (input_subsystem->IsKeyDown(EKeyCode::W)) { move_dir += forward; }
-        if (input_subsystem->IsKeyDown(EKeyCode::S)) { move_dir -= forward; }
-        if (input_subsystem->IsKeyDown(EKeyCode::D)) { move_dir += right; }
-        if (input_subsystem->IsKeyDown(EKeyCode::A)) { move_dir -= right; }
-        if (input_subsystem->IsKeyDown(EKeyCode::E)) { move_dir += Vector3::Up(); }
-        if (input_subsystem->IsKeyDown(EKeyCode::Q)) { move_dir -= Vector3::Up(); }
+        Vector3 target_velocity = Vector3::Zero();
+        if (input_subsystem->IsKeyDown(EKeyCode::W)) { target_velocity += forward; }
+        if (input_subsystem->IsKeyDown(EKeyCode::S)) { target_velocity -= forward; }
+        if (input_subsystem->IsKeyDown(EKeyCode::D)) { target_velocity += right; }
+        if (input_subsystem->IsKeyDown(EKeyCode::A)) { target_velocity -= right; }
+        if (input_subsystem->IsKeyDown(EKeyCode::E)) { target_velocity += Vector3::Up(); }
+        if (input_subsystem->IsKeyDown(EKeyCode::Q)) { target_velocity -= Vector3::Up(); }
 
-        if (!move_dir.IsNearlyZero())
+        if (!target_velocity.IsNearlyZero())
         {
-            camera.position += move_dir.GetNormalized() * (camera.move_speed * delta_time);
+            target_velocity = target_velocity.GetNormalized() * camera.move_speed;
         }
+
+        // Exponential smoothing: frame-rate independent 가속/감속 (smoothing이 클수록 반응이 빠름)
+        constexpr double SMOOTHING = 12.0;
+        const double alpha = 1.0 - Exp(-SMOOTHING * static_cast<double>(delta_time));
+        camera.velocity = camera.velocity + (target_velocity - camera.velocity) * alpha;
+
+        camera.position += camera.velocity * delta_time;
 
         // 스크롤로 이동 속도를 조절
         const float scroll = input_subsystem->GetMouseWheel().y;

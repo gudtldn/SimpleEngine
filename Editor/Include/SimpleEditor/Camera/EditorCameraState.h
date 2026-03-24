@@ -14,6 +14,8 @@ struct EditorCameraState
     Vector3 position = { 0.0, -5.0, 2.0 };
     Rotator rotation = Rotator::ZeroRotator();
 
+    Vector3 velocity = Vector3::Zero();
+
     double move_speed = 5.0;
     double look_sensitivity = 0.15;
     Degree<double> fov_y = 60.0_deg;
