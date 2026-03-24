@@ -1,14 +1,20 @@
 #pragma once
-#include <concepts>
-#include <tuple>
 
-#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <concepts>
+#include <tuple>
 
 
 namespace se
 {
+/**
+ * Engine에 등록된 Subsystem을 가져옵니다.
+ * @return Subsystem을 반환, 등록되어 있지 않다면 nullptr
+ */
+[[nodiscard]] SE_CORE_API SubsystemBase* GetSubsystem(const TypeId& type_id);
+
 /**
  * Engine에 등록된 Subsystem을 가져옵니다.
  * @tparam Subsystem 가져올 Subsystem 타입
@@ -16,9 +22,9 @@ namespace se
  */
 template <typename Subsystem>
     requires std::derived_from<Subsystem, SubsystemBase>
-Subsystem* GetSubsystem()
+[[nodiscard]] Subsystem* GetSubsystem()
 {
-    return Engine::Get().GetSubsystem<Subsystem>();
+    return static_cast<Subsystem*>(GetSubsystem(TypeId::Get<Subsystem>()));
 }
 
 /**
@@ -30,7 +36,7 @@ Subsystem* GetSubsystem()
  */
 template <typename Subsystem>
     requires std::derived_from<Subsystem, SubsystemBase>
-Subsystem& GetSubsystemChecked()
+[[nodiscard]] Subsystem& GetSubsystemChecked()
 {
     Subsystem* subsystem = GetSubsystem<Subsystem>();
     SE_ASSERT(subsystem, "Subsystem {} is not registered.", GetFullTypeName<Subsystem>());
@@ -45,7 +51,7 @@ Subsystem& GetSubsystemChecked()
  */
 template <typename... Subsystems>
     requires (std::derived_from<Subsystems, SubsystemBase> && ...)
-std::tuple<Subsystems*...> GetSubsystems()
+[[nodiscard]] std::tuple<Subsystems*...> GetSubsystems()
 {
     return { GetSubsystem<Subsystems>()... };
 }
@@ -59,7 +65,7 @@ std::tuple<Subsystems*...> GetSubsystems()
  */
 template <typename... Subsystems>
     requires (std::derived_from<Subsystems, SubsystemBase> && ...)
-std::tuple<Subsystems&...> GetSubsystemsChecked()
+[[nodiscard]] std::tuple<Subsystems&...> GetSubsystemsChecked()
 {
     return { GetSubsystemChecked<Subsystems>()... };
 }

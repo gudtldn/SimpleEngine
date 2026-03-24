@@ -48,6 +48,12 @@ public:
 
     /**
      * 등록된 Subsystem을 가져옵니다.
+     * @return 등록된 Subsystem 포인터. 없을 경우 nullptr를 반환합니다.
+     */
+    [[nodiscard]] SubsystemBase* GetSubsystem(const TypeId& type_id) const;
+
+    /**
+     * 등록된 Subsystem을 가져옵니다.
      * @return 등록된 T 타입의 Subsystem 포인터. 없을 경우 nullptr를 반환합니다.
      */
     template <typename T>
@@ -105,16 +111,10 @@ private:
     std::unique_ptr<AsyncFileIO> async_io_service;
 };
 
-
 template <typename T>
     requires std::derived_from<T, SubsystemBase>
 T* Engine::GetSubsystem() const
 {
-    const auto type_id = TypeId::Get<T>();
-    if (Optional subsystem = subsystems.Find(type_id))
-    {
-        return static_cast<T*>(subsystem->get());
-    }
-    return nullptr;
+    return static_cast<T*>(GetSubsystem(TypeId::Get<T>()));
 }
-}  // namespace se
+} // namespace se

@@ -130,6 +130,15 @@ void Engine::LoadRegisteredSubsystems()
     }
 }
 
+SubsystemBase* Engine::GetSubsystem(const TypeId& type_id) const
+{
+    if (const Optional subsystem = subsystems.Find(type_id))
+    {
+        return subsystem->get();
+    }
+    return nullptr;
+}
+
 bool Engine::Initialize()
 {
     // SDL 코어 시스템 초기화
