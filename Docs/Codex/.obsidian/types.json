@@ -1,8 +1,10 @@
 {
   "types": {
     "aliases": "aliases",
+    "cssclasses": "multitext",
     "tags": "tags",
     "작성일": "date",
-    "최종 수정일": "date"
+    "최종 수정일": "date",
+    "작성 완료": "checkbox"
   }
 }
