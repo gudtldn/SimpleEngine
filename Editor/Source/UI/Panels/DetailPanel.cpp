@@ -55,9 +55,10 @@ void DetailPanel::Draw()
     const Entity& entity = selection.GetPrimarySelectedEntity().Value();
     ecs::World* world = world_subsystem->GetWorld();
 
-    // 선택된 Entity가 바뀌면 컴포넌트 선택 초기화
+    // 선택된 Entity가 바뀌면 컴포넌트 선택 및 Rotation 캐시 초기화
     if (last_selected_entity != entity)
     {
+        rotator_cache.Remove(last_selected_entity);
         selected_component_id = TypeId{};
         last_selected_entity = entity;
     }
@@ -188,15 +189,23 @@ void DetailPanel::Draw()
             0.1f, nullptr, nullptr, nullptr
         );
 
-        // Quaternion -> Euler (degrees) 변환 후 표시/편집 | TODO: cache해두고 값 변경시 Rot -> Quat로만 사용
-        Rotator rot = tc->rotation.ToRotator();
+        // 편집 중이 아닐 때만 외부 변경을 감지해 Quat -> Euler 재계산
+        CachedRotator& cached = rotator_cache[entity];
+        if (!cached.is_editing && !cached.source_quat.IsNearlyEqual(tc->rotation))
+        {
+            cached.euler = Rotator{ tc->rotation };
+            cached.source_quat = tc->rotation;
+        }
+
         if (ImGui::DragScalarN(
-            "Rotation", ImGuiDataType_Double, &rot.pitch.value, 3,
+            "Rotation", ImGuiDataType_Double, &cached.euler.pitch.value, 3,
             0.1f, nullptr, nullptr, nullptr
         ))
         {
-            tc->rotation = rot.ToQuaternion();
+            tc->rotation = cached.euler.ToQuaternion();
+            cached.source_quat = tc->rotation;
         }
+        cached.is_editing = ImGui::IsItemActive();
 
         // Scale
         ImGui::DragScalarN(
