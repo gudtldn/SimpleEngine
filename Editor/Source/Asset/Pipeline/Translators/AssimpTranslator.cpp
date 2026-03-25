@@ -215,31 +215,35 @@ void AssimpTranslator::Translate(
         | aiProcess_GenSmoothNormals      // 부드러운 노멀 생성
         | aiProcess_CalcTangentSpace      // 노멀 매핑을 위한 탄젠트 계산
         | aiProcess_JoinIdenticalVertices // 중복 정점 제거 (최적화)
-        | aiProcess_SortByPType;          // 점/선 제거하고 다각형만 남김
+        | aiProcess_SortByPType           // 점/선 제거하고 다각형만 남김
+        | aiProcess_LimitBoneWeights;     // 최대 4개의 Bone Weight 사용
 
     if (mesh_settings.combine_meshes || mesh_settings.apply_transform)
     {
         // 노드 계층구조를 무시하고 모든 변환을 정점에 미리 적용 (StaticMesh 전용)
         flags |= aiProcess_PreTransformVertices;
+
+        // 인접한 메쉬들을 병합하고 불필요한 노드를 제거하여 드로우 콜(Draw Call) 수를 최적화
+        flags |= aiProcess_OptimizeMeshes;
     }
 
     // Global Scale 적용 (Assimp Property)
     if (math::Abs(mesh_settings.global_scale - 1.0f) > math::KINDA_SMALL_NUMBER)
     {
+        flags |= aiProcess_GlobalScale;
         importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, mesh_settings.global_scale);
     }
 
     // 파일 로드
-    const String utf8_path = file_path.ToString();
-    const aiScene* scene = [&]
+    const aiScene* const scene = [&]
     {
         ZoneScopedN("Assimp::ReadFile"); // NOLINT(*-lambda-function-name)
-        return importer.ReadFile(utf8_path.CStr(), flags);
+        return importer.ReadFile(file_path.CStr(), flags);
     }();
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        ConsoleLog(ELogLevel::Error, "Assimp Load Failed: {}, path: {}", importer.GetErrorString(), utf8_path);
+        ConsoleLog(ELogLevel::Error, "Assimp Load Failed: {}, path: {}", importer.GetErrorString(), file_path);
         return;
     }
 
