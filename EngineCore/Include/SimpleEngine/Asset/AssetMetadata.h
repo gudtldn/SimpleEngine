@@ -96,6 +96,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
     SE_ANNOTATION(=meta::Property)
     uint32 cache_version = 0;
 
+    /** Import Settings의 SHA-256 해시 (설정 변경 감지용, "sha256:..." 형태) */
+    SE_ANNOTATION(=meta::Property)
+    String settings_hash;
+
     /** 이 소스 파일에서 생성된 Sub-Asset 목록 */
     SE_ANNOTATION(=meta::Property)
     Array<SubAssetMeta> sub_assets;

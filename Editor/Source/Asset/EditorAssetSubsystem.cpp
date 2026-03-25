@@ -19,6 +19,7 @@
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
+#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
@@ -596,6 +597,14 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
     const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
 
+    // Import Settings 해시 계산
+    Array<uint8> settings_bytes;
+    {
+        MemoryWriter writer(settings_bytes);
+        writer << import_profile;
+    }
+    const String settings_hash = SHA256::HashBytes(settings_bytes);
+
     asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
     asset::DerivedDataCache& ddc = asset_subsystem->GetDDC();
 
@@ -605,6 +614,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     updated_content.metadata.source_mtime = file_mtime;
     updated_content.metadata.source_size = file_size;
     updated_content.metadata.cache_version = current_cache_version;
+    updated_content.metadata.settings_hash = settings_hash;
 
     // 기존 sub-asset의 GUID와 dependencies를 이름 기준으로 임시 보존
     // (설정 변경으로 sub-asset 목록이 달라져도 동일 이름은 GUID를 재사용하고, Translator가 per-sub-asset deps를 직접 산출할 때까지 .meta에 저장된 값을 유지)

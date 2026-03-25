@@ -33,7 +33,7 @@ private:
     /** 현재 프레임에 필요한 메시를 GPU 메모리에 미리 올려둡니다. */
     void EnsureMeshesResident(const graphics::SceneDrawData& in_scene_data);
 
-    // GPU에 업로드된 메시의 source_hash를 추적합니다 (Hot-reload 감지용)
+    // GPU에 업로드된 메시의 cook_key ("{source_hash}|{settings_hash}")를 추적합니다 (Hot-reload 감지용)
     HashMap<asset::AssetId, String> uploaded_mesh_hashes;
 
     SDL_Window* cached_window = nullptr;

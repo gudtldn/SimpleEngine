@@ -213,11 +213,11 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
     graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
     const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
 
-    // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 source_hash 변경)
+    // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 cook_key 변경)
     struct PendingUpload
     {
         asset::AssetPath path;
-        String source_hash;
+        String cook_key;
     };
     HashMap<asset::AssetId, PendingUpload> pending;
 
@@ -229,13 +229,13 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
             continue;
         }
 
-        // Registry에서 경로와 source_hash를 조회
+        // Registry에서 경로와 cook_key를 조회
         asset::AssetPath asset_path;
-        String source_hash;
+        String cook_key;
         if (!registry.ReadRecord(cmd.mesh_id, [&](const asset::AssetRecord& record)
         {
             asset_path = record.logical_path;
-            source_hash = record.metadata.source_hash;
+            cook_key = String::Format("{}|{}", record.metadata.source_hash, record.metadata.settings_hash);
         }))
         {
             continue;
@@ -243,14 +243,14 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
 
         if (gpu_manager.GetSlice(cmd.mesh_id).HasValue())
         {
-            // GPU 메모리에 이미 올라와 있음 (source_hash가 동일하면 최신 상태)
-            if (const auto prev_hash = uploaded_mesh_hashes.Find(cmd.mesh_id);
-                prev_hash.HasValue() && *prev_hash == source_hash)
+            // GPU 메모리에 이미 올라와 있음 (cook_key가 동일하면 최신 상태)
+            const Optional<String&> prev_key = uploaded_mesh_hashes.Find(cmd.mesh_id);
+            if (prev_key == cook_key)
             {
                 continue;
             }
 
-            // source_hash 불일치 -> 에셋이 reimport됨 (Pool과 GPU를 무효화)
+            // cook_key 불일치 -> 에셋이 reimport됨 (Pool과 GPU를 무효화)
             gpu_manager.UnloadMesh(cmd.mesh_id);
             asset_subsystem->GetPool().Remove(cmd.mesh_id);
             ConsoleLog(ELogLevel::Info, "GPU mesh invalidated (reimport detected): {}", asset_path.ToString());
@@ -258,7 +258,7 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
 
         pending.Insert(cmd.mesh_id, {
             .path = std::move(asset_path),
-            .source_hash = std::move(source_hash),
+            .cook_key = std::move(cook_key),
         });
     }
 
@@ -304,7 +304,7 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
 
         if (success)
         {
-            uploaded_mesh_hashes.Insert(mesh_id, info.source_hash);
+            uploaded_mesh_hashes.Insert(mesh_id, info.cook_key);
         }
     }
 

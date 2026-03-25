@@ -23,6 +23,7 @@ SE_BEGIN_REFLECT(AssetMetadata, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(source_mtime, meta::Property)
     SE_REFLECT_PROPERTY(source_size, meta::Property)
     SE_REFLECT_PROPERTY(cache_version, meta::Property)
+    SE_REFLECT_PROPERTY(settings_hash, meta::Property)
     SE_REFLECT_PROPERTY(sub_assets, meta::Property)
 SE_END_REFLECT(AssetMetadata)
 }  // namespace se::asset
