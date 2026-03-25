@@ -16,8 +16,12 @@ class AssetsBrowserPanel : public IEditorPanel
 public:
     AssetsBrowserPanel();
 
+public:
     [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw() override;
+
+protected:
+    [[nodiscard]] virtual ImGuiWindowFlags GetWindowFlags() const override;
+    virtual void DrawContent() override;
 
 protected:
     virtual void DrawAssetTree();

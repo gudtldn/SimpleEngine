@@ -25,7 +25,9 @@ public:
     EditorConsolePanel();
 
     [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw() override;
+
+protected:
+    virtual void DrawContent() override;
 
 private:
     void LoadSettings();

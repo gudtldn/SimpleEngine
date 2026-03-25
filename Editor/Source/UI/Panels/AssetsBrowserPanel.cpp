@@ -60,11 +60,13 @@ const char* AssetsBrowserPanel::GetName() const
     return "AssetsBrowser";
 }
 
-void AssetsBrowserPanel::Draw()
+ImGuiWindowFlags AssetsBrowserPanel::GetWindowFlags() const
 {
-    ImGui::Begin(GetName(), &is_visible, ImGuiWindowFlags_MenuBar);
-    SE_SCOPE_DEFER{ ImGui::End(); };
+    return ImGuiWindowFlags_MenuBar;
+}
 
+void AssetsBrowserPanel::DrawContent()
+{
     // TreeView | GridView를 분할
     if (ImGui::BeginTable("AssetsBrowser_PanelSplit", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV))
     {

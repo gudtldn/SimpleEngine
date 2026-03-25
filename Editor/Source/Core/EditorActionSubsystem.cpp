@@ -1,6 +1,7 @@
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
 
 #include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
@@ -10,6 +11,8 @@
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
+
+#include "imgui.h"
 
 #include <ranges>
 
@@ -21,6 +24,7 @@ SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
         InputSubsystem,
         WorldSubsystem,
         EditorSubsystem,
+        EditorUISubsystem,
         EditorViewportSubsystem
     >();
 
@@ -33,6 +37,7 @@ bool EditorActionSubsystem::Initialize()
     input_subsystem = &GetSubsystemChecked<InputSubsystem>();
     world_subsystem = &GetSubsystemChecked<WorldSubsystem>();
     editor_subsystem = &GetSubsystemChecked<EditorSubsystem>();
+    ui_subsystem = &GetSubsystemChecked<EditorUISubsystem>();
     viewport_subsystem = &GetSubsystemChecked<EditorViewportSubsystem>();
     return true;
 }
@@ -42,18 +47,31 @@ void EditorActionSubsystem::Release()
     input_subsystem = nullptr;
     world_subsystem = nullptr;
     editor_subsystem = nullptr;
+    ui_subsystem = nullptr;
     viewport_subsystem = nullptr;
 }
 
 void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
 {
-    // 뷰포트가 포커스 상태일 때만 단축키 처리
+    // 카메라 조작 중에는 처리하지 않음
+    if (viewport_subsystem->IsAnyCameraActive())
+    {
+        return;
+    }
+
+    // 텍스트 입력 중에는 처리하지 않음 (이름 변경 등)
+    if (ImGui::GetIO().WantCaptureKeyboard)
+    {
+        return;
+    }
+
+    // 뷰포트 또는 에디터 패널이 포커스 상태일 때만 처리
     const bool viewport_focused = std::ranges::any_of(
         viewport_subsystem->GetActiveViewportInfo() | std::views::values,
         [](const ViewportRenderInfo& info) { return info.is_focused; }
     );
 
-    if (!viewport_focused)
+    if (!viewport_focused && !ui_subsystem->IsAnyPanelFocused())
     {
         return;
     }

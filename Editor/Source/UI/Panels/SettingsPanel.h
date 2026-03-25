@@ -16,12 +16,6 @@ namespace se::editor
  */
 class SettingsPanel : public IEditorPanel
 {
-public:
-    SettingsPanel();
-
-    [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw() override;
-
     enum class ECategory : uint8
     {
         Window,
@@ -30,6 +24,16 @@ public:
         Performance,
         Graphics,
     };
+
+public:
+    SettingsPanel();
+
+public:
+    [[nodiscard]] virtual const char* GetName() const override;
+
+protected:
+    [[nodiscard]] virtual ImGuiWindowFlags GetWindowFlags() const override;
+    virtual void DrawContent() override;
 
 private:
     /** 설정 파일을 로드하여 각 구조체에 채웁니다. */
@@ -53,4 +57,4 @@ private:
     PerformanceSettings performance_settings;
     GraphicsSettings graphics_settings;
 };
-}  // namespace se::editor
+} // namespace se::editor

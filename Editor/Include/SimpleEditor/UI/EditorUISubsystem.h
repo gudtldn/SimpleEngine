@@ -45,6 +45,9 @@ public:
 
     [[nodiscard]] Optional<const IEditorPanel&> GetPanel(const StringName& panel_id) const;
 
+    /** 등록된 패널 중 하나라도 ImGui 포커스 상태인지 확인합니다. */
+    [[nodiscard]] bool IsAnyPanelFocused() const;
+
 private:
     void SetupDockSpace();
     void DrawMainMenu();

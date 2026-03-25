@@ -21,6 +21,8 @@ void ViewportPanel::Draw()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin(GetName(), &is_visible);
+    is_focused = ImGui::IsWindowFocused();
+    is_hovered = ImGui::IsWindowHovered();
     {
         if (EditorViewportSubsystem* viewport_sys = GetSubsystem<EditorViewportSubsystem>())
         {

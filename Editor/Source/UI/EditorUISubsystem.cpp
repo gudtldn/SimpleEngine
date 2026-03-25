@@ -170,6 +170,14 @@ void EditorUISubsystem::PostUpdate()
     }
 }
 
+bool EditorUISubsystem::IsAnyPanelFocused() const
+{
+    return std::ranges::any_of(panels | std::views::values, [](const auto& panel)
+    {
+        return panel->IsFocused();
+    });
+}
+
 Optional<const IEditorPanel&> EditorUISubsystem::GetPanel(const StringName& panel_id) const
 {
     return panels.Find(panel_id)

@@ -14,7 +14,9 @@ class OutlinerPanel : public IEditorPanel
 {
 public:
     [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw() override;
+
+protected:
+    virtual void DrawContent() override;
 
 private:
     /** Entity를 트리 노드로 재귀적으로 그립니다. */

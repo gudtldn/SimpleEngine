@@ -64,6 +64,9 @@ public:
     /** 현재 관리 중인 모든 활성 뷰포트의 렌더링 정보를 반환합니다. */
     [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetActiveViewportInfo() const { return viewport_data; }
 
+    /** 카메라 조작(우클릭 드래그) 중인 뷰포트가 있는지 확인합니다. */
+    [[nodiscard]] bool IsAnyCameraActive() const { return active_camera_viewport != StringName::None; }
+
     /** 현재 관리 중인 모든 뷰포트 카메라 상태를 반환합니다. */
     [[nodiscard]] const HashMap<StringName, EditorCameraState>& GetViewportCameras() const { return viewport_cameras; }
     [[nodiscard]] HashMap<StringName, EditorCameraState>& GetViewportCameras() { return viewport_cameras; }

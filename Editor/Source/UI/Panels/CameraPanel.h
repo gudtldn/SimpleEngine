@@ -12,6 +12,8 @@ class CameraPanel : public IEditorPanel
 {
 public:
     [[nodiscard]] virtual const char* GetName() const override;
-    virtual void Draw() override;
+
+protected:
+    virtual void DrawContent() override;
 };
 } // namespace se::editor

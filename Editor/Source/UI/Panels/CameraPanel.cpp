@@ -18,10 +18,8 @@ const char* CameraPanel::GetName() const
     return "EditorCamera";
 }
 
-void CameraPanel::Draw()
+void CameraPanel::DrawContent()
 {
-    ImGui::Begin(GetName(), &is_visible);
-    SE_SCOPE_DEFER{ ImGui::End(); };
 
     EditorViewportSubsystem* viewport_subsystem = GetSubsystem<EditorViewportSubsystem>();
     if (!viewport_subsystem)

@@ -18,6 +18,7 @@ namespace se::editor
 {
 class EditorSelection;
 class EditorSubsystem;
+class EditorUISubsystem;
 class EditorViewportSubsystem;
 
 /**
@@ -51,6 +52,7 @@ private:
     InputSubsystem* input_subsystem = nullptr;
     WorldSubsystem* world_subsystem = nullptr;
     EditorSubsystem* editor_subsystem = nullptr;
+    EditorUISubsystem* ui_subsystem = nullptr;
     EditorViewportSubsystem* viewport_subsystem = nullptr;
 };
 } // namespace se::editor

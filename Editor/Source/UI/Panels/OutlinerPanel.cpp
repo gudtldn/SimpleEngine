@@ -23,10 +23,8 @@ const char* OutlinerPanel::GetName() const
     return "Outliner";
 }
 
-void OutlinerPanel::Draw()
+void OutlinerPanel::DrawContent()
 {
-    ImGui::Begin(GetName(), &is_visible);
-    SE_SCOPE_DEFER{ ImGui::End(); };
 
     const auto [world_subsystem, editor_subsystem] = GetSubsystems<const WorldSubsystem, EditorSubsystem>();
     if (!(world_subsystem && editor_subsystem))

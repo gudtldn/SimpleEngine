@@ -41,12 +41,13 @@ const char* DebugPanel::GetName() const
     return "Debug";
 }
 
-void DebugPanel::Draw()
+ImGuiWindowFlags DebugPanel::GetWindowFlags() const
 {
-    constexpr ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar;
-    ImGui::Begin(GetName(), &is_visible, flags);
-    SE_SCOPE_DEFER{ ImGui::End(); };
+    return ImGuiWindowFlags_MenuBar;
+}
 
+void DebugPanel::DrawContent()
+{
     ImGui::BeginMenuBar();
     if (ImGui::BeginMenu("Views"))
     {
@@ -223,4 +224,4 @@ void DebugPanel::Draw()
         }
     }
 }
-}  // namespace se::editor
+} // namespace se::editor

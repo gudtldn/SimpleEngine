@@ -56,7 +56,7 @@ const char* EditorConsolePanel::GetName() const
     return "Console";
 }
 
-void EditorConsolePanel::Draw()
+void EditorConsolePanel::DrawContent()
 {
     EditorConsoleBackend* backend = se::LogBackendManager::Get().GetBackend<EditorConsoleBackend>();
     if (!backend)
@@ -66,151 +66,147 @@ void EditorConsolePanel::Draw()
         return;
     }
 
-    ImGui::Begin(GetName(), &is_visible);
+    // 상단 제어 버튼
+    if (ImGui::Button("Clear"))
     {
-        // 상단 제어 버튼
-        if (ImGui::Button("Clear"))
-        {
-            backend->Clear();
-            filter_changed = true;
-        }
+        backend->Clear();
+        filter_changed = true;
+    }
 
-        ImGui::SameLine();
+    ImGui::SameLine();
 
-        // Options Dropdown
-        if (ImGui::Button("Options"))
-        {
-            ImGui::OpenPopup("OptionsPopup");
-        }
+    // Options Dropdown
+    if (ImGui::Button("Options"))
+    {
+        ImGui::OpenPopup("OptionsPopup");
+    }
 
-        if (ImGui::BeginPopup("OptionsPopup"))
-        {
-            bool options_changed = false;
-            options_changed |= ImGui::Checkbox("Auto-scroll", &settings.auto_scroll);
-            ImGui::Separator();
-            options_changed |= ImGui::Checkbox("Show Timestamp", &settings.show_timestamp);
-            options_changed |= ImGui::Checkbox("Show Thread Name", &settings.show_thread_name);
-            options_changed |= ImGui::Checkbox("Show Location", &settings.show_location);
-
-            if (options_changed)
-            {
-                SaveSettings();
-            }
-            ImGui::EndPopup();
-        }
-
-        ImGui::SameLine();
-
-        // Level Filters Dropdown
-        if (ImGui::Button("Levels"))
-        {
-            ImGui::OpenPopup("LevelsPopup");
-        }
-
-        if (ImGui::BeginPopup("LevelsPopup"))
-        {
-            filter_changed |= ImGui::Checkbox("Debug", &filter_debug);
-            filter_changed |= ImGui::Checkbox("Info", &filter_info);
-            filter_changed |= ImGui::Checkbox("Warning", &filter_warning);
-            filter_changed |= ImGui::Checkbox("Error", &filter_error);
-            filter_changed |= ImGui::Checkbox("Fatal", &filter_fatal);
-            ImGui::EndPopup();
-        }
-
-        ImGui::SameLine();
-
-        // Text Filter
-        ImGui::SetNextItemWidth(-150.0f); // 우측 여백을 조금 남김
-        filter_changed |= text_filter.Draw("Search ###ConsoleFilter");
-
+    if (ImGui::BeginPopup("OptionsPopup"))
+    {
+        bool options_changed = false;
+        options_changed |= ImGui::Checkbox("Auto-scroll", &settings.auto_scroll);
         ImGui::Separator();
+        options_changed |= ImGui::Checkbox("Show Timestamp", &settings.show_timestamp);
+        options_changed |= ImGui::Checkbox("Show Thread Name", &settings.show_thread_name);
+        options_changed |= ImGui::Checkbox("Show Location", &settings.show_location);
 
-        // 스크롤 영역 시작
-        if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
+        if (options_changed)
         {
-            backend->ReadLogs([this](const Deque<se::LogEntry>& entries)
+            SaveSettings();
+        }
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+
+    // Level Filters Dropdown
+    if (ImGui::Button("Levels"))
+    {
+        ImGui::OpenPopup("LevelsPopup");
+    }
+
+    if (ImGui::BeginPopup("LevelsPopup"))
+    {
+        filter_changed |= ImGui::Checkbox("Debug", &filter_debug);
+        filter_changed |= ImGui::Checkbox("Info", &filter_info);
+        filter_changed |= ImGui::Checkbox("Warning", &filter_warning);
+        filter_changed |= ImGui::Checkbox("Error", &filter_error);
+        filter_changed |= ImGui::Checkbox("Fatal", &filter_fatal);
+        ImGui::EndPopup();
+    }
+
+    ImGui::SameLine();
+
+    // Text Filter
+    ImGui::SetNextItemWidth(-150.0f); // 우측 여백을 조금 남김
+    filter_changed |= text_filter.Draw("Search ###ConsoleFilter");
+
+    ImGui::Separator();
+
+    // 스크롤 영역 시작
+    if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
+    {
+        backend->ReadLogs([this](const Deque<se::LogEntry>& entries)
+        {
+            if (entries.Len() != last_log_count)
             {
-                if (entries.Len() != last_log_count)
-                {
-                    filter_changed = true;
-                }
+                filter_changed = true;
+            }
 
-                if (filter_changed)
-                {
-                    RefreshFilterList(entries);
-                }
+            if (filter_changed)
+            {
+                RefreshFilterList(entries);
+            }
 
-                ImGuiListClipper clipper;
-                clipper.Begin(static_cast<int>(cached_indices.Len())); // Clipper에게 전체 아이템 개수를 알려줌
+            ImGuiListClipper clipper;
+            clipper.Begin(static_cast<int>(cached_indices.Len())); // Clipper에게 전체 아이템 개수를 알려줌
 
-                // Clipper가 지정한 범위(화면에 보이는 범위)만 렌더링
-                while (clipper.Step())
+            // Clipper가 지정한 범위(화면에 보이는 범위)만 렌더링
+            while (clipper.Step())
+            {
+                for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; ++idx)
                 {
-                    for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; ++idx)
+                    const usize log_idx = cached_indices[idx];
+                    if (log_idx >= entries.Len())
                     {
-                        const usize log_idx = cached_indices[idx];
-                        if (log_idx >= entries.Len())
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        const auto& entry = entries[log_idx];
+                    const auto& entry = entries[log_idx];
 
-                        // Rendering Timestamp (Gray)
-                        if (settings.show_timestamp)
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-                            ImGui::TextUnformatted(entry.GetTimestampString().c_str());
-                            ImGui::PopStyleColor();
-                            ImGui::SameLine();
-                        }
-
-                        // Rendering Thread Name (Cyan)
-                        if (settings.show_thread_name)
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.8f, 0.8f, 1.0f));
-                            ImGui::Text("[%s]", entry.thread_name.CStr());
-                            ImGui::PopStyleColor();
-                            ImGui::SameLine();
-                        }
-
-                        // Rendering Log Level (Color based on level)
-                        ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(entry.level));
-                        ImGui::TextUnformatted(entry.GetLevelString());
+                    // Rendering Timestamp (Gray)
+                    if (settings.show_timestamp)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+                        ImGui::TextUnformatted(entry.GetTimestampString().c_str());
                         ImGui::PopStyleColor();
                         ImGui::SameLine();
-
-                        // Rendering File Location (Dimmed White)
-                        if (settings.show_location)
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-                            const StringView pretty_name = entry.GetPrettyFileName();
-                            ImGui::Text("[%.*s:%d]",
-                                static_cast<int>(pretty_name.ByteLen()),
-                                pretty_name.Data(),
-                                entry.location.line()
-                            );
-                            ImGui::PopStyleColor();
-                            ImGui::SameLine();
-                        }
-
-                        // Rendering Message
-                        ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(entry.level));
-                        ImGui::Text("%s", entry.formatted_message.CStr());
-                        ImGui::PopStyleColor();
                     }
-                }
-            });
 
-            // Auto Scroll 처리
-            if (settings.auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-            {
-                ImGui::SetScrollHereY(1.0f);
+                    // Rendering Thread Name (Cyan)
+                    if (settings.show_thread_name)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.8f, 0.8f, 1.0f));
+                        ImGui::Text("[%s]", entry.thread_name.CStr());
+                        ImGui::PopStyleColor();
+                        ImGui::SameLine();
+                    }
+
+                    // Rendering Log Level (Color based on level)
+                    ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(entry.level));
+                    ImGui::TextUnformatted(entry.GetLevelString());
+                    ImGui::PopStyleColor();
+                    ImGui::SameLine();
+
+                    // Rendering File Location (Dimmed White)
+                    if (settings.show_location)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+                        const StringView pretty_name = entry.GetPrettyFileName();
+                        ImGui::Text("[%.*s:%d]",
+                            static_cast<int>(pretty_name.ByteLen()),
+                            pretty_name.Data(),
+                            entry.location.line()
+                        );
+                        ImGui::PopStyleColor();
+                        ImGui::SameLine();
+                    }
+
+                    // Rendering Message
+                    ImGui::PushStyleColor(ImGuiCol_Text, GetColorForLevel(entry.level));
+                    ImGui::Text("%s", entry.formatted_message.CStr());
+                    ImGui::PopStyleColor();
+                }
             }
+        });
+
+        // Auto Scroll 처리
+        if (settings.auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+        {
+            ImGui::SetScrollHereY(1.0f);
         }
-        ImGui::EndChild();
     }
-    ImGui::End();
+    ImGui::EndChild();
 }
 
 void EditorConsolePanel::LoadSettings()

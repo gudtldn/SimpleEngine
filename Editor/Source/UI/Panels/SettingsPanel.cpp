@@ -27,15 +27,18 @@ const char* SettingsPanel::GetName() const
     return "Settings";
 }
 
-void SettingsPanel::Draw()
+ImGuiWindowFlags SettingsPanel::GetWindowFlags() const
+{
+    return ImGuiWindowFlags_MenuBar;
+}
+
+void SettingsPanel::DrawContent()
 {
     if (needs_reload)
     {
         LoadSettings();
         needs_reload = false;
     }
-
-    ImGui::Begin(GetName(), &is_visible, ImGuiWindowFlags_MenuBar);
 
     // 메뉴 바
     if (ImGui::BeginMenuBar())
@@ -142,8 +145,6 @@ void SettingsPanel::Draw()
         ImGui::Separator();
         ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Unsaved changes. Click Save or Ctrl+S to apply.");
     }
-
-    ImGui::End();
 }
 
 void SettingsPanel::LoadSettings()
