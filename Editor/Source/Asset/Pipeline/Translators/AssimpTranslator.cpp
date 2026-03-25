@@ -230,8 +230,7 @@ void AssimpTranslator::Translate(
     // Global Scale 적용 (Assimp Property)
     if (math::Abs(mesh_settings.global_scale - 1.0f) > math::KINDA_SMALL_NUMBER)
     {
-        flags |= aiProcess_GlobalScale;
-        importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, mesh_settings.global_scale);
+        // TODO: 여기 지우고, PipelineProcessor에서 하는걸로 수정
     }
 
     // 파일 로드
