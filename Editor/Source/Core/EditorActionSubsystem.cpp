@@ -60,7 +60,7 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
     }
 
     // 텍스트 입력 중에는 처리하지 않음 (이름 변경 등)
-    if (ImGui::GetIO().WantCaptureKeyboard)
+    if (ImGui::GetIO().WantTextInput)
     {
         return;
     }
