@@ -49,12 +49,12 @@ template <traits::FloatingType T>
 struct RotatorImpl
 {
     Degree<T> pitch; // X axis
-    Degree<T> yaw;   // Z axis
     Degree<T> roll;  // Y axis
+    Degree<T> yaw;   // Z axis
 
 public:
     constexpr RotatorImpl();
-    constexpr RotatorImpl(Degree<T> in_pitch, Degree<T> in_yaw, Degree<T> in_roll);
+    constexpr RotatorImpl(Degree<T> in_pitch, Degree<T> in_roll, Degree<T> in_yaw);
     explicit constexpr RotatorImpl(const QuaternionImpl<T>& quaternion);
 
 public:
@@ -293,13 +293,13 @@ constexpr RotatorImpl<T> QuaternionImpl<T>::ToRotator() const
 
 template <traits::FloatingType T>
 constexpr RotatorImpl<T>::RotatorImpl()
-    : pitch(0), yaw(0), roll(0)
+    : pitch(0), roll(0), yaw(0)
 {
 }
 
 template <traits::FloatingType T>
-constexpr RotatorImpl<T>::RotatorImpl(Degree<T> in_pitch, Degree<T> in_yaw, Degree<T> in_roll)
-    : pitch(in_pitch), yaw(in_yaw), roll(in_roll)
+constexpr RotatorImpl<T>::RotatorImpl(Degree<T> in_pitch, Degree<T> in_roll, Degree<T> in_yaw)
+    : pitch(in_pitch), roll(in_roll), yaw(in_yaw)
 {
 }
 
@@ -353,8 +353,8 @@ constexpr RotatorImpl<T> RotatorImpl<T>::operator+(const RotatorImpl& other) con
 {
     return RotatorImpl{
         pitch + other.pitch,
-        yaw + other.yaw,
-        roll + other.roll
+        roll + other.roll,
+        yaw + other.yaw
     };
 }
 
@@ -372,8 +372,8 @@ constexpr RotatorImpl<T> RotatorImpl<T>::operator-(const RotatorImpl& other) con
 {
     return RotatorImpl{
         pitch - other.pitch,
-        yaw - other.yaw,
-        roll - other.roll
+        roll - other.roll,
+        yaw - other.yaw
     };
 }
 
@@ -392,8 +392,8 @@ constexpr RotatorImpl<T> RotatorImpl<T>::operator*(Num scale) const
 {
     return RotatorImpl{
         pitch * scale,
-        yaw * scale,
-        roll * scale
+        roll * scale,
+        yaw * scale
     };
 }
 
