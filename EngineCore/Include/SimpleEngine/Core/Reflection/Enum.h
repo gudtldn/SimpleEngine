@@ -48,9 +48,7 @@
     }; \
     template <> struct se::detail::EnumExplicitValues<enum_type> \
     { \
-        template <auto... Vs> \
-        static consteval usize SizeOf() { return sizeof...(Vs); }\
-        static constexpr FixedArray<enum_type, SizeOf<__VA_ARGS__>()> Values = { __VA_ARGS__ }; \
+        static constexpr FixedArray<enum_type, se::detail::EnumExplicitValuesCount<__VA_ARGS__>()> Values = { __VA_ARGS__ }; \
     };
 
 namespace se
@@ -225,6 +223,10 @@ struct EnumTraits
     static constexpr int32 Min = 0;
     static constexpr int32 Max = 64;
 };
+
+/** SE_ENUM_SET_VALUES 매크로에서 인자 개수를 세는 헬퍼 함수 */
+template <auto... Vs>
+consteval usize EnumExplicitValuesCount() { return sizeof...(Vs); }
 
 /** 탐색할 리스트를 지정하는 구조체 */
 template <typename E>
