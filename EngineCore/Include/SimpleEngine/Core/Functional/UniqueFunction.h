@@ -23,9 +23,9 @@ class UniqueFunction;
  * @tparam Args 인자 타입 팩
  */
 template <typename R, typename... Args>
-class UniqueFunction<R(Args...)> final : public detail::TFunctionBase<R, Args...>
+class UniqueFunction<R(Args...)> final : public detail::FunctionBase<R, Args...>
 {
-    using Base = detail::TFunctionBase<R, Args...>;
+    using Base = detail::FunctionBase<R, Args...>;
 
     // 이동 전용 CallableImpl — Clone/CloneTo 없음
     template <typename Fn>

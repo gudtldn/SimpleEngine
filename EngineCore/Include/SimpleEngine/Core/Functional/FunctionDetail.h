@@ -38,28 +38,28 @@ struct ICallable
  * @tparam Args 인자 타입 팩
  */
 template <typename R, typename... Args>
-class TFunctionBase
+class FunctionBase
 {
 protected:
     using CallableType = ICallable<R, Args...>;
 
 public:
-    TFunctionBase() noexcept = default;
+    FunctionBase() noexcept = default;
 
-    TFunctionBase(std::nullptr_t) noexcept
+    FunctionBase(std::nullptr_t) noexcept
     {
     }
 
-    ~TFunctionBase()
+    ~FunctionBase()
     {
         Reset();
     }
 
     // 복사 연산은 서브클래스 책임
-    TFunctionBase(const TFunctionBase&) = delete;
-    TFunctionBase& operator=(const TFunctionBase&) = delete;
+    FunctionBase(const FunctionBase&) = delete;
+    FunctionBase& operator=(const FunctionBase&) = delete;
 
-    TFunctionBase(TFunctionBase&& other) noexcept
+    FunctionBase(FunctionBase&& other) noexcept
     {
         if (other.callable_ptr)
         {
@@ -76,7 +76,7 @@ public:
         }
     }
 
-    TFunctionBase& operator=(TFunctionBase&& other) noexcept
+    FunctionBase& operator=(FunctionBase&& other) noexcept
     {
         if (this != &other)
         {
