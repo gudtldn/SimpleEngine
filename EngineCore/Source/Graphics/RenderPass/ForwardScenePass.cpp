@@ -236,7 +236,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Draw Meshes
         for (const EntityDrawInfo& info : draw_infos)
         {
-            Optional<const GpuBufferSlice&> slice = gpu_manager.GetSlice(info.mesh_id);
+            const Optional<const GpuBufferSlice&> slice = gpu_manager.GetSlice(info.mesh_id);
             if (!slice.HasValue())
             {
 #if SE_BUILD_DEBUG
@@ -275,9 +275,9 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // Uniform 데이터 전송 (MVP Matrix)
             Matrix4x4f mvpf; // TODO: 추후 RTE(Relative To Eye) 방식으로 수정
             std::transform(
-                info.mvp_matrix.GetData(), info.mvp_matrix.GetData() + 16,
+                info.mvp_matrix.GetData(), info.mvp_matrix.GetData() + 16, // NOLINT(*-magic-numbers)
                 mvpf.GetData(),
-                [](double d) { return static_cast<float>(d); }
+                [](double value) { return static_cast<float>(value); }
             );
             SDL_PushGPUVertexUniformData(cmd, 0, &mvpf, sizeof(mvpf));
 
