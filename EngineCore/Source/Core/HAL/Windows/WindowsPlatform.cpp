@@ -69,7 +69,7 @@ namespace se
 {
 void Platform::SetThreadName(std::thread& thread, const String& name)
 {
-    ::SetThreadName(thread.native_handle(), name);
+    ::SetThreadName(reinterpret_cast<HANDLE>(thread.native_handle()), name);
 }
 
 void Platform::SetCurrentThreadName(const String& name)
@@ -79,7 +79,7 @@ void Platform::SetCurrentThreadName(const String& name)
 
 String Platform::GetThreadName(std::thread& thread)
 {
-    return ::GetThreadName(thread.native_handle());
+    return ::GetThreadName(reinterpret_cast<HANDLE>(thread.native_handle()));
 }
 
 String Platform::GetCurrentThreadName()
@@ -110,5 +110,5 @@ void Platform::RevealInExplorer(const Path& path)
         ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
     }
 }
-}  // namespace se
+} // namespace se
 #endif
