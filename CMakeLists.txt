@@ -9,7 +9,11 @@ endif()
 
 # 커스텀 빌드 구성 정의
 # Multi-config 생성기용 (Visual Studio, Ninja Multi-Config)
-set(CMAKE_CONFIGURATION_TYPES "Debug;Development;Release" CACHE STRING "" FORCE)
+get_property(_is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(_is_multi_config)
+    set(CMAKE_CONFIGURATION_TYPES "Debug;Development;Release" CACHE STRING "" FORCE)
+endif()
+unset(_is_multi_config)
 
 # Single-config 생성기용 (Ninja, Makefile) - 유효 값 목록
 set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type" FORCE)
