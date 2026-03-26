@@ -14,10 +14,10 @@ SE_CORE_API bool IsCharBoundary(StringView view, usize index);
 SE_CORE_API usize CountCodePointsImpl(StringView view);
 
 /** char32_t를 UTF-8 바이트 시퀀스로 인코딩 (최대 4바이트 + null) */
-SE_CORE_API Array<char> EncodeCodePoint(char32 code_point);
+SE_CORE_API Array<char> EncodeCodePoint(char32_t code_point);
 
 /** 문자열의 마지막 코드 포인트를 디코딩하고 해당 바이트 길이를 반환 */
-SE_CORE_API Optional<std::pair<char32, usize>> DecodeLastCodePoint(StringView view);
+SE_CORE_API Optional<std::pair<char32_t, usize>> DecodeLastCodePoint(StringView view);
 
 /** 대소문자 변환 */
 SE_CORE_API String ToUpperImpl(StringView view, const char* locale);
@@ -32,7 +32,7 @@ BaseString<Allocator>::BaseString() noexcept
 }
 
 template <typename Allocator>
-BaseString<Allocator>::BaseString(char32 code_point, SizeType repeat)
+BaseString<Allocator>::BaseString(char32_t code_point, SizeType repeat)
 {
     if (repeat > 0)
     {
@@ -49,7 +49,7 @@ BaseString<Allocator>::BaseString(char32 code_point, SizeType repeat)
 }
 
 template <typename Allocator>
-BaseString<Allocator>& BaseString<Allocator>::operator=(char32 code_point)
+BaseString<Allocator>& BaseString<Allocator>::operator=(char32_t code_point)
 {
     Clear();
     Push(code_point);
@@ -187,7 +187,7 @@ void BaseString<Allocator>::ShrinkToFit()
 }
 
 template <typename Allocator>
-void BaseString<Allocator>::Push(char32 code_point)
+void BaseString<Allocator>::Push(char32_t code_point)
 {
     Array<char> encoded_bytes = detail::EncodeCodePoint(code_point);
 
@@ -197,7 +197,7 @@ void BaseString<Allocator>::Push(char32 code_point)
 }
 
 template <typename Allocator>
-Optional<char32> BaseString<Allocator>::Pop()
+Optional<char32_t> BaseString<Allocator>::Pop()
 {
     if (IsEmpty())
     {
@@ -393,7 +393,7 @@ BaseString<Allocator> BaseString<Allocator>::operator+(const BaseString& other) 
 }
 
 template <typename Allocator>
-BaseString<Allocator> BaseString<Allocator>::operator+(char32 code_point) const
+BaseString<Allocator> BaseString<Allocator>::operator+(char32_t code_point) const
 {
     BaseString ret{ *this };
     ret.Push(code_point);
@@ -424,7 +424,7 @@ BaseString<Allocator>& BaseString<Allocator>::operator+=(const BaseString& other
 }
 
 template <typename Allocator>
-BaseString<Allocator>& BaseString<Allocator>::operator+=(char32 code_point)
+BaseString<Allocator>& BaseString<Allocator>::operator+=(char32_t code_point)
 {
     Push(code_point);
     return *this;

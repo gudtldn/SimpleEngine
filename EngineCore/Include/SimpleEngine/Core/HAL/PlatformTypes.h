@@ -156,11 +156,6 @@ using uint32 = std::uint32_t;
 using int64 = std::int64_t;
 using uint64 = std::uint64_t;
 
-// 문자형 (UTF-8 기본)
-using char8 = char8_t;
-using char16 = char16_t;
-using char32 = char32_t;
-
 // 크기 및 플랫폼 정수형
 using size_t = std::size_t;
 using isize = std::ptrdiff_t;

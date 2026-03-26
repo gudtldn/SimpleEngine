@@ -40,10 +40,8 @@ PRIVATE
         # Project Default Options
         SE_DefaultOptions
 
-        # ICU4C
-        ICU::uc
-        ICU::i18n
-        ICU::data
+        # ICU4X (Rust FFI)
+        icu_capi
 
         # cpu features
         cpu_features
@@ -67,4 +65,7 @@ PUBLIC
 PRIVATE
         # 내부 구현용 헤더 (EngineCore 내부 cpp 파일들이 편하게 include 하기 위함)
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
+
+        # ICU4X C++ 바인딩 헤더
+        "${icu4x_src_SOURCE_DIR}/ffi/capi/bindings/cpp"
 )

@@ -2,9 +2,6 @@
   "name" : "simple-engine",
   "version-string" : "0.1.0",
   "dependencies" : [ {
-    "name" : "icu",
-    "version>=" : "74.2#6"
-  }, {
     "name" : "gtest",
     "version>=" : "1.17.0#2"
   }, {

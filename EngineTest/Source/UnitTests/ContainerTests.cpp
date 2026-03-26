@@ -603,7 +603,7 @@ TEST_F(StringAPI_Test, PushAndPop)
     s.Push(U'😊');
     EXPECT_EQ(s, "abc😊");
 
-    Optional<char32> popped = s.Pop();
+    Optional<char32_t> popped = s.Pop();
     EXPECT_TRUE(popped.HasValue());
     EXPECT_EQ(*popped, U'😊');
     EXPECT_EQ(s, "abc");
@@ -640,7 +640,7 @@ TEST_F(StringAPI_Test, CodePointsAndBytesView)
     EXPECT_EQ(s.CodePointLen(), 3);
 
     int cp_count = 0;
-    for ([[maybe_unused]] char32 cp : s.CodePoints())
+    for ([[maybe_unused]] char32_t cp : s.CodePoints())
     {
         cp_count++;
     }

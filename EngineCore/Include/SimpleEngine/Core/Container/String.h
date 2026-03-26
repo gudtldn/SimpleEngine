@@ -27,7 +27,7 @@ class SE_CORE_API CodePointIterator
 public:
     // C++20 Iterator Traits
     using iterator_category = std::input_iterator_tag;
-    using value_type = char32;
+    using value_type = char32_t;
     using difference_type = std::ptrdiff_t;
     using pointer = const value_type*;
     using reference = value_type;
@@ -106,8 +106,8 @@ public:
      * @param code_point 생성할 문자
      * @param repeat 이 문자를 반복할 횟수
      */
-    BaseString(char32 code_point, SizeType repeat = 1);
-    BaseString& operator=(char32 code_point);
+    BaseString(char32_t code_point, SizeType repeat = 1);
+    BaseString& operator=(char32_t code_point);
 
     /**
      * C-style 문자열 리터럴로부터 String 객체를 생성합니다.
@@ -210,13 +210,13 @@ public:
      * 문자열 끝에 단일 코드 포인트를 추가합니다.
      * @param code_point 추가할 유니코드 코드 포인트 (char32_t)
      */
-    void Push(char32 code_point);
+    void Push(char32_t code_point);
 
     /**
      * 문자열의 마지막 코드 포인트를 제거하고 그 값을 반환합니다.
      * @return 제거된 코드 포인트. 문자열이 비어있으면 nullopt
      */
-    Optional<char32> Pop();
+    Optional<char32_t> Pop();
 
     /**
      * 문자열 끝에 다른 문자열을 덧붙입니다.
@@ -342,7 +342,7 @@ public:
     /**
      * 코드 포인트(논리적 문자) 단위로 순회할 수 있는 range-like 뷰를 반환합니다.
      * @code
-     * for (char32 cp : my_string.CodePoints()) { ... }
+     * for (char32_t cp : my_string.CodePoints()) { ... }
      * @endcode
      */
     [[nodiscard]] detail::CodePointView CodePoints() const;
@@ -360,11 +360,11 @@ public:
 
 public:
     [[nodiscard]] BaseString operator+(const BaseString& other) const;
-    [[nodiscard]] BaseString operator+(char32 code_point) const;
+    [[nodiscard]] BaseString operator+(char32_t code_point) const;
     [[nodiscard]] BaseString operator+(const char* str) const;
     [[nodiscard]] BaseString operator+(StringView view) const;
 
-    [[nodiscard]] friend BaseString operator+(char32 lhs, const BaseString& rhs)
+    [[nodiscard]] friend BaseString operator+(char32_t lhs, const BaseString& rhs)
     {
         BaseString ret{ lhs };
         ret.Append(rhs);
@@ -386,7 +386,7 @@ public:
     }
 
     BaseString& operator+=(const BaseString& other);
-    BaseString& operator+=(char32 code_point);
+    BaseString& operator+=(char32_t code_point);
     BaseString& operator+=(const char* str);
     BaseString& operator+=(StringView view);
 
