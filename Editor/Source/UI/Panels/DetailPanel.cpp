@@ -50,7 +50,7 @@ void DetailPanel::DrawContent()
         return;
     }
 
-    const Entity& entity = selection.GetPrimarySelectedEntity().Value();
+    const Entity entity = selection.GetPrimarySelectedEntity().Value();
     ecs::World* world = world_subsystem->GetWorld();
 
     // 선택된 Entity가 바뀌면 컴포넌트 선택 및 Rotation 캐시 초기화
