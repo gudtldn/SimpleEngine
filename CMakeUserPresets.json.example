@@ -11,16 +11,16 @@
             }
         },
 
-        { "name": "debug-msvc",        "inherits": ["debug-msvc",        "_local-vcpkg"] },
-        { "name": "development-msvc",  "inherits": ["development-msvc",  "_local-vcpkg"] },
-        { "name": "release-msvc",      "inherits": ["release-msvc",      "_local-vcpkg"] },
-        { "name": "debug-clang-cl",    "inherits": ["debug-clang-cl",    "_local-vcpkg"] },
-        { "name": "release-clang-cl",  "inherits": ["release-clang-cl",  "_local-vcpkg"] },
-        { "name": "debug-gcc",         "inherits": ["debug-gcc",         "_local-vcpkg"] },
-        { "name": "development-gcc",   "inherits": ["development-gcc",   "_local-vcpkg"] },
-        { "name": "release-gcc",       "inherits": ["release-gcc",       "_local-vcpkg"] },
-        { "name": "debug-clang",       "inherits": ["debug-clang",       "_local-vcpkg"] },
-        { "name": "development-clang", "inherits": ["development-clang", "_local-vcpkg"] },
-        { "name": "release-clang",     "inherits": ["release-clang",     "_local-vcpkg"] }
+        { "name": "local-debug-msvc",        "inherits": ["debug-msvc",        "_local-vcpkg"] },
+        { "name": "local-development-msvc",  "inherits": ["development-msvc",  "_local-vcpkg"] },
+        { "name": "local-release-msvc",      "inherits": ["release-msvc",      "_local-vcpkg"] },
+        { "name": "local-debug-clang-cl",    "inherits": ["debug-clang-cl",    "_local-vcpkg"] },
+        { "name": "local-release-clang-cl",  "inherits": ["release-clang-cl",  "_local-vcpkg"] },
+        { "name": "local-debug-gcc",         "inherits": ["debug-gcc",         "_local-vcpkg"] },
+        { "name": "local-development-gcc",   "inherits": ["development-gcc",   "_local-vcpkg"] },
+        { "name": "local-release-gcc",       "inherits": ["release-gcc",       "_local-vcpkg"] },
+        { "name": "local-debug-clang",       "inherits": ["debug-clang",       "_local-vcpkg"] },
+        { "name": "local-development-clang", "inherits": ["development-clang", "_local-vcpkg"] },
+        { "name": "local-release-clang",     "inherits": ["release-clang",     "_local-vcpkg"] }
     ]
 }
