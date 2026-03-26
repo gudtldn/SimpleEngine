@@ -10,6 +10,7 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <condition_variable>
 #include <mutex>
 #include <utility>
 
