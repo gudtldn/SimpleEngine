@@ -5,6 +5,16 @@ git clone https://github.com/gudtldn/SimpleEngine.git
 git submodule update --init
 ```
 
+## 빌드 환경
+
+| 도구                        | 버전     | 비고                      |
+|---------------------------|--------|-------------------------|
+| CMake                     | 3.28+  |                         |
+| vcpkg                     | 최신     | `VCPKG_ROOT` 환경변수 설정 필요 |
+| Rust / rustup             | stable | ICU4X Corrosion 빌드에 필요  |
+| MSVC (Visual Studio 2022) | 17.x+  |                         |
+| Ninja (필수는 아님)            | 최신     | 단일 구성 생성기 사용 시 필요       |
+
 좌표계
 right-hand, z-up
 
