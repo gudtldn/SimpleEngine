@@ -64,16 +64,20 @@ if(MSVC)
 
 else()
     target_compile_options(SE_DefaultOptions INTERFACE
-            -pedantic             # 비표준 문법 경고 (MSVC /permissive- 대응)
+            -pedantic                       # 비표준 문법 경고 (MSVC /permissive- 대응)
 
-            -finput-charset=UTF-8 # 소스 파일 인코딩을 UTF-8로 설정
-            -fexec-charset=UTF-8  # 실행 파일 문자열 인코딩을 UTF-8로 설정
+            -finput-charset=UTF-8           # 소스 파일 인코딩을 UTF-8로 설정
+            -fexec-charset=UTF-8            # 실행 파일 문자열 인코딩을 UTF-8로 설정
 
-            -Wall -Wextra         # 일반적인 모든 경고와 추가적인 경고까지 활성화
+            -Wall -Wextra                   # 일반적인 모든 경고와 추가적인 경고까지 활성화
+            -Wno-missing-field-initializers # Designated Initializer 일부 생략 허용
+            -Wno-interference-size          # 캐시 라인 크기 경고 무시
+            -Wno-unknown-pragmas            # 다른 컴파일러용 pragma 무시
+            -Wno-init-list-lifetime         # init-list 수명 경고 무시 (ArrayView의 inline으로 사용하는 경우)
 
             # 예외 및 RTTI 끄기
-            # -fno-exceptions     # C++ 예외 처리 비활성화
-            # -fno-rtti           # RTTI 비활성화
+            # -fno-exceptions               # C++ 예외 처리 비활성화
+            # -fno-rtti                     # RTTI 비활성화
 
             # SIMD | TODO: 나중에 옵션(ON, OFF)으로 수정
             -mavx -mfma
