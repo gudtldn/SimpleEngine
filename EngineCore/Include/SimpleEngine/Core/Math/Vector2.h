@@ -36,7 +36,7 @@ public:
 
     [[nodiscard]] constexpr Vector2Impl operator+(const Vector2Impl& other) const;
     [[nodiscard]] constexpr Vector2Impl operator+(T scalar) const;
-    friend constexpr Vector2Impl operator+(T scalar, const Vector2Impl& self);
+    [[nodiscard]] friend constexpr Vector2Impl operator+(T scalar, const Vector2Impl& self) { return self + scalar; }
     constexpr Vector2Impl& operator+=(const Vector2Impl& other);
     constexpr Vector2Impl& operator+=(T scalar);
 
@@ -47,7 +47,8 @@ public:
 
     [[nodiscard]] constexpr Vector2Impl operator*(const Vector2Impl& other) const;
     [[nodiscard]] constexpr Vector2Impl operator*(T scalar) const;
-    friend constexpr Vector2Impl operator*(T scalar, const Vector2Impl& self);
+    [[nodiscard]] friend constexpr Vector2Impl operator*(T scalar, const Vector2Impl& self) { return self * scalar; }
+
     constexpr Vector2Impl& operator*=(const Vector2Impl& other);
     constexpr Vector2Impl& operator*=(T scalar);
 
@@ -151,12 +152,6 @@ constexpr Vector2Impl<T> Vector2Impl<T>::operator+(T scalar) const
 }
 
 template <traits::FloatingType T>
-[[nodiscard]] constexpr Vector2Impl<T> operator+(T scalar, const Vector2Impl<T>& self)
-{
-    return self + scalar;
-}
-
-template <traits::FloatingType T>
 constexpr Vector2Impl<T>& Vector2Impl<T>::operator+=(const Vector2Impl& other)
 {
     x += other.x;
@@ -210,12 +205,6 @@ template <traits::FloatingType T>
 constexpr Vector2Impl<T> Vector2Impl<T>::operator*(T scalar) const
 {
     return Vector2Impl{ x * scalar, y * scalar };
-}
-
-template <traits::FloatingType T>
-[[nodiscard]] constexpr Vector2Impl<T> operator*(T scalar, const Vector2Impl<T>& self)
-{
-    return self * scalar;
 }
 
 template <traits::FloatingType T>
@@ -349,4 +338,4 @@ bool Vector2Impl<T>::IsNearlyEqual(const Vector2Impl& other, T tolerance) const
     return Abs(x - other.x) <= tolerance
         && Abs(y - other.y) <= tolerance;
 }
-}  // namespace se::math
+} // namespace se::math

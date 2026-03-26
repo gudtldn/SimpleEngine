@@ -62,7 +62,7 @@ public:
 
     [[nodiscard]] constexpr Vector3Impl operator+(const Vector3Impl& other) const;
     [[nodiscard]] constexpr Vector3Impl operator+(T scalar) const;
-    friend constexpr Vector3Impl operator+(T scalar, const Vector3Impl& self);
+    [[nodiscard]] friend constexpr Vector3Impl operator+(T scalar, const Vector3Impl& self) { return self + scalar; }
     constexpr Vector3Impl& operator+=(const Vector3Impl& other);
     constexpr Vector3Impl& operator+=(T scalar);
 
@@ -73,7 +73,7 @@ public:
 
     [[nodiscard]] constexpr Vector3Impl operator*(const Vector3Impl& other) const;
     [[nodiscard]] constexpr Vector3Impl operator*(T scalar) const;
-    friend constexpr Vector3Impl operator*(T scalar, const Vector3Impl& self);
+    [[nodiscard]] friend constexpr Vector3Impl operator*(T scalar, const Vector3Impl& self) { return self * scalar; }
     constexpr Vector3Impl& operator*=(const Vector3Impl& other);
     constexpr Vector3Impl& operator*=(T scalar);
 
@@ -249,12 +249,6 @@ constexpr Vector3Impl<T> Vector3Impl<T>::operator+(T scalar) const
 }
 
 template <traits::FloatingType T>
-[[nodiscard]] constexpr Vector3Impl<T> operator+(T scalar, const Vector3Impl<T>& self)
-{
-    return self + scalar;
-}
-
-template <traits::FloatingType T>
 constexpr Vector3Impl<T>& Vector3Impl<T>::operator+=(const Vector3Impl& other)
 {
     x += other.x;
@@ -312,12 +306,6 @@ template <traits::FloatingType T>
 constexpr Vector3Impl<T> Vector3Impl<T>::operator*(T scalar) const
 {
     return Vector3Impl{ x * scalar, y * scalar, z * scalar };
-}
-
-template <traits::FloatingType T>
-[[nodiscard]] constexpr Vector3Impl<T> operator*(T scalar, const Vector3Impl<T>& self)
-{
-    return self * scalar;
 }
 
 template <traits::FloatingType T>
