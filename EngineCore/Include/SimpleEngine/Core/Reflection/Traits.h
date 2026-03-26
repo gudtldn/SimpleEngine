@@ -50,7 +50,10 @@ concept Reflectable = IntrusiveReflectable<T> || NonIntrusiveReflectable<T>;
  * @param type 등록할 클래스/구조체 이름
  */
 #define SE_DECLARE_REFLECTION(type) \
-template<> struct ::se::ReflectionTraits<type> \
+namespace se \
 { \
-    static constexpr bool Enabled = true; \
-};
+    template<> struct ReflectionTraits<type> \
+    { \
+        static constexpr bool Enabled = true; \
+    }; \
+}
