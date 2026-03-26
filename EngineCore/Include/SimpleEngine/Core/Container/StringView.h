@@ -37,7 +37,8 @@ public:
 
     /** null-terminated 문자열로부터 View를 생성합니다. */
     template <typename T>
-    requires std::is_convertible_v<T, const CharType*>
+    requires (!std::same_as<std::remove_cvref_t<T>, String>)
+        && std::convertible_to<T, const CharType*>
         && (!std::is_array_v<std::remove_cvref_t<T>>)
     constexpr StringView(T str) noexcept
         : data_ptr(str)
