@@ -304,10 +304,6 @@ public:
         return HasValue() && Value() == value;
     }
 
-    template <typename U>
-        requires (!traits::OptionalLike<U> && std::equality_comparable_with<U, T>)
-    [[nodiscard]] friend constexpr bool operator==(const U& value, const Optional& other) { return other == value; }
-
 private:
     template <typename... Args>
     constexpr void Create(Args&&... args)
