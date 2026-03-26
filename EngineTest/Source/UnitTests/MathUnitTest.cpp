@@ -264,7 +264,7 @@ TEST_F(MathQuaternionTest, double_Basic) { test_quaternion_basic<double>(); }
 template <typename T>
 void test_rotator_basic()
 {
-    math::RotatorImpl<T> r1(Degree<T>(0), Degree<T>(90), Degree<T>(0)); // Yaw 90
+    math::RotatorImpl<T> r1(Degree<T>(0), Degree<T>(0), Degree<T>(90)); // Yaw 90
     auto q = r1.ToQuaternion();
 
     auto fwd = r1.GetForwardVector();
