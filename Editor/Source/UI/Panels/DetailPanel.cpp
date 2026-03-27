@@ -1,4 +1,5 @@
 #include "UI/Panels/DetailPanel.h"
+#include "UI/ImGui/ImGuiWrapper.h"
 
 #include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
@@ -168,7 +169,7 @@ void DetailPanel::DrawContent()
                 TransformComponent* transform_component = static_cast<TransformComponent*>(component_data);
 
                 // Position
-                ImGui::DragScalarN(
+                ImGui::DragScalarNInfinity(
                     "Position", ImGuiDataType_Double, &transform_component->position.x, 3,
                     0.1f, nullptr, nullptr, nullptr
                 );
@@ -181,7 +182,7 @@ void DetailPanel::DrawContent()
                     cached.source_quat = transform_component->rotation;
                 }
 
-                if (ImGui::DragScalarN(
+                if (ImGui::DragScalarNInfinity(
                     "Rotation", ImGuiDataType_Double, &cached.euler.pitch.value, 3,
                     0.1f, nullptr, nullptr, nullptr
                 ))
@@ -192,7 +193,7 @@ void DetailPanel::DrawContent()
                 cached.is_editing = ImGui::IsItemActive();
 
                 // Scale
-                ImGui::DragScalarN(
+                ImGui::DragScalarNInfinity(
                     "Scale", ImGuiDataType_Double, &transform_component->scale.x, 3,
                     0.1f, nullptr, nullptr, nullptr
                 );
