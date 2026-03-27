@@ -1,6 +1,8 @@
 #include "UI/ImGui/ImGuiString.h"
 
 
+namespace
+{
 struct InputTextCallback_UserData
 {
     se::String* string;
@@ -8,8 +10,6 @@ struct InputTextCallback_UserData
     void* chain_callback_user_data;
 };
 
-namespace
-{
 int InputTextCallback(ImGuiInputTextCallbackData* data)
 {
     const InputTextCallback_UserData* user_data = static_cast<InputTextCallback_UserData*>(data->UserData);
