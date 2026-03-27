@@ -17,7 +17,9 @@
 #include "SimpleEngine/ECS/WorldSubsystem.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
+#include "SimpleEngine/Debug/DebugDrawSubsystem.h"
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
+#include "SimpleEngine/Graphics/RenderPass/DebugLinePass.h"
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
 #include "SimpleEngine/Graphics/View/FramePacket.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -192,6 +194,13 @@ void EditorApplication::Render()
                             frame_packet.scene_draw_data, info.render_view,
                             gpu_manager, color_handle, depth_handle
                         );
+
+                        if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
+                        {
+                            builder.AddPass<se::graphics::DebugLinePass>(
+                                *debug_subsystem, info.render_view, color_handle, depth_handle
+                            );
+                        }
                     }
                 }
             }

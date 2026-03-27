@@ -2,8 +2,11 @@
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/Debug/DebugDraw.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
+
+#include "imgui.h"
 
 
 namespace se::editor
@@ -122,6 +125,9 @@ void EditorViewportSubsystem::Update(float delta_time)
         // 카메라가 활성화 되어있는 동안, 마우스를 last_pos에 고정
         input_subsystem->SetLocalMousePosition(last_mouse_pos);
     }
+
+    // 월드 기준 좌표축을 매 프레임 그리기
+    DrawDebugWorldAxes();
 
     // 모든 뷰포트의 RenderView를 카메라 상태로부터 갱신
     for (auto& [id, info] : viewport_data)
