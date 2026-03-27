@@ -25,9 +25,6 @@ private:
         bool is_editing = false;
     };
 
-    /** 선택된 컴포넌트 */
-    TypeId selected_component_id;
-
     /** 선택 유효성 체크를 위한 마지막으로 선택된 Entity */
     Entity last_selected_entity;
 

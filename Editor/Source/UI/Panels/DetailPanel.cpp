@@ -28,7 +28,6 @@ const char* DetailPanel::GetName() const
 
 void DetailPanel::DrawContent()
 {
-
     const auto [world_subsystem, editor_subsystem] = GetSubsystems<const WorldSubsystem, EditorSubsystem>();
     if (!(world_subsystem && editor_subsystem))
     {
@@ -53,73 +52,37 @@ void DetailPanel::DrawContent()
     const Entity entity = selection.GetPrimarySelectedEntity().Value();
     ecs::World* world = world_subsystem->GetWorld();
 
-    // 선택된 Entity가 바뀌면 컴포넌트 선택 및 Rotation 캐시 초기화
+    // 선택된 Entity가 바뀌면 Rotation 캐시 초기화
     if (last_selected_entity != entity)
     {
         rotator_cache.Remove(last_selected_entity);
-        selected_component_id = TypeId{};
         last_selected_entity = entity;
     }
 
     ImGui::Separator();
 
-    // 컴포넌트 리스트
-    TypeId component_to_remove;
-    const ImVec2 list_size = ImVec2(0, 5 * ImGui::GetTextLineHeightWithSpacing());
-    if (ImGui::BeginListBox("##Component Lists", list_size))
+    if (ImGui::Button("Add Component", ImVec2(-1, 0)))
     {
-        SE_SCOPE_DEFER{ ImGui::EndListBox(); };
-
-        for (const TypeId& type_id : ecs::ComponentRegistry::Get().GetOperators() | std::views::keys)
-        {
-            ecs::IStorage* storage = world->GetStorage(type_id);
-            if (!(storage && storage->Contains(entity)))
-            {
-                continue;
-            }
-
-            const Optional type_info_opt = TypeRegistry::Get().Find(type_id);
-            if (!type_info_opt)
-            {
-                continue;
-            }
-
-            const String label = type_info_opt->name;
-            ImGui::PushID(label.CStr());
-
-            // X 버튼으로 컴포넌트 삭제
-            if (ImGui::SmallButton("X"))
-            {
-                component_to_remove = type_id;
-            }
-            ImGui::SameLine();
-
-            if (ImGui::Selectable(label.CStr(), selected_component_id == type_id))
-            {
-                selected_component_id = type_id;
-            }
-
-            ImGui::PopID();
-        }
+        ImGui::OpenPopup("ComponentSearchPopup");
     }
 
-    // 컴포넌트 삭제 처리 (순회 완료 후)
-    if (component_to_remove.IsValid())
-    {
-        if (const Optional ops = ecs::ComponentRegistry::Get().GetOps(component_to_remove))
-        {
-            ops->remove_component(*world, entity);
-        }
-        if (selected_component_id == component_to_remove)
-        {
-            selected_component_id = TypeId{};
-        }
-    }
+    // 버튼 바로 아래에 팝업을 띄움
+    ImVec2 popup_pos = ImGui::GetItemRectMin(); // 버튼의 좌상단 좌표
+    popup_pos.y += ImGui::GetItemRectSize().y;  // y좌표에 버튼 높이를 더함
+    ImGui::SetNextWindowPos(popup_pos);
 
-    if (ImGui::BeginCombo("Add Component", "Select Component"))
+    if (ImGui::BeginPopup("ComponentSearchPopup"))
     {
-        SE_SCOPE_DEFER{ ImGui::EndCombo(); };
+        if (ImGui::IsWindowAppearing())
+        {
+            ImGui::SetKeyboardFocusHere();
+        }
 
+        static char filter[64] = "";
+        ImGui::InputTextWithHint("##Filter", "Search...", filter, std::size(filter));
+        ImGui::Separator();
+
+        usize found_count = 0;
         for (const TypeId& type_id : ecs::ComponentRegistry::Get().GetOperators() | std::views::keys)
         {
             ecs::IStorage* storage = world->GetStorage(type_id);
@@ -135,85 +98,119 @@ void DetailPanel::DrawContent()
             }
 
             const String add_label = type_info_opt->name;
-            if (ImGui::Selectable(add_label.CStr(), false))
+            // TODO: Case-Insensitive로 비교 하도록 수정
+            // ReSharper disable once CppRedundantCastExpression
+            if (add_label.Contains(static_cast<const char*>(filter))) // 리터럴 생성자 오버로딩을 사용하지 않도록 함
             {
-                if (!storage->Contains(entity))
+                ++found_count;
+                if (ImGui::Selectable(add_label.CStr(), false))
                 {
-                    storage->EmplaceDefault(entity);
+                    if (!storage->Contains(entity))
+                    {
+                        storage->EmplaceDefault(entity);
+                    }
+
+                    filter[0] = '\0';
+                    ImGui::CloseCurrentPopup();
                 }
+            }
+        }
+
+        if (found_count == 0)
+        {
+            ImGui::TextDisabled("No components found matching filter: \"%s\"", filter);
+        }
+
+        ImGui::EndPopup();
+    }
+
+    TypeId component_to_remove;
+    for (const auto& [component_type, component_ops] : ecs::ComponentRegistry::Get().GetOperators())
+    {
+        const ecs::IStorage* storage = world->GetStorage(component_type);
+
+        // Entity가 가지고 있지 않은 Component는 건너뜀
+        if (!(storage && storage->Contains(entity)))
+        {
+            continue;
+        }
+
+        // Component의 타입 정보
+        const TypeInfo& type_info = TypeRegistry::Get().FindChecked(component_type);
+
+        const String label = type_info.name;
+        ImGui::PushID(label.CStr());
+        SE_SCOPE_DEFER{ ImGui::PopID(); };
+
+        const bool header_is_open = ImGui::CollapsingHeader(label.CStr(), ImGuiTreeNodeFlags_DefaultOpen);
+
+        if (ImGui::BeginPopupContextItem("ComponentContextMenu"))
+        {
+            if (ImGui::MenuItem("Remove Component"))
+            {
+                component_to_remove = component_type;
+            }
+            ImGui::EndPopup();
+        }
+
+        if (header_is_open)
+        {
+            void* component_data = component_ops.get_component_mutable(*world, entity);
+            if (!component_data)
+            {
+                continue;
+            }
+
+            // TODO: 나중에 PropertyDrawer에서 컴포넌트별 커스텀 DrawProperties를 지원하도록 수정
+            // TransformComponent는 Quaternion 대신 Euler 각도로 직관적으로 표시
+            if (component_type == TypeId::Get<TransformComponent>())
+            {
+                TransformComponent* transform_component = static_cast<TransformComponent*>(component_data);
+
+                // Position
+                ImGui::DragScalarN(
+                    "Position", ImGuiDataType_Double, &transform_component->position.x, 3,
+                    0.1f, nullptr, nullptr, nullptr
+                );
+
+                // 편집 중이 아닐 때만 외부 변경을 감지해 Quat -> Euler 재계산
+                CachedRotator& cached = rotator_cache[entity];
+                if (!cached.is_editing && !cached.source_quat.IsNearlyEqual(transform_component->rotation))
+                {
+                    cached.euler = transform_component->rotation.ToRotator();
+                    cached.source_quat = transform_component->rotation;
+                }
+
+                if (ImGui::DragScalarN(
+                    "Rotation", ImGuiDataType_Double, &cached.euler.pitch.value, 3,
+                    0.1f, nullptr, nullptr, nullptr
+                ))
+                {
+                    transform_component->rotation = cached.euler.ToQuaternion();
+                    cached.source_quat = transform_component->rotation;
+                }
+                cached.is_editing = ImGui::IsItemActive();
+
+                // Scale
+                ImGui::DragScalarN(
+                    "Scale", ImGuiDataType_Double, &transform_component->scale.x, 3,
+                    0.1f, nullptr, nullptr, nullptr
+                );
+            }
+            else
+            {
+                DrawerRegistry::Get().DrawProperties(type_info, component_data);
             }
         }
     }
 
-    ImGui::Separator();
-
-    // 선택된 Component의 프로퍼티 렌더링
-    if (!selected_component_id.IsValid())
+    // 컴포넌트 삭제 처리 (순회 완료 후)
+    if (component_to_remove.IsValid())
     {
-        return;
-    }
-
-    const Optional type_info_opt = TypeRegistry::Get().Find(selected_component_id);
-    if (!type_info_opt)
-    {
-        return;
-    }
-
-    const Optional interface_opt = ecs::ComponentRegistry::Get().GetOps(selected_component_id);
-    if (!interface_opt)
-    {
-        return;
-    }
-
-    void* component_data = interface_opt->get_component_mutable(*world, entity);
-    if (!component_data)
-    {
-        return;
-    }
-
-    const StringView& type_name = type_info_opt->name;
-    ImGui::Text("[%.*s]", static_cast<int>(type_name.ByteLen()), type_name.Data());
-    ImGui::Separator();
-
-    // TODO: 나중에 PropertyDrawer에서 컴포넌트별 커스텀 DrawProperties를 지원하도록 수정
-    // TransformComponent는 Quaternion 대신 Euler 각도로 직관적으로 표시
-    if (type_info_opt->type_id == TypeId::Get<TransformComponent>())
-    {
-        TransformComponent* tc = static_cast<TransformComponent*>(component_data);
-
-        // Position
-        ImGui::DragScalarN(
-            "Position", ImGuiDataType_Double, &tc->position.x, 3,
-            0.1f, nullptr, nullptr, nullptr
-        );
-
-        // 편집 중이 아닐 때만 외부 변경을 감지해 Quat -> Euler 재계산
-        CachedRotator& cached = rotator_cache[entity];
-        if (!cached.is_editing && !cached.source_quat.IsNearlyEqual(tc->rotation))
+        if (const Optional ops = ecs::ComponentRegistry::Get().GetOps(component_to_remove))
         {
-            cached.euler = Rotator{ tc->rotation };
-            cached.source_quat = tc->rotation;
+            ops->remove_component(*world, entity);
         }
-
-        if (ImGui::DragScalarN(
-            "Rotation", ImGuiDataType_Double, &cached.euler.pitch.value, 3,
-            0.1f, nullptr, nullptr, nullptr
-        ))
-        {
-            tc->rotation = cached.euler.ToQuaternion();
-            cached.source_quat = tc->rotation;
-        }
-        cached.is_editing = ImGui::IsItemActive();
-
-        // Scale
-        ImGui::DragScalarN(
-            "Scale", ImGuiDataType_Double, &tc->scale.x, 3,
-            0.1f, nullptr, nullptr, nullptr
-        );
-    }
-    else
-    {
-        DrawerRegistry::Get().DrawProperties(*type_info_opt, component_data);
     }
 }
 } // namespace se::editor
