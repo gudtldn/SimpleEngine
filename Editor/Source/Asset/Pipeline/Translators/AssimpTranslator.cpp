@@ -204,6 +204,7 @@ void AssimpTranslator::Translate(
     PipelineNodeContainer& out_container
 )
 {
+    // TODO: Assimp는 Y-up이라서, Z-up에 맞게 변환해야 함.
     Assimp::Importer importer;
 
     // 설정 불러오기 (없으면 기본값)

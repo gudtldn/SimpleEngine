@@ -88,7 +88,7 @@ void DebugPanel::DrawContent()
 
     if (ImGui::CollapsingHeader("Input Status", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        if (auto* input = Engine::Get().GetSubsystem<InputSubsystem>())
+        if (InputSubsystem* input = Engine::Get().GetSubsystem<InputSubsystem>())
         {
             if (ImGui::BeginTable("InputLayout", 2, ImGuiTableFlags_Resizable))
             {
@@ -175,7 +175,7 @@ void DebugPanel::DrawContent()
                     ImGui::BeginChild("KeyLog", ImVec2(0, 250), true);
                     for (uint16 i = 0; i < static_cast<uint16>(EKeyCode::Max); ++i)
                     {
-                        EKeyCode key = static_cast<EKeyCode>(i);
+                        const EKeyCode key = static_cast<EKeyCode>(i);
                         if (input->IsKeyDown(key))
                         {
                             const char* key_name = SDL_GetScancodeName(static_cast<SDL_Scancode>(i));
