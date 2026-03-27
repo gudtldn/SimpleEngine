@@ -1,8 +1,7 @@
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
-#include <cstdio>
-
 #include "UI/ImGui/ImGuiString.h"
+#include "UI/ImGui/ImGuiWrapper.h"
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/String.h"
@@ -13,6 +12,8 @@
 #include "SimpleEngine/ECS/Entity.h"
 
 #include "imgui.h"
+
+#include <cstdio>
 
 
 namespace se::editor
@@ -59,7 +60,7 @@ bool DrawBool(const char* label, void* value, const PropertyInfo& /*prop*/)
 template <typename T>
 bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
 {
-    constexpr auto data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
     T* v = static_cast<T*>(value);
 
     if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasRange))
@@ -75,10 +76,10 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
     {
         T min_val = static_cast<T>(prop.metadata.clamp_min);
         T max_val = static_cast<T>(prop.metadata.clamp_max);
-        return ImGui::DragScalar(label, data_type, v, speed, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
+        return ImGui::DragScalarNInfinity(label, data_type, v, 1, speed, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
     }
 
-    return ImGui::DragScalar(label, data_type, v, speed);
+    return ImGui::DragScalarNInfinity(label, data_type, v, 1, speed);
 }
 
 // --- String ---
@@ -144,7 +145,7 @@ bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
             const char* dropped_path = static_cast<const char*>(payload->Data);
 
             // DrawerRegistry에 등록된 resolver를 통해 경로 -> AssetId 변환
-            if (const auto resolver = DrawerRegistry::Get().GetAssetDropResolver())
+            if (const AssetDropResolverFunc resolver = DrawerRegistry::Get().GetAssetDropResolver())
             {
                 const asset::AssetId resolved = resolver(dropped_path);
                 if (resolved.IsValid())
@@ -186,10 +187,10 @@ template <typename T>
 bool DrawVector2(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Vec = math::Vector2Impl<T>;
-    constexpr auto data_type = GetImGuiDataType<T>();
-    auto* vec = static_cast<Vec*>(value);
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Vec* vec = static_cast<Vec*>(value);
 
-    return ImGui::DragScalarN(label, data_type, &vec->x, 2, 0.1f);
+    return ImGui::DragScalarNInfinity(label, data_type, &vec->x, 2, 0.1f);
 }
 
 // --- Vector3 / Vector3f ---
@@ -198,10 +199,10 @@ template <typename T>
 bool DrawVector3(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Vec = math::Vector3Impl<T>;
-    constexpr auto data_type = GetImGuiDataType<T>();
-    auto* vec = static_cast<Vec*>(value);
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Vec* vec = static_cast<Vec*>(value);
 
-    return ImGui::DragScalarN(label, data_type, &vec->x, 3, 0.1f);
+    return ImGui::DragScalarNInfinity(label, data_type, &vec->x, 3, 0.1f);
 }
 
 // --- Vector4 / Vector4f ---
@@ -210,10 +211,10 @@ template <typename T>
 bool DrawVector4(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Vec = math::Vector4Impl<T>;
-    constexpr auto data_type = GetImGuiDataType<T>();
-    auto* vec = static_cast<Vec*>(value);
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Vec* vec = static_cast<Vec*>(value);
 
-    return ImGui::DragScalarN(label, data_type, &vec->x, 4, 0.1f);
+    return ImGui::DragScalarNInfinity(label, data_type, &vec->x, 4, 0.1f);
 }
 
 // --- Quaternion / Quaternionf ---
@@ -222,9 +223,9 @@ template <typename T>
 bool DrawQuaternion(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Quat = math::QuaternionImpl<T>;
-    constexpr auto data_type = GetImGuiDataType<T>();
-    auto* quat = static_cast<Quat*>(value);
-    return ImGui::DragScalarN(label, data_type, &quat->x, 4, 0.01f);
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Quat* quat = static_cast<Quat*>(value);
+    return ImGui::DragScalarNInfinity(label, data_type, &quat->x, 4, 0.01f);
 }
 
 // --- Rotator / Rotatorf ---
@@ -233,26 +234,18 @@ template <typename T>
 bool DrawRotator(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Rot = math::RotatorImpl<T>;
-    constexpr auto data_type = GetImGuiDataType<T>();
-    auto* rot = static_cast<Rot*>(value);
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Rot* rot = static_cast<Rot*>(value);
 
-    // pitch, yaw, roll — 각각 Degree<T>이므로 .value 멤버에 직접 접근
-    T angles[3] = { rot->pitch.value, rot->yaw.value, rot->roll.value };
-    if (ImGui::DragScalarN(label, data_type, angles, 3, 0.1f))
-    {
-        rot->pitch.value = angles[0];
-        rot->yaw.value   = angles[1];
-        rot->roll.value  = angles[2];
-        return true;
-    }
-    return false;
+    // pitch, roll, yaw — 각각 Degree<T>이므로 .value 멤버에 직접 접근
+    return ImGui::DragScalarNInfinity(label, data_type, &rot->pitch.value, 3, 0.1f);
 }
 
 // --- LinearColor ---
 
 bool DrawLinearColor(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
-    auto* color = static_cast<math::LinearColor*>(value);
+    LinearColor* color = static_cast<LinearColor*>(value);
     return ImGui::ColorEdit4(label, &color->r);
 }
 
@@ -260,7 +253,7 @@ bool DrawLinearColor(const char* label, void* value, const PropertyInfo& /*prop*
 
 bool DrawColor(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
-    auto* color = static_cast<math::Color*>(value);
+    Color* color = static_cast<Color*>(value);
     float rgba[4] = {
         static_cast<float>(color->r) / 255.0f,
         static_cast<float>(color->g) / 255.0f,
@@ -285,8 +278,8 @@ template <typename T>
 bool DrawDegree(const char* label, void* value, const PropertyInfo& prop)
 {
     using Deg = Degree<T>;
-    constexpr auto data_type = GetImGuiDataType<T>();
-    auto* angle = static_cast<Deg*>(value);
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Deg* angle = static_cast<Deg*>(value);
 
     if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasRange))
     {
@@ -295,7 +288,7 @@ bool DrawDegree(const char* label, void* value, const PropertyInfo& prop)
         return ImGui::SliderScalar(label, data_type, &angle->value, &min_val, &max_val);
     }
 
-    return ImGui::DragScalar(label, data_type, &angle->value, 0.1f);
+    return ImGui::DragScalarNInfinity(label, data_type, &angle->value, 1, 0.1f);
 }
 
 // ============================================================================
@@ -537,7 +530,7 @@ bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& 
 
     ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
     {
-        auto& s = *static_cast<IterState*>(user);
+        IterState& s = *static_cast<IterState*>(user);
 
         ImGui::PushID(static_cast<int>(idx));
 
@@ -602,7 +595,7 @@ bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& re
 
     ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
     {
-        auto& s = *static_cast<IterState*>(user);
+        IterState& s = *static_cast<IterState*>(user);
 
         ImGui::PushID(static_cast<int>(idx));
 
@@ -674,7 +667,7 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
 
     ops.for_each(container, [](usize idx, void* key, void* value, void* user) -> bool
     {
-        auto& s = *static_cast<IterState*>(user);
+        IterState& s = *static_cast<IterState*>(user);
 
         ImGui::PushID(static_cast<int>(idx));
 
