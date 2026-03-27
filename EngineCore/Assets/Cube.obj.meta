@@ -1,0 +1,20 @@
+processor_stack = []
+
+[import_settings.'se::editor::MeshImportSettings']
+apply_transform = true
+combine_meshes = true
+global_scale = 1.0
+
+[metadata]
+cache_version = 1
+guid = 'd46a15ad-c9cb-4843-a677-90c194a24738'
+settings_hash = 'sha256:82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
+source_hash = 'sha256:34cb96756cf85f86e797cd9c1c0689e67c6424d07462675619dafbed7e0b4bf6'
+source_mtime = 1774612387020270300
+source_size = 907
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '03d014f6-eb8d-4670-8797-2601ff1c7adf'
+    name = 'Cube'
+    type = 'se::asset::StaticMesh'
