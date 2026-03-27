@@ -13,9 +13,25 @@ using namespace se::graphics;
 SE_BEGIN_REFLECT(EditorUIPass, meta::Internal)
 SE_END_REFLECT(EditorUIPass)
 
+EditorUIPass::EditorUIPass(
+    RGTextureHandle in_back_buffer,
+    Array<RGTextureHandle> in_viewport_colors
+)
+    : swapchain_handle(in_back_buffer)
+    , viewport_color_handles(std::move(in_viewport_colors))
+{
+}
+
 void EditorUIPass::Setup(RGSetupContext& context)
 {
-    swapchain_handle = context.Write(swapchain_handle);
+    // Viewport의 모든 SceneTexture를 읽기로 사용
+    for (const RGTextureHandle color_handle : viewport_color_handles)
+    {
+        context.Read(color_handle);
+    }
+
+    // Swapchain에 쓰기로 사용
+    context.Write(swapchain_handle);
 }
 
 void EditorUIPass::Execute(RGExecutionContext& context)

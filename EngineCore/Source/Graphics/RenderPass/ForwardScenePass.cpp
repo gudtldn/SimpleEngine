@@ -51,9 +51,9 @@ void ForwardScenePass::Setup(RGSetupContext& context)
         });
     }
 
-    // 렌더 타겟 쓰기로 설정 (Write()는 버전이 증가된 핸들을 반환)
-    color_target_handle = context.Write(color_target_handle);
-    depth_target_handle = context.Write(depth_target_handle);
+    // 렌더 타겟 설정
+    context.Write(color_target_handle);
+    context.Write(depth_target_handle);
 }
 
 void ForwardScenePass::Execute(RGExecutionContext& context)
@@ -82,7 +82,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         .texture = depth_target,
         .clear_depth = 1.0f,
         .load_op = SDL_GPU_LOADOP_CLEAR,
-        .store_op = SDL_GPU_STOREOP_DONT_CARE,
+        .store_op = SDL_GPU_STOREOP_STORE,
         .stencil_load_op = SDL_GPU_LOADOP_CLEAR,
         .stencil_store_op = SDL_GPU_STOREOP_DONT_CARE,
         .clear_stencil = 0,

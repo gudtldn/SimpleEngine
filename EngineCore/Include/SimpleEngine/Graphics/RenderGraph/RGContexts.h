@@ -10,8 +10,8 @@ namespace se::graphics
 // forward declarations
 struct ComputePipelineCreateInfo;
 struct GraphicsPipelineCreateInfo;
-class PSOManager;
 struct RGPassNode;
+class PSOManager;
 class RenderGraphBuilder;
 
 /**
@@ -23,15 +23,17 @@ class SE_CORE_API RGSetupContext
 public:
     explicit RGSetupContext(RGPassNode& in_pass_node);
 
+    /** 핸들이 가리키는 택스처를 이 패스가 읽도록 선언합니다. */
     void Read(RGTextureHandle handle);
+
+    /** 핸들이 가리키는 버퍼를 이 패스가 읽도록 선언합니다. */
     void Read(RGBufferHandle handle);
 
-    /**
-     * 핸들이 가리키는 리소스를 이 패스가 쓰도록 선언합니다.
-     * @return 버전이 증가된 새 핸들. Execute()에서 이 핸들로 실제 리소스를 조회해야 합니다.
-     */
-    [[nodiscard]] RGTextureHandle Write(RGTextureHandle handle);
-    [[nodiscard]] RGBufferHandle Write(RGBufferHandle handle);
+    /** 핸들이 가리키는 택스처를 이 패스가 쓰도록 선언합니다. */
+    void Write(RGTextureHandle handle);
+
+    /** 핸들이 가리키는 버퍼를 이 패스가 쓰도록 선언합니다. */
+    void Write(RGBufferHandle handle);
 
 private:
     RGPassNode& pass_node_ref;

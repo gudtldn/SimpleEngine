@@ -158,6 +158,9 @@ void EditorApplication::Render()
     render_subsystem->RenderFrame(
         [&](se::graphics::RGTextureHandle swapchain_handle, se::graphics::RenderGraphBuilder& builder)
         {
+            Array<graphics::RGTextureHandle> viewport_color_handles;
+            viewport_color_handles.Reserve(viewport_subsystem.GetActiveViewportInfo().Len());
+
             for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
             {
                 if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
@@ -181,6 +184,9 @@ void EditorApplication::Render()
                                 .sample_count = SDL_GPU_SAMPLECOUNT_1,
                             });
 
+                        // 최종 렌더링 Pass에 참고할 수 있도록 추가
+                        viewport_color_handles.Push(color_handle);
+
                         frame_packet.render_views.Push(info.render_view);
                         builder.AddPass<se::graphics::ForwardScenePass>(
                             frame_packet.scene_draw_data, info.render_view,
@@ -191,7 +197,7 @@ void EditorApplication::Render()
             }
 
             // BackBuffer 핸들을 생성자 DI로 전달
-            builder.AddPass<EditorUIPass>(swapchain_handle);
+            builder.AddPass<EditorUIPass>(swapchain_handle, std::move(viewport_color_handles));
         }
     );
 }

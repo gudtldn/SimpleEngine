@@ -39,18 +39,16 @@ void RenderGraphExecutor::Execute(
 
     Compile(builder);
 
-    for (usize pass_index = 0; pass_index < compiled_passes.Len(); ++pass_index)
+    for (const auto [pass_idx, pass_node] : compiled_passes | std::views::enumerate)
     {
-        const RGPassNode* pass_node = compiled_passes[pass_index];
-
         ZoneScoped;
         SE_DEBUG_EXPRESSION({
             String zone_name = String::Format("RenderGraphExecutor::Execute - {}::Execute", pass_node->name);
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
         })
 
-        // 이 패스에서 생명주기가 시작되는 리소스를 할당합니다.
-        for (const usize resource_idx : resources_to_realize[pass_index])
+        // 이 패스에서 생명주기가 시작되는 리소스를 할당
+        for (const usize resource_idx : resources_to_realize[pass_idx])
         {
             builder.resource_nodes[resource_idx].resource->Realize(resource_pool);
         }
@@ -58,8 +56,8 @@ void RenderGraphExecutor::Execute(
         RGExecutionContext context{ cmd, pso_manager, builder };
         pass_node->pass_object->Execute(context);
 
-        // 이 패스에서 생명주기가 끝나는 리소스를 해제합니다.
-        for (const usize resource_idx : resources_to_unrealize[pass_index])
+        // 이 패스에서 생명주기가 끝나는 리소스를 해제
+        for (const usize resource_idx : resources_to_unrealize[pass_idx])
         {
             builder.resource_nodes[resource_idx].resource->Unrealize(resource_pool);
         }
@@ -93,82 +91,86 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     resources_to_realize.Clear();
     resources_to_unrealize.Clear();
 
-    // 1. Setup 단계: 각 패스에서 Read/Write 선언을 수집
-    for (RGPassNode& pass_node : builder.pass_nodes)
+    // 1. Setup 및 자동 버저닝 (SSA: Static Single Assignment 구성)
+    // AddPass 순서대로 물리적 리소스에 논리적 버전(Version)을 자동 부여하여 의존성 방향 그래프(DAG)를 구성
+
+    // 각 물리적 리소스(index)별로 현재까지 도달한 '최신 버전'을 추적하기 위한 배열 (초기값 0)
+    Array<uint32> current_versions;
+    current_versions.Resize(builder.resource_nodes.Len());
+    std::ranges::fill(current_versions, static_cast<uint32>(0));
+
+    for (const auto [pass_idx, pass_node] : builder.pass_nodes | std::views::enumerate)
     {
         ZoneScoped;
         SE_DEBUG_EXPRESSION({
             String zone_name = String::Format("RenderGraphExecutor::Compile - {}::Setup", pass_node.name.ToString());
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
         });
+
+        // Setup()으로 read_indices와 write_indices를 수집
         RGSetupContext setup_ctx(pass_node);
         pass_node.pass_object->Setup(setup_ctx);
-    }
 
-    // 2. Writer 등록: 각 패스의 write_map을 기반으로 리소스의 version_to_writer를 설정
-    for (const auto [pass_index, pass_node] : builder.pass_nodes | std::views::enumerate)
-    {
-        const uint32 idx = static_cast<uint32>(pass_index);
-        for (const auto& [res_idx, out_ver] : pass_node.write_map)
+        // --- A. Read 처리 ---
+        // 해당 리소스가 지금까지 다른 패스들에 의해 갱신된 '가장 최신 버전'을 의존성으로 기록
+        for (const uint32 res_idx : pass_node.read_indices)
+        {
+            pass_node.read_refs.Push({ .resource_index = res_idx, .version = current_versions[res_idx] });
+        }
+
+        // --- B. Write 처리 ---
+        // 리소스에 Write를 한다는 것은 물리적 메모리의 내용이 변경되어 '새로운 논리적 상태'가 됨을 의미
+        for (const uint32 res_idx : pass_node.write_indices)
         {
 #if SE_BUILD_DEBUG
+            // 유효성 검사: 존재하지 않거나 초기화되지 않은 리소스 인덱스에 접근하는지 확인
             if (res_idx >= builder.resource_nodes.Len())
             {
                 ConsoleLog(
-                    ELogLevel::Error,
-                    "Invalid resource index {} in {}::Setup()",
-                    res_idx,
-                    pass_node.pass_object->GetTypeId().GetName()
+                    ELogLevel::Error, "Invalid resource index {} in {}::Setup()",
+                    res_idx, pass_node.pass_object->GetTypeId().GetName()
                 );
                 SE_ASSERT(false, "Invalid resource index.");
                 continue;
             }
-
-            RGResourceNode& resource_node = builder.resource_nodes[res_idx];
-            if (!resource_node.resource)
+            if (!builder.resource_nodes[res_idx].resource)
             {
                 ConsoleLog(
-                    ELogLevel::Error,
-                    "Resource {} is not initialized. Check {}::Setup()",
-                    resource_node.name.ToString(),
+                    ELogLevel::Error, "Resource {} is not initialized. Check {}::Setup()",
+                    builder.resource_nodes[res_idx].name.ToString(),
                     pass_node.pass_object->GetTypeId().GetName()
                 );
                 SE_ASSERT(false, "Resource is not initialized.");
                 continue;
             }
-
-            if (const Optional existing = resource_node.version_to_writer.Find(out_ver))
-            {
-                if (*existing != idx)
-                {
-                    const StringName& existing_writer = builder.pass_nodes[*existing].name;
-                    ConsoleLog(
-                        ELogLevel::Error,
-                        "Multiple write passes for resource '{}' version {}:\n"
-                        "  - Existing writer: {}\n"
-                        "  - Conflicting writer: {}",
-                        resource_node.name.ToString(),
-                        out_ver,
-                        existing_writer.ToString(),
-                        pass_node.name.ToString()
-                    );
-                    SE_ASSERT(false, "A resource version can only be written by a single pass per frame.");
-                    continue;
-                }
-            }
 #endif
-            builder.resource_nodes[res_idx].version_to_writer[out_ver] = idx;
+
+            const uint32 in_version = current_versions[res_idx];
+            const uint32 out_version = in_version + 1;
+            current_versions[res_idx] = out_version; // 버전 리스트 업데이트
+
+            // 해당 버전을 '이 패스가 생성(Write)했다'고 기록
+            pass_node.write_map[res_idx] = out_version;
+            builder.resource_nodes[res_idx].version_to_writer[out_version] = static_cast<uint32>(pass_idx);
+
+            // WAW(Write-After-Write) 의존성 보장 및 암묵적 Read
+            // 명시적인 Read 선언이 없더라도, 동일 리소스에 대한 쓰기 작업(AddPass) 순서가 보장되도록
+            // 이전 버전에 대한 암묵적 Read를 기록하여 의존성이 끊기는 것을 방지
+            if (in_version > 0)
+            {
+                pass_node.read_refs.Push({ .resource_index = res_idx, .version = in_version });
+            }
         }
     }
 
-    // 3. Pass Culling: 외부 리소스에서 역방향으로 활성 패스를 조회
+    // 2. Pass Culling: 외부 리소스에서 역방향으로 활성 패스를 조회
     //    외부 리소스의 최신 버전을 생성한 패스부터 역탐색합니다.
     struct ActiveResourceEntry { uint32 index; uint32 version; };
     Queue<ActiveResourceEntry> active_resource_queue;
 
-    for (const auto [n, resource_node] : builder.resource_nodes | std::views::enumerate)
+    for (const auto [res_idx, res_node] : builder.resource_nodes | std::views::enumerate)
     {
-        const RGResourceBase* resource = resource_node.resource.get();
+        const RGResourceBase* resource = res_node.resource.get();
         if (!IsA<RGExternalTexture>(resource) && !IsA<RGExternalBuffer>(resource))
         {
             continue;
@@ -177,7 +179,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         // 외부 리소스의 최신 버전(가장 높은 버전)을 활성화 트리거로 사용
         uint32 max_version = 0;
         bool has_writer = false;
-        for (const auto& [ver, writer_idx] : resource_node.version_to_writer)
+        for (const uint32& ver : res_node.version_to_writer | std::views::keys)
         {
             if (!has_writer || ver > max_version)
             {
@@ -189,7 +191,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         if (has_writer)
         {
             active_resource_queue.Push({
-                .index = static_cast<uint32>(n),
+                .index = static_cast<uint32>(res_idx),
                 .version = max_version,
             });
         }
@@ -219,10 +221,10 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
     }
 
-    // 4. 위상정렬 (Kahn's algorithm, O(N+E))
+    // 3. 위상정렬 (Kahn's algorithm, O(N+E))
     const usize pass_count = builder.pass_nodes.Len();
 
-    // 4-1. 각 패스의 read_refs를 순회하여 버전별 의존성에서 인접 리스트 + in_degree 구축
+    // 3-1. 각 패스의 read_refs를 순회하여 버전별 의존성에서 인접 리스트 + in_degree 구축
     Array<Array<uint32>> adjacency;
     adjacency.Resize(pass_count);
 
@@ -250,7 +252,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
     }
 
-    // 4-2. BFS 위상정렬
+    // 3-2. BFS 위상정렬
     Queue<uint32> ready_queue;
     for (usize i = 0; i < pass_count; ++i)
     {
@@ -274,7 +276,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
     }
 
-    // 4-3. 순환 의존성 확인
+    // 3-3. 순환 의존성 확인
     const usize active_pass_count = std::ranges::count_if(
         builder.pass_nodes,
         [](const RGPassNode& p) { return !p.culled; }
@@ -294,7 +296,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         return;
     }
 
-    // 5. 리소스 생명주기 분석
+    // 4. 리소스 생명주기 분석
     for (const auto [pass_idx, pass_node] : compiled_passes | std::views::enumerate)
     {
         const uint32 idx = static_cast<uint32>(pass_idx);
@@ -305,7 +307,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
             node.first_user_pass_index = std::min(node.first_user_pass_index, idx);
             node.last_user_pass_index  = std::max(node.last_user_pass_index, idx);
         }
-        for (const auto& [res_idx, out_ver] : pass_node->write_map)
+        for (const uint32& res_idx : pass_node->write_map | std::views::keys)
         {
             RGResourceNode& node = builder.resource_nodes[res_idx];
             node.first_user_pass_index = std::min(node.first_user_pass_index, idx);
@@ -313,17 +315,19 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
     }
 
-    // 6. 리소스 할당/해제 스케줄 구축
+    // 5. 리소스 할당/해제 스케줄 구축
     const usize compiled_pass_count = compiled_passes.Len();
     resources_to_realize.Resize(compiled_pass_count);
     resources_to_unrealize.Resize(compiled_pass_count);
 
-    for (const auto [idx, node] : builder.resource_nodes | std::views::enumerate)
+    for (const auto [res_idx, node] : builder.resource_nodes | std::views::enumerate)
     {
+        const uint32 idx = static_cast<uint32>(res_idx);
+
         if (node.first_user_pass_index <= node.last_user_pass_index)
         {
-            resources_to_realize[node.first_user_pass_index].Push(static_cast<usize>(idx));
-            resources_to_unrealize[node.last_user_pass_index].Push(static_cast<usize>(idx));
+            resources_to_realize[node.first_user_pass_index].Push(idx);
+            resources_to_unrealize[node.last_user_pass_index].Push(idx);
         }
     }
 }

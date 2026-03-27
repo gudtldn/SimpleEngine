@@ -31,6 +31,13 @@ struct RGPassNode
     StringName name;
     std::unique_ptr<RenderPassBase> pass_object;
 
+    // --- Setup() 단계에서 수집 (버전 없음) ---
+
+    Array<uint32> write_indices; // 이 패스가 쓰는 리소스 인덱스
+    Array<uint32> read_indices;  // 이 패스가 읽는 리소스 인덱스
+
+    // --- Compile() 단계에서 자동으로 채워짐 ---
+
     /** 이 패스가 읽는 리소스와 버전 목록 */
     Array<RGResourceRef> read_refs;
 
@@ -40,7 +47,6 @@ struct RGPassNode
      */
     HashMap<uint32, uint32> write_map;
 
-    // Compile() 단계에서 채워질 정보들
     bool culled = true; // 이번 프레임에서 사용 안하는지 여부 (Compile때 false로 변경)
 };
 
