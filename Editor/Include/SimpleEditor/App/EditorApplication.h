@@ -30,8 +30,8 @@ protected:
     virtual void Render() override;
 
 private:
-    /** 현재 프레임에 필요한 메시를 GPU 메모리에 미리 올려둡니다. */
-    void EnsureMeshesResident(const graphics::SceneDrawData& in_scene_data);
+    /** 현재 프레임에 필요한 메시를 GPU 메모리에 업로드합니다. */
+    void EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const graphics::SceneDrawData& in_scene_data);
 
     // GPU에 업로드된 메시의 cook_key ("{source_hash}|{settings_hash}")를 추적합니다 (Hot-reload 감지용)
     HashMap<asset::AssetId, String> uploaded_mesh_hashes;

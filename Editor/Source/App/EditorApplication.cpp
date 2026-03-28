@@ -145,21 +145,6 @@ void EditorApplication::Render()
     se::graphics::FramePacket frame_packet;
     frame_packet.scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
 
-    // GPU 메모리에 올라오지 않은 메시를 렌더링 전에 업로드
-    EnsureMeshesResident(frame_packet.scene_draw_data);
-
-    {
-        SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(render_subsystem->GetRenderDevice().GetRawDevice());
-
-        // 임시로 여기에서 DebugLine 버퍼 업로드
-        if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
-        {
-            debug_subsystem->UploadToGpu(upload_cmd);
-        }
-
-        SDL_SubmitGPUCommandBuffer(upload_cmd);
-    }
-
     // TODO: GPU 리소스 해제 로직
     // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
     // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
@@ -168,8 +153,19 @@ void EditorApplication::Render()
     const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
 
     // RenderFrame 람다 내에서 패스 조립
-    // back_buffer_handle은 RenderSubsystem이 스왑체인을 취득한 후 전달
     render_subsystem->RenderFrame(
+        // GPU Resource Upload
+        [&](SDL_GPUCommandBuffer* cmd)
+        {
+            EnsureMeshesResident(cmd, frame_packet.scene_draw_data);
+
+            if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
+            {
+                debug_subsystem->UploadToGpu(cmd);
+            }
+        },
+
+        // RenderPass Setup
         [&](se::graphics::RGTextureHandle swapchain_handle, se::graphics::RenderGraphBuilder& builder)
         {
             Array<graphics::RGTextureHandle> viewport_color_handles;
@@ -223,8 +219,8 @@ void EditorApplication::Render()
     );
 }
 
-// TODO: 생각해보니까, 이거 왜 Application에 있지?
-void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_scene_data)
+// TODO: 장기적으로 RenderGraph의 Transfer Pass로 통합 예정
+void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const graphics::SceneDrawData& in_scene_data)
 {
     if (in_scene_data.opaque_commands.IsEmpty())
     {
@@ -249,10 +245,10 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
     };
     HashMap<asset::AssetId, PendingUpload> pending;
 
-    for (const auto& cmd : in_scene_data.opaque_commands)
+    for (const graphics::DrawCommand& draw_cmd : in_scene_data.opaque_commands)
     {
         // 이미 pending에 있으면 건너뜀
-        if (pending.Contains(cmd.mesh_id))
+        if (pending.Contains(draw_cmd.mesh_id))
         {
             continue;
         }
@@ -260,7 +256,7 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
         // Registry에서 경로와 cook_key를 조회
         asset::AssetPath asset_path;
         String cook_key;
-        if (!registry.ReadRecord(cmd.mesh_id, [&](const asset::AssetRecord& record)
+        if (!registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
         {
             asset_path = record.logical_path;
             cook_key = String::Format("{}|{}", record.metadata.source_hash, record.metadata.settings_hash);
@@ -269,22 +265,22 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
             continue;
         }
 
-        if (gpu_manager.GetSlice(cmd.mesh_id).HasValue())
+        if (gpu_manager.GetSlice(draw_cmd.mesh_id).HasValue())
         {
             // GPU 메모리에 이미 올라와 있음 (cook_key가 동일하면 최신 상태)
-            const Optional<String&> prev_key = uploaded_mesh_hashes.Find(cmd.mesh_id);
+            const Optional<String&> prev_key = uploaded_mesh_hashes.Find(draw_cmd.mesh_id);
             if (prev_key == cook_key)
             {
                 continue;
             }
 
             // cook_key 불일치 -> 에셋이 reimport됨 (Pool과 GPU를 무효화)
-            gpu_manager.UnloadMesh(cmd.mesh_id);
-            asset_subsystem->GetPool().Remove(cmd.mesh_id);
+            gpu_manager.UnloadMesh(draw_cmd.mesh_id);
+            asset_subsystem->GetPool().Remove(draw_cmd.mesh_id);
             ConsoleLog(ELogLevel::Info, "GPU mesh invalidated (reimport detected): {}", asset_path.ToString());
         }
 
-        pending.Insert(cmd.mesh_id, {
+        pending.Insert(draw_cmd.mesh_id, {
             .path = std::move(asset_path),
             .cook_key = std::move(cook_key),
         });
@@ -295,19 +291,11 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
         return;
     }
 
-    // 업로드용 Command Buffer 생성
-    graphics::RenderDevice& device = render_subsystem->GetRenderDevice();
-    SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(device.GetRawDevice());
-    if (!upload_cmd)
-    {
-        return;
-    }
-
     // 각 메시를 Registry에서 경로 조회 -> Load -> GPU 업로드
     for (const auto& [mesh_id, info] : pending)
     {
         // Load를 호출하여 DDC에서 역직렬화 -> Pool에 등록
-        asset::AssetHandle<asset::StaticMesh> handle = asset_subsystem->Load<asset::StaticMesh>(info.path);
+        const asset::AssetHandle<asset::StaticMesh> handle = asset_subsystem->Load<asset::StaticMesh>(info.path);
         if (!handle)
         {
             ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Load failed for {}", info.path.ToString());
@@ -322,7 +310,7 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
         }
 
         const bool success = gpu_manager.UploadMesh(
-            upload_cmd,
+            cmd,
             mesh_id,
             mesh->vertices.Data(),
             static_cast<uint32>(mesh->vertices.Len() * sizeof(graphics::Vertex)),
@@ -335,7 +323,5 @@ void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_s
             uploaded_mesh_hashes.Insert(mesh_id, info.cook_key);
         }
     }
-
-    SDL_SubmitGPUCommandBuffer(upload_cmd);
 }
 } // namespace se::editor
