@@ -7,9 +7,10 @@
 
 namespace se::editor
 {
-ViewportPanel::ViewportPanel(const StringName& in_viewport_id)
+ViewportPanel::ViewportPanel(const StringName& in_viewport_id, bool default_visibility)
     : viewport_id(in_viewport_id)
 {
+    is_visible = default_visibility;
 }
 
 const char* ViewportPanel::GetName() const

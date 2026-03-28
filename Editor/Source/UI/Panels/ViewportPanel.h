@@ -12,7 +12,7 @@ namespace se::editor
 class ViewportPanel : public IEditorPanel
 {
 public:
-    explicit ViewportPanel(const StringName& in_viewport_id);
+    explicit ViewportPanel(const StringName& in_viewport_id, bool default_visibility);
 
     [[nodiscard]] virtual const char* GetName() const override;
     virtual void Draw() override;
