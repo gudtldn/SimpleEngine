@@ -25,15 +25,9 @@ RenderGraphExecutor::RenderGraphExecutor(RenderDevice& in_render_device)
 {
 }
 
-RenderGraphExecutor::~RenderGraphExecutor()
-{
-}
+RenderGraphExecutor::~RenderGraphExecutor() = default;
 
-void RenderGraphExecutor::Execute(
-    RenderGraphBuilder& builder,
-    SDL_GPUCommandBuffer* cmd,
-    PSOManager& pso_manager
-)
+void RenderGraphExecutor::Execute(RenderGraphBuilder& builder, SDL_GPUCommandBuffer* cmd, PSOManager& pso_manager)
 {
     ZoneScoped;
 
@@ -43,7 +37,7 @@ void RenderGraphExecutor::Execute(
     {
         ZoneScoped;
         SE_DEBUG_EXPRESSION({
-            String zone_name = String::Format("RenderGraphExecutor::Execute - {}::Execute", pass_node->name);
+            const String zone_name = String::Format("RenderGraphExecutor::Execute - {}::Execute", pass_node->name);
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
         })
 
@@ -64,7 +58,7 @@ void RenderGraphExecutor::Execute(
     }
 
     // Execute()중 Unrealize되지 못한 리소스 정리
-    for (RGResourceNode& node : builder.resource_nodes)
+    for (const RGResourceNode& node : builder.resource_nodes)
     {
         if (node.resource)
         {
@@ -92,7 +86,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     resources_to_unrealize.Clear();
 
     // 1. Setup 및 자동 버저닝 (SSA: Static Single Assignment 구성)
-    // AddPass 순서대로 물리적 리소스에 논리적 버전(Version)을 자동 부여하여 의존성 방향 그래프(DAG)를 구성
+    //    AddPass 순서대로 물리적 리소스에 논리적 버전(Version)을 자동 부여하여 의존성 방향 그래프(DAG)를 구성
 
     // 각 물리적 리소스(index)별로 현재까지 도달한 '최신 버전'을 추적하기 위한 배열 (초기값 0)
     Array<uint32> current_versions;
@@ -103,7 +97,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     {
         ZoneScoped;
         SE_DEBUG_EXPRESSION({
-            String zone_name = String::Format("RenderGraphExecutor::Compile - {}::Setup", pass_node.name.ToString());
+            const String zone_name = String::Format("RenderGraphExecutor::Compile - {}::Setup", pass_node.name.ToString());
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
         });
 
@@ -115,6 +109,27 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         // 해당 리소스가 지금까지 다른 패스들에 의해 갱신된 '가장 최신 버전'을 의존성으로 기록
         for (const uint32 res_idx : pass_node.read_indices)
         {
+#if SE_BUILD_DEBUG
+            if (res_idx >= builder.resource_nodes.Len())
+            {
+                ConsoleLog(
+                    ELogLevel::Error, "Invalid resource index {} in {}::Setup() (read_indices)",
+                    res_idx, pass_node.pass_object->GetTypeId().GetName()
+                );
+                SE_ASSERT(false, "Invalid resource index.");
+                continue;
+            }
+            if (!builder.resource_nodes[res_idx].resource)
+            {
+                ConsoleLog(
+                    ELogLevel::Error, "Resource '{}' is not initialized. Check {}::Setup()",
+                    builder.resource_nodes[res_idx].name.ToString(),
+                    pass_node.pass_object->GetTypeId().GetName()
+                );
+                SE_ASSERT(false, "Resource is not initialized.");
+                continue;
+            }
+#endif
             pass_node.read_refs.Push({ .resource_index = res_idx, .version = current_versions[res_idx] });
         }
 
@@ -190,10 +205,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
 
         if (has_writer)
         {
-            active_resource_queue.Push({
-                .index = static_cast<uint32>(res_idx),
-                .version = max_version,
-            });
+            active_resource_queue.Push({ .index = static_cast<uint32>(res_idx), .version = max_version });
         }
     }
 
@@ -217,7 +229,61 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         // 이 패스가 읽는 리소스들을 활성 큐에 추가
         for (const RGResourceRef& read_ref : pass_to_activate.read_refs)
         {
-            active_resource_queue.Push({ read_ref.resource_index, read_ref.version });
+            active_resource_queue.Push({ .index = read_ref.resource_index, .version = read_ref.version });
+        }
+    }
+
+    // 2-2. 외부 리소스를 읽기만 하는 패스 활성화
+    //      외부 리소스는 이미 Realize된 상태이므로, 해당 리소스를 읽는 패스는 항상 유효합니다.
+    //      (예: Readback 패스, TAA history 읽기 패스 등)
+    for (const auto [pass_idx, pass_node] : builder.pass_nodes | std::views::enumerate)
+    {
+        if (!pass_node.culled)
+        {
+            continue;
+        }
+
+        bool reads_external = false;
+        for (const RGResourceRef& read_ref : pass_node.read_refs)
+        {
+            const RGResourceBase* resource = builder.resource_nodes[read_ref.resource_index].resource.get();
+            if (IsA<RGExternalTexture>(resource) || IsA<RGExternalBuffer>(resource))
+            {
+                reads_external = true;
+                break;
+            }
+        }
+
+        if (reads_external)
+        {
+            pass_node.culled = false;
+            for (const RGResourceRef& read_ref : pass_node.read_refs)
+            {
+                active_resource_queue.Push({ .index = read_ref.resource_index, .version = read_ref.version });
+            }
+        }
+    }
+
+    // 새로 활성화된 패스의 트랜지티브 의존성 역방향 BFS
+    while (Optional<ActiveResourceEntry> active_opt = active_resource_queue.Pop())
+    {
+        const auto& [active_idx, active_version] = *active_opt;
+        const Optional writer_opt = builder.resource_nodes[active_idx].version_to_writer.Find(active_version);
+        if (!writer_opt)
+        {
+            continue;
+        }
+
+        RGPassNode& pass_to_activate = builder.pass_nodes[*writer_opt];
+        if (!pass_to_activate.culled)
+        {
+            continue;
+        }
+
+        pass_to_activate.culled = false;
+        for (const RGResourceRef& read_ref : pass_to_activate.read_refs)
+        {
+            active_resource_queue.Push({ .index = read_ref.resource_index, .version = read_ref.version });
         }
     }
 
