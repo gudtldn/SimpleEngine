@@ -5,6 +5,7 @@
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGNodeTypes.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se::graphics
@@ -16,21 +17,41 @@ RGSetupContext::RGSetupContext(RGPassNode& in_pass_node)
 
 void RGSetupContext::Read(RGTextureHandle handle)
 {
+    SE_ASSERT(handle.IsValid(), "Invalid texture handle passed to Read().");
+    if (!handle.IsValid())
+    {
+        return;
+    }
     pass_node_ref.read_indices.Push(handle.index);
 }
 
 void RGSetupContext::Read(RGBufferHandle handle)
 {
+    SE_ASSERT(handle.IsValid(), "Invalid buffer handle passed to Read().");
+    if (!handle.IsValid())
+    {
+        return;
+    }
     pass_node_ref.read_indices.Push(handle.index);
 }
 
 void RGSetupContext::Write(RGTextureHandle handle)
 {
+    SE_ASSERT(handle.IsValid(), "Invalid texture handle passed to Write().");
+    if (!handle.IsValid())
+    {
+        return;
+    }
     pass_node_ref.write_indices.Push(handle.index);
 }
 
 void RGSetupContext::Write(RGBufferHandle handle)
 {
+    SE_ASSERT(handle.IsValid(), "Invalid buffer handle passed to Write().");
+    if (!handle.IsValid())
+    {
+        return;
+    }
     pass_node_ref.write_indices.Push(handle.index);
 }
 
