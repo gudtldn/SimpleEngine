@@ -128,17 +128,6 @@ void EditorViewportSubsystem::Update(float delta_time)
 
     // 월드 기준 좌표축을 매 프레임 그리기
     DrawDebugWorldAxes();
-
-    // 모든 뷰포트의 RenderView를 카메라 상태로부터 갱신
-    for (auto& [id, info] : viewport_data)
-    {
-        if (info.render_view.width == 0 || info.render_view.height == 0)
-        {
-            continue;
-        }
-        const EditorCameraState& camera = viewport_cameras[id];
-        info.render_view = camera.ComputeRenderView(info.render_view.width, info.render_view.height);
-    }
 }
 
 void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height)
@@ -157,6 +146,9 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
         }
         return;
     }
+
+    // Viewport 에디터 카메라 생성
+    viewport_cameras.Entry(viewport_id).OrDefault();
 
     // 텍스처가 없거나, 크기가 변경된경우 재생성
     ViewportRenderInfo& info = viewport_data[viewport_id];

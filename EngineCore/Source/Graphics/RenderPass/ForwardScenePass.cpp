@@ -3,9 +3,9 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
+#include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 #include "SimpleEngine/Graphics/Scene/SceneDrawData.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
@@ -22,14 +22,14 @@ SE_END_REFLECT(ForwardScenePass)
 
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
-    const RenderView& in_render_view,
     const GpuResourceManager& in_gpu_manager,
+    const RenderView& in_render_view,
     RGTextureHandle in_color_target,
     RGTextureHandle in_depth_target
 )
     : draw_data(in_draw_data)
-    , render_view(in_render_view)
     , gpu_manager(in_gpu_manager)
+    , render_view(in_render_view)
     , color_target_handle(in_color_target)
     , depth_target_handle(in_depth_target)
 {

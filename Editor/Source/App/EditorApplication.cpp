@@ -3,6 +3,7 @@
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Graphics/EditorUIPass.h"
 #include "Graphics/Compiler/Provider.h"
+#include "SimpleEditor/Camera/EditorCameraState.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
@@ -177,6 +178,15 @@ void EditorApplication::Render()
                 {
                     if (const auto tex_resource = render_subsystem->GetRenderDevice().GetTexture(info.color_texture))
                     {
+                        // 최신 카메라 상태 + 최신 뷰포트 크기로 RenderView를 계산
+                        const auto camera_opt = viewport_subsystem.GetViewportCamera(viewport_id);
+                        if (!camera_opt.HasValue())
+                        {
+                            continue;
+                        }
+                        const se::graphics::RenderView& render_view =
+                            frame_packet.render_views.Emplace(camera_opt->ComputeRenderView(info.render_view.width, info.render_view.height));
+
                         // ColorTarget Handle 생성
                         const se::graphics::RGTextureHandle color_handle =
                             builder.ImportTexture(info.color_target_name, tex_resource->handle);
@@ -187,33 +197,32 @@ void EditorApplication::Render()
                                 .type = SDL_GPU_TEXTURETYPE_2D,
                                 .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
                                 .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
-                                .width = info.render_view.width,
-                                .height = info.render_view.height,
+                                .width = render_view.width,
+                                .height = render_view.height,
                                 .layer_count_or_depth = 1,
                                 .num_levels = 1,
                                 .sample_count = SDL_GPU_SAMPLECOUNT_1,
                             });
 
-                        // 최종 렌더링 Pass에 참고할 수 있도록 추가
+                        // 최종 렌더링 Pass에서 참고할 수 있도록 추가
                         viewport_color_handles.Push(color_handle);
 
-                        frame_packet.render_views.Push(info.render_view);
                         builder.AddPass<se::graphics::ForwardScenePass>(
-                            frame_packet.scene_draw_data, info.render_view,
-                            gpu_manager, color_handle, depth_handle
+                            frame_packet.scene_draw_data, gpu_manager,
+                            render_view, color_handle, depth_handle
                         );
 
                         if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
                         {
                             builder.AddPass<se::graphics::DebugLinePass>(
-                                *debug_subsystem, info.render_view, color_handle, depth_handle
+                                *debug_subsystem, render_view, color_handle, depth_handle
                             );
                         }
                     }
                 }
             }
 
-            // BackBuffer 핸들을 생성자 DI로 전달
+            // Swapchain 핸들을 생성자 DI로 전달
             builder.AddPass<EditorUIPass>(swapchain_handle, std::move(viewport_color_handles));
         }
     );

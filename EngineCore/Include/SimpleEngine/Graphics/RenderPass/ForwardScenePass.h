@@ -6,13 +6,13 @@
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
+#include "SimpleEngine/Graphics/View/RenderView.h"
 
 
 namespace se::graphics
 {
 // forward declaration
 struct SceneDrawData;
-struct RenderView;
 class GpuResourceManager;
 
 /** 개별 오브젝트의 프레임 내 렌더링 정보 */
@@ -33,8 +33,8 @@ class SE_CORE_API SE_ANNOTATION(=meta::Internal) ForwardScenePass : public Rende
 public:
     explicit ForwardScenePass(
         const SceneDrawData& in_draw_data,
-        const RenderView& in_render_view,
         const GpuResourceManager& in_gpu_manager,
+        const RenderView& in_render_view,
         RGTextureHandle in_color_target,
         RGTextureHandle in_depth_target
     );
@@ -44,8 +44,8 @@ public:
 
 private:
     const SceneDrawData& draw_data;
-    const RenderView& render_view;
     const GpuResourceManager& gpu_manager;
+    RenderView render_view;
 
     Array<EntityDrawInfo> draw_infos;
     RGTextureHandle color_target_handle;

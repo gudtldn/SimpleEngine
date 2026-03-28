@@ -72,10 +72,8 @@ public:
     [[nodiscard]] HashMap<StringName, EditorCameraState>& GetViewportCameras() { return viewport_cameras; }
 
     /** 특정 뷰포트의 카메라 상태를 반환합니다. */
-    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id)
-    {
-        return viewport_cameras.Find(viewport_id);
-    }
+    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id) { return viewport_cameras.Find(viewport_id); }
+    [[nodiscard]] Optional<const EditorCameraState&> GetViewportCamera(const StringName& viewport_id) const { return viewport_cameras.Find(viewport_id); }
 
 private:
     InputSubsystem* input_subsystem = nullptr;
