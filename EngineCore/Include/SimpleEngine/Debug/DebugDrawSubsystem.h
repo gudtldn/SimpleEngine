@@ -57,7 +57,7 @@ public:
     void UploadToGpu(SDL_GPUCommandBuffer* cmd);
 
     /** 이번 프레임에 등록된 DebugLine의 개수를 가져옵니다. */
-    [[nodiscard]] usize GetLineCount() const { return current_frame_line_count; }
+    [[nodiscard]] usize GetLineCount() const { return current_frame_lines.Len(); }
 
     [[nodiscard]] SDL_GPUBuffer* GetVertexBuffer() const;
 
@@ -66,8 +66,8 @@ private:
     TracyLockable(std::mutex, pending_mutex);
     Array<DebugLine> pending_lines;
 
-    // 이번 프레임에 렌더링할 라인의 개수 캐싱
-    usize current_frame_line_count = 0;
+    // 이번 프레임에 렌더링할 DebugLine
+    Array<DebugLine> current_frame_lines;
 
     // GPU 리소스
     graphics::RenderDevice* render_device = nullptr;

@@ -20,10 +20,10 @@ bool DebugDrawSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
 
-    constexpr uint32 BUFFER_SIZE = MAX_DEBUG_LINES * 2 * sizeof(DebugVertex);
+    constexpr uint32 buffer_size = static_cast<usize>(MAX_DEBUG_LINES * 2) * sizeof(DebugVertex);
     vertex_buffer_rid = render_device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-        .size = BUFFER_SIZE,
+        .size = buffer_size,
     });
 
     if (!render_device->IsValidBuffer(vertex_buffer_rid))
@@ -34,7 +34,7 @@ bool DebugDrawSubsystem::Initialize()
 
     constexpr SDL_GPUTransferBufferCreateInfo transfer_buffer_info = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = BUFFER_SIZE,
+        .size = buffer_size,
     };
     transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &transfer_buffer_info);
 
@@ -82,7 +82,7 @@ void DebugDrawSubsystem::DrawLine(
     {
         return;
     }
-    pending_lines.Push({ start, end, color, duration });
+    pending_lines.Push({ .start = start, .end = end, .color = color, .duration = duration });
 }
 
 void DebugDrawSubsystem::DrawLines(ArrayView<const DebugLine> lines)
@@ -101,32 +101,31 @@ void DebugDrawSubsystem::DrawLines(ArrayView<const DebugLine> lines)
 void DebugDrawSubsystem::UploadToGpu(SDL_GPUCommandBuffer* cmd)
 {
     // 현재 프레임에 등록된 DebugLine을 Swap (이후 DrawLine 호출은 다음 프레임에 반영)
-    static Array<DebugLine> lines;
     {
         std::scoped_lock lock{ pending_mutex };
-        std::swap(lines, pending_lines);
+        std::swap(current_frame_lines, pending_lines);
         pending_lines.Clear();
     }
 
-    current_frame_line_count = lines.Len();
-    if (current_frame_line_count == 0)
+    const usize line_count = current_frame_lines.Len();
+    if (line_count == 0)
     {
         return;
     }
 
-    const usize data_size = current_frame_line_count * 2 * sizeof(DebugVertex);
+    const usize data_size = line_count * 2 * sizeof(DebugVertex);
 
     // TransferBuffer에 업로드 (cycle을 true로 설정하여, 이전 프레임의 버퍼를 대기하지 않음)
     if (DebugVertex* mapped = static_cast<DebugVertex*>(SDL_MapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer, true)))
     {
-        for (usize i = 0; i < current_frame_line_count; ++i)
+        for (usize i = 0; i < line_count; ++i)
         {
-            const DebugLine& line = lines[i];
-            mapped[i * 2 + 0] = {
+            const DebugLine& line = current_frame_lines[i];
+            mapped[(i * 2) + 0] = {
                 .position = { static_cast<float>(line.start.x), static_cast<float>(line.start.y), static_cast<float>(line.start.z) },
                 .color = line.color,
             };
-            mapped[i * 2 + 1] = {
+            mapped[(i * 2) + 1] = {
                 .position = { static_cast<float>(line.end.x), static_cast<float>(line.end.y), static_cast<float>(line.end.z) },
                 .color = line.color,
             };
