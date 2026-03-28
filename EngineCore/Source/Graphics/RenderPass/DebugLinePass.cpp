@@ -41,7 +41,7 @@ void DebugLinePass::Execute(RGExecutionContext& context)
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 
     // 이번 프레임 라인을 GPU 버퍼에 업로드 (없으면 패스 전체 건너뜀)
-    const usize line_count = debug_subsystem.PrepareGpuData(cmd);
+    const usize line_count = debug_subsystem.GetLineCount();
     if (line_count == 0)
     {
         return;

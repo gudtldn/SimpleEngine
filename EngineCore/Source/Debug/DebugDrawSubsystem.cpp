@@ -98,28 +98,28 @@ void DebugDrawSubsystem::DrawLines(ArrayView<const DebugLine> lines)
     }
 }
 
-usize DebugDrawSubsystem::PrepareGpuData(SDL_GPUCommandBuffer* cmd)
+void DebugDrawSubsystem::UploadToGpu(SDL_GPUCommandBuffer* cmd)
 {
     // 현재 프레임에 등록된 DebugLine을 Swap (이후 DrawLine 호출은 다음 프레임에 반영)
-    Array<DebugLine> lines;
+    static Array<DebugLine> lines;
     {
         std::scoped_lock lock{ pending_mutex };
         std::swap(lines, pending_lines);
         pending_lines.Clear();
     }
 
-    const usize line_count = lines.Len();
-    if (line_count == 0)
+    current_frame_line_count = lines.Len();
+    if (current_frame_line_count == 0)
     {
-        return 0;
+        return;
     }
 
-    const usize data_size = line_count * 2 * sizeof(DebugVertex);
+    const usize data_size = current_frame_line_count * 2 * sizeof(DebugVertex);
 
     // TransferBuffer에 업로드 (cycle을 true로 설정하여, 이전 프레임의 버퍼를 대기하지 않음)
     if (DebugVertex* mapped = static_cast<DebugVertex*>(SDL_MapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer, true)))
     {
-        for (usize i = 0; i < line_count; ++i)
+        for (usize i = 0; i < current_frame_line_count; ++i)
         {
             const DebugLine& line = lines[i];
             mapped[i * 2 + 0] = {
@@ -136,7 +136,7 @@ usize DebugDrawSubsystem::PrepareGpuData(SDL_GPUCommandBuffer* cmd)
     else
     {
         ConsoleLog(ELogLevel::Warning, "DebugDrawSubsystem: Failed to map transfer buffer: {}", SDL_GetError());
-        return 0;
+        return;
     }
 
     // TransferBuffer에서 VertexBuffer로 복사
@@ -149,8 +149,6 @@ usize DebugDrawSubsystem::PrepareGpuData(SDL_GPUCommandBuffer* cmd)
     };
     SDL_UploadToGPUBuffer(copy_pass, &src, &dst, false);
     SDL_EndGPUCopyPass(copy_pass);
-
-    return line_count;
 }
 
 SDL_GPUBuffer* DebugDrawSubsystem::GetVertexBuffer() const

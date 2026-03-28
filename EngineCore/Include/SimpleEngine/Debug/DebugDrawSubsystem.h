@@ -53,11 +53,11 @@ public:
     /** DebugLine 목록을 이번 프레임 렌더에 등록합니다. (Thread-Safe) */
     void DrawLines(ArrayView<const DebugLine> lines);
 
-    /**
-     * 이번 프레임에 등록된 DebugLine을 GPU 버퍼에 업로드합니다.
-     * @return 업로드된 라인 수. 0이면 Draw 불필요
-     */
-    usize PrepareGpuData(SDL_GPUCommandBuffer* cmd);
+    /** 이번 프레임에 등록된 DebugLine을 GPU 버퍼에 업로드합니다. */
+    void UploadToGpu(SDL_GPUCommandBuffer* cmd);
+
+    /** 이번 프레임에 등록된 DebugLine의 개수를 가져옵니다. */
+    [[nodiscard]] usize GetLineCount() const { return current_frame_line_count; }
 
     [[nodiscard]] SDL_GPUBuffer* GetVertexBuffer() const;
 
@@ -65,6 +65,9 @@ private:
     // DebugLine 등록 대기열
     TracyLockable(std::mutex, pending_mutex);
     Array<DebugLine> pending_lines;
+
+    // 이번 프레임에 렌더링할 라인의 개수 캐싱
+    usize current_frame_line_count = 0;
 
     // GPU 리소스
     graphics::RenderDevice* render_device = nullptr;

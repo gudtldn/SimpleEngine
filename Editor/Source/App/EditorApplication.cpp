@@ -148,6 +148,18 @@ void EditorApplication::Render()
     // GPU 메모리에 올라오지 않은 메시를 렌더링 전에 업로드
     EnsureMeshesResident(frame_packet.scene_draw_data);
 
+    {
+        SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(render_subsystem->GetRenderDevice().GetRawDevice());
+
+        // 임시로 여기에서 DebugLine 버퍼 업로드
+        if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
+        {
+            debug_subsystem->UploadToGpu(upload_cmd);
+        }
+
+        SDL_SubmitGPUCommandBuffer(upload_cmd);
+    }
+
     // TODO: GPU 리소스 해제 로직
     // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
     // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
@@ -211,6 +223,7 @@ void EditorApplication::Render()
     );
 }
 
+// TODO: 생각해보니까, 이거 왜 Application에 있지?
 void EditorApplication::EnsureMeshesResident(const graphics::SceneDrawData& in_scene_data)
 {
     if (in_scene_data.opaque_commands.IsEmpty())

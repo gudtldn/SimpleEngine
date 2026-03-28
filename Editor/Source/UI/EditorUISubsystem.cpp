@@ -110,6 +110,7 @@ bool EditorUISubsystem::Initialize()
     RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
     RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main");
+    RegisterPanel<ViewportPanel>("ViewportPanel_Sub", "ViewportPanel_Sub");
     RegisterPanel<CameraPanel>(GetTypeName<CameraPanel>());
     RegisterPanel<AssetsBrowserPanel>(GetTypeName<AssetsBrowserPanel>());
     RegisterPanel<EditorConsolePanel>(GetTypeName<EditorConsolePanel>());
