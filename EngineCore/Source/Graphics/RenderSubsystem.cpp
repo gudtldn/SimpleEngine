@@ -147,53 +147,69 @@ void RenderSubsystem::Release()
     render_device.reset();
 }
 
-void RenderSubsystem::RenderFrame(FunctionRef<void(RGTextureHandle, RenderGraphBuilder&)> build_fn) const
+void RenderSubsystem::RenderFrame(
+    FunctionRef<void(SDL_GPUCommandBuffer*)> upload_fn,
+    FunctionRef<void(RGTextureHandle, RenderGraphBuilder&)> build_fn
+) const
 {
     ZoneScoped;
 
-    bool any_window_rendered = false;
+    // 1. Resource Upload 단계
+    // CopyPass를 별도의 CB로 분리하여 실행
+    {
+        if (SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(render_device->GetRawDevice()))
+        {
+            upload_fn(upload_cmd);
+            SDL_SubmitGPUCommandBuffer(upload_cmd);
+        }
+        else
+        {
+            ConsoleLog(ELogLevel::Error, "Failed to acquire upload command buffer: {}", SDL_GetError());
+        }
+    }
 
+    // 2. Window Rendering 단계
+    // 활성화된 각 윈도우의 스왑체인에 맞춰 개별 CB를 생성하고 렌더링을 수행
+    bool any_window_rendered = false;
     const WindowSubsystem& window_subsystem = se::GetSubsystemChecked<const WindowSubsystem>();
     window_subsystem.ForEachWindow([this, &build_fn, &any_window_rendered](SDL_WindowID, SDL_Window* window, const WindowDesc&)
     {
+        // 최소화된 윈도우는 렌더링을 건너뜀
         if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
         {
             return;
         }
 
-        // Command Buffer 가져오기
-        SDL_GPUCommandBuffer* command_buffer = SDL_AcquireGPUCommandBuffer(render_device->GetRawDevice());
-        if (!command_buffer)
+        SDL_GPUCommandBuffer* cmd_buffer = SDL_AcquireGPUCommandBuffer(render_device->GetRawDevice());
+        if (!cmd_buffer)
         {
-            ConsoleLog(ELogLevel::Error, "SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError());
+            ConsoleLog(ELogLevel::Error, "Failed to acquire render command buffer: {}", SDL_GetError());
             return;
         }
 
-        // Swapchain Texture 가져오기
+        // Swapchain Texture 획득
         SDL_GPUTexture* swapchain_texture = nullptr;
-        SDL_AcquireGPUSwapchainTexture(command_buffer, window, &swapchain_texture, nullptr, nullptr);
-
-        if (!swapchain_texture)
+        if (!SDL_AcquireGPUSwapchainTexture(cmd_buffer, window, &swapchain_texture, nullptr, nullptr) || !swapchain_texture)
         {
-            SDL_CancelGPUCommandBuffer(command_buffer);
+            SDL_CancelGPUCommandBuffer(cmd_buffer);
             return;
         }
 
-        // Swapchain Import -> 핸들을 build_fn에 전달
-        const RGTextureHandle swapchain_handle =
-            render_graph_builder->ImportTexture("Swapchain", swapchain_texture);
+        // RenderGraph 구성 및 실행
+        // 외부 스왑체인 텍스처를 그래프 리소스로 등록
+        const RGTextureHandle swapchain_handle = render_graph_builder->ImportTexture("Swapchain", swapchain_texture);
 
-        // 패스 조립
+        // Pass 조립
         build_fn(swapchain_handle, *render_graph_builder);
 
-        // 컴파일 + 실행 + builder.Clear() (Executor 내부)
-        render_graph_executor->Execute(*render_graph_builder, command_buffer, GetPSOManager());
+        // Compile + Execute + builder.Clear() (Executor 내부)
+        render_graph_executor->Execute(*render_graph_builder, cmd_buffer, GetPSOManager());
 
-        SDL_SubmitGPUCommandBuffer(command_buffer);
-
+        SDL_SubmitGPUCommandBuffer(cmd_buffer);
         any_window_rendered = true;
     });
 
+    // 3. Post-Frame 처리
     if (any_window_rendered)
     {
         render_graph_executor->UpdateResourcePool();

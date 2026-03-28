@@ -26,10 +26,14 @@ public:
     virtual void Release() override;
 
     /**
-     * RenderGraph 구축 및 프레임 렌더링을 수행합니다.
-     * @param build_fn (swapchain_handle, builder)를 인자로 받는 함수
+     * GPU Resource를 업로드 후, 각 Window별로 RenderGraph를 구축하여 프레임을 렌더링합니다.
+     * @param upload_fn 데이터 전송(Copy)을 위한 콜백 (void(SDL_GPUCommandBuffer*))
+     * @param build_fn Window별 Pass 구성을 위한 콜백 (void(RGTextureHandle swapchain, RenderGraphBuilder& builder))
      */
-    void RenderFrame(FunctionRef<void(graphics::RGTextureHandle, graphics::RenderGraphBuilder&)> build_fn) const;
+    void RenderFrame(
+        FunctionRef<void(SDL_GPUCommandBuffer*)> upload_fn,
+        FunctionRef<void(graphics::RGTextureHandle, graphics::RenderGraphBuilder&)> build_fn
+    ) const;
 
 public:
     [[nodiscard]] graphics::RenderDevice& GetRenderDevice() const { return *render_device; }
