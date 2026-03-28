@@ -238,8 +238,8 @@ TEST_F(AssetPipelineTest, ImportPipeline_CombineMeshesConfigTest)
         ASSERT_EQ(assets->GetCount(), 2);
 
         // 각 에셋이 독립된 정점 데이터를 보유
-        auto mesh1 = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(0));
-        auto mesh2 = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(1));
+        auto mesh1 = std::dynamic_pointer_cast<StaticMesh>(assets->FindByName<StaticMesh>("Mesh1"));
+        auto mesh2 = std::dynamic_pointer_cast<StaticMesh>(assets->FindByName<StaticMesh>("Mesh2"));
         ASSERT_NE(mesh1, nullptr);
         ASSERT_NE(mesh2, nullptr);
         EXPECT_FLOAT_EQ(mesh1->vertices[0].position.x, 1.0f);
