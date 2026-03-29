@@ -6,12 +6,9 @@
 #include "SimpleEngine/ECS/QueryData.h"
 #include "SimpleEngine/Utility/Debug.h"
 
-#include "tracy/Tracy.hpp"
-
 #include <concepts>
 #include <type_traits>
 #include <utility>
-#include <variant>
 
 
 namespace se
@@ -31,15 +28,19 @@ class Query
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
 
-    using CacheType = std::conditional_t<HasBasePool, EmptyType, Array<Entity>>;
+    using IterationSourceType = std::conditional_t<HasBasePool, IStorage*, const Array<Entity>*>;
 
 public:
     explicit Query(World* in_world)
         : query_data(in_world)
     {
-        if constexpr (!HasBasePool)
+        if constexpr (HasBasePool)
         {
-            alive_entities_cache = query_data.GetWorld()->GetAliveEntities();
+            iteration_source = query_data.FindSmallestPool();
+        }
+        else
+        {
+            iteration_source = &in_world->GetAliveEntities();
         }
     }
 
@@ -80,32 +81,22 @@ public:
             : query_data(&self->query_data)
             , storage_index(in_index)
         {
-            if constexpr (HasBasePool)
-            {
-                iteration_source = query_data->FindSmallestPool();
-            }
-            else
-            {
-                iteration_source = &self->alive_entities_cache;
-            }
+            iteration_source = self->iteration_source;
             AdvanceToValid();
         }
 
         value_type operator*() const noexcept
         {
             World* world = query_data->GetWorld();
-            const Entity entity = std::visit([this]<typename Variant>(Variant&& source) -> Entity
+            Entity entity;
+            if constexpr (HasBasePool)
             {
-                using SourceType = std::decay_t<Variant>;
-                if constexpr (std::same_as<SourceType, IStorage*>)
-                {
-                    return source->GetEntityByIndex(storage_index).Value();
-                }
-                else // const Array<Entity>*
-                {
-                    return (*source)[storage_index];
-                }
-            }, iteration_source);
+                entity = iteration_source->GetEntityByIndex(storage_index).Value();
+            }
+            else
+            {
+                entity = (*iteration_source)[storage_index];
+            }
 
             // FetchTypes에 명시된 컴포넌트들을 월드에서 가져와 튜플로 묶어 반환
             return traits::ApplyTypes<value_type>([world, entity]<typename... FetchComps>
@@ -129,59 +120,52 @@ public:
     private:
         void AdvanceToValid()
         {
-            ZoneScoped;
-
-            // std::visit를 사용하여 순회 로직을 실행
-            std::visit([this]<typename Variant>(Variant&& source)
+            if constexpr (HasBasePool)
             {
-                using SourceType = std::decay_t<Variant>;
-                if constexpr (std::same_as<SourceType, IStorage*>)
+                if (!iteration_source) [[unlikely]]
                 {
-                    if (!source) [[unlikely]]
-                    {
-                        // FindSmallestPool이 nullptr을 반환하는 경우 (예: 해당 컴포넌트를 가진 엔티티가 없음)
-                        storage_index = 0;
-                        return;
-                    }
-                    while (storage_index < source->Len())
-                    {
-                        if (Optional entity_opt = source->GetEntityByIndex(storage_index))
-                        {
-                            if (query_data->IsEntityValid(*entity_opt))
-                            {
-                                return;
-                            }
-                        }
-                        ++storage_index;
-                    }
+                    // FindSmallestPool이 nullptr을 반환하는 경우 (예: 해당 컴포넌트를 가진 엔티티가 없음)
+                    storage_index = 0;
+                    return;
                 }
-                else // const Array<Entity>*
+                while (storage_index < iteration_source->Len())
                 {
-                    SE_ASSERT(source);
-
-                    const auto& entities = *source;
-                    while (storage_index < entities.Len())
+                    if (Optional entity_opt = iteration_source->GetEntityByIndex(storage_index))
                     {
-                        if (query_data->IsEntityValid(entities[storage_index]))
+                        if (query_data->IsEntityValid(*entity_opt))
                         {
                             return;
                         }
-                        ++storage_index;
                     }
+                    ++storage_index;
                 }
-            }, iteration_source);
+            }
+            else
+            {
+                SE_ASSERT(iteration_source);
+
+                const auto& entities = *iteration_source;
+                while (storage_index < entities.Len())
+                {
+                    if (query_data->IsEntityValid(entities[storage_index]))
+                    {
+                        return;
+                    }
+                    ++storage_index;
+                }
+            }
         }
 
     private:
         QueryDataType* query_data;
         usize storage_index;
 
-        std::variant<IStorage*, const Array<Entity>*> iteration_source;
+        std::conditional_t<HasBasePool, IStorage*, const Array<Entity>*> iteration_source;
     };
 
     Iterator begin()
     {
-        return Iterator(this, 0);
+        return Iterator{ this, 0 };
     }
 
     Iterator end()
@@ -189,21 +173,21 @@ public:
         usize end_index = 0;
         if constexpr (HasBasePool)
         {
-            if (auto* pool = query_data.FindSmallestPool())
+            if (iteration_source)
             {
-                end_index = pool->Len();
+                end_index = iteration_source->Len();
             }
         }
         else
         {
-            end_index = alive_entities_cache.Len();
+            end_index = iteration_source->Len();
         }
-        return Iterator(this, end_index);
+        return Iterator{ this, end_index };
     }
 
 private:
     QueryDataType query_data;
-    NO_UNIQUE_ADDRESS CacheType alive_entities_cache;
+    IterationSourceType iteration_source;
 };
 
 template <typename... Ts> requires QueryParameterPack<Ts...>
