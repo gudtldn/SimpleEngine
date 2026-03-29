@@ -80,8 +80,8 @@ public:
         Iterator(Query* self, usize in_index)
             : query_data(&self->query_data)
             , storage_index(in_index)
+            , iteration_source(self->iteration_source)
         {
-            iteration_source = self->iteration_source;
             AdvanceToValid();
         }
 
