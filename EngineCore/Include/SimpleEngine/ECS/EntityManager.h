@@ -23,8 +23,6 @@ public:
     [[nodiscard]] bool IsValid(Entity entity) const;
     [[nodiscard]] uint32 GetTotalRecordCount() const { return next_id; }
 
-    [[nodiscard]] Array<Entity> GetAliveEntities() const;
-
 private:
     struct EntityRecord
     {

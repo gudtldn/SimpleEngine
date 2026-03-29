@@ -45,6 +45,8 @@ private:
     friend class ComponentRegistry;
 
     EntityManager entity_manager;
+    Array<Entity> alive_entities;
+
     // TODO: 추후 C++26에서 Annotation으로 Tag 검사
     HashMap<TypeId, Array<Function<void()>>> systems;
     HashMap<TypeId, std::unique_ptr<IStorage>> component_storages;
@@ -65,9 +67,12 @@ public:
     template <typename... Components>
     EntityChain SpawnEntity(Components&&... comps)
     {
-        EntityChain entity = { this, entity_manager.Create() };
-        (AddComponent(entity, std::forward<Components>(comps)), ...);
-        return entity;
+        const Entity new_entity = entity_manager.Create();
+        alive_entities.Push(new_entity);
+
+        EntityChain chain = { this, new_entity };
+        (AddComponent(chain, std::forward<Components>(comps)), ...);
+        return chain;
     }
 
     /** Entity와 Entity와 연결된 Component를 제거합니다. */
@@ -77,7 +82,7 @@ public:
     [[nodiscard]] bool IsEntityAlive(Entity entity) const { return entity_manager.IsValid(entity); }
 
     /** 현재 살아있는 모든 Entity를 반환합니다. */
-    [[nodiscard]] Array<Entity> GetAliveEntities() const;
+    [[nodiscard]] const Array<Entity>& GetAliveEntities() const { return alive_entities; }
 
     /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType>

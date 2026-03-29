@@ -14,12 +14,13 @@ void World::DestroyEntity(Entity entity)
     {
         storage->Remove(entity);
     }
-    entity_manager.Destroy(entity);
-}
 
-Array<Entity> World::GetAliveEntities() const
-{
-    return entity_manager.GetAliveEntities();
+    if (const Optional<usize> idx = alive_entities.Find(entity))
+    {
+        alive_entities.RemoveAtSwap(*idx);
+    }
+
+    entity_manager.Destroy(entity);
 }
 
 IStorage* World::GetStorage(const TypeId& type_id)

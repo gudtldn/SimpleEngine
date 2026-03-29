@@ -48,20 +48,6 @@ void EntityManager::Destroy(Entity entity)
     free_ids.Push(entity.id);
 }
 
-Array<Entity> EntityManager::GetAliveEntities() const
-{
-    Array<Entity> alive_entities;
-    alive_entities.Reserve(next_id);
-    for (uint32 id = 0; id < next_id; ++id)
-    {
-        if (entity_records[id].alive)
-        {
-            alive_entities.Push({ id, entity_records[id].generation });
-        }
-    }
-    return alive_entities;
-}
-
 bool EntityManager::IsValid(Entity entity) const
 {
     if (entity.id >= entity_records.Len())
