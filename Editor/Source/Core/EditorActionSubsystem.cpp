@@ -1,3 +1,4 @@
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
 
 #include "SimpleEditor/Core/EditorSubsystem.h"
@@ -13,8 +14,6 @@
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
-
-#include <ranges>
 
 
 namespace se::editor
@@ -66,11 +65,7 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
     }
 
     // 뷰포트 또는 에디터 패널이 포커스 상태일 때만 처리
-    const bool viewport_focused = std::ranges::any_of(
-        viewport_subsystem->GetActiveViewportInfo() | std::views::values,
-        [](const ViewportRenderInfo& info) { return info.is_focused; }
-    );
-
+    const bool viewport_focused = viewport_subsystem->GetFocusedViewportId() != StringName::None;
     if (!viewport_focused && !ui_subsystem->IsAnyPanelFocused())
     {
         return;

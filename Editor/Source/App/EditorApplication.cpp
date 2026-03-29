@@ -170,9 +170,9 @@ void EditorApplication::Render()
         [&](se::graphics::RGTextureHandle swapchain_handle, se::graphics::RenderGraphBuilder& builder)
         {
             Array<graphics::RGTextureHandle> viewport_color_handles;
-            viewport_color_handles.Reserve(viewport_subsystem.GetActiveViewportInfo().Len());
+            viewport_color_handles.Reserve(viewport_subsystem.GetViewports().Len());
 
-            for (const auto& [viewport_id, info] : viewport_subsystem.GetActiveViewportInfo())
+            for (const auto& [viewport_id, info] : viewport_subsystem.GetViewports())
             {
                 if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
                 {

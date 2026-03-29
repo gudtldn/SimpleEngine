@@ -188,13 +188,14 @@ void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id,
         info.is_focused = focused;
         info.is_hovered = hovered;
     }
-}
 
-void EditorViewportSubsystem::UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags)
-{
-    if (const Optional data = viewport_data.Find(viewport_id))
+    if (focused)
     {
-        data->render_view.show_flags = flags;
+        focused_viewport = viewport_id;
+    }
+    else if (focused_viewport == viewport_id)
+    {
+        focused_viewport = StringName::None;
     }
 }
 
@@ -203,6 +204,14 @@ void EditorViewportSubsystem::UpdateViewportRenderingMode(const StringName& view
     if (const Optional data = viewport_data.Find(viewport_id))
     {
         data->render_view.rendering_mode = mode;
+    }
+}
+
+void EditorViewportSubsystem::UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags)
+{
+    if (const Optional data = viewport_data.Find(viewport_id))
+    {
+        data->render_view.show_flags = flags;
     }
 }
 

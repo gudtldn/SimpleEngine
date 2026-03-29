@@ -21,7 +21,7 @@ namespace editor{ class ViewportPanel; }
 namespace se::editor
 {
 /**
- * Viewport Render Data
+ * 뷰포트 렌더링에 필요한 GPU 리소스 및 렌더 상태
  */
 struct ViewportRenderInfo
 {
@@ -51,43 +51,57 @@ public:
 public:
     /**
      * 뷰포트의 크기를 갱신합니다.
-     * @note 크기가 변경되었거나 없을 경우 렌더 타겟을 재생성합니다
+     * @note 크기가 변경되었거나 없을 경우 렌더 타겟을 재생성합니다.
      */
     void UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height);
 
     /** 뷰포트의 ImGui 포커스/호버 상태를 갱신합니다. */
     void UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered);
 
+    /** 뷰포트의 RenderingMode를 갱신합니다. */
+    void UpdateViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode);
+
     /** 뷰포트의 ShowFlags를 갱신합니다. */
     void UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags);
 
-    /** 뷰포트의 RenderingMode를 갱신합니다. */
-    void UpdateViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode);
+public:
+    /** 현재 관리 중인 모든 뷰포트의 렌더링 정보를 반환합니다. */
+    [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetViewports() const { return viewport_data; }
+
+    /** 특정 뷰포트의 렌더링 정보를 반환합니다. */
+    [[nodiscard]] Optional<const ViewportRenderInfo&> GetViewportInfo(const StringName& viewport_id) const { return viewport_data.Find(viewport_id); }
 
     /** ImGui로 렌더링하기 위한 TextureID(void*)를 반환합니다. */
     [[nodiscard]] void* GetViewportTextureID(const StringName& viewport_id) const;
 
-    /** 현재 관리 중인 모든 활성 뷰포트의 렌더링 정보를 반환합니다. */
-    [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetActiveViewportInfo() const { return viewport_data; }
+    /** 
+     * 현재 포커스된 뷰포트의 ID를 반환합니다.
+     * @returm 현재 포커스된 뷰포트의 ID, 없으면 StringName::None
+     */
+    [[nodiscard]] StringName GetFocusedViewportId() const { return focused_viewport; }
+
+    /** 현재 포커스된 뷰포트의 렌더링 정보를 반환합니다. */
+    [[nodiscard]] Optional<const ViewportRenderInfo&> GetFocusedViewportInfo() const { return viewport_data.Find(focused_viewport); }
 
     /** 카메라 조작(우클릭 드래그) 중인 뷰포트가 있는지 확인합니다. */
     [[nodiscard]] bool IsAnyCameraActive() const { return active_camera_viewport != StringName::None; }
 
-    /** 현재 관리 중인 모든 뷰포트 카메라 상태를 반환합니다. */
+    /** 현재 관리 중인 모든 뷰포트의 카메라 상태를 반환합니다. */
     [[nodiscard]] const HashMap<StringName, EditorCameraState>& GetViewportCameras() const { return viewport_cameras; }
     [[nodiscard]] HashMap<StringName, EditorCameraState>& GetViewportCameras() { return viewport_cameras; }
 
     /** 특정 뷰포트의 카메라 상태를 반환합니다. */
-    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id) { return viewport_cameras.Find(viewport_id); }
     [[nodiscard]] Optional<const EditorCameraState&> GetViewportCamera(const StringName& viewport_id) const { return viewport_cameras.Find(viewport_id); }
+    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id) { return viewport_cameras.Find(viewport_id); }
 
 private:
     InputSubsystem* input_subsystem = nullptr;
-
     graphics::RenderDevice* render_device = nullptr;
+
     HashMap<StringName, ViewportRenderInfo> viewport_data;
     HashMap<StringName, EditorCameraState> viewport_cameras;
 
+    StringName focused_viewport;
     StringName active_camera_viewport;
     Vector2f last_mouse_pos;
 };
