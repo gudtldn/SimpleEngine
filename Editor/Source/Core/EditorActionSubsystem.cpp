@@ -73,6 +73,23 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
         return;
     }
 
+    // 기즈모 모드 전환 (포커스된 뷰포트에만 적용)
+    if (focused_id != StringName::None)
+    {
+        if (input_subsystem->IsKeyPressed(EKeyCode::W))
+        {
+            viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Translate);
+        }
+        else if (input_subsystem->IsKeyPressed(EKeyCode::E))
+        {
+            viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Rotate);
+        }
+        else if (input_subsystem->IsKeyPressed(EKeyCode::R))
+        {
+            viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Scale);
+        }
+    }
+
     if (input_subsystem->IsKeyPressed(EKeyCode::Delete))
     {
         DeleteSelectedEntities();
