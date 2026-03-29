@@ -7,21 +7,6 @@
 
 namespace se::editor
 {
-/** 기즈모 조작 모드 */
-enum class EGizmoMode : uint8
-{
-    Translate,
-    Rotate,
-    Scale,
-};
-
-/** 좌표계 모드 */
-enum class ECoordinateSpace : uint8
-{
-    World,
-    Local,
-};
-
 /**
  * 3D 씬을 렌더링하는 뷰포트 패널
  */
@@ -39,11 +24,8 @@ private:
 
     StringName viewport_id;
 
-    // 툴바 상태
-    EGizmoMode gizmo_mode = EGizmoMode::Translate;
-    ECoordinateSpace coordinate_space = ECoordinateSpace::World;
-
+    // 렌더 설정
     graphics::ERenderingMode rendering_mode = graphics::ERenderingMode::Lit;
-    graphics::ShowFlags show_flags = graphics::ShowFlags{ graphics::EShowFlag::All };
+    graphics::ShowFlags show_flags = graphics::EShowFlag::All;
 };
 } // namespace se::editor

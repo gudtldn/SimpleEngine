@@ -65,7 +65,9 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
     }
 
     // 뷰포트 또는 에디터 패널이 포커스 상태일 때만 처리
-    const bool viewport_focused = viewport_subsystem->GetFocusedViewportId() != StringName::None;
+    const StringName focused_id = viewport_subsystem->GetFocusedViewportId();
+
+    const bool viewport_focused = focused_id != StringName::None;
     if (!viewport_focused && !ui_subsystem->IsAnyPanelFocused())
     {
         return;

@@ -20,17 +20,40 @@ namespace editor{ class ViewportPanel; }
 
 namespace se::editor
 {
-/**
- * 뷰포트 렌더링에 필요한 GPU 리소스 및 렌더 상태
- */
-struct ViewportRenderInfo
+/** 기즈모 조작 모드 */
+enum class EGizmoMode : uint8
 {
+    Translate,
+    Rotate,
+    Scale,
+};
+
+/** 기즈모 좌표계 모드 */
+enum class ECoordinateSpace : uint8
+{
+    World,
+    Local,
+};
+
+/**
+ * 뷰포트 하나의 모든 상태를 담는 구조체
+ */
+struct ViewportState
+{
+    // 렌더 리소스
     graphics::RID color_texture;
     graphics::RenderView render_view;
     StringName color_target_name;
     StringName depth_target_name;
     bool is_focused = false;
     bool is_hovered = false;
+
+    // 카메라
+    EditorCameraState camera;
+
+    // 인터랙션
+    EGizmoMode gizmo_mode = EGizmoMode::Translate;
+    ECoordinateSpace coordinate_space = ECoordinateSpace::World;
 };
 
 /**
@@ -58,48 +81,55 @@ public:
     /** 뷰포트의 ImGui 포커스/호버 상태를 갱신합니다. */
     void UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered);
 
-    /** 뷰포트의 RenderingMode를 갱신합니다. */
-    void UpdateViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode);
+    /** 뷰포트의 RenderingMode를 설정합니다. */
+    void SetViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode);
 
-    /** 뷰포트의 ShowFlags를 갱신합니다. */
-    void UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags);
+    /** 뷰포트의 ShowFlags를 설정합니다. */
+    void SetViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags);
+
+    /** 뷰포트의 기즈모 모드를 설정합니다. */
+    void SetViewportGizmoMode(const StringName& viewport_id, EGizmoMode mode);
+
+    /** 특정 뷰포트의 기즈모 모드를 반환합니다. */
+    [[nodiscard]] EGizmoMode GetViewportGizmoMode(const StringName& viewport_id) const;
+
+    /** 뷰포트의 기즈모 좌표계를 설정합니다. */
+    void SetViewportCoordinateSpace(const StringName& viewport_id, ECoordinateSpace space);
+
+    /** 특정 뷰포트의 기즈모 좌표계를 반환합니다. */
+    [[nodiscard]] ECoordinateSpace GetViewportCoordinateSpace(const StringName& viewport_id) const;
 
 public:
-    /** 현재 관리 중인 모든 뷰포트의 렌더링 정보를 반환합니다. */
-    [[nodiscard]] const HashMap<StringName, ViewportRenderInfo>& GetViewports() const { return viewport_data; }
+    /** 현재 관리 중인 모든 뷰포트의 상태를 반환합니다. */
+    [[nodiscard]] const HashMap<StringName, ViewportState>& GetViewports() const { return viewports; }
 
-    /** 특정 뷰포트의 렌더링 정보를 반환합니다. */
-    [[nodiscard]] Optional<const ViewportRenderInfo&> GetViewportInfo(const StringName& viewport_id) const { return viewport_data.Find(viewport_id); }
+    /** 특정 뷰포트의 상태를 반환합니다. */
+    [[nodiscard]] Optional<const ViewportState&> GetViewportInfo(const StringName& viewport_id) const { return viewports.Find(viewport_id); }
 
     /** ImGui로 렌더링하기 위한 TextureID(void*)를 반환합니다. */
     [[nodiscard]] void* GetViewportTextureID(const StringName& viewport_id) const;
 
-    /** 
+    /**
      * 현재 포커스된 뷰포트의 ID를 반환합니다.
-     * @returm 현재 포커스된 뷰포트의 ID, 없으면 StringName::None
+     * @return 현재 포커스된 뷰포트의 ID, 없으면 StringName::None
      */
     [[nodiscard]] StringName GetFocusedViewportId() const { return focused_viewport; }
 
-    /** 현재 포커스된 뷰포트의 렌더링 정보를 반환합니다. */
-    [[nodiscard]] Optional<const ViewportRenderInfo&> GetFocusedViewportInfo() const { return viewport_data.Find(focused_viewport); }
+    /** 현재 포커스된 뷰포트의 상태를 반환합니다. */
+    [[nodiscard]] Optional<const ViewportState&> GetFocusedViewportInfo() const { return viewports.Find(focused_viewport); }
 
     /** 카메라 조작(우클릭 드래그) 중인 뷰포트가 있는지 확인합니다. */
     [[nodiscard]] bool IsAnyCameraActive() const { return active_camera_viewport != StringName::None; }
 
-    /** 현재 관리 중인 모든 뷰포트의 카메라 상태를 반환합니다. */
-    [[nodiscard]] const HashMap<StringName, EditorCameraState>& GetViewportCameras() const { return viewport_cameras; }
-    [[nodiscard]] HashMap<StringName, EditorCameraState>& GetViewportCameras() { return viewport_cameras; }
-
     /** 특정 뷰포트의 카메라 상태를 반환합니다. */
-    [[nodiscard]] Optional<const EditorCameraState&> GetViewportCamera(const StringName& viewport_id) const { return viewport_cameras.Find(viewport_id); }
-    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id) { return viewport_cameras.Find(viewport_id); }
+    [[nodiscard]] Optional<const EditorCameraState&> GetViewportCamera(const StringName& viewport_id) const;
+    [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id);
 
 private:
     InputSubsystem* input_subsystem = nullptr;
     graphics::RenderDevice* render_device = nullptr;
 
-    HashMap<StringName, ViewportRenderInfo> viewport_data;
-    HashMap<StringName, EditorCameraState> viewport_cameras;
+    HashMap<StringName, ViewportState> viewports;
 
     StringName focused_viewport;
     StringName active_camera_viewport;

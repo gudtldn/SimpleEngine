@@ -3,17 +3,17 @@
 #include "UI/Panels/CameraPanel.h"
 
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
+#include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
-#include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
+
+#include <ranges>
 
 
 namespace se::editor
 {
-using namespace se::math;
-
 const char* CameraPanel::GetName() const
 {
     return "EditorCamera";
@@ -27,7 +27,19 @@ void CameraPanel::DrawContent()
         return;
     }
 
-    for (auto& [viewport_id, camera] : viewport_subsystem->GetViewportCameras())
+    auto valid_cameras_view = viewport_subsystem->GetViewports()
+        | std::views::keys
+        | std::views::transform([&](const StringName& id)
+        {
+            return std::pair{ id, viewport_subsystem->GetViewportCamera(id) };
+        })
+        | std::views::filter([](const auto& pair) { return pair.second.HasValue(); })
+        | std::views::transform([](auto&& pair)
+        {
+            return std::pair<const StringName&, EditorCameraState&>{ pair.first, *pair.second };
+        });
+
+    for (auto [viewport_id, camera] : valid_cameras_view)
     {
         if (ImGui::TreeNodeEx(viewport_id.CStr(), ImGuiTreeNodeFlags_DefaultOpen))
         {

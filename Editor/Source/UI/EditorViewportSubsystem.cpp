@@ -32,16 +32,15 @@ void EditorViewportSubsystem::Release()
 {
     if (render_device)
     {
-        for (const ViewportRenderInfo& info : viewport_data | std::views::values)
+        for (const ViewportState& state : viewports | std::views::values)
         {
-            if (info.color_texture)
+            if (state.color_texture)
             {
-                render_device->DestroyTexture(info.color_texture);
+                render_device->DestroyTexture(state.color_texture);
             }
         }
     }
-    viewport_data.Clear();
-    viewport_cameras.Clear();
+    viewports.Clear();
     render_device = nullptr;
     input_subsystem = nullptr;
 }
@@ -51,9 +50,9 @@ void EditorViewportSubsystem::Update(float delta_time)
     // 우클릭으로 호버된 뷰포트의 카메라 제어를 활성화
     if (input_subsystem->IsMouseButtonPressed(EMouseButton::Right))
     {
-        for (const auto& [id, info] : viewport_data)
+        for (const auto& [id, state] : viewports)
         {
-            if (info.is_hovered)
+            if (state.is_hovered)
             {
                 active_camera_viewport = id;
                 last_mouse_pos = input_subsystem->GetLocalMousePosition();
@@ -67,7 +66,7 @@ void EditorViewportSubsystem::Update(float delta_time)
     {
         if (active_camera_viewport != StringName::None)
         {
-            viewport_cameras[active_camera_viewport].velocity = Vector3::Zero();
+            viewports[active_camera_viewport].camera.velocity = Vector3::Zero();
 
             input_subsystem->SetLocalMousePosition(last_mouse_pos);
             input_subsystem->SetRelativeMouseMode(false);
@@ -81,7 +80,7 @@ void EditorViewportSubsystem::Update(float delta_time)
     // 활성 카메라 입력 처리
     if (active_camera_viewport != StringName::None && input_subsystem->IsMouseButtonDown(EMouseButton::Right))
     {
-        EditorCameraState& camera = viewport_cameras[active_camera_viewport];
+        EditorCameraState& camera = viewports[active_camera_viewport].camera;
 
         // 마우스 회전 yaw(Z축), pitch(X축) | TODO: 나중에 쿼터니언으로 수정
         const Vector2f mouse_delta = input_subsystem->GetMouseDelta();
@@ -134,36 +133,32 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
 {
     if (new_width == 0 || new_height == 0)
     {
-        if (const Optional data_opt = viewport_data.Find(viewport_id))
+        if (const auto state = viewports.Find(viewport_id))
         {
-            ViewportRenderInfo& info = data_opt.Value();
-            if (info.color_texture)
+            if (state->color_texture)
             {
                 render_device->DestroyTexture(
-                    std::exchange(info.color_texture, {})
+                    std::exchange(state->color_texture, {})
                 );
             }
         }
         return;
     }
 
-    // Viewport 에디터 카메라 생성
-    viewport_cameras.Entry(viewport_id).OrDefault();
-
-    // 텍스처가 없거나, 크기가 변경된경우 재생성
-    ViewportRenderInfo& info = viewport_data[viewport_id];
+    // 텍스처가 없거나, 크기가 변경된 경우 재생성
+    ViewportState& state = viewports[viewport_id];
     if (
-        !info.color_texture.IsValid()
-        || info.render_view.width != new_width
-        || info.render_view.height != new_height
+        !state.color_texture.IsValid()
+        || state.render_view.width != new_width
+        || state.render_view.height != new_height
     )
     {
-        if (info.color_texture)
+        if (state.color_texture)
         {
-            render_device->DestroyTexture(info.color_texture);
+            render_device->DestroyTexture(state.color_texture);
         }
 
-        info.color_texture = render_device->CreateTexture({
+        state.color_texture = render_device->CreateTexture({
             .type = SDL_GPU_TEXTURETYPE_2D,
             .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB,
             .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -173,20 +168,19 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
             .num_levels = 1,
             .sample_count = SDL_GPU_SAMPLECOUNT_1,
         });
-        info.render_view.width = new_width;
-        info.render_view.height = new_height;
-        info.color_target_name = viewport_id;
-        info.depth_target_name = String::Format("{}_Depth", viewport_id);
+        state.render_view.width = new_width;
+        state.render_view.height = new_height;
+        state.color_target_name = viewport_id;
+        state.depth_target_name = String::Format("{}_Depth", viewport_id);
     }
 }
 
 void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered)
 {
-    if (const Optional data_opt = viewport_data.Find(viewport_id))
+    if (const auto state = viewports.Find(viewport_id))
     {
-        ViewportRenderInfo& info = data_opt.Value();
-        info.is_focused = focused;
-        info.is_hovered = hovered;
+        state->is_focused = focused;
+        state->is_hovered = hovered;
     }
 
     if (focused)
@@ -199,35 +193,84 @@ void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id,
     }
 }
 
-void EditorViewportSubsystem::UpdateViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode)
+void EditorViewportSubsystem::SetViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode)
 {
-    if (const Optional data = viewport_data.Find(viewport_id))
+    if (const auto state = viewports.Find(viewport_id))
     {
-        data->render_view.rendering_mode = mode;
+        state->render_view.rendering_mode = mode;
     }
 }
 
-void EditorViewportSubsystem::UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags)
+void EditorViewportSubsystem::SetViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags)
 {
-    if (const Optional data = viewport_data.Find(viewport_id))
+    if (const auto state = viewports.Find(viewport_id))
     {
-        data->render_view.show_flags = flags;
+        state->render_view.show_flags = flags;
+    }
+}
+
+void EditorViewportSubsystem::SetViewportGizmoMode(const StringName& viewport_id, EGizmoMode mode)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->gizmo_mode = mode;
+    }
+}
+
+void EditorViewportSubsystem::SetViewportCoordinateSpace(const StringName& viewport_id, ECoordinateSpace space)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->coordinate_space = space;
     }
 }
 
 void* EditorViewportSubsystem::GetViewportTextureID(const StringName& viewport_id) const
 {
-    if (const Optional data_opt = viewport_data.Find(viewport_id))
+    if (const auto state = viewports.Find(viewport_id))
     {
-        const ViewportRenderInfo& info = data_opt.Value();
-        if (info.color_texture.IsValid())
+        if (state->color_texture.IsValid())
         {
-            if (const auto tex_resource = render_device->GetTexture(info.color_texture))
+            if (const auto tex_resource = render_device->GetTexture(state->color_texture))
             {
                 return tex_resource->handle;
             }
         }
     }
     return nullptr;
+}
+
+EGizmoMode EditorViewportSubsystem::GetViewportGizmoMode(const StringName& viewport_id) const
+{
+    return viewports.Find(viewport_id).Map([](const ViewportState& state)
+    {
+        return state.gizmo_mode;
+    }).ValueOr(EGizmoMode::Translate);
+}
+
+ECoordinateSpace EditorViewportSubsystem::GetViewportCoordinateSpace(const StringName& viewport_id) const
+{
+    return viewports.Find(viewport_id).Map([](const ViewportState& state)
+    {
+        return state.coordinate_space;
+    }).ValueOr(ECoordinateSpace::World);
+}
+
+Optional<const EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const StringName& viewport_id) const
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        return state->camera;
+    }
+    return {};
+}
+
+Optional<EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const StringName& viewport_id)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        return state->camera;
+    }
+    return {};
 }
 } // namespace se::editor
