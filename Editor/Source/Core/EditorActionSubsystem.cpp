@@ -98,14 +98,14 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
 
 void EditorActionSubsystem::DeleteEntity(Entity entity)
 {
-    ecs::World* world = world_subsystem->GetWorld();
+    World* world = world_subsystem->GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
     DeleteEntityRecursive(world, selection, entity);
 }
 
 void EditorActionSubsystem::DeleteSelectedEntities()
 {
-    ecs::World* world = world_subsystem->GetWorld();
+    World* world = world_subsystem->GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     // 삭제 도중 selection이 변경되므로 먼저 복사
@@ -119,7 +119,7 @@ void EditorActionSubsystem::DeleteSelectedEntities()
     }
 }
 
-void EditorActionSubsystem::DeleteEntityRecursive(ecs::World* world, EditorSelection& selection, Entity entity)
+void EditorActionSubsystem::DeleteEntityRecursive(World* world, EditorSelection& selection, Entity entity)
 {
     // 자식들을 먼저 재귀적으로 삭제
     if (const Optional children_opt = world->TryGetComponent<ChildrenComponent>(entity))

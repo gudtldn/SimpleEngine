@@ -29,7 +29,7 @@ namespace
 } // namespace
 
 
-SceneDrawData CollectDrawData(ecs::World& world)
+SceneDrawData CollectDrawData(World& world)
 {
     SceneDrawData result;
 

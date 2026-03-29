@@ -1,14 +1,14 @@
-﻿#include "SimpleEngine/ECS/EntityManager.h"
+#include "SimpleEngine/ECS/EntityManager.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 
-namespace se::ecs
+namespace se
 {
 Entity EntityManager::Create()
 {
     uint32 id;
 
-    // 재활용 가능한 ID 있으면 우선 사용
+    // 재활용 가능한 ID가 있으면 우선 사용
     if (Optional<uint32> id_opt = free_ids.Pop())
     {
         id = *id_opt;
@@ -71,4 +71,4 @@ bool EntityManager::IsValid(Entity entity) const
     const EntityRecord& record = entity_records[entity.id];
     return record.alive && (record.generation == entity.generation);
 }
-}  // namespace se::ecs
+} // namespace se

@@ -1,13 +1,17 @@
-﻿#pragma once
-#include <atomic>
+#pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/ECS/Entity.h"
 
+#include <atomic>
 
-namespace se::ecs
+
+namespace se
 {
+/**
+ * 엔티티의 생성, 소멸 및 생명주기를 관리하는 클래스
+ */
 class SE_CORE_API EntityManager
 {
 public:
@@ -33,4 +37,4 @@ private:
 
     std::atomic<uint32> next_id;
 };
-}
+} // namespace se

@@ -1,8 +1,5 @@
 #include "gtest/gtest.h"
 
-#include <limits>
-#include <numbers>
-
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -17,6 +14,9 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
+
+#include <limits>
+
 
 using namespace se;
 using namespace se::math;
@@ -505,7 +505,7 @@ TEST_F(AutoSerializeTest, AssetId_Invalid)
 // --- 무효한 Entity (기본 생성) ---
 TEST_F(AutoSerializeTest, Entity_Invalid)
 {
-    Entity original;  // InvalidId, generation=0
+    Entity original;  // Invalid, generation=0
     EXPECT_FALSE(original.IsValid());
 
     Entity loaded = RoundTrip(original);

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/ECS/World.h"
@@ -7,9 +7,9 @@
 namespace se
 {
 /**
- *
+ * ECS World의 생명주기를 관리하고 엔진 업데이트 루프와 연결하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) WorldSubsystem : public se::SubsystemBase, public se::IUpdatable
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) WorldSubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(WorldSubsystem, SubsystemBase)
 
@@ -25,10 +25,10 @@ public:
     virtual void PostUpdate() override;
     //~ End IUpdatable
 
-    [[nodiscard]] se::ecs::World* GetWorld() const noexcept { return world.get(); }
+    [[nodiscard]] World* GetWorld() const noexcept { return world.get(); }
 
 private:
     // TODO: 나중에 다중 월드로 관리
-    std::unique_ptr<se::ecs::World> world;
+    std::unique_ptr<World> world;
 };
-}
+} // namespace se

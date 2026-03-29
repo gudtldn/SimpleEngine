@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/Entity.h"
-#include "SimpleEngine/ECS/SparseSet.h"
+#include "SimpleEngine/ECS/IStorage.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/TypeUtils.h"
@@ -11,17 +11,8 @@
 #include <tuple>
 #include <type_traits>
 
-#define SE_DEFINE_TYPE_CONDITION_TAG(tag_name, condition) \
-template <typename T> \
-struct tag_name { static constexpr bool Value = condition; };
 
-
-namespace se::ecs
-{
-/**
- * 쿼리 파라미터에서 필터링 조건을 명시하는 태그 모음
- */
-inline namespace filters
+namespace se
 {
 /**
  * 쿼리 결과에 반드시 포함되어야 하는 Component를 지정하는 FilterTag
@@ -42,7 +33,6 @@ struct Without
 {
     using Types = std::tuple<ComponentTypes...>;
 };
-}
 
 /**
  * 쿼리 파라미터 파싱을 위한 내부 메타프로그래밍 유틸리티
@@ -71,10 +61,17 @@ template <template <typename...> typename ConditionTag, typename... Ts>
 using FlattenTypes = FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
 
 // 타입 필터링을 위한 조건 태그 정의
-SE_DEFINE_TYPE_CONDITION_TAG(CondFetchTag, IsFetchTag<T>);                              // 가져올 컴포넌트
-SE_DEFINE_TYPE_CONDITION_TAG(CondPredicateTag, IsRequiredComponent<T>);                 // 검사 할 컴포넌트
-SE_DEFINE_TYPE_CONDITION_TAG(CondWithTag, (traits::IsSpecializationOf<T, With>));       // With<...> 태그
-SE_DEFINE_TYPE_CONDITION_TAG(CondWithoutTag, (traits::IsSpecializationOf<T, Without>)); // Without<...> 태그
+template <typename T>
+struct CondFetchTag { static constexpr bool Value = IsFetchTag<T>; }; // 가져올 컴포넌트
+
+template <typename T>
+struct CondPredicateTag { static constexpr bool Value = IsRequiredComponent<T>; }; // 검사할 컴포넌트
+
+template <typename T>
+struct CondWithTag { static constexpr bool Value = traits::IsSpecializationOf<T, With>; }; // With<...> 태그
+
+template <typename T>
+struct CondWithoutTag { static constexpr bool Value = traits::IsSpecializationOf<T, Without>; }; // Without<...> 태그
 
 template <typename T>
 struct RemoveOptionalImpl
@@ -90,7 +87,7 @@ struct RemoveOptionalImpl<Optional<T>>
 
 template <typename T>
 using RemoveOptional = RemoveOptionalImpl<T>::Type;
-}
+} // namespace detail
 
 /**
  * 쿼리 파라미터를 분석하고, 엔티티 유효성을 검증하는 로직을 캡슐화한 클래스
@@ -179,9 +176,7 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
         if (!a) { return false; }
         if (!b) { return true; }
 
-        return a->Length() < b->Length();
+        return a->Len() < b->Len();
     });
 }
-} // namespace se::ecs
-
-#undef SE_DEFINE_TYPE_CONDITION_TAG
+} // namespace se

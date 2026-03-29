@@ -7,7 +7,6 @@
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 
 using namespace se;
-using namespace se::ecs;
 
 class ECSTest : public ::testing::Test {};
 

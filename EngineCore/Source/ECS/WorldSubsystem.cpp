@@ -6,8 +6,6 @@
 
 namespace se
 {
-using namespace ecs;
-
 SE_REGISTER_SUBSYSTEM(WorldSubsystem);
 
 SE_BEGIN_REFLECT(WorldSubsystem, meta::Internal)
@@ -42,4 +40,4 @@ void WorldSubsystem::PostUpdate()
 {
     world->RunPhase<PostUpdatePhase>();
 }
-}
+} // namespace se

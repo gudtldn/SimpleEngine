@@ -1,11 +1,12 @@
 #include "SimpleEngine/ECS/World.h"
 
-#include <ranges>
-#include "SimpleEngine/ECS/SparseSet.h"
+#include "SimpleEngine/ECS/ComponentStorage.h"
 #include "SimpleEngine/ECS/ComponentRegistry.h"
 
+#include <ranges>
 
-namespace se::ecs
+
+namespace se
 {
 void World::DestroyEntity(Entity entity)
 {
@@ -34,4 +35,4 @@ IStorage* World::GetStorage(const TypeId& type_id)
     }
     return nullptr;
 }
-} // namespace se::ecs
+} // namespace se

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "SimpleEditor/UI/IEditorPanel.h"
+
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 
-namespace se::ecs { class World; }
+namespace se { class World; }
 namespace se::editor { class EditorSelection; }
 
 namespace se::editor
@@ -20,7 +21,7 @@ protected:
 
 private:
     /** Entity를 트리 노드로 재귀적으로 그립니다. */
-    void DrawEntityNode(ecs::World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete);
+    void DrawEntityNode(World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete);
 
     /** 이름을 바꾸려는 Entity */
     Entity renaming_entity;

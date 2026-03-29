@@ -1,24 +1,25 @@
 #pragma once
-#include <concepts>
-#include <memory>
-#include <tuple>
-#include <type_traits>
-#include <utility>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/ECS/ComponentStorage.h"
+#include "SimpleEngine/ECS/EntityManager.h"
+#include "SimpleEngine/ECS/Phases.h"
+#include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
-#include "SimpleEngine/ECS/EntityManager.h"
-#include "SimpleEngine/ECS/QueryConcepts.h"
-#include "SimpleEngine/ECS/Phases.h"
-#include "SimpleEngine/ECS/SparseSet.h"
+
+#include <concepts>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 
-namespace se::ecs
+namespace se
 {
 template <typename... Ts>
     requires QueryParameterPack<Ts...>
@@ -106,37 +107,19 @@ public:
     }
 
     /** Entity에서 ComponentType에 맞는 Component를 참조로 가져옵니다. */
-    template <typename ComponentType>
-    ComponentType& GetComponent(Entity entity)
+    template <typename ComponentType, typename Self>
+    auto GetComponent(this Self&& self, Entity entity) -> traits::DeduceRetType<Self, ComponentType&>
     {
-        return GetStorage<ComponentType>()->Get(entity);
+        return self.template GetStorage<ComponentType>()->Get(entity);
     }
 
-    /** Entity에서 ComponentType에 맞는 Component를 참조로 가져옵니다. */
-    template <typename ComponentType>
-    const ComponentType& GetComponent(Entity entity) const
+    /** Entity에서 ComponentType에 맞는 Component를 Optional로 가져옵니다. */
+    template <typename ComponentType, typename Self>
+    auto TryGetComponent(this Self&& self, Entity entity) -> Optional<traits::DeduceRetType<Self, ComponentType&>>
     {
-        return GetStorage<ComponentType>()->Get(entity);
-    }
-
-    /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
-    template <typename ComponentType>
-    Optional<ComponentType&> TryGetComponent(Entity entity)
-    {
-        if (Optional opt_storage = GetStorage<ComponentType>())
+        if (const auto opt_storage = self.template GetStorage<ComponentType>())
         {
-            return opt_storage->TryGet(entity);
-        }
-        return NullOpt;
-    }
-
-    /** Entity에서 ComponentType에 맞는 Component를 포인터로 가져옵니다. */
-    template <typename ComponentType>
-    Optional<const ComponentType&> TryGetComponent(Entity entity) const
-    {
-        if (Optional opt_storage = GetStorage<ComponentType>())
-        {
-            return opt_storage->TryGet(entity);
+            return opt_storage->Find(entity);
         }
         return NullOpt;
     }
@@ -307,4 +290,4 @@ public:
         Entity entity;
     };
 };
-}  // namespace se::ecs
+} // namespace se

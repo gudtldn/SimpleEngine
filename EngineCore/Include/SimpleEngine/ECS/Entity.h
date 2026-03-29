@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Utility/HashUtils.h"
@@ -6,19 +7,16 @@
 
 namespace se
 {
-namespace ecs
-{
 class EntityManager;
-}
 
 class Entity
 {
 public:
-    static constexpr uint32 InvalidId = std::numeric_limits<uint32>::max();
+    static constexpr uint32 Invalid = std::numeric_limits<uint32>::max();
 
 public:
     Entity()
-        : id(InvalidId)
+        : id(Invalid)
         , generation(0)
     {
     }
@@ -26,13 +24,13 @@ public:
     [[nodiscard]] uint32 GetId() const noexcept { return id; }
     [[nodiscard]] uint32 GetGeneration() const noexcept { return generation; }
 
-    [[nodiscard]] bool IsValid() const noexcept { return id != InvalidId; }
+    [[nodiscard]] bool IsValid() const noexcept { return id != Invalid; }
 
     bool operator==(const Entity& other) const noexcept = default;
     [[nodiscard]] explicit operator bool() const noexcept { return IsValid(); }
 
 private:
-    friend class se::ecs::EntityManager;
+    friend class EntityManager;
 
     friend void Serialize(Archive& ar, Entity& entity)
     {

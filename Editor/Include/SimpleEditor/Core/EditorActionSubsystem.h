@@ -11,7 +11,7 @@ namespace se
 {
 class InputSubsystem;
 class WorldSubsystem;
-namespace ecs { class World; }
+class World;
 }
 
 namespace se::editor
@@ -46,7 +46,7 @@ public:
     void DeleteSelectedEntities();
 
 private:
-    static void DeleteEntityRecursive(ecs::World* world, EditorSelection& selection, Entity entity);
+    static void DeleteEntityRecursive(World* world, EditorSelection& selection, Entity entity);
 
 private:
     InputSubsystem* input_subsystem = nullptr;

@@ -226,7 +226,7 @@ void EditorUISubsystem::DrawMainMenu()
             {
                 if (const WorldSubsystem* world_subsystem = GetSubsystem<WorldSubsystem>())
                 {
-                    ecs::World* world = world_subsystem->GetWorld();
+                    World* world = world_subsystem->GetWorld();
                     world->SpawnEntity();
                 }
             }

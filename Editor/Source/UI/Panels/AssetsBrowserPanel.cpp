@@ -413,7 +413,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         return;
     }
 
-    ecs::World* world = world_subsystem->GetWorld();
+    World* world = world_subsystem->GetWorld();
     if (!world)
     {
         return;

@@ -1,8 +1,4 @@
 #pragma once
-#include <concepts>
-#include <type_traits>
-#include <utility>
-#include <variant>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
@@ -12,8 +8,13 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <concepts>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
-namespace se::ecs
+
+namespace se
 {
 /**
  * 조건에 맞는 엔티티와 컴포넌트들을 순회(iterate)하기 위한 인터페이스입니다.
@@ -142,7 +143,7 @@ public:
                         storage_index = 0;
                         return;
                     }
-                    while (storage_index < source->Length())
+                    while (storage_index < source->Len())
                     {
                         if (Optional entity_opt = source->GetEntityByIndex(storage_index))
                         {
@@ -190,7 +191,7 @@ public:
         {
             if (auto* pool = query_data.FindSmallestPool())
             {
-                end_index = pool->Length();
+                end_index = pool->Len();
             }
         }
         else
@@ -287,4 +288,4 @@ decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
         return world->GetComponent<std::decay_t<T>>(entity);
     }
 }
-}  // namespace se::ecs
+} // namespace se

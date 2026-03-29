@@ -234,7 +234,7 @@ public: \
     static_assert(std::same_as<std::decay_t<T>, std::decay_t<type>>, "Type mismatch between BEGIN and END reflect macros."); \
     if constexpr (type_flags.IsAnySet(::se::ETypeFlags::IsComponent)) \
     { \
-        ::se::ecs::ComponentRegistry::Get().RegisterComponentOps<type>(); \
+        ::se::ComponentRegistry::Get().RegisterComponentOps<type>(); \
     } \
     return true; \
 }();

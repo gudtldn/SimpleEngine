@@ -3,7 +3,6 @@
 
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
 #include "SimpleEditor/Core/EditorSubsystem.h"
-#include "SimpleEditor/UI/EditorUISubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
@@ -33,14 +32,14 @@ void OutlinerPanel::DrawContent()
         return;
     }
 
-    ecs::World* world = world_subsystem->GetWorld();
+    World* world = world_subsystem->GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     Entity entity_to_delete;
 
 
     // ParentComponent가 없는 루트 엔티티를 최상위에서 렌더링
-    for (const auto& [entity] : world->QueryEntities<Entity, ecs::Without<ParentComponent>>())
+    for (const auto& [entity] : world->QueryEntities<Entity, Without<ParentComponent>>())
     {
         DrawEntityNode(world, selection, entity, entity_to_delete);
     }
@@ -69,7 +68,7 @@ void OutlinerPanel::DrawContent()
     }
 }
 
-void OutlinerPanel::DrawEntityNode(ecs::World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete)
+void OutlinerPanel::DrawEntityNode(World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete)
 {
     const Optional name_opt = world->TryGetComponent<NameComponent>(entity);
     const Optional children_opt = world->TryGetComponent<ChildrenComponent>(entity);

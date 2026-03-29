@@ -1,7 +1,7 @@
-﻿#include "SimpleEngine/ECS/ComponentRegistry.h"
+#include "SimpleEngine/ECS/ComponentRegistry.h"
 
 
-namespace se::ecs
+namespace se
 {
 ComponentRegistry& ComponentRegistry::Get()
 {
@@ -13,4 +13,4 @@ Optional<const ComponentOps&> ComponentRegistry::GetOps(const TypeId& type_id) c
 {
     return operators.Find(type_id);
 }
-} // namespace se::ecs
+} // namespace se

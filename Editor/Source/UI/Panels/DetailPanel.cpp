@@ -51,7 +51,7 @@ void DetailPanel::DrawContent()
     }
 
     const Entity entity = selection.GetPrimarySelectedEntity().Value();
-    ecs::World* world = world_subsystem->GetWorld();
+    World* world = world_subsystem->GetWorld();
 
     // 선택된 Entity가 바뀌면 Rotation 캐시 초기화
     if (last_selected_entity != entity)
@@ -84,9 +84,9 @@ void DetailPanel::DrawContent()
         ImGui::Separator();
 
         usize found_count = 0;
-        for (const TypeId& type_id : ecs::ComponentRegistry::Get().GetOperators() | std::views::keys)
+        for (const TypeId& type_id : ComponentRegistry::Get().GetOperators() | std::views::keys)
         {
-            ecs::IStorage* storage = world->GetStorage(type_id);
+            IStorage* storage = world->GetStorage(type_id);
             if (!storage)
             {
                 continue;
@@ -126,9 +126,9 @@ void DetailPanel::DrawContent()
     }
 
     TypeId component_to_remove;
-    for (const auto& [component_type, component_ops] : ecs::ComponentRegistry::Get().GetOperators())
+    for (const auto& [component_type, component_ops] : ComponentRegistry::Get().GetOperators())
     {
-        const ecs::IStorage* storage = world->GetStorage(component_type);
+        const IStorage* storage = world->GetStorage(component_type);
 
         // Entity가 가지고 있지 않은 Component는 건너뜀
         if (!(storage && storage->Contains(entity)))
@@ -208,7 +208,7 @@ void DetailPanel::DrawContent()
     // 컴포넌트 삭제 처리 (순회 완료 후)
     if (component_to_remove.IsValid())
     {
-        if (const Optional ops = ecs::ComponentRegistry::Get().GetOps(component_to_remove))
+        if (const Optional ops = ComponentRegistry::Get().GetOps(component_to_remove))
         {
             ops->remove_component(*world, entity);
         }
