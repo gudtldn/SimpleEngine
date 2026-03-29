@@ -258,19 +258,17 @@ ECoordinateSpace EditorViewportSubsystem::GetViewportCoordinateSpace(const Strin
 
 Optional<const EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const StringName& viewport_id) const
 {
-    if (const auto state = viewports.Find(viewport_id))
+    return viewports.Find(viewport_id).Map([](const ViewportState& state) -> const EditorCameraState&
     {
-        return state->camera;
-    }
-    return {};
+        return state.camera;
+    });
 }
 
 Optional<EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const StringName& viewport_id)
 {
-    if (const auto state = viewports.Find(viewport_id))
+    return viewports.Find(viewport_id).Map([](ViewportState& state) -> EditorCameraState&
     {
-        return state->camera;
-    }
-    return {};
+        return state.camera;
+    });
 }
 } // namespace se::editor
