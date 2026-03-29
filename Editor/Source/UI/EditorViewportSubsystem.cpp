@@ -9,6 +9,8 @@
 
 #include "imgui.h"
 
+#include <ranges>
+
 
 namespace se::editor
 {
@@ -130,7 +132,7 @@ void EditorViewportSubsystem::Update(float delta_time)
     DrawDebugWorldAxes();
 
     // 모든 뷰포트의 render_view에 최신 카메라 행렬을 반영
-    for (auto& [id, state] : viewports)
+    for (ViewportState& state : viewports | std::views::values)
     {
         if (state.render_view.width == 0 || state.render_view.height == 0)
         {
@@ -140,8 +142,17 @@ void EditorViewportSubsystem::Update(float delta_time)
         const Vector3 target = state.camera.position + state.camera.rotation.GetForwardVector();
         const double aspect = static_cast<double>(state.render_view.width) / static_cast<double>(state.render_view.height);
 
-        state.render_view.view_matrix = TransformUtility::MakeViewMatrix(state.camera.position, target, Vector3::Up());
-        state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(Radian{ state.camera.fov_y }, aspect, state.camera.near_plane, state.camera.far_plane);
+        state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
+            state.camera.position,
+            target,
+            Vector3::Up()
+        );
+        state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(
+            Radian{ state.camera.fov_y },
+            aspect,
+            state.camera.near_plane,
+            state.camera.far_plane
+        );
         state.render_view.near_plane = static_cast<float>(state.camera.near_plane);
         state.render_view.far_plane = static_cast<float>(state.camera.far_plane);
     }
