@@ -108,7 +108,7 @@ public:
             }, iteration_source);
 
             // FetchTypes에 명시된 컴포넌트들을 월드에서 가져와 튜플로 묶어 반환
-            return WithUnpackedTypes<value_type>([world, entity]<typename... FetchComps>
+            return traits::ApplyTypes<value_type>([world, entity]<typename... FetchComps>
             {
                 return value_type{ GetComponentHelper<FetchComps>(world, entity)... };
             });
@@ -218,7 +218,7 @@ Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::Get(Entity entity)
     if (query_data.IsEntityValid(entity))
     {
         World* world = query_data.GetWorld();
-        return WithUnpackedTypes<FetchTypes>([world, entity]<typename... FetchComps>
+        return traits::ApplyTypes<FetchTypes>([world, entity]<typename... FetchComps>
         {
             return FetchTypes{ GetComponentHelper<FetchComps>(world, entity)... };
         });

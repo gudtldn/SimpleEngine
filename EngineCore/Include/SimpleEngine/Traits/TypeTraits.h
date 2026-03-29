@@ -24,26 +24,8 @@ namespace detail
 template <typename T, typename... Us>
 constexpr usize CountOccurrences = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
 
-template <typename Tuple, template <typename...> typename MapType>
-struct TupleMapImpl;
-
-template <template <typename...> typename TupleLike, template <typename...> typename MapType, typename... Ts>
-struct TupleMapImpl<TupleLike<Ts...>, MapType>
-{
-    using Type = TupleLike<MapType<Ts>...>;
-};
-
-template <typename Tuple1, typename Tuple2>
-struct IsDisjointImpl;
-
-template <template <typename...> typename TupleLike1, template <typename...> typename TupleLike2, typename... Ts1, typename... Ts2>
-struct IsDisjointImpl<TupleLike1<Ts1...>, TupleLike2<Ts2...>>
-{
-    static constexpr bool Value = (!IsAnyOfDecayed<Ts1, Ts2...> && ...);
-};
-
 template <typename T>
-struct PassTypeImpl
+struct ParamTypeImpl
 {
     static constexpr bool USE_VALUE =
         (sizeof(T) <= sizeof(void*)) && std::is_trivially_copyable_v<T>;
@@ -52,41 +34,24 @@ struct PassTypeImpl
 };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T, T>; };
+struct CopyConstImpl { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T, T>; };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl<Self, T*> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T*, T*>; };
+struct CopyConstImpl<Self, T*> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T*, T*>; };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl<Self, T&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&, T&>; };
+struct CopyConstImpl<Self, T&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&, T&>; };
 
 template <typename Self, typename T>
-struct DeduceRetTypeImpl<Self, T&&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&&, T&&>; };
+struct CopyConstImpl<Self, T&&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&&, T&&>; };
 }  // namespace detail
 
-// Ts...중에 중복된 타입이 존재하는지 확인
+// Ts...중에 중복된 타입이 존재하는지 확인합니다.
 template <typename... Ts>
-concept UniqueTypes = ((detail::CountOccurrences<Ts, Ts...> == 1) && ...);
-
-template <typename Tuple>
-struct TupleHasUniqueTypesImpl;
-
-template <template <typename...> typename TupleLike, typename... Ts>
-struct TupleHasUniqueTypesImpl<TupleLike<Ts...>>
-{
-    static constexpr bool Value = UniqueTypes<Ts...>;
-};
-
-// TupleLike<Ts...>중에 중복된 타입이 존재하는지 확인
-template <typename Tuple>
-concept TupleHasUniqueTypes = TupleHasUniqueTypesImpl<Tuple>::Value;
-
-// Tuple의 내부 타입에 MapType을 적용시킴
-template <typename Tuple, template <typename...> typename MapType>
-using TupleMap = detail::TupleMapImpl<Tuple, MapType>::Type;
+concept UniqueTypePack = ((detail::CountOccurrences<Ts, Ts...> == 1) && ...);
 
 /**
- * Self (객체 매개변수)의 cv-qualifier (const/volatile) 상태를 기반으로 ReturnType의 최종 타입을 결정합니다.
+ * Self (객체 매개변수)의 const qualifier 상태를 기반으로 ReturnType의 최종 타입을 결정합니다.
  *
  * - Self가 const 객체이면, ReturnType에도 const를 적용합니다.
  * - ReturnType이 포인터일 경우, 포인터가 가리키는 대상에 const를 적용합니다 (예: const T*).
@@ -94,19 +59,19 @@ using TupleMap = detail::TupleMapImpl<Tuple, MapType>::Type;
  */
 template <typename Self, typename ReturnType>
     requires std::is_class_v<std::remove_reference_t<Self>>
-using DeduceRetType = detail::DeduceRetTypeImpl<Self, ReturnType>::Type;
+using CopyConst = detail::CopyConstImpl<Self, ReturnType>::Type;
 
 /**
- * 타입 T에 대한 최적의 전달(Pass) 방식을 결정합니다.
+ * 타입 T에 대한 최적의 전달 방식을 결정합니다.
  * - 크기가 포인터 이하이고 복사 비용이 저렴한 경우: T
  * - 그 외의 경우 (큰 객체, 복잡한 클래스 등): const T&
  */
 template <typename T>
-using PassType = detail::PassTypeImpl<T>::Type;
+using ParamType = detail::ParamTypeImpl<T>::Type;
 
 // 함수인지 확인하는 TypeTrait
 template <typename T>
-concept IsFunctionType = requires
+concept FunctionType = requires
 {
     typename FunctionTraits<T>::Signature;
     typename FunctionTraits<T>::ReturnType;
@@ -121,15 +86,9 @@ concept IsSpecializationOf = requires
     }(std::declval<T>());
 };
 
-/**
- * 두 개의 Tuple-like 타입이 서로소 집합인지, 즉 겹치는 멤버 타입을 하나도 가지지 않는지 확인
- */
-template <typename Tuple1, typename Tuple2>
-concept IsDisjoint = detail::IsDisjointImpl<Tuple1, Tuple2>::Value;
-
 // Ord 연산자가 구현되어 있는 타입
 template <typename T>
-concept OrderableType = requires(const T& a, const T& b)
+concept Orderable = requires(const T& a, const T& b)
 {
     { a < b } -> std::convertible_to<bool>;
     { a <= b } -> std::convertible_to<bool>;
@@ -139,7 +98,7 @@ concept OrderableType = requires(const T& a, const T& b)
 
 // Eq 연산자가 구현되어 있는 타입
 template <typename T>
-concept ComparableType = requires(const T& a, const T& b)
+concept Comparable = requires(const T& a, const T& b)
 {
     { a == b } -> std::convertible_to<bool>;
     { a != b } -> std::convertible_to<bool>;

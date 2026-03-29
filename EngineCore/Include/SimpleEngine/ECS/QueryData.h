@@ -3,9 +3,10 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/ECS/IStorage.h"
+#include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/Traits/TupleTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
-#include "SimpleEngine/Utility/TypeUtils.h"
 
 #include <concepts>
 #include <tuple>
@@ -15,78 +16,35 @@
 namespace se
 {
 /**
- * 쿼리 결과에 반드시 포함되어야 하는 Component를 지정하는 FilterTag
- * @tparam ComponentTypes 필터링할 Component 타입들
- */
-template <typename... ComponentTypes>
-struct With
-{
-    using Types = std::tuple<ComponentTypes...>;
-};
-
-/**
- * 쿼리 결과에서 반드시 제외되어야 하는 Component를 지정하는 FilterTag
- * @tparam ComponentTypes 필터링할 Component 타입들
- */
-template <typename... ComponentTypes>
-struct Without
-{
-    using Types = std::tuple<ComponentTypes...>;
-};
-
-/**
  * 쿼리 파라미터 파싱을 위한 내부 메타프로그래밍 유틸리티
  */
 namespace detail
 {
-template <typename T, template <typename...> typename... Ts>
-concept IsSpecializationTypes = (traits::IsSpecializationOf<T, Ts> || ...);
-
-// 타입 T가 FilterTag인지 확인하는 Concept
-template <typename T>
-concept IsFetchTag = !IsSpecializationTypes<T, With, Without>;
-
-// Optional이나 Entity가 아닌 필수 컴포넌트인지 확인하는 Concept
-template <typename T>
-concept IsRequiredComponent = IsFetchTag<T> && !(traits::IsSpecializationOf<T, Optional> || std::same_as<T, Entity>);
-
-// 조건 태그(CondFetchTag 등)를 사용하여 타입 목록에서 특정 타입들을 추출
+// 조건 태그를 사용하여 타입 목록에서 특정 타입들을 추출합니다.
 template <template <typename> typename ConditionTag, typename... Ts>
     requires requires { (ConditionTag<Ts>::Value, ...); }
-using ExtractTypes = TupleCat<
+using FilterTypes = traits::TupleCat<
     std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
 >;
 
 template <template <typename...> typename ConditionTag, typename... Ts>
-using FlattenTypes = FlattenTuple<ExtractTypes<ConditionTag, Ts...>>;
+using FlatFilterTypes = traits::FlattenTuple<FilterTypes<ConditionTag, Ts...>>;
 
-// 타입 필터링을 위한 조건 태그 정의
+// 가져올 컴포넌트인지 확인 (FilterTag가 아닌 것)
 template <typename T>
-struct CondFetchTag { static constexpr bool Value = IsFetchTag<T>; }; // 가져올 컴포넌트
+struct FetchTypePred { static constexpr bool Value = IsFetchTag<T>; };
 
+// 검사할 컴포넌트인지 확인 (필수 컴포넌트)
 template <typename T>
-struct CondPredicateTag { static constexpr bool Value = IsRequiredComponent<T>; }; // 검사할 컴포넌트
+struct RequiredComponentPred { static constexpr bool Value = IsRequiredComponent<T>; };
 
+// With<...> 태그인지 확인
 template <typename T>
-struct CondWithTag { static constexpr bool Value = traits::IsSpecializationOf<T, With>; }; // With<...> 태그
+struct WithTagPred { static constexpr bool Value = traits::IsSpecializationOf<T, With>; };
 
+// Without<...> 태그인지 확인
 template <typename T>
-struct CondWithoutTag { static constexpr bool Value = traits::IsSpecializationOf<T, Without>; }; // Without<...> 태그
-
-template <typename T>
-struct RemoveOptionalImpl
-{
-    using Type = T;
-};
-
-template <typename T>
-struct RemoveOptionalImpl<Optional<T>>
-{
-    using Type = T;
-};
-
-template <typename T>
-using RemoveOptional = RemoveOptionalImpl<T>::Type;
+struct WithoutTagPred { static constexpr bool Value = traits::IsSpecializationOf<T, Without>; };
 } // namespace detail
 
 /**
@@ -98,12 +56,12 @@ class QueryData
 {
 public:
     // 템플릿 인자들을 분석하여 가져올(Fetch), 포함할(With), 제외할(Without) 타입으로 분류
-    using FetchTypes = detail::ExtractTypes<detail::CondFetchTag, Ts...>;
-    using WithTypes = detail::FlattenTypes<detail::CondWithTag, Ts...>;
-    using WithoutTypes = detail::FlattenTypes<detail::CondWithoutTag, Ts...>;
+    using FetchTypes = detail::FilterTypes<detail::FetchTypePred, Ts...>;
+    using WithTypes = detail::FlatFilterTypes<detail::WithTagPred, Ts...>;
+    using WithoutTypes = detail::FlatFilterTypes<detail::WithoutTagPred, Ts...>;
 
     // 실제 Query 검증에 사용되는 타입들
-    using PredicateTypes = TupleCat<detail::FlattenTypes<detail::CondPredicateTag, Ts...>, WithTypes>;
+    using PredicateTypes = traits::TupleCat<detail::FlatFilterTypes<detail::RequiredComponentPred, Ts...>, WithTypes>;
 
 public:
     explicit QueryData(World* in_world);
@@ -131,7 +89,7 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
 {
     // Fetch(Optional<T> 제외)와 With 목록의 모든 컴포넌트를 가졌는지 확인
     const bool has_all_required =
-        WithUnpackedTypes<PredicateTypes>([this, entity]<typename... PredComps>
+        traits::ApplyTypes<PredicateTypes>([this, entity]<typename... PredComps>
         {
             return (world->HasComponent<std::decay_t<PredComps>>(entity) && ...);
         });
@@ -143,7 +101,7 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
 
     // Without 목록의 컴포넌트를 하나라도 가졌는지 확인
     const bool has_any_excluded =
-        WithUnpackedTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
+        traits::ApplyTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
         {
             return (world->HasComponent<std::decay_t<WithoutComps>>(entity) || ...);
         });
@@ -163,7 +121,7 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
 
     // 각 컴포넌트 스토리지 포인터를 배열에 수집
     const auto pools =
-        WithUnpackedTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<IStorage*, pool_size>
+        traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<IStorage*, pool_size>
         {
             return {
                 world->GetIStorage<std::decay_t<PredComps>>()...

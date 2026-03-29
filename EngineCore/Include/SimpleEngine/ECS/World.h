@@ -29,7 +29,7 @@ class Query;
 namespace detail
 {
 template <typename Fn>
-concept SystemFuncType = traits::IsFunctionType<Fn>
+concept SystemFunctionType = traits::FunctionType<Fn>
     && std::is_void_v<typename traits::FunctionTraits<Fn>::ReturnType>;
 }
 
@@ -108,14 +108,14 @@ public:
 
     /** Entity에서 ComponentType에 맞는 Component를 참조로 가져옵니다. */
     template <typename ComponentType, typename Self>
-    auto GetComponent(this Self&& self, Entity entity) -> traits::DeduceRetType<Self, ComponentType&>
+    traits::CopyConst<Self, ComponentType&> GetComponent(this Self&& self, Entity entity)
     {
         return self.template GetStorage<ComponentType>()->Get(entity);
     }
 
     /** Entity에서 ComponentType에 맞는 Component를 Optional로 가져옵니다. */
     template <typename ComponentType, typename Self>
-    auto TryGetComponent(this Self&& self, Entity entity) -> Optional<traits::DeduceRetType<Self, ComponentType&>>
+    Optional<traits::CopyConst<Self, ComponentType&>> TryGetComponent(this Self&& self, Entity entity)
     {
         if (const auto opt_storage = self.template GetStorage<ComponentType>())
         {
@@ -141,14 +141,14 @@ public:
      * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
      * @tparam Fn 시스템으로 등록할 함수 또는 람다
      */
-    template <PhaseType S, detail::SystemFuncType Fn>
+    template <PhaseType S, detail::SystemFunctionType Fn>
     void AddSystem(Fn&& system_func)
     {
         const auto type_id = TypeId::Get<S>();
         systems[type_id].Push([this, sys_func = std::forward<Fn>(system_func)] mutable
         {
             using F = traits::FunctionTraits<Fn>;
-            std::tuple tuple = WithUnpackedTypes<typename F::ArgumentTypes>([this]<typename... Ts>
+            std::tuple tuple = traits::ApplyTypes<typename F::ArgumentTypes>([this]<typename... Ts>
             {
                 return std::make_tuple(CreateSystemParam<Ts>()...);
             });
@@ -234,19 +234,19 @@ private:
     }
 
     template <typename ComponentType, typename Self>
-    Optional<traits::DeduceRetType<Self, SparseSet<std::decay_t<ComponentType>>&>> GetStorage(this Self&& self)
+    Optional<traits::CopyConst<Self, SparseSet<std::decay_t<ComponentType>>&>> GetStorage(this Self&& self)
     {
         using RawType = std::decay_t<ComponentType>;
-        if (traits::DeduceRetType<Self, IStorage*> storage = self.template GetIStorage<RawType>())
+        if (traits::CopyConst<Self, IStorage*> storage = self.template GetIStorage<RawType>())
         {
-            return static_cast<traits::DeduceRetType<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
+            return static_cast<traits::CopyConst<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
         }
         return NullOpt;
     }
 
     /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
     template <typename ComponentType, typename Self>
-    traits::DeduceRetType<Self, IStorage*> GetIStorage(this Self&& self)
+    traits::CopyConst<Self, IStorage*> GetIStorage(this Self&& self)
     {
         using RawType = std::decay_t<ComponentType>;
 

@@ -74,9 +74,9 @@ class SE_EDITOR_API AttributeStorage
 public:
     /** 지정된 키에 해당하는 속성값을 가져옵니다. */
     template <typename T>
-    [[nodiscard]] Optional<traits::PassType<T>> GetAttribute(const AttributeKey& key) const
+    [[nodiscard]] Optional<traits::ParamType<T>> GetAttribute(const AttributeKey& key) const
     {
-        using ReturnType = traits::PassType<T>;
+        using ReturnType = traits::ParamType<T>;
         return attributes.Find(key).AndThen([](const AttributeValue& attr) -> Optional<ReturnType>
         {
             return std::visit([]<typename Arg>(const Arg& arg) -> Optional<ReturnType>

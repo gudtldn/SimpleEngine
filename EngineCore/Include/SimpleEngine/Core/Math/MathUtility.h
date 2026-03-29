@@ -72,7 +72,7 @@ constexpr T Sqrt(T x)
     for (usize i = 0; i < 20; ++i)
     {
         prev = curr;
-        curr = T(0.5) * (curr + x / curr);
+        curr = T(0.5) * (curr + (x / curr));
         if (AbsImpl(curr - prev) <= std::numeric_limits<T>::epsilon())
         {
             break;
@@ -165,28 +165,28 @@ constexpr T RoundImpl(T x)
 
 
 /** 두 값중에 더 작은 값을 반환합니다. */
-template <traits::OrderableType T>
+template <traits::Orderable T>
 [[nodiscard]] static constexpr const T& Min(const T& a, const T& b)
 {
     return a < b ? a : b; // NOLINT(*-return-const-ref-from-parameter)
 }
 
 /** 두 값중에 더 큰 값을 반환합니다. */
-template <traits::OrderableType T>
+template <traits::Orderable T>
 [[nodiscard]] static constexpr const T& Max(const T& a, const T& b)
 {
     return a < b ? b : a; // NOLINT(*-return-const-ref-from-parameter)
 }
 
 /** value를 min과 max의 사이의 값으로 제한합니다. */
-template <traits::OrderableType T>
+template <traits::Orderable T>
 [[nodiscard]] static constexpr const T& Clamp(const T& value, const T& min_value, const T& max_value)
 {
     return Max(Min(value, max_value), min_value);
 }
 
 /** value의 절댓값을 구합니다. */
-template <traits::OrderableType T>
+template <traits::Orderable T>
 [[nodiscard]] static constexpr T Abs(const T value)
 {
     return value < T{ 0 } ? -value : value;

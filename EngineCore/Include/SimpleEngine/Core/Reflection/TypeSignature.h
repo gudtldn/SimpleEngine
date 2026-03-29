@@ -201,7 +201,7 @@ template <typename T>
  * @tparam T 타입 이름을 추출할 대상 타입
  */
 template <typename T>
-    requires (!se::traits::IsFunctionType<T>)
+    requires (!se::traits::FunctionType<T>)
 [[nodiscard]] consteval StringView GetFullTypeName() noexcept
 {
     using CleanType = detail::UnwrapType<T>;
@@ -225,7 +225,7 @@ template <typename T>
  * @tparam T 타입 이름을 추출할 대상 타입
  */
 template <typename T>
-    requires (!se::traits::IsFunctionType<T>)
+    requires (!se::traits::FunctionType<T>)
 [[nodiscard]] consteval StringView GetTypeName() noexcept
 {
     // TODO: traits::IsTemplateInstance<T> 만들어야 함

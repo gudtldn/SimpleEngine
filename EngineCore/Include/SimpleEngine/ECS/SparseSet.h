@@ -109,7 +109,7 @@ public:
 
     /** Entity의 Component를 가져오려고 시도합니다. */
     template <typename Self>
-    [[nodiscard]] auto Find(this Self&& self, Entity entity) -> Optional<traits::DeduceRetType<Self, ComponentType&>>
+    [[nodiscard]] Optional<traits::CopyConst<Self, ComponentType&>> Find(this Self&& self, Entity entity)
     {
         if (self.Contains(entity))
         {
@@ -123,7 +123,7 @@ public:
      * @note 존재하지 않는 entity의 경우 Assert
      */
     template <typename Self>
-    [[nodiscard]] auto Get(this Self&& self, Entity entity) -> traits::DeduceRetType<Self, ComponentType&>
+    [[nodiscard]] traits::CopyConst<Self, ComponentType&> Get(this Self&& self, Entity entity)
     {
         auto opt_value = self.Find(entity);
         SE_ASSERT(opt_value, "Entity does not exist");

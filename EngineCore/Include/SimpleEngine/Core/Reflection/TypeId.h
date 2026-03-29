@@ -22,7 +22,7 @@ public:
     template <typename T>
     [[nodiscard]] constexpr static TypeId Get()
     {
-        if constexpr (traits::IsFunctionType<T>)
+        if constexpr (traits::FunctionType<T>)
         {
             constexpr auto signature = GetRawTypeName<T>();
             return TypeId{ signature, signature };

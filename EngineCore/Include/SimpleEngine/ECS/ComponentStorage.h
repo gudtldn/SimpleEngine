@@ -70,7 +70,7 @@ public:
     //~End IStorage
 
     template <typename Self>
-    [[nodiscard]] traits::DeduceRetType<Self, SparseSet<ComponentType>&> GetStorage(this Self&& self)
+    [[nodiscard]] traits::CopyConst<Self, SparseSet<ComponentType>&> GetStorage(this Self&& self)
     {
         return self.storage;
     }
