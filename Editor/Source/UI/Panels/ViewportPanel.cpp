@@ -25,6 +25,13 @@ void ViewportPanel::Draw()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin(GetName(), &is_visible);
+
+    // 우클릭 시 ImGui 포커스를 명시적으로 이 창으로 이동
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+        ImGui::SetWindowFocus();
+    }
+
     is_focused = ImGui::IsWindowFocused();
     is_hovered = ImGui::IsWindowHovered();
     {
