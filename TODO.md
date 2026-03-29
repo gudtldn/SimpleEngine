@@ -4,7 +4,6 @@
   - 이렇게 하면 Window별로 Rendering을 다르게할 수 있음
   - 윈도우별 DrawData 구현 (비슷한 내용)
 
-- [ ] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
 - [ ] RenderGraph에 Resource Extract 로직 추가
   - Extract를 하면 ResourcePool에서 std::unique_ptr<ExtractedResource>로 소유권을 넘겨서 반환
   - ExtractedResource가 소멸하면 다시 Pool로 반납
@@ -32,9 +31,6 @@
   - `using AssertHandlerType = void(*)(const std::source_location& loc, std::string_view expr, std::string_view msg);`
   - 이런식으로 핸들러를 등록해서, Assert는 Dispatch만 하고
   - 핸들러를 등록할 때, 재귀를 방지하기 위해서 `thread_local bool is_asserting = false;`이런거 사용
-
-- [ ] 나중에 I18n을 지원할 때, ICU4X도 한번 검토하기
-  - ICU4X를 링크하려면 rust compiler가 필요한데, 엔진에서 진짜 필요한지 봐야할 듯.
 
 - [ ] ConfigFile 나머지 할 일
   - [ ] Config 변경 알림 시스템 (Observer 패턴 — Save 시 다른 패널에 자동 반영)
@@ -82,3 +78,6 @@
 - [x] InputSubsystemSystem 구현
 - [x] PlatformEventDispatcher 리펙토링
 - [x] 나중에 Thread-Safe해야하는 로직 확인하기
+- [x] 나중에 I18n을 지원할 때, ICU4X도 한번 검토하기
+  - ICU4X를 링크하려면 rust compiler가 필요한데, 엔진에서 진짜 필요한지 봐야할 듯.
+- [x] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
