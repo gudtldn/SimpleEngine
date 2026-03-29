@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Graphics/View/ViewSettings.h"
 
 
 namespace se::graphics
@@ -19,5 +20,8 @@ struct RenderView
 
     float near_plane = 0.1f;
     float far_plane = 1000.0f;
+
+    ERenderingMode rendering_mode = ERenderingMode::Lit;
+    ShowFlags show_flags = EShowFlag::All;
 };
 } // namespace se::graphics

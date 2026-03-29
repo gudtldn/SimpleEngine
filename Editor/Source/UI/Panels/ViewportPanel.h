@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/UI/IEditorPanel.h"
 #include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Graphics/View/ViewSettings.h"
 
 
 namespace se::editor
@@ -41,5 +42,8 @@ private:
     // 툴바 상태
     EGizmoMode gizmo_mode = EGizmoMode::Translate;
     ECoordinateSpace coordinate_space = ECoordinateSpace::World;
+
+    graphics::ERenderingMode rendering_mode = graphics::ERenderingMode::Lit;
+    graphics::ShowFlags show_flags = graphics::ShowFlags{ graphics::EShowFlag::All };
 };
 } // namespace se::editor

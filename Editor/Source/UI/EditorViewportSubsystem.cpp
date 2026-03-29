@@ -190,6 +190,22 @@ void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id,
     }
 }
 
+void EditorViewportSubsystem::UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags)
+{
+    if (const Optional data = viewport_data.Find(viewport_id))
+    {
+        data->render_view.show_flags = flags;
+    }
+}
+
+void EditorViewportSubsystem::UpdateViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode)
+{
+    if (const Optional data = viewport_data.Find(viewport_id))
+    {
+        data->render_view.rendering_mode = mode;
+    }
+}
+
 void* EditorViewportSubsystem::GetViewportTextureID(const StringName& viewport_id) const
 {
     if (const Optional data_opt = viewport_data.Find(viewport_id))

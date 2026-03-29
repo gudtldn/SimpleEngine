@@ -58,6 +58,12 @@ public:
     /** 뷰포트의 ImGui 포커스/호버 상태를 갱신합니다. */
     void UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered);
 
+    /** 뷰포트의 ShowFlags를 갱신합니다. */
+    void UpdateViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags);
+
+    /** 뷰포트의 RenderingMode를 갱신합니다. */
+    void UpdateViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode);
+
     /** ImGui로 렌더링하기 위한 TextureID(void*)를 반환합니다. */
     [[nodiscard]] void* GetViewportTextureID(const StringName& viewport_id) const;
 

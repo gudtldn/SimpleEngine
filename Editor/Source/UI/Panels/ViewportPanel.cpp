@@ -37,6 +37,8 @@ void ViewportPanel::Draw()
 
             // 화면 크기 업데이트
             viewport_sys->UpdateViewportSize(viewport_id, width, height);
+            viewport_sys->UpdateViewportRenderingMode(viewport_id, rendering_mode);
+            viewport_sys->UpdateViewportShowFlags(viewport_id, show_flags);
 
             if (void* texture_to_draw = viewport_sys->GetViewportTextureID(viewport_id))
             {
@@ -89,14 +91,6 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
     // 뷰포트별 고유 ID (Main/Sub 뷰포트 위젯 ID 충돌 방지)
     ImGui::PushID(viewport_id.CStr());
 
-    // 세로 구분선 헬퍼
-    auto vertical_separator = []
-    {
-        ImGui::SameLine(0, 6.0f);
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine(0, 6.0f);
-    };
-
     // === 왼쪽 영역: 기즈모 모드 + 좌표계 ===
     ImGui::SetCursorScreenPos({ content_min.x + PADDING, content_min.y + PADDING });
 
@@ -112,7 +106,7 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
             gizmo_mode = mode;
         }
 
-        if(ImGui::IsItemHovered())
+        if (ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
             ImGui::TextUnformatted(tooltip);
@@ -130,7 +124,9 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
     gizmo_button("R", "Rotate", EGizmoMode::Rotate);
     gizmo_button("S", "Scale", EGizmoMode::Scale);
 
-    vertical_separator();
+    ImGui::SameLine(0, 6.0f);
+    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine(0, 6.0f);
 
     // 좌표계 토글
     const char* coord_label = (coordinate_space == ECoordinateSpace::World) ? "World" : "Local";
@@ -141,15 +137,30 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
             : ECoordinateSpace::World;
     }
 
-    // === 오른쪽 영역: 카메라 속도 ===
+    // === 오른쪽 영역: 카메라 속도 | 렌더링 모드 | Show 플래그 ===
     if (EditorViewportSubsystem* viewport_sys = GetSubsystem<EditorViewportSubsystem>())
     {
         if (const Optional<EditorCameraState&> camera = viewport_sys->GetViewportCamera(viewport_id))
         {
             constexpr float SPEED_WIDGET_WIDTH = 60.0f;
-            const ImVec2 cam_label_size = ImGui::CalcTextSize("Cam");
             constexpr float LABEL_SPACING = 4.0f;
-            const float right_width = cam_label_size.x + LABEL_SPACING + SPEED_WIDGET_WIDTH;
+            constexpr float SEP_WIDTH = 13.0f; // SameLine(6) + Separator(1) + SameLine(6)
+
+            auto rendering_mode_label = [](graphics::ERenderingMode mode) -> const char*
+            {
+                switch (mode)
+                {
+                case graphics::ERenderingMode::Lit:       return "Lit";
+                case graphics::ERenderingMode::Unlit:     return "Unlit";
+                case graphics::ERenderingMode::Wireframe: return "Wireframe";
+                default:                                  return "";
+                }
+            };
+
+            const ImVec2 cam_label_size = ImGui::CalcTextSize("Cam");
+            const float mode_btn_w = ImGui::CalcTextSize(rendering_mode_label(rendering_mode)).x + (ImGui::GetStyle().FramePadding.x * 2.0f);
+            const float show_btn_w = ImGui::CalcTextSize("Show").x + (ImGui::GetStyle().FramePadding.x * 2.0f);
+            const float right_width = cam_label_size.x + LABEL_SPACING + SPEED_WIDGET_WIDTH + SEP_WIDTH + mode_btn_w + SEP_WIDTH + show_btn_w;
 
             ImGui::SetCursorScreenPos({
                 toolbar_max.x - right_width - PADDING,
@@ -167,7 +178,59 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
                 camera->move_speed = static_cast<double>(speed);
             }
             ImGui::PopItemWidth();
+
+            ImGui::SameLine(0, 6.0f);
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine(0, 6.0f);
+
+            if (ImGui::Button(rendering_mode_label(rendering_mode), { 0, button_h }))
+            {
+                ImGui::OpenPopup("RenderingModePopup");
+            }
+
+            ImGui::SameLine(0, 6.0f);
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine(0, 6.0f);
+
+            if (ImGui::Button("Show", { 0, button_h }))
+            {
+                ImGui::OpenPopup("ShowFlagsPopup");
+            }
         }
+    }
+
+    if (ImGui::BeginPopup("RenderingModePopup"))
+    {
+        auto rendering_mode_item = [&](const char* label, graphics::ERenderingMode mode)
+        {
+            if (ImGui::Selectable(label, rendering_mode == mode))
+            {
+                rendering_mode = mode;
+            }
+        };
+
+        rendering_mode_item("Lit", graphics::ERenderingMode::Lit);
+        rendering_mode_item("Unlit", graphics::ERenderingMode::Unlit);
+        rendering_mode_item("Wireframe", graphics::ERenderingMode::Wireframe);
+
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("ShowFlagsPopup"))
+    {
+        auto show_flag_checkbox = [&](const char* label, graphics::EShowFlag flag)
+        {
+            bool checked = show_flags.IsSet(flag);
+            if (ImGui::Checkbox(label, &checked))
+            {
+                show_flags.Toggle(flag);
+            }
+        };
+
+        show_flag_checkbox("Grid", graphics::EShowFlag::Grid);
+        show_flag_checkbox("AABB", graphics::EShowFlag::AABB);
+
+        ImGui::EndPopup();
     }
 
     ImGui::PopID();
