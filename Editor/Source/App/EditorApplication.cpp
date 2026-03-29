@@ -3,7 +3,6 @@
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
 #include "Graphics/EditorUIPass.h"
 #include "Graphics/Compiler/Provider.h"
-#include "SimpleEditor/Camera/EditorCameraState.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
@@ -172,28 +171,21 @@ void EditorApplication::Render()
             Array<graphics::RGTextureHandle> viewport_color_handles;
             viewport_color_handles.Reserve(viewport_subsystem.GetViewports().Len());
 
-            for (const auto& [viewport_id, info] : viewport_subsystem.GetViewports())
+            for (const auto& [viewport_id, state] : viewport_subsystem.GetViewports())
             {
                 if (ui_subsystem.GetPanel(viewport_id)->IsVisible())
                 {
-                    if (const auto tex_resource = render_subsystem->GetRenderDevice().GetTexture(info.color_texture))
+                    if (const auto tex_resource = render_subsystem->GetRenderDevice().GetTexture(state.color_texture))
                     {
-                        // 최신 카메라 상태 + 최신 뷰포트 크기로 RenderView를 계산
-                        const auto camera_opt = viewport_subsystem.GetViewportCamera(viewport_id);
-                        if (!camera_opt.HasValue())
-                        {
-                            continue;
-                        }
-                        const se::graphics::RenderView& render_view =
-                            frame_packet.render_views.Emplace(camera_opt->ComputeRenderView(info.render_view.width, info.render_view.height));
+                        const se::graphics::RenderView& render_view = frame_packet.render_views.Emplace(state.render_view);
 
                         // ColorTarget Handle 생성
                         const se::graphics::RGTextureHandle color_handle =
-                            builder.ImportTexture(info.color_target_name, tex_resource->handle);
+                            builder.ImportTexture(state.color_target_name, tex_resource->handle);
 
                         // DepthTarget Handle 생성
                         const se::graphics::RGTextureHandle depth_handle =
-                            builder.CreateTexture(info.depth_target_name, {
+                            builder.CreateTexture(state.depth_target_name, {
                                 .type = SDL_GPU_TEXTURETYPE_2D,
                                 .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
                                 .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,

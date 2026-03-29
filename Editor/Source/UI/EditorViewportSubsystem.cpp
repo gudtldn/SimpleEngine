@@ -1,6 +1,7 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
+#include "SimpleEngine/Core/Math/TransformUtility.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Debug/DebugDraw.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -127,6 +128,23 @@ void EditorViewportSubsystem::Update(float delta_time)
 
     // 월드 기준 좌표축을 매 프레임 그리기
     DrawDebugWorldAxes();
+
+    // 모든 뷰포트의 render_view에 최신 카메라 행렬을 반영
+    for (auto& [id, state] : viewports)
+    {
+        if (state.render_view.width == 0 || state.render_view.height == 0)
+        {
+            continue;
+        }
+
+        const Vector3 target = state.camera.position + state.camera.rotation.GetForwardVector();
+        const double aspect = static_cast<double>(state.render_view.width) / static_cast<double>(state.render_view.height);
+
+        state.render_view.view_matrix = TransformUtility::MakeViewMatrix(state.camera.position, target, Vector3::Up());
+        state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(Radian{ state.camera.fov_y }, aspect, state.camera.near_plane, state.camera.far_plane);
+        state.render_view.near_plane = static_cast<float>(state.camera.near_plane);
+        state.render_view.far_plane = static_cast<float>(state.camera.far_plane);
+    }
 }
 
 void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height)
@@ -217,12 +235,28 @@ void EditorViewportSubsystem::SetViewportGizmoMode(const StringName& viewport_id
     }
 }
 
+EGizmoMode EditorViewportSubsystem::GetViewportGizmoMode(const StringName& viewport_id) const
+{
+    return viewports.Find(viewport_id).Map([](const ViewportState& state)
+    {
+        return state.gizmo_mode;
+    }).ValueOr(EGizmoMode::Translate);
+}
+
 void EditorViewportSubsystem::SetViewportCoordinateSpace(const StringName& viewport_id, ECoordinateSpace space)
 {
     if (const auto state = viewports.Find(viewport_id))
     {
         state->coordinate_space = space;
     }
+}
+
+ECoordinateSpace EditorViewportSubsystem::GetViewportCoordinateSpace(const StringName& viewport_id) const
+{
+    return viewports.Find(viewport_id).Map([](const ViewportState& state)
+    {
+        return state.coordinate_space;
+    }).ValueOr(ECoordinateSpace::World);
 }
 
 void* EditorViewportSubsystem::GetViewportTextureID(const StringName& viewport_id) const
@@ -238,22 +272,6 @@ void* EditorViewportSubsystem::GetViewportTextureID(const StringName& viewport_i
         }
     }
     return nullptr;
-}
-
-EGizmoMode EditorViewportSubsystem::GetViewportGizmoMode(const StringName& viewport_id) const
-{
-    return viewports.Find(viewport_id).Map([](const ViewportState& state)
-    {
-        return state.gizmo_mode;
-    }).ValueOr(EGizmoMode::Translate);
-}
-
-ECoordinateSpace EditorViewportSubsystem::GetViewportCoordinateSpace(const StringName& viewport_id) const
-{
-    return viewports.Find(viewport_id).Map([](const ViewportState& state)
-    {
-        return state.coordinate_space;
-    }).ValueOr(ECoordinateSpace::World);
 }
 
 Optional<const EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const StringName& viewport_id) const

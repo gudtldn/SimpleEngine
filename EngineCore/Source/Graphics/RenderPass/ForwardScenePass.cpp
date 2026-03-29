@@ -88,7 +88,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         .clear_stencil = 0,
     };
 
-    SDL_GPUGraphicsPipeline* pipeline = [&context]
+    SDL_GPUGraphicsPipeline* pipeline = [this, &context]
     {
         // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
         static const Path VSPath = VFS::ToPath(VPath("CoreShader://Default.vert.hlsl"));
@@ -181,7 +181,9 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             },
 
             // 프리미티브(기본 도형) 타입 설정
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .primitive_type = render_view.rendering_mode == ERenderingMode::Wireframe
+                                  ? SDL_GPU_PRIMITIVETYPE_LINELIST
+                                  : SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 
             // 래스터라이저(Rasterizer) 상태 설정: 3D 모델을 2D 픽셀로 변환하는 방법을 제어
             .rasterizer_state = {

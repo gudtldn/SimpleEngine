@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/Graphics/View/RenderView.h"
 
 
 namespace se::editor
@@ -35,9 +34,6 @@ struct SE_ANNOTATION(=meta::EditorOnly) EditorCameraState
 
     SE_ANNOTATION(=meta::Property, =meta::Range(0.001f, 10.0f))
     double look_sensitivity = 0.15;
-
-    /** 현재 카메라 상태로부터 RenderView를 계산합니다. */
-    [[nodiscard]] graphics::RenderView ComputeRenderView(uint32 width, uint32 height) const;
 };
 } // namespace se::editor
 
