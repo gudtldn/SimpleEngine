@@ -289,7 +289,8 @@
 
   <!-- StringName -->
   <Type Name="se::StringName">
-    <DisplayString>{display_name,s8}</DisplayString>
+    <DisplayString Condition="display_name == nullptr">None</DisplayString>
+    <DisplayString Condition="display_name != nullptr">{display_name,s8}</DisplayString>
     <Expand>
       <Item Name="[display_name]">display_name</Item>
       <Item Name="[comparison_hash]">comparison_hash</Item>
