@@ -1,15 +1,15 @@
 #pragma once
-#include <array>
-#include <concepts>
-#include <tuple>
-#include <type_traits>
 
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Traits/TypeTraits.h"
-#include "SimpleEngine/Utility/TypeUtils.h"
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/ECS/SparseSet.h"
 #include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/TypeUtils.h"
+
+#include <concepts>
+#include <tuple>
+#include <type_traits>
 
 #define SE_DEFINE_TYPE_CONDITION_TAG(tag_name, condition) \
 template <typename T> \
@@ -151,12 +151,7 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
             return (world->HasComponent<std::decay_t<WithoutComps>>(entity) || ...);
         });
 
-    if (has_any_excluded)
-    {
-        return false;
-    }
-
-    return true;
+    return !has_any_excluded;
 }
 
 template <typename... Ts>
@@ -171,7 +166,7 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
 
     // 각 컴포넌트 스토리지 포인터를 배열에 수집
     const auto pools =
-        WithUnpackedTypes<PredicateTypes>([this]<typename... PredComps> -> std::array<IStorage*, pool_size>
+        WithUnpackedTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<IStorage*, pool_size>
         {
             return {
                 world->GetIStorage<std::decay_t<PredComps>>()...
@@ -187,6 +182,6 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
         return a->Length() < b->Length();
     });
 }
-}
+} // namespace se::ecs
 
 #undef SE_DEFINE_TYPE_CONDITION_TAG
