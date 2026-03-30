@@ -6,8 +6,6 @@ tags:
   - architecture
 작성 완료: false
 ---
-# 📦 Engine Life Cycle & Workflow
-
 ## 0. 전체적인 아키텍처 구조
 
 엔진은 크게 3개의 계층으로 작동된다.
