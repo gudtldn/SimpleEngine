@@ -73,8 +73,8 @@ using ParamType = detail::ParamTypeImpl<T>::Type;
 template <typename T>
 concept FunctionType = requires
 {
-    typename FunctionTraits<T>::Signature;
-    typename FunctionTraits<T>::ReturnType;
+    typename FunctionTraits<std::remove_cvref_t<T>>::Signature;
+    typename FunctionTraits<std::remove_cvref_t<T>>::ReturnType;
 };
 
 // T 타입의 객체를 PrimaryTemplate<Args...> 패턴에 매칭되는지 확인합니다.
