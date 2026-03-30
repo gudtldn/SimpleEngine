@@ -33,18 +33,18 @@ struct ParamTypeImpl
     using Type = std::conditional_t<USE_VALUE, T, const T&>;
 };
 
-template <typename Self, typename T>
-struct CopyConstImpl { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T, T>; };
+template <bool IsConst, typename T>
+struct CopyConstImpl { using Type = std::conditional_t<IsConst, const T, T>; };
 
-template <typename Self, typename T>
-struct CopyConstImpl<Self, T*> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T*, T*>; };
+template <bool IsConst, typename T>
+struct CopyConstImpl<IsConst, T*> { using Type = std::conditional_t<IsConst, const T*, T*>; };
 
-template <typename Self, typename T>
-struct CopyConstImpl<Self, T&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&, T&>; };
+template <bool IsConst, typename T>
+struct CopyConstImpl<IsConst, T&> { using Type = std::conditional_t<IsConst, const T&, T&>; };
 
-template <typename Self, typename T>
-struct CopyConstImpl<Self, T&&> { using Type = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const T&&, T&&>; };
-}  // namespace detail
+template <bool IsConst, typename T>
+struct CopyConstImpl<IsConst, T&&> { using Type = std::conditional_t<IsConst, const T&&, T&&>; };
+} // namespace detail
 
 // Ts...중에 중복된 타입이 존재하는지 확인합니다.
 template <typename... Ts>
@@ -59,7 +59,7 @@ concept UniqueTypePack = ((detail::CountOccurrences<Ts, Ts...> == 1) && ...);
  */
 template <typename Self, typename ReturnType>
     requires std::is_class_v<std::remove_reference_t<Self>>
-using CopyConst = detail::CopyConstImpl<Self, ReturnType>::Type;
+using CopyConst = detail::CopyConstImpl<std::is_const_v<std::remove_reference_t<Self>>, ReturnType>::Type;
 
 /**
  * 타입 T에 대한 최적의 전달 방식을 결정합니다.

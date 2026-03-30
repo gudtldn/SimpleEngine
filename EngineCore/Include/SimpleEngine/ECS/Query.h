@@ -254,7 +254,7 @@ decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
         );
 
         using DecayedT = std::decay_t<typename T::ValueType>;
-        using WorldType = std::conditional_t<std::is_const_v<typename T::ValueType>, const World*, World*>;
+        using WorldType = traits::CopyConst<typename T::ValueType, World*>;
 
         WorldType world_ptr = world;
         return world_ptr->template TryGetComponent<DecayedT>(entity);
