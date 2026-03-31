@@ -69,7 +69,7 @@ struct QueryValidator<TupleLike<ProcessedTs...>>
 template <typename... Ts>
 using ProcessedQueryTuple = traits::TupleMap<
     traits::FlattenTuple<std::tuple<Ts...>>,
-    std::decay_t
+    std::remove_cvref_t
 >;
 
 template <typename... Ts>
