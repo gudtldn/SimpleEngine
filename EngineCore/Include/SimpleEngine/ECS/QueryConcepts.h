@@ -67,16 +67,15 @@ struct QueryValidator<TupleLike<ProcessedTs...>>
 };
 
 template <typename... Ts>
-consteval bool ValidateQueryPack()
-{
-    using RawTuple = std::tuple<Ts...>;
-    using FlattenedTuple = traits::FlattenTuple<RawTuple>;
-    using ProcessedTuple = traits::TupleMap<FlattenedTuple, std::decay_t>;
+using ProcessedQueryTuple = traits::TupleMap<
+    traits::FlattenTuple<std::tuple<Ts...>>,
+    std::decay_t
+>;
 
-    return QueryValidator<ProcessedTuple>::IsValidPack;
-}
+template <typename... Ts>
+constexpr bool IsValidQueryPack = QueryValidator<ProcessedQueryTuple<Ts...>>::IsValidPack;
 } // namespace detail
 
 template <typename... Ts>
-concept QueryParameterPack = detail::ValidateQueryPack();
+concept QueryParameterPack = detail::IsValidQueryPack<Ts...>;
 } // namespace se
