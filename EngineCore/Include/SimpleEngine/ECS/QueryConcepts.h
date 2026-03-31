@@ -41,25 +41,39 @@ concept IsFetchTag = !(traits::IsSpecializationOf<T, With> || traits::IsSpeciali
 template <typename T>
 concept IsRequiredComponent = IsFetchTag<T> && !(traits::IsSpecializationOf<T, Optional> || std::same_as<T, Entity>);
 
-template <typename TupleType>
-struct TupleContainsPointersImpl;
+template <typename... Ts>
+struct QueryValidator;
 
 template <
     template <typename...> typename TupleLike,
-    typename... Ts
+    typename... ProcessedTs
 >
-struct TupleContainsPointersImpl<TupleLike<Ts...>>
+struct QueryValidator<TupleLike<ProcessedTs...>>
 {
-    static constexpr bool Value = (std::is_pointer_v<Ts> || ...);
+    // 최소 1개 이상의 파라미터가 있는지
+    static constexpr bool HasElements = sizeof...(ProcessedTs) > 0;
+
+    // 모든 타입이 고유한지
+    static constexpr bool IsUnique = traits::TupleUniqueTypes<TupleLike<ProcessedTs...>>;
+
+    // 포인터 타입이 없는지
+    static constexpr bool NoPointers = !(std::is_pointer_v<ProcessedTs> || ...);
+
+    // 최종 결과
+    static constexpr bool IsValidPack = HasElements && IsUnique && NoPointers;
 };
 
-template <typename TupleType>
-concept TupleContainsPointers = TupleContainsPointersImpl<TupleType>::Value;
+template <typename... Ts>
+consteval bool ValidateQueryPack()
+{
+    using RawTuple = std::tuple<Ts...>;
+    using FlattenedTuple = traits::FlattenTuple<RawTuple>;
+    using ProcessedTuple = traits::TupleMap<FlattenedTuple, std::decay_t>;
+
+    return QueryValidator<ProcessedTuple>::IsValidPack;
+}
 } // namespace detail
 
 template <typename... Ts>
-concept QueryParameterPack =
-    sizeof...(Ts) > 0                                                                                           // Ts...의 개수는 1개 이상
-    && traits::TupleUniqueTypes<traits::FlattenTuple<std::tuple<Ts...>>>                                        // Ts...는 Unique 해야 함
-    && !detail::TupleContainsPointers<traits::TupleMap<traits::FlattenTuple<std::tuple<Ts...>>, std::decay_t>>; // Ts...에 포인터 타입이 들어오면 안됨
+concept QueryParameterPack = detail::ValidateQueryPack();
 } // namespace se
