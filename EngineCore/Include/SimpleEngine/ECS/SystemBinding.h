@@ -52,7 +52,7 @@ auto BindCallable(Fn&& func_obj) -> Function<typename traits::FunctionTraits<std
     {
         std::tuple tuple = traits::ApplyTypes<typename FnTrait::ArgumentTypes>([world]<typename... Ts>
         {
-            return std::make_tuple(SystemParamExtractor<Ts>::Fetch(world)...);
+            return std::make_tuple(SystemParamExtractor<std::remove_cvref_t<Ts>>::Fetch(world)...);
         });
         return std::apply(func, std::move(tuple));
     };
