@@ -21,7 +21,7 @@ protected:
 
 private:
     /** Entity를 트리 노드로 재귀적으로 그립니다. */
-    void DrawEntityNode(World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete);
+    void DrawEntityNode(World& world, EditorSelection& selection, Entity entity, Entity& entity_to_delete);
 
     /** 이름을 바꾸려는 Entity */
     Entity renaming_entity;

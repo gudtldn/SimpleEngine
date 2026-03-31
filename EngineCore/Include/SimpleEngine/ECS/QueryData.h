@@ -124,7 +124,7 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
         traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<IStorage*, pool_size>
         {
             return {
-                world->GetIStorage<std::decay_t<PredComps>>()...
+                world->FindRawStorage<std::decay_t<PredComps>>()...
             };
         });
 

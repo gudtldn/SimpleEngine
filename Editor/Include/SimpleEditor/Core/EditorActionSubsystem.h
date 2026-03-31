@@ -46,7 +46,7 @@ public:
     void DeleteSelectedEntities();
 
 private:
-    static void DeleteEntityRecursive(World* world, EditorSelection& selection, Entity entity);
+    static void DeleteEntityRecursive(World& world, EditorSelection& selection, Entity entity);
 
 private:
     InputSubsystem* input_subsystem = nullptr;

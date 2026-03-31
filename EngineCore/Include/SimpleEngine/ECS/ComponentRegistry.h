@@ -89,7 +89,7 @@ public:
         operators.Insert(type_id, ComponentOps{
             .ensure_storage = [](World& world) static -> IStorage*
             {
-                return &world.GetOrCreateStorageImpl<T>();
+                return world.GetOrCreateRawStorage<T>();
             },
             .add_component = [](World& world, Entity entity) static
             {

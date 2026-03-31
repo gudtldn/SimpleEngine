@@ -413,7 +413,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         return;
     }
 
-    World* world = &entity_subsystem->GetMainWorld().GetWorld();
+    World& world = entity_subsystem->GetMainWorld().GetWorld();
 
     // 파일에 등록된 에셋 중 StaticMesh 타입만 수집
     const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
@@ -436,7 +436,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
 
     if (mesh_ids.Len() == 1)
     {
-        world->SpawnEntity(
+        world.SpawnEntity(
             TransformComponent{},
             StaticMeshComponent{ .mesh_id = mesh_ids[0] },
             MaterialHandleComponent{}
@@ -445,13 +445,13 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
     else
     {
         // root entity (Transform + ChildrenComponent)
-        const Entity root = world->SpawnEntity(TransformComponent{});
+        const Entity root = world.SpawnEntity(TransformComponent{});
 
         // N child entities
         ChildrenComponent children_comp;
         for (const asset::AssetId& mesh_id : mesh_ids)
         {
-            const Entity child = world->SpawnEntity(
+            const Entity child = world.SpawnEntity(
                 TransformComponent{},
                 StaticMeshComponent{ .mesh_id = mesh_id },
                 MaterialHandleComponent{},
@@ -459,7 +459,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
             );
             children_comp.children.Push(child);
         }
-        world->AddComponent(root, std::move(children_comp));
+        world.AddComponent(root, std::move(children_comp));
     }
 
     ConsoleLog(ELogLevel::Info, "Spawned {} mesh entities from: {}", mesh_ids.Len(), *vpath);
