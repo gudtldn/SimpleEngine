@@ -78,16 +78,37 @@ struct QueryValidator<TupleLike<ProcessedTs...>>
     static constexpr bool IsValidPack = HasElements && IsUnique && NoPointers && AllValidComponents;
 };
 
+/**
+ * Query 타입을 Validator에서 사용할 수 있도록 정규화 합니다.
+ * 1. Query<..., Optional<T>, With<...>, WithOut<...>>에서 모든 Wrapper를 평탄화 합니다.
+ * 2. Query<Ts...>에서 모든 Ts에 대해서 std::remove_cvref_t를 적용합니다.
+ */
 template <typename... Ts>
 using ProcessedQueryTuple = traits::TupleMap<
     traits::FlattenTuple<std::tuple<Ts...>>,
     std::remove_cvref_t
 >;
 
+/** 단일 쿼리 파라미터가 원본 데이터를 수정하지 않는 읽기 전용 타입인지 확인합니다. */
+template <typename T>
+consteval bool IsReadOnlyType()
+{
+    if constexpr (traits::OptionalLike<T>)
+    {
+        using RealType = traits::InnerOf<T>;
+        return !std::is_reference_v<RealType> || std::is_const_v<std::remove_reference_t<RealType>>;
+    }
+    else
+    {
+        return !std::is_reference_v<T> || std::is_const_v<std::remove_reference_t<T>>;
+    }
+}
+
+/** 쿼리 파라미터 팩 전체가 읽기 전용인지 확인합니다. */
 template <typename... Ts>
-constexpr bool IsValidQueryPack = QueryValidator<ProcessedQueryTuple<Ts...>>::IsValidPack;
+constexpr bool IsReadOnlyQueryPack = (IsReadOnlyType<Ts>() && ...);
 } // namespace detail
 
 template <typename... Ts>
-concept QueryParameterPack = detail::IsValidQueryPack<Ts...>;
+concept QueryParameterPack = detail::QueryValidator<detail::ProcessedQueryTuple<Ts...>>::IsValidPack;
 } // namespace se
