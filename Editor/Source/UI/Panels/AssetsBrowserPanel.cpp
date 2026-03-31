@@ -16,7 +16,7 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Path.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
 #include "SimpleEngine/ECS/Components/MaterialComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
@@ -407,7 +407,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         return;
     }
 
-    const auto [asset_subsystem, world_subsystem] = GetSubsystems<const asset::AssetSubsystem, WorldSubsystem>();
+    const auto [asset_subsystem, world_subsystem] = GetSubsystems<const asset::AssetSubsystem, EntitySubsystem>();
     if (!asset_subsystem || !world_subsystem)
     {
         return;

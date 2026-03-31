@@ -14,7 +14,7 @@
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Debug/DebugDrawSubsystem.h"
@@ -139,7 +139,7 @@ void EditorApplication::Render()
     }
 
     const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
-        se::GetSubsystemsChecked<const WorldSubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
+        se::GetSubsystemsChecked<const EntitySubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
     // FramePacket 조립 (SceneDrawData 수집)
     se::graphics::FramePacket frame_packet;

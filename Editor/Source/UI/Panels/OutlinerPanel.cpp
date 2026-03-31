@@ -9,7 +9,7 @@
 #include "SimpleEngine/ECS/Components/NameComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Query.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -25,10 +25,10 @@ const char* OutlinerPanel::GetName() const
 void OutlinerPanel::DrawContent()
 {
 
-    const auto [world_subsystem, editor_subsystem] = GetSubsystems<const WorldSubsystem, EditorSubsystem>();
+    const auto [world_subsystem, editor_subsystem] = GetSubsystems<const EntitySubsystem, EditorSubsystem>();
     if (!(world_subsystem && editor_subsystem))
     {
-        ConsoleLogOnce(ELogLevel::Error, "EditorSubsystem or WorldSubsystem is not initialized!");
+        ConsoleLogOnce(ELogLevel::Error, "EditorSubsystem or EntitySubsystem is not initialized!");
         return;
     }
 
