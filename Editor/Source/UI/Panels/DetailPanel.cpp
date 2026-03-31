@@ -51,7 +51,7 @@ void DetailPanel::DrawContent()
     }
 
     const Entity entity = selection.GetPrimarySelectedEntity().Value();
-    World* world = &entity_subsystem->GetMainWorld().GetWorld();
+    World& world = entity_subsystem->GetMainWorld().GetWorld();
 
     // 선택된 Entity가 바뀌면 Rotation 캐시 초기화
     if (last_selected_entity != entity)
@@ -86,12 +86,6 @@ void DetailPanel::DrawContent()
         usize found_count = 0;
         for (const TypeId& type_id : ComponentRegistry::Get().GetOperators() | std::views::keys)
         {
-            IStorage* storage = world->GetStorage(type_id);
-            if (!storage)
-            {
-                continue;
-            }
-
             const Optional type_info_opt = TypeRegistry::Get().Find(type_id);
             if (!type_info_opt)
             {
@@ -106,6 +100,7 @@ void DetailPanel::DrawContent()
                 ++found_count;
                 if (ImGui::Selectable(add_label.CStr(), false))
                 {
+                    IStorage* storage = world.GetOrCreateRawStorage(type_id);
                     if (!storage->Contains(entity))
                     {
                         storage->EmplaceDefault(entity);
@@ -128,7 +123,7 @@ void DetailPanel::DrawContent()
     TypeId component_to_remove;
     for (const auto& [component_type, component_ops] : ComponentRegistry::Get().GetOperators())
     {
-        const IStorage* storage = world->GetStorage(component_type);
+        const IStorage* storage = world.FindRawStorage(component_type);
 
         // Entity가 가지고 있지 않은 Component는 건너뜀
         if (!(storage && storage->Contains(entity)))
@@ -156,7 +151,7 @@ void DetailPanel::DrawContent()
 
         if (header_is_open)
         {
-            void* component_data = component_ops.get_component_mutable(*world, entity);
+            void* component_data = component_ops.get_component_mutable(world, entity);
             if (!component_data)
             {
                 continue;
@@ -210,7 +205,7 @@ void DetailPanel::DrawContent()
     {
         if (const Optional ops = ComponentRegistry::Get().GetOps(component_to_remove))
         {
-            ops->remove_component(*world, entity);
+            ops->remove_component(world, entity);
         }
     }
 }

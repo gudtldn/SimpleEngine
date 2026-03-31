@@ -98,31 +98,31 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
 
 void EditorActionSubsystem::DeleteEntity(Entity entity)
 {
-    World* world = &entity_subsystem->GetMainWorld().GetWorld();
+    World& world = entity_subsystem->GetMainWorld().GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
     DeleteEntityRecursive(world, selection, entity);
 }
 
 void EditorActionSubsystem::DeleteSelectedEntities()
 {
-    World* world = &entity_subsystem->GetMainWorld().GetWorld();
+    World& world = entity_subsystem->GetMainWorld().GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     // 삭제 도중 selection이 변경되므로 먼저 복사
     const Array<Entity> to_delete = Array<Entity>::FromRange(selection.GetSelectedEntities());
     for (const Entity& entity : to_delete)
     {
-        if (world->IsEntityAlive(entity))
+        if (world.IsEntityAlive(entity))
         {
             DeleteEntityRecursive(world, selection, entity);
         }
     }
 }
 
-void EditorActionSubsystem::DeleteEntityRecursive(World* world, EditorSelection& selection, Entity entity)
+void EditorActionSubsystem::DeleteEntityRecursive(World& world, EditorSelection& selection, Entity entity)
 {
     // 자식들을 먼저 재귀적으로 삭제
-    if (const Optional children_opt = world->TryGetComponent<ChildrenComponent>(entity))
+    if (const Optional children_opt = world.TryGetComponent<ChildrenComponent>(entity))
     {
         const Array<Entity> children_copy = children_opt->children;
         for (const Entity& child : children_copy)
@@ -132,15 +132,15 @@ void EditorActionSubsystem::DeleteEntityRecursive(World* world, EditorSelection&
     }
 
     // 부모의 ChildrenComponent에서 자신을 제거
-    if (const Optional parent_opt = world->TryGetComponent<ParentComponent>(entity))
+    if (const Optional parent_opt = world.TryGetComponent<ParentComponent>(entity))
     {
-        if (const Optional parent_children_opt = world->TryGetComponent<ChildrenComponent>(parent_opt->parent))
+        if (const Optional parent_children_opt = world.TryGetComponent<ChildrenComponent>(parent_opt->parent))
         {
             parent_children_opt->children.Remove(entity);
         }
     }
 
     selection.DeselectEntity(entity);
-    world->DestroyEntity(entity);
+    world.DestroyEntity(entity);
 }
 } // namespace se::editor

@@ -16,6 +16,7 @@
 
 namespace se
 {
+// forward declaration
 template <typename... Ts>
     requires QueryParameterPack<Ts...>
 class Query;
@@ -27,9 +28,6 @@ class Query;
 class SE_CORE_API World final
 {
 private:
-    template <typename... Ts>
-    friend class QueryData;
-
     friend class ComponentRegistry;
 
 public:
@@ -70,7 +68,7 @@ public:
     template <typename ComponentType>
     ComponentType& AddComponent(Entity entity, ComponentType&& init_component)
     {
-        auto& storage = GetOrCreateStorage<ComponentType>();
+        auto& storage = GetOrCreateSparseSet<ComponentType>();
         storage.Add(entity, std::forward<ComponentType>(init_component));
         return storage.Get(entity);
     }
@@ -78,7 +76,7 @@ public:
     template <typename ComponentType, typename... Args>
     ComponentType& AddComponent(Entity entity, Args&&... args)
     {
-        auto& storage = GetOrCreateStorage<ComponentType>();
+        auto& storage = GetOrCreateSparseSet<ComponentType>();
         storage.Add(entity, ComponentType{ std::forward<Args>(args)... });
         return storage.Get(entity);
     }
@@ -87,9 +85,9 @@ public:
     template <typename ComponentType>
     void RemoveComponent(Entity entity)
     {
-        if (Optional storage_opt = GetStorage<ComponentType>())
+        if (const auto storage = FindSparseSet<ComponentType>())
         {
-            storage_opt->Remove(entity);
+            storage->Remove(entity);
         }
     }
 
@@ -97,27 +95,27 @@ public:
     template <typename ComponentType, typename Self>
     traits::CopyConst<Self, ComponentType&> GetComponent(this Self&& self, Entity entity)
     {
-        return self.template GetStorage<ComponentType>()->Get(entity);
+        return self.template FindSparseSet<ComponentType>()->Get(entity);
     }
 
     /** Entity에서 ComponentType에 맞는 Component를 Optional로 가져옵니다. */
     template <typename ComponentType, typename Self>
     Optional<traits::CopyConst<Self, ComponentType&>> TryGetComponent(this Self&& self, Entity entity)
     {
-        if (const auto opt_storage = self.template GetStorage<ComponentType>())
+        if (const auto storage = self.template FindSparseSet<ComponentType>())
         {
-            return opt_storage->Find(entity);
+            return storage->Find(entity);
         }
         return NullOpt;
     }
 
     /** Entity가 특정 Component를 가지고 있는지 확인합니다. */
-    template <typename ComponentType>
-    [[nodiscard]] bool HasComponent(Entity entity) const
+    template <typename ComponentType, typename Self>
+    [[nodiscard]] bool HasComponent(this Self&& self, Entity entity)
     {
-        if (Optional opt_storage = GetStorage<ComponentType>())
+        if (auto storage = self.template FindSparseSet<ComponentType>())
         {
-            return opt_storage->Contains(entity);
+            return storage->Contains(entity);
         }
         return false;
     }
@@ -127,27 +125,52 @@ public:
      * Entity를 쿼리하는 Query 객체를 생성합니다.
      * @tparam Ts Component 목록 및 필터(With<...>, Without<...>)
      */
-    template <typename... Ts>
-        requires requires { Query<Ts...>{ std::declval<World*>() }; }
-    [[nodiscard]] Query<Ts...> QueryEntities() // TODO: QueryEntities를 const로 만들기
+    template <typename... Ts, typename Self>
+    [[nodiscard]] Query<Ts...> CreateQuery(this Self&& self)
     {
-        return Query<Ts...>{ this };
+        return Query<Ts...>{ &self };
     }
 
+public:
     /**
      * 주어진 TypeId에 해당하는 IStorage 포인터를 반환합니다.
      * @param type_id 검색할 타입의 TypeId
      * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
      */
-    IStorage* GetStorage(const TypeId& type_id);
+    [[nodiscard]] IStorage* FindRawStorage(const TypeId& type_id);
+    [[nodiscard]] const IStorage* FindRawStorage(const TypeId& type_id) const;
+
+    /** template 타입에 맞는 IStorage 포인터를 반환합니다. */
+    template <typename ComponentType, typename Self>
+    traits::CopyConst<Self, IStorage*> FindRawStorage(this Self&& self)
+    {
+        using RawType = std::remove_cvref_t<ComponentType>;
+        return self.FindRawStorage(TypeId::Get<RawType>());
+    }
+
+    /**
+     * 주어진 TypeId에 해당하는 IStorage 포인터를 반환하거나,
+     * 해당 타입의 저장소가 없을 경우 새로 생성합니다.
+     * @param type_id 검색하거나 생성할 타입의 TypeId
+     * @return IStorage 포인터, 생성되거나 조회된 저장소를 반환
+     */
+    [[nodiscard]] IStorage* GetOrCreateRawStorage(const TypeId& type_id);
+
+    template <typename ComponentType>
+    [[nodiscard]] IStorage* GetOrCreateRawStorage()
+    {
+        using RawType = std::remove_cvref_t<ComponentType>;
+        return GetOrCreateRawStorage(TypeId::Get<RawType>());
+    }
 
 private:
+    /** 타입 매개변수에 맞는 ComponentStorage 래퍼 객체를 반환하거나 생성합니다. (ComponentRegistry 등에서 사용) */
     template <typename ComponentType>
-    ComponentStorage<std::decay_t<ComponentType>>& GetOrCreateStorageImpl()
+    ComponentStorage<std::remove_cvref_t<ComponentType>>& GetOrCreateComponentStorage()
     {
-        using RawType = std::decay_t<ComponentType>;
-
+        using RawType = std::remove_cvref_t<ComponentType>;
         const auto type_id = TypeId::Get<RawType>();
+
         auto& storage_ptr = component_storages
             .Entry(type_id)
             .OrInsertWith([]{ return std::make_unique<ComponentStorage<RawType>>(); });
@@ -155,35 +178,23 @@ private:
         return *static_cast<ComponentStorage<RawType>*>(storage_ptr.get());
     }
 
-    template <typename ComponentType>
-    SparseSet<std::decay_t<ComponentType>>& GetOrCreateStorage()
-    {
-        return GetOrCreateStorageImpl<ComponentType>().GetStorage();
-    }
-
+    /** 구체적 타입으로 캐스팅된 실제 Component Pool(SparseSet)을 검색합니다. */
     template <typename ComponentType, typename Self>
-    Optional<traits::CopyConst<Self, SparseSet<std::decay_t<ComponentType>>&>> GetStorage(this Self&& self)
+    Optional<traits::CopyConst<Self, SparseSet<std::remove_cvref_t<ComponentType>>&>> FindSparseSet(this Self&& self)
     {
-        using RawType = std::decay_t<ComponentType>;
-        if (traits::CopyConst<Self, IStorage*> storage = self.template GetIStorage<RawType>())
+        using RawType = std::remove_cvref_t<ComponentType>;
+        if (traits::CopyConst<Self, IStorage*> storage = self.template FindRawStorage<RawType>())
         {
             return static_cast<traits::CopyConst<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
         }
         return NullOpt;
     }
 
-    /** 타입에 맞는 IStorage 포인터를 반환합니다. 쿼리 시스템 내부에서 사용됩니다. */
-    template <typename ComponentType, typename Self>
-    traits::CopyConst<Self, IStorage*> GetIStorage(this Self&& self)
+    /** 타입 매개변수에 맞는 SparseSet을 가져오거나, 없으면 생성합니다. */
+    template <typename ComponentType>
+    SparseSet<std::remove_cvref_t<ComponentType>>& GetOrCreateSparseSet()
     {
-        using RawType = std::decay_t<ComponentType>;
-
-        const auto type_id = TypeId::Get<RawType>();
-        if (Optional storage_opt = self.component_storages.Find(type_id))
-        {
-            return storage_opt->get();
-        }
-        return nullptr;
+        return GetOrCreateComponentStorage<ComponentType>().GetStorage();
     }
 
 public:

@@ -32,22 +32,22 @@ void OutlinerPanel::DrawContent()
         return;
     }
 
-    World* world = &entity_subsystem->GetMainWorld().GetWorld();
+    World& world = entity_subsystem->GetMainWorld().GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     Entity entity_to_delete;
 
 
     // ParentComponent가 없는 루트 엔티티를 최상위에서 렌더링
-    for (const auto& [entity] : world->QueryEntities<Entity, Without<ParentComponent>>())
+    for (const auto& [entity] : world.CreateQuery<Entity, Without<ParentComponent>>())
     {
         DrawEntityNode(world, selection, entity, entity_to_delete);
     }
 
     // ParentComponent가 있으나 부모가 이미 소멸된 고아 엔티티를 루트로 렌더링
-    for (const auto& [entity, parent_comp] : world->QueryEntities<Entity, ParentComponent&>())
+    for (const auto& [entity, parent_comp] : world.CreateQuery<Entity, ParentComponent&>())
     {
-        if (!world->IsEntityAlive(parent_comp.parent))
+        if (!world.IsEntityAlive(parent_comp.parent))
         {
             DrawEntityNode(world, selection, entity, entity_to_delete);
         }
@@ -68,10 +68,10 @@ void OutlinerPanel::DrawContent()
     }
 }
 
-void OutlinerPanel::DrawEntityNode(World* world, EditorSelection& selection, Entity entity, Entity& entity_to_delete)
+void OutlinerPanel::DrawEntityNode(World& world, EditorSelection& selection, Entity entity, Entity& entity_to_delete)
 {
-    const Optional name_opt = world->TryGetComponent<NameComponent>(entity);
-    const Optional children_opt = world->TryGetComponent<ChildrenComponent>(entity);
+    const Optional name_opt = world.TryGetComponent<NameComponent>(entity);
+    const Optional children_opt = world.TryGetComponent<ChildrenComponent>(entity);
     const bool has_children = children_opt && !children_opt->children.IsEmpty();
 
     const String display_name = (name_opt && !name_opt->name.IsEmpty())
@@ -98,7 +98,7 @@ void OutlinerPanel::DrawEntityNode(World* world, EditorSelection& selection, Ent
             }
             else
             {
-                world->AddComponent(entity, NameComponent{ .name = rename_name });
+                world.AddComponent(entity, NameComponent{ .name = rename_name });
             }
             renaming_entity = Entity{};
         }
@@ -167,7 +167,7 @@ void OutlinerPanel::DrawEntityNode(World* world, EditorSelection& selection, Ent
         {
             for (const Entity& child : children_opt->children)
             {
-                if (world->IsEntityAlive(child))
+                if (world.IsEntityAlive(child))
                 {
                     DrawEntityNode(world, selection, child, entity_to_delete);
                 }
