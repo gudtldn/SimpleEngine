@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/Entity.h"
+#include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/TupleTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
@@ -39,7 +39,7 @@ concept IsFetchType = !(traits::IsSpecializationOf<T, With> || traits::IsSpecial
 
 /** Optional이나 Entity가 아닌 필수 컴포넌트인지 확인합니다. */
 template <typename T>
-concept IsRequiredComponent = IsFetchType<T> && !(traits::IsSpecializationOf<T, Optional> || std::same_as<T, Entity>);
+concept IsRequiredComponent = IsFetchType<T> && !(traits::OptionalLike<T> || std::same_as<T, Entity>);
 
 template <typename... Ts>
 struct QueryValidator;
