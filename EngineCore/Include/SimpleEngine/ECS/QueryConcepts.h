@@ -59,8 +59,11 @@ struct QueryValidator<TupleLike<ProcessedTs...>>
     // 포인터 타입이 없는지
     static constexpr bool NoPointers = !(std::is_pointer_v<ProcessedTs> || ...);
 
+    // 모든 타입이 유효한 컴포넌트(class/struct)인지
+    static constexpr bool AllValidComponents = (std::is_class_v<ProcessedTs> && ...);
+
     // 최종 결과
-    static constexpr bool IsValidPack = HasElements && IsUnique && NoPointers;
+    static constexpr bool IsValidPack = HasElements && IsUnique && NoPointers && AllValidComponents;
 };
 
 template <typename... Ts>
