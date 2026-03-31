@@ -17,7 +17,7 @@ namespace se
 /**
  * ECS System의 실행 순서를 관리하고 일괄 실행하는 스케줄러
  */
-class Schedule
+class SE_CORE_API Schedule
 {
 public:
     /**

@@ -15,7 +15,7 @@ class World;
 /**
  * 여러 System을 하나의 그룹으로 묶어 순차적으로 실행하는 클래스
  */
-class SystemChain
+class SE_CORE_API SystemChain
 {
 public:
     template <typename... Systems>
