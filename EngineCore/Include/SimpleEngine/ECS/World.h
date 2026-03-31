@@ -27,9 +27,6 @@ class Query;
  */
 class SE_CORE_API World final
 {
-private:
-    friend class ComponentRegistry;
-
 public:
     class EntityChain;
 
