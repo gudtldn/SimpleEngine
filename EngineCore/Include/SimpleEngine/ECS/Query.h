@@ -55,13 +55,13 @@ public:
 
 public:
     /** 쿼리 결과가 비어있는지 확인합니다. */
-    [[nodiscard]] bool IsEmpty()
+    [[nodiscard]] bool IsEmpty() const
     {
         return begin() == end();
     }
 
     /** 특정 엔티티가 쿼리 조건을 만족하는 경우, 해당 컴포넌트들을 반환합니다. */
-    [[nodiscard]] Optional<FetchTypes> Get(Entity entity)
+    [[nodiscard]] Optional<FetchTypes> TryGet(Entity entity) const
     {
         if (query_data.IsEntityValid(entity))
         {
@@ -75,7 +75,7 @@ public:
     }
 
     /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 Optional로 반환합니다. 결과가 없거나 여러 개이면 nullopt를 반환합니다. */
-    [[nodiscard]] Optional<FetchTypes> GetSingle()
+    [[nodiscard]] Optional<FetchTypes> TryGetSingle() const
     {
         auto it = begin();
         if (it == end())
@@ -94,14 +94,14 @@ public:
     }
 
     /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 반환합니다. 결과가 없거나 여러 개이면 assert로 프로그램을 중단시킵니다. */
-    [[nodiscard]] FetchTypes Single()
+    [[nodiscard]] FetchTypes GetSingle() const
     {
         auto it = begin();
-        SE_ASSERT(it != end(), "Called Single() on a query with no matching entities.");
+        SE_ASSERT(it != end(), "Called GetSingle() on a query with no matching entities.");
 
         FetchTypes result = *it;
         ++it;
-        SE_ASSERT(it == end(), "Called Single() on a query with more than one matching entity.");
+        SE_ASSERT(it == end(), "Called GetSingle() on a query with more than one matching entity.");
 
         return result;
     }
@@ -145,7 +145,7 @@ public:
         using difference_type = std::ptrdiff_t;
 
     public:
-        Iterator(Query* self, usize in_index)
+        Iterator(const Query* self, usize in_index)
             : query_data(&self->query_data)
             , storage_index(in_index)
             , iteration_source(self->iteration_source)
@@ -225,17 +225,17 @@ public:
         }
 
     private:
-        QueryDataType* query_data;
+        const QueryDataType* query_data;
         usize storage_index;
         IterationSourceType iteration_source;
     };
 
-    Iterator begin()
+    [[nodiscard]] Iterator begin() const
     {
         return Iterator{ this, 0 };
     }
 
-    Iterator end()
+    [[nodiscard]] Iterator end() const
     {
         usize end_index = 0;
         if constexpr (HasBasePool)
