@@ -16,7 +16,7 @@ class World;
 /**
  * ECS에서 사용하는 단일 System 클래스
  */
-class System
+class SE_CORE_API System
 {
 public:
     template <typename Fn>
