@@ -9,7 +9,7 @@
 #include "SimpleEngine/ECS/ComponentRegistry.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/ECS/Query.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
@@ -29,7 +29,7 @@ const char* DetailPanel::GetName() const
 
 void DetailPanel::DrawContent()
 {
-    const auto [world_subsystem, editor_subsystem] = GetSubsystems<const WorldSubsystem, EditorSubsystem>();
+    const auto [world_subsystem, editor_subsystem] = GetSubsystems<const EntitySubsystem, EditorSubsystem>();
     if (!(world_subsystem && editor_subsystem))
     {
         return;

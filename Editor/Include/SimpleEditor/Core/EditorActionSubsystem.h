@@ -10,7 +10,7 @@
 namespace se
 {
 class InputSubsystem;
-class WorldSubsystem;
+class EntitySubsystem;
 class World;
 }
 
@@ -50,7 +50,7 @@ private:
 
 private:
     InputSubsystem* input_subsystem = nullptr;
-    WorldSubsystem* world_subsystem = nullptr;
+    EntitySubsystem* world_subsystem = nullptr;
     EditorSubsystem* editor_subsystem = nullptr;
     EditorUISubsystem* ui_subsystem = nullptr;
     EditorViewportSubsystem* viewport_subsystem = nullptr;

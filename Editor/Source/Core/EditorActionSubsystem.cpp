@@ -10,7 +10,7 @@
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/World.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -21,7 +21,7 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
     .DependsOn<
         InputSubsystem,
-        WorldSubsystem,
+        EntitySubsystem,
         EditorSubsystem,
         EditorUISubsystem,
         EditorViewportSubsystem
@@ -34,7 +34,7 @@ SE_END_REFLECT(EditorActionSubsystem)
 bool EditorActionSubsystem::Initialize()
 {
     input_subsystem = &GetSubsystemChecked<InputSubsystem>();
-    world_subsystem = &GetSubsystemChecked<WorldSubsystem>();
+    world_subsystem = &GetSubsystemChecked<EntitySubsystem>();
     editor_subsystem = &GetSubsystemChecked<EditorSubsystem>();
     ui_subsystem = &GetSubsystemChecked<EditorUISubsystem>();
     viewport_subsystem = &GetSubsystemChecked<EditorViewportSubsystem>();

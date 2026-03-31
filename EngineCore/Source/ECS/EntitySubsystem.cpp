@@ -1,4 +1,4 @@
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/World.h"
@@ -6,29 +6,29 @@
 
 namespace se
 {
-SE_REGISTER_SUBSYSTEM(WorldSubsystem);
+SE_REGISTER_SUBSYSTEM(EntitySubsystem);
 
-SE_BEGIN_REFLECT(WorldSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(EntitySubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)
-SE_END_REFLECT(WorldSubsystem)
+SE_END_REFLECT(EntitySubsystem)
 
-bool WorldSubsystem::Initialize()
+bool EntitySubsystem::Initialize()
 {
     world = std::make_unique<World>();
     return true;
 }
 
-void WorldSubsystem::Release()
+void EntitySubsystem::Release()
 {
     world.reset();
 }
 
-void WorldSubsystem::PreUpdate()
+void EntitySubsystem::PreUpdate()
 {
     world->RunPhase<PreUpdatePhase>();
 }
 
-void WorldSubsystem::Update(float delta_time)
+void EntitySubsystem::Update(float delta_time)
 {
     // TODO: delta_time ECS에서 사용할 수 있도록 수정
     (void)delta_time;
@@ -36,7 +36,7 @@ void WorldSubsystem::Update(float delta_time)
     world->RunPhase<UpdatePhase>();
 }
 
-void WorldSubsystem::PostUpdate()
+void EntitySubsystem::PostUpdate()
 {
     world->RunPhase<PostUpdatePhase>();
 }

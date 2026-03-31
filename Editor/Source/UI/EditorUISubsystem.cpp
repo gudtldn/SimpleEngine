@@ -22,7 +22,7 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/ECS/WorldSubsystem.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -224,7 +224,7 @@ void EditorUISubsystem::DrawMainMenu()
         {
             if (ImGui::MenuItem("Spawn Entity"))
             {
-                if (const WorldSubsystem* world_subsystem = GetSubsystem<WorldSubsystem>())
+                if (const EntitySubsystem* world_subsystem = GetSubsystem<EntitySubsystem>())
                 {
                     World* world = world_subsystem->GetWorld();
                     world->SpawnEntity();

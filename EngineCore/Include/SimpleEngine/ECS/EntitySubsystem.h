@@ -9,9 +9,9 @@ namespace se
 /**
  * ECS World의 생명주기를 관리하고 엔진 업데이트 루프와 연결하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) WorldSubsystem : public SubsystemBase, public IUpdatable
+class SE_CORE_API SE_ANNOTATION(=meta::Internal) EntitySubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS(WorldSubsystem, SubsystemBase)
+    SE_CLASS(EntitySubsystem, SubsystemBase)
 
 public:
     //~ Begin SubsystemBase
