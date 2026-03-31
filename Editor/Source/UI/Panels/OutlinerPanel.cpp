@@ -24,7 +24,6 @@ const char* OutlinerPanel::GetName() const
 
 void OutlinerPanel::DrawContent()
 {
-
     const auto [entity_subsystem, editor_subsystem] = GetSubsystems<EntitySubsystem, EditorSubsystem>();
     if (!(entity_subsystem && editor_subsystem))
     {
@@ -36,7 +35,6 @@ void OutlinerPanel::DrawContent()
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     Entity entity_to_delete;
-
 
     // ParentComponent가 없는 루트 엔티티를 최상위에서 렌더링
     for (const auto& [entity] : world.CreateQuery<Entity, Without<ParentComponent>>())
