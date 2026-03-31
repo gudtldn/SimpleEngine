@@ -2,187 +2,169 @@
 
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
-#include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/ECS/WorldContext.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 
 using namespace se;
 
-class ECSTest : public ::testing::Test {};
+class ECSTest : public ::testing::Test
+{
+};
 
-// A simple component for testing
 struct TestValueComponent
 {
     int value;
 };
 
-// A tag component for testing queries
 struct TestTagComponent
 {
 };
 
+
+// Phase 순서(PreUpdate -> Update -> PostUpdate)가 보장되는지 검증합니다.
 TEST_F(ECSTest, ECSScheduleAndSystemExecutionOrder)
 {
-    World world;
-    std::vector<std::u8string> execution_log;
+    WorldContext ctx;
 
-    // Add systems to different schedules
-    world.AddSystem<PreUpdatePhase>([&]
-    {
-        execution_log.emplace_back(u8"PreUpdate");
-    });
+    int call_index = 0;
+    int pre_order = -1;
+    int update_order = -1;
+    int post_order = -1;
 
-    world.AddSystem<UpdatePhase>([&]
-    {
-        execution_log.emplace_back(u8"Update");
-    });
+    ctx.AddSystem<PreUpdatePhase>([&] { pre_order = call_index++; });
+    ctx.AddSystem<UpdatePhase>([&] { update_order = call_index++; });
+    ctx.AddSystem<PostUpdatePhase>([&] { post_order = call_index++; });
 
-    world.AddSystem<PostUpdatePhase>([&]
-    {
-        execution_log.emplace_back(u8"PostUpdate");
-    });
+    ctx.RunPhase<PreUpdatePhase>();
+    ctx.RunPhase<UpdatePhase>();
+    ctx.RunPhase<PostUpdatePhase>();
 
-    // Run schedules in a specific order
-    world.RunPhase<PreUpdatePhase>();
-    world.RunPhase<UpdatePhase>();
-    world.RunPhase<PostUpdatePhase>();
-
-    // Verify the execution order
-    ASSERT_EQ(execution_log.size(), 3);
-    EXPECT_TRUE(execution_log[0].contains(u8"PreUpdate"));
-    EXPECT_TRUE(execution_log[1].contains(u8"Update"));
-    EXPECT_TRUE(execution_log[2].contains(u8"PostUpdate"));
+    ASSERT_EQ(call_index, 3) << "All 3 systems must run.";
+    EXPECT_LT(pre_order, update_order) << "PreUpdate must run before Update.";
+    EXPECT_LT(update_order, post_order) << "Update must run before PostUpdate.";
 }
 
+
+// With<>/Without<> 필터 조건에 따라 시스템 실행 여부가 올바르게 제어되는지 검증합니다.
 TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
 {
-    World world;
+    WorldContext ctx;
 
-    // Create an entity with a component to be modified
-    auto entity = world.SpawnEntity()
-                       .AddComponent<TestValueComponent>({ .value = 10 })
-                       .AddComponent<TestTagComponent>();
+    // TestTagComponent 보유: With<TestTagComponent> 매칭, Without<TestTagComponent> 미매칭
+    auto entity = ctx.GetWorld().SpawnEntity()
+                     .AddComponent<TestValueComponent>({ .value = 10 })
+                     .AddComponent<TestTagComponent>();
 
-    // System to run in PreUpdate to add a value
-    world.AddSystem<PreUpdatePhase>([](Query<TestValueComponent&> query)
+    ctx.AddSystem<PreUpdatePhase>([](Query<TestValueComponent&> query)
     {
         for (auto [val] : query)
         {
-            val.value += 5; // 10 + 5 = 15
+            val.value += 5; // 10 -> 15
         }
     });
 
-    // System to run in Update to multiply the value
-    world.AddSystem<UpdatePhase>([](Query<TestValueComponent&, With<TestTagComponent>> query)
+    // With<TestTagComponent>: Tag 보유 엔티티만 매칭
+    ctx.AddSystem<UpdatePhase>([](Query<TestValueComponent&, With<TestTagComponent>> query)
     {
         for (auto [val] : query)
         {
-            val.value *= 2; // 15 * 2 = 30
+            val.value *= 2; // 15 -> 30
         }
     });
 
-    // System to run in PostUpdate on entities without the tag (should not run)
-    world.AddSystem<PostUpdatePhase>([](Query<TestValueComponent&, Without<TestTagComponent>> query)
+    // Without<TestTagComponent>: Tag 미보유 엔티티만 매칭 -> 현재 실행되지 않아야 합니다.
+    ctx.AddSystem<PostUpdatePhase>([](Query<TestValueComponent&, Without<TestTagComponent>> query)
     {
         for (auto [val] : query)
         {
-            val.value = 0; // This should not be executed
+            val.value = 0; // must not execute
         }
     });
 
+    ctx.RunPhase<PreUpdatePhase>();
+    ctx.RunPhase<UpdatePhase>();
+    ctx.RunPhase<PostUpdatePhase>();
 
-    // Run the schedules
-    world.RunPhase<PreUpdatePhase>();
-    world.RunPhase<UpdatePhase>();
-    world.RunPhase<PostUpdatePhase>();
-
-    // Verify the final value of the component
-    auto component = world.TryGetComponent<TestValueComponent>(entity);
+    auto component = ctx.GetWorld().TryGetComponent<TestValueComponent>(entity);
     ASSERT_TRUE(component.HasValue());
-    EXPECT_EQ(component->value, 30);
+    EXPECT_EQ(component->value, 30) << "Without<> system must not run while entity has the tag.";
 
-    // Verify that removing a component works with queries
-    world.RemoveComponent<TestTagComponent>(entity);
+    // Tag 제거 후: Without<> 시스템이 매칭되어 실행되어야 합니다.
+    ctx.GetWorld().RemoveComponent<TestTagComponent>(entity);
+    ctx.RunPhase<PostUpdatePhase>();
 
-    // This system should now run and set the value to 0
-    world.RunPhase<PostUpdatePhase>();
-
-    component = world.TryGetComponent<TestValueComponent>(entity);
+    component = ctx.GetWorld().TryGetComponent<TestValueComponent>(entity);
     ASSERT_TRUE(component.HasValue());
-    EXPECT_EQ(component->value, 0);
+    EXPECT_EQ(component->value, 0) << "Without<> system must run after tag is removed.";
 }
 
-// Keep the user's original test case as a compile-time check
-TEST_F(ECSTest, ECSSystemParameterCompilationTest)
+
+// 다중 Query 파라미터 주입, With<> 필터 동작, World* 파라미터 주입을 검증합니다.
+TEST_F(ECSTest, ECSQueryParameterInjection)
 {
-    World world;
+    WorldContext ctx;
 
-    world.SpawnEntity()
-         .AddComponent<TransformComponent>()
-         .AddComponent<StaticMeshComponent>();
+    // entity_a, entity_b: TransformComponent + StaticMeshComponent 모두 보유
+    ctx.GetWorld().SpawnEntity()
+       .AddComponent<TransformComponent>()
+       .AddComponent<StaticMeshComponent>();
 
-    world.SpawnEntity(
+    ctx.GetWorld().SpawnEntity(
         TransformComponent{
             .rotation = { 0.0, 0.0, 0.0, 1.0 },
             .position = { 1.0, 2.0, 3.0 },
             .scale = { 1.0, 1.0, 1.0 },
         },
-        StaticMeshComponent{
-            .mesh_id = asset::AssetId{ Guid::NewGuid() }
-        }
+        StaticMeshComponent{ .mesh_id = asset::AssetId{ Guid::NewGuid() } }
     );
 
-    // These AddSystem calls are primarily for compile-time validation of different parameter types.
-    // They don't need to be executed to be valuable.
-    world.AddSystem<UpdatePhase>([](
-        [[maybe_unused]] Query<TransformComponent&, With<>, Without<>> query1,
-        [[maybe_unused]] Query<TransformComponent&, With<StaticMeshComponent>, Without<>> query2,
-        [[maybe_unused]] Query<Entity, With<>, Without<>> query3
+    // entity_c: TransformComponent만 보유 (StaticMeshComponent 없음)
+    ctx.GetWorld().SpawnEntity()
+       .AddComponent<TransformComponent>();
+
+    // 타입이 다른 Query 3개가 동일 시스템에 동시에 주입되고,
+    // With<> 필터가 실제로 결과 집합을 좁히는지 카운트로 검증합니다.
+    ctx.AddSystem<UpdatePhase>([](
+        Query<TransformComponent&> query_all,
+        Query<TransformComponent&, With<StaticMeshComponent>> query_with_mesh,
+        Query<Entity> query_entity
     )
         {
-            constexpr usize query1_size = sizeof(query1);
-            constexpr usize query2_size = sizeof(query2);
-            constexpr usize query3_size = sizeof(query3);
+            usize count_all = 0;
+            usize count_mesh = 0;
+            usize count_entity = 0;
+            for ([[maybe_unused]] auto _ : query_all) ++count_all;
+            for ([[maybe_unused]] auto _ : query_with_mesh) ++count_mesh;
+            for ([[maybe_unused]] auto _ : query_entity) ++count_entity;
 
-            static_assert(query1_size == query2_size || query1_size != query3_size);
-            SUCCEED() << "System with multiple queries compiled and ran successfully.";
+            EXPECT_EQ(count_all, 3u) << "Expected 3 entities with TransformComponent.";
+            EXPECT_EQ(count_mesh, 2u) << "Expected 2 entities after With<StaticMeshComponent> filter.";
+            EXPECT_EQ(count_entity, 3u) << "Expected 3 total entities.";
+            EXPECT_LT(count_mesh, count_all) << "With<> filter must narrow the result set.";
         });
 
-    world.AddSystem<UpdatePhase>([](World* w)
+    // World* 파라미터가 null 없이 올바르게 주입되는지 검증합니다.
+    ctx.AddSystem<UpdatePhase>([](World* world)
     {
-        ASSERT_NE(w, nullptr) << "System received a null World pointer.";
+        ASSERT_NE(world, nullptr) << "World* parameter must not be null.";
     });
 
-    world.AddSystem<UpdatePhase>([](Query<Entity> query)
-    {
-        ASSERT_TRUE(!query.IsEmpty());
-        for (const auto& [entity] : query)
-        {
-            auto opt = query.Get(entity);
-            auto [ent] = *opt;
-
-            EXPECT_EQ(ent, entity);
-        }
-    });
-
-    [[maybe_unused]] Query query = world.QueryEntities<TransformComponent>();
-    [[maybe_unused]] Query query_entity = world.QueryEntities<Entity>();
-
-    world.RunPhase<UpdatePhase>();
+    ctx.RunPhase<UpdatePhase>();
 }
 
+
+// Optional<T&> 파라미터로 컴포넌트 유무에 관계없이 전 엔티티를 순회할 수 있는지 검증합니다.
 TEST_F(ECSTest, ECSSystemWithOptionalComponents)
 {
-    World world;
+    WorldContext ctx;
 
-    // Create entities
-    auto entity_with_component = world.SpawnEntity()
-                                      .AddComponent<TestValueComponent>({ .value = 100 });
+    auto entity_with = ctx.GetWorld().SpawnEntity()
+                          .AddComponent<TestValueComponent>({ .value = 100 });
+    auto entity_without = ctx.GetWorld().SpawnEntity(); // TestValueComponent 없음
 
-    auto entity_without_component = world.SpawnEntity();
-
-    // System that uses Optional to modify a component if it exists
-    world.AddSystem<UpdatePhase>([](Query<Optional<TestValueComponent&>> query)
+    // Optional<T&>: 컴포넌트가 없는 엔티티도 순회하되, HasValue()로 존재 여부를 확인합니다.
+    ctx.AddSystem<UpdatePhase>([](Query<Optional<TestValueComponent&>> query)
     {
         for (const auto& [opt_val] : query)
         {
@@ -193,35 +175,30 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
         }
     });
 
-    // Run the Phase
-    world.RunPhase<UpdatePhase>();
+    ctx.RunPhase<UpdatePhase>();
 
-    // Verify the component on the first entity was modified
-    auto component = world.TryGetComponent<TestValueComponent>(entity_with_component);
-    ASSERT_TRUE(component.HasValue());
-    EXPECT_EQ(component->value, 200);
+    auto comp_with = ctx.GetWorld().TryGetComponent<TestValueComponent>(entity_with);
+    ASSERT_TRUE(comp_with.HasValue());
+    EXPECT_EQ(comp_with->value, 200);
 
-    // Verify the second entity still does not have the component
-    auto component2 = world.TryGetComponent<TestValueComponent>(entity_without_component);
-    EXPECT_FALSE(component2.HasValue());
+    // 컴포넌트가 없는 엔티티는 영향을 받지 않아야 합니다.
+    EXPECT_FALSE(ctx.GetWorld().TryGetComponent<TestValueComponent>(entity_without).HasValue());
 
-    // System that adds the component if it's missing
-    world.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, World* in_world)
+    // Optional + World* 혼합: 컴포넌트가 없는 엔티티에 새 컴포넌트를 추가합니다.
+    ctx.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, World* world)
     {
         for (const auto& [entity, opt_val] : query)
         {
             if (!opt_val.HasValue())
             {
-                in_world->AddComponent<TestValueComponent>(entity, { .value = 50 });
+                world->AddComponent<TestValueComponent>(entity, { .value = 50 });
             }
         }
     });
 
-    // Run the second Phase
-    world.RunPhase<PostUpdatePhase>();
+    ctx.RunPhase<PostUpdatePhase>();
 
-    // Verify the second entity now has the component with the correct value
-    auto component3 = world.TryGetComponent<TestValueComponent>(entity_without_component);
-    ASSERT_TRUE(component3.HasValue());
-    EXPECT_EQ(component3->value, 50);
+    auto comp_added = ctx.GetWorld().TryGetComponent<TestValueComponent>(entity_without);
+    ASSERT_TRUE(comp_added.HasValue());
+    EXPECT_EQ(comp_added->value, 50);
 }

@@ -25,14 +25,14 @@ const char* OutlinerPanel::GetName() const
 void OutlinerPanel::DrawContent()
 {
 
-    const auto [world_subsystem, editor_subsystem] = GetSubsystems<const EntitySubsystem, EditorSubsystem>();
-    if (!(world_subsystem && editor_subsystem))
+    const auto [entity_subsystem, editor_subsystem] = GetSubsystems<EntitySubsystem, EditorSubsystem>();
+    if (!(entity_subsystem && editor_subsystem))
     {
         ConsoleLogOnce(ELogLevel::Error, "EditorSubsystem or EntitySubsystem is not initialized!");
         return;
     }
 
-    World* world = world_subsystem->GetWorld();
+    World* world = &entity_subsystem->GetMainWorld().GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     Entity entity_to_delete;

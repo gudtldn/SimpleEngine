@@ -1,7 +1,10 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/ECS/Phases.h"
+#include "SimpleEngine/Utility/Debug.h"
+
+#include <ranges>
 
 
 namespace se
@@ -14,30 +17,70 @@ SE_END_REFLECT(EntitySubsystem)
 
 bool EntitySubsystem::Initialize()
 {
-    world = std::make_unique<World>();
+    GetOrCreateWorld(GetMainWorldName());
     return true;
 }
 
 void EntitySubsystem::Release()
 {
-    world.reset();
+    worlds.Clear();
 }
 
 void EntitySubsystem::PreUpdate()
 {
-    world->RunPhase<PreUpdatePhase>();
+    for (WorldContext& ctx : worlds | std::views::values)
+    {
+        ctx.RunPhase<PreUpdatePhase>();
+    }
 }
 
 void EntitySubsystem::Update(float delta_time)
 {
-    // TODO: delta_time ECS에서 사용할 수 있도록 수정
+    // TODO: Time Resource 주입하도록 수정
     (void)delta_time;
 
-    world->RunPhase<UpdatePhase>();
+    for (WorldContext& ctx : worlds | std::views::values)
+    {
+        ctx.RunPhase<UpdatePhase>();
+    }
 }
 
 void EntitySubsystem::PostUpdate()
 {
-    world->RunPhase<PostUpdatePhase>();
+    for (WorldContext& ctx : worlds | std::views::values)
+    {
+        ctx.RunPhase<PostUpdatePhase>();
+    }
+}
+
+WorldContext& EntitySubsystem::GetOrCreateWorld(const StringName& name)
+{
+    return worlds.Entry(name).OrInsertWith([]{ return WorldContext{}; });
+}
+
+Optional<WorldContext&> EntitySubsystem::FindWorld(const StringName& name)
+{
+    return worlds.Find(name);
+}
+
+WorldContext& EntitySubsystem::GetMainWorld()
+{
+    return worlds.FindChecked(GetMainWorldName());
+}
+
+const WorldContext& EntitySubsystem::GetMainWorld() const
+{
+    return worlds.FindChecked(GetMainWorldName());
+}
+
+void EntitySubsystem::DestroyWorld(const StringName& name)
+{
+    worlds.Remove(name);
+}
+
+const StringName& EntitySubsystem::GetMainWorldName()
+{
+    static const StringName main_world_name = "Main";
+    return main_world_name;
 }
 } // namespace se

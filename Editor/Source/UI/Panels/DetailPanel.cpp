@@ -29,8 +29,8 @@ const char* DetailPanel::GetName() const
 
 void DetailPanel::DrawContent()
 {
-    const auto [world_subsystem, editor_subsystem] = GetSubsystems<const EntitySubsystem, EditorSubsystem>();
-    if (!(world_subsystem && editor_subsystem))
+    const auto [entity_subsystem, editor_subsystem] = GetSubsystems<EntitySubsystem, EditorSubsystem>();
+    if (!(entity_subsystem && editor_subsystem))
     {
         return;
     }
@@ -51,7 +51,7 @@ void DetailPanel::DrawContent()
     }
 
     const Entity entity = selection.GetPrimarySelectedEntity().Value();
-    World* world = world_subsystem->GetWorld();
+    World* world = &entity_subsystem->GetMainWorld().GetWorld();
 
     // 선택된 Entity가 바뀌면 Rotation 캐시 초기화
     if (last_selected_entity != entity)

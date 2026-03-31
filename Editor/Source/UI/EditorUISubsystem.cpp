@@ -224,10 +224,9 @@ void EditorUISubsystem::DrawMainMenu()
         {
             if (ImGui::MenuItem("Spawn Entity"))
             {
-                if (const EntitySubsystem* world_subsystem = GetSubsystem<EntitySubsystem>())
+                if (EntitySubsystem* entity_subsystem = GetSubsystem<EntitySubsystem>())
                 {
-                    World* world = world_subsystem->GetWorld();
-                    world->SpawnEntity();
+                    entity_subsystem->GetMainWorld().GetWorld().SpawnEntity();
                 }
             }
             ImGui::EndMenu();
