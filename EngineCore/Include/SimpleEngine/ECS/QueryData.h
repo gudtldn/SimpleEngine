@@ -32,7 +32,7 @@ using FlatFilterTypes = traits::FlattenTuple<FilterTypes<ConditionTag, Ts...>>;
 
 // 가져올 컴포넌트인지 확인 (FilterTag가 아닌 것)
 template <typename T>
-struct FetchTypePred { static constexpr bool Value = IsFetchTag<T>; };
+struct FetchTypePred { static constexpr bool Value = IsFetchType<T>; };
 
 // 검사할 컴포넌트인지 확인 (필수 컴포넌트)
 template <typename T>

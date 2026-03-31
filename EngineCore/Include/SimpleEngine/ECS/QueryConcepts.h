@@ -35,11 +35,11 @@ namespace detail
 {
 /** 타입 T가 FilterTag(With/Without)가 아닌 Fetch 대상인지 확인합니다. */
 template <typename T>
-concept IsFetchTag = !(traits::IsSpecializationOf<T, With> || traits::IsSpecializationOf<T, Without>);
+concept IsFetchType = !(traits::IsSpecializationOf<T, With> || traits::IsSpecializationOf<T, Without>);
 
 /** Optional이나 Entity가 아닌 필수 컴포넌트인지 확인합니다. */
 template <typename T>
-concept IsRequiredComponent = IsFetchTag<T> && !(traits::IsSpecializationOf<T, Optional> || std::same_as<T, Entity>);
+concept IsRequiredComponent = IsFetchType<T> && !(traits::IsSpecializationOf<T, Optional> || std::same_as<T, Entity>);
 
 template <typename... Ts>
 struct QueryValidator;
