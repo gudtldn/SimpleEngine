@@ -5,6 +5,7 @@
 #include "SimpleEngine/Asset/AssetPayload.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
+#include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
