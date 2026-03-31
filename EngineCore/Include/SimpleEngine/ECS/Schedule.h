@@ -39,16 +39,16 @@ private:
     template <typename T>
     void AddInternal(T&& system_obj)
     {
-        using DecayedT = std::decay_t<T>;
+        using CleanType = std::remove_cvref_t<T>;
 
         // Callable 타입인 경우
-        if constexpr (traits::FunctionType<DecayedT>)
+        if constexpr (traits::FunctionType<CleanType>)
         {
             executables.Push(detail::BindCallable(std::forward<T>(system_obj)));
         }
 
         // System, SystemChain 타입인 경우
-        else if constexpr (traits::IsAnyOf<DecayedT, System, SystemChain>)
+        else if constexpr (traits::IsAnyOf<CleanType, System, SystemChain>)
         {
             executables.Push([obj = std::forward<T>(system_obj)](World* world) mutable -> void
             {
@@ -58,7 +58,7 @@ private:
 
         else
         {
-            static_assert(traits::AlwaysFalse<DecayedT>, "Invalid system parameter type");
+            static_assert(traits::AlwaysFalse<CleanType>, "Invalid system parameter type");
         }
     }
 
