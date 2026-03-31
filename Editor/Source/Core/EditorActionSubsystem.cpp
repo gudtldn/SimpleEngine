@@ -34,7 +34,7 @@ SE_END_REFLECT(EditorActionSubsystem)
 bool EditorActionSubsystem::Initialize()
 {
     input_subsystem = &GetSubsystemChecked<InputSubsystem>();
-    world_subsystem = &GetSubsystemChecked<EntitySubsystem>();
+    entity_subsystem = &GetSubsystemChecked<EntitySubsystem>();
     editor_subsystem = &GetSubsystemChecked<EditorSubsystem>();
     ui_subsystem = &GetSubsystemChecked<EditorUISubsystem>();
     viewport_subsystem = &GetSubsystemChecked<EditorViewportSubsystem>();
@@ -44,7 +44,7 @@ bool EditorActionSubsystem::Initialize()
 void EditorActionSubsystem::Release()
 {
     input_subsystem = nullptr;
-    world_subsystem = nullptr;
+    entity_subsystem = nullptr;
     editor_subsystem = nullptr;
     ui_subsystem = nullptr;
     viewport_subsystem = nullptr;
@@ -98,14 +98,14 @@ void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
 
 void EditorActionSubsystem::DeleteEntity(Entity entity)
 {
-    World* world = world_subsystem->GetWorld();
+    World* world = &entity_subsystem->GetMainWorld().GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
     DeleteEntityRecursive(world, selection, entity);
 }
 
 void EditorActionSubsystem::DeleteSelectedEntities()
 {
-    World* world = world_subsystem->GetWorld();
+    World* world = &entity_subsystem->GetMainWorld().GetWorld();
     EditorSelection& selection = editor_subsystem->GetSelection();
 
     // 삭제 도중 selection이 변경되므로 먼저 복사

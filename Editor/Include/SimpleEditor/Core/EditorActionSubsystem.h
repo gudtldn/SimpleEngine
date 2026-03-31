@@ -50,7 +50,7 @@ private:
 
 private:
     InputSubsystem* input_subsystem = nullptr;
-    EntitySubsystem* world_subsystem = nullptr;
+    EntitySubsystem* entity_subsystem = nullptr;
     EditorSubsystem* editor_subsystem = nullptr;
     EditorUISubsystem* ui_subsystem = nullptr;
     EditorViewportSubsystem* viewport_subsystem = nullptr;

@@ -407,17 +407,13 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         return;
     }
 
-    const auto [asset_subsystem, world_subsystem] = GetSubsystems<const asset::AssetSubsystem, EntitySubsystem>();
-    if (!asset_subsystem || !world_subsystem)
+    const auto [asset_subsystem, entity_subsystem] = GetSubsystems<const asset::AssetSubsystem, EntitySubsystem>();
+    if (!asset_subsystem || !entity_subsystem)
     {
         return;
     }
 
-    World* world = world_subsystem->GetWorld();
-    if (!world)
-    {
-        return;
-    }
+    World* world = &entity_subsystem->GetMainWorld().GetWorld();
 
     // 파일에 등록된 에셋 중 StaticMesh 타입만 수집
     const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();

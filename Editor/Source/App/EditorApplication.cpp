@@ -138,12 +138,13 @@ void EditorApplication::Render()
         return;
     }
 
-    const auto [world_subsystem, ui_subsystem, viewport_subsystem] =
+    const auto [entity_subsystem, ui_subsystem, viewport_subsystem] =
         se::GetSubsystemsChecked<const EntitySubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
     // FramePacket 조립 (SceneDrawData 수집)
     se::graphics::FramePacket frame_packet;
-    frame_packet.scene_draw_data = se::graphics::CollectDrawData(*world_subsystem.GetWorld());
+    // TODO: const Query 사용할 수 있게 만든 뒤, const_cast 제거 및 CollectDrawData를 const World& 로 변경할 것
+    frame_packet.scene_draw_data = se::graphics::CollectDrawData(const_cast<World&>(entity_subsystem.GetMainWorld().GetWorld()));
 
     // TODO: GPU 리소스 해제 로직
     // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)

@@ -3,18 +3,13 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/ECS/ComponentStorage.h"
 #include "SimpleEngine/ECS/EntityManager.h"
-#include "SimpleEngine/ECS/Phases.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
-#include "SimpleEngine/Utility/Debug.h"
 
-#include <concepts>
 #include <memory>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -26,15 +21,8 @@ template <typename... Ts>
 class Query;
 
 
-namespace detail
-{
-template <typename Fn>
-concept SystemFunctionType = traits::FunctionType<Fn>
-    && std::is_void_v<typename traits::FunctionTraits<Fn>::ReturnType>;
-}
-
 /**
- * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 중앙 클래스
+ * ECS 월드의 모든 요소(엔티티, 컴포넌트)를 관리하는 순수 데이터 클래스
  */
 class SE_CORE_API World final
 {
@@ -43,13 +31,6 @@ private:
     friend class QueryData;
 
     friend class ComponentRegistry;
-
-    EntityManager entity_manager;
-    Array<Entity> alive_entities;
-
-    // TODO: 추후 C++26에서 Annotation으로 Tag 검사
-    HashMap<TypeId, Array<Function<void()>>> systems;
-    HashMap<TypeId, std::unique_ptr<IStorage>> component_storages;
 
 public:
     class EntityChain;
@@ -75,7 +56,7 @@ public:
         return chain;
     }
 
-    /** Entity와 Entity와 연결된 Component를 제거합니다. */
+    /** Entity와 연결된 모든 Component를 제거합니다. */
     void DestroyEntity(Entity entity);
 
     /** Entity가 현재 살아있는지 확인합니다. */
@@ -84,7 +65,8 @@ public:
     /** 현재 살아있는 모든 Entity를 반환합니다. */
     [[nodiscard]] const Array<Entity>& GetAliveEntities() const { return alive_entities; }
 
-    /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
+public:
+    /** Entity에 Component를 추가합니다. 이미 존재하면 덮어씌워집니다. */
     template <typename ComponentType>
     ComponentType& AddComponent(Entity entity, ComponentType&& init_component)
     {
@@ -140,56 +122,10 @@ public:
         return false;
     }
 
-    /**
-     * 지정된 스케줄 단계에 시스템을 추가합니다.
-     * @detail 시스템은 함수 시그니처를 분석하여 필요한 자원(Query, World* 등)을 자동으로 주입받습니다.
-     * @tparam S 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
-     * @tparam Fn 시스템으로 등록할 함수 또는 람다
-     */
-    template <PhaseType S, detail::SystemFunctionType Fn>
-    void AddSystem(Fn&& system_func)
-    {
-        const auto type_id = TypeId::Get<S>();
-        systems[type_id].Push([this, sys_func = std::forward<Fn>(system_func)] mutable
-        {
-            using F = traits::FunctionTraits<Fn>;
-            std::tuple tuple = traits::ApplyTypes<typename F::ArgumentTypes>([this]<typename... Ts>
-            {
-                return std::make_tuple(CreateSystemParam<Ts>()...);
-            });
-            std::apply(sys_func, std::move(tuple));
-        });
-    }
-
 public:
-    /**
-     * 주어진 TypeId에 해당하는 IStorage 포인터를 반환합니다.
-     * @param type_id 검색할 타입의 TypeId
-     * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
-     */
-    IStorage* GetStorage(const TypeId& type_id);
-
-    /**
-     * 지정된 스케줄에 등록된 모든 시스템을 순서대로 실행합니다.
-     * @tparam S 실행할 스케줄 타입
-     */
-    template <PhaseType S>
-    void RunPhase()
-    {
-        const auto type_id = TypeId::Get<S>();
-        if (Optional system_opt = systems.Find(type_id))
-        {
-            for (const Function<void()>& system : *system_opt)
-            {
-                system();
-            }
-        }
-    }
-
     /**
      * Entity를 쿼리하는 Query 객체를 생성합니다.
      * @tparam Ts Component 목록 및 필터(With<...>, Without<...>)
-     * @return Query 객체
      */
     template <typename... Ts>
         requires requires { Query<Ts...>{ std::declval<World*>() }; }
@@ -198,25 +134,12 @@ public:
         return Query<Ts...>{ this };
     }
 
-private:
-    template <typename T>
-    T CreateSystemParam()
-    {
-        using namespace traits;
-        if constexpr (std::same_as<T, World*>)
-        {
-            return this;
-        }
-        else if constexpr (IsSpecializationOf<T, Query>)
-        {
-            return T{ this };
-        }
-        else
-        {
-            static_assert(AlwaysFalse<T>, "Invalid system parameter type");
-            SE_UNREACHABLE();
-        }
-    }
+    /**
+     * 주어진 TypeId에 해당하는 IStorage 포인터를 반환합니다.
+     * @param type_id 검색할 타입의 TypeId
+     * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
+     */
+    IStorage* GetStorage(const TypeId& type_id);
 
 private:
     template <typename ComponentType>
@@ -273,7 +196,7 @@ public:
         {
         }
 
-        /** Entity에 Component를 추가합니다. 만약 이미 존재하면 덮어씌워집니다. */
+        /** Entity에 Component를 추가합니다. 이미 존재하면 덮어씌워집니다. */
         template <typename ComponentType>
         EntityChain& AddComponent(ComponentType&& init_component)
         {
@@ -294,5 +217,11 @@ public:
         World* world;
         Entity entity;
     };
+
+private:
+    EntityManager entity_manager;
+    Array<Entity> alive_entities;
+
+    HashMap<TypeId, std::unique_ptr<IStorage>> component_storages;
 };
 } // namespace se

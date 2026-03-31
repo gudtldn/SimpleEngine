@@ -27,7 +27,6 @@ class Query
     using FetchTypes = QueryDataType::FetchTypes;
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
-
     using IterationSourceType = std::conditional_t<HasBasePool, IStorage*, const Array<Entity>*>;
 
 public:
