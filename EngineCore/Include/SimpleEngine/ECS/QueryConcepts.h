@@ -5,6 +5,7 @@
 #include "SimpleEngine/Traits/TupleTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+#include <concepts>
 #include <tuple>
 #include <type_traits>
 
@@ -18,6 +19,11 @@ namespace se
 template <typename... Components>
 struct With
 {
+    static_assert(
+        ((std::same_as<Components, std::remove_cvref_t<Components>>) && ...),
+        "With<...> requires raw component types. Do not use pointers, references, or const/volatile qualifiers."
+    );
+
     using Types = std::tuple<Components...>;
 };
 
@@ -28,6 +34,11 @@ struct With
 template <typename... Components>
 struct Without
 {
+    static_assert(
+        ((std::same_as<Components, std::remove_cvref_t<Components>>) && ...),
+        "Without<...> requires raw component types. Do not use pointers, references, or const/volatile qualifiers."
+    );
+
     using Types = std::tuple<Components...>;
 };
 
@@ -41,6 +52,7 @@ concept IsFetchType = !(traits::IsSpecializationOf<T, With> || traits::IsSpecial
 template <typename T>
 concept IsRequiredComponent = IsFetchType<T> && !(traits::OptionalLike<T> || std::same_as<T, Entity>);
 
+/** Query로 들어온 인자가 올바른 타입인지 확인합니다. */
 template <typename... Ts>
 struct QueryValidator;
 
