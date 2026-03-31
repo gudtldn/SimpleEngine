@@ -4,6 +4,8 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/QueryData.h"
+#include "SimpleEngine/Traits/ContainerTraits.h"
+#include "SimpleEngine/Traits/TupleTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <concepts>
@@ -25,12 +27,13 @@ class Query
 
     using QueryDataType = QueryData<Ts...>;
     using FetchTypes = QueryDataType::FetchTypes;
+    using TargetWorld = QueryDataType::TargetWorld;
 
     static constexpr bool HasBasePool = std::tuple_size_v<typename QueryDataType::PredicateTypes> > 0;
-    using IterationSourceType = std::conditional_t<HasBasePool, IStorage*, const Array<Entity>*>;
+    using IterationSourceType = std::conditional_t<HasBasePool, const IStorage*, const Array<Entity>*>;
 
 public:
-    explicit Query(World* in_world)
+    explicit Query(TargetWorld* in_world)
         : query_data(in_world)
     {
         if constexpr (HasBasePool)
@@ -52,20 +55,86 @@ public:
 
 public:
     /** 쿼리 결과가 비어있는지 확인합니다. */
-    [[nodiscard]] bool IsEmpty();
+    [[nodiscard]] bool IsEmpty()
+    {
+        return begin() == end();
+    }
 
     /** 특정 엔티티가 쿼리 조건을 만족하는 경우, 해당 컴포넌트들을 반환합니다. */
-    [[nodiscard]] Optional<FetchTypes> Get(Entity entity);
+    [[nodiscard]] Optional<FetchTypes> Get(Entity entity)
+    {
+        if (query_data.IsEntityValid(entity))
+        {
+            TargetWorld* world = query_data.GetWorld();
+            return traits::ApplyTypes<FetchTypes>([world, entity]<typename... FetchComps>
+            {
+                return FetchTypes{ Fetch<FetchComps>(world, entity)... };
+            });
+        }
+        return NullOpt;
+    }
 
     /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 Optional로 반환합니다. 결과가 없거나 여러 개이면 nullopt를 반환합니다. */
-    [[nodiscard]] Optional<FetchTypes> GetSingle();
+    [[nodiscard]] Optional<FetchTypes> GetSingle()
+    {
+        auto it = begin();
+        if (it == end())
+        {
+            return NullOpt;
+        }
+
+        FetchTypes result = *it;
+        ++it;
+        if (it != end())
+        {
+            return NullOpt;
+        }
+
+        return result;
+    }
 
     /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 반환합니다. 결과가 없거나 여러 개이면 assert로 프로그램을 중단시킵니다. */
-    [[nodiscard]] FetchTypes Single();
+    [[nodiscard]] FetchTypes Single()
+    {
+        auto it = begin();
+        SE_ASSERT(it != end(), "Called Single() on a query with no matching entities.");
+
+        FetchTypes result = *it;
+        ++it;
+        SE_ASSERT(it == end(), "Called Single() on a query with more than one matching entity.");
+
+        return result;
+    }
 
 private:
     template <typename T>
-    static decltype(auto) GetComponentHelper(World* world, Entity entity);
+    static decltype(auto) Fetch(TargetWorld* world, Entity entity)
+    {
+        using RawType = std::remove_cvref_t<T>;
+
+        if constexpr (traits::OptionalLike<RawType>)
+        {
+            static_assert(
+                !std::is_reference_v<T>,
+                "Optional<T> in a Query must be fetched by value, not by reference."
+            );
+
+            using InnerType = std::remove_cvref_t<traits::InnerOf<RawType>>;
+            return world->template TryGetComponent<InnerType>(entity);
+        }
+        else if constexpr (std::same_as<RawType, Entity>)
+        {
+            static_assert(
+                !std::is_reference_v<T>,
+                "Entity in a Query must be fetched by value, not by reference."
+            );
+            return entity;
+        }
+        else
+        {
+            return world->template GetComponent<RawType>(entity);
+        }
+    }
 
 public:
     class Iterator
@@ -86,7 +155,7 @@ public:
 
         value_type operator*() const noexcept
         {
-            World* world = query_data->GetWorld();
+            TargetWorld* world = query_data->GetWorld();
             Entity entity;
             if constexpr (HasBasePool)
             {
@@ -100,7 +169,7 @@ public:
             // FetchTypes에 명시된 컴포넌트들을 월드에서 가져와 튜플로 묶어 반환
             return traits::ApplyTypes<value_type>([world, entity]<typename... FetchComps>
             {
-                return value_type{ GetComponentHelper<FetchComps>(world, entity)... };
+                return value_type{ Fetch<FetchComps>(world, entity)... };
             });
         }
 
@@ -158,8 +227,7 @@ public:
     private:
         QueryDataType* query_data;
         usize storage_index;
-
-        std::conditional_t<HasBasePool, IStorage*, const Array<Entity>*> iteration_source;
+        IterationSourceType iteration_source;
     };
 
     Iterator begin()
@@ -188,87 +256,4 @@ private:
     QueryDataType query_data;
     IterationSourceType iteration_source;
 };
-
-template <typename... Ts> requires QueryParameterPack<Ts...>
-bool Query<Ts...>::IsEmpty()
-{
-    return begin() == end();
-}
-
-template <typename... Ts> requires QueryParameterPack<Ts...>
-Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::Get(Entity entity)
-{
-    if (query_data.IsEntityValid(entity))
-    {
-        World* world = query_data.GetWorld();
-        return traits::ApplyTypes<FetchTypes>([world, entity]<typename... FetchComps>
-        {
-            return FetchTypes{ GetComponentHelper<FetchComps>(world, entity)... };
-        });
-    }
-    return NullOpt;
-}
-
-template <typename... Ts> requires QueryParameterPack<Ts...>
-Optional<typename Query<Ts...>::FetchTypes> Query<Ts...>::GetSingle()
-{
-    auto it = begin();
-    if (it == end())
-    {
-        return NullOpt;
-    }
-
-    FetchTypes result = *it;
-    ++it;
-    if (it != end())
-    {
-        return NullOpt;
-    }
-
-    return result;
-}
-
-template <typename... Ts> requires QueryParameterPack<Ts...>
-Query<Ts...>::FetchTypes Query<Ts...>::Single()
-{
-    auto it = begin();
-    SE_ASSERT(it != end(), "Called Single() on a query with no matching entities.");
-
-    FetchTypes result = *it;
-    ++it;
-    SE_ASSERT(it == end(), "Called Single() on a query with more than one matching entity.");
-
-    return result;
-}
-
-template <typename... Ts> requires QueryParameterPack<Ts...>
-template <typename T>
-decltype(auto) Query<Ts...>::GetComponentHelper(World* world, Entity entity)
-{
-    if constexpr (traits::IsSpecializationOf<T, Optional>)
-    {
-        static_assert(
-            !std::is_reference_v<T>,
-            "Optional<T> in a Query must be fetched by value, not by reference."
-        );
-
-        using DecayedT = std::decay_t<typename T::ValueType>;
-        using WorldType = traits::CopyConst<typename T::ValueType, World*>;
-
-        WorldType world_ptr = world;
-        return world_ptr->template TryGetComponent<DecayedT>(entity);
-    }
-    else if constexpr (std::same_as<std::decay_t<T>, Entity>)
-    {
-        static_assert(
-            !std::is_reference_v<T>,
-            "Entity in a Query must be fetched by value, not by reference."
-        );
-        return entity;
-    }
-    else
-    {
-        return world->GetComponent<std::decay_t<T>>(entity);
-    }
-}
 } // namespace se

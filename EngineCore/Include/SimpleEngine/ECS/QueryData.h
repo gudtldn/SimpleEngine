@@ -55,6 +55,10 @@ template <typename... Ts>
 class QueryData
 {
 public:
+    // Query가 읽기 전용인지 확인 (const World 참조)
+    static constexpr bool IsReadOnly = detail::IsReadOnlyQueryPack<Ts...>;
+    using TargetWorld = std::conditional_t<IsReadOnly, const World, World>;
+
     // 템플릿 인자들을 분석하여 가져올(Fetch), 포함할(With), 제외할(Without) 타입으로 분류
     using FetchTypes = detail::FilterTypes<detail::FetchTypePred, Ts...>;
     using WithTypes = detail::FlatFilterTypes<detail::WithTagPred, Ts...>;
@@ -64,34 +68,34 @@ public:
     using PredicateTypes = traits::TupleCat<detail::FlatFilterTypes<detail::RequiredComponentPred, Ts...>, WithTypes>;
 
 public:
-    explicit QueryData(World* in_world);
+    explicit QueryData(TargetWorld* in_world);
 
     /** 엔티티가 쿼리의 모든 조건(With, Without)을 만족하는지 검증합니다. */
-    [[nodiscard]] bool IsEntityValid(Entity entity);
+    [[nodiscard]] bool IsEntityValid(Entity entity) const;
 
     /** 순회 범위를 최소화하기 위해 가장 작은 컴포넌트 풀(Storage)을 찾습니다. */
-    [[nodiscard]] IStorage* FindSmallestPool();
+    [[nodiscard]] const IStorage* FindSmallestPool() const;
 
-    [[nodiscard]] World* GetWorld() const { return world; }
+    [[nodiscard]] TargetWorld* GetWorld() const { return world; }
 
 private:
-    World* world;
+    TargetWorld* world;
 };
 
 template <typename... Ts>
-QueryData<Ts...>::QueryData(World* in_world)
+QueryData<Ts...>::QueryData(TargetWorld* in_world)
     : world(in_world)
 {
 }
 
 template <typename... Ts>
-bool QueryData<Ts...>::IsEntityValid(Entity entity)
+bool QueryData<Ts...>::IsEntityValid(Entity entity) const
 {
     // Fetch(Optional<T> 제외)와 With 목록의 모든 컴포넌트를 가졌는지 확인
     const bool has_all_required =
         traits::ApplyTypes<PredicateTypes>([this, entity]<typename... PredComps>
         {
-            return (world->HasComponent<std::decay_t<PredComps>>(entity) && ...);
+            return (world->template HasComponent<std::remove_cvref_t<PredComps>>(entity) && ...);
         });
 
     if (!has_all_required)
@@ -103,14 +107,14 @@ bool QueryData<Ts...>::IsEntityValid(Entity entity)
     const bool has_any_excluded =
         traits::ApplyTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
         {
-            return (world->HasComponent<std::decay_t<WithoutComps>>(entity) || ...);
+            return (world->template HasComponent<std::remove_cvref_t<WithoutComps>>(entity) || ...);
         });
 
     return !has_any_excluded;
 }
 
 template <typename... Ts>
-IStorage* QueryData<Ts...>::FindSmallestPool()
+const IStorage* QueryData<Ts...>::FindSmallestPool() const
 {
     // 순회의 기준이 될 PredicateTypes(필수 컴포넌트 + With)의 총 개수
     constexpr usize pool_size = std::tuple_size_v<PredicateTypes>;
@@ -121,11 +125,9 @@ IStorage* QueryData<Ts...>::FindSmallestPool()
 
     // 각 컴포넌트 스토리지 포인터를 배열에 수집
     const auto pools =
-        traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<IStorage*, pool_size>
+        traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<const IStorage*, pool_size>
         {
-            return {
-                world->FindRawStorage<std::decay_t<PredComps>>()...
-            };
+            return { world->template FindRawStorage<std::remove_cvref_t<PredComps>>()... };
         });
 
     // 수집된 스토리지 중 가장 크기가 작은 것을 찾아 반환

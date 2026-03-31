@@ -125,6 +125,14 @@ public:
     template <typename... Ts, typename Self>
     [[nodiscard]] Query<Ts...> CreateQuery(this Self&& self)
     {
+        static constexpr bool is_const_world = std::is_const_v<std::remove_reference_t<Self>>;
+        static constexpr bool is_read_only_query = detail::IsReadOnlyQueryPack<Ts...>;
+
+        static_assert(
+            !is_const_world || is_read_only_query,
+            "Cannot create a mutable Query from a const World. All queried components must be read-only (e.g., 'const T&')."
+        );
+
         return Query<Ts...>{ &self };
     }
 

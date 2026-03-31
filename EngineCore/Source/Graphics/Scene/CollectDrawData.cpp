@@ -33,8 +33,7 @@ SceneDrawData CollectDrawData(const World& world)
 {
     SceneDrawData result;
 
-    // TODO: const Query 사용할 수 있게 만든 뒤, const_cast 제거 및 CollectDrawData를 const World& 로 변경할 것
-    auto query = const_cast<World&>(world).CreateQuery<const TransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
+    auto query = world.CreateQuery<const TransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
     for (const auto [transform, mesh, material] : query)
     {
         result.opaque_commands.Push({
