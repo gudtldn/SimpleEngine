@@ -18,7 +18,6 @@ namespace se
 {
 // forward declaration
 template <typename... Ts>
-    requires QueryParameterPack<Ts...>
 class Query;
 
 
