@@ -125,14 +125,17 @@ public:
             }
         }
 
-        // 제외 조건 확인 (Without 목록)
-        // ComponentPool에 Entity가 하나라도 존재하면 안 됨
-        for (usize i = 0; i < valid_without_count; ++i)
+        if constexpr (NumWithout > 0)
         {
-            // 제외 조건에 있을경우 return
-            if (without_pools[i]->Contains(entity))
+            // 제외 조건 확인 (Without 목록)
+            // ComponentPool에 Entity가 하나라도 존재하면 안 됨
+            for (usize i = 0; i < valid_without_count; ++i)
             {
-                return false;
+                // 제외 조건에 있을경우 return
+                if (without_pools[i]->Contains(entity))
+                {
+                    return false;
+                }
             }
         }
 
