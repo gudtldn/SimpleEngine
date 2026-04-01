@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/ECS/IStorage.h"
@@ -8,6 +9,7 @@
 #include "SimpleEngine/Traits/TupleTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+#include <algorithm>
 #include <memory>
 #include <tuple>
 #include <type_traits>
@@ -88,10 +90,18 @@ public:
         // Without Storage 캐싱
         if constexpr (NumWithout > 0)
         {
-            without_pools = traits::ApplyTypes<WithoutTypes>([this]<typename... WithoutComps> -> decltype(without_pools)
+            auto temp_without_pools = traits::ApplyTypes<WithoutTypes>([this]<typename... WithoutComps> -> decltype(without_pools)
             {
                 return { world->template FindRawStorage<std::remove_cvref_t<WithoutComps>>()... };
             });
+
+            for (const IStorage* pool : temp_without_pools)
+            {
+                if (pool != nullptr)
+                {
+                    without_pools[valid_without_count++] = pool;
+                }
+            }
         }
     }
 
@@ -117,10 +127,10 @@ public:
 
         // 제외 조건 확인 (Without 목록)
         // ComponentPool에 Entity가 하나라도 존재하면 안 됨
-        for (const IStorage* pool : without_pools)
+        for (usize i = 0; i < valid_without_count; ++i)
         {
             // 제외 조건에 있을경우 return
-            if (pool && pool->Contains(entity))
+            if (without_pools[i]->Contains(entity))
             {
                 return false;
             }
@@ -157,7 +167,7 @@ private:
     // 매번 HashMap 조회를 피하기 위한 IStorage* 배열
     FixedArray<const IStorage*, NumPredicates> predicate_pools{};
     FixedArray<const IStorage*, NumWithout> without_pools{};
-
+    usize valid_without_count = 0;
     // 쿼리가 유효한지 검증하는 flag
     bool is_valid_query = true;
 };

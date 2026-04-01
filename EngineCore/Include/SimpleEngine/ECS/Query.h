@@ -21,7 +21,7 @@ namespace detail
 template <typename T>
 using PoolPtrType = std::conditional_t<
     std::same_as<std::remove_cvref_t<T>, Entity>,
-    void*, // Entity는 Pool이 필요 없으므로 더미 포인터 반환
+    EmptyType, // Entity는 Pool이 필요 없음
     std::conditional_t<
         IsReadOnlyType<T>::Value,
         const SparseSet<std::remove_cvref_t<traits::InnerOf<T>>>*, // 읽기 전용 쿼리 -> const Pool
@@ -36,7 +36,7 @@ static PoolPtrType<T> GetPoolPtr(TargetWorld& world)
     // Entity는 무시
     if constexpr (std::same_as<std::remove_cvref_t<T>, Entity>)
     {
-        return nullptr;
+        return EmptyType{};
     }
     else
     {
