@@ -42,15 +42,13 @@ template <typename T, typename... Args>             constexpr bool IsSetLikeImpl
 template <typename T, typename... Args>             constexpr bool IsSetLikeImpl<FlatSet<T, Args...>>    = true;
 
 // 타입 추출용 내부 구현
-template <typename T>                               struct OptionalInnerTypeImpl                   { using Type = void; };
-template <typename T>                               struct OptionalInnerTypeImpl<Optional<T>>      { using Type = T;    };
-
-template <typename T>                               struct ElementTypeImpl                         { using Type = void; };
-template <typename T, usize N>                      struct ElementTypeImpl<FixedArray<T, N>>       { using Type = T;    };
-template <typename T, typename... Args>             struct ElementTypeImpl<Array<T, Args...>>      { using Type = T;    };
-template <typename T, typename... Args>             struct ElementTypeImpl<HashSet<T, Args...>>    { using Type = T;    };
-template <typename T, typename... Args>             struct ElementTypeImpl<Set<T, Args...>>        { using Type = T;    };
-template <typename T, typename... Args>             struct ElementTypeImpl<FlatSet<T, Args...>>    { using Type = T;    };
+template <typename T>                               struct InnerTypeImpl                      { using Type = T; };
+template <typename T>                               struct InnerTypeImpl<Optional<T>>         { using Type = T; };
+template <typename T, usize N>                      struct InnerTypeImpl<FixedArray<T, N>>    { using Type = T; };
+template <typename T, typename... Args>             struct InnerTypeImpl<Array<T, Args...>>   { using Type = T; };
+template <typename T, typename... Args>             struct InnerTypeImpl<HashSet<T, Args...>> { using Type = T; };
+template <typename T, typename... Args>             struct InnerTypeImpl<Set<T, Args...>>     { using Type = T; };
+template <typename T, typename... Args>             struct InnerTypeImpl<FlatSet<T, Args...>> { using Type = T; };
 
 template <typename T>                               struct MapKeyValueImpl                         { using KeyType = void; using ValueType = void; };
 template <typename K, typename V, typename... Args> struct MapKeyValueImpl<HashMap<K, V, Args...>> { using KeyType = K;    using ValueType = V;    };
@@ -78,15 +76,12 @@ concept Resizable = requires(T& container, usize size) { container.Resize(size);
     || requires(T& container, usize size) { container.ResizeUninitialized(size); };
 
 
-/** Optional<T>의 내부 값 타입(T)을 추출합니다. */
+/**
+ * 컨테이너나 Optional의 내부 값 타입(T)을 추출합니다.
+ * 래퍼 타입이 아니라면 입력된 타입 자기 자신을 그대로 반환합니다.
+ */
 template <typename T>
-    requires OptionalLike<T>
-using InnerOf = detail::OptionalInnerTypeImpl<std::remove_cvref_t<T>>::Type;
-
-/** 컨테이너의 요소(Element) 타입을 추출합니다. */
-template <typename T>
-    requires ArrayLike<T> || SetLike<T>
-using ElementOf = detail::ElementTypeImpl<std::remove_cvref_t<T>>::Type;
+using InnerOf = detail::InnerTypeImpl<std::remove_cvref_t<T>>::Type;
 
 /** Map-like 컨테이너의 Key 타입을 추출합니다. */
 template <typename T>

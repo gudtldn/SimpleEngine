@@ -9,7 +9,7 @@ namespace se::detail
 template <traits::ArrayLike Container>
 void SerializeArrayContainer(Archive& ar, Container& container)
 {
-    using ElementType = traits::ElementOf<Container>;
+    using ElementType = traits::InnerOf<Container>;
 
     uint64 count = container.Len();
     ar.BeginArray(count);
@@ -59,7 +59,7 @@ void SerializeArrayContainer(Archive& ar, Container& container)
 template <traits::SetLike Container>
 void SerializeSetContainer(Archive& ar, Container& container)
 {
-    using ElementType = traits::ElementOf<Container>;
+    using ElementType = traits::InnerOf<Container>;
 
     uint64 count = container.Len();
     ar.BeginArray(count);

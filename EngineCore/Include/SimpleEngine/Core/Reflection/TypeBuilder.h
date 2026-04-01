@@ -150,13 +150,13 @@ public:
         // 컨테이너 타입 감지 및 ContainerOps 자동 생성
         if constexpr (traits::ArrayLike<MemberType>)
         {
-            using ElemType = traits::ElementOf<MemberType>;
+            using ElemType = traits::InnerOf<MemberType>;
             static constexpr ContainerOps ops = MakeArrayOps<MemberType, ElemType>();
             prop.container_ops = &ops;
         }
         else if constexpr (traits::SetLike<MemberType>)
         {
-            using ElemType = traits::ElementOf<MemberType>;
+            using ElemType = traits::InnerOf<MemberType>;
             static constexpr ContainerOps ops = MakeSetOps<MemberType, ElemType>();
             prop.container_ops = &ops;
         }
@@ -237,13 +237,13 @@ private:
     {
         if constexpr (traits::ArrayLike<ElemType>)
         {
-            using Inner = traits::ElementOf<ElemType>;
+            using Inner = traits::InnerOf<ElemType>;
             static constexpr ContainerOps nested = MakeArrayOps<ElemType, Inner>();
             return &nested;
         }
         else if constexpr (traits::SetLike<ElemType>)
         {
-            using Inner = traits::ElementOf<ElemType>;
+            using Inner = traits::InnerOf<ElemType>;
             static constexpr ContainerOps nested = MakeSetOps<ElemType, Inner>();
             return &nested;
         }
