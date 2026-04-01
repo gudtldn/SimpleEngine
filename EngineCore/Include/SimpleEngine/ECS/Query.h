@@ -25,7 +25,7 @@ class Query
 {
     friend class Iterator;
 
-    using QueryDataType = QueryData<Ts...>;
+    using QueryDataType = detail::QueryData<Ts...>;
     using FetchTypes = QueryDataType::FetchTypes;
     using TargetWorld = QueryDataType::TargetWorld;
 

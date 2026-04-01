@@ -14,13 +14,12 @@
 #include <type_traits>
 
 
-namespace se
+namespace se::detail
 {
 /**
  * 쿼리 파라미터 파싱을 위한 내부 메타프로그래밍 유틸리티
  */
-namespace detail
-{
+
 // 조건 태그를 사용하여 타입 목록에서 특정 타입들을 추출합니다.
 template <template <typename> typename ConditionTag, typename... Ts>
     requires requires { (ConditionTag<Ts>::Value, ...); }
@@ -46,7 +45,7 @@ struct WithTagPred { static constexpr bool Value = traits::IsSpecializationOf<T,
 // Without<...> 태그인지 확인
 template <typename T>
 struct WithoutTagPred { static constexpr bool Value = traits::IsSpecializationOf<T, Without>; };
-} // namespace detail
+
 
 /**
  * 쿼리 파라미터를 분석하고, 엔티티 유효성을 검증하는 로직을 캡슐화한 클래스
@@ -57,16 +56,16 @@ class QueryData
 {
 public:
     // Query가 읽기 전용인지 확인 (const World 참조)
-    static constexpr bool IsReadOnly = detail::IsReadOnlyQueryPack<Ts...>;
+    static constexpr bool IsReadOnly = IsReadOnlyQueryPack<Ts...>;
     using TargetWorld = std::conditional_t<IsReadOnly, const World, World>;
 
     // 템플릿 인자들을 분석하여 가져올(Fetch), 포함할(With), 제외할(Without) 타입으로 분류
-    using FetchTypes = detail::FilterTypes<detail::FetchTypePred, Ts...>;
-    using WithTypes = detail::FlatFilterTypes<detail::WithTagPred, Ts...>;
-    using WithoutTypes = detail::FlatFilterTypes<detail::WithoutTagPred, Ts...>;
+    using FetchTypes = FilterTypes<FetchTypePred, Ts...>;
+    using WithTypes = FlatFilterTypes<WithTagPred, Ts...>;
+    using WithoutTypes = FlatFilterTypes<WithoutTagPred, Ts...>;
 
     // 실제 Query 검증에 사용되는 타입들
-    using PredicateTypes = traits::TupleCat<detail::FlatFilterTypes<detail::RequiredComponentPred, Ts...>, WithTypes>;
+    using PredicateTypes = traits::TupleCat<FlatFilterTypes<RequiredComponentPred, Ts...>, WithTypes>;
 
 public:
     explicit QueryData(TargetWorld& in_world)
@@ -138,4 +137,4 @@ public:
 private:
     TargetWorld* world;
 };
-} // namespace se
+} // namespace se::detail

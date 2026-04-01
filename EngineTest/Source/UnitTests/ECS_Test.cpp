@@ -201,3 +201,58 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
     ASSERT_TRUE(comp_added.HasValue());
     EXPECT_EQ(comp_added->value, 50);
 }
+
+// const World와 읽기 전용 쿼리의 상호작용을 검증합니다.
+TEST_F(ECSTest, ECSConstWorldAndReadOnlyQuery)
+{
+    WorldContext ctx;
+    auto entity = ctx.GetWorld().SpawnEntity()
+                     .AddComponent<TestValueComponent>({ .value = 42 });
+
+    // 1. Const World 확보
+    const World& const_world = ctx.GetWorld();
+
+    // 2. 읽기 전용 쿼리 생성 및 타입 검증
+    using QueryTypes = std::tuple<const TestValueComponent&, Entity>;
+    auto read_only_query = traits::ApplyTypes<QueryTypes>([&]<typename... Ts>
+    {
+        return const_world.CreateQuery<Ts...>();
+    });
+
+    static_assert(
+        traits::ApplyTypes<QueryTypes>([]<typename... Ts> -> bool
+        {
+            return detail::IsReadOnlyQueryPack<Ts...>;
+        }),
+        "TargetWorld of a query created from const World must be 'const World'."
+    );
+
+    // 3. 런타임 순회 검증
+    bool found = false;
+    for (auto [val, ent] : read_only_query)
+    {
+        EXPECT_EQ(val.value, 42);
+        EXPECT_EQ(ent, entity);
+        found = true;
+
+        // val.value = 100; // - 주석을 풀면 컴파일 에러가 발생해야 정상 (ReadOnly)
+    }
+    EXPECT_TRUE(found);
+
+    // 4. 단일 조회 API 검증
+    auto opt_res = read_only_query.TryGetSingle();
+    ASSERT_TRUE(opt_res.HasValue());
+    EXPECT_EQ(std::get<0>(opt_res.Value()).value, 42);
+
+    // 5. 시스템 바인딩 검증 (const World& 주입)
+    // - 이 시스템은 내부적으로 const World로부터 쿼리를 생성하거나 데이터를 읽기만 해야 합니다.
+    ctx.AddSystem<UpdatePhase>([](const World& world)
+    {
+        auto q = world.CreateQuery<const TestValueComponent&>();
+        EXPECT_FALSE(q.IsEmpty());
+
+        // world.SpawnEntity(); // - 주석을 풀면 컴파일 에러가 발생해야 정상 (const World)
+    });
+
+    ctx.RunPhase<UpdatePhase>();
+}
