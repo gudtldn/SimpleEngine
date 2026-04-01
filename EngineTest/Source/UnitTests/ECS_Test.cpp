@@ -145,7 +145,7 @@ TEST_F(ECSTest, ECSQueryParameterInjection)
         });
 
     // World& 파라미터가 올바르게 주입되는지 검증합니다.
-    ctx.AddSystem<UpdatePhase>([](World& world)
+    ctx.AddSystem<UpdatePhase>([]([[maybe_unused]] World& world)
     {
     });
 
