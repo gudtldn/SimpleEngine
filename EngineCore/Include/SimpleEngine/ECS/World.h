@@ -153,6 +153,18 @@ public:
         return self.FindRawStorage(TypeId::Get<RawType>());
     }
 
+    /** 구체적 타입으로 캐스팅된 실제 Component Pool(SparseSet)을 검색합니다. */
+    template <typename ComponentType, typename Self>
+    Optional<traits::CopyConst<Self, SparseSet<std::remove_cvref_t<ComponentType>>&>> FindSparseSet(this Self&& self)
+    {
+        using RawType = std::remove_cvref_t<ComponentType>;
+        if (traits::CopyConst<Self, IStorage*> storage = self.template FindRawStorage<RawType>())
+        {
+            return static_cast<traits::CopyConst<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
+        }
+        return NullOpt;
+    }
+
     /**
      * 주어진 TypeId에 해당하는 IStorage 포인터를 반환하거나,
      * 해당 타입의 저장소가 없을 경우 새로 생성합니다.
@@ -181,18 +193,6 @@ private:
             .OrInsertWith([]{ return std::make_unique<ComponentStorage<RawType>>(); });
 
         return *static_cast<ComponentStorage<RawType>*>(storage_ptr.get());
-    }
-
-    /** 구체적 타입으로 캐스팅된 실제 Component Pool(SparseSet)을 검색합니다. */
-    template <typename ComponentType, typename Self>
-    Optional<traits::CopyConst<Self, SparseSet<std::remove_cvref_t<ComponentType>>&>> FindSparseSet(this Self&& self)
-    {
-        using RawType = std::remove_cvref_t<ComponentType>;
-        if (traits::CopyConst<Self, IStorage*> storage = self.template FindRawStorage<RawType>())
-        {
-            return static_cast<traits::CopyConst<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
-        }
-        return NullOpt;
     }
 
     /** 타입 매개변수에 맞는 SparseSet을 가져오거나, 없으면 생성합니다. */
