@@ -15,8 +15,8 @@ git submodule update --init
 | MSVC (Visual Studio 2022) | 17.x+  |                         |
 | Ninja (필수는 아님)            | 최신     | 단일 구성 생성기 사용 시 필요       |
 
-좌표계
-right-hand, z-up
+- 좌표계: right-hand, z-up
+- 1 unit = 1 meter
 
 <details>
 
