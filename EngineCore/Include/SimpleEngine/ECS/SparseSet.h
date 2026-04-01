@@ -16,16 +16,6 @@ namespace se
 template <typename ComponentType>
 class SparseSet
 {
-private:
-    /** EntityID -> DenseIdx */
-    Array<Optional<usize>> sparse;
-
-    /** Entity array */
-    Array<Entity> dense;
-
-    /** Component array */
-    Array<ComponentType> components;
-
 public:
     explicit SparseSet() = default;
 
@@ -36,13 +26,13 @@ public:
     {
         if (entity.GetId() >= sparse.Len())
         {
-            sparse.Resize(entity.GetId() + 1, NullOpt);
+            sparse.Resize(entity.GetId() + 1, INVALID_INDEX);
         }
 
         // 이미 존재하면 덮어쓰기
         if (Contains(entity))
         {
-            components[*sparse[entity.GetId()]] = std::forward<T>(component);
+            components[sparse[entity.GetId()]] = std::forward<T>(component);
             return;
         }
 
@@ -60,7 +50,7 @@ public:
             return;
         }
 
-        const usize remove_idx = *sparse[entity.GetId()];
+        const usize remove_idx = sparse[entity.GetId()];
         const Entity last_entity = *dense.Back();
 
         // swap-remove
@@ -71,7 +61,7 @@ public:
 
         dense.Pop();
         components.Pop();
-        sparse[entity.GetId()] = NullOpt;
+        sparse[entity.GetId()] = INVALID_INDEX;
     }
 
     /** Set에 Entity가 있는지 확인합니다. */
@@ -82,12 +72,8 @@ public:
             return false;
         }
 
-        if (const Optional<usize> dense_idx_opt = sparse[entity.GetId()])
-        {
-            const auto dense_idx = *dense_idx_opt;
-            return dense_idx < dense.Len() && dense[dense_idx] == entity;
-        }
-        return false;
+        const auto dense_idx = sparse[entity.GetId()];
+        return dense_idx < dense.Len() && dense[dense_idx] == entity;
     }
 
     /** Dense 배열의 인덱스로 Entity를 가져옵니다. */
@@ -113,7 +99,7 @@ public:
     {
         if (self.Contains(entity))
         {
-            return self.components[*self.sparse[entity.GetId()]];
+            return self.components[self.sparse[entity.GetId()]];
         }
         return NullOpt;
     }
@@ -206,5 +192,18 @@ public:
     [[nodiscard]] IteratorType end() { return IteratorType(dense.end(), components.end()); }
     [[nodiscard]] ConstIteratorType begin() const { return ConstIteratorType(dense.begin(), components.begin()); }
     [[nodiscard]] ConstIteratorType end() const { return ConstIteratorType(dense.end(), components.end()); }
+
+private:
+    static constexpr usize INVALID_INDEX = std::numeric_limits<usize>::max();
+
+    /** EntityID -> DenseIdx */
+    Array<usize> sparse;
+
+    /** Entity array */
+    Array<Entity> dense;
+
+    /** Component array */
+    Array<ComponentType> components;
+
 };
 } // namespace se
