@@ -52,15 +52,14 @@ concept IsFetchType = !(traits::IsSpecializationOf<T, With> || traits::IsSpecial
 template <typename T>
 concept IsRequiredComponent = IsFetchType<T> && !(traits::OptionalLike<T> || std::same_as<T, Entity>);
 
-/** Query로 들어온 인자가 올바른 타입인지 확인합니다. */
 template <typename... Ts>
-struct QueryValidator;
+struct QueryValidatorImpl;
 
 template <
     template <typename...> typename TupleLike,
     typename... ProcessedTs
 >
-struct QueryValidator<TupleLike<ProcessedTs...>>
+struct QueryValidatorImpl<TupleLike<ProcessedTs...>>
 {
     // 최소 1개 이상의 파라미터가 있는지
     static constexpr bool HasElements = sizeof...(ProcessedTs) > 0;
@@ -73,9 +72,6 @@ struct QueryValidator<TupleLike<ProcessedTs...>>
 
     // 모든 타입이 유효한 컴포넌트(class/struct)인지
     static constexpr bool AllValidComponents = (std::is_class_v<ProcessedTs> && ...);
-
-    // 최종 결과
-    static constexpr bool IsValidPack = HasElements && IsUnique && NoPointers && AllValidComponents;
 };
 
 /**
@@ -89,6 +85,10 @@ using ProcessedQueryTuple = traits::TupleMap<
     std::remove_cvref_t
 >;
 
+/** Query로 들어온 인자가 올바른 타입인지 확인합니다. */
+template <typename... Ts>
+using QueryValidator = QueryValidatorImpl<ProcessedQueryTuple<Ts...>>;
+
 /** 단일 쿼리 파라미터가 원본 데이터를 수정하지 않는 읽기 전용 타입인지 확인합니다. */
 template <typename T>
 struct IsReadOnlyType
@@ -101,7 +101,4 @@ struct IsReadOnlyType
 template <typename... Ts>
 constexpr bool IsReadOnlyQueryPack = (IsReadOnlyType<Ts>::Value && ...);
 } // namespace detail
-
-template <typename... Ts>
-concept QueryParameterPack = detail::QueryValidator<detail::ProcessedQueryTuple<Ts...>>::IsValidPack;
 } // namespace se
