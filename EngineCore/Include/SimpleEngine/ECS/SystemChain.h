@@ -35,10 +35,10 @@ public:
     }
 
     /** System을 Chain 순서대로 호출합니다. */
-    void Execute(World* world);
+    void Execute(World& world);
 
 private:
     Array<System> systems;
-    Array<Function<bool(World*)>> preconditions;
+    Array<Function<bool(World&)>> preconditions;
 };
 } // namespace se

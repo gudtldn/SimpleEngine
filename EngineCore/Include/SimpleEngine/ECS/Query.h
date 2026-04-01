@@ -33,7 +33,7 @@ class Query
     using IterationSourceType = std::conditional_t<HasBasePool, const IStorage*, const Array<Entity>*>;
 
 public:
-    explicit Query(TargetWorld* in_world)
+    explicit Query(TargetWorld& in_world)
         : query_data(in_world)
     {
         if constexpr (HasBasePool)
@@ -42,7 +42,7 @@ public:
         }
         else
         {
-            iteration_source = &in_world->GetAliveEntities();
+            iteration_source = &in_world.GetAliveEntities();
         }
     }
 
@@ -65,8 +65,8 @@ public:
     {
         if (query_data.IsEntityValid(entity))
         {
-            TargetWorld* world = query_data.GetWorld();
-            return traits::ApplyTypes<FetchTypes>([world, entity]<typename... FetchComps>
+            TargetWorld& world = query_data.GetWorld();
+            return traits::ApplyTypes<FetchTypes>([&world, entity]<typename... FetchComps>
             {
                 return FetchTypes{ Fetch<FetchComps>(world, entity)... };
             });
@@ -108,7 +108,7 @@ public:
 
 private:
     template <typename T>
-    static decltype(auto) Fetch(TargetWorld* world, Entity entity)
+    static decltype(auto) Fetch(TargetWorld& world, Entity entity)
     {
         using RawType = std::remove_cvref_t<T>;
 
@@ -120,7 +120,7 @@ private:
             );
 
             using InnerType = std::remove_cvref_t<traits::InnerOf<RawType>>;
-            return world->template TryGetComponent<InnerType>(entity);
+            return world.template TryGetComponent<InnerType>(entity);
         }
         else if constexpr (std::same_as<RawType, Entity>)
         {
@@ -132,7 +132,7 @@ private:
         }
         else
         {
-            return world->template GetComponent<RawType>(entity);
+            return world.template GetComponent<RawType>(entity);
         }
     }
 
@@ -155,7 +155,7 @@ public:
 
         value_type operator*() const noexcept
         {
-            TargetWorld* world = query_data->GetWorld();
+            TargetWorld& world = query_data->GetWorld();
             Entity entity;
             if constexpr (HasBasePool)
             {
@@ -167,7 +167,7 @@ public:
             }
 
             // FetchTypes에 명시된 컴포넌트들을 월드에서 가져와 튜플로 묶어 반환
-            return traits::ApplyTypes<value_type>([world, entity]<typename... FetchComps>
+            return traits::ApplyTypes<value_type>([&world, entity]<typename... FetchComps>
             {
                 return value_type{ Fetch<FetchComps>(world, entity)... };
             });

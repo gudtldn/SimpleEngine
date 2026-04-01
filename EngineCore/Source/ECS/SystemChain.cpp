@@ -5,9 +5,9 @@
 
 namespace se
 {
-void SystemChain::Execute(World* world)
+void SystemChain::Execute(World& world)
 {
-    const bool should_execute = std::ranges::all_of(preconditions, [world](const auto& condition)
+    const bool should_execute = std::ranges::all_of(preconditions, [&world](const auto& condition)
     {
         return condition(world);
     });

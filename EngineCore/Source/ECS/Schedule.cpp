@@ -3,9 +3,9 @@
 
 namespace se
 {
-void Schedule::Execute(World* world)
+void Schedule::Execute(World& world)
 {
-    for (Function<void(World*)>& executable : executables)
+    for (Function<void(World&)>& executable : executables)
     {
         executable(world);
     }

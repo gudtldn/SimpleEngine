@@ -46,7 +46,7 @@ public:
         const Entity new_entity = entity_manager.Create();
         alive_entities.Push(new_entity);
 
-        EntityChain chain = { this, new_entity };
+        EntityChain chain = { *this, new_entity };
         (AddComponent(chain, std::forward<Components>(comps)), ...);
         return chain;
     }
@@ -133,7 +133,7 @@ public:
             "Cannot create a mutable Query from a const World. All queried components must be read-only (e.g., 'const T&')."
         );
 
-        return Query<Ts...>{ &self };
+        return Query<Ts...>{ self };
     }
 
 public:
@@ -206,7 +206,7 @@ public:
     class EntityChain
     {
     public:
-        EntityChain(World* in_world, Entity new_entity)
+        EntityChain(World& in_world, Entity new_entity)
             : world(in_world)
             , entity(new_entity)
         {
@@ -216,21 +216,21 @@ public:
         template <typename ComponentType>
         EntityChain& AddComponent(ComponentType&& init_component)
         {
-            world->AddComponent(entity, std::forward<ComponentType>(init_component));
+            world.AddComponent(entity, std::forward<ComponentType>(init_component));
             return *this;
         }
 
         template <typename ComponentType, typename... Args>
         EntityChain& AddComponent(Args&&... args)
         {
-            world->AddComponent<ComponentType>(entity, std::forward<Args>(args)...);
+            world.AddComponent<ComponentType>(entity, std::forward<Args>(args)...);
             return *this;
         }
 
         operator Entity() const { return entity; }
 
     private:
-        World* world;
+        World& world;
         Entity entity;
     };
 

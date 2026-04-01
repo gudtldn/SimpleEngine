@@ -100,7 +100,7 @@ TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
 }
 
 
-// 다중 Query 파라미터 주입, With<> 필터 동작, World* 파라미터 주입을 검증합니다.
+// 다중 Query 파라미터 주입, With<> 필터 동작, World& 파라미터 주입을 검증합니다.
 TEST_F(ECSTest, ECSQueryParameterInjection)
 {
     WorldContext ctx;
@@ -144,10 +144,9 @@ TEST_F(ECSTest, ECSQueryParameterInjection)
             EXPECT_LT(count_mesh, count_all) << "With<> filter must narrow the result set.";
         });
 
-    // World* 파라미터가 null 없이 올바르게 주입되는지 검증합니다.
-    ctx.AddSystem<UpdatePhase>([](World* world)
+    // World& 파라미터가 올바르게 주입되는지 검증합니다.
+    ctx.AddSystem<UpdatePhase>([](World& world)
     {
-        ASSERT_NE(world, nullptr) << "World* parameter must not be null.";
     });
 
     ctx.RunPhase<UpdatePhase>();
@@ -184,14 +183,14 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
     // 컴포넌트가 없는 엔티티는 영향을 받지 않아야 합니다.
     EXPECT_FALSE(ctx.GetWorld().TryGetComponent<TestValueComponent>(entity_without).HasValue());
 
-    // Optional + World* 혼합: 컴포넌트가 없는 엔티티에 새 컴포넌트를 추가합니다.
-    ctx.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, World* world)
+    // Optional + World& 혼합: 컴포넌트가 없는 엔티티에 새 컴포넌트를 추가합니다.
+    ctx.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, World& world)
     {
         for (const auto& [entity, opt_val] : query)
         {
             if (!opt_val.HasValue())
             {
-                world->AddComponent<TestValueComponent>(entity, { .value = 50 });
+                world.AddComponent<TestValueComponent>(entity, { .value = 50 });
             }
         }
     });

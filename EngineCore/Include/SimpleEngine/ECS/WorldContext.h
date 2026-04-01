@@ -31,7 +31,7 @@ public:
 public:
     /**
      * 함수, System, SystemChain 등을 스케줄에 추가합니다.
-     * @details 함수 시그니처를 분석하여 필요한 인자를(Query, World* 등)을 자동으로 주입받습니다.
+     * @details 함수 시그니처를 분석하여 필요한 인자를(Query, World& 등)을 자동으로 주입받습니다.
      * @tparam P 시스템을 추가할 스케줄 타입 (예: PreUpdate, Update, PostUpdate)
      */
     template <PhaseType P, typename... Systems>
@@ -49,7 +49,7 @@ public:
     {
         if (const auto schedule = GetSchedule<P>())
         {
-            schedule->Execute(world.get());
+            schedule->Execute(*world);
         }
     }
 

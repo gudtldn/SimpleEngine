@@ -37,10 +37,10 @@ public:
     }
 
     /** 모든 조건을 검사한 후 System을 실행합니다. */
-    void Execute(World* world);
+    void Execute(World& world);
 
 private:
-    Function<void(World*)> system;
-    Array<Function<bool(World*)>> preconditions;
+    Function<void(World&)> system;
+    Array<Function<bool(World&)>> preconditions;
 };
 } // namespace se

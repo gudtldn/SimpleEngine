@@ -9,6 +9,7 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <concepts>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 
@@ -68,75 +69,73 @@ public:
     using PredicateTypes = traits::TupleCat<detail::FlatFilterTypes<detail::RequiredComponentPred, Ts...>, WithTypes>;
 
 public:
-    explicit QueryData(TargetWorld* in_world);
+    explicit QueryData(TargetWorld& in_world)
+        : world(std::addressof(in_world))
+    {
+    }
 
     /** 엔티티가 쿼리의 모든 조건(With, Without)을 만족하는지 검증합니다. */
-    [[nodiscard]] bool IsEntityValid(Entity entity) const;
+    [[nodiscard]] bool IsEntityValid(Entity entity) const
+    {
+        // FIXME: 이 함수에서 제일 병목이 심함.
+        //        Query<...>::Iterator::AdvanceToValid -> IsEntityValid
+        //        HasComponent -> FindSparseSet -> FindRawStorage -> component_storages.Find(type_id)
+        //        HashMap의 조회비용이 Query의 가장 큰 병목으로 확인
+        //
+        // 현재는 매번 Smallest Component Storage의 Entity마다 HasComponent를 호출하고 있음.
+
+        // Fetch(Optional<T> 제외)와 With 목록의 모든 컴포넌트를 가졌는지 확인
+        const bool has_all_required =
+            traits::ApplyTypes<PredicateTypes>([this, entity]<typename... PredComps>
+            {
+                return (world->template HasComponent<std::remove_cvref_t<PredComps>>(entity) && ...);
+            });
+
+        if (!has_all_required)
+        {
+            return false;
+        }
+
+        // Without 목록의 컴포넌트를 하나라도 가졌는지 확인
+        const bool has_any_excluded =
+            traits::ApplyTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
+            {
+                return (world->template HasComponent<std::remove_cvref_t<WithoutComps>>(entity) || ...);
+            });
+
+        return !has_any_excluded;
+    }
 
     /** 순회 범위를 최소화하기 위해 가장 작은 컴포넌트 풀(Storage)을 찾습니다. */
-    [[nodiscard]] const IStorage* FindSmallestPool() const;
+    [[nodiscard]] const IStorage* FindSmallestPool() const
+    {
+        // 순회의 기준이 될 PredicateTypes(필수 컴포넌트 + With)의 총 개수
+        constexpr usize pool_size = std::tuple_size_v<PredicateTypes>;
+        if constexpr (pool_size == 0)
+        {
+            return nullptr;
+        }
 
-    [[nodiscard]] TargetWorld* GetWorld() const { return world; }
+        // 각 컴포넌트 스토리지 포인터를 배열에 수집
+        const auto pools =
+            traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<const IStorage*, pool_size>
+            {
+                return { world->template FindRawStorage<std::remove_cvref_t<PredComps>>()... };
+            });
+
+        // 수집된 스토리지 중 가장 크기가 작은 것을 찾아 반환
+        return *std::ranges::min_element(pools, [](const IStorage* a, const IStorage* b)
+        {
+            if (!a) { return false; }
+            if (!b) { return true; }
+
+            return a->Len() < b->Len();
+        });
+    }
+
+    [[nodiscard]] TargetWorld& GetWorld() const { return *world; }
 
 private:
     TargetWorld* world;
 };
-
-template <typename... Ts>
-QueryData<Ts...>::QueryData(TargetWorld* in_world)
-    : world(in_world)
-{
-}
-
-template <typename... Ts>
-bool QueryData<Ts...>::IsEntityValid(Entity entity) const
-{
-    // Fetch(Optional<T> 제외)와 With 목록의 모든 컴포넌트를 가졌는지 확인
-    const bool has_all_required =
-        traits::ApplyTypes<PredicateTypes>([this, entity]<typename... PredComps>
-        {
-            return (world->template HasComponent<std::remove_cvref_t<PredComps>>(entity) && ...);
-        });
-
-    if (!has_all_required)
-    {
-        return false;
-    }
-
-    // Without 목록의 컴포넌트를 하나라도 가졌는지 확인
-    const bool has_any_excluded =
-        traits::ApplyTypes<WithoutTypes>([this, entity]<typename... WithoutComps>
-        {
-            return (world->template HasComponent<std::remove_cvref_t<WithoutComps>>(entity) || ...);
-        });
-
-    return !has_any_excluded;
-}
-
-template <typename... Ts>
-const IStorage* QueryData<Ts...>::FindSmallestPool() const
-{
-    // 순회의 기준이 될 PredicateTypes(필수 컴포넌트 + With)의 총 개수
-    constexpr usize pool_size = std::tuple_size_v<PredicateTypes>;
-    if constexpr (pool_size == 0)
-    {
-        return nullptr;
-    }
-
-    // 각 컴포넌트 스토리지 포인터를 배열에 수집
-    const auto pools =
-        traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> FixedArray<const IStorage*, pool_size>
-        {
-            return { world->template FindRawStorage<std::remove_cvref_t<PredComps>>()... };
-        });
-
-    // 수집된 스토리지 중 가장 크기가 작은 것을 찾아 반환
-    return *std::ranges::min_element(pools, [](const IStorage* a, const IStorage* b)
-    {
-        if (!a) { return false; }
-        if (!b) { return true; }
-
-        return a->Len() < b->Len();
-    });
-}
 } // namespace se
