@@ -91,22 +91,15 @@ using ProcessedQueryTuple = traits::TupleMap<
 
 /** 단일 쿼리 파라미터가 원본 데이터를 수정하지 않는 읽기 전용 타입인지 확인합니다. */
 template <typename T>
-consteval bool IsReadOnlyType()
+struct IsReadOnlyType
 {
-    if constexpr (traits::OptionalLike<T>)
-    {
-        using RealType = traits::InnerOf<T>;
-        return !std::is_reference_v<RealType> || std::is_const_v<std::remove_reference_t<RealType>>;
-    }
-    else
-    {
-        return !std::is_reference_v<T> || std::is_const_v<std::remove_reference_t<T>>;
-    }
-}
+    using RealType = traits::InnerOf<T>;
+    static constexpr bool Value = !std::is_reference_v<RealType> || std::is_const_v<std::remove_reference_t<RealType>>;
+};
 
 /** 쿼리 파라미터 팩 전체가 읽기 전용인지 확인합니다. */
 template <typename... Ts>
-constexpr bool IsReadOnlyQueryPack = (IsReadOnlyType<Ts>() && ...);
+constexpr bool IsReadOnlyQueryPack = (IsReadOnlyType<Ts>::Value && ...);
 } // namespace detail
 
 template <typename... Ts>
