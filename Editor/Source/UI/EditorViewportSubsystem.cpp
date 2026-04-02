@@ -183,18 +183,13 @@ void EditorViewportSubsystem::Update(float delta_time)
         }
 
         const EditorCameraState& camera = state.GetActiveCamera();
-        const Vector3 target = camera.position + camera.rotation.GetForwardVector();
+        const Vector3 forward_dir = camera.rotation.GetForwardVector();
         const double aspect = static_cast<double>(state.render_view.width) / static_cast<double>(state.render_view.height);
 
         // Top/Bottom 뷰는 Up을 Y축을 기준으로 설정
         const bool is_top_bottom = (state.view_mode == EViewMode::Top || state.view_mode == EViewMode::Bottom);
         const Vector3 view_up = is_top_bottom ? Vector3{ 0.0, 1.0, 0.0 } : Vector3::Up();
 
-        state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
-            camera.position,
-            target,
-            view_up
-        );
         if (state.IsPerspectiveView())
         {
             state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(
@@ -202,6 +197,11 @@ void EditorViewportSubsystem::Update(float delta_time)
                 aspect,
                 camera.near_plane,
                 camera.far_plane
+            );
+            state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
+                camera.position,
+                camera.position + forward_dir,
+                view_up
             );
         }
         else
@@ -212,6 +212,16 @@ void EditorViewportSubsystem::Update(float delta_time)
                 ortho_height,
                 camera.near_plane,
                 camera.far_plane
+            );
+
+            const double depth_half = camera.far_plane * 0.5;
+            const Vector3 ortho_eye = camera.position
+                - forward_dir * forward_dir.Dot(camera.position) // Depth 성분 제거
+                - forward_dir * depth_half;                      // 이후 클리핑 공간의 정중앙에 물체를 두기 위해 카메라를 뒤로 이동
+            state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
+                ortho_eye,
+                ortho_eye + forward_dir,
+                view_up
             );
         }
         state.render_view.near_plane = static_cast<float>(camera.near_plane);
