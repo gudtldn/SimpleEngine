@@ -35,11 +35,27 @@ enum class ECoordinateSpace : uint8
     Local,
 };
 
+/** 뷰포트 뷰 모드 */
+enum class EViewMode : uint8
+{
+    // 원근 뷰
+    Perspective,
+
+    // 직교 뷰
+    Top,
+    Bottom,
+    Front,
+    Back,
+    Right,
+    Left,
+};
+
 /**
  * 뷰포트 하나의 모든 상태를 담는 구조체
  */
 struct ViewportState
 {
+public:
     // 렌더 리소스
     graphics::RID color_texture;
     graphics::RenderView render_view;
@@ -49,11 +65,21 @@ struct ViewportState
     bool is_hovered = false;
 
     // 카메라
-    EditorCameraState camera;
+    EditorCameraState persp_camera;               // Perspective 전용
+    EditorCameraState ortho_camera;               // Orthographic 전용
+    EViewMode view_mode = EViewMode::Perspective; // 현재 활성 뷰 모드
 
     // 인터랙션
     EGizmoMode gizmo_mode = EGizmoMode::Translate;
     ECoordinateSpace coordinate_space = ECoordinateSpace::World;
+
+public:
+    /** 현재 활성화된 ViewMode에 대한 카메라를 가져옵니다. */
+    [[nodiscard]] FORCE_INLINE EditorCameraState& GetActiveCamera() { return (view_mode == EViewMode::Perspective) ? persp_camera : ortho_camera; }
+    [[nodiscard]] FORCE_INLINE const EditorCameraState& GetActiveCamera() const { return (view_mode == EViewMode::Perspective) ? persp_camera : ortho_camera; }
+
+    [[nodiscard]] FORCE_INLINE bool IsPerspectiveView() const { return view_mode == EViewMode::Perspective; }
+    [[nodiscard]] FORCE_INLINE bool IsOrthographicView() const { return view_mode != EViewMode::Perspective; }
 };
 
 /**
@@ -98,6 +124,12 @@ public:
 
     /** 특정 뷰포트의 기즈모 좌표계를 반환합니다. */
     [[nodiscard]] ECoordinateSpace GetViewportCoordinateSpace(const StringName& viewport_id) const;
+
+    /** 뷰포트의 뷰 모드를 설정합니다. */
+    void SetViewportViewMode(const StringName& viewport_id, EViewMode mode);
+
+    /** 특정 뷰포트의 뷰 모드를 반환합니다. */
+    [[nodiscard]] EViewMode GetViewportViewMode(const StringName& viewport_id) const;
 
 public:
     /** 현재 관리 중인 모든 뷰포트의 상태를 반환합니다. */

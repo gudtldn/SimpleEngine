@@ -20,6 +20,9 @@ struct SE_ANNOTATION(=meta::EditorOnly) EditorCameraState
     SE_ANNOTATION(=meta::Property)
     Vector3 velocity = Vector3::Zero();
 
+    SE_ANNOTATION(=meta::Property, =meta::Range(0.1f, 10000.0f))
+    double ortho_width = 100.0;
+
     SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 180.0f))
     Degree<double> fov_y = 60.0_deg;
 

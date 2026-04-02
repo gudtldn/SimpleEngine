@@ -69,7 +69,9 @@ void EditorViewportSubsystem::Update(float delta_time)
     {
         if (active_camera_viewport != StringName::None)
         {
-            viewports[active_camera_viewport].camera.velocity = Vector3::Zero();
+            ViewportState& release_state = viewports[active_camera_viewport];
+            EditorCameraState& release_cam = release_state.GetActiveCamera();
+            release_cam.velocity = Vector3::Zero();
 
             input_subsystem->SetLocalMousePosition(last_mouse_pos);
             input_subsystem->SetRelativeMouseMode(false);
@@ -83,49 +85,90 @@ void EditorViewportSubsystem::Update(float delta_time)
     // 활성 카메라 입력 처리
     if (active_camera_viewport != StringName::None && input_subsystem->IsMouseButtonDown(EMouseButton::Right))
     {
-        EditorCameraState& camera = viewports[active_camera_viewport].camera;
+        ViewportState& active_state = viewports[active_camera_viewport];
+        EditorCameraState& camera = active_state.GetActiveCamera();
 
-        // 마우스 회전 yaw(Z축), pitch(X축) | TODO: 나중에 쿼터니언으로 수정
         const Vector2f mouse_delta = input_subsystem->GetMouseDelta();
-        camera.rotation.yaw -= Degree{ mouse_delta.x * camera.look_sensitivity };
-        camera.rotation.yaw = Degree{ Fmod(*camera.rotation.yaw, 360.0) };
-        camera.rotation.pitch -= Degree{ mouse_delta.y * camera.look_sensitivity };
-        camera.rotation.pitch = Degree{ Clamp(*camera.rotation.pitch, -89.0, 89.0) };
 
-        // WASD/QE 이동
-        const Vector3 forward = camera.rotation.GetForwardVector();
-        const Vector3 right = camera.rotation.GetRightVector();
-
-        Vector3 target_velocity = Vector3::Zero();
-        if (input_subsystem->IsKeyDown(EKeyCode::W)) { target_velocity += forward; }
-        if (input_subsystem->IsKeyDown(EKeyCode::S)) { target_velocity -= forward; }
-        if (input_subsystem->IsKeyDown(EKeyCode::D)) { target_velocity += right; }
-        if (input_subsystem->IsKeyDown(EKeyCode::A)) { target_velocity -= right; }
-        if (input_subsystem->IsKeyDown(EKeyCode::E)) { target_velocity += Vector3::Up(); }
-        if (input_subsystem->IsKeyDown(EKeyCode::Q)) { target_velocity -= Vector3::Up(); }
-
-        if (!target_velocity.IsNearlyZero())
+        if (active_state.view_mode == EViewMode::Perspective)
         {
-            target_velocity = target_velocity.GetNormalized() * camera.move_speed;
+            // Perspective Flythrough
+            // 마우스 회전 yaw(Z축), pitch(X축) | TODO: 나중에 쿼터니언으로 수정
+            camera.rotation.yaw -= Degree{ mouse_delta.x * camera.look_sensitivity };
+            camera.rotation.yaw = Degree{ Fmod(*camera.rotation.yaw, 360.0) };
+            camera.rotation.pitch -= Degree{ mouse_delta.y * camera.look_sensitivity };
+            camera.rotation.pitch = Degree{ Clamp(*camera.rotation.pitch, -89.0, 89.0) };
+
+            // WASD/QE 이동
+            const Vector3 forward = camera.rotation.GetForwardVector();
+            const Vector3 right = camera.rotation.GetRightVector();
+
+            Vector3 target_velocity = Vector3::Zero();
+            if (input_subsystem->IsKeyDown(EKeyCode::W)) { target_velocity += forward; }
+            if (input_subsystem->IsKeyDown(EKeyCode::S)) { target_velocity -= forward; }
+            if (input_subsystem->IsKeyDown(EKeyCode::D)) { target_velocity += right; }
+            if (input_subsystem->IsKeyDown(EKeyCode::A)) { target_velocity -= right; }
+            if (input_subsystem->IsKeyDown(EKeyCode::E)) { target_velocity += Vector3::Up(); }
+            if (input_subsystem->IsKeyDown(EKeyCode::Q)) { target_velocity -= Vector3::Up(); }
+
+            if (!target_velocity.IsNearlyZero())
+            {
+                target_velocity = target_velocity.GetNormalized() * camera.move_speed;
+            }
+
+            // Exponential smoothing: frame-rate independent 가속/감속 (smoothing이 클수록 반응이 빠름)
+            constexpr double SMOOTHING = 12.0;
+            const double alpha = 1.0 - Exp(-SMOOTHING * static_cast<double>(delta_time));
+            camera.velocity = camera.velocity + (target_velocity - camera.velocity) * alpha;
+
+            camera.position += camera.velocity * delta_time;
+
+            // Perspective에서 스크롤로 이동 속도 조절
+            const float scroll = input_subsystem->GetMouseWheel().y;
+            if (scroll != 0.0f)
+            {
+                camera.move_speed *= (scroll > 0.0f) ? 1.1 : (1.0 / 1.1);
+                camera.move_speed = Clamp(camera.move_speed, 0.1, 1000.0);
+            }
         }
-
-        // Exponential smoothing: frame-rate independent 가속/감속 (smoothing이 클수록 반응이 빠름)
-        constexpr double SMOOTHING = 12.0;
-        const double alpha = 1.0 - Exp(-SMOOTHING * static_cast<double>(delta_time));
-        camera.velocity = camera.velocity + (target_velocity - camera.velocity) * alpha;
-
-        camera.position += camera.velocity * delta_time;
-
-        // 스크롤로 이동 속도를 조절
-        const float scroll = input_subsystem->GetMouseWheel().y;
-        if (scroll != 0.0f)
+        else
         {
-            camera.move_speed *= (scroll > 0.0f) ? 1.1 : (1.0 / 1.1);
-            camera.move_speed = Clamp(camera.move_speed, 0.1, 1000.0);
+            // Pan 평면의 로컬 기저 벡터 도출 (Top/Bottom 뷰 특이점 우회)
+            const Vector3 forward = camera.rotation.GetForwardVector();
+            const bool is_top_bottom = (active_state.view_mode == EViewMode::Top || active_state.view_mode == EViewMode::Bottom);
+
+            const Vector3 view_up = is_top_bottom ? Vector3{ 0.0, 1.0, 0.0 } : Vector3::Up();
+            const Vector3 screen_right = view_up.Cross(forward).GetNormalized();
+            const Vector3 screen_up = forward.Cross(screen_right);
+
+            // 마우스 픽셀 이동량을 월드 스케일로 환산 (줌 레벨에 비례)
+            const double viewport_w = static_cast<double>(active_state.render_view.width);
+            const double pan_scale = camera.ortho_width / viewport_w;
+
+            // 카메라 이동
+            camera.position += screen_right * (static_cast<double>(mouse_delta.x) * pan_scale);
+            camera.position += screen_up * (static_cast<double>(mouse_delta.y) * pan_scale);
         }
 
         // 카메라가 활성화 되어있는 동안, 마우스를 last_pos에 고정
         input_subsystem->SetLocalMousePosition(last_mouse_pos);
+    }
+
+    // Ortho 줌: 우클릭 없이 호버 상태에서 스크롤로 가능
+    {
+        const float ortho_scroll = input_subsystem->GetMouseWheel().y;
+        if (ortho_scroll != 0.0f)
+        {
+            for (ViewportState& state : viewports | std::views::values)
+            {
+                if (state.is_hovered && state.IsOrthographicView())
+                {
+                    state.ortho_camera.ortho_width *= (ortho_scroll > 0.0f) ? (1.0 / 1.1) : 1.1;
+                    state.ortho_camera.ortho_width = Clamp(state.ortho_camera.ortho_width, 0.1, 10000.0);
+                    break;
+                }
+            }
+        }
     }
 
     // 월드 기준 좌표축을 매 프레임 그리기
@@ -139,22 +182,40 @@ void EditorViewportSubsystem::Update(float delta_time)
             continue;
         }
 
-        const Vector3 target = state.camera.position + state.camera.rotation.GetForwardVector();
+        const EditorCameraState& camera = state.GetActiveCamera();
+        const Vector3 target = camera.position + camera.rotation.GetForwardVector();
         const double aspect = static_cast<double>(state.render_view.width) / static_cast<double>(state.render_view.height);
 
+        // Top/Bottom 뷰는 Up을 Y축을 기준으로 설정
+        const bool is_top_bottom = (state.view_mode == EViewMode::Top || state.view_mode == EViewMode::Bottom);
+        const Vector3 view_up = is_top_bottom ? Vector3{ 0.0, 1.0, 0.0 } : Vector3::Up();
+
         state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
-            state.camera.position,
+            camera.position,
             target,
-            Vector3::Up()
+            view_up
         );
-        state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(
-            Radian{ state.camera.fov_y },
-            aspect,
-            state.camera.near_plane,
-            state.camera.far_plane
-        );
-        state.render_view.near_plane = static_cast<float>(state.camera.near_plane);
-        state.render_view.far_plane = static_cast<float>(state.camera.far_plane);
+        if (state.IsPerspectiveView())
+        {
+            state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(
+                Radian{ camera.fov_y },
+                aspect,
+                camera.near_plane,
+                camera.far_plane
+            );
+        }
+        else
+        {
+            const double ortho_height = camera.ortho_width / aspect;
+            state.render_view.projection_matrix = TransformUtility::MakeOrthographicMatrix(
+                camera.ortho_width,
+                ortho_height,
+                camera.near_plane,
+                camera.far_plane
+            );
+        }
+        state.render_view.near_plane = static_cast<float>(camera.near_plane);
+        state.render_view.far_plane = static_cast<float>(camera.far_plane);
     }
 }
 
@@ -289,7 +350,7 @@ Optional<const EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(co
 {
     return viewports.Find(viewport_id).Map([](const ViewportState& state) -> const EditorCameraState&
     {
-        return state.camera;
+        return (state.view_mode == EViewMode::Perspective) ? state.persp_camera : state.ortho_camera;
     });
 }
 
@@ -297,7 +358,37 @@ Optional<EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const St
 {
     return viewports.Find(viewport_id).Map([](ViewportState& state) -> EditorCameraState&
     {
-        return state.camera;
+        return (state.view_mode == EViewMode::Perspective) ? state.persp_camera : state.ortho_camera;
     });
+}
+
+void EditorViewportSubsystem::SetViewportViewMode(const StringName& viewport_id, EViewMode mode)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->view_mode = mode;
+        if (mode != EViewMode::Perspective)
+        {
+            state->ortho_camera.velocity = Vector3::Zero(); // 관성 초기화
+            switch (mode)
+            {
+            case EViewMode::Top:    state->ortho_camera.rotation = Rotator{ -90.0_deg, 0.0_deg,   0.0_deg }; break;
+            case EViewMode::Bottom: state->ortho_camera.rotation = Rotator{  90.0_deg, 0.0_deg,   0.0_deg }; break;
+            case EViewMode::Front:  state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg, 180.0_deg }; break;
+            case EViewMode::Back:   state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg,   0.0_deg }; break;
+            case EViewMode::Right:  state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg,  90.0_deg }; break;
+            case EViewMode::Left:   state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg, -90.0_deg }; break;
+            default: break;
+            }
+        }
+    }
+}
+
+EViewMode EditorViewportSubsystem::GetViewportViewMode(const StringName& viewport_id) const
+{
+    return viewports.Find(viewport_id).Map([](const ViewportState& state)
+    {
+        return state.view_mode;
+    }).ValueOr(EViewMode::Perspective);
 }
 } // namespace se::editor

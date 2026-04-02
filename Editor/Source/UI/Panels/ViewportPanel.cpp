@@ -159,12 +159,30 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
         viewport_sys->SetViewportCoordinateSpace(viewport_id, next);
     }
 
-    // === 오른쪽 영역: 카메라 속도 | 렌더링 모드 | Show 플래그 ===
+    // === 오른쪽 영역: 뷰 모드 | 카메라 속도 | 렌더링 모드 | Show 플래그 ===
     if (const Optional<EditorCameraState&> camera = viewport_sys->GetViewportCamera(viewport_id))
     {
         constexpr float SPEED_WIDGET_WIDTH = 60.0f;
         constexpr float LABEL_SPACING = 4.0f;
         constexpr float SEP_WIDTH = 13.0f; // SameLine(6) + Separator(1) + SameLine(6)
+
+        // 현재 뷰 모드 레이블
+        const EViewMode cur_view_mode = viewport_sys->GetViewportViewMode(viewport_id);
+        auto view_mode_label_fn = [](EViewMode mode) -> const char*
+        {
+            switch (mode)
+            {
+            case EViewMode::Perspective: return "Perspective";
+            case EViewMode::Top:         return "Top";
+            case EViewMode::Bottom:      return "Bottom";
+            case EViewMode::Front:       return "Front";
+            case EViewMode::Back:        return "Back";
+            case EViewMode::Right:       return "Right";
+            case EViewMode::Left:        return "Left";
+            default:                     return "???";
+            }
+        };
+        const char* view_mode_label = view_mode_label_fn(cur_view_mode);
 
         auto rendering_mode_label = [](graphics::ERenderingMode mode) -> const char*
         {
@@ -177,15 +195,27 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
             }
         };
 
+        const float view_btn_w = ImGui::CalcTextSize(view_mode_label).x + (ImGui::GetStyle().FramePadding.x * 2.0f);
         const ImVec2 cam_label_size = ImGui::CalcTextSize("Cam");
         const float mode_btn_w = ImGui::CalcTextSize(rendering_mode_label(rendering_mode)).x + (ImGui::GetStyle().FramePadding.x * 2.0f);
         const float show_btn_w = ImGui::CalcTextSize("Show").x + (ImGui::GetStyle().FramePadding.x * 2.0f);
-        const float right_width = cam_label_size.x + LABEL_SPACING + SPEED_WIDGET_WIDTH + SEP_WIDTH + mode_btn_w + SEP_WIDTH + show_btn_w;
+        const float right_width = view_btn_w + SEP_WIDTH
+            + cam_label_size.x + LABEL_SPACING + SPEED_WIDGET_WIDTH + SEP_WIDTH
+            + mode_btn_w + SEP_WIDTH
+            + show_btn_w;
 
         ImGui::SetCursorScreenPos({
             toolbar_max.x - right_width - PADDING,
             content_min.y + PADDING
         });
+
+        // 뷰 모드 버튼
+        if (ImGui::Button(view_mode_label, { 0, button_h }))
+        {
+            ImGui::OpenPopup("ViewModePopup");
+        }
+
+        vertical_separator();
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Cam");
@@ -212,6 +242,32 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
         {
             ImGui::OpenPopup("ShowFlagsPopup");
         }
+    }
+
+    if (ImGui::BeginPopup("ViewModePopup"))
+    {
+        const EViewMode cur_view = viewport_sys->GetViewportViewMode(viewport_id);
+        auto view_item = [&](const char* label, EViewMode mode)
+        {
+            if (ImGui::Selectable(label, cur_view == mode))
+            {
+                viewport_sys->SetViewportViewMode(viewport_id, mode);
+            }
+        };
+        ImGui::Spacing();
+        ImGui::SeparatorText("Persp");
+        ImGui::Spacing();
+        view_item("Perspective", EViewMode::Perspective);
+        ImGui::Spacing();
+        ImGui::SeparatorText("Ortho");
+        ImGui::Spacing();
+        view_item("Top",    EViewMode::Top);
+        view_item("Bottom", EViewMode::Bottom);
+        view_item("Front",  EViewMode::Front);
+        view_item("Back",   EViewMode::Back);
+        view_item("Right",  EViewMode::Right);
+        view_item("Left",   EViewMode::Left);
+        ImGui::EndPopup();
     }
 
     if (ImGui::BeginPopup("RenderingModePopup"))
