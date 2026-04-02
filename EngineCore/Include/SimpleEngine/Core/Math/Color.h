@@ -1,10 +1,12 @@
 #pragma once
+
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 
 
 namespace se::math
 {
+// forward declarations
 struct Color;
 
 namespace detail
@@ -42,7 +44,7 @@ consteval FixedArray<float, 256> CreateSRGBToLinearTable()
     }
     return table;
 }
-}  // namespace detail
+} // namespace detail
 
 /**
  * float 기반 색상 구조체 (R, G, B, A)
@@ -223,7 +225,7 @@ public:
         : r(static_cast<uint8>((rgba >> 24) & 0xFF))
         , g(static_cast<uint8>((rgba >> 16) & 0xFF))
         , b(static_cast<uint8>((rgba >> 8) & 0xFF))
-        , a(static_cast<uint8>((rgba) & 0xFF))
+        , a(static_cast<uint8>(rgba & 0xFF))
     {
     }
 
@@ -250,14 +252,14 @@ public:
     [[nodiscard]] constexpr uint32 ToPackedARGB() const
     {
         return (static_cast<uint32>(a) << 24) | (static_cast<uint32>(r) << 16)
-             | (static_cast<uint32>(g) << 8)  | (static_cast<uint32>(b) << 0);
+            | (static_cast<uint32>(g) << 8) | (static_cast<uint32>(b) << 0);
     }
 
     /** @return RGBA 포맷의 32비트 정수 */
     [[nodiscard]] constexpr uint32 ToPackedRGBA() const
     {
         return (static_cast<uint32>(r) << 24) | (static_cast<uint32>(g) << 16)
-             | (static_cast<uint32>(b) << 8)  | (static_cast<uint32>(a) << 0);
+            | (static_cast<uint32>(b) << 8) | (static_cast<uint32>(a) << 0);
     }
 
     /** LinearColor로 변환합니다. */
@@ -379,5 +381,4 @@ constexpr LinearColor Color::ToLinearColor(bool is_srgb) const
 {
     return LinearColor(*this, is_srgb);
 }
-
-}  // namespace se::math
+} // namespace se::math
