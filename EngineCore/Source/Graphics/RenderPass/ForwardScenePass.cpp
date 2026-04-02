@@ -37,15 +37,12 @@ ForwardScenePass::ForwardScenePass(
 
 void ForwardScenePass::Setup(RGSetupContext& context)
 {
-    // VP 행렬 계산 (per-view)
-    const Matrix4x4 vp_matrix = render_view.view_matrix * render_view.projection_matrix;
-
-    // DrawCommand -> EntityDrawInfo 변환 (MVP 사전 계산)
+    // DrawCommand -> EntityDrawInfo 변환 (VP는 per-pass, GPU에서 VP*M 합성)
     draw_infos.Clear();
     for (const DrawCommand& cmd : draw_data.opaque_commands)
     {
         draw_infos.Push({
-            .mvp_matrix = cmd.model_matrix * vp_matrix,
+            .model_matrix = cmd.model_matrix,
             .mesh_id = cmd.mesh_id,
             .material_id = cmd.material_id,
         });
@@ -181,14 +178,16 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             },
 
             // 프리미티브(기본 도형) 타입 설정
-            .primitive_type = render_view.rendering_mode == ERenderingMode::Wireframe
-                                  ? SDL_GPU_PRIMITIVETYPE_LINELIST
-                                  : SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 
             // 래스터라이저(Rasterizer) 상태 설정: 3D 모델을 2D 픽셀로 변환하는 방법을 제어
             .rasterizer_state = {
-                .fill_mode = SDL_GPU_FILLMODE_FILL,               // 삼각형 내부를 색으로 채움 (FILL) or 선으로만 그림 (LINE)
-                .cull_mode = SDL_GPU_CULLMODE_BACK,               // 카메라를 등지고 있는 삼각형(뒷면)은 그리지 않음 (성능 최적화)
+                .fill_mode = render_view.rendering_mode == ERenderingMode::Wireframe
+                                 ? SDL_GPU_FILLMODE_LINE  // 와이어프레임: 삼각형 외곽선만 렌더링
+                                 : SDL_GPU_FILLMODE_FILL, // 기본: 삼각형 내부를 색으로 채움
+                .cull_mode = render_view.rendering_mode == ERenderingMode::Wireframe
+                                 ? SDL_GPU_CULLMODE_NONE  // 와이어프레임: 모든 면 표시
+                                 : SDL_GPU_CULLMODE_BACK, // 기본: 카메라를 등지고 있는 삼각형(뒷면)은 그리지 않음 (성능 최적화)
                 .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE // 정점이 반시계 방향으로 정의된 삼각형을 앞면으로 간주
             },
 
@@ -235,6 +234,21 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         SDL_SetGPUViewport(pass, &viewport);
         SDL_SetGPUScissor(pass, &scissor);
 
+        // double -> float 변환 헬퍼
+        auto to_float4x4 = [](const Matrix4x4& src, Matrix4x4f& dst)
+        {
+            std::transform(
+                src.GetData(), src.GetData() + 16,
+                dst.GetData(),
+                [](double v) { return static_cast<float>(v); }
+            );
+        };
+
+        // Vertex Uniform slot 0: VP 행렬 (per-pass)
+        Matrix4x4f vp_f;
+        to_float4x4(render_view.view_matrix * render_view.projection_matrix, vp_f);
+        SDL_PushGPUVertexUniformData(cmd, 0, &vp_f, sizeof(vp_f));
+
         // Draw Meshes
         for (const EntityDrawInfo& info : draw_infos)
         {
@@ -274,14 +288,10 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             }
 
-            // Uniform 데이터 전송 (MVP Matrix)
-            Matrix4x4f mvpf; // TODO: 추후 RTE(Relative To Eye) 방식으로 수정
-            std::transform(
-                info.mvp_matrix.GetData(), info.mvp_matrix.GetData() + 16, // NOLINT(*-magic-numbers)
-                mvpf.GetData(),
-                [](double value) { return static_cast<float>(value); }
-            );
-            SDL_PushGPUVertexUniformData(cmd, 0, &mvpf, sizeof(mvpf));
+            // Vertex Uniform slot 1: Model 행렬 (per-object) | TODO: 추후 RTE(Relative To Eye) 방식으로 수정
+            Matrix4x4f model_f;
+            to_float4x4(info.model_matrix, model_f);
+            SDL_PushGPUVertexUniformData(cmd, 1, &model_f, sizeof(model_f));
 
             // Material 바인딩 | TODO: Texture/Sampler 바인딩 함수 만들기
             // if (info.material_id.IsValid())

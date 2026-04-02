@@ -1,8 +1,16 @@
 ﻿// VS에서 Uniform Buffer의 space 설정
 // https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
-cbuffer UBO : register(b0, space1)
+
+// per-pass (뷰포트/카메라 공유)
+cbuffer PassUBO : register(b0, space1)
 {
-    float4x4 MVP;
+    float4x4 VP;
+}
+
+// per-object (드로우콜마다 교체)
+cbuffer ObjectUBO : register(b1, space1)
+{
+    float4x4 Model;
 }
 
 struct VertexInput
@@ -30,8 +38,9 @@ VertexOutput main(VertexInput input)
 {
     VertexOutput output;
 
-    // Local -> Clip Space
-    output.position = mul(MVP, float4(input.position, 1.0f));
+    // Local -> World -> Clip Space
+    float4 world_pos = mul(Model, float4(input.position, 1.0f));
+    output.position = mul(VP, world_pos);
 
     // 일단 임시로 Normal값을 Color로 사용
     output.color = float4(input.normal * 0.5f + 0.5f, 1.0f);

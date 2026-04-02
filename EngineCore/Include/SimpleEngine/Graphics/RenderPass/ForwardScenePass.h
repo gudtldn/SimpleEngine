@@ -18,7 +18,7 @@ class GpuResourceManager;
 /** 개별 오브젝트의 프레임 내 렌더링 정보 */
 struct EntityDrawInfo
 {
-    Matrix4x4 mvp_matrix;
+    Matrix4x4 model_matrix;
     asset::AssetId mesh_id;
     asset::AssetId material_id;
 };
