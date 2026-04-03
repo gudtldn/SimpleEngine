@@ -1,6 +1,5 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 
-#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Time/FixedTime.h"
 #include "SimpleEngine/Core/Time/GameTime.h"
@@ -28,11 +27,6 @@ bool EntitySubsystem::Initialize()
 
 void EntitySubsystem::Release()
 {
-    TimeManager& time_manager = Engine::Get().GetTimeManager();
-    for (const auto& name : worlds | std::views::keys)
-    {
-        time_manager.UnregisterWorld(name);
-    }
     worlds.Clear();
 }
 
@@ -46,23 +40,22 @@ void EntitySubsystem::PreUpdate()
 
 void EntitySubsystem::Update(double delta_time)
 {
-    (void)delta_time;
-
-    TimeManager& time_manager = Engine::Get().GetTimeManager();
-    for (auto& [name, ctx] : worlds)
+    for (auto& ctx : worlds | std::views::values)
     {
         World& world = ctx.GetWorld();
 
-        // World별 시간 Resource 주입
-        world.InsertResource<RealTime>(time_manager.GetRealTime());
-        world.InsertResource<GameTime>(time_manager.GetGameTime(name));
-        world.InsertResource<FixedTime>(time_manager.GetFixedTime(name));
+        // World소유 시간 Resource를 제자리에서 갱신
+        RealTime& real = world.GetResource<RealTime>();
+        GameTime& game = world.GetResource<GameTime>();
+        FixedTime& fixed = world.GetResource<FixedTime>();
+
+        TimeManager::AdvanceRealTime(real, delta_time);
+        TimeManager::AdvanceGameTime(game, delta_time);
+        TimeManager::AdvanceFixedTime(fixed, game.GetDelta());
 
         // FixedUpdatePhase: accumulator 기반 반복 실행
-        FixedTime& fixed = time_manager.GetFixedTime(name);
         while (fixed.ConsumeStep())
         {
-            world.InsertResource<FixedTime>(fixed);
             ctx.RunPhase<FixedUpdatePhase>();
         }
 
@@ -81,7 +74,16 @@ void EntitySubsystem::PostUpdate()
 WorldContext& EntitySubsystem::GetOrCreateWorld(const StringName& name)
 {
     WorldContext& ctx = worlds.Entry(name).OrInsertWith([] { return WorldContext{}; });
-    Engine::Get().GetTimeManager().RegisterWorld(name);
+
+    // World 생성 시 시간 Resource를 최초 등록
+    World& world = ctx.GetWorld();
+    if (!world.HasResource<RealTime>())
+    {
+        world.InsertResource<RealTime>();
+        world.InsertResource<GameTime>();
+        world.InsertResource<FixedTime>();
+    }
+
     return ctx;
 }
 
@@ -103,7 +105,6 @@ const WorldContext& EntitySubsystem::GetMainWorld() const
 void EntitySubsystem::DestroyWorld(const StringName& name)
 {
     worlds.Remove(name);
-    Engine::Get().GetTimeManager().UnregisterWorld(name);
 }
 
 const StringName& EntitySubsystem::GetMainWorldName()

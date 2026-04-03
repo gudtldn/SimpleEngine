@@ -87,12 +87,12 @@ Engine& Engine::Get()
 
 double Engine::GetDeltaTime()
 {
-    return Get().time_manager.GetRealTime().GetDelta();
+    return Get().last_delta;
 }
 
 double Engine::GetElapsedTime()
 {
-    return Get().time_manager.GetRealTime().GetElapsed();
+    return Get().total_elapsed;
 }
 
 void Engine::GenerateDefaultEngineConfig()
@@ -199,7 +199,8 @@ void Engine::UpdateFrame(double delta_time)
         ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
     })
 
-    time_manager.Update(delta_time);
+    last_delta = delta_time;
+    total_elapsed += delta_time;
 
     for (const auto& [subsystem, name] : updatable_systems)
     {

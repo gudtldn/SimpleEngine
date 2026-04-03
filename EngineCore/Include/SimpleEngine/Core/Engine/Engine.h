@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "SimpleEngine/Core/Time/TimeManager.h"
 
 #include <concepts>
 #include <memory>
@@ -40,10 +39,6 @@ public:
 
     /** RealTime의 누적 경과 시간(초)를 반환합니다. */
     [[nodiscard]] static double GetElapsedTime();
-
-    /** TimeManager를 반환합니다. */
-    [[nodiscard]] TimeManager& GetTimeManager() { return time_manager; }
-    [[nodiscard]] const TimeManager& GetTimeManager() const { return time_manager; }
 
     /** EngineConfig.toml이 없을 때 기본 설정 파일을 생성합니다. */
     static void GenerateDefaultEngineConfig();
@@ -122,8 +117,9 @@ private:
     // AsyncFileIO의 싱글톤 Instance를 Engine에서 관리하기 위한 포인터
     std::unique_ptr<AsyncFileIO> async_io_service;
 
-    // 엔진 전체의 시간 데이터를 관리하는 매니저
-    TimeManager time_manager;
+    // GetDeltaTime() / GetElapsedTime() 편의 접근용 캐시
+    double last_delta = 0.0;
+    double total_elapsed = 0.0;
 };
 
 template <typename T>
