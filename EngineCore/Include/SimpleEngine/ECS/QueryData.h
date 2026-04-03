@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/Entity.h"
-#include "SimpleEngine/ECS/IStorage.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/Traits/TupleTraits.h"
@@ -84,7 +83,7 @@ public:
             });
 
             // 아직 만들어지지 않은 Storage가 1개라도 있는 경우 -> 조건에 부합하지 않음
-            is_valid_query = std::ranges::all_of(predicate_pools, [](const IStorage* pool) { return pool != nullptr; });
+            is_valid_query = std::ranges::all_of(predicate_pools, [](const IComponentStorage* pool) { return pool != nullptr; });
         }
 
         // Without Storage 캐싱
@@ -95,7 +94,7 @@ public:
                 return { world->template FindRawStorage<std::remove_cvref_t<WithoutComps>>()... };
             });
 
-            for (const IStorage* pool : temp_without_pools)
+            for (const IComponentStorage* pool : temp_without_pools)
             {
                 if (pool != nullptr)
                 {
@@ -116,7 +115,7 @@ public:
 
         // 필수 포함 조건 확인 (Fetch(Optional<T> 제외)와 With 목록)
         // 모든 ComponentPool에 Entity가 존재해야 함
-        for (const IStorage* pool : predicate_pools)
+        for (const IComponentStorage* pool : predicate_pools)
         {
             // 필수 조건에 부합하지 않으면 return
             if (!pool->Contains(entity))
@@ -143,7 +142,7 @@ public:
     }
 
     /** 순회 범위를 최소화하기 위해 가장 작은 ComponentPool을 찾습니다. */
-    [[nodiscard]] const IStorage* FindSmallestPool() const
+    [[nodiscard]] const IComponentStorage* FindSmallestPool() const
     {
         if constexpr (NumPredicates == 0)
         {
@@ -156,7 +155,7 @@ public:
         }
 
         // 필수 ComponentPool 중 가장 크기가 작은 것을 찾아 반환
-        return *std::ranges::min_element(predicate_pools, [](const IStorage* a, const IStorage* b)
+        return *std::ranges::min_element(predicate_pools, [](const IComponentStorage* a, const IComponentStorage* b)
         {
             return a->Len() < b->Len();
         });
@@ -167,9 +166,9 @@ public:
 private:
     TargetWorld* world;
 
-    // 매번 HashMap 조회를 피하기 위한 IStorage* 배열
-    FixedArray<const IStorage*, NumPredicates> predicate_pools{};
-    FixedArray<const IStorage*, NumWithout> without_pools{};
+    // 매번 HashMap 조회를 피하기 위한 IComponentStorage* 배열
+    FixedArray<const IComponentStorage*, NumPredicates> predicate_pools{};
+    FixedArray<const IComponentStorage*, NumWithout> without_pools{};
     usize valid_without_count = 0;
     // 쿼리가 유효한지 검증하는 flag
     bool is_valid_query = true;

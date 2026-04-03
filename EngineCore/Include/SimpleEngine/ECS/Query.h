@@ -89,8 +89,8 @@ private:
     /** 쿼리의 순회 범위가 특정 컴포넌트로 제한되는지 여부 (필수 컴포넌트 존재 여부) */
     static constexpr bool IsComponentRestricted = QueryDataType::NumPredicates > 0;
 
-    /** 순회 대상 소스 타입: 제한된 경우 IStorage(Pool), 아닌 경우 전체 Entity 배열 */
-    using IterationSourceType = std::conditional_t<IsComponentRestricted, const IStorage*, const Array<Entity>*>;
+    /** 순회 대상 소스 타입: 제한된 경우 IComponentStorage(Pool), 아닌 경우 전체 Entity 배열 */
+    using IterationSourceType = std::conditional_t<IsComponentRestricted, const IComponentStorage*, const Array<Entity>*>;
 
 public:
     explicit Query(TargetWorld& in_world)

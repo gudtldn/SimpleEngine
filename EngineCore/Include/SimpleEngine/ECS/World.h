@@ -197,16 +197,16 @@ public:
 
 public:
     /**
-     * 주어진 TypeId에 해당하는 IStorage 포인터를 반환합니다.
+     * 주어진 TypeId에 해당하는 IComponentStorage 포인터를 반환합니다.
      * @param type_id 검색할 타입의 TypeId
      * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
      */
-    [[nodiscard]] IStorage* FindRawStorage(const TypeId& type_id);
-    [[nodiscard]] const IStorage* FindRawStorage(const TypeId& type_id) const;
+    [[nodiscard]] IComponentStorage* FindRawStorage(const TypeId& type_id);
+    [[nodiscard]] const IComponentStorage* FindRawStorage(const TypeId& type_id) const;
 
-    /** template 타입에 맞는 IStorage 포인터를 반환합니다. */
+    /** template 타입에 맞는 IComponentStorage 포인터를 반환합니다. */
     template <typename ComponentType, typename Self>
-    traits::CopyConst<Self, IStorage*> FindRawStorage(this Self&& self)
+    traits::CopyConst<Self, IComponentStorage*> FindRawStorage(this Self&& self)
     {
         using RawType = std::remove_cvref_t<ComponentType>;
         return self.FindRawStorage(TypeId::Get<RawType>());
@@ -217,7 +217,7 @@ public:
     Optional<traits::CopyConst<Self, SparseSet<std::remove_cvref_t<ComponentType>>&>> FindSparseSet(this Self&& self)
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        if (traits::CopyConst<Self, IStorage*> storage = self.template FindRawStorage<RawType>())
+        if (traits::CopyConst<Self, IComponentStorage*> storage = self.template FindRawStorage<RawType>())
         {
             return static_cast<traits::CopyConst<Self, ComponentStorage<RawType>*>>(storage)->GetStorage();
         }
@@ -225,15 +225,15 @@ public:
     }
 
     /**
-     * 주어진 TypeId에 해당하는 IStorage 포인터를 반환하거나,
+     * 주어진 TypeId에 해당하는 IComponentStorage 포인터를 반환하거나,
      * 해당 타입의 저장소가 없을 경우 새로 생성합니다.
      * @param type_id 검색하거나 생성할 타입의 TypeId
      * @return IStorage 포인터, 생성되거나 조회된 저장소를 반환
      */
-    [[nodiscard]] IStorage* GetOrCreateRawStorage(const TypeId& type_id);
+    [[nodiscard]] IComponentStorage* GetOrCreateRawStorage(const TypeId& type_id);
 
     template <typename ComponentType>
-    [[nodiscard]] IStorage* GetOrCreateRawStorage()
+    [[nodiscard]] IComponentStorage* GetOrCreateRawStorage()
     {
         using RawType = std::remove_cvref_t<ComponentType>;
         return GetOrCreateRawStorage(TypeId::Get<RawType>());
@@ -297,7 +297,7 @@ private:
     EntityManager entity_manager;
     Array<Entity> alive_entities;
 
-    HashMap<TypeId, std::unique_ptr<IStorage>> component_storages;
+    HashMap<TypeId, std::unique_ptr<IComponentStorage>> component_storages;
     HashMap<TypeId, std::unique_ptr<IResourceStorage>> resource_storages;
 };
 } // namespace se

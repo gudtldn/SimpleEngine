@@ -1,8 +1,8 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/ECS/World.h"
 
 #include <type_traits>
 
@@ -18,7 +18,7 @@ struct ComponentOps
      * ComponentStorage를 초기화합니다.
      * @param world 작업을 수행할 World
      */
-    IStorage* (*ensure_storage)(World& world);
+    IComponentStorage* (*ensure_storage)(World& world);
 
     /**
      * Entity에 컴포넌트를 추가합니다. (기본 생성자 호출)
@@ -87,7 +87,7 @@ public:
         SE_ASSERT(!operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
 
         operators.Insert(type_id, ComponentOps{
-            .ensure_storage = [](World& world) static -> IStorage*
+            .ensure_storage = [](World& world) static -> IComponentStorage*
             {
                 return world.GetOrCreateRawStorage<T>();
             },

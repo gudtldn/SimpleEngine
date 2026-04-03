@@ -100,7 +100,7 @@ void DetailPanel::DrawContent()
                 ++found_count;
                 if (ImGui::Selectable(add_label.CStr(), false))
                 {
-                    IStorage* storage = world.GetOrCreateRawStorage(type_id);
+                    IComponentStorage* storage = world.GetOrCreateRawStorage(type_id);
                     if (!storage->Contains(entity))
                     {
                         storage->EmplaceDefault(entity);
@@ -123,7 +123,7 @@ void DetailPanel::DrawContent()
     TypeId component_to_remove;
     for (const auto& [component_type, component_ops] : ComponentRegistry::Get().GetOperators())
     {
-        const IStorage* storage = world.FindRawStorage(component_type);
+        const IComponentStorage* storage = world.FindRawStorage(component_type);
 
         // Entity가 가지고 있지 않은 Component는 건너뜀
         if (!(storage && storage->Contains(entity)))
