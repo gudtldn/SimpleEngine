@@ -1,8 +1,16 @@
 ﻿# SimpleEngine
 
 ```shell
-git clone https://github.com/gudtldn/SimpleEngine.git
-git submodule update --init
+# 1. 저장소 클론 및 폴더 진입
+git clone --recurse-submodules https://github.com/gudtldn/SimpleEngine.git
+cd SimpleEngine
+
+# 2. 빌드 디렉터리 생성 및 진입
+mkdir build
+cd build
+
+# 3. CMake 구성 (vcpkg 툴체인 연동)
+cmake .. -DCMAKE_TOOLCHAIN_FILE="[vcpkg_root_path]/scripts/buildsystems/vcpkg.cmake"
 ```
 
 ## 빌드 환경
