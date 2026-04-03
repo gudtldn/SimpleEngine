@@ -18,7 +18,7 @@ class TimeTick
 
 public:
     /** 이번 프레임 경과 시간(초)를 반환합니다. */
-    [[nodiscard]] float GetDelta() const { return delta; }
+    [[nodiscard]] double GetDelta() const { return delta; }
 
     /** 누적 경과 시간(초)를 반환합니다. */
     [[nodiscard]] double GetElapsed() const { return elapsed; }
@@ -27,7 +27,7 @@ public:
     [[nodiscard]] uint64 GetFrameCount() const { return frame_count; }
 
 protected:
-    float delta = 0.0f;
+    double delta = 0.0;
     double elapsed = 0.0;
     uint64 frame_count = 0;
 };

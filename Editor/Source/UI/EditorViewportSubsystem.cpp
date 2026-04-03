@@ -48,7 +48,7 @@ void EditorViewportSubsystem::Release()
     input_subsystem = nullptr;
 }
 
-void EditorViewportSubsystem::Update(float delta_time)
+void EditorViewportSubsystem::Update(double delta_time)
 {
     // 우클릭으로 호버된 뷰포트의 카메라 제어를 활성화
     if (input_subsystem->IsMouseButtonPressed(EMouseButton::Right))
@@ -118,7 +118,7 @@ void EditorViewportSubsystem::Update(float delta_time)
 
             // Exponential smoothing: frame-rate independent 가속/감속 (smoothing이 클수록 반응이 빠름)
             constexpr double SMOOTHING = 12.0;
-            const double alpha = 1.0 - Exp(-SMOOTHING * static_cast<double>(delta_time));
+            const double alpha = 1.0 - Exp(-SMOOTHING * delta_time);
             camera.velocity = camera.velocity + (target_velocity - camera.velocity) * alpha;
 
             camera.position += camera.velocity * delta_time;

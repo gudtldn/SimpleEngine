@@ -145,7 +145,7 @@ void EditorUISubsystem::PreUpdate()
     ImGui::NewFrame();
 }
 
-void EditorUISubsystem::Update([[maybe_unused]] float delta_time)
+void EditorUISubsystem::Update([[maybe_unused]] double delta_time)
 {
     SetupDockSpace();
     DrawMainMenu();

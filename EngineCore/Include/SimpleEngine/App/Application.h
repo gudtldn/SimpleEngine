@@ -69,7 +69,7 @@ protected:
 
     // 메인 루프의 각 단계
     virtual void ProcessPlatformEvents();
-    virtual void Update(float delta_time);
+    virtual void Update(double delta_time);
 
     virtual void Render();
 

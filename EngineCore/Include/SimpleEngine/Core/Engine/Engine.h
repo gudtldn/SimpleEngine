@@ -36,7 +36,7 @@ public:
     static Engine& Get();
 
     /** RealTime의 delta(초)를 반환합니다. */
-    [[nodiscard]] static float GetDeltaTime();
+    [[nodiscard]] static double GetDeltaTime();
 
     /** RealTime의 누적 경과 시간(초)를 반환합니다. */
     [[nodiscard]] static double GetElapsedTime();
@@ -80,7 +80,7 @@ public:
     void Release();
 
     /** 모든 Subsystem에 대해 위상 정렬된 순서대로 Update을 호출합니다. */
-    void UpdateFrame(float delta_time);
+    void UpdateFrame(double delta_time);
 
 private:
     /** 모든 Subsystem을 위상 정렬된 순서대로 초기화 합니다. */

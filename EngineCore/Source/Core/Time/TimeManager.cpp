@@ -6,7 +6,7 @@
 
 namespace se
 {
-void TimeManager::Update(float raw_delta)
+void TimeManager::Update(double raw_delta)
 {
     // RealTime 갱신
     real_time.delta = raw_delta;
@@ -16,9 +16,16 @@ void TimeManager::Update(float raw_delta)
     // World별 GameTime/FixedTime 갱신
     for (auto& [game_time, fixed_time] : world_times | std::views::values)
     {
-        game_time.delta = game_time.paused ? 0.0f : raw_delta * game_time.time_scale;
-        game_time.elapsed += game_time.delta;
-        ++game_time.frame_count;
+        if (game_time.paused)
+        {
+            game_time.delta = 0.0;
+        }
+        else
+        {
+            game_time.delta = raw_delta * game_time.time_scale;
+            game_time.elapsed += game_time.delta;
+            ++game_time.frame_count;
+        }
 
         fixed_time.accumulator += game_time.delta;
     }

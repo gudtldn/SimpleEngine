@@ -44,7 +44,7 @@ void EntitySubsystem::PreUpdate()
     }
 }
 
-void EntitySubsystem::Update(float delta_time)
+void EntitySubsystem::Update(double delta_time)
 {
     (void)delta_time;
 

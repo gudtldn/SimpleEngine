@@ -155,7 +155,7 @@ void Application::MainLoop()
 
             ProcessPlatformEvents();
 
-            Update(static_cast<float>(delta_time));
+            Update(delta_time);
 
             Render();
         }
@@ -248,7 +248,7 @@ void Application::ProcessPlatformEvents()
     event_sys->PollEvents();
 }
 
-void Application::Update(float delta_time)
+void Application::Update(double delta_time)
 {
     engine_instance->UpdateFrame(delta_time);
 }

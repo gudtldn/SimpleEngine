@@ -85,7 +85,7 @@ Engine& Engine::Get()
     return *Instance;
 }
 
-float Engine::GetDeltaTime()
+double Engine::GetDeltaTime()
 {
     return Get().time_manager.GetRealTime().GetDelta();
 }
@@ -190,7 +190,7 @@ void Engine::Release()
     SDL_Quit();
 }
 
-void Engine::UpdateFrame(float delta_time)
+void Engine::UpdateFrame(double delta_time)
 {
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
     ZoneScoped; \

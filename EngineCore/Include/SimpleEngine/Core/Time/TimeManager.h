@@ -21,7 +21,7 @@ class SE_CORE_API TimeManager
 {
 public:
     /** 매 프레임 Application으로부터 받은 raw delta로 모든 시간을 갱신합니다. */
-    void Update(float raw_delta);
+    void Update(double raw_delta);
 
     /** 글로벌 RealTime을 반환합니다. */
     [[nodiscard]] const RealTime& GetRealTime() const { return real_time; }

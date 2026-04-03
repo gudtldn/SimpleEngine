@@ -34,7 +34,7 @@ public:
 
     //~ Begin IUpdatable
     virtual void PreUpdate() override;
-    virtual void Update(float delta_time) override;
+    virtual void Update(double delta_time) override;
     virtual void PostUpdate() override;
     //~ End IUpdatable
 

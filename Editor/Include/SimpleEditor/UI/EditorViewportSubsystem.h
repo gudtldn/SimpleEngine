@@ -94,7 +94,7 @@ public:
     virtual void Release() override;
 
     //~ Begin IUpdatable
-    virtual void Update(float delta_time) override;
+    virtual void Update(double delta_time) override;
     //~ End IUpdatable
 
 public:

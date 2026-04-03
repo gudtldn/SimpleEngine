@@ -50,7 +50,7 @@ void EditorActionSubsystem::Release()
     viewport_subsystem = nullptr;
 }
 
-void EditorActionSubsystem::Update([[maybe_unused]] float delta_time)
+void EditorActionSubsystem::Update([[maybe_unused]] double delta_time)
 {
     // 카메라 조작 중에는 처리하지 않음
     if (viewport_subsystem->IsAnyCameraActive())

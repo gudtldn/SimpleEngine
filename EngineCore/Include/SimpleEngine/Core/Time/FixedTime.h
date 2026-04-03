@@ -16,13 +16,13 @@ class FixedTime final : public TimeTick
 
 public:
     /** 고정 시간 스텝(초)을 반환합니다. (기본값: 1/64) */
-    [[nodiscard]] float GetFixedStep() const { return fixed_step; }
+    [[nodiscard]] double GetFixedStep() const { return fixed_step; }
 
     /** 현재까지 누적된 시간(초)을 반환합니다. */
     [[nodiscard]] double GetAccumulator() const { return accumulator; }
 
     /** 고정 시간 스텝을 설정합니다. */
-    void SetFixedStep(float step) { fixed_step = step; }
+    void SetFixedStep(double step) { fixed_step = step; }
 
     /**
      * accumulator에서 고정 스텝 1회분을 소비합니다.
@@ -30,11 +30,11 @@ public:
      */
     [[nodiscard]] bool ConsumeStep()
     {
-        if (accumulator < static_cast<double>(fixed_step))
+        if (accumulator < fixed_step)
         {
             return false;
         }
-        accumulator -= static_cast<double>(fixed_step);
+        accumulator -= fixed_step;
         delta = fixed_step;
         elapsed += fixed_step;
         ++frame_count;
