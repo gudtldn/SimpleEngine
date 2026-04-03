@@ -1,11 +1,10 @@
 ﻿#pragma once
-#include <cstdio>
-#include <format>
-#include <print>
-#include <source_location>
-#include <utility>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
+#include <format>
+#include <source_location>
+#include <utility>
 
 
 namespace se::detail
@@ -21,32 +20,24 @@ namespace se::detail
     return view.substr(last_slash + 1);
 }
 
+SE_CORE_API void PrintLogImpl(const std::source_location& loc, std::string_view fmt, std::format_args args) noexcept;
+SE_CORE_API void ReportAssertionFailureImpl(const std::source_location& loc, std::string_view expr, std::string_view fmt, std::format_args args) noexcept;
+
 template <typename... Args>
 void PrintLogWithLocation(const std::source_location& loc, std::format_string<Args...> fmt, Args&&... args) noexcept
 {
-    const std::string user_message = std::format(fmt, std::forward<Args>(args)...);
-    const std::string final_log = std::format(
-        "[{}:{}] {}",
-        GetPrettyFileName(loc.file_name()),
-        loc.line(), user_message
-    );
-
-    std::println(stderr, "{}", final_log);
-    std::fflush(stderr);
+    PrintLogImpl(loc, fmt.get(), std::make_format_args(args...));
 }
 
 inline void ReportAssertionFailure(const std::source_location& loc, std::string_view expr) noexcept // NOLINT(*-exception-escape)
 {
-    std::println(stderr, "[{}:{}] Assertion failed: {}", GetPrettyFileName(loc.file_name()), loc.line(), expr);
-    std::fflush(stderr);
+    ReportAssertionFailureImpl(loc, expr, "", std::make_format_args());
 }
 
 template <typename... Args>
 void ReportAssertionFailure(const std::source_location& loc, std::string_view expr, std::format_string<Args...> fmt, Args&&... args) noexcept
 {
-    const std::string user_msg = std::format(fmt, std::forward<Args>(args)...);
-    std::println(stderr, "[{}:{}] Assertion failed: {}\n└─ {}", GetPrettyFileName(loc.file_name()), loc.line(), expr, user_msg);
-    std::fflush(stderr);
+    ReportAssertionFailureImpl(loc, expr, fmt.get(), std::make_format_args(args...));
 }
 } // namespace se::detail
 
