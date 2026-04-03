@@ -2,6 +2,12 @@
 file(GLOB_RECURSE ENGINE_UNIT_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTests/*.cpp")
 
 add_executable(UnitTests ${ENGINE_UNIT_TEST_SOURCES} "Source/UnitTestMain.cpp")
+
+# PCH 설정
+target_precompile_headers(UnitTests PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/Source/UnitTestPCH.h>"
+)
+
 target_link_libraries(UnitTests PRIVATE
         # Project Default Options
         SE_DefaultOptions
@@ -21,6 +27,12 @@ add_custom_command(TARGET UnitTests POST_BUILD
 # 벤치마크 실행 파일 (GBenchmark 전용 main 사용)
 file(GLOB_RECURSE ENGINE_BENCHMARK_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Source/Benchmark/*.cpp")
 add_executable(Benchmarks ${ENGINE_BENCHMARK_SOURCES})
+
+# PCH 설정
+target_precompile_headers(Benchmarks PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/Source/BenchmarkPCH.h>"
+)
+
 target_link_libraries(Benchmarks PRIVATE
         # Project Default Options
         SE_DefaultOptions

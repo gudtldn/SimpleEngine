@@ -15,6 +15,11 @@ add_library(EngineCore SHARED
         ${ENGINE_PUBLIC_HEADERS}
 )
 
+# PCH 설정
+target_precompile_headers(EngineCore PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/Include/SimpleEngine/Core/CorePCH.h>"
+)
+
 # DLL export/import 매크로를 자동으로 생성
 generate_export_header(EngineCore
         EXPORT_MACRO_NAME SE_CORE_API

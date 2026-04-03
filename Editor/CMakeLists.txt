@@ -15,6 +15,11 @@ add_library(Editor SHARED
         ${EDITOR_PUBLIC_HEADERS}
 )
 
+# PCH 설정
+target_precompile_headers(Editor PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/Include/SimpleEditor/EditorPCH.h>"
+)
+
 # DLL Export 매크로 생성 (SE_EDITOR_API)
 generate_export_header(Editor
         EXPORT_MACRO_NAME SE_EDITOR_API
