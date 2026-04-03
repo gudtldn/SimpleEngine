@@ -21,6 +21,9 @@ public:
     /** 현재까지 누적된 시간(초)을 반환합니다. */
     [[nodiscard]] double GetAccumulator() const { return accumulator; }
 
+    /** 보간 계수(0~1)를 반환합니다. (accumulator / fixed_step) */
+    [[nodiscard]] double GetAlpha() const { return accumulator / fixed_step; }
+
     /** 고정 시간 스텝을 설정합니다. */
     void SetFixedStep(double step) { fixed_step = step; }
 
@@ -42,7 +45,7 @@ public:
     }
 
 private:
-    float fixed_step = 1.0f / 64.0f;
+    double fixed_step = 1.0 / 64.0;
     double accumulator = 0.0;
 };
 } // namespace se
