@@ -42,13 +42,17 @@ template <typename T, typename... Args>             constexpr bool IsSetLikeImpl
 template <typename T, typename... Args>             constexpr bool IsSetLikeImpl<FlatSet<T, Args...>>    = true;
 
 // 타입 추출용 내부 구현
-template <typename T>                               struct InnerTypeImpl                      { using Type = void; };
-template <typename T>                               struct InnerTypeImpl<Optional<T>>         { using Type = T;    };
-template <typename T, usize N>                      struct InnerTypeImpl<FixedArray<T, N>>    { using Type = T;    };
-template <typename T, typename... Args>             struct InnerTypeImpl<Array<T, Args...>>   { using Type = T;    };
-template <typename T, typename... Args>             struct InnerTypeImpl<HashSet<T, Args...>> { using Type = T;    };
-template <typename T, typename... Args>             struct InnerTypeImpl<Set<T, Args...>>     { using Type = T;    };
-template <typename T, typename... Args>             struct InnerTypeImpl<FlatSet<T, Args...>> { using Type = T;    };
+template <typename T>
+concept HasInnerType = requires { typename T::InnerType; };
+
+template <typename T>                               struct InnerTypeImpl                      { using Type = void;         };
+template <HasInnerType T>                           struct InnerTypeImpl<T>                   { using Type = T::InnerType; };
+template <typename T>                               struct InnerTypeImpl<Optional<T>>         { using Type = T;            };
+template <typename T, usize N>                      struct InnerTypeImpl<FixedArray<T, N>>    { using Type = T;            };
+template <typename T, typename... Args>             struct InnerTypeImpl<Array<T, Args...>>   { using Type = T;            };
+template <typename T, typename... Args>             struct InnerTypeImpl<HashSet<T, Args...>> { using Type = T;            };
+template <typename T, typename... Args>             struct InnerTypeImpl<Set<T, Args...>>     { using Type = T;            };
+template <typename T, typename... Args>             struct InnerTypeImpl<FlatSet<T, Args...>> { using Type = T;            };
 
 template <typename T>
 struct InnerOfImpl
@@ -84,8 +88,10 @@ concept Resizable = requires(T& container, usize size) { container.Resize(size);
 
 
 /**
- * 컨테이너나 Optional의 내부 값 타입(T)을 추출합니다.
- * 래퍼 타입이 아니라면 입력된 타입 자기 자신을 그대로 반환합니다.
+ * 주어진 타입 T의 내부(Wrapped/Element) 타입을 추출합니다.
+ *
+ * 엔진 내장 컨테이너(Optional, Array 등)이거나 내부에 `InnerType` 타입 별칭을 가진 객체라면 해당 내부 타입을 반환합니다.
+ * 내부 타입을 추출할 수 없는 일반 타입인 경우, T 자기 자신을 그대로 반환합니다.
  */
 template <typename T>
 using InnerOf = detail::InnerOfImpl<T>::Type;
