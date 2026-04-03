@@ -2,11 +2,11 @@
 
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
+#include "SimpleEngine/ECS/Resource.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/Traits/FunctionTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
-#include <tuple>
 #include <utility>
 
 
@@ -20,7 +20,7 @@ struct SystemParamExtractor
 
 // World& 자체를 요구할 때의 특수화
 template <>
-struct [[deprecated("use instead Query<Commands&, ...>")]] SystemParamExtractor<World>
+struct [[deprecated("use instead Commands")]] SystemParamExtractor<World>
 {
     static World& Fetch(World& world)
     {
@@ -37,6 +37,19 @@ struct SystemParamExtractor<Query<Ts...>>
     static Query<Ts...> Fetch(TargetWorld& world)
     {
         return Query<Ts...>{ world };
+    }
+};
+
+// Resource<T>를 요구할 때의 특수화
+template <typename T>
+struct SystemParamExtractor<Resource<T>>
+{
+    using RawType = std::remove_cvref_t<T>;
+    using TargetWorld = traits::CopyConst<T, World>;
+
+    static Resource<T> Fetch(TargetWorld& world)
+    {
+        return Resource<T>{ world.template GetResource<RawType>() };
     }
 };
 

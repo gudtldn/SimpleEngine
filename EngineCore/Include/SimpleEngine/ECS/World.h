@@ -7,7 +7,9 @@
 #include "SimpleEngine/ECS/ComponentStorage.h"
 #include "SimpleEngine/ECS/EntityManager.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
+#include "SimpleEngine/ECS/ResourceStorage.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include <memory>
 #include <type_traits>
@@ -136,6 +138,58 @@ public:
     }
 
 public:
+    /** 리소스를 삽입합니다. 이미 존재하면 덮어씌워집니다. */
+    template <typename T, typename... Args>
+    T& InsertResource(Args&&... args)
+    {
+        using RawType = std::remove_cvref_t<T>;
+        const TypeId type_id = TypeId::Get<RawType>();
+
+        auto storage = std::make_unique<ResourceStorage<RawType>>(std::forward<Args>(args)...);
+
+        RawType& resource_ref = storage->Get();
+        resource_storages.Insert(type_id, std::move(storage));
+        return resource_ref;
+    }
+
+    /** 리소스를 제거합니다. */
+    template <typename T>
+    void RemoveResource()
+    {
+        resource_storages.Remove(TypeId::Get<std::remove_cvref_t<T>>());
+    }
+
+    /** 리소스를 가져옵니다. 존재하지 않으면 Assert합니다. */
+    template <typename T, typename Self>
+    traits::CopyConst<Self, std::remove_cvref_t<T>&> GetResource(this Self&& self)
+    {
+        using RawType = std::remove_cvref_t<T>;
+        const TypeId type_id = TypeId::Get<RawType>();
+        const auto resource_opt = self.resource_storages.Find(type_id);
+        SE_ASSERT(resource_opt.HasValue(), "Resource '{}' not found in World.", type_id.GetName());
+        return static_cast<traits::CopyConst<Self, ResourceStorage<RawType>*>>(resource_opt->get())->Get();
+    }
+
+    /** 리소스를 가져오려고 시도합니다. 존재하지 않으면 NullOpt를 반환합니다. */
+    template <typename T, typename Self>
+    Optional<traits::CopyConst<Self, std::remove_cvref_t<T>&>> TryGetResource(this Self&& self)
+    {
+        using RawType = std::remove_cvref_t<T>;
+        if (auto resource = self.resource_storages.Find(TypeId::Get<RawType>()))
+        {
+            return static_cast<traits::CopyConst<Self, ResourceStorage<RawType>*>>(resource->get())->Get();
+        }
+        return NullOpt;
+    }
+
+    /** 리소스가 존재하는지 확인합니다. */
+    template <typename T>
+    [[nodiscard]] bool HasResource() const
+    {
+        return resource_storages.Contains(TypeId::Get<std::remove_cvref_t<T>>());
+    }
+
+public:
     /**
      * 주어진 TypeId에 해당하는 IStorage 포인터를 반환합니다.
      * @param type_id 검색할 타입의 TypeId
@@ -238,5 +292,6 @@ private:
     Array<Entity> alive_entities;
 
     HashMap<TypeId, std::unique_ptr<IStorage>> component_storages;
+    HashMap<TypeId, std::unique_ptr<IResourceStorage>> resource_storages;
 };
 } // namespace se
