@@ -22,12 +22,6 @@
 
 namespace se
 {
-double Application::CurrentTime = 0.0;
-double Application::LastTime = 0.0;
-double Application::DeltaTime = 1.0 / 60.0;
-double Application::FixedDeltaTime = 1.0 / 60.0;
-uint64 Application::TotalElapsedTime = 0;
-
 uint32 Application::TargetFps = 240;
 double Application::TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
 
@@ -144,8 +138,7 @@ void Application::MainLoop()
         return static_cast<double>(SDL_GetPerformanceCounter()) / frequency;
     };
 
-    CurrentTime = get_performance_time();
-
+    double current_time = get_performance_time();
     while (is_running && !quit_requested)
     {
         ZoneScoped;
@@ -156,21 +149,20 @@ void Application::MainLoop()
             const double frame_start = get_performance_time();
 
             // Calculate Delta Time
-            LastTime = CurrentTime;
-            CurrentTime = frame_start;
-            DeltaTime = CurrentTime - LastTime;
-            TotalElapsedTime += static_cast<uint64>(DeltaTime * 1000.0);
+            const double last_time = current_time;
+            current_time = frame_start;
+            const double delta_time = current_time - last_time;
 
             ProcessPlatformEvents();
 
-            Update(static_cast<float>(DeltaTime));
+            Update(static_cast<float>(delta_time));
 
             Render();
         }
         {
             ZoneScopedN("Frame Wait");
 
-            const double elapsed_sec = get_performance_time() - CurrentTime;
+            const double elapsed_sec = get_performance_time() - current_time;
             const double time_to_wait_sec = TargetFrameTime - elapsed_sec;
 
             if (time_to_wait_sec > 0.0)
@@ -185,7 +177,7 @@ void Application::MainLoop()
                 }
 
                 // 남은 시간은 바쁜 대기로 대기
-                while (get_performance_time() - CurrentTime < TargetFrameTime);
+                while (get_performance_time() - current_time < TargetFrameTime){}
             }
         }
 

@@ -85,6 +85,16 @@ Engine& Engine::Get()
     return *Instance;
 }
 
+float Engine::GetDeltaTime()
+{
+    return Get().time_manager.GetRealTime().GetDelta();
+}
+
+double Engine::GetElapsedTime()
+{
+    return Get().time_manager.GetRealTime().GetElapsed();
+}
+
 void Engine::GenerateDefaultEngineConfig()
 {
     // Config 디렉토리가 없을 수 있으므로 생성
@@ -188,6 +198,8 @@ void Engine::UpdateFrame(float delta_time)
         const se::String zone_name = se::String::Format("Engine::UpdateFrame - " scope_fmt __VA_OPT__(,) __VA_ARGS__); \
         ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
     })
+
+    time_manager.Update(delta_time);
 
     for (const auto& [subsystem, name] : updatable_systems)
     {

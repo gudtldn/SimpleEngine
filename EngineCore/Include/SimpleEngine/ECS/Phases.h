@@ -12,6 +12,9 @@ struct Phase{};
 /** Update 루프 이전에 실행되는 Phase */
 struct PreUpdatePhase : Phase{};
 
+/** 고정 시간 간격으로 실행되는 Phase (물리 등) */
+struct FixedUpdatePhase : Phase{};
+
 /** 메인 Update Phase */
 struct UpdatePhase : Phase{};
 

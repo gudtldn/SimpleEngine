@@ -79,12 +79,6 @@ protected:
     virtual void PostRelease();
 
 public:
-    [[nodiscard]] static double GetCurrentTime() { return CurrentTime; }
-    [[nodiscard]] static double GetLastTime() { return LastTime; }
-    [[nodiscard]] static double GetDeltaTime() { return DeltaTime; }
-    [[nodiscard]] static double GetFixedDeltaTime() { return FixedDeltaTime; }
-    [[nodiscard]] static uint64 GetTotalElapsedTime() { return TotalElapsedTime; }
-
     [[nodiscard]] static uint32 GetTargetFps()
     {
         return TargetFps;
@@ -115,13 +109,7 @@ protected:
 private:
     static Application* Instance;
 
-    // 아래 시간들의 단위는 초단위
-    static double CurrentTime;      // 현재 프레임 시작 시간
-    static double LastTime;         // 이전 프레임 시작 시간
-    static double DeltaTime;        // CurrentTime - LastTime
-    static double FixedDeltaTime;   // 물리 계산용 DeltaTime
-    static uint64 TotalElapsedTime; // 총 경과 시간 ms
-
+    // 프레임 pacing 정책
     static uint32 TargetFps;       // 목표 FPS
     static double TargetFrameTime; // 목표 FPS 시간
 

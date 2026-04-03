@@ -61,7 +61,7 @@ void DebugPanel::DrawContent()
         static Array fps_history(max_samples, 0.0f);
         static int32 offset = 0;
 
-        const float dt = static_cast<float>(Application::GetDeltaTime());
+        const float dt = Engine::GetDeltaTime();
         const float fps = 1.0f / dt;
 
         fps_history[offset] = fps;

@@ -138,18 +138,24 @@ public:
     }
 
 public:
-    /** 리소스를 삽입합니다. 이미 존재하면 덮어씌워집니다. */
+    /** 리소스를 삽입합니다. 이미 존재하면 값을 갱신합니다. */
     template <typename T, typename... Args>
     T& InsertResource(Args&&... args)
     {
         using RawType = std::remove_cvref_t<T>;
         const TypeId type_id = TypeId::Get<RawType>();
 
-        auto storage = std::make_unique<ResourceStorage<RawType>>(std::forward<Args>(args)...);
+        if (const auto existing = resource_storages.Find(type_id))
+        {
+            RawType& value = static_cast<ResourceStorage<RawType>*>(existing->get())->Get();
+            value = RawType{ std::forward<Args>(args)... };
+            return value;
+        }
 
-        RawType& resource_ref = storage->Get();
+        auto storage = std::make_unique<ResourceStorage<RawType>>(std::forward<Args>(args)...);
+        RawType& value = storage->Get();
         resource_storages.Insert(type_id, std::move(storage));
-        return resource_ref;
+        return value;
     }
 
     /** 리소스를 제거합니다. */
