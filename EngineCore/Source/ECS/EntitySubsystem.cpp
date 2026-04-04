@@ -104,6 +104,16 @@ void EntitySubsystem::DestroyWorld(const StringName& name)
     worlds.Remove(name);
 }
 
+HashMap<StringName, WorldContext>& EntitySubsystem::GetWorlds()
+{
+    return worlds;
+}
+
+const HashMap<StringName, WorldContext>& EntitySubsystem::GetWorlds() const
+{
+    return worlds;
+}
+
 const StringName& EntitySubsystem::GetMainWorldName()
 {
     static const StringName main_world_name = "Main";

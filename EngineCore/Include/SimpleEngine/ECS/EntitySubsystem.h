@@ -52,6 +52,10 @@ public:
     /** World를 제거합니다. */
     void DestroyWorld(const StringName& name);
 
+    /** 등록된 모든 WorldContext에 접근합니다. */
+    [[nodiscard]] HashMap<StringName, WorldContext>& GetWorlds();
+    [[nodiscard]] const HashMap<StringName, WorldContext>& GetWorlds() const;
+
 private:
     static const StringName& GetMainWorldName();
 
