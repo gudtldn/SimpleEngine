@@ -16,7 +16,6 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
-#include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -28,6 +27,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
+#include "Panels/WorldResourcePanel.h"
 
 
 namespace se::editor
@@ -105,16 +105,19 @@ bool EditorUISubsystem::Initialize()
     });
 
     // 일단 명시적으로 Register 코드 작성
-    RegisterPanel<ImGuiDemoPanel>(GetTypeName<ImGuiDemoPanel>());
-    RegisterPanel<DebugPanel>(GetTypeName<DebugPanel>());
-    RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
-    RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
-    RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main", true);
-    RegisterPanel<ViewportPanel>("ViewportPanel_Sub", "ViewportPanel_Sub", false);
-    RegisterPanel<CameraPanel>(GetTypeName<CameraPanel>());
     RegisterPanel<AssetsBrowserPanel>(GetTypeName<AssetsBrowserPanel>());
+    RegisterPanel<CameraPanel>(GetTypeName<CameraPanel>());
+    RegisterPanel<DebugPanel>(GetTypeName<DebugPanel>());
+    RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
     RegisterPanel<EditorConsolePanel>(GetTypeName<EditorConsolePanel>());
+    RegisterPanel<ImGuiDemoPanel>(GetTypeName<ImGuiDemoPanel>());
+    RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
     RegisterPanel<SettingsPanel>(GetTypeName<SettingsPanel>());
+    RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main", true);
+    RegisterPanel<ViewportPanel>("ViewportPanel_Sub1", "ViewportPanel_Sub1", false);
+    RegisterPanel<ViewportPanel>("ViewportPanel_Sub2", "ViewportPanel_Sub2", false);
+    RegisterPanel<ViewportPanel>("ViewportPanel_Sub3", "ViewportPanel_Sub3", false);
+    RegisterPanel<WorldResourcePanel>(GetTypeName<WorldResourcePanel>());
 
     return true;
 }
