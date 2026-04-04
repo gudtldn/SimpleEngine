@@ -17,7 +17,7 @@ struct [[maybe_unused]] TimeResources_Registrar
         SE_REFLECT_PROPERTY(delta, meta::Property, meta::ReadOnly)
         SE_REFLECT_PROPERTY(elapsed, meta::Property, meta::ReadOnly)
         SE_REFLECT_PROPERTY(frame_count, meta::Property, meta::ReadOnly)
-        SE_REFLECT_PROPERTY(time_scale, meta::Property)
+        SE_REFLECT_PROPERTY(time_scale, meta::Property, meta::Range(0.1f, 10.0f))
         SE_REFLECT_PROPERTY(paused, meta::Property)
     SE_END_REFLECT(GameTime)
 

@@ -79,7 +79,7 @@ public:
     void SetPaused(bool pause) { paused = pause; }
 
 private:
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Property, =meta::Range(0.1f, 10.0f))
     double time_scale = 1.0;
 
     SE_ANNOTATION(=meta::Property)
