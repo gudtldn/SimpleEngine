@@ -9,8 +9,8 @@ ECSRegistry& ECSRegistry::Get()
     return instance;
 }
 
-Optional<const ComponentOps&> ECSRegistry::GetOps(const TypeId& type_id) const
+Optional<const ComponentOps&> ECSRegistry::GetComponentOps(const TypeId& type_id) const
 {
-    return operators.Find(type_id);
+    return component_operators.Find(type_id);
 }
 } // namespace se

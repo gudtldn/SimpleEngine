@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/ECS/World.h"
 
-#include <type_traits>
+#include <concepts>
 
 
 namespace se
@@ -80,13 +80,13 @@ public:
     template <typename T>
     void RegisterComponentOps()
     {
-        static_assert(std::is_default_constructible_v<T>, "Component T must be default constructible.");
-        static_assert(std::is_move_constructible_v<T>, "Component T must be move constructible.");
+        static_assert(std::default_initializable<T>, "Component T must be default constructible.");
+        static_assert(std::move_constructible<T>, "Component T must be move constructible.");
 
         const TypeId type_id = TypeId::Get<T>();
-        SE_ASSERT(!operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
+        SE_ASSERT(!component_operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
 
-        operators.Insert(type_id, ComponentOps{
+        component_operators.Insert(type_id, ComponentOps{
             .ensure_storage = [](World& world) static -> IComponentStorage*
             {
                 return world.GetOrCreateRawStorage<T>();
@@ -122,13 +122,13 @@ public:
         });
     }
 
-    /** 해당 타입의 Ops를 찾습니다. */
-    [[nodiscard]] Optional<const ComponentOps&> GetOps(const TypeId& type_id) const;
+    /** 해당 컴포넌트 타입의 Ops를 찾습니다. */
+    [[nodiscard]] Optional<const ComponentOps&> GetComponentOps(const TypeId& type_id) const;
 
     /** 등록된 모든 컴포넌트 타입의 Ops 맵을 반환합니다. */
-    [[nodiscard]] const HashMap<TypeId, ComponentOps>& GetOperators() const { return operators; }
+    [[nodiscard]] const HashMap<TypeId, ComponentOps>& GetComponentOpsMap() const { return component_operators; }
 
 private:
-    HashMap<TypeId, ComponentOps> operators;
+    HashMap<TypeId, ComponentOps> component_operators;
 };
 } // namespace se
