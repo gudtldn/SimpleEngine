@@ -60,10 +60,14 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags()
             }
         }
 
-        // Component Tag (Architecture)
-        else if constexpr (std::same_as<TagType, tags::Component>)
+        // ECS 관련 Tags
+        else if constexpr (
+            std::same_as<TagType, tags::Component>
+            || std::same_as<TagType, tags::Resource>
+        )
         {
-            flags |= ETypeFlags::IsComponent;
+            // DeduceECSKind에서 enum_kind 설정
+            // 여기는 MakeTypeFlags에서 static_assert 방지용 trap
         }
 
         // Manual Override Tags
@@ -154,6 +158,34 @@ consteval PropertyMetadata MakePropertyMetadata()
     (process_tag.template operator()<Tags>(), ...);
     return meta;
 }
+
+template <auto... Tags>
+    requires (std::derived_from<decltype(Tags), se::meta::target::Type> && ...)
+consteval EECSKind DeduceECSKind()
+{
+    using namespace se::meta;
+
+    constexpr usize ecs_tag_count =
+        (0 + ... + static_cast<usize>(std::same_as<std::remove_cvref_t<decltype(Tags)>, tags::Component>))
+      + (0 + ... + static_cast<usize>(std::same_as<std::remove_cvref_t<decltype(Tags)>, tags::Resource>));
+    static_assert(ecs_tag_count <= 1, "A type cannot be both Component and Resource.");
+
+    EECSKind kind = EECSKind::None;
+    auto process = [&kind]<auto Tag>()
+    {
+        using TagType = std::remove_cvref_t<decltype(Tag)>;
+        if constexpr (std::same_as<TagType, tags::Component>)
+        {
+            kind = EECSKind::Component;
+        }
+        else if constexpr (std::same_as<TagType, tags::Resource>)
+        {
+            kind = EECSKind::Resource;
+        }
+    };
+    (process.template operator()<Tags>(), ...);
+    return kind;
+}
 } // namespace se::detail
 
 #define SE_INTERNAL_CLASS_BODY(this_class, base_class, override_keyword, static_assert_expr) \
@@ -207,8 +239,10 @@ public: \
 { \
     using T = type; \
     constexpr auto type_flags = ::se::detail::MakeTypeFlags<T __VA_OPT__(,) __VA_ARGS__>(); \
+    constexpr auto ecs_kind = ::se::detail::DeduceECSKind<__VA_ARGS__>(); \
     ::se::TypeRegistry::Get().Register<T>() \
-        .AddFlags(type_flags)
+        .AddFlags(type_flags) \
+        .SetECSKind(ecs_kind)
 
 /**
  * 인터페이스(Interface)를 등록합니다.
@@ -232,9 +266,13 @@ public: \
 #define SE_END_REFLECT(type) \
     ; /* 체이닝 종료 */ \
     static_assert(std::same_as<std::decay_t<T>, std::decay_t<type>>, "Type mismatch between BEGIN and END reflect macros."); \
-    if constexpr (type_flags.IsAnySet(::se::ETypeFlags::IsComponent)) \
+    if constexpr (ecs_kind == ::se::EECSKind::Component) \
     { \
         ::se::ECSRegistry::Get().RegisterComponentOps<type>(); \
+    } \
+    else if constexpr (ecs_kind == ::se::EECSKind::Resource) \
+    { \
+        ::se::ECSRegistry::Get().RegisterResourceOps<type>(); \
     } \
     return true; \
 }();

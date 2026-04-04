@@ -7,8 +7,6 @@
 #include "SimpleEngine/Core/Reflection/TypeBuilder.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
-#include <ranges>
-
 
 namespace se
 {

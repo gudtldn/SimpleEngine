@@ -46,6 +46,7 @@ struct Reflect : target::Type
 
 /** ECS 컴포넌트 마킹 */
 struct Component : target::Type {};
+struct Resource  : target::Type {};
 
 /** 추상 클래스 마킹 (인스턴스화 방지) */
 struct Abstract  : target::Type {};
@@ -127,8 +128,10 @@ constexpr tags::Reflect   SerializeOnly = EReflectUsage::SerializeOnly; // UI �
 constexpr tags::Reflect   EditorOnly    = EReflectUsage::EditorOnly;    // UI 표시 + 직렬화 제외 (런타임 디버그 윈도우 등)
 constexpr tags::Reflect   Internal      = EReflectUsage::Internal;      // UI 숨김 + 직렬화 제외 (코드 레벨 리플렉션만 필요)
 
-constexpr tags::Component Component;  // ECS 엔티티 컴포넌트
-constexpr tags::Abstract  Abstract;   // 추상 클래스
+constexpr tags::Component Component; // ECS 엔티티 컴포넌트
+constexpr tags::Resource  Resource;  // ECS 리소스
+
+constexpr tags::Abstract  Abstract;  // 추상 클래스
 
 // --- Field Annotation ---
 constexpr tags::Property  Property;  // 기본적으로 R/W + 직렬화 대상

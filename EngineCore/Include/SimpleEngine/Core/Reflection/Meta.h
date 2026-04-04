@@ -20,18 +20,17 @@ enum class ETypeFlags : uint32
     None        = 0,
 
     // Identity
-    IsComponent = 1 << 0, // ECS 컴포넌트 여부
-    IsAbstract  = 1 << 1, // 추상 클래스 (인스턴스화 불가)
+    IsAbstract  = 1 << 0, // 추상 클래스 (인스턴스화 불가)
 
     // Serialization
-    Transient   = 1 << 2, // 직렬화 대상에서 제외
+    Transient   = 1 << 1, // 직렬화 대상에서 제외
 
     // Editor Visibility
-    Hidden      = 1 << 3, // 에디터(ex: Add Component 메뉴)에서 숨기기
+    Hidden      = 1 << 2, // 에디터(ex: Add Component 메뉴)에서 숨기기
 
     // Enum-specific
-    IsBitFlag   = 1 << 4, // 비트 플래그 조합 (체크박스 UI)
-    IsUnsigned  = 1 << 5, // underlying type이 unsigned
+    IsBitFlag   = 1 << 3, // 비트 플래그 조합 (체크박스 UI)
+    IsUnsigned  = 1 << 4, // underlying type이 unsigned
 };
 SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
 
@@ -66,6 +65,14 @@ enum class ETypeKind : uint8
     Primitive, // 기본 자료형 (int, float, string 등)
     Struct,    // 구조체 및 클래스
     Enum,      // 열거형
+};
+
+/** ECS 타입 분류 */
+enum class EECSKind : uint8
+{
+    None,      // 일반 타입
+    Component, // ECS 컴포넌트
+    Resource,  // ECS 리소스
 };
 
 /** 컨테이너 타입 분류 */
@@ -323,6 +330,9 @@ public:
 
     /** 타입의 종류 (Primitive, Struct, Enum, Container등) */
     ETypeKind kind;
+
+    /** ECS 타입 분류 (Component, Resource 등) */
+    EECSKind ecs_kind = EECSKind::None;
 
     /** 타입의 특성 Flag */
     BitFlags<ETypeFlags> flags;
