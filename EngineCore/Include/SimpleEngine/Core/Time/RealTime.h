@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Time/TimeTick.h"
 
 
@@ -14,3 +15,5 @@ class RealTime final : public TimeTick
     friend class TimeManager;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RealTime)

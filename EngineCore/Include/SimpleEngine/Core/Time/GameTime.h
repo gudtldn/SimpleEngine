@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Time/TimeTick.h"
 
 
@@ -12,6 +13,9 @@ namespace se
 class GameTime final : public TimeTick
 {
     friend class TimeManager;
+
+    // TODO: C++26에서 std::meta::access_context::unchecked()로 접근하면 friend가 필요 없어짐
+    friend struct TimeResources_Registrar;
 
 public:
     /** 현재 시간 배율을 반환합니다. (기본값: 1.0) */
@@ -31,3 +35,5 @@ private:
     bool paused = false;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::GameTime)

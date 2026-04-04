@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Time/TimeTick.h"
 
 
@@ -13,6 +14,9 @@ namespace se
 class FixedTime final : public TimeTick
 {
     friend class TimeManager;
+
+    // TODO: C++26에서 std::meta::access_context::unchecked()로 접근하면 friend가 필요 없어짐
+    friend struct TimeResources_Registrar;
 
 public:
     /** 고정 시간 스텝(초)을 반환합니다. (기본값: 1/64) */
@@ -49,3 +53,5 @@ private:
     double accumulator = 0.0;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::FixedTime)

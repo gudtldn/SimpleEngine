@@ -7,6 +7,7 @@ namespace se
 {
 // forward declaration
 class TimeManager;
+struct TimeResources_Registrar;
 
 /**
  * 시간 데이터의 공통 기저 클래스입니다.
@@ -15,6 +16,9 @@ class TimeManager;
 class TimeTick
 {
     friend class TimeManager;
+
+    // TODO: C++26에서 std::meta::access_context::unchecked()로 접근하면 friend가 필요 없어짐
+    friend struct TimeResources_Registrar;
 
 public:
     /** 이번 프레임 경과 시간(초)를 반환합니다. */
