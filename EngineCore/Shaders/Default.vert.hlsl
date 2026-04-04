@@ -31,6 +31,7 @@ struct VertexInput
 struct VertexOutput
 {
     float4 position : SV_POSITION;
+    float2 tex_coord : TEXCOORD0;
     float4 color : COLOR;
 };
 
@@ -41,6 +42,9 @@ VertexOutput main(VertexInput input)
     // Local -> World -> Clip Space
     float4 world_pos = mul(Model, float4(input.position, 1.0f));
     output.position = mul(VP, world_pos);
+
+    // 텍스처 좌표 패스스루
+    output.tex_coord = input.tex_coord;
 
     // 일단 임시로 Normal값을 Color로 사용
     output.color = float4(input.normal * 0.5f + 0.5f, 1.0f);

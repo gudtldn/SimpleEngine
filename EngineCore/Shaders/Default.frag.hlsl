@@ -1,6 +1,10 @@
-﻿struct PixelInput
+﻿// FS에서 Uniform Buffer의 space 설정
+// https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
+
+struct PixelInput
 {
     float4 position : SV_POSITION;
+    float2 tex_coord : TEXCOORD0;
     float4 color : COLOR;
 };
 
