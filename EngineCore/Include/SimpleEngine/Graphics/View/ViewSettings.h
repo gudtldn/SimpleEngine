@@ -11,9 +11,14 @@ namespace se::graphics
  */
 enum class ERenderingMode : uint8
 {
-    Lit,        // 기본 조명 렌더링
-    Unlit,      // 조명 없이 알베도(베이스 컬러)만 출력
-    Wireframe,  // 와이어프레임
+    // 기본 렌더링 모드
+    Lit,         // 기본 조명 렌더링
+    Unlit,       // 조명 없이 베이스 컬러만 출력
+    Wireframe,   // 와이어프레임
+
+    // 디버그 렌더링 모드
+    Normal,      // 오브젝트 공간 노멀 시각화
+    WorldNormal, // 월드 공간 노멀 시각화
 };
 
 /**
