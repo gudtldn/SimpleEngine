@@ -1,9 +1,6 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Core/Time/FixedTime.h"
-#include "SimpleEngine/Core/Time/GameTime.h"
-#include "SimpleEngine/Core/Time/RealTime.h"
 #include "SimpleEngine/Core/Time/TimeManager.h"
 #include "SimpleEngine/ECS/Phases.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -44,14 +41,14 @@ void EntitySubsystem::Update(double delta_time)
     {
         World& world = ctx.GetWorld();
 
-        // World소유 시간 Resource를 제자리에서 갱신
+        // Time Resource를 갱신
         RealTime& real = world.GetResource<RealTime>();
         GameTime& game = world.GetResource<GameTime>();
         FixedTime& fixed = world.GetResource<FixedTime>();
 
         TimeManager::AdvanceRealTime(real, delta_time);
         TimeManager::AdvanceGameTime(game, delta_time);
-        TimeManager::AdvanceFixedTime(fixed, game.GetDelta());
+        TimeManager::AccumulateFixedTime(fixed, game.GetDelta());
 
         // FixedUpdatePhase: accumulator 기반 반복 실행
         while (fixed.ConsumeStep())

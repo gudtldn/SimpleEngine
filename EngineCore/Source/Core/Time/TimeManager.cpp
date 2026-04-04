@@ -1,9 +1,5 @@
 #include "SimpleEngine/Core/Time/TimeManager.h"
 
-#include "SimpleEngine/Core/Time/FixedTime.h"
-#include "SimpleEngine/Core/Time/GameTime.h"
-#include "SimpleEngine/Core/Time/RealTime.h"
-
 
 namespace se
 {
@@ -27,7 +23,7 @@ void TimeManager::AdvanceGameTime(GameTime& game, double raw_delta)
     ++game.frame_count;
 }
 
-void TimeManager::AdvanceFixedTime(FixedTime& fixed, double game_delta)
+void TimeManager::AccumulateFixedTime(FixedTime& fixed, double game_delta)
 {
     fixed.accumulator += game_delta;
 }

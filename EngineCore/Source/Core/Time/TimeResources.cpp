@@ -1,6 +1,4 @@
-#include "SimpleEngine/Core/Time/FixedTime.h"
-#include "SimpleEngine/Core/Time/GameTime.h"
-#include "SimpleEngine/Core/Time/RealTime.h"
+#include "SimpleEngine/Core/Time/Time.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 

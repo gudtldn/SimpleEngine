@@ -34,10 +34,10 @@ public:
 public:
     static Engine& Get();
 
-    /** RealTime의 delta(초)를 반환합니다. */
+    /** Engine의 raw delta(초)를 반환합니다. */
     [[nodiscard]] static double GetDeltaTime();
 
-    /** RealTime의 누적 경과 시간(초)를 반환합니다. */
+    /** Engine의 누적 경과 시간(초)를 반환합니다. */
     [[nodiscard]] static double GetElapsedTime();
 
     /** EngineConfig.toml이 없을 때 기본 설정 파일을 생성합니다. */
