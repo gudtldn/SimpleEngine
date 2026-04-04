@@ -6,10 +6,9 @@
 
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/ECS/ComponentRegistry.h"
-#include "SimpleEngine/ECS/Components/TransformComponent.h"
-#include "SimpleEngine/ECS/Query.h"
+#include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
+#include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
@@ -84,7 +83,7 @@ void DetailPanel::DrawContent()
         ImGui::Separator();
 
         usize found_count = 0;
-        for (const TypeId& type_id : ComponentRegistry::Get().GetOperators() | std::views::keys)
+        for (const TypeId& type_id : ECSRegistry::Get().GetOperators() | std::views::keys)
         {
             const Optional type_info_opt = TypeRegistry::Get().Find(type_id);
             if (!type_info_opt)
@@ -121,7 +120,7 @@ void DetailPanel::DrawContent()
     }
 
     TypeId component_to_remove;
-    for (const auto& [component_type, component_ops] : ComponentRegistry::Get().GetOperators())
+    for (const auto& [component_type, component_ops] : ECSRegistry::Get().GetOperators())
     {
         const IComponentStorage* storage = world.FindRawStorage(component_type);
 
@@ -203,7 +202,7 @@ void DetailPanel::DrawContent()
     // 컴포넌트 삭제 처리 (순회 완료 후)
     if (component_to_remove.IsValid())
     {
-        if (const Optional ops = ComponentRegistry::Get().GetOps(component_to_remove))
+        if (const Optional ops = ECSRegistry::Get().GetOps(component_to_remove))
         {
             ops->remove_component(world, entity);
         }

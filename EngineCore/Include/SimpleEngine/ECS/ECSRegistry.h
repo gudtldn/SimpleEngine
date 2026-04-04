@@ -62,21 +62,21 @@ struct ComponentOps
 /**
  * 리플렉션 및 에디터가 타입 정보 없이 컴포넌트를 조작할 수 있도록 타입별 Operations를 등록하고 관리하는 싱글톤 레지스트리
  */
-class SE_CORE_API ComponentRegistry
+class SE_CORE_API ECSRegistry
 {
-    ComponentRegistry() = default;
+    ECSRegistry() = default;
 
 public:
-    ComponentRegistry(const ComponentRegistry&) = delete;
-    ComponentRegistry& operator=(const ComponentRegistry&) = delete;
-    ComponentRegistry(ComponentRegistry&&) = delete;
-    ComponentRegistry& operator=(ComponentRegistry&&) = delete;
-    ~ComponentRegistry() = default;
+    ECSRegistry(const ECSRegistry&) = delete;
+    ECSRegistry& operator=(const ECSRegistry&) = delete;
+    ECSRegistry(ECSRegistry&&) = delete;
+    ECSRegistry& operator=(ECSRegistry&&) = delete;
+    ~ECSRegistry() = default;
 
-    [[nodiscard]] static ComponentRegistry& Get();
+    [[nodiscard]] static ECSRegistry& Get();
 
 public:
-    /** 컴포넌트 T에 대한 ComponentInterface를 등록합니다. */
+    /** 컴포넌트 T에 대한 ComponentOps를 등록합니다. */
     template <typename T>
     void RegisterComponentOps()
     {

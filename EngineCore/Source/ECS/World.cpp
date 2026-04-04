@@ -1,7 +1,7 @@
 #include "SimpleEngine/ECS/World.h"
 
 #include "SimpleEngine/ECS/ComponentStorage.h"
-#include "SimpleEngine/ECS/ComponentRegistry.h"
+#include "SimpleEngine/ECS/ECSRegistry.h"
 
 #include <ranges>
 
@@ -31,7 +31,7 @@ IComponentStorage* World::GetOrCreateRawStorage(const TypeId& type_id)
         return storage->get();
     }
 
-    if (const auto ops = ComponentRegistry::Get().GetOps(type_id))
+    if (const auto ops = ECSRegistry::Get().GetOps(type_id))
     {
         return ops->ensure_storage(*this);
     }

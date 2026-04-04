@@ -240,7 +240,7 @@ public:
     }
 
 private:
-    /** 타입 매개변수에 맞는 ComponentStorage 래퍼 객체를 반환하거나 생성합니다. (ComponentRegistry 등에서 사용) */
+    /** 타입 매개변수에 맞는 ComponentStorage 래퍼 객체를 반환하거나 생성합니다. (ECSRegistry 등에서 사용) */
     template <typename ComponentType>
     ComponentStorage<std::remove_cvref_t<ComponentType>>& GetOrCreateComponentStorage()
     {
