@@ -295,6 +295,17 @@ bool FileSystem::Rename(const Path& from, const Path& to)
 #endif
 }
 
+bool FileSystem::Exists(const Path& path)
+{
+    if (path.IsEmpty())
+    {
+        return false;
+    }
+
+    SDL_PathInfo info;
+    return SDL_GetPathInfo(path.CStr(), &info);
+}
+
 Optional<usize> FileSystem::FileSize(const Path& path)
 {
     if (path.IsEmpty())

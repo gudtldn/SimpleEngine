@@ -1,4 +1,5 @@
 #include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 
 #include "SDL3/SDL_filesystem.h"
 
@@ -319,7 +320,7 @@ Optional<String> Path::FileName() const
 
 Optional<String> Path::FileStem() const
 {
-    const Optional<String> name = FileName();
+    Optional<String> name = FileName();
     if (!name.HasValue())
     {
         return NullOpt;
@@ -403,12 +404,7 @@ bool Path::IsSubPathOf(const Path& base) const
 
 bool Path::Exists() const
 {
-    if (path.IsEmpty())
-    {
-        return false;
-    }
-    SDL_PathInfo info;
-    return SDL_GetPathInfo(path.CStr(), &info);
+    return FileSystem::Exists(*this);
 }
 
 bool Path::IsDirectory() const

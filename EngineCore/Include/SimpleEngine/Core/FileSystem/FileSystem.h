@@ -216,6 +216,13 @@ struct SE_CORE_API FileSystem
     // =========================================================================
 
     /**
+     * 파일 또는 디렉토리가 존재하는지 확인합니다.
+     * @param path 확인할 경로
+     * @return 존재하면 true, 존자하지 않으면 false
+     */
+    [[nodiscard]] static bool Exists(const Path& path);
+
+    /**
      * 파일의 크기를 바이트 단위로 반환합니다.
      * @param path 파일 경로
      * @return 파일 크기. 실패 시 nullopt
@@ -225,7 +232,7 @@ struct SE_CORE_API FileSystem
     /**
      * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다. (SDL3: Unix epoch 초 단위)
      * @param path 대상 경로
-     * @return 마지막 수정 시간 (uint64). 실패 시 nullopt
+     * @return 마지막 수정 시간. (uint64) 실패 시 nullopt
      */
     [[nodiscard]] static Optional<uint64> LastWriteTime(const Path& path);
 
