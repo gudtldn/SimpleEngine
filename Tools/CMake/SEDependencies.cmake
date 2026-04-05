@@ -12,6 +12,16 @@ find_package(stduuid REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 
+# HLSL 컴파일 가능 여부 판단 (DXC feature가 활성화된 shadercross 빌드인지 확인)
+include(CheckSymbolExists)
+set(CMAKE_REQUIRED_LIBRARIES SDL3_shadercross::SDL3_shadercross)
+set(CMAKE_REQUIRED_INCLUDES "${SDL3_shadercross_INCLUDE_DIRS}")
+check_symbol_exists(SDL_ShaderCross_CompileDXILFromHLSL "SDL3_shadercross/SDL_shadercross.h" SE_HAS_SHADER_COMPILER)
+unset(CMAKE_REQUIRED_LIBRARIES)
+unset(CMAKE_REQUIRED_INCLUDES)
+
+message(STATUS "SimpleEngine: Shader compiler (HLSL via DXC): ${SE_HAS_SHADER_COMPILER}")
+
 # ICU4X (Rust 기반 Unicode 라이브러리)
 include(FetchContent)
 
