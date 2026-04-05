@@ -1,0 +1,32 @@
+{
+  "name": "sdl3-shadercross",
+  "version": "3.0.0-preview1",
+  "port-version": 1,
+  "description": "Shader translation library for SDL GPU API. (custom overlay: DXC as optional feature)",
+  "homepage": "https://www.libsdl.org",
+  "license": "Zlib",
+  "supports": "!uwp",
+  "dependencies": [
+    {
+      "name": "sdl3",
+      "default-features": false,
+      "features": ["vulkan"],
+      "version>=": "3.2.16"
+    },
+    { "name": "spirv-cross", "version>=": "1.4.309.0" },
+    { "name": "vcpkg-cmake", "host": true },
+    { "name": "vcpkg-cmake-config", "host": true }
+  ],
+  "features": {
+    "dxc": {
+      "description": "Enable HLSL compilation via DirectX Shader Compiler (DXC)",
+      "supports": "windows | (linux & x64)",
+      "dependencies": [
+        { "name": "directx-dxc", "version>=": "2025-05-30" }
+      ]
+    }
+  },
+  "default-features": [
+    { "name": "dxc", "platform": "windows | (linux & x64)" }
+  ]
+}
