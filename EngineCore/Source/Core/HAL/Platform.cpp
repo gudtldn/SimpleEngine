@@ -39,12 +39,12 @@ Path Platform::FindProjectRoot()
                 }
             }
 
-            const Optional<Path> parent = current.Parent();
-            if (!parent.HasValue() || parent.Value() == current)
+            Optional<Path> parent = current.Parent();
+            if (!parent.HasValue() || *parent == current)
             {
                 break; // 파일 시스템 루트에 도달
             }
-            current = parent.Value();
+            current = std::move(parent).Value();
         }
 
         // 센티넬 파일을 찾지 못한 경우, 실행 파일 디렉토리를 폴백으로 반환
