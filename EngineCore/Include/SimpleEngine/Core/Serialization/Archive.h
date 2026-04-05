@@ -34,28 +34,52 @@ enum class EArchiveMode : uint8
 /**
  * Raw Memory 처리를 위한 Wrapper 구조체
  */
-class BinaryBlob
+struct BinaryBlob
 {
 public:
     void* data;
     uint64 size;
+    bool is_const;
 
+public:
     static BinaryBlob FromBytes(void* in_data, uint64 in_byte_size)
     {
-        return { in_data, in_byte_size };
+        return {
+            .data = in_data,
+            .size = in_byte_size,
+            .is_const = false,
+        };
+    }
+
+    static BinaryBlob FromBytes(const void* in_data, uint64 in_byte_size)
+    {
+        return {
+            .data = const_cast<void*>(in_data),
+            .size = in_byte_size,
+            .is_const = true,
+        };
     }
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
     static BinaryBlob FromItems(T* in_data, uint64 count = 1)
     {
-        return { in_data, count * sizeof(T) };
+        return {
+            .data = in_data,
+            .size = count * sizeof(T),
+            .is_const = false,
+        };
     }
 
-private:
-    BinaryBlob(void* in_data, uint64 in_size)
-        : data(in_data), size(in_size)
+    template <typename T>
+        requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
+    static BinaryBlob FromItems(const T* in_data, uint64 count = 1)
     {
+        return {
+            .data = const_cast<T*>(in_data),
+            .size = count * sizeof(T),
+            .is_const = true,
+        };
     }
 };
 
@@ -129,6 +153,11 @@ public:
     /** BinaryBlob을 직접 다루는 경우 */
     friend Archive& operator<<(Archive& ar, const BinaryBlob& blob)
     {
+        // const 원본 데이터를 Load(덮어쓰기) 시도하면 차단
+        if (blob.is_const)
+        {
+            SE_ASSERT(ar.IsSaving() && "Cannot load into a const BinaryBlob!");
+        }
         ar.SerializeBytes(blob.data, blob.size);
         return ar;
     }
