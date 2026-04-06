@@ -74,3 +74,8 @@ PRIVATE
         # ICU4X C++ 바인딩 헤더
         "${icu4x_src_SOURCE_DIR}/ffi/capi/bindings/cpp"
 )
+
+# DXC가 사용 가능한 플랫폼에서만 HLSL 컴파일러 매크로를 정의 (vcpkg.json의 platform 조건과 동일)
+if(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64"))
+    target_compile_definitions(EngineCore PUBLIC SE_HAS_HLSL_COMPILER=1)
+endif()
