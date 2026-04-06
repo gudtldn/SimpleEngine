@@ -2,68 +2,49 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Graphics/Device/RenderDevice.h"
-#include "SimpleEngine/Graphics/ShaderUtils.h"
 
-#include "SDL3_shadercross/SDL_shadercross.h"
-
+#if SE_HAS_HLSL_COMPILER
 #include <ranges>
+#endif
 
 
 namespace se::editor
 {
 using namespace se;
 
-SDL_GPUShader* CompileFromHLSL(
-    const graphics::RenderDevice& render_device,
-    const Path& shader_path,
+ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
+    const Path& hlsl_path,
+    StringView entrypoint,
+    SDL_ShaderCross_ShaderStage stage,
     Optional<const Path&> include_dir_opt,
     Optional<ArrayView<const HLSL_Define>> defines_opt
 )
 {
+#if SE_HAS_HLSL_COMPILER
     // read shader file
     Array<uint8> source;
-    if (auto result = FileSystem::ReadBytes(shader_path))
+    if (auto result = FileSystem::ReadBytes(hlsl_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path, result.Error().What());
-        return nullptr;
+        return Unexpected{
+            ShaderCompileError(
+                ShaderCompileError::ECode::ReadFailed,
+                String::Format("Failed to read shader file: {}, Err: {}", hlsl_path, result.Error().What()),
+                hlsl_path
+            )
+        };
     }
 
-    // define default info
-    const char* entrypoint = "main";
-    const Optional<SDL_ShaderCross_ShaderStage> stage_opt = graphics::DetermineShaderStage(shader_path);
-
-    if (!stage_opt.HasValue())
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path);
-        return nullptr;
-    }
-
-    SDL_GPUShaderStage stage;
-    switch (stage_opt.Value())
-    {
-    case SDL_SHADERCROSS_SHADERSTAGE_VERTEX:
-        stage = SDL_GPU_SHADERSTAGE_VERTEX;
-        break;
-    case SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT:
-        stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
-        break;
-    default:
-        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path); // Compute Shader는 다른 함수로
-        return nullptr;
-    }
-
-    // compile shader
+    // build defines array
     Array<SDL_ShaderCross_HLSL_Define> hlsl_defines;
     if (defines_opt)
     {
-        ArrayView<const HLSL_Define> defines = *defines_opt;
-        hlsl_defines.Resize(defines.Len());
+        const ArrayView<const HLSL_Define> defines = *defines_opt;
+        hlsl_defines.ResizeUninitialized(defines.Len());
 
         for (auto [n, hlsl_define] : hlsl_defines | std::views::enumerate)
         {
@@ -72,63 +53,47 @@ SDL_GPUShader* CompileFromHLSL(
         }
     }
 
-    String include_dir_str;
-    if (include_dir_opt.HasValue())
-    {
-        include_dir_str = include_dir_opt.Value().ToString();
-    }
+    // entrypoint -> null-terminated string
+    const String entrypoint_str = entrypoint;
 
     const SDL_ShaderCross_HLSL_Info hlsl_info = {
         .source = reinterpret_cast<const char*>(source.Data()),
-        .entrypoint = entrypoint,
-        .include_dir = include_dir_opt ? include_dir_str.CStr() : nullptr,
+        .entrypoint = entrypoint_str.CStr(),
+        .include_dir = include_dir_opt ? include_dir_opt->CStr() : nullptr,
         .defines = defines_opt ? hlsl_defines.Data() : nullptr,
-        .shader_stage = *stage_opt,
+        .shader_stage = stage,
     };
 
-    void* bytecode = nullptr;
-    usize bytecode_size = 0;
-
-    SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata = nullptr;
-
-    const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(render_device.GetRawDevice());
-    if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
+    // HLSL -> SPIR-V
+    usize spirv_size = 0;
+    void* spirv_bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
+    if (!spirv_bytecode)
     {
-        bytecode = SDL_ShaderCross_CompileDXILFromHLSL(&hlsl_info, &bytecode_size);
-
-        // get reflection metadata
-        usize spirv_size;
-        void* spirv_bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
-        refl_metadata = SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<const Uint8*>(spirv_bytecode), spirv_size, 0);
-        SDL_free(spirv_bytecode);
-    }
-    else if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
-    {
-        bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &bytecode_size);
-        refl_metadata = SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<const Uint8*>(bytecode), bytecode_size, 0);
-    }
-
-    // create gpu shader
-    if (bytecode && refl_metadata)
-    {
-        const SDL_GPUShaderCreateInfo create_info = {
-            .code_size = bytecode_size,
-            .code = static_cast<const Uint8*>(bytecode),
-            .entrypoint = entrypoint,
-            .format = backend_formats,
-            .stage = stage,
-            .num_samplers = refl_metadata->resource_info.num_samplers,
-            .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
-            .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
-            .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
+        return Unexpected{
+            ShaderCompileError(
+                ShaderCompileError::ECode::CompileFailed,
+                String::Format("Failed to compile HLSL to SPIR-V: {} (entry: {}), Err: {}",hlsl_path, entrypoint, SDL_GetError()),
+                hlsl_path
+            )
         };
-        SDL_GPUShader* shader = SDL_CreateGPUShader(render_device.GetRawDevice(), &create_info);
-        SDL_free(refl_metadata);
-        SDL_free(bytecode);
-        return shader;
     }
 
-    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}, Err: {}", shader_path, SDL_GetError());
-    return nullptr;
+    // SPIR-V 바이트를 Array<uint8>로 복사
+    Array<uint8> result;
+    result.ResizeUninitialized(spirv_size);
+    std::memcpy(result.Data(), spirv_bytecode, spirv_size);
+    SDL_free(spirv_bytecode);
+
+    return result;
+
+#else
+    return Unexpected{
+        ShaderCompileError(
+            ShaderCompileError::ECode::NotSupported,
+            String::Format("HLSL compilation is not available on this platform: {}", hlsl_path),
+            hlsl_path
+        )
+    };
+#endif
 }
-}  // namespace se::editor
+} // namespace se::editor
