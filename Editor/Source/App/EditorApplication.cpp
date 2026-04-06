@@ -1,8 +1,8 @@
 #include "SimpleEditor/App/EditorApplication.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
+#include "Graphics/EditorShaderCompiler.h"
 #include "Graphics/EditorUIPass.h"
-#include "Graphics/Compiler/Provider.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
@@ -12,14 +12,15 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Debug/DebugDrawSubsystem.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
-#include "SimpleEngine/Debug/DebugDrawSubsystem.h"
-#include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Graphics/RenderPass/DebugLinePass.h"
+#include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
 #include "SimpleEngine/Graphics/View/FramePacket.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -113,16 +114,13 @@ bool EditorApplication::PostInitialize()
         return false;
     }
 
-    // Shader Cache Provider 변경
+    // TODO: 여기 하드코딩 되어있음. 추후 Config에서 불러와서 사용하던가 하는 방향으로
+    // 초기 셰이더 컴파일: 모든 .hlsl -> .spv
     {
-        using namespace se::graphics;
-        using namespace se::editor;
+        const Path hlsl_dir = VFS::ToPath("CoreShader://");
+        const Path output_dir = VFS::ToPath("CoreShader://Compiled");
 
-        if (const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>())
-        {
-            PSOManager& pso_manager = render_subsystem->GetPSOManager();
-            pso_manager.SetShaderCacheProvider<CompilingShaderProvider>();
-        }
+        EditorShaderCompiler::CompileAll(hlsl_dir, output_dir);
     }
 
     return true;

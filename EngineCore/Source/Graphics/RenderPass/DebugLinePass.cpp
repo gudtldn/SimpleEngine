@@ -1,7 +1,6 @@
 ﻿#include "SimpleEngine/Graphics/RenderPass/DebugLinePass.h"
 
 #include "SimpleEngine/Debug/DebugDrawSubsystem.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
@@ -74,9 +73,6 @@ void DebugLinePass::Execute(RGExecutionContext& context)
 
     SDL_GPUGraphicsPipeline* pipeline = [&context]
     {
-        static const Path VS_PATH = VFS::ToPath(VPath("CoreShader://DebugLine.vert.hlsl"));
-        static const Path FS_PATH = VFS::ToPath(VPath("CoreShader://DebugLine.frag.hlsl"));
-
         SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
             {
                 .slot = 0,
@@ -105,8 +101,8 @@ void DebugLinePass::Execute(RGExecutionContext& context)
         };
 
         return context.GetOrCreateGraphicsPipeline({
-            .vertex_shader_request = { .source_path = VS_PATH },
-            .fragment_shader_request = { .source_path = FS_PATH },
+            .vertex_shader = "CoreShader://DebugLine.vert",
+            .fragment_shader = "CoreShader://DebugLine.frag",
 
             .vertex_input_state = {
                 .vertex_buffer_descriptions = vertex_buffer_desc,

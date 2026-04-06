@@ -1,8 +1,6 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
@@ -87,10 +85,6 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
     SDL_GPUGraphicsPipeline* pipeline = [this, &context]
     {
-        // TODO: 여기서 셰이더 컴파일하면 프레임 드랍이 생길 수 있음, 개선필요
-        static const Path VSPath = VFS::ToPath(VPath("CoreShader://Default.vert.hlsl"));
-        static const Path FSPath = VFS::ToPath(VPath("CoreShader://Default.frag.hlsl"));
-
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description
          * 버퍼가 여러 개일 경우, 각 버퍼에 대한 정보를 여기에 정의
@@ -166,8 +160,8 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
         return context.GetOrCreateGraphicsPipeline({
             // 사용할 셰이더 지정
-            .vertex_shader_request = { .source_path = VSPath, },
-            .fragment_shader_request = { .source_path = FSPath, },
+            .vertex_shader = "CoreShader://Default.vert",
+            .fragment_shader = "CoreShader://Default.frag",
 
             // 정점 데이터 형식 정의
             .vertex_input_state = {
