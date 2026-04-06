@@ -6,40 +6,6 @@
 
 namespace se::graphics
 {
-Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(StringView name_hint)
-{
-    if (
-        name_hint.Contains(".vert")
-        || name_hint.Contains(".vertex")
-        || name_hint.Contains(".vs")
-    )
-    {
-        return SDL_SHADERCROSS_SHADERSTAGE_VERTEX;
-    }
-
-    if (
-        name_hint.Contains(".frag")
-        || name_hint.Contains(".fragment")
-        || name_hint.Contains(".fs")
-        || name_hint.Contains(".pixel")
-        || name_hint.Contains(".ps")
-    )
-    {
-        return SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT;
-    }
-
-    if (
-        name_hint.Contains(".comp")
-        || name_hint.Contains(".compute")
-        || name_hint.Contains(".cs")
-    )
-    {
-        return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
-    }
-
-    return NullOpt;
-}
-
 SDL_GPUShader* CreateGraphicsShader(
     const RenderDevice& render_device,
     SDL_ShaderCross_ShaderStage stage,
