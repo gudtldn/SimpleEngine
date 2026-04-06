@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -21,4 +22,4 @@ public:
      */
     [[nodiscard]] virtual const IError* Source() const noexcept = 0;
 };
-}
+} // namespace se
