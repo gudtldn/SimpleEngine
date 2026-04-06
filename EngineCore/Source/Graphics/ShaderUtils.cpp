@@ -1,41 +1,37 @@
 #include "SimpleEngine/Graphics/ShaderUtils.h"
 
-#include "SimpleEngine/Core/FileSystem/FileSystem.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 
 namespace se::graphics
 {
-Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const Path& shader_path)
+Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(StringView name_hint)
 {
-    const String path_str = shader_path.ToString();
-
     if (
-        path_str.Contains(".vert")
-        || path_str.Contains(".vertex")
-        || path_str.Contains(".vs")
+        name_hint.Contains(".vert")
+        || name_hint.Contains(".vertex")
+        || name_hint.Contains(".vs")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_VERTEX;
     }
 
     if (
-        path_str.Contains(".frag")
-        || path_str.Contains(".fragment")
-        || path_str.Contains(".fs")
-        || path_str.Contains(".pixel")
-        || path_str.Contains(".ps")
+        name_hint.Contains(".frag")
+        || name_hint.Contains(".fragment")
+        || name_hint.Contains(".fs")
+        || name_hint.Contains(".pixel")
+        || name_hint.Contains(".ps")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT;
     }
 
     if (
-        path_str.Contains(".comp")
-        || path_str.Contains(".compute")
-        || path_str.Contains(".cs")
+        name_hint.Contains(".comp")
+        || name_hint.Contains(".compute")
+        || name_hint.Contains(".cs")
     )
     {
         return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
@@ -44,98 +40,78 @@ Optional<SDL_ShaderCross_ShaderStage> DetermineShaderStage(const Path& shader_pa
     return NullOpt;
 }
 
-SDL_GPUShader* CompileFromSPIRV(const RenderDevice& render_device, const Path& shader_path)
+SDL_GPUShader* CreateGraphicsShader(
+    const RenderDevice& render_device,
+    SDL_ShaderCross_ShaderStage stage,
+    ArrayView<const uint8> spirv_bytecode
+)
 {
-    // read shader file
-    Array<uint8> source;
-    if (auto result = FileSystem::ReadBytes(shader_path))
-    {
-        source = std::move(result).Value();
-        source.Emplace('\0'); // null-terminated
-    }
-    else
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to read shader file: {}, Err: {}", shader_path, result.Error().What());
-        return nullptr;
-    }
-
-    // define default info
-    const char* entrypoint = "main";
-    const Optional<SDL_ShaderCross_ShaderStage> stage_opt = DetermineShaderStage(shader_path);
-
-    if (!stage_opt.HasValue())
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to determine shader stage: {}", shader_path);
-        return nullptr;
-    }
-
-    SDL_GPUShaderStage stage;
-    switch (stage_opt.Value())
-    {
-    case SDL_SHADERCROSS_SHADERSTAGE_VERTEX:
-        stage = SDL_GPU_SHADERSTAGE_VERTEX;
-        break;
-    case SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT:
-        stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
-        break;
-    default:
-        ConsoleLog(ELogLevel::Error, "Unknown shader stage: {}", shader_path); // Compute Shader는 다른 함수로
-        return nullptr;
-    }
-
-    // compile shader
     const SDL_ShaderCross_SPIRV_Info spirv_info = {
-        .bytecode = source.Data(),
-        .bytecode_size = source.Len(),
-        .entrypoint = entrypoint,
-        .shader_stage = *stage_opt,
+        .bytecode = spirv_bytecode.Data(),
+        .bytecode_size = spirv_bytecode.Len(),
+        .entrypoint = "main",
+        .shader_stage = stage,
     };
 
-    // get reflection metadata
-    const SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata =
-        SDL_ShaderCross_ReflectGraphicsSPIRV(source.Data(), source.Len(), 0);
+    SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata =
+        SDL_ShaderCross_ReflectGraphicsSPIRV(spirv_bytecode.Data(), spirv_bytecode.Len(), 0);
 
     if (!refl_metadata)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to reflect shader: {}", shader_path);
+        ConsoleLog(ELogLevel::Error, "Failed to reflect graphics shader, Err: {}", SDL_GetError());
         return nullptr;
     }
 
-    // create gpu shader
-    const SDL_GPUShaderFormat backend_formats = SDL_GetGPUShaderFormats(render_device.GetRawDevice());
-    if (backend_formats & SDL_GPU_SHADERFORMAT_DXIL)
-    {
-        usize bytecode_size;
-        void* bytecode = SDL_ShaderCross_CompileDXILFromSPIRV(&spirv_info, &bytecode_size);
+    const SDL_ShaderCross_GraphicsShaderResourceInfo resource_info = {
+        .num_samplers = refl_metadata->resource_info.num_samplers,
+        .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
+        .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
+        .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
+    };
 
-        const SDL_GPUShaderCreateInfo create_info = {
-            .code_size = bytecode_size,
-            .code = static_cast<const Uint8*>(bytecode),
-            .entrypoint = entrypoint,
-            .format = backend_formats,
-            .stage = stage,
-            .num_samplers = refl_metadata->resource_info.num_samplers,
-            .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
-            .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
-            .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
-        };
-        SDL_GPUShader* shader = SDL_CreateGPUShader(render_device.GetRawDevice(), &create_info);
-        SDL_free(bytecode);
-        return shader;
+    SDL_GPUShader* shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(render_device.GetRawDevice(), &spirv_info, &resource_info, 0);
+
+    SDL_free(refl_metadata);
+
+    if (!shader)
+    {
+        ConsoleLog(ELogLevel::Error, "Failed to create graphics shader, Err: {}", SDL_GetError());
     }
 
-    if (backend_formats & SDL_GPU_SHADERFORMAT_SPIRV)
-    {
-        const SDL_ShaderCross_GraphicsShaderResourceInfo resource_info = {
-            .num_samplers = refl_metadata->resource_info.num_samplers,
-            .num_storage_textures = refl_metadata->resource_info.num_storage_textures,
-            .num_storage_buffers = refl_metadata->resource_info.num_storage_buffers,
-            .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
-        };
-        return SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(render_device.GetRawDevice(), &spirv_info, &resource_info, 0);
-    }
-
-    ConsoleLog(ELogLevel::Error, "Unknown shader backend format: {}", shader_path);
-    return nullptr;
+    return shader;
 }
-}  // namespace se::graphics
+
+SDL_GPUComputePipeline* CreateComputePipeline(
+    const RenderDevice& render_device,
+    ArrayView<const uint8> spirv_bytecode
+)
+{
+    const SDL_ShaderCross_SPIRV_Info spirv_info = {
+        .bytecode = spirv_bytecode.Data(),
+        .bytecode_size = spirv_bytecode.Len(),
+        .entrypoint = "main",
+        .shader_stage = SDL_SHADERCROSS_SHADERSTAGE_COMPUTE,
+    };
+
+    SDL_ShaderCross_ComputePipelineMetadata* refl_metadata =
+        SDL_ShaderCross_ReflectComputeSPIRV(spirv_bytecode.Data(), spirv_bytecode.Len(), 0);
+
+    if (!refl_metadata)
+    {
+        ConsoleLog(ELogLevel::Error, "Failed to reflect compute shader, Err: {}", SDL_GetError());
+        return nullptr;
+    }
+
+    SDL_GPUComputePipeline* pipeline =
+        SDL_ShaderCross_CompileComputePipelineFromSPIRV(render_device.GetRawDevice(), &spirv_info, refl_metadata, 0);
+
+    SDL_free(refl_metadata);
+
+    if (!pipeline)
+    {
+        ConsoleLog(ELogLevel::Error, "Failed to create compute pipeline, Err: {}", SDL_GetError());
+    }
+
+    return pipeline;
+}
+} // namespace se::graphics
