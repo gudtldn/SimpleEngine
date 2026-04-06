@@ -346,9 +346,9 @@ FileResult<String> FileSystem::ReadToString(const Path& path)
     {
         if (!path.Exists())
         {
-            return Unexpected{ FileReadError::NotFound("File not found: " + path_str) };
+            return Unexpected{ FileReadError::FileNotFound("File not found: " + path_str) };
         }
-        return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path_str) };
+        return Unexpected{ FileReadError::FileOpenFailed("Failed to open file: " + path_str) };
     }
 
     String content(static_cast<const char*>(data), static_cast<usize>(size));
@@ -366,9 +366,9 @@ FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
     {
         if (!path.Exists())
         {
-            return Unexpected{ FileReadError::NotFound("File not found: " + path_str) };
+            return Unexpected{ FileReadError::FileNotFound("File not found: " + path_str) };
         }
-        return Unexpected{ FileReadError::OpenFailed("Failed to open file: " + path_str) };
+        return Unexpected{ FileReadError::FileOpenFailed("Failed to open file: " + path_str) };
     }
 
     Array<uint8> result;
@@ -391,13 +391,13 @@ std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path 
         if (!path.Exists())
         {
             co_yield Unexpected{
-                FileReadError::NotFound(String::Format("File not found: {}", path_str))
+                FileReadError::FileNotFound(String::Format("File not found: {}", path_str))
             };
         }
         else
         {
             co_yield Unexpected{
-                FileReadError::OpenFailed(String::Format("Failed to open file: {} ({})", path_str, SDL_GetError()))
+                FileReadError::FileOpenFailed(String::Format("Failed to open file: {} ({})", path_str, SDL_GetError()))
             };
         }
         co_return;
@@ -427,7 +427,7 @@ std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path 
             if (SDL_GetIOStatus(stream) == SDL_IO_STATUS_ERROR)
             {
                 co_yield Unexpected{
-                    FileReadError::Read(String::Format("Failed to read file: {} ({})", path_str, SDL_GetError()))
+                    FileReadError::ReadFailed(String::Format("Failed to read file: {} ({})", path_str, SDL_GetError()))
                 };
             }
             break;

@@ -29,20 +29,20 @@ public:
         InvalidFormat,    // 파일/데이터 포맷 이상
         ReadFailed,       // 읽기 실패
         WriteFailed,      // 쓰기 실패
-        UnexpectedEOF,    // 끝까지 읽지 못함, 예기치 않은 EOF
+        EndOfFile,        // 끝까지 읽지 못함, 예기치 않은 EOF
         OutOfMemory,      // 메모리 부족
         UnknownError      // 알 수 없는 에러
     };
 
-    static FileReadError NotFound(String&& msg)   { return { EType::FileNotFound,     std::move(msg) }; }
-    static FileReadError OpenFailed(String&& msg) { return { EType::FileOpenFailed,   std::move(msg) }; }
-    static FileReadError Permission(String&& msg) { return { EType::PermissionDenied, std::move(msg) }; }
-    static FileReadError Format(String&& msg)     { return { EType::InvalidFormat,    std::move(msg) }; }
-    static FileReadError Read(String&& msg)       { return { EType::ReadFailed,       std::move(msg) }; }
-    static FileReadError Write(String&& msg)      { return { EType::WriteFailed,      std::move(msg) }; }
-    static FileReadError EndOfFile(String&& msg)  { return { EType::UnexpectedEOF,    std::move(msg) }; }
-    static FileReadError OutOfMem(String&& msg)   { return { EType::OutOfMemory,      std::move(msg) }; }
-    static FileReadError Unknown(String&& msg)    { return { EType::UnknownError,     std::move(msg) }; }
+    static FileReadError FileNotFound(String&& msg)     { return { EType::FileNotFound,     std::move(msg) }; }
+    static FileReadError FileOpenFailed(String&& msg)   { return { EType::FileOpenFailed,   std::move(msg) }; }
+    static FileReadError PermissionDenied(String&& msg) { return { EType::PermissionDenied, std::move(msg) }; }
+    static FileReadError InvalidFormat(String&& msg)    { return { EType::InvalidFormat,    std::move(msg) }; }
+    static FileReadError ReadFailed(String&& msg)       { return { EType::ReadFailed,       std::move(msg) }; }
+    static FileReadError WriteFailed(String&& msg)      { return { EType::WriteFailed,      std::move(msg) }; }
+    static FileReadError EndOfFile(String&& msg)        { return { EType::EndOfFile,        std::move(msg) }; }
+    static FileReadError OutOfMemory(String&& msg)      { return { EType::OutOfMemory,      std::move(msg) }; }
+    static FileReadError UnknownError(String&& msg)     { return { EType::UnknownError,     std::move(msg) }; }
 
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
