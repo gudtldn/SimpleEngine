@@ -1,7 +1,6 @@
 #pragma once
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
-#include "SimpleEngine/Graphics/ShaderProvider/IShaderProvider.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -149,8 +148,8 @@ SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, 24,
 SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::GraphicsPipelineCreateInfo,
 {
     SE_HASH_COMBINE(
-        SE_ARG.vertex_shader_request,
-        SE_ARG.fragment_shader_request,
+        SE_ARG.vertex_shader,
+        SE_ARG.fragment_shader,
         SE_ARG.vertex_input_state,
         static_cast<uint32>(SE_ARG.primitive_type),
         SE_ARG.rasterizer_state,
@@ -161,10 +160,11 @@ SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::GraphicsPipelineCreateInfo
     );
 })
 
-SE_SPECIALIZE_STD_HASH(se::graphics::ComputePipelineCreateInfo, 80,
+SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::ComputePipelineCreateInfo,
 {
     SE_HASH_COMBINE(
-        SE_ARG.placeholder
+        SE_ARG.compute_shader,
+        SE_ARG.props
     );
 })
 

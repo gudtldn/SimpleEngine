@@ -1,5 +1,6 @@
 #pragma once
-#include "SimpleEngine/Graphics/ShaderProvider/IShaderProvider.h"
+
+#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Graphics/Traits/CreateInfoEquals.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -12,8 +13,8 @@ namespace se::graphics
  */
 struct GraphicsPipelineCreateInfo
 {
-    ShaderRequest vertex_shader_request;
-    ShaderRequest fragment_shader_request;
+    VPath vertex_shader;
+    VPath fragment_shader;
 
     SDL_GPUVertexInputState vertex_input_state;    // The vertex layout of the graphics pipeline.
     SDL_GPUPrimitiveType primitive_type;           // The primitive topology of the graphics pipeline.
@@ -30,18 +31,13 @@ struct GraphicsPipelineCreateInfo
 
 /**
  * Hashing 가능한 SDL_GPUComputePipelineCreateInfo 구조체
- * @todo 이거 만들어야 함
  */
 struct ComputePipelineCreateInfo
 {
-    uint32 placeholder;
-    SDL_GPUComputePipelineCreateInfo compute_pipeline_create_info;
+    VPath compute_shader;
 
-    // TODO: Implement
+    SDL_PropertiesID props = 0;
 
-    bool operator==(const ComputePipelineCreateInfo& other) const
-    {
-        return placeholder == other.placeholder;
-    }
+    bool operator==(const ComputePipelineCreateInfo& other) const = default;
 };
 }  // namespace se::graphics

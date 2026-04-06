@@ -215,7 +215,6 @@ void RenderSubsystem::RenderFrame(
         render_graph_executor->UpdateResourcePool();
     }
 
-    pso_manager->EndFrame();
     render_device->ProcessDeferredDestructions();
 }
 
