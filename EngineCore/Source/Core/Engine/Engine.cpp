@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Container/Queue.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
@@ -24,6 +25,71 @@
 
 namespace se
 {
+namespace
+{
+/**
+ * TypeId 노드 집합에 대해 Kahn's 위상정렬을 수행합니다.
+ *
+ * @param nodes 정렬 대상 노드 목록
+ * @param get_dependencies 각 노드의 의존성(선행 노드) 목록을 반환하는 콜백
+ * @return 정렬된 TypeId 배열. 순환 의존성이 있으면 입력보다 짧은 배열이 반환됩니다.
+ */
+template <std::invocable<const TypeId&> DepsFn>
+Array<TypeId> TopologicalSort(const Array<TypeId>& nodes, DepsFn&& get_dependencies)
+{
+    const HashSet<TypeId> node_set = HashSet<TypeId>::FromRange(nodes);
+
+    HashMap<TypeId, Array<TypeId>> adj_list;
+    HashMap<TypeId, int> in_degree;
+
+    for (const TypeId& id : nodes)
+    {
+        in_degree[id] = 0;
+        adj_list[id] = {};
+    }
+
+    for (const TypeId& id : nodes)
+    {
+        for (const TypeId& dep_id : get_dependencies(id))
+        {
+            // 노드 집합에 없는 의존성은 무시
+            if (!node_set.Contains(dep_id))
+            {
+                continue;
+            }
+
+            adj_list[dep_id].Push(id);
+            in_degree[id]++;
+        }
+    }
+
+    Queue<TypeId> queue;
+    for (const auto& [id, degree] : in_degree)
+    {
+        if (degree == 0)
+        {
+            queue.Push(id);
+        }
+    }
+
+    Array<TypeId> sorted;
+    while (Optional<TypeId> current = queue.Pop())
+    {
+        sorted.Push(*current);
+        for (const TypeId& neighbor : adj_list[*current])
+        {
+            if (--in_degree[neighbor] == 0)
+            {
+                queue.Push(neighbor);
+            }
+        }
+    }
+
+    return sorted;
+}
+} // namespace
+
+
 Engine* Engine::Instance = nullptr;
 
 Engine::Engine()
@@ -270,98 +336,94 @@ bool Engine::SortSubsystems()
 {
     ConsoleLog(ELogLevel::Info, "Sorting Subsystems based on dependencies...");
 
-    HashMap<TypeId, Array<TypeId>> adj_list;
-    HashMap<TypeId, int> in_degree;
-    Queue<TypeId> queue;
+    detail::SubsystemRegistry& registry = detail::SubsystemRegistry::GetInstance();
 
-    // 의존성 그래프와 진입 차수(in-degree)를 계산
+    // 모든 서브시스템의 TypeId 수집
+    Array<TypeId> all_ids;
     for (const TypeId& type_id : subsystems | std::views::keys)
     {
-        in_degree[type_id] = 0; // 모든 노드의 진입 차수 0으로 초기화
-        adj_list[type_id] = {}; // 인접 리스트 초기화
+        all_ids.Push(type_id);
     }
 
-    auto& registry = detail::SubsystemRegistry::GetInstance();
-    for (const auto& type_id : subsystems | std::views::keys)
+    // 초기화 순서 위상정렬
+    Array<TypeId> sorted_ids = TopologicalSort(all_ids, [&](const TypeId& id) -> const Array<TypeId>&
     {
-        for (const TypeId& dependency_id : registry.GetMetadata(type_id).dependencies)
-        {
-            // A가 B에 의존한다면 (A -> B), B에서 A로 가는 간선을 추가
-            // B가 먼저 초기화되어야 하기 때문
-            adj_list[dependency_id].Push(type_id);
-            in_degree[type_id]++;
-        }
-    }
+        return registry.GetMetadata(id).dependencies;
+    });
 
-    // 진입 차수가 0인 노드들을 큐에 추가
-    // 이 노드들은 다른 어떤 노드에도 의존하지 않으므로 초기화 순서의 시작점
-    for (const auto& [type_id, degree] : in_degree)
-    {
-        if (degree == 0)
-        {
-            queue.Push(type_id);
-        }
-    }
-
-    // 위상 정렬을 수행
-    sorted_subsystems.Clear();
-    while (Optional current_id_opt = queue.Pop())
-    {
-        const TypeId current_id = *current_id_opt;
-        sorted_subsystems.Push(subsystems[current_id].get());
-
-        for (const auto& neighbor_id : adj_list[current_id])
-        {
-            --in_degree[neighbor_id];
-            if (in_degree[neighbor_id] == 0)
-            {
-                queue.Push(neighbor_id);
-            }
-        }
-    }
-
-    // 순환 의존성 확인
-    if (sorted_subsystems.Len() != subsystems.Len())
+    if (sorted_ids.Len() != all_ids.Len())
     {
         ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
-
-        Array<TypeId> circular_subsystems;
-        for (const auto& [type_id, degree] : in_degree)
+        HashSet<TypeId> sorted_set(sorted_ids.begin(), sorted_ids.end());
+        for (const TypeId& id : all_ids)
         {
-            if (degree > 0)
+            if (!sorted_set.Contains(id))
             {
-                circular_subsystems.Push(type_id);
+                ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
             }
         }
-
-        ConsoleLog(ELogLevel::Fatal, "Circular dependency detected in subsystems: ");
-        for (const auto& id : circular_subsystems)
-        {
-            ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
-        }
-
         return false;
     }
 
-    // 일단 sorted_subsystems 순서에 따라 updatable_systems 등록
-    updatable_systems.Clear();
-    for (SubsystemBase* sub_system : sorted_subsystems)
+    sorted_subsystems.Clear();
+    for (const TypeId& id : sorted_ids)
     {
-        if (IUpdatable* updatable = Cast<IUpdatable>(sub_system))
-        {
-            updatable_systems.Push({
-                .updatable = updatable,
-                .name = sub_system->GetTypeId().GetName(),
-            });
-        }
+        sorted_subsystems.Push(subsystems[id].get());
     }
 
     ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
     for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, "  - Order {}: {}", n, sub_system->GetTypeId().GetName());
+        ConsoleLog(ELogLevel::Debug, "  - Init Order {}: {}", n, sub_system->GetTypeId().GetName());
+    }
+
+    // IUpdatable을 update_dependencies에 따라 별도 위상정렬
+    // UpdateDependsOn이 없는 서브시스템은 다른 IUpdatable과의 순서가 보장되지 않음
+    HashMap<TypeId, IUpdatable*> updatable_map;
+    Array<TypeId> updatable_ids;
+    for (const auto& [type_id, subsystem_ptr] : subsystems)
+    {
+        if (IUpdatable* updatable = Cast<IUpdatable>(subsystem_ptr.get()))
+        {
+            updatable_map.Emplace(type_id, updatable);
+            updatable_ids.Push(type_id);
+        }
+    }
+
+    Array<TypeId> sorted_update_ids = TopologicalSort(updatable_ids, [&](const TypeId& id) -> const Array<TypeId>&
+    {
+        return registry.GetMetadata(id).update_dependencies;
+    });
+
+    if (sorted_update_ids.Len() != updatable_ids.Len())
+    {
+        ConsoleLog(ELogLevel::Fatal, "Circular update dependency detected among IUpdatable subsystems!");
+        HashSet<TypeId> sorted_set(sorted_update_ids.begin(), sorted_update_ids.end());
+        for (const TypeId& id : updatable_ids)
+        {
+            if (!sorted_set.Contains(id))
+            {
+                ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
+            }
+        }
+        return false;
+    }
+
+    updatable_systems.Clear();
+    for (const TypeId& id : sorted_update_ids)
+    {
+        updatable_systems.Push({
+            .updatable = updatable_map[id],
+            .name = id.GetName(),
+        });
+    }
+
+    ConsoleLog(ELogLevel::Info, "IUpdatable subsystems update order:");
+    for (const auto [n, entry] : updatable_systems | std::views::enumerate)
+    {
+        ConsoleLog(ELogLevel::Debug, "  - Update Order {}: {}", n, entry.name);
     }
 
     return true;
 }
-}  // namespace se
+} // namespace se

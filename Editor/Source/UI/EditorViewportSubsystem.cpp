@@ -4,10 +4,9 @@
 #include "SimpleEngine/Core/Math/TransformUtility.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Debug/DebugDraw.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
-
-#include "imgui.h"
 
 #include <ranges>
 
@@ -18,7 +17,8 @@ using namespace se::math;
 
 SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
     .DependsOn<RenderSubsystem>()
-    .DependsOn<InputSubsystem>();
+    .DependsOn<InputSubsystem>()
+    .UpdateDependsOn<EntitySubsystem>();
 
 SE_BEGIN_REFLECT(EditorViewportSubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)

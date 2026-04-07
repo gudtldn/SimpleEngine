@@ -25,7 +25,8 @@ SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
         EditorSubsystem,
         EditorUISubsystem,
         EditorViewportSubsystem
-    >();
+    >()
+    .UpdateDependsOn<EditorUISubsystem, EditorViewportSubsystem>();
 
 SE_BEGIN_REFLECT(EditorActionSubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)

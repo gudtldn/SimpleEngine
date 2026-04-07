@@ -38,7 +38,8 @@ SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
         WindowSubsystem,
         RenderSubsystem,
         EditorSubsystem
-    >();
+    >()
+    .UpdateDependsOn<EntitySubsystem>();
 
 SE_BEGIN_REFLECT(EditorUISubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)

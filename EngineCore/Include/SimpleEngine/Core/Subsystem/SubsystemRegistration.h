@@ -22,7 +22,12 @@ struct SubsystemMetadata
     using SubsystemFactory = Function<std::unique_ptr<SubsystemBase>()>;
 
     SubsystemFactory factory;
+
+    // 다른 Subsystem간 초기화 순서 의존성 목록
     Array<TypeId> dependencies;
+
+    // IUpdatable 간 업데이트 실행 순서를 위한 의존성 목록
+    Array<TypeId> update_dependencies;
 };
 
 /**
@@ -41,9 +46,25 @@ struct SubsystemBuilder
         return *this;
     }
 
+    /**
+     * IUpdatable 간 업데이트 실행 순서를 지정합니다.
+     * 지정된 서브시스템들이 이 서브시스템보다 먼저 업데이트됩니다.
+     * 미지정 시 다른 IUpdatable과의 업데이트 순서가 보장되지 않습니다.
+     */
+    template <typename... Dependencies>
+        requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
+    SubsystemBuilder& UpdateDependsOn()
+    {
+        (AddUpdateDependency<Dependencies>(), ...);
+        return *this;
+    }
+
 private:
     template <typename Dependency>
     void AddDependency();
+
+    template <typename Dependency>
+    void AddUpdateDependency();
 };
 
 /**
@@ -100,6 +121,15 @@ void SubsystemBuilder<Subsystem>::AddDependency()
 {
     SubsystemRegistry::GetInstance()
         .GetMetadata(target_id).dependencies
+        .Push(TypeId::Get<Dependency>());
+}
+
+template <typename Subsystem>
+template <typename Dependency>
+void SubsystemBuilder<Subsystem>::AddUpdateDependency()
+{
+    SubsystemRegistry::GetInstance()
+        .GetMetadata(target_id).update_dependencies
         .Push(TypeId::Get<Dependency>());
 }
 }  // namespace detail
