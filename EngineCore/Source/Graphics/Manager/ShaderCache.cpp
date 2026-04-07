@@ -63,60 +63,12 @@ void ShaderCache::LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_
     graphics_cache[shader_key] = shader;
 }
 
-SDL_GPUComputePipeline* ShaderCache::GetOrCreateComputePipeline(const VPath& shader_key)
-{
-    if (const auto cache = compute_cache.Find(shader_key))
-    {
-        return *cache;
-    }
-
-    auto spirv_opt = ReadSpvFile(shader_key);
-    if (!spirv_opt.HasValue())
-    {
-        return nullptr;
-    }
-
-    SDL_GPUComputePipeline* pipeline = CreateComputePipeline(*render_device, *spirv_opt);
-    if (!pipeline)
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to create compute pipeline: {}", shader_key);
-        return nullptr;
-    }
-
-    compute_cache[shader_key] = pipeline;
-    return pipeline;
-}
-
-void ShaderCache::LoadComputePipelineFromMemory(const VPath& shader_key, ArrayView<const uint8> spirv_bytecode)
-{
-    if (const auto cache = compute_cache.Find(shader_key))
-    {
-        SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), *cache);
-        compute_cache.Remove(shader_key);
-    }
-
-    SDL_GPUComputePipeline* pipeline = CreateComputePipeline(*render_device, spirv_bytecode);
-    if (!pipeline)
-    {
-        ConsoleLog(ELogLevel::Error, "Failed to load compute pipeline from memory: {}", shader_key);
-        return;
-    }
-
-    compute_cache[shader_key] = pipeline;
-}
-
 void ShaderCache::Invalidate(const VPath& shader_key)
 {
     if (const auto cache = graphics_cache.Find(shader_key))
     {
         SDL_ReleaseGPUShader(render_device->GetRawDevice(), *cache);
         graphics_cache.Remove(shader_key);
-    }
-
-    if (const auto cache = compute_cache.Find(shader_key))
-    {
-        SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), *cache);
-        compute_cache.Remove(shader_key);
     }
 }
 
@@ -127,12 +79,6 @@ void ShaderCache::ClearAll()
         SDL_ReleaseGPUShader(render_device->GetRawDevice(), shader);
     }
     graphics_cache.Clear();
-
-    for (SDL_GPUComputePipeline* pipeline : compute_cache | std::views::values)
-    {
-        SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), pipeline);
-    }
-    compute_cache.Clear();
 }
 
 Path ShaderCache::ResolveSpvPath(const VPath& shader_key)
