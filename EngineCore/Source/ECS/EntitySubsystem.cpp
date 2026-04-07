@@ -1,8 +1,7 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Core/Time/TimeManager.h"
-#include "SimpleEngine/ECS/Phases.h"
+#include "SimpleEngine/Core/Time/Time.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <ranges>
@@ -27,44 +26,11 @@ void EntitySubsystem::Release()
     worlds.Clear();
 }
 
-void EntitySubsystem::PreUpdate()
-{
-    for (WorldContext& ctx : worlds | std::views::values)
-    {
-        ctx.RunPhase<PreUpdatePhase>();
-    }
-}
-
 void EntitySubsystem::Update(double delta_time)
 {
-    for (auto& ctx : worlds | std::views::values)
-    {
-        World& world = ctx.GetWorld();
-
-        // Time Resource를 갱신
-        RealTime& real = world.GetResource<RealTime>();
-        GameTime& game = world.GetResource<GameTime>();
-        FixedTime& fixed = world.GetResource<FixedTime>();
-
-        TimeManager::AdvanceRealTime(real, delta_time);
-        TimeManager::AdvanceGameTime(game, delta_time);
-        TimeManager::AccumulateFixedTime(fixed, game.GetDelta());
-
-        // FixedUpdatePhase: accumulator 기반 반복 실행
-        while (fixed.ConsumeStep())
-        {
-            ctx.RunPhase<FixedUpdatePhase>();
-        }
-
-        ctx.RunPhase<UpdatePhase>();
-    }
-}
-
-void EntitySubsystem::PostUpdate()
-{
     for (WorldContext& ctx : worlds | std::views::values)
     {
-        ctx.RunPhase<PostUpdatePhase>();
+        ctx.RunAll(delta_time);
     }
 }
 

@@ -3,10 +3,10 @@
 #include "SimpleEngine/ECS/Commands.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
-#include "SimpleEngine/ECS/Resource.h"
 #include "SimpleEngine/ECS/WorldContext.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
+#include "SimpleEngine/Core/Time/Time.h"
 
 using namespace se;
 
@@ -334,4 +334,60 @@ TEST_F(ECSTest, ECSCommandsResourceInsertAndRemove)
 
     ctx.RunPhase<PostUpdatePhase>();
     EXPECT_FALSE(ctx.GetWorld().HasResource<GameConfig>());
+}
+
+// RunAll()을 통해 StartupPhase가 1번만 실행되고 이후 제거되는지 검증합니다.
+TEST_F(ECSTest, ECSStartupPhaseRunsOnce)
+{
+    WorldContext ctx;
+
+    // RunAll에 필요한 시간 리소스 등록
+    ctx.GetWorld().InsertResource<RealTime>();
+    ctx.GetWorld().InsertResource<GameTime>();
+    ctx.GetWorld().InsertResource<FixedTime>();
+
+    int startup_count = 0;
+    int update_count = 0;
+
+    ctx.AddSystem<StartupPhase>([&] { ++startup_count; });
+    ctx.AddSystem<UpdatePhase>([&] { ++update_count; });
+
+    ctx.RunAll(0.016);
+    EXPECT_EQ(startup_count, 1);
+    EXPECT_EQ(update_count, 1);
+
+    ctx.RunAll(0.016);
+    EXPECT_EQ(startup_count, 1) << "StartupPhase must not run again.";
+    EXPECT_EQ(update_count, 2);
+
+    ctx.RunAll(0.016);
+    EXPECT_EQ(startup_count, 1) << "StartupPhase must not run again.";
+    EXPECT_EQ(update_count, 3);
+}
+
+// RunAll()에서 Stage 순서(Startup -> PreUpdate -> FixedUpdate -> Update -> PostUpdate)가 보장되는지 검증합니다.
+TEST_F(ECSTest, ECSRunAllStageOrder)
+{
+    WorldContext ctx;
+
+    ctx.GetWorld().InsertResource<RealTime>();
+    ctx.GetWorld().InsertResource<GameTime>();
+    ctx.GetWorld().InsertResource<FixedTime>();
+
+    int call_index = 0;
+    int startup_order = -1;
+    int pre_order = -1;
+    int update_order = -1;
+    int post_order = -1;
+
+    ctx.AddSystem<StartupPhase>([&] { startup_order = call_index++; });
+    ctx.AddSystem<PreUpdatePhase>([&] { pre_order = call_index++; });
+    ctx.AddSystem<UpdatePhase>([&] { update_order = call_index++; });
+    ctx.AddSystem<PostUpdatePhase>([&] { post_order = call_index++; });
+
+    ctx.RunAll(0.016);
+
+    EXPECT_LT(startup_order, pre_order) << "Startup must run before PreUpdate.";
+    EXPECT_LT(pre_order, update_order) << "PreUpdate must run before Update.";
+    EXPECT_LT(update_order, post_order) << "Update must run before PostUpdate.";
 }
