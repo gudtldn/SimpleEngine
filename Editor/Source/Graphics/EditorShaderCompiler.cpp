@@ -82,6 +82,7 @@ void EditorShaderCompiler::CompileAll(const Path& hlsl_dir, const Path& output_d
 {
     FileSystem::CreateDirectories(output_dir);
 
+    // 우선 1-depth만 순회하고, 서브디렉토리의 셰이더는 포함하지 않음.
     for (const DirectoryEntry& entry : FileSystem::ReadDir(hlsl_dir))
     {
         const Path& file_path = entry.GetPath();

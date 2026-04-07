@@ -15,7 +15,7 @@ SDL_GPUShader* CreateGraphicsShader(
     const SDL_ShaderCross_SPIRV_Info spirv_info = {
         .bytecode = spirv_bytecode.Data(),
         .bytecode_size = spirv_bytecode.Len(),
-        .entrypoint = "main",
+        .entrypoint = "main", // DXC는 HLSL -> SPIR-V 변환 시 엔트리포인트를 항상 "main"으로 설정함.
         .shader_stage = stage,
     };
 
@@ -55,7 +55,7 @@ SDL_GPUComputePipeline* CreateComputePipeline(
     const SDL_ShaderCross_SPIRV_Info spirv_info = {
         .bytecode = spirv_bytecode.Data(),
         .bytecode_size = spirv_bytecode.Len(),
-        .entrypoint = "main",
+        .entrypoint = "main", // DXC는 HLSL -> SPIR-V 변환 시 엔트리포인트를 항상 "main"으로 설정함.
         .shader_stage = SDL_SHADERCROSS_SHADERSTAGE_COMPUTE,
     };
 
