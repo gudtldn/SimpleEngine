@@ -105,6 +105,8 @@ void Application::Startup(const String& cmd_line)
         ConsoleLog(ELogLevel::Debug, "- Off: {}", StringUtils::Join(off_view, ", "));
     }
 
+    CpuFeature::ValidateSimdSupport();
+
     RETURN_IF_FAILED(PreInitialize());
     RegisterSubsystems();
     RETURN_IF_FAILED(InitializeEngine());

@@ -24,5 +24,11 @@ struct SE_CORE_API CpuFeature
 
     // ARM SIMD Support
     [[nodiscard]] static bool HasNEON();
+
+    /**
+     * SE_SIMD_LEVEL로 빌드된 SIMD 명령어를 현재 CPU가 지원하는지 검증합니다.
+     * 만약 미지원 시, 프로그램을 종료합니다.
+     */
+    static void ValidateSimdSupport();
 };
 } // namespace se

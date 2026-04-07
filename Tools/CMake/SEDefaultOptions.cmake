@@ -54,9 +54,6 @@ if(MSVC)
             /wd4275          # DLL 인터페이스 경고 (비-DLL 베이스)
             /wd4324          # 패딩 경고
             /wd4702          # unreachable code
-
-            # SIMD | TODO: 나중에 옵션(ON, OFF)으로 수정
-            /arch:AVX2
     )
 
     # MSVC STL 예외 비활성화
@@ -78,8 +75,8 @@ else()
             # 예외 및 RTTI 끄기
             # -fno-exceptions               # C++ 예외 처리 비활성화
             # -fno-rtti                     # RTTI 비활성화
-
-            # SIMD | TODO: 나중에 옵션(ON, OFF)으로 수정
-            -mavx -mfma
     )
 endif()
+
+# SIMD 관련 설정
+include(${CMAKE_CURRENT_LIST_DIR}/SESimdOptions.cmake)

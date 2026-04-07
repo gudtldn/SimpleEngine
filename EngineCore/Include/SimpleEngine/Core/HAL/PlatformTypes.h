@@ -64,6 +64,47 @@
 #endif
 
 // -----------------------------------------------------------------------------
+// SIMD Feature Macros (set by CMake via SE_SIMD_LEVEL option)
+// See: Tools/CMake/SESimdOptions.cmake
+// Cumulative: AVX2 implies AVX, SSE4_1, SSE2. AVX2 also implies FMA.
+// -----------------------------------------------------------------------------
+#ifdef SE_CMAKE_SIMD_SSE2
+    #define SE_SIMD_SSE2 true
+#else
+    #define SE_SIMD_SSE2 false
+#endif
+
+#ifdef SE_CMAKE_SIMD_SSE4_1
+    #define SE_SIMD_SSE4_1 true
+#else
+    #define SE_SIMD_SSE4_1 false
+#endif
+
+#ifdef SE_CMAKE_SIMD_AVX
+    #define SE_SIMD_AVX true
+#else
+    #define SE_SIMD_AVX false
+#endif
+
+#ifdef SE_CMAKE_SIMD_AVX2
+    #define SE_SIMD_AVX2 true
+#else
+    #define SE_SIMD_AVX2 false
+#endif
+
+#ifdef SE_CMAKE_SIMD_FMA
+    #define SE_SIMD_FMA true
+#else
+    #define SE_SIMD_FMA false
+#endif
+
+#ifdef SE_CMAKE_SIMD_NEON
+    #define SE_SIMD_NEON true
+#else
+    #define SE_SIMD_NEON false
+#endif
+
+// -----------------------------------------------------------------------------
 // Compiler Detection
 // -----------------------------------------------------------------------------
 #if defined(__clang__)

@@ -1,4 +1,6 @@
 ﻿#include "SimpleEngine/Core/HAL/CpuFeature.h"
+#include "SimpleEngine/Core/Logging/Logging.h"
+
 
 #if SE_ARCH_X86_FAMILY
 #include "cpuinfo_x86.h"
@@ -55,4 +57,36 @@ bool CpuFeature::HasFMA4()    { return false;                                   
 bool CpuFeature::HasAVX512F() { return false;                                                    }
 bool CpuFeature::HasNEON()    { return CPU_FEATURES_COMPILED_ANY_ARM_NEON || GetFeatures().neon; }
 #endif
+
+void CpuFeature::ValidateSimdSupport()
+{
+    struct SimdRequirement
+    {
+        bool required;
+        bool supported;
+        const char* name;
+    };
+
+    const SimdRequirement requirements[] = {
+        { SE_SIMD_SSE2,   HasSSE2(),   "SSE2"   },
+        { SE_SIMD_SSE4_1, HasSSE4_1(), "SSE4.1" },
+        { SE_SIMD_AVX,    HasAVX(),    "AVX"    },
+        { SE_SIMD_AVX2,   HasAVX2(),   "AVX2"   },
+        { SE_SIMD_FMA,    HasFMA3(),   "FMA3"   },
+        { SE_SIMD_NEON,   HasNEON(),   "NEON"   },
+    };
+
+    for (const auto& [required, supported, name] : requirements)
+    {
+        if (required && !supported)
+        {
+            SE_FATAL_ERROR(
+                "CPU does not support required SIMD instruction set: {}. "
+                "This binary was compiled with SE_SIMD_LEVEL that requires it. "
+                "Use a lower SE_SIMD_LEVEL or run on a compatible CPU.",
+                name
+            );
+        }
+    }
+}
 } // namespace se
