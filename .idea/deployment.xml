@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="rpi5-gcc (6a989c6a-f410-4f7e-8b34-070ba60ff2e0)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/tmp.Gky1ceXWxQ/SimpleEngine" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_Rpi5_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_MSVC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_Clang" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_Clang" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_Clang" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Development_MSVC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Development_Clang" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Binaries" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_MSVC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Development_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Development_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Binaries" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_ClangVS" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_ClangVS" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Development_Clang" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_Rpi5_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_ClangVS" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_ClangVS" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_MSVC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_GCC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Release_Clang" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Debug_MSVC" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Build/Development_MSVC" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
