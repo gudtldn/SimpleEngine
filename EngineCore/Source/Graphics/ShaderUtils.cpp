@@ -18,25 +18,25 @@ namespace
 
     const usize byte_count = spirv_bytecode.Len();
 
-    // 1. 최소 헤더 크기 검증 (5 Word == 20 Byte)
+    // 최소 헤더 크기 검증 (5 Word == 20 Byte)
     if (byte_count < 20)
     {
         return nullptr;
     }
 
-    // 2. 4바이트 정렬(Alignment) 확인
-    // 메모리가 4의 배수로 정렬되어 있지 않다면 캐스팅 시 Undefined Behavior 발생
-    const uint8* raw_data = spirv_bytecode.Data();
-    if (!SE_ENSURE(reinterpret_cast<usize>(raw_data) % alignof(uint32) == 0))
-    {
-        // 정렬이 깨졌다면 파싱 불가
-        return nullptr;
-    }
-
-    const uint32* words = reinterpret_cast<const uint32*>(raw_data);
+    const uint8* data = spirv_bytecode.Data();
     const usize word_count = byte_count / sizeof(uint32);
 
-    if (words[0] != SPIRV_MAGIC)
+    // memcpy를 통해 정렬에 상관없이 4바이트 word를 읽기
+    // (ArrayView는 임의 포인터를 참조할 수 있으므로 정렬이 보장되지 않음)
+    auto get_word = [&](usize word_idx) -> uint32
+    {
+        uint32 val;
+        std::memcpy(&val, data + (word_idx * sizeof(uint32)), sizeof(uint32));
+        return val;
+    };
+
+    if (get_word(0) != SPIRV_MAGIC)
     {
         return nullptr;
     }
@@ -45,8 +45,9 @@ namespace
     usize i = 5;
     while (i < word_count)
     {
-        const uint16 opcode = static_cast<uint16>(words[i] & 0xFFFF);
-        const uint16 word_len = static_cast<uint16>(words[i] >> 16);
+        const uint32 header = get_word(i);
+        const uint16 opcode = static_cast<uint16>(header & 0xFFFF);
+        const uint16 word_len = static_cast<uint16>(header >> 16);
 
         // 무한 루프 및 Out-of-Bounds 방지
         if (word_len == 0 || i + word_len > word_count)
@@ -54,21 +55,19 @@ namespace
             break;
         }
 
-        if (opcode == OP_ENTRY_POINT && i + 3 < word_count)
+        // OpEntryPoint 레이아웃: [opcode+len] [execution model] [id] [name (null-terminated, 4-byte padded)]
+        // word_len >= 4: opcode(1) + execution_model(1) + id(1) + name(최소 1 word)
+        if (opcode == OP_ENTRY_POINT && word_len >= 4)
         {
-            // OpEntryPoint 레이아웃: [opcode+len] [execution model] [id] [name (null-terminated)]
-            const char* entry_name = reinterpret_cast<const char*>(&words[i + 3]);
+            const char* entry_name = reinterpret_cast<const char*>(data + ((i + 3) * sizeof(uint32)));
+            const char* instruction_end = reinterpret_cast<const char*>(data + ((i + word_len) * sizeof(uint32)));
 
-            // 3. 문자열이 현재 명령어 메모리 바운드 내에서 널 종료(\0)되는지 확인
-            // 명령어의 끝 메모리 주소 계산
-            const char* instruction_end = reinterpret_cast<const char*>(&words[i + word_len]);
-
-            // 이름 시작점부터 명령어 끝 사이에서 \0을 찾음
+            // 문자열이 명령어 바운드 내에서 널 종료(\0)되는지 확인
             for (const char* c = entry_name; c < instruction_end; ++c)
             {
                 if (*c == '\0')
                 {
-                    return entry_name; // 안전하게 확인 완료
+                    return entry_name;
                 }
             }
 
