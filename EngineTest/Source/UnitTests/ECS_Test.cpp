@@ -1,7 +1,9 @@
 #include "gtest/gtest.h"
 
+#include "SimpleEngine/ECS/Commands.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
+#include "SimpleEngine/ECS/Resource.h"
 #include "SimpleEngine/ECS/WorldContext.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
@@ -255,4 +257,85 @@ TEST_F(ECSTest, ECSConstWorldAndReadOnlyQuery)
     });
 
     ctx.RunPhase<UpdatePhase>();
+}
+
+// Commands를 통해 시스템 내부에서 구조 변경이 지연 적용되는지 검증합니다.
+TEST_F(ECSTest, ECSCommandsSpawnAndDespawn)
+{
+    WorldContext ctx;
+
+    // 기존 entity를 생성
+    auto target = ctx.GetWorld().SpawnEntity(TestValueComponent{ .value = 999 });
+
+    // 시스템에서 Commands로 Spawn + Despawn
+    ctx.AddSystem<UpdatePhase>([target_id = static_cast<Entity>(target)](Commands commands)
+    {
+        commands.Spawn(TestValueComponent{ .value = 10 });
+        commands.Spawn(TestValueComponent{ .value = 20 });
+        commands.Entity(target_id).Despawn();
+    });
+
+    ctx.RunPhase<UpdatePhase>();
+
+    // target은 제거되어야 하고, 2개가 새로 생성되어야 함
+    EXPECT_FALSE(ctx.GetWorld().IsEntityAlive(target));
+
+    int count = 0;
+    int sum = 0;
+    for (auto [val, _] : ctx.GetWorld().CreateQuery<const TestValueComponent&, Entity>())
+    {
+        count++;
+        sum += val.value;
+    }
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(sum, 30);
+}
+
+// Commands::Entity().Insert / Remove를 통한 지연된 컴포넌트 추가/제거를 검증합니다.
+TEST_F(ECSTest, ECSCommandsInsertAndRemoveComponent)
+{
+    WorldContext ctx;
+
+    auto entity = ctx.GetWorld().SpawnEntity(TestValueComponent{ .value = 1 }, TestTagComponent{});
+
+    ctx.AddSystem<UpdatePhase>([e = static_cast<Entity>(entity)](Commands commands)
+    {
+        // tag 제거, value 변경
+        commands.Entity(e).Remove<TestTagComponent>().Insert(TestValueComponent{ .value = 42 });
+    });
+
+    ctx.RunPhase<UpdatePhase>();
+
+    EXPECT_FALSE(ctx.GetWorld().HasComponent<TestTagComponent>(entity));
+    EXPECT_EQ(ctx.GetWorld().GetComponent<TestValueComponent>(entity).value, 42);
+}
+
+// Commands를 통해 리소스 삽입/제거가 올바르게 지연 적용되는지 검증합니다.
+TEST_F(ECSTest, ECSCommandsResourceInsertAndRemove)
+{
+    WorldContext ctx;
+
+    struct GameConfig
+    {
+        int gravity = -10;
+    };
+
+    ctx.AddSystem<UpdatePhase>([](Commands commands)
+    {
+        commands.InsertResource<GameConfig>(GameConfig{ .gravity = -20 });
+    });
+
+    EXPECT_FALSE(ctx.GetWorld().HasResource<GameConfig>());
+    ctx.RunPhase<UpdatePhase>();
+    EXPECT_TRUE(ctx.GetWorld().HasResource<GameConfig>());
+    EXPECT_EQ(ctx.GetWorld().GetResource<GameConfig>().gravity, -20);
+
+    // 제거
+    ctx.AddSystem<PostUpdatePhase>([](Commands commands)
+    {
+        commands.RemoveResource<GameConfig>();
+    });
+
+    ctx.RunPhase<PostUpdatePhase>();
+    EXPECT_FALSE(ctx.GetWorld().HasResource<GameConfig>());
 }

@@ -18,7 +18,9 @@
 
 namespace se
 {
-// forward declaration
+// forward declarations
+class CommandBuffer;
+
 template <typename... Ts>
 class Query;
 
@@ -293,11 +295,20 @@ public:
         Entity entity;
     };
 
+public:
+    /** Schedule에서 현재 활성 CommandBuffer를 설정합니다. */
+    void SetActiveCommandBuffer(CommandBuffer* buffer) { active_command_buffer = buffer; }
+
+    /** 현재 활성 CommandBuffer를 반환합니다. */
+    [[nodiscard]] CommandBuffer* GetActiveCommandBuffer() const { return active_command_buffer; }
+
 private:
     EntityManager entity_manager;
     Array<Entity> alive_entities;
 
     HashMap<TypeId, std::unique_ptr<IComponentStorage>> component_storages;
     HashMap<TypeId, std::unique_ptr<IResourceStorage>> resource_storages;
+
+    CommandBuffer* active_command_buffer = nullptr;
 };
 } // namespace se

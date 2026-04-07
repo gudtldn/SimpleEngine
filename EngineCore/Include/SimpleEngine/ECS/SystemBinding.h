@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "SimpleEngine/ECS/Commands.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
 #include "SimpleEngine/ECS/Resource.h"
@@ -37,6 +38,18 @@ struct SystemParamExtractor<Query<Ts...>>
     static Query<Ts...> Fetch(TargetWorld& world)
     {
         return Query<Ts...>{ world };
+    }
+};
+
+// Commands를 요구할 때의 특수화
+template <>
+struct SystemParamExtractor<Commands>
+{
+    static Commands Fetch(World& world)
+    {
+        CommandBuffer* buffer = world.GetActiveCommandBuffer();
+        SE_ASSERT(buffer != nullptr, "Commands can only be used inside a scheduled system.");
+        return Commands{ *buffer };
     }
 };
 
