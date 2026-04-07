@@ -18,6 +18,7 @@ vcpkg_from_github(
     HEAD_REF main
     PATCHES
         fix-directx-shader-compiler-includes.patch
+        fix-dxc-unconditional-dependency.patch
 )
 
 # dxc feature 활성화 여부에 따라 SDLSHADERCROSS_DXC 옵션을 결정
@@ -31,7 +32,7 @@ vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DSDLSHADERCROSS_INSTALL=ON
-        -DSDLSHADERCROSS_INSTALL_CMAKEDIR_ROOT=share/sdl3_shadercross
+        -DSDLSHADERCROSS_INSTALL_CMAKEDIR_ROOT=share/SDL3_shadercross
         -DSDLSHADERCROSS_INSTALL_RUNTIME=OFF
         -DSDLSHADERCROSS_SPIRVCROSS_SHARED=OFF
         -DSDLSHADERCROSS_VENDORED=OFF
@@ -40,9 +41,9 @@ vcpkg_cmake_configure(
 
 vcpkg_cmake_install()
 if(VCPKG_TARGET_IS_WINDOWS)
-    vcpkg_cmake_config_fixup(PACKAGE_NAME "sdl3_shadercross")
+    vcpkg_cmake_config_fixup(PACKAGE_NAME "SDL3_shadercross")
 else()
-    vcpkg_cmake_config_fixup(PACKAGE_NAME "sdl3_shadercross" CONFIG_PATH "share/sdl3_shadercross/SDL3_shadercross")
+    vcpkg_cmake_config_fixup(PACKAGE_NAME "SDL3_shadercross" CONFIG_PATH "share/SDL3_shadercross/SDL3_shadercross")
 endif()
 
 # 불필요한 파일 삭제

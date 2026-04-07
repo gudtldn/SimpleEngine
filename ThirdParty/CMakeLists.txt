@@ -23,9 +23,12 @@ set(ASSIMP_BUILD_TESTS           OFF  CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS    OFF  CACHE BOOL "" FORCE)
 set(ASSIMP_NO_EXPORT             ON   CACHE BOOL "" FORCE)
 
+# Assimp에서 zlib을 자체적으로 빌드하도록 설정
+set(ASSIMP_BUILD_ZLIB            ON   CACHE BOOL "" FORCE)
+
 # Assimp이 CMAKE_DEBUG_POSTFIX를 "d"로 전역 오염시키므로,
 # 이후 서드파티 타겟에 영향을 주지 않도록 비활성화
-set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX  OFF  CACHE BOOL "" FORCE)
 
 add_subdirectory(assimp EXCLUDE_FROM_ALL)
 # ---------------------------------------------------------------------------

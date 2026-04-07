@@ -7,7 +7,7 @@
 # vcpkg 패키지
 find_package(SDL3 REQUIRED)
 find_package(SDL3_image REQUIRED)
-find_package(sdl3_shadercross REQUIRED)
+find_package(SDL3_shadercross CONFIG REQUIRED)
 find_package(stduuid REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)

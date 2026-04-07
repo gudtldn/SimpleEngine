@@ -1,0 +1,23 @@
+diff --git a/cmake/SDL3_shadercrossConfig.cmake.in b/cmake/SDL3_shadercrossConfig.cmake.in
+index f3770ba..2713f88 100644
+--- a/cmake/SDL3_shadercrossConfig.cmake.in
++++ b/cmake/SDL3_shadercrossConfig.cmake.in
+@@ -10,6 +10,7 @@ set_package_properties(SDL3_shadercross PROPERTIES
+
+ set(SDLSHADERCROSS_VENDORED          @SDLSHADERCROSS_VENDORED@)
+ set(SDLSHADERCROSS_SPIRVCROSS_SHARED @SDLSHADERCROSS_SPIRVCROSS_SHARED@)
++set(SDLSHADERCROSS_DXC               @SDLSHADERCROSS_DXC@)
+
+ set(SDL3_shadercross_FOUND ON)
+
+@@ -46,7 +47,9 @@ if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/SDL3_shadercross-static-targets.cmake")
+         list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+         include("${CMAKE_CURRENT_LIST_DIR}/sdlcpu.cmake")
+         SDL_DetectTargetCPUArchitectures(SDL_CPU_NAMES)
+-        find_dependency(DirectXShaderCompiler)
++        if(SDLSHADERCROSS_DXC)
++            find_dependency(DirectXShaderCompiler)
++        endif()
+
+         set(CMAKE_MODULE_PATH "${original_cmake_module_path}")
+     endif()
