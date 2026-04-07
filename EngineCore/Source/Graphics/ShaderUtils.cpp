@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
+#include "SimpleEngine/Utility/Common.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 
@@ -105,6 +106,8 @@ SDL_GPUShader* CreateGraphicsShader(
     SDL_ShaderCross_GraphicsShaderMetadata* refl_metadata =
         SDL_ShaderCross_ReflectGraphicsSPIRV(spirv_bytecode.Data(), spirv_bytecode.Len(), 0);
 
+    SE_SCOPE_DEFER{ SDL_free(refl_metadata); };
+
     if (!refl_metadata)
     {
         ConsoleLog(ELogLevel::Error, "Failed to reflect graphics shader, Err: {}", SDL_GetError());
@@ -119,8 +122,6 @@ SDL_GPUShader* CreateGraphicsShader(
     };
 
     SDL_GPUShader* shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(render_device.GetRawDevice(), &spirv_info, &resource_info, 0);
-
-    SDL_free(refl_metadata);
 
     if (!shader)
     {
@@ -152,6 +153,8 @@ SDL_GPUComputePipeline* CreateComputePipeline(
     SDL_ShaderCross_ComputePipelineMetadata* refl_metadata =
         SDL_ShaderCross_ReflectComputeSPIRV(spirv_bytecode.Data(), spirv_bytecode.Len(), 0);
 
+    SE_SCOPE_DEFER{ SDL_free(refl_metadata); };
+
     if (!refl_metadata)
     {
         ConsoleLog(ELogLevel::Error, "Failed to reflect compute shader, Err: {}", SDL_GetError());
@@ -160,8 +163,6 @@ SDL_GPUComputePipeline* CreateComputePipeline(
 
     SDL_GPUComputePipeline* pipeline =
         SDL_ShaderCross_CompileComputePipelineFromSPIRV(render_device.GetRawDevice(), &spirv_info, refl_metadata, 0);
-
-    SDL_free(refl_metadata);
 
     if (!pipeline)
     {
