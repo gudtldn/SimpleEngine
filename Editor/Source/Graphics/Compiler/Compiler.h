@@ -11,11 +11,14 @@
 
 namespace se::editor
 {
-/** @todo docs */
+/**
+ * HLSL 전처리기 매크로 정의
+ * SDL_ShaderCross_HLSL_Define와 1:1 대응합니다.
+ */
 struct HLSL_Define
 {
-    const char* name;  // The define name.
-    const char* value; // An optional value for the define. Can be NULL.
+    const char* name;  // 매크로 이름
+    const char* value; // 매크로 값 (없으면 nullptr)
 };
 
 /**

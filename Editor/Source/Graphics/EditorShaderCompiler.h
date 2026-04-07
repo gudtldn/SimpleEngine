@@ -34,7 +34,6 @@ struct ShaderCompileOutput
  *
  * #pragma se_shader <stage> <entry> 형태의 pragma를 파싱하여
  * 하나의 HLSL 파일에서 여러 셰이더를 컴파일할 수 있습니다.
- * pragma가 없으면 파일명(.vert/.frag/.comp)에서 스테이지를 추론하고 entry="main"을 사용합니다.
  */
 struct EditorShaderCompiler
 {
