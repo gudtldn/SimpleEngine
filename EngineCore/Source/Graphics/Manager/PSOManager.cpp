@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
+#include "SimpleEngine/Graphics/ShaderUtils.h"
 
 #include "SDL3_shadercross/SDL_shadercross.h"
 
@@ -89,10 +90,17 @@ SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const ComputePipe
         return *pipeline;
     }
 
-    SDL_GPUComputePipeline* pipeline = shader_cache.GetOrCreateComputePipeline(create_info.compute_shader);
+    // 직접 SPIR-V를 읽어 Compute 파이프라인을 생성
+    auto spirv_opt = ShaderCache::ReadSpvFile(create_info.compute_shader);
+    if (!spirv_opt.HasValue())
+    {
+        return nullptr;
+    }
+
+    SDL_GPUComputePipeline* pipeline = CreateComputePipeline(*render_device, *spirv_opt, create_info.props);
     if (!pipeline)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to get compute pipeline from cache!");
+        ConsoleLog(ELogLevel::Error, "Failed to create compute pipeline: {}", create_info.compute_shader);
         return nullptr;
     }
 
@@ -120,16 +128,12 @@ void PSOManager::InvalidateShader(const VPath& shader_key)
             // 이 파이프라인이 참조하는 다른 셰이더의 역추적 맵에서도 stale 엔트리를 제거
             auto cleanup_stale_entry = [&](const VPath& other_key)
             {
-                if (other_key == shader_key)
-                {
-                    return;
-                }
-
+                if (other_key == shader_key) { return; }
                 if (const auto other_list = graphics_shader_to_pipeline_map.Find(other_key))
                 {
-                    if (const auto remove_idx = other_list->Find(key))
+                    if (const auto idx = other_list->Find(key))
                     {
-                        other_list->RemoveAtSwap(*remove_idx);
+                        other_list->RemoveAtSwap(*idx);
                     }
                 }
             };
@@ -154,7 +158,7 @@ void PSOManager::InvalidateShader(const VPath& shader_key)
         compute_shader_to_pipeline_map.Remove(shader_key);
     }
 
-    // 셰이더 캐시에서 제거
+    // Graphics 셰이더 캐시에서 제거
     shader_cache.Invalidate(shader_key);
 }
 } // namespace se::graphics
