@@ -88,7 +88,7 @@ void EditorShaderCompiler::CompileAll(const Path& hlsl_dir, const Path& output_d
         const Path& file_path = entry.GetPath();
         const auto ext_opt = file_path.Extension();
 
-        if (!ext_opt || !ext_opt->Contains(".hlsl"))
+        if (entry.IsDirectory() || !ext_opt || *ext_opt != ".hlsl")
         {
             continue;
         }
