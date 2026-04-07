@@ -116,6 +116,26 @@ void PSOManager::InvalidateShader(const VPath& shader_key)
                 SDL_ReleaseGPUGraphicsPipeline(render_device->GetRawDevice(), *pipeline);
                 cached_graphics_pipelines.Remove(key);
             }
+
+            // 이 파이프라인이 참조하는 다른 셰이더의 역추적 맵에서도 stale 엔트리를 제거
+            auto cleanup_stale_entry = [&](const VPath& other_key)
+            {
+                if (other_key == shader_key)
+                {
+                    return;
+                }
+
+                if (const auto other_list = graphics_shader_to_pipeline_map.Find(other_key))
+                {
+                    if (const auto remove_idx = other_list->Find(key))
+                    {
+                        other_list->RemoveAtSwap(*remove_idx);
+                    }
+                }
+            };
+
+            cleanup_stale_entry(key.vertex_shader);
+            cleanup_stale_entry(key.fragment_shader);
         }
         graphics_shader_to_pipeline_map.Remove(shader_key);
     }
