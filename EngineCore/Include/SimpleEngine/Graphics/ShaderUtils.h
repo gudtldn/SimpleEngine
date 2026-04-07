@@ -21,6 +21,7 @@ class RenderDevice;
 /** SPIR-V 바이트를 GPU 컴퓨트 파이프라인으로 생성합니다. */
 [[nodiscard]] SE_CORE_API SDL_GPUComputePipeline* CreateComputePipeline(
     const RenderDevice& render_device,
-    ArrayView<const uint8> spirv_bytecode
+    ArrayView<const uint8> spirv_bytecode,
+    SDL_PropertiesID props = 0
 );
 } // namespace se::graphics

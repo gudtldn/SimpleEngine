@@ -132,7 +132,8 @@ SDL_GPUShader* CreateGraphicsShader(
 
 SDL_GPUComputePipeline* CreateComputePipeline(
     const RenderDevice& render_device,
-    ArrayView<const uint8> spirv_bytecode
+    ArrayView<const uint8> spirv_bytecode,
+    SDL_PropertiesID props
 )
 {
     const char* entrypoint = ExtractSpvEntryPoint(spirv_bytecode);
@@ -161,7 +162,7 @@ SDL_GPUComputePipeline* CreateComputePipeline(
     }
 
     SDL_GPUComputePipeline* pipeline =
-        SDL_ShaderCross_CompileComputePipelineFromSPIRV(render_device.GetRawDevice(), &spirv_info, refl_metadata, 0);
+        SDL_ShaderCross_CompileComputePipelineFromSPIRV(render_device.GetRawDevice(), &spirv_info, refl_metadata, props);
 
     if (!pipeline)
     {
