@@ -115,13 +115,15 @@ bool EditorApplication::PostInitialize()
     }
 
     // TODO: 여기 하드코딩 되어있음. 추후 Config에서 불러와서 사용하던가 하는 방향으로
-    // 초기 셰이더 컴파일: 모든 .hlsl -> .spv
+    // 초기 셰이더 컴파일: 모든 .hlsl -> .spv (DXC를 사용할 수 없는 플랫폼에서는 미리 구워진 .spv만 사용)
+#if SE_HAS_HLSL_COMPILER
     {
         const Path hlsl_dir = VFS::ToPath("CoreShader://");
         const Path output_dir = VFS::ToPath("CoreShader://Compiled");
 
         EditorShaderCompiler::CompileAll(hlsl_dir, output_dir);
     }
+#endif
 
     return true;
 }
