@@ -82,7 +82,7 @@ namespace
 }
 } // namespace
 
-SDL_GPUShader* CreateGraphicsShader(
+GraphicsShaderCreateResult CreateGraphicsShader(
     const RenderDevice& render_device,
     SDL_ShaderCross_ShaderStage stage,
     ArrayView<const uint8> spirv_bytecode
@@ -92,7 +92,7 @@ SDL_GPUShader* CreateGraphicsShader(
     if (!entrypoint)
     {
         ConsoleLog(ELogLevel::Error, "Failed to extract entry point from SPIR-V bytecode");
-        return nullptr;
+        return {};
     }
 
     const SDL_ShaderCross_SPIRV_Info spirv_info = {
@@ -110,7 +110,18 @@ SDL_GPUShader* CreateGraphicsShader(
     if (!refl_metadata)
     {
         ConsoleLog(ELogLevel::Error, "Failed to reflect graphics shader, Err: {}", SDL_GetError());
-        return nullptr;
+        return {};
+    }
+
+    // vertex stage인 경우 입력 변수의 location을 캐시
+    ShaderReflectionData reflection;
+    if (stage == SDL_SHADERCROSS_SHADERSTAGE_VERTEX && refl_metadata->num_inputs > 0)
+    {
+        reflection.vertex_inputs.Reserve(refl_metadata->num_inputs);
+        for (uint32 i = 0; i < refl_metadata->num_inputs; ++i)
+        {
+            reflection.vertex_inputs.Push({ .location = refl_metadata->inputs[i].location });
+        }
     }
 
     const SDL_ShaderCross_GraphicsShaderResourceInfo resource_info = {
@@ -125,9 +136,49 @@ SDL_GPUShader* CreateGraphicsShader(
     if (!shader)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create graphics shader, Err: {}", SDL_GetError());
+        return {};
     }
 
-    return shader;
+    return {
+        .shader = shader,
+        .reflection = std::move(reflection),
+    };
+}
+
+FilteredVertexInputState FilterVertexInputState(
+    const SDL_GPUVertexInputState& original,
+    const ShaderReflectionData& reflection
+)
+{
+    FilteredVertexInputState result;
+    result.vertex_buffer_descriptions = original.vertex_buffer_descriptions;
+    result.num_vertex_buffers = original.num_vertex_buffers;
+    result.attributes.Reserve(original.num_vertex_attributes);
+
+    if (reflection.vertex_inputs.IsEmpty())
+    {
+        // 필터링 없음 - 원본 전체 복사
+        for (uint32 i = 0; i < original.num_vertex_attributes; ++i)
+        {
+            result.attributes.Push(original.vertex_attributes[i]);
+        }
+        return result;
+    }
+
+    for (uint32 i = 0; i < original.num_vertex_attributes; ++i)
+    {
+        const SDL_GPUVertexAttribute& attr = original.vertex_attributes[i];
+        for (const ShaderInputVar& input : reflection.vertex_inputs)
+        {
+            if (attr.location == input.location)
+            {
+                result.attributes.Push(attr);
+                break;
+            }
+        }
+    }
+
+    return result;
 }
 
 SDL_GPUComputePipeline* CreateComputePipeline(
@@ -140,7 +191,7 @@ SDL_GPUComputePipeline* CreateComputePipeline(
     if (!entrypoint)
     {
         ConsoleLog(ELogLevel::Error, "Failed to extract entry point from SPIR-V bytecode");
-        return nullptr;
+        return {};
     }
 
     const SDL_ShaderCross_SPIRV_Info spirv_info = {

@@ -1,8 +1,8 @@
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/ShaderUtils.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 #include "SDL3_shadercross/SDL_shadercross.h"
 
@@ -55,10 +55,17 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         return nullptr;
     }
 
+    // Vertex Shader을 리플렉션 해서, 실제 사용되는 attribute만 필터링
+    static const ShaderReflectionData EMPTY_REFL{};
+    const FilteredVertexInputState filtered = FilterVertexInputState(
+        create_info.vertex_input_state,
+        shader_cache.GetReflection(create_info.vertex_shader).ValueOr(EMPTY_REFL)
+    );
+
     const SDL_GPUGraphicsPipelineCreateInfo info = {
         .vertex_shader = vertex_shader,
         .fragment_shader = frag_shader,
-        .vertex_input_state = create_info.vertex_input_state,
+        .vertex_input_state = filtered.AsState(),
         .primitive_type = create_info.primitive_type,
         .rasterizer_state = create_info.rasterizer_state,
         .multisample_state = create_info.multisample_state,
@@ -70,7 +77,15 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
     SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(render_device->GetRawDevice(), &info);
     if (!pipeline)
     {
+        const SDL_GPUVertexInputState state = filtered.AsState();
         ConsoleLog(ELogLevel::Error, "Failed to create graphics pipeline!, Err: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "  VS: {}, PS: {}", create_info.vertex_shader, create_info.fragment_shader);
+        ConsoleLog(ELogLevel::Error, "  VertexAttrs: {} -> {} (filtered)", create_info.vertex_input_state.num_vertex_attributes, state.num_vertex_attributes);
+        for (uint32 i = 0; i < state.num_vertex_attributes; ++i)
+        {
+            ConsoleLog(ELogLevel::Error, "    [{}] loc={} fmt={} off={}", i, state.vertex_attributes[i].location, static_cast<int>(state.vertex_attributes[i].format), state.vertex_attributes[i].offset);
+        }
+        ConsoleLog(ELogLevel::Error, "  ColorTargets: {}, HasDepthStencil: {}", create_info.target_info.num_color_targets, create_info.target_info.has_depth_stencil_target);
         return nullptr;
     }
 

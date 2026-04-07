@@ -2,8 +2,9 @@
 
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Core/Types/VPath.h"
+#include "SimpleEngine/Graphics/ShaderUtils.h"
 
 #include "SDL3/SDL_gpu.h"
 #include "SDL3_shadercross/SDL_shadercross.h"
@@ -44,6 +45,9 @@ public:
     void ClearAll();
 
 public:
+    /** 셰이더 키에 대응하는 리플렉션 데이터를 반환합니다. 없으면 NullOpt. */
+    [[nodiscard]] Optional<const ShaderReflectionData&> GetReflection(const VPath& shader_key) const;
+
     /** VPath 키를 .spv 물리 경로로 resolve합니다. */
     [[nodiscard]] static Path ResolveSpvPath(const VPath& shader_key);
 
@@ -53,5 +57,6 @@ public:
 private:
     RenderDevice* render_device;
     HashMap<VPath, SDL_GPUShader*> graphics_cache;
+    HashMap<VPath, ShaderReflectionData> reflection_cache;
 };
 } // namespace se::graphics

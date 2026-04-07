@@ -34,15 +34,16 @@ SDL_GPUShader* ShaderCache::GetOrCreateShader(const VPath& shader_key, SDL_Shade
         return nullptr;
     }
 
-    SDL_GPUShader* shader = CreateGraphicsShader(*render_device, stage, *spirv_opt);
-    if (!shader)
+    GraphicsShaderCreateResult result = CreateGraphicsShader(*render_device, stage, *spirv_opt);
+    if (!result.shader)
     {
         ConsoleLog(ELogLevel::Error, "Failed to create graphics shader: {}", shader_key);
         return nullptr;
     }
 
-    graphics_cache[shader_key] = shader;
-    return shader;
+    graphics_cache[shader_key] = result.shader;
+    reflection_cache[shader_key] = std::move(result.reflection);
+    return result.shader;
 }
 
 void ShaderCache::LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_ShaderStage stage, ArrayView<const uint8> spirv_bytecode)
@@ -53,14 +54,15 @@ void ShaderCache::LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_
         graphics_cache.Remove(shader_key);
     }
 
-    SDL_GPUShader* shader = CreateGraphicsShader(*render_device, stage, spirv_bytecode);
-    if (!shader)
+    GraphicsShaderCreateResult result = CreateGraphicsShader(*render_device, stage, spirv_bytecode);
+    if (!result.shader)
     {
         ConsoleLog(ELogLevel::Error, "Failed to load graphics shader from memory: {}", shader_key);
         return;
     }
 
-    graphics_cache[shader_key] = shader;
+    graphics_cache[shader_key] = result.shader;
+    reflection_cache[shader_key] = std::move(result.reflection);
 }
 
 void ShaderCache::Invalidate(const VPath& shader_key)
@@ -70,6 +72,8 @@ void ShaderCache::Invalidate(const VPath& shader_key)
         SDL_ReleaseGPUShader(render_device->GetRawDevice(), *cache);
         graphics_cache.Remove(shader_key);
     }
+
+    reflection_cache.Remove(shader_key);
 }
 
 void ShaderCache::ClearAll()
@@ -79,6 +83,12 @@ void ShaderCache::ClearAll()
         SDL_ReleaseGPUShader(render_device->GetRawDevice(), shader);
     }
     graphics_cache.Clear();
+    reflection_cache.Clear();
+}
+
+Optional<const ShaderReflectionData&> ShaderCache::GetReflection(const VPath& shader_key) const
+{
+    return reflection_cache.Find(shader_key);
 }
 
 Path ShaderCache::ResolveSpvPath(const VPath& shader_key)
