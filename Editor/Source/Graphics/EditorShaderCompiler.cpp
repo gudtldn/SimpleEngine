@@ -3,7 +3,10 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Graphics/ShaderUtils.h"
+#include "SimpleEngine/Utility/Common.h"
+#include "SimpleEngine/Utility/Debug.h"
+
+#include "SDL3_shadercross/SDL_shadercross.h"
 
 
 namespace se::editor
@@ -75,6 +78,70 @@ StringView StageToExtension(SDL_ShaderCross_ShaderStage stage)
     }
 
     return entries;
+}
+
+/**
+ * VS output과 PS input의 인터페이스 불일치를 검증합니다.
+ * D3D12 백엔드에서 SDL_ShaderCross가 내부적으로 SPIR-V->HLSL->DXIL 변환 시
+ * DXC 최적화가 미사용 PS 입력을 제거하여 파이프라인 생성 실패를 유발할 수 있습니다.
+ */
+void ValidateInterStageInterface(const Path& hlsl_path, ArrayView<const ShaderCompileOutput> outputs)
+{
+    // VS/PS 출력 찾기
+    const ShaderCompileOutput* vs_output = nullptr;
+    const ShaderCompileOutput* ps_output = nullptr;
+    for (const ShaderCompileOutput& output : outputs)
+    {
+        if (output.output_stem.EndsWith(".vert")) { vs_output = &output; }
+        if (output.output_stem.EndsWith(".frag")) { ps_output = &output; }
+    }
+
+    if (!vs_output || !ps_output)
+    {
+        return;
+    }
+
+    // VS output 리플렉션
+    SDL_ShaderCross_GraphicsShaderMetadata* vs_refl =
+        SDL_ShaderCross_ReflectGraphicsSPIRV(vs_output->spirv_bytecode.Data(), vs_output->spirv_bytecode.Len(), 0);
+
+    SDL_ShaderCross_GraphicsShaderMetadata* ps_refl =
+        SDL_ShaderCross_ReflectGraphicsSPIRV(ps_output->spirv_bytecode.Data(), ps_output->spirv_bytecode.Len(), 0);
+
+    SE_SCOPE_DEFER{
+        if (vs_refl) { SDL_free(vs_refl); }
+        if (ps_refl) { SDL_free(ps_refl); }
+    };
+
+    if (!vs_refl || !ps_refl)
+    {
+        return;
+    }
+
+    // PS input에 없는 VS output location이 있으면 D3D12에서 문제가 될 수 있음
+    for (uint32 vs_i = 0; vs_i < vs_refl->num_outputs; ++vs_i)
+    {
+        const uint32 vs_loc = vs_refl->outputs[vs_i].location;
+        bool found_in_ps = false;
+        for (uint32 ps_i = 0; ps_i < ps_refl->num_inputs; ++ps_i)
+        {
+            if (ps_refl->inputs[ps_i].location == vs_loc)
+            {
+                found_in_ps = true;
+                break;
+            }
+        }
+
+        if (!found_in_ps)
+        {
+            ConsoleLog(ELogLevel::Warning,
+                "EditorShaderCompiler: [{}] VS output '{}' (location {}) is not consumed by PS. "
+                "This may cause D3D12 pipeline creation failure due to DXC inter-stage signature optimization.",
+                hlsl_path, vs_refl->outputs[vs_i].name, vs_loc
+            );
+            SE_BREAKPOINT();
+        }
+    }
 }
 } // namespace
 
@@ -174,6 +241,11 @@ ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileSha
             .spirv_bytecode = std::move(spirv_bytecode).Value(),
         });
     }
+
+    // VS output / PS input 인터페이스 불일치 검증
+    // SDL_ShaderCross 내부의 SPIR-V->DXIL 변환 시 DXC가 미사용 PS 입력을
+    // DXIL 서명에서 제거하여 D3D12 파이프라인 생성 실패를 유발할 수 있음
+    ValidateInterStageInterface(hlsl_path, outputs);
 
     return outputs;
 }
