@@ -146,8 +146,8 @@ TEST_F(ECSTest, ECSQueryParameterInjection)
             EXPECT_LT(count_mesh, count_all) << "With<> filter must narrow the result set.";
         });
 
-    // World& 파라미터가 올바르게 주입되는지 검증합니다.
-    ctx.AddSystem<UpdatePhase>([]([[maybe_unused]] World& world)
+    // Commands 파라미터가 올바르게 주입되는지 검증합니다.
+    ctx.AddSystem<UpdatePhase>([]([[maybe_unused]] Commands commands)
     {
     });
 
@@ -185,14 +185,14 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
     // 컴포넌트가 없는 엔티티는 영향을 받지 않아야 합니다.
     EXPECT_FALSE(ctx.GetWorld().TryGetComponent<TestValueComponent>(entity_without).HasValue());
 
-    // Optional + World& 혼합: 컴포넌트가 없는 엔티티에 새 컴포넌트를 추가합니다.
-    ctx.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, World& world)
+    // Optional + Commands 혼합: 컴포넌트가 없는 엔티티에 새 컴포넌트를 추가합니다.
+    ctx.AddSystem<PostUpdatePhase>([](Query<Entity, Optional<TestValueComponent&>> query, Commands commands)
     {
         for (const auto& [entity, opt_val] : query)
         {
             if (!opt_val.HasValue())
             {
-                world.AddComponent<TestValueComponent>(entity, { .value = 50 });
+                commands.Entity(entity).Insert(TestValueComponent{ .value = 50 });
             }
         }
     });
@@ -246,14 +246,10 @@ TEST_F(ECSTest, ECSConstWorldAndReadOnlyQuery)
     ASSERT_TRUE(opt_res.HasValue());
     EXPECT_EQ(std::get<0>(opt_res.Value()).value, 42);
 
-    // 5. 시스템 바인딩 검증 (const World& 주입)
-    // - 이 시스템은 내부적으로 const World로부터 쿼리를 생성하거나 데이터를 읽기만 해야 합니다.
-    ctx.AddSystem<UpdatePhase>([](const World& world)
+    // 5. 시스템 바인딩 검증 (읽기 전용 Query 주입)
+    ctx.AddSystem<UpdatePhase>([](Query<const TestValueComponent&> query)
     {
-        auto q = world.CreateQuery<const TestValueComponent&>();
-        EXPECT_FALSE(q.IsEmpty());
-
-        // world.SpawnEntity(); // - 주석을 풀면 컴파일 에러가 발생해야 정상 (const World)
+        EXPECT_FALSE(query.IsEmpty());
     });
 
     ctx.RunPhase<UpdatePhase>();

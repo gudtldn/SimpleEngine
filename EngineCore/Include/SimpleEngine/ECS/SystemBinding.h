@@ -19,16 +19,6 @@ struct SystemParamExtractor
     static_assert(traits::AlwaysFalse<T>, "SystemParamExtractor<T> is not specialized for type T");
 };
 
-// World& 자체를 요구할 때의 특수화
-template <>
-struct [[deprecated("use instead Commands")]] SystemParamExtractor<World>
-{
-    static World& Fetch(World& world)
-    {
-        return world;
-    }
-};
-
 // Query<Ts...> 를 요구할 때의 특수화
 template <typename... Ts>
 struct SystemParamExtractor<Query<Ts...>>
