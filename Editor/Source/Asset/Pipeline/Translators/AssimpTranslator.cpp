@@ -19,6 +19,14 @@ namespace
 using namespace se;
 using namespace se::editor;
 
+// Assimp Y-up RH -> Engine Z-up RH: (x, y, z) -> (x, -z, y)
+struct CoordConvert
+{
+    static Vector3f Position(const aiVector3D& v) { return { v.x, -v.z, v.y }; }
+    static Vector3f Normal(const aiVector3D& v)   { return { v.x, -v.z, v.y }; }
+    static Vector4f Tangent(const aiVector3D& v)  { return { v.x, -v.z, v.y, 1.0f }; }
+};
+
 /**
  * 씬의 모든 primitive를 하나의 StaticMeshPipelineNode로 병합합니다.
  * combine_meshes=true일 때 1개의 StaticMesh 에셋(1 draw call)을 생성합니다.
@@ -59,13 +67,13 @@ void ProcessMergedMesh(
         {
             graphics::Vertex vertex;
 
-            // Position
-            vertex.position = { mesh->mVertices[v].x, mesh->mVertices[v].y, mesh->mVertices[v].z };
+            // Position (Y-up -> Z-up)
+            vertex.position = CoordConvert::Position(mesh->mVertices[v]);
 
             // Normal
             if (mesh->HasNormals())
             {
-                vertex.normal = { mesh->mNormals[v].x, mesh->mNormals[v].y, mesh->mNormals[v].z };
+                vertex.normal = CoordConvert::Normal(mesh->mNormals[v]);
             }
 
             // UV
@@ -77,7 +85,7 @@ void ProcessMergedMesh(
             // Tangent
             if (mesh->HasTangentsAndBitangents())
             {
-                vertex.tangent = { mesh->mTangents[v].x, mesh->mTangents[v].y, mesh->mTangents[v].z, 1.0f };
+                vertex.tangent = CoordConvert::Tangent(mesh->mTangents[v]);
             }
 
             pipeline_node.vertices.Push(vertex);
@@ -122,12 +130,12 @@ void ProcessSingleMesh(
     {
         graphics::Vertex vertex;
 
-        vertex.position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+        vertex.position = CoordConvert::Position(mesh->mVertices[i]);
 
         // Normal
         if (mesh->HasNormals())
         {
-            vertex.normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+            vertex.normal = CoordConvert::Normal(mesh->mNormals[i]);
         }
 
         // UV
@@ -139,7 +147,7 @@ void ProcessSingleMesh(
         // Tangent
         if (mesh->HasTangentsAndBitangents())
         {
-            vertex.tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z, 1.0f };
+            vertex.tangent = CoordConvert::Tangent(mesh->mTangents[i]);
         }
 
         pipeline_node.vertices.Push(vertex);
@@ -204,7 +212,7 @@ void AssimpTranslator::Translate(
     PipelineNodeContainer& out_container
 )
 {
-    // TODO: Assimp는 Y-up이라서, Z-up에 맞게 변환해야 함.
+    // Y-up -> Z-up 변환은 CoordConvert에서 처리
     Assimp::Importer importer;
 
     // 설정 불러오기 (없으면 기본값)
