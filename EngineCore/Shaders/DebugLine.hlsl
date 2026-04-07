@@ -1,4 +1,8 @@
-﻿// https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
+// https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
+
+#pragma se_shader vertex VSMain
+#pragma se_shader fragment PSMain
+
 cbuffer UBO : register(b0, space1)
 {
     float4x4 VP;
@@ -19,10 +23,15 @@ struct VertexOutput
     float4 color : COLOR;
 };
 
-VertexOutput main(VertexInput input)
+VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
     output.position = mul(VP, float4(input.position, 1.0f));
     output.color = input.color;
     return output;
+}
+
+float4 PSMain(VertexOutput input) : SV_TARGET
+{
+    return input.color;
 }

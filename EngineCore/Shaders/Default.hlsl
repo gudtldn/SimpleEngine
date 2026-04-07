@@ -1,5 +1,8 @@
-﻿// VS에서 Uniform Buffer의 space 설정
+// VS에서 Uniform Buffer의 space 설정
 // https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
+
+#pragma se_shader vertex VSMain
+#pragma se_shader fragment PSMain
 
 // per-pass (뷰포트/카메라 공유)
 cbuffer PassUBO : register(b0, space1)
@@ -35,7 +38,7 @@ struct VertexOutput
     float4 color : COLOR;
 };
 
-VertexOutput main(VertexInput input)
+VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
 
@@ -50,4 +53,10 @@ VertexOutput main(VertexInput input)
     output.color = float4(input.normal * 0.5f + 0.5f, 1.0f);
 
     return output;
+}
+
+float4 PSMain(VertexOutput input) : SV_Target0
+{
+    // 보간된 색상을 그대로 반환
+    return input.color;
 }
