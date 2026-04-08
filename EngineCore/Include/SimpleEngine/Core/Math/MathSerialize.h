@@ -58,6 +58,13 @@ void Serialize(Archive& ar, RotatorImpl<T>& r)
     ar("roll") << r.roll;
 }
 
+// Matrix Types
+template <traits::FloatingType T>
+void Serialize(Archive& ar, Matrix4x4Impl<T>& m)
+{
+    ar("data") << m.data;
+}
+
 // Geometry Types
 template <traits::FloatingType T>
 void Serialize(Archive& ar, AABBImpl<T>& aabb)
@@ -89,4 +96,4 @@ inline void Serialize(Archive& ar, Color& c)
     ar("b") << c.b;
     ar("a") << c.a;
 }
-}  // namespace se::math
+} // namespace se::math

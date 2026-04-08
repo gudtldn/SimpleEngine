@@ -241,6 +241,62 @@ bool DrawRotator(const char* label, void* value, const PropertyInfo& /*prop*/)
     return ImGui::DragScalarNInfinity(label, data_type, &rot->pitch.value, 3, 0.1f);
 }
 
+// --- Matrix4x4 / Matrix4x4f ---
+template <typename T>
+bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo& prop)
+{
+    using Mat = math::Matrix4x4Impl<T>;
+    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    Mat* mat = static_cast<Mat*>(value);
+
+    bool modified = false;
+
+    const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags::ReadOnly);
+
+    if (read_only)
+    {
+        ImGui::EndDisabled();
+    }
+
+    if (ImGui::TreeNodeEx(label))
+    {
+        if (read_only)
+        {
+            ImGui::BeginDisabled();
+        }
+
+        for (int i = 0; i < 4; ++i)
+        {
+            ImGui::PushID(i);
+
+            // 각 행의 시작 메모리 주소 계산 (row-major 기준)
+            T* row_ptr = &mat->data[i * 4];
+
+            // 라벨 설정
+            char row_label[16];
+            std::snprintf(row_label, sizeof(row_label), "[%d]", i);
+
+            modified |= ImGui::DragScalarNInfinity(row_label, data_type, row_ptr, 4, 0.01f);
+
+            ImGui::PopID();
+        }
+
+        if (read_only)
+        {
+            ImGui::EndDisabled();
+        }
+
+        ImGui::TreePop();
+    }
+
+    if (read_only)
+    {
+        ImGui::BeginDisabled();
+    }
+
+    return modified;
+}
+
 // --- LinearColor ---
 
 bool DrawLinearColor(const char* label, void* value, const PropertyInfo& /*prop*/)
@@ -1102,6 +1158,7 @@ void DrawerRegistry::RegisterBuiltinDrawers()
     Register(TypeId::Get<Vector4>(),    &DrawVector4<double>);
     Register(TypeId::Get<Quaternion>(), &DrawQuaternion<double>);
     Register(TypeId::Get<Rotator>(),    &DrawRotator<double>);
+    Register(TypeId::Get<Matrix4x4>(),  &DrawMatrix4x4<double>);
 
     // --- Math (single precision) ---
     Register(TypeId::Get<Vector2f>(),    &DrawVector2<float>);
@@ -1109,6 +1166,7 @@ void DrawerRegistry::RegisterBuiltinDrawers()
     Register(TypeId::Get<Vector4f>(),    &DrawVector4<float>);
     Register(TypeId::Get<Quaternionf>(), &DrawQuaternion<float>);
     Register(TypeId::Get<Rotatorf>(),    &DrawRotator<float>);
+    Register(TypeId::Get<Matrix4x4f>(),  &DrawMatrix4x4<float>);
 
     // --- Color ---
     Register(TypeId::Get<LinearColor>(), &DrawLinearColor);
