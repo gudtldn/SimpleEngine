@@ -1,7 +1,8 @@
 #pragma once
 
-#include "SimpleEditor/Camera/EditorCameraState.h"
 #include "SimpleEditor/EditorCommon.h"
+#include "SimpleEditor/Camera/EditorCameraState.h"
+#include "SimpleEditor/Gizmo/GizmoTypes.h"
 
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
@@ -20,14 +21,6 @@ namespace editor{ class ViewportPanel; }
 
 namespace se::editor
 {
-/** 기즈모 조작 모드 */
-enum class EGizmoMode : uint8
-{
-    Translate,
-    Rotate,
-    Scale,
-};
-
 /** 기즈모 좌표계 모드 */
 enum class ECoordinateSpace : uint8
 {
