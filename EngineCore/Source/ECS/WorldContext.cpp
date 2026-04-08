@@ -122,8 +122,6 @@ void WorldContext::SetupDefaultStages()
     stages.Push({ .label = TypeId::Get<PostUpdatePhase>(),  .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
 
     // GlobalTransform 자동 추가 + 계층 전파 (PostUpdate에서 자동 실행)
-    AddSystem<PostUpdatePhase>(
-        SystemChain{ SyncGlobalTransforms, PropagateTransforms }
-    );
+    AddSystem<PostUpdatePhase>(SyncGlobalTransforms, PropagateTransforms);
 }
 } // namespace se
