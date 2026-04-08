@@ -1,10 +1,10 @@
 #pragma once
 
+#include "SimpleEditor/Graphics/ShaderCompileError.h"
+
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Types/Path.h"
-
-#include "Graphics/ShaderCompileError.h"
 
 #include "SDL3_shadercross/SDL_shadercross.h"
 
