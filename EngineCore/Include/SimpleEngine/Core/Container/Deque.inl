@@ -253,6 +253,40 @@ bool Deque<T, Allocator>::Contains(const ValueType& value) const
 }
 
 template <typename T, typename Allocator>
+Optional<typename Deque<T, Allocator>::SizeType> Deque<T, Allocator>::Find(const ValueType& value) const
+{
+    if (const auto it = std::find(begin(), end(), value); it != end())
+    {
+        return static_cast<SizeType>(std::distance(begin(), it));
+    }
+    return NullOpt;
+}
+
+template <typename T, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+Optional<T&> Deque<T, Allocator>::FindBy(Predicate&& pred)
+{
+    if (auto it = std::find_if(begin(), end(), std::forward<Predicate>(pred)); it != end())
+    {
+        return *it;
+    }
+    return NullOpt;
+}
+
+template <typename T, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+Optional<const T&> Deque<T, Allocator>::FindBy(Predicate&& pred) const
+{
+    if (auto it = std::find_if(begin(), end(), std::forward<Predicate>(pred)); it != end())
+    {
+        return *it;
+    }
+    return NullOpt;
+}
+
+template <typename T, typename Allocator>
 void Deque<T, Allocator>::Swap(Deque& other) noexcept
 {
     std::swap(internal_deque, other.internal_deque);

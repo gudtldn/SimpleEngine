@@ -627,6 +627,79 @@ Optional<typename Array<T, Allocator>::SizeType> Array<T, Allocator>::Find(const
 }
 
 template <typename T, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+Optional<T&> Array<T, Allocator>::FindBy(Predicate&& pred)
+{
+    if (auto it = std::find_if(begin(), end(), std::forward<Predicate>(pred)); it != end())
+    {
+        return *it;
+    }
+    return NullOpt;
+}
+
+template <typename T, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+Optional<const T&> Array<T, Allocator>::FindBy(Predicate&& pred) const
+{
+    if (auto it = std::find_if(begin(), end(), std::forward<Predicate>(pred)); it != end())
+    {
+        return *it;
+    }
+    return NullOpt;
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Sort()
+{
+    std::stable_sort(begin(), end());
+}
+
+template <typename T, typename Allocator>
+template <typename Compare>
+    requires std::predicate<Compare, const T&, const T&>
+void Array<T, Allocator>::Sort(Compare&& comp)
+{
+    std::stable_sort(begin(), end(), std::forward<Compare>(comp));
+}
+
+template <typename T, typename Allocator>
+template <typename Projection>
+    requires std::invocable<Projection, const T&>
+void Array<T, Allocator>::SortBy(Projection&& proj)
+{
+    std::ranges::stable_sort(*this, {}, std::forward<Projection>(proj));
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::UnstableSort()
+{
+    std::sort(begin(), end());
+}
+
+template <typename T, typename Allocator>
+template <typename Compare>
+    requires std::predicate<Compare, const T&, const T&>
+void Array<T, Allocator>::UnstableSort(Compare&& comp)
+{
+    std::sort(begin(), end(), std::forward<Compare>(comp));
+}
+
+template <typename T, typename Allocator>
+template <typename Projection> requires std::invocable<Projection, const T&>
+void Array<T, Allocator>::UnstableSortBy(Projection&& proj)
+{
+    std::ranges::sort(*this, {}, std::forward<Projection>(proj));
+}
+
+template <typename T, typename Allocator>
+void Array<T, Allocator>::Reverse()
+{
+    std::reverse(begin(), end());
+}
+
+template <typename T, typename Allocator>
 void Array<T, Allocator>::Swap(Array& other) noexcept
 {
     std::swap(data, other.data);

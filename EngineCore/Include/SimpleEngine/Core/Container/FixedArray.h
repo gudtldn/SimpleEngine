@@ -1,10 +1,13 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
-#include <algorithm>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <algorithm>
+#include <concepts>
+#include <type_traits>
 
 
 namespace se
@@ -56,6 +59,24 @@ public:
     [[nodiscard]] constexpr T* Data();
     [[nodiscard]] constexpr const T* Data() const;
 
+    /** 배열에 특정 값이 포함되어 있는지 확인합니다. */
+    [[nodiscard]] constexpr bool Contains(const T& value) const;
+
+    /** 배열에서 특정 값을 찾아 첫 번째로 일치하는 요소의 인덱스를 Optional로 반환합니다. */
+    [[nodiscard]] constexpr Optional<usize> Find(const T& value) const;
+
+    /** 조건자를 만족하는 첫 번째 요소에 대한 Optional 참조를 반환합니다. */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] constexpr Optional<T&> FindBy(Predicate&& pred);
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] constexpr Optional<const T&> FindBy(Predicate&& pred) const;
+
+    /** 배열의 요소를 교환합니다. */
+    constexpr void Swap(FixedArray& other) noexcept(std::is_nothrow_swappable_v<T>);
+
 public:
     [[nodiscard]] constexpr bool operator==(const FixedArray& other) const;
 
@@ -101,6 +122,19 @@ public:
 
     [[nodiscard]] constexpr T* Data() { return nullptr; }
     [[nodiscard]] constexpr const T* Data() const { return nullptr; }
+
+    [[nodiscard]] constexpr bool Contains(const T&) const { return false; }
+    [[nodiscard]] constexpr Optional<usize> Find(const T&) const { return NullOpt; }
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] constexpr Optional<T&> FindBy(Predicate&&) { return NullOpt; }
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] constexpr Optional<const T&> FindBy(Predicate&&) const { return NullOpt; }
+
+    constexpr void Swap(FixedArray&) noexcept {}
 
 public:
     [[nodiscard]] constexpr bool operator==(const FixedArray& other) const { return other.IsEmpty(); }
@@ -232,6 +266,52 @@ template <typename T, usize N>
 constexpr const T* FixedArray<T, N>::Data() const
 {
     return data;
+}
+
+template <typename T, usize N>
+constexpr bool FixedArray<T, N>::Contains(const T& value) const
+{
+    return std::find(begin(), end(), value) != end();
+}
+
+template <typename T, usize N>
+constexpr Optional<usize> FixedArray<T, N>::Find(const T& value) const
+{
+    if (const auto it = std::find(begin(), end(), value); it != end())
+    {
+        return static_cast<usize>(std::distance(begin(), it));
+    }
+    return NullOpt;
+}
+
+template <typename T, usize N>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+constexpr Optional<T&> FixedArray<T, N>::FindBy(Predicate&& pred)
+{
+    if (auto it = std::find_if(begin(), end(), std::forward<Predicate>(pred)); it != end())
+    {
+        return *it;
+    }
+    return NullOpt;
+}
+
+template <typename T, usize N>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+constexpr Optional<const T&> FixedArray<T, N>::FindBy(Predicate&& pred) const
+{
+    if (auto it = std::find_if(begin(), end(), std::forward<Predicate>(pred)); it != end())
+    {
+        return *it;
+    }
+    return NullOpt;
+}
+
+template <typename T, usize N>
+constexpr void FixedArray<T, N>::Swap(FixedArray& other) noexcept(std::is_nothrow_swappable_v<T>)
+{
+    std::swap_ranges(begin(), end(), other.begin());
 }
 
 template <typename T, usize N>

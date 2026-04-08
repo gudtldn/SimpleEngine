@@ -139,6 +139,18 @@ public:
     /** Deque에 특정 값이 포함되어 있는지 확인합니다. */
     [[nodiscard]] bool Contains(const ValueType& value) const;
 
+    /** Deque에서 특정 값을 찾아 첫 번째로 일치하는 요소의 인덱스를 Optional로 반환합니다. */
+    [[nodiscard]] Optional<SizeType> Find(const ValueType& value) const;
+
+    /** 조건자를 만족하는 첫 번째 요소에 대한 Optional 참조를 반환합니다. */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] Optional<T&> FindBy(Predicate&& pred);
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] Optional<const T&> FindBy(Predicate&& pred) const;
+
     /** Deque의 요소를 교환합니다. */
     void Swap(Deque& other) noexcept;
 

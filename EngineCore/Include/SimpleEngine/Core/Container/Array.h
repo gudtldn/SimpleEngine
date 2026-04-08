@@ -212,6 +212,44 @@ public:
     /** 배열에서 특정 값을 찾아 첫 번째로 일치하는 요소의 인덱스를 Optional로 반환합니다. */
     [[nodiscard]] Optional<SizeType> Find(const ValueType& value) const;
 
+    /** 조건자를 만족하는 첫 번째 요소에 대한 Optional 참조를 반환합니다. */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] Optional<T&> FindBy(Predicate&& pred);
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] Optional<const T&> FindBy(Predicate&& pred) const;
+
+    /** 배열을 상대적 순서를 보존하여 정렬합니다. */
+    void Sort();
+
+    /** 비교자를 사용하여 배열을 상대적 순서를 보존하여 정렬합니다. */
+    template <typename Compare>
+        requires std::predicate<Compare, const T&, const T&>
+    void Sort(Compare&& comp);
+
+    /** projection 기반으로 배열을 상대적 순서를 보존하여 정렬합니다. */
+    template <typename Projection>
+        requires std::invocable<Projection, const T&>
+    void SortBy(Projection&& proj);
+
+    /** 배열을 상대적 순서와 상관없이 정렬합니다. */
+    void UnstableSort();
+
+    /** 비교자를 사용하여 배열을 상대적 순서와 상관없이 정렬합니다. */
+    template <typename Compare>
+        requires std::predicate<Compare, const T&, const T&>
+    void UnstableSort(Compare&& comp);
+
+    /** projection 기반으로 배열을 상대적 순서와 상관없이 정렬합니다. */
+    template <typename Projection>
+        requires std::invocable<Projection, const T&>
+    void UnstableSortBy(Projection&& proj);
+
+    /** 배열의 요소 순서를 뒤집습니다. */
+    void Reverse();
+
     /** 배열의 요소를 교환합니다. */
     void Swap(Array& other) noexcept;
 
