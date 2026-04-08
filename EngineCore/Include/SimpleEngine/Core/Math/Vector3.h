@@ -100,6 +100,13 @@ public:
 
     [[nodiscard]] bool IsNearlyZero(T tolerance = KINDA_SMALL_NUMBER) const;
     [[nodiscard]] bool IsNearlyEqual(const Vector3Impl& other, T tolerance = KINDA_SMALL_NUMBER) const;
+
+    /**
+     * 현재 벡터(법선)에 직교하는 두 개의 축을 계산합니다.
+     * @param out_tangent 계산된 첫 번째 직교 축
+     * @param out_bitangent 계산된 두 번째 직교 축
+     */
+    void GetOrthogonalAxes(Vector3Impl& out_tangent, Vector3Impl& out_bitangent) const;
 };
 
 
@@ -447,4 +454,20 @@ bool Vector3Impl<T>::IsNearlyEqual(const Vector3Impl& other, T tolerance) const
         && Abs(y - other.y) <= tolerance
         && Abs(z - other.z) <= tolerance;
 }
-}  // namespace se::math
+
+template <traits::FloatingType T>
+void Vector3Impl<T>::GetOrthogonalAxes(Vector3Impl& out_tangent, Vector3Impl& out_bitangent) const
+{
+    const T threshold = static_cast<T>(0.99);
+
+    if (Abs(x) < threshold) // X축(Right)과의 내적(x 성분)을 바로 검사하여 최적화
+    {
+        out_tangent = Cross(Right()).GetNormalized();
+    }
+    else
+    {
+        out_tangent = Cross(Up()).GetNormalized();
+    }
+    out_bitangent = Cross(out_tangent).GetNormalized();
+}
+} // namespace se::math
