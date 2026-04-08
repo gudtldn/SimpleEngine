@@ -60,15 +60,6 @@ private:
      */
     [[nodiscard]] LinearColor GetAxisColor(EGizmoAxis axis) const;
 
-    /**
-     * CPU 면별 음영을 적용합니다. (N-dot-L, 밝기 0.5~1.0)
-     * @param base_color 기본 색상
-     * @param face_normal 면의 정규화된 법선 (월드 공간)
-     * @return 면별 음영이 적용된 색상
-     */
-    [[nodiscard]] static LinearColor ApplyFaceShading(
-        const LinearColor& base_color, const Vector3f& face_normal);
-
     // -- 솔리드 프리미티브 빌더 --
 
     /**
@@ -118,11 +109,10 @@ private:
     EGizmoMode mode = EGizmoMode::Translate;
     EGizmoAxis highlight_axis = EGizmoAxis::None;
 
-    // 기즈모가 화면 높이 대비 차지하는 비율 (FOV 무관하게 일정한 크기를 위함)
-    static constexpr float GIZMO_SCREEN_RATIO = 0.12f;
+    // TODO: 아래 내용 설정파일이나, 에디터에서 조작할 수 있도록 수정
 
-    // 라이팅이 없는 Unlit 렌더링 환경에서 입체감을 주기 위한 고정 가상 라이트 (방향: normalize(1, 1, 1))
-    static constexpr Vector3f LIGHT_DIR = { 0.577f, 0.577f, 0.577f };
+    // 기즈모가 화면 높이 대비 차지하는 비율 (FOV 무관하게 일정한 크기를 위함)
+    static constexpr float GIZMO_SCREEN_RATIO = 0.32f;
 
     // 기본 형상 파라미터 (이후 ComputeScreenScale 결과가 곱해져 실제 크기가 결정됨)
     static constexpr float ARROW_LENGTH = 1.0f;
