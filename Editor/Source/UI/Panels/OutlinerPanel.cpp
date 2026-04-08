@@ -42,10 +42,18 @@ void OutlinerPanel::DrawContent()
         DrawEntityNode(world, selection, entity, entity_to_delete);
     }
 
-    // ParentComponent가 있으나 부모가 이미 소멸된 고아 엔티티를 루트로 렌더링
-    for (const auto& [entity, parent_comp] : world.CreateQuery<Entity, ParentComponent&>())
+    // ParentComponent가 있으나 부모가 이미 소멸되었거나,
+    // 부모의 ChildrenComponent에 포함되지 않은 댕글링 엔티티를 루트로 렌더링
+    for (const auto& [entity, parent_comp] : world.CreateQuery<Entity, const ParentComponent&>())
     {
         if (!world.IsEntityAlive(parent_comp.parent))
+        {
+            DrawEntityNode(world, selection, entity, entity_to_delete);
+            continue;
+        }
+
+        auto children_opt = world.TryGetComponent<ChildrenComponent>(parent_comp.parent);
+        if (!children_opt || !children_opt->children.Contains(entity))
         {
             DrawEntityNode(world, selection, entity, entity_to_delete);
         }
