@@ -1,11 +1,12 @@
 #pragma once
+
+#include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
 #include <algorithm>
 #include <compare>
 #include <format>
 #include <string_view>
-
-#include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
 namespace se
@@ -28,7 +29,7 @@ class SE_CORE_API StringView
 public:
     using CharType = char;
     using SizeType = usize;
-    using DifferenceType = isize;
+
     using IteratorType = const CharType*;
     using ConstIteratorType = const CharType*;
 
@@ -140,9 +141,6 @@ public:
 public:
     /** 바이트 길이를 반환합니다. */
     [[nodiscard]] constexpr SizeType ByteLen() const noexcept { return data_len; }
-
-    /** 바이트 길이를 반환합니다. (STL 호환) */
-    [[nodiscard]] constexpr SizeType size() const noexcept { return data_len; }
 
     /** View가 비어있는지 확인합니다. */
     [[nodiscard]] constexpr bool IsEmpty() const noexcept { return data_len == 0; }

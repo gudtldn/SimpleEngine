@@ -26,10 +26,10 @@ public:
 
 public:
     /** Queue가 비어있는지 확인합니다. */
-    [[nodiscard]] bool IsEmpty() const;
+    [[nodiscard]] bool IsEmpty() const noexcept;
 
     /** Queue에 포함된 요소의 수를 반환합니다. */
-    [[nodiscard]] SizeType Len() const;
+    [[nodiscard]] SizeType Len() const noexcept;
 
     /** Queue의 모든 요소를 제거합니다. */
     void Clear() noexcept;
@@ -86,13 +86,13 @@ Queue<T, Container>::Queue(ContainerType&& cont)
 }
 
 template <typename T, typename Container>
-bool Queue<T, Container>::IsEmpty() const
+bool Queue<T, Container>::IsEmpty() const noexcept
 {
     return container.IsEmpty();
 }
 
 template <typename T, typename Container>
-Queue<T, Container>::SizeType Queue<T, Container>::Len() const
+Queue<T, Container>::SizeType Queue<T, Container>::Len() const noexcept
 {
     return container.Len();
 }

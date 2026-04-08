@@ -1,14 +1,15 @@
 #pragma once
+
+#include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Utility/Debug.h"
+
 #include <algorithm>
 #include <compare>
 #include <concepts>
 #include <initializer_list>
 #include <iterator>
 #include <type_traits>
-
-#include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -19,9 +20,6 @@ class Array;
 
 template <typename T, usize N>
 class FixedArray;
-
-template <typename T>
-class DefaultAllocator;
 
 
 /** 동적 크기를 나타내는 상수 */
@@ -70,7 +68,7 @@ class ArrayView : private detail::ArrayViewStorage<InExtent>
 public:
     using ValueType = T;
     using SizeType = usize;
-    using DifferenceType = isize;
+
     using IteratorType = T*;
     using ConstIteratorType = const T*;
     using ReverseIteratorType = std::reverse_iterator<IteratorType>;
@@ -240,9 +238,6 @@ public:
 public:
     /** 요소 개수를 반환합니다. */
     [[nodiscard]] constexpr SizeType Len() const noexcept { return StorageType::Len(); }
-
-    /** 요소 개수를 반환합니다. (STL 호환) */
-    [[nodiscard]] constexpr SizeType size() const noexcept { return Len(); }
 
     /** 바이트 크기를 반환합니다. */
     [[nodiscard]] constexpr SizeType ByteSize() const noexcept { return Len() * sizeof(T); }

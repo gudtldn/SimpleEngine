@@ -39,14 +39,6 @@ public:
 
     using EntryType = FlatMapEntry<FlatMap>;
 
-    // STL 호환성을 위한 별칭
-    using key_type = Key;
-    using mapped_type = Value;
-    using value_type = PairType;
-    using size_type = usize;
-    using iterator = IteratorType;
-    using const_iterator = ConstIteratorType;
-
 public:
     FlatMap() = default;
     FlatMap(std::initializer_list<PairType> init_list);

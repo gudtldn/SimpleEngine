@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include <algorithm>
 
 
@@ -96,25 +97,25 @@ void Set<T, Pred, Allocator>::Swap(Set& other) noexcept
 }
 
 template <typename T, typename Pred, typename Allocator>
-Set<T, Pred, Allocator>::Iterator Set<T, Pred, Allocator>::begin() noexcept
+Set<T, Pred, Allocator>::IteratorType Set<T, Pred, Allocator>::begin() noexcept
 {
     return internal_set.begin();
 }
 
 template <typename T, typename Pred, typename Allocator>
-Set<T, Pred, Allocator>::Iterator Set<T, Pred, Allocator>::end() noexcept
+Set<T, Pred, Allocator>::IteratorType Set<T, Pred, Allocator>::end() noexcept
 {
     return internal_set.end();
 }
 
 template <typename T, typename Pred, typename Allocator>
-Set<T, Pred, Allocator>::ConstIterator Set<T, Pred, Allocator>::begin() const noexcept
+Set<T, Pred, Allocator>::ConstIteratorType Set<T, Pred, Allocator>::begin() const noexcept
 {
     return internal_set.begin();
 }
 
 template <typename T, typename Pred, typename Allocator>
-Set<T, Pred, Allocator>::ConstIterator Set<T, Pred, Allocator>::end() const noexcept
+Set<T, Pred, Allocator>::ConstIteratorType Set<T, Pred, Allocator>::end() const noexcept
 {
     return internal_set.end();
 }

@@ -1,10 +1,11 @@
 #pragma once
-#include <functional>
-#include <unordered_set>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+
+#include <functional>
+#include <unordered_set>
 
 
 namespace se
@@ -29,14 +30,11 @@ private:
     using InternalSetType = std::unordered_set<T, Hasher, KeyEq, Allocator>;
 
 public:
-    using value_type = T;
-    using size_type = usize;
+    using ValueType = T;
+    using SizeType = usize;
 
-    using ValueType = value_type;
-    using SizeType = size_type;
-
-    using Iterator = InternalSetType::iterator;
-    using ConstIterator = InternalSetType::const_iterator;
+    using IteratorType = InternalSetType::iterator;
+    using ConstIteratorType = InternalSetType::const_iterator;
 
 public:
     HashSet() = default;
@@ -128,10 +126,10 @@ public:
     [[nodiscard]] bool operator==(const HashSet& other) const = default;
 
     // Iterator
-    [[nodiscard]] Iterator begin() noexcept;
-    [[nodiscard]] Iterator end() noexcept;
-    [[nodiscard]] ConstIterator begin() const noexcept;
-    [[nodiscard]] ConstIterator end() const noexcept;
+    [[nodiscard]] IteratorType begin() noexcept;
+    [[nodiscard]] IteratorType end() noexcept;
+    [[nodiscard]] ConstIteratorType begin() const noexcept;
+    [[nodiscard]] ConstIteratorType end() const noexcept;
 
     friend void swap(HashSet& lhs, HashSet& rhs) noexcept
     {

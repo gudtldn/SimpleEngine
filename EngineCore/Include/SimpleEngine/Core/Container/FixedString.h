@@ -1,9 +1,10 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
-#include <algorithm>
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/StringView.h"
+
+#include <algorithm>
 
 
 namespace se
@@ -19,8 +20,9 @@ class FixedString
 
 public:
     using ValueType = char;
-    using Iterator = char*;
-    using ConstIterator = const char*;
+
+    using IteratorType = char*;
+    using ConstIteratorType = const char*;
 
 public:
     constexpr FixedString() = default;
@@ -45,10 +47,10 @@ public:
     [[nodiscard]] constexpr const char& operator[](usize index) const { return data[index]; }
 
 public:
-    [[nodiscard]] constexpr Iterator begin() { return data.begin(); }
-    [[nodiscard]] constexpr Iterator end() { return data.end(); }
-    [[nodiscard]] constexpr ConstIterator begin() const { return data.begin(); }
-    [[nodiscard]] constexpr ConstIterator end() const { return data.end(); }
+    [[nodiscard]] constexpr IteratorType begin() { return data.begin(); }
+    [[nodiscard]] constexpr IteratorType end() { return data.end(); }
+    [[nodiscard]] constexpr ConstIteratorType begin() const { return data.begin(); }
+    [[nodiscard]] constexpr ConstIteratorType end() const { return data.end(); }
 
     /** StringView로 변환합니다. */
     [[nodiscard]] constexpr operator StringView() const { return { Data(), Len() }; }

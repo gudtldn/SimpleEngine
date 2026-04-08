@@ -23,6 +23,9 @@ class FixedArray
 public:
     using ValueType = T;
 
+    using IteratorType = T*;
+    using ConstIteratorType = const T*;
+
 public:
     /**
      * 배열의 모든 요소를 특정 값으로 채웁니다.
@@ -31,13 +34,13 @@ public:
     constexpr void Fill(const T& init_val);
 
     /** 배열의 길이를 반환합니다. */
-    [[nodiscard]] constexpr usize Len() const;
+    [[nodiscard]] constexpr usize Len() const noexcept;
 
     /** 배열의 용량을 반환합니다. */
-    [[nodiscard]] constexpr usize Capacity() const;
+    [[nodiscard]] constexpr usize Capacity() const noexcept;
 
     /** 배열이 비어있는지 (N == 0) 확인합니다. */
-    [[nodiscard]] constexpr bool IsEmpty() const;
+    [[nodiscard]] constexpr bool IsEmpty() const noexcept;
 
     /** 첫 번째 요소에 대한 Optional 참조를 반환합니다. (N=0일 경우 nullopt) */
     [[nodiscard]] constexpr Optional<T&> Front();
@@ -94,6 +97,8 @@ public:
     [[nodiscard]] constexpr std::reverse_iterator<const T*> rbegin() const noexcept;
     [[nodiscard]] constexpr std::reverse_iterator<const T*> rend() const noexcept;
 
+    friend constexpr void swap(FixedArray& lhs, FixedArray& rhs) noexcept(std::is_nothrow_swappable_v<T>) { lhs.Swap(rhs); }
+
 public:
     T data[N];
 };
@@ -104,12 +109,15 @@ class FixedArray<T, 0>
 public:
     using ValueType = T;
 
+    using IteratorType = T*;
+    using ConstIteratorType = const T*;
+
 public:
     constexpr void Fill(const T&) {}
 
-    [[nodiscard]] constexpr usize Len() const { return 0; }
-    [[nodiscard]] constexpr usize Capacity() const { return 0; }
-    [[nodiscard]] constexpr bool IsEmpty() const { return true; }
+    [[nodiscard]] constexpr usize Len() const noexcept { return 0; }
+    [[nodiscard]] constexpr usize Capacity() const noexcept { return 0; }
+    [[nodiscard]] constexpr bool IsEmpty() const noexcept { return true; }
 
     [[nodiscard]] constexpr Optional<T&> Front() { return NullOpt; }
     [[nodiscard]] constexpr Optional<const T&> Front() const { return NullOpt; }
@@ -167,19 +175,19 @@ constexpr void FixedArray<T, N>::Fill(const T& init_val)
 }
 
 template <typename T, usize N>
-constexpr usize FixedArray<T, N>::Len() const
+constexpr usize FixedArray<T, N>::Len() const noexcept
 {
     return N;
 }
 
 template <typename T, usize N>
-constexpr usize FixedArray<T, N>::Capacity() const
+constexpr usize FixedArray<T, N>::Capacity() const noexcept
 {
     return N;
 }
 
 template <typename T, usize N>
-constexpr bool FixedArray<T, N>::IsEmpty() const
+constexpr bool FixedArray<T, N>::IsEmpty() const noexcept
 {
     return N == 0;
 }

@@ -1,5 +1,6 @@
 ﻿// ReSharper disable CppRedundantTypenameKeyword
 #pragma once
+
 #include "SimpleEngine/Core/Container/Deque.h"
 
 
@@ -26,10 +27,10 @@ public:
 
 public:
     /** Stack가 비어있는지 확인합니다. */
-    [[nodiscard]] bool IsEmpty() const;
+    [[nodiscard]] bool IsEmpty() const noexcept;
 
     /** Stack에 포함된 요소의 수를 반환합니다. */
-    [[nodiscard]] SizeType Len() const;
+    [[nodiscard]] SizeType Len() const noexcept;
 
     /** Stack의 모든 요소를 제거합니다. */
     void Clear() noexcept;
@@ -82,13 +83,13 @@ Stack<T, Container>::Stack(ContainerType&& cont)
 }
 
 template <typename T, typename Container>
-bool Stack<T, Container>::IsEmpty() const
+bool Stack<T, Container>::IsEmpty() const noexcept
 {
     return container.IsEmpty();
 }
 
 template <typename T, typename Container>
-Stack<T, Container>::SizeType Stack<T, Container>::Len() const
+Stack<T, Container>::SizeType Stack<T, Container>::Len() const noexcept
 {
     return container.Len();
 }

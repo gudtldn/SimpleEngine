@@ -24,14 +24,8 @@ public:
     using ValueType = T;
     using SizeType = usize;
 
-    using Iterator = Array<T, Allocator>::IteratorType;
-    using ConstIterator = Array<T, Allocator>::ConstIteratorType;
-
-    // STL 호환성을 위한 별칭
-    using value_type = T;
-    using size_type = usize;
-    using iterator = Iterator;
-    using const_iterator = ConstIterator;
+    using IteratorType = Array<T, Allocator>::IteratorType;
+    using ConstIteratorType = Array<T, Allocator>::ConstIteratorType;
 
 public:
     FlatSet() = default;
@@ -129,10 +123,10 @@ public:
     [[nodiscard]] auto operator<=>(const FlatSet& other) const = default;
 
     // Iterator
-    [[nodiscard]] Iterator begin() noexcept;
-    [[nodiscard]] Iterator end() noexcept;
-    [[nodiscard]] ConstIterator begin() const noexcept;
-    [[nodiscard]] ConstIterator end() const noexcept;
+    [[nodiscard]] IteratorType begin() noexcept;
+    [[nodiscard]] IteratorType end() noexcept;
+    [[nodiscard]] ConstIteratorType begin() const noexcept;
+    [[nodiscard]] ConstIteratorType end() const noexcept;
 
     friend void swap(FlatSet& lhs, FlatSet& rhs) noexcept
     {

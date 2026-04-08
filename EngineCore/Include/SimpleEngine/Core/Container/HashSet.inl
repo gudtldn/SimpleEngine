@@ -114,25 +114,25 @@ void HashSet<T, Hasher, KeyEq, Allocator>::Swap(HashSet& other) noexcept
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-HashSet<T, Hasher, KeyEq, Allocator>::Iterator HashSet<T, Hasher, KeyEq, Allocator>::begin() noexcept
+HashSet<T, Hasher, KeyEq, Allocator>::IteratorType HashSet<T, Hasher, KeyEq, Allocator>::begin() noexcept
 {
     return internal_set.begin();
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-HashSet<T, Hasher, KeyEq, Allocator>::Iterator HashSet<T, Hasher, KeyEq, Allocator>::end() noexcept
+HashSet<T, Hasher, KeyEq, Allocator>::IteratorType HashSet<T, Hasher, KeyEq, Allocator>::end() noexcept
 {
     return internal_set.end();
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-HashSet<T, Hasher, KeyEq, Allocator>::ConstIterator HashSet<T, Hasher, KeyEq, Allocator>::begin() const noexcept
+HashSet<T, Hasher, KeyEq, Allocator>::ConstIteratorType HashSet<T, Hasher, KeyEq, Allocator>::begin() const noexcept
 {
     return internal_set.begin();
 }
 
 template <typename T, typename Hasher, typename KeyEq, typename Allocator>
-HashSet<T, Hasher, KeyEq, Allocator>::ConstIterator HashSet<T, Hasher, KeyEq, Allocator>::end() const noexcept
+HashSet<T, Hasher, KeyEq, Allocator>::ConstIteratorType HashSet<T, Hasher, KeyEq, Allocator>::end() const noexcept
 {
     return internal_set.end();
 }

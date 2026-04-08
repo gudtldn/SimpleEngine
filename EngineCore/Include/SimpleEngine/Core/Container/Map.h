@@ -38,16 +38,9 @@ private:
     using PairType = std::pair<const Key, Value>;
 
 public:
-    // STL 호환성을 위한 별칭
-    using key_type = Key;
-    using mapped_type = Value;
-    using value_type = PairType;
-    using size_type = usize;
-
-    // 엔진 내부 일관성을 위한 PascalCase 별칭
-    using KeyType = key_type;
-    using ValueType = mapped_type;
-    using SizeType = size_type;
+    using KeyType = Key;
+    using ValueType = Value;
+    using SizeType = usize;
 
     using IteratorType = InternalMapType::iterator;
     using ConstIteratorType = InternalMapType::const_iterator;

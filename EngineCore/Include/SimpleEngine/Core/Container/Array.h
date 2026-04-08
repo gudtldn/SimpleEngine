@@ -1,12 +1,13 @@
 #pragma once
-#include <initializer_list>
-#include <iterator>
-#include <ranges>
-#include <type_traits>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+
+#include <initializer_list>
+#include <iterator>
+#include <ranges>
+#include <type_traits>
 
 
 namespace se
@@ -20,18 +21,10 @@ template <typename T, typename Allocator = DefaultAllocator<T>>
 class Array
 {
 public:
-    // STL 호환성을 위해서
-    using value_type = T;
-    using allocator_type = Allocator;
-    using size_type = usize;
-    using difference_type = isize;
-
-    // 엔진 내부 일관성을 위한 PascalCase 별칭
-    using ValueType = value_type;
-    using AllocatorType = allocator_type;
+    using ValueType = T;
+    using AllocatorType = Allocator;
     using AllocTraits = std::allocator_traits<Allocator>;
-    using SizeType = size_type;
-    using DifferenceType = difference_type;
+    using SizeType = usize;
 
     using IteratorType = T*;
     using ConstIteratorType = const T*;
@@ -297,6 +290,6 @@ private:
 
     NO_UNIQUE_ADDRESS AllocatorType allocator;
 };
-}  // namespace se
+} // namespace se
 
 #include "SimpleEngine/Core/Container/Array.inl"

@@ -1,12 +1,13 @@
 ﻿#pragma once
-#include <deque>
-#include <initializer_list>
-#include <iterator>
-#include <ranges>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+
+#include <deque>
+#include <initializer_list>
+#include <iterator>
+#include <ranges>
 
 
 namespace se
@@ -24,17 +25,9 @@ private:
     using InternalDequeType = std::deque<T, Allocator>;
 
 public:
-    // STL 호환성을 위해서
-    using value_type = T;
-    using allocator_type = Allocator;
-    using size_type = usize;
-    using difference_type = isize;
-
-    // 엔진 내부 일관성을 위한 PascalCase 별칭
-    using ValueType = value_type;
-    using AllocatorType = allocator_type;
-    using SizeType = size_type;
-    using DifferenceType = difference_type;
+    using ValueType = T;
+    using SizeType = usize;
+    using AllocatorType = Allocator;
 
     using IteratorType = InternalDequeType::iterator;
     using ConstIteratorType = InternalDequeType::const_iterator;

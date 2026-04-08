@@ -1,10 +1,11 @@
 #pragma once
-#include <functional>
-#include <set>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+
+#include <functional>
+#include <set>
 
 
 namespace se
@@ -27,14 +28,11 @@ private:
     using InternalSetType = std::set<T, Pred, Allocator>;
 
 public:
-    using value_type = T;
-    using size_type = usize;
+    using ValueType = T;
+    using SizeType = usize;
 
-    using ValueType = value_type;
-    using SizeType = size_type;
-
-    using Iterator = InternalSetType::iterator;
-    using ConstIterator = InternalSetType::const_iterator;
+    using IteratorType = InternalSetType::iterator;
+    using ConstIteratorType = InternalSetType::const_iterator;
 
 public:
     Set() = default;
@@ -120,10 +118,10 @@ public:
     [[nodiscard]] auto operator<=>(const Set& other) const = default;
 
     // Iterator
-    [[nodiscard]] Iterator begin() noexcept;
-    [[nodiscard]] Iterator end() noexcept;
-    [[nodiscard]] ConstIterator begin() const noexcept;
-    [[nodiscard]] ConstIterator end() const noexcept;
+    [[nodiscard]] IteratorType begin() noexcept;
+    [[nodiscard]] IteratorType end() noexcept;
+    [[nodiscard]] ConstIteratorType begin() const noexcept;
+    [[nodiscard]] ConstIteratorType end() const noexcept;
 
     friend void swap(Set& lhs, Set& rhs) noexcept
     {

@@ -147,25 +147,25 @@ void FlatSet<T, Pred, Allocator>::Swap(FlatSet& other) noexcept
 }
 
 template <typename T, typename Pred, typename Allocator>
-typename FlatSet<T, Pred, Allocator>::Iterator FlatSet<T, Pred, Allocator>::begin() noexcept
+typename FlatSet<T, Pred, Allocator>::IteratorType FlatSet<T, Pred, Allocator>::begin() noexcept
 {
     return internal_array.begin();
 }
 
 template <typename T, typename Pred, typename Allocator>
-typename FlatSet<T, Pred, Allocator>::Iterator FlatSet<T, Pred, Allocator>::end() noexcept
+typename FlatSet<T, Pred, Allocator>::IteratorType FlatSet<T, Pred, Allocator>::end() noexcept
 {
     return internal_array.end();
 }
 
 template <typename T, typename Pred, typename Allocator>
-typename FlatSet<T, Pred, Allocator>::ConstIterator FlatSet<T, Pred, Allocator>::begin() const noexcept
+typename FlatSet<T, Pred, Allocator>::ConstIteratorType FlatSet<T, Pred, Allocator>::begin() const noexcept
 {
     return internal_array.begin();
 }
 
 template <typename T, typename Pred, typename Allocator>
-typename FlatSet<T, Pred, Allocator>::ConstIterator FlatSet<T, Pred, Allocator>::end() const noexcept
+typename FlatSet<T, Pred, Allocator>::ConstIteratorType FlatSet<T, Pred, Allocator>::end() const noexcept
 {
     return internal_array.end();
 }
