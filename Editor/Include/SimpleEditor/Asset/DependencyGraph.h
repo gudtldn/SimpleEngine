@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "SimpleEditor/EditorAPI.h"
+#include "SimpleEditor/EditorCommon.h"
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/Array.h"
