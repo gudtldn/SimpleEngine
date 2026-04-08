@@ -73,30 +73,11 @@ LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
 
     switch (axis)
     {
-        case EGizmoAxis::X:  return LinearColor::Red();
-        case EGizmoAxis::Y:  return LinearColor::Green();
-        case EGizmoAxis::Z:  return LinearColor::Blue();
-        default:             return LinearColor::White();
+    case EGizmoAxis::X:  return LinearColor::Red();
+    case EGizmoAxis::Y:  return LinearColor::Green();
+    case EGizmoAxis::Z:  return LinearColor::Blue();
+    default:             return LinearColor::White();
     }
-}
-
-LinearColor GizmoRenderer::ApplyFaceShading(const LinearColor& base_color, const Vector3f& face_normal)
-{
-    // Unlit 상태에서도 입체감을 느낄 수 있도록 램버트(Lambert) 조명 공식을 CPU에서 간략히 계산
-    const float ndl = Max(0.0f,
-        face_normal.x * LIGHT_DIR.x
-        + face_normal.y * LIGHT_DIR.y
-        + face_normal.z * LIGHT_DIR.z
-    );
-
-    // 최소 밝기를 0.5로 제한하여 그림자가 완전히 까맣게 타는 것을 방지
-    const float brightness = 0.5f + 0.5f * ndl;
-    return {
-        base_color.r * brightness,
-        base_color.g * brightness,
-        base_color.b * brightness,
-        base_color.a
-    };
 }
 
 void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale)
@@ -216,20 +197,16 @@ void GizmoRenderer::BuildSolidCylinder(
         const Vector3 t0 = top_center + offset0;
         const Vector3 t1 = top_center + offset1;
 
-        // 실린더 옆면의 노멀은 두 점(offset0, offset1) 사이 중간 지점의 방향으로 근사하여 둥글게 보이도록 함.
-        const Vector3f face_normal = ToVector3f(((offset0 + offset1) * 0.5).GetNormalized());
-        const LinearColor shaded = ApplyFaceShading(color, face_normal);
-
         // 실린더의 한 면을 구성하는 두 개의 삼각형(Quad) 추가
         list.AddTriangle(
-            { .position = ToVector3f(b0), .color = shaded },
-            { .position = ToVector3f(b1), .color = shaded },
-            { .position = ToVector3f(t0), .color = shaded }
+            { .position = ToVector3f(b0), .color = color },
+            { .position = ToVector3f(b1), .color = color },
+            { .position = ToVector3f(t0), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(b1), .color = shaded },
-            { .position = ToVector3f(t1), .color = shaded },
-            { .position = ToVector3f(t0), .color = shaded }
+            { .position = ToVector3f(b1), .color = color },
+            { .position = ToVector3f(t1), .color = color },
+            { .position = ToVector3f(t0), .color = color }
         );
     }
 }
@@ -253,14 +230,10 @@ void GizmoRenderer::BuildSolidCone(
         const Vector3 p0 = base_center + (tangent * Cos(a0) + bitangent * Sin(a0)) * radius;
         const Vector3 p1 = base_center + (tangent * Cos(a1) + bitangent * Sin(a1)) * radius;
 
-        // 삼각형의 두 변의 외적을 구하여 정확한 평면의 노멀을 구한다.
-        const Vector3f face_normal = ToVector3f((p1 - p0).Cross(tip - p0).GetNormalized());
-        const LinearColor shaded = ApplyFaceShading(color, face_normal);
-
         list.AddTriangle(
-            { .position = ToVector3f(tip), .color = shaded },
-            { .position = ToVector3f(p0),  .color = shaded },
-            { .position = ToVector3f(p1),  .color = shaded }
+            { .position = ToVector3f(tip), .color = color },
+            { .position = ToVector3f(p0),  .color = color },
+            { .position = ToVector3f(p1),  .color = color }
         );
     }
 }
@@ -298,19 +271,16 @@ void GizmoRenderer::BuildSolidCube(
 
     for (const Face& face : faces)
     {
-        const Vector3f fn = ToVector3f(face.normal.GetNormalized());
-        const LinearColor shaded = ApplyFaceShading(color, fn);
-
         // 한 면을 두 개의 삼각형으로 분할
         list.AddTriangle(
-            { .position = ToVector3f(corners[face.i0]), .color = shaded },
-            { .position = ToVector3f(corners[face.i1]), .color = shaded },
-            { .position = ToVector3f(corners[face.i2]), .color = shaded }
+            { .position = ToVector3f(corners[face.i0]), .color = color },
+            { .position = ToVector3f(corners[face.i1]), .color = color },
+            { .position = ToVector3f(corners[face.i2]), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(corners[face.i0]), .color = shaded },
-            { .position = ToVector3f(corners[face.i2]), .color = shaded },
-            { .position = ToVector3f(corners[face.i3]), .color = shaded }
+            { .position = ToVector3f(corners[face.i0]), .color = color },
+            { .position = ToVector3f(corners[face.i2]), .color = color },
+            { .position = ToVector3f(corners[face.i3]), .color = color }
         );
     }
 }
