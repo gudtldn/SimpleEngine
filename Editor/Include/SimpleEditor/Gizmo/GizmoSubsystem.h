@@ -23,6 +23,12 @@ public:
     //~ End SubsystemBase
 
 public:
+    /**
+     * 이전 프레임 데이터를 초기화하고, 선택된 엔티티에 대한 기즈모를 그립니다.
+     * 매 프레임 GPU 업로드 전에 호출해야 합니다.
+     */
+    void DrawGizmos();
+
     /** 매 프레임 정점을 수집/업로드하는 드로우 리스트 접근자 */
     [[nodiscard]] GizmoDrawList& GetDrawList() { return *draw_list; }
     [[nodiscard]] const GizmoDrawList& GetDrawList() const { return *draw_list; }

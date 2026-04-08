@@ -140,11 +140,11 @@ void EditorApplication::Render()
 {
     Application::Render();
 
-    // 이전 프레임의 기즈모 데이터 초기화
+    // 기즈모 업데이트: Clear + 선택된 엔티티에 대한 기즈모 렌더링
     GizmoSubsystem* gizmo_subsystem = se::GetSubsystem<GizmoSubsystem>();
     if (gizmo_subsystem)
     {
-        gizmo_subsystem->GetDrawList().Clear();
+        gizmo_subsystem->DrawGizmos();
     }
 
     const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
