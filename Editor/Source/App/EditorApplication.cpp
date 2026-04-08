@@ -4,6 +4,8 @@
 #include "Graphics/EditorShaderCompiler.h"
 #include "Graphics/EditorUIPass.h"
 #include "SimpleEditor/Config/EditorSettings.h"
+#include "SimpleEditor/Gizmo/GizmoPass.h"
+#include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
@@ -123,6 +125,12 @@ bool EditorApplication::PostInitialize()
 
         EditorShaderCompiler::CompileAll(hlsl_dir, output_dir);
     }
+    {
+        const Path editor_hlsl_dir = VFS::ToPath("EditorShader://");
+        const Path editor_output_dir = VFS::ToPath("EditorShader://Compiled");
+
+        EditorShaderCompiler::CompileAll(editor_hlsl_dir, editor_output_dir);
+    }
 #endif
 
     return true;
@@ -131,6 +139,13 @@ bool EditorApplication::PostInitialize()
 void EditorApplication::Render()
 {
     Application::Render();
+
+    // 이전 프레임의 기즈모 데이터 초기화
+    GizmoSubsystem* gizmo_subsystem = se::GetSubsystem<GizmoSubsystem>();
+    if (gizmo_subsystem)
+    {
+        gizmo_subsystem->GetDrawList().Clear();
+    }
 
     const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
     if (!render_subsystem)
@@ -162,6 +177,11 @@ void EditorApplication::Render()
             if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
             {
                 debug_subsystem->UploadToGpu(cmd);
+            }
+
+            if (gizmo_subsystem)
+            {
+                gizmo_subsystem->GetDrawList().UploadToGpu(cmd);
             }
         },
 
@@ -208,6 +228,13 @@ void EditorApplication::Render()
                         {
                             builder.AddPass<se::graphics::DebugLinePass>(
                                 *debug_subsystem, render_view, color_handle, depth_handle
+                            );
+                        }
+
+                        if (gizmo_subsystem)
+                        {
+                            builder.AddPass<GizmoPass>(
+                                gizmo_subsystem->GetDrawList(), render_view, color_handle, depth_handle
                             );
                         }
                     }
