@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "SimpleEditor/EditorAPI.h"
+#include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Gizmo/GizmoVertex.h"
 
 #include "SimpleEngine/Core/Container/Array.h"
@@ -42,19 +42,35 @@ public:
     /** 프레임 시작 시 이전 프레임의 정점 데이터를 비웁니다. */
     void Clear();
 
-    /** LINELIST 정점 2개를 추가합니다. */
+    /**
+     * LINELIST 정점 2개를 추가합니다.
+     * @param v0 라인 시작 정점
+     * @param v1 라인 끝 정점
+     */
     void AddLine(const GizmoVertex& v0, const GizmoVertex& v1);
 
-    /** TRIANGLELIST 정점 3개를 추가합니다. */
+    /**
+     * TRIANGLELIST 정점 3개를 추가합니다.
+     * @param v0 삼각형 첫 번째 정점
+     * @param v1 삼각형 두 번째 정점
+     * @param v2 삼각형 세 번째 정점
+     */
     void AddTriangle(const GizmoVertex& v0, const GizmoVertex& v1, const GizmoVertex& v2);
 
-    /** 수집된 정점을 GPU 버퍼에 업로드합니다. */
+    /**
+     * 수집된 정점을 GPU 버퍼에 업로드합니다.
+     * @param cmd 전송 커맨드를 기록할 GPU 커맨드 버퍼
+     */
     void UploadToGpu(SDL_GPUCommandBuffer* cmd);
 
+    /** 업로드된 LINELIST GPU 정점 버퍼를 반환합니다 (GizmoPass에서 바인드용) */
     [[nodiscard]] SDL_GPUBuffer* GetLineVertexBuffer() const;
+    /** 업로드된 TRIANGLELIST GPU 정점 버퍼를 반환합니다 (GizmoPass에서 바인드용) */
     [[nodiscard]] SDL_GPUBuffer* GetTriangleVertexBuffer() const;
 
+    /** 현재 수집된 라인 정점 수 (= 라인 수 * 2) */
     [[nodiscard]] FORCE_INLINE usize GetLineVertexCount() const { return line_vertices.Len(); }
+    /** 현재 수집된 삼각형 정점 수 (= 삼각형 수 * 3) */
     [[nodiscard]] FORCE_INLINE usize GetTriangleVertexCount() const { return triangle_vertices.Len(); }
 
 private:
