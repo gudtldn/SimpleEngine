@@ -161,9 +161,10 @@ void DetailPanel::DrawContent()
             if (component_type == TypeId::Get<TransformComponent>())
             {
                 TransformComponent* transform_component = static_cast<TransformComponent*>(component_data);
+                bool changed = false;
 
                 // Position
-                ImGui::DragScalarNInfinity(
+                changed |= ImGui::DragScalarNInfinity(
                     "Position", ImGuiDataType_Double, &transform_component->position.x, 3,
                     0.1f, nullptr, nullptr, nullptr
                 );
@@ -183,14 +184,17 @@ void DetailPanel::DrawContent()
                 {
                     transform_component->rotation = cached.euler.ToQuaternion();
                     cached.source_quat = transform_component->rotation;
+                    changed = true;
                 }
                 cached.is_editing = ImGui::IsItemActive();
 
                 // Scale
-                ImGui::DragScalarNInfinity(
+                changed |= ImGui::DragScalarNInfinity(
                     "Scale", ImGuiDataType_Double, &transform_component->scale.x, 3,
                     0.1f, nullptr, nullptr, nullptr
                 );
+
+                transform_component->dirty = changed;
             }
             else
             {

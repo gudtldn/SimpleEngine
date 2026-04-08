@@ -18,6 +18,9 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) TransformComp
 
     SE_ANNOTATION(=meta::Property)
     Vector3 scale = Vector3::One();
+
+    // PropagateTransforms에서 최적화용 flag로 사용
+    bool dirty = true;
 };
 }  // namespace se
 

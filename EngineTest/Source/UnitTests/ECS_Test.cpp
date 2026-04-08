@@ -3,7 +3,11 @@
 #include "SimpleEngine/ECS/Commands.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/QueryData.h"
+#include "SimpleEngine/ECS/TransformPropagation.h"
 #include "SimpleEngine/ECS/WorldContext.h"
+#include "SimpleEngine/ECS/Components/ChildrenComponent.h"
+#include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
+#include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Core/Time/Time.h"
@@ -390,4 +394,152 @@ TEST_F(ECSTest, ECSRunAllStageOrder)
     EXPECT_LT(startup_order, pre_order) << "Startup must run before PreUpdate.";
     EXPECT_LT(pre_order, update_order) << "PreUpdate must run before Update.";
     EXPECT_LT(update_order, post_order) << "Update must run before PostUpdate.";
+}
+
+
+// 루트 Entity에 대해 GlobalTransformComponent가 로컬 TransformComponent와 동일하게 계산되는지 검증합니다.
+TEST_F(ECSTest, ECSPropagateTransformsRoot)
+{
+    WorldContext ctx;
+
+    Entity root = ctx.GetWorld().SpawnEntity(
+        TransformComponent{ .position = Vector3(10, 20, 30), .scale = Vector3::One() }
+    );
+
+    ctx.RunPhase<PostUpdatePhase>();
+
+    auto global = ctx.GetWorld().TryGetComponent<GlobalTransformComponent>(root);
+    ASSERT_TRUE(global.HasValue());
+
+    // 루트 Entity의 WorldTransform = 로컬 TransformComponent의 모델 행렬
+    EXPECT_DOUBLE_EQ((global->value[3, 0]), 10.0);
+    EXPECT_DOUBLE_EQ((global->value[3, 1]), 20.0);
+    EXPECT_DOUBLE_EQ((global->value[3, 2]), 30.0);
+}
+
+
+// 부모-자식 관계에서 WorldTransform이 올바르게 전파되는지 검증합니다.
+TEST_F(ECSTest, ECSPropagateTransformsParentChild)
+{
+    WorldContext ctx;
+    World& world = ctx.GetWorld();
+
+    // 부모: 월드 위치 (10, 0, 0)
+    Entity parent = world.SpawnEntity(
+        TransformComponent{ .position = Vector3(10, 0, 0) }
+    );
+
+    // 자식: 로컬 위치 (0, 5, 0)
+    Entity child = world.SpawnEntity(
+        TransformComponent{ .position = Vector3(0, 5, 0) },
+        ParentComponent{ .parent = parent }
+    );
+
+    // 부모에 ChildrenComponent 추가
+    world.AddComponent<ChildrenComponent>(parent, ChildrenComponent{ .children = { child } });
+
+    ctx.RunPhase<PostUpdatePhase>();
+
+    // 부모: (10, 0, 0)
+    auto parent_global = world.TryGetComponent<GlobalTransformComponent>(parent);
+    ASSERT_TRUE(parent_global.HasValue());
+    EXPECT_DOUBLE_EQ((parent_global->value[3, 0]), 10.0);
+    EXPECT_DOUBLE_EQ((parent_global->value[3, 1]), 0.0);
+    EXPECT_DOUBLE_EQ((parent_global->value[3, 2]), 0.0);
+
+    // 자식: 로컬(0,5,0) + 부모(10,0,0) = 월드(10,5,0)
+    auto child_global = world.TryGetComponent<GlobalTransformComponent>(child);
+    ASSERT_TRUE(child_global.HasValue());
+    EXPECT_DOUBLE_EQ((child_global->value[3, 0]), 10.0);
+    EXPECT_DOUBLE_EQ((child_global->value[3, 1]), 5.0);
+    EXPECT_DOUBLE_EQ((child_global->value[3, 2]), 0.0);
+}
+
+
+// 3단계 계층 구조(조부모 -> 부모 -> 자식)에서 WorldTransform이 올바르게 연쇄 전파되는지 검증합니다.
+TEST_F(ECSTest, ECSPropagateTransformsDeepHierarchy)
+{
+    WorldContext ctx;
+    World& world = ctx.GetWorld();
+
+    // 조부모: (100, 0, 0)
+    Entity grandparent = world.SpawnEntity(
+        TransformComponent{ .position = Vector3(100, 0, 0) }
+    );
+
+    // 부모: 로컬 (0, 50, 0)
+    Entity parent = world.SpawnEntity(
+        TransformComponent{ .position = Vector3(0, 50, 0) },
+        ParentComponent{ .parent = grandparent }
+    );
+
+    // 자식: 로컬 (0, 0, 25)
+    Entity child = world.SpawnEntity(
+        TransformComponent{ .position = Vector3(0, 0, 25) },
+        ParentComponent{ .parent = parent }
+    );
+
+    world.AddComponent<ChildrenComponent>(grandparent, ChildrenComponent{ .children = { parent } });
+    world.AddComponent<ChildrenComponent>(parent, ChildrenComponent{ .children = { child } });
+
+    ctx.RunPhase<PostUpdatePhase>();
+
+    // 조부모: (100, 0, 0)
+    auto gp_global = world.TryGetComponent<GlobalTransformComponent>(grandparent);
+    ASSERT_TRUE(gp_global.HasValue());
+    EXPECT_DOUBLE_EQ((gp_global->value[3, 0]), 100.0);
+
+    // 부모: (100, 50, 0)
+    auto p_global = world.TryGetComponent<GlobalTransformComponent>(parent);
+    ASSERT_TRUE(p_global.HasValue());
+    EXPECT_DOUBLE_EQ((p_global->value[3, 0]), 100.0);
+    EXPECT_DOUBLE_EQ((p_global->value[3, 1]), 50.0);
+    EXPECT_DOUBLE_EQ((p_global->value[3, 2]), 0.0);
+
+    // 자식: (100, 50, 25)
+    auto c_global = world.TryGetComponent<GlobalTransformComponent>(child);
+    ASSERT_TRUE(c_global.HasValue());
+    EXPECT_DOUBLE_EQ((c_global->value[3, 0]), 100.0);
+    EXPECT_DOUBLE_EQ((c_global->value[3, 1]), 50.0);
+    EXPECT_DOUBLE_EQ((c_global->value[3, 2]), 25.0);
+}
+
+
+// dirty flag가 false인 Entity는 GlobalTransform 재계산을 건너뛰는지 검증합니다.
+TEST_F(ECSTest, ECSPropagateTransformsDirtyFlag)
+{
+    WorldContext ctx;
+    World& world = ctx.GetWorld();
+
+    Entity root = world.SpawnEntity(
+        TransformComponent{ .position = Vector3(10, 0, 0) }
+    );
+
+    // 1차 전파: dirty=true -> GlobalTransform 계산됨
+    ctx.RunPhase<PostUpdatePhase>();
+
+    auto global = world.TryGetComponent<GlobalTransformComponent>(root);
+    ASSERT_TRUE(global.HasValue());
+    EXPECT_DOUBLE_EQ((global->value[3, 0]), 10.0);
+
+    // dirty=false 상태에서 position만 바꾸고, dirty를 설정하지 않음
+    auto& local = world.GetComponent<TransformComponent>(root);
+    EXPECT_FALSE(local.dirty);  // 1차 전파 후 dirty가 클리어되었는지 확인
+    local.position = Vector3(99, 99, 99);
+    // local.dirty = true; // 의도적으로 설정하지 않음
+
+    // 2차 전파: dirty=false -> 스킵됨, GlobalTransform은 이전 값 유지
+    ctx.RunPhase<PostUpdatePhase>();
+
+    auto global2 = world.TryGetComponent<GlobalTransformComponent>(root);
+    ASSERT_TRUE(global2.HasValue());
+    EXPECT_DOUBLE_EQ((global2->value[3, 0]), 10.0);  // 여전히 10, 99가 아님
+
+    // dirty를 설정하면 갱신됨
+    local.dirty = true;
+    ctx.RunPhase<PostUpdatePhase>();
+
+    auto global3 = world.TryGetComponent<GlobalTransformComponent>(root);
+    ASSERT_TRUE(global3.HasValue());
+    EXPECT_DOUBLE_EQ((global3->value[3, 0]), 99.0);
 }

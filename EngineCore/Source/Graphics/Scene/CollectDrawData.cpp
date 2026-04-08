@@ -1,18 +1,16 @@
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
 
-#include "SimpleEngine/Core/Math/TransformUtility.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
 #include "SimpleEngine/ECS/Components/MaterialComponent.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
-#include "SimpleEngine/ECS/Components/TransformComponent.h"
 
 #include <algorithm>
 
 
 namespace se::graphics
 {
-using namespace se::math;
 
 namespace
 {
@@ -33,15 +31,11 @@ SceneDrawData CollectDrawData(const World& world)
 {
     SceneDrawData result;
 
-    auto query = world.CreateQuery<const TransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
-    for (const auto [transform, mesh, material] : query)
+    auto query = world.CreateQuery<const GlobalTransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
+    for (const auto [global_transform, mesh, material] : query)
     {
         result.opaque_commands.Push({
-            .model_matrix = TransformUtility::MakeModelMatrix(
-                transform.position,
-                transform.rotation,
-                transform.scale
-            ),
+            .model_matrix = global_transform.value,
             .mesh_id = mesh.mesh_id,
             .material_id = material.material_id,
             .sort_key = ComputeSortKey(mesh.mesh_id, material.material_id),

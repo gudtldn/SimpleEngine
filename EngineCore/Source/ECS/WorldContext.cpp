@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Time/Time.h"
 #include "SimpleEngine/Core/Time/TimeManager.h"
+#include "SimpleEngine/ECS/TransformPropagation.h"
 #include "SimpleEngine/ECS/World.h"
 
 #include <ranges>
@@ -119,5 +120,10 @@ void WorldContext::SetupDefaultStages()
     stages.Push({ .label = TypeId::Get<FixedUpdatePhase>(), .schedule = Schedule{}, .mode = EScheduleMode::FixedTimestep });
     stages.Push({ .label = TypeId::Get<UpdatePhase>(),      .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
     stages.Push({ .label = TypeId::Get<PostUpdatePhase>(),  .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
+
+    // GlobalTransform 자동 추가 + 계층 전파 (PostUpdate에서 자동 실행)
+    AddSystem<PostUpdatePhase>(
+        SystemChain{ SyncGlobalTransforms, PropagateTransforms }
+    );
 }
 } // namespace se
