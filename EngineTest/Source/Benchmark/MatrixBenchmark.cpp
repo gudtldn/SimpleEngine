@@ -42,7 +42,7 @@ static void BM_Matrix4x4Multiply_Generic_Float(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        se::math::simd::detail::Matrix4x4MultiplyGeneric(m1.GetData(), m2.GetData(), result.GetData());
+        se::math::simd::detail::Matrix4x4MultiplyGeneric(m1.data.Data(), m2.data.Data(), result.data.Data());
         benchmark::DoNotOptimize(result); // Prevent the compiler from optimizing away the calculation.
     }
 }
@@ -64,7 +64,7 @@ static void BM_Matrix4x4Multiply_SSE_Float(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        se::math::simd::detail::Matrix4x4MultiplySSEImpl(m1.GetData(), m2.GetData(), result.GetData());
+        se::math::simd::detail::Matrix4x4MultiplySSEImpl(m1.data.Data(), m2.data.Data(), result.data.Data());
         benchmark::DoNotOptimize(result);
     }
 }
@@ -85,7 +85,7 @@ static void BM_Matrix4x4Multiply_FMA_Float(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        se::math::simd::detail::Matrix4x4MultiplyFMAImpl(m1.GetData(), m2.GetData(), result.GetData());
+        se::math::simd::detail::Matrix4x4MultiplyFMAImpl(m1.data.Data(), m2.data.Data(), result.data.Data());
         benchmark::DoNotOptimize(result);
     }
 }
@@ -120,7 +120,7 @@ static void BM_Matrix4x4Multiply_Generic_Double(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        se::math::simd::detail::Matrix4x4MultiplyGeneric(m1.GetData(), m2.GetData(), result.GetData());
+        se::math::simd::detail::Matrix4x4MultiplyGeneric(m1.data.Data(), m2.data.Data(), result.data.Data());
         benchmark::DoNotOptimize(result); // Prevent the compiler from optimizing away the calculation.
     }
 }
@@ -142,7 +142,7 @@ static void BM_Matrix4x4Multiply_AVX_Double(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        se::math::simd::detail::Matrix4x4MultiplyAVXImpl(m1.GetData(), m2.GetData(), result.GetData());
+        se::math::simd::detail::Matrix4x4MultiplyAVXImpl(m1.data.Data(), m2.data.Data(), result.data.Data());
         benchmark::DoNotOptimize(result);
     }
 }

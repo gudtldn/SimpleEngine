@@ -1,7 +1,4 @@
 ﻿#pragma once
-#include <concepts>
-#include <mdspan>
-#include <ranges>
 
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
@@ -11,6 +8,10 @@
 #include "SimpleEngine/Core/Math/Vector4.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <concepts>
+#include <mdspan>
+#include <ranges>
 
 
 namespace se::math
@@ -28,25 +29,23 @@ public:
 
 public:
     constexpr Matrix4x4Impl() = default;
-    constexpr Matrix4x4Impl(ArrayView<const T, 16> src);
-    Matrix4x4Impl(ArrayView<const T> src);
+
     template <typename... Ts>
         requires ((std::convertible_to<Ts, T> && ...) && sizeof...(Ts) == 16)
     constexpr Matrix4x4Impl(Ts... values);
 
+    constexpr Matrix4x4Impl(ArrayView<const T, 16> src);
+    Matrix4x4Impl(ArrayView<const T> src);
+
+    constexpr Matrix4x4Impl(const Vector4Impl<T>& r0, const Vector4Impl<T>& r1, const Vector4Impl<T>& r2, const Vector4Impl<T>& r3);
+
+public:
     [[nodiscard]] static constexpr Matrix4x4Impl Identity();
     [[nodiscard]] static constexpr Matrix4x4Impl Zero();
 
 public:
     [[nodiscard]] constexpr Matrix4x4Impl Transpose() const;
     [[nodiscard]] constexpr Matrix4x4Impl Inverse() const;
-
-public:
-    [[nodiscard]] T* GetData() noexcept;
-    [[nodiscard]] const T* GetData() const noexcept;
-
-    [[nodiscard]] auto GetView() noexcept;
-    [[nodiscard]] auto GetView() const noexcept;
 
 public:
     [[nodiscard]] constexpr Matrix4x4Impl operator+(const Matrix4x4Impl& rhs) const;
@@ -74,9 +73,17 @@ public:
         return result;
     }
 
-private:
+public:
     FixedArray<T, 16> data;
 };
+
+template <traits::FloatingType T>
+template <typename... Ts>
+    requires ((std::convertible_to<Ts, T> && ...) && sizeof...(Ts) == 16)
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(Ts... values)
+    : data{ static_cast<T>(values)... }
+{
+}
 
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T>::Matrix4x4Impl(ArrayView<const T, 16> src)
@@ -92,10 +99,13 @@ Matrix4x4Impl<T>::Matrix4x4Impl(ArrayView<const T> src)
 }
 
 template <traits::FloatingType T>
-template <typename... Ts>
-    requires ((std::convertible_to<Ts, T> && ...) && sizeof...(Ts) == 16)
-constexpr Matrix4x4Impl<T>::Matrix4x4Impl(Ts... values)
-    : data{ static_cast<T>(values)... }
+constexpr Matrix4x4Impl<T>::Matrix4x4Impl(const Vector4Impl<T>& r0, const Vector4Impl<T>& r1, const Vector4Impl<T>& r2, const Vector4Impl<T>& r3)
+    : data{
+        r0.x, r0.y, r0.z, r0.w,
+        r1.x, r1.y, r1.z, r1.w,
+        r2.x, r2.y, r2.z, r2.w,
+        r3.x, r3.y, r3.z, r3.w
+    }
 {
 }
 
@@ -224,30 +234,6 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 }
 
 template <traits::FloatingType T>
-T* Matrix4x4Impl<T>::GetData() noexcept
-{
-    return data.Data();
-}
-
-template <traits::FloatingType T>
-const T* Matrix4x4Impl<T>::GetData() const noexcept
-{
-    return data.Data();
-}
-
-template <traits::FloatingType T>
-auto Matrix4x4Impl<T>::GetView() noexcept
-{
-    return std::mdspan<T, ExtentType>{ data.Data() };
-}
-
-template <traits::FloatingType T>
-auto Matrix4x4Impl<T>::GetView() const noexcept
-{
-    return std::mdspan<const T, ExtentType>{ data.Data() };
-}
-
-template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator+(const Matrix4x4Impl& rhs) const
 {
     Matrix4x4Impl ret{};
@@ -323,4 +309,4 @@ constexpr T Matrix4x4Impl<T>::operator[](SizeType row, SizeType col) const noexc
 {
     return data[(row * 4) + col];
 }
-}  // namespace se::math
+} // namespace se::math

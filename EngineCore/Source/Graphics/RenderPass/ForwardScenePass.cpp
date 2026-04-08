@@ -231,9 +231,9 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // double -> float 변환 헬퍼
         auto to_float4x4 = [](const Matrix4x4& src, Matrix4x4f& dst)
         {
-            std::transform(
-                src.GetData(), src.GetData() + 16,
-                dst.GetData(),
+            std::ranges::transform(
+                src.data,
+                dst.data.begin(),
                 [](double v) { return static_cast<float>(v); }
             );
         };

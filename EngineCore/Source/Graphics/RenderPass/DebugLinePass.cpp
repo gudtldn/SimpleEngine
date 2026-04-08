@@ -158,9 +158,9 @@ void DebugLinePass::Execute(RGExecutionContext& context)
         // VP 행렬 업로드
         const Matrix4x4 vp = render_view.view_matrix * render_view.projection_matrix;
         Matrix4x4f vpf;
-        std::transform(
-            vp.GetData(), vp.GetData() + 16,
-            vpf.GetData(),
+        std::ranges::transform(
+            vp.data,
+            vpf.data.begin(),
             [](double v) { return static_cast<float>(v); }
         );
         SDL_PushGPUVertexUniformData(cmd, 0, &vpf, sizeof(vpf));
