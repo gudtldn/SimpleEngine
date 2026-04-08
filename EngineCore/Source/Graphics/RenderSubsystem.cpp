@@ -48,7 +48,6 @@ bool RenderSubsystem::Initialize()
 
 #if SE_PLATFORM_WINDOWS
     SDL_SetHint(SDL_HINT_GPU_DRIVER, "direct3d12");
-    SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
 #elif SE_PLATFORM_LINUX
     SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
 #elif SE_PLATFORM_MACOS
