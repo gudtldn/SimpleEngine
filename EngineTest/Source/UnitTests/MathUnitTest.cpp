@@ -2,6 +2,7 @@
 #include "SimpleEngine/Core/Math/Math.h"
 
 using namespace se;
+using namespace math;
 
 template <traits::FloatingType T>
 constexpr T epsilon = std::numeric_limits<T>::epsilon() * 10;
@@ -168,8 +169,8 @@ TEST_F(MathLiteralsTest, AngleType_ConstexprEvaluation)
 template <typename T>
 void test_vector2_basic()
 {
-    math::Vector2Impl<T> v1(1, 2);
-    math::Vector2Impl<T> v2(3, 4);
+    Vector2Impl<T> v1(1, 2);
+    Vector2Impl<T> v2(3, 4);
 
     EXPECT_NEAR(v1.x, 1, epsilon<T>);
     EXPECT_NEAR(v1.y, 2, epsilon<T>);
@@ -194,8 +195,8 @@ TEST_F(MathVector2Test, double_Basic) { test_vector2_basic<double>(); }
 template <typename T>
 void test_vector3_basic()
 {
-    math::Vector3Impl<T> v1(1, 0, 0);
-    math::Vector3Impl<T> v2(0, 1, 0);
+    Vector3Impl<T> v1(1, 0, 0);
+    Vector3Impl<T> v2(0, 1, 0);
 
     auto v3 = v1 ^ v2; // Cross product
     EXPECT_NEAR(v3.x, 0, epsilon<T>);
@@ -205,7 +206,7 @@ void test_vector3_basic()
     EXPECT_NEAR(v1.Dot(v2), 0, epsilon<T>);
     EXPECT_NEAR(v1.Length(), 1, epsilon<T>);
 
-    math::Vector3Impl<T> v4(1, 2, 2);
+    Vector3Impl<T> v4(1, 2, 2);
     EXPECT_NEAR(v4.Length(), 3, epsilon<T>);
 }
 
@@ -216,13 +217,13 @@ TEST_F(MathVector3Test, double_Basic) { test_vector3_basic<double>(); }
 template <typename T>
 void test_vector4_basic()
 {
-    math::Vector4Impl<T> v1(1, 2, 3, 4);
+    Vector4Impl<T> v1(1, 2, 3, 4);
     EXPECT_NEAR(v1.x, 1, epsilon<T>);
     EXPECT_NEAR(v1.y, 2, epsilon<T>);
     EXPECT_NEAR(v1.z, 3, epsilon<T>);
     EXPECT_NEAR(v1.w, 4, epsilon<T>);
 
-    math::Vector4Impl<T> v2(math::Vector3Impl<T>(1, 2, 3), 5);
+    Vector4Impl<T> v2(Vector3Impl<T>(1, 2, 3), 5);
     EXPECT_NEAR(v2.w, 5, epsilon<T>);
 }
 
@@ -233,15 +234,15 @@ TEST_F(MathVector4Test, double_Basic) { test_vector4_basic<double>(); }
 template <typename T>
 void test_quaternion_basic()
 {
-    math::QuaternionImpl<T> q1 = math::QuaternionImpl<T>::Identity();
+    QuaternionImpl<T> q1 = QuaternionImpl<T>::Identity();
     EXPECT_NEAR(q1.x, 0, epsilon<T>);
     EXPECT_NEAR(q1.y, 0, epsilon<T>);
     EXPECT_NEAR(q1.z, 0, epsilon<T>);
     EXPECT_NEAR(q1.w, 1, epsilon<T>);
 
     // Rotation 90 degrees around Z axis
-    math::Vector3Impl<T> axis(0, 0, 1);
-    auto q2 = math::QuaternionImpl<T>::FromAxisAngle(axis, math::DegToRad<T>(90.0));
+    Vector3Impl<T> axis(0, 0, 1);
+    auto q2 = QuaternionImpl<T>::FromAxisAngle(axis, DegToRad<T>(90.0));
 
     // q = [axis * sin(theta/2), cos(theta/2)]
     // sin(45) = 0.707106..., cos(45) = 0.707106...
@@ -264,7 +265,7 @@ TEST_F(MathQuaternionTest, double_Basic) { test_quaternion_basic<double>(); }
 template <typename T>
 void test_rotator_basic()
 {
-    math::RotatorImpl<T> r1(Degree<T>(0), Degree<T>(0), Degree<T>(90)); // Yaw 90
+    RotatorImpl<T> r1(Degree<T>(0), Degree<T>(0), Degree<T>(90)); // Yaw 90
     auto q = r1.ToQuaternion();
 
     auto fwd = r1.GetForwardVector();
@@ -272,7 +273,7 @@ void test_rotator_basic()
     EXPECT_NEAR(fwd.y, 0, epsilon<T>);
     EXPECT_NEAR(fwd.z, 0, epsilon<T>);
 
-    math::RotatorImpl<T> r2 = q.ToRotator();
+    RotatorImpl<T> r2 = q.ToRotator();
     EXPECT_NEAR(r2.yaw.value, 90, 1e-5);
 }
 
@@ -284,7 +285,7 @@ TEST_F(MathRotatorTest, double_Basic) { test_rotator_basic<double>(); }
 template <typename T>
 void test_matrix_creation_and_zero()
 {
-    se::math::Matrix4x4Impl<T> mat{};
+    Matrix4x4Impl<T> mat{};
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
@@ -293,7 +294,7 @@ void test_matrix_creation_and_zero()
         }
     }
 
-    se::math::Matrix4x4Impl<T> zero_mat = se::math::Matrix4x4Impl<T>::Zero();
+    Matrix4x4Impl<T> zero_mat = Matrix4x4Impl<T>::Zero();
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
@@ -316,7 +317,7 @@ TEST_F(MathMatrix4x4Test, double_CreationAndZero)
 template <typename T>
 void test_matrix_variadic_constructor()
 {
-    se::math::Matrix4x4Impl<T> mat(
+    Matrix4x4Impl<T> mat(
         static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
         static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
         static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
@@ -342,7 +343,7 @@ TEST_F(MathMatrix4x4Test, double_VariadicConstructor)
 template <typename T>
 void test_matrix_identity_matrix()
 {
-    se::math::Matrix4x4Impl<T> identity_mat = se::math::Matrix4x4Impl<T>::Identity();
+    Matrix4x4Impl<T> identity_mat = Matrix4x4Impl<T>::Identity();
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
@@ -372,14 +373,14 @@ TEST_F(MathMatrix4x4Test, double_IdentityMatrix)
 template <typename T>
 void test_matrix_transpose()
 {
-    se::math::Matrix4x4Impl<T> mat(
+    Matrix4x4Impl<T> mat(
         static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
         static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
         static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
         static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
     );
 
-    se::math::Matrix4x4Impl<T> transposed_mat = mat.Transpose();
+    Matrix4x4Impl<T> transposed_mat = mat.Transpose();
 
     EXPECT_NEAR((transposed_mat[0, 0]), static_cast<T>(1.0), epsilon<T>);
     EXPECT_NEAR((transposed_mat[0, 1]), static_cast<T>(5.0), epsilon<T>);
@@ -402,21 +403,21 @@ TEST_F(MathMatrix4x4Test, double_Transpose)
 template <typename T>
 void test_matrix_addition()
 {
-    se::math::Matrix4x4Impl<T> mat1(
+    Matrix4x4Impl<T> mat1(
         static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
         static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
         static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
         static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
     );
 
-    se::math::Matrix4x4Impl<T> mat2(
+    Matrix4x4Impl<T> mat2(
         static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0),
         static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0),
         static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0),
         static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0), static_cast<T>(1.0)
     );
 
-    se::math::Matrix4x4Impl<T> result = mat1 + mat2;
+    Matrix4x4Impl<T> result = mat1 + mat2;
 
     EXPECT_NEAR((result[0, 0]), static_cast<T>(2.0), epsilon<T>);
     EXPECT_NEAR((result[0, 1]), static_cast<T>(3.0), epsilon<T>);
@@ -441,14 +442,14 @@ TEST_F(MathMatrix4x4Test, double_Addition)
 template <typename T>
 void test_matrix_scalar_multiplication()
 {
-    se::math::Matrix4x4Impl<T> mat(
+    Matrix4x4Impl<T> mat(
         static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
         static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
         static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
         static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
     );
 
-    se::math::Matrix4x4Impl<T> result = mat * static_cast<T>(2.0);
+    Matrix4x4Impl<T> result = mat * static_cast<T>(2.0);
 
     EXPECT_NEAR((result[0, 0]), static_cast<T>(2.0), epsilon<T>);
     EXPECT_NEAR((result[0, 1]), static_cast<T>(4.0), epsilon<T>);
@@ -473,21 +474,21 @@ TEST_F(MathMatrix4x4Test, double_ScalarMultiplication)
 template <typename T>
 void test_matrix_multiplication()
 {
-    se::math::Matrix4x4Impl<T> mat1(
+    Matrix4x4Impl<T> mat1(
         static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
     );
 
-    se::math::Matrix4x4Impl<T> mat2(
+    Matrix4x4Impl<T> mat2(
         static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(4.0),
         static_cast<T>(5.0), static_cast<T>(6.0), static_cast<T>(7.0), static_cast<T>(8.0),
         static_cast<T>(9.0), static_cast<T>(10.0), static_cast<T>(11.0), static_cast<T>(12.0),
         static_cast<T>(13.0), static_cast<T>(14.0), static_cast<T>(15.0), static_cast<T>(16.0)
     );
 
-    se::math::Matrix4x4Impl<T> result = mat1 * mat2;
+    Matrix4x4Impl<T> result = mat1 * mat2;
 
     for (int i = 0; i < 4; ++i)
     {
@@ -497,14 +498,14 @@ void test_matrix_multiplication()
         }
     }
 
-    se::math::Matrix4x4Impl<T> mat3(
+    Matrix4x4Impl<T> mat3(
         static_cast<T>(2.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(2.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(2.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(2.0)
     );
 
-    se::math::Matrix4x4Impl<T> mat4_expected(
+    Matrix4x4Impl<T> mat4_expected(
         static_cast<T>(2.0), static_cast<T>(4.0), static_cast<T>(6.0), static_cast<T>(8.0),
         static_cast<T>(10.0), static_cast<T>(12.0), static_cast<T>(14.0), static_cast<T>(16.0),
         static_cast<T>(18.0), static_cast<T>(20.0), static_cast<T>(22.0), static_cast<T>(24.0),
@@ -520,7 +521,7 @@ void test_matrix_multiplication()
         }
     }
 
-    se::math::Matrix4x4Impl<T> original_mat2 = mat2;
+    Matrix4x4Impl<T> original_mat2 = mat2;
     mat2 *= mat1;
     for (int i = 0; i < 4; ++i)
     {
@@ -544,31 +545,31 @@ TEST_F(MathMatrix4x4Test, double_MatrixMultiplication)
 template <typename T>
 void test_matrix_vector4_multiplication()
 {
-    se::math::Matrix4x4Impl<T> mat(
+    Matrix4x4Impl<T> mat(
         static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
     );
 
-    se::math::Vector4Impl<T> vec(static_cast<T>(10.0), static_cast<T>(20.0), static_cast<T>(30.0), static_cast<T>(1.0));
+    Vector4Impl<T> vec(static_cast<T>(10.0), static_cast<T>(20.0), static_cast<T>(30.0), static_cast<T>(1.0));
 
-    se::math::Vector4Impl<T> result = vec * mat;
+    Vector4Impl<T> result = vec * mat;
 
     EXPECT_NEAR((result[0]), static_cast<T>(10.0), epsilon<T>);
     EXPECT_NEAR((result[1]), static_cast<T>(20.0), epsilon<T>);
     EXPECT_NEAR((result[2]), static_cast<T>(30.0), epsilon<T>);
     EXPECT_NEAR((result[3]), static_cast<T>(1.0), epsilon<T>);
 
-    se::math::Matrix4x4Impl<T> translation_mat(
+    Matrix4x4Impl<T> translation_mat(
         static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
         static_cast<T>(100.0), static_cast<T>(200.0), static_cast<T>(300.0), static_cast<T>(1.0)
     );
 
-    se::math::Vector4Impl<T> vec_to_translate(static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(1.0));
-    se::math::Vector4Impl<T> translated_vec = vec_to_translate * translation_mat;
+    Vector4Impl<T> vec_to_translate(static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(1.0));
+    Vector4Impl<T> translated_vec = vec_to_translate * translation_mat;
 
     EXPECT_NEAR((translated_vec[0]), static_cast<T>(1.0) + static_cast<T>(100.0), epsilon<T>);
     EXPECT_NEAR((translated_vec[1]), static_cast<T>(2.0) + static_cast<T>(200.0), epsilon<T>);
@@ -589,8 +590,8 @@ TEST_F(MathMatrix4x4Test, double_Vector4Multiplication)
 template <typename T>
 void test_matrix_inverse()
 {
-    se::math::Matrix4x4Impl<T> identity_mat = se::math::Matrix4x4Impl<T>::Identity();
-    se::math::Matrix4x4Impl<T> inverse_identity = identity_mat.Inverse();
+    Matrix4x4Impl<T> identity_mat = Matrix4x4Impl<T>::Identity();
+    Matrix4x4Impl<T> inverse_identity = identity_mat.Inverse();
 
     for (int i = 0; i < 4; ++i)
     {
@@ -607,7 +608,7 @@ void test_matrix_inverse()
         }
     }
 
-    se::math::Matrix4x4Impl<T> product = identity_mat * inverse_identity;
+    Matrix4x4Impl<T> product = identity_mat * inverse_identity;
     for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
@@ -623,20 +624,20 @@ void test_matrix_inverse()
         }
     }
 
-    se::math::Matrix4x4Impl<T> mat_to_inverse(
+    Matrix4x4Impl<T> mat_to_inverse(
         static_cast<T>(1.0), static_cast<T>(2.0), static_cast<T>(3.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(4.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
     );
-    se::math::Matrix4x4Impl<T> expected_inverse(
+    Matrix4x4Impl<T> expected_inverse(
         static_cast<T>(1.0), static_cast<T>(-2.0), static_cast<T>(5.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(-4.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0)
     );
 
-    se::math::Matrix4x4Impl<T> calculated_inverse = mat_to_inverse.Inverse();
+    Matrix4x4Impl<T> calculated_inverse = mat_to_inverse.Inverse();
 
     for (int i = 0; i < 4; ++i)
     {
@@ -673,14 +674,139 @@ TEST_F(MathMatrix4x4Test, double_Inverse)
     test_matrix_inverse<double>();
 }
 
+// -- Decompose Tests --
+
+template <typename T>
+void test_decompose_translation()
+{
+    using Vec3 = Vector3Impl<T>;
+
+    const Vec3 expected_pos{ static_cast<T>(10), static_cast<T>(-5), static_cast<T>(3.5) };
+    const auto model = TransformUtility::MakeFromTranslation(expected_pos);
+    const Vec3 result = TransformUtility::DecomposeTranslation(model);
+
+    EXPECT_NEAR(result.x, expected_pos.x, epsilon<T>);
+    EXPECT_NEAR(result.y, expected_pos.y, epsilon<T>);
+    EXPECT_NEAR(result.z, expected_pos.z, epsilon<T>);
+}
+
+TEST_F(MathMatrix4x4Test, float_DecomposeTranslation) { test_decompose_translation<float>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeTranslation) { test_decompose_translation<double>(); }
+
+template <typename T>
+void test_decompose_scale()
+{
+    using Vec3 = Vector3Impl<T>;
+
+    const Vec3 expected_scale{ static_cast<T>(2), static_cast<T>(3), static_cast<T>(0.5) };
+    const auto model = TransformUtility::MakeFromScale(expected_scale);
+    const Vec3 result = TransformUtility::DecomposeScale(model);
+
+    EXPECT_NEAR(result.x, expected_scale.x, epsilon<T>);
+    EXPECT_NEAR(result.y, expected_scale.y, epsilon<T>);
+    EXPECT_NEAR(result.z, expected_scale.z, epsilon<T>);
+}
+
+TEST_F(MathMatrix4x4Test, float_DecomposeScale) { test_decompose_scale<float>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeScale) { test_decompose_scale<double>(); }
+
+template <typename T>
+void test_decompose_scale_negative()
+{
+    using Vec3 = Vector3Impl<T>;
+
+    // X축 미러링 (음수 스케일)
+    const Vec3 expected_scale{ static_cast<T>(-1), static_cast<T>(2), static_cast<T>(3) };
+    const auto model = TransformUtility::MakeFromScale(expected_scale);
+    const Vec3 result = TransformUtility::DecomposeScale(model);
+
+    // X축이 음수로 감지되어야 함
+    EXPECT_NEAR(result.x, expected_scale.x, epsilon<T>);
+    EXPECT_NEAR(result.y, expected_scale.y, epsilon<T>);
+    EXPECT_NEAR(result.z, expected_scale.z, epsilon<T>);
+}
+
+TEST_F(MathMatrix4x4Test, float_DecomposeScaleNegative) { test_decompose_scale_negative<float>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeScaleNegative) { test_decompose_scale_negative<double>(); }
+
+template <typename T>
+void test_decompose_rotation()
+{
+    using Quat = QuaternionImpl<T>;
+    using Vec3 = Vector3Impl<T>;
+
+    // 45 degree rotation around Z axis
+    const Radian<T> angle{ static_cast<T>(0.785398163) }; // PI/4
+    const T half = *angle * static_cast<T>(0.5);
+    const Quat expected_rot{ 0, 0, Sin(Radian<T>{half}), Cos(Radian<T>{half}) };
+
+    const auto model = TransformUtility::MakeFromRotation(expected_rot);
+    const Quat result = TransformUtility::DecomposeRotation(model);
+
+    // Quaternion 부호 불변성 고려: q == -q (같은 회전)
+    const T sign = (result.w * expected_rot.w >= 0) ? static_cast<T>(1) : static_cast<T>(-1);
+    EXPECT_NEAR(result.x * sign, expected_rot.x, epsilon<T> * 100);
+    EXPECT_NEAR(result.y * sign, expected_rot.y, epsilon<T> * 100);
+    EXPECT_NEAR(result.z * sign, expected_rot.z, epsilon<T> * 100);
+    EXPECT_NEAR(result.w * sign, expected_rot.w, epsilon<T> * 100);
+}
+
+TEST_F(MathMatrix4x4Test, float_DecomposeRotation) { test_decompose_rotation<float>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeRotation) { test_decompose_rotation<double>(); }
+
+template <typename T>
+void test_decompose_model_matrix_roundtrip()
+{
+    using Vec3 = Vector3Impl<T>;
+    using Quat = QuaternionImpl<T>;
+
+    // 임의의 TRS 조합
+    const Vec3 expected_pos{ static_cast<T>(5), static_cast<T>(-3), static_cast<T>(7) };
+    const Vec3 expected_scale{ static_cast<T>(2), static_cast<T>(0.5), static_cast<T>(1.5) };
+    // 30 degree rotation around Y axis
+    const T half_angle = static_cast<T>(0.261799388); // PI/12
+    const Quat expected_rot{
+        0,
+        Sin(Radian<T>{half_angle}),
+        0,
+        Cos(Radian<T>{half_angle})
+    };
+
+    const auto model = TransformUtility::MakeModelMatrix(expected_pos, expected_rot, expected_scale);
+
+    const Vec3 result_pos = TransformUtility::DecomposeTranslation(model);
+    const Vec3 result_scale = TransformUtility::DecomposeScale(model);
+    const Quat result_rot = TransformUtility::DecomposeRotation(model);
+
+    // Translation
+    EXPECT_NEAR(result_pos.x, expected_pos.x, epsilon<T> * 100);
+    EXPECT_NEAR(result_pos.y, expected_pos.y, epsilon<T> * 100);
+    EXPECT_NEAR(result_pos.z, expected_pos.z, epsilon<T> * 100);
+
+    // Scale
+    EXPECT_NEAR(result_scale.x, expected_scale.x, epsilon<T> * 100);
+    EXPECT_NEAR(result_scale.y, expected_scale.y, epsilon<T> * 100);
+    EXPECT_NEAR(result_scale.z, expected_scale.z, epsilon<T> * 100);
+
+    // Rotation (부호 불변성 고려)
+    const T sign = (result_rot.w * expected_rot.w >= 0) ? static_cast<T>(1) : static_cast<T>(-1);
+    EXPECT_NEAR(result_rot.x * sign, expected_rot.x, epsilon<T> * 100);
+    EXPECT_NEAR(result_rot.y * sign, expected_rot.y, epsilon<T> * 100);
+    EXPECT_NEAR(result_rot.z * sign, expected_rot.z, epsilon<T> * 100);
+    EXPECT_NEAR(result_rot.w * sign, expected_rot.w, epsilon<T> * 100);
+}
+
+TEST_F(MathMatrix4x4Test, float_DecomposeModelMatrixRoundtrip) { test_decompose_model_matrix_roundtrip<float>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeModelMatrixRoundtrip) { test_decompose_model_matrix_roundtrip<double>(); }
+
 // AABB Tests
 class MathAABBTest : public ::testing::Test{};
 
 template <typename T>
 void test_aabb_construction_and_properties()
 {
-    using Vec3Type = math::Vector3Impl<T>;
-    using AABBType = math::AABBImpl<T>;
+    using Vec3Type = Vector3Impl<T>;
+    using AABBType = AABBImpl<T>;
 
     // Default Constructor (Invalid AABB)
     AABBType invalid_aabb;
@@ -713,8 +839,8 @@ TEST_F(MathAABBTest, double_ConstructionAndProperties) { test_aabb_construction_
 template <typename T>
 void test_aabb_expansion()
 {
-    using Vec3Type = math::Vector3Impl<T>;
-    using AABBType = math::AABBImpl<T>;
+    using Vec3Type = Vector3Impl<T>;
+    using AABBType = AABBImpl<T>;
 
     AABBType aabb(Vec3Type(0, 0, 0), Vec3Type(1, 1, 1));
 
@@ -739,8 +865,8 @@ TEST_F(MathAABBTest, double_Expansion) { test_aabb_expansion<double>(); }
 template <typename T>
 void test_aabb_containment_intersection()
 {
-    using Vec3Type = math::Vector3Impl<T>;
-    using AABBType = math::AABBImpl<T>;
+    using Vec3Type = Vector3Impl<T>;
+    using AABBType = AABBImpl<T>;
 
     AABBType aabb(Vec3Type(-1, -1, -1), Vec3Type(1, 1, 1));
 
@@ -767,7 +893,7 @@ class MathColorTest : public ::testing::Test{};
 TEST_F(MathColorTest, Color_ConstructionAndConversion)
 {
     // Color Construction
-    math::Color red(255, 0, 0, 255);
+    Color red(255, 0, 0, 255);
     EXPECT_EQ(red.r, 255);
     EXPECT_EQ(red.g, 0);
     EXPECT_EQ(red.b, 0);
@@ -780,7 +906,7 @@ TEST_F(MathColorTest, Color_ConstructionAndConversion)
     // Let's check implementation:
     // Color(uint32 rgba) : r((rgba >> 24) & 0xFF), ...
     // So 0xFF0000FF would be Red in RGBA
-    math::Color red_from_packed(0xFF0000FF);
+    Color red_from_packed(0xFF0000FF);
     EXPECT_EQ(red_from_packed.r, 255);
     EXPECT_EQ(red_from_packed.g, 0);
     EXPECT_EQ(red_from_packed.b, 0);
@@ -793,10 +919,10 @@ TEST_F(MathColorTest, Color_ConstructionAndConversion)
 
 TEST_F(MathColorTest, LinearColor_Basic)
 {
-    math::LinearColor lc(1.0f, 0.5f, 0.0f, 1.0f);
+    LinearColor lc(1.0f, 0.5f, 0.0f, 1.0f);
 
     // Arithmetic
-    math::LinearColor lc2(0.0f, 0.5f, 1.0f, 0.0f);
+    LinearColor lc2(0.0f, 0.5f, 1.0f, 0.0f);
     auto sum = lc + lc2;
     EXPECT_FLOAT_EQ(sum.r, 1.0f);
     EXPECT_FLOAT_EQ(sum.g, 1.0f);
@@ -804,7 +930,7 @@ TEST_F(MathColorTest, LinearColor_Basic)
     EXPECT_FLOAT_EQ(sum.a, 1.0f);
 
     // Clamping
-    math::LinearColor large(2.0f, -1.0f, 0.5f, 1.0f);
+    LinearColor large(2.0f, -1.0f, 0.5f, 1.0f);
     large.Clamp();
     EXPECT_FLOAT_EQ(large.r, 1.0f);
     EXPECT_FLOAT_EQ(large.g, 0.0f);
@@ -815,22 +941,22 @@ TEST_F(MathColorTest, Color_Linear_Conversion)
     // sRGB <-> Linear
     // 0.5 linear is approx 0.73535 sRGB (188/255)
 
-    math::LinearColor linear_gray(0.5f, 0.5f, 0.5f, 1.0f);
-    math::Color srgb_gray = linear_gray.ToColor(true); // sRGB conversion
+    LinearColor linear_gray(0.5f, 0.5f, 0.5f, 1.0f);
+    Color srgb_gray = linear_gray.ToColor(true); // sRGB conversion
 
     // 0.5 linear -> sRGB formula: 1.055 * pow(0.5, 1/2.4) - 0.055 approx 0.73535
     // 0.73535 * 255 = 187.5 -> 188
     EXPECT_NEAR(srgb_gray.r, 188, 1);
 
     // Non-sRGB (simple scale)
-    math::Color linear_scaled = linear_gray.ToColor(false);
+    Color linear_scaled = linear_gray.ToColor(false);
     EXPECT_EQ(linear_scaled.r, 128); // 0.5 * 255 = 127.5 -> 128 (round)
 }
 
 TEST_F(MathColorTest, HSV_Conversion)
 {
     // Red: H=0, S=1, V=1
-    auto red = math::LinearColor::Red();
+    auto red = LinearColor::Red();
     auto hsv = red.LinearRGBToHSV();
     EXPECT_FLOAT_EQ(hsv.r, 0.0f); // Hue
     EXPECT_FLOAT_EQ(hsv.g, 1.0f); // Sat
@@ -847,9 +973,9 @@ class MathRayTest : public ::testing::Test{};
 template <typename T>
 void test_ray_intersection()
 {
-    using Vec3Type = math::Vector3Impl<T>;
-    using AABBType = math::AABBImpl<T>;
-    using RayType = math::RayImpl<T>;
+    using Vec3Type = Vector3Impl<T>;
+    using AABBType = AABBImpl<T>;
+    using RayType = RayImpl<T>;
 
     RayType ray(Vec3Type(0, 0, 10), Vec3Type(0, 0, -1)); // Pointing down at origin
 
@@ -896,7 +1022,7 @@ TEST_F(MathUtilityTest, AbsImpl_vs_StdAbs)
     float values[] = { 0.0f, -0.0f, 1.0f, -1.0f, 123.456f, -123.456f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
     for (float v : values)
     {
-        EXPECT_EQ(se::math::detail::AbsImpl(v), std::abs(v));
+        EXPECT_EQ(math::detail::AbsImpl(v), std::abs(v));
     }
 }
 
@@ -910,7 +1036,7 @@ TEST_F(MathUtilityTest, Fmod_vs_StdFmod)
 
     for (const auto& c : cases)
     {
-        EXPECT_NEAR(se::math::detail::Fmod(c.x, c.y), std::fmod(c.x, c.y), epsilon<float>);
+        EXPECT_NEAR(math::detail::Fmod(c.x, c.y), std::fmod(c.x, c.y), epsilon<float>);
     }
 }
 
@@ -919,11 +1045,11 @@ TEST_F(MathUtilityTest, Sqrt_vs_StdSqrt)
     float values[] = { 0.0f, 1.0f, 2.0f, 4.0f, 100.0f, 0.25f };
     for (float v : values)
     {
-        EXPECT_NEAR(se::math::detail::Sqrt(v), std::sqrt(v), epsilon<float>);
+        EXPECT_NEAR(math::detail::Sqrt(v), std::sqrt(v), epsilon<float>);
     }
 
     // NaN check for negative
-    EXPECT_TRUE(std::isnan(se::math::detail::Sqrt(-1.0f)));
+    EXPECT_TRUE(std::isnan(math::detail::Sqrt(-1.0f)));
 }
 
 TEST_F(MathUtilityTest, Exp_vs_StdExp)
@@ -932,7 +1058,7 @@ TEST_F(MathUtilityTest, Exp_vs_StdExp)
     for (float v : values)
     {
         // Relaxed tolerance for approximation
-        EXPECT_NEAR(se::math::detail::Exp(v), std::exp(v), 1e-5f);
+        EXPECT_NEAR(math::detail::Exp(v), std::exp(v), 1e-5f);
     }
 }
 
@@ -941,7 +1067,7 @@ TEST_F(MathUtilityTest, Ln_vs_StdLog)
     float values[] = { 1.0f, 2.71828f, 10.0f, 0.5f };
     for (float v : values)
     {
-        EXPECT_NEAR(se::math::detail::Ln(v), std::log(v), epsilon<float>);
+        EXPECT_NEAR(math::detail::Ln(v), std::log(v), epsilon<float>);
     }
 }
 
@@ -955,7 +1081,7 @@ TEST_F(MathUtilityTest, Pow_vs_StdPow)
 
     for (const auto& c : cases)
     {
-        EXPECT_NEAR(se::math::detail::Pow(c.b, c.e), std::pow(c.b, c.e), epsilon<float>);
+        EXPECT_NEAR(math::detail::Pow(c.b, c.e), std::pow(c.b, c.e), epsilon<float>);
     }
 }
 
@@ -965,16 +1091,16 @@ TEST_F(MathUtilityTest, Classification_Functions)
     float nan = std::numeric_limits<float>::quiet_NaN();
     float norm = 1.0f;
 
-    EXPECT_EQ(se::math::detail::IsNaN(nan), std::isnan(nan));
-    EXPECT_EQ(se::math::detail::IsNaN(norm), std::isnan(norm));
+    EXPECT_EQ(math::detail::IsNaN(nan), std::isnan(nan));
+    EXPECT_EQ(math::detail::IsNaN(norm), std::isnan(norm));
 
-    EXPECT_EQ(se::math::detail::IsInfinite(inf), std::isinf(inf));
-    EXPECT_EQ(se::math::detail::IsInfinite(-inf), std::isinf(-inf));
-    EXPECT_EQ(se::math::detail::IsInfinite(norm), std::isinf(norm));
+    EXPECT_EQ(math::detail::IsInfinite(inf), std::isinf(inf));
+    EXPECT_EQ(math::detail::IsInfinite(-inf), std::isinf(-inf));
+    EXPECT_EQ(math::detail::IsInfinite(norm), std::isinf(norm));
 
-    EXPECT_EQ(se::math::detail::IsFinite(norm), std::isfinite(norm));
-    EXPECT_EQ(se::math::detail::IsFinite(inf), std::isfinite(inf));
-    EXPECT_EQ(se::math::detail::IsFinite(nan), std::isfinite(nan));
+    EXPECT_EQ(math::detail::IsFinite(norm), std::isfinite(norm));
+    EXPECT_EQ(math::detail::IsFinite(inf), std::isfinite(inf));
+    EXPECT_EQ(math::detail::IsFinite(nan), std::isfinite(nan));
 }
 
 TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
@@ -985,23 +1111,21 @@ TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
     };
     for (const auto& c : cases)
     {
-        EXPECT_EQ(se::math::detail::CopySign(c.n, c.s), std::copysign(c.n, c.s));
+        EXPECT_EQ(math::detail::CopySign(c.n, c.s), std::copysign(c.n, c.s));
     }
 }
 
 TEST_F(MathUtilityTest, Constexpr_Checks)
 {
-    constexpr float sqrt_val = se::math::Sqrt(4.0f);
-    static_assert(se::math::IsNearlyEqual(sqrt_val, 2.0f));
+    constexpr float sqrt_val = Sqrt(4.0f);
+    static_assert(IsNearlyEqual(sqrt_val, 2.0f));
 
-    constexpr float pow_val = se::math::Pow(2.0f, 3.0f);
-    static_assert(se::math::IsNearlyEqual(pow_val, 8.0f));
+    constexpr float pow_val = Pow(2.0f, 3.0f);
+    static_assert(IsNearlyEqual(pow_val, 8.0f));
 
-    constexpr float abs_val = se::math::Abs(-10.0f);
-    static_assert(se::math::IsNearlyEqual(abs_val, 10.0f));
+    constexpr float abs_val = Abs(-10.0f);
+    static_assert(IsNearlyEqual(abs_val, 10.0f));
 
-    constexpr float fmod_val = se::math::Fmod(5.5f, 2.0f);
-    static_assert(se::math::IsNearlyEqual(fmod_val, 1.5f));
+    constexpr float fmod_val = Fmod(5.5f, 2.0f);
+    static_assert(IsNearlyEqual(fmod_val, 1.5f));
 }
-
-

@@ -194,5 +194,94 @@ struct TransformUtility
             far
         );
     }
+
+    // -- Model Matrix Decomposition --
+    // MakeModelMatrix(translation, rotation, scale) = S * R * T 의 역연산
+    //
+    // Row-major 결과 행렬 레이아웃:
+    //   Row 0: sx*r00, sx*r01, sx*r02, 0
+    //   Row 1: sy*r10, sy*r11, sy*r12, 0
+    //   Row 2: sz*r20, sz*r21, sz*r22, 0
+    //   Row 3: tx,     ty,     tz,     1
+
+    template <traits::FloatingType T>
+    static constexpr Vector3Impl<T> DecomposeTranslation(const Matrix4x4Impl<T>& m)
+    {
+        return { m[3, 0], m[3, 1], m[3, 2] };
+    }
+
+    template <traits::FloatingType T>
+    static constexpr Vector3Impl<T> DecomposeScale(const Matrix4x4Impl<T>& m)
+    {
+        T sx = Vector3Impl<T>(m[0, 0], m[0, 1], m[0, 2]).Length();
+        const T sy = Vector3Impl<T>(m[1, 0], m[1, 1], m[1, 2]).Length();
+        const T sz = Vector3Impl<T>(m[2, 0], m[2, 1], m[2, 2]).Length();
+
+        // 음수 스케일(미러링) 감지: 상위 3x3 행렬식이 음수이면 X축 부호 반전
+        const Vector3Impl<T> row0{ m[0, 0], m[0, 1], m[0, 2] };
+        const Vector3Impl<T> row1{ m[1, 0], m[1, 1], m[1, 2] };
+        const Vector3Impl<T> row2{ m[2, 0], m[2, 1], m[2, 2] };
+        if (row0.Dot(row1.Cross(row2)) < static_cast<T>(0))
+        {
+            sx = -sx;
+        }
+
+        return { sx, sy, sz };
+    }
+
+    template <traits::FloatingType T>
+    static constexpr QuaternionImpl<T> DecomposeRotation(const Matrix4x4Impl<T>& m)
+    {
+        // Scale 제거: 각 행을 정규화하여 순수 회전 행렬 추출
+        const Vector3Impl<T> scale = DecomposeScale(m);
+        const T inv_sx = (scale.x > KINDA_SMALL_NUMBER) ? static_cast<T>(1) / scale.x : static_cast<T>(0);
+        const T inv_sy = (scale.y > KINDA_SMALL_NUMBER) ? static_cast<T>(1) / scale.y : static_cast<T>(0);
+        const T inv_sz = (scale.z > KINDA_SMALL_NUMBER) ? static_cast<T>(1) / scale.z : static_cast<T>(0);
+
+        // 정규화된 회전 행렬 (rm = row-major, row-vector convention)
+        const T rm00 = m[0, 0] * inv_sx, rm01 = m[0, 1] * inv_sx, rm02 = m[0, 2] * inv_sx;
+        const T rm10 = m[1, 0] * inv_sy, rm11 = m[1, 1] * inv_sy, rm12 = m[1, 2] * inv_sy;
+        const T rm20 = m[2, 0] * inv_sz, rm21 = m[2, 1] * inv_sz, rm22 = m[2, 2] * inv_sz;
+
+        // Shepperd's method (row-major, row-vector convention: R_col = R_row^T)
+        // x = (rm12 - rm21) / s,  y = (rm20 - rm02) / s,  z = (rm01 - rm10) / s
+        QuaternionImpl<T> q;
+        const T trace = rm00 + rm11 + rm22;
+
+        if (trace > static_cast<T>(0))
+        {
+            const T s = Sqrt(trace + static_cast<T>(1)) * static_cast<T>(2);
+            q.w = s / static_cast<T>(4);
+            q.x = (rm12 - rm21) / s;
+            q.y = (rm20 - rm02) / s;
+            q.z = (rm01 - rm10) / s;
+        }
+        else if (rm00 > rm11 && rm00 > rm22)
+        {
+            const T s = Sqrt(static_cast<T>(1) + rm00 - rm11 - rm22) * static_cast<T>(2);
+            q.w = (rm12 - rm21) / s;
+            q.x = s / static_cast<T>(4);
+            q.y = (rm01 + rm10) / s;
+            q.z = (rm02 + rm20) / s;
+        }
+        else if (rm11 > rm22)
+        {
+            const T s = Sqrt(static_cast<T>(1) + rm11 - rm00 - rm22) * static_cast<T>(2);
+            q.w = (rm20 - rm02) / s;
+            q.x = (rm01 + rm10) / s;
+            q.y = s / static_cast<T>(4);
+            q.z = (rm12 + rm21) / s;
+        }
+        else
+        {
+            const T s = Sqrt(static_cast<T>(1) + rm22 - rm00 - rm11) * static_cast<T>(2);
+            q.w = (rm01 - rm10) / s;
+            q.x = (rm02 + rm20) / s;
+            q.y = (rm12 + rm21) / s;
+            q.z = s / static_cast<T>(4);
+        }
+
+        return q;
+    }
 };
 }
