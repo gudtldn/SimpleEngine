@@ -60,6 +60,8 @@ GizmoDrawList::~GizmoDrawList()
 
 void GizmoDrawList::Clear()
 {
+    current_pick_id = 0;
+
     line_vertices.Clear();
     triangle_vertices.Clear();
 }
@@ -72,8 +74,9 @@ void GizmoDrawList::AddLine(const GizmoVertex& v0, const GizmoVertex& v1)
         return;
     }
 
-    line_vertices.Push(v0);
-    line_vertices.Push(v1);
+    auto apply_pick_id = [this](GizmoVertex v) { v.pick_id = current_pick_id; return v; };
+    line_vertices.Push(apply_pick_id(v0));
+    line_vertices.Push(apply_pick_id(v1));
 }
 
 void GizmoDrawList::AddTriangle(const GizmoVertex& v0, const GizmoVertex& v1, const GizmoVertex& v2)
@@ -84,9 +87,10 @@ void GizmoDrawList::AddTriangle(const GizmoVertex& v0, const GizmoVertex& v1, co
         return;
     }
 
-    triangle_vertices.Push(v0);
-    triangle_vertices.Push(v1);
-    triangle_vertices.Push(v2);
+    auto apply_pick_id = [this](GizmoVertex v) { v.pick_id = current_pick_id; return v; };
+    triangle_vertices.Push(apply_pick_id(v0));
+    triangle_vertices.Push(apply_pick_id(v1));
+    triangle_vertices.Push(apply_pick_id(v2));
 }
 
 void GizmoDrawList::UploadToGpu(SDL_GPUCommandBuffer* cmd)
