@@ -105,6 +105,20 @@ private:
         const LinearColor& color
     );
 
+    /**
+     * 솔리드 UV 구체를 삼각형으로 조립합니다. (Translate 기준점 구체용)
+     * @param center 구체 중심 (월드 좌표)
+     * @param radius 구체 반지름
+     * @param color 기본 색상
+     * @param rings 위도 분할 수
+     * @param sectors 경도 분할 수
+     */
+    static void BuildSolidSphere(
+        GizmoDrawList& list, const Vector3& center,
+        float radius, const LinearColor& color,
+        int32 rings, int32 sectors
+    );
+
 private:
     EGizmoMode mode = EGizmoMode::Translate;
     EGizmoAxis highlight_axis = EGizmoAxis::None;
@@ -112,19 +126,29 @@ private:
     // TODO: 아래 내용 설정파일이나, 에디터에서 조작할 수 있도록 수정
 
     // 기즈모가 화면 높이 대비 차지하는 비율 (FOV 무관하게 일정한 크기를 위함)
-    static constexpr float GIZMO_SCREEN_RATIO = 0.32f;
+    static constexpr float GIZMO_SCREEN_RATIO = 0.28f;
 
-    // 기본 형상 파라미터 (이후 ComputeScreenScale 결과가 곱해져 실제 크기가 결정됨)
-    static constexpr float ARROW_LENGTH = 1.0f;
-    static constexpr float ARROW_BODY_RADIUS = 0.025f;
-    static constexpr float ARROW_HEAD_RADIUS = 0.07f;
-    static constexpr float ARROW_HEAD_LENGTH = 0.2f;
-    static constexpr int32 ARROW_SEGMENTS = 12;
+    // 공통 축 파라미터 (Translate/Scale 몸통 실린더 공유)
+    static constexpr float AXIS_LENGTH = 1.0f;
+    static constexpr float AXIS_BODY_RADIUS = 0.025f;
+    static constexpr int32 AXIS_SEGMENTS = 12;
 
+    // Translate 모드
+    static constexpr float TRANSLATE_HEAD_RADIUS = 0.07f;
+    static constexpr float TRANSLATE_HEAD_LENGTH = 0.2f;
+    static constexpr float ORIGIN_SPHERE_RADIUS = 0.06f;
+    static constexpr int32 SPHERE_RINGS = 6;
+    static constexpr int32 SPHERE_SECTORS = 8;
+
+    // Rotate 모드
     static constexpr float CIRCLE_RADIUS = 1.0f;
     static constexpr int32 CIRCLE_SEGMENTS = 64;
 
-    static constexpr float SCALE_LINE_LENGTH = 1.0f;
+    // Scale 모드
     static constexpr float SCALE_CUBE_HALF = 0.05f;
+
+    // 평면 핸들 (XY/XZ/YZ 꺾쇠)
+    static constexpr float PLANE_HANDLE_OFFSET = 0.35f;
+    static constexpr float PLANE_HANDLE_LENGTH = 0.15f;
 };
 } // namespace se::editor

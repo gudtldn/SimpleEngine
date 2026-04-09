@@ -1,4 +1,6 @@
-﻿#include "SimpleEditor/Gizmo/GizmoRenderer.h"
+﻿// NOLINTBEGIN(*-use-designated-initializers)
+
+#include "SimpleEditor/Gizmo/GizmoRenderer.h"
 
 #include "SimpleEditor/Gizmo/GizmoDrawList.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
@@ -51,10 +53,10 @@ float GizmoRenderer::ComputeScreenScale(const Vector3& position, const graphics:
 {
     // View Space에서의 Z값(카메라 평면으로부터의 거리)을 구하는 식
     // 역행렬 곱 연산 전체를 수행하지 않고, View Matrix의 전방 축(Z축) 내적만 수행하여 성능을 최적화 함.
-    const double vz = position.x * view.view_matrix[0, 2]
-                    + position.y * view.view_matrix[1, 2]
-                    + position.z * view.view_matrix[2, 2]
-                    +              view.view_matrix[3, 2];
+    const double vz = (position.x * view.view_matrix[0, 2])
+                    + (position.y * view.view_matrix[1, 2])
+                    + (position.z * view.view_matrix[2, 2])
+                    +               view.view_matrix[3, 2];
 
     const double distance = Abs(vz);
     if (distance < KINDA_SMALL_NUMBER) { return 0.0f; }
@@ -69,13 +71,16 @@ float GizmoRenderer::ComputeScreenScale(const Vector3& position, const graphics:
 
 LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
 {
-    if (axis == highlight_axis) { return LinearColor::Yellow(); }
+    if (axis == highlight_axis) { return LinearColor::White(); }
 
     switch (axis)
     {
     case EGizmoAxis::X:  return LinearColor::Red();
     case EGizmoAxis::Y:  return LinearColor::Green();
     case EGizmoAxis::Z:  return LinearColor::Blue();
+    case EGizmoAxis::XY: return LinearColor::Blue();  // XY 평면의 수직축 = Z
+    case EGizmoAxis::XZ: return LinearColor::Green(); // XZ 평면의 수직축 = Y
+    case EGizmoAxis::YZ: return LinearColor::Red();   // YZ 평면의 수직축 = X
     default:             return LinearColor::White();
     }
 }
@@ -94,15 +99,51 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Vector3& pos, const
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(axis_ids[i]);
 
-        const float body_length = (ARROW_LENGTH - ARROW_HEAD_LENGTH) * scale;
-        const float head_length = ARROW_HEAD_LENGTH * scale;
+        const float body_length = (AXIS_LENGTH - TRANSLATE_HEAD_LENGTH) * scale;
+        const float head_length = TRANSLATE_HEAD_LENGTH * scale;
 
         // 솔리드 실린더 몸통
-        BuildSolidCylinder(list, pos, axis, ARROW_BODY_RADIUS * scale, body_length, color, ARROW_SEGMENTS);
+        BuildSolidCylinder(list, pos, axis, AXIS_BODY_RADIUS * scale, body_length, color, AXIS_SEGMENTS);
 
         // 솔리드 원뿔 머리
         const Vector3 cone_base = pos + axis * static_cast<double>(body_length);
-        BuildSolidCone(list, cone_base, axis, ARROW_HEAD_RADIUS * scale, head_length, color, ARROW_SEGMENTS);
+        BuildSolidCone(list, cone_base, axis, TRANSLATE_HEAD_RADIUS * scale, head_length, color, AXIS_SEGMENTS);
+    }
+
+    // 기준점 구체
+    BuildSolidSphere(list, pos, ORIGIN_SPHERE_RADIUS * scale, GetAxisColor(EGizmoAxis::All), SPHERE_RINGS, SPHERE_SECTORS);
+
+    // XY/XZ/YZ 평면 핸들 (채운 쿼드)
+    struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
+    constexpr PlaneInfo planes[3] = {
+        { 0, 1, EGizmoAxis::XY },
+        { 0, 2, EGizmoAxis::XZ },
+        { 1, 2, EGizmoAxis::YZ },
+    };
+
+    const double offset = static_cast<double>(PLANE_HANDLE_OFFSET * scale);
+    const double length = static_cast<double>(PLANE_HANDLE_LENGTH * scale);
+
+    for (const auto& [a0, a1, plane_axis] : planes)
+    {
+        const LinearColor color = GetAxisColor(plane_axis);
+
+        // 쿼드의 4개 꼭짓점: 꺾쇠 영역을 채운 사각형
+        const Vector3 corner = pos + axes[a0] * offset + axes[a1] * offset;
+        const Vector3 edge0  = pos + axes[a0] * (offset - length) + axes[a1] * offset;
+        const Vector3 edge1  = pos + axes[a0] * offset + axes[a1] * (offset - length);
+        const Vector3 inner  = pos + axes[a0] * (offset - length) + axes[a1] * (offset - length);
+
+        list.AddTriangle(
+            { .position = ToVector3f(inner), .color = color },
+            { .position = ToVector3f(edge0), .color = color },
+            { .position = ToVector3f(corner), .color = color }
+        );
+        list.AddTriangle(
+            { .position = ToVector3f(inner), .color = color },
+            { .position = ToVector3f(corner), .color = color },
+            { .position = ToVector3f(edge1), .color = color }
+        );
     }
 }
 
@@ -155,16 +196,13 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Vector3& pos, const Qua
     {
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(axis_ids[i]);
-        const double line_len = static_cast<double>(SCALE_LINE_LENGTH * scale);
-        const Vector3 endpoint = pos + axis * line_len;
+        const float body_length = AXIS_LENGTH * scale;
 
-        // 축 라인
-        list.AddLine(
-            { .position = ToVector3f(pos), .color = color },
-            { .position = ToVector3f(endpoint), .color = color }
-        );
+        // 솔리드 실린더 몸통
+        BuildSolidCylinder(list, pos, axis, AXIS_BODY_RADIUS * scale, body_length, color, AXIS_SEGMENTS);
 
-        // 끝점 큐브 (모든 축 큐브에 동일한 로컬 좌표계 사용)
+        // 끝점 큐브
+        const Vector3 endpoint = pos + axis * static_cast<double>(body_length);
         BuildSolidCube(list, endpoint, SCALE_CUBE_HALF * scale, axes[0], axes[2], axes[1], color);
     }
 
@@ -284,4 +322,70 @@ void GizmoRenderer::BuildSolidCube(
         );
     }
 }
+
+void GizmoRenderer::BuildSolidSphere(GizmoDrawList& list, const Vector3& center, float radius, const LinearColor& color, int32 rings, int32 sectors)
+{
+    const double r = static_cast<double>(radius);
+
+    // UV 구체 정점 위치 계산 (Z-up)
+    auto get_point = [&](int32 ring, int32 sector) -> Vector3
+    {
+        const Radian phi = Radian{ PI_DOUBLE } * ring / rings;
+        const Radian theta = Radian{ PI_DOUBLE * 2.0 } * sector / sectors;
+
+        return center + Vector3{
+            Sin(phi) * Cos(theta) * r,
+            Sin(phi) * Sin(theta) * r,
+            Cos(phi) * r
+        };
+    };
+
+    for (int32 i = 0; i < rings; ++i)
+    {
+        for (int32 j = 0; j < sectors; ++j)
+        {
+            const int32 j_next = (j + 1) % sectors;
+
+            const Vector3 p00 = get_point(i, j);
+            const Vector3 p10 = get_point(i + 1, j);
+            const Vector3 p01 = get_point(i, j_next);
+            const Vector3 p11 = get_point(i + 1, j_next);
+
+            if (i == 0)
+            {
+                // 상단 극점: 삼각형 팬
+                list.AddTriangle(
+                    { .position = ToVector3f(p00), .color = color },
+                    { .position = ToVector3f(p10), .color = color },
+                    { .position = ToVector3f(p11), .color = color }
+                );
+            }
+            else if (i == rings - 1)
+            {
+                // 하단 극점: 삼각형 팬
+                list.AddTriangle(
+                    { .position = ToVector3f(p00), .color = color },
+                    { .position = ToVector3f(p01), .color = color },
+                    { .position = ToVector3f(p10), .color = color }
+                );
+            }
+            else
+            {
+                // 일반 쿼드: 두 삼각형
+                list.AddTriangle(
+                    { .position = ToVector3f(p00), .color = color },
+                    { .position = ToVector3f(p10), .color = color },
+                    { .position = ToVector3f(p11), .color = color }
+                );
+                list.AddTriangle(
+                    { .position = ToVector3f(p00), .color = color },
+                    { .position = ToVector3f(p11), .color = color },
+                    { .position = ToVector3f(p01), .color = color }
+                );
+            }
+        }
+    }
+}
 } // namespace se::editor
+
+// NOLINTEND(*-use-designated-initializers)
