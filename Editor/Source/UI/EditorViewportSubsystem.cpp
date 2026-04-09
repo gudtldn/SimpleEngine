@@ -247,6 +247,13 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
 
     // 텍스처가 없거나, 크기가 변경된 경우 재생성
     ViewportState& state = viewports[viewport_id];
+
+    // 최초 뷰포트 등록 시 기본 포커스 대상으로 설정
+    if (focused_viewport == StringName::None)
+    {
+        focused_viewport = viewport_id;
+    }
+
     if (
         !state.color_texture.IsValid()
         || state.render_view.width != new_width
@@ -287,10 +294,8 @@ void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id,
     {
         focused_viewport = viewport_id;
     }
-    else if (focused_viewport == viewport_id)
-    {
-        focused_viewport = StringName::None;
-    }
+    // 포커스를 잃어도 focused_viewport를 초기화하지 않음
+    // -> 마지막으로 포커스된 뷰포트를 기준으로 기즈모 등이 계속 렌더링됨
 }
 
 void EditorViewportSubsystem::SetViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode)

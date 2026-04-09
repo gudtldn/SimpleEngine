@@ -56,7 +56,6 @@ void GizmoSubsystem::DrawGizmos()
         return;
     }
 
-    // FIXME: 포커스가 끊기면 기즈모가 안보이게 됨
     const auto vp_info = viewport_subsystem->GetFocusedViewportInfo();
     if (!vp_info)
     {
