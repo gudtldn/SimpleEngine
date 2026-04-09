@@ -23,12 +23,45 @@ SE_END_REFLECT(GizmoSubsystem)
 bool GizmoSubsystem::Initialize()
 {
     graphics::RenderDevice& render_device = GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
+    raw_device = render_device.GetRawDevice();
+
     draw_list = std::make_unique<GizmoDrawList>(render_device);
+
+    // 1x1 R32_UINT pick 텍스처
+    constexpr SDL_GPUTextureCreateInfo tex_info = {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
+        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+        .width = 1,
+        .height = 1,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    };
+    pick_texture = SDL_CreateGPUTexture(raw_device, &tex_info);
+
+    // 4바이트 download transfer buffer
+    constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+        .size = sizeof(uint32),
+    };
+    pick_download_buffer = SDL_CreateGPUTransferBuffer(raw_device, &tb_info);
+
     return true;
 }
 
 void GizmoSubsystem::Release()
 {
+    if (pick_download_buffer)
+    {
+        SDL_ReleaseGPUTransferBuffer(raw_device, pick_download_buffer);
+        pick_download_buffer = nullptr;
+    }
+    if (pick_texture)
+    {
+        SDL_ReleaseGPUTexture(raw_device, pick_texture);
+        pick_texture = nullptr;
+    }
     draw_list.reset();
 }
 
@@ -75,5 +108,61 @@ void GizmoSubsystem::DrawGizmos()
 
     renderer.SetMode(vp_info->gizmo_mode);
     renderer.Draw(*draw_list, rotation);
+}
+
+void GizmoSubsystem::PerformPick()
+{
+    if (!raw_device || !pick_texture || !pick_download_buffer)
+    {
+        return;
+    }
+
+    if (draw_list->GetLineVertexCount() == 0 && draw_list->GetTriangleVertexCount() == 0)
+    {
+        hovered_axis = EGizmoAxis::None;
+        return;
+    }
+
+    // pick 텍스처 -> download transfer buffer 복사
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(raw_device);
+    if (!cmd)
+    {
+        return;
+    }
+
+    SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
+    {
+        const SDL_GPUTextureRegion src = {
+            .texture = pick_texture,
+            .w = 1, .h = 1, .d = 1,
+        };
+        const SDL_GPUTextureTransferInfo dst = {
+            .transfer_buffer = pick_download_buffer,
+            .offset = 0,
+        };
+        SDL_DownloadFromGPUTexture(copy, &src, &dst);
+    }
+    SDL_EndGPUCopyPass(copy);
+
+    // Submit + fence 대기
+    SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmd);
+    SDL_WaitForGPUFences(raw_device, true, &fence, 1);
+    SDL_ReleaseGPUFence(raw_device, fence);
+
+    // Transfer buffer 매핑하여 pick ID 읽기
+    uint32 pick_id = 0;
+    if (const void* data = SDL_MapGPUTransferBuffer(raw_device, pick_download_buffer, false))
+    {
+        pick_id = *static_cast<const uint32*>(data);
+        SDL_UnmapGPUTransferBuffer(raw_device, pick_download_buffer);
+    }
+
+    hovered_axis = GizmoRenderer::DecodePickID(pick_id);
+    renderer.SetHighlightAxis(hovered_axis);
+}
+
+SDL_GPUTexture* GizmoSubsystem::GetPickTexture() const
+{
+    return pick_texture;
 }
 } // namespace se::editor

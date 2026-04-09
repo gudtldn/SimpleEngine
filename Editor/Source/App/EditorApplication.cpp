@@ -5,6 +5,7 @@
 #include "Graphics/EditorUIPass.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/Gizmo/GizmoPass.h"
+#include "SimpleEditor/Gizmo/GizmoPickPass.h"
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
@@ -236,6 +237,21 @@ void EditorApplication::Render()
                             builder.AddPass<GizmoPass>(
                                 gizmo_subsystem->GetDrawList(), render_view, color_handle, depth_handle
                             );
+
+                            // 호버된 뷰포트에서만 GPU Color Picking 패스 실행
+                            if (
+                                state.is_hovered
+                                && !viewport_subsystem.IsAnyCameraActive()
+                                && gizmo_subsystem->GetPickTexture()
+                            )
+                            {
+                                const se::graphics::RGTextureHandle pick_handle =
+                                    builder.ImportTexture("GizmoPickTarget", gizmo_subsystem->GetPickTexture());
+
+                                builder.AddPass<GizmoPickPass>(
+                                    gizmo_subsystem->GetDrawList(), render_view, pick_handle, state.cursor_viewport_pos
+                                );
+                            }
                         }
                     }
                 }
@@ -245,6 +261,12 @@ void EditorApplication::Render()
             builder.AddPass<EditorUIPass>(swapchain_handle, std::move(viewport_color_handles));
         }
     );
+
+    // GPU Readback: pick 텍스처에서 hovered axis 판정
+    if (gizmo_subsystem)
+    {
+        gizmo_subsystem->PerformPick();
+    }
 }
 
 // TODO: 장기적으로 RenderGraph의 Transfer Pass로 통합 예정
