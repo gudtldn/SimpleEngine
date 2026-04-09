@@ -1,4 +1,4 @@
-// Gizmo Shader (depth test OFF, 항상 씬 위에 렌더링)
+// Gizmo Pick Shader
 
 #pragma se_shader vertex VSMain
 #pragma se_shader fragment PSMain
@@ -16,16 +16,16 @@ struct VertexInput
     float3 position : POSITION;
 
     // C++: location 1 (LinearColor color)
-    float4 color : COLOR;
+    float4 color : COLOR; // Gizmo Pick Shader에서는 무시
 
     // C++: location 2 (Pick ID)
-    uint pick_id : TEXCOORD0; // Gizmo Shader에서는 무시
+    uint pick_id : TEXCOORD0;
 };
 
 struct VertexOutput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
+    nointerpolation uint pick_id : TEXCOORD0;
 };
 
 VertexOutput VSMain(VertexInput input)
@@ -33,11 +33,11 @@ VertexOutput VSMain(VertexInput input)
     VertexOutput output;
     float3 world_pos = GizmoCenter + input.position * ScreenScale;
     output.position = mul(VP, float4(world_pos, 1.0f));
-    output.color = input.color;
+    output.pick_id = input.pick_id;
     return output;
 }
 
-float4 PSMain(VertexOutput input) : SV_TARGET
+uint PSMain(VertexOutput input) : SV_TARGET
 {
-    return input.color;
+    return input.pick_id;
 }

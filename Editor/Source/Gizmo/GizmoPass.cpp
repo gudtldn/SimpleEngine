@@ -93,6 +93,12 @@ void GizmoPass::Execute(RGExecutionContext& context)
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
             .offset = offsetof(GizmoVertex, color),
         },
+        {
+            .location = 2,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT,
+            .offset = offsetof(GizmoVertex, pick_id),
+        },
     };
 
     SDL_GPUColorTargetDescription color_target_desc[] = {
