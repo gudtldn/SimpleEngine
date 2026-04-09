@@ -1,10 +1,10 @@
 ﻿#include "SimpleEditor/Gizmo/GizmoDrawList.h"
 
-#include <memory>
-
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Logging/LogLevel.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
+
+#include <memory>
 
 
 namespace se::editor
@@ -18,7 +18,7 @@ GizmoDrawList::GizmoDrawList(graphics::RenderDevice& in_device)
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = line_vertex_size,
     });
-    SE_ASSERT(device->IsValidBuffer(line_vertex_buffer_rid));
+    SE_ASSERT_RELEASE(device->IsValidBuffer(line_vertex_buffer_rid));
 
     // 삼각형 정점 버퍼 생성 (TRIANGLELIST용, 삼각형 1개 = 정점 3개)
     constexpr uint32 triangle_vertex_size = sizeof(GizmoVertex) * MAX_TRIANGLES * 3;
@@ -26,7 +26,7 @@ GizmoDrawList::GizmoDrawList(graphics::RenderDevice& in_device)
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = triangle_vertex_size,
     });
-    SE_ASSERT(device->IsValidBuffer(triangle_vertex_buffer_rid));
+    SE_ASSERT_RELEASE(device->IsValidBuffer(triangle_vertex_buffer_rid));
 
     // 전송 버퍼: 라인/삼각형 중 큰 쪽 크기로 할당 (순차 재사용)
     constexpr SDL_GPUTransferBufferCreateInfo create_info = {
@@ -34,7 +34,7 @@ GizmoDrawList::GizmoDrawList(graphics::RenderDevice& in_device)
         .size = std::max(line_vertex_size, triangle_vertex_size),
     };
     transfer_buffer = SDL_CreateGPUTransferBuffer(device->GetRawDevice(), &create_info);
-    SE_ASSERT(transfer_buffer);
+    SE_ASSERT_RELEASE(transfer_buffer);
 }
 
 GizmoDrawList::~GizmoDrawList()
