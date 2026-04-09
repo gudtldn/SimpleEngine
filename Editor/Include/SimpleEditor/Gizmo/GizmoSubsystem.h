@@ -59,9 +59,9 @@ private:
     GizmoRenderer renderer;
 
     // GPU Color Picking 리소스
-    SDL_GPUDevice* raw_device = nullptr;
-    SDL_GPUTexture* pick_texture = nullptr;                // 1x1 R32_UINT
+    graphics::RenderDevice* render_device = nullptr;
     SDL_GPUTransferBuffer* pick_download_buffer = nullptr; // 4바이트 DOWNLOAD용
+    graphics::RID pick_texture_rid = {};                   // 1x1 R32_UINT
     EGizmoAxis hovered_axis = EGizmoAxis::None;
 };
 } // namespace se::editor
