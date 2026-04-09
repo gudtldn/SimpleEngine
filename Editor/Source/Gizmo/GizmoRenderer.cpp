@@ -158,8 +158,8 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot, const
     // 3축: X(Right), Y(Forward), Z(Up)
     // 각 축의 ring은 나머지 두 축(Axis0, Axis1)이 이루는 평면에 놓임
     // Axis0 = ring의 0도 방향, Axis1 = ring의 90도 방향
-    constexpr int32 AXIS_0_IDX[3] = { 1, 2, 0 }; // X ring -> Axis0=Y, Y ring -> Axis0=Z, Z ring -> Axis0=X
-    constexpr int32 AXIS_1_IDX[3] = { 2, 0, 1 }; // X ring -> Axis1=Z, Y ring -> Axis1=X, Z ring -> Axis1=Y
+    constexpr usize AXIS_0_IDX[3] = { 1, 2, 0 }; // X ring -> Axis0=Y, Y ring -> Axis0=Z, Z ring -> Axis0=X
+    constexpr usize AXIS_1_IDX[3] = { 2, 0, 1 }; // X ring -> Axis1=Z, Y ring -> Axis1=X, Z ring -> Axis1=Y
     constexpr EGizmoAxis axis_ids[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
 
     const Vector3 axes[3] = {
@@ -168,7 +168,7 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot, const
         rot.GetUpVector()
     };
 
-    for (int32 i = 0; i < 3; ++i)
+    for (usize i = 0; i < 3; ++i)
     {
         const LinearColor color = GetAxisColor(axis_ids[i]);
         const Vector3& axis0 = axes[AXIS_0_IDX[i]];
@@ -199,7 +199,7 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
     };
     constexpr EGizmoAxis axis_ids[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
 
-    for (int32 i = 0; i < 3; ++i)
+    for (usize i = 0; i < 3; ++i)
     {
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(axis_ids[i]);
