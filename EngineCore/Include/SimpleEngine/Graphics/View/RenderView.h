@@ -23,5 +23,35 @@ struct RenderView
 
     ERenderingMode rendering_mode = ERenderingMode::Lit;
     ShowFlags show_flags = EShowFlag::All;
+
+public:
+    /**
+     * 2D 픽셀 좌표를 기반으로 카메라 원점에서 씬으로 쏘는 3D Ray를 생성합니다. (Screen -> NDC -> Deproject)
+     * @param in_cursor_pos 뷰포트 로컬 좌표 (좌상단 원점, px)
+     * @return 카메라 위치에서 커서 방향으로 쏘는 정규화된 Ray
+     */
+    [[nodiscard]] Ray DeprojectToRay(const Vector2f& in_cursor_pos) const
+    {
+        // Screen (Pixel) -> NDC 변환
+        const double ndc_x = 2.0 * static_cast<double>(in_cursor_pos.x) / static_cast<double>(width) - 1.0;
+        const double ndc_y = 1.0 - 2.0 * static_cast<double>(in_cursor_pos.y) / static_cast<double>(height);
+
+        // 카메라 원점(Ray Origin) 추출
+        const Matrix4x4 inv_view = view_matrix.Inverse();
+        const Vector3 camera_pos = Vector3{ inv_view[3, 0], inv_view[3, 1], inv_view[3, 2] };
+
+        // NDC 공간의 Near 평면(Z=0) 상의 한 점을 Deprojection하여 월드 좌표를 계산
+        const Vector4 near_clip = Vector4{ ndc_x, ndc_y, 0.0, 1.0 };
+        const Matrix4x4 inv_vp = (view_matrix * projection_matrix).Inverse();
+
+        // Row-vector 연산: p' = p * M
+        Vector4 world_near = near_clip * inv_vp;
+        world_near = world_near / world_near.w; // 원근 투영 보정(Perspective Divide)
+
+        const Vector3 world_point = Vector3{ world_near.x, world_near.y, world_near.z };
+        const Vector3 direction = (world_point - camera_pos).GetNormalized();
+
+        return Ray{ camera_pos, direction };
+    }
 };
 } // namespace se::graphics
