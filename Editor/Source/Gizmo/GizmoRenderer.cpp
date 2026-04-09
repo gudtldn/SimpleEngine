@@ -299,14 +299,14 @@ void GizmoRenderer::BuildSolidCube(
     };
 
     // 6개의 면 정의 (반시계 방향으로 꼭짓점 인덱스 정렬)
-    struct Face { int32 i0, i1, i2, i3; Vector3 normal; };
+    struct Face { int32 i0, i1, i2, i3; };
     const Face faces[6] = {
-        { 1, 2, 6, 5,  right   },  // +X
-        { 3, 0, 4, 7, -right   },  // -X
-        { 2, 3, 7, 6,  forward },  // +Y
-        { 0, 1, 5, 4, -forward },  // -Y
-        { 4, 5, 6, 7,  up      },  // +Z
-        { 0, 3, 2, 1, -up      },  // -Z
+        { 1, 2, 6, 5 },  // +X
+        { 3, 0, 4, 7 },  // -X
+        { 2, 3, 7, 6 },  // +Y
+        { 0, 1, 5, 4 },  // -Y
+        { 4, 5, 6, 7 },  // +Z
+        { 0, 3, 2, 1 },  // -Z
     };
 
     for (const Face& face : faces)
