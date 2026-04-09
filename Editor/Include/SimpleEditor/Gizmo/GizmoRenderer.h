@@ -44,6 +44,23 @@ public:
      */
     [[nodiscard]] static double ComputeScreenScale(const Vector3& position, const graphics::RenderView& view);
 
+    /** EGizmoAxis를 GPU 피킹 버퍼에 전달할 정수 ID로 인코딩합니다. */
+    static constexpr uint32 EncodePickID(EGizmoAxis axis)
+    {
+        return static_cast<uint32>(axis);
+    }
+
+    /** GPU 피킹으로 읽어온 정수 ID를 EGizmoAxis로 디코딩합니다. */
+    static constexpr EGizmoAxis DecodePickID(uint32 pick_id)
+    {
+        // 열거형 범위를 벗어나는 값이 들어오면 None으로 처리
+        if (pick_id > static_cast<uint32>(EGizmoAxis::All))
+        {
+            return EGizmoAxis::None;
+        }
+        return static_cast<EGizmoAxis>(pick_id);
+    }
+
 private:
     void DrawTranslate(GizmoDrawList& list, const Quaternion& rot);
     void DrawRotate(GizmoDrawList& list, const Quaternion& rot, const Vector3& direction_to_widget);

@@ -14,7 +14,7 @@ using namespace se::math;
 namespace
 {
 // Vector3(double) -> Vector3f(float) 축소 변환
-Vector3f ToVector3f(const Vector3& v)
+[[nodiscard]] Vector3f ToVector3f(const Vector3& v)
 {
     return { static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z) };
 }
@@ -74,25 +74,6 @@ double GizmoRenderer::ComputeScreenScale(const Vector3& position, const graphics
     return distance / proj_11 * GIZMO_SCREEN_RATIO;
 }
 
-LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
-{
-    if (axis == highlight_axis) { return LinearColor::Yellow(); }
-
-    // NOLINTBEGIN(*-branch-clone)
-    switch (axis)
-    {
-    case EGizmoAxis::X:  return LinearColor::Red();
-    case EGizmoAxis::Y:  return LinearColor::Green();
-    case EGizmoAxis::Z:  return LinearColor::Blue();
-
-    case EGizmoAxis::XY: return LinearColor::Blue();  // XY 평면의 수직축 = Z
-    case EGizmoAxis::XZ: return LinearColor::Green(); // XZ 평면의 수직축 = Y
-    case EGizmoAxis::YZ: return LinearColor::Red();   // YZ 평면의 수직축 = X
-    default:             return LinearColor::White();
-    }
-    // NOLINTEND(*-branch-clone)
-}
-
 void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
 {
     const Vector3 axes[3] = {
@@ -109,6 +90,9 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
 
         constexpr double BODY_LENGTH = AXIS_LENGTH - TRANSLATE_HEAD_LENGTH;
 
+        // Pick ID 설정
+        list.SetPickId(EncodePickID(axis_ids[i]));
+
         // 솔리드 실린더 몸통
         BuildSolidCylinder(list, Vector3::Zero(), axis, AXIS_BODY_RADIUS, BODY_LENGTH, color, AXIS_SEGMENTS);
 
@@ -118,6 +102,7 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
     }
 
     // 기준점 구체
+    list.SetPickId(EncodePickID(EGizmoAxis::All));
     BuildSolidSphere(list, Vector3::Zero(), ORIGIN_SPHERE_RADIUS, GetAxisColor(EGizmoAxis::All), SPHERE_RINGS, SPHERE_SECTORS);
 
     // XY/XZ/YZ 평면 핸들 (채운 쿼드)
@@ -140,6 +125,7 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
         const Vector3 edge1  = axes[a0] * OFFSET + axes[a1] * (OFFSET - LENGTH);
         const Vector3 inner  = axes[a0] * (OFFSET - LENGTH) + axes[a1] * (OFFSET - LENGTH);
 
+        list.SetPickId(EncodePickID(plane_axis));
         list.AddTriangle(
             { .position = ToVector3f(inner),  .color = color },
             { .position = ToVector3f(edge0),  .color = color },
@@ -180,6 +166,9 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot, const
         const Vector3 render_axis0 = mirror_axis0 ? axis0 : -axis0;
         const Vector3 render_axis1 = mirror_axis1 ? axis1 : -axis1;
 
+        // Pick ID 설정
+        list.SetPickId(EncodePickID(axis_ids[i]));
+
         BuildThickArc(
             list, Vector3::Zero(),
             render_axis0, render_axis1,
@@ -204,6 +193,9 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(axis_ids[i]);
 
+        // Pick ID 설정
+        list.SetPickId(EncodePickID(axis_ids[i]));
+
         // 솔리드 실린더 몸통
         BuildSolidCylinder(list, Vector3::Zero(), axis, AXIS_BODY_RADIUS, AXIS_LENGTH, color, AXIS_SEGMENTS);
 
@@ -214,7 +206,27 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
 
     // 중앙 큐브 (전체 균등 스케일)
     const LinearColor center_color = GetAxisColor(EGizmoAxis::All);
+    list.SetPickId(EncodePickID(EGizmoAxis::All));
     BuildSolidCube(list, Vector3::Zero(), SCALE_CUBE_HALF * 0.8, axes[0], axes[2], axes[1], center_color);
+}
+
+LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
+{
+    if (axis == highlight_axis) { return LinearColor::Yellow(); }
+
+    // NOLINTBEGIN(*-branch-clone)
+    switch (axis)
+    {
+    case EGizmoAxis::X:  return LinearColor::Red();
+    case EGizmoAxis::Y:  return LinearColor::Green();
+    case EGizmoAxis::Z:  return LinearColor::Blue();
+
+    case EGizmoAxis::XY: return LinearColor::Blue();  // XY 평면의 수직축 = Z
+    case EGizmoAxis::XZ: return LinearColor::Green(); // XZ 평면의 수직축 = Y
+    case EGizmoAxis::YZ: return LinearColor::Red();   // YZ 평면의 수직축 = X
+    default:             return LinearColor::White();
+    }
+    // NOLINTEND(*-branch-clone)
 }
 
 void GizmoRenderer::BuildSolidCylinder(
@@ -290,25 +302,25 @@ void GizmoRenderer::BuildSolidCube(
 {
     // 큐브를 구성하는 8개의 로컬 꼭짓점 계산
     const Vector3 corners[8] = {
-        center + (-right - forward - up) * half_extent,  // 0: 좌하단 후면
-        center + ( right - forward - up) * half_extent,  // 1: 우하단 후면
-        center + ( right + forward - up) * half_extent,  // 2: 우하단 전면
-        center + (-right + forward - up) * half_extent,  // 3: 좌하단 전면
-        center + (-right - forward + up) * half_extent,  // 4: 좌상단 후면
-        center + ( right - forward + up) * half_extent,  // 5: 우상단 후면
-        center + ( right + forward + up) * half_extent,  // 6: 우상단 전면
-        center + (-right + forward + up) * half_extent,  // 7: 좌상단 전면
+        center + (-right - forward - up) * half_extent, // 0: 좌하단 후면
+        center + ( right - forward - up) * half_extent, // 1: 우하단 후면
+        center + ( right + forward - up) * half_extent, // 2: 우하단 전면
+        center + (-right + forward - up) * half_extent, // 3: 좌하단 전면
+        center + (-right - forward + up) * half_extent, // 4: 좌상단 후면
+        center + ( right - forward + up) * half_extent, // 5: 우상단 후면
+        center + ( right + forward + up) * half_extent, // 6: 우상단 전면
+        center + (-right + forward + up) * half_extent, // 7: 좌상단 전면
     };
 
     // 6개의 면 정의 (반시계 방향으로 꼭짓점 인덱스 정렬)
     struct Face { int32 i0, i1, i2, i3; };
     const Face faces[6] = {
-        { 1, 2, 6, 5 },  // +X
-        { 3, 0, 4, 7 },  // -X
-        { 2, 3, 7, 6 },  // +Y
-        { 0, 1, 5, 4 },  // -Y
-        { 4, 5, 6, 7 },  // +Z
-        { 0, 3, 2, 1 },  // -Z
+        { 1, 2, 6, 5 }, // +X
+        { 3, 0, 4, 7 }, // -X
+        { 2, 3, 7, 6 }, // +Y
+        { 0, 1, 5, 4 }, // -Y
+        { 4, 5, 6, 7 }, // +Z
+        { 0, 3, 2, 1 }, // -Z
     };
 
     for (const Face& face : faces)
