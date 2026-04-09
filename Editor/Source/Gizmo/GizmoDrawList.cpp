@@ -5,6 +5,7 @@
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 #include <memory>
+#include <utility>
 
 
 namespace se::editor
@@ -65,12 +66,24 @@ void GizmoDrawList::Clear()
 
 void GizmoDrawList::AddLine(const GizmoVertex& v0, const GizmoVertex& v1)
 {
+    // line_vertices.Len() >= MAX_LINES * 2
+    if (std::cmp_greater_equal(line_vertices.Len(), MAX_LINES * 2))
+    {
+        return;
+    }
+
     line_vertices.Push(v0);
     line_vertices.Push(v1);
 }
 
 void GizmoDrawList::AddTriangle(const GizmoVertex& v0, const GizmoVertex& v1, const GizmoVertex& v2)
 {
+    // triangle_vertices.Len() >= MAX_TRIANGLES * 3
+    if (std::cmp_greater_equal(triangle_vertices.Len(), MAX_TRIANGLES * 3))
+    {
+        return;
+    }
+
     triangle_vertices.Push(v0);
     triangle_vertices.Push(v1);
     triangle_vertices.Push(v2);
