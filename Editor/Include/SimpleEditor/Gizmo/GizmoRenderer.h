@@ -46,7 +46,7 @@ public:
 
 private:
     void DrawTranslate(GizmoDrawList& list, const Quaternion& rot);
-    void DrawRotate(GizmoDrawList& list, const Quaternion& rot);
+    void DrawRotate(GizmoDrawList& list, const Quaternion& rot, const Vector3& direction_to_widget);
     void DrawScale(GizmoDrawList& list, const Quaternion& rot);
 
     /**
@@ -114,6 +114,26 @@ private:
         int32 rings, int32 sectors
     );
 
+    /**
+     * 내부/외부 반지름 사이를 채운 Thick Arc를 삼각형으로 조립합니다. (Rotation quarter-ring용)
+     * @param center 링 중심 (기즈모 로컬 좌표)
+     * @param axis0 0도 방향 벡터 (정규화 필요)
+     * @param axis1 90도 방향 벡터 (정규화 필요)
+     * @param start_angle 시작 각도 (라디안)
+     * @param end_angle 끝 각도 (라디안)
+     * @param inner_radius 내부 반지름
+     * @param outer_radius 외부 반지름
+     * @param segments 분할 수
+     * @param color 기본 색상
+     */
+    static void BuildThickArc(
+        GizmoDrawList& list, const Vector3& center,
+        const Vector3& axis0, const Vector3& axis1,
+        Radian<double> start_angle, Radian<double> end_angle,
+        double inner_radius, double outer_radius,
+        int32 segments, const LinearColor& color
+    );
+
 private:
     EGizmoMode mode = EGizmoMode::Translate;
     EGizmoAxis highlight_axis = EGizmoAxis::None;
@@ -121,29 +141,30 @@ private:
     // TODO: 아래 내용 설정파일이나, 에디터에서 조작할 수 있도록 수정
 
     // 기즈모가 화면 높이 대비 차지하는 비율 (FOV 무관하게 일정한 크기를 위함)
-    static constexpr double GIZMO_SCREEN_RATIO = 0.28f;
+    static constexpr double GIZMO_SCREEN_RATIO = 0.28;
 
     // 공통 축 파라미터 (Translate/Scale 몸통 실린더 공유)
-    static constexpr double AXIS_LENGTH = 1.0f;
-    static constexpr double AXIS_BODY_RADIUS = 0.025f;
+    static constexpr double AXIS_LENGTH = 1.0;
+    static constexpr double AXIS_BODY_RADIUS = 0.025;
     static constexpr int32 AXIS_SEGMENTS = 12;
 
     // Translate 모드
-    static constexpr double TRANSLATE_HEAD_RADIUS = 0.07f;
-    static constexpr double TRANSLATE_HEAD_LENGTH = 0.2f;
-    static constexpr double ORIGIN_SPHERE_RADIUS = 0.06f;
+    static constexpr double TRANSLATE_HEAD_RADIUS = 0.07;
+    static constexpr double TRANSLATE_HEAD_LENGTH = 0.2;
+    static constexpr double ORIGIN_SPHERE_RADIUS = 0.06;
     static constexpr int32 SPHERE_RINGS = 6;
     static constexpr int32 SPHERE_SECTORS = 8;
 
     // Rotate 모드
-    static constexpr double CIRCLE_RADIUS = 1.0f;
-    static constexpr int32 CIRCLE_SEGMENTS = 64;
+    static constexpr double RING_OUTER_RADIUS = 1.0;
+    static constexpr double RING_INNER_RADIUS = 0.8;
+    static constexpr int32 RING_SEGMENTS = 32;
 
     // Scale 모드
-    static constexpr double SCALE_CUBE_HALF = 0.05f;
+    static constexpr double SCALE_CUBE_HALF = 0.05;
 
     // 평면 핸들 (XY/XZ/YZ 꺾쇠)
-    static constexpr double PLANE_HANDLE_OFFSET = 0.35f;
-    static constexpr double PLANE_HANDLE_LENGTH = 0.15f;
+    static constexpr double PLANE_HANDLE_OFFSET = 0.35;
+    static constexpr double PLANE_HANDLE_LENGTH = 0.15;
 };
 } // namespace se::editor

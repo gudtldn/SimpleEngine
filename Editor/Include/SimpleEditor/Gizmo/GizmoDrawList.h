@@ -77,10 +77,15 @@ public:
     FORCE_INLINE void SetCenter(const Vector3& in_center) { center = in_center; }
     [[nodiscard]] FORCE_INLINE const Vector3& GetCenter() const { return center; }
 
+    /** 포커스 뷰포트의 카메라 -> 기즈모 방향 (Rotation quarter-ring용, 프레임별 갱신) */
+    FORCE_INLINE void SetDirectionToWidget(const Vector3& in_dir) { direction_to_widget = in_dir; }
+    [[nodiscard]] FORCE_INLINE const Vector3& GetDirectionToWidget() const { return direction_to_widget; }
+
 private:
-    Array<GizmoVertex> line_vertices;     // CPU 측 라인 정점 (매 프레임 재구축)
-    Array<GizmoVertex> triangle_vertices; // CPU 측 삼각형 정점 (매 프레임 재구축)
-    Vector3 center = Vector3::Zero();     // 기즈모 월드 중심 (매 프레임 재구축)
+    Array<GizmoVertex> line_vertices;                 // CPU 측 라인 정점 (매 프레임 재구축)
+    Array<GizmoVertex> triangle_vertices;             // CPU 측 삼각형 정점 (매 프레임 재구축)
+    Vector3 center = Vector3::Zero();                 // 기즈모 월드 중심 (매 프레임 재구축)
+    Vector3 direction_to_widget = Vector3::Forward(); // 카메라 -> 기즈모 방향 (매 프레임 재구축)
 
     graphics::RenderDevice* device = nullptr;
     SDL_GPUTransferBuffer* transfer_buffer = nullptr; // CPU->GPU 전송용 (라인/삼각형 공유, max 크기)
