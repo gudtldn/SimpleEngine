@@ -32,6 +32,7 @@ public:
 
     /** 렌더 그래프에 커러/뎁스 타겟을 등록하고, 파이프라인 2개(LINELIST + TRIANGLELIST)를 생성합니다 */
     virtual void Setup(graphics::RGSetupContext& context) override;
+
     /** 2회 드로우(LINELIST + TRIANGLELIST)를 발행하여 기즈모를 렌더링합니다 */
     virtual void Execute(graphics::RGExecutionContext& context) override;
 

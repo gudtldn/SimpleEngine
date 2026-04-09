@@ -42,14 +42,12 @@ public:
      * @param view 카메라 투영 정보
      * @return 기즈모에 적용할 월드 공간 스케일
      */
-    [[nodiscard]] static float ComputeScreenScale(const Vector3& position, const graphics::RenderView& view);
+    [[nodiscard]] static double ComputeScreenScale(const Vector3& position, const graphics::RenderView& view);
 
 private:
     void DrawTranslate(GizmoDrawList& list, const Quaternion& rot);
     void DrawRotate(GizmoDrawList& list, const Quaternion& rot);
     void DrawScale(GizmoDrawList& list, const Quaternion& rot);
-
-    // -- 유틸리티 --
 
     /**
      * 하이라이트 상태를 고려하여 축의 색상을 반환합니다.
@@ -58,20 +56,19 @@ private:
      */
     [[nodiscard]] LinearColor GetAxisColor(EGizmoAxis axis) const;
 
-    // -- 솔리드 프리미티브 빌더 --
-
+private:
     /**
      * 솔리드 실린더를 삼각형으로 조립합니다. (Translate 화살표 몸통용)
      * @param base_center 실린더 밑면 중심 (월드 좌표)
      * @param axis_dir 실린더 축 방향 (정규화 필요)
      * @param radius 실린더 반지름
      * @param height 실린더 높이
-     * @param color 기본 색상 (면별 음영 적용됨)
+     * @param color 기본 색상
      * @param segments 원 분할 수
      */
     static void BuildSolidCylinder(
         GizmoDrawList& list, const Vector3& base_center, const Vector3& axis_dir,
-        float radius, float height, const LinearColor& color, int32 segments
+        double radius, double height, const LinearColor& color, int32 segments
     );
 
     /**
@@ -80,12 +77,12 @@ private:
      * @param axis_dir 원뿔 축 방향 (정규화 필요)
      * @param radius 원뿔 밑면 반지름
      * @param height 원뿔 높이
-     * @param color 기본 색상 (면별 음영 적용됨)
+     * @param color 기본 색상
      * @param segments 원 분할 수
      */
     static void BuildSolidCone(
         GizmoDrawList& list, const Vector3& base_center, const Vector3& axis_dir,
-        float radius, float height, const LinearColor& color, int32 segments
+        double radius, double height, const LinearColor& color, int32 segments
     );
 
     /**
@@ -95,10 +92,10 @@ private:
      * @param right 큐브 로컬 X축
      * @param up 큐브 로컬 Z축
      * @param forward 큐브 로컬 Y축
-     * @param color 기본 색상 (면별 음영 적용됨)
+     * @param color 기본 색상
      */
     static void BuildSolidCube(
-        GizmoDrawList& list, const Vector3& center, float half_extent,
+        GizmoDrawList& list, const Vector3& center, double half_extent,
         const Vector3& right, const Vector3& up, const Vector3& forward,
         const LinearColor& color
     );
@@ -113,7 +110,7 @@ private:
      */
     static void BuildSolidSphere(
         GizmoDrawList& list, const Vector3& center,
-        float radius, const LinearColor& color,
+        double radius, const LinearColor& color,
         int32 rings, int32 sectors
     );
 
@@ -124,29 +121,29 @@ private:
     // TODO: 아래 내용 설정파일이나, 에디터에서 조작할 수 있도록 수정
 
     // 기즈모가 화면 높이 대비 차지하는 비율 (FOV 무관하게 일정한 크기를 위함)
-    static constexpr float GIZMO_SCREEN_RATIO = 0.28f;
+    static constexpr double GIZMO_SCREEN_RATIO = 0.28f;
 
     // 공통 축 파라미터 (Translate/Scale 몸통 실린더 공유)
-    static constexpr float AXIS_LENGTH = 1.0f;
-    static constexpr float AXIS_BODY_RADIUS = 0.025f;
+    static constexpr double AXIS_LENGTH = 1.0f;
+    static constexpr double AXIS_BODY_RADIUS = 0.025f;
     static constexpr int32 AXIS_SEGMENTS = 12;
 
     // Translate 모드
-    static constexpr float TRANSLATE_HEAD_RADIUS = 0.07f;
-    static constexpr float TRANSLATE_HEAD_LENGTH = 0.2f;
-    static constexpr float ORIGIN_SPHERE_RADIUS = 0.06f;
+    static constexpr double TRANSLATE_HEAD_RADIUS = 0.07f;
+    static constexpr double TRANSLATE_HEAD_LENGTH = 0.2f;
+    static constexpr double ORIGIN_SPHERE_RADIUS = 0.06f;
     static constexpr int32 SPHERE_RINGS = 6;
     static constexpr int32 SPHERE_SECTORS = 8;
 
     // Rotate 모드
-    static constexpr float CIRCLE_RADIUS = 1.0f;
+    static constexpr double CIRCLE_RADIUS = 1.0f;
     static constexpr int32 CIRCLE_SEGMENTS = 64;
 
     // Scale 모드
-    static constexpr float SCALE_CUBE_HALF = 0.05f;
+    static constexpr double SCALE_CUBE_HALF = 0.05f;
 
     // 평면 핸들 (XY/XZ/YZ 꺾쇠)
-    static constexpr float PLANE_HANDLE_OFFSET = 0.35f;
-    static constexpr float PLANE_HANDLE_LENGTH = 0.15f;
+    static constexpr double PLANE_HANDLE_OFFSET = 0.35f;
+    static constexpr double PLANE_HANDLE_LENGTH = 0.15f;
 };
 } // namespace se::editor
