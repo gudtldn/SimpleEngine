@@ -1,5 +1,6 @@
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 
+#include "SimpleEditor/Camera/EditorCameraState.h"
 #include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
@@ -63,6 +64,11 @@ void GizmoSubsystem::DrawGizmos()
     }
 
     draw_list->SetCenter(math::TransformUtility::DecomposeTranslation(global_tf->value));
+
+    const EditorCameraState& camera = vp_info->GetActiveCamera();
+    const Vector3 direction_to_widget = (draw_list->GetCenter() - camera.position).GetNormalized();
+    draw_list->SetDirectionToWidget(direction_to_widget);
+
     const Quaternion rotation = (vp_info->coordinate_space == ECoordinateSpace::Local)
         ? math::TransformUtility::DecomposeRotation(global_tf->value)
         : Quaternion::Identity();
