@@ -22,10 +22,8 @@ SE_END_REFLECT(GizmoSubsystem)
 
 bool GizmoSubsystem::Initialize()
 {
-    graphics::RenderDevice& render_device = GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
-    raw_device = render_device.GetRawDevice();
-
-    draw_list = std::make_unique<GizmoDrawList>(render_device);
+    render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
+    draw_list = std::make_unique<GizmoDrawList>(*render_device);
 
     // 1x1 R32_UINT pick 텍스처
     constexpr SDL_GPUTextureCreateInfo tex_info = {
@@ -38,14 +36,16 @@ bool GizmoSubsystem::Initialize()
         .num_levels = 1,
         .sample_count = SDL_GPU_SAMPLECOUNT_1,
     };
-    pick_texture = SDL_CreateGPUTexture(raw_device, &tex_info);
+    pick_texture_rid = render_device->CreateTexture(tex_info);
+    SE_ASSERT_RELEASE(render_device->IsValidTexture(pick_texture_rid));
 
     // 4바이트 download transfer buffer
     constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
         .size = sizeof(uint32),
     };
-    pick_download_buffer = SDL_CreateGPUTransferBuffer(raw_device, &tb_info);
+    pick_download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &tb_info);
+    SE_ASSERT_RELEASE(pick_download_buffer);
 
     return true;
 }
@@ -54,13 +54,11 @@ void GizmoSubsystem::Release()
 {
     if (pick_download_buffer)
     {
-        SDL_ReleaseGPUTransferBuffer(raw_device, pick_download_buffer);
-        pick_download_buffer = nullptr;
+        SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), std::exchange(pick_download_buffer, nullptr));
     }
-    if (pick_texture)
+    if (render_device->IsValidTexture(pick_texture_rid))
     {
-        SDL_ReleaseGPUTexture(raw_device, pick_texture);
-        pick_texture = nullptr;
+        render_device->DestroyTexture(std::exchange(pick_texture_rid, {}));
     }
     draw_list.reset();
 }
@@ -112,7 +110,8 @@ void GizmoSubsystem::DrawGizmos()
 
 void GizmoSubsystem::PerformPick()
 {
-    if (!raw_device || !pick_texture || !pick_download_buffer)
+
+    if (!pick_texture_rid || !pick_download_buffer)
     {
         return;
     }
@@ -124,6 +123,7 @@ void GizmoSubsystem::PerformPick()
     }
 
     // pick 텍스처 -> download transfer buffer 복사
+    SDL_GPUDevice* raw_device = render_device->GetRawDevice();
     SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(raw_device);
     if (!cmd)
     {
@@ -133,7 +133,7 @@ void GizmoSubsystem::PerformPick()
     SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
     {
         const SDL_GPUTextureRegion src = {
-            .texture = pick_texture,
+            .texture = GetPickTexture(),
             .w = 1, .h = 1, .d = 1,
         };
         const SDL_GPUTextureTransferInfo dst = {
@@ -163,6 +163,10 @@ void GizmoSubsystem::PerformPick()
 
 SDL_GPUTexture* GizmoSubsystem::GetPickTexture() const
 {
-    return pick_texture;
+    if (const auto resource = render_device->GetTexture(pick_texture_rid))
+    {
+        return resource->handle;
+    }
+    return nullptr;
 }
 } // namespace se::editor
