@@ -48,8 +48,20 @@ void GizmoRenderer::Draw(GizmoDrawList& draw_list, const Quaternion& rotation)
 
 float GizmoRenderer::ComputeScreenScale(const Vector3& position, const graphics::RenderView& view)
 {
-    // View Space에서의 Z값(카메라 평면으로부터의 거리)을 구하는 식
-    // 역행렬 곱 연산 전체를 수행하지 않고, View Matrix의 전방 축(Z축) 내적만 수행하여 성능을 최적화 함.
+    // 원근 투영에서 Projection[1, 1]은 (1 / tan(FOV_Y / 2))을 의미
+    const double proj_11 = view.projection_matrix[1, 1];
+    if (Abs(proj_11) < KINDA_SMALL_NUMBER) { return 0.0f; }
+
+    // 투영 행렬의 [2, 3] 성분을 확인하여 직교(0)와 원근(-1) 투영을 판별
+    const double proj_23 = view.projection_matrix[2, 3];
+    if (Abs(proj_23) < KINDA_SMALL_NUMBER)
+    {
+        // 직교 투영인 경우, 카메라와의 거리에 무관하게 가시 영역 높이에 비례한 고정 스케일을 반환
+        return static_cast<float>(GIZMO_SCREEN_RATIO / proj_11);
+    }
+
+    // 원근 투영인 경우, View Space에서의 Z값(카메라 평면으로부터의 거리)을 추출
+    // 역행렬 곱 연산 전체를 수행하지 않고, View Matrix의 전방 축(Z축) 내적만 수행하여 성능을 최적화한다.
     const double vz = (position.x * view.view_matrix[0, 2])
                     + (position.y * view.view_matrix[1, 2])
                     + (position.z * view.view_matrix[2, 2])
@@ -58,11 +70,7 @@ float GizmoRenderer::ComputeScreenScale(const Vector3& position, const graphics:
     const double distance = Abs(vz);
     if (distance < KINDA_SMALL_NUMBER) { return 0.0f; }
 
-    // 원근 투영에서 Projection[1, 1] =  (1 / tan(FOV_Y / 2))
-    // 거리(Distance)에 이 값을 나누어 FOV가 변하더라도 기즈모 크기가 일정하게 유지되도록 보정한다.
-    const double proj_11 = view.projection_matrix[1, 1];
-    if (Abs(proj_11) < KINDA_SMALL_NUMBER) { return 0.0f; }
-
+    // 거리(distance)에 proj_11 값을 나누어 FOV가 변하더라도 기즈모 크기가 일정하게 유지되도록 보정
     return static_cast<float>(distance / proj_11 * GIZMO_SCREEN_RATIO);
 }
 
