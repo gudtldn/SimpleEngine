@@ -173,7 +173,7 @@ void GizmoPass::Execute(RGExecutionContext& context)
             static_cast<float>(draw_list.GetCenter().y),
             static_cast<float>(draw_list.GetCenter().z),
         };
-        ubo.screen_scale = GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view);
+        ubo.screen_scale = static_cast<float>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
 
         SDL_PushGPUVertexUniformData(cmd, 0, &ubo, sizeof(ubo));
 
