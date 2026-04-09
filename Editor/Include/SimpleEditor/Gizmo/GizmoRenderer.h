@@ -32,11 +32,9 @@ public:
     /**
      * 현재 설정된 모드의 기즈모 형상을 조립하여 DrawList에 제출합니다.
      * @param draw_list 프리미티브를 제출할 드로우 리스트
-     * @param position 대상의 World Space 위치
      * @param rotation 대상의 World Space 회전
-     * @param view 카메라 투영 정보 (스크린 상 일정한 크기 유지를 위해 필요)
      */
-    void Draw(GizmoDrawList& draw_list, const Vector3& position, const Quaternion& rotation, const graphics::RenderView& view);
+    void Draw(GizmoDrawList& draw_list, const Quaternion& rotation);
 
     /**
      * 기즈모가 화면에서 일정한 픽셀 크기를 유지하도록 원근 보정용 Scale 값을 계산합니다.
@@ -47,9 +45,9 @@ public:
     [[nodiscard]] static float ComputeScreenScale(const Vector3& position, const graphics::RenderView& view);
 
 private:
-    void DrawTranslate(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale);
-    void DrawRotate(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale);
-    void DrawScale(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale);
+    void DrawTranslate(GizmoDrawList& list, const Quaternion& rot);
+    void DrawRotate(GizmoDrawList& list, const Quaternion& rot);
+    void DrawScale(GizmoDrawList& list, const Quaternion& rot);
 
     // -- 유틸리티 --
 

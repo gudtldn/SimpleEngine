@@ -73,9 +73,14 @@ public:
     /** 현재 수집된 삼각형 정점 수 (= 삼각형 수 * 3) */
     [[nodiscard]] FORCE_INLINE usize GetTriangleVertexCount() const { return triangle_vertices.Len(); }
 
+    /** 기즈모 월드 중심 좌표 (GPU 스케일 계산용, 프레임별 갱신) */
+    FORCE_INLINE void SetCenter(const Vector3& in_center) { center = in_center; }
+    [[nodiscard]] FORCE_INLINE const Vector3& GetCenter() const { return center; }
+
 private:
     Array<GizmoVertex> line_vertices;     // CPU 측 라인 정점 (매 프레임 재구축)
     Array<GizmoVertex> triangle_vertices; // CPU 측 삼각형 정점 (매 프레임 재구축)
+    Vector3 center = Vector3::Zero();     // 기즈모 월드 중심 (매 프레임 재구축)
 
     graphics::RenderDevice* device = nullptr;
     SDL_GPUTransferBuffer* transfer_buffer = nullptr; // CPU->GPU 전송용 (라인/삼각형 공유, max 크기)

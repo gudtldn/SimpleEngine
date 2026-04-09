@@ -62,12 +62,12 @@ void GizmoSubsystem::DrawGizmos()
         return;
     }
 
-    const Vector3 position = math::TransformUtility::DecomposeTranslation(global_tf->value);
+    draw_list->SetCenter(math::TransformUtility::DecomposeTranslation(global_tf->value));
     const Quaternion rotation = (vp_info->coordinate_space == ECoordinateSpace::Local)
         ? math::TransformUtility::DecomposeRotation(global_tf->value)
         : Quaternion::Identity();
 
     renderer.SetMode(vp_info->gizmo_mode);
-    renderer.Draw(*draw_list, position, rotation, vp_info->render_view);
+    renderer.Draw(*draw_list, rotation);
 }
 } // namespace se::editor

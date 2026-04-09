@@ -30,21 +30,18 @@ void GizmoRenderer::SetHighlightAxis(EGizmoAxis axis)
     highlight_axis = axis;
 }
 
-void GizmoRenderer::Draw(GizmoDrawList& draw_list, const Vector3& position, const Quaternion& rotation, const graphics::RenderView& view)
+void GizmoRenderer::Draw(GizmoDrawList& draw_list, const Quaternion& rotation)
 {
-    const float scale = ComputeScreenScale(position, view);
-    if (scale < KINDA_SMALL_NUMBER) { return; }
-
     switch (mode)
     {
     case EGizmoMode::Translate:
-        DrawTranslate(draw_list, position, rotation, scale);
+        DrawTranslate(draw_list, rotation);
         break;
     case EGizmoMode::Rotate:
-        DrawRotate(draw_list, position, rotation, scale);
+        DrawRotate(draw_list, rotation);
         break;
     case EGizmoMode::Scale:
-        DrawScale(draw_list, position, rotation, scale);
+        DrawScale(draw_list, rotation);
         break;
     }
 }
@@ -85,7 +82,7 @@ LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
     }
 }
 
-void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale)
+void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
 {
     const Vector3 axes[3] = {
         rot.GetRightVector(),   // X
@@ -99,19 +96,18 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Vector3& pos, const
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(axis_ids[i]);
 
-        const float body_length = (AXIS_LENGTH - TRANSLATE_HEAD_LENGTH) * scale;
-        const float head_length = TRANSLATE_HEAD_LENGTH * scale;
+        constexpr float BODY_LENGTH = AXIS_LENGTH - TRANSLATE_HEAD_LENGTH;
 
         // 솔리드 실린더 몸통
-        BuildSolidCylinder(list, pos, axis, AXIS_BODY_RADIUS * scale, body_length, color, AXIS_SEGMENTS);
+        BuildSolidCylinder(list, Vector3::Zero(), axis, AXIS_BODY_RADIUS, BODY_LENGTH, color, AXIS_SEGMENTS);
 
         // 솔리드 원뿔 머리
-        const Vector3 cone_base = pos + axis * static_cast<double>(body_length);
-        BuildSolidCone(list, cone_base, axis, TRANSLATE_HEAD_RADIUS * scale, head_length, color, AXIS_SEGMENTS);
+        const Vector3 cone_base = axis * static_cast<double>(BODY_LENGTH);
+        BuildSolidCone(list, cone_base, axis, TRANSLATE_HEAD_RADIUS, TRANSLATE_HEAD_LENGTH, color, AXIS_SEGMENTS);
     }
 
     // 기준점 구체
-    BuildSolidSphere(list, pos, ORIGIN_SPHERE_RADIUS * scale, GetAxisColor(EGizmoAxis::All), SPHERE_RINGS, SPHERE_SECTORS);
+    BuildSolidSphere(list, Vector3::Zero(), ORIGIN_SPHERE_RADIUS, GetAxisColor(EGizmoAxis::All), SPHERE_RINGS, SPHERE_SECTORS);
 
     // XY/XZ/YZ 평면 핸들 (채운 쿼드)
     struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
@@ -121,18 +117,17 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Vector3& pos, const
         { 1, 2, EGizmoAxis::YZ },
     };
 
-    const double offset = static_cast<double>(PLANE_HANDLE_OFFSET * scale);
-    const double length = static_cast<double>(PLANE_HANDLE_LENGTH * scale);
+    constexpr double OFFSET = static_cast<double>(PLANE_HANDLE_OFFSET);
+    constexpr double LENGTH = static_cast<double>(PLANE_HANDLE_LENGTH);
 
     for (const auto& [a0, a1, plane_axis] : planes)
     {
         const LinearColor color = GetAxisColor(plane_axis);
 
-        // 쿼드의 4개 꼭짓점: 꺾쇠 영역을 채운 사각형
-        const Vector3 corner = pos + axes[a0] * offset + axes[a1] * offset;
-        const Vector3 edge0  = pos + axes[a0] * (offset - length) + axes[a1] * offset;
-        const Vector3 edge1  = pos + axes[a0] * offset + axes[a1] * (offset - length);
-        const Vector3 inner  = pos + axes[a0] * (offset - length) + axes[a1] * (offset - length);
+        const Vector3 corner = axes[a0] * OFFSET + axes[a1] * OFFSET;
+        const Vector3 edge0  = axes[a0] * (OFFSET - LENGTH) + axes[a1] * OFFSET;
+        const Vector3 edge1  = axes[a0] * OFFSET + axes[a1] * (OFFSET - LENGTH);
+        const Vector3 inner  = axes[a0] * (OFFSET - LENGTH) + axes[a1] * (OFFSET - LENGTH);
 
         list.AddTriangle(
             { .position = ToVector3f(inner), .color = color },
@@ -147,7 +142,7 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Vector3& pos, const
     }
 }
 
-void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale)
+void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot)
 {
     const Vector3 axes[3] = {
         rot.GetRightVector(),
@@ -156,7 +151,7 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Vector3& pos, const Qu
     };
     constexpr EGizmoAxis axis_ids[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
 
-    const double radius = static_cast<double>(CIRCLE_RADIUS * scale);
+    constexpr double RADIUS = static_cast<double>(CIRCLE_RADIUS);
     const Radian angle_step = Radian{ PI_DOUBLE * 2.0 } / CIRCLE_SEGMENTS;
 
     for (int32 i = 0; i < 3; ++i)
@@ -172,8 +167,8 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Vector3& pos, const Qu
             const Radian a0 = angle_step * j;
             const Radian a1 = angle_step * (j + 1);
 
-            const Vector3 p0 = pos + (tangent * Cos(a0) + bitangent * Sin(a0)) * radius;
-            const Vector3 p1 = pos + (tangent * Cos(a1) + bitangent * Sin(a1)) * radius;
+            const Vector3 p0 = (tangent * Cos(a0) + bitangent * Sin(a0)) * RADIUS;
+            const Vector3 p1 = (tangent * Cos(a1) + bitangent * Sin(a1)) * RADIUS;
 
             list.AddLine(
                 { .position = ToVector3f(p0), .color = color },
@@ -183,7 +178,7 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Vector3& pos, const Qu
     }
 }
 
-void GizmoRenderer::DrawScale(GizmoDrawList& list, const Vector3& pos, const Quaternion& rot, float scale)
+void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
 {
     const Vector3 axes[3] = {
         rot.GetRightVector(),
@@ -196,19 +191,18 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Vector3& pos, const Qua
     {
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(axis_ids[i]);
-        const float body_length = AXIS_LENGTH * scale;
 
         // 솔리드 실린더 몸통
-        BuildSolidCylinder(list, pos, axis, AXIS_BODY_RADIUS * scale, body_length, color, AXIS_SEGMENTS);
+        BuildSolidCylinder(list, Vector3::Zero(), axis, AXIS_BODY_RADIUS, AXIS_LENGTH, color, AXIS_SEGMENTS);
 
         // 끝점 큐브
-        const Vector3 endpoint = pos + axis * static_cast<double>(body_length);
-        BuildSolidCube(list, endpoint, SCALE_CUBE_HALF * scale, axes[0], axes[2], axes[1], color);
+        const Vector3 endpoint = axis * static_cast<double>(AXIS_LENGTH);
+        BuildSolidCube(list, endpoint, SCALE_CUBE_HALF, axes[0], axes[2], axes[1], color);
     }
 
     // 중앙 큐브 (전체 균등 스케일)
     const LinearColor center_color = GetAxisColor(EGizmoAxis::All);
-    BuildSolidCube(list, pos, SCALE_CUBE_HALF * scale * 0.8f, axes[0], axes[2], axes[1], center_color);
+    BuildSolidCube(list, Vector3::Zero(), SCALE_CUBE_HALF * 0.8f, axes[0], axes[2], axes[1], center_color);
 }
 
 void GizmoRenderer::BuildSolidCylinder(
