@@ -65,6 +65,7 @@ public:
     // 인터랙션
     EGizmoMode gizmo_mode = EGizmoMode::Translate;
     ECoordinateSpace coordinate_space = ECoordinateSpace::World;
+    Vector2f cursor_viewport_pos;  // 뷰포트 로컬 커서 좌표 (0,0 = content 좌상단)
 
 public:
     /** 현재 활성화된 ViewMode에 대한 카메라를 가져옵니다. */
@@ -120,6 +121,9 @@ public:
 
     /** 뷰포트의 뷰 모드를 설정합니다. */
     void SetViewportViewMode(const StringName& viewport_id, EViewMode mode);
+
+    /** 뷰포트 로컬 커서 좌표를 설정합니다. */
+    void SetViewportCursorPosition(const StringName& viewport_id, const Vector2f& pos);
 
     /** 특정 뷰포트의 뷰 모드를 반환합니다. */
     [[nodiscard]] EViewMode GetViewportViewMode(const StringName& viewport_id) const;

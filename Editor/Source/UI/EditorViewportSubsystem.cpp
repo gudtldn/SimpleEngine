@@ -406,4 +406,12 @@ EViewMode EditorViewportSubsystem::GetViewportViewMode(const StringName& viewpor
         return state.view_mode;
     }).ValueOr(EViewMode::Perspective);
 }
+
+void EditorViewportSubsystem::SetViewportCursorPosition(const StringName& viewport_id, const Vector2f& pos)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->cursor_viewport_pos = pos;
+    }
+}
 } // namespace se::editor

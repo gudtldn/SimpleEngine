@@ -47,6 +47,13 @@ void ViewportPanel::Draw()
 
             viewport_sys->UpdateViewportSize(viewport_id, width, height);
 
+            // 뷰포트 로컬 커서 좌표 계산 및 전달
+            const ImVec2 mouse_screen = ImGui::GetMousePos();
+            viewport_sys->SetViewportCursorPosition(viewport_id, {
+                mouse_screen.x - content_min.x,
+                mouse_screen.y - content_min.y,
+            });
+
             if (void* texture_to_draw = viewport_sys->GetViewportTextureID(viewport_id))
             {
                 ImGui::Image(texture_to_draw, viewport_size);
