@@ -161,13 +161,6 @@ void GizmoPass::Execute(RGExecutionContext& context)
         // UBO 업로드: VP + GizmoCenter + ScreenScale
         const Matrix4x4 vp = render_view.view_matrix * render_view.projection_matrix;
 
-        struct GizmoUBO
-        {
-            Matrix4x4f vp;
-            Vector3f gizmo_center;
-            float screen_scale;
-        };
-
         GizmoUBO ubo;
         std::ranges::transform(
             vp.data,
