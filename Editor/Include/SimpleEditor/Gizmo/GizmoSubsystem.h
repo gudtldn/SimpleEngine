@@ -3,7 +3,11 @@
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Gizmo/GizmoDrawList.h"
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
+#include "SimpleEditor/Gizmo/GizmoTypes.h"
+
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+
+#include "SDL3/SDL_gpu.h"
 
 
 namespace se::editor
@@ -11,6 +15,7 @@ namespace se::editor
 /**
  * 기즈모 렌더링 리소스를 소유하고 관리하는 Subsystem
  * GizmoDrawList(GPU 버퍼) + GizmoRenderer(형상 조립)의 생명주기를 관리합니다.
+ * GPU Color Picking용 텍스처와 Readback 버퍼도 소유합니다.
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) GizmoSubsystem : public SubsystemBase
 {
@@ -29,6 +34,15 @@ public:
      */
     void DrawGizmos();
 
+    /**
+     * GPU Readback으로 pick 텍스처에서 ID를 읽어 hovered_axis를 갱신합니다.
+     * RenderFrame() 완료 후 호출해야 합니다.
+     */
+    void PerformPick();
+
+    /** GPU Color Picking용 1x1 R32_UINT 텍스처 (RenderGraph ImportTexture용) */
+    [[nodiscard]] SDL_GPUTexture* GetPickTexture() const;
+
     /** 매 프레임 정점을 수집/업로드하는 드로우 리스트 접근자 */
     [[nodiscard]] GizmoDrawList& GetDrawList() { return *draw_list; }
     [[nodiscard]] const GizmoDrawList& GetDrawList() const { return *draw_list; }
@@ -37,8 +51,17 @@ public:
     [[nodiscard]] GizmoRenderer& GetRenderer() { return renderer; }
     [[nodiscard]] const GizmoRenderer& GetRenderer() const { return renderer; }
 
+    /** 현재 마우스가 hover 중인 기즈모 축 */
+    [[nodiscard]] EGizmoAxis GetHoveredAxis() const { return hovered_axis; }
+
 private:
     std::unique_ptr<GizmoDrawList> draw_list;
     GizmoRenderer renderer;
+
+    // GPU Color Picking 리소스
+    SDL_GPUDevice* raw_device = nullptr;
+    SDL_GPUTexture* pick_texture = nullptr;                // 1x1 R32_UINT
+    SDL_GPUTransferBuffer* pick_download_buffer = nullptr; // 4바이트 DOWNLOAD용
+    EGizmoAxis hovered_axis = EGizmoAxis::None;
 };
 } // namespace se::editor
