@@ -9,12 +9,12 @@ global_scale = 1.0
 cache_version = 1
 guid = '01d69dd4-af80-4c24-b55d-cfd97aef4a1e'
 settings_hash = 'sha256:82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
-source_hash = 'sha256:8e770c1de83aad5eb56d3cc1c38a1bc749fbae03aad86e4bde9115a7d2a61cf0'
-source_mtime = 1769506966811411500
-source_size = 63389
+source_hash = 'sha256:72f9007e01fd1d02ac1615eca372ed1a10499e93526c8eef6f1e14c6156fbb28'
+source_mtime = 1775721082529359500
+source_size = 63009
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '2fb26b9c-cad6-4100-b56e-cc93a9413ab6'
+    guid = 'b1b23052-2dc0-481f-8312-3f49ffaac18c'
     name = 'AxisCheck_Monkey'
     type = 'se::asset::StaticMesh'
