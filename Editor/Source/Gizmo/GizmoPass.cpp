@@ -1,6 +1,7 @@
 #include "SimpleEditor/Gizmo/GizmoPass.h"
 
 #include "SimpleEditor/Gizmo/GizmoDrawList.h"
+#include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoVertex.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
@@ -151,15 +152,30 @@ void GizmoPass::Execute(RGExecutionContext& context)
         SDL_SetGPUViewport(pass, &viewport);
         SDL_SetGPUScissor(pass, &scissor);
 
-        // VP 행렬 업로드
+        // UBO 업로드: VP + GizmoCenter + ScreenScale
         const Matrix4x4 vp = render_view.view_matrix * render_view.projection_matrix;
-        Matrix4x4f vpf;
+
+        struct GizmoUBO
+        {
+            Matrix4x4f vp;
+            Vector3f gizmo_center;
+            float screen_scale;
+        };
+
+        GizmoUBO ubo;
         std::ranges::transform(
             vp.data,
-            vpf.data.begin(),
+            ubo.vp.data.begin(),
             [](double v) { return static_cast<float>(v); }
         );
-        SDL_PushGPUVertexUniformData(cmd, 0, &vpf, sizeof(vpf));
+        ubo.gizmo_center = {
+            static_cast<float>(draw_list.GetCenter().x),
+            static_cast<float>(draw_list.GetCenter().y),
+            static_cast<float>(draw_list.GetCenter().z),
+        };
+        ubo.screen_scale = GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view);
+
+        SDL_PushGPUVertexUniformData(cmd, 0, &ubo, sizeof(ubo));
 
         // 라인 드로우
         if (line_vertex_count > 0)
