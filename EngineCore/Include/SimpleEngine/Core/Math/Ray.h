@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Math/MathFwd.h"
+#include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 
@@ -109,6 +110,58 @@ public:
     {
         T dist;
         return Intersects(in_aabb, dist);
+    }
+
+    /**
+     * 마우스 Ray와 특정 3D 평면의 교차점(Intersection)을 계산합니다.
+     *
+     * 평면은 plane_origin을 지나고 plane_normal을 법선으로 가지는 무한 평면입니다.
+     * t = dot(plane_origin - origin, plane_normal) / dot(direction, plane_normal)
+     *
+     * @param plane_origin 평면 위 임의의 점 (기즈모 중심)
+     * @param plane_normal 평면 법선 단위벡터
+     * @param out_distance  (ray.origin + t * ray.direction). t < 0이면 false 반환
+     * @return 교차 여부 (Ray-평면이 평행하거나, 카메라 뒤쪽이면 false)
+     */
+    [[nodiscard]] constexpr bool IntersectPlane(
+        const VectorType& plane_origin, const VectorType& plane_normal, T& out_distance) const
+    {
+        const T denom = direction.Dot(plane_normal);
+        if (Abs(denom) < static_cast<T>(KINDA_SMALL_NUMBER))
+        {
+            return false;
+        }
+
+        out_distance = (plane_origin - origin).Dot(plane_normal) / denom;
+        return out_distance >= T(0);
+    }
+
+    /**
+     * 공간상의 두 직선(마우스 Ray와 기즈모 축) 사이의 최근접 거리를 계산합니다. (Skew Lines 알고리즘)
+     * @see https://en.wikipedia.org/wiki/Skew_lines#Nearest_points
+     * @param line_origin 직선의 기준점 (기즈모 중심)
+     * @param line_dir 직선 방향 단위벡터
+     * @return 직선 상의 파라미터 값 t (line_origin + t * line_dir)
+     */
+    [[nodiscard]] constexpr T ClosestParameterOnLine(const VectorType& line_origin, const VectorType& line_dir) const
+    {
+        const VectorType w = origin - line_origin;
+        const T a = direction.Dot(direction); // |direction|^2 = 1 (정규화됨)
+        const T b = direction.Dot(line_dir);
+        const T c = line_dir.Dot(line_dir); // |line_dir|^2 = 1 (정규화됨)
+        const T d = direction.Dot(w);
+        const T e = line_dir.Dot(w);
+
+        const T denom = a * c - b * b;
+
+        // 두 직선이 완전히 평행하여 교차점 근사치가 무한대로 발산하는 것을 방지
+        if (Abs(denom) < static_cast<T>(KINDA_SMALL_NUMBER))
+        {
+            return T(0);
+        }
+
+        // 마우스 Ray가 기즈모 축에 투영된 최단 위치(t)를 반환
+        return (a * e - b * d) / denom;
     }
 };
 }  // namespace se::math
