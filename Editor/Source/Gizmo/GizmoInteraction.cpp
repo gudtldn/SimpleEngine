@@ -225,7 +225,7 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
             const Vector3 delta = hit_point - drag_start_vector;
             drag_start_vector = hit_point;
 
-            // 마우스 이동 벡터를 선택된 평면을 구성하는 두 개의 축으로 분해(Projection)
+            // 두 축 projection의 합산 -> 균등 스케일 (고정 비율)
             const auto [a0, a1] = [&] -> std::pair<EGizmoAxis, EGizmoAxis>
             {
                 switch (active_axis)
@@ -239,18 +239,19 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
 
             const double s0 = delta.Dot(GetAxisDirection(a0));
             const double s1 = delta.Dot(GetAxisDirection(a1));
+            const double uniform = s0 + s1;
 
             if (active_axis == EGizmoAxis::XY)
             {
-                result.scale_delta = Vector3{ s0, s1, 0.0 };
+                result.scale_delta = Vector3{ uniform, uniform, 0.0 };
             }
             else if (active_axis == EGizmoAxis::XZ)
             {
-                result.scale_delta = Vector3{ s0, 0.0, s1 };
+                result.scale_delta = Vector3{ uniform, 0.0, uniform };
             }
             else // YZ
             {
-                result.scale_delta = Vector3{ 0.0, s0, s1 };
+                result.scale_delta = Vector3{ 0.0, uniform, uniform };
             }
         }
     }
