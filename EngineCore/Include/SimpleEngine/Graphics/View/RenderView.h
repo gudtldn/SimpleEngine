@@ -45,22 +45,22 @@ public:
         const double ndc_x = 2.0 * static_cast<double>(in_cursor_pos.x) / static_cast<double>(width) - 1.0;
         const double ndc_y = 1.0 - 2.0 * static_cast<double>(in_cursor_pos.y) / static_cast<double>(height);
 
-        // 카메라 원점(Ray Origin) 추출
-        const Matrix4x4 inv_view = view_matrix.Inverse();
-        const Vector3 camera_pos = Vector3{ inv_view[3, 0], inv_view[3, 1], inv_view[3, 2] };
-
-        // NDC 공간의 Near 평면(Z=0) 상의 한 점을 Deprojection하여 월드 좌표를 계산
-        const Vector4 near_clip = Vector4{ ndc_x, ndc_y, 0.0, 1.0 };
         const Matrix4x4 inv_vp = (view_matrix * projection_matrix).Inverse();
 
-        // Row-vector 연산: p' = p * M
-        Vector4 world_near = near_clip * inv_vp;
-        world_near = world_near / world_near.w; // 원근 투영 보정(Perspective Divide)
+        // Near/Far 평면의 두 점을 Deproject하여 Ray 방향을 계산
+        // Perspective: near 점 ~ camera 부근, 방향이 커서마다 다름 (방사형)
+        // Ortho: near/far 점이 평행 이동, 동일 방향 (평행 ray)
+        Vector4 world_near = Vector4{ ndc_x, ndc_y, 0.0, 1.0 } * inv_vp;
+        Vector4 world_far = Vector4{ ndc_x, ndc_y, 1.0, 1.0 } * inv_vp;
 
-        const Vector3 world_point = Vector3{ world_near.x, world_near.y, world_near.z };
-        const Vector3 direction = (world_point - camera_pos).GetNormalized();
+        world_near = world_near / world_near.w;
+        world_far = world_far / world_far.w;
 
-        return Ray{ camera_pos, direction };
+        const Vector3 origin = Vector3{ world_near.x, world_near.y, world_near.z };
+        const Vector3 far_point = Vector3{ world_far.x, world_far.y, world_far.z };
+        const Vector3 direction = (far_point - origin).GetNormalized();
+
+        return Ray{ origin, direction };
     }
 
     /**
