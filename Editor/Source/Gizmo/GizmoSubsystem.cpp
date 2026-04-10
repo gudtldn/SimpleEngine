@@ -115,7 +115,6 @@ void GizmoSubsystem::DrawGizmos()
 
 void GizmoSubsystem::PerformPick()
 {
-
     if (!pick_texture_rid || !pick_download_buffer)
     {
         return;
