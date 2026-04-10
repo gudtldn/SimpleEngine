@@ -74,8 +74,8 @@ enum class EKeyCode : uint16
     RightCtrl  = SDL_SCANCODE_RCTRL,
     LeftAlt    = SDL_SCANCODE_LALT,
     RightAlt   = SDL_SCANCODE_RALT,
-    LeftGui    = SDL_SCANCODE_LGUI,
-    RightGui   = SDL_SCANCODE_RGUI,
+    LeftGui    = SDL_SCANCODE_LGUI, // 운영체제 키
+    RightGui   = SDL_SCANCODE_RGUI, // 운영체제 키
 
     // ── 특수 키 ──────────────────────────────────────
     Enter     = SDL_SCANCODE_RETURN,
@@ -86,17 +86,17 @@ enum class EKeyCode : uint16
     CapsLock  = SDL_SCANCODE_CAPSLOCK,
 
     // ── 기호 / 구두점 ──────────────────────────────────────
-    Minus        = SDL_SCANCODE_MINUS,
-    Equals       = SDL_SCANCODE_EQUALS,
-    LeftBracket  = SDL_SCANCODE_LEFTBRACKET,
-    RightBracket = SDL_SCANCODE_RIGHTBRACKET,
-    Backslash    = SDL_SCANCODE_BACKSLASH,
-    Semicolon    = SDL_SCANCODE_SEMICOLON,
-    Apostrophe   = SDL_SCANCODE_APOSTROPHE,
-    Grave        = SDL_SCANCODE_GRAVE,
-    Comma        = SDL_SCANCODE_COMMA,
-    Period       = SDL_SCANCODE_PERIOD,
-    Slash        = SDL_SCANCODE_SLASH,
+    Minus        = SDL_SCANCODE_MINUS,        // -
+    Equals       = SDL_SCANCODE_EQUALS,       // =
+    LeftBracket  = SDL_SCANCODE_LEFTBRACKET,  // [
+    RightBracket = SDL_SCANCODE_RIGHTBRACKET, // ]
+    Backslash    = SDL_SCANCODE_BACKSLASH,    /* \ */
+    Semicolon    = SDL_SCANCODE_SEMICOLON,    // ;
+    Apostrophe   = SDL_SCANCODE_APOSTROPHE,   // '
+    Grave        = SDL_SCANCODE_GRAVE,        // `
+    Comma        = SDL_SCANCODE_COMMA,        // ,
+    Period       = SDL_SCANCODE_PERIOD,       // .
+    Slash        = SDL_SCANCODE_SLASH,        // /
 
     // ── 네비게이션 ──────────────────────────────────────
     PrintScreen = SDL_SCANCODE_PRINTSCREEN,
@@ -149,4 +149,4 @@ enum class EKeyCode : uint16
 {
     return static_cast<SDL_Scancode>(key);
 }
-}  // namespace se
+} // namespace se
