@@ -67,6 +67,12 @@ public:
     [[nodiscard]] bool IsDragging() const { return dragging; }
     [[nodiscard]] EGizmoAxis GetActiveAxis() const { return active_axis; }
 
+    /**
+     * 외부에서 카메라가 이동했을 때 드래그 기준점을 동일량만큼 보정합니다.
+     * 카메라 이동으로 인한 ray 원점 변화에 의한 누적 드리프트를 방지합니다.
+     */
+    void OffsetDragReference(const Vector3& offset);
+
 private:
     /** 특정 축(X, Y, Z)에 대응하는 방향 벡터를 반환합니다. (기즈모 회전 상태 반영) */
     [[nodiscard]] Vector3 GetAxisDirection(EGizmoAxis axis) const;

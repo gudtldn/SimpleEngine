@@ -140,6 +140,18 @@ void GizmoInteraction::EndDrag()
     drag_start_angle = 0.0_rad;
 }
 
+void GizmoInteraction::OffsetDragReference(const Vector3& offset)
+{
+    drag_start_vector += offset;
+
+    // 단일 축(X/Y/Z): t 파라미터 보정
+    if (active_axis == EGizmoAxis::X || active_axis == EGizmoAxis::Y || active_axis == EGizmoAxis::Z)
+    {
+        const Vector3 axis_dir = GetAxisDirection(active_axis);
+        drag_start_t += offset.Dot(axis_dir);
+    }
+}
+
 GizmoInteraction::DragResult GizmoInteraction::UpdateTranslation(const Ray& ray)
 {
     DragResult result;

@@ -192,7 +192,7 @@ void GizmoSubsystem::Update(double /*delta_time*/)
 void GizmoSubsystem::HandleInteraction()
 {
     const auto [editor_subsystem, entity_subsystem, viewport_subsystem, input_subsystem] =
-        se::GetSubsystems<const EditorSubsystem, EntitySubsystem, const EditorViewportSubsystem, const InputSubsystem>();
+        se::GetSubsystems<const EditorSubsystem, EntitySubsystem, EditorViewportSubsystem, const InputSubsystem>();
 
     if (!editor_subsystem || !entity_subsystem || !viewport_subsystem || !input_subsystem)
     {
@@ -257,6 +257,13 @@ void GizmoSubsystem::HandleInteraction()
             rotation,
             hovered_vp->render_view
         );
+
+        // Alt+드래그: 엔티티 복제
+        if (input_subsystem->HasModifier(EModifier::Alt))
+        {
+            // TODO: 선택된 엔티티를 복제하고, 복제본을 드래그 대상으로 전환
+        }
+
         return;
     }
 
@@ -282,10 +289,25 @@ void GizmoSubsystem::HandleInteraction()
         switch (vp_info->gizmo_mode)
         {
         case EGizmoMode::Translate:
+        {
             transform->position = transform->position + result.translation_delta;
             transform->dirty = true;
+
+            // Shift+드래그: 카메라가 이동량만큼 따라감
+            if (input_subsystem->HasModifier(EModifier::Shift))
+            {
+                const StringName focused_id = viewport_subsystem->GetFocusedViewportId();
+                if (const auto camera = viewport_subsystem->GetViewportCamera(focused_id))
+                {
+                    // 카메라 이동에 의한 ray 원점 변화를 드래그 기준점에 반영
+                    camera->position += result.translation_delta;
+                    interaction.OffsetDragReference(result.translation_delta);
+                }
+            }
             break;
+        }
         case EGizmoMode::Rotate:
+        {
             if (result.is_local_rotation)
             {
                 // Local: Q * FromAxisAngle(basis_axis, θ) -> right-multiply = 로컬 프레임 해석
@@ -298,10 +320,13 @@ void GizmoSubsystem::HandleInteraction()
             }
             transform->dirty = true;
             break;
+        }
         case EGizmoMode::Scale:
+        {
             transform->scale = transform->scale + result.scale_delta;
             transform->dirty = true;
             break;
+        }
         }
     }
 }
