@@ -147,6 +147,16 @@ public:
     /** 현재 포커스된 뷰포트의 상태를 반환합니다. */
     [[nodiscard]] Optional<const ViewportState&> GetFocusedViewportInfo() const { return viewports.Find(focused_viewport); }
 
+    /** 현재 마우스가 호버 중인 뷰포트의 상태를 반환합니다. */
+    [[nodiscard]] Optional<const ViewportState&> GetHoveredViewportInfo() const
+    {
+        for (const ViewportState& state : viewports | std::views::values)
+        {
+            if (state.is_hovered) { return state; }
+        }
+        return NullOpt;
+    }
+
     /** 카메라 조작(우클릭 드래그) 중인 뷰포트가 있는지 확인합니다. */
     [[nodiscard]] bool IsAnyCameraActive() const { return active_camera_viewport != StringName::None; }
 
