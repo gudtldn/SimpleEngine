@@ -9,8 +9,8 @@
 
 namespace se
 {
-class InputSubsystem;
 class EntitySubsystem;
+class InputSubsystem;
 class World;
 }
 
@@ -20,6 +20,7 @@ class EditorSelection;
 class EditorSubsystem;
 class EditorUISubsystem;
 class EditorViewportSubsystem;
+class GizmoSubsystem;
 
 /**
  * 키보드 단축키 및 에디터 전반에서 공유되는 Entity 조작 액션을 처리하는 Subsystem
@@ -49,11 +50,12 @@ private:
     static void DeleteEntityRecursive(World& world, EditorSelection& selection, Entity entity);
 
 private:
-    InputSubsystem* input_subsystem = nullptr;
-    EntitySubsystem* entity_subsystem = nullptr;
     EditorSubsystem* editor_subsystem = nullptr;
     EditorUISubsystem* ui_subsystem = nullptr;
     EditorViewportSubsystem* viewport_subsystem = nullptr;
+    EntitySubsystem* entity_subsystem = nullptr;
+    GizmoSubsystem* gizmo_subsystem = nullptr;
+    InputSubsystem* input_subsystem = nullptr;
 };
 } // namespace se::editor
 

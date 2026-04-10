@@ -2,15 +2,16 @@
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
 
 #include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
+#include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
-#include "SimpleEngine/ECS/World.h"
-#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -20,13 +21,18 @@ namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
     .DependsOn<
-        InputSubsystem,
-        EntitySubsystem,
         EditorSubsystem,
         EditorUISubsystem,
-        EditorViewportSubsystem
+        EditorViewportSubsystem,
+        EntitySubsystem,
+        GizmoSubsystem,
+        InputSubsystem
     >()
-    .UpdateDependsOn<EditorUISubsystem, EditorViewportSubsystem>();
+    .UpdateDependsOn<
+        EditorUISubsystem,
+        EditorViewportSubsystem,
+        GizmoSubsystem
+    >();
 
 SE_BEGIN_REFLECT(EditorActionSubsystem, meta::Internal)
     SE_REFLECT_INTERFACE(IUpdatable)
@@ -34,9 +40,10 @@ SE_END_REFLECT(EditorActionSubsystem)
 
 bool EditorActionSubsystem::Initialize()
 {
-    input_subsystem = &GetSubsystemChecked<InputSubsystem>();
-    entity_subsystem = &GetSubsystemChecked<EntitySubsystem>();
     editor_subsystem = &GetSubsystemChecked<EditorSubsystem>();
+    entity_subsystem = &GetSubsystemChecked<EntitySubsystem>();
+    gizmo_subsystem = &GetSubsystemChecked<GizmoSubsystem>();
+    input_subsystem = &GetSubsystemChecked<InputSubsystem>();
     ui_subsystem = &GetSubsystemChecked<EditorUISubsystem>();
     viewport_subsystem = &GetSubsystemChecked<EditorViewportSubsystem>();
     return true;
@@ -44,9 +51,10 @@ bool EditorActionSubsystem::Initialize()
 
 void EditorActionSubsystem::Release()
 {
-    input_subsystem = nullptr;
-    entity_subsystem = nullptr;
     editor_subsystem = nullptr;
+    entity_subsystem = nullptr;
+    gizmo_subsystem = nullptr;
+    input_subsystem = nullptr;
     ui_subsystem = nullptr;
     viewport_subsystem = nullptr;
 }
@@ -74,9 +82,10 @@ void EditorActionSubsystem::Update([[maybe_unused]] double delta_time)
         return;
     }
 
-    // 기즈모 모드 전환 (포커스된 뷰포트에만 적용)
-    if (focused_id != StringName::None)
+    // 포커스된 뷰포트에서 작동 할 Action
+    if (focused_id != StringName::None && !gizmo_subsystem->IsDragging())
     {
+        // 기즈모 모드 전환
         if (input_subsystem->IsKeyPressed(EKeyCode::W))
         {
             viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Translate);
@@ -89,8 +98,34 @@ void EditorActionSubsystem::Update([[maybe_unused]] double delta_time)
         {
             viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Scale);
         }
+
+        // 기즈모 모드 순회
+        else if (input_subsystem->IsKeyPressed(EKeyCode::Space))
+        {
+            switch (viewport_subsystem->GetViewportGizmoMode(focused_id))
+            {
+                case EGizmoMode::Translate:
+                    viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Rotate);
+                    break;
+                case EGizmoMode::Rotate:
+                    viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Scale);
+                    break;
+                case EGizmoMode::Scale:
+                    viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Translate);
+                    break;
+                default:
+                    SE_UNREACHABLE();
+            }
+        }
+
+        // World / Local 변경 (Ctrl + `)
+        else if (input_subsystem->HasModifier(EModifier::Ctrl) && input_subsystem->IsKeyPressed(EKeyCode::Grave))
+        {
+            viewport_subsystem->ToggleViewportCoordinateSpace(focused_id);
+        }
     }
 
+    // 엔티티 삭제
     if (input_subsystem->IsKeyPressed(EKeyCode::Delete))
     {
         DeleteSelectedEntities();
