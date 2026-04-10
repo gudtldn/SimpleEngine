@@ -65,6 +65,7 @@ public:
     // 인터랙션
     EGizmoMode gizmo_mode = EGizmoMode::Translate;
     ECoordinateSpace coordinate_space = ECoordinateSpace::World;
+    ECoordinateSpace pre_scale_coordinate_space = ECoordinateSpace::World; // Scale 모드 진입 전 좌표계 백업
     Vector2f cursor_viewport_pos;  // 뷰포트 로컬 커서 좌표 (0,0 = content 좌상단)
 
 public:

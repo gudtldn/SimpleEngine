@@ -318,7 +318,20 @@ void EditorViewportSubsystem::SetViewportGizmoMode(const StringName& viewport_id
 {
     if (const auto state = viewports.Find(viewport_id))
     {
+        const EGizmoMode prev_mode = state->gizmo_mode;
         state->gizmo_mode = mode;
+
+        // Scale -> 다른 모드: 이전 좌표계 복원
+        if (prev_mode == EGizmoMode::Scale && mode != EGizmoMode::Scale)
+        {
+            state->coordinate_space = state->pre_scale_coordinate_space;
+        }
+        // 다른 모드 -> Scale: 현재 좌표계 백업 후 Local 강제
+        else if (prev_mode != EGizmoMode::Scale && mode == EGizmoMode::Scale)
+        {
+            state->pre_scale_coordinate_space = state->coordinate_space;
+            state->coordinate_space = ECoordinateSpace::Local;
+        }
     }
 }
 

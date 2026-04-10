@@ -122,12 +122,19 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
         if (gizmo_r) { viewport_sys->SetViewportGizmoMode(viewport_id, EGizmoMode::Rotate); }
         if (gizmo_s) { viewport_sys->SetViewportGizmoMode(viewport_id, EGizmoMode::Scale); }
 
-        // 좌표계 토글
+        // 좌표계 토글 (Scale 모드는 항상 Local)
         hbox.Separator();
-        const ECoordinateSpace current_coord = viewport_sys->GetViewportCoordinateSpace(viewport_id);
+        const bool force_local = cur_gizmo == EGizmoMode::Scale;
+        const ECoordinateSpace current_coord = force_local
+            ? ECoordinateSpace::Local
+            : viewport_sys->GetViewportCoordinateSpace(viewport_id);
         bool coord_clicked = false;
+
+        if (force_local) { ImGui::BeginDisabled(); }
         hbox.Button((current_coord == ECoordinateSpace::World) ? "World" : "Local", &coord_clicked);
-        if (coord_clicked)
+        if (force_local) { ImGui::EndDisabled(); }
+
+        if (coord_clicked && !force_local)
         {
             const ECoordinateSpace next = (current_coord == ECoordinateSpace::World)
                 ? ECoordinateSpace::Local
