@@ -227,8 +227,16 @@ void GizmoSubsystem::HandleInteraction()
     }
 
     // 드래그 시작 (LMB 눌림 + hover 중인 축이 있음)
+    // hovered_axis는 호버된 뷰포트의 pick 결과이므로, 호버 뷰포트 기준으로 드래그 시작
+    // (클릭 시 ImGui가 해당 뷰포트를 자동 focus하므로, 이후 업데이트는 focused 뷰포트 사용)
     if (!interaction.IsDragging() && input_subsystem->IsMouseButtonPressed(EMouseButton::Left) && hovered_axis != EGizmoAxis::None)
     {
+        const auto hovered_vp = viewport_subsystem->GetHoveredViewportInfo();
+        if (!hovered_vp)
+        {
+            return;
+        }
+
         World& world = entity_subsystem->GetMainWorld().GetWorld();
         const auto global_tf = world.TryGetComponent<GlobalTransformComponent>(*selected_entity);
         if (!global_tf)
@@ -237,18 +245,18 @@ void GizmoSubsystem::HandleInteraction()
         }
 
         const Vector3 center = math::TransformUtility::DecomposeTranslation(global_tf->value);
-        const Quaternion rotation = (vp_info->coordinate_space == ECoordinateSpace::Local)
+        const Quaternion rotation = (hovered_vp->coordinate_space == ECoordinateSpace::Local)
             ? math::TransformUtility::DecomposeRotation(global_tf->value)
             : Quaternion::Identity();
 
         interaction.BeginDrag(
-            vp_info->gizmo_mode,
+            hovered_vp->gizmo_mode,
             hovered_axis,
-            vp_info->coordinate_space == ECoordinateSpace::Local,
-            vp_info->cursor_viewport_pos,
+            hovered_vp->coordinate_space == ECoordinateSpace::Local,
+            hovered_vp->cursor_viewport_pos,
             center,
             rotation,
-            vp_info->render_view
+            hovered_vp->render_view
         );
         return;
     }
