@@ -36,6 +36,11 @@ public:
      */
     [[nodiscard]] Ray DeprojectToRay(const Vector2f& in_cursor_pos) const
     {
+        if (width == 0 || height == 0)
+        {
+            return Ray{ Vector3::Zero(), Vector3::Forward() };
+        }
+
         // Screen (Pixel) -> NDC 변환
         const double ndc_x = 2.0 * static_cast<double>(in_cursor_pos.x) / static_cast<double>(width) - 1.0;
         const double ndc_y = 1.0 - 2.0 * static_cast<double>(in_cursor_pos.y) / static_cast<double>(height);
@@ -65,9 +70,19 @@ public:
      */
     [[nodiscard]] Vector2f ProjectWorldToScreen(const Vector3& world_point) const
     {
+        if (width == 0 || height == 0)
+        {
+            return Vector2f::Zero();
+        }
+
         // Row-vector 연산: clip = point * VP
         const Matrix4x4 vp = view_matrix * projection_matrix;
         const Vector4 clip = Vector4{ world_point, 1.0 } * vp;
+
+        if (math::IsNearlyZero(clip.w))
+        {
+            return Vector2f::Zero();
+        }
 
         // Perspective divide -> NDC
         const double ndc_x = clip.x / clip.w;

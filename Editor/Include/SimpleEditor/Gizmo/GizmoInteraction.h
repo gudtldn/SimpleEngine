@@ -74,11 +74,17 @@ private:
     /** 특정 평면 핸들(XY, XZ, YZ)에 수직인 법선 벡터(Normal)를 반환합니다. (기즈모 회전 상태 반영) */
     [[nodiscard]] Vector3 GetPlaneNormal(EGizmoAxis axis) const;
 
+    /** 순수 기저 축 (1,0,0)/(0,1,0)/(0,0,1)을 반환합니다. */
+    [[nodiscard]] static Vector3 GetBasisAxis(EGizmoAxis axis);
+
     [[nodiscard]] DragResult UpdateTranslation(const Ray& ray);
     [[nodiscard]] DragResult UpdateScale(const Ray& ray, const Vector2f& cursor_pos);
     [[nodiscard]] DragResult UpdateRotation(const Vector2f& cursor_pos, const graphics::RenderView& view);
 
 private:
+    /** 스케일 All 모드에서 화면 커서 1px 당 스케일 변화량 */
+    static constexpr double SCALE_SENSITIVITY = 0.005;
+
     bool dragging = false;
     bool is_local = false;  // Local 좌표계 여부 (Rotation 적용 순서 결정)
     EGizmoMode active_mode = EGizmoMode::Translate;
@@ -91,9 +97,9 @@ private:
     // Translation & Scale 상태: 마우스 레이와 축의 최근접 교차점 파라미터(t)
     double drag_start_t = 0.0;
 
-    // Rotation 상태: 평면 상에서의 시작 정보
+    // Rotation 상태: 화면 공간 atan2 각도 기반
     Radian<double> drag_start_angle = 0.0_rad;
-    Vector3 drag_plane_normal = Vector3::Up();
-    Vector3 drag_start_vector = Vector3::Right(); // 평면 위에서 드래그를 시작한 위치를 향하는 기준 벡터 (각도 계산용)
+    Vector3 drag_plane_normal = Vector3::Up();    // Rotation: sign flip 판정용 (카메라 facing 방향 비교)
+    Vector3 drag_start_vector = Vector3::Right(); // Translation/Scale 평면: 이전 프레임 히트 포인트, Scale All: 이전 커서 위치
 };
 } // namespace se::editor
