@@ -124,6 +124,7 @@ void GizmoSubsystem::PerformPick()
     if (draw_list->GetLineVertexCount() == 0 && draw_list->GetTriangleVertexCount() == 0)
     {
         hovered_axis = EGizmoAxis::None;
+        renderer.SetHighlightAxis(EGizmoAxis::None);
         return;
     }
 
@@ -135,10 +136,19 @@ void GizmoSubsystem::PerformPick()
         return;
     }
 
+    SDL_GPUTexture* pick_texture = GetPickTexture();
+    if (!pick_texture)
+    {
+        hovered_axis = EGizmoAxis::None;
+        renderer.SetHighlightAxis(EGizmoAxis::None);
+        SDL_CancelGPUCommandBuffer(cmd);
+        return;
+    }
+
     SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
     {
         const SDL_GPUTextureRegion src = {
-            .texture = GetPickTexture(),
+            .texture = pick_texture,
             .w = 1, .h = 1, .d = 1,
         };
         const SDL_GPUTextureTransferInfo dst = {
