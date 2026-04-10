@@ -208,6 +208,39 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
     const LinearColor center_color = GetAxisColor(EGizmoAxis::All);
     list.SetPickId(EncodePickID(EGizmoAxis::All));
     BuildSolidCube(list, Vector3::Zero(), SCALE_CUBE_HALF * 0.8, axes[0], axes[2], axes[1], center_color);
+
+    // XY/XZ/YZ 평면 핸들 (채운 쿼드)
+    struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
+    constexpr PlaneInfo planes[3] = {
+        { 0, 1, EGizmoAxis::XY },
+        { 0, 2, EGizmoAxis::XZ },
+        { 1, 2, EGizmoAxis::YZ },
+    };
+
+    constexpr double OFFSET = PLANE_HANDLE_OFFSET;
+    constexpr double LENGTH = PLANE_HANDLE_LENGTH;
+
+    for (const auto& [a0, a1, plane_axis] : planes)
+    {
+        const LinearColor color = GetAxisColor(plane_axis);
+
+        const Vector3 corner = axes[a0] * OFFSET + axes[a1] * OFFSET;
+        const Vector3 edge0  = axes[a0] * (OFFSET - LENGTH) + axes[a1] * OFFSET;
+        const Vector3 edge1  = axes[a0] * OFFSET + axes[a1] * (OFFSET - LENGTH);
+        const Vector3 inner  = axes[a0] * (OFFSET - LENGTH) + axes[a1] * (OFFSET - LENGTH);
+
+        list.SetPickId(EncodePickID(plane_axis));
+        list.AddTriangle(
+            { .position = ToVector3f(inner),  .color = color },
+            { .position = ToVector3f(edge0),  .color = color },
+            { .position = ToVector3f(corner), .color = color }
+        );
+        list.AddTriangle(
+            { .position = ToVector3f(inner),  .color = color },
+            { .position = ToVector3f(corner), .color = color },
+            { .position = ToVector3f(edge1),  .color = color }
+        );
+    }
 }
 
 LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
