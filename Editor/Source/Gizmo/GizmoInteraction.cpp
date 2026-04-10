@@ -106,7 +106,7 @@ void GizmoInteraction::BeginDrag(
     }
     case EGizmoMode::Rotate:
     {
-        // 화면 공간에서의 atan2 각도를 초기값으로 기록
+        // 회전축 방향을 기록 (sign flip 판정용: 카메라와의 facing 방향 비교)
         drag_plane_normal = GetAxisDirection(active_axis);
         const Vector2f center_screen = in_view.ProjectWorldToScreen(drag_gizmo_center);
         const double dx = static_cast<double>(in_cursor_pos.x - center_screen.x);
@@ -195,7 +195,6 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
         drag_start_vector.y = static_cast<double>(cursor_pos.y);
 
         // dx - dy: 화면 X+ = 오른쪽(확대), 화면 Y- = 위쪽(확대)
-        constexpr double SCALE_SENSITIVITY = 0.005;
         const double delta = (dx - dy) * SCALE_SENSITIVITY;
         result.scale_delta = Vector3{ delta, delta, delta };
     }
@@ -287,17 +286,7 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateRotation(const Vector2f& cu
     const double facing = drag_plane_normal.Dot((camera_pos - drag_gizmo_center).GetNormalized());
     if (facing >= 0.0) { delta_angle = -delta_angle; }
 
-    const Vector3 basis_axis = [this]
-    {
-        switch (active_axis)
-        {
-        case EGizmoAxis::X: return Vector3::Right();
-        case EGizmoAxis::Y: return Vector3::Forward();
-        case EGizmoAxis::Z: return Vector3::Up();
-        default:            return Vector3::Up();
-        }
-    }();
-    result.rotation_delta = Quaternion::FromAxisAngle(basis_axis, delta_angle);
+    result.rotation_delta = Quaternion::FromAxisAngle(GetBasisAxis(active_axis), delta_angle);
     result.is_local_rotation = is_local;
 
     return result;
@@ -311,6 +300,17 @@ Vector3 GizmoInteraction::GetAxisDirection(EGizmoAxis axis) const
     case EGizmoAxis::Y: return drag_gizmo_rotation.GetForwardVector(); // +Y
     case EGizmoAxis::Z: return drag_gizmo_rotation.GetUpVector();      // +Z
     default:            return Vector3::Zero();
+    }
+}
+
+Vector3 GizmoInteraction::GetBasisAxis(EGizmoAxis axis)
+{
+    switch (axis)
+    {
+    case EGizmoAxis::X: return Vector3::Right();
+    case EGizmoAxis::Y: return Vector3::Forward();
+    case EGizmoAxis::Z: return Vector3::Up();
+    default:            return Vector3::Up();
     }
 }
 
