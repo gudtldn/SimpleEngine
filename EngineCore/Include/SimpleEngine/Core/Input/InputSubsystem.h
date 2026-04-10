@@ -48,6 +48,12 @@ public:
     /** 키가 이번 프레임에 떼어졌는지 확인합니다. (이전 프레임에 눌림 -> 현재 안 눌림) */
     [[nodiscard]] bool IsKeyReleased(EKeyCode key) const;
 
+    /** 지정된 modifier가 모두 눌려있는지 확인합니다. (AND 시맨틱) */
+    [[nodiscard]] bool HasModifier(BitFlags<EModifier> modifiers) const;
+
+    /** 지정된 modifier 중 하나라도 눌려있는지 확인합니다. (OR 시맨틱) */
+    [[nodiscard]] bool HasAnyModifier(BitFlags<EModifier> modifiers) const;
+
 public:
     // Mouse Event
 

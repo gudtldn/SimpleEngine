@@ -85,6 +85,24 @@ bool InputSubsystem::IsKeyReleased(EKeyCode key) const
     return index < KEY_COUNT && !current_keys[index] && previous_keys[index];
 }
 
+bool InputSubsystem::HasModifier(BitFlags<EModifier> modifiers) const
+{
+    if (modifiers.IsSet(EModifier::Shift) && !IsKeyDown(EKeyCode::LeftShift) && !IsKeyDown(EKeyCode::RightShift)) { return false; }
+    if (modifiers.IsSet(EModifier::Ctrl)  && !IsKeyDown(EKeyCode::LeftCtrl)  && !IsKeyDown(EKeyCode::RightCtrl))  { return false; }
+    if (modifiers.IsSet(EModifier::Alt)   && !IsKeyDown(EKeyCode::LeftAlt)   && !IsKeyDown(EKeyCode::RightAlt))   { return false; }
+    if (modifiers.IsSet(EModifier::Gui)   && !IsKeyDown(EKeyCode::LeftGui)   && !IsKeyDown(EKeyCode::RightGui))   { return false; }
+    return true;
+}
+
+bool InputSubsystem::HasAnyModifier(BitFlags<EModifier> modifiers) const
+{
+    if (modifiers.IsSet(EModifier::Shift) && (IsKeyDown(EKeyCode::LeftShift) || IsKeyDown(EKeyCode::RightShift))) { return true; }
+    if (modifiers.IsSet(EModifier::Ctrl)  && (IsKeyDown(EKeyCode::LeftCtrl)  || IsKeyDown(EKeyCode::RightCtrl)))  { return true; }
+    if (modifiers.IsSet(EModifier::Alt)   && (IsKeyDown(EKeyCode::LeftAlt)   || IsKeyDown(EKeyCode::RightAlt)))   { return true; }
+    if (modifiers.IsSet(EModifier::Gui)   && (IsKeyDown(EKeyCode::LeftGui)   || IsKeyDown(EKeyCode::RightGui)))   { return true; }
+    return false;
+}
+
 bool InputSubsystem::IsMouseButtonDown(EMouseButton button) const
 {
     const auto index = static_cast<uint8>(button);

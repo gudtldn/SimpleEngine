@@ -1,5 +1,7 @@
 #pragma once
+
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Types/BitFlags.h"
 
 #include "SDL3/SDL_scancode.h"
 
@@ -137,6 +139,19 @@ enum class EKeyCode : uint16
     // ── 배열 상한 (키가 아님) ──────────────────────────────
     Max = SDL_SCANCODE_COUNT,
 };
+
+/**
+ * Keyboard의 Modifier를 나타내는 비트플래그
+ */
+enum class EModifier : uint8
+{
+    None  = 0,
+    Shift = 1 << 0,
+    Ctrl  = 1 << 1,
+    Alt   = 1 << 2,
+    Gui   = 1 << 3,
+};
+SE_ENABLE_BITMASK_OPERATORS(EModifier)
 
 /** SDL_Scancode를 KeyCode로 변환합니다. */
 [[nodiscard]] constexpr EKeyCode ToKeyCode(SDL_Scancode scancode) noexcept
