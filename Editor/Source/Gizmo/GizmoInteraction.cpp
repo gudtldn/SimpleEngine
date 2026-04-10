@@ -1,4 +1,4 @@
-﻿#include "SimpleEditor/Gizmo/GizmoInteraction.h"
+#include "SimpleEditor/Gizmo/GizmoInteraction.h"
 
 #include "SimpleEngine/Graphics/View/RenderView.h"
 

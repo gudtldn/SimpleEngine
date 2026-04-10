@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
