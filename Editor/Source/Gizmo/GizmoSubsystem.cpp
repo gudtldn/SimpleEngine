@@ -28,7 +28,6 @@ SE_END_REFLECT(GizmoSubsystem)
 bool GizmoSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
-    draw_list = std::make_unique<GizmoDrawList>(*render_device);
 
     // 1x1 R32_UINT pick 텍스처
     constexpr SDL_GPUTextureCreateInfo tex_info = {
@@ -65,12 +64,16 @@ void GizmoSubsystem::Release()
     {
         render_device->DestroyTexture(std::exchange(pick_texture_rid, {}));
     }
-    draw_list.reset();
+    draw_lists.Clear();
 }
 
 void GizmoSubsystem::DrawGizmos()
 {
-    draw_list->Clear();
+    // 모든 draw list 초기화
+    for (const auto& list : draw_lists | std::views::values)
+    {
+        list->Clear();
+    }
 
     const auto [editor_subsystem, entity_subsystem, viewport_subsystem] =
         se::GetSubsystems<const EditorSubsystem, const EntitySubsystem, const EditorViewportSubsystem>();
@@ -93,24 +96,25 @@ void GizmoSubsystem::DrawGizmos()
         return;
     }
 
-    const auto vp_info = viewport_subsystem->GetFocusedViewportInfo();
-    if (!vp_info)
+    const Vector3 center = math::TransformUtility::DecomposeTranslation(global_tf->value);
+
+    // 각 뷰포트별로 해당 뷰포트의 기즈모 모드/좌표계로 기즈모를 조립
+    for (const auto& [viewport_id, state] : viewport_subsystem->GetViewports())
     {
-        return;
+        GizmoDrawList& list = GetOrCreateDrawList(viewport_id);
+        list.SetCenter(center);
+
+        const EditorCameraState& camera = state.GetActiveCamera();
+        const Vector3 direction_to_widget = (center - camera.position).GetNormalized();
+        list.SetDirectionToWidget(direction_to_widget);
+
+        const Quaternion rotation = (state.coordinate_space == ECoordinateSpace::Local)
+            ? math::TransformUtility::DecomposeRotation(global_tf->value)
+            : Quaternion::Identity();
+
+        renderer.SetMode(state.gizmo_mode);
+        renderer.Draw(list, rotation);
     }
-
-    draw_list->SetCenter(math::TransformUtility::DecomposeTranslation(global_tf->value));
-
-    const EditorCameraState& camera = vp_info->GetActiveCamera();
-    const Vector3 direction_to_widget = (draw_list->GetCenter() - camera.position).GetNormalized();
-    draw_list->SetDirectionToWidget(direction_to_widget);
-
-    const Quaternion rotation = (vp_info->coordinate_space == ECoordinateSpace::Local)
-        ? math::TransformUtility::DecomposeRotation(global_tf->value)
-        : Quaternion::Identity();
-
-    renderer.SetMode(vp_info->gizmo_mode);
-    renderer.Draw(*draw_list, rotation);
 }
 
 void GizmoSubsystem::PerformPick()
@@ -120,7 +124,20 @@ void GizmoSubsystem::PerformPick()
         return;
     }
 
-    if (draw_list->GetLineVertexCount() == 0 && draw_list->GetTriangleVertexCount() == 0)
+    // 호버된 뷰포트의 draw list가 비어있으면 pick 불필요
+    const bool has_geometry = [this] -> bool
+    {
+        for (const auto& list : draw_lists | std::views::values)
+        {
+            if (list->GetLineVertexCount() > 0 || list->GetTriangleVertexCount() > 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }();
+
+    if (!has_geometry)
     {
         hovered_axis = EGizmoAxis::None;
         renderer.SetHighlightAxis(EGizmoAxis::None);
@@ -329,5 +346,29 @@ void GizmoSubsystem::HandleInteraction()
         }
         }
     }
+}
+
+Optional<GizmoDrawList&> GizmoSubsystem::FindDrawList(const StringName& viewport_id)
+{
+    return draw_lists.Find(viewport_id).Map([](auto& list) -> GizmoDrawList&
+    {
+        return *list;
+    });
+}
+
+Optional<const GizmoDrawList&> GizmoSubsystem::FindDrawList(const StringName& viewport_id) const
+{
+    return draw_lists.Find(viewport_id).Map([](const auto& list) -> const GizmoDrawList&
+    {
+        return *list;
+    });
+}
+
+GizmoDrawList& GizmoSubsystem::GetOrCreateDrawList(const StringName& viewport_id)
+{
+    return *draw_lists.Entry(viewport_id).OrInsertWith([this]
+    {
+        return std::make_unique<GizmoDrawList>(*render_device);
+    });
 }
 } // namespace se::editor

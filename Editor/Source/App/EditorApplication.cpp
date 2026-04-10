@@ -182,7 +182,13 @@ void EditorApplication::Render()
 
             if (gizmo_subsystem)
             {
-                gizmo_subsystem->GetDrawList().UploadToGpu(cmd);
+                for (const StringName& vp_id : viewport_subsystem.GetViewports() | std::views::keys)
+                {
+                    if (const auto vp_list = gizmo_subsystem->FindDrawList(vp_id))
+                    {
+                        vp_list->UploadToGpu(cmd);
+                    }
+                }
             }
         },
 
@@ -234,24 +240,27 @@ void EditorApplication::Render()
 
                         if (gizmo_subsystem)
                         {
-                            builder.AddPass<GizmoPass>(
-                                gizmo_subsystem->GetDrawList(), render_view, color_handle, depth_handle
-                            );
-
-                            // 호버된 뷰포트에서만 GPU Color Picking 패스 실행
-                            if (
-                                state.is_hovered
-                                && !viewport_subsystem.IsAnyCameraActive()
-                                && !gizmo_subsystem->IsDragging()
-                                && gizmo_subsystem->GetPickTexture()
-                            )
+                            if (const auto vp_draw_list = gizmo_subsystem->FindDrawList(viewport_id))
                             {
-                                const se::graphics::RGTextureHandle pick_handle =
-                                    builder.ImportTexture("GizmoPickTarget", gizmo_subsystem->GetPickTexture());
-
-                                builder.AddPass<GizmoPickPass>(
-                                    gizmo_subsystem->GetDrawList(), render_view, pick_handle, state.cursor_viewport_pos
+                                builder.AddPass<GizmoPass>(
+                                    *vp_draw_list, render_view, color_handle, depth_handle
                                 );
+
+                                // 호버된 뷰포트에서만 GPU Color Picking 패스 실행
+                                if (
+                                    state.is_hovered
+                                    && !viewport_subsystem.IsAnyCameraActive()
+                                    && !gizmo_subsystem->IsDragging()
+                                    && gizmo_subsystem->GetPickTexture()
+                                )
+                                {
+                                    const se::graphics::RGTextureHandle pick_handle =
+                                        builder.ImportTexture("GizmoPickTarget", gizmo_subsystem->GetPickTexture());
+
+                                    builder.AddPass<GizmoPickPass>(
+                                        *vp_draw_list, render_view, pick_handle, state.cursor_viewport_pos
+                                    );
+                                }
                             }
                         }
                     }

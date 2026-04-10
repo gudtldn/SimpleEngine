@@ -24,6 +24,15 @@ class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) GizmoSubsystem : public Subsy
     SE_CLASS(GizmoSubsystem, SubsystemBase)
 
 public:
+    GizmoSubsystem() = default;
+    virtual ~GizmoSubsystem() override = default;
+
+    GizmoSubsystem(const GizmoSubsystem&) = delete;
+    GizmoSubsystem& operator=(const GizmoSubsystem&) = delete;
+    GizmoSubsystem(GizmoSubsystem&&) = default;
+    GizmoSubsystem& operator=(GizmoSubsystem&&) = default;
+
+public:
     //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
@@ -50,8 +59,8 @@ public:
     [[nodiscard]] SDL_GPUTexture* GetPickTexture() const;
 
     /** 매 프레임 정점을 수집/업로드하는 드로우 리스트 접근자 */
-    [[nodiscard]] GizmoDrawList& GetDrawList() { return *draw_list; }
-    [[nodiscard]] const GizmoDrawList& GetDrawList() const { return *draw_list; }
+    [[nodiscard]] Optional<GizmoDrawList&> FindDrawList(const StringName& viewport_id);
+    [[nodiscard]] Optional<const GizmoDrawList&> FindDrawList(const StringName& viewport_id) const;
 
     /** 기즈모 형상 조립(Translate/Rotate/Scale) 렌더러 접근자 */
     [[nodiscard]] GizmoRenderer& GetRenderer() { return renderer; }
@@ -68,6 +77,9 @@ public:
     [[nodiscard]] bool IsDragging() const { return interaction.IsDragging(); }
 
 private:
+    /** viewport_id에 대응하는 GizmoDrawList를 반환하고, 없으면 새로 생성합니다. */
+    GizmoDrawList& GetOrCreateDrawList(const StringName& viewport_id);
+
     /**
      * 마우스 입력을 확인하여 드래그 시작/업데이트/종료를 처리하고,
      * 결과 delta를 선택된 엔티티의 TransformComponent에 적용합니다.
@@ -75,7 +87,7 @@ private:
     void HandleInteraction();
 
 private:
-    std::unique_ptr<GizmoDrawList> draw_list;
+    HashMap<StringName, std::unique_ptr<GizmoDrawList>> draw_lists;
     GizmoRenderer renderer;
     GizmoInteraction interaction;
 
