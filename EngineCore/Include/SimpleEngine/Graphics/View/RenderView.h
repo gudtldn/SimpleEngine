@@ -9,6 +9,10 @@ namespace se::graphics
 {
 /**
  * 단일 뷰포트의 렌더링에 필요한 카메라 정보를 담는 순수 POD 구조체
+ *
+ * @todo 역행렬(inv_view, inv_vp)과 camera_pos를 멤버로 캐싱하면
+ *       DeprojectToRay/ProjectWorldToScreen 호출 시 중복 계산을 제거할 수 있음.
+ *       현재는 프레임당 1~2회 호출이라 무시 가능하나, 다수 뷰포트 동시 처리 시 고려.
  */
 struct RenderView
 {
