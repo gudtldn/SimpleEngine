@@ -2,9 +2,11 @@
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Gizmo/GizmoDrawList.h"
+#include "SimpleEditor/Gizmo/GizmoInteraction.h"
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
 
+#include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -17,7 +19,7 @@ namespace se::editor
  * GizmoDrawList(GPU 버퍼) + GizmoRenderer(형상 조립)의 생명주기를 관리합니다.
  * GPU Color Picking용 텍스처와 Readback 버퍼도 소유합니다.
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) GizmoSubsystem : public SubsystemBase
+class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) GizmoSubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(GizmoSubsystem, SubsystemBase)
 
@@ -26,6 +28,10 @@ public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
     //~ End SubsystemBase
+
+    //~ Begin IUpdatable
+    virtual void Update(double delta_time) override;
+    //~ End IUpdatable
 
 public:
     /**
@@ -51,12 +57,27 @@ public:
     [[nodiscard]] GizmoRenderer& GetRenderer() { return renderer; }
     [[nodiscard]] const GizmoRenderer& GetRenderer() const { return renderer; }
 
+    /** 기즈모 드래그 인터랙션 접근자 */
+    [[nodiscard]] GizmoInteraction& GetInteraction() { return interaction; }
+    [[nodiscard]] const GizmoInteraction& GetInteraction() const { return interaction; }
+
     /** 현재 마우스가 hover 중인 기즈모 축 */
     [[nodiscard]] EGizmoAxis GetHoveredAxis() const { return hovered_axis; }
+
+    /** 현재 드래그 중인지 확인합니다. */
+    [[nodiscard]] bool IsDragging() const { return interaction.IsDragging(); }
+
+private:
+    /**
+     * 마우스 입력을 확인하여 드래그 시작/업데이트/종료를 처리하고,
+     * 결과 delta를 선택된 엔티티의 TransformComponent에 적용합니다.
+     */
+    void HandleInteraction();
 
 private:
     std::unique_ptr<GizmoDrawList> draw_list;
     GizmoRenderer renderer;
+    GizmoInteraction interaction;
 
     // GPU Color Picking 리소스
     graphics::RenderDevice* render_device = nullptr;

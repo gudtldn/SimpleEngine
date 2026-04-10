@@ -242,6 +242,7 @@ void EditorApplication::Render()
                             if (
                                 state.is_hovered
                                 && !viewport_subsystem.IsAnyCameraActive()
+                                && !gizmo_subsystem->IsDragging()
                                 && gizmo_subsystem->GetPickTexture()
                             )
                             {

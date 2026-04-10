@@ -53,5 +53,27 @@ public:
 
         return Ray{ camera_pos, direction };
     }
+
+    /**
+     * 월드 좌표를 뷰포트 로컬 픽셀 좌표로 투영합니다. (World -> Clip -> NDC -> Screen)
+     * @param world_point 월드 공간 좌표
+     * @return 뷰포트 로컬 좌표 (좌상단 원점, px). 카메라 뒤에 있으면 결과가 부정확할 수 있음.
+     */
+    [[nodiscard]] Vector2f ProjectWorldToScreen(const Vector3& world_point) const
+    {
+        // Row-vector 연산: clip = point * VP
+        const Matrix4x4 vp = view_matrix * projection_matrix;
+        const Vector4 clip = Vector4{ world_point, 1.0 } * vp;
+
+        // Perspective divide -> NDC
+        const double ndc_x = clip.x / clip.w;
+        const double ndc_y = clip.y / clip.w;
+
+        // NDC -> Screen (Pixel)
+        return Vector2f{
+            static_cast<float>((ndc_x + 1.0) * 0.5 * static_cast<double>(width)),
+            static_cast<float>((1.0 - ndc_y) * 0.5 * static_cast<double>(height))
+        };
+    }
 };
 } // namespace se::graphics
