@@ -117,6 +117,9 @@ public:
     /** 뷰포트의 기즈모 좌표계를 설정합니다. */
     void SetViewportCoordinateSpace(const StringName& viewport_id, ECoordinateSpace space);
 
+    /** 뷰포트의 기즈모 좌표계를 토글합니다. */
+    void ToggleViewportCoordinateSpace(const StringName& viewport_id);
+
     /** 특정 뷰포트의 기즈모 좌표계를 반환합니다. */
     [[nodiscard]] ECoordinateSpace GetViewportCoordinateSpace(const StringName& viewport_id) const;
 

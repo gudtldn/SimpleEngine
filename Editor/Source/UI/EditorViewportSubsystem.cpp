@@ -351,6 +351,16 @@ void EditorViewportSubsystem::SetViewportCoordinateSpace(const StringName& viewp
     }
 }
 
+void EditorViewportSubsystem::ToggleViewportCoordinateSpace(const StringName& viewport_id)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->coordinate_space = (state->coordinate_space == ECoordinateSpace::Local)
+                                      ? ECoordinateSpace::World
+                                      : ECoordinateSpace::Local;
+    }
+}
+
 ECoordinateSpace EditorViewportSubsystem::GetViewportCoordinateSpace(const StringName& viewport_id) const
 {
     return viewports.Find(viewport_id).Map([](const ViewportState& state)
