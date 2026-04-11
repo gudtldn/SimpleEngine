@@ -80,6 +80,7 @@ public:
         const char* src = hex.Data();
         for (usize i = 0; i < N; ++i)
         {
+            SE_ASSERT(IsHexChar(src[i * 2]) && IsHexChar(src[(i * 2) + 1]), "FromHex: invalid hex character detected");
             result.data[i] = static_cast<uint8>(
                 (HexCharToNibble(src[i * 2]) << 4) | HexCharToNibble(src[(i * 2) + 1])
             );
@@ -118,7 +119,6 @@ public:
     [[nodiscard]] static constexpr usize Size() { return N; }
 
     [[nodiscard]] explicit constexpr operator bool() const { return !IsZero(); }
-
     [[nodiscard]] bool operator==(const HashDigest& other) const = default;
 
     /** HashDigest 직렬화 */
@@ -139,6 +139,11 @@ public:
     }
 
 private:
+    static constexpr bool IsHexChar(char c)
+    {
+        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+
     static constexpr uint8 HexCharToNibble(char c)
     {
         if (c >= '0' && c <= '9') { return static_cast<uint8>(c - '0'); }
