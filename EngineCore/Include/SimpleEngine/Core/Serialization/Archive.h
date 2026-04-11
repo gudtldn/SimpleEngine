@@ -132,6 +132,9 @@ public:
      */
     Archive& operator()(StringView name)
     {
+        SE_ASSERT(inline_serialize_depth == 0,
+            "SerializeInline: ar(\"key\") calls are not allowed inside SerializeInline. "
+            "InlineSerializable must write a single value without sub-keys.");
         HintNextName(name);
         return *this;
     }
@@ -230,8 +233,10 @@ protected:
 protected:
     explicit Archive(EArchiveMode in_mode);
 
-    EArchiveMode mode;
     std::unique_ptr<String> error_message;
+    uint32 inline_serialize_depth = 0;       // 0: 일반, 1+: SerializeInline 내부 (> 0이면 ar("key") assert)
+    uint32 inline_serialize_write_count = 0; // SerializeInline 내 write 횟수; 2 이상이면 assert
+    EArchiveMode mode;
 };
 
 namespace detail
@@ -254,6 +259,17 @@ template <typename T>
 Archive& Archive::operator<<(T& value)
 {
     using PureType = std::remove_cvref_t<T>;
+
+    // InlineSerializable 컨텍스트 내에서 직접 쓰기 횟수 추적 (depth==1: 최외층)
+    if (inline_serialize_depth == 1)
+    {
+        // 이 write가 InlineSerializable 안에서 일어나는 직접 write일 경우 카운트
+        // 단, 다른 InlineSerializable을 write하는 경우는 그 내부에서 다시 카운트됨
+        inline_serialize_write_count++;
+        SE_ASSERT(inline_serialize_write_count <= 1,
+            "SerializeInline: multiple value writes are not allowed. "
+            "InlineSerializable must write exactly one value.");
+    }
 
     // Bool (std::is_arithmetic_v<bool> == true 이므로 먼저 처리)
     if constexpr (std::same_as<PureType, bool>)
@@ -324,6 +340,20 @@ Archive& Archive::operator<<(T& value)
     else if constexpr (traits::MapLike<PureType>)
     {
         detail::SerializeMapContainer(*this, value);
+    }
+
+    // 인라인(스칼라) 직렬화 - BeginObject/EndObject 없이 값으로 직접 직렬화
+    else if constexpr (traits::InlineSerializable<PureType>)
+    {
+        static_assert(!traits::Serializable<PureType>,
+            "Type cannot implement both SerializeInline and Serialize. "
+            "InlineSerializable is for single scalar-value types only.");
+
+        ++inline_serialize_depth;
+        const uint32 saved_write_count = std::exchange(inline_serialize_write_count, 0);
+        SerializeInline(*this, value);
+        --inline_serialize_depth;
+        inline_serialize_write_count = saved_write_count;
     }
 
     // 커스텀 직렬화 함수가 있는 UDT (ADL 또는 멤버)

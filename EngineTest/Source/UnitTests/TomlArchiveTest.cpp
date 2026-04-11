@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
@@ -1026,6 +1027,91 @@ TEST_F(TomlArchiveTest, TypeMismatch)
 
     // Value should remain at default since conversion failed
     EXPECT_EQ(read_data.value, 999);
+}
+
+// ---- InlineSerializable (HashDigest) ----
+
+namespace
+{
+struct HashHolder
+{
+    ContentHash source_hash;
+    ContentHash settings_hash;
+
+    bool operator==(const HashHolder&) const = default;
+
+    friend void Serialize(Archive& ar, HashHolder& h)
+    {
+        ar("source_hash") << h.source_hash;
+        ar("settings_hash") << h.settings_hash;
+    }
+};
+}
+
+// HashDigest가 TOML에서 nested table이 아닌 flat scalar로 직렬화되어야 한다
+TEST_F(TomlArchiveTest, HashDigest_FlatTomlValue)
+{
+    HashHolder original;
+    original.source_hash = ContentHash::FromHex("aabbccdd00112233aabbccdd00112233aabbccdd00112233aabbccdd00112233");
+    original.settings_hash = ContentHash::FromHex("1122334455667788112233445566778811223344556677881122334455667788");
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    // source_hash and settings_hash must be scalar strings, NOT nested tables
+    EXPECT_TRUE(tbl["source_hash"].is_string());
+    EXPECT_TRUE(tbl["settings_hash"].is_string());
+    EXPECT_FALSE(tbl["source_hash"].is_table());
+    EXPECT_FALSE(tbl["settings_hash"].is_table());
+    EXPECT_EQ(*tbl["source_hash"].value<std::string_view>(), "aabbccdd00112233aabbccdd00112233aabbccdd00112233aabbccdd00112233");
+}
+
+// HashDigest save -> load round-trip
+TEST_F(TomlArchiveTest, HashDigest_RoundTrip)
+{
+    HashHolder original;
+    original.source_hash = ContentHash::FromHex("deadbeefcafebabe0123456789abcdeffedcba9876543210deadbeefcafebabe");
+    original.settings_hash = ContentHash::FromHex("0000000000000000000000000000000000000000000000000000000000000001");
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    HashHolder read;
+    {
+        TomlReader reader(tbl);
+        reader << read;
+    }
+
+    EXPECT_EQ(read, original);
+}
+
+// 비어있는(zero) HashDigest round-trip
+TEST_F(TomlArchiveTest, HashDigest_ZeroRoundTrip)
+{
+    HashHolder original; // default = zero
+
+    toml::table tbl;
+    {
+        TomlWriter writer(tbl);
+        writer << original;
+    }
+
+    HashHolder read;
+    read.source_hash = ContentHash::FromHex("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+    {
+        TomlReader reader(tbl);
+        reader << read;
+    }
+
+    EXPECT_TRUE(read.source_hash.IsZero());
+    EXPECT_EQ(read, original);
 }
 
 // Error Handling: Missing Keys
