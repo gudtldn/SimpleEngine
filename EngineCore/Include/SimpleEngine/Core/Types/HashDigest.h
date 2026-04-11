@@ -135,7 +135,6 @@ public:
         if (ar.IsBinary())
         {
             ar << BinaryBlob::FromBytes(digest.data.Data(), N);
-            ar << digest.data;
         }
         else
         {
