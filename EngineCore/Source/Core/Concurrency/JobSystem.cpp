@@ -213,7 +213,7 @@ void JobSystem::ExecutePayload(JobPayload* payload)
     ZoneScopedN("JobSystem::ExecutePayload");
 
     // 작업을 큐에서 꺼냈으므로 카운터 감소
-    JobSystem::instance->pending_jobs.fetch_sub(1, std::memory_order_relaxed);
+    pending_jobs.fetch_sub(1, std::memory_order_relaxed);
 
     payload->Invoke();
 
