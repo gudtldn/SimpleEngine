@@ -1,8 +1,8 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/ArrayView.h"
-#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 
@@ -21,22 +21,22 @@ struct SE_CORE_API SHA256
     /**
      * 파일의 SHA-256 해시를 계산합니다.
      * @param file_path 해시를 계산할 파일의 경로
-     * @return "sha256:<hex>" 형식의 해시 문자열. 실패 시 빈 문자열.
+     * @return SHA-256 digest. 실패 시 zero digest.
      */
-    [[nodiscard]] static String HashFile(const Path& file_path);
+    [[nodiscard]] static ContentHash HashFile(const Path& file_path);
 
     /**
      * 바이트 데이터의 SHA-256 해시를 계산합니다.
      * @param data 해시를 계산할 바이트 배열
-     * @return "sha256:<hex>" 형식의 해시 문자열
+     * @return SHA-256 digest
      */
-    [[nodiscard]] static String HashBytes(ArrayView<const uint8> data);
+    [[nodiscard]] static ContentHash HashBytes(ArrayView<const uint8> data);
 
     /**
      * 문자열 데이터의 SHA-256 해시를 계산합니다.
      * @param str 해시를 계산할 문자열
-     * @return "sha256:<hex>" 형식의 해시 문자열
+     * @return SHA-256 digest
      */
-    [[nodiscard]] static String HashString(StringView str);
+    [[nodiscard]] static ContentHash HashString(StringView str);
 };
 } // namespace se

@@ -185,7 +185,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
             }
 
             // DDC Hit 검사 및 로드 수행
-            String source_hash;
+            ContentHash source_hash;
             uint32 cache_version;
             const bool has_meta = registry->ReadRecord(current_id, [&source_hash, &cache_version](const AssetRecord& record)
             {
@@ -417,7 +417,7 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
     }
 
     // DDC validity 확인
-    String source_hash;
+    ContentHash source_hash;
     uint32 cache_version;
     const bool has_meta = registry->ReadRecord(asset_id, [&source_hash, &cache_version](const AssetRecord& record)
     {

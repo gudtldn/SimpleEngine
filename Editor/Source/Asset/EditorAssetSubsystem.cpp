@@ -278,11 +278,11 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
     }
 
     // === 고아 .meta 해시 인덱스 구축 (이동 감지용) ===
-    HashMap<String, uint32> orphan_by_hash;
+    HashMap<ContentHash, uint32> orphan_by_hash;
     for (const auto [n, orphan_meta] : orphan_metas | std::views::enumerate)
     {
-        const String& hash = orphan_meta.content.metadata.source_hash;
-        if (!hash.IsEmpty())
+        const ContentHash& hash = orphan_meta.content.metadata.source_hash;
+        if (!hash.IsZero())
         {
             orphan_by_hash.Insert(hash, static_cast<uint32>(n));
         }
@@ -309,7 +309,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         else if (!orphan_by_hash.IsEmpty())
         {
             // .meta 없음 -> 해시 매칭으로 오프라인 이동 감지
-            const String hash = SHA256::HashFile(file_path);
+            const ContentHash hash = SHA256::HashFile(file_path);
             if (const Optional idx = orphan_by_hash.Find(hash))
             {
                 OrphanMeta& orphan = orphan_metas[*idx];
@@ -592,7 +592,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const ImportResult& result = result_exp.Value();
 
     // 메타데이터 및 해시 계산
-    const String source_hash = SHA256::HashFile(file_path); // TODO: 나중에 xxHash로 변경
+    const ContentHash source_hash = SHA256::HashFile(file_path);
     constexpr uint32 current_cache_version = 1;
     const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
     const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
@@ -603,7 +603,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         MemoryWriter writer(settings_bytes);
         writer << import_profile;
     }
-    const String settings_hash = SHA256::HashBytes(settings_bytes);
+    const ContentHash settings_hash = SHA256::HashBytes(settings_bytes);
 
     asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
     asset::DerivedDataCache& ddc = asset_subsystem->GetDDC();
@@ -674,7 +674,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         registry.RegisterAsset(asset_id, asset_type, std::move(asset_path), std::move(sub_meta));
 
         // DDC 굽기 (직렬화)
-        if (!source_hash.IsEmpty())
+        if (!source_hash.IsZero())
         {
             Array<uint8> payload = asset::AssetSubsystem::SerializeAssetPayload(*asset);
             if (!payload.IsEmpty())
@@ -814,7 +814,7 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const asset::As
 
     // mtime 변경 + size 동일 -> SHA256 해시로 최종 확인
     // (git branch 전환, touch 등으로 mtime만 바뀐 경우 불필요한 reimport 방지)
-    const String current_hash = SHA256::HashFile(source_path);
+    const ContentHash current_hash = SHA256::HashFile(source_path);
     return current_hash != meta.source_hash;
 }
 

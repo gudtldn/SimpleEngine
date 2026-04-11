@@ -2,8 +2,8 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
-#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 
@@ -17,8 +17,8 @@ namespace se::asset
  */
 struct CacheEntry
 {
-    /** 소스 파일의 해시 ("sha256:..." 형태) */
-    String source_hash;
+    /** 소스 파일의 해시 */
+    ContentHash source_hash;
 
     /** 캐시 스키마 버전 (Importer 출력 포맷 변경 시 증가) */
     uint32 cache_version = 0;
@@ -97,7 +97,7 @@ public:
      */
     [[nodiscard]] bool IsValid(
         const Guid& guid,
-        StringView source_hash,
+        const ContentHash& source_hash,
         uint32 cache_version
     ) const;
 

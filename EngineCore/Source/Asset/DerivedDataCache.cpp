@@ -38,7 +38,7 @@ struct DDC_CacheEntryInternal
         uint32 magic = CACHE_MAGIC;
         uint32 format_version = CACHE_FORMAT_VERSION;
         uint32 cache_version = 0;
-        String source_hash;
+        ContentHash source_hash;
 
         friend void Serialize(Archive& ar, Header& ar_header)
         {
@@ -226,7 +226,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 // source_hash와 cache_version이 모두 일치해야 유효한 것으로 판단.
 bool DerivedDataCache::IsValid(
     const Guid& guid,
-    StringView source_hash,
+    const ContentHash& source_hash,
     uint32 cache_version
 ) const
 {

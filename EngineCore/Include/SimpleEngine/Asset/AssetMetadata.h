@@ -1,9 +1,11 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 
 
 namespace se::asset
@@ -80,9 +82,9 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
     SE_ANNOTATION(=meta::Property)
     Guid guid;
 
-    /** 소스 파일의 SHA-256 해시 (변경 감지용, "sha256:..." 형태) */
+    /** 소스 파일의 SHA-256 해시 (변경 감지용) */
     SE_ANNOTATION(=meta::Property)
-    String source_hash;
+    ContentHash source_hash;
 
     /** 소스 파일의 마지막 수정 시간 */
     SE_ANNOTATION(=meta::Property)
@@ -96,9 +98,9 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
     SE_ANNOTATION(=meta::Property)
     uint32 cache_version = 0;
 
-    /** Import Settings의 SHA-256 해시 (설정 변경 감지용, "sha256:..." 형태) */
+    /** Import Settings의 SHA-256 해시 (설정 변경 감지용) */
     SE_ANNOTATION(=meta::Property)
-    String settings_hash;
+    ContentHash settings_hash;
 
     /** 이 소스 파일에서 생성된 Sub-Asset 목록 */
     SE_ANNOTATION(=meta::Property)

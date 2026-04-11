@@ -4,7 +4,7 @@
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 
 #include "SDL3/SDL.h"
 
@@ -36,8 +36,8 @@ private:
     // GPU에 업로드된 메시의 해시 쌍을 추적합니다 (Hot-reload 감지용)
     struct MeshCookKey
     {
-        String source_hash;
-        String settings_hash;
+        ContentHash source_hash;
+        ContentHash settings_hash;
 
         bool operator==(const MeshCookKey&) const = default;
     };
