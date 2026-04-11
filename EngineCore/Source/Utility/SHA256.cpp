@@ -5,12 +5,24 @@
 
 #include "picosha2.h"
 
-#include <string>
-
 
 namespace se
 {
-String SHA256::HashFile(const Path& file_path)
+namespace
+{
+ContentHash DigestFromHasher(picosha2::hash256_one_by_one& hasher)
+{
+    static_assert(ContentHash::DIGEST_SIZE == 32, "SHA-256 produces 32 bytes; update hash library if ContentHash size changes");
+
+    hasher.finish();
+
+    uint8 raw[ContentHash::DIGEST_SIZE];
+    hasher.get_hash_bytes(raw, raw + ContentHash::DIGEST_SIZE);
+    return ContentHash::FromRaw(raw);
+}
+} // namespace
+
+ContentHash SHA256::HashFile(const Path& file_path)
 {
     picosha2::hash256_one_by_one hasher;
 
@@ -29,31 +41,20 @@ String SHA256::HashFile(const Path& file_path)
         hasher.process(chunk.begin(), chunk.end());
     }
 
-    hasher.finish();
-
-    std::string hex_str;
-    picosha2::get_hash_hex_string(hasher, hex_str);
-
-    return String::Format("sha256:{}", hex_str.c_str());
+    return DigestFromHasher(hasher);
 }
 
-String SHA256::HashBytes(ArrayView<const uint8> data)
+ContentHash SHA256::HashBytes(ArrayView<const uint8> data)
 {
-    std::string hex_str;
-    picosha2::hash256_hex_string(
-        data.begin(), data.end(),
-        hex_str
-    );
-    return String::Format("sha256:{}", hex_str.c_str());
+    picosha2::hash256_one_by_one hasher;
+    hasher.process(data.begin(), data.end());
+    return DigestFromHasher(hasher);
 }
 
-String SHA256::HashString(const StringView str)
+ContentHash SHA256::HashString(const StringView str)
 {
-    const uint8* begin = reinterpret_cast<const uint8*>(str.Data());
-    const uint8* end = begin + str.ByteLen();
-
-    std::string hex_str;
-    picosha2::hash256_hex_string(begin, end, hex_str);
-    return String::Format("sha256:{}", hex_str.c_str());
+    picosha2::hash256_one_by_one hasher;
+    hasher.process(str.begin(), str.end());
+    return DigestFromHasher(hasher);
 }
 }  // namespace se
