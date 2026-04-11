@@ -42,8 +42,8 @@ public:
         }
 
         // Screen (Pixel) -> NDC 변환
-        const double ndc_x = 2.0 * static_cast<double>(in_cursor_pos.x) / static_cast<double>(width) - 1.0;
-        const double ndc_y = 1.0 - 2.0 * static_cast<double>(in_cursor_pos.y) / static_cast<double>(height);
+        const double ndc_x = (2.0 * static_cast<double>(in_cursor_pos.x) / static_cast<double>(width)) - 1.0;
+        const double ndc_y = 1.0 - (2.0 * static_cast<double>(in_cursor_pos.y) / static_cast<double>(height));
 
         const Matrix4x4 inv_vp = (view_matrix * projection_matrix).Inverse();
 

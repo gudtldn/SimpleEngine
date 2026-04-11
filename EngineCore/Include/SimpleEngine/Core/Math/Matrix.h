@@ -64,11 +64,10 @@ public:
         Vector4Impl<T> result{};
         for (SizeType i = 0; i < 4; ++i)
         {
-            result[i] =
-                rhs[0, i] * lhs[0]
-                + rhs[1, i] * lhs[1]
-                + rhs[2, i] * lhs[2]
-                + rhs[3, i] * lhs[3];
+            result[i] = (rhs[0, i] * lhs[0])
+                      + (rhs[1, i] * lhs[1])
+                      + (rhs[2, i] * lhs[2])
+                      + (rhs[3, i] * lhs[3]);
         }
         return result;
     }
@@ -145,6 +144,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Transpose() const
     return result;
 }
 
+// NOLINTBEGIN(*-math-missing-parentheses)
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 {
@@ -232,6 +232,7 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 
     return result;
 }
+// NOLINTEND(*-math-missing-parentheses)
 
 template <traits::FloatingType T>
 constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::operator+(const Matrix4x4Impl& rhs) const
