@@ -5,14 +5,16 @@
 #include "SimpleEditor/Core/EditorSubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
+#include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
 #include "SimpleEngine/ECS/Components/NameComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
-#include "SimpleEngine/ECS/Query.h"
-#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
+
+#include <cstdio>
 
 
 namespace se::editor
@@ -80,9 +82,17 @@ void OutlinerPanel::DrawEntityNode(World& world, EditorSelection& selection, Ent
     const Optional children_opt = world.TryGetComponent<ChildrenComponent>(entity);
     const bool has_children = children_opt && !children_opt->children.IsEmpty();
 
-    const String display_name = (name_opt && !name_opt->name.IsEmpty())
-        ? name_opt->name
-        : String::Format("Entity {}", entity.GetId());
+    char name_buf[32]; // "Entity 4294967295" = 최대 18자
+    const char* display_name;
+    if (name_opt && !name_opt->name.IsEmpty())
+    {
+        display_name = name_opt->name.CStr();
+    }
+    else
+    {
+        std::snprintf(name_buf, sizeof(name_buf), "Entity %u", entity.GetId());
+        display_name = name_buf;
+    }
 
     ImGui::PushID(static_cast<int>(entity.GetId()));
 
@@ -128,7 +138,7 @@ void OutlinerPanel::DrawEntityNode(World& world, EditorSelection& selection, Ent
             flags |= ImGuiTreeNodeFlags_Selected;
         }
 
-        const bool node_open = ImGui::TreeNodeEx(display_name.CStr(), flags);
+        const bool node_open = ImGui::TreeNodeEx(display_name, flags);
 
         // OpenOnArrow 플래그로 인해 화살표 클릭은 토글, 레이블 클릭은 선택으로 분리된다
         if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
@@ -156,7 +166,7 @@ void OutlinerPanel::DrawEntityNode(World& world, EditorSelection& selection, Ent
             if (ImGui::MenuItem("Rename"))
             {
                 renaming_entity = entity;
-                rename_name = display_name;
+                rename_name = String{display_name};
                 rename_focus_pending = true;
             }
 
