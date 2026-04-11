@@ -301,7 +301,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
     struct PendingUpload
     {
         asset::AssetPath path;
-        String cook_key;
+        MeshCookKey cook_key;
     };
     HashMap<asset::AssetId, PendingUpload> pending;
 
@@ -313,30 +313,48 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
             continue;
         }
 
-        // Registry에서 경로와 cook_key를 조회
+        // Fast path: GPU에 이미 올라와 있으면 hash만 in-place 비교 (0 malloc)
+        bool is_reimport = false;
+        if (gpu_manager.GetSlice(draw_cmd.mesh_id).HasValue())
+        {
+            bool up_to_date = false;
+            registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
+            {
+                if (const auto prev = uploaded_mesh_hashes.Find(draw_cmd.mesh_id))
+                {
+                    up_to_date = prev->source_hash == record.metadata.source_hash
+                        && prev->settings_hash == record.metadata.settings_hash;
+                }
+            });
+
+            if (up_to_date)
+            {
+                continue;
+            }
+
+            // cook_key 불일치 또는 미기록 -> 에셋이 reimport됨 (Pool과 GPU를 무효화)
+            gpu_manager.UnloadMesh(draw_cmd.mesh_id);
+            asset_subsystem->GetPool().Remove(draw_cmd.mesh_id);
+            is_reimport = true;
+        }
+
+        // Slow path: 새 메시 또는 reimport -> 경로와 해시를 복사
         asset::AssetPath asset_path;
-        String cook_key;
+        MeshCookKey cook_key;
         if (!registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
         {
             asset_path = record.logical_path;
-            cook_key = String::Format("{}|{}", record.metadata.source_hash, record.metadata.settings_hash);
+            cook_key = {
+                .source_hash = record.metadata.source_hash,
+                .settings_hash = record.metadata.settings_hash,
+            };
         }))
         {
             continue;
         }
 
-        if (gpu_manager.GetSlice(draw_cmd.mesh_id).HasValue())
+        if (is_reimport)
         {
-            // GPU 메모리에 이미 올라와 있음 (cook_key가 동일하면 최신 상태)
-            const Optional<String&> prev_key = uploaded_mesh_hashes.Find(draw_cmd.mesh_id);
-            if (prev_key == cook_key)
-            {
-                continue;
-            }
-
-            // cook_key 불일치 -> 에셋이 reimport됨 (Pool과 GPU를 무효화)
-            gpu_manager.UnloadMesh(draw_cmd.mesh_id);
-            asset_subsystem->GetPool().Remove(draw_cmd.mesh_id);
             ConsoleLog(ELogLevel::Info, "GPU mesh invalidated (reimport detected): {}", asset_path.ToString());
         }
 
@@ -380,7 +398,10 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
 
         if (success)
         {
-            uploaded_mesh_hashes.Insert(mesh_id, info.cook_key);
+            uploaded_mesh_hashes.Insert(mesh_id, {
+                .source_hash = info.cook_key.source_hash,
+                .settings_hash = info.cook_key.settings_hash,
+            });
         }
     }
 }

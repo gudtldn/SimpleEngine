@@ -33,8 +33,15 @@ private:
     /** 현재 프레임에 필요한 메시를 GPU 메모리에 업로드합니다. */
     void EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const graphics::SceneDrawData& in_scene_data);
 
-    // GPU에 업로드된 메시의 cook_key ("{source_hash}|{settings_hash}")를 추적합니다 (Hot-reload 감지용)
-    HashMap<asset::AssetId, String> uploaded_mesh_hashes;
+    // GPU에 업로드된 메시의 해시 쌍을 추적합니다 (Hot-reload 감지용)
+    struct MeshCookKey
+    {
+        String source_hash;
+        String settings_hash;
+
+        bool operator==(const MeshCookKey&) const = default;
+    };
+    HashMap<asset::AssetId, MeshCookKey> uploaded_mesh_hashes;
 
     SDL_Window* cached_window = nullptr;
 };
