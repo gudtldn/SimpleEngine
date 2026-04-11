@@ -8,8 +8,8 @@ global_scale = 1.0
 [metadata]
 cache_version = 1
 guid = '01d69dd4-af80-4c24-b55d-cfd97aef4a1e'
-settings_hash = 'sha256:82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
-source_hash = 'sha256:72f9007e01fd1d02ac1615eca372ed1a10499e93526c8eef6f1e14c6156fbb28'
+settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
+source_hash = '72f9007e01fd1d02ac1615eca372ed1a10499e93526c8eef6f1e14c6156fbb28'
 source_mtime = 1775721082529359500
 source_size = 63009
 
