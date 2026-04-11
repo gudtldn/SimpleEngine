@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
 #include "SDL3/SDL_filesystem.h"
@@ -35,6 +36,14 @@ public:
 private:
     Path root_path;
 };
+
+// 테스트용 ContentHash 생성 (라벨 바이트를 그대로 해시에 채워넣음)
+ContentHash MakeTestHash(StringView label)
+{
+    uint8 raw[ContentHash::DIGEST_SIZE] = {};
+    std::memcpy(raw, label.Data(), std::min(label.ByteLen(), usize{ ContentHash::DIGEST_SIZE }));
+    return ContentHash::FromRaw(raw);
+}
 
 // 테스트용 페이로드 생성
 Array<uint8> MakePayload(const std::initializer_list<uint8>& data)
@@ -70,7 +79,7 @@ protected:
 TEST_F(DDCTest, StoreAndLoad)
 {
     const Guid guid = Guid::NewGuid();
-    const String hash = "sha256:abcdef1234567890";
+    const ContentHash hash = MakeTestHash("abcdef1234567890");
     constexpr uint32 version = 1;
     const Array<uint8> payload = MakePayload({ 0x01, 0x02, 0x03, 0x04 });
 
@@ -105,7 +114,7 @@ TEST_F(DDCTest, Contains)
 
     const Array<uint8> payload = MakePayload({ 0xFF });
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:test",
+        .source_hash = MakeTestHash("test"),
         .cache_version = 1,
         .payload = payload
     }));
@@ -121,7 +130,7 @@ TEST_F(DDCTest, Contains)
 TEST_F(DDCTest, IsValid_MatchingHashAndVersion)
 {
     const Guid guid = Guid::NewGuid();
-    const String hash = "sha256:matching_hash";
+    const ContentHash hash = MakeTestHash("matching_hash");
     constexpr uint32 version = 3;
     const Array<uint8> payload = MakePayload(16);
 
@@ -140,12 +149,12 @@ TEST_F(DDCTest, IsValid_MismatchHash)
     const Array<uint8> payload = MakePayload(16);
 
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:original",
+        .source_hash = MakeTestHash("original"),
         .cache_version = 1,
         .payload = payload
     }));
 
-    EXPECT_FALSE(ddc.IsValid(guid, "sha256:different", 1));
+    EXPECT_FALSE(ddc.IsValid(guid, MakeTestHash("different"), 1));
 }
 
 TEST_F(DDCTest, IsValid_MismatchVersion)
@@ -154,18 +163,18 @@ TEST_F(DDCTest, IsValid_MismatchVersion)
     const Array<uint8> payload = MakePayload(16);
 
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:same",
+        .source_hash = MakeTestHash("same"),
         .cache_version = 1,
         .payload = payload
     }));
 
-    EXPECT_FALSE(ddc.IsValid(guid, "sha256:same", 2));
+    EXPECT_FALSE(ddc.IsValid(guid, MakeTestHash("same"), 2));
 }
 
 TEST_F(DDCTest, IsValid_NonExistent)
 {
     const Guid guid = Guid::NewGuid();
-    EXPECT_FALSE(ddc.IsValid(guid, "sha256:any", 1));
+    EXPECT_FALSE(ddc.IsValid(guid, MakeTestHash("any"), 1));
 }
 
 
@@ -180,12 +189,12 @@ TEST_F(DDCTest, OverwriteExistingCache)
     const Array<uint8> payload2 = MakePayload({ 0xAA, 0xBB, 0xCC });
 
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:v1",
+        .source_hash = MakeTestHash("v1"),
         .cache_version = 1,
         .payload = payload1
     }));
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:v2",
+        .source_hash = MakeTestHash("v2"),
         .cache_version = 2,
         .payload = payload2
     }));
@@ -193,7 +202,7 @@ TEST_F(DDCTest, OverwriteExistingCache)
     const Optional result = ddc.Load(guid);
     ASSERT_TRUE(result.HasValue());
 
-    EXPECT_EQ(result->source_hash, "sha256:v2");
+    EXPECT_EQ(result->source_hash, MakeTestHash("v2"));
     EXPECT_EQ(result->cache_version, 2u);
     ASSERT_EQ(result->payload.Len(), payload2.Len());
     EXPECT_EQ(std::memcmp(result->payload.Data(), payload2.Data(), payload2.Len()), 0);
@@ -210,7 +219,7 @@ TEST_F(DDCTest, Remove)
     const Array<uint8> payload = MakePayload({ 0x01 });
 
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:test",
+        .source_hash = MakeTestHash("test"),
         .cache_version = 1,
         .payload = payload
     }));
@@ -234,12 +243,12 @@ TEST_F(DDCTest, Clear)
     const Array<uint8> payload = MakePayload(8);
 
     ASSERT_TRUE(ddc.Store(guid1, {
-        .source_hash = "sha256:a",
+        .source_hash = MakeTestHash("a"),
         .cache_version = 1,
         .payload = payload
     }));
     ASSERT_TRUE(ddc.Store(guid2, {
-        .source_hash = "sha256:b",
+        .source_hash = MakeTestHash("b"),
         .cache_version = 1,
         .payload = payload
     }));
@@ -264,7 +273,7 @@ TEST_F(DDCTest, EmptyPayload)
     const Array<uint8> empty_payload;
 
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:empty",
+        .source_hash = MakeTestHash("empty"),
         .cache_version = 1,
         .payload = empty_payload
     }));
@@ -272,7 +281,7 @@ TEST_F(DDCTest, EmptyPayload)
     const Optional result = ddc.Load(guid);
     ASSERT_TRUE(result.HasValue());
 
-    EXPECT_EQ(result->source_hash, "sha256:empty");
+    EXPECT_EQ(result->source_hash, MakeTestHash("empty"));
     EXPECT_EQ(result->payload.Len(), 0u);
 }
 
@@ -288,7 +297,7 @@ TEST_F(DDCTest, LargePayload)
     const Array<uint8> payload = MakePayload(large_size, 0xCD);
 
     ASSERT_TRUE(ddc.Store(guid, {
-        .source_hash = "sha256:large",
+        .source_hash = MakeTestHash("large"),
         .cache_version = 1,
         .payload = payload
     }));
@@ -314,12 +323,12 @@ TEST_F(DDCTest, MultipleGuidsIndependent)
     const Array<uint8> payload2 = MakePayload({ 0xAA, 0xBB, 0xCC });
 
     ASSERT_TRUE(ddc.Store(guid1, {
-        .source_hash = "sha256:hash1",
+        .source_hash = MakeTestHash("hash1"),
         .cache_version = 1,
         .payload = payload1
     }));
     ASSERT_TRUE(ddc.Store(guid2, {
-        .source_hash = "sha256:hash2",
+        .source_hash = MakeTestHash("hash2"),
         .cache_version = 2,
         .payload = payload2
     }));
@@ -330,11 +339,11 @@ TEST_F(DDCTest, MultipleGuidsIndependent)
     ASSERT_TRUE(r1.HasValue());
     ASSERT_TRUE(r2.HasValue());
 
-    EXPECT_EQ(r1->source_hash, "sha256:hash1");
+    EXPECT_EQ(r1->source_hash, MakeTestHash("hash1"));
     EXPECT_EQ(r1->cache_version, 1u);
     EXPECT_EQ(r1->payload.Len(), 2u);
 
-    EXPECT_EQ(r2->source_hash, "sha256:hash2");
+    EXPECT_EQ(r2->source_hash, MakeTestHash("hash2"));
     EXPECT_EQ(r2->cache_version, 2u);
     EXPECT_EQ(r2->payload.Len(), 3u);
 }
