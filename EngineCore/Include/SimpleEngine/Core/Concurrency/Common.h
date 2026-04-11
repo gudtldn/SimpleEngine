@@ -27,5 +27,5 @@ enum class EJobPriority : uint8
 };
 
 /** 우선순위 레벨 개수 */
-constexpr usize NUM_JOB_PRIORITIES = EnumCount<EJobPriority>();
+constexpr usize NUM_JOB_PRIORITIES = 3; // EnumCount<EJobPriority>();
 } // namespace se
