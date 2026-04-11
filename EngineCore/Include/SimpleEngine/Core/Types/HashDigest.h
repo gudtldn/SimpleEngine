@@ -116,25 +116,39 @@ public:
     }
 
     [[nodiscard]] const uint8* Data() const { return data.Data(); }
+    [[nodiscard]] uint8* Data() { return data.Data(); }
+
     [[nodiscard]] static constexpr usize Size() { return N; }
 
     [[nodiscard]] explicit constexpr operator bool() const { return !IsZero(); }
     [[nodiscard]] bool operator==(const HashDigest& other) const = default;
 
-    /** HashDigest 직렬화 */
+    /**
+     * HashDigest 직렬화
+     * Binary: raw bytes 직접 저장 (N bytes)
+     * Text: hex 문자열로 변환 (N*2 chars)
+     */
     friend void Serialize(Archive& ar, HashDigest& digest)
     {
-        String str;
-        if (ar.IsSaving())
+        if (ar.IsBinary())
         {
-            str = digest.ToHex();
+            ar << BinaryBlob::FromBytes(digest.data.Data(), N);
+            ar << digest.data;
         }
-
-        ar << str;
-
-        if (ar.IsLoading())
+        else
         {
-            digest = HashDigest::FromHex(str);
+            String str;
+            if (ar.IsSaving())
+            {
+                str = digest.ToHex();
+            }
+
+            ar << str;
+
+            if (ar.IsLoading())
+            {
+                digest = HashDigest::FromHex(str);
+            }
         }
     }
 
