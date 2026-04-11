@@ -62,7 +62,23 @@ void GizmoInteraction::BeginDrag(
         else
         {
             const Vector3 axis_dir = GetAxisDirection(active_axis);
-            drag_start_t = ray.ClosestParameterOnLine(drag_gizmo_center, axis_dir);
+
+            const Matrix4x4 inv_view = in_view.view_matrix.Inverse();
+            const Vector3 camera_pos = Vector3{ inv_view[3, 0], inv_view[3, 1], inv_view[3, 2] };
+
+            // 카메라에서 기즈모를 바라보는 시선 벡터
+            const Vector3 view_dir = (camera_pos - drag_gizmo_center).GetNormalized();
+
+            // 기즈모 축을 포함하며 카메라를 바라보는 평면의 법선 계산
+            const Vector3 plane_right = view_dir.Cross(axis_dir).GetNormalized();
+            drag_plane_normal = axis_dir.Cross(plane_right).GetNormalized();
+
+            double t = 0.0;
+            if (ray.IntersectPlane(drag_gizmo_center, drag_plane_normal, t))
+            {
+                // 단일 축 이동도 3D 위치 벡터를 기준점으로 사용
+                drag_start_vector = ray.GetPoint(t);
+            }
         }
         break;
     }
@@ -171,8 +187,10 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateTranslation(const Ray& ray)
 
             // 이전 프레임의 히트 위치(drag_start_vector)와 현재 히트 위치의 차이를 Delta로 반환
             result.translation_delta = hit_point - drag_start_vector;
-            drag_start_vector = hit_point; // 다음 프레임의 기준점 갱신
-            drag_gizmo_center = drag_gizmo_center + result.translation_delta;
+
+            // 다음 프레임을 위해 기준점 갱신
+            drag_start_vector = hit_point;
+            drag_gizmo_center += result.translation_delta;
         }
     }
 
@@ -180,15 +198,21 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateTranslation(const Ray& ray)
     else
     {
         const Vector3 axis_dir = GetAxisDirection(active_axis);
-        const double current_t = ray.ClosestParameterOnLine(drag_gizmo_center, axis_dir);
 
-        // 투영 거리 t의 차이만큼 해당 축 방향으로 이동
-        const double delta_t = current_t - drag_start_t;
-        result.translation_delta = axis_dir * delta_t;
+        double t = 0.0;
+        if (ray.IntersectPlane(drag_gizmo_center, drag_plane_normal, t))
+        {
+            const Vector3 hit_point = ray.GetPoint(t);
 
-        // center가 이동하면 ClosestParameterOnLine의 t가 정확히 delta_t만큼 시프트되므로
-        // drag_start_t를 유지하면 다음 프레임에서 상쇄된다 (리셋하면 점프 발생)
-        drag_gizmo_center = drag_gizmo_center + result.translation_delta;
+            // 평면상의 히트 포인트 이동량을 '단일 축 방향'으로만 투영
+            const double delta_distance = (hit_point - drag_start_vector).Dot(axis_dir);
+
+            result.translation_delta = axis_dir * delta_distance;
+
+            // 다음 프레임을 위해 기준점 갱신
+            drag_start_vector = hit_point;
+            drag_gizmo_center += result.translation_delta;
+        }
     }
 
     return result;
