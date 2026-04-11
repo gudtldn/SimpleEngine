@@ -51,6 +51,8 @@ public:
     /** 원시 바이트 포인터로부터 생성 */
     static constexpr HashDigest FromRaw(const uint8* raw)
     {
+        SE_ASSERT(raw != nullptr);
+
         HashDigest result;
         if consteval
         {
