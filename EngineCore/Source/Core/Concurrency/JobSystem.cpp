@@ -20,11 +20,12 @@ using namespace std::literals;
 /**
  * 유휴 상태에서 대기 전 스핀 반복 횟수
  * @note yield()의 컨텍스트 스위칭 비용과 응답성 사이의 균형점
+ *       스핀 중에는 TryPopGlobal + TryPopLocal만 수행하고, TryStealFromOthers는 호출하지 않음
  */
-constexpr usize IDLE_SPIN_COUNT = 32;
+constexpr usize IDLE_SPIN_COUNT = 4;
 
-/** condition_variable 대기 타임아웃 */
-constexpr std::chrono::milliseconds IDLE_WAIT_TIMEOUT = 1ms;
+/** condition_variable 대기 안전 타임아웃 (missed notification 방지용) */
+constexpr std::chrono::milliseconds IDLE_WAIT_TIMEOUT = 100ms;
 
 /** TLS에 워커 인덱스를 저장하는 변수. max()면 비워커 스레드 */
 thread_local usize CurrentWorkerIndex = std::numeric_limits<usize>::max();
@@ -155,6 +156,10 @@ usize JobSystem::GetWorkerCount() const
 
 void JobSystem::EnqueuePayload(JobPayload* payload)
 {
+    // push 전에 카운터를 증가시켜, 워커가 깨어났을 때 작업이 아직 큐에 없는 경우
+    // 잠시 스핀하며 대기할 수 있도록 함 (push 후 증가 시 카운터가 음수가 될 수 있음)
+    pending_jobs.fetch_add(1, std::memory_order_relaxed);
+
     if (CurrentWorkerIndex < worker_count)
     {
         // 워커 스레드라면 자신의 Deque에 직접 Push (Owner만 Push 가능)
@@ -207,6 +212,9 @@ void JobSystem::ExecutePayload(JobPayload* payload)
 {
     ZoneScopedN("JobSystem::ExecutePayload");
 
+    // 작업을 큐에서 꺼냈으므로 카운터 감소
+    JobSystem::instance->pending_jobs.fetch_sub(1, std::memory_order_relaxed);
+
     payload->Invoke();
 
     // 완료 카운터를 감소 (Waiter 통지 + 의존성 해소 트리거)
@@ -240,13 +248,14 @@ void JobSystem::WorkerLoop(const std::stop_token& stoken, usize worker_index)
         // 2. 자신의 Deque에서 우선순위 순으로 Pop 시도
         JobPayload* payload = TryPopLocal(worker_index);
 
-        // 3. 로컬에 없으면 다른 워커에서 Steal 시도
-        if (!payload)
+        // 3. Steal은 유휴 전환 직후 1회만 시도 (스핀 중에는 호출하지 않음)
+        //    N워커 x 3우선순위 x (N-1) Steal = iteration당 ~3N(N-1) atomic CAS이므로 반복 호출 시 CPU 캐시 라인 경합이 심각해짐
+        if (!payload && idle_spins == 0)
         {
             payload = TryStealFromOthers(worker_index);
         }
 
-        // 3. 작업 발견 시 실행, 아니면 백오프
+        // 4. 작업 발견 시 실행, 아니면 백오프
         if (payload)
         {
             ExecutePayload(payload);
@@ -261,30 +270,11 @@ void JobSystem::WorkerLoop(const std::stop_token& stoken, usize worker_index)
         else
         {
             // 스핀 한도 초과 -> condition_variable로 수면
+            // pending_jobs 카운터만 확인하므로 전체 deque 스캔을 회피
             std::unique_lock lock{ wake_mutex };
             wake_cv.wait_for(lock, stoken, IDLE_WAIT_TIMEOUT, [this]
             {
-                // Global Inbox 체크 (가장 빠름, 원자적 포인터 비교 1회)
-                if (global_inbox.load(std::memory_order_relaxed) != nullptr)
-                {
-                    return true;
-                }
-
-                // 시스템 전체 워커의 Deque 체크
-                // notify_one은 랜덤한 스레드를 깨우므로, 내가 아닌 다른 스레드에 일이 들어왔을 수 있음
-                for (usize i = 0; i < worker_count; ++i)
-                {
-                    for (usize p = 0; p < NUM_JOB_PRIORITIES; ++p)
-                    {
-                        if (!worker_states[i].deques[p].IsEmpty())
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                // 아무 일도 없으면 다시 수면
-                return false;
+                return pending_jobs.load(std::memory_order_relaxed) > 0;
             });
             idle_spins = 0;
         }
@@ -330,6 +320,12 @@ JobPayload* JobSystem::TryStealFromOthers(usize worker_index)
 
 JobPayload* JobSystem::TryPopGlobal()
 {
+    // Fast-path: inbox가 비어있으면 비싼 atomic exchange를 건너뜀
+    if (global_inbox.load(std::memory_order_relaxed) == nullptr)
+    {
+        return nullptr;
+    }
+
     // Global Inbox 전체를 통째로 뜯어 옴 (Lock-Free Batch Pop)
     JobPayload* list = global_inbox.exchange(nullptr, std::memory_order_acquire);
 
