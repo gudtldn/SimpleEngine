@@ -36,6 +36,18 @@ struct HashUtils
 {
     HashUtils() = delete;
 
+    /** 원시 바이트 범위에 대한 FNV-1a 해시 */
+    static constexpr uint64 FNV(const uint8* data, usize size) noexcept
+    {
+        uint64 hash = detail::DefaultFNVHash;
+        for (usize i = 0; i < size; ++i)
+        {
+            hash ^= static_cast<uint64>(data[i]);
+            hash *= detail::FNV_Prime;
+        }
+        return hash;
+    }
+
     static constexpr uint64 FNV(StringView view) noexcept
     {
         return detail::FNV_Hash_Impl(view, [](auto c) { return c; });
