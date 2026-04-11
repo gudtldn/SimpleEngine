@@ -204,7 +204,7 @@ private:
     void EnqueuePayload(JobPayload* payload);
 
     /** JobPayload를 실행하고, 완료 카운터를 감소시킨 뒤 메모리를 해제합니다. */
-    static void ExecutePayload(JobPayload* payload);
+    void ExecutePayload(JobPayload* payload);
 
     /** 워커 스레드의 메인 루프 */
     void WorkerLoop(const std::stop_token& stoken, usize worker_index);
