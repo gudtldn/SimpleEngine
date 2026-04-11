@@ -126,11 +126,11 @@ public:
     [[nodiscard]] bool operator==(const HashDigest& other) const = default;
 
     /**
-     * HashDigest 직렬화
-     * Binary: raw bytes 직접 저장 (N bytes)
-     * Text: hex 문자열로 변환 (N*2 chars)
+     * HashDigest 인라인 직렬화 (BeginObject/EndObject 없이 값으로 직접 저장)
+     * Binary: raw bytes (N bytes)
+     * Text  : hex 문자열 (N*2 chars)
      */
-    friend void Serialize(Archive& ar, HashDigest& digest)
+    friend void SerializeInline(Archive& ar, HashDigest& digest)
     {
         if (ar.IsBinary())
         {
