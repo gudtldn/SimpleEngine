@@ -1,4 +1,4 @@
-﻿#include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/AssetRegistry.h"
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
