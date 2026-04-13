@@ -122,12 +122,14 @@ bool EditorAssetSubsystem::Initialize()
     }
 
     // 설정된 스킴에 마운트된 디렉토리를 스캔
+    // found_vpaths를 모든 스캔에 공유하여 스킴간 고아 오탐 방지
     const HashSet<StringView> scan_schemes = HashSet<StringView>::FromRange(
         scan_settings.schemes | std::views::transform([](const String& scheme) -> StringView
         {
             return scheme;
         })
     );
+    HashSet<VPath> all_found_vpaths;
     VFS::Get().VisitMounts([&](StringView scheme, const Path& physical_path, int32)
     {
         if (!scan_schemes.Contains(scheme))
@@ -135,8 +137,52 @@ bool EditorAssetSubsystem::Initialize()
             return;
         }
 
-        ScanWorkspace(physical_path, is_hot_start);
+        ScanWorkspace(physical_path, all_found_vpaths);
     });
+
+    // === 삭제된 파일 감지 (Hot Start 전용) ===
+    if (is_hot_start)
+    {
+        asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+
+        Array<VPath> orphaned;
+        registry.VisitAllPaths([&all_found_vpaths, &orphaned](const VPath& registered_vpath)
+        {
+            if (!all_found_vpaths.Contains(registered_vpath))
+            {
+                orphaned.Push(registered_vpath);
+            }
+        });
+
+        uint32 orphaned_count = 0;
+        for (const VPath& vpath : orphaned)
+        {
+            ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
+
+            // DependencyGraph에서 AssetID 제거
+            for (const asset::AssetId& id : registry.GetAssetsInFile(vpath))
+            {
+                dep_graph.RemoveNode(id);
+            }
+
+            registry.UnregisterByPath(vpath);
+
+            // 고아 .meta 정리
+            if (const Path physical = VFS::ToPath(vpath); !physical.IsEmpty())
+            {
+                MetaFileManager::DeleteMeta(physical);
+            }
+            ++orphaned_count;
+        }
+
+        if (orphaned_count > 0)
+        {
+            ConsoleLog(ELogLevel::Info, "Hot Start: removed {} orphaned assets", orphaned_count);
+        }
+    }
+
+    // === DependencyGraph 초기 구축 ===
+    BuildDependencyGraph();
 
     // OS 파일 드롭 이벤트 구독
     EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
@@ -192,7 +238,7 @@ void EditorAssetSubsystem::Release()
     importer.reset();
 }
 
-void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_start)
+void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& inout_found_vpaths)
 {
     ZoneScopedN("EditorAssetSubsystem::ScanWorkspace");
 
@@ -211,7 +257,6 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
 
     Array<Path> source_files;
     Array<OrphanMeta> orphan_metas;
-    HashSet<VPath> found_vpaths;
 
     {
         Array<Path> stack;
@@ -262,16 +307,13 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
                 }
 
                 source_files.Push(entry_path);
-                if (is_hot_start)
+                if (Optional vpath_opt = VFS::Unresolve(entry_path))
                 {
-                    if (Optional vpath_opt = VFS::Unresolve(entry_path))
-                    {
-                        found_vpaths.Insert(std::move(vpath_opt).Value());
-                    }
-                    else
-                    {
-                        ConsoleLog(ELogLevel::Warning, "ScanWorkspace: File is outside VFS bounds: {}", entry_path);
-                    }
+                    inout_found_vpaths.Insert(std::move(vpath_opt).Value());
+                }
+                else
+                {
+                    ConsoleLog(ELogLevel::Warning, "ScanWorkspace: File is outside VFS bounds: {}", entry_path);
                 }
             }
         }
@@ -400,62 +442,11 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, bool is_hot_star
         ConsoleLog(ELogLevel::Info, "All {} cook tasks completed.", total_tasks);
     }
 
-    // === 삭제된 파일 감지 (Hot Start 전용) ===
-    uint32 orphaned_count = 0;
-    if (is_hot_start)
-    {
-        asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-
-        Array<VPath> orphaned;
-        registry.VisitAllPaths([&found_vpaths, &orphaned](const VPath& registered_vpath)
-        {
-            if (!found_vpaths.Contains(registered_vpath))
-            {
-                orphaned.Push(registered_vpath);
-            }
-        });
-
-        for (const VPath& vpath : orphaned)
-        {
-            ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
-
-            // DependencyGraph에서 먼저 제거 (Registry 삭제 전에 ID 목록 확보)
-            for (const asset::AssetId& id : registry.GetAssetsInFile(vpath))
-            {
-                dep_graph.RemoveNode(id);
-            }
-
-            registry.UnregisterByPath(vpath);
-
-            // VPath -> 물리 경로로 변환하여 .meta 삭제
-            if (const Path physical = VFS::ToPath(vpath); !physical.IsEmpty())
-            {
-                MetaFileManager::DeleteMeta(physical);
-            }
-            ++orphaned_count;
-        }
-    }
-
-    // === 매칭되지 않은 고아 .meta 정리 ===
-    uint32 orphan_meta_count = 0;
-    for (const OrphanMeta& orphan : orphan_metas)
-    {
-        if (!orphan.source_path.IsEmpty())
-        {
-            ConsoleLog(ELogLevel::Info, "Deleted orphan .meta: {}", MetaFileManager::GetMetaPath(orphan.source_path));
-            MetaFileManager::DeleteMeta(orphan.source_path);
-            ++orphan_meta_count;
-        }
-    }
-
     ConsoleLog(
         ELogLevel::Info,
-        "ScanWorkspace Complete [HotStart: {}]: new={}, dirty={}, clean={}, moved={}, orphaned={}, orphan_meta={} in: {}",
-        is_hot_start, new_count, dirty_count, clean_count, moved_count, orphaned_count, orphan_meta_count, root_path
+        "ScanWorkspace Complete: new={}, dirty={}, clean={}, moved={} in: {}",
+        new_count, dirty_count, clean_count, moved_count, root_path
     );
-
-    // === DependencyGraph 초기 구축 ===
-    BuildDependencyGraph();
 }
 
 Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& source_path)

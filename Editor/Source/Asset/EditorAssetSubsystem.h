@@ -46,10 +46,11 @@ public:
     /**
      * 작업 공간(Workspace)의 디렉토리를 순회하며 에셋의 상태를 스캔하고 레지스트리를 갱신합니다.
      * Import 가능한 파일에 대해 .meta 파일을 보장하고, 변경(New/Dirty) 상태를 감지하여 등록합니다.
+     * 발견된 VPath는 inout_found_vpaths에 누적됩니다.
      * @param root_path 스캔할 루트 디렉토리의 물리 경로
-     * @param is_hot_start true일 경우 레지스트리 스냅샷과 비교하여 삭제된(Orphaned) 에셋을 찾아 등록 해제합니다.
+     * @param inout_found_vpaths 발견된 소스 파일의 VPath를 누적하는 Set (호출자가 관리)
      */
-    void ScanWorkspace(const Path& root_path, bool is_hot_start);
+    void ScanWorkspace(const Path& root_path, HashSet<VPath>& inout_found_vpaths);
 
     /**
      * 소스 파일에 대한 .meta 파일이 존재하는지 확인하고,
