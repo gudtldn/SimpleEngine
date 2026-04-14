@@ -266,7 +266,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
         {
             for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
             {
-                const Path entry_path = entry.GetPath();
+                const Path& entry_path = entry.GetPath();
 
                 // 디렉토리는 재귀적으로 스캔
                 if (entry.IsDirectory())
