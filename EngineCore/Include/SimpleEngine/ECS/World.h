@@ -60,6 +60,9 @@ public:
     /** Entity가 현재 살아있는지 확인합니다. */
     [[nodiscard]] bool IsEntityAlive(Entity entity) const { return entity_manager.IsValid(entity); }
 
+    /** entity id(슬롯 인덱스)로부터 현재 살아있는 Entity를 복원합니다. */
+    [[nodiscard]] Optional<Entity> TryResolveEntity(uint32 id) const { return entity_manager.TryResolveEntity(id); }
+
     /** 현재 살아있는 모든 Entity를 반환합니다. */
     [[nodiscard]] const Array<Entity>& GetAliveEntities() const { return alive_entities; }
 

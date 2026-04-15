@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/ECS/Entity.h"
 
@@ -22,6 +23,12 @@ public:
 
     [[nodiscard]] bool IsValid(Entity entity) const;
     [[nodiscard]] uint32 GetTotalRecordCount() const { return next_id; }
+
+    /**
+     * entity id(슬롯 인덱스)로부터 현재 살아있는 Entity를 복원합니다.
+     * 해당 슬롯이 이미 해제되었거나 범위 밖이면 NullOpt을 반환합니다.
+     */
+    [[nodiscard]] Optional<Entity> TryResolveEntity(uint32 id) const;
 
 private:
     struct EntityRecord
