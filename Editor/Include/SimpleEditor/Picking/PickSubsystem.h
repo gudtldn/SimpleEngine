@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEditor/EditorCommon.h"
+#include "SimpleEditor/Picking/EntityPickId.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -47,11 +48,8 @@ public:
     /** 1x1 D24_UNORM_S8_UINT depth 텍스처 (RenderGraph ImportTexture용) */
     [[nodiscard]] SDL_GPUTexture* GetPickDepthTexture() const;
 
-    /** 마지막 PerformPick()에서 읽어낸 원본 Entity ID. Entity::Invalid이면 빈 공간. */
-    [[nodiscard]] uint32 GetPickedEntityId() const { return picked_entity_id; }
-
-    /** 커서 아래에 Entity가 있는지 여부 */
-    [[nodiscard]] bool HasPickedEntity() const { return picked_entity_id != Entity::Invalid; }
+    /** 마지막 PerformPick() 결과 */
+    [[nodiscard]] EntityPickResult GetPickResult() const { return pick_result; }
 
 private:
     graphics::RenderDevice* render_device = nullptr;
@@ -61,7 +59,7 @@ private:
     graphics::RID pick_texture_rid = {}; // 1x1 R32_UINT
     graphics::RID pick_depth_rid = {};   // 1x1 D24_UNORM_S8_UINT
 
-    // readback 결과 (디코딩된 원본 entity.id, 또는 Entity::Invalid = 미선택)
-    uint32 picked_entity_id = Entity::Invalid;
+    // readback 결과
+    EntityPickResult pick_result;
 };
 } // namespace se::editor

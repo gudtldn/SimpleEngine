@@ -1,32 +1,52 @@
 ﻿#pragma once
 
-#include "SimpleEditor/EditorCommon.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 
 
 namespace se::editor
 {
 /**
- * GPU pick buffer의 clear 값. 이 값이 readback되면 커서 아래에 Entity가 없음을 의미합니다.
- * R32_UINT 텍스처를 float 0.0f로 clear하면 비트 패턴 0x00000000 = uint 0이 됩니다.
+ * GPU Color ID Picking의 인코딩/디코딩을 캡슐화하는 값 타입
+ *
+ * GPU 규약:
+ * - R32_UINT 텍스처를 float 0.0f로 clear -> 비트 패턴 0x00000000 = uint 0
+ * - 0 = "빈 공간" (Entity 없음)
+ * - entity_id + 1 = 유효한 Entity가 기록된 값
+ *
+ * CPU 측에서 Decode()를 통해 Optional<uint32>로 변환하여,
+ * miss/hit을 타입 안전하게 구분합니다.
  */
-constexpr uint32 ENTITY_PICK_MISS = 0;
-
-/**
- * Entity ID를 GPU pick buffer에 기록할 값으로 인코딩합니다.
- * 0은 ENTITY_PICK_MISS(빈 공간)로 예약되어 있으므로, entity_id에 +1을 더해
- * 실제 entity id 0과 빈 공간을 구분합니다.
- */
-constexpr uint32 EncodeEntityPickId(uint32 entity_id)
+struct EntityPickResult
 {
-    return entity_id + 1;
-}
+    /** GPU clear 값 = 빈 공간. R32_UINT 0.0f clear -> 0x00000000 */
+    static constexpr uint32 ENCODED_NONE = 0;
 
-/**
- * GPU pick buffer에서 readback한 값을 원래 Entity ID로 복원합니다.
- * 호출 전에 pick_id != ENTITY_PICK_MISS 검사가 필요합니다.
- */
-constexpr uint32 DecodeEntityPickId(uint32 pick_id)
-{
-    return pick_id - 1;
-}
+public:
+    /** 빈 공간(miss)을 나타내는 결과 생성 */
+    static constexpr EntityPickResult None() { return { ENCODED_NONE }; }
+
+    /** Entity ID를 인코딩하여 GPU 기록용 결과 생성 (entity_id + 1) */
+    static constexpr EntityPickResult Encode(uint32 entity_id) { return { entity_id + 1 }; }
+
+    /** GPU readback 원시 값으로부터 결과 생성 */
+    static constexpr EntityPickResult FromRaw(uint32 raw) { return { raw }; }
+
+public:
+    /** 유효한 Entity가 pick되었는지 여부 */
+    [[nodiscard]] constexpr bool HasEntity() const { return encoded != ENCODED_NONE; }
+
+    /** 디코딩된 entity id 반환. miss이면 NullOpt */
+    [[nodiscard]] constexpr Optional<uint32> Decode() const
+    {
+        if (encoded == ENCODED_NONE)
+        {
+            return NullOpt;
+        }
+        return encoded - 1;
+    }
+
+public:
+    /** GPU에서 읽어온 인코딩된 값 (0 = miss, entity_id + 1 = hit) */
+    uint32 encoded = ENCODED_NONE;
+};
 } // namespace se::editor
