@@ -57,4 +57,18 @@ bool EntityManager::IsValid(Entity entity) const
     const EntityRecord& record = entity_records[entity.id];
     return record.alive && (record.generation == entity.generation);
 }
+
+Optional<Entity> EntityManager::TryResolveEntity(uint32 id) const
+{
+    if (id >= entity_records.Len())
+    {
+        return NullOpt;
+    }
+    const EntityRecord& record = entity_records[id];
+    if (!record.alive)
+    {
+        return NullOpt;
+    }
+    return Entity{ id, record.generation };
+}
 } // namespace se
