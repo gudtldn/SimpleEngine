@@ -252,7 +252,7 @@ void EntityPickPass::Execute(graphics::RGExecutionContext& context)
             }
             else
             {
-                const uint32 vertex_count = slice->index_offset / sizeof(graphics::Vertex);
+                const uint32 vertex_count = (slice->index_offset - slice->offset) / sizeof(graphics::Vertex);
                 SDL_DrawGPUPrimitives(pass, vertex_count, 1, 0, 0);
             }
         }
