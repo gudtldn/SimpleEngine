@@ -1,5 +1,4 @@
 #include "SimpleEditor/Picking/PickSubsystem.h"
-#include "SimpleEditor/Picking/EntityPickId.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
@@ -91,7 +90,7 @@ void PickSubsystem::PerformPick()
     SDL_GPUTexture* pick_texture = GetPickTexture();
     if (!pick_texture)
     {
-        picked_entity_id = Entity::Invalid;
+        pick_result = EntityPickResult::None();
         SDL_CancelGPUCommandBuffer(cmd);
         return;
     }
@@ -116,23 +115,14 @@ void PickSubsystem::PerformPick()
     SDL_ReleaseGPUFence(raw_device, fence);
 
     // Transfer buffer 매핑 -> encoded entity ID 읽기
-    uint32 encoded_id = Entity::Invalid;
+    uint32 raw_encoded = EntityPickResult::ENCODED_NONE;
     if (const void* data = SDL_MapGPUTransferBuffer(raw_device, download_buffer, false))
     {
-        encoded_id = *static_cast<const uint32*>(data);
+        raw_encoded = *static_cast<const uint32*>(data);
         SDL_UnmapGPUTransferBuffer(raw_device, download_buffer);
     }
 
-    // Entity::Invalid(0) = GPU clear값 = 빈 공간
-    // 디코딩된 entity.id는 Entity::Invalid와 비교하여 유효성 판단
-    if (encoded_id != Entity::Invalid)
-    {
-        picked_entity_id = DecodeEntityPickId(encoded_id);
-    }
-    else
-    {
-        picked_entity_id = Entity::Invalid;
-    }
+    pick_result = EntityPickResult::FromRaw(raw_encoded);
 }
 
 SDL_GPUTexture* PickSubsystem::GetPickTexture() const

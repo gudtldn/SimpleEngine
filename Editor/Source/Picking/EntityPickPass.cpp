@@ -30,13 +30,13 @@ EntityPickPass::EntityPickPass(
 void EntityPickPass::Setup(graphics::RGSetupContext& context)
 {
     // DrawCommand -> EntityColorPickDrawInfo 변환
-    // entity_id를 +1 인코딩하여 0(= miss)과 구분
+    // EntityPickResult::Encode()로 entity_id + 1 인코딩하여 0(= miss)과 구분
     draw_infos.Clear();
     for (const graphics::DrawCommand& cmd : draw_data.opaque_commands)
     {
         draw_infos.Push({
             .model_matrix = cmd.model_matrix,
-            .encoded_entity_id = EncodeEntityPickId(cmd.entity_id),
+            .pick_id = EntityPickResult::Encode(cmd.entity_id),
             .mesh_id = cmd.mesh_id,
         });
     }
@@ -243,7 +243,7 @@ void EntityPickPass::Execute(graphics::RGExecutionContext& context)
                 uint32 entity_id; // 4 bytes + 12 bytes padding (= 1 x float4)
             } object_ubo;
             to_float4x4(info.model_matrix, object_ubo.model);
-            object_ubo.entity_id = info.encoded_entity_id;
+            object_ubo.entity_id = info.pick_id.encoded;
             SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
             if (slice->index_count > 0)

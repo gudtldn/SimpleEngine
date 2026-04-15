@@ -241,10 +241,11 @@ void GizmoSubsystem::HandleInteraction()
             EditorSelection& selection = editor_subsystem->GetSelection();
             const PickSubsystem* pick_subsystem = se::GetSubsystem<const PickSubsystem>();
 
-            if (pick_subsystem && pick_subsystem->HasPickedEntity())
+            const EntityPickResult pick_result = pick_subsystem ? pick_subsystem->GetPickResult() : EntityPickResult::None();
+            if (const auto decoded_id = pick_result.Decode())
             {
                 World& world = entity_subsystem->GetMainWorld().GetWorld();
-                if (const auto resolved = world.TryResolveEntity(pick_subsystem->GetPickedEntityId()))
+                if (const auto resolved = world.TryResolveEntity(*decoded_id))
                 {
                     const bool clear_others = !input_subsystem->HasModifier(EModifier::Ctrl);
                     selection.SelectEntity(*resolved, clear_others);

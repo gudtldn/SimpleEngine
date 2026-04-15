@@ -21,7 +21,7 @@ namespace se::editor
 struct EntityColorPickDrawInfo
 {
     Matrix4x4 model_matrix;
-    uint32 encoded_entity_id = ENTITY_PICK_MISS;
+    EntityPickResult pick_id;
     asset::AssetId mesh_id;
 };
 
