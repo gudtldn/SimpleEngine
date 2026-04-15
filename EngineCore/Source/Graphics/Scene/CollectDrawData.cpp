@@ -31,11 +31,12 @@ SceneDrawData CollectDrawData(const World& world)
 {
     SceneDrawData result;
 
-    auto query = world.CreateQuery<const GlobalTransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
-    for (const auto [global_transform, mesh, material] : query)
+    const auto query = world.CreateQuery<Entity, const GlobalTransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
+    for (const auto [entity, global_transform, mesh, material] : query)
     {
         result.opaque_commands.Push({
             .model_matrix = global_transform.value,
+            .entity_id = entity.GetId(),
             .mesh_id = mesh.mesh_id,
             .material_id = material.material_id,
             .sort_key = ComputeSortKey(mesh.mesh_id, material.material_id),
