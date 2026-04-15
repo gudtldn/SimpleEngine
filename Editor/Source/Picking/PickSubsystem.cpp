@@ -74,6 +74,8 @@ void PickSubsystem::Release()
 
 void PickSubsystem::PerformPick()
 {
+    pick_result = EntityPickResult::None();
+
     if (!pick_texture_rid || !download_buffer)
     {
         return;
@@ -90,7 +92,6 @@ void PickSubsystem::PerformPick()
     SDL_GPUTexture* pick_texture = GetPickTexture();
     if (!pick_texture)
     {
-        pick_result = EntityPickResult::None();
         SDL_CancelGPUCommandBuffer(cmd);
         return;
     }
