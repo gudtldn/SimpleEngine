@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/ECS/Entity.h"
 
 
 namespace se::graphics
@@ -13,6 +14,7 @@ namespace se::graphics
 struct DrawCommand
 {
     Matrix4x4 model_matrix;
+    uint32 entity_id = Entity::Invalid;
     asset::AssetId mesh_id;
     asset::AssetId material_id;
     uint64 sort_key = 0;
