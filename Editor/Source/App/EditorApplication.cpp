@@ -7,6 +7,8 @@
 #include "SimpleEditor/Gizmo/GizmoPass.h"
 #include "SimpleEditor/Gizmo/GizmoPickPass.h"
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
+#include "SimpleEditor/Picking/EntityPickPass.h"
+#include "SimpleEditor/Picking/PickSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
@@ -148,6 +150,8 @@ void EditorApplication::Render()
         gizmo_subsystem->DrawGizmos();
     }
 
+    PickSubsystem* pick_subsystem = se::GetSubsystem<PickSubsystem>();
+
     const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
     if (!render_subsystem)
     {
@@ -226,11 +230,37 @@ void EditorApplication::Render()
                         // 최종 렌더링 Pass에서 참고할 수 있도록 추가
                         viewport_color_handles.Push(color_handle);
 
-                        builder.AddPass<se::graphics::ForwardScenePass>(
-                            frame_packet.scene_draw_data, gpu_manager,
-                            render_view, color_handle, depth_handle
-                        );
+                        // 메인 Scene 렌더링
+                        {
+                            builder.AddPass<se::graphics::ForwardScenePass>(
+                                frame_packet.scene_draw_data, gpu_manager,
+                                render_view, color_handle, depth_handle
+                            );
 
+                            // Entity GPU Color Picking (호버된 뷰포트 + 기즈모 비드래그 시에만 실행)
+                            if (
+                                state.is_hovered
+                                && !viewport_subsystem.IsAnyCameraActive()
+                                && !(gizmo_subsystem && gizmo_subsystem->IsDragging())
+                                && pick_subsystem
+                                && pick_subsystem->GetPickTexture()
+                                && pick_subsystem->GetPickDepthTexture()
+                            )
+                            {
+                                const se::graphics::RGTextureHandle pick_color_handle =
+                                    builder.ImportTexture("EntityPickTarget", pick_subsystem->GetPickTexture());
+
+                                const se::graphics::RGTextureHandle pick_depth_handle =
+                                    builder.ImportTexture("EntityPickDepth", pick_subsystem->GetPickDepthTexture());
+
+                                builder.AddPass<EntityPickPass>(
+                                    frame_packet.scene_draw_data, gpu_manager,
+                                    render_view, pick_color_handle, pick_depth_handle, state.cursor_viewport_pos
+                                );
+                            }
+                        }
+
+                        // Debug Line 렌더링
                         if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
                         {
                             builder.AddPass<se::graphics::DebugLinePass>(
@@ -238,6 +268,7 @@ void EditorApplication::Render()
                             );
                         }
 
+                        // 기즈모 렌더링
                         if (gizmo_subsystem)
                         {
                             if (const auto vp_draw_list = gizmo_subsystem->FindDrawList(viewport_id))
@@ -276,6 +307,12 @@ void EditorApplication::Render()
     if (gizmo_subsystem)
     {
         gizmo_subsystem->PerformPick();
+    }
+
+    // GPU Readback: entity pick 텍스처에서 커서 아래 Entity ID 판정
+    if (pick_subsystem)
+    {
+        pick_subsystem->PerformPick();
     }
 }
 

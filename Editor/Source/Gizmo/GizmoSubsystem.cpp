@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/Camera/EditorCameraState.h"
 #include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/Picking/PickSubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
@@ -209,7 +210,7 @@ void GizmoSubsystem::Update(double /*delta_time*/)
 void GizmoSubsystem::HandleInteraction()
 {
     const auto [editor_subsystem, entity_subsystem, viewport_subsystem, input_subsystem] =
-        se::GetSubsystems<const EditorSubsystem, EntitySubsystem, EditorViewportSubsystem, const InputSubsystem>();
+        se::GetSubsystems<EditorSubsystem, EntitySubsystem, EditorViewportSubsystem, const InputSubsystem>();
 
     if (!editor_subsystem || !entity_subsystem || !viewport_subsystem || !input_subsystem)
     {
@@ -224,6 +225,43 @@ void GizmoSubsystem::HandleInteraction()
             interaction.EndDrag();
         }
         return;
+    }
+
+    // 뷰포트 클릭 시 Entity 선택 처리 (기즈모 드래그 중이 아닐 때)
+    // hovered_axis == None -> 기즈모에 걸리지 않은 클릭
+    // TODO: 추후 다른 Subsystem으로 분리
+    if (
+        !interaction.IsDragging()
+        && input_subsystem->IsMouseButtonPressed(EMouseButton::Left)
+        && hovered_axis == EGizmoAxis::None
+    )
+    {
+        if (viewport_subsystem->GetHoveredViewportInfo().HasValue())
+        {
+            EditorSelection& selection = editor_subsystem->GetSelection();
+            const PickSubsystem* pick_subsystem = se::GetSubsystem<const PickSubsystem>();
+
+            if (pick_subsystem && pick_subsystem->HasPickedEntity())
+            {
+                World& world = entity_subsystem->GetMainWorld().GetWorld();
+                if (const auto resolved = world.TryResolveEntity(pick_subsystem->GetPickedEntityId()))
+                {
+                    const bool clear_others = !input_subsystem->HasModifier(EModifier::Ctrl);
+                    selection.SelectEntity(*resolved, clear_others);
+                }
+                else
+                {
+                    // stale entity id (이미 삭제됨) -> 빈 공간 클릭과 동일 처리
+                    selection.ClearSelection();
+                }
+            }
+            else
+            {
+                // 빈 공간 클릭 -> 선택 해제
+                selection.ClearSelection();
+            }
+            return;
+        }
     }
 
     const auto selected_entity = editor_subsystem->GetSelection().GetPrimarySelectedEntity();
