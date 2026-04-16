@@ -1,4 +1,5 @@
 ﻿#include "SimpleEditor/Picking/EntityPickPass.h"
+#include "SimpleEditor/Picking/EntityPickId.h"
 
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
@@ -29,19 +30,6 @@ EntityPickPass::EntityPickPass(
 
 void EntityPickPass::Setup(graphics::RGSetupContext& context)
 {
-    // DrawCommand -> EntityColorPickDrawInfo 변환
-    // EntityPickResult::Encode()로 entity_id + 1 인코딩하여 0(= miss)과 구분
-    draw_infos.Clear();
-    for (const graphics::DrawCommand& cmd : draw_data.opaque_commands)
-    {
-        draw_infos.Push({
-            .model_matrix = cmd.model_matrix,
-            .pick_id = EntityPickResult::Encode(cmd.entity_id),
-            .mesh_id = cmd.mesh_id,
-        });
-    }
-
-    // 렌더 타겟 설정
     context.Write(pick_target_handle);
     context.Write(pick_depth_handle);
 }
@@ -208,9 +196,9 @@ void EntityPickPass::Execute(graphics::RGExecutionContext& context)
         SDL_PushGPUVertexUniformData(cmd, 0, &pass_ubo, sizeof(pass_ubo));
 
         // Draw Meshes
-        for (const EntityColorPickDrawInfo& info : draw_infos)
+        for (const graphics::DrawCommand& draw_cmd : draw_data.opaque_commands)
         {
-            const auto slice = gpu_manager.GetSlice(info.mesh_id);
+            const auto slice = gpu_manager.GetSlice(draw_cmd.mesh_id);
             if (!slice.HasValue())
             {
                 continue;
@@ -242,8 +230,8 @@ void EntityPickPass::Execute(graphics::RGExecutionContext& context)
                 Matrix4x4f model; // 64 bytes (4 x float4)
                 uint32 entity_id; // 4 bytes + 12 bytes padding (= 1 x float4)
             } object_ubo;
-            to_float4x4(info.model_matrix, object_ubo.model);
-            object_ubo.entity_id = info.pick_id.encoded;
+            to_float4x4(draw_cmd.model_matrix, object_ubo.model);
+            object_ubo.entity_id = EntityPickId::Encode(draw_cmd.entity_id).encoded;
             SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
             if (slice->index_count > 0)
