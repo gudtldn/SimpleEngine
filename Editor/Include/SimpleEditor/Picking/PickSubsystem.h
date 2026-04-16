@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEditor/EditorCommon.h"
-#include "SimpleEditor/Picking/EntityPickId.h"
+#include "SimpleEditor/Picking/EntityPickResult.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
