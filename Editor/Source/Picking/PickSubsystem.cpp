@@ -74,7 +74,7 @@ void PickSubsystem::Release()
 
 void PickSubsystem::PerformPick()
 {
-    pick_result = EntityPickResult::None();
+    pick_id = EntityPickId::None();
 
     if (!pick_texture_rid || !download_buffer)
     {
@@ -116,14 +116,14 @@ void PickSubsystem::PerformPick()
     SDL_ReleaseGPUFence(raw_device, fence);
 
     // Transfer buffer 매핑 -> encoded entity ID 읽기
-    uint32 raw_encoded = EntityPickResult::ENCODED_NONE;
+    uint32 raw_encoded = EntityPickId::ENCODED_NONE;
     if (const void* data = SDL_MapGPUTransferBuffer(raw_device, download_buffer, false))
     {
         raw_encoded = *static_cast<const uint32*>(data);
         SDL_UnmapGPUTransferBuffer(raw_device, download_buffer);
     }
 
-    pick_result = EntityPickResult::FromRaw(raw_encoded);
+    pick_id = EntityPickId::FromRaw(raw_encoded);
 }
 
 SDL_GPUTexture* PickSubsystem::GetPickTexture() const
