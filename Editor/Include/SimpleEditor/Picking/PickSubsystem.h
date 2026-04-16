@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEditor/EditorCommon.h"
-#include "SimpleEditor/Picking/EntityPickResult.h"
+#include "SimpleEditor/Picking/EntityPickId.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -49,7 +49,7 @@ public:
     [[nodiscard]] SDL_GPUTexture* GetPickDepthTexture() const;
 
     /** 마지막 PerformPick() 결과 */
-    [[nodiscard]] EntityPickResult GetPickResult() const { return pick_result; }
+    [[nodiscard]] EntityPickId GetPickId() const { return pick_id; }
 
 private:
     graphics::RenderDevice* render_device = nullptr;
@@ -60,6 +60,6 @@ private:
     graphics::RID pick_depth_rid = {};   // 1x1 D24_UNORM_S8_UINT
 
     // readback 결과
-    EntityPickResult pick_result;
+    EntityPickId pick_id;
 };
 } // namespace se::editor

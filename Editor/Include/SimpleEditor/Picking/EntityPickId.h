@@ -16,20 +16,20 @@ namespace se::editor
  * CPU 측에서 Decode()를 통해 Optional<uint32>로 변환하여,
  * miss/hit을 타입 안전하게 구분합니다.
  */
-struct EntityPickResult
+struct EntityPickId
 {
     /** GPU clear 값 = 빈 공간. R32_UINT 0.0f clear -> 0x00000000 */
     static constexpr uint32 ENCODED_NONE = 0;
 
 public:
     /** 빈 공간(miss)을 나타내는 결과 생성 */
-    static constexpr EntityPickResult None() { return { ENCODED_NONE }; }
+    static constexpr EntityPickId None() { return { ENCODED_NONE }; }
 
     /** Entity ID를 인코딩하여 GPU 기록용 결과 생성 (entity_id + 1) */
-    static constexpr EntityPickResult Encode(uint32 entity_id) { return { entity_id + 1 }; }
+    static constexpr EntityPickId Encode(uint32 entity_id) { return { entity_id + 1 }; }
 
     /** GPU readback 원시 값으로부터 결과 생성 */
-    static constexpr EntityPickResult FromRaw(uint32 raw) { return { raw }; }
+    static constexpr EntityPickId FromRaw(uint32 raw) { return { raw }; }
 
 public:
     /** 유효한 Entity가 pick되었는지 여부 */
