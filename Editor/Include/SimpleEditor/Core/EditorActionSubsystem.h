@@ -17,13 +17,11 @@ class World;
 namespace se::editor
 {
 class EditorSelection;
-class EditorSubsystem;
-class EditorUISubsystem;
 class EditorViewportSubsystem;
-class GizmoSubsystem;
+class SelectionSubsystem;
 
 /**
- * 키보드 단축키 및 에디터 전반에서 공유되는 Entity 조작 액션을 처리하는 Subsystem
+ * 에디터 전반에서 공유되는 Entity 조작 액션을 처리하는 Subsystem
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) EditorActionSubsystem : public SubsystemBase, public IUpdatable
 {
@@ -50,13 +48,9 @@ private:
     static void DeleteEntityRecursive(World& world, EditorSelection& selection, Entity entity);
 
 private:
-    EditorSubsystem* editor_subsystem = nullptr;
-    EditorUISubsystem* ui_subsystem = nullptr;
+    SelectionSubsystem* selection_subsystem = nullptr;
     EditorViewportSubsystem* viewport_subsystem = nullptr;
     EntitySubsystem* entity_subsystem = nullptr;
-    GizmoSubsystem* gizmo_subsystem = nullptr;
     InputSubsystem* input_subsystem = nullptr;
 };
 } // namespace se::editor
-
-SE_DECLARE_REFLECTION(se::editor::EditorActionSubsystem)

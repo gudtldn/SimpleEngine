@@ -1,4 +1,5 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
+#include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Math/TransformUtility.h"
@@ -7,6 +8,8 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
+
+#include "imgui.h"
 
 #include <ranges>
 
@@ -167,6 +170,47 @@ void EditorViewportSubsystem::Update(double delta_time)
                     state.ortho_camera.ortho_width = Clamp(state.ortho_camera.ortho_width, 0.1, 10000.0);
                     break;
                 }
+            }
+        }
+    }
+
+    // 기즈모 모드/좌표계 단축키 (카메라 비활성 + 텍스트 입력 아닐 때)
+    if (active_camera_viewport == StringName::None && !ImGui::GetIO().WantTextInput)
+    {
+        const GizmoSubsystem* gizmo = se::GetSubsystem<const GizmoSubsystem>();
+        const bool is_dragging = gizmo && gizmo->IsDragging();
+
+        if (focused_viewport != StringName::None && !is_dragging)
+        {
+            if (input_subsystem->IsKeyPressed(EKeyCode::W))
+            {
+                SetViewportGizmoMode(focused_viewport, EGizmoMode::Translate);
+            }
+            else if (input_subsystem->IsKeyPressed(EKeyCode::E))
+            {
+                SetViewportGizmoMode(focused_viewport, EGizmoMode::Rotate);
+            }
+            else if (input_subsystem->IsKeyPressed(EKeyCode::R))
+            {
+                SetViewportGizmoMode(focused_viewport, EGizmoMode::Scale);
+            }
+            else if (input_subsystem->IsKeyPressed(EKeyCode::Space))
+            {
+                switch (GetViewportGizmoMode(focused_viewport))
+                {
+                    case EGizmoMode::Translate: SetViewportGizmoMode(focused_viewport, EGizmoMode::Rotate); break;
+                    case EGizmoMode::Rotate:    SetViewportGizmoMode(focused_viewport, EGizmoMode::Scale); break;
+                    case EGizmoMode::Scale:     SetViewportGizmoMode(focused_viewport, EGizmoMode::Translate); break;
+                    default: SE_UNREACHABLE();
+                }
+            }
+            else if (
+                GetViewportGizmoMode(focused_viewport) != EGizmoMode::Scale
+                && input_subsystem->HasModifier(EModifier::Ctrl)
+                && input_subsystem->IsKeyPressed(EKeyCode::Grave)
+            )
+            {
+                ToggleViewportCoordinateSpace(focused_viewport);
             }
         }
     }

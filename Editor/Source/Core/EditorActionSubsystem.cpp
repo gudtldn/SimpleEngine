@@ -1,9 +1,7 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
 
-#include "SimpleEditor/Core/EditorSubsystem.h"
-#include "SimpleEditor/Gizmo/GizmoSubsystem.h"
-#include "SimpleEditor/UI/EditorUISubsystem.h"
+#include "SimpleEditor/Core/SelectionSubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
@@ -21,17 +19,10 @@ namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
     .DependsOn<
-        EditorSubsystem,
-        EditorUISubsystem,
+        SelectionSubsystem,
         EditorViewportSubsystem,
         EntitySubsystem,
-        GizmoSubsystem,
         InputSubsystem
-    >()
-    .UpdateDependsOn<
-        EditorUISubsystem,
-        EditorViewportSubsystem,
-        GizmoSubsystem
     >();
 
 SE_BEGIN_REFLECT(EditorActionSubsystem, meta::Internal)
@@ -40,26 +31,22 @@ SE_END_REFLECT(EditorActionSubsystem)
 
 bool EditorActionSubsystem::Initialize()
 {
-    editor_subsystem = &GetSubsystemChecked<EditorSubsystem>();
-    entity_subsystem = &GetSubsystemChecked<EntitySubsystem>();
-    gizmo_subsystem = &GetSubsystemChecked<GizmoSubsystem>();
-    input_subsystem = &GetSubsystemChecked<InputSubsystem>();
-    ui_subsystem = &GetSubsystemChecked<EditorUISubsystem>();
+    selection_subsystem = &GetSubsystemChecked<SelectionSubsystem>();
     viewport_subsystem = &GetSubsystemChecked<EditorViewportSubsystem>();
+    entity_subsystem = &GetSubsystemChecked<EntitySubsystem>();
+    input_subsystem = &GetSubsystemChecked<InputSubsystem>();
     return true;
 }
 
 void EditorActionSubsystem::Release()
 {
-    editor_subsystem = nullptr;
-    entity_subsystem = nullptr;
-    gizmo_subsystem = nullptr;
-    input_subsystem = nullptr;
-    ui_subsystem = nullptr;
+    selection_subsystem = nullptr;
     viewport_subsystem = nullptr;
+    entity_subsystem = nullptr;
+    input_subsystem = nullptr;
 }
 
-void EditorActionSubsystem::Update([[maybe_unused]] double delta_time)
+void EditorActionSubsystem::Update(double /*delta_time*/)
 {
     // 카메라 조작 중에는 처리하지 않음
     if (viewport_subsystem->IsAnyCameraActive())
@@ -73,56 +60,10 @@ void EditorActionSubsystem::Update([[maybe_unused]] double delta_time)
         return;
     }
 
-    // 뷰포트 또는 에디터 패널이 포커스 상태일 때만 처리
-    const StringName focused_id = viewport_subsystem->GetFocusedViewportId();
-
-    const bool viewport_focused = focused_id != StringName::None;
-    if (!viewport_focused && !ui_subsystem->IsAnyPanelFocused())
+    // 에디터 윈도우가 포커스 상태가 아니면 처리하지 않음
+    if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow))
     {
         return;
-    }
-
-    // 포커스된 뷰포트에서 작동 할 Action
-    if (focused_id != StringName::None && !gizmo_subsystem->IsDragging())
-    {
-        // 기즈모 모드 전환
-        if (input_subsystem->IsKeyPressed(EKeyCode::W))
-        {
-            viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Translate);
-        }
-        else if (input_subsystem->IsKeyPressed(EKeyCode::E))
-        {
-            viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Rotate);
-        }
-        else if (input_subsystem->IsKeyPressed(EKeyCode::R))
-        {
-            viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Scale);
-        }
-
-        // 기즈모 모드 순회
-        else if (input_subsystem->IsKeyPressed(EKeyCode::Space))
-        {
-            switch (viewport_subsystem->GetViewportGizmoMode(focused_id))
-            {
-                case EGizmoMode::Translate:
-                    viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Rotate);
-                    break;
-                case EGizmoMode::Rotate:
-                    viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Scale);
-                    break;
-                case EGizmoMode::Scale:
-                    viewport_subsystem->SetViewportGizmoMode(focused_id, EGizmoMode::Translate);
-                    break;
-                default:
-                    SE_UNREACHABLE();
-            }
-        }
-
-        // World / Local 변경 (Ctrl + `)
-        else if (input_subsystem->HasModifier(EModifier::Ctrl) && input_subsystem->IsKeyPressed(EKeyCode::Grave))
-        {
-            viewport_subsystem->ToggleViewportCoordinateSpace(focused_id);
-        }
     }
 
     // 엔티티 삭제
@@ -135,14 +76,14 @@ void EditorActionSubsystem::Update([[maybe_unused]] double delta_time)
 void EditorActionSubsystem::DeleteEntity(Entity entity)
 {
     World& world = entity_subsystem->GetMainWorld().GetWorld();
-    EditorSelection& selection = editor_subsystem->GetSelection();
+    EditorSelection& selection = selection_subsystem->GetSelection();
     DeleteEntityRecursive(world, selection, entity);
 }
 
 void EditorActionSubsystem::DeleteSelectedEntities()
 {
     World& world = entity_subsystem->GetMainWorld().GetWorld();
-    EditorSelection& selection = editor_subsystem->GetSelection();
+    EditorSelection& selection = selection_subsystem->GetSelection();
 
     // 삭제 도중 selection이 변경되므로 먼저 복사
     const Array<Entity> to_delete = Array<Entity>::FromRange(selection.GetSelectedEntities());
