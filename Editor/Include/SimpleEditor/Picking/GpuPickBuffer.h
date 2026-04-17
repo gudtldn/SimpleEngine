@@ -11,7 +11,6 @@ namespace se::editor
 {
 /**
  * 1x1 R32_UINT 텍스처 + GPU->CPU Readback 버퍼를 캡슐화한 유틸리티.
- * Entity Picking과 Gizmo Picking 양쪽에서 동일한 패턴을 재사용합니다.
  */
 class SE_EDITOR_API GpuPickBuffer
 {
@@ -24,6 +23,7 @@ public:
     GpuPickBuffer(GpuPickBuffer&&) = default;
     GpuPickBuffer& operator=(GpuPickBuffer&&) = default;
 
+public:
     /** 1x1 R32_UINT 텍스처와 4바이트 download buffer를 생성합니다. */
     bool Create(graphics::RenderDevice& device);
 
@@ -46,7 +46,7 @@ public:
 
 private:
     graphics::RenderDevice* render_device = nullptr;
-    graphics::RID texture_rid = {};
     SDL_GPUTransferBuffer* download_buffer = nullptr;
+    graphics::RID texture_rid = {};
 };
 } // namespace se::editor

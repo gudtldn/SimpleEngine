@@ -41,7 +41,7 @@ void GpuPickBuffer::Destroy()
     {
         SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), std::exchange(download_buffer, nullptr));
     }
-    if (render_device && render_device->IsValidTexture(texture_rid))
+    if (render_device->IsValidTexture(texture_rid))
     {
         render_device->DestroyTexture(std::exchange(texture_rid, {}));
     }
