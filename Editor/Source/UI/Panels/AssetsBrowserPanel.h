@@ -9,6 +9,7 @@
 namespace se::editor
 {
 // forward declaration
+class EditorAssetSubsystem;
 class EditorSelection;
 
 class AssetsBrowserPanel : public IEditorPanel
@@ -46,6 +47,7 @@ private:
 
 private:
     EditorSelection& editor_selection;
+    EditorAssetSubsystem& editor_asset_subsystem;
 
     // Import Settings 모달 상태
     Path modal_asset_path;                     // Import Settings를 띄울 에셋의 경로

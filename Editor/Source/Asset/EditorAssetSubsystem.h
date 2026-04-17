@@ -79,6 +79,12 @@ public:
      */
     bool ImportExternalFile(const Path& source_path);
 
+    /** 에셋 브라우저에서 포커싱된 디렉토리를 설정합니다. */
+    void SetActiveContentDir(const Path& path) { active_content_dir = path; }
+
+    /** 에셋 브라우저에서 포커싱된 디렉토리를 가져옵니다. */
+    [[nodiscard]] const Path& GetActiveContentDir() const { return active_content_dir; }
+
 private:
     /**
      * .meta 파일에서 메타데이터를 읽어 AssetRegistry에 등록합니다.
@@ -131,5 +137,7 @@ private:
     HashSet<VPath> currently_cooking;
 
     DelegateHandle file_drop_handle;
+
+    Path active_content_dir;
 };
 }  // namespace se::editor

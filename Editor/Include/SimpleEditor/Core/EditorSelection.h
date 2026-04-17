@@ -3,7 +3,6 @@
 #include "SimpleEditor/EditorCommon.h"
 
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 
@@ -22,17 +21,9 @@ public:
 
     /** 마지막으로 선택된 Entity */
     [[nodiscard]] Optional<Entity> GetPrimarySelectedEntity() const;
-    
-    /** 에셋 브라우저에서 디렉토리를 포커싱 합니다. */
-    void SetActiveContentDir(const Path& path);
-
-    /** 에셋 브라우저에서 포커싱된 디렉토리를 가져옵니다. */
-    [[nodiscard]] const Path& GetActiveContentDir() const;
 
 private:
     HashSet<Entity> selected_entities;
-
-    Path active_content_dir;
     // TODO: 추후 Asset 선택 추가: HashSet<Guid> selected_assets;
 };
 } // namespace se::editor

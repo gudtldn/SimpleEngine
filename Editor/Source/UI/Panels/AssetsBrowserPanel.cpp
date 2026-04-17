@@ -4,7 +4,7 @@
 #include "UI/ImGui/ImGuiString.h"
 
 #include "SimpleEditor/Asset/MetaFileManager.h"
-#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/Core/SelectionSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Asset/AssetRegistry.h"
@@ -51,7 +51,8 @@ struct AssetItem
 namespace se::editor
 {
 AssetsBrowserPanel::AssetsBrowserPanel()
-    : editor_selection(GetSubsystemChecked<EditorSubsystem>().GetSelection())
+    : editor_selection(GetSubsystemChecked<SelectionSubsystem>().GetSelection())
+    , editor_asset_subsystem(GetSubsystemChecked<EditorAssetSubsystem>())
 {
 }
 
@@ -87,7 +88,7 @@ void AssetsBrowserPanel::DrawContent()
         // GridView
         ImGui::TableNextColumn();
 
-        const Path& active_dir = editor_selection.GetActiveContentDir();
+        const Path& active_dir = editor_asset_subsystem.GetActiveContentDir();
         const Optional<String> selected_path = VFS::Unresolve(active_dir)
             .Map([](const VPath& vpath)
             {
@@ -116,11 +117,10 @@ void AssetsBrowserPanel::DrawContent()
 
 void AssetsBrowserPanel::DrawAssetTree()
 {
-    EditorSelection& selection = editor_selection;
-    VFS::Get().VisitMounts([this, &selection](StringView scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
+    VFS::Get().VisitMounts([this](StringView scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
-        if (selection.GetActiveContentDir() == physical_path)
+        if (editor_asset_subsystem.GetActiveContentDir() == physical_path)
         {
             root_flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -135,7 +135,7 @@ void AssetsBrowserPanel::DrawAssetTree()
         const bool is_node_open = ImGui::TreeNodeEx(String(scheme).CStr(), root_flags);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
-            selection.SetActiveContentDir(physical_path);
+            editor_asset_subsystem.SetActiveContentDir(physical_path);
         }
 
         // 우클릿 컨텍스트 메뉴
@@ -155,7 +155,7 @@ void AssetsBrowserPanel::DrawAssetTree()
 
 void AssetsBrowserPanel::DrawAssetGrid()
 {
-    const Path& current_path = editor_selection.GetActiveContentDir();
+    const Path& current_path = editor_asset_subsystem.GetActiveContentDir();
 
     // 경로 유효성 검사
     if (current_path.IsEmpty() || !current_path.Exists())
@@ -236,7 +236,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
             {
                 if (item.is_directory)
                 {
-                    editor_selection.SetActiveContentDir(item.path);
+                    editor_asset_subsystem.SetActiveContentDir(item.path);
                 }
                 else
                 {
@@ -293,7 +293,7 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
         const String folder_name = entry_path.FileName().ValueOr("(Unknown)");
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-        if (editor_selection.GetActiveContentDir() == entry_path)
+        if (editor_asset_subsystem.GetActiveContentDir() == entry_path)
         {
             flags |= ImGuiTreeNodeFlags_Selected;
         }
@@ -308,7 +308,7 @@ void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
         const bool is_node_open = ImGui::TreeNodeEx(folder_name.CStr(), flags);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
-            editor_selection.SetActiveContentDir(entry_path);
+            editor_asset_subsystem.SetActiveContentDir(entry_path);
         }
 
         // 우클릭 컨텍스트 메뉴

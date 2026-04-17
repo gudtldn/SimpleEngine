@@ -10,7 +10,6 @@
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Config/EditorSettings.h"
-#include "SimpleEditor/Core/EditorSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
@@ -711,7 +710,7 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
     }
 
     // AssetBrowser에서 포커싱된 디렉토리를 드롭 대상으로 사용
-    const Path& content_dir = GetSubsystemChecked<EditorSubsystem>().GetSelection().GetActiveContentDir();
+    const Path& content_dir = GetActiveContentDir();
     if (content_dir.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "ImportExternalFile: No folder selected in Asset Browser");
