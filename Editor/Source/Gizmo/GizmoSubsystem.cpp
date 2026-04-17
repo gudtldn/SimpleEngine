@@ -1,8 +1,7 @@
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 
 #include "SimpleEditor/Camera/EditorCameraState.h"
-#include "SimpleEditor/Core/EditorSubsystem.h"
-#include "SimpleEditor/Picking/PickSubsystem.h"
+#include "SimpleEditor/Core/SelectionSubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
@@ -11,7 +10,6 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
-#include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -20,7 +18,7 @@
 namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(GizmoSubsystem)
-    .DependsOn<RenderSubsystem>()
+    .DependsOn<RenderSubsystem, SelectionSubsystem>()
     .UpdateDependsOn<EditorViewportSubsystem>();
 
 SE_BEGIN_REFLECT(GizmoSubsystem, meta::Internal)
@@ -30,42 +28,12 @@ SE_END_REFLECT(GizmoSubsystem)
 bool GizmoSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
-
-    // 1x1 R32_UINT pick 텍스처
-    constexpr SDL_GPUTextureCreateInfo tex_info = {
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
-        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
-        .width = 1,
-        .height = 1,
-        .layer_count_or_depth = 1,
-        .num_levels = 1,
-        .sample_count = SDL_GPU_SAMPLECOUNT_1,
-    };
-    pick_texture_rid = render_device->CreateTexture(tex_info);
-    SE_ASSERT_RELEASE(render_device->IsValidTexture(pick_texture_rid));
-
-    // 4바이트 download transfer buffer
-    constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
-        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
-        .size = sizeof(uint32),
-    };
-    pick_download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &tb_info);
-    SE_ASSERT_RELEASE(pick_download_buffer);
-
-    return true;
+    return pick_buffer.Create(*render_device);
 }
 
 void GizmoSubsystem::Release()
 {
-    if (pick_download_buffer)
-    {
-        SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), std::exchange(pick_download_buffer, nullptr));
-    }
-    if (render_device->IsValidTexture(pick_texture_rid))
-    {
-        render_device->DestroyTexture(std::exchange(pick_texture_rid, {}));
-    }
+    pick_buffer.Destroy();
     draw_lists.Clear();
 }
 
@@ -77,15 +45,15 @@ void GizmoSubsystem::DrawGizmos()
         list->Clear();
     }
 
-    const auto [editor_subsystem, entity_subsystem, viewport_subsystem] =
-        se::GetSubsystems<const EditorSubsystem, const EntitySubsystem, const EditorViewportSubsystem>();
+    const auto [selection_subsystem, entity_subsystem, viewport_subsystem] =
+        se::GetSubsystems<const SelectionSubsystem, const EntitySubsystem, const EditorViewportSubsystem>();
 
-    if (!editor_subsystem || !entity_subsystem || !viewport_subsystem)
+    if (!selection_subsystem || !entity_subsystem || !viewport_subsystem)
     {
         return;
     }
 
-    const auto selected_entity_opt = editor_subsystem->GetSelection().GetPrimarySelectedEntity();
+    const auto selected_entity_opt = selection_subsystem->GetSelection().GetPrimarySelectedEntity();
     if (!selected_entity_opt)
     {
         return;
@@ -121,7 +89,7 @@ void GizmoSubsystem::DrawGizmos()
 
 void GizmoSubsystem::PerformPick()
 {
-    if (!pick_texture_rid || !pick_download_buffer)
+    if (!pick_buffer)
     {
         return;
     }
@@ -146,61 +114,14 @@ void GizmoSubsystem::PerformPick()
         return;
     }
 
-    // pick 텍스처 -> download transfer buffer 복사
-    SDL_GPUDevice* raw_device = render_device->GetRawDevice();
-    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(raw_device);
-    if (!cmd)
-    {
-        return;
-    }
-
-    SDL_GPUTexture* pick_texture = GetPickTexture();
-    if (!pick_texture)
-    {
-        hovered_axis = EGizmoAxis::None;
-        renderer.SetHighlightAxis(EGizmoAxis::None);
-        SDL_CancelGPUCommandBuffer(cmd);
-        return;
-    }
-
-    SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
-    {
-        const SDL_GPUTextureRegion src = {
-            .texture = pick_texture,
-            .w = 1, .h = 1, .d = 1,
-        };
-        const SDL_GPUTextureTransferInfo dst = {
-            .transfer_buffer = pick_download_buffer,
-            .offset = 0,
-        };
-        SDL_DownloadFromGPUTexture(copy, &src, &dst);
-    }
-    SDL_EndGPUCopyPass(copy);
-
-    // Submit + fence 대기
-    SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmd);
-    SDL_WaitForGPUFences(raw_device, true, &fence, 1);
-    SDL_ReleaseGPUFence(raw_device, fence);
-
-    // Transfer buffer 매핑하여 pick ID 읽기
-    uint32 pick_id = 0;
-    if (const void* data = SDL_MapGPUTransferBuffer(raw_device, pick_download_buffer, false))
-    {
-        pick_id = *static_cast<const uint32*>(data);
-        SDL_UnmapGPUTransferBuffer(raw_device, pick_download_buffer);
-    }
-
+    const uint32 pick_id = pick_buffer.PerformReadback();
     hovered_axis = GizmoRenderer::DecodePickID(pick_id);
     renderer.SetHighlightAxis(hovered_axis);
 }
 
 SDL_GPUTexture* GizmoSubsystem::GetPickTexture() const
 {
-    if (const auto resource = render_device->GetTexture(pick_texture_rid))
-    {
-        return resource->handle;
-    }
-    return nullptr;
+    return pick_buffer.GetTexture();
 }
 
 void GizmoSubsystem::Update(double /*delta_time*/)
@@ -210,10 +131,10 @@ void GizmoSubsystem::Update(double /*delta_time*/)
 
 void GizmoSubsystem::HandleInteraction()
 {
-    const auto [editor_subsystem, entity_subsystem, viewport_subsystem, input_subsystem] =
-        se::GetSubsystems<EditorSubsystem, EntitySubsystem, EditorViewportSubsystem, const InputSubsystem>();
+    const auto [selection_subsystem, entity_subsystem, viewport_subsystem, input_subsystem] =
+        se::GetSubsystems<SelectionSubsystem, EntitySubsystem, EditorViewportSubsystem, const InputSubsystem>();
 
-    if (!editor_subsystem || !entity_subsystem || !viewport_subsystem || !input_subsystem)
+    if (!selection_subsystem || !entity_subsystem || !viewport_subsystem || !input_subsystem)
     {
         return;
     }
@@ -228,57 +149,7 @@ void GizmoSubsystem::HandleInteraction()
         return;
     }
 
-    // 뷰포트 클릭 시 Entity 선택 처리 (기즈모 드래그 중이 아닐 때)
-    // hovered_axis == None -> 기즈모에 걸리지 않은 클릭
-    // TODO: 추후 다른 Subsystem으로 분리
-    if (
-        !interaction.IsDragging()
-        && input_subsystem->IsMouseButtonPressed(EMouseButton::Left)
-        && hovered_axis == EGizmoAxis::None
-    )
-    {
-        if (viewport_subsystem->GetHoveredViewportInfo().HasValue())
-        {
-            EditorSelection& selection = editor_subsystem->GetSelection();
-            const PickSubsystem* pick_subsystem = se::GetSubsystem<const PickSubsystem>();
-
-            const EntityPickId pick_id = pick_subsystem ? pick_subsystem->GetPickId() : EntityPickId::None();
-            if (const auto decoded_id = pick_id.Decode())
-            {
-                World& world = entity_subsystem->GetMainWorld().GetWorld();
-                if (const auto resolved = world.TryResolveEntity(*decoded_id))
-                {
-                    // pick된 entity(메시 자식)로부터 root entity까지 부모 체인 탐색
-                    // TODO: drill-down 구현 - root가 이미 선택된 상태에서 재클릭 시 자식 선택
-                    Entity target = *resolved;
-                    while (const auto parent = world.TryGetComponent<ParentComponent>(target))
-                    {
-                        if (!world.IsEntityAlive(parent->parent))
-                        {
-                            break;
-                        }
-                        target = parent->parent;
-                    }
-
-                    const bool clear_others = !input_subsystem->HasModifier(EModifier::Ctrl);
-                    selection.SelectEntity(target, clear_others);
-                }
-                else
-                {
-                    // stale entity id (이미 삭제됨) -> 빈 공간 클릭과 동일 처리
-                    selection.ClearSelection();
-                }
-            }
-            else
-            {
-                // 빈 공간 클릭 -> 선택 해제
-                selection.ClearSelection();
-            }
-            return;
-        }
-    }
-
-    const auto selected_entity = editor_subsystem->GetSelection().GetPrimarySelectedEntity();
+    const auto selected_entity = selection_subsystem->GetSelection().GetPrimarySelectedEntity();
     if (!selected_entity)
     {
         if (interaction.IsDragging())

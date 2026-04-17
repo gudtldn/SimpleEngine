@@ -1,7 +1,7 @@
 #include "UI/Panels/DetailPanel.h"
 #include "UI/ImGui/ImGuiWrapper.h"
 
-#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/Core/SelectionSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Math/Math.h"
@@ -28,13 +28,13 @@ const char* DetailPanel::GetName() const
 
 void DetailPanel::DrawContent()
 {
-    const auto [entity_subsystem, editor_subsystem] = GetSubsystems<EntitySubsystem, EditorSubsystem>();
-    if (!(entity_subsystem && editor_subsystem))
+    const auto [entity_subsystem, selection_subsystem] = GetSubsystems<EntitySubsystem, SelectionSubsystem>();
+    if (!(entity_subsystem && selection_subsystem))
     {
         return;
     }
 
-    const EditorSelection& selection = editor_subsystem->GetSelection();
+    const EditorSelection& selection = selection_subsystem->GetSelection();
     const HashSet<Entity>& selected_entities = selection.GetSelectedEntities();
 
     ImGui::Text("Selected Entities Count: %llu", selected_entities.Len());

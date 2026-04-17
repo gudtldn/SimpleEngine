@@ -10,7 +10,7 @@
 #include "Panels/SettingsPanel.h"
 #include "Panels/ViewportPanel.h"
 #include "SimpleEditor/Config/EditorSettings.h"
-#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/Core/SelectionSubsystem.h"
 
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
@@ -37,7 +37,7 @@ SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
         EventSubsystem,
         WindowSubsystem,
         RenderSubsystem,
-        EditorSubsystem
+        SelectionSubsystem
     >()
     .UpdateDependsOn<EntitySubsystem>();
 

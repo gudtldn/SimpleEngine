@@ -2,7 +2,7 @@
 #include "UI/ImGui/ImGuiString.h"
 
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
-#include "SimpleEditor/Core/EditorSubsystem.h"
+#include "SimpleEditor/Core/SelectionSubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
@@ -26,15 +26,15 @@ const char* OutlinerPanel::GetName() const
 
 void OutlinerPanel::DrawContent()
 {
-    const auto [entity_subsystem, editor_subsystem] = GetSubsystems<EntitySubsystem, EditorSubsystem>();
-    if (!(entity_subsystem && editor_subsystem))
+    const auto [entity_subsystem, selection_subsystem] = GetSubsystems<EntitySubsystem, SelectionSubsystem>();
+    if (!(entity_subsystem && selection_subsystem))
     {
-        ConsoleLogOnce(ELogLevel::Error, "EditorSubsystem or EntitySubsystem is not initialized!");
+        ConsoleLogOnce(ELogLevel::Error, "SelectionSubsystem or EntitySubsystem is not initialized!");
         return;
     }
 
     World& world = entity_subsystem->GetMainWorld().GetWorld();
-    EditorSelection& selection = editor_subsystem->GetSelection();
+    EditorSelection& selection = selection_subsystem->GetSelection();
 
     Entity entity_to_delete;
 

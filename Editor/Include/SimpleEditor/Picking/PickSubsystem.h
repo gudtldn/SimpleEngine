@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Picking/EntityPickId.h"
+#include "SimpleEditor/Picking/GpuPickBuffer.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -55,8 +56,7 @@ private:
     graphics::RenderDevice* render_device = nullptr;
 
     // GPU 리소스
-    SDL_GPUTransferBuffer* download_buffer = nullptr;
-    graphics::RID pick_texture_rid = {}; // 1x1 R32_UINT
+    GpuPickBuffer pick_buffer;
     graphics::RID pick_depth_rid = {};   // 1x1 D24_UNORM_S8_UINT
 
     // readback 결과

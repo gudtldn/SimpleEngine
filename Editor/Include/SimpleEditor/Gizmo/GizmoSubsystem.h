@@ -5,6 +5,7 @@
 #include "SimpleEditor/Gizmo/GizmoInteraction.h"
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
+#include "SimpleEditor/Picking/GpuPickBuffer.h"
 
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
@@ -93,8 +94,7 @@ private:
 
     // GPU Color Picking 리소스
     graphics::RenderDevice* render_device = nullptr;
-    SDL_GPUTransferBuffer* pick_download_buffer = nullptr; // 4바이트 DOWNLOAD용
-    graphics::RID pick_texture_rid = {};                   // 1x1 R32_UINT
+    GpuPickBuffer pick_buffer;
     EGizmoAxis hovered_axis = EGizmoAxis::None;
 };
 } // namespace se::editor
