@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
@@ -14,14 +12,6 @@ namespace se::graphics
 // forward declaration
 struct SceneDrawData;
 class GpuResourceManager;
-
-/** 개별 오브젝트의 프레임 내 렌더링 정보 */
-struct EntityDrawInfo
-{
-    Matrix4x4 model_matrix;
-    asset::AssetId mesh_id;
-    asset::AssetId material_id;
-};
 
 /**
  * SceneDrawData의 오브젝트를 Forward 렌더링하는 패스
@@ -47,7 +37,6 @@ private:
     const GpuResourceManager& gpu_manager;
     RenderView render_view;
 
-    Array<EntityDrawInfo> draw_infos;
     RGTextureHandle color_target_handle;
     RGTextureHandle depth_target_handle;
 };

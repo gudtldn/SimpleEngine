@@ -35,17 +35,6 @@ ForwardScenePass::ForwardScenePass(
 
 void ForwardScenePass::Setup(RGSetupContext& context)
 {
-    // DrawCommand -> EntityDrawInfo 변환 (VP는 per-pass, GPU에서 VP*M 합성)
-    draw_infos.Clear();
-    for (const DrawCommand& cmd : draw_data.opaque_commands)
-    {
-        draw_infos.Push({
-            .model_matrix = cmd.model_matrix,
-            .mesh_id = cmd.mesh_id,
-            .material_id = cmd.material_id,
-        });
-    }
-
     // 렌더 타겟 설정
     context.Write(color_target_handle);
     context.Write(depth_target_handle);
@@ -244,21 +233,21 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         SDL_PushGPUVertexUniformData(cmd, 0, &vp_f, sizeof(vp_f));
 
         // Draw Meshes
-        for (const EntityDrawInfo& info : draw_infos)
+        for (const DrawCommand& draw_command : draw_data.opaque_commands)
         {
-            const Optional<const GpuBufferSlice&> slice = gpu_manager.GetSlice(info.mesh_id);
+            const Optional<const GpuBufferSlice&> slice = gpu_manager.GetSlice(draw_command.mesh_id);
             if (!slice.HasValue())
             {
 #if SE_BUILD_DEBUG
                 static HashSet<asset::AssetId> logged_asset_ids;
-                if (!logged_asset_ids.Contains(info.mesh_id))
+                if (!logged_asset_ids.Contains(draw_command.mesh_id))
                 {
                     ConsoleLog(
                         ELogLevel::Warning,
                         "Skipping Draw: Invalid GPU slice for MeshID[{}]. Resource may not be loaded.",
-                        info.mesh_id.GetGuid()
+                        draw_command.mesh_id.GetGuid()
                     );
-                    logged_asset_ids.Insert(info.mesh_id);
+                    logged_asset_ids.Insert(draw_command.mesh_id);
                 }
 #endif
                 continue;
@@ -284,7 +273,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
             // Vertex Uniform slot 1: Model 행렬 (per-object) | TODO: 추후 RTE(Relative To Eye) 방식으로 수정
             Matrix4x4f model_f;
-            to_float4x4(info.model_matrix, model_f);
+            to_float4x4(draw_command.model_matrix, model_f);
             SDL_PushGPUVertexUniformData(cmd, 1, &model_f, sizeof(model_f));
 
             // Material 바인딩 | TODO: Texture/Sampler 바인딩 함수 만들기
