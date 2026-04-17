@@ -418,7 +418,7 @@ bool Engine::SortSubsystems()
         });
     }
 
-    ConsoleLog(ELogLevel::Info, "IUpdatable subsystems update order:");
+    ConsoleLog(ELogLevel::Debug, "IUpdatable subsystems update order:");
     for (const auto [n, entry] : updatable_systems | std::views::enumerate)
     {
         ConsoleLog(ELogLevel::Debug, "  - Update Order {}: {}", n, entry.name);
