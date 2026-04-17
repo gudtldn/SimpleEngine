@@ -11,6 +11,7 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
+#include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -247,8 +248,20 @@ void GizmoSubsystem::HandleInteraction()
                 World& world = entity_subsystem->GetMainWorld().GetWorld();
                 if (const auto resolved = world.TryResolveEntity(*decoded_id))
                 {
+                    // pick된 entity(메시 자식)로부터 root entity까지 부모 체인 탐색
+                    // TODO: drill-down 구현 - root가 이미 선택된 상태에서 재클릭 시 자식 선택
+                    Entity target = *resolved;
+                    while (const auto parent = world.TryGetComponent<ParentComponent>(target))
+                    {
+                        if (!world.IsEntityAlive(parent->parent))
+                        {
+                            break;
+                        }
+                        target = parent->parent;
+                    }
+
                     const bool clear_others = !input_subsystem->HasModifier(EModifier::Ctrl);
-                    selection.SelectEntity(*resolved, clear_others);
+                    selection.SelectEntity(target, clear_others);
                 }
                 else
                 {
