@@ -15,19 +15,26 @@
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
+#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
+#include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
+#include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
 #include "Panels/WorldResourcePanel.h"
+
+#include <sstream>
 
 
 namespace se::editor
@@ -68,7 +75,7 @@ bool EditorUISubsystem::Initialize()
     EditorUISettings ui_settings;
     if (auto result = ConfigFile::Load("Config://EditorConfig.toml"))
     {
-        ui_settings = result.Value().GetSection<EditorUISettings>("ui");
+        ui_settings = result->GetSection<EditorUISettings>("ui");
     }
 
     // TODO: 나중에 다중모니터 지원하도록 변경
@@ -200,10 +207,153 @@ void EditorUISubsystem::SetupDockSpace() // NOLINT(*-convert-member-functions-to
 
 void EditorUISubsystem::DrawMainMenu()
 {
+    static constexpr FileFilter WORLD_FILTER = {
+        .name = "SimpleEngine World",
+        .pattern = "seworld"
+    };
+
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
         {
+            if (ImGui::MenuItem("New World", "Ctrl+N"))
+            {
+                if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
+                {
+                    World& world = entity_sub->GetMainWorld().GetWorld();
+                    world.Reset();
+                    ConsoleLog(ELogLevel::Info, "World reset.");
+                }
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Save World (Binary)", "Ctrl+S"))
+            {
+                if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
+                {
+                    // 다이얼로그 표시 전에 직렬화하여 현재 상태를 캡처
+                    Array<uint8> buffer;
+                    MemoryWriter writer{ buffer };
+                    writer << entity_sub->GetMainWorld().GetWorld();
+
+                    FileDialog::SaveFile(
+                        [buf = std::move(buffer)](const Path& path)
+                        {
+                            if (FileSystem::Write(path, buf))
+                            {
+                                ConsoleLog(ELogLevel::Info, "World saved (binary): {}", path);
+                            }
+                            else
+                            {
+                                ConsoleLog(ELogLevel::Error, "Failed to save world: {}", path);
+                            }
+                        },
+                        { WORLD_FILTER }
+                    );
+                }
+            }
+
+            if (ImGui::MenuItem("Save World (TOML)", "Ctrl+Shift+S"))
+            {
+                if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
+                {
+                    String content = [&] -> String
+                    {
+                        // TOML 직렬화
+                        toml::table tbl;
+                        TomlWriter writer(tbl);
+                        writer << entity_sub->GetMainWorld().GetWorld();
+
+                        // TOML 문자열 생성
+                        std::ostringstream oss;
+                        oss << tbl;
+
+                        return { oss.view() };
+                    }();
+
+                    FileDialog::SaveFile(
+                        [con = std::move(content)](const Path& path)
+                        {
+                            if (FileSystem::WriteString(path, con))
+                            {
+                                ConsoleLog(ELogLevel::Info, "World saved (TOML): {}", path);
+                            }
+                            else
+                            {
+                                ConsoleLog(ELogLevel::Error, "Failed to save world: {}", path);
+                            }
+                        },
+                        { WORLD_FILTER }
+                    );
+                }
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Load World", "Ctrl+O"))
+            {
+                FileDialog::OpenFile(
+                    [](const Path& path)
+                    {
+                        EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>();
+                        if (!entity_sub)
+                        {
+                            return;
+                        }
+
+                        World& world = entity_sub->GetMainWorld().GetWorld();
+
+                        // 포맷 자동 감지: magic bytes (0x44574553 = "SEWD") -> binary, 아니면 TOML
+                        FileResult<Array<uint8>> bytes_result = FileSystem::ReadBytes(path);
+                        if (bytes_result.HasError())
+                        {
+                            ConsoleLog(ELogLevel::Error, "Failed to read file: {}, Err: {}", path, bytes_result.Error().What());
+                            return;
+                        }
+
+                        const Array<uint8>& data = bytes_result.Value();
+                        constexpr uint32 WORLD_MAGIC = 0x44574553;
+                        const bool is_binary = data.Len() >= sizeof(uint32)
+                            && std::memcmp(data.Data(), &WORLD_MAGIC, sizeof(uint32)) == 0;
+
+                        // 불러오기 전 World 초기화
+                        world.Reset();
+
+                        if (is_binary)
+                        {
+                            MemoryReader reader{ data };
+                            reader << world;
+                        }
+                        else
+                        {
+                            FileResult<String> str_result = FileSystem::ReadToString(path);
+                            if (!str_result.HasValue())
+                            {
+                                ConsoleLog(ELogLevel::Error, "Failed to read TOML: {}", path);
+                                return;
+                            }
+
+                            toml::parse_result parsed = toml::parse(str_result->Bytes());
+                            if (!parsed)
+                            {
+                                ConsoleLog(ELogLevel::Error, "TOML parse error: {}", parsed.error().description());
+                                return;
+                            }
+
+                            toml::table tbl = std::move(parsed).table();
+                            TomlReader reader{ tbl };
+                            reader << world;
+                        }
+
+                        ConsoleLog(ELogLevel::Info, "World loaded: {}", path);
+                    },
+                    { WORLD_FILTER }
+                );
+            }
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Exit"))
             {
                 Application::Get().RequestQuit();
