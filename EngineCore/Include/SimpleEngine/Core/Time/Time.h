@@ -50,7 +50,7 @@ protected:
  * 실제 글로벌 시간입니다.
  * 게임 일시정지나 time scale의 영향을 받지 않습니다.
  */
-class RealTime final : public detail::TimeTick
+class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) RealTime final : public detail::TimeTick
 {
     friend class TimeManager;
     friend struct TimeResources_Registrar;
@@ -60,7 +60,7 @@ class RealTime final : public detail::TimeTick
  * 가상 게임 시간입니다. World별로 독립적으로 관리됩니다.
  * time_scale과 pause 상태에 따라 delta가 조절됩니다.
  */
-class GameTime final : public detail::TimeTick
+class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) GameTime final : public detail::TimeTick
 {
     friend class TimeManager;
     friend struct TimeResources_Registrar;
@@ -91,7 +91,7 @@ private:
  * 물리 시뮬레이션 등 일정한 간격의 업데이트가 필요한 곳에서 사용합니다.
  * accumulator가 fixed_step 이상이면 FixedUpdatePhase가 실행됩니다.
  */
-class FixedTime final : public detail::TimeTick
+class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) FixedTime final : public detail::TimeTick
 {
     friend class TimeManager;
     friend struct TimeResources_Registrar;
