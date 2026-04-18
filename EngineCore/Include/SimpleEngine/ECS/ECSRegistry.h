@@ -214,6 +214,9 @@ public:
     /** 등록된 모든 리소스 타입의 Ops 맵을 반환합니다. */
     [[nodiscard]] const HashMap<TypeId, ResourceOps>& GetResourceOpsMap() const { return resource_operators; }
 
+    /** Transient 플래그가 설정된 리소스 중, World에 없는 것을 기본값으로 삽입합니다. */
+    void InsertDefaultTransientResources(World& world) const;
+
 private:
     HashMap<TypeId, ComponentOps> component_operators;
     HashMap<TypeId, ResourceOps> resource_operators;

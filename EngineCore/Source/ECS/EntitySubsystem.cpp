@@ -1,7 +1,7 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Core/Time/Time.h"
+#include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <ranges>
@@ -38,14 +38,8 @@ WorldContext& EntitySubsystem::GetOrCreateWorld(const StringName& name)
 {
     WorldContext& ctx = worlds.Entry(name).OrInsertWith([] { return WorldContext{}; });
 
-    // World 생성 시 시간 Resource를 최초 등록
-    World& world = ctx.GetWorld();
-    if (!world.HasResource<RealTime>())
-    {
-        world.InsertResource<RealTime>();
-        world.InsertResource<GameTime>();
-        world.InsertResource<FixedTime>();
-    }
+    // Transient 리소스 (시간 등)를 최초 등록
+    ECSRegistry::Get().InsertDefaultTransientResources(ctx.GetWorld());
 
     return ctx;
 }
