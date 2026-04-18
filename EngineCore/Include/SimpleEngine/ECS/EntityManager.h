@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 #include <atomic>
@@ -31,6 +32,35 @@ public:
     [[nodiscard]] Optional<Entity> TryResolveEntity(uint32 id) const;
 
 private:
+    friend void Serialize(Archive& ar, EntityManager& em)
+    {
+        // generation + alive per record
+        uint64 record_count = em.entity_records.Len();
+        ar("record_count") << record_count;
+
+        if (ar.IsLoading())
+        {
+            em.entity_records.Resize(static_cast<usize>(record_count));
+        }
+
+        for (uint64 i = 0; i < record_count; ++i)
+        {
+            ar("generation") << em.entity_records[i].generation;
+            ar("alive") << em.entity_records[i].alive;
+        }
+
+        // free_ids
+        ar("free_ids") << em.free_ids;
+
+        // next_id
+        uint32 next = em.next_id.load(std::memory_order_relaxed);
+        ar("next_id") << next;
+        if (ar.IsLoading())
+        {
+            em.next_id.store(next, std::memory_order_relaxed);
+        }
+    }
+
     struct EntityRecord
     {
         uint32 generation = 0;
