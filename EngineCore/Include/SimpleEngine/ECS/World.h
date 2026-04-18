@@ -44,6 +44,10 @@ public:
     World& operator=(World&&) = delete;
 
 public:
+    /** 모든 엔티티, 컴포넌트, 리소스를 제거하고 초기 상태로 되돌립니다. */
+    void Reset();
+
+public:
     /** Entity를 생성합니다. */
     template <typename... Components>
     EntityChain SpawnEntity(Components&&... comps)
