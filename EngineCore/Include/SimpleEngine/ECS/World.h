@@ -203,6 +203,12 @@ public:
     }
 
 public:
+    /** Schedule에서 현재 활성 CommandBuffer를 설정합니다. */
+    void SetActiveCommandBuffer(CommandBuffer* buffer) { active_command_buffer = buffer; }
+
+    /** 현재 활성 CommandBuffer를 반환합니다. */
+    [[nodiscard]] CommandBuffer* GetActiveCommandBuffer() const { return active_command_buffer; }
+
     /**
      * 주어진 TypeId에 해당하는 IComponentStorage 포인터를 반환합니다.
      * @param type_id 검색할 타입의 TypeId
@@ -268,6 +274,8 @@ private:
         return GetOrCreateComponentStorage<ComponentType>().GetStorage();
     }
 
+    friend SE_CORE_API void Serialize(Archive& ar, World& world);
+
 public:
     class EntityChain
     {
@@ -299,13 +307,6 @@ public:
         World& world;
         Entity entity;
     };
-
-public:
-    /** Schedule에서 현재 활성 CommandBuffer를 설정합니다. */
-    void SetActiveCommandBuffer(CommandBuffer* buffer) { active_command_buffer = buffer; }
-
-    /** 현재 활성 CommandBuffer를 반환합니다. */
-    [[nodiscard]] CommandBuffer* GetActiveCommandBuffer() const { return active_command_buffer; }
 
 private:
     EntityManager entity_manager;
