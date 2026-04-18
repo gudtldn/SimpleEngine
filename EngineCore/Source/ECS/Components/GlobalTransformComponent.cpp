@@ -6,7 +6,7 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT(GlobalTransformComponent, meta::Reflect, meta::Component)
+SE_BEGIN_REFLECT(GlobalTransformComponent, meta::EditorOnly, meta::Component)
     SE_REFLECT_PROPERTY(value, meta::Property, meta::ReadOnly)
 SE_END_REFLECT(GlobalTransformComponent)
 }
