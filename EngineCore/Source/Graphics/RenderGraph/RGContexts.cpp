@@ -101,4 +101,25 @@ SDL_GPUComputePipeline* RGExecutionContext::GetOrCreateComputePipeline(const Com
 {
     return pso_manager.GetOrCreateComputePipeline(create_info);
 }
+
+void RGExecutionContext::PushDebugGroup([[maybe_unused]] const char* name)
+{
+#if SE_ENABLE_DEBUG_TOOLS
+    SDL_PushGPUDebugGroup(command_buffer, name);
+#endif
+}
+
+void RGExecutionContext::PopDebugGroup()
+{
+#if SE_ENABLE_DEBUG_TOOLS
+    SDL_PopGPUDebugGroup(command_buffer);
+#endif
+}
+
+void RGExecutionContext::InsertDebugLabel([[maybe_unused]] const char* text)
+{
+#if SE_ENABLE_DEBUG_TOOLS
+    SDL_InsertGPUDebugLabel(command_buffer, text);
+#endif
+}
 } // namespace se::graphics

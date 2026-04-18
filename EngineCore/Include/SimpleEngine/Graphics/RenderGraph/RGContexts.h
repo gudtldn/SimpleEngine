@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
+#include "SimpleEngine/Utility/GpuDebug.h"
 
 #include "SDL3/SDL_gpu.h"
 
@@ -58,6 +59,15 @@ public:
     [[nodiscard]] SDL_GPUComputePipeline* GetOrCreateComputePipeline(const ComputePipelineCreateInfo& create_info);
 
     [[nodiscard]] SDL_GPUCommandBuffer* GetCommandBuffer() const { return command_buffer; }
+
+    /** 커맨드 버퍼에 디버그 서브그룹을 시작합니다. Debug/Development 빌드에서만 동작합니다. */
+    void PushDebugGroup(const char* name);
+
+    /** 가장 최근 Push한 디버그 서브그룹을 종료합니다. */
+    void PopDebugGroup();
+
+    /** 커맨드 버퍼에 단발성 디버그 라벨을 삽입합니다. */
+    void InsertDebugLabel(const char* text);
 
 private:
     SDL_GPUCommandBuffer* command_buffer;

@@ -6,10 +6,10 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/Cast.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
-#include "SimpleEngine/Graphics/Manager/PSOManager.h"
-#include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
+#include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 #include "SimpleEngine/Utility/Debug.h"
+#include "SimpleEngine/Utility/GpuDebug.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -40,6 +40,9 @@ void RenderGraphExecutor::Execute(RenderGraphBuilder& builder, SDL_GPUCommandBuf
             const String zone_name = String::Format("RenderGraphExecutor::Execute - {}::Execute", pass_node->name);
             ZoneName(zone_name.CStr(), zone_name.ByteLen());
         })
+
+        // GPU Debug Group 설정
+        SE_GPU_DEBUG_GROUP(cmd, pass_node->name.CStr());
 
         // 이 패스에서 생명주기가 시작되는 리소스를 할당
         for (const usize resource_idx : resources_to_realize[pass_idx])
