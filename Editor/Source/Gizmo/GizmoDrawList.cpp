@@ -18,7 +18,7 @@ GizmoDrawList::GizmoDrawList(graphics::RenderDevice& in_device)
     line_vertex_buffer_rid = device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = line_vertex_size,
-    });
+    }, "Gizmo_LineVertexBuffer");
     SE_ASSERT_RELEASE(device->IsValidBuffer(line_vertex_buffer_rid));
 
     // 삼각형 정점 버퍼 생성 (TRIANGLELIST용, 삼각형 1개 = 정점 3개)
@@ -26,7 +26,7 @@ GizmoDrawList::GizmoDrawList(graphics::RenderDevice& in_device)
     triangle_vertex_buffer_rid = device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = triangle_vertex_size,
-    });
+    }, "Gizmo_TriVertexBuffer");
     SE_ASSERT_RELEASE(device->IsValidBuffer(triangle_vertex_buffer_rid));
 
     // 전송 버퍼: 라인/삼각형 중 큰 쪽 크기로 할당 (순차 재사용)

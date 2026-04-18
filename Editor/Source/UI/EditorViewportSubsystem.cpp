@@ -318,7 +318,7 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
             .layer_count_or_depth = 1,
             .num_levels = 1,
             .sample_count = SDL_GPU_SAMPLECOUNT_1,
-        });
+        }, "Viewport_ColorTarget");
         state.render_view.width = new_width;
         state.render_view.height = new_height;
         state.color_target_name = viewport_id;

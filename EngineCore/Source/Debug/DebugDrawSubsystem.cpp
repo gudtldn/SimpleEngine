@@ -24,7 +24,7 @@ bool DebugDrawSubsystem::Initialize()
     vertex_buffer_rid = render_device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = buffer_size,
-    });
+    }, "DebugDraw_VertexBuffer");
 
     if (!render_device->IsValidBuffer(vertex_buffer_rid))
     {

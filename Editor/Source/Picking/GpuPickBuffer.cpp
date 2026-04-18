@@ -20,7 +20,7 @@ bool GpuPickBuffer::Create(graphics::RenderDevice& device)
         .num_levels = 1,
         .sample_count = SDL_GPU_SAMPLECOUNT_1,
     };
-    texture_rid = render_device->CreateTexture(tex_info);
+    texture_rid = render_device->CreateTexture(tex_info, "Pick_EntityID");
     if (!render_device->IsValidTexture(texture_rid))
     {
         return false;

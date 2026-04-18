@@ -34,7 +34,7 @@ bool PickSubsystem::Initialize()
         .num_levels = 1,
         .sample_count = SDL_GPU_SAMPLECOUNT_1,
     };
-    pick_depth_rid = render_device->CreateTexture(depth_tex_info);
+    pick_depth_rid = render_device->CreateTexture(depth_tex_info, "Pick_DepthTarget");
     SE_ASSERT_RELEASE(render_device->IsValidTexture(pick_depth_rid));
 
     return true;
