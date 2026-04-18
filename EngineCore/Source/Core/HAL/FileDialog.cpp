@@ -144,7 +144,40 @@ void FileDialog::SaveFile(OnFileSelected callback, ArrayView<const FileFilter> f
         return;
     }
 
-    auto* proxy = new DialogCallbackProxy{ std::move(callback) };
+    // 첫 번째 필터의 확장자를 추출하여 자동 부여 래핑
+    // pattern은 "fbx" 또는 "png;jpg" 형태 (세미콜론 앞이 기본 확장자)
+    String default_ext = [&] -> String
+    {
+        if (filters.IsEmpty())
+        {
+            return {};
+        }
+
+        const StringView pattern{ filters[0].pattern };
+        const Optional<usize> sep = pattern.Find(';');
+
+        return sep.Map([&](usize idx) -> String
+        {
+            return pattern.Substr(0, idx);
+        })
+        .ValueOr(pattern);
+    }();
+
+    auto wrapped = [cb = std::move(callback), ext = std::move(default_ext)](const Path& path)
+    {
+        if (!ext.IsEmpty() && !path.Extension().HasValue())
+        {
+            Path with_ext = path;
+            with_ext.SetExtension(ext);
+            cb(with_ext);
+        }
+        else
+        {
+            cb(path);
+        }
+    };
+
+    auto* proxy = new DialogCallbackProxy{ OnFileSelected{ std::move(wrapped) } };
     auto sdl_filters = ConvertFilters(filters);
 
     SDL_ShowSaveFileDialog(
@@ -156,4 +189,4 @@ void FileDialog::SaveFile(OnFileSelected callback, ArrayView<const FileFilter> f
         default_location
     );
 }
-}  // namespace se
+} // namespace se

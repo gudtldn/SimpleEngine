@@ -67,4 +67,4 @@ public:
         SDL_Window* window = nullptr
     );
 };
-}  // namespace se
+} // namespace se
