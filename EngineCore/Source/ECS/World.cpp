@@ -34,6 +34,14 @@ constexpr uint32 WORLD_FILE_VERSION = 1;
 }
 } // namespace
 
+void World::Reset()
+{
+    component_storages.Clear();
+    alive_entities.Clear();
+    entity_manager.Reset();
+    active_command_buffer = nullptr;
+}
+
 void World::DestroyEntity(Entity entity)
 {
     for (const auto& storage : component_storages | std::views::values)

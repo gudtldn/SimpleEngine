@@ -31,6 +31,14 @@ public:
      */
     [[nodiscard]] Optional<Entity> TryResolveEntity(uint32 id) const;
 
+    /** 모든 상태를 초기화합니다. */
+    void Reset()
+    {
+        entity_records.Clear();
+        free_ids.Clear();
+        next_id.store(0, std::memory_order_relaxed);
+    }
+
 private:
     friend void Serialize(Archive& ar, EntityManager& em)
     {
