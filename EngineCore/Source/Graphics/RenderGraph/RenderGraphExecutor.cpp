@@ -47,7 +47,19 @@ void RenderGraphExecutor::Execute(RenderGraphBuilder& builder, SDL_GPUCommandBuf
         // 이 패스에서 생명주기가 시작되는 리소스를 할당
         for (const usize resource_idx : resources_to_realize[pass_idx])
         {
-            builder.resource_nodes[resource_idx].resource->Realize(resource_pool);
+            RGResourceNode& res_node = builder.resource_nodes[resource_idx];
+            res_node.resource->Realize(resource_pool);
+
+#if SE_ENABLE_DEBUG_TOOLS
+            if (const RGTextureBase* tex = Cast<RGTextureBase>(res_node.resource.get()))
+            {
+                SDL_SetGPUTextureName(render_device->GetRawDevice(), tex->GetActualTexture(), res_node.name.CStr());
+            }
+            else if (const RGBufferBase* buf = Cast<RGBufferBase>(res_node.resource.get()))
+            {
+                SDL_SetGPUBufferName(render_device->GetRawDevice(), buf->GetActualBuffer(), res_node.name.CStr());
+            }
+#endif
         }
 
         RGExecutionContext context{ cmd, pso_manager, builder };

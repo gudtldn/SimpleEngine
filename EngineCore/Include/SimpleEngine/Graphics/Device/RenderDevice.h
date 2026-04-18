@@ -47,10 +47,10 @@ public:
 
 public:
     /** GPU 텍스처를 생성하고 RID를 반환합니다. 실패 시 유효하지 않은 RID를 반환합니다. */
-    [[nodiscard]] RID CreateTexture(const SDL_GPUTextureCreateInfo& desc);
+    [[nodiscard]] RID CreateTexture(const SDL_GPUTextureCreateInfo& desc, const char* debug_name = nullptr);
 
     /** GPU 버퍼를 생성하고 RID를 반환합니다. 실패 시 유효하지 않은 RID를 반환합니다. */
-    [[nodiscard]] RID CreateBuffer(const SDL_GPUBufferCreateInfo& desc);
+    [[nodiscard]] RID CreateBuffer(const SDL_GPUBufferCreateInfo& desc, const char* debug_name = nullptr);
 
     /** RID에 해당하는 텍스처 리소스를 반환합니다. 유효하지 않은 RID이면 NullOpt를 반환합니다. */
     [[nodiscard]] Optional<const TextureResource&> GetTexture(RID rid) const;

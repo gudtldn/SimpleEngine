@@ -33,7 +33,10 @@ RenderDevice::~RenderDevice()
     SDL_DestroyGPUDevice(raw_device);
 }
 
-RID RenderDevice::CreateTexture(const SDL_GPUTextureCreateInfo& desc)
+RID RenderDevice::CreateTexture(
+    const SDL_GPUTextureCreateInfo& desc,
+    [[maybe_unused]] const char* debug_name
+)
 {
     SDL_GPUTexture* raw = SDL_CreateGPUTexture(raw_device, &desc);
     if (!raw)
@@ -41,6 +44,14 @@ RID RenderDevice::CreateTexture(const SDL_GPUTextureCreateInfo& desc)
         ConsoleLog(ELogLevel::Error, "SDL_CreateGPUTexture failed: {}", SDL_GetError());
         return {};
     }
+
+#if SE_ENABLE_DEBUG_TOOLS
+    // props에 이름이 설정되지 않은 경우에만 debug_name을 사용
+    if (debug_name && !(desc.props && SDL_GetStringProperty(desc.props, SDL_PROP_GPU_TEXTURE_CREATE_NAME_STRING, nullptr)))
+    {
+        SDL_SetGPUTextureName(raw_device, raw, debug_name);
+    }
+#endif
 
     return textures.Insert({
         .handle = raw,
@@ -50,7 +61,10 @@ RID RenderDevice::CreateTexture(const SDL_GPUTextureCreateInfo& desc)
     });
 }
 
-RID RenderDevice::CreateBuffer(const SDL_GPUBufferCreateInfo& desc)
+RID RenderDevice::CreateBuffer(
+    const SDL_GPUBufferCreateInfo& desc,
+    [[maybe_unused]] const char* debug_name
+)
 {
     SDL_GPUBuffer* raw = SDL_CreateGPUBuffer(raw_device, &desc);
     if (!raw)
@@ -58,6 +72,14 @@ RID RenderDevice::CreateBuffer(const SDL_GPUBufferCreateInfo& desc)
         ConsoleLog(ELogLevel::Error, "SDL_CreateGPUBuffer failed: {}", SDL_GetError());
         return {};
     }
+
+#if SE_ENABLE_DEBUG_TOOLS
+    // props에 이름이 설정되지 않은 경우에만 debug_name을 사용
+    if (debug_name && !(desc.props && SDL_GetStringProperty(desc.props, SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING, nullptr)))
+    {
+        SDL_SetGPUBufferName(raw_device, raw, debug_name);
+    }
+#endif
 
     return buffers.Insert({
         .handle = raw,
