@@ -127,7 +127,7 @@ public:
         component_operators.Insert(type_id, ComponentOps{
             .ensure_storage = [](World& world) static -> IComponentStorage*
             {
-                return world.GetOrCreateRawStorage<T>();
+                return &world.GetOrCreateComponentStorage<T>();
             },
             .add_component = [](World& world, Entity entity) static
             {
