@@ -316,9 +316,6 @@ void EditorUISubsystem::DrawMainMenu()
                         const bool is_binary = data.Len() >= sizeof(uint32)
                             && std::memcmp(data.Data(), &World::FILE_MAGIC, sizeof(uint32)) == 0;
 
-                        // 불러오기 전 World 초기화
-                        world.Reset();
-
                         if (is_binary)
                         {
                             MemoryReader reader{ data };
