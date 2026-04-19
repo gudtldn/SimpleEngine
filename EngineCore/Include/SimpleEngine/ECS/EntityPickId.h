@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/Container/Optional.h"
 
 
-namespace se::editor
+namespace se
 {
 /**
  * GPU Color ID Picking의 인코딩/디코딩을 캡슐화하는 값 타입
@@ -49,4 +49,4 @@ public:
     /** GPU에서 읽어온 인코딩된 값 (0 = miss, entity_id + 1 = hit) */
     uint32 encoded = ENCODED_NONE;
 };
-} // namespace se::editor
+} // namespace se
