@@ -44,7 +44,7 @@ public:
     World& operator=(World&&) = delete;
 
 public:
-    /** 모든 엔티티, 컴포넌트, 리소스를 제거하고 초기 상태로 되돌립니다. */
+    /** 모든 엔티티, 컴포넌트를 제거하고 초기 상태로 되돌립니다. */
     void Reset();
 
 public:
