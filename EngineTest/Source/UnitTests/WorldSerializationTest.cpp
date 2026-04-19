@@ -126,19 +126,93 @@ TEST_F(WorldSerializationTest, BasicRoundTrip_Toml)
         }
     );
 
+    Entity e2 = src.SpawnEntity(
+        NameComponent{ .name = "Entity_B" },
+        TransformComponent{
+            .position = Vector3(4.0, 5.0, 6.0),
+        }
+    );
+
     World dst;
     TomlRoundTrip(src, dst);
 
-    EXPECT_EQ(dst.GetAliveEntities().Len(), 1u);
+    EXPECT_EQ(dst.GetAliveEntities().Len(), 2u);
     EXPECT_TRUE(dst.IsEntityAlive(e1));
+    EXPECT_TRUE(dst.IsEntityAlive(e2));
 
-    auto& name = dst.GetComponent<NameComponent>(e1);
-    EXPECT_EQ(name.name, "Entity_A");
+    auto& name1 = dst.GetComponent<NameComponent>(e1);
+    EXPECT_EQ(name1.name, "Entity_A");
 
-    auto& t = dst.GetComponent<TransformComponent>(e1);
-    EXPECT_DOUBLE_EQ(t.position.x, 1.0);
-    EXPECT_DOUBLE_EQ(t.position.y, 2.0);
-    EXPECT_DOUBLE_EQ(t.position.z, 3.0);
+    auto& t1 = dst.GetComponent<TransformComponent>(e1);
+    EXPECT_DOUBLE_EQ(t1.position.x, 1.0);
+    EXPECT_DOUBLE_EQ(t1.position.y, 2.0);
+    EXPECT_DOUBLE_EQ(t1.position.z, 3.0);
+
+    auto& name2 = dst.GetComponent<NameComponent>(e2);
+    EXPECT_EQ(name2.name, "Entity_B");
+
+    auto& t2 = dst.GetComponent<TransformComponent>(e2);
+    EXPECT_DOUBLE_EQ(t2.position.x, 4.0);
+    EXPECT_DOUBLE_EQ(t2.position.y, 5.0);
+    EXPECT_DOUBLE_EQ(t2.position.z, 6.0);
+}
+
+// 3-1) TOML 다수 엔티티 + Destroy/재사용 (EntityManager 상태 보존)
+TEST_F(WorldSerializationTest, EntityManagerStatePreservation_Toml)
+{
+    World src;
+
+    Entity e1 = src.SpawnEntity(NameComponent{ .name = "first" });
+    Entity e2 = src.SpawnEntity(NameComponent{ .name = "second" });
+    Entity e3 = src.SpawnEntity(NameComponent{ .name = "third" });
+
+    // e2를 삭제 -> free_ids에 e2 슬롯 추가, generation 증가
+    src.DestroyEntity(e2);
+
+    // 새 엔티티 생성 -> e2의 슬롯을 재사용하되 generation이 다름
+    Entity e4 = src.SpawnEntity(NameComponent{ .name = "fourth" });
+    EXPECT_EQ(e4.GetId(), e2.GetId());
+    EXPECT_NE(e4.GetGeneration(), e2.GetGeneration());
+
+    World dst;
+    TomlRoundTrip(src, dst);
+
+    EXPECT_TRUE(dst.IsEntityAlive(e1));
+    EXPECT_FALSE(dst.IsEntityAlive(e2));
+    EXPECT_TRUE(dst.IsEntityAlive(e3));
+    EXPECT_TRUE(dst.IsEntityAlive(e4));
+
+    EXPECT_EQ(dst.GetComponent<NameComponent>(e1).name, "first");
+    EXPECT_EQ(dst.GetComponent<NameComponent>(e3).name, "third");
+    EXPECT_EQ(dst.GetComponent<NameComponent>(e4).name, "fourth");
+}
+
+// 3-2) TOML 부모-자식 참조 무결성 (다수 Entity 참조)
+TEST_F(WorldSerializationTest, ParentChildRelationship_Toml)
+{
+    World src;
+
+    Entity parent = src.SpawnEntity(NameComponent{ .name = "parent" });
+    Entity child1 = src.SpawnEntity(NameComponent{ .name = "child1" });
+    Entity child2 = src.SpawnEntity(NameComponent{ .name = "child2" });
+
+    src.AddComponent<ParentComponent>(child1, ParentComponent{ .parent = parent });
+    src.AddComponent<ParentComponent>(child2, ParentComponent{ .parent = parent });
+    src.AddComponent<ChildrenComponent>(parent, ChildrenComponent{ .children = { child1, child2 } });
+
+    World dst;
+    TomlRoundTrip(src, dst);
+
+    auto& p1 = dst.GetComponent<ParentComponent>(child1);
+    EXPECT_EQ(p1.parent, parent);
+
+    auto& p2 = dst.GetComponent<ParentComponent>(child2);
+    EXPECT_EQ(p2.parent, parent);
+
+    auto& ch = dst.GetComponent<ChildrenComponent>(parent);
+    EXPECT_EQ(ch.children.Len(), 2u);
+    EXPECT_TRUE(ch.children.Contains(child1));
+    EXPECT_TRUE(ch.children.Contains(child2));
 }
 
 // 4) EntityManager 상태 보존 (생성 -> 삭제 -> 재생성 후 generation/free_ids 검증)
