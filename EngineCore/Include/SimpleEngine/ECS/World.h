@@ -33,6 +33,11 @@ class SE_CORE_API World final
     friend class ECSRegistry;
 
 public:
+    // 직렬화 파일 포맷 상수
+    static constexpr uint32 FILE_MAGIC = 0x44574553; // "SEWD" little-endian
+    static constexpr uint32 FILE_VERSION = 1;
+
+public:
     class EntityChain;
 
     World() = default;

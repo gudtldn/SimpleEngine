@@ -304,7 +304,7 @@ void EditorUISubsystem::DrawMainMenu()
 
                         World& world = entity_sub->GetMainWorld().GetWorld();
 
-                        // 포맷 자동 감지: magic bytes (0x44574553 = "SEWD") -> binary, 아니면 TOML
+                        // 포맷 자동 감지: magic bytes -> binary, 아니면 TOML
                         FileResult<Array<uint8>> bytes_result = FileSystem::ReadBytes(path);
                         if (bytes_result.HasError())
                         {
@@ -313,9 +313,8 @@ void EditorUISubsystem::DrawMainMenu()
                         }
 
                         const Array<uint8>& data = bytes_result.Value();
-                        constexpr uint32 WORLD_MAGIC = 0x44574553;
                         const bool is_binary = data.Len() >= sizeof(uint32)
-                            && std::memcmp(data.Data(), &WORLD_MAGIC, sizeof(uint32)) == 0;
+                            && std::memcmp(data.Data(), &World::FILE_MAGIC, sizeof(uint32)) == 0;
 
                         // 불러오기 전 World 초기화
                         world.Reset();
