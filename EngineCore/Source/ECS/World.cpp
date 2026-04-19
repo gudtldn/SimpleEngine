@@ -100,8 +100,16 @@ void Serialize(Archive& ar, World& world)
 
     if (ar.IsLoading())
     {
-        SE_ASSERT(magic == World::FILE_MAGIC, "Invalid world file magic: 0x{:08X}", magic);
-        SE_ASSERT(version == World::FILE_VERSION, "Unsupported world file version: {}", version);
+        if (magic != World::FILE_MAGIC)
+        {
+            ar.SetError("Invalid world file magic");
+            return;
+        }
+        if (version != World::FILE_VERSION)
+        {
+            ar.SetError("Unsupported world file version");
+            return;
+        }
     }
 
     // --- EntityManager ---
