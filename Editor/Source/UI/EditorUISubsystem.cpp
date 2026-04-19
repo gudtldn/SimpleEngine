@@ -20,6 +20,7 @@
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -296,15 +297,7 @@ void EditorUISubsystem::DrawMainMenu()
                 FileDialog::OpenFile(
                     [](const Path& path)
                     {
-                        EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>();
-                        if (!entity_sub)
-                        {
-                            return;
-                        }
-
-                        World& world = entity_sub->GetMainWorld().GetWorld();
-
-                        // 포맷 자동 감지: magic bytes -> binary, 아니면 TOML
+                        // 파일 읽기는 다이얼로그 스레드에서 수행 (I/O만)
                         FileResult<Array<uint8>> bytes_result = FileSystem::ReadBytes(path);
                         if (bytes_result.HasError())
                         {
@@ -312,47 +305,54 @@ void EditorUISubsystem::DrawMainMenu()
                             return;
                         }
 
-                        const Array<uint8>& data = bytes_result.Value();
-                        const bool is_binary = data.Len() >= sizeof(uint32)
-                            && std::memcmp(data.Data(), &World::FILE_MAGIC, sizeof(uint32)) == 0;
-
-                        if (is_binary)
-                        {
-                            MemoryReader reader{ data };
-                            reader << world;
-                            if (reader.HasError())
+                        // World 수정은 메인 스레드에서 수행
+                        JobSystem::Get().DispatchToMain(UniqueFunction<void()>{
+                            [data = std::move(bytes_result.Value()), file_path = path]()
                             {
-                                ConsoleLog(ELogLevel::Error, "Failed to load world (binary): {}", reader.GetError());
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            FileResult<String> str_result = FileSystem::ReadToString(path);
-                            if (!str_result.HasValue())
-                            {
-                                ConsoleLog(ELogLevel::Error, "Failed to read TOML: {}", path);
-                                return;
-                            }
+                                EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>();
+                                if (!entity_sub)
+                                {
+                                    return;
+                                }
 
-                            toml::parse_result parsed = toml::parse(str_result->Bytes());
-                            if (!parsed)
-                            {
-                                ConsoleLog(ELogLevel::Error, "TOML parse error: {}", parsed.error().description());
-                                return;
-                            }
+                                World& world = entity_sub->GetMainWorld().GetWorld();
 
-                            toml::table tbl = std::move(parsed).table();
-                            TomlReader reader{ tbl };
-                            reader << world;
-                            if (reader.HasError())
-                            {
-                                ConsoleLog(ELogLevel::Error, "Failed to load world (TOML): {}", reader.GetError());
-                                return;
-                            }
-                        }
+                                const bool is_binary = data.Len() >= sizeof(uint32)
+                                    && std::memcmp(data.Data(), &World::FILE_MAGIC, sizeof(uint32)) == 0;
 
-                        ConsoleLog(ELogLevel::Info, "World loaded: {}", path);
+                                if (is_binary)
+                                {
+                                    MemoryReader reader{ data };
+                                    reader << world;
+                                    if (reader.HasError())
+                                    {
+                                        ConsoleLog(ELogLevel::Error, "Failed to load world (binary): {}", reader.GetError());
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    StringView toml_str{ reinterpret_cast<const char*>(data.Data()), data.Len() };
+                                    toml::parse_result parsed = toml::parse(toml_str);
+                                    if (!parsed)
+                                    {
+                                        ConsoleLog(ELogLevel::Error, "TOML parse error: {}", parsed.error().description());
+                                        return;
+                                    }
+
+                                    toml::table tbl = std::move(parsed).table();
+                                    TomlReader reader{ tbl };
+                                    reader << world;
+                                    if (reader.HasError())
+                                    {
+                                        ConsoleLog(ELogLevel::Error, "Failed to load world (TOML): {}", reader.GetError());
+                                        return;
+                                    }
+                                }
+
+                                ConsoleLog(ELogLevel::Info, "World loaded: {}", file_path);
+                            }
+                        });
                     },
                     { WORLD_FILTER }
                 );
