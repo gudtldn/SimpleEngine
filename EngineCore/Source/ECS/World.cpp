@@ -13,9 +13,6 @@ namespace se
 {
 namespace
 {
-constexpr uint32 WORLD_FILE_MAGIC = 0x44574553; // "SEWD" little-endian
-constexpr uint32 WORLD_FILE_VERSION = 1;
-
 /**
  * 직렬화 대상 여부를 판정합니다.
  * Transient이거나 serialize 콜백이 없으면 제외
@@ -96,15 +93,15 @@ IComponentStorage* World::GetOrCreateRawStorage(const TypeId& type_id)
 void Serialize(Archive& ar, World& world)
 {
     // --- Header ---
-    uint32 magic = WORLD_FILE_MAGIC;
-    uint32 version = WORLD_FILE_VERSION;
+    uint32 magic = World::FILE_MAGIC;
+    uint32 version = World::FILE_VERSION;
     ar("magic") << magic;
     ar("version") << version;
 
     if (ar.IsLoading())
     {
-        SE_ASSERT(magic == WORLD_FILE_MAGIC, "Invalid world file magic: 0x{:08X}", magic);
-        SE_ASSERT(version == WORLD_FILE_VERSION, "Unsupported world file version: {}", version);
+        SE_ASSERT(magic == World::FILE_MAGIC, "Invalid world file magic: 0x{:08X}", magic);
+        SE_ASSERT(version == World::FILE_VERSION, "Unsupported world file version: {}", version);
     }
 
     // --- EntityManager ---
