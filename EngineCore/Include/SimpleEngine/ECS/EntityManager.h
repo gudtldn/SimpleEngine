@@ -42,9 +42,10 @@ public:
 private:
     friend void Serialize(Archive& ar, EntityManager& em)
     {
-        // generation + alive per record
+        // entity records (array of {generation, alive})
         uint64 record_count = em.entity_records.Len();
-        ar("record_count") << record_count;
+        ar("records") ;
+        ar.BeginArray(record_count);
 
         if (ar.IsLoading())
         {
@@ -53,9 +54,13 @@ private:
 
         for (uint64 i = 0; i < record_count; ++i)
         {
+            ar.BeginObject();
             ar("generation") << em.entity_records[i].generation;
             ar("alive") << em.entity_records[i].alive;
+            ar.EndObject();
         }
+
+        ar.EndArray();
 
         // free_ids
         ar("free_ids") << em.free_ids;
