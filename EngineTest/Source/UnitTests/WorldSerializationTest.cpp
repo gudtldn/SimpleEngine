@@ -166,7 +166,7 @@ TEST_F(WorldSerializationTest, EntityManagerStatePreservation_Toml)
     Entity e2 = src.SpawnEntity(NameComponent{ .name = "second" });
     Entity e3 = src.SpawnEntity(NameComponent{ .name = "third" });
 
-    // e2를 삭제 -> free_ids에 e2 슬롯 추가, generation 증가
+    // e2를 삭제 -> free list에 e2 슬롯 추가, generation 증가
     src.DestroyEntity(e2);
 
     // 새 엔티티 생성 -> e2의 슬롯을 재사용하되 generation이 다름
@@ -215,7 +215,7 @@ TEST_F(WorldSerializationTest, ParentChildRelationship_Toml)
     EXPECT_TRUE(ch.children.Contains(child2));
 }
 
-// 4) EntityManager 상태 보존 (생성 -> 삭제 -> 재생성 후 generation/free_ids 검증)
+// 4) EntityManager 상태 보존 (생성 -> 삭제 -> 재생성 후 generation/free list 검증)
 TEST_F(WorldSerializationTest, EntityManagerStatePreservation_Binary)
 {
     World src;
@@ -224,7 +224,7 @@ TEST_F(WorldSerializationTest, EntityManagerStatePreservation_Binary)
     Entity e2 = src.SpawnEntity(NameComponent{ .name = "second" });
     Entity e3 = src.SpawnEntity(NameComponent{ .name = "third" });
 
-    // e2를 삭제 -> free_ids에 e2 슬롯 추가, generation 증가
+    // e2를 삭제 -> free list에 e2 슬롯 추가, generation 증가
     src.DestroyEntity(e2);
 
     // 새 엔티티 생성 -> e2의 슬롯을 재사용하되 generation이 다름

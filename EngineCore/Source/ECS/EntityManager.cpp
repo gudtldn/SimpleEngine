@@ -8,10 +8,11 @@ Entity EntityManager::Create()
 {
     uint32 id;
 
-    // 재활용 가능한 ID가 있으면 우선 사용
-    if (Optional<uint32> id_opt = free_ids.Pop())
+    // 재활용 가능한 슬롯이 있으면 우선 사용 (intrusive free list)
+    if (free_list_head != ENTITY_FREE_LIST_END)
     {
-        id = *id_opt;
+        id = free_list_head;
+        free_list_head = entity_records[id].next_free;
     }
     else
     {
@@ -20,8 +21,8 @@ Entity EntityManager::Create()
     }
 
     EntityRecord& record = entity_records[id];
-    SE_ASSERT(!record.alive, "Entity already alive");
-    record.alive = true;
+    SE_ASSERT(!record.IsAlive(), "Entity already alive");
+    record.next_free = ENTITY_ALIVE;
 
     return Entity{ id, record.generation };
 }
@@ -40,12 +41,11 @@ void EntityManager::Destroy(Entity entity)
         return;
     }
 
-    SE_ASSERT(record.alive, "Entity already destroyed");
-    record.alive = false;
+    SE_ASSERT(record.IsAlive(), "Entity already destroyed");
     ++record.generation; // 세대 변경
 
-    // ID 재활용용 큐에 저장
-    free_ids.Push(entity.id);
+    // intrusive free list에 prepend
+    record.next_free = std::exchange(free_list_head, entity.id);
 }
 
 bool EntityManager::IsValid(Entity entity) const
@@ -54,8 +54,9 @@ bool EntityManager::IsValid(Entity entity) const
     {
         return false;
     }
+
     const EntityRecord& record = entity_records[entity.id];
-    return record.alive && (record.generation == entity.generation);
+    return record.IsAlive() && (record.generation == entity.generation);
 }
 
 Optional<Entity> EntityManager::TryResolveEntity(uint32 id) const
@@ -64,11 +65,13 @@ Optional<Entity> EntityManager::TryResolveEntity(uint32 id) const
     {
         return NullOpt;
     }
+
     const EntityRecord& record = entity_records[id];
-    if (!record.alive)
+    if (!record.IsAlive())
     {
         return NullOpt;
     }
+
     return Entity{ id, record.generation };
 }
 } // namespace se
