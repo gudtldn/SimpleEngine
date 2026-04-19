@@ -202,16 +202,21 @@ void Serialize(Archive& ar, World& world)
 
             if (!info_opt.HasValue() || !ops_opt.HasValue())
             {
-                // 미등록 타입: binary에서는 skip 불가 -> 경고 후 배열만 소모
+                if (ar.IsBinary())
+                {
+                    // TODO: 컴포넌트 블록에 byte_size를 저장하면 binary에서도 skip 가능
+                    // Binary: data block의 byte size를 모르므로 skip 불가 -> fatal
+                    ar.SetError("Unknown component type in binary archive (forward-skip not supported)");
+                    return;
+                }
+
+                // Text: key 기반이므로 미소비 데이터는 자동 무시됨
                 ConsoleLog(ELogLevel::Warning, "World deserialization: unknown component type '{}', skipping.", type_id.GetName());
                 uint64 entity_count = 0;
                 ar.BeginArray(entity_count);
                 for (uint64 i = 0; i < entity_count; ++i)
                 {
                     ar.BeginObject();
-                    Entity dummy_entity;
-                    ar("entity") << dummy_entity;
-                    // data는 skip 불가 (binary) -> text에서만 안전
                     ar.EndObject();
                 }
                 ar.EndArray();
