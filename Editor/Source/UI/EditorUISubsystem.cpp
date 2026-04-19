@@ -323,6 +323,11 @@ void EditorUISubsystem::DrawMainMenu()
                         {
                             MemoryReader reader{ data };
                             reader << world;
+                            if (reader.HasError())
+                            {
+                                ConsoleLog(ELogLevel::Error, "Failed to load world (binary): {}", reader.GetError());
+                                return;
+                            }
                         }
                         else
                         {
@@ -343,6 +348,11 @@ void EditorUISubsystem::DrawMainMenu()
                             toml::table tbl = std::move(parsed).table();
                             TomlReader reader{ tbl };
                             reader << world;
+                            if (reader.HasError())
+                            {
+                                ConsoleLog(ELogLevel::Error, "Failed to load world (TOML): {}", reader.GetError());
+                                return;
+                            }
                         }
 
                         ConsoleLog(ELogLevel::Info, "World loaded: {}", path);
