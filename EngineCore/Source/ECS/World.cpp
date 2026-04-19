@@ -110,6 +110,9 @@ void Serialize(Archive& ar, World& world)
             ar.SetError("Unsupported world file version");
             return;
         }
+
+        // Entity/Component 초기화 (Resource는 유지)
+        world.Reset();
     }
 
     // --- EntityManager ---
