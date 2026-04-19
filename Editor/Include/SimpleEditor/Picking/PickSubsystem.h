@@ -1,10 +1,9 @@
 #pragma once
 
 #include "SimpleEditor/EditorCommon.h"
-#include "SimpleEditor/Picking/EntityPickId.h"
-#include "SimpleEditor/Picking/GpuPickBuffer.h"
 
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+#include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -13,11 +12,9 @@
 namespace se::editor
 {
 /**
- * Entity GPU Color Picking 리소스를 소유하고 관리하는 Subsystem.
- * 1x1 R32_UINT pick 텍스처, 1x1 D24S8 depth 텍스처, Readback Transfer Buffer를 관리합니다.
- *
- * 렌더 파이프라인에서 EntityPickPass가 draw 한 뒤,
- * PerformPick()으로 GPU -> CPU readback을 수행하여 커서 아래 Entity ID를 읽습니다.
+ * Entity GPU Color Picking 리소스를 소유하고 관리하는 Subsystem
+ * ForwardScenePass의 MRT entity_id 텍스처(viewport 해상도)를 소유하며,
+ * PerformPick()으로 커서 위치 1픽셀을 GPU -> CPU readback하여 Entity ID를 읽습니다.
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) PickSubsystem : public SubsystemBase
 {
@@ -37,17 +34,17 @@ public:
     virtual void Release() override;
     //~ End SubsystemBase
 
+    /** 뷰포트 리사이즈 시 entity_id 텍스처를 재생성합니다. */
+    void EnsureSize(uint32 width, uint32 height);
+
     /**
-     * GPU Readback으로 pick 텍스처에서 encoded entity ID를 읽어 내부 상태를 갱신합니다.
+     * entity_id 텍스처에서 커서 위치의 1픽셀을 GPU readback으로 읽어 내부 상태를 갱신합니다.
      * RenderFrame() 완료 후 호출해야 합니다.
      */
-    void PerformPick();
+    void PerformPick(const Vector2f& cursor_pos);
 
-    /** 1x1 R32_UINT entity pick 텍스처 (RenderGraph ImportTexture용) */
-    [[nodiscard]] SDL_GPUTexture* GetPickTexture() const;
-
-    /** 1x1 D24_UNORM_S8_UINT depth 텍스처 (RenderGraph ImportTexture용) */
-    [[nodiscard]] SDL_GPUTexture* GetPickDepthTexture() const;
+    /** entity_id 텍스처 (RenderGraph ImportTexture용) */
+    [[nodiscard]] SDL_GPUTexture* GetEntityIdTexture() const;
 
     /** 마지막 PerformPick() 결과 */
     [[nodiscard]] EntityPickId GetPickId() const { return pick_id; }
@@ -56,8 +53,12 @@ private:
     graphics::RenderDevice* render_device = nullptr;
 
     // GPU 리소스
-    GpuPickBuffer pick_buffer;
-    graphics::RID pick_depth_rid = {};   // 1x1 D24_UNORM_S8_UINT
+    graphics::RID entity_id_texture_rid = {};         // viewport 해상도 R32_UINT
+    SDL_GPUTransferBuffer* download_buffer = nullptr; // 4바이트 readback
+
+    // 텍스처 크기 캐시
+    uint32 texture_width = 0;
+    uint32 texture_height = 0;
 
     // readback 결과
     EntityPickId pick_id;

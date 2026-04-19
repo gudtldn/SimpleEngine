@@ -7,7 +7,6 @@
 #include "SimpleEditor/Gizmo/GizmoPass.h"
 #include "SimpleEditor/Gizmo/GizmoPickPass.h"
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
-#include "SimpleEditor/Picking/EntityPickPass.h"
 #include "SimpleEditor/Picking/PickSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
@@ -230,34 +229,30 @@ void EditorApplication::Render()
                         // 최종 렌더링 Pass에서 참고할 수 있도록 추가
                         viewport_color_handles.Push(color_handle);
 
-                        // 메인 Scene 렌더링
+                        // Entity ID MRT target 조건 판정
+                        const bool need_entity_pick =
+                            state.is_hovered
+                            && !viewport_subsystem.IsAnyCameraActive()
+                            && !(gizmo_subsystem && gizmo_subsystem->IsDragging())
+                            && pick_subsystem;
+
+                        // entity_id 텍스처를 PickSubsystem으로부터 Import
+                        se::graphics::RGTextureHandle entity_id_handle = {};
+                        if (need_entity_pick)
+                        {
+                            pick_subsystem->EnsureSize(render_view.width, render_view.height);
+                            if (SDL_GPUTexture* entity_id_tex = pick_subsystem->GetEntityIdTexture())
+                            {
+                                entity_id_handle = builder.ImportTexture("EntityPickTarget", entity_id_tex);
+                            }
+                        }
+
+                        // 메인 Scene 렌더링 (entity_id_handle이 유효하면 MRT로 entity ID 동시 출력)
                         {
                             builder.AddPass<se::graphics::ForwardScenePass>(
                                 frame_packet.scene_draw_data, gpu_manager,
-                                render_view, color_handle, depth_handle
+                                render_view, color_handle, depth_handle, entity_id_handle
                             );
-
-                            // Entity GPU Color Picking (호버된 뷰포트 + 기즈모 비드래그 시에만 실행)
-                            if (
-                                state.is_hovered
-                                && !viewport_subsystem.IsAnyCameraActive()
-                                && !(gizmo_subsystem && gizmo_subsystem->IsDragging())
-                                && pick_subsystem
-                                && pick_subsystem->GetPickTexture()
-                                && pick_subsystem->GetPickDepthTexture()
-                            )
-                            {
-                                const se::graphics::RGTextureHandle pick_color_handle =
-                                    builder.ImportTexture("EntityPickTarget", pick_subsystem->GetPickTexture());
-
-                                const se::graphics::RGTextureHandle pick_depth_handle =
-                                    builder.ImportTexture("EntityPickDepth", pick_subsystem->GetPickDepthTexture());
-
-                                builder.AddPass<EntityPickPass>(
-                                    frame_packet.scene_draw_data, gpu_manager,
-                                    render_view, pick_color_handle, pick_depth_handle, state.cursor_viewport_pos
-                                );
-                            }
                         }
 
                         // Debug Line 렌더링
@@ -312,7 +307,10 @@ void EditorApplication::Render()
     // GPU Readback: entity pick 텍스처에서 커서 아래 Entity ID 판정
     if (pick_subsystem)
     {
-        pick_subsystem->PerformPick();
+        if (const auto hovered_info = viewport_subsystem.GetHoveredViewportInfo())
+        {
+            pick_subsystem->PerformPick(hovered_info->cursor_viewport_pos);
+        }
     }
 }
 

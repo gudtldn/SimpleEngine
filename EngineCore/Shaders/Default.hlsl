@@ -14,6 +14,7 @@ cbuffer PassUBO : register(b0, space1)
 cbuffer ObjectUBO : register(b1, space1)
 {
     float4x4 Model;
+    uint EntityId;
 }
 
 struct VertexInput
@@ -36,6 +37,7 @@ struct VertexOutput
     float4 position : SV_POSITION;
 //     float2 tex_coord : TEXCOORD0;
     float4 color : COLOR;
+    nointerpolation uint entity_id : TEXCOORD1;
 };
 
 VertexOutput VSMain(VertexInput input)
@@ -52,11 +54,21 @@ VertexOutput VSMain(VertexInput input)
     // 일단 임시로 Normal값을 Color로 사용
     output.color = float4(input.normal * 0.5f + 0.5f, 1.0f);
 
+    output.entity_id = EntityId;
+
     return output;
 }
 
-float4 PSMain(VertexOutput input) : SV_Target0
+struct PSOutput
 {
-    // 보간된 색상을 그대로 반환
-    return input.color;
+    float4 color : SV_Target0;
+    uint entity_id : SV_Target1;
+};
+
+PSOutput PSMain(VertexOutput input)
+{
+    PSOutput output;
+    output.color = input.color;
+    output.entity_id = input.entity_id;
+    return output;
 }

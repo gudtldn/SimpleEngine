@@ -26,7 +26,8 @@ public:
         const GpuResourceManager& in_gpu_manager,
         const RenderView& in_render_view,
         RGTextureHandle in_color_target,
-        RGTextureHandle in_depth_target
+        RGTextureHandle in_depth_target,
+        RGTextureHandle in_entity_id_target = {}
     );
 
     virtual void Setup(RGSetupContext& context) override;
@@ -39,5 +40,6 @@ private:
 
     RGTextureHandle color_target_handle;
     RGTextureHandle depth_target_handle;
+    RGTextureHandle entity_id_target_handle;
 };
 } // namespace se::graphics

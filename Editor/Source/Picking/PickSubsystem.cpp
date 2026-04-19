@@ -4,6 +4,8 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
+#include <utility>
+
 
 namespace se::editor
 {
@@ -17,59 +19,115 @@ bool PickSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
 
-    // 1x1 R32_UINT pick 텍스처 + readback buffer
-    if (!pick_buffer.Create(*render_device))
-    {
-        return false;
-    }
-
-    // 1x1 D24S8 depth 텍스처 (z-test용, 가장 앞 Entity만 pick)
-    constexpr SDL_GPUTextureCreateInfo depth_tex_info = {
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
-        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
-        .width = 1,
-        .height = 1,
-        .layer_count_or_depth = 1,
-        .num_levels = 1,
-        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    // 4바이트 download transfer buffer (GPU -> CPU readback)
+    constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+        .size = sizeof(uint32),
     };
-    pick_depth_rid = render_device->CreateTexture(depth_tex_info, "Pick_DepthTarget");
-    SE_ASSERT_RELEASE(render_device->IsValidTexture(pick_depth_rid));
-
-    return true;
+    download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &tb_info);
+    return download_buffer != nullptr;
 }
 
 void PickSubsystem::Release()
 {
-    if (render_device->IsValidTexture(pick_depth_rid))
+    if (download_buffer)
     {
-        render_device->DestroyTexture(std::exchange(pick_depth_rid, {}));
+        SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), std::exchange(download_buffer, nullptr));
     }
-    pick_buffer.Destroy();
+    if (render_device->IsValidTexture(entity_id_texture_rid))
+    {
+        render_device->DestroyTexture(std::exchange(entity_id_texture_rid, {}));
+    }
 }
 
-void PickSubsystem::PerformPick()
+void PickSubsystem::EnsureSize(uint32 width, uint32 height)
 {
-    pick_id = EntityPickId::None();
-
-    if (!pick_buffer)
+    if (texture_width == width && texture_height == height)
     {
         return;
     }
 
-    const uint32 raw_encoded = pick_buffer.PerformReadback();
-    pick_id = EntityPickId::FromRaw(raw_encoded);
+    // 기존 텍스처 해제
+    if (render_device->IsValidTexture(entity_id_texture_rid))
+    {
+        render_device->DestroyTexture(std::exchange(entity_id_texture_rid, {}));
+    }
+
+    const SDL_GPUTextureCreateInfo tex_info = {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
+        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+        .width = width,
+        .height = height,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    };
+    entity_id_texture_rid = render_device->CreateTexture(tex_info, "Pick_EntityID");
+    SE_ASSERT_RELEASE(render_device->IsValidTexture(entity_id_texture_rid));
+
+    texture_width = width;
+    texture_height = height;
 }
 
-SDL_GPUTexture* PickSubsystem::GetPickTexture() const
+void PickSubsystem::PerformPick(const Vector2f& cursor_pos)
 {
-    return pick_buffer.GetTexture();
+    pick_id = EntityPickId::None();
+
+    SDL_GPUTexture* texture = GetEntityIdTexture();
+    if (!texture || !download_buffer)
+    {
+        return;
+    }
+
+    const uint32 cx = static_cast<uint32>(cursor_pos.x);
+    const uint32 cy = static_cast<uint32>(cursor_pos.y);
+
+    // 범위 외 좌표는 무시
+    if (cx >= texture_width || cy >= texture_height)
+    {
+        return;
+    }
+
+    SDL_GPUDevice* raw_device = render_device->GetRawDevice();
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(raw_device);
+    if (!cmd)
+    {
+        return;
+    }
+
+    SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
+    {
+        const SDL_GPUTextureRegion src = {
+            .texture = texture,
+            .x = cx, .y = cy,
+            .w = 1, .h = 1, .d = 1,
+        };
+        const SDL_GPUTextureTransferInfo dst = {
+            .transfer_buffer = download_buffer,
+            .offset = 0,
+        };
+        SDL_DownloadFromGPUTexture(copy, &src, &dst);
+    }
+    SDL_EndGPUCopyPass(copy);
+
+    // Submit + fence 대기 (동기 readback)
+    SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmd);
+    SDL_WaitForGPUFences(raw_device, true, &fence, 1);
+    SDL_ReleaseGPUFence(raw_device, fence);
+
+    // Transfer buffer 매핑하여 값 읽기
+    if (const void* data = SDL_MapGPUTransferBuffer(raw_device, download_buffer, false))
+    {
+        const uint32 raw_encoded = *static_cast<const uint32*>(data);
+        SDL_UnmapGPUTransferBuffer(raw_device, download_buffer);
+        pick_id = EntityPickId::FromRaw(raw_encoded);
+    }
 }
 
-SDL_GPUTexture* PickSubsystem::GetPickDepthTexture() const
+SDL_GPUTexture* PickSubsystem::GetEntityIdTexture() const
 {
-    if (const auto resource = render_device->GetTexture(pick_depth_rid))
+    if (const auto resource = render_device->GetTexture(entity_id_texture_rid))
     {
         return resource->handle;
     }

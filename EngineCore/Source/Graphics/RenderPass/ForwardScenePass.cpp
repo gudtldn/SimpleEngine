@@ -1,6 +1,7 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
@@ -23,13 +24,15 @@ ForwardScenePass::ForwardScenePass(
     const GpuResourceManager& in_gpu_manager,
     const RenderView& in_render_view,
     RGTextureHandle in_color_target,
-    RGTextureHandle in_depth_target
+    RGTextureHandle in_depth_target,
+    RGTextureHandle in_entity_id_target
 )
     : draw_data(in_draw_data)
     , gpu_manager(in_gpu_manager)
     , render_view(in_render_view)
     , color_target_handle(in_color_target)
     , depth_target_handle(in_depth_target)
+    , entity_id_target_handle(in_entity_id_target)
 {
 }
 
@@ -38,6 +41,10 @@ void ForwardScenePass::Setup(RGSetupContext& context)
     // 렌더 타겟 설정
     context.Write(color_target_handle);
     context.Write(depth_target_handle);
+    if (entity_id_target_handle.IsValid())
+    {
+        context.Write(entity_id_target_handle);
+    }
 }
 
 void ForwardScenePass::Execute(RGExecutionContext& context)
@@ -52,6 +59,10 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         return;
     }
 
+    SDL_GPUTexture* entity_id_target = entity_id_target_handle.IsValid()
+        ? context.GetActualTexture(entity_id_target_handle)
+        : nullptr;
+
     const SDL_GPUColorTargetInfo color_target_info[] = {
         {
             .texture = color_target,
@@ -60,8 +71,18 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             .clear_color = { .r = 0.15f, .g = 0.15f, .b = 0.15f, .a = 1.0f },
             .load_op = SDL_GPU_LOADOP_CLEAR,
             .store_op = SDL_GPU_STOREOP_STORE,
-        }
+        },
+        {
+            .texture = entity_id_target,
+            .mip_level = 0,
+            .layer_or_depth_plane = 0,
+            .clear_color = { .r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f },
+            .load_op = SDL_GPU_LOADOP_CLEAR,
+            .store_op = SDL_GPU_STOREOP_STORE,
+        },
     };
+    const uint32 num_color_targets = entity_id_target ? 2u : 1u;
+
     const SDL_GPUDepthStencilTargetInfo depth_stencil_target_info = {
         .texture = depth_target,
         .clear_depth = 1.0f,
@@ -72,7 +93,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         .clear_stencil = 0,
     };
 
-    SDL_GPUGraphicsPipeline* pipeline = [this, &context]
+    SDL_GPUGraphicsPipeline* pipeline = [&]
     {
         /**
          * 정점 버퍼(Vertex Buffer) 자체에 대한 Description
@@ -144,7 +165,10 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                     // 블렌딩 비활성화
                     .enable_blend = false,
                 },
-            }
+            },
+            {
+                .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
+            },
         };
 
         return context.GetOrCreateGraphicsPipeline({
@@ -188,14 +212,14 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // 렌더 타겟 정보 설정
             .target_info = {
                 .color_target_descriptions = color_target_desc,
-                .num_color_targets = std::size(color_target_desc),
+                .num_color_targets = num_color_targets,
                 .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
                 .has_depth_stencil_target = true,
             },
         });
     }();
 
-    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, color_target_info, std::size(color_target_info), &depth_stencil_target_info);
+    SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, color_target_info, num_color_targets, &depth_stencil_target_info);
     {
         // PSO 설정
         SDL_BindGPUGraphicsPipeline(pass, pipeline);
@@ -271,10 +295,15 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             }
 
-            // Vertex Uniform slot 1: Model 행렬 (per-object) | TODO: 추후 RTE(Relative To Eye) 방식으로 수정
-            Matrix4x4f model_f;
-            to_float4x4(draw_command.model_matrix, model_f);
-            SDL_PushGPUVertexUniformData(cmd, 1, &model_f, sizeof(model_f));
+            // Vertex Uniform slot 1: Model 행렬 + EntityId (per-object) | TODO: 추후 RTE(Relative To Eye) 방식으로 수정
+            struct alignas(16) ObjectUBO
+            {
+                Matrix4x4f model; // 64 bytes (4 x float4)
+                uint32 entity_id; // 4 bytes + 12 bytes padding (= 1 x float4)
+            } object_ubo;
+            to_float4x4(draw_command.model_matrix, object_ubo.model);
+            object_ubo.entity_id = EntityPickId::Encode(draw_command.entity_id).encoded;
+            SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
             // Material 바인딩 | TODO: Texture/Sampler 바인딩 함수 만들기
             // if (info.material_id.IsValid())
