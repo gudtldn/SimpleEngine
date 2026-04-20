@@ -70,6 +70,12 @@ void PickSubsystem::EnsureSize(uint32 width, uint32 height)
     texture_height = height;
 }
 
+SDL_GPUTexture* PickSubsystem::GetOrCreateEntityIdTexture(uint32 width, uint32 height)
+{
+    EnsureSize(width, height);
+    return GetEntityIdTexture();
+}
+
 void PickSubsystem::PerformPick(const Vector2f& cursor_pos)
 {
     pick_id = EntityPickId::None();

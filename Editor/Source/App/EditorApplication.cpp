@@ -240,8 +240,7 @@ void EditorApplication::Render()
                         se::graphics::RGTextureHandle entity_id_handle = {};
                         if (need_entity_pick)
                         {
-                            pick_subsystem->EnsureSize(render_view.width, render_view.height);
-                            if (SDL_GPUTexture* entity_id_tex = pick_subsystem->GetEntityIdTexture())
+                            if (SDL_GPUTexture* entity_id_tex = pick_subsystem->GetOrCreateEntityIdTexture(render_view.width, render_view.height))
                             {
                                 entity_id_handle = builder.ImportTexture("EntityPickTarget", entity_id_tex);
                             }

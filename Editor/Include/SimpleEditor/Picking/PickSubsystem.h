@@ -34,8 +34,11 @@ public:
     virtual void Release() override;
     //~ End SubsystemBase
 
-    /** 뷰포트 리사이즈 시 entity_id 텍스처를 재생성합니다. */
-    void EnsureSize(uint32 width, uint32 height);
+    /**
+     * 뷰포트 크기에 맞는 entity_id 텍스처를 반환합니다.
+     * 필요 시 텍스처를 생성/재생성합니다. (RenderGraph ImportTexture용)
+     */
+    [[nodiscard]] SDL_GPUTexture* GetOrCreateEntityIdTexture(uint32 width, uint32 height);
 
     /**
      * entity_id 텍스처에서 커서 위치의 1픽셀을 GPU readback으로 읽어 내부 상태를 갱신합니다.
@@ -43,11 +46,15 @@ public:
      */
     void PerformPick(const Vector2f& cursor_pos);
 
-    /** entity_id 텍스처 (RenderGraph ImportTexture용) */
-    [[nodiscard]] SDL_GPUTexture* GetEntityIdTexture() const;
-
     /** 마지막 PerformPick() 결과 */
     [[nodiscard]] EntityPickId GetPickId() const { return pick_id; }
+
+private:
+    /** 뷰포트 리사이즈 시 entity_id 텍스처를 재생성합니다. */
+    void EnsureSize(uint32 width, uint32 height);
+
+    /** entity_id 텍스처 raw 포인터 */
+    [[nodiscard]] SDL_GPUTexture* GetEntityIdTexture() const;
 
 private:
     graphics::RenderDevice* render_device = nullptr;
