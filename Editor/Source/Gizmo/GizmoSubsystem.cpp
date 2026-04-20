@@ -14,6 +14,8 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
+#include <utility>
+
 
 namespace se::editor
 {
@@ -28,12 +30,43 @@ SE_END_REFLECT(GizmoSubsystem)
 bool GizmoSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
-    return pick_buffer.Create(*render_device);
+
+    // 1x1 R32_UINT pick 텍스쳐
+    constexpr SDL_GPUTextureCreateInfo tex_info = {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
+        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+        .width = 1,
+        .height = 1,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    };
+    pick_texture_rid = render_device->CreateTexture(tex_info, "Gizmo_Pick");
+    if (!render_device->IsValidTexture(pick_texture_rid))
+    {
+        return false;
+    }
+
+    // 4바이트 download transfer buffer (GPU -> CPU readback)
+    constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+        .size = sizeof(uint32),
+    };
+    download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &tb_info);
+    return download_buffer != nullptr;
 }
 
 void GizmoSubsystem::Release()
 {
-    pick_buffer.Destroy();
+    if (download_buffer)
+    {
+        SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), std::exchange(download_buffer, nullptr));
+    }
+    if (render_device->IsValidTexture(pick_texture_rid))
+    {
+        render_device->DestroyTexture(std::exchange(pick_texture_rid, {}));
+    }
     draw_lists.Clear();
 }
 
@@ -89,7 +122,7 @@ void GizmoSubsystem::DrawGizmos()
 
 void GizmoSubsystem::PerformPick()
 {
-    if (!pick_buffer)
+    if (!pick_texture_rid || !download_buffer)
     {
         return;
     }
@@ -114,14 +147,61 @@ void GizmoSubsystem::PerformPick()
         return;
     }
 
-    const uint32 pick_id = pick_buffer.PerformReadback();
+    // GPU readback: 1x1 텍스쳐 -> transfer buffer -> CPU
+    SDL_GPUDevice* raw_device = render_device->GetRawDevice();
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(raw_device);
+    if (!cmd)
+    {
+        hovered_axis = EGizmoAxis::None;
+        renderer.SetHighlightAxis(EGizmoAxis::None);
+        return;
+    }
+
+    SDL_GPUTexture* texture = GetPickTexture();
+    if (!texture)
+    {
+        SDL_CancelGPUCommandBuffer(cmd);
+        hovered_axis = EGizmoAxis::None;
+        renderer.SetHighlightAxis(EGizmoAxis::None);
+        return;
+    }
+
+    SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(cmd);
+    {
+        const SDL_GPUTextureRegion src = {
+            .texture = texture,
+            .w = 1, .h = 1, .d = 1,
+        };
+        const SDL_GPUTextureTransferInfo dst = {
+            .transfer_buffer = download_buffer,
+            .offset = 0,
+        };
+        SDL_DownloadFromGPUTexture(copy, &src, &dst);
+    }
+    SDL_EndGPUCopyPass(copy);
+
+    SDL_GPUFence* fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmd);
+    SDL_WaitForGPUFences(raw_device, true, &fence, 1);
+    SDL_ReleaseGPUFence(raw_device, fence);
+
+    uint32 pick_id = 0;
+    if (const void* data = SDL_MapGPUTransferBuffer(raw_device, download_buffer, false))
+    {
+        pick_id = *static_cast<const uint32*>(data);
+        SDL_UnmapGPUTransferBuffer(raw_device, download_buffer);
+    }
+
     hovered_axis = GizmoRenderer::DecodePickID(pick_id);
     renderer.SetHighlightAxis(hovered_axis);
 }
 
 SDL_GPUTexture* GizmoSubsystem::GetPickTexture() const
 {
-    return pick_buffer.GetTexture();
+    if (const auto resource = render_device->GetTexture(pick_texture_rid))
+    {
+        return resource->handle;
+    }
+    return nullptr;
 }
 
 void GizmoSubsystem::Update(double /*delta_time*/)

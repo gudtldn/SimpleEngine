@@ -5,10 +5,10 @@
 #include "SimpleEditor/Gizmo/GizmoInteraction.h"
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
-#include "SimpleEditor/Picking/GpuPickBuffer.h"
 
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
+#include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
 #include "SDL3/SDL_gpu.h"
 
@@ -94,7 +94,8 @@ private:
 
     // GPU Color Picking 리소스
     graphics::RenderDevice* render_device = nullptr;
-    GpuPickBuffer pick_buffer;
+    SDL_GPUTransferBuffer* download_buffer = nullptr;
+    graphics::RID pick_texture_rid = {};
     EGizmoAxis hovered_axis = EGizmoAxis::None;
 };
 } // namespace se::editor
