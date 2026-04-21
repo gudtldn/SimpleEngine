@@ -201,7 +201,7 @@ SE_END_REFLECT(AssimpTranslator)
 ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 {
     static constexpr FixedArray supported_extensions = MakeFixedArray<StringView>(
-        ".obj", ".fbx", ".gltf", ".glb", ".blend", ".vrm"
+        ".obj", ".fbx", ".gltf", ".glb", ".blend", ".vrm", ".pmx", ".pmd"
     );
     return supported_extensions;
 }
