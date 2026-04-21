@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Core/Math/MathFwd.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -15,6 +16,7 @@ struct Vector3Impl
 public:
     constexpr Vector3Impl() = default;
     constexpr Vector3Impl(T in_x, T in_y, T in_z);
+    explicit constexpr Vector3Impl(const Vector4Impl<T>& vector4);
     explicit constexpr Vector3Impl(T scalar);
 
 public:
@@ -113,6 +115,12 @@ public:
 template <traits::FloatingType T>
 constexpr Vector3Impl<T>::Vector3Impl(T in_x, T in_y, T in_z)
     : x(in_x), y(in_y), z(in_z)
+{
+}
+
+template <traits::FloatingType T>
+constexpr Vector3Impl<T>::Vector3Impl(const Vector4Impl<T>& vector4)
+    : x(vector4.x), y(vector4.y), z(vector4.z)
 {
 }
 
