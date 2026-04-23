@@ -12,7 +12,7 @@ namespace se::editor
 class GizmoDrawList;
 
 /** 기즈모를 렌더링하는 패스 */
-class SE_EDITOR_API GizmoPass : public se::graphics::RenderPassBase
+class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) GizmoPass : public se::graphics::RenderPassBase
 {
     SE_CLASS(GizmoPass, se::graphics::RenderPassBase)
 
