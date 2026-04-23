@@ -236,20 +236,39 @@ void EditorViewportSubsystem::Update(double delta_time)
 
         if (state.IsPerspectiveView())
         {
+            // 카메라 위치 설정
+            state.render_view.camera_pos = camera.position;
+
+            // VP 행렬 설정
+            state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
+                camera.position,
+                camera.position + forward_dir,
+                view_up
+            );
             state.render_view.projection_matrix = TransformUtility::MakePerspectiveMatrix(
                 Radian{ camera.fov_y },
                 aspect,
                 camera.near_plane,
                 camera.far_plane
             );
-            state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
-                camera.position,
-                camera.position + forward_dir,
-                view_up
-            );
         }
         else
         {
+            const double depth_half = camera.far_plane * 0.5;
+            const Vector3 ortho_eye = camera.position
+                - forward_dir * forward_dir.Dot(camera.position) // Depth 성분 제거
+                - forward_dir * depth_half;                      // 이후 클리핑 공간의 정중앙에 물체를 두기 위해 카메라를 뒤로 이동
+
+            // 카메라 위치 설정
+            state.render_view.camera_pos = ortho_eye;
+
+            // VP 행렬 설정
+            state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
+                ortho_eye,
+                ortho_eye + forward_dir,
+                view_up
+            );
+
             const double ortho_height = camera.ortho_width / aspect;
             state.render_view.projection_matrix = TransformUtility::MakeOrthographicMatrix(
                 camera.ortho_width,
@@ -257,19 +276,12 @@ void EditorViewportSubsystem::Update(double delta_time)
                 camera.near_plane,
                 camera.far_plane
             );
-
-            const double depth_half = camera.far_plane * 0.5;
-            const Vector3 ortho_eye = camera.position
-                - forward_dir * forward_dir.Dot(camera.position) // Depth 성분 제거
-                - forward_dir * depth_half;                      // 이후 클리핑 공간의 정중앙에 물체를 두기 위해 카메라를 뒤로 이동
-            state.render_view.view_matrix = TransformUtility::MakeViewMatrix(
-                ortho_eye,
-                ortho_eye + forward_dir,
-                view_up
-            );
         }
-        state.render_view.near_plane = static_cast<float>(camera.near_plane);
-        state.render_view.far_plane = static_cast<float>(camera.far_plane);
+
+        // 카메라 투영 관련 설정
+        state.render_view.near_plane = camera.near_plane;
+        state.render_view.far_plane = camera.far_plane;
+        state.render_view.fov_y = camera.fov_y;
     }
 }
 
