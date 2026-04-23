@@ -30,7 +30,7 @@ struct SE_ANNOTATION(=meta::EditorOnly) EditorCameraState
     double near_plane = 0.1;
 
     SE_ANNOTATION(=meta::Property, =meta::Range(1.0f, 100'000.0f))
-    double far_plane = 1000.0;
+    double far_plane = 10000.0;
 
     SE_ANNOTATION(=meta::Property, =meta::Range(0.01f, 1000.0f))
     double move_speed = 5.0;

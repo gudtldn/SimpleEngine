@@ -10,25 +10,46 @@ namespace se::graphics
 /**
  * 단일 뷰포트의 렌더링에 필요한 카메라 정보를 담는 순수 POD 구조체
  *
- * @todo 역행렬(inv_view, inv_vp)과 camera_pos를 멤버로 캐싱하면
+ * @todo 역행렬(inv_view, inv_vp)을 멤버로 캐싱하면
  *       DeprojectToRay/ProjectWorldToScreen 호출 시 중복 계산을 제거할 수 있음.
  *       현재는 프레임당 1~2회 호출이라 무시 가능하나, 다수 뷰포트 동시 처리 시 고려.
  */
 struct RenderView
 {
+    Vector3 camera_pos = Vector3::Zero();
+
     Matrix4x4 view_matrix = Matrix4x4::Identity();
     Matrix4x4 projection_matrix = Matrix4x4::Identity();
 
     uint32 width = 0;
     uint32 height = 0;
 
-    float near_plane = 0.1f;
-    float far_plane = 1000.0f;
+    double near_plane = 0.1;
+    double far_plane = 10000.0;
+    Degree<double> fov_y = 60.0_deg;
 
     ERenderingMode rendering_mode = ERenderingMode::Lit;
     ShowFlags show_flags = EShowFlag::All;
 
 public:
+    [[nodiscard]] Vector3 GetRightVector() const
+    {
+        // Column 0 (View Space X축)
+        return { view_matrix[0, 0], view_matrix[1, 0], view_matrix[2, 0] };
+    }
+
+    [[nodiscard]] Vector3 GetUpVector() const
+    {
+        // Column 1 (View Space Y축)
+        return { view_matrix[0, 1], view_matrix[1, 1], view_matrix[2, 1] };
+    }
+
+    [[nodiscard]] Vector3 GetForwardVector() const
+    {
+        // Column 2 (View Space -Z축) -> 부호 반전
+        return { -view_matrix[0, 2], -view_matrix[1, 2], -view_matrix[2, 2] };
+    }
+
     /**
      * 2D 픽셀 좌표를 기반으로 카메라 원점에서 씬으로 쏘는 3D Ray를 생성합니다. (Screen -> NDC -> Deproject)
      * @param in_cursor_pos 뷰포트 로컬 좌표 (좌상단 원점, px)
