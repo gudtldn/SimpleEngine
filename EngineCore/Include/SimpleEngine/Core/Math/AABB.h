@@ -32,6 +32,14 @@ public:
     {
     }
 
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr AABBImpl(const AABBImpl<U>& other)
+        : min(static_cast<Vector3Impl<T>>(other.min))
+        , max(static_cast<Vector3Impl<T>>(other.max))
+    {
+    }
+
     /** 중심점(Center)과 각 축의 절반 크기(Extent)를 사용하여 생성합니다. */
     static constexpr AABBImpl FromCenterExtent(const VectorType& center, const VectorType& extent)
     {

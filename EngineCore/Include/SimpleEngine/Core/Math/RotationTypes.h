@@ -18,6 +18,16 @@ public:
     constexpr QuaternionImpl(T in_x, T in_y, T in_z, T in_w);
     explicit constexpr QuaternionImpl(const RotatorImpl<T>& rotator);
 
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr QuaternionImpl(const QuaternionImpl<U>& other)
+        : x(static_cast<T>(other.x))
+        , y(static_cast<T>(other.y))
+        , z(static_cast<T>(other.z))
+        , w(static_cast<T>(other.w))
+    {
+    }
+
 public:
     /** Quaternion(0, 0, 0, 1) */
     [[nodiscard]] static constexpr QuaternionImpl Identity();
@@ -56,6 +66,15 @@ public:
     constexpr RotatorImpl();
     constexpr RotatorImpl(Degree<T> in_pitch, Degree<T> in_roll, Degree<T> in_yaw);
     explicit constexpr RotatorImpl(const QuaternionImpl<T>& quaternion);
+
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr RotatorImpl(const RotatorImpl<U>& other)
+        : pitch(static_cast<Degree<T>>(other.pitch))
+        , roll(static_cast<Degree<T>>(other.roll))
+        , yaw(static_cast<Degree<T>>(other.yaw))
+    {
+    }
 
 public:
     /** Rotator(0, 0, 0) */

@@ -83,16 +83,8 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
 
     // UBO 구성 (GizmoPass와 동일 레이아웃)
     GizmoUBO ubo;
-    std::ranges::transform(
-        pick_vp.data,
-        ubo.vp.data.begin(),
-        [](double v) { return static_cast<float>(v); }
-    );
-    ubo.gizmo_center = {
-        static_cast<float>(draw_list.GetCenter().x),
-        static_cast<float>(draw_list.GetCenter().y),
-        static_cast<float>(draw_list.GetCenter().z),
-    };
+    ubo.vp = static_cast<Matrix4x4f>(pick_vp);
+    ubo.gizmo_center = static_cast<Vector3f>(draw_list.GetCenter());
     ubo.screen_scale = static_cast<float>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
 
     // 라인/삼각형 공통 파이프라인 설정

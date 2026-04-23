@@ -162,16 +162,8 @@ void GizmoPass::Execute(RGExecutionContext& context)
         const Matrix4x4 vp = render_view.view_matrix * render_view.projection_matrix;
 
         GizmoUBO ubo;
-        std::ranges::transform(
-            vp.data,
-            ubo.vp.data.begin(),
-            [](double v) { return static_cast<float>(v); }
-        );
-        ubo.gizmo_center = {
-            static_cast<float>(draw_list.GetCenter().x),
-            static_cast<float>(draw_list.GetCenter().y),
-            static_cast<float>(draw_list.GetCenter().z),
-        };
+        ubo.vp = static_cast<Matrix4x4f>(vp);
+        ubo.gizmo_center = static_cast<Vector3f>(draw_list.GetCenter());
         ubo.screen_scale = static_cast<float>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
 
         SDL_PushGPUVertexUniformData(cmd, 0, &ubo, sizeof(ubo));

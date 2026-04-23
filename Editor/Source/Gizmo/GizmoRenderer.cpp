@@ -11,14 +11,6 @@ namespace se::editor
 {
 using namespace se::math;
 
-namespace
-{
-// Vector3(double) -> Vector3f(float) 축소 변환
-[[nodiscard]] Vector3f ToVector3f(const Vector3& v)
-{
-    return { static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z) };
-}
-} // namespace
 
 void GizmoRenderer::SetMode(EGizmoMode in_mode)
 {
@@ -127,14 +119,14 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
 
         list.SetPickId(EncodePickID(plane_axis));
         list.AddTriangle(
-            { .position = ToVector3f(inner),  .color = color },
-            { .position = ToVector3f(edge0),  .color = color },
-            { .position = ToVector3f(corner), .color = color }
+            { .position = static_cast<Vector3f>(inner),  .color = color },
+            { .position = static_cast<Vector3f>(edge0),  .color = color },
+            { .position = static_cast<Vector3f>(corner), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(inner),  .color = color },
-            { .position = ToVector3f(corner), .color = color },
-            { .position = ToVector3f(edge1),  .color = color }
+            { .position = static_cast<Vector3f>(inner),  .color = color },
+            { .position = static_cast<Vector3f>(corner), .color = color },
+            { .position = static_cast<Vector3f>(edge1),  .color = color }
         );
     }
 }
@@ -231,14 +223,14 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
 
         list.SetPickId(EncodePickID(plane_axis));
         list.AddTriangle(
-            { .position = ToVector3f(inner),  .color = color },
-            { .position = ToVector3f(edge0),  .color = color },
-            { .position = ToVector3f(corner), .color = color }
+            { .position = static_cast<Vector3f>(inner),  .color = color },
+            { .position = static_cast<Vector3f>(edge0),  .color = color },
+            { .position = static_cast<Vector3f>(corner), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(inner),  .color = color },
-            { .position = ToVector3f(corner), .color = color },
-            { .position = ToVector3f(edge1),  .color = color }
+            { .position = static_cast<Vector3f>(inner),  .color = color },
+            { .position = static_cast<Vector3f>(corner), .color = color },
+            { .position = static_cast<Vector3f>(edge1),  .color = color }
         );
     }
 }
@@ -288,14 +280,14 @@ void GizmoRenderer::BuildSolidCylinder(
 
         // 실린더의 한 면을 구성하는 두 개의 삼각형(Quad) 추가
         list.AddTriangle(
-            { .position = ToVector3f(b0), .color = color },
-            { .position = ToVector3f(b1), .color = color },
-            { .position = ToVector3f(t0), .color = color }
+            { .position = static_cast<Vector3f>(b0), .color = color },
+            { .position = static_cast<Vector3f>(b1), .color = color },
+            { .position = static_cast<Vector3f>(t0), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(b1), .color = color },
-            { .position = ToVector3f(t1), .color = color },
-            { .position = ToVector3f(t0), .color = color }
+            { .position = static_cast<Vector3f>(b1), .color = color },
+            { .position = static_cast<Vector3f>(t1), .color = color },
+            { .position = static_cast<Vector3f>(t0), .color = color }
         );
     }
 }
@@ -320,9 +312,9 @@ void GizmoRenderer::BuildSolidCone(
         const Vector3 p1 = base_center + (tangent * Cos(a1) + bitangent * Sin(a1)) * radius;
 
         list.AddTriangle(
-            { .position = ToVector3f(tip), .color = color },
-            { .position = ToVector3f(p0),  .color = color },
-            { .position = ToVector3f(p1),  .color = color }
+            { .position = static_cast<Vector3f>(tip), .color = color },
+            { .position = static_cast<Vector3f>(p0),  .color = color },
+            { .position = static_cast<Vector3f>(p1),  .color = color }
         );
     }
 }
@@ -360,14 +352,14 @@ void GizmoRenderer::BuildSolidCube(
     {
         // 한 면을 두 개의 삼각형으로 분할
         list.AddTriangle(
-            { .position = ToVector3f(corners[face.i0]), .color = color },
-            { .position = ToVector3f(corners[face.i1]), .color = color },
-            { .position = ToVector3f(corners[face.i2]), .color = color }
+            { .position = static_cast<Vector3f>(corners[face.i0]), .color = color },
+            { .position = static_cast<Vector3f>(corners[face.i1]), .color = color },
+            { .position = static_cast<Vector3f>(corners[face.i2]), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(corners[face.i0]), .color = color },
-            { .position = ToVector3f(corners[face.i2]), .color = color },
-            { .position = ToVector3f(corners[face.i3]), .color = color }
+            { .position = static_cast<Vector3f>(corners[face.i0]), .color = color },
+            { .position = static_cast<Vector3f>(corners[face.i2]), .color = color },
+            { .position = static_cast<Vector3f>(corners[face.i3]), .color = color }
         );
     }
 }
@@ -402,32 +394,32 @@ void GizmoRenderer::BuildSolidSphere(GizmoDrawList& list, const Vector3& center,
             {
                 // 상단 극점: 삼각형 팬
                 list.AddTriangle(
-                    { .position = ToVector3f(p00), .color = color },
-                    { .position = ToVector3f(p10), .color = color },
-                    { .position = ToVector3f(p11), .color = color }
+                    { .position = static_cast<Vector3f>(p00), .color = color },
+                    { .position = static_cast<Vector3f>(p10), .color = color },
+                    { .position = static_cast<Vector3f>(p11), .color = color }
                 );
             }
             else if (i == rings - 1)
             {
                 // 하단 극점: 삼각형 팬
                 list.AddTriangle(
-                    { .position = ToVector3f(p00), .color = color },
-                    { .position = ToVector3f(p01), .color = color },
-                    { .position = ToVector3f(p10), .color = color }
+                    { .position = static_cast<Vector3f>(p00), .color = color },
+                    { .position = static_cast<Vector3f>(p01), .color = color },
+                    { .position = static_cast<Vector3f>(p10), .color = color }
                 );
             }
             else
             {
                 // 일반 쿼드: 두 삼각형
                 list.AddTriangle(
-                    { .position = ToVector3f(p00), .color = color },
-                    { .position = ToVector3f(p10), .color = color },
-                    { .position = ToVector3f(p11), .color = color }
+                    { .position = static_cast<Vector3f>(p00), .color = color },
+                    { .position = static_cast<Vector3f>(p10), .color = color },
+                    { .position = static_cast<Vector3f>(p11), .color = color }
                 );
                 list.AddTriangle(
-                    { .position = ToVector3f(p00), .color = color },
-                    { .position = ToVector3f(p11), .color = color },
-                    { .position = ToVector3f(p01), .color = color }
+                    { .position = static_cast<Vector3f>(p00), .color = color },
+                    { .position = static_cast<Vector3f>(p11), .color = color },
+                    { .position = static_cast<Vector3f>(p01), .color = color }
                 );
             }
         }
@@ -459,14 +451,14 @@ void GizmoRenderer::BuildThickArc(
 
         // 내부 -> 외부 쿼드 (2 삼각형)
         list.AddTriangle(
-            { .position = ToVector3f(inner0), .color = color },
-            { .position = ToVector3f(outer0), .color = color },
-            { .position = ToVector3f(outer1), .color = color }
+            { .position = static_cast<Vector3f>(inner0), .color = color },
+            { .position = static_cast<Vector3f>(outer0), .color = color },
+            { .position = static_cast<Vector3f>(outer1), .color = color }
         );
         list.AddTriangle(
-            { .position = ToVector3f(inner0), .color = color },
-            { .position = ToVector3f(outer1), .color = color },
-            { .position = ToVector3f(inner1), .color = color }
+            { .position = static_cast<Vector3f>(inner0), .color = color },
+            { .position = static_cast<Vector3f>(outer1), .color = color },
+            { .position = static_cast<Vector3f>(inner1), .color = color }
         );
     }
 }

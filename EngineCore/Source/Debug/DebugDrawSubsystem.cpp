@@ -122,11 +122,11 @@ void DebugDrawSubsystem::UploadToGpu(SDL_GPUCommandBuffer* cmd)
         {
             const DebugLine& line = current_frame_lines[i];
             mapped[(i * 2) + 0] = {
-                .position = { static_cast<float>(line.start.x), static_cast<float>(line.start.y), static_cast<float>(line.start.z) },
+                .position = static_cast<Vector3f>(line.start),
                 .color = line.color,
             };
             mapped[(i * 2) + 1] = {
-                .position = { static_cast<float>(line.end.x), static_cast<float>(line.end.y), static_cast<float>(line.end.z) },
+                .position = static_cast<Vector3f>(line.end),
                 .color = line.color,
             };
         }

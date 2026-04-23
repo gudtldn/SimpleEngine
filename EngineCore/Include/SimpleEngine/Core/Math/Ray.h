@@ -38,6 +38,14 @@ public:
         SE_ASSERT(direction.IsNormalized(), "Ray direction must be normalized.");
     }
 
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr RayImpl(const RayImpl<U>& other)
+        : origin(static_cast<Vector3Impl<T>>(other.origin))
+        , direction(static_cast<Vector3Impl<T>>(other.direction))
+    {
+    }
+
 public:
     /**
      * 원점으로부터 주어진 거리만큼 이동한 위치의 좌표를 구합니다.

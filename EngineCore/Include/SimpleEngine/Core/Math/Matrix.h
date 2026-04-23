@@ -9,6 +9,7 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
+#include <algorithm>
 #include <concepts>
 #include <mdspan>
 #include <ranges>
@@ -38,6 +39,16 @@ public:
     Matrix4x4Impl(ArrayView<const T> src);
 
     constexpr Matrix4x4Impl(const Vector4Impl<T>& r0, const Vector4Impl<T>& r1, const Vector4Impl<T>& r2, const Vector4Impl<T>& r3);
+
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr Matrix4x4Impl(const Matrix4x4Impl<U>& other)
+    {
+        std::ranges::transform(other.data, data.begin(), [](U val)
+        {
+            return static_cast<T>(val);
+        });
+    }
 
 public:
     [[nodiscard]] static constexpr Matrix4x4Impl Identity();

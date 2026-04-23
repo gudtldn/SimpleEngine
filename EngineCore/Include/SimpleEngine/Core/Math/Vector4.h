@@ -19,6 +19,16 @@ public:
     explicit constexpr Vector4Impl(const Vector3Impl<T>& vector3, T in_w);
     explicit constexpr Vector4Impl(T scalar);
 
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr Vector4Impl(const Vector4Impl<U>& other)
+        : x(static_cast<T>(other.x))
+        , y(static_cast<T>(other.y))
+        , z(static_cast<T>(other.z))
+        , w(static_cast<T>(other.w))
+    {
+    }
+
 public:
     /** Vector(0, 0, 0, 0) */
     [[nodiscard]] static constexpr Vector4Impl Zero();

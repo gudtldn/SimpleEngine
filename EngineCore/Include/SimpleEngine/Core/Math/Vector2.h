@@ -17,6 +17,14 @@ public:
     constexpr Vector2Impl(T in_x, T in_y);
     explicit constexpr Vector2Impl(T scalar);
 
+    template <traits::FloatingType U>
+    explicit(sizeof(U) > sizeof(T))
+    constexpr Vector2Impl(const Vector2Impl<U>& other)
+        : x(static_cast<T>(other.x))
+        , y(static_cast<T>(other.y))
+    {
+    }
+
 public:
     /** Vector(0, 0) */
     [[nodiscard]] static constexpr Vector2Impl Zero();
