@@ -122,6 +122,7 @@ bool EditorApplication::PostInitialize()
     // 초기 셰이더 컴파일: 모든 .hlsl -> .spv (DXC를 사용할 수 없는 플랫폼에서는 미리 구워진 .spv만 사용)
 #if SE_HAS_HLSL_COMPILER
     {
+        // TODO: 현재 ShaderCompileSubsystem과 로직이 중복됨. 추후 FileWatcher 도입 시 셰이더 관리 시스템으로 통합 예정
         const Path hlsl_dir = VFS::ToPath("CoreShader://");
         const Path output_dir = VFS::ToPath("CoreShader://Compiled");
 

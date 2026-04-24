@@ -31,6 +31,9 @@ public:
     /** 특정 셰이더를 무효화하고, 해당 셰이더를 사용하는 파이프라인도 모두 제거합니다. (핫 리로드용) */
     void InvalidateShader(const VPath& shader_key);
 
+    /** 모든 셰이더와 파이프라인 캐시를 비웁니다. (핫 리로드용 전체 무효화) */
+    void ClearAll();
+
 private:
     RenderDevice* render_device;
     ShaderCache shader_cache;

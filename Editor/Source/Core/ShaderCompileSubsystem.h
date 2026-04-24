@@ -1,4 +1,6 @@
 ﻿#pragma once
+
+#include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 
@@ -7,7 +9,7 @@ namespace se::editor
 /**
  * @todo docs
  */
-class SE_ANNOTATION(=meta::Internal) ShaderCompileSubsystem : public se::SubsystemBase
+class SE_ANNOTATION(=meta::Internal) ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
     SE_CLASS(ShaderCompileSubsystem, SubsystemBase)
 
@@ -16,5 +18,10 @@ public:
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
     //~ End SubsystemBase
+
+public:
+    //~ Begin IUpdatable
+    virtual void Update(double delta_time) override;
+    //~ End IUpdatable
 };
-}
+} // namespace se::editor

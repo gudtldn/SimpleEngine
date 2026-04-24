@@ -176,4 +176,23 @@ void PSOManager::InvalidateShader(const VPath& shader_key)
     // Graphics 셰이더 캐시에서 제거
     shader_cache.Invalidate(shader_key);
 }
+
+void PSOManager::ClearAll()
+{
+    for (SDL_GPUGraphicsPipeline* pipeline : cached_graphics_pipelines | std::views::values)
+    {
+        SDL_ReleaseGPUGraphicsPipeline(render_device->GetRawDevice(), pipeline);
+    }
+    cached_graphics_pipelines.Clear();
+    graphics_shader_to_pipeline_map.Clear();
+
+    for (SDL_GPUComputePipeline* pipeline : cached_compute_pipelines | std::views::values)
+    {
+        SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), pipeline);
+    }
+    cached_compute_pipelines.Clear();
+    compute_shader_to_pipeline_map.Clear();
+
+    shader_cache.ClearAll();
+}
 } // namespace se::graphics
