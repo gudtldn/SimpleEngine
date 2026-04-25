@@ -63,7 +63,7 @@ constexpr float SRGB_TO_LINEAR_LUT[256] = {
 /**
  * float 기반 색상 구조체 (R, G, B, A)
  */
-struct LinearColor
+struct alignas(16) LinearColor
 {
     float r, g, b, a;
 
