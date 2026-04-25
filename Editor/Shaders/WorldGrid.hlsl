@@ -199,7 +199,43 @@ float4 PSMain(VertexOutput input) : SV_Target0
     base_color.a *= final_alpha;
 
     // ------------------------------------------------------------
-    // [6단계: 그리드 가장자리 페이드아웃 (Opacity Falloff)]
+    // [6단계: 월드 축(X, Y) 통합 렌더링]
+    // ------------------------------------------------------------
+
+    // 화면에서 유지하고 싶은 축 선의 기본 두께 (픽셀 단위)
+    float axis_thickness = 1.0f;
+
+    // 화면 픽셀 기반의 거리 계산 및 기본 안티앨리어싱
+    float2 axis_dist = abs(input.world_pos.xy) / derivative;
+    float2 axis_alpha = saturate(axis_thickness - axis_dist);
+
+    // [물리적 Coverage 기반 지평선 폭주 제거]
+    // 축 선이 가질 수 있는 '최대 실제 월드 두께' (그리드 1칸의 절반 정도로 제한)
+    float max_world_thickness = GridCellSize * 0.5f;
+
+    // 현재 픽셀 위치에서 화면 1.5픽셀이 덮게 되는 실제 월드 면적(두께)
+    float2 pixel_world_thickness = axis_thickness * derivative;
+
+    // Coverage 비율 계산: 픽셀 두께가 최대 허용 두께를 넘어가면 그 비율만큼 알파값을 감소시킴
+    // - 카메라 앞: pixel_world_thickness가 작음 -> ratio는 1.0 (선명함)
+    // - 지평선: pixel_world_thickness가 매우 큼 -> ratio는 0.0에 수렴 (투명해짐)
+    float2 coverage_ratio = saturate(max_world_thickness / pixel_world_thickness);
+
+    // 구한 비율을 알파값에 곱하여 물리적으로 올바른 페이드아웃 적용
+    axis_alpha *= coverage_ratio;
+
+    // 월드 축 색상 합성
+    static const float3 X_AxisColor = float3(1.0f, 0.2f, 0.2f); // Red (X축, Y=0)
+    static const float3 Y_AxisColor = float3(0.2f, 1.0f, 0.2f); // Green (Y축, X=0)
+
+    base_color.rgb = lerp(base_color.rgb, X_AxisColor, axis_alpha.y);
+    base_color.rgb = lerp(base_color.rgb, Y_AxisColor, axis_alpha.x);
+
+    // 축이 그려지는 부분의 알파값 보장
+    base_color.a = max(base_color.a, max(axis_alpha.x, axis_alpha.y));
+
+    // ------------------------------------------------------------
+    // [7단계: 그리드 가장자리 페이드아웃 (Opacity Falloff)]
     // ------------------------------------------------------------
 
     // 카메라 위치를 기준으로 거리를 계산하여, 평면(GridSize) 끝으로 갈수록 투명하게 페이드아웃 처리
