@@ -215,9 +215,6 @@ void EditorViewportSubsystem::Update(double delta_time)
         }
     }
 
-    // 월드 기준 좌표축을 매 프레임 그리기
-    DrawDebugWorldAxes();
-
     // 모든 뷰포트의 render_view에 최신 카메라 행렬을 반영
     for (ViewportState& state : viewports | std::views::values)
     {

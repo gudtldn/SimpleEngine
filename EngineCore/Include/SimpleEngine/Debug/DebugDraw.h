@@ -36,13 +36,4 @@ SE_CORE_API void DrawDebugRay(
     const LinearColor& color = LinearColor::White(),
     float duration = 0.0f
 );
-
-/**
- * 월드 좌표계 기준축을 그립니다.
- * +X(Right)=빨강, +Y(Forward)=초록, +Z(Up)=파랑
- */
-SE_CORE_API void DrawDebugWorldAxes(
-    const Vector3& origin = Vector3::Zero(),
-    float length = 1000.0f
-);
 } // namespace se

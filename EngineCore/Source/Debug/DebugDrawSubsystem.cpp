@@ -179,13 +179,4 @@ void DrawDebugRay(const Ray& ray, double length, const LinearColor& color, float
 {
     DrawDebugLine(ray.origin, ray.GetPoint(length), color, duration);
 }
-
-void DrawDebugWorldAxes(const Vector3& origin, float length)
-{
-    DrawDebugLines({
-        { .start = origin, .end = origin + (Vector3::Right()   * length), .color = LinearColor::Red(),   .duration = 0.0f }, // +X Right
-        { .start = origin, .end = origin + (Vector3::Forward() * length), .color = LinearColor::Green(), .duration = 0.0f }, // +Y Forward
-        { .start = origin, .end = origin + (Vector3::Up()      * length), .color = LinearColor::Blue(),  .duration = 0.0f }, // +Z Up
-    });
-}
 } // namespace se
