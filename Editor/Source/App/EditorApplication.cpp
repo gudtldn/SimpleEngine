@@ -10,6 +10,7 @@
 #include "SimpleEditor/Picking/PickSubsystem.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
+#include "SimpleEditor/WorldGrid/WorldGridPass.h"
 
 #include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
@@ -254,6 +255,9 @@ void EditorApplication::Render()
                                 render_view, color_handle, depth_handle, entity_id_handle
                             );
                         }
+
+                        // World Grid 렌더링
+                        builder.AddPass<WorldGridPass>(render_view, color_handle, depth_handle);
 
                         // Debug Line 렌더링
                         if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
