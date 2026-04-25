@@ -182,7 +182,7 @@ void WorldGridPass::Execute(graphics::RGExecutionContext& context)
 
         ubo_vert.vp = static_cast<Matrix4x4f>(render_view.view_matrix * render_view.projection_matrix);
         ubo_vert.camera_pos = static_cast<Vector3f>(render_view.camera_pos);
-        ubo_vert.grid_size = 10000.0f;
+        ubo_vert.grid_size = static_cast<float>(render_view.far_plane) * 2.0f;
 
         switch (view_mode)
         {
@@ -227,6 +227,7 @@ void WorldGridPass::Execute(graphics::RGExecutionContext& context)
             LinearColor grid_color_thick;
         } ubo_frag;
 
+        // TODO: Viewport 설정에서 받아서 사용하는 방식으로 변경
         ubo_frag.grid_min_pixels_between_cells = 10.0f;
         ubo_frag.grid_cell_size = 1.0f;
         ubo_frag.grid_color_thin = LinearColor{ 0.5f, 0.5f, 0.5f, 0.25f };
