@@ -15,6 +15,7 @@ cbuffer VS_UBO : register(b0, space1)
     float4x4 VP;      // 뷰-투영 행렬 (Row-major -> Column-major 자동 전치)
     float3 CameraPos; // 현재 카메라의 월드 좌표
     float GridSize;   // 무한 그리드를 그릴 기본 바탕 평면(Quad)의 크기
+    uint GridPlane;   // 그리드가 그려질 평면 타입 (0: XY, 1: XZ, 2: YZ)
 }
 
 // ----------------------------------------------------------------
@@ -64,10 +65,11 @@ struct VertexInput
 // 정점 셰이더 출력 (픽셀 셰이더로 넘어갈 데이터)
 struct VertexOutput
 {
-    float4 position   : SV_Position; // 화면(Clip Space)에 투영된 최종 좌표
-    float4 world_pos  : Color;       // 픽셀 셰이더에서 패턴을 그릴 기준 월드 좌표
-    float2 camera_pos : TEXCOORD0;   // 픽셀 셰이더의 Falloff 계산을 위한 카메라 XY 좌표
-    float  grid_size  : TEXCOORD1;   // 픽셀 셰이더의 Falloff 계산을 위한 그리드 크기
+    float4 position   : SV_Position;   // 화면(Clip Space)에 투영된 최종 좌표
+    float2 grid_uv    : TEXCOORD0;     // 그리드와 축을 그릴 2D 기준 좌표
+    float2 camera_uv  : TEXCOORD1;     // 픽셀 셰이더의 Falloff 계산을 위한 카메라 XY 좌표
+    float  grid_size  : TEXCOORD2;     // 픽셀 셰이더의 Falloff 계산을 위한 그리드 크기
+    uint   plane_type : BLENDINDICES0; // 픽셀 셰이더에서 X, Y, Z축 색상을 동적으로 고르기 위한 평면 타입 (0: XY, 1: XZ, 2: YZ)
 };
 
 // ================================================================
@@ -79,18 +81,41 @@ VertexOutput VSMain(VertexInput input)
 
     // 1. 하드코딩된 정점 배열에서 로컬 위치를 가져와 GridSize만큼 스케일을 곱함
     int index = Indices[input.vertex_id];
-    float3 world_pos = Pos[index] * GridSize;
+    float2 local_pos = Pos[index].xy * GridSize;
+    float3 world_pos = float3(0, 0, 0);
 
-    // 2. 바닥 평면이 항상 카메라를 따라다니도록 카메라의 XY 위치로 이동
-    world_pos.xy += CameraPos.xy;
+    // 카메라와 마주보는 바닥 평면이 항상 카메라를 따라다니도록 카메라의 위치로 이동
+    if (GridPlane == 0) // XY 평면 (Top / Bottom)
+    {
+        world_pos = float3(local_pos.x, local_pos.y, 0.0f);
+        world_pos.xy += CameraPos.xy; // 카메라 따라가기
 
-    // 3. VP 행렬을 사용하여 최종 위치 계산 (월드 좌표 -> 화면 클립 좌표)
+        output.grid_uv = world_pos.xy;
+        output.camera_uv = CameraPos.xy;
+    }
+    else if (GridPlane == 1) // XZ 평면 (Front / Back)
+    {
+        world_pos = float3(local_pos.x, 0.0f, local_pos.y);
+        world_pos.xz += CameraPos.xz;
+
+        output.grid_uv = world_pos.xz;
+        output.camera_uv = CameraPos.xz;
+    }
+    else // YZ 평면 (Right / Left)
+    {
+        world_pos = float3(0.0f, local_pos.x, local_pos.y);
+        world_pos.yz += CameraPos.yz;
+
+        output.grid_uv = world_pos.yz;
+        output.camera_uv = CameraPos.yz;
+    }
+
+    // 2. VP 행렬을 사용하여 최종 위치 계산 (월드 좌표 -> 화면 클립 좌표)
     output.position = mul(VP, float4(world_pos, 1.0f));
-    output.world_pos = float4(world_pos, 1.0f);
 
-    // 4. PS에서 필요한 데이터를 전달
-    output.camera_pos = CameraPos.xy;
-    output.grid_size = GridSize;
+    // 3. PS에서 필요한 데이터를 전달
+    output.plane_type = GridPlane; // PS에서 X, Y, Z축 색상을 동적으로 고르기 위해 필요
+    output.grid_size = GridSize;   // PS에서 Falloff 비율을 계산하기 위해 필요
 
     return output;
 }
@@ -141,7 +166,7 @@ float4 PSMain(VertexOutput input) : SV_Target0
     // float2 derivative = float2(lx, ly);
 
     // [최적화 방식] HLSL 내장 함수 fwidth로 대체
-    float2 derivative = fwidth(input.world_pos.xy);
+    float2 derivative = fwidth(input.grid_uv);
     float linear_dist = length(derivative); // 방향에 상관없는 절대적인 변화량 길이
 
     // ------------------------------------------------------------
@@ -163,9 +188,9 @@ float4 PSMain(VertexOutput input) : SV_Target0
     float grid_cell_size_lod2 = grid_cell_size_lod1 * 10.0f;
 
     // 각 LOD 단계별 그리드 선의 투명도(Alpha) 추출
-    float grid_lod0_alpha = DrawGrid(input.world_pos.xy, grid_cell_size_lod0, derivative);
-    float grid_lod1_alpha = DrawGrid(input.world_pos.xy, grid_cell_size_lod1, derivative);
-    float grid_lod2_alpha = DrawGrid(input.world_pos.xy, grid_cell_size_lod2, derivative);
+    float grid_lod0_alpha = DrawGrid(input.grid_uv, grid_cell_size_lod0, derivative);
+    float grid_lod1_alpha = DrawGrid(input.grid_uv, grid_cell_size_lod1, derivative);
+    float grid_lod2_alpha = DrawGrid(input.grid_uv, grid_cell_size_lod2, derivative);
 
     // ------------------------------------------------------------
     // [4단계: 부드러운 LOD 전환 (Crossfade) 로직]
@@ -205,8 +230,8 @@ float4 PSMain(VertexOutput input) : SV_Target0
     // 화면에서 유지하고 싶은 축 선의 기본 두께 (픽셀 단위)
     float axis_thickness = 1.0f;
 
-    // 화면 픽셀 기반의 거리 계산 및 기본 안티앨리어싱
-    float2 axis_dist = abs(input.world_pos.xy) / derivative;
+    // grid_uv를 기준으로 거리 및 알파 계산
+    float2 axis_dist = abs(input.grid_uv) / derivative;
     float2 axis_alpha = saturate(axis_thickness - axis_dist);
 
     // [물리적 Coverage 기반 지평선 폭주 제거]
@@ -224,22 +249,46 @@ float4 PSMain(VertexOutput input) : SV_Target0
     // 구한 비율을 알파값에 곱하여 물리적으로 올바른 페이드아웃 적용
     axis_alpha *= coverage_ratio;
 
-    // 월드 축 색상 합성
-    static const float3 X_AxisColor = float3(1.0f, 0.2f, 0.2f); // Red (X축, Y=0)
-    static const float3 Y_AxisColor = float3(0.2f, 1.0f, 0.2f); // Green (Y축, X=0)
+    // 월드 축 색상
+    static const float3 AxisColorX = float3(1.0f, 0.2f, 0.2f); // Red
+    static const float3 AxisColorY = float3(0.2f, 1.0f, 0.2f); // Green
+    static const float3 AxisColorZ = float3(0.2f, 0.2f, 1.0f); // Blue
 
-    base_color.rgb = lerp(base_color.rgb, X_AxisColor, axis_alpha.y);
-    base_color.rgb = lerp(base_color.rgb, Y_AxisColor, axis_alpha.x);
+    float3 horizontal_axis_color = float3(0,0,0);
+    float3 vertical_axis_color = float3(0,0,0);
 
-    // 축이 그려지는 부분의 알파값 보장
+    // 평면 타입에 맞춰 가로/세로 축의 색상을 할당
+    if (input.plane_type == 0) // XY (Top/Bottom)
+    {
+        horizontal_axis_color = AxisColorX; // 가로선(Y=0)은 X축
+        vertical_axis_color = AxisColorY;   // 세로선(X=0)은 Y축
+    }
+    else if (input.plane_type == 1) // XZ (Front/Back)
+    {
+        horizontal_axis_color = AxisColorX; // 가로선(Z=0)은 X축
+        vertical_axis_color = AxisColorZ;   // 세로선(X=0)은 Z축
+    }
+    else // YZ (Right/Left)
+    {
+        horizontal_axis_color = AxisColorY; // 가로선(Z=0)은 Y축
+        vertical_axis_color = AxisColorZ;   // 세로선(Y=0)은 Z축
+    }
+
+    // axis_alpha.y -> grid_uv.y == 0 이므로 가로선(Horizontal)을 의미
+    base_color.rgb = lerp(base_color.rgb, horizontal_axis_color, axis_alpha.y);
+    // axis_alpha.x -> grid_uv.x == 0 이므로 세로선(Vertical)을 의미
+    base_color.rgb = lerp(base_color.rgb, vertical_axis_color, axis_alpha.x);
+
     base_color.a = max(base_color.a, max(axis_alpha.x, axis_alpha.y));
 
     // ------------------------------------------------------------
     // [7단계: 그리드 가장자리 페이드아웃 (Opacity Falloff)]
     // ------------------------------------------------------------
 
+    // TODO: 나중에 OrthoView일 때, falloff 제거하기
+
     // 카메라 위치를 기준으로 거리를 계산하여, 평면(GridSize) 끝으로 갈수록 투명하게 페이드아웃 처리
-    float distance_from_camera = length(input.world_pos.xy - input.camera_pos);
+    float distance_from_camera = length(input.grid_uv - input.camera_uv);
     float opacity_falloff = 1.0f - saturate(distance_from_camera / input.grid_size);
 
     base_color.a *= opacity_falloff;
