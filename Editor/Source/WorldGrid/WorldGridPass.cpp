@@ -221,10 +221,10 @@ void WorldGridPass::Execute(graphics::RGExecutionContext& context)
             float _padding[2];
 
             // 얇은 선의 색상과 투명도
-            LinearColor grid_color_thin;
+            alignas(16) LinearColor grid_color_thin;
 
             // 두꺼운 선의 색상과 투명도
-            LinearColor grid_color_thick;
+            alignas(16) LinearColor grid_color_thick;
         } ubo_frag;
 
         // TODO: Viewport 설정에서 받아서 사용하는 방식으로 변경
