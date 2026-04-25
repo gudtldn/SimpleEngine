@@ -1,4 +1,5 @@
 ﻿#include "SimpleEditor/WorldGrid/WorldGridPass.h"
+#include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
@@ -8,11 +9,13 @@
 namespace se::editor
 {
 WorldGridPass::WorldGridPass(
+    EViewMode in_view_mode,
     const graphics::RenderView& in_render_view,
     graphics::RGTextureHandle in_color_target_handle,
     graphics::RGTextureHandle in_depth_target_handle
 )
-    : render_view(in_render_view)
+    : view_mode(in_view_mode)
+    , render_view(in_render_view)
     , color_target_handle(in_color_target_handle)
     , depth_target_handle(in_depth_target_handle)
 {
@@ -165,16 +168,45 @@ void WorldGridPass::Execute(graphics::RGExecutionContext& context)
         SDL_SetGPUScissor(pass, &scissor);
 
         // Vertex UBO 업로드
+        enum class EGridPlane : uint32
+        {
+            XY, XZ, YZ
+        };
         struct alignas(16) VertexUBO
         {
             Matrix4x4f vp;
             Vector3f camera_pos;
             float grid_size;
+            EGridPlane grid_plane;
         } ubo_vert;
 
         ubo_vert.vp = static_cast<Matrix4x4f>(render_view.view_matrix * render_view.projection_matrix);
         ubo_vert.camera_pos = static_cast<Vector3f>(render_view.camera_pos);
         ubo_vert.grid_size = 10000.0f;
+
+        switch (view_mode)
+        {
+        case EViewMode::Perspective:
+        case EViewMode::Top:
+        case EViewMode::Bottom:
+        {
+            ubo_vert.grid_plane = EGridPlane::XY;
+            break;
+        }
+        case EViewMode::Front:
+        case EViewMode::Back:
+        {
+            ubo_vert.grid_plane = EGridPlane::XZ;
+            break;
+        }
+        case EViewMode::Right:
+        case EViewMode::Left:
+        {
+            ubo_vert.grid_plane = EGridPlane::YZ;
+            break;
+        }
+        }
+
         SDL_PushGPUVertexUniformData(cmd, 0, &ubo_vert, sizeof(ubo_vert));
 
         // Fragment UBO 업로드

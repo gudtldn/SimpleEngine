@@ -257,7 +257,7 @@ void EditorApplication::Render()
                         }
 
                         // World Grid 렌더링
-                        builder.AddPass<WorldGridPass>(render_view, color_handle, depth_handle);
+                        builder.AddPass<WorldGridPass>(state.view_mode, render_view, color_handle, depth_handle);
 
                         // Debug Line 렌더링
                         if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
