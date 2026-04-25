@@ -1,7 +1,5 @@
 ﻿// ==============================================================================
 // 무한 그리드 셰이더 (Infinite Grid Shader)
-// - 깊이 테스트(Depth Test) 비활성화: 항상 다른 씬 오브젝트들 위에 또는 배경으로 그려짐
-// - 블렌딩(Alpha Blending) 활성화: 투명도를 이용해 그리드 선을 표현함
 // ==============================================================================
 
 #pragma se_shader vertex VSMain
@@ -254,25 +252,13 @@ float4 PSMain(VertexOutput input) : SV_Target0
     static const float3 AxisColorY = float3(0.2f, 1.0f, 0.2f); // Green
     static const float3 AxisColorZ = float3(0.2f, 0.2f, 1.0f); // Blue
 
-    float3 horizontal_axis_color = float3(0,0,0);
-    float3 vertical_axis_color = float3(0,0,0);
+    // plane_type (0:XY, 1:XZ, 2:YZ) 에 대응하는 가로/세로 색상 배열 세팅
+    static const float3 HorizontalColors[3] = { AxisColorX, AxisColorX, AxisColorY };
+    static const float3 VerticalColors[3] = { AxisColorY, AxisColorZ, AxisColorZ };
 
-    // 평면 타입에 맞춰 가로/세로 축의 색상을 할당
-    if (input.plane_type == 0) // XY (Top/Bottom)
-    {
-        horizontal_axis_color = AxisColorX; // 가로선(Y=0)은 X축
-        vertical_axis_color = AxisColorY;   // 세로선(X=0)은 Y축
-    }
-    else if (input.plane_type == 1) // XZ (Front/Back)
-    {
-        horizontal_axis_color = AxisColorX; // 가로선(Z=0)은 X축
-        vertical_axis_color = AxisColorZ;   // 세로선(X=0)은 Z축
-    }
-    else // YZ (Right/Left)
-    {
-        horizontal_axis_color = AxisColorY; // 가로선(Z=0)은 Y축
-        vertical_axis_color = AxisColorZ;   // 세로선(Y=0)은 Z축
-    }
+    float3 horizontal_axis_color = HorizontalColors[input.plane_type];
+    float3 vertical_axis_color   = VerticalColors[input.plane_type];
+
 
     // axis_alpha.y -> grid_uv.y == 0 이므로 가로선(Horizontal)을 의미
     base_color.rgb = lerp(base_color.rgb, horizontal_axis_color, axis_alpha.y);
