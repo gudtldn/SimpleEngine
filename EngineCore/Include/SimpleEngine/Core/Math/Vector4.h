@@ -9,7 +9,7 @@
 namespace se::math
 {
 template <traits::FloatingType T>
-struct alignas(16) Vector4Impl
+struct alignas(sizeof(T) * 4) Vector4Impl
 {
     T x, y, z, w;
 
