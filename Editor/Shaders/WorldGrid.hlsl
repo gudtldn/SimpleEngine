@@ -63,11 +63,11 @@ struct VertexInput
 // 정점 셰이더 출력 (픽셀 셰이더로 넘어갈 데이터)
 struct VertexOutput
 {
-    float4 position   : SV_Position;   // 화면(Clip Space)에 투영된 최종 좌표
-    float2 grid_uv    : TEXCOORD0;     // 그리드와 축을 그릴 2D 기준 좌표
-    float2 camera_uv  : TEXCOORD1;     // 픽셀 셰이더의 Falloff 계산을 위한 카메라 XY 좌표
-    float  grid_size  : TEXCOORD2;     // 픽셀 셰이더의 Falloff 계산을 위한 그리드 크기
-    uint   plane_type : BLENDINDICES0; // 픽셀 셰이더에서 X, Y, Z축 색상을 동적으로 고르기 위한 평면 타입 (0: XY, 1: XZ, 2: YZ)
+    float4 position                 : SV_Position; // 화면(Clip Space)에 투영된 최종 좌표
+    float2 grid_uv                  : TEXCOORD0;   // 그리드와 축을 그릴 2D 기준 좌표
+    float2 camera_uv                : TEXCOORD1;   // 픽셀 셰이더의 Falloff 계산을 위한 카메라 XY 좌표
+    float  grid_size                : TEXCOORD2;   // 픽셀 셰이더의 Falloff 계산을 위한 그리드 크기
+    nointerpolation uint plane_type : TEXCOORD3;   // 픽셀 셰이더에서 X, Y, Z축 색상을 동적으로 고르기 위한 평면 타입 (0: XY, 1: XZ, 2: YZ)
 };
 
 // ================================================================
