@@ -16,6 +16,8 @@
 
 #include <utility>
 
+#include "SimpleEngine/ECS/Components/ParentComponent.h"
+
 
 namespace se::editor
 {
@@ -310,7 +312,21 @@ void GizmoSubsystem::HandleInteraction()
         {
         case EGizmoMode::Translate:
         {
-            transform->position = transform->position + result.translation_delta;
+            // 부모의 변환(스케일/회전)이 자식에게 중복 적용되지 않도록, 월드 이동량을 부모의 로컬 공간으로 역변환
+            const Vector3 local_delta = [&]
+            {
+                if (const auto parent_comp = world.TryGetComponent<ParentComponent>(*selected_entity))
+                {
+                    if (const auto parent_global = world.TryGetComponent<GlobalTransformComponent>(parent_comp->parent))
+                    {
+                        const Matrix4x4 parent_inverse = parent_global->value.Inverse();
+                        return parent_inverse.TransformVector(result.translation_delta);
+                    }
+                }
+                return result.translation_delta;
+            }();
+
+            transform->position = transform->position + local_delta;
             transform->dirty = true;
 
             // Shift+드래그: 카메라가 이동량만큼 따라감
