@@ -90,7 +90,7 @@ Matrix4x4f ConvertNodeTransform(const aiMatrix4x4& ai_mat)
  *   convert_to_zup=false: 직접 읽기 (PTV가 이미 root transform으로 Z-up 변환 완료)
  * @note PTV(Pre-Transform Vertices)
  */
-void ExtractVertices(const aiMesh* mesh, bool convert_to_zup, Array<graphics::Vertex>& out_vertices)
+void ExtractVertices(const aiMesh* mesh, bool convert_to_zup, Array<graphics::StaticVertex>& out_vertices)
 {
     out_vertices.Reserve(out_vertices.Len() + mesh->mNumVertices);
 
@@ -102,7 +102,7 @@ void ExtractVertices(const aiMesh* mesh, bool convert_to_zup, Array<graphics::Ve
 
     for (uint32 i = 0; i < mesh->mNumVertices; ++i)
     {
-        graphics::Vertex vertex;
+        graphics::StaticVertex vertex;
 
         // 위치(Position) 처리
         Vector3f pos = ToVec3f(mesh->mVertices[i]);

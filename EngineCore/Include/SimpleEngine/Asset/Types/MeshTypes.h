@@ -33,7 +33,7 @@ public:
     // Array<graphics::VertexAttributes> attributes;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::Vertex> vertices;
+    Array<graphics::StaticVertex> vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
@@ -54,7 +54,7 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public AssetBase
 
 public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::Vertex> vertices;
+    Array<graphics::StaticVertex> vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<graphics::SkinVertex> skin_vertices;

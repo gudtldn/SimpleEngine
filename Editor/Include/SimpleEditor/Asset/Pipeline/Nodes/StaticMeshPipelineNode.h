@@ -14,7 +14,7 @@ class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) StaticMeshPipelineNode : publ
 
 public:
     // Mesh Data
-    Array<graphics::Vertex> vertices;
+    Array<graphics::StaticVertex> vertices;
     Array<uint32> indices;
 
     // Assimp의 mMaterialIndex 보존 (Material Factory 구현 시 활용)

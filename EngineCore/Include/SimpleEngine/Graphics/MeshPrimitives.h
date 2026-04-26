@@ -10,7 +10,7 @@ namespace se::graphics
 /**
  * 렌더링에 필요한 기본 정점 데이터
  */
-struct alignas(16) Vertex
+struct alignas(16) StaticVertex
 {
     Vector3f position;
     Vector3f normal;
@@ -18,7 +18,7 @@ struct alignas(16) Vertex
     Vector4f tangent;
 };
 
-inline void Serialize(Archive& ar, Vertex& v)
+inline void Serialize(Archive& ar, StaticVertex& v)
 {
     ar("position") << v.position;
     ar("normal") << v.normal;

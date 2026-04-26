@@ -396,13 +396,13 @@ TEST_F(AutoSerializeTest, TypeId_RoundTrip)
 // --- MeshPrimitives: Vertex ---
 TEST_F(AutoSerializeTest, Vertex_RoundTrip)
 {
-    Vertex original;
+    StaticVertex original;
     original.position = { 1.0f, 2.0f, 3.0f };
     original.normal = { 0.0f, 1.0f, 0.0f };
     original.tex_coord = { 0.5f, 0.75f };
     original.tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
 
-    Vertex loaded = RoundTrip(original);
+    StaticVertex loaded = RoundTrip(original);
     EXPECT_EQ(loaded.position, original.position);
     EXPECT_EQ(loaded.normal, original.normal);
     EXPECT_EQ(loaded.tex_coord, original.tex_coord);

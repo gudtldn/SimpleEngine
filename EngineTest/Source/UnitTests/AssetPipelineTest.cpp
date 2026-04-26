@@ -66,7 +66,7 @@ public:
             auto& node = out_container.CreateNode<StaticMeshPipelineNode>();
             node.SetDisplayName("MockMesh");
 
-            Vertex v;
+            StaticVertex v;
             v.position = Vector3f(1.0f, 1.0f, 1.0f);
             v.normal = Vector3f(0.0f, 0.0f, 1.0f);
             v.tex_coord = Vector2f(0.0f, 0.0f);
@@ -82,7 +82,7 @@ public:
                 auto& node1 = out_container.CreateNode<StaticMeshPipelineNode>();
                 node1.SetDisplayName("Mesh1");
 
-                Vertex v;
+                StaticVertex v;
                 v.position = Vector3f(1.0f, 1.0f, 1.0f);
                 v.normal = Vector3f(0.0f, 0.0f, 1.0f);
                 v.tex_coord = Vector2f(0.0f, 0.0f);
@@ -96,7 +96,7 @@ public:
                 auto& node2 = out_container.CreateNode<StaticMeshPipelineNode>();
                 node2.SetDisplayName("Mesh2");
 
-                Vertex v;
+                StaticVertex v;
                 v.position = Vector3f(2.0f, 2.0f, 2.0f);
                 v.normal = Vector3f(0.0f, 0.0f, 1.0f);
                 v.tex_coord = Vector2f(0.0f, 0.0f);

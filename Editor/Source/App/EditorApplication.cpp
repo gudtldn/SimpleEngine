@@ -430,7 +430,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
             cmd,
             mesh_id,
             mesh->vertices.Data(),
-            static_cast<uint32>(mesh->vertices.Len() * sizeof(graphics::Vertex)),
+            static_cast<uint32>(mesh->vertices.Len() * sizeof(graphics::StaticVertex)),
             mesh->indices.Data(),
             static_cast<uint32>(mesh->indices.Len() * sizeof(uint32))
         );
