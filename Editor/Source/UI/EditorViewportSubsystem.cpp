@@ -105,6 +105,7 @@ void EditorViewportSubsystem::Update(double delta_time)
             // WASD/QE 이동
             const Vector3 forward = camera.rotation.GetForwardVector();
             const Vector3 right = camera.rotation.GetRightVector();
+            const Vector3 up = camera.rotation.GetUpVector();
 
             Vector3 target_velocity = Vector3::Zero();
             if (input_subsystem->IsKeyDown(EKeyCode::W)) { target_velocity += forward; }
@@ -113,6 +114,8 @@ void EditorViewportSubsystem::Update(double delta_time)
             if (input_subsystem->IsKeyDown(EKeyCode::A)) { target_velocity -= right; }
             if (input_subsystem->IsKeyDown(EKeyCode::E)) { target_velocity += Vector3::Up(); }
             if (input_subsystem->IsKeyDown(EKeyCode::Q)) { target_velocity -= Vector3::Up(); }
+            if (input_subsystem->IsKeyDown(EKeyCode::R)) { target_velocity += up; }
+            if (input_subsystem->IsKeyDown(EKeyCode::F)) { target_velocity -= up; }
 
             if (!target_velocity.IsNearlyZero())
             {
