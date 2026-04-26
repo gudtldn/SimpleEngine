@@ -58,6 +58,20 @@ public:
     [[nodiscard]] constexpr Matrix4x4Impl Transpose() const;
     [[nodiscard]] constexpr Matrix4x4Impl Inverse() const;
 
+    /**
+     * 주어진 3차원 방향 벡터를 현재 행렬이 정의하는 좌표계로 변환합니다.
+     * @param vec3 변환할 3차원 방향 벡터
+     * @return 변환된 3차원 방향 벡터
+     */
+    [[nodiscard]] constexpr Vector3Impl<T> TransformVector(const Vector3Impl<T>& vec3) const;
+
+    /**
+     * 3차원 위치 벡터를 현재 행렬이 정의하는 좌표계로 변환합니다.
+     * @param vec3 변환할 3차원 위치 벡터
+     * @return 변환된 3차원 위치 벡터
+     */
+    [[nodiscard]] constexpr Vector3Impl<T> TransformPoint(const Vector3Impl<T>& vec3) const;
+
 public:
     [[nodiscard]] constexpr Matrix4x4Impl operator+(const Matrix4x4Impl& rhs) const;
     constexpr Matrix4x4Impl& operator+=(const Matrix4x4Impl& rhs);
@@ -243,6 +257,21 @@ constexpr Matrix4x4Impl<T> Matrix4x4Impl<T>::Inverse() const
 
     return result;
 }
+
+template <traits::FloatingType T>
+constexpr Vector3Impl<T> Matrix4x4Impl<T>::TransformVector(const Vector3Impl<T>& vec3) const
+{
+    Vector4Impl<T> vec4{ vec3, 0.0f };
+    return Vector3Impl<T>{ vec4 * (*this) };
+}
+
+template <traits::FloatingType T>
+constexpr Vector3Impl<T> Matrix4x4Impl<T>::TransformPoint(const Vector3Impl<T>& vec3) const
+{
+    Vector4Impl<T> vec4{ vec3, 1.0f };
+    return Vector3Impl<T>{ vec4 * (*this) };
+}
+
 // NOLINTEND(*-math-missing-parentheses)
 
 template <traits::FloatingType T>
