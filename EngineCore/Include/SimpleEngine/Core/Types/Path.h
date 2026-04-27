@@ -10,6 +10,9 @@
 
 namespace se
 {
+// forward declaration
+class Archive;
+
 /**
  * 파일 시스템 경로를 다루는 클래스
  *
@@ -157,6 +160,8 @@ private:
     static usize DetectRootLength(StringView view);
 
     friend struct std::hash<Path>;
+    friend void SerializeInline(Archive& ar, Path& path);
+
     String path;
 };
 } // namespace se
