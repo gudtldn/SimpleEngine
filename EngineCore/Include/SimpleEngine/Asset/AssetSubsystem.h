@@ -12,6 +12,7 @@
 #include "tracy/Tracy.hpp"
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <utility>
 
@@ -93,6 +94,15 @@ public:
     /** 프레임 끝에서 대기 큐(Pending Queue)를 정리합니다. */
     void EndFrame();
 
+    /**
+     * Built-In 에셋을 Global scope로 영구 등록합니다.
+     * @param asset_id 등록할 well-known AssetId
+     * @param asset 등록할 에셋 인스턴스
+     */
+    template <typename T>
+        requires std::derived_from<T, AssetBase>
+    [[nodiscard]] AssetHandle<T> RegisterBuiltin(const AssetId& asset_id, std::unique_ptr<T> asset);
+
 public:
     /** Asset을 DDC payload로 직렬화합니다. */
     [[nodiscard]] static Array<uint8> SerializeAssetPayload(const AssetBase& asset);
@@ -120,6 +130,7 @@ private:
     [[nodiscard]] JobTask<HandleData> LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope);
     [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
     [[nodiscard]] HandleTable& GetHandleTable() const;
+    [[nodiscard]] HandleData RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, uint64 asset_size);
 
     /**
      * 슬롯 상태를 확인하고 로딩 권한(BeginLoad)을 획득합니다.
@@ -172,6 +183,21 @@ template <typename T>
 AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
 {
     if (HandleData handle_data = FindInternal(TypeId::Get<T>(), asset_id))
+    {
+        return AssetHandle<T>{ handle_data, &GetHandleTable() };
+    }
+    return {};
+}
+
+template <typename T>
+    requires std::derived_from<T, AssetBase>
+AssetHandle<T> AssetSubsystem::RegisterBuiltin(const AssetId& asset_id, std::unique_ptr<T> asset)
+{
+    AssetPayload payload = {
+        .ptr = asset.release(),
+        .destructor = [](void* p) noexcept { delete static_cast<T*>(p); },
+    };
+    if (HandleData handle_data = RegisterBuiltinInternal(asset_id, TypeId::Get<T>(), std::move(payload), sizeof(T)))
     {
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }

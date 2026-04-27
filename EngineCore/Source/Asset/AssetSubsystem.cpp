@@ -346,6 +346,25 @@ void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload pa
     }
 }
 
+HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, uint64 asset_size)
+{
+    const HandleData handle_data = pool->FindOrCreate(asset_id, type_id, {});
+    SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
+
+    if (!slot.BeginLoad())
+    {
+        if (slot.GetState() == ELoadingState::Loaded)
+        {
+            return handle_data;
+        }
+        ConsoleLog(ELogLevel::Warning, "RegisterBuiltinInternal: Slot is not in a loadable state for asset.");
+        return {};
+    }
+
+    CommitLoadedPayload(handle_data, std::move(payload), asset_size, EScopeLayer::Global);
+    return handle_data;
+}
+
 HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
 {
     Optional<HandleData> handle_opt = pool->Find(asset_id);
