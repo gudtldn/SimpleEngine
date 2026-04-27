@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
+#include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Graphics/Memory/GpuBufferSlice.h"
 #include "SimpleEngine/Graphics/Memory/GpuMemoryBlock.h"
@@ -13,26 +14,6 @@ namespace se::graphics
 {
 // forward declaration
 class RenderDevice;
-
-/** 텍스처 업로드 시 적용할 옵션 */
-struct TextureUploadSettings
-{
-    /**
-     * sRGB 포맷 사용 여부
-     * - true: Albedo(BaseColor) 등 색상 데이터에 사용 (SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB)
-     * - false: Normal, Roughness, Metallic 등 비색상 데이터에 사용 (SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM)
-     */
-    bool is_srgb = false;
-
-    /**
-     * 밉맵(Mipmap) 생성 여부
-     * - true: 텍스처 업로드 후 자동으로 밉맵 체인을 생성합니다. (메모리 사용량 약 33% 증가)
-     * - false: 밉맵을 생성하지 않습니다. (UI 텍스처 등)
-     */
-    bool generate_mips = true;
-
-    // bool compress = false; // 추후 압축 텍스처(BCn/ASTC) 지원 시 사용 예정
-};
 
 /**
  * GPU의 영구적 Resource(Mesh Buffer, Texture)을 관리하는 중앙 매니저
@@ -61,7 +42,7 @@ public:
      * @param in_vertex_size Vertex 데이터 전체 크기 (bytes)
      * @param in_index_data Index 데이터 포인터
      * @param in_index_size Index 데이터 전체 크기 (bytes)
-     * @return 성공 시 true, 실패 시 false (VRAM 부족 등)
+     * @return 성공 시 true, 실패 시 false
      */
     bool UploadMesh(
         SDL_GPUCommandBuffer* in_cmd,
@@ -79,33 +60,28 @@ public:
     void UnloadMesh(const asset::AssetId& in_id);
 
     /**
-     * AssetId에 매핑된 GPU 버퍼 슬라이스(위치 정보)를 반환합니다.
-     *
+     * AssetId에 매핑된 GPU 버퍼 슬라이스를 반환합니다.
      * @param in_id Asset ID
      * @return 유효한 GpuBufferSlice, 찾지 못하면 NullOpt 반환
      */
     [[nodiscard]] Optional<const GpuBufferSlice&> GetSlice(const asset::AssetId& in_id) const;
 
     /**
-     * CPU Surface(이미지)를 GPU Texture로 변환하여 업로드합니다.
-     * 입력된 Surface는 내부적으로 GPU 호환 포맷(RGBA32)으로 변환되어 업로드됩니다.
-     *
+     * Texture2D 에셋을 GPU Texture로 업로드하고 관리 목록에 등록합니다.
+     * format, mip 체인, generate_mips 정보는 에셋에서 자동으로 읽습니다.
      * @param in_cmd Upload 명령을 기록할 Command Buffer
      * @param in_id Asset ID
-     * @param in_surface SDL_Surface 포인터 (이미지 데이터)
-     * @param in_settings 텍스처 설정 (sRGB 포맷 여부, Mipmap 생성 여부 등)
+     * @param in_texture 업로드할 Texture2D 에셋
      * @return 성공 시 true, 실패 시 false
      */
     bool UploadTexture(
         SDL_GPUCommandBuffer* in_cmd,
         const asset::AssetId& in_id,
-        const SDL_Surface* in_surface,
-        TextureUploadSettings in_settings = TextureUploadSettings{}
+        const asset::Texture2D& in_texture
     );
 
     /**
      * AssetId에 매핑된 GPU Texture 객체 정보를 반환합니다.
-     *
      * @param in_id Asset ID
      * @return 유효한 TextureResource, 찾지 못하면 NullOpt 반환
      */

@@ -3,11 +3,37 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/Debug.h"
 
-#include <cmath>
+#include <ranges>
 
 
 namespace se::graphics
 {
+namespace
+{
+SDL_GPUTextureFormat ToSDLFormat(asset::ETextureFormat fmt)
+{
+    switch (fmt)
+    {
+    case asset::ETextureFormat::R8_UNORM:            return SDL_GPU_TEXTUREFORMAT_R8_UNORM;
+    case asset::ETextureFormat::R8G8_UNORM:          return SDL_GPU_TEXTUREFORMAT_R8G8_UNORM;
+    case asset::ETextureFormat::R8G8B8A8_UNORM:      return SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    case asset::ETextureFormat::R8G8B8A8_UNORM_SRGB: return SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB;
+    case asset::ETextureFormat::R16G16_FLOAT:        return SDL_GPU_TEXTUREFORMAT_R16G16_FLOAT;
+    case asset::ETextureFormat::R16G16B16A16_FLOAT:  return SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT;
+    case asset::ETextureFormat::R11G11B10_UFLOAT:    return SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT;
+    case asset::ETextureFormat::BC1_UNORM:           return SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM;
+    case asset::ETextureFormat::BC1_UNORM_SRGB:      return SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM_SRGB;
+    case asset::ETextureFormat::BC3_UNORM:           return SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM;
+    case asset::ETextureFormat::BC3_UNORM_SRGB:      return SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM_SRGB;
+    case asset::ETextureFormat::BC4_UNORM:           return SDL_GPU_TEXTUREFORMAT_BC4_R_UNORM;
+    case asset::ETextureFormat::BC5_UNORM:           return SDL_GPU_TEXTUREFORMAT_BC5_RG_UNORM;
+    case asset::ETextureFormat::BC7_UNORM:           return SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM;
+    case asset::ETextureFormat::BC7_UNORM_SRGB:      return SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM_SRGB;
+    default:                                         return SDL_GPU_TEXTUREFORMAT_INVALID;
+    }
+}
+} // namespace
+
 GpuResourceManager::GpuResourceManager(RenderDevice& in_render_device)
     : render_device(&in_render_device)
 {
@@ -128,56 +154,68 @@ Optional<const GpuBufferSlice&> GpuResourceManager::GetSlice(const asset::AssetI
 bool GpuResourceManager::UploadTexture(
     SDL_GPUCommandBuffer* in_cmd,
     const asset::AssetId& in_id,
-    const SDL_Surface* in_surface,
-    TextureUploadSettings in_settings
+    const asset::Texture2D& in_texture
 )
 {
-    // 포맷 변환 (SDL_Surface -> RGBA32)
-    SDL_Surface* converted_surface = SDL_ConvertSurface(const_cast<SDL_Surface*>(in_surface), SDL_PIXELFORMAT_RGBA32);
-    if (!converted_surface)
+    if (in_texture.width == 0 || in_texture.height == 0 || in_texture.pixels.IsEmpty())
     {
-        ConsoleLog(ELogLevel::Error, "Surface conversion failed: {}", SDL_GetError());
+        ConsoleLog(ELogLevel::Error, "UploadTexture: Invalid texture dimensions or empty pixel data.");
         return false;
     }
 
-    const uint32 width = static_cast<uint32>(converted_surface->w);
-    const uint32 height = static_cast<uint32>(converted_surface->h);
-    const uint32 buffer_size = converted_surface->pitch * height;
+    const bool compressed = asset::IsCompressed(in_texture.format);
+    const bool has_mip_chain = !in_texture.mips.IsEmpty();
 
-    // Mipmap 레벨 계산
-    uint32 num_levels = 1;
-    if (in_settings.generate_mips)
+    // BCn 압축 포맷은 GPU가 밉맵을 생성할 수 없으므로 사전에 밉 체인이 있어야 함
+    if (compressed && !has_mip_chain)
     {
-        // 1 + floor(log2(max(w, h)))
-        num_levels = static_cast<uint32>(std::floor(std::log2(std::max(width, height)))) + 1;
+        ConsoleLog(ELogLevel::Error, "UploadTexture: BCn compressed textures require a precomputed mip chain.");
+        return false;
     }
 
-    // Texture 포맷 및 Usage 설정
-    SDL_GPUTextureFormat format;
-    if (in_settings.is_srgb)
+    const SDL_GPUTextureFormat sdl_format = ToSDLFormat(in_texture.format);
+    if (sdl_format == SDL_GPU_TEXTUREFORMAT_INVALID)
     {
-        format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB;
+        ConsoleLog(ELogLevel::Error, "UploadTexture: Unsupported ETextureFormat value.");
+        return false;
     }
-    else
+
+    // GPU가 밉맵을 자동 생성할지 여부
+    const bool gpu_gen_mips = in_texture.generate_mips && !compressed && !has_mip_chain;
+
+    // Mipmap 레벨 수 결정
+    const uint32 num_levels = [&] -> uint32
     {
-        format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-    }
+        if (has_mip_chain)
+        {
+            return static_cast<uint32>(in_texture.mips.Len());
+        }
+
+        if (gpu_gen_mips)
+        {
+            // 1 + floor(log2(max(w, h)))
+            return static_cast<uint32>(
+                std::floor(std::log2(static_cast<double>(std::max(in_texture.width, in_texture.height))))
+            ) + 1;
+        }
+
+        return 1;
+    }();
 
     SDL_GPUTextureUsageFlags usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-
-    // 밉맵 생성을 하려면 GPU가 해당 텍스처에 렌더링(Blit)을 할 수 있어야 함
-    if (in_settings.generate_mips)
+    if (gpu_gen_mips)
     {
+        // GPU 밉 생성(Blit)을 위해 COLOR_TARGET 플래그 필요
         usage |= SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
     }
 
     // GPU Texture 생성
     const SDL_GPUTextureCreateInfo create_info = {
         .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = format,
+        .format = sdl_format,
         .usage = usage,
-        .width = width,
-        .height = height,
+        .width = in_texture.width,
+        .height = in_texture.height,
         .layer_count_or_depth = 1,
         .num_levels = num_levels,
         .sample_count = SDL_GPU_SAMPLECOUNT_1
@@ -186,14 +224,14 @@ bool GpuResourceManager::UploadTexture(
     const RID texture_rid = render_device->CreateTexture(create_info);
     if (!texture_rid.IsValid())
     {
-        SDL_DestroySurface(converted_surface);
         return false;
     }
 
-    // Transfer Buffer 생성
+    // Transfer Buffer 생성 (픽셀 전체 크기)
+    const uint32 total_pixel_size = static_cast<uint32>(in_texture.pixels.Len());
     const SDL_GPUTransferBufferCreateInfo transfer_info = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = buffer_size
+        .size = total_pixel_size
     };
 
     SDL_GPUTransferBuffer* transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &transfer_info);
@@ -201,24 +239,22 @@ bool GpuResourceManager::UploadTexture(
     {
         render_device->DestroyTexture(texture_rid);
         render_device->ProcessDeferredDestructions();
-
-        SDL_DestroySurface(converted_surface);
+        ConsoleLog(ELogLevel::Error, "UploadTexture: Failed to create transfer buffer: {}", SDL_GetError());
         return false;
     }
 
     // 메모리 맵핑 및 복사 (CPU -> Transfer Buffer)
     if (void* mapped_ptr = SDL_MapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer, false))
     {
-        std::memcpy(mapped_ptr, converted_surface->pixels, buffer_size);
+        std::memcpy(mapped_ptr, in_texture.pixels.Data(), total_pixel_size);
         SDL_UnmapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
     }
     else
     {
         render_device->DestroyTexture(texture_rid);
         render_device->ProcessDeferredDestructions();
-
         SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
-        SDL_DestroySurface(converted_surface);
+        ConsoleLog(ELogLevel::Error, "UploadTexture: Failed to map transfer buffer: {}", SDL_GetError());
         return false;
     }
 
@@ -227,19 +263,46 @@ bool GpuResourceManager::UploadTexture(
 
     // GPU에 업로드
     SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(in_cmd);
+    if (has_mip_chain)
     {
+        // 사전 계산된 각 밉 레벨을 순서대로 업로드
+        for (const auto [mip_level, desc] : in_texture.mips | std::views::enumerate)
+        {
+            SE_ASSERT(desc.offset + desc.size <= total_pixel_size);
+
+            const SDL_GPUTextureTransferInfo src_info = {
+                .transfer_buffer = transfer_buffer,
+                .offset = desc.offset,
+                .pixels_per_row = desc.width,
+                .rows_per_layer = desc.height
+            };
+
+            const SDL_GPUTextureRegion dst_region = {
+                .texture = texture,
+                .mip_level = static_cast<uint32>(mip_level),
+                .w = desc.width,
+                .h = desc.height,
+                .d = 1
+            };
+
+            SDL_UploadToGPUTexture(copy_pass, &src_info, &dst_region, false);
+        }
+    }
+    else
+    {
+        // 밉 0만 업로드
         const SDL_GPUTextureTransferInfo src_info = {
             .transfer_buffer = transfer_buffer,
             .offset = 0,
-            .pixels_per_row = width,
-            .rows_per_layer = height
+            .pixels_per_row = in_texture.width,
+            .rows_per_layer = in_texture.height
         };
 
         const SDL_GPUTextureRegion dst_region = {
             .texture = texture,
-            .mip_level = 0, // Base Level에만 업로드
-            .w = width,
-            .h = height,
+            .mip_level = 0,
+            .w = in_texture.width,
+            .h = in_texture.height,
             .d = 1
         };
 
@@ -248,13 +311,12 @@ bool GpuResourceManager::UploadTexture(
     SDL_EndGPUCopyPass(copy_pass);
 
     // 밉맵 생성 (업로드 직후 수행)
-    if (in_settings.generate_mips && num_levels > 1)
+    if (gpu_gen_mips && num_levels > 1)
     {
         SDL_GenerateMipmapsForGPUTexture(in_cmd, texture);
     }
 
     SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
-    SDL_DestroySurface(converted_surface); // 변환된 임시 Surface 해제
 
     texture_map.Insert(in_id, texture_rid);
     return true;

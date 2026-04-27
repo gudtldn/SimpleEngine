@@ -78,9 +78,7 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         auto tex = std::make_unique<Texture2D>();
         tex->width = 1;
         tex->height = 1;
-        tex->channels = 4;
-        tex->format = ETextureFormat::R8G8B8A8;
-        tex->is_srgb = true;
+        tex->format = ETextureFormat::R8G8B8A8_UNORM_SRGB;
         tex->generate_mips = false;
         tex->pixels.Push(255);
         tex->pixels.Push(255);
