@@ -305,24 +305,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             object_ubo.entity_id = EntityPickId::Encode(draw_command.entity_id).encoded;
             SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
-            // Material 바인딩 | TODO: Texture/Sampler 바인딩 함수 만들기
-            // if (info.material_id.IsValid())
-            // {
-            //     // 텍스처 조회
-            //     Optional<const TextureResource&> albedo = gpu_manager.GetTexture(material.albedo_id);
-            //
-            //     // 바인딩 (Sampler + Texture)
-            //     if (albedo.HasValue())
-            //     {
-            //         const SDL_GPUTextureSamplerBinding binding = {
-            //             .texture = albedo.handle,
-            //             .sampler = render_subsystem.GetSampler(ESamplerType::LinearRepeat) // 샘플러는 미리 만들어두고 재사용
-            //         };
-            //         // Fragment Shader의 0번 슬롯
-            //         SDL_BindGPUFragmentSamplers(pass, 0, &binding, 1);
-            //     }
-            // }
-
+            // TODO: MaterialInstance 조회 후 텍스처/파라미터 바인딩 추가 예정
             if (slice->index_count > 0)
             {
                 SDL_DrawGPUIndexedPrimitives(pass, slice->index_count, 1, 0, 0, 0);

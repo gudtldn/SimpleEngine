@@ -18,22 +18,13 @@ void PipelineTextureNode::SetSourceFile(const String& file_path)
 
 bool PipelineTextureNode::IsSRGB() const
 {
-    // TODO: 기본값 true/false 정책 결정 필요 (보통 Albedo는 true, Normal/Mask는 false)
+    // 기본값 true: Albedo/Diffuse 텍스처는 sRGB가 일반적
+    // Normal/Mask/Roughness 등 선형 데이터 텍스처는 임포트 시 SetSRGB(false)를 명시적으로 호출하도록 함
     return attributes.GetAttribute<bool>(Keys::USE_SRGB).ValueOr(true);
 }
 
 void PipelineTextureNode::SetSRGB(bool is_srgb)
 {
     attributes.SetAttribute(Keys::USE_SRGB, is_srgb);
-}
-
-Optional<const String&> PipelineTextureNode::GetCompression() const
-{
-    return attributes.GetAttribute<String>(Keys::COMPRESSION);
-}
-
-void PipelineTextureNode::SetCompression(const String& compression)
-{
-    attributes.SetAttribute(Keys::COMPRESSION, compression);
 }
 } // namespace se::editor

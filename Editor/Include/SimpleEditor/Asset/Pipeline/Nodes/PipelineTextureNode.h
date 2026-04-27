@@ -19,8 +19,6 @@ public:
     {
         inline static const StringName SOURCE_FILE = "SourceFile";
         inline static const StringName USE_SRGB = "UseSRGB";
-        inline static const StringName COMPRESSION = "Compression"; // e.g., "BC7", "BC5"
-        inline static const StringName FILTER = "Filter";           // e.g., "Nearest", "Bilinear"
     };
 
 public:
@@ -30,8 +28,5 @@ public:
 
     [[nodiscard]] bool IsSRGB() const;
     void SetSRGB(bool is_srgb);
-
-    [[nodiscard]] Optional<const String&> GetCompression() const;
-    void SetCompression(const String& compression);
 };
 } // namespace se::editor

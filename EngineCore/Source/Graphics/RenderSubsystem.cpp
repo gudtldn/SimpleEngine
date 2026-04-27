@@ -88,6 +88,7 @@ bool RenderSubsystem::Initialize()
     render_graph_builder = std::make_unique<RenderGraphBuilder>();
     render_graph_executor = std::make_unique<RenderGraphExecutor>(*render_device);
     pso_manager = std::make_unique<PSOManager>(*render_device);
+    sampler_cache = std::make_unique<SamplerCache>(*render_device);
 
     // 동적 윈도우 생성/파괴에 대응하기 위해 Delegate 구독
     WindowSubsystem& window_subsystem_mut = se::GetSubsystemChecked<WindowSubsystem>();
@@ -132,6 +133,7 @@ void RenderSubsystem::Release()
     render_graph_builder.reset();
     render_graph_executor.reset();
     pso_manager.reset();
+    sampler_cache.reset();
     resource_manager.reset();
 
     // 모든 윈도우에서 GPU 디바이스 릴리스 (RenderDevice 소멸 전에 수행)

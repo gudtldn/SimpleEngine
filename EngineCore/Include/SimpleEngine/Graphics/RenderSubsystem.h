@@ -6,6 +6,7 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
+#include "SimpleEngine/Graphics/Material/SamplerCache.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphExecutor.h"
@@ -38,6 +39,7 @@ public:
 public:
     [[nodiscard]] graphics::RenderDevice& GetRenderDevice() const { return *render_device; }
     [[nodiscard]] graphics::PSOManager& GetPSOManager() const { return *pso_manager; }
+    [[nodiscard]] graphics::SamplerCache& GetSamplerCache() const { return *sampler_cache; }
     [[nodiscard]] graphics::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
 
 public:
@@ -56,6 +58,7 @@ private:
     std::unique_ptr<graphics::RenderGraphBuilder> render_graph_builder;
     std::unique_ptr<graphics::RenderGraphExecutor> render_graph_executor;
     std::unique_ptr<graphics::PSOManager> pso_manager;
+    std::unique_ptr<graphics::SamplerCache> sampler_cache;
     std::unique_ptr<graphics::GpuResourceManager> resource_manager;
 
     DelegateHandle window_created_handle;
