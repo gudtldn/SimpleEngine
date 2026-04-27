@@ -15,7 +15,7 @@ public:
 
 public:
     AssetId() = default;
-    explicit AssetId(const Guid& in_guid) : guid(in_guid) {}
+    constexpr explicit AssetId(const Guid& in_guid) : guid(in_guid) {}
 
     [[nodiscard]] bool IsValid() const noexcept { return guid.IsValid(); }
     [[nodiscard]] const Guid& GetGuid() const noexcept { return guid; }

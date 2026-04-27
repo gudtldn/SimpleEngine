@@ -31,11 +31,6 @@ Guid Guid::NewGuid()
     return FromUuid(uuids::uuid_system_generator{}());
 }
 
-Guid Guid::FromString(const StringView& view)
-{
-    return FromUuid(uuids::uuid::from_string(std::string_view{ view }).value_or(uuids::uuid{}));
-}
-
 bool Guid::IsValid() const noexcept
 {
     uint64 parts[2];
