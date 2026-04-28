@@ -99,7 +99,7 @@ float RandomStream::Range(float in_min, float in_max)
 
 bool RandomStream::Bool()
 {
-    return (Next() & 1U) != 0U;
+    return (Next() & (1U << 31)) != 0U;
 }
 
 void Random::Seed(uint64 in_state, uint64 in_seq)
