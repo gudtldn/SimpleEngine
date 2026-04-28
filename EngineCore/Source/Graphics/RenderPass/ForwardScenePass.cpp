@@ -309,21 +309,27 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
             // Fragment Uniform 바인딩
-            if (const Array<uint8>& ubo_bytes = draw_command.material_ubo_bytes; !ubo_bytes.IsEmpty())
+            if (draw_command.material_slot_index != std::numeric_limits<uint16>::max())
             {
-                SDL_PushGPUFragmentUniformData(cmd, 0, ubo_bytes.Data(), static_cast<uint32>(ubo_bytes.Len()));
-            }
+                const FrameMaterialCache& cache = draw_data.material_cache;
+                const FrameMaterialCache::MaterialSlot& slot = cache.slots[draw_command.material_slot_index];
 
-            // Fragment Texture + Sampler 바인딩
-            for (const DrawCommand::TextureBinding& binding : draw_command.texture_bindings)
-            {
-                if (const auto tex = gpu_manager.GetTexture(binding.texture_id))
+                if (slot.ubo_size > 0)
                 {
-                    const SDL_GPUTextureSamplerBinding sdl_binding = {
-                        .texture = tex->handle,
-                        .sampler = sampler_cache.Get(binding.sampler),
-                    };
-                    SDL_BindGPUFragmentSamplers(pass, binding.fragment_slot, &sdl_binding, 1);
+                    SDL_PushGPUFragmentUniformData(cmd, 0, cache.ubo_arena.Data() + slot.ubo_offset, slot.ubo_size);
+                }
+
+                for (uint16 i = 0; i < slot.binding_count; ++i)
+                {
+                    const TextureBinding& binding = cache.binding_arena[slot.binding_offset + i];
+                    if (const auto tex = gpu_manager.GetTexture(binding.texture_id))
+                    {
+                        const SDL_GPUTextureSamplerBinding sdl_binding = {
+                            .texture = tex->handle,
+                            .sampler = sampler_cache.Get(binding.sampler),
+                        };
+                        SDL_BindGPUFragmentSamplers(pass, binding.fragment_slot, &sdl_binding, 1);
+                    }
                 }
             }
 
