@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Graphics/Memory/GpuBufferSlice.h"
 #include "SimpleEngine/Graphics/Memory/GpuMemoryBlock.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -12,9 +13,6 @@
 
 namespace se::graphics
 {
-// forward declaration
-class RenderDevice;
-
 /**
  * GPU의 영구적 Resource(Mesh Buffer, Texture)을 관리하는 중앙 매니저
  *
@@ -23,6 +21,16 @@ class RenderDevice;
  */
 class SE_CORE_API GpuResourceManager
 {
+public:
+    /** GPU에 업로드된 메시의 소스/설정 해시 쌍 (Hot-reload 감지용) */
+    struct MeshResidencyKey
+    {
+        ContentHash source_hash;
+        ContentHash settings_hash;
+
+        bool operator==(const MeshResidencyKey&) const = default;
+    };
+
 public:
     explicit GpuResourceManager(RenderDevice& in_render_device);
     ~GpuResourceManager();
@@ -65,6 +73,26 @@ public:
      * @return 유효한 GpuBufferSlice, 찾지 못하면 NullOpt 반환
      */
     [[nodiscard]] Optional<const GpuBufferSlice&> GetSlice(const asset::AssetId& in_id) const;
+
+    /**
+     * 메시의 Residency Key를 반환합니다. (Hot-reload 감지용)
+     * @param in_id Asset ID
+     * @return 키가 존재하면 Optional 반환, 없으면 NullOpt
+     */
+    [[nodiscard]] Optional<const MeshResidencyKey&> GetMeshResidencyKey(const asset::AssetId& in_id) const;
+
+    /**
+     * 메시의 Residency Key를 설정합니다.
+     * @param in_id Asset ID
+     * @param in_key 설정할 MeshResidencyKey
+     */
+    void SetMeshResidencyKey(const asset::AssetId& in_id, MeshResidencyKey in_key);
+
+    /**
+     * 메시의 Residency Key를 제거합니다. UnloadMesh 호출 시 함께 호출하세요.
+     * @param in_id Asset ID
+     */
+    void RemoveMeshResidencyKey(const asset::AssetId& in_id);
 
     /**
      * Texture2D 에셋을 GPU Texture로 업로드하고 관리 목록에 등록합니다.
@@ -110,6 +138,9 @@ private:
 
     // AssetId -> GPU 메모리 위치 매핑
     HashMap<asset::AssetId, GpuBufferSlice> slice_map;
+
+    // AssetId -> MeshResidencyKey 매핑 (Hot-reload 감지용)
+    HashMap<asset::AssetId, MeshResidencyKey> mesh_residency_keys;
 
     // AssetId -> GPU Texture 매핑
     HashMap<asset::AssetId, RID> texture_map;

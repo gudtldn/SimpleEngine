@@ -144,11 +144,27 @@ void GpuResourceManager::UnloadMesh(const asset::AssetId& in_id)
 {
     // TODO: Defragmentation 시스템 도입 시 실제 메모리 회수 로직 추가 필요
     slice_map.Remove(in_id);
+    mesh_residency_keys.Remove(in_id);
 }
 
 Optional<const GpuBufferSlice&> GpuResourceManager::GetSlice(const asset::AssetId& in_id) const
 {
     return slice_map.Find(in_id);
+}
+
+Optional<const GpuResourceManager::MeshResidencyKey&> GpuResourceManager::GetMeshResidencyKey(const asset::AssetId& in_id) const
+{
+    return mesh_residency_keys.Find(in_id);
+}
+
+void GpuResourceManager::SetMeshResidencyKey(const asset::AssetId& in_id, MeshResidencyKey in_key)
+{
+    mesh_residency_keys.Insert(in_id, std::move(in_key));
+}
+
+void GpuResourceManager::RemoveMeshResidencyKey(const asset::AssetId& in_id)
+{
+    mesh_residency_keys.Remove(in_id);
 }
 
 bool GpuResourceManager::UploadTexture(
