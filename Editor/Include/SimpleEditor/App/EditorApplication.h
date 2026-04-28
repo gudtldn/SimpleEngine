@@ -42,7 +42,5 @@ private:
         bool operator==(const MeshCookKey&) const = default;
     };
     HashMap<asset::AssetId, MeshCookKey> uploaded_mesh_hashes;
-
-    SDL_Window* cached_window = nullptr;
 };
 } // namespace se::editor
