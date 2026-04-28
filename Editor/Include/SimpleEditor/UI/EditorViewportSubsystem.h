@@ -3,6 +3,7 @@
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Camera/EditorCameraState.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
+#include "SimpleEditor/UI/ViewModeTypes.h"
 
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
@@ -21,28 +22,6 @@ namespace editor{ class ViewportPanel; }
 
 namespace se::editor
 {
-/** 기즈모 좌표계 모드 */
-enum class ECoordinateSpace : uint8
-{
-    World,
-    Local,
-};
-
-/** 뷰포트 뷰 모드 */
-enum class EViewMode : uint8
-{
-    // 원근 뷰
-    Perspective,
-
-    // 직교 뷰
-    Top,
-    Bottom,
-    Front,
-    Back,
-    Right,
-    Left,
-};
-
 /**
  * 뷰포트 하나의 모든 상태를 담는 구조체
  */
