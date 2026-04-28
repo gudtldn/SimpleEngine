@@ -1,11 +1,11 @@
 #pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/ECS/Entity.h"
-#include "SimpleEngine/Graphics/Material/SamplerType.h"
+
+#include <limits>
 
 
 namespace se::graphics
@@ -15,21 +15,13 @@ namespace se::graphics
  */
 struct DrawCommand
 {
-    Matrix4x4 model_matrix;
+    Matrix4x4 model_matrix = Matrix4x4::Identity();
     uint32 entity_id = Entity::Invalid;
-    asset::AssetId mesh_id;
-    asset::AssetId material_id;
+    asset::AssetId mesh_id = asset::AssetId::Invalid;
+    asset::AssetId material_id = asset::AssetId::Invalid;
     uint64 sort_key = 0;
 
-    // 게임 스레드에서 복사한 Material Instance Data
-    Array<uint8> material_ubo_bytes; // fragment UBO raw bytes
-
-    struct TextureBinding
-    {
-        uint32 fragment_slot = 0;
-        asset::AssetId texture_id;
-        ESamplerType sampler = ESamplerType::LinearRepeat;
-    };
-    Array<TextureBinding> texture_bindings;
+    // FrameMaterialCache의 슬롯 인덱스. uint16::max()면 유효한 material이 없는 경우.
+    uint16 material_slot_index = std::numeric_limits<uint16>::max();
 };
 } // namespace se::graphics
