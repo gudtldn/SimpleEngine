@@ -224,18 +224,28 @@ ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileSha
         };
     }
 
+    // hlsl 파일이 위치한 디렉토리를 include 경로로 사용 (예: #include "Default.hlsli" 해석)
+    const Optional<Path> include_dir = hlsl_path.Parent();
+
     // pragma 기반 멀티 엔트리포인트 컴파일
     Array<ShaderCompileOutput> outputs;
     for (const ShaderEntryPoint& ep : pragmas)
     {
-        auto spirv_bytecode = CompileHLSLToSPIRV(hlsl_path, ep.entrypoint, ep.stage);
+        auto spirv_bytecode = CompileHLSLToSPIRV(hlsl_path, ep.entrypoint, ep.stage, include_dir);
         if (spirv_bytecode.HasError())
         {
             return Unexpected{ std::move(spirv_bytecode).Error() };
         }
 
-        // "Default.hlsl" -> stem="Default" -> "Default.vert" / "Default.frag"
-        String output_stem = String::Format("{}.{}", file_stem, StageToExtension(ep.stage));
+        // stem이 이미 stage 확장자로 끝나면 재추가 방지
+        // "Default.vert.hlsl" -> stem="Default.vert" -> output="Default.vert" (중복 방지)
+        // "Default.hlsl"      -> stem="Default"      -> output="Default.vert" / "Default.frag"
+        const StringView stage_ext = StageToExtension(ep.stage);
+        const String expected_suffix = String::Format(".{}", stage_ext);
+        String output_stem = file_stem.EndsWith(expected_suffix)
+            ? String(file_stem)
+            : String::Format("{}.{}", file_stem, stage_ext);
+
         outputs.Push({
             .output_stem = std::move(output_stem),
             .spirv_bytecode = std::move(spirv_bytecode).Value(),
