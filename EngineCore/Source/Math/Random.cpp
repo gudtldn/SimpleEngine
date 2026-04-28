@@ -1,15 +1,15 @@
 #include "SimpleEngine/Math/Random.h"
 
 #include <bit>
-
+#include <random>
 
 namespace se::math
 {
 namespace
 {
 // PCG32 Constexpr Magic Numbers
-constexpr uint64 PCG_DEFAULT_STATE = 0x853c49e6748fea9bULL;
-constexpr uint64 PCG_DEFAULT_INC = 0xda3e39cb94b95bdbULL;
+// constexpr uint64 PCG_DEFAULT_STATE = 0x853c49e6748fea9bULL;
+// constexpr uint64 PCG_DEFAULT_INC = 0xda3e39cb94b95bdbULL;
 constexpr uint64 PCG_MULTIPLIER = 6364136223846793005ULL;
 
 constexpr uint32 PCG_SHIFT_1 = 18U;
@@ -23,9 +23,11 @@ thread_local RandomStream GlobalRandomStream;
 } // namespace
 
 RandomStream::RandomStream()
-    : pcg_state(PCG_DEFAULT_STATE)
-    , pcg_inc(PCG_DEFAULT_INC)
 {
+    std::random_device rd;
+    const uint64 seed_state = (static_cast<uint64>(rd()) << 32) | rd();
+    const uint64 seed_seq = (static_cast<uint64>(rd()) << 32) | rd();
+    Seed(seed_state, seed_seq);
 }
 
 RandomStream::RandomStream(uint64 in_state, uint64 in_seq)
