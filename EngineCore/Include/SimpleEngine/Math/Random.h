@@ -11,7 +11,13 @@ namespace se::math
 class SE_CORE_API RandomStream
 {
 public:
+    /**
+     * std::random_device를 사용하여 고유한 시드로 자동 초기화합니다.
+     * @warning 매 프레임 생성하지 말고 클래스 멤버로 관리할 것을 권장합니다.
+     */
     RandomStream();
+
+    /** 특정 상태와 시퀀스로 스트림을 생성합니다. */
     RandomStream(uint64 in_state, uint64 in_seq = 0);
 
     /** 새로운 상태와 시퀀스로 시드를 설정합니다. */
