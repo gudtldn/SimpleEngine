@@ -15,7 +15,11 @@
 #include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Asset/BuiltinAssets.h"
+#include "SimpleEngine/Asset/Types/Material.h"
+#include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
+#include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
@@ -33,6 +37,8 @@
 
 namespace se::editor
 {
+using namespace asset;
+
 EditorApplication::EditorApplication()
     : Application(se::EApplicationMode::Editor)
 {
@@ -166,12 +172,16 @@ void EditorApplication::Render()
     se::graphics::FramePacket frame_packet;
     frame_packet.scene_draw_data = se::graphics::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld());
 
+    // 머티리얼 데이터 값 복사
+    PrepareMaterialData(frame_packet.scene_draw_data);
+
     // TODO: GPU 리소스 해제 로직
     // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
     // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
     // - 씬 전환 시: GpuResourceManager 전체 리셋 고려
 
     const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    const se::graphics::SamplerCache& sampler_cache = render_subsystem->GetSamplerCache();
 
     // RenderFrame 람다 내에서 패스 조립
     render_subsystem->RenderFrame(
@@ -179,6 +189,7 @@ void EditorApplication::Render()
         [&](SDL_GPUCommandBuffer* cmd)
         {
             EnsureMeshesResident(cmd, frame_packet.scene_draw_data);
+            EnsureTexturesResident(cmd);
 
             if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
             {
@@ -251,7 +262,7 @@ void EditorApplication::Render()
                         // 메인 Scene 렌더링 (entity_id_handle이 유효하면 MRT로 entity ID 동시 출력)
                         {
                             builder.AddPass<se::graphics::ForwardScenePass>(
-                                frame_packet.scene_draw_data, gpu_manager,
+                                frame_packet.scene_draw_data, gpu_manager, sampler_cache,
                                 render_view, color_handle, depth_handle, entity_id_handle
                             );
                         }
@@ -326,23 +337,22 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
         return;
     }
 
-    const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
-    auto* asset_subsystem = se::GetSubsystem<asset::AssetSubsystem>();
+    const auto [render_subsystem, asset_subsystem] = se::GetSubsystems<const RenderSubsystem, AssetSubsystem>();
     if (!render_subsystem || !asset_subsystem)
     {
         return;
     }
 
     graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
-    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    const AssetRegistry& registry = asset_subsystem->GetRegistry();
 
     // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 cook_key 변경)
     struct PendingUpload
     {
-        asset::AssetPath path;
+        AssetPath path;
         MeshCookKey cook_key;
     };
-    HashMap<asset::AssetId, PendingUpload> pending;
+    HashMap<AssetId, PendingUpload> pending;
 
     for (const graphics::DrawCommand& draw_cmd : in_scene_data.opaque_commands)
     {
@@ -357,7 +367,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
         if (gpu_manager.GetSlice(draw_cmd.mesh_id).HasValue())
         {
             bool up_to_date = false;
-            registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
+            registry.ReadRecord(draw_cmd.mesh_id, [&](const AssetRecord& record)
             {
                 if (const auto prev = uploaded_mesh_hashes.Find(draw_cmd.mesh_id))
                 {
@@ -378,9 +388,9 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
         }
 
         // Slow path: 새 메시 또는 reimport -> 경로와 해시를 복사
-        asset::AssetPath asset_path;
+        AssetPath asset_path;
         MeshCookKey cook_key;
-        if (!registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
+        if (!registry.ReadRecord(draw_cmd.mesh_id, [&](const AssetRecord& record)
         {
             asset_path = record.logical_path;
             cook_key = {
@@ -412,14 +422,14 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
     for (const auto& [mesh_id, info] : pending)
     {
         // Load를 호출하여 DDC에서 역직렬화 -> Pool에 등록
-        const asset::AssetHandle<asset::StaticMesh> handle = asset_subsystem->Load<asset::StaticMesh>(info.path);
+        const AssetHandle<StaticMesh> handle = asset_subsystem->Load<StaticMesh>(info.path);
         if (!handle)
         {
             ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Load failed for {}", info.path.ToString());
             continue;
         }
 
-        const asset::StaticMesh* mesh = handle.Get();
+        const StaticMesh* mesh = handle.Get();
         if (!mesh || mesh->vertices.IsEmpty())
         {
             ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Empty mesh data for {}", info.path.ToString());
@@ -440,6 +450,71 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
             uploaded_mesh_hashes.Insert(mesh_id, {
                 .source_hash = info.cook_key.source_hash,
                 .settings_hash = info.cook_key.settings_hash,
+            });
+        }
+    }
+}
+
+void EditorApplication::EnsureTexturesResident(SDL_GPUCommandBuffer* cmd)
+{
+    const auto [render_subsystem, asset_subsystem] = se::GetSubsystems<const RenderSubsystem, const AssetSubsystem>();
+    if (!render_subsystem || !asset_subsystem)
+    {
+        return;
+    }
+
+    graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+
+    if (!gpu_manager.GetTexture(BuiltinAssetIds::White1x1).HasValue())
+    {
+        if (const AssetHandle<Texture2D> handle = asset_subsystem->Find<Texture2D>(BuiltinAssetIds::White1x1))
+        {
+            gpu_manager.UploadTexture(cmd, BuiltinAssetIds::White1x1, *handle.Get());
+        }
+    }
+}
+
+void EditorApplication::PrepareMaterialData(graphics::SceneDrawData& in_scene_data)
+{
+    const AssetSubsystem* asset_subsystem = se::GetSubsystem<const AssetSubsystem>();
+    if (!asset_subsystem)
+    {
+        return;
+    }
+
+    for (graphics::DrawCommand& draw_cmd : in_scene_data.opaque_commands)
+    {
+        const AssetHandle<MaterialInstance> inst_handle = [&]
+        {
+            if (AssetHandle<MaterialInstance> handle = asset_subsystem->Find<MaterialInstance>(draw_cmd.material_id))
+            {
+                return handle;
+            }
+            return asset_subsystem->Find<MaterialInstance>(BuiltinAssetIds::DefaultLitInstance);
+        }();
+
+        if (!inst_handle)
+        {
+            continue;
+        }
+
+        const MaterialInstance* inst = inst_handle.Get();
+        draw_cmd.material_ubo_bytes = inst->parameter_values;
+
+        AssetHandle<Material> mat_h = asset_subsystem->Find<Material>(inst->parent_material_id);
+        if (!mat_h)
+        {
+            continue;
+        }
+
+        const Material* mat = mat_h.Get();
+        draw_cmd.texture_bindings.Reserve(mat->texture_slots.Len());
+        for (const graphics::MaterialTextureSlot& slot : mat->texture_slots)
+        {
+            draw_cmd.texture_bindings.Push({
+                .fragment_slot = slot.fragment_slot,
+                .texture_id = inst->GetTextureOrDefault(slot.name, *mat),
+                .sampler = slot.sampler,
             });
         }
     }

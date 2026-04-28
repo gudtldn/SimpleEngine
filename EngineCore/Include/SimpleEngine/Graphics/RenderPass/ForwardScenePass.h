@@ -12,6 +12,7 @@ namespace se::graphics
 // forward declaration
 struct SceneDrawData;
 class GpuResourceManager;
+class SamplerCache;
 
 /**
  * SceneDrawData의 오브젝트를 Forward 렌더링하는 패스
@@ -24,6 +25,7 @@ public:
     explicit ForwardScenePass(
         const SceneDrawData& in_draw_data,
         const GpuResourceManager& in_gpu_manager,
+        const SamplerCache& in_sampler_cache,
         const RenderView& in_render_view,
         RGTextureHandle in_color_target,
         RGTextureHandle in_depth_target,
@@ -36,6 +38,7 @@ public:
 private:
     const SceneDrawData& draw_data;
     const GpuResourceManager& gpu_manager;
+    const SamplerCache& sampler_cache;
     RenderView render_view;
 
     RGTextureHandle color_target_handle;

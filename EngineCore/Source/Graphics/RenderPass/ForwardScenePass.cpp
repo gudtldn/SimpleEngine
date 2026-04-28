@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
+#include "SimpleEngine/Graphics/Material/SamplerCache.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
@@ -22,6 +23,7 @@ SE_END_REFLECT(ForwardScenePass)
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
     const GpuResourceManager& in_gpu_manager,
+    const SamplerCache& in_sampler_cache,
     const RenderView& in_render_view,
     RGTextureHandle in_color_target,
     RGTextureHandle in_depth_target,
@@ -29,6 +31,7 @@ ForwardScenePass::ForwardScenePass(
 )
     : draw_data(in_draw_data)
     , gpu_manager(in_gpu_manager)
+    , sampler_cache(in_sampler_cache)
     , render_view(in_render_view)
     , color_target_handle(in_color_target)
     , depth_target_handle(in_depth_target)
@@ -305,13 +308,33 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             object_ubo.entity_id = EntityPickId::Encode(draw_command.entity_id).encoded;
             SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
-            // TODO: MaterialInstance 조회 후 텍스처/파라미터 바인딩 추가 예정
+            // Fragment Uniform 바인딩
+            if (const Array<uint8>& ubo_bytes = draw_command.material_ubo_bytes; !ubo_bytes.IsEmpty())
+            {
+                SDL_PushGPUFragmentUniformData(cmd, 0, ubo_bytes.Data(), static_cast<uint32>(ubo_bytes.Len()));
+            }
+
+            // Fragment Texture + Sampler 바인딩
+            for (const DrawCommand::TextureBinding& binding : draw_command.texture_bindings)
+            {
+                if (const auto tex = gpu_manager.GetTexture(binding.texture_id))
+                {
+                    const SDL_GPUTextureSamplerBinding sdl_binding = {
+                        .texture = tex->handle,
+                        .sampler = sampler_cache.Get(binding.sampler),
+                    };
+                    SDL_BindGPUFragmentSamplers(pass, binding.fragment_slot, &sdl_binding, 1);
+                }
+            }
+
             if (slice->index_count > 0)
             {
                 SDL_DrawGPUIndexedPrimitives(pass, slice->index_count, 1, 0, 0, 0);
             }
             else
             {
+                // 버퍼 레이아웃: [vertex data | offset ~ index_offset)][index data | index_offset ~)]
+                // index가 없는 메시는 index_offset이 vertex 영역의 끝을 나타냄.
                 const uint32 vertex_count = (slice->index_offset - slice->offset) / sizeof(StaticVertex);
                 SDL_DrawGPUPrimitives(pass, vertex_count, 1, 0, 0);
             }

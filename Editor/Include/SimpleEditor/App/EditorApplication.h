@@ -33,6 +33,12 @@ private:
     /** 현재 프레임에 필요한 메시를 GPU 메모리에 업로드합니다. */
     void EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const graphics::SceneDrawData& in_scene_data);
 
+    /** 빌트인 텍스처(White1x1 등)가 GPU에 업로드되어 있는지 확인하고 필요하면 업로드합니다. */
+    void EnsureTexturesResident(SDL_GPUCommandBuffer* cmd);
+
+    /** DrawCommand마다 MaterialInstance를 조회하여 material_ubo_bytes와 texture_bindings를 값 복사합니다. */
+    void PrepareMaterialData(graphics::SceneDrawData& in_scene_data);
+
     // GPU에 업로드된 메시의 해시 쌍을 추적합니다 (Hot-reload 감지용)
     struct MeshCookKey
     {
