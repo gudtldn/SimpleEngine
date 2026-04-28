@@ -66,8 +66,29 @@ uint32 RandomStream::Range(uint32 in_max)
         return 0;
     }
 
-    // TODO: Modulo Bias 제거 로직 (Lemire's algorithm 등) 추가 검토
-    return Next() % in_max;
+    // --- Modulo Bias 제거 (Lemire's Fast Range Algorithm) ---
+
+    // 1. Fast Path: 느린 % 연산 대신 64비트 곱셈 사용
+    // (상위 32비트 = 결과값 / 하위 32비트 = 찌꺼기)
+    uint64 multi_result = static_cast<uint64>(Next()) * in_max;
+    uint32 leftover = static_cast<uint32>(multi_result);
+
+    // 2. 편향 검사: 찌꺼기가 in_max보다 작을 때만 진입 (극히 희박한 확률)
+    if (leftover < in_max)
+    {
+        // 3. Slow Path: 여기서만 무거운 % 연산을 1회 수행하여 편향 경계값 계산
+        const uint32 threshold = (~in_max + 1U) % in_max;
+
+        // 편향 구간을 벗어날 때까지 다시 뽑기 (Rejection)
+        while (leftover < threshold)
+        {
+            multi_result = static_cast<uint64>(Next()) * in_max;
+            leftover = static_cast<uint32>(multi_result);
+        }
+    }
+
+    // 4. 결과 반환: 범위가 맞춰진 상위 32비트만 추출
+    return static_cast<uint32>(multi_result >> 32);
 }
 
 int32 RandomStream::Range(int32 in_min, int32 in_max)
