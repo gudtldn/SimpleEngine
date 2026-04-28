@@ -1,5 +1,6 @@
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
 
+#include "SimpleEngine/Asset/BuiltinAssets.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
@@ -31,15 +32,21 @@ SceneDrawData CollectDrawData(const World& world)
 {
     SceneDrawData result;
 
-    const auto query = world.CreateQuery<Entity, const GlobalTransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
-    for (const auto [entity, global_transform, mesh, material] : query)
+    const auto query = world.CreateQuery<
+        Entity, const GlobalTransformComponent&, const StaticMeshComponent&, Optional<const MaterialHandleComponent&>
+    >();
+    for (const auto [entity, global_transform, mesh, material_opt] : query)
     {
+        const asset::AssetId mat_id = material_opt
+            ? material_opt->material_id
+            : asset::BuiltinAssetIds::DefaultLitInstance;
+
         result.opaque_commands.Push({
             .model_matrix = global_transform.value,
             .entity_id = entity.GetId(),
             .mesh_id = mesh.mesh_id,
-            .material_id = material.material_id,
-            .sort_key = ComputeSortKey(mesh.mesh_id, material.material_id),
+            .material_id = mat_id,
+            .sort_key = ComputeSortKey(mesh.mesh_id, mat_id),
         });
     }
 
