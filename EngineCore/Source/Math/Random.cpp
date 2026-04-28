@@ -77,8 +77,11 @@ int32 RandomStream::Range(int32 in_min, int32 in_max)
         return in_min;
     }
 
-    const uint32 range = static_cast<uint32>(in_max - in_min) + 1;
-    return in_min + static_cast<int32>(Range(range));
+    // Integer Overflow 방지
+    const uint64 diff = static_cast<uint64>(in_max) - static_cast<uint64>(in_min);
+    const uint32 range_len = static_cast<uint32>(diff) + 1;
+
+    return in_min + static_cast<int32>(Range(range_len));
 }
 
 float RandomStream::Float()
