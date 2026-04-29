@@ -20,7 +20,8 @@
     },
     {
       "name": "sdl3-image",
-      "version>=": "3.4.0"
+      "version>=": "3.4.0",
+        "features": ["jpeg", "png", "webp"]
     },
     {
       "name": "sdl3-shadercross",
