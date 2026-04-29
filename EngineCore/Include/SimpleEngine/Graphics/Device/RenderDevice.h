@@ -53,10 +53,10 @@ public:
     [[nodiscard]] RID CreateBuffer(const SDL_GPUBufferCreateInfo& desc, const char* debug_name = nullptr);
 
     /** RID에 해당하는 텍스처 리소스를 반환합니다. 유효하지 않은 RID이면 NullOpt를 반환합니다. */
-    [[nodiscard]] Optional<const TextureResource&> GetTexture(RID rid) const;
+    [[nodiscard]] Optional<TextureResource> GetTexture(RID rid) const;
 
     /** RID에 해당하는 버퍼 리소스를 반환합니다. 유효하지 않은 RID이면 NullOpt를 반환합니다. */
-    [[nodiscard]] Optional<const BufferResource&> GetBuffer(RID rid) const;
+    [[nodiscard]] Optional<BufferResource> GetBuffer(RID rid) const;
 
     /** RID가 유효한 텍스처를 가리키는지 확인합니다. */
     [[nodiscard]] bool IsValidTexture(RID rid) const;

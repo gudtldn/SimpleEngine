@@ -192,6 +192,9 @@ void EditorApplication::Render()
     // 게임 스레드에서 뷰포트별 렌더 데이터 스냅샷 수집
     Array<ViewportRenderInput> viewport_inputs;
     viewport_inputs.Reserve(viewport_subsystem.GetViewports().Len());
+
+    // PickSubsystem은 entity_id 텍스처를 하나만 소유하므로 프레임당 한 뷰포트에서만 피킹하도록
+    bool entity_pick_assigned = false;
     for (const auto& [viewport_id, state] : viewport_subsystem.GetViewports())
     {
         if (!ui_subsystem.GetPanel(viewport_id)->IsVisible())
@@ -206,7 +209,8 @@ void EditorApplication::Render()
         }
 
         const bool need_entity_pick =
-            state.is_hovered
+            !entity_pick_assigned
+            && state.is_hovered
             && !viewport_subsystem.IsAnyCameraActive()
             && !(gizmo_subsystem && gizmo_subsystem->IsDragging())
             && pick_subsystem;
@@ -215,12 +219,13 @@ void EditorApplication::Render()
         if (need_entity_pick)
         {
             entity_id_tex = pick_subsystem->GetOrCreateEntityIdTexture(state.render_view.width, state.render_view.height);
+            entity_pick_assigned = true;
         }
 
         GizmoDrawList* gizmo_draw_list = nullptr;
         if (gizmo_subsystem)
         {
-            if (auto draw_list_opt = gizmo_subsystem->FindDrawList(viewport_id))
+            if (const auto draw_list_opt = gizmo_subsystem->FindDrawList(viewport_id))
             {
                 gizmo_draw_list = &(*draw_list_opt);
             }

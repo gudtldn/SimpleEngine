@@ -88,14 +88,14 @@ RID RenderDevice::CreateBuffer(
     });
 }
 
-Optional<const TextureResource&> RenderDevice::GetTexture(RID rid) const
+Optional<TextureResource> RenderDevice::GetTexture(RID rid) const
 {
-    return textures.Get(rid);
+    return textures.Get(rid).Copy();
 }
 
-Optional<const BufferResource&> RenderDevice::GetBuffer(RID rid) const
+Optional<BufferResource> RenderDevice::GetBuffer(RID rid) const
 {
-    return buffers.Get(rid);
+    return buffers.Get(rid).Copy();
 }
 
 bool RenderDevice::IsValidTexture(RID rid) const
