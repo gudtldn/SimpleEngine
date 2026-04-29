@@ -395,7 +395,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
 
         const asset::AssetMetadata& meta = content_opt->metadata;
         const bool is_new = meta.sub_assets.IsEmpty();
-        const bool is_dirty = !is_new && IsAssetDirty(file_path, meta);
+        const bool is_dirty = !is_new && IsAssetDirty(file_path, *content_opt);
 
         if (is_new || is_dirty)
         {
@@ -786,26 +786,46 @@ void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const ass
     }
 }
 
-bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const asset::AssetMetadata& meta) const
+bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileContent& content) const
 {
-    // Quick reject: mtime이 동일하면 변경 없음
+    const asset::AssetMetadata& meta = content.metadata;
+
+    // 소스 파일 변경 확인 (mtime -> size -> SHA256 순서)
     const uint64 current_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault();
-    if (current_mtime == meta.source_mtime)
+    if (current_mtime != meta.source_mtime)
     {
-        return false;
+        const uint64 current_size = static_cast<uint64>(FileSystem::FileSize(source_path).ValueOrDefault());
+        if (current_size != meta.source_size)
+        {
+            return true;
+        }
+
+        // mtime 변경 + size 동일 -> SHA256 해시로 최종 확인
+        // (git branch 전환, touch 등으로 mtime만 바뀐 경우 불필요한 reimport 방지)
+        const ContentHash current_hash = SHA256::HashFile(source_path);
+        if (current_hash != meta.source_hash)
+        {
+            return true;
+        }
     }
 
-    // mtime이 다르면 size 비교 (size가 달라지면 확실히 변경됨)
-    const uint64 current_size = static_cast<uint64>(FileSystem::FileSize(source_path).ValueOrDefault());
-    if (current_size != meta.source_size)
+    // Import 설정 변경 확인
+    // settings_hash가 zero이면 한 번도 쿡되지 않은 상태이므로 건너뜀 (is_new로 처리)
+    if (!meta.settings_hash.IsZero())
     {
-        return true;
+        Array<uint8> settings_bytes;
+        {
+            MemoryWriter writer(settings_bytes);
+            writer << content.import_settings;
+        }
+        const ContentHash current_settings_hash = SHA256::HashBytes(settings_bytes);
+        if (current_settings_hash != meta.settings_hash)
+        {
+            return true;
+        }
     }
 
-    // mtime 변경 + size 동일 -> SHA256 해시로 최종 확인
-    // (git branch 전환, touch 등으로 mtime만 바뀐 경우 불필요한 reimport 방지)
-    const ContentHash current_hash = SHA256::HashFile(source_path);
-    return current_hash != meta.source_hash;
+    return false;
 }
 
 void EditorAssetSubsystem::SaveRegistrySnapshot()

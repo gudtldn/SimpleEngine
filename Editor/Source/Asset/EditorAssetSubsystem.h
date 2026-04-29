@@ -94,13 +94,13 @@ private:
     void RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta);
 
     /**
-     * 소스 파일의 mtime/size와 .meta의 기록값을 비교하여 변경 여부를 판별합니다.
-     * mtime 비교 -> size 비교 -> hash 비교 순서의 단계적 검증을 수행합니다.
+     * 소스 파일과 import 설정의 변경 여부를 판별합니다.
+     * mtime 비교 -> size 비교 -> source hash 비교 -> settings hash 비교 순서의 단계적 검증을 수행합니다.
      * @param source_path 소스 파일의 물리 경로
-     * @param meta 저장된 메타데이터
-     * @return 소스 파일이 수정되었으면 true
+     * @param content .meta 파일 전체 내용 (metadata + import_settings)
+     * @return 소스 파일 또는 import 설정이 수정되었으면 true
      */
-    [[nodiscard]] bool IsAssetDirty(const Path& source_path, const asset::AssetMetadata& meta) const;
+    [[nodiscard]] bool IsAssetDirty(const Path& source_path, const MetaFileContent& content) const;
 
     /** Registry를 바이너리 파일로 저장합니다. (에디터 종료 시 호출) */
     void SaveRegistrySnapshot();
