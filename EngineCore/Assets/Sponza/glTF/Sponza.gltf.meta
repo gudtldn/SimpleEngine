@@ -2,7 +2,7 @@ processor_stack = []
 
 [import_settings.'se::editor::MeshImportSettings']
 apply_transform = true
-combine_meshes = true
+combine_meshes = false
 global_scale = 1.0
 
 [metadata]
