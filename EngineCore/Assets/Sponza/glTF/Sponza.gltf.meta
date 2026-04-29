@@ -2,19 +2,433 @@ processor_stack = []
 
 [import_settings.'se::editor::MeshImportSettings']
 apply_transform = true
-combine_meshes = false
+combine_meshes = true
 global_scale = 1.0
 
 [metadata]
 cache_version = 1
-guid = '77872cb3-e196-4559-8bef-94bfa786920b'
+guid = '67ba390d-b18f-4e81-bebb-7a9562c47a3b'
 settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
 source_hash = '646c10cbc8fab990ca29f363e90e2d65155f3a3569506852eb1434a9465b9501'
-source_mtime = 1777209778803228300
+source_mtime = 1777429232000000000
 source_size = 167176
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '9e59e859-d0f6-4e73-879a-5a8e9340cd1c'
+    guid = '8744928e-dec4-4d7e-8c7b-9cd1b4e18b0a'
+    name = '3628158980083700836'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'b393246c-1c26-430c-ab62-2da8cfd1daaa'
+    name = '8773302468495022225'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '3fb0c03c-b7a6-4d41-897a-3ead0fd98caa'
+    name = '12501374198249454378'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'bc993601-3ca1-4359-90ed-4ff55d6cbc71'
+    name = '5792855332885324923'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '0e193ef2-c4c7-4051-b506-92bbc123109e'
+    name = '1219024358953944284'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '75e06ac2-3e6f-4f90-8047-048186cf6911'
+    name = '11872827283454512094'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '53143995-2dbd-4310-ae35-f17c777d2215'
+    name = '10381718147657362067'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '152cabf8-20c8-4a13-bd4c-032b22fa2362'
+    name = '9916269861720640319'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '40bde9fc-704d-4fd8-86b9-f2cb0da705f6'
+    name = '5823059166183034438'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '7c7ff437-91bf-412b-bee9-0c40fa1cb029'
     name = 'Sponza'
     type = 'se::asset::StaticMesh'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '84e24b68-d962-434a-8023-c77d7ba7a545'
+    name = '4477655471536070370'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '8189de3d-dcfd-4aeb-8666-87d25bd8855f'
+    name = '3455394979645218238'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '042aeca3-b191-4fa1-a3c2-6e3b67f0ca00'
+    name = '6593109234861095314'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '4458029b-e644-45fc-86fb-5a92d8d024d8'
+    name = '17876391417123941155'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'df71530d-349b-40ee-b13f-5438bf6a2d5f'
+    name = '16885566240357350108'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c0175170-1adf-41a1-b44f-e762efabd3b8'
+    name = '15722799267630235092'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '3e318417-22fd-4781-8863-0b8a3e5ddc0b'
+    name = '332936164838540657'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c0fbe88c-d0c2-4d44-b065-3c960adff622'
+    name = '16275776544635328252'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '145a3c5d-dcf1-4c87-92fd-834e1bc5e36a'
+    name = '5061699253647017043'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '4f6d851e-bf19-4172-9cb8-b03292a9879e'
+    name = '8750083169368950601'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'fb969cca-e779-4fc9-81d9-a89bb88a19d3'
+    name = '2775690330959970771'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '197487c2-bc01-404b-9dfc-ce6f7ef995e4'
+    name = '4675343432951571524'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'e6b5062a-208b-474b-85ad-2c0525e9fd39'
+    name = '7268504077753552595'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '34447b94-c236-44a3-96e6-9dde30b5b6f1'
+    name = '4910669866631290573'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a39ec017-3841-4230-be3b-a3564dcb9b85'
+    name = '2299742237651021498'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '222cb7d1-a871-440a-b587-98858b74153e'
+    name = '6151467286084645207'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '187a9a48-a4d6-42b5-88d4-591fbb3e5716'
+    name = '15295713303328085182'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'e6379066-0014-436c-a380-471174a50649'
+    name = '715093869573992647'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'dc5058ec-b2c0-4835-b932-534e57e55e9a'
+    name = '6047387724914829168'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '6e80bd0e-8ed7-4120-bdb6-d8831d76f146'
+    name = '7441062115984513793'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '17d6c370-7c77-43e5-aede-46496cce316b'
+    name = '14267839433702832875'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '2eaa0c15-f183-47b8-bf9e-958022efcdd3'
+    name = '13982482287905699490'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '040d80eb-e1f5-4fbb-b4cc-bad917450b90'
+    name = '11490520546946913238'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'e0b27bbf-ca24-4611-b3e2-5e2273ea1775'
+    name = '8006627369776289000'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '2bc68072-45d9-4dce-8dfa-51a748ac42ec'
+    name = '8114461559286000061'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '9b81190b-e481-42b5-89bd-27a1c535bc93'
+    name = '8051790464816141987'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'b166b6e1-599f-4db1-b807-4c0f400d9515'
+    name = 'white'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a53e5afe-af4d-44e7-bdd5-2d31577a33fb'
+    name = '17556969131407844942'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '7fe52304-061c-424a-9caa-25c89787526e'
+    name = '8503262930880235456'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a18c2a07-3c53-458b-a150-bc14a93aefce'
+    name = '16299174074766089871'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '00437dc3-17b6-4d48-b11c-fd5a60d1ea35'
+    name = '11968150294050148237'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '7b1ca646-b5df-4fbb-b541-b2dfd80987b6'
+    name = '10388182081421875623'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'be35cb76-6622-4b75-a742-81ae6be9cfbb'
+    name = '4975155472559461469'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '95cf0b81-1720-4008-834d-01457dd3afb8'
+    name = '14650633544276105767'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'fb9dce64-8fd0-424c-976f-b3cbb339054e'
+    name = '2051777328469649772'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'dc4633be-4d5b-4b16-b451-d1099f5f23d9'
+    name = '4871783166746854860'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'dea88fb8-da04-49f3-a742-ed39f0a9f30e'
+    name = '3827035219084910048'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'ee37684a-b1eb-4000-8f10-d478b762cdf7'
+    name = '6667038893015345571'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '3eb66227-954c-4e87-931f-18631067804c'
+    name = '13824894030729245199'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '8472d7c3-1150-42a1-8d93-5e65308fe066'
+    name = '2185409758123873465'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'fe607348-5897-4a96-8308-5ef128516dbc'
+    name = '2411100444841994089'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'cad03e97-0852-48a4-ae91-8b3f718f58b9'
+    name = '7645212358685992005'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'e2d1e376-29ba-4187-a4d7-580ccf38f234'
+    name = '7815564343179553343'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a0ad224e-c99c-4dbd-b77c-b59164581e3a'
+    name = '8783994986360286082'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '48c2f852-505c-4461-9577-b5977f4c1cef'
+    name = '8481240838833932244'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'fe2a24a8-b8f8-47ab-855a-0158c0f9cf7f'
+    name = '13196865903111448057'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '38060a07-caec-491b-ae55-444d0157dafd'
+    name = '3371964815757888145'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '1180efd7-4487-431d-b154-41f8da92ce22'
+    name = '7056944414013900257'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c24cbb16-4ee4-44e2-9a7f-a612001980ff'
+    name = '9288698199695299068'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '806bfecc-557a-4d26-be55-05f0f7093bbc'
+    name = '4601176305987539675'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '1ca5a378-3534-4e98-9604-a9321c1a1c3d'
+    name = '2374361008830720677'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '387be61d-8e2b-4593-a611-b5dd087feea4'
+    name = '466164707995436622'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '8e9b7f67-4cae-4830-8198-732ee625c27c'
+    name = '11474523244911310074'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '72f9fbe8-c275-486b-a548-6fb4803d0569'
+    name = '755318871556304029'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '8f328679-ecc2-4bb9-ba8d-ef57c48b0e7e'
+    name = '14170708867020035030'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '38619de4-271e-4c99-bb1d-13e38fa8266b'
+    name = '6772804448157695701'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '16b155bb-c916-4b5d-8186-9039e0bfa6dc'
+    name = '759203620573749278'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'f604fba8-3a1f-4c85-9339-cc87acc6a355'
+    name = '2969916736137545357'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'd0fdbe48-2808-4932-b23e-9bb57224b08b'
+    name = '14118779221266351425'
+    type = 'se::asset::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a96e953b-3824-43f2-9f91-e5f08772bc98'
+    name = '8747919177698443163'
+    type = 'se::asset::Texture2D'
