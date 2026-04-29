@@ -1,5 +1,8 @@
 ﻿cmake_minimum_required(VERSION 3.28)
 
+# Clangd 관련
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # VCPKG_ROOT 환경변수가 설정된 경우 자동으로 vcpkg 툴체인 적용
 # CMakeUserPresets.json이나 -DCMAKE_TOOLCHAIN_FILE= 로 직접 지정한 경우 우선됨
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
