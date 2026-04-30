@@ -23,7 +23,7 @@ namespace se::editor
 class SE_EDITOR_API ImportError final : public IError
 {
 public:
-    enum class ECode : uint8
+    enum class EType : uint8
     {
         NoTranslator,      // 적합한 Translator를 찾지 못함
         TranslateFailed,   // Translator 실행 중 에러
@@ -33,10 +33,11 @@ public:
         CyclicDependency,  // 순환 참조 발견
         Unknown,           // 알 수 없는 에러
     };
+    using enum EType;
 
 public:
-    ImportError(ECode code, String message, Path file_path = {})
-        : code(code)
+    ImportError(EType type, String message, Path file_path = {})
+        : type(type)
         , message(std::move(message))
         , file_path(std::move(file_path))
     {
@@ -45,13 +46,13 @@ public:
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return source_error.get(); }
 
-    [[nodiscard]] ECode GetCode() const noexcept { return code; }
+    [[nodiscard]] EType GetType() const noexcept { return type; }
     [[nodiscard]] const Path& GetFilePath() const noexcept { return file_path; }
 
     void SetSource(std::unique_ptr<IError> source) { source_error = std::move(source); }
 
 private:
-    ECode code;
+    EType type;
     String message;
     Path file_path;
     std::unique_ptr<IError> source_error;

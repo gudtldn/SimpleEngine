@@ -289,5 +289,5 @@ TEST_F(AssetPipelineTest, ImportPipeline_EmptyResultTest)
     EXPECT_TRUE(assets.HasError());
 
     // 에러를 반환
-    ASSERT_EQ(assets.Error().GetCode(), ImportError::ECode::FactoryFailed);
+    ASSERT_EQ(assets.Error().GetType(), ImportError::FactoryFailed);
 }

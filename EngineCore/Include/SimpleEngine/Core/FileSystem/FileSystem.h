@@ -33,16 +33,11 @@ public:
         OutOfMemory,      // 메모리 부족
         UnknownError      // 알 수 없는 에러
     };
+    using enum EType;
 
-    static FileReadError FileNotFound(String&& msg)     { return { EType::FileNotFound,     std::move(msg) }; }
-    static FileReadError FileOpenFailed(String&& msg)   { return { EType::FileOpenFailed,   std::move(msg) }; }
-    static FileReadError PermissionDenied(String&& msg) { return { EType::PermissionDenied, std::move(msg) }; }
-    static FileReadError InvalidFormat(String&& msg)    { return { EType::InvalidFormat,    std::move(msg) }; }
-    static FileReadError ReadFailed(String&& msg)       { return { EType::ReadFailed,       std::move(msg) }; }
-    static FileReadError WriteFailed(String&& msg)      { return { EType::WriteFailed,      std::move(msg) }; }
-    static FileReadError EndOfFile(String&& msg)        { return { EType::EndOfFile,        std::move(msg) }; }
-    static FileReadError OutOfMemory(String&& msg)      { return { EType::OutOfMemory,      std::move(msg) }; }
-    static FileReadError UnknownError(String&& msg)     { return { EType::UnknownError,     std::move(msg) }; }
+public:
+    FileReadError(EType in_type, String&& msg)
+        : type(in_type), message(std::move(msg)) {}
 
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
@@ -50,9 +45,6 @@ public:
     [[nodiscard]] EType GetType() const noexcept { return type; }
 
 private:
-    FileReadError(EType in_type, String&& msg)
-        : type(in_type), message(std::move(msg)) {}
-
     EType type;
     String message;
 };

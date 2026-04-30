@@ -187,12 +187,10 @@ ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileSha
     FileResult<String> source_result = FileSystem::ReadToString(hlsl_path);
     if (!source_result.HasValue())
     {
-        return Unexpected{
-            ShaderCompileError(
-                ShaderCompileError::ECode::ReadFailed,
-                String::Format("Failed to read shader file: {}", hlsl_path),
-                hlsl_path
-            )
+        return Unexpected<ShaderCompileError>{
+            ShaderCompileError::ReadFailed,
+            String::Format("Failed to read shader file: {}", hlsl_path),
+            hlsl_path
         };
     }
 
@@ -202,12 +200,10 @@ ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileSha
     const auto stem_opt = hlsl_path.FileStem();
     if (!stem_opt.HasValue())
     {
-        return Unexpected{
-            ShaderCompileError(
-                ShaderCompileError::ECode::ReadFailed,
-                String::Format("Failed to get file stem: {}", hlsl_path),
-                hlsl_path
-            )
+        return Unexpected<ShaderCompileError>{
+            ShaderCompileError::ReadFailed,
+            String::Format("Failed to get file stem: {}", hlsl_path),
+            hlsl_path
         };
     }
     const String& file_stem = *stem_opt;
@@ -215,12 +211,10 @@ ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileSha
     // pragma가 없으면 에러
     if (pragmas.IsEmpty())
     {
-        return Unexpected{
-            ShaderCompileError(
-                ShaderCompileError::ECode::NoPragma,
-                String::Format("No #pragma se_shader found in shader: {}", hlsl_path),
-                hlsl_path
-            )
+        return Unexpected<ShaderCompileError>{
+            ShaderCompileError::NoPragma,
+            String::Format("No #pragma se_shader found in shader: {}", hlsl_path),
+            hlsl_path
         };
     }
 

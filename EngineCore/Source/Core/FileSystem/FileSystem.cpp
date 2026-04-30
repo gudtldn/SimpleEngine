@@ -346,9 +346,9 @@ FileResult<String> FileSystem::ReadToString(const Path& path)
     {
         if (!path.Exists())
         {
-            return Unexpected{ FileReadError::FileNotFound("File not found: " + path_str) };
+            return Unexpected<FileReadError>{ FileReadError::FileNotFound, "File not found: " + path_str };
         }
-        return Unexpected{ FileReadError::FileOpenFailed("Failed to open file: " + path_str) };
+        return Unexpected<FileReadError>{ FileReadError::FileOpenFailed, "Failed to open file: " + path_str };
     }
 
     String content(static_cast<const char*>(data), static_cast<usize>(size));
@@ -366,9 +366,9 @@ FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
     {
         if (!path.Exists())
         {
-            return Unexpected{ FileReadError::FileNotFound("File not found: " + path_str) };
+            return Unexpected<FileReadError>{ FileReadError::FileNotFound, "File not found: " + path_str };
         }
-        return Unexpected{ FileReadError::FileOpenFailed("Failed to open file: " + path_str) };
+        return Unexpected<FileReadError>{ FileReadError::FileOpenFailed, "Failed to open file: " + path_str };
     }
 
     Array<uint8> result;
@@ -390,14 +390,16 @@ std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path 
     {
         if (!path.Exists())
         {
-            co_yield Unexpected{
-                FileReadError::FileNotFound(String::Format("File not found: {}", path_str))
+            co_yield Unexpected<FileReadError>{
+                FileReadError::FileNotFound,
+                String::Format("File not found: {}", path_str)
             };
         }
         else
         {
-            co_yield Unexpected{
-                FileReadError::FileOpenFailed(String::Format("Failed to open file: {} ({})", path_str, SDL_GetError()))
+            co_yield Unexpected<FileReadError>{
+                FileReadError::FileOpenFailed,
+                String::Format("Failed to open file: {} ({})", path_str, SDL_GetError())
             };
         }
         co_return;
@@ -426,8 +428,9 @@ std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path 
             // 에러인지 단순 EOF인지 판별
             if (SDL_GetIOStatus(stream) == SDL_IO_STATUS_ERROR)
             {
-                co_yield Unexpected{
-                    FileReadError::ReadFailed(String::Format("Failed to read file: {} ({})", path_str, SDL_GetError()))
+                co_yield Unexpected<FileReadError>{
+                    FileReadError::ReadFailed,
+                    String::Format("Failed to read file: {} ({})", path_str, SDL_GetError())
                 };
             }
             break;

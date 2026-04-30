@@ -14,7 +14,7 @@ namespace se::editor
 class ShaderCompileError final : public IError
 {
 public:
-    enum class ECode : uint8
+    enum class EType : uint8
     {
         FileNotFound,  // 소스 파일을 찾을 수 없음
         ReadFailed,    // 소스 파일 읽기 실패
@@ -23,9 +23,10 @@ public:
         NotSupported,  // 현재 플랫폼에서 컴파일 미지원
         NoPragma,      // #pragma se_shader가 없음
     };
+    using enum EType;
 
-    ShaderCompileError(ECode code, String message, Path source_path = {})
-        : code(code)
+    ShaderCompileError(EType type, String message, Path source_path = {})
+        : type(type)
         , message(std::move(message))
         , source_path(std::move(source_path))
     {
@@ -34,11 +35,11 @@ public:
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
 
-    [[nodiscard]] ECode GetCode() const noexcept { return code; }
+    [[nodiscard]] EType GetType() const noexcept { return type; }
     [[nodiscard]] const Path& GetSourcePath() const noexcept { return source_path; }
 
 private:
-    ECode code;
+    EType type;
     String message;
     Path source_path;
 };

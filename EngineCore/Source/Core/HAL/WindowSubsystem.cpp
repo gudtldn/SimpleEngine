@@ -17,11 +17,6 @@ SE_BEGIN_REFLECT(WindowSubsystem, meta::Internal)
 SE_END_REFLECT(WindowSubsystem)
 
 
-WindowCreateError WindowCreateError::CreationFailed(String&& sdl_error)
-{
-    return WindowCreateError{ std::move(sdl_error) };
-}
-
 bool WindowSubsystem::Initialize()
 {
     ConsoleLog(ELogLevel::Info, "Initializing Window Subsystem...");
@@ -105,10 +100,9 @@ Expected<SDL_WindowID, WindowCreateError> WindowSubsystem::CreateWindow(const Wi
 
     if (!new_window)
     {
-        return Unexpected{
-            WindowCreateError::CreationFailed(
-                String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
-            )
+        return Unexpected<WindowCreateError>{
+            WindowCreateError::CreationFailed,
+            String::Format("SDL_CreateWindow failed: {}", SDL_GetError())
         };
     }
 

@@ -30,12 +30,10 @@ ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
     }
     else
     {
-        return Unexpected{
-            ShaderCompileError(
-                ShaderCompileError::ECode::ReadFailed,
-                String::Format("Failed to read shader file: {}, Err: {}", hlsl_path, result.Error().What()),
-                hlsl_path
-            )
+        return Unexpected<ShaderCompileError>{
+            ShaderCompileError::ReadFailed,
+            String::Format("Failed to read shader file: {}, Err: {}", hlsl_path, result.Error().What()),
+            hlsl_path
         };
     }
 
@@ -69,12 +67,10 @@ ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
     void* spirv_bytecode = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
     if (!spirv_bytecode)
     {
-        return Unexpected{
-            ShaderCompileError(
-                ShaderCompileError::ECode::CompileFailed,
-                String::Format("Failed to compile HLSL to SPIR-V: {} (entry: {}), Err: {}",hlsl_path, entrypoint, SDL_GetError()),
-                hlsl_path
-            )
+        return Unexpected<ShaderCompileError>{
+            ShaderCompileError::CompileFailed,
+            String::Format("Failed to compile HLSL to SPIR-V: {} (entry: {}), Err: {}",hlsl_path, entrypoint, SDL_GetError()),
+            hlsl_path
         };
     }
 
@@ -87,12 +83,10 @@ ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
     return result;
 
 #else
-    return Unexpected{
-        ShaderCompileError(
-            ShaderCompileError::ECode::NotSupported,
-            String::Format("HLSL compilation is not available on this platform: {}", hlsl_path),
-            hlsl_path
-        )
+    return Unexpected<ShaderCompileError>{
+        ShaderCompileError::NotSupported,
+        String::Format("HLSL compilation is not available on this platform: {}", hlsl_path),
+        hlsl_path
     };
 #endif
 }

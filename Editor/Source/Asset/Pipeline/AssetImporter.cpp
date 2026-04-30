@@ -67,8 +67,8 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     if (!translator_opt)
     {
         ConsoleLog(ELogLevel::Error, "No suitable translator found for file: {}", file_path);
-        return Unexpected(ImportError{
-            ImportError::ECode::NoTranslator,
+        return Unexpected<ImportError>({
+            ImportError::NoTranslator,
             "No suitable translator found",
             file_path
         });
@@ -101,8 +101,8 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     // 순환 의존성 감지 시 실패 반환
     if (sorted_nodes.IsEmpty() && !container.GetAllNodes().IsEmpty())
     {
-        return Unexpected(ImportError{
-            ImportError::ECode::CyclicDependency,
+        return Unexpected<ImportError>({
+            ImportError::CyclicDependency,
             "Cyclic dependency detected in pipeline nodes",
             file_path
         });
@@ -160,8 +160,8 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     ImportResult result = result_builder.Build();
     if (result.IsEmpty())
     {
-        return Unexpected(ImportError{
-            ImportError::ECode::FactoryFailed,
+        return Unexpected<ImportError>({
+            ImportError::FactoryFailed,
             "No assets were created from the file",
             file_path
         });

@@ -34,13 +34,27 @@ struct WindowDesc
 class SE_CORE_API WindowCreateError : public IError
 {
 public:
-    static WindowCreateError CreationFailed(String&& sdl_error);
+    enum class EType
+    {
+        CreationFailed,
+        Unknown
+    };
+    using enum EType;
+
+public:
+    explicit WindowCreateError(EType type, String&& in_message)
+        : type(type)
+        , message(std::move(in_message))
+    {
+    }
 
     [[nodiscard]] virtual const char* What() const noexcept override { return message.CStr(); }
     [[nodiscard]] virtual const IError* Source() const noexcept override { return nullptr; }
 
+    [[nodiscard]] EType GetType() const noexcept { return type; }
+
 private:
-    explicit WindowCreateError(String&& in_message) : message(std::move(in_message)) {}
+    EType type;
     String message;
 };
 

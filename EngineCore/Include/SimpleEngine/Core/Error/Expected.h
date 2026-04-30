@@ -589,6 +589,13 @@ public:
     {
     }
 
+    template <typename... Args>
+        requires std::constructible_from<ErrorType, Args...>
+    constexpr explicit Unexpected(Args&&... args)
+        : error_value(std::forward<Args>(args)...)
+    {
+    }
+
     constexpr Unexpected(const Unexpected&) = default;
     constexpr Unexpected(Unexpected&&) noexcept = default;
     constexpr Unexpected& operator=(const Unexpected&) = default;
