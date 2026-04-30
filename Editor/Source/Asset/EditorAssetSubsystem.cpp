@@ -8,6 +8,7 @@
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
+#include "SimpleEditor/Asset/Pipeline/Factories/TextureFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
@@ -96,6 +97,7 @@ bool EditorAssetSubsystem::Initialize()
 
         // Register Factories
         importer->RegisterFactory<StaticMeshFactory>();
+        importer->RegisterFactory<TextureFactory>();
     }
 
     // Translator별 기본 ImportProfile 프리셋 등록

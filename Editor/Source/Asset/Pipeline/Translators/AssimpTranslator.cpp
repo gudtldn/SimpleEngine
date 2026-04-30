@@ -1,6 +1,8 @@
 // NOLINTBEGIN(*-reserved-identifier)
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 
+#include "Asset/Pipeline/Translators/AssimpTextureExtractor.h"
+
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
@@ -329,6 +331,9 @@ void AssimpTranslator::Translate(
         // PTV 활성: 이미 Z-up (convert=false) | PTV 비활성: 수동 변환 (convert=true)
         ProcessNodeIterative(scene->mRootNode, scene, !use_ptv, out_container);
     }
+
+    // 텍스처 노드 생성 | TODO: 반환값은 이 다음 AssimpMaterialExtractor에서 사용 예정
+    [[maybe_unused]] const TextureExtractionResult texture_result = AssimpTextureExtractor::ExtractTexturesFromScene(scene, file_path, out_container);
 }
 } // namespace se::editor
 // NOLINTEND(*-reserved-identifier)
