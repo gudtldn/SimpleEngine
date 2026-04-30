@@ -112,7 +112,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     // 4단계: Factory 실행 (Nodes -> Assets)
     // ---------------------------------------------------------
     ImportResult::Builder result_builder;
-    HashMap<Guid, std::shared_ptr<asset::AssetBase>> created_assets_map;
+    HashMap<Guid, std::shared_ptr<AssetBase>> created_assets_map;
 
     // Factory가 참조할 Context 생성
     const PipelineImportContext context{
@@ -139,7 +139,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
                     if (factory->CanCreateAsset(node))
                     {
                         ZoneScopedN("Factory::CreateAsset"); // NOLINT(*-lambda-function-name)
-                        if (const std::shared_ptr<asset::AssetBase> new_asset = factory->CreateAsset(node, context))
+                        if (const std::shared_ptr<AssetBase> new_asset = factory->CreateAsset(node, context))
                         {
                             created_assets_map.Insert(node->GetUid(), new_asset);
 

@@ -6,7 +6,7 @@
 #include "SimpleEngine/Utility/HashUtils.h"
 
 
-namespace se::asset
+namespace se
 {
 /**
  * Asset의 소스 파일 경로와 Sub-Asset 이름을 결합한 식별 경로
@@ -52,12 +52,12 @@ private:
     VPath file_path;
     String sub_asset_name;
 };
-} // namespace se::asset
+} // namespace se
 
 template <>
-struct std::hash<se::asset::AssetPath>
+struct std::hash<se::AssetPath>
 {
-    size_t operator()(const se::asset::AssetPath& path) const noexcept
+    size_t operator()(const se::AssetPath& path) const noexcept
     {
         usize hash = 0;
         se::HashUtils::Combine(hash, path.GetFilePath(), path.GetSubAssetName());

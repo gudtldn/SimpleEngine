@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
-namespace se::asset
+namespace se
 {
 SE_BEGIN_REFLECT(AssetDependencyEntry, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(source_vpath, meta::Property)
@@ -26,4 +26,4 @@ SE_BEGIN_REFLECT(AssetMetadata, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(settings_hash, meta::Property)
     SE_REFLECT_PROPERTY(sub_assets, meta::Property)
 SE_END_REFLECT(AssetMetadata)
-} // namespace se::asset
+} // namespace se

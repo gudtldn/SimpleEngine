@@ -32,7 +32,7 @@ GpuResourceManager::~GpuResourceManager()
 
 bool GpuResourceManager::UploadMesh(
     SDL_GPUCommandBuffer* in_cmd,
-    const asset::AssetId& in_id,
+    const AssetId& in_id,
     const void* in_vertex_data, uint32 in_vertex_size,
     const void* in_index_data, uint32 in_index_size
 )
@@ -114,20 +114,20 @@ bool GpuResourceManager::UploadMesh(
     return true;
 }
 
-void GpuResourceManager::UnloadMesh(const asset::AssetId& in_id)
+void GpuResourceManager::UnloadMesh(const AssetId& in_id)
 {
     // TODO: Defragmentation 시스템 도입 시 실제 메모리 회수 로직 추가 필요
     slice_map.Remove(in_id);
 }
 
-Optional<const GpuBufferSlice&> GpuResourceManager::GetSlice(const asset::AssetId& in_id) const
+Optional<const GpuBufferSlice&> GpuResourceManager::GetSlice(const AssetId& in_id) const
 {
     return slice_map.Find(in_id);
 }
 
 bool GpuResourceManager::UploadTexture(
     SDL_GPUCommandBuffer* in_cmd,
-    const asset::AssetId& in_id,
+    const AssetId& in_id,
     const SDL_Surface* in_surface,
     TextureUploadSettings in_settings
 )
@@ -260,7 +260,7 @@ bool GpuResourceManager::UploadTexture(
     return true;
 }
 
-Optional<const TextureResource&> GpuResourceManager::GetTexture(const asset::AssetId& in_id) const
+Optional<const TextureResource&> GpuResourceManager::GetTexture(const AssetId& in_id) const
 {
     return texture_map
         .Find(in_id)
@@ -270,7 +270,7 @@ Optional<const TextureResource&> GpuResourceManager::GetTexture(const asset::Ass
         });
 }
 
-void GpuResourceManager::UnloadTexture(const asset::AssetId& in_id)
+void GpuResourceManager::UnloadTexture(const AssetId& in_id)
 {
     if (const Optional<RID> texture_rid = texture_map.Find(in_id))
     {

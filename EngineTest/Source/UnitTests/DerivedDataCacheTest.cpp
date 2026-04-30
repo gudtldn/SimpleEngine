@@ -9,8 +9,6 @@
 #include "SDL3/SDL_filesystem.h"
 
 using namespace se;
-using namespace se::asset;
-
 
 namespace
 {

@@ -2,8 +2,8 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
-namespace se::asset
+namespace se
 {
 SE_BEGIN_REFLECT(AssetBase, meta::SerializeOnly)
 SE_END_REFLECT(AssetBase)
-} // namespace se::asset
+} // namespace se

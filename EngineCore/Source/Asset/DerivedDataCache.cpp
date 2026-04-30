@@ -8,7 +8,7 @@
 #include "tracy/Tracy.hpp"
 
 
-namespace se::asset
+namespace se
 {
 namespace
 {
@@ -294,4 +294,4 @@ Path DerivedDataCache::BuildTempPath(const Guid& guid) const
 
     return root_path / bucket / filename;
 }
-} // namespace se::asset
+} // namespace se

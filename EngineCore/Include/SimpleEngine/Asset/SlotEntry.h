@@ -9,7 +9,7 @@
 #include <atomic>
 
 
-namespace se::asset
+namespace se
 {
 /**
  * Asset의 로딩 상태
@@ -117,4 +117,4 @@ public:
         state.notify_all();
     }
 };
-} // namespace se::asset
+} // namespace se

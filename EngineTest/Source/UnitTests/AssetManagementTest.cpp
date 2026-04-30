@@ -11,7 +11,7 @@
 #include "SimpleEngine/Core/Types/VPath.h"
 
 using namespace se;
-using namespace se::asset;
+using namespace se;
 
 namespace
 {

@@ -42,7 +42,7 @@ public:
      * @param id 의존성을 설정할 에셋의 ID
      * @param dependencies 이 에셋이 의존하는 대상 ID 목록
      */
-    void SetDependencies(const asset::AssetId& id, ArrayView<const asset::AssetId> dependencies);
+    void SetDependencies(const AssetId& id, ArrayView<const AssetId> dependencies);
 
     /**
      * 그래프에서 노드를 완전 제거합니다. (순방향 + 역방향 모두)
@@ -50,7 +50,7 @@ public:
      * 에셋 삭제 시 Registry.UnregisterAsset과 함께 호출합니다.
      * @param id 제거할 에셋의 ID
      */
-    void RemoveNode(const asset::AssetId& id);
+    void RemoveNode(const AssetId& id);
 
     /** 그래프의 모든 데이터를 초기화합니다. */
     void Clear();
@@ -61,14 +61,14 @@ public:
      * @param id 조회할 에셋의 ID
      * @return 순방향 의존성 목록 (복사본)
      */
-    [[nodiscard]] Array<asset::AssetId> GetDependencies(const asset::AssetId& id) const;
+    [[nodiscard]] Array<AssetId> GetDependencies(const AssetId& id) const;
 
     /**
      * 주어진 에셋에 직접 의존하는(다른 에셋이 나를 필요로 하는) 에셋 목록을 반환합니다. (역방향)
      * @param id 조회할 에셋의 ID
      * @return 역방향 의존성 목록 (복사본)
      */
-    [[nodiscard]] Array<asset::AssetId> GetDependents(const asset::AssetId& id) const;
+    [[nodiscard]] Array<AssetId> GetDependents(const AssetId& id) const;
 
     /**
      * 에셋에 직/간접적으로 의존하는 모든 대상을 BFS로 수집합니다.
@@ -77,7 +77,7 @@ public:
      * @param id 기준 에셋의 ID
      * @return 전이적 역방향 의존 목록 (id 자신은 포함하지 않음)
      */
-    [[nodiscard]] Array<asset::AssetId> GetTransitiveDependents(const asset::AssetId& id) const;
+    [[nodiscard]] Array<AssetId> GetTransitiveDependents(const AssetId& id) const;
 
     /**
      * from -> to 의존성을 추가했을 때 순환이 발생하는지 검사합니다.
@@ -85,7 +85,7 @@ public:
      * @param to 의존 대상 에셋 ID
      * @return 순환이 발생하면 true
      */
-    [[nodiscard]] bool HasCyclicDependency(const asset::AssetId& from, const asset::AssetId& to) const;
+    [[nodiscard]] bool HasCyclicDependency(const AssetId& from, const AssetId& to) const;
 
     /**
      * 전체 그래프의 위상 정렬 결과를 반환합니다. (Kahn's Algorithm)
@@ -94,7 +94,7 @@ public:
      * @note 순환이 있으면 빈 배열을 반환합니다.
      * @return 위상 정렬된 AssetId 목록 (의존 대상이 앞에 위치)
      */
-    [[nodiscard]] Array<asset::AssetId> TopologicalSort() const;
+    [[nodiscard]] Array<AssetId> TopologicalSort() const;
 
     /** 그래프에 등록된 노드(에셋) 수를 반환합니다. */
     [[nodiscard]] uint32 GetNodeCount() const;
@@ -104,14 +104,14 @@ private:
      * from에서 target까지 순방향으로 도달 가능한지 BFS로 검사합니다. (내부 전용)
      * @pre graph_mutex를 호출자가 이미 보유해야 합니다. (shared 또는 unique)
      */
-    [[nodiscard]] bool HasPathInternal(const asset::AssetId& from, const asset::AssetId& target) const;
+    [[nodiscard]] bool HasPathInternal(const AssetId& from, const AssetId& target) const;
 
     mutable TracySharedLockable(std::shared_mutex, graph_mutex);
 
     /** 순방향 인덱스: A -> {B, C} (A가 B, C에 의존) */
-    HashMap<asset::AssetId, Array<asset::AssetId>> forward_deps;
+    HashMap<AssetId, Array<AssetId>> forward_deps;
 
     /** 역방향 인덱스: B -> {A, D} (A, D가 B에 의존) */
-    HashMap<asset::AssetId, Array<asset::AssetId>> reverse_deps;
+    HashMap<AssetId, Array<AssetId>> reverse_deps;
 };
 } // namespace se::editor

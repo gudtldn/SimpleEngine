@@ -10,7 +10,7 @@
 #include <mutex>
 
 
-namespace se::asset
+namespace se
 {
 /**
  * 로드된 Asset의 Slot(MemoryBlock)을 관리하는 런타임 저장소
@@ -136,4 +136,4 @@ private:
     uint32 max_evictions_per_frame = 32;   // 메모리 부족시 프레임당 최대 제거 수
     uint32 max_destructions_per_frame = 8; // 일반적인 프레임당 최대 제거 수
 };
-} // namespace se::asset
+} // namespace se

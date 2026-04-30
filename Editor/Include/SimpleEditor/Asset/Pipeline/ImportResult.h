@@ -66,8 +66,8 @@ class SE_EDITOR_API ImportResult final
 public:
     class Builder; // Forward Declaration
 
-    using IteratorType = Array<std::shared_ptr<asset::AssetBase>>::IteratorType;
-    using ConstIteratorType = Array<std::shared_ptr<asset::AssetBase>>::ConstIteratorType;
+    using IteratorType = Array<std::shared_ptr<AssetBase>>::IteratorType;
+    using ConstIteratorType = Array<std::shared_ptr<AssetBase>>::ConstIteratorType;
 
 public:
     ImportResult() = default;
@@ -79,7 +79,7 @@ public:
     ImportResult& operator=(ImportResult&&) noexcept = default;
 
 public:
-    [[nodiscard]] FORCE_INLINE const Array<std::shared_ptr<asset::AssetBase>>& GetAssets() const { return assets; }
+    [[nodiscard]] FORCE_INLINE const Array<std::shared_ptr<AssetBase>>& GetAssets() const { return assets; }
     [[nodiscard]] FORCE_INLINE const HashMap<String, uint32>& GetNameToIndexMap() const { return name_to_index; }
 
     /** Asset이 존재하는지 확인합니다. */
@@ -89,13 +89,13 @@ public:
     [[nodiscard]] FORCE_INLINE uint32 GetCount() const { return static_cast<uint32>(assets.Len()); }
 
     /** 메인 Asset을 반환합니다. (없으면 nullptr) */
-    [[nodiscard]] std::shared_ptr<asset::AssetBase> GetMainAsset() const;
+    [[nodiscard]] std::shared_ptr<AssetBase> GetMainAsset() const;
 
     /** 인덱스로 Asset을 조회합니다. */
-    [[nodiscard]] std::shared_ptr<asset::AssetBase> GetAsset(uint32 index) const;
+    [[nodiscard]] std::shared_ptr<AssetBase> GetAsset(uint32 index) const;
 
     /** 이름으로 Sub-Asset을 조회합니다. (없으면 nullptr) */
-    [[nodiscard]] std::shared_ptr<asset::AssetBase> FindByName(StringView name) const;
+    [[nodiscard]] std::shared_ptr<AssetBase> FindByName(StringView name) const;
 
     /** 새로 만들어진 모든 에셋의 이름 목록을 반환합니다. */
     [[nodiscard]] Array<StringView> GetAllNames() const;
@@ -103,7 +103,7 @@ public:
 public:
     /** 메인 Asset을 특정 타입으로 반환합니다. */
     template <typename T>
-        requires std::derived_from<T, asset::AssetBase>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] std::shared_ptr<T> GetMainAsset() const
     {
         return CastAsset<T>(GetMainAsset());
@@ -111,7 +111,7 @@ public:
 
     /** 이름으로 특정 타입의 Sub-Asset을 조회합니다. */
     template <typename T>
-        requires std::derived_from<T, asset::AssetBase>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] std::shared_ptr<T> FindByName(StringView name) const
     {
         return CastAsset<T>(FindByName(name));
@@ -119,7 +119,7 @@ public:
 
     /** 인덱스로 특정 타입의 Asset을 조회합니다. */
     template <typename T>
-        requires std::derived_from<T, asset::AssetBase>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] std::shared_ptr<T> GetAsset(uint32 index) const
     {
         return CastAsset<T>(GetAsset(index));
@@ -127,7 +127,7 @@ public:
 
     /** 특정 타입의 모든 Asset을 반환합니다. */
     template <typename T>
-        requires std::derived_from<T, asset::AssetBase>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] Array<std::shared_ptr<T>> GetAllOfType() const
     {
         Array<std::shared_ptr<T>> result;
@@ -146,7 +146,7 @@ public:
 
     /** 첫 번째로 발견되는 특정 타입의 Asset을 반환합니다. */
     template <typename T>
-        requires std::derived_from<T, asset::AssetBase>
+        requires std::derived_from<T, AssetBase>
     [[nodiscard]] std::shared_ptr<T> GetFirstOfType() const
     {
         const TypeId target_type = TypeId::Get<T>();
@@ -169,13 +169,13 @@ public:
 
 private:
     ImportResult(
-        Array<std::shared_ptr<asset::AssetBase>> assets,
+        Array<std::shared_ptr<AssetBase>> assets,
         HashMap<String, uint32> name_to_index,
         uint32 main_asset_index
     );
 
     template <typename T>
-    [[nodiscard]] std::shared_ptr<T> CastAsset(const std::shared_ptr<asset::AssetBase>& asset) const
+    [[nodiscard]] std::shared_ptr<T> CastAsset(const std::shared_ptr<AssetBase>& asset) const
     {
         if (asset)
         {
@@ -190,7 +190,7 @@ private:
 
 private:
     /** 생성된 모든 Asset 목록 */
-    Array<std::shared_ptr<asset::AssetBase>> assets;
+    Array<std::shared_ptr<AssetBase>> assets;
 
     /** Sub-Asset 이름 -> 인덱스 매핑 */
     HashMap<String, uint32> name_to_index;
@@ -212,7 +212,7 @@ public:
      * @param asset 등록할 Asset
      * @param name 식별 이름 (중복 시 자동 변경됨)
      */
-    uint32 RegisterAsset(std::shared_ptr<asset::AssetBase> asset, const String& name = {});
+    uint32 RegisterAsset(std::shared_ptr<AssetBase> asset, const String& name = {});
 
     /** 메인 에셋의 인덱스를 설정합니다. */
     void SetMainAssetIndex(uint32 index);
@@ -225,7 +225,7 @@ private:
     [[nodiscard]] String MakeUniqueName(const String& base_name);
 
 private:
-    Array<std::shared_ptr<asset::AssetBase>> assets;
+    Array<std::shared_ptr<AssetBase>> assets;
     HashMap<String, uint32> name_to_index;
     HashMap<String, uint32> next_suffix_map; // 임시 상태 저장용
     uint32 main_asset_index = 0;

@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/Types/Path.h"
 
 
-namespace se::asset
+namespace se
 {
 /**
  * DDC 캐시 파일에서 읽어온 엔트리 정보
@@ -132,4 +132,4 @@ private:
 private:
     Path root_path;
 };
-} // namespace se::asset
+} // namespace se

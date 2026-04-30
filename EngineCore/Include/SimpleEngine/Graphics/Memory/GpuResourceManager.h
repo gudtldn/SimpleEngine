@@ -65,7 +65,7 @@ public:
      */
     bool UploadMesh(
         SDL_GPUCommandBuffer* in_cmd,
-        const asset::AssetId& in_id,
+        const AssetId& in_id,
         const void* in_vertex_data, uint32 in_vertex_size,
         const void* in_index_data, uint32 in_index_size
     );
@@ -76,7 +76,7 @@ public:
      *       단순 slice_map(AssetId 매핑)에서 제거되어 접근을 막는 함수 입니다.
      * @param in_id 해제할 Asset ID
      */
-    void UnloadMesh(const asset::AssetId& in_id);
+    void UnloadMesh(const AssetId& in_id);
 
     /**
      * AssetId에 매핑된 GPU 버퍼 슬라이스(위치 정보)를 반환합니다.
@@ -84,7 +84,7 @@ public:
      * @param in_id Asset ID
      * @return 유효한 GpuBufferSlice, 찾지 못하면 NullOpt 반환
      */
-    [[nodiscard]] Optional<const GpuBufferSlice&> GetSlice(const asset::AssetId& in_id) const;
+    [[nodiscard]] Optional<const GpuBufferSlice&> GetSlice(const AssetId& in_id) const;
 
     /**
      * CPU Surface(이미지)를 GPU Texture로 변환하여 업로드합니다.
@@ -98,7 +98,7 @@ public:
      */
     bool UploadTexture(
         SDL_GPUCommandBuffer* in_cmd,
-        const asset::AssetId& in_id,
+        const AssetId& in_id,
         const SDL_Surface* in_surface,
         TextureUploadSettings in_settings = TextureUploadSettings{}
     );
@@ -109,13 +109,13 @@ public:
      * @param in_id Asset ID
      * @return 유효한 TextureResource, 찾지 못하면 NullOpt 반환
      */
-    [[nodiscard]] Optional<const TextureResource&> GetTexture(const asset::AssetId& in_id) const;
+    [[nodiscard]] Optional<const TextureResource&> GetTexture(const AssetId& in_id) const;
 
     /**
      * 특정 텍스처를 GPU 메모리에서 즉시 해제합니다.
      * @param in_id 해제할 Asset ID
      */
-    void UnloadTexture(const asset::AssetId& in_id);
+    void UnloadTexture(const AssetId& in_id);
 
 private:
     // 기본 블록 크기 (128MB)
@@ -133,9 +133,9 @@ private:
     Array<GpuMemoryBlock> geometry_blocks;
 
     // AssetId -> GPU 메모리 위치 매핑
-    HashMap<asset::AssetId, GpuBufferSlice> slice_map;
+    HashMap<AssetId, GpuBufferSlice> slice_map;
 
     // AssetId -> GPU Texture 매핑
-    HashMap<asset::AssetId, RID> texture_map;
+    HashMap<AssetId, RID> texture_map;
 };
 } // namespace se::graphics

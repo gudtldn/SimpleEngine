@@ -15,7 +15,7 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 
-namespace se::asset
+namespace se
 {
 SE_REGISTER_SUBSYSTEM(AssetSubsystem);
 
@@ -461,4 +461,4 @@ HandleTable& AssetSubsystem::GetHandleTable() const
 {
     return pool->GetTable();
 }
-} // namespace se::asset
+} // namespace se

@@ -3,7 +3,7 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 
 
-namespace se::asset
+namespace se
 {
 /**
  * 역직렬화된 에셋 데이터와 소멸자를 함께 보관하는 구조체
@@ -19,4 +19,4 @@ struct AssetPayload
     /** 명시적 bool 변환 연산자입니다. IsValid()와 동일합니다. */
     [[nodiscard]] explicit operator bool() const { return IsValid(); }
 };
-} // namespace se::asset
+} // namespace se

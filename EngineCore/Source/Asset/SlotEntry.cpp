@@ -1,7 +1,7 @@
 ﻿#include "SimpleEngine/Asset/SlotEntry.h"
 
 
-namespace se::asset
+namespace se
 {
 SlotEntry::SlotEntry(const AssetId& in_id, const TypeId& in_type, AssetPath in_path)
     : asset_type{ in_type }
@@ -86,4 +86,4 @@ void SlotEntry::WaitForLoadComplete() const
         state.wait(ELoadingState::Loading, std::memory_order_acquire);
     }
 }
-} // namespace se::asset
+} // namespace se

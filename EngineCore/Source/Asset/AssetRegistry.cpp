@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
 
-namespace se::asset
+namespace se
 {
 SE_BEGIN_REFLECT(AssetRecord, meta::SerializeOnly)
     SE_REFLECT_PROPERTY(id, meta::Property)
@@ -276,4 +276,4 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
     ConsoleLog(ELogLevel::Info, "AssetRegistry loaded: {} assets from {}", records.Len(), file_path);
     return true;
 }
-} // namespace se::asset
+} // namespace se

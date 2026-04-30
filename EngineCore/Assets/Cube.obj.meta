@@ -17,4 +17,4 @@ source_size = 945
     dependencies = []
     guid = '03d014f6-eb8d-4670-8797-2601ff1c7adf'
     name = 'Cube'
-    type = 'se::asset::StaticMesh'
+    type = 'se::StaticMesh'

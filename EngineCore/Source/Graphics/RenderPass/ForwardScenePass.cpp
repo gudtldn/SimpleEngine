@@ -263,7 +263,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             if (!slice.HasValue())
             {
 #if SE_BUILD_DEBUG
-                static HashSet<asset::AssetId> logged_asset_ids;
+                static HashSet<AssetId> logged_asset_ids;
                 if (!logged_asset_ids.Contains(draw_command.mesh_id))
                 {
                     ConsoleLog(

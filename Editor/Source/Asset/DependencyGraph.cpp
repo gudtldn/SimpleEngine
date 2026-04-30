@@ -11,21 +11,18 @@
 
 namespace se::editor
 {
-void DependencyGraph::SetDependencies(
-    const asset::AssetId& id,
-    ArrayView<const asset::AssetId> dependencies
-)
+void DependencyGraph::SetDependencies(const AssetId& id, ArrayView<const AssetId> dependencies)
 {
     ZoneScopedN("DependencyGraph::SetDependencies");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
     // 0. 입력 중복 제거 + 자기 참조 필터링
-    Array<asset::AssetId> unique_deps;
+    Array<AssetId> unique_deps;
     {
-        HashSet<asset::AssetId> seen;
+        HashSet<AssetId> seen;
         seen.Reserve(dependencies.Len());
 
-        for (const asset::AssetId& dep : dependencies)
+        for (const AssetId& dep : dependencies)
         {
             if (dep == id)
             {
@@ -47,11 +44,11 @@ void DependencyGraph::SetDependencies(
     // 1. 기존 순방향 의존성에서 역방향 인덱스 정리
     if (const auto old_fwd = forward_deps.Find(id))
     {
-        for (const asset::AssetId& old_dep : *old_fwd)
+        for (const AssetId& old_dep : *old_fwd)
         {
             if (const auto rev = reverse_deps.Find(old_dep))
             {
-                Array<asset::AssetId>& arr = *rev;
+                Array<AssetId>& arr = *rev;
 
                 // 추후 성능상 문제가 생기면 HashSet이나, FlatSet으로 변경
                 if (const auto idx = arr.Find(id))
@@ -70,10 +67,10 @@ void DependencyGraph::SetDependencies(
     }
 
     // 2. 순환 의존성 필터링 (동일 unique_lock 내에서 원자적으로 수행 - TOCTOU 방지)
-    Array<asset::AssetId> safe_deps;
+    Array<AssetId> safe_deps;
     safe_deps.Reserve(unique_deps.Len());
 
-    for (const asset::AssetId& dep : unique_deps)
+    for (const AssetId& dep : unique_deps)
     {
         if (HasPathInternal(dep, id))
         {
@@ -91,16 +88,16 @@ void DependencyGraph::SetDependencies(
     {
         return;
     }
-    const Array<asset::AssetId>& inserted_deps = forward_deps.Insert(id, std::move(safe_deps));
+    const Array<AssetId>& inserted_deps = forward_deps.Insert(id, std::move(safe_deps));
 
     // 4. 새 역방향 인덱스 등록
-    for (const asset::AssetId& dep : inserted_deps)
+    for (const AssetId& dep : inserted_deps)
     {
         reverse_deps.Entry(dep).OrDefault().Push(id);
     }
 }
 
-void DependencyGraph::RemoveNode(const asset::AssetId& id)
+void DependencyGraph::RemoveNode(const AssetId& id)
 {
     ZoneScopedN("DependencyGraph::RemoveNode");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
@@ -110,11 +107,11 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
     // 1. 순방향 의존성에서 역방향 인덱스 정리
     if (const auto fwd = forward_deps.Find(id))
     {
-        for (const asset::AssetId& dep : *fwd)
+        for (const AssetId& dep : *fwd)
         {
             if (const auto rev = reverse_deps.Find(dep))
             {
-                Array<asset::AssetId>& arr = *rev;
+                Array<AssetId>& arr = *rev;
 
                 // 추후 성능상 문제가 생기면 HashSet이나, FlatSet으로 변경
                 if (const auto idx = arr.Find(id))
@@ -140,13 +137,13 @@ void DependencyGraph::RemoveNode(const asset::AssetId& id)
             // 나를 참조하는 대상이 있다면 경고
             ConsoleLog(ELogLevel::Warning, "Asset '{}' is being removed but still has {} dependents!", id.GetGuid(), rev->Len());
 
-            for (const asset::AssetId& dependent : *rev)
+            for (const AssetId& dependent : *rev)
             {
                 ConsoleLog(ELogLevel::Warning, "  - Dependent: {}", dependent.GetGuid());
 
                 if (const auto fwd = forward_deps.Find(dependent))
                 {
-                    Array<asset::AssetId>& arr = *fwd;
+                    Array<AssetId>& arr = *fwd;
                     if (const auto idx = arr.Find(id))
                     {
                         arr.RemoveAtSwap(*idx);
@@ -171,7 +168,7 @@ void DependencyGraph::Clear()
     reverse_deps.Clear();
 }
 
-Array<asset::AssetId> DependencyGraph::GetDependencies(const asset::AssetId& id) const
+Array<AssetId> DependencyGraph::GetDependencies(const AssetId& id) const
 {
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
@@ -179,7 +176,7 @@ Array<asset::AssetId> DependencyGraph::GetDependencies(const asset::AssetId& id)
     return forward_deps.Find(id).Copy().ValueOrDefault();
 }
 
-Array<asset::AssetId> DependencyGraph::GetDependents(const asset::AssetId& id) const
+Array<AssetId> DependencyGraph::GetDependents(const AssetId& id) const
 {
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
@@ -187,15 +184,15 @@ Array<asset::AssetId> DependencyGraph::GetDependents(const asset::AssetId& id) c
     return reverse_deps.Find(id).Copy().ValueOrDefault();
 }
 
-Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::AssetId& id) const
+Array<AssetId> DependencyGraph::GetTransitiveDependents(const AssetId& id) const
 {
     ZoneScopedN("DependencyGraph::GetTransitiveDependents");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
     std::shared_lock lock(graph_mutex);
 
-    Array<asset::AssetId> result;
-    HashSet<asset::AssetId> visited;
+    Array<AssetId> result;
+    HashSet<AssetId> visited;
 
     // BFS 큐 (역방향 전파)
     // 초기 타겟의 역방향 의존성들을 먼저 result에 추가
@@ -208,7 +205,7 @@ Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::Asse
         result.Reserve(initial_guess);
 
         visited.Insert(id);
-        for (const asset::AssetId& dependent : *rev)
+        for (const AssetId& dependent : *rev)
         {
             visited.Insert(dependent);
             result.Push(dependent);
@@ -219,10 +216,10 @@ Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::Asse
     usize read_idx = 0;
     while (read_idx < result.Len())
     {
-        const asset::AssetId current = result[read_idx++]; // Pop 없이 읽기만 함
+        const AssetId current = result[read_idx++]; // Pop 없이 읽기만 함
         if (const auto rev = reverse_deps.Find(current))
         {
-            for (const asset::AssetId& dependent : *rev)
+            for (const AssetId& dependent : *rev)
             {
                 if (!visited.Contains(dependent))
                 {
@@ -237,8 +234,8 @@ Array<asset::AssetId> DependencyGraph::GetTransitiveDependents(const asset::Asse
 }
 
 bool DependencyGraph::HasCyclicDependency(
-    const asset::AssetId& from,
-    const asset::AssetId& to
+    const AssetId& from,
+    const AssetId& to
 ) const
 {
     ZoneScopedN("DependencyGraph::HasCyclicDependency");
@@ -253,14 +250,14 @@ bool DependencyGraph::HasCyclicDependency(
     return HasPathInternal(to, from);
 }
 
-Array<asset::AssetId> DependencyGraph::TopologicalSort() const
+Array<AssetId> DependencyGraph::TopologicalSort() const
 {
     ZoneScopedN("DependencyGraph::TopologicalSort");
 
     std::shared_lock lock(graph_mutex);
 
     // 1. 모든 노드 수집
-    HashMap<asset::AssetId, uint32> dependency_count;
+    HashMap<AssetId, uint32> dependency_count;
 
     // forward_deps와 reverse_deps의 Key가 곧 전체 노드 집합
     for (const auto& [node, deps] : forward_deps)
@@ -268,7 +265,7 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
         // node가 의존하는 다른 노드의 수 (forward_deps의 크기)
         dependency_count.Insert(node, static_cast<uint32>(deps.Len()));
     }
-    for (const asset::AssetId& node : reverse_deps | std::views::keys)
+    for (const AssetId& node : reverse_deps | std::views::keys)
     {
         if (!dependency_count.Contains(node))
         {
@@ -277,7 +274,7 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
     }
 
     // 2. result 배열을 큐(Queue) 겸 최종 반환 배열로 사용
-    Array<asset::AssetId> result;
+    Array<AssetId> result;
     result.Reserve(dependency_count.Len());
 
     // 의존성이 없는 노드부터 탐색
@@ -293,12 +290,12 @@ Array<asset::AssetId> DependencyGraph::TopologicalSort() const
     usize read_idx = 0;
     while (read_idx < result.Len())
     {
-        const asset::AssetId current = result[read_idx++];
+        const AssetId current = result[read_idx++];
 
         // 나를 의존하던 노드(Dependents)의 미해결 의존성 수를 1 감소
         if (const auto rev = reverse_deps.Find(current))
         {
-            for (const asset::AssetId& dependent : *rev)
+            for (const AssetId& dependent : *rev)
             {
                 uint32& deg = dependency_count.FindChecked(dependent);
                 SE_ASSERT(deg > 0);
@@ -347,15 +344,15 @@ uint32 DependencyGraph::GetNodeCount() const
 }
 
 bool DependencyGraph::HasPathInternal(
-    const asset::AssetId& from,
-    const asset::AssetId& target
+    const AssetId& from,
+    const AssetId& target
 ) const
 {
     ZoneScopedN("DependencyGraph::HasPathInternal");
 
     // target에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
-    HashSet<asset::AssetId> visited;
-    Array<asset::AssetId> queue;
+    HashSet<AssetId> visited;
+    Array<AssetId> queue;
 
     // BFS 초기 세팅
     if (const auto fwd = forward_deps.Find(from))
@@ -366,7 +363,7 @@ bool DependencyGraph::HasPathInternal(
         queue.Reserve(initial_guess);
 
         visited.Insert(from);
-        for (const asset::AssetId& dep : *fwd)
+        for (const AssetId& dep : *fwd)
         {
             if (dep == target)
             {
@@ -380,10 +377,10 @@ bool DependencyGraph::HasPathInternal(
     usize read_idx = 0;
     while (read_idx < queue.Len())
     {
-        const asset::AssetId& current = queue[read_idx++];
+        const AssetId& current = queue[read_idx++];
         if (const auto fwd = forward_deps.Find(current))
         {
-            for (const asset::AssetId& dep : *fwd)
+            for (const AssetId& dep : *fwd)
             {
                 if (dep == target)
                 {

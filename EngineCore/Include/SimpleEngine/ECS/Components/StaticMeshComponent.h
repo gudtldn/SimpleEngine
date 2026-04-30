@@ -12,7 +12,7 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) StaticMeshCom
 {
     // Mesh Resource ID
     SE_ANNOTATION(=meta::Property)
-    asset::AssetId mesh_id;
+    AssetId mesh_id;
 
     // RenderData Cache 추가
 };

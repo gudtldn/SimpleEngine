@@ -16,7 +16,7 @@
 #include <shared_mutex>
 
 
-namespace se::asset
+namespace se
 {
 /**
  * AssetRegistry 내부에 저장되는 Asset의 전체 정보를 나타내는 구조체
@@ -153,6 +153,6 @@ bool AssetRegistry::ReadRecord(const AssetId& asset_id, Fn&& callback) const
     }
     return false;
 }
-} // namespace se::asset
+} // namespace se
 
-SE_DECLARE_REFLECTION(se::asset::AssetRecord)
+SE_DECLARE_REFLECTION(se::AssetRecord)

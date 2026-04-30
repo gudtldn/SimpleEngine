@@ -43,7 +43,7 @@ public:
     /**
      * 타입 이름을 이용해 TypeId를 생성합니다.
      * 만약 TypeRegistry에 없는 이름이면 빈 TypeId를 반환합니다.
-     * @note 이름은 namespace 포함 타입 이름입니다. (예: se::asset::Texture2D)
+     * @note 이름은 namespace 포함 타입 이름입니다. (예: se::Texture2D)
      */
     [[nodiscard]] static TypeId FromName(const StringName& in_type_name);
 

@@ -91,7 +91,7 @@ private:
      * @param source_vpath 소스 파일의 가상 경로
      * @param meta 메타데이터
      */
-    void RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta);
+    void RegisterFromMeta(const VPath& source_vpath, const AssetMetadata& meta);
 
     /**
      * 소스 파일과 import 설정의 변경 여부를 판별합니다.
@@ -122,14 +122,12 @@ private:
      * @param asset_id 의존성을 갱신할 에셋의 ID
      * @param dependencies .meta에서 읽은 의존성 항목 목록
      */
-    void SyncDependencies(
-        const asset::AssetId& asset_id,
-        ArrayView<const asset::AssetDependencyEntry> dependencies
-    );
+    void SyncDependencies(const AssetId& asset_id, ArrayView<const AssetDependencyEntry> dependencies);
 
 private:
+    AssetSubsystem* asset_subsystem = nullptr;
+
     std::unique_ptr<AssetImporter> importer;
-    asset::AssetSubsystem* asset_subsystem = nullptr;
     ImportPresetManager preset_manager;
     DependencyGraph dep_graph;
 

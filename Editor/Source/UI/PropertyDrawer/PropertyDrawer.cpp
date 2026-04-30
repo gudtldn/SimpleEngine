@@ -123,7 +123,7 @@ bool DrawTypeId(const char* label, void* value, const PropertyInfo& /*prop*/)
 
 bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
-    asset::AssetId& asset_id = *static_cast<asset::AssetId*>(value);
+    AssetId& asset_id = *static_cast<AssetId*>(value);
     bool modified = false;
 
     if (asset_id.IsValid())
@@ -147,7 +147,7 @@ bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
             // DrawerRegistry에 등록된 resolver를 통해 경로 -> AssetId 변환
             if (const AssetDropResolverFunc resolver = DrawerRegistry::Get().GetAssetDropResolver())
             {
-                const asset::AssetId resolved = resolver(dropped_path);
+                const AssetId resolved = resolver(dropped_path);
                 if (resolved.IsValid())
                 {
                     asset_id = resolved;
@@ -1143,22 +1143,22 @@ void DrawerRegistry::RegisterBuiltinDrawers()
     Register(TypeId::Get<double>(), &DrawArithmetic<double>);
 
     // --- String ---
-    Register(TypeId::Get<String>(),     &DrawString);
-    Register(TypeId::Get<StringName>(), &DrawStringName);
+    Register(TypeId::Get<String>(),      &DrawString);
+    Register(TypeId::Get<StringName>(),  &DrawStringName);
 
     // --- Identifiers ---
-    Register(TypeId::Get<Guid>(),           &DrawGuid);
-    Register(TypeId::Get<TypeId>(),         &DrawTypeId);
-    Register(TypeId::Get<asset::AssetId>(), &DrawAssetId);
-    Register(TypeId::Get<Entity>(),         &DrawEntity);
+    Register(TypeId::Get<Guid>(),        &DrawGuid);
+    Register(TypeId::Get<TypeId>(),      &DrawTypeId);
+    Register(TypeId::Get<AssetId>(),     &DrawAssetId);
+    Register(TypeId::Get<Entity>(),      &DrawEntity);
 
     // --- Math (double precision) ---
-    Register(TypeId::Get<Vector2>(),    &DrawVector2<double>);
-    Register(TypeId::Get<Vector3>(),    &DrawVector3<double>);
-    Register(TypeId::Get<Vector4>(),    &DrawVector4<double>);
-    Register(TypeId::Get<Quaternion>(), &DrawQuaternion<double>);
-    Register(TypeId::Get<Rotator>(),    &DrawRotator<double>);
-    Register(TypeId::Get<Matrix4x4>(),  &DrawMatrix4x4<double>);
+    Register(TypeId::Get<Vector2>(),     &DrawVector2<double>);
+    Register(TypeId::Get<Vector3>(),     &DrawVector3<double>);
+    Register(TypeId::Get<Vector4>(),     &DrawVector4<double>);
+    Register(TypeId::Get<Quaternion>(),  &DrawQuaternion<double>);
+    Register(TypeId::Get<Rotator>(),     &DrawRotator<double>);
+    Register(TypeId::Get<Matrix4x4>(),   &DrawMatrix4x4<double>);
 
     // --- Math (single precision) ---
     Register(TypeId::Get<Vector2f>(),    &DrawVector2<float>);

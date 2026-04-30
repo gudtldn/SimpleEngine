@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 
 
-namespace se::asset
+namespace se
 {
 enum class ETextureFormat : uint8
 {
@@ -40,4 +40,4 @@ public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint8> pixels;
 };
-} // namespace se::asset
+} // namespace se

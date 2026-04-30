@@ -441,7 +441,7 @@
   </Type>
 
   <!-- AssetId -->
-  <Type Name="se::asset::AssetId">
+  <Type Name="se::AssetId">
     <DisplayString>{guid}</DisplayString>
     <Expand>
       <Item Name="guid">guid</Item>
@@ -471,7 +471,7 @@
   </Type>
 
   <!-- AssetPath -->
-  <Type Name="se::asset::AssetPath">
+  <Type Name="se::AssetPath">
     <DisplayString Condition="sub_asset_name.data.size == 0">{file_path}</DisplayString>
     <DisplayString Condition="sub_asset_name.data.size != 0">{file_path}#{sub_asset_name}</DisplayString>
     <Expand>
@@ -481,7 +481,7 @@
   </Type>
 
   <!-- AssetHandle<T> -->
-  <Type Name="se::asset::AssetHandle&lt;*&gt;">
+  <Type Name="se::AssetHandle&lt;*&gt;">
     <Intrinsic Name="GetSlot" Expression="table->slots.data[index]"/>
     <Intrinsic Name="IsStale" Expression="GetSlot().generation != generation"/>
     <Intrinsic Name="GetAsset" Expression="($T1*)GetSlot().asset._Storage._Value"/>

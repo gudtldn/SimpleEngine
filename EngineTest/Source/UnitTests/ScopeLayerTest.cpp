@@ -8,7 +8,6 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 
 using namespace se;
-using namespace se::asset;
 
 
 // --- Mock Asset ---

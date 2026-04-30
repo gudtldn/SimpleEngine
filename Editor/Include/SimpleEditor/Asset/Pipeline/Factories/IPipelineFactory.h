@@ -15,9 +15,9 @@ namespace se::editor
 struct SE_EDITOR_API PipelineImportContext
 {
     const PipelineNodeContainer& container;
-    const HashMap<Guid, std::shared_ptr<asset::AssetBase>>& created_assets;
+    const HashMap<Guid, std::shared_ptr<AssetBase>>& created_assets;
 
-    [[nodiscard]] std::shared_ptr<asset::AssetBase> GetCreatedAsset(const Guid& node_uid) const
+    [[nodiscard]] std::shared_ptr<AssetBase> GetCreatedAsset(const Guid& node_uid) const
     {
         if (const Optional asset_opt = created_assets.Find(node_uid))
         {
@@ -47,7 +47,7 @@ public:
      * @param context 다른 노드나 에셋에 접근하기 위한 Context
      * @return 생성된 에셋 (실패 시 nullptr)
      */
-    virtual std::shared_ptr<asset::AssetBase> CreateAsset(
+    virtual std::shared_ptr<AssetBase> CreateAsset(
         PipelineBaseNode* node,
         const PipelineImportContext& context
     ) = 0;

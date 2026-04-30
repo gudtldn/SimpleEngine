@@ -7,10 +7,7 @@
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
-#include <ranges>
-
 using namespace se;
-using namespace se::asset;
 using namespace se::editor;
 
 

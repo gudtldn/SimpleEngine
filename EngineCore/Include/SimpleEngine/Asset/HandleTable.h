@@ -13,7 +13,7 @@
 #include <shared_mutex>
 
 
-namespace se::asset
+namespace se
 {
 /**
  * HandleTable에서 반환하는 핸들 데이터 (ECS의 Entity({id, generation})와 동일한 패턴)
@@ -171,4 +171,4 @@ private:
     // 현재 엔진 프레임 번호 (MarkForEviction -> last_access_frame 갱신용)
     std::atomic<uint64> current_frame = 0; // TODO: 나중에 중앙에서 한번에 관리할까?
 };
-} // namespace se::asset
+} // namespace se

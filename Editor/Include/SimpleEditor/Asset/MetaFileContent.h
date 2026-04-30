@@ -17,7 +17,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) MetaFileContent
 {
     /** 소스 파일의 메타데이터 (GUID, 해시, 수정시간 등) */
     SE_ANNOTATION(=meta::Property)
-    asset::AssetMetadata metadata;
+    AssetMetadata metadata;
 
     /** 임포트 설정 (Translator별 설정값) */
     SE_ANNOTATION(=meta::Property)

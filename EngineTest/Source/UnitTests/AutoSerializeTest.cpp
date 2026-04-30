@@ -20,7 +20,6 @@
 
 using namespace se;
 using namespace se::math;
-using namespace se::asset;
 using namespace se::graphics;
 
 // ============================================================================

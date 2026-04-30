@@ -327,22 +327,22 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
     }
 
     const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
-    auto* asset_subsystem = se::GetSubsystem<asset::AssetSubsystem>();
+    auto* asset_subsystem = se::GetSubsystem<AssetSubsystem>();
     if (!render_subsystem || !asset_subsystem)
     {
         return;
     }
 
     graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
-    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    const AssetRegistry& registry = asset_subsystem->GetRegistry();
 
     // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 cook_key 변경)
     struct PendingUpload
     {
-        asset::AssetPath path;
+        AssetPath path;
         MeshCookKey cook_key;
     };
-    HashMap<asset::AssetId, PendingUpload> pending;
+    HashMap<AssetId, PendingUpload> pending;
 
     for (const graphics::DrawCommand& draw_cmd : in_scene_data.opaque_commands)
     {
@@ -357,7 +357,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
         if (gpu_manager.GetSlice(draw_cmd.mesh_id).HasValue())
         {
             bool up_to_date = false;
-            registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
+            registry.ReadRecord(draw_cmd.mesh_id, [&](const AssetRecord& record)
             {
                 if (const auto prev = uploaded_mesh_hashes.Find(draw_cmd.mesh_id))
                 {
@@ -378,9 +378,9 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
         }
 
         // Slow path: 새 메시 또는 reimport -> 경로와 해시를 복사
-        asset::AssetPath asset_path;
+        AssetPath asset_path;
         MeshCookKey cook_key;
-        if (!registry.ReadRecord(draw_cmd.mesh_id, [&](const asset::AssetRecord& record)
+        if (!registry.ReadRecord(draw_cmd.mesh_id, [&](const AssetRecord& record)
         {
             asset_path = record.logical_path;
             cook_key = {
@@ -412,14 +412,14 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
     for (const auto& [mesh_id, info] : pending)
     {
         // Load를 호출하여 DDC에서 역직렬화 -> Pool에 등록
-        const asset::AssetHandle<asset::StaticMesh> handle = asset_subsystem->Load<asset::StaticMesh>(info.path);
+        const AssetHandle<StaticMesh> handle = asset_subsystem->Load<StaticMesh>(info.path);
         if (!handle)
         {
             ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Load failed for {}", info.path.ToString());
             continue;
         }
 
-        const asset::StaticMesh* mesh = handle.Get();
+        const StaticMesh* mesh = handle.Get();
         if (!mesh || mesh->vertices.IsEmpty())
         {
             ConsoleLog(ELogLevel::Warning, "EnsureMeshesResident: Empty mesh data for {}", info.path.ToString());

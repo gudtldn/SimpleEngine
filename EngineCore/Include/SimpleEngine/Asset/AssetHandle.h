@@ -7,7 +7,7 @@
 #include <utility>
 
 
-namespace se::asset
+namespace se
 {
 /**
  * SlotEntry를 가리키는 Generational Handle 클래스
@@ -186,4 +186,4 @@ private:
     uint32 generation = INVALID_GENERATION;
     HandleTable* table = nullptr;
 };
-} // namespace se::asset
+} // namespace se

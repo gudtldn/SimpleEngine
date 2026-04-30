@@ -11,7 +11,7 @@ namespace se::editor
 {
 TypeId StaticMeshFactory::GetAssetType() const
 {
-    return TypeId::Get<asset::StaticMesh>();
+    return TypeId::Get<StaticMesh>();
 }
 
 bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
@@ -19,7 +19,7 @@ bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
     return IsA<StaticMeshPipelineNode>(node);
 }
 
-std::shared_ptr<asset::AssetBase> StaticMeshFactory::CreateAsset(
+std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
     PipelineBaseNode* node,
     const PipelineImportContext& context
 )
@@ -28,7 +28,7 @@ std::shared_ptr<asset::AssetBase> StaticMeshFactory::CreateAsset(
 
     StaticMeshPipelineNode* mesh_node = CastChecked<StaticMeshPipelineNode>(node);
 
-    auto static_mesh = std::make_shared<asset::StaticMesh>();
+    auto static_mesh = std::make_shared<StaticMesh>();
     static_mesh->vertices = std::move(mesh_node->vertices);
     static_mesh->indices = std::move(mesh_node->indices);
 

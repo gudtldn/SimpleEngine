@@ -13,6 +13,6 @@ public:
     [[nodiscard]] virtual TypeId GetAssetType() const override;
 
     [[nodiscard]] virtual bool CanCreateAsset(const PipelineBaseNode* node) const override;
-    virtual std::shared_ptr<asset::AssetBase> CreateAsset(PipelineBaseNode* node, const PipelineImportContext& context) override;
+    virtual std::shared_ptr<AssetBase> CreateAsset(PipelineBaseNode* node, const PipelineImportContext& context) override;
 };
 } // namespace se::editor

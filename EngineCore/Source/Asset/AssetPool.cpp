@@ -4,7 +4,7 @@
 #include <utility>
 
 
-namespace se::asset
+namespace se
 {
 AssetPool::~AssetPool()
 {
@@ -227,4 +227,4 @@ uint32 AssetPool::UnloadScope(EScopeLayer layer)
     }
     return count;
 }
-} // namespace se::asset
+} // namespace se

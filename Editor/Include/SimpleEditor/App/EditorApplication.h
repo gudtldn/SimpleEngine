@@ -41,6 +41,6 @@ private:
 
         bool operator==(const MeshCookKey&) const = default;
     };
-    HashMap<asset::AssetId, MeshCookKey> uploaded_mesh_hashes;
+    HashMap<AssetId, MeshCookKey> uploaded_mesh_hashes;
 };
 } // namespace se::editor

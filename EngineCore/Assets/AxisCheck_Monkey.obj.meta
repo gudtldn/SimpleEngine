@@ -17,4 +17,4 @@ source_size = 63009
     dependencies = []
     guid = 'b1b23052-2dc0-481f-8312-3f49ffaac18c'
     name = 'AxisCheck_Monkey'
-    type = 'se::asset::StaticMesh'
+    type = 'se::StaticMesh'

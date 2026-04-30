@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 
 
-namespace se::asset
+namespace se
 {
 /**
  * @todo docs
@@ -31,12 +31,12 @@ private:
 
     Guid guid;
 };
-} // namespace se::asset
+} // namespace se
 
 template <>
-struct std::hash<se::asset::AssetId>
+struct std::hash<se::AssetId>
 {
-    size_t operator()(const se::asset::AssetId& asset_id) const noexcept
+    size_t operator()(const se::AssetId& asset_id) const noexcept
     {
         return std::hash<se::Guid>{}(asset_id.GetGuid());
     }

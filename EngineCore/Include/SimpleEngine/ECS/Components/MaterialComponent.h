@@ -11,7 +11,7 @@ namespace se
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) MaterialHandleComponent
 {
     SE_ANNOTATION(=meta::Property)
-    asset::AssetId material_id;
+    AssetId material_id;
 };
 } // namespace se
 

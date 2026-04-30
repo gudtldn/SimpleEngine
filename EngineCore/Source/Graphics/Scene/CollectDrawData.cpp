@@ -15,10 +15,10 @@ namespace se::graphics
 namespace
 {
 /** DrawCommand의 정렬 키를 계산합니다. */
-[[nodiscard]] uint64 ComputeSortKey(const asset::AssetId& mesh_id, const asset::AssetId& material_id)
+[[nodiscard]] uint64 ComputeSortKey(const AssetId& mesh_id, const AssetId& material_id)
 {
-    const uint64 mesh_hash = std::hash<asset::AssetId>{}(mesh_id);
-    const uint64 material_hash = std::hash<asset::AssetId>{}(material_id);
+    const uint64 mesh_hash = std::hash<AssetId>{}(mesh_id);
+    const uint64 material_hash = std::hash<AssetId>{}(material_id);
 
     // 상위 32비트: material (PSO/셰이더 변경 최소화)
     // 하위 32비트: mesh     (VB/IB 바인딩 변경 최소화)

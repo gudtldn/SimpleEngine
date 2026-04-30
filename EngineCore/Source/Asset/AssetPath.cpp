@@ -3,7 +3,7 @@
 #include <utility>
 
 
-namespace se::asset
+namespace se
 {
 AssetPath::AssetPath(StringView full_path_str)
 {
@@ -32,4 +32,4 @@ String AssetPath::ToString() const
     }
     return file_path.ToString();
 }
-} // namespace se::asset
+} // namespace se

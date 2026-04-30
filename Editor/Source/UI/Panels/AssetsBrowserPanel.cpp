@@ -407,7 +407,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         return;
     }
 
-    const auto [asset_subsystem, entity_subsystem] = GetSubsystems<const asset::AssetSubsystem, EntitySubsystem>();
+    const auto [asset_subsystem, entity_subsystem] = GetSubsystems<const AssetSubsystem, EntitySubsystem>();
     if (!asset_subsystem || !entity_subsystem)
     {
         return;
@@ -416,13 +416,13 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
     World& world = entity_subsystem->GetMainWorld().GetWorld();
 
     // 파일에 등록된 에셋 중 StaticMesh 타입만 수집
-    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-    const Array<asset::AssetId> all_ids = registry.GetAssetsInFile(*vpath);
+    const AssetRegistry& registry = asset_subsystem->GetRegistry();
+    const Array<AssetId> all_ids = registry.GetAssetsInFile(*vpath);
 
-    Array<asset::AssetId> mesh_ids;
-    for (const asset::AssetId& id : all_ids)
+    Array<AssetId> mesh_ids;
+    for (const AssetId& id : all_ids)
     {
-        if (registry.GetAssetType(id) == TypeId::Get<asset::StaticMesh>())
+        if (registry.GetAssetType(id) == TypeId::Get<StaticMesh>())
         {
             mesh_ids.Push(id);
         }
@@ -449,7 +449,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
 
         // N child entities
         ChildrenComponent children_comp;
-        for (const asset::AssetId& mesh_id : mesh_ids)
+        for (const AssetId& mesh_id : mesh_ids)
         {
             const Entity child = world.SpawnEntity(
                 TransformComponent{},

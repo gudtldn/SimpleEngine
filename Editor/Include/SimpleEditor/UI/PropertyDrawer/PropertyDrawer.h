@@ -23,7 +23,7 @@ using PropertyDrawFunc = bool(*)(const char* label, void* value, const PropertyI
  * @param dropped_path 드롭된 파일 경로 (null-terminated)
  * @return 변환된 AssetId (유효하지 않으면 AssetId::Invalid)
  */
-using AssetDropResolverFunc = asset::AssetId(*)(const char* dropped_path);
+using AssetDropResolverFunc = AssetId(*)(const char* dropped_path);
 
 /**
  * TypeId별 PropertyDrawer 저장소

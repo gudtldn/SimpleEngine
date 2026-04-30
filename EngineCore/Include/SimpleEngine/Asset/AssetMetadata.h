@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/Types/HashDigest.h"
 
 
-namespace se::asset
+namespace se
 {
 /**
  * 에셋 의존성의 종류를 나타내는 열거형
@@ -108,8 +108,8 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
 
     bool operator==(const AssetMetadata&) const = default;
 };
-} // namespace se::asset
+} // namespace se
 
-SE_DECLARE_REFLECTION(se::asset::AssetDependencyEntry)
-SE_DECLARE_REFLECTION(se::asset::SubAssetMeta)
-SE_DECLARE_REFLECTION(se::asset::AssetMetadata)
+SE_DECLARE_REFLECTION(se::AssetDependencyEntry)
+SE_DECLARE_REFLECTION(se::SubAssetMeta)
+SE_DECLARE_REFLECTION(se::AssetMetadata)

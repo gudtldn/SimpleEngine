@@ -122,7 +122,7 @@ TEST_F(ECSTest, ECSQueryParameterInjection)
             .position = { 1.0, 2.0, 3.0 },
             .scale = { 1.0, 1.0, 1.0 },
         },
-        StaticMeshComponent{ .mesh_id = asset::AssetId{ Guid::NewGuid() } }
+        StaticMeshComponent{ .mesh_id = AssetId{ Guid::NewGuid() } }
     );
 
     // entity_c: TransformComponent만 보유 (StaticMeshComponent 없음)

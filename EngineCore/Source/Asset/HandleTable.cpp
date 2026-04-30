@@ -5,7 +5,7 @@
 #include <utility>
 
 
-namespace se::asset
+namespace se
 {
 HandleTable::HandleTable()
 {
@@ -272,4 +272,4 @@ void HandleTable::DestroyAssetData(SlotEntry& entry)
     entry.destructor(ptr);
     entry.state.store(ELoadingState::Unloaded, std::memory_order_release);
 }
-} // namespace se::asset
+} // namespace se

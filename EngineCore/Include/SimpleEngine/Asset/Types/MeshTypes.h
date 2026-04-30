@@ -5,7 +5,7 @@
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 
-namespace se::asset
+namespace se
 {
 /**
  * @todo docs
@@ -71,4 +71,4 @@ public:
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리
     // Array<BoneInfo> ref_skeleton;
 };
-} // namespace se::asset
+} // namespace se

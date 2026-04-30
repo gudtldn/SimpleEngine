@@ -76,7 +76,7 @@ JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath, std::atomic<
 
 
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
-    .DependsOn<se::asset::AssetSubsystem>();
+    .DependsOn<se::AssetSubsystem>();
 
 SE_BEGIN_REFLECT(EditorAssetSubsystem, meta::Internal)
 SE_END_REFLECT(EditorAssetSubsystem)
@@ -104,8 +104,8 @@ bool EditorAssetSubsystem::Initialize()
         profile.Emplace<MeshImportSettings>();
     });
 
-    asset_subsystem = &GetSubsystemChecked<asset::AssetSubsystem>();
-    asset_subsystem->SetDDCMissHandler([this](asset::AssetSubsystem&, const VPath& file_vpath) -> bool
+    asset_subsystem = &GetSubsystemChecked<AssetSubsystem>();
+    asset_subsystem->SetDDCMissHandler([this](AssetSubsystem&, const VPath& file_vpath) -> bool
     {
         return CookAsset(file_vpath);
     });
@@ -142,7 +142,7 @@ bool EditorAssetSubsystem::Initialize()
     // === 삭제된 파일 감지 (Hot Start 전용) ===
     if (is_hot_start)
     {
-        asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+        AssetRegistry& registry = asset_subsystem->GetRegistry();
 
         Array<VPath> orphaned;
         registry.VisitAllPaths([&all_found_vpaths, &orphaned](const VPath& registered_vpath)
@@ -159,7 +159,7 @@ bool EditorAssetSubsystem::Initialize()
             ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
 
             // DependencyGraph에서 AssetID 제거
-            for (const asset::AssetId& id : registry.GetAssetsInFile(vpath))
+            for (const AssetId& id : registry.GetAssetsInFile(vpath))
             {
                 dep_graph.RemoveNode(id);
             }
@@ -191,7 +191,7 @@ bool EditorAssetSubsystem::Initialize()
     });
 
     // PropertyPanel D&D용 AssetDropResolver 등록
-    DrawerRegistry::Get().SetAssetDropResolver([](const char* dropped_path) -> asset::AssetId
+    DrawerRegistry::Get().SetAssetDropResolver([](const char* dropped_path) -> AssetId
     {
         // dropped_path는 AssetsBrowserPanel에서 전달한 물리 경로
         // VFS 역변환 -> Registry에서 첫 번째 에셋 ID 조회
@@ -201,8 +201,8 @@ bool EditorAssetSubsystem::Initialize()
             return {};
         }
 
-        const asset::AssetRegistry& registry = GetSubsystemChecked<asset::AssetSubsystem>().GetRegistry();
-        const Array<asset::AssetId> assets = registry.GetAssetsInFile(*file_vpath);
+        const AssetRegistry& registry = GetSubsystemChecked<AssetSubsystem>().GetRegistry();
+        const Array<AssetId> assets = registry.GetAssetsInFile(*file_vpath);
         if (assets.IsEmpty())
         {
             return {};
@@ -393,7 +393,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
             continue;
         }
 
-        const asset::AssetMetadata& meta = content_opt->metadata;
+        const AssetMetadata& meta = content_opt->metadata;
         const bool is_new = meta.sub_assets.IsEmpty();
         const bool is_dirty = !is_new && IsAssetDirty(file_path, *content_opt);
 
@@ -595,8 +595,8 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
     const ContentHash settings_hash = SHA256::HashBytes(settings_bytes);
 
-    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-    asset::DerivedDataCache& ddc = asset_subsystem->GetDDC();
+    AssetRegistry& registry = asset_subsystem->GetRegistry();
+    DerivedDataCache& ddc = asset_subsystem->GetDDC();
 
     // MetaFileContent 갱신 준비
     MetaFileContent updated_content = std::move(meta_content_opt).ValueOrDefault();
@@ -609,8 +609,8 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     // 기존 sub-asset의 GUID와 dependencies를 이름 기준으로 임시 보존
     // (설정 변경으로 sub-asset 목록이 달라져도 동일 이름은 GUID를 재사용하고, Translator가 per-sub-asset deps를 직접 산출할 때까지 .meta에 저장된 값을 유지)
     HashMap<String, Guid> prev_sub_guids;
-    HashMap<String, Array<asset::AssetDependencyEntry>> prev_sub_deps;
-    for (const asset::SubAssetMeta& old_sub : updated_content.metadata.sub_assets)
+    HashMap<String, Array<AssetDependencyEntry>> prev_sub_deps;
+    for (const SubAssetMeta& old_sub : updated_content.metadata.sub_assets)
     {
         prev_sub_guids.Insert(old_sub.name, old_sub.guid);
         if (!old_sub.dependencies.IsEmpty())
@@ -633,18 +633,18 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     // Registry 및 DDC 갱신
     for (const auto& [name, idx] : result.GetNameToIndexMap())
     {
-        std::shared_ptr<asset::AssetBase> asset = result.GetAsset(idx);
+        std::shared_ptr<AssetBase> asset = result.GetAsset(idx);
         if (!asset)
         {
             continue;
         }
 
         const TypeId asset_type = asset->GetTypeId();
-        asset::AssetPath asset_path = asset::AssetPath{ file_vpath, name };
+        AssetPath asset_path = AssetPath{ file_vpath, name };
 
         // .meta 스냅샷에서 기존 GUID 재사용, 없으면 새 GUID 발급
         // (Registry는 이미 비워진 상태이므로 .meta 기준으로 조회)
-        asset::AssetId asset_id{ prev_sub_guids.Find(name).Copy().ValueOr(Guid::NewGuid()) };
+        AssetId asset_id{ prev_sub_guids.Find(name).Copy().ValueOr(Guid::NewGuid()) };
 
         // Meta에 Sub-asset 정보 추가
         // TODO: Translator에서 참조 텍스처/머티리얼 등을 분석하여
@@ -658,7 +658,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         });
 
         // Registry 등록
-        asset::AssetMetadata sub_meta = updated_content.metadata;
+        AssetMetadata sub_meta = updated_content.metadata;
         sub_meta.guid = asset_id.GetGuid();
 
         registry.RegisterAsset(asset_id, asset_type, std::move(asset_path), std::move(sub_meta));
@@ -666,7 +666,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         // DDC 굽기 (직렬화)
         if (!source_hash.IsZero())
         {
-            Array<uint8> payload = asset::AssetSubsystem::SerializeAssetPayload(*asset);
+            Array<uint8> payload = AssetSubsystem::SerializeAssetPayload(*asset);
             if (!payload.IsEmpty())
             {
                 ddc.Store(asset_id.GetGuid(), {
@@ -683,9 +683,9 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
 
     // DependencyGraph 동기화 (각 sub-asset의 개별 의존성 사용)
-    for (const asset::SubAssetMeta& sub : updated_content.metadata.sub_assets)
+    for (const SubAssetMeta& sub : updated_content.metadata.sub_assets)
     {
-        SyncDependencies(asset::AssetId{ sub.guid }, sub.dependencies);
+        SyncDependencies(AssetId{ sub.guid }, sub.dependencies);
     }
 
     // .meta 파일 갱신 (Sub-asset 정보 기록)
@@ -758,11 +758,11 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
     return true;
 }
 
-void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const asset::AssetMetadata& meta)
+void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const AssetMetadata& meta)
 {
     ZoneScopedN("EditorAssetSubsystem::RegisterFromMeta");
 
-    asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    AssetRegistry& registry = asset_subsystem->GetRegistry();
 
     // Sub-asset 목록이 비어있으면 아직 Import가 안 된 상태이므로 스킵
     if (meta.sub_assets.IsEmpty())
@@ -774,12 +774,12 @@ void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const ass
     // TODO(memory): 현재 sub_meta = meta를 sub-asset마다 복사하므로, N개의 sub-asset이 있으면
     //   sub_assets[] 배열이 N번 복제됨 (O(N²) 메모리). AssetRecord를 shared_ptr<AssetFileMetadata>로
     //   분리하면 파일 수준 데이터를 한 번만 저장할 수 있음.
-    for (const asset::SubAssetMeta& sub : meta.sub_assets)
+    for (const SubAssetMeta& sub : meta.sub_assets)
     {
-        const asset::AssetId asset_id{ sub.guid };
-        asset::AssetPath asset_path{ source_vpath, sub.name };
+        const AssetId asset_id{ sub.guid };
+        AssetPath asset_path{ source_vpath, sub.name };
 
-        asset::AssetMetadata sub_meta = meta;
+        AssetMetadata sub_meta = meta;
         sub_meta.guid = sub.guid;
 
         registry.RegisterAsset(asset_id, sub.type, std::move(asset_path), std::move(sub_meta));
@@ -788,7 +788,7 @@ void EditorAssetSubsystem::RegisterFromMeta(const VPath& source_vpath, const ass
 
 bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileContent& content) const
 {
-    const asset::AssetMetadata& meta = content.metadata;
+    const AssetMetadata& meta = content.metadata;
 
     // 소스 파일 변경 확인 (mtime -> size -> SHA256 순서)
     const uint64 current_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault();
@@ -832,7 +832,7 @@ void EditorAssetSubsystem::SaveRegistrySnapshot()
 {
     ZoneScopedN("EditorAssetSubsystem::SaveRegistrySnapshot");
 
-    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    const AssetRegistry& registry = asset_subsystem->GetRegistry();
     const VPath snapshot_vpath = GetRegistrySnapshotVPath();
     const Path snapshot_path = VFS::ToPath(snapshot_vpath);
     if (snapshot_path.IsEmpty())
@@ -870,7 +870,7 @@ void EditorAssetSubsystem::BuildDependencyGraph()
 {
     ZoneScopedN("EditorAssetSubsystem::BuildDependencyGraph");
 
-    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
+    const AssetRegistry& registry = asset_subsystem->GetRegistry();
     dep_graph.Clear();
 
     Array<VPath> all_paths;
@@ -882,24 +882,24 @@ void EditorAssetSubsystem::BuildDependencyGraph()
     // Registry에 등록된 모든 소스 파일을 순회하며, 각 sub-asset의 개별 의존성으로 그래프를 구축
     for (const VPath& source_vpath : all_paths)
     {
-        const Array<asset::AssetId> assets_in_file = registry.GetAssetsInFile(source_vpath);
+        const Array<AssetId> assets_in_file = registry.GetAssetsInFile(source_vpath);
         if (assets_in_file.IsEmpty())
         {
             continue;
         }
 
         // 파일의 SubAssetMeta 목록을 한 번만 읽음 (같은 파일의 모든 레코드가 동일한 sub_assets를 공유)
-        Array<asset::SubAssetMeta> sub_assets;
-        registry.ReadRecord(assets_in_file.Front().Value(), [&](const asset::AssetRecord& record)
+        Array<SubAssetMeta> sub_assets;
+        registry.ReadRecord(assets_in_file.Front().Value(), [&](const AssetRecord& record)
         {
             sub_assets = record.metadata.sub_assets;
         });
 
-        for (const asset::SubAssetMeta& sub : sub_assets)
+        for (const SubAssetMeta& sub : sub_assets)
         {
             if (!sub.dependencies.IsEmpty())
             {
-                SyncDependencies(asset::AssetId{ sub.guid }, sub.dependencies);
+                SyncDependencies(AssetId{ sub.guid }, sub.dependencies);
             }
         }
     }
@@ -908,8 +908,8 @@ void EditorAssetSubsystem::BuildDependencyGraph()
 }
 
 void EditorAssetSubsystem::SyncDependencies(
-    const asset::AssetId& asset_id,
-    ArrayView<const asset::AssetDependencyEntry> dependencies
+    const AssetId& asset_id,
+    ArrayView<const AssetDependencyEntry> dependencies
 )
 {
     if (dependencies.IsEmpty())
@@ -918,16 +918,16 @@ void EditorAssetSubsystem::SyncDependencies(
         return;
     }
 
-    const asset::AssetRegistry& registry = asset_subsystem->GetRegistry();
-    Array<asset::AssetId> resolved_ids;
+    const AssetRegistry& registry = asset_subsystem->GetRegistry();
+    Array<AssetId> resolved_ids;
     resolved_ids.Reserve(dependencies.Len());
 
-    for (const asset::AssetDependencyEntry& entry : dependencies)
+    for (const AssetDependencyEntry& entry : dependencies)
     {
         // 1. 명시적 GUID가 있으면 직접 사용
         if (entry.asset_guid.IsValid())
         {
-            resolved_ids.Push(asset::AssetId{ entry.asset_guid });
+            resolved_ids.Push(AssetId{ entry.asset_guid });
             continue;
         }
 
@@ -938,10 +938,10 @@ void EditorAssetSubsystem::SyncDependencies(
         if (!entry.source_vpath.IsEmpty())
         {
             const VPath dep_vpath{ entry.source_vpath };
-            const Array<asset::AssetId> dep_assets = registry.GetAssetsInFile(dep_vpath);
+            const Array<AssetId> dep_assets = registry.GetAssetsInFile(dep_vpath);
             if (!dep_assets.IsEmpty())
             {
-                for (const asset::AssetId& dep_id : dep_assets)
+                for (const AssetId& dep_id : dep_assets)
                 {
                     resolved_ids.Push(dep_id);
                 }
