@@ -6,10 +6,12 @@ namespace se::editor
 ImportResult::ImportResult(
     Array<std::shared_ptr<asset::AssetBase>> assets,
     HashMap<String, uint32> name_to_index,
+    Array<Guid> stable_guids,
     uint32 main_asset_index
 )
     : assets(std::move(assets))
     , name_to_index(std::move(name_to_index))
+    , stable_guids(std::move(stable_guids))
     , main_asset_index(main_asset_index)
 {
 }
@@ -50,7 +52,7 @@ Array<StringView> ImportResult::GetAllNames() const
 }
 
 
-uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<asset::AssetBase> asset, const String& name)
+uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<asset::AssetBase> asset, const String& name, const Guid& stable_guid)
 {
     const uint32 index = static_cast<uint32>(assets.Len());
     assets.Push(std::move(asset));
@@ -60,6 +62,12 @@ uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<asset::AssetBase> as
         String unique_name = MakeUniqueName(name);
         name_to_index.Insert(std::move(unique_name), index);
     }
+
+    if (stable_guid.IsValid())
+    {
+        index_to_stable_guid.Insert(index, stable_guid);
+    }
+
     return index;
 }
 
@@ -70,9 +78,21 @@ void ImportResult::Builder::SetMainAssetIndex(uint32 index)
 
 ImportResult ImportResult::Builder::Build()
 {
+    // assets 배열 크기에 맞춰 stable_guids 배열 생성
+    Array<Guid> stable_guids_array;
+    stable_guids_array.Resize(assets.Len());
+    for (const auto& [index, guid] : index_to_stable_guid)
+    {
+        if (index < stable_guids_array.Len())
+        {
+            stable_guids_array[index] = guid;
+        }
+    }
+
     return {
         std::move(assets),
         std::move(name_to_index),
+        std::move(stable_guids_array),
         main_asset_index
     };
 }

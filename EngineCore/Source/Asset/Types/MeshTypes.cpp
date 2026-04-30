@@ -8,6 +8,8 @@ SE_BEGIN_REFLECT(StaticMesh, meta::Reflect)
     SE_REFLECT_PROPERTY(vertices, meta::Property, meta::ReadOnly)
     SE_REFLECT_PROPERTY(indices, meta::Property, meta::ReadOnly)
     SE_REFLECT_PROPERTY(bounds, meta::Property, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(sections, meta::Property, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(materials, meta::Property, meta::ReadOnly)
 SE_END_REFLECT(StaticMesh)
 
 SE_BEGIN_REFLECT(SkeletalMesh, meta::Reflect)

@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -100,6 +101,16 @@ public:
     /** 새로 만들어진 모든 에셋의 이름 목록을 반환합니다. */
     [[nodiscard]] Array<StringView> GetAllNames() const;
 
+    /** 인덱스에 해당하는 Stable GUID를 반환합니다. (없으면 None) */
+    [[nodiscard]] FORCE_INLINE const Guid& GetStableGuid(uint32 index) const
+    {
+        if (index < stable_guids.Len())
+        {
+            return stable_guids[index];
+        }
+        return Guid::None;
+    }
+
 public:
     /** 메인 Asset을 특정 타입으로 반환합니다. */
     template <typename T>
@@ -171,6 +182,7 @@ private:
     ImportResult(
         Array<std::shared_ptr<asset::AssetBase>> assets,
         HashMap<String, uint32> name_to_index,
+        Array<Guid> stable_guids,
         uint32 main_asset_index
     );
 
@@ -195,6 +207,9 @@ private:
     /** Sub-Asset 이름 -> 인덱스 매핑 */
     HashMap<String, uint32> name_to_index;
 
+    /** 인덱스별 Stable GUID (노드 UID 기반, 재임포트 시 AssetId 유지용) */
+    Array<Guid> stable_guids;
+
     /** 메인 Asset 인덱스 */
     uint32 main_asset_index = 0;
 };
@@ -211,8 +226,9 @@ public:
      * Asset을 등록하고 인덱스를 반환합니다.
      * @param asset 등록할 Asset
      * @param name 식별 이름 (중복 시 자동 변경됨)
+     * @param stable_guid 재임포트 시에도 유지될 GUID (노드 UID 기반)
      */
-    uint32 RegisterAsset(std::shared_ptr<asset::AssetBase> asset, const String& name = {});
+    uint32 RegisterAsset(std::shared_ptr<asset::AssetBase> asset, const String& name = {}, const Guid& stable_guid = {});
 
     /** 메인 에셋의 인덱스를 설정합니다. */
     void SetMainAssetIndex(uint32 index);
@@ -228,6 +244,7 @@ private:
     Array<std::shared_ptr<asset::AssetBase>> assets;
     HashMap<String, uint32> name_to_index;
     HashMap<String, uint32> next_suffix_map; // 임시 상태 저장용
+    HashMap<uint32, Guid> index_to_stable_guid; // 인덱스 -> Stable GUID
     uint32 main_asset_index = 0;
 };
 

@@ -1,4 +1,6 @@
 #pragma once
+
+#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
@@ -38,11 +40,14 @@ public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
 
-    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    // Array<Material> materials;
-
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     AABBf bounds;
+
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    Array<graphics::MeshSection> sections;
+
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    Array<AssetId> materials;
 };
 
 /**

@@ -6,6 +6,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <ranges>
+
 
 namespace se::editor
 {
@@ -45,8 +47,25 @@ std::shared_ptr<asset::AssetBase> StaticMeshFactory::CreateAsset(
         return mesh_bounds;
     }();
 
-    // TODO: mesh_node->material_index로 Material 에셋 연결
-    (void)context;
+    // MeshSection 및 머티리얼 연결
+    // for (uint32 i = 0; i < mesh_node->sections.Len(); ++i)
+    for (const auto [idx, section] : mesh_node->sections | std::views::enumerate)
+    {
+        graphics::MeshSection dst = {
+            .index_offset = section.index_offset,
+            .index_count = section.index_count,
+            .vertex_offset = section.vertex_offset,
+            .material_index = static_cast<uint32>(idx),
+        };
+
+        static_mesh->materials.Push(
+            section.material_node_uid.IsValid()
+                ? context.GetCreatedAssetId(section.material_node_uid).ValueOr(asset::AssetId::Invalid)
+                : asset::AssetId::Invalid
+        );
+
+        static_mesh->sections.Push(dst);
+    }
 
     return static_mesh;
 }

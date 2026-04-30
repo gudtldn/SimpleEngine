@@ -55,6 +55,9 @@ public:
     [[nodiscard]] Optional<const Guid&> GetMetallicTexture() const;
     void SetMetallicTexture(const Guid& texture_uid);
 
+    [[nodiscard]] Optional<const Guid&> GetEmissiveTexture() const;
+    void SetEmissiveTexture(const Guid& texture_uid);
+
     [[nodiscard]] Optional<const Guid&> GetOcclusionTexture() const;
     void SetOcclusionTexture(const Guid& texture_uid);
 

@@ -1,6 +1,7 @@
 // NOLINTBEGIN(*-reserved-identifier)
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 
+#include "Asset/Pipeline/Translators/AssimpMaterialExtractor.h"
 #include "Asset/Pipeline/Translators/AssimpTextureExtractor.h"
 
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
@@ -165,13 +166,12 @@ void ExtractIndices(const aiMesh* mesh, uint32 vertex_offset, Array<uint32>& out
  * combine_meshes=true일 때 1개의 StaticMesh 에셋(1 draw call)을 생성합니다.
  *
  * PTV + root transform 주입에 의해 vertex 데이터는 이미 Z-up 상태입니다.
- *
- * 또한 1개의 material만 지원하며, primitive가 여러 material을 가지더라도 첫 번째 primitive의 material을 사용합니다.
- * 여러 material이 필요하면 combine_meshes=false를 사용하세요.
+ * 각 aiMesh는 SubMeshSection으로 분리되어 서브 메시 당 개별 머티리얼을 지원합니다.
  */
 void ProcessMergedMesh(
     const aiScene* scene,
     const String& mesh_name,
+    const AssimpMaterialExtractor::MaterialExtractionResult& material_result,
     PipelineNodeContainer& out_container
 )
 {
@@ -191,23 +191,32 @@ void ProcessMergedMesh(
     pipeline_node.vertices.Reserve(total_vertices);
     pipeline_node.indices.Reserve(total_indices);
 
-    // 모든 primitive를 하나의 버퍼에 병합 (이미 Z-up, convert=false)
-    uint32 vertex_offset = 0;
+    // 각 primitive를 SubMeshSection으로 기록 (로컬 인덱스 + SDL base_vertex 방식)
     for (uint32 i = 0; i < scene->mNumMeshes; ++i)
     {
-        ExtractVertices(scene->mMeshes[i], false, pipeline_node.vertices);
-        ExtractIndices(scene->mMeshes[i], vertex_offset, pipeline_node.indices);
-        vertex_offset += scene->mMeshes[i]->mNumVertices;
-    }
+        const aiMesh* mesh = scene->mMeshes[i];
 
-    if (scene->mNumMeshes > 0)
-    {
-        pipeline_node.material_index = scene->mMeshes[0]->mMaterialIndex;
+        StaticMeshPipelineNode::SubMeshSection section;
+        section.index_offset  = static_cast<uint32>(pipeline_node.indices.Len());
+        section.vertex_offset = static_cast<uint32>(pipeline_node.vertices.Len());
+
+        ExtractVertices(mesh, false, pipeline_node.vertices);
+        ExtractIndices(mesh, 0, pipeline_node.indices);  // 로컬 인덱스; base_vertex는 런타임에 적용
+
+        section.index_count = static_cast<uint32>(pipeline_node.indices.Len()) - section.index_offset;
+
+        if (mesh->mMaterialIndex < material_result.material_index_to_guid.Len())
+        {
+            section.material_node_uid = material_result.material_index_to_guid[mesh->mMaterialIndex];
+        }
+
+        pipeline_node.sections.Push(section);
     }
 }
 
 /**
- * 노드 계층을 순회하며 각 메쉬를 개별 PipelineNode로 생성합니다.
+ * 노드 계층을 순회하며 각 aiNode를 개별 PipelineNode로 생성합니다.
+ * aiNode 내 여러 aiMesh는 SubMeshSection으로 분리되어 서브 메시 당 개별 머티리얼을 지원합니다.
  *
  * convert_to_zup=true (비-PTV 경로): Y-up -> Z-up 변환을 수동 적용하고 노드 transform을 보존
  * convert_to_zup=false (PTV 경로): PTV가 이미 변환 완료했으므로 직접 읽기
@@ -216,6 +225,7 @@ void ProcessNodeIterative(
     const aiNode* root_node,
     const aiScene* scene,
     bool convert_to_zup,
+    const AssimpMaterialExtractor::MaterialExtractionResult& material_result,
     PipelineNodeContainer& out_container
 )
 {
@@ -226,21 +236,37 @@ void ProcessNodeIterative(
     {
         const aiNode* node = *node_opt;
 
-        for (uint32 i = 0; i < node->mNumMeshes; ++i)
+        if (node->mNumMeshes > 0)
         {
-            const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
             StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
-            pipeline_node.SetDisplayName(String::Format("{}_{}", node->mName.C_Str(), mesh->mName.C_Str()));
-            pipeline_node.material_index = mesh->mMaterialIndex;
-
-            ExtractVertices(mesh, convert_to_zup, pipeline_node.vertices);
-            ExtractIndices(mesh, 0, pipeline_node.indices);
+            pipeline_node.SetDisplayName(node->mName.C_Str());
 
             // 비-PTV 경로: 노드의 로컬 트랜스폼을 Z-up으로 변환하여 보존
             if (convert_to_zup)
             {
                 pipeline_node.local_transform = ConvertNodeTransform(node->mTransformation);
+            }
+
+            // aiNode 내 각 aiMesh를 SubMeshSection으로 기록
+            for (uint32 i = 0; i < node->mNumMeshes; ++i)
+            {
+                const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+
+                StaticMeshPipelineNode::SubMeshSection section;
+                section.index_offset  = static_cast<uint32>(pipeline_node.indices.Len());
+                section.vertex_offset = static_cast<uint32>(pipeline_node.vertices.Len());
+
+                ExtractVertices(mesh, convert_to_zup, pipeline_node.vertices);
+                ExtractIndices(mesh, 0, pipeline_node.indices);  // 로컬 인덱스; base_vertex는 런타임에 적용
+
+                section.index_count = static_cast<uint32>(pipeline_node.indices.Len()) - section.index_offset;
+
+                if (mesh->mMaterialIndex < material_result.material_index_to_guid.Len())
+                {
+                    section.material_node_uid = material_result.material_index_to_guid[mesh->mMaterialIndex];
+                }
+
+                pipeline_node.sections.Push(section);
             }
         }
 
@@ -320,20 +346,24 @@ void AssimpTranslator::Translate(
         return;
     }
 
+    // 텍스처 노드 생성
+    const TextureExtractionResult texture_result = AssimpTextureExtractor::ExtractTexturesFromScene(scene, file_path, out_container);
+
+    // 머티리얼 노드 생성 (TextureExtractionResult를 사용하여 텍스처 GUID 참조)
+    const AssimpMaterialExtractor::MaterialExtractionResult material_result =
+        AssimpMaterialExtractor::ExtractMaterialsFromScene(file_path, scene, texture_result, out_container);
+
     if (mesh_settings.combine_meshes)
     {
         // 파일명을 Mesh의 이름으로 사용
         const String filename = file_path.FileStem().ValueOr("Unnamed");
-        ProcessMergedMesh(scene, filename, out_container);
+        ProcessMergedMesh(scene, filename, material_result, out_container);
     }
     else
     {
         // PTV 활성: 이미 Z-up (convert=false) | PTV 비활성: 수동 변환 (convert=true)
-        ProcessNodeIterative(scene->mRootNode, scene, !use_ptv, out_container);
+        ProcessNodeIterative(scene->mRootNode, scene, !use_ptv, material_result, out_container);
     }
-
-    // 텍스처 노드 생성 | TODO: 반환값은 이 다음 AssimpMaterialExtractor에서 사용 예정
-    [[maybe_unused]] const TextureExtractionResult texture_result = AssimpTextureExtractor::ExtractTexturesFromScene(scene, file_path, out_container);
 }
 } // namespace se::editor
 // NOLINTEND(*-reserved-identifier)

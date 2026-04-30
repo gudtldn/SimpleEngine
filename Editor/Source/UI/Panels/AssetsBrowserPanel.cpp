@@ -436,10 +436,20 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
 
     if (mesh_ids.Len() == 1)
     {
+        MaterialHandleComponent mat_comp;
+        if (const asset::AssetHandle<asset::StaticMesh> mesh_asset = asset_subsystem->Find<asset::StaticMesh>(mesh_ids[0]))
+        {
+            mat_comp.material_override_ids = mesh_asset->materials;
+            for (const asset::AssetId& mat_id : mesh_asset->materials)
+            {
+                mat_comp.instance_handles.Push(asset_subsystem->Find<asset::MaterialInstance>(mat_id));
+            }
+        }
+
         world.SpawnEntity(
             TransformComponent{},
             StaticMeshComponent{ .mesh_id = mesh_ids[0] },
-            MaterialHandleComponent{}
+            std::move(mat_comp)
         );
     }
     else
@@ -451,10 +461,20 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         ChildrenComponent children_comp;
         for (const asset::AssetId& mesh_id : mesh_ids)
         {
+            MaterialHandleComponent mat_comp;
+            if (const asset::AssetHandle<asset::StaticMesh> mesh_asset = asset_subsystem->Find<asset::StaticMesh>(mesh_id))
+            {
+                mat_comp.material_override_ids = mesh_asset->materials;
+                for (const asset::AssetId& mat_id : mesh_asset->materials)
+                {
+                    mat_comp.instance_handles.Push(asset_subsystem->Find<asset::MaterialInstance>(mat_id));
+                }
+            }
+
             const Entity child = world.SpawnEntity(
                 TransformComponent{},
                 StaticMeshComponent{ .mesh_id = mesh_id },
-                MaterialHandleComponent{},
+                std::move(mat_comp),
                 ParentComponent{ .parent = root }
             );
             children_comp.children.Push(child);

@@ -7,6 +7,7 @@
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
+#include "SimpleEditor/Asset/Pipeline/Factories/MaterialFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/TextureFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
@@ -98,6 +99,7 @@ bool EditorAssetSubsystem::Initialize()
         // Register Factories
         importer->RegisterFactory<StaticMeshFactory>();
         importer->RegisterFactory<TextureFactory>();
+        importer->RegisterFactory<MaterialFactory>();
     }
 
     // Translator별 기본 ImportProfile 프리셋 등록
@@ -644,9 +646,12 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         const TypeId asset_type = asset->GetTypeId();
         asset::AssetPath asset_path = asset::AssetPath{ file_vpath, name };
 
-        // .meta 스냅샷에서 기존 GUID 재사용, 없으면 새 GUID 발급
-        // (Registry는 이미 비워진 상태이므로 .meta 기준으로 조회)
-        asset::AssetId asset_id{ prev_sub_guids.Find(name).Copy().ValueOr(Guid::NewGuid()) };
+        // Stable GUID 우선 사용: 임포트 시 노드 UID가 stable_guid로 등록된 경우 그것을 AssetId로 사용합니다.
+        // Stable GUID가 없으면 .meta 스냅샷에서 기존 GUID 재사용, 없으면 새 GUID를 발급합니다.
+        const Guid& stable = result.GetStableGuid(idx);
+        asset::AssetId asset_id{
+            stable.IsValid() ? stable : prev_sub_guids.Find(name).Copy().ValueOr(Guid::NewGuid())
+        };
 
         // Meta에 Sub-asset 정보 추가
         // TODO: Translator에서 참조 텍스처/머티리얼 등을 분석하여

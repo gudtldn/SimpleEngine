@@ -6,6 +6,6 @@ namespace se
 {
 // Reflection for MaterialHandleComponent
 SE_BEGIN_REFLECT(MaterialHandleComponent, meta::Reflect, meta::Component)
-    SE_REFLECT_PROPERTY(material_id, meta::Property)
+    SE_REFLECT_PROPERTY(material_override_ids, meta::Property)
 SE_END_REFLECT(MaterialHandleComponent)
 }

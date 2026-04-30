@@ -74,6 +74,16 @@ void PipelineMaterialNode::SetMetallicTexture(const Guid& texture_uid)
     attributes.SetAttribute(Keys::METALLIC_TEX, texture_uid);
 }
 
+Optional<const Guid&> PipelineMaterialNode::GetEmissiveTexture() const
+{
+    return attributes.GetAttribute<Guid>(Keys::EMISSIVE_TEX);
+}
+
+void PipelineMaterialNode::SetEmissiveTexture(const Guid& texture_uid)
+{
+    attributes.SetAttribute(Keys::EMISSIVE_TEX, texture_uid);
+}
+
 Optional<const Guid&> PipelineMaterialNode::GetOcclusionTexture() const
 {
     return attributes.GetAttribute<Guid>(Keys::OCCLUSION_TEX);

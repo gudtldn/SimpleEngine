@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/Asset/Pipeline/PipelineNodeContainer.h"
 
+#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Types/Guid.h"
@@ -24,6 +25,16 @@ struct SE_EDITOR_API PipelineImportContext
             return *asset_opt;
         }
         return nullptr;
+    }
+
+    /** node_uid(= stable GUID)로 임포트된 에셋의 AssetId를 반환합니다. 에셋 생성에 실패한 경우 NullOpt를 반환합니다. */
+    [[nodiscard]] Optional<asset::AssetId> GetCreatedAssetId(const Guid& node_uid) const
+    {
+        if (created_assets.Find(node_uid).HasValue())
+        {
+            return asset::AssetId{ node_uid };
+        }
+        return NullOpt;
     }
 };
 

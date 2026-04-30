@@ -333,16 +333,16 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 }
             }
 
-            if (slice->index_count > 0)
+            if (draw_command.section_index_count > 0)
             {
-                SDL_DrawGPUIndexedPrimitives(pass, slice->index_count, 1, 0, 0, 0);
-            }
-            else
-            {
-                // 버퍼 레이아웃: [vertex data | offset ~ index_offset)][index data | index_offset ~)]
-                // index가 없는 메시는 index_offset이 vertex 영역의 끝을 나타냄.
-                const uint32 vertex_count = (slice->index_offset - slice->offset) / sizeof(StaticVertex);
-                SDL_DrawGPUPrimitives(pass, vertex_count, 1, 0, 0);
+                SDL_DrawGPUIndexedPrimitives(
+                    pass,
+                    draw_command.section_index_count,
+                    1,
+                    draw_command.section_first_index,
+                    draw_command.section_vertex_offset,
+                    0
+                );
             }
         }
     }

@@ -145,9 +145,9 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
 
                             // TODO: node->IsRoot() 같은거 추가해서 루트노드 검사
 
-                            // ImportResult에 등록 (노드 이름을 Sub-Asset 이름으로 사용)
+                            // ImportResult에 등록 (노드 UID를 stable_guid로, 노드 이름을 Sub-Asset 이름으로 사용)
                             const String& display_name = node->GetDisplayName();
-                            result_builder.RegisterAsset(new_asset, display_name);
+                            result_builder.RegisterAsset(new_asset, display_name, node->GetUid());
                         }
                         return;
                     }
