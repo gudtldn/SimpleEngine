@@ -10,8 +10,6 @@
 
 namespace se::editor
 {
-using namespace se;
-
 ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
     const Path& hlsl_path,
     StringView entrypoint,

@@ -9,7 +9,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declaration
 class RenderDevice;
@@ -123,4 +123,4 @@ void FrameResourcePool::TrimEntry(PoolEntry<T>& entry, uint32 max_idle_frames, R
         }
     }
 }
-} // namespace se::graphics
+} // namespace se

@@ -38,7 +38,7 @@ void GizmoRenderer::Draw(GizmoDrawList& draw_list, const Quaternion& rotation)
     }
 }
 
-double GizmoRenderer::ComputeScreenScale(const Vector3& position, const graphics::RenderView& view)
+double GizmoRenderer::ComputeScreenScale(const Vector3& position, const RenderView& view)
 {
     // 원근 투영에서 Projection[1, 1]은 (1 / tan(FOV_Y / 2))을 의미
     const double proj_11 = view.projection_matrix[1, 1];

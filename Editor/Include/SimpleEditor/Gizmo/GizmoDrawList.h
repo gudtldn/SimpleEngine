@@ -9,7 +9,7 @@
 #include "SDL3/SDL_gpu.h"
 
 // forward declaration
-namespace se::graphics{ class RenderDevice; }
+namespace se{ class RenderDevice; }
 
 
 namespace se::editor
@@ -30,7 +30,7 @@ public:
     static constexpr uint32 MAX_TRIANGLES = 1024;
 
 public:
-    GizmoDrawList(graphics::RenderDevice& in_device);
+    GizmoDrawList(RenderDevice& in_device);
     ~GizmoDrawList();
 
     GizmoDrawList(const GizmoDrawList&) = delete;
@@ -92,9 +92,9 @@ private:
     Vector3 direction_to_widget = Vector3::Forward(); // 카메라 -> 기즈모 방향 (매 프레임 재구축)
     uint32 current_pick_id = 0;                       // 현재 선택된 기즈모 축 (Picking용)
 
-    graphics::RenderDevice* device = nullptr;
+    RenderDevice* device = nullptr;
     SDL_GPUTransferBuffer* transfer_buffer = nullptr; // CPU->GPU 전송용 (라인/삼각형 공유, max 크기)
-    graphics::RID line_vertex_buffer_rid;             // LINELIST 정점 버퍼
-    graphics::RID triangle_vertex_buffer_rid;         // TRIANGLELIST 정점 버퍼
+    RID line_vertex_buffer_rid;                       // LINELIST 정점 버퍼
+    RID triangle_vertex_buffer_rid;                   // TRIANGLELIST 정점 버퍼
 };
 } // namespace se::editor

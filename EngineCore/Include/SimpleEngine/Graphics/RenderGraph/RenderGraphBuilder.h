@@ -10,7 +10,7 @@
 #include <memory>
 
 
-namespace se::graphics
+namespace se
 {
 class RGSetupContext;
 class RGExecutionContext;
@@ -79,4 +79,4 @@ PassType& RenderGraphBuilder::AddPass(Args&&... args)
     AddPassInternal(StringName{ GetFullTypeName<PassType>() }, std::move(pass_ptr));
     return *raw_ptr;
 }
-} // namespace se::graphics
+} // namespace se

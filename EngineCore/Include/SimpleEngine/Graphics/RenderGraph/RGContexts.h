@@ -6,7 +6,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declarations
 struct ComputePipelineCreateInfo;
@@ -74,4 +74,4 @@ private:
     PSOManager& pso_manager;
     const RenderGraphBuilder& builder_ref;
 };
-} // namespace se::graphics
+} // namespace se

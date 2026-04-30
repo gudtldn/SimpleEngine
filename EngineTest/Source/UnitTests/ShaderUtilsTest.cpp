@@ -3,7 +3,7 @@
 #include "SimpleEngine/Graphics/ShaderUtils.h"
 
 using namespace se;
-using namespace se::graphics;
+using namespace se;
 
 class FilterVertexInputStateTest : public ::testing::Test
 {

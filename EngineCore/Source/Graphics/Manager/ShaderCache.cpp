@@ -9,7 +9,7 @@
 #include <ranges>
 
 
-namespace se::graphics
+namespace se
 {
 ShaderCache::ShaderCache(RenderDevice& in_render_device)
     : render_device(&in_render_device)
@@ -115,4 +115,4 @@ Optional<Array<uint8>> ShaderCache::ReadSpvFile(const VPath& shader_key)
     }
     return std::move(result).Value();
 }
-} // namespace se::graphics
+} // namespace se

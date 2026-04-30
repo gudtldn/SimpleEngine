@@ -10,7 +10,7 @@
 
 namespace se::editor
 {
-GizmoDrawList::GizmoDrawList(graphics::RenderDevice& in_device)
+GizmoDrawList::GizmoDrawList(RenderDevice& in_device)
     : device(std::addressof(in_device))
 {
     // 라인 정점 버퍼 생성 (LINELIST용, 라인 1개 = 정점 2개)

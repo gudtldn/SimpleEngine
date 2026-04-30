@@ -134,22 +134,22 @@ void PipelineMaterialNode::SetEmissiveValue(const Vector3& color)
     attributes.SetAttribute(Keys::EMISSIVE_VAL, color);
 }
 
-graphics::EBlendMode PipelineMaterialNode::GetBlendMode() const
+EBlendMode PipelineMaterialNode::GetBlendMode() const
 {
-    return attributes.GetAttribute<graphics::EBlendMode>(Keys::BLEND_MODE).ValueOr(graphics::EBlendMode::Opaque);
+    return attributes.GetAttribute<EBlendMode>(Keys::BLEND_MODE).ValueOr(EBlendMode::Opaque);
 }
 
-void PipelineMaterialNode::SetBlendMode(graphics::EBlendMode mode)
+void PipelineMaterialNode::SetBlendMode(EBlendMode mode)
 {
     attributes.SetAttribute(Keys::BLEND_MODE, static_cast<uint64>(mode));
 }
 
-graphics::EShadingModel PipelineMaterialNode::GetShadingModel() const
+EShadingModel PipelineMaterialNode::GetShadingModel() const
 {
-    return attributes.GetAttribute<graphics::EShadingModel>(Keys::SHADING_MODEL).ValueOr(graphics::EShadingModel::Lit);
+    return attributes.GetAttribute<EShadingModel>(Keys::SHADING_MODEL).ValueOr(EShadingModel::Lit);
 }
 
-void PipelineMaterialNode::SetShadingModel(graphics::EShadingModel model)
+void PipelineMaterialNode::SetShadingModel(EShadingModel model)
 {
     attributes.SetAttribute(Keys::SHADING_MODEL, static_cast<uint64>(model));
 }

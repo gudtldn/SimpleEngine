@@ -57,10 +57,10 @@ private:
     [[nodiscard]] SDL_GPUTexture* GetEntityIdTexture() const;
 
 private:
-    graphics::RenderDevice* render_device = nullptr;
+    RenderDevice* render_device = nullptr;
 
     // GPU 리소스
-    graphics::RID entity_id_texture_rid = {};         // viewport 해상도 R32_UINT
+    RID entity_id_texture_rid = {};         // viewport 해상도 R32_UINT
     SDL_GPUTransferBuffer* download_buffer = nullptr; // 4바이트 readback
 
     // 텍스처 크기 캐시

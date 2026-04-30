@@ -38,7 +38,7 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         ZoneScopedN("Calculate Mesh AABB");
 
         AABBf mesh_bounds;
-        for (const graphics::StaticVertex& vertex : static_mesh->vertices)
+        for (const StaticVertex& vertex : static_mesh->vertices)
         {
             mesh_bounds.Expand(vertex.position);
         }

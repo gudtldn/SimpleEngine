@@ -5,10 +5,10 @@
 #include <variant>
 
 
+namespace se
+{
 namespace
 {
-using namespace se;
-
 std::atomic<bool> IsDialogOpen = false;
 
 // SDL 콜백에 사용자 데이터를 전달하기 위한 프록시 구조체
@@ -93,8 +93,6 @@ Array<SDL_DialogFileFilter> ConvertFilters(ArrayView<const FileFilter> filters)
 }
 } // namespace
 
-namespace se
-{
 void FileDialog::OpenFile(OnFileSelected callback, ArrayView<const FileFilter> filters, const char* default_location, SDL_Window* window)
 {
     if (!TryOpenDialog())

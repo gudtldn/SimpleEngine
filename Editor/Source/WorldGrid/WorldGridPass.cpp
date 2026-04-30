@@ -10,9 +10,9 @@ namespace se::editor
 {
 WorldGridPass::WorldGridPass(
     EViewMode in_view_mode,
-    const graphics::RenderView& in_render_view,
-    graphics::RGTextureHandle in_color_target_handle,
-    graphics::RGTextureHandle in_depth_target_handle
+    const RenderView& in_render_view,
+    RGTextureHandle in_color_target_handle,
+    RGTextureHandle in_depth_target_handle
 )
     : view_mode(in_view_mode)
     , render_view(in_render_view)
@@ -21,13 +21,13 @@ WorldGridPass::WorldGridPass(
 {
 }
 
-void WorldGridPass::Setup(graphics::RGSetupContext& context)
+void WorldGridPass::Setup(RGSetupContext& context)
 {
     context.Write(color_target_handle);
     context.Write(depth_target_handle);
 }
 
-void WorldGridPass::Execute(graphics::RGExecutionContext& context)
+void WorldGridPass::Execute(RGExecutionContext& context)
 {
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 

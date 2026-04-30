@@ -5,7 +5,7 @@
 #include "SimpleEngine/Graphics/View/RenderView.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * 한 프레임의 렌더링에 필요한 모든 데이터를 묶는 최상위 구조체
@@ -17,4 +17,4 @@ struct FramePacket
     SceneDrawData scene_draw_data;
     uint64 frame_number = 0;
 };
-} // namespace se::graphics
+} // namespace se

@@ -4,7 +4,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * GPU 버퍼의 특정 구간(Slice)을 나타내는 메타데이터
@@ -20,4 +20,4 @@ struct GpuBufferSlice
     uint32 index_offset = 0; // (Mesh의 경우) Vertex Data 끝, Index Data 시작점
     uint32 index_count = 0;  // Index Data의 개수
 };
-} // namespace se::graphics
+} // namespace se

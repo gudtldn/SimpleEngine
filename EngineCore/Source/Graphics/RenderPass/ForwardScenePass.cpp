@@ -12,7 +12,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 using namespace se::math;
 
@@ -336,4 +336,4 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     }
     SDL_EndGPURenderPass(pass);
 }
-} // namespace se::graphics
+} // namespace se

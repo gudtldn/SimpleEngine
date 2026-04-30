@@ -7,7 +7,7 @@
 #include "SDL3_shadercross/SDL_shadercross.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declaration
 class RenderDevice;
@@ -68,4 +68,4 @@ struct SE_CORE_API FilteredVertexInputState
     const SDL_GPUVertexInputState& original,
     const ShaderReflectionData& reflection
 );
-} // namespace se::graphics
+} // namespace se

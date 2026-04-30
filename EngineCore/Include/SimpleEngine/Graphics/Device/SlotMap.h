@@ -10,7 +10,7 @@
 #include <utility>
 
 
-namespace se::graphics
+namespace se
 {
 /** SlotMap에 저장 가능한 타입 */
 template <typename T>
@@ -181,4 +181,4 @@ private:
     uint32 free_head = FREE_SENTINEL;
     uint32 count = 0;
 };
-} // namespace se::graphics
+} // namespace se

@@ -14,7 +14,8 @@
 
 namespace se
 {
-namespace graphics { class RenderDevice; }
+// forward declaration
+class RenderDevice;
 
 /** GPU에 업로드하는 DebugLine의 정점 */
 struct DebugVertex
@@ -70,8 +71,8 @@ private:
     Array<DebugLine> current_frame_lines;
 
     // GPU 리소스
-    graphics::RenderDevice* render_device = nullptr;
-    graphics::RID vertex_buffer_rid;
+    RenderDevice* render_device = nullptr;
+    RID vertex_buffer_rid;
     SDL_GPUTransferBuffer* transfer_buffer = nullptr;
 };
 } // namespace se

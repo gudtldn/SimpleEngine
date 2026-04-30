@@ -75,11 +75,11 @@ public:
     void SetEmissiveValue(const Vector3& color);
 
     // --- Settings ---
-    [[nodiscard]] graphics::EBlendMode GetBlendMode() const;
-    void SetBlendMode(graphics::EBlendMode mode);
+    [[nodiscard]] EBlendMode GetBlendMode() const;
+    void SetBlendMode(EBlendMode mode);
 
-    [[nodiscard]] graphics::EShadingModel GetShadingModel() const;
-    void SetShadingModel(graphics::EShadingModel model);
+    [[nodiscard]] EShadingModel GetShadingModel() const;
+    void SetShadingModel(EShadingModel model);
 
     [[nodiscard]] bool GetTwoSided() const;
     void SetTwoSided(bool use_two_sided);

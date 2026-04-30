@@ -6,7 +6,7 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 
-namespace se::graphics
+namespace se
 {
 namespace
 {
@@ -222,4 +222,4 @@ SDL_GPUComputePipeline* CreateComputePipeline(
 
     return pipeline;
 }
-} // namespace se::graphics
+} // namespace se

@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Types/BitFlags.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * 뷰포트의 렌더링 파이프라인 모드
@@ -37,4 +37,4 @@ enum class EShowFlag : uint64
 SE_ENABLE_BITMASK_OPERATORS(EShowFlag)
 
 using ShowFlags = BitFlags<EShowFlag>;
-} // namespace se::graphics
+} // namespace se

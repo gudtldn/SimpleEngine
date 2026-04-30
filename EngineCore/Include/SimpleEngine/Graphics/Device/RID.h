@@ -6,7 +6,7 @@
 #include <limits>
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * GPU 리소스를 가리키는 불투명 핸들 (Render resource ID)
@@ -38,13 +38,13 @@ struct RID
         return (static_cast<uint64>(generation) << 32) | static_cast<uint64>(index);
     }
 };
-} // namespace se::graphics
+} // namespace se
 
 
 template<>
-struct std::hash<se::graphics::RID>
+struct std::hash<se::RID>
 {
-    [[nodiscard]] size_t operator()(const se::graphics::RID& rid) const noexcept
+    [[nodiscard]] size_t operator()(const se::RID& rid) const noexcept
     {
         return std::hash<uint64>{}(rid.ToU64());
     }

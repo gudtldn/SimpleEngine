@@ -17,7 +17,7 @@
 #include <ranges>
 
 
-namespace se::graphics
+namespace se
 {
 RenderGraphExecutor::RenderGraphExecutor(RenderDevice& in_render_device)
     : render_device(&in_render_device)
@@ -412,4 +412,4 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
     }
 }
-} // namespace se::graphics
+} // namespace se

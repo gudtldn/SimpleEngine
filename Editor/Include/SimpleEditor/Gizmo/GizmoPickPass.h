@@ -17,9 +17,9 @@ class GizmoDrawList;
  * Pick Matrix를 적용하여 커서 위치의 단일 픽셀만 1x1 R32_UINT 텍스처에 래스터라이즈합니다.
  * 출력 값은 GizmoVertex::pick_id (= EGizmoAxis underlying value) 입니다.
  */
-class SE_EDITOR_API GizmoPickPass : public se::graphics::RenderPassBase
+class SE_EDITOR_API GizmoPickPass : public se::RenderPassBase
 {
-    SE_CLASS(GizmoPickPass, se::graphics::RenderPassBase)
+    SE_CLASS(GizmoPickPass, se::RenderPassBase)
 
 public:
     /**
@@ -30,18 +30,18 @@ public:
      */
     GizmoPickPass(
         const GizmoDrawList& in_draw_list,
-        const graphics::RenderView& in_render_view,
-        graphics::RGTextureHandle in_pick_target,
+        const RenderView& in_render_view,
+        RGTextureHandle in_pick_target,
         Vector2f in_cursor_pos
     );
 
-    virtual void Setup(graphics::RGSetupContext& context) override;
-    virtual void Execute(graphics::RGExecutionContext& context) override;
+    virtual void Setup(RGSetupContext& context) override;
+    virtual void Execute(RGExecutionContext& context) override;
 
 private:
     const GizmoDrawList& draw_list;
-    graphics::RenderView render_view;
-    graphics::RGTextureHandle pick_target_handle;
+    RenderView render_view;
+    RGTextureHandle pick_target_handle;
     Vector2f cursor_pos;
 };
 } // namespace se::editor

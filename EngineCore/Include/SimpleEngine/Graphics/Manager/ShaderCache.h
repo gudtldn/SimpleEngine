@@ -10,7 +10,7 @@
 #include "SDL3_shadercross/SDL_shadercross.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declaration
 class RenderDevice;
@@ -59,4 +59,4 @@ private:
     HashMap<VPath, SDL_GPUShader*> graphics_cache;
     HashMap<VPath, ShaderReflectionData> reflection_cache;
 };
-} // namespace se::graphics
+} // namespace se

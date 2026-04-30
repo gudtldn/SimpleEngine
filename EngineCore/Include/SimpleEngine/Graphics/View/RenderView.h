@@ -5,7 +5,7 @@
 #include "SimpleEngine/Graphics/View/ViewSettings.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * 단일 뷰포트의 렌더링에 필요한 카메라 정보를 담는 순수 POD 구조체
@@ -116,4 +116,4 @@ public:
         };
     }
 };
-} // namespace se::graphics
+} // namespace se

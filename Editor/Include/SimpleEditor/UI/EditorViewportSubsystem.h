@@ -14,7 +14,7 @@
 namespace se
 {
 class InputSubsystem;
-namespace graphics{ class RenderDevice; }
+class RenderDevice;
 namespace editor{ class ViewportPanel; }
 }
 
@@ -50,8 +50,8 @@ struct ViewportState
 {
 public:
     // 렌더 리소스
-    graphics::RID color_texture;
-    graphics::RenderView render_view;
+    RID color_texture;
+    RenderView render_view;
     StringName color_target_name;
     StringName depth_target_name;
     bool is_focused = false;
@@ -103,10 +103,10 @@ public:
     void UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered);
 
     /** 뷰포트의 RenderingMode를 설정합니다. */
-    void SetViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode);
+    void SetViewportRenderingMode(const StringName& viewport_id, ERenderingMode mode);
 
     /** 뷰포트의 ShowFlags를 설정합니다. */
-    void SetViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags);
+    void SetViewportShowFlags(const StringName& viewport_id, ShowFlags flags);
 
     /** 뷰포트의 기즈모 모드를 설정합니다. */
     void SetViewportGizmoMode(const StringName& viewport_id, EGizmoMode mode);
@@ -170,7 +170,7 @@ public:
 
 private:
     InputSubsystem* input_subsystem = nullptr;
-    graphics::RenderDevice* render_device = nullptr;
+    RenderDevice* render_device = nullptr;
 
     HashMap<StringName, ViewportState> viewports;
 

@@ -6,7 +6,7 @@
 #include <cmath>
 
 
-namespace se::graphics
+namespace se
 {
 GpuResourceManager::GpuResourceManager(RenderDevice& in_render_device)
     : render_device(&in_render_device)
@@ -308,4 +308,4 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
 
     return slice;
 }
-} // namespace se::graphics
+} // namespace se

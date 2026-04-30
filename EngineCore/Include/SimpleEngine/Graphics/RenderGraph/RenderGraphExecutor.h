@@ -8,7 +8,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 class PSOManager;
 class RenderDevice;
@@ -47,4 +47,4 @@ private:
     Array<Array<usize>> resources_to_realize;
     Array<Array<usize>> resources_to_unrealize;
 };
-} // namespace se::graphics
+} // namespace se

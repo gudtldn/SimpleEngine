@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Math/MathSerialize.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * 렌더링에 필요한 기본 정점 데이터
@@ -40,4 +40,4 @@ inline void Serialize(Archive& ar, SkinVertex& v)
     ar("bone_indices") << v.bone_indices;
     ar("bone_weights") << v.bone_weights;
 }
-} // namespace se::graphics
+} // namespace se

@@ -13,7 +13,6 @@
 namespace se::editor
 {
 using namespace se::math;
-using namespace se::graphics;
 
 SE_BEGIN_REFLECT(GizmoPass, meta::Internal)
 SE_END_REFLECT(GizmoPass)

@@ -9,7 +9,7 @@
 #include <ranges>
 
 
-namespace se::graphics
+namespace se
 {
 PSOManager::PSOManager(RenderDevice& in_render_device)
     : render_device(&in_render_device)
@@ -195,4 +195,4 @@ void PSOManager::ClearAll()
 
     shader_cache.ClearAll();
 }
-} // namespace se::graphics
+} // namespace se

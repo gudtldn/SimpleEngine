@@ -56,8 +56,6 @@ void EditorApplication::RegisterSubsystems()
     // Window 초기화
     if (WindowSubsystem* window_subsystem = se::GetSubsystem<WindowSubsystem>())
     {
-        using namespace se;
-
         const VPath config_path = "Config://EngineConfig.toml";
 
         // ConfigFile로 설정 로드 (파일이 없으면 기본값 사용)
@@ -163,15 +161,15 @@ void EditorApplication::Render()
         se::GetSubsystemsChecked<const EntitySubsystem, const EditorUISubsystem, const EditorViewportSubsystem>();
 
     // FramePacket 조립 (SceneDrawData 수집)
-    se::graphics::FramePacket frame_packet;
-    frame_packet.scene_draw_data = se::graphics::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld());
+    se::FramePacket frame_packet;
+    frame_packet.scene_draw_data = se::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld());
 
     // TODO: GPU 리소스 해제 로직
     // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
     // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
     // - 씬 전환 시: GpuResourceManager 전체 리셋 고려
 
-    const se::graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    const se::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
 
     // RenderFrame 람다 내에서 패스 조립
     render_subsystem->RenderFrame(
@@ -198,9 +196,9 @@ void EditorApplication::Render()
         },
 
         // RenderPass Setup
-        [&](se::graphics::RGTextureHandle swapchain_handle, se::graphics::RenderGraphBuilder& builder)
+        [&](se::RGTextureHandle swapchain_handle, se::RenderGraphBuilder& builder)
         {
-            Array<graphics::RGTextureHandle> viewport_color_handles;
+            Array<RGTextureHandle> viewport_color_handles;
             viewport_color_handles.Reserve(viewport_subsystem.GetViewports().Len());
 
             for (const auto& [viewport_id, state] : viewport_subsystem.GetViewports())
@@ -209,14 +207,14 @@ void EditorApplication::Render()
                 {
                     if (const auto tex_resource = render_subsystem->GetRenderDevice().GetTexture(state.color_texture))
                     {
-                        const se::graphics::RenderView& render_view = frame_packet.render_views.Emplace(state.render_view);
+                        const se::RenderView& render_view = frame_packet.render_views.Emplace(state.render_view);
 
                         // ColorTarget Handle 생성
-                        const se::graphics::RGTextureHandle color_handle =
+                        const se::RGTextureHandle color_handle =
                             builder.ImportTexture(state.color_target_name, tex_resource->handle);
 
                         // DepthTarget Handle 생성
-                        const se::graphics::RGTextureHandle depth_handle =
+                        const se::RGTextureHandle depth_handle =
                             builder.CreateTexture(state.depth_target_name, {
                                 .type = SDL_GPU_TEXTURETYPE_2D,
                                 .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
@@ -239,7 +237,7 @@ void EditorApplication::Render()
                             && pick_subsystem;
 
                         // entity_id 텍스처를 PickSubsystem으로부터 Import
-                        se::graphics::RGTextureHandle entity_id_handle = {};
+                        se::RGTextureHandle entity_id_handle = {};
                         if (need_entity_pick)
                         {
                             if (SDL_GPUTexture* entity_id_tex = pick_subsystem->GetOrCreateEntityIdTexture(render_view.width, render_view.height))
@@ -250,7 +248,7 @@ void EditorApplication::Render()
 
                         // 메인 Scene 렌더링 (entity_id_handle이 유효하면 MRT로 entity ID 동시 출력)
                         {
-                            builder.AddPass<se::graphics::ForwardScenePass>(
+                            builder.AddPass<se::ForwardScenePass>(
                                 frame_packet.scene_draw_data, gpu_manager,
                                 render_view, color_handle, depth_handle, entity_id_handle
                             );
@@ -262,7 +260,7 @@ void EditorApplication::Render()
                         // Debug Line 렌더링
                         if (DebugDrawSubsystem* debug_subsystem = se::GetSubsystem<DebugDrawSubsystem>())
                         {
-                            builder.AddPass<se::graphics::DebugLinePass>(
+                            builder.AddPass<se::DebugLinePass>(
                                 *debug_subsystem, render_view, color_handle, depth_handle
                             );
                         }
@@ -284,7 +282,7 @@ void EditorApplication::Render()
                                     && gizmo_subsystem->GetPickTexture()
                                 )
                                 {
-                                    const se::graphics::RGTextureHandle pick_handle =
+                                    const se::RGTextureHandle pick_handle =
                                         builder.ImportTexture("GizmoPickTarget", gizmo_subsystem->GetPickTexture());
 
                                     builder.AddPass<GizmoPickPass>(
@@ -319,7 +317,7 @@ void EditorApplication::Render()
 }
 
 // TODO: 장기적으로 RenderGraph의 Transfer Pass로 통합 예정
-void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const graphics::SceneDrawData& in_scene_data)
+void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const SceneDrawData& in_scene_data)
 {
     if (in_scene_data.opaque_commands.IsEmpty())
     {
@@ -333,7 +331,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
         return;
     }
 
-    graphics::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
     const AssetRegistry& registry = asset_subsystem->GetRegistry();
 
     // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 cook_key 변경)
@@ -344,7 +342,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
     };
     HashMap<AssetId, PendingUpload> pending;
 
-    for (const graphics::DrawCommand& draw_cmd : in_scene_data.opaque_commands)
+    for (const DrawCommand& draw_cmd : in_scene_data.opaque_commands)
     {
         // 이미 pending에 있으면 건너뜀
         if (pending.Contains(draw_cmd.mesh_id))
@@ -430,7 +428,7 @@ void EditorApplication::EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const gr
             cmd,
             mesh_id,
             mesh->vertices.Data(),
-            static_cast<uint32>(mesh->vertices.Len() * sizeof(graphics::StaticVertex)),
+            static_cast<uint32>(mesh->vertices.Len() * sizeof(StaticVertex)),
             mesh->indices.Data(),
             static_cast<uint32>(mesh->indices.Len() * sizeof(uint32))
         );

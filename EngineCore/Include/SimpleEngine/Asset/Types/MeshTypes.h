@@ -19,7 +19,7 @@ public:
     // 하이브리드 SoA 방식으로 구조를 변경해 볼 수도 있음.
     // (GPU Buffer를 positions +(pad) attributes +(pad) indices로 할당해서, Buffer를 2개로 나눠 Slot0, 1에 할당)
     //
-    // struct graphics::VertexAttributes
+    // struct VertexAttributes
     // {
     //     Vector3f normal;
     //     Vector2f tex_coord;
@@ -30,10 +30,10 @@ public:
     // Array<Vector3f> positions;
     //
     // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    // Array<graphics::VertexAttributes> attributes;
+    // Array<VertexAttributes> attributes;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::StaticVertex> vertices;
+    Array<StaticVertex> vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
@@ -54,10 +54,10 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public AssetBase
 
 public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::StaticVertex> vertices;
+    Array<StaticVertex> vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<graphics::SkinVertex> skin_vertices;
+    Array<SkinVertex> skin_vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;

@@ -32,13 +32,13 @@ public:
      */
     void RenderFrame(
         FunctionRef<void(SDL_GPUCommandBuffer*)> upload_fn,
-        FunctionRef<void(graphics::RGTextureHandle, graphics::RenderGraphBuilder&)> build_fn
+        FunctionRef<void(RGTextureHandle, RenderGraphBuilder&)> build_fn
     ) const;
 
 public:
-    [[nodiscard]] graphics::RenderDevice& GetRenderDevice() const { return *render_device; }
-    [[nodiscard]] graphics::PSOManager& GetPSOManager() const { return *pso_manager; }
-    [[nodiscard]] graphics::GpuResourceManager& GetResourceManager() const { return *resource_manager; }
+    [[nodiscard]] RenderDevice& GetRenderDevice() const { return *render_device; }
+    [[nodiscard]] PSOManager& GetPSOManager() const { return *pso_manager; }
+    [[nodiscard]] GpuResourceManager& GetResourceManager() const { return *resource_manager; }
 
 public:
     [[nodiscard]] SDL_GPUSwapchainComposition DetermineBestSwapchainComposition(SDL_Window* window, const WindowDesc& desc) const;
@@ -52,11 +52,11 @@ private:
     void OnWindowDestroyed(SDL_WindowID window_id, SDL_Window* window);
 
 private:
-    std::unique_ptr<graphics::RenderDevice> render_device;
-    std::unique_ptr<graphics::RenderGraphBuilder> render_graph_builder;
-    std::unique_ptr<graphics::RenderGraphExecutor> render_graph_executor;
-    std::unique_ptr<graphics::PSOManager> pso_manager;
-    std::unique_ptr<graphics::GpuResourceManager> resource_manager;
+    std::unique_ptr<RenderDevice> render_device;
+    std::unique_ptr<RenderGraphBuilder> render_graph_builder;
+    std::unique_ptr<RenderGraphExecutor> render_graph_executor;
+    std::unique_ptr<PSOManager> pso_manager;
+    std::unique_ptr<GpuResourceManager> resource_manager;
 
     DelegateHandle window_created_handle;
     DelegateHandle window_destroyed_handle;

@@ -11,7 +11,7 @@ namespace se
 class DebugDrawSubsystem;
 }
 
-namespace se::graphics
+namespace se
 {
 /**
  * DebugLine을 렌더링하는 패스
@@ -41,4 +41,4 @@ private:
     RGTextureHandle color_target_handle;
     RGTextureHandle depth_target_handle;
 };
-} // namespace se::graphics
+} // namespace se

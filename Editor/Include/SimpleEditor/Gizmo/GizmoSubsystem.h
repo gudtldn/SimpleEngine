@@ -93,9 +93,9 @@ private:
     GizmoInteraction interaction;
 
     // GPU Color Picking 리소스
-    graphics::RenderDevice* render_device = nullptr;
+    RenderDevice* render_device = nullptr;
     SDL_GPUTransferBuffer* download_buffer = nullptr;
-    graphics::RID pick_texture_rid = {};
+    RID pick_texture_rid = {};
     EGizmoAxis hovered_axis = EGizmoAxis::None;
 };
 } // namespace se::editor

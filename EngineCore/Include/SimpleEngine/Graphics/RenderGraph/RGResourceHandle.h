@@ -7,7 +7,7 @@
 #include <limits>
 
 
-namespace se::graphics
+namespace se
 {
 namespace detail
 {
@@ -32,12 +32,12 @@ using RGTextureHandle = detail::RGResourceHandleImpl<struct _RGTextureTag>;
 
 /** Render Graph 버퍼 리소스 핸들 */
 using RGBufferHandle = detail::RGResourceHandleImpl<struct _RGBufferTag>;
-} // namespace se::graphics
+} // namespace se
 
 template <typename Tag>
-struct std::hash<se::graphics::detail::RGResourceHandleImpl<Tag>> // NOLINT(*-dcl58-cpp)
+struct std::hash<se::detail::RGResourceHandleImpl<Tag>> // NOLINT(*-dcl58-cpp)
 {
-    size_t operator()(const se::graphics::detail::RGResourceHandleImpl<Tag>& handle) const noexcept
+    size_t operator()(const se::detail::RGResourceHandleImpl<Tag>& handle) const noexcept
     {
         return std::hash<uint32>{}(handle.index);
     }

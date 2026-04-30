@@ -11,7 +11,7 @@
 #include <memory>
 
 
-namespace se::graphics
+namespace se
 {
 static constexpr uint32 INVALID_PASS_INDEX = std::numeric_limits<uint32>::max();
 
@@ -66,4 +66,4 @@ struct RGResourceNode
     uint32 first_user_pass_index = std::numeric_limits<uint32>::max();
     uint32 last_user_pass_index = 0;
 };
-} // namespace se::graphics
+} // namespace se

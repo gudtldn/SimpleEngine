@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Math/Math.h"
 
 
-namespace se::graphics { struct RenderView; }
+namespace se { struct RenderView; }
 
 namespace se::editor
 {
@@ -42,7 +42,7 @@ public:
      * @param view 카메라 투영 정보
      * @return 기즈모에 적용할 월드 공간 스케일
      */
-    [[nodiscard]] static double ComputeScreenScale(const Vector3& position, const graphics::RenderView& view);
+    [[nodiscard]] static double ComputeScreenScale(const Vector3& position, const RenderView& view);
 
     /** EGizmoAxis를 GPU 피킹 버퍼에 전달할 정수 ID로 인코딩합니다. */
     static constexpr uint32 EncodePickID(EGizmoAxis axis)

@@ -4,7 +4,6 @@
 #include "SimpleEngine/Graphics/Device/SlotMap.h"
 
 using namespace se;
-using namespace se::graphics;
 
 
 class RIDTest : public ::testing::Test {};

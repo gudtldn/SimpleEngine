@@ -10,7 +10,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * Graphics API에 사용되는 PSO를 관리하는 매니저
@@ -45,4 +45,4 @@ private:
     HashMap<VPath, Array<GraphicsPipelineCreateInfo>> graphics_shader_to_pipeline_map;
     HashMap<VPath, Array<ComputePipelineCreateInfo>> compute_shader_to_pipeline_map;
 };
-} // namespace se::graphics
+} // namespace se

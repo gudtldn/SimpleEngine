@@ -4,7 +4,7 @@
 #include <ranges>
 
 
-namespace se::graphics
+namespace se
 {
 FrameResourcePool::FrameResourcePool(RenderDevice& in_render_device)
     : render_device(&in_render_device)
@@ -121,4 +121,4 @@ void FrameResourcePool::Trim(uint32 max_idle_frames)
         SDL_ReleaseGPUBuffer(raw_device, buffer);
     });
 }
-} // namespace se::graphics
+} // namespace se

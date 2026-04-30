@@ -354,7 +354,7 @@ void EditorViewportSubsystem::UpdateViewportFocus(const StringName& viewport_id,
     // -> 마지막으로 포커스된 뷰포트를 기준으로 기즈모 등이 계속 렌더링됨
 }
 
-void EditorViewportSubsystem::SetViewportRenderingMode(const StringName& viewport_id, graphics::ERenderingMode mode)
+void EditorViewportSubsystem::SetViewportRenderingMode(const StringName& viewport_id, ERenderingMode mode)
 {
     if (const auto state = viewports.Find(viewport_id))
     {
@@ -362,7 +362,7 @@ void EditorViewportSubsystem::SetViewportRenderingMode(const StringName& viewpor
     }
 }
 
-void EditorViewportSubsystem::SetViewportShowFlags(const StringName& viewport_id, graphics::ShowFlags flags)
+void EditorViewportSubsystem::SetViewportShowFlags(const StringName& viewport_id, ShowFlags flags)
 {
     if (const auto state = viewports.Find(viewport_id))
     {

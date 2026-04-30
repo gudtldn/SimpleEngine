@@ -4,7 +4,7 @@
 #include "SimpleEngine/Utility/Common.h"
 
 
-namespace se::graphics
+namespace se
 {
 GpuMemoryBlock::GpuMemoryBlock(RenderDevice* in_render_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage)
     : render_device(in_render_device)
@@ -82,4 +82,4 @@ bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBuffe
     used_offset = aligned_offset + in_size;
     return true;
 }
-} // namespace se::graphics
+} // namespace se

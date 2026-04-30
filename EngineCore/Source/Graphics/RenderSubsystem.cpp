@@ -11,8 +11,6 @@
 
 namespace se
 {
-using namespace se::graphics;
-
 // TODO: GameServer는 이거 필요없는데
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<WindowSubsystem>();

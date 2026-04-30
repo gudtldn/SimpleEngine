@@ -12,7 +12,7 @@ void GizmoInteraction::BeginDrag(
     const Vector2f& in_cursor_pos,
     const Vector3& in_gizmo_center,
     const Quaternion& in_gizmo_rotation,
-    const graphics::RenderView& in_view
+    const RenderView& in_view
 )
 {
     dragging = true;
@@ -133,7 +133,7 @@ void GizmoInteraction::BeginDrag(
     }
 }
 
-GizmoInteraction::DragResult GizmoInteraction::UpdateDrag(const Vector2f& cursor_pos, const graphics::RenderView& view)
+GizmoInteraction::DragResult GizmoInteraction::UpdateDrag(const Vector2f& cursor_pos, const RenderView& view)
 {
     if (!dragging) { return {}; }
 
@@ -300,7 +300,7 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
     return result;
 }
 
-GizmoInteraction::DragResult GizmoInteraction::UpdateRotation(const Vector2f& cursor_pos, const graphics::RenderView& view)
+GizmoInteraction::DragResult GizmoInteraction::UpdateRotation(const Vector2f& cursor_pos, const RenderView& view)
 {
     DragResult result;
 

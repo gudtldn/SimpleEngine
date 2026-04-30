@@ -6,7 +6,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 /**
  * Hashing 가능한 SDL_GPUGraphicsPipelineCreateInfo 구조체
@@ -40,4 +40,4 @@ struct ComputePipelineCreateInfo
 
     bool operator==(const ComputePipelineCreateInfo& other) const = default;
 };
-} // namespace se::graphics
+} // namespace se

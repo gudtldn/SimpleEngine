@@ -9,7 +9,7 @@
 #include <algorithm>
 
 
-namespace se::graphics
+namespace se
 {
 
 namespace
@@ -47,4 +47,4 @@ SceneDrawData CollectDrawData(const World& world)
 
     return result;
 }
-} // namespace se::graphics
+} // namespace se

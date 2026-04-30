@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::graphics
+namespace se
 {
 enum class EBlendMode : uint8
 {
@@ -20,4 +20,4 @@ enum class EShadingModel : uint8
     Subsurface,
     ClearCoat,
 };
-} // namespace se::graphics
+} // namespace se

@@ -162,14 +162,14 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
             };
             const char* view_label = view_mode_label_fn(cur_view);
 
-            auto rendering_mode_label_fn = [](graphics::ERenderingMode mode) -> const char*
+            auto rendering_mode_label_fn = [](ERenderingMode mode) -> const char*
             {
                 switch (mode)
                 {
-                case graphics::ERenderingMode::Lit:         return "Lit";
-                case graphics::ERenderingMode::Unlit:       return "Unlit";
-                case graphics::ERenderingMode::Wireframe:   return "Wireframe";
-                default:                                    return "";
+                case ERenderingMode::Lit:       return "Lit";
+                case ERenderingMode::Unlit:     return "Unlit";
+                case ERenderingMode::Wireframe: return "Wireframe";
+                default:                        return "";
                 }
             };
 
@@ -221,7 +221,7 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
             hbox
                 .PopupButton(rendering_mode_label_fn(rendering_mode), "##RenderMode", [&]
                 {
-                    auto item = [&](const char* label, graphics::ERenderingMode mode)
+                    auto item = [&](const char* label, ERenderingMode mode)
                     {
                         if (ImGui::Selectable(label, rendering_mode == mode))
                         {
@@ -230,14 +230,14 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
                         }
                     };
 
-                    item("Lit", graphics::ERenderingMode::Lit);
-                    item("Unlit", graphics::ERenderingMode::Unlit);
-                    item("Wireframe", graphics::ERenderingMode::Wireframe);
+                    item("Lit", ERenderingMode::Lit);
+                    item("Unlit", ERenderingMode::Unlit);
+                    item("Wireframe", ERenderingMode::Wireframe);
                 })
                 .Separator()
                 .PopupButton("Show", "##ShowFlags", [&]
                 {
-                    auto flag_checkbox = [&](const char* label, graphics::EShowFlag flag)
+                    auto flag_checkbox = [&](const char* label, EShowFlag flag)
                     {
                         bool checked = show_flags.IsSet(flag);
                         if (ImGui::Checkbox(label, &checked))
@@ -247,8 +247,8 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
                         }
                     };
 
-                    flag_checkbox("Grid", graphics::EShowFlag::Grid);
-                    flag_checkbox("AABB", graphics::EShowFlag::AABB);
+                    flag_checkbox("Grid", EShowFlag::Grid);
+                    flag_checkbox("AABB", EShowFlag::AABB);
                 });
         }
     } // ~ImGuiHBox: PopID + 오른쪽 너비 캐시 저장

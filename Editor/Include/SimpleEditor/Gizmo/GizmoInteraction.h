@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Math/Math.h"
 
 // forward declaration
-namespace se::graphics { struct RenderView; }
+namespace se { struct RenderView; }
 
 
 namespace se::editor
@@ -50,7 +50,7 @@ public:
         const Vector2f& in_cursor_pos,
         const Vector3& in_gizmo_center,
         const Quaternion& in_gizmo_rotation,
-        const graphics::RenderView& in_view
+        const RenderView& in_view
     );
 
     /**
@@ -59,7 +59,7 @@ public:
      * @param view 현재 RenderView
      * @return 이전 프레임 대비 변화한 변환량 (DragResult)
      */
-    [[nodiscard]] DragResult UpdateDrag(const Vector2f& cursor_pos, const graphics::RenderView& view);
+    [[nodiscard]] DragResult UpdateDrag(const Vector2f& cursor_pos, const RenderView& view);
 
     /** 드래그 상태를 해제하고 내부 파라미터를 초기화합니다. */
     void EndDrag();
@@ -85,7 +85,7 @@ private:
 
     [[nodiscard]] DragResult UpdateTranslation(const Ray& ray);
     [[nodiscard]] DragResult UpdateScale(const Ray& ray, const Vector2f& cursor_pos);
-    [[nodiscard]] DragResult UpdateRotation(const Vector2f& cursor_pos, const graphics::RenderView& view);
+    [[nodiscard]] DragResult UpdateRotation(const Vector2f& cursor_pos, const RenderView& view);
 
 private:
     /** 스케일 All 모드에서 화면 커서 1px 당 스케일 변화량 */

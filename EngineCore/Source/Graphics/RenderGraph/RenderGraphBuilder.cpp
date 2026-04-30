@@ -6,7 +6,7 @@
 #include <utility>
 
 
-namespace se::graphics
+namespace se
 {
 RGTextureHandle RenderGraphBuilder::ImportTexture(const StringName& name, SDL_GPUTexture* texture)
 {
@@ -115,4 +115,4 @@ RGBufferHandle RenderGraphBuilder::RegisterBufferSlot(const StringName& name)
     resource_name_map[name] = index;
     return RGBufferHandle{ .index = index };
 }
-} // namespace se::graphics
+} // namespace se

@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
-namespace se::graphics
+namespace se
 {
 class RGExecutionContext;
 class RGSetupContext;
@@ -48,4 +48,4 @@ public:
      */
     [[nodiscard]] virtual ERGPassQueue GetQueueType() const { return ERGPassQueue::Graphics; }
 };
-} // namespace se::graphics
+} // namespace se

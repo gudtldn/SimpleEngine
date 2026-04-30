@@ -9,7 +9,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declaration
 class RenderDevice;
@@ -138,4 +138,4 @@ private:
     // AssetId -> GPU Texture 매핑
     HashMap<AssetId, RID> texture_map;
 };
-} // namespace se::graphics
+} // namespace se

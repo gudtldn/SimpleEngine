@@ -7,7 +7,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 /** RenderDevice가 관리하는 텍스처 리소스의 메타데이터입니다. */
 struct TextureResource
@@ -100,4 +100,4 @@ private:
     Array<SDL_GPUTexture*> deferred_texture_destroys;
     Array<SDL_GPUBuffer*> deferred_buffer_destroys;
 };
-} // namespace se::graphics
+} // namespace se

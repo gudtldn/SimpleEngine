@@ -11,8 +11,6 @@
 
 namespace se::editor
 {
-using namespace se;
-
 namespace
 {
 Optional<SDL_ShaderCross_ShaderStage> ParseStageString(StringView str)

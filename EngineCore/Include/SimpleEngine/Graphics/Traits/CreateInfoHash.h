@@ -145,7 +145,7 @@ SE_SPECIALIZE_STD_HASH(SDL_GPUGraphicsPipelineTargetInfo, 24,
     );
 })
 
-SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::GraphicsPipelineCreateInfo,
+SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::GraphicsPipelineCreateInfo,
 {
     SE_HASH_COMBINE(
         SE_ARG.vertex_shader,
@@ -160,7 +160,7 @@ SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::GraphicsPipelineCreateInfo
     );
 })
 
-SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::graphics::ComputePipelineCreateInfo,
+SE_SPECIALIZE_STD_HASH_WITHOUT_VALIDATE(se::ComputePipelineCreateInfo,
 {
     SE_HASH_COMBINE(
         SE_ARG.compute_shader,

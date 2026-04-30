@@ -7,7 +7,7 @@
 #include "SimpleEngine/Graphics/View/RenderView.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declaration
 struct SceneDrawData;
@@ -42,4 +42,4 @@ private:
     RGTextureHandle depth_target_handle;
     RGTextureHandle entity_id_target_handle;
 };
-} // namespace se::graphics
+} // namespace se

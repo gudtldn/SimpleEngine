@@ -8,8 +8,6 @@
 
 namespace se::editor
 {
-using namespace se::graphics;
-
 SE_BEGIN_REFLECT(EditorUIPass, meta::Internal)
 SE_END_REFLECT(EditorUIPass)
 

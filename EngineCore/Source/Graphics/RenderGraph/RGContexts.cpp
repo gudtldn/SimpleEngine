@@ -8,7 +8,7 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 
-namespace se::graphics
+namespace se
 {
 RGSetupContext::RGSetupContext(RGPassNode& in_pass_node)
     : pass_node_ref(in_pass_node)
@@ -122,4 +122,4 @@ void RGExecutionContext::InsertDebugLabel([[maybe_unused]] const char* text)
     SDL_InsertGPUDebugLabel(command_buffer, text);
 #endif
 }
-} // namespace se::graphics
+} // namespace se

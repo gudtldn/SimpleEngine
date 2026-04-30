@@ -4,7 +4,7 @@
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 RenderDevice::RenderDevice(SDL_GPUDevice* raw_device)
     : raw_device(raw_device)
@@ -140,4 +140,4 @@ void RenderDevice::ProcessDeferredDestructions()
     }
     deferred_buffer_destroys.Clear();
 }
-} // namespace se::graphics
+} // namespace se

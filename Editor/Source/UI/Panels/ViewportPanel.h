@@ -25,7 +25,7 @@ private:
     StringName viewport_id;
 
     // 렌더 설정
-    graphics::ERenderingMode rendering_mode = graphics::ERenderingMode::Lit;
-    graphics::ShowFlags show_flags = graphics::EShowFlag::All;
+    ERenderingMode rendering_mode = ERenderingMode::Lit;
+    ShowFlags show_flags = EShowFlag::All;
 };
 } // namespace se::editor

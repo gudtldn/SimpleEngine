@@ -1,13 +1,12 @@
 #pragma once
 
-#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Graphics/Memory/GpuBufferSlice.h"
 
 #include "SDL3/SDL_gpu.h"
 
 
-namespace se::graphics
+namespace se
 {
 // forward declaration
 class RenderDevice;
@@ -47,4 +46,4 @@ private:
     uint32 total_size = 0;                   // 버퍼 크기
     uint32 used_offset = 0;                  // 버퍼를 할당할 수 있는 시작 오프셋
 };
-} // namespace se::graphics
+} // namespace se

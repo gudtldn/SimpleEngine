@@ -2,7 +2,7 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 
-namespace se::graphics
+namespace se
 {
 SE_BEGIN_REFLECT(RGResourceBase, meta::Internal)
 SE_END_REFLECT(RGResourceBase)
@@ -24,4 +24,4 @@ SE_END_REFLECT(RGTransientBuffer)
 
 SE_BEGIN_REFLECT(RGExternalBuffer, meta::Internal)
 SE_END_REFLECT(RGExternalBuffer)
-} // namespace se::graphics
+} // namespace se

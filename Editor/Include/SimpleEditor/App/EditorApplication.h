@@ -9,7 +9,7 @@
 #include "SDL3/SDL.h"
 
 // forward declaration
-namespace se::graphics { struct SceneDrawData; }
+namespace se { struct SceneDrawData; }
 
 
 namespace se::editor
@@ -31,7 +31,7 @@ protected:
 
 private:
     /** 현재 프레임에 필요한 메시를 GPU 메모리에 업로드합니다. */
-    void EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const graphics::SceneDrawData& in_scene_data);
+    void EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const SceneDrawData& in_scene_data);
 
     // GPU에 업로드된 메시의 해시 쌍을 추적합니다 (Hot-reload 감지용)
     struct MeshCookKey
