@@ -45,4 +45,4 @@ private:
     HashMap<VPath, Array<GraphicsPipelineCreateInfo>> graphics_shader_to_pipeline_map;
     HashMap<VPath, Array<ComputePipelineCreateInfo>> compute_shader_to_pipeline_map;
 };
-}  // namespace se::graphics
+} // namespace se::graphics

@@ -295,4 +295,4 @@ SDL_GPUPresentMode RenderSubsystem::DetermineBestPresentMode(SDL_Window* window)
     // 기본값 (항상 지원됨)
     return SDL_GPU_PRESENTMODE_VSYNC;
 }
-}  // namespace se
+} // namespace se

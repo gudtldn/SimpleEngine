@@ -169,4 +169,4 @@ typename FlatSet<T, Pred, Allocator>::ConstIteratorType FlatSet<T, Pred, Allocat
 {
     return internal_array.end();
 }
-}  // namespace se
+} // namespace se

@@ -140,4 +140,4 @@ private:
 
     Path active_content_dir;
 };
-}  // namespace se::editor
+} // namespace se::editor

@@ -47,7 +47,7 @@ private:
     uint32 id;
     uint32 generation;
 };
-}  // namespace se
+} // namespace se
 
 template <>
 struct std::hash<se::Entity>

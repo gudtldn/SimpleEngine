@@ -57,4 +57,4 @@ String StringName::ToString() const
 {
     return { CStr() };
 }
-}  // namespace se
+} // namespace se

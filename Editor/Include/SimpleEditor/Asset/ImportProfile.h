@@ -161,4 +161,4 @@ public:
 private:
     SettingsMap settings_map;
 };
-}  // namespace se::editor
+} // namespace se::editor

@@ -137,6 +137,6 @@ private:
     Array<T, Allocator> internal_array;
     NO_UNIQUE_ADDRESS Pred compare;
 };
-}  // namespace se
+} // namespace se
 
 #include "SimpleEngine/Core/Container/FlatSet.inl"

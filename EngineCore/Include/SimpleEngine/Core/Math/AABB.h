@@ -140,4 +140,4 @@ public:
             && min.z <= other.max.z && max.z >= other.min.z;
     }
 };
-}  // namespace se::math
+} // namespace se::math

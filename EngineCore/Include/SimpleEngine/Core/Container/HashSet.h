@@ -139,6 +139,6 @@ public:
 private:
     InternalSetType internal_set;
 };
-}  // namespace se
+} // namespace se
 
 #include "SimpleEngine/Core/Container/HashSet.inl"

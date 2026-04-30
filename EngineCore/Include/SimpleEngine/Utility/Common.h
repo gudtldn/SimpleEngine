@@ -113,4 +113,4 @@ private:
 
 template<typename Fn>
 LambdaScopeGuard(Fn) -> LambdaScopeGuard<Fn>;
-}  // namespace se
+} // namespace se

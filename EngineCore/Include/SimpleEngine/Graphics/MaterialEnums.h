@@ -20,4 +20,4 @@ enum class EShadingModel : uint8
     Subsurface,
     ClearCoat,
 };
-}  // namespace se::graphics
+} // namespace se::graphics

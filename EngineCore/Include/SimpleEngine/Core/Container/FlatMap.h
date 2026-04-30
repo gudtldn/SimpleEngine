@@ -216,6 +216,6 @@ private:
     Array<PairType, Allocator> internal_array;
     NO_UNIQUE_ADDRESS PairCompare pair_compare;
 };
-}  // namespace se
+} // namespace se
 
 #include "SimpleEngine/Core/Container/FlatMap.inl"

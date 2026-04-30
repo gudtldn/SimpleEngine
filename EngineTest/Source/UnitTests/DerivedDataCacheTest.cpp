@@ -62,7 +62,7 @@ Array<uint8> MakePayload(usize size, uint8 fill = 0xAB)
     std::memset(result.Data(), fill, size);
     return result;
 }
-}  // namespace
+} // namespace
 
 
 // =============================================================================

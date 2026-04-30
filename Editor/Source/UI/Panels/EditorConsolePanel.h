@@ -54,4 +54,4 @@ private:
     bool filter_changed = false;
     usize last_log_count = 0;
 };
-}  // namespace se::editor
+} // namespace se::editor

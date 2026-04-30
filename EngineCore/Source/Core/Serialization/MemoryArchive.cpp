@@ -213,4 +213,4 @@ void MemoryWriter::WriteBytes(const void* src, uint64 byte_size)
     std::memcpy(buffer.Data() + offset, src, byte_size);
     offset += byte_size;
 }
-}  // namespace se
+} // namespace se

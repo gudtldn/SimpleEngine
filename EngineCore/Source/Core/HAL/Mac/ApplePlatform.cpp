@@ -61,5 +61,5 @@ void Platform::RevealInExplorer(const Path& path)
     const String command = String::Format("open -R \"{}\"", absolute_path);
     std::system(command.CStr());
 }
-}  // namespace se
+} // namespace se
 #endif

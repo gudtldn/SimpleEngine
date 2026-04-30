@@ -31,4 +31,4 @@ private:
 private:
     Deque<LogEntry> log_history;
 };
-}  // namespace se::editor
+} // namespace se::editor

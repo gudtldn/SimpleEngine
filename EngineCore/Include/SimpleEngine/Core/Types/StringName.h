@@ -50,7 +50,7 @@ private:
     uint64 comparison_hash = 0;
     const char* display_name = nullptr;
 };
-}  // namespace se
+} // namespace se
 
 template <>
 struct std::hash<se::StringName>

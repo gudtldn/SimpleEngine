@@ -24,4 +24,4 @@ SE_END_REFLECT(RGTransientBuffer)
 
 SE_BEGIN_REFLECT(RGExternalBuffer, meta::Internal)
 SE_END_REFLECT(RGExternalBuffer)
-}  // namespace se::graphics
+} // namespace se::graphics

@@ -14,6 +14,6 @@ public:
     SE_ANNOTATION(=meta::Property)
     Entity parent;
 };
-}  // namespace se
+} // namespace se
 
 SE_DECLARE_REFLECTION(se::ParentComponent)

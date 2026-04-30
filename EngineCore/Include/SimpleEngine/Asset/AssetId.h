@@ -31,7 +31,7 @@ private:
 
     Guid guid;
 };
-}  // namespace se::asset
+} // namespace se::asset
 
 template <>
 struct std::hash<se::asset::AssetId>

@@ -64,5 +64,5 @@ void Platform::RevealInExplorer(const Path& path)
         std::system(command.CStr());
     }
 }
-}  // namespace se
+} // namespace se
 #endif

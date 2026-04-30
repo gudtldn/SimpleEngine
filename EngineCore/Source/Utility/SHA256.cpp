@@ -57,4 +57,4 @@ ContentHash SHA256::HashString(const StringView str)
     hasher.process(str.begin(), str.end());
     return DigestFromHasher(hasher);
 }
-}  // namespace se
+} // namespace se

@@ -100,4 +100,4 @@ private:
     HashMap<TypeId, PropertyDrawFunc> drawers;
     AssetDropResolverFunc asset_drop_resolver = nullptr;
 };
-}  // namespace se::editor
+} // namespace se::editor

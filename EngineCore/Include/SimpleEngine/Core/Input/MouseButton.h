@@ -25,4 +25,4 @@ enum class EMouseButton : uint8
 {
     return static_cast<EMouseButton>(sdl_button);
 }
-}  // namespace se
+} // namespace se

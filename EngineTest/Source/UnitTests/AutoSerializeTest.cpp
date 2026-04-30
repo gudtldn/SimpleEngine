@@ -58,7 +58,7 @@ T RoundTripViaTypeInfo(const T& original)
     info.serialize(reader, &loaded);
     return loaded;
 }
-}  // namespace
+} // namespace
 
 // ============================================================================
 //  AutoSerialize 테스트용 타입 정의
@@ -149,7 +149,7 @@ enum class ETestColor : uint8
     Blue = 2,
     Alpha = 255,
 };
-}  // namespace autoserialize_test
+} // namespace autoserialize_test
 
 // ============================================================================
 //  리플렉션 등록

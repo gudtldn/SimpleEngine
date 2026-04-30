@@ -59,4 +59,4 @@ private:
     mutable std::mutex backends_mutex;
     FlatMap<TypeId, std::unique_ptr<ILogBackend>> backends{};
 };
-}  // namespace se
+} // namespace se

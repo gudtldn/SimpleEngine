@@ -14,4 +14,4 @@ public:
     virtual void Draw() override;
     //~ IEditorPanel
 };
-}  // namespace se::editor
+} // namespace se::editor

@@ -105,4 +105,4 @@ bool FileBackend::CheckRotation() const
 {
     return current_file_size > max_file_size;
 }
-}  // namespace se
+} // namespace se

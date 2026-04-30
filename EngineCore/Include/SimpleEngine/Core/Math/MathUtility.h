@@ -161,7 +161,7 @@ constexpr T RoundImpl(T x)
 {
     return (x >= T(0)) ? FloorImpl(x + T(0.5)) : CeilImpl(x - T(0.5));
 }
-}  // namespace detail
+} // namespace detail
 
 
 /** 두 값중에 더 작은 값을 반환합니다. */
@@ -359,4 +359,4 @@ template <traits::FloatingType T>
 {
     return Degree{ radians * (static_cast<T>(180) / static_cast<T>(PI_V<T>)) };
 }
-}  // namespace se::math
+} // namespace se::math

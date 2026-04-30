@@ -281,4 +281,4 @@ struct SE_CORE_API FileSystem
      */
     [[nodiscard]] static DirectoryIterator ReadDir(const Path& path);
 };
-}  // namespace se
+} // namespace se

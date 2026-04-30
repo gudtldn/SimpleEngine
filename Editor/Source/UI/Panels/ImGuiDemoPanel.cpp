@@ -19,4 +19,4 @@ void ImGuiDemoPanel::Draw()
 {
     ImGui::ShowDemoWindow(&is_visible);
 }
-}  // namespace se::editor
+} // namespace se::editor

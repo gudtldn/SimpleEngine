@@ -100,4 +100,4 @@ T* OsMemory::Allocate(usize count, usize alignment)
 {
     return static_cast<T*>(Allocate(sizeof(T) * count, alignment));
 }
-}  // namespace se
+} // namespace se

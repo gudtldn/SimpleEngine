@@ -293,4 +293,4 @@ void EditorConsolePanel::RefreshFilterList(const Deque<se::LogEntry>& logs)
     filter_changed = false;
     last_log_count = logs.Len();
 }
-}  // namespace se::editor
+} // namespace se::editor

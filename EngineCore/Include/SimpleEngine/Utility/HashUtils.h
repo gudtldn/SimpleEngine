@@ -27,7 +27,7 @@ constexpr uint64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcep
     }
     return hash;
 }
-}  // namespace detail
+} // namespace detail
 
 /**
  * 해시 관련 유틸리티 함수 모음
@@ -71,4 +71,4 @@ struct HashUtils
         (combine_one(values), ...);
     }
 };
-}  // namespace se
+} // namespace se

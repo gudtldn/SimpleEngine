@@ -77,4 +77,4 @@ public:
 
 template <usize N>
 FixedString(const char (&)[N]) -> FixedString<N>;
-}  // namespace se
+} // namespace se

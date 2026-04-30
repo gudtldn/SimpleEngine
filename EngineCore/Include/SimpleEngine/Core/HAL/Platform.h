@@ -60,4 +60,4 @@ struct SE_CORE_API Platform
      */
     static void RevealInExplorer(const Path& path);
 };
-}  // namespace se
+} // namespace se

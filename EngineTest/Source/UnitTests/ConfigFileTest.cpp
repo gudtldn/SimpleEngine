@@ -111,7 +111,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) RootSettings
 
     bool operator==(const RootSettings&) const = default;
 };
-}  // namespace config_test
+} // namespace config_test
 
 
 // ============================================================================

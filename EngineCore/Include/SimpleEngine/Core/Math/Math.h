@@ -42,4 +42,4 @@ using Ray = math::RayImpl<double>;
 using Rayf = math::RayImpl<float>;
 using Color = math::Color;
 using LinearColor = math::LinearColor;
-}  // namespace se
+} // namespace se

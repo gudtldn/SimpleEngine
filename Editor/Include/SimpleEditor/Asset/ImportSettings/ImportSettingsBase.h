@@ -18,4 +18,4 @@ class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect) ImportSettingsBase
 public:
     virtual ~ImportSettingsBase() = default;
 };
-}  // namespace se::editor
+} // namespace se::editor

@@ -274,4 +274,4 @@ void Application::ReleaseEngine()
 void Application::PostRelease()
 {
 }
-}  // namespace se
+} // namespace se

@@ -192,4 +192,4 @@ public:
     MapEntry& operator=(const MapEntry&) = delete;
     MapEntry& operator=(MapEntry&&) noexcept = delete;
 };
-}  // namespace se
+} // namespace se

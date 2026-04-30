@@ -172,4 +172,4 @@ toml::table* ConfigFile::NavigateOrCreate(StringView key_path, StringView& out_f
 
     return current;
 }
-}  // namespace se
+} // namespace se

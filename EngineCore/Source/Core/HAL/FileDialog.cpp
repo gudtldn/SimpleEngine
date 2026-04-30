@@ -91,7 +91,7 @@ Array<SDL_DialogFileFilter> ConvertFilters(ArrayView<const FileFilter> filters)
     ConsoleLog(ELogLevel::Warning, "File dialog is already open. Ignoring request.");
     return false;
 }
-}  // namespace
+} // namespace
 
 namespace se
 {

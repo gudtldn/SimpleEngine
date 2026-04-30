@@ -119,4 +119,4 @@ Set<T, Pred, Allocator>::ConstIteratorType Set<T, Pred, Allocator>::end() const 
 {
     return internal_set.end();
 }
-}  // namespace se
+} // namespace se

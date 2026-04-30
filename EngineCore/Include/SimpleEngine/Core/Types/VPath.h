@@ -79,7 +79,7 @@ private:
     uint16 scheme_len = 0;  // 스키마의 길이, 0이면 스키마 없음
     uint16 path_offset = 0; // 경로 부분의 시작 인덱스
 };
-}  // namespace se
+} // namespace se
 
 template <>
 struct std::hash<se::VPath>

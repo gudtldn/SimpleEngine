@@ -15,4 +15,4 @@ SE_BEGIN_REFLECT(Texture2D, meta::Reflect)
     SE_REFLECT_PROPERTY(generate_mips, meta::Property, meta::ReadOnly)
     SE_REFLECT_PROPERTY(pixels, meta::Property, meta::ReadOnly)
 SE_END_REFLECT(Texture2D)
-}  // namespace se::asset
+} // namespace se::asset

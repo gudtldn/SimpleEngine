@@ -22,7 +22,7 @@ SE_CORE_API Optional<std::pair<char32_t, usize>> DecodeLastCodePoint(StringView 
 /** 대소문자 변환 */
 SE_CORE_API String ToUpperImpl(StringView view, const char* locale);
 SE_CORE_API String ToLowerImpl(StringView view, const char* locale);
-}  // namespace detail
+} // namespace detail
 
 
 template <typename Allocator>
@@ -483,4 +483,4 @@ std::strong_ordering BaseString<Allocator>::operator<=>(StringView other) const
 {
     return StringView{ *this } <=> other;
 }
-}  // namespace se
+} // namespace se

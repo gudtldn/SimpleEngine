@@ -69,4 +69,4 @@ template <typename... Subsystems>
 {
     return { GetSubsystemChecked<Subsystems>()... };
 }
-}  // namespace se
+} // namespace se

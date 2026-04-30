@@ -22,4 +22,4 @@ void LogBackendManager::FlushAllBackends()
         backend->Flush();
     }
 }
-}  // namespace se
+} // namespace se

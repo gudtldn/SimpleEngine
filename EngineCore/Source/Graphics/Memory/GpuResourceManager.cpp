@@ -308,4 +308,4 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
 
     return slice;
 }
-}  // namespace se::graphics
+} // namespace se::graphics

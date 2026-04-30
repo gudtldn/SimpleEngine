@@ -252,7 +252,7 @@ void SerializeSetContainer(Archive& ar, Container& container);
 /** Map-like 컨테이너 직렬화 (HashMap, Map, FlatMap) */
 template <traits::MapLike Container>
 void SerializeMapContainer(Archive& ar, Container& container);
-}  // namespace detail
+} // namespace detail
 
 
 template <typename T>

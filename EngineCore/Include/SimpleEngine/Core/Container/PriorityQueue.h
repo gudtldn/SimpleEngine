@@ -201,4 +201,4 @@ void PriorityQueue<T, Container, Compare>::Swap(PriorityQueue& other) noexcept
     container.Swap(other.container);
     std::swap(comp, other.comp);
 }
-}  // namespace se
+} // namespace se

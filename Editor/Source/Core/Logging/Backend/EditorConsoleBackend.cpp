@@ -29,4 +29,4 @@ void EditorConsoleBackend::ReadLogs(const Function<void(const Deque<LogEntry>&)>
         visitor(log_history);
     }
 }
-}  // namespace se::editor
+} // namespace se::editor

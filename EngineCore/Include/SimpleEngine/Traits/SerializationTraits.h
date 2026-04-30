@@ -5,7 +5,7 @@ namespace se
 {
 // Forward declarations
 class Archive;
-}  // namespace se
+} // namespace se
 
 namespace se::traits
 {

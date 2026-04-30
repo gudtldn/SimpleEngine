@@ -43,4 +43,4 @@ void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance)
     const TypeInfo& info = TypeRegistry::Get().FindChecked(type_id);
     AutoSerialize(ar, info, instance);
 }
-}  // namespace se
+} // namespace se

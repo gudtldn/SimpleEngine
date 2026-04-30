@@ -20,7 +20,7 @@ bool IsNoneString(se::StringView view)
         && (view[2] == 'n' || view[2] == 'N')
         && (view[3] == 'e' || view[3] == 'E');
 }
-}  // namespace
+} // namespace
 
 
 namespace se
@@ -136,4 +136,4 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     lookup_map.Entry(comparison_hash).OrInsert(&new_entry);
     return new_entry;
 }
-}  // namespace se
+} // namespace se

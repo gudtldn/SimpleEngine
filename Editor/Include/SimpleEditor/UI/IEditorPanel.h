@@ -49,4 +49,4 @@ protected:
     bool is_focused = false;
     bool is_hovered = false;
 };
-}  // namespace se::editor
+} // namespace se::editor

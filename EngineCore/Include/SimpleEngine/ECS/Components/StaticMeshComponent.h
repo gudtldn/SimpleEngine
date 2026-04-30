@@ -16,6 +16,6 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) StaticMeshCom
 
     // RenderData Cache 추가
 };
-}  // namespace se
+} // namespace se
 
 SE_DECLARE_REFLECTION(se::StaticMeshComponent)

@@ -14,6 +14,6 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) ChildrenCompo
     SE_ANNOTATION(=meta::Property)
     Array<Entity> children;
 };
-}  // namespace se
+} // namespace se
 
 SE_DECLARE_REFLECTION(se::ChildrenComponent)

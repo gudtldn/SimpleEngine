@@ -121,4 +121,4 @@ private:
     bool is_running = false;
     std::atomic<bool> quit_requested = false;
 };
-}  // namespace se
+} // namespace se

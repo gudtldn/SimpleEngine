@@ -55,4 +55,4 @@ Path Platform::FindProjectRoot()
 
     return cached;
 }
-}  // namespace se
+} // namespace se

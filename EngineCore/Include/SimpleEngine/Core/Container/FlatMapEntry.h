@@ -186,4 +186,4 @@ public:
     FlatMapEntry& operator=(const FlatMapEntry&) = delete;
     FlatMapEntry& operator=(FlatMapEntry&&) noexcept = delete;
 };
-}  // namespace se
+} // namespace se

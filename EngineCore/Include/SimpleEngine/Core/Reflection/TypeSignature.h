@@ -179,7 +179,7 @@ consteval StringView ExtractTypeName() noexcept
 #error "Unsupported compiler for type name extraction"
 #endif
 }
-}  // namespace detail
+} // namespace detail
 
 /**
  * 컴파일러 시그니처에서 추출된 그대로의 타입 이름을 반환합니다. (예: "class se::MyClass", "struct Foo")
@@ -234,4 +234,4 @@ template <typename T>
     constexpr auto ret = GetFullTypeName<T>();
     return detail::RemoveNamespace(ret);
 }
-}  // namespace se
+} // namespace se

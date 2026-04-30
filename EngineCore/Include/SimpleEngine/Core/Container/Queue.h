@@ -157,4 +157,4 @@ void Queue<T, Container>::Swap(Queue& other) noexcept
 {
     container.Swap(other.container);
 }
-}  // namespace se
+} // namespace se

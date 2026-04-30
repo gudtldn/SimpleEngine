@@ -78,7 +78,7 @@ private:
     StringView type_name;
     uint64 type_hash = 0;
 };
-}  // namespace se
+} // namespace se
 
 template <>
 struct std::hash<se::TypeId>

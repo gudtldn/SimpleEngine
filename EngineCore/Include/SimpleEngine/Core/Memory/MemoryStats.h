@@ -174,7 +174,7 @@ public:
     ScopedMemoryTag(ScopedMemoryTag&&) noexcept = delete;
     ScopedMemoryTag& operator=(ScopedMemoryTag&&) noexcept = delete;
 };
-}  // namespace se
+} // namespace se
 
 /**
  * 현재 스코프의 메모리 태그를 설정합니다.

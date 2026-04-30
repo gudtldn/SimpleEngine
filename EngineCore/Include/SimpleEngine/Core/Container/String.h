@@ -72,7 +72,7 @@ public:
 private:
     StringView view;
 };
-}  // namespace detail
+} // namespace detail
 
 /**
  * UTF-8 인코딩을 네이티브로 지원하는 동적 문자열 클래스
@@ -427,7 +427,7 @@ private:
     // TODO: 나중에 필요할 때 SSO 구현
     Array<char, AllocatorType> data;
 };
-}  // namespace se
+} // namespace se
 
 // se::String에 대한 std::hash 특수화
 template <>

@@ -209,6 +209,6 @@ public:
 private:
     InternalMapType internal_map;
 };
-}  // namespace se
+} // namespace se
 
 #include "SimpleEngine/Core/Container/Map.inl"

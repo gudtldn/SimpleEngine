@@ -30,4 +30,4 @@ struct RayImpl;
 
 struct Color;
 struct LinearColor;
-}  // namespace se::math
+} // namespace se::math

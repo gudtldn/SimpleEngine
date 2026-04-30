@@ -840,4 +840,4 @@ const T& Array<T, Allocator>::BackUnsafe() const
 {
     return data[size - 1];
 }
-}  // namespace se
+} // namespace se

@@ -129,4 +129,4 @@ private:
     // Delegate Handle
     DelegateHandle sdl_event_handle;
 };
-}  // namespace se
+} // namespace se

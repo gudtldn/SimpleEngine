@@ -22,6 +22,6 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) TransformComp
     // PropagateTransforms에서 최적화용 flag로 사용
     bool dirty = true;
 };
-}  // namespace se
+} // namespace se
 
 SE_DECLARE_REFLECTION(se::TransformComponent)

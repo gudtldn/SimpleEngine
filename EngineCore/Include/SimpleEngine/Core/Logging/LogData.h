@@ -111,4 +111,4 @@ struct LogOnceKey
         }
     };
 };
-}  // namespace se
+} // namespace se

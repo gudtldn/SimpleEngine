@@ -22,4 +22,4 @@ Archive::Archive(EArchiveMode in_mode)
     : mode(in_mode)
 {
 }
-}  // namespace se
+} // namespace se

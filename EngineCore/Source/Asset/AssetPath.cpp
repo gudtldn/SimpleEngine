@@ -32,4 +32,4 @@ String AssetPath::ToString() const
     }
     return file_path.ToString();
 }
-}  // namespace se::asset
+} // namespace se::asset

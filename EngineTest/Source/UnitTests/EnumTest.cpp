@@ -13,7 +13,7 @@ enum class EAlias { Start = 0, Begin = 0, First = 0, End = 10 };
 enum class EFlags : uint32_t { None = 0, Read = 1 << 0, Write = 1 << 1, All = Read | Write };
 enum class EEmpty {};
 enum class ELarge : int64_t { Max = 9223372036854775807LL, Min = -9223372036854775807LL - 1 };
-}  // namespace EnumTestDetail
+} // namespace EnumTestDetail
 
 SE_ENUM_SET_RANGE(EnumTestDetail::EColor, 0, 2);
 SE_ENUM_SET_RANGE(EnumTestDetail::ENumbers, 1, 10);

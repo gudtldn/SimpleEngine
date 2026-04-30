@@ -377,4 +377,4 @@ typename FlatMap<Key, Value, Pred, Allocator>::ConstIteratorType FlatMap<Key, Va
 {
     return internal_array.end();
 }
-}  // namespace se
+} // namespace se

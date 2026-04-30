@@ -138,4 +138,4 @@ private:
 private:
     Array<uint8>& buffer;
 };
-}  // namespace se
+} // namespace se

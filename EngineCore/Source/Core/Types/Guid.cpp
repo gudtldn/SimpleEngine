@@ -19,7 +19,7 @@ se::Guid FromUuid(const uuids::uuid& uuid)
     static_assert(alignof(se::Guid) == alignof(uuids::uuid));
     return std::bit_cast<se::Guid>(uuid);
 }
-}  // namespace
+} // namespace
 
 
 namespace se
@@ -48,7 +48,7 @@ Guid::operator bool() const noexcept
 {
     return IsValid();
 }
-}  // namespace se
+} // namespace se
 
 size_t std::hash<se::Guid>::operator()(const se::Guid& guid) const noexcept
 {

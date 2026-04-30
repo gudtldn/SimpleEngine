@@ -139,4 +139,4 @@ void SerializeMapContainer(Archive& ar, Container& container)
 
     ar.EndMap();
 }
-}  // namespace se::detail
+} // namespace se::detail

@@ -27,7 +27,7 @@ se::String FormatBytes(usize bytes)
     }
     return se::String::Format("{:.2f} GB", static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0));
 }
-}  // namespace
+} // namespace
 
 namespace se::editor
 {

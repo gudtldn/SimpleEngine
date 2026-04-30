@@ -63,7 +63,7 @@ se::String GetThreadName(HANDLE handle)
 
     return se::StringUtils::ToString(name);
 }
-}  // namespace
+} // namespace
 
 namespace se
 {

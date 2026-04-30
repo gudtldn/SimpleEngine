@@ -76,7 +76,7 @@ private:
 
     FixedArray<uint8, 16> data{};
 };
-}  // namespace se
+} // namespace se
 
 template <>
 struct SE_CORE_API std::hash<se::Guid>

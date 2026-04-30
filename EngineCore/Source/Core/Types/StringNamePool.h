@@ -94,4 +94,4 @@ private:
     // Key: Comparison Hash
     HashMap<uint64, const StringNameEntry*> lookup_map;
 };
-}  // namespace se
+} // namespace se

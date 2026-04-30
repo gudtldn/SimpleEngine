@@ -404,4 +404,4 @@ constexpr auto MakeFixedArray(Ts&&... args)
     using CommonType = std::common_type_t<Ts...>;
     return MakeFixedArray<CommonType>(std::forward<Ts>(args)...);
 }
-}  // namespace se
+} // namespace se

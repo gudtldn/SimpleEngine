@@ -311,4 +311,4 @@ void ConfigFile::VisitSectionEntries(StringView section_name, Fn&& visitor) cons
         }
     }
 }
-}  // namespace se
+} // namespace se

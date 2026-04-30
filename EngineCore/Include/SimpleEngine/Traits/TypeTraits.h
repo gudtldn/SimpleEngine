@@ -119,4 +119,4 @@ concept FloatingType = std::is_floating_point_v<T>;
 // Enum
 template <typename T>
 concept EnumType = std::is_enum_v<T>;
-}  // namespace se::traits
+} // namespace se::traits

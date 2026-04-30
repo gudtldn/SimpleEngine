@@ -40,4 +40,4 @@ struct ComputePipelineCreateInfo
 
     bool operator==(const ComputePipelineCreateInfo& other) const = default;
 };
-}  // namespace se::graphics
+} // namespace se::graphics

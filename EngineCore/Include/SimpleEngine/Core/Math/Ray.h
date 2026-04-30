@@ -172,4 +172,4 @@ public:
         return (a * e - b * d) / denom;
     }
 };
-}  // namespace se::math
+} // namespace se::math

@@ -25,4 +25,4 @@ TypeId TypeId::FromName(const StringName& in_type_name)
     }
     return TypeId{};
 }
-}  // namespace se
+} // namespace se

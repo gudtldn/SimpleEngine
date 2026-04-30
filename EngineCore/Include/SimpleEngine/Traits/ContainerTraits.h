@@ -105,4 +105,4 @@ using KeyOf = detail::MapKeyValueImpl<std::remove_cvref_t<T>>::KeyType;
 template <typename T>
     requires MapLike<T>
 using ValueOf = detail::MapKeyValueImpl<std::remove_cvref_t<T>>::ValueType;
-}  // namespace se::traits
+} // namespace se::traits

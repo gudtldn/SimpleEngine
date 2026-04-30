@@ -142,4 +142,4 @@ void Stack<T, Container>::Swap(Stack& other) noexcept
 {
     container.Swap(other.container);
 }
-}  // namespace se
+} // namespace se

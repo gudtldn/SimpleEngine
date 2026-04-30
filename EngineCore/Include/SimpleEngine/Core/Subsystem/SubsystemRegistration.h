@@ -132,8 +132,8 @@ void SubsystemBuilder<Subsystem>::AddUpdateDependency()
         .GetMetadata(target_id).update_dependencies
         .Push(TypeId::Get<Dependency>());
 }
-}  // namespace detail
-}  // namespace se
+} // namespace detail
+} // namespace se
 
 /** 서브시스템 클래스의 .cpp 파일 내에서 이 매크로를 호출하여 해당 서브시스템을 엔진에 자동 등록합니다. */
 #define SE_REGISTER_SUBSYSTEM(type) \

@@ -102,5 +102,5 @@ usize MemoryStats::GetTotalGpuAllocated()
 {
     return total_gpu_allocated.load(std::memory_order_relaxed);
 }
-}  // namespace se
+} // namespace se
 #endif

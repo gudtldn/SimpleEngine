@@ -21,4 +21,4 @@ class TypeRegistry;
  */
 SE_CORE_API void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance);
 SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
-}  // namespace se
+} // namespace se

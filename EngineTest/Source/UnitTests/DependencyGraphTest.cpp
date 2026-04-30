@@ -37,7 +37,7 @@ HashSet<AssetId> ToSet(const Array<AssetId>& arr)
     }
     return result;
 }
-}  // namespace
+} // namespace
 
 
 // ── 기본 등록/조회 ─────────────────────────────────────────────────

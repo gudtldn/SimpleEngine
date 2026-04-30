@@ -177,4 +177,4 @@ AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
     }
     return {};
 }
-}  // namespace se::asset
+} // namespace se::asset

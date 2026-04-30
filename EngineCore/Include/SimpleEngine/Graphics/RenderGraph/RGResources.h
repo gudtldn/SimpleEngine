@@ -135,4 +135,4 @@ public:
     virtual void Realize([[maybe_unused]] FrameResourcePool& pool) override {}
     virtual void Unrealize([[maybe_unused]] FrameResourcePool& pool) override {}
 };
-}  // namespace se::graphics
+} // namespace se::graphics

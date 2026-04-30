@@ -82,4 +82,4 @@ bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBuffe
     used_offset = aligned_offset + in_size;
     return true;
 }
-}  // namespace se::graphics
+} // namespace se::graphics

@@ -14,4 +14,4 @@ String StringView::ToString() const
 {
     return { data_ptr, data_len };
 }
-}  // namespace se
+} // namespace se

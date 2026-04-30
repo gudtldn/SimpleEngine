@@ -118,7 +118,7 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) AssetScanSettings
 
     bool operator==(const AssetScanSettings&) const = default;
 };
-}  // namespace se::editor
+} // namespace se::editor
 
 SE_DECLARE_REFLECTION(se::editor::WindowSettings)
 SE_DECLARE_REFLECTION(se::editor::EditorUISettings)
