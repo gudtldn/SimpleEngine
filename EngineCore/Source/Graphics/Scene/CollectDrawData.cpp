@@ -31,7 +31,7 @@ SceneDrawData CollectDrawData(const World& world)
 {
     SceneDrawData result;
 
-    const auto query = world.CreateQuery<Entity, const GlobalTransformComponent&, const StaticMeshComponent&, const MaterialHandleComponent&>();
+    const auto query = world.CreateQuery<Entity, const GlobalTransformComponent&, const StaticMeshComponent&, const MeshMaterialComponent&>();
     for (const auto [entity, global_transform, mesh, material] : query)
     {
         result.opaque_commands.Push({
