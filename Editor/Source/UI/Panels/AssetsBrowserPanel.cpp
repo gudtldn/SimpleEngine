@@ -439,7 +439,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         world.SpawnEntity(
             TransformComponent{},
             StaticMeshComponent{ .mesh_id = mesh_ids[0] },
-            MaterialHandleComponent{}
+            MeshMaterialComponent{}
         );
     }
     else
@@ -454,7 +454,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
             const Entity child = world.SpawnEntity(
                 TransformComponent{},
                 StaticMeshComponent{ .mesh_id = mesh_id },
-                MaterialHandleComponent{},
+                MeshMaterialComponent{},
                 ParentComponent{ .parent = root }
             );
             children_comp.children.Push(child);
