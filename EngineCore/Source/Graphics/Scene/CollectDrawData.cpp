@@ -43,7 +43,9 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
         AssetHandle<StaticMesh> mesh_handle = asset_subsystem.Find<StaticMesh>(mesh_comp.mesh_id);
         if (!mesh_handle)
         {
-            continue; // 에셋이 로드되지 않았거나 유효하지 않음
+            // 에셋이 로드되지 않았음 -> 렌더 스킵하고 지연 로드(Lazy Loading) 요청 큐에 등록
+            result.requested_meshes.Push(mesh_comp.mesh_id);
+            continue; 
         }
 
         // 2. 에셋 수명 연장 (Pinning)
