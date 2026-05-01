@@ -16,7 +16,6 @@ struct DrawCommand
     Matrix4x4 model_matrix;
     uint32 entity_id = Entity::Invalid;
     AssetId mesh_id;
-    AssetId material_id;
     uint64 sort_key = 0;
 };
 } // namespace se
