@@ -307,9 +307,18 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
             // TODO: Material 바인딩
 
-            if (slice->index_count > 0)
+            const IndirectDrawCommand& draw_params = draw_command.draw_params;
+
+            if (draw_params.index_count > 0)
             {
-                SDL_DrawGPUIndexedPrimitives(pass, slice->index_count, 1, 0, 0, 0);
+                SDL_DrawGPUIndexedPrimitives(
+                    pass,
+                    draw_params.index_count,
+                    draw_params.instance_count,
+                    draw_params.first_index,
+                    draw_params.vertex_offset,
+                    draw_params.first_instance
+                );
             }
             else
             {
