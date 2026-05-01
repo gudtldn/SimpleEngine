@@ -362,8 +362,7 @@ void EditorApplication::Render()
 // TODO: 장기적으로 RenderGraph의 Transfer Pass로 통합 예정
 void EditorApplication::PrepareGpuUploads(FramePacket& fp)
 {
-    const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>();
-    auto* asset_subsystem = se::GetSubsystem<AssetSubsystem>();
+    const auto [render_subsystem, asset_subsystem] = se::GetSubsystems<const RenderSubsystem, AssetSubsystem>();
     if (!render_subsystem || !asset_subsystem)
     {
         return;
@@ -373,8 +372,16 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
     const AssetRegistry& registry = asset_subsystem->GetRegistry();
 
     // --- Mesh residency 체크 ---
-    // [핵심] opaque_commands 전체 루프를 돌지 않고, 이미 중복이 제거된 pinned_meshes 맵만 순회한다!
-    for (const auto& [mesh_id, handle] : fp.scene_draw_data.pinned_meshes)
+    // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 cook_key 변경)
+    struct PendingMesh
+    {
+        AssetPath path;
+        GpuResourceManager::MeshResidencyKey cook_key;
+    };
+    HashMap<AssetId, PendingMesh> pending_meshes;
+
+    // 1. 이미 CPU에 로드된 메시 검사 (GPU 업데이트 / Reimport 체크)
+    for (const AssetId& mesh_id : fp.scene_draw_data.pinned_meshes | std::views::keys)
     {
         bool is_reimport = false;
 
@@ -390,7 +397,10 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
                 }
             });
 
-            if (up_to_date) continue; // GPU에 이미 최신 버전이 올라가 있음
+            if (up_to_date)
+            {
+                continue; // GPU에 이미 최신 버전이 올라가 있음
+            }
 
             // Reimport 감지
             gpu_manager.UnloadMesh(mesh_id);
@@ -401,21 +411,56 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
         // 로드 및 업로드 큐 등록
         AssetPath asset_path;
         GpuResourceManager::MeshResidencyKey cook_key;
-        if (!registry.ReadRecord(mesh_id, [&](const AssetRecord& record) {
+        if (!registry.ReadRecord(mesh_id, [&](const AssetRecord& record)
+        {
             asset_path = record.logical_path;
             cook_key = { record.metadata.source_hash, record.metadata.settings_hash };
-        })) continue;
+        }))
+        {
+            continue;
+        }
 
-        if (is_reimport) ConsoleLog(ELogLevel::Info, "GPU mesh invalidated: {}", asset_path.ToString());
+        if (is_reimport)
+        {
+            ConsoleLog(ELogLevel::Info, "GPU mesh invalidated: {}", asset_path.ToString());
+        }
 
-        // 다시 로드해서 핸들 소유권 강제 (DDC 역직렬화)
-        AssetHandle<StaticMesh> fresh_handle = asset_subsystem->Load<StaticMesh>(asset_path);
+        pending_meshes.Insert(mesh_id, { std::move(asset_path), std::move(cook_key) });
+    }
+
+    // 2. CPU에 로드조차 되지 않은 메시 검사 (Lazy Loading 트리거)
+    for (const AssetId& mesh_id : fp.scene_draw_data.requested_meshes)
+    {
+        if (pending_meshes.Contains(mesh_id))
+        {
+            continue;
+        }
+
+        AssetPath asset_path;
+        GpuResourceManager::MeshResidencyKey cook_key;
+        if (!registry.ReadRecord(mesh_id, [&](const AssetRecord& record)
+        {
+            asset_path = record.logical_path;
+            cook_key = { record.metadata.source_hash, record.metadata.settings_hash };
+        }))
+        {
+            continue;
+        }
+
+        pending_meshes.Insert(mesh_id, { std::move(asset_path), std::move(cook_key) });
+    }
+
+    // 3. 각 메시를 Registry에서 경로 조회 -> Load -> GPU 업로드 큐 등록
+    for (const auto& [mesh_id, info] : pending_meshes)
+    {
+        // Load()를 호출하여 DDC에서 역직렬화 수행 및 Pool 등록 (동기/비동기 블로킹)
+        AssetHandle<StaticMesh> fresh_handle = asset_subsystem->Load<StaticMesh>(info.path);
         if (fresh_handle && !fresh_handle->vertices.IsEmpty())
         {
             fp.mesh_upload_requests.Push({
                 .mesh_id = mesh_id,
                 .handle = std::move(fresh_handle),
-                .new_residency_key = cook_key,
+                .new_residency_key = info.cook_key,
             });
         }
     }
