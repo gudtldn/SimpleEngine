@@ -74,7 +74,6 @@ public:
             v.tangent = Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
             node.vertices.Push(v);
             node.indices.Push(0);
-            node.material_index = 0;
         }
         else
         {
@@ -91,7 +90,6 @@ public:
                 v.tangent = Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
                 node1.vertices.Push(v);
                 node1.indices.Push(0);
-                node1.material_index = 0;
             }
 
             {
@@ -106,7 +104,6 @@ public:
                 v.tangent = Vector4f(1.0f, 0.0f, 0.0f, 1.0f);
                 node2.vertices.Push(v);
                 node2.indices.Push(0);
-                node2.material_index = 0;
             }
         }
     }

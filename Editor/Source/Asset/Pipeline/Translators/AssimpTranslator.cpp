@@ -197,11 +197,6 @@ void ProcessMergedMesh(
         ExtractIndices(scene->mMeshes[i], vertex_offset, pipeline_node.indices);
         vertex_offset += scene->mMeshes[i]->mNumVertices;
     }
-
-    if (scene->mNumMeshes > 0)
-    {
-        pipeline_node.material_index = scene->mMeshes[0]->mMaterialIndex;
-    }
 }
 
 /**
@@ -248,7 +243,6 @@ void ProcessNodeIterative(
             const Guid guid = io_ctx.AllocateSubAssetGuid(node_name);
             StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
             pipeline_node.SetDisplayName(node_name);
-            pipeline_node.material_index = mesh->mMaterialIndex;
 
             ExtractVertices(mesh, convert_to_zup, pipeline_node.vertices);
             ExtractIndices(mesh, 0, pipeline_node.indices);

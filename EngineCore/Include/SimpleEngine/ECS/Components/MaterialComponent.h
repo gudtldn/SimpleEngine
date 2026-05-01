@@ -11,8 +11,7 @@ namespace se
  */
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) MeshMaterialComponent
 {
-    SE_ANNOTATION(=meta::Property)
-    AssetId material_id;
+    // placeholder: Material 시스템 구현 전까지 비어있음
 };
 } // namespace se
 
