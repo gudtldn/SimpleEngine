@@ -254,7 +254,6 @@ bool GpuResourceManager::UploadTexture(
     if (!transfer_buffer)
     {
         render_device->DestroyTexture(texture_rid);
-        render_device->ProcessDeferredDestructions();
         ConsoleLog(ELogLevel::Error, "UploadTexture: Failed to create transfer buffer: {}", SDL_GetError());
         return false;
     }
@@ -268,7 +267,6 @@ bool GpuResourceManager::UploadTexture(
     else
     {
         render_device->DestroyTexture(texture_rid);
-        render_device->ProcessDeferredDestructions();
         SDL_ReleaseGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer);
         ConsoleLog(ELogLevel::Error, "UploadTexture: Failed to map transfer buffer: {}", SDL_GetError());
         return false;
@@ -338,7 +336,7 @@ bool GpuResourceManager::UploadTexture(
     return true;
 }
 
-Optional<const TextureResource&> GpuResourceManager::GetTexture(const AssetId& in_id) const
+Optional<TextureResource> GpuResourceManager::GetTexture(const AssetId& in_id) const
 {
     return texture_map
         .Find(in_id)

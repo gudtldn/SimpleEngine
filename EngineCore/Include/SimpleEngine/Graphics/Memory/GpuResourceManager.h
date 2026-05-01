@@ -113,7 +113,7 @@ public:
      * @param in_id Asset ID
      * @return 유효한 TextureResource, 찾지 못하면 NullOpt 반환
      */
-    [[nodiscard]] Optional<const TextureResource&> GetTexture(const AssetId& in_id) const;
+    [[nodiscard]] Optional<TextureResource> GetTexture(const AssetId& in_id) const;
 
     /**
      * 특정 텍스처를 GPU 메모리에서 즉시 해제합니다.
