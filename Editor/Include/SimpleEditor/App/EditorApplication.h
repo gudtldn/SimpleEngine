@@ -3,13 +3,11 @@
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Types/HashDigest.h"
 
 #include "SDL3/SDL.h"
 
 // forward declaration
-namespace se { struct SceneDrawData; }
+namespace se { struct FramePacket; }
 
 
 namespace se::editor
@@ -30,17 +28,10 @@ protected:
     virtual void Render() override;
 
 private:
-    /** 현재 프레임에 필요한 메시를 GPU 메모리에 업로드합니다. */
-    void EnsureMeshesResident(SDL_GPUCommandBuffer* cmd, const SceneDrawData& in_scene_data);
+    /** Asset Load 및 residency 체크 후 FramePacket의 mesh/texture_upload_requests를 채웁니다. */
+    void PrepareGpuUploads(FramePacket& fp);
 
-    // GPU에 업로드된 메시의 해시 쌍을 추적합니다 (Hot-reload 감지용)
-    struct MeshCookKey
-    {
-        ContentHash source_hash;
-        ContentHash settings_hash;
-
-        bool operator==(const MeshCookKey&) const = default;
-    };
-    HashMap<AssetId, MeshCookKey> uploaded_mesh_hashes;
+    /** GPU Upload를 수행합니다. */
+    void ExecuteGpuUploads(SDL_GPUCommandBuffer* cmd, const FramePacket& fp);
 };
 } // namespace se::editor
