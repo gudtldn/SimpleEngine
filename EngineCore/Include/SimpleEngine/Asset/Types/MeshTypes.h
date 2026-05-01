@@ -1,4 +1,6 @@
 #pragma once
+
+#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
@@ -38,9 +40,14 @@ public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<uint32> indices;
 
-    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    // Array<Material> materials;
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    Array<MeshLOD> lods;
 
+    /** 3D Model Import시 자동 추출된 기본 머티리얼 ID 목록 */
+    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    Array<AssetId> default_materials;
+
+    /** StaticMesh 전체의 바운딩 박스 */
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     AABBf bounds;
 };
