@@ -1,6 +1,9 @@
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
 
 #include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Asset/BuiltinAssets.h"
+#include "SimpleEngine/Asset/Types/Material.h"
+#include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/World.h"
@@ -26,9 +29,10 @@ namespace
 }
 } // namespace
 
-SceneDrawData CollectDrawData(const World& world, AssetSubsystem& asset_subsystem)
+SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_subsystem)
 {
     SceneDrawData result;
+    FrameMaterialCache& cache = result.material_cache;
 
     const auto query = world.CreateQuery<
         Entity, const GlobalTransformComponent&, const StaticMeshComponent&, Optional<const MeshMaterialComponent&>
@@ -44,7 +48,7 @@ SceneDrawData CollectDrawData(const World& world, AssetSubsystem& asset_subsyste
 
         // 2. 에셋 수명 연장 (Pinning)
         // 렌더 스레드가 비동기 렌더링을 마칠 때까지 이 에셋이 메모리에서 Evict되지 않도록 보장합니다.
-        result.pinned_meshes.Push(mesh_handle);
+        result.pinned_meshes.Insert(mesh_comp.mesh_id, mesh_handle);
 
         // 메시에 LOD가 없으면 렌더링 스킵
         if (mesh_handle->lods.IsEmpty())
@@ -66,9 +70,6 @@ SceneDrawData CollectDrawData(const World& world, AssetSubsystem& asset_subsyste
             return mesh_handle->lods[0];
         }();
 
-        // 3. 머티리얼 오버라이드 획득
-        (void)material_opt; // 경고 방지
-
         // 4. 서브메시(Section) 단위로 쪼개서 DrawCommand 생성
         for (const MeshSection& section : target_lod.sections)
         {
@@ -84,10 +85,80 @@ SceneDrawData CollectDrawData(const World& world, AssetSubsystem& asset_subsyste
             // 향후 제거 예정
             cmd.mesh_id = mesh_comp.mesh_id;
 
-            // TODO: 머티리얼 슬롯(Material Slot) 처리
-            // section.material_slot을 인덱스로 사용하여, mat_comp->material_overrides를 우선 확인하고,
-            // 없다면 static_mesh->default_materials를 사용해야 합니다.
-            // 이후 결정된 AssetId로 머티리얼 에셋을 Find()하여 pinned_materials에 넣는 로직이 필요합니다.
+            // 머티리얼 인스턴스 결정 로직
+            const AssetId target_mat_id = [&]
+            {
+                // 오버라이드가 있으면 우선 사용
+                if (material_opt.HasValue() && section.material_slot < material_opt->material_overrides.Len())
+                {
+                    if (const AssetId override_id = material_opt->material_overrides[section.material_slot])
+                    {
+                        return override_id;
+                    }
+                }
+
+                // 오버라이드가 없고 메시에 기본 머티리얼이 있으면 사용
+                else if (section.material_slot < mesh_handle->default_materials.Len())
+                {
+                    if (const AssetId default_id = mesh_handle->default_materials[section.material_slot])
+                    {
+                        return default_id;
+                    }
+                }
+
+                return BuiltinAssetIds::DefaultLitInstance;
+            }();
+
+            // 아레나 패킹 및 캐싱
+            if (const auto slot_idx = cache.material_to_slot.Find(target_mat_id))
+            {
+                cmd.material_slot_index = *slot_idx; // 이미 이번 프레임에 처리된 머티리얼이면 캐시 히트
+            }
+            else
+            {
+                // 캐시에 없으면 에셋을 찾아 UBO를 패킹
+                AssetHandle<MaterialInstance> inst_handle = asset_subsystem.Find<MaterialInstance>(target_mat_id);
+                if (!inst_handle)
+                {
+                    inst_handle = asset_subsystem.Find<MaterialInstance>(BuiltinAssetIds::DefaultLitInstance);
+                }
+
+                if (inst_handle)
+                {
+                    if (AssetHandle<Material> mat_handle = asset_subsystem.Find<Material>(inst_handle->parent_material_id))
+                    {
+                        // 에셋 Pinning
+                        result.pinned_materials.Insert(mat_handle.GetAssetId(), mat_handle);
+                        result.pinned_material_instances.Insert(inst_handle.GetAssetId(), inst_handle);
+
+                        FrameMaterialCache::MaterialSlot slot;
+
+                        // UBO 팩킹
+                        slot.ubo_offset = static_cast<uint32>(cache.ubo_arena.Len());
+                        slot.ubo_size = static_cast<uint16>(inst_handle->parameter_values.Len());
+                        cache.ubo_arena.PushRange(inst_handle->parameter_values);
+
+                        // 텍스처 바인딩 팩킹
+                        slot.binding_offset = static_cast<uint32>(cache.binding_arena.Len());
+                        for (const MaterialTextureSlot& tex_slot : mat_handle->texture_slots)
+                        {
+                            cache.binding_arena.Push({
+                                .fragment_slot = tex_slot.fragment_slot,
+                                .texture_id = inst_handle->GetTextureOrDefault(tex_slot.name, *mat_handle),
+                                .sampler = tex_slot.sampler,
+                            });
+                        }
+                        slot.binding_count = static_cast<uint16>(cache.binding_arena.Len() - slot.binding_offset);
+
+                        // 슬롯 등록
+                        const uint16 slot_index = static_cast<uint16>(cache.slots.Len());
+                        cache.slots.Push(slot);
+                        cache.material_to_slot.Insert(target_mat_id, slot_index);
+
+                        cmd.material_slot_index = slot_index;
+                    }
+                }
+            }
 
             // MDI Command 구조체 설정
             cmd.draw_params.index_count = section.index_count;

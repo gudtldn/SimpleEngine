@@ -5,7 +5,6 @@
 #include "SimpleEngine/Asset/Types/Material.h"
 #include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
-#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Graphics/Material/SamplerType.h"
 #include "SimpleEngine/Graphics/Scene/DrawCommand.h"
@@ -81,12 +80,12 @@ struct SceneDrawData
     // -------------------------------------------------------------------------
 
     /** 이번 프레임에 렌더링되는 모든 StaticMesh 에셋들의 수명 유지 핸들 배열 */
-    Array<AssetHandle<StaticMesh>> pinned_meshes;
+    HashMap<AssetId, AssetHandle<StaticMesh>> pinned_meshes;
 
     /** 이번 프레임에 렌더링되는 Material 에셋들의 수명 유지 핸들 배열 */
-    Array<AssetHandle<Material>> pinned_materials;
+    HashMap<AssetId, AssetHandle<Material>> pinned_materials;
 
     /** 이번 프레임에 렌더링되는 MaterialInstance 에셋들의 수명 유지 핸들 배열 */
-    Array<AssetHandle<MaterialInstance>> pinned_material_instances;
+    HashMap<AssetId, AssetHandle<MaterialInstance>> pinned_material_instances;
 };
 } // namespace se
