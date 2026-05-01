@@ -7,6 +7,8 @@ namespace se
 SE_BEGIN_REFLECT(StaticMesh, meta::Reflect)
     SE_REFLECT_PROPERTY(vertices, meta::Property, meta::ReadOnly)
     SE_REFLECT_PROPERTY(indices, meta::Property, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(lods, meta::Property, meta::ReadOnly)
+    SE_REFLECT_PROPERTY(default_materials, meta::Property, meta::ReadOnly)
     SE_REFLECT_PROPERTY(bounds, meta::Property, meta::ReadOnly)
 SE_END_REFLECT(StaticMesh)
 
