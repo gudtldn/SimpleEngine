@@ -4,6 +4,7 @@
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
+#include "SimpleEngine/Graphics/Material/SamplerCache.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 #include "SimpleEngine/Graphics/Scene/SceneDrawData.h"
@@ -22,6 +23,7 @@ SE_END_REFLECT(ForwardScenePass)
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
     const GpuResourceManager& in_gpu_manager,
+    const SamplerCache& in_sampler_cache,
     const RenderView& in_render_view,
     RGTextureHandle in_color_target,
     RGTextureHandle in_depth_target,
@@ -29,6 +31,7 @@ ForwardScenePass::ForwardScenePass(
 )
     : draw_data(in_draw_data)
     , gpu_manager(in_gpu_manager)
+    , sampler_cache(in_sampler_cache)
     , render_view(in_render_view)
     , color_target_handle(in_color_target)
     , depth_target_handle(in_depth_target)
