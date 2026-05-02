@@ -8,7 +8,6 @@
 #include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
 #include "SimpleEngine/Graphics/Material/MaterialTextureSlot.h"
 
-#include <cstring>
 #include <memory>
 
 
@@ -16,7 +15,7 @@ namespace se
 {
 void SeedBuiltinAssets(AssetSubsystem& subsystem)
 {
-    // DefaultLit Material (템플릿)
+    // DefaultLit Material (템플릿) + DefaultLitInstance (흰색 기본값)
     {
         auto mat = std::make_unique<Material>();
         mat->vertex_shader = "CoreShader://Default.vert";
@@ -30,48 +29,21 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
             .sampler = ESamplerType::LinearRepeat,
             .default_texture_id = BuiltinAssetIds::White1x1,
         });
-        mat->parameter_layout.Push({
-            .name = "base_color",
-            .type = EMaterialParamType::Float4,
-            .offset = 0,
-            .default_value = { 1.0f, 1.0f, 1.0f, 1.0f },
-        });
-        mat->parameter_layout.Push({
-            .name = "alpha_cutoff",
-            .type = EMaterialParamType::Float,
-            .offset = 16,
-            .default_value = { 0.5f, 0.0f, 0.0f, 0.0f },
-        });
-        mat->parameter_layout.Push({
-            .name = "flags",
-            .type = EMaterialParamType::Float, // == uint
-            .offset = 20,
-            .default_value = { 0.0f, 0.0f, 0.0f, 0.0f },
-        });
+
+        // std140 자동 패킹: base_color(16B) + alpha_cutoff(4B) + flags(4B) + pad(8B) = 32B
+        mat->AddParameter("base_color",   EMaterialParamType::Float4, { 1.0f, 1.0f, 1.0f, 1.0f });
+        mat->AddParameter("alpha_cutoff", EMaterialParamType::Float,  { 0.5f, 0.0f, 0.0f, 0.0f });
+        mat->AddParameter("flags",        EMaterialParamType::Uint,   { 0.0f, 0.0f, 0.0f, 0.0f });
+        mat->FinalizeLayout();
+
+        auto inst = std::make_unique<MaterialInstance>();
+        inst->parent_material_id = BuiltinAssetIds::DefaultLit;
+        inst->InitializeFromParent(*mat);
 
         if (!subsystem.RegisterBuiltin(BuiltinAssetIds::DefaultLit, std::move(mat)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register DefaultLit Material.");
         }
-    }
-
-    // DefaultLitInstance MaterialInstance (흰색, parent = DefaultLit)
-    {
-        auto inst = std::make_unique<MaterialInstance>();
-        inst->parent_material_id = BuiltinAssetIds::DefaultLit;
-
-        // DefaultLitMaterialUBO: base_color(16B) + alpha_cutoff(4B) + flags(4B) + _pad(8B) = 32B
-        struct alignas(16) DefaultLitMaterialUBO
-        {
-            LinearColor base_color = LinearColor::White();
-            float alpha_cutoff = 0.5f;
-            uint32 flags = 0;
-        };
-        static_assert(sizeof(DefaultLitMaterialUBO) == 32);
-
-        constexpr DefaultLitMaterialUBO ubo{};
-        inst->parameter_values.ResizeUninitialized(sizeof(ubo));
-        std::memcpy(inst->parameter_values.Data(), &ubo, sizeof(ubo));
 
         if (!subsystem.RegisterBuiltin(BuiltinAssetIds::DefaultLitInstance, std::move(inst)).IsValid())
         {
