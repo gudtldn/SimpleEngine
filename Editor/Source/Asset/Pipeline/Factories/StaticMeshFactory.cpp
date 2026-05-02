@@ -45,7 +45,54 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         return mesh_bounds;
     }();
 
-    // TODO: mesh_node->material_index로 sibling MaterialInstance AssetId 연결
+    MeshLOD lod0;
+    lod0.screen_size = 1.0f; // 기본 LOD
+
+    // Material Index 매핑용 임시 배열 (중복 방지)
+    Array<uint32> unique_materials;
+
+    for (const PipelineMeshSection& pipeline_section : mesh_node->sections)
+    {
+        MeshSection section;
+        section.index_offset = pipeline_section.index_offset;
+        section.index_count = pipeline_section.index_count;
+        section.vertex_offset = pipeline_section.vertex_offset;
+
+        // Material Index를 0부터 시작하는 연속된 배열 인덱스로 매핑
+        if (const auto found_idx = unique_materials.Find(pipeline_section.material_index))
+        {
+            section.material_slot = static_cast<uint16>(*found_idx);
+        }
+        else
+        {
+            section.material_slot = static_cast<uint16>(unique_materials.Len());
+            unique_materials.Push(pipeline_section.material_index);
+        }
+
+        // 각 섹션별 바운딩 박스 계산
+        AABBf section_bounds;
+        for (uint32 i = 0; i < section.index_count; ++i)
+        {
+            const uint32 index = static_mesh->indices[section.index_offset + i];
+            const uint32 vertex_index = index + section.vertex_offset;
+            section_bounds.Expand(static_mesh->vertices[vertex_index].position);
+        }
+        section.bounds = section_bounds;
+
+        lod0.sections.Push(section);
+    }
+
+    static_mesh->lods.Push(std::move(lod0));
+
+    // 고유 머티리얼 개수만큼 기본 머티리얼 슬롯 할당 (추후 MaterialFactory 연동 시 에셋 ID로 교체)
+    // 현재는 아무 것도 연결되지 않은 빈 슬롯을 두어, MeshMaterialComponent가 오버라이드 하거나
+    // CollectDrawData에서 Builtin DefaultLitInstance로 자동 폴백되게 만듭니다.
+    static_mesh->default_materials.Reserve(unique_materials.Len());
+    for (uint32 i = 0; i < unique_materials.Len(); ++i)
+    {
+        static_mesh->default_materials.Push(AssetId::Invalid);
+    }
+
     (void)context;
 
     return static_mesh;

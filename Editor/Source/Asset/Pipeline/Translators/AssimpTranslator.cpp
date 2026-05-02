@@ -188,14 +188,27 @@ void ProcessMergedMesh(
     }
     pipeline_node.vertices.Reserve(total_vertices);
     pipeline_node.indices.Reserve(total_indices);
+    pipeline_node.sections.Reserve(scene->mNumMeshes);
 
     // 모든 primitive를 하나의 버퍼에 병합 (이미 Z-up, convert=false)
     uint32 vertex_offset = 0;
+    uint32 index_offset = 0;
     for (uint32 i = 0; i < scene->mNumMeshes; ++i)
     {
-        ExtractVertices(scene->mMeshes[i], false, pipeline_node.vertices);
-        ExtractIndices(scene->mMeshes[i], vertex_offset, pipeline_node.indices);
-        vertex_offset += scene->mMeshes[i]->mNumVertices;
+        const aiMesh* mesh = scene->mMeshes[i];
+        ExtractVertices(mesh, false, pipeline_node.vertices);
+        ExtractIndices(mesh, vertex_offset, pipeline_node.indices);
+
+        const uint32 index_count = mesh->mNumFaces * 3;
+        pipeline_node.sections.Push({
+            .index_offset = index_offset,
+            .index_count = index_count,
+            .vertex_offset = 0, // ExtractIndices에서 이미 오프셋을 더했으므로 렌더링 시에는 0을 사용
+            .material_index = mesh->mMaterialIndex
+        });
+
+        vertex_offset += mesh->mNumVertices;
+        index_offset += index_count;
     }
 }
 
@@ -260,6 +273,74 @@ void ProcessNodeIterative(
         }
     }
 }
+
+// ------------------------------
+// void ProcessNodeIterative(
+//     const aiNode* root_node,
+//     const aiScene* scene,
+//     bool convert_to_zup,
+//     PipelineNodeContainer& out_container
+// )
+// {
+//     Array<const aiNode*> stack;
+//     stack.Push(root_node);
+//
+//     while (Optional node_opt = stack.Pop())
+//     {
+//         const aiNode* node = *node_opt;
+//
+//         if (node->mNumMeshes > 0)
+//         {
+//             StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
+//             pipeline_node.SetDisplayName(node->mName.C_Str());
+//
+//             // 전체 크기 사전 계산 후 예약
+//             uint32 total_vertices = 0;
+//             uint32 total_indices = 0;
+//             for (uint32 i = 0; i < node->mNumMeshes; ++i)
+//             {
+//                 total_vertices += scene->mMeshes[node->mMeshes[i]]->mNumVertices;
+//                 total_indices += scene->mMeshes[node->mMeshes[i]]->mNumFaces * 3;
+//             }
+//             pipeline_node.vertices.Reserve(total_vertices);
+//             pipeline_node.indices.Reserve(total_indices);
+//             pipeline_node.sections.Reserve(node->mNumMeshes);
+//
+//             uint32 vertex_offset = 0;
+//             uint32 index_offset = 0;
+//             for (uint32 i = 0; i < node->mNumMeshes; ++i)
+//             {
+//                 const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+//
+//                 ExtractVertices(mesh, convert_to_zup, pipeline_node.vertices);
+//                 ExtractIndices(mesh, vertex_offset, pipeline_node.indices);
+//
+//                 const uint32 index_count = mesh->mNumFaces * 3;
+//                 pipeline_node.sections.Push({
+//                     .index_offset = index_offset,
+//                     .index_count = index_count,
+//                     .vertex_offset = 0,
+//                     .material_index = mesh->mMaterialIndex
+//                 });
+//
+//                 vertex_offset += mesh->mNumVertices;
+//                 index_offset += index_count;
+//             }
+//
+//             // 비-PTV 경로: 노드의 로컬 트랜스폼을 Z-up으로 변환하여 보존
+//             if (convert_to_zup)
+//             {
+//                 pipeline_node.local_transform = ConvertNodeTransform(node->mTransformation);
+//             }
+//         }
+//
+//         for (uint32 i = 0; i < node->mNumChildren; ++i)
+//         {
+//             stack.Push(node->mChildren[i]);
+//         }
+//     }
+// }
+// ------------------------------
 } // namespace
 
 namespace se::editor
