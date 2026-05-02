@@ -42,6 +42,12 @@ public:
      */
     [[nodiscard]] AssetId GetTextureOrDefault(StringName slot_name, const Material& parent) const;
 
+    /**
+     * 부모 Material의 기본값 파라미터 블록으로 parameter_values를 초기화합니다.
+     * Material::FinalizeLayout()가 완료된 parent를 전달해야 합니다.
+     */
+    void InitializeFromParent(const Material& parent);
+
     /** parameter_values의 참조를 반환합니다. */
     [[nodiscard]] const Array<uint8>& GetParameterBytes() const { return parameter_values; }
 };

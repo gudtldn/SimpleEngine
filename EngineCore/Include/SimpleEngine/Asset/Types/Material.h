@@ -61,6 +61,21 @@ public:
     Array<MaterialTextureSlot> texture_slots;
 
 public:
+    /**
+     * 파라미터를 std140 규칙에 맞춰 자동 정렬 후 레이아웃에 추가합니다.
+     * FinalizeLayout() 호출 전까지 여러 번 연속 호출 가능합니다.
+     */
+    Material& AddParameter(StringName name, EMaterialParamType type, Vector4f default_val = {});
+
+    /**
+     * 레이아웃을 확정하고 기본값 파라미터 블록을 생성합니다.
+     * AddParameter() 호출이 모두 끝난 후 반드시 한 번 호출해야 합니다.
+     */
+    void FinalizeLayout();
+
+    /** FinalizeLayout() 이후 기본값으로 채워진 파라미터 블록을 반환합니다. */
+    [[nodiscard]] const Array<uint8>& GetDefaultParameterBlock() const;
+
     /** 전체 파라미터 블록의 바이트 크기 계산합니다. */
     [[nodiscard]] uint32 ComputeParameterBlockSize() const;
 
@@ -69,5 +84,8 @@ public:
 
     /** 이름으로 텍스처 슬롯을 검색합니다. 없으면 NullOpt를 반환합니다. */
     [[nodiscard]] Optional<const MaterialTextureSlot&> FindTextureSlot(StringName name) const;
+
+private:
+    Array<uint8> default_parameter_block;
 };
 } // namespace se

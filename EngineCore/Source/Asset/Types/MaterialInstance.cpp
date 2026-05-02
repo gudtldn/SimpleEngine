@@ -2,6 +2,8 @@
 #include "SimpleEngine/Asset/Types/Material.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
+#include <cstring>
+
 
 namespace se
 {
@@ -26,5 +28,12 @@ AssetId MaterialInstance::GetTextureOrDefault(StringName slot_name, const Materi
     }
 
     return AssetId::Invalid;
+}
+
+void MaterialInstance::InitializeFromParent(const Material& parent)
+{
+    const Array<uint8>& block = parent.GetDefaultParameterBlock();
+    parameter_values.ResizeUninitialized(block.Len());
+    std::memcpy(parameter_values.Data(), block.Data(), block.Len());
 }
 } // namespace se
