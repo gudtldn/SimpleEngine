@@ -46,6 +46,9 @@ static_assert(sizeof(IndirectDrawCommand) == 20, "MDI struct MUST be exactly 20 
  */
 struct DrawCommand
 {
+    /** 유효하지 않은 머티리얼 슬롯 인덱스를 나타내는 센티넬 값 */
+    static constexpr uint16 INVALID_MATERIAL_SLOT = std::numeric_limits<uint16>::max();
+
     /**
      * Model의 World Transform Matrix
      * @todo 나중에 인스턴스 개수가 많아지면 DrawCommand가 아닌, SSBO 배열로 전달해야 함.
@@ -65,7 +68,7 @@ struct DrawCommand
      * SceneDrawData의 FrameMaterialCache내 slots 배열 인덱스
      * @note 런타임에 렌더 스레드는 이 인덱스를 사용해 해당 섹션에 바인딩할 머티리얼 파라미터(UBO)와 텍스처를 조회합니다.
      */
-    uint16 material_slot_index = std::numeric_limits<uint16>::max();
+    uint16 material_slot_index = INVALID_MATERIAL_SLOT;
 
     /** MDI 커맨드 파라미터 */
     IndirectDrawCommand draw_params = {};
