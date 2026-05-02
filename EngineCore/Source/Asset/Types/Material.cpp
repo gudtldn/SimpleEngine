@@ -2,6 +2,8 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Utility/Common.h"
 
+#include <cstring>
+
 
 namespace se
 {
@@ -54,5 +56,52 @@ Optional<const MaterialTextureSlot&> Material::FindTextureSlot(StringName name) 
         }
     }
     return NullOpt;
+}
+
+Material& Material::AddParameter(StringName name, EMaterialParamType type, Vector4f default_val)
+{
+    // 현재까지 쌓인 파라미터들의 끝 offset 계산
+    uint32 offset = 0;
+    for (const MaterialParameterDescriptor& desc : parameter_layout)
+    {
+        const uint32 end = desc.offset + desc.GetSize();
+        if (end > offset)
+        {
+            offset = end;
+        }
+    }
+
+    // 새 파라미터의 std140 alignment에 맞춰 offset 정렬
+    const MaterialParameterDescriptor tmp = { .type = type };
+    offset = static_cast<uint32>(AlignedSize(static_cast<usize>(offset), static_cast<usize>(tmp.GetAlignment())));
+
+    parameter_layout.Push({
+        .name = name,
+        .type = type,
+        .offset = offset,
+        .default_value = default_val,
+    });
+    return *this;
+}
+
+void Material::FinalizeLayout()
+{
+    const uint32 block_size = ComputeParameterBlockSize();
+    default_parameter_block.ResizeUninitialized(block_size);
+    std::memset(default_parameter_block.Data(), 0, block_size);
+
+    for (const MaterialParameterDescriptor& desc : parameter_layout)
+    {
+        std::memcpy(
+            default_parameter_block.Data() + desc.offset,
+            &desc.default_value,
+            desc.GetSize()
+        );
+    }
+}
+
+const Array<uint8>& Material::GetDefaultParameterBlock() const
+{
+    return default_parameter_block;
 }
 } // namespace se
