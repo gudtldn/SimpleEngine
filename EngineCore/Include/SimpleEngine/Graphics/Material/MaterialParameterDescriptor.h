@@ -11,6 +11,7 @@ namespace se
 /** 머티리얼 UBO 파라미터 타입 (HLSL 대응) */
 enum class EMaterialParamType : uint8
 {
+    Uint,   // 4 bytes
     Float,  // 4 bytes
     Float2, // 8 bytes
     Float3, // 12 bytes

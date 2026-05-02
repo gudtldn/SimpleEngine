@@ -17,6 +17,7 @@ uint32 MaterialParameterDescriptor::GetSize() const
 {
     switch (type)
     {
+        case EMaterialParamType::Uint:   return 4;
         case EMaterialParamType::Float:  return 4;
         case EMaterialParamType::Float2: return 8;
         case EMaterialParamType::Float3: return 12;
@@ -30,6 +31,7 @@ uint32 MaterialParameterDescriptor::GetAlignment() const
     // HLSL cbuffer / GLSL std140 정렬 규칙
     switch (type)
     {
+        case EMaterialParamType::Uint:   return 4;
         case EMaterialParamType::Float:  return 4;
         case EMaterialParamType::Float2: return 8;
         case EMaterialParamType::Float3: return 16; // Float3는 16바이트 경계에서 시작해야 함
