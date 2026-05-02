@@ -176,6 +176,7 @@ void EditorApplication::Render()
     // - 씬 전환 시: GpuResourceManager 전체 리셋 고려
 
     const se::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    const se::SamplerCache& sampler_cache = render_subsystem->GetSamplerCache();
 
     // 게임 스레드에서 뷰포트별 렌더 데이터 스냅샷 수집
     Array<ViewportRenderInput> viewport_inputs;
@@ -303,7 +304,7 @@ void EditorApplication::Render()
 
                 // 메인 Scene 렌더링 (entity_id_handle이 유효하면 MRT로 entity ID 동시 출력)
                 builder.AddPass<se::ForwardScenePass>(
-                    frame_packet.scene_draw_data, gpu_manager,
+                    frame_packet.scene_draw_data, gpu_manager, sampler_cache,
                     render_view, color_handle, depth_handle, entity_id_handle
                 );
 
