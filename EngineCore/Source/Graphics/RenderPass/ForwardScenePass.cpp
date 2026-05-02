@@ -1,5 +1,6 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
+#include "SimpleEngine/Asset/BuiltinAssets.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
@@ -308,7 +309,44 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             object_ubo.entity_id = EntityPickId::Encode(draw_command.entity_id).encoded;
             SDL_PushGPUVertexUniformData(cmd, 1, &object_ubo, sizeof(object_ubo));
 
-            // TODO: Material 바인딩
+            // Material 바인딩
+            const uint16 slot_idx = draw_command.material_slot_index;
+            if (slot_idx != DrawCommand::INVALID_MATERIAL_SLOT)
+            {
+                const FrameMaterialCache& cache = draw_data.material_cache;
+                const FrameMaterialCache::MaterialSlot& mat_slot = cache.slots[slot_idx];
+
+                // Fragment Uniform slot 0: Material UBO
+                SDL_PushGPUFragmentUniformData(
+                    cmd, 0,
+                    cache.ubo_arena.Data() + mat_slot.ubo_offset,
+                    static_cast<uint32>(mat_slot.ubo_size)
+                );
+
+                // Fragment Sampler + Texture 바인딩
+                Array<SDL_GPUTextureSamplerBinding> tex_bindings;
+                for (uint16 b = 0; b < mat_slot.binding_count; ++b)
+                {
+                    const TextureBinding& binding = cache.binding_arena[mat_slot.binding_offset + b];
+                    const Optional<TextureResource> tex = gpu_manager.GetTexture(binding.texture_id)
+                        .OrElse([&]
+                        {
+                            return gpu_manager.GetTexture(BuiltinAssetIds::White1x1);
+                        });
+
+                    if (tex.HasValue())
+                    {
+                        tex_bindings.Push({
+                            .texture = tex->handle,
+                            .sampler = sampler_cache.Get(binding.sampler),
+                        });
+                    }
+                }
+                if (!tex_bindings.IsEmpty())
+                {
+                    SDL_BindGPUFragmentSamplers(pass, 0, tex_bindings.Data(), static_cast<uint32>(tex_bindings.Len()));
+                }
+            }
 
             const IndirectDrawCommand& draw_params = draw_command.draw_params;
 
