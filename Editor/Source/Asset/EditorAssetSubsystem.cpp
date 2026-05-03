@@ -6,7 +6,9 @@
 #include "SimpleEditor/Asset/MetaFileManager.h"
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/Factories/MaterialInstanceFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
+#include "SimpleEditor/Asset/Pipeline/Factories/Texture2DFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Config/EditorSettings.h"
@@ -95,6 +97,8 @@ bool EditorAssetSubsystem::Initialize()
         importer->RegisterTranslator<AssimpTranslator>();
 
         // Register Factories
+        importer->RegisterFactory<Texture2DFactory>();
+        importer->RegisterFactory<MaterialInstanceFactory>();
         importer->RegisterFactory<StaticMeshFactory>();
     }
 
