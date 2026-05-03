@@ -615,6 +615,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
     const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
 
+    // Import Settings 해시 계산
     Array<uint8> settings_bytes;
     {
         MemoryWriter writer(settings_bytes);

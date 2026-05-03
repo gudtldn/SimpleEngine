@@ -32,7 +32,11 @@ public:
     PipelineNodeContainer& operator=(PipelineNodeContainer&&) = default;
 
 public:
-    // GUID를 사전 지정하여 node->GetUid() == AssetId.guid 불변식을 보장합니다.
+    /**
+     * 노드를 생성하고 컨테이너에 등록합니다.
+     * @param pre_assigned_uid 사전 지정 GUID. 유효하지 않으면 새로 발급합니다.
+     * @return 생성된 노드의 참조
+     */
     template <typename NodeType, typename... Args>
         requires std::derived_from<NodeType, PipelineBaseNode>
     NodeType& CreateNode(const Guid& pre_assigned_uid, Args&&... args)

@@ -7,8 +7,6 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
-#include <memory>
-
 
 namespace se::editor
 {

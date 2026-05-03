@@ -25,7 +25,7 @@ Optional<const ImportedAsset&> ImportResult::GetMainAsset() const
 
 Optional<const ImportedAsset&> ImportResult::FindByName(StringView name) const
 {
-    if (const Optional idx = name_to_index.Find(String(name)))
+    if (const auto idx = name_to_index.Find(name))
     {
         return entries[*idx];
     }
