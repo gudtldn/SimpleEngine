@@ -21,7 +21,7 @@ enum class EMaterialParamType : uint8
 /**
  * 머티리얼 파라미터 레이아웃 정보
  */
-struct SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
+struct SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
 {
     // 파라미터 식별 이름 (예: "BaseColor")
     SE_ANNOTATION(=meta::Property)
