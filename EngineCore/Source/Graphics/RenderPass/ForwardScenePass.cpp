@@ -263,38 +263,26 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Draw Meshes
         for (const DrawCommand& draw_command : draw_data.opaque_commands)
         {
-            const Optional<const GpuBufferSlice&> slice = gpu_manager.GetSlice(draw_command.mesh_id);
-            if (!slice.HasValue())
+            // CollectDrawData 시점에 GPU 업로드가 완료되지 않았다면 스킵
+            if (!draw_command.gpu_buffer)
             {
-#if SE_BUILD_DEBUG
-                static HashSet<AssetId> logged_asset_ids;
-                if (!logged_asset_ids.Contains(draw_command.mesh_id))
-                {
-                    ConsoleLog(
-                        ELogLevel::Warning,
-                        "Skipping Draw: Invalid GPU slice for MeshID[{}]. Resource may not be loaded.",
-                        draw_command.mesh_id.GetGuid()
-                    );
-                    logged_asset_ids.Insert(draw_command.mesh_id);
-                }
-#endif
                 continue;
             }
 
             // Vertex Buffer 바인딩
             // 셰이더의 Input Slot 0번에 바인딩
             const SDL_GPUBufferBinding vertex_binding = {
-                .buffer = slice->buffer,
-                .offset = slice->offset
+                .buffer = draw_command.gpu_buffer,
+                .offset = draw_command.vertex_buffer_offset
             };
             SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
 
-            if (slice->index_count > 0)
+            if (draw_command.draw_params.index_count > 0)
             {
                 // Index Buffer 바인딩
                 const SDL_GPUBufferBinding index_binding = {
-                    .buffer = slice->buffer,
-                    .offset = slice->index_offset
+                    .buffer = draw_command.gpu_buffer,
+                    .offset = draw_command.index_buffer_offset
                 };
                 SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             }
@@ -363,8 +351,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             }
             else
             {
-                const uint32 vertex_count = (slice->index_offset - slice->offset) / sizeof(StaticVertex);
-                SDL_DrawGPUPrimitives(pass, vertex_count, 1, 0, 0);
+                SDL_DrawGPUPrimitives(pass, draw_command.vertex_count, 1, 0, 0);
             }
         }
     }

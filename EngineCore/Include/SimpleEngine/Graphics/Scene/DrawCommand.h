@@ -1,11 +1,12 @@
 #pragma once
 
-#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 #include <limits>
+
+struct SDL_GPUBuffer;
 
 
 namespace se
@@ -58,11 +59,16 @@ struct DrawCommand
     /** 식별용 Entity ID (에디터 Picking용) */
     uint32 entity_id = Entity::Invalid;
 
-    // TODO: ForwardScenePass 리팩토링 후 제거 예정. 현재 코드 호환성을 위해 당분간 유지
-    [[deprecated]] AssetId mesh_id;
-
     /** 렌더링시 비슷한 유형끼리 정렬을 위한 Key */
     uint64 sort_key = 0;
+
+    /** GPU Vertex/Index Buffer 핸들 */
+    SDL_GPUBuffer* gpu_buffer = nullptr;
+    uint32 vertex_buffer_offset = 0;
+    uint32 index_buffer_offset = 0;
+
+    /** 비인덱스 드로우 폴백용 버텍스 개수 (index_count == 0 일 때만 유효) */
+    uint32 vertex_count = 0;
 
     /**
      * SceneDrawData의 FrameMaterialCache내 slots 배열 인덱스

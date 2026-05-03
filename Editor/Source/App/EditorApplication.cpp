@@ -168,7 +168,7 @@ void EditorApplication::Render()
     se::FramePacket frame_packet;
     static uint64 frame_counter = 0;
     frame_packet.frame_number = ++frame_counter; // TODO: 나중에 frame_counter를 통합 관리하는 구조체 만들기
-    frame_packet.scene_draw_data = se::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld(), asset_subsystem);
+    frame_packet.scene_draw_data = se::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld(), asset_subsystem, render_subsystem->GetResourceManager());
 
     // GPU 업로드 요청 수집 (게임 스레드에서 Asset Load + residency 체크)
     PrepareGpuUploads(frame_packet);
