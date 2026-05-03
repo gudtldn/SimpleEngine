@@ -8,6 +8,7 @@
 #include "SimpleEditor/Asset/Pipeline/Processors/IPipelineProcessor.h"
 #include "SimpleEditor/Asset/ImportSettings/ImportSettingsBase.h"
 
+#include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 
@@ -47,6 +48,7 @@ public:
     virtual void Translate(
         const Path& file_path,
         const ImportProfile& import_profile,
+        ImportContext& io_ctx,
         PipelineNodeContainer& out_container
     ) override
     {
@@ -61,7 +63,8 @@ public:
         if (settings.combine_meshes)
         {
             // combine_meshes=true: 1개의 병합된 StaticMesh (1 draw call)
-            auto& node = out_container.CreateNode<StaticMeshPipelineNode>();
+            const Guid guid = io_ctx.AllocateSubAssetGuid("MockMesh");
+            auto& node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
             node.SetDisplayName("MockMesh");
 
             StaticVertex v;
@@ -77,7 +80,8 @@ public:
         {
             // combine_meshes=false: 2개의 독립된 StaticMesh (per-primitive)
             {
-                auto& node1 = out_container.CreateNode<StaticMeshPipelineNode>();
+                const Guid guid1 = io_ctx.AllocateSubAssetGuid("Mesh1");
+                auto& node1 = out_container.CreateNode<StaticMeshPipelineNode>(guid1);
                 node1.SetDisplayName("Mesh1");
 
                 StaticVertex v;
@@ -91,7 +95,8 @@ public:
             }
 
             {
-                auto& node2 = out_container.CreateNode<StaticMeshPipelineNode>();
+                const Guid guid2 = io_ctx.AllocateSubAssetGuid("Mesh2");
+                auto& node2 = out_container.CreateNode<StaticMeshPipelineNode>(guid2);
                 node2.SetDisplayName("Mesh2");
 
                 StaticVertex v;
@@ -171,8 +176,14 @@ private:
 class AssetPipelineTest : public ::testing::Test
 {
 protected:
+    AssetRegistry test_registry;
+    HashMap<String, Guid> reserved_guids;
+    Array<std::pair<String, Guid>> allocated_guids;
+
     virtual void SetUp() override
     {
+        reserved_guids.Clear();
+        allocated_guids.Clear();
     }
 };
 
@@ -188,15 +199,17 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     pipeline_stack.AddProcessor<MeshScaleProcessor>(scale_factor);
 
     ImportProfile config;
+    ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
 
-    auto assets_exp = importer.Import("Test.mock", config, pipeline_stack);
+    auto assets_exp = importer.Import("Test.mock", ctx, config, pipeline_stack);
     EXPECT_TRUE(assets_exp.HasValue());
 
     auto assets = std::move(assets_exp).Value();
     ASSERT_FALSE(assets.IsEmpty());
     ASSERT_EQ(assets.GetCount(), 1);
 
-    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets.GetAsset(0));
+    ASSERT_TRUE(assets.GetMainAsset());
+    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets.GetMainAsset()->asset);
     ASSERT_NE(mesh, nullptr);
     ASSERT_FALSE(mesh->vertices.IsEmpty());
 
@@ -219,25 +232,29 @@ TEST_F(AssetPipelineTest, ImportPipeline_CombineMeshesConfigTest)
         settings.combine_meshes = true;
         config.Set(settings);
 
-        auto assets = importer.Import("Test.mock", config);
+        ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
+        auto assets = importer.Import("Test.mock", ctx, config);
         EXPECT_TRUE(assets.HasValue());
         ASSERT_EQ(assets->GetCount(), 1);
     }
 
     // combine_meshes=false: 각 primitive를 독립된 StaticMesh로 분리
     {
+        allocated_guids.Clear();
+
         ImportProfile config;
         MockImportSettings settings;
         settings.combine_meshes = false;
         config.Set(settings);
 
-        auto assets = importer.Import("Test.mock", config);
+        ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
+        auto assets = importer.Import("Test.mock", ctx, config);
         EXPECT_TRUE(assets.HasValue());
         ASSERT_EQ(assets->GetCount(), 2);
 
         // 각 에셋이 독립된 정점 데이터를 보유
-        auto mesh1 = std::dynamic_pointer_cast<StaticMesh>(assets->FindByName<StaticMesh>("Mesh1"));
-        auto mesh2 = std::dynamic_pointer_cast<StaticMesh>(assets->FindByName<StaticMesh>("Mesh2"));
+        auto mesh1 = assets->GetAsset<StaticMesh>("Mesh1");
+        auto mesh2 = assets->GetAsset<StaticMesh>("Mesh2");
         ASSERT_NE(mesh1, nullptr);
         ASSERT_NE(mesh2, nullptr);
         EXPECT_FLOAT_EQ(mesh1->vertices[0].position.x, 1.0f);
@@ -259,12 +276,14 @@ TEST_F(AssetPipelineTest, ImportPipeline_MultiProcessorTest)
     pipeline_stack.AddProcessor<MeshOffsetProcessor>(Vector3f(1.0f, 0.0f, 0.0f));
 
     ImportProfile config;
-    auto assets = importer.Import("Test.mock", config, pipeline_stack);
+    ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
+    auto assets = importer.Import("Test.mock", ctx, config, pipeline_stack);
     EXPECT_TRUE(assets.HasValue());
 
     // combine_meshes=true (기본): 1개의 병합된 에셋
     ASSERT_EQ(assets->GetCount(), 1);
-    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets->GetAsset(0));
+    ASSERT_TRUE(assets->GetMainAsset());
+    auto mesh = std::dynamic_pointer_cast<StaticMesh>(assets->GetMainAsset()->asset);
     ASSERT_NE(mesh, nullptr);
 
     // 원본 (1, 1, 1) -> Scale(2배) -> (2, 2, 2) -> Offset(+1, 0, 0) -> (3, 2, 2)
@@ -282,8 +301,9 @@ TEST_F(AssetPipelineTest, ImportPipeline_EmptyResultTest)
     importer.RegisterFactory<StaticMeshFactory>();
 
     ImportProfile config;
+    ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
     // "Empty"가 포함된 파일명은 MockMeshTranslator에서 무시됨
-    auto assets = importer.Import("Empty.mock", config);
+    auto assets = importer.Import("Empty.mock", ctx, config);
     EXPECT_TRUE(assets.HasError());
 
     // 에러를 반환

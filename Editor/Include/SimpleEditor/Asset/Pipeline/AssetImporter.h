@@ -1,26 +1,28 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEditor/EditorCommon.h"
+#include "SimpleEditor/Asset/ImportProfile.h"
+#include "SimpleEditor/Asset/Pipeline/ImportContext.h"
 #include "SimpleEditor/Asset/Pipeline/ImportResult.h"
-#include "SimpleEditor/Asset/Pipeline/PipelineNodeContainer.h"
-#include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/IPipelineFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/IPipelineTranslator.h"
+#include "SimpleEditor/Asset/Pipeline/PipelineNodeContainer.h"
+#include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Error/Expected.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 #include <memory>
 
 
-
 namespace se::editor
 {
 /**
- * 파일을 Asset으로 변환하는 Import Pipeline 클래스
+ * 파일을 Asset으로 변환하는 Import Pipeline
  *
  * 구조: File -> Translator -> PipelineNodes -> ProcessorStack -> Factory -> Assets
  */
@@ -67,12 +69,14 @@ public:
     /**
      * 파일을 불러와 ImportResult를 반환합니다. (우선 Main Thread 전용)
      * @param file_path 소스 파일 경로
+     * @param io_ctx sub-asset GUID 발급 및 cross-file 참조 해소 컨텍스트
      * @param import_profile Import 설정
      * @param processor_stack 파이프라인 처리 스택 (선택)
      * @return 성공 시 ImportResult, 실패 시 ImportError
      */
     [[nodiscard]] Expected<ImportResult, ImportError> Import(
         const Path& file_path,
+        ImportContext& io_ctx,
         const ImportProfile& import_profile = {},
         Optional<const PipelineProcessorStack&> processor_stack = NullOpt
     );
@@ -100,7 +104,7 @@ private:
     Array<std::unique_ptr<IPipelineFactory>> factories;
 };
 
-template <typename Translator, typename ... Args>
+template <typename Translator, typename... Args>
     requires std::derived_from<Translator, IPipelineTranslator>
 void AssetImporter::RegisterTranslator(Args&&... args)
 {
@@ -118,7 +122,7 @@ void AssetImporter::RegisterTranslator(Args&&... args)
     });
 }
 
-template <typename Factory, typename ... Args>
+template <typename Factory, typename... Args>
     requires std::derived_from<Factory, IPipelineFactory>
 void AssetImporter::RegisterFactory(Args&&... args)
 {

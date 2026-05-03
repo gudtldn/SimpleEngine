@@ -9,7 +9,7 @@
 #include <utility>
 
 
-namespace se::editor::v2
+namespace se::editor
 {
 /**
  * 서브 에셋(Sub-asset) GUID 발급 및 관리를 중재하는 컨텍스트
@@ -42,4 +42,4 @@ struct ImportContext
         return new_guid;
     }
 };
-} // namespace se::editor::v2
+} // namespace se::editor

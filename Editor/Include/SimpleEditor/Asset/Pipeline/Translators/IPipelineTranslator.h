@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
-#include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Asset/ImportProfile.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineNodeContainer.h"
+#include "SimpleEditor/Asset/Pipeline/ImportContext.h"
 
 #include "SimpleEngine/Core/Types/Path.h"
 
@@ -39,11 +39,13 @@ public:
      * 파일을 읽고 Container에 Node를 채웁니다.
      * @param file_path 파일 경로
      * @param import_profile 파일을 가져올 때 사용할 ImportProfile
+     * @param io_ctx sub-asset GUID 발급 및 cross-file 참조 해소 컨텍스트
      * @param out_container 변환된 노드들을 담을 컨테이너
      */
     virtual void Translate(
         const Path& file_path,
         const ImportProfile& import_profile,
+        ImportContext& io_ctx,
         PipelineNodeContainer& out_container
     ) = 0;
 };
