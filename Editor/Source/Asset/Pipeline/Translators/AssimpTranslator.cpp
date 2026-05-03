@@ -3,9 +3,7 @@
 
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
-#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "assimp/config.h"
 #include "assimp/Importer.hpp"
@@ -170,12 +168,14 @@ void ExtractIndices(const aiMesh* mesh, uint32 vertex_offset, Array<uint32>& out
 void ProcessMergedMesh(
     const aiScene* scene,
     const String& mesh_name,
+    ImportContext& io_ctx,
     PipelineNodeContainer& out_container
 )
 {
     ZoneScopedN("ProcessMergedMesh");
 
-    StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
+    const Guid guid = io_ctx.AllocateSubAssetGuid(mesh_name);
+    StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
     pipeline_node.SetDisplayName(mesh_name);
 
     // 전체 크기 사전 계산 후 예약
@@ -214,9 +214,12 @@ void ProcessNodeIterative(
     const aiNode* root_node,
     const aiScene* scene,
     bool convert_to_zup,
+    ImportContext& io_ctx,
     PipelineNodeContainer& out_container
 )
 {
+    HashMap<String, uint32> name_count;
+
     Array<const aiNode*> stack;
     stack.Push(root_node);
 
@@ -227,9 +230,24 @@ void ProcessNodeIterative(
         for (uint32 i = 0; i < node->mNumMeshes; ++i)
         {
             const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+            const String base_name = String::Format("{}_{}", node->mName.C_Str(), mesh->mName.C_Str());
 
-            StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>();
-            pipeline_node.SetDisplayName(String::Format("{}_{}", node->mName.C_Str(), mesh->mName.C_Str()));
+            // 동일 이름의 노드가 여러 개일 경우 접미사로 구분하여 GUID 안정성 보장
+            String node_name = base_name;
+            if (const auto count = name_count.Find(base_name))
+            {
+                const uint32 n = *count + 1;
+                name_count.Insert(base_name, n);
+                node_name = String::Format("{}_{}", base_name, n);
+            }
+            else
+            {
+                name_count.Insert(base_name, 0);
+            }
+
+            const Guid guid = io_ctx.AllocateSubAssetGuid(node_name);
+            StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
+            pipeline_node.SetDisplayName(node_name);
             pipeline_node.material_index = mesh->mMaterialIndex;
 
             ExtractVertices(mesh, convert_to_zup, pipeline_node.vertices);
@@ -252,10 +270,6 @@ void ProcessNodeIterative(
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(AssimpTranslator, meta::Internal)
-    SE_REFLECT_INTERFACE(IPipelineTranslator)
-SE_END_REFLECT(AssimpTranslator)
-
 ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 {
     static constexpr FixedArray supported_extensions = MakeFixedArray<StringView>(
@@ -267,6 +281,7 @@ ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 void AssimpTranslator::Translate(
     const Path& file_path,
     const ImportProfile& import_profile,
+    ImportContext& io_ctx,
     PipelineNodeContainer& out_container
 )
 {
@@ -322,12 +337,12 @@ void AssimpTranslator::Translate(
     {
         // 파일명을 Mesh의 이름으로 사용
         const String filename = file_path.FileStem().ValueOr("Unnamed");
-        ProcessMergedMesh(scene, filename, out_container);
+        ProcessMergedMesh(scene, filename, io_ctx, out_container);
     }
     else
     {
         // PTV 활성: 이미 Z-up (convert=false) | PTV 비활성: 수동 변환 (convert=true)
-        ProcessNodeIterative(scene->mRootNode, scene, !use_ptv, out_container);
+        ProcessNodeIterative(scene->mRootNode, scene, !use_ptv, io_ctx, out_container);
     }
 }
 } // namespace se::editor

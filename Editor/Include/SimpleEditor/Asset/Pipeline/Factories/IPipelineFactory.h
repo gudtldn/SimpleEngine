@@ -1,34 +1,28 @@
 #pragma once
 
+#include "SimpleEditor/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineNodeContainer.h"
 
+#include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
-#include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+
+#include <memory>
 
 
 namespace se::editor
 {
 /**
- * Factory가 Asset을 생성할 때 필요한 의존성 정보를 담고 있는 Context
+ * Factory가 에셋을 생성할 때 필요한 컨텍스트
  */
 struct SE_EDITOR_API PipelineImportContext
 {
     const PipelineNodeContainer& container;
-    const HashMap<Guid, std::shared_ptr<AssetBase>>& created_assets;
-
-    [[nodiscard]] std::shared_ptr<AssetBase> GetCreatedAsset(const Guid& node_uid) const
-    {
-        if (const Optional asset_opt = created_assets.Find(node_uid))
-        {
-            return *asset_opt;
-        }
-        return nullptr;
-    }
+    const AssetRegistry& registry;
 };
 
 /**
- * Pipeline Node를 실제 IAsset으로 변환하는 Interface
+ * PipelineNode를 실제 AssetBase로 생성하는 Interface
  */
 class SE_EDITOR_API IPipelineFactory
 {

@@ -5,9 +5,9 @@
 #include "SimpleEditor/Asset/MetaFileContent.h"
 #include "SimpleEditor/Asset/MetaFileManager.h"
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
-#include "SimpleEditor/Asset/Pipeline/v2/AssetImporter.h"
-#include "SimpleEditor/Asset/Pipeline/v2/Factories/StaticMeshFactory.h"
-#include "SimpleEditor/Asset/Pipeline/v2/Translators/AssimpTranslator.h"
+#include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
+#include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
@@ -88,18 +88,18 @@ EditorAssetSubsystem::~EditorAssetSubsystem() = default;
 bool EditorAssetSubsystem::Initialize()
 {
     {
-        // Create AssetImporter Instance (v2)
-        importer = std::make_unique<v2::AssetImporter>();
+        // Create AssetImporter Instance
+        importer = std::make_unique<AssetImporter>();
 
         // Register Translators
-        importer->RegisterTranslator<v2::AssimpTranslator>();
+        importer->RegisterTranslator<AssimpTranslator>();
 
         // Register Factories
-        importer->RegisterFactory<v2::StaticMeshFactory>();
+        importer->RegisterFactory<StaticMeshFactory>();
     }
 
     // Translator별 기본 ImportProfile 프리셋 등록
-    preset_manager.RegisterPreset<v2::AssimpTranslator>([](ImportProfile& profile)
+    preset_manager.RegisterPreset<AssimpTranslator>([](ImportProfile& profile)
     {
         profile.Emplace<MeshImportSettings>();
     });
@@ -592,23 +592,22 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
     updated_content.metadata.sub_assets.Clear();
 
-    // ImportContext 구성 — prev_sub_guids를 reserved GUID로 전달,
-    // Translator가 신규 발급한 (name, Guid) 쌍은 newly_allocated에 보고됨
+    // ImportContext 구성: prev_sub_guids를 reserved로 전달, 신규 GUID는 ImportResult 루프에서 sub_assets에 반영됨
     Array<std::pair<String, Guid>> newly_allocated_sub_guids;
-    v2::ImportContext import_ctx{
-        .reserved_sub_guids      = prev_sub_guids,
-        .registry                = registry,
+    ImportContext import_ctx = {
+        .reserved_sub_guids = prev_sub_guids,
+        .registry = registry,
         .out_allocated_sub_guids = newly_allocated_sub_guids,
     };
 
     // Import 수행
     const auto result_exp = importer->Import(file_path, import_ctx, import_profile, stack_opt);
-    if (!result_exp.HasValue())
+    if (result_exp.HasError())
     {
         ConsoleLog(ELogLevel::Error, "Cook failed: {}", result_exp.Error().What());
         return false;
     }
-    const v2::ImportResult& result = result_exp.Value();
+    const ImportResult& result = result_exp.Value();
 
     // 해시 및 파일 메타 계산
     const ContentHash source_hash = SHA256::HashFile(file_path);
@@ -640,9 +639,8 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
 
     // Registry 및 DDC 갱신
-    // v2: AssetId는 Translator가 ImportContext::AllocateSubAssetGuid()로 발급하여
-    //     node->GetUid() == AssetId.guid 불변식이 성립하므로 entry.asset_id를 직접 사용
-    for (const v2::ImportedAsset& entry : result.GetEntries())
+    // node->GetUid() == AssetId.guid 불변식이 성립하므로 entry.asset_id를 직접 사용
+    for (const ImportedAsset& entry : result.GetEntries())
     {
         if (!entry.asset)
         {
@@ -655,9 +653,9 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
         // Meta에 Sub-asset 정보 추가
         updated_content.metadata.sub_assets.Push({
-            .name         = entry.name,
-            .guid         = asset_id.GetGuid(),
-            .type         = asset_type,
+            .name = entry.name,
+            .guid = asset_id.GetGuid(),
+            .type = asset_type,
             .dependencies = entry.dependencies,
         });
 
@@ -692,7 +690,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         SyncDependencies(AssetId{ sub.guid }, sub.dependencies);
     }
 
-    // .meta 파일 갱신 (newly_allocated_sub_guids가 sub_assets에 반영된 상태로 atomic write)
+    // .meta 파일 갱신 (위 루프에서 sub_assets가 이미 갱신된 상태, atomic write)
     if (!MetaFileManager::Save(file_path, updated_content))
     {
         ConsoleLog(ELogLevel::Warning, "CookAsset: Failed to update .meta for: {}", file_path);

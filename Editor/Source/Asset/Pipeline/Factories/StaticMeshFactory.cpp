@@ -16,7 +16,7 @@ TypeId StaticMeshFactory::GetAssetType() const
 
 bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
 {
-    return IsA<StaticMeshPipelineNode>(node);
+    return IsA<se::editor::StaticMeshPipelineNode>(node);
 }
 
 std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
@@ -26,7 +26,7 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
 {
     ZoneScopedN("StaticMeshFactory::CreateAsset");
 
-    StaticMeshPipelineNode* mesh_node = CastChecked<StaticMeshPipelineNode>(node);
+    auto* mesh_node = CastChecked<se::editor::StaticMeshPipelineNode>(node);
 
     auto static_mesh = std::make_shared<StaticMesh>();
     static_mesh->vertices = std::move(mesh_node->vertices);
@@ -45,7 +45,7 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         return mesh_bounds;
     }();
 
-    // TODO: mesh_node->material_index로 Material 에셋 연결
+    // TODO: mesh_node->material_index로 sibling MaterialInstance AssetId 연결
     (void)context;
 
     return static_mesh;

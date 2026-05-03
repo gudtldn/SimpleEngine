@@ -13,11 +13,7 @@
 namespace se::editor
 {
 // forward declaration
-namespace v2
-{
 class IPipelineTranslator;
-}
-
 
 /**
  * Translator 타입별 기본 ImportProfile을 관리하는 매니저
@@ -41,7 +37,7 @@ public:
      * @param initializer ImportProfile에 기본 설정을 채우는 콜백
      */
     template <typename T, typename Fn>
-        requires std::derived_from<T, v2::IPipelineTranslator>
+        requires std::derived_from<T, IPipelineTranslator>
         && std::invocable<Fn, ImportProfile&>
     void RegisterPreset(Fn&& initializer);
 
@@ -65,7 +61,7 @@ private:
 };
 
 template <typename T, typename Fn>
-    requires std::derived_from<T, v2::IPipelineTranslator>
+    requires std::derived_from<T, IPipelineTranslator>
     && std::invocable<Fn, ImportProfile&>
 void ImportPresetManager::RegisterPreset(Fn&& initializer)
 {

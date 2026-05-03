@@ -1,65 +1,54 @@
-﻿#include "SimpleEditor/Asset/Pipeline/ImportResult.h"
+#include "SimpleEditor/Asset/Pipeline/ImportResult.h"
 
 
 namespace se::editor
 {
 ImportResult::ImportResult(
-    Array<std::shared_ptr<AssetBase>> assets,
-    HashMap<String, uint32> name_to_index,
-    uint32 main_asset_index
+    Array<ImportedAsset> in_entries,
+    HashMap<String, uint32> in_name_to_index,
+    uint32 in_main_asset_index
 )
-    : assets(std::move(assets))
-    , name_to_index(std::move(name_to_index))
-    , main_asset_index(main_asset_index)
+    : entries(std::move(in_entries))
+    , name_to_index(std::move(in_name_to_index))
+    , main_asset_index(in_main_asset_index)
 {
 }
 
-std::shared_ptr<AssetBase> ImportResult::GetMainAsset() const
+Optional<const ImportedAsset&> ImportResult::GetMainAsset() const
 {
-    if (main_asset_index < assets.Len())
+    if (main_asset_index < entries.Len())
     {
-        return assets[main_asset_index];
+        return entries[main_asset_index];
     }
-    return nullptr;
+    return NullOpt;
 }
 
-std::shared_ptr<AssetBase> ImportResult::GetAsset(uint32 index) const
+Optional<const ImportedAsset&> ImportResult::FindByName(StringView name) const
 {
-    if (index < assets.Len())
+    if (const Optional idx = name_to_index.Find(String(name)))
     {
-        return assets[index];
+        return entries[*idx];
     }
-    return nullptr;
+    return NullOpt;
 }
 
-std::shared_ptr<AssetBase> ImportResult::FindByName(StringView name) const
+uint32 ImportResult::Builder::RegisterAsset(
+    const String& name,
+    AssetId asset_id,
+    std::shared_ptr<AssetBase> asset,
+    Array<AssetDependencyEntry> dependencies
+)
 {
-    if (const auto index_opt = name_to_index.Find(name))
-    {
-        if (*index_opt < assets.Len())
-        {
-            return assets[*index_opt];
-        }
-    }
-    return nullptr;
-}
+    const String unique_name = MakeUniqueName(name);
+    const auto index = static_cast<uint32>(entries.Len());
 
-Array<StringView> ImportResult::GetAllNames() const
-{
-    return name_to_index.Keys<StringView>();
-}
-
-
-uint32 ImportResult::Builder::RegisterAsset(std::shared_ptr<AssetBase> asset, const String& name)
-{
-    const uint32 index = static_cast<uint32>(assets.Len());
-    assets.Push(std::move(asset));
-
-    if (!name.IsEmpty())
-    {
-        String unique_name = MakeUniqueName(name);
-        name_to_index.Insert(std::move(unique_name), index);
-    }
+    entries.Push({
+        .name = unique_name,
+        .asset_id = asset_id,
+        .asset = std::move(asset),
+        .dependencies = std::move(dependencies),
+    });
+    name_to_index.Insert(unique_name, index);
     return index;
 }
 
@@ -70,11 +59,14 @@ void ImportResult::Builder::SetMainAssetIndex(uint32 index)
 
 ImportResult ImportResult::Builder::Build()
 {
-    return {
-        std::move(assets),
-        std::move(name_to_index),
-        main_asset_index
+    ImportResult result = {
+        std::exchange(entries, {}),
+        std::exchange(name_to_index, {}),
+        std::exchange(main_asset_index, 0)
     };
+
+    next_suffix_map = {};
+    return result;
 }
 
 String ImportResult::Builder::MakeUniqueName(const String& base_name)
@@ -86,14 +78,17 @@ String ImportResult::Builder::MakeUniqueName(const String& base_name)
     }
 
     // 중복 시 suffix 추가: Name_1, Name_2, ...
-    String copy_name = base_name;
-    uint32& next_suffix = next_suffix_map.Entry(copy_name).OrInsert(1);
+    uint32& suffix = next_suffix_map[base_name];
+    ++suffix;
+
+    String candidate;
     do
     {
-        copy_name = String::Format("{}_{}", base_name, next_suffix++);
+        candidate = String::Format("{}_{}", base_name, suffix);
+        ++suffix;
     }
-    while (name_to_index.Contains(copy_name));
+    while (name_to_index.Contains(candidate));
 
-    return copy_name;
+    return candidate;
 }
 } // namespace se::editor

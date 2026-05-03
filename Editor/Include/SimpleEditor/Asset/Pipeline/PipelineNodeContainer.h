@@ -32,22 +32,7 @@ public:
     PipelineNodeContainer& operator=(PipelineNodeContainer&&) = default;
 
 public:
-    template <typename NodeType, typename... Args>
-        requires std::derived_from<NodeType, PipelineBaseNode>
-    NodeType& CreateNode(Args&&... args)
-    {
-        auto node = std::make_unique<NodeType>(std::forward<Args>(args)...);
-        if (!node->GetUid().IsValid())
-        {
-            node->SetUid(Guid::NewGuid());
-        }
-
-        NodeType* node_ptr = node.get();
-        nodes.Insert(node_ptr->GetUid(), std::move(node));
-        return *node_ptr;
-    }
-
-    // v2 Translator 전용: GUID를 사전 지정하여 node->GetUid() == AssetId.guid 불변식을 보장합니다.
+    // GUID를 사전 지정하여 node->GetUid() == AssetId.guid 불변식을 보장합니다.
     template <typename NodeType, typename... Args>
         requires std::derived_from<NodeType, PipelineBaseNode>
     NodeType& CreateNode(const Guid& pre_assigned_uid, Args&&... args)
