@@ -5,10 +5,10 @@
 #include "SimpleEditor/Asset/MetaFileContent.h"
 #include "SimpleEditor/Asset/MetaFileManager.h"
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
-#include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/v2/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/v2/Factories/StaticMeshFactory.h"
+#include "SimpleEditor/Asset/Pipeline/v2/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
-#include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
-#include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
@@ -88,18 +88,18 @@ EditorAssetSubsystem::~EditorAssetSubsystem() = default;
 bool EditorAssetSubsystem::Initialize()
 {
     {
-        // Create AssetImporter Instance
-        importer = std::make_unique<AssetImporter>();
+        // Create AssetImporter Instance (v2)
+        importer = std::make_unique<v2::AssetImporter>();
 
         // Register Translators
-        importer->RegisterTranslator<AssimpTranslator>();
+        importer->RegisterTranslator<v2::AssimpTranslator>();
 
         // Register Factories
-        importer->RegisterFactory<StaticMeshFactory>();
+        importer->RegisterFactory<v2::StaticMeshFactory>();
     }
 
     // Translator별 기본 ImportProfile 프리셋 등록
-    preset_manager.RegisterPreset<AssimpTranslator>([](ImportProfile& profile)
+    preset_manager.RegisterPreset<v2::AssimpTranslator>([](ImportProfile& profile)
     {
         profile.Emplace<MeshImportSettings>();
     });
@@ -572,42 +572,14 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         stack_opt.Emplace(std::move(stack));
     }
 
-    // Import 수행
-    const auto result_exp = importer->Import(file_path, import_profile, stack_opt);
-    if (!result_exp.HasValue())
-    {
-        ConsoleLog(ELogLevel::Error, "Cook failed: {}", result_exp.Error().What());
-        return false;
-    }
-    const ImportResult& result = result_exp.Value();
-
-    // 메타데이터 및 해시 계산
-    const ContentHash source_hash = SHA256::HashFile(file_path);
-    constexpr uint32 current_cache_version = 1;
-    const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
-    const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
-
-    // Import Settings 해시 계산
-    Array<uint8> settings_bytes;
-    {
-        MemoryWriter writer(settings_bytes);
-        writer << import_profile;
-    }
-    const ContentHash settings_hash = SHA256::HashBytes(settings_bytes);
-
     AssetRegistry& registry = asset_subsystem->GetRegistry();
     DerivedDataCache& ddc = asset_subsystem->GetDDC();
 
     // MetaFileContent 갱신 준비
     MetaFileContent updated_content = std::move(meta_content_opt).ValueOrDefault();
-    updated_content.metadata.source_hash = source_hash;
-    updated_content.metadata.source_mtime = file_mtime;
-    updated_content.metadata.source_size = file_size;
-    updated_content.metadata.cache_version = current_cache_version;
-    updated_content.metadata.settings_hash = settings_hash;
 
     // 기존 sub-asset의 GUID와 dependencies를 이름 기준으로 임시 보존
-    // (설정 변경으로 sub-asset 목록이 달라져도 동일 이름은 GUID를 재사용하고, Translator가 per-sub-asset deps를 직접 산출할 때까지 .meta에 저장된 값을 유지)
+    // (설정 변경으로 sub-asset 목록이 달라져도 동일 이름은 GUID를 재사용)
     HashMap<String, Guid> prev_sub_guids;
     HashMap<String, Array<AssetDependencyEntry>> prev_sub_deps;
     for (const SubAssetMeta& old_sub : updated_content.metadata.sub_assets)
@@ -620,7 +592,44 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
     updated_content.metadata.sub_assets.Clear();
 
-    // Reimport 시 ImportSettings 변경으로 sub-asset의 개수와 이름이 달라질 수 있으므로
+    // ImportContext 구성 — prev_sub_guids를 reserved GUID로 전달,
+    // Translator가 신규 발급한 (name, Guid) 쌍은 newly_allocated에 보고됨
+    Array<std::pair<String, Guid>> newly_allocated_sub_guids;
+    v2::ImportContext import_ctx{
+        .reserved_sub_guids      = prev_sub_guids,
+        .registry                = registry,
+        .out_allocated_sub_guids = newly_allocated_sub_guids,
+    };
+
+    // Import 수행
+    const auto result_exp = importer->Import(file_path, import_ctx, import_profile, stack_opt);
+    if (!result_exp.HasValue())
+    {
+        ConsoleLog(ELogLevel::Error, "Cook failed: {}", result_exp.Error().What());
+        return false;
+    }
+    const v2::ImportResult& result = result_exp.Value();
+
+    // 해시 및 파일 메타 계산
+    const ContentHash source_hash = SHA256::HashFile(file_path);
+    constexpr uint32 current_cache_version = 1;
+    const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
+    const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
+
+    Array<uint8> settings_bytes;
+    {
+        MemoryWriter writer(settings_bytes);
+        writer << import_profile;
+    }
+    const ContentHash settings_hash = SHA256::HashBytes(settings_bytes);
+
+    updated_content.metadata.source_hash = source_hash;
+    updated_content.metadata.source_mtime = file_mtime;
+    updated_content.metadata.source_size = file_size;
+    updated_content.metadata.cache_version = current_cache_version;
+    updated_content.metadata.settings_hash = settings_hash;
+
+    // Reimport 시 ImportSettings 변경으로 sub-asset 목록이 달라질 수 있으므로
     // 이전 Cook의 Registry 항목을 먼저 제거하여 stale 항목을 방지
     registry.UnregisterByPath(file_vpath);
 
@@ -631,30 +640,25 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
 
     // Registry 및 DDC 갱신
-    for (const auto& [name, idx] : result.GetNameToIndexMap())
+    // v2: AssetId는 Translator가 ImportContext::AllocateSubAssetGuid()로 발급하여
+    //     node->GetUid() == AssetId.guid 불변식이 성립하므로 entry.asset_id를 직접 사용
+    for (const v2::ImportedAsset& entry : result.GetEntries())
     {
-        std::shared_ptr<AssetBase> asset = result.GetAsset(idx);
-        if (!asset)
+        if (!entry.asset)
         {
             continue;
         }
 
-        const TypeId asset_type = asset->GetTypeId();
-        AssetPath asset_path = AssetPath{ file_vpath, name };
-
-        // .meta 스냅샷에서 기존 GUID 재사용, 없으면 새 GUID 발급
-        // (Registry는 이미 비워진 상태이므로 .meta 기준으로 조회)
-        AssetId asset_id{ prev_sub_guids.Find(name).Copy().ValueOr(Guid::NewGuid()) };
+        const TypeId asset_type = entry.asset->GetTypeId();
+        AssetPath asset_path = AssetPath{ file_vpath, entry.name };
+        const AssetId asset_id = entry.asset_id;
 
         // Meta에 Sub-asset 정보 추가
-        // TODO: Translator에서 참조 텍스처/머티리얼 등을 분석하여
-        //       per-sub-asset dependencies를 산출하도록 확장 필요
         updated_content.metadata.sub_assets.Push({
-            .name = name,
-            .guid = asset_id.GetGuid(),
-            .type = asset_type,
-            // Translator가 deps를 산출할 때까지 기존 .meta 값을 보존
-            .dependencies = prev_sub_deps.Find(name).Copy().ValueOrDefault(),
+            .name         = entry.name,
+            .guid         = asset_id.GetGuid(),
+            .type         = asset_type,
+            .dependencies = entry.dependencies,
         });
 
         // Registry 등록
@@ -666,7 +670,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         // DDC 굽기 (직렬화)
         if (!source_hash.IsZero())
         {
-            Array<uint8> payload = AssetSubsystem::SerializeAssetPayload(*asset);
+            Array<uint8> payload = AssetSubsystem::SerializeAssetPayload(*entry.asset);
             if (!payload.IsEmpty())
             {
                 ddc.Store(asset_id.GetGuid(), {
@@ -688,7 +692,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         SyncDependencies(AssetId{ sub.guid }, sub.dependencies);
     }
 
-    // .meta 파일 갱신 (Sub-asset 정보 기록)
+    // .meta 파일 갱신 (newly_allocated_sub_guids가 sub_assets에 반영된 상태로 atomic write)
     if (!MetaFileManager::Save(file_path, updated_content))
     {
         ConsoleLog(ELogLevel::Warning, "CookAsset: Failed to update .meta for: {}", file_path);

@@ -18,10 +18,13 @@
 #include <mutex>
 
 
+namespace se::editor::v2
+{
+class AssetImporter;
+} // namespace se::editor::v2
+
 namespace se::editor
 {
-// forward declarations
-class AssetImporter;
 struct MetaFileContent;
 
 /**
@@ -127,7 +130,7 @@ private:
 private:
     AssetSubsystem* asset_subsystem = nullptr;
 
-    std::unique_ptr<AssetImporter> importer;
+    std::unique_ptr<v2::AssetImporter> importer;
     ImportPresetManager preset_manager;
     DependencyGraph dep_graph;
 
