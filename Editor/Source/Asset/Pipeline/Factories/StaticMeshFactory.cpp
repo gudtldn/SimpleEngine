@@ -84,13 +84,21 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
 
     static_mesh->lods.Push(std::move(lod0));
 
-    // 고유 머티리얼 개수만큼 기본 머티리얼 슬롯 할당 (추후 MaterialFactory 연동 시 에셋 ID로 교체)
-    // 현재는 아무 것도 연결되지 않은 빈 슬롯을 두어, MeshMaterialComponent가 오버라이드 하거나
-    // CollectDrawData에서 Builtin DefaultLitInstance로 자동 폴백되게 만듭니다.
+    // 고유 머티리얼 슬롯별로 MaterialInstance AssetId를 연결
+    // 만약 material_node_uids가 없다면 AssetId::Invalid로 폴백
     static_mesh->default_materials.Reserve(unique_materials.Len());
     for (uint32 i = 0; i < unique_materials.Len(); ++i)
     {
-        static_mesh->default_materials.Push(AssetId::Invalid);
+        const uint32 ai_mat_idx = unique_materials[i];
+        if (ai_mat_idx < mesh_node->material_node_uids.Len())
+        {
+            const Guid& mat_guid = mesh_node->material_node_uids[ai_mat_idx];
+            static_mesh->default_materials.Push(mat_guid.IsValid() ? AssetId{ mat_guid } : AssetId::Invalid);
+        }
+        else
+        {
+            static_mesh->default_materials.Push(AssetId::Invalid);
+        }
     }
 
     (void)context;
