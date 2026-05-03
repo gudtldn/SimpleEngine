@@ -10,6 +10,8 @@
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
 #include "SimpleEngine/ECS/Components/MaterialComponent.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
+#include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
+#include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 #include <algorithm>
 
@@ -18,18 +20,92 @@ namespace se
 {
 namespace
 {
-/**
- * DrawCommand의 정렬 키를 계산합니다.
- * @todo 나중에 MDI(Multi-Draw Indirect) 렌더링 및 투명/불투명 분류 시, 머티리얼 PSO 해시 및 뎁스(Z) 값을 조합해 정렬 키를 계산해야 함.
- */
-[[nodiscard]] uint64 ComputeSortKey(const AssetId& mesh_id)
+/** 정렬 키에 포함될 개별 데이터 필드 */
+enum class SortField : uint8
 {
-    const uint64 mesh_hash = std::hash<AssetId>{}(mesh_id);
-    return mesh_hash;
+    Mesh,     // 메시 버퍼 해시 (VB/IB 바인딩 변경 최소화)
+    Material, // 머티리얼 인스턴스 해시 (descriptor 바인딩 변경 최소화)
+    Pso,      // 파이프라인 스테이트 해시 (PSO 전환 최소화)
+    Depth,    // 카메라 거리 기반 깊이 (불투명: 앞 -> 뒤 정렬로 overdraw 감소)
+    Layer,    // 0=Opaque, 1=Transparent (투명 오브젝트를 불투명 이후로 밀어냄)
+};
+
+/** 레이아웃 정의를 위한 구조체 */
+struct FieldLayout
+{
+    SortField id;
+    uint64 bits;
+};
+
+/** 비트 연산을 위한 시프트/마스크 정보 구조체 */
+struct FieldBitInfo
+{
+    uint64 shift;
+    uint64 mask;
+};
+
+/**
+ * sort_key 64비트 레이아웃 (단일 진실 공급원)
+ * 하위 비트부터 누적 배치되며, 상위 비트에 위치할수록 정렬 우선순위가 높습니다.
+ */
+constexpr FieldLayout LAYOUT[] = {
+    { SortField::Mesh,     16 },
+    { SortField::Material, 16 },
+    { SortField::Pso,      16 },
+    { SortField::Depth,    15 },
+    { SortField::Layer,    1  },
+};
+
+// 64비트 총합 검증
+static_assert(
+    std::ranges::fold_left(LAYOUT | std::views::transform(&FieldLayout::bits), 0ULL, std::plus<>{}) == 64,
+    "SortKey layout MUST be exactly 64 bits!"
+);
+
+/**
+ * 대상 필드의 shift와 mask 값을 동시에 계산하여 반환합니다.
+ * @return FieldBitInfo (shift 위치, 해당 비트 폭에 맞는 mask)
+ */
+template <SortField Target>
+consteval FieldBitInfo GetFieldInfo()
+{
+    uint64 shift = 0;
+    for (const auto& [id, bits] : LAYOUT)
+    {
+        if (id == Target)
+        {
+            return { shift, (1ULL << bits) - 1 };
+        }
+        shift += bits;
+    }
+    throw "Invalid SortField";
+}
+
+/**
+ * 주어진 값을 대상 필드의 비트 레이아웃에 맞게 안전하게 패킹합니다.
+ */
+template <SortField Target>
+constexpr uint64 PackField(uint64 value)
+{
+    constexpr FieldBitInfo info = GetFieldInfo<Target>();
+    return (value & info.mask) << info.shift;
+}
+
+/**
+ * 렌더링 큐 제출을 위한 64비트 정렬 키를 생성합니다.
+ * @todo 향후 PSO, Depth, Layer 파라미터 추가 시 조합에 포함해야 합니다.
+ */
+[[nodiscard]] uint64 ComputeSortKey(const AssetId& mesh_id, const AssetId& material_id)
+{
+    const uint64 mesh_hash     = std::hash<AssetId>{}(mesh_id);
+    const uint64 material_hash = std::hash<AssetId>{}(material_id);
+
+    return PackField<SortField::Mesh>(mesh_hash)
+         | PackField<SortField::Material>(material_hash);
 }
 } // namespace
 
-SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_subsystem)
+SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_subsystem, const GpuResourceManager& gpu_manager)
 {
     SceneDrawData result;
     FrameMaterialCache& cache = result.material_cache;
@@ -72,6 +148,13 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
             return mesh_handle->lods[0];
         }();
 
+        // GPU 슬라이스 Pre-resolve: 아직 GPU에 업로드되지 않은 메시는 이번 프레임 스킵 (1-frame 레이턴시 허용)
+        const Optional<const GpuBufferSlice&> gpu_slice = gpu_manager.GetSlice(mesh_comp.mesh_id);
+        if (!gpu_slice.HasValue())
+        {
+            continue;
+        }
+
         // 4. 서브메시(Section) 단위로 쪼개서 DrawCommand 생성
         for (const MeshSection& section : target_lod.sections)
         {
@@ -80,12 +163,6 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
             DrawCommand cmd;
             cmd.model_matrix = global_transform.value;
             cmd.entity_id = entity.GetId();
-
-            // TODO: sort_key에 머티리얼 ID와 뎁스를 조합하여 해시해야 함
-            cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id);
-
-            // 향후 제거 예정
-            cmd.mesh_id = mesh_comp.mesh_id;
 
             // 머티리얼 인스턴스 결정 로직
             const AssetId target_mat_id = [&]
@@ -110,6 +187,16 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
 
                 return BuiltinAssetIds::DefaultLitInstance;
             }();
+
+            cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id);
+
+            // GPU 버퍼 필드 채우기
+            cmd.gpu_buffer = gpu_slice->buffer;
+            cmd.vertex_buffer_offset = gpu_slice->offset;
+            cmd.index_buffer_offset = gpu_slice->index_offset;
+            cmd.vertex_count = (gpu_slice->index_count == 0)
+                ? (gpu_slice->index_offset - gpu_slice->offset) / static_cast<uint32>(sizeof(StaticVertex))
+                : 0;
 
             // 아레나 패킹 및 캐싱
             if (const auto slot_idx = cache.material_to_slot.Find(target_mat_id))
