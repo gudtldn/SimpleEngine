@@ -656,7 +656,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             .name = entry.name,
             .guid = asset_id.GetGuid(),
             .type = asset_type,
-            .dependencies = entry.dependencies,
+            .dependencies = entry.dependencies.IsEmpty() ? prev_sub_deps.Find(entry.name).Copy().ValueOrDefault() : entry.dependencies,
         });
 
         // Registry 등록
