@@ -45,7 +45,7 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
         {
             // 에셋이 로드되지 않았음 -> 렌더 스킵하고 지연 로드(Lazy Loading) 요청 큐에 등록
             result.requested_meshes.Push(mesh_comp.mesh_id);
-            continue; 
+            continue;
         }
 
         // 2. 에셋 수명 연장 (Pinning)
@@ -122,6 +122,10 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
                 AssetHandle<MaterialInstance> inst_handle = asset_subsystem.Find<MaterialInstance>(target_mat_id);
                 if (!inst_handle)
                 {
+                    if (target_mat_id != BuiltinAssetIds::DefaultLitInstance)
+                    {
+                        result.requested_material_instances.Push(target_mat_id);
+                    }
                     inst_handle = asset_subsystem.Find<MaterialInstance>(BuiltinAssetIds::DefaultLitInstance);
                 }
 
