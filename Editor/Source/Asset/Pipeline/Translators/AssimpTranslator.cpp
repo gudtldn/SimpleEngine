@@ -2,8 +2,11 @@
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
 
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
+#include "SimpleEditor/Asset/Pipeline/Nodes/PipelineMaterialInstanceNode.h"
+#include "SimpleEditor/Asset/Pipeline/Nodes/PipelineTextureNode.h"
 #include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/Cast.h"
 
 #include "assimp/config.h"
 #include "assimp/Importer.hpp"
@@ -279,6 +282,129 @@ void ProcessNodeIterative(
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// 머티리얼/텍스처 처리 함수
+// ---------------------------------------------------------------------------
+
+/**
+ * aiScene의 모든 머티리얼/텍스처를 Pipeline 노드로 변환합니다.
+ * @return aiMaterial 인덱스 -> PipelineMaterialNode UID 배열 (크기 == scene->mNumMaterials)
+ */
+Array<Guid> ProcessMaterials(
+    const aiScene* scene,
+    const Path& fbx_dir,
+    ImportContext& io_ctx,
+    PipelineNodeContainer& out_container
+)
+{
+    ZoneScopedN("ProcessMaterials");
+
+    Array<Guid> mat_node_uids;
+    if (scene->mNumMaterials == 0)
+    {
+        return mat_node_uids;
+    }
+
+    mat_node_uids.Resize(scene->mNumMaterials, Guid{});
+
+    // 임베디드 텍스처 중복 등록 방지 (여러 머티리얼이 같은 임베디드 인덱스 공유 가능)
+    HashMap<uint32, Guid> embedded_tex_guids;
+
+    for (uint32 mat_idx = 0; mat_idx < scene->mNumMaterials; ++mat_idx)
+    {
+        const aiMaterial* ai_mat = scene->mMaterials[mat_idx];
+
+        aiString ai_mat_name;
+        ai_mat->Get(AI_MATKEY_NAME, ai_mat_name);
+        const String mat_name = (ai_mat_name.length > 0)
+            ? String(ai_mat_name.C_Str())
+            : String::Format("{}", mat_idx);
+
+        const String mat_node_name = String::Format("Material_{}", mat_name);
+        const Guid mat_guid = io_ctx.AllocateSubAssetGuid(mat_node_name);
+        PipelineMaterialInstanceNode& mat_node = out_container.CreateNode<PipelineMaterialInstanceNode>(mat_guid);
+        mat_node.SetDisplayName(mat_node_name);
+        mat_node_uids[mat_idx] = mat_guid;
+
+        // Diffuse 색상 -> base_color 파라미터 오버라이드
+        aiColor4D diffuse;
+        if (ai_mat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
+        {
+            mat_node.param_overrides.Insert("base_color", { diffuse.r, diffuse.g, diffuse.b, diffuse.a });
+        }
+
+        // BaseColor 텍스처 (aiTextureType_DIFFUSE 슬롯 0)
+        aiString tex_path_str;
+        if (ai_mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path_str) != AI_SUCCESS)
+        {
+            continue;
+        }
+
+        Guid tex_guid;
+        const StringView tex_path_sv = tex_path_str.C_Str();
+
+        if (!tex_path_sv.IsEmpty() && tex_path_sv[0] == '*')
+        {
+            // 임베디드 텍스처: 경로가 "*<index>" 형태
+            const uint32 embedded_idx = static_cast<uint32>(std::atoi(tex_path_sv.Data() + 1));
+
+            if (const auto existing = embedded_tex_guids.Find(embedded_idx))
+            {
+                tex_guid = *existing;
+            }
+            else if (embedded_idx < scene->mNumTextures)
+            {
+                const aiTexture* ai_tex = scene->mTextures[embedded_idx];
+                const String tex_name = String::Format("Texture_Embedded_{}", embedded_idx);
+
+                tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
+                PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
+                tex_node.SetDisplayName(tex_name);
+                tex_node.SetSRGB(true);
+
+                if (ai_tex->mHeight > 0)
+                {
+                    // 이미 디코딩된 RGBA8 raw pixels (aiTexture::mHeight > 0)
+                    const usize byte_count = static_cast<usize>(ai_tex->mWidth)
+                                           * static_cast<usize>(ai_tex->mHeight) * 4u;
+                    tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), byte_count });
+                    tex_node.SetEmbeddedWidth(static_cast<uint64>(ai_tex->mWidth));
+                    tex_node.SetEmbeddedHeight(static_cast<uint64>(ai_tex->mHeight));
+                }
+                else
+                {
+                    // 압축 바이너리 (PNG/JPG/TGA ...), mWidth == 바이트 수
+                    tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), static_cast<usize>(ai_tex->mWidth) });
+                    if (ai_tex->achFormatHint[0] != '\0')
+                    {
+                        tex_node.SetEmbeddedFormat(String(ai_tex->achFormatHint));
+                    }
+                }
+
+                embedded_tex_guids.Insert(embedded_idx, tex_guid);
+            }
+        }
+        else if (!tex_path_sv.IsEmpty())
+        {
+            // 외부 텍스처 파일 (FBX 기준 상대 경로)
+            const String tex_name = String::Format("Texture_{}_BaseColor", mat_name);
+            tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
+
+            PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
+            tex_node.SetDisplayName(tex_name);
+            tex_node.SetSourceFile(fbx_dir / Path{ String(tex_path_sv) });
+            tex_node.SetSRGB(true);
+        }
+
+        if (tex_guid.IsValid())
+        {
+            mat_node.texture_node_refs.Insert("BaseColor", tex_guid);
+        }
+    }
+
+    return mat_node_uids;
+}
 } // namespace
 
 namespace se::editor
@@ -356,6 +482,21 @@ void AssimpTranslator::Translate(
     {
         // PTV 활성: 이미 Z-up (convert=false) | PTV 비활성: 수동 변환 (convert=true)
         ProcessNodeIterative(scene->mRootNode, scene, !use_ptv, io_ctx, out_container);
+    }
+
+    // 머티리얼/텍스처 노드 생성 후 각 StaticMeshPipelineNode에 연결
+    const Path model3d_dir = file_path.Parent().ValueOrDefault();
+    const Array<Guid> mat_node_uids = ProcessMaterials(scene, model3d_dir, io_ctx, out_container);
+
+    if (!mat_node_uids.IsEmpty())
+    {
+        for (const auto& node_ptr : out_container.GetAllNodes() | std::views::values)
+        {
+            if (StaticMeshPipelineNode* mesh_node = Cast<StaticMeshPipelineNode>(node_ptr.get()))
+            {
+                mesh_node->material_node_uids = mat_node_uids;
+            }
+        }
     }
 }
 } // namespace se::editor
