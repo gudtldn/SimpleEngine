@@ -17,7 +17,9 @@
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/BuiltinAssets.h"
+#include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
+#include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
@@ -372,6 +374,13 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
     GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
     const AssetRegistry& registry = asset_subsystem->GetRegistry();
 
+    // 텍스처 중복 업로드 방지 (White1x1은 항상 별도 처리하므로 미리 삽입)
+    HashSet<AssetId> queued_textures;
+    queued_textures.Insert(BuiltinAssetIds::White1x1);
+
+    // 이번 PrepareGpuUploads 호출에서 로드할 MaterialInstance 누적 세트
+    HashSet<AssetId> pending_material_instances;
+
     // --- Mesh residency 체크 ---
     // 업로드가 필요한 메시를 수집 (아직 업로드되지 않은 데이터 또는 cook_key 변경)
     struct PendingMesh
@@ -458,11 +467,70 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
         AssetHandle<StaticMesh> fresh_handle = asset_subsystem->Load<StaticMesh>(info.path);
         if (fresh_handle && !fresh_handle->vertices.IsEmpty())
         {
+            // default_materials중 아직 로드되지 않은 MaterialInstance를 cascade큐에 추가
+            for (const AssetId& mat_id : fresh_handle->default_materials)
+            {
+                if (mat_id.IsValid() && !asset_subsystem->Find<MaterialInstance>(mat_id))
+                {
+                    pending_material_instances.Insert(mat_id);
+                }
+            }
+
             fp.mesh_upload_requests.Push({
                 .mesh_id = mesh_id,
                 .handle = std::move(fresh_handle),
                 .new_residency_key = info.cook_key,
             });
+        }
+    }
+
+    // --- MaterialInstance cascade ---
+    // CollectDrawData에서 Find 실패한 것 + 새로 로드된 메시의 default_materials 통합 처리
+    for (const AssetId& mat_id : fp.scene_draw_data.requested_material_instances)
+    {
+        if (mat_id.IsValid() && !asset_subsystem->Find<MaterialInstance>(mat_id))
+        {
+            pending_material_instances.Insert(mat_id);
+        }
+    }
+
+    for (const AssetId& mat_id : pending_material_instances)
+    {
+        AssetPath mat_path;
+        if (!registry.ReadRecord(mat_id, [&](const AssetRecord& r){ mat_path = r.logical_path; }))
+        {
+            continue;
+        }
+
+        AssetHandle<MaterialInstance> inst = asset_subsystem->Load<MaterialInstance>(mat_path);
+        if (!inst)
+        {
+            continue;
+        }
+
+        for (const AssetId& tex_id : inst->texture_overrides | std::views::values)
+        {
+            if (!tex_id.IsValid() || queued_textures.Contains(tex_id))
+            {
+                continue;
+            }
+            if (gpu_manager.GetTexture(tex_id).HasValue())
+            {
+                queued_textures.Insert(tex_id);
+                continue;
+            }
+
+            AssetPath tex_path;
+            if (!registry.ReadRecord(tex_id, [&](const AssetRecord& r){ tex_path = r.logical_path; }))
+            {
+                continue;
+            }
+
+            if (AssetHandle<Texture2D> tex = asset_subsystem->Load<Texture2D>(tex_path))
+            {
+                queued_textures.Insert(tex_id);
+                fp.texture_upload_requests.Push({ tex_id, std::move(tex) });
+            }
         }
     }
 
@@ -479,10 +547,7 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
         }
     }
 
-    // [핵심] 씬에 사용된 고유 텍스처들만 싹 훑는다.
-    HashSet<AssetId> queued_textures;
-    queued_textures.Insert(BuiltinAssetIds::White1x1);
-
+    // 씬에 사용된 고유 텍스처 중 GPU 미상주 + pool에 이미 있는 것을 추가 업로드
     for (const TextureBinding& binding : fp.scene_draw_data.material_cache.binding_arena)
     {
         if (queued_textures.Contains(binding.texture_id))

@@ -79,8 +79,11 @@ struct SceneDrawData
     // [데이터 흐름 & 스레드 안전성 보장 (Data Flow & Thread Safety)]
     // -------------------------------------------------------------------------
 
-    /** 이번 프레임에 렌더링되어야 하지만 아직 CPU에 로드되지 않은 메시 ID 목록 (지연 로딩 트리거용) */
+    /** 아직 CPU에 로드되지 않은 메시 ID 목록 (지연 로딩 트리거용) */
     Array<AssetId> requested_meshes;
+
+    /** 아직 CPU에 로드되지 않은 머티리얼 인스턴스 ID 목록 (지연 로딩 트리거용) */
+    Array<AssetId> requested_material_instances;
 
     /** 이번 프레임에 렌더링되는 모든 StaticMesh 에셋들의 수명 유지 핸들 배열 */
     HashMap<AssetId, AssetHandle<StaticMesh>> pinned_meshes;
