@@ -1,24 +1,28 @@
 ﻿#include "SimpleEditor/Asset/Pipeline/Nodes/PipelineTextureNode.h"
 
+#include "SimpleEngine/Core/Types/Path.h"
+
 
 namespace se::editor
 {
 SE_BEGIN_REFLECT(PipelineTextureNode, meta::Internal)
 SE_END_REFLECT(PipelineTextureNode)
 
-Optional<const String&> PipelineTextureNode::GetSourceFile() const
+Optional<Path> PipelineTextureNode::GetSourceFile() const
 {
-    return attributes.GetAttribute<String>(Keys::SOURCE_FILE);
+    return attributes.GetAttribute<String>(Keys::SOURCE_FILE)
+                     .Map([](const String& s) { return Path{ s }; });
 }
 
-void PipelineTextureNode::SetSourceFile(const String& file_path)
+void PipelineTextureNode::SetSourceFile(const Path& file_path)
 {
-    attributes.SetAttribute(Keys::SOURCE_FILE, file_path);
+    attributes.SetAttribute(Keys::SOURCE_FILE, file_path.ToString());
 }
 
 bool PipelineTextureNode::IsSRGB() const
 {
-    // TODO: 기본값 true/false 정책 결정 필요 (보통 Albedo는 true, Normal/Mask는 false)
+    // 기본값 true: Albedo/Diffuse 텍스처는 sRGB가 일반적
+    // Normal/Mask/Roughness 등 선형 데이터 텍스처는 임포트 시 SetSRGB(false)를 명시적으로 호출하도록 함
     return attributes.GetAttribute<bool>(Keys::USE_SRGB).ValueOr(true);
 }
 
@@ -35,5 +39,50 @@ Optional<const String&> PipelineTextureNode::GetCompression() const
 void PipelineTextureNode::SetCompression(const String& compression)
 {
     attributes.SetAttribute(Keys::COMPRESSION, compression);
+}
+
+Optional<ArrayView<const uint8>> PipelineTextureNode::GetEmbeddedBytes() const
+{
+    if (embedded_bytes.IsEmpty())
+    {
+        return {};
+    }
+    return ArrayView<const uint8>{ embedded_bytes };
+}
+
+void PipelineTextureNode::SetEmbeddedBytes(ArrayView<const uint8> bytes)
+{
+    embedded_bytes.ResizeUninitialized(bytes.Len());
+    std::memcpy(embedded_bytes.Data(), bytes.Data(), bytes.Len());
+}
+
+Optional<const String&> PipelineTextureNode::GetEmbeddedFormat() const
+{
+    return attributes.GetAttribute<String>(Keys::EMBEDDED_FORMAT);
+}
+
+void PipelineTextureNode::SetEmbeddedFormat(const String& format)
+{
+    attributes.SetAttribute(Keys::EMBEDDED_FORMAT, format);
+}
+
+Optional<uint64> PipelineTextureNode::GetEmbeddedWidth() const
+{
+    return attributes.GetAttribute<uint64>(Keys::EMBEDDED_WIDTH);
+}
+
+void PipelineTextureNode::SetEmbeddedWidth(uint64 width)
+{
+    attributes.SetAttribute(Keys::EMBEDDED_WIDTH, width);
+}
+
+Optional<uint64> PipelineTextureNode::GetEmbeddedHeight() const
+{
+    return attributes.GetAttribute<uint64>(Keys::EMBEDDED_HEIGHT);
+}
+
+void PipelineTextureNode::SetEmbeddedHeight(uint64 height)
+{
+    attributes.SetAttribute(Keys::EMBEDDED_HEIGHT, height);
 }
 } // namespace se::editor
