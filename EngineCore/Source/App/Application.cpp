@@ -1,7 +1,6 @@
 ﻿#include "SimpleEngine/App/Application.h"
 
 #include "SimpleEngine/Asset/AssetSubsystem.h"
-#include "SimpleEngine/Asset/BuiltinAssets.h"
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/HAL/CpuFeature.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
@@ -216,12 +215,6 @@ bool Application::InitializeEngine()
 
 bool Application::PostInitialize()
 {
-    // 빌트인 에셋 등록 (DefaultLit, DefaultLitInstance, White1x1)
-    if (AssetSubsystem* asset_subsystem = engine_instance->GetSubsystem<AssetSubsystem>())
-    {
-        SeedBuiltinAssets(*asset_subsystem);
-    }
-
     // 이벤트 핸들러 등록
     if (EventSubsystem* event_sys = engine_instance->GetSubsystem<EventSubsystem>())
     {

@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/AssetMetadata.h"
 #include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/AssetRegistry.h"
+#include "SimpleEngine/Asset/BuiltinAssets.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
@@ -44,6 +45,9 @@ bool AssetSubsystem::Initialize()
         return false;
     }
     ddc = std::make_unique<DerivedDataCache>(ddc_path);
+
+    // Built-In 에셋 등록 (DefaultLit, DefaultLitInstance, White1x1)
+    SeedBuiltinAssets(*this);
 
     return true;
 }
