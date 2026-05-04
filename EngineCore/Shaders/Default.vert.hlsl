@@ -22,11 +22,22 @@ VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
 
-    // Local -> World -> Clip Space
-    float4 world_pos = mul(Model, float4(input.position, 1.0f));
-    output.position = mul(VP, world_pos);
+    // 1. Position Transform (Local -> World -> Clip Space)
+    float4 world_pos4 = mul(Model, float4(input.position, 1.0f));
+    output.position   = mul(VP, world_pos4);
+    output.world_pos  = world_pos4.xyz;
 
-    // VS -> PS 패스스루
+    // 2. Vector Transform
+    // 비균등 스케일(Non-uniform scale) 객체의 경우 법선이 왜곡될 수 있으므로,
+    // 추후 필요하다면 C++에서 transpose(inverse(Model))을 계산해 별도로 넘겨받아야 함.
+
+    // 일단 지금은 균등 스케일(Uniform scale)이라 가정하고 Model의 3x3 회전/스케일만 추출해 사용
+    float3x3 normal_matrix = (float3x3)Model;
+
+    output.world_normal  = normalize(mul(normal_matrix, input.normal));
+    output.world_tangent = float4(normalize(mul(normal_matrix, input.tangent.xyz)), input.tangent.w);
+
+    // 3. Texture UV & Data
     output.tex_coord = input.tex_coord;
     output.entity_id = EntityId;
 
