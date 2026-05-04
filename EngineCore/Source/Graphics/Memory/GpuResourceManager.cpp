@@ -209,10 +209,7 @@ bool GpuResourceManager::UploadTexture(
 
         if (gpu_gen_mips)
         {
-            // 1 + floor(log2(max(w, h)))
-            return static_cast<uint32>(
-                std::floor(std::log2(static_cast<double>(std::max(in_texture.width, in_texture.height))))
-            ) + 1;
+            return std::bit_width(std::max(in_texture.width, in_texture.height));
         }
 
         return 1;
