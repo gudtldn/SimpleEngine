@@ -3,8 +3,11 @@
 
 #define SE_ENABLE_BITMASK_OPERATORS(enum_type) \
     constexpr ::se::BitFlags<enum_type> operator|(enum_type lhs, enum_type rhs) { return ::se::BitFlags<enum_type>(lhs) | rhs; } \
+    constexpr ::se::BitFlags<enum_type> operator|=(enum_type& lhs, enum_type rhs) { lhs = static_cast<enum_type>(std::to_underlying(lhs) | std::to_underlying(rhs)); return ::se::BitFlags<enum_type>(lhs); } \
     constexpr ::se::BitFlags<enum_type> operator&(enum_type lhs, enum_type rhs) { return ::se::BitFlags<enum_type>(lhs) & rhs; } \
+    constexpr ::se::BitFlags<enum_type> operator&=(enum_type& lhs, enum_type rhs) { lhs = static_cast<enum_type>(std::to_underlying(lhs) & std::to_underlying(rhs)); return ::se::BitFlags<enum_type>(lhs); } \
     constexpr ::se::BitFlags<enum_type> operator^(enum_type lhs, enum_type rhs) { return ::se::BitFlags<enum_type>(lhs) ^ rhs; } \
+    constexpr ::se::BitFlags<enum_type> operator^=(enum_type& lhs, enum_type rhs) { lhs = static_cast<enum_type>(std::to_underlying(lhs) ^ std::to_underlying(rhs)); return ::se::BitFlags<enum_type>(lhs); } \
     constexpr ::se::BitFlags<enum_type> operator~(enum_type lhs) { return ~::se::BitFlags<enum_type>(lhs); }
 
 
@@ -12,12 +15,13 @@ namespace se
 {
 /**
  * Enum 타입을 비트마스크(Flags)처럼 안전하게 사용하기 위한 클래스
- * @tparam EnumType 비트마스크로 사용할 Enum 타입 (enum class 권장)
+ * @tparam E 비트마스크로 사용할 Enum 타입 (enum class 권장)
  */
-template <traits::EnumType EnumType>
+template <traits::EnumType E>
 class BitFlags
 {
 public:
+    using EnumType = E;
     using MaskType = std::underlying_type_t<EnumType>;
 
     constexpr BitFlags() = default;
