@@ -7,6 +7,7 @@
 #include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/Cast.h"
+#include "SimpleEngine/Graphics/MaterialEnums.h"
 
 #include "assimp/config.h"
 #include "assimp/Importer.hpp"
@@ -14,6 +15,11 @@
 #include "assimp/scene.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <bit>
+#include <charconv>
+
+#include "assimp/GltfMaterial.h"
 
 
 namespace
@@ -288,12 +294,119 @@ void ProcessNodeIterative(
 // ---------------------------------------------------------------------------
 
 /**
- * aiScene의 모든 머티리얼/텍스처를 Pipeline 노드로 변환합니다.
- * @return aiMaterial 인덱스 -> PipelineMaterialNode UID 배열 (크기 == scene->mNumMaterials)
+ * aiMaterial에서 지정된 텍스처 타입의 텍스처를 추출하여 PipelineTextureNode를 생성합니다.
+ * @return 생성된 노드의 GUID, 텍스처가 없으면 Guid::None
+ */
+Guid ExtractTexture(
+    const aiMaterial* ai_mat,
+    aiTextureType tex_type,
+    const StringView& slot_name,
+    const String& mat_name,
+    bool srgb,
+    const Path& model_dir,
+    const aiScene* scene,
+    HashMap<uint32, Guid>& embedded_tex_guids,
+    HashMap<String, Guid>& external_tex_guids,
+    ImportContext& io_ctx,
+    PipelineNodeContainer& out_container
+)
+{
+    aiString tex_path_str;
+    if (ai_mat->GetTexture(tex_type, 0, &tex_path_str) != AI_SUCCESS)
+    {
+        return Guid::None;
+    }
+
+    const StringView tex_path_sv = tex_path_str.C_Str();
+    if (tex_path_sv.IsEmpty())
+    {
+        return Guid::None;
+    }
+
+    // 임베디드 텍스처: 경로가 "*<index>" 형태
+    if (tex_path_sv.StartsWith('*'))
+    {
+        // 인덱스 파싱
+        const Optional<uint32> embedded_idx_opt = [&] -> Optional<uint32>
+        {
+            uint32 val = 0;
+            const char* start = tex_path_sv.Data() + 1;
+            const char* end = start + (tex_path_sv.ByteLen() - 1);
+
+            if (auto [ptr, ec] = std::from_chars(start, end, val); ec == std::errc{})
+            {
+                return val;
+            }
+            return NullOpt;
+        }();
+
+        if (!embedded_idx_opt.HasValue())
+        {
+            ConsoleLog(ELogLevel::Error, "Failed to parse embedded texture index.");
+            return Guid::None;
+        }
+
+        // 유효성 검사 수행
+        const uint32 embedded_idx = *embedded_idx_opt;
+        if (embedded_idx >= scene->mNumTextures)
+        {
+            return Guid::None;
+        }
+
+        return embedded_tex_guids.Entry(embedded_idx).OrInsertWith([&] -> Guid
+        {
+            const aiTexture* ai_tex = scene->mTextures[embedded_idx];
+            const String tex_name = String::Format("Texture_Embedded_{}", embedded_idx);
+            const Guid tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
+
+            PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
+            tex_node.SetDisplayName(tex_name);
+            tex_node.SetSRGB(srgb);
+
+            if (ai_tex->mHeight > 0)
+            {
+                // 이미 디코딩된 RGBA8 raw pixels
+                const usize byte_count = static_cast<usize>(ai_tex->mWidth) * static_cast<usize>(ai_tex->mHeight) * 4u;
+                tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), byte_count });
+                tex_node.SetEmbeddedWidth(static_cast<uint64>(ai_tex->mWidth));
+                tex_node.SetEmbeddedHeight(static_cast<uint64>(ai_tex->mHeight));
+            }
+            else
+            {
+                // 압축 바이너리 (PNG/JPG/TGA ...), mWidth == 바이트 수
+                tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), static_cast<usize>(ai_tex->mWidth) });
+                if (ai_tex->achFormatHint[0] != '\0')
+                {
+                    tex_node.SetEmbeddedFormat(ai_tex->achFormatHint);
+                }
+            }
+
+            return tex_guid;
+        });
+    }
+
+    // 외부 텍스처 파일 (모델 기준 상대 경로)
+    return external_tex_guids.Entry(tex_path_sv).OrInsertWith([&] -> Guid
+    {
+        const String tex_name = String::Format("Texture_{}_{}", mat_name, slot_name);
+        const Guid tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
+
+        PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
+        tex_node.SetDisplayName(tex_name);
+        tex_node.SetSourceFile(model_dir / tex_path_sv);
+        tex_node.SetSRGB(srgb);
+
+        return tex_guid;
+    });
+}
+
+/**
+ * aiScene의 모든 머티리얼/텍스처를 glTF PBR Metallic-Roughness 표준에 따라 Pipeline 노드로 변환합니다.
+ * @return aiMaterial 인덱스 -> PipelineMaterialInstanceNode UID 배열 (크기 == scene->mNumMaterials)
  */
 Array<Guid> ProcessMaterials(
     const aiScene* scene,
-    const Path& fbx_dir,
+    const Path& model_dir,
     ImportContext& io_ctx,
     PipelineNodeContainer& out_container
 )
@@ -306,10 +419,11 @@ Array<Guid> ProcessMaterials(
         return mat_node_uids;
     }
 
-    mat_node_uids.Resize(scene->mNumMaterials, Guid{});
+    mat_node_uids.Resize(scene->mNumMaterials, Guid::None);
 
-    // 임베디드 텍스처 중복 등록 방지 (여러 머티리얼이 같은 임베디드 인덱스 공유 가능)
+    // 텍스처 중복 등록 방지 맵
     HashMap<uint32, Guid> embedded_tex_guids;
+    HashMap<String, Guid> external_tex_guids;
 
     for (uint32 mat_idx = 0; mat_idx < scene->mNumMaterials; ++mat_idx)
     {
@@ -327,79 +441,96 @@ Array<Guid> ProcessMaterials(
         mat_node.SetDisplayName(mat_node_name);
         mat_node_uids[mat_idx] = mat_guid;
 
-        // Diffuse 색상 -> base_color 파라미터 오버라이드
-        aiColor4D diffuse;
-        if (ai_mat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse) == AI_SUCCESS)
+        // --- 스칼라 파라미터 추출 ---
+        // base_color_factor: glTF AI_MATKEY_BASE_COLOR 우선, 없으면 FBX AI_MATKEY_COLOR_DIFFUSE
+        aiColor4D base_color;
+        if (
+            ai_mat->Get(AI_MATKEY_BASE_COLOR, base_color) == AI_SUCCESS
+            || ai_mat->Get(AI_MATKEY_COLOR_DIFFUSE, base_color) == AI_SUCCESS
+        )
         {
-            mat_node.param_overrides.Insert("base_color", { diffuse.r, diffuse.g, diffuse.b, diffuse.a });
+            mat_node.param_overrides.Insert("base_color_factor", { base_color.r, base_color.g, base_color.b, base_color.a });
         }
 
-        // BaseColor 텍스처 (aiTextureType_DIFFUSE 슬롯 0)
-        aiString tex_path_str;
-        if (ai_mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path_str) != AI_SUCCESS)
+        float metallic = 0.0f;
+        if (ai_mat->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == AI_SUCCESS)
         {
-            continue;
+            mat_node.param_overrides.Insert("metallic_factor", { metallic, 0.0f, 0.0f, 0.0f });
         }
 
-        Guid tex_guid;
-        const StringView tex_path_sv = tex_path_str.C_Str();
-
-        if (!tex_path_sv.IsEmpty() && tex_path_sv[0] == '*')
+        float roughness = 1.0f;
+        if (ai_mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == AI_SUCCESS)
         {
-            // 임베디드 텍스처: 경로가 "*<index>" 형태
-            const uint32 embedded_idx = static_cast<uint32>(std::atoi(tex_path_sv.Data() + 1));
+            mat_node.param_overrides.Insert("roughness_factor", { roughness, 0.0f, 0.0f, 0.0f });
+        }
 
-            if (const auto existing = embedded_tex_guids.Find(embedded_idx))
+        aiColor3D emissive{ 0.0f, 0.0f, 0.0f };
+        if (ai_mat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == AI_SUCCESS)
+        {
+            mat_node.param_overrides.Insert("emissive_factor", { emissive.r, emissive.g, emissive.b, 0.0f });
+        }
+
+        // alpha_cutoff: MASK 모드의 투명도 임계값
+        float alpha_cutoff = 0.5f;
+        if (ai_mat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alpha_cutoff) == AI_SUCCESS)
+        {
+            mat_node.param_overrides.Insert("alpha_cutoff", { alpha_cutoff, 0.0f, 0.0f, 0.0f });
+        }
+
+        // alpha mode: MASK이면 셰이더 Flags bit0(alpha test)를 활성화
+        aiString alpha_mode;
+        if (
+            ai_mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == AI_SUCCESS
+            && StringView{ alpha_mode.C_Str() } == "MASK"
+        )
+        {
+            constexpr uint32 flags = std::to_underlying(EMaterialFlag::AlphaTest);
+            mat_node.param_overrides.Insert("flags", { std::bit_cast<float>(flags), 0.0f, 0.0f, 0.0f });
+        }
+
+        // --- 텍스처 추출 (glTF PBR 5슬롯) ---
+        // 각 슬롯은 glTF 우선 -> FBX 호환 순으로 시도
+        auto try_extract = [&](StringView slot_name, bool srgb, std::initializer_list<aiTextureType> types) -> Guid
+        {
+            for (const aiTextureType type : types)
             {
-                tex_guid = *existing;
-            }
-            else if (embedded_idx < scene->mNumTextures)
-            {
-                const aiTexture* ai_tex = scene->mTextures[embedded_idx];
-                const String tex_name = String::Format("Texture_Embedded_{}", embedded_idx);
-
-                tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
-                PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
-                tex_node.SetDisplayName(tex_name);
-                tex_node.SetSRGB(true);
-
-                if (ai_tex->mHeight > 0)
+                if (const Guid guid = ExtractTexture(ai_mat, type, slot_name, mat_name, srgb, model_dir, scene, embedded_tex_guids, external_tex_guids, io_ctx, out_container))
                 {
-                    // 이미 디코딩된 RGBA8 raw pixels (aiTexture::mHeight > 0)
-                    const usize byte_count = static_cast<usize>(ai_tex->mWidth)
-                                           * static_cast<usize>(ai_tex->mHeight) * 4u;
-                    tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), byte_count });
-                    tex_node.SetEmbeddedWidth(static_cast<uint64>(ai_tex->mWidth));
-                    tex_node.SetEmbeddedHeight(static_cast<uint64>(ai_tex->mHeight));
+                    return guid;
                 }
-                else
-                {
-                    // 압축 바이너리 (PNG/JPG/TGA ...), mWidth == 바이트 수
-                    tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), static_cast<usize>(ai_tex->mWidth) });
-                    if (ai_tex->achFormatHint[0] != '\0')
-                    {
-                        tex_node.SetEmbeddedFormat(String(ai_tex->achFormatHint));
-                    }
-                }
-
-                embedded_tex_guids.Insert(embedded_idx, tex_guid);
             }
-        }
-        else if (!tex_path_sv.IsEmpty())
+            return Guid::None;
+        };
+
+        // BaseColor: sRGB
+        if (const Guid guid = try_extract("BaseColor", true, { aiTextureType_BASE_COLOR, aiTextureType_DIFFUSE }))
         {
-            // 외부 텍스처 파일 (FBX 기준 상대 경로)
-            const String tex_name = String::Format("Texture_{}_BaseColor", mat_name);
-            tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
-
-            PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
-            tex_node.SetDisplayName(tex_name);
-            tex_node.SetSourceFile(fbx_dir / Path{ String(tex_path_sv) });
-            tex_node.SetSRGB(true);
+            mat_node.texture_node_refs.Insert("BaseColor", guid);
         }
 
-        if (tex_guid.IsValid())
+        // MetallicRoughness: linear, G=roughness / B=metallic (glTF 패킹)
+        // TODO: FBX처럼 Metalness와 Roughness가 별도 텍스처인 경우, PipelineProcessor에서 하나로 합치는 작업이 필요함
+        if (const Guid guid = try_extract("MetallicRoughness", false, { aiTextureType_METALNESS, aiTextureType_DIFFUSE_ROUGHNESS }))
         {
-            mat_node.texture_node_refs.Insert("BaseColor", tex_guid);
+            mat_node.texture_node_refs.Insert("MetallicRoughness", guid);
+        }
+
+        // Normal: linear, 접선공간
+        if (const Guid guid = try_extract("Normal", false, { aiTextureType_NORMALS, aiTextureType_HEIGHT }))
+        {
+            mat_node.texture_node_refs.Insert("Normal", guid);
+        }
+
+        // Occlusion: linear, R채널
+        if (const Guid guid = try_extract("Occlusion", false, { aiTextureType_AMBIENT_OCCLUSION, aiTextureType_LIGHTMAP }))
+        {
+            mat_node.texture_node_refs.Insert("Occlusion", guid);
+        }
+
+        // Emissive: sRGB
+        if (const Guid guid = try_extract("Emissive", true, { aiTextureType_EMISSIVE, aiTextureType_EMISSION_COLOR }))
+        {
+            mat_node.texture_node_refs.Insert("Emissive", guid);
         }
     }
 

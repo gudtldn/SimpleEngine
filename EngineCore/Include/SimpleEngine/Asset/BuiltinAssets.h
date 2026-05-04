@@ -17,14 +17,14 @@ struct BuiltinAssetIds
 {
     BuiltinAssetIds() = delete;
 
-    static constexpr AssetId DefaultLit = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000001") };
+    static constexpr AssetId DefaultLit         = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000001") };
     static constexpr AssetId DefaultLitInstance = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000002") };
-    static constexpr AssetId White1x1 = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000003") };
-}; //
+    static constexpr AssetId White1x1           = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000003") };
+    static constexpr AssetId Black1x1           = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000004") };
+    static constexpr AssetId FlatNormal         = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000005") };
+    static constexpr AssetId DefaultORM         = AssetId{ Guid::FromString("00000001-0000-0000-0000-000000000006") };
+};
 
-/**
- * DefaultLit, DefaultLitInstance, White1x1을 AssetSubsystem에 Global scope로 등록합니다.
- * White1x1의 GPU 업로드는 EnsureTexturesResident()에서 별도로 수행합니다.
- */
+/** BuiltinAssetIds를 AssetSubsystem에 Global scope로 등록합니다. */
 SE_CORE_API void SeedBuiltinAssets(AssetSubsystem& subsystem);
 } // namespace se
