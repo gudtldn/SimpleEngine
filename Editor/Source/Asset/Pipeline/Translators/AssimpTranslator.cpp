@@ -567,7 +567,8 @@ void AssimpTranslator::Translate(
         | aiProcess_CalcTangentSpace      // 노멀 매핑을 위한 탄젠트 계산
         | aiProcess_JoinIdenticalVertices // 중복 정점 제거 (최적화)
         | aiProcess_SortByPType           // 점/선 제거하고 다각형만 남김
-        | aiProcess_LimitBoneWeights;     // 최대 4개의 Bone Weight 사용
+        | aiProcess_LimitBoneWeights      // 최대 4개의 Bone Weight 사용
+        | aiProcess_FlipUVs;              // UV 좌표를 위아래로 뒤집음 (SDL3 GPU의 Top-Left 원점으로 통일)
 
     const bool use_ptv = mesh_settings.combine_meshes || mesh_settings.apply_transform;
     if (use_ptv)
