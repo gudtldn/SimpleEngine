@@ -212,7 +212,8 @@ void ProcessMergedMesh(
         pipeline_node.sections.Push({
             .index_offset = index_offset,
             .index_count = index_count,
-            .vertex_offset = 0, // ExtractIndices에서 이미 오프셋을 더했으므로 렌더링 시에는 0을 사용
+            .vertex_offset = (index_count > 0) ? 0 : static_cast<int32>(vertex_offset),
+            .vertex_count = mesh->mNumVertices,
             .material_index = mesh->mMaterialIndex
         });
 
@@ -272,6 +273,7 @@ void ProcessNodeIterative(
                 .index_offset = 0,
                 .index_count = mesh->mNumFaces * 3,
                 .vertex_offset = 0,
+                .vertex_count = mesh->mNumVertices,
                 .material_index = mesh->mMaterialIndex,
             });
 

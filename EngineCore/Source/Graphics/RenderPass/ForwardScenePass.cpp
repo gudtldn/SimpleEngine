@@ -367,7 +367,13 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             }
             else
             {
-                SDL_DrawGPUPrimitives(pass, draw_command.vertex_count, 1, 0, 0);
+                SDL_DrawGPUPrimitives(
+                    pass,
+                    draw_command.vertex_count,
+                    1,
+                    static_cast<uint32>(draw_params.vertex_offset),
+                    0
+                );
             }
         }
     }

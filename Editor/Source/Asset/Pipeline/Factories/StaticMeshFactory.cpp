@@ -57,6 +57,7 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         section.index_offset = pipeline_section.index_offset;
         section.index_count = pipeline_section.index_count;
         section.vertex_offset = pipeline_section.vertex_offset;
+        section.vertex_count = pipeline_section.vertex_count;
 
         // Material Index를 0부터 시작하는 연속된 배열 인덱스로 매핑
         if (const auto found_idx = unique_materials.Find(pipeline_section.material_index))
@@ -71,11 +72,23 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
 
         // 각 섹션별 바운딩 박스 계산
         AABBf section_bounds;
-        for (uint32 i = 0; i < section.index_count; ++i)
+        if (section.index_count > 0)
         {
-            const uint32 index = static_mesh->indices[section.index_offset + i];
-            const uint32 vertex_index = index + section.vertex_offset;
-            section_bounds.Expand(static_mesh->vertices[vertex_index].position);
+            for (uint32 i = 0; i < section.index_count; ++i)
+            {
+                const uint32 index = static_mesh->indices[section.index_offset + i];
+                const uint32 vertex_index = index + section.vertex_offset;
+                section_bounds.Expand(static_mesh->vertices[vertex_index].position);
+            }
+        }
+        else
+        {
+            // 비-인덱스 드로우: vertex_offset부터 vertex_count만큼 직접 순회
+            for (uint32 i = 0; i < section.vertex_count; ++i)
+            {
+                const uint32 vertex_index = static_cast<uint32>(section.vertex_offset) + i;
+                section_bounds.Expand(static_mesh->vertices[vertex_index].position);
+            }
         }
         section.bounds = section_bounds;
 

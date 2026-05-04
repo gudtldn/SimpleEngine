@@ -49,11 +49,11 @@ struct FieldBitInfo
  * 하위 비트부터 누적 배치되며, 상위 비트에 위치할수록 정렬 우선순위가 높습니다.
  */
 constexpr FieldLayout LAYOUT[] = {
-    { SortField::Mesh,     16 },
-    { SortField::Material, 16 },
-    { SortField::Pso,      16 },
-    { SortField::Depth,    15 },
-    { SortField::Layer,    1  },
+    { .id = SortField::Mesh,     .bits = 16 },
+    { .id = SortField::Material, .bits = 16 },
+    { .id = SortField::Pso,      .bits = 16 },
+    { .id = SortField::Depth,    .bits = 15 },
+    { .id = SortField::Layer,    .bits = 1  },
 };
 
 // 64비트 총합 검증
@@ -74,11 +74,14 @@ consteval FieldBitInfo GetFieldInfo()
     {
         if (id == Target)
         {
-            return { shift, (1ULL << bits) - 1 };
+            return {
+                .shift = shift,
+                .mask = (1ULL << bits) - 1
+            };
         }
         shift += bits;
     }
-    throw "Invalid SortField";
+    throw "Invalid SortField"; // NOLINT(*-exception-baseclass)
 }
 
 /**
@@ -194,9 +197,7 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
             cmd.gpu_buffer = gpu_slice->buffer;
             cmd.vertex_buffer_offset = gpu_slice->offset;
             cmd.index_buffer_offset = gpu_slice->index_offset;
-            cmd.vertex_count = (gpu_slice->index_count == 0)
-                ? (gpu_slice->index_offset - gpu_slice->offset) / static_cast<uint32>(sizeof(StaticVertex))
-                : 0;
+            cmd.vertex_count = section.vertex_count;
 
             // 아레나 패킹 및 캐싱
             if (const auto slot_idx = cache.material_to_slot.Find(target_mat_id))
