@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Enum.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 
 
@@ -31,6 +32,7 @@ enum class EMaterialFlag : uint32
     None      = 0,
     AlphaTest = 1 << 0, // MASK 블렌드 모드용 알파 테스트 활성화
 };
+SE_ENUM_SET_BITFLAG(EMaterialFlag)
 SE_ENABLE_BITMASK_OPERATORS(EMaterialFlag)
 using MaterialFlags = BitFlags<EMaterialFlag>;
 } // namespace se

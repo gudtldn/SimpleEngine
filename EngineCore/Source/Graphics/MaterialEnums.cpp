@@ -6,4 +6,5 @@ namespace se
 {
 SE_REFLECT_ENUM(EBlendMode)
 SE_REFLECT_ENUM(EShadingModel)
+SE_REFLECT_ENUM(EMaterialFlag)
 } // namespace se
