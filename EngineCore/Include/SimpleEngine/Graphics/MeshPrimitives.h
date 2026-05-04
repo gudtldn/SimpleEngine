@@ -54,11 +54,15 @@ struct MeshSection
     uint32 index_count = 0;
 
     /**
-     * 베이스 버텍스 오프셋 (SDL base vertex)
+     * 베이스 버텍스 오프셋 (SDL base vertex / first vertex)
      * @note API 규격 상 int32 필수 (Vulkan: vertexOffset, SDL3: base_vertex)
-     *       인덱스 버퍼에서 읽은 값에 더해져 최종 버텍스 주소를 결정하며, 음수 시프팅이 가능해야 하기 때문
+     *       인덱스 버퍼에서 읽은 값에 더해져 최종 버텍스 주소를 결정하며, 음수 시프팅이 가능해야 하기 때문.
+     *       비-인덱스 드로우(index_count == 0)일 때는 시작 버텍스 오프셋(first_vertex)으로 사용됩니다.
      */
     int32 vertex_offset = 0;
+
+    /** 이 Section이 그릴 버텍스의 총 개수 (비-인덱스 드로우 시에만 사용) */
+    uint32 vertex_count = 0;
 
     /** StaticMesh::default_materials 배열의 참조 인덱스 */
     uint32 material_slot = 0;
@@ -71,6 +75,7 @@ struct MeshSection
         ar("index_offset") << s.index_offset;
         ar("index_count") << s.index_count;
         ar("vertex_offset") << s.vertex_offset;
+        ar("vertex_count") << s.vertex_count;
         ar("material_slot") << s.material_slot;
         ar("bounds") << s.bounds;
     }
