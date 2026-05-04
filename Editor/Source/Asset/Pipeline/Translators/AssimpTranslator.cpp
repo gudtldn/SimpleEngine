@@ -10,6 +10,7 @@
 #include "SimpleEngine/Graphics/MaterialEnums.h"
 
 #include "assimp/config.h"
+#include "assimp/GltfMaterial.h"
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -18,8 +19,6 @@
 
 #include <bit>
 #include <charconv>
-
-#include "assimp/GltfMaterial.h"
 
 
 namespace
@@ -492,7 +491,7 @@ Array<Guid> ProcessMaterials(
 
         // --- 텍스처 추출 (glTF PBR 5슬롯) ---
         // 각 슬롯은 glTF 우선 -> FBX 호환 순으로 시도
-        auto try_extract = [&](StringView slot_name, bool srgb, std::initializer_list<aiTextureType> types) -> Guid
+        auto try_extract = [&](StringView slot_name, bool srgb, ArrayView<const aiTextureType> types) -> Guid
         {
             for (const aiTextureType type : types)
             {
