@@ -260,6 +260,22 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         to_float4x4(render_view.view_matrix * render_view.projection_matrix, vp_f);
         SDL_PushGPUVertexUniformData(cmd, 0, &vp_f, sizeof(vp_f));
 
+        // Fragment Uniform slot 0: SceneDataUBO (per-pass)
+        struct alignas(16) SceneDataUBO
+        {
+            Vector3f camera_pos;   float _pad0 = 0.0f; // offset  0~15
+            Vector3f light_dir_ws; float _pad1 = 0.0f; // offset 16~31
+            Vector3f light_color;  float _pad2 = 0.0f; // offset 32~47
+        };
+        static_assert(sizeof(SceneDataUBO) == 48, "SceneDataUBO must match HLSL cbuffer layout");
+
+        const SceneDataUBO scene_data = {
+            .camera_pos = static_cast<Vector3f>(render_view.camera_pos),
+            .light_dir_ws = Vector3f{ 0.0f, 0.0f, -1.0f }, // TODO: RenderView에서 받도록 수정
+            .light_color = Vector3f{ 1.0f, 1.0f, 1.0f },
+        };
+        SDL_PushGPUFragmentUniformData(cmd, 0, &scene_data, sizeof(scene_data));
+
         // Draw Meshes
         for (const DrawCommand& draw_command : draw_data.opaque_commands)
         {
@@ -304,9 +320,9 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 const FrameMaterialCache& cache = draw_data.material_cache;
                 const FrameMaterialCache::MaterialSlot& mat_slot = cache.slots[slot_idx];
 
-                // Fragment Uniform slot 0: Material UBO
+                // Fragment Uniform slot 1: Material UBO
                 SDL_PushGPUFragmentUniformData(
-                    cmd, 0,
+                    cmd, 1,
                     cache.ubo_arena.Data() + mat_slot.ubo_offset,
                     static_cast<uint32>(mat_slot.ubo_size)
                 );
