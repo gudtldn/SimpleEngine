@@ -18,7 +18,7 @@
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
-#include "SimpleEngine/ECS/Components/MaterialComponent.h"
+#include "SimpleEngine/ECS/Components/MeshMaterialComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"

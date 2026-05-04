@@ -1,4 +1,4 @@
-#include "SimpleEngine/ECS/Components/MaterialComponent.h"
+#include "SimpleEngine/ECS/Components/MeshMaterialComponent.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 

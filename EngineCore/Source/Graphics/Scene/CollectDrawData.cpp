@@ -8,7 +8,7 @@
 #include "SimpleEngine/ECS/Query.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
-#include "SimpleEngine/ECS/Components/MaterialComponent.h"
+#include "SimpleEngine/ECS/Components/MeshMaterialComponent.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
