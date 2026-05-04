@@ -77,5 +77,26 @@ PSOutput PSMain(VertexOutput input)
     output.color     = float4(base_color.rgb + emissive.rgb + _keep, base_color.a);
     output.entity_id = input.entity_id;
 
+    // -------------------- 밉맵 디버그 시각화 --------------------
+//     // 1. GPU가 이 픽셀에서 사용하기로 결정한 LOD(층수)를 역으로 알아냅니다.
+//     float calculated_lod = BaseColorTexture.CalculateLevelOfDetail(BaseColorSampler, input.tex_coord);
+//
+//     // 2. 소수점을 버리고 정수 층수만 추출합니다. (0, 1, 2, 3...)
+//     uint mip_level = (uint)floor(calculated_lod);
+//
+//     // 3. 층수에 따라 원색으로 덮어버립니다. (switch-case 또는 if-else)
+//     float3 debug_color = float3(1.0f, 1.0f, 1.0f); // 기본 흰색
+//
+//     if (mip_level == 0)      debug_color = float3(1.0f, 0.0f, 0.0f); // Mip 0: 빨강 (가장 가까움)
+//     else if (mip_level == 1) debug_color = float3(0.0f, 1.0f, 0.0f); // Mip 1: 초록
+//     else if (mip_level == 2) debug_color = float3(0.0f, 0.0f, 1.0f); // Mip 2: 파랑
+//     else if (mip_level == 3) debug_color = float3(1.0f, 1.0f, 0.0f); // Mip 3: 노랑
+//     else if (mip_level == 4) debug_color = float3(1.0f, 0.0f, 1.0f); // Mip 4: 자주
+//     else                     debug_color = float3(0.0f, 1.0f, 1.0f); // Mip 5 이상: 청록
+//
+//     // 4. 원래 텍스처 색상 대신 디버그 색상 출력
+//     output.color = float4(debug_color + _keep, 1.0f);
+    // -------------------- 밉맵 디버그 시각화 --------------------
+
     return output;
 }
