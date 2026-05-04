@@ -41,6 +41,8 @@ struct FrameMaterialCache
 
         uint32 binding_offset = 0; // binding_arena 배열 내 시작 인덱스
         uint16 binding_count = 0;  // 바인딩할 텍스처 총 개수
+
+        // TODO: 추후 Material의 PSO 정보 저장해서 Sort에 사용할 수 있도록 하기
     };
 
     /** Scene에 존재하는 모든 Renderable의 머티리얼 상수(Constant) 바이트를 일렬로 팩킹한 배열 */

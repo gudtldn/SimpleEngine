@@ -102,9 +102,8 @@ constexpr uint64 PackField(uint64 value)
 {
     const uint64 mesh_hash     = std::hash<AssetId>{}(mesh_id);
     const uint64 material_hash = std::hash<AssetId>{}(material_id);
-
-    return PackField<SortField::Mesh>(mesh_hash)
-         | PackField<SortField::Material>(material_hash);
+    return PackField<SortField::Material>(material_hash)
+         | PackField<SortField::Mesh>(mesh_hash);
 }
 } // namespace
 
@@ -191,14 +190,6 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
                 return BuiltinAssetIds::DefaultLitInstance;
             }();
 
-            cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id);
-
-            // GPU 버퍼 필드 채우기
-            cmd.gpu_buffer = gpu_slice->buffer;
-            cmd.vertex_buffer_offset = gpu_slice->offset;
-            cmd.index_buffer_offset = gpu_slice->index_offset;
-            cmd.vertex_count = section.vertex_count;
-
             // 아레나 패킹 및 캐싱
             if (const auto slot_idx = cache.material_to_slot.Find(target_mat_id))
             {
@@ -253,6 +244,15 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
                     }
                 }
             }
+
+            // DrawCommand Sort Key 계산
+            cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id);
+
+            // GPU 버퍼 필드 채우기
+            cmd.gpu_buffer = gpu_slice->buffer;
+            cmd.vertex_buffer_offset = gpu_slice->offset;
+            cmd.index_buffer_offset = gpu_slice->index_offset;
+            cmd.vertex_count = section.vertex_count;
 
             // MDI Command 구조체 설정
             cmd.draw_params.index_count = section.index_count;

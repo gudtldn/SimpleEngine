@@ -2,6 +2,7 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Utility/Common.h"
 
+#include <algorithm>
 #include <cstring>
 
 
@@ -25,10 +26,7 @@ uint32 Material::ComputeParameterBlockSize() const
     for (const MaterialParameterDescriptor& desc : parameter_layout)
     {
         const uint32 end_pos = desc.offset + desc.GetSize();
-        if (end_pos > max_offset_plus_size)
-        {
-            max_offset_plus_size = end_pos;
-        }
+        max_offset_plus_size = std::max(end_pos, max_offset_plus_size);
     }
 
     return static_cast<uint32>(AlignedSize<16>(max_offset_plus_size));
@@ -65,10 +63,7 @@ Material& Material::AddParameter(StringName name, EMaterialParamType type, Vecto
     for (const MaterialParameterDescriptor& desc : parameter_layout)
     {
         const uint32 end = desc.offset + desc.GetSize();
-        if (end > offset)
-        {
-            offset = end;
-        }
+        offset = std::max(end, offset);
     }
 
     // 새 파라미터의 std140 alignment에 맞춰 offset 정렬
