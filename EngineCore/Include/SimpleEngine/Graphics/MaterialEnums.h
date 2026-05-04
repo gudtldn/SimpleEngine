@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Types/BitFlags.h"
 
 
 namespace se
@@ -18,9 +19,18 @@ enum class EBlendMode : uint8
 /** 셰이딩 방정식 정의 */
 enum class EShadingModel : uint8
 {
-    Lit,        // 빛의 영향을 받지 않음 (UI, 순수 색상)
-    Unlit,      // 기본 PBR 셰이딩 (또는 Gouraud/Phong)
+    Lit,        // 기본 PBR 셰이딩 (또는 Gouraud/Phong)
+    Unlit,      // 빛의 영향을 받지 않음 (UI, 순수 색상)
     Subsurface, // 클리어코트 (자동차 도장 등)
     ClearCoat,  // 표면하 산란 (피부, 왁스 등)
 };
+
+/** 머티리얼의 렌더링 상태 비트 플래그 */
+enum class EMaterialFlag : uint32
+{
+    None      = 0,
+    AlphaTest = 1 << 0, // MASK 블렌드 모드용 알파 테스트 활성화
+};
+SE_ENABLE_BITMASK_OPERATORS(EMaterialFlag)
+using MaterialFlags = BitFlags<EMaterialFlag>;
 } // namespace se
