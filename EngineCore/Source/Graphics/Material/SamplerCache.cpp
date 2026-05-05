@@ -77,7 +77,7 @@ void SamplerCache::CreateAll()
             // 5. 기능 활성화 스위치 (Boolean)
             // 비등방성(Anisotropy): 카메라가 바닥/벽을 비스듬히 볼 때 텍스처가 뭉개지는 현상 방지.
             // 단, 도트(Nearest) 픽셀 아트에서는 그래픽이 깨지므로 Linear 필터일 때만 활성화.
-            .enable_anisotropy = (DESCS[i].filter == SDL_GPU_FILTER_LINEAR),
+            .enable_anisotropy = (DESCS[i].filter == SDL_GPU_FILTER_LINEAR), // TODO: 추후 Linear... 대신 AnisoRepeat, AnisoClamp로 분리해서 적용
 
             // 비교(Compare) 샘플링: 하드웨어 가속 부드러운 그림자(PCF) 등을 위해 사용. 일반 PBR 렌더링에선 false
             .enable_compare = false, // 깊이 섀도우 맵핑 등에 사용되는 옵션 (현재 미사용)
