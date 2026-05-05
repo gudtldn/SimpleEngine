@@ -98,11 +98,15 @@ constexpr uint64 PackField(uint64 value)
  * 렌더링 큐 제출을 위한 64비트 정렬 키를 생성합니다.
  * @todo 향후 PSO, Depth, Layer 파라미터 추가 시 조합에 포함해야 합니다.
  */
-[[nodiscard]] uint64 ComputeSortKey(const AssetId& mesh_id, const AssetId& material_id)
+[[nodiscard]] uint64 ComputeSortKey(const AssetId& mesh_id, const AssetId& material_instance_id, const AssetId& parent_material_id, uint8 layer = 0)
 {
-    const uint64 mesh_hash     = std::hash<AssetId>{}(mesh_id);
-    const uint64 material_hash = std::hash<AssetId>{}(material_id);
-    return PackField<SortField::Material>(material_hash)
+    const uint64 parent_hash = std::hash<AssetId>{}(parent_material_id);
+    const uint64 inst_hash   = std::hash<AssetId>{}(material_instance_id);
+    const uint64 mesh_hash   = std::hash<AssetId>{}(mesh_id);
+
+    return PackField<SortField::Layer>(layer)
+         | PackField<SortField::Pso>(parent_hash)
+         | PackField<SortField::Material>(inst_hash)
          | PackField<SortField::Mesh>(mesh_hash);
 }
 } // namespace
@@ -217,6 +221,7 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
                         result.pinned_material_instances.Insert(inst_handle.GetAssetId(), inst_handle);
 
                         FrameMaterialCache::MaterialSlot slot;
+                        slot.parent_material_id = mat_handle.GetAssetId();
 
                         // UBO 팩킹
                         slot.ubo_offset = static_cast<uint32>(cache.ubo_arena.Len());
@@ -246,7 +251,10 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
             }
 
             // DrawCommand Sort Key 계산
-            cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id);
+            {
+                const FrameMaterialCache::MaterialSlot& slot = cache.slots[cmd.material_slot_index];
+                cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id, slot.parent_material_id);
+            }
 
             // GPU 버퍼 필드 채우기
             cmd.gpu_buffer = gpu_slice->buffer;
