@@ -93,6 +93,16 @@ void Material::FinalizeLayout()
             desc.GetSize()
         );
     }
+
+    // blend_mode가 Masked면 flags의 bit0(AlphaTest)을 강제로 설정
+    if (blend_mode == EBlendMode::Masked)
+    {
+        if (const auto flags_desc = FindParameter("flags"))
+        {
+            uint32* flags_ptr = reinterpret_cast<uint32*>(default_parameter_block.Data() + flags_desc->offset);
+            *flags_ptr |= std::to_underlying(EMaterialFlag::AlphaTest);
+        }
+    }
 }
 
 const Array<uint8>& Material::GetDefaultParameterBlock() const
