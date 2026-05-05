@@ -252,6 +252,10 @@ void SerializeSetContainer(Archive& ar, Container& container);
 /** Map-like 컨테이너 직렬화 (HashMap, Map, FlatMap) */
 template <traits::MapLike Container>
 void SerializeMapContainer(Archive& ar, Container& container);
+
+/** Optional-like 컨테이너 직렬화 (Optional) */
+template <traits::OptionalLike Container>
+void SerializeOptional(Archive& ar, Container& container);
 } // namespace detail
 
 
@@ -340,6 +344,11 @@ Archive& Archive::operator<<(T& value)
     else if constexpr (traits::MapLike<PureType>)
     {
         detail::SerializeMapContainer(*this, value);
+    }
+    // Optional-like
+    else if constexpr (traits::OptionalLike<PureType>)
+    {
+        detail::SerializeOptional(*this, value);
     }
 
     // 인라인(스칼라) 직렬화 - BeginObject/EndObject 없이 값으로 직접 직렬화
