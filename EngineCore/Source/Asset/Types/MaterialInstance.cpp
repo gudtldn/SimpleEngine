@@ -33,7 +33,7 @@ AssetId MaterialInstance::GetTextureOrDefault(StringName slot_name, const Materi
         return *override_id;
     }
 
-    // 부모 슬롯의 default_texture_id 로 폴백
+    // 부모 슬롯의 default_texture_id로 폴백
     if (const auto slot = parent.FindTextureSlot(slot_name))
     {
         return slot->default_texture_id;
