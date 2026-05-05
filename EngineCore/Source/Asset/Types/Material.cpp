@@ -20,42 +20,6 @@ SE_BEGIN_REFLECT(Material, meta::Reflect)
     SE_REFLECT_PROPERTY(texture_slots, meta::Property)
 SE_END_REFLECT(Material)
 
-uint32 Material::ComputeParameterBlockSize() const
-{
-    uint32 max_offset_plus_size = 0;
-    for (const MaterialParameterDescriptor& desc : parameter_layout)
-    {
-        const uint32 end_pos = desc.offset + desc.GetSize();
-        max_offset_plus_size = std::max(end_pos, max_offset_plus_size);
-    }
-
-    return static_cast<uint32>(AlignedSize<16>(max_offset_plus_size));
-}
-
-Optional<const MaterialParameterDescriptor&> Material::FindParameter(StringName name) const
-{
-    for (const MaterialParameterDescriptor& desc : parameter_layout)
-    {
-        if (desc.name == name)
-        {
-            return desc;
-        }
-    }
-    return NullOpt;
-}
-
-Optional<const MaterialTextureSlot&> Material::FindTextureSlot(StringName name) const
-{
-    for (const MaterialTextureSlot& slot : texture_slots)
-    {
-        if (slot.name == name)
-        {
-            return slot;
-        }
-    }
-    return NullOpt;
-}
-
 Material& Material::AddParameter(StringName name, EMaterialParamType type, Vector4f default_val)
 {
     // 현재까지 쌓인 파라미터들의 끝 offset 계산
@@ -108,5 +72,41 @@ void Material::FinalizeLayout()
 const Array<uint8>& Material::GetDefaultParameterBlock() const
 {
     return default_parameter_block;
+}
+
+uint32 Material::ComputeParameterBlockSize() const
+{
+    uint32 max_offset_plus_size = 0;
+    for (const MaterialParameterDescriptor& desc : parameter_layout)
+    {
+        const uint32 end_pos = desc.offset + desc.GetSize();
+        max_offset_plus_size = std::max(end_pos, max_offset_plus_size);
+    }
+
+    return static_cast<uint32>(AlignedSize<16>(max_offset_plus_size));
+}
+
+Optional<const MaterialParameterDescriptor&> Material::FindParameter(StringName name) const
+{
+    for (const MaterialParameterDescriptor& desc : parameter_layout)
+    {
+        if (desc.name == name)
+        {
+            return desc;
+        }
+    }
+    return NullOpt;
+}
+
+Optional<const MaterialTextureSlot&> Material::FindTextureSlot(StringName name) const
+{
+    for (const MaterialTextureSlot& slot : texture_slots)
+    {
+        if (slot.name == name)
+        {
+            return slot;
+        }
+    }
+    return NullOpt;
 }
 } // namespace se
