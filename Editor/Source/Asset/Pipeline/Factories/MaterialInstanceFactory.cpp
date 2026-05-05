@@ -55,6 +55,10 @@ std::shared_ptr<AssetBase> MaterialInstanceFactory::CreateAsset(
     inst->parent_material_id = BuiltinAssetIds::DefaultLit;
     inst->InitializeFromParent(parent);
 
+    // 오버라이드 설정 적용
+    inst->blend_mode_override = mat_node->blend_mode_override;
+    inst->two_sided_override = mat_node->two_sided_override;
+
     // 파라미터 오버라이드 적용
     for (const auto& [name, value] : mat_node->param_overrides)
     {

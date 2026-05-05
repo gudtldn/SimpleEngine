@@ -6,6 +6,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Graphics/MaterialEnums.h"
 
 
 namespace se
@@ -32,6 +33,21 @@ public:
     // 슬롯별 텍스처 오버라이드 맵
     SE_ANNOTATION(=meta::Property)
     HashMap<StringName, AssetId> texture_overrides;
+
+    // 블렌드 모드 오버라이드 (NullOpt이면 부모 머티리얼 값 사용)
+    SE_ANNOTATION(=meta::Property)
+    Optional<EBlendMode> blend_mode_override;
+
+    // 양면 렌더링 오버라이드 (NullOpt이면 부모 머티리얼 값 사용)
+    SE_ANNOTATION(=meta::Property)
+    Optional<bool> two_sided_override;
+
+public:
+    /** 머티리얼의 실제 블렌드 모드를 반환합니다. (오버라이드 우선) */
+    [[nodiscard]] EBlendMode GetBlendMode(const Material& parent) const;
+
+    /** 머티리얼의 실제 양면 렌더링 여부를 반환합니다. (오버라이드 우선) */
+    [[nodiscard]] bool IsTwoSided(const Material& parent) const;
 
 public:
     /**

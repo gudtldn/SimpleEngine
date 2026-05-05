@@ -480,13 +480,26 @@ Array<Guid> ProcessMaterials(
 
         // alpha mode: MASK이면 셰이더 Flags bit0(alpha test)를 활성화
         aiString alpha_mode;
-        if (
-            ai_mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == AI_SUCCESS
-            && StringView{ alpha_mode.C_Str() } == "MASK"
-        )
+        if (ai_mat->Get(AI_MATKEY_GLTF_ALPHAMODE, alpha_mode) == AI_SUCCESS)
         {
-            constexpr uint32 flags = std::to_underlying(EMaterialFlag::AlphaTest);
-            mat_node.param_overrides.Insert("flags", { std::bit_cast<float>(flags), 0.0f, 0.0f, 0.0f });
+            const StringView mode_str{ alpha_mode.C_Str() };
+            if (mode_str == "MASK")
+            {
+                mat_node.blend_mode_override = EBlendMode::Masked;
+                constexpr uint32 flags = std::to_underlying(EMaterialFlag::AlphaTest);
+                mat_node.param_overrides.Insert("flags", { std::bit_cast<float>(flags), 0.0f, 0.0f, 0.0f });
+            }
+            else if (mode_str == "BLEND")
+            {
+                mat_node.blend_mode_override = EBlendMode::Translucent;
+            }
+        }
+
+        // two_sided: 양면 렌더링 여부
+        int two_sided = 0;
+        if (ai_mat->Get(AI_MATKEY_TWOSIDED, two_sided) == AI_SUCCESS)
+        {
+            mat_node.two_sided_override = (two_sided != 0);
         }
 
         // --- 텍스처 추출 (glTF PBR 5슬롯) ---

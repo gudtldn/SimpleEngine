@@ -253,6 +253,7 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
             // DrawCommand Sort Key 계산
             {
                 const FrameMaterialCache::MaterialSlot& slot = cache.slots[cmd.material_slot_index];
+                cmd.material_instance_id = target_mat_id;
                 cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id, slot.parent_material_id);
             }
 
