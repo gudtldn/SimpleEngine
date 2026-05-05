@@ -61,6 +61,9 @@ public:
     /** 확장자를 제외한 파일명을 반환합니다. (예: "Player") */
     [[nodiscard]] StringView GetStem() const noexcept;
 
+    /** 전체 경로를 C-style 문자열로 반환합니다. */
+    [[nodiscard]] const char* CStr() const noexcept { return full_path.CStr(); }
+
     /** 전체 경로를 se::String 참조로 반환합니다. */
     [[nodiscard]] const String& ToString() const noexcept { return full_path; }
 
