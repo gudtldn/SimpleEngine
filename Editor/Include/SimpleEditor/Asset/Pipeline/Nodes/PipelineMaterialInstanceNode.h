@@ -7,6 +7,7 @@
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Graphics/MaterialEnums.h"
 
 
 namespace se::editor
@@ -24,6 +25,12 @@ public:
 
     // 파라미터 이름 -> 오버라이드 값 (Float4 블록으로 저장; Float/Uint은 .x만 사용)
     HashMap<StringName, Vector4f> param_overrides;
+
+    // 블렌드 모드 오버라이드
+    Optional<EBlendMode> blend_mode_override;
+
+    // 양면 렌더링 오버라이드
+    Optional<bool> two_sided_override;
 
 public:
     /** 텍스처 노드들을 의존성으로 추가하여 toposort가 텍스처 노드를 먼저 처리하도록 합니다. */

@@ -174,6 +174,18 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             }
             const Material& material = **mat_handle_opt;
 
+            // 머티리얼 인스턴스 (오버라이드 값 확인용)
+            const auto inst_handle_opt = draw_data.pinned_material_instances.Find(draw_command.material_instance_id);
+            if (!inst_handle_opt)
+            {
+                continue;
+            }
+            const MaterialInstance& instance = **inst_handle_opt;
+
+            // 최종 렌더 상태 결정 (오버라이드 반영)
+            const EBlendMode final_blend_mode = instance.GetBlendMode(material);
+            const bool final_two_sided = instance.IsTwoSided(material);
+
             // PSO 결정 및 바인딩
             SDL_GPUGraphicsPipeline* pipeline = [&]
             {
@@ -202,7 +214,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                                 .enable_blend = false,
                             };
 
-                            if (material.blend_mode == EBlendMode::Translucent)
+                            if (final_blend_mode == EBlendMode::Translucent)
                             {
                                 blend_state.enable_blend = true;
                                 blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
@@ -212,7 +224,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                                 blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
                                 blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
                             }
-                            else if (material.blend_mode == EBlendMode::Additive)
+                            else if (final_blend_mode == EBlendMode::Additive)
                             {
                                 blend_state.enable_blend = true;
                                 blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
@@ -245,7 +257,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                         .fill_mode = render_view.rendering_mode == ERenderingMode::Wireframe
                                          ? SDL_GPU_FILLMODE_LINE
                                          : SDL_GPU_FILLMODE_FILL,
-                        .cull_mode = (render_view.rendering_mode == ERenderingMode::Wireframe || material.two_sided)
+                        .cull_mode = (render_view.rendering_mode == ERenderingMode::Wireframe || final_two_sided)
                                          ? SDL_GPU_CULLMODE_NONE
                                          : SDL_GPU_CULLMODE_BACK,
                         .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE
@@ -253,7 +265,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                     .depth_stencil_state = {
                         .compare_op = SDL_GPU_COMPAREOP_LESS,
                         .enable_depth_test = true,
-                        .enable_depth_write = material.blend_mode == EBlendMode::Opaque || material.blend_mode == EBlendMode::Masked,
+                        .enable_depth_write = final_blend_mode == EBlendMode::Opaque || final_blend_mode == EBlendMode::Masked,
                         .enable_stencil_test = false,
                     },
                     .target_info = {

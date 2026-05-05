@@ -76,6 +76,9 @@ struct DrawCommand
      */
     uint16 material_slot_index = INVALID_MATERIAL_SLOT;
 
+    /** 머티리얼 인스턴스 에셋 ID (오버라이드 속성 조회용) */
+    AssetId material_instance_id;
+
     /** MDI 커맨드 파라미터 */
     IndirectDrawCommand draw_params = {};
 };
