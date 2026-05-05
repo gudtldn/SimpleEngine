@@ -189,47 +189,80 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // PSO 결정 및 바인딩
             SDL_GPUGraphicsPipeline* pipeline = [&]
             {
+                /**
+                 * 정점 버퍼(Vertex Buffer) 자체에 대한 Description
+                 * 버퍼가 여러 개일 경우, 각 버퍼에 대한 정보를 여기에 정의
+                 */
                 SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
                     {
-                        .slot = 0,
-                        .pitch = sizeof(StaticVertex),
-                        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+                        .slot = 0,                                    // 이 버퍼가 바인딩될 슬롯 번호 (셰이더에서 참조)
+                        .pitch = sizeof(StaticVertex),                // 정점 하나가 차지하는 총 메모리 크기 (stride)
+                        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX, // 버퍼 데이터가 정점마다 바뀌는지(VERTEX) 또는 인스턴스마다 바뀌는지(INSTANCE)
                     },
                 };
 
+                /**
+                 * 정점 버퍼 내부의 각 데이터(속성, attribute)가 무엇을 의미하는지 설정
+                 * Vertex 셰이더의 입력(VertexInput) 구조체와 정확히 일치해야 함
+                 */
                 SDL_GPUVertexAttribute vertex_attributes[] = {
-                    { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(StaticVertex, position) },
-                    { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(StaticVertex, normal) },
+                    { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(StaticVertex, position)  },
+                    { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(StaticVertex, normal)    },
                     { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(StaticVertex, tex_coord) },
-                    { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, .offset = offsetof(StaticVertex, tangent) },
+                    { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, .offset = offsetof(StaticVertex, tangent)   },
                 };
 
+                /**
+                 * 렌더 타겟에 대한 Description
+                 * 파이프라인이 어떤 포맷의 텍스처에 렌더링될 것인지, 그리고 어떻게 색상을 혼합(블렌딩)할지 정의
+                 */
                 SDL_GPUColorTargetDescription color_target_desc[] = {
                     {
+                        // 이 파이프라인이 렌더링할 텍스처의 포맷. CreateTexture에서 사용한 포맷과 일치해야 함
                         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB,
                         .blend_state = [&]
                         {
+                            // 1. 기본 상태: Opaque(불투명) 및 Masked(알파 테스트)
+                            // 별도의 혼합 과정 없이 결과물을 그대로 덮어씀
                             SDL_GPUColorTargetBlendState blend_state = {
-                                .color_write_mask = SDL_GPU_COLORCOMPONENT_R | SDL_GPU_COLORCOMPONENT_G | SDL_GPU_COLORCOMPONENT_B | SDL_GPU_COLORCOMPONENT_A,
-                                .enable_blend = false,
+                                // R, G, B 채널에만 데이터를 기록하고 Alpha 채널은 수정하지 않음
+                                // 이를 통해 Clear시 설정해둔 Alpha=1.0이 보존되어 ImGui에서 투명해지는 버그를 방지
+                                .color_write_mask = SDL_GPU_COLORCOMPONENT_R | SDL_GPU_COLORCOMPONENT_G | SDL_GPU_COLORCOMPONENT_B,
+                                .enable_blend = false,           // 블렌딩 비활성화 (덮어쓰기 모드)
+                                .enable_color_write_mask = true, // 설정한 RGB 마스크 활성화
                             };
 
+                            // 2. 반투명 혼합 (Translucent)
+                            // 공식: (SrcColor * SrcAlpha) + (DstColor * (1 - SrcAlpha))
+                            // 오브젝트의 알파 값에 따라 배경이 비쳐 보이는 일반적인 투명도 처리 방식
                             if (final_blend_mode == EBlendMode::Translucent)
                             {
                                 blend_state.enable_blend = true;
+
+                                // 컬러 혼합 설정 (RGB)
                                 blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
                                 blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
                                 blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
+
+                                // 알파 채널 혼합 설정 (A)
                                 blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
                                 blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
                                 blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
                             }
+
+                            // 3. 가산 혼합 (Additive)
+                            // 공식: (SrcColor * SrcAlpha) + (DstColor * 1)
+                            // 빛, 이펙트, 불꽃 등 밝게 중첩되어야 하는 오브젝트에 사용
                             else if (final_blend_mode == EBlendMode::Additive)
                             {
                                 blend_state.enable_blend = true;
+
+                                // 컬러 혼합 설정 (RGB)
                                 blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
                                 blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
                                 blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
+
+                                // 알파 채널 혼합 설정 (A)
                                 blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
                                 blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
                                 blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
@@ -238,36 +271,52 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                             return blend_state;
                         }(),
                     },
+
+                    // Entity 피킹용 렌더 타겟 설정
                     {
                         .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
                     },
                 };
 
                 return context.GetOrCreateGraphicsPipeline({
+                    // 사용할 셰이더 지정
                     .vertex_shader = material.vertex_shader,
                     .fragment_shader = material.fragment_shader,
+
+                    // 정점 데이터 형식 정의
                     .vertex_input_state = {
                         .vertex_buffer_descriptions = vertex_buffer_desc,
                         .num_vertex_buffers = std::size(vertex_buffer_desc),
                         .vertex_attributes = vertex_attributes,
                         .num_vertex_attributes = std::size(vertex_attributes),
                     },
+
+                    // 프리미티브(기본 도형) 타입 설정
                     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+
+                    // 래스터라이저(Rasterizer) 상태 설정: 3D 모델을 2D 픽셀로 변환하는 방법을 제어
                     .rasterizer_state = {
                         .fill_mode = render_view.rendering_mode == ERenderingMode::Wireframe
-                                         ? SDL_GPU_FILLMODE_LINE
-                                         : SDL_GPU_FILLMODE_FILL,
+                                         ? SDL_GPU_FILLMODE_LINE          // 와이어프레임: 삼각형 외곽선만 렌더링
+                                         : SDL_GPU_FILLMODE_FILL,         // 기본: 삼각형 내부를 색으로 채움
                         .cull_mode = (render_view.rendering_mode == ERenderingMode::Wireframe || final_two_sided)
-                                         ? SDL_GPU_CULLMODE_NONE
-                                         : SDL_GPU_CULLMODE_BACK,
-                        .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE
+                                         ? SDL_GPU_CULLMODE_NONE          // 와이어프레임: 모든 면 표시
+                                         : SDL_GPU_CULLMODE_BACK,         // 기본: 카메라를 등지고 있는 삼각형(뒷면)은 그리지 않음 (성능 최적화)
+                        .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE // 정점이 반시계 방향으로 정의된 삼각형을 앞면으로 간주
                     },
+
+                    // 멀티샘플링(MSAA) 상태 설정
+                    .multisample_state = {},
+
+                    // 깊이/스텐실 테스트 상태 설정
                     .depth_stencil_state = {
                         .compare_op = SDL_GPU_COMPAREOP_LESS,
                         .enable_depth_test = true,
                         .enable_depth_write = final_blend_mode == EBlendMode::Opaque || final_blend_mode == EBlendMode::Masked,
                         .enable_stencil_test = false,
                     },
+
+                    // 렌더 타겟 정보 설정
                     .target_info = {
                         .color_target_descriptions = color_target_desc,
                         .num_color_targets = num_color_targets,
@@ -277,6 +326,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 });
             }();
 
+            // PSO Bind
             if (pipeline != last_pipeline)
             {
                 SDL_BindGPUGraphicsPipeline(pass, pipeline);
