@@ -847,57 +847,63 @@ bool DrawOptionalProperty(
     bool modified = false;
     bool has_value = ops.has_value(optional);
 
-    // "label" TreeNode 또는 인라인 Checkbox로 표시
-    if (ImGui::TreeNode(label))
+    ImGui::PushID(label);
+
+    // [ ] Label
+    if (ImGui::Checkbox("##has_value", &has_value))
     {
-        // Checkbox: 값 존재 여부 토글
-        if (!read_only && ops.emplace_default)
+        if (has_value)
         {
-            if (ImGui::Checkbox("Has Value", &has_value))
-            {
-                if (has_value)
-                {
-                    ops.emplace_default(optional);
-                }
-                else
-                {
-                    ops.reset(optional);
-                }
-                modified = true;
-            }
+            ops.emplace_default(optional);
         }
         else
         {
-            // 기본 생성 불가능하거나 ReadOnly인 경우 표시만
+            ops.reset(optional);
+        }
+        modified = true;
+    }
+
+    ImGui::SameLine();
+
+    if (has_value)
+    {
+        void* inner_value = ops.get_value(optional);
+
+        // 값 편집 위젯 (한 줄에 표시)
+        float available_width = ImGui::GetContentRegionAvail().x;
+        ImGui::SetNextItemWidth(available_width - ImGui::GetFrameHeight() - ImGui::GetStyle().ItemSpacing.x);
+
+        if (read_only)
+        {
             ImGui::BeginDisabled();
-            ImGui::Checkbox("Has Value", &has_value);
+        }
+
+        modified |= registry.DrawValue(
+            ops.inner_type_id, label, inner_value,
+            ops.inner_container_ops, ops.inner_optional_ops
+        );
+
+        if (read_only)
+        {
             ImGui::EndDisabled();
         }
 
-        // 값이 있으면 내부 값 렌더링
-        if (has_value)
+        // 오버라이드 해제(Reset) 버튼
+        ImGui::SameLine();
+        if (!read_only && ImGui::Button("x", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
         {
-            void* inner_value = ops.get_value(optional);
-
-            if (read_only)
-            {
-                ImGui::BeginDisabled();
-            }
-
-            modified |= registry.DrawValue(
-                ops.inner_type_id, "Value", inner_value,
-                ops.inner_container_ops, ops.inner_optional_ops
-            );
-
-            if (read_only)
-            {
-                ImGui::EndDisabled();
-            }
+            ops.reset(optional);
+            modified = true;
         }
-
-        ImGui::TreePop();
+    }
+    else
+    {
+        ImGui::BeginDisabled();
+        ImGui::Text("%s (Default)", label);
+        ImGui::EndDisabled();
     }
 
+    ImGui::PopID();
     return modified;
 }
 } // namespace
