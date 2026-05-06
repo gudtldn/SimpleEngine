@@ -1,0 +1,86 @@
+processor_stack = []
+
+[import_settings.'se::editor::MeshImportSettings']
+apply_transform = true
+combine_meshes = true
+global_scale = 1.0
+
+[metadata]
+cache_version = 1
+guid = '7213eada-b698-4c8b-8553-cb3b2528bd2e'
+settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
+source_hash = '49e06672900df95593040d35bbc7a2ee5921ae8d46edc44b64ccf2df65e64849'
+source_mtime = 1703261752000000000
+source_size = 31620
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c760062f-46ea-41e2-a5ca-68a2d7d2c3b9'
+    name = 'Texture_MatOpaque_BaseColor'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '760b802b-8073-4704-bab6-aed03e64ea2f'
+    name = 'AlphaBlendModeTest'
+    type = 'se::StaticMesh'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '57f69b96-6707-4bc6-a32e-6e0f319b9532'
+    name = 'Texture_MatBed_BaseColor'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'cf160d65-a7dc-4152-990e-d45ffeca0591'
+    name = 'Texture_MatBed_MetallicRoughness'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '743639aa-093e-4368-9e2f-f2ed948951e5'
+    name = 'Texture_MatBed_Normal'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '6d579476-368d-461c-b8ac-c4ca1cfc802b'
+    name = 'Material_6'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '9abe4645-1aaa-46a0-bb47-e5d580706fa0'
+    name = 'Material_MatCutoff25'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '4e371cd5-b3b4-4a54-9cbf-ab9b9f831484'
+    name = 'Material_MatOpaque'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '237f9d4b-ee83-4442-97eb-5af727209643'
+    name = 'Material_MatBlend'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '5eaab7ce-ba57-45c2-9e5a-ef4457ee5318'
+    name = 'Material_MatCutoff75'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '7ae8e62e-5757-49bb-866e-5cf39d43de7c'
+    name = 'Material_MatCutoffDefault'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c0314313-54a8-4b27-924b-2666f716dee2'
+    name = 'Material_MatBed'
+    type = 'se::MaterialInstance'
