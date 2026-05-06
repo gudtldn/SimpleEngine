@@ -165,9 +165,13 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             }
 
             const FrameMaterialCache& cache = draw_data.material_cache;
-            const FrameMaterialCache::MaterialSlot& mat_slot = cache.slots[slot_idx];
+            const auto& mat_slot_opt = cache.slots.At(slot_idx);
+            if (!mat_slot_opt)
+            {
+                continue;
+            }
 
-            const auto mat_handle_opt = draw_data.pinned_materials.Find(mat_slot.parent_material_id);
+            const auto mat_handle_opt = draw_data.pinned_materials.Find(mat_slot_opt->parent_material_id);
             if (!mat_handle_opt)
             {
                 continue;
@@ -364,15 +368,15 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             // Fragment Uniform slot 1: Material UBO
             SDL_PushGPUFragmentUniformData(
                 cmd, 1,
-                cache.ubo_arena.Data() + mat_slot.ubo_offset,
-                static_cast<uint32>(mat_slot.ubo_size)
+                cache.ubo_arena.Data() + mat_slot_opt->ubo_offset,
+                static_cast<uint32>(mat_slot_opt->ubo_size)
             );
 
             // Fragment Sampler + Texture 바인딩
             Array<SDL_GPUTextureSamplerBinding> tex_bindings;
-            for (uint16 b = 0; b < mat_slot.binding_count; ++b)
+            for (uint16 b = 0; b < mat_slot_opt->binding_count; ++b)
             {
-                const TextureBinding& binding = cache.binding_arena[mat_slot.binding_offset + b];
+                const TextureBinding& binding = cache.binding_arena[mat_slot_opt->binding_offset + b];
                 const Optional<TextureResource> tex = gpu_manager.GetTexture(binding.texture_id)
                     .OrElse([&]
                     {
