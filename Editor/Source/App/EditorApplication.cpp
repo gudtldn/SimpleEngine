@@ -414,7 +414,7 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
 
             // Reimport 감지
             gpu_manager.UnloadMesh(mesh_id);
-            asset_subsystem->GetPool().Remove(mesh_id);
+            asset_subsystem->GetPool().Remove(mesh_id); // TODO: Scene에 로드된 Mesh가 있는 상태에서 Reimport하면 터짐
             is_reimport = true;
         }
 
