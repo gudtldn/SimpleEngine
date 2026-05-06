@@ -23,3 +23,5 @@ CMakeUserPresets.json
 # 당분간 임시로 사용할 테스트 에셋 디렉토리
 Editor/Assets/
 Editor/.glTF-Sample-Models/
+
+.ts/
