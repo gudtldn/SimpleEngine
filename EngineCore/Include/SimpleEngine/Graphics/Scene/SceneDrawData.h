@@ -71,10 +71,13 @@ struct FrameMaterialCache
  */
 struct SceneDrawData
 {
-    /** 불투명 객체들을 위한 드로우 커맨드 목록 */
-    Array<DrawCommand> opaque_commands;
-
-    // Array<DrawCommand> transparent_commands; // 추후 투명 오브젝트 분류 시 추가
+    /** 드로우 커맨드 목록 */
+    struct ViewDrawList
+    {
+        Array<DrawCommand> opaque_commands;
+        Array<DrawCommand> transparent_commands;
+    };
+    Array<ViewDrawList> view_lists;
 
     /** 렌더 스레드가 참조할 머티리얼 파라미터 및 텍스처 바인딩 데이터 아레나 */
     FrameMaterialCache material_cache;

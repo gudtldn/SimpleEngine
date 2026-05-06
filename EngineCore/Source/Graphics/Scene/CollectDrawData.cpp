@@ -1,3 +1,4 @@
+// ReSharper disable CppEqualOperandsInBinaryExpression
 #include "SimpleEngine/Graphics/Scene/CollectDrawData.h"
 
 #include "SimpleEngine/Asset/AssetSubsystem.h"
@@ -20,20 +21,26 @@ namespace se
 {
 namespace
 {
+/** 렌더링 큐(패스)의 종류 */
+enum class ERenderQueue : uint8
+{
+    Opaque,
+    Transparent
+};
+
 /** 정렬 키에 포함될 개별 데이터 필드 */
-enum class SortField : uint8
+enum class ESortField : uint8
 {
     Mesh,     // 메시 버퍼 해시 (VB/IB 바인딩 변경 최소화)
     Material, // 머티리얼 인스턴스 해시 (descriptor 바인딩 변경 최소화)
     Pso,      // 파이프라인 스테이트 해시 (PSO 전환 최소화)
     Depth,    // 카메라 거리 기반 깊이 (불투명: 앞 -> 뒤 정렬로 overdraw 감소)
-    Layer,    // 0=Opaque, 1=Transparent (투명 오브젝트를 불투명 이후로 밀어냄)
 };
 
 /** 레이아웃 정의를 위한 구조체 */
 struct FieldLayout
 {
-    SortField id;
+    ESortField id;
     uint64 bits;
 };
 
@@ -49,11 +56,10 @@ struct FieldBitInfo
  * 하위 비트부터 누적 배치되며, 상위 비트에 위치할수록 정렬 우선순위가 높습니다.
  */
 constexpr FieldLayout LAYOUT[] = {
-    { .id = SortField::Mesh,     .bits = 16 },
-    { .id = SortField::Material, .bits = 16 },
-    { .id = SortField::Pso,      .bits = 16 },
-    { .id = SortField::Depth,    .bits = 15 },
-    { .id = SortField::Layer,    .bits = 1  },
+    { .id = ESortField::Mesh,     .bits = 16 },
+    { .id = ESortField::Material, .bits = 16 },
+    { .id = ESortField::Pso,      .bits = 16 },
+    { .id = ESortField::Depth,    .bits = 16 },
 };
 
 // 64비트 총합 검증
@@ -66,7 +72,7 @@ static_assert(
  * 대상 필드의 shift와 mask 값을 동시에 계산하여 반환합니다.
  * @return FieldBitInfo (shift 위치, 해당 비트 폭에 맞는 mask)
  */
-template <SortField Target>
+template <ESortField Target>
 consteval FieldBitInfo GetFieldInfo()
 {
     uint64 shift = 0;
@@ -81,39 +87,59 @@ consteval FieldBitInfo GetFieldInfo()
         }
         shift += bits;
     }
-    throw "Invalid SortField"; // NOLINT(*-exception-baseclass)
+    throw "Invalid ESortField"; // NOLINT(*-exception-baseclass)
 }
 
 /**
  * 주어진 값을 대상 필드의 비트 레이아웃에 맞게 안전하게 패킹합니다.
  */
-template <SortField Target>
+template <ESortField Target>
 constexpr uint64 PackField(uint64 value)
 {
     constexpr FieldBitInfo info = GetFieldInfo<Target>();
     return (value & info.mask) << info.shift;
 }
 
-/**
- * 렌더링 큐 제출을 위한 64비트 정렬 키를 생성합니다.
- * @todo 향후 PSO, Depth, Layer 파라미터 추가 시 조합에 포함해야 합니다.
- */
-[[nodiscard]] uint64 ComputeSortKey(const AssetId& mesh_id, const AssetId& material_instance_id, const AssetId& parent_material_id, uint8 layer = 0)
+/** 렌더링 큐 제출을 위한 64비트 불투명 오브젝트 정렬 키를 생성합니다. */
+template <ERenderQueue Queue>
+[[nodiscard]] uint64 ComputeSortKey(
+    const AssetId& mesh_id,
+    const AssetId& material_instance_id,
+    const AssetId& parent_material_id,
+    float distance_to_camera,
+    float far_plane
+)
 {
     const uint64 parent_hash = std::hash<AssetId>{}(parent_material_id);
     const uint64 inst_hash   = std::hash<AssetId>{}(material_instance_id);
     const uint64 mesh_hash   = std::hash<AssetId>{}(mesh_id);
 
-    return PackField<SortField::Layer>(layer)
-         | PackField<SortField::Pso>(parent_hash)
-         | PackField<SortField::Material>(inst_hash)
-         | PackField<SortField::Mesh>(mesh_hash);
+    // Far Plane을 기준으로 16비트 정밀도(0~65535)로 매핑
+    const float normalized_dist = std::clamp(distance_to_camera / far_plane, 0.0f, 1.0f);
+
+    uint64 depth_field = 0;
+    if constexpr (Queue == ERenderQueue::Transparent)
+    {
+        // 반투명: 16비트 고정밀 거리 매핑 (0 ~ 65535)
+        depth_field = static_cast<uint64>(normalized_dist * 65535.0f);
+    }
+    else
+    {
+        // 불투명: Early-Z 및 PSO 배칭을 위한 8구역(0 ~ 7) 버킷팅
+        depth_field = static_cast<uint64>(normalized_dist * 7.0f);
+    }
+
+    return PackField<ESortField::Depth>(depth_field)
+         | PackField<ESortField::Pso>(parent_hash)
+         | PackField<ESortField::Material>(inst_hash)
+         | PackField<ESortField::Mesh>(mesh_hash);
 }
 } // namespace
 
-SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_subsystem, const GpuResourceManager& gpu_manager)
+SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> views, const AssetSubsystem& asset_subsystem, const GpuResourceManager& gpu_manager)
 {
     SceneDrawData result;
+    result.view_lists.Resize(views.Len());
     FrameMaterialCache& cache = result.material_cache;
 
     const auto query = world.CreateQuery<
@@ -166,9 +192,9 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
         {
             // TODO: 프러스텀 컬링(Frustum Culling)은 여기서 section.bounds와 transform을 이용해서 수행해야 함.
 
-            DrawCommand cmd;
-            cmd.model_matrix = global_transform.value;
-            cmd.entity_id = entity.GetId();
+            DrawCommand base_cmd;
+            base_cmd.model_matrix = global_transform.value;
+            base_cmd.entity_id = entity.GetId();
 
             // 머티리얼 인스턴스 결정 로직
             const AssetId target_mat_id = [&]
@@ -195,9 +221,10 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
             }();
 
             // 아레나 패킹 및 캐싱
+            EBlendMode final_blend_mode = EBlendMode::Opaque;
             if (const auto slot_idx = cache.material_to_slot.Find(target_mat_id))
             {
-                cmd.material_slot_index = *slot_idx; // 이미 이번 프레임에 처리된 머티리얼이면 캐시 히트
+                base_cmd.material_slot_index = *slot_idx; // 이미 이번 프레임에 처리된 머티리얼이면 캐시 히트
             }
             else
             {
@@ -245,36 +272,74 @@ SceneDrawData CollectDrawData(const World& world, const AssetSubsystem& asset_su
                         cache.slots.Push(slot);
                         cache.material_to_slot.Insert(target_mat_id, slot_index);
 
-                        cmd.material_slot_index = slot_index;
+                        base_cmd.material_slot_index = slot_index;
+
+                        // Blend Mode 정보 추출
+                        final_blend_mode = inst_handle->GetBlendMode(*mat_handle);
                     }
                 }
             }
 
-            // DrawCommand Sort Key 계산
-            {
-                const FrameMaterialCache::MaterialSlot& slot = cache.slots[cmd.material_slot_index];
-                cmd.material_instance_id = target_mat_id;
-                cmd.sort_key = ComputeSortKey(mesh_comp.mesh_id, target_mat_id, slot.parent_material_id);
-            }
+            base_cmd.material_instance_id = target_mat_id;
 
             // GPU 버퍼 필드 채우기
-            cmd.gpu_buffer = gpu_slice->buffer;
-            cmd.vertex_buffer_offset = gpu_slice->offset;
-            cmd.index_buffer_offset = gpu_slice->index_offset;
-            cmd.vertex_count = section.vertex_count;
+            base_cmd.gpu_buffer = gpu_slice->buffer;
+            base_cmd.vertex_buffer_offset = gpu_slice->offset;
+            base_cmd.index_buffer_offset = gpu_slice->index_offset;
+            base_cmd.vertex_count = section.vertex_count;
 
             // MDI Command 구조체 설정
-            cmd.draw_params.index_count = section.index_count;
-            cmd.draw_params.instance_count = 1;
-            cmd.draw_params.first_index = section.index_offset;
-            cmd.draw_params.vertex_offset = section.vertex_offset;
-            cmd.draw_params.first_instance = 0; // 크로스플랫폼 셰이더 호환성을 위해 0으로 고정
+            base_cmd.draw_params.index_count = section.index_count;
+            base_cmd.draw_params.instance_count = 1;
+            base_cmd.draw_params.first_index = section.index_offset;
+            base_cmd.draw_params.vertex_offset = section.vertex_offset;
+            base_cmd.draw_params.first_instance = 0; // 크로스플랫폼 셰이더 호환성을 위해 0으로 고정
 
-            result.opaque_commands.Push(cmd);
+            // 현재 순회 중인 서브 메시(Section)의 로컬 바운딩 중심점을 가져와서 월드 공간 좌표계로 변환
+            const Vector3 local_section_center = section.bounds.GetCenter();
+            const Vector3 world_section_center = global_transform.value.TransformVector(local_section_center);
+
+            for (usize v = 0; v < views.Len(); ++v)
+            {
+                // TODO: 뷰별 프러스텀 컬링 (Frustum Culling)
+
+                DrawCommand cmd = base_cmd;
+                const FrameMaterialCache::MaterialSlot& slot = cache.slots[cmd.material_slot_index];
+
+                /**
+                 * NOTE: 오브젝트 바운딩 박스 중심 기반 정렬을 사용하고 있음.
+                 * 이로 인해서 보는 위치에 따라서 Alpha Blend 정렬의 순서가 바뀔 수 있음.
+                 */
+
+                // Section을 기준으로 카메라 거리 계산
+                const float distance_to_camera = static_cast<float>((world_section_center - views[v].camera_pos).Length());
+                const float far_plane = static_cast<float>(views[v].far_plane);
+
+                if (final_blend_mode == EBlendMode::Translucent || final_blend_mode == EBlendMode::Additive)
+                {
+                    cmd.sort_key = ComputeSortKey<ERenderQueue::Transparent>(
+                        mesh_comp.mesh_id, target_mat_id, slot.parent_material_id, distance_to_camera, far_plane);
+                    result.view_lists[v].transparent_commands.Push(cmd);
+                }
+                else // Opaque or Masked
+                {
+                    cmd.sort_key = ComputeSortKey<ERenderQueue::Opaque>(
+                        mesh_comp.mesh_id, target_mat_id, slot.parent_material_id, distance_to_camera, far_plane);
+                    result.view_lists[v].opaque_commands.Push(cmd);
+                }
+            }
         }
     }
 
-    std::ranges::sort(result.opaque_commands, {}, &DrawCommand::sort_key);
+    // 최종 정렬 (뷰포트별 수행)
+    for (usize v = 0; v < views.Len(); ++v)
+    {
+        // Opaque: 오름차순 (가까운 존 우선, 이후 PSO 배칭)
+        std::ranges::sort(result.view_lists[v].opaque_commands, std::less<>{}, &DrawCommand::sort_key);
+
+        // Transparent: 내림차순 (거리가 먼 것부터 그리기 -> Back-to-Front)
+        std::ranges::sort(result.view_lists[v].transparent_commands, std::greater<>{}, &DrawCommand::sort_key);
+    }
 
     return result;
 }

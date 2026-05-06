@@ -34,6 +34,8 @@
 #include "SimpleEngine/Graphics/View/FramePacket.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
+#include <ranges>
+
 
 namespace se::editor
 {
@@ -164,21 +166,10 @@ void EditorApplication::Render()
     const auto [entity_subsystem, ui_subsystem, viewport_subsystem, asset_subsystem] =
         se::GetSubsystemsChecked<const EntitySubsystem, const EditorUISubsystem, const EditorViewportSubsystem, AssetSubsystem>();
 
-    // FramePacket 조립 (SceneDrawData 수집)
+    // FramePacket 조립
     se::FramePacket frame_packet;
     static uint64 frame_counter = 0;
     frame_packet.frame_number = ++frame_counter; // TODO: 나중에 frame_counter를 통합 관리하는 구조체 만들기
-    frame_packet.scene_draw_data = se::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld(), asset_subsystem, render_subsystem->GetResourceManager());
-
-    // GPU 업로드 요청 수집 (게임 스레드에서 Asset Load + residency 체크)
-    PrepareGpuUploads(frame_packet);
-    // TODO: GPU 리소스 해제 로직
-    // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
-    // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
-    // - 씬 전환 시: GpuResourceManager 전체 리셋 고려
-
-    const se::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
-    const se::SamplerCache& sampler_cache = render_subsystem->GetSamplerCache();
 
     // 게임 스레드에서 뷰포트별 렌더 데이터 스냅샷 수집
     Array<ViewportRenderInput> viewport_inputs;
@@ -246,6 +237,19 @@ void EditorApplication::Render()
         frame_packet.render_views.Push(state.render_view);
     }
 
+    // SceneDrawData 수집
+    frame_packet.scene_draw_data = se::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld(), frame_packet.render_views, asset_subsystem, render_subsystem->GetResourceManager());
+
+    // GPU 업로드 요청 수집 (게임 스레드에서 Asset Load + residency 체크)
+    PrepareGpuUploads(frame_packet);
+    // TODO: GPU 리소스 해제 로직
+    // - 현재 Bump Pointer 할당이라 개별 VRAM 회수 불가 (UnloadMesh는 매핑만 제거)
+    // - Defragmentation 구현 후: ECS에서 참조되지 않는 mesh_id를 주기적으로 스캔하여 UnloadMesh() 호출
+    // - 씬 전환 시: GpuResourceManager 전체 리셋 고려
+
+    const se::GpuResourceManager& gpu_manager = render_subsystem->GetResourceManager();
+    const se::SamplerCache& sampler_cache = render_subsystem->GetSamplerCache();
+
     // RenderFrame 람다 내에서 패스 조립
     render_subsystem->RenderFrame(
         // GPU Resource Upload
@@ -273,7 +277,7 @@ void EditorApplication::Render()
             Array<RGTextureHandle> viewport_color_handles;
             viewport_color_handles.Reserve(viewport_inputs.Len());
 
-            for (const ViewportRenderInput& input : viewport_inputs)
+            for (const auto [view_idx, input] : viewport_inputs | std::views::enumerate)
             {
                 const se::RenderView& render_view = input.render_view;
 
@@ -306,7 +310,7 @@ void EditorApplication::Render()
 
                 // 메인 Scene 렌더링 (entity_id_handle이 유효하면 MRT로 entity ID 동시 출력)
                 builder.AddPass<se::ForwardScenePass>(
-                    frame_packet.scene_draw_data, gpu_manager, sampler_cache,
+                    frame_packet.scene_draw_data, static_cast<uint32>(view_idx), gpu_manager, sampler_cache,
                     render_view, color_handle, depth_handle, entity_id_handle
                 );
 
