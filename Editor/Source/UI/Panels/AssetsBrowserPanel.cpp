@@ -19,6 +19,7 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
 #include "SimpleEngine/ECS/Components/MeshMaterialComponent.h"
+#include "SimpleEngine/ECS/Components/NameComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
@@ -419,6 +420,16 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
     const AssetRegistry& registry = asset_subsystem->GetRegistry();
     const Array<AssetId> all_ids = registry.GetAssetsInFile(*vpath);
 
+    auto get_asset_name = [&](const AssetId& id) -> String
+    {
+        String name;
+        registry.ReadRecord(id, [&](const AssetRecord& record)
+        {
+            name = record.logical_path.GetSubAssetName();
+        });
+        return name;
+    };
+
     Array<AssetId> mesh_ids;
     for (const AssetId& id : all_ids)
     {
@@ -439,12 +450,14 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
         world.SpawnEntity(
             TransformComponent{},
             StaticMeshComponent{ .mesh_id = mesh_ids[0] },
-            MeshMaterialComponent{}
+            MeshMaterialComponent{},
+            NameComponent{ .name = get_asset_name(mesh_ids[0]) }
         );
     }
     else
     {
         // root entity (Transform + ChildrenComponent)
+        // TODO: Root 이름 어떻게 설정하지
         const Entity root = world.SpawnEntity(TransformComponent{});
 
         // N child entities
@@ -455,7 +468,8 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
                 TransformComponent{},
                 StaticMeshComponent{ .mesh_id = mesh_id },
                 MeshMaterialComponent{},
-                ParentComponent{ .parent = root }
+                ParentComponent{ .parent = root },
+                NameComponent{ .name = get_asset_name(mesh_id) }
             );
             children_comp.children.Push(child);
         }
