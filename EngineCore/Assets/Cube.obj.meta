@@ -7,7 +7,7 @@ global_scale = 1.0
 
 [metadata]
 cache_version = 1
-guid = 'd46a15ad-c9cb-4843-a677-90c194a24738'
+guid = '0dd9f95f-f684-4b35-8f42-e2ce2d9f52ab'
 settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
 source_hash = '44cef8efa27cc51242067df382cc419a7b50e43e866ef5b467f7efa46eaddeeb'
 source_mtime = 1775110252411093200
@@ -15,6 +15,12 @@ source_size = 945
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '03d014f6-eb8d-4670-8797-2601ff1c7adf'
+    guid = 'df89d951-dc57-4bc7-90d8-df460daea1b8'
     name = 'Cube'
     type = 'se::StaticMesh'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '86cf11d2-ee50-46c9-ac18-76ca5172c7c1'
+    name = 'Material_DefaultMaterial'
+    type = 'se::MaterialInstance'

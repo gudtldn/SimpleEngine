@@ -7,7 +7,7 @@ global_scale = 1.0
 
 [metadata]
 cache_version = 1
-guid = '67ba390d-b18f-4e81-bebb-7a9562c47a3b'
+guid = '1162522b-7648-4905-a249-8a331aa58ffc'
 settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
 source_hash = '646c10cbc8fab990ca29f363e90e2d65155f3a3569506852eb1434a9465b9501'
 source_mtime = 1777429232000000000
@@ -15,420 +15,576 @@ source_size = 167176
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '8744928e-dec4-4d7e-8c7b-9cd1b4e18b0a'
-    name = '3628158980083700836'
+    guid = 'e58d232b-251c-4635-8f79-af04068d93a6'
+    name = 'Texture_0_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'b393246c-1c26-430c-ab62-2da8cfd1daaa'
-    name = '8773302468495022225'
+    guid = '41ac9680-c15f-4f53-80b6-b63c8792db40'
+    name = 'Texture_1_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '3fb0c03c-b7a6-4d41-897a-3ead0fd98caa'
-    name = '12501374198249454378'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = 'bc993601-3ca1-4359-90ed-4ff55d6cbc71'
-    name = '5792855332885324923'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = '0e193ef2-c4c7-4051-b506-92bbc123109e'
-    name = '1219024358953944284'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = '75e06ac2-3e6f-4f90-8047-048186cf6911'
-    name = '11872827283454512094'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = '53143995-2dbd-4310-ae35-f17c777d2215'
-    name = '10381718147657362067'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = '152cabf8-20c8-4a13-bd4c-032b22fa2362'
-    name = '9916269861720640319'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = '40bde9fc-704d-4fd8-86b9-f2cb0da705f6'
-    name = '5823059166183034438'
-    type = 'se::Texture2D'
-
-    [[metadata.sub_assets]]
-    dependencies = []
-    guid = '7c7ff437-91bf-412b-bee9-0c40fa1cb029'
+    guid = 'b78eecfc-07ec-48f7-8a8a-7ac3c35deddc'
     name = 'Sponza'
     type = 'se::StaticMesh'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '84e24b68-d962-434a-8023-c77d7ba7a545'
-    name = '4477655471536070370'
+    guid = '5c1af293-dcf6-4d20-a212-d38321a076b4'
+    name = 'Texture_11_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '8189de3d-dcfd-4aeb-8666-87d25bd8855f'
-    name = '3455394979645218238'
+    guid = '3f8cc42e-a032-4c9b-8688-48e5ef233efe'
+    name = 'Texture_10_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '042aeca3-b191-4fa1-a3c2-6e3b67f0ca00'
-    name = '6593109234861095314'
+    guid = 'acc1305f-1773-4bd6-b891-a53ca8198bf3'
+    name = 'Texture_0_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '4458029b-e644-45fc-86fb-5a92d8d024d8'
-    name = '17876391417123941155'
+    guid = 'd35cfd05-bf17-4c6d-bf08-55ceb0ead590'
+    name = 'Texture_12_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'df71530d-349b-40ee-b13f-5438bf6a2d5f'
-    name = '16885566240357350108'
+    guid = '87990925-09a2-418d-958a-da3e98b39ab0'
+    name = 'Texture_8_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'c0175170-1adf-41a1-b44f-e762efabd3b8'
-    name = '15722799267630235092'
+    guid = 'fb63ad5f-b117-4ad6-81aa-7af489bba6eb'
+    name = 'Texture_0_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '3e318417-22fd-4781-8863-0b8a3e5ddc0b'
-    name = '332936164838540657'
+    guid = 'f031b2c5-0b35-4347-86a8-8e045bede941'
+    name = 'Texture_1_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'c0fbe88c-d0c2-4d44-b065-3c960adff622'
-    name = '16275776544635328252'
+    guid = '9af3f3ee-b158-4f89-91ca-caebbb7cd2cd'
+    name = 'Texture_1_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '145a3c5d-dcf1-4c87-92fd-834e1bc5e36a'
-    name = '5061699253647017043'
+    guid = '99c2fa77-15b4-4843-92a5-3db62cb73507'
+    name = 'Texture_13_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '4f6d851e-bf19-4172-9cb8-b03292a9879e'
-    name = '8750083169368950601'
+    guid = 'd4d6f2ed-369b-466d-89a5-e253e1b87440'
+    name = 'Texture_2_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'fb969cca-e779-4fc9-81d9-a89bb88a19d3'
-    name = '2775690330959970771'
+    guid = 'ab19a721-3ef5-4555-bf12-45714d859a92'
+    name = 'Texture_2_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '197487c2-bc01-404b-9dfc-ce6f7ef995e4'
-    name = '4675343432951571524'
+    guid = '3429b5c1-b911-4195-ae9b-6eddbbddaa3b'
+    name = 'Texture_3_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'e6b5062a-208b-474b-85ad-2c0525e9fd39'
-    name = '7268504077753552595'
+    guid = 'c44814c5-55d9-4aa8-8742-15514126a386'
+    name = 'Texture_2_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '34447b94-c236-44a3-96e6-9dde30b5b6f1'
-    name = '4910669866631290573'
+    guid = '4e1bd54b-167e-4264-982e-358e4c9d4b68'
+    name = 'Texture_5_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'a39ec017-3841-4230-be3b-a3564dcb9b85'
-    name = '2299742237651021498'
+    guid = '30525415-be89-45a5-b824-d42cdf884eef'
+    name = 'Texture_4_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '222cb7d1-a871-440a-b587-98858b74153e'
-    name = '6151467286084645207'
+    guid = 'efa074c2-d7bc-4845-bad6-ca07548d1d0f'
+    name = 'Texture_10_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '187a9a48-a4d6-42b5-88d4-591fbb3e5716'
-    name = '15295713303328085182'
+    guid = '4a4b2652-3c7e-44fb-9c4d-d899c5261f71'
+    name = 'Texture_3_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'e6379066-0014-436c-a380-471174a50649'
-    name = '715093869573992647'
+    guid = '3f0f5da9-e932-4d69-8b59-5a6a506cd015'
+    name = 'Texture_3_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'dc5058ec-b2c0-4835-b932-534e57e55e9a'
-    name = '6047387724914829168'
+    guid = 'f49238f4-9974-4099-a834-0cca0dc28889'
+    name = 'Texture_4_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '6e80bd0e-8ed7-4120-bdb6-d8831d76f146'
-    name = '7441062115984513793'
+    guid = '835fcaee-3c5b-4574-9cff-08bed54c76c1'
+    name = 'Texture_4_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '17d6c370-7c77-43e5-aede-46496cce316b'
-    name = '14267839433702832875'
+    guid = '033e6a4b-e1f6-42c1-86da-e7fd0edf7556'
+    name = 'Texture_5_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '2eaa0c15-f183-47b8-bf9e-958022efcdd3'
-    name = '13982482287905699490'
+    guid = '03899ad6-1c38-4db7-a248-fca91a7720ed'
+    name = 'Texture_5_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '040d80eb-e1f5-4fbb-b4cc-bad917450b90'
-    name = '11490520546946913238'
+    guid = 'aac69abe-acdf-4f35-8c47-a0f61e868276'
+    name = 'Texture_6_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'e0b27bbf-ca24-4611-b3e2-5e2273ea1775'
-    name = '8006627369776289000'
+    guid = 'cbdd2021-ec1f-4f13-af1e-73a9511fcf8b'
+    name = 'Texture_6_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '2bc68072-45d9-4dce-8dfa-51a748ac42ec'
-    name = '8114461559286000061'
+    guid = 'cebb44df-ae71-4634-9a66-23dc0f9000ac'
+    name = 'Texture_6_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '9b81190b-e481-42b5-89bd-27a1c535bc93'
-    name = '8051790464816141987'
+    guid = 'a4f2b9bb-29ee-47be-9ff6-109a46c09cd6'
+    name = 'Texture_10_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'b166b6e1-599f-4db1-b807-4c0f400d9515'
-    name = 'white'
+    guid = 'de945177-8148-4a9c-88ad-4c58006aee47'
+    name = 'Texture_7_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'a53e5afe-af4d-44e7-bdd5-2d31577a33fb'
-    name = '17556969131407844942'
+    guid = 'c2e03a4d-f6c5-459e-9170-1818f6560fea'
+    name = 'Texture_13_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '7fe52304-061c-424a-9caa-25c89787526e'
-    name = '8503262930880235456'
+    guid = '74985cec-48f0-4e3d-88ba-542bb1414709'
+    name = 'Texture_7_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'a18c2a07-3c53-458b-a150-bc14a93aefce'
-    name = '16299174074766089871'
+    guid = '450f46ac-be05-4e96-a73e-15f2091cb8b2'
+    name = 'Texture_7_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '00437dc3-17b6-4d48-b11c-fd5a60d1ea35'
-    name = '11968150294050148237'
+    guid = '7ad45b30-2705-45e7-a2c4-b6dfbdf2fc65'
+    name = 'Texture_8_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '7b1ca646-b5df-4fbb-b541-b2dfd80987b6'
-    name = '10388182081421875623'
+    guid = '169b1435-2eee-4ad7-b91f-c351fdc7fda8'
+    name = 'Texture_8_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'be35cb76-6622-4b75-a742-81ae6be9cfbb'
-    name = '4975155472559461469'
+    guid = '488c8daa-0815-4f50-91ec-4f7cbf077c21'
+    name = 'Texture_9_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '95cf0b81-1720-4008-834d-01457dd3afb8'
-    name = '14650633544276105767'
+    guid = '733f43ed-2495-4336-b4d7-a310eb1aa23b'
+    name = 'Texture_9_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'fb9dce64-8fd0-424c-976f-b3cbb339054e'
-    name = '2051777328469649772'
+    guid = 'e6b5f184-52ce-4ef1-b5d9-8a867fc71624'
+    name = 'Texture_9_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'dc4633be-4d5b-4b16-b451-d1099f5f23d9'
-    name = '4871783166746854860'
+    guid = '78f04ed4-c033-4f88-a63f-b39fe0e3cf19'
+    name = 'Texture_14_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'dea88fb8-da04-49f3-a742-ed39f0a9f30e'
-    name = '3827035219084910048'
+    guid = 'd54559df-d8a4-421b-be0d-9de4665666fa'
+    name = 'Texture_11_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'ee37684a-b1eb-4000-8f10-d478b762cdf7'
-    name = '6667038893015345571'
+    guid = '518ba4c8-1de6-44b2-b3e7-391ad4165852'
+    name = 'Texture_11_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '3eb66227-954c-4e87-931f-18631067804c'
-    name = '13824894030729245199'
+    guid = '8f5c7e8d-ebbf-44af-bc15-e6fd9ed757f9'
+    name = 'Texture_13_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '8472d7c3-1150-42a1-8d93-5e65308fe066'
-    name = '2185409758123873465'
+    guid = 'fde67f42-c563-421d-b4db-762991394043'
+    name = 'Texture_14_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'fe607348-5897-4a96-8308-5ef128516dbc'
-    name = '2411100444841994089'
+    guid = '739375f8-927a-466c-af1d-2dd3c6b2edb2'
+    name = 'Texture_14_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'cad03e97-0852-48a4-ae91-8b3f718f58b9'
-    name = '7645212358685992005'
+    guid = '4c7ed471-0f03-42e9-b34d-bcb61a751ce1'
+    name = 'Texture_15_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'e2d1e376-29ba-4187-a4d7-580ccf38f234'
-    name = '7815564343179553343'
+    guid = '4518ba13-fe2c-4aab-8551-e555c6277450'
+    name = 'Texture_15_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'a0ad224e-c99c-4dbd-b77c-b59164581e3a'
-    name = '8783994986360286082'
+    guid = '45c64e97-1a02-4c98-bbe2-71a4b9a61b77'
+    name = 'Texture_16_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '48c2f852-505c-4461-9577-b5977f4c1cef'
-    name = '8481240838833932244'
+    guid = '59c5cab5-6b5e-4a14-b007-3ac280fcf7fd'
+    name = 'Texture_16_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'fe2a24a8-b8f8-47ab-855a-0158c0f9cf7f'
-    name = '13196865903111448057'
+    guid = '01c1da72-d0a2-4cd6-b8d5-84ff69a64b47'
+    name = 'Texture_17_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '38060a07-caec-491b-ae55-444d0157dafd'
-    name = '3371964815757888145'
+    guid = 'b84e905a-d51a-4ae9-9ee4-eaa4e97209d0'
+    name = 'Texture_17_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '1180efd7-4487-431d-b154-41f8da92ce22'
-    name = '7056944414013900257'
+    guid = '4229c696-af81-4ebc-9a61-492d95b6f9b8'
+    name = 'Texture_17_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'c24cbb16-4ee4-44e2-9a7f-a612001980ff'
-    name = '9288698199695299068'
+    guid = 'aa98e29e-c502-43e6-8d7b-0553c1e1ea59'
+    name = 'Texture_18_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '806bfecc-557a-4d26-be55-05f0f7093bbc'
-    name = '4601176305987539675'
+    guid = '23949465-3568-46a3-81c7-9b1639a3981f'
+    name = 'Texture_18_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '1ca5a378-3534-4e98-9604-a9321c1a1c3d'
-    name = '2374361008830720677'
+    guid = '87d7d153-a7f6-43f1-8f54-8f1dd7c961ab'
+    name = 'Texture_19_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '387be61d-8e2b-4593-a611-b5dd087feea4'
-    name = '466164707995436622'
+    guid = 'b6ee8811-49da-40c4-96df-cae97374d2e2'
+    name = 'Texture_19_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '8e9b7f67-4cae-4830-8198-732ee625c27c'
-    name = '11474523244911310074'
+    guid = '82333c70-3b3c-4a90-9c8e-505409f1ac99'
+    name = 'Texture_20_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '72f9fbe8-c275-486b-a548-6fb4803d0569'
-    name = '755318871556304029'
+    guid = 'a2bf06a4-ab3e-4b4a-8096-b82dd84807e1'
+    name = 'Texture_20_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '8f328679-ecc2-4bb9-ba8d-ef57c48b0e7e'
-    name = '14170708867020035030'
+    guid = 'c3e7a67d-a440-4fe0-919a-5db9b365b58e'
+    name = 'Texture_20_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '38619de4-271e-4c99-bb1d-13e38fa8266b'
-    name = '6772804448157695701'
+    guid = '2992a17f-d6f1-43eb-9acf-f012e7fe7dbd'
+    name = 'Texture_21_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = '16b155bb-c916-4b5d-8186-9039e0bfa6dc'
-    name = '759203620573749278'
+    guid = '6c108288-2098-41cc-93c5-3fa56f72433f'
+    name = 'Texture_21_MetallicRoughness'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'f604fba8-3a1f-4c85-9339-cc87acc6a355'
-    name = '2969916736137545357'
+    guid = 'e8e98b84-6ce1-4bf7-8797-f5d6f72ea7e5'
+    name = 'Texture_21_Normal'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'd0fdbe48-2808-4932-b23e-9bb57224b08b'
-    name = '14118779221266351425'
+    guid = 'f627003b-8665-45bf-979f-3e7b8790daed'
+    name = 'Texture_22_BaseColor'
     type = 'se::Texture2D'
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'a96e953b-3824-43f2-9f91-e5f08772bc98'
-    name = '8747919177698443163'
+    guid = '49ea2b5a-ce7e-43ce-bbd1-ef55e11ab71c'
+    name = 'Texture_22_MetallicRoughness'
     type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '7c26994f-4901-483d-a0d4-f4d6daa81b14'
+    name = 'Texture_22_Normal'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '0d46b4a3-b2c7-4d36-868f-16826c0515dc'
+    name = 'Texture_23_BaseColor'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '88bb4273-0186-41c0-b168-59bce295cfd4'
+    name = 'Texture_23_MetallicRoughness'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '7d68db0c-e220-4943-8bb2-b8a3863387a0'
+    name = 'Texture_23_Normal'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '6f9937d2-b0d0-4d76-8779-15c7fa4bcfb6'
+    name = 'Texture_24_BaseColor'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '5a23b5ce-1d2e-4b1e-ba0b-44d68d1ceec4'
+    name = 'Texture_24_MetallicRoughness'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c2c6ad9d-28df-4911-825e-abd09419e0b0'
+    name = 'Texture_24_Normal'
+    type = 'se::Texture2D'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '56fe77fa-845e-4e9a-869d-d6cae31b1f99'
+    name = 'Material_25'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '6d7942b3-4489-499e-b9f0-059528b63a64'
+    name = 'Material_12'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '2974f12d-1fb4-4976-8b60-a6a53aaffba2'
+    name = 'Material_0'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '1056f527-ee6b-4fe3-ad4f-30dd820b2a88'
+    name = 'Material_1'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '0232f032-e010-4e15-b5dd-d3fe1aca38b8'
+    name = 'Material_2'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '021a67c2-3653-4c91-acf9-3df88c14945d'
+    name = 'Material_3'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'c7cafe27-df33-49ef-aaf1-a580a6b8a6d3'
+    name = 'Material_4'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '13c49c45-fd33-4b4e-bd42-967664f78c9e'
+    name = 'Material_5'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '2ac348d7-3fbb-422c-a336-389f6fb9b060'
+    name = 'Material_6'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '51f6dbab-8b6e-4855-87e7-573c72dadd5e'
+    name = 'Material_10'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '35f47e73-3b0e-45e1-9ca5-a9129a1627c9'
+    name = 'Material_7'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'd6f9419b-f6c8-4d0f-a477-61a1d8a48d6d'
+    name = 'Material_8'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'dcd95a51-9b7a-435a-add0-db2b2dca5d22'
+    name = 'Material_9'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '51c98c65-cdaf-4f53-9f34-6a073b278382'
+    name = 'Material_11'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'ca5c1895-98e9-4cf2-b044-d420aac5707d'
+    name = 'Material_13'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'f7a131ad-eeaf-40f0-a89b-2a43a5499827'
+    name = 'Material_14'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a13648c4-e42e-4f82-b7c4-4998ce1af291'
+    name = 'Material_15'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'b679eb37-494e-45f2-a2a8-eac07ce92669'
+    name = 'Material_16'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '82d46dbf-7c09-4d11-8ebc-936037fc801f'
+    name = 'Material_17'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'b520df84-9a66-42ae-a340-feb47a0ace1e'
+    name = 'Material_18'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '699a2223-ecca-46bb-860f-3f055260641b'
+    name = 'Material_19'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'df22cbba-be53-4d31-bd20-6c3455f5789b'
+    name = 'Material_20'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '5abc85a2-1ca0-46da-a14a-9bfe020b16ab'
+    name = 'Material_21'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '048e1d90-eb68-4296-aa20-be22cbbd0327'
+    name = 'Material_22'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = 'a0339738-7200-4383-b6e4-3f2609ad18c3'
+    name = 'Material_23'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '3c4d6a9e-1241-4a60-add8-6ec2cf67e285'
+    name = 'Material_24'
+    type = 'se::MaterialInstance'

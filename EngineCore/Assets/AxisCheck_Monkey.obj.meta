@@ -7,7 +7,7 @@ global_scale = 1.0
 
 [metadata]
 cache_version = 1
-guid = '01d69dd4-af80-4c24-b55d-cfd97aef4a1e'
+guid = '898b2b47-dbf3-43b7-8654-90fcfbebb897'
 settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'
 source_hash = '72f9007e01fd1d02ac1615eca372ed1a10499e93526c8eef6f1e14c6156fbb28'
 source_mtime = 1775721082529359500
@@ -15,6 +15,12 @@ source_size = 63009
 
     [[metadata.sub_assets]]
     dependencies = []
-    guid = 'b1b23052-2dc0-481f-8312-3f49ffaac18c'
+    guid = '756b191d-aeb7-4746-8ca0-454083f15843'
+    name = 'Material_DefaultMaterial'
+    type = 'se::MaterialInstance'
+
+    [[metadata.sub_assets]]
+    dependencies = []
+    guid = '5d1c5c37-cc52-4438-8fe4-ce6bd50b30cd'
     name = 'AxisCheck_Monkey'
     type = 'se::StaticMesh'
