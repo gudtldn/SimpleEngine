@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Utility/HashUtils.h"
 
 #include <functional>
 #include <limits>

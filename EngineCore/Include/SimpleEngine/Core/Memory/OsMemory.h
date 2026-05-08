@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include <cstddef>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/MemoryConfig.h"
+
+#include <cstddef>
 
 
 namespace se

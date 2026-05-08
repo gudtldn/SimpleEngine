@@ -10,17 +10,17 @@ static void BM_OsMemoryRealloc_Naive(benchmark::State& state)
 {
     const auto old_size = state.range(0);
     const auto new_size = state.range(1);
-    constexpr size_t alignment = 16;
+    constexpr size_t ALIGNMENT = 16;
 
     for ([[maybe_unused]] auto _ : state)
     {
         state.PauseTiming();
-        void* p = OsMemory::Allocate(old_size, alignment);
+        void* p = OsMemory::Allocate(old_size, ALIGNMENT);
         std::memset(p, 0xCD, old_size);
         benchmark::DoNotOptimize(p);
         state.ResumeTiming();
 
-        void* new_p = OsMemory::Realloc(p, new_size, alignment);
+        void* new_p = OsMemory::Realloc(p, new_size, ALIGNMENT);
         benchmark::DoNotOptimize(new_p);
 
         state.PauseTiming();

@@ -143,7 +143,7 @@ public:
             },
             .get_component = [](const World& world, Entity entity) static -> const void*
             {
-                if (Optional comp_opt = world.TryGetComponent<T>(entity))
+                if (const auto comp_opt = world.TryGetComponent<T>(entity))
                 {
                     return &comp_opt.Value();
                 }
@@ -151,7 +151,7 @@ public:
             },
             .get_component_mutable = [](World& world, Entity entity) static -> void*
             {
-                if (Optional comp_opt = world.TryGetComponent<T>(entity))
+                if (const auto comp_opt = world.TryGetComponent<T>(entity))
                 {
                     return &comp_opt.Value();
                 }

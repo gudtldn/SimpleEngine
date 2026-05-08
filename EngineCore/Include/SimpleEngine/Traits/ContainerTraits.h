@@ -1,7 +1,8 @@
 #pragma once
-#include <type_traits>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
+#include <type_traits>
 
 
 // Forward declarations

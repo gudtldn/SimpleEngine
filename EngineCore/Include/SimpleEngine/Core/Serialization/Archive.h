@@ -1,7 +1,4 @@
 #pragma once
-#include <concepts>
-#include <memory>
-#include <type_traits>
 
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -10,6 +7,10 @@
 #include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/SerializationTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+
+#include <concepts>
+#include <memory>
+#include <type_traits>
 
 
 namespace se

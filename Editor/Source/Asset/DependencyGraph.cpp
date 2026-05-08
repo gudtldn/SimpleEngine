@@ -48,16 +48,14 @@ void DependencyGraph::SetDependencies(const AssetId& id, ArrayView<const AssetId
         {
             if (const auto rev = reverse_deps.Find(old_dep))
             {
-                Array<AssetId>& arr = *rev;
-
                 // 추후 성능상 문제가 생기면 HashSet이나, FlatSet으로 변경
-                if (const auto idx = arr.Find(id))
+                if (const auto idx = rev->Find(id))
                 {
-                    arr.RemoveAtSwap(*idx);
+                    rev->RemoveAtSwap(*idx);
                 }
 
                 // 비어있으면 역방향 엔트리 제거
-                if (arr.IsEmpty())
+                if (rev->IsEmpty())
                 {
                     reverse_deps.Remove(old_dep);
                 }
@@ -143,14 +141,13 @@ void DependencyGraph::RemoveNode(const AssetId& id)
 
                 if (const auto fwd = forward_deps.Find(dependent))
                 {
-                    Array<AssetId>& arr = *fwd;
-                    if (const auto idx = arr.Find(id))
+                    if (const auto idx = fwd->Find(id))
                     {
-                        arr.RemoveAtSwap(*idx);
+                        fwd->RemoveAtSwap(*idx);
                     }
 
                     // 비어있으면 역방향 엔트리 제거
-                    if (arr.IsEmpty())
+                    if (fwd->IsEmpty())
                     {
                         forward_deps.Remove(dependent);
                     }
@@ -233,10 +230,7 @@ Array<AssetId> DependencyGraph::GetTransitiveDependents(const AssetId& id) const
     return result;
 }
 
-bool DependencyGraph::HasCyclicDependency(
-    const AssetId& from,
-    const AssetId& to
-) const
+bool DependencyGraph::HasCyclicDependency(const AssetId& from, const AssetId& to) const
 {
     ZoneScopedN("DependencyGraph::HasCyclicDependency");
     SE_ASSERT(from.IsValid() && to.IsValid(), "Invalid asset ID");
@@ -320,33 +314,30 @@ Array<AssetId> DependencyGraph::TopologicalSort() const
     return result;
 }
 
-uint32 DependencyGraph::GetNodeCount() const
+usize DependencyGraph::GetNodeCount() const
 {
     std::shared_lock lock(graph_mutex);
 
     // |A| + |B|
-    const uint32 forward_count = static_cast<uint32>(forward_deps.Len());
-    const uint32 reverse_count = static_cast<uint32>(reverse_deps.Len());
-    const uint32 total_keys = forward_count + reverse_count;
+    const usize forward_count = forward_deps.Len();
+    const usize reverse_count = reverse_deps.Len();
+    const usize total_keys = forward_count + reverse_count;
 
     // |A ∩ B| (두개 중 더 적은 Map을 순회)
     const auto& [smaller, larger] = forward_count < reverse_count
                                         ? std::tie(forward_deps, reverse_deps)
                                         : std::tie(reverse_deps, forward_deps);
 
-    const uint32 intersection_count = static_cast<uint32>(std::ranges::count_if(smaller | std::views::keys, [&](const auto& key)
+    const usize intersection_count = std::ranges::count_if(smaller | std::views::keys, [&](const auto& key)
     {
         return larger.Contains(key);
-    }));
+    });
 
     // |A ∪ B| = |A| + |B| - |A ∩ B|
     return total_keys - intersection_count;
 }
 
-bool DependencyGraph::HasPathInternal(
-    const AssetId& from,
-    const AssetId& target
-) const
+bool DependencyGraph::HasPathInternal(const AssetId& from, const AssetId& target) const
 {
     ZoneScopedN("DependencyGraph::HasPathInternal");
 

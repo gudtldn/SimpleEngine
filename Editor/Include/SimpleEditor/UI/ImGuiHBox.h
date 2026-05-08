@@ -2,8 +2,9 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
-#include "imgui.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+
+#include "imgui.h"
 
 
 namespace se::editor

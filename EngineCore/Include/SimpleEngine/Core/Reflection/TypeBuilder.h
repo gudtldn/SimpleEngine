@@ -1,10 +1,11 @@
 ﻿#pragma once
-#include <concepts>
-#include <type_traits>
 
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
+
+#include <concepts>
+#include <type_traits>
 
 
 namespace se

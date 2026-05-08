@@ -14,27 +14,27 @@ GizmoDrawList::GizmoDrawList(RenderDevice& in_device)
     : device(std::addressof(in_device))
 {
     // 라인 정점 버퍼 생성 (LINELIST용, 라인 1개 = 정점 2개)
-    constexpr uint32 line_vertex_size = sizeof(GizmoVertex) * MAX_LINES * 2;
+    constexpr uint32 LINE_VERTEX_SIZE = sizeof(GizmoVertex) * MAX_LINES * 2;
     line_vertex_buffer_rid = device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-        .size = line_vertex_size,
+        .size = LINE_VERTEX_SIZE,
     }, "Gizmo_LineVertexBuffer");
     SE_ASSERT_RELEASE(device->IsValidBuffer(line_vertex_buffer_rid));
 
     // 삼각형 정점 버퍼 생성 (TRIANGLELIST용, 삼각형 1개 = 정점 3개)
-    constexpr uint32 triangle_vertex_size = sizeof(GizmoVertex) * MAX_TRIANGLES * 3;
+    constexpr uint32 TRIANGLE_VERTEX_SIZE = sizeof(GizmoVertex) * MAX_TRIANGLES * 3;
     triangle_vertex_buffer_rid = device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-        .size = triangle_vertex_size,
+        .size = TRIANGLE_VERTEX_SIZE,
     }, "Gizmo_TriVertexBuffer");
     SE_ASSERT_RELEASE(device->IsValidBuffer(triangle_vertex_buffer_rid));
 
     // 전송 버퍼: 라인/삼각형 중 큰 쪽 크기로 할당 (순차 재사용)
-    constexpr SDL_GPUTransferBufferCreateInfo create_info = {
+    constexpr SDL_GPUTransferBufferCreateInfo CREATE_INFO = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = std::max(line_vertex_size, triangle_vertex_size),
+        .size = std::max(LINE_VERTEX_SIZE, TRIANGLE_VERTEX_SIZE),
     };
-    transfer_buffer = SDL_CreateGPUTransferBuffer(device->GetRawDevice(), &create_info);
+    transfer_buffer = SDL_CreateGPUTransferBuffer(device->GetRawDevice(), &CREATE_INFO);
     SE_ASSERT_RELEASE(transfer_buffer);
 }
 

@@ -7,7 +7,6 @@
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
-#include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
@@ -95,7 +94,7 @@ void AssetSubsystem::EndFrame()
 Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
 {
     const TypeId type_id = asset.GetTypeId();
-    const Optional info_opt = TypeRegistry::Get().Find(type_id);
+    const auto info_opt = TypeRegistry::Get().Find(type_id);
     if (!info_opt || !info_opt->serialize)
     {
         ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type: {}", type_id.GetName());
@@ -170,9 +169,9 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
         bool ddc_missing_or_corrupted = false;
 
         // 이미 등록된 Asset인지 확인
-        if (const Optional id_opt = find_asset_id())
+        if (const auto asset_id = find_asset_id())
         {
-            const AssetId& current_id = id_opt.Value();
+            const AssetId& current_id = *asset_id;
             handle_data = pool->FindOrCreate(current_id, expected_type, source_path);
 
             // [Slot-Level Lock] 로딩 상태 동기화
@@ -416,7 +415,7 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
         return registry->FindFirstOfType(file_vpath, expected_type);
     };
 
-    const Optional id_opt = find_asset_id();
+    const auto id_opt = find_asset_id();
     if (!id_opt)
     {
         // Registry에 없으면 동기 fallback (DDC miss handler가 Import를 수행할 수 있음)

@@ -1,20 +1,20 @@
 ﻿#pragma once
-#include <chrono>
-#include <format>
-#include <source_location>
-#include <string>
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/Logging/LogLevel.h"
 
+#include <chrono>
+#include <format>
+#include <source_location>
+#include <string>
+
 
 namespace se
 {
 /**
  * LogLevel과 std::source_location 정보를 저장하는 구조체
- *
  * @see https://in-neuro.hatenablog.com/entry/2021/12/15/000033
  */
 struct LogLevelAndLocation
@@ -59,7 +59,7 @@ struct LogEntry
     [[nodiscard]] StringView GetPrettyFileName() const
     {
         const StringView name_view = location.file_name();
-        if (const Optional last_slash_opt = name_view.FindLastOf("/\\"))
+        if (const auto last_slash_opt = name_view.FindLastOf("/\\"))
         {
             return name_view.Substr(*last_slash_opt + 1);
         }
@@ -77,12 +77,12 @@ struct LogEntry
     {
         switch (level)
         {
-        case ELogLevel::Debug: return "Debug";
-        case ELogLevel::Info: return "Info";
+        case ELogLevel::Debug:   return "Debug";
+        case ELogLevel::Info:    return "Info";
         case ELogLevel::Warning: return "Warning";
-        case ELogLevel::Error: return "Error";
-        case ELogLevel::Fatal: return "Fatal";
-        default: return "unknown";
+        case ELogLevel::Error:   return "Error";
+        case ELogLevel::Fatal:   return "Fatal";
+        default:                 return "unknown";
         }
     }
 };
@@ -92,7 +92,6 @@ struct LogOnceKey
     se::String file;
     uint32 line;
     uint32 column;
-
 
     bool operator==(const LogOnceKey& other) const noexcept
     {

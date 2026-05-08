@@ -39,7 +39,7 @@ AssetId MaterialInstance::GetTextureOrDefault(StringName slot_name, const Materi
         return slot->default_texture_id;
     }
 
-    return AssetId::Invalid;
+    return AssetId::invalid;
 }
 
 void MaterialInstance::InitializeFromParent(const Material& parent)

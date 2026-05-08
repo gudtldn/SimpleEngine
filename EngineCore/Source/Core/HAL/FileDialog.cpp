@@ -1,4 +1,5 @@
-﻿#include "SimpleEngine/Core/HAL/FileDialog.h"
+﻿// ReSharper disable CppDFAMemoryLeak
+#include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 
 #include <atomic>
@@ -29,23 +30,23 @@ struct DialogCallbackProxy
         {
             std::visit([&]<typename Fn>(Fn&& cb)
             {
-                using DecayedFn = std::decay_t<Fn>;
+                using CleanFn = std::remove_cvref_t<Fn>;
 
                 // 단일 선택
-                if constexpr (std::same_as<DecayedFn, FileDialog::OnFileSelected>)
+                if constexpr (std::same_as<CleanFn, FileDialog::OnFileSelected>)
                 {
                     // file_list[0]이 존재하면 호출
                     if (file_list[0] != nullptr)
                     {
-                        std::forward<Fn>(cb)(Path(file_list[0]));
+                        std::forward<Fn>(cb)(Path{ file_list[0] });
                     }
                 }
 
                 // 다중 선택
-                else if constexpr (std::same_as<DecayedFn, FileDialog::OnMultiFilesSelected>)
+                else if constexpr (std::same_as<CleanFn, FileDialog::OnMultiFilesSelected>)
                 {
                     Array<Path> paths;
-                    for (int i = 0; file_list[i] != nullptr; ++i)
+                    for (usize i = 0; file_list[i] != nullptr; ++i)
                     {
                         paths.Emplace(file_list[i]);
                     }

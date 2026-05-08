@@ -27,9 +27,9 @@ ContentHash SHA256::HashFile(const Path& file_path)
     picosha2::hash256_one_by_one hasher;
 
     // 청크 사이즈 설정 (4MB)
-    constexpr usize chunk_size = 4ULL * 1024 * 1024;
+    constexpr usize CHUNK_SIZE = 4ULL * 1024 * 1024;
 
-    for (auto&& result : FileSystem::ReadChunked(file_path, chunk_size))
+    for (auto&& result : FileSystem::ReadChunked(file_path, CHUNK_SIZE))
     {
         if (result.HasError())
         {

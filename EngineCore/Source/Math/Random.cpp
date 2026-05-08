@@ -3,6 +3,7 @@
 #include <bit>
 #include <random>
 
+
 namespace se::math
 {
 namespace
@@ -19,7 +20,7 @@ constexpr uint32 PCG_ROT_SHIFT = 59U;
 constexpr uint32 FLOAT_MASK_SHIFT = 8U;
 constexpr float FLOAT_NORMALIZER = 1.0f / 16777216.0f; // 1.0f / (1 << 24)
 
-thread_local RandomStream GlobalRandomStream;
+thread_local RandomStream tl_random_stream;
 } // namespace
 
 RandomStream::RandomStream()
@@ -128,36 +129,36 @@ bool RandomStream::Bool()
 
 void Random::Seed(uint64 in_state, uint64 in_seq)
 {
-    GlobalRandomStream.Seed(in_state, in_seq);
+    tl_random_stream.Seed(in_state, in_seq);
 }
 
 uint32 Random::Next()
 {
-    return GlobalRandomStream.Next();
+    return tl_random_stream.Next();
 }
 
 uint32 Random::Range(uint32 in_max)
 {
-    return GlobalRandomStream.Range(in_max);
+    return tl_random_stream.Range(in_max);
 }
 
 int32 Random::Range(int32 in_min, int32 in_max)
 {
-    return GlobalRandomStream.Range(in_min, in_max);
+    return tl_random_stream.Range(in_min, in_max);
 }
 
 float Random::Float()
 {
-    return GlobalRandomStream.Float();
+    return tl_random_stream.Float();
 }
 
 float Random::Range(float in_min, float in_max)
 {
-    return GlobalRandomStream.Range(in_min, in_max);
+    return tl_random_stream.Range(in_min, in_max);
 }
 
 bool Random::Bool()
 {
-    return GlobalRandomStream.Bool();
+    return tl_random_stream.Bool();
 }
 } // namespace se::math

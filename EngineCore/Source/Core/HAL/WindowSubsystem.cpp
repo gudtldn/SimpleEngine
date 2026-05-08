@@ -1,11 +1,11 @@
 ﻿#include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 
-#include <ranges>
-
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
+
+#include <ranges>
 
 
 namespace se

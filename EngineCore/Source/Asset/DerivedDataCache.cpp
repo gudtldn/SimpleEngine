@@ -63,13 +63,13 @@ bool ReadHeader(
     DDC_CacheEntryInternal::Header& out_header
 )
 {
-    static constexpr usize chunk_size = 128;
-    static_assert(sizeof(DDC_CacheEntryInternal::Header) <= chunk_size);
+    static constexpr usize CHUNK_SIZE = 128;
+    static_assert(sizeof(DDC_CacheEntryInternal::Header) <= CHUNK_SIZE);
 
     DDC_CacheEntryInternal::Header header;
     bool deserialize_success = false;
 
-    for (auto&& file_result : FileSystem::ReadChunked(cache_path, chunk_size))
+    for (auto&& file_result : FileSystem::ReadChunked(cache_path, CHUNK_SIZE))
     {
         // 파일 시스템 에러 체크
         if (file_result.HasError())
@@ -169,7 +169,7 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
     const Path temp_path = BuildTempPath(guid);
 
     // 버킷 디렉토리 생성
-    if (const Optional parent = cache_path.Parent())
+    if (const auto parent = cache_path.Parent())
     {
         if (!parent->Exists())
         {

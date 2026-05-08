@@ -2,9 +2,8 @@
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEngine/App/Application.h"
-#include "SimpleEngine/Asset/AssetId.h"
 
-#include "SDL3/SDL.h"
+#include "SDL3/SDL_gpu.h"
 
 // forward declaration
 namespace se { struct FramePacket; }

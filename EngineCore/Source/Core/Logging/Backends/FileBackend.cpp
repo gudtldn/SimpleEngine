@@ -63,9 +63,9 @@ void FileBackend::OpenFile()
 {
     if (!file_path.Exists())
     {
-        if (const Optional parent_opt = file_path.Parent())
+        if (const auto parent = file_path.Parent())
         {
-            FileSystem::CreateDirectories(*parent_opt);
+            FileSystem::CreateDirectories(*parent);
         }
     }
 

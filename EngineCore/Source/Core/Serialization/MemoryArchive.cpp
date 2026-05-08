@@ -1,7 +1,6 @@
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"

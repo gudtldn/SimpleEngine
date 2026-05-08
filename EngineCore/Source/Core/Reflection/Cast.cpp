@@ -14,7 +14,7 @@ bool IsTypeDerivedFrom(const TypeId& derived_id, const TypeId& base_id)
             return true;
         }
 
-        const Optional info_opt = TypeRegistry::Get().Find(current);
+        const auto info_opt = TypeRegistry::Get().Find(current);
         if (!info_opt.HasValue())
         {
             break;
@@ -31,7 +31,7 @@ bool IsTypeImplementsInterface(const TypeId& type_id, const TypeId& interface_id
     TypeId current_id = type_id;
     while (current_id.IsValid())
     {
-        const Optional info_opt = TypeRegistry::Get().Find(current_id);
+        const auto info_opt = TypeRegistry::Get().Find(current_id);
         if (!info_opt.HasValue())
         {
             break;
@@ -59,15 +59,15 @@ void* CastToInterface(void* instance, const TypeId& type_id, const TypeId& inter
     TypeId current_id = type_id;
     while (current_id.IsValid())
     {
-        const Optional info_opt = TypeRegistry::Get().Find(current_id);
+        const auto info_opt = TypeRegistry::Get().Find(current_id);
         if (!info_opt.HasValue())
         {
             break;
         }
 
-        if (const Optional interface_opt = info_opt->interfaces.Find(interface_id))
+        if (const auto interface = info_opt->interfaces.Find(interface_id))
         {
-            return interface_opt->caster(instance);
+            return interface->caster(instance);
         }
 
         // 부모 클래스로 이동

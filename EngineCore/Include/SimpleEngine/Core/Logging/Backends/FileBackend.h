@@ -39,6 +39,6 @@ private:
     SDL_IOStream* io_stream = nullptr;
     Path file_path;
     usize current_file_size = 0;
-    constexpr static usize max_file_size = 10ULL * 1024 * 1024; // 10MB
+    constexpr static usize max_file_size = 2ULL * 1024 * 1024; // 2MB
 };
 } // namespace se

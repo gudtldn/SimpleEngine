@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
@@ -6,12 +7,12 @@
 namespace se
 {
 /**
- * @todo docs
+ * 에셋을 고유하게 식별하는 GUID 래퍼 클래스
  */
 class SE_CORE_API AssetId
 {
 public:
-    static const AssetId Invalid;
+    static const AssetId invalid;
 
 public:
     AssetId() = default;

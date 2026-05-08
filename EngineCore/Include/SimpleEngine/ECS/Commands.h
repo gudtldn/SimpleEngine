@@ -86,7 +86,7 @@ public:
     template <typename... Components>
     void Spawn(Components&&... comps)
     {
-        buffer.Push([... comps = std::forward<Components>(comps)](World& world) mutable
+        buffer.Push([...comps = std::forward<Components>(comps)](World& world) mutable
         {
             world.SpawnEntity(std::move(comps)...);
         });
@@ -99,7 +99,7 @@ public:
     template <typename T, typename... Args>
     void InsertResource(Args&&... args)
     {
-        buffer.Push([... args = std::forward<Args>(args)](World& world) mutable
+        buffer.Push([...args = std::forward<Args>(args)](World& world) mutable
         {
             world.InsertResource<T>(std::move(args)...);
         });

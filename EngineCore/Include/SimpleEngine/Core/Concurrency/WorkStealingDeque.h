@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Core/Concurrency/Common.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
@@ -266,7 +267,7 @@ template <typename T>
 bool WorkStealingDeque<T>::IsEmpty() const
 {
     // Chase-Lev Deque에서 bottom이 top보다 작거나 같으면 큐가 비어있음을 의미
-    return bottom.load(std::memory_order_relaxed) <= top.load(std::memory_order_relaxed);;
+    return bottom.load(std::memory_order_relaxed) <= top.load(std::memory_order_relaxed);
 }
 
 template <typename T>

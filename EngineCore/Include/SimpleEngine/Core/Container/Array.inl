@@ -1,10 +1,11 @@
 ﻿#pragma once
+
+#include "SimpleEngine/Utility/Debug.h"
+
 #include <algorithm>
 #include <cstring>
 #include <memory>
 #include <utility>
-
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se

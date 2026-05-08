@@ -103,15 +103,15 @@ TEST_F(TypeReflectionTest, TypeIdReturnsCorrectNameAndHash)
 {
     using namespace se;
 
-    constexpr TypeId id = TypeId::Get<int>();
+    constexpr TypeId TYPE_ID = TypeId::Get<int>();
 
     // 컴파일 타임 기능이지만, 런타임 값도 확인
-    EXPECT_EQ(id.GetName(), "int");
-    EXPECT_EQ(id.GetHash(), se::HashUtils::FNV("int"));
+    EXPECT_EQ(TYPE_ID.GetName(), "int");
+    EXPECT_EQ(TYPE_ID.GetHash(), se::HashUtils::FNV("int"));
 
     // static_assert를 사용하여 컴파일 타임 검증도 명시
-    static_assert(id.GetName() == "int");
-    static_assert(id.GetHash() == se::HashUtils::FNV("int"));
+    static_assert(TYPE_ID.GetName() == "int");
+    static_assert(TYPE_ID.GetHash() == se::HashUtils::FNV("int"));
     SUCCEED(); // static_assert가 통과했음을 gtest에 알림
 }
 
@@ -119,17 +119,17 @@ TEST_F(TypeReflectionTest, TypeIdsForDifferentTypesAreDifferent)
 {
     using namespace se;
 
-    constexpr TypeId id_int = TypeId::Get<int>();
-    constexpr TypeId id_float = TypeId::Get<float>();
-    constexpr TypeId id_class = TypeId::Get<WeirdNamespace::MyClass>();
+    constexpr TypeId ID_INT = TypeId::Get<int>();
+    constexpr TypeId ID_FLOAT = TypeId::Get<float>();
+    constexpr TypeId ID_CLASS = TypeId::Get<WeirdNamespace::MyClass>();
 
-    EXPECT_NE(id_int, id_float);
-    EXPECT_NE(id_int, id_class);
-    EXPECT_NE(id_float, id_class);
+    EXPECT_NE(ID_INT, ID_FLOAT);
+    EXPECT_NE(ID_INT, ID_CLASS);
+    EXPECT_NE(ID_FLOAT, ID_CLASS);
 
     // 포인터/참조가 제거된 기본 타입은 같은 TypeId를 가져야 함
-    constexpr TypeId id_int_ptr = TypeId::Get<int*>();
-    constexpr TypeId id_const_int_ref = TypeId::Get<const int&>();
-    EXPECT_NE(id_int, id_int_ptr);
-    EXPECT_EQ(id_int, id_const_int_ref);
+    constexpr TypeId ID_INT_PTR = TypeId::Get<int*>();
+    constexpr TypeId ID_CONST_INT_REF = TypeId::Get<const int&>();
+    EXPECT_NE(ID_INT, ID_INT_PTR);
+    EXPECT_EQ(ID_INT, ID_CONST_INT_REF);
 }

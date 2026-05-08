@@ -1,9 +1,10 @@
 ﻿#pragma once
+
+#include "SimpleEngine/Core/Functional/FunctionDetail.h"
+
 #include <functional>
 #include <type_traits>
 #include <utility>
-
-#include "SimpleEngine/Core/Functional/FunctionDetail.h"
 
 
 namespace se

@@ -13,9 +13,9 @@ HashMap<StringName, uint32> MemoryStats::tag_lookup;
 
 [[maybe_unused]] static const bool DefaultTagInitialized = [] static
 {
-    if (auto tags_span = MemoryStats::GetTags(); !tags_span.IsEmpty())
+    if (auto tags_view = MemoryStats::GetTags(); !tags_view.IsEmpty())
     {
-        tags_span[0].name = "Untagged";
+        tags_view[0].name = "Untagged";
     }
     return true;
 }();

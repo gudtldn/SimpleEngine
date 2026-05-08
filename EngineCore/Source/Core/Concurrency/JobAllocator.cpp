@@ -205,12 +205,12 @@ bool StealFromGlobal(usize in_class_index)
             }
 
             // 최대 BLOCKS_PER_SLAB / 2개 또는 전부 가져오기
-            constexpr uint32 max_steal = BLOCKS_PER_SLAB / 2;
+            constexpr uint32 MAX_STEAL = BLOCKS_PER_SLAB / 2;
             stolen_head = pool.head;
             FreeNode* cursor = stolen_head;
             stolen_count = 1;
 
-            while (cursor->next != nullptr && stolen_count < max_steal)
+            while (cursor->next != nullptr && stolen_count < MAX_STEAL)
             {
                 cursor = cursor->next;
                 ++stolen_count;

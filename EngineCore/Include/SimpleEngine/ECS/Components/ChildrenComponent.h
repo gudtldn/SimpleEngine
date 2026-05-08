@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/ECS/Entity.h"

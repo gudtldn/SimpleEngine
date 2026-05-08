@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 

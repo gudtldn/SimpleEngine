@@ -2,7 +2,6 @@
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
-#include "SimpleEngine/Core/Math/Color.h"
 #include "SimpleEngine/Core/Math/Math.h"
 
 

@@ -106,11 +106,11 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         if (ai_mat_idx < mesh_node->material_node_uids.Len())
         {
             const Guid& mat_guid = mesh_node->material_node_uids[ai_mat_idx];
-            static_mesh->default_materials.Push(mat_guid.IsValid() ? AssetId{ mat_guid } : AssetId::Invalid);
+            static_mesh->default_materials.Push(mat_guid.IsValid() ? AssetId{ mat_guid } : AssetId::invalid);
         }
         else
         {
-            static_mesh->default_materials.Push(AssetId::Invalid);
+            static_mesh->default_materials.Push(AssetId::invalid);
         }
     }
 

@@ -9,31 +9,31 @@
 #include "Panels/OutlinerPanel.h"
 #include "Panels/SettingsPanel.h"
 #include "Panels/ViewportPanel.h"
+#include "Panels/WorldResourcePanel.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/Core/SelectionSubsystem.h"
 
 #include "SimpleEngine/App/Application.h"
-#include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
-#include "Panels/WorldResourcePanel.h"
 
 #include <sstream>
 
@@ -89,9 +89,9 @@ bool EditorUISubsystem::Initialize()
     io.ConfigDpiScaleViewports = true;
 
     // 폰트 로드 (설정 파일에서 읽은 경로/크기 사용)
-    if (const Optional ttf_path_opt = VFS::Resolve(VPath(ui_settings.font_path)))
+    if (const auto ttf_path = VFS::Resolve(VPath(ui_settings.font_path)))
     {
-        io.Fonts->AddFontFromFileTTF(ttf_path_opt->ToString().CStr(), ui_settings.font_size, nullptr, io.Fonts->GetGlyphRangesKorean());
+        io.Fonts->AddFontFromFileTTF(ttf_path->CStr(), ui_settings.font_size, nullptr, io.Fonts->GetGlyphRangesKorean());
     }
     else
     {
@@ -306,52 +306,53 @@ void EditorUISubsystem::DrawMainMenu()
                         }
 
                         // World 수정은 메인 스레드에서 수행
-                        JobSystem::Get().DispatchToMain(UniqueFunction<void()>{
-                            [data = std::move(bytes_result.Value()), file_path = path]()
+                        JobSystem::Get().DispatchToMain([data = std::move(bytes_result).Value(), file_path = path]
+                        {
+                            EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>();
+                            if (!entity_sub)
                             {
-                                EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>();
-                                if (!entity_sub)
+                                return;
+                            }
+
+                            World& world = entity_sub->GetMainWorld().GetWorld();
+
+                            // DLL 경계를 넘는 constexpr 멤버의 ODR-use(주소 참조)시 발생하는
+                            // 미해결 기호(Unresolved External) 링크 에러를 방지하기 위해 로컬 스택에 할당하여 비교
+                            constexpr uint32 EXPECTED_MAGIC = World::FILE_MAGIC;
+                            const bool is_binary = data.Len() >= sizeof(uint32)
+                                && std::memcmp(data.Data(), &EXPECTED_MAGIC, sizeof(uint32)) == 0;
+
+                            if (is_binary)
+                            {
+                                MemoryReader reader{ data };
+                                reader << world;
+                                if (reader.HasError())
                                 {
+                                    ConsoleLog(ELogLevel::Error, "Failed to load world (binary): {}", reader.GetError());
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                StringView toml_str{ reinterpret_cast<const char*>(data.Data()), data.Len() };
+                                toml::parse_result parsed = toml::parse(toml_str);
+                                if (!parsed)
+                                {
+                                    ConsoleLog(ELogLevel::Error, "TOML parse error: {}", parsed.error().description());
                                     return;
                                 }
 
-                                World& world = entity_sub->GetMainWorld().GetWorld();
-
-                                const bool is_binary = data.Len() >= sizeof(uint32)
-                                    && std::memcmp(data.Data(), &World::FILE_MAGIC, sizeof(uint32)) == 0;
-
-                                if (is_binary)
+                                toml::table tbl = std::move(parsed).table();
+                                TomlReader reader{ tbl };
+                                reader << world;
+                                if (reader.HasError())
                                 {
-                                    MemoryReader reader{ data };
-                                    reader << world;
-                                    if (reader.HasError())
-                                    {
-                                        ConsoleLog(ELogLevel::Error, "Failed to load world (binary): {}", reader.GetError());
-                                        return;
-                                    }
+                                    ConsoleLog(ELogLevel::Error, "Failed to load world (TOML): {}", reader.GetError());
+                                    return;
                                 }
-                                else
-                                {
-                                    StringView toml_str{ reinterpret_cast<const char*>(data.Data()), data.Len() };
-                                    toml::parse_result parsed = toml::parse(toml_str);
-                                    if (!parsed)
-                                    {
-                                        ConsoleLog(ELogLevel::Error, "TOML parse error: {}", parsed.error().description());
-                                        return;
-                                    }
-
-                                    toml::table tbl = std::move(parsed).table();
-                                    TomlReader reader{ tbl };
-                                    reader << world;
-                                    if (reader.HasError())
-                                    {
-                                        ConsoleLog(ELogLevel::Error, "Failed to load world (TOML): {}", reader.GetError());
-                                        return;
-                                    }
-                                }
-
-                                ConsoleLog(ELogLevel::Info, "World loaded: {}", file_path);
                             }
+
+                            ConsoleLog(ELogLevel::Info, "World loaded: {}", file_path);
                         });
                     },
                     { WORLD_FILTER }

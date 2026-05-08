@@ -1,6 +1,6 @@
 ﻿#include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 #include "SDL3/SDL.h"
 
@@ -17,21 +17,21 @@ Path Platform::FindProjectRoot()
     // 최초 호출 시 탐색 후 캐싱
     static const Path cached = [] static -> Path
     {
-        constexpr uint32 max_traversal_depth = 10;
-        constexpr const char* sentinel_extension = ".seproject";
+        constexpr uint32 MAX_TRAVERSAL_DEPTH = 10;
+        constexpr const char* SENTINEL_EXTENSION = ".seproject";
 
         Path current = GetExecutableDirectory();
 
-        for (uint32 i = 0; i < max_traversal_depth; ++i)
+        for (uint32 i = 0; i < MAX_TRAVERSAL_DEPTH; ++i)
         {
             // 현재 디렉토리에서 *.seproject 파일 탐색
             for (const DirectoryEntry& entry : FileSystem::ReadDir(current))
             {
                 if (entry.IsFile())
                 {
-                    if (const Optional ext_opt = entry.GetPath().Extension())
+                    if (const auto ext = entry.GetPath().Extension())
                     {
-                        if (*ext_opt == sentinel_extension)
+                        if (ext == SENTINEL_EXTENSION)
                         {
                             return current;
                         }

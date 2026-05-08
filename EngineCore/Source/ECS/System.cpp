@@ -1,7 +1,5 @@
 ﻿#include "SimpleEngine/ECS/System.h"
 
-#include <ranges>
-
 
 namespace se
 {

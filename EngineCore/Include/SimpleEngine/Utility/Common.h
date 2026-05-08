@@ -1,10 +1,11 @@
 #pragma once
-#include <bit>
-#include <concepts>
-#include <utility>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <bit>
+#include <concepts>
+#include <utility>
 
 #define SE_CONCAT_NAME_IMPL(a, b) a##b
 
@@ -33,6 +34,7 @@
 
 #define SE_SCOPE_DEFER_NAMED(name) \
     LambdaScopeGuard name = [&] -> void
+
 
 namespace se
 {

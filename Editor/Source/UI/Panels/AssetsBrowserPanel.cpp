@@ -226,7 +226,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
             if (!item.is_directory && ImGui::BeginDragDropSource())
             {
                 // 텍스처 등 에셋 로딩을 위해 경로 전달
-                const String item_path = item.path.ToString();
+                const String& item_path = item.path.ToString();
                 ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", item_path.CStr(), item_path.ByteLen() + 1);
                 ImGui::Text("%s", item.name.CStr()); // 드래그 중 힌트
                 ImGui::EndDragDropSource();
@@ -547,7 +547,7 @@ void AssetsBrowserPanel::DrawImportSettingsModal()
         {
             if (EditorAssetSubsystem* asset_sub = GetSubsystem<EditorAssetSubsystem>())
             {
-                if (const Optional vpath = VFS::Unresolve(modal_asset_path))
+                if (const auto vpath = VFS::Unresolve(modal_asset_path))
                 {
                     asset_sub->CookAsset(*vpath);
                 }
@@ -603,7 +603,7 @@ bool AssetsBrowserPanel::DrawImportSettings()
             continue;
         }
 
-        const Optional info_opt = registry.Find(type_id);
+        const auto info_opt = registry.Find(type_id);
         if (!info_opt.HasValue())
         {
             const StringView view = type_id.GetName();
@@ -644,9 +644,9 @@ bool AssetsBrowserPanel::DrawProcessorStack()
         ImGui::PushID(static_cast<int>(n));
 
         String label = "Unknown Processor";
-        if (const Optional info_opt = registry.Find(entry.processor_type))
+        if (const auto info = registry.Find(entry.processor_type))
         {
-            label = String(info_opt->name);
+            label = info->name;
         }
 
         if (ImGui::Checkbox(label.CStr(), &entry.enabled))

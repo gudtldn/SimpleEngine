@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
-#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/World.h"

@@ -41,8 +41,8 @@ class MockMeshTranslator : public IPipelineTranslator
 public:
     [[nodiscard]] virtual ArrayView<const StringView> GetSupportedExtensions() const override
     {
-        static constexpr FixedArray<StringView, 1> exts = { ".mock" };
-        return exts;
+        static constexpr FixedArray<StringView, 1> SUPPORTED_EXTENSIONS = { ".mock" };
+        return SUPPORTED_EXTENSIONS;
     }
 
     virtual void Translate(
@@ -192,8 +192,8 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     importer.RegisterFactory<StaticMeshFactory>();
 
     PipelineProcessorStack pipeline_stack;
-    constexpr float scale_factor = 100.0f;
-    pipeline_stack.AddProcessor<MeshScaleProcessor>(scale_factor);
+    constexpr float SCALE_FACTOR = 100.0f;
+    pipeline_stack.AddProcessor<MeshScaleProcessor>(SCALE_FACTOR);
 
     ImportProfile config;
     ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
@@ -211,9 +211,9 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     ASSERT_FALSE(mesh->vertices.IsEmpty());
 
     const auto& pos = mesh->vertices[0].position;
-    EXPECT_FLOAT_EQ(pos.x, 1.0f * scale_factor);
-    EXPECT_FLOAT_EQ(pos.y, 1.0f * scale_factor);
-    EXPECT_FLOAT_EQ(pos.z, 1.0f * scale_factor);
+    EXPECT_FLOAT_EQ(pos.x, 1.0f * SCALE_FACTOR);
+    EXPECT_FLOAT_EQ(pos.y, 1.0f * SCALE_FACTOR);
+    EXPECT_FLOAT_EQ(pos.z, 1.0f * SCALE_FACTOR);
 }
 
 TEST_F(AssetPipelineTest, ImportPipeline_CombineMeshesConfigTest)

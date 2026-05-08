@@ -88,7 +88,7 @@ void RenderGraphBuilder::Clear()
 
 RGTextureHandle RenderGraphBuilder::RegisterTextureSlot(const StringName& name)
 {
-    if (const Optional existing = resource_name_map.Find(name))
+    if (const auto existing = resource_name_map.Find(name))
     {
         return RGTextureHandle{ .index = *existing };
     }
@@ -103,7 +103,7 @@ RGTextureHandle RenderGraphBuilder::RegisterTextureSlot(const StringName& name)
 
 RGBufferHandle RenderGraphBuilder::RegisterBufferSlot(const StringName& name)
 {
-    if (const Optional existing = resource_name_map.Find(name))
+    if (const auto existing = resource_name_map.Find(name))
     {
         return RGBufferHandle{ .index = *existing };
     }

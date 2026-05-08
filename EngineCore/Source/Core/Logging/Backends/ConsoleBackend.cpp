@@ -1,21 +1,20 @@
 ﻿#include "SimpleEngine/Core/Logging/Backends/ConsoleBackend.h"
+#include "SimpleEngine/Core/Logging/LogSettings.h"
 
 #include <iostream>
 #include <print>
-
-#include "SimpleEngine/Core/Logging/LogSettings.h"
 
 
 namespace
 {
 namespace LogColors
 {
-constexpr const char* COLOR_DEBUG = "\x1b[36m";   // Cyan
-constexpr const char* COLOR_INFO = "\x1b[32m";    // Green
+constexpr const char* COLOR_DEBUG   = "\x1b[36m"; // Cyan
+constexpr const char* COLOR_INFO    = "\x1b[32m"; // Green
 constexpr const char* COLOR_WARNING = "\x1b[33m"; // Yellow
-constexpr const char* COLOR_ERROR = "\x1b[31m";   // Red
-constexpr const char* COLOR_FATAL = "\x1b[35m";   // Magenta
-constexpr const char* COLOR_RESET = "\x1b[0m";    // Reset
+constexpr const char* COLOR_ERROR   = "\x1b[31m"; // Red
+constexpr const char* COLOR_FATAL   = "\x1b[35m"; // Magenta
+constexpr const char* COLOR_RESET   = "\x1b[0m";  // Reset
 }
 
 const char* GetColorForLevel(se::ELogLevel level)

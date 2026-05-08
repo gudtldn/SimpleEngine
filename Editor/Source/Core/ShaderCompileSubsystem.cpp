@@ -1,7 +1,7 @@
 ﻿#include "Core/ShaderCompileSubsystem.h"
 #include "Graphics/EditorShaderCompiler.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"

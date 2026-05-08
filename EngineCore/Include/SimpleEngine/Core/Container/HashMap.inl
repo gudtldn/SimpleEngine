@@ -1,8 +1,9 @@
 ﻿// ReSharper disable CppRedundantTypenameKeyword
 #pragma once
-#include <utility>
 
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <utility>
 
 
 namespace se

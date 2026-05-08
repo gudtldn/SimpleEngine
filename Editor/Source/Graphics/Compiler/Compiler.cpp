@@ -1,7 +1,6 @@
 #include "Graphics/Compiler/Compiler.h"
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 
 #if SE_HAS_HLSL_COMPILER
 #include <ranges>

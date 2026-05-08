@@ -1,6 +1,5 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "SimpleEditor/Core/EditorActionSubsystem.h"
-
 #include "SimpleEditor/Core/SelectionSubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
@@ -99,9 +98,9 @@ void EditorActionSubsystem::DeleteSelectedEntities()
 void EditorActionSubsystem::DeleteEntityRecursive(World& world, EditorSelection& selection, Entity entity)
 {
     // 자식들을 먼저 재귀적으로 삭제
-    if (const Optional children_opt = world.TryGetComponent<ChildrenComponent>(entity))
+    if (const auto children = world.TryGetComponent<ChildrenComponent>(entity))
     {
-        const Array<Entity> children_copy = children_opt->children;
+        const Array<Entity> children_copy = children->children;
         for (const Entity& child : children_copy)
         {
             DeleteEntityRecursive(world, selection, child);
@@ -109,11 +108,11 @@ void EditorActionSubsystem::DeleteEntityRecursive(World& world, EditorSelection&
     }
 
     // 부모의 ChildrenComponent에서 자신을 제거
-    if (const Optional parent_opt = world.TryGetComponent<ParentComponent>(entity))
+    if (const auto parent = world.TryGetComponent<ParentComponent>(entity))
     {
-        if (const Optional parent_children_opt = world.TryGetComponent<ChildrenComponent>(parent_opt->parent))
+        if (const auto parent_children = world.TryGetComponent<ChildrenComponent>(parent->parent))
         {
-            parent_children_opt->children.Remove(entity);
+            parent_children->children.Remove(entity);
         }
     }
 

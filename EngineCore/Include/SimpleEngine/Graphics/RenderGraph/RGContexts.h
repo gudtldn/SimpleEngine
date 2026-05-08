@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
-#include "SimpleEngine/Utility/GpuDebug.h"
 
 #include "SDL3/SDL_gpu.h"
 

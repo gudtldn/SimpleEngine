@@ -71,7 +71,7 @@ bool RenderSubsystem::Initialize()
         return false;
     }
 
-    const Optional window_desc_opt = window_subsystem.GetWindowDesc(window_subsystem.GetMainWindowID());
+    const auto window_desc_opt = window_subsystem.GetWindowDesc(window_subsystem.GetMainWindowID());
     const SDL_GPUSwapchainComposition swapchain_composition = window_desc_opt->swapchain_composition
         .ValueOr(DetermineBestSwapchainComposition(main_window, *window_desc_opt));
     const SDL_GPUPresentMode present_mode = window_desc_opt->present_mode

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 

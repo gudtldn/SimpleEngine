@@ -35,7 +35,7 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
 {
     if (this != &other)
     {
-         if (buffer)
+        if (buffer)
         {
             SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
         }

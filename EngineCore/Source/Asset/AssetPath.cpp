@@ -7,7 +7,7 @@ namespace se
 {
 AssetPath::AssetPath(StringView full_path_str)
 {
-    const Optional separator_pos_opt = full_path_str.FindLast('#');
+    const auto separator_pos_opt = full_path_str.FindLast('#');
     if (!separator_pos_opt)
     {
         file_path = full_path_str;

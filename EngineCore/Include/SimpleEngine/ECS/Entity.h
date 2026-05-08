@@ -12,11 +12,11 @@ class EntityManager;
 class Entity
 {
 public:
-    static constexpr uint32 Invalid = std::numeric_limits<uint32>::max();
+    static constexpr uint32 INVALID_ID = std::numeric_limits<uint32>::max();
 
 public:
     Entity()
-        : id(Invalid)
+        : id(INVALID_ID)
         , generation(0)
     {
     }
@@ -24,7 +24,7 @@ public:
     [[nodiscard]] uint32 GetId() const noexcept { return id; }
     [[nodiscard]] uint32 GetGeneration() const noexcept { return generation; }
 
-    [[nodiscard]] bool IsValid() const noexcept { return id != Invalid; }
+    [[nodiscard]] bool IsValid() const noexcept { return id != INVALID_ID; }
 
     bool operator==(const Entity& other) const noexcept = default;
     [[nodiscard]] explicit operator bool() const noexcept { return IsValid(); }

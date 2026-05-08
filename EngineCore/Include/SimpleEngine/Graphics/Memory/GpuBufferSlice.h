@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
 #include "SDL3/SDL_gpu.h"
 
 

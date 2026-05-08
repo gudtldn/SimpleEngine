@@ -1,14 +1,15 @@
 #pragma once
-#include <compare>
-#include <format>
-#include <iterator>
-#include <ranges>
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
+
+#include <compare>
+#include <format>
+#include <iterator>
+#include <ranges>
 
 
 namespace se
@@ -52,6 +53,7 @@ public:
 private:
     const uint8* ptr;
 };
+} // namespace detail
 
 // --- 코드 포인트 뷰 ---
 class CodePointView
@@ -64,15 +66,14 @@ public:
     {
     }
 
-    [[nodiscard]] CodePointIterator begin() const { return CodePointIterator(view.Data()); }
-    [[nodiscard]] CodePointIterator end() const { return CodePointIterator(view.Data() + view.ByteLen()); }
+    [[nodiscard]] detail::CodePointIterator begin() const { return detail::CodePointIterator(view.Data()); }
+    [[nodiscard]] detail::CodePointIterator end() const { return detail::CodePointIterator(view.Data() + view.ByteLen()); }
 
     [[nodiscard]] bool IsEmpty() const { return view.IsEmpty(); }
 
 private:
     StringView view;
 };
-} // namespace detail
 
 /**
  * UTF-8 인코딩을 네이티브로 지원하는 동적 문자열 클래스
@@ -345,7 +346,7 @@ public:
      * for (char32_t cp : my_string.CodePoints()) { ... }
      * @endcode
      */
-    [[nodiscard]] detail::CodePointView CodePoints() const;
+    [[nodiscard]] CodePointView CodePoints() const;
 
     /**
      * 바이트(코드 유닛) 단위로 순회할 수 있는 뷰를 반환합니다.

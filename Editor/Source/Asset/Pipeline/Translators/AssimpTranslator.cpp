@@ -240,7 +240,7 @@ void ProcessNodeIterative(
     Array<const aiNode*> stack;
     stack.Push(root_node);
 
-    while (Optional node_opt = stack.Pop())
+    while (auto node_opt = stack.Pop())
     {
         const aiNode* node = *node_opt;
 
@@ -486,8 +486,8 @@ Array<Guid> ProcessMaterials(
             if (mode_str == "MASK")
             {
                 mat_node.blend_mode_override = EBlendMode::Masked;
-                constexpr uint32 flags = std::to_underlying(EMaterialFlag::AlphaTest);
-                mat_node.param_overrides.Insert("flags", { std::bit_cast<float>(flags), 0.0f, 0.0f, 0.0f });
+                constexpr uint32 FLAGS = std::to_underlying(EMaterialFlag::AlphaTest);
+                mat_node.param_overrides.Insert("flags", { std::bit_cast<float>(FLAGS), 0.0f, 0.0f, 0.0f });
             }
             else if (mode_str == "BLEND")
             {
@@ -556,10 +556,10 @@ namespace se::editor
 {
 ArrayView<const StringView> AssimpTranslator::GetSupportedExtensions() const
 {
-    static constexpr FixedArray supported_extensions = MakeFixedArray<StringView>(
+    static constexpr FixedArray SUPPORTED_EXTENSIONS = MakeFixedArray<StringView>(
         ".obj", ".fbx", ".gltf", ".glb", ".blend", ".vrm", ".pmx", ".pmd"
     );
-    return supported_extensions;
+    return SUPPORTED_EXTENSIONS;
 }
 
 void AssimpTranslator::Translate(

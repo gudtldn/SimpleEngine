@@ -204,6 +204,5 @@ private:
 
     /** Component array */
     Array<ComponentType> components;
-
 };
 } // namespace se

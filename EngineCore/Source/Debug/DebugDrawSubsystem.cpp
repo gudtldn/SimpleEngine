@@ -20,10 +20,10 @@ bool DebugDrawSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
 
-    constexpr uint32 buffer_size = static_cast<usize>(MAX_DEBUG_LINES * 2) * sizeof(DebugVertex);
+    constexpr uint32 BUFFER_SIZE = static_cast<usize>(MAX_DEBUG_LINES * 2) * sizeof(DebugVertex);
     vertex_buffer_rid = render_device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-        .size = buffer_size,
+        .size = BUFFER_SIZE,
     }, "DebugDraw_VertexBuffer");
 
     if (!render_device->IsValidBuffer(vertex_buffer_rid))
@@ -32,11 +32,11 @@ bool DebugDrawSubsystem::Initialize()
         return false;
     }
 
-    constexpr SDL_GPUTransferBufferCreateInfo transfer_buffer_info = {
+    constexpr SDL_GPUTransferBufferCreateInfo TRANSFER_BUFFER_INFO = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = buffer_size,
+        .size = BUFFER_SIZE,
     };
-    transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &transfer_buffer_info);
+    transfer_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &TRANSFER_BUFFER_INFO);
 
     if (!transfer_buffer)
     {

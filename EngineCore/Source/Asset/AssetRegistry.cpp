@@ -24,12 +24,12 @@ void AssetRegistry::RegisterAsset(
     std::unique_lock lock(registry_mutex);
 
     // 동일 ID로 재등록 시 이전 경로 인덱스를 정리 (Asset 이동/재스캔 시 stale 인덱스 방지)
-    if (const Optional old_record = records.Find(asset_id))
+    if (const auto old_record = records.Find(asset_id))
     {
         const VPath old_file = old_record->logical_path.GetFilePath();
         path_to_id.Remove(old_record->logical_path);
 
-        if (const Optional old_entries = file_to_assets.Find(old_file))
+        if (const auto old_entries = file_to_assets.Find(old_file))
         {
             old_entries->RemoveIf([&asset_id](const AssetId& id)
             {
@@ -60,22 +60,22 @@ void AssetRegistry::UnregisterAsset(const AssetId& asset_id)
     std::unique_lock lock(registry_mutex);
 
     // records에서 Asset을 찾은 뒤 연쇄적으로 제거
-    if (const Optional record_opt = records.Find(asset_id))
+    if (const auto record = records.Find(asset_id))
     {
-        const VPath file_path = record_opt->logical_path.GetFilePath();
+        const VPath file_path = record->logical_path.GetFilePath();
 
         // AssetPath 인덱스 제거
-        path_to_id.Remove(record_opt->logical_path);
+        path_to_id.Remove(record->logical_path);
 
         // file_to_assets에서 해당 ID 제거
-        if (const Optional entries_opt = file_to_assets.Find(file_path))
+        if (const auto entries = file_to_assets.Find(file_path))
         {
-            entries_opt->RemoveIf([&asset_id](const AssetId& id)
+            entries->RemoveIf([&asset_id](const AssetId& id)
             {
                 return id == asset_id;
             });
 
-            if (entries_opt->IsEmpty())
+            if (entries->IsEmpty())
             {
                 file_to_assets.Remove(file_path);
             }
@@ -113,13 +113,13 @@ Optional<AssetId> AssetRegistry::FindFirstOfType(const VPath& file_path, const T
 {
     std::shared_lock lock(registry_mutex);
 
-    if (const Optional entries_opt = file_to_assets.Find(file_path))
+    if (const auto entries = file_to_assets.Find(file_path))
     {
-        for (const AssetId& id : *entries_opt)
+        for (const AssetId& id : *entries)
         {
-            if (const Optional record_opt = records.Find(id))
+            if (const auto record = records.Find(id))
             {
-                if (record_opt->type == type)
+                if (record->type == type)
                 {
                     return id;
                 }
@@ -160,7 +160,7 @@ void AssetRegistry::UnregisterByPath(const VPath& source_path)
 {
     std::unique_lock lock(registry_mutex);
 
-    const Optional entries_opt = file_to_assets.Find(source_path);
+    const auto entries_opt = file_to_assets.Find(source_path);
     if (!entries_opt.HasValue())
     {
         return;
@@ -171,9 +171,9 @@ void AssetRegistry::UnregisterByPath(const VPath& source_path)
 
     for (const AssetId& id : ids_to_remove)
     {
-        if (const Optional record_opt = records.Find(id))
+        if (const auto record = records.Find(id))
         {
-            path_to_id.Remove(record_opt->logical_path);
+            path_to_id.Remove(record->logical_path);
         }
         records.Remove(id);
     }

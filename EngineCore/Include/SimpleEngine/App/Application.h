@@ -1,10 +1,11 @@
 ﻿#pragma once
-#include <algorithm>
-#include <atomic>
-#include <memory>
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
+#include <algorithm>
+#include <atomic>
+#include <memory>
 
 
 namespace se
@@ -53,11 +54,7 @@ public:
     void RequestQuit() { quit_requested = true; }
     [[nodiscard]] bool IsQuitRequested() const { return quit_requested; }
 
-    /**
-     * 애플리케이션이 실행 중인 모드를 지정하는 현재 애플리케이션 모드를 가져옵니다.
-     *
-     * @return 현재 애플리케이션 모드는 EApplicationMode 열거형 값으로 표시됩니다.
-     */
+    /** 애플리케이션이 실행 중인 모드를 지정하는 현재 애플리케이션 모드를 가져옵니다. */
     [[nodiscard]] EApplicationMode GetApplicationMode() const { return application_mode; }
 
 protected:
@@ -81,25 +78,25 @@ protected:
 public:
     [[nodiscard]] static uint32 GetTargetFps()
     {
-        return TargetFps;
+        return target_fps;
     }
 
     static void SetTargetFps(uint32 new_fps)
     {
-        TargetFps = new_fps;
-        TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
-        BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
+        target_fps = new_fps;
+        target_frame_time = 1.0 / static_cast<double>(target_fps);
+        busy_wait_threshold = target_frame_time * busy_wait_ratio;
     }
 
     [[nodiscard]] static double GetBusyWaitRatio()
     {
-        return BusyWaitRatio;
+        return busy_wait_ratio;
     }
 
     static void SetBusyWaitRatio(double new_ratio)
     {
-        BusyWaitRatio = std::clamp(new_ratio, 0.0, 1.0);
-        BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
+        busy_wait_ratio = std::clamp(new_ratio, 0.0, 1.0);
+        busy_wait_threshold = target_frame_time * busy_wait_ratio;
     }
 
 protected:
@@ -107,14 +104,14 @@ protected:
     EApplicationMode application_mode;
 
 private:
-    static Application* Instance;
+    static Application* instance;
 
     // 프레임 pacing 정책
-    static uint32 TargetFps;       // 목표 FPS
-    static double TargetFrameTime; // 목표 FPS 시간
+    static uint32 target_fps;       // 목표 FPS
+    static double target_frame_time; // 목표 FPS 시간
 
-    static double BusyWaitRatio;     // 바쁜 대기 시간 비율
-    static double BusyWaitThreshold; // 바쁜 대기 시간 제한
+    static double busy_wait_ratio;     // 바쁜 대기 시간 비율
+    static double busy_wait_threshold; // 바쁜 대기 시간 제한
 
     // Loop 제어 변수
     bool is_initialized = false;

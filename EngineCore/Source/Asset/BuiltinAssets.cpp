@@ -6,7 +6,6 @@
 #include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
-#include "SimpleEngine/Graphics/Material/MaterialTextureSlot.h"
 
 #include <memory>
 

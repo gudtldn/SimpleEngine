@@ -1,13 +1,13 @@
 #pragma once
-#include <memory>
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Asset/ImportSettings/ImportSettingsBase.h"
 
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Input/KeyCode.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+
+#include <memory>
 
 
 namespace se::editor
@@ -112,7 +112,7 @@ public:
                 ar.EndMapKey();
 
                 const auto& registry = TypeRegistry::Get();
-                const Optional info_opt = registry.Find(type_id);
+                const auto info_opt = registry.Find(type_id);
 
                 ar.BeginMapValue();
                 if (info_opt.HasValue() && info_opt->constructor)
@@ -145,8 +145,8 @@ public:
 
                 ar.BeginMapValue();
                 const auto& registry = TypeRegistry::Get();
-                const Optional info_opt = registry.Find(type_id);
-                if (info_opt.HasValue() && info_opt->serialize && settings_ptr)
+                const auto info_opt = registry.Find(type_id);
+                if (info_opt && info_opt->serialize && settings_ptr)
                 {
                     ar.BeginObject();
                     info_opt->serialize(ar, settings_ptr.get());

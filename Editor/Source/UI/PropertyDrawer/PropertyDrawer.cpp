@@ -60,26 +60,26 @@ bool DrawBool(const char* label, void* value, const PropertyInfo& /*prop*/)
 template <typename T>
 bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
 {
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     T* v = static_cast<T*>(value);
 
     if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasRange))
     {
         T min_val = static_cast<T>(prop.metadata.range_min);
         T max_val = static_cast<T>(prop.metadata.range_max);
-        return ImGui::SliderScalar(label, data_type, v, &min_val, &max_val);
+        return ImGui::SliderScalar(label, DATA_TYPE, v, &min_val, &max_val);
     }
 
-    constexpr float speed = std::floating_point<T> ? 0.1f : 1.0f;
+    constexpr float SPEED = std::floating_point<T> ? 0.1f : 1.0f;
 
     if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasClamp))
     {
         T min_val = static_cast<T>(prop.metadata.clamp_min);
         T max_val = static_cast<T>(prop.metadata.clamp_max);
-        return ImGui::DragScalarNInfinity(label, data_type, v, 1, speed, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
+        return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
     }
 
-    return ImGui::DragScalarNInfinity(label, data_type, v, 1, speed);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED);
 }
 
 // --- String ---
@@ -187,10 +187,10 @@ template <typename T>
 bool DrawVector2(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Vec = math::Vector2Impl<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Vec* vec = static_cast<Vec*>(value);
 
-    return ImGui::DragScalarNInfinity(label, data_type, &vec->x, 2, 0.1f);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, &vec->x, 2, 0.1f);
 }
 
 // --- Vector3 / Vector3f ---
@@ -199,10 +199,10 @@ template <typename T>
 bool DrawVector3(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Vec = math::Vector3Impl<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Vec* vec = static_cast<Vec*>(value);
 
-    return ImGui::DragScalarNInfinity(label, data_type, &vec->x, 3, 0.1f);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, &vec->x, 3, 0.1f);
 }
 
 // --- Vector4 / Vector4f ---
@@ -211,10 +211,10 @@ template <typename T>
 bool DrawVector4(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Vec = math::Vector4Impl<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Vec* vec = static_cast<Vec*>(value);
 
-    return ImGui::DragScalarNInfinity(label, data_type, &vec->x, 4, 0.1f);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, &vec->x, 4, 0.1f);
 }
 
 // --- Quaternion / Quaternionf ---
@@ -223,9 +223,9 @@ template <typename T>
 bool DrawQuaternion(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Quat = math::QuaternionImpl<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Quat* quat = static_cast<Quat*>(value);
-    return ImGui::DragScalarNInfinity(label, data_type, &quat->x, 4, 0.01f);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, &quat->x, 4, 0.01f);
 }
 
 // --- Rotator / Rotatorf ---
@@ -234,11 +234,11 @@ template <typename T>
 bool DrawRotator(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     using Rot = math::RotatorImpl<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Rot* rot = static_cast<Rot*>(value);
 
     // pitch, roll, yaw — 각각 Degree<T>이므로 .value 멤버에 직접 접근
-    return ImGui::DragScalarNInfinity(label, data_type, &rot->pitch.value, 3, 0.1f);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, &rot->pitch.value, 3, 0.1f);
 }
 
 // --- Matrix4x4 / Matrix4x4f ---
@@ -246,7 +246,7 @@ template <typename T>
 bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo& prop)
 {
     using Mat = math::Matrix4x4Impl<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Mat* mat = static_cast<Mat*>(value);
 
     bool modified = false;
@@ -276,7 +276,7 @@ bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo& prop)
             char row_label[16];
             std::snprintf(row_label, sizeof(row_label), "[%d]", i);
 
-            modified |= ImGui::DragScalarNInfinity(row_label, data_type, row_ptr, 4, 0.01f);
+            modified |= ImGui::DragScalarNInfinity(row_label, DATA_TYPE, row_ptr, 4, 0.01f);
 
             ImGui::PopID();
         }
@@ -334,17 +334,17 @@ template <typename T>
 bool DrawDegree(const char* label, void* value, const PropertyInfo& prop)
 {
     using Deg = Degree<T>;
-    constexpr ImGuiDataType_ data_type = GetImGuiDataType<T>();
+    constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Deg* angle = static_cast<Deg*>(value);
 
     if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasRange))
     {
         T min_val = static_cast<T>(prop.metadata.range_min);
         T max_val = static_cast<T>(prop.metadata.range_max);
-        return ImGui::SliderScalar(label, data_type, &angle->value, &min_val, &max_val);
+        return ImGui::SliderScalar(label, DATA_TYPE, &angle->value, &min_val, &max_val);
     }
 
-    return ImGui::DragScalarNInfinity(label, data_type, &angle->value, 1, 0.1f);
+    return ImGui::DragScalarNInfinity(label, DATA_TYPE, &angle->value, 1, 0.1f);
 }
 
 // ============================================================================
@@ -439,7 +439,7 @@ void WriteEnumValue(void* value, int64 new_value, usize size, bool is_unsigned)
 
 bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
 {
-    const Optional type_info_opt = TypeRegistry::Get().Find(prop.type_id);
+    const auto type_info_opt = TypeRegistry::Get().Find(prop.type_id);
     SE_ASSERT(
         type_info_opt && type_info_opt->enum_entries,
         "Enum '{}' is registered without enum_entries. Use SE_REFLECT_ENUM to register.", prop.type_id.GetName()
@@ -500,7 +500,7 @@ bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
 
 bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
 {
-    const Optional type_info_opt = TypeRegistry::Get().Find(prop.type_id);
+    const auto type_info_opt = TypeRegistry::Get().Find(prop.type_id);
     SE_ASSERT(
         type_info_opt && type_info_opt->enum_entries,
         "BitFlag enum '{}' is registered without enum_entries. Use SE_REFLECT_ENUM to register.", prop.type_id.GetName()
@@ -931,9 +931,9 @@ void DrawerRegistry::Register(const TypeId& type_id, PropertyDrawFunc drawer)
 
 PropertyDrawFunc DrawerRegistry::Find(const TypeId& type_id) const
 {
-    if (const Optional opt = drawers.Find(type_id))
+    if (const auto draw_fn = drawers.Find(type_id))
     {
-        return *opt;
+        return *draw_fn;
     }
     return nullptr;
 }
@@ -945,9 +945,9 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
     // 부모 클래스의 프로퍼티를 먼저 렌더링
     if (type_info.base_or_inner_id.IsValid() && type_info.kind == ETypeKind::Struct)
     {
-        if (const Optional parent_opt = TypeRegistry::Get().Find(type_info.base_or_inner_id))
+        if (const auto parent = TypeRegistry::Get().Find(type_info.base_or_inner_id))
         {
-            modified |= DrawProperties(*parent_opt, instance);
+            modified |= DrawProperties(*parent, instance);
         }
     }
 
@@ -1017,7 +1017,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
         }
 
         // TypeRegistry에서 타입 정보 조회하여 분기
-        else if (Optional prop_type_opt = TypeRegistry::Get().Find(prop.type_id))
+        else if (const auto prop_type_opt = TypeRegistry::Get().Find(prop.type_id))
         {
             if (prop_type_opt->kind == ETypeKind::Enum && prop_type_opt->enum_entries)
             {
@@ -1101,25 +1101,25 @@ bool DrawerRegistry::DrawValue(
     }
 
     // TypeRegistry에서 타입 정보 조회하여 분기
-    if (const Optional type_opt = TypeRegistry::Get().Find(type_id))
+    if (const auto type = TypeRegistry::Get().Find(type_id))
     {
-        if (type_opt->kind == ETypeKind::Enum && type_opt->enum_entries)
+        if (type->kind == ETypeKind::Enum && type->enum_entries)
         {
             PropertyInfo dummy_prop;
             dummy_prop.type_id = type_id;
 
-            if (type_opt->flags.IsAnySet(ETypeFlags::IsBitFlag))
+            if (type->flags.IsAnySet(ETypeFlags::IsBitFlag))
             {
                 return DrawBitFlags(label, value, dummy_prop);
             }
             return DrawEnum(label, value, dummy_prop);
         }
 
-        if (type_opt->kind == ETypeKind::Struct && !type_opt->properties.IsEmpty())
+        if (type->kind == ETypeKind::Struct && !type->properties.IsEmpty())
         {
             if (ImGui::TreeNode(label))
             {
-                const bool modified = DrawProperties(*type_opt, value);
+                const bool modified = DrawProperties(*type, value);
                 ImGui::TreePop();
                 return modified;
             }

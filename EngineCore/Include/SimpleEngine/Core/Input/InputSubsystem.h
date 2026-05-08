@@ -6,8 +6,6 @@
 #include "SimpleEngine/Core/Input/MouseButton.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
-#include "SDL3/SDL.h"
-
 
 namespace se
 {

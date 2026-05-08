@@ -167,17 +167,17 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
 
     SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, color_target_info, std::size(color_target_info), nullptr);
     {
-        constexpr SDL_GPUViewport viewport = {
+        constexpr SDL_GPUViewport VIEWPORT = {
             .x = 0.0f, .y = 0.0f,
             .w = 1.0f, .h = 1.0f,
             .min_depth = 0.0f, .max_depth = 1.0f,
         };
-        constexpr SDL_Rect scissor = {
+        constexpr SDL_Rect SCISSOR = {
             .x = 0, .y = 0,
             .w = 1, .h = 1,
         };
-        SDL_SetGPUViewport(pass, &viewport);
-        SDL_SetGPUScissor(pass, &scissor);
+        SDL_SetGPUViewport(pass, &VIEWPORT);
+        SDL_SetGPUScissor(pass, &SCISSOR);
 
         SDL_PushGPUVertexUniformData(cmd, 0, &ubo, sizeof(ubo));
 

@@ -19,7 +19,6 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
-#include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
@@ -199,14 +198,14 @@ bool EditorAssetSubsystem::Initialize()
     {
         // dropped_path는 AssetsBrowserPanel에서 전달한 물리 경로
         // VFS 역변환 -> Registry에서 첫 번째 에셋 ID 조회
-        const Optional file_vpath = VFS::Unresolve(Path{ dropped_path });
-        if (!file_vpath)
+        const auto file_vpath_opt = VFS::Unresolve(Path{ dropped_path });
+        if (!file_vpath_opt)
         {
             return {};
         }
 
         const AssetRegistry& registry = GetSubsystemChecked<AssetSubsystem>().GetRegistry();
-        const Array<AssetId> assets = registry.GetAssetsInFile(*file_vpath);
+        const Array<AssetId> assets = registry.GetAssetsInFile(*file_vpath_opt);
         if (assets.IsEmpty())
         {
             return {};
@@ -265,7 +264,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
         Array<Path> stack;
         stack.Push(root_path);
 
-        while (const Optional dir = stack.Pop())
+        while (const auto dir = stack.Pop())
         {
             for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
             {
@@ -285,14 +284,14 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
                 }
 
                 // 실제 Source 파일도 같이 존재하는지 확인
-                const Optional ext = entry_path.Extension();
-                if (ext == ".meta")
+                const auto ext_opt = entry_path.Extension();
+                if (ext_opt == ".meta")
                 {
                     // .meta 파일의 소스 파일 존재 여부 확인 -> 없으면 고아 .meta
                     Path source = MetaFileManager::GetSourcePath(entry_path);
                     if (!source.Exists())
                     {
-                        if (Optional content = MetaFileManager::Load(source))
+                        if (auto content = MetaFileManager::Load(source))
                         {
                             orphan_metas.Push({
                                 .source_path = std::move(source),
@@ -310,9 +309,9 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
                 }
 
                 source_files.Push(entry_path);
-                if (Optional vpath_opt = VFS::Unresolve(entry_path))
+                if (auto vpath = VFS::Unresolve(entry_path))
                 {
-                    inout_found_vpaths.Insert(std::move(vpath_opt).Value());
+                    inout_found_vpaths.Insert(std::move(vpath).Value());
                 }
                 else
                 {
@@ -355,7 +354,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
         {
             // .meta 없음 -> 해시 매칭으로 오프라인 이동 감지
             const ContentHash hash = SHA256::HashFile(file_path);
-            if (const Optional idx = orphan_by_hash.Find(hash))
+            if (const auto idx = orphan_by_hash.Find(hash))
             {
                 OrphanMeta& orphan = orphan_metas[*idx];
 
@@ -390,8 +389,8 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
         }
 
         // VPath 변환 (Registry 등록 + cook dispatch 모두에 필요)
-        Optional file_vpath = VFS::Unresolve(file_path);
-        if (!file_vpath)
+        auto file_vpath_opt = VFS::Unresolve(file_path);
+        if (!file_vpath_opt)
         {
             ConsoleLog(ELogLevel::Error, "ScanWorkspace: Fatal error, lost VFS tracking for: {}", file_path);
             continue;
@@ -404,7 +403,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
         if (is_new || is_dirty)
         {
             // Background Cook 목록에 Push
-            dirty_vpaths.Push(*file_vpath);
+            dirty_vpaths.Push(std::move(file_vpath_opt).Value());
             if (is_new)
             {
                 ++new_count;
@@ -419,7 +418,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
             ++clean_count;
         }
 
-        RegisterFromMeta(*file_vpath, meta);
+        RegisterFromMeta(*file_vpath_opt, meta);
     }
 
     // 백그라운드 병렬 Cook
@@ -460,7 +459,7 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
     if (MetaFileManager::HasMeta(source_path))
     {
         // 있다면 Load
-        if (Optional existing_content = MetaFileManager::Load(source_path))
+        if (auto existing_content = MetaFileManager::Load(source_path))
         {
             return existing_content;
         }
@@ -480,7 +479,7 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
     };
 
     // Translator에 맞는 기본 ImportProfile 설정
-    if (const Optional translator_type = importer->FindTranslatorTypeId(source_path))
+    if (const auto translator_type = importer->FindTranslatorTypeId(source_path))
     {
         content.import_settings = preset_manager.GetDefaultProfile(*translator_type);
     }
@@ -515,7 +514,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     };
 
     // VPath -> 물리 경로 변환 (파일 I/O에 필요)
-    const Optional physical_opt = VFS::Resolve(file_vpath);
+    const auto physical_opt = VFS::Resolve(file_vpath);
     if (!physical_opt.HasValue())
     {
         ConsoleLog(ELogLevel::Error, "CookAsset: Failed to resolve VPath: {}", file_vpath);
@@ -524,7 +523,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const Path& file_path = *physical_opt;
 
     // .meta에서 ImportProfile 획득 (없으면 기본값)
-    Optional meta_content_opt = MetaFileManager::Load(file_path);
+    auto meta_content_opt = MetaFileManager::Load(file_path);
     ImportProfile import_profile = meta_content_opt
         .Map([](const MetaFileContent& content)
         {
@@ -546,7 +545,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
                 continue;
             }
 
-            const Optional info_opt = type_registry.Find(entry.processor_type);
+            const auto info_opt = type_registry.Find(entry.processor_type);
             if (!info_opt.HasValue() || !info_opt->constructor)
             {
                 ConsoleLog(
@@ -615,7 +614,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
     // 해시 및 파일 메타 계산
     const ContentHash source_hash = SHA256::HashFile(file_path);
-    constexpr uint32 current_cache_version = 1;
+    constexpr uint32 CURRENT_CACHE_VERSION = 1; // TODO: 캐시 버전이 여러곳에서 관리되고 있음.
     const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
     const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
 
@@ -630,7 +629,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     updated_content.metadata.source_hash = source_hash;
     updated_content.metadata.source_mtime = file_mtime;
     updated_content.metadata.source_size = file_size;
-    updated_content.metadata.cache_version = current_cache_version;
+    updated_content.metadata.cache_version = CURRENT_CACHE_VERSION;
     updated_content.metadata.settings_hash = settings_hash;
 
     // Reimport 시 ImportSettings 변경으로 sub-asset 목록이 달라질 수 있으므로
@@ -678,7 +677,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             {
                 ddc.Store(asset_id.GetGuid(), {
                     .source_hash = source_hash,
-                    .cache_version = current_cache_version,
+                    .cache_version = CURRENT_CACHE_VERSION,
                     .payload = std::move(payload),
                 });
             }
@@ -753,15 +752,15 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
         return false;
     }
 
-    const Optional file_vpath = VFS::Unresolve(dest_path);
-    if (!file_vpath)
+    auto file_vpath_opt = VFS::Unresolve(dest_path);
+    if (!file_vpath_opt)
     {
         ConsoleLog(ELogLevel::Error, "ImportExternalFile: Failed to resolve VPath for: {}", dest_path);
         return false;
     }
 
     // Cook은 백그라운드에서 비동기 실행
-    JobSystem::Get().DispatchTask(MakeImportCookTask(*this, *file_vpath));
+    JobSystem::Get().DispatchTask(MakeImportCookTask(*this, std::move(file_vpath_opt).Value()));
     return true;
 }
 
@@ -859,13 +858,13 @@ bool EditorAssetSubsystem::LoadRegistrySnapshot()
     ZoneScopedN("EditorAssetSubsystem::LoadRegistrySnapshot");
 
     const VPath snapshot_vpath = GetRegistrySnapshotVPath();
-    const Optional snapshot_path = VFS::Resolve(snapshot_vpath);
-    if (!snapshot_path.HasValue())
+    const auto snapshot_path_opt = VFS::Resolve(snapshot_vpath);
+    if (!snapshot_path_opt.HasValue())
     {
         return false;
     }
 
-    return asset_subsystem->GetRegistry().LoadFromFile(*snapshot_path);
+    return asset_subsystem->GetRegistry().LoadFromFile(*snapshot_path_opt);
 }
 
 VPath EditorAssetSubsystem::GetRegistrySnapshotVPath()

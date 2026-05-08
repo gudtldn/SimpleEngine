@@ -1,40 +1,23 @@
 #include "SimpleEngine/Core/HAL/Platform.h"
 
 #if SE_PLATFORM_MACOS
-#include <cstdlib>
-#include <string_view>
-#include <pthread.h>
-#include <string.h>
-
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/Debug.h"
 
+#include <cstdlib>
+#include <pthread.h>
+#include <string.h>
+#include <string_view>
+
 
 namespace se
 {
-void Platform::SetThreadName([[maybe_unused]] std::thread& thread, [[maybe_unused]] const String& name)
-{
-    // macOS does not support setting the name of another thread by its handle.
-    // This function is a no-op on this platform.
-}
-
 void Platform::SetCurrentThreadName(const String& name)
 {
     // The pthread_setname_np on macOS/BSD sets the name of the calling thread.
     pthread_setname_np(name.CStr());
-}
-
-String Platform::GetThreadName(std::thread& thread)
-{
-    char thread_name[64] = {};
-    if (pthread_getname_np(thread.native_handle(), thread_name, sizeof(thread_name)) == 0)
-    {
-        usize len = strnlen(thread_name, sizeof(thread_name));
-        return { thread_name, len };
-    }
-    return {};
 }
 
 String Platform::GetCurrentThreadName()
@@ -60,6 +43,25 @@ void Platform::RevealInExplorer(const Path& path)
     const Path absolute_path = FileSystem::Absolute(path);
     const String command = String::Format("open -R \"{}\"", absolute_path);
     std::system(command.CStr());
+}
+
+void Platform::SetThreadNameImpl([[maybe_unused]] void* native_handle, [[maybe_unused]] const String& name)
+{
+    // macOS does not support setting the name of another thread by its handle.
+    // This function is a no-op on this platform.
+}
+
+String Platform::GetThreadNameImpl(void* native_handle)
+{
+    char thread_name[64] = {};
+    pthread_t handle = reinterpret_cast<pthread_t>(native_handle);
+
+    if (pthread_getname_np(handle, thread_name, sizeof(thread_name)) == 0)
+    {
+        usize len = strnlen(thread_name, sizeof(thread_name));
+        return { thread_name, len };
+    }
+    return {};
 }
 } // namespace se
 #endif

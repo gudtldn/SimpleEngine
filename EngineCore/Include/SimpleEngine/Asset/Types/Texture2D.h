@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
@@ -79,14 +80,14 @@ constexpr uint32 GetBytesPerPixel(ETextureFormat fmt) noexcept
 {
     switch (fmt)
     {
-    case ETextureFormat::R8_UNORM:              return 1;
-    case ETextureFormat::R8G8_UNORM:            return 2;
+    case ETextureFormat::R8_UNORM:             return 1;
+    case ETextureFormat::R8G8_UNORM:           return 2;
     case ETextureFormat::R8G8B8A8_UNORM:
     case ETextureFormat::R8G8B8A8_UNORM_SRGB:
-    case ETextureFormat::R11G11B10_UFLOAT:      return 4;
-    case ETextureFormat::R16G16_FLOAT:          return 4;
-    case ETextureFormat::R16G16B16A16_FLOAT:    return 8;
-    default:                                    return 0;
+    case ETextureFormat::R11G11B10_UFLOAT:     return 4;
+    case ETextureFormat::R16G16_FLOAT:         return 4;
+    case ETextureFormat::R16G16B16A16_FLOAT:   return 8;
+    default:                                   return 0;
     }
 }
 

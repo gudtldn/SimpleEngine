@@ -8,7 +8,7 @@
 
 namespace ImGui
 {
-bool ImGui::DragScalarNInfinity(
+bool DragScalarNInfinity(
     const char* label, ImGuiDataType data_type, void* p_data, int components,
     float v_speed, const void* p_min, const void* p_max, const char* format,
     ImGuiSliderFlags flags

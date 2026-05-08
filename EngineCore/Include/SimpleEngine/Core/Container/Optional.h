@@ -2,16 +2,13 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <concepts>
-#include <functional>
-#include <memory>
 #include <optional>
 #include <type_traits>
 #include <utility>
-
-#include "SimpleEngine/Traits/TypeTraits.h"
 
 
 namespace se
@@ -232,15 +229,14 @@ public:
     [[nodiscard]] constexpr auto Map(this Self&& self, Fn&& func)
     {
         using InvokeResult = std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>;
-        using ReturnOptional = Optional<InvokeResult>;
 
         if (self.HasValue())
         {
-            return ReturnOptional{
+            return Optional<InvokeResult>{
                 std::invoke(std::forward<Fn>(func), std::forward<Self>(self).Value())
             };
         }
-        return ReturnOptional{};
+        return Optional<InvokeResult>{};
     }
 
     /** 값이 존재할 때, fn(T) -> Optional<U>인 함수를 호출하여 새로운 Optional<U> 타입을 반환합니다. */
@@ -446,12 +442,11 @@ public:
         && (!std::is_void_v<std::invoke_result_t<Fn, T*>>)
     [[nodiscard]] constexpr auto Map(Fn&& func) const
     {
-        using ReturnOptional = Optional<std::invoke_result_t<Fn, T*>>;
         if (HasValue())
         {
-            return ReturnOptional{ std::invoke(std::forward<Fn>(func), value_ptr) };
+            return Optional<std::invoke_result_t<Fn, T*>>{ std::invoke(std::forward<Fn>(func), value_ptr) };
         }
-        return ReturnOptional{};
+        return Optional<std::invoke_result_t<Fn, T*>>{};
     }
 
     /** 값이 존재할 때, fn(T*) -> Optional<U>를 호출합니다. */
@@ -601,12 +596,11 @@ public:
     [[nodiscard]] constexpr Optional<std::remove_cv_t<T>> Copy() const
         requires std::copy_constructible<std::remove_cv_t<T>>
     {
-        using ReturnOptional = Optional<std::remove_cv_t<T>>;
         if (HasValue())
         {
-            return ReturnOptional{ *value_ptr };
+            return Optional<std::remove_cv_t<T>>{ *value_ptr };
         }
-        return ReturnOptional{};
+        return Optional<std::remove_cv_t<T>>{};
     }
 
     /** Optional에 값이 있는지 확인합니다. */
@@ -623,14 +617,13 @@ public:
         && (!std::is_void_v<std::invoke_result_t<Fn, T&>>)
     [[nodiscard]] constexpr auto Map(Fn&& func) const
     {
-        using ReturnOptional = Optional<std::invoke_result_t<Fn, T&>>;
         if (HasValue())
         {
-            return ReturnOptional{
+            return Optional<std::invoke_result_t<Fn, T&>>{
                 std::invoke(std::forward<Fn>(func), *value_ptr)
             };
         }
-        return ReturnOptional{};
+        return Optional<std::invoke_result_t<Fn, T&>>{};
     }
 
     /** 값이 존재할 때, fn(T&) -> Optional<U>를 호출합니다. */

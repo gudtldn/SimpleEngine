@@ -1,6 +1,7 @@
 #pragma once
+
 #include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/ECS/Entity.h"
 
 
 namespace se

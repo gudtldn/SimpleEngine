@@ -93,9 +93,9 @@ TEST_F(FixedArrayAPI_Test, RangeBasedForLoop)
 TEST_F(FixedArrayAPI_Test, ConstexprOperations)
 {
     // FixedArray의 생성 및 기본 메서드가 constexpr로 동작하는지 확인
-    constexpr FixedArray<int, 3> const_arr{}; // {}를 사용하여 집계 초기화
-    static_assert(const_arr.Len() == 3, "Len() should be constexpr");
-    static_assert(!const_arr.IsEmpty(), "IsEmpty() should be constexpr");
+    constexpr FixedArray<int, 3> CONST_ARR{}; // {}를 사용하여 집계 초기화
+    static_assert(CONST_ARR.Len() == 3, "Len() should be constexpr");
+    static_assert(!CONST_ARR.IsEmpty(), "IsEmpty() should be constexpr");
 
     // At() 메서드는 Optional을 반환하므로, Optional이 constexpr이 아닐 경우 직접적인 constexpr 테스트는 어렵습니다.
     // 하지만 At()의 반환 타입이 포인터라면 constexpr 테스트가 가능합니다.

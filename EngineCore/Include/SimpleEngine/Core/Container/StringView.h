@@ -296,7 +296,7 @@ public:
     {
         if (sv.data_len == 0)
         {
-            return pos <= data_len ? Optional<SizeType>(pos) : NullOpt;
+            return pos <= data_len ? Optional{ pos } : NullOpt;
         }
         if (sv.data_len > data_len)
         {
@@ -337,7 +337,7 @@ public:
     {
         if (sv.data_len == 0)
         {
-            return pos <= data_len ? Optional<SizeType>(std::min(pos, data_len)) : NullOpt;
+            return pos <= data_len ? Optional{ std::min(pos, data_len) } : NullOpt;
         }
         if (sv.data_len > data_len)
         {

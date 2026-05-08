@@ -355,12 +355,12 @@ void GpuResourceManager::UnloadTexture(const AssetId& in_id)
 GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
 {
     // Vector4를 고려해서 Vertex/Index Buffer는 16바이트 정렬로 설정
-    constexpr uint32 alignment = 16;
+    constexpr uint32 ALIGNMENT = 16;
 
     // 기존 블록에서 남은 공간 탐색
     for (GpuMemoryBlock& block : geometry_blocks)
     {
-        if (GpuBufferSlice slice; block.AllocateSlice(in_size, alignment, slice))
+        if (GpuBufferSlice slice; block.AllocateSlice(in_size, ALIGNMENT, slice))
         {
             return slice;
         }
@@ -371,12 +371,12 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
 
     // Geometry용 Usage: Vertex + Index (Unified)
     // 필요하다면 Storage Buffer Read 플래그도 추가 가능 (SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ)
-    constexpr SDL_GPUBufferUsageFlags usage = SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_INDEX;
-    geometry_blocks.Emplace(render_device, new_block_size, usage);
+    constexpr SDL_GPUBufferUsageFlags USAGE_FLAGS = SDL_GPU_BUFFERUSAGE_VERTEX | SDL_GPU_BUFFERUSAGE_INDEX;
+    geometry_blocks.Emplace(render_device, new_block_size, USAGE_FLAGS);
     GpuMemoryBlock& new_block = geometry_blocks.Back().Value();
 
     GpuBufferSlice slice;
-    [[maybe_unused]] const bool result = new_block.AllocateSlice(in_size, alignment, slice);
+    [[maybe_unused]] const bool result = new_block.AllocateSlice(in_size, ALIGNMENT, slice);
     SE_ASSERT(result); // 방금 만든 블록이므로 반드시 성공해야 함
 
     return slice;

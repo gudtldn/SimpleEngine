@@ -456,7 +456,7 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
         if (!registry.ReadRecord(mesh_id, [&](const AssetRecord& record)
         {
             asset_path = record.logical_path;
-            cook_key = { record.metadata.source_hash, record.metadata.settings_hash };
+            cook_key = { .source_hash = record.metadata.source_hash, .settings_hash = record.metadata.settings_hash };
         }))
         {
             continue;
@@ -467,7 +467,7 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
             ConsoleLog(ELogLevel::Info, "GPU mesh invalidated: {}", asset_path.ToString());
         }
 
-        pending_meshes.Insert(mesh_id, { std::move(asset_path), std::move(cook_key) });
+        pending_meshes.Insert(mesh_id, { .path = std::move(asset_path), .cook_key = std::move(cook_key) });
     }
 
     // 2. CPU에 로드조차 되지 않은 메시 검사 (Lazy Loading 트리거)
@@ -483,13 +483,13 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
         if (!registry.ReadRecord(mesh_id, [&](const AssetRecord& record)
         {
             asset_path = record.logical_path;
-            cook_key = { record.metadata.source_hash, record.metadata.settings_hash };
+            cook_key = { .source_hash = record.metadata.source_hash, .settings_hash = record.metadata.settings_hash };
         }))
         {
             continue;
         }
 
-        pending_meshes.Insert(mesh_id, { std::move(asset_path), std::move(cook_key) });
+        pending_meshes.Insert(mesh_id, { .path = std::move(asset_path), .cook_key = std::move(cook_key) });
     }
 
     // 3. 각 메시를 Registry에서 경로 조회 -> Load -> GPU 업로드 큐 등록
@@ -561,7 +561,7 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
             if (AssetHandle<Texture2D> tex = asset_subsystem->Load<Texture2D>(tex_path))
             {
                 queued_textures.Insert(tex_id);
-                fp.texture_upload_requests.Push({ tex_id, std::move(tex) });
+                fp.texture_upload_requests.Push({ .texture_id = tex_id, .handle = std::move(tex) });
             }
         }
     }

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 

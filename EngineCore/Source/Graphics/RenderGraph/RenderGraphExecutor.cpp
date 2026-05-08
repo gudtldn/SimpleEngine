@@ -227,7 +227,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     while (Optional<ActiveResourceEntry> active_opt = active_resource_queue.Pop())
     {
         const auto& [active_idx, active_version] = *active_opt;
-        const Optional writer_opt = builder.resource_nodes[active_idx].version_to_writer.Find(active_version);
+        const auto writer_opt = builder.resource_nodes[active_idx].version_to_writer.Find(active_version);
         if (!writer_opt)
         {
             continue;
@@ -283,7 +283,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     while (Optional<ActiveResourceEntry> active_opt = active_resource_queue.Pop())
     {
         const auto& [active_idx, active_version] = *active_opt;
-        const Optional writer_opt = builder.resource_nodes[active_idx].version_to_writer.Find(active_version);
+        const auto writer_opt = builder.resource_nodes[active_idx].version_to_writer.Find(active_version);
         if (!writer_opt)
         {
             continue;
@@ -324,9 +324,9 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         for (const RGResourceRef& read_ref : pass_node.read_refs)
         {
             const RGResourceNode& res_node = builder.resource_nodes[read_ref.resource_index];
-            if (const Optional writer_opt = res_node.version_to_writer.Find(read_ref.version))
+            if (const auto writer = res_node.version_to_writer.Find(read_ref.version))
             {
-                const uint32 writer_idx = *writer_opt;
+                const uint32 writer_idx = *writer;
                 adjacency[writer_idx].Push(reader_idx);
                 ++in_degrees[reader_idx];
             }
@@ -343,7 +343,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
     }
 
-    while (Optional idx_opt = ready_queue.Pop())
+    while (const auto idx_opt = ready_queue.Pop())
     {
         const uint32 pass_idx = *idx_opt;
         compiled_passes.Push(&builder.pass_nodes[pass_idx]);

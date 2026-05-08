@@ -21,7 +21,7 @@ struct TextureBinding
     uint32 fragment_slot = 0;
 
     /** 바인딩할 텍스처 에셋의 ID */
-    AssetId texture_id = AssetId::Invalid;
+    AssetId texture_id = AssetId::invalid;
 
     /** 텍스처 샘플링에 사용할 샘플러 타입 */
     ESamplerType sampler = ESamplerType::LinearRepeat;
@@ -36,7 +36,7 @@ struct FrameMaterialCache
     /** 단일 머티리얼 인스턴스가 사용하는 데이터의 오프셋과 크기 정보 */
     struct MaterialSlot
     {
-        AssetId parent_material_id = AssetId::Invalid; // PSO 결정을 위한 부모 머티리얼 ID
+        AssetId parent_material_id = AssetId::invalid; // PSO 결정을 위한 부모 머티리얼 ID
 
         uint32 ubo_offset = 0; // ubo_arena 배열 내 시작 위치 (바이트 단위)
         uint16 ubo_size = 0;   // 셰이더에 전달할 UBO 데이터 크기 (바이트 단위)

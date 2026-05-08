@@ -1,7 +1,9 @@
 ﻿#pragma once
-#include <algorithm>
+
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <algorithm>
 
 
 namespace se
@@ -204,10 +206,10 @@ Optional<char32_t> BaseString<Allocator>::Pop()
         return NullOpt;
     }
 
-    Optional decode_result = detail::DecodeLastCodePoint(StringView{ *this });
+    const auto decode_result = detail::DecodeLastCodePoint(StringView{ *this });
     SE_ASSERT(decode_result.HasValue(), "Failed to decode the last code point.");
 
-    const auto& [code_point, byte_len] = decode_result.Value();
+    const auto& [code_point, byte_len] = *decode_result;
     Truncate(ByteLen() - byte_len);
     return code_point;
 }
@@ -367,9 +369,9 @@ char* BaseString<Allocator>::Data() noexcept
 }
 
 template <typename Allocator>
-detail::CodePointView BaseString<Allocator>::CodePoints() const
+CodePointView BaseString<Allocator>::CodePoints() const
 {
-    return detail::CodePointView{ Bytes() };
+    return CodePointView{ Bytes() };
 }
 
 template <typename Allocator>

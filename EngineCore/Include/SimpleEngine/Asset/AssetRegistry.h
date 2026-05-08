@@ -146,9 +146,9 @@ template <typename Fn>
 bool AssetRegistry::ReadRecord(const AssetId& asset_id, Fn&& callback) const
 {
     std::shared_lock lock(registry_mutex);
-    if (const Optional record_opt = records.Find(asset_id))
+    if (const auto record = records.Find(asset_id))
     {
-        std::forward<Fn>(callback)(*record_opt);
+        std::forward<Fn>(callback)(*record);
         return true;
     }
     return false;

@@ -32,7 +32,7 @@ protected:
         // 테스트용 임시 파일 생성
         test_file_path = (std::filesystem::temp_directory_path() / "se_asyncio_test.txt").string();
         std::ofstream ofs(test_file_path);
-        ofs << test_content;
+        ofs << TEST_CONTENT;
         ofs.close();
     }
 
@@ -49,7 +49,7 @@ protected:
     std::unique_ptr<AsyncFileIO> async_io;
 
     std::string test_file_path;
-    static constexpr const char* test_content = "Hello, AsyncIO!";
+    static constexpr const char* TEST_CONTENT = "Hello, AsyncIO!";
 };
 
 
@@ -82,8 +82,8 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_Success)
     const IOResult result = future.get();
 
     EXPECT_TRUE(result.success);
-    EXPECT_EQ(result.data.Len(), std::strlen(test_content));
-    EXPECT_EQ(std::memcmp(result.data.Data(), test_content, result.data.Len()), 0);
+    EXPECT_EQ(result.data.Len(), std::strlen(TEST_CONTENT));
+    EXPECT_EQ(std::memcmp(result.data.Data(), TEST_CONTENT, result.data.Len()), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFile_Callback_NonExistent)
@@ -141,8 +141,8 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
     h.Wait();
 
     EXPECT_TRUE(captured_result.success);
-    EXPECT_EQ(captured_result.data.Len(), std::strlen(test_content));
-    EXPECT_EQ(std::memcmp(captured_result.data.Data(), test_content, captured_result.data.Len()), 0);
+    EXPECT_EQ(captured_result.data.Len(), std::strlen(TEST_CONTENT));
+    EXPECT_EQ(std::memcmp(captured_result.data.Data(), TEST_CONTENT, captured_result.data.Len()), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)

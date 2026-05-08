@@ -97,7 +97,7 @@ public:
     [[nodiscard]] Array<AssetId> TopologicalSort() const;
 
     /** 그래프에 등록된 노드(에셋) 수를 반환합니다. */
-    [[nodiscard]] uint32 GetNodeCount() const;
+    [[nodiscard]] usize GetNodeCount() const;
 
 private:
     /**

@@ -1,5 +1,5 @@
 ﻿#include "SimpleEngine/Core/HAL/CpuFeature.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Debug.h"
 
 
 #if SE_ARCH_X86_FAMILY
@@ -30,14 +30,14 @@ ArmFeatures GetFeatures()
 namespace se
 {
 #if SE_ARCH_X86_FAMILY
-bool CpuFeature::HasSSE()     { return CPU_FEATURES_COMPILED_X86_SSE || GetFeatures().sse;       }
-bool CpuFeature::HasSSE2()    { return CPU_FEATURES_COMPILED_X86_SSE2 || GetFeatures().sse2;     }
-bool CpuFeature::HasSSE3()    { return CPU_FEATURES_COMPILED_X86_SSE3 || GetFeatures().sse3;     }
-bool CpuFeature::HasSSSE3()   { return CPU_FEATURES_COMPILED_X86_SSSE3 || GetFeatures().ssse3;   }
+bool CpuFeature::HasSSE()     { return CPU_FEATURES_COMPILED_X86_SSE    || GetFeatures().sse;    }
+bool CpuFeature::HasSSE2()    { return CPU_FEATURES_COMPILED_X86_SSE2   || GetFeatures().sse2;   }
+bool CpuFeature::HasSSE3()    { return CPU_FEATURES_COMPILED_X86_SSE3   || GetFeatures().sse3;   }
+bool CpuFeature::HasSSSE3()   { return CPU_FEATURES_COMPILED_X86_SSSE3  || GetFeatures().ssse3;  }
 bool CpuFeature::HasSSE4_1()  { return CPU_FEATURES_COMPILED_X86_SSE4_1 || GetFeatures().sse4_1; }
 bool CpuFeature::HasSSE4_2()  { return CPU_FEATURES_COMPILED_X86_SSE4_2 || GetFeatures().sse4_2; }
-bool CpuFeature::HasAVX()     { return CPU_FEATURES_COMPILED_X86_AVX || GetFeatures().avx;       }
-bool CpuFeature::HasAVX2()    { return CPU_FEATURES_COMPILED_X86_AVX2 || GetFeatures().avx2;     }
+bool CpuFeature::HasAVX()     { return CPU_FEATURES_COMPILED_X86_AVX    || GetFeatures().avx;    }
+bool CpuFeature::HasAVX2()    { return CPU_FEATURES_COMPILED_X86_AVX2   || GetFeatures().avx2;   }
 bool CpuFeature::HasFMA3()    { return GetFeatures().fma3;                                       }
 bool CpuFeature::HasFMA4()    { return GetFeatures().fma4;                                       }
 bool CpuFeature::HasAVX512F() { return GetFeatures().avx512f;                                    }
@@ -68,12 +68,12 @@ void CpuFeature::ValidateSimdSupport()
     };
 
     const SimdRequirement requirements[] = {
-        { SE_SIMD_SSE2,   HasSSE2(),   "SSE2"   },
-        { SE_SIMD_SSE4_1, HasSSE4_1(), "SSE4.1" },
-        { SE_SIMD_AVX,    HasAVX(),    "AVX"    },
-        { SE_SIMD_AVX2,   HasAVX2(),   "AVX2"   },
-        { SE_SIMD_FMA,    HasFMA3(),   "FMA3"   },
-        { SE_SIMD_NEON,   HasNEON(),   "NEON"   },
+        { .required = SE_SIMD_SSE2,   .supported = HasSSE2(),   .name = "SSE2"   },
+        { .required = SE_SIMD_SSE4_1, .supported = HasSSE4_1(), .name = "SSE4.1" },
+        { .required = SE_SIMD_AVX,    .supported = HasAVX(),    .name = "AVX"    },
+        { .required = SE_SIMD_AVX2,   .supported = HasAVX2(),   .name = "AVX2"   },
+        { .required = SE_SIMD_FMA,    .supported = HasFMA3(),   .name = "FMA3"   },
+        { .required = SE_SIMD_NEON,   .supported = HasNEON(),   .name = "NEON"   },
     };
 
     for (const auto& [required, supported, name] : requirements)

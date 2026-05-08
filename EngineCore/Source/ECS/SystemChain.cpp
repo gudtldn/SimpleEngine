@@ -1,7 +1,5 @@
 ﻿#include "SimpleEngine/ECS/SystemChain.h"
 
-#include <ranges>
-
 
 namespace se
 {

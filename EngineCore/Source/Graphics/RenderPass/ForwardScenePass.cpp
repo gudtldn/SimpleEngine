@@ -1,7 +1,6 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
 #include "SimpleEngine/Asset/BuiltinAssets.h"
-#include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"

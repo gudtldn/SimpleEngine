@@ -1,11 +1,11 @@
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
-#include <ostream>
-
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Utility/Common.h"
+
+#include <ostream>
 
 
 namespace se
@@ -14,7 +14,7 @@ HashMap<String, toml::table> ConfigFile::table_cache;
 
 Expected<ConfigFile, String> ConfigFile::Load(const VPath& config_file_path)
 {
-    const Optional physical_path_opt = VFS::Resolve(config_file_path);
+    const auto physical_path_opt = VFS::Resolve(config_file_path);
     if (!physical_path_opt.HasValue())
     {
         return Unexpected{ String::Format("Failed to resolve config file path: {}", config_file_path.ToString()) };
@@ -23,9 +23,9 @@ Expected<ConfigFile, String> ConfigFile::Load(const VPath& config_file_path)
     const String path_key = physical_path_opt->ToString();
 
     // 캐시에 있으면 캐시에서 반환 (복사)
-    if (const Optional table_opt = table_cache.Find(path_key))
+    if (const auto table = table_cache.Find(path_key))
     {
-        return ConfigFile{ toml::table{ *table_opt }};
+        return ConfigFile{ toml::table{ *table }};
     }
 
     toml::parse_result result = toml::parse_file(path_key.CStr());
@@ -56,7 +56,7 @@ bool ConfigFile::Save(const VPath& config_file_path) const
     std::ostringstream oss;
     oss << root_table;
 
-    const String physical_path_str = physical_path.ToString();
+    const String& physical_path_str = physical_path.ToString();
     const Path temp_path = Path{ physical_path_str + ".tmp" };
     SE_SCOPE_DEFER_NAMED(rollback) {
         FileSystem::Remove(temp_path);
@@ -83,9 +83,9 @@ bool ConfigFile::Save(const VPath& config_file_path) const
 
 void ConfigFile::InvalidateCache(const VPath& config_file_path)
 {
-    if (const Optional resolved_opt = VFS::Resolve(config_file_path))
+    if (const auto resolved = VFS::Resolve(config_file_path))
     {
-        table_cache.Remove(resolved_opt->ToString());
+        table_cache.Remove(resolved->ToString());
     }
 }
 
@@ -124,7 +124,7 @@ toml::table* ConfigFile::NavigateOrCreate(StringView key_path, StringView& out_f
     toml::table* current = &root_table;
 
     usize current_pos = 0;
-    Optional dot_pos = key_path.Find('.');
+    auto dot_pos = key_path.Find('.');
 
     while (dot_pos.HasValue())
     {

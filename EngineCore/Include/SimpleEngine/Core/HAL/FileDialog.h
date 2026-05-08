@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/Core/Types/Path.h"

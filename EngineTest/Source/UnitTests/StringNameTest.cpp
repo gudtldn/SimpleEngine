@@ -94,8 +94,8 @@ TEST_F(StringNameTest, StaticNoneProperties)
 // 평소에는 실행되지 않도록 하고 필요할 때만 실행하는 것이 좋습니다.
 TEST_F(StringNameTest, IsThreadSafe)
 {
-    constexpr int num_threads = 16;
-    constexpr int num_iterations_per_thread = 1000;
+    constexpr int NUM_THREADS = 16;
+    constexpr int NUM_ITERATIONS_PER_THREAD = 1000;
 
     const std::vector<StringView> test_strings = {
         "PlayerCharacter", "playercharacter", "EnemyAIController",
@@ -104,13 +104,13 @@ TEST_F(StringNameTest, IsThreadSafe)
     };
 
     std::vector<std::thread> threads;
-    threads.reserve(num_threads);
+    threads.reserve(NUM_THREADS);
 
-    for (int i = 0; i < num_threads; ++i)
+    for (int i = 0; i < NUM_THREADS; ++i)
     {
         threads.emplace_back([&test_strings, i]
         {
-            for (int j = 0; j < num_iterations_per_thread; ++j)
+            for (int j = 0; j < NUM_ITERATIONS_PER_THREAD; ++j)
             {
                 const auto& str = test_strings[(i + j) % test_strings.size()];
                 StringName name(str);

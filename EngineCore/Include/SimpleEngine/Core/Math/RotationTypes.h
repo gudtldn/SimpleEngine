@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// NOLINTBEGIN(*-math-missing-parentheses)
+// ReSharper disable CppDFAUnreachableFunctionCall
+#pragma once
 
 #include "SimpleEngine/Core/Math/MathFwd.h"
 #include "SimpleEngine/Core/Math/MathLiterals.h"
@@ -494,3 +496,4 @@ constexpr QuaternionImpl<T> RotatorImpl<T>::ToQuaternion() const
 
 //~ End RotatorImpl
 } // namespace se::math
+// NOLINTEND(*-math-missing-parentheses)

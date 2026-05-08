@@ -20,11 +20,11 @@ bool PickSubsystem::Initialize()
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
 
     // 4바이트 download transfer buffer (GPU -> CPU readback)
-    constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
+    constexpr SDL_GPUTransferBufferCreateInfo TB_INFO = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
         .size = sizeof(uint32),
     };
-    download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &tb_info);
+    download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &TB_INFO);
     return download_buffer != nullptr;
 }
 

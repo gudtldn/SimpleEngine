@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include <concepts>
-#include <numbers>
 
 #include "SimpleEngine/Traits/TypeTraits.h"
+
+#include <concepts>
+#include <numbers>
 
 
 namespace se

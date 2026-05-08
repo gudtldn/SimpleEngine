@@ -1,10 +1,11 @@
 ﻿#pragma once
-#include <tuple>
-#include <utility>
-#include <variant>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <tuple>
+#include <utility>
+#include <variant>
 
 
 namespace se

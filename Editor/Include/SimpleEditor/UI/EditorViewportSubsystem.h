@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/StringName.h"
-#include "SimpleEngine/Graphics/RenderSubsystem.h"
+#include "SimpleEngine/Graphics/Device/RID.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
 
 // forward declaration

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
@@ -10,15 +11,15 @@ namespace se
 class SE_CORE_API LogSettings
 {
 public:
-    static void EnableColor(bool enable) { ColorEnabled = enable; }
-    static void SetForceColor(bool force) { ForceColor = force; }
-    [[nodiscard]] FORCE_INLINE static bool IsColorEnabled() { return ColorEnabled; }
-    [[nodiscard]] FORCE_INLINE static bool IsColorForced() { return ForceColor; }
+    static void EnableColor(bool enable) { color_enabled = enable; }
+    static void SetForceColor(bool force) { force_color = force; }
+    [[nodiscard]] FORCE_INLINE static bool IsColorEnabled() { return color_enabled; }
+    [[nodiscard]] FORCE_INLINE static bool IsColorForced() { return force_color; }
 
     [[nodiscard]] static bool DetectColorSupport();
 
 private:
-    inline static bool ColorEnabled = true;
-    inline static bool ForceColor = false;
+    inline static bool color_enabled = true;
+    inline static bool force_color = false;
 };
 }

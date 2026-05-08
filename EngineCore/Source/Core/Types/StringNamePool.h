@@ -1,13 +1,13 @@
 ﻿#pragma once
-#include <memory>
-#include <shared_mutex>
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Types/StringName.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <memory>
+#include <shared_mutex>
 
 
 namespace se

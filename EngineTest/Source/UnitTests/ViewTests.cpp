@@ -248,43 +248,43 @@ TEST_F(StringViewAPI_Test, ConversionToStdStringView)
 
 TEST_F(StringViewAPI_Test, ConstexprConstruction)
 {
-    constexpr StringView sv("hello");
-    static_assert(sv.ByteLen() == 5);
-    static_assert(sv[0] == 'h');
-    static_assert(!sv.IsEmpty());
+    constexpr StringView SV("hello");
+    static_assert(SV.ByteLen() == 5);
+    static_assert(SV[0] == 'h');
+    static_assert(!SV.IsEmpty());
 }
 
 TEST_F(StringViewAPI_Test, ConstexprAt)
 {
-    constexpr StringView sv("hello");
-    static_assert(sv.At(0).HasValue());
-    static_assert(sv.At(0).Value() == 'h');
-    static_assert(!sv.At(10).HasValue());
+    constexpr StringView SV("hello");
+    static_assert(SV.At(0).HasValue());
+    static_assert(SV.At(0).Value() == 'h');
+    static_assert(!SV.At(10).HasValue());
 }
 
 TEST_F(StringViewAPI_Test, ConstexprFrontBack)
 {
-    constexpr StringView sv("hello");
-    static_assert(sv.Front().HasValue());
-    static_assert(sv.Front().Value() == 'h');
-    static_assert(sv.Back().HasValue());
-    static_assert(sv.Back().Value() == 'o');
+    constexpr StringView VIEW("hello");
+    static_assert(VIEW.Front().HasValue());
+    static_assert(VIEW.Front().Value() == 'h');
+    static_assert(VIEW.Back().HasValue());
+    static_assert(VIEW.Back().Value() == 'o');
 
-    constexpr StringView empty;
-    static_assert(!empty.Front().HasValue());
-    static_assert(!empty.Back().HasValue());
+    constexpr StringView EMPTY;
+    static_assert(!EMPTY.Front().HasValue());
+    static_assert(!EMPTY.Back().HasValue());
 }
 
 TEST_F(StringViewAPI_Test, ConstexprFind)
 {
-    constexpr StringView sv("hello world");
+    constexpr StringView SV("hello world");
 
-    constexpr auto pos1 = sv.Find('o');
-    static_assert(pos1.HasValue());
-    static_assert(pos1.Value() == 4);
+    constexpr auto POS1 = SV.Find('o');
+    static_assert(POS1.HasValue());
+    static_assert(POS1.Value() == 4);
 
-    constexpr auto pos2 = sv.Find('x');
-    static_assert(!pos2.HasValue());
+    constexpr auto POS2 = SV.Find('x');
+    static_assert(!POS2.HasValue());
 }
 
 // ============================================================================
@@ -548,37 +548,37 @@ TEST_F(ArrayViewAPI_Test, ByteSize)
 
 TEST_F(ArrayViewAPI_Test, ConstexprConstruction)
 {
-    static constexpr int arr[] = {1, 2, 3};
-    constexpr ArrayView<const int> view(arr);
+    static constexpr int ARR[] = {1, 2, 3};
+    constexpr ArrayView<const int> ARRAY_VIEW(ARR);
 
-    static_assert(view.Len() == 3);
-    static_assert(view[0] == 1);
-    static_assert(!view.IsEmpty());
+    static_assert(ARRAY_VIEW.Len() == 3);
+    static_assert(ARRAY_VIEW[0] == 1);
+    static_assert(!ARRAY_VIEW.IsEmpty());
 }
 
 TEST_F(ArrayViewAPI_Test, ConstexprAt)
 {
-    static constexpr int arr[] = {10, 20, 30};
-    constexpr ArrayView<const int> view(arr);
+    static constexpr int ARR[] = {10, 20, 30};
+    constexpr ArrayView<const int> ARRAY_VIEW(ARR);
 
-    static_assert(view.At(0).HasValue());
-    static_assert(view.At(0).Value() == 10);
-    static_assert(!view.At(5).HasValue());
+    static_assert(ARRAY_VIEW.At(0).HasValue());
+    static_assert(ARRAY_VIEW.At(0).Value() == 10);
+    static_assert(!ARRAY_VIEW.At(5).HasValue());
 }
 
 TEST_F(ArrayViewAPI_Test, ConstexprFrontBack)
 {
-    static constexpr int arr[] = {10, 20, 30};
-    constexpr ArrayView<const int> view(arr);
+    static constexpr int ARR[] = {10, 20, 30};
+    constexpr ArrayView<const int> ARRAY_VIEW(ARR);
 
-    static_assert(view.Front().HasValue());
-    static_assert(view.Front().Value() == 10);
-    static_assert(view.Back().HasValue());
-    static_assert(view.Back().Value() == 30);
+    static_assert(ARRAY_VIEW.Front().HasValue());
+    static_assert(ARRAY_VIEW.Front().Value() == 10);
+    static_assert(ARRAY_VIEW.Back().HasValue());
+    static_assert(ARRAY_VIEW.Back().Value() == 30);
 
-    constexpr ArrayView<const int> empty;
-    static_assert(!empty.Front().HasValue());
-    static_assert(!empty.Back().HasValue());
+    constexpr ArrayView<const int> EMPTY;
+    static_assert(!EMPTY.Front().HasValue());
+    static_assert(!EMPTY.Back().HasValue());
 }
 
 TEST_F(ArrayViewAPI_Test, DeductionGuides)
@@ -672,30 +672,30 @@ TEST_F(ArrayViewAPI_Test, StaticExtentSubview)
 
 TEST_F(ArrayViewAPI_Test, ConstexprStaticExtent)
 {
-    static constexpr int arr[] = {1, 2, 3, 4, 5};
-    constexpr ArrayView<const int, 5> view(arr);
+    static constexpr int ARR[] = {1, 2, 3, 4, 5};
+    constexpr ArrayView<const int, 5> ARRAY_VIEW(ARR);
 
-    static_assert(view.Len() == 5);
-    static_assert(view.Extent == 5);
-    static_assert(view[0] == 1);
-    static_assert(view[4] == 5);
+    static_assert(ARRAY_VIEW.Len() == 5);
+    static_assert(ARRAY_VIEW.Extent == 5);
+    static_assert(ARRAY_VIEW[0] == 1);
+    static_assert(ARRAY_VIEW[4] == 5);
 
     // constexpr First
-    constexpr auto first2 = view.First<2>();
-    static_assert(first2.Len() == 2);
-    static_assert(first2[0] == 1);
-    static_assert(first2[1] == 2);
+    constexpr auto FIRST2 = ARRAY_VIEW.First<2>();
+    static_assert(FIRST2.Len() == 2);
+    static_assert(FIRST2[0] == 1);
+    static_assert(FIRST2[1] == 2);
 
     // constexpr Last
-    constexpr auto last2 = view.Last<2>();
-    static_assert(last2.Len() == 2);
-    static_assert(last2[0] == 4);
-    static_assert(last2[1] == 5);
+    constexpr auto LAST2 = ARRAY_VIEW.Last<2>();
+    static_assert(LAST2.Len() == 2);
+    static_assert(LAST2[0] == 4);
+    static_assert(LAST2[1] == 5);
 
     // constexpr Subview
-    constexpr auto sub = view.Subview<1, 3>();
-    static_assert(sub.Len() == 3);
-    static_assert(sub[0] == 2);
+    constexpr auto SUB = ARRAY_VIEW.Subview<1, 3>();
+    static_assert(SUB.Len() == 3);
+    static_assert(SUB[0] == 2);
 }
 
 TEST_F(ArrayViewAPI_Test, StaticExtentComparison)

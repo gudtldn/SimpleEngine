@@ -350,7 +350,7 @@ TEST_F(AssetHandleTest, InvalidHandle_ReturnsNull)
     AssetHandle<MockTexture> handle;
 
     EXPECT_EQ(handle.Get(), nullptr);
-    EXPECT_EQ(handle.GetAssetId(), AssetId::Invalid);
+    EXPECT_EQ(handle.GetAssetId(), AssetId::invalid);
 }
 
 TEST_F(AssetHandleTest, StrongCount_DecrementOnDestruct)

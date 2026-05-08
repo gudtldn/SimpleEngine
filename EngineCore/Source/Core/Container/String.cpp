@@ -320,8 +320,8 @@ CodePointIterator::reference CodePointIterator::operator*() const
 {
     SE_ASSERT(ptr != nullptr, "Dereferencing null iterator");
 
-    constexpr int32 offset = 0;
-    return Utf8GetUnsafe(reinterpret_cast<const char*>(ptr), offset);
+    constexpr int32 OFFSET = 0;
+    return Utf8GetUnsafe(reinterpret_cast<const char*>(ptr), OFFSET);
 }
 
 CodePointIterator& CodePointIterator::operator++()

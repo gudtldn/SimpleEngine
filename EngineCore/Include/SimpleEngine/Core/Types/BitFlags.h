@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #define SE_ENABLE_BITMASK_OPERATORS(enum_type) \

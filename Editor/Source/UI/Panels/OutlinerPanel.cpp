@@ -78,8 +78,8 @@ void OutlinerPanel::DrawContent()
 
 void OutlinerPanel::DrawEntityNode(World& world, EditorSelection& selection, Entity entity, Entity& entity_to_delete)
 {
-    const Optional name_opt = world.TryGetComponent<NameComponent>(entity);
-    const Optional children_opt = world.TryGetComponent<ChildrenComponent>(entity);
+    const auto name_opt = world.TryGetComponent<NameComponent>(entity);
+    const auto children_opt = world.TryGetComponent<ChildrenComponent>(entity);
     const bool has_children = children_opt && !children_opt->children.IsEmpty();
 
     char name_buf[32]; // "Entity 4294967295" = 최대 18자

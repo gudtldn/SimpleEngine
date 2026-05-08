@@ -78,7 +78,7 @@ TEST_F(DDCTest, StoreAndLoad)
 {
     const Guid guid = Guid::NewGuid();
     const ContentHash hash = MakeTestHash("abcdef1234567890");
-    constexpr uint32 version = 1;
+    const uint32 version = 1;
     const Array<uint8> payload = MakePayload({ 0x01, 0x02, 0x03, 0x04 });
 
     // Store
@@ -89,7 +89,7 @@ TEST_F(DDCTest, StoreAndLoad)
     }));
 
     // Load
-    const Optional result = ddc.Load(guid);
+    const auto result = ddc.Load(guid);
     ASSERT_TRUE(result.HasValue());
 
     EXPECT_EQ(result->source_hash, hash);
@@ -101,7 +101,7 @@ TEST_F(DDCTest, StoreAndLoad)
 TEST_F(DDCTest, LoadNonExistent)
 {
     const Guid guid = Guid::NewGuid();
-    const Optional result = ddc.Load(guid);
+    const auto result = ddc.Load(guid);
     EXPECT_FALSE(result.HasValue());
 }
 
@@ -129,7 +129,7 @@ TEST_F(DDCTest, IsValid_MatchingHashAndVersion)
 {
     const Guid guid = Guid::NewGuid();
     const ContentHash hash = MakeTestHash("matching_hash");
-    constexpr uint32 version = 3;
+    const uint32 version = 3;
     const Array<uint8> payload = MakePayload(16);
 
     ASSERT_TRUE(ddc.Store(guid, {
@@ -197,7 +197,7 @@ TEST_F(DDCTest, OverwriteExistingCache)
         .payload = payload2
     }));
 
-    const Optional result = ddc.Load(guid);
+    const auto result = ddc.Load(guid);
     ASSERT_TRUE(result.HasValue());
 
     EXPECT_EQ(result->source_hash, MakeTestHash("v2"));
@@ -276,7 +276,7 @@ TEST_F(DDCTest, EmptyPayload)
         .payload = empty_payload
     }));
 
-    const Optional result = ddc.Load(guid);
+    const auto result = ddc.Load(guid);
     ASSERT_TRUE(result.HasValue());
 
     EXPECT_EQ(result->source_hash, MakeTestHash("empty"));
@@ -291,7 +291,7 @@ TEST_F(DDCTest, EmptyPayload)
 TEST_F(DDCTest, LargePayload)
 {
     const Guid guid = Guid::NewGuid();
-    constexpr usize large_size = 1024 * 1024; // 1MB
+    const usize large_size = 1024 * 1024; // 1MB
     const Array<uint8> payload = MakePayload(large_size, 0xCD);
 
     ASSERT_TRUE(ddc.Store(guid, {
@@ -300,7 +300,7 @@ TEST_F(DDCTest, LargePayload)
         .payload = payload
     }));
 
-    const Optional result = ddc.Load(guid);
+    const auto result = ddc.Load(guid);
     ASSERT_TRUE(result.HasValue());
 
     ASSERT_EQ(result->payload.Len(), large_size);
@@ -331,8 +331,8 @@ TEST_F(DDCTest, MultipleGuidsIndependent)
         .payload = payload2
     }));
 
-    const Optional r1 = ddc.Load(guid1);
-    const Optional r2 = ddc.Load(guid2);
+    const auto r1 = ddc.Load(guid1);
+    const auto r2 = ddc.Load(guid2);
 
     ASSERT_TRUE(r1.HasValue());
     ASSERT_TRUE(r2.HasValue());

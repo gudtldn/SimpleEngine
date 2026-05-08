@@ -1,14 +1,14 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
+
 #include <concepts>
 #include <functional>
 #include <memory>
 #include <type_traits>
 #include <utility>
-
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Traits/TypeTraits.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Utility/HashUtils.h"

@@ -8,15 +8,14 @@
 #include "SimpleEngine/Core/Input/MouseButton.h"
 #include "SimpleEngine/Core/Math/TransformUtility.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
-#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
+#include "SimpleEngine/ECS/Components/ParentComponent.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
+#include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include <utility>
-
-#include "SimpleEngine/ECS/Components/ParentComponent.h"
 
 
 namespace se::editor
@@ -34,7 +33,7 @@ bool GizmoSubsystem::Initialize()
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
 
     // 1x1 R32_UINT pick 텍스쳐
-    constexpr SDL_GPUTextureCreateInfo tex_info = {
+    constexpr SDL_GPUTextureCreateInfo TEX_INFO = {
         .type = SDL_GPU_TEXTURETYPE_2D,
         .format = SDL_GPU_TEXTUREFORMAT_R32_UINT,
         .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
@@ -44,18 +43,18 @@ bool GizmoSubsystem::Initialize()
         .num_levels = 1,
         .sample_count = SDL_GPU_SAMPLECOUNT_1,
     };
-    pick_texture_rid = render_device->CreateTexture(tex_info, "Gizmo_Pick");
+    pick_texture_rid = render_device->CreateTexture(TEX_INFO, "Gizmo_Pick");
     if (!render_device->IsValidTexture(pick_texture_rid))
     {
         return false;
     }
 
     // 4바이트 download transfer buffer (GPU -> CPU readback)
-    constexpr SDL_GPUTransferBufferCreateInfo tb_info = {
+    constexpr SDL_GPUTransferBufferCreateInfo TB_INFO = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
         .size = sizeof(uint32),
     };
-    download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &tb_info);
+    download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &TB_INFO);
     return download_buffer != nullptr;
 }
 

@@ -57,15 +57,15 @@ void DebugPanel::DrawContent()
 
     if (ImGui::CollapsingHeader("Frame Counter", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        static constexpr int32 max_samples = 200;
-        static Array fps_history(max_samples, 0.0f);
+        static constexpr int32 MAX_SAMPLES = 200;
+        static Array fps_history(MAX_SAMPLES, 0.0f);
         static int32 offset = 0;
 
         const float dt = static_cast<float>(Engine::GetDeltaTime());
         const float fps = 1.0f / dt;
 
         fps_history[offset] = fps;
-        offset = (offset + 1) % max_samples;
+        offset = (offset + 1) % MAX_SAMPLES;
 
         const String overlay = String::Format("FPS: {:.2f}, DT: {:.6f}s", fps, dt);
         ImGui::PlotLines(
@@ -107,7 +107,7 @@ void DebugPanel::DrawContent()
 
                     ImGui::SeparatorText("Delta Visualizer");
                     const ImVec2 canvas_p = ImGui::GetCursorScreenPos();
-                    constexpr ImVec2 canvas_sz = ImVec2(120, 120);
+                    const ImVec2 canvas_sz = ImVec2(120, 120);
                     const float center_x = canvas_p.x + (canvas_sz.x * 0.5f);
                     const float center_y = canvas_p.y + (canvas_sz.y * 0.5f);
 
@@ -120,7 +120,7 @@ void DebugPanel::DrawContent()
                     draw_list->AddLine(ImVec2(canvas_p.x, center_y), ImVec2(canvas_p.x + canvas_sz.x, center_y), IM_COL32(60, 60, 60, 255));
 
                     // Delta Point
-                    constexpr float scale = 2.0f;
+                    const float scale = 2.0f;
                     const Vector2f mouse_delta = input->GetMouseDelta();
                     draw_list->AddCircleFilled(ImVec2(center_x + (mouse_delta.x * scale), center_y + (mouse_delta.y * scale)), 3.0f, IM_COL32(255, 255, 0, 255));
                     draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + (mouse_delta.x * scale), center_y + (mouse_delta.y * scale)), IM_COL32(255, 255, 0, 150));

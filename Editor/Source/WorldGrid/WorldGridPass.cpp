@@ -1,6 +1,6 @@
 ﻿#include "SimpleEditor/WorldGrid/WorldGridPass.h"
-#include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
+#include "SimpleEditor/UI/ViewModeTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"

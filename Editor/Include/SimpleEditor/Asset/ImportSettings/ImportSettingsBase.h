@@ -2,7 +2,6 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
-#include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
 
 

@@ -16,15 +16,15 @@ bool AssetImporter::CanImport(const Path& file_path) const
 
 Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) const
 {
-    if (const Optional ext_opt = file_path.Extension())
+    if (const auto ext = file_path.Extension())
     {
-        const String ext = ext_opt->ToLower();
-        if (const auto indices_opt = extension_to_translator_indices.Find(ext))
+        const String ext_lower = ext->ToLower();
+        if (const auto indices_opt = extension_to_translator_indices.Find(ext_lower))
         {
             for (const usize idx : *indices_opt)
             {
                 const TranslatorEntry& entry = translators[idx];
-                if (entry.translator->CanTranslate(ext))
+                if (entry.translator->CanTranslate(ext_lower))
                 {
                     return entry.type_id;
                 }
@@ -63,7 +63,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
     // ---------------------------------------------------------
     // 1단계: Translator 실행 (File -> Raw Nodes)
     // ---------------------------------------------------------
-    const Optional translator_opt = FindTranslator(file_path);
+    const auto translator_opt = FindTranslator(file_path);
     if (!translator_opt)
     {
         ConsoleLog(ELogLevel::Error, "No suitable translator found for file: {}", file_path);
@@ -164,17 +164,17 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
 
 Optional<IPipelineTranslator&> AssetImporter::FindTranslator(const Path& file_path) const
 {
-    const Optional ext_opt = file_path.Extension();
+    const auto ext_opt = file_path.Extension();
     if (!ext_opt.HasValue())
     {
         ConsoleLog(ELogLevel::Warning, "Cannot find translator: file path has no extension: {}", file_path);
         return NullOpt;
     }
 
-    const String ext = ext_opt->ToLower();
+    const String ext_lower = ext_opt->ToLower();
     for (const auto& [_, translator] : translators)
     {
-        if (translator->CanTranslate(ext))
+        if (translator->CanTranslate(ext_lower))
         {
             return *translator;
         }
@@ -222,15 +222,15 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
     }
 
     // 위상 정렬 수행
-    while (Optional node_opt = ready_queue.Pop())
+    while (auto node_opt = ready_queue.Pop())
     {
         PipelineBaseNode* current_node = *node_opt;
         result.Push(current_node);
 
         // current_node를 기다리던 다른 노드들을 확인
-        if (Optional dependents_opt = dependents_map.Find(current_node->GetUid()))
+        if (const auto dependents = dependents_map.Find(current_node->GetUid()))
         {
-            for (const Guid& dependent_id : *dependents_opt)
+            for (const Guid& dependent_id : *dependents)
             {
                 // 해당 노드의 남은 의존성 개수 감소
                 int32& degree = in_degrees[dependent_id];
@@ -239,9 +239,9 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
                 // 모든 의존성이 해결되었다면 queue에 추가
                 if (degree == 0)
                 {
-                    if (Optional next_node_opt = container.GetNode(dependent_id))
+                    if (const auto next_node = container.GetNode(dependent_id))
                     {
-                        ready_queue.Push(&next_node_opt.Value());
+                        ready_queue.Push(&next_node.Value());
                     }
                 }
             }
@@ -256,10 +256,10 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
         {
             if (degree > 0)
             {
-                if (const Optional node_opt = container.GetNode(node_id))
+                if (const auto node = container.GetNode(node_id))
                 {
                     ConsoleLog(ELogLevel::Error, "- {} (Type: {}, Remaining Deps: {})",
-                        node_opt->GetDisplayName(), node_opt->GetTypeId().GetName(), degree);
+                        node->GetDisplayName(), node->GetTypeId().GetName(), degree);
                 }
             }
         }

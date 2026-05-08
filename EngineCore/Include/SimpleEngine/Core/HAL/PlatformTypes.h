@@ -29,7 +29,6 @@
     #define SE_PLATFORM_MACOS false
 #endif
 
-// 플랫폼 아키텍처 매크로
 // -----------------------------------------------------------------------------
 // Architecture Detection
 // -----------------------------------------------------------------------------
@@ -133,7 +132,7 @@
     #define NO_INLINE __declspec(noinline)
     #define RESTRICT __restrict
 
-    // 추후 MSVC 대규모 업데이트시 (ABI 변경시) 매크로 제거
+    // 추후 MSVC ABI 변경으로 no_unique_address를 직접 사용할 수 있게되면 매크로 제거
     #define NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
 #elif SE_COMPILER_CLANG || SE_COMPILER_GCC
     #define FORCE_INLINE __attribute__((always_inline)) __inline__

@@ -6,7 +6,6 @@
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
-#include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 

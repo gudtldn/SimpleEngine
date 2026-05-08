@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/Math/MathFwd.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
 

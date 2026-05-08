@@ -1,7 +1,5 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
-#include <type_traits>
-#include <concepts>
 
 #include "SimpleEngine/Core/Math/MathSerialize.h"
 #include "SimpleEngine/Core/Reflection/Annotations.h"
@@ -11,6 +9,9 @@
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"
+
+#include <type_traits>
+#include <concepts>
 
 
 // TODO: C++26되면 여기 파일 전체 수정해야 함

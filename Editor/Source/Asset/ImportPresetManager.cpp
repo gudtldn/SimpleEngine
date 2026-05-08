@@ -11,9 +11,9 @@ void ImportPresetManager::RegisterPreset(const TypeId& translator_type, Function
 ImportProfile ImportPresetManager::GetDefaultProfile(const TypeId& translator_type) const
 {
     ImportProfile profile;
-    if (const Optional init_opt = preset_map.Find(translator_type))
+    if (const auto init_fn = preset_map.Find(translator_type))
     {
-        (*init_opt)(profile);
+        (*init_fn)(profile);
     }
     return profile;
 }

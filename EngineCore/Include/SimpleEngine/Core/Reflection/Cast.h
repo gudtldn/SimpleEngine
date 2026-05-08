@@ -1,10 +1,10 @@
 #pragma once
-#include <concepts>
 
 #include "SimpleEngine/Core/Reflection/Traits.h"
-#include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <concepts>
 
 
 namespace se

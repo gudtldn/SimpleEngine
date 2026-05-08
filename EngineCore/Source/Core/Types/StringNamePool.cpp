@@ -1,9 +1,9 @@
 ﻿#include "StringNamePool.h"
 
+#include "SimpleEngine/Utility/HashUtils.h"
+
 #include <mutex>
 #include <utility>
-
-#include "SimpleEngine/Utility/HashUtils.h"
 
 
 namespace
@@ -99,21 +99,21 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
 {
     if (view.IsEmpty() || IsNoneString(view))
     {
-        static constexpr StringNameEntry NoneEntry = {
+        static constexpr StringNameEntry NONE_ENTRY = {
             .display_name = nullptr,
             .comparison_hash = 0,
             .length = 0,
         };
-        return NoneEntry;
+        return NONE_ENTRY;
     }
 
     // pool에 있는지 확인
     const uint64 display_hash = HashUtils::FNV(view);
     {
         std::shared_lock lock(string_pool_mutex);
-        if (const Optional entry_opt = entry_pool.Find(display_hash))
+        if (const auto entry = entry_pool.Find(display_hash))
         {
-            return *entry_opt;
+            return *entry;
         }
     }
 
@@ -122,9 +122,9 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     std::unique_lock lock(string_pool_mutex);
 
     // Double Check
-    if (const Optional entry_opt = entry_pool.Find(display_hash))
+    if (const auto entry = entry_pool.Find(display_hash))
     {
-        return *entry_opt;
+        return *entry;
     }
 
     const StringNameEntry& new_entry = entry_pool.Insert(display_hash, {

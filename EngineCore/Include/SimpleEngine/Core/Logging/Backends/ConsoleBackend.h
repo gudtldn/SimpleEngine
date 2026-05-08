@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
 #include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
 
 

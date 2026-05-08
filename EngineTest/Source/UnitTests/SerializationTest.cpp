@@ -30,9 +30,9 @@ TEST_F(SerializationTest, ReadAndWritePrimitives)
     // 쓰기
     writer << original_int << original_float << original_bool << original_double;
 
-    constexpr usize expected_size = sizeof(original_int) + sizeof(original_float) + sizeof(original_bool) + sizeof(original_double);
-    EXPECT_EQ(buffer.Len(), expected_size);
-    EXPECT_EQ(writer.Tell(), expected_size);
+    constexpr usize EXPECTED_SIZE = sizeof(original_int) + sizeof(original_float) + sizeof(original_bool) + sizeof(original_double);
+    EXPECT_EQ(buffer.Len(), EXPECTED_SIZE);
+    EXPECT_EQ(writer.Tell(), EXPECTED_SIZE);
 
     // 읽기
     MemoryReader reader(buffer);
@@ -48,7 +48,7 @@ TEST_F(SerializationTest, ReadAndWritePrimitives)
     EXPECT_FLOAT_EQ(read_float, original_float);
     EXPECT_EQ(read_bool, original_bool);
     EXPECT_DOUBLE_EQ(read_double, original_double);
-    EXPECT_EQ(reader.Tell(), expected_size);
+    EXPECT_EQ(reader.Tell(), EXPECTED_SIZE);
 }
 
 TEST_F(SerializationTest, SeekAndTell)

@@ -12,6 +12,7 @@ namespace se
 /**
  * TransformComponent를 가진 Entity에 GlobalTransformComponent가 없으면 자동 추가합니다.
  * PropagateTransforms보다 먼저 실행되어야 합니다.
+ * @todo 추후 Component Requires로 기능으로 대체
  */
 SE_CORE_API void SyncGlobalTransforms(
     Commands commands,

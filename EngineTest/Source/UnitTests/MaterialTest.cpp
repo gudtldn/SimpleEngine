@@ -101,7 +101,7 @@ TEST_F(MaterialTest, MaterialInstance_Inheritance)
     EXPECT_EQ(inst.GetTextureOrDefault("Albedo", mat), override_tex);
 
     // 존재하지 않는 슬롯
-    EXPECT_EQ(inst.GetTextureOrDefault("Invalid", mat), AssetId::Invalid);
+    EXPECT_EQ(inst.GetTextureOrDefault("Invalid", mat), AssetId::invalid);
 }
 
 TEST_F(MaterialTest, MaterialInstance_ChangeParent)

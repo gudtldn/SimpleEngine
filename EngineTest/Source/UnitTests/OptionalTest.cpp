@@ -5,7 +5,9 @@
 
 using namespace se;
 
-class OptionalAPI_Test : public ::testing::Test {};
+class OptionalAPI_Test : public ::testing::Test
+{
+};
 
 
 TEST_F(OptionalAPI_Test, OptionalForValueTypes)
@@ -49,7 +51,7 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
         EXPECT_EQ(*opt2, 10);
 
         Optional<int> opt3 = std::move(opt1); // Move
-        EXPECT_FALSE(opt1.HasValue());         // Original is now empty
+        EXPECT_FALSE(opt1.HasValue());        // Original is now empty
         EXPECT_TRUE(opt3.HasValue());
         EXPECT_EQ(*opt3, 10);
 
@@ -309,50 +311,54 @@ TEST_F(OptionalAPI_Test, ConstexprConstruction)
 TEST_F(OptionalAPI_Test, ConstexprOperations)
 {
     // constexpr ValueOr
-    constexpr Optional<int> opt(42);
-    static_assert(opt.ValueOr(99) == 42);
+    constexpr Optional<int> OPT(42);
+    static_assert(OPT.ValueOr(99) == 42);
 
-    constexpr Optional<int> empty_opt;
-    static_assert(empty_opt.ValueOr(99) == 99);
+    constexpr Optional<int> EMPTY_OPT;
+    static_assert(EMPTY_OPT.ValueOr(99) == 99);
 
     // constexpr ValueOrDefault
-    static_assert(empty_opt.ValueOrDefault() == 0);
-    static_assert(opt.ValueOrDefault() == 42);
+    static_assert(EMPTY_OPT.ValueOrDefault() == 0);
+    static_assert(OPT.ValueOrDefault() == 42);
 
     // constexpr 비교
-    static_assert(opt == 42);
-    static_assert(empty_opt == NullOpt);
-    static_assert(opt != NullOpt);
+    static_assert(OPT == 42);
+    static_assert(EMPTY_OPT == NullOpt);
+    static_assert(OPT != NullOpt);
 }
 
 TEST_F(OptionalAPI_Test, ConstexprTransformAndAndThen)
 {
     // constexpr Transform
-    constexpr auto transform_result = []() constexpr {
+    constexpr auto TRANSFORM_RESULT = []() constexpr
+    {
         Optional<int> opt(21);
         return opt.Map([](int n) { return n * 2; });
     }();
-    static_assert(transform_result.HasValue());
-    static_assert(transform_result.Value() == 42);
+    static_assert(TRANSFORM_RESULT.HasValue());
+    static_assert(TRANSFORM_RESULT.Value() == 42);
 
     // constexpr AndThen
-    constexpr auto and_then_result = []() constexpr {
+    constexpr auto AND_THEN_RESULT = []() constexpr
+    {
         Optional<int> opt(10);
-        return opt.AndThen([](int n) -> Optional<int> {
+        return opt.AndThen([](int n) -> Optional<int>
+        {
             if (n > 0) return n * 2;
             return NullOpt;
         });
     }();
-    static_assert(and_then_result.HasValue());
-    static_assert(and_then_result.Value() == 20);
+    static_assert(AND_THEN_RESULT.HasValue());
+    static_assert(AND_THEN_RESULT.Value() == 20);
 
     // constexpr OrElse
-    constexpr auto or_else_result = []() constexpr {
+    constexpr auto OR_ELSE_RESULT = []() constexpr
+    {
         Optional<int> opt;
         return opt.OrElse([]() { return Optional<int>(99); });
     }();
-    static_assert(or_else_result.HasValue());
-    static_assert(or_else_result.Value() == 99);
+    static_assert(OR_ELSE_RESULT.HasValue());
+    static_assert(OR_ELSE_RESULT.Value() == 99);
 }
 
 TEST_F(OptionalAPI_Test, ValueOrDefault)

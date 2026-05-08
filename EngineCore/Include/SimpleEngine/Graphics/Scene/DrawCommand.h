@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/ECS/Entity.h"
@@ -57,7 +58,7 @@ struct DrawCommand
     Matrix4x4 model_matrix = Matrix4x4::Identity();
 
     /** 식별용 Entity ID (에디터 Picking용) */
-    uint32 entity_id = Entity::Invalid;
+    uint32 entity_id = Entity::INVALID_ID;
 
     /** 렌더링시 비슷한 유형끼리 정렬을 위한 Key */
     uint64 sort_key = 0;

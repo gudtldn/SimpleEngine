@@ -2,10 +2,11 @@
 #include "SimpleEngine/Core/Memory/OsMemory.h"
 #include "SimpleEngine/Core/Memory/MemoryStats.h"
 
+#include "tracy/Tracy.hpp"
+
 #include <cstring>
 #include <memory>
 
-#include "tracy/Tracy.hpp"
 
 constexpr usize TRACY_CALLSTACK_DEPTH = 32;
 

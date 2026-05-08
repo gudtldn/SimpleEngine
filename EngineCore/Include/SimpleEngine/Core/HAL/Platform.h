@@ -1,5 +1,4 @@
 #pragma once
-#include <thread>
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -18,7 +17,12 @@ struct SE_CORE_API Platform
      * @param name 설정할 스레드의 이름입니다.
      * @note macOS에서는 다른 스레드의 이름을 설정할 수 없으므로 이 함수가 동작하지 않습니다.
      */
-    static void SetThreadName(std::thread& thread, const String& name);
+    template <typename ThreadType>
+        requires requires (ThreadType& t) { t.native_handle(); }
+    static void SetThreadName(ThreadType& thread, const String& name)
+    {
+        SetThreadNameImpl(thread.native_handle(), name);
+    }
 
     /**
      * 현재 실행 중인 스레드의 이름을 설정합니다.
@@ -31,7 +35,12 @@ struct SE_CORE_API Platform
      * @param thread 이름을 가저올 스레드
      * @return 스레드 이름
      */
-    [[nodiscard]] static String GetThreadName(std::thread& thread);
+    template <typename ThreadType>
+        requires requires (ThreadType& t) { t.native_handle(); }
+    [[nodiscard]] static String GetThreadName(ThreadType& thread)
+    {
+        return GetThreadNameImpl(thread.native_handle());
+    }
 
     /**
      * 이 함수가 호출되었던 스레드의 이름을 가져옵니다.
@@ -59,5 +68,9 @@ struct SE_CORE_API Platform
      * 운영체제의 파일 탐색기를 열어 해당 경로를 보여줍니다.
      */
     static void RevealInExplorer(const Path& path);
+
+private:
+    static void SetThreadNameImpl(void* native_handle, const String& name);
+    static String GetThreadNameImpl(void* native_handle);
 };
 } // namespace se

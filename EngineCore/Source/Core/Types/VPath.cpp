@@ -65,16 +65,16 @@ VPath VPath::GetParentPath() const
 {
     if (IsValid())
     {
-        if (const Optional last_slash_opt = full_path.FindLast("/"))
+        if (const auto last_slash = full_path.FindLast("/"))
         {
             // "Assets://foo.txt" -> "Assets://"
             // "Assets://bar/" -> "Assets://"
-            if (*last_slash_opt <= path_offset)
+            if (*last_slash <= path_offset)
             {
                 return { StringView{ full_path.Data(), path_offset } };
             }
 
-            return { StringView{ full_path.Data(), *last_slash_opt } };
+            return { StringView{ full_path.Data(), *last_slash } };
         }
     }
     return {};
@@ -84,7 +84,7 @@ StringView VPath::GetFilename() const noexcept
 {
     if (IsValid())
     {
-        const Optional last_slash_opt = full_path.FindLast("/");
+        const auto last_slash_opt = full_path.FindLast("/");
         if (!last_slash_opt.HasValue())
         {
             return GetPathPart(); // 스키마는 없고 파일명만 있는 경우
@@ -118,7 +118,7 @@ StringView VPath::GetStem() const noexcept
         return {};
     }
 
-    const Optional last_dot = filename.FindLastOf('.');
+    const auto last_dot = filename.FindLastOf('.');
     if (!last_dot.HasValue() || *last_dot == 0)
     {
         return filename; // 확장자 없음 또는 숨김파일(.gitignore 등)
@@ -154,10 +154,10 @@ void VPath::ParseAndNormalize(StringView path)
     }
 
     // 스키마 파싱 ("scheme://")
-    if (const Optional scheme_separator_opt = full_path.Find("://"))
+    if (const auto scheme_separator = full_path.Find("://"))
     {
-        scheme_len = static_cast<uint16>(*scheme_separator_opt);
-        path_offset = static_cast<uint16>(*scheme_separator_opt + 3); // "://" 길이만큼 건너뜀
+        scheme_len = static_cast<uint16>(*scheme_separator);
+        path_offset = static_cast<uint16>(*scheme_separator + 3); // "://" 길이만큼 건너뜀
     }
     else
     {

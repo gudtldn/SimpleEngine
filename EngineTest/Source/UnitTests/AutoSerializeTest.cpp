@@ -497,7 +497,7 @@ TEST_F(AutoSerializeTest, AssetId_Invalid)
     AssetId loaded = RoundTrip(original);
     EXPECT_FALSE(loaded.IsValid());
     EXPECT_EQ(loaded, original);
-    EXPECT_EQ(loaded, AssetId::Invalid);
+    EXPECT_EQ(loaded, AssetId::invalid);
 }
 
 // --- 무효한 Entity (기본 생성) ---

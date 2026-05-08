@@ -1,12 +1,13 @@
 #pragma once
-#include <concepts>
-#include <memory>
-#include <mutex>
 
 #include "SimpleEngine/Core/Container/FlatMap.h"
 #include "SimpleEngine/Core/Logging/LogData.h"
 #include "SimpleEngine/Core/Logging/Backends/ILogBackend.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
+
+#include <concepts>
+#include <memory>
+#include <mutex>
 
 
 namespace se

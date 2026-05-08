@@ -69,7 +69,7 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
     const Path meta_path = GetMetaPath(source_path);
 
     // 부모 디렉토리 보장
-    if (const Optional parent = meta_path.Parent())
+    if (const auto parent = meta_path.Parent())
     {
         if (!parent->Exists())
         {
@@ -136,7 +136,7 @@ Path MetaFileManager::GetSourcePath(const Path& meta_path)
 {
     // "dir/foo.fbx.meta" -> FileStem()="foo.fbx", Parent()="dir" -> "dir/foo.fbx"
     const String stem = meta_path.FileStem().ValueOrDefault();
-    if (const Optional parent = meta_path.Parent())
+    if (const auto parent = meta_path.Parent())
     {
         return *parent / stem;
     }

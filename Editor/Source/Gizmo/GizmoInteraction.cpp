@@ -312,8 +312,8 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateRotation(const Vector2f& cu
 
     // frame-to-frame 각도 변화량 (±π 래핑 처리)
     Radian delta_angle = current_angle - drag_start_angle;
-    if (delta_angle.value > math::PI_DOUBLE) { delta_angle = delta_angle - Radian<double>{ 2.0 * math::PI_DOUBLE }; }
-    if (delta_angle.value < -math::PI_DOUBLE) { delta_angle = delta_angle + Radian<double>{ 2.0 * math::PI_DOUBLE }; }
+    if (delta_angle.value > math::PI_DOUBLE) { delta_angle = delta_angle - Radian{ 2.0 * math::PI_DOUBLE }; }
+    if (delta_angle.value < -math::PI_DOUBLE) { delta_angle = delta_angle + Radian{ 2.0 * math::PI_DOUBLE }; }
     drag_start_angle = current_angle;
 
     // 회전축이 카메라를 향하면 화면 CW = 3D 음수 회전 (right-hand rule)

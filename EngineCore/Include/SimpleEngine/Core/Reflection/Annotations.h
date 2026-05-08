@@ -122,7 +122,7 @@ struct Clamp : target::Field
 };
 } // namespace tags
 
-// --- Type Annotation --- | TODO: 태그 네이밍 전체적으로 명확하게 개선
+// --- Type Annotation --- | TODO: 태그 네이밍 전체적으로 명확하게 개선 -> C++26 컴파일러 나오면 그냥 싹 갈아엎는게 나을 듯
 constexpr tags::Reflect   Reflect       = EReflectUsage::Default;       // (기본) 에디터 UI + 직렬화
 constexpr tags::Reflect   SerializeOnly = EReflectUsage::SerializeOnly; // UI 숨김 + 직렬화 (데이터 구조체, 패킷)
 constexpr tags::Reflect   EditorOnly    = EReflectUsage::EditorOnly;    // UI 표시 + 직렬화 제외 (런타임 디버그 윈도우 등)

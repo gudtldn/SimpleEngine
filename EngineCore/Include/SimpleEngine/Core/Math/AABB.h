@@ -1,9 +1,9 @@
 #pragma once
 
-#include <limits>
-
 #include "SimpleEngine/Core/Math/Vector3.h"
 #include "SimpleEngine/Core/Math/MathUtility.h"
+
+#include <limits>
 
 
 namespace se::math

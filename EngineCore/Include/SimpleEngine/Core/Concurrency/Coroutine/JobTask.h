@@ -1,16 +1,16 @@
 // ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
 
-#include <concepts>
-#include <coroutine>
-#include <memory>
-#include <utility>
-
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 #include "SimpleEngine/Core/Concurrency/JobHandle.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
+
+#include <concepts>
+#include <coroutine>
+#include <memory>
+#include <utility>
 
 
 namespace se

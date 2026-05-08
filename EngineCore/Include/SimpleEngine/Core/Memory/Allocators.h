@@ -1,10 +1,11 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
 #pragma once
-#include <cassert>
-#include <limits>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/OsMemory.h"
+
+#include <cassert>
+#include <limits>
 
 
 namespace se

@@ -49,20 +49,20 @@ TEST_F(EnumTest, EnumNameCompileTime)
     using namespace EnumTestDetail;
     using namespace se;
 
-    constexpr auto name1 = EnumName<EColor::Red>();
-    EXPECT_EQ(name1, "Red");
+    constexpr auto NAME1 = EnumName<EColor::Red>();
+    EXPECT_EQ(NAME1, "Red");
 
-    constexpr auto name2 = EnumName<EColor::Green>();
-    EXPECT_EQ(name2, "Green");
+    constexpr auto NAME2 = EnumName<EColor::Green>();
+    EXPECT_EQ(NAME2, "Green");
 
-    constexpr auto name3 = EnumName<EColor::Blue>();
-    EXPECT_EQ(name3, "Blue");
+    constexpr auto NAME3 = EnumName<EColor::Blue>();
+    EXPECT_EQ(NAME3, "Blue");
 
-    constexpr auto name4 = EnumName<ENumbers::One>();
-    EXPECT_EQ(name4, "One");
+    constexpr auto NAME4 = EnumName<ENumbers::One>();
+    EXPECT_EQ(NAME4, "One");
 
-    constexpr auto name5 = EnumName<ESparse::Neg>();
-    EXPECT_EQ(name5, "Neg");
+    constexpr auto NAME5 = EnumName<ESparse::Neg>();
+    EXPECT_EQ(NAME5, "Neg");
 }
 
 TEST_F(EnumTest, EnumNameRuntime)

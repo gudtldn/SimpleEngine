@@ -9,9 +9,9 @@ TypeId TypeId::FromHash(uint64 in_hash)
     const TypeRegistry& registry = TypeRegistry::Get();
     const TypeId temp_id = TypeId{ "UnknownType", in_hash };
 
-    if (const Optional type_info_opt = registry.Find(temp_id))
+    if (const auto type_info = registry.Find(temp_id))
     {
-        return type_info_opt->type_id;
+        return type_info->type_id;
     }
     return TypeId{};
 }
@@ -19,9 +19,9 @@ TypeId TypeId::FromHash(uint64 in_hash)
 TypeId TypeId::FromName(const StringName& in_type_name)
 {
     const TypeRegistry& registry = TypeRegistry::Get();
-    if (const Optional type_info_opt = registry.Find(in_type_name))
+    if (const auto type_info = registry.Find(in_type_name))
     {
-        return type_info_opt->type_id;
+        return type_info->type_id;
     }
     return TypeId{};
 }

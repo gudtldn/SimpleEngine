@@ -1,10 +1,14 @@
-﻿#pragma once
+﻿// NOLINTBEGIN(*-use-concise-preprocessor-directives)
+// ReSharper disable CppUnusedIncludeDirective
+#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
+#include <cstdlib>
+#include <exception>
 #include <format>
 #include <source_location>
-#include <utility>
+#include <string_view>
 
 
 namespace se::detail
@@ -135,3 +139,4 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
 #else
     #define SE_TODO(msg)
 #endif
+// NOLINTEND(*-use-concise-preprocessor-directives)

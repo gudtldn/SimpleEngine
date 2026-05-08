@@ -9,7 +9,6 @@
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -85,7 +84,7 @@ void DetailPanel::DrawContent()
         usize found_count = 0;
         for (const TypeId& type_id : ECSRegistry::Get().GetComponentOpsMap() | std::views::keys)
         {
-            const Optional type_info_opt = TypeRegistry::Get().Find(type_id);
+            const auto type_info_opt = TypeRegistry::Get().Find(type_id);
             if (!type_info_opt)
             {
                 continue;
@@ -206,7 +205,7 @@ void DetailPanel::DrawContent()
     // 컴포넌트 삭제 처리 (순회 완료 후)
     if (component_to_remove.IsValid())
     {
-        if (const Optional ops = ECSRegistry::Get().GetComponentOps(component_to_remove))
+        if (const auto ops = ECSRegistry::Get().GetComponentOps(component_to_remove))
         {
             ops->remove_component(world, entity);
         }

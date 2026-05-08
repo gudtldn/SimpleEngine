@@ -76,7 +76,7 @@ void VFS::EnsureDirectories(ArrayView<const StringView> schemes)
 
     for (const StringView scheme : schemes)
     {
-        const Optional point_opt = mount_points.Find(scheme);
+        const auto point_opt = mount_points.Find(scheme);
         if (!point_opt.HasValue())
         {
             continue;
@@ -103,7 +103,7 @@ Optional<Path> VFS::ResolveImpl(const VPath& virtual_path, bool check_existence)
     std::shared_lock lock(mutex);
 
     const StringView scheme = virtual_path.GetScheme();
-    const Optional point_opt = mount_points.Find(scheme);
+    const auto point_opt = mount_points.Find(scheme);
 
     if (!point_opt.HasValue() || point_opt->IsEmpty())
     {

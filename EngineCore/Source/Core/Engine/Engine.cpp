@@ -208,7 +208,7 @@ void Engine::LoadRegisteredSubsystems()
 
 SubsystemBase* Engine::GetSubsystem(const TypeId& type_id) const
 {
-    if (const Optional subsystem = subsystems.Find(type_id))
+    if (const auto subsystem = subsystems.Find(type_id))
     {
         return subsystem->get();
     }

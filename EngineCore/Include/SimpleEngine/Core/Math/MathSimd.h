@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "SimpleEngine/Core/HAL/CpuFeature.h"
 #include "SimpleEngine/Core/Math/MathFwd.h"
 

@@ -22,31 +22,31 @@
 
 namespace se
 {
-uint32 Application::TargetFps = 240;
-double Application::TargetFrameTime = 1.0 / static_cast<double>(TargetFps);
+uint32 Application::target_fps = 240;
+double Application::target_frame_time = 1.0 / static_cast<double>(target_fps);
 
-double Application::BusyWaitRatio = 0.1;
-double Application::BusyWaitThreshold = TargetFrameTime * BusyWaitRatio;
+double Application::busy_wait_ratio = 0.1;
+double Application::busy_wait_threshold = target_frame_time * busy_wait_ratio;
 
-Application* Application::Instance = nullptr;
+Application* Application::instance = nullptr;
 
 
 Application::Application(EApplicationMode in_application_mode)
     : application_mode(in_application_mode)
 {
-    SE_ASSERT(!Instance, "Application instance already exists!");
-    Instance = this;
+    SE_ASSERT(!instance, "Application instance already exists!");
+    instance = this;
 }
 
 Application::~Application()
 {
-    Instance = nullptr;
+    instance = nullptr;
 }
 
 Application& Application::Get()
 {
-    SE_ASSERT(Instance, "Application instance is null! Startup must be called first.");
-    return *Instance;
+    SE_ASSERT(instance, "Application instance is null! Startup must be called first.");
+    return *instance;
 }
 
 void Application::Startup(const wchar_t* cmd_line)
@@ -165,11 +165,11 @@ void Application::MainLoop()
             ZoneScopedN("Frame Wait");
 
             const double elapsed_sec = get_performance_time() - current_time;
-            const double time_to_wait_sec = TargetFrameTime - elapsed_sec;
+            const double time_to_wait_sec = target_frame_time - elapsed_sec;
 
             if (time_to_wait_sec > 0.0)
             {
-                const double busy_wait_threshold_ms = BusyWaitThreshold * 1000.0;
+                const double busy_wait_threshold_ms = busy_wait_threshold * 1000.0;
                 const uint32 sleep_ms = static_cast<uint32>((time_to_wait_sec * 1000.0) - busy_wait_threshold_ms);
 
                 // 대부분의 대기 시간을 Delay로 대기
@@ -179,7 +179,7 @@ void Application::MainLoop()
                 }
 
                 // 남은 시간은 바쁜 대기로 대기
-                while (get_performance_time() - current_time < TargetFrameTime){}
+                while (get_performance_time() - current_time < target_frame_time){}
             }
         }
 

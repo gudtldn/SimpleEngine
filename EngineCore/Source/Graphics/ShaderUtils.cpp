@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Utility/Common.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -85,7 +84,8 @@ namespace
 GraphicsShaderCreateResult CreateGraphicsShader(
     const RenderDevice& render_device,
     SDL_ShaderCross_ShaderStage stage,
-    ArrayView<const uint8> spirv_bytecode
+    ArrayView<const uint8> spirv_bytecode,
+    SDL_PropertiesID props
 )
 {
     const char* entrypoint = ExtractSpvEntryPoint(spirv_bytecode);
@@ -131,7 +131,8 @@ GraphicsShaderCreateResult CreateGraphicsShader(
         .num_uniform_buffers = refl_metadata->resource_info.num_uniform_buffers,
     };
 
-    SDL_GPUShader* shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(render_device.GetRawDevice(), &spirv_info, &resource_info, 0);
+    SDL_GPUShader* shader =
+        SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(render_device.GetRawDevice(), &spirv_info, &resource_info, props);
 
     if (!shader)
     {

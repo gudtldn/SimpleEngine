@@ -1,16 +1,15 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeConst
 #include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
+#include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Concurrency/JobAllocator.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
-#include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Common.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <coroutine>
-
-#include "SimpleEngine/Utility/Common.h"
 
 
 namespace se
@@ -77,8 +76,7 @@ struct AsyncReadAwaitable
         ctx->continuation = handle;
         ctx->result_storage = &result;
 
-        const String str_path = path.ToString();
-        if (!SDL_LoadFileAsync(str_path.CStr(), queue, ctx))
+        if (!SDL_LoadFileAsync(path.CStr(), queue, ctx))
         {
             // SDL이 요청을 시작조차 하지 못한 경우, suspend하지 않고 즉시 복귀
             result.success = false;
@@ -129,8 +127,8 @@ AsyncFileIO* AsyncFileIO::instance = nullptr;
 
 AsyncFileIO::AsyncFileIO()
 {
-    SE_ASSERT(!AsyncFileIO::instance, "AsyncFileIO instance already exists!");
-    AsyncFileIO::instance = this;
+    SE_ASSERT(!instance, "AsyncFileIO instance already exists!");
+    instance = this;
 
     io_queue = SDL_CreateAsyncIOQueue();
     SE_ASSERT(io_queue, "Failed to create SDL_AsyncIOQueue");
@@ -145,7 +143,7 @@ AsyncFileIO::AsyncFileIO()
 
 AsyncFileIO::~AsyncFileIO()
 {
-    SE_ASSERT(AsyncFileIO::instance == this, "AsyncFileIO instance mismatch!");
+    SE_ASSERT(instance == this, "AsyncFileIO instance mismatch!");
 
     // Poller Thread를 안전하게 종료
     if (poller_thread.joinable())
@@ -168,19 +166,19 @@ AsyncFileIO::~AsyncFileIO()
         io_queue = nullptr;
     }
 
-    AsyncFileIO::instance = nullptr;
+    instance = nullptr;
     ConsoleLog(ELogLevel::Info, "AsyncFileIO: Destroyed");
 }
 
 AsyncFileIO& AsyncFileIO::Get()
 {
-    SE_ASSERT(AsyncFileIO::instance, "AsyncFileIO instance is not initialized!");
-    return *AsyncFileIO::instance;
+    SE_ASSERT(instance, "AsyncFileIO instance is not initialized!");
+    return *instance;
 }
 
 bool AsyncFileIO::IsInitialized()
 {
-    return AsyncFileIO::instance != nullptr;
+    return instance != nullptr;
 }
 
 void AsyncFileIO::ReadFile(const Path& path, UniqueFunction<void(IOResult)>&& callback)

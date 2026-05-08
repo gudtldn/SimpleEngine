@@ -88,7 +88,7 @@ template <typename T, typename FactoryFn>
     requires std::is_invocable_r_v<T*, FactoryFn>
 T* FrameResourcePool::AcquireResourceInternal(PoolEntry<T>& entry, FactoryFn&& factory_func)
 {
-    if (Optional pooled_opt = entry.available_resources.Pop())
+    if (const auto pooled_opt = entry.available_resources.Pop())
     {
         entry.used_resources.Push(pooled_opt->resource);
     }

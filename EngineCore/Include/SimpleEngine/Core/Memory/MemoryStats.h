@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#include <atomic>
-#include <mutex>
-
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -12,6 +9,9 @@
 #include "SimpleEngine/Utility/Common.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <atomic>
+#include <mutex>
 
 
 namespace se

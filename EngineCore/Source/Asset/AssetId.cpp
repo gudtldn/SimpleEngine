@@ -3,5 +3,5 @@
 
 namespace se
 {
-const AssetId AssetId::Invalid = {};
+const AssetId AssetId::invalid = {};
 } // namespace se

@@ -1,4 +1,5 @@
 ﻿// NOLINTBEGIN(*-use-designated-initializers, *-isolate-declaration)
+// ReSharper disable CppDFAConstantParameter
 
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 
@@ -10,7 +11,6 @@
 namespace se::editor
 {
 using namespace se::math;
-
 
 void GizmoRenderer::SetMode(EGizmoMode in_mode)
 {
@@ -73,17 +73,17 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
         rot.GetForwardVector(), // Y
         rot.GetUpVector()       // Z
     };
-    constexpr EGizmoAxis axis_ids[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
+    constexpr EGizmoAxis AXIS_IDS[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
 
     for (usize i = 0; i < 3; ++i)
     {
         const Vector3& axis = axes[i];
-        const LinearColor color = GetAxisColor(axis_ids[i]);
+        const LinearColor color = GetAxisColor(AXIS_IDS[i]);
 
         constexpr double BODY_LENGTH = AXIS_LENGTH - TRANSLATE_HEAD_LENGTH;
 
         // Pick ID 설정
-        list.SetPickId(EncodePickID(axis_ids[i]));
+        list.SetPickId(EncodePickID(AXIS_IDS[i]));
 
         // 솔리드 실린더 몸통
         BuildSolidCylinder(list, Vector3::Zero(), axis, AXIS_BODY_RADIUS, BODY_LENGTH, color, AXIS_SEGMENTS);
@@ -99,7 +99,7 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
 
     // XY/XZ/YZ 평면 핸들 (채운 쿼드)
     struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
-    constexpr PlaneInfo planes[3] = {
+    constexpr PlaneInfo PLANE_INFOS[3] = {
         { 0, 1, EGizmoAxis::XY },
         { 0, 2, EGizmoAxis::XZ },
         { 1, 2, EGizmoAxis::YZ },
@@ -108,7 +108,7 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
     constexpr double OFFSET = PLANE_HANDLE_OFFSET;
     constexpr double LENGTH = PLANE_HANDLE_LENGTH;
 
-    for (const auto& [a0, a1, plane_axis] : planes)
+    for (const auto& [a0, a1, plane_axis] : PLANE_INFOS)
     {
         const LinearColor color = GetAxisColor(plane_axis);
 
@@ -138,7 +138,7 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot, const
     // Axis0 = ring의 0도 방향, Axis1 = ring의 90도 방향
     constexpr usize AXIS_0_IDX[3] = { 1, 2, 0 }; // X ring -> Axis0=Y, Y ring -> Axis0=Z, Z ring -> Axis0=X
     constexpr usize AXIS_1_IDX[3] = { 2, 0, 1 }; // X ring -> Axis1=Z, Y ring -> Axis1=X, Z ring -> Axis1=Y
-    constexpr EGizmoAxis axis_ids[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
+    constexpr EGizmoAxis AXIS_IDS[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
 
     const Vector3 axes[3] = {
         rot.GetRightVector(),
@@ -148,7 +148,7 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot, const
 
     for (usize i = 0; i < 3; ++i)
     {
-        const LinearColor color = GetAxisColor(axis_ids[i]);
+        const LinearColor color = GetAxisColor(AXIS_IDS[i]);
         const Vector3& axis0 = axes[AXIS_0_IDX[i]];
         const Vector3& axis1 = axes[AXIS_1_IDX[i]];
 
@@ -159,7 +159,7 @@ void GizmoRenderer::DrawRotate(GizmoDrawList& list, const Quaternion& rot, const
         const Vector3 render_axis1 = mirror_axis1 ? axis1 : -axis1;
 
         // Pick ID 설정
-        list.SetPickId(EncodePickID(axis_ids[i]));
+        list.SetPickId(EncodePickID(AXIS_IDS[i]));
 
         BuildThickArc(
             list, Vector3::Zero(),
@@ -178,15 +178,15 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
         rot.GetForwardVector(),
         rot.GetUpVector()
     };
-    constexpr EGizmoAxis axis_ids[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
+    constexpr EGizmoAxis AXIS_IDS[3] = { EGizmoAxis::X, EGizmoAxis::Y, EGizmoAxis::Z };
 
     for (usize i = 0; i < 3; ++i)
     {
         const Vector3& axis = axes[i];
-        const LinearColor color = GetAxisColor(axis_ids[i]);
+        const LinearColor color = GetAxisColor(AXIS_IDS[i]);
 
         // Pick ID 설정
-        list.SetPickId(EncodePickID(axis_ids[i]));
+        list.SetPickId(EncodePickID(AXIS_IDS[i]));
 
         // 솔리드 실린더 몸통
         BuildSolidCylinder(list, Vector3::Zero(), axis, AXIS_BODY_RADIUS, AXIS_LENGTH, color, AXIS_SEGMENTS);
@@ -203,7 +203,7 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
 
     // XY/XZ/YZ 평면 핸들 (채운 쿼드)
     struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
-    constexpr PlaneInfo planes[3] = {
+    constexpr PlaneInfo PLANES[3] = {
         { 0, 1, EGizmoAxis::XY },
         { 0, 2, EGizmoAxis::XZ },
         { 1, 2, EGizmoAxis::YZ },
@@ -212,7 +212,7 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
     constexpr double OFFSET = PLANE_HANDLE_OFFSET;
     constexpr double LENGTH = PLANE_HANDLE_LENGTH;
 
-    for (const auto& [a0, a1, plane_axis] : planes)
+    for (const auto& [a0, a1, plane_axis] : PLANES)
     {
         const LinearColor color = GetAxisColor(plane_axis);
 

@@ -1,10 +1,11 @@
 ﻿// ReSharper disable CppNonExplicitConvertingConstructor
 #pragma once
-#include <format>
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+
+#include <format>
 
 
 namespace se

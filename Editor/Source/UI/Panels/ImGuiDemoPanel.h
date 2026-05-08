@@ -4,6 +4,9 @@
 
 namespace se::editor
 {
+/**
+ * ImGui demo를 보여주는 패널
+ */
 class ImGuiDemoPanel final : public IEditorPanel
 {
 public:

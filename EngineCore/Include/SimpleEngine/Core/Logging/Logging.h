@@ -1,13 +1,13 @@
 ﻿#pragma once
-#include <chrono>
-#include <format>
-#include <iostream>
 
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Logging/LogBackendManager.h"
 #include "SimpleEngine/Core/Logging/LogData.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <chrono>
+#include <format>
 
 
 namespace se

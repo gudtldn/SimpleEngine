@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 #include <ranges>
 

@@ -1,5 +1,6 @@
 ﻿// ReSharper disable CppRedundantTypenameKeyword
 #pragma once
+
 #include "SimpleEngine/Core/Container/Deque.h"
 
 

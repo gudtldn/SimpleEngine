@@ -67,19 +67,9 @@ se::String GetThreadName(HANDLE handle)
 
 namespace se
 {
-void Platform::SetThreadName(std::thread& thread, const String& name)
-{
-    ::SetThreadName(reinterpret_cast<HANDLE>(thread.native_handle()), name);
-}
-
 void Platform::SetCurrentThreadName(const String& name)
 {
     ::SetThreadName(GetCurrentThread(), name);
-}
-
-String Platform::GetThreadName(std::thread& thread)
-{
-    return ::GetThreadName(reinterpret_cast<HANDLE>(thread.native_handle()));
 }
 
 String Platform::GetCurrentThreadName()
@@ -109,6 +99,16 @@ void Platform::RevealInExplorer(const Path& path)
         const std::wstring param = std::format(L"/select,\"{}\"", wstr_path);
         ShellExecuteW(nullptr, L"open", L"explorer.exe", param.c_str(), nullptr, SW_SHOWDEFAULT);
     }
+}
+
+void Platform::SetThreadNameImpl(void* native_handle, const String& name)
+{
+    ::SetThreadName(reinterpret_cast<HANDLE>(native_handle), name);
+}
+
+String Platform::GetThreadNameImpl(void* native_handle)
+{
+    return ::GetThreadName(reinterpret_cast<HANDLE>(native_handle));
 }
 } // namespace se
 #endif

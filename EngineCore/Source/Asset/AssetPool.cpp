@@ -152,7 +152,7 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
     }
 
     // 아래 Scope 순서대로 Evict
-    constexpr EScopeLayer eviction_order[] = {
+    constexpr EScopeLayer EVICTION_ORDER[] = {
         EScopeLayer::Transient,
         EScopeLayer::Scene,
         EScopeLayer::Session
@@ -160,7 +160,7 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
 
     Array<AssetPayload> deferred;
     uint32 total_evicted = 0;
-    for (EScopeLayer target_scope : eviction_order)
+    for (EScopeLayer target_scope : EVICTION_ORDER)
     {
         // 아직 메모리 상한에 도달하지 않은 경우
         if (table.GetTotalMemoryUsage() <= memory_budget)

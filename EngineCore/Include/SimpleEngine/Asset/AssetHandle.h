@@ -134,13 +134,13 @@ public:
     {
         if (!table || index == INVALID_INDEX)
         {
-            return AssetId::Invalid;
+            return AssetId::invalid;
         }
 
         const SlotEntry& entry = table->GetSlot(index);
         if (entry.generation != generation)
         {
-            return AssetId::Invalid; // stale handle
+            return AssetId::invalid; // stale handle
         }
         return entry.asset_id;
     }

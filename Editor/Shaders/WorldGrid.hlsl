@@ -259,7 +259,6 @@ float4 PSMain(VertexOutput input) : SV_Target0
     float3 horizontal_axis_color = HorizontalColors[input.plane_type];
     float3 vertical_axis_color   = VerticalColors[input.plane_type];
 
-
     // axis_alpha.y -> grid_uv.y == 0 이므로 가로선(Horizontal)을 의미
     base_color.rgb = lerp(base_color.rgb, horizontal_axis_color, axis_alpha.y);
     // axis_alpha.x -> grid_uv.x == 0 이므로 세로선(Vertical)을 의미

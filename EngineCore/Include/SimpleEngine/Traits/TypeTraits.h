@@ -1,28 +1,17 @@
 #pragma once
-#include <concepts>
-#include <type_traits>
 
 #include "SimpleEngine/Traits/FunctionTraits.h"
+
+#include <concepts>
+#include <type_traits>
 
 
 namespace se::traits
 {
-// static_assert에 사용되는 TypeTrait
-template <typename...>
-concept AlwaysFalse = false;
-
-// Ts가 T와 같은지 확인하는 TypeTrait
-template <typename T, typename... Ts>
-concept IsAnyOf = (std::same_as<T, Ts> || ...);
-
-// Ts가 T와 같은지 확인하는 TypeTrait (덜 엄격함)
-template <typename T, typename... Ts>
-concept IsAnyOfDecayed = IsAnyOf<std::decay_t<T>, std::decay_t<Ts>...>;
-
 namespace detail
 {
 template <typename T, typename... Us>
-constexpr usize CountOccurrences = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
+constexpr usize COUNT_OCCURRENCES = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
 
 template <typename T>
 struct ParamTypeImpl
@@ -46,9 +35,21 @@ template <bool IsConst, typename T>
 struct CopyConstImpl<IsConst, T&&> { using Type = std::conditional_t<IsConst, const T&&, T&&>; };
 } // namespace detail
 
+// static_assert에 사용되는 TypeTrait
+template <typename...>
+concept AlwaysFalse = false;
+
+// Ts가 T와 같은지 확인하는 TypeTrait
+template <typename T, typename... Ts>
+concept IsAnyOf = (std::same_as<T, Ts> || ...);
+
+// Ts가 T와 같은지 확인하는 TypeTrait (덜 엄격함)
+template <typename T, typename... Ts>
+concept IsAnyOfDecayed = IsAnyOf<std::decay_t<T>, std::decay_t<Ts>...>;
+
 // Ts...중에 중복된 타입이 존재하는지 확인합니다.
 template <typename... Ts>
-concept UniqueTypePack = ((detail::CountOccurrences<Ts, Ts...> == 1) && ...);
+concept UniqueTypePack = ((detail::COUNT_OCCURRENCES<Ts, Ts...> == 1) && ...);
 
 /**
  * Self (객체 매개변수)의 const qualifier 상태를 기반으로 ReturnType의 최종 타입을 결정합니다.
@@ -84,24 +85,6 @@ concept IsSpecializationOf = requires
     []<typename... Args>(const PrimaryTemplate<Args...>&)
     {
     }(std::declval<T>());
-};
-
-// Ord 연산자가 구현되어 있는 타입
-template <typename T>
-concept Orderable = requires(const T& a, const T& b)
-{
-    { a < b } -> std::convertible_to<bool>;
-    { a <= b } -> std::convertible_to<bool>;
-    { a > b } -> std::convertible_to<bool>;
-    { a >= b } -> std::convertible_to<bool>;
-};
-
-// Eq 연산자가 구현되어 있는 타입
-template <typename T>
-concept Comparable = requires(const T& a, const T& b)
-{
-    { a == b } -> std::convertible_to<bool>;
-    { a != b } -> std::convertible_to<bool>;
 };
 
 // 숫자 타입

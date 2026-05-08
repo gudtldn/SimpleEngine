@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Core/Math/Color.h"
 #include "SimpleEngine/Core/Math/Math.h"
 
 

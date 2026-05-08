@@ -64,7 +64,7 @@ constexpr FieldLayout LAYOUT[] = {
 
 // 64비트 총합 검증
 static_assert(
-    std::ranges::fold_left(LAYOUT | std::views::transform(&FieldLayout::bits), 0ULL, std::plus<>{}) == 64,
+    std::ranges::fold_left(LAYOUT | std::views::transform(&FieldLayout::bits), 0ULL, std::plus{}) == 64,
     "SortKey layout MUST be exactly 64 bits!"
 );
 
@@ -96,8 +96,8 @@ consteval FieldBitInfo GetFieldInfo()
 template <ESortField Target>
 constexpr uint64 PackField(uint64 value)
 {
-    constexpr FieldBitInfo info = GetFieldInfo<Target>();
-    return (value & info.mask) << info.shift;
+    constexpr FieldBitInfo FIELD_INFO = GetFieldInfo<Target>();
+    return (value & FIELD_INFO.mask) << FIELD_INFO.shift;
 }
 
 /** 렌더링 큐 제출을 위한 64비트 불투명 오브젝트 정렬 키를 생성합니다. */
@@ -335,10 +335,10 @@ SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> vi
     for (usize v = 0; v < views.Len(); ++v)
     {
         // Opaque: 오름차순 (가까운 존 우선, 이후 PSO 배칭)
-        std::ranges::sort(result.view_lists[v].opaque_commands, std::less<>{}, &DrawCommand::sort_key);
+        std::ranges::sort(result.view_lists[v].opaque_commands, std::less{}, &DrawCommand::sort_key);
 
         // Transparent: 내림차순 (거리가 먼 것부터 그리기 -> Back-to-Front)
-        std::ranges::sort(result.view_lists[v].transparent_commands, std::greater<>{}, &DrawCommand::sort_key);
+        std::ranges::sort(result.view_lists[v].transparent_commands, std::greater{}, &DrawCommand::sort_key);
     }
 
     return result;

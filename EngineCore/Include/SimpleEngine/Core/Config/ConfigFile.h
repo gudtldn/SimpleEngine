@@ -1,6 +1,4 @@
 #pragma once
-#include <concepts>
-#include <type_traits>
 
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
@@ -11,6 +9,8 @@
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Traits/SerializationTraits.h"
 #include "SimpleEngine/Utility/StringUtils.h"
+
+#include <concepts>
 
 
 namespace se
