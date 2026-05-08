@@ -182,7 +182,7 @@ void WorldGridPass::Execute(RGExecutionContext& context)
 
         ubo_vert.vp = static_cast<Matrix4x4f>(render_view.view_matrix * render_view.projection_matrix);
         ubo_vert.camera_pos = static_cast<Vector3f>(render_view.camera_pos);
-        ubo_vert.grid_size = static_cast<float>(render_view.far_plane) * 2.0f;
+        ubo_vert.grid_size = static_cast<float>(render_view.far_plane);
 
         switch (view_mode)
         {
