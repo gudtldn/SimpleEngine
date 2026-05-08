@@ -76,6 +76,12 @@ else()
             # -fno-exceptions               # C++ 예외 처리 비활성화
             # -fno-rtti                     # RTTI 비활성화
     )
+
+    if(MINGW)
+        target_link_libraries(SE_DefaultOptions INTERFACE
+                stdc++exp                   # <print>, <format> 사용을 위한 라이브러리
+        )
+    endif()
 endif()
 
 # SIMD 관련 설정
