@@ -101,6 +101,13 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
     SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, color_target_info, num_color_targets, &depth_stencil_target_info);
     {
+        // ShowFlag 검사
+        if (!render_view.show_flags.IsSet(EShowFlag::StaticMesh))
+        {
+            SDL_EndGPURenderPass(pass);
+            return;
+        }
+
         // Viewport/Scissor 설정
         const SDL_GPUViewport viewport = {
             .x = 0.0f, .y = 0.0f,
@@ -136,9 +143,10 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Fragment Uniform slot 0: SceneDataUBO (per-pass)
         struct alignas(16) SceneDataUBO
         {
-            Vector3f camera_pos;   float _pad0 = 0.0f; // offset  0~15
-            Vector3f light_dir_ws; float _pad1 = 0.0f; // offset 16~31
-            Vector3f light_color;  float _pad2 = 0.0f; // offset 32~47
+            Vector3f camera_pos;    float  _pad0 = 0.0f; // offset  0~15
+            Vector3f light_dir_ws;  float  _pad1 = 0.0f; // offset 16~31
+            Vector3f light_color;                        // offset 32~43
+            uint32 rendering_mode;                       // offset 44~47
         };
         static_assert(sizeof(SceneDataUBO) == 48, "SceneDataUBO must match HLSL cbuffer layout");
 
@@ -146,6 +154,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             .camera_pos = static_cast<Vector3f>(render_view.camera_pos),
             .light_dir_ws = Vector3f{ 0.0f, 0.0f, -1.0f }, // TODO: RenderView에서 받도록 수정
             .light_color = Vector3f{ 1.0f, 1.0f, 1.0f },
+            .rendering_mode = static_cast<uint32>(render_view.rendering_mode),
         };
         SDL_PushGPUFragmentUniformData(cmd, 0, &scene_data, sizeof(scene_data));
 

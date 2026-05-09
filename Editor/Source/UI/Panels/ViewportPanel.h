@@ -26,6 +26,6 @@ private:
 
     // 렌더 설정
     ERenderingMode rendering_mode = ERenderingMode::Lit;
-    ShowFlags show_flags = EShowFlag::All;
+    ShowFlags show_flags = EShowFlag::Grid | EShowFlag::StaticMesh;
 };
 } // namespace se::editor

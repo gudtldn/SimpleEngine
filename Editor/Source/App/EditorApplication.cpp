@@ -25,6 +25,8 @@
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Debug/DebugDrawSubsystem.h"
+#include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
+#include "SimpleEngine/ECS/Components/StaticMeshComponent.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
@@ -239,6 +241,32 @@ void EditorApplication::Render()
 
     // SceneDrawData 수집
     frame_packet.scene_draw_data = se::CollectDrawData(entity_subsystem.GetMainWorld().GetWorld(), frame_packet.render_views, asset_subsystem, render_subsystem->GetResourceManager());
+
+    // AABB 시각화: AABB 플래그가 켜진 뷰포트가 하나라도 있으면 모든 StaticMesh에 박스 표시
+    {
+        const bool any_aabb = std::ranges::any_of(viewport_subsystem.GetViewports() | std::views::values, [](const ViewportState& state)
+        {
+            return state.render_view.show_flags.IsSet(EShowFlag::AABB);
+        });
+
+        if (any_aabb)
+        {
+            if (DebugDrawSubsystem* debug = se::GetSubsystem<DebugDrawSubsystem>())
+            {
+                const World& world = entity_subsystem.GetMainWorld().GetWorld();
+                const Query query = world.CreateQuery<Entity, const GlobalTransformComponent&, const StaticMeshComponent&>();
+
+                for (const auto [entity, tf, mc] : query)
+                {
+                    AssetHandle<StaticMesh> mesh = asset_subsystem.Find<StaticMesh>(mc.mesh_id);
+                    if (mesh && mesh->bounds.IsValid())
+                    {
+                        debug->DrawAABB(mesh->bounds, tf.value, LinearColor{ 0.f, 1.f, 0.f, 1.f });
+                    }
+                }
+            }
+        }
+    }
 
     // GPU 업로드 요청 수집 (게임 스레드에서 Asset Load + residency 체크)
     PrepareGpuUploads(frame_packet);

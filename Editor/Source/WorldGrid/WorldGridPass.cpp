@@ -29,6 +29,12 @@ void WorldGridPass::Setup(RGSetupContext& context)
 
 void WorldGridPass::Execute(RGExecutionContext& context)
 {
+    // ShowFlag 검사
+    if (!render_view.show_flags.IsSet(EShowFlag::Grid))
+    {
+        return;
+    }
+
     SDL_GPUCommandBuffer* cmd = context.GetCommandBuffer();
 
     SDL_GPUTexture* color_target = context.GetActualTexture(color_target_handle);

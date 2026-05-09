@@ -28,10 +28,11 @@ enum class EShowFlag : uint64
 {
     None = 0,
 
-    Grid = 1 << 0, // 에디터 그리드
-    AABB = 1 << 1, // AABB 충돌 영역 표시
+    Grid       = 1 << 0, // 에디터 그리드
+    AABB       = 1 << 1, // AABB 충돌 영역 표시
+    StaticMesh = 1 << 2, // 스태틱 메시 렌더링
 
-    All = 0xFFFF'FFFF,
+    All = ~static_cast<uint64>(0),
 };
 
 SE_ENABLE_BITMASK_OPERATORS(EShowFlag)

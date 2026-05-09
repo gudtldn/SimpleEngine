@@ -166,10 +166,12 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
             {
                 switch (mode)
                 {
-                case ERenderingMode::Lit:       return "Lit";
-                case ERenderingMode::Unlit:     return "Unlit";
-                case ERenderingMode::Wireframe: return "Wireframe";
-                default:                        return "";
+                case ERenderingMode::Lit:         return "Lit";
+                case ERenderingMode::Unlit:       return "Unlit";
+                case ERenderingMode::Wireframe:   return "Wireframe";
+                case ERenderingMode::Normal:      return "Normal";
+                case ERenderingMode::WorldNormal: return "WorldNormal";
+                default:                          return "";
                 }
             };
 
@@ -233,6 +235,8 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
                     item("Lit", ERenderingMode::Lit);
                     item("Unlit", ERenderingMode::Unlit);
                     item("Wireframe", ERenderingMode::Wireframe);
+                    item("Normal", ERenderingMode::Normal);
+                    item("WorldNormal", ERenderingMode::WorldNormal);
                 })
                 .Separator()
                 .PopupButton("Show", "##ShowFlags", [&]
@@ -249,6 +253,7 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
 
                     flag_checkbox("Grid", EShowFlag::Grid);
                     flag_checkbox("AABB", EShowFlag::AABB);
+                    flag_checkbox("StaticMesh", EShowFlag::StaticMesh);
                 });
         }
     } // ~ImGuiHBox: PopID + 오른쪽 너비 캐시 저장

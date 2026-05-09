@@ -14,7 +14,7 @@ cbuffer SceneDataUBO : register(b0, space3)
     float3 LightDirWS;     // [16:27] 태양광 방향 벡터 (빛을 향하는 방향, 정규화됨)
     float  _pad1;          // [28:31] 패딩
     float3 LightColor;     // [32:43] 주광원 색상 * 강도(Intensity)
-    float  _pad2;          // [44:47] 패딩
+    uint   RenderingMode;  // [44:47] 렌더링 모드 (0=Lit, 1=Unlit, 2=Wireframe, 3=Normal, 4=WorldNormal)
 }
 
 // Per-Material: 머티리얼 인스턴스 교체 시 업데이트
@@ -57,6 +57,9 @@ PSOutput PSMain(VertexOutput input)
 {
     PSOutput output;
 
+    // Picking용 EntityID 설정
+    output.entity_id = input.entity_id;
+
     // 1. Texture Sampling
     float4 base_color = BaseColorTexture.Sample(BaseColorSampler, input.tex_coord) * BaseColorFactor;
     float4 emissive   = EmissiveTexture.Sample(EmissiveSampler, input.tex_coord)   * EmissiveFactor;
@@ -68,14 +71,33 @@ PSOutput PSMain(VertexOutput input)
         discard;
     }
 
-    // 3. DXC Optimization Hack (TODO: 본격적인 조명 계산 구현 시 제거)
-    // 조명 계산이 없어서 world_pos, normal, tangent가 최적화로 날아가는 것을 방지.
-    // 매우 작은 값(1e-9)을 곱해 최종 출력에 묻어버림.
-    float3 _keep = (input.world_pos + input.world_normal + input.world_tangent.xyz) * 1e-9f;
+    // ----- RenderingMode: 0=Lit, 1=Unlit, 2=Wireframe, 3=Normal, 4=WorldNormal -----
 
-    // 4. Output Configuration
-    output.color     = float4(base_color.rgb + emissive.rgb + _keep, base_color.a);
-    output.entity_id = input.entity_id;
+    // Lit / Wireframe
+    if (RenderingMode == 0u || RenderingMode == 2u)
+    {
+        // TODO: 본격적인 조명 계산 구현 전까지 world_pos/normal/tangent 최적화 제거 방지
+        float3 _keep = (input.world_pos + input.world_normal + input.world_tangent.xyz) * 1e-9f;
+        output.color = float4(base_color.rgb + emissive.rgb + _keep, base_color.a);
+    }
+
+    // Unlit
+    else if (RenderingMode == 1u)
+    {
+        output.color = float4(base_color.rgb + emissive.rgb, base_color.a);
+    }
+
+    // Normal (오브젝트 공간 노멀 시각화)
+    else if (RenderingMode == 3u)
+    {
+        output.color = float4(input.local_normal * 0.5f + 0.5f, 1.0f);
+    }
+
+    // WorldNormal (정규화된 월드 노멀 시각화)
+    else if (RenderingMode == 4u)
+    {
+        output.color = float4(normalize(input.world_normal) * 0.5f + 0.5f, 1.0f);
+    }
 
     // -------------------- 밉맵 디버그 시각화 --------------------
 //     // 1. GPU가 이 픽셀에서 사용하기로 결정한 LOD(층수)를 역으로 알아냅니다.

@@ -98,6 +98,38 @@ void DebugDrawSubsystem::DrawLines(ArrayView<const DebugLine> lines)
     }
 }
 
+void DebugDrawSubsystem::DrawAABB(const AABBf& aabb, const Matrix4x4& model, const LinearColor& color)
+{
+    const Vector3f mn = aabb.min;
+    const Vector3f mx = aabb.max;
+
+    const Vector3 corners[8] = {
+        model.TransformPoint({ mn.x, mn.y, mn.z }),
+        model.TransformPoint({ mx.x, mn.y, mn.z }),
+        model.TransformPoint({ mn.x, mx.y, mn.z }),
+        model.TransformPoint({ mx.x, mx.y, mn.z }),
+        model.TransformPoint({ mn.x, mn.y, mx.z }),
+        model.TransformPoint({ mx.x, mn.y, mx.z }),
+        model.TransformPoint({ mn.x, mx.y, mx.z }),
+        model.TransformPoint({ mx.x, mx.y, mx.z }),
+    };
+    constexpr usize EDGES[12][2] = {
+        { 0, 1 }, { 0, 2 }, { 3, 1 }, { 3, 2 }, // 하단면
+        { 4, 5 }, { 4, 6 }, { 7, 5 }, { 7, 6 }, // 상단면
+        { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }, // 수직 모서리
+    };
+
+    std::scoped_lock lock{ pending_mutex };
+    for (const auto& [a, b] : EDGES)
+    {
+        if (pending_lines.Len() >= MAX_DEBUG_LINES)
+        {
+            return;
+        }
+        pending_lines.Push({ .start = corners[a], .end = corners[b], .color = color });
+    }
+}
+
 void DebugDrawSubsystem::UploadToGpu(SDL_GPUCommandBuffer* cmd)
 {
     // 현재 프레임에 등록된 DebugLine을 Swap (이후 DrawLine 호출은 다음 프레임에 반영)

@@ -54,6 +54,9 @@ public:
     /** DebugLine 목록을 이번 프레임 렌더에 등록합니다. (Thread-Safe) */
     void DrawLines(ArrayView<const DebugLine> lines);
 
+    /** AABB Bounds를 월드 좌표계로 변환 후 DebugLine으로 등록합니다. (Thread-Safe) */
+    void DrawAABB(const AABBf& aabb, const Matrix4x4& model, const math::LinearColor& color);
+
     /** 이번 프레임에 등록된 DebugLine을 GPU 버퍼에 업로드합니다. */
     void UploadToGpu(SDL_GPUCommandBuffer* cmd);
 

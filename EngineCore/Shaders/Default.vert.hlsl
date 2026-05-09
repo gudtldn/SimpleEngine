@@ -36,6 +36,7 @@ VertexOutput VSMain(VertexInput input)
 
     output.world_normal  = normalize(mul(normal_matrix, input.normal));
     output.world_tangent = float4(normalize(mul(normal_matrix, input.tangent.xyz)), input.tangent.w);
+    output.local_normal  = input.normal;
 
     // 3. Texture UV & Data
     output.tex_coord = input.tex_coord;

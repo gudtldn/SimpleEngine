@@ -29,7 +29,7 @@ struct RenderView
     Degree<double> fov_y = 60.0_deg;
 
     ERenderingMode rendering_mode = ERenderingMode::Lit;
-    ShowFlags show_flags = EShowFlag::All;
+    ShowFlags show_flags = EShowFlag::Grid | EShowFlag::StaticMesh; // TODO: ViewportPanel.h:29 하고 중복 관리중
 
 public:
     [[nodiscard]] Vector3 GetRightVector() const
