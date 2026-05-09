@@ -308,7 +308,7 @@ private:
     template <typename... Args>
     constexpr void Create(Args&&... args)
     {
-        std::construct_at(std::addressof(storage.value), std::forward<Args>(args)...);
+        std::construct_at(const_cast<std::remove_const_t<T>*>(std::addressof(storage.value)), std::forward<Args>(args)...);
         is_value_set = true;
     }
 
@@ -316,7 +316,7 @@ private:
     {
         if constexpr (!std::is_trivially_destructible_v<T>)
         {
-            std::destroy_at(std::addressof(storage.value));
+            std::destroy_at(const_cast<std::remove_const_t<T>*>(std::addressof(storage.value)));
         }
         is_value_set = false;
     }
