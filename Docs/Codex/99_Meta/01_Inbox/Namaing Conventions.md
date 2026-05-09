@@ -45,7 +45,7 @@ enum class EColor
   - 예시: `MyAbstractClassBase`, `MyAbstractClass`
 
 - 템플릿 매개변수
-  - 규칙: 규칙: 타입 매개변수는 `T`, `U`, `T` + `PascalCase` / 비타입 매개변수는 `UPPER_SNAKE_CASE`
+  - 규칙: 규칙: 타입 매개변수는 `T`, `U`, `PascalCase` + `Type` / 비타입 매개변수는 `UPPER_SNAKE_CASE`
   - 예시: `template <typename T>`, `template <int MAX_SIZE>`, `template <auto N>`
 
 - 네임스페이스(`namespace`)
