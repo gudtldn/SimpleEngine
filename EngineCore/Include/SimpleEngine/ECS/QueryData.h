@@ -20,13 +20,15 @@ namespace se::detail
  * 쿼리 파라미터 파싱을 위한 내부 메타프로그래밍 유틸리티
  */
 
-// 조건 태그를 사용하여 타입 목록에서 특정 타입들을 추출합니다.
+// Ts...에서 ConditionTag<T>::Value가 true인 타입들만 추출합니다.
+// 예) FilterTypes<FetchTypePred, A, B, With<C>> -> std::tuple<A, B, With<C>>
 template <template <typename> typename ConditionTag, typename... Ts>
-    requires requires { (ConditionTag<Ts>::Value, ...); }
 using FilterTypes = traits::TupleCat<
     std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
 >;
 
+// FilterTypes 결과를 평탄화합니다. With<A,B> 같은 필터 태그를 A, B로 전개할 때 사용합니다.
+// 예) FlatFilterTypes<WithTagPred, A, With<B, C>> -> std::tuple<B, C>
 template <template <typename...> typename ConditionTag, typename... Ts>
 using FlatFilterTypes = traits::FlattenTuple<FilterTypes<ConditionTag, Ts...>>;
 

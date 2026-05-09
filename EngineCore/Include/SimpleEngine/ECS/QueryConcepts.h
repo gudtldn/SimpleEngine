@@ -52,42 +52,47 @@ concept IsFetchType = !(traits::IsSpecializationOf<T, With> || traits::IsSpecial
 template <typename T>
 concept IsRequiredComponent = IsFetchType<T> && !(traits::OptionalLike<T> || std::same_as<T, Entity>);
 
-template <typename... Ts>
-struct QueryValidatorImpl;
-
-template <
-    template <typename...> typename TupleLike,
-    typename... ProcessedTs
->
-struct QueryValidatorImpl<TupleLike<ProcessedTs...>>
-{
-    // 최소 1개 이상의 파라미터가 있는지
-    static constexpr bool HasElements = sizeof...(ProcessedTs) > 0;
-
-    // 모든 타입이 고유한지
-    static constexpr bool IsUnique = traits::TupleUniqueTypes<TupleLike<ProcessedTs...>>;
-
-    // 포인터 타입이 없는지
-    static constexpr bool NoPointers = !(std::is_pointer_v<ProcessedTs> || ...);
-
-    // 모든 타입이 유효한 컴포넌트(class/struct)인지
-    static constexpr bool AllValidComponents = (std::is_class_v<ProcessedTs> && ...);
-};
-
-/**
- * Query 타입을 Validator에서 사용할 수 있도록 정규화 합니다.
- * 1. Query<..., Optional<T>, With<...>, WithOut<...>>에서 모든 Wrapper를 평탄화 합니다.
- * 2. Query<Ts...>에서 모든 Ts에 대해서 std::remove_cvref_t를 적용합니다.
- */
+// IsUnique 체크용: With<A, B> 같은 필터 태그를 A, B로 평탄화한 뒤 cvref를 제거합니다.
+// Query<A, With<A>> 처럼 직접 명시와 필터 태그 안에서 동시에 등장하는 중복도 감지합니다.
 template <typename... Ts>
 using ProcessedQueryTuple = traits::TupleMap<
     traits::FlattenTuple<std::tuple<Ts...>>,
     std::remove_cvref_t
 >;
 
-/** Query로 들어온 인자가 올바른 타입인지 확인합니다. */
+/**
+ * Query<Ts...> 파라미터의 컴파일 타임 유효성 검사 템플릿
+ */
 template <typename... Ts>
-using QueryValidator = QueryValidatorImpl<ProcessedQueryTuple<Ts...>>;
+struct QueryValidator
+{
+    using ProcessedTypes = ProcessedQueryTuple<Ts...>;
+
+    // 최소 1개 이상의 파라미터가 있어야 함.
+    static constexpr bool HasElements = sizeof...(Ts) > 0;
+
+    // 모든 타입이 고유해야 함.
+    static constexpr bool IsUnique = traits::TupleUniqueTypes<ProcessedTypes>;
+
+    // 포인터 타입이 없어야 함.
+    static constexpr bool NoPointers = !(std::is_pointer_v<std::remove_cvref_t<Ts>> || ...);
+
+    // 모든 타입이 유효한 컴포넌트(class/struct) 이어야 함.
+    static constexpr bool AllValidComponents = (std::is_class_v<std::remove_cvref_t<Ts>> && ...);
+
+    // Entity 참조는 불가능 함.
+    static constexpr bool NoEntityReference  =
+        ((!std::is_reference_v<Ts> || !std::same_as<std::remove_cvref_t<Ts>, Entity>) && ...);
+
+    // Optional 자체의 참조는 불가능 함. (대신 Optional<T& / const T&>를 사용)
+    static constexpr bool NoOptionalReference =
+        ((!std::is_reference_v<Ts> || !traits::OptionalLike<std::remove_cvref_t<Ts>>) && ...);
+
+    // Optional<Entity>의 형태는 불가능 함.
+    static constexpr bool NoOptionalEntity =
+        ((!traits::OptionalLike<std::remove_cvref_t<Ts>> 
+            || !std::same_as<std::remove_cvref_t<traits::InnerOf<std::remove_cvref_t<Ts>>>, Entity>) && ...);
+};
 
 /** 단일 쿼리 파라미터가 원본 데이터를 수정하지 않는 읽기 전용 타입인지 확인합니다. */
 template <typename T>

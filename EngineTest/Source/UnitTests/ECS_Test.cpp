@@ -208,6 +208,63 @@ TEST_F(ECSTest, ECSSystemWithOptionalComponents)
     EXPECT_EQ(comp_added->value, 50);
 }
 
+// Optional<T>(값 복사) / Optional<const T>(const 값 복사)가 정상 동작하는지 검증합니다.
+TEST_F(ECSTest, ECSQueryOptionalValueCopy)
+{
+    WorldContext ctx;
+
+    auto entity_with = ctx.GetWorld().SpawnEntity(TestValueComponent{ .value = 42 });
+    ctx.GetWorld().SpawnEntity(); // TestValueComponent 없음
+
+    // -- Optional<T>: 값 복사 --
+    // 컴포넌트 유무를 HasValue()로 확인하고, 반환된 복사본을 수정해도 원본에 영향이 없어야 합니다.
+    {
+        int has_value_count = 0;
+        int null_count = 0;
+
+        for (auto [opt_val] : ctx.GetWorld().CreateQuery<Optional<TestValueComponent>>())
+        {
+            if (opt_val.HasValue())
+            {
+                EXPECT_EQ(opt_val->value, 42);
+                opt_val->value = 9999; // 복사본 수정
+                ++has_value_count;
+            }
+            else
+            {
+                ++null_count;
+            }
+        }
+
+        EXPECT_EQ(has_value_count, 1);
+        EXPECT_EQ(null_count, 1);
+
+        // 복사본 수정이 원본에 영향을 주지 않았는지 확인합니다.
+        auto stored = ctx.GetWorld().TryGetComponent<TestValueComponent>(entity_with);
+        ASSERT_TRUE(stored.HasValue());
+        EXPECT_EQ(stored->value, 42);
+    }
+
+    // -- Optional<const T>: const 값 복사 --
+    // Optional<const T>도 컴파일되어야 합니다.
+    {
+        int has_value_count = 0;
+
+        for (auto [opt_val] : ctx.GetWorld().CreateQuery<Optional<const TestValueComponent>>())
+        {
+            if (opt_val.HasValue())
+            {
+                EXPECT_EQ(opt_val->value, 42);
+                // opt_val->value = 0; // 주석을 풀면 컴파일 에러 (const T 내부는 수정 불가)
+                ++has_value_count;
+            }
+        }
+
+        EXPECT_EQ(has_value_count, 1);
+    }
+}
+
+
 // const World와 읽기 전용 쿼리의 상호작용을 검증합니다.
 TEST_F(ECSTest, ECSConstWorldAndReadOnlyQuery)
 {

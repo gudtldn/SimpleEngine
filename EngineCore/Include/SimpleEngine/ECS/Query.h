@@ -69,6 +69,17 @@ class Query
     static_assert(Validator::AllValidComponents,
         "Query parameters must be valid component types (class/struct) or filter tags (With/Without).");
 
+    static_assert(Validator::NoEntityReference,
+        "Entity in a Query must be fetched by value, not by reference.");
+
+    static_assert(Validator::NoOptionalReference,
+        "Optional<T> in a Query must not have an outer reference. "
+        "Use Optional<T&> for mutable access, not Optional<T>&.");
+
+    static_assert(Validator::NoOptionalEntity,
+        "Optional<Entity> is not allowed in a Query. "
+        "Entity is not stored as a component and has no pool.");
+
 private:
     friend class Iterator;
 
@@ -179,24 +190,25 @@ private:
 
         if constexpr (std::same_as<RawType, Entity>)
         {
-            static_assert(
-                !std::is_reference_v<T>,
-                "Entity in a Query must be fetched by value, not by reference."
-            );
             return entity;
         }
         else if constexpr (traits::OptionalLike<RawType>)
         {
-            static_assert(
-                !std::is_reference_v<T>,
-                "Optional<T> in a Query must be fetched by value, not by reference."
-            );
+            auto* pool = std::get<Idx>(fetch_pools);
+            if (!pool)
+            {
+                return NullOpt;
+            }
 
-            if (auto* pool = std::get<Idx>(fetch_pools))
+            using InnerType = traits::InnerOf<RawType>;
+            if constexpr (std::is_reference_v<InnerType>)
             {
                 return pool->Find(entity);
             }
-            return NullOpt;
+            else
+            {
+                return pool->Find(entity).Copy();
+            }
         }
         else
         {
