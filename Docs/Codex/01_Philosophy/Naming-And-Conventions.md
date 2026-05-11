@@ -288,9 +288,27 @@ ReadBytes(path)
     .OrElse([](const auto& err) { ConsoleLog(ELogLevel::Error, "{}", err.What()); });
 ```
 
-## 6. 리플렉션 시스템 (Reflection System)
+## 6. 코드 포맷팅 (Code Formatting)
 
-## 6.1. 클래스/구조체 등록
+### 6.1. 중괄호 위치 (Braces)
+
+**Allman 스타일**을 엄격히 적용합니다. 모든 중괄호(`{`)는 반드시 새로운 줄(New Line)에서 시작해야 합니다.
+
+```cpp
+if (is_active)
+{
+    DoSomething();
+}
+```
+
+### 6.2. 줄 길이 및 들여쓰기
+
+- **최대 줄 길이:** **150자**를 권장합니다. 코드가 너무 가로로 길어지면 가독성이 떨어지므로, 150자를 초과할 경우 적절히 줄 바꿈을 수행합니다.
+- **들여쓰기 (Indentation):** 스페이스 4칸(4 Spaces)을 사용합니다. (탭(Tab) 사용 금지)
+
+## 7. 리플렉션 시스템 (Reflection System)
+
+### 7.1. 클래스/구조체 등록
 
 `SE_CLASS` 매크로는 클래스 내부 최상단(접근 지정자 앞)에 선언합니다.
 리플렉션 프로퍼티 등록 코드(`SE_BEGIN_REFLECT` ~ `SE_END_REFLECT`)는 헤더가 아닌 `.cpp` 파일에 작성합니다.
@@ -315,7 +333,7 @@ SE_END_REFLECT(MyComponent)
 }
 ```
 
-### 6.2. 어노테이션 (Annotation)
+### 7.2. 어노테이션 (Annotation)
 
 `SE_ANNOTATION`은 클래스/구조체 선언부, 또는 멤버 변수 바로 위 줄에 단독으로 위치시킵니다.
 > 추후 C++26의 표준 어노테이션으로 쉽게 대체하기 위함
