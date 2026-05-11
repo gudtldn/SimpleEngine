@@ -20,7 +20,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="[vcpkg_root_path]/scripts/buildsystems/vcpkg.cm
 | CMake                     | 3.28+  |                         |
 | vcpkg                     | 최신     | `VCPKG_ROOT` 환경변수 설정 필요 |
 | Rust / rustup             | stable | ICU4X Corrosion 빌드에 필요  |
-| MSVC (Visual Studio 2022) | 17.x+  |                         |
+| MSVC (Visual Studio 2026) | 17.x+  |                         |
 | Ninja (필수는 아님)            | 최신     | 단일 구성 생성기 사용 시 필요       |
 
 - 좌표계: right-hand, z-up
@@ -30,15 +30,9 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="[vcpkg_root_path]/scripts/buildsystems/vcpkg.cm
 
 ## 추후에 문서에 정리
 
-- C++ latest 프로젝트 (C++26 ~ 29 까지 보고있음)
-- ~~기존의 헤더 방식이 아닌, C++20의 모듈을 사용~~
-  - 모듈 불편한게 한두가지가 아니라 다시 헤더로 변경, 추후에 기회가 될 때 모듈로 변경
-  - 순환참조가 생각보다 빈번하게 발생하고, 전방 선언이 잘 안되는 경우가 많았음
 - 핵심 구조는 OOP, 게임 로직은 ECS
 - Lua, Pyhton? 지원 예정
 - Visual Sctipt도 만?들 예정
-- ~~프로젝트의 기본 string타입은 char8_t, std::u8string 타입~~
-  - char8_t가 기존 std나 라이브러리 코드와 호환이 잘 안되고, 컴파일러 설정에 utf-8을 적용시키면 일반 char로도 유니코드 사용이 가능해서 다시 변경
 
 ## 참고한 프로젝트 및 엔진
 

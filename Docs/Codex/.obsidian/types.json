@@ -5,7 +5,6 @@
     "tags": "tags",
     "작성일": "date",
     "최종 수정일": "date",
-    "작성 완료": "checkbox",
-    "참고문서": "multitext"
+    "작성 완료": "checkbox"
   }
 }
