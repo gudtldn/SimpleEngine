@@ -341,7 +341,7 @@ TEST_F(JobAllocatorTest, RecyclingFromFreeList)
     JobAllocator::Free(first);
 
     void* second = JobAllocator::Allocate(32);
-    EXPECT_EQ(first, second) << "Free된 블록이 재사용되어야 한다";
+    EXPECT_EQ(first, second) << "Freed block must be reused";
 
     JobAllocator::Free(second);
 }
@@ -537,7 +537,7 @@ TEST_F(JobCounterTest, CallbackWaiterNotifiedOnComplete)
 
     counter->Decrement();
     EXPECT_EQ(future.wait_for(10ms), std::future_status::timeout)
-        << "카운터가 아직 0이 아닌데 콜백이 호출됨";
+        << "Callback invoked before counter reached zero";
 
     counter->Decrement();
     auto status = future.wait_for(1s);
@@ -554,8 +554,8 @@ TEST_F(JobCounterTest, AddWaiterAfterComplete_ReturnsCallback)
     bool called = false;
     auto returned = counter.AddWaiter([&called] { called = true; });
 
-    EXPECT_TRUE(returned.HasValue()) << "이미 완료된 카운터는 콜백을 반환해야 함";
-    EXPECT_FALSE(called) << "반환만 하고 자동 호출하지 않아야 함";
+    EXPECT_TRUE(returned.HasValue()) << "Already-completed counter must return the callback";
+    EXPECT_FALSE(called) << "Callback must be returned, not auto-invoked";
 
     // 호출자가 직접 실행
     if (returned.HasValue())

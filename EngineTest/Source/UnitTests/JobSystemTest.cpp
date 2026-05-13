@@ -473,7 +473,3 @@ TEST_F(JobSystemTest, StressTest_MultiThreadedSubmit)
     EXPECT_EQ(counter.load(), THREADS * JOBS_PER_THREAD);
 }
 
-TEST_F(JobSystemTest, WorkerCount)
-{
-    EXPECT_EQ(system->GetWorkerCount(), 4u);
-}

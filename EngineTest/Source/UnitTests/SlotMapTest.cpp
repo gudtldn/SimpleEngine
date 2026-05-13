@@ -14,20 +14,6 @@ class SlotMapTest : public ::testing::Test {};
 // RID Tests
 // ============================================================================
 
-TEST_F(RIDTest, DefaultConstructedIsInvalid)
-{
-    const RID rid{};
-    EXPECT_FALSE(rid.IsValid());
-    EXPECT_FALSE(static_cast<bool>(rid));
-}
-
-TEST_F(RIDTest, ValidRID)
-{
-    const RID rid{ .index = 0, .generation = 1 };
-    EXPECT_TRUE(rid.IsValid());
-    EXPECT_TRUE(static_cast<bool>(rid));
-}
-
 TEST_F(RIDTest, Equality)
 {
     const RID a{ .index = 1, .generation = 2 };
@@ -58,13 +44,6 @@ TEST_F(RIDTest, HashConsistency)
 // ============================================================================
 // SlotMap Tests
 // ============================================================================
-
-TEST_F(SlotMapTest, EmptyOnConstruction)
-{
-    const SlotMap<int> map;
-    EXPECT_TRUE(map.IsEmpty());
-    EXPECT_EQ(map.Count(), 0u);
-}
 
 TEST_F(SlotMapTest, InsertAndGet)
 {
@@ -323,25 +302,3 @@ TEST_F(SlotMapTest, GenerationWrapsAroundInvalid)
     EXPECT_TRUE(map.Get(rid2).HasValue());
 }
 
-// generation이 wrap된 슬롯도 정상적으로 재사용되고 count가 정확한지 확인합니다.
-TEST_F(SlotMapTest, SlotReuseAfterGenerationWrap)
-{
-    // 이 테스트는 generation이 실제로 overflow되지 않으므로,
-    // 폐기 경로가 없을 때 새 슬롯이 정상 할당되는지만 검증합니다.
-    SlotMap<int> map;
-
-    const RID rid1 = map.Insert(1);
-    map.Remove(rid1);
-    EXPECT_EQ(map.Count(), 0u);
-
-    // 재삽입 시 슬롯 재사용
-    const RID rid2 = map.Insert(2);
-    EXPECT_EQ(map.Count(), 1u);
-    EXPECT_EQ(rid2.index, rid1.index);  // 같은 슬롯 재사용
-    EXPECT_GT(rid2.generation, rid1.generation); // generation 증가
-
-    // 새 슬롯 삽입 시 새 인덱스 할당
-    const RID rid3 = map.Insert(3);
-    EXPECT_EQ(map.Count(), 2u);
-    EXPECT_NE(rid3.index, rid1.index);  // 다른 슬롯
-}

@@ -163,7 +163,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
     {
         if (std::chrono::steady_clock::now() - start > 5s)
         {
-            FAIL() << "ReadFileAsync(non-existent) 타임아웃";
+            FAIL() << "ReadFileAsync(non-existent) timed out";
         }
         std::this_thread::yield();
     }
@@ -199,7 +199,7 @@ TEST_F(AsyncFileIOTest, ReadFile_MultipleRequests)
     {
         if (std::chrono::steady_clock::now() - start > 10s)
         {
-            FAIL() << "다중 요청 타임아웃. 완료: " << completed_count.load();
+            FAIL() << "Multiple requests timed out. Completed: " << completed_count.load();
         }
         std::this_thread::yield();
     }
@@ -233,7 +233,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_MultipleCoroutines)
     {
         if (std::chrono::steady_clock::now() - start > 10s)
         {
-            FAIL() << "다중 코루틴 타임아웃. 완료: " << completed_count.load();
+            FAIL() << "Multiple coroutines timed out. Completed: " << completed_count.load();
         }
         std::this_thread::yield();
     }

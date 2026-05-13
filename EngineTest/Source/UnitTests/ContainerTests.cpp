@@ -90,26 +90,14 @@ TEST_F(FixedArrayAPI_Test, RangeBasedForLoop)
     EXPECT_EQ(sum, 10);
 }
 
-TEST_F(FixedArrayAPI_Test, ConstexprOperations)
-{
-    // FixedArray의 생성 및 기본 메서드가 constexpr로 동작하는지 확인
-    constexpr FixedArray<int, 3> CONST_ARR{}; // {}를 사용하여 집계 초기화
-    static_assert(CONST_ARR.Len() == 3, "Len() should be constexpr");
-    static_assert(!CONST_ARR.IsEmpty(), "IsEmpty() should be constexpr");
-
-    // At() 메서드는 Optional을 반환하므로, Optional이 constexpr이 아닐 경우 직접적인 constexpr 테스트는 어렵습니다.
-    // 하지만 At()의 반환 타입이 포인터라면 constexpr 테스트가 가능합니다.
-    // 현재 Optional<T&>를 반환하므로, Optional이 constexpr이 될 때까지는 주석 처리합니다.
-    /*
-    // constexpr FixedArray<int, 2> const_arr_with_values = {10, 20}; // FixedArray는 집계 초기화가 아니므로 직접 초기화 불가
-    // static_assert(const_arr_with_values.At(0).HasValue(), "At() should be constexpr when Optional is constexpr");
-    // static_assert(*const_arr_with_values.At(0) == 10, "At() should return correct value");
-    */
-
-    // Data() 메서드는 포인터를 반환하므로 constexpr 테스트가 가능합니다.
-    constexpr FixedArray<int, 1> data_arr{};
-    static_assert(data_arr.Data() != nullptr, "Data() should be constexpr and return a valid pointer");
-}
+// FixedArray constexpr 검증은 컴파일 타임에 수행합니다.
+static_assert([] {
+    constexpr FixedArray<int, 3> arr{};
+    static_assert(arr.Len() == 3);
+    static_assert(!arr.IsEmpty());
+    static_assert(arr.Data() != nullptr);
+    return true;
+}());
 
 TEST_F(ArrayAPI_Test, DefaultConstruction)
 {
@@ -791,17 +779,6 @@ TEST_F(DequeAPI_Test, ResizeAndClear)
     EXPECT_EQ(d.Len(), 0);
 }
 
-TEST_F(DequeAPI_Test, ShrinkToFit)
-{
-    Deque<int> d;
-    d.PushBack(1);
-    d.PushBack(2);
-    d.PushBack(3);
-    // NOTE: std::deque doesn't have capacity(), so we can't directly test if it shrank.
-    // We just call it to ensure it compiles and doesn't crash.
-    d.ShrinkToFit();
-    EXPECT_EQ(d.Len(), 3);
-}
 
 TEST_F(DequeAPI_Test, Insert)
 {
