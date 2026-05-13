@@ -34,8 +34,8 @@ class SE_CORE_API World final
 
 public:
     // 직렬화 파일 포맷 상수
-    static constexpr uint32 FILE_MAGIC = 0x44574553; // "SEWD" little-endian
-    static constexpr uint32 FILE_VERSION = 1;
+    static constexpr u32 FILE_MAGIC = 0x44574553; // "SEWD" little-endian
+    static constexpr u32 FILE_VERSION = 1;
 
 public:
     class EntityChain;
@@ -72,7 +72,7 @@ public:
     [[nodiscard]] bool IsEntityAlive(Entity entity) const { return entity_manager.IsValid(entity); }
 
     /** entity id(슬롯 인덱스)로부터 현재 살아있는 Entity를 복원합니다. */
-    [[nodiscard]] Optional<Entity> TryResolveEntity(uint32 id) const { return entity_manager.TryResolveEntity(id); }
+    [[nodiscard]] Optional<Entity> TryResolveEntity(u32 id) const { return entity_manager.TryResolveEntity(id); }
 
     /** 현재 살아있는 모든 Entity를 반환합니다. */
     [[nodiscard]] const Array<Entity>& GetAliveEntities() const { return alive_entities; }

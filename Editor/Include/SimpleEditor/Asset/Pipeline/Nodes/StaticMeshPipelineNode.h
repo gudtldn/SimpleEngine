@@ -11,11 +11,11 @@ namespace se::editor
 /** @todo docs */
 struct PipelineMeshSection
 {
-    uint32 index_offset = 0;
-    uint32 index_count = 0;
-    int32 vertex_offset = 0;
-    uint32 vertex_count = 0;
-    uint32 material_index = 0;
+    u32 index_offset = 0;
+    u32 index_count = 0;
+    i32 vertex_offset = 0;
+    u32 vertex_count = 0;
+    u32 material_index = 0;
 };
 
 /**
@@ -28,7 +28,7 @@ class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) StaticMeshPipelineNode : publ
 public:
     // Mesh Data
     Array<StaticVertex> vertices;
-    Array<uint32> indices;
+    Array<u32> indices;
     Array<PipelineMeshSection> sections;
 
     // 노드의 로컬 트랜스폼 (Z-up 엔진 convention)

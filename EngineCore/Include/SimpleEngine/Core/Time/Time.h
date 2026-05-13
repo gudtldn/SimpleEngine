@@ -26,23 +26,23 @@ class TimeTick
 
 public:
     /** 이번 프레임 경과 시간(초)을 반환합니다. */
-    [[nodiscard]] double GetDelta() const { return delta; }
+    [[nodiscard]] f64 GetDelta() const { return delta; }
 
     /** 누적 경과 시간(초)을 반환합니다. */
-    [[nodiscard]] double GetElapsed() const { return elapsed; }
+    [[nodiscard]] f64 GetElapsed() const { return elapsed; }
 
     /** 현재까지의 프레임 카운트를 반환합니다. */
-    [[nodiscard]] uint64 GetFrameCount() const { return frame_count; }
+    [[nodiscard]] u64 GetFrameCount() const { return frame_count; }
 
 protected:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    double delta = 0.0;
+    f64 delta = 0.0;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    double elapsed = 0.0;
+    f64 elapsed = 0.0;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    uint64 frame_count = 0;
+    u64 frame_count = 0;
 };
 } // namespace detail
 
@@ -67,20 +67,20 @@ class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) GameTime final : public 
 
 public:
     /** 현재 시간 배율을 반환합니다. (기본값: 1.0) */
-    [[nodiscard]] double GetTimeScale() const { return time_scale; }
+    [[nodiscard]] f64 GetTimeScale() const { return time_scale; }
 
     /** 일시정지 상태인지 반환합니다. */
     [[nodiscard]] bool IsPaused() const { return paused; }
 
     /** 시간 배율을 설정합니다. */
-    void SetTimeScale(double scale) { time_scale = scale; }
+    void SetTimeScale(f64 scale) { time_scale = scale; }
 
     /** 일시정지 상태를 설정합니다. */
     void SetPaused(bool pause) { paused = pause; }
 
 private:
     SE_ANNOTATION(=meta::Property, =meta::Range(0.1f, 10.0f))
-    double time_scale = 1.0;
+    f64 time_scale = 1.0;
 
     SE_ANNOTATION(=meta::Property)
     bool paused = false;
@@ -98,16 +98,16 @@ class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) FixedTime final : public
 
 public:
     /** 고정 시간 스텝(초)을 반환합니다. (기본값: 1/64) */
-    [[nodiscard]] double GetFixedStep() const { return fixed_step; }
+    [[nodiscard]] f64 GetFixedStep() const { return fixed_step; }
 
     /** 현재까지 누적된 시간(초)을 반환합니다. */
-    [[nodiscard]] double GetAccumulator() const { return accumulator; }
+    [[nodiscard]] f64 GetAccumulator() const { return accumulator; }
 
     /** 보간 계수(0~1)를 반환합니다. (accumulator / fixed_step) */
-    [[nodiscard]] double GetAlpha() const { return accumulator / fixed_step; }
+    [[nodiscard]] f64 GetAlpha() const { return accumulator / fixed_step; }
 
     /** 고정 시간 스텝을 설정합니다. */
-    void SetFixedStep(double step) { fixed_step = step; }
+    void SetFixedStep(f64 step) { fixed_step = step; }
 
     /**
      * accumulator에서 고정 스텝 1회분을 소비합니다.
@@ -128,10 +128,10 @@ public:
 
 private:
     SE_ANNOTATION(=meta::Property)
-    double fixed_step = 1.0 / 64.0;
+    f64 fixed_step = 1.0 / 64.0;
 
     // accumulator는 내부 누적 상태이므로 리플렉션 대상에서 제외합니다.
-    double accumulator = 0.0;
+    f64 accumulator = 0.0;
 };
 } // namespace se
 

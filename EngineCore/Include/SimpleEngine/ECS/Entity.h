@@ -12,7 +12,7 @@ class EntityManager;
 class Entity
 {
 public:
-    static constexpr uint32 INVALID_ID = std::numeric_limits<uint32>::max();
+    static constexpr u32 INVALID_ID = std::numeric_limits<u32>::max();
 
 public:
     Entity()
@@ -21,8 +21,8 @@ public:
     {
     }
 
-    [[nodiscard]] uint32 GetId() const noexcept { return id; }
-    [[nodiscard]] uint32 GetGeneration() const noexcept { return generation; }
+    [[nodiscard]] u32 GetId() const noexcept { return id; }
+    [[nodiscard]] u32 GetGeneration() const noexcept { return generation; }
 
     [[nodiscard]] bool IsValid() const noexcept { return id != INVALID_ID; }
 
@@ -38,24 +38,24 @@ private:
         ar("generation") << entity.generation;
     }
 
-    Entity(uint32 in_id, uint32 in_generation) noexcept
+    Entity(u32 in_id, u32 in_generation) noexcept
         : id(in_id)
         , generation(in_generation)
     {
     }
 
-    uint32 id;
-    uint32 generation;
+    u32 id;
+    u32 generation;
 };
 } // namespace se
 
 template <>
 struct std::hash<se::Entity>
 {
-    size_t operator()(const se::Entity& entity) const noexcept
+    usize operator()(const se::Entity& entity) const noexcept
     {
         usize hash = 0;
         se::HashUtils::Combine(hash, entity.GetId(), entity.GetGeneration());
-        return static_cast<size_t>(hash);
+        return static_cast<usize>(hash);
     }
 };

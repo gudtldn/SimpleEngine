@@ -251,13 +251,13 @@ Array<AssetId> DependencyGraph::TopologicalSort() const
     std::shared_lock lock(graph_mutex);
 
     // 1. 모든 노드 수집
-    HashMap<AssetId, uint32> dependency_count;
+    HashMap<AssetId, u32> dependency_count;
 
     // forward_deps와 reverse_deps의 Key가 곧 전체 노드 집합
     for (const auto& [node, deps] : forward_deps)
     {
         // node가 의존하는 다른 노드의 수 (forward_deps의 크기)
-        dependency_count.Insert(node, static_cast<uint32>(deps.Len()));
+        dependency_count.Insert(node, static_cast<u32>(deps.Len()));
     }
     for (const AssetId& node : reverse_deps | std::views::keys)
     {
@@ -291,7 +291,7 @@ Array<AssetId> DependencyGraph::TopologicalSort() const
         {
             for (const AssetId& dependent : *rev)
             {
-                uint32& deg = dependency_count.FindChecked(dependent);
+                u32& deg = dependency_count.FindChecked(dependent);
                 SE_ASSERT(deg > 0);
 
                 // 모든 의존성이 해결되면 결과 배열 끝에 추가 (다음 탐색 대상)

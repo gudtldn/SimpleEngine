@@ -32,7 +32,7 @@ template <typename T>
 concept PhaseType = std::derived_from<T, Phase>;
 
 /** Schedule Stage의 실행 모드 */
-enum class EScheduleMode : uint8
+enum class EScheduleMode : u8
 {
     Once,          // 1회 실행 후 제거 (Startup 등)
     EveryFrame,    // 매 프레임 실행 (PreUpdate, Update, PostUpdate 등)

@@ -85,7 +85,7 @@ Optional<const StringNameEntry&> StringNamePool::Find(StringView view) const
         return NullOpt;
     }
 
-    const uint64 comparison_hash = HashUtils::FNVCaseInsensitive(view);
+    const u64 comparison_hash = HashUtils::FNVCaseInsensitive(view);
 
     std::shared_lock lock(string_pool_mutex);
     return lookup_map.Find(comparison_hash)
@@ -108,7 +108,7 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     }
 
     // pool에 있는지 확인
-    const uint64 display_hash = HashUtils::FNV(view);
+    const u64 display_hash = HashUtils::FNV(view);
     {
         std::shared_lock lock(string_pool_mutex);
         if (const auto entry = entry_pool.Find(display_hash))
@@ -118,7 +118,7 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     }
 
     // 없으면 만들기
-    const uint64 comparison_hash = HashUtils::FNVCaseInsensitive(view);
+    const u64 comparison_hash = HashUtils::FNVCaseInsensitive(view);
     std::unique_lock lock(string_pool_mutex);
 
     // Double Check
@@ -130,7 +130,7 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     const StringNameEntry& new_entry = entry_pool.Insert(display_hash, {
         .display_name = string_storage.Store(view),
         .comparison_hash = comparison_hash,
-        .length = static_cast<uint32>(view.ByteLen()),
+        .length = static_cast<u32>(view.ByteLen()),
     });
 
     lookup_map.Entry(comparison_hash).OrInsert(&new_entry);

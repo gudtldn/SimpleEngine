@@ -81,7 +81,7 @@ void FrameResourcePool::IncrementIdleCounters()
     increment_pool_counters(buffer_pool);
 }
 
-void FrameResourcePool::Trim(uint32 max_idle_frames)
+void FrameResourcePool::Trim(u32 max_idle_frames)
 {
     SDL_GPUDevice* raw_device = render_device->GetRawDevice();
 

@@ -151,12 +151,12 @@ Engine& Engine::Get()
     return *Instance;
 }
 
-double Engine::GetDeltaTime()
+f64 Engine::GetDeltaTime()
 {
     return Get().last_delta;
 }
 
-double Engine::GetElapsedTime()
+f64 Engine::GetElapsedTime()
 {
     return Get().total_elapsed;
 }
@@ -256,7 +256,7 @@ void Engine::Release()
     SDL_Quit();
 }
 
-void Engine::UpdateFrame(double delta_time)
+void Engine::UpdateFrame(f64 delta_time)
 {
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
     ZoneScoped; \

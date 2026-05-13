@@ -8,7 +8,7 @@ namespace se
 /**
  * 로그 메시지의 심각도(레벨)를 나타내는 Enum
  */
-enum class ELogLevel : uint8
+enum class ELogLevel : u8
 {
     Debug,
     Info,

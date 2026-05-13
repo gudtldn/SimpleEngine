@@ -166,15 +166,15 @@ struct TupleUniqueTypesImpl<TupleLike<Ts...>>
  * TupleLike 타입에서 Ts...를 추출해 제네릭 람다의 템플릿 파라미터로 전달합니다.
  * std::apply와 달리 런타임 값이 아닌 타입을 전달합니다.
  *
- * @tparam TupleLike 타입들을 추출할 TupleLike (예: std::tuple<int, float>)
+ * @tparam TupleLike 타입들을 추출할 TupleLike (예: std::tuple<i32, f32>)
  * @tparam Fn 템플릿 operator()를 가진 제네릭 람다 또는 Functor 타입
  * @param func 추출된 타입들을 템플릿 인자로 받아 호출될 객체
  *
  * @code
- * using MyTuple = std::tuple<int, float>;
+ * using MyTuple = std::tuple<i32, f32>;
  * ApplyTypes<MyTuple>([]<typename... Ts>()
  * {
- *     // Ts = int, float
+ *     // Ts = i32, f32
  * });
  * @endcode
  */
@@ -189,8 +189,8 @@ constexpr auto ApplyTypes(Fn&& func)
  * 튜플 타입의 파라미터 팩을 다른 템플릿 컨테이너로 리바인딩(rebind)합니다.
  *
  * @code
- * using StdTuple = std::tuple<int, float>;
- * Rebind<StdTuple, MyTuple>; // -> MyTuple<int, float>
+ * using StdTuple = std::tuple<i32, f32>;
+ * Rebind<StdTuple, MyTuple>; // -> MyTuple<i32, f32>
  * @endcode
  */
 template <
@@ -221,8 +221,8 @@ using FlattenTuple = detail::FlattenTupleImpl<ResultTupleLike, T>::Type;
  * Tuple의 내부 타입에 대해 Trait을 일괄 적용합니다.
  *
  * @code
- * // std::tuple<int, float> -> std::tuple<const int, const float>
- * TupleMap<std::tuple<int, float>, std::add_const_t>;
+ * // std::tuple<i32, f32> -> std::tuple<const i32, const f32>
+ * TupleMap<std::tuple<i32, f32>, std::add_const_t>;
  * @endcode
  */
 template <typename Tuple, template <typename...> typename Trait>

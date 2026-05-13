@@ -8,7 +8,7 @@
 namespace se
 {
 /** 머티리얼의 투명도 처리 방식 정의 */
-enum class EBlendMode : uint8
+enum class EBlendMode : u8
 {
     Opaque,      // 불투명 (Z버퍼에 기록, Alpha 무시)
     Masked,      // 알파 컷오프 (특정 알파 값 이하 픽셀 버림)
@@ -18,7 +18,7 @@ enum class EBlendMode : uint8
 };
 
 /** 셰이딩 방정식 정의 */
-enum class EShadingModel : uint8
+enum class EShadingModel : u8
 {
     Lit,        // 기본 PBR 셰이딩 (또는 Gouraud/Phong)
     Unlit,      // 빛의 영향을 받지 않음 (UI, 순수 색상)
@@ -27,7 +27,7 @@ enum class EShadingModel : uint8
 };
 
 /** 머티리얼의 렌더링 상태 비트 플래그 */
-enum class EMaterialFlag : uint32
+enum class EMaterialFlag : u32
 {
     None      = 0,
     AlphaTest = 1 << 0, // MASK 블렌드 모드용 알파 테스트 활성화

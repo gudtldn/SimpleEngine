@@ -36,7 +36,7 @@ void DestroyAsset(void* p) { delete static_cast<ScopeTestAsset*>(p); }
  */
 HandleData SimulateLoad(
     AssetPool& pool, EScopeLayer scope,
-    uint64 size_bytes = 256, uint64 frame = 0)
+    u64 size_bytes = 256, u64 frame = 0)
 {
     HandleData hd = pool.FindOrCreate(NewId(), TypeId::Get<ScopeTestAsset>(), AssetPath("test/scope_asset"));
 
@@ -76,7 +76,7 @@ TEST_F(ScopeLayerTest, UnloadScope_EvictsMatchingScope)
 
     EXPECT_EQ(pool.GetCount(), 3u);
 
-    uint32 evicted = pool.UnloadScope(EScopeLayer::Scene);
+    u32 evicted = pool.UnloadScope(EScopeLayer::Scene);
     EXPECT_EQ(evicted, 2u);
     EXPECT_EQ(pool.GetCount(), 1u);
 }
@@ -100,7 +100,7 @@ TEST_F(ScopeLayerTest, UnloadScope_SkipsActiveHandles)
     // AssetHandle 생성 -> ref_count = 1
     AssetHandle<ScopeTestAsset> handle(hd, &pool.GetTable());
 
-    uint32 evicted = pool.UnloadScope(EScopeLayer::Scene);
+    u32 evicted = pool.UnloadScope(EScopeLayer::Scene);
     EXPECT_EQ(evicted, 0u);
     EXPECT_EQ(pool.GetCount(), 1u);
 }
@@ -143,7 +143,7 @@ TEST_F(ScopeLayerTest, UnloadScope_TransientOnly)
     HandleData scene_hd = SimulateLoad(pool, EScopeLayer::Scene);
     HandleData transient_hd = SimulateLoad(pool, EScopeLayer::Transient);
 
-    uint32 evicted = pool.UnloadScope(EScopeLayer::Transient);
+    u32 evicted = pool.UnloadScope(EScopeLayer::Transient);
     EXPECT_EQ(evicted, 1u);
 
     EXPECT_TRUE(pool.GetTable().IsHandleValid(scene_hd));
@@ -157,7 +157,7 @@ TEST_F(ScopeLayerTest, UnloadScope_SessionBulkRelease)
     SimulateLoad(pool, EScopeLayer::Session, 512);
     SimulateLoad(pool, EScopeLayer::Scene, 256);
 
-    uint32 evicted = pool.UnloadScope(EScopeLayer::Session);
+    u32 evicted = pool.UnloadScope(EScopeLayer::Session);
     EXPECT_EQ(evicted, 3u);
     EXPECT_EQ(pool.GetCount(), 1u);
     EXPECT_EQ(pool.GetTotalMemoryUsage(), 256u);

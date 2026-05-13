@@ -6,7 +6,7 @@
 namespace se
 {
 /** 사전 정의된 기본 GPU 샘플러 타입 */
-enum class ESamplerType : uint8
+enum class ESamplerType : u8
 {
     LinearRepeat, // 선형 + 반복 (일반 텍스처)
     LinearClamp,  // 선형 + 클램프 (UI/스프라이트)

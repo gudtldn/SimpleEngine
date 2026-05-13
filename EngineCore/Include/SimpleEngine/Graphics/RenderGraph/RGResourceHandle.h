@@ -17,9 +17,9 @@ template <typename Tag>
 struct RGResourceHandleImpl
 {
     /** resource_nodes 배열 내의 인덱스 */
-    uint32 index = std::numeric_limits<uint32>::max();
+    u32 index = std::numeric_limits<u32>::max();
 
-    [[nodiscard]] constexpr bool IsValid() const { return index != std::numeric_limits<uint32>::max(); }
+    [[nodiscard]] constexpr bool IsValid() const { return index != std::numeric_limits<u32>::max(); }
     [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
 
     [[nodiscard]] constexpr bool operator==(const RGResourceHandleImpl&) const = default;
@@ -36,8 +36,8 @@ using RGBufferHandle = detail::RGResourceHandleImpl<struct _RGBufferTag>;
 template <typename Tag>
 struct std::hash<se::detail::RGResourceHandleImpl<Tag>> // NOLINT(*-dcl58-cpp)
 {
-    size_t operator()(const se::detail::RGResourceHandleImpl<Tag>& handle) const noexcept
+    usize operator()(const se::detail::RGResourceHandleImpl<Tag>& handle) const noexcept
     {
-        return std::hash<uint32>{}(handle.index);
+        return std::hash<u32>{}(handle.index);
     }
 };

@@ -159,9 +159,9 @@ bool WindowSubsystem::HasWindow(SDL_WindowID window_id) const
     return windows.Contains(window_id);
 }
 
-uint32 WindowSubsystem::GetWindowCount() const
+u32 WindowSubsystem::GetWindowCount() const
 {
-    return static_cast<uint32>(windows.Len());
+    return static_cast<u32>(windows.Len());
 }
 
 bool WindowSubsystem::IsFullscreen(SDL_WindowID window_id) const
@@ -218,8 +218,8 @@ void WindowSubsystem::OnSDLEvent(const SDL_Event& event)
     case SDL_EVENT_WINDOW_RESIZED:
         on_window_resized.Broadcast(
             event.window.windowID,
-            static_cast<uint32>(event.window.data1),
-            static_cast<uint32>(event.window.data2)
+            static_cast<u32>(event.window.data1),
+            static_cast<u32>(event.window.data2)
         );
         break;
 

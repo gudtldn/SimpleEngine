@@ -41,19 +41,19 @@ public:
      * @param view 카메라 투영 정보
      * @return 기즈모에 적용할 월드 공간 스케일
      */
-    [[nodiscard]] static double ComputeScreenScale(const Vector3& position, const RenderView& view);
+    [[nodiscard]] static f64 ComputeScreenScale(const Vector3& position, const RenderView& view);
 
     /** EGizmoAxis를 GPU 피킹 버퍼에 전달할 정수 ID로 인코딩합니다. */
-    static constexpr uint32 EncodePickID(EGizmoAxis axis)
+    static constexpr u32 EncodePickID(EGizmoAxis axis)
     {
-        return static_cast<uint32>(axis);
+        return static_cast<u32>(axis);
     }
 
     /** GPU 피킹으로 읽어온 정수 ID를 EGizmoAxis로 디코딩합니다. */
-    static constexpr EGizmoAxis DecodePickID(uint32 pick_id)
+    static constexpr EGizmoAxis DecodePickID(u32 pick_id)
     {
         // 열거형 범위를 벗어나는 값이 들어오면 None으로 처리
-        if (pick_id > static_cast<uint32>(EGizmoAxis::All))
+        if (pick_id > static_cast<u32>(EGizmoAxis::All))
         {
             return EGizmoAxis::None;
         }
@@ -84,7 +84,7 @@ private:
      */
     static void BuildSolidCylinder(
         GizmoDrawList& list, const Vector3& base_center, const Vector3& axis_dir,
-        double radius, double height, const LinearColor& color, int32 segments
+        f64 radius, f64 height, const LinearColor& color, i32 segments
     );
 
     /**
@@ -98,7 +98,7 @@ private:
      */
     static void BuildSolidCone(
         GizmoDrawList& list, const Vector3& base_center, const Vector3& axis_dir,
-        double radius, double height, const LinearColor& color, int32 segments
+        f64 radius, f64 height, const LinearColor& color, i32 segments
     );
 
     /**
@@ -111,7 +111,7 @@ private:
      * @param color 기본 색상
      */
     static void BuildSolidCube(
-        GizmoDrawList& list, const Vector3& center, double half_extent,
+        GizmoDrawList& list, const Vector3& center, f64 half_extent,
         const Vector3& right, const Vector3& up, const Vector3& forward,
         const LinearColor& color
     );
@@ -126,8 +126,8 @@ private:
      */
     static void BuildSolidSphere(
         GizmoDrawList& list, const Vector3& center,
-        double radius, const LinearColor& color,
-        int32 rings, int32 sectors
+        f64 radius, const LinearColor& color,
+        i32 rings, i32 sectors
     );
 
     /**
@@ -145,9 +145,9 @@ private:
     static void BuildThickArc(
         GizmoDrawList& list, const Vector3& center,
         const Vector3& axis0, const Vector3& axis1,
-        Radian<double> start_angle, Radian<double> end_angle,
-        double inner_radius, double outer_radius,
-        int32 segments, const LinearColor& color
+        Radian<f64> start_angle, Radian<f64> end_angle,
+        f64 inner_radius, f64 outer_radius,
+        i32 segments, const LinearColor& color
     );
 
 private:
@@ -157,30 +157,30 @@ private:
     // TODO: 아래 내용 설정파일이나, 에디터에서 조작할 수 있도록 수정
 
     // 기즈모가 화면 높이 대비 차지하는 비율 (FOV 무관하게 일정한 크기를 위함)
-    static constexpr double GIZMO_SCREEN_RATIO = 0.28;
+    static constexpr f64 GIZMO_SCREEN_RATIO = 0.28;
 
     // 공통 축 파라미터 (Translate/Scale 몸통 실린더 공유)
-    static constexpr double AXIS_LENGTH = 1.0;
-    static constexpr double AXIS_BODY_RADIUS = 0.025;
-    static constexpr int32 AXIS_SEGMENTS = 12;
+    static constexpr f64 AXIS_LENGTH = 1.0;
+    static constexpr f64 AXIS_BODY_RADIUS = 0.025;
+    static constexpr i32 AXIS_SEGMENTS = 12;
 
     // Translate 모드
-    static constexpr double TRANSLATE_HEAD_RADIUS = 0.07;
-    static constexpr double TRANSLATE_HEAD_LENGTH = 0.2;
-    static constexpr double ORIGIN_SPHERE_RADIUS = 0.06;
-    static constexpr int32 SPHERE_RINGS = 6;
-    static constexpr int32 SPHERE_SECTORS = 8;
+    static constexpr f64 TRANSLATE_HEAD_RADIUS = 0.07;
+    static constexpr f64 TRANSLATE_HEAD_LENGTH = 0.2;
+    static constexpr f64 ORIGIN_SPHERE_RADIUS = 0.06;
+    static constexpr i32 SPHERE_RINGS = 6;
+    static constexpr i32 SPHERE_SECTORS = 8;
 
     // Rotate 모드
-    static constexpr double RING_OUTER_RADIUS = 1.0;
-    static constexpr double RING_INNER_RADIUS = 0.8;
-    static constexpr int32 RING_SEGMENTS = 32;
+    static constexpr f64 RING_OUTER_RADIUS = 1.0;
+    static constexpr f64 RING_INNER_RADIUS = 0.8;
+    static constexpr i32 RING_SEGMENTS = 32;
 
     // Scale 모드
-    static constexpr double SCALE_CUBE_HALF = 0.05;
+    static constexpr f64 SCALE_CUBE_HALF = 0.05;
 
     // 평면 핸들 (XY/XZ/YZ 꺾쇠)
-    static constexpr double PLANE_HANDLE_OFFSET = 0.35;
-    static constexpr double PLANE_HANDLE_LENGTH = 0.15;
+    static constexpr f64 PLANE_HANDLE_OFFSET = 0.35;
+    static constexpr f64 PLANE_HANDLE_LENGTH = 0.15;
 };
 } // namespace se::editor

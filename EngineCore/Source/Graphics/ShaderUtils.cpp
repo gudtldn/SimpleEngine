@@ -10,10 +10,10 @@ namespace se
 namespace
 {
 /** SPIR-V 바이너리에서 첫 번째 OpEntryPoint의 이름을 추출합니다. */
-[[nodiscard]] const char* ExtractSpvEntryPoint(ArrayView<const uint8> spirv_bytecode)
+[[nodiscard]] const char* ExtractSpvEntryPoint(ArrayView<const u8> spirv_bytecode)
 {
-    static constexpr uint32 SPIRV_MAGIC = 0x07230203; // Little-endian magic
-    static constexpr uint16 OP_ENTRY_POINT = 15;
+    static constexpr u32 SPIRV_MAGIC = 0x07230203; // Little-endian magic
+    static constexpr u16 OP_ENTRY_POINT = 15;
 
     const usize byte_count = spirv_bytecode.Len();
 
@@ -23,15 +23,15 @@ namespace
         return nullptr;
     }
 
-    const uint8* data = spirv_bytecode.Data();
-    const usize word_count = byte_count / sizeof(uint32);
+    const u8* data = spirv_bytecode.Data();
+    const usize word_count = byte_count / sizeof(u32);
 
     // memcpy를 통해 정렬에 상관없이 4바이트 word를 읽기
     // (ArrayView는 임의 포인터를 참조할 수 있으므로 정렬이 보장되지 않음)
-    auto get_word = [&](usize word_idx) -> uint32
+    auto get_word = [&](usize word_idx) -> u32
     {
-        uint32 val;
-        std::memcpy(&val, data + (word_idx * sizeof(uint32)), sizeof(uint32));
+        u32 val;
+        std::memcpy(&val, data + (word_idx * sizeof(u32)), sizeof(u32));
         return val;
     };
 
@@ -44,9 +44,9 @@ namespace
     usize i = 5;
     while (i < word_count)
     {
-        const uint32 header = get_word(i);
-        const uint16 opcode = static_cast<uint16>(header & 0xFFFF);
-        const uint16 word_len = static_cast<uint16>(header >> 16);
+        const u32 header = get_word(i);
+        const u16 opcode = static_cast<u16>(header & 0xFFFF);
+        const u16 word_len = static_cast<u16>(header >> 16);
 
         // 무한 루프 및 Out-of-Bounds 방지
         if (word_len == 0 || i + word_len > word_count)
@@ -58,8 +58,8 @@ namespace
         // word_len >= 4: opcode(1) + execution_model(1) + id(1) + name(최소 1 word)
         if (opcode == OP_ENTRY_POINT && word_len >= 4)
         {
-            const char* entry_name = reinterpret_cast<const char*>(data + ((i + 3) * sizeof(uint32)));
-            const char* instruction_end = reinterpret_cast<const char*>(data + ((i + word_len) * sizeof(uint32)));
+            const char* entry_name = reinterpret_cast<const char*>(data + ((i + 3) * sizeof(u32)));
+            const char* instruction_end = reinterpret_cast<const char*>(data + ((i + word_len) * sizeof(u32)));
 
             // 문자열이 명령어 바운드 내에서 널 종료(\0)되는지 확인
             for (const char* c = entry_name; c < instruction_end; ++c)
@@ -84,7 +84,7 @@ namespace
 GraphicsShaderCreateResult CreateGraphicsShader(
     const RenderDevice& render_device,
     SDL_ShaderCross_ShaderStage stage,
-    ArrayView<const uint8> spirv_bytecode,
+    ArrayView<const u8> spirv_bytecode,
     SDL_PropertiesID props
 )
 {
@@ -118,7 +118,7 @@ GraphicsShaderCreateResult CreateGraphicsShader(
     if (stage == SDL_SHADERCROSS_SHADERSTAGE_VERTEX && refl_metadata->num_inputs > 0)
     {
         reflection.vertex_inputs.Reserve(refl_metadata->num_inputs);
-        for (uint32 i = 0; i < refl_metadata->num_inputs; ++i)
+        for (u32 i = 0; i < refl_metadata->num_inputs; ++i)
         {
             reflection.vertex_inputs.Push({ .location = refl_metadata->inputs[i].location });
         }
@@ -159,14 +159,14 @@ FilteredVertexInputState FilterVertexInputState(
     if (reflection.vertex_inputs.IsEmpty())
     {
         // 필터링 없음 - 원본 전체 복사
-        for (uint32 i = 0; i < original.num_vertex_attributes; ++i)
+        for (u32 i = 0; i < original.num_vertex_attributes; ++i)
         {
             result.attributes.Push(original.vertex_attributes[i]);
         }
         return result;
     }
 
-    for (uint32 i = 0; i < original.num_vertex_attributes; ++i)
+    for (u32 i = 0; i < original.num_vertex_attributes; ++i)
     {
         const SDL_GPUVertexAttribute& attr = original.vertex_attributes[i];
         for (const ShaderInputVar& input : reflection.vertex_inputs)
@@ -184,7 +184,7 @@ FilteredVertexInputState FilterVertexInputState(
 
 SDL_GPUComputePipeline* CreateComputePipeline(
     const RenderDevice& render_device,
-    ArrayView<const uint8> spirv_bytecode,
+    ArrayView<const u8> spirv_bytecode,
     SDL_PropertiesID props
 )
 {

@@ -10,7 +10,7 @@ namespace se
 /**
  * 마우스 버튼을 나타내는 열거형
  */
-enum class EMouseButton : uint8
+enum class EMouseButton : u8
 {
     Left   = SDL_BUTTON_LEFT,   // 1
     Middle = SDL_BUTTON_MIDDLE, // 2
@@ -22,7 +22,7 @@ enum class EMouseButton : uint8
 };
 
 /** SDL 마우스 버튼 값을 MouseButton으로 변환합니다. */
-[[nodiscard]] constexpr EMouseButton ToMouseButton(uint8 sdl_button) noexcept
+[[nodiscard]] constexpr EMouseButton ToMouseButton(u8 sdl_button) noexcept
 {
     return static_cast<EMouseButton>(sdl_button);
 }

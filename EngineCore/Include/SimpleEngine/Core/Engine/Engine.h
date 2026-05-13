@@ -35,10 +35,10 @@ public:
     static Engine& Get();
 
     /** Engine의 raw delta(초)를 반환합니다. */
-    [[nodiscard]] static double GetDeltaTime();
+    [[nodiscard]] static f64 GetDeltaTime();
 
     /** Engine의 누적 경과 시간(초)를 반환합니다. */
-    [[nodiscard]] static double GetElapsedTime();
+    [[nodiscard]] static f64 GetElapsedTime();
 
     /** EngineConfig.toml이 없을 때 기본 설정 파일을 생성합니다. */
     static void GenerateDefaultEngineConfig();
@@ -75,7 +75,7 @@ public:
     void Release();
 
     /** 모든 Subsystem에 대해 위상 정렬된 순서대로 Update을 호출합니다. */
-    void UpdateFrame(double delta_time);
+    void UpdateFrame(f64 delta_time);
 
 private:
     /** 모든 Subsystem을 위상 정렬된 순서대로 초기화 합니다. */
@@ -118,8 +118,8 @@ private:
     std::unique_ptr<AsyncFileIO> async_io_service;
 
     // GetDeltaTime() / GetElapsedTime() 편의 접근용 캐시
-    double last_delta = 0.0;
-    double total_elapsed = 0.0;
+    f64 last_delta = 0.0;
+    f64 total_elapsed = 0.0;
 };
 
 template <typename T>

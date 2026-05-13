@@ -41,9 +41,9 @@ TEST_F(RIDTest, Equality)
 TEST_F(RIDTest, ToU64Packing)
 {
     const RID rid{ .index = 0xDEAD, .generation = 0xBEEF };
-    const uint64 packed = rid.ToU64();
+    const u64 packed = rid.ToU64();
 
-    EXPECT_EQ(packed, (static_cast<uint64>(0xBEEF) << 32) | 0xDEAD);
+    EXPECT_EQ(packed, (static_cast<u64>(0xBEEF) << 32) | 0xDEAD);
 }
 
 TEST_F(RIDTest, HashConsistency)
@@ -148,7 +148,7 @@ TEST_F(SlotMapTest, SlotReuse)
 {
     SlotMap<int> map;
     const RID rid1 = map.Insert(1);
-    const uint32 first_index = rid1.index;
+    const u32 first_index = rid1.index;
 
     map.Remove(rid1);
 
@@ -303,14 +303,14 @@ TEST_F(SlotMapTest, MoveOnlyType)
     EXPECT_EQ(**value, 42);
 }
 
-// generation이 uint32 최대값에 도달한 후 Remove하면 INVALID_GENERATION(0)을 건너뛰고
+// generation이 u32 최대값에 도달한 후 Remove하면 INVALID_GENERATION(0)을 건너뛰고
 // 1로 wrap되어야 합니다. 슬롯이 폐기되지 않고 재사용 가능해야 합니다.
 TEST_F(SlotMapTest, GenerationWrapsAroundInvalid)
 {
     SlotMap<int> map;
 
     // Insert 시 generation = 1 시작, Remove 때마다 NextGeneration으로 증가.
-    // uint32 overflow 시 0(INVALID_GENERATION)을 건너뛰고 1로 wrap됩니다.
+    // u32 overflow 시 0(INVALID_GENERATION)을 건너뛰고 1로 wrap됩니다.
     // 실용적이지 않으므로, Remove 후 반환된 RID가 항상 IsValid() = true임을 검증합니다.
 
     const RID rid = map.Insert(42);

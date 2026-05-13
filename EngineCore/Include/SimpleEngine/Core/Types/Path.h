@@ -169,7 +169,7 @@ private:
 template <>
 struct std::hash<se::Path>
 {
-    size_t operator()(const se::Path& in_path) const noexcept
+    usize operator()(const se::Path& in_path) const noexcept
     {
         return std::hash<se::String>{}(in_path.path);
     }

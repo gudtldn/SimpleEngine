@@ -49,7 +49,7 @@ public:
         // 각 원소 = UUID 문자열에서 해당 바이트(2 hex char)의 시작 위치
         constexpr usize HEX_POS[16] = { 0, 2, 4, 6, 9, 11, 14, 16, 19, 21, 24, 26, 28, 30, 32, 34 };
 
-        FixedArray<uint8, 16> bytes{};
+        FixedArray<u8, 16> bytes{};
         for (usize i = 0; i < 16; ++i)
         {
             const int hi = hex_val(view[HEX_POS[i]]);
@@ -58,7 +58,7 @@ public:
             {
                 return {};
             }
-            bytes[i] = static_cast<uint8>((hi << 4) | lo);
+            bytes[i] = static_cast<u8>((hi << 4) | lo);
         }
 
         return Guid{ bytes };
@@ -73,16 +73,16 @@ public:
     [[nodiscard]] bool operator==(const Guid& other) const noexcept = default;
 
 private:
-    constexpr explicit Guid(FixedArray<uint8, 16> in_data) noexcept : data(in_data) {}
+    constexpr explicit Guid(FixedArray<u8, 16> in_data) noexcept : data(in_data) {}
 
-    FixedArray<uint8, 16> data{};
+    FixedArray<u8, 16> data{};
 };
 } // namespace se
 
 template <>
 struct SE_CORE_API std::hash<se::Guid>
 {
-    size_t operator()(const se::Guid& guid) const noexcept;
+    usize operator()(const se::Guid& guid) const noexcept;
 };
 
 template <>

@@ -10,7 +10,7 @@ namespace se
 /**
  * RAII 기반 경과 시간 측정 유틸리티
  *
- * 생성 시점부터의 경과 시간을 밀리초(double) 또는 초(double)로 반환합니다.
+ * 생성 시점부터의 경과 시간을 밀리초(f64) 또는 초(f64)로 반환합니다.
  * 콜백이나 로깅을 내장하지 않으므로, 호출부에서 자유롭게 출력 형태를 결정할 수 있습니다.
  *
  * @code
@@ -30,17 +30,17 @@ public:
     }
 
     /** 경과 시간을 밀리초(ms)로 반환합니다. */
-    [[nodiscard]] double ElapsedMs() const
+    [[nodiscard]] f64 ElapsedMs() const
     {
         const auto elapsed = Clock::now() - start;
-        return std::chrono::duration<double, std::milli>(elapsed).count();
+        return std::chrono::duration<f64, std::milli>(elapsed).count();
     }
 
     /** 경과 시간을 초(s)로 반환합니다. */
-    [[nodiscard]] double ElapsedSec() const
+    [[nodiscard]] f64 ElapsedSec() const
     {
         const auto elapsed = Clock::now() - start;
-        return std::chrono::duration<double>(elapsed).count();
+        return std::chrono::duration<f64>(elapsed).count();
     }
 
     /** 타이머를 리셋합니다. */

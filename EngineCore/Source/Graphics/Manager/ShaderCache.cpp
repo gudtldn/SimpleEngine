@@ -46,7 +46,7 @@ SDL_GPUShader* ShaderCache::GetOrCreateShader(const VPath& shader_key, SDL_Shade
     return result.shader;
 }
 
-void ShaderCache::LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_ShaderStage stage, ArrayView<const uint8> spirv_bytecode)
+void ShaderCache::LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_ShaderStage stage, ArrayView<const u8> spirv_bytecode)
 {
     if (const auto cache = graphics_cache.Find(shader_key))
     {
@@ -101,7 +101,7 @@ Path ShaderCache::ResolveSpvPath(const VPath& shader_key)
     return VFS::ToPath(spv_vpath);
 }
 
-Optional<Array<uint8>> ShaderCache::ReadSpvFile(const VPath& shader_key)
+Optional<Array<u8>> ShaderCache::ReadSpvFile(const VPath& shader_key)
 {
     const Path spv_path = ResolveSpvPath(shader_key);
     auto result = FileSystem::ReadBytes(spv_path);

@@ -108,8 +108,8 @@ private:
     void OnSDLEvent(const SDL_Event& event);
 
 private:
-    static constexpr uint16 KEY_COUNT = static_cast<uint16>(EKeyCode::Max);
-    static constexpr uint8 MOUSE_BUTTON_COUNT = static_cast<uint8>(EMouseButton::Max);
+    static constexpr u16 KEY_COUNT = static_cast<u16>(EKeyCode::Max);
+    static constexpr u8 MOUSE_BUTTON_COUNT = static_cast<u8>(EMouseButton::Max);
 
     // Keyboard State
     FixedArray<bool, KEY_COUNT> current_keys = {};

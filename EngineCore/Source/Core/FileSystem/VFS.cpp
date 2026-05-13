@@ -35,7 +35,7 @@ bool VFS::Exists(const VPath& vpath)
     return Get().ResolveImpl(vpath, true).HasValue();
 }
 
-void VFS::Mount(StringView scheme, const Path& physical_path, int32 priority)
+void VFS::Mount(StringView scheme, const Path& physical_path, i32 priority)
 {
     std::unique_lock lock(mutex);
 

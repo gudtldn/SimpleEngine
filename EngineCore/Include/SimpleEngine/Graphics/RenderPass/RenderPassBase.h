@@ -13,7 +13,7 @@ class RGSetupContext;
  * 패스가 사용하는 GPU 큐 타입입니다.
  * 현재는 어노테이션 용도이며, 향후 멀티 큐 실행 시 Executor가 이 값을 사용합니다.
  */
-enum class ERGPassQueue : uint8
+enum class ERGPassQueue : u8
 {
     Graphics,  // SDL_BeginGPURenderPass
     Compute,   // SDL_BeginGPUComputePass

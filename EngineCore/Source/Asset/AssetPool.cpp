@@ -35,7 +35,7 @@ void AssetPool::Remove(const AssetId& id)
         Array<AssetPayload> deferred;
         table.EvictSlot(handle_data->index, deferred);
 
-        const uint64 frame = table.GetCurrentFrame();
+        const u64 frame = table.GetCurrentFrame();
         for (AssetPayload& payload : deferred)
         {
             DeferDestroy(std::move(payload), frame);
@@ -43,12 +43,12 @@ void AssetPool::Remove(const AssetId& id)
     }
 }
 
-uint32 AssetPool::CollectGarbage()
+u32 AssetPool::CollectGarbage()
 {
     Array<AssetPayload> deferred;
-    const uint32 count = table.CollectGarbage(deferred);
+    const u32 count = table.CollectGarbage(deferred);
 
-    const uint64 frame = table.GetCurrentFrame();
+    const u64 frame = table.GetCurrentFrame();
     for (AssetPayload& payload : deferred)
     {
         DeferDestroy(std::move(payload), frame);
@@ -56,32 +56,32 @@ uint32 AssetPool::CollectGarbage()
     return count;
 }
 
-uint32 AssetPool::GetCount() const
+u32 AssetPool::GetCount() const
 {
     return table.GetCount();
 }
 
-void AssetPool::SetMemoryBudget(uint64 budget_bytes)
+void AssetPool::SetMemoryBudget(u64 budget_bytes)
 {
     memory_budget = budget_bytes;
 }
 
-void AssetPool::SetGraceFrames(uint64 frames)
+void AssetPool::SetGraceFrames(u64 frames)
 {
     grace_frames = frames;
 }
 
-void AssetPool::SetMaxEvictionsPerFrame(uint32 count)
+void AssetPool::SetMaxEvictionsPerFrame(u32 count)
 {
     max_evictions_per_frame = count;
 }
 
-void AssetPool::SetMaxDestructionsPerFrame(uint32 count)
+void AssetPool::SetMaxDestructionsPerFrame(u32 count)
 {
     max_destructions_per_frame = count;
 }
 
-void AssetPool::DeferDestroy(AssetPayload payload, uint64 current_frame)
+void AssetPool::DeferDestroy(AssetPayload payload, u64 current_frame)
 {
     if (!payload.ptr)
     {
@@ -98,7 +98,7 @@ void AssetPool::DeferDestroy(AssetPayload payload, uint64 current_frame)
     });
 }
 
-void AssetPool::ProcessPendingDestroy(uint64 current_frame)
+void AssetPool::ProcessPendingDestroy(u64 current_frame)
 {
     ZoneScopedN("AssetPool::ProcessPendingDestroy");
 
@@ -109,7 +109,7 @@ void AssetPool::ProcessPendingDestroy(uint64 current_frame)
         std::scoped_lock lock(pending_destroy_mutex);
 
         usize write = 0;
-        uint32 total_released = 0;
+        u32 total_released = 0;
 
         for (usize read = 0; read < pending_destroy.Len(); ++read)
         {
@@ -141,7 +141,7 @@ void AssetPool::ProcessPendingDestroy(uint64 current_frame)
     }
 }
 
-uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
+u32 AssetPool::EvictIfOverBudget(u64 current_frame)
 {
     ZoneScopedN("AssetPool::EvictIfOverBudget");
 
@@ -159,7 +159,7 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
     };
 
     Array<AssetPayload> deferred;
-    uint32 total_evicted = 0;
+    u32 total_evicted = 0;
     for (EScopeLayer target_scope : EVICTION_ORDER)
     {
         // 아직 메모리 상한에 도달하지 않은 경우
@@ -174,8 +174,8 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
             break;
         }
 
-        const uint32 remaining = max_evictions_per_frame - total_evicted;
-        total_evicted += table.EvictWhere([this, target_scope, current_frame](uint32, const SlotEntry& entry)
+        const u32 remaining = max_evictions_per_frame - total_evicted;
+        total_evicted += table.EvictWhere([this, target_scope, current_frame](u32, const SlotEntry& entry)
         {
             // 스코프가 다른 경우
             if (entry.scope != target_scope)
@@ -201,7 +201,7 @@ uint32 AssetPool::EvictIfOverBudget(uint64 current_frame)
     return total_evicted;
 }
 
-uint32 AssetPool::UnloadScope(EScopeLayer layer)
+u32 AssetPool::UnloadScope(EScopeLayer layer)
 {
     ZoneScopedN("AssetPool::UnloadScope");
 
@@ -215,12 +215,12 @@ uint32 AssetPool::UnloadScope(EScopeLayer layer)
     }
 
     Array<AssetPayload> deferred;
-    const uint32 count = table.EvictWhere([layer](uint32, const SlotEntry& entry)
+    const u32 count = table.EvictWhere([layer](u32, const SlotEntry& entry)
     {
         return entry.scope == layer;
     }, deferred);
 
-    const uint64 frame = table.GetCurrentFrame();
+    const u64 frame = table.GetCurrentFrame();
     for (AssetPayload& payload : deferred)
     {
         DeferDestroy(std::move(payload), frame);

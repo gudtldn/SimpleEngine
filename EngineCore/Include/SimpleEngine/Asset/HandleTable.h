@@ -20,11 +20,11 @@ namespace se
  */
 struct HandleData
 {
-    static constexpr uint32 INVALID_INDEX = std::numeric_limits<uint32>::max();
-    static constexpr uint32 INVALID_GENERATION = std::numeric_limits<uint32>::max();
+    static constexpr u32 INVALID_INDEX = std::numeric_limits<u32>::max();
+    static constexpr u32 INVALID_GENERATION = std::numeric_limits<u32>::max();
 
-    uint32 index = INVALID_INDEX;
-    uint32 generation = INVALID_GENERATION;
+    u32 index = INVALID_INDEX;
+    u32 generation = INVALID_GENERATION;
 
     /**
      * 유효한 핸들인지 확인합니다.
@@ -45,7 +45,7 @@ struct HandleData
 class SE_CORE_API HandleTable
 {
 public:
-    static constexpr uint32 DEFAULT_SLOT_CAPACITY = 16384;
+    static constexpr u32 DEFAULT_SLOT_CAPACITY = 16384;
 
     HandleTable();
     ~HandleTable();
@@ -67,8 +67,8 @@ public:
      * 인덱스를 통해 SlotEntry에 직접 접근합니다.
      * @pre index < slots.Len()
      */
-    [[nodiscard]] SlotEntry& GetSlot(uint32 index);
-    [[nodiscard]] const SlotEntry& GetSlot(uint32 index) const;
+    [[nodiscard]] SlotEntry& GetSlot(u32 index);
+    [[nodiscard]] const SlotEntry& GetSlot(u32 index) const;
 
     /**
      * HandleData의 generation이 SlotEntry의 generation과 일치하는지 검증합니다.
@@ -81,27 +81,27 @@ public:
      * 마지막 AssetHandle이 소멸하여 ref_count가 0이 될 때 호출됩니다.
      * LRU 판단을 위해 last_access_frame을 현재 프레임으로 갱신합니다.
      */
-    void MarkForEviction(uint32 index);
+    void MarkForEviction(u32 index);
 
     /**
      * 슬롯을 해제하고, 에셋 데이터를 지연 파괴 목록에 추가합니다. (Thread-Safe)
      * @pre slots[index].ref_count == 0
      * @pre slots[index].slot_state == Occupied
      */
-    void EvictSlot(uint32 index, Array<AssetPayload>& out_deferred);
+    void EvictSlot(u32 index, Array<AssetPayload>& out_deferred);
 
     /**
      * ref_count가 0인 모든 Occupied 슬롯을 해제합니다. (Thread-Safe)
      * @param out_deferred 조건에 부합하는 AssetPayload를 추가할 Array
      * @return 해제된 슬롯의 수
      */
-    uint32 CollectGarbage(Array<AssetPayload>& out_deferred);
+    u32 CollectGarbage(Array<AssetPayload>& out_deferred);
 
     /** 현재 사용 중인(Occupied) 슬롯의 개수를 반환합니다. */
-    [[nodiscard]] uint32 GetCount() const;
+    [[nodiscard]] u32 GetCount() const;
 
     /** 전체 슬롯 배열의 크기(사용 중인 슬롯 + 유휴 슬롯)를 반환합니다. */
-    [[nodiscard]] uint32 GetCapacity() const;
+    [[nodiscard]] u32 GetCapacity() const;
 
     /**
      * 조건에 부합하는 슬롯을 일괄 해제합니다. (Thread-Safe)
@@ -110,45 +110,45 @@ public:
      * @param max_count 최대 해제 개수
      * @return 해제된 슬롯의 수
      */
-    uint32 EvictWhere(
-        FunctionRef<bool(uint32, const SlotEntry&)> filter,
+    u32 EvictWhere(
+        FunctionRef<bool(u32, const SlotEntry&)> filter,
         Array<AssetPayload>& out_deferred,
-        uint32 max_count = std::numeric_limits<uint32>::max()
+        u32 max_count = std::numeric_limits<u32>::max()
     );
 
     /** 현재 추적 중인 총 에셋 메모리 사용량을 반환합니다. */
-    [[nodiscard]] FORCE_INLINE uint64 GetTotalMemoryUsage() const noexcept
+    [[nodiscard]] FORCE_INLINE u64 GetTotalMemoryUsage() const noexcept
     {
         return total_memory.load(std::memory_order_relaxed);
     }
 
     /** 에셋 메모리 사용량을 추가합니다. (에셋 로딩 완료 시 호출) */
-    FORCE_INLINE void TrackMemoryUsage(uint64 bytes)
+    FORCE_INLINE void TrackMemoryUsage(u64 bytes)
     {
         total_memory.fetch_add(bytes, std::memory_order_relaxed);
     }
 
     /** 에셋 메모리 사용량을 감소합니다. */
-    FORCE_INLINE void UntrackMemoryUsage(uint64 bytes)
+    FORCE_INLINE void UntrackMemoryUsage(u64 bytes)
     {
         total_memory.fetch_sub(bytes, std::memory_order_relaxed);
     }
 
     /** 현재 프레임 번호를 설정합니다. (EndFrame에서 매 프레임 호출) */
-    FORCE_INLINE void SetCurrentFrame(uint64 frame) noexcept
+    FORCE_INLINE void SetCurrentFrame(u64 frame) noexcept
     {
         current_frame.store(frame, std::memory_order_relaxed);
     }
 
     /** 현재 프레임 번호를 반환합니다. */
-    [[nodiscard]] FORCE_INLINE uint64 GetCurrentFrame() const noexcept
+    [[nodiscard]] FORCE_INLINE u64 GetCurrentFrame() const noexcept
     {
         return current_frame.load(std::memory_order_relaxed);
     }
 
 private:
     /** 락이 이미 획득된 상태에서 슬롯을 실제로 해제하는 내부 헬퍼 함수입니다. */
-    void EvictSlotInternal(uint32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred);
+    void EvictSlotInternal(u32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred);
 
     /** 에셋 포인터를 등록된 소멸자(destructor)를 사용하여 안전하게 해제하는 내부 헬퍼 함수입니다. */
     static void DestroyAssetData(SlotEntry& entry);
@@ -160,15 +160,15 @@ private:
     Array<SlotEntry> slots;
 
     // 재사용 가능한 슬롯 인덱스 목록
-    Array<uint32> free_list;
+    Array<u32> free_list;
 
     // AssetId <-> SlotIndex 매핑
-    HashMap<AssetId, uint32> guid_index;
+    HashMap<AssetId, u32> guid_index;
 
     // 총 에셋 메모리 사용량 (Eviction 예산 계산용)
-    std::atomic<uint64> total_memory = 0;
+    std::atomic<u64> total_memory = 0;
 
     // 현재 엔진 프레임 번호 (MarkForEviction -> last_access_frame 갱신용)
-    std::atomic<uint64> current_frame = 0; // TODO: 나중에 중앙에서 한번에 관리할까?
+    std::atomic<u64> current_frame = 0; // TODO: 나중에 중앙에서 한번에 관리할까?
 };
 } // namespace se

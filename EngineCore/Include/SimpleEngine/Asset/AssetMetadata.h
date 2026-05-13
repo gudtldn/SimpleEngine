@@ -13,7 +13,7 @@ namespace se
 /**
  * 에셋 의존성의 종류를 나타내는 열거형
  */
-enum class EAssetDependencyType : uint8
+enum class EAssetDependencyType : u8
 {
     Hard,      // 변경 시 반드시 Re-cook + Hot-Reload
     Soft,      // 변경 시 Re-cook 권장, 무시 가능
@@ -88,15 +88,15 @@ struct SE_ANNOTATION(=meta::SerializeOnly) AssetMetadata
 
     /** 소스 파일의 마지막 수정 시간 */
     SE_ANNOTATION(=meta::Property)
-    uint64 source_mtime = 0;
+    u64 source_mtime = 0;
 
     /** 소스 파일의 크기 */
     SE_ANNOTATION(=meta::Property)
-    uint64 source_size = 0;
+    u64 source_size = 0;
 
     /** 캐시 바이너리의 스키마 버전 (Importer 출력 포맷 변경 시 증가) */
     SE_ANNOTATION(=meta::Property)
-    uint32 cache_version = 0;
+    u32 cache_version = 0;
 
     /** Import Settings의 SHA-256 해시 (설정 변경 감지용) */
     SE_ANNOTATION(=meta::Property)

@@ -59,12 +59,12 @@ GpuResourceManager::~GpuResourceManager()
 bool GpuResourceManager::UploadMesh(
     SDL_GPUCommandBuffer* in_cmd,
     const AssetId& in_id,
-    const void* in_vertex_data, uint32 in_vertex_size,
-    const void* in_index_data, uint32 in_index_size
+    const void* in_vertex_data, u32 in_vertex_size,
+    const void* in_index_data, u32 in_index_size
 )
 {
     // GPU 메모리 할당
-    const uint32 total_size = in_vertex_size + in_index_size;
+    const u32 total_size = in_vertex_size + in_index_size;
     if (total_size == 0)
     {
         return false;
@@ -78,7 +78,7 @@ bool GpuResourceManager::UploadMesh(
 
     // Index 데이터는 Vertex 데이터 바로 뒤에 위치
     slice.index_offset = slice.offset + in_vertex_size;
-    slice.index_count = in_index_size / sizeof(uint32);
+    slice.index_count = in_index_size / sizeof(u32);
 
     // Transfer Buffer 생성 (Staging)
     const SDL_GPUTransferBufferCreateInfo transfer_info = {
@@ -97,7 +97,7 @@ bool GpuResourceManager::UploadMesh(
     // 메모리 맵핑 및 복사 (CPU -> Transfer Buffer)
     if (void* mapped_ptr = SDL_MapGPUTransferBuffer(render_device->GetRawDevice(), transfer_buffer, false))
     {
-        uint8* cursor = static_cast<uint8*>(mapped_ptr);
+        u8* cursor = static_cast<u8*>(mapped_ptr);
 
         // Vertex 복사
         std::memcpy(cursor, in_vertex_data, in_vertex_size);
@@ -200,11 +200,11 @@ bool GpuResourceManager::UploadTexture(
     const bool gpu_gen_mips = in_texture.generate_mips && !compressed && !has_mip_chain;
 
     // Mipmap 레벨 수 결정
-    const uint32 num_levels = [&] -> uint32
+    const u32 num_levels = [&] -> u32
     {
         if (has_mip_chain)
         {
-            return static_cast<uint32>(in_texture.mips.Len());
+            return static_cast<u32>(in_texture.mips.Len());
         }
 
         if (gpu_gen_mips)
@@ -241,7 +241,7 @@ bool GpuResourceManager::UploadTexture(
     }
 
     // Transfer Buffer 생성 (픽셀 전체 크기)
-    const uint32 total_pixel_size = static_cast<uint32>(in_texture.pixels.Len());
+    const u32 total_pixel_size = static_cast<u32>(in_texture.pixels.Len());
     const SDL_GPUTransferBufferCreateInfo transfer_info = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
         .size = total_pixel_size
@@ -290,7 +290,7 @@ bool GpuResourceManager::UploadTexture(
 
             const SDL_GPUTextureRegion dst_region = {
                 .texture = texture,
-                .mip_level = static_cast<uint32>(mip_level),
+                .mip_level = static_cast<u32>(mip_level),
                 .w = desc.width,
                 .h = desc.height,
                 .d = 1
@@ -352,10 +352,10 @@ void GpuResourceManager::UnloadTexture(const AssetId& in_id)
     }
 }
 
-GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
+GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(u32 in_size)
 {
     // Vector4를 고려해서 Vertex/Index Buffer는 16바이트 정렬로 설정
-    constexpr uint32 ALIGNMENT = 16;
+    constexpr u32 ALIGNMENT = 16;
 
     // 기존 블록에서 남은 공간 탐색
     for (GpuMemoryBlock& block : geometry_blocks)
@@ -367,7 +367,7 @@ GpuBufferSlice GpuResourceManager::AllocateInGeometryBlock(uint32 in_size)
     }
 
     // 공간이 없으면 새 블록 할당
-    const uint32 new_block_size = std::max(in_size, DEFAULT_BLOCK_SIZE);
+    const u32 new_block_size = std::max(in_size, DEFAULT_BLOCK_SIZE);
 
     // Geometry용 Usage: Vertex + Index (Unified)
     // 필요하다면 Storage Buffer Read 플래그도 추가 가능 (SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ)

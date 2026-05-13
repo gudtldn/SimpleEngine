@@ -27,7 +27,7 @@ public:
     {
         AssetBase* ptr = nullptr;
         void(*destructor)(void*) = nullptr;
-        uint64 release_frame = 0;
+        u64 release_frame = 0;
     };
 
 public:
@@ -57,29 +57,29 @@ public:
      * ref_count가 0인(외부 Handle이 없는) 슬롯들을 정리합니다.
      * @return 제거된 슬롯의 개수
      */
-    uint32 CollectGarbage();
+    u32 CollectGarbage();
 
     /** 현재 캐시된 에셋의 총 개수를 반환합니다. */
-    [[nodiscard]] uint32 GetCount() const;
+    [[nodiscard]] u32 GetCount() const;
 
 public:
     /**
      * 메모리 예산을 설정합니다.
      * 초과 시 EvictIfOverBudget에서 LRU 기반 해제를 수행합니다.
      */
-    void SetMemoryBudget(uint64 budget_bytes);
+    void SetMemoryBudget(u64 budget_bytes);
 
     /**
      * Eviction Grace Period를 설정합니다.
      * 마지막 로드 후 이 프레임 수만큼은 해제하지 않습니다.
      */
-    void SetGraceFrames(uint64 frames);
+    void SetGraceFrames(u64 frames);
 
     /** EvictIfOverBudget에서 프레임당 최대 해제 슬롯 수를 설정합니다. */
-    void SetMaxEvictionsPerFrame(uint32 count);
+    void SetMaxEvictionsPerFrame(u32 count);
 
     /** ProcessPendingDestroy에서 프레임당 최대 해제 슬롯 수를 설정합니다. */
-    void SetMaxDestructionsPerFrame(uint32 count);
+    void SetMaxDestructionsPerFrame(u32 count);
 
 public:
     /**
@@ -87,13 +87,13 @@ public:
      * @param payload 해제할 에셋 데이터
      * @param current_frame 현재 프레임 번호
      */
-    void DeferDestroy(AssetPayload payload, uint64 current_frame);
+    void DeferDestroy(AssetPayload payload, u64 current_frame);
 
     /**
      * 지연 파괴 큐에서 해제 시점이 도래한 항목들을 처리합니다.
      * @param current_frame 현재 프레임 번호
      */
-    void ProcessPendingDestroy(uint64 current_frame);
+    void ProcessPendingDestroy(u64 current_frame);
 
     /**
      * 메모리 예산 초과 시 LRU + Scope 우선순위 기반으로 슬롯을 해제합니다.
@@ -101,7 +101,7 @@ public:
      * @param current_frame 현재 프레임 번호
      * @return 해제된 슬롯의 수
      */
-    uint32 EvictIfOverBudget(uint64 current_frame);
+    u32 EvictIfOverBudget(u64 current_frame);
 
 public:
     /**
@@ -109,14 +109,14 @@ public:
      * @param layer 해제할 scope 레이어 (Global은 지정할 수 없습니다)
      * @return 해제된 슬롯의 수
      */
-    uint32 UnloadScope(EScopeLayer layer);
+    u32 UnloadScope(EScopeLayer layer);
 
 public:
     /** 현재 전체 에셋 메모리 사용량을 반환합니다. */
-    [[nodiscard]] FORCE_INLINE uint64 GetTotalMemoryUsage() const { return table.GetTotalMemoryUsage(); }
+    [[nodiscard]] FORCE_INLINE u64 GetTotalMemoryUsage() const { return table.GetTotalMemoryUsage(); }
 
     /** 설정된 메모리 예산을 반환합니다. */
-    [[nodiscard]] FORCE_INLINE uint64 GetMemoryBudget() const { return memory_budget; }
+    [[nodiscard]] FORCE_INLINE u64 GetMemoryBudget() const { return memory_budget; }
 
 public:
     /** HandleTable에 직접 접근합니다. */
@@ -131,9 +131,9 @@ private:
     Array<PendingDestroyEntry> pending_destroy;
 
     // === Eviction Configuration === TODO: 여기 EngineConfig.toml로 뺄 수 있을 듯
-    uint64 memory_budget = std::numeric_limits<uint64>::max();
-    uint64 grace_frames = 2;               // 프레임 유예기간
-    uint32 max_evictions_per_frame = 32;   // 메모리 부족시 프레임당 최대 제거 수
-    uint32 max_destructions_per_frame = 8; // 일반적인 프레임당 최대 제거 수
+    u64 memory_budget = std::numeric_limits<u64>::max();
+    u64 grace_frames = 2;               // 프레임 유예기간
+    u32 max_evictions_per_frame = 32;   // 메모리 부족시 프레임당 최대 제거 수
+    u32 max_destructions_per_frame = 8; // 일반적인 프레임당 최대 제거 수
 };
 } // namespace se

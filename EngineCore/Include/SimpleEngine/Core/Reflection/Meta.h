@@ -15,7 +15,7 @@ class Archive;
 struct OptionalOps;
 
 /** 타입 속성 비트 플래그 */
-enum class ETypeFlags : uint32
+enum class ETypeFlags : u32
 {
     None        = 0,
 
@@ -35,7 +35,7 @@ enum class ETypeFlags : uint32
 SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
 
 /** 프로퍼티 속성 비트 플래그 */
-enum class EPropertyFlags : uint32
+enum class EPropertyFlags : u32
 {
     None        = 0,
 
@@ -60,15 +60,15 @@ enum class EPropertyFlags : uint32
 SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 
 /** 리플렉션 타입 분류 */
-enum class ETypeKind : uint8
+enum class ETypeKind : u8
 {
-    Primitive, // 기본 자료형 (int, float, string 등)
+    Primitive, // 기본 자료형 (i32, f32, String 등)
     Struct,    // 구조체 및 클래스
     Enum,      // 열거형
 };
 
 /** ECS 타입 분류 */
-enum class EECSKind : uint8
+enum class EECSKind : u8
 {
     None,      // 일반 타입
     Component, // ECS 컴포넌트
@@ -76,7 +76,7 @@ enum class EECSKind : uint8
 };
 
 /** 컨테이너 타입 분류 */
-enum class EContainerKind : uint8
+enum class EContainerKind : u8
 {
     None,  // 컨테이너가 아님
     Array, // Array, FixedArray 등 (순서 보장, 인덱스 접근)
@@ -191,12 +191,12 @@ struct PropertyMetadata
     BitFlags<EPropertyFlags> flags{ EPropertyFlags::None };
 
     // se::meta::Range (UI Slider)
-    float range_min = 0.0f;
-    float range_max = 0.0f;
+    f32 range_min = 0.0f;
+    f32 range_max = 0.0f;
 
     // se::meta::Clamp (Logic Hard Limit)
-    double clamp_min = 0.0;
-    double clamp_max = 0.0;
+    f64 clamp_min = 0.0;
+    f64 clamp_max = 0.0;
 
     // // 네트워크 리플리케이트
     // bool is_replicated = false;

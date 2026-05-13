@@ -37,7 +37,7 @@ private:
 template <>
 struct std::hash<se::AssetId>
 {
-    size_t operator()(const se::AssetId& asset_id) const noexcept
+    usize operator()(const se::AssetId& asset_id) const noexcept
     {
         return std::hash<se::Guid>{}(asset_id.GetGuid());
     }

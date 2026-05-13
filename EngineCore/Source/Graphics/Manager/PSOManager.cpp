@@ -81,7 +81,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         ConsoleLog(ELogLevel::Error, "Failed to create graphics pipeline!, Err: {}", SDL_GetError());
         ConsoleLog(ELogLevel::Error, "  VS: {}, PS: {}", create_info.vertex_shader, create_info.fragment_shader);
         ConsoleLog(ELogLevel::Error, "  VertexAttrs: {} -> {} (filtered)", create_info.vertex_input_state.num_vertex_attributes, state.num_vertex_attributes);
-        for (uint32 i = 0; i < state.num_vertex_attributes; ++i)
+        for (u32 i = 0; i < state.num_vertex_attributes; ++i)
         {
             ConsoleLog(ELogLevel::Error, "    [{}] loc={} fmt={} off={}", i, state.vertex_attributes[i].location, static_cast<int>(state.vertex_attributes[i].format), state.vertex_attributes[i].offset);
         }

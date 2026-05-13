@@ -18,7 +18,7 @@ namespace
 // --- Binary round-trip helper ---
 void BinaryRoundTrip(World& src, World& dst)
 {
-    Array<uint8> buffer;
+    Array<u8> buffer;
     {
         MemoryWriter writer(buffer);
         writer << src;

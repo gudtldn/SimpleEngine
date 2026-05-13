@@ -58,10 +58,10 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
     // 이 변환을 거치면 커서 영역 밖의 모든 기즈모 폴리곤은 클리핑(Clipping) 단계에서
     // 하드웨어적으로 폐기되므로, 픽셀 셰이더 부하를 0에 가깝게 최적화할 수 있습니다.
     // ========================================================================
-    const double vp_w = static_cast<double>(render_view.width);
-    const double vp_h = static_cast<double>(render_view.height);
-    const double cx = static_cast<double>(cursor_pos.x);
-    const double cy = static_cast<double>(cursor_pos.y);
+    const f64 vp_w = static_cast<f64>(render_view.width);
+    const f64 vp_h = static_cast<f64>(render_view.height);
+    const f64 cx = static_cast<f64>(cursor_pos.x);
+    const f64 cy = static_cast<f64>(cursor_pos.y);
 
     // Row-vector기반 이동/스케일 행렬 (p' = p * M)
     // | W       0       0   0 |
@@ -84,7 +84,7 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
     GizmoUBO ubo;
     ubo.vp = static_cast<Matrix4x4f>(pick_vp);
     ubo.gizmo_center = static_cast<Vector3f>(draw_list.GetCenter());
-    ubo.screen_scale = static_cast<float>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
+    ubo.screen_scale = static_cast<f32>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
 
     // 라인/삼각형 공통 파이프라인 설정
     SDL_GPUVertexBufferDescription vertex_buffer_desc[] = {
@@ -192,7 +192,7 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
                 .offset = 0,
             };
             SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-            SDL_DrawGPUPrimitives(pass, static_cast<uint32>(line_vertex_count), 1, 0, 0);
+            SDL_DrawGPUPrimitives(pass, static_cast<u32>(line_vertex_count), 1, 0, 0);
         }
 
         // 삼각형 드로우
@@ -209,7 +209,7 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
                 .offset = 0,
             };
             SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-            SDL_DrawGPUPrimitives(pass, static_cast<uint32>(triangle_vertex_count), 1, 0, 0);
+            SDL_DrawGPUPrimitives(pass, static_cast<u32>(triangle_vertex_count), 1, 0, 0);
         }
     }
     SDL_EndGPURenderPass(pass);

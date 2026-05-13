@@ -21,10 +21,10 @@ struct StringNameEntry
     const char* display_name;
 
     /** 대소문자 무시(ASCII-only) 해시값 */
-    uint64 comparison_hash;
+    u64 comparison_hash;
 
     /** 문자열 길이 (Null 문자 제외) */
-    uint32 length;
+    u32 length;
 };
 
 /**
@@ -89,9 +89,9 @@ private:
     StringStorage string_storage;
 
     // Key: Display Hash
-    HashMap<uint64, StringNameEntry> entry_pool;
+    HashMap<u64, StringNameEntry> entry_pool;
 
     // Key: Comparison Hash
-    HashMap<uint64, const StringNameEntry*> lookup_map;
+    HashMap<u64, const StringNameEntry*> lookup_map;
 };
 } // namespace se

@@ -12,8 +12,8 @@ namespace se::editor
 /** ImGuiHBox의 설정 */
 struct ImGuiHBoxConfig
 {
-    float height = 0.0f;
-    float padding = 0.0f;
+    f32 height = 0.0f;
+    f32 padding = 0.0f;
 
     bool draw_background = false;
     ImU32 background_color = IM_COL32(0, 0, 0, 0);
@@ -65,7 +65,7 @@ public:
     ImGuiHBox& Button(
         const char* label,
         bool* out_clicked = nullptr,
-        float width = 0.0f,
+        f32 width = 0.0f,
         const char* tooltip = nullptr
     );
 
@@ -74,7 +74,7 @@ public:
         const char* label,
         bool is_active,
         bool* out_clicked = nullptr,
-        float width = 0.0f,
+        f32 width = 0.0f,
         const char* tooltip = nullptr
     );
 
@@ -83,11 +83,11 @@ public:
         const char* label,
         ImGuiDataType type,
         void* data,
-        float speed = 1.0f,
+        f32 speed = 1.0f,
         const void* min_val = nullptr,
         const void* max_val = nullptr,
         const char* format = nullptr,
-        float width = 0.0f
+        f32 width = 0.0f
     );
 
     /**
@@ -96,7 +96,7 @@ public:
      * draw_popup_fn: 팝업 내용을 그리는 콜백.
      */
     template <typename Fn>
-    ImGuiHBox& PopupButton(const char* label, const char* popup_id, Fn&& draw_popup_fn, float width = 0.0f)
+    ImGuiHBox& PopupButton(const char* label, const char* popup_id, Fn&& draw_popup_fn, f32 width = 0.0f)
     {
         EnsureSameLine();
         if (ImGui::Button(label, { width, button_h }))
@@ -116,7 +116,7 @@ public:
      * item_width > 0이면 PushItemWidth/PopItemWidth를 감쌉니다.
      */
     template <typename Fn>
-    ImGuiHBox& Custom(Fn&& fn, float item_width = 0.0f)
+    ImGuiHBox& Custom(Fn&& fn, f32 item_width = 0.0f)
     {
         EnsureSameLine();
         if (item_width > 0.0f)
@@ -132,7 +132,7 @@ public:
     }
 
     /** 버튼 높이를 반환합니다. (height - padding * 2) */
-    [[nodiscard]] float ButtonHeight() const { return button_h; }
+    [[nodiscard]] f32 ButtonHeight() const { return button_h; }
 
 private:
     void EnsureSameLine();
@@ -142,11 +142,11 @@ private:
     ImVec2 min_pos;
     ImVec2 max_pos; // min_pos + (size.x, config.height)
     ImGuiHBoxConfig config;
-    float button_h; // height - padding * 2
+    f32 button_h; // height - padding * 2
 
     bool spring_done = false;
     bool first_item = true;
-    float spring_cursor_x = 0.0f; // Spring() 호출 시 설정된 커서 x
+    f32 spring_cursor_x = 0.0f; // Spring() 호출 시 설정된 커서 x
 
     ImGuiStorage* storage = nullptr;
     ImGuiID spring_width_key = 0;

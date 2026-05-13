@@ -132,7 +132,7 @@ bool EditorAssetSubsystem::Initialize()
         })
     );
     HashSet<VPath> all_found_vpaths;
-    VFS::Get().VisitMounts([&](StringView scheme, const Path& physical_path, int32)
+    VFS::Get().VisitMounts([&](StringView scheme, const Path& physical_path, i32)
     {
         if (!scan_schemes.Contains(scheme))
         {
@@ -156,7 +156,7 @@ bool EditorAssetSubsystem::Initialize()
             }
         });
 
-        uint32 orphaned_count = 0;
+        u32 orphaned_count = 0;
         for (const VPath& vpath : orphaned)
         {
             ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
@@ -322,21 +322,21 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
     }
 
     // === 고아 .meta 해시 인덱스 구축 (이동 감지용) ===
-    HashMap<ContentHash, uint32> orphan_by_hash;
+    HashMap<ContentHash, u32> orphan_by_hash;
     for (const auto [n, orphan_meta] : orphan_metas | std::views::enumerate)
     {
         const ContentHash& hash = orphan_meta.content.metadata.source_hash;
         if (!hash.IsZero())
         {
-            orphan_by_hash.Insert(hash, static_cast<uint32>(n));
+            orphan_by_hash.Insert(hash, static_cast<u32>(n));
         }
     }
 
     // === 소스 파일별 처리 ===
-    uint32 new_count = 0;
-    uint32 dirty_count = 0;
-    uint32 clean_count = 0;
-    uint32 moved_count = 0;
+    u32 new_count = 0;
+    u32 dirty_count = 0;
+    u32 clean_count = 0;
+    u32 moved_count = 0;
 
     // Background Cook 목록
     Array<VPath> dirty_vpaths;
@@ -363,7 +363,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
                 // 고아 .meta의 GUID를 계승하여 새 위치에 저장
                 MetaFileContent adopted = std::move(orphan.content);
                 adopted.metadata.source_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
-                adopted.metadata.source_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
+                adopted.metadata.source_size = static_cast<u64>(FileSystem::FileSize(file_path).ValueOrDefault());
 
                 MetaFileManager::Save(file_path, adopted);
                 MetaFileManager::DeleteMeta(orphan.source_path);
@@ -474,7 +474,7 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
         .guid = Guid::NewGuid(),
         .source_hash = SHA256::HashFile(source_path),
         .source_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault(),
-        .source_size = static_cast<uint64>(FileSystem::FileSize(source_path).ValueOrDefault()),
+        .source_size = static_cast<u64>(FileSystem::FileSize(source_path).ValueOrDefault()),
         .cache_version = 1,
     };
 
@@ -614,12 +614,12 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
     // 해시 및 파일 메타 계산
     const ContentHash source_hash = SHA256::HashFile(file_path);
-    constexpr uint32 CURRENT_CACHE_VERSION = 1; // TODO: 캐시 버전이 여러곳에서 관리되고 있음.
-    const uint64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
-    const uint64 file_size = static_cast<uint64>(FileSystem::FileSize(file_path).ValueOrDefault());
+    constexpr u32 CURRENT_CACHE_VERSION = 1; // TODO: 캐시 버전이 여러곳에서 관리되고 있음.
+    const u64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
+    const u64 file_size = static_cast<u64>(FileSystem::FileSize(file_path).ValueOrDefault());
 
     // Import Settings 해시 계산
-    Array<uint8> settings_bytes;
+    Array<u8> settings_bytes;
     {
         MemoryWriter writer(settings_bytes);
         writer << import_profile;
@@ -672,7 +672,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         // DDC 굽기 (직렬화)
         if (!source_hash.IsZero())
         {
-            Array<uint8> payload = AssetSubsystem::SerializeAssetPayload(*entry.asset);
+            Array<u8> payload = AssetSubsystem::SerializeAssetPayload(*entry.asset);
             if (!payload.IsEmpty())
             {
                 ddc.Store(asset_id.GetGuid(), {
@@ -797,10 +797,10 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
     const AssetMetadata& meta = content.metadata;
 
     // 소스 파일 변경 확인 (mtime -> size -> SHA256 순서)
-    const uint64 current_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault();
+    const u64 current_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault();
     if (current_mtime != meta.source_mtime)
     {
-        const uint64 current_size = static_cast<uint64>(FileSystem::FileSize(source_path).ValueOrDefault());
+        const u64 current_size = static_cast<u64>(FileSystem::FileSize(source_path).ValueOrDefault());
         if (current_size != meta.source_size)
         {
             return true;
@@ -819,7 +819,7 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
     // settings_hash가 zero이면 한 번도 쿡되지 않은 상태이므로 건너뜀 (is_new로 처리)
     if (!meta.settings_hash.IsZero())
     {
-        Array<uint8> settings_bytes;
+        Array<u8> settings_bytes;
         {
             MemoryWriter writer(settings_bytes);
             writer << content.import_settings;

@@ -35,7 +35,7 @@ void DestroyAsset(void* p) { delete static_cast<EvictionTestAsset*>(p); }
  * @return 생성된 HandleData (ref_count == 0)
  */
 HandleData SimulateLoad(
-    AssetPool& pool, uint64 size_bytes, uint64 frame,
+    AssetPool& pool, u64 size_bytes, u64 frame,
     EScopeLayer scope = EScopeLayer::Scene)
 {
     HandleData hd = pool.FindOrCreate(NewId(), TypeId::Get<EvictionTestAsset>(), AssetPath("test/eviction_asset"));
@@ -138,7 +138,7 @@ TEST_F(EvictionTest, EvictIfOverBudget_EvictsWhenOverBudget)
     SimulateLoad(pool, 512, 0);
 
     // Total: 1536 > 1000
-    uint32 evicted = pool.EvictIfOverBudget(100);
+    u32 evicted = pool.EvictIfOverBudget(100);
     EXPECT_GT(evicted, 0u);
     EXPECT_LE(pool.GetTotalMemoryUsage(), 1000u);
 }
@@ -198,7 +198,7 @@ TEST_F(EvictionTest, EvictIfOverBudget_RespectsMaxEvictions)
     SimulateLoad(pool, 100, 0);
     SimulateLoad(pool, 100, 0);
 
-    uint32 evicted = pool.EvictIfOverBudget(100);
+    u32 evicted = pool.EvictIfOverBudget(100);
     EXPECT_LE(evicted, 2u);
     // 나머지는 다음 프레임에 해제됨
     EXPECT_EQ(pool.GetCount(), 2u);

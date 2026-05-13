@@ -27,8 +27,8 @@ class VPath;
  * @code
  * // 1. 설정 구조체 정의
  * struct WindowSettings {
- *     uint32 width = 1280;
- *     uint32 height = 720;
+ *     u32 width = 1280;
+ *     u32 height = 720;
  *     bool fullscreen = false;
  *     String title = "SimpleEngine";
  * };

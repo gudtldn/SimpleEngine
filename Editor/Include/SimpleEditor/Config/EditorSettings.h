@@ -17,10 +17,10 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
     String title = "SimpleEngine Editor";
 
     SE_ANNOTATION(=meta::Property)
-    uint32 width = 1280;
+    u32 width = 1280;
 
     SE_ANNOTATION(=meta::Property)
-    uint32 height = 720;
+    u32 height = 720;
 
     SE_ANNOTATION(=meta::Property)
     bool fullscreen = false;
@@ -43,7 +43,7 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
     String font_path = "CoreAssets://Font/malgun.ttf";
 
     SE_ANNOTATION(=meta::Property)
-    float font_size = 17.0f;
+    f32 font_size = 17.0f;
 
     bool operator==(const EditorUISettings&) const = default;
 };
@@ -66,7 +66,7 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
     bool show_location = true;
 
     SE_ANNOTATION(=meta::Property)
-    uint32 max_log_lines = 2000;
+    u32 max_log_lines = 2000;
 
     bool operator==(const ConsoleSettings&) const = default;
 };
@@ -77,11 +77,11 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
 struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
 {
     SE_ANNOTATION(=meta::Property)
-    uint32 target_fps = 240;
+    u32 target_fps = 240;
 
     /** 프레임 대기 시 Busy-wait 비율 (0.0 ~ 1.0) */
     SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 1.0f))
-    float busy_wait_ratio = 0.1f;
+    f32 busy_wait_ratio = 0.1f;
 
     bool operator==(const PerformanceSettings&) const = default;
 };
@@ -89,7 +89,7 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
 /**
  * 프레젠트 모드 열거형
  */
-enum class EPresentMode : uint8
+enum class EPresentMode : u8
 {
     Mailbox,
     VSync,

@@ -192,7 +192,7 @@ TEST_F(MpscQueueTest, PushAndDrain)
 
     EXPECT_FALSE(queue.IsEmpty());
 
-    uint32 executed = queue.Drain();
+    u32 executed = queue.Drain();
     EXPECT_EQ(executed, 3u);
     EXPECT_EQ(counter, 111);
     EXPECT_TRUE(queue.IsEmpty());
@@ -240,8 +240,8 @@ TEST_F(MpscQueueTest, MultipleProducers)
     }
 
     // 메인 스레드에서 Drain
-    uint32 executed = queue.Drain();
-    EXPECT_EQ(executed, static_cast<uint32>(NUM_PRODUCERS * ITEMS_PER_PRODUCER));
+    u32 executed = queue.Drain();
+    EXPECT_EQ(executed, static_cast<u32>(NUM_PRODUCERS * ITEMS_PER_PRODUCER));
     EXPECT_EQ(sum.load(), NUM_PRODUCERS * ITEMS_PER_PRODUCER);
 }
 

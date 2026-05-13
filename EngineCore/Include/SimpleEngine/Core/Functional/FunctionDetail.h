@@ -173,7 +173,7 @@ protected:
     }
 
 protected:
-    alignas(SBOAlign) uint8 sbo_storage[SBO_BUFFER_SIZE]{};
+    alignas(SBOAlign) u8 sbo_storage[SBO_BUFFER_SIZE]{};
     CallableType* callable_ptr = nullptr;
 };
 } // namespace se::detail

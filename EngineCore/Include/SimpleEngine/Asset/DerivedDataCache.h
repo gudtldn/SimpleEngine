@@ -21,10 +21,10 @@ struct CacheEntry
     ContentHash source_hash;
 
     /** 캐시 스키마 버전 (Importer 출력 포맷 변경 시 증가) */
-    uint32 cache_version = 0;
+    u32 cache_version = 0;
 
     /** 직렬화할 Asset 바이너리 데이터 */
-    Array<uint8> payload;
+    Array<u8> payload;
 };
 
 /**
@@ -40,10 +40,10 @@ struct CacheEntry
  *
  * 캐시 파일 포맷 (MemoryArchive 바이너리 직렬화):
  *   [4  bytes]   Magic: "SEDC"
- *   [4  bytes]   Format Version: uint32
+ *   [4  bytes]   Format Version: u32
  *   [8+N bytes]  Source Hash: String (length-prefixed)
- *   [4  bytes]   Cache Schema Version: uint32
- *   [8  bytes]   Payload Size: uint64
+ *   [4  bytes]   Cache Schema Version: u32
+ *   [8  bytes]   Payload Size: u64
  *   [M  bytes]   Payload: BinaryBlob (raw 바이너리 데이터)
  *
  * Atomic Write를 사용하여 쓰기 도중 크래시로 인한 corruption을 방지합니다.
@@ -67,7 +67,7 @@ public:
      * @param buffer_view 캐시 파일의 전체 바이너리 데이터
      * @return 파싱된 CacheEntry. 포맷이 유효하지 않으면 nullopt
      */
-    [[nodiscard]] static Optional<CacheEntry> ParseFromBuffer(ArrayView<const uint8> buffer_view);
+    [[nodiscard]] static Optional<CacheEntry> ParseFromBuffer(ArrayView<const u8> buffer_view);
 
 public:
     /**
@@ -98,7 +98,7 @@ public:
     [[nodiscard]] bool IsValid(
         const Guid& guid,
         const ContentHash& source_hash,
-        uint32 cache_version
+        u32 cache_version
     ) const;
 
     /**

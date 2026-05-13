@@ -30,7 +30,7 @@ struct SE_CORE_API SHA256
      * @param data 해시를 계산할 바이트 배열
      * @return SHA-256 digest
      */
-    [[nodiscard]] static ContentHash HashBytes(ArrayView<const uint8> data);
+    [[nodiscard]] static ContentHash HashBytes(ArrayView<const u8> data);
 
     /**
      * 문자열 데이터의 SHA-256 해시를 계산합니다.

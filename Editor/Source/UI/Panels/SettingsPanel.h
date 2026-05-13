@@ -16,7 +16,7 @@ namespace se::editor
  */
 class SettingsPanel : public IEditorPanel
 {
-    enum class ECategory : uint8
+    enum class ECategory : u8
     {
         Window,
         UI,

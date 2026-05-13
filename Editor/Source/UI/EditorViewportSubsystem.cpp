@@ -51,7 +51,7 @@ void EditorViewportSubsystem::Release()
     input_subsystem = nullptr;
 }
 
-void EditorViewportSubsystem::Update(double delta_time)
+void EditorViewportSubsystem::Update(f64 delta_time)
 {
     // 우클릭으로 호버된 뷰포트의 카메라 제어를 활성화
     if (input_subsystem->IsMouseButtonPressed(EMouseButton::Right))
@@ -123,14 +123,14 @@ void EditorViewportSubsystem::Update(double delta_time)
             }
 
             // Exponential smoothing: frame-rate independent 가속/감속 (smoothing이 클수록 반응이 빠름)
-            constexpr double SMOOTHING = 12.0;
-            const double alpha = 1.0 - Exp(-SMOOTHING * delta_time);
+            constexpr f64 SMOOTHING = 12.0;
+            const f64 alpha = 1.0 - Exp(-SMOOTHING * delta_time);
             camera.velocity = camera.velocity + (target_velocity - camera.velocity) * alpha;
 
             camera.position += camera.velocity * delta_time;
 
             // Perspective에서 스크롤로 이동 속도 조절
-            const float scroll = input_subsystem->GetMouseWheel().y;
+            const f32 scroll = input_subsystem->GetMouseWheel().y;
             if (scroll != 0.0f)
             {
                 camera.move_speed *= (scroll > 0.0f) ? 1.1 : (1.0 / 1.1);
@@ -148,12 +148,12 @@ void EditorViewportSubsystem::Update(double delta_time)
             const Vector3 screen_up = forward.Cross(screen_right);
 
             // 마우스 픽셀 이동량을 월드 스케일로 환산 (줌 레벨에 비례)
-            const double viewport_w = static_cast<double>(active_state.render_view.width);
-            const double pan_scale = camera.ortho_width / viewport_w;
+            const f64 viewport_w = static_cast<f64>(active_state.render_view.width);
+            const f64 pan_scale = camera.ortho_width / viewport_w;
 
             // 카메라 이동
-            camera.position += screen_right * (static_cast<double>(mouse_delta.x) * pan_scale);
-            camera.position += screen_up * (static_cast<double>(mouse_delta.y) * pan_scale);
+            camera.position += screen_right * (static_cast<f64>(mouse_delta.x) * pan_scale);
+            camera.position += screen_up * (static_cast<f64>(mouse_delta.y) * pan_scale);
         }
 
         // 카메라가 활성화 되어있는 동안, 마우스를 last_pos에 고정
@@ -162,7 +162,7 @@ void EditorViewportSubsystem::Update(double delta_time)
 
     // Ortho 줌: 우클릭 없이 호버 상태에서 스크롤로 가능
     {
-        const float ortho_scroll = input_subsystem->GetMouseWheel().y;
+        const f32 ortho_scroll = input_subsystem->GetMouseWheel().y;
         if (ortho_scroll != 0.0f)
         {
             for (ViewportState& state : viewports | std::views::values)
@@ -228,7 +228,7 @@ void EditorViewportSubsystem::Update(double delta_time)
 
         const EditorCameraState& camera = state.GetActiveCamera();
         const Vector3 forward_dir = camera.rotation.GetForwardVector();
-        const double aspect = static_cast<double>(state.render_view.width) / static_cast<double>(state.render_view.height);
+        const f64 aspect = static_cast<f64>(state.render_view.width) / static_cast<f64>(state.render_view.height);
 
         // Top/Bottom 뷰는 Up을 Y축을 기준으로 설정
         const bool is_top_bottom = (state.view_mode == EViewMode::Top || state.view_mode == EViewMode::Bottom);
@@ -254,7 +254,7 @@ void EditorViewportSubsystem::Update(double delta_time)
         }
         else
         {
-            const double depth_half = camera.far_plane * 0.5;
+            const f64 depth_half = camera.far_plane * 0.5;
             const Vector3 ortho_eye = camera.position
                 - forward_dir * forward_dir.Dot(camera.position) // Depth 성분 제거
                 - forward_dir * depth_half;                      // 이후 클리핑 공간의 정중앙에 물체를 두기 위해 카메라를 뒤로 이동
@@ -269,7 +269,7 @@ void EditorViewportSubsystem::Update(double delta_time)
                 view_up
             );
 
-            const double ortho_height = camera.ortho_width / aspect;
+            const f64 ortho_height = camera.ortho_width / aspect;
             state.render_view.projection_matrix = TransformUtility::MakeOrthographicMatrix(
                 camera.ortho_width,
                 ortho_height,
@@ -285,7 +285,7 @@ void EditorViewportSubsystem::Update(double delta_time)
     }
 }
 
-void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height)
+void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, u32 new_width, u32 new_height)
 {
     if (new_width == 0 || new_height == 0)
     {

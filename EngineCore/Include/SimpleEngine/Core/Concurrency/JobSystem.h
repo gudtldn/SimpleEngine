@@ -256,7 +256,7 @@ private:
      * EnqueuePayload에서 push 전에 증가, ExecutePayload에서 실행 전에 감소합니다.
      * 워커의 sleep predicate가 이 값만 확인하므로, 전체 deque 스캔을 회피합니다.
      */
-    alignas(SE_CACHE_LINE) std::atomic<int64> pending_jobs = 0;
+    alignas(SE_CACHE_LINE) std::atomic<i64> pending_jobs = 0;
 
     /** 워커 대기/깨우기용 동기화 객체 */
     TracyLockable(std::mutex, wake_mutex);

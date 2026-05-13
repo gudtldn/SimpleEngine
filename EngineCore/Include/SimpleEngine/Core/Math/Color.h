@@ -14,7 +14,7 @@ struct Color;
 namespace detail
 {
 /** Linear -> sRGB 변환 */
-constexpr float LinearToSrgb(float val)
+constexpr f32 LinearToSrgb(f32 val)
 {
     if (val <= 0.0031308f)
     {
@@ -24,7 +24,7 @@ constexpr float LinearToSrgb(float val)
 }
 
 /** sRGB -> Linear Lookup Table */
-constexpr float SRGB_TO_LINEAR_LUT[256] = {
+constexpr f32 SRGB_TO_LINEAR_LUT[256] = {
     0.000000f, 0.000304f, 0.000607f, 0.000911f, 0.001214f, 0.001518f, 0.001821f, 0.002125f,
     0.002428f, 0.002732f, 0.003035f, 0.003347f, 0.003677f, 0.004025f, 0.004391f, 0.004777f,
     0.005182f, 0.005605f, 0.006049f, 0.006512f, 0.006995f, 0.007499f, 0.008023f, 0.008568f,
@@ -61,11 +61,11 @@ constexpr float SRGB_TO_LINEAR_LUT[256] = {
 } // namespace detail
 
 /**
- * float 기반 색상 구조체 (R, G, B, A)
+ * f32 기반 색상 구조체 (R, G, B, A)
  */
 struct LinearColor
 {
-    float r, g, b, a;
+    f32 r, g, b, a;
 
 public:
     constexpr LinearColor()
@@ -73,7 +73,7 @@ public:
     {
     }
 
-    constexpr LinearColor(float in_r, float in_g, float in_b, float in_a = 1.0f)
+    constexpr LinearColor(f32 in_r, f32 in_g, f32 in_b, f32 in_a = 1.0f)
         : r(in_r), g(in_g), b(in_b), a(in_a)
     {
     }
@@ -86,7 +86,7 @@ public:
     explicit constexpr LinearColor(const Color& color, bool is_srgb = true);
 
     /** HSV 색상 공간으로부터 LinearRGB 색상을 생성합니다. */
-    static constexpr LinearColor FromHSV(float hue, float saturation, float value, float alpha = 1.0f);
+    static constexpr LinearColor FromHSV(f32 hue, f32 saturation, f32 value, f32 alpha = 1.0f);
 
 public:
     [[nodiscard]] static constexpr LinearColor Black()       { return { 0.0f, 0.0f, 0.0f, 1.0f }; }
@@ -101,7 +101,7 @@ public:
 
 public:
     /** 값을 min~max 범위로 자릅니다. (Saturate 등) */
-    constexpr void Clamp(float min_value = 0.0f, float max_value = 1.0f)
+    constexpr void Clamp(f32 min_value = 0.0f, f32 max_value = 1.0f)
     {
         r = math::Clamp(r, min_value, max_value);
         g = math::Clamp(g, min_value, max_value);
@@ -110,7 +110,7 @@ public:
     }
 
     /** Clamp된 복사본을 반환합니다. */
-    [[nodiscard]] constexpr LinearColor GetClamped(float min_value = 0.0f, float max_value = 1.0f) const
+    [[nodiscard]] constexpr LinearColor GetClamped(f32 min_value = 0.0f, f32 max_value = 1.0f) const
     {
         LinearColor result = *this;
         result.Clamp(min_value, max_value);
@@ -130,7 +130,7 @@ public:
     [[nodiscard]] constexpr Color ToColor(bool is_srgb = true) const;
 
     /** 두 색상이 오차 범위 내에서 같은지 비교합니다. (부동소수점 오차 고려) */
-    [[nodiscard]] constexpr bool IsNearlyEqual(const LinearColor& other, float tolerance = KINDA_SMALL_NUMBER) const
+    [[nodiscard]] constexpr bool IsNearlyEqual(const LinearColor& other, f32 tolerance = KINDA_SMALL_NUMBER) const
     {
         return Abs(r - other.r) <= tolerance
             && Abs(g - other.g) <= tolerance
@@ -172,12 +172,12 @@ public:
         return *this;
     }
 
-    [[nodiscard]] constexpr LinearColor operator*(float scalar) const
+    [[nodiscard]] constexpr LinearColor operator*(f32 scalar) const
     {
         return { r * scalar, g * scalar, b * scalar, a * scalar };
     }
 
-    FORCE_INLINE LinearColor& operator*=(float scalar)
+    FORCE_INLINE LinearColor& operator*=(f32 scalar)
     {
         r *= scalar; g *= scalar; b *= scalar; a *= scalar;
         return *this;
@@ -194,15 +194,15 @@ public:
         return *this;
     }
 
-    [[nodiscard]] constexpr LinearColor operator/(float scalar) const
+    [[nodiscard]] constexpr LinearColor operator/(f32 scalar) const
     {
-        const float inv_scalar = 1.0f / scalar;
+        const f32 inv_scalar = 1.0f / scalar;
         return { r * inv_scalar, g * inv_scalar, b * inv_scalar, a * inv_scalar };
     }
 
-    FORCE_INLINE LinearColor& operator/=(float scalar)
+    FORCE_INLINE LinearColor& operator/=(f32 scalar)
     {
-        const float inv_scalar = 1.0f / scalar;
+        const f32 inv_scalar = 1.0f / scalar;
         r *= inv_scalar; g *= inv_scalar; b *= inv_scalar; a *= inv_scalar;
         return *this;
     }
@@ -215,7 +215,7 @@ public:
  */
 struct Color
 {
-    uint8 r, g, b, a;
+    u8 r, g, b, a;
 
 public:
     constexpr Color()
@@ -224,7 +224,7 @@ public:
         a = 255;
     }
 
-    constexpr Color(uint8 in_r, uint8 in_g, uint8 in_b, uint8 in_a = 255)
+    constexpr Color(u8 in_r, u8 in_g, u8 in_b, u8 in_a = 255)
         : r(in_r), g(in_g), b(in_b), a(in_a)
     {
     }
@@ -233,11 +233,11 @@ public:
      * 0xRRGGBBAA 형식의 정수로부터 색상을 생성합니다.
      * 내부적으로 Shift 연산을 사용하므로 엔디안과 무관하게 R,G,B,A 순서가 보장됩니다.
      */
-    explicit constexpr Color(uint32 rgba)
-        : r(static_cast<uint8>((rgba >> 24) & 0xFF))
-        , g(static_cast<uint8>((rgba >> 16) & 0xFF))
-        , b(static_cast<uint8>((rgba >> 8) & 0xFF))
-        , a(static_cast<uint8>(rgba & 0xFF))
+    explicit constexpr Color(u32 rgba)
+        : r(static_cast<u8>((rgba >> 24) & 0xFF))
+        , g(static_cast<u8>((rgba >> 16) & 0xFF))
+        , b(static_cast<u8>((rgba >> 8) & 0xFF))
+        , a(static_cast<u8>(rgba & 0xFF))
     {
     }
 
@@ -261,17 +261,17 @@ public:
 
 public:
     /** @return ARGB 포맷의 32비트 정수 */
-    [[nodiscard]] constexpr uint32 ToPackedARGB() const
+    [[nodiscard]] constexpr u32 ToPackedARGB() const
     {
-        return (static_cast<uint32>(a) << 24) | (static_cast<uint32>(r) << 16)
-            | (static_cast<uint32>(g) << 8) | (static_cast<uint32>(b) << 0);
+        return (static_cast<u32>(a) << 24) | (static_cast<u32>(r) << 16)
+            | (static_cast<u32>(g) << 8) | (static_cast<u32>(b) << 0);
     }
 
     /** @return RGBA 포맷의 32비트 정수 */
-    [[nodiscard]] constexpr uint32 ToPackedRGBA() const
+    [[nodiscard]] constexpr u32 ToPackedRGBA() const
     {
-        return (static_cast<uint32>(r) << 24) | (static_cast<uint32>(g) << 16)
-            | (static_cast<uint32>(b) << 8) | (static_cast<uint32>(a) << 0);
+        return (static_cast<u32>(r) << 24) | (static_cast<u32>(g) << 16)
+            | (static_cast<u32>(b) << 8) | (static_cast<u32>(a) << 0);
     }
 
     /** LinearColor로 변환합니다. */
@@ -283,38 +283,38 @@ public:
 
 constexpr LinearColor::LinearColor(const Color& color, bool is_srgb)
 {
-    constexpr float inv = 1.0f / 255.0f;
+    constexpr f32 inv = 1.0f / 255.0f;
     if (is_srgb)
     {
         r = detail::SRGB_TO_LINEAR_LUT[color.r];
         g = detail::SRGB_TO_LINEAR_LUT[color.g];
         b = detail::SRGB_TO_LINEAR_LUT[color.b];
-        a = static_cast<float>(color.a) * inv;
+        a = static_cast<f32>(color.a) * inv;
     }
     else
     {
-        r = static_cast<float>(color.r) * inv;
-        g = static_cast<float>(color.g) * inv;
-        b = static_cast<float>(color.b) * inv;
-        a = static_cast<float>(color.a) * inv;
+        r = static_cast<f32>(color.r) * inv;
+        g = static_cast<f32>(color.g) * inv;
+        b = static_cast<f32>(color.b) * inv;
+        a = static_cast<f32>(color.a) * inv;
     }
 }
 
-constexpr LinearColor LinearColor::FromHSV(float hue, float saturation, float value, float alpha)
+constexpr LinearColor LinearColor::FromHSV(f32 hue, f32 saturation, f32 value, f32 alpha)
 {
-    const float c = value * saturation;
-    float h_prime = Fmod(hue / 60.0f, 6.0f);
+    const f32 c = value * saturation;
+    f32 h_prime = Fmod(hue / 60.0f, 6.0f);
     if (h_prime < 0.0f)
     {
         h_prime += 6.0f; // Fmod result can be negative
     }
 
-    const float x = c * (1.0f - Abs(Fmod(h_prime, 2.0f) - 1.0f));
-    const float m = value - c;
+    const f32 x = c * (1.0f - Abs(Fmod(h_prime, 2.0f) - 1.0f));
+    const f32 m = value - c;
 
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
+    f32 r = 0.0f;
+    f32 g = 0.0f;
+    f32 b = 0.0f;
 
     if      (h_prime < 1.0f) { r = c; g = x; b = 0; }
     else if (h_prime < 2.0f) { r = x; g = c; b = 0; }
@@ -328,13 +328,13 @@ constexpr LinearColor LinearColor::FromHSV(float hue, float saturation, float va
 
 constexpr LinearColor LinearColor::LinearRGBToHSV() const
 {
-    const float max_v = Max(r, Max(g, b));
-    const float min_v = Min(r, Min(g, b));
-    const float delta = max_v - min_v;
+    const f32 max_v = Max(r, Max(g, b));
+    const f32 min_v = Min(r, Min(g, b));
+    const f32 delta = max_v - min_v;
 
-    float h = 0.0f;
-    float s = 0.0f;
-    float v = max_v;
+    f32 h = 0.0f;
+    f32 s = 0.0f;
+    f32 v = max_v;
 
     if (delta > KINDA_SMALL_NUMBER)
     {
@@ -377,10 +377,10 @@ constexpr Color LinearColor::ToColor(bool is_srgb) const
     }
 
     return {
-        static_cast<uint8>(RoundToInt(clamped.r * 255.0f)),
-        static_cast<uint8>(RoundToInt(clamped.g * 255.0f)),
-        static_cast<uint8>(RoundToInt(clamped.b * 255.0f)),
-        static_cast<uint8>(RoundToInt(clamped.a * 255.0f)),
+        static_cast<u8>(RoundToInt(clamped.r * 255.0f)),
+        static_cast<u8>(RoundToInt(clamped.g * 255.0f)),
+        static_cast<u8>(RoundToInt(clamped.b * 255.0f)),
+        static_cast<u8>(RoundToInt(clamped.a * 255.0f)),
     };
 }
 

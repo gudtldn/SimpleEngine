@@ -36,7 +36,7 @@ public:
     [[nodiscard]] SDL_GPUShader* GetOrCreateShader(const VPath& shader_key, SDL_ShaderCross_ShaderStage stage);
 
     /** SPIR-V 바이트를 메모리에서 직접 Graphics 셰이더로 생성/교체합니다. (핫 리로드용) */
-    void LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_ShaderStage stage, ArrayView<const uint8> spirv_bytecode);
+    void LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_ShaderStage stage, ArrayView<const u8> spirv_bytecode);
 
     /** 특정 Graphics 셰이더를 캐시에서 제거하고 GPU 리소스를 해제합니다. */
     void Invalidate(const VPath& shader_key);
@@ -52,7 +52,7 @@ public:
     [[nodiscard]] static Path ResolveSpvPath(const VPath& shader_key);
 
     /** .spv 물리 경로에서 SPIR-V 바이트를 읽어 반환합니다. */
-    [[nodiscard]] static Optional<Array<uint8>> ReadSpvFile(const VPath& shader_key);
+    [[nodiscard]] static Optional<Array<u8>> ReadSpvFile(const VPath& shader_key);
 
 private:
     RenderDevice* render_device;

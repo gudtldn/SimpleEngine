@@ -55,8 +55,8 @@ public:
     bool UploadMesh(
         SDL_GPUCommandBuffer* in_cmd,
         const AssetId& in_id,
-        const void* in_vertex_data, uint32 in_vertex_size,
-        const void* in_index_data, uint32 in_index_size
+        const void* in_vertex_data, u32 in_vertex_size,
+        const void* in_index_data, u32 in_index_size
     );
 
     /**
@@ -123,10 +123,10 @@ public:
 
 private:
     // 기본 블록 크기 (128MB)
-    static constexpr uint32 DEFAULT_BLOCK_SIZE = 128 * 1024 * 1024;
+    static constexpr u32 DEFAULT_BLOCK_SIZE = 128 * 1024 * 1024;
 
     /** 사용 가능한 Geometry Block을 찾아 메모리를 할당합니다. */
-    [[nodiscard]] GpuBufferSlice AllocateInGeometryBlock(uint32 in_size);
+    [[nodiscard]] GpuBufferSlice AllocateInGeometryBlock(u32 in_size);
 
     // TODO: 추후 Unload한 Mesh에 대해서 Defragmentation을 적용 후 VRAM 최적화
 

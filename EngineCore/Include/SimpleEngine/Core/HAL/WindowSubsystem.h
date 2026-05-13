@@ -19,9 +19,9 @@ namespace se
 struct WindowDesc
 {
     String title = "Untitled Window";
-    uint32 width = 1280;
-    uint32 height = 720;
-    uint32 sdl_window_flags = 0;
+    u32 width = 1280;
+    u32 height = 720;
+    u32 sdl_window_flags = 0;
 
     // 렌더링 힌트: RenderSubsystem이 on_window_created 콜백에서 소비
     Optional<SDL_GPUSwapchainComposition> swapchain_composition = NullOpt;
@@ -103,7 +103,7 @@ public:
     MultiDelegate<void(SDL_WindowID)> on_window_focus_lost;
 
     /** 윈도우 크기가 변경되었을 때 Broadcast됩니다. */
-    MultiDelegate<void(SDL_WindowID, uint32 /*width*/, uint32 /*height*/)> on_window_resized;
+    MultiDelegate<void(SDL_WindowID, u32 /*width*/, u32 /*height*/)> on_window_resized;
 
     /**
      * SDL_EVENT_WINDOW_CLOSE_REQUESTED 이벤트 발생 시 Broadcast됩니다.
@@ -156,7 +156,7 @@ public:
     [[nodiscard]] bool HasWindow(SDL_WindowID window_id) const;
 
     /** 현재 관리 중인 윈도우 수를 반환합니다. */
-    [[nodiscard]] uint32 GetWindowCount() const;
+    [[nodiscard]] u32 GetWindowCount() const;
 
 public:
     /**

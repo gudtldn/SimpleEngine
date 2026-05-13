@@ -24,7 +24,7 @@ class SE_CORE_API SE_ANNOTATION(=meta::Internal) ForwardScenePass : public Rende
 public:
     explicit ForwardScenePass(
         const SceneDrawData& in_draw_data,
-        uint32 in_view_index,
+        u32 in_view_index,
         const GpuResourceManager& in_gpu_manager,
         const SamplerCache& in_sampler_cache,
         const RenderView& in_render_view,
@@ -38,7 +38,7 @@ public:
 
 private:
     const SceneDrawData& draw_data;
-    const uint32 view_index;
+    const u32 view_index;
     const GpuResourceManager& gpu_manager;
     const SamplerCache& sampler_cache;
     RenderView render_view;

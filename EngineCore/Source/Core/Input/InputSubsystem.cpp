@@ -69,19 +69,19 @@ void InputSubsystem::BeginFrame()
 
 bool InputSubsystem::IsKeyDown(EKeyCode key) const
 {
-    const auto index = static_cast<uint16>(key);
+    const auto index = static_cast<u16>(key);
     return index < KEY_COUNT && current_keys[index];
 }
 
 bool InputSubsystem::IsKeyPressed(EKeyCode key) const
 {
-    const auto index = static_cast<uint16>(key);
+    const auto index = static_cast<u16>(key);
     return index < KEY_COUNT && current_keys[index] && !previous_keys[index];
 }
 
 bool InputSubsystem::IsKeyReleased(EKeyCode key) const
 {
-    const auto index = static_cast<uint16>(key);
+    const auto index = static_cast<u16>(key);
     return index < KEY_COUNT && !current_keys[index] && previous_keys[index];
 }
 
@@ -105,25 +105,25 @@ bool InputSubsystem::HasAnyModifier(BitFlags<EModifier> modifiers) const
 
 bool InputSubsystem::IsMouseButtonDown(EMouseButton button) const
 {
-    const auto index = static_cast<uint8>(button);
+    const auto index = static_cast<u8>(button);
     return index < MOUSE_BUTTON_COUNT && current_mouse_buttons[index];
 }
 
 bool InputSubsystem::IsMouseButtonPressed(EMouseButton button) const
 {
-    const auto index = static_cast<uint8>(button);
+    const auto index = static_cast<u8>(button);
     return index < MOUSE_BUTTON_COUNT && current_mouse_buttons[index] && !previous_mouse_buttons[index];
 }
 
 bool InputSubsystem::IsMouseButtonReleased(EMouseButton button) const
 {
-    const auto index = static_cast<uint8>(button);
+    const auto index = static_cast<u8>(button);
     return index < MOUSE_BUTTON_COUNT && !current_mouse_buttons[index] && previous_mouse_buttons[index];
 }
 
 Vector2f InputSubsystem::GetGlobalMousePosition() const
 {
-    float x, y; // NOLINT(*-isolate-declaration)
+    f32 x, y; // NOLINT(*-isolate-declaration)
     SDL_GetGlobalMouseState(&x, &y);
     return { x, y };
 }
@@ -220,7 +220,7 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
     {
         if (!event.key.repeat)
         {
-            const uint16 scancode = static_cast<uint16>(event.key.scancode);
+            const u16 scancode = static_cast<u16>(event.key.scancode);
             if (scancode < KEY_COUNT)
             {
                 current_keys[scancode] = true;
@@ -230,7 +230,7 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
     }
     case SDL_EVENT_KEY_UP:
     {
-        const uint16 scancode = static_cast<uint16>(event.key.scancode);
+        const u16 scancode = static_cast<u16>(event.key.scancode);
         if (scancode < KEY_COUNT)
         {
             current_keys[scancode] = false;
@@ -239,7 +239,7 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
     }
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
     {
-        const uint8 button = event.button.button;
+        const u8 button = event.button.button;
         if (button < MOUSE_BUTTON_COUNT)
         {
             current_mouse_buttons[button] = true;
@@ -248,7 +248,7 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
     }
     case SDL_EVENT_MOUSE_BUTTON_UP:
     {
-        const uint8 button = event.button.button;
+        const u8 button = event.button.button;
         if (button < MOUSE_BUTTON_COUNT)
         {
             current_mouse_buttons[button] = false;

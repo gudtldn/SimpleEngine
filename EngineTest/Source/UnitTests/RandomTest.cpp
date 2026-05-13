@@ -30,7 +30,7 @@ TEST(RandomTest, Range_Int)
     RandomStream rs(42);
     for (int i = 0; i < 1000; ++i)
     {
-        int32 val = rs.Range(-10, 10);
+        i32 val = rs.Range(-10, 10);
         EXPECT_GE(val, -10);
         EXPECT_LE(val, 10);
     }
@@ -41,7 +41,7 @@ TEST(RandomTest, Range_UInt)
     RandomStream rs(42);
     for (int i = 0; i < 1000; ++i)
     {
-        uint32 val = rs.Range(100);
+        u32 val = rs.Range(100);
         EXPECT_LT(val, 100u);
     }
 }
@@ -51,11 +51,11 @@ TEST(RandomTest, Float_Range)
     RandomStream rs(42);
     for (int i = 0; i < 1000; ++i)
     {
-        float val = rs.Float();
+        f32 val = rs.Float();
         EXPECT_GE(val, 0.0f);
         EXPECT_LT(val, 1.0f);
 
-        float r_val = rs.Range(-5.0f, 5.0f);
+        f32 r_val = rs.Range(-5.0f, 5.0f);
         EXPECT_GE(r_val, -5.0f);
         EXPECT_LT(r_val, 5.0f);
     }
@@ -64,12 +64,12 @@ TEST(RandomTest, Float_Range)
 TEST(RandomTest, Global_ThreadSafety)
 {
     Random::Seed(42, 123);
-    [[maybe_unused]] float val_main = Random::Float();
+    [[maybe_unused]] f32 val_main = Random::Float();
 
     std::thread t1([]()
     {
         Random::Seed(42, 123);
-        float val_t1 = Random::Float();
+        f32 val_t1 = Random::Float();
 
         RandomStream rs(42, 123);
         EXPECT_EQ(val_t1, rs.Float());
@@ -78,7 +78,7 @@ TEST(RandomTest, Global_ThreadSafety)
     t1.join();
 
     // 메인 스레드의 상태는 t1에 의해 변경되지 않아야 함
-    float val_main_next = Random::Float();
+    f32 val_main_next = Random::Float();
     RandomStream rs_main(42, 123);
     rs_main.Float(); // val_main
     EXPECT_EQ(val_main_next, rs_main.Float());
@@ -88,9 +88,9 @@ TEST(RandomTest, Zero_Seed_Safety)
 {
     // PCG는 0 시드에서도 안전하게 동작해야 함
     RandomStream rs(0, 0);
-    uint32 v1 = rs.Next();
-    uint32 v2 = rs.Next();
-    uint32 v3 = rs.Next();
+    u32 v1 = rs.Next();
+    u32 v2 = rs.Next();
+    u32 v3 = rs.Next();
 
     EXPECT_NE(v1, v2);
     EXPECT_NE(v2, v3);

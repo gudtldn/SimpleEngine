@@ -94,7 +94,7 @@ public:
      * 모든 Stage를 순서대로 실행합니다.
      * @param delta_time 이전 프레임과의 시간 간격 (초)
      */
-    void RunAll(double delta_time);
+    void RunAll(f64 delta_time);
 
     [[nodiscard]] World& GetWorld() { return *world; }
     [[nodiscard]] const World& GetWorld() const { return *world; }

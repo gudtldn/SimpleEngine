@@ -90,8 +90,8 @@ struct LogEntry
 struct LogOnceKey
 {
     se::String file;
-    uint32 line;
-    uint32 column;
+    u32 line;
+    u32 column;
 
     bool operator==(const LogOnceKey& other) const noexcept
     {
@@ -100,11 +100,11 @@ struct LogOnceKey
 
     struct LogOnceKeyHash
     {
-        size_t operator()(const LogOnceKey& k) const noexcept
+        usize operator()(const LogOnceKey& k) const noexcept
         {
-            const size_t h1 = std::hash<se::String>{}(k.file);
-            const size_t h2 = std::hash<uint32>{}(k.line);
-            const size_t h3 = std::hash<uint32>{}(k.column);
+            const usize h1 = std::hash<se::String>{}(k.file);
+            const usize h2 = std::hash<u32>{}(k.line);
+            const usize h3 = std::hash<u32>{}(k.column);
             // 간단한 해시 조합
             return h1 ^ (h2 << 1) ^ (h3 << 2);
         }

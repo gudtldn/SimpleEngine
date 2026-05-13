@@ -95,7 +95,7 @@ RGTextureHandle RenderGraphBuilder::RegisterTextureSlot(const StringName& name)
 
     RGResourceNode node;
     node.name = name;
-    const uint32 index = static_cast<uint32>(resource_nodes.Len());
+    const u32 index = static_cast<u32>(resource_nodes.Len());
     resource_nodes.Push(std::move(node));
     resource_name_map[name] = index;
     return RGTextureHandle{ .index = index };
@@ -110,7 +110,7 @@ RGBufferHandle RenderGraphBuilder::RegisterBufferSlot(const StringName& name)
 
     RGResourceNode node;
     node.name = name;
-    const uint32 index = static_cast<uint32>(resource_nodes.Len());
+    const u32 index = static_cast<u32>(resource_nodes.Len());
     resource_nodes.Push(std::move(node));
     resource_name_map[name] = index;
     return RGBufferHandle{ .index = index };

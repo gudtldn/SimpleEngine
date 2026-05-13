@@ -22,11 +22,11 @@
 
 namespace se
 {
-uint32 Application::target_fps = 240;
-double Application::target_frame_time = 1.0 / static_cast<double>(target_fps);
+u32 Application::target_fps = 240;
+f64 Application::target_frame_time = 1.0 / static_cast<f64>(target_fps);
 
-double Application::busy_wait_ratio = 0.1;
-double Application::busy_wait_threshold = target_frame_time * busy_wait_ratio;
+f64 Application::busy_wait_ratio = 0.1;
+f64 Application::busy_wait_threshold = target_frame_time * busy_wait_ratio;
 
 Application* Application::instance = nullptr;
 
@@ -129,18 +129,18 @@ void Application::MainLoop()
 {
     is_running = true;
 
-    static double frequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    static f64 frequency = static_cast<f64>(SDL_GetPerformanceFrequency());
     if (frequency <= 0.0)
     {
         frequency = 1000.0;
     }
 
-    static auto get_performance_time = [] static -> double
+    static auto get_performance_time = [] static -> f64
     {
-        return static_cast<double>(SDL_GetPerformanceCounter()) / frequency;
+        return static_cast<f64>(SDL_GetPerformanceCounter()) / frequency;
     };
 
-    double current_time = get_performance_time();
+    f64 current_time = get_performance_time();
     while (is_running && !quit_requested)
     {
         ZoneScoped;
@@ -148,12 +148,12 @@ void Application::MainLoop()
         {
             ZoneScopedN("Frame Tick");
 
-            const double frame_start = get_performance_time();
+            const f64 frame_start = get_performance_time();
 
             // Calculate Delta Time
-            const double last_time = current_time;
+            const f64 last_time = current_time;
             current_time = frame_start;
-            const double delta_time = current_time - last_time;
+            const f64 delta_time = current_time - last_time;
 
             ProcessPlatformEvents();
 
@@ -164,13 +164,13 @@ void Application::MainLoop()
         {
             ZoneScopedN("Frame Wait");
 
-            const double elapsed_sec = get_performance_time() - current_time;
-            const double time_to_wait_sec = target_frame_time - elapsed_sec;
+            const f64 elapsed_sec = get_performance_time() - current_time;
+            const f64 time_to_wait_sec = target_frame_time - elapsed_sec;
 
             if (time_to_wait_sec > 0.0)
             {
-                const double busy_wait_threshold_ms = busy_wait_threshold * 1000.0;
-                const uint32 sleep_ms = static_cast<uint32>((time_to_wait_sec * 1000.0) - busy_wait_threshold_ms);
+                const f64 busy_wait_threshold_ms = busy_wait_threshold * 1000.0;
+                const u32 sleep_ms = static_cast<u32>((time_to_wait_sec * 1000.0) - busy_wait_threshold_ms);
 
                 // 대부분의 대기 시간을 Delay로 대기
                 if (sleep_ms > 0)
@@ -255,7 +255,7 @@ void Application::ProcessPlatformEvents()
     event_sys->PollEvents();
 }
 
-void Application::Update(double delta_time)
+void Application::Update(f64 delta_time)
 {
     engine_instance->UpdateFrame(delta_time);
 }

@@ -89,7 +89,7 @@ private:
 
 private:
     /** 스케일 All 모드에서 화면 커서 1px 당 스케일 변화량 */
-    static constexpr double SCALE_SENSITIVITY = 0.005;
+    static constexpr f64 SCALE_SENSITIVITY = 0.005;
 
     bool dragging = false;
     bool is_local = false;  // Local 좌표계 여부 (Rotation 적용 순서 결정)
@@ -101,10 +101,10 @@ private:
     Quaternion drag_gizmo_rotation = Quaternion::Identity();
 
     // Translation & Scale 상태: 마우스 레이와 축의 최근접 교차점 파라미터(t)
-    double drag_start_t = 0.0;
+    f64 drag_start_t = 0.0;
 
     // Rotation 상태: 화면 공간 atan2 각도 기반
-    Radian<double> drag_start_angle = 0.0_rad;
+    Radian<f64> drag_start_angle = 0.0_rad;
     Vector3 drag_plane_normal = Vector3::Up();    // Rotation: sign flip 판정용 (카메라 facing 방향 비교)
     Vector3 drag_start_vector = Vector3::Right(); // Translation/Scale 평면: 이전 프레임 히트 포인트, Scale All: 이전 커서 위치
 };

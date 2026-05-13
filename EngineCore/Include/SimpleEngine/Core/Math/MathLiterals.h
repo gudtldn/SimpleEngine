@@ -152,14 +152,14 @@ template <traits::FloatingType NumType>
 using Radian = math::AngleType<NumType, math::RadianTag>;
 } // namespace se
 
-// double literals
-constexpr se::Degree<double> operator""_deg(long double deg) { return se::Degree(static_cast<double>(deg)); }
-constexpr se::Degree<double> operator""_deg(unsigned long long deg) { return se::Degree(static_cast<double>(deg)); }
-constexpr se::Radian<double> operator""_rad(long double rad) { return se::Radian(static_cast<double>(rad)); }
-constexpr se::Radian<double> operator""_rad(unsigned long long rad) { return se::Radian(static_cast<double>(rad)); }
+// f64 literals
+constexpr se::Degree<f64> operator""_deg(long double deg) { return se::Degree(static_cast<f64>(deg)); }
+constexpr se::Degree<f64> operator""_deg(unsigned long long deg) { return se::Degree(static_cast<f64>(deg)); }
+constexpr se::Radian<f64> operator""_rad(long double rad) { return se::Radian(static_cast<f64>(rad)); }
+constexpr se::Radian<f64> operator""_rad(unsigned long long rad) { return se::Radian(static_cast<f64>(rad)); }
 
-// float literals
-constexpr se::Degree<float> operator""_degf(long double deg) { return se::Degree(static_cast<float>(deg)); }
-constexpr se::Degree<float> operator""_degf(unsigned long long deg) { return se::Degree(static_cast<float>(deg)); }
-constexpr se::Radian<float> operator""_radf(long double rad) { return se::Radian(static_cast<float>(rad)); }
-constexpr se::Radian<float> operator""_radf(unsigned long long rad) { return se::Radian(static_cast<float>(rad)); }
+// f32 literals
+constexpr se::Degree<f32> operator""_degf(long double deg) { return se::Degree(static_cast<f32>(deg)); }
+constexpr se::Degree<f32> operator""_degf(unsigned long long deg) { return se::Degree(static_cast<f32>(deg)); }
+constexpr se::Radian<f32> operator""_radf(long double rad) { return se::Radian(static_cast<f32>(rad)); }
+constexpr se::Radian<f32> operator""_radf(unsigned long long rad) { return se::Radian(static_cast<f32>(rad)); }

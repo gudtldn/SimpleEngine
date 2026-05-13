@@ -6,14 +6,14 @@
 namespace se::editor
 {
 /** 기즈모 좌표계 모드 */
-enum class ECoordinateSpace : uint8
+enum class ECoordinateSpace : u8
 {
     World,
     Local,
 };
 
 /** 뷰포트 뷰 모드 */
-enum class EViewMode : uint8
+enum class EViewMode : u8
 {
     // 원근 뷰
     Perspective,

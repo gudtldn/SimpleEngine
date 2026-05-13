@@ -27,16 +27,16 @@ namespace
 template <typename T>
 consteval ImGuiDataType_ GetImGuiDataType()
 {
-    if constexpr (std::same_as<T, int8>)        { return ImGuiDataType_S8;     }
-    else if constexpr (std::same_as<T, uint8>)  { return ImGuiDataType_U8;     }
-    else if constexpr (std::same_as<T, int16>)  { return ImGuiDataType_S16;    }
-    else if constexpr (std::same_as<T, uint16>) { return ImGuiDataType_U16;    }
-    else if constexpr (std::same_as<T, int32>)  { return ImGuiDataType_S32;    }
-    else if constexpr (std::same_as<T, uint32>) { return ImGuiDataType_U32;    }
-    else if constexpr (std::same_as<T, int64>)  { return ImGuiDataType_S64;    }
-    else if constexpr (std::same_as<T, uint64>) { return ImGuiDataType_U64;    }
-    else if constexpr (std::same_as<T, float>)  { return ImGuiDataType_Float;  }
-    else if constexpr (std::same_as<T, double>) { return ImGuiDataType_Double; }
+    if constexpr (std::same_as<T, i8>)        { return ImGuiDataType_S8;     }
+    else if constexpr (std::same_as<T, u8>)  { return ImGuiDataType_U8;     }
+    else if constexpr (std::same_as<T, i16>)  { return ImGuiDataType_S16;    }
+    else if constexpr (std::same_as<T, u16>) { return ImGuiDataType_U16;    }
+    else if constexpr (std::same_as<T, i32>)  { return ImGuiDataType_S32;    }
+    else if constexpr (std::same_as<T, u32>) { return ImGuiDataType_U32;    }
+    else if constexpr (std::same_as<T, i64>)  { return ImGuiDataType_S64;    }
+    else if constexpr (std::same_as<T, u64>) { return ImGuiDataType_U64;    }
+    else if constexpr (std::same_as<T, f32>)  { return ImGuiDataType_Float;  }
+    else if constexpr (std::same_as<T, f64>) { return ImGuiDataType_Double; }
     else
     {
         static_assert(se::traits::AlwaysFalse<T>, "Unsupported type for ImGuiDataType conversion.");
@@ -55,7 +55,7 @@ bool DrawBool(const char* label, void* value, const PropertyInfo& /*prop*/)
     return ImGui::Checkbox(label, static_cast<bool*>(value));
 }
 
-// --- Arithmetic (int, uint, float, double) ---
+// --- Arithmetic (int, uint, f32, f64) ---
 
 template <typename T>
 bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
@@ -70,7 +70,7 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
         return ImGui::SliderScalar(label, DATA_TYPE, v, &min_val, &max_val);
     }
 
-    constexpr float SPEED = std::floating_point<T> ? 0.1f : 1.0f;
+    constexpr f32 SPEED = std::floating_point<T> ? 0.1f : 1.0f;
 
     if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasClamp))
     {
@@ -305,24 +305,24 @@ bool DrawLinearColor(const char* label, void* value, const PropertyInfo& /*prop*
     return ImGui::ColorEdit4(label, &color->r);
 }
 
-// --- Color (uint8 RGBA) ---
+// --- Color (u8 RGBA) ---
 
 bool DrawColor(const char* label, void* value, const PropertyInfo& /*prop*/)
 {
     Color* color = static_cast<Color*>(value);
-    float rgba[4] = {
-        static_cast<float>(color->r) / 255.0f,
-        static_cast<float>(color->g) / 255.0f,
-        static_cast<float>(color->b) / 255.0f,
-        static_cast<float>(color->a) / 255.0f,
+    f32 rgba[4] = {
+        static_cast<f32>(color->r) / 255.0f,
+        static_cast<f32>(color->g) / 255.0f,
+        static_cast<f32>(color->b) / 255.0f,
+        static_cast<f32>(color->a) / 255.0f,
     };
 
     if (ImGui::ColorEdit4(label, rgba))
     {
-        color->r = math::RoundToInt<uint8>(rgba[0] * 255.0f);
-        color->g = math::RoundToInt<uint8>(rgba[1] * 255.0f);
-        color->b = math::RoundToInt<uint8>(rgba[2] * 255.0f);
-        color->a = math::RoundToInt<uint8>(rgba[3] * 255.0f);
+        color->r = math::RoundToInt<u8>(rgba[0] * 255.0f);
+        color->g = math::RoundToInt<u8>(rgba[1] * 255.0f);
+        color->b = math::RoundToInt<u8>(rgba[2] * 255.0f);
+        color->a = math::RoundToInt<u8>(rgba[3] * 255.0f);
         return true;
     }
     return false;
@@ -351,21 +351,21 @@ bool DrawDegree(const char* label, void* value, const PropertyInfo& prop)
 // Enum Helpers
 // ============================================================================
 
-/** type-erased enum 값을 int64로 읽기 (signed/unsigned 대응) */
-int64 ReadEnumValue(const void* value, usize size, bool is_unsigned)
+/** type-erased enum 값을 i64로 읽기 (signed/unsigned 대응) */
+i64 ReadEnumValue(const void* value, usize size, bool is_unsigned)
 {
     if (is_unsigned)
     {
         switch (size)
         {
-        case sizeof(uint8):
-            return static_cast<int64>(*static_cast<const uint8*>(value));
-        case sizeof(uint16):
-            return static_cast<int64>(*static_cast<const uint16*>(value));
-        case sizeof(uint32):
-            return static_cast<int64>(*static_cast<const uint32*>(value));
-        case sizeof(uint64):
-            return static_cast<int64>(*static_cast<const uint64*>(value));
+        case sizeof(u8):
+            return static_cast<i64>(*static_cast<const u8*>(value));
+        case sizeof(u16):
+            return static_cast<i64>(*static_cast<const u16*>(value));
+        case sizeof(u32):
+            return static_cast<i64>(*static_cast<const u32*>(value));
+        case sizeof(u64):
+            return static_cast<i64>(*static_cast<const u64*>(value));
         default:
             break;
         }
@@ -374,14 +374,14 @@ int64 ReadEnumValue(const void* value, usize size, bool is_unsigned)
     {
         switch (size)
         {
-        case sizeof(int8):
-            return static_cast<int64>(*static_cast<const int8*>(value));
-        case sizeof(int16):
-            return static_cast<int64>(*static_cast<const int16*>(value));
-        case sizeof(int32):
-            return static_cast<int64>(*static_cast<const int32*>(value));
-        case sizeof(int64):
-            return *static_cast<const int64*>(value);
+        case sizeof(i8):
+            return static_cast<i64>(*static_cast<const i8*>(value));
+        case sizeof(i16):
+            return static_cast<i64>(*static_cast<const i16*>(value));
+        case sizeof(i32):
+            return static_cast<i64>(*static_cast<const i32*>(value));
+        case sizeof(i64):
+            return *static_cast<const i64*>(value);
         default:
             break;
         }
@@ -389,24 +389,24 @@ int64 ReadEnumValue(const void* value, usize size, bool is_unsigned)
     return 0;
 }
 
-/** type-erased enum에 int64 값 쓰기 (signed/unsigned 대응) */
-void WriteEnumValue(void* value, int64 new_value, usize size, bool is_unsigned)
+/** type-erased enum에 i64 값 쓰기 (signed/unsigned 대응) */
+void WriteEnumValue(void* value, i64 new_value, usize size, bool is_unsigned)
 {
     if (is_unsigned)
     {
         switch (size)
         {
-        case sizeof(uint8):
-            *static_cast<uint8*>(value) = static_cast<uint8>(new_value);
+        case sizeof(u8):
+            *static_cast<u8*>(value) = static_cast<u8>(new_value);
             break;
-        case sizeof(uint16):
-            *static_cast<uint16*>(value) = static_cast<uint16>(new_value);
+        case sizeof(u16):
+            *static_cast<u16*>(value) = static_cast<u16>(new_value);
             break;
-        case sizeof(uint32):
-            *static_cast<uint32*>(value) = static_cast<uint32>(new_value);
+        case sizeof(u32):
+            *static_cast<u32*>(value) = static_cast<u32>(new_value);
             break;
-        case sizeof(uint64):
-            *static_cast<uint64*>(value) = static_cast<uint64>(new_value);
+        case sizeof(u64):
+            *static_cast<u64*>(value) = static_cast<u64>(new_value);
             break;
         default: break;
         }
@@ -415,17 +415,17 @@ void WriteEnumValue(void* value, int64 new_value, usize size, bool is_unsigned)
     {
         switch (size)
         {
-        case sizeof(int8):
-            *static_cast<int8*>(value) = static_cast<int8>(new_value);
+        case sizeof(i8):
+            *static_cast<i8*>(value) = static_cast<i8>(new_value);
             break;
-        case sizeof(int16):
-            *static_cast<int16*>(value) = static_cast<int16>(new_value);
+        case sizeof(i16):
+            *static_cast<i16*>(value) = static_cast<i16>(new_value);
             break;
-        case sizeof(int32):
-            *static_cast<int32*>(value) = static_cast<int32>(new_value);
+        case sizeof(i32):
+            *static_cast<i32*>(value) = static_cast<i32>(new_value);
             break;
-        case sizeof(int64):
-            *static_cast<int64*>(value) = new_value;
+        case sizeof(i64):
+            *static_cast<i64*>(value) = new_value;
             break;
         default:
             break;
@@ -456,7 +456,7 @@ bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
     }
 
     const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags::IsUnsigned);
-    const int64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
+    const i64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
 
     // 현재 선택 인덱스 찾기
     usize current_idx = count; // invalid sentinel
@@ -517,14 +517,14 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
     }
 
     const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags::IsUnsigned);
-    int64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
+    i64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
 
     bool modified = false;
     if (ImGui::TreeNode(label))
     {
         for (usize i = 0; i < count; ++i)
         {
-            const int64 flag = entries[i].value;
+            const i64 flag = entries[i].value;
             bool has_flag = (current_value & flag) == flag;
 
             const String entry_name = entries[i].name;
@@ -870,7 +870,7 @@ bool DrawOptionalProperty(
         void* inner_value = ops.get_value(optional);
 
         // 값 편집 위젯 (한 줄에 표시)
-        float available_width = ImGui::GetContentRegionAvail().x;
+        f32 available_width = ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(available_width - ImGui::GetFrameHeight() - ImGui::GetStyle().ItemSpacing.x);
 
         if (read_only)
@@ -1137,16 +1137,16 @@ void DrawerRegistry::RegisterBuiltinDrawers()
 {
     // --- Primitive ---
     Register(TypeId::Get<bool>(),   &DrawBool);
-    Register(TypeId::Get<int8>(),   &DrawArithmetic<int8>);
-    Register(TypeId::Get<uint8>(),  &DrawArithmetic<uint8>);
-    Register(TypeId::Get<int16>(),  &DrawArithmetic<int16>);
-    Register(TypeId::Get<uint16>(), &DrawArithmetic<uint16>);
-    Register(TypeId::Get<int32>(),  &DrawArithmetic<int32>);
-    Register(TypeId::Get<uint32>(), &DrawArithmetic<uint32>);
-    Register(TypeId::Get<int64>(),  &DrawArithmetic<int64>);
-    Register(TypeId::Get<uint64>(), &DrawArithmetic<uint64>);
-    Register(TypeId::Get<float>(),  &DrawArithmetic<float>);
-    Register(TypeId::Get<double>(), &DrawArithmetic<double>);
+    Register(TypeId::Get<i8>(),   &DrawArithmetic<i8>);
+    Register(TypeId::Get<u8>(),  &DrawArithmetic<u8>);
+    Register(TypeId::Get<i16>(),  &DrawArithmetic<i16>);
+    Register(TypeId::Get<u16>(), &DrawArithmetic<u16>);
+    Register(TypeId::Get<i32>(),  &DrawArithmetic<i32>);
+    Register(TypeId::Get<u32>(), &DrawArithmetic<u32>);
+    Register(TypeId::Get<i64>(),  &DrawArithmetic<i64>);
+    Register(TypeId::Get<u64>(), &DrawArithmetic<u64>);
+    Register(TypeId::Get<f32>(),  &DrawArithmetic<f32>);
+    Register(TypeId::Get<f64>(), &DrawArithmetic<f64>);
 
     // --- String ---
     Register(TypeId::Get<String>(),      &DrawString);
@@ -1158,28 +1158,28 @@ void DrawerRegistry::RegisterBuiltinDrawers()
     Register(TypeId::Get<AssetId>(),     &DrawAssetId);
     Register(TypeId::Get<Entity>(),      &DrawEntity);
 
-    // --- Math (double precision) ---
-    Register(TypeId::Get<Vector2>(),     &DrawVector2<double>);
-    Register(TypeId::Get<Vector3>(),     &DrawVector3<double>);
-    Register(TypeId::Get<Vector4>(),     &DrawVector4<double>);
-    Register(TypeId::Get<Quaternion>(),  &DrawQuaternion<double>);
-    Register(TypeId::Get<Rotator>(),     &DrawRotator<double>);
-    Register(TypeId::Get<Matrix4x4>(),   &DrawMatrix4x4<double>);
+    // --- Math (f64 precision) ---
+    Register(TypeId::Get<Vector2>(),     &DrawVector2<f64>);
+    Register(TypeId::Get<Vector3>(),     &DrawVector3<f64>);
+    Register(TypeId::Get<Vector4>(),     &DrawVector4<f64>);
+    Register(TypeId::Get<Quaternion>(),  &DrawQuaternion<f64>);
+    Register(TypeId::Get<Rotator>(),     &DrawRotator<f64>);
+    Register(TypeId::Get<Matrix4x4>(),   &DrawMatrix4x4<f64>);
 
     // --- Math (single precision) ---
-    Register(TypeId::Get<Vector2f>(),    &DrawVector2<float>);
-    Register(TypeId::Get<Vector3f>(),    &DrawVector3<float>);
-    Register(TypeId::Get<Vector4f>(),    &DrawVector4<float>);
-    Register(TypeId::Get<Quaternionf>(), &DrawQuaternion<float>);
-    Register(TypeId::Get<Rotatorf>(),    &DrawRotator<float>);
-    Register(TypeId::Get<Matrix4x4f>(),  &DrawMatrix4x4<float>);
+    Register(TypeId::Get<Vector2f>(),    &DrawVector2<f32>);
+    Register(TypeId::Get<Vector3f>(),    &DrawVector3<f32>);
+    Register(TypeId::Get<Vector4f>(),    &DrawVector4<f32>);
+    Register(TypeId::Get<Quaternionf>(), &DrawQuaternion<f32>);
+    Register(TypeId::Get<Rotatorf>(),    &DrawRotator<f32>);
+    Register(TypeId::Get<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
 
     // --- Color ---
     Register(TypeId::Get<LinearColor>(), &DrawLinearColor);
     Register(TypeId::Get<Color>(),       &DrawColor);
 
     // --- Angles ---
-    Register(TypeId::Get<Degree<double>>(), &DrawDegree<double>);
-    Register(TypeId::Get<Degree<float>>(),  &DrawDegree<float>);
+    Register(TypeId::Get<Degree<f64>>(), &DrawDegree<f64>);
+    Register(TypeId::Get<Degree<f32>>(),  &DrawDegree<f32>);
 }
 } // namespace se::editor

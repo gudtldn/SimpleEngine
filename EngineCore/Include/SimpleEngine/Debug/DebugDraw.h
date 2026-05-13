@@ -19,7 +19,7 @@ SE_CORE_API void DrawDebugLine(
     const Vector3& start,
     const Vector3& end,
     const LinearColor& color = LinearColor::White(),
-    float duration = 0.0f
+    f32 duration = 0.0f
 );
 
 /**
@@ -31,8 +31,8 @@ SE_CORE_API void DrawDebugLines(ArrayView<const DebugLine> lines);
 /** 원점에서 방향으로 선을 그립니다. */
 SE_CORE_API void DrawDebugRay(
     const Ray& ray,
-    double length,
+    f64 length,
     const LinearColor& color = LinearColor::White(),
-    float duration = 0.0f
+    f32 duration = 0.0f
 );
 } // namespace se

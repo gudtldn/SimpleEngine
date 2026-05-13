@@ -431,13 +431,13 @@ TEST(VPathNormalizationTest, BackslashInScheme)
 
 
 // =============================================================================
-// uint16 오버플로우 테스트
+// u16 오버플로우 테스트
 // =============================================================================
 
 TEST(VPathOverflowTest, VeryLongSchemeName)
 {
     // 65535자를 초과하는 스킴명 (실제로는 비현실적이지만 안전성 검증)
-    // uint16 한계 내에서의 동작 확인 (현실적 범위)
+    // u16 한계 내에서의 동작 확인 (현실적 범위)
     String long_scheme(1000, 'A');  // 1000자 스킴
     String vpath_str = long_scheme + "://file.txt";
 

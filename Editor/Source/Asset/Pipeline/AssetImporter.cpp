@@ -190,7 +190,7 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
     result.Reserve(all_nodes.Len());
 
     HashMap<Guid, Array<Guid>> dependents_map; // 각 노드의 의존성 목록
-    HashMap<Guid, int32> in_degrees;           // 남은 의존성 개수
+    HashMap<Guid, i32> in_degrees;           // 남은 의존성 개수
 
     // 그래프 구축 및 진입 차수(In-Degree) 계산
     Queue<PipelineBaseNode*> ready_queue;
@@ -200,7 +200,7 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
         Array<Guid> dependencies;
         node->GetFactoryDependencies(dependencies);
 
-        int32 current_in_degree = 0;
+        i32 current_in_degree = 0;
         for (const Guid& dependency_id : dependencies)
         {
             // 유효한 의존성인지 확인
@@ -233,7 +233,7 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
             for (const Guid& dependent_id : *dependents)
             {
                 // 해당 노드의 남은 의존성 개수 감소
-                int32& degree = in_degrees[dependent_id];
+                i32& degree = in_degrees[dependent_id];
                 degree -= 1;
 
                 // 모든 의존성이 해결되었다면 queue에 추가

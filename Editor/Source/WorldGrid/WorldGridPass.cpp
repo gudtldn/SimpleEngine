@@ -160,21 +160,21 @@ void WorldGridPass::Execute(RGExecutionContext& context)
 
         const SDL_GPUViewport viewport = {
             .x = 0.0f, .y = 0.0f,
-            .w = static_cast<float>(render_view.width),
-            .h = static_cast<float>(render_view.height),
+            .w = static_cast<f32>(render_view.width),
+            .h = static_cast<f32>(render_view.height),
             .min_depth = 0.0f, .max_depth = 1.0f,
         };
         const SDL_Rect scissor = {
             .x = 0, .y = 0,
-            .w = static_cast<int32>(render_view.width),
-            .h = static_cast<int32>(render_view.height),
+            .w = static_cast<i32>(render_view.width),
+            .h = static_cast<i32>(render_view.height),
         };
 
         SDL_SetGPUViewport(pass, &viewport);
         SDL_SetGPUScissor(pass, &scissor);
 
         // Vertex UBO 업로드
-        enum class EGridPlane : uint32
+        enum class EGridPlane : u32
         {
             XY, XZ, YZ
         };
@@ -182,13 +182,13 @@ void WorldGridPass::Execute(RGExecutionContext& context)
         {
             Matrix4x4f vp;
             Vector3f camera_pos;
-            float grid_size;
+            f32 grid_size;
             EGridPlane grid_plane;
         } ubo_vert;
 
         ubo_vert.vp = static_cast<Matrix4x4f>(render_view.view_matrix * render_view.projection_matrix);
         ubo_vert.camera_pos = static_cast<Vector3f>(render_view.camera_pos);
-        ubo_vert.grid_size = static_cast<float>(render_view.far_plane);
+        ubo_vert.grid_size = static_cast<f32>(render_view.far_plane);
 
         switch (view_mode)
         {
@@ -220,11 +220,11 @@ void WorldGridPass::Execute(RGExecutionContext& context)
         {
             // LOD 변경 전, 그리드 한칸이 유지해야 할 최소 픽셀 수 (보통 2.0 ~ 20.0)
             // 값이 클수록 카메라가 조금만 멀어져도 빠르게 다음 LOD로 전환됨.
-            float grid_min_pixels_between_cells;
+            f32 grid_min_pixels_between_cells;
 
             // 가장 얇은 그리드 선 한 칸의 실제 월드 크기 (기본 1.0m)
-            float grid_cell_size;
-            float _padding[2];
+            f32 grid_cell_size;
+            f32 _padding[2];
 
             // 얇은 선의 색상과 투명도
             alignas(16) LinearColor grid_color_thin;

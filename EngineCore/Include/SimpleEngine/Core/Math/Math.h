@@ -16,30 +16,30 @@
 namespace se
 {
 // Matrix
-using Matrix4x4 = math::Matrix4x4Impl<double>;
-using Matrix4x4f = math::Matrix4x4Impl<float>;
+using Matrix4x4 = math::Matrix4x4Impl<f64>;
+using Matrix4x4f = math::Matrix4x4Impl<f32>;
 
 // Vector
-using Vector2 = math::Vector2Impl<double>;
-using Vector2f = math::Vector2Impl<float>;
-using Vector3 = math::Vector3Impl<double>;
-using Vector3f = math::Vector3Impl<float>;
-using Vector4 = math::Vector4Impl<double>;
-using Vector4f = math::Vector4Impl<float>;
+using Vector2 = math::Vector2Impl<f64>;
+using Vector2f = math::Vector2Impl<f32>;
+using Vector3 = math::Vector3Impl<f64>;
+using Vector3f = math::Vector3Impl<f32>;
+using Vector4 = math::Vector4Impl<f64>;
+using Vector4f = math::Vector4Impl<f32>;
 
 // Quaternion
-using Quaternion = math::QuaternionImpl<double>;
-using Quaternionf = math::QuaternionImpl<float>;
+using Quaternion = math::QuaternionImpl<f64>;
+using Quaternionf = math::QuaternionImpl<f32>;
 
 // Rotator
-using Rotator = math::RotatorImpl<double>;
-using Rotatorf = math::RotatorImpl<float>;
+using Rotator = math::RotatorImpl<f64>;
+using Rotatorf = math::RotatorImpl<f32>;
 
 // Geometry & Colors
-using AABB = math::AABBImpl<double>;
-using AABBf = math::AABBImpl<float>;
-using Ray = math::RayImpl<double>;
-using Rayf = math::RayImpl<float>;
+using AABB = math::AABBImpl<f64>;
+using AABBf = math::AABBImpl<f32>;
+using Ray = math::RayImpl<f64>;
+using Rayf = math::RayImpl<f32>;
 using Color = math::Color;
 using LinearColor = math::LinearColor;
 } // namespace se

@@ -26,7 +26,7 @@ SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instanc
 /**
  * Archive의 동작 모드
  */
-enum class EArchiveMode : uint8
+enum class EArchiveMode : u8
 {
     Load = 0,
     Save = 1,
@@ -39,11 +39,11 @@ struct BinaryBlob
 {
 public:
     void* data;
-    uint64 size;
+    u64 size;
     bool is_const;
 
 public:
-    static BinaryBlob FromBytes(void* in_data, uint64 in_byte_size)
+    static BinaryBlob FromBytes(void* in_data, u64 in_byte_size)
     {
         return {
             .data = in_data,
@@ -52,7 +52,7 @@ public:
         };
     }
 
-    static BinaryBlob FromBytes(const void* in_data, uint64 in_byte_size)
+    static BinaryBlob FromBytes(const void* in_data, u64 in_byte_size)
     {
         return {
             .data = const_cast<void*>(in_data),
@@ -63,7 +63,7 @@ public:
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    static BinaryBlob FromItems(T* in_data, uint64 count = 1)
+    static BinaryBlob FromItems(T* in_data, u64 count = 1)
     {
         return {
             .data = in_data,
@@ -74,7 +74,7 @@ public:
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    static BinaryBlob FromItems(const T* in_data, uint64 count = 1)
+    static BinaryBlob FromItems(const T* in_data, u64 count = 1)
     {
         return {
             .data = const_cast<T*>(in_data),
@@ -176,7 +176,7 @@ public:
      * 배열의 시작을 알립니다.
      * @param count Save 시 입력값(배열 크기), Load 시 출력값(읽어올 크기)
      */
-    virtual void BeginArray(uint64& count) = 0;
+    virtual void BeginArray(u64& count) = 0;
     /** 배열의 끝을 알립니다. */
     virtual void EndArray() = 0;
 
@@ -185,7 +185,7 @@ public:
      * 텍스트 포맷에서는 table/object로 표현될 수 있습니다.
      * @param count Save 시 입력값(엔트리 수), Load 시 출력값
      */
-    virtual void BeginMap(uint64& count) = 0;
+    virtual void BeginMap(u64& count) = 0;
     /** Map 구조의 끝을 알립니다. */
     virtual void EndMap() = 0;
 
@@ -203,7 +203,7 @@ public:
      * 로우 레벨 바이트 데이터를 처리합니다.
      * 바이너리 포맷에서는 직접 memcpy, 텍스트 포맷에서는 Base64 등으로 변환할 수 있습니다.
      */
-    virtual void SerializeBytes(void* data, uint64 size) = 0;
+    virtual void SerializeBytes(void* data, u64 size) = 0;
 
 protected:
     /**
@@ -214,16 +214,16 @@ protected:
 
     // --- 스칼라(Primitive) 타입 처리 ---
     virtual void SerializeBool(bool& value) = 0;
-    virtual void SerializeInt8(int8& value) = 0;
-    virtual void SerializeUInt8(uint8& value) = 0;
-    virtual void SerializeInt16(int16& value) = 0;
-    virtual void SerializeUInt16(uint16& value) = 0;
-    virtual void SerializeInt32(int32& value) = 0;
-    virtual void SerializeUInt32(uint32& value) = 0;
-    virtual void SerializeInt64(int64& value) = 0;
-    virtual void SerializeUInt64(uint64& value) = 0;
-    virtual void SerializeFloat(float& value) = 0;
-    virtual void SerializeDouble(double& value) = 0;
+    virtual void SerializeInt8(i8& value) = 0;
+    virtual void SerializeUInt8(u8& value) = 0;
+    virtual void SerializeInt16(i16& value) = 0;
+    virtual void SerializeUInt16(u16& value) = 0;
+    virtual void SerializeInt32(i32& value) = 0;
+    virtual void SerializeUInt32(u32& value) = 0;
+    virtual void SerializeInt64(i64& value) = 0;
+    virtual void SerializeUInt64(u64& value) = 0;
+    virtual void SerializeFloat(f32& value) = 0;
+    virtual void SerializeDouble(f64& value) = 0;
 
     // --- 엔진 타입 처리 ---
     virtual void SerializeString(String& value) = 0;
@@ -235,8 +235,8 @@ protected:
     explicit Archive(EArchiveMode in_mode);
 
     std::unique_ptr<String> error_message;
-    uint32 inline_serialize_depth = 0;       // 0: 일반, 1+: SerializeInline 내부 (> 0이면 ar("key") assert)
-    uint32 inline_serialize_write_count = 0; // SerializeInline 내 write 횟수; 2 이상이면 assert
+    u32 inline_serialize_depth = 0;       // 0: 일반, 1+: SerializeInline 내부 (> 0이면 ar("key") assert)
+    u32 inline_serialize_write_count = 0; // SerializeInline 내 write 횟수; 2 이상이면 assert
     EArchiveMode mode;
 };
 
@@ -285,16 +285,16 @@ Archive& Archive::operator<<(T& value)
     // 산술 타입 (POD)
     else if constexpr (std::is_arithmetic_v<PureType>)
     {
-        if constexpr (std::same_as<PureType, int8>)        { SerializeInt8(value);   }
-        else if constexpr (std::same_as<PureType, uint8>)  { SerializeUInt8(value);  }
-        else if constexpr (std::same_as<PureType, int16>)  { SerializeInt16(value);  }
-        else if constexpr (std::same_as<PureType, uint16>) { SerializeUInt16(value); }
-        else if constexpr (std::same_as<PureType, int32>)  { SerializeInt32(value);  }
-        else if constexpr (std::same_as<PureType, uint32>) { SerializeUInt32(value); }
-        else if constexpr (std::same_as<PureType, int64>)  { SerializeInt64(value);  }
-        else if constexpr (std::same_as<PureType, uint64>) { SerializeUInt64(value); }
-        else if constexpr (std::same_as<PureType, float>)  { SerializeFloat(value);  }
-        else if constexpr (std::same_as<PureType, double>) { SerializeDouble(value); }
+        if constexpr (std::same_as<PureType, i8>)        { SerializeInt8(value);   }
+        else if constexpr (std::same_as<PureType, u8>)  { SerializeUInt8(value);  }
+        else if constexpr (std::same_as<PureType, i16>)  { SerializeInt16(value);  }
+        else if constexpr (std::same_as<PureType, u16>) { SerializeUInt16(value); }
+        else if constexpr (std::same_as<PureType, i32>)  { SerializeInt32(value);  }
+        else if constexpr (std::same_as<PureType, u32>) { SerializeUInt32(value); }
+        else if constexpr (std::same_as<PureType, i64>)  { SerializeInt64(value);  }
+        else if constexpr (std::same_as<PureType, u64>) { SerializeUInt64(value); }
+        else if constexpr (std::same_as<PureType, f32>)  { SerializeFloat(value);  }
+        else if constexpr (std::same_as<PureType, f64>) { SerializeDouble(value); }
         else
         {
             static_assert(traits::AlwaysFalse<T>, "Unsupported arithmetic type for serialization.");
@@ -360,7 +360,7 @@ Archive& Archive::operator<<(T& value)
             "InlineSerializable is for single scalar-value types only.");
 
         ++inline_serialize_depth;
-        const uint32 saved_write_count = std::exchange(inline_serialize_write_count, 0);
+        const u32 saved_write_count = std::exchange(inline_serialize_write_count, 0);
         SerializeInline(*this, value);
         --inline_serialize_depth;
         inline_serialize_write_count = saved_write_count;

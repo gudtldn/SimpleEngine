@@ -42,8 +42,8 @@ void ViewportPanel::Draw()
 
             const ImVec2 content_min = ImGui::GetCursorScreenPos();
             const ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-            const uint32 width = static_cast<uint32>(viewport_size.x);
-            const uint32 height = static_cast<uint32>(viewport_size.y);
+            const u32 width = static_cast<u32>(viewport_size.x);
+            const u32 height = static_cast<u32>(viewport_size.y);
 
             viewport_sys->UpdateViewportSize(viewport_id, width, height);
 
@@ -75,7 +75,7 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
         return;
     }
 
-    constexpr float TOOLBAR_HEIGHT = 28.0f;
+    constexpr f32 TOOLBAR_HEIGHT = 28.0f;
 
     // 뷰포트가 너무 작으면 툴바 그리기 생략
     if (content_size.x < 100.0f || content_size.y < TOOLBAR_HEIGHT * 2)
@@ -110,7 +110,7 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
 
         // === 왼쪽: 기즈모 모드 버튼 ===
         const EGizmoMode cur_gizmo = viewport_sys->GetViewportGizmoMode(viewport_id);
-        const float sq = hbox.ButtonHeight();
+        const f32 sq = hbox.ButtonHeight();
 
         bool gizmo_t = false, gizmo_r = false, gizmo_s = false; // NOLINT(*-isolate-declaration)
         hbox
@@ -211,7 +211,7 @@ void ViewportPanel::DrawToolbar(const ImVec2& content_min, const ImVec2& content
                     .Label("Cam")
                     .Custom([&]
                     {
-                        constexpr double MIN_SPEED = 0.01, MAX_SPEED = 1000.0; // NOLINT(*-isolate-declaration)
+                        constexpr f64 MIN_SPEED = 0.01, MAX_SPEED = 1000.0; // NOLINT(*-isolate-declaration)
                         ImGui::DragScalarNInfinity(
                             "##CamSpeed", ImGuiDataType_Double, &camera->move_speed, 1,
                             0.1f, &MIN_SPEED, &MAX_SPEED, "%.1f"

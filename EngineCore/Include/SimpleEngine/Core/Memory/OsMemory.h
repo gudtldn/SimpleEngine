@@ -72,8 +72,8 @@ private:
         usize offset;
 
 #if SE_ENABLE_MEMORY_TRACKING
-        uint32 tag_id;
-        uint32 _padding;
+        u32 tag_id;
+        u32 _padding;
 #endif
     };
 
@@ -84,14 +84,14 @@ private:
     [[nodiscard]] FORCE_INLINE static OsMemoryHeader* GetHeaderFromUserPtr(void* address)
     {
         return reinterpret_cast<OsMemoryHeader*>(
-            static_cast<uint8*>(address) - HEADER_SIZE
+            static_cast<u8*>(address) - HEADER_SIZE
         );
     }
 
     [[nodiscard]] FORCE_INLINE static const OsMemoryHeader* GetHeaderFromUserPtr(const void* address)
     {
         return reinterpret_cast<const OsMemoryHeader*>(
-            static_cast<const uint8*>(address) - HEADER_SIZE
+            static_cast<const u8*>(address) - HEADER_SIZE
         );
     }
 };

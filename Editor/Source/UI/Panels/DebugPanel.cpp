@@ -19,13 +19,13 @@ se::String FormatBytes(usize bytes)
     }
     if (bytes < 1024ULL * 1024)
     {
-        return se::String::Format("{:.2f} KB", static_cast<double>(bytes) / 1024.0);
+        return se::String::Format("{:.2f} KB", static_cast<f64>(bytes) / 1024.0);
     }
     if (bytes < 1024ULL * 1024 * 1024)
     {
-        return se::String::Format("{:.2f} MB", static_cast<double>(bytes) / (1024.0 * 1024.0));
+        return se::String::Format("{:.2f} MB", static_cast<f64>(bytes) / (1024.0 * 1024.0));
     }
-    return se::String::Format("{:.2f} GB", static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0));
+    return se::String::Format("{:.2f} GB", static_cast<f64>(bytes) / (1024.0 * 1024.0 * 1024.0));
 }
 } // namespace
 
@@ -57,12 +57,12 @@ void DebugPanel::DrawContent()
 
     if (ImGui::CollapsingHeader("Frame Counter", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        static constexpr int32 MAX_SAMPLES = 200;
+        static constexpr i32 MAX_SAMPLES = 200;
         static Array fps_history(MAX_SAMPLES, 0.0f);
-        static int32 offset = 0;
+        static i32 offset = 0;
 
-        const float dt = static_cast<float>(Engine::GetDeltaTime());
-        const float fps = 1.0f / dt;
+        const f32 dt = static_cast<f32>(Engine::GetDeltaTime());
+        const f32 fps = 1.0f / dt;
 
         fps_history[offset] = fps;
         offset = (offset + 1) % MAX_SAMPLES;
@@ -79,7 +79,7 @@ void DebugPanel::DrawContent()
             ImVec2(0, 80)
         );
 
-        int32 target_fps = static_cast<int32>(Application::GetTargetFps());
+        i32 target_fps = static_cast<i32>(Application::GetTargetFps());
         if (ImGui::SliderInt("Target FPS", &target_fps, 1, 2400))
         {
             Application::SetTargetFps(target_fps);
@@ -108,8 +108,8 @@ void DebugPanel::DrawContent()
                     ImGui::SeparatorText("Delta Visualizer");
                     const ImVec2 canvas_p = ImGui::GetCursorScreenPos();
                     const ImVec2 canvas_sz = ImVec2(120, 120);
-                    const float center_x = canvas_p.x + (canvas_sz.x * 0.5f);
-                    const float center_y = canvas_p.y + (canvas_sz.y * 0.5f);
+                    const f32 center_x = canvas_p.x + (canvas_sz.x * 0.5f);
+                    const f32 center_y = canvas_p.y + (canvas_sz.y * 0.5f);
 
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
                     draw_list->AddRectFilled(canvas_p, ImVec2(canvas_p.x + canvas_sz.x, canvas_p.y + canvas_sz.y), IM_COL32(30, 30, 30, 255));
@@ -120,7 +120,7 @@ void DebugPanel::DrawContent()
                     draw_list->AddLine(ImVec2(canvas_p.x, center_y), ImVec2(canvas_p.x + canvas_sz.x, center_y), IM_COL32(60, 60, 60, 255));
 
                     // Delta Point
-                    const float scale = 2.0f;
+                    const f32 scale = 2.0f;
                     const Vector2f mouse_delta = input->GetMouseDelta();
                     draw_list->AddCircleFilled(ImVec2(center_x + (mouse_delta.x * scale), center_y + (mouse_delta.y * scale)), 3.0f, IM_COL32(255, 255, 0, 255));
                     draw_list->AddLine(ImVec2(center_x, center_y), ImVec2(center_x + (mouse_delta.x * scale), center_y + (mouse_delta.y * scale)), IM_COL32(255, 255, 0, 150));
@@ -173,7 +173,7 @@ void DebugPanel::DrawContent()
 
                     ImGui::Text("Active Keys:");
                     ImGui::BeginChild("KeyLog", ImVec2(0, 250), true);
-                    for (uint16 i = 0; i < static_cast<uint16>(EKeyCode::Max); ++i)
+                    for (u16 i = 0; i < static_cast<u16>(EKeyCode::Max); ++i)
                     {
                         const EKeyCode key = static_cast<EKeyCode>(i);
                         if (input->IsKeyDown(key))

@@ -12,7 +12,7 @@ void SerializeArrayContainer(Archive& ar, Container& container)
 {
     using ElementType = traits::InnerOf<Container>;
 
-    uint64 count = container.Len();
+    u64 count = container.Len();
     ar.BeginArray(count);
 
     // Resize가 있을 때만 코드 적용 (FixedArray에는 Resize가 없음)
@@ -47,7 +47,7 @@ void SerializeArrayContainer(Archive& ar, Container& container)
         }
 
         // 일반적인 직렬화 Loop (Slow Path)
-        for (uint64 i = 0; i < count; ++i)
+        for (u64 i = 0; i < count; ++i)
         {
             ar << container[i];
         }
@@ -62,7 +62,7 @@ void SerializeSetContainer(Archive& ar, Container& container)
 {
     using ElementType = traits::InnerOf<Container>;
 
-    uint64 count = container.Len();
+    u64 count = container.Len();
     ar.BeginArray(count);
 
     if (ar.IsLoading())
@@ -73,7 +73,7 @@ void SerializeSetContainer(Archive& ar, Container& container)
             container.Reserve(count);
         }
 
-        for (uint64 i = 0; i < count; ++i)
+        for (u64 i = 0; i < count; ++i)
         {
             ElementType value;
             ar << value;
@@ -98,7 +98,7 @@ void SerializeMapContainer(Archive& ar, Container& container)
     using KeyType = traits::KeyOf<Container>;
     using ValueType = traits::ValueOf<Container>;
 
-    uint64 count = container.Len();
+    u64 count = container.Len();
     ar.BeginMap(count);
 
     if (ar.IsLoading())
@@ -109,7 +109,7 @@ void SerializeMapContainer(Archive& ar, Container& container)
             container.Reserve(count);
         }
 
-        for (uint64 i = 0; i < count; ++i)
+        for (u64 i = 0; i < count; ++i)
         {
             KeyType key;
             ar.BeginMapKey();

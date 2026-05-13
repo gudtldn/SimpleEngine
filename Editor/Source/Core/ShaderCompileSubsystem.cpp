@@ -44,7 +44,7 @@ void ShaderCompileSubsystem::Release()
 #endif
 }
 
-void ShaderCompileSubsystem::Update([[maybe_unused]] double delta_time)
+void ShaderCompileSubsystem::Update([[maybe_unused]] f64 delta_time)
 {
 #if SE_HAS_HLSL_COMPILER
     if (const InputSubsystem* input = se::GetSubsystem<InputSubsystem>())

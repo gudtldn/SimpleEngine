@@ -30,10 +30,10 @@ public:
         inline static const StringName COMPRESSION     = "Compression";     // String: "None","BC7","BC5"
 
         // embedded 텍스처 전용
-        inline static const StringName EMBEDDED_BYTES  = "EmbeddedBytes";   // Array<uint8>: 압축 바이트 (mHeight==0) 또는 RGBA8 pixels (mHeight>0)
+        inline static const StringName EMBEDDED_BYTES  = "EmbeddedBytes";   // Array<u8>: 압축 바이트 (mHeight==0) 또는 RGBA8 pixels (mHeight>0)
         inline static const StringName EMBEDDED_FORMAT = "EmbeddedFormat";  // String: "png", "jpg", "tga", ... (압축 바이트일 때만 사용)
-        inline static const StringName EMBEDDED_WIDTH  = "EmbeddedWidth";   // uint64: raw pixel width (mHeight>0일 때만 사용)
-        inline static const StringName EMBEDDED_HEIGHT = "EmbeddedHeight";  // uint64: raw pixel height (mHeight>0일 때만 사용)
+        inline static const StringName EMBEDDED_WIDTH  = "EmbeddedWidth";   // u64: raw pixel width (mHeight>0일 때만 사용)
+        inline static const StringName EMBEDDED_HEIGHT = "EmbeddedHeight";  // u64: raw pixel height (mHeight>0일 때만 사용)
     };
 
 public:
@@ -46,19 +46,19 @@ public:
     [[nodiscard]] Optional<const String&> GetCompression() const;
     void SetCompression(const String& compression);
 
-    [[nodiscard]] Optional<ArrayView<const uint8>> GetEmbeddedBytes() const;
-    void SetEmbeddedBytes(ArrayView<const uint8> bytes);
+    [[nodiscard]] Optional<ArrayView<const u8>> GetEmbeddedBytes() const;
+    void SetEmbeddedBytes(ArrayView<const u8> bytes);
 
     [[nodiscard]] Optional<const String&> GetEmbeddedFormat() const;
     void SetEmbeddedFormat(const String& format);
 
-    [[nodiscard]] Optional<uint64> GetEmbeddedWidth() const;
-    void SetEmbeddedWidth(uint64 width);
+    [[nodiscard]] Optional<u64> GetEmbeddedWidth() const;
+    void SetEmbeddedWidth(u64 width);
 
-    [[nodiscard]] Optional<uint64> GetEmbeddedHeight() const;
-    void SetEmbeddedHeight(uint64 height);
+    [[nodiscard]] Optional<u64> GetEmbeddedHeight() const;
+    void SetEmbeddedHeight(u64 height);
 
 private:
-    Array<uint8> embedded_bytes;
+    Array<u8> embedded_bytes;
 };
 } // namespace se::editor

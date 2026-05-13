@@ -15,15 +15,15 @@ public:
     TimeManager() = delete;
 
     /** RealTime을 raw_delta 기준으로 갱신합니다. */
-    static void AdvanceRealTime(RealTime& real, double raw_delta);
+    static void AdvanceRealTime(RealTime& real, f64 raw_delta);
 
     /** GameTime을 raw_delta 기준으로 갱신합니다. pause/time_scale이 적용됩니다. */
-    static void AdvanceGameTime(GameTime& game, double raw_delta);
+    static void AdvanceGameTime(GameTime& game, f64 raw_delta);
 
     /**
      * FixedTime의 accumulator를 game_delta만큼 누적합니다.
      * 실제 소비는 FixedTime::ConsumeStep()으로 수행합니다.
      */
-    static void AccumulateFixedTime(FixedTime& fixed, double game_delta);
+    static void AccumulateFixedTime(FixedTime& fixed, f64 game_delta);
 };
 } // namespace se

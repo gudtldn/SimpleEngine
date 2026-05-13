@@ -78,7 +78,7 @@ public:
      * @param physical_path 매핑할 실제 디스크 경로
      * @param priority 우선순위. 높을수록 Unresolve 시 먼저 고려됩니다. (모딩 지원용)
      */
-    void Mount(StringView scheme, const Path& physical_path, int32 priority = 0);
+    void Mount(StringView scheme, const Path& physical_path, i32 priority = 0);
 
     /**
      * 마운트된 스킴을 해제합니다.
@@ -98,7 +98,7 @@ public:
      * @param visitor 콜백 함수 (scheme, physical_path, priority)
      */
     template <typename Fn>
-        requires std::invocable<Fn, StringView, const Path&, int32>
+        requires std::invocable<Fn, StringView, const Path&, i32>
     void VisitMounts(Fn&& visitor) const;
 
 private:
@@ -109,7 +109,7 @@ private:
     struct MountPoint
     {
         Path physical_path;
-        int32 priority = 0;
+        i32 priority = 0;
 
         auto operator<=>(const MountPoint& other) const { return priority <=> other.priority; }
     };
@@ -122,7 +122,7 @@ private:
 // === Template Implementation ===
 
 template <typename Fn>
-    requires std::invocable<Fn, StringView, const Path&, int32>
+    requires std::invocable<Fn, StringView, const Path&, i32>
 void VFS::VisitMounts(Fn&& visitor) const
 {
     std::shared_lock lock(mutex);

@@ -6,7 +6,7 @@
 
 namespace se
 {
-GpuMemoryBlock::GpuMemoryBlock(RenderDevice* in_render_device, uint32 in_size, SDL_GPUBufferUsageFlags in_usage)
+GpuMemoryBlock::GpuMemoryBlock(RenderDevice* in_render_device, u32 in_size, SDL_GPUBufferUsageFlags in_usage)
     : render_device(in_render_device)
     , usage_flags(in_usage)
     , total_size(in_size)
@@ -60,9 +60,9 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
     return *this;
 }
 
-bool GpuMemoryBlock::AllocateSlice(uint32 in_size, uint32 in_alignment, GpuBufferSlice& out_slice)
+bool GpuMemoryBlock::AllocateSlice(u32 in_size, u32 in_alignment, GpuBufferSlice& out_slice)
 {
-    const uint32 aligned_offset = static_cast<uint32>(AlignedSize(used_offset, in_alignment));
+    const u32 aligned_offset = static_cast<u32>(AlignedSize(used_offset, in_alignment));
 
     // Buffer의 남은 공간이 부족한지?
     if (aligned_offset + in_size > total_size)

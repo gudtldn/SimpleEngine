@@ -478,7 +478,7 @@ public:
     [[nodiscard]] constexpr std::strong_ordering operator<=>(StringView other) const noexcept
     {
         const SizeType min_len = std::min(data_len, other.data_len);
-        const int32 result = Compare(data_ptr, other.data_ptr, min_len);
+        const i32 result = Compare(data_ptr, other.data_ptr, min_len);
         if (result < 0)
         {
             return std::strong_ordering::less;
@@ -514,15 +514,15 @@ private:
         return len;
     }
 
-    [[nodiscard]] static constexpr int32 Compare(const CharType* lhs, const CharType* rhs, SizeType len) noexcept
+    [[nodiscard]] static constexpr i32 Compare(const CharType* lhs, const CharType* rhs, SizeType len) noexcept
     {
         for (SizeType i = 0; i < len; ++i)
         {
-            if (static_cast<uint8>(lhs[i]) < static_cast<uint8>(rhs[i]))
+            if (static_cast<u8>(lhs[i]) < static_cast<u8>(rhs[i]))
             {
                 return -1;
             }
-            if (static_cast<uint8>(lhs[i]) > static_cast<uint8>(rhs[i]))
+            if (static_cast<u8>(lhs[i]) > static_cast<u8>(rhs[i]))
             {
                 return 1;
             }
@@ -540,7 +540,7 @@ private:
 template <>
 struct std::hash<se::StringView>
 {
-    [[nodiscard]] size_t operator()(se::StringView sv) const noexcept
+    [[nodiscard]] usize operator()(se::StringView sv) const noexcept
     {
         return std::hash<std::string_view>{}(std::string_view(sv.Data(), sv.ByteLen()));
     }

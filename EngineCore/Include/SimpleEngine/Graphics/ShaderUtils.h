@@ -14,7 +14,7 @@ class RenderDevice;
 
 struct ShaderInputVar
 {
-    uint32 location;
+    u32 location;
 };
 
 struct ShaderReflectionData
@@ -32,14 +32,14 @@ struct GraphicsShaderCreateResult
 [[nodiscard]] SE_CORE_API GraphicsShaderCreateResult CreateGraphicsShader(
     const RenderDevice& render_device,
     SDL_ShaderCross_ShaderStage stage,
-    ArrayView<const uint8> spirv_bytecode,
+    ArrayView<const u8> spirv_bytecode,
     SDL_PropertiesID props = 0
 );
 
 /** SPIR-V 바이트를 GPU 컴퓨트 파이프라인으로 생성합니다. */
 [[nodiscard]] SE_CORE_API SDL_GPUComputePipeline* CreateComputePipeline(
     const RenderDevice& render_device,
-    ArrayView<const uint8> spirv_bytecode,
+    ArrayView<const u8> spirv_bytecode,
     SDL_PropertiesID props = 0
 );
 
@@ -51,7 +51,7 @@ struct SE_CORE_API FilteredVertexInputState
 {
     Array<SDL_GPUVertexAttribute> attributes;
     const SDL_GPUVertexBufferDescription* vertex_buffer_descriptions = nullptr;
-    uint32 num_vertex_buffers = 0;
+    u32 num_vertex_buffers = 0;
 
     [[nodiscard]] SDL_GPUVertexInputState AsState() const
     {
@@ -59,7 +59,7 @@ struct SE_CORE_API FilteredVertexInputState
             .vertex_buffer_descriptions = vertex_buffer_descriptions,
             .num_vertex_buffers = num_vertex_buffers,
             .vertex_attributes = attributes.Data(),
-            .num_vertex_attributes = static_cast<uint32>(attributes.Len()),
+            .num_vertex_attributes = static_cast<u32>(attributes.Len()),
         };
     }
 };

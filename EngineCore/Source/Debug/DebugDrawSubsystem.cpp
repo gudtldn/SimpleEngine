@@ -20,7 +20,7 @@ bool DebugDrawSubsystem::Initialize()
 {
     render_device = &GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
 
-    constexpr uint32 BUFFER_SIZE = static_cast<usize>(MAX_DEBUG_LINES * 2) * sizeof(DebugVertex);
+    constexpr u32 BUFFER_SIZE = static_cast<usize>(MAX_DEBUG_LINES * 2) * sizeof(DebugVertex);
     vertex_buffer_rid = render_device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = BUFFER_SIZE,
@@ -74,7 +74,7 @@ void DebugDrawSubsystem::DrawLine(
     const Vector3& start,
     const Vector3& end,
     const LinearColor& color,
-    float duration
+    f32 duration
 )
 {
     std::scoped_lock lock{ pending_mutex };
@@ -176,7 +176,7 @@ void DebugDrawSubsystem::UploadToGpu(SDL_GPUCommandBuffer* cmd)
     const SDL_GPUBufferRegion dst = {
         .buffer = GetVertexBuffer(),
         .offset = 0,
-        .size = static_cast<uint32>(data_size),
+        .size = static_cast<u32>(data_size),
     };
     SDL_UploadToGPUBuffer(copy_pass, &src, &dst, false);
     SDL_EndGPUCopyPass(copy_pass);
@@ -191,7 +191,7 @@ SDL_GPUBuffer* DebugDrawSubsystem::GetVertexBuffer() const
     return nullptr;
 }
 
-void DrawDebugLine(const Vector3& start, const Vector3& end, const LinearColor& color, float duration)
+void DrawDebugLine(const Vector3& start, const Vector3& end, const LinearColor& color, f32 duration)
 {
     if (DebugDrawSubsystem* debug = GetSubsystem<DebugDrawSubsystem>())
     {
@@ -207,7 +207,7 @@ void DrawDebugLines(ArrayView<const DebugLine> lines)
     }
 }
 
-void DrawDebugRay(const Ray& ray, double length, const LinearColor& color, float duration)
+void DrawDebugRay(const Ray& ray, f64 length, const LinearColor& color, f32 duration)
 {
     DrawDebugLine(ray.origin, ray.GetPoint(length), color, duration);
 }

@@ -37,13 +37,13 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexAttribute, 16)
 SE_DEFINE_EQUALS_OPERATOR(SDL_GPUVertexInputState, 32)
 {
     SE_IF_NOT_EQUAL_RETURN(num_vertex_buffers);
-    for (uint32 i = 0; i < a.num_vertex_buffers; ++i)
+    for (u32 i = 0; i < a.num_vertex_buffers; ++i)
     {
         SE_IF_NOT_EQUAL_RETURN(vertex_buffer_descriptions[i]);
     }
 
     SE_IF_NOT_EQUAL_RETURN(num_vertex_attributes);
-    for (uint32 i = 0; i < a.num_vertex_attributes; ++i)
+    for (u32 i = 0; i < a.num_vertex_attributes; ++i)
     {
         SE_IF_NOT_EQUAL_RETURN(vertex_attributes[i]);
     }
@@ -112,7 +112,7 @@ SE_DEFINE_EQUALS_OPERATOR(SDL_GPUColorTargetDescription, 36)
 SE_DEFINE_EQUALS_OPERATOR(SDL_GPUGraphicsPipelineTargetInfo, 24)
 {
     SE_IF_NOT_EQUAL_RETURN(num_color_targets);
-    for (uint32 i = 0; i < a.num_color_targets; ++i)
+    for (u32 i = 0; i < a.num_color_targets; ++i)
     {
         SE_IF_NOT_EQUAL_RETURN(color_target_descriptions[i]);
     }

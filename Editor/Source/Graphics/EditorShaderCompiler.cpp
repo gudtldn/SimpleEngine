@@ -117,11 +117,11 @@ void ValidateInterStageInterface(const Path& hlsl_path, ArrayView<const ShaderCo
     }
 
     // PS input에 없는 VS output location이 있으면 D3D12에서 문제가 될 수 있음
-    for (uint32 vs_i = 0; vs_i < vs_refl->num_outputs; ++vs_i)
+    for (u32 vs_i = 0; vs_i < vs_refl->num_outputs; ++vs_i)
     {
-        const uint32 vs_loc = vs_refl->outputs[vs_i].location;
+        const u32 vs_loc = vs_refl->outputs[vs_i].location;
         bool found_in_ps = false;
-        for (uint32 ps_i = 0; ps_i < ps_refl->num_inputs; ++ps_i)
+        for (u32 ps_i = 0; ps_i < ps_refl->num_inputs; ++ps_i)
         {
             if (ps_refl->inputs[ps_i].location == vs_loc)
             {

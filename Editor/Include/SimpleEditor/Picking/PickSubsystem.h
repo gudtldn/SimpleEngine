@@ -38,7 +38,7 @@ public:
      * 뷰포트 크기에 맞는 entity_id 텍스처를 반환합니다.
      * 필요 시 텍스처를 생성/재생성합니다. (RenderGraph ImportTexture용)
      */
-    [[nodiscard]] SDL_GPUTexture* GetOrCreateEntityIdTexture(uint32 width, uint32 height);
+    [[nodiscard]] SDL_GPUTexture* GetOrCreateEntityIdTexture(u32 width, u32 height);
 
     /**
      * entity_id 텍스처에서 커서 위치의 1픽셀을 GPU readback으로 읽어 내부 상태를 갱신합니다.
@@ -51,7 +51,7 @@ public:
 
 private:
     /** 뷰포트 리사이즈 시 entity_id 텍스처를 재생성합니다. */
-    void EnsureSize(uint32 width, uint32 height);
+    void EnsureSize(u32 width, u32 height);
 
     /** entity_id 텍스처 raw 포인터 */
     [[nodiscard]] SDL_GPUTexture* GetEntityIdTexture() const;
@@ -64,8 +64,8 @@ private:
     SDL_GPUTransferBuffer* download_buffer = nullptr; // 4바이트 readback
 
     // 텍스처 크기 캐시
-    uint32 texture_width = 0;
-    uint32 texture_height = 0;
+    u32 texture_width = 0;
+    u32 texture_height = 0;
 
     // readback 결과
     EntityPickId pick_id;

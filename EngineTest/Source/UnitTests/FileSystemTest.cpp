@@ -258,10 +258,10 @@ TEST_F(FileSystemReadWriteTest, WriteAndReadBinaryData)
     Path file_path = temp_dir / "binary_file.bin";
 
     // 바이너리 데이터 생성
-    Array<uint8> original_data;
+    Array<u8> original_data;
     for (int i = 0; i < 256; ++i)
     {
-        original_data.Push(static_cast<uint8>(i));
+        original_data.Push(static_cast<u8>(i));
     }
 
     bool write_result = FileSystem::Write(file_path, original_data);
@@ -811,7 +811,7 @@ TEST_F(FileSystemReadWriteTest, WriteEmptyPathReturnsFalse)
 
 TEST_F(FileSystemReadWriteTest, WriteBinaryEmptyPathReturnsFalse)
 {
-    Array<uint8> data;
+    Array<u8> data;
     data.Push(0x42);
     EXPECT_FALSE(FileSystem::Write(Path{}, data));
 }
@@ -820,12 +820,12 @@ TEST_F(FileSystemReadWriteTest, ReadWriteLargeFile)
 {
     // 1MB 파일 읽기/쓰기
     Path file = temp_dir / "large.bin";
-    Array<uint8> data;
+    Array<u8> data;
     const usize size = 1024 * 1024;
     data.ResizeUninitialized(size);
     for (usize i = 0; i < size; ++i)
     {
-        data[i] = static_cast<uint8>(i & 0xFF);
+        data[i] = static_cast<u8>(i & 0xFF);
     }
 
     ASSERT_TRUE(FileSystem::Write(file, data));
@@ -837,10 +837,10 @@ TEST_F(FileSystemReadWriteTest, ReadWriteLargeFile)
     // 첫 1KB와 마지막 1KB 검증
     for (usize i = 0; i < 1024; ++i)
     {
-        EXPECT_EQ((*read_result)[i], static_cast<uint8>(i & 0xFF));
+        EXPECT_EQ((*read_result)[i], static_cast<u8>(i & 0xFF));
     }
     for (usize i = size - 1024; i < size; ++i)
     {
-        EXPECT_EQ((*read_result)[i], static_cast<uint8>(i & 0xFF));
+        EXPECT_EQ((*read_result)[i], static_cast<u8>(i & 0xFF));
     }
 }

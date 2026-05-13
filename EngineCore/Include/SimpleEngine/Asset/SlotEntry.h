@@ -14,7 +14,7 @@ namespace se
 /**
  * Asset의 로딩 상태
  */
-enum class ELoadingState : uint8
+enum class ELoadingState : u8
 {
     Unloaded, // 데이터 없음 (초기 상태)
     Loading,  // 로딩 중 (Placeholder)
@@ -25,7 +25,7 @@ enum class ELoadingState : uint8
 /**
  * 에셋 수명 범위 (Eviction 우선순위 결정)
  */
-enum class EScopeLayer : uint8
+enum class EScopeLayer : u8
 {
     Global,    // 엔진 수명 - Evict 불가
     Session,   // 세션 수명 - 게임 종료 시 벌크 해제
@@ -42,15 +42,15 @@ enum class EScopeLayer : uint8
  */
 struct SE_CORE_API SlotEntry
 {
-    enum class ESlotState : uint8 { Free, Occupied };
+    enum class ESlotState : u8 { Free, Occupied };
 
     // === Atomic fields ===
     std::atomic<AssetBase*> asset = nullptr;
-    std::atomic<uint32> ref_count = 0;
+    std::atomic<u32> ref_count = 0;
     std::atomic<ELoadingState> state = ELoadingState::Unloaded;
 
     // === Non-atomic fields ===
-    uint32 generation = 0;
+    u32 generation = 0;
     TypeId asset_type;
     AssetPath source_path;
     AssetId asset_id;
@@ -59,8 +59,8 @@ struct SE_CORE_API SlotEntry
     DestructorFn destructor = nullptr; // TypeRegistry에서 획득한 리플렉션 소멸자
 
     // Eviction 메타데이터
-    std::atomic<uint64> last_access_frame = 0;
-    uint64 asset_size_bytes = 0;
+    std::atomic<u64> last_access_frame = 0;
+    u64 asset_size_bytes = 0;
     EScopeLayer scope = EScopeLayer::Scene;
     ESlotState slot_state = ESlotState::Free;
 

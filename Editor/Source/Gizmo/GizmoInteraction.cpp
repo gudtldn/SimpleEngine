@@ -32,7 +32,7 @@ void GizmoInteraction::BeginDrag(
         if (active_axis == EGizmoAxis::All)
         {
             const Vector3 normal = (ray.origin - drag_gizmo_center).GetNormalized();
-            double t = 0.0;
+            f64 t = 0.0;
             if (ray.IntersectPlane(drag_gizmo_center, normal, t))
             {
                 drag_start_t = t;
@@ -49,7 +49,7 @@ void GizmoInteraction::BeginDrag(
         )
         {
             const Vector3 normal = GetPlaneNormal(active_axis);
-            double t = 0.0;
+            f64 t = 0.0;
             if (ray.IntersectPlane(drag_gizmo_center, normal, t))
             {
                 drag_start_t = t;
@@ -73,7 +73,7 @@ void GizmoInteraction::BeginDrag(
             const Vector3 plane_right = view_dir.Cross(axis_dir).GetNormalized();
             drag_plane_normal = axis_dir.Cross(plane_right).GetNormalized();
 
-            double t = 0.0;
+            f64 t = 0.0;
             if (ray.IntersectPlane(drag_gizmo_center, drag_plane_normal, t))
             {
                 // 단일 축 이동도 3D 위치 벡터를 기준점으로 사용
@@ -89,8 +89,8 @@ void GizmoInteraction::BeginDrag(
         if (active_axis == EGizmoAxis::All)
         {
             drag_start_vector = Vector3{
-                static_cast<double>(in_cursor_pos.x),
-                static_cast<double>(in_cursor_pos.y),
+                static_cast<f64>(in_cursor_pos.x),
+                static_cast<f64>(in_cursor_pos.y),
                 0.0
             };
         }
@@ -103,7 +103,7 @@ void GizmoInteraction::BeginDrag(
         )
         {
             const Vector3 normal = GetPlaneNormal(active_axis);
-            double t = 0.0;
+            f64 t = 0.0;
             if (ray.IntersectPlane(drag_gizmo_center, normal, t))
             {
                 drag_start_t = t;
@@ -125,8 +125,8 @@ void GizmoInteraction::BeginDrag(
         // 회전축 방향을 기록 (sign flip 판정용: 카메라와의 facing 방향 비교)
         drag_plane_normal = GetAxisDirection(active_axis);
         const Vector2f center_screen = in_view.ProjectWorldToScreen(drag_gizmo_center);
-        const double dx = static_cast<double>(in_cursor_pos.x - center_screen.x);
-        const double dy = static_cast<double>(in_cursor_pos.y - center_screen.y);
+        const f64 dx = static_cast<f64>(in_cursor_pos.x - center_screen.x);
+        const f64 dy = static_cast<f64>(in_cursor_pos.y - center_screen.y);
         drag_start_angle = math::Atan2(dy, dx);
         break;
     }
@@ -180,7 +180,7 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateTranslation(const Ray& ray)
         || active_axis == EGizmoAxis::All
     )
     {
-        double t = 0.0;
+        f64 t = 0.0;
         if (ray.IntersectPlane(drag_gizmo_center, drag_plane_normal, t))
         {
             const Vector3 hit_point = ray.GetPoint(t);
@@ -199,13 +199,13 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateTranslation(const Ray& ray)
     {
         const Vector3 axis_dir = GetAxisDirection(active_axis);
 
-        double t = 0.0;
+        f64 t = 0.0;
         if (ray.IntersectPlane(drag_gizmo_center, drag_plane_normal, t))
         {
             const Vector3 hit_point = ray.GetPoint(t);
 
             // 평면상의 히트 포인트 이동량을 '단일 축 방향'으로만 투영
-            const double delta_distance = (hit_point - drag_start_vector).Dot(axis_dir);
+            const f64 delta_distance = (hit_point - drag_start_vector).Dot(axis_dir);
 
             result.translation_delta = axis_dir * delta_distance;
 
@@ -225,13 +225,13 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
     if (active_axis == EGizmoAxis::All)
     {
         // 화면 커서 이동량으로 균등 스케일 계산 (오른쪽/위 = 확대, 왼쪽/아래 = 축소)
-        const double dx = static_cast<double>(cursor_pos.x) - drag_start_vector.x;
-        const double dy = static_cast<double>(cursor_pos.y) - drag_start_vector.y;
-        drag_start_vector.x = static_cast<double>(cursor_pos.x);
-        drag_start_vector.y = static_cast<double>(cursor_pos.y);
+        const f64 dx = static_cast<f64>(cursor_pos.x) - drag_start_vector.x;
+        const f64 dy = static_cast<f64>(cursor_pos.y) - drag_start_vector.y;
+        drag_start_vector.x = static_cast<f64>(cursor_pos.x);
+        drag_start_vector.y = static_cast<f64>(cursor_pos.y);
 
         // dx - dy: 화면 X+ = 오른쪽(확대), 화면 Y- = 위쪽(확대)
-        const double delta = (dx - dy) * SCALE_SENSITIVITY;
+        const f64 delta = (dx - dy) * SCALE_SENSITIVITY;
         result.scale_delta = Vector3{ delta, delta, delta };
     }
 
@@ -242,7 +242,7 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
         || active_axis == EGizmoAxis::YZ
     )
     {
-        double t = 0.0;
+        f64 t = 0.0;
         if (ray.IntersectPlane(drag_gizmo_center, drag_plane_normal, t))
         {
             const Vector3 hit_point = ray.GetPoint(t);
@@ -261,9 +261,9 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
                 }
             }();
 
-            const double s0 = delta.Dot(GetAxisDirection(a0));
-            const double s1 = delta.Dot(GetAxisDirection(a1));
-            const double uniform = s0 + s1;
+            const f64 s0 = delta.Dot(GetAxisDirection(a0));
+            const f64 s1 = delta.Dot(GetAxisDirection(a1));
+            const f64 uniform = s0 + s1;
 
             if (active_axis == EGizmoAxis::XY)
             {
@@ -284,8 +284,8 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateScale(const Ray& ray, const
     else
     {
         const Vector3 axis_dir = GetAxisDirection(active_axis);
-        const double current_t = ray.ClosestParameterOnLine(drag_gizmo_center, axis_dir);
-        const double delta_t = current_t - drag_start_t;
+        const f64 current_t = ray.ClosestParameterOnLine(drag_gizmo_center, axis_dir);
+        const f64 delta_t = current_t - drag_start_t;
         drag_start_t = current_t;
 
         switch (active_axis)
@@ -306,8 +306,8 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateRotation(const Vector2f& cu
 
     // 화면 공간에서 기즈모 중심 대비 커서의 atan2 각도를 계산
     const Vector2f center_screen = view.ProjectWorldToScreen(drag_gizmo_center);
-    const double dx = static_cast<double>(cursor_pos.x - center_screen.x);
-    const double dy = static_cast<double>(cursor_pos.y - center_screen.y);
+    const f64 dx = static_cast<f64>(cursor_pos.x - center_screen.x);
+    const f64 dy = static_cast<f64>(cursor_pos.y - center_screen.y);
     const Radian current_angle = math::Atan2(dy, dx);
 
     // frame-to-frame 각도 변화량 (±π 래핑 처리)
@@ -320,7 +320,7 @@ GizmoInteraction::DragResult GizmoInteraction::UpdateRotation(const Vector2f& cu
     // 반대면 화면 CW = 3D 양수 회전
     const Matrix4x4 inv_view = view.view_matrix.Inverse();
     const Vector3 camera_pos = Vector3{ inv_view[3, 0], inv_view[3, 1], inv_view[3, 2] };
-    const double facing = drag_plane_normal.Dot((camera_pos - drag_gizmo_center).GetNormalized());
+    const f64 facing = drag_plane_normal.Dot((camera_pos - drag_gizmo_center).GetNormalized());
     if (facing >= 0.0) { delta_angle = -delta_angle; }
 
     result.rotation_delta = Quaternion::FromAxisAngle(GetBasisAxis(active_axis), delta_angle);

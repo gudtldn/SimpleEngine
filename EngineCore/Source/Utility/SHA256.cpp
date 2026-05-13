@@ -16,7 +16,7 @@ ContentHash DigestFromHasher(picosha2::hash256_one_by_one& hasher)
 
     hasher.finish();
 
-    uint8 raw[ContentHash::DIGEST_SIZE];
+    u8 raw[ContentHash::DIGEST_SIZE];
     hasher.get_hash_bytes(raw, raw + ContentHash::DIGEST_SIZE);
     return ContentHash::FromRaw(raw);
 }
@@ -37,14 +37,14 @@ ContentHash SHA256::HashFile(const Path& file_path)
             return {};
         }
 
-        const ArrayView<const uint8> chunk = result.Value();
+        const ArrayView<const u8> chunk = result.Value();
         hasher.process(chunk.begin(), chunk.end());
     }
 
     return DigestFromHasher(hasher);
 }
 
-ContentHash SHA256::HashBytes(ArrayView<const uint8> data)
+ContentHash SHA256::HashBytes(ArrayView<const u8> data)
 {
     picosha2::hash256_one_by_one hasher;
     hasher.process(data.begin(), data.end());

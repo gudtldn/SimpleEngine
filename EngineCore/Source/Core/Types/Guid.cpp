@@ -33,7 +33,7 @@ Guid Guid::NewGuid()
 
 bool Guid::IsValid() const noexcept
 {
-    uint64 parts[2];
+    u64 parts[2];
     std::memcpy(parts, &data, sizeof(parts));
     return (parts[0] | parts[1]) != 0;
 }
@@ -50,7 +50,7 @@ Guid::operator bool() const noexcept
 }
 } // namespace se
 
-size_t std::hash<se::Guid>::operator()(const se::Guid& guid) const noexcept
+usize std::hash<se::Guid>::operator()(const se::Guid& guid) const noexcept
 {
     return std::hash<uuids::uuid>{}(ToUuid(guid));
 }

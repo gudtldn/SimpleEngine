@@ -12,7 +12,7 @@ namespace
  * @param cp 인코딩할 유니코드 코드 포인트
  * @param out UTF-8 바이트가 추가될 대상 문자열
  */
-void AppendCodePointAsUtf8(uint32 cp, std::string& out)
+void AppendCodePointAsUtf8(u32 cp, std::string& out)
 {
     if (cp < 0x80u)
     {
@@ -51,16 +51,16 @@ se::String Utf16ToUtf8(const char16_t* data, usize len)
 
     for (usize i = 0; i < len; ++i)
     {
-        const uint32 unit = static_cast<uint32>(data[i]);
+        const u32 unit = static_cast<u32>(data[i]);
         if (unit >= 0xD800u && unit <= 0xDBFFu)
         {
             // High Surrogate: 이어지는 Low Surrogate와 결합하여 처리
             if (i + 1 < len)
             {
-                const uint32 low = static_cast<uint32>(data[i + 1]);
+                const u32 low = static_cast<u32>(data[i + 1]);
                 if (low >= 0xDC00u && low <= 0xDFFFu)
                 {
-                    const uint32 cp = 0x10000u + ((unit - 0xD800u) << 10) + (low - 0xDC00u);
+                    const u32 cp = 0x10000u + ((unit - 0xD800u) << 10) + (low - 0xDC00u);
                     AppendCodePointAsUtf8(cp, out);
                     ++i;
                     continue;
@@ -96,7 +96,7 @@ se::String Utf32ToUtf8(const char32_t* data, usize len)
 
     for (usize i = 0; i < len; ++i)
     {
-        AppendCodePointAsUtf8(static_cast<uint32>(data[i]), out);
+        AppendCodePointAsUtf8(static_cast<u32>(data[i]), out);
     }
 
     return se::String{ out.data(), out.size() };

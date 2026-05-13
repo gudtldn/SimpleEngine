@@ -41,7 +41,7 @@ JobSystem::JobSystem(usize in_worker_count)
 
     if (in_worker_count == 0)
     {
-        const uint32 hw_threads = std::thread::hardware_concurrency();
+        const u32 hw_threads = std::thread::hardware_concurrency();
         worker_count = std::max<usize>(1, hw_threads - 1);
     }
     else

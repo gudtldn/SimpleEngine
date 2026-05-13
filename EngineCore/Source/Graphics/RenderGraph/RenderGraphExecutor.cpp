@@ -86,7 +86,7 @@ void RenderGraphExecutor::Execute(RenderGraphBuilder& builder, SDL_GPUCommandBuf
 
 void RenderGraphExecutor::UpdateResourcePool()
 {
-    static constexpr uint32 MAX_IDLE_FRAMES = 3;
+    static constexpr u32 MAX_IDLE_FRAMES = 3;
     resource_pool.IncrementIdleCounters();
     resource_pool.Trim(MAX_IDLE_FRAMES);
 }
@@ -104,9 +104,9 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     //    AddPass 순서대로 물리적 리소스에 논리적 버전(Version)을 자동 부여하여 의존성 방향 그래프(DAG)를 구성
 
     // 각 물리적 리소스(index)별로 현재까지 도달한 '최신 버전'을 추적하기 위한 배열 (초기값 0)
-    Array<uint32> current_versions;
+    Array<u32> current_versions;
     current_versions.Resize(builder.resource_nodes.Len());
-    std::ranges::fill(current_versions, static_cast<uint32>(0));
+    std::ranges::fill(current_versions, static_cast<u32>(0));
 
     for (const auto [pass_idx, pass_node] : builder.pass_nodes | std::views::enumerate)
     {
@@ -122,7 +122,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
 
         // --- A. Read 처리 ---
         // 해당 리소스가 지금까지 다른 패스들에 의해 갱신된 '가장 최신 버전'을 의존성으로 기록
-        for (const uint32 res_idx : pass_node.read_indices)
+        for (const u32 res_idx : pass_node.read_indices)
         {
 #if SE_BUILD_DEBUG
             if (res_idx >= builder.resource_nodes.Len())
@@ -150,7 +150,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
 
         // --- B. Write 처리 ---
         // 리소스에 Write를 한다는 것은 물리적 메모리의 내용이 변경되어 '새로운 논리적 상태'가 됨을 의미
-        for (const uint32 res_idx : pass_node.write_indices)
+        for (const u32 res_idx : pass_node.write_indices)
         {
 #if SE_BUILD_DEBUG
             // 유효성 검사: 존재하지 않거나 초기화되지 않은 리소스 인덱스에 접근하는지 확인
@@ -175,13 +175,13 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
             }
 #endif
 
-            const uint32 in_version = current_versions[res_idx];
-            const uint32 out_version = in_version + 1;
+            const u32 in_version = current_versions[res_idx];
+            const u32 out_version = in_version + 1;
             current_versions[res_idx] = out_version; // 버전 리스트 업데이트
 
             // 해당 버전을 '이 패스가 생성(Write)했다'고 기록
             pass_node.write_map[res_idx] = out_version;
-            builder.resource_nodes[res_idx].version_to_writer[out_version] = static_cast<uint32>(pass_idx);
+            builder.resource_nodes[res_idx].version_to_writer[out_version] = static_cast<u32>(pass_idx);
 
             // WAW(Write-After-Write) 의존성 보장 및 암묵적 Read
             // 명시적인 Read 선언이 없더라도, 동일 리소스에 대한 쓰기 작업(AddPass) 순서가 보장되도록
@@ -195,7 +195,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
 
     // 2. Pass Culling: 외부 리소스에서 역방향으로 활성 패스를 조회
     //    외부 리소스의 최신 버전을 생성한 패스부터 역탐색합니다.
-    struct ActiveResourceEntry { uint32 index; uint32 version; };
+    struct ActiveResourceEntry { u32 index; u32 version; };
     Queue<ActiveResourceEntry> active_resource_queue;
 
     for (const auto [res_idx, res_node] : builder.resource_nodes | std::views::enumerate)
@@ -207,9 +207,9 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         }
 
         // 외부 리소스의 최신 버전(가장 높은 버전)을 활성화 트리거로 사용
-        uint32 max_version = 0;
+        u32 max_version = 0;
         bool has_writer = false;
-        for (const uint32& ver : res_node.version_to_writer | std::views::keys)
+        for (const u32& ver : res_node.version_to_writer | std::views::keys)
         {
             if (!has_writer || ver > max_version)
             {
@@ -220,7 +220,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
 
         if (has_writer)
         {
-            active_resource_queue.Push({ .index = static_cast<uint32>(res_idx), .version = max_version });
+            active_resource_queue.Push({ .index = static_cast<u32>(res_idx), .version = max_version });
         }
     }
 
@@ -306,12 +306,12 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     const usize pass_count = builder.pass_nodes.Len();
 
     // 3-1. 각 패스의 read_refs를 순회하여 버전별 의존성에서 인접 리스트 + in_degree 구축
-    Array<Array<uint32>> adjacency;
+    Array<Array<u32>> adjacency;
     adjacency.Resize(pass_count);
 
-    Array<uint32> in_degrees;
+    Array<u32> in_degrees;
     in_degrees.Resize(pass_count);
-    std::ranges::fill(in_degrees, static_cast<uint32>(0));
+    std::ranges::fill(in_degrees, static_cast<u32>(0));
 
     for (const auto [pass_idx, pass_node] : builder.pass_nodes | std::views::enumerate)
     {
@@ -320,13 +320,13 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
             continue;
         }
 
-        const uint32 reader_idx = static_cast<uint32>(pass_idx);
+        const u32 reader_idx = static_cast<u32>(pass_idx);
         for (const RGResourceRef& read_ref : pass_node.read_refs)
         {
             const RGResourceNode& res_node = builder.resource_nodes[read_ref.resource_index];
             if (const auto writer = res_node.version_to_writer.Find(read_ref.version))
             {
-                const uint32 writer_idx = *writer;
+                const u32 writer_idx = *writer;
                 adjacency[writer_idx].Push(reader_idx);
                 ++in_degrees[reader_idx];
             }
@@ -334,21 +334,21 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     }
 
     // 3-2. BFS 위상정렬
-    Queue<uint32> ready_queue;
+    Queue<u32> ready_queue;
     for (usize i = 0; i < pass_count; ++i)
     {
         if (!builder.pass_nodes[i].culled && in_degrees[i] == 0)
         {
-            ready_queue.Push(static_cast<uint32>(i));
+            ready_queue.Push(static_cast<u32>(i));
         }
     }
 
     while (const auto idx_opt = ready_queue.Pop())
     {
-        const uint32 pass_idx = *idx_opt;
+        const u32 pass_idx = *idx_opt;
         compiled_passes.Push(&builder.pass_nodes[pass_idx]);
 
-        for (const uint32 dependent_idx : adjacency[pass_idx])
+        for (const u32 dependent_idx : adjacency[pass_idx])
         {
             if (--in_degrees[dependent_idx] == 0)
             {
@@ -380,7 +380,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     // 4. 리소스 생명주기 분석
     for (const auto [pass_idx, pass_node] : compiled_passes | std::views::enumerate)
     {
-        const uint32 idx = static_cast<uint32>(pass_idx);
+        const u32 idx = static_cast<u32>(pass_idx);
 
         for (const RGResourceRef& read_ref : pass_node->read_refs)
         {
@@ -388,7 +388,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
             node.first_user_pass_index = std::min(node.first_user_pass_index, idx);
             node.last_user_pass_index  = std::max(node.last_user_pass_index, idx);
         }
-        for (const uint32& res_idx : pass_node->write_map | std::views::keys)
+        for (const u32& res_idx : pass_node->write_map | std::views::keys)
         {
             RGResourceNode& node = builder.resource_nodes[res_idx];
             node.first_user_pass_index = std::min(node.first_user_pass_index, idx);
@@ -403,7 +403,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
 
     for (const auto [res_idx, node] : builder.resource_nodes | std::views::enumerate)
     {
-        const uint32 idx = static_cast<uint32>(res_idx);
+        const u32 idx = static_cast<u32>(res_idx);
 
         if (node.first_user_pass_index <= node.last_user_pass_index)
         {

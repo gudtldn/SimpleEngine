@@ -45,7 +45,7 @@ public:
     union
     {
         /** SBO 인라인 버퍼. 작은 callable은 여기에 placement new됩니다. */
-        alignas(SBO_ALIGNMENT) uint8 inline_storage[SBO_CAPACITY];
+        alignas(SBO_ALIGNMENT) u8 inline_storage[SBO_CAPACITY];
 
         /** SBO 초과 시 JobAllocator에서 할당된 외부 블록 (nullptr이면 인라인) */
         void* heap_block = nullptr;
@@ -55,7 +55,7 @@ public:
     // ── 스케줄링 메타데이터 ────────────────────────────────────────
 
     /** 할당 방식을 추적하기 위한 Tag */
-    enum class EStorageType : uint8
+    enum class EStorageType : u8
     {
         Inline, // 48바이트 이하 & 16바이트 정렬 (Fastest)
         Pooled, // 48바이트 초과 & 16바이트 정렬 (Fast Pool)

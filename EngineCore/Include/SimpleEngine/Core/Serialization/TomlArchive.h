@@ -23,7 +23,7 @@ class SE_CORE_API TomlArchive : public Archive
 {
 protected:
     /** 현재 탐색 중인 노드의 모드를 나타내는 Enum */
-    enum class EContextMode : uint8
+    enum class EContextMode : u8
     {
         Object, // 일반적인 객체 (내부적으로 toml::table 사용)
         Array,  // 배열 (toml::array 사용)
@@ -86,31 +86,31 @@ public:
 
     virtual void BeginObject() override;
     virtual void EndObject() override;
-    virtual void BeginArray(uint64& count) override;
+    virtual void BeginArray(u64& count) override;
     virtual void EndArray() override;
-    virtual void BeginMap(uint64& count) override;
+    virtual void BeginMap(u64& count) override;
     virtual void EndMap() override;
     virtual void BeginMapKey() override;
     virtual void EndMapKey() override;
     virtual void BeginMapValue() override;
     virtual void EndMapValue() override;
 
-    virtual void SerializeBytes(void* data, uint64 size) override;
+    virtual void SerializeBytes(void* data, u64 size) override;
 
 protected:
     virtual void HintNextName(StringView name) override;
 
     virtual void SerializeBool(bool& value) override;
-    virtual void SerializeInt8(int8& value) override;
-    virtual void SerializeUInt8(uint8& value) override;
-    virtual void SerializeInt16(int16& value) override;
-    virtual void SerializeUInt16(uint16& value) override;
-    virtual void SerializeInt32(int32& value) override;
-    virtual void SerializeUInt32(uint32& value) override;
-    virtual void SerializeInt64(int64& value) override;
-    virtual void SerializeUInt64(uint64& value) override;
-    virtual void SerializeFloat(float& value) override;
-    virtual void SerializeDouble(double& value) override;
+    virtual void SerializeInt8(i8& value) override;
+    virtual void SerializeUInt8(u8& value) override;
+    virtual void SerializeInt16(i16& value) override;
+    virtual void SerializeUInt16(u16& value) override;
+    virtual void SerializeInt32(i32& value) override;
+    virtual void SerializeUInt32(u32& value) override;
+    virtual void SerializeInt64(i64& value) override;
+    virtual void SerializeUInt64(u64& value) override;
+    virtual void SerializeFloat(f32& value) override;
+    virtual void SerializeDouble(f64& value) override;
 
     virtual void SerializeString(String& value) override;
     virtual void SerializeStringName(StringName& value) override;
@@ -161,31 +161,31 @@ public:
 
     virtual void BeginObject() override;
     virtual void EndObject() override;
-    virtual void BeginArray(uint64& count) override;
+    virtual void BeginArray(u64& count) override;
     virtual void EndArray() override;
-    virtual void BeginMap(uint64& count) override;
+    virtual void BeginMap(u64& count) override;
     virtual void EndMap() override;
     virtual void BeginMapKey() override;
     virtual void EndMapKey() override;
     virtual void BeginMapValue() override;
     virtual void EndMapValue() override;
 
-    virtual void SerializeBytes(void* data, uint64 size) override;
+    virtual void SerializeBytes(void* data, u64 size) override;
 
 protected:
     virtual void HintNextName(StringView name) override;
 
     virtual void SerializeBool(bool& value) override;
-    virtual void SerializeInt8(int8& value) override;
-    virtual void SerializeUInt8(uint8& value) override;
-    virtual void SerializeInt16(int16& value) override;
-    virtual void SerializeUInt16(uint16& value) override;
-    virtual void SerializeInt32(int32& value) override;
-    virtual void SerializeUInt32(uint32& value) override;
-    virtual void SerializeInt64(int64& value) override;
-    virtual void SerializeUInt64(uint64& value) override;
-    virtual void SerializeFloat(float& value) override;
-    virtual void SerializeDouble(double& value) override;
+    virtual void SerializeInt8(i8& value) override;
+    virtual void SerializeUInt8(u8& value) override;
+    virtual void SerializeInt16(i16& value) override;
+    virtual void SerializeUInt16(u16& value) override;
+    virtual void SerializeInt32(i32& value) override;
+    virtual void SerializeUInt32(u32& value) override;
+    virtual void SerializeInt64(i64& value) override;
+    virtual void SerializeUInt64(u64& value) override;
+    virtual void SerializeFloat(f32& value) override;
+    virtual void SerializeDouble(f64& value) override;
 
     virtual void SerializeString(String& value) override;
     virtual void SerializeStringName(StringName& value) override;

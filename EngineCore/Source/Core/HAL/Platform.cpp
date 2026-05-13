@@ -17,12 +17,12 @@ Path Platform::FindProjectRoot()
     // 최초 호출 시 탐색 후 캐싱
     static const Path cached = [] static -> Path
     {
-        constexpr uint32 MAX_TRAVERSAL_DEPTH = 10;
+        constexpr u32 MAX_TRAVERSAL_DEPTH = 10;
         constexpr const char* SENTINEL_EXTENSION = ".seproject";
 
         Path current = GetExecutableDirectory();
 
-        for (uint32 i = 0; i < MAX_TRAVERSAL_DEPTH; ++i)
+        for (u32 i = 0; i < MAX_TRAVERSAL_DEPTH; ++i)
         {
             // 현재 디렉토리에서 *.seproject 파일 탐색
             for (const DirectoryEntry& entry : FileSystem::ReadDir(current))

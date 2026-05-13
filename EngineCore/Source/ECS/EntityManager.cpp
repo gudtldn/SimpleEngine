@@ -6,7 +6,7 @@ namespace se
 {
 Entity EntityManager::Create()
 {
-    uint32 id;
+    u32 id;
 
     // 재활용 가능한 슬롯이 있으면 우선 사용 (intrusive free list)
     if (free_list_head != ENTITY_FREE_LIST_END)
@@ -59,7 +59,7 @@ bool EntityManager::IsValid(Entity entity) const
     return record.IsAlive() && (record.generation == entity.generation);
 }
 
-Optional<Entity> EntityManager::TryResolveEntity(uint32 id) const
+Optional<Entity> EntityManager::TryResolveEntity(u32 id) const
 {
     if (id >= entity_records.Len())
     {

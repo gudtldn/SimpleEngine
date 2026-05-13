@@ -145,14 +145,14 @@ void GizmoPass::Execute(RGExecutionContext& context)
     {
         const SDL_GPUViewport viewport = {
             .x = 0.0f, .y = 0.0f,
-            .w = static_cast<float>(render_view.width),
-            .h = static_cast<float>(render_view.height),
+            .w = static_cast<f32>(render_view.width),
+            .h = static_cast<f32>(render_view.height),
             .min_depth = 0.0f, .max_depth = 1.0f,
         };
         const SDL_Rect scissor = {
             .x = 0, .y = 0,
-            .w = static_cast<int32>(render_view.width),
-            .h = static_cast<int32>(render_view.height),
+            .w = static_cast<i32>(render_view.width),
+            .h = static_cast<i32>(render_view.height),
         };
         SDL_SetGPUViewport(pass, &viewport);
         SDL_SetGPUScissor(pass, &scissor);
@@ -163,7 +163,7 @@ void GizmoPass::Execute(RGExecutionContext& context)
         GizmoUBO ubo;
         ubo.vp = static_cast<Matrix4x4f>(vp);
         ubo.gizmo_center = static_cast<Vector3f>(draw_list.GetCenter());
-        ubo.screen_scale = static_cast<float>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
+        ubo.screen_scale = static_cast<f32>(GizmoRenderer::ComputeScreenScale(draw_list.GetCenter(), render_view));
 
         SDL_PushGPUVertexUniformData(cmd, 0, &ubo, sizeof(ubo));
 
@@ -178,7 +178,7 @@ void GizmoPass::Execute(RGExecutionContext& context)
                 .offset = 0,
             };
             SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-            SDL_DrawGPUPrimitives(pass, static_cast<uint32>(line_vertex_count), 1, 0, 0);
+            SDL_DrawGPUPrimitives(pass, static_cast<u32>(line_vertex_count), 1, 0, 0);
         }
 
         // 삼각형 드로우
@@ -195,7 +195,7 @@ void GizmoPass::Execute(RGExecutionContext& context)
                 .offset = 0,
             };
             SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-            SDL_DrawGPUPrimitives(pass, static_cast<uint32>(triangle_vertex_count), 1, 0, 0);
+            SDL_DrawGPUPrimitives(pass, static_cast<u32>(triangle_vertex_count), 1, 0, 0);
         }
     }
     SDL_EndGPURenderPass(pass);

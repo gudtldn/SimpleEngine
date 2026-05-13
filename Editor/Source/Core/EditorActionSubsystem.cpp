@@ -45,7 +45,7 @@ void EditorActionSubsystem::Release()
     input_subsystem = nullptr;
 }
 
-void EditorActionSubsystem::Update(double /*delta_time*/)
+void EditorActionSubsystem::Update(f64 /*delta_time*/)
 {
     // 카메라 조작 중에는 처리하지 않음
     if (viewport_subsystem->IsAnyCameraActive())

@@ -24,7 +24,7 @@ namespace
  */
 struct IORequestContext
 {
-    enum class EMode : uint8
+    enum class EMode : u8
     {
         Callback,  // UniqueFunction 콜백 호출
         Coroutine, // 코루틴 핸들 resume
@@ -96,7 +96,7 @@ struct AsyncReadAwaitable
 
 /**
  * SDL_AsyncIOOutcome으로부터 IOResult를 생성합니다.
- * SDL이 할당한 버퍼의 데이터를 Array<uint8>로 복사한 뒤, SDL 버퍼를 해제합니다.
+ * SDL이 할당한 버퍼의 데이터를 Array<u8>로 복사한 뒤, SDL 버퍼를 해제합니다.
  */
 IOResult BuildIOResult(SDL_AsyncIOOutcome&& outcome)
 {

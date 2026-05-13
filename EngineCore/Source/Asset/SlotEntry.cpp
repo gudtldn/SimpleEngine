@@ -42,7 +42,7 @@ SlotEntry& SlotEntry::operator=(SlotEntry&& other) noexcept
 void SlotEntry::Initialize(const AssetId& in_id, const TypeId& in_type, AssetPath in_path)
 {
     // generation은 기존 값 사용 (Clear에서 이미 증가됨)
-    const uint32 preserved_generation = generation;
+    const u32 preserved_generation = generation;
 
     *this = SlotEntry{ in_id, in_type, std::move(in_path) };
     generation = preserved_generation;
@@ -50,8 +50,8 @@ void SlotEntry::Initialize(const AssetId& in_id, const TypeId& in_type, AssetPat
 
 void SlotEntry::Clear()
 {
-    const uint32 next_generation = generation + 1;
-    SE_ASSERT(next_generation < std::numeric_limits<uint32>::max(), "Generation overflow!");
+    const u32 next_generation = generation + 1;
+    SE_ASSERT(next_generation < std::numeric_limits<u32>::max(), "Generation overflow!");
 
     *this = SlotEntry{};
     generation = next_generation;

@@ -47,9 +47,9 @@ void MpscTaskLinkedQueue::Push(UniqueFunction<void()>&& in_work)
     prev->next.store(node, std::memory_order_release);
 }
 
-uint32 MpscTaskLinkedQueue::Drain()
+u32 MpscTaskLinkedQueue::Drain()
 {
-    uint32 executed_count = 0;
+    u32 executed_count = 0;
     Node* tail = tail_node;
 
     while (true)

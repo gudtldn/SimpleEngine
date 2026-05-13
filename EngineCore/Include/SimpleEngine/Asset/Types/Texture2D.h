@@ -8,7 +8,7 @@
 namespace se
 {
 /** GPU 텍스처 포맷 (SDL_GPUTextureFormat과 1:1 대응) */
-enum class ETextureFormat : uint8
+enum class ETextureFormat : u8
 {
     None,
 
@@ -76,7 +76,7 @@ constexpr bool IsSRGB(ETextureFormat fmt) noexcept
  * 비압축 포맷의 픽셀당 바이트 수를 반환합니다.
  * BCn 압축 포맷은 0을 반환합니다. IsCompressed()와 함께 사용하세요.
  */
-constexpr uint32 GetBytesPerPixel(ETextureFormat fmt) noexcept
+constexpr u32 GetBytesPerPixel(ETextureFormat fmt) noexcept
 {
     switch (fmt)
     {
@@ -95,7 +95,7 @@ constexpr uint32 GetBytesPerPixel(ETextureFormat fmt) noexcept
  * BCn 압축 포맷의 4×4 블록당 바이트 수를 반환합니다.
  * 비압축 포맷은 0을 반환합니다. IsCompressed()와 함께 사용하세요.
  */
-constexpr uint32 GetBlockByteSize(ETextureFormat fmt) noexcept
+constexpr u32 GetBlockByteSize(ETextureFormat fmt) noexcept
 {
     switch (fmt)
     {
@@ -118,16 +118,16 @@ constexpr uint32 GetBlockByteSize(ETextureFormat fmt) noexcept
 struct SE_ANNOTATION(=meta::Reflect) MipDescriptor
 {
     SE_ANNOTATION(=meta::Property)
-    uint32 offset = 0;
+    u32 offset = 0;
 
     SE_ANNOTATION(=meta::Property)
-    uint32 size = 0;
+    u32 size = 0;
 
     SE_ANNOTATION(=meta::Property)
-    uint32 width = 0;
+    u32 width = 0;
 
     SE_ANNOTATION(=meta::Property)
-    uint32 height = 0;
+    u32 height = 0;
 };
 
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Texture2D : public AssetBase
@@ -136,10 +136,10 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Texture2D : public AssetBase
 
 public:
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    uint32 width = 0;
+    u32 width = 0;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    uint32 height = 0;
+    u32 height = 0;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     ETextureFormat format = ETextureFormat::None;
@@ -165,7 +165,7 @@ public:
      * mips가 있으면: 각 밉 레벨 데이터의 연속 배열
      */
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<uint8> pixels;
+    Array<u8> pixels;
 };
 } // namespace se
 

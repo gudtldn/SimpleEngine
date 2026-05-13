@@ -83,14 +83,14 @@ public:
     [[nodiscard]] usize FileSize() const;
 
     /** 마지막 수정 시간을 반환합니다. (SDL3 시간: Unix epoch 초 단위) */
-    [[nodiscard]] uint64 LastWriteTime() const;
+    [[nodiscard]] u64 LastWriteTime() const;
 
 private:
     Path entry_path;
     bool is_directory = false;
     bool is_file = false;
     usize file_size = 0;
-    uint64 last_write_time = 0;
+    u64 last_write_time = 0;
 };
 
 
@@ -224,9 +224,9 @@ struct SE_CORE_API FileSystem
     /**
      * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다. (SDL3: Unix epoch 초 단위)
      * @param path 대상 경로
-     * @return 마지막 수정 시간. (uint64) 실패 시 nullopt
+     * @return 마지막 수정 시간. (u64) 실패 시 nullopt
      */
-    [[nodiscard]] static Optional<uint64> LastWriteTime(const Path& path);
+    [[nodiscard]] static Optional<u64> LastWriteTime(const Path& path);
 
     // =========================================================================
     // File Read/Write
@@ -244,7 +244,7 @@ struct SE_CORE_API FileSystem
      * @param path 파일 경로
      * @return 파일 내용. 실패 시 FileReadError
      */
-    [[nodiscard]] static FileResult<Array<uint8>> ReadBytes(const Path& path);
+    [[nodiscard]] static FileResult<Array<u8>> ReadBytes(const Path& path);
 
     /**
      * 파일을 고정된 크기의 청크 단위로 읽어 Generator로 반환합니다.
@@ -252,7 +252,7 @@ struct SE_CORE_API FileSystem
      * @param chunk_size 한 번에 읽을 데이터의 최대 크기 (Bytes)
      * @return 읽은 데이터를 처리할 Generator
      */
-    static std::generator<FileResult<ArrayView<const uint8>>>ReadChunked(Path path, usize chunk_size);
+    static std::generator<FileResult<ArrayView<const u8>>>ReadChunked(Path path, usize chunk_size);
 
     /**
      * 문자열을 파일에 씁니다. (기존 내용 덮어쓰기)
@@ -268,7 +268,7 @@ struct SE_CORE_API FileSystem
      * @param data 쓸 데이터
      * @return 성공 시 true
      */
-    static bool Write(const Path& path, ArrayView<const uint8> data);
+    static bool Write(const Path& path, ArrayView<const u8> data);
 
 
     // =========================================================================

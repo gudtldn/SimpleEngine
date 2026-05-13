@@ -18,7 +18,7 @@ namespace se
 struct TextureBinding
 {
     /** 셰이더 내에서 텍스처가 바인딩될 프래그먼트 슬롯 번호 */
-    uint32 fragment_slot = 0;
+    u32 fragment_slot = 0;
 
     /** 바인딩할 텍스처 에셋의 ID */
     AssetId texture_id = AssetId::invalid;
@@ -38,17 +38,17 @@ struct FrameMaterialCache
     {
         AssetId parent_material_id = AssetId::invalid; // PSO 결정을 위한 부모 머티리얼 ID
 
-        uint32 ubo_offset = 0; // ubo_arena 배열 내 시작 위치 (바이트 단위)
-        uint16 ubo_size = 0;   // 셰이더에 전달할 UBO 데이터 크기 (바이트 단위)
+        u32 ubo_offset = 0; // ubo_arena 배열 내 시작 위치 (바이트 단위)
+        u16 ubo_size = 0;   // 셰이더에 전달할 UBO 데이터 크기 (바이트 단위)
 
-        uint32 binding_offset = 0; // binding_arena 배열 내 시작 인덱스
-        uint16 binding_count = 0;  // 바인딩할 텍스처 총 개수
+        u32 binding_offset = 0; // binding_arena 배열 내 시작 인덱스
+        u16 binding_count = 0;  // 바인딩할 텍스처 총 개수
 
         // TODO: 추후 Material의 PSO 정보 저장해서 Sort에 사용할 수 있도록 하기
     };
 
     /** Scene에 존재하는 모든 Renderable의 머티리얼 상수(Constant) 바이트를 일렬로 팩킹한 배열 */
-    Array<uint8> ubo_arena;
+    Array<u8> ubo_arena;
 
     /** 모든 텍스처 바인딩 정보를 일렬로 팩킹한 배열 */
     Array<TextureBinding> binding_arena;
@@ -63,7 +63,7 @@ struct FrameMaterialCache
      * 동일한 Material Asset이 여러 엔티티에서 사용될 경우, 아레나 내 중복 저장을 방지하기 위한 캐시 매핑
      * Material AssetId를 키로 사용하여 기존에 할당된 슬롯 인덱스(slots의 인덱스)를 빠르게 반환합니다.
      */
-    HashMap<AssetId, uint16> material_to_slot;
+    HashMap<AssetId, u16> material_to_slot;
 };
 
 /**

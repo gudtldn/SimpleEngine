@@ -26,7 +26,7 @@ struct ShaderEntryPoint
 struct ShaderCompileOutput
 {
     String output_stem;  // 출력 파일명의 stem (예: "Default.vert")
-    Array<uint8> spirv_bytecode;
+    Array<u8> spirv_bytecode;
 };
 
 /**

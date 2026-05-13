@@ -41,16 +41,16 @@ void PipelineTextureNode::SetCompression(const String& compression)
     attributes.SetAttribute(Keys::COMPRESSION, compression);
 }
 
-Optional<ArrayView<const uint8>> PipelineTextureNode::GetEmbeddedBytes() const
+Optional<ArrayView<const u8>> PipelineTextureNode::GetEmbeddedBytes() const
 {
     if (embedded_bytes.IsEmpty())
     {
         return {};
     }
-    return ArrayView<const uint8>{ embedded_bytes };
+    return ArrayView<const u8>{ embedded_bytes };
 }
 
-void PipelineTextureNode::SetEmbeddedBytes(ArrayView<const uint8> bytes)
+void PipelineTextureNode::SetEmbeddedBytes(ArrayView<const u8> bytes)
 {
     embedded_bytes.ResizeUninitialized(bytes.Len());
     std::memcpy(embedded_bytes.Data(), bytes.Data(), bytes.Len());
@@ -66,22 +66,22 @@ void PipelineTextureNode::SetEmbeddedFormat(const String& format)
     attributes.SetAttribute(Keys::EMBEDDED_FORMAT, format);
 }
 
-Optional<uint64> PipelineTextureNode::GetEmbeddedWidth() const
+Optional<u64> PipelineTextureNode::GetEmbeddedWidth() const
 {
-    return attributes.GetAttribute<uint64>(Keys::EMBEDDED_WIDTH);
+    return attributes.GetAttribute<u64>(Keys::EMBEDDED_WIDTH);
 }
 
-void PipelineTextureNode::SetEmbeddedWidth(uint64 width)
+void PipelineTextureNode::SetEmbeddedWidth(u64 width)
 {
     attributes.SetAttribute(Keys::EMBEDDED_WIDTH, width);
 }
 
-Optional<uint64> PipelineTextureNode::GetEmbeddedHeight() const
+Optional<u64> PipelineTextureNode::GetEmbeddedHeight() const
 {
-    return attributes.GetAttribute<uint64>(Keys::EMBEDDED_HEIGHT);
+    return attributes.GetAttribute<u64>(Keys::EMBEDDED_HEIGHT);
 }
 
-void PipelineTextureNode::SetEmbeddedHeight(uint64 height)
+void PipelineTextureNode::SetEmbeddedHeight(u64 height)
 {
     attributes.SetAttribute(Keys::EMBEDDED_HEIGHT, height);
 }

@@ -13,8 +13,8 @@ namespace se
 struct TextureResource
 {
     SDL_GPUTexture* handle = nullptr;
-    uint32 width = 0;
-    uint32 height = 0;
+    u32 width = 0;
+    u32 height = 0;
     SDL_GPUTextureFormat format = SDL_GPU_TEXTUREFORMAT_INVALID;
 };
 
@@ -22,7 +22,7 @@ struct TextureResource
 struct BufferResource
 {
     SDL_GPUBuffer* handle = nullptr;
-    uint32 size = 0;
+    u32 size = 0;
     SDL_GPUBufferUsageFlags usage = 0;
 };
 
@@ -86,10 +86,10 @@ public:
     [[nodiscard]] SDL_GPUDevice* GetRawDevice() const noexcept { return raw_device; }
 
     /** 현재 관리 중인 텍스처 수를 반환합니다. */
-    [[nodiscard]] uint32 TextureCount() const noexcept { return textures.Count(); }
+    [[nodiscard]] u32 TextureCount() const noexcept { return textures.Count(); }
 
     /** 현재 관리 중인 버퍼 수를 반환합니다. */
-    [[nodiscard]] uint32 BufferCount() const noexcept { return buffers.Count(); }
+    [[nodiscard]] u32 BufferCount() const noexcept { return buffers.Count(); }
 
 private:
     SDL_GPUDevice* raw_device;

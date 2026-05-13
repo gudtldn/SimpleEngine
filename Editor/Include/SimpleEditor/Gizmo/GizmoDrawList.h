@@ -24,10 +24,10 @@ class SE_EDITOR_API GizmoDrawList
 {
 public:
     /** 한 프레임에 제출 가능한 최대 라인 수 */
-    static constexpr uint32 MAX_LINES = 1024;
+    static constexpr u32 MAX_LINES = 1024;
 
     /** 한 프레임에 제출 가능한 최대 삼각형 수 */
-    static constexpr uint32 MAX_TRIANGLES = 1024;
+    static constexpr u32 MAX_TRIANGLES = 1024;
 
 public:
     GizmoDrawList(RenderDevice& in_device);
@@ -82,15 +82,15 @@ public:
     [[nodiscard]] FORCE_INLINE const Vector3& GetDirectionToWidget() const { return direction_to_widget; }
 
     /** pick_id 설정 (Color Picking용, 프레임별 갱신) */
-    FORCE_INLINE void SetPickId(uint32 in_pick_id) { current_pick_id = in_pick_id; }
-    [[nodiscard]] FORCE_INLINE uint32 GetPickId() const { return current_pick_id; }
+    FORCE_INLINE void SetPickId(u32 in_pick_id) { current_pick_id = in_pick_id; }
+    [[nodiscard]] FORCE_INLINE u32 GetPickId() const { return current_pick_id; }
 
 private:
     Array<GizmoVertex> line_vertices;                 // CPU 측 라인 정점 (매 프레임 재구축)
     Array<GizmoVertex> triangle_vertices;             // CPU 측 삼각형 정점 (매 프레임 재구축)
     Vector3 center = Vector3::Zero();                 // 기즈모 월드 중심 (매 프레임 재구축)
     Vector3 direction_to_widget = Vector3::Forward(); // 카메라 -> 기즈모 방향 (매 프레임 재구축)
-    uint32 current_pick_id = 0;                       // 현재 선택된 기즈모 축 (Picking용)
+    u32 current_pick_id = 0;                       // 현재 선택된 기즈모 축 (Picking용)
 
     RenderDevice* device = nullptr;
     SDL_GPUTransferBuffer* transfer_buffer = nullptr; // CPU->GPU 전송용 (라인/삼각형 공유, max 크기)

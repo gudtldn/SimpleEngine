@@ -34,7 +34,7 @@ void* OsMemory::Allocate(usize size, usize alignment)
     }
 
     // 일단 유저 데이터 위치를 계산
-    void* user_ptr = static_cast<uint8*>(raw_block) + HEADER_SIZE;
+    void* user_ptr = static_cast<u8*>(raw_block) + HEADER_SIZE;
     usize space = total_size_to_alloc - HEADER_SIZE; // 정렬 조정을 위해 사용 가능한 공간
 
     // user_ptr의 위치를 정렬 기준에 맞게 이동
@@ -44,7 +44,7 @@ void* OsMemory::Allocate(usize size, usize alignment)
     OsMemoryHeader* header = GetHeaderFromUserPtr(user_ptr);
 
     // raw_block의 시작점부터 정렬된 user_ptr까지의 오프셋을 계산
-    const usize offset = static_cast<uint8*>(user_ptr) - static_cast<uint8*>(raw_block);
+    const usize offset = static_cast<u8*>(user_ptr) - static_cast<u8*>(raw_block);
 
     // 유저가 할당한 메모리 크기와 패딩을 기록
     header->allocated_size = size;
@@ -52,7 +52,7 @@ void* OsMemory::Allocate(usize size, usize alignment)
 
 #if SE_ENABLE_MEMORY_TRACKING
     // 현재 스레드의 활성 태그 가져오기 (TLS)
-    const uint32 current_tag = MemoryStats::GetCurrentTag();
+    const u32 current_tag = MemoryStats::GetCurrentTag();
     header->tag_id = current_tag;
 
     MemoryStats::TrackAlloc(current_tag, size);
@@ -132,7 +132,7 @@ void OsMemory::Free(void* address)
 #endif
 
     // user_ptr에서 패딩을 이용하여 실제 할당된 메모리 블럭 계산
-    void* raw_block = static_cast<uint8*>(address) - header->offset;
+    void* raw_block = static_cast<u8*>(address) - header->offset;
 
     // 메모리 해제
     std::free(raw_block);

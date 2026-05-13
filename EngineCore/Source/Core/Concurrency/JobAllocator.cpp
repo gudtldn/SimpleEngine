@@ -31,13 +31,13 @@ constexpr usize BLOCK_ALIGNMENT = 16;
  * Slab당 블록 수 (배치 할당 단위)
  * @note L1 캐시(32KB~)에 수용 가능한 범위에서 할당 오버헤드를 최소화 할 Slab 배치 단위
  */
-constexpr uint32 BLOCKS_PER_SLAB = 64;
+constexpr u32 BLOCKS_PER_SLAB = 64;
 
 // TLS 캐시 누적 제한 (초과 시 절반을 Global Pool로 반환하여 메모리 밸런싱)
-constexpr uint32 MAX_CACHED_BLOCKS = 128;
+constexpr u32 MAX_CACHED_BLOCKS = 128;
 
 /** Oversized 블록 표시용 센티널 값 */
-constexpr uint8 OVERSIZED_CLASS = 0xFF;
+constexpr u8 OVERSIZED_CLASS = 0xFF;
 
 /**
  * 블록 헤더
@@ -45,7 +45,7 @@ constexpr uint8 OVERSIZED_CLASS = 0xFF;
  */
 struct alignas(BLOCK_ALIGNMENT) BlockHeader
 {
-    uint8 size_class_index; // 0~3: Pool 클래스 Idx, 0xFF: Oversized
+    u8 size_class_index; // 0~3: Pool 클래스 Idx, 0xFF: Oversized
 };
 
 /**
@@ -61,7 +61,7 @@ struct FreeNode
 struct ThreadCache
 {
     FixedArray<FreeNode*, NUM_SIZE_CLASSES> free_lists = {};
-    FixedArray<uint32, NUM_SIZE_CLASSES> counts = {};
+    FixedArray<u32, NUM_SIZE_CLASSES> counts = {};
 };
 
 /** Slow path용 전역 자원 (ABA 방지를 위해 mutex 사용) */
@@ -69,7 +69,7 @@ struct alignas(SE_CACHE_LINE) GlobalPool
 {
     TracyLockable(std::mutex, lock);
     FreeNode* head = nullptr;
-    uint32 count = 0;
+    u32 count = 0;
 };
 
 /** 전체 메모리 수거를 위해 할당된 슬랩(Slab)들을 추적하는 Record */
@@ -133,14 +133,14 @@ void AllocateSlab(usize in_class_index)
     ));
 
     // 블록들을 잘라서 TLS Free List에 등록
-    uint8* base = static_cast<uint8*>(memory);
-    for (uint32 i = 0; i < BLOCKS_PER_SLAB; ++i)
+    u8* base = static_cast<u8*>(memory);
+    for (u32 i = 0; i < BLOCKS_PER_SLAB; ++i)
     {
-        uint8* block_ptr = base + (i * block_size);
+        u8* block_ptr = base + (i * block_size);
 
         // 헤더 설정
         BlockHeader* header = reinterpret_cast<BlockHeader*>(block_ptr);
-        header->size_class_index = static_cast<uint8>(in_class_index);
+        header->size_class_index = static_cast<u8>(in_class_index);
 
         // 유저 영역을 FreeNode로 사용
         FreeNode* node = reinterpret_cast<FreeNode*>(block_ptr + BLOCK_ALIGNMENT);
@@ -157,7 +157,7 @@ void AllocateSlab(usize in_class_index)
 void EvictToGlobal(usize in_class_index)
 {
     ThreadCache& cache = GetThreadCache();
-    const uint32 evict_count = cache.counts[in_class_index] / 2;
+    const u32 evict_count = cache.counts[in_class_index] / 2;
     if (evict_count == 0)
     {
         return;
@@ -166,7 +166,7 @@ void EvictToGlobal(usize in_class_index)
     // TLS 리스트에서 evict_count개 떼어내기
     FreeNode* evict_head = cache.free_lists[in_class_index];
     FreeNode* evict_tail = evict_head;
-    for (uint32 i = 1; i < evict_count; ++i)
+    for (u32 i = 1; i < evict_count; ++i)
     {
         evict_tail = evict_tail->next;
     }
@@ -196,7 +196,7 @@ bool StealFromGlobal(usize in_class_index)
 
         FreeNode* stolen_head = nullptr;
         FreeNode* stolen_tail = nullptr;
-        uint32 stolen_count = 0;
+        u32 stolen_count = 0;
         {
             std::scoped_lock lock{ pool.lock };
             if (pool.head == nullptr)
@@ -205,7 +205,7 @@ bool StealFromGlobal(usize in_class_index)
             }
 
             // 최대 BLOCKS_PER_SLAB / 2개 또는 전부 가져오기
-            constexpr uint32 MAX_STEAL = BLOCKS_PER_SLAB / 2;
+            constexpr u32 MAX_STEAL = BLOCKS_PER_SLAB / 2;
             stolen_head = pool.head;
             FreeNode* cursor = stolen_head;
             stolen_count = 1;
@@ -241,7 +241,7 @@ void* JobAllocator::Allocate(usize in_size)
         void* raw = OsMemory::Allocate(BLOCK_ALIGNMENT + in_size, BLOCK_ALIGNMENT);
         BlockHeader* header = static_cast<BlockHeader*>(raw);
         header->size_class_index = OVERSIZED_CLASS;
-        return static_cast<uint8*>(raw) + BLOCK_ALIGNMENT;
+        return static_cast<u8*>(raw) + BLOCK_ALIGNMENT;
     }
 
     ThreadCache& cache = GetThreadCache();
@@ -270,10 +270,10 @@ void JobAllocator::Free(void* in_ptr)
 
     // 헤더 읽기 (유저 포인터 바로 앞 BLOCK_ALIGNMENT 위치)
     BlockHeader* header = reinterpret_cast<BlockHeader*>(
-        static_cast<uint8*>(in_ptr) - BLOCK_ALIGNMENT
+        static_cast<u8*>(in_ptr) - BLOCK_ALIGNMENT
     );
 
-    const uint8 class_index = header->size_class_index;
+    const u8 class_index = header->size_class_index;
     if (class_index == OVERSIZED_CLASS)
     {
         // Oversized: OS에 반환 (헤더 포인터 기준)

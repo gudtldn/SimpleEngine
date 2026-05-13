@@ -10,7 +10,7 @@
 namespace se::editor
 {
 // forward declaration
-enum class EViewMode : uint8;
+enum class EViewMode : u8;
 
 /**
  * @todo docs

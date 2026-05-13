@@ -66,12 +66,12 @@ TEST_F(JobPayloadTest, SBO_MaxCaptureFitsInline)
     // SBO 용량(48바이트) 이내의 캡처는 인라인으로 저장됩니다
     struct LargeCapture
     {
-        uint64 a, b, c, d, e;  // 40 바이트
+        u64 a, b, c, d, e;  // 40 바이트
     };
     static_assert(sizeof(LargeCapture) <= JobPayload::SBO_CAPACITY);
 
     LargeCapture cap{1, 2, 3, 4, 5};
-    uint64 result = 0;
+    u64 result = 0;
 
     auto* payload = JobPayload::Create(
         [cap, &result]() { result = cap.a + cap.b + cap.c + cap.d + cap.e; },
@@ -90,7 +90,7 @@ TEST_F(JobPayloadTest, HeapFallback_OversizedCapture)
     // SBO 용량을 초과하는 캡처는 JobAllocator에서 외부 블록을 할당합니다
     struct HugeCapture
     {
-        uint64 data[8];  // 64 바이트 > SBO_CAPACITY(48)
+        u64 data[8];  // 64 바이트 > SBO_CAPACITY(48)
     };
     static_assert(sizeof(HugeCapture) > JobPayload::SBO_CAPACITY);
 
@@ -127,7 +127,7 @@ TEST_F(JobPayloadTest, HeapFallback_OverAlignedCallable_MustRespectAlignment)
 {
     struct alignas(32) OverAlignedCapture
     {
-        uint8 data[64];
+        u8 data[64];
     };
 
     OverAlignedCapture cap{};
@@ -155,7 +155,7 @@ TEST_F(JobPayloadTest, HeapFallback_AlignmentStress_MultipleInstances)
 {
     struct alignas(32) OverAlignedCapture
     {
-        uint8 data[64];
+        u8 data[64];
     };
 
     constexpr int ITERATIONS = 200;

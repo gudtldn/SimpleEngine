@@ -156,8 +156,8 @@ void VPath::ParseAndNormalize(StringView path)
     // 스키마 파싱 ("scheme://")
     if (const auto scheme_separator = full_path.Find("://"))
     {
-        scheme_len = static_cast<uint16>(*scheme_separator);
-        path_offset = static_cast<uint16>(*scheme_separator + 3); // "://" 길이만큼 건너뜀
+        scheme_len = static_cast<u16>(*scheme_separator);
+        path_offset = static_cast<u16>(*scheme_separator + 3); // "://" 길이만큼 건너뜀
     }
     else
     {

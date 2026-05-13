@@ -16,7 +16,7 @@ ImGuiHBox::ImGuiHBox(
     , config(in_config)
 {
     // config에 값이 없으면 ImGui의 현재 글꼴 + 패딩 크기를 사용
-    const float actual_height = config.height > 0.0f
+    const f32 actual_height = config.height > 0.0f
                                     ? config.height
                                     : ImGui::GetFrameHeight();
 
@@ -61,7 +61,7 @@ ImGuiHBox::~ImGuiHBox()
     if (spring_done && storage != nullptr)
     {
         // GetItemRectMax().x: 마지막으로 그린 아이템의 오른쪽 끝 x
-        const float right_w = ImGui::GetItemRectMax().x - spring_cursor_x;
+        const f32 right_w = ImGui::GetItemRectMax().x - spring_cursor_x;
         storage->SetFloat(spring_width_key, right_w > 0.0f ? right_w : 0.0f);
     }
 
@@ -73,8 +73,8 @@ ImGuiHBox& ImGuiHBox::Spring()
     spring_done = true;
 
     // 캐시된 오른쪽 영역 너비로 시작 x를 계산
-    const float cached_right_w = storage->GetFloat(spring_width_key, 0.0f);
-    const float right_start_x = (cached_right_w > 0.0f)
+    const f32 cached_right_w = storage->GetFloat(spring_width_key, 0.0f);
+    const f32 right_start_x = (cached_right_w > 0.0f)
                                     ? (max_pos.x - cached_right_w - config.padding)
                                     : (max_pos.x - config.padding); // 첫 프레임: 오른쪽 끝에서 시작
 
@@ -107,7 +107,7 @@ ImGuiHBox& ImGuiHBox::Label(const char* text)
     return *this;
 }
 
-ImGuiHBox& ImGuiHBox::Button(const char* label, bool* out_clicked, float width, const char* tooltip)
+ImGuiHBox& ImGuiHBox::Button(const char* label, bool* out_clicked, f32 width, const char* tooltip)
 {
     EnsureSameLine();
     const bool clicked = ImGui::Button(label, { width, button_h });
@@ -124,7 +124,7 @@ ImGuiHBox& ImGuiHBox::Button(const char* label, bool* out_clicked, float width, 
     return *this;
 }
 
-ImGuiHBox& ImGuiHBox::ToggleButton(const char* label, bool is_active, bool* out_clicked, float width, const char* tooltip)
+ImGuiHBox& ImGuiHBox::ToggleButton(const char* label, bool is_active, bool* out_clicked, f32 width, const char* tooltip)
 {
     EnsureSameLine();
     if (is_active)
@@ -153,11 +153,11 @@ ImGuiHBox& ImGuiHBox::DragScalar(
     const char* label,
     ImGuiDataType type,
     void* data,
-    float speed,
+    f32 speed,
     const void* min_val,
     const void* max_val,
     const char* format,
-    float width
+    f32 width
 )
 {
     EnsureSameLine();

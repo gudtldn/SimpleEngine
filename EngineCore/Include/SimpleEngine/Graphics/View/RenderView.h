@@ -21,12 +21,12 @@ struct RenderView
     Matrix4x4 view_matrix = Matrix4x4::Identity();
     Matrix4x4 projection_matrix = Matrix4x4::Identity();
 
-    uint32 width = 0;
-    uint32 height = 0;
+    u32 width = 0;
+    u32 height = 0;
 
-    double near_plane = 0.1;
-    double far_plane = 10000.0;
-    Degree<double> fov_y = 60.0_deg;
+    f64 near_plane = 0.1;
+    f64 far_plane = 10000.0;
+    Degree<f64> fov_y = 60.0_deg;
 
     ERenderingMode rendering_mode = ERenderingMode::Lit;
     ShowFlags show_flags = EShowFlag::Grid | EShowFlag::StaticMesh; // TODO: ViewportPanel.h:29 하고 중복 관리중
@@ -63,8 +63,8 @@ public:
         }
 
         // Screen (Pixel) -> NDC 변환
-        const double ndc_x = (2.0 * static_cast<double>(in_cursor_pos.x) / static_cast<double>(width)) - 1.0;
-        const double ndc_y = 1.0 - (2.0 * static_cast<double>(in_cursor_pos.y) / static_cast<double>(height));
+        const f64 ndc_x = (2.0 * static_cast<f64>(in_cursor_pos.x) / static_cast<f64>(width)) - 1.0;
+        const f64 ndc_y = 1.0 - (2.0 * static_cast<f64>(in_cursor_pos.y) / static_cast<f64>(height));
 
         const Matrix4x4 inv_vp = (view_matrix * projection_matrix).Inverse();
 
@@ -106,13 +106,13 @@ public:
         }
 
         // Perspective divide -> NDC
-        const double ndc_x = clip.x / clip.w;
-        const double ndc_y = clip.y / clip.w;
+        const f64 ndc_x = clip.x / clip.w;
+        const f64 ndc_y = clip.y / clip.w;
 
         // NDC -> Screen (Pixel)
         return Vector2f{
-            static_cast<float>((ndc_x + 1.0) * 0.5 * static_cast<double>(width)),
-            static_cast<float>((1.0 - ndc_y) * 0.5 * static_cast<double>(height))
+            static_cast<f32>((ndc_x + 1.0) * 0.5 * static_cast<f64>(width)),
+            static_cast<f32>((1.0 - ndc_y) * 0.5 * static_cast<f64>(height))
         };
     }
 };

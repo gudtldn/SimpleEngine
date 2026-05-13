@@ -155,11 +155,11 @@ TEST_F(OptionalAPI_Test, OptionalForValueTypes)
 
     // and_then
     {
-        auto half = [](int n) -> Optional<double>
+        auto half = [](int n) -> Optional<f64>
         {
             if (n % 2 == 0)
             {
-                return Optional<double>(n / 2.0);
+                return Optional<f64>(n / 2.0);
             }
             return NullOpt;
         };

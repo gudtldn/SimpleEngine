@@ -67,7 +67,7 @@ usize DirectoryEntry::FileSize() const
     return file_size;
 }
 
-uint64 DirectoryEntry::LastWriteTime() const
+u64 DirectoryEntry::LastWriteTime() const
 {
     return last_write_time;
 }
@@ -102,7 +102,7 @@ DirectoryIterator::DirectoryIterator(const Path& path)
             entry.is_directory = info.type == SDL_PATHTYPE_DIRECTORY;
             entry.is_file = info.type == SDL_PATHTYPE_FILE;
             entry.file_size = static_cast<usize>(info.size);
-            entry.last_write_time = static_cast<uint64>(info.modify_time);
+            entry.last_write_time = static_cast<u64>(info.modify_time);
         }
 
         ctx.entries.Push(std::move(entry));
@@ -320,7 +320,7 @@ Optional<usize> FileSystem::FileSize(const Path& path)
     return static_cast<usize>(info.size);
 }
 
-Optional<uint64> FileSystem::LastWriteTime(const Path& path)
+Optional<u64> FileSystem::LastWriteTime(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -331,7 +331,7 @@ Optional<uint64> FileSystem::LastWriteTime(const Path& path)
     {
         return NullOpt;
     }
-    return static_cast<uint64>(info.modify_time);
+    return static_cast<u64>(info.modify_time);
 }
 
 // TODO: [Performance] SDL_LoadFile가 내부적으로 malloc한 버퍼를 String 생성자에서 다시 복사함
@@ -340,7 +340,7 @@ FileResult<String> FileSystem::ReadToString(const Path& path)
 {
     const String& path_str = path.ToString();
 
-    size_t size = 0;
+    usize size = 0;
     void* data = SDL_LoadFile(path.CStr(), &size);
     if (!data)
     {
@@ -356,11 +356,11 @@ FileResult<String> FileSystem::ReadToString(const Path& path)
     return content;
 }
 
-FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
+FileResult<Array<u8>> FileSystem::ReadBytes(const Path& path)
 {
     const String& path_str = path.ToString();
 
-    size_t size = 0;
+    usize size = 0;
     void* data = SDL_LoadFile(path.CStr(), &size);
     if (!data)
     {
@@ -371,14 +371,14 @@ FileResult<Array<uint8>> FileSystem::ReadBytes(const Path& path)
         return Unexpected<FileReadError>{ FileReadError::FileOpenFailed, "Failed to open file: " + path_str };
     }
 
-    Array<uint8> result;
+    Array<u8> result;
     result.ResizeUninitialized(static_cast<usize>(size));
     std::memcpy(result.Data(), data, size);
     SDL_free(data);
     return result;
 }
 
-std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path path, usize chunk_size)
+std::generator<FileResult<ArrayView<const u8>>> FileSystem::ReadChunked(Path path, usize chunk_size)
 {
     const String& path_str = path.ToString();
 
@@ -411,7 +411,7 @@ std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path 
     };
 
     // 청크 버퍼 할당
-    Array<uint8> buffer;
+    Array<u8> buffer;
     buffer.ResizeUninitialized(chunk_size);
 
     while (true)
@@ -420,7 +420,7 @@ std::generator<FileResult<ArrayView<const uint8>>> FileSystem::ReadChunked(Path 
 
         if (bytes_read > 0)
         {
-            co_yield ArrayView<const uint8>{ buffer.Data(), bytes_read };
+            co_yield ArrayView<const u8>{ buffer.Data(), bytes_read };
         }
 
         if (bytes_read < chunk_size)
@@ -447,7 +447,7 @@ bool FileSystem::WriteString(const Path& path, StringView content)
     return SDL_SaveFile(path.CStr(), content.Data(), content.ByteLen());
 }
 
-bool FileSystem::Write(const Path& path, ArrayView<const uint8> data)
+bool FileSystem::Write(const Path& path, ArrayView<const u8> data)
 {
     if (path.IsEmpty())
     {

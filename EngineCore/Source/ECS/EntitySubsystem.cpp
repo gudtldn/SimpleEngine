@@ -25,7 +25,7 @@ void EntitySubsystem::Release()
     worlds.Clear();
 }
 
-void EntitySubsystem::Update(double delta_time)
+void EntitySubsystem::Update(f64 delta_time)
 {
     for (WorldContext& ctx : worlds | std::views::values)
     {

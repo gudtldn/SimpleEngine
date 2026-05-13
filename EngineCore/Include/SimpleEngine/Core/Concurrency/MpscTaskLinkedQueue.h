@@ -43,7 +43,7 @@ public:
      * @return 실행된 작업의 수
      * @warning 반드시 Queue를 소유한 스레드(Owner Thread)에서만 호출해야 합니다.
      */
-    uint32 Drain();
+    u32 Drain();
 
     /**
      * 큐가 비어있는지 대략적으로 확인합니다.

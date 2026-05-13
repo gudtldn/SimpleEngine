@@ -22,7 +22,7 @@ bool PickSubsystem::Initialize()
     // 4바이트 download transfer buffer (GPU -> CPU readback)
     constexpr SDL_GPUTransferBufferCreateInfo TB_INFO = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
-        .size = sizeof(uint32),
+        .size = sizeof(u32),
     };
     download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &TB_INFO);
     return download_buffer != nullptr;
@@ -40,7 +40,7 @@ void PickSubsystem::Release()
     }
 }
 
-void PickSubsystem::EnsureSize(uint32 width, uint32 height)
+void PickSubsystem::EnsureSize(u32 width, u32 height)
 {
     if (texture_width == width && texture_height == height)
     {
@@ -70,7 +70,7 @@ void PickSubsystem::EnsureSize(uint32 width, uint32 height)
     texture_height = height;
 }
 
-SDL_GPUTexture* PickSubsystem::GetOrCreateEntityIdTexture(uint32 width, uint32 height)
+SDL_GPUTexture* PickSubsystem::GetOrCreateEntityIdTexture(u32 width, u32 height)
 {
     EnsureSize(width, height);
     return GetEntityIdTexture();
@@ -86,8 +86,8 @@ void PickSubsystem::PerformPick(const Vector2f& cursor_pos)
         return;
     }
 
-    const uint32 cx = static_cast<uint32>(cursor_pos.x);
-    const uint32 cy = static_cast<uint32>(cursor_pos.y);
+    const u32 cx = static_cast<u32>(cursor_pos.x);
+    const u32 cy = static_cast<u32>(cursor_pos.y);
 
     // 범위 외 좌표는 무시
     if (cx >= texture_width || cy >= texture_height)
@@ -125,7 +125,7 @@ void PickSubsystem::PerformPick(const Vector2f& cursor_pos)
     // Transfer buffer 매핑하여 값 읽기
     if (const void* data = SDL_MapGPUTransferBuffer(raw_device, download_buffer, false))
     {
-        const uint32 raw_encoded = *static_cast<const uint32*>(data);
+        const u32 raw_encoded = *static_cast<const u32*>(data);
         SDL_UnmapGPUTransferBuffer(raw_device, download_buffer);
         pick_id = EntityPickId::FromRaw(raw_encoded);
     }

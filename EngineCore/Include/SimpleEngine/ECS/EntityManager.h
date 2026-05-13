@@ -21,8 +21,8 @@ class SE_CORE_API EntityManager
 {
 public:
     // sentinel 값
-    static constexpr uint32 ENTITY_ALIVE = ~uint32{ 0 };         // 0xFFFFFFFF: 살아있는 엔티티
-    static constexpr uint32 ENTITY_FREE_LIST_END = ~uint32{ 1 }; // 0xFFFFFFFE: free list의 끝
+    static constexpr u32 ENTITY_ALIVE = ~u32{ 0 };         // 0xFFFFFFFF: 살아있는 엔티티
+    static constexpr u32 ENTITY_FREE_LIST_END = ~u32{ 1 }; // 0xFFFFFFFE: free list의 끝
 
     explicit EntityManager() = default;
 
@@ -31,13 +31,13 @@ public:
     void Destroy(Entity entity);
 
     [[nodiscard]] bool IsValid(Entity entity) const;
-    [[nodiscard]] uint32 GetTotalRecordCount() const { return next_id; }
+    [[nodiscard]] u32 GetTotalRecordCount() const { return next_id; }
 
     /**
      * entity id(슬롯 인덱스)로부터 현재 살아있는 Entity를 복원합니다.
      * 해당 슬롯이 이미 해제되었거나 범위 밖이면 NullOpt을 반환합니다.
      */
-    [[nodiscard]] Optional<Entity> TryResolveEntity(uint32 id) const;
+    [[nodiscard]] Optional<Entity> TryResolveEntity(u32 id) const;
 
     /** 모든 상태를 초기화합니다. */
     void Reset()
@@ -51,7 +51,7 @@ private:
     friend void Serialize(Archive& ar, EntityManager& em)
     {
         // entity records (array of {generation, alive})
-        uint64 record_count = em.entity_records.Len();
+        u64 record_count = em.entity_records.Len();
         ar("records");
         ar.BeginArray(record_count);
 
@@ -60,7 +60,7 @@ private:
             em.entity_records.Resize(static_cast<usize>(record_count));
         }
 
-        for (uint64 i = 0; i < record_count; ++i)
+        for (u64 i = 0; i < record_count; ++i)
         {
             ar.BeginObject();
             ar("generation") << em.entity_records[i].generation;
@@ -80,7 +80,7 @@ private:
         ar.EndArray();
 
         // next_id
-        uint32 next = em.next_id.load(std::memory_order_relaxed);
+        u32 next = em.next_id.load(std::memory_order_relaxed);
         ar("next_id") << next;
         if (ar.IsLoading())
         {
@@ -88,7 +88,7 @@ private:
 
             // free list 재구축 (역순 순회 -> 낮은 ID가 먼저 재사용됨)
             em.free_list_head = ENTITY_FREE_LIST_END;
-            for (uint32 idx = static_cast<uint32>(record_count); idx-- > 0;)
+            for (u32 idx = static_cast<u32>(record_count); idx-- > 0;)
             {
                 if (!em.entity_records[idx].IsAlive())
                 {
@@ -101,15 +101,15 @@ private:
 
     struct EntityRecord
     {
-        uint32 generation = 0;
-        uint32 next_free = ENTITY_FREE_LIST_END; // 기본값 = not alive (Emplace 직후 Create에서 ENTITY_ALIVE로 설정)
+        u32 generation = 0;
+        u32 next_free = ENTITY_FREE_LIST_END; // 기본값 = not alive (Emplace 직후 Create에서 ENTITY_ALIVE로 설정)
 
         [[nodiscard]] bool IsAlive() const { return next_free == ENTITY_ALIVE; }
     };
 
     Array<EntityRecord> entity_records;
-    uint32 free_list_head = ENTITY_FREE_LIST_END;
+    u32 free_list_head = ENTITY_FREE_LIST_END;
 
-    std::atomic<uint32> next_id;
+    std::atomic<u32> next_id;
 };
 } // namespace se

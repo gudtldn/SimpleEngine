@@ -23,10 +23,10 @@ namespace config_test
 struct SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
 {
     SE_ANNOTATION(=meta::Property)
-    uint32 width = 800;
+    u32 width = 800;
 
     SE_ANNOTATION(=meta::Property)
-    uint32 height = 600;
+    u32 height = 600;
 
     SE_ANNOTATION(=meta::Property)
     bool fullscreen = true;
@@ -35,7 +35,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
     String title = "Default Title";
 
     SE_ANNOTATION(=meta::Property)
-    float scale = 1.0f;
+    f32 scale = 1.0f;
 
     bool operator==(const WindowSettings&) const = default;
 };
@@ -47,7 +47,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
     bool vsync = false;
 
     SE_ANNOTATION(=meta::Property)
-    int32 max_fps = 60;
+    i32 max_fps = 60;
 
     SE_ANNOTATION(=meta::Property)
     Array<String> shaders;
@@ -74,10 +74,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) LoggingSettings
 struct SE_ANNOTATION(=meta::SerializeOnly) TransientSettings
 {
     SE_ANNOTATION(=meta::Property)
-    int32 saved_val = 0;
+    i32 saved_val = 0;
 
     SE_ANNOTATION(=meta::Property, =meta::Transient)
-    int32 transient_val = 0;
+    i32 transient_val = 0;
 
     bool operator==(const TransientSettings&) const = default;
 };
@@ -92,10 +92,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) EmptySettings
 struct SE_ANNOTATION(=meta::SerializeOnly) ContainerSettings
 {
     SE_ANNOTATION(=meta::Property)
-    Array<int32> numbers;
+    Array<i32> numbers;
 
     SE_ANNOTATION(=meta::Property)
-    HashMap<String, float> scores;
+    HashMap<String, f32> scores;
 
     bool operator==(const ContainerSettings&) const = default;
 };
@@ -427,14 +427,14 @@ TEST_F(ConfigFileTest, MultipleSectionsIndependent)
 TEST_F(ConfigFileTest, GetValuePrimitiveTypes)
 {
     EXPECT_EQ(config.GetValue<bool>("a_boolean").Value(), true);
-    EXPECT_EQ(config.GetValue<int64>("an_integer").Value(), 42);
-    EXPECT_NEAR(config.GetValue<double>("a_float").Value(), 3.14159, 1e-5);
+    EXPECT_EQ(config.GetValue<i64>("an_integer").Value(), 42);
+    EXPECT_NEAR(config.GetValue<f64>("a_float").Value(), 3.14159, 1e-5);
     EXPECT_EQ(config.GetValue<String>("a_string").Value(), "Hello, TOML!");
 }
 
 TEST_F(ConfigFileTest, GetValueNestedKey)
 {
-    EXPECT_EQ(config.GetValue<int64>("window.width").Value(), 1280);
+    EXPECT_EQ(config.GetValue<i64>("window.width").Value(), 1280);
     EXPECT_EQ(config.GetValue<bool>("window.fullscreen").Value(), false);
     EXPECT_EQ(config.GetValue<String>("logging.level").Value(), "debug");
 }
@@ -442,7 +442,7 @@ TEST_F(ConfigFileTest, GetValueNestedKey)
 TEST_F(ConfigFileTest, GetValueMissingKeyReturnsNullopt)
 {
     EXPECT_FALSE(config.GetValue<bool>("__nonexistent_key__").HasValue());
-    EXPECT_FALSE(config.GetValue<int64>("window.nonexistent").HasValue());
+    EXPECT_FALSE(config.GetValue<i64>("window.nonexistent").HasValue());
 }
 
 
@@ -465,8 +465,8 @@ TEST_F(ConfigFileTest, SetValueCreatesIntermediateTables)
     EXPECT_TRUE(new_config.SetValue("window.height", 1080));
     EXPECT_TRUE(new_config.SetValue("deep.nested.path.value", 42));
 
-    EXPECT_EQ(new_config.GetValue<int64>("window.width").Value(), 1920);
-    EXPECT_EQ(new_config.GetValue<int64>("deep.nested.path.value").Value(), 42);
+    EXPECT_EQ(new_config.GetValue<i64>("window.width").Value(), 1920);
+    EXPECT_EQ(new_config.GetValue<i64>("deep.nested.path.value").Value(), 42);
 }
 
 TEST_F(ConfigFileTest, SetValueOverwritesExisting)
@@ -474,10 +474,10 @@ TEST_F(ConfigFileTest, SetValueOverwritesExisting)
     ConfigFile new_config;
 
     EXPECT_TRUE(new_config.SetValue("key", 100));
-    EXPECT_EQ(new_config.GetValue<int64>("key").Value(), 100);
+    EXPECT_EQ(new_config.GetValue<i64>("key").Value(), 100);
 
     EXPECT_TRUE(new_config.SetValue("key", 200));
-    EXPECT_EQ(new_config.GetValue<int64>("key").Value(), 200);
+    EXPECT_EQ(new_config.GetValue<i64>("key").Value(), 200);
 }
 
 TEST_F(ConfigFileTest, SetValueEmptyKeyFails)

@@ -11,7 +11,7 @@ namespace se
 /**
  * 물리적 키보드 키를 나타내는 열거형
  */
-enum class EKeyCode : uint16
+enum class EKeyCode : u16
 {
     Unknown = SDL_SCANCODE_UNKNOWN,
 
@@ -143,7 +143,7 @@ enum class EKeyCode : uint16
 /**
  * Keyboard의 Modifier를 나타내는 비트플래그
  */
-enum class EModifier : uint8
+enum class EModifier : u8
 {
     None  = 0,
     Shift = 1 << 0,

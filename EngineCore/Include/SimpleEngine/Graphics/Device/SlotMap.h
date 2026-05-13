@@ -29,22 +29,22 @@ concept SlotMapStorable = std::move_constructible<T> && std::default_initializab
 template<SlotMapStorable T>
 class SlotMap
 {
-    static constexpr uint32 FREE_SENTINEL = std::numeric_limits<uint32>::max();
+    static constexpr u32 FREE_SENTINEL = std::numeric_limits<u32>::max();
 
     /** generation을 1 증가시키되, INVALID_GENERATION(0)은 건너뛰어 1로 wrap합니다. */
-    [[nodiscard]] static constexpr uint32 NextGeneration(uint32 gen) noexcept
+    [[nodiscard]] static constexpr u32 NextGeneration(u32 gen) noexcept
     {
-        const uint32 next = gen + 1;
+        const u32 next = gen + 1;
         return next == RID::INVALID_GENERATION ? 1 : next;
     }
 
     struct Slot
     {
         T data{};
-        uint32 generation = RID::INVALID_GENERATION; // 0: 미사용 초기값(= INVALID). 활성 슬롯의 generation은 항상 1 이상
+        u32 generation = RID::INVALID_GENERATION; // 0: 미사용 초기값(= INVALID). 활성 슬롯의 generation은 항상 1 이상
 
         // free list 연결: 사용 중이면 FREE_SENTINEL, 아니면 다음 free 슬롯 인덱스
-        uint32 next_free = FREE_SENTINEL;
+        u32 next_free = FREE_SENTINEL;
         bool occupied = false;
     };
 
@@ -86,7 +86,7 @@ public:
 
         ++count;
         return {
-            .index = static_cast<uint32>(slot_index),
+            .index = static_cast<u32>(slot_index),
             .generation = slots[slot_index].generation
         };
     }
@@ -155,7 +155,7 @@ public:
             if (slot.occupied)
             {
                 fn(RID{
-                    .index = static_cast<uint32>(idx),
+                    .index = static_cast<u32>(idx),
                     .generation = slot.generation,
                 }, slot.data);
             }
@@ -163,7 +163,7 @@ public:
     }
 
     /** 현재 사용 중인 요소 수를 반환합니다. */
-    [[nodiscard]] uint32 Count() const noexcept { return count; }
+    [[nodiscard]] u32 Count() const noexcept { return count; }
 
     /** SlotMap이 비어 있는지 확인합니다. */
     [[nodiscard]] bool IsEmpty() const noexcept { return count == 0; }
@@ -178,7 +178,7 @@ public:
 
 private:
     Array<Slot> slots;
-    uint32 free_head = FREE_SENTINEL;
-    uint32 count = 0;
+    u32 free_head = FREE_SENTINEL;
+    u32 count = 0;
 };
 } // namespace se

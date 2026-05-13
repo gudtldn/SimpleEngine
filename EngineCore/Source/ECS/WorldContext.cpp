@@ -18,7 +18,7 @@ WorldContext::WorldContext()
 
 WorldContext::~WorldContext() = default;
 
-void WorldContext::RunAll(double delta_time)
+void WorldContext::RunAll(f64 delta_time)
 {
     // 시간 리소스 갱신
     RealTime& real = world->GetResource<RealTime>();

@@ -434,9 +434,9 @@ TEST_F(ArrayAPI_Test, Emplace)
     struct TestStruct
     {
         int x;
-        double y;
+        f64 y;
 
-        TestStruct(int x, double y)
+        TestStruct(int x, f64 y)
             : x(x)
             , y(y)
         {
@@ -743,8 +743,8 @@ TEST_F(DequeAPI_Test, Emplace)
     struct TestStruct
     {
         int x;
-        double y;
-        TestStruct(int x, double y) : x(x), y(y) {}
+        f64 y;
+        TestStruct(int x, f64 y) : x(x), y(y) {}
     };
 
     Deque<TestStruct> d;
@@ -1315,7 +1315,7 @@ TEST_F(HashSetAPI_Test, Emplace)
     // Custom hash for TestStruct
     struct TestStructHasher
     {
-        size_t operator()(const TestStruct& ts) const
+        usize operator()(const TestStruct& ts) const
         {
             return std::hash<String>()(ts.name) ^ std::hash<int>()(ts.id);
         }

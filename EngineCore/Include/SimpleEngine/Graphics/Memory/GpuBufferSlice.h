@@ -16,9 +16,9 @@ struct GpuBufferSlice
     // GpuMemoryBlock에서 가져온 GPU Buffer 리소스
     SDL_GPUBuffer* buffer = nullptr;
 
-    uint32 offset = 0;       // 버퍼 시작점으로부터의 바이트 오프셋
-    uint32 size = 0;         // 할당된 크기 (bytes)
-    uint32 index_offset = 0; // (Mesh의 경우) Vertex Data 끝, Index Data 시작점
-    uint32 index_count = 0;  // Index Data의 개수
+    u32 offset = 0;       // 버퍼 시작점으로부터의 바이트 오프셋
+    u32 size = 0;         // 할당된 크기 (bytes)
+    u32 index_offset = 0; // (Mesh의 경우) Vertex Data 끝, Index Data 시작점
+    u32 index_count = 0;  // Index Data의 개수
 };
 } // namespace se

@@ -19,9 +19,9 @@ namespace detail
 template <traits::FloatingType T>
 void Matrix4x4MultiplyGeneric(const T* lhs, const T* rhs, T* result)
 {
-    for (uint32 i = 0; i < 4; ++i)
+    for (u32 i = 0; i < 4; ++i)
     {
-        for (uint32 j = 0; j < 4; ++j)
+        for (u32 j = 0; j < 4; ++j)
         {
             result[i * 4 + j] = lhs[i * 4 + 0] * rhs[0 * 4 + j]
                               + lhs[i * 4 + 1] * rhs[1 * 4 + j]
@@ -32,20 +32,20 @@ void Matrix4x4MultiplyGeneric(const T* lhs, const T* rhs, T* result)
 }
 
 #if SE_SIMD_SSE2
-/** float 행렬 곱셈을 SSE를 사용하여 구현 (외부 곱 방식) */
-inline void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* result)
+/** f32 행렬 곱셈을 SSE를 사용하여 구현 (외부 곱 방식) */
+inline void Matrix4x4MultiplySSEImpl(const f32* lhs, const f32* rhs, f32* result)
 {
     // 1. rhs 행렬의 4개의 행을 각각 128비트 SSE 레지스터(__m128)로 로드
-    // _mm_load_ps: 16바이트 정렬된 주소에서 4개의 float를 로드
+    // _mm_load_ps: 16바이트 정렬된 주소에서 4개의 f32를 로드
     const __m128 rhs_row0 = _mm_load_ps(&rhs[0]);
     const __m128 rhs_row1 = _mm_load_ps(&rhs[4]);
     const __m128 rhs_row2 = _mm_load_ps(&rhs[8]);
     const __m128 rhs_row3 = _mm_load_ps(&rhs[12]);
 
     // 2. lhs의 각 행에 대해서 반복하여 result의 i번째 행을 계산
-    for (uint32 i = 0; i < 4; ++i)
+    for (u32 i = 0; i < 4; ++i)
     {
-        const float* current_lhs_row = &lhs[i * 4];
+        const f32* current_lhs_row = &lhs[i * 4];
 
         // 3. lhs 행의 각 스칼라 값을 SSE 레지스터의 모든 요소로 복제(broadcast)
         // _mm_set1_ps(value): [value, value, value, value] 형태의 레지스터를 생성
@@ -71,8 +71,8 @@ inline void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* 
 #endif // SE_SIMD_SSE2
 
 #if SE_SIMD_FMA
-/** float 행렬 곱셈을 FMA3 명령어를 사용하여 구현 (외부 곱 방식) */
-inline void Matrix4x4MultiplyFMAImpl(const float* lhs, const float* rhs, float* result)
+/** f32 행렬 곱셈을 FMA3 명령어를 사용하여 구현 (외부 곱 방식) */
+inline void Matrix4x4MultiplyFMAImpl(const f32* lhs, const f32* rhs, f32* result)
 {
     // 1. rhs 행렬의 4개의 행을 미리 로드
     const __m128 rhs_row0 = _mm_load_ps(&rhs[0]);
@@ -81,9 +81,9 @@ inline void Matrix4x4MultiplyFMAImpl(const float* lhs, const float* rhs, float* 
     const __m128 rhs_row3 = _mm_load_ps(&rhs[12]);
 
     // 2. lhs의 각 행에 대해서 반복
-    for (uint32 i = 0; i < 4; ++i)
+    for (u32 i = 0; i < 4; ++i)
     {
-        const float* current_lhs_row = &lhs[i * 4];
+        const f32* current_lhs_row = &lhs[i * 4];
 
         // 3. lhs 행의 각 스칼라 값을 복제(broadcast)
         const __m128 lhs_broadcast0 = _mm_set1_ps(current_lhs_row[0]);
@@ -109,15 +109,15 @@ inline void Matrix4x4MultiplyFMAImpl(const float* lhs, const float* rhs, float* 
 #endif // SE_SIMD_FMA
 
 #if SE_SIMD_AVX && SE_SIMD_FMA
-/** double 행렬 곱셈을 AVX와 FMA를 사용하여 구현 (외부 곱 방식) */
-inline void Matrix4x4MultiplyAVXImpl(const double* lhs, const double* rhs, double* result)
+/** f64 행렬 곱셈을 AVX와 FMA를 사용하여 구현 (외부 곱 방식) */
+inline void Matrix4x4MultiplyAVXImpl(const f64* lhs, const f64* rhs, f64* result)
 {
     // result의 각 행에 대해서 반복
-    for (uint32 i = 0; i < 4; ++i)
+    for (u32 i = 0; i < 4; ++i)
     {
-        const double* current_lhs_row = &lhs[i * 4];
+        const f64* current_lhs_row = &lhs[i * 4];
 
-        // 1. lhs 행의 첫 번째 스칼라 값(current_lhs_row[0])을 AVX 레지스터의 모든 4개 double 요소로 복제(broadcast)
+        // 1. lhs 행의 첫 번째 스칼라 값(current_lhs_row[0])을 AVX 레지스터의 모든 4개 f64 요소로 복제(broadcast)
         const __m256d lhs_broadcast0 = _mm256_broadcast_sd(&current_lhs_row[0]); // [s, s, s, s]
 
         // 1.1. rhs의 첫 번째 행 벡터를 로드
@@ -165,7 +165,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
     const T* rhs_ptr = reinterpret_cast<const T*>(&rhs);
     T* result_ptr = reinterpret_cast<T*>(&result);
 
-    if constexpr (std::same_as<T, float>)
+    if constexpr (std::same_as<T, f32>)
     {
 #if SE_SIMD_FMA
         detail::Matrix4x4MultiplyFMAImpl(lhs_ptr, rhs_ptr, result_ptr);
@@ -177,7 +177,7 @@ Matrix4x4Impl<T> Matrix4x4Multiply(const Matrix4x4Impl<T>& lhs, const Matrix4x4I
         // TODO: NEON 구현 추가
 #endif
     }
-    else if constexpr (std::same_as<T, double>)
+    else if constexpr (std::same_as<T, f64>)
     {
 #if SE_SIMD_AVX && SE_SIMD_FMA
         detail::Matrix4x4MultiplyAVXImpl(lhs_ptr, rhs_ptr, result_ptr);

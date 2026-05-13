@@ -9,19 +9,19 @@
 
 namespace se::math
 {
-constexpr float SMALL_NUMBER = 1.e-8f;
-constexpr float KINDA_SMALL_NUMBER = 1.e-4f;
+constexpr f32 SMALL_NUMBER = 1.e-8f;
+constexpr f32 KINDA_SMALL_NUMBER = 1.e-4f;
 
 template <traits::FloatingType T>
 constexpr T PI_V = std::numbers::pi_v<T>;
 
-constexpr float PI = PI_V<float>;
-constexpr float INV_PI = std::numbers::inv_pi_v<float>;
-constexpr float HALF_PI = PI * 0.5f;
-constexpr float TWO_PI = PI * 2.0f;
-constexpr float PI_SQUARED = PI * PI;
+constexpr f32 PI = PI_V<f32>;
+constexpr f32 INV_PI = std::numbers::inv_pi_v<f32>;
+constexpr f32 HALF_PI = PI * 0.5f;
+constexpr f32 TWO_PI = PI * 2.0f;
+constexpr f32 PI_SQUARED = PI * PI;
 
-constexpr double PI_DOUBLE = PI_V<double>;
+constexpr f64 PI_DOUBLE = PI_V<f64>;
 
 
 // TODO: C++26 컴파일러 나오면 기본 std 함수로 대체
@@ -58,7 +58,7 @@ constexpr T Fmod(T x, T y)
 {
     if (AbsImpl(y) <= std::numeric_limits<T>::epsilon()) { return T(0); }
 
-    const int64 div = static_cast<int64>(x / y);
+    const i64 div = static_cast<i64>(x / y);
     return x - (static_cast<T>(div) * y);
 }
 
@@ -129,7 +129,7 @@ constexpr T Pow(T base, T exp)
         if (Fmod(exp, T(1)) == T(0))
         {
             T res = Exp(exp * Ln(-base));
-            return (static_cast<int64>(exp) % 2 == 0) ? res : -res;
+            return (static_cast<i64>(exp) % 2 == 0) ? res : -res;
         }
         return std::numeric_limits<T>::quiet_NaN();
     }
@@ -145,14 +145,14 @@ template <typename T>
 template <typename T>
 constexpr T FloorImpl(T x)
 {
-    const int64 i = static_cast<int64>(x);
+    const i64 i = static_cast<i64>(x);
     return (x < T(0) && x != static_cast<T>(i)) ? static_cast<T>(i - 1) : static_cast<T>(i);
 }
 
 template <typename T>
 constexpr T CeilImpl(T x)
 {
-    const int64 i = static_cast<int64>(x);
+    const i64 i = static_cast<i64>(x);
     return (x > T(0) && x != static_cast<T>(i)) ? static_cast<T>(i + 1) : static_cast<T>(i);
 }
 
@@ -313,21 +313,21 @@ template <traits::FloatingType T>
 }
 
 /** 반올림 후 원하는 정수 타입으로 캐스팅하여 반환합니다. */
-template <typename IntType = int32, traits::FloatingType FloatType>
+template <typename IntType = i32, traits::FloatingType FloatType>
 [[nodiscard]] static constexpr IntType RoundToInt(FloatType value)
 {
     return static_cast<IntType>(Round(value));
 }
 
 /** 내림 후 원하는 정수 타입으로 캐스팅하여 반환합니다. */
-template <typename IntType = int32, traits::FloatingType FloatType>
+template <typename IntType = i32, traits::FloatingType FloatType>
 [[nodiscard]] static constexpr IntType FloorToInt(FloatType value)
 {
     return static_cast<IntType>(Floor(value));
 }
 
 /** 올림 후 원하는 정수 타입으로 캐스팅하여 반환합니다. */
-template <typename IntType = int32, traits::FloatingType FloatType>
+template <typename IntType = i32, traits::FloatingType FloatType>
 [[nodiscard]] static constexpr IntType CeilToInt(FloatType value)
 {
     return static_cast<IntType>(Ceil(value));

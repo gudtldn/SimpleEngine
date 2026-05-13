@@ -82,7 +82,7 @@ namespace se::benchmark_test
         // 2. 검색할 키 목록 준비 (Hit 위주)
         // 측정 루프 안에서 난수를 만들지 않기 위해 미리 생성
         auto lookup_keys = GetRandomKeys(size);
-        size_t mask = lookup_keys.size() - 1;
+        usize mask = lookup_keys.size() - 1;
 
         // 3. 측정 시작
         for (auto _ : state)

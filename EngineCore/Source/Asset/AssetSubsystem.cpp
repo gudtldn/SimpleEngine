@@ -91,7 +91,7 @@ void AssetSubsystem::EndFrame()
     pool->EvictIfOverBudget(frame_count);
 }
 
-Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
+Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
 {
     const TypeId type_id = asset.GetTypeId();
     const auto info_opt = TypeRegistry::Get().Find(type_id);
@@ -101,13 +101,13 @@ Array<uint8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
         return {};
     }
 
-    Array<uint8> payload;
+    Array<u8> payload;
     MemoryWriter writer(payload);
     info_opt->serialize(writer, const_cast<void*>(static_cast<const void*>(&asset)));
     return payload;
 }
 
-AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, ArrayView<const uint8> payload_view)
+AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, ArrayView<const u8> payload_view)
 {
     const auto info_opt = TypeRegistry::Get().Find(type_id);
     if (!info_opt || !info_opt->constructor || !info_opt->serialize)
@@ -189,7 +189,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
 
             // DDC Hit 검사 및 로드 수행
             ContentHash source_hash;
-            uint32 cache_version;
+            u32 cache_version;
             const bool has_meta = registry->ReadRecord(current_id, [&source_hash, &cache_version](const AssetRecord& record)
             {
                 source_hash = record.metadata.source_hash;
@@ -319,15 +319,15 @@ AssetSubsystem::ESlotAcquireResult AssetSubsystem::AcquireLoadSlot(HandleData ha
     }
 }
 
-void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload payload, uint64 payload_size, EScopeLayer scope)
+void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload payload, u64 payload_size, EScopeLayer scope)
 {
     HandleTable& table = pool->GetTable();
     SlotEntry& current_slot = table.GetSlot(handle_data.index);
 
     AssetPayload old_payload = current_slot.ExchangePayload(std::move(payload));
 
-    const uint64 old_size = current_slot.asset_size_bytes;
-    const uint64 new_size = payload_size;
+    const u64 old_size = current_slot.asset_size_bytes;
+    const u64 new_size = payload_size;
     current_slot.asset_size_bytes = new_size;
     current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
     current_slot.scope = scope;
@@ -349,7 +349,7 @@ void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload pa
     }
 }
 
-HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, uint64 asset_size)
+HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, u64 asset_size)
 {
     const HandleData handle_data = pool->FindOrCreate(asset_id, type_id, {});
     SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
@@ -440,7 +440,7 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
 
     // DDC validity 확인
     ContentHash source_hash;
-    uint32 cache_version;
+    u32 cache_version;
     const bool has_meta = registry->ReadRecord(asset_id, [&source_hash, &cache_version](const AssetRecord& record)
     {
         source_hash = record.metadata.source_hash;

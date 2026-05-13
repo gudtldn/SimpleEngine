@@ -113,7 +113,7 @@ public:
 class MeshScaleProcessor : public IPipelineProcessor
 {
 public:
-    explicit MeshScaleProcessor(float in_scale)
+    explicit MeshScaleProcessor(f32 in_scale)
         : scale(in_scale)
     {
     }
@@ -137,7 +137,7 @@ public:
     }
 
 private:
-    float scale = 1.0f;
+    f32 scale = 1.0f;
 };
 
 // 테스트용 Processor: MeshOffsetProcessor
@@ -192,7 +192,7 @@ TEST_F(AssetPipelineTest, ImportPipeline_ScaleProcessorTest)
     importer.RegisterFactory<StaticMeshFactory>();
 
     PipelineProcessorStack pipeline_stack;
-    constexpr float SCALE_FACTOR = 100.0f;
+    constexpr f32 SCALE_FACTOR = 100.0f;
     pipeline_stack.AddProcessor<MeshScaleProcessor>(SCALE_FACTOR);
 
     ImportProfile config;

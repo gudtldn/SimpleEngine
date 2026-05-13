@@ -24,7 +24,7 @@ class Path;
 struct IOResult
 {
     /** 읽어들인 파일 데이터 */
-    Array<uint8> data;
+    Array<u8> data;
 
     /** I/O 작업의 성공 여부 */
     bool success = false;

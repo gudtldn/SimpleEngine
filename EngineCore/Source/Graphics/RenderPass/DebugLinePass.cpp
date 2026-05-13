@@ -143,14 +143,14 @@ void DebugLinePass::Execute(RGExecutionContext& context)
 
         const SDL_GPUViewport viewport = {
             .x = 0.0f, .y = 0.0f,
-            .w = static_cast<float>(render_view.width),
-            .h = static_cast<float>(render_view.height),
+            .w = static_cast<f32>(render_view.width),
+            .h = static_cast<f32>(render_view.height),
             .min_depth = 0.0f, .max_depth = 1.0f,
         };
         const SDL_Rect scissor = {
             .x = 0, .y = 0,
-            .w = static_cast<int32>(render_view.width),
-            .h = static_cast<int32>(render_view.height),
+            .w = static_cast<i32>(render_view.width),
+            .h = static_cast<i32>(render_view.height),
         };
         SDL_SetGPUViewport(pass, &viewport);
         SDL_SetGPUScissor(pass, &scissor);
@@ -161,7 +161,7 @@ void DebugLinePass::Execute(RGExecutionContext& context)
         std::ranges::transform(
             vp.data,
             vpf.data.begin(),
-            [](double v) { return static_cast<float>(v); }
+            [](f64 v) { return static_cast<f32>(v); }
         );
         SDL_PushGPUVertexUniformData(cmd, 0, &vpf, sizeof(vpf));
 
@@ -172,7 +172,7 @@ void DebugLinePass::Execute(RGExecutionContext& context)
         SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
 
         // 라인 1개 = 정점 2개
-        SDL_DrawGPUPrimitives(pass, static_cast<uint32>(line_count) * 2, 1, 0, 0);
+        SDL_DrawGPUPrimitives(pass, static_cast<u32>(line_count) * 2, 1, 0, 0);
     }
     SDL_EndGPURenderPass(pass);
 }

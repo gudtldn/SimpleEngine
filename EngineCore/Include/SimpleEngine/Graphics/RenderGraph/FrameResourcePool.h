@@ -26,7 +26,7 @@ private:
     struct PooledResource
     {
         T* resource = nullptr;
-        uint32 idle_frames = 0;
+        u32 idle_frames = 0;
     };
 
     /** 특정 CreateInfo에 대한 Pool Entry */
@@ -63,7 +63,7 @@ public:
     void IncrementIdleCounters();
 
     /** max_idle_frames 이상 미사용된 대기 리소스를 실제 GPU 리소스로부터 해제합니다. */
-    void Trim(uint32 max_idle_frames);
+    void Trim(u32 max_idle_frames);
 
 private:
     template <typename T, typename CreateResourceFn>
@@ -75,7 +75,7 @@ private:
 
     template <typename T, typename ReleaseFn>
         requires std::invocable<ReleaseFn, T*>
-    static void TrimEntry(PoolEntry<T>& entry, uint32 max_idle_frames, ReleaseFn&& release_fn);
+    static void TrimEntry(PoolEntry<T>& entry, u32 max_idle_frames, ReleaseFn&& release_fn);
 
 private:
     RenderDevice* render_device;
@@ -111,7 +111,7 @@ void FrameResourcePool::ReleaseResourceInternal(PoolEntry<T>& entry, T* resource
 
 template <typename T, typename ReleaseFn>
     requires std::invocable<ReleaseFn, T*>
-void FrameResourcePool::TrimEntry(PoolEntry<T>& entry, uint32 max_idle_frames, ReleaseFn&& release_fn)
+void FrameResourcePool::TrimEntry(PoolEntry<T>& entry, u32 max_idle_frames, ReleaseFn&& release_fn)
 {
     for (isize i = static_cast<isize>(entry.available_resources.Len()) - 1; i >= 0; --i)
     {

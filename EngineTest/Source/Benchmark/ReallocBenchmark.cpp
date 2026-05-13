@@ -10,7 +10,7 @@ static void BM_OsMemoryRealloc_Naive(benchmark::State& state)
 {
     const auto old_size = state.range(0);
     const auto new_size = state.range(1);
-    constexpr size_t ALIGNMENT = 16;
+    constexpr usize ALIGNMENT = 16;
 
     for ([[maybe_unused]] auto _ : state)
     {

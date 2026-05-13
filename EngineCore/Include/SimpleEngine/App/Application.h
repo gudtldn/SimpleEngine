@@ -13,7 +13,7 @@ namespace se
 // forward declaration
 class Engine;
 
-enum class EApplicationMode : uint8
+enum class EApplicationMode : u8
 {
     GameClient,
     Editor,
@@ -66,7 +66,7 @@ protected:
 
     // 메인 루프의 각 단계
     virtual void ProcessPlatformEvents();
-    virtual void Update(double delta_time);
+    virtual void Update(f64 delta_time);
 
     virtual void Render();
 
@@ -76,24 +76,24 @@ protected:
     virtual void PostRelease();
 
 public:
-    [[nodiscard]] static uint32 GetTargetFps()
+    [[nodiscard]] static u32 GetTargetFps()
     {
         return target_fps;
     }
 
-    static void SetTargetFps(uint32 new_fps)
+    static void SetTargetFps(u32 new_fps)
     {
         target_fps = new_fps;
-        target_frame_time = 1.0 / static_cast<double>(target_fps);
+        target_frame_time = 1.0 / static_cast<f64>(target_fps);
         busy_wait_threshold = target_frame_time * busy_wait_ratio;
     }
 
-    [[nodiscard]] static double GetBusyWaitRatio()
+    [[nodiscard]] static f64 GetBusyWaitRatio()
     {
         return busy_wait_ratio;
     }
 
-    static void SetBusyWaitRatio(double new_ratio)
+    static void SetBusyWaitRatio(f64 new_ratio)
     {
         busy_wait_ratio = std::clamp(new_ratio, 0.0, 1.0);
         busy_wait_threshold = target_frame_time * busy_wait_ratio;
@@ -107,11 +107,11 @@ private:
     static Application* instance;
 
     // 프레임 pacing 정책
-    static uint32 target_fps;       // 목표 FPS
-    static double target_frame_time; // 목표 FPS 시간
+    static u32 target_fps;       // 목표 FPS
+    static f64 target_frame_time; // 목표 FPS 시간
 
-    static double busy_wait_ratio;     // 바쁜 대기 시간 비율
-    static double busy_wait_threshold; // 바쁜 대기 시간 제한
+    static f64 busy_wait_ratio;     // 바쁜 대기 시간 비율
+    static f64 busy_wait_threshold; // 바쁜 대기 시간 제한
 
     // Loop 제어 변수
     bool is_initialized = false;

@@ -105,13 +105,13 @@ public:
 
 public:
     /** Asset을 DDC payload로 직렬화합니다. */
-    [[nodiscard]] static Array<uint8> SerializeAssetPayload(const AssetBase& asset);
+    [[nodiscard]] static Array<u8> SerializeAssetPayload(const AssetBase& asset);
 
     /**
      * DDC payload에서 Asset을 역직렬화하여 AssetPayload로 반환합니다.
      * ptr과 destructor가 분리된 상태로 반환되므로, SlotEntry에 직접 저장할 수 있습니다.
      */
-    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, ArrayView<const uint8> payload_view);
+    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId& type_id, ArrayView<const u8> payload_view);
 
 public:
     [[nodiscard]] FORCE_INLINE AssetPool& GetPool() const { return *pool; }
@@ -119,7 +119,7 @@ public:
     [[nodiscard]] FORCE_INLINE DerivedDataCache& GetDDC() const { return *ddc; }
 
 private:
-    enum class ESlotAcquireResult : uint8
+    enum class ESlotAcquireResult : u8
     {
         Loaded,   // 메모리 Cache Hit (handle_data를 즉시 반환 가능)
         Acquired, // BeginLoad 획득 성공 (DDC 읽기 진행)
@@ -130,7 +130,7 @@ private:
     [[nodiscard]] JobTask<HandleData> LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope);
     [[nodiscard]] HandleData FindInternal(const TypeId& expected_type, const AssetId& asset_id) const;
     [[nodiscard]] HandleTable& GetHandleTable() const;
-    [[nodiscard]] HandleData RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, uint64 asset_size);
+    [[nodiscard]] HandleData RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, u64 asset_size);
 
     /**
      * 슬롯 상태를 확인하고 로딩 권한(BeginLoad)을 획득합니다.
@@ -139,7 +139,7 @@ private:
     [[nodiscard]] ESlotAcquireResult AcquireLoadSlot(HandleData handle_data, const TypeId& expected_type);
 
     /** 역직렬화된 payload를 SlotEntry에 커밋합니다. (메모리 추적 + 상태 전환 + 구 payload 지연 해제) */
-    void CommitLoadedPayload(HandleData handle_data, AssetPayload payload, uint64 payload_size, EScopeLayer scope);
+    void CommitLoadedPayload(HandleData handle_data, AssetPayload payload, u64 payload_size, EScopeLayer scope);
 
 private:
     std::unique_ptr<AssetPool> pool;
@@ -149,7 +149,7 @@ private:
     DDCMissHandler ddc_miss_handler;
 
     // Frame counter (Eviction 정책용)
-    uint64 frame_count = 0;
+    u64 frame_count = 0;
 
     TracyLockable(std::mutex, loading_mutex);
     std::condition_variable_any import_cv;    // 하나의 스레드에서만 Import를 보장하는 cv

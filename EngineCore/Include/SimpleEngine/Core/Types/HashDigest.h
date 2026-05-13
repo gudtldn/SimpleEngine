@@ -31,7 +31,7 @@ public:
 
 public:
     /** 원시 바이트 배열로부터 생성 */
-    static constexpr HashDigest FromRaw(const uint8 (&raw)[N])
+    static constexpr HashDigest FromRaw(const u8 (&raw)[N])
     {
         HashDigest result;
         if consteval
@@ -49,7 +49,7 @@ public:
     }
 
     /** 원시 바이트 포인터로부터 생성 */
-    static constexpr HashDigest FromRaw(const uint8* raw)
+    static constexpr HashDigest FromRaw(const u8* raw)
     {
         SE_ASSERT(raw != nullptr);
 
@@ -83,7 +83,7 @@ public:
         for (usize i = 0; i < N; ++i)
         {
             SE_ASSERT(IsHexChar(src[i * 2]) && IsHexChar(src[(i * 2) + 1]), "FromHex: invalid hex character detected");
-            result.data[i] = static_cast<uint8>(
+            result.data[i] = static_cast<u8>(
                 (HexCharToNibble(src[i * 2]) << 4) | HexCharToNibble(src[(i * 2) + 1])
             );
         }
@@ -117,8 +117,8 @@ public:
         return true;
     }
 
-    [[nodiscard]] const uint8* Data() const { return data.Data(); }
-    [[nodiscard]] uint8* Data() { return data.Data(); }
+    [[nodiscard]] const u8* Data() const { return data.Data(); }
+    [[nodiscard]] u8* Data() { return data.Data(); }
 
     [[nodiscard]] static constexpr usize Size() { return N; }
 
@@ -159,15 +159,15 @@ private:
         return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
     }
 
-    static constexpr uint8 HexCharToNibble(char c)
+    static constexpr u8 HexCharToNibble(char c)
     {
-        if (c >= '0' && c <= '9') { return static_cast<uint8>(c - '0'); }
-        if (c >= 'a' && c <= 'f') { return static_cast<uint8>(c - 'a' + 10); }
-        if (c >= 'A' && c <= 'F') { return static_cast<uint8>(c - 'A' + 10); }
+        if (c >= '0' && c <= '9') { return static_cast<u8>(c - '0'); }
+        if (c >= 'a' && c <= 'f') { return static_cast<u8>(c - 'a' + 10); }
+        if (c >= 'A' && c <= 'F') { return static_cast<u8>(c - 'A' + 10); }
         return 0;
     }
 
-    FixedArray<uint8, N> data{};
+    FixedArray<u8, N> data{};
 };
 
 /** SHA-256 Hash Digest (32 bytes) */
@@ -180,11 +180,11 @@ namespace std
 template <usize N>
 struct hash<se::HashDigest<N>>
 {
-    size_t operator()(const se::HashDigest<N>& digest) const noexcept
+    usize operator()(const se::HashDigest<N>& digest) const noexcept
     {
         // Hash Digest는 이미 균일 분포이므로 앞 바이트를 그대로 사용
-        size_t result = 0;
-        std::memcpy(&result, digest.Data(), std::min(sizeof(size_t), N));
+        usize result = 0;
+        std::memcpy(&result, digest.Data(), std::min(sizeof(usize), N));
         return result;
     }
 };

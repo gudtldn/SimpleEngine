@@ -102,9 +102,9 @@ public:
     {
         if (ar.IsLoading())
         {
-            uint64 count = 0;
+            u64 count = 0;
             ar.BeginMap(count);
-            for (uint64 i = 0; i < count; ++i)
+            for (u64 i = 0; i < count; ++i)
             {
                 ar.BeginMapKey();
                 TypeId type_id;
@@ -135,7 +135,7 @@ public:
         }
         else
         {
-            uint64 count = config.settings_map.Len();
+            u64 count = config.settings_map.Len();
             ar.BeginMap(count);
             for (auto& [type_id, settings_ptr] : config.settings_map)
             {

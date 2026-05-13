@@ -57,7 +57,7 @@ private:
 template <>
 struct std::hash<se::AssetPath>
 {
-    size_t operator()(const se::AssetPath& path) const noexcept
+    usize operator()(const se::AssetPath& path) const noexcept
     {
         usize hash = 0;
         se::HashUtils::Combine(hash, path.GetFilePath(), path.GetSubAssetName());

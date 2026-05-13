@@ -5,8 +5,8 @@ namespace se::editor
 {
 ImportResult::ImportResult(
     Array<ImportedAsset> in_entries,
-    HashMap<String, uint32> in_name_to_index,
-    uint32 in_main_asset_index
+    HashMap<String, u32> in_name_to_index,
+    u32 in_main_asset_index
 )
     : entries(std::move(in_entries))
     , name_to_index(std::move(in_name_to_index))
@@ -32,7 +32,7 @@ Optional<const ImportedAsset&> ImportResult::FindByName(StringView name) const
     return NullOpt;
 }
 
-uint32 ImportResult::Builder::RegisterAsset(
+u32 ImportResult::Builder::RegisterAsset(
     const String& name,
     AssetId asset_id,
     std::shared_ptr<AssetBase> asset,
@@ -40,7 +40,7 @@ uint32 ImportResult::Builder::RegisterAsset(
 )
 {
     const String unique_name = MakeUniqueName(name);
-    const auto index = static_cast<uint32>(entries.Len());
+    const auto index = static_cast<u32>(entries.Len());
 
     entries.Push({
         .name = unique_name,
@@ -52,7 +52,7 @@ uint32 ImportResult::Builder::RegisterAsset(
     return index;
 }
 
-void ImportResult::Builder::SetMainAssetIndex(uint32 index)
+void ImportResult::Builder::SetMainAssetIndex(u32 index)
 {
     main_asset_index = index;
 }
@@ -78,7 +78,7 @@ String ImportResult::Builder::MakeUniqueName(const String& base_name)
     }
 
     // 중복 시 suffix 추가: Name_1, Name_2, ...
-    uint32& suffix = next_suffix_map[base_name];
+    u32& suffix = next_suffix_map[base_name];
     ++suffix;
 
     String candidate;

@@ -49,7 +49,7 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
     lod0.screen_size = 1.0f; // 기본 LOD
 
     // Material Index 매핑용 임시 배열 (중복 방지)
-    Array<uint32> unique_materials;
+    Array<u32> unique_materials;
 
     for (const PipelineMeshSection& pipeline_section : mesh_node->sections)
     {
@@ -62,11 +62,11 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         // Material Index를 0부터 시작하는 연속된 배열 인덱스로 매핑
         if (const auto found_idx = unique_materials.Find(pipeline_section.material_index))
         {
-            section.material_slot = static_cast<uint16>(*found_idx);
+            section.material_slot = static_cast<u16>(*found_idx);
         }
         else
         {
-            section.material_slot = static_cast<uint16>(unique_materials.Len());
+            section.material_slot = static_cast<u16>(unique_materials.Len());
             unique_materials.Push(pipeline_section.material_index);
         }
 
@@ -74,19 +74,19 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
         AABBf section_bounds;
         if (section.index_count > 0)
         {
-            for (uint32 i = 0; i < section.index_count; ++i)
+            for (u32 i = 0; i < section.index_count; ++i)
             {
-                const uint32 index = static_mesh->indices[section.index_offset + i];
-                const uint32 vertex_index = index + section.vertex_offset;
+                const u32 index = static_mesh->indices[section.index_offset + i];
+                const u32 vertex_index = index + section.vertex_offset;
                 section_bounds.Expand(static_mesh->vertices[vertex_index].position);
             }
         }
         else
         {
             // 비-인덱스 드로우: vertex_offset부터 vertex_count만큼 직접 순회
-            for (uint32 i = 0; i < section.vertex_count; ++i)
+            for (u32 i = 0; i < section.vertex_count; ++i)
             {
-                const uint32 vertex_index = static_cast<uint32>(section.vertex_offset) + i;
+                const u32 vertex_index = static_cast<u32>(section.vertex_offset) + i;
                 section_bounds.Expand(static_mesh->vertices[vertex_index].position);
             }
         }
@@ -100,9 +100,9 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
     // 고유 머티리얼 슬롯별로 MaterialInstance AssetId를 연결
     // 만약 material_node_uids가 없다면 AssetId::Invalid로 폴백
     static_mesh->default_materials.Reserve(unique_materials.Len());
-    for (uint32 i = 0; i < unique_materials.Len(); ++i)
+    for (u32 i = 0; i < unique_materials.Len(); ++i)
     {
-        const uint32 ai_mat_idx = unique_materials[i];
+        const u32 ai_mat_idx = unique_materials[i];
         if (ai_mat_idx < mesh_node->material_node_uids.Len())
         {
             const Guid& mat_guid = mesh_node->material_node_uids[ai_mat_idx];

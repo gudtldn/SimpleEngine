@@ -14,7 +14,7 @@ GizmoDrawList::GizmoDrawList(RenderDevice& in_device)
     : device(std::addressof(in_device))
 {
     // 라인 정점 버퍼 생성 (LINELIST용, 라인 1개 = 정점 2개)
-    constexpr uint32 LINE_VERTEX_SIZE = sizeof(GizmoVertex) * MAX_LINES * 2;
+    constexpr u32 LINE_VERTEX_SIZE = sizeof(GizmoVertex) * MAX_LINES * 2;
     line_vertex_buffer_rid = device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = LINE_VERTEX_SIZE,
@@ -22,7 +22,7 @@ GizmoDrawList::GizmoDrawList(RenderDevice& in_device)
     SE_ASSERT_RELEASE(device->IsValidBuffer(line_vertex_buffer_rid));
 
     // 삼각형 정점 버퍼 생성 (TRIANGLELIST용, 삼각형 1개 = 정점 3개)
-    constexpr uint32 TRIANGLE_VERTEX_SIZE = sizeof(GizmoVertex) * MAX_TRIANGLES * 3;
+    constexpr u32 TRIANGLE_VERTEX_SIZE = sizeof(GizmoVertex) * MAX_TRIANGLES * 3;
     triangle_vertex_buffer_rid = device->CreateBuffer({
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
         .size = TRIANGLE_VERTEX_SIZE,
@@ -96,7 +96,7 @@ void GizmoDrawList::AddTriangle(const GizmoVertex& v0, const GizmoVertex& v1, co
 void GizmoDrawList::UploadToGpu(SDL_GPUCommandBuffer* cmd)
 {
     // Upload Line Vertex
-    const uint32 line_vertex_size = static_cast<uint32>(line_vertices.Len() * sizeof(GizmoVertex));
+    const u32 line_vertex_size = static_cast<u32>(line_vertices.Len() * sizeof(GizmoVertex));
     if (line_vertex_size > 0)
     {
         // cycle=true: 이전 프레임의 전송이 아직 진행 중이면 새 메모리 할당
@@ -130,7 +130,7 @@ void GizmoDrawList::UploadToGpu(SDL_GPUCommandBuffer* cmd)
     }
 
     // Upload Triangle Vertex
-    const uint32 triangle_vertex_size = static_cast<uint32>(triangle_vertices.Len() * sizeof(GizmoVertex));
+    const u32 triangle_vertex_size = static_cast<u32>(triangle_vertices.Len() * sizeof(GizmoVertex));
     if (triangle_vertex_size > 0)
     {
         // cycle=true: Line Vertex가 아직 업로드 중 이라면 새 메모리 할당

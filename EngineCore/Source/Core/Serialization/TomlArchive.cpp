@@ -94,7 +94,7 @@ void TomlReader::EndObject()
     context_stack.Pop();
 }
 
-void TomlReader::BeginArray(uint64& count)
+void TomlReader::BeginArray(u64& count)
 {
     toml::node* sub_node = GetCurrentNode();
     if (SE_ENSURE(sub_node && sub_node->is_array(), "TomlReader::BeginArray - Expected an array node. (pending_key: '{}')", pending_key))
@@ -123,7 +123,7 @@ void TomlReader::EndArray()
     context_stack.Pop();
 }
 
-void TomlReader::BeginMap(uint64& count)
+void TomlReader::BeginMap(u64& count)
 {
     const Context& ctx = GetCurrentContext();
 
@@ -229,7 +229,7 @@ void TomlReader::EndMapValue()
 }
 
 // Raw 바이트 (텍스트에서는 미지원)
-void TomlReader::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] uint64 size)
+void TomlReader::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
 {
     // TODO: Base64 디코딩 지원
 }
@@ -249,7 +249,7 @@ void TomlReader::SerializeBool(bool& value)
     ReadValue(value);
 }
 
-void TomlReader::SerializeInt8(int8& value)
+void TomlReader::SerializeInt8(i8& value)
 {
     if (reading_map_key)
     {
@@ -257,14 +257,14 @@ void TomlReader::SerializeInt8(int8& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<int8>(temp);
+        value = static_cast<i8>(temp);
     }
 }
 
-void TomlReader::SerializeUInt8(uint8& value)
+void TomlReader::SerializeUInt8(u8& value)
 {
     if (reading_map_key)
     {
@@ -272,14 +272,14 @@ void TomlReader::SerializeUInt8(uint8& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<uint8>(temp);
+        value = static_cast<u8>(temp);
     }
 }
 
-void TomlReader::SerializeInt16(int16& value)
+void TomlReader::SerializeInt16(i16& value)
 {
     if (reading_map_key)
     {
@@ -287,14 +287,14 @@ void TomlReader::SerializeInt16(int16& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<int16>(temp);
+        value = static_cast<i16>(temp);
     }
 }
 
-void TomlReader::SerializeUInt16(uint16& value)
+void TomlReader::SerializeUInt16(u16& value)
 {
     if (reading_map_key)
     {
@@ -302,14 +302,14 @@ void TomlReader::SerializeUInt16(uint16& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<uint16>(temp);
+        value = static_cast<u16>(temp);
     }
 }
 
-void TomlReader::SerializeInt32(int32& value)
+void TomlReader::SerializeInt32(i32& value)
 {
     if (reading_map_key)
     {
@@ -317,14 +317,14 @@ void TomlReader::SerializeInt32(int32& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<int32>(temp);
+        value = static_cast<i32>(temp);
     }
 }
 
-void TomlReader::SerializeUInt32(uint32& value)
+void TomlReader::SerializeUInt32(u32& value)
 {
     if (reading_map_key)
     {
@@ -332,14 +332,14 @@ void TomlReader::SerializeUInt32(uint32& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<uint32>(temp);
+        value = static_cast<u32>(temp);
     }
 }
 
-void TomlReader::SerializeInt64(int64& value)
+void TomlReader::SerializeInt64(i64& value)
 {
     if (reading_map_key)
     {
@@ -349,7 +349,7 @@ void TomlReader::SerializeInt64(int64& value)
     ReadValue(value);
 }
 
-void TomlReader::SerializeUInt64(uint64& value)
+void TomlReader::SerializeUInt64(u64& value)
 {
     if (reading_map_key)
     {
@@ -357,14 +357,14 @@ void TomlReader::SerializeUInt64(uint64& value)
         return;
     }
 
-    int64 temp = 0;
+    i64 temp = 0;
     if (ReadValue(temp))
     {
-        value = static_cast<uint64>(temp);
+        value = static_cast<u64>(temp);
     }
 }
 
-void TomlReader::SerializeFloat(float& value)
+void TomlReader::SerializeFloat(f32& value)
 {
     if (reading_map_key)
     {
@@ -372,14 +372,14 @@ void TomlReader::SerializeFloat(float& value)
         return;
     }
 
-    double temp = 0.0;
+    f64 temp = 0.0;
     if (ReadValue(temp))
     {
-        value = static_cast<float>(temp);
+        value = static_cast<f32>(temp);
     }
 }
 
-void TomlReader::SerializeDouble(double& value)
+void TomlReader::SerializeDouble(f64& value)
 {
     if (reading_map_key)
     {
@@ -505,7 +505,7 @@ void TomlWriter::EndObject()
     context_stack.Pop();
 }
 
-void TomlWriter::BeginArray([[maybe_unused]] uint64& count)
+void TomlWriter::BeginArray([[maybe_unused]] u64& count)
 {
     toml::array* arr = InsertNewNode<toml::array>(toml::array{});
     SE_ASSERT(arr, "TomlWriter::BeginArray - Failed to insert new array node.");
@@ -521,7 +521,7 @@ void TomlWriter::EndArray()
     context_stack.Pop();
 }
 
-void TomlWriter::BeginMap([[maybe_unused]] uint64& count)
+void TomlWriter::BeginMap([[maybe_unused]] u64& count)
 {
     const Context& ctx = GetCurrentContext();
 
@@ -575,7 +575,7 @@ void TomlWriter::BeginMapValue() {}
 void TomlWriter::EndMapValue() {}
 
 // Raw 바이트 (텍스트에서는 미지원)
-void TomlWriter::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] uint64 size)
+void TomlWriter::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
 {
     // TODO: Base64 인코딩 지원
 }
@@ -597,67 +597,67 @@ void TomlWriter::SerializeBool(bool& value)
     WriteValue(value);
 }
 
-void TomlWriter::SerializeInt8(int8& value)
+void TomlWriter::SerializeInt8(i8& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeUInt8(uint8& value)
+void TomlWriter::SerializeUInt8(u8& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeInt16(int16& value)
+void TomlWriter::SerializeInt16(i16& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeUInt16(uint16& value)
+void TomlWriter::SerializeUInt16(u16& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeInt32(int32& value)
+void TomlWriter::SerializeInt32(i32& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeUInt32(uint32& value)
+void TomlWriter::SerializeUInt32(u32& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeInt64(int64& value)
+void TomlWriter::SerializeInt64(i64& value)
 {
     if (capturing_map_key)
     {
@@ -667,27 +667,27 @@ void TomlWriter::SerializeInt64(int64& value)
     WriteValue(value);
 }
 
-void TomlWriter::SerializeUInt64(uint64& value)
+void TomlWriter::SerializeUInt64(u64& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<int64>(value));
+    WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeFloat(float& value)
+void TomlWriter::SerializeFloat(f32& value)
 {
     if (capturing_map_key)
     {
         current_map_key = String::Format("{}", value);
         return;
     }
-    WriteValue(static_cast<double>(value));
+    WriteValue(static_cast<f64>(value));
 }
 
-void TomlWriter::SerializeDouble(double& value)
+void TomlWriter::SerializeDouble(f64& value)
 {
     if (capturing_map_key)
     {

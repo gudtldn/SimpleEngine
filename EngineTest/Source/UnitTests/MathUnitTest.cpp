@@ -20,10 +20,10 @@ TEST_F(MathLiteralsTest, AngleType_ConstructionAndLiterals)
 {
     // Direct construction
     {
-        Degree<double> d(90.0);
+        Degree<f64> d(90.0);
         EXPECT_EQ(d.value, 90.0);
 
-        Radian<float> r(1.57f);
+        Radian<f32> r(1.57f);
         EXPECT_EQ(r.value, 1.57f);
     }
 
@@ -31,21 +31,21 @@ TEST_F(MathLiteralsTest, AngleType_ConstructionAndLiterals)
     {
         auto d_double = 180.0_deg;
         EXPECT_EQ(d_double.value, 180.0);
-        static_assert(std::same_as<decltype(d_double), Degree<double>>);
+        static_assert(std::same_as<decltype(d_double), Degree<f64>>);
 
         auto d_ull = 90_deg;
         EXPECT_EQ(d_ull.value, 90.0);
-        static_assert(std::same_as<decltype(d_ull), Degree<double>>);
+        static_assert(std::same_as<decltype(d_ull), Degree<f64>>);
 
         auto r_float = 3.14_radf;
         EXPECT_EQ(r_float.value, 3.14f);
-        static_assert(std::same_as<decltype(r_float), Radian<float>>);
+        static_assert(std::same_as<decltype(r_float), Radian<f32>>);
     }
 
     // Construction from different floating type
     {
-        Degree<float> d_float(45.0f);
-        Degree<double> d_double(d_float);
+        Degree<f32> d_float(45.0f);
+        Degree<f64> d_double(d_float);
         EXPECT_DOUBLE_EQ(d_double.value, 45.0);
     }
 }
@@ -55,15 +55,15 @@ TEST_F(MathLiteralsTest, AngleType_UnitConversions)
     // Degree to Radian
     {
         auto deg = 90.0_deg;
-        auto rad = Radian<double>(deg); // 명시적 생성자 호출
+        auto rad = Radian<f64>(deg); // 명시적 생성자 호출
 
         EXPECT_DOUBLE_EQ(rad.value, std::numbers::pi / 2.0);
     }
 
     // Radian to Degree
     {
-        auto rad = Radian<float>(std::numbers::pi_v<float>);
-        auto deg = Degree<float>(rad); // 명시적 생성자 호출
+        auto rad = Radian<f32>(std::numbers::pi_v<f32>);
+        auto deg = Degree<f32>(rad); // 명시적 생성자 호출
 
         EXPECT_FLOAT_EQ(deg.value, 180.0f);
     }
@@ -71,7 +71,7 @@ TEST_F(MathLiteralsTest, AngleType_UnitConversions)
     // Explicit cast operator
     {
         auto deg = 180.0_deg;
-        auto rad = static_cast<Radian<double>>(deg);
+        auto rad = static_cast<Radian<f64>>(deg);
 
         EXPECT_DOUBLE_EQ(rad.value, std::numbers::pi);
     }
@@ -79,10 +79,10 @@ TEST_F(MathLiteralsTest, AngleType_UnitConversions)
     // Conversion to underlying numeric type
     {
         auto deg = 45.0_deg;
-        double value = static_cast<double>(deg);
+        f64 value = static_cast<f64>(deg);
         EXPECT_DOUBLE_EQ(value, 45.0);
 
-        double value_from_op = *deg;
+        f64 value_from_op = *deg;
         EXPECT_DOUBLE_EQ(value_from_op, 45.0);
     }
 }
@@ -96,7 +96,7 @@ TEST_F(MathLiteralsTest, AngleType_ArithmeticOperations)
     {
         auto result = d1 + d2;
         EXPECT_DOUBLE_EQ(result.value, 135.0);
-        static_assert(std::same_as<decltype(result), Degree<double>>);
+        static_assert(std::same_as<decltype(result), Degree<f64>>);
     }
 
     // Angle - Angle
@@ -155,11 +155,11 @@ TEST_F(MathLiteralsTest, AngleType_ComparisonOperations)
 TEST_F(MathLiteralsTest, AngleType_ConstexprEvaluation)
 {
     constexpr auto DEG_AT_COMPILE_TIME = 90.0_degf;
-    constexpr auto RAD_AT_COMPILE_TIME = Radian<float>(DEG_AT_COMPILE_TIME);
+    constexpr auto RAD_AT_COMPILE_TIME = Radian<f32>(DEG_AT_COMPILE_TIME);
     constexpr auto CALCULATED_AT_COMPILE_TIME = RAD_AT_COMPILE_TIME * 2.0f;
 
     // Check if the final value is correct
-    EXPECT_FLOAT_EQ(CALCULATED_AT_COMPILE_TIME.value, std::numbers::pi_v<float>);
+    EXPECT_FLOAT_EQ(CALCULATED_AT_COMPILE_TIME.value, std::numbers::pi_v<f32>);
 
     // Statically assert to be absolutely sure it's constexpr
     static_assert(CALCULATED_AT_COMPILE_TIME.value > 3.14f && CALCULATED_AT_COMPILE_TIME.value < 3.15f);
@@ -188,8 +188,8 @@ void test_vector2_basic()
     EXPECT_NEAR(v1.Length(), std::sqrt(5.0), EPSILON<T>);
 }
 
-TEST_F(MathVector2Test, float_Basic) { test_vector2_basic<float>(); }
-TEST_F(MathVector2Test, double_Basic) { test_vector2_basic<double>(); }
+TEST_F(MathVector2Test, float_Basic) { test_vector2_basic<f32>(); }
+TEST_F(MathVector2Test, double_Basic) { test_vector2_basic<f64>(); }
 
 // Vector3 Tests
 template <typename T>
@@ -210,8 +210,8 @@ void test_vector3_basic()
     EXPECT_NEAR(v4.Length(), 3, EPSILON<T>);
 }
 
-TEST_F(MathVector3Test, float_Basic) { test_vector3_basic<float>(); }
-TEST_F(MathVector3Test, double_Basic) { test_vector3_basic<double>(); }
+TEST_F(MathVector3Test, float_Basic) { test_vector3_basic<f32>(); }
+TEST_F(MathVector3Test, double_Basic) { test_vector3_basic<f64>(); }
 
 // Vector4 Tests
 template <typename T>
@@ -227,8 +227,8 @@ void test_vector4_basic()
     EXPECT_NEAR(v2.w, 5, EPSILON<T>);
 }
 
-TEST_F(MathVector4Test, float_Basic) { test_vector4_basic<float>(); }
-TEST_F(MathVector4Test, double_Basic) { test_vector4_basic<double>(); }
+TEST_F(MathVector4Test, float_Basic) { test_vector4_basic<f32>(); }
+TEST_F(MathVector4Test, double_Basic) { test_vector4_basic<f64>(); }
 
 // Quaternion Tests
 template <typename T>
@@ -258,8 +258,8 @@ void test_quaternion_basic()
     EXPECT_NEAR(fwd.z, 0, EPSILON<T>);
 }
 
-TEST_F(MathQuaternionTest, float_Basic) { test_quaternion_basic<float>(); }
-TEST_F(MathQuaternionTest, double_Basic) { test_quaternion_basic<double>(); }
+TEST_F(MathQuaternionTest, float_Basic) { test_quaternion_basic<f32>(); }
+TEST_F(MathQuaternionTest, double_Basic) { test_quaternion_basic<f64>(); }
 
 // Rotator Tests
 template <typename T>
@@ -277,8 +277,8 @@ void test_rotator_basic()
     EXPECT_NEAR(r2.yaw.value, 90, 1e-5);
 }
 
-TEST_F(MathRotatorTest, float_Basic) { test_rotator_basic<float>(); }
-TEST_F(MathRotatorTest, double_Basic) { test_rotator_basic<double>(); }
+TEST_F(MathRotatorTest, float_Basic) { test_rotator_basic<f32>(); }
+TEST_F(MathRotatorTest, double_Basic) { test_rotator_basic<f64>(); }
 
 
 
@@ -306,12 +306,12 @@ void test_matrix_creation_and_zero()
 
 TEST_F(MathMatrix4x4Test, float_CreationAndZero)
 {
-    test_matrix_creation_and_zero<float>();
+    test_matrix_creation_and_zero<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_CreationAndZero)
 {
-    test_matrix_creation_and_zero<double>();
+    test_matrix_creation_and_zero<f64>();
 }
 
 template <typename T>
@@ -332,12 +332,12 @@ void test_matrix_variadic_constructor()
 
 TEST_F(MathMatrix4x4Test, float_VariadicConstructor)
 {
-    test_matrix_variadic_constructor<float>();
+    test_matrix_variadic_constructor<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_VariadicConstructor)
 {
-    test_matrix_variadic_constructor<double>();
+    test_matrix_variadic_constructor<f64>();
 }
 
 template <typename T>
@@ -362,12 +362,12 @@ void test_matrix_identity_matrix()
 
 TEST_F(MathMatrix4x4Test, float_IdentityMatrix)
 {
-    test_matrix_identity_matrix<float>();
+    test_matrix_identity_matrix<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_IdentityMatrix)
 {
-    test_matrix_identity_matrix<double>();
+    test_matrix_identity_matrix<f64>();
 }
 
 template <typename T>
@@ -392,12 +392,12 @@ void test_matrix_transpose()
 
 TEST_F(MathMatrix4x4Test, float_Transpose)
 {
-    test_matrix_transpose<float>();
+    test_matrix_transpose<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_Transpose)
 {
-    test_matrix_transpose<double>();
+    test_matrix_transpose<f64>();
 }
 
 template <typename T>
@@ -431,12 +431,12 @@ void test_matrix_addition()
 
 TEST_F(MathMatrix4x4Test, float_Addition)
 {
-    test_matrix_addition<float>();
+    test_matrix_addition<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_Addition)
 {
-    test_matrix_addition<double>();
+    test_matrix_addition<f64>();
 }
 
 template <typename T>
@@ -463,12 +463,12 @@ void test_matrix_scalar_multiplication()
 
 TEST_F(MathMatrix4x4Test, float_ScalarMultiplication)
 {
-    test_matrix_scalar_multiplication<float>();
+    test_matrix_scalar_multiplication<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_ScalarMultiplication)
 {
-    test_matrix_scalar_multiplication<double>();
+    test_matrix_scalar_multiplication<f64>();
 }
 
 template <typename T>
@@ -534,12 +534,12 @@ void test_matrix_multiplication()
 
 TEST_F(MathMatrix4x4Test, float_MatrixMultiplication)
 {
-    test_matrix_multiplication<float>();
+    test_matrix_multiplication<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_MatrixMultiplication)
 {
-    test_matrix_multiplication<double>();
+    test_matrix_multiplication<f64>();
 }
 
 template <typename T>
@@ -579,12 +579,12 @@ void test_matrix_vector4_multiplication()
 
 TEST_F(MathMatrix4x4Test, float_Vector4Multiplication)
 {
-    test_matrix_vector4_multiplication<float>();
+    test_matrix_vector4_multiplication<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_Vector4Multiplication)
 {
-    test_matrix_vector4_multiplication<double>();
+    test_matrix_vector4_multiplication<f64>();
 }
 
 template <typename T>
@@ -666,12 +666,12 @@ void test_matrix_inverse()
 
 TEST_F(MathMatrix4x4Test, float_Inverse)
 {
-    test_matrix_inverse<float>();
+    test_matrix_inverse<f32>();
 }
 
 TEST_F(MathMatrix4x4Test, double_Inverse)
 {
-    test_matrix_inverse<double>();
+    test_matrix_inverse<f64>();
 }
 
 // -- Decompose Tests --
@@ -690,8 +690,8 @@ void test_decompose_translation()
     EXPECT_NEAR(result.z, expected_pos.z, EPSILON<T>);
 }
 
-TEST_F(MathMatrix4x4Test, float_DecomposeTranslation) { test_decompose_translation<float>(); }
-TEST_F(MathMatrix4x4Test, double_DecomposeTranslation) { test_decompose_translation<double>(); }
+TEST_F(MathMatrix4x4Test, float_DecomposeTranslation) { test_decompose_translation<f32>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeTranslation) { test_decompose_translation<f64>(); }
 
 template <typename T>
 void test_decompose_scale()
@@ -707,8 +707,8 @@ void test_decompose_scale()
     EXPECT_NEAR(result.z, expected_scale.z, EPSILON<T>);
 }
 
-TEST_F(MathMatrix4x4Test, float_DecomposeScale) { test_decompose_scale<float>(); }
-TEST_F(MathMatrix4x4Test, double_DecomposeScale) { test_decompose_scale<double>(); }
+TEST_F(MathMatrix4x4Test, float_DecomposeScale) { test_decompose_scale<f32>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeScale) { test_decompose_scale<f64>(); }
 
 template <typename T>
 void test_decompose_scale_negative()
@@ -726,8 +726,8 @@ void test_decompose_scale_negative()
     EXPECT_NEAR(result.z, expected_scale.z, EPSILON<T>);
 }
 
-TEST_F(MathMatrix4x4Test, float_DecomposeScaleNegative) { test_decompose_scale_negative<float>(); }
-TEST_F(MathMatrix4x4Test, double_DecomposeScaleNegative) { test_decompose_scale_negative<double>(); }
+TEST_F(MathMatrix4x4Test, float_DecomposeScaleNegative) { test_decompose_scale_negative<f32>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeScaleNegative) { test_decompose_scale_negative<f64>(); }
 
 template <typename T>
 void test_decompose_rotation()
@@ -751,8 +751,8 @@ void test_decompose_rotation()
     EXPECT_NEAR(result.w * sign, expected_rot.w, EPSILON<T> * 100);
 }
 
-TEST_F(MathMatrix4x4Test, float_DecomposeRotation) { test_decompose_rotation<float>(); }
-TEST_F(MathMatrix4x4Test, double_DecomposeRotation) { test_decompose_rotation<double>(); }
+TEST_F(MathMatrix4x4Test, float_DecomposeRotation) { test_decompose_rotation<f32>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeRotation) { test_decompose_rotation<f64>(); }
 
 template <typename T>
 void test_decompose_model_matrix_roundtrip()
@@ -796,8 +796,8 @@ void test_decompose_model_matrix_roundtrip()
     EXPECT_NEAR(result_rot.w * sign, expected_rot.w, EPSILON<T> * 100);
 }
 
-TEST_F(MathMatrix4x4Test, float_DecomposeModelMatrixRoundtrip) { test_decompose_model_matrix_roundtrip<float>(); }
-TEST_F(MathMatrix4x4Test, double_DecomposeModelMatrixRoundtrip) { test_decompose_model_matrix_roundtrip<double>(); }
+TEST_F(MathMatrix4x4Test, float_DecomposeModelMatrixRoundtrip) { test_decompose_model_matrix_roundtrip<f32>(); }
+TEST_F(MathMatrix4x4Test, double_DecomposeModelMatrixRoundtrip) { test_decompose_model_matrix_roundtrip<f64>(); }
 
 // AABB Tests
 class MathAABBTest : public ::testing::Test{};
@@ -833,8 +833,8 @@ void test_aabb_construction_and_properties()
     EXPECT_NEAR(aabb_from_center.GetSize().x, 2, EPSILON<T>);
 }
 
-TEST_F(MathAABBTest, float_ConstructionAndProperties) { test_aabb_construction_and_properties<float>(); }
-TEST_F(MathAABBTest, double_ConstructionAndProperties) { test_aabb_construction_and_properties<double>(); }
+TEST_F(MathAABBTest, float_ConstructionAndProperties) { test_aabb_construction_and_properties<f32>(); }
+TEST_F(MathAABBTest, double_ConstructionAndProperties) { test_aabb_construction_and_properties<f64>(); }
 
 template <typename T>
 void test_aabb_expansion()
@@ -859,8 +859,8 @@ void test_aabb_expansion()
     EXPECT_NEAR(aabb.max.x, 4, EPSILON<T>);
 }
 
-TEST_F(MathAABBTest, float_Expansion) { test_aabb_expansion<float>(); }
-TEST_F(MathAABBTest, double_Expansion) { test_aabb_expansion<double>(); }
+TEST_F(MathAABBTest, float_Expansion) { test_aabb_expansion<f32>(); }
+TEST_F(MathAABBTest, double_Expansion) { test_aabb_expansion<f64>(); }
 
 template <typename T>
 void test_aabb_containment_intersection()
@@ -883,8 +883,8 @@ void test_aabb_containment_intersection()
     EXPECT_FALSE(aabb.Intersects(non_overlapping));
 }
 
-TEST_F(MathAABBTest, float_ContainmentIntersection) { test_aabb_containment_intersection<float>(); }
-TEST_F(MathAABBTest, double_ContainmentIntersection) { test_aabb_containment_intersection<double>(); }
+TEST_F(MathAABBTest, float_ContainmentIntersection) { test_aabb_containment_intersection<f32>(); }
+TEST_F(MathAABBTest, double_ContainmentIntersection) { test_aabb_containment_intersection<f64>(); }
 
 
 // Color & LinearColor Tests
@@ -900,11 +900,11 @@ TEST_F(MathColorTest, Color_ConstructionAndConversion)
     EXPECT_EQ(red.a, 255);
 
     // From packed integer
-    // uint32 packed_red_argb = 0xFFFF0000; // A=FF, R=FF, G=00, B=00 (ARGB)
+    // u32 packed_red_argb = 0xFFFF0000; // A=FF, R=FF, G=00, B=00 (ARGB)
     // Note: Color::ToPackedARGB() does (a << 24) | (r << 16)...
-    // So constructor from uint32 assumes 0xRRGGBBAA as per comment?
+    // So constructor from u32 assumes 0xRRGGBBAA as per comment?
     // Let's check implementation:
-    // Color(uint32 rgba) : r((rgba >> 24) & 0xFF), ...
+    // Color(u32 rgba) : r((rgba >> 24) & 0xFF), ...
     // So 0xFF0000FF would be Red in RGBA
     Color red_from_packed(0xFF0000FF);
     EXPECT_EQ(red_from_packed.r, 255);
@@ -1011,16 +1011,16 @@ void test_ray_intersection()
     EXPECT_NEAR(dist, static_cast<T>(1), EPSILON<T>); // 원점에서 오른쪽 벽(x=1)까지 거리
 }
 
-TEST_F(MathRayTest, float_Intersection) { test_ray_intersection<float>(); }
-TEST_F(MathRayTest, double_Intersection) { test_ray_intersection<double>(); }
+TEST_F(MathRayTest, float_Intersection) { test_ray_intersection<f32>(); }
+TEST_F(MathRayTest, double_Intersection) { test_ray_intersection<f64>(); }
 
 // MathUtility Tests
 class MathUtilityTest : public ::testing::Test{};
 
 TEST_F(MathUtilityTest, AbsImpl_vs_StdAbs)
 {
-    float values[] = { 0.0f, -0.0f, 1.0f, -1.0f, 123.456f, -123.456f, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
-    for (float v : values)
+    f32 values[] = { 0.0f, -0.0f, 1.0f, -1.0f, 123.456f, -123.456f, std::numeric_limits<f32>::infinity(), -std::numeric_limits<f32>::infinity() };
+    for (f32 v : values)
     {
         EXPECT_EQ(math::detail::AbsImpl(v), std::abs(v));
     }
@@ -1028,7 +1028,7 @@ TEST_F(MathUtilityTest, AbsImpl_vs_StdAbs)
 
 TEST_F(MathUtilityTest, Fmod_vs_StdFmod)
 {
-    struct Case { float x; float y; };
+    struct Case { f32 x; f32 y; };
     Case cases[] = {
         { 5.3f, 2.0f }, { 18.5f, 4.2f }, { -5.3f, 2.0f }, { 5.3f, -2.0f },
         { 0.0f, 1.0f }, { 1.0f, 1.0f }
@@ -1036,16 +1036,16 @@ TEST_F(MathUtilityTest, Fmod_vs_StdFmod)
 
     for (const auto& c : cases)
     {
-        EXPECT_NEAR(math::detail::Fmod(c.x, c.y), std::fmod(c.x, c.y), EPSILON<float>);
+        EXPECT_NEAR(math::detail::Fmod(c.x, c.y), std::fmod(c.x, c.y), EPSILON<f32>);
     }
 }
 
 TEST_F(MathUtilityTest, Sqrt_vs_StdSqrt)
 {
-    float values[] = { 0.0f, 1.0f, 2.0f, 4.0f, 100.0f, 0.25f };
-    for (float v : values)
+    f32 values[] = { 0.0f, 1.0f, 2.0f, 4.0f, 100.0f, 0.25f };
+    for (f32 v : values)
     {
-        EXPECT_NEAR(math::detail::Sqrt(v), std::sqrt(v), EPSILON<float>);
+        EXPECT_NEAR(math::detail::Sqrt(v), std::sqrt(v), EPSILON<f32>);
     }
 
     // NaN check for negative
@@ -1054,8 +1054,8 @@ TEST_F(MathUtilityTest, Sqrt_vs_StdSqrt)
 
 TEST_F(MathUtilityTest, Exp_vs_StdExp)
 {
-    float values[] = { 0.0f, 1.0f, -1.0f, 0.5f, 2.0f };
-    for (float v : values)
+    f32 values[] = { 0.0f, 1.0f, -1.0f, 0.5f, 2.0f };
+    for (f32 v : values)
     {
         // Relaxed tolerance for approximation
         EXPECT_NEAR(math::detail::Exp(v), std::exp(v), 1e-5f);
@@ -1064,16 +1064,16 @@ TEST_F(MathUtilityTest, Exp_vs_StdExp)
 
 TEST_F(MathUtilityTest, Ln_vs_StdLog)
 {
-    float values[] = { 1.0f, 2.71828f, 10.0f, 0.5f };
-    for (float v : values)
+    f32 values[] = { 1.0f, 2.71828f, 10.0f, 0.5f };
+    for (f32 v : values)
     {
-        EXPECT_NEAR(math::detail::Ln(v), std::log(v), EPSILON<float>);
+        EXPECT_NEAR(math::detail::Ln(v), std::log(v), EPSILON<f32>);
     }
 }
 
 TEST_F(MathUtilityTest, Pow_vs_StdPow)
 {
-    struct Case { float b; float e; };
+    struct Case { f32 b; f32 e; };
     Case cases[] = {
         { 2.0f, 3.0f }, { 2.0f, 0.0f }, { 2.0f, 1.0f },
         { 4.0f, 0.5f }, { 2.0f, -1.0f }, { 2.5f, 2.0f }
@@ -1081,15 +1081,15 @@ TEST_F(MathUtilityTest, Pow_vs_StdPow)
 
     for (const auto& c : cases)
     {
-        EXPECT_NEAR(math::detail::Pow(c.b, c.e), std::pow(c.b, c.e), EPSILON<float>);
+        EXPECT_NEAR(math::detail::Pow(c.b, c.e), std::pow(c.b, c.e), EPSILON<f32>);
     }
 }
 
 TEST_F(MathUtilityTest, Classification_Functions)
 {
-    float inf = std::numeric_limits<float>::infinity();
-    float nan = std::numeric_limits<float>::quiet_NaN();
-    float norm = 1.0f;
+    f32 inf = std::numeric_limits<f32>::infinity();
+    f32 nan = std::numeric_limits<f32>::quiet_NaN();
+    f32 norm = 1.0f;
 
     EXPECT_EQ(math::detail::IsNaN(nan), std::isnan(nan));
     EXPECT_EQ(math::detail::IsNaN(norm), std::isnan(norm));
@@ -1105,7 +1105,7 @@ TEST_F(MathUtilityTest, Classification_Functions)
 
 TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
 {
-    struct Case { float n; float s; };
+    struct Case { f32 n; f32 s; };
     Case cases[] = {
         { 1.0f, 1.0f }, { 1.0f, -1.0f }, { -1.0f, 1.0f }, { -1.0f, -1.0f }
     };
@@ -1117,15 +1117,15 @@ TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
 
 TEST_F(MathUtilityTest, Constexpr_Checks)
 {
-    constexpr float SQRT_VAL = Sqrt(4.0f);
+    constexpr f32 SQRT_VAL = Sqrt(4.0f);
     static_assert(IsNearlyEqual(SQRT_VAL, 2.0f));
 
-    constexpr float POW_VAL = Pow(2.0f, 3.0f);
+    constexpr f32 POW_VAL = Pow(2.0f, 3.0f);
     static_assert(IsNearlyEqual(POW_VAL, 8.0f));
 
-    constexpr float ABS_VAL = Abs(-10.0f);
+    constexpr f32 ABS_VAL = Abs(-10.0f);
     static_assert(IsNearlyEqual(ABS_VAL, 10.0f));
 
-    constexpr float FMOD_VAL = Fmod(5.5f, 2.0f);
+    constexpr f32 FMOD_VAL = Fmod(5.5f, 2.0f);
     static_assert(IsNearlyEqual(FMOD_VAL, 1.5f));
 }

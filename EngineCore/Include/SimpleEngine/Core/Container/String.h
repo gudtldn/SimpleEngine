@@ -39,7 +39,7 @@ public:
     }
 
     explicit CodePointIterator(const char* p)
-        : ptr(reinterpret_cast<const uint8*>(p))
+        : ptr(reinterpret_cast<const u8*>(p))
     {
     }
 
@@ -51,7 +51,7 @@ public:
     bool operator!=(const CodePointIterator& other) const { return ptr != other.ptr; }
 
 private:
-    const uint8* ptr;
+    const u8* ptr;
 };
 } // namespace detail
 
@@ -86,17 +86,10 @@ template <typename Allocator>
 class BaseString
 {
 public:
-    // STL 호환
-    using value_type = char;
-    using allocator_type = Allocator;
-    using size_type = usize;
-    using difference_type = isize;
-
-    // 엔진 내부 일관성을 위한 PascalCase 별칭
-    using ValueType = value_type;
-    using AllocatorType = allocator_type;
-    using SizeType = size_type;
-    using DifferenceType = difference_type;
+    using ValueType = char;
+    using AllocatorType = Allocator;
+    using SizeType = usize;
+    using DifferenceType = isize;
 
 public:
     BaseString() noexcept;
@@ -434,7 +427,7 @@ private:
 template <>
 struct std::hash<se::String>
 {
-    size_t operator()(const se::String& path) const noexcept
+    usize operator()(const se::String& path) const noexcept
     {
         return std::hash<se::StringView>{}(se::StringView{ path });
     }

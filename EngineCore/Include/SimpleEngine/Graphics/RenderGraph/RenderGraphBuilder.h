@@ -65,7 +65,7 @@ private:
     [[nodiscard]] RGTextureHandle RegisterTextureSlot(const StringName& name);
     [[nodiscard]] RGBufferHandle RegisterBufferSlot(const StringName& name);
 
-    HashMap<StringName, uint32> resource_name_map;
+    HashMap<StringName, u32> resource_name_map;
     Array<RGResourceNode> resource_nodes;
     Array<RGPassNode> pass_nodes;
 };

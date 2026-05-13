@@ -19,7 +19,7 @@ struct SE_ANNOTATION(=meta::Reflect) MaterialTextureSlot
 
     // SDL_BindGPUFragmentSamplers에 전달할 슬롯 번호
     SE_ANNOTATION(=meta::Property)
-    uint32 fragment_slot = 0;
+    u32 fragment_slot = 0;
 
     // 이 슬롯에 사용할 샘플러 종류
     SE_ANNOTATION(=meta::Property)

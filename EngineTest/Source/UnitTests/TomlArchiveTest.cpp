@@ -28,7 +28,7 @@ namespace
 struct NestedData
 {
     String str;
-    float val;
+    f32 val;
 
     auto operator<=>(const NestedData&) const = default;
 
@@ -41,42 +41,42 @@ struct NestedData
 
 struct TestData
 {
-    int8 i8;
-    uint8 u8;
-    int16 i16;
-    uint16 u16;
-    int32 i32;
-    uint32 u32;
-    int64 i64;
-    uint64 u64;
-    float f32;
-    double f64;
+    i8 _i8;
+    u8 _u8;
+    i16 _i16;
+    u16 _u16;
+    i32 _i32;
+    u32 _u32;
+    i64 _i64;
+    u64 _u64;
+    f32 _f32;
+    f64 _f64;
     bool b;
     String str;
     StringName sn;
     Guid guid;
     NestedData nested;
-    Array<int32> i32_array;
+    Array<i32> i32_array;
     Array<NestedData> nested_array;
-    HashMap<String, int32> map_str_i32;
-    HashMap<int32, String> map_i32_str;
+    HashMap<String, i32> map_str_i32;
+    HashMap<i32, String> map_i32_str;
     HashSet<String> set_str;
-    HashSet<int32> set_i32;
+    HashSet<i32> set_i32;
     HashMap<String, NestedData> map_str_nested;
 
 
     friend void Serialize(Archive& ar, TestData& data)
     {
-        ar("i8") << data.i8;
-        ar("u8") << data.u8;
-        ar("i16") << data.i16;
-        ar("u16") << data.u16;
-        ar("i32") << data.i32;
-        ar("u32") << data.u32;
-        ar("i64") << data.i64;
-        ar("u64") << data.u64;
-        ar("f32") << data.f32;
-        ar("f64") << data.f64;
+        ar("i8") << data._i8;
+        ar("u8") << data._u8;
+        ar("i16") << data._i16;
+        ar("u16") << data._u16;
+        ar("i32") << data._i32;
+        ar("u32") << data._u32;
+        ar("i64") << data._i64;
+        ar("u64") << data._u64;
+        ar("f32") << data._f32;
+        ar("f64") << data._f64;
         ar("b") << data.b;
         ar("str") << data.str;
         ar("sn") << data.sn;
@@ -94,8 +94,8 @@ struct TestData
 
 struct EmptyData
 {
-    Array<int32> empty_array;
-    HashMap<String, int32> empty_map;
+    Array<i32> empty_array;
+    HashMap<String, i32> empty_map;
     HashSet<String> empty_set;
     String empty_str;
 
@@ -110,21 +110,21 @@ struct EmptyData
 
 struct BoundaryData
 {
-    int8 i8_min;
-    int8 i8_max;
-    uint8 u8_min;
-    uint8 u8_max;
-    int16 i16_min;
-    int16 i16_max;
-    uint16 u16_min;
-    uint16 u16_max;
-    int32 i32_min;
-    int32 i32_max;
-    uint32 u32_min;
-    uint32 u32_max;
-    int64 i64_min;
-    int64 i64_max;
-    uint64 u64_max;
+    i8 i8_min;
+    i8 i8_max;
+    u8 u8_min;
+    u8 u8_max;
+    i16 i16_min;
+    i16 i16_max;
+    u16 u16_min;
+    u16 u16_max;
+    i32 i32_min;
+    i32 i32_max;
+    u32 u32_min;
+    u32 u32_max;
+    i64 i64_min;
+    i64 i64_max;
+    u64 u64_max;
 
     friend void Serialize(Archive& ar, BoundaryData& data)
     {
@@ -168,7 +168,7 @@ struct SpecialStringData
 
 struct DeepNestingLevel3
 {
-    int32 value;
+    i32 value;
 
     auto operator<=>(const DeepNestingLevel3&) const = default;
 
@@ -203,9 +203,9 @@ struct DeepNestingLevel1
 struct UnusualKeyData
 {
     HashMap<bool, String> bool_map;
-    HashMap<int32, String> negative_key_map;
-    HashMap<float, String> float_map;
-    HashMap<double, String> double_map;
+    HashMap<i32, String> negative_key_map;
+    HashMap<f32, String> float_map;
+    HashMap<f64, String> double_map;
 
     friend void Serialize(Archive& ar, UnusualKeyData& data)
     {
@@ -218,8 +218,8 @@ struct UnusualKeyData
 
 struct LargeTestData
 {
-    Array<int32> large_array;
-    HashMap<int32, String> large_map;
+    Array<i32> large_array;
+    HashMap<i32, String> large_map;
 
     friend void Serialize(Archive& ar, LargeTestData& data)
     {
@@ -230,9 +230,9 @@ struct LargeTestData
 
 struct NestedEmptyData
 {
-    Array<Array<int32>> nested_arrays;
-    HashMap<String, Array<int32>> map_with_empty_arrays;
-    Array<HashMap<String, int32>> array_of_empty_maps;
+    Array<Array<i32>> nested_arrays;
+    HashMap<String, Array<i32>> map_with_empty_arrays;
+    Array<HashMap<String, i32>> array_of_empty_maps;
 
     friend void Serialize(Archive& ar, NestedEmptyData& data)
     {
@@ -244,7 +244,7 @@ struct NestedEmptyData
 
 struct TripleNestedData
 {
-    Array<Array<Array<int32>>> triple_array;
+    Array<Array<Array<i32>>> triple_array;
 
     auto operator<=>(const TripleNestedData&) const = default;
 
@@ -256,9 +256,9 @@ struct TripleNestedData
 
 struct HeteroData
 {
-    HashMap<String, Array<int32>> map_of_arrays;
+    HashMap<String, Array<i32>> map_of_arrays;
     Array<HashMap<String, String>> array_of_maps;
-    HashMap<int32, HashMap<String, float>> nested_maps;
+    HashMap<i32, HashMap<String, f32>> nested_maps;
 
     friend void Serialize(Archive& ar, HeteroData& data)
     {
@@ -270,8 +270,8 @@ struct HeteroData
 
 struct ZeroData
 {
-    int32 zero_int = 999;  // Non-zero default
-    float zero_float = 999.0f;
+    i32 zero_int = 999;  // Non-zero default
+    f32 zero_float = 999.0f;
     bool false_bool = true; // true default
     String zero_str = "default";
 
@@ -286,7 +286,7 @@ struct ZeroData
 
 struct IntMapData
 {
-    HashMap<int32, int32> int_map;
+    HashMap<i32, i32> int_map;
 
     friend void Serialize(Archive& ar, IntMapData& data)
     {
@@ -296,7 +296,7 @@ struct IntMapData
 
 struct IntValueData
 {
-    int32 value = 999;
+    i32 value = 999;
 
     friend void Serialize(Archive& ar, IntValueData& data)
     {
@@ -306,8 +306,8 @@ struct IntValueData
 
 struct TwoFieldData
 {
-    int32 present_key = 0;
-    int32 missing_key = 999;
+    i32 present_key = 0;
+    i32 missing_key = 999;
 
     friend void Serialize(Archive& ar, TwoFieldData& data)
     {
@@ -318,7 +318,7 @@ struct TwoFieldData
 
 struct SmallIntData
 {
-    int8 small_int = 0;
+    i8 small_int = 0;
 
     friend void Serialize(Archive& ar, SmallIntData& data)
     {
@@ -328,7 +328,7 @@ struct SmallIntData
 
 struct ManyMapsData
 {
-    HashMap<int32, String> map;
+    HashMap<i32, String> map;
 
     friend void Serialize(Archive& ar, ManyMapsData& data)
     {
@@ -338,10 +338,10 @@ struct ManyMapsData
 
 struct FloatPrecisionData
 {
-    float f1 = 3.14159265358979323846f;
-    double d1 = 3.14159265358979323846;
-    float very_small = 1.23456e-38f;
-    double very_large = 1.23456e308;
+    f32 f1 = 3.14159265358979323846f;
+    f64 d1 = 3.14159265358979323846;
+    f32 very_small = 1.23456e-38f;
+    f64 very_large = 1.23456e308;
 
     friend void Serialize(Archive& ar, FloatPrecisionData& data)
     {
@@ -354,8 +354,8 @@ struct FloatPrecisionData
 
 struct SingleElementData
 {
-    Array<int32> single_array;
-    HashMap<String, int32> single_map;
+    Array<i32> single_array;
+    HashMap<String, i32> single_map;
     HashSet<String> single_set;
 
     friend void Serialize(Archive& ar, SingleElementData& data)
@@ -368,7 +368,7 @@ struct SingleElementData
 
 struct SetDeduplicationData
 {
-    HashSet<int32> int_set;
+    HashSet<i32> int_set;
 
     friend void Serialize(Archive& ar, SetDeduplicationData& data)
     {
@@ -410,7 +410,7 @@ struct GuidKeyMapData
 
 struct StringNameKeyMapData
 {
-    HashMap<StringName, int32> sn_map;
+    HashMap<StringName, i32> sn_map;
 
     friend void Serialize(Archive& ar, StringNameKeyMapData& data)
     {
@@ -459,25 +459,25 @@ struct TypeIdKeyNestedMapData
 // 수정 전에는 InsertNewNode assert로 crash.
 struct ExplicitMapStruct
 {
-    HashMap<String, int32> entries;
+    HashMap<String, i32> entries;
 
     bool operator==(const ExplicitMapStruct&) const = default;
 
     friend void Serialize(Archive& ar, ExplicitMapStruct& data)
     {
-        uint64 count = data.entries.Len();
+        u64 count = data.entries.Len();
         ar.BeginMap(count);
         if (ar.IsLoading())
         {
             data.entries.Clear();
-            for (uint64 i = 0; i < count; ++i)
+            for (u64 i = 0; i < count; ++i)
             {
                 String key;
                 ar.BeginMapKey();
                 ar << key;
                 ar.EndMapKey();
 
-                int32 value = 0;
+                i32 value = 0;
                 ar.BeginMapValue();
                 ar << value;
                 ar.EndMapValue();
@@ -505,9 +505,9 @@ struct ExplicitMapStruct
 // ExplicitMapStruct를 키가 있는 필드로 포함하는 외부 구조체
 struct OuterWithExplicitMap
 {
-    int32 prefix = 0;
+    i32 prefix = 0;
     ExplicitMapStruct inner;
-    int32 suffix = 0;
+    i32 suffix = 0;
 
     bool operator==(const OuterWithExplicitMap&) const = default;
 
@@ -564,16 +564,16 @@ struct SimulatedMetaContent
 TEST_F(TomlArchiveTest, ReadAndWrite)
 {
     TestData original_data = {
-        .i8 = -8,
-        .u8 = 8,
-        .i16 = -1600,
-        .u16 = 1600,
-        .i32 = -320000,
-        .u32 = 320000,
-        .i64 = -6400000000,
-        .u64 = 6400000000,
-        .f32 = 32.32f,
-        .f64 = 64.64,
+        ._i8 = -8,
+        ._u8 = 8,
+        ._i16 = -1600,
+        ._u16 = 1600,
+        ._i32 = -320000,
+        ._u32 = 320000,
+        ._i64 = -6400000000,
+        ._u64 = 6400000000,
+        ._f32 = 32.32f,
+        ._f64 = 64.64,
         .b = true,
         .str = "Test String",
         .sn = "Test StringName",
@@ -595,16 +595,16 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
     }
 
     // Verify written data in toml table
-    EXPECT_EQ(*tbl["i8"].value<int8>(), original_data.i8);
-    EXPECT_EQ(*tbl["u8"].value<uint8>(), original_data.u8);
-    EXPECT_EQ(*tbl["i16"].value<int16>(), original_data.i16);
-    EXPECT_EQ(*tbl["u16"].value<uint16>(), original_data.u16);
-    EXPECT_EQ(*tbl["i32"].value<int32>(), original_data.i32);
-    EXPECT_EQ(*tbl["u32"].value<uint32>(), original_data.u32);
-    EXPECT_EQ(*tbl["i64"].value<int64>(), original_data.i64);
-    EXPECT_EQ(*tbl["u64"].value<uint64>(), original_data.u64);
-    EXPECT_FLOAT_EQ(*tbl["f32"].value<float>(), original_data.f32);
-    EXPECT_DOUBLE_EQ(*tbl["f64"].value<double>(), original_data.f64);
+    EXPECT_EQ(*tbl["i8"].value<i8>(), original_data._i8);
+    EXPECT_EQ(*tbl["u8"].value<u8>(), original_data._u8);
+    EXPECT_EQ(*tbl["i16"].value<i16>(), original_data._i16);
+    EXPECT_EQ(*tbl["u16"].value<u16>(), original_data._u16);
+    EXPECT_EQ(*tbl["i32"].value<i32>(), original_data._i32);
+    EXPECT_EQ(*tbl["u32"].value<u32>(), original_data._u32);
+    EXPECT_EQ(*tbl["i64"].value<i64>(), original_data._i64);
+    EXPECT_EQ(*tbl["u64"].value<u64>(), original_data._u64);
+    EXPECT_FLOAT_EQ(*tbl["f32"].value<f32>(), original_data._f32);
+    EXPECT_DOUBLE_EQ(*tbl["f64"].value<f64>(), original_data._f64);
     EXPECT_EQ(*tbl["b"].value<bool>(), original_data.b);
     EXPECT_EQ(*tbl["str"].value<std::string>(), original_data.str.Data());
     EXPECT_EQ(*tbl["sn"].value<std::string>(), original_data.sn.ToString().Data());
@@ -612,22 +612,22 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
 
     auto& nested_tbl = *tbl["nested"].as_table();
     EXPECT_EQ(*nested_tbl["str"].value<std::string>(), original_data.nested.str.Data());
-    EXPECT_FLOAT_EQ(*nested_tbl["val"].value<float>(), original_data.nested.val);
+    EXPECT_FLOAT_EQ(*nested_tbl["val"].value<f32>(), original_data.nested.val);
 
     auto& i32_array = *tbl["i32_array"].as_array();
     EXPECT_EQ(i32_array.size(), original_data.i32_array.Len());
-    for (size_t i = 0; i < i32_array.size(); ++i)
+    for (usize i = 0; i < i32_array.size(); ++i)
     {
-        EXPECT_EQ(*i32_array[i].value<int32>(), original_data.i32_array[i]);
+        EXPECT_EQ(*i32_array[i].value<i32>(), original_data.i32_array[i]);
     }
 
     auto& nested_array = *tbl["nested_array"].as_array();
     EXPECT_EQ(nested_array.size(), original_data.nested_array.Len());
-    for (size_t i = 0; i < nested_array.size(); ++i)
+    for (usize i = 0; i < nested_array.size(); ++i)
     {
         auto& nested_elem_tbl = *nested_array[i].as_table();
         EXPECT_EQ(*nested_elem_tbl["str"].value<std::string>(), original_data.nested_array[i].str.Data());
-        EXPECT_FLOAT_EQ(*nested_elem_tbl["val"].value<float>(), original_data.nested_array[i].val);
+        EXPECT_FLOAT_EQ(*nested_elem_tbl["val"].value<f32>(), original_data.nested_array[i].val);
     }
 
     TestData read_data = {};
@@ -636,16 +636,16 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
         reader << read_data;
     }
 
-    EXPECT_EQ(read_data.i8, original_data.i8);
-    EXPECT_EQ(read_data.u8, original_data.u8);
-    EXPECT_EQ(read_data.i16, original_data.i16);
-    EXPECT_EQ(read_data.u16, original_data.u16);
-    EXPECT_EQ(read_data.i32, original_data.i32);
-    EXPECT_EQ(read_data.u32, original_data.u32);
-    EXPECT_EQ(read_data.i64, original_data.i64);
-    EXPECT_EQ(read_data.u64, original_data.u64);
-    EXPECT_FLOAT_EQ(read_data.f32, original_data.f32);
-    EXPECT_DOUBLE_EQ(read_data.f64, original_data.f64);
+    EXPECT_EQ(read_data._i8, original_data._i8);
+    EXPECT_EQ(read_data._u8, original_data._u8);
+    EXPECT_EQ(read_data._i16, original_data._i16);
+    EXPECT_EQ(read_data._u16, original_data._u16);
+    EXPECT_EQ(read_data._i32, original_data._i32);
+    EXPECT_EQ(read_data._u32, original_data._u32);
+    EXPECT_EQ(read_data._i64, original_data._i64);
+    EXPECT_EQ(read_data._u64, original_data._u64);
+    EXPECT_FLOAT_EQ(read_data._f32, original_data._f32);
+    EXPECT_DOUBLE_EQ(read_data._f64, original_data._f64);
     EXPECT_EQ(read_data.b, original_data.b);
     EXPECT_EQ(read_data.str, original_data.str);
     EXPECT_EQ(read_data.sn, original_data.sn);
@@ -688,21 +688,21 @@ TEST_F(TomlArchiveTest, EmptyContainers)
 TEST_F(TomlArchiveTest, BoundaryValues)
 {
     BoundaryData original_data = {
-        .i8_min = std::numeric_limits<int8>::min(),
-        .i8_max = std::numeric_limits<int8>::max(),
-        .u8_min = std::numeric_limits<uint8>::min(),
-        .u8_max = std::numeric_limits<uint8>::max(),
-        .i16_min = std::numeric_limits<int16>::min(),
-        .i16_max = std::numeric_limits<int16>::max(),
-        .u16_min = std::numeric_limits<uint16>::min(),
-        .u16_max = std::numeric_limits<uint16>::max(),
-        .i32_min = std::numeric_limits<int32>::min(),
-        .i32_max = std::numeric_limits<int32>::max(),
-        .u32_min = std::numeric_limits<uint32>::min(),
-        .u32_max = std::numeric_limits<uint32>::max(),
-        .i64_min = std::numeric_limits<int64>::min(),
-        .i64_max = std::numeric_limits<int64>::max(),
-        .u64_max = std::numeric_limits<uint64>::max(),
+        .i8_min = std::numeric_limits<i8>::min(),
+        .i8_max = std::numeric_limits<i8>::max(),
+        .u8_min = std::numeric_limits<u8>::min(),
+        .u8_max = std::numeric_limits<u8>::max(),
+        .i16_min = std::numeric_limits<i16>::min(),
+        .i16_max = std::numeric_limits<i16>::max(),
+        .u16_min = std::numeric_limits<u16>::min(),
+        .u16_max = std::numeric_limits<u16>::max(),
+        .i32_min = std::numeric_limits<i32>::min(),
+        .i32_max = std::numeric_limits<i32>::max(),
+        .u32_min = std::numeric_limits<u32>::min(),
+        .u32_max = std::numeric_limits<u32>::max(),
+        .i64_min = std::numeric_limits<i64>::min(),
+        .i64_max = std::numeric_limits<i64>::max(),
+        .u64_max = std::numeric_limits<u64>::max(),
     };
 
     toml::table tbl;
@@ -826,13 +826,13 @@ TEST_F(TomlArchiveTest, LargeData)
     LargeTestData original_data;
 
     // Create large array with 1000 elements
-    for (int32 i = 0; i < 1000; ++i)
+    for (i32 i = 0; i < 1000; ++i)
     {
         original_data.large_array.Push(i * 2);
     }
 
     // Create large map with 500 entries
-    for (int32 i = 0; i < 500; ++i)
+    for (i32 i = 0; i < 500; ++i)
     {
         original_data.large_map[i] = String::Format("Value_{}", i);
     }
@@ -863,15 +863,15 @@ TEST_F(TomlArchiveTest, LargeData)
 TEST_F(TomlArchiveTest, NestedEmptyContainers)
 {
     NestedEmptyData original_data;
-    original_data.nested_arrays.Push(Array<int32>{}); // Empty array
-    original_data.nested_arrays.Push(Array<int32>{1, 2, 3});
-    original_data.nested_arrays.Push(Array<int32>{}); // Another empty array
+    original_data.nested_arrays.Push(Array<i32>{}); // Empty array
+    original_data.nested_arrays.Push(Array<i32>{1, 2, 3});
+    original_data.nested_arrays.Push(Array<i32>{}); // Another empty array
 
-    original_data.map_with_empty_arrays["empty"] = Array<int32>{};
-    original_data.map_with_empty_arrays["filled"] = Array<int32>{10, 20};
+    original_data.map_with_empty_arrays["empty"] = Array<i32>{};
+    original_data.map_with_empty_arrays["filled"] = Array<i32>{10, 20};
 
-    original_data.array_of_empty_maps.Push(HashMap<String, int32>{});
-    original_data.array_of_empty_maps.Push(HashMap<String, int32>{ {"key", 42} });
+    original_data.array_of_empty_maps.Push(HashMap<String, i32>{});
+    original_data.array_of_empty_maps.Push(HashMap<String, i32>{ {"key", 42} });
 
     toml::table tbl;
     {
@@ -901,13 +901,13 @@ TEST_F(TomlArchiveTest, NestedEmptyContainers)
 TEST_F(TomlArchiveTest, TripleNestedArrays)
 {
     TripleNestedData original_data;
-    Array<Array<int32>> level2_1;
-    level2_1.Push(Array<int32>{1, 2, 3});
-    level2_1.Push(Array<int32>{4, 5, 6});
+    Array<Array<i32>> level2_1;
+    level2_1.Push(Array<i32>{1, 2, 3});
+    level2_1.Push(Array<i32>{4, 5, 6});
 
-    Array<Array<int32>> level2_2;
-    level2_2.Push(Array<int32>{7, 8});
-    level2_2.Push(Array<int32>{9});
+    Array<Array<i32>> level2_2;
+    level2_2.Push(Array<i32>{7, 8});
+    level2_2.Push(Array<i32>{9});
 
     original_data.triple_array.Push(level2_1);
     original_data.triple_array.Push(level2_2);
@@ -931,14 +931,14 @@ TEST_F(TomlArchiveTest, TripleNestedArrays)
 TEST_F(TomlArchiveTest, HeterogeneousContainers)
 {
     HeteroData original_data;
-    original_data.map_of_arrays["first"] = Array<int32>{1, 2, 3};
-    original_data.map_of_arrays["second"] = Array<int32>{10, 20};
+    original_data.map_of_arrays["first"] = Array<i32>{1, 2, 3};
+    original_data.map_of_arrays["second"] = Array<i32>{10, 20};
 
     original_data.array_of_maps.Push(HashMap<String, String>{ {"a", "A"}, {"b", "B"} });
     original_data.array_of_maps.Push(HashMap<String, String>{ {"x", "X"} });
 
-    original_data.nested_maps[1] = HashMap<String, float>{ {"pi", 3.14f}, {"e", 2.71f} };
-    original_data.nested_maps[2] = HashMap<String, float>{ {"sqrt2", 1.41f} };
+    original_data.nested_maps[1] = HashMap<String, f32>{ {"pi", 3.14f}, {"e", 2.71f} };
+    original_data.nested_maps[2] = HashMap<String, f32>{ {"sqrt2", 1.41f} };
 
     toml::table tbl;
     {
@@ -1134,9 +1134,9 @@ TEST_F(TomlArchiveTest, MissingKeys)
 // Error Handling: Out of Range Values
 TEST_F(TomlArchiveTest, OutOfRangeValues)
 {
-    // Create TOML with value too large for int8
+    // Create TOML with value too large for i8
     toml::table tbl;
-    tbl.insert("small_int", 999); // Too large for int8 (max 127)
+    tbl.insert("small_int", 999); // Too large for i8 (max 127)
 
     SmallIntData read_data;
     {
@@ -1145,7 +1145,7 @@ TEST_F(TomlArchiveTest, OutOfRangeValues)
     }
 
     // Value gets truncated/casted
-    EXPECT_EQ(read_data.small_int, static_cast<int8>(999));
+    EXPECT_EQ(read_data.small_int, static_cast<i8>(999));
 }
 
 // Stress Test: Many Map Iterations (Verifies O(N) complexity fix)
@@ -1154,7 +1154,7 @@ TEST_F(TomlArchiveTest, ManyMapIterations)
     ManyMapsData original_data;
 
     // Create map with many entries to verify iterator-based approach is O(N)
-    for (int32 i = 0; i < 200; ++i)
+    for (i32 i = 0; i < 200; ++i)
     {
         original_data.map[i] = String::Format("Item_{}", i);
     }
@@ -1173,7 +1173,7 @@ TEST_F(TomlArchiveTest, ManyMapIterations)
     }
 
     EXPECT_EQ(read_data.map.Len(), 200);
-    for (int32 i = 0; i < 200; ++i)
+    for (i32 i = 0; i < 200; ++i)
     {
         EXPECT_EQ(read_data.map[i], String::Format("Item_{}", i));
     }
@@ -1637,7 +1637,7 @@ TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
 // 6. HashMap 을 루트에 직접 쓰는 경우 (operator<<(MapLike) -> BeginMap(no key))
 TEST_F(TomlArchiveTest, HashMapAtRoot)
 {
-    HashMap<String, int32> original;
+    HashMap<String, i32> original;
     original.Insert("one",   1);
     original.Insert("two",   2);
     original.Insert("three", 3);
@@ -1648,7 +1648,7 @@ TEST_F(TomlArchiveTest, HashMapAtRoot)
         writer << original;
     }
 
-    HashMap<String, int32> result;
+    HashMap<String, i32> result;
     {
         TomlReader reader(tbl);
         reader << result;

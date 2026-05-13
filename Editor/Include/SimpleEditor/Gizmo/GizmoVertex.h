@@ -12,7 +12,7 @@ struct GizmoVertex
 {
     Vector3f position;  // 기즈모 로컬 공간 위치 (Center 기준 좌표)
     LinearColor color;  // Linear 색상 (sRGB 아님)
-    uint32 pick_id = 0; // Pick ID
+    u32 pick_id = 0; // Pick ID
 };
 
 /**
@@ -23,6 +23,6 @@ struct GizmoUBO
 {
     Matrix4x4f vp;
     Vector3f gizmo_center;
-    float screen_scale;
+    f32 screen_scale;
 };
 } // namespace se::editor

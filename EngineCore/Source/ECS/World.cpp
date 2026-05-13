@@ -93,8 +93,8 @@ IComponentStorage* World::GetOrCreateRawStorage(const TypeId& type_id)
 void Serialize(Archive& ar, World& world)
 {
     // --- Header ---
-    uint32 magic = World::FILE_MAGIC;
-    uint32 version = World::FILE_VERSION;
+    u32 magic = World::FILE_MAGIC;
+    u32 version = World::FILE_VERSION;
     ar("magic") << magic;
     ar("version") << version;
 
@@ -128,7 +128,7 @@ void Serialize(Archive& ar, World& world)
     if (ar.IsSaving())
     {
         // 직렬화 대상 storage 수 카운트
-        uint64 type_count = 0;
+        u64 type_count = 0;
         for (const auto& [type_id, storage] : world.component_storages)
         {
             if (storage->IsEmpty())
@@ -165,9 +165,9 @@ void Serialize(Archive& ar, World& world)
             ar.EndMapKey();
 
             ar.BeginMapValue();
-            uint64 entity_count = storage->Len();
+            u64 entity_count = storage->Len();
             ar.BeginArray(entity_count);
-            for (uint64 i = 0; i < entity_count; ++i)
+            for (u64 i = 0; i < entity_count; ++i)
             {
                 Entity entity = *storage->GetEntityByIndex(static_cast<usize>(i));
                 void* raw = storage->GetRaw(entity);
@@ -185,10 +185,10 @@ void Serialize(Archive& ar, World& world)
     }
     else // Loading
     {
-        uint64 type_count = 0;
+        u64 type_count = 0;
         ar("components");
         ar.BeginMap(type_count);
-        for (uint64 t = 0; t < type_count; ++t)
+        for (u64 t = 0; t < type_count; ++t)
         {
             ar.BeginMapKey();
             TypeId type_id;
@@ -212,9 +212,9 @@ void Serialize(Archive& ar, World& world)
 
                 // Text: key 기반이므로 미소비 데이터는 자동 무시됨
                 ConsoleLog(ELogLevel::Warning, "World deserialization: unknown component type '{}', skipping.", type_id.GetName());
-                uint64 entity_count = 0;
+                u64 entity_count = 0;
                 ar.BeginArray(entity_count);
-                for (uint64 i = 0; i < entity_count; ++i)
+                for (u64 i = 0; i < entity_count; ++i)
                 {
                     ar.BeginObject();
                     ar.EndObject();
@@ -224,11 +224,11 @@ void Serialize(Archive& ar, World& world)
                 continue;
             }
 
-            uint64 entity_count = 0;
+            u64 entity_count = 0;
             IComponentStorage* storage = ops_opt->ensure_storage(world);
 
             ar.BeginArray(entity_count);
-            for (uint64 i = 0; i < entity_count; ++i)
+            for (u64 i = 0; i < entity_count; ++i)
             {
                 ar.BeginObject();
 

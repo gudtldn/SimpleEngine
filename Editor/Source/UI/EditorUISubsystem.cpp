@@ -80,7 +80,7 @@ bool EditorUISubsystem::Initialize()
     }
 
     // TODO: 나중에 다중모니터 지원하도록 변경
-    const float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    const f32 main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScaleAllSizes(main_scale);
@@ -157,7 +157,7 @@ void EditorUISubsystem::PreUpdate()
     ImGui::NewFrame();
 }
 
-void EditorUISubsystem::Update([[maybe_unused]] double delta_time)
+void EditorUISubsystem::Update([[maybe_unused]] f64 delta_time)
 {
     SetupDockSpace();
     DrawMainMenu();
@@ -234,7 +234,7 @@ void EditorUISubsystem::DrawMainMenu()
                 if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
                 {
                     // 다이얼로그 표시 전에 직렬화하여 현재 상태를 캡처
-                    Array<uint8> buffer;
+                    Array<u8> buffer;
                     MemoryWriter writer{ buffer };
                     writer << entity_sub->GetMainWorld().GetWorld();
 
@@ -298,7 +298,7 @@ void EditorUISubsystem::DrawMainMenu()
                     [](const Path& path)
                     {
                         // 파일 읽기는 다이얼로그 스레드에서 수행 (I/O만)
-                        FileResult<Array<uint8>> bytes_result = FileSystem::ReadBytes(path);
+                        FileResult<Array<u8>> bytes_result = FileSystem::ReadBytes(path);
                         if (bytes_result.HasError())
                         {
                             ConsoleLog(ELogLevel::Error, "Failed to read file: {}, Err: {}", path, bytes_result.Error().What());
@@ -318,9 +318,9 @@ void EditorUISubsystem::DrawMainMenu()
 
                             // DLL 경계를 넘는 constexpr 멤버의 ODR-use(주소 참조)시 발생하는
                             // 미해결 기호(Unresolved External) 링크 에러를 방지하기 위해 로컬 스택에 할당하여 비교
-                            constexpr uint32 EXPECTED_MAGIC = World::FILE_MAGIC;
-                            const bool is_binary = data.Len() >= sizeof(uint32)
-                                && std::memcmp(data.Data(), &EXPECTED_MAGIC, sizeof(uint32)) == 0;
+                            constexpr u32 EXPECTED_MAGIC = World::FILE_MAGIC;
+                            const bool is_binary = data.Len() >= sizeof(u32)
+                                && std::memcmp(data.Data(), &EXPECTED_MAGIC, sizeof(u32)) == 0;
 
                             if (is_binary)
                             {

@@ -22,7 +22,7 @@ SE_END_REFLECT(ForwardScenePass)
 
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
-    uint32 in_view_index,
+    u32 in_view_index,
     const GpuResourceManager& in_gpu_manager,
     const SamplerCache& in_sampler_cache,
     const RenderView& in_render_view,
@@ -86,7 +86,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             .store_op = SDL_GPU_STOREOP_STORE,
         },
     };
-    const uint32 num_color_targets = entity_id_target ? 2u : 1u;
+    const u32 num_color_targets = entity_id_target ? 2u : 1u;
 
     const SDL_GPUDepthStencilTargetInfo depth_stencil_target_info = {
         .texture = depth_target,
@@ -110,27 +110,27 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Viewport/Scissor 설정
         const SDL_GPUViewport viewport = {
             .x = 0.0f, .y = 0.0f,
-            .w = static_cast<float>(render_view.width),
-            .h = static_cast<float>(render_view.height),
+            .w = static_cast<f32>(render_view.width),
+            .h = static_cast<f32>(render_view.height),
             .min_depth = 0.0f, .max_depth = 1.0f,
         };
 
         const SDL_Rect scissor = {
             .x = 0, .y = 0,
-            .w = static_cast<int32>(render_view.width),
-            .h = static_cast<int32>(render_view.height),
+            .w = static_cast<i32>(render_view.width),
+            .h = static_cast<i32>(render_view.height),
         };
 
         SDL_SetGPUViewport(pass, &viewport);
         SDL_SetGPUScissor(pass, &scissor);
 
-        // double -> float 변환 헬퍼
+        // f64 -> f32 변환 헬퍼
         auto to_float4x4 = [](const Matrix4x4& src, Matrix4x4f& dst)
         {
             std::ranges::transform(
                 src.data,
                 dst.data.begin(),
-                [](double v) { return static_cast<float>(v); }
+                [](f64 v) { return static_cast<f32>(v); }
             );
         };
 
@@ -142,10 +142,10 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Fragment Uniform slot 0: SceneDataUBO (per-pass)
         struct alignas(16) SceneDataUBO
         {
-            Vector3f camera_pos;    float  _pad0 = 0.0f; // offset  0~15
-            Vector3f light_dir_ws;  float  _pad1 = 0.0f; // offset 16~31
+            Vector3f camera_pos;    f32  _pad0 = 0.0f; // offset  0~15
+            Vector3f light_dir_ws;  f32  _pad1 = 0.0f; // offset 16~31
             Vector3f light_color;                        // offset 32~43
-            uint32 rendering_mode;                       // offset 44~47
+            u32 rendering_mode;                       // offset 44~47
         };
         static_assert(sizeof(SceneDataUBO) == 48, "SceneDataUBO must match HLSL cbuffer layout");
 
@@ -153,7 +153,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
             .camera_pos = static_cast<Vector3f>(render_view.camera_pos),
             .light_dir_ws = Vector3f{ 0.0f, 0.0f, -1.0f }, // TODO: RenderView에서 받도록 수정
             .light_color = Vector3f{ 1.0f, 1.0f, 1.0f },
-            .rendering_mode = static_cast<uint32>(render_view.rendering_mode),
+            .rendering_mode = static_cast<u32>(render_view.rendering_mode),
         };
         SDL_PushGPUFragmentUniformData(cmd, 0, &scene_data, sizeof(scene_data));
 
@@ -170,7 +170,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 }
 
                 // Material 정보 조회
-                const uint16 slot_idx = draw_command.material_slot_index;
+                const u16 slot_idx = draw_command.material_slot_index;
                 if (slot_idx == DrawCommand::INVALID_MATERIAL_SLOT)
                 {
                     continue;
@@ -370,7 +370,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 struct alignas(16) ObjectUBO
                 {
                     Matrix4x4f model; // 64 bytes (4 x float4)
-                    uint32 entity_id; // 4 bytes + 12 bytes padding (= 1 x float4)
+                    u32 entity_id; // 4 bytes + 12 bytes padding (= 1 x float4)
                 } object_ubo;
                 to_float4x4(draw_command.model_matrix, object_ubo.model);
                 object_ubo.entity_id = EntityPickId::Encode(draw_command.entity_id).encoded;
@@ -380,12 +380,12 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 SDL_PushGPUFragmentUniformData(
                     cmd, 1,
                     cache.ubo_arena.Data() + mat_slot_opt->ubo_offset,
-                    static_cast<uint32>(mat_slot_opt->ubo_size)
+                    static_cast<u32>(mat_slot_opt->ubo_size)
                 );
 
                 // Fragment Sampler + Texture 바인딩
                 Array<SDL_GPUTextureSamplerBinding> tex_bindings;
-                for (uint16 b = 0; b < mat_slot_opt->binding_count; ++b)
+                for (u16 b = 0; b < mat_slot_opt->binding_count; ++b)
                 {
                     const TextureBinding& binding = cache.binding_arena[mat_slot_opt->binding_offset + b];
                     const Optional<TextureResource> tex = gpu_manager.GetTexture(binding.texture_id)
@@ -401,7 +401,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 }
                 if (!tex_bindings.IsEmpty())
                 {
-                    SDL_BindGPUFragmentSamplers(pass, 0, tex_bindings.Data(), static_cast<uint32>(tex_bindings.Len()));
+                    SDL_BindGPUFragmentSamplers(pass, 0, tex_bindings.Data(), static_cast<u32>(tex_bindings.Len()));
                 }
 
                 // 최종 Draw Call
@@ -423,7 +423,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                         pass,
                         draw_command.vertex_count,
                         1,
-                        static_cast<uint32>(draw_params.vertex_offset),
+                        static_cast<u32>(draw_params.vertex_offset),
                         0
                     );
                 }

@@ -23,16 +23,16 @@ SE_END_REFLECT(Material)
 Material& Material::AddParameter(StringName name, EMaterialParamType type, Vector4f default_val)
 {
     // 현재까지 쌓인 파라미터들의 끝 offset 계산
-    uint32 offset = 0;
+    u32 offset = 0;
     for (const MaterialParameterDescriptor& desc : parameter_layout)
     {
-        const uint32 end = desc.offset + desc.GetSize();
+        const u32 end = desc.offset + desc.GetSize();
         offset = std::max(end, offset);
     }
 
     // 새 파라미터의 std140 alignment에 맞춰 offset 정렬
     const MaterialParameterDescriptor tmp = { .type = type };
-    offset = static_cast<uint32>(AlignedSize(static_cast<usize>(offset), static_cast<usize>(tmp.GetAlignment())));
+    offset = static_cast<u32>(AlignedSize(static_cast<usize>(offset), static_cast<usize>(tmp.GetAlignment())));
 
     parameter_layout.Push({
         .name = name,
@@ -45,7 +45,7 @@ Material& Material::AddParameter(StringName name, EMaterialParamType type, Vecto
 
 void Material::FinalizeLayout()
 {
-    const uint32 block_size = ComputeParameterBlockSize();
+    const u32 block_size = ComputeParameterBlockSize();
     default_parameter_block.ResizeUninitialized(block_size);
     std::memset(default_parameter_block.Data(), 0, block_size);
 
@@ -63,27 +63,27 @@ void Material::FinalizeLayout()
     {
         if (const auto flags_desc = FindParameter("flags"))
         {
-            uint32* flags_ptr = reinterpret_cast<uint32*>(default_parameter_block.Data() + flags_desc->offset);
+            u32* flags_ptr = reinterpret_cast<u32*>(default_parameter_block.Data() + flags_desc->offset);
             *flags_ptr |= std::to_underlying(EMaterialFlag::AlphaTest);
         }
     }
 }
 
-const Array<uint8>& Material::GetDefaultParameterBlock() const
+const Array<u8>& Material::GetDefaultParameterBlock() const
 {
     return default_parameter_block;
 }
 
-uint32 Material::ComputeParameterBlockSize() const
+u32 Material::ComputeParameterBlockSize() const
 {
-    uint32 max_offset_plus_size = 0;
+    u32 max_offset_plus_size = 0;
     for (const MaterialParameterDescriptor& desc : parameter_layout)
     {
-        const uint32 end_pos = desc.offset + desc.GetSize();
+        const u32 end_pos = desc.offset + desc.GetSize();
         max_offset_plus_size = std::max(end_pos, max_offset_plus_size);
     }
 
-    return static_cast<uint32>(AlignedSize<16>(max_offset_plus_size));
+    return static_cast<u32>(AlignedSize<16>(max_offset_plus_size));
 }
 
 Optional<const MaterialParameterDescriptor&> Material::FindParameter(StringName name) const

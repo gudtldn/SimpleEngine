@@ -49,7 +49,7 @@ void SelectionSubsystem::Release()
     pick_subsystem = nullptr;
 }
 
-void SelectionSubsystem::Update(double /*delta_time*/)
+void SelectionSubsystem::Update(f64 /*delta_time*/)
 {
     // 카메라 조작 중에는 선택 처리하지 않음
     if (viewport_subsystem->IsAnyCameraActive())

@@ -116,7 +116,7 @@ public:
         // 오프셋 계산
         prop.offset = [] static -> usize
         {
-            alignas(T) uint8 dummy[sizeof(T)];
+            alignas(T) u8 dummy[sizeof(T)];
             T* obj_ptr = reinterpret_cast<T*>(dummy);
             return reinterpret_cast<usize>(&(obj_ptr->*MemberPtr)) - reinterpret_cast<usize>(obj_ptr);
         }();

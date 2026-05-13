@@ -44,7 +44,7 @@ AssetId MaterialInstance::GetTextureOrDefault(StringName slot_name, const Materi
 
 void MaterialInstance::InitializeFromParent(const Material& parent)
 {
-    const Array<uint8>& block = parent.GetDefaultParameterBlock();
+    const Array<u8>& block = parent.GetDefaultParameterBlock();
     parameter_values.ResizeUninitialized(block.Len());
     std::memcpy(parameter_values.Data(), block.Data(), block.Len());
 }

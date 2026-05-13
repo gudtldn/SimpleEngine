@@ -28,7 +28,7 @@ public:
 
     // 파라미터 데이터 블록 (Raw Bytes)
     SE_ANNOTATION(=meta::Property)
-    Array<uint8> parameter_values;
+    Array<u8> parameter_values;
 
     // 슬롯별 텍스처 오버라이드 맵
     SE_ANNOTATION(=meta::Property)
@@ -65,6 +65,6 @@ public:
     void InitializeFromParent(const Material& parent);
 
     /** parameter_values의 참조를 반환합니다. */
-    [[nodiscard]] const Array<uint8>& GetParameterBytes() const { return parameter_values; }
+    [[nodiscard]] const Array<u8>& GetParameterBytes() const { return parameter_values; }
 };
 } // namespace se

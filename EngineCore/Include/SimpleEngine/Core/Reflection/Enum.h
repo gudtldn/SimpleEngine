@@ -19,8 +19,8 @@
     { \
         static constexpr bool IsBitFlag = false; \
         static constexpr bool UseExplicitValues = false; \
-        static constexpr int32 Min = static_cast<int32>(min_value); \
-        static constexpr int32 Max = static_cast<int32>(max_value); \
+        static constexpr i32 Min = static_cast<i32>(min_value); \
+        static constexpr i32 Max = static_cast<i32>(max_value); \
     };
 
 /**
@@ -32,8 +32,8 @@
     { \
         static constexpr bool IsBitFlag = true; \
         static constexpr bool UseExplicitValues = false; \
-        static constexpr int32 Min = 0; \
-        static constexpr int32 Max = 0; \
+        static constexpr i32 Min = 0; \
+        static constexpr i32 Max = 0; \
     };
 
 /**
@@ -45,8 +45,8 @@
     { \
         static constexpr bool IsBitFlag = false; \
         static constexpr bool UseExplicitValues = true; \
-        static constexpr int32 Min = 0; \
-        static constexpr int32 Max = 0; \
+        static constexpr i32 Min = 0; \
+        static constexpr i32 Max = 0; \
     }; \
     template <> struct se::detail::EnumExplicitValues<enum_type> \
     { \
@@ -58,7 +58,7 @@ namespace se
 /** 단일 Enum 항목 정보 (type-erased) */
 struct EnumEntry
 {
-    int64 value;
+    i64 value;
     StringView name;
 
     constexpr auto operator<=>(const EnumEntry& other) const { return value <=> other.value; }
@@ -222,8 +222,8 @@ struct EnumTraits
 {
     static constexpr bool IsBitFlag = false;
     static constexpr bool UseExplicitValues = false;
-    static constexpr int32 Min = 0;
-    static constexpr int32 Max = 64;
+    static constexpr i32 Min = 0;
+    static constexpr i32 Max = 64;
 };
 
 /** SE_ENUM_SET_VALUES 매크로에서 인자 개수를 세는 헬퍼 함수 */
@@ -242,13 +242,13 @@ struct EnumValueGenerator;
 template <typename E>
 struct EnumValueGenerator<E, false, false>
 {
-    static constexpr int32 Min = EnumTraits<E>::Min;
-    static constexpr int32 Max = EnumTraits<E>::Max;
+    static constexpr i32 Min = EnumTraits<E>::Min;
+    static constexpr i32 Max = EnumTraits<E>::Max;
     static constexpr usize RangeSize = (Max - Min) + 1;
 
     // Sequence: 0, 1, 2 ...RangeSize
-    using IndexSequence = std::make_integer_sequence<int32, RangeSize>;
-    static constexpr E GetValue(int32 index) { return static_cast<E>(index + Min); }
+    using IndexSequence = std::make_integer_sequence<i32, RangeSize>;
+    static constexpr E GetValue(i32 index) { return static_cast<E>(index + Min); }
 };
 
 /** 비트 플래그 (1<<0 ~ 1<<63) */
@@ -256,8 +256,8 @@ template <typename E>
 struct EnumValueGenerator<E, true, false>
 {
     // Sequence: 0, 1, 2 ... 63
-    using IndexSequence = std::make_integer_sequence<int32, 64>;
-    static constexpr E GetValue(int32 index) { return static_cast<E>(1ULL << index); }
+    using IndexSequence = std::make_integer_sequence<i32, 64>;
+    static constexpr E GetValue(i32 index) { return static_cast<E>(1ULL << index); }
 };
 
 template <typename E>
@@ -266,24 +266,24 @@ struct EnumValueGenerator<E, false, true>
     static constexpr auto& Values = EnumExplicitValues<E>::Values;
     static constexpr usize Count = Values.Len();
 
-    using IndexSequence = std::make_integer_sequence<int32, Count>;
-    static constexpr E GetValue(int32 index) { return Values[index]; }
+    using IndexSequence = std::make_integer_sequence<i32, Count>;
+    static constexpr E GetValue(i32 index) { return Values[index]; }
 };
 
 /** 실제 데이터를 저장하는 구조체 */
 template <typename E, typename Generator, typename Indices>
 struct EnumStorageImpl;
 
-template <typename E, typename Generator, int32... I>
-struct EnumStorageImpl<E, Generator, std::integer_sequence<int32, I...>>
+template <typename E, typename Generator, i32... I>
+struct EnumStorageImpl<E, Generator, std::integer_sequence<i32, I...>>
 {
 private:
-    template <int32 Idx>
+    template <i32 Idx>
     static consteval EnumEntry GetEntryIfValid()
     {
         constexpr E val = Generator::GetValue(Idx);
         constexpr StringView name = ExtractEnumName<E, val>();
-        return EnumEntry{ .value = static_cast<int64>(val), .name = name };
+        return EnumEntry{ .value = static_cast<i64>(val), .name = name };
     }
 
     static constexpr FixedArray<EnumEntry, sizeof...(I)> RawEntries = { GetEntryIfValid<I>()... };
@@ -346,7 +346,7 @@ template <traits::EnumType E>
     using Reflector = detail::EnumReflector<E>;
     constexpr auto& entries = detail::EnumReflector<E>::Entries;
 
-    const int64 int_value = static_cast<int64>(value);
+    const i64 int_value = static_cast<i64>(value);
 
     if constexpr (Reflector::UseExplicit)
     {
@@ -360,7 +360,7 @@ template <traits::EnumType E>
     }
     else
     {
-        auto it = std::lower_bound(entries.begin(), entries.end(), int_value, [](const auto& entry, int64 val)
+        auto it = std::lower_bound(entries.begin(), entries.end(), int_value, [](const auto& entry, i64 val)
         {
             return entry.value < val;
         });

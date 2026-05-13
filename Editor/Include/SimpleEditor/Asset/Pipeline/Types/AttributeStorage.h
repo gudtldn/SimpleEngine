@@ -49,7 +49,7 @@ private:
 template <>
 struct std::hash<se::editor::AttributeKey>
 {
-    size_t operator()(const se::editor::AttributeKey& key) const noexcept
+    usize operator()(const se::editor::AttributeKey& key) const noexcept
     {
         return std::hash<se::String>{}(key.ToString());
     }
@@ -59,10 +59,10 @@ namespace se::editor
 {
 /** 에셋 파이프라인 내에서 전달되는 범용 속성값 타입 */
 using AttributeValue = std::variant<
-    bool, double,
-    int64, uint64,
+    bool, f64,
+    i64, u64,
     Vector2, Vector3, Vector4, Matrix4x4,
-    String, Array<uint8>,
+    String, Array<u8>,
     Guid
 >;
 

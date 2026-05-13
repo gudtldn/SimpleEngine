@@ -120,7 +120,7 @@ TEST_F(TypeReflectionTest, TypeIdsForDifferentTypesAreDifferent)
     using namespace se;
 
     constexpr TypeId ID_INT = TypeId::Get<int>();
-    constexpr TypeId ID_FLOAT = TypeId::Get<float>();
+    constexpr TypeId ID_FLOAT = TypeId::Get<f32>();
     constexpr TypeId ID_CLASS = TypeId::Get<WeirdNamespace::MyClass>();
 
     EXPECT_NE(ID_INT, ID_FLOAT);

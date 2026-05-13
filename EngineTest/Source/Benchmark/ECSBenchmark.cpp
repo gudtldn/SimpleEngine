@@ -4,9 +4,9 @@
 
 namespace se::benchmark_test
 {
-    struct Position { float x, y, z; };
-    struct Velocity { float vx, vy, vz; };
-    struct Acceleration { float ax, ay, az; };
+    struct Position { f32 x, y, z; };
+    struct Velocity { f32 vx, vy, vz; };
+    struct Acceleration { f32 ax, ay, az; };
 
     static void BM_ECS_Query_SingleComponent(benchmark::State& state)
     {
@@ -14,7 +14,7 @@ namespace se::benchmark_test
         const int n = static_cast<int>(state.range(0));
         for (int i = 0; i < n; ++i)
         {
-            world.SpawnEntity(Position{ (float)i, (float)i, (float)i });
+            world.SpawnEntity(Position{ (f32)i, (f32)i, (f32)i });
         }
 
         auto query = world.CreateQuery<Position&>();
@@ -36,7 +36,7 @@ namespace se::benchmark_test
         const int n = static_cast<int>(state.range(0));
         for (int i = 0; i < n; ++i)
         {
-            auto entity = world.SpawnEntity(Position{ (float)i, (float)i, (float)i });
+            auto entity = world.SpawnEntity(Position{ (f32)i, (f32)i, (f32)i });
             if (i % 2 == 0)
             {
                 world.AddComponent(entity, Velocity{ 1.0f, 1.0f, 1.0f });
@@ -63,7 +63,7 @@ namespace se::benchmark_test
         const int n = static_cast<int>(state.range(0));
         for (int i = 0; i < n; ++i)
         {
-            auto entity = world.SpawnEntity(Position{ (float)i, (float)i, (float)i });
+            auto entity = world.SpawnEntity(Position{ (f32)i, (f32)i, (f32)i });
             if (i % 2 == 0)
             {
                 world.AddComponent(entity, Velocity{ 1.0f, 1.0f, 1.0f });
@@ -97,7 +97,7 @@ namespace se::benchmark_test
         const int n = static_cast<int>(state.range(0));
         for (int i = 0; i < n; ++i)
         {
-            auto entity = world.SpawnEntity(Position{ (float)i, (float)i, (float)i });
+            auto entity = world.SpawnEntity(Position{ (f32)i, (f32)i, (f32)i });
             if (i % 10 == 0)
             {
                 world.AddComponent(entity, Velocity{ 1.0f, 1.0f, 1.0f });
@@ -124,7 +124,7 @@ namespace se::benchmark_test
         const int n = static_cast<int>(state.range(0));
         for (int i = 0; i < n; ++i)
         {
-            auto entity = world.SpawnEntity(Position{ (float)i, (float)i, (float)i });
+            auto entity = world.SpawnEntity(Position{ (f32)i, (f32)i, (f32)i });
             if (i % 10 == 0)
             {
                 world.AddComponent(entity, Velocity{ 1.0f, 1.0f, 1.0f });

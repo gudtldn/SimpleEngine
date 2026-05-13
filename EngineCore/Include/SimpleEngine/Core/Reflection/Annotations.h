@@ -24,7 +24,7 @@ struct Any    : Type, Field, Method {}; // 어디든 가능
 } // namespace target
 
 /** 클래스/구조체의 리플렉션 목적 정의 */
-enum class EReflectUsage : uint8
+enum class EReflectUsage : u8
 {
     Default,       // (기본) 에디터 UI + 직렬화
     SerializeOnly, // UI 숨김 + 직렬화 (데이터 구조체, 패킷)
@@ -104,20 +104,20 @@ struct Tooltip : TooltipBase
 /** 숫자 데이터에 슬라이더 UI를 제공합니다. */
 struct Range : target::Field
 {
-    float min;
-    float max;
+    f32 min;
+    f32 max;
 
-    constexpr Range(float in_min, float in_max)
+    constexpr Range(f32 in_min, f32 in_max)
         : min(in_min), max(in_max) {}
 };
 
 /** 숫자 데이터에 슬라이더 UI를 제공하고 실제 데이터의 논리적 범위를 제한합니다. */
 struct Clamp : target::Field
 {
-    float min;
-    float max;
+    f32 min;
+    f32 max;
 
-    constexpr Clamp(float in_min, float in_max)
+    constexpr Clamp(f32 in_min, f32 in_max)
         : min(in_min), max(in_max) {}
 };
 } // namespace tags

@@ -99,7 +99,7 @@ public:
     [[nodiscard]] bool IsFileImported(const VPath& file_path) const;
 
     /** 현재 등록된 Asset의 총 개수를 반환합니다. */
-    [[nodiscard]] uint32 GetAssetCount() const;
+    [[nodiscard]] u32 GetAssetCount() const;
 
     /**
      * Registry에 등록된 모든 소스 파일 경로를 순회합니다.

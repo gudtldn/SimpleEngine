@@ -12,9 +12,9 @@ namespace se::math::simd::detail
     void Matrix4x4MultiplyGeneric(const T* lhs, const T* rhs, T* result);
 
 #if SE_ARCH_X86_FAMILY
-    void Matrix4x4MultiplySSEImpl(const float* lhs, const float* rhs, float* result);
-    void Matrix4x4MultiplyFMAImpl(const float* lhs, const float* rhs, float* result);
-    void Matrix4x4MultiplyAVXImpl(const double* lhs, const double* rhs, double* result);
+    void Matrix4x4MultiplySSEImpl(const f32* lhs, const f32* rhs, f32* result);
+    void Matrix4x4MultiplyFMAImpl(const f32* lhs, const f32* rhs, f32* result);
+    void Matrix4x4MultiplyAVXImpl(const f64* lhs, const f64* rhs, f64* result);
 #endif
 }
 
@@ -36,9 +36,9 @@ static se::math::Matrix4x4Impl<T> CreateRandomMatrix(std::mt19937& gen)
 static void BM_Matrix4x4Multiply_Generic_Float(benchmark::State& state)
 {
     std::mt19937 gen(1234); // Fixed seed for reproducibility
-    auto m1 = CreateRandomMatrix<float>(gen);
-    auto m2 = CreateRandomMatrix<float>(gen);
-    se::math::Matrix4x4Impl<float> result;
+    auto m1 = CreateRandomMatrix<f32>(gen);
+    auto m2 = CreateRandomMatrix<f32>(gen);
+    se::math::Matrix4x4Impl<f32> result;
 
     for ([[maybe_unused]] auto _ : state)
     {
@@ -58,9 +58,9 @@ static void BM_Matrix4x4Multiply_SSE_Float(benchmark::State& state)
         return;
     }
     std::mt19937 gen(1234);
-    auto m1 = CreateRandomMatrix<float>(gen);
-    auto m2 = CreateRandomMatrix<float>(gen);
-    se::math::Matrix4x4Impl<float> result;
+    auto m1 = CreateRandomMatrix<f32>(gen);
+    auto m2 = CreateRandomMatrix<f32>(gen);
+    se::math::Matrix4x4Impl<f32> result;
 
     for ([[maybe_unused]] auto _ : state)
     {
@@ -79,9 +79,9 @@ static void BM_Matrix4x4Multiply_FMA_Float(benchmark::State& state)
         return;
     }
     std::mt19937 gen(1234);
-    auto m1 = CreateRandomMatrix<float>(gen);
-    auto m2 = CreateRandomMatrix<float>(gen);
-    se::math::Matrix4x4Impl<float> result;
+    auto m1 = CreateRandomMatrix<f32>(gen);
+    auto m2 = CreateRandomMatrix<f32>(gen);
+    se::math::Matrix4x4Impl<f32> result;
 
     for ([[maybe_unused]] auto _ : state)
     {
@@ -96,8 +96,8 @@ BENCHMARK(BM_Matrix4x4Multiply_FMA_Float);
 static void BM_Matrix4x4Multiply_Dispatch_Float(benchmark::State& state)
 {
     std::mt19937 gen(1234);
-    auto m1 = CreateRandomMatrix<float>(gen);
-    auto m2 = CreateRandomMatrix<float>(gen);
+    auto m1 = CreateRandomMatrix<f32>(gen);
+    auto m2 = CreateRandomMatrix<f32>(gen);
 
     for ([[maybe_unused]] auto _ : state)
     {
@@ -110,13 +110,13 @@ BENCHMARK(BM_Matrix4x4Multiply_Dispatch_Float);
 
 // --- Double Benchmarks ---
 
-// Benchmark for generic double matrix multiplication
+// Benchmark for generic f64 matrix multiplication
 static void BM_Matrix4x4Multiply_Generic_Double(benchmark::State& state)
 {
     std::mt19937 gen(1234);
-    auto m1 = CreateRandomMatrix<double>(gen);
-    auto m2 = CreateRandomMatrix<double>(gen);
-    se::math::Matrix4x4Impl<double> result;
+    auto m1 = CreateRandomMatrix<f64>(gen);
+    auto m2 = CreateRandomMatrix<f64>(gen);
+    se::math::Matrix4x4Impl<f64> result;
 
     for ([[maybe_unused]] auto _ : state)
     {
@@ -127,7 +127,7 @@ static void BM_Matrix4x4Multiply_Generic_Double(benchmark::State& state)
 BENCHMARK(BM_Matrix4x4Multiply_Generic_Double);
 
 #if SE_ARCH_X86_FAMILY
-// Benchmark for AVX double matrix multiplication
+// Benchmark for AVX f64 matrix multiplication
 static void BM_Matrix4x4Multiply_AVX_Double(benchmark::State& state)
 {
     if (!se::CpuFeature::HasAVX() || !se::CpuFeature::HasFMA3())
@@ -136,9 +136,9 @@ static void BM_Matrix4x4Multiply_AVX_Double(benchmark::State& state)
         return;
     }
     std::mt19937 gen(1234);
-    auto m1 = CreateRandomMatrix<double>(gen);
-    auto m2 = CreateRandomMatrix<double>(gen);
-    se::math::Matrix4x4Impl<double> result;
+    auto m1 = CreateRandomMatrix<f64>(gen);
+    auto m2 = CreateRandomMatrix<f64>(gen);
+    se::math::Matrix4x4Impl<f64> result;
 
     for ([[maybe_unused]] auto _ : state)
     {
@@ -149,12 +149,12 @@ static void BM_Matrix4x4Multiply_AVX_Double(benchmark::State& state)
 BENCHMARK(BM_Matrix4x4Multiply_AVX_Double);
 #endif
 
-// Benchmark for SIMD dispatch (operator*) double matrix multiplication
+// Benchmark for SIMD dispatch (operator*) f64 matrix multiplication
 static void BM_Matrix4x4Multiply_Dispatch_Double(benchmark::State& state)
 {
     std::mt19937 gen(1234);
-    auto m1 = CreateRandomMatrix<double>(gen);
-    auto m2 = CreateRandomMatrix<double>(gen);
+    auto m1 = CreateRandomMatrix<f64>(gen);
+    auto m2 = CreateRandomMatrix<f64>(gen);
 
     for ([[maybe_unused]] auto _ : state)
     {

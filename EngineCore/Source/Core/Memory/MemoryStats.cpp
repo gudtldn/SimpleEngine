@@ -7,9 +7,9 @@
 namespace se
 {
 // static 초기화 시점에 기록할 수 있도록
-std::atomic<uint32> MemoryStats::registered_count = 1;
+std::atomic<u32> MemoryStats::registered_count = 1;
 FixedArray<MemoryTag, MemoryStats::MAX_MEMORY_TAGS> MemoryStats::tags{};
-HashMap<StringName, uint32> MemoryStats::tag_lookup;
+HashMap<StringName, u32> MemoryStats::tag_lookup;
 
 [[maybe_unused]] static const bool DefaultTagInitialized = [] static
 {
@@ -24,15 +24,15 @@ std::atomic<usize> MemoryStats::total_cpu_allocated = 0;
 std::atomic<usize> MemoryStats::total_gpu_allocated = 0;
 
 // TLS 변수 (스레드별 현재 태그 ID)
-thread_local uint32 CurrentThreadTagId = 0;
+thread_local u32 CurrentThreadTagId = 0;
 
 
-uint32 MemoryStats::GetOrRegisterTag(const StringName& name)
+u32 MemoryStats::GetOrRegisterTag(const StringName& name)
 {
     std::scoped_lock lock(registry_mutex);
     return tag_lookup.Entry(name).OrInsertWith([&name = std::as_const(name)]
     {
-        const uint32 new_id = registered_count.load(std::memory_order_relaxed);
+        const u32 new_id = registered_count.load(std::memory_order_relaxed);
         SE_ASSERT(new_id < MAX_MEMORY_TAGS, "Memory tags capacity exceeded!");
 
         tags[new_id].name = name;
@@ -42,17 +42,17 @@ uint32 MemoryStats::GetOrRegisterTag(const StringName& name)
     });
 }
 
-uint32 MemoryStats::SetCurrentTag(uint32 tag_id)
+u32 MemoryStats::SetCurrentTag(u32 tag_id)
 {
     return std::exchange(CurrentThreadTagId, tag_id);
 }
 
-uint32 MemoryStats::GetCurrentTag()
+u32 MemoryStats::GetCurrentTag()
 {
     return CurrentThreadTagId;
 }
 
-void MemoryStats::TrackAlloc(uint32 tag_id, usize size)
+void MemoryStats::TrackAlloc(u32 tag_id, usize size)
 {
     if (SE_ENSURE(tag_id < registered_count.load(std::memory_order_acquire), "Invalid memory tag ID!"))
     {
@@ -61,7 +61,7 @@ void MemoryStats::TrackAlloc(uint32 tag_id, usize size)
     tags[tag_id].cpu_allocated.fetch_add(size, std::memory_order_relaxed);
 }
 
-void MemoryStats::TrackFree(uint32 tag_id, usize size)
+void MemoryStats::TrackFree(u32 tag_id, usize size)
 {
     if (SE_ENSURE(tag_id < registered_count.load(std::memory_order_acquire), "Invalid memory tag ID!"))
     {
@@ -70,7 +70,7 @@ void MemoryStats::TrackFree(uint32 tag_id, usize size)
     tags[tag_id].cpu_allocated.fetch_sub(size, std::memory_order_relaxed);
 }
 
-void MemoryStats::TrackGpuAlloc(uint32 tag_id, usize size)
+void MemoryStats::TrackGpuAlloc(u32 tag_id, usize size)
 {
     if (SE_ENSURE(tag_id < registered_count.load(std::memory_order_acquire), "Invalid memory tag ID!"))
     {
@@ -79,7 +79,7 @@ void MemoryStats::TrackGpuAlloc(uint32 tag_id, usize size)
     tags[tag_id].gpu_allocated.fetch_add(size, std::memory_order_relaxed);
 }
 
-void MemoryStats::TrackGpuFree(uint32 tag_id, usize size)
+void MemoryStats::TrackGpuFree(u32 tag_id, usize size)
 {
     if (SE_ENSURE(tag_id < registered_count.load(std::memory_order_acquire), "Invalid memory tag ID!"))
     {

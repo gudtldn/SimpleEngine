@@ -4,7 +4,7 @@
 
 namespace se
 {
-TypeId TypeId::FromHash(uint64 in_hash)
+TypeId TypeId::FromHash(u64 in_hash)
 {
     const TypeRegistry& registry = TypeRegistry::Get();
     const TypeId temp_id = TypeId{ "UnknownType", in_hash };

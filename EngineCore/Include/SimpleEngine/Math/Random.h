@@ -18,32 +18,32 @@ public:
     RandomStream();
 
     /** 특정 상태와 시퀀스로 스트림을 생성합니다. */
-    RandomStream(uint64 in_state, uint64 in_seq = 0);
+    RandomStream(u64 in_state, u64 in_seq = 0);
 
     /** 새로운 상태와 시퀀스로 시드를 설정합니다. */
-    void Seed(uint64 in_state, uint64 in_seq = 0);
+    void Seed(u64 in_state, u64 in_seq = 0);
 
     /** 0 ~ 2^32-1 범위의 난수를 반환합니다. */
-    uint32 Next();
+    u32 Next();
 
     /** [0, in_max) 범위의 정수 난수를 반환합니다. */
-    uint32 Range(uint32 in_max);
+    u32 Range(u32 in_max);
 
     /** [in_min, in_max] 범위의 정수 난수를 반환합니다. */
-    int32 Range(int32 in_min, int32 in_max);
+    i32 Range(i32 in_min, i32 in_max);
 
     /** [0.0f, 1.0f) 범위의 실수 난수를 반환합니다. */
-    float Float();
+    f32 Float();
 
     /** [in_min, in_max) 범위의 실수 난수를 반환합니다. */
-    float Range(float in_min, float in_max);
+    f32 Range(f32 in_min, f32 in_max);
 
     /** 무작위로 true 또는 false를 반환합니다. */
     bool Bool();
 
 private:
-    uint64 pcg_state; // PCG 내부 상태
-    uint64 pcg_inc;   // 스트림 증분 값
+    u64 pcg_state; // PCG 내부 상태
+    u64 pcg_inc;   // 스트림 증분 값
 };
 
 /**
@@ -55,22 +55,22 @@ struct SE_CORE_API Random
     Random() = delete;
 
     /** 전역 난수 스트림의 시드를 설정합니다. */
-    static void Seed(uint64 in_state, uint64 in_seq = 0);
+    static void Seed(u64 in_state, u64 in_seq = 0);
 
     /** 0 ~ 2^32-1 범위의 난수를 반환합니다. */
-    static uint32 Next();
+    static u32 Next();
 
     /** [0, in_max) 범위의 정수 난수를 반환합니다. */
-    static uint32 Range(uint32 in_max);
+    static u32 Range(u32 in_max);
 
     /** [in_min, in_max] 범위의 정수 난수를 반환합니다. */
-    static int32 Range(int32 in_min, int32 in_max);
+    static i32 Range(i32 in_min, i32 in_max);
 
     /** [0.0f, 1.0f) 범위의 실수 난수를 반환합니다. */
-    static float Float();
+    static f32 Float();
 
     /** [in_min, in_max) 범위의 실수 난수를 반환합니다. */
-    static float Range(float in_min, float in_max);
+    static f32 Range(f32 in_min, f32 in_max);
 
     /** 무작위로 true 또는 false를 반환합니다. */
     static bool Bool();

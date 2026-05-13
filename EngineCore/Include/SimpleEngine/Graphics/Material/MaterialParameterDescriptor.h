@@ -9,7 +9,7 @@
 namespace se
 {
 /** 머티리얼 UBO 파라미터 타입 (HLSL 대응) */
-enum class EMaterialParamType : uint8
+enum class EMaterialParamType : u8
 {
     Uint,   // 4 bytes
     Float,  // 4 bytes
@@ -33,17 +33,17 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
 
     // 버퍼 내 바이트 오프셋
     SE_ANNOTATION(=meta::Property)
-    uint32 offset = 0;
+    u32 offset = 0;
 
     // 인스턴스 생성 시 기본값
     SE_ANNOTATION(=meta::Property)
     Vector4f default_value = {};
 
     /** 이 파라미터가 차지하는 바이트 크기를 반환합니다. */
-    [[nodiscard]] uint32 GetSize() const;
+    [[nodiscard]] u32 GetSize() const;
 
     /** 셰이더 std140/std430 레이아웃에 따른 정렬(Alignment) 요구사항을 반환합니다. */
-    [[nodiscard]] uint32 GetAlignment() const;
+    [[nodiscard]] u32 GetAlignment() const;
 };
 } // namespace se
 

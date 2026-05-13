@@ -43,48 +43,48 @@ public:
      * @param name 등록하거나 조회할 태그의 이름
      * @return 등록된(혹은 조회된) 태그의 고유 ID
      */
-    [[nodiscard]] static uint32 GetOrRegisterTag(const StringName& name);
+    [[nodiscard]] static u32 GetOrRegisterTag(const StringName& name);
 
     /**
      * 현재 스레드의 활성 메모리 태그를 설정합니다.
      * @param tag_id 설정할 태그의 ID
      * @return 이전에 설정되어 있던 태그 ID
      */
-    static uint32 SetCurrentTag(uint32 tag_id);
+    static u32 SetCurrentTag(u32 tag_id);
 
     /**
      * 현재 스레드에 설정된 활성 메모리 태그 ID를 반환합니다.
      * @return 현재 태그 ID
      */
-    static uint32 GetCurrentTag();
+    static u32 GetCurrentTag();
 
     /**
      * CPU 메모리 할당을 기록합니다.
      * @param tag_id 할당에 사용된 태그 ID
      * @param size 할당된 크기 (바이트)
      */
-    static void TrackAlloc(uint32 tag_id, usize size);
+    static void TrackAlloc(u32 tag_id, usize size);
 
     /**
      * CPU 메모리 해제를 기록합니다.
      * @param tag_id 해제된 메모리의 태그 ID
      * @param size 해제된 크기 (바이트)
      */
-    static void TrackFree(uint32 tag_id, usize size);
+    static void TrackFree(u32 tag_id, usize size);
 
     /**
      * GPU 메모리 할당을 기록합니다.
      * @param tag_id 할당에 사용된 태그 ID
      * @param size 할당된 크기 (바이트)
      */
-    static void TrackGpuAlloc(uint32 tag_id, usize size);
+    static void TrackGpuAlloc(u32 tag_id, usize size);
 
     /**
      * GPU 메모리 해제를 기록합니다.
      * @param tag_id 해제된 메모리의 태그 ID
      * @param size 해제된 크기 (바이트)
      */
-    static void TrackGpuFree(uint32 tag_id, usize size);
+    static void TrackGpuFree(u32 tag_id, usize size);
 
     /**
      * 현재 등록된 모든 메모리 태그의 목록을 반환합니다.
@@ -106,27 +106,27 @@ public:
 
 private:
     // 최대 등록 가능한 태그 개수
-    static constexpr uint32 MAX_MEMORY_TAGS = 256;
+    static constexpr u32 MAX_MEMORY_TAGS = 256;
 
     inline static TracyLockable(std::mutex, registry_mutex);
 
-    static std::atomic<uint32> registered_count;
+    static std::atomic<u32> registered_count;
     static FixedArray<MemoryTag, MAX_MEMORY_TAGS> tags;
-    static HashMap<StringName, uint32> tag_lookup;
+    static HashMap<StringName, u32> tag_lookup;
 
     static std::atomic<usize> total_cpu_allocated;
     static std::atomic<usize> total_gpu_allocated;
 #else
-    FORCE_INLINE static uint32 GetOrRegisterTag([[maybe_unused]] const StringName& name) { return 0; }
+    FORCE_INLINE static u32 GetOrRegisterTag([[maybe_unused]] const StringName& name) { return 0; }
 
-    FORCE_INLINE static uint32 SetCurrentTag([[maybe_unused]] uint32 tag_id) { return 0; }
-    FORCE_INLINE static uint32 GetCurrentTag() { return 0; }
+    FORCE_INLINE static u32 SetCurrentTag([[maybe_unused]] u32 tag_id) { return 0; }
+    FORCE_INLINE static u32 GetCurrentTag() { return 0; }
 
-    FORCE_INLINE static void TrackAlloc([[maybe_unused]] uint32 tag_id, [[maybe_unused]] usize size) {}
-    FORCE_INLINE static void TrackFree([[maybe_unused]] uint32 tag_id, [[maybe_unused]] usize size) {}
+    FORCE_INLINE static void TrackAlloc([[maybe_unused]] u32 tag_id, [[maybe_unused]] usize size) {}
+    FORCE_INLINE static void TrackFree([[maybe_unused]] u32 tag_id, [[maybe_unused]] usize size) {}
 
-    FORCE_INLINE static void TrackGpuAlloc([[maybe_unused]] uint32 tag_id, [[maybe_unused]] usize size) {}
-    FORCE_INLINE static void TrackGpuFree([[maybe_unused]] uint32 tag_id, [[maybe_unused]] usize size) {}
+    FORCE_INLINE static void TrackGpuAlloc([[maybe_unused]] u32 tag_id, [[maybe_unused]] usize size) {}
+    FORCE_INLINE static void TrackGpuFree([[maybe_unused]] u32 tag_id, [[maybe_unused]] usize size) {}
 
     FORCE_INLINE static ArrayView<MemoryTag> GetTags() { return {}; }
     FORCE_INLINE static usize GetTotalCpuAllocated() { return 0; }
@@ -143,11 +143,11 @@ public:
 #if SE_ENABLE_MEMORY_TRACKING
     explicit ScopedMemoryTag(const StringName& name)
     {
-        const uint32 new_id = MemoryStats::GetOrRegisterTag(name);
+        const u32 new_id = MemoryStats::GetOrRegisterTag(name);
         prev_id = MemoryStats::SetCurrentTag(new_id);
     }
 
-    explicit ScopedMemoryTag(uint32 id)
+    explicit ScopedMemoryTag(u32 id)
     {
         prev_id = MemoryStats::SetCurrentTag(id);
     }
@@ -158,12 +158,12 @@ public:
     }
 
 private:
-    uint32 prev_id = 0;
+    u32 prev_id = 0;
 
 #else
 
     explicit ScopedMemoryTag([[maybe_unused]] const StringName& name) {}
-    explicit ScopedMemoryTag([[maybe_unused]] uint32 id) {}
+    explicit ScopedMemoryTag([[maybe_unused]] u32 id) {}
     ~ScopedMemoryTag() = default;
 #endif
 
@@ -185,7 +185,7 @@ public:
 
 /**
  * 미리 캐싱된 ID를 사용하여 현재 스코프의 메모리 태그를 설정합니다.
- * @param id 태그 ID (uint32)
+ * @param id 태그 ID (u32)
  */
 #define SE_MEM_SCOPE_ID(id) \
     se::ScopedMemoryTag SE_UNIQUE_NAME(_se_mem_tag_){ id }

@@ -38,7 +38,7 @@ public:
     Array<StaticVertex> vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<uint32> indices;
+    Array<u32> indices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     Array<MeshLOD> lods;
@@ -67,7 +67,7 @@ public:
     Array<SkinVertex> skin_vertices;
 
     SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    Array<uint32> indices;
+    Array<u32> indices;
 
     // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
     // Array<Material> materials;

@@ -64,8 +64,8 @@ std::shared_ptr<AssetBase> MaterialInstanceFactory::CreateAsset(
     {
         if (const auto param = parent.FindParameter(name))
         {
-            const uint32 size = param->GetSize();
-            if (param->offset + size <= static_cast<uint32>(inst->parameter_values.Len()))
+            const u32 size = param->GetSize();
+            if (param->offset + size <= static_cast<u32>(inst->parameter_values.Len()))
             {
                 std::memcpy(inst->parameter_values.Data() + param->offset, &value, size);
             }

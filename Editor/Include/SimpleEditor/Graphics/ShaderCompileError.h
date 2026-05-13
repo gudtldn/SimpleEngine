@@ -14,7 +14,7 @@ namespace se::editor
 class ShaderCompileError final : public IError
 {
 public:
-    enum class EType : uint8
+    enum class EType : u8
     {
         FileNotFound,  // 소스 파일을 찾을 수 없음
         ReadFailed,    // 소스 파일 읽기 실패

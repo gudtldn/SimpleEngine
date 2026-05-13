@@ -16,11 +16,11 @@ namespace se
  */
 struct RID
 {
-    static constexpr uint32 INVALID_INDEX = std::numeric_limits<uint32>::max();
-    static constexpr uint32 INVALID_GENERATION = 0;
+    static constexpr u32 INVALID_INDEX = std::numeric_limits<u32>::max();
+    static constexpr u32 INVALID_GENERATION = 0;
 
-    uint32 index = INVALID_INDEX;
-    uint32 generation = INVALID_GENERATION;
+    u32 index = INVALID_INDEX;
+    u32 generation = INVALID_GENERATION;
 
     [[nodiscard]] constexpr bool IsValid() const noexcept
     {
@@ -33,9 +33,9 @@ struct RID
     [[nodiscard]] constexpr auto operator<=>(const RID&) const noexcept = default;
 
     /** 64비트 패킹 값 반환 (주로 디버그 출력용) */
-    [[nodiscard]] constexpr uint64 ToU64() const noexcept
+    [[nodiscard]] constexpr u64 ToU64() const noexcept
     {
-        return (static_cast<uint64>(generation) << 32) | static_cast<uint64>(index);
+        return (static_cast<u64>(generation) << 32) | static_cast<u64>(index);
     }
 };
 } // namespace se
@@ -44,8 +44,8 @@ struct RID
 template<>
 struct std::hash<se::RID>
 {
-    [[nodiscard]] size_t operator()(const se::RID& rid) const noexcept
+    [[nodiscard]] usize operator()(const se::RID& rid) const noexcept
     {
-        return std::hash<uint64>{}(rid.ToU64());
+        return std::hash<u64>{}(rid.ToU64());
     }
 };

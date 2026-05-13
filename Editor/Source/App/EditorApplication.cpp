@@ -87,7 +87,7 @@ void EditorApplication::RegisterSubsystems()
         SetTargetFps(performance_settings.target_fps);
         SetBusyWaitRatio(performance_settings.busy_wait_ratio);
 
-        uint32 flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+        u32 flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
         if (window_settings.fullscreen) { flags |= SDL_WINDOW_FULLSCREEN; }
         if (window_settings.borderless) { flags |= SDL_WINDOW_BORDERLESS; }
         if (window_settings.resizable)  { flags |= SDL_WINDOW_RESIZABLE;  }
@@ -170,7 +170,7 @@ void EditorApplication::Render()
 
     // FramePacket 조립
     se::FramePacket frame_packet;
-    static uint64 frame_counter = 0;
+    static u64 frame_counter = 0;
     frame_packet.frame_number = ++frame_counter; // TODO: 나중에 frame_counter를 통합 관리하는 구조체 만들기
 
     // 게임 스레드에서 뷰포트별 렌더 데이터 스냅샷 수집
@@ -338,7 +338,7 @@ void EditorApplication::Render()
 
                 // 메인 Scene 렌더링 (entity_id_handle이 유효하면 MRT로 entity ID 동시 출력)
                 builder.AddPass<se::ForwardScenePass>(
-                    frame_packet.scene_draw_data, static_cast<uint32>(view_idx), gpu_manager, sampler_cache,
+                    frame_packet.scene_draw_data, static_cast<u32>(view_idx), gpu_manager, sampler_cache,
                     render_view, color_handle, depth_handle, entity_id_handle
                 );
 
@@ -622,9 +622,9 @@ void EditorApplication::ExecuteGpuUploads(SDL_GPUCommandBuffer* cmd, const Frame
             cmd,
             request.mesh_id,
             mesh->vertices.Data(),
-            static_cast<uint32>(mesh->vertices.Len() * sizeof(StaticVertex)),
+            static_cast<u32>(mesh->vertices.Len() * sizeof(StaticVertex)),
             mesh->indices.Data(),
-            static_cast<uint32>(mesh->indices.Len() * sizeof(uint32))
+            static_cast<u32>(mesh->indices.Len() * sizeof(u32))
         );
 
         if (success)

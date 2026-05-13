@@ -22,7 +22,7 @@ protected:
     virtual void RegisterSubsystems() override;
     virtual bool PostInitialize() override;
     // virtual void PreRelease() override;
-    // virtual void Update(float delta_time) override;
+    // virtual void Update(f32 delta_time) override;
 
     virtual void Render() override;
 

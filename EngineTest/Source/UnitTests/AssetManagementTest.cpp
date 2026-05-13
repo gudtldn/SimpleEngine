@@ -45,7 +45,7 @@ class SE_ANNOTATION(=meta::Internal) MockMesh : public AssetBase
 public:
     MockMesh() = default;
 
-    uint32 vertex_count = 100;
+    u32 vertex_count = 100;
 };
 
 SE_BEGIN_REFLECT(MockMesh, meta::Internal)
@@ -204,7 +204,7 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
         slot.state = ELoadingState::Loaded;
     }
 
-    uint32 removed = pool.CollectGarbage();
+    u32 removed = pool.CollectGarbage();
     EXPECT_EQ(removed, 1u);
     EXPECT_EQ(pool.GetCount(), 1u);
 
@@ -224,7 +224,7 @@ TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
     // ref_count를 1로 설정하여 사용 중으로 표시
     pool.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
 
-    uint32 removed = pool.CollectGarbage();
+    u32 removed = pool.CollectGarbage();
     EXPECT_EQ(removed, 0u);
     EXPECT_EQ(pool.GetCount(), 1u);
 

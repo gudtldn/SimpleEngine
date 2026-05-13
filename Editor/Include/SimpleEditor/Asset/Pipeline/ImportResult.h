@@ -23,7 +23,7 @@ namespace se::editor
 class SE_EDITOR_API ImportError final : public IError
 {
 public:
-    enum class EType : uint8
+    enum class EType : u8
     {
         NoTranslator,      // 적합한 Translator를 찾지 못함
         TranslateFailed,   // Translator 실행 중 에러
@@ -90,7 +90,7 @@ public:
     [[nodiscard]] FORCE_INLINE bool IsEmpty() const { return entries.IsEmpty(); }
 
     /** 생성된 Asset의 개수를 반환합니다. */
-    [[nodiscard]] FORCE_INLINE uint32 GetCount() const { return static_cast<uint32>(entries.Len()); }
+    [[nodiscard]] FORCE_INLINE u32 GetCount() const { return static_cast<u32>(entries.Len()); }
 
     /** Entry 목록의 참조를 반환합니다. */
     [[nodiscard]] FORCE_INLINE const Array<ImportedAsset>& GetEntries() const { return entries; }
@@ -125,8 +125,8 @@ public:
 private:
     ImportResult(
         Array<ImportedAsset> in_entries,
-        HashMap<String, uint32> in_name_to_index,
-        uint32 in_main_asset_index
+        HashMap<String, u32> in_name_to_index,
+        u32 in_main_asset_index
     );
 
 private:
@@ -134,10 +134,10 @@ private:
     Array<ImportedAsset> entries;
 
     /** Sub-Asset 이름 -> 인덱스 매핑 */
-    HashMap<String, uint32> name_to_index;
+    HashMap<String, u32> name_to_index;
 
     /** 메인 Asset 인덱스 */
-    uint32 main_asset_index = 0;
+    u32 main_asset_index = 0;
 };
 
 /**
@@ -154,7 +154,7 @@ public:
      * @param dependencies 이 에셋이 의존하는 에셋 목록
      * @return 등록된 엔트리의 인덱스
      */
-    uint32 RegisterAsset(
+    u32 RegisterAsset(
         const String& name,
         AssetId asset_id,
         std::shared_ptr<AssetBase> asset,
@@ -162,7 +162,7 @@ public:
     );
 
     /** 메인 에셋의 인덱스를 설정합니다. */
-    void SetMainAssetIndex(uint32 index);
+    void SetMainAssetIndex(u32 index);
 
     /** 최종 결과 객체를 생성합니다. 호출 후 빌더는 초기화됩니다. */
     [[nodiscard]] ImportResult Build();
@@ -173,8 +173,8 @@ private:
 
 private:
     Array<ImportedAsset> entries;
-    HashMap<String, uint32> name_to_index;
-    HashMap<String, uint32> next_suffix_map; // 임시 상태 저장용
-    uint32 main_asset_index = 0;
+    HashMap<String, u32> name_to_index;
+    HashMap<String, u32> next_suffix_map; // 임시 상태 저장용
+    u32 main_asset_index = 0;
 };
 } // namespace se::editor

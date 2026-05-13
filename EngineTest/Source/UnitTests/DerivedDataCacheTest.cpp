@@ -38,25 +38,25 @@ private:
 // 테스트용 ContentHash 생성 (라벨 바이트를 그대로 해시에 채워넣음)
 ContentHash MakeTestHash(StringView label)
 {
-    uint8 raw[ContentHash::DIGEST_SIZE] = {};
+    u8 raw[ContentHash::DIGEST_SIZE] = {};
     std::memcpy(raw, label.Data(), std::min(label.ByteLen(), usize{ ContentHash::DIGEST_SIZE }));
     return ContentHash::FromRaw(raw);
 }
 
 // 테스트용 페이로드 생성
-Array<uint8> MakePayload(const std::initializer_list<uint8>& data)
+Array<u8> MakePayload(const std::initializer_list<u8>& data)
 {
-    Array<uint8> result;
-    for (uint8 byte : data)
+    Array<u8> result;
+    for (u8 byte : data)
     {
         result.Push(byte);
     }
     return result;
 }
 
-Array<uint8> MakePayload(usize size, uint8 fill = 0xAB)
+Array<u8> MakePayload(usize size, u8 fill = 0xAB)
 {
-    Array<uint8> result(size);
+    Array<u8> result(size);
     std::memset(result.Data(), fill, size);
     return result;
 }
@@ -78,8 +78,8 @@ TEST_F(DDCTest, StoreAndLoad)
 {
     const Guid guid = Guid::NewGuid();
     const ContentHash hash = MakeTestHash("abcdef1234567890");
-    const uint32 version = 1;
-    const Array<uint8> payload = MakePayload({ 0x01, 0x02, 0x03, 0x04 });
+    const u32 version = 1;
+    const Array<u8> payload = MakePayload({ 0x01, 0x02, 0x03, 0x04 });
 
     // Store
     ASSERT_TRUE(ddc.Store(guid, {
@@ -110,7 +110,7 @@ TEST_F(DDCTest, Contains)
     const Guid guid = Guid::NewGuid();
     EXPECT_FALSE(ddc.Contains(guid));
 
-    const Array<uint8> payload = MakePayload({ 0xFF });
+    const Array<u8> payload = MakePayload({ 0xFF });
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("test"),
         .cache_version = 1,
@@ -129,8 +129,8 @@ TEST_F(DDCTest, IsValid_MatchingHashAndVersion)
 {
     const Guid guid = Guid::NewGuid();
     const ContentHash hash = MakeTestHash("matching_hash");
-    const uint32 version = 3;
-    const Array<uint8> payload = MakePayload(16);
+    const u32 version = 3;
+    const Array<u8> payload = MakePayload(16);
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = hash,
@@ -144,7 +144,7 @@ TEST_F(DDCTest, IsValid_MatchingHashAndVersion)
 TEST_F(DDCTest, IsValid_MismatchHash)
 {
     const Guid guid = Guid::NewGuid();
-    const Array<uint8> payload = MakePayload(16);
+    const Array<u8> payload = MakePayload(16);
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("original"),
@@ -158,7 +158,7 @@ TEST_F(DDCTest, IsValid_MismatchHash)
 TEST_F(DDCTest, IsValid_MismatchVersion)
 {
     const Guid guid = Guid::NewGuid();
-    const Array<uint8> payload = MakePayload(16);
+    const Array<u8> payload = MakePayload(16);
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("same"),
@@ -183,8 +183,8 @@ TEST_F(DDCTest, IsValid_NonExistent)
 TEST_F(DDCTest, OverwriteExistingCache)
 {
     const Guid guid = Guid::NewGuid();
-    const Array<uint8> payload1 = MakePayload({ 0x01, 0x02 });
-    const Array<uint8> payload2 = MakePayload({ 0xAA, 0xBB, 0xCC });
+    const Array<u8> payload1 = MakePayload({ 0x01, 0x02 });
+    const Array<u8> payload2 = MakePayload({ 0xAA, 0xBB, 0xCC });
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("v1"),
@@ -214,7 +214,7 @@ TEST_F(DDCTest, OverwriteExistingCache)
 TEST_F(DDCTest, Remove)
 {
     const Guid guid = Guid::NewGuid();
-    const Array<uint8> payload = MakePayload({ 0x01 });
+    const Array<u8> payload = MakePayload({ 0x01 });
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("test"),
@@ -238,7 +238,7 @@ TEST_F(DDCTest, Clear)
 {
     const Guid guid1 = Guid::NewGuid();
     const Guid guid2 = Guid::NewGuid();
-    const Array<uint8> payload = MakePayload(8);
+    const Array<u8> payload = MakePayload(8);
 
     ASSERT_TRUE(ddc.Store(guid1, {
         .source_hash = MakeTestHash("a"),
@@ -268,7 +268,7 @@ TEST_F(DDCTest, Clear)
 TEST_F(DDCTest, EmptyPayload)
 {
     const Guid guid = Guid::NewGuid();
-    const Array<uint8> empty_payload;
+    const Array<u8> empty_payload;
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("empty"),
@@ -292,7 +292,7 @@ TEST_F(DDCTest, LargePayload)
 {
     const Guid guid = Guid::NewGuid();
     const usize large_size = 1024 * 1024; // 1MB
-    const Array<uint8> payload = MakePayload(large_size, 0xCD);
+    const Array<u8> payload = MakePayload(large_size, 0xCD);
 
     ASSERT_TRUE(ddc.Store(guid, {
         .source_hash = MakeTestHash("large"),
@@ -317,8 +317,8 @@ TEST_F(DDCTest, MultipleGuidsIndependent)
     const Guid guid1 = Guid::NewGuid();
     const Guid guid2 = Guid::NewGuid();
 
-    const Array<uint8> payload1 = MakePayload({ 0x11, 0x22 });
-    const Array<uint8> payload2 = MakePayload({ 0xAA, 0xBB, 0xCC });
+    const Array<u8> payload1 = MakePayload({ 0x11, 0x22 });
+    const Array<u8> payload2 = MakePayload({ 0xAA, 0xBB, 0xCC });
 
     ASSERT_TRUE(ddc.Store(guid1, {
         .source_hash = MakeTestHash("hash1"),

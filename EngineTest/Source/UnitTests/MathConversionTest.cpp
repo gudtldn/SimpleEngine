@@ -7,7 +7,7 @@ using namespace se::math;
 
 TEST(MathConversionTest, VectorConversion)
 {
-    // float -> double (Implicit)
+    // f32 -> f64 (Implicit)
     {
         Vector3f v3f{ 1.0f, 2.0f, 3.0f };
         Vector3 v3d = v3f;
@@ -18,7 +18,7 @@ TEST(MathConversionTest, VectorConversion)
         static_assert(std::is_convertible_v<Vector3f, Vector3>);
     }
 
-    // double -> float (Explicit)
+    // f64 -> f32 (Explicit)
     {
         Vector3 v3d{ 10.0, 20.0, 30.0 };
         Vector3f v3f = static_cast<Vector3f>(v3d);

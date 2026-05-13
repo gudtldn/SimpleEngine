@@ -14,7 +14,7 @@ namespace se
 {
 struct DelegateHandle
 {
-    uint64 id = 0;
+    u64 id = 0;
 
     [[nodiscard]] bool IsValid() const noexcept { return id != 0; }
     void Invalidate() noexcept { id = 0; }
@@ -28,9 +28,9 @@ private:
     template <typename Signature>
     friend class MultiDelegate;
 
-    static uint64 GenerateNewId()
+    static u64 GenerateNewId()
     {
-        static std::atomic<uint64> id_counter = 0;
+        static std::atomic<u64> id_counter = 0;
         return ++id_counter;
     }
 

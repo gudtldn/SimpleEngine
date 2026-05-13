@@ -8,20 +8,20 @@ namespace se
 {
 namespace detail
 {
-constexpr uint64 DEFAULT_FNV_HASH = 0xcbf29ce484222325ULL;
-constexpr uint64 FNV_PRIME = 0x100000001b3ULL;
+constexpr u64 DEFAULT_FNV_HASH = 0xcbf29ce484222325ULL;
+constexpr u64 FNV_PRIME = 0x100000001b3ULL;
 
 /**
  * FNV-1a 해시 알고리즘을 사용한 문자열 해싱 함수
  * @see https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
  */
 template <typename TransformFunc>
-constexpr uint64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcept
+constexpr u64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcept
 {
-    uint64 hash = DEFAULT_FNV_HASH; // FNV_offset_basis
+    u64 hash = DEFAULT_FNV_HASH; // FNV_offset_basis
     for (const StringView::CharType c : view)
     {
-        hash ^= static_cast<uint8>(transform(c));
+        hash ^= static_cast<u8>(transform(c));
         hash *= FNV_PRIME;
     }
     return hash;
@@ -36,23 +36,23 @@ struct HashUtils
     HashUtils() = delete;
 
     /** 원시 바이트 범위에 대한 FNV-1a 해시 */
-    static constexpr uint64 FNV(const uint8* data, usize size) noexcept
+    static constexpr u64 FNV(const u8* data, usize size) noexcept
     {
-        uint64 hash = detail::DEFAULT_FNV_HASH;
+        u64 hash = detail::DEFAULT_FNV_HASH;
         for (usize i = 0; i < size; ++i)
         {
-            hash ^= static_cast<uint64>(data[i]);
+            hash ^= static_cast<u64>(data[i]);
             hash *= detail::FNV_PRIME;
         }
         return hash;
     }
 
-    static constexpr uint64 FNV(StringView view) noexcept
+    static constexpr u64 FNV(StringView view) noexcept
     {
         return detail::FNV_Hash_Impl(view, [](auto c) { return c; });
     }
 
-    static constexpr uint64 FNVCaseInsensitive(StringView view) noexcept
+    static constexpr u64 FNVCaseInsensitive(StringView view) noexcept
     {
         return detail::FNV_Hash_Impl(view, [](auto c)
         {

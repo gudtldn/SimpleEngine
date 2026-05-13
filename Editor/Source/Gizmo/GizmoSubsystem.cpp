@@ -52,7 +52,7 @@ bool GizmoSubsystem::Initialize()
     // 4바이트 download transfer buffer (GPU -> CPU readback)
     constexpr SDL_GPUTransferBufferCreateInfo TB_INFO = {
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
-        .size = sizeof(uint32),
+        .size = sizeof(u32),
     };
     download_buffer = SDL_CreateGPUTransferBuffer(render_device->GetRawDevice(), &TB_INFO);
     return download_buffer != nullptr;
@@ -185,10 +185,10 @@ void GizmoSubsystem::PerformPick()
     SDL_WaitForGPUFences(raw_device, true, &fence, 1);
     SDL_ReleaseGPUFence(raw_device, fence);
 
-    uint32 pick_id = 0;
+    u32 pick_id = 0;
     if (const void* data = SDL_MapGPUTransferBuffer(raw_device, download_buffer, false))
     {
-        pick_id = *static_cast<const uint32*>(data);
+        pick_id = *static_cast<const u32*>(data);
         SDL_UnmapGPUTransferBuffer(raw_device, download_buffer);
     }
 
@@ -205,7 +205,7 @@ SDL_GPUTexture* GizmoSubsystem::GetPickTexture() const
     return nullptr;
 }
 
-void GizmoSubsystem::Update(double /*delta_time*/)
+void GizmoSubsystem::Update(f64 /*delta_time*/)
 {
     HandleInteraction();
 }

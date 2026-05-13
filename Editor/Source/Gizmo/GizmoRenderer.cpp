@@ -38,14 +38,14 @@ void GizmoRenderer::Draw(GizmoDrawList& draw_list, const Quaternion& rotation)
     }
 }
 
-double GizmoRenderer::ComputeScreenScale(const Vector3& position, const RenderView& view)
+f64 GizmoRenderer::ComputeScreenScale(const Vector3& position, const RenderView& view)
 {
     // 원근 투영에서 Projection[1, 1]은 (1 / tan(FOV_Y / 2))을 의미
-    const double proj_11 = view.projection_matrix[1, 1];
+    const f64 proj_11 = view.projection_matrix[1, 1];
     if (Abs(proj_11) < KINDA_SMALL_NUMBER) { return 0.0; }
 
     // 투영 행렬의 [2, 3] 성분을 확인하여 직교(0)와 원근(-1) 투영을 판별
-    const double proj_23 = view.projection_matrix[2, 3];
+    const f64 proj_23 = view.projection_matrix[2, 3];
     if (Abs(proj_23) < KINDA_SMALL_NUMBER)
     {
         // 직교 투영인 경우, 카메라와의 거리에 무관하게 가시 영역 높이에 비례한 고정 스케일을 반환
@@ -54,12 +54,12 @@ double GizmoRenderer::ComputeScreenScale(const Vector3& position, const RenderVi
 
     // 원근 투영인 경우, View Space에서의 Z값(카메라 평면으로부터의 거리)을 추출
     // 역행렬 곱 연산 전체를 수행하지 않고, View Matrix의 전방 축(Z축) 내적만 수행하여 성능을 최적화한다.
-    const double vz = (position.x * view.view_matrix[0, 2])
+    const f64 vz = (position.x * view.view_matrix[0, 2])
                     + (position.y * view.view_matrix[1, 2])
                     + (position.z * view.view_matrix[2, 2])
                     +               view.view_matrix[3, 2];
 
-    const double distance = Abs(vz);
+    const f64 distance = Abs(vz);
     if (distance < KINDA_SMALL_NUMBER) { return 0.0; }
 
     // 거리(distance)에 proj_11 값을 나누어 FOV가 변하더라도 기즈모 크기가 일정하게 유지되도록 보정
@@ -80,7 +80,7 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
         const Vector3& axis = axes[i];
         const LinearColor color = GetAxisColor(AXIS_IDS[i]);
 
-        constexpr double BODY_LENGTH = AXIS_LENGTH - TRANSLATE_HEAD_LENGTH;
+        constexpr f64 BODY_LENGTH = AXIS_LENGTH - TRANSLATE_HEAD_LENGTH;
 
         // Pick ID 설정
         list.SetPickId(EncodePickID(AXIS_IDS[i]));
@@ -98,15 +98,15 @@ void GizmoRenderer::DrawTranslate(GizmoDrawList& list, const Quaternion& rot)
     BuildSolidSphere(list, Vector3::Zero(), ORIGIN_SPHERE_RADIUS, GetAxisColor(EGizmoAxis::All), SPHERE_RINGS, SPHERE_SECTORS);
 
     // XY/XZ/YZ 평면 핸들 (채운 쿼드)
-    struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
+    struct PlaneInfo { i32 a0; i32 a1; EGizmoAxis axis; };
     constexpr PlaneInfo PLANE_INFOS[3] = {
         { 0, 1, EGizmoAxis::XY },
         { 0, 2, EGizmoAxis::XZ },
         { 1, 2, EGizmoAxis::YZ },
     };
 
-    constexpr double OFFSET = PLANE_HANDLE_OFFSET;
-    constexpr double LENGTH = PLANE_HANDLE_LENGTH;
+    constexpr f64 OFFSET = PLANE_HANDLE_OFFSET;
+    constexpr f64 LENGTH = PLANE_HANDLE_LENGTH;
 
     for (const auto& [a0, a1, plane_axis] : PLANE_INFOS)
     {
@@ -202,15 +202,15 @@ void GizmoRenderer::DrawScale(GizmoDrawList& list, const Quaternion& rot)
     BuildSolidCube(list, Vector3::Zero(), SCALE_CUBE_HALF * 0.8, axes[0], axes[2], axes[1], center_color);
 
     // XY/XZ/YZ 평면 핸들 (채운 쿼드)
-    struct PlaneInfo { int32 a0; int32 a1; EGizmoAxis axis; };
+    struct PlaneInfo { i32 a0; i32 a1; EGizmoAxis axis; };
     constexpr PlaneInfo PLANES[3] = {
         { 0, 1, EGizmoAxis::XY },
         { 0, 2, EGizmoAxis::XZ },
         { 1, 2, EGizmoAxis::YZ },
     };
 
-    constexpr double OFFSET = PLANE_HANDLE_OFFSET;
-    constexpr double LENGTH = PLANE_HANDLE_LENGTH;
+    constexpr f64 OFFSET = PLANE_HANDLE_OFFSET;
+    constexpr f64 LENGTH = PLANE_HANDLE_LENGTH;
 
     for (const auto& [a0, a1, plane_axis] : PLANES)
     {
@@ -256,7 +256,7 @@ LinearColor GizmoRenderer::GetAxisColor(EGizmoAxis axis) const
 
 void GizmoRenderer::BuildSolidCylinder(
     GizmoDrawList& list, const Vector3& base_center, const Vector3& axis_dir,
-    double radius, double height, const LinearColor& color, int32 segments
+    f64 radius, f64 height, const LinearColor& color, i32 segments
 )
 {
     Vector3 tangent, bitangent;
@@ -265,7 +265,7 @@ void GizmoRenderer::BuildSolidCylinder(
     const Vector3 top_center = base_center + axis_dir * height;
     const Radian angle_step = Radian{ PI_DOUBLE * 2.0 } / segments;
 
-    for (int32 i = 0; i < segments; ++i)
+    for (i32 i = 0; i < segments; ++i)
     {
         const Radian a0 = angle_step * i;
         const Radian a1 = angle_step * (i + 1);
@@ -294,7 +294,7 @@ void GizmoRenderer::BuildSolidCylinder(
 
 void GizmoRenderer::BuildSolidCone(
     GizmoDrawList& list, const Vector3& base_center, const Vector3& axis_dir,
-    double radius, double height, const LinearColor& color, int32 segments
+    f64 radius, f64 height, const LinearColor& color, i32 segments
 )
 {
     Vector3 tangent, bitangent;
@@ -303,7 +303,7 @@ void GizmoRenderer::BuildSolidCone(
     const Vector3 tip = base_center + axis_dir * height;
     const Radian angle_step = Radian{ PI_DOUBLE * 2.0 } / segments;
 
-    for (int32 i = 0; i < segments; ++i)
+    for (i32 i = 0; i < segments; ++i)
     {
         const Radian a0 = angle_step * i;
         const Radian a1 = angle_step * (i + 1);
@@ -320,7 +320,7 @@ void GizmoRenderer::BuildSolidCone(
 }
 
 void GizmoRenderer::BuildSolidCube(
-    GizmoDrawList& list, const Vector3& center, double half_extent,
+    GizmoDrawList& list, const Vector3& center, f64 half_extent,
     const Vector3& right, const Vector3& up, const Vector3& forward,
     const LinearColor& color
 )
@@ -338,7 +338,7 @@ void GizmoRenderer::BuildSolidCube(
     };
 
     // 6개의 면 정의 (반시계 방향으로 꼭짓점 인덱스 정렬)
-    struct Face { int32 i0, i1, i2, i3; };
+    struct Face { i32 i0, i1, i2, i3; };
     const Face faces[6] = {
         { 1, 2, 6, 5 }, // +X
         { 3, 0, 4, 7 }, // -X
@@ -364,10 +364,10 @@ void GizmoRenderer::BuildSolidCube(
     }
 }
 
-void GizmoRenderer::BuildSolidSphere(GizmoDrawList& list, const Vector3& center, double radius, const LinearColor& color, int32 rings, int32 sectors)
+void GizmoRenderer::BuildSolidSphere(GizmoDrawList& list, const Vector3& center, f64 radius, const LinearColor& color, i32 rings, i32 sectors)
 {
     // UV 구체 정점 위치 계산 (Z-up)
-    auto get_point = [&](int32 ring, int32 sector) -> Vector3
+    auto get_point = [&](i32 ring, i32 sector) -> Vector3
     {
         const Radian phi = Radian{ PI_DOUBLE } * ring / rings;
         const Radian theta = Radian{ PI_DOUBLE * 2.0 } * sector / sectors;
@@ -379,11 +379,11 @@ void GizmoRenderer::BuildSolidSphere(GizmoDrawList& list, const Vector3& center,
         };
     };
 
-    for (int32 i = 0; i < rings; ++i)
+    for (i32 i = 0; i < rings; ++i)
     {
-        for (int32 j = 0; j < sectors; ++j)
+        for (i32 j = 0; j < sectors; ++j)
         {
-            const int32 j_next = (j + 1) % sectors;
+            const i32 j_next = (j + 1) % sectors;
 
             const Vector3 p00 = get_point(i, j);
             const Vector3 p10 = get_point(i + 1, j);
@@ -429,14 +429,14 @@ void GizmoRenderer::BuildSolidSphere(GizmoDrawList& list, const Vector3& center,
 void GizmoRenderer::BuildThickArc(
     GizmoDrawList& list, const Vector3& center,
     const Vector3& axis0, const Vector3& axis1,
-    Radian<double> start_angle, Radian<double> end_angle,
-    double inner_radius, double outer_radius,
-    int32 segments, const LinearColor& color
+    Radian<f64> start_angle, Radian<f64> end_angle,
+    f64 inner_radius, f64 outer_radius,
+    i32 segments, const LinearColor& color
 )
 {
     const Radian angle_step = (end_angle - start_angle) / segments;
 
-    for (int32 i = 0; i < segments; ++i)
+    for (i32 i = 0; i < segments; ++i)
     {
         const Radian a0 = start_angle + angle_step * i;
         const Radian a1 = start_angle + angle_step * (i + 1);

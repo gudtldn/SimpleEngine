@@ -35,7 +35,7 @@ HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId& type, cons
         std::shared_lock read_lock(pool_mutex);
         if (const auto found = guid_index.Find(id))
         {
-            const uint32 idx = found.Value();
+            const u32 idx = found.Value();
             return HandleData{ idx, slots[idx].generation };
         }
     }
@@ -46,12 +46,12 @@ HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId& type, cons
     // Double-check: 다른 스레드가 shared->unique 승격 사이에 이미 생성했을 수 있음
     if (const auto found = guid_index.Find(id))
     {
-        const uint32 idx = found.Value();
+        const u32 idx = found.Value();
         return HandleData{ idx, slots[idx].generation };
     }
 
     // 슬롯 할당: free_list에서 재사용 또는 신규 생성
-    uint32 index;
+    u32 index;
 
     if (auto reused = free_list.Pop())
     {
@@ -68,7 +68,7 @@ HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId& type, cons
             return {};
         }
 
-        index = static_cast<uint32>(slots.Len());
+        index = static_cast<u32>(slots.Len());
         slots.Emplace(id, type, path);
     }
 
@@ -82,19 +82,19 @@ Optional<HandleData> HandleTable::Find(const AssetId& id) const
 
     if (const auto found = guid_index.Find(id))
     {
-        const uint32 idx = found.Value();
+        const u32 idx = found.Value();
         return HandleData{ idx, slots[idx].generation };
     }
     return NullOpt;
 }
 
-SlotEntry& HandleTable::GetSlot(uint32 index)
+SlotEntry& HandleTable::GetSlot(u32 index)
 {
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::GetSlot - index {} out of range (size: {})", index, slots.Len());
     return slots[index];
 }
 
-const SlotEntry& HandleTable::GetSlot(uint32 index) const
+const SlotEntry& HandleTable::GetSlot(u32 index) const
 {
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::GetSlot - index {} out of range (size: {})", index, slots.Len());
     return slots[index];
@@ -115,7 +115,7 @@ bool HandleTable::IsHandleValid(const HandleData& handle) const
         && entry.slot_state == SlotEntry::ESlotState::Occupied;
 }
 
-void HandleTable::MarkForEviction(uint32 index)
+void HandleTable::MarkForEviction(u32 index)
 {
     SE_ASSERT(std::cmp_less(index, slots.Len()), "HandleTable::MarkForEviction - index out of range");
     SlotEntry& entry = slots[index];
@@ -127,7 +127,7 @@ void HandleTable::MarkForEviction(uint32 index)
     entry.last_access_frame.store(current_frame.load(std::memory_order_relaxed), std::memory_order_relaxed);
 }
 
-void HandleTable::EvictSlot(uint32 index, Array<AssetPayload>& out_deferred)
+void HandleTable::EvictSlot(u32 index, Array<AssetPayload>& out_deferred)
 {
     ZoneScopedN("HandleTable::EvictSlot");
 
@@ -143,13 +143,13 @@ void HandleTable::EvictSlot(uint32 index, Array<AssetPayload>& out_deferred)
     EvictSlotInternal(index, entry, out_deferred);
 }
 
-uint32 HandleTable::CollectGarbage(Array<AssetPayload>& out_deferred)
+u32 HandleTable::CollectGarbage(Array<AssetPayload>& out_deferred)
 {
     ZoneScopedN("HandleTable::CollectGarbage");
 
     std::unique_lock write_lock(pool_mutex);
 
-    uint32 evict_count = 0;
+    u32 evict_count = 0;
     for (const auto [idx, entry] : slots | std::views::enumerate)
     {
         if (
@@ -158,7 +158,7 @@ uint32 HandleTable::CollectGarbage(Array<AssetPayload>& out_deferred)
             && entry.state.load(std::memory_order_acquire) == ELoadingState::Loaded // 에셋이 완전히 로딩된 경우
         )
         {
-            EvictSlotInternal(static_cast<uint32>(idx), entry, out_deferred);
+            EvictSlotInternal(static_cast<u32>(idx), entry, out_deferred);
             ++evict_count;
         }
     }
@@ -166,32 +166,32 @@ uint32 HandleTable::CollectGarbage(Array<AssetPayload>& out_deferred)
     return evict_count;
 }
 
-uint32 HandleTable::GetCount() const
+u32 HandleTable::GetCount() const
 {
     std::shared_lock read_lock(pool_mutex);
-    return static_cast<uint32>(guid_index.Len());
+    return static_cast<u32>(guid_index.Len());
 }
 
-uint32 HandleTable::GetCapacity() const
+u32 HandleTable::GetCapacity() const
 {
     std::shared_lock read_lock(pool_mutex);
-    return static_cast<uint32>(slots.Capacity());
+    return static_cast<u32>(slots.Capacity());
 }
 
-uint32 HandleTable::EvictWhere(
-    FunctionRef<bool(uint32, const SlotEntry&)> filter,
+u32 HandleTable::EvictWhere(
+    FunctionRef<bool(u32, const SlotEntry&)> filter,
     Array<AssetPayload>& out_deferred,
-    uint32 max_count
+    u32 max_count
 )
 {
     ZoneScopedN("HandleTable::EvictWhere");
 
     std::unique_lock write_lock(pool_mutex);
 
-    uint32 count = 0;
+    u32 count = 0;
     for (auto [idx, entry] : slots | std::views::enumerate)
     {
-        const uint32 slot_index = static_cast<uint32>(idx);
+        const u32 slot_index = static_cast<u32>(idx);
 
         // max_count를 넘어간 경우
         if (count >= max_count)
@@ -230,7 +230,7 @@ uint32 HandleTable::EvictWhere(
     return count;
 }
 
-void HandleTable::EvictSlotInternal(uint32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred)
+void HandleTable::EvictSlotInternal(u32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred)
 {
     // 메모리 사용량 차감
     UntrackMemoryUsage(entry.asset_size_bytes);

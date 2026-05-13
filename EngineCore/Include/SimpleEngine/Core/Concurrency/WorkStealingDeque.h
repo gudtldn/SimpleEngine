@@ -83,12 +83,12 @@ private:
      */
     struct CircularBuffer
     {
-        int64 capacity; // 2^log2_capacity
-        int64 mask;     // capacity - 1
+        i64 capacity; // 2^log2_capacity
+        i64 mask;     // capacity - 1
         T* storage;
 
         explicit CircularBuffer(usize in_log2_cap)
-            : capacity(static_cast<int64>(1) << in_log2_cap)
+            : capacity(static_cast<i64>(1) << in_log2_cap)
             , mask(capacity - 1)
             , storage(new T[static_cast<usize>(capacity)])
         {
@@ -99,24 +99,24 @@ private:
             delete[] storage;
         }
 
-        T Get(int64 in_index) const
+        T Get(i64 in_index) const
         {
             return storage[in_index & mask];
         }
 
-        void Set(int64 in_index, T in_value)
+        void Set(i64 in_index, T in_value)
         {
             storage[in_index & mask] = std::move(in_value);
         }
 
         /** 새 버퍼를 할당하고 기존 [top, bottom) 범위를 복사하여 반환합니다. */
-        CircularBuffer* Grow(int64 in_top, int64 in_bottom) const
+        CircularBuffer* Grow(i64 in_top, i64 in_bottom) const
         {
             // capacity의 log2를 재계산
             const usize log2_cap = std::bit_width(static_cast<usize>(capacity)) - 1;
 
             CircularBuffer* new_buf = new CircularBuffer(log2_cap + 1);
-            for (int64 i = in_top; i < in_bottom; ++i)
+            for (i64 i = in_top; i < in_bottom; ++i)
             {
                 new_buf->Set(i, Get(i));
             }
@@ -131,11 +131,11 @@ private:
     // False Sharing 방지를 위해 각 인덱스들을 독립된 캐시 라인에 배치
 
     /**
-     * top과 bottom이 int64인 이유는,
+     * top과 bottom이 i64인 이유는,
      * Pop() 연산 시 bottom이 top보다 일시적으로 작아져 음수 방향의 비교(예: 0 <= -1)가 발생하기 때문
      */
-    alignas(SE_CACHE_LINE) std::atomic<int64> top = 0;
-    alignas(SE_CACHE_LINE) std::atomic<int64> bottom = 0;
+    alignas(SE_CACHE_LINE) std::atomic<i64> top = 0;
+    alignas(SE_CACHE_LINE) std::atomic<i64> bottom = 0;
     alignas(SE_CACHE_LINE) std::atomic<CircularBuffer*> buffer = nullptr;
 
     /** Grow로 생성된 이전 버퍼들을 보관하여, 소멸자에서 일괄 해제합니다. (Epoch-based reclamation 단순화) */
@@ -167,8 +167,8 @@ WorkStealingDeque<T>::~WorkStealingDeque()
 template <typename T>
 void WorkStealingDeque<T>::Push(T in_item)
 {
-    const int64 bottom_idx = bottom.load(std::memory_order_relaxed);
-    const int64 top_idx = top.load(std::memory_order_acquire);
+    const i64 bottom_idx = bottom.load(std::memory_order_relaxed);
+    const i64 top_idx = top.load(std::memory_order_acquire);
     CircularBuffer* buf = buffer.load(std::memory_order_relaxed);
 
     // capacity 부족 시 리사이즈
@@ -189,14 +189,14 @@ void WorkStealingDeque<T>::Push(T in_item)
 template <typename T>
 Optional<T> WorkStealingDeque<T>::Pop()
 {
-    const int64 bottom_idx = bottom.load(std::memory_order_relaxed) - 1;
+    const i64 bottom_idx = bottom.load(std::memory_order_relaxed) - 1;
     CircularBuffer* buf = buffer.load(std::memory_order_relaxed);
     bottom.store(bottom_idx, std::memory_order_relaxed);
 
     // Pop()과 Steal()이 마지막 항목을 동시에 가져가지 않도록 Store-Load 재정렬을 방지
     std::atomic_thread_fence(std::memory_order_seq_cst);
 
-    const int64 top_idx = top.load(std::memory_order_relaxed);
+    const i64 top_idx = top.load(std::memory_order_relaxed);
 
     if (top_idx <= bottom_idx)
     {
@@ -206,7 +206,7 @@ Optional<T> WorkStealingDeque<T>::Pop()
         if (top_idx == bottom_idx)
         {
             // 마지막 항목 - Steal과 경합 가능
-            int64 expected_top = top_idx;
+            i64 expected_top = top_idx;
             if (!top.compare_exchange_strong(expected_top, top_idx + 1, std::memory_order_seq_cst, std::memory_order_relaxed))
             {
                 // Steal이 먼저 가져감
@@ -227,12 +227,12 @@ Optional<T> WorkStealingDeque<T>::Pop()
 template <typename T>
 Optional<T> WorkStealingDeque<T>::Steal()
 {
-    const int64 top_idx = top.load(std::memory_order_acquire);
+    const i64 top_idx = top.load(std::memory_order_acquire);
 
     // Push된 최신 bottom 값을 놓치지 않도록 top과 bottom load 사이의 Store-Load 재정렬을 방지
     std::atomic_thread_fence(std::memory_order_seq_cst);
 
-    const int64 bottom_idx = bottom.load(std::memory_order_acquire);
+    const i64 bottom_idx = bottom.load(std::memory_order_acquire);
     if (top_idx >= bottom_idx)
     {
         // Deque가 비어있음
@@ -244,7 +244,7 @@ Optional<T> WorkStealingDeque<T>::Steal()
 
     // CAS로 top을 전진시킨다.
     // 실패하면 다른 Worker가 먼저 훔친 것이므로 포기한다.
-    int64 expected_top = top_idx;
+    i64 expected_top = top_idx;
     if (!top.compare_exchange_strong(expected_top, top_idx + 1, std::memory_order_seq_cst, std::memory_order_relaxed))
     {
         return NullOpt;
@@ -256,11 +256,11 @@ Optional<T> WorkStealingDeque<T>::Steal()
 template <typename T>
 usize WorkStealingDeque<T>::ApproxSize() const
 {
-    const int64 bottom_idx = bottom.load(std::memory_order_relaxed);
-    const int64 top_idx = top.load(std::memory_order_relaxed);
-    const int64 size = bottom_idx - top_idx;
+    const i64 bottom_idx = bottom.load(std::memory_order_relaxed);
+    const i64 top_idx = top.load(std::memory_order_relaxed);
+    const i64 size = bottom_idx - top_idx;
 
-    return static_cast<usize>(std::max<int64>(size, 0));
+    return static_cast<usize>(std::max<i64>(size, 0));
 }
 
 template <typename T>

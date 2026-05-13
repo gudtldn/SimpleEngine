@@ -320,7 +320,7 @@ private:
 private:
     union Storage
     {
-        uint8 dummy;
+        u8 dummy;
         T value;
 
         constexpr Storage() : dummy{} {}

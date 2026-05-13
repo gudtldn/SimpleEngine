@@ -13,7 +13,7 @@ SE_BEGIN_REFLECT(MaterialParameterDescriptor, meta::Reflect)
     SE_REFLECT_PROPERTY(default_value, meta::Property)
 SE_END_REFLECT(MaterialParameterDescriptor)
 
-uint32 MaterialParameterDescriptor::GetSize() const
+u32 MaterialParameterDescriptor::GetSize() const
 {
     switch (type)
     {
@@ -26,7 +26,7 @@ uint32 MaterialParameterDescriptor::GetSize() const
     return 0;
 }
 
-uint32 MaterialParameterDescriptor::GetAlignment() const
+u32 MaterialParameterDescriptor::GetAlignment() const
 {
     // HLSL cbuffer / GLSL std140 정렬 규칙
     switch (type)

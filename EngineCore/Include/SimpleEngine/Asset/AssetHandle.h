@@ -23,8 +23,8 @@ class AssetHandle
 {
 public:
     using AssetType = T;
-    static constexpr uint32 INVALID_INDEX = HandleData::INVALID_INDEX;
-    static constexpr uint32 INVALID_GENERATION = HandleData::INVALID_GENERATION;
+    static constexpr u32 INVALID_INDEX = HandleData::INVALID_INDEX;
+    static constexpr u32 INVALID_GENERATION = HandleData::INVALID_GENERATION;
 
 public:
     AssetHandle() = default;
@@ -182,8 +182,8 @@ private:
     }
 
 private:
-    uint32 index = INVALID_INDEX;
-    uint32 generation = INVALID_GENERATION;
+    u32 index = INVALID_INDEX;
+    u32 generation = INVALID_GENERATION;
     HandleTable* table = nullptr;
 };
 } // namespace se

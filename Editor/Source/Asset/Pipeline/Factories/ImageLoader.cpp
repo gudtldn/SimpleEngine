@@ -24,8 +24,8 @@ ImageLoadResult PackSurface(SDL_Surface* in_surface, bool is_srgb)
         return Unexpected<ImageLoadError>{ ImageLoadError::ConversionFailed, SDL_GetError() };
     }
 
-    const uint32 width = static_cast<uint32>(rgba->w);
-    const uint32 height = static_cast<uint32>(rgba->h);
+    const u32 width = static_cast<u32>(rgba->w);
+    const u32 height = static_cast<u32>(rgba->h);
     const usize size = static_cast<usize>(width) * height * 4u;
 
     ImageData result;
@@ -50,9 +50,9 @@ ImageLoadResult ImageLoader::LoadFromFile(const Path& file_path, bool is_srgb)
     return PackSurface(surf, is_srgb);
 }
 
-ImageLoadResult ImageLoader::LoadFromMemory(ArrayView<const uint8> data, bool is_srgb, StringView format_hint)
+ImageLoadResult ImageLoader::LoadFromMemory(ArrayView<const u8> data, bool is_srgb, StringView format_hint)
 {
-    SDL_IOStream* io = SDL_IOFromConstMem(data.Data(), static_cast<size_t>(data.Len()));
+    SDL_IOStream* io = SDL_IOFromConstMem(data.Data(), static_cast<usize>(data.Len()));
     if (!io)
     {
         return Unexpected<ImageLoadError>{ ImageLoadError::IOError, SDL_GetError() };
@@ -69,7 +69,7 @@ ImageLoadResult ImageLoader::LoadFromMemory(ArrayView<const uint8> data, bool is
     return PackSurface(surf, is_srgb);
 }
 
-ImageData ImageLoader::LoadFromRawPixels(ArrayView<const uint8> rgba8_pixels, uint32 width, uint32 height, bool is_srgb)
+ImageData ImageLoader::LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 width, u32 height, bool is_srgb)
 {
     const usize size = static_cast<usize>(width) * height * 4u;
     SE_ASSERT(rgba8_pixels.Len() >= size, "Raw pixel buffer size is smaller than expected.");

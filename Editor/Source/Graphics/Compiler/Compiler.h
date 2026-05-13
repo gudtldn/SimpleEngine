@@ -31,7 +31,7 @@ struct HLSL_Define
  * @param include_dir_opt include 디렉토리 (옵션)
  * @param defines_opt 전처리기 매크로 (옵션)
  */
-[[nodiscard]] ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
+[[nodiscard]] ShaderCompileResult<Array<u8>> CompileHLSLToSPIRV(
     const Path& hlsl_path,
     StringView entrypoint,
     SDL_ShaderCross_ShaderStage stage,

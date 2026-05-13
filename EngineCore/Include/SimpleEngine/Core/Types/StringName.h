@@ -41,14 +41,14 @@ public:
 
     [[nodiscard]] const char* CStr() const;
     [[nodiscard]] String ToString() const;
-    [[nodiscard]] FORCE_INLINE uint64 GetComparisonHash() const { return comparison_hash; }
+    [[nodiscard]] FORCE_INLINE u64 GetComparisonHash() const { return comparison_hash; }
 
 public:
     [[nodiscard]] FORCE_INLINE bool operator==(const StringName& other) const { return comparison_hash == other.comparison_hash; }
     [[nodiscard]] FORCE_INLINE bool operator!=(const StringName& other) const { return comparison_hash != other.comparison_hash; }
 
 private:
-    uint64 comparison_hash = 0;
+    u64 comparison_hash = 0;
     const char* display_name = nullptr;
 };
 } // namespace se
@@ -56,9 +56,9 @@ private:
 template <>
 struct std::hash<se::StringName>
 {
-    size_t operator()(const se::StringName& name) const noexcept
+    usize operator()(const se::StringName& name) const noexcept
     {
-        return hash<uint64>()(name.GetComparisonHash());
+        return hash<u64>()(name.GetComparisonHash());
     }
 };
 

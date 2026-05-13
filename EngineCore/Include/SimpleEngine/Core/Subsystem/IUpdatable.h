@@ -18,7 +18,7 @@ public:
      * 매 프레임 호출되어 상태를 갱신합니다.
      * @param delta_time 이전 프레임과의 시간 간격 (초)
      */
-    virtual void Update([[maybe_unused]] double delta_time) {}
+    virtual void Update([[maybe_unused]] f64 delta_time) {}
 
     /** Update 이후에 호출되는 함수입니다. */
     virtual void PostUpdate() {}

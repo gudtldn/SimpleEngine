@@ -38,7 +38,7 @@ public:
      * 해시를 이용해 TypeId를 생성합니다.
      * 만약 TypeRegistry에 없는 Hash면 빈 TypeId를 반환합니다.
      */
-    [[nodiscard]] static TypeId FromHash(uint64 in_hash);
+    [[nodiscard]] static TypeId FromHash(u64 in_hash);
 
     /**
      * 타입 이름을 이용해 TypeId를 생성합니다.
@@ -52,7 +52,7 @@ public:
     [[nodiscard]] constexpr StringView GetName() const { return type_name; }
 
     /** 타입 해시를 반환합니다. */
-    [[nodiscard]] constexpr uint64 GetHash() const { return type_hash; }
+    [[nodiscard]] constexpr u64 GetHash() const { return type_hash; }
 
     /** TypeId가 올바른지 확인합니다. */
     [[nodiscard]] constexpr bool IsValid() const { return type_hash != 0; }
@@ -69,22 +69,22 @@ private:
     {
     }
 
-    constexpr TypeId(StringView in_type_name, uint64 in_hash)
+    constexpr TypeId(StringView in_type_name, u64 in_hash)
         : type_name(in_type_name)
         , type_hash(in_hash)
     {
     }
 
     StringView type_name;
-    uint64 type_hash = 0;
+    u64 type_hash = 0;
 };
 } // namespace se
 
 template <>
 struct std::hash<se::TypeId>
 {
-    constexpr size_t operator()(const se::TypeId& id) const noexcept
+    constexpr usize operator()(const se::TypeId& id) const noexcept
     {
-        return static_cast<size_t>(id.GetHash());
+        return static_cast<usize>(id.GetHash());
     }
 };

@@ -323,7 +323,7 @@ private:
 private:
     union Storage
     {
-        uint8 dummy;
+        u8 dummy;
         T value;
         E error;
 
@@ -558,7 +558,7 @@ private:
 private:
     union Storage
     {
-        uint8 dummy;
+        u8 dummy;
         E error;
 
         constexpr Storage() : dummy{} {}

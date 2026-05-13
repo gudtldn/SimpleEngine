@@ -141,10 +141,10 @@ bool AssetRegistry::IsFileImported(const VPath& file_path) const
     return file_to_assets.Contains(file_path);
 }
 
-uint32 AssetRegistry::GetAssetCount() const
+u32 AssetRegistry::GetAssetCount() const
 {
     std::shared_lock lock(registry_mutex);
-    return static_cast<uint32>(records.Len());
+    return static_cast<u32>(records.Len());
 }
 
 void AssetRegistry::VisitAllPaths(const Function<void(const VPath&)>& visitor) const
@@ -182,12 +182,12 @@ void AssetRegistry::UnregisterByPath(const VPath& source_path)
 }
 
 /** AssetRegistry 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
-static constexpr uint32 REGISTRY_MAGIC =
-    static_cast<uint32>('S')
-    | (static_cast<uint32>('E') << 8)
-    | (static_cast<uint32>('A') << 16)
-    | (static_cast<uint32>('R') << 24);
-static constexpr uint32 REGISTRY_VERSION = 2;
+static constexpr u32 REGISTRY_MAGIC =
+    static_cast<u32>('S')
+    | (static_cast<u32>('E') << 8)
+    | (static_cast<u32>('A') << 16)
+    | (static_cast<u32>('R') << 24);
+static constexpr u32 REGISTRY_VERSION = 2;
 
 bool AssetRegistry::SaveToFile(const Path& file_path) const
 {
@@ -195,12 +195,12 @@ bool AssetRegistry::SaveToFile(const Path& file_path) const
 
     std::shared_lock lock(registry_mutex);
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
 
     // 헤더
-    uint32 magic = REGISTRY_MAGIC;
-    uint32 version = REGISTRY_VERSION;
+    u32 magic = REGISTRY_MAGIC;
+    u32 version = REGISTRY_VERSION;
     writer << magic;
     writer << version;
 
@@ -222,7 +222,7 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
 {
     ZoneScopedN("AssetRegistry::LoadFromFile");
 
-    const FileResult<Array<uint8>> file_result = FileSystem::ReadBytes(file_path);
+    const FileResult<Array<u8>> file_result = FileSystem::ReadBytes(file_path);
     if (!file_result.HasValue())
     {
         return false;
@@ -231,8 +231,8 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
     MemoryReader reader{ *file_result };
 
     // 헤더 검증
-    uint32 magic = 0;
-    uint32 version = 0;
+    u32 magic = 0;
+    u32 version = 0;
     reader << magic;
     reader << version;
 

@@ -50,8 +50,8 @@ std::shared_ptr<AssetBase> Texture2DFactory::CreateAsset(PipelineBaseNode* node,
                 {
                     return ImageLoader::LoadFromRawPixels(
                         *embedded,
-                        static_cast<uint32>(*width),
-                        static_cast<uint32>(*height),
+                        static_cast<u32>(*width),
+                        static_cast<u32>(*height),
                         is_srgb
                     );
                 }

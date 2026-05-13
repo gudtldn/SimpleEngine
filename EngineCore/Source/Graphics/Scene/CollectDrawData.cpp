@@ -22,14 +22,14 @@ namespace se
 namespace
 {
 /** 렌더링 큐(패스)의 종류 */
-enum class ERenderQueue : uint8
+enum class ERenderQueue : u8
 {
     Opaque,
     Transparent
 };
 
 /** 정렬 키에 포함될 개별 데이터 필드 */
-enum class ESortField : uint8
+enum class ESortField : u8
 {
     Mesh,     // 메시 버퍼 해시 (VB/IB 바인딩 변경 최소화)
     Material, // 머티리얼 인스턴스 해시 (descriptor 바인딩 변경 최소화)
@@ -41,14 +41,14 @@ enum class ESortField : uint8
 struct FieldLayout
 {
     ESortField id;
-    uint64 bits;
+    u64 bits;
 };
 
 /** 비트 연산을 위한 시프트/마스크 정보 구조체 */
 struct FieldBitInfo
 {
-    uint64 shift;
-    uint64 mask;
+    u64 shift;
+    u64 mask;
 };
 
 /**
@@ -75,7 +75,7 @@ static_assert(
 template <ESortField Target>
 consteval FieldBitInfo GetFieldInfo()
 {
-    uint64 shift = 0;
+    u64 shift = 0;
     for (const auto& [id, bits] : LAYOUT)
     {
         if (id == Target)
@@ -94,7 +94,7 @@ consteval FieldBitInfo GetFieldInfo()
  * 주어진 값을 대상 필드의 비트 레이아웃에 맞게 안전하게 패킹합니다.
  */
 template <ESortField Target>
-constexpr uint64 PackField(uint64 value)
+constexpr u64 PackField(u64 value)
 {
     constexpr FieldBitInfo FIELD_INFO = GetFieldInfo<Target>();
     return (value & FIELD_INFO.mask) << FIELD_INFO.shift;
@@ -102,31 +102,31 @@ constexpr uint64 PackField(uint64 value)
 
 /** 렌더링 큐 제출을 위한 64비트 불투명 오브젝트 정렬 키를 생성합니다. */
 template <ERenderQueue Queue>
-[[nodiscard]] uint64 ComputeSortKey(
+[[nodiscard]] u64 ComputeSortKey(
     const AssetId& mesh_id,
     const AssetId& material_instance_id,
     const AssetId& parent_material_id,
-    float distance_to_camera,
-    float far_plane
+    f32 distance_to_camera,
+    f32 far_plane
 )
 {
-    const uint64 parent_hash = std::hash<AssetId>{}(parent_material_id);
-    const uint64 inst_hash   = std::hash<AssetId>{}(material_instance_id);
-    const uint64 mesh_hash   = std::hash<AssetId>{}(mesh_id);
+    const u64 parent_hash = std::hash<AssetId>{}(parent_material_id);
+    const u64 inst_hash   = std::hash<AssetId>{}(material_instance_id);
+    const u64 mesh_hash   = std::hash<AssetId>{}(mesh_id);
 
     // Far Plane을 기준으로 16비트 정밀도(0~65535)로 매핑
-    const float normalized_dist = std::clamp(distance_to_camera / far_plane, 0.0f, 1.0f);
+    const f32 normalized_dist = std::clamp(distance_to_camera / far_plane, 0.0f, 1.0f);
 
-    uint64 depth_field = 0;
+    u64 depth_field = 0;
     if constexpr (Queue == ERenderQueue::Transparent)
     {
         // 반투명: 16비트 고정밀 거리 매핑 (0 ~ 65535)
-        depth_field = static_cast<uint64>(normalized_dist * 65535.0f);
+        depth_field = static_cast<u64>(normalized_dist * 65535.0f);
     }
     else
     {
         // 불투명: Early-Z 및 PSO 배칭을 위한 8구역(0 ~ 7) 버킷팅
-        depth_field = static_cast<uint64>(normalized_dist * 7.0f);
+        depth_field = static_cast<u64>(normalized_dist * 7.0f);
     }
 
     return PackField<ESortField::Depth>(depth_field)
@@ -251,12 +251,12 @@ SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> vi
                         slot.parent_material_id = mat_handle.GetAssetId();
 
                         // UBO 팩킹
-                        slot.ubo_offset = static_cast<uint32>(cache.ubo_arena.Len());
-                        slot.ubo_size = static_cast<uint16>(inst_handle->parameter_values.Len());
+                        slot.ubo_offset = static_cast<u32>(cache.ubo_arena.Len());
+                        slot.ubo_size = static_cast<u16>(inst_handle->parameter_values.Len());
                         cache.ubo_arena.PushRange(inst_handle->parameter_values);
 
                         // 텍스처 바인딩 팩킹
-                        slot.binding_offset = static_cast<uint32>(cache.binding_arena.Len());
+                        slot.binding_offset = static_cast<u32>(cache.binding_arena.Len());
                         for (const MaterialTextureSlot& tex_slot : mat_handle->texture_slots)
                         {
                             cache.binding_arena.Push({
@@ -265,10 +265,10 @@ SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> vi
                                 .sampler = tex_slot.sampler,
                             });
                         }
-                        slot.binding_count = static_cast<uint16>(cache.binding_arena.Len() - slot.binding_offset);
+                        slot.binding_count = static_cast<u16>(cache.binding_arena.Len() - slot.binding_offset);
 
                         // 슬롯 등록
-                        const uint16 slot_index = static_cast<uint16>(cache.slots.Len());
+                        const u16 slot_index = static_cast<u16>(cache.slots.Len());
                         cache.slots.Push(slot);
                         cache.material_to_slot.Insert(target_mat_id, slot_index);
 
@@ -312,8 +312,8 @@ SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> vi
                  */
 
                 // Section을 기준으로 카메라 거리 계산
-                const float distance_to_camera = static_cast<float>((world_section_center - views[v].camera_pos).Length());
-                const float far_plane = static_cast<float>(views[v].far_plane);
+                const f32 distance_to_camera = static_cast<f32>((world_section_center - views[v].camera_pos).Length());
+                const f32 far_plane = static_cast<f32>(views[v].far_plane);
 
                 if (final_blend_mode == EBlendMode::Translucent || final_blend_mode == EBlendMode::Additive)
                 {

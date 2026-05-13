@@ -30,7 +30,7 @@ struct DebugLine
     Vector3 start;
     Vector3 end;
     LinearColor color = LinearColor::White();
-    float duration = 0.0f; // 0 = 이번 프레임만
+    f32 duration = 0.0f; // 0 = 이번 프레임만
 };
 
 /**
@@ -41,7 +41,7 @@ class SE_CORE_API SE_ANNOTATION(=meta::Internal) DebugDrawSubsystem : public Sub
     SE_CLASS(DebugDrawSubsystem, SubsystemBase)
 
 public:
-    static constexpr uint32 MAX_DEBUG_LINES = 16384;
+    static constexpr u32 MAX_DEBUG_LINES = 16384;
 
 public:
     virtual bool Initialize() override;
@@ -49,7 +49,7 @@ public:
 
 public:
     /** DebugLine을 이번 프레임 렌더에 등록합니다. (Thread-Safe) */
-    void DrawLine(const Vector3& start, const Vector3& end, const math::LinearColor& color, float duration = 0.0f);
+    void DrawLine(const Vector3& start, const Vector3& end, const math::LinearColor& color, f32 duration = 0.0f);
 
     /** DebugLine 목록을 이번 프레임 렌더에 등록합니다. (Thread-Safe) */
     void DrawLines(ArrayView<const DebugLine> lines);

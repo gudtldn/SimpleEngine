@@ -9,7 +9,7 @@
 
 namespace se::editor
 {
-ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
+ShaderCompileResult<Array<u8>> CompileHLSLToSPIRV(
     const Path& hlsl_path,
     StringView entrypoint,
     SDL_ShaderCross_ShaderStage stage,
@@ -19,7 +19,7 @@ ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
 {
 #if SE_HAS_HLSL_COMPILER
     // read shader file
-    Array<uint8> source;
+    Array<u8> source;
     if (auto result = FileSystem::ReadBytes(hlsl_path))
     {
         source = std::move(result).Value();
@@ -71,8 +71,8 @@ ShaderCompileResult<Array<uint8>> CompileHLSLToSPIRV(
         };
     }
 
-    // SPIR-V 바이트를 Array<uint8>로 복사
-    Array<uint8> result;
+    // SPIR-V 바이트를 Array<u8>로 복사
+    Array<u8> result;
     result.ResizeUninitialized(spirv_size);
     std::memcpy(result.Data(), spirv_bytecode, spirv_size);
     SDL_free(spirv_bytecode);

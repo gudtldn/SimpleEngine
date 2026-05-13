@@ -13,14 +13,14 @@ namespace se
 namespace
 {
 /** 캐시 파일 매직 넘버 ("SEDC" = SimpleEngine Derived Cache) */
-constexpr uint32 CACHE_MAGIC =
-    static_cast<uint32>('S')
-    | (static_cast<uint32>('E') << 8)
-    | (static_cast<uint32>('D') << 16)
-    | (static_cast<uint32>('C') << 24);
+constexpr u32 CACHE_MAGIC =
+    static_cast<u32>('S')
+    | (static_cast<u32>('E') << 8)
+    | (static_cast<u32>('D') << 16)
+    | (static_cast<u32>('C') << 24);
 
 /** 캐시 파일 포맷 버전 */
-constexpr uint32 CACHE_FORMAT_VERSION = 1;
+constexpr u32 CACHE_FORMAT_VERSION = 1;
 
 /** 캐시 파일 확장자 */
 constexpr StringView CACHE_EXTENSION = ".cache";
@@ -35,9 +35,9 @@ struct DDC_CacheEntryInternal
 {
     struct Header
     {
-        uint32 magic = CACHE_MAGIC;
-        uint32 format_version = CACHE_FORMAT_VERSION;
-        uint32 cache_version = 0;
+        u32 magic = CACHE_MAGIC;
+        u32 format_version = CACHE_FORMAT_VERSION;
+        u32 cache_version = 0;
         ContentHash source_hash;
 
         friend void Serialize(Archive& ar, Header& ar_header)
@@ -49,7 +49,7 @@ struct DDC_CacheEntryInternal
         }
     } header;
 
-    Array<uint8> payload;
+    Array<u8> payload;
 
     friend void Serialize(Archive& ar, DDC_CacheEntryInternal& entry)
     {
@@ -119,7 +119,7 @@ DerivedDataCache::DerivedDataCache(Path in_root_path)
     }
 }
 
-Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(ArrayView<const uint8> buffer_view)
+Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(ArrayView<const u8> buffer_view)
 {
     MemoryReader reader{ buffer_view };
     DDC_CacheEntryInternal cache_internal;
@@ -178,7 +178,7 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
     }
 
     // MemoryWriter로 캐시 데이터 직렬화
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
 
     DDC_CacheEntryInternal cache_internal;
@@ -213,7 +213,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 
     const Path cache_path = BuildCachePath(guid);
 
-    const FileResult<Array<uint8>> buffer_result = FileSystem::ReadBytes(cache_path);
+    const FileResult<Array<u8>> buffer_result = FileSystem::ReadBytes(cache_path);
     if (buffer_result)
     {
         return ParseFromBuffer(buffer_result.Value());
@@ -227,7 +227,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 bool DerivedDataCache::IsValid(
     const Guid& guid,
     const ContentHash& source_hash,
-    uint32 cache_version
+    u32 cache_version
 ) const
 {
     const Path cache_path = BuildCachePath(guid);
@@ -289,7 +289,7 @@ Path DerivedDataCache::BuildTempPath(const Guid& guid) const
     const String guid_str = guid.ToString();
     const String bucket = guid_str.Substring(0, 2);
 
-    const size_t thread_id_hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    const usize thread_id_hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
     const String filename = String::Format("{}_{}{}", guid_str, thread_id_hash, TEMP_EXTENSION);
 
     return root_path / bucket / filename;

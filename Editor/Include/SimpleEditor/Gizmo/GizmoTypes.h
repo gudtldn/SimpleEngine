@@ -6,7 +6,7 @@
 namespace se::editor
 {
 /** 기즈모 조작 모드 */
-enum class EGizmoMode : uint8
+enum class EGizmoMode : u8
 {
     Translate, // 이동
     Rotate,    // 회전
@@ -14,7 +14,7 @@ enum class EGizmoMode : uint8
 };
 
 /** 기즈모 축 또는 평면 식별자 (Picking/Highlight에서 사용) */
-enum class EGizmoAxis : uint8
+enum class EGizmoAxis : u8
 {
     None = 0, // 선택 없음
     X,        // X축 (빨강)

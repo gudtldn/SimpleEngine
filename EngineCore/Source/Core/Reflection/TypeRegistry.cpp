@@ -77,16 +77,16 @@ void MakeSerialize(Archive& ar, void* ptr)
 
     // 기본 산술 타입
     registry.RegisterPrimitive<bool>()   .Serialize(&MakeSerialize<bool>);
-    registry.RegisterPrimitive<int8>()   .Serialize(&MakeSerialize<int8>);
-    registry.RegisterPrimitive<uint8>()  .Serialize(&MakeSerialize<uint8>);
-    registry.RegisterPrimitive<int16>()  .Serialize(&MakeSerialize<int16>);
-    registry.RegisterPrimitive<uint16>() .Serialize(&MakeSerialize<uint16>);
-    registry.RegisterPrimitive<int32>()  .Serialize(&MakeSerialize<int32>);
-    registry.RegisterPrimitive<uint32>() .Serialize(&MakeSerialize<uint32>);
-    registry.RegisterPrimitive<int64>()  .Serialize(&MakeSerialize<int64>);
-    registry.RegisterPrimitive<uint64>() .Serialize(&MakeSerialize<uint64>);
-    registry.RegisterPrimitive<float>()  .Serialize(&MakeSerialize<float>);
-    registry.RegisterPrimitive<double>() .Serialize(&MakeSerialize<double>);
+    registry.RegisterPrimitive<i8>()   .Serialize(&MakeSerialize<i8>);
+    registry.RegisterPrimitive<u8>()  .Serialize(&MakeSerialize<u8>);
+    registry.RegisterPrimitive<i16>()  .Serialize(&MakeSerialize<i16>);
+    registry.RegisterPrimitive<u16>() .Serialize(&MakeSerialize<u16>);
+    registry.RegisterPrimitive<i32>()  .Serialize(&MakeSerialize<i32>);
+    registry.RegisterPrimitive<u32>() .Serialize(&MakeSerialize<u32>);
+    registry.RegisterPrimitive<i64>()  .Serialize(&MakeSerialize<i64>);
+    registry.RegisterPrimitive<u64>() .Serialize(&MakeSerialize<u64>);
+    registry.RegisterPrimitive<f32>()  .Serialize(&MakeSerialize<f32>);
+    registry.RegisterPrimitive<f64>() .Serialize(&MakeSerialize<f64>);
 
     // 엔진 타입
     registry.RegisterPrimitive<String>()     .Serialize(&MakeSerialize<String>);

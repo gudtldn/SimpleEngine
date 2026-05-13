@@ -66,7 +66,7 @@ TEST_F(MaterialTest, FinalizeLayout_DefaultValues)
     const auto& block = mat.GetDefaultParameterBlock();
     ASSERT_EQ(block.Len(), 32); // Float4(16) + Float(4) -> 20 -> align 16 -> 32
 
-    float values[8];
+    f32 values[8];
     std::memcpy(values, block.Data(), 32);
 
     EXPECT_FLOAT_EQ(values[0], 1.0f);
@@ -122,7 +122,7 @@ TEST_F(MaterialTest, MaterialInstance_ChangeParent)
     // Initial: Mat1
     inst.InitializeFromParent(mat1);
     EXPECT_EQ(inst.GetParameterBytes().Len(), 32);
-    float val1[2];
+    f32 val1[2];
     std::memcpy(&val1[0], inst.GetParameterBytes().Data(), 4);      // P1_A.x
     std::memcpy(&val1[1], inst.GetParameterBytes().Data() + 16, 4); // P1_B
     EXPECT_FLOAT_EQ(val1[0], 1.0f);
@@ -131,7 +131,7 @@ TEST_F(MaterialTest, MaterialInstance_ChangeParent)
     // Change to Mat2
     inst.InitializeFromParent(mat2);
     EXPECT_EQ(inst.GetParameterBytes().Len(), 16);
-    float val2[3];
+    f32 val2[3];
     std::memcpy(val2, inst.GetParameterBytes().Data(), 12);
     EXPECT_FLOAT_EQ(val2[0], 0.1f);
     EXPECT_FLOAT_EQ(val2[1], 0.2f);

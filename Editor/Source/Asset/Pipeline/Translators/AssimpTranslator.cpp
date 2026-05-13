@@ -66,7 +66,7 @@ Vector3f ToVec3f(const aiVector3D& v)
 }
 
 /** Bitangent sign 계산: tangent.w = sign(dot(cross(N, T), B)) */
-float ComputeTangentSign(const Vector3f& normal, const Vector3f& tangent, const Vector3f& bitangent)
+f32 ComputeTangentSign(const Vector3f& normal, const Vector3f& tangent, const Vector3f& bitangent)
 {
     return normal.Cross(tangent).Dot(bitangent) >= 0.0f ? 1.0f : -1.0f;
 }
@@ -101,12 +101,12 @@ void ExtractVertices(const aiMesh* mesh, bool convert_to_zup, Array<StaticVertex
     out_vertices.Reserve(out_vertices.Len() + mesh->mNumVertices);
 
     // 변환 행렬 적용 헬퍼: v_zup = Vector4f(v_yup, w) * YUP_TO_ZUP_ROW
-    auto calc_transform = [](const Vector3f& v, float w)
+    auto calc_transform = [](const Vector3f& v, f32 w)
     {
         return Vector3f{ Vector4f{ v, w } * YUP_TO_ZUP_ROW };
     };
 
-    for (uint32 i = 0; i < mesh->mNumVertices; ++i)
+    for (u32 i = 0; i < mesh->mNumVertices; ++i)
     {
         StaticVertex vertex;
 
@@ -147,13 +147,13 @@ void ExtractVertices(const aiMesh* mesh, bool convert_to_zup, Array<StaticVertex
     }
 }
 
-void ExtractIndices(const aiMesh* mesh, uint32 vertex_offset, Array<uint32>& out_indices)
+void ExtractIndices(const aiMesh* mesh, u32 vertex_offset, Array<u32>& out_indices)
 {
     out_indices.Reserve(out_indices.Len() + (mesh->mNumFaces * 3ULL));
-    for (uint32 f = 0; f < mesh->mNumFaces; ++f)
+    for (u32 f = 0; f < mesh->mNumFaces; ++f)
     {
         const aiFace& face = mesh->mFaces[f];
-        for (uint32 j = 0; j < face.mNumIndices; ++j)
+        for (u32 j = 0; j < face.mNumIndices; ++j)
         {
             out_indices.Push(face.mIndices[j] + vertex_offset);
         }
@@ -187,9 +187,9 @@ void ProcessMergedMesh(
     pipeline_node.SetDisplayName(mesh_name);
 
     // 전체 크기 사전 계산 후 예약
-    uint32 total_vertices = 0;
-    uint32 total_indices = 0;
-    for (uint32 i = 0; i < scene->mNumMeshes; ++i)
+    u32 total_vertices = 0;
+    u32 total_indices = 0;
+    for (u32 i = 0; i < scene->mNumMeshes; ++i)
     {
         total_vertices += scene->mMeshes[i]->mNumVertices;
         total_indices += scene->mMeshes[i]->mNumFaces * 3;
@@ -199,19 +199,19 @@ void ProcessMergedMesh(
     pipeline_node.sections.Reserve(scene->mNumMeshes);
 
     // 모든 primitive를 하나의 버퍼에 병합 (이미 Z-up, convert=false)
-    uint32 vertex_offset = 0;
-    uint32 index_offset = 0;
-    for (uint32 i = 0; i < scene->mNumMeshes; ++i)
+    u32 vertex_offset = 0;
+    u32 index_offset = 0;
+    for (u32 i = 0; i < scene->mNumMeshes; ++i)
     {
         const aiMesh* mesh = scene->mMeshes[i];
         ExtractVertices(mesh, false, pipeline_node.vertices);
         ExtractIndices(mesh, vertex_offset, pipeline_node.indices);
 
-        const uint32 index_count = mesh->mNumFaces * 3;
+        const u32 index_count = mesh->mNumFaces * 3;
         pipeline_node.sections.Push({
             .index_offset = index_offset,
             .index_count = index_count,
-            .vertex_offset = (index_count > 0) ? 0 : static_cast<int32>(vertex_offset),
+            .vertex_offset = (index_count > 0) ? 0 : static_cast<i32>(vertex_offset),
             .vertex_count = mesh->mNumVertices,
             .material_index = mesh->mMaterialIndex
         });
@@ -235,7 +235,7 @@ void ProcessNodeIterative(
     PipelineNodeContainer& out_container
 )
 {
-    HashMap<String, uint32> name_count;
+    HashMap<String, u32> name_count;
 
     Array<const aiNode*> stack;
     stack.Push(root_node);
@@ -244,7 +244,7 @@ void ProcessNodeIterative(
     {
         const aiNode* node = *node_opt;
 
-        for (uint32 i = 0; i < node->mNumMeshes; ++i)
+        for (u32 i = 0; i < node->mNumMeshes; ++i)
         {
             const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             const String base_name = String::Format("{}_{}", node->mName.C_Str(), mesh->mName.C_Str());
@@ -253,7 +253,7 @@ void ProcessNodeIterative(
             String node_name = base_name;
             if (const auto count = name_count.Find(base_name))
             {
-                const uint32 n = *count + 1;
+                const u32 n = *count + 1;
                 name_count.Insert(base_name, n);
                 node_name = String::Format("{}_{}", base_name, n);
             }
@@ -283,7 +283,7 @@ void ProcessNodeIterative(
             }
         }
 
-        for (uint32 i = 0; i < node->mNumChildren; ++i)
+        for (u32 i = 0; i < node->mNumChildren; ++i)
         {
             stack.Push(node->mChildren[i]);
         }
@@ -306,7 +306,7 @@ Guid ExtractTexture(
     bool srgb,
     const Path& model_dir,
     const aiScene* scene,
-    HashMap<uint32, Guid>& embedded_tex_guids,
+    HashMap<u32, Guid>& embedded_tex_guids,
     HashMap<String, Guid>& external_tex_guids,
     ImportContext& io_ctx,
     PipelineNodeContainer& out_container
@@ -328,9 +328,9 @@ Guid ExtractTexture(
     if (tex_path_sv.StartsWith('*'))
     {
         // 인덱스 파싱
-        const Optional<uint32> embedded_idx_opt = [&] -> Optional<uint32>
+        const Optional<u32> embedded_idx_opt = [&] -> Optional<u32>
         {
-            uint32 val = 0;
+            u32 val = 0;
             const char* start = tex_path_sv.Data() + 1;
             const char* end = start + (tex_path_sv.ByteLen() - 1);
 
@@ -348,7 +348,7 @@ Guid ExtractTexture(
         }
 
         // 유효성 검사 수행
-        const uint32 embedded_idx = *embedded_idx_opt;
+        const u32 embedded_idx = *embedded_idx_opt;
         if (embedded_idx >= scene->mNumTextures)
         {
             return Guid::None;
@@ -368,14 +368,14 @@ Guid ExtractTexture(
             {
                 // 이미 디코딩된 RGBA8 raw pixels
                 const usize byte_count = static_cast<usize>(ai_tex->mWidth) * static_cast<usize>(ai_tex->mHeight) * 4u;
-                tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), byte_count });
-                tex_node.SetEmbeddedWidth(static_cast<uint64>(ai_tex->mWidth));
-                tex_node.SetEmbeddedHeight(static_cast<uint64>(ai_tex->mHeight));
+                tex_node.SetEmbeddedBytes({ reinterpret_cast<const u8*>(ai_tex->pcData), byte_count });
+                tex_node.SetEmbeddedWidth(static_cast<u64>(ai_tex->mWidth));
+                tex_node.SetEmbeddedHeight(static_cast<u64>(ai_tex->mHeight));
             }
             else
             {
                 // 압축 바이너리 (PNG/JPG/TGA ...), mWidth == 바이트 수
-                tex_node.SetEmbeddedBytes({ reinterpret_cast<const uint8*>(ai_tex->pcData), static_cast<usize>(ai_tex->mWidth) });
+                tex_node.SetEmbeddedBytes({ reinterpret_cast<const u8*>(ai_tex->pcData), static_cast<usize>(ai_tex->mWidth) });
                 if (ai_tex->achFormatHint[0] != '\0')
                 {
                     tex_node.SetEmbeddedFormat(ai_tex->achFormatHint);
@@ -423,10 +423,10 @@ Array<Guid> ProcessMaterials(
     mat_node_uids.Resize(scene->mNumMaterials, Guid::None);
 
     // 텍스처 중복 등록 방지 맵
-    HashMap<uint32, Guid> embedded_tex_guids;
+    HashMap<u32, Guid> embedded_tex_guids;
     HashMap<String, Guid> external_tex_guids;
 
-    for (uint32 mat_idx = 0; mat_idx < scene->mNumMaterials; ++mat_idx)
+    for (u32 mat_idx = 0; mat_idx < scene->mNumMaterials; ++mat_idx)
     {
         const aiMaterial* ai_mat = scene->mMaterials[mat_idx];
 
@@ -453,13 +453,13 @@ Array<Guid> ProcessMaterials(
             mat_node.param_overrides.Insert("base_color_factor", { base_color.r, base_color.g, base_color.b, base_color.a });
         }
 
-        float metallic = 0.0f;
+        f32 metallic = 0.0f;
         if (ai_mat->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == AI_SUCCESS)
         {
             mat_node.param_overrides.Insert("metallic_factor", { metallic, 0.0f, 0.0f, 0.0f });
         }
 
-        float roughness = 1.0f;
+        f32 roughness = 1.0f;
         if (ai_mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == AI_SUCCESS)
         {
             mat_node.param_overrides.Insert("roughness_factor", { roughness, 0.0f, 0.0f, 0.0f });
@@ -472,7 +472,7 @@ Array<Guid> ProcessMaterials(
         }
 
         // alpha_cutoff: MASK 모드의 투명도 임계값
-        float alpha_cutoff = 0.5f;
+        f32 alpha_cutoff = 0.5f;
         if (ai_mat->Get(AI_MATKEY_GLTF_ALPHACUTOFF, alpha_cutoff) == AI_SUCCESS)
         {
             mat_node.param_overrides.Insert("alpha_cutoff", { alpha_cutoff, 0.0f, 0.0f, 0.0f });
@@ -486,8 +486,8 @@ Array<Guid> ProcessMaterials(
             if (mode_str == "MASK")
             {
                 mat_node.blend_mode_override = EBlendMode::Masked;
-                constexpr uint32 FLAGS = std::to_underlying(EMaterialFlag::AlphaTest);
-                mat_node.param_overrides.Insert("flags", { std::bit_cast<float>(FLAGS), 0.0f, 0.0f, 0.0f });
+                constexpr u32 FLAGS = std::to_underlying(EMaterialFlag::AlphaTest);
+                mat_node.param_overrides.Insert("flags", { std::bit_cast<f32>(FLAGS), 0.0f, 0.0f, 0.0f });
             }
             else if (mode_str == "BLEND")
             {
@@ -575,7 +575,7 @@ void AssimpTranslator::Translate(
     const MeshImportSettings mesh_settings = import_profile.GetOrDefault<MeshImportSettings>();
 
     // 기본 플래그 설정
-    uint32 flags =
+    u32 flags =
         aiProcess_Triangulate             // 모든 면을 삼각형으로 변환
         | aiProcess_GenSmoothNormals      // 부드러운 노멀 생성
         | aiProcess_CalcTangentSpace      // 노멀 매핑을 위한 탄젠트 계산

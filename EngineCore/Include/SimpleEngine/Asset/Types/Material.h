@@ -46,11 +46,11 @@ public:
 
     // 알파 컷오프 (Masked 전용)
     SE_ANNOTATION(=meta::Property)
-    float alpha_cutoff = 0.5f;
+    f32 alpha_cutoff = 0.5f;
 
     // 추후 셰이더 퍼뮤테이션 시스템 도입 시 사용할 키 (지금은 항상 0)
     SE_ANNOTATION(=meta::Property, =meta::Hidden)
-    uint32 permutation_key = 0;
+    u32 permutation_key = 0;
 
     // Fragment UBO 파라미터 레이아웃
     SE_ANNOTATION(=meta::Property)
@@ -74,10 +74,10 @@ public:
     void FinalizeLayout();
 
     /** FinalizeLayout() 이후 기본값으로 채워진 파라미터 블록을 반환합니다. */
-    [[nodiscard]] const Array<uint8>& GetDefaultParameterBlock() const;
+    [[nodiscard]] const Array<u8>& GetDefaultParameterBlock() const;
 
     /** 전체 파라미터 블록의 바이트 크기 계산합니다. */
-    [[nodiscard]] uint32 ComputeParameterBlockSize() const;
+    [[nodiscard]] u32 ComputeParameterBlockSize() const;
 
     /** 이름으로 파라미터 레이아웃을 검색합니다. 없으면 NullOpt를 반환합니다. */
     [[nodiscard]] Optional<const MaterialParameterDescriptor&> FindParameter(StringName name) const;
@@ -86,6 +86,6 @@ public:
     [[nodiscard]] Optional<const MaterialTextureSlot&> FindTextureSlot(StringName name) const;
 
 private:
-    Array<uint8> default_parameter_block;
+    Array<u8> default_parameter_block;
 };
 } // namespace se

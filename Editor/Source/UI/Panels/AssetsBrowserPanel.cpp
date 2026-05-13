@@ -118,7 +118,7 @@ void AssetsBrowserPanel::DrawContent()
 
 void AssetsBrowserPanel::DrawAssetTree()
 {
-    VFS::Get().VisitMounts([this](StringView scheme, const Path& physical_path, [[maybe_unused]] int32 priority)
+    VFS::Get().VisitMounts([this](StringView scheme, const Path& physical_path, [[maybe_unused]] i32 priority)
     {
         ImGuiTreeNodeFlags root_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
         if (editor_asset_subsystem.GetActiveContentDir() == physical_path)
@@ -165,11 +165,11 @@ void AssetsBrowserPanel::DrawAssetGrid()
     }
 
     // 그리드 레이아웃 설정 | TODO: 나중에 따로 설정으로 빼놓기
-    static float padding = 16.0f;
-    static float thumbnail_size = 64.0f;
-    const float cell_size = thumbnail_size + padding;
+    static f32 padding = 16.0f;
+    static f32 thumbnail_size = 64.0f;
+    const f32 cell_size = thumbnail_size + padding;
 
-    const float panel_width = ImGui::GetContentRegionAvail().x;
+    const f32 panel_width = ImGui::GetContentRegionAvail().x;
     const int column_count = std::max(static_cast<int>(panel_width / cell_size), 1);
 
     // 파일 목록 수집

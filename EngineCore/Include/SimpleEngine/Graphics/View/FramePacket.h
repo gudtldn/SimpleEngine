@@ -40,7 +40,7 @@ struct FramePacket
 {
     Array<RenderView> render_views;
     SceneDrawData scene_draw_data;
-    uint64 frame_number = 0;
+    u64 frame_number = 0;
 
     // GPU에 업로드 할 Mesh/Material 목록
     Array<MeshUploadRequest> mesh_upload_requests;

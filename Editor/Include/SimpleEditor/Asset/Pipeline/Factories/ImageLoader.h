@@ -44,9 +44,9 @@ private:
 /** SDL3_image 디코딩 결과 (RGBA8, row-tightly-packed) */
 struct ImageData
 {
-    Array<uint8> pixels;
-    uint32 width = 0;
-    uint32 height = 0;
+    Array<u8> pixels;
+    u32 width = 0;
+    u32 height = 0;
     ETextureFormat format = ETextureFormat::None; // UNORM or UNORM_SRGB
 };
 
@@ -74,7 +74,7 @@ public:
      * @param is_srgb sRGB 감마 인코딩 여부
      * @param format_hint Assimp achFormatHint ("png", "jpg", ...) 또는 빈 문자열
      */
-    [[nodiscard]] static ImageLoadResult LoadFromMemory(ArrayView<const uint8> data, bool is_srgb, StringView format_hint);
+    [[nodiscard]] static ImageLoadResult LoadFromMemory(ArrayView<const u8> data, bool is_srgb, StringView format_hint);
 
     /**
      * 이미 디코딩된 RGBA8 raw pixels를 ImageData로 패키징합니다.
@@ -84,6 +84,6 @@ public:
      * @param height 이미지 높이
      * @param is_srgb sRGB 감마 인코딩 여부
      */
-    [[nodiscard]] static ImageData LoadFromRawPixels(ArrayView<const uint8> rgba8_pixels, uint32 width, uint32 height, bool is_srgb);
+    [[nodiscard]] static ImageData LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 width, u32 height, bool is_srgb);
 };
 } // namespace se::editor

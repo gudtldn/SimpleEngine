@@ -68,7 +68,7 @@ public:
     virtual void Release() override;
 
     //~ Begin IUpdatable
-    virtual void Update(double delta_time) override;
+    virtual void Update(f64 delta_time) override;
     //~ End IUpdatable
 
 public:
@@ -76,7 +76,7 @@ public:
      * 뷰포트의 크기를 갱신합니다.
      * @note 크기가 변경되었거나 없을 경우 렌더 타겟을 재생성합니다.
      */
-    void UpdateViewportSize(const StringName& viewport_id, uint32 new_width, uint32 new_height);
+    void UpdateViewportSize(const StringName& viewport_id, u32 new_width, u32 new_height);
 
     /** 뷰포트의 ImGui 포커스/호버 상태를 갱신합니다. */
     void UpdateViewportFocus(const StringName& viewport_id, bool focused, bool hovered);

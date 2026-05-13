@@ -19,7 +19,7 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) StaticMeshCom
      * -1이면 카메라 거리에 따라 자동 계산(Auto LOD)되며, 0 이상의 값이면(예: 0, 1, 2) 거리에 상관없이 강제로 해당 LOD 레벨을 렌더링합니다.
      */
     SE_ANNOTATION(=meta::Property)
-    int8 force_lod = -1;
+    i8 force_lod = -1;
 };
 } // namespace se
 

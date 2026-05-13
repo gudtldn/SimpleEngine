@@ -29,7 +29,7 @@ namespace
 template <typename T>
 T RoundTrip(const T& original)
 {
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     T copy = original;
     writer << copy;
@@ -46,7 +46,7 @@ T RoundTripViaTypeInfo(const T& original)
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<T>());
     EXPECT_NE(info.serialize, nullptr);
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     T copy = original;
     info.serialize(writer, &copy);
@@ -67,10 +67,10 @@ namespace autoserialize_test
 struct SE_ANNOTATION(=meta::SerializeOnly) SimpleData
 {
     SE_ANNOTATION(=meta::Property)
-    int32 x = 0;
+    i32 x = 0;
 
     SE_ANNOTATION(=meta::Property)
-    float y = 0.0f;
+    f32 y = 0.0f;
 
     SE_ANNOTATION(=meta::Property)
     String name;
@@ -82,7 +82,7 @@ struct SE_ANNOTATION(=meta::SerializeOnly) SimpleData
 struct SE_ANNOTATION(=meta::SerializeOnly) BaseData
 {
     SE_ANNOTATION(=meta::Property)
-    int32 base_val = 0;
+    i32 base_val = 0;
 
     SE_ANNOTATION(=meta::Property)
     String base_name;
@@ -96,10 +96,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) DerivedData : BaseData
     using Super = BaseData;
 
     SE_ANNOTATION(=meta::Property)
-    float derived_val = 0.0f;
+    f32 derived_val = 0.0f;
 
     SE_ANNOTATION(=meta::Property)
-    int32 derived_extra = 0;
+    i32 derived_extra = 0;
 
     bool operator==(const DerivedData& other) const
     {
@@ -113,10 +113,10 @@ struct SE_ANNOTATION(=meta::SerializeOnly) DerivedData : BaseData
 struct SE_ANNOTATION(=meta::SerializeOnly) TransientData
 {
     SE_ANNOTATION(=meta::Property)
-    int32 saved_val = 0;
+    i32 saved_val = 0;
 
     SE_ANNOTATION(=meta::Property, =meta::Transient)
-    int32 transient_val = 0;  // Transient -> 직렬화에서 제외
+    i32 transient_val = 0;  // Transient -> 직렬화에서 제외
 
     bool operator==(const TransientData&) const = default;
 };
@@ -131,16 +131,16 @@ struct SE_ANNOTATION(=meta::SerializeOnly) EmptyReflected
 struct SE_ANNOTATION(=meta::SerializeOnly) ContainerData
 {
     SE_ANNOTATION(=meta::Property)
-    Array<int32> numbers;
+    Array<i32> numbers;
 
     SE_ANNOTATION(=meta::Property)
-    HashMap<String, float> scores;
+    HashMap<String, f32> scores;
 
     bool operator==(const ContainerData&) const = default;
 };
 
 // Enum 테스트용
-enum class ETestColor : uint8
+enum class ETestColor : u8
 {
     Red = 0,
     Green = 1,
@@ -258,11 +258,11 @@ TEST_F(AutoSerializeTest, Entity_RoundTrip)
     // Entity의 private 생성자를 사용할 수 없으므로,
     // Serialize를 통한 쓰기/읽기 순환을 직접 테스트
     // 먼저 유효한 Entity를 binary로 생성
-    Array<uint8> buffer;
+    Array<u8> buffer;
     {
         MemoryWriter writer(buffer);
-        uint32 id = 42;
-        uint32 gen = 7;
+        u32 id = 42;
+        u32 gen = 7;
         writer << id << gen;
     }
 
@@ -334,7 +334,7 @@ TEST_F(AutoSerializeTest, Math_LinearColor)
     EXPECT_FLOAT_EQ(loaded.a, original.a);
 }
 
-// --- Math: Color (uint8) ---
+// --- Math: Color (u8) ---
 TEST_F(AutoSerializeTest, Math_Color)
 {
     Color original{ 255, 128, 64, 32 };
@@ -348,13 +348,13 @@ TEST_F(AutoSerializeTest, Math_Color)
 // --- FixedArray ---
 TEST_F(AutoSerializeTest, FixedArray_RoundTrip)
 {
-    FixedArray<int32, 4> original;
+    FixedArray<i32, 4> original;
     original[0] = 10;
     original[1] = 20;
     original[2] = 30;
     original[3] = 40;
 
-    FixedArray<int32, 4> loaded = RoundTrip(original);
+    FixedArray<i32, 4> loaded = RoundTrip(original);
     EXPECT_EQ(loaded, original);
 }
 
@@ -432,7 +432,7 @@ TEST_F(AutoSerializeTest, ReflectedEnum_ViaTypeInfo)
     ASSERT_NE(info.serialize, nullptr);
     EXPECT_EQ(info.kind, ETypeKind::Enum);
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     ETestColor original = ETestColor::Green;
     info.serialize(writer, &original);
@@ -455,7 +455,7 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
     // AutoSerialize로 직렬화 -> saved_val만 저장, transient_val은 건너뜀
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<TransientData>());
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     TransientData copy = original;
     info.serialize(writer, &copy);
@@ -476,7 +476,7 @@ TEST_F(AutoSerializeTest, EmptyStruct)
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<EmptyReflected>());
     ASSERT_NE(info.serialize, nullptr);
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     EmptyReflected original;
     info.serialize(writer, &original);
@@ -511,35 +511,35 @@ TEST_F(AutoSerializeTest, Entity_Invalid)
     EXPECT_EQ(loaded, original);
 }
 
-// --- NaN float 직렬화 ---
+// --- NaN f32 직렬화 ---
 TEST_F(AutoSerializeTest, Float_NaN)
 {
-    float original = std::numeric_limits<float>::quiet_NaN();
+    f32 original = std::numeric_limits<f32>::quiet_NaN();
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     writer << original;
 
     MemoryReader reader(buffer);
-    float loaded = 0.0f;
+    f32 loaded = 0.0f;
     reader << loaded;
 
     EXPECT_TRUE(std::isnan(loaded));
 }
 
-// --- Infinity float 직렬화 ---
+// --- Infinity f32 직렬화 ---
 TEST_F(AutoSerializeTest, Float_Infinity)
 {
-    float pos_inf = std::numeric_limits<float>::infinity();
-    float neg_inf = -std::numeric_limits<float>::infinity();
+    f32 pos_inf = std::numeric_limits<f32>::infinity();
+    f32 neg_inf = -std::numeric_limits<f32>::infinity();
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     writer << pos_inf << neg_inf;
 
     MemoryReader reader(buffer);
-    float loaded_pos = 0.0f;
-    float loaded_neg = 0.0f;
+    f32 loaded_pos = 0.0f;
+    f32 loaded_neg = 0.0f;
     reader << loaded_pos << loaded_neg;
 
     EXPECT_TRUE(std::isinf(loaded_pos));
@@ -551,9 +551,9 @@ TEST_F(AutoSerializeTest, Float_Infinity)
 // --- NaN이 포함된 Vector3 ---
 TEST_F(AutoSerializeTest, Math_Vector3_NaN)
 {
-    Vector3f original{ std::numeric_limits<float>::quiet_NaN(), 0.0f, 1.0f };
+    Vector3f original{ std::numeric_limits<f32>::quiet_NaN(), 0.0f, 1.0f };
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     writer << original;
 
@@ -590,10 +590,10 @@ TEST_F(AutoSerializeTest, Math_IdentityQuaternion)
 // --- FixedArray: 모든 원소 동일 ---
 TEST_F(AutoSerializeTest, FixedArray_AllSame)
 {
-    FixedArray<float, 4> original;
+    FixedArray<f32, 4> original;
     original.Fill(42.0f);
 
-    FixedArray<float, 4> loaded = RoundTrip(original);
+    FixedArray<f32, 4> loaded = RoundTrip(original);
     EXPECT_EQ(loaded, original);
     for (usize i = 0; i < 4; ++i)
     {
@@ -604,7 +604,7 @@ TEST_F(AutoSerializeTest, FixedArray_AllSame)
 // --- Enum: 최대 underlying 값 ---
 TEST_F(AutoSerializeTest, Enum_MaxUnderlying)
 {
-    ETestColor original = ETestColor::Alpha;  // 255 (uint8 max)
+    ETestColor original = ETestColor::Alpha;  // 255 (u8 max)
     ETestColor loaded = RoundTrip(original);
     EXPECT_EQ(loaded, ETestColor::Alpha);
 }
@@ -616,7 +616,7 @@ TEST_F(AutoSerializeTest, OverwriteExistingValues)
 
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<SimpleData>());
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     SimpleData copy = original;
     info.serialize(writer, &copy);
@@ -637,12 +637,12 @@ TEST_F(AutoSerializeTest, OverwriteExistingValues)
 TEST_F(AutoSerializeTest, ArrayOfEntities)
 {
     // binary로 Entity 3개를 만들어서 Array에 담기
-    Array<uint8> entity_buf;
+    Array<u8> entity_buf;
     {
         MemoryWriter w(entity_buf);
         // Entity 3개의 id, generation 쌍
-        uint32 ids[] = { 0, 1, 2 };
-        uint32 gens[] = { 1, 1, 1 };
+        u32 ids[] = { 0, 1, 2 };
+        u32 gens[] = { 1, 1, 1 };
         for (int i = 0; i < 3; ++i)
         {
             w << ids[i] << gens[i];
@@ -698,7 +698,7 @@ TEST_F(AutoSerializeTest, MultipleSequentialAutoSerialize)
     c1.scores.Insert("test", 100.0f);
     SimpleData s2{ .x = 2, .y = 2.0f, .name = "Second" };
 
-    Array<uint8> buffer;
+    Array<u8> buffer;
     MemoryWriter writer(buffer);
     simple_info.serialize(writer, &s1);
     container_info.serialize(writer, &c1);

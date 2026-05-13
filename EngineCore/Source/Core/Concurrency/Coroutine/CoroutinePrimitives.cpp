@@ -87,12 +87,12 @@ struct WhenAllState
 struct WhenAnyState
 {
     // Phase Flag
-    static constexpr uint8 WAITING = 0b00;
-    static constexpr uint8 CALLBACK_WON = 0b01;
-    static constexpr uint8 GUARD_DONE = 0b10;
+    static constexpr u8 WAITING = 0b00;
+    static constexpr u8 CALLBACK_WON = 0b01;
+    static constexpr u8 GUARD_DONE = 0b10;
 
     /** 콜백 등록(Guard)과 첫 번째 완료 콜백 간의 실행 순서를 조율하는 상태 값 */
-    std::atomic<uint8> phase = WAITING;
+    std::atomic<u8> phase = WAITING;
 
     /** 여러 작업 중 정확히 단 하나(가장 먼저 끝난 작업)만 코루틴을 재개할 수 있도록 보장하는 초경량 Lock-Free 플래그 */
     std::atomic_flag resumed = ATOMIC_FLAG_INIT;
@@ -234,7 +234,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
             if (!state->resumed.test_and_set(std::memory_order_acq_rel))
             {
                 // 승리한 콜백으로서 CALLBACK_WON 상태를 원자적으로 기록
-                const uint8 old_phase = state->phase.fetch_or(WhenAnyState::CALLBACK_WON, std::memory_order_acq_rel);
+                const u8 old_phase = state->phase.fetch_or(WhenAnyState::CALLBACK_WON, std::memory_order_acq_rel);
 
                 // 만약 GUARD_DONE이 이미 설정되어 있다면, await_suspend의 등록 루프가 끝난 상태이므로 안전하게 직접 재개
                 if (old_phase & WhenAnyState::GUARD_DONE)
@@ -261,7 +261,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
     }
 
     // 모든 핸들의 등록이 완료되었으므로 가드를 해제하기 위해 GUARD_DONE 상태를 기록
-    const uint8 old_phase = state->phase.fetch_or(
+    const u8 old_phase = state->phase.fetch_or(
         WhenAnyState::GUARD_DONE, std::memory_order_acq_rel
     );
 

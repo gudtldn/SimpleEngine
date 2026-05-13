@@ -9,7 +9,7 @@ namespace se
 /**
  * 뷰포트의 렌더링 파이프라인 모드
  */
-enum class ERenderingMode : uint8
+enum class ERenderingMode : u8
 {
     // 기본 렌더링 모드
     Lit,         // 기본 조명 렌더링
@@ -24,7 +24,7 @@ enum class ERenderingMode : uint8
 /**
  * 뷰포트별 렌더링 요소의 가시성을 제어하는 비트 플래그
  */
-enum class EShowFlag : uint64
+enum class EShowFlag : u64
 {
     None = 0,
 
@@ -32,7 +32,7 @@ enum class EShowFlag : uint64
     AABB       = 1 << 1, // AABB 충돌 영역 표시
     StaticMesh = 1 << 2, // 스태틱 메시 렌더링
 
-    All = ~static_cast<uint64>(0),
+    All = ~static_cast<u64>(0),
 };
 
 SE_ENABLE_BITMASK_OPERATORS(EShowFlag)
