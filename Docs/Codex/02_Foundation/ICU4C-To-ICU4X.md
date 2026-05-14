@@ -1,6 +1,6 @@
 ---
-작성일: 2026-05-11
-최종 수정일: 2026-05-13
+작성일: 2026-05-13
+최종 수정일: 2026-05-14
 작성 완료: true
 tags:
   - foundation
@@ -12,11 +12,13 @@ tags:
 > **한 줄 요약:** 단순 기능으로는 `utf8cpp`로도 충분했지만, 제대로 된 국제화(i18n)를 지원하려다 `ICU4C`의 바이너리 비대화와 UTF-16 오버헤드에 데인 후, 최종적으로 Rust 기반의 UTF-8 네이티브인 `ICU4X`에 정착했다.
 
 **Code Entry Point** - 이 결정의 흔적을 보려면 여기부터:
-- `EngineCore/Source/Core/Container/String.cpp` - ICU4X `CaseMapper` 실제 사용부
+
 - `Tools/CMake/SEDependencies.cmake` - Corrosion + icu4x_src FetchContent 설정
 - `EngineCore/CMakeLists.txt` - ICU4X C++ FFI 바인딩 헤더 include path 설정
+- `EngineCore/Source/Core/Container/String.cpp` - ICU4X `CaseMapper` 실제 사용부
 
 ---
+
 ## 1. 왜 유니코드 라이브러리를 세 번이나 바꿨는지?
 
 엔진의 `String` 타입은 `char` 기반 UTF-8 문자열이다. 사실 기본적인 인코딩 검증이나 단순 처리만 놓고 보면 `utf8cpp` 라이브러리로도 충분했다.
@@ -24,6 +26,7 @@ tags:
 하지만 "이왕 자체 엔진을 만드는 거, 국제화(i18n)와 제대로 된 유니코드(대소문자 변환, 정규화 등)까지 완벽하게 지원해 보자"는 욕심이 생겼다. 단순한 바이트 처리로는 언어권(Locale)에 맞는 올바른 문자열 연산을 구현할 수 없었기 때문이다. 이로 인해서 프로젝트 초창기부터 현재까지 라이브러리가 여러번 바뀌는 상황이 발생했다.
 
 ---
+
 ## 2. 마이그레이션 타임라인
 
 | 단계                      | 라이브러리                             | 탈락 이유                                                          |
@@ -33,6 +36,7 @@ tags:
 | **-> 3rd - ICU4X (채택)** | Rust 기반 경량, UTF-8 네이티브, 기능별 선택 가능 | Corrosion 빌드 통합 복잡도 및 Rust 컴파일러 필요 (수용)                        |
 
 ---
+
 ## 3. ICU4C 도입 후 버린 이유
 
 업계 표준인 ICU4C를 과감히 버린 구체적인 이유는 다음과 같다.
@@ -42,6 +46,7 @@ tags:
 2. **UTF-16 오버헤드**: 언리얼 엔진이 `TCHAR`(UTF-16)를 쓰면서 겪는 고통과 유사한 문제가 발생했다. ICU4C의 핵심 타입인 `UnicodeString`은 내부적으로 UTF-16을 사용한다. 따라서 엔진의 네이티브 `String`(UTF-8)을 ICU에 넘겨 처리하려면, 모든 연산마다 양방향 인코딩 변환 비용을 치러야만 했다. `(UTF-8) -> (UTF-16) -> [ICU 처리] -> (UTF-16) -> (UTF-8)`
 
 ---
+
 ## 4. ICU4X를 최종 선택한 이유와 통합 과정
 
 ### 4.1. 선택한 이유
@@ -90,29 +95,29 @@ target_include_directories(EngineCore PRIVATE
 #include "icu4x/Locale.hpp"
 
 // locale 문자열 파싱 (실패 시 "und" 폴백)
-std::unique_ptr<icu4x::Locale> ParseLocale(const char* locale)  
-{  
-    if (!locale || !locale[0])  
-    {  
-        return icu4x::Locale::from_string("und").ok().value();  
-    }  
-  
-    // ICU4C 형식("tr_TR") -> BCP47 형식("tr-TR")으로 변환  
-    const std::string normalized = std::string_view{ locale }  
-        | std::views::transform([](char c) { return c == '_' ? '-' : c; })  
-        | std::ranges::to<std::string>();  
-  
-    auto result = icu4x::Locale::from_string(normalized);  
-    SE_ASSERT(result.is_ok(), "Invalid locale string: {}", locale);  
-    if (result.is_ok())  
-    {  
-        return std::move(result).ok().value();  
-    }  
-    return icu4x::Locale::from_string("und").ok().value();  
+std::unique_ptr<icu4x::Locale> ParseLocale(const char* locale)
+{
+    if (!locale || !locale[0])
+    {
+        return icu4x::Locale::from_string("und").ok().value();
+    }
+
+    // ICU4C 형식("tr_TR") -> BCP47 형식("tr-TR")으로 변환
+    const std::string normalized = std::string_view{ locale }
+        | std::views::transform([](char c) { return c == '_' ? '-' : c; })
+        | std::ranges::to<std::string>();
+
+    auto result = icu4x::Locale::from_string(normalized);
+    SE_ASSERT(result.is_ok(), "Invalid locale string: {}", locale);
+    if (result.is_ok())
+    {
+        return std::move(result).ok().value();
+    }
+    return icu4x::Locale::from_string("und").ok().value();
 }
 
 // 대문자 변환 예시
-const std::unique_ptr<icu4x::Locale> locale_obj = ParseLocale(locale);  
+const std::unique_ptr<icu4x::Locale> locale_obj = ParseLocale(locale);
 auto result = icu4x::CaseMapper::uppercase_with_compiled_data(view, *locale_obj);
 ```
 
@@ -128,23 +133,28 @@ Corrosion을 통해 Rust crate를 CMake에 통합하는 과정은 생각보다 �
 - **빌드 시간:** `FetchContent`로 icu4x 전체 소스를 내려받고 Rust로 컴파일하는 시간이 초기 빌드에 추가된다. (다만, 이후 증분 빌드에서는 영향이 없다).
 
 ---
+
 ## 5. 결과와 트레이드오프
 
 **얻은 것:**
+
 - UTF-8 네이티브 처리로 인코딩 변환 오버헤드 완전 제거
 - 필요한 기능(현재는 CaseMapper)만 포함하는 경량 바이너리
 - Unicode Consortium이 관리하는 표준 구현체 사용
 
 **잃은 것 / 수용한 비용:**
+
 - Rust toolchain이 빌드 환경 필수 의존성으로 추가됨
 - Corrosion 기반 빌드 통합 복잡도 - 기여자 진입 장벽 상승
 - ICU4C 대비 C++ API가 덜 성숙 (FFI 레이어를 통하므로 에러 메시지 등이 다소 투박함)
 
 **미해결 / 미래 과제:**
+
 - 현재 모든 crate를 빌드해서 사용하고 있는데, 추후 필요한 crate만 빌드해서 사용하도록 수정
 - 대소문자 변환 외의 ICU4X 기능(정규화, Collation 등) 미사용 - 필요 시 확장 가능
 
 ---
+
 ## 6. 참고
 
 - [ICU4X GitHub](https://github.com/unicode-org/icu4x)
