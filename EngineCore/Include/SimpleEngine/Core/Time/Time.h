@@ -8,18 +8,18 @@
 namespace se
 {
 // forward declarations
-class TimeManager;
+class TimeAdvancer;
 struct TimeResources_Registrar;
 
 namespace detail
 {
 /**
- * 시간 데이터의 공통 클래스
+ * 시간 데이터의 공통 상태 클래스
  * delta(프레임 경과), elapsed(누적 경과), frame_count를 제공합니다.
  */
-class TimeTick
+class TimeState
 {
-    friend class ::se::TimeManager;
+    friend class ::se::TimeAdvancer;
 
     // TODO: C++26에서 std::meta::access_context::unchecked()로 접근하면 friend가 필요 없어짐
     friend struct ::se::TimeResources_Registrar;
@@ -50,9 +50,9 @@ protected:
  * 실제 글로벌 시간입니다.
  * 게임 일시정지나 time scale의 영향을 받지 않습니다.
  */
-class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) RealTime final : public detail::TimeTick
+class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) RealTime final : public detail::TimeState
 {
-    friend class TimeManager;
+    friend class TimeAdvancer;
     friend struct TimeResources_Registrar;
 };
 
@@ -60,9 +60,9 @@ class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) RealTime final : public 
  * 가상 게임 시간입니다. World별로 독립적으로 관리됩니다.
  * time_scale과 pause 상태에 따라 delta가 조절됩니다.
  */
-class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) GameTime final : public detail::TimeTick
+class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) GameTime final : public detail::TimeState
 {
-    friend class TimeManager;
+    friend class TimeAdvancer;
     friend struct TimeResources_Registrar;
 
 public:
@@ -91,9 +91,9 @@ private:
  * 물리 시뮬레이션 등 일정한 간격의 업데이트가 필요한 곳에서 사용합니다.
  * accumulator가 fixed_step 이상이면 FixedUpdatePhase가 실행됩니다.
  */
-class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) FixedTime final : public detail::TimeTick
+class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) FixedTime final : public detail::TimeState
 {
-    friend class TimeManager;
+    friend class TimeAdvancer;
     friend struct TimeResources_Registrar;
 
 public:

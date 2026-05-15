@@ -1,7 +1,7 @@
 ﻿#include "SimpleEngine/ECS/WorldContext.h"
 
 #include "SimpleEngine/Core/Time/Time.h"
-#include "SimpleEngine/Core/Time/TimeManager.h"
+#include "SimpleEngine/Core/Time/TimeAdvancer.h"
 #include "SimpleEngine/ECS/TransformPropagation.h"
 #include "SimpleEngine/ECS/World.h"
 
@@ -25,9 +25,9 @@ void WorldContext::RunAll(f64 delta_time)
     GameTime& game = world->GetResource<GameTime>();
     FixedTime& fixed = world->GetResource<FixedTime>();
 
-    TimeManager::AdvanceRealTime(real, delta_time);
-    TimeManager::AdvanceGameTime(game, delta_time);
-    TimeManager::AccumulateFixedTime(fixed, game.GetDelta());
+    TimeAdvancer::AdvanceRealTime(real, delta_time);
+    TimeAdvancer::AdvanceGameTime(game, real.GetDelta());
+    TimeAdvancer::AccumulateFixedTime(fixed, game.GetDelta());
 
     // 모든 Stage를 순서대로 실행
     bool has_once_stages = false;

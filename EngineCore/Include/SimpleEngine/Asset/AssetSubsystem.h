@@ -148,9 +148,6 @@ private:
 
     DDCMissHandler ddc_miss_handler;
 
-    // Frame counter (Eviction 정책용)
-    u64 frame_count = 0;
-
     TracyLockable(std::mutex, loading_mutex);
     std::condition_variable_any import_cv;    // 하나의 스레드에서만 Import를 보장하는 cv
     HashSet<VPath> files_currently_importing; // 현재 Import 중인 File 목록

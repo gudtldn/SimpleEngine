@@ -258,6 +258,11 @@ void Application::ProcessPlatformEvents()
 void Application::Update(f64 delta_time)
 {
     engine_instance->UpdateFrame(delta_time);
+
+    if (AssetSubsystem* asset = engine_instance->GetSubsystem<AssetSubsystem>())
+    {
+        asset->EndFrame();
+    }
 }
 
 void Application::Render()

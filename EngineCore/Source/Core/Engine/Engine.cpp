@@ -153,12 +153,17 @@ Engine& Engine::Get()
 
 f64 Engine::GetDeltaTime()
 {
-    return Get().last_delta;
+    return Get().delta_time;
 }
 
 f64 Engine::GetElapsedTime()
 {
-    return Get().total_elapsed;
+    return Get().elapsed_time;
+}
+
+u64 Engine::GetFrameCount()
+{
+    return Get().frame_count;
 }
 
 void Engine::GenerateDefaultEngineConfig()
@@ -256,7 +261,7 @@ void Engine::Release()
     SDL_Quit();
 }
 
-void Engine::UpdateFrame(f64 delta_time)
+void Engine::UpdateFrame(f64 in_delta_time)
 {
 #define SE_PROFILE_SCOPE(scope_fmt, ...) \
     ZoneScoped; \
@@ -265,8 +270,9 @@ void Engine::UpdateFrame(f64 delta_time)
         ZoneName(zone_name.CStr(), zone_name.ByteLen()); \
     })
 
-    last_delta = delta_time;
-    total_elapsed += delta_time;
+    delta_time = in_delta_time;
+    elapsed_time += in_delta_time;
+    ++frame_count;
 
     for (const auto& [subsystem, name] : updatable_systems)
     {

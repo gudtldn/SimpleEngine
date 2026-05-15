@@ -1,4 +1,5 @@
 #include "SimpleEngine/Asset/HandleTable.h"
+#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <ranges>
@@ -124,7 +125,7 @@ void HandleTable::MarkForEviction(u32 index)
     SE_ASSERT(entry.ref_count.load(std::memory_order_relaxed) == 0, "HandleTable::MarkForEviction - ref_count is not 0");
 
     // LRU 판단을 위해 "마지막으로 사용된 프레임"을 기록
-    entry.last_access_frame.store(current_frame.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    entry.last_access_frame.store(Engine::GetFrameCount(), std::memory_order_relaxed);
 }
 
 void HandleTable::EvictSlot(u32 index, Array<AssetPayload>& out_deferred)

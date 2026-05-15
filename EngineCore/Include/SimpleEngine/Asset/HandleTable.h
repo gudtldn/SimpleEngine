@@ -134,18 +134,6 @@ public:
         total_memory.fetch_sub(bytes, std::memory_order_relaxed);
     }
 
-    /** 현재 프레임 번호를 설정합니다. (EndFrame에서 매 프레임 호출) */
-    FORCE_INLINE void SetCurrentFrame(u64 frame) noexcept
-    {
-        current_frame.store(frame, std::memory_order_relaxed);
-    }
-
-    /** 현재 프레임 번호를 반환합니다. */
-    [[nodiscard]] FORCE_INLINE u64 GetCurrentFrame() const noexcept
-    {
-        return current_frame.load(std::memory_order_relaxed);
-    }
-
 private:
     /** 락이 이미 획득된 상태에서 슬롯을 실제로 해제하는 내부 헬퍼 함수입니다. */
     void EvictSlotInternal(u32 index, SlotEntry& entry, Array<AssetPayload>& out_deferred);
@@ -167,8 +155,5 @@ private:
 
     // 총 에셋 메모리 사용량 (Eviction 예산 계산용)
     std::atomic<u64> total_memory = 0;
-
-    // 현재 엔진 프레임 번호 (MarkForEviction -> last_access_frame 갱신용)
-    std::atomic<u64> current_frame = 0; // TODO: 나중에 중앙에서 한번에 관리할까?
 };
 } // namespace se

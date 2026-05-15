@@ -21,6 +21,7 @@
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
+#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -170,8 +171,7 @@ void EditorApplication::Render()
 
     // FramePacket 조립
     se::FramePacket frame_packet;
-    static u64 frame_counter = 0;
-    frame_packet.frame_number = ++frame_counter; // TODO: 나중에 frame_counter를 통합 관리하는 구조체 만들기
+    frame_packet.frame_number = se::Engine::GetFrameCount();
 
     // 게임 스레드에서 뷰포트별 렌더 데이터 스냅샷 수집
     Array<ViewportRenderInput> viewport_inputs;

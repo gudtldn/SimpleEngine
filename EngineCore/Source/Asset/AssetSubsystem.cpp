@@ -7,6 +7,7 @@
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/AsyncFileIO.h"
 #include "SimpleEngine/Core/Concurrency/Coroutine/CoroutinePrimitives.h"
+#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
@@ -78,17 +79,16 @@ void AssetSubsystem::DeferRelease(AssetPayload payload)
         return;
     }
 
-    pool->DeferDestroy(std::move(payload), frame_count);
+    pool->DeferDestroy(std::move(payload), Engine::GetFrameCount());
 }
 
 void AssetSubsystem::EndFrame()
 {
     ZoneScopedN("AssetSubsystem::EndFrame");
 
-    ++frame_count;
-    pool->GetTable().SetCurrentFrame(frame_count);
-    pool->ProcessPendingDestroy(frame_count);
-    pool->EvictIfOverBudget(frame_count);
+    const u64 current_frame = Engine::GetFrameCount();
+    pool->ProcessPendingDestroy(current_frame);
+    pool->EvictIfOverBudget(current_frame);
 }
 
 Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
@@ -329,7 +329,7 @@ void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload pa
     const u64 old_size = current_slot.asset_size_bytes;
     const u64 new_size = payload_size;
     current_slot.asset_size_bytes = new_size;
-    current_slot.last_access_frame.store(frame_count, std::memory_order_relaxed);
+    current_slot.last_access_frame.store(Engine::GetFrameCount(), std::memory_order_relaxed);
     current_slot.scope = scope;
 
     if (new_size > old_size)

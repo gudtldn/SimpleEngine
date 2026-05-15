@@ -1,4 +1,5 @@
 ﻿#include "SimpleEngine/Asset/AssetPool.h"
+#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <utility>
@@ -35,7 +36,7 @@ void AssetPool::Remove(const AssetId& id)
         Array<AssetPayload> deferred;
         table.EvictSlot(handle_data->index, deferred);
 
-        const u64 frame = table.GetCurrentFrame();
+        const u64 frame = Engine::GetFrameCount();
         for (AssetPayload& payload : deferred)
         {
             DeferDestroy(std::move(payload), frame);
@@ -48,7 +49,7 @@ u32 AssetPool::CollectGarbage()
     Array<AssetPayload> deferred;
     const u32 count = table.CollectGarbage(deferred);
 
-    const u64 frame = table.GetCurrentFrame();
+    const u64 frame = Engine::GetFrameCount();
     for (AssetPayload& payload : deferred)
     {
         DeferDestroy(std::move(payload), frame);
@@ -220,7 +221,7 @@ u32 AssetPool::UnloadScope(EScopeLayer layer)
         return entry.scope == layer;
     }, deferred);
 
-    const u64 frame = table.GetCurrentFrame();
+    const u64 frame = Engine::GetFrameCount();
     for (AssetPayload& payload : deferred)
     {
         DeferDestroy(std::move(payload), frame);
