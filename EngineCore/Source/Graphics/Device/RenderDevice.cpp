@@ -37,8 +37,8 @@ RenderDevice::~RenderDevice()
         DestroyBuffer(rid);
     }
 
-    // 지연 파괴 큐를 일괄 처리
-    ProcessDeferredDestructions();
+    // GPU 유휴 대기 후 지연 파괴 큐를 모두 즉시 해제
+    FlushAllDestructions();
 
     // SDL_GPUDevice 정리
     SDL_DestroyGPUDevice(raw_device);
@@ -142,6 +142,7 @@ void RenderDevice::DestroyTexture(RID rid)
     if (const auto resource = textures.Get(rid))
     {
         deferred_texture_destroys.Push({
+            .requested_frame = last_processed_frame,
             .handle = resource->handle,
 #if SE_ENABLE_MEMORY_TRACKING
             .byte_size = resource->byte_size,
@@ -157,6 +158,7 @@ void RenderDevice::DestroyBuffer(RID rid)
     if (const auto resource = buffers.Get(rid))
     {
         deferred_buffer_destroys.Push({
+            .requested_frame = last_processed_frame,
             .handle = resource->handle,
             .size = resource->size,
 #if SE_ENABLE_MEMORY_TRACKING
@@ -167,8 +169,43 @@ void RenderDevice::DestroyBuffer(RID rid)
     }
 }
 
-void RenderDevice::ProcessDeferredDestructions()
+void RenderDevice::ProcessDeferredDestructions(u64 current_frame)
 {
+    last_processed_frame = current_frame;
+
+    // MAX_FRAMES_IN_FLIGHT 만큼 지난 리소스 제거
+    for (isize i = static_cast<isize>(deferred_texture_destroys.Len()) - 1; i >= 0; --i)
+    {
+        const PendingTextureDestroy& pending = deferred_texture_destroys[static_cast<usize>(i)];
+        if (current_frame - pending.requested_frame >= MAX_FRAMES_IN_FLIGHT)
+        {
+            SDL_ReleaseGPUTexture(raw_device, pending.handle);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pending.tag_id, pending.byte_size);
+#endif
+            deferred_texture_destroys.RemoveAtSwap(static_cast<usize>(i));
+        }
+    }
+
+    for (isize i = static_cast<isize>(deferred_buffer_destroys.Len()) - 1; i >= 0; --i)
+    {
+        const PendingBufferDestroy& pending = deferred_buffer_destroys[static_cast<usize>(i)];
+        if (current_frame - pending.requested_frame >= MAX_FRAMES_IN_FLIGHT)
+        {
+            SDL_ReleaseGPUBuffer(raw_device, pending.handle);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pending.tag_id, pending.size);
+#endif
+            deferred_buffer_destroys.RemoveAtSwap(static_cast<usize>(i));
+        }
+    }
+}
+
+void RenderDevice::FlushAllDestructions()
+{
+    // GPU가 이전에 제출된 모든 작업을 완료할 때까지 대기
+    SDL_WaitForGPUIdle(raw_device);
+
     for (const PendingTextureDestroy& pending : deferred_texture_destroys)
     {
         SDL_ReleaseGPUTexture(raw_device, pending.handle);

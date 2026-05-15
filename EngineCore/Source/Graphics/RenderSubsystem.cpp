@@ -1,5 +1,6 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 
+#include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -128,6 +129,9 @@ void RenderSubsystem::Release()
         }
     }
 
+    // GPU Resource 해제
+    render_device->FlushAllDestructions();
+
     render_graph_builder.reset();
     render_graph_executor.reset();
     pso_manager.reset();
@@ -215,7 +219,7 @@ void RenderSubsystem::RenderFrame(
         render_graph_executor->UpdateResourcePool();
     }
 
-    render_device->ProcessDeferredDestructions();
+    render_device->ProcessDeferredDestructions(Engine::GetFrameCount());
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst

@@ -49,9 +49,6 @@ GpuResourceManager::~GpuResourceManager()
     }
     texture_map.Clear();
 
-    // Deferred Queue에 넣은 Texture를 바로 해제
-    render_device->ProcessDeferredDestructions();
-
     // Buffer 해제
     slice_map.Clear();
     geometry_blocks.Clear();

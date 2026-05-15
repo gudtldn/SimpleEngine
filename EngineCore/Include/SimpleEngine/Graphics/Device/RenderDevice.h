@@ -10,7 +10,10 @@
 
 namespace se
 {
-/** RenderDevice가 관리하는 텍스처 리소스의 메타데이터입니다. */
+/** 리소스 해제 전, 대기할 최대 프레임 수 */
+constexpr u64 MAX_FRAMES_IN_FLIGHT = 2;
+
+/** RenderDevice가 관리하는 텍스처 리소스의 메타데이터 */
 struct TextureResource
 {
     SDL_GPUTexture* handle = nullptr;
@@ -24,7 +27,7 @@ struct TextureResource
 #endif
 };
 
-/** RenderDevice가 관리하는 버퍼 리소스의 메타데이터입니다. */
+/** RenderDevice가 관리하는 버퍼 리소스의 메타데이터 */
 struct BufferResource
 {
     SDL_GPUBuffer* handle = nullptr;
@@ -87,10 +90,12 @@ public:
     void DestroyBuffer(RID rid);
 
     /**
-     * 지연 파괴 큐에 등록된 모든 GPU 리소스를 실제로 해제합니다.
-     * 프레임 경계에서 호출해야 합니다.
+     * 지연 파괴 큐에서 MAX_FRAMES_IN_FLIGHT 이상 대기한 항목을 실제로 해제합니다.
      */
-    void ProcessDeferredDestructions();
+    void ProcessDeferredDestructions(u64 current_frame);
+
+    /** GPU가 유휴 상태가 될 때까지 대기한 뒤, 지연 파괴 큐의 모든 항목을 즉시 해제합니다. */
+    void FlushAllDestructions();
 
     /** 내부 SDL_GPUDevice 포인터를 반환합니다. */
     [[nodiscard]] SDL_GPUDevice* GetRawDevice() const noexcept { return raw_device; }
@@ -105,6 +110,7 @@ private:
     /** 지연 파괴 큐에 들어가는 Texture Entry */
     struct PendingTextureDestroy
     {
+        u64 requested_frame = 0;
         SDL_GPUTexture* handle = nullptr;
 
 #if SE_ENABLE_MEMORY_TRACKING
@@ -116,6 +122,7 @@ private:
     /** 지연 파괴 큐에 들어가는 Buffer Entry */
     struct PendingBufferDestroy
     {
+        u64 requested_frame = 0;
         SDL_GPUBuffer* handle = nullptr;
         u32 size = 0;
 
@@ -132,5 +139,8 @@ private:
 
     Array<PendingTextureDestroy> deferred_texture_destroys;
     Array<PendingBufferDestroy> deferred_buffer_destroys;
+
+    // ProcessDeferredDestructions 마지막 호출 시점의 프레임 번호
+    u64 last_processed_frame = 0;
 };
 } // namespace se
