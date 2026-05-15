@@ -6,30 +6,33 @@
 
 namespace se
 {
-// static 초기화 시점에 기록할 수 있도록
-std::atomic<u32> MemoryStats::registered_count = 1;
-FixedArray<MemoryTag, MemoryStats::MAX_MEMORY_TAGS> MemoryStats::tags{};
-HashMap<StringName, u32> MemoryStats::tag_lookup;
-
-[[maybe_unused]] static const bool DefaultTagInitialized = [] static
+namespace
 {
-    if (auto tags_view = MemoryStats::GetTags(); !tags_view.IsEmpty())
+[[maybe_unused]] const bool DefaultTagInitialized = [] static
+{
+    if (const auto tags_view = MemoryStats::GetTags(); !tags_view.IsEmpty())
     {
         tags_view[0].name = "Untagged";
     }
     return true;
 }();
 
+// TLS 변수 (스레드별 현재 태그 ID)
+thread_local u32 current_thread_tag_id = 0;
+} // namespace
+
+// static 초기화 시점에 기록할 수 있도록
+std::atomic<u32> MemoryStats::registered_count = 1;
+FixedArray<MemoryTag, MemoryStats::MAX_MEMORY_TAGS> MemoryStats::tags{};
+HashMap<StringName, u32> MemoryStats::tag_lookup;
+
 std::atomic<usize> MemoryStats::total_cpu_allocated = 0;
 std::atomic<usize> MemoryStats::total_gpu_allocated = 0;
-
-// TLS 변수 (스레드별 현재 태그 ID)
-thread_local u32 CurrentThreadTagId = 0;
 
 
 u32 MemoryStats::GetOrRegisterTag(const StringName& name)
 {
-    std::scoped_lock lock(registry_mutex);
+    std::scoped_lock lock{ registry_mutex };
     return tag_lookup.Entry(name).OrInsertWith([&name = std::as_const(name)]
     {
         const u32 new_id = registered_count.load(std::memory_order_relaxed);
@@ -44,12 +47,12 @@ u32 MemoryStats::GetOrRegisterTag(const StringName& name)
 
 u32 MemoryStats::SetCurrentTag(u32 tag_id)
 {
-    return std::exchange(CurrentThreadTagId, tag_id);
+    return std::exchange(current_thread_tag_id, tag_id);
 }
 
 u32 MemoryStats::GetCurrentTag()
 {
-    return CurrentThreadTagId;
+    return current_thread_tag_id;
 }
 
 void MemoryStats::TrackAlloc(u32 tag_id, usize size)

@@ -1,11 +1,66 @@
 #include "SimpleEngine/Graphics/RenderGraph/FrameResourcePool.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
+#include "SimpleEngine/Graphics/Memory/GpuMemoryCalc.h"
 
 #include <ranges>
 
 
 namespace se
 {
+namespace
+{
+template <typename T, typename FactoryFn>
+    requires std::is_invocable_r_v<FrameResourcePool::PooledResource<T>, FactoryFn>
+[[nodiscard]] T* AcquireResourceInternal(FrameResourcePool::PoolEntry<T>& entry, FactoryFn&& factory_func)
+{
+    if (auto pooled = entry.available_resources.Pop())
+    {
+        pooled->idle_frames = 0;
+        entry.used_resources.Push(std::move(pooled).Value());
+    }
+    else [[unlikely]] // NOLINT(*-inconsistent-ifelse-braces)
+    {
+        entry.used_resources.Push(std::forward<FactoryFn>(factory_func)());
+    }
+    return entry.used_resources.Back()->resource;
+}
+
+template <typename T>
+void ReleaseResourceInternal(FrameResourcePool::PoolEntry<T>& entry, T* resource)
+{
+    for (usize i = 0; i < entry.used_resources.Len(); ++i)
+    {
+        if (entry.used_resources[i].resource == resource)
+        {
+            FrameResourcePool::PooledResource<T> pooled = std::move(entry.used_resources[i]);
+            pooled.idle_frames = 0;
+            entry.used_resources.RemoveAtSwap(i);
+            entry.available_resources.Push(std::move(pooled));
+            return;
+        }
+    }
+    SE_ASSERT(false, "Attempted to deallocate a resource that was not marked as used.");
+}
+
+template <typename T, typename ReleaseFn>
+    requires std::invocable<ReleaseFn, T*>
+void TrimEntry(FrameResourcePool::PoolEntry<T>& entry, u32 max_idle_frames, ReleaseFn&& release_fn)
+{
+    for (isize i = static_cast<isize>(entry.available_resources.Len()) - 1; i >= 0; --i)
+    {
+        FrameResourcePool::PooledResource<T>& pooled = entry.available_resources[static_cast<usize>(i)];
+        if (pooled.idle_frames >= max_idle_frames)
+        {
+            release_fn(pooled.resource);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pooled.tag_id, pooled.byte_size);
+#endif
+            entry.available_resources.RemoveAtSwap(static_cast<usize>(i));
+        }
+    }
+}
+} // namespace
+
 FrameResourcePool::FrameResourcePool(RenderDevice& in_render_device)
     : render_device(&in_render_device)
 {
@@ -18,10 +73,16 @@ FrameResourcePool::~FrameResourcePool()
         for (const auto& pooled : entry.available_resources)
         {
             SDL_ReleaseGPUTexture(render_device->GetRawDevice(), pooled.resource);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pooled.tag_id, pooled.byte_size);
+#endif
         }
-        for (SDL_GPUTexture* texture : entry.used_resources)
+        for (const auto& pooled : entry.used_resources)
         {
-            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), texture);
+            SDL_ReleaseGPUTexture(render_device->GetRawDevice(), pooled.resource);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pooled.tag_id, pooled.byte_size);
+#endif
         }
     }
 
@@ -30,19 +91,36 @@ FrameResourcePool::~FrameResourcePool()
         for (const auto& pooled : entry.available_resources)
         {
             SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), pooled.resource);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pooled.tag_id, pooled.byte_size);
+#endif
         }
-        for (SDL_GPUBuffer* buffer : entry.used_resources)
+        for (const auto& pooled : entry.used_resources)
         {
-            SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
+            SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), pooled.resource);
+#if SE_ENABLE_MEMORY_TRACKING
+            MemoryStats::TrackGpuFree(pooled.tag_id, pooled.byte_size);
+#endif
         }
     }
 }
 
 SDL_GPUTexture* FrameResourcePool::AcquireTexture(const SDL_GPUTextureCreateInfo& info)
 {
+    SE_MEM_SCOPE("GPU:Transient");
     return AcquireResourceInternal(texture_pool[info], [this, &info = std::as_const(info)]
     {
-        return SDL_CreateGPUTexture(render_device->GetRawDevice(), &info);
+        PooledResource<SDL_GPUTexture> pooled;
+        pooled.resource = SDL_CreateGPUTexture(render_device->GetRawDevice(), &info);
+#if SE_ENABLE_MEMORY_TRACKING
+        if (pooled.resource)
+        {
+            pooled.byte_size = CalculateTextureMemoryFromCreateInfo(info);
+            pooled.tag_id = MemoryStats::GetCurrentTag();
+            MemoryStats::TrackGpuAlloc(pooled.tag_id, pooled.byte_size);
+        }
+#endif
+        return pooled;
     });
 }
 
@@ -53,9 +131,20 @@ void FrameResourcePool::ReleaseTexture(const SDL_GPUTextureCreateInfo& info, SDL
 
 SDL_GPUBuffer* FrameResourcePool::AcquireBuffer(const SDL_GPUBufferCreateInfo& info)
 {
+    SE_MEM_SCOPE("GPU:Transient");
     return AcquireResourceInternal(buffer_pool[info], [this, &info = std::as_const(info)]
     {
-        return SDL_CreateGPUBuffer(render_device->GetRawDevice(), &info);
+        PooledResource<SDL_GPUBuffer> pooled;
+        pooled.resource = SDL_CreateGPUBuffer(render_device->GetRawDevice(), &info);
+#if SE_ENABLE_MEMORY_TRACKING
+        if (pooled.resource)
+        {
+            pooled.byte_size = info.size;
+            pooled.tag_id = MemoryStats::GetCurrentTag();
+            MemoryStats::TrackGpuAlloc(pooled.tag_id, pooled.byte_size);
+        }
+#endif
+        return pooled;
     });
 }
 

@@ -98,12 +98,11 @@ public:
     template <typename Self>
     [[nodiscard]] auto Get(this Self& self, RID rid)
     {
-        using OptRef = std::conditional_t<std::is_const_v<Self>, Optional<const T&>, Optional<T&>>;
         if (!self.IsValidRID(rid))
         {
-            return OptRef{ NullOpt };
+            return Optional<traits::CopyConst<Self, T&>>{ NullOpt };
         }
-        return OptRef{ self.slots[rid.index].data };
+        return Optional<traits::CopyConst<Self, T&>>{ self.slots[rid.index].data };
     }
 
     /**

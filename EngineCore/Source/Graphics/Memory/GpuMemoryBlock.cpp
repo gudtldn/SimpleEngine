@@ -15,14 +15,14 @@ GpuMemoryBlock::GpuMemoryBlock(RenderDevice* in_render_device, u32 in_size, SDL_
         .usage = in_usage,
         .size = in_size,
     };
-    buffer = SDL_CreateGPUBuffer(render_device->GetRawDevice(), &buffer_info);
+    buffer_rid = render_device->CreateBuffer(buffer_info, "GpuMemoryBlock");
 }
 
 GpuMemoryBlock::~GpuMemoryBlock()
 {
-    if (buffer && render_device)
+    if (render_device && buffer_rid.IsValid())
     {
-        SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
+        render_device->DestroyBuffer(buffer_rid);
     }
 }
 
@@ -35,15 +35,15 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
 {
     if (this != &other)
     {
-        if (buffer)
+        if (render_device && buffer_rid.IsValid())
         {
-            SDL_ReleaseGPUBuffer(render_device->GetRawDevice(), buffer);
+            render_device->DestroyBuffer(buffer_rid);
         }
 
         static_assert(
             AlignedSize<alignof(GpuMemoryBlock)>(
                 sizeof(render_device) // NOLINT(*-sizeof-expression)
-                + sizeof(buffer)      // NOLINT(*-sizeof-expression)
+                + sizeof(buffer_rid)
                 + sizeof(usage_flags)
                 + sizeof(total_size)
                 + sizeof(used_offset)
@@ -52,12 +52,25 @@ GpuMemoryBlock& GpuMemoryBlock::operator=(GpuMemoryBlock&& other) noexcept
         );
 
         render_device = std::exchange(other.render_device, nullptr);
-        buffer = std::exchange(other.buffer, nullptr);
+        buffer_rid = std::exchange(other.buffer_rid, RID{});
         usage_flags = std::exchange(other.usage_flags, 0);
         total_size = std::exchange(other.total_size, 0);
         used_offset = std::exchange(other.used_offset, 0);
     }
     return *this;
+}
+
+SDL_GPUBuffer* GpuMemoryBlock::GetNativeBuffer() const
+{
+    if (!render_device || !buffer_rid.IsValid())
+    {
+        return nullptr;
+    }
+    if (const auto resource = render_device->GetBuffer(buffer_rid))
+    {
+        return resource->handle;
+    }
+    return nullptr;
 }
 
 bool GpuMemoryBlock::AllocateSlice(u32 in_size, u32 in_alignment, GpuBufferSlice& out_slice)
@@ -70,7 +83,7 @@ bool GpuMemoryBlock::AllocateSlice(u32 in_size, u32 in_alignment, GpuBufferSlice
         return false; // 공간 부족
     }
 
-    out_slice.buffer = buffer;
+    out_slice.buffer = GetNativeBuffer();
     out_slice.offset = aligned_offset;
     out_slice.size = in_size;
 

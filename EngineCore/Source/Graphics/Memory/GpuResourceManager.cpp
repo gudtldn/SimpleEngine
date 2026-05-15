@@ -1,6 +1,7 @@
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Memory/MemoryStats.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <ranges>
@@ -63,6 +64,8 @@ bool GpuResourceManager::UploadMesh(
     const void* in_index_data, u32 in_index_size
 )
 {
+    SE_MEM_SCOPE("GPU:Mesh");
+
     // GPU 메모리 할당
     const u32 total_size = in_vertex_size + in_index_size;
     if (total_size == 0)
@@ -173,6 +176,8 @@ bool GpuResourceManager::UploadTexture(
     const Texture2D& in_texture
 )
 {
+    SE_MEM_SCOPE("GPU:Texture");
+
     if (in_texture.width == 0 || in_texture.height == 0 || in_texture.pixels.IsEmpty())
     {
         ConsoleLog(ELogLevel::Error, "UploadTexture: Invalid texture dimensions or empty pixel data.");

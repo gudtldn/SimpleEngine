@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Graphics/Device/RID.h"
 #include "SimpleEngine/Graphics/Memory/GpuBufferSlice.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -36,14 +37,14 @@ public:
     [[nodiscard]] u32 GetTotalSize() const { return total_size; }
     [[nodiscard]] u32 GetUsedSize() const { return used_offset; }
     [[nodiscard]] SDL_GPUBufferUsageFlags GetUsage() const { return usage_flags; }
-    [[nodiscard]] SDL_GPUBuffer* GetNativeBuffer() const { return buffer; }
+    [[nodiscard]] SDL_GPUBuffer* GetNativeBuffer() const;
 
 private:
     RenderDevice* render_device = nullptr;
-    SDL_GPUBuffer* buffer = nullptr; // GPU Buffer 리소스
+    RID buffer_rid;                          // GPU Buffer 리소스 핸들
 
     SDL_GPUBufferUsageFlags usage_flags = 0; // Buffer의 사용 용도
-    u32 total_size = 0;                   // 버퍼 크기
-    u32 used_offset = 0;                  // 버퍼를 할당할 수 있는 시작 오프셋
+    u32 total_size = 0;                      // 버퍼 크기
+    u32 used_offset = 0;                     // 버퍼를 할당할 수 있는 시작 오프셋
 };
 } // namespace se

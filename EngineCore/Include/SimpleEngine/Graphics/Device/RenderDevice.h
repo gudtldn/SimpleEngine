@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Memory/MemoryConfig.h"
 #include "SimpleEngine/Graphics/Device/RID.h"
 #include "SimpleEngine/Graphics/Device/SlotMap.h"
 
@@ -16,6 +17,11 @@ struct TextureResource
     u32 width = 0;
     u32 height = 0;
     SDL_GPUTextureFormat format = SDL_GPU_TEXTUREFORMAT_INVALID;
+
+#if SE_ENABLE_MEMORY_TRACKING
+    u64 byte_size = 0; // VRAM 추적용 메모리 크기 (밉 체인 포함, byte)
+    u32 tag_id = 0;    // 생성 시점에 활성화된 메모리 태그 ID
+#endif
 };
 
 /** RenderDevice가 관리하는 버퍼 리소스의 메타데이터입니다. */
@@ -24,6 +30,10 @@ struct BufferResource
     SDL_GPUBuffer* handle = nullptr;
     u32 size = 0;
     SDL_GPUBufferUsageFlags usage = 0;
+
+#if SE_ENABLE_MEMORY_TRACKING
+    u32 tag_id = 0; // 생성 시점에 활성화된 메모리 태그 ID
+#endif
 };
 
 
@@ -92,12 +102,35 @@ public:
     [[nodiscard]] u32 BufferCount() const noexcept { return buffers.Count(); }
 
 private:
+    /** 지연 파괴 큐에 들어가는 Texture Entry */
+    struct PendingTextureDestroy
+    {
+        SDL_GPUTexture* handle = nullptr;
+
+#if SE_ENABLE_MEMORY_TRACKING
+        u64 byte_size = 0;
+        u32 tag_id = 0;
+#endif
+    };
+
+    /** 지연 파괴 큐에 들어가는 Buffer Entry */
+    struct PendingBufferDestroy
+    {
+        SDL_GPUBuffer* handle = nullptr;
+        u32 size = 0;
+
+#if SE_ENABLE_MEMORY_TRACKING
+        u32 tag_id = 0;
+#endif
+    };
+
+private:
     SDL_GPUDevice* raw_device;
 
     SlotMap<TextureResource> textures;
     SlotMap<BufferResource> buffers;
 
-    Array<SDL_GPUTexture*> deferred_texture_destroys;
-    Array<SDL_GPUBuffer*> deferred_buffer_destroys;
+    Array<PendingTextureDestroy> deferred_texture_destroys;
+    Array<PendingBufferDestroy> deferred_buffer_destroys;
 };
 } // namespace se

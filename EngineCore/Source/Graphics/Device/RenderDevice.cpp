@@ -1,5 +1,8 @@
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
+
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Memory/MemoryStats.h"
+#include "SimpleEngine/Graphics/Memory/GpuMemoryCalc.h"
 
 #include "SDL3/SDL_gpu.h"
 
@@ -13,21 +16,29 @@ RenderDevice::RenderDevice(SDL_GPUDevice* raw_device)
 
 RenderDevice::~RenderDevice()
 {
-    // 지연 파괴 큐를 먼저 처리
+    // 살아 있는 리소스를 모두 Pending Queue로 이동
+    Array<RID> live_textures;
+    textures.ForEach([&live_textures](RID rid, const TextureResource&)
+    {
+        live_textures.Push(rid);
+    });
+    for (const RID rid : live_textures)
+    {
+        DestroyTexture(rid);
+    }
+
+    Array<RID> live_buffers;
+    buffers.ForEach([&live_buffers](RID rid, const BufferResource&)
+    {
+        live_buffers.Push(rid);
+    });
+    for (const RID rid : live_buffers)
+    {
+        DestroyBuffer(rid);
+    }
+
+    // 지연 파괴 큐를 일괄 처리
     ProcessDeferredDestructions();
-
-    // 남아 있는 모든 라이브 리소스를 해제
-    textures.ForEach([this](RID, const TextureResource& resource)
-    {
-        SDL_ReleaseGPUTexture(raw_device, resource.handle);
-    });
-    textures.Clear();
-
-    buffers.ForEach([this](RID, const BufferResource& resource)
-    {
-        SDL_ReleaseGPUBuffer(raw_device, resource.handle);
-    });
-    buffers.Clear();
 
     // SDL_GPUDevice 정리
     SDL_DestroyGPUDevice(raw_device);
@@ -53,11 +64,21 @@ RID RenderDevice::CreateTexture(
     }
 #endif
 
+#if SE_ENABLE_MEMORY_TRACKING
+    const u64 byte_size = CalculateTextureMemoryFromCreateInfo(desc);
+    const u32 tag_id = MemoryStats::GetCurrentTag();
+    MemoryStats::TrackGpuAlloc(tag_id, byte_size);
+#endif
+
     return textures.Insert({
         .handle = raw,
         .width = desc.width,
         .height = desc.height,
         .format = desc.format,
+#if SE_ENABLE_MEMORY_TRACKING
+        .byte_size = byte_size,
+        .tag_id = tag_id,
+#endif
     });
 }
 
@@ -81,10 +102,18 @@ RID RenderDevice::CreateBuffer(
     }
 #endif
 
+#if SE_ENABLE_MEMORY_TRACKING
+    const u32 tag_id = MemoryStats::GetCurrentTag();
+    MemoryStats::TrackGpuAlloc(tag_id, desc.size);
+#endif
+
     return buffers.Insert({
         .handle = raw,
         .size = desc.size,
         .usage = desc.usage,
+#if SE_ENABLE_MEMORY_TRACKING
+        .tag_id = tag_id,
+#endif
     });
 }
 
@@ -110,33 +139,51 @@ bool RenderDevice::IsValidBuffer(RID rid) const
 
 void RenderDevice::DestroyTexture(RID rid)
 {
-    if (auto resource = textures.Get(rid))
+    if (const auto resource = textures.Get(rid))
     {
-        deferred_texture_destroys.Push(resource->handle);
+        deferred_texture_destroys.Push({
+            .handle = resource->handle,
+#if SE_ENABLE_MEMORY_TRACKING
+            .byte_size = resource->byte_size,
+            .tag_id = resource->tag_id,
+#endif
+        });
         textures.Remove(rid);
     }
 }
 
 void RenderDevice::DestroyBuffer(RID rid)
 {
-    if (auto resource = buffers.Get(rid))
+    if (const auto resource = buffers.Get(rid))
     {
-        deferred_buffer_destroys.Push(resource->handle);
+        deferred_buffer_destroys.Push({
+            .handle = resource->handle,
+            .size = resource->size,
+#if SE_ENABLE_MEMORY_TRACKING
+            .tag_id = resource->tag_id,
+#endif
+        });
         buffers.Remove(rid);
     }
 }
 
 void RenderDevice::ProcessDeferredDestructions()
 {
-    for (SDL_GPUTexture* texture : deferred_texture_destroys)
+    for (const PendingTextureDestroy& pending : deferred_texture_destroys)
     {
-        SDL_ReleaseGPUTexture(raw_device, texture);
+        SDL_ReleaseGPUTexture(raw_device, pending.handle);
+#if SE_ENABLE_MEMORY_TRACKING
+        MemoryStats::TrackGpuFree(pending.tag_id, pending.byte_size);
+#endif
     }
     deferred_texture_destroys.Clear();
 
-    for (SDL_GPUBuffer* buffer : deferred_buffer_destroys)
+    for (const PendingBufferDestroy& pending : deferred_buffer_destroys)
     {
-        SDL_ReleaseGPUBuffer(raw_device, buffer);
+        SDL_ReleaseGPUBuffer(raw_device, pending.handle);
+#if SE_ENABLE_MEMORY_TRACKING
+        MemoryStats::TrackGpuFree(pending.tag_id, pending.size);
+#endif
     }
     deferred_buffer_destroys.Clear();
 }

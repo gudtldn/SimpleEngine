@@ -2,6 +2,8 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Memory/MemoryConfig.h"
+#include "SimpleEngine/Core/Memory/MemoryStats.h"
 #include "SimpleEngine/Graphics/Traits/CreateInfoEquals.h"
 #include "SimpleEngine/Graphics/Traits/CreateInfoHash.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -20,21 +22,27 @@ class RenderDevice;
  */
 class SE_CORE_API FrameResourcePool
 {
-private:
-    /** Pool에 보관 중인 개별 리소스와 idle 프레임 수를 추적하기 위한 구조체 */
+public:
+    /** Pool에 보관 중인 개별 리소스와 idle 프레임 수를 추적하기 위한 구조체 (구현 디테일) */
     template <typename T>
     struct PooledResource
     {
         T* resource = nullptr;
         u32 idle_frames = 0;
+
+#if SE_ENABLE_MEMORY_TRACKING
+        // VRAM 추적용 크기 및 생성 시점의 메모리 태그
+        u64 byte_size = 0;
+        u32 tag_id = 0;
+#endif
     };
 
-    /** 특정 CreateInfo에 대한 Pool Entry */
+    /** 특정 CreateInfo에 대한 Pool Entry (구현 디테일) */
     template <typename T>
     struct PoolEntry
     {
         Array<PooledResource<T>> available_resources; // 대기 중 (idle 추적)
-        Array<T*> used_resources;                     // 현재 프레임에서 사용 중
+        Array<PooledResource<T>> used_resources;      // 현재 프레임에서 사용 중
     };
 
 public:
@@ -66,61 +74,9 @@ public:
     void Trim(u32 max_idle_frames);
 
 private:
-    template <typename T, typename CreateResourceFn>
-        requires std::is_invocable_r_v<T*, CreateResourceFn>
-    [[nodiscard]] static T* AcquireResourceInternal(PoolEntry<T>& entry, CreateResourceFn&& factory_func);
-
-    template <typename T>
-    static void ReleaseResourceInternal(PoolEntry<T>& entry, T* resource);
-
-    template <typename T, typename ReleaseFn>
-        requires std::invocable<ReleaseFn, T*>
-    static void TrimEntry(PoolEntry<T>& entry, u32 max_idle_frames, ReleaseFn&& release_fn);
-
-private:
     RenderDevice* render_device;
 
     HashMap<SDL_GPUTextureCreateInfo, PoolEntry<SDL_GPUTexture>> texture_pool;
     HashMap<SDL_GPUBufferCreateInfo, PoolEntry<SDL_GPUBuffer>> buffer_pool;
 };
-
-template <typename T, typename FactoryFn>
-    requires std::is_invocable_r_v<T*, FactoryFn>
-T* FrameResourcePool::AcquireResourceInternal(PoolEntry<T>& entry, FactoryFn&& factory_func)
-{
-    if (const auto pooled_opt = entry.available_resources.Pop())
-    {
-        entry.used_resources.Push(pooled_opt->resource);
-    }
-    else [[unlikely]]
-    {
-        entry.used_resources.Push(std::forward<FactoryFn>(factory_func)());
-    }
-    return *entry.used_resources.Back();
-}
-
-template <typename T>
-void FrameResourcePool::ReleaseResourceInternal(PoolEntry<T>& entry, T* resource)
-{
-    const Optional<usize> remove_idx_opt = entry.used_resources.Find(resource);
-    SE_ASSERT(remove_idx_opt.HasValue(), "Attempted to deallocate a resource that was not marked as used.");
-
-    entry.used_resources.RemoveAtSwap(*remove_idx_opt);
-    entry.available_resources.Push(PooledResource<T>{ .resource = resource, .idle_frames = 0 });
-}
-
-template <typename T, typename ReleaseFn>
-    requires std::invocable<ReleaseFn, T*>
-void FrameResourcePool::TrimEntry(PoolEntry<T>& entry, u32 max_idle_frames, ReleaseFn&& release_fn)
-{
-    for (isize i = static_cast<isize>(entry.available_resources.Len()) - 1; i >= 0; --i)
-    {
-        PooledResource<T>& pooled = entry.available_resources[static_cast<usize>(i)];
-        if (pooled.idle_frames >= max_idle_frames)
-        {
-            release_fn(pooled.resource);
-            entry.available_resources.RemoveAtSwap(static_cast<usize>(i));
-        }
-    }
-}
 } // namespace se
