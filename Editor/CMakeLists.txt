@@ -49,6 +49,9 @@ PRIVATE
 
         # ImGui
         imgui
+
+        # File system watcher
+        efsw::efsw
 )
 
 target_include_directories(Editor

@@ -11,6 +11,7 @@ find_package(SDL3_shadercross CONFIG REQUIRED)
 find_package(stduuid REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
+find_package(efsw CONFIG REQUIRED)
 
 # ICU4X (Rust 기반 Unicode 라이브러리)
 include(FetchContent)
