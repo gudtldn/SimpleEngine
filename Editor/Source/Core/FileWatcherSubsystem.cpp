@@ -20,13 +20,18 @@ void FileWatcherSubsystem::Release()
 {
 }
 
-WatchId FileWatcherSubsystem::Watch(const Path& path, FileWatchCallback callback, bool recursive)
+WatchId FileWatcherSubsystem::Watch(const Path& path, bool recursive)
 {
-    return watcher.Watch(path, std::move(callback), recursive);
+    return watcher.Watch(path, recursive);
 }
 
 void FileWatcherSubsystem::Unwatch(WatchId watch_id)
 {
     watcher.Unwatch(watch_id);
+}
+
+Array<FileWatchEvent> FileWatcherSubsystem::DrainEvents(WatchId watch_id)
+{
+    return watcher.DrainEvents(watch_id);
 }
 } // namespace se::editor
