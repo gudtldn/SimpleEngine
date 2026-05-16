@@ -1,4 +1,4 @@
-#include "SimpleEngine/Math/Random.h"
+#include "SimpleEngine/Core/Math/Random.h"
 
 #include <bit>
 #include <random>
