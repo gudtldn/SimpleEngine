@@ -77,7 +77,7 @@ void MemoryReader::SerializeString(String& value)
 {
     u64 length = 0;
     ReadPrimitive(length);
-    value.ResizeForOverwrite(length);
+    value.ResizeUninitialized(length);
     ReadBytes(value.Data(), length);
 }
 

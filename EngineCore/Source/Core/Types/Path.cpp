@@ -472,7 +472,7 @@ String Path::NormalizePath(StringView input)
 
     // 작업 버퍼 할당 (최악의 경우 원본과 동일 길이)
     String buffer;
-    buffer.ResizeForOverwrite(len);
+    buffer.ResizeUninitialized(len);
     char* buf = buffer.Data();
 
     // Step 1: 복사하면서 '\' -> '/'
