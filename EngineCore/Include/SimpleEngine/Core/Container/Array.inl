@@ -701,6 +701,29 @@ void Array<T, Allocator>::Reverse()
 }
 
 template <typename T, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+std::pair<Array<T, Allocator>, Array<T, Allocator>> Array<T, Allocator>::Partition(Predicate&& pred) const
+{
+    Array pass;
+    Array fail;
+    pass.Reserve(Len());
+    fail.Reserve(Len());
+    for (const T& value : *this)
+    {
+        if (pred(value))
+        {
+            pass.Push(value);
+        }
+        else
+        {
+            fail.Push(value);
+        }
+    }
+    return { std::move(pass), std::move(fail) };
+}
+
+template <typename T, typename Allocator>
 void Array<T, Allocator>::Swap(Array& other) noexcept
 {
     std::swap(data, other.data);
