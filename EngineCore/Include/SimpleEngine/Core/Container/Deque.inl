@@ -288,6 +288,27 @@ Optional<const T&> Deque<T, Allocator>::FindBy(Predicate&& pred) const
 }
 
 template <typename T, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const T&>
+std::pair<Deque<T, Allocator>, Deque<T, Allocator>> Deque<T, Allocator>::Partition(Predicate&& pred) const
+{
+    Deque pass;
+    Deque fail;
+    for (const T& value : *this)
+    {
+        if (pred(value))
+        {
+            pass.PushBack(value);
+        }
+        else
+        {
+            fail.PushBack(value);
+        }
+    }
+    return { std::move(pass), std::move(fail) };
+}
+
+template <typename T, typename Allocator>
 void Deque<T, Allocator>::Swap(Deque& other) noexcept
 {
     std::swap(internal_deque, other.internal_deque);

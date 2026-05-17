@@ -243,6 +243,16 @@ public:
     /** 배열의 요소 순서를 뒤집습니다. */
     void Reverse();
 
+    /**
+     * 조건을 통과한 요소와 그렇지 않은 요소를 각각 새 Array로 분리하여 반환합니다.
+     * @tparam Predicate 요소를 인자로 받아 bool을 반환하는 함수
+     * @param pred 조건자
+     * @return first: 조건자를 통과한 요소들, second: 그렇지 않은 요소들
+     */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] std::pair<Array, Array> Partition(Predicate&& pred) const;
+
     /** 배열의 요소를 교환합니다. */
     void Swap(Array& other) noexcept;
 

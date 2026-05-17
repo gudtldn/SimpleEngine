@@ -144,6 +144,16 @@ public:
         requires std::predicate<Predicate, const T&>
     [[nodiscard]] Optional<const T&> FindBy(Predicate&& pred) const;
 
+    /**
+     * 조건자를 통과한 요소와 그렇지 않은 요소를 각각 새 Deque로 분리하여 반환합니다.
+     * @tparam Predicate 요소를 인자로 받아 bool을 반환하는 함수
+     * @param pred 조건자
+     * @return first: 조건자를 통과한 요소들, second: 그렇지 않은 요소들
+     */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const T&>
+    [[nodiscard]] std::pair<Deque, Deque> Partition(Predicate&& pred) const;
+
     /** Deque의 요소를 교환합니다. */
     void Swap(Deque& other) noexcept;
 
