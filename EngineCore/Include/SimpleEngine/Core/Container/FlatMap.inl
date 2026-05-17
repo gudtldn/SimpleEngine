@@ -185,22 +185,16 @@ template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ValueType& FlatMap<Key, Value, Pred, Allocator>::FindChecked(const KeyType& key)
 {
     auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
-    if (it != internal_array.end() && !pair_compare.compare(key, it->first))
-    {
-        return it->second;
-    }
-    SE_UNREACHABLE();
+    SE_ASSERT_RELEASE(it != internal_array.end() && !pair_compare.compare(key, it->first));
+    return it->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 const typename FlatMap<Key, Value, Pred, Allocator>::ValueType& FlatMap<Key, Value, Pred, Allocator>::FindChecked(const KeyType& key) const
 {
     auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
-    if (it != internal_array.end() && !pair_compare.compare(key, it->first))
-    {
-        return it->second;
-    }
-    SE_UNREACHABLE();
+    SE_ASSERT_RELEASE(it != internal_array.end() && !pair_compare.compare(key, it->first));
+    return it->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -404,19 +398,6 @@ void FlatMap<Key, Value, Pred, Allocator>::Swap(FlatMap& other) noexcept
     internal_array.Swap(other.internal_array);
 }
 
-template <typename Key, typename Value, typename Pred, typename Allocator>
-typename FlatMap<Key, Value, Pred, Allocator>::ValueType& FlatMap<Key, Value, Pred, Allocator>::operator[](const KeyType& key)
-{
-    auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
-    if (it != internal_array.end() && !pair_compare.compare(key, it->first))
-    {
-        return it->second;
-    }
-
-    auto index = std::distance(internal_array.begin(), it);
-    internal_array.Insert(index, std::make_pair(key, Value()));
-    return internal_array[index].second;
-}
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::IteratorType FlatMap<Key, Value, Pred, Allocator>::begin() noexcept

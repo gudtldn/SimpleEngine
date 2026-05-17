@@ -40,7 +40,7 @@ void VFS::Mount(StringView scheme, const Path& physical_path, i32 priority)
     std::unique_lock lock(mutex);
 
     const StringName scheme_name{ scheme };
-    Array<MountPoint>& points = mount_points[scheme_name];
+    Array<MountPoint>& points = mount_points.Entry(scheme_name).OrDefault();
 
     // 이미 존재하는지 확인
     const MountPoint* it = std::ranges::find_if(points, [&](const MountPoint& point)

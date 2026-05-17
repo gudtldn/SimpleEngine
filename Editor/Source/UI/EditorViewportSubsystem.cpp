@@ -201,10 +201,10 @@ void EditorViewportSubsystem::Update(f64 delta_time)
             {
                 switch (GetViewportGizmoMode(focused_viewport))
                 {
-                    case EGizmoMode::Translate: SetViewportGizmoMode(focused_viewport, EGizmoMode::Rotate); break;
-                    case EGizmoMode::Rotate:    SetViewportGizmoMode(focused_viewport, EGizmoMode::Scale); break;
-                    case EGizmoMode::Scale:     SetViewportGizmoMode(focused_viewport, EGizmoMode::Translate); break;
-                    default: SE_UNREACHABLE();
+                case EGizmoMode::Translate: SetViewportGizmoMode(focused_viewport, EGizmoMode::Rotate); break;
+                case EGizmoMode::Rotate:    SetViewportGizmoMode(focused_viewport, EGizmoMode::Scale); break;
+                case EGizmoMode::Scale:     SetViewportGizmoMode(focused_viewport, EGizmoMode::Translate); break;
+                default: SE_UNREACHABLE();
                 }
             }
             else if (
@@ -302,7 +302,7 @@ void EditorViewportSubsystem::UpdateViewportSize(const StringName& viewport_id, 
     }
 
     // 텍스처가 없거나, 크기가 변경된 경우 재생성
-    ViewportState& state = viewports[viewport_id];
+    ViewportState& state = viewports.Entry(viewport_id).OrDefault();
 
     // 최초 뷰포트 등록 시 기본 포커스 대상으로 설정
     if (focused_viewport == StringName::None)
@@ -425,6 +425,44 @@ ECoordinateSpace EditorViewportSubsystem::GetViewportCoordinateSpace(const Strin
     }).ValueOr(ECoordinateSpace::World);
 }
 
+void EditorViewportSubsystem::SetViewportViewMode(const StringName& viewport_id, EViewMode mode)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->view_mode = mode;
+        if (mode != EViewMode::Perspective)
+        {
+            state->ortho_camera.velocity = Vector3::Zero(); // 관성 초기화
+            switch (mode)
+            {
+            case EViewMode::Top:    state->ortho_camera.rotation = Rotator{ -90.0_deg, 0.0_deg,   0.0_deg }; break;
+            case EViewMode::Bottom: state->ortho_camera.rotation = Rotator{  90.0_deg, 0.0_deg,   0.0_deg }; break;
+            case EViewMode::Front:  state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg, 180.0_deg }; break;
+            case EViewMode::Back:   state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg,   0.0_deg }; break;
+            case EViewMode::Right:  state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg,  90.0_deg }; break;
+            case EViewMode::Left:   state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg, -90.0_deg }; break;
+            default: break;
+            }
+        }
+    }
+}
+
+void EditorViewportSubsystem::SetViewportCursorPosition(const StringName& viewport_id, const Vector2f& pos)
+{
+    if (const auto state = viewports.Find(viewport_id))
+    {
+        state->cursor_viewport_pos = pos;
+    }
+}
+
+EViewMode EditorViewportSubsystem::GetViewportViewMode(const StringName& viewport_id) const
+{
+    return viewports.Find(viewport_id).Map([](const ViewportState& state)
+    {
+        return state.view_mode;
+    }).ValueOr(EViewMode::Perspective);
+}
+
 void* EditorViewportSubsystem::GetViewportTextureID(const StringName& viewport_id) const
 {
     if (const auto state = viewports.Find(viewport_id))
@@ -454,43 +492,5 @@ Optional<EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const St
     {
         return (state.view_mode == EViewMode::Perspective) ? state.persp_camera : state.ortho_camera;
     });
-}
-
-void EditorViewportSubsystem::SetViewportViewMode(const StringName& viewport_id, EViewMode mode)
-{
-    if (const auto state = viewports.Find(viewport_id))
-    {
-        state->view_mode = mode;
-        if (mode != EViewMode::Perspective)
-        {
-            state->ortho_camera.velocity = Vector3::Zero(); // 관성 초기화
-            switch (mode)
-            {
-            case EViewMode::Top:    state->ortho_camera.rotation = Rotator{ -90.0_deg, 0.0_deg,   0.0_deg }; break;
-            case EViewMode::Bottom: state->ortho_camera.rotation = Rotator{  90.0_deg, 0.0_deg,   0.0_deg }; break;
-            case EViewMode::Front:  state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg, 180.0_deg }; break;
-            case EViewMode::Back:   state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg,   0.0_deg }; break;
-            case EViewMode::Right:  state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg,  90.0_deg }; break;
-            case EViewMode::Left:   state->ortho_camera.rotation = Rotator{   0.0_deg, 0.0_deg, -90.0_deg }; break;
-            default: break;
-            }
-        }
-    }
-}
-
-EViewMode EditorViewportSubsystem::GetViewportViewMode(const StringName& viewport_id) const
-{
-    return viewports.Find(viewport_id).Map([](const ViewportState& state)
-    {
-        return state.view_mode;
-    }).ValueOr(EViewMode::Perspective);
-}
-
-void EditorViewportSubsystem::SetViewportCursorPosition(const StringName& viewport_id, const Vector2f& pos)
-{
-    if (const auto state = viewports.Find(viewport_id))
-    {
-        state->cursor_viewport_pos = pos;
-    }
 }
 } // namespace se::editor

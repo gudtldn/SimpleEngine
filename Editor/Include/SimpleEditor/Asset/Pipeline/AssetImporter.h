@@ -113,7 +113,8 @@ void AssetImporter::RegisterTranslator(Args&&... args)
 
     for (const StringView& ext : instance->GetSupportedExtensions())
     {
-        extension_to_translator_indices[String(ext).ToLower()].Push(new_index);
+        String lower_ext = String{ ext }.ToLower();
+        extension_to_translator_indices.Entry(std::move(lower_ext)).OrDefault().Push(new_index);
     }
 
     translators.Push({

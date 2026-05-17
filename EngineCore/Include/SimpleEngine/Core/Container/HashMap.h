@@ -187,10 +187,18 @@ public:
 
 public:
     /**
-     * 키에 해당하는 값에 접근합니다. 키가 없으면 기본 생성된 값을 삽입 후 반환합니다.
+     * 키가 존재하면 해당 값의 참조를 반환합니다. (FindChecked()와 동일)
+     * @warning std::unordered_map의 operator[]와 달리 키가 없으면 SE_ASSERT_RELEASE로 프로그램이 종료됩니다.
+     * @note 키의 존재가 보장되지 않는다면 Find() 또는 Entry()를 사용하세요.
+     *       삽입이 필요하다면 Insert() / Emplace() / Entry()를 사용하세요.
      * @param key 접근할 키
+     * @return 키에 대응하는 값의 참조
      */
-    [[nodiscard]] ValueType& operator[](const KeyType& key);
+    template <typename Self>
+    [[nodiscard]] auto&& operator[](this Self&& self, const KeyType& key)
+    {
+        return std::forward_like<Self>(self.FindChecked(key));
+    }
 
     [[nodiscard]] bool operator==(const HashMap&) const = default;
 
@@ -199,6 +207,20 @@ public:
     [[nodiscard]] IteratorType end() noexcept;
     [[nodiscard]] ConstIteratorType begin() const noexcept;
     [[nodiscard]] ConstIteratorType end() const noexcept;
+
+    /** 요소를 순회하는 IterChain을 반환합니다. rvalue에서 호출하면 컨테이너를 소유합니다. */
+    template <typename Self>
+    [[nodiscard]] auto Iter(this Self&& self)
+    {
+        if constexpr (!std::is_reference_v<Self>)
+        {
+            return IterChain{ std::ranges::owning_view<std::remove_cvref_t<Self>>{ std::forward<Self>(self) } };
+        }
+        else
+        {
+            return IterChain{ std::views::all(self) };
+        }
+    }
 
     friend void swap(HashMap& lhs, HashMap& rhs) noexcept
     {

@@ -169,7 +169,7 @@ void DetailPanel::DrawContent()
                 );
 
                 // 편집 중이 아닐 때만 외부 변경을 감지해 Quat -> Euler 재계산
-                CachedRotator& cached = rotator_cache[entity];
+                CachedRotator& cached = rotator_cache.Entry(entity).OrDefault();
                 if (!cached.is_editing && !cached.source_quat.IsNearlyEqual(transform_component->rotation))
                 {
                     cached.euler = transform_component->rotation.ToRotator();

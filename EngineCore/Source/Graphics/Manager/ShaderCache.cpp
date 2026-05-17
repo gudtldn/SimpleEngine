@@ -41,8 +41,8 @@ SDL_GPUShader* ShaderCache::GetOrCreateShader(const VPath& shader_key, SDL_Shade
         return nullptr;
     }
 
-    graphics_cache[shader_key] = result.shader;
-    reflection_cache[shader_key] = std::move(result.reflection);
+    graphics_cache.Insert(shader_key, result.shader);
+    reflection_cache.Insert(shader_key, std::move(result.reflection));
     return result.shader;
 }
 
@@ -61,8 +61,8 @@ void ShaderCache::LoadShaderFromMemory(const VPath& shader_key, SDL_ShaderCross_
         return;
     }
 
-    graphics_cache[shader_key] = result.shader;
-    reflection_cache[shader_key] = std::move(result.reflection);
+    graphics_cache.Insert(shader_key, result.shader);
+    reflection_cache.Insert(shader_key, std::move(result.reflection));
 }
 
 void ShaderCache::Invalidate(const VPath& shader_key)

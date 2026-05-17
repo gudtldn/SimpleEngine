@@ -89,11 +89,11 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         return nullptr;
     }
 
-    cached_graphics_pipelines[create_info] = pipeline;
+    cached_graphics_pipelines.Insert(create_info, pipeline);
 
     // 역추적 인덱스 등록
-    graphics_shader_to_pipeline_map[create_info.vertex_shader].Push(create_info);
-    graphics_shader_to_pipeline_map[create_info.fragment_shader].Push(create_info);
+    graphics_shader_to_pipeline_map.Entry(create_info.vertex_shader).OrDefault().Push(create_info);
+    graphics_shader_to_pipeline_map.Entry(create_info.fragment_shader).OrDefault().Push(create_info);
 
     return pipeline;
 }
@@ -119,10 +119,10 @@ SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const ComputePipe
         return nullptr;
     }
 
-    cached_compute_pipelines[create_info] = pipeline;
+    cached_compute_pipelines.Insert(create_info, pipeline);
 
     // 역추적 인덱스 등록
-    compute_shader_to_pipeline_map[create_info.compute_shader].Push(create_info);
+    compute_shader_to_pipeline_map.Entry(create_info.compute_shader).OrDefault().Push(create_info);
 
     return pipeline;
 }

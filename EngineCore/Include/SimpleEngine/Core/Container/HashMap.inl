@@ -159,11 +159,9 @@ Optional<const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
 typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::FindChecked(const KeyType& key)
 {
-    if (auto it = internal_map.find(key); it != internal_map.end())
-    {
-        return it->second;
-    }
-    SE_UNREACHABLE();
+    auto it = internal_map.find(key);
+    SE_ASSERT_RELEASE(it != internal_map.end());
+    return it->second;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
@@ -171,11 +169,9 @@ const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap
     const KeyType& key
 ) const
 {
-    if (auto it = internal_map.find(key); it != internal_map.end())
-    {
-        return it->second;
-    }
-    SE_UNREACHABLE();
+    auto it = internal_map.find(key);
+    SE_ASSERT_RELEASE(it != internal_map.end());
+    return it->second;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
@@ -279,11 +275,6 @@ void HashMap<Key, Value, Hasher, KeyEq, Allocator>::Swap(HashMap& other) noexcep
     std::swap(internal_map, other.internal_map);
 }
 
-template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
-HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap<Key, Value, Hasher, KeyEq, Allocator>::operator[](const KeyType& key)
-{
-    return internal_map[key];
-}
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
 HashMap<Key, Value, Hasher, KeyEq, Allocator>::IteratorType HashMap<Key, Value, Hasher, KeyEq, Allocator>::begin() noexcept
