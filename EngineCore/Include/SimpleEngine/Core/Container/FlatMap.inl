@@ -204,27 +204,79 @@ const typename FlatMap<Key, Value, Pred, Allocator>::ValueType& FlatMap<Key, Val
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::First() noexcept
+template <typename Predicate>
+    requires std::predicate<Predicate, const Key&, const Value&>
+Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::FindBy(Predicate&& pred)
+{
+    for (auto& pair : internal_array)
+    {
+        if (pred(pair.first, pair.second))
+        {
+            return pair;
+        }
+    }
+    return NullOpt;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const Key&, const Value&>
+Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::FindBy(Predicate&& pred) const
+{
+    for (const auto& pair : internal_array)
+    {
+        if (pred(pair.first, pair.second))
+        {
+            return pair;
+        }
+    }
+    return NullOpt;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Front() noexcept
 {
     return internal_array.Front();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::First() const noexcept
+Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Front() const noexcept
 {
     return internal_array.Front();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Last() noexcept
+Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Back() noexcept
 {
     return internal_array.Back();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Last() const noexcept
+Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Back() const noexcept
 {
     return internal_array.Back();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType> FlatMap<Key, Value, Pred, Allocator>::PopFront()
+{
+    if (IsEmpty())
+    {
+        return NullOpt;
+    }
+    PairType pair = std::move(internal_array[0]);
+    internal_array.RemoveAt(0);
+    return pair;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType> FlatMap<Key, Value, Pred, Allocator>::PopBack()
+{
+    if (IsEmpty())
+    {
+        return NullOpt;
+    }
+    return internal_array.Pop();
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -303,13 +355,13 @@ typename FlatMap<Key, Value, Pred, Allocator>::SizeType FlatMap<Key, Value, Pred
 template <typename Key, typename Value, typename Pred, typename Allocator>
 template <typename T>
     requires std::constructible_from<T, const Key&>
-Array<typename FlatMap<Key, Value, Pred, Allocator>::KeyType> FlatMap<Key, Value, Pred, Allocator>::Keys() const
+Array<T> FlatMap<Key, Value, Pred, Allocator>::Keys() const
 {
-    Array<KeyType> keys;
+    Array<T> keys;
     keys.Reserve(Len());
     for (const auto& pair : internal_array)
     {
-        keys.Push(pair.first);
+        keys.Emplace(pair.first);
     }
     return keys;
 }
@@ -317,15 +369,21 @@ Array<typename FlatMap<Key, Value, Pred, Allocator>::KeyType> FlatMap<Key, Value
 template <typename Key, typename Value, typename Pred, typename Allocator>
 template <typename T>
     requires std::constructible_from<T, const Value&>
-Array<typename FlatMap<Key, Value, Pred, Allocator>::ValueType> FlatMap<Key, Value, Pred, Allocator>::Values() const
+Array<T> FlatMap<Key, Value, Pred, Allocator>::Values() const
 {
-    Array<ValueType> values;
+    Array<T> values;
     values.Reserve(Len());
     for (const auto& pair : internal_array)
     {
-        values.Push(pair.second);
+        values.Emplace(pair.second);
     }
     return values;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Array<typename FlatMap<Key, Value, Pred, Allocator>::PairType> FlatMap<Key, Value, Pred, Allocator>::ToArray() const
+{
+    return internal_array;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>

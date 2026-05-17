@@ -92,12 +92,6 @@ Optional<typename PriorityQueue<T, Container, Compare>::ValueType> PriorityQueue
 }
 
 template <typename T, typename Container, typename Compare>
-PriorityQueue<T, Container, Compare>::ContainerType PriorityQueue<T, Container, Compare>::ToUnderlyingContainer() const
-{
-    return container;
-}
-
-template <typename T, typename Container, typename Compare>
 void PriorityQueue<T, Container, Compare>::Swap(PriorityQueue& other) noexcept
 {
     container.Swap(other.container);

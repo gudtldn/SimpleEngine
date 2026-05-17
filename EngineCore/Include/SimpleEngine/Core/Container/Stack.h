@@ -36,8 +36,8 @@ public:
     void Clear() noexcept;
 
     /** Stack의 맨 위에 있는 요소(가장 마지막에 들어온 요소)에 대한 Optional 참조를 반환합니다. */
-    [[nodiscard]] Optional<ValueType&> Top();
-    [[nodiscard]] Optional<const ValueType&> Top() const;
+    [[nodiscard]] Optional<ValueType&> Peek();
+    [[nodiscard]] Optional<const ValueType&> Peek() const;
 
     /**
      * Stack의 스택의 맨 위에 새 요소를 추가합니다.
@@ -101,13 +101,13 @@ void Stack<T, Container>::Clear() noexcept
 }
 
 template <typename T, typename Container>
-Optional<typename Stack<T, Container>::ValueType&> Stack<T, Container>::Top()
+Optional<typename Stack<T, Container>::ValueType&> Stack<T, Container>::Peek()
 {
     return container.Back();
 }
 
 template <typename T, typename Container>
-Optional<const typename Stack<T, Container>::ValueType&> Stack<T, Container>::Top() const
+Optional<const typename Stack<T, Container>::ValueType&> Stack<T, Container>::Peek() const
 {
     return container.Back();
 }
