@@ -46,6 +46,30 @@ public:
     /** 개별 문자에 직접 접근합니다. */
     [[nodiscard]] constexpr const char& operator[](usize index) const { return data[index]; }
 
+    /** 부분 문자열이 포함되어 있는지 확인합니다. */
+    [[nodiscard]] constexpr bool Contains(StringView view) const
+    {
+        return StringView{ *this }.Contains(view);
+    }
+
+    /** 부분 문자열의 위치를 찾습니다. */
+    [[nodiscard]] constexpr Optional<usize> Find(StringView view, usize pos = 0) const
+    {
+        return StringView{ *this }.Find(view, pos);
+    }
+
+    /** 특정 접두사로 시작하는지 확인합니다. */
+    [[nodiscard]] constexpr bool StartsWith(StringView view) const
+    {
+        return StringView{ *this }.StartsWith(view);
+    }
+
+    /** 특정 접미사로 끝나는지 확인합니다. */
+    [[nodiscard]] constexpr bool EndsWith(StringView view) const
+    {
+        return StringView{ *this }.EndsWith(view);
+    }
+
 public:
     [[nodiscard]] constexpr IteratorType begin() { return data.begin(); }
     [[nodiscard]] constexpr IteratorType end() { return data.end(); }
