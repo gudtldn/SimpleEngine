@@ -90,12 +90,12 @@ Array<TypeId> TopologicalSort(const Array<TypeId>& nodes, DepsFn&& get_dependenc
 } // namespace
 
 
-Engine* Engine::Instance = nullptr;
+Engine* Engine::instance = nullptr;
 
 Engine::Engine()
 {
-    SE_ASSERT(!Instance, "Engine instance already exists.");
-    Instance = this;
+    SE_ASSERT(!instance, "Engine instance already exists.");
+    instance = this;
 
     // Interface Cache 구축
     TypeRegistry::Get().Resolve();
@@ -141,14 +141,14 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-    SE_ASSERT(Instance == this, "Engine instance is not initialized.");
-    Instance = nullptr;
+    SE_ASSERT(instance == this, "Engine instance is not initialized.");
+    instance = nullptr;
 }
 
 Engine& Engine::Get()
 {
-    SE_ASSERT(Instance, "Engine instance is not initialized.");
-    return *Instance;
+    SE_ASSERT(instance, "Engine instance is not initialized.");
+    return *instance;
 }
 
 f64 Engine::GetDeltaTime()

@@ -103,7 +103,7 @@ private:
     };
 
 private:
-    static Engine* Instance;
+    static Engine* instance;
 
     // Type별 Subsystem 목록
     HashMap<TypeId, std::unique_ptr<SubsystemBase>> subsystems;
