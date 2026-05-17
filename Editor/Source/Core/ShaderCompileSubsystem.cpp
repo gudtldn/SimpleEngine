@@ -1,6 +1,5 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "Core/ShaderCompileSubsystem.h"
-#include "SimpleEditor/Core/FileWatcherSubsystem.h"
 #include "Graphics/EditorShaderCompiler.h"
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
@@ -20,7 +19,7 @@
 namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
-    .DependsOn<EventSubsystem, FileWatcherSubsystem>()
+    .DependsOn<EventSubsystem>()
     .UpdateDependsOn<InputSubsystem>();
 
 SE_BEGIN_REFLECT(ShaderCompileSubsystem, meta::Internal)
@@ -37,16 +36,8 @@ bool ShaderCompileSubsystem::Initialize()
         return false;
     }
 
-    sources.Push({ VFS::ToPath("CoreShader://"), VFS::ToPath("CoreShader://Compiled"), {} });
-    sources.Push({ VFS::ToPath("EditorShader://"), VFS::ToPath("EditorShader://Compiled"), {} });
-
-    if (FileWatcherSubsystem* fw = se::GetSubsystem<FileWatcherSubsystem>())
-    {
-        for (ShaderSource& src : sources)
-        {
-            src.watch_id = fw->Watch(src.source_dir);
-        }
-    }
+    sources.Push({ .source_dir = VFS::ToPath("CoreShader://"), .output_dir = VFS::ToPath("CoreShader://Compiled") });
+    sources.Push({ .source_dir = VFS::ToPath("EditorShader://"), .output_dir = VFS::ToPath("EditorShader://Compiled") });
 #endif
     return true;
 }
@@ -54,16 +45,6 @@ bool ShaderCompileSubsystem::Initialize()
 void ShaderCompileSubsystem::Release()
 {
 #if SE_HAS_HLSL_COMPILER
-    if (FileWatcherSubsystem* fw = se::GetSubsystem<FileWatcherSubsystem>())
-    {
-        for (const ShaderSource& src : sources)
-        {
-            if (src.watch_id)
-            {
-                fw->Unwatch(src.watch_id);
-            }
-        }
-    }
     sources.Clear();
     pending_files.Clear();
 
@@ -78,53 +59,74 @@ void ShaderCompileSubsystem::Update([[maybe_unused]] f64 delta_time)
     {
         if (input->IsKeyPressed(EKeyCode::F5))
         {
-            RecompileAll();
-            return;
+            RecompileChanged();
         }
-    }
-
-    FileWatcherSubsystem* fw = se::GetSubsystem<FileWatcherSubsystem>();
-    if (!fw)
-    {
-        return;
-    }
-
-    pending_files.Clear(); // 노드 재사용
-    for (usize i = 0; i < sources.Len(); ++i)
-    {
-        for (const FileWatchEvent& event : fw->DrainEvents(sources[i].watch_id))
-        {
-            // hlsl만 분류
-            if (event.filename.EndsWith(".hlsl"))
-            {
-                pending_files.Insert(event.directory / event.filename, i);
-            }
-        }
-    }
-
-    if (!pending_files.IsEmpty())
-    {
-        RecompilePending();
     }
 #endif
 }
 
-void ShaderCompileSubsystem::RecompileAll()
+void ShaderCompileSubsystem::RecompileChanged()
 {
-    ConsoleLog(ELogLevel::Info, "Recompiling shaders...");
+    pending_files.Clear();
 
-    for (const ShaderSource& src : sources)
+    for (const auto [i, src] : sources | std::views::enumerate)
     {
-        EditorShaderCompiler::CompileAll(src.source_dir, src.output_dir);
+        for (const DirectoryEntry& entry : FileSystem::ReadDir(src.source_dir))
+        {
+            if (!entry.IsFile()) { continue; }
+
+            const Path& hlsl_path = entry.GetPath();
+            if (hlsl_path.Extension() != ".hlsl") { continue; }
+
+            const u64 hlsl_mtime = entry.LastWriteTime();
+
+            const auto stem_opt = hlsl_path.FileStem();
+            if (!stem_opt) { continue; }
+
+            // output_dir에서 "{stem}.*.spv" 패턴의 파일들과 mtime 비교
+            bool any_spv_found = false;
+            bool any_spv_outdated = false;
+            const String spv_prefix = String::Format("{}.", *stem_opt);
+
+            if (FileSystem::Exists(src.output_dir))
+            {
+                for (const DirectoryEntry& spv_entry : FileSystem::ReadDir(src.output_dir))
+                {
+                    if (!spv_entry.IsFile()) { continue; }
+
+                    const Path& spv_path = spv_entry.GetPath();
+                    if (spv_path.Extension() != ".spv") { continue; }
+
+                    const auto spv_stem = spv_path.FileStem();
+                    if (!spv_stem) { continue; }
+
+                    // "WorldGrid.hlsl" -> spv_stem "WorldGrid.vert" 처럼 prefix 매칭
+                    // "Default.frag.hlsl" -> spv_stem "Default.frag" 처럼 exact 매칭
+                    if (*spv_stem != *stem_opt && !spv_stem->StartsWith(spv_prefix)) { continue; }
+
+                    any_spv_found = true;
+                    if (spv_entry.LastWriteTime() < hlsl_mtime)
+                    {
+                        any_spv_outdated = true;
+                    }
+                }
+            }
+
+            if (!any_spv_found || any_spv_outdated)
+            {
+                pending_files.Insert(hlsl_path, static_cast<usize>(i));
+            }
+        }
     }
 
-    if (const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>())
+    if (pending_files.IsEmpty())
     {
-        // 안전한 리소스 해제를 위해 GPU가 작업을 모두 마칠 때까지 대기
-        SDL_WaitForGPUIdle(render_subsystem->GetRenderDevice().GetRawDevice());
-        render_subsystem->GetPSOManager().ClearAll();
-        ConsoleLog(ELogLevel::Info, "Shader cache and pipelines cleared.");
+        ConsoleLog(ELogLevel::Info, "No shader changes detected.");
+        return;
     }
+
+    ConsoleLog(ELogLevel::Info, "Recompiling {} changed shader(s)...", pending_files.Len());
+    RecompilePending();
 }
 
 void ShaderCompileSubsystem::RecompilePending()

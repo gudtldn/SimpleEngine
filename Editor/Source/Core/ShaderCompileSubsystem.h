@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SimpleEditor/Core/FileWatcher.h"
-
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
@@ -29,8 +27,8 @@ public:
     //~ End IUpdatable
 
 private:
-    /** 감시 중인 모든 셰이더 디렉토리를 전체 재컴파일합니다. */
-    void RecompileAll();
+    /** .hlsl mtime vs .spv mtime을 비교하여 변경된 파일만 재컴파일합니다. */
+    void RecompileChanged();
 
     /** pending_files에 등록된 파일만 선택적으로 재컴파일합니다. */
     void RecompilePending();
@@ -41,7 +39,6 @@ private:
     {
         Path source_dir;
         Path output_dir;
-        WatchId watch_id;
     };
 
     Array<ShaderSource> sources;
