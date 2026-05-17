@@ -18,7 +18,7 @@ int InputTextCallback(ImGuiInputTextCallbackData* data)
         // 입력에 맞게 문자열 크기 조절
         se::String* str = user_data->string;
         IM_ASSERT(data->Buf == str->Data());
-        str->ResizeForOverwrite(data->BufTextLen);
+        str->ResizeUninitialized(data->BufTextLen);
         data->Buf = str->Data();
     }
     else if (user_data->chain_callback)

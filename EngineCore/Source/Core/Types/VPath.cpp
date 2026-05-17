@@ -143,7 +143,7 @@ void VPath::ParseAndNormalize(StringView path)
         return;
     }
 
-    full_path.ResizeForOverwrite(path.ByteLen());
+    full_path.ResizeUninitialized(path.ByteLen());
 
     // 경로 정규화 (\ -> /) 및 복사
     char* dest = full_path.Data();

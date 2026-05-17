@@ -194,7 +194,7 @@ public:
      * 문자열의 크기를 new_size로 변경합니다. 추가된 메모리 공간은 초기화되지 않습니다.
      * @param new_size 변경할 문자열의 길이 (Null 문자 제외)
      */
-    void ResizeForOverwrite(SizeType new_size);
+    void ResizeUninitialized(SizeType new_size);
 
     /** 메모리 용량을 실제 크기에 맞게 줄입니다. */
     void ShrinkToFit();
