@@ -317,4 +317,28 @@ Map<Key, Value, Pred, Allocator>::ConstIteratorType Map<Key, Value, Pred, Alloca
 {
     return internal_map.end();
 }
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Map<Key, Value, Pred, Allocator>::ReverseIteratorType Map<Key, Value, Pred, Allocator>::rbegin() noexcept
+{
+    return internal_map.rbegin();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Map<Key, Value, Pred, Allocator>::ReverseIteratorType Map<Key, Value, Pred, Allocator>::rend() noexcept
+{
+    return internal_map.rend();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Map<Key, Value, Pred, Allocator>::ConstReverseIteratorType Map<Key, Value, Pred, Allocator>::rbegin() const noexcept
+{
+    return internal_map.rbegin();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Map<Key, Value, Pred, Allocator>::ConstReverseIteratorType Map<Key, Value, Pred, Allocator>::rend() const noexcept
+{
+    return internal_map.rend();
+}
 } // namespace se

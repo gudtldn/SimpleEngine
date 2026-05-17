@@ -33,6 +33,8 @@ public:
 
     using IteratorType = InternalSetType::iterator;
     using ConstIteratorType = InternalSetType::const_iterator;
+    using ReverseIteratorType = InternalSetType::reverse_iterator;
+    using ConstReverseIteratorType = InternalSetType::const_reverse_iterator;
 
 public:
     Set() = default;
@@ -122,6 +124,11 @@ public:
     [[nodiscard]] IteratorType end() noexcept;
     [[nodiscard]] ConstIteratorType begin() const noexcept;
     [[nodiscard]] ConstIteratorType end() const noexcept;
+
+    [[nodiscard]] ReverseIteratorType rbegin() noexcept;
+    [[nodiscard]] ReverseIteratorType rend() noexcept;
+    [[nodiscard]] ConstReverseIteratorType rbegin() const noexcept;
+    [[nodiscard]] ConstReverseIteratorType rend() const noexcept;
 
     friend void swap(Set& lhs, Set& rhs) noexcept
     {

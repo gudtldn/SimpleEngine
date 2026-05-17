@@ -44,6 +44,8 @@ public:
 
     using IteratorType = InternalMapType::iterator;
     using ConstIteratorType = InternalMapType::const_iterator;
+    using ReverseIteratorType = InternalMapType::reverse_iterator;
+    using ConstReverseIteratorType = InternalMapType::const_reverse_iterator;
 
     using EntryType = MapEntry<Map>;
 
@@ -200,6 +202,11 @@ public:
     [[nodiscard]] IteratorType end() noexcept;
     [[nodiscard]] ConstIteratorType begin() const noexcept;
     [[nodiscard]] ConstIteratorType end() const noexcept;
+
+    [[nodiscard]] ReverseIteratorType rbegin() noexcept;
+    [[nodiscard]] ReverseIteratorType rend() noexcept;
+    [[nodiscard]] ConstReverseIteratorType rbegin() const noexcept;
+    [[nodiscard]] ConstReverseIteratorType rend() const noexcept;
 
     friend void swap(Map& lhs, Map& rhs) noexcept
     {
