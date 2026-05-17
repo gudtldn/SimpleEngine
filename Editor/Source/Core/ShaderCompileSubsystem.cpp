@@ -97,12 +97,12 @@ void ShaderCompileSubsystem::RecompileChanged()
                     const Path& spv_path = spv_entry.GetPath();
                     if (spv_path.Extension() != ".spv") { continue; }
 
-                    const auto spv_stem = spv_path.FileStem();
-                    if (!spv_stem) { continue; }
+                    const auto spv_stem_opt = spv_path.FileStem();
+                    if (!spv_stem_opt) { continue; }
 
-                    // "WorldGrid.hlsl" -> spv_stem "WorldGrid.vert" 처럼 prefix 매칭
-                    // "Default.frag.hlsl" -> spv_stem "Default.frag" 처럼 exact 매칭
-                    if (*spv_stem != *stem_opt && !spv_stem->StartsWith(spv_prefix)) { continue; }
+                    // "WorldGrid.hlsl" -> spv_stem_opt "WorldGrid.vert" 처럼 prefix 매칭
+                    // "Default.frag.hlsl" -> spv_stem_opt "Default.frag" 처럼 exact 매칭
+                    if (*spv_stem_opt != *stem_opt && !spv_stem_opt->StartsWith(spv_prefix)) { continue; }
 
                     any_spv_found = true;
                     if (spv_entry.LastWriteTime() < hlsl_mtime)
