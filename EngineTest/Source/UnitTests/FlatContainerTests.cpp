@@ -22,7 +22,7 @@ TEST_F(FlatSetAPI_Test, InitializerListConstruction)
     FlatSet<int> set = { 3, 1, 4, 1, 5, 9, 2, 6, 5 };
     // 중복 제거 및 정렬 확인: {1, 2, 3, 4, 5, 6, 9}
     EXPECT_EQ(set.Len(), 7);
-    
+
     int expected[] = { 1, 2, 3, 4, 5, 6, 9 };
     int i = 0;
     for (int val : set)
@@ -37,7 +37,7 @@ TEST_F(FlatSetAPI_Test, InsertAndContains)
     EXPECT_TRUE(set.Insert(10));
     EXPECT_TRUE(set.Insert(20));
     EXPECT_FALSE(set.Insert(10)); // 중복 삽입
-    
+
     EXPECT_EQ(set.Len(), 2);
     EXPECT_TRUE(set.Contains(10));
     EXPECT_TRUE(set.Contains(20));
@@ -78,7 +78,7 @@ TEST_F(FlatMapAPI_Test, InitializerListConstruction)
         { 2, "Two" },
         { 1, "Duplicate" } // 중복 키
     };
-    
+
     // 정렬 확인 (키 기준)
     EXPECT_EQ(map.Len(), 3);
     EXPECT_TRUE(map.Contains(1));
@@ -91,11 +91,11 @@ TEST_F(FlatMapAPI_Test, InsertAndAccess)
     FlatMap<int, String> map;
     map.Insert(1, "One");
     map.Emplace(2, "Two");
-    
+
     EXPECT_EQ(map[1], "One");
     EXPECT_EQ(map[2], "Two");
-    
-    map[3] = "Three"; // operator[]를 통한 삽입
+
+    map.Insert(3, "Three");
     EXPECT_EQ(map.Len(), 3);
     EXPECT_EQ(map.FindChecked(3), "Three");
 }
@@ -103,11 +103,11 @@ TEST_F(FlatMapAPI_Test, InsertAndAccess)
 TEST_F(FlatMapAPI_Test, Find)
 {
     FlatMap<int, String> map = { { 10, "Ten" } };
-    
+
     auto result = map.Find(10);
     EXPECT_TRUE(result.HasValue());
     EXPECT_EQ(*result, "Ten");
-    
+
     auto fail = map.Find(20);
     EXPECT_FALSE(fail.HasValue());
 }
@@ -124,13 +124,13 @@ TEST_F(FlatMapAPI_Test, Remove)
 TEST_F(FlatMapAPI_Test, EntryAPI)
 {
     FlatMap<int, int> map;
-    
+
     // Vacant Entry
     auto entry = map.Entry(10);
     EXPECT_TRUE(entry.IsVacant());
     entry.OrInsert(100);
     EXPECT_EQ(map[10], 100);
-    
+
     // Occupied Entry
     auto entry2 = map.Entry(10);
     EXPECT_TRUE(entry2.IsOccupied());
@@ -141,12 +141,12 @@ TEST_F(FlatMapAPI_Test, EntryAPI)
 TEST_F(FlatMapAPI_Test, KeysAndValues)
 {
     FlatMap<int, String> map = { { 1, "A" }, { 2, "B" }, { 3, "C" } };
-    
+
     auto keys = map.Keys();
     EXPECT_EQ(keys.Len(), 3);
     EXPECT_EQ(keys[0], 1);
     EXPECT_EQ(keys[2], 3);
-    
+
     auto values = map.Values();
     EXPECT_EQ(values.Len(), 3);
     EXPECT_EQ(values[0], "A");
@@ -156,15 +156,15 @@ TEST_F(FlatMapAPI_Test, KeysAndValues)
 TEST_F(FlatMapAPI_Test, LowerUpperBound)
 {
     FlatMap<int, String> map = { { 10, "Ten" }, { 30, "Thirty" }, { 50, "Fifty" } };
-    
+
     auto lb = map.LowerBoundEntry(20); // 30 기대
     EXPECT_TRUE(lb.HasValue());
     EXPECT_EQ(lb->first, 30);
-    
+
     auto lb2 = map.LowerBoundEntry(30); // 30 기대
     EXPECT_TRUE(lb2.HasValue());
     EXPECT_EQ(lb2->first, 30);
-    
+
     auto ub = map.UpperBoundEntry(30); // 50 기대
     EXPECT_TRUE(ub.HasValue());
     EXPECT_EQ(ub->first, 50);

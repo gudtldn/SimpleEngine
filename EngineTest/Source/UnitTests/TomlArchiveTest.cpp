@@ -764,8 +764,8 @@ TEST_F(TomlArchiveTest, SpecialStringCharacters)
 TEST_F(TomlArchiveTest, DeepNesting)
 {
     DeepNestingLevel1 original_data;
-    original_data.children["first"] = DeepNestingLevel2{ .items = { {1}, {2}, {3} } };
-    original_data.children["second"] = DeepNestingLevel2{ .items = { {10}, {20}, {30} } };
+    original_data.children.Insert("first",  DeepNestingLevel2{ .items = { {1}, {2}, {3} } });
+    original_data.children.Insert("second", DeepNestingLevel2{ .items = { {10}, {20}, {30} } });
 
     toml::table tbl;
     {
@@ -834,7 +834,7 @@ TEST_F(TomlArchiveTest, LargeData)
     // Create large map with 500 entries
     for (i32 i = 0; i < 500; ++i)
     {
-        original_data.large_map[i] = String::Format("Value_{}", i);
+        original_data.large_map.Insert(i, String::Format("Value_{}", i));
     }
 
     toml::table tbl;
@@ -867,8 +867,8 @@ TEST_F(TomlArchiveTest, NestedEmptyContainers)
     original_data.nested_arrays.Push(Array<i32>{1, 2, 3});
     original_data.nested_arrays.Push(Array<i32>{}); // Another empty array
 
-    original_data.map_with_empty_arrays["empty"] = Array<i32>{};
-    original_data.map_with_empty_arrays["filled"] = Array<i32>{10, 20};
+    original_data.map_with_empty_arrays.Insert("empty",  Array<i32>{});
+    original_data.map_with_empty_arrays.Insert("filled", Array<i32>{10, 20});
 
     original_data.array_of_empty_maps.Push(HashMap<String, i32>{});
     original_data.array_of_empty_maps.Push(HashMap<String, i32>{ {"key", 42} });
@@ -931,14 +931,14 @@ TEST_F(TomlArchiveTest, TripleNestedArrays)
 TEST_F(TomlArchiveTest, HeterogeneousContainers)
 {
     HeteroData original_data;
-    original_data.map_of_arrays["first"] = Array<i32>{1, 2, 3};
-    original_data.map_of_arrays["second"] = Array<i32>{10, 20};
+    original_data.map_of_arrays.Insert("first", Array<i32>{1, 2, 3});
+    original_data.map_of_arrays.Insert("second", Array<i32>{10, 20});
 
     original_data.array_of_maps.Push(HashMap<String, String>{ {"a", "A"}, {"b", "B"} });
     original_data.array_of_maps.Push(HashMap<String, String>{ {"x", "X"} });
 
-    original_data.nested_maps[1] = HashMap<String, f32>{ {"pi", 3.14f}, {"e", 2.71f} };
-    original_data.nested_maps[2] = HashMap<String, f32>{ {"sqrt2", 1.41f} };
+    original_data.nested_maps.Insert(1, HashMap<String, f32>{ {"pi", 3.14f}, {"e", 2.71f} });
+    original_data.nested_maps.Insert(2, HashMap<String, f32>{ {"sqrt2", 1.41f} });
 
     toml::table tbl;
     {
@@ -1156,7 +1156,7 @@ TEST_F(TomlArchiveTest, ManyMapIterations)
     // Create map with many entries to verify iterator-based approach is O(N)
     for (i32 i = 0; i < 200; ++i)
     {
-        original_data.map[i] = String::Format("Item_{}", i);
+        original_data.map.Insert(i, String::Format("Item_{}", i));
     }
 
     toml::table tbl;
@@ -1207,7 +1207,7 @@ TEST_F(TomlArchiveTest, SingleElementContainers)
 {
     SingleElementData original_data;
     original_data.single_array.Push(42);
-    original_data.single_map["only"] = 123;
+    original_data.single_map.Insert("only", 123);
     original_data.single_set.Insert("unique");
 
     toml::table tbl;
@@ -1325,9 +1325,9 @@ TEST_F(TomlArchiveTest, GuidAsMapKey)
     Guid g2 = Guid::NewGuid();
     Guid g3 = Guid::NewGuid();
 
-    original_data.guid_map[g1] = "First";
-    original_data.guid_map[g2] = "Second";
-    original_data.guid_map[g3] = "Third";
+    original_data.guid_map.Insert(g1, "First");
+    original_data.guid_map.Insert(g2, "Second");
+    original_data.guid_map.Insert(g3, "Third");
 
     toml::table tbl;
     {
@@ -1355,8 +1355,8 @@ TEST_F(TomlArchiveTest, GuidAsMapKeyWithNestedValue)
     Guid g1 = Guid::NewGuid();
     Guid g2 = Guid::NewGuid();
 
-    original_data.guid_nested_map[g1] = NestedData{ "nested_g1", 1.1f };
-    original_data.guid_nested_map[g2] = NestedData{ "nested_g2", 2.2f };
+    original_data.guid_nested_map.Insert(g1, NestedData{ "nested_g1", 1.1f });
+    original_data.guid_nested_map.Insert(g2, NestedData{ "nested_g2", 2.2f });
 
     toml::table tbl;
     {
@@ -1382,9 +1382,9 @@ TEST_F(TomlArchiveTest, StringNameAsMapKey)
 {
     StringNameKeyMapData original_data;
 
-    original_data.sn_map["alpha"] = 100;
-    original_data.sn_map["beta"] = 200;
-    original_data.sn_map["gamma"] = 300;
+    original_data.sn_map.Insert("alpha", 100);
+    original_data.sn_map.Insert("beta", 200);
+    original_data.sn_map.Insert("gamma", 300);
 
     toml::table tbl;
     {
@@ -1412,8 +1412,8 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKey)
     const TypeId transform_id = TypeId::Get<TransformComponent>();
     const TypeId subsystem_id = TypeId::Get<SubsystemBase>();
 
-    original_data.type_map[transform_id] = "transform_value";
-    original_data.type_map[subsystem_id] = "subsystem_value";
+    original_data.type_map.Insert(transform_id, "transform_value");
+    original_data.type_map.Insert(subsystem_id, "subsystem_value");
 
     toml::table tbl;
     {
@@ -1440,8 +1440,8 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
     const TypeId transform_id = TypeId::Get<TransformComponent>();
     const TypeId subsystem_id = TypeId::Get<SubsystemBase>();
 
-    original_data.type_nested_map[transform_id] = NestedData{ "nested_transform", 1.5f };
-    original_data.type_nested_map[subsystem_id] = NestedData{ "nested_subsystem", 2.5f };
+    original_data.type_nested_map.Insert(transform_id, NestedData{ "nested_transform", 1.5f });
+    original_data.type_nested_map.Insert(subsystem_id, NestedData{ "nested_subsystem", 2.5f });
 
     toml::table tbl;
     {

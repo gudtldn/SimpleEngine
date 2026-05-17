@@ -894,11 +894,11 @@ TEST_F(HashMapAPI_Test, Construction)
 TEST_F(HashMapAPI_Test, AccessAndModification)
 {
     HashMap<String, int> map;
-    map["one"] = 1;
+    map.Insert("one", 1);
     EXPECT_EQ(map.Len(), 1);
     EXPECT_EQ(map["one"], 1);
 
-    map["one"] = 11;
+    map.Insert("one", 11);
     EXPECT_EQ(map["one"], 11);
 
     EXPECT_TRUE(map.Contains("one"));
@@ -935,14 +935,14 @@ TEST_F(HashMapAPI_Test, CapacityAndReserve)
     // EXPECT_EQ(map.Capacity(), 0);
     map.Reserve(10);
     EXPECT_GE(map.Capacity(), 10);
-    map["one"] = 1;
+    map.Insert("one", 1);
     EXPECT_EQ(map.Len(), 1);
 }
 
 TEST_F(HashMapAPI_Test, EntryAPI)
 {
     HashMap<String, int> map;
-    map["existing"] = 10;
+    map.Insert("existing", 10);
 
     // Insert new entry
     auto entry1 = map.Entry("new");
@@ -1054,11 +1054,11 @@ TEST_F(MapAPI_Test, Construction)
 TEST_F(MapAPI_Test, AccessAndModification)
 {
     Map<String, int> map;
-    map["one"] = 1;
+    map.Insert("one", 1);
     EXPECT_EQ(map.Len(), 1);
     EXPECT_EQ(map["one"], 1);
 
-    map["one"] = 11;
+    map.Insert("one", 11);
     EXPECT_EQ(map["one"], 11);
 
     EXPECT_TRUE(map.Contains("one"));
@@ -1091,7 +1091,7 @@ TEST_F(MapAPI_Test, RemoveAndClear)
 TEST_F(MapAPI_Test, EntryAPI)
 {
     Map<String, int> map;
-    map["existing"] = 10;
+    map.Insert("existing", 10);
 
     // Insert new entry
     auto entry1 = map.Entry("new");

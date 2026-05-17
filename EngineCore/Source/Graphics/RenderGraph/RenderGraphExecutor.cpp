@@ -180,8 +180,8 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
             current_versions[res_idx] = out_version; // 버전 리스트 업데이트
 
             // 해당 버전을 '이 패스가 생성(Write)했다'고 기록
-            pass_node.write_map[res_idx] = out_version;
-            builder.resource_nodes[res_idx].version_to_writer[out_version] = static_cast<u32>(pass_idx);
+            pass_node.write_map.Insert(res_idx, out_version);
+            builder.resource_nodes[res_idx].version_to_writer.Insert(out_version, static_cast<u32>(pass_idx));
 
             // WAW(Write-After-Write) 의존성 보장 및 암묵적 Read
             // 명시적인 Read 선언이 없더라도, 동일 리소스에 대한 쓰기 작업(AddPass) 순서가 보장되도록

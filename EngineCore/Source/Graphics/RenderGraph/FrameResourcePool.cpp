@@ -108,7 +108,7 @@ FrameResourcePool::~FrameResourcePool()
 SDL_GPUTexture* FrameResourcePool::AcquireTexture(const SDL_GPUTextureCreateInfo& info)
 {
     SE_MEM_SCOPE("GPU:Transient");
-    return AcquireResourceInternal(texture_pool[info], [this, &info = std::as_const(info)]
+    return AcquireResourceInternal(texture_pool.Entry(info).OrDefault(), [this, &info = std::as_const(info)]
     {
         PooledResource<SDL_GPUTexture> pooled;
         pooled.resource = SDL_CreateGPUTexture(render_device->GetRawDevice(), &info);
@@ -126,13 +126,13 @@ SDL_GPUTexture* FrameResourcePool::AcquireTexture(const SDL_GPUTextureCreateInfo
 
 void FrameResourcePool::ReleaseTexture(const SDL_GPUTextureCreateInfo& info, SDL_GPUTexture* texture)
 {
-    ReleaseResourceInternal(texture_pool[info], texture);
+    ReleaseResourceInternal(texture_pool.Entry(info).OrDefault(), texture);
 }
 
 SDL_GPUBuffer* FrameResourcePool::AcquireBuffer(const SDL_GPUBufferCreateInfo& info)
 {
     SE_MEM_SCOPE("GPU:Transient");
-    return AcquireResourceInternal(buffer_pool[info], [this, &info = std::as_const(info)]
+    return AcquireResourceInternal(buffer_pool.Entry(info).OrDefault(), [this, &info = std::as_const(info)]
     {
         PooledResource<SDL_GPUBuffer> pooled;
         pooled.resource = SDL_CreateGPUBuffer(render_device->GetRawDevice(), &info);
@@ -150,7 +150,7 @@ SDL_GPUBuffer* FrameResourcePool::AcquireBuffer(const SDL_GPUBufferCreateInfo& i
 
 void FrameResourcePool::ReleaseBuffer(const SDL_GPUBufferCreateInfo& info, SDL_GPUBuffer* buffer)
 {
-    ReleaseResourceInternal(buffer_pool[info], buffer);
+    ReleaseResourceInternal(buffer_pool.Entry(info).OrDefault(), buffer);
 }
 
 void FrameResourcePool::IncrementIdleCounters()

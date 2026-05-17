@@ -132,21 +132,17 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::ValueType&> Map<Key, V
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::FindChecked(const KeyType& key)
 {
-    if (auto it = internal_map.find(key); it != internal_map.end())
-    {
-        return it->second;
-    }
-    SE_UNREACHABLE();
+    auto it = internal_map.find(key);
+    SE_ASSERT_RELEASE(it != internal_map.end());
+    return it->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 const typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::FindChecked(const KeyType& key) const
 {
-    if (auto it = internal_map.find(key); it != internal_map.end())
-    {
-        return it->second;
-    }
-    SE_UNREACHABLE();
+    auto it = internal_map.find(key);
+    SE_ASSERT_RELEASE(it != internal_map.end());
+    return it->second;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -352,11 +348,6 @@ void Map<Key, Value, Pred, Allocator>::Swap(Map& other) noexcept
     std::swap(internal_map, other.internal_map);
 }
 
-template <typename Key, typename Value, typename Pred, typename Allocator>
-Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred, Allocator>::operator[](const KeyType& key)
-{
-    return internal_map[key];
-}
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 Map<Key, Value, Pred, Allocator>::IteratorType Map<Key, Value, Pred, Allocator>::begin() noexcept

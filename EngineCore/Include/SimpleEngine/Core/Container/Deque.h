@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Core/Container/IterChain.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Memory/Allocators.h"
@@ -173,6 +174,20 @@ public:
     [[nodiscard]] ReverseIteratorType rend() noexcept;
     [[nodiscard]] ConstReverseIteratorType rbegin() const noexcept;
     [[nodiscard]] ConstReverseIteratorType rend() const noexcept;
+
+    /** 요소를 순회하는 IterChain을 반환합니다. rvalue에서 호출하면 컨테이너를 소유합니다. */
+    template <typename Self>
+    [[nodiscard]] auto Iter(this Self&& self)
+    {
+        if constexpr (!std::is_reference_v<Self>)
+        {
+            return IterChain{ std::ranges::owning_view<std::remove_cvref_t<Self>>{ std::forward<Self>(self) } };
+        }
+        else
+        {
+            return IterChain{ std::views::all(self) };
+        }
+    }
 
     friend void swap(Deque& lhs, Deque& rhs) noexcept { lhs.Swap(rhs); }
 

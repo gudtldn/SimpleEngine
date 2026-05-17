@@ -28,7 +28,7 @@ void TypeRegistry::Resolve()
         // info가 구현하는 모든 인터페이스를 순회
         for (const TypeId& interface_id : info.interfaces | std::views::keys)
         {
-            interface_implementations_map[interface_id].Push(&info);
+            interface_implementations_map.Entry(interface_id).OrDefault().Push(&info);
         }
     }
 

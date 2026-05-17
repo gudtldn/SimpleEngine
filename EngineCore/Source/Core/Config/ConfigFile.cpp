@@ -39,7 +39,7 @@ Expected<ConfigFile, String> ConfigFile::Load(const VPath& config_file_path)
     toml::table parsed = std::move(result).table();
 
     // 캐시에 저장 (복사본)
-    table_cache[path_key] = parsed;
+    table_cache.Insert(path_key, parsed);
 
     return ConfigFile{ std::move(parsed) };
 }
@@ -75,7 +75,7 @@ bool ConfigFile::Save(const VPath& config_file_path) const
     }
 
     // 저장 성공 시 캐시 갱신
-    table_cache[physical_path_str] = root_table;
+    table_cache.Insert(physical_path_str, root_table);
 
     rollback.Discard();
     return true;

@@ -207,7 +207,7 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
             if (container.Contains(dependency_id))
             {
                 // 역방향 그래프 구축: 의존성(부모) -> 의존자(자식) 관계 저장
-                dependents_map[dependency_id].Push(node_id);
+                dependents_map.Entry(dependency_id).OrDefault().Push(node_id);
                 ++current_in_degree;
             }
         }

@@ -78,7 +78,7 @@ String ImportResult::Builder::MakeUniqueName(const String& base_name)
     }
 
     // 중복 시 suffix 추가: Name_1, Name_2, ...
-    u32& suffix = next_suffix_map[base_name];
+    u32& suffix = next_suffix_map.Entry(base_name).OrDefault();
     ++suffix;
 
     String candidate;

@@ -44,8 +44,8 @@ Array<TypeId> TopologicalSort(const Array<TypeId>& nodes, DepsFn&& get_dependenc
 
     for (const TypeId& id : nodes)
     {
-        in_degree[id] = 0;
-        adj_list[id] = {};
+        in_degree.Insert(id, 0);
+        adj_list.Insert(id, Array<TypeId>{});
     }
 
     for (const TypeId& id : nodes)

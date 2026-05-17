@@ -97,7 +97,7 @@ RGTextureHandle RenderGraphBuilder::RegisterTextureSlot(const StringName& name)
     node.name = name;
     const u32 index = static_cast<u32>(resource_nodes.Len());
     resource_nodes.Push(std::move(node));
-    resource_name_map[name] = index;
+    resource_name_map.Insert(name, index);
     return RGTextureHandle{ .index = index };
 }
 
@@ -112,7 +112,7 @@ RGBufferHandle RenderGraphBuilder::RegisterBufferSlot(const StringName& name)
     node.name = name;
     const u32 index = static_cast<u32>(resource_nodes.Len());
     resource_nodes.Push(std::move(node));
-    resource_name_map[name] = index;
+    resource_name_map.Insert(name, index);
     return RGBufferHandle{ .index = index };
 }
 } // namespace se

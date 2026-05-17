@@ -376,9 +376,9 @@ TEST_F(SerializationTest, DeepNesting)
     MemoryWriter writer(buffer);
 
     Outer original;
-    original.middles[1].inners.Push({10});
-    original.middles[1].inners.Push({20});
-    original.middles[2].inners.Push({30});
+    original.middles.Entry(1).OrDefault().inners.Push({10});
+    original.middles.Entry(1).OrDefault().inners.Push({20});
+    original.middles.Entry(2).OrDefault().inners.Push({30});
 
     writer << original;
 
@@ -474,8 +474,8 @@ TEST_F(SerializationTest, MixedContainers)
     MemoryWriter writer(buffer);
 
     HashMap<String, Array<i32>> map_of_arrays;
-    map_of_arrays["first"] = Array<i32>{1, 2, 3};
-    map_of_arrays["second"] = Array<i32>{10, 20};
+    map_of_arrays.Insert("first", Array<i32>{1, 2, 3});
+    map_of_arrays.Insert("second", Array<i32>{10, 20});
 
     Array<HashMap<String, String>> array_of_maps;
     array_of_maps.Push(HashMap<String, String>{ {"a", "A"}, {"b", "B"} });
