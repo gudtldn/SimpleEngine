@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "SimpleEngine/Math/Random.h"
+#include "SimpleEngine/Core/Math/Random.h"
 
 #include <thread>
 
