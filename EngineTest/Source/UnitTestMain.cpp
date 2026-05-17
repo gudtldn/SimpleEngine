@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
     ::testing::InitGoogleTest(&argc, argv);
 
     // Environment 추가
-    ::testing::AddGlobalTestEnvironment(new ConfigTestEnvironment());
+    ::testing::AddGlobalTestEnvironment(new EngineTestEnvironment());
 
     // Log Backend 추가
     {
