@@ -36,6 +36,8 @@ public:
 
     using IteratorType = Array<PairType, Allocator>::IteratorType;
     using ConstIteratorType = Array<PairType, Allocator>::ConstIteratorType;
+    using ReverseIteratorType = Array<PairType, Allocator>::ReverseIteratorType;
+    using ConstReverseIteratorType = Array<PairType, Allocator>::ConstReverseIteratorType;
 
     using EntryType = FlatMapEntry<FlatMap>;
 
@@ -62,6 +64,9 @@ public:
 
     /** FlatMap이 비어있는지 확인합니다. */
     [[nodiscard]] bool IsEmpty() const noexcept;
+
+    /** 재할당 없이 FlatMap이 담을 수 있는 요소의 수를 반환합니다. */
+    [[nodiscard]] SizeType Capacity() const noexcept;
 
     /** FlatMap의 모든 요소를 제거합니다. */
     void Clear() noexcept;
@@ -198,6 +203,11 @@ public:
     [[nodiscard]] IteratorType end() noexcept;
     [[nodiscard]] ConstIteratorType begin() const noexcept;
     [[nodiscard]] ConstIteratorType end() const noexcept;
+
+    [[nodiscard]] ReverseIteratorType rbegin() noexcept;
+    [[nodiscard]] ReverseIteratorType rend() noexcept;
+    [[nodiscard]] ConstReverseIteratorType rbegin() const noexcept;
+    [[nodiscard]] ConstReverseIteratorType rend() const noexcept;
 
     friend void swap(FlatMap& lhs, FlatMap& rhs) noexcept
     {

@@ -58,6 +58,12 @@ bool FlatMap<Key, Value, Pred, Allocator>::IsEmpty() const noexcept
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
+typename FlatMap<Key, Value, Pred, Allocator>::SizeType FlatMap<Key, Value, Pred, Allocator>::Capacity() const noexcept
+{
+    return internal_array.Capacity();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
 void FlatMap<Key, Value, Pred, Allocator>::Clear() noexcept
 {
     internal_array.Clear();
@@ -376,5 +382,29 @@ template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ConstIteratorType FlatMap<Key, Value, Pred, Allocator>::end() const noexcept
 {
     return internal_array.end();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+typename FlatMap<Key, Value, Pred, Allocator>::ReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rbegin() noexcept
+{
+    return internal_array.rbegin();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+typename FlatMap<Key, Value, Pred, Allocator>::ReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rend() noexcept
+{
+    return internal_array.rend();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+typename FlatMap<Key, Value, Pred, Allocator>::ConstReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rbegin() const noexcept
+{
+    return internal_array.rbegin();
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+typename FlatMap<Key, Value, Pred, Allocator>::ConstReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rend() const noexcept
+{
+    return internal_array.rend();
 }
 } // namespace se

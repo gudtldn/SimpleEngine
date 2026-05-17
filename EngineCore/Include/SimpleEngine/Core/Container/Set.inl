@@ -119,4 +119,28 @@ Set<T, Pred, Allocator>::ConstIteratorType Set<T, Pred, Allocator>::end() const 
 {
     return internal_set.end();
 }
+
+template <typename T, typename Pred, typename Allocator>
+Set<T, Pred, Allocator>::ReverseIteratorType Set<T, Pred, Allocator>::rbegin() noexcept
+{
+    return internal_set.rbegin();
+}
+
+template <typename T, typename Pred, typename Allocator>
+Set<T, Pred, Allocator>::ReverseIteratorType Set<T, Pred, Allocator>::rend() noexcept
+{
+    return internal_set.rend();
+}
+
+template <typename T, typename Pred, typename Allocator>
+Set<T, Pred, Allocator>::ConstReverseIteratorType Set<T, Pred, Allocator>::rbegin() const noexcept
+{
+    return internal_set.rbegin();
+}
+
+template <typename T, typename Pred, typename Allocator>
+Set<T, Pred, Allocator>::ConstReverseIteratorType Set<T, Pred, Allocator>::rend() const noexcept
+{
+    return internal_set.rend();
+}
 } // namespace se

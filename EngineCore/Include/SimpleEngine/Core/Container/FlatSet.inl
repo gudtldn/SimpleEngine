@@ -51,6 +51,12 @@ bool FlatSet<T, Pred, Allocator>::IsEmpty() const noexcept
 }
 
 template <typename T, typename Pred, typename Allocator>
+typename FlatSet<T, Pred, Allocator>::SizeType FlatSet<T, Pred, Allocator>::Capacity() const noexcept
+{
+    return internal_array.Capacity();
+}
+
+template <typename T, typename Pred, typename Allocator>
 void FlatSet<T, Pred, Allocator>::Clear() noexcept
 {
     internal_array.Clear();
@@ -168,5 +174,29 @@ template <typename T, typename Pred, typename Allocator>
 typename FlatSet<T, Pred, Allocator>::ConstIteratorType FlatSet<T, Pred, Allocator>::end() const noexcept
 {
     return internal_array.end();
+}
+
+template <typename T, typename Pred, typename Allocator>
+typename FlatSet<T, Pred, Allocator>::ReverseIteratorType FlatSet<T, Pred, Allocator>::rbegin() noexcept
+{
+    return internal_array.rbegin();
+}
+
+template <typename T, typename Pred, typename Allocator>
+typename FlatSet<T, Pred, Allocator>::ReverseIteratorType FlatSet<T, Pred, Allocator>::rend() noexcept
+{
+    return internal_array.rend();
+}
+
+template <typename T, typename Pred, typename Allocator>
+typename FlatSet<T, Pred, Allocator>::ConstReverseIteratorType FlatSet<T, Pred, Allocator>::rbegin() const noexcept
+{
+    return internal_array.rbegin();
+}
+
+template <typename T, typename Pred, typename Allocator>
+typename FlatSet<T, Pred, Allocator>::ConstReverseIteratorType FlatSet<T, Pred, Allocator>::rend() const noexcept
+{
+    return internal_array.rend();
 }
 } // namespace se
