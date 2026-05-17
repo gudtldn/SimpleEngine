@@ -179,6 +179,36 @@ const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::ValueType& HashMap
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const Key&, const Value&>
+Optional<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::PairType&> HashMap<Key, Value, Hasher, KeyEq, Allocator>::FindBy(Predicate&& pred)
+{
+    for (auto& pair : internal_map)
+    {
+        if (pred(pair.first, pair.second))
+        {
+            return pair;
+        }
+    }
+    return NullOpt;
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const Key&, const Value&>
+Optional<const typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::PairType&> HashMap<Key, Value, Hasher, KeyEq, Allocator>::FindBy(Predicate&& pred) const
+{
+    for (const auto& pair : internal_map)
+    {
+        if (pred(pair.first, pair.second))
+        {
+            return pair;
+        }
+    }
+    return NullOpt;
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
 bool HashMap<Key, Value, Hasher, KeyEq, Allocator>::Contains(const KeyType& key) const
 {
     return internal_map.contains(key);
@@ -229,6 +259,18 @@ Array<T> HashMap<Key, Value, Hasher, KeyEq, Allocator>::Values() const
         values.Emplace(value);
     }
     return values;
+}
+
+template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>
+Array<typename HashMap<Key, Value, Hasher, KeyEq, Allocator>::PairType> HashMap<Key, Value, Hasher, KeyEq, Allocator>::ToArray() const
+{
+    Array<PairType> result;
+    result.Reserve(Len());
+    for (const auto& pair : internal_map)
+    {
+        result.Push(pair);
+    }
+    return result;
 }
 
 template <typename Key, typename Value, typename Hasher, typename KeyEq, typename Allocator>

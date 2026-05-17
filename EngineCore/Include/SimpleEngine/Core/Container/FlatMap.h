@@ -126,13 +126,28 @@ public:
     [[nodiscard]] ValueType& FindChecked(const KeyType& key);
     [[nodiscard]] const ValueType& FindChecked(const KeyType& key) const;
 
+    /** 조건자를 만족하는 첫 번째 키-값 쌍에 대한 Optional 참조를 반환합니다. O(N) 선형 탐색입니다. */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const Key&, const Value&>
+    [[nodiscard]] Optional<PairType&> FindBy(Predicate&& pred);
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const Key&, const Value&>
+    [[nodiscard]] Optional<const PairType&> FindBy(Predicate&& pred) const;
+
     /** 가장 작은 키를 가진 요소의 참조를 Optional로 반환합니다. */
-    [[nodiscard]] Optional<PairType&> First() noexcept;
-    [[nodiscard]] Optional<const PairType&> First() const noexcept;
+    [[nodiscard]] Optional<PairType&> Front() noexcept;
+    [[nodiscard]] Optional<const PairType&> Front() const noexcept;
 
     /** 가장 큰 키를 가진 요소의 참조를 Optional로 반환합니다. */
-    [[nodiscard]] Optional<PairType&> Last() noexcept;
-    [[nodiscard]] Optional<const PairType&> Last() const noexcept;
+    [[nodiscard]] Optional<PairType&> Back() noexcept;
+    [[nodiscard]] Optional<const PairType&> Back() const noexcept;
+
+    /** 가장 작은 키를 가진 요소를 제거하고 반환합니다. */
+    [[nodiscard]] Optional<PairType> PopFront();
+
+    /** 가장 큰 키를 가진 요소를 제거하고 반환합니다. */
+    [[nodiscard]] Optional<PairType> PopBack();
 
     /**
      * 주어진 키보다 크거나 같은 첫 번째 요소를 찾습니다.
@@ -173,12 +188,15 @@ public:
     /** FlatMap의 모든 키를 담은 Array를 생성하여 반환합니다. */
     template <typename T = KeyType>
         requires std::constructible_from<T, const Key&>
-    [[nodiscard]] Array<KeyType> Keys() const;
+    [[nodiscard]] Array<T> Keys() const;
 
     /** FlatMap의 모든 값을 담은 Array를 생성하여 반환합니다. */
     template <typename T = ValueType>
         requires std::constructible_from<T, const Value&>
-    [[nodiscard]] Array<ValueType> Values() const;
+    [[nodiscard]] Array<T> Values() const;
+
+    /** FlatMap의 모든 키-값 쌍을 담은 Array를 생성하여 반환합니다. */
+    [[nodiscard]] Array<PairType> ToArray() const;
 
     /** 최소 new_capacity 만큼의 요소를 저장할 수 있도록 용량을 예약합니다. */
     void Reserve(SizeType new_capacity);

@@ -36,12 +36,12 @@ public:
     void Clear() noexcept;
 
     /** Queue의 맨 앞에 있는 요소(가장 먼저 나갈 요소)에 대한 Optional 참조를 반환합니다. */
-    [[nodiscard]] Optional<ValueType&> Front();
-    [[nodiscard]] Optional<const ValueType&> Front() const;
+    [[nodiscard]] Optional<ValueType&> PeekFront();
+    [[nodiscard]] Optional<const ValueType&> PeekFront() const;
 
     /** Queue의 맨 뒤에 있는 요소(가장 마지막에 들어온 요소)에 대한 Optional 참조를 반환합니다. */
-    [[nodiscard]] Optional<ValueType&> Back();
-    [[nodiscard]] Optional<const ValueType&> Back() const;
+    [[nodiscard]] Optional<ValueType&> PeekBack();
+    [[nodiscard]] Optional<const ValueType&> PeekBack() const;
 
     /**
      * Queue의 맨 뒤에 새 요소를 추가합니다.
@@ -105,25 +105,25 @@ void Queue<T, Container>::Clear() noexcept
 }
 
 template <typename T, typename Container>
-Optional<typename Queue<T, Container>::ValueType&> Queue<T, Container>::Front()
+Optional<typename Queue<T, Container>::ValueType&> Queue<T, Container>::PeekFront()
 {
     return container.Front();
 }
 
 template <typename T, typename Container>
-Optional<const typename Queue<T, Container>::ValueType&> Queue<T, Container>::Front() const
+Optional<const typename Queue<T, Container>::ValueType&> Queue<T, Container>::PeekFront() const
 {
     return container.Front();
 }
 
 template <typename T, typename Container>
-Optional<typename Queue<T, Container>::ValueType&> Queue<T, Container>::Back()
+Optional<typename Queue<T, Container>::ValueType&> Queue<T, Container>::PeekBack()
 {
     return container.Back();
 }
 
 template <typename T, typename Container>
-Optional<const typename Queue<T, Container>::ValueType&> Queue<T, Container>::Back() const
+Optional<const typename Queue<T, Container>::ValueType&> Queue<T, Container>::PeekBack() const
 {
     return container.Back();
 }

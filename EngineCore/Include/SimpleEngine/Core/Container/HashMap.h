@@ -38,11 +38,11 @@ private:
     friend class MapEntry<HashMap>;
 
     using InternalMapType = std::unordered_map<Key, Value, Hasher, KeyEq, Allocator>;
-    using PairType = std::pair<const Key, Value>;
 
 public:
     using KeyType = Key;
     using ValueType = Value;
+    using PairType = std::pair<const Key, Value>;
     using SizeType = usize;
 
     using IteratorType = InternalMapType::iterator;
@@ -139,6 +139,15 @@ public:
     [[nodiscard]] ValueType& FindChecked(const KeyType& key);
     [[nodiscard]] const ValueType& FindChecked(const KeyType& key) const;
 
+    /** 조건자를 만족하는 첫 번째 키-값 쌍에 대한 Optional 참조를 반환합니다. */
+    template <typename Predicate>
+        requires std::predicate<Predicate, const Key&, const Value&>
+    [[nodiscard]] Optional<PairType&> FindBy(Predicate&& pred);
+
+    template <typename Predicate>
+        requires std::predicate<Predicate, const Key&, const Value&>
+    [[nodiscard]] Optional<const PairType&> FindBy(Predicate&& pred) const;
+
     /**
      * 특정 Key가 Map에 포함되어 있는지 확인합니다
      * @param key 확인할 Key
@@ -170,6 +179,9 @@ public:
     template <typename T = ValueType>
         requires std::constructible_from<T, const Value&>
     [[nodiscard]] Array<T> Values() const;
+
+    /** HashMap의 모든 키-값 쌍을 담은 Array를 생성하여 반환합니다. */
+    [[nodiscard]] Array<PairType> ToArray() const;
 
     void Swap(HashMap& other) noexcept;
 

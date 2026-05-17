@@ -150,7 +150,37 @@ const typename Map<Key, Value, Pred, Allocator>::ValueType& Map<Key, Value, Pred
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::First() noexcept
+template <typename Predicate>
+    requires std::predicate<Predicate, const Key&, const Value&>
+Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::FindBy(Predicate&& pred)
+{
+    for (auto& pair : internal_map)
+    {
+        if (pred(pair.first, pair.second))
+        {
+            return pair;
+        }
+    }
+    return NullOpt;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+template <typename Predicate>
+    requires std::predicate<Predicate, const Key&, const Value&>
+Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::FindBy(Predicate&& pred) const
+{
+    for (const auto& pair : internal_map)
+    {
+        if (pred(pair.first, pair.second))
+        {
+            return pair;
+        }
+    }
+    return NullOpt;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::Front() noexcept
 {
     if (IsEmpty())
     {
@@ -160,7 +190,7 @@ Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, P
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::First() const noexcept
+Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::Front() const noexcept
 {
     if (IsEmpty())
     {
@@ -170,7 +200,7 @@ Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Va
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::Last() noexcept
+Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::Back() noexcept
 {
     if (IsEmpty())
     {
@@ -180,13 +210,35 @@ Optional<typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, P
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
-Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::Last() const noexcept
+Optional<const typename Map<Key, Value, Pred, Allocator>::PairType&> Map<Key, Value, Pred, Allocator>::Back() const noexcept
 {
     if (IsEmpty())
     {
         return NullOpt;
     }
     return *(--internal_map.end());
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Optional<typename Map<Key, Value, Pred, Allocator>::PairType> Map<Key, Value, Pred, Allocator>::PopFront()
+{
+    if (IsEmpty())
+    {
+        return NullOpt;
+    }
+    auto node = internal_map.extract(internal_map.begin());
+    return PairType{ std::move(node.key()), std::move(node.mapped()) };
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Optional<typename Map<Key, Value, Pred, Allocator>::PairType> Map<Key, Value, Pred, Allocator>::PopBack()
+{
+    if (IsEmpty())
+    {
+        return NullOpt;
+    }
+    auto node = internal_map.extract(--internal_map.end());
+    return PairType{ std::move(node.key()), std::move(node.mapped()) };
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -255,7 +307,7 @@ Map<Key, Value, Pred, Allocator>::SizeType Map<Key, Value, Pred, Allocator>::Rem
 template <typename Key, typename Value, typename Pred, typename Allocator>
 template <typename T>
     requires std::constructible_from<T, const Key&>
-Array<typename Map<Key, Value, Pred, Allocator>::KeyType> Map<Key, Value, Pred, Allocator>::Keys() const
+Array<T> Map<Key, Value, Pred, Allocator>::Keys() const
 {
     Array<T> keys;
 
@@ -270,7 +322,7 @@ Array<typename Map<Key, Value, Pred, Allocator>::KeyType> Map<Key, Value, Pred, 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 template <typename T>
     requires std::constructible_from<T, const Value&>
-Array<typename Map<Key, Value, Pred, Allocator>::ValueType> Map<Key, Value, Pred, Allocator>::Values() const
+Array<T> Map<Key, Value, Pred, Allocator>::Values() const
 {
     Array<T> values;
 
@@ -280,6 +332,18 @@ Array<typename Map<Key, Value, Pred, Allocator>::ValueType> Map<Key, Value, Pred
         values.Emplace(value);
     }
     return values;
+}
+
+template <typename Key, typename Value, typename Pred, typename Allocator>
+Array<typename Map<Key, Value, Pred, Allocator>::PairType> Map<Key, Value, Pred, Allocator>::ToArray() const
+{
+    Array<PairType> result;
+    result.Reserve(Len());
+    for (const auto& pair : internal_map)
+    {
+        result.Push(pair);
+    }
+    return result;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>

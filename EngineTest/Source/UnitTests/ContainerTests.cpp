@@ -1184,17 +1184,17 @@ TEST_F(MapAPI_Test, Emplace)
     EXPECT_EQ(*map.Find("key1"), "modified_value");
 }
 
-TEST_F(MapAPI_Test, First_Last_Bounds)
+TEST_F(MapAPI_Test, Front_Back_Bounds)
 {
     Map<int, String> map = { { 10, "ten" }, { 20, "twenty" }, { 30, "thirty" } };
 
-    EXPECT_TRUE(map.First().HasValue());
-    EXPECT_EQ(map.First()->first, 10);
-    EXPECT_EQ(map.First()->second, "ten");
+    EXPECT_TRUE(map.Front().HasValue());
+    EXPECT_EQ(map.Front()->first, 10);
+    EXPECT_EQ(map.Front()->second, "ten");
 
-    EXPECT_TRUE(map.Last().HasValue());
-    EXPECT_EQ(map.Last()->first, 30);
-    EXPECT_EQ(map.Last()->second, "thirty");
+    EXPECT_TRUE(map.Back().HasValue());
+    EXPECT_EQ(map.Back()->first, 30);
+    EXPECT_EQ(map.Back()->second, "thirty");
 
     auto lower = map.LowerBoundEntry(20);
     EXPECT_TRUE(lower.HasValue());
@@ -1212,8 +1212,8 @@ TEST_F(MapAPI_Test, First_Last_Bounds)
     EXPECT_FALSE(upper2.HasValue());
 
     Map<int, String> empty_map;
-    EXPECT_FALSE(empty_map.First().HasValue());
-    EXPECT_FALSE(empty_map.Last().HasValue());
+    EXPECT_FALSE(empty_map.Front().HasValue());
+    EXPECT_FALSE(empty_map.Back().HasValue());
     EXPECT_FALSE(empty_map.LowerBoundEntry(1).HasValue());
     EXPECT_FALSE(empty_map.UpperBoundEntry(1).HasValue());
 }
@@ -1654,18 +1654,6 @@ TEST_F(PriorityQueueAPI_Test, Clear)
     EXPECT_TRUE(pq.IsEmpty());
     EXPECT_EQ(pq.Len(), 0);
     EXPECT_FALSE(pq.Peek().HasValue());
-}
-
-TEST_F(PriorityQueueAPI_Test, ToUnderlyingContainer)
-{
-    PriorityQueue<int> pq = { 10, 30, 20 };
-    Array<int> arr = pq.ToUnderlyingContainer();
-    EXPECT_EQ(arr.Len(), 3);
-    // The underlying container is a heap, not necessarily sorted
-    // So we EXPECT_TRUE if the elements are present
-    EXPECT_TRUE(arr.Contains(10));
-    EXPECT_TRUE(arr.Contains(20));
-    EXPECT_TRUE(arr.Contains(30));
 }
 
 TEST_F(PriorityQueueAPI_Test, Min_Heap_CustomCompare)

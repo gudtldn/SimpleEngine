@@ -88,12 +88,6 @@ public:
      */
     Optional<ValueType> Pop();
 
-    /**
-     * 내부 컨테이너를 복사하여 반환합니다.
-     * @note 반환된 Array는 힙 속성을 가지지만 정렬되어 있지는 않습니다.
-     */
-    [[nodiscard]] ContainerType ToUnderlyingContainer() const;
-
     void Swap(PriorityQueue& other) noexcept;
 
 public:
