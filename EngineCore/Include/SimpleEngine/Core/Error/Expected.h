@@ -278,6 +278,30 @@ public:
         return ResultT{ std::forward<Self>(self).Value() };
     }
 
+    /** Ok 상태일 때, fn(const T&)을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Self, typename Fn>
+        requires std::invocable<Fn, const T&>
+    [[nodiscard]] constexpr auto&& Inspect(this Self&& self, Fn&& func)
+    {
+        if (self.has_value)
+        {
+            std::invoke(std::forward<Fn>(func), *std::as_const(self));
+        }
+        return std::forward<Self>(self);
+    }
+
+    /** Err 상태일 때, fn(const E&)을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Self, typename Fn>
+        requires std::invocable<Fn, const E&>
+    [[nodiscard]] constexpr auto&& InspectError(this Self&& self, Fn&& func)
+    {
+        if (!self.has_value)
+        {
+            std::invoke(std::forward<Fn>(func), static_cast<const E&>(self.Error()));
+        }
+        return std::forward<Self>(self);
+    }
+
 public:
     [[nodiscard]] constexpr explicit operator bool() const noexcept { return has_value; }
 
@@ -533,6 +557,30 @@ public:
             return ResultT{ Unexpected(std::invoke(std::forward<Fn>(func), std::forward<Self>(self).Error())) };
         }
         return ResultT{};
+    }
+
+    /** Ok 상태일 때, fn()을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Self, typename Fn>
+        requires std::invocable<Fn>
+    [[nodiscard]] constexpr auto&& Inspect(this Self&& self, Fn&& func)
+    {
+        if (self.has_value)
+        {
+            std::invoke(std::forward<Fn>(func));
+        }
+        return std::forward<Self>(self);
+    }
+
+    /** Err 상태일 때, fn(const E&)을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Self, typename Fn>
+        requires std::invocable<Fn, const E&>
+    [[nodiscard]] constexpr auto&& InspectError(this Self&& self, Fn&& func)
+    {
+        if (!self.has_value)
+        {
+            std::invoke(std::forward<Fn>(func), static_cast<const E&>(self.Error()));
+        }
+        return std::forward<Self>(self);
     }
 
 private:

@@ -266,6 +266,18 @@ public:
         return std::invoke(std::forward<Fn>(func));
     }
 
+    /** 값이 존재할 때, fn(const T&)을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Self, typename Fn>
+        requires std::invocable<Fn, const T&>
+    constexpr auto&& Inspect(this Self&& self, Fn&& func)
+    {
+        if (self.HasValue())
+        {
+            std::invoke(std::forward<Fn>(func), *std::as_const(self));
+        }
+        return std::forward<Self>(self);
+    }
+
 public:
     [[nodiscard]] constexpr explicit operator bool() const
     {
@@ -476,6 +488,18 @@ public:
         return std::invoke(std::forward<Fn>(func));
     }
 
+    /** 값이 존재할 때, fn(const T*)을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Fn>
+        requires std::invocable<Fn, const T*>
+    [[nodiscard]] constexpr const Optional& Inspect(Fn&& func) const
+    {
+        if (HasValue())
+        {
+            std::invoke(std::forward<Fn>(func), static_cast<const T*>(value_ptr));
+        }
+        return *this;
+    }
+
 public:
     [[nodiscard]] constexpr explicit operator bool() const { return HasValue(); }
 
@@ -651,6 +675,18 @@ public:
             return *this;
         }
         return std::invoke(std::forward<Fn>(func));
+    }
+
+    /** 값이 존재할 때, fn(const T&)을 호출해 부수 효과를 실행하고 자기 자신을 그대로 반환합니다. */
+    template <typename Fn>
+        requires std::invocable<Fn, const T&>
+    [[nodiscard]] constexpr const Optional& Inspect(Fn&& func) const
+    {
+        if (HasValue())
+        {
+            std::invoke(std::forward<Fn>(func), std::as_const(*value_ptr));
+        }
+        return *this;
     }
 
 public:
