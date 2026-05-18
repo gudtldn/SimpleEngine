@@ -47,7 +47,7 @@ public:
     void Push(ValueType&& value);
 
     /**
-     * @brief Stack의 맨 위에 새 요소를 내부 생성(emplace)합니다.
+     * Stack의 맨 위에 새 요소를 내부 생성(emplace)합니다.
      * @return 생성된 요소의 참조
      */
     template <typename... Args>
