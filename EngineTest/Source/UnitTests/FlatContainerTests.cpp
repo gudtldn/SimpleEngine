@@ -169,3 +169,65 @@ TEST_F(FlatMapAPI_Test, LowerUpperBound)
     EXPECT_TRUE(ub.HasValue());
     EXPECT_EQ(ub->first, 50);
 }
+
+TEST_F(FlatMapAPI_Test, PopFrontAndPopBack)
+{
+    FlatMap<int, String> map = { { 10, "ten" }, { 20, "twenty" }, { 30, "thirty" } };
+
+    auto front = map.PopFront();
+    EXPECT_TRUE(front.HasValue());
+    EXPECT_EQ(front->first, 10);
+    EXPECT_EQ(front->second, "ten");
+    EXPECT_EQ(map.Len(), 2);
+    EXPECT_FALSE(map.Contains(10));
+
+    auto back = map.PopBack();
+    EXPECT_TRUE(back.HasValue());
+    EXPECT_EQ(back->first, 30);
+    EXPECT_EQ(back->second, "thirty");
+    EXPECT_EQ(map.Len(), 1);
+
+    map.PopFront();
+    EXPECT_TRUE(map.IsEmpty());
+
+    // 빈 맵
+    EXPECT_FALSE(map.PopFront().HasValue());
+    EXPECT_FALSE(map.PopBack().HasValue());
+}
+
+TEST_F(FlatMapAPI_Test, FindBy)
+{
+    FlatMap<int, String> map = { { 1, "one" }, { 2, "two" }, { 3, "three" } };
+
+    auto result = map.FindBy([](const int&, const String& v) { return v == "two"; });
+    EXPECT_TRUE(result.HasValue());
+    EXPECT_EQ(result->first, 2);
+    EXPECT_EQ(result->second, "two");
+
+    auto no_result = map.FindBy([](const int&, const String& v) { return v == "four"; });
+    EXPECT_FALSE(no_result.HasValue());
+
+    const FlatMap<int, String>& const_map = map;
+    auto const_result = const_map.FindBy([](const int&, const String& v) { return v == "one"; });
+    EXPECT_TRUE(const_result.HasValue());
+    EXPECT_EQ(const_result->first, 1);
+
+    // 빈 맵
+    FlatMap<int, String> empty_map;
+    EXPECT_FALSE(empty_map.FindBy([](const int&, const String&) { return true; }).HasValue());
+}
+
+TEST_F(FlatMapAPI_Test, ToArray)
+{
+    FlatMap<int, String> map = { { 3, "three" }, { 1, "one" }, { 2, "two" } };
+    auto arr = map.ToArray();
+    EXPECT_EQ(arr.Len(), 3);
+    // FlatMap은 정렬된 순서 보장
+    EXPECT_EQ(arr[0].first, 1);
+    EXPECT_EQ(arr[1].first, 2);
+    EXPECT_EQ(arr[2].first, 3);
+
+    // 빈 맵
+    FlatMap<int, String> empty_map;
+    EXPECT_EQ(empty_map.ToArray().Len(), 0);
+}

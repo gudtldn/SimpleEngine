@@ -476,6 +476,38 @@ TEST_F(ArrayAPI_Test, CopyAndMoveSemantics)
     EXPECT_TRUE(arr3.IsEmpty());
 }
 
+TEST_F(ArrayAPI_Test, Partition)
+{
+    Array<int> arr = { 1, 2, 3, 4, 5, 6 };
+    auto [evens, odds] = arr.Partition([](int v) { return v % 2 == 0; });
+    EXPECT_EQ(evens.Len(), 3);
+    EXPECT_EQ(odds.Len(), 3);
+    EXPECT_EQ(evens[0], 2);
+    EXPECT_EQ(evens[1], 4);
+    EXPECT_EQ(evens[2], 6);
+    EXPECT_EQ(odds[0], 1);
+    EXPECT_EQ(odds[1], 3);
+    EXPECT_EQ(odds[2], 5);
+
+    // 모두 조건 통과
+    Array<int> arr2 = { 2, 4, 6 };
+    auto [all_pass, none] = arr2.Partition([](int v) { return v % 2 == 0; });
+    EXPECT_EQ(all_pass.Len(), 3);
+    EXPECT_EQ(none.Len(), 0);
+
+    // 아무것도 조건 미통과
+    Array<int> arr3 = { 1, 3, 5 };
+    auto [no_pass, all_fail] = arr3.Partition([](int v) { return v % 2 == 0; });
+    EXPECT_EQ(no_pass.Len(), 0);
+    EXPECT_EQ(all_fail.Len(), 3);
+
+    // 빈 배열
+    Array<int> empty;
+    auto [e1, e2] = empty.Partition([](int v) { return v > 0; });
+    EXPECT_EQ(e1.Len(), 0);
+    EXPECT_EQ(e2.Len(), 0);
+}
+
 TEST_F(StringAPI_Test, Construction)
 {
     String s1;
@@ -871,6 +903,32 @@ TEST_F(DequeAPI_Test, CopyAndMoveSemantics)
     EXPECT_TRUE(d3.IsEmpty());
 }
 
+TEST_F(DequeAPI_Test, Partition)
+{
+    Deque<int> d = { 1, 2, 3, 4, 5, 6 };
+    auto [evens, odds] = d.Partition([](int v) { return v % 2 == 0; });
+    EXPECT_EQ(evens.Len(), 3);
+    EXPECT_EQ(odds.Len(), 3);
+    EXPECT_EQ(evens[0], 2);
+    EXPECT_EQ(evens[1], 4);
+    EXPECT_EQ(evens[2], 6);
+    EXPECT_EQ(odds[0], 1);
+    EXPECT_EQ(odds[1], 3);
+    EXPECT_EQ(odds[2], 5);
+
+    // 모두 조건 통과
+    Deque<int> d2 = { 2, 4, 6 };
+    auto [all_pass, none] = d2.Partition([](int v) { return v % 2 == 0; });
+    EXPECT_EQ(all_pass.Len(), 3);
+    EXPECT_EQ(none.Len(), 0);
+
+    // 빈 Deque
+    Deque<int> empty;
+    auto [e1, e2] = empty.Partition([](int v) { return v > 0; });
+    EXPECT_EQ(e1.Len(), 0);
+    EXPECT_EQ(e2.Len(), 0);
+}
+
 TEST_F(HashMapAPI_Test, Construction)
 {
     HashMap<String, int> map1;
@@ -1029,6 +1087,48 @@ TEST_F(HashMapAPI_Test, Emplace)
     // Modify through returned reference
     val2 = "modified_value";
     EXPECT_EQ(*map.Find("key1"), "modified_value");
+}
+
+TEST_F(HashMapAPI_Test, FindBy)
+{
+    HashMap<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 } };
+
+    auto result = map.FindBy([](const String&, const int& v) { return v == 2; });
+    EXPECT_TRUE(result.HasValue());
+    EXPECT_EQ(result->second, 2);
+
+    auto no_result = map.FindBy([](const String&, const int& v) { return v == 99; });
+    EXPECT_FALSE(no_result.HasValue());
+
+    const HashMap<String, int>& const_map = map;
+    auto const_result = const_map.FindBy([](const String&, const int& v) { return v == 3; });
+    EXPECT_TRUE(const_result.HasValue());
+    EXPECT_EQ(const_result->second, 3);
+
+    // 빈 맵
+    HashMap<String, int> empty_map;
+    EXPECT_FALSE(empty_map.FindBy([](const String&, const int&) { return true; }).HasValue());
+}
+
+TEST_F(HashMapAPI_Test, ToArray)
+{
+    HashMap<String, int> map = { { "a", 1 }, { "b", 2 }, { "c", 3 } };
+    auto arr = map.ToArray();
+    EXPECT_EQ(arr.Len(), 3);
+    bool found_a = false, found_b = false, found_c = false;
+    for (const auto& pair : arr)
+    {
+        if (pair.first == "a" && pair.second == 1) { found_a = true; }
+        if (pair.first == "b" && pair.second == 2) { found_b = true; }
+        if (pair.first == "c" && pair.second == 3) { found_c = true; }
+    }
+    EXPECT_TRUE(found_a);
+    EXPECT_TRUE(found_b);
+    EXPECT_TRUE(found_c);
+
+    // 빈 맵
+    HashMap<String, int> empty_map;
+    EXPECT_EQ(empty_map.ToArray().Len(), 0);
 }
 
 TEST_F(MapAPI_Test, Construction)
@@ -1216,6 +1316,68 @@ TEST_F(MapAPI_Test, Front_Back_Bounds)
     EXPECT_FALSE(empty_map.Back().HasValue());
     EXPECT_FALSE(empty_map.LowerBoundEntry(1).HasValue());
     EXPECT_FALSE(empty_map.UpperBoundEntry(1).HasValue());
+}
+
+TEST_F(MapAPI_Test, PopFrontAndPopBack)
+{
+    Map<int, String> map = { { 10, "ten" }, { 20, "twenty" }, { 30, "thirty" } };
+
+    auto front = map.PopFront();
+    EXPECT_TRUE(front.HasValue());
+    EXPECT_EQ(front->first, 10);
+    EXPECT_EQ(front->second, "ten");
+    EXPECT_EQ(map.Len(), 2);
+    EXPECT_FALSE(map.Contains(10));
+
+    auto back = map.PopBack();
+    EXPECT_TRUE(back.HasValue());
+    EXPECT_EQ(back->first, 30);
+    EXPECT_EQ(back->second, "thirty");
+    EXPECT_EQ(map.Len(), 1);
+
+    map.PopFront();
+    EXPECT_TRUE(map.IsEmpty());
+
+    // 빈 맵
+    EXPECT_FALSE(map.PopFront().HasValue());
+    EXPECT_FALSE(map.PopBack().HasValue());
+}
+
+TEST_F(MapAPI_Test, FindBy)
+{
+    Map<int, String> map = { { 1, "one" }, { 2, "two" }, { 3, "three" } };
+
+    auto result = map.FindBy([](const int&, const String& v) { return v == "two"; });
+    EXPECT_TRUE(result.HasValue());
+    EXPECT_EQ(result->first, 2);
+    EXPECT_EQ(result->second, "two");
+
+    auto no_result = map.FindBy([](const int&, const String& v) { return v == "four"; });
+    EXPECT_FALSE(no_result.HasValue());
+
+    const Map<int, String>& const_map = map;
+    auto const_result = const_map.FindBy([](const int&, const String& v) { return v == "one"; });
+    EXPECT_TRUE(const_result.HasValue());
+    EXPECT_EQ(const_result->first, 1);
+
+    // 빈 맵
+    Map<int, String> empty_map;
+    EXPECT_FALSE(empty_map.FindBy([](const int&, const String&) { return true; }).HasValue());
+}
+
+TEST_F(MapAPI_Test, ToArray)
+{
+    Map<int, String> map = { { 3, "three" }, { 1, "one" }, { 2, "two" } };
+    auto arr = map.ToArray();
+    EXPECT_EQ(arr.Len(), 3);
+    // Map은 정렬된 순서 보장
+    EXPECT_EQ(arr[0].first, 1);
+    EXPECT_EQ(arr[1].first, 2);
+    EXPECT_EQ(arr[2].first, 3);
+
+    // 빈 맵
+    Map<int, String> empty_map;
+    EXPECT_EQ(empty_map.ToArray().Len(), 0);
 }
 
 TEST_F(HashSetAPI_Test, DefaultConstruction)
