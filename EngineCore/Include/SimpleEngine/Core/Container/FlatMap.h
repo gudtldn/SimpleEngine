@@ -40,10 +40,10 @@ public:
     using PairType = std::pair<const Key, Value>;
     using SizeType = usize;
 
-    using IteratorType = Array<MutablePairType, Allocator>::IteratorType;
-    using ConstIteratorType = Array<MutablePairType, Allocator>::ConstIteratorType;
-    using ReverseIteratorType = Array<MutablePairType, Allocator>::ReverseIteratorType;
-    using ConstReverseIteratorType = Array<MutablePairType, Allocator>::ConstReverseIteratorType;
+    using IteratorType = PairType*;
+    using ConstIteratorType = const PairType*;
+    using ReverseIteratorType = std::reverse_iterator<PairType*>;
+    using ConstReverseIteratorType = std::reverse_iterator<const PairType*>;
 
     using EntryType = FlatMapEntry<FlatMap>;
 
@@ -150,10 +150,10 @@ public:
     [[nodiscard]] Optional<const PairType&> Back() const noexcept;
 
     /** 가장 작은 키를 가진 요소를 제거하고 반환합니다. */
-    [[nodiscard]] Optional<PairType> PopFront();
+    Optional<PairType> PopFront();
 
     /** 가장 큰 키를 가진 요소를 제거하고 반환합니다. */
-    [[nodiscard]] Optional<PairType> PopBack();
+    Optional<PairType> PopBack();
 
     /**
      * 주어진 키보다 크거나 같은 첫 번째 요소를 찾습니다.

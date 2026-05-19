@@ -148,7 +148,7 @@ typename FlatMap<Key, Value, Pred, Allocator>::EntryType FlatMap<Key, Value, Pre
     auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
     if (it != internal_array.end() && !pair_compare.compare(key, it->first))
     {
-        return EntryType(typename EntryType::OccupiedEntry(it, this));
+        return EntryType(typename EntryType::OccupiedEntry(reinterpret_cast<IteratorType>(it), this));
     }
     return EntryType(typename EntryType::VacantEntry(key, this));
 }
@@ -159,7 +159,7 @@ typename FlatMap<Key, Value, Pred, Allocator>::EntryType FlatMap<Key, Value, Pre
     auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
     if (it != internal_array.end() && !pair_compare.compare(key, it->first))
     {
-        return EntryType(typename EntryType::OccupiedEntry(it, this));
+        return EntryType(typename EntryType::OccupiedEntry(reinterpret_cast<IteratorType>(it), this));
     }
     return EntryType(typename EntryType::VacantEntry(std::move(key), this));
 }
@@ -425,48 +425,48 @@ void FlatMap<Key, Value, Pred, Allocator>::Swap(FlatMap& other) noexcept
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::IteratorType FlatMap<Key, Value, Pred, Allocator>::begin() noexcept
 {
-    return internal_array.begin();
+    return reinterpret_cast<IteratorType>(internal_array.begin());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::IteratorType FlatMap<Key, Value, Pred, Allocator>::end() noexcept
 {
-    return internal_array.end();
+    return reinterpret_cast<IteratorType>(internal_array.end());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ConstIteratorType FlatMap<Key, Value, Pred, Allocator>::begin() const noexcept
 {
-    return internal_array.begin();
+    return reinterpret_cast<ConstIteratorType>(internal_array.begin());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ConstIteratorType FlatMap<Key, Value, Pred, Allocator>::end() const noexcept
 {
-    return internal_array.end();
+    return reinterpret_cast<ConstIteratorType>(internal_array.end());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rbegin() noexcept
 {
-    return internal_array.rbegin();
+    return std::make_reverse_iterator(end());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rend() noexcept
 {
-    return internal_array.rend();
+    return std::make_reverse_iterator(begin());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ConstReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rbegin() const noexcept
 {
-    return internal_array.rbegin();
+    return std::make_reverse_iterator(end());
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 typename FlatMap<Key, Value, Pred, Allocator>::ConstReverseIteratorType FlatMap<Key, Value, Pred, Allocator>::rend() const noexcept
 {
-    return internal_array.rend();
+    return std::make_reverse_iterator(begin());
 }
 } // namespace se
