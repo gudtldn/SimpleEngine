@@ -56,7 +56,7 @@ public:
         [[nodiscard]] ValueType Remove()
         {
             ValueType value = std::move(iter->second);
-            map_ptr->internal_array.RemoveAt(std::distance(map_ptr->internal_array.begin(), iter));
+            map_ptr->internal_array.RemoveAt(iter - map_ptr->begin());
             return value;
         }
 
