@@ -116,7 +116,7 @@ namespace se::benchmark_test
         for (auto _ : state)
         {
             int64_t sum = 0;
-            for (auto& pair : map)
+            for (auto&& pair : map)
             {
                 sum += pair.second;
             }

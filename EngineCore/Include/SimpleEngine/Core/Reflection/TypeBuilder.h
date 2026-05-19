@@ -447,7 +447,7 @@ private:
         {
             auto& container = *static_cast<Container*>(c);
             usize idx = 0;
-            for (auto& [key, value] : container)
+            for (auto&& [key, value] : container)
             {
                 // Map의 key는 const이므로 표시 전용으로 const_cast
                 if (!callback(idx, const_cast<KeyType*>(&key), &value, user))

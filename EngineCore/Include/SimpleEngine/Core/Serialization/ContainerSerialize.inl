@@ -126,7 +126,7 @@ void SerializeMapContainer(Archive& ar, Container& container)
     }
     else
     {
-        for (auto& [key, value] : container)
+        for (auto&& [key, value] : container)
         {
             ar.BeginMapKey();
             ar << key;

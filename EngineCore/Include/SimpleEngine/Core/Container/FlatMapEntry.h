@@ -1,11 +1,11 @@
 #pragma once
 
-#include <iterator>
+#include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Utility/Debug.h"
+
 #include <utility>
 #include <variant>
-
-#include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 
 namespace se
@@ -16,7 +16,7 @@ class FlatMapEntry
 private:
     friend FlatMapType;
 
-    using IteratorType = FlatMapType::IteratorType;
+    using SizeType = FlatMapType::SizeType;
     using KeyType = FlatMapType::KeyType;
     using ValueType = FlatMapType::ValueType;
 
@@ -27,16 +27,16 @@ public:
         friend FlatMapType;
         friend class FlatMapEntry;
 
-        OccupiedEntry(IteratorType it, FlatMapType* ptr)
-            : iter(it)
+        OccupiedEntry(SizeType idx, FlatMapType* ptr)
+            : index(idx)
             , map_ptr(ptr)
         {
         }
 
     public:
-        [[nodiscard]] const KeyType& Key() const noexcept { return iter->first; }
-        [[nodiscard]] ValueType& Value() noexcept { return iter->second; }
-        [[nodiscard]] const ValueType& Value() const noexcept { return iter->second; }
+        [[nodiscard]] const KeyType& Key() const noexcept { return map_ptr->keys[index]; }
+        [[nodiscard]] ValueType& Value() noexcept { return map_ptr->values[index]; }
+        [[nodiscard]] const ValueType& Value() const noexcept { return map_ptr->values[index]; }
 
         /** 값을 덮어쓰고, 이전 값을 반환합니다. */
         [[nodiscard]] ValueType Set(const ValueType& new_value)
@@ -47,21 +47,22 @@ public:
         /** 값을 덮어쓰고, 이전 값을 반환합니다. */
         [[nodiscard]] ValueType Set(ValueType&& new_value)
         {
-            ValueType old_value = std::move(iter->second);
-            iter->second = std::move(new_value);
+            ValueType old_value = std::move(map_ptr->values[index]);
+            map_ptr->values[index] = std::move(new_value);
             return old_value;
         }
 
         /** 해당 엔트리를 제거하고, 값의 소유권을 반환합니다. */
         [[nodiscard]] ValueType Remove()
         {
-            ValueType value = std::move(iter->second);
-            map_ptr->internal_array.RemoveAt(iter - map_ptr->begin());
+            ValueType value = std::move(map_ptr->values[index]);
+            map_ptr->keys.RemoveAt(index);
+            map_ptr->values.RemoveAt(index);
             return value;
         }
 
     private:
-        IteratorType iter;
+        SizeType index;
         FlatMapType* map_ptr;
     };
 

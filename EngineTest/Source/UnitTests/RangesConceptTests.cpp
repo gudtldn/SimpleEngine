@@ -15,7 +15,7 @@ static_assert(std::ranges::contiguous_range<se::Array<int>>);
 static_assert(std::ranges::random_access_range<se::Array<int>>);
 static_assert(std::ranges::random_access_range<se::Deque<int>>);
 static_assert(std::ranges::bidirectional_range<se::Map<int, int>>);
-static_assert(std::ranges::bidirectional_range<se::FlatMap<int, int>>);
+static_assert(std::ranges::random_access_range<se::FlatMap<int, int>>);
 static_assert(std::ranges::forward_range<se::HashMap<int, int>>);
 static_assert(std::ranges::bidirectional_range<se::Set<int>>);
 static_assert(std::ranges::bidirectional_range<se::FlatSet<int>>);

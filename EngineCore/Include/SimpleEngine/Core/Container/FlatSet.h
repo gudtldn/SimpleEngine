@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Memory/Allocators.h"
 
 
 namespace se
@@ -11,12 +10,12 @@ namespace se
  * 정렬된 Array 기반의 고유 원소 집합 컨테이너
  * @tparam T 요소의 타입
  * @tparam Pred 키 비교 함수의 타입
- * @tparam Allocator 메모리 할당자 타입
+ * @tparam Container 내부 저장 컨테이너 타입
  */
 template <
     typename T,
     typename Pred = std::less<T>,
-    typename Allocator = DefaultAllocator<T>
+    typename Container = Array<T>
 >
 class FlatSet
 {
@@ -24,10 +23,10 @@ public:
     using ValueType = T;
     using SizeType = usize;
 
-    using IteratorType = Array<T, Allocator>::IteratorType;
-    using ConstIteratorType = Array<T, Allocator>::ConstIteratorType;
-    using ReverseIteratorType = Array<T, Allocator>::ReverseIteratorType;
-    using ConstReverseIteratorType = Array<T, Allocator>::ConstReverseIteratorType;
+    using IteratorType = Container::IteratorType;
+    using ConstIteratorType = Container::ConstIteratorType;
+    using ReverseIteratorType = Container::ReverseIteratorType;
+    using ConstReverseIteratorType = Container::ConstReverseIteratorType;
 
 public:
     FlatSet() = default;
@@ -107,7 +106,7 @@ public:
      * 내부 배열에 대한 참조를 반환합니다.
      * @return 정렬된 내부 배열의 참조
      */
-    [[nodiscard]] const Array<T, Allocator>& GetArray() const noexcept;
+    [[nodiscard]] const Container& GetArray() const noexcept;
 
     /**
      * FlatSet에 포함된 모든 요소를 담은 새로운 Array를 생성하여 반환합니다.
@@ -158,7 +157,7 @@ public:
     }
 
 private:
-    Array<T, Allocator> internal_array;
+    Container internal_array;
     NO_UNIQUE_ADDRESS Pred compare;
 };
 } // namespace se

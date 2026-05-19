@@ -15,8 +15,8 @@ template <typename Key, typename Value, typename Hasher, typename KeyEq, typenam
 template <typename T, typename Hasher, typename KeyEq, typename Allocator> class HashSet;
 template <typename Key, typename Value, typename Pred, typename Allocator> class Map;
 template <typename T, typename Pred, typename Allocator> class Set;
-template <typename Key, typename Value, typename Pred, typename Allocator> class FlatMap;
-template <typename T, typename Pred, typename Allocator> class FlatSet;
+template <typename Key, typename Value, typename Pred, typename KeyContainer, typename ValueContainer> class FlatMap;
+template <typename T, typename Pred, typename Container> class FlatSet;
 } // namespace se
 
 

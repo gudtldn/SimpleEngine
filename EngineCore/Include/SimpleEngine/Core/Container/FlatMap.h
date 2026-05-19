@@ -3,49 +3,51 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/FlatMapEntry.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/PairingIterator.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Memory/Allocators.h"
 
 
 namespace se
 {
 /**
- * 정렬된 Array 기반의 Key-Value 컨테이너
+ * 정렬된 SoA(Structure of Arrays) 기반의 Key-Value 컨테이너
  *
  * @tparam Key 키의 타입
  * @tparam Value 값의 타입
  * @tparam Pred 키 비교 함수의 타입
- * @tparam Allocator 메모리 할당자 타입
+ * @tparam KeyContainer 키 컨테이너 타입
+ * @tparam ValueContainer 값 컨테이너 타입
  */
 template <
     typename Key,
     typename Value,
     typename Pred = std::less<Key>,
-    typename Allocator = DefaultAllocator<std::pair<Key, Value>>
+    typename KeyContainer = Array<Key>,
+    typename ValueContainer = Array<Value>
 >
 class FlatMap
 {
 private:
     friend class FlatMapEntry<FlatMap>;
 
-    /**
-     * 내부 배열 저장 타입
-     * 삽입/정렬 시 이동 대입이 필요하므로 Key를 mutable로 유지합니다.
-     */
-    using MutablePairType = std::pair<Key, Value>;
-
 public:
     using KeyType = Key;
     using ValueType = Value;
-    using PairType = std::pair<const Key, Value>;
+    using PairType = std::pair<Key, Value>;
     using SizeType = usize;
 
-    using IteratorType = PairType*;
-    using ConstIteratorType = const PairType*;
-    using ReverseIteratorType = std::reverse_iterator<PairType*>;
-    using ConstReverseIteratorType = std::reverse_iterator<const PairType*>;
+    using ReferenceType = std::pair<const Key&, Value&>;
+    using ConstReferenceType = std::pair<const Key&, const Value&>;
+
+    using IteratorType = PairingIterator<const Key*, Value*>;
+    using ConstIteratorType = PairingIterator<const Key*, const Value*>;
+    using ReverseIteratorType = std::reverse_iterator<IteratorType>;
+    using ConstReverseIteratorType = std::reverse_iterator<ConstIteratorType>;
 
     using EntryType = FlatMapEntry<FlatMap>;
+
+private:
+    using MutableIteratorType = PairingIterator<Key*, Value*>;
 
 public:
     FlatMap() = default;
@@ -124,7 +126,7 @@ public:
 
     /**
      * Key에 해당하는 값을 찾습니다.
-     * @warning 키가 존재하지 않으면 SE_UNREACHABLE()을 통해 프로그램이 종료됩니다.
+     * @warning 키가 존재하지 않으면 SE_ASSERT_RELEASE를 통해 프로그램이 종료됩니다.
      *
      * @param key 검색할 Key
      * @return 값에 대한 참조
@@ -132,22 +134,22 @@ public:
     [[nodiscard]] ValueType& FindChecked(const KeyType& key);
     [[nodiscard]] const ValueType& FindChecked(const KeyType& key) const;
 
-    /** 조건자를 만족하는 첫 번째 키-값 쌍에 대한 Optional 참조를 반환합니다. O(N) 선형 탐색입니다. */
+    /** 조건자를 만족하는 첫 번째 키-값 쌍에 대한 Optional 프록시 참조를 반환합니다. O(N) 선형 탐색입니다. */
     template <typename Predicate>
         requires std::predicate<Predicate, const Key&, const Value&>
-    [[nodiscard]] Optional<PairType&> FindBy(Predicate&& pred);
+    [[nodiscard]] Optional<ReferenceType> FindBy(Predicate&& pred);
 
     template <typename Predicate>
         requires std::predicate<Predicate, const Key&, const Value&>
-    [[nodiscard]] Optional<const PairType&> FindBy(Predicate&& pred) const;
+    [[nodiscard]] Optional<ConstReferenceType> FindBy(Predicate&& pred) const;
 
-    /** 가장 작은 키를 가진 요소의 참조를 Optional로 반환합니다. */
-    [[nodiscard]] Optional<PairType&> Front() noexcept;
-    [[nodiscard]] Optional<const PairType&> Front() const noexcept;
+    /** 가장 작은 키를 가진 요소의 프록시 참조를 Optional로 반환합니다. */
+    [[nodiscard]] Optional<ReferenceType> Front() noexcept;
+    [[nodiscard]] Optional<ConstReferenceType> Front() const noexcept;
 
-    /** 가장 큰 키를 가진 요소의 참조를 Optional로 반환합니다. */
-    [[nodiscard]] Optional<PairType&> Back() noexcept;
-    [[nodiscard]] Optional<const PairType&> Back() const noexcept;
+    /** 가장 큰 키를 가진 요소의 프록시 참조를 Optional로 반환합니다. */
+    [[nodiscard]] Optional<ReferenceType> Back() noexcept;
+    [[nodiscard]] Optional<ConstReferenceType> Back() const noexcept;
 
     /** 가장 작은 키를 가진 요소를 제거하고 반환합니다. */
     Optional<PairType> PopFront();
@@ -157,20 +159,20 @@ public:
 
     /**
      * 주어진 키보다 크거나 같은 첫 번째 요소를 찾습니다.
-     * @return 키-값 쌍에 대한 Optional 참조
+     * @return 키-값 쌍에 대한 Optional 프록시 참조
      */
-    [[nodiscard]] Optional<PairType&> LowerBoundEntry(const KeyType& key);
-    [[nodiscard]] Optional<const PairType&> LowerBoundEntry(const KeyType& key) const;
+    [[nodiscard]] Optional<ReferenceType> LowerBoundEntry(const KeyType& key);
+    [[nodiscard]] Optional<ConstReferenceType> LowerBoundEntry(const KeyType& key) const;
 
     /**
      * 주어진 키보다 큰 첫 번째 요소를 찾습니다.
-     * @return 키-값 쌍에 대한 Optional 참조
+     * @return 키-값 쌍에 대한 Optional 프록시 참조
      */
-    [[nodiscard]] Optional<PairType&> UpperBoundEntry(const KeyType& key);
-    [[nodiscard]] Optional<const PairType&> UpperBoundEntry(const KeyType& key) const;
+    [[nodiscard]] Optional<ReferenceType> UpperBoundEntry(const KeyType& key);
+    [[nodiscard]] Optional<ConstReferenceType> UpperBoundEntry(const KeyType& key) const;
 
     /**
-     * 특정 Key가 FlatMap에 포함되어 있는지 확인합니다
+     * 특정 Key가 FlatMap에 포함되어 있는지 확인합니다.
      * @param key 확인할 Key
      */
     [[nodiscard]] bool Contains(const KeyType& key) const;
@@ -261,22 +263,12 @@ public:
     }
 
 private:
-    struct PairCompare
-    {
-        NO_UNIQUE_ADDRESS Pred compare;
-        bool operator()(const MutablePairType& lhs, const KeyType& rhs) const { return compare(lhs.first, rhs); }
-        bool operator()(const KeyType& lhs, const MutablePairType& rhs) const { return compare(lhs, rhs.first); }
-        bool operator()(const MutablePairType& lhs, const MutablePairType& rhs) const { return compare(lhs.first, rhs.first); }
-    };
+    /** 내부 정렬 및 중복 제거를 수행합니다. */
+    void SortAndDeduplicate();
 
-    /** 내부 저장 타입(MutablePairType)을 공개 API 타입(PairType)으로 변환합니다. */
-    static PairType& AsPairType(MutablePairType& p) noexcept
-    {
-        return reinterpret_cast<PairType&>(p);
-    }
-
-    Array<MutablePairType, Allocator> internal_array;
-    NO_UNIQUE_ADDRESS PairCompare pair_compare;
+    KeyContainer keys;
+    ValueContainer values;
+    NO_UNIQUE_ADDRESS Pred compare;
 };
 } // namespace se
 
