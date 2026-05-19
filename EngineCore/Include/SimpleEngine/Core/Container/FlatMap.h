@@ -28,16 +28,22 @@ class FlatMap
 private:
     friend class FlatMapEntry<FlatMap>;
 
+    /**
+     * 내부 배열 저장 타입
+     * 삽입/정렬 시 이동 대입이 필요하므로 Key를 mutable로 유지합니다.
+     */
+    using MutablePairType = std::pair<Key, Value>;
+
 public:
     using KeyType = Key;
     using ValueType = Value;
-    using PairType = std::pair<Key, Value>;
+    using PairType = std::pair<const Key, Value>;
     using SizeType = usize;
 
-    using IteratorType = Array<PairType, Allocator>::IteratorType;
-    using ConstIteratorType = Array<PairType, Allocator>::ConstIteratorType;
-    using ReverseIteratorType = Array<PairType, Allocator>::ReverseIteratorType;
-    using ConstReverseIteratorType = Array<PairType, Allocator>::ConstReverseIteratorType;
+    using IteratorType = Array<MutablePairType, Allocator>::IteratorType;
+    using ConstIteratorType = Array<MutablePairType, Allocator>::ConstIteratorType;
+    using ReverseIteratorType = Array<MutablePairType, Allocator>::ReverseIteratorType;
+    using ConstReverseIteratorType = Array<MutablePairType, Allocator>::ConstReverseIteratorType;
 
     using EntryType = FlatMapEntry<FlatMap>;
 
@@ -258,12 +264,18 @@ private:
     struct PairCompare
     {
         NO_UNIQUE_ADDRESS Pred compare;
-        bool operator()(const PairType& lhs, const KeyType& rhs) const { return compare(lhs.first, rhs); }
-        bool operator()(const KeyType& lhs, const PairType& rhs) const { return compare(lhs, rhs.first); }
-        bool operator()(const PairType& lhs, const PairType& rhs) const { return compare(lhs.first, rhs.first); }
+        bool operator()(const MutablePairType& lhs, const KeyType& rhs) const { return compare(lhs.first, rhs); }
+        bool operator()(const KeyType& lhs, const MutablePairType& rhs) const { return compare(lhs, rhs.first); }
+        bool operator()(const MutablePairType& lhs, const MutablePairType& rhs) const { return compare(lhs.first, rhs.first); }
     };
 
-    Array<PairType, Allocator> internal_array;
+    /** 내부 저장 타입(MutablePairType)을 공개 API 타입(PairType)으로 변환합니다. */
+    static PairType& AsPairType(MutablePairType& p) noexcept
+    {
+        return reinterpret_cast<PairType&>(p);
+    }
+
+    Array<MutablePairType, Allocator> internal_array;
     NO_UNIQUE_ADDRESS PairCompare pair_compare;
 };
 } // namespace se

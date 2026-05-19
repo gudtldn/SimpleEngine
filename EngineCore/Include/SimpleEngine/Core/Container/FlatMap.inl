@@ -14,11 +14,16 @@ namespace se
 {
 template <typename Key, typename Value, typename Pred, typename Allocator>
 FlatMap<Key, Value, Pred, Allocator>::FlatMap(std::initializer_list<PairType> init_list)
-    : internal_array(init_list)
 {
+    internal_array.Reserve(init_list.size());
+    for (const PairType& p : init_list)
+    {
+        internal_array.Push(MutablePairType{ p.first, p.second });
+    }
+
     std::sort(internal_array.begin(), internal_array.end(), pair_compare);
     // 중복 키 제거
-    auto unique_end = std::unique(internal_array.begin(), internal_array.end(), [this](const PairType& lhs, const PairType& rhs)
+    auto unique_end = std::unique(internal_array.begin(), internal_array.end(), [this](const MutablePairType& lhs, const MutablePairType& rhs)
     {
         return !pair_compare.compare(lhs.first, rhs.first) && !pair_compare.compare(rhs.first, lhs.first);
     });
@@ -31,7 +36,7 @@ FlatMap<Key, Value, Pred, Allocator>::FlatMap(It first, Sent last)
     : internal_array(first, last)
 {
     std::sort(internal_array.begin(), internal_array.end(), pair_compare);
-    auto unique_end = std::unique(internal_array.begin(), internal_array.end(), [this](const PairType& lhs, const PairType& rhs)
+    auto unique_end = std::unique(internal_array.begin(), internal_array.end(), [this](const MutablePairType& lhs, const MutablePairType& rhs)
     {
         return !pair_compare.compare(lhs.first, rhs.first) && !pair_compare.compare(rhs.first, lhs.first);
     });
@@ -206,7 +211,7 @@ Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, 
     {
         if (pred(pair.first, pair.second))
         {
-            return pair;
+            return AsPairType(pair);
         }
     }
     return NullOpt;
@@ -221,7 +226,7 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap
     {
         if (pred(pair.first, pair.second))
         {
-            return pair;
+            return reinterpret_cast<const PairType&>(pair);
         }
     }
     return NullOpt;
@@ -230,25 +235,37 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap
 template <typename Key, typename Value, typename Pred, typename Allocator>
 Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Front() noexcept
 {
-    return internal_array.Front();
+    return internal_array.Front().Map([](MutablePairType& pair) -> PairType&
+    {
+        return AsPairType(pair);
+    });
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Front() const noexcept
 {
-    return internal_array.Front();
+    return internal_array.Front().Map([](const MutablePairType& pair) -> const PairType&
+    {
+        return reinterpret_cast<const PairType&>(pair);
+    });
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Back() noexcept
 {
-    return internal_array.Back();
+    return internal_array.Back().Map([](MutablePairType& pair) -> PairType&
+    {
+        return AsPairType(pair);
+    });
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
 Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, Value, Pred, Allocator>::Back() const noexcept
 {
-    return internal_array.Back();
+    return internal_array.Back().Map([](const MutablePairType& pair) -> const PairType&
+    {
+        return reinterpret_cast<const PairType&>(pair);
+    });
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
@@ -279,7 +296,7 @@ Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, 
     auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
     if (it != internal_array.end())
     {
-        return *it;
+        return AsPairType(*it);
     }
     return NullOpt;
 }
@@ -290,7 +307,7 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap
     auto it = std::lower_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
     if (it != internal_array.end())
     {
-        return *it;
+        return reinterpret_cast<const PairType&>(*it);
     }
     return NullOpt;
 }
@@ -301,7 +318,7 @@ Optional<typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap<Key, 
     auto it = std::upper_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
     if (it != internal_array.end())
     {
-        return *it;
+        return AsPairType(*it);
     }
     return NullOpt;
 }
@@ -312,7 +329,7 @@ Optional<const typename FlatMap<Key, Value, Pred, Allocator>::PairType&> FlatMap
     auto it = std::upper_bound(internal_array.begin(), internal_array.end(), key, pair_compare);
     if (it != internal_array.end())
     {
-        return *it;
+        return reinterpret_cast<const PairType&>(*it);
     }
     return NullOpt;
 }
@@ -340,7 +357,7 @@ template <typename Predicate>
     requires std::predicate<Predicate, const Key&, const Value&>
 typename FlatMap<Key, Value, Pred, Allocator>::SizeType FlatMap<Key, Value, Pred, Allocator>::RemoveIf(Predicate&& pred)
 {
-    return internal_array.RemoveIf([&pred](const PairType& pair)
+    return internal_array.RemoveIf([&pred](const MutablePairType& pair)
     {
         return std::forward<Predicate>(pred)(pair.first, pair.second);
     });
@@ -377,7 +394,13 @@ Array<T> FlatMap<Key, Value, Pred, Allocator>::Values() const
 template <typename Key, typename Value, typename Pred, typename Allocator>
 Array<typename FlatMap<Key, Value, Pred, Allocator>::PairType> FlatMap<Key, Value, Pred, Allocator>::ToArray() const
 {
-    return internal_array;
+    Array<PairType> result;
+    result.Reserve(Len());
+    for (const auto& pair : internal_array)
+    {
+        result.Push(pair);
+    }
+    return result;
 }
 
 template <typename Key, typename Value, typename Pred, typename Allocator>
