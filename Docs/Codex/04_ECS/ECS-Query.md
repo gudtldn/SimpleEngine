@@ -8,7 +8,6 @@ tags:
   - tmp
   - cpp
 ---
-
 # ECS Query 시스템 - TMP와 Concepts 기반 타입 안전 순회
 
 > **한 줄 요약:** `Query<Ts...>` 하나로 컴포넌트 조합, 읽기/쓰기 권한, 필터 조건을 컴파일 타임에 검증하고, `index_sequence` 기반 언팩킹을 통해 런타임 오버헤드 없이 데이터를 추출한다.

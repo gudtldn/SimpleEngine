@@ -11,7 +11,7 @@ tags:
 
 > **한 줄 요약:** 단순 기능으로는 `utf8cpp`로도 충분했지만, 제대로 된 국제화(i18n)를 지원하려다 `ICU4C`의 바이너리 비대화와 UTF-16 오버헤드에 데인 후, 최종적으로 Rust 기반의 UTF-8 네이티브인 `ICU4X`에 정착했다.
 
-**Code Entry Point** - 이 결정의 흔적을 보려면 여기부터:
+**코드 진입점:**
 
 - `Tools/CMake/SEDependencies.cmake` - Corrosion + icu4x_src FetchContent 설정
 - `EngineCore/CMakeLists.txt` - ICU4X C++ FFI 바인딩 헤더 include path 설정
@@ -155,7 +155,7 @@ Corrosion을 통해 Rust crate를 CMake에 통합하는 과정은 생각보다 �
 
 ---
 
-## 6. 참고
+## 참고
 
 - [ICU4X GitHub](https://github.com/unicode-org/icu4x)
 - [Corrosion Github](https://github.com/corrosion-rs/corrosion)
