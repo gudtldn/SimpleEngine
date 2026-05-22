@@ -131,7 +131,36 @@ SystemChain(MovementSystem, RenderSystem)
 
 ---
 
-## 5. Command Buffer (지연 실행)
+## 5. Stage와 Phase - 실행 스케줄 구조
+
+`Schedule`은 System 목록을 순서대로 실행하는 실행기이고, `ScheduleStage`는 Phase 라벨, Schedule, 실행 모드(Mode)를 하나로 묶은 단위다. 하나의 `WorldContext`가 여러 `ScheduleStage`를 순서대로 실행하며, 각 Stage의 Mode에 따라 실행 횟수가 결정된다.
+
+| 모드 | 동작 |
+| --- | --- |
+| `Once` | 해당 프레임에 한 번 실행되며, 프레임 내 모든 Stage가 완료된 후 일괄 제거 (씬 초기화 등) |
+| `EveryFrame` | 매 프레임 실행 |
+| `FixedTimestep` | 누적된 고정 시간만큼 반복 실행 (물리 시뮬레이션) |
+
+엔진은 기본적으로 5개의 Phase를 순서대로 실행한다.
+
+| 순서 | Phase | Mode | 용도 |
+| --- | :---: | --- | --- |
+| 1 | `StartupPhase` | Once | 초기 리소스 로드, 씬 구성 |
+| 2 | `PreUpdatePhase` | EveryFrame | 입력 처리, 이벤트 수집 |
+| 3 | `FixedUpdatePhase` | FixedTimestep | 물리 시뮬레이션 |
+| 4 | `UpdatePhase` | EveryFrame | 게임 로직 |
+| 5 | `PostUpdatePhase` | EveryFrame | 렌더링 준비, 정리 |
+
+커스텀 Phase는 기존 Phase를 기준으로 삽입할 수 있다.
+
+```cpp
+ctx.AddStageAfter<UpdatePhase, MyCustomPhase>(EScheduleMode::EveryFrame);
+ctx.AddStageBefore<PostUpdatePhase, LateUpdatePhase>(EScheduleMode::EveryFrame);
+```
+
+---
+
+## 6. Command Buffer (지연 실행)
 
 System 실행 도중(순회 중)에 엔티티를 생성/삭제하거나 컴포넌트를 부착/제거하면 현재 순회 중인 Sparse Set 배열의 구조가 변경되어 이터레이터 무효화(Iterator Invalidation)가 발생한다.
 
@@ -153,7 +182,7 @@ void SpawnSystem(Query<const SpawnRequest&> requests, Commands commands)
 
 ---
 
-## 6. ECSRegistry (타입 소거 기반 런타임 제어)
+## 7. ECSRegistry (타입 소거 기반 런타임 제어)
 
 에디터의 인스펙터(Inspector)나 리플렉션 시스템은 런타임에 컴파일 타임 타입 정보(`T`) 없이 컴포넌트를 조작해야 한다. `ECSRegistry`는 이를 위해 각 타입의 제어 함수(Add, Remove, Get 등)를 람다로 캡처하여 `ComponentOps` 구조체로 저장하는 싱글톤 레지스트리이다.
 
@@ -174,7 +203,7 @@ if (auto ops = ECSRegistry::Get().GetComponentOps(type_id))
 
 ---
 
-## 7. 한계 및 미래 과제
+## 8. 한계 및 미래 과제
 
 - **Archetype 미구현:** 현재 설계된 Sparse Set 방식은 특정 엔티티 집합이 여러 개의 컴포넌트를 동시에 가질 때(예: Position과 Velocity), 각 컴포넌트의 풀을 별개로 조회해야 한다. 이를 극복하기 위해 동일 컴포넌트 조합을 하나의 블록으로 묶는 Archetype(Flecs 방식) 구조의 도입이 필요하다.
 - **멀티스레드 System 실행 부재:** 현재 Schedule은 시스템들을 단일 스레드에서 순차적으로 처리한다. System 매개변수(`Query`)의 읽기/쓰기 권한을 분석하여 데이터 의존성이 없는 시스템들을 추출, Job System의 Task Graph와 연동하여 병렬 실행하는 고도화가 요구된다.
