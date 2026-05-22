@@ -262,6 +262,7 @@ JobSystem::Get().DispatchToMain([]{ UpdateUI(); });
 
 ## 참고
 
+- [비동기/병렬 아키텍처 전면 개편 (Work-Stealing & Zero-Cost Coroutines) PR #18](https://github.com/gudtldn/SimpleEngine/pull/18)
 - [Chase-Lev Deque 원논문 (2005)](https://www.dre.vanderbilt.edu/~schmidt/PDF/work-stealing-dequeue.pdf)
 - [Weak Memory Model 최적화 (Lê et al., 2013)](https://inria.hal.science/hal-00802885/document)
 - [Vyukov MPSC Queue](https://web.archive.org/web/20210124182030/http://www.1024cores.net/home/lock-free-algorithms/queues/non-intrusive-mpsc-node-based-queue)
