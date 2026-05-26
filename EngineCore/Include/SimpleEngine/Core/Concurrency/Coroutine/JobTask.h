@@ -36,11 +36,9 @@ class PromiseReturnMixin
     PromiseReturnMixin() = default;
 
 public:
-    template <typename U>
-        requires std::convertible_to<U, T>
-    void return_value(U&& value)
+    void return_value(T value)
     {
-        static_cast<Derived*>(this)->storage.Emplace(std::forward<U>(value));
+        static_cast<Derived*>(this)->storage.Emplace(std::move(value));
     }
 };
 
