@@ -12,6 +12,19 @@
 
 namespace se
 {
+namespace detail
+{
+/**
+ * JobTask<T>의 결과물을 보관하는 저장소
+ * @tparam T 비동기 작업이 반환하는 실제 데이터 타입
+ */
+template <typename T>
+struct JobSharedState
+{
+    Optional<T> result;
+};
+} // namespace detail
+
 /**
  * Atomic 의존성 카운터 클래스
  *
@@ -85,10 +98,12 @@ private:
 };
 
 
-/**
- * 제출된 Job의 완료 상태를 추적하는 핸들
- */
-class SE_CORE_API JobHandle
+template <typename T>
+class JobHandle;
+
+/** 제출된 Job의 완료 상태를 추적하는 핸들 */
+template <>
+class SE_CORE_API JobHandle<void>
 {
     /** JobHandle을 코루틴에서 대기하기 위한 Awaiter 구조체 */
     struct Awaiter
@@ -150,5 +165,88 @@ public:
 
 private:
     std::shared_ptr<JobCounter> counter;
+};
+
+/**
+ * 결과 값을 반환하는 JobTask의 상태를 추적하고 제어하는 핸들
+ * @tparam T 비동기 작업이 완료된 후 반환할 데이터의 타입
+ */
+template <typename T>
+class JobHandle
+{
+    /** JobHandle<T>를 코루틴 내부에서 대기하고 결과를 반환받기 위한 Awaiter 구조체 */
+    struct Awaiter
+    {
+        JobHandle& owner;
+
+        bool await_ready() const noexcept // NOLINT(*-use-nodiscard)
+        {
+            return owner.IsComplete();
+        }
+
+        bool await_suspend(std::coroutine_handle<> in_handle) const // NOLINT(*-use-nodiscard)
+        {
+            JobCounter* counter = owner.inner_handle.GetCounter();
+            return counter && !counter->AddWaiter(in_handle).HasValue();
+        }
+
+        T await_resume()
+        {
+            return owner.Get();
+        }
+    };
+
+public:
+    JobHandle() = default;
+
+    JobHandle(JobHandle<void> in_handle, std::shared_ptr<detail::JobSharedState<T>> in_state)
+        : inner_handle(std::move(in_handle)), state(std::move(in_state))
+    {
+    }
+
+    /**
+     * 작업의 완료 여부를 확인합니다.
+     * @return 카운터가 없거나 이미 0에 도달했다면 true
+     */
+    [[nodiscard]] bool IsComplete() const
+    {
+        return inner_handle.IsComplete();
+    }
+
+    /** 유효한 핸들 및 저장소를 보유하고 있는지 확인합니다. */
+    [[nodiscard]] bool IsValid() const
+    {
+        return inner_handle.IsValid() && state != nullptr;
+    }
+
+    /** 작업이 완료될 때까지 현재 스레드를 블로킹합니다. */
+    void Wait() const
+    {
+        inner_handle.Wait();
+    }
+
+    /**
+     * 비동기 작업의 완료를 보장하며, 최종 결과물을 반환합니다.
+     * 작업이 진행 중일 경우 현재 스레드는 `TryExecuteOneJob()`을 통해 워크 스틸링(Stealing)을 수행합니다.
+     *
+     * @return 생산된 데이터 T (소유권이 이동되므로 1회만 호출 가능)
+     * @warning 결과물이 비어있거나 소유권이 중복 추출될 경우 엔진 크래시가 발생합니다.
+     */
+    [[nodiscard]] T Get()
+    {
+        Wait();
+        SE_ASSERT(state && state->result.HasValue(), "[JobSystem] Result value is missing.");
+        return std::move(state->result).Value();
+    }
+
+    operator JobHandle<void>() const noexcept { return inner_handle; }
+    Awaiter operator co_await() { return { *this }; }
+
+private:
+    /** 완료 카운팅 및 동기화를 전담하는 내부 핸들 */
+    JobHandle<void> inner_handle;
+
+    /** 프레임 수명과 분리되어 결과 데이터를 유지하는 공유 저장소 포인터 */
+    std::shared_ptr<detail::JobSharedState<T>> state;
 };
 } // namespace se

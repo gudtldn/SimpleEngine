@@ -148,7 +148,7 @@ void JobCounter::NotifyWaiters(WaiterNode* waiter_list)
     }
 }
 
-void JobHandle::Wait() const
+void JobHandle<void>::Wait() const
 {
     if (!counter)
     {
