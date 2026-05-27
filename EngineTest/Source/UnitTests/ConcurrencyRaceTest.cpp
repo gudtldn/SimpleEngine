@@ -395,7 +395,7 @@ TEST_F(JobSystemDiamondTest, WideJoinDependency)
     constexpr i32 FAN_WIDTH = 32;
     std::atomic<i32> completed{0};
 
-    Array<JobHandle> fan_handles;
+    Array<JobHandle<void>> fan_handles;
     for (i32 i = 0; i < FAN_WIDTH; ++i)
     {
         fan_handles.Push(system->Submit([&completed]
@@ -407,7 +407,7 @@ TEST_F(JobSystemDiamondTest, WideJoinDependency)
     auto join = system->Submit([&completed, FAN_WIDTH]
     {
         EXPECT_EQ(completed.load(), FAN_WIDTH);
-    }, ArrayView<const JobHandle>(fan_handles.Data(), fan_handles.Len()));
+    }, ArrayView<const JobHandle<void>>(fan_handles.Data(), fan_handles.Len()));
 
     join.Wait();
 

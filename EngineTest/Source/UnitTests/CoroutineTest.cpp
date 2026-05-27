@@ -268,7 +268,7 @@ TEST_F(CoroutineTest, WhenAll_MultipleJobs)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<int>& p, std::atomic<int>& cnt, JobHandle a, JobHandle b, JobHandle c) static -> JobTask<void>
+        [](std::promise<int>& p, std::atomic<int>& cnt, JobHandle<void> a, JobHandle<void> b, JobHandle<void> c) static -> JobTask<void>
         {
             co_await WhenAll{ { a, b, c } };
             p.set_value(cnt.load(std::memory_order_relaxed));
@@ -289,7 +289,7 @@ TEST_F(CoroutineTest, WhenAll_AlreadyComplete)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle handle) static -> JobTask<void>
+        [](std::promise<bool>& p, JobHandle<void> handle) static -> JobTask<void>
         {
             co_await WhenAll{ { handle } };
             p.set_value(true);
@@ -331,7 +331,7 @@ TEST_F(CoroutineTest, WhenAll_AllAlreadyComplete)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle h1, JobHandle h2, JobHandle h3) static -> JobTask<void>
+        [](std::promise<bool>& p, JobHandle<void> h1, JobHandle<void> h2, JobHandle<void> h3) static -> JobTask<void>
         {
             co_await WhenAll{ { h1, h2, h3 } };
             p.set_value(true);
@@ -356,7 +356,7 @@ TEST_F(CoroutineTest, WhenAll_MixedComplete)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, std::atomic<int>& cnt, JobHandle done, JobHandle pend) static -> JobTask<void>
+        [](std::promise<bool>& p, std::atomic<int>& cnt, JobHandle<void> done, JobHandle<void> pend) static -> JobTask<void>
         {
             co_await WhenAll{ { done, pend } };
             p.set_value(cnt.load(std::memory_order_relaxed) == 1);
@@ -390,7 +390,7 @@ TEST_F(CoroutineTest, WhenAny_FirstComplete)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle fast, JobHandle slow) static -> JobTask<void>
+        [](std::promise<bool>& p, JobHandle<void> fast, JobHandle<void> slow) static -> JobTask<void>
         {
             co_await WhenAny{ { fast, slow } };
             p.set_value(true);
@@ -410,7 +410,7 @@ TEST_F(CoroutineTest, WhenAny_ConcurrentStress)
     // 다수의 핸들을 동시에 Submit하고 WhenAny 호출 -> 정확히 1회만 resume되는지 검증
     constexpr usize HANDLE_COUNT = 100;
 
-    Array<JobHandle> handles;
+    Array<JobHandle<void>> handles;
     handles.Reserve(HANDLE_COUNT);
     for (usize i = 0; i < HANDLE_COUNT; ++i)
     {
@@ -421,7 +421,7 @@ TEST_F(CoroutineTest, WhenAny_ConcurrentStress)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, Array<JobHandle> handles) static -> JobTask<void>
+        [](std::promise<bool>& p, Array<JobHandle<void>> handles) static -> JobTask<void>
         {
             co_await WhenAny{ std::move(handles) };
             p.set_value(true);
@@ -442,7 +442,7 @@ TEST_F(CoroutineTest, WhenAny_AlreadyComplete)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle handle) static -> JobTask<void>
+        [](std::promise<bool>& p, JobHandle<void> handle) static -> JobTask<void>
         {
             co_await WhenAny{ { handle } };
             p.set_value(true);
@@ -482,8 +482,8 @@ TEST_F(CoroutineTest, WhenAny_AllInvalidHandles_MustNotSuspend)
 
     auto task = [](std::promise<bool>& p) static -> JobTask<void>
     {
-        JobHandle invalid_a;
-        JobHandle invalid_b;
+        JobHandle<void> invalid_a;
+        JobHandle<void> invalid_b;
         co_await WhenAny{ { invalid_a, invalid_b } };
         p.set_value(true);
         co_return;
@@ -503,7 +503,7 @@ TEST_F(CoroutineTest, WhenAny_MixedInvalidAndPending_ResumesOnPendingCompletion)
     std::promise<bool> promise;
     auto future = promise.get_future();
 
-    JobHandle invalid;
+    JobHandle<void> invalid;
     auto pending = JobSystem::Get().Submit([&run]
     {
         while (!run.load(std::memory_order_acquire))
@@ -513,7 +513,7 @@ TEST_F(CoroutineTest, WhenAny_MixedInvalidAndPending_ResumesOnPendingCompletion)
     });
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle invalid, JobHandle pending) static -> JobTask<void>
+        [](std::promise<bool>& p, JobHandle<void> invalid, JobHandle<void> pending) static -> JobTask<void>
         {
             co_await WhenAny{ { invalid, pending } };
             p.set_value(true);
@@ -534,7 +534,7 @@ TEST_F(CoroutineTest, WhenAny_ResumeExactlyOnce_UnderBurstCompletion)
 {
     constexpr usize HANDLE_COUNT = 256;
 
-    Array<JobHandle> handles;
+    Array<JobHandle<void>> handles;
     handles.Reserve(HANDLE_COUNT);
 
     std::atomic<bool> release = false;
@@ -554,7 +554,7 @@ TEST_F(CoroutineTest, WhenAny_ResumeExactlyOnce_UnderBurstCompletion)
     auto future = promise.get_future();
 
     JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, std::atomic<int>& rc, Array<JobHandle> handles) static -> JobTask<void>
+        [](std::promise<bool>& p, std::atomic<int>& rc, Array<JobHandle<void>> handles) static -> JobTask<void>
         {
             co_await WhenAny{ std::move(handles) };
             const int count = rc.fetch_add(1, std::memory_order_relaxed) + 1;
@@ -754,4 +754,67 @@ TEST_F(CoroutineTest, SubmitTask_WithSuspend)
 
     h.Wait();
     EXPECT_EQ(sum.load(std::memory_order_relaxed), 60);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  JobTask<T> & JobHandle<T> 통합 테스트
+// ═══════════════════════════════════════════════════════════════════
+
+TEST_F(CoroutineTest, SubmitTask_TypedReturn_Basic)
+{
+    JobHandle<int> h = JobSystem::Get().SubmitTask([]() static -> JobTask<int>
+    {
+        co_await ResumeOn{ EJobThread::Worker };
+        co_return 999;
+    });
+
+    EXPECT_EQ(h.Get(), 999);
+}
+
+TEST_F(CoroutineTest, SubmitTask_TypedReturn_MoveOnlyType)
+{
+    // 코루틴 내부 스토리지에서 외부 JobSharedState로 이동 전용 객체가 잘 넘어오는지 검증
+    JobHandle<std::unique_ptr<double>> h = JobSystem::Get().SubmitTask([]() static -> JobTask<std::unique_ptr<double>>
+    {
+        co_return std::make_unique<double>(3.14);
+    });
+
+    std::unique_ptr<double> result = h.Get();
+    ASSERT_NE(result, nullptr);
+    EXPECT_DOUBLE_EQ(*result, 3.14);
+}
+
+TEST_F(CoroutineTest, WhenAll_MixedTypedHandles)
+{
+    // 여러 타입의 핸들을 혼합 생성
+    JobHandle<int> h_int = JobSystem::Get().Submit([] { return 777; });
+
+    JobHandle<std::string> hStr = JobSystem::Get().SubmitTask([]() static -> JobTask<std::string>
+    {
+        co_return "EngineCore";
+    });
+
+    JobHandle<void> h_void = JobSystem::Get().Submit([] { /* 일반 Void 작업 */ });
+
+    std::promise<bool> promise;
+    auto future = promise.get_future();
+
+    // 여러 타입의 핸들을 JobHandle<void>로 캐스팅하여 WhenAll에 넘기는 코루틴
+    JobHandle<void> h_task = JobSystem::Get().SubmitTask(
+        [](std::promise<bool>& p, JobHandle<void> a, JobHandle<void> b, JobHandle<void> c) static -> JobTask<void>
+        {
+            // 암시적 형변환 덕분에 타입이 달라도 완벽하게 WhenAll로 묶입니다.
+            co_await WhenAll{ { a, b, c } };
+            p.set_value(true);
+            co_return;
+        }(promise, h_int, hStr, h_void));
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    EXPECT_TRUE(future.get());
+
+    // WhenAll 완료 후 각 핸들에서 고유 타입의 결과값을 안전하게 추출
+    EXPECT_EQ(h_int.Get(), 777);
+    EXPECT_EQ(hStr.Get(), "EngineCore");
+
+    h_task.Wait();
 }
