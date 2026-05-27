@@ -627,14 +627,14 @@ class JobHandleTest : public ::testing::Test {};
 
 TEST_F(JobHandleTest, DefaultHandleIsComplete)
 {
-    JobHandle handle;
+    JobHandle<void> handle;
     EXPECT_TRUE(handle.IsComplete());
     EXPECT_FALSE(static_cast<bool>(handle));
 }
 
 TEST_F(JobHandleTest, CreateAndComplete)
 {
-    JobHandle handle = JobHandle::Create(1);
+    JobHandle handle = JobHandle<void>::Create(1);
     EXPECT_TRUE(static_cast<bool>(handle));
     EXPECT_FALSE(handle.IsComplete());
 
@@ -644,7 +644,7 @@ TEST_F(JobHandleTest, CreateAndComplete)
 
 TEST_F(JobHandleTest, WaitBlocksUntilComplete)
 {
-    JobHandle handle = JobHandle::Create(1);
+    JobHandle handle = JobHandle<void>::Create(1);
 
     std::thread worker([&handle]
     {
@@ -660,6 +660,6 @@ TEST_F(JobHandleTest, WaitBlocksUntilComplete)
 
 TEST_F(JobHandleTest, ZeroCountHandleIsImmediatelyComplete)
 {
-    JobHandle handle = JobHandle::Create(0);
+    JobHandle handle = JobHandle<void>::Create(0);
     EXPECT_TRUE(handle.IsComplete());
 }

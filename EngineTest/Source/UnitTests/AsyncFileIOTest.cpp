@@ -212,7 +212,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_MultipleCoroutines)
     constexpr int NUM_REQUESTS = 5;
     std::atomic<int> completed_count = 0;
 
-    Array<JobHandle> handles;
+    Array<JobHandle<void>> handles;
     handles.Reserve(NUM_REQUESTS);
 
     for (int i = 0; i < NUM_REQUESTS; ++i)

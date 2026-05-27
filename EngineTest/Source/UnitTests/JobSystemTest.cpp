@@ -204,7 +204,7 @@ TEST_F(JobSystemTest, SubmitMultipleJobs)
     constexpr int JOB_COUNT = 100;
     std::atomic<int> counter{0};
 
-    std::vector<JobHandle> handles;
+    std::vector<JobHandle<void>> handles;
     handles.reserve(JOB_COUNT);
 
     for (int i = 0; i < JOB_COUNT; ++i)
@@ -424,7 +424,7 @@ TEST_F(JobSystemTest, StressTest_ManyJobs)
     constexpr int TOTAL_JOBS = 10000;
     std::atomic<int> counter{0};
 
-    std::vector<JobHandle> handles;
+    std::vector<JobHandle<void>> handles;
     handles.reserve(TOTAL_JOBS);
 
     for (int i = 0; i < TOTAL_JOBS; ++i)
@@ -473,3 +473,45 @@ TEST_F(JobSystemTest, StressTest_MultiThreadedSubmit)
     EXPECT_EQ(counter.load(), THREADS * JOBS_PER_THREAD);
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  JobSystem: Typed Return (JobHandle<T>) 테스트
+// ═══════════════════════════════════════════════════════════════════
+
+TEST_F(JobSystemTest, Submit_TypedReturn_BasicType)
+{
+    // int 타입을 반환하는 일반 Submit
+    JobHandle<int> handle = system->Submit([]() { return 42; });
+
+    // Get()은 Wait()를 내포하며 값을 Move 하여 반환합니다.
+    int result = handle.Get();
+    EXPECT_EQ(result, 42);
+}
+
+TEST_F(JobSystemTest, Submit_TypedReturn_MoveOnlyType)
+{
+    // 복사가 불가능한 std::unique_ptr 반환 테스트 (Perfect Forwarding / Move Semantics 검증)
+    JobHandle<std::unique_ptr<int>> handle = system->Submit([]()
+    {
+        return std::make_unique<int>(100);
+    });
+
+    std::unique_ptr<int> result = handle.Get();
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(*result, 100);
+}
+
+TEST_F(JobSystemTest, Submit_TypedReturn_WithDependencies)
+{
+    // 의존성을 가지면서 값을 반환하는 오버로딩 테스트
+    auto h1 = system->Submit([]() { return 10; });
+    auto h2 = system->Submit([]() { return 20; });
+
+    // h1, h2가 JobHandle<void>로 암시적 형변환되어 의존성 배열에 전달됩니다.
+    auto h3 = system->Submit([]() { return 30; }, { h1, h2 });
+
+    EXPECT_EQ(h3.Get(), 30);
+
+    // 이전에 완료된 h1, h2의 값도 정상적으로 추출 가능한지 확인
+    EXPECT_EQ(h1.Get(), 10);
+    EXPECT_EQ(h2.Get(), 20);
+}
