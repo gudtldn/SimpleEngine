@@ -90,7 +90,7 @@ struct QueryValidator
 
     // Optional<Entity>의 형태는 불가능 함.
     static constexpr bool NoOptionalEntity =
-        ((!traits::OptionalLike<std::remove_cvref_t<Ts>> 
+        ((!traits::OptionalLike<std::remove_cvref_t<Ts>>
             || !std::same_as<std::remove_cvref_t<traits::InnerOf<std::remove_cvref_t<Ts>>>, Entity>) && ...);
 };
 
@@ -98,12 +98,12 @@ struct QueryValidator
 template <typename T>
 struct IsReadOnlyType
 {
-    using RealType = traits::InnerOf<T>;
+    using RealType = traits::InnerOf<T>; // Optional<T>이면 내부 타입 T를, 그 외에는 T 그대로 사용
     static constexpr bool Value = !std::is_reference_v<RealType> || std::is_const_v<std::remove_reference_t<RealType>>;
 };
 
 /** 쿼리 파라미터 팩 전체가 읽기 전용인지 확인합니다. */
 template <typename... Ts>
-constexpr bool IsReadOnlyQueryPack = (IsReadOnlyType<Ts>::Value && ...);
+constexpr bool IS_READ_ONLY_QUERY_PACK = (IsReadOnlyType<Ts>::Value && ...);
 } // namespace detail
 } // namespace se

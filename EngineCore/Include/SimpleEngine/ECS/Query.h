@@ -98,16 +98,16 @@ private:
     using FetchPoolsTuple = traits::TupleMap<FetchTypes, PoolPtrWrapper>;
 
     /** 쿼리의 순회 범위가 특정 컴포넌트로 제한되는지 여부 (필수 컴포넌트 존재 여부) */
-    static constexpr bool IsComponentRestricted = QueryDataType::NumPredicates > 0;
+    static constexpr bool IS_COMPONENT_RESTRICTED = QueryDataType::NUM_PREDICATES > 0;
 
     /** 순회 대상 소스 타입: 제한된 경우 IComponentStorage(Pool), 아닌 경우 전체 Entity 배열 */
-    using IterationSourceType = std::conditional_t<IsComponentRestricted, const IComponentStorage*, const Array<Entity>*>;
+    using IterationSourceType = std::conditional_t<IS_COMPONENT_RESTRICTED, const IComponentStorage*, const Array<Entity>*>;
 
 public:
     explicit Query(TargetWorld& in_world)
         : query_data(in_world)
     {
-        if constexpr (IsComponentRestricted)
+        if constexpr (IS_COMPONENT_RESTRICTED)
         {
             iteration_source = query_data.FindSmallestPool();
         }
@@ -167,11 +167,11 @@ public:
     [[nodiscard]] FetchTypes GetSingle() const
     {
         auto it = begin();
-        SE_ASSERT(it != end(), "Called GetSingle() on a query with no matching entities.");
+        SE_ASSERT_RELEASE(it != end(), "Called GetSingle() on a query with no matching entities.");
 
         FetchTypes result = *it;
         ++it;
-        SE_ASSERT(it == end(), "Called GetSingle() on a query with more than one matching entity.");
+        SE_ASSERT_RELEASE(it == end(), "Called GetSingle() on a query with more than one matching entity.");
 
         return result;
     }
@@ -183,6 +183,7 @@ public:
     }
 
 private:
+    /** Query<Ts...>의 Ts... 부분에 맞는 값을 반환하는 헬퍼 함수 */
     template <typename T, usize Idx>
     T FetchComponent(Entity entity) const
     {
@@ -207,6 +208,7 @@ private:
             }
             else
             {
+                // Optional<T&>를 Optional<T>로 복사하여 반환
                 return pool->Find(entity).Copy();
             }
         }
@@ -238,7 +240,7 @@ public:
         value_type operator*() const noexcept
         {
             Entity entity;
-            if constexpr (IsComponentRestricted)
+            if constexpr (IS_COMPONENT_RESTRICTED)
             {
                 entity = iteration_source->GetEntityByIndex(storage_index).Value();
             }
@@ -269,7 +271,7 @@ public:
     private:
         void AdvanceToValid()
         {
-            if constexpr (IsComponentRestricted)
+            if constexpr (IS_COMPONENT_RESTRICTED)
             {
                 if (!iteration_source) [[unlikely]]
                 {

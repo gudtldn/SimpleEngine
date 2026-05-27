@@ -19,11 +19,11 @@ namespace se::detail
  * 쿼리 파라미터 파싱을 위한 내부 메타프로그래밍 유틸리티
  */
 
-// Ts...에서 ConditionTag<T>::Value가 true인 타입들만 추출합니다.
+// Ts...에서 ConditionTag<T>::VALUE가 true인 타입들만 추출합니다.
 // 예) FilterTypes<FetchTypePred, A, B, With<C>> -> std::tuple<A, B, With<C>>
 template <template <typename> typename ConditionTag, typename... Ts>
 using FilterTypes = traits::TupleCat<
-    std::conditional_t<ConditionTag<Ts>::Value, std::tuple<Ts>, std::tuple<>>...
+    std::conditional_t<ConditionTag<Ts>::VALUE, std::tuple<Ts>, std::tuple<>>...
 >;
 
 // FilterTypes 결과를 평탄화합니다. With<A,B> 같은 필터 태그를 A, B로 전개할 때 사용합니다.
@@ -33,19 +33,19 @@ using FlatFilterTypes = traits::FlattenTuple<FilterTypes<ConditionTag, Ts...>>;
 
 // 가져올 컴포넌트인지 확인 (FilterTag가 아닌 것)
 template <typename T>
-struct FetchTypePred { static constexpr bool Value = IsFetchType<T>; };
+struct FetchTypePred { static constexpr bool VALUE = IsFetchType<T>; };
 
 // 검사할 컴포넌트인지 확인 (필수 컴포넌트)
 template <typename T>
-struct RequiredComponentPred { static constexpr bool Value = IsRequiredComponent<T>; };
+struct RequiredComponentPred { static constexpr bool VALUE = IsRequiredComponent<T>; };
 
 // With<...> 태그인지 확인
 template <typename T>
-struct WithTagPred { static constexpr bool Value = traits::IsSpecializationOf<T, With>; };
+struct WithTagPred { static constexpr bool VALUE = traits::IsSpecializationOf<T, With>; };
 
 // Without<...> 태그인지 확인
 template <typename T>
-struct WithoutTagPred { static constexpr bool Value = traits::IsSpecializationOf<T, Without>; };
+struct WithoutTagPred { static constexpr bool VALUE = traits::IsSpecializationOf<T, Without>; };
 
 
 /**
@@ -57,8 +57,8 @@ class QueryData
 {
 public:
     // Query가 읽기 전용인지 확인
-    static constexpr bool IsReadOnly = IsReadOnlyQueryPack<Ts...>;
-    using TargetWorld = std::conditional_t<IsReadOnly, const World, World>;
+    static constexpr bool IS_READ_ONLY = IS_READ_ONLY_QUERY_PACK<Ts...>;
+    using TargetWorld = std::conditional_t<IS_READ_ONLY, const World, World>;
 
     // 템플릿 인자들을 분석하여 가져올(Fetch), 포함할(With), 제외할(Without) 타입으로 분류
     using FetchTypes = FilterTypes<FetchTypePred, Ts...>;
@@ -68,15 +68,15 @@ public:
     // 실제 Query 검증에 사용되는 타입들(Fetch(Optional, Entity 제외) + With)
     using PredicateTypes = traits::TupleCat<FlatFilterTypes<RequiredComponentPred, Ts...>, WithTypes>;
 
-    static constexpr usize NumPredicates = std::tuple_size_v<PredicateTypes>;
-    static constexpr usize NumWithout = std::tuple_size_v<WithoutTypes>;
+    static constexpr usize NUM_PREDICATES = std::tuple_size_v<PredicateTypes>;
+    static constexpr usize NUM_WITHOUT = std::tuple_size_v<WithoutTypes>;
 
 public:
     explicit QueryData(TargetWorld& in_world)
         : world(std::addressof(in_world))
     {
         // Predicate Storage 캐싱
-        if constexpr (NumPredicates > 0)
+        if constexpr (NUM_PREDICATES > 0)
         {
             predicate_pools = traits::ApplyTypes<PredicateTypes>([this]<typename... PredComps> -> decltype(predicate_pools)
             {
@@ -88,7 +88,7 @@ public:
         }
 
         // Without Storage 캐싱
-        if constexpr (NumWithout > 0)
+        if constexpr (NUM_WITHOUT > 0)
         {
             auto temp_without_pools = traits::ApplyTypes<WithoutTypes>([this]<typename... WithoutComps> -> decltype(without_pools)
             {
@@ -125,7 +125,7 @@ public:
             }
         }
 
-        if constexpr (NumWithout > 0)
+        if constexpr (NUM_WITHOUT > 0)
         {
             // 제외 조건 확인 (Without 목록)
             // ComponentPool에 Entity가 하나라도 존재하면 안 됨
@@ -145,7 +145,7 @@ public:
     /** 순회 범위를 최소화하기 위해 가장 작은 ComponentPool을 찾습니다. */
     [[nodiscard]] const IComponentStorage* FindSmallestPool() const
     {
-        if constexpr (NumPredicates == 0)
+        if constexpr (NUM_PREDICATES == 0)
         {
             return nullptr;
         }
@@ -168,9 +168,12 @@ private:
     TargetWorld* world;
 
     // 매번 HashMap 조회를 피하기 위한 IComponentStorage* 배열
-    FixedArray<const IComponentStorage*, NumPredicates> predicate_pools{};
-    FixedArray<const IComponentStorage*, NumWithout> without_pools{};
+    FixedArray<const IComponentStorage*, NUM_PREDICATES> predicate_pools{};
+    FixedArray<const IComponentStorage*, NUM_WITHOUT> without_pools{};
+
+    // 실제 존재하는 without storage 개수 (nullptr은 자동 충족되므로 제외)
     usize valid_without_count = 0;
+
     // 쿼리가 유효한지 검증하는 flag
     bool is_valid_query = true;
 };

@@ -143,7 +143,7 @@ public:
     [[nodiscard]] Query<Ts...> CreateQuery(this Self&& self)
     {
         static constexpr bool is_const_world = std::is_const_v<std::remove_reference_t<Self>>;
-        static constexpr bool is_read_only_query = detail::IsReadOnlyQueryPack<Ts...>;
+        static constexpr bool is_read_only_query = detail::IS_READ_ONLY_QUERY_PACK<Ts...>;
 
         static_assert(
             !is_const_world || is_read_only_query,

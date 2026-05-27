@@ -285,7 +285,7 @@ TEST_F(ECSTest, ECSConstWorldAndReadOnlyQuery)
     static_assert(
         traits::ApplyTypes<QueryTypes>([]<typename... Ts> -> bool
         {
-            return detail::IsReadOnlyQueryPack<Ts...>;
+            return detail::IS_READ_ONLY_QUERY_PACK<Ts...>;
         }),
         "TargetWorld of a query created from const World must be 'const World'."
     );
