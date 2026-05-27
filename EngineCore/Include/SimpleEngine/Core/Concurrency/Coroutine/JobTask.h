@@ -24,6 +24,8 @@ namespace detail
 template <typename T>
 struct JobSharedState;
 
+struct EmptySharedState{};
+
 /**
  * co_return 핸들링을 분리하는 Mixin 클래스
  * C++ 표준상 promise_type에 return_value와 return_void가 동시에
@@ -73,7 +75,7 @@ struct JobTaskPromise : detail::PromiseReturnMixin<T, JobTaskPromise<T>>
 {
     // T가 void일 경우, EmptyType + [[no_unique_address]]를 사용하여 메모리 최적화
     using StorageType = std::conditional_t<std::is_void_v<T>, EmptyType, Optional<T>>;
-    using SharedStateType = std::conditional_t<std::is_void_v<T>, EmptyType, std::shared_ptr<detail::JobSharedState<T>>>;
+    using SharedStateType = std::conditional_t<std::is_void_v<T>, detail::EmptySharedState, std::shared_ptr<detail::JobSharedState<T>>>;
 
 public:
     /** 일반적인 코루틴, static 람다, 일반 함수용 생성자 */

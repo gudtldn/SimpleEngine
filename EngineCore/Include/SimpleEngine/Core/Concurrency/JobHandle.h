@@ -177,7 +177,7 @@ class JobHandle
     /** JobHandle<T>를 코루틴 내부에서 대기하고 결과를 반환받기 위한 Awaiter 구조체 */
     struct Awaiter
     {
-        JobHandle& owner;
+        JobHandle owner;
 
         bool await_ready() const noexcept // NOLINT(*-use-nodiscard)
         {
