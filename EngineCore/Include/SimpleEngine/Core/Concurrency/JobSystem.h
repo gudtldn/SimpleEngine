@@ -10,6 +10,7 @@
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Functional/UniqueFunction.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -25,9 +26,10 @@
 
 namespace se
 {
-// Forward declaration — Layer 2 (Coroutine) 타입. 전체 정의는 JobTask.h 참조.
+// Forward declaration
 template <typename T>
 class JobTask;
+
 /**
  * Lambda-Core 기반 Job System (전역 싱글톤)
  *
@@ -87,7 +89,7 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn>
-    [[nodiscard]] JobHandle Submit(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
+    [[nodiscard]] auto Submit(Fn&& work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * 선행 작업들이 모두 완료된 후 실행될 의존성 작업을 제출합니다.
@@ -100,7 +102,7 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn>
-    [[nodiscard]] JobHandle Submit(Fn&& work_func, ArrayView<const JobHandle> dependencies, EJobPriority priority = EJobPriority::Normal);
+    [[nodiscard]] auto Submit(Fn&& work_func, ArrayView<const JobHandle<void>> dependencies, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * 지정된 범위를 배치 단위로 분할하여 워커 스레드들에 병렬로 제출합니다.
@@ -114,7 +116,7 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn, usize>
-    [[nodiscard]] JobHandle ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority = EJobPriority::Normal);
+    [[nodiscard]] JobHandle<void> ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * 현재 메인 스레드 큐에 대기 중인 모든 작업을 일괄 실행(Drain)합니다. (메인 스레드 전용)
@@ -139,25 +141,8 @@ public:
      *   }());
      * @endcode
      */
-    void DispatchTask(JobTask<void>&& task, EJobPriority priority = EJobPriority::Normal);
-
-    /**
-     * 코루틴을 워커 스레드에 제출하고, 완료를 추적할 수 있는 핸들을 반환합니다.
-     * 코루틴의 소유권이 이전되며, 완료 시 자동으로 소멸됩니다.
-     *
-     * @param task 제출할 코루틴 (rvalue로 소유권 이전)
-     * @param priority 실행 우선순위
-     * @return 코루틴 완료를 추적하는 핸들
-     *
-     * @code
-     *   JobHandle h = JobSystem::Get().SubmitTask([]() static -> JobTask<void>
-     *   {
-     *       co_await SomeAsyncWork();
-     *   }());
-     *   h.Wait();
-     * @endcode
-     */
-    [[nodiscard]] JobHandle SubmitTask(JobTask<void>&& task, EJobPriority priority = EJobPriority::Normal);
+    template <typename T>
+    void DispatchTask(JobTask<T>&& task, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * void DispatchTask(JobTask<void>&& task, EJobPriority priority) Factory 오버로딩
@@ -171,23 +156,42 @@ public:
      */
     template <typename Fn>
         requires std::invocable<Fn>
-              && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
+              && traits::IsSpecializationOf<std::invoke_result_t<Fn>, JobTask>
     void DispatchTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
+
+    /**
+     * 코루틴을 워커 스레드에 제출하고, 결과 값(T)과 완료 상태를 추적할 수 있는 핸들을 반환합니다.
+     * 코루틴의 소유권이 이전되며, 프레임이 소멸하더라도 반환값은 JobHandle<T>에 보존됩니다.
+     *
+     * @param task 제출할 코루틴 (rvalue로 소유권 이전)
+     * @param priority 실행 우선순위
+     * @return 코루틴 완료 및 반환값을 추적하는 Typed 핸들
+     *
+     * @code
+     *   JobHandle h = JobSystem::Get().SubmitTask([]() static -> JobTask<void>
+     *   {
+     *       co_await SomeAsyncWork();
+     *   }());
+     *   h.Wait();
+     * @endcode
+     */
+    template <typename T>
+    [[nodiscard]] JobHandle<T> SubmitTask(JobTask<T>&& task, EJobPriority priority = EJobPriority::Normal);
 
     /**
      * JobHandle SubmitTask(JobTask<void>&& task, EJobPriority priority) Factory 오버로딩
      *
      * @code
-     *   JobHandle h = JobSystem::Get().SubmitTask([] static -> JobTask<void>
+     *   JobHandle<int32> h = JobSystem::Get().SubmitTask([] static -> JobTask<int32>
      *   {
-     *       co_await SomeWork();
+     *       co_return co_await SomeWork();
      *   }); // () 없이 factory만 전달
      * @endcode
      */
     template <typename Fn>
         requires std::invocable<Fn>
-              && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
-    [[nodiscard]] JobHandle SubmitTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
+              && traits::IsSpecializationOf<std::invoke_result_t<Fn>, JobTask>
+    [[nodiscard]] auto SubmitTask(Fn&& factory, EJobPriority priority = EJobPriority::Normal);
 
 public:
     /**
@@ -273,85 +277,129 @@ void JobSystem::Dispatch(Fn&& work_func, EJobPriority priority)
 
 template <typename Fn>
     requires std::invocable<Fn>
-JobHandle JobSystem::Submit(Fn&& work_func, EJobPriority priority)
+auto JobSystem::Submit(Fn&& work_func, EJobPriority priority)
 {
-    JobHandle handle = JobHandle::Create(1);
+    using ReturnType = std::invoke_result_t<Fn>;
 
-    JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
-    payload->completion_counter = handle.GetSharedCounter();
+    JobHandle<void> untyped_handle = JobHandle<void>::Create(1);
+    auto counter = untyped_handle.GetSharedCounter();
 
-    EnqueuePayload(payload);
-    return handle;
+    if constexpr (std::is_void_v<ReturnType>)
+    {
+        JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
+        payload->completion_counter = std::move(counter);
+
+        EnqueuePayload(payload);
+        return untyped_handle;
+    }
+    else
+    {
+        auto shared_state = std::make_shared<detail::JobSharedState<ReturnType>>();
+        JobPayload* payload = JobPayload::Create([func = std::forward<Fn>(work_func), shared_state] mutable
+        {
+            shared_state->result.Emplace(std::invoke(func));
+        }, priority);
+
+        payload->completion_counter = std::move(counter);
+
+        EnqueuePayload(payload);
+        return JobHandle<ReturnType>{ untyped_handle, std::move(shared_state) };
+    }
 }
 
 template <typename Fn>
     requires std::invocable<Fn>
-JobHandle JobSystem::Submit(
+auto JobSystem::Submit(
     Fn&& work_func,
-    ArrayView<const JobHandle> dependencies,
+    ArrayView<const JobHandle<void>> dependencies,
     EJobPriority priority
 )
 {
-    JobHandle handle = JobHandle::Create(1);
+    using ReturnType = std::invoke_result_t<Fn>;
 
-    JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
-    payload->completion_counter = handle.GetSharedCounter();
+    JobHandle<void> untyped_handle = JobHandle<void>::Create(1);
+    auto counter = untyped_handle.GetSharedCounter();
 
-    // 유효한 의존성 개수를 카운트
-    const usize dep_count = std::ranges::count_if(dependencies, [](const JobHandle& dep)
+    auto process_dependencies_and_enqueue = [this, dependencies](JobPayload* payload)
     {
-        return dep.IsValid();
-    });
-
-    // 의존성이 없으면 바로 전송(Enqueue)
-    if (dep_count == 0)
-    {
-        EnqueuePayload(payload);
-        return handle;
-    }
-
-    // 가드 카운트(+1): 등록 도중 모든 의존성이 해소되어도 payload가 조기 전송되는 것을 방지
-    // relaxed가 안전한 이유: 이 store는 아래 AddWaiter CAS(release)보다 sequenced-before이며,
-    // 콜백 스레드는 Decrement()의 exchange(acq_rel)를 통해 AddWaiter의 release와 동기화됩니다.
-    payload->pending_deps.store(dep_count + 1, std::memory_order_relaxed);
-
-    // 각 의존성의 JobCounter에 Waiter를 등록
-    for (const JobHandle& dep : dependencies)
-    {
-        if (!dep)
+        // 유효한 의존성 개수를 카운트
+        const usize dep_count = std::ranges::count_if(dependencies, [](const JobHandle<void>& dep)
         {
-            continue;
-        }
-
-        // dep의 Counter가 완료될 때, 이 JobPayload의 대기 카운트를 감소시키는 콜백 등록
-        Optional<UniqueFunction<void()>> result = dep.GetCounter()->AddWaiter([this, payload]
-        {
-            // 가장 마지막 의존성이 payload를 Deque에 추가
-            if (payload->pending_deps.fetch_sub(1, std::memory_order_acq_rel) == 1)
-            {
-                EnqueuePayload(payload);
-            }
+            return dep.IsValid();
         });
 
-        // 등록 시점에 이미 선행 작업이 완료된 경우, 반환된 콜백을 바로 Invoke()
-        if (result.HasValue())
+        // 의존성이 없으면 바로 전송(Enqueue)
+        if (dep_count == 0)
         {
-            result->Invoke();
+            EnqueuePayload(payload);
+            return;
         }
-    }
 
-    // 가드 카운트를 해제
-    if (payload->pending_deps.fetch_sub(1, std::memory_order_acq_rel) == 1)
+        // 가드 카운트(+1): 등록 도중 모든 의존성이 해소되어도 payload가 조기 전송되는 것을 방지
+        // relaxed가 안전한 이유: 이 store는 아래 AddWaiter CAS(release)보다 sequenced-before이며,
+        // 콜백 스레드는 Decrement()의 exchange(acq_rel)를 통해 AddWaiter의 release와 동기화됩니다.
+        payload->pending_deps.store(dep_count + 1, std::memory_order_relaxed);
+
+        // 각 의존성의 JobCounter에 Waiter를 등록
+        for (const JobHandle<void>& dep : dependencies)
+        {
+            if (!dep)
+            {
+                continue;
+            }
+
+            // dep의 Counter가 완료될 때, 이 JobPayload의 대기 카운트를 감소시키는 콜백 등록
+            Optional<UniqueFunction<void()>> result = dep.GetCounter()->AddWaiter([this, payload]
+            {
+                // 가장 마지막 의존성이 payload를 Deque에 추가
+                if (payload->pending_deps.fetch_sub(1, std::memory_order_acq_rel) == 1)
+                {
+                    EnqueuePayload(payload);
+                }
+            });
+
+            // 등록 시점에 이미 선행 작업이 완료된 경우, 반환된 콜백을 바로 Invoke()
+            if (result.HasValue())
+            {
+                result->Invoke();
+            }
+        }
+
+        // 가드 카운트를 해제
+        if (payload->pending_deps.fetch_sub(1, std::memory_order_acq_rel) == 1)
+        {
+            EnqueuePayload(payload);
+        }
+    };
+
+    if constexpr (std::is_void_v<ReturnType>)
     {
-        EnqueuePayload(payload);
-    }
+        JobPayload* payload = JobPayload::Create(std::forward<Fn>(work_func), priority);
+        payload->completion_counter = std::move(counter);
 
-    return handle;
+        process_dependencies_and_enqueue(payload);
+
+        return untyped_handle;
+    }
+    else
+    {
+        auto shared_state = std::make_shared<detail::JobSharedState<ReturnType>>();
+        JobPayload* payload = JobPayload::Create([func = std::forward<Fn>(work_func), shared_state] mutable
+        {
+            shared_state->result.Emplace(func());
+        }, priority);
+
+        payload->completion_counter = std::move(counter);
+
+        process_dependencies_and_enqueue(payload);
+
+        return JobHandle<ReturnType>{ untyped_handle, std::move(shared_state) };
+    }
 }
 
 template <typename Fn>
     requires std::invocable<Fn, usize>
-JobHandle JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority)
+JobHandle<void> JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func, EJobPriority priority)
 {
     if (in_count == 0)
     {
@@ -359,7 +407,7 @@ JobHandle JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func,
     }
 
     const usize batch_count = (in_count + batch_size - 1) / batch_size;
-    JobHandle handle = JobHandle::Create(batch_count);
+    JobHandle<void> handle = JobHandle<void>::Create(batch_count);
 
     for (usize batch = 0; batch < batch_count; ++batch)
     {
@@ -379,5 +427,94 @@ JobHandle JobSystem::ParallelFor(usize in_count, usize batch_size, Fn work_func,
     }
 
     return handle;
+}
+
+template <typename T>
+void JobSystem::DispatchTask(JobTask<T>&& task, EJobPriority priority)
+{
+    SE_ASSERT(task.handle, "Cannot dispatch an empty JobTask");
+    SE_ASSERT(!task.handle.done(), "Cannot dispatch an already completed JobTask");
+
+    // 소유권 이전
+    auto handle = std::exchange(task.handle, nullptr);
+
+    auto& promise = handle.promise();
+    promise.detached = true;
+    promise.completion_counter = nullptr;
+
+    JobPayload* payload = JobPayload::Create([handle]
+    {
+        if (!handle.done())
+        {
+            handle.resume();
+        }
+    }, priority);
+
+    EnqueuePayload(payload);
+}
+
+template <typename Fn>
+    requires std::invocable<Fn>
+          && traits::IsSpecializationOf<std::invoke_result_t<Fn>, JobTask>
+void JobSystem::DispatchTask(Fn&& factory, EJobPriority priority)
+{
+    static_assert(
+        !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
+        "[JobSystem Error] DispatchTask requires a stateless (non-capturing) lambda! "
+        "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
+    );
+    DispatchTask(std::invoke(std::forward<Fn>(factory)), priority);
+}
+
+template <typename T>
+[[nodiscard]] JobHandle<T> JobSystem::SubmitTask(JobTask<T>&& task, EJobPriority priority)
+{
+    SE_ASSERT(task.handle, "Cannot submit an empty JobTask");
+    SE_ASSERT(!task.handle.done(), "Cannot submit an already completed JobTask");
+
+    // 소유권 이전
+    auto handle = std::exchange(task.handle, nullptr);
+
+    JobHandle<void> untyped_handle = JobHandle<void>::Create(1);
+    auto counter = untyped_handle.GetSharedCounter();
+
+    auto& promise = handle.promise();
+    promise.detached = true;
+    promise.completion_counter = std::move(counter);
+
+    JobPayload* payload = JobPayload::Create([handle]
+    {
+        if (!handle.done())
+        {
+            handle.resume();
+        }
+    }, priority);
+
+    if constexpr (std::is_void_v<T>)
+    {
+        EnqueuePayload(payload);
+        return untyped_handle;
+    }
+    else
+    {
+        auto shared_state = std::make_shared<detail::JobSharedState<T>>();
+        promise.shared_state = shared_state;
+
+        EnqueuePayload(payload);
+        return JobHandle<T>{ untyped_handle, std::move(shared_state) };
+    }
+}
+
+template <typename Fn>
+    requires std::invocable<Fn>
+          && traits::IsSpecializationOf<std::invoke_result_t<Fn>, JobTask>
+[[nodiscard]] auto JobSystem::SubmitTask(Fn&& factory, EJobPriority priority)
+{
+    static_assert(
+        !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
+        "[JobSystem Error] SubmitTask requires a stateless (non-capturing) lambda! "
+        "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
+    );
+    return SubmitTask(std::invoke(std::forward<Fn>(factory)), priority);
 }
 } // namespace se

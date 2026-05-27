@@ -376,45 +376,4 @@ JobPayload* JobSystem::TryPopGlobal()
 
     return first_to_run;
 }
-
-void JobSystem::DispatchTask(JobTask<void>&& task, EJobPriority priority)
-{
-    SE_ASSERT(task.handle, "Cannot dispatch an empty JobTask");
-    SE_ASSERT(!task.handle.done(), "Cannot dispatch an already completed JobTask");
-
-    task.handle.promise().detached = true;
-
-    // 소유권 이전
-    auto coro = std::exchange(task.handle, nullptr);
-
-    // 워커 스레드에서 코루틴 시작
-    Dispatch([coro]
-    {
-        coro.resume();
-    }, priority);
-}
-
-JobHandle JobSystem::SubmitTask(JobTask<void>&& task, EJobPriority priority)
-{
-    SE_ASSERT(task.handle, "Cannot submit an empty JobTask");
-    SE_ASSERT(!task.handle.done(), "Cannot submit an already completed JobTask");
-
-    auto& promise = task.handle.promise();
-    promise.detached = true;
-
-    // 완료 추적용 카운터 생성
-    JobHandle handle = JobHandle::Create(1);
-    promise.completion_counter = handle.GetSharedCounter();
-
-    // task의 handle을 빼내어 RAII 파괴를 방지 (소유권 이전)
-    auto coro = std::exchange(task.handle, nullptr);
-
-    // 워커 스레드에서 코루틴 시작
-    Dispatch([coro]
-    {
-        coro.resume();
-    }, priority);
-
-    return handle;
-}
 } // namespace se

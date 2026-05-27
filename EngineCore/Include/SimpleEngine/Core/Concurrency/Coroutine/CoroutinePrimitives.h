@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Concurrency/Common.h"
 #include "SimpleEngine/Core/Concurrency/JobHandle.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
-#include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/Array.h"
 
 #include <concepts>
@@ -44,13 +43,13 @@ class SE_CORE_API WhenAll
 {
 public:
     template <typename... Handles>
-        requires (sizeof...(Handles) > 0) && (std::convertible_to<Handles, JobHandle> && ...)
+        requires (sizeof...(Handles) > 0) && (std::convertible_to<Handles, JobHandle<void>> && ...)
     explicit WhenAll(Handles&&... in_handles)
-        : WhenAll{ Array<JobHandle>{ std::forward<Handles>(in_handles)...} }
+        : WhenAll{ Array<JobHandle<void>>{ std::forward<Handles>(in_handles)...} }
     {
     }
 
-    explicit WhenAll(Array<JobHandle> in_handles);
+    explicit WhenAll(Array<JobHandle<void>> in_handles);
 
 public:
     [[nodiscard]] bool await_ready() const noexcept;
@@ -58,11 +57,11 @@ public:
     void await_resume() const noexcept {}
 
 private:
-    Array<JobHandle> handles;
+    Array<JobHandle<void>> handles;
 };
 
 /**
- * 여러 JobHandle 중 하나라도 완료되면 코루틴을 재개합니다.
+ * 여러 JobHandle<void> 중 하나라도 완료되면 코루틴을 재개합니다.
  * Atomic Flag 패턴으로 첫 번째 완료만 resume을 트리거합니다.
  *
  * 잔류 콜백의 수명 관리를 위해 원자적 참조 카운팅을 사용합니다.
@@ -78,13 +77,13 @@ class SE_CORE_API WhenAny
 {
 public:
     template <typename... Handles>
-        requires (sizeof...(Handles) > 0) && (std::convertible_to<Handles, JobHandle> && ...)
+        requires (sizeof...(Handles) > 0) && (std::convertible_to<Handles, JobHandle<void>> && ...)
     explicit WhenAny(Handles&&... in_handles)
-        : WhenAny{ Array<JobHandle>{ std::forward<Handles>(in_handles)...} }
+        : WhenAny{ Array<JobHandle<void>>{ std::forward<Handles>(in_handles)...} }
     {
     }
 
-    explicit WhenAny(Array<JobHandle> in_handles);
+    explicit WhenAny(Array<JobHandle<void>> in_handles);
 
 public:
     [[nodiscard]] bool await_ready() const noexcept;
@@ -92,35 +91,6 @@ public:
     void await_resume() const noexcept {}
 
 private:
-    Array<JobHandle> handles;
+    Array<JobHandle<void>> handles;
 };
-
-
-// JobSystem::SubmitTask / DispatchTask 템플릿 정의
-
-template <typename Fn>
-    requires std::invocable<Fn>
-          && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
-JobHandle JobSystem::SubmitTask(Fn&& factory, EJobPriority priority)
-{
-    static_assert(
-        !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
-        "[JobSystem Error] SubmitTask requires a stateless (non-capturing) lambda! "
-        "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
-    );
-    return SubmitTask(std::invoke(std::forward<Fn>(factory)), priority);
-}
-
-template <typename Fn>
-    requires std::invocable<Fn>
-          && std::same_as<std::invoke_result_t<Fn>, JobTask<void>>
-void JobSystem::DispatchTask(Fn&& factory, EJobPriority priority)
-{
-    static_assert(
-        !std::is_class_v<std::remove_cvref_t<Fn>> || std::is_empty_v<std::remove_cvref_t<Fn>>,
-        "[JobSystem Error] DispatchTask requires a stateless (non-capturing) lambda! "
-        "Please use a 'static' lambda: []() static -> JobTask<void> { ... }"
-    );
-    DispatchTask(std::invoke(std::forward<Fn>(factory)), priority);
-}
 } // namespace se

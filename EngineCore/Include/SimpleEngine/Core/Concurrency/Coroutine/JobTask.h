@@ -21,6 +21,9 @@ class JobTask;
 
 namespace detail
 {
+template <typename T>
+struct JobSharedState;
+
 /**
  * co_return 핸들링을 분리하는 Mixin 클래스
  * C++ 표준상 promise_type에 return_value와 return_void가 동시에
@@ -68,8 +71,9 @@ public:
 template <typename T>
 struct JobTaskPromise : detail::PromiseReturnMixin<T, JobTaskPromise<T>>
 {
-    // T가 void일 경우, EmptyType을 사용하여 메모리 최적화
+    // T가 void일 경우, EmptyType + [[no_unique_address]]를 사용하여 메모리 최적화
     using StorageType = std::conditional_t<std::is_void_v<T>, EmptyType, Optional<T>>;
+    using SharedStateType = std::conditional_t<std::is_void_v<T>, EmptyType, std::shared_ptr<detail::JobSharedState<T>>>;
 
 public:
     /** 일반적인 코루틴, static 람다, 일반 함수용 생성자 */
@@ -122,10 +126,22 @@ public:
             // Detached 모드인 경우 (코루틴 소멸 + 카운터 통지)
             if (promise.detached)
             {
-                // 프레임 소멸 전에 카운터를 추출 (destroy시 promise도 같이 사라지기 때문)
+                // 프레임 소멸 전에 카운터 및 값 추출 (destroy시 promise도 같이 사라지기 때문)
                 auto counter = std::move(promise.completion_counter);
+
+                if constexpr (!std::is_void_v<T>)
+                {
+                    auto state = std::move(promise.shared_state);
+                    if (state && promise.storage.HasValue())
+                    {
+                        state->result.Emplace(std::move(promise.storage).Value());
+                    }
+                }
+
+                // 코루틴 프레임 파괴 (여기서 promise도 날아감)
                 handle.destroy();
 
+                // Waiter에게 완료 통지
                 if (counter)
                 {
                     counter->Decrement();
@@ -161,22 +177,22 @@ public:
     std::coroutine_handle<> continuation;
 
     /**
-     * Detached 모드 플래그.
+     * Detached 모드 플래그
      * true일 경우 FinalAwaiter에서 코루틴 프레임을 자동 소멸합니다.
      * SubmitTask() / DispatchTask()에 의해 설정됩니다.
      */
     bool detached = false;
 
     /**
-     * Detached 모드에서 완료 시 Decrement할 카운터.
+     * Detached 모드에서 완료 시 Decrement할 카운터
      * SubmitTask()에 의해 설정됩니다. DispatchTask()에서는 null입니다.
      */
     std::shared_ptr<JobCounter> completion_counter;
 
-    /**
-     * 코루틴의 반환 값.
-     * T가 void일 경우 [[no_unique_address]]에 의해 메모리가 최적화 됩니다.
-     */
+    /** 외부로 값을 전달할 공유 상태 포인터 */
+    NO_UNIQUE_ADDRESS SharedStateType shared_state;
+
+    /** 코루틴의 반환 값 */
     NO_UNIQUE_ADDRESS StorageType storage;
 };
 

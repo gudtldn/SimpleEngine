@@ -123,14 +123,14 @@ struct WhenAnyState
 } // namespace
 
 
-WhenAll::WhenAll(Array<JobHandle> in_handles)
+WhenAll::WhenAll(Array<JobHandle<void>> in_handles)
     : handles(std::move(in_handles))
 {
 }
 
 bool WhenAll::await_ready() const noexcept
 {
-    return std::ranges::all_of(handles, &JobHandle::IsComplete);
+    return std::ranges::all_of(handles, &JobHandle<void>::IsComplete);
 }
 
 bool WhenAll::await_suspend(std::coroutine_handle<> awaiting)
@@ -141,7 +141,7 @@ bool WhenAll::await_suspend(std::coroutine_handle<> awaiting)
     state->remaining.store(1, std::memory_order_relaxed);
     state->handle = awaiting;
 
-    for (const JobHandle& handle : handles)
+    for (const JobHandle<void>& handle : handles)
     {
         if (!handle.IsValid())
         {
@@ -180,7 +180,7 @@ bool WhenAll::await_suspend(std::coroutine_handle<> awaiting)
     return true;
 }
 
-WhenAny::WhenAny(Array<JobHandle> in_handles)
+WhenAny::WhenAny(Array<JobHandle<void>> in_handles)
     : handles(std::move(in_handles))
 {
 }
@@ -188,7 +188,7 @@ WhenAny::WhenAny(Array<JobHandle> in_handles)
 bool WhenAny::await_ready() const noexcept
 {
     // 유효한 핸들이 하나도 없는지 확인 (빈 배열 포함)
-    auto valid_view = handles | std::views::filter([](const JobHandle& handle)
+    auto valid_view = handles | std::views::filter([](const JobHandle<void>& handle)
     {
         return handle.IsValid();
     });
@@ -199,7 +199,7 @@ bool WhenAny::await_ready() const noexcept
     }
 
     // 유효한 핸들 중 하나라도 완료되었는지 확인
-    return std::ranges::any_of(valid_view, &JobHandle::IsComplete);
+    return std::ranges::any_of(valid_view, &JobHandle<void>::IsComplete);
 }
 
 bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
@@ -211,7 +211,7 @@ bool WhenAny::await_suspend(std::coroutine_handle<> awaiting)
     state->AddRef();
 
     usize registered = 0;
-    for (const JobHandle& handle : handles)
+    for (const JobHandle<void>& handle : handles)
     {
         if (!handle.IsValid())
         {

@@ -429,7 +429,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
 
         ConsoleLog(ELogLevel::Info, "Dispatching {} background cook tasks", total_tasks);
 
-        Array<JobHandle> cook_handles;
+        Array<JobHandle<void>> cook_handles;
         cook_handles.Reserve(total_tasks);
 
         for (const VPath& vpath : dirty_vpaths)
@@ -437,7 +437,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
             cook_handles.Push(JobSystem::Get().SubmitTask(MakeCookTask(*this, vpath, completed, total_tasks)));
         }
 
-        for (const JobHandle& handle : cook_handles)
+        for (const JobHandle<void>& handle : cook_handles)
         {
             handle.Wait();
         }
