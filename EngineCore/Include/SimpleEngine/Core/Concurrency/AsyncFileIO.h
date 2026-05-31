@@ -1,10 +1,11 @@
 ﻿#pragma once
 
-#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Functional/UniqueFunction.h"
 
 #include "SDL3/SDL.h"
 
+#include <memory>
 #include <thread>
 
 
@@ -24,10 +25,35 @@ class Path;
 struct IOResult
 {
     /** 읽어들인 파일 데이터 */
-    Array<u8> data;
+    std::unique_ptr<u8[], decltype(&SDL_free)> data_ptr = { nullptr, SDL_free };
 
-    /** I/O 작업의 성공 여부 */
-    bool success = false;
+    /** 데이터 byte 사이즈 */
+    usize data_len = 0;
+
+public:
+    /** I/O 작업이 성공했는지 확인합니다. */
+    [[nodiscard]] bool Success() const noexcept
+    {
+        return data_ptr != nullptr;
+    }
+
+    /** I/O 작업이 실패했는지 확인합니다. */
+    [[nodiscard]] bool Fail() const noexcept
+    {
+        return data_ptr == nullptr;
+    }
+
+    /** 데이터가 비어있는지 확인합니다. */
+    [[nodiscard]] bool IsEmpty() const noexcept
+    {
+        return data_len == 0;
+    }
+
+    /** 데이터 View를 반환합니다. */
+    [[nodiscard]] ArrayView<const u8> AsView() const noexcept
+    {
+        return ArrayView<const u8>(data_ptr.get(), data_len);
+    }
 };
 
 
