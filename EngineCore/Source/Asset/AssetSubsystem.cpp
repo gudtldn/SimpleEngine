@@ -455,14 +455,13 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
         if (AsyncFileIO::IsInitialized())
         {
             IOResult io_result = co_await AsyncFileIO::Get().ReadFileAsync(cache_path);
-
-            if (io_result.success && !io_result.data.IsEmpty())
+            if (io_result.Success() && !io_result.IsEmpty())
             {
-                if (Optional<CacheEntry> entry_opt = DerivedDataCache::ParseFromBuffer(io_result.data))
+                if (const auto cache_entry = DerivedDataCache::ParseFromBuffer(io_result.AsView()))
                 {
-                    if (AssetPayload payload = DeserializeAssetPayload(expected_type, entry_opt->payload))
+                    if (AssetPayload payload = DeserializeAssetPayload(expected_type, cache_entry->payload))
                     {
-                        CommitLoadedPayload(handle_data, std::move(payload), entry_opt->payload.Len(), scope);
+                        CommitLoadedPayload(handle_data, std::move(payload), cache_entry->payload.Len(), scope);
                         ConsoleLog(ELogLevel::Debug, "LoadAsync: Loaded from DDC (async I/O): {}", source_path.ToString());
                         co_return handle_data;
                     }

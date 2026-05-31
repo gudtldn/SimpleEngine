@@ -81,9 +81,9 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_Success)
     ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
     const IOResult result = future.get();
 
-    EXPECT_TRUE(result.success);
-    EXPECT_EQ(result.data.Len(), std::strlen(TEST_CONTENT));
-    EXPECT_EQ(std::memcmp(result.data.Data(), TEST_CONTENT, result.data.Len()), 0);
+    EXPECT_TRUE(result.Success());
+    EXPECT_EQ(result.data_len, std::strlen(TEST_CONTENT));
+    EXPECT_EQ(std::memcmp(result.data_ptr.get(), TEST_CONTENT, result.data_len), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFile_Callback_NonExistent)
@@ -99,7 +99,7 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_NonExistent)
     ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
     const IOResult result = future.get();
 
-    EXPECT_FALSE(result.success);
+    EXPECT_FALSE(result.Success());
 }
 
 TEST_F(AsyncFileIOTest, ReadFile_Callback_ExecutedOnWorker)
@@ -140,9 +140,9 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
 
     h.Wait();
 
-    EXPECT_TRUE(captured_result.success);
-    EXPECT_EQ(captured_result.data.Len(), std::strlen(TEST_CONTENT));
-    EXPECT_EQ(std::memcmp(captured_result.data.Data(), TEST_CONTENT, captured_result.data.Len()), 0);
+    EXPECT_TRUE(captured_result.Success());
+    EXPECT_EQ(captured_result.data_len, std::strlen(TEST_CONTENT));
+    EXPECT_EQ(std::memcmp(captured_result.data_ptr.get(), TEST_CONTENT, captured_result.data_len), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
@@ -170,7 +170,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
 
     h.Wait();
 
-    EXPECT_FALSE(captured_result.success);
+    EXPECT_FALSE(captured_result.Success());
 }
 
 
@@ -187,7 +187,7 @@ TEST_F(AsyncFileIOTest, ReadFile_MultipleRequests)
     {
         async_io->ReadFile(Path{ test_file_path.c_str() }, [&completed_count](IOResult result)
         {
-            if (result.success)
+            if (result.Success())
             {
                 completed_count.fetch_add(1, std::memory_order_relaxed);
             }
@@ -221,7 +221,7 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_MultipleCoroutines)
             [](std::string path, std::atomic<int>& count) static -> JobTask<void>
             {
                 IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(Path{ path.c_str() });
-                if (result.success)
+                if (result.Success())
                 {
                     count.fetch_add(1, std::memory_order_relaxed);
                 }

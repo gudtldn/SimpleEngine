@@ -79,7 +79,6 @@ struct AsyncReadAwaitable
         if (!SDL_LoadFileAsync(path.CStr(), queue, ctx))
         {
             // SDL이 요청을 시작조차 하지 못한 경우, suspend하지 않고 즉시 복귀
-            result.success = false;
             return false;
         }
 
@@ -103,19 +102,19 @@ IOResult BuildIOResult(SDL_AsyncIOOutcome&& outcome)
     SE_SCOPE_DEFER {
         if (outcome.buffer)
         {
-            SDL_free(outcome.buffer);
-            outcome.buffer = nullptr;
+            SDL_free(std::exchange(outcome.buffer, nullptr));
         }
     };
 
     IOResult result;
-    result.success = outcome.result == SDL_ASYNCIO_COMPLETE;
+    const bool success = outcome.result == SDL_ASYNCIO_COMPLETE;
 
-    if (result.success && outcome.buffer && outcome.bytes_transferred > 0)
+    if (success && outcome.buffer && outcome.bytes_transferred > 0)
     {
-        const usize size = static_cast<usize>(outcome.bytes_transferred);
-        result.data.ResizeUninitialized(size);
-        std::memcpy(result.data.Data(), outcome.buffer, size);
+        result.data_len = static_cast<usize>(outcome.bytes_transferred);
+        result.data_ptr.reset(
+            static_cast<u8*>(std::exchange(outcome.buffer, nullptr))
+        );
     }
 
     return result;
@@ -193,7 +192,6 @@ void AsyncFileIO::ReadFile(const Path& path, UniqueFunction<void(IOResult)>&& ca
         JobSystem::Get().Dispatch([ctx]
         {
             IOResult error_result;
-            error_result.success = false;
 
             const UniqueFunction<void(IOResult)> cb = std::move(ctx->callback);
             delete ctx;
