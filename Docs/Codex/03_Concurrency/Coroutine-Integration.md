@@ -1,6 +1,6 @@
 ---
 작성일: 2026-05-20
-최종 수정일: 2026-05-20
+최종 수정일: 2026-06-01
 작성 완료: true
 tags:
   - concurrency
@@ -169,24 +169,53 @@ C++20 코루틴의 고질적인 단점은 프레임 생성 시 매번 힙 할당
 
 ---
 
-## 6. AsyncFileIO - 논블로킹 I/O 연동
+## 6. 논블로킹 I/O 연동(`AsyncFileIO`)
 
 > `EngineCore/Include/SimpleEngine/Core/Concurrency/AsyncFileIO.h`
 
 SDL3의 `SDL_AsyncIO`를 사용하여 OS 수준의 비동기 I/O를 지원한다. 전용 Poller Thread가 `SDL_AsyncIOQueue`를 감시하다가 완료 이벤트가 들어오면, 워커 스레드에 콜백이나 코루틴 재개(Resume)를 스케줄링한다.
 
+### 6.1. IOResult Zero-Copy 개선 (PR [#43](https://github.com/gudtldn/SimpleEngine/pull/43))
+
+`BuildIOResult`의 초기 구현에서는, SDL이 할당한 버퍼를 엔진 소유의 `Array<u8>`로 `memcpy`한 뒤 SDL 버퍼를 즉시 해제하는 구조였다. 이렇게 되면서 매번 비동기 I/O를 완료할 때마다 파일 크기만큼 복사가 발생하는 비효율적인 상황이 벌어졌다.
+
+```cpp
+// 기존: SDL 버퍼 -> Array<u8> 복사 후 SDL_free
+result.data.ResizeUninitialized(size);
+std::memcpy(result.data.Data(), outcome.buffer, size);
+SDL_free(outcome.buffer);
+```
+
+이제는 SDL 버퍼의 소유권을 `IOResult`로 이전하여, `IOResult`가 소멸될 때 자동으로 `SDL_free`가 호출되도록 변경했다.
+
+```cpp
+// 변경: std::exchange로 소유권 이전 (Zero-Copy)
+result.data_ptr.reset(static_cast<u8*>(std::exchange(outcome.buffer, nullptr)));
+result.data_len = static_cast<usize>(outcome.bytes_transferred);
+```
+
+### 6.2. `Success()`의 의미 변경
+
+기존 `bool success` 필드는 SDL의 `ASYNCIO_COMPLETE` 여부, 즉 순수한 I/O 완료를 나타냈다. 변경 후 `Success()`는 `data_ptr != nullptr`를 반환하므로 **1바이트 이상의 데이터를 수신했는지**를 뜻한다. 에셋 파이프라인에서 빈 파일은 항상 무효 데이터이므로 "I/O 완료지만 데이터 없음"을 별도로 구분할 실익이 없어 두 케이스를 통합했다.
+
 ```cpp
 // 콜백 방식
 AsyncFileIO::Get().ReadFile(path, [](IOResult result)
 {
-    if (result.success) { ProcessData(result.data); }
+    if (result.Success())
+    {
+        ProcessData(result.AsView());
+    }
 });
 
 // 코루틴 방식
 JobTask<void> LoadAssetTask(Path path)
 {
     IOResult result = co_await AsyncFileIO::Get().ReadFileAsync(path);
-    if (result.success) { ProcessData(result.data); }
+    if (result.Success())
+    {
+        ProcessData(result.AsView());
+    }
 }
 ```
 
@@ -203,6 +232,7 @@ JobTask<void> LoadAssetTask(Path path)
 ## 참고
 
 - [비동기 파일 I/O 시스템 및 코루틴 안전성 강화 PR #20](https://github.com/gudtldn/SimpleEngine/pull/20)
+- [IOResult Zero-Copy 개선 PR #43](https://github.com/gudtldn/SimpleEngine/pull/43)
 - [Job-System-Architecture.md](./Job-System-Architecture.md) - WorkStealingDeque 및 JobSystem 스케줄러 상세
 - [C++20 Coroutine Reference (cppreference)](https://en.cppreference.com/w/cpp/language/coroutines)
 - [Symmetric Transfer (Lewis Baker)](https://lewissbaker.github.io/2020/05/11/understanding_symmetric_transfer)
