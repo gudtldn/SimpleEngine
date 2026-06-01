@@ -82,8 +82,9 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_Success)
     const IOResult result = future.get();
 
     EXPECT_TRUE(result.Success());
-    EXPECT_EQ(result.data_len, std::strlen(TEST_CONTENT));
-    EXPECT_EQ(std::memcmp(result.data_ptr.get(), TEST_CONTENT, result.data_len), 0);
+    const auto view = result.AsView();
+    EXPECT_EQ(view.Len(), std::strlen(TEST_CONTENT));
+    EXPECT_EQ(std::memcmp(view.Data(), TEST_CONTENT, view.Len()), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFile_Callback_NonExistent)
@@ -100,6 +101,29 @@ TEST_F(AsyncFileIOTest, ReadFile_Callback_NonExistent)
     const IOResult result = future.get();
 
     EXPECT_FALSE(result.Success());
+}
+
+TEST_F(AsyncFileIOTest, ReadFile_Callback_EmptyFile)
+{
+    const std::string empty_path = (std::filesystem::temp_directory_path() / "se_asyncio_empty.txt").string();
+    std::ofstream{ empty_path }.close();
+
+    std::promise<IOResult> promise;
+    auto future = promise.get_future();
+
+    async_io->ReadFile(Path{ empty_path.c_str() }, [&promise](IOResult result)
+    {
+        promise.set_value(std::move(result));
+    });
+
+    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
+    const IOResult result = future.get();
+
+    std::filesystem::remove(empty_path);
+
+    // 빈 파일(0바이트)은 데이터가 없으므로 Success() == false
+    EXPECT_FALSE(result.Success());
+    EXPECT_EQ(result.data_len, 0u);
 }
 
 TEST_F(AsyncFileIOTest, ReadFile_Callback_ExecutedOnWorker)
@@ -141,8 +165,9 @@ TEST_F(AsyncFileIOTest, ReadFileAsync_Success)
     h.Wait();
 
     EXPECT_TRUE(captured_result.Success());
-    EXPECT_EQ(captured_result.data_len, std::strlen(TEST_CONTENT));
-    EXPECT_EQ(std::memcmp(captured_result.data_ptr.get(), TEST_CONTENT, captured_result.data_len), 0);
+    const auto view = captured_result.AsView();
+    EXPECT_EQ(view.Len(), std::strlen(TEST_CONTENT));
+    EXPECT_EQ(std::memcmp(view.Data(), TEST_CONTENT, view.Len()), 0);
 }
 
 TEST_F(AsyncFileIOTest, ReadFileAsync_NonExistent)
