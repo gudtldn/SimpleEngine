@@ -16,6 +16,17 @@ template <typename T>
 class JobTask;
 class Path;
 
+namespace detail
+{
+struct SDLFreeDeleter
+{
+    void operator()(void* ptr) const noexcept
+    {
+        SDL_free(ptr);
+    }
+};
+} // namespace detail
+
 /**
  * 비동기 I/O 결과를 담는 구조체
  *
@@ -25,19 +36,22 @@ class Path;
 struct IOResult
 {
     /** 읽어들인 파일 데이터 */
-    std::unique_ptr<u8[], decltype(&SDL_free)> data_ptr = { nullptr, SDL_free };
+    std::unique_ptr<u8[], detail::SDLFreeDeleter> data_ptr = nullptr;
 
     /** 데이터 byte 사이즈 */
     usize data_len = 0;
 
 public:
-    /** I/O 작업이 성공했는지 확인합니다. */
+    /**
+     * 파일 데이터가 정상적으로 읽혔는지 확인합니다.
+     * @note 빈 파일(0바이트) 읽기는 실패와 동일하게 취급합니다.
+     */
     [[nodiscard]] bool Success() const noexcept
     {
         return data_ptr != nullptr;
     }
 
-    /** I/O 작업이 실패했는지 확인합니다. */
+    /** 파일 데이터 읽기에 실패했는지 확인합니다. */
     [[nodiscard]] bool Fail() const noexcept
     {
         return data_ptr == nullptr;
@@ -52,8 +66,10 @@ public:
     /** 데이터 View를 반환합니다. */
     [[nodiscard]] ArrayView<const u8> AsView() const noexcept
     {
-        return ArrayView<const u8>(data_ptr.get(), data_len);
+        return { data_ptr.get(), data_len };
     }
+
+    explicit operator bool() const noexcept { return Success(); }
 };
 
 

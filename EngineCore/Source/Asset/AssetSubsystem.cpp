@@ -454,8 +454,7 @@ JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, Asse
 
         if (AsyncFileIO::IsInitialized())
         {
-            IOResult io_result = co_await AsyncFileIO::Get().ReadFileAsync(cache_path);
-            if (io_result.Success() && !io_result.IsEmpty())
+            if (const IOResult io_result = co_await AsyncFileIO::Get().ReadFileAsync(cache_path))
             {
                 if (const auto cache_entry = DerivedDataCache::ParseFromBuffer(io_result.AsView()))
                 {
