@@ -4,11 +4,9 @@
   - 이렇게 하면 Window별로 Rendering을 다르게할 수 있음
   - 윈도우별 DrawData 구현 (비슷한 내용)
 
-- [ ] RenderGraph에 Resource Extract 로직 추가
+- [ ] RenderGraph에 Resource Extract 로직 추가 (실제로 필요한지 검토)
   - Extract를 하면 ResourcePool에서 std::unique_ptr<ExtractedResource>로 소유권을 넘겨서 반환
   - ExtractedResource가 소멸하면 다시 Pool로 반납
-- [ ] ECS System클래스 구현
-    - 생성자로 Fn&&을 받아서 시스템 끼리의 순서나 여러가지 상호작용을 할 수 있도록 하기
 - [ ] RenderWorld 구현
     - 매 프레임 렌더링에 필요한 컴포넌트만 추출해서
 - [ ] Entity를 Spawn할 때, 한번에 Entity + Components... 로 Spawn할 수 있도록 Bundle 기능 추가
@@ -45,7 +43,7 @@
 
 - [ ] 비동기 아키텍처에 협동적 취소 메커니즘 추가 고려
 - [ ] AssetBrowser의 표시 목록을 정리 (지금 폴더밑에 다 표시중)
-- [ ] FileWatcher 만들어서 에셋 폴더 실시간 감시
+- [ ] FileWatcher 만들어서 에셋 폴더 실시간 감시 (FileWatcher는 있지만, 실시간 감시는 아직)
 
 ## 완료
 
@@ -81,3 +79,5 @@
 - [x] 나중에 I18n을 지원할 때, ICU4X도 한번 검토하기
   - ICU4X를 링크하려면 rust compiler가 필요한데, 엔진에서 진짜 필요한지 봐야할 듯.
 - [x] RenderGraph::Compile시 리소스 수명 체크해서 리소스 재사용 로직 추가
+- [x] ECS System클래스 구현
+    - 생성자로 Fn&&을 받아서 시스템 끼리의 순서나 여러가지 상호작용을 할 수 있도록 하기
