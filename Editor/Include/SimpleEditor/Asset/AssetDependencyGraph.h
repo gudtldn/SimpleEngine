@@ -20,17 +20,17 @@ namespace se::editor
  * .meta 파일의 dependencies[] 배열을 "진실의 원천"으로 삼고,
  * ScanWorkspace 시 순방향/역방향 인덱스를 구축합니다.
  */
-class SE_EDITOR_API DependencyGraph
+class SE_EDITOR_API AssetDependencyGraph
 {
 public:
-    DependencyGraph() = default;
-    ~DependencyGraph() = default;
+    AssetDependencyGraph() = default;
+    ~AssetDependencyGraph() = default;
 
     // 복사 & 이동 금지
-    DependencyGraph(const DependencyGraph&) = delete;
-    DependencyGraph& operator=(const DependencyGraph&) = delete;
-    DependencyGraph(DependencyGraph&&) = delete;
-    DependencyGraph& operator=(DependencyGraph&&) = delete;
+    AssetDependencyGraph(const AssetDependencyGraph&) = delete;
+    AssetDependencyGraph& operator=(const AssetDependencyGraph&) = delete;
+    AssetDependencyGraph(AssetDependencyGraph&&) = delete;
+    AssetDependencyGraph& operator=(AssetDependencyGraph&&) = delete;
 
 public:
     /**

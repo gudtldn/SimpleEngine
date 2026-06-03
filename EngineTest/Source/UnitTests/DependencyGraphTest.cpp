@@ -1,6 +1,6 @@
 ﻿#include "gtest/gtest.h"
 
-#include "SimpleEditor/Asset/DependencyGraph.h"
+#include "SimpleEditor/Asset/AssetDependencyGraph.h"
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/Array.h"
@@ -41,7 +41,7 @@ HashSet<AssetId> ToSet(const Array<AssetId>& arr)
 
 TEST(DependencyGraph, SetDependencies_ForwardQuery)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -59,7 +59,7 @@ TEST(DependencyGraph, SetDependencies_ForwardQuery)
 
 TEST(DependencyGraph, SetDependencies_ReverseQuery)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -83,7 +83,7 @@ TEST(DependencyGraph, SetDependencies_ReverseQuery)
 
 TEST(DependencyGraph, SetDependencies_ReplacesOldDeps)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -115,7 +115,7 @@ TEST(DependencyGraph, SetDependencies_ReplacesOldDeps)
 
 TEST(DependencyGraph, EmptyDependencies_RemovesForward)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
@@ -134,7 +134,7 @@ TEST(DependencyGraph, EmptyDependencies_RemovesForward)
 
 TEST(DependencyGraph, RemoveNode_CleansForwardAndReverse)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -158,7 +158,7 @@ TEST(DependencyGraph, RemoveNode_CleansForwardAndReverse)
 
 TEST(DependencyGraph, RemoveNode_Nonexistent_NoOp)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     graph.RemoveNode(NewId());  // 존재하지 않는 노드 제거 — 크래시 없어야 함
 }
 
@@ -166,7 +166,7 @@ TEST(DependencyGraph, RemoveNode_Nonexistent_NoOp)
 
 TEST(DependencyGraph, GetTransitiveDependents_ChainPropagation)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId texture = NewId();
     const AssetId material = NewId();
     const AssetId mesh = NewId();
@@ -194,7 +194,7 @@ TEST(DependencyGraph, GetTransitiveDependents_Diamond)
     // B   C
     //  \ /
     //   D
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -225,7 +225,7 @@ TEST(DependencyGraph, GetTransitiveDependents_Diamond)
 
 TEST(DependencyGraph, GetTransitiveDependents_NoTransitiveDeps)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
 
     auto trans = graph.GetTransitiveDependents(a);
@@ -236,7 +236,7 @@ TEST(DependencyGraph, GetTransitiveDependents_NoTransitiveDeps)
 
 TEST(DependencyGraph, HasCyclicDependency_SelfLoop)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
 
     EXPECT_TRUE(graph.HasCyclicDependency(a, a));
@@ -244,7 +244,7 @@ TEST(DependencyGraph, HasCyclicDependency_SelfLoop)
 
 TEST(DependencyGraph, HasCyclicDependency_DirectCycle)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
@@ -258,7 +258,7 @@ TEST(DependencyGraph, HasCyclicDependency_DirectCycle)
 
 TEST(DependencyGraph, HasCyclicDependency_IndirectCycle)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -277,7 +277,7 @@ TEST(DependencyGraph, HasCyclicDependency_IndirectCycle)
 
 TEST(DependencyGraph, HasCyclicDependency_NoCycle)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -295,7 +295,7 @@ TEST(DependencyGraph, HasCyclicDependency_NoCycle)
 
 TEST(DependencyGraph, TopologicalSort_LinearChain)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -326,7 +326,7 @@ TEST(DependencyGraph, TopologicalSort_LinearChain)
 
 TEST(DependencyGraph, TopologicalSort_CyclePreventedBySetDependencies)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
@@ -350,7 +350,7 @@ TEST(DependencyGraph, TopologicalSort_CyclePreventedBySetDependencies)
 
 TEST(DependencyGraph, TopologicalSort_EmptyGraph)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     auto sorted = graph.TopologicalSort();
     EXPECT_TRUE(sorted.IsEmpty());
 }
@@ -359,7 +359,7 @@ TEST(DependencyGraph, TopologicalSort_EmptyGraph)
 
 TEST(DependencyGraph, Clear_RemovesAllData)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
@@ -378,7 +378,7 @@ TEST(DependencyGraph, Clear_RemovesAllData)
 
 TEST(DependencyGraph, GetNodeCount_CountsAllUniqueNodes)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();
@@ -397,7 +397,7 @@ TEST(DependencyGraph, GetNodeCount_CountsAllUniqueNodes)
 
 TEST(DependencyGraph, SetDependencies_DeduplicatesInput)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
@@ -421,7 +421,7 @@ TEST(DependencyGraph, SetDependencies_DeduplicatesInput)
 
 TEST(DependencyGraph, SetDependencies_FiltersSelfDependency)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
 
@@ -439,7 +439,7 @@ TEST(DependencyGraph, SetDependencies_FiltersSelfDependency)
 
 TEST(DependencyGraph, SetDependencies_RejectsCyclicDependency)
 {
-    DependencyGraph graph;
+    AssetDependencyGraph graph;
     const AssetId a = NewId();
     const AssetId b = NewId();
     const AssetId c = NewId();

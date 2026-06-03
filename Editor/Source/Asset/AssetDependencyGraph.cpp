@@ -1,4 +1,4 @@
-﻿#include "SimpleEditor/Asset/DependencyGraph.h"
+﻿#include "SimpleEditor/Asset/AssetDependencyGraph.h"
 
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
@@ -11,9 +11,9 @@
 
 namespace se::editor
 {
-void DependencyGraph::SetDependencies(const AssetId& id, ArrayView<const AssetId> dependencies)
+void AssetDependencyGraph::SetDependencies(const AssetId& id, ArrayView<const AssetId> dependencies)
 {
-    ZoneScopedN("DependencyGraph::SetDependencies");
+    ZoneScopedN("AssetDependencyGraph::SetDependencies");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
     // 0. 입력 중복 제거 + 자기 참조 필터링
@@ -95,9 +95,9 @@ void DependencyGraph::SetDependencies(const AssetId& id, ArrayView<const AssetId
     }
 }
 
-void DependencyGraph::RemoveNode(const AssetId& id)
+void AssetDependencyGraph::RemoveNode(const AssetId& id)
 {
-    ZoneScopedN("DependencyGraph::RemoveNode");
+    ZoneScopedN("AssetDependencyGraph::RemoveNode");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
     std::unique_lock lock(graph_mutex);
@@ -158,14 +158,14 @@ void DependencyGraph::RemoveNode(const AssetId& id)
     }
 }
 
-void DependencyGraph::Clear()
+void AssetDependencyGraph::Clear()
 {
     std::unique_lock lock(graph_mutex);
     forward_deps.Clear();
     reverse_deps.Clear();
 }
 
-Array<AssetId> DependencyGraph::GetDependencies(const AssetId& id) const
+Array<AssetId> AssetDependencyGraph::GetDependencies(const AssetId& id) const
 {
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
@@ -173,7 +173,7 @@ Array<AssetId> DependencyGraph::GetDependencies(const AssetId& id) const
     return forward_deps.Find(id).Copy().ValueOrDefault();
 }
 
-Array<AssetId> DependencyGraph::GetDependents(const AssetId& id) const
+Array<AssetId> AssetDependencyGraph::GetDependents(const AssetId& id) const
 {
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
@@ -181,9 +181,9 @@ Array<AssetId> DependencyGraph::GetDependents(const AssetId& id) const
     return reverse_deps.Find(id).Copy().ValueOrDefault();
 }
 
-Array<AssetId> DependencyGraph::GetTransitiveDependents(const AssetId& id) const
+Array<AssetId> AssetDependencyGraph::GetTransitiveDependents(const AssetId& id) const
 {
-    ZoneScopedN("DependencyGraph::GetTransitiveDependents");
+    ZoneScopedN("AssetDependencyGraph::GetTransitiveDependents");
     SE_ASSERT(id.IsValid(), "Invalid asset ID");
 
     std::shared_lock lock(graph_mutex);
@@ -230,9 +230,9 @@ Array<AssetId> DependencyGraph::GetTransitiveDependents(const AssetId& id) const
     return result;
 }
 
-bool DependencyGraph::HasCyclicDependency(const AssetId& from, const AssetId& to) const
+bool AssetDependencyGraph::HasCyclicDependency(const AssetId& from, const AssetId& to) const
 {
-    ZoneScopedN("DependencyGraph::HasCyclicDependency");
+    ZoneScopedN("AssetDependencyGraph::HasCyclicDependency");
     SE_ASSERT(from.IsValid() && to.IsValid(), "Invalid asset ID");
 
     if (from == to)
@@ -244,9 +244,9 @@ bool DependencyGraph::HasCyclicDependency(const AssetId& from, const AssetId& to
     return HasPathInternal(to, from);
 }
 
-Array<AssetId> DependencyGraph::TopologicalSort() const
+Array<AssetId> AssetDependencyGraph::TopologicalSort() const
 {
-    ZoneScopedN("DependencyGraph::TopologicalSort");
+    ZoneScopedN("AssetDependencyGraph::TopologicalSort");
 
     std::shared_lock lock(graph_mutex);
 
@@ -314,7 +314,7 @@ Array<AssetId> DependencyGraph::TopologicalSort() const
     return result;
 }
 
-usize DependencyGraph::GetNodeCount() const
+usize AssetDependencyGraph::GetNodeCount() const
 {
     std::shared_lock lock(graph_mutex);
 
@@ -337,9 +337,9 @@ usize DependencyGraph::GetNodeCount() const
     return total_keys - intersection_count;
 }
 
-bool DependencyGraph::HasPathInternal(const AssetId& from, const AssetId& target) const
+bool AssetDependencyGraph::HasPathInternal(const AssetId& from, const AssetId& target) const
 {
-    ZoneScopedN("DependencyGraph::HasPathInternal");
+    ZoneScopedN("AssetDependencyGraph::HasPathInternal");
 
     // target에서 시작해서 from을 만날 수 있는지 확인 (Forward 탐색)
     HashSet<AssetId> visited;

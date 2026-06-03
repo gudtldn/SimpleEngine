@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleEditor/Asset/DependencyGraph.h"
+#include "SimpleEditor/Asset/AssetDependencyGraph.h"
 #include "SimpleEditor/Asset/ImportPresetManager.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
@@ -68,7 +68,7 @@ public:
     bool CookAsset(const VPath& file_vpath);
 
     /** DependencyGraph에 대한 읽기 전용 접근자 */
-    [[nodiscard]] const DependencyGraph& GetDependencyGraph() const { return dep_graph; }
+    [[nodiscard]] const AssetDependencyGraph& GetDependencyGraph() const { return dep_graph; }
 
     /**
      * 외부 파일을 Content 디렉토리로 복사하고 Import합니다.
@@ -128,7 +128,7 @@ private:
 
     std::unique_ptr<AssetImporter> importer;
     ImportPresetManager preset_manager;
-    DependencyGraph dep_graph;
+    AssetDependencyGraph dep_graph;
 
     TracyLockable(std::mutex, cooking_mutex);
     HashSet<VPath> currently_cooking;

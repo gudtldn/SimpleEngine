@@ -183,7 +183,7 @@ bool EditorAssetSubsystem::Initialize()
         }
     }
 
-    // === DependencyGraph 초기 구축 ===
+    // === AssetDependencyGraph 초기 구축 ===
     BuildDependencyGraph();
 
     // OS 파일 드롭 이벤트 구독
@@ -688,7 +688,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         // TODO: Hot-reload 시 AssetPool::FindOrCreate + ExchangeAsset으로 메모리 교체
     }
 
-    // DependencyGraph 동기화 (각 sub-asset의 개별 의존성 사용)
+    // AssetDependencyGraph 동기화 (각 sub-asset의 개별 의존성 사용)
     for (const SubAssetMeta& sub : updated_content.metadata.sub_assets)
     {
         SyncDependencies(AssetId{ sub.guid }, sub.dependencies);
@@ -910,7 +910,7 @@ void EditorAssetSubsystem::BuildDependencyGraph()
         }
     }
 
-    ConsoleLog(ELogLevel::Info, "DependencyGraph built: {} nodes", dep_graph.GetNodeCount());
+    ConsoleLog(ELogLevel::Info, "AssetDependencyGraph built: {} nodes", dep_graph.GetNodeCount());
 }
 
 void EditorAssetSubsystem::SyncDependencies(
