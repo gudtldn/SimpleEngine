@@ -16,9 +16,9 @@ tags:
 
 **코드 진입점:**
 
-- `Editor/Include/SimpleEditor/Asset/AssetImporter.h` - Import 파이프라인 진입점
-- `Editor/Include/SimpleEditor/Asset/IPipelineTranslator.h` - Translator 인터페이스
-- `Editor/Source/Asset/AssimpTranslator.cpp` - Assimp 기반 FBX/OBJ 번역기
+- `Editor/Include/SimpleEditor/Asset/Pipeline/AssetImporter.h` - Import 파이프라인 진입점
+- `Editor/Include/SimpleEditor/Asset/Pipeline/Translators/IPipelineTranslator.h` - Translator 인터페이스
+- `Editor/Source/Asset/Pipeline/Translators/AssimpTranslator.cpp` - Assimp 기반 FBX/OBJ 번역기
 - `Editor/Include/SimpleEditor/Asset/MetaFileManager.h` - .meta 파일 CRUD
 - `EngineCore/Include/SimpleEngine/Asset/AssetSubsystem.h` - DDCMissHandler 주입점
 - `EngineCore/Include/SimpleEngine/Asset/DerivedDataCache.h` - DDC 읽기/쓰기
@@ -194,13 +194,15 @@ Project/
            └── 550e8400-...0000.cache  <- GUID 기반 2레벨 파티셔닝 저장
 ```
 
-캐시 파싱 오버헤드를 최소화하기 위해 캐시 파일의 헤더 레이아웃은 고정 크기의 단순하고 직관적인 형태로 설계했다.
+캐시 파싱 오버헤드를 최소화하기 위해 캐시 파일의 헤더는 매직/버전/소스 해시/페이로드 크기를 앞단에 배치한 단순한 형태로 설계했다.
 
 ```text
-[4 bytes]  Magic Number: "SEDC" (Simple Engine Derived Cache)
-[4 bytes]  Cache Version: uint32
-[8 bytes]  Payload Size: uint64
-[N bytes]  Payload Data: MemoryWriter로 직렬화된 순수 정점/텍스처 바이너리
+[4 bytes]    Magic Number: "SEDC" (SimpleEngine Derived Cache)
+[4 bytes]    Format Version: uint32
+[8+N bytes]  Source Hash: String (length-prefixed)
+[4 bytes]    Cache Schema Version: uint32  (Importer 출력 포맷 변경 시 증가)
+[8 bytes]    Payload Size: uint64
+[M bytes]    Payload Data: MemoryArchive로 직렬화된 순수 정점/텍스처 바이너리
 ```
 
 ### 4.1. DDC 유효성 검증 파이프라인
@@ -241,7 +243,7 @@ graph TD
 
 ```cpp
 // EngineCore/Include/SimpleEngine/Asset/AssetSubsystem.h
-using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const Path& file_path)>;
+using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& file_path)>;
 
 class SE_CORE_API AssetSubsystem : public SubsystemBase
 {
@@ -249,14 +251,14 @@ public:
     void SetDDCMissHandler(DDCMissHandler handler);
 
 private:
-    DDCMissHandler ddc_miss_handler = nullptr;
+    DDCMissHandler ddc_miss_handler;
 };
 ```
 
 `AssetSubsystem`은 에셋 로드 중 DDC 캐시가 누락되면 직접 임포트를 트리거하는 대신, 등록된 핸들러를 호출한다.
 
 ```cpp
-// EngineCore/Source/SimpleEngine/Asset/AssetSubsystem.cpp 내부
+// EngineCore/Source/Asset/AssetSubsystem.cpp 내부
 if (!registry->IsFileImported(file_path))
 {
     if (ddc_miss_handler)
@@ -276,15 +278,17 @@ if (!registry->IsFileImported(file_path))
 에디터 모듈은 초기화 시점에 `CookAsset` 멤버 함수를 람다 형태로 주입한다.
 
 ```cpp
-// Editor/Source/SimpleEditor/Asset/EditorAssetSubsystem.cpp
-void FEditorAssetSubsystem::Initialize()
+// Editor/Source/Asset/EditorAssetSubsystem.cpp
+bool EditorAssetSubsystem::Initialize()
 {
-    GetCoreSubsystem<AssetSubsystem>()->SetDDCMissHandler(
-        [this](asset::AssetSubsystem&, const Path& file_path) -> bool
+    // ... importer/factory 등록 생략 ...
+    GetSubsystemChecked<AssetSubsystem>().SetDDCMissHandler(
+        [this](AssetSubsystem&, const VPath& file_path) -> bool
         {
             return CookAsset(file_path);
         }
     );
+    // ...
 }
 ```
 

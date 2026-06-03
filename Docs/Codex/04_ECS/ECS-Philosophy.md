@@ -13,7 +13,7 @@ tags:
 
 **코드 진입점:**
 
-- `EngineCore/Include/SimpleEngine/ECS/ECSRegistry.h` - ECS 월드 진입점
+- `EngineCore/Include/SimpleEngine/ECS/ECSRegistry.h` - 타입 소거 기반 컴포넌트 연산 레지스트리(에디터/리플렉션용)
 - `EngineCore/Include/SimpleEngine/ECS/SparseSet.h` - 컴포넌트 저장소 핵심 자료구조
 - `EngineCore/Include/SimpleEngine/ECS/Query.h` - 컴포넌트 쿼리 인터페이스
 

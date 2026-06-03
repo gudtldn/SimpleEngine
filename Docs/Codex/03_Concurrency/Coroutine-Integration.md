@@ -165,7 +165,7 @@ JobTask<void> WaitForOtherJob()
 
 C++20 코루틴의 고질적인 단점은 프레임 생성 시 매번 힙 할당(`operator new`)이 일어난다는 점이다.
 
-이를 해결하기 위해 `JobTaskPromise<T>`의 `operator new/delete`를 직접 오버로딩하여, Job System의 **Lock-Free TLS 할당자(`JobAllocator`)에 직접 위임**했다. 그 결과, `malloc`을 호출하는 대신 스레드 로컬에 준비된 64/128/256 바이트 버킷에서 메모리를 즉시 꺼내 쓰도록 만들어 힙 파편화와 락 경합을 제거했다.
+이를 해결하기 위해 `JobTaskPromise<T>`의 `operator new/delete`를 직접 오버로딩하여, Job System의 **Lock-Free TLS 할당자(`JobAllocator`)에 직접 위임**했다. 그 결과, `malloc`을 호출하는 대신 스레드 로컬에 준비된 64/128/256/512 바이트 버킷에서 메모리를 즉시 꺼내 쓰도록 만들어 힙 파편화와 락 경합을 제거했다.
 
 ---
 
@@ -224,7 +224,6 @@ JobTask<void> LoadAssetTask(Path path)
 ## 7. 한계 및 미래 과제
 
 - **예외 미지원:** `unhandled_exception()`에서 `SE_FATAL_ERROR()`로 즉시 크래시한다. 안정성을 위해 예외 전파를 의도적으로 막았으나, 에러 결과를 `co_return`으로 넘기는 `Expected<T, E>` 패턴 도입을 검토 중이다.
-- **`JobTask<T>` (T != void) 미완성:** 반환값이 없는 `JobTask<void>`가 주 사용 경로이며, 값 반환 타입을 사용하는 `SubmitTask(JobTask<T>)`는 현재 지원하지 않는다.
 - **취소(Cancellation) 미지원:** 제출된 코루틴 대기열을 외부에서 중단하는 메커니즘이 없다. 추후 `stop_token`기반 취소 지원을 추가할 계획이다.
 
 ---
