@@ -125,6 +125,9 @@ private:
     /** SDL 비동기 I/O 완료 큐 */
     SDL_AsyncIOQueue* io_queue = nullptr;
 
+    /** 현재 SDL에 제출되어 완료를 기다리는 비동기 I/O 요청 수 */
+    std::atomic<i32> inflight_count = 0;
+
     /** I/O 완료 감시 전용 Poller Thread */
     std::jthread poller_thread;
 };

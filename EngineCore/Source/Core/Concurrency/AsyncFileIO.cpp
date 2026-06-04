@@ -57,6 +57,7 @@ struct IORequestContext
 struct AsyncReadAwaitable
 {
     SDL_AsyncIOQueue* queue;
+    std::atomic<i32>* inflight;
     Path path;
     IOResult result; // 코루틴 프레임에 저장되어 suspension 동안 유효
 
@@ -76,9 +77,11 @@ struct AsyncReadAwaitable
         ctx->continuation = handle;
         ctx->result_storage = &result;
 
+        inflight->fetch_add(1, std::memory_order_relaxed);
         if (!SDL_LoadFileAsync(path.CStr(), queue, ctx))
         {
             // SDL이 요청을 시작조차 하지 못한 경우, suspend하지 않고 즉시 복귀
+            inflight->fetch_sub(1, std::memory_order_relaxed);
             return false;
         }
 
@@ -186,9 +189,11 @@ void AsyncFileIO::ReadFile(const Path& path, UniqueFunction<void(IOResult)>&& ca
     ctx->mode = IORequestContext::EMode::Callback;
     ctx->callback = std::move(callback);
 
+    inflight_count.fetch_add(1, std::memory_order_relaxed);
     if (!SDL_LoadFileAsync(path.CStr(), io_queue, ctx))
     {
         // Load에 실패한 경우, 에러 결과를 Worker에서 전달 (Poller에서 직접 실행 금지)
+        inflight_count.fetch_sub(1, std::memory_order_relaxed);
         JobSystem::Get().Dispatch([ctx]
         {
             IOResult error_result;
@@ -204,6 +209,7 @@ JobTask<IOResult> AsyncFileIO::ReadFileAsync(const Path& path)
 {
     co_return co_await AsyncReadAwaitable{
         .queue = io_queue,
+        .inflight = &inflight_count,
         .path = path
     };
 }
@@ -212,12 +218,21 @@ void AsyncFileIO::PollerLoop(const std::stop_token& stoken)
 {
     Platform::SetCurrentThreadName("AsyncIO Poller");
 
-    while (!stoken.stop_requested())
+    while (true)
     {
-        SDL_AsyncIOOutcome outcome{};
+        const bool stop_req = stoken.stop_requested();
 
-        // Signal이 올 때 까지 무한 대기
-        if (!SDL_WaitAsyncIOResult(io_queue, &outcome, -1))
+        // stop이 요청되었고 진행 중인 I/O 요청이 없으면 종료
+        if (stop_req && inflight_count.load(std::memory_order_acquire) == 0)
+        {
+            break;
+        }
+
+        // stop 요청 중에는 10ms timeout으로 폴링 (drain중 무한 블로킹 방지)
+        const i32 timeout_ms = stop_req ? 10 : -1;
+
+        SDL_AsyncIOOutcome outcome{};
+        if (!SDL_WaitAsyncIOResult(io_queue, &outcome, timeout_ms))
         {
             continue;
         }
@@ -274,6 +289,8 @@ void AsyncFileIO::PollerLoop(const std::stop_token& stoken)
         default:
             SE_UNREACHABLE();
         }
+
+        inflight_count.fetch_sub(1, std::memory_order_release);
     }
 }
 } // namespace se
