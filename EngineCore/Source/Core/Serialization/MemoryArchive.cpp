@@ -98,7 +98,10 @@ void MemoryReader::SerializeTypeId(TypeId& value)
     u64 hash = 0;
     ReadPrimitive(hash);
     value = TypeId::FromHash(hash);
-    SE_ENSURE(value.IsValid(), "MemoryReader::SerializeTypeId - Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash);
+    if (!SE_ENSURE(value.IsValid(), "MemoryReader::SerializeTypeId - Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash))
+    {
+        SetError(String::Format("MemoryReader: Failed to resolve TypeId from hash: {}.", hash));
+    }
 }
 
 void MemoryReader::ReadBytes(void* dest, u64 byte_size)
@@ -108,6 +111,8 @@ void MemoryReader::ReadBytes(void* dest, u64 byte_size)
         "MemoryReader::ReadBytes - Buffer overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer_view.Len()
     ))
     {
+        SetError(String::Format("MemoryReader: Buffer overflow! (Offset: {}, Size: {}, BufferLen: {})", offset, byte_size, buffer_view.Len()));
+
         // 릴리스에서 오버플로우 시 남은 만큼만 읽고 나머지는 0으로 채움
         const u64 readable = (offset < buffer_view.Len()) ? buffer_view.Len() - offset : 0;
         if (readable > 0)
@@ -198,6 +203,10 @@ void MemoryWriter::SerializeTypeId(TypeId& value)
     if (SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Binary!"))
     {
         hash = value.GetHash();
+    }
+    else
+    {
+        SetError("MemoryWriter: Attempting to save invalid TypeId.");
     }
     WritePrimitive(hash);
 }

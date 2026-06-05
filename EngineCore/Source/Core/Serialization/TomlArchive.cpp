@@ -82,6 +82,7 @@ void TomlReader::BeginObject()
     }
     else
     {
+        SetError(String::Format("TomlReader: Expected a table node for key '{}'.", pending_key));
         context_stack.Push({
             .node = nullptr,
             .mode = EContextMode::Object,
@@ -109,6 +110,7 @@ void TomlReader::BeginArray(u64& count)
     }
     else
     {
+        SetError(String::Format("TomlReader: Expected an array node for key '{}'.", pending_key));
         count = 0;
         context_stack.Push({
             .node = nullptr,
@@ -148,6 +150,7 @@ void TomlReader::BeginMap(u64& count)
         }
         else
         {
+            SetError("TomlReader: Root map node is not a table.");
             count = 0;
             static toml::table empty_table;
             context_stack.Push({
@@ -174,6 +177,7 @@ void TomlReader::BeginMap(u64& count)
     }
     else
     {
+        SetError(String::Format("TomlReader: Expected a table node for map key '{}'.", pending_key));
         count = 0;
         static toml::table empty_table;
         context_stack.Push({
@@ -440,7 +444,10 @@ void TomlReader::SerializeTypeId(TypeId& value)
     SerializeString(type_name);
 
     value = TypeId::FromName(type_name);
-    SE_ENSURE(value.IsValid(), "TomlReader::SerializeTypeId - Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name);
+    if (!SE_ENSURE(value.IsValid(), "TomlReader::SerializeTypeId - Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name))
+    {
+        SetError(String::Format("TomlReader: Failed to resolve TypeId from name: '{}'.", type_name));
+    }
 }
 
 toml::node* TomlReader::GetCurrentNode()
@@ -730,7 +737,11 @@ void TomlWriter::SerializeGuid(Guid& value)
 void TomlWriter::SerializeTypeId(TypeId& value)
 {
     String type_name;
-    if (SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Text!"))
+    if (!SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Text!"))
+    {
+        SetError("TomlWriter: Attempting to save invalid TypeId.");
+    }
+    else
     {
         type_name = value.GetName();
     }
