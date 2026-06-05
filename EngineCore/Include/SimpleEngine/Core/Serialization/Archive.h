@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/Container/StringFwd.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/Traits.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
@@ -119,7 +119,7 @@ public:
     [[nodiscard]] StringView GetError() const { return *error_message; }
 
     /** 에러 상태를 설정합니다. */
-    void SetError(StringView reason);
+    void SetError(String reason);
 
     /** 에러 상태를 초기화합니다. */
     void ClearError();

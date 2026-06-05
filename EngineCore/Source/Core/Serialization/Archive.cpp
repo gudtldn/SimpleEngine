@@ -8,9 +8,9 @@ Archive::~Archive() = default;
 Archive::Archive(Archive&&) noexcept = default;
 Archive& Archive::operator=(Archive&&) noexcept = default;
 
-void Archive::SetError(StringView reason)
+void Archive::SetError(String reason)
 {
-    error_message = std::make_unique<String>(reason);
+    error_message = std::make_unique<String>(std::move(reason));
 }
 
 void Archive::ClearError()
