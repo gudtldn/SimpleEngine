@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/StringFwd.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 #include <algorithm>
@@ -11,16 +12,6 @@
 
 namespace se
 {
-// Forward declarations
-template <typename Allocator>
-class BaseString;
-
-template <typename T>
-class DefaultAllocator;
-
-using String = BaseString<DefaultAllocator<char>>;
-
-
 /**
  * 문자열에 대한 비소유(non-owning) View 클래스
  */

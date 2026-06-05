@@ -2,9 +2,9 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/StringFwd.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Memory/Allocators.h"
 
 #include <compare>
 #include <format>
@@ -14,12 +14,6 @@
 
 namespace se
 {
-template <typename Allocator>
-class BaseString;
-
-using String = BaseString<DefaultAllocator<char>>;
-
-
 namespace detail
 {
 // --- 코드 포인트 이터레이터 ---
