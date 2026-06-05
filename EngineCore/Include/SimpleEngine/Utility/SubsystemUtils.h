@@ -24,7 +24,7 @@ template <typename Subsystem>
     requires std::derived_from<Subsystem, SubsystemBase>
 [[nodiscard]] Subsystem* GetSubsystem()
 {
-    return static_cast<Subsystem*>(GetSubsystem(TypeId::Get<Subsystem>()));
+    return static_cast<Subsystem*>(GetSubsystem(TypeId::Of<Subsystem>()));
 }
 
 /**

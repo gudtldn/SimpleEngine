@@ -36,7 +36,7 @@ public:
     {
         using PureType = std::remove_cvref_t<T>;
         settings_map.Insert(
-            TypeId::Get<PureType>(),
+            TypeId::Of<PureType>(),
             std::make_shared<PureType>(std::forward<T>(settings))
         );
     }
@@ -52,7 +52,7 @@ public:
     void Emplace(Args&&... args)
     {
         settings_map.Emplace(
-            TypeId::Get<T>(),
+            TypeId::Of<T>(),
             std::make_shared<T>(std::forward<Args>(args)...)
         );
     }
@@ -68,7 +68,7 @@ public:
     [[nodiscard]] Optional<const T&> Get() const
     {
         return settings_map
-            .Find(TypeId::Get<T>())
+            .Find(TypeId::Of<T>())
             .AndThen([](const auto& ptr) -> Optional<const T&>
             {
                 return static_cast<const T&>(*ptr);

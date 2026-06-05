@@ -1409,8 +1409,8 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKey)
 {
     TypeIdKeyMapData original_data;
 
-    const TypeId transform_id = TypeId::Get<TransformComponent>();
-    const TypeId subsystem_id = TypeId::Get<SubsystemBase>();
+    const TypeId transform_id = TypeId::Of<TransformComponent>();
+    const TypeId subsystem_id = TypeId::Of<SubsystemBase>();
 
     original_data.type_map.Insert(transform_id, "transform_value");
     original_data.type_map.Insert(subsystem_id, "subsystem_value");
@@ -1437,8 +1437,8 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
 {
     TypeIdKeyNestedMapData original_data;
 
-    const TypeId transform_id = TypeId::Get<TransformComponent>();
-    const TypeId subsystem_id = TypeId::Get<SubsystemBase>();
+    const TypeId transform_id = TypeId::Of<TransformComponent>();
+    const TypeId subsystem_id = TypeId::Of<SubsystemBase>();
 
     original_data.type_nested_map.Insert(transform_id, NestedData{ "nested_transform", 1.5f });
     original_data.type_nested_map.Insert(subsystem_id, NestedData{ "nested_subsystem", 2.5f });

@@ -26,7 +26,7 @@ class SE_EDITOR_API ImportPresetManager
 public:
     /**
      * Translator 타입에 대한 기본 프리셋 초기화 함수를 등록합니다.
-     * @param translator_type Translator의 TypeId (예: TypeId::Get<AssimpTranslator>())
+     * @param translator_type Translator의 TypeId (예: TypeId::Of<AssimpTranslator>())
      * @param initializer ImportProfile에 기본 설정을 채우는 콜백
      */
     void RegisterPreset(const TypeId& translator_type, Function<void(ImportProfile&)> initializer);
@@ -65,6 +65,6 @@ template <typename T, typename Fn>
     && std::invocable<Fn, ImportProfile&>
 void ImportPresetManager::RegisterPreset(Fn&& initializer)
 {
-    RegisterPreset(TypeId::Get<T>(), std::forward<Fn>(initializer));
+    RegisterPreset(TypeId::Of<T>(), std::forward<Fn>(initializer));
 }
 } // namespace se::editor

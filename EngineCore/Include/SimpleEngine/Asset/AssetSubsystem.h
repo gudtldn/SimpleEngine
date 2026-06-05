@@ -157,7 +157,7 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path, EScopeLayer scope)
 {
-    if (HandleData handle_data = LoadInternal(TypeId::Get<T>(), asset_path, scope))
+    if (HandleData handle_data = LoadInternal(TypeId::Of<T>(), asset_path, scope))
     {
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
@@ -168,7 +168,7 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 JobTask<AssetHandle<T>> AssetSubsystem::LoadAsync(AssetPath asset_path, EScopeLayer scope)
 {
-    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId::Get<T>(), std::move(asset_path), scope))
+    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId::Of<T>(), std::move(asset_path), scope))
     {
         co_return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
@@ -179,7 +179,7 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
 {
-    if (HandleData handle_data = FindInternal(TypeId::Get<T>(), asset_id))
+    if (HandleData handle_data = FindInternal(TypeId::Of<T>(), asset_id))
     {
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
@@ -195,7 +195,7 @@ AssetHandle<T> AssetSubsystem::RegisterBuiltin(const AssetId& asset_id, std::uni
         .destructor = [](void* p) noexcept { delete static_cast<T*>(p); },
     };
 
-    if (HandleData handle_data = RegisterBuiltinInternal(asset_id, TypeId::Get<T>(), payload, sizeof(T)))
+    if (HandleData handle_data = RegisterBuiltinInternal(asset_id, TypeId::Of<T>(), payload, sizeof(T)))
     {
         asset.release();
         return AssetHandle<T>{ handle_data, &GetHandleTable() };

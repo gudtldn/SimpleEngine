@@ -38,7 +38,7 @@ HandleData SimulateLoad(
     AssetPool& pool, u64 size_bytes, u64 frame,
     EScopeLayer scope = EScopeLayer::Scene)
 {
-    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Get<EvictionTestAsset>(), AssetPath("test/eviction_asset"));
+    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<EvictionTestAsset>(), AssetPath("test/eviction_asset"));
 
     HandleTable& table = pool.GetTable();
     SlotEntry& slot = table.GetSlot(hd.index);

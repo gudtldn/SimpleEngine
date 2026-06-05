@@ -115,11 +115,11 @@ void WorldContext::InsertStageBefore(const TypeId& anchor, const TypeId& label, 
 
 void WorldContext::SetupDefaultStages()
 {
-    stages.Push({ .label = TypeId::Get<StartupPhase>(),     .schedule = Schedule{}, .mode = EScheduleMode::Once });
-    stages.Push({ .label = TypeId::Get<PreUpdatePhase>(),   .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
-    stages.Push({ .label = TypeId::Get<FixedUpdatePhase>(), .schedule = Schedule{}, .mode = EScheduleMode::FixedTimestep });
-    stages.Push({ .label = TypeId::Get<UpdatePhase>(),      .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
-    stages.Push({ .label = TypeId::Get<PostUpdatePhase>(),  .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
+    stages.Push({ .label = TypeId::Of<StartupPhase>(),     .schedule = Schedule{}, .mode = EScheduleMode::Once });
+    stages.Push({ .label = TypeId::Of<PreUpdatePhase>(),   .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
+    stages.Push({ .label = TypeId::Of<FixedUpdatePhase>(), .schedule = Schedule{}, .mode = EScheduleMode::FixedTimestep });
+    stages.Push({ .label = TypeId::Of<UpdatePhase>(),      .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
+    stages.Push({ .label = TypeId::Of<PostUpdatePhase>(),  .schedule = Schedule{}, .mode = EScheduleMode::EveryFrame });
 
     // GlobalTransform 자동 추가 + 계층 전파 (PostUpdate에서 자동 실행)
     AddSystem<PostUpdatePhase>(SyncGlobalTransforms, PropagateTransforms);

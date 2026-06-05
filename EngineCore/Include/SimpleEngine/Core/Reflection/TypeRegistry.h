@@ -88,13 +88,13 @@ private:
 template <typename T>
 Optional<const TypeInfo&> TypeRegistry::Find() const
 {
-    return Find(TypeId::Get<T>());
+    return Find(TypeId::Of<T>());
 }
 
 template <typename T>
 const TypeInfo& TypeRegistry::FindChecked() const
 {
-    const TypeId id = TypeId::Get<T>();
+    const TypeId id = TypeId::Of<T>();
     SE_ASSERT(type_map.Contains(id), "Type '{}' is not registered yet! Make sure SE_END_REFLECT is called.", id.GetName());
     return type_map.FindChecked(id);
 }
@@ -107,7 +107,7 @@ detail::TypeBuilder<T> TypeRegistry::Register()
         "Type T is not reflectable. Please use SE_CLASS() macro (intrusive) or SE_DECLARE_REFLECTION() macro (non-intrusive)."
     );
 
-    const TypeId id = TypeId::Get<T>();
+    const TypeId id = TypeId::Of<T>();
 
     SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
     TypeInfo& info = type_map.Emplace(id);
@@ -128,7 +128,7 @@ detail::TypeBuilder<T> TypeRegistry::Register()
 template <typename T>
 detail::TypeBuilder<T> TypeRegistry::RegisterPrimitive()
 {
-    const TypeId id = TypeId::Get<T>();
+    const TypeId id = TypeId::Of<T>();
 
     SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
     TypeInfo& info = type_map.Emplace(id);
@@ -150,7 +150,7 @@ template <typename T>
     requires traits::EnumType<T>
 detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
 {
-    const TypeId id = TypeId::Get<T>();
+    const TypeId id = TypeId::Of<T>();
 
     SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
     TypeInfo& info = type_map.Emplace(id);
@@ -160,7 +160,7 @@ detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
     info.name = id.GetName();
     info.size = sizeof(T);
     info.alignment = alignof(T);
-    info.base_or_inner_id = TypeId::Get<std::underlying_type_t<T>>();
+    info.base_or_inner_id = TypeId::Of<std::underlying_type_t<T>>();
 
     SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
     name_map.Insert(info.name, id);
@@ -172,7 +172,7 @@ detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
 template <typename T>
 Array<const TypeInfo*> TypeRegistry::GetImplementations() const
 {
-    const TypeId interface_id = TypeId::Get<T>();
+    const TypeId interface_id = TypeId::Of<T>();
     return GetImplementations(interface_id);
 }
 } // namespace se

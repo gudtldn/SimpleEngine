@@ -159,7 +159,7 @@ public:
     T& InsertResource(Args&&... args)
     {
         using RawType = std::remove_cvref_t<T>;
-        const TypeId type_id = TypeId::Get<RawType>();
+        const TypeId type_id = TypeId::Of<RawType>();
 
         if (const auto existing = resource_storages.Find(type_id))
         {
@@ -178,7 +178,7 @@ public:
     template <typename T>
     void RemoveResource()
     {
-        resource_storages.Remove(TypeId::Get<std::remove_cvref_t<T>>());
+        resource_storages.Remove(TypeId::Of<std::remove_cvref_t<T>>());
     }
 
     /** 리소스를 가져옵니다. 존재하지 않으면 Assert합니다. */
@@ -186,7 +186,7 @@ public:
     traits::CopyConst<Self, std::remove_cvref_t<T>&> GetResource(this Self&& self)
     {
         using RawType = std::remove_cvref_t<T>;
-        const TypeId type_id = TypeId::Get<RawType>();
+        const TypeId type_id = TypeId::Of<RawType>();
         const auto resource_opt = self.resource_storages.Find(type_id);
         SE_ASSERT(resource_opt.HasValue(), "Resource '{}' not found in World.", type_id.GetName());
         return static_cast<traits::CopyConst<Self, ResourceStorage<RawType>*>>(resource_opt->get())->Get();
@@ -197,7 +197,7 @@ public:
     Optional<traits::CopyConst<Self, std::remove_cvref_t<T>&>> TryGetResource(this Self&& self)
     {
         using RawType = std::remove_cvref_t<T>;
-        if (auto resource = self.resource_storages.Find(TypeId::Get<RawType>()))
+        if (auto resource = self.resource_storages.Find(TypeId::Of<RawType>()))
         {
             return static_cast<traits::CopyConst<Self, ResourceStorage<RawType>*>>(resource->get())->Get();
         }
@@ -208,7 +208,7 @@ public:
     template <typename T>
     [[nodiscard]] bool HasResource() const
     {
-        return resource_storages.Contains(TypeId::Get<std::remove_cvref_t<T>>());
+        return resource_storages.Contains(TypeId::Of<std::remove_cvref_t<T>>());
     }
 
 public:
@@ -231,7 +231,7 @@ public:
     traits::CopyConst<Self, IComponentStorage*> FindRawStorage(this Self&& self)
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        return self.FindRawStorage(TypeId::Get<RawType>());
+        return self.FindRawStorage(TypeId::Of<RawType>());
     }
 
     /** 구체적 타입으로 캐스팅된 실제 Component Pool(SparseSet)을 검색합니다. */
@@ -258,7 +258,7 @@ public:
     [[nodiscard]] IComponentStorage* GetOrCreateRawStorage()
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        return GetOrCreateRawStorage(TypeId::Get<RawType>());
+        return GetOrCreateRawStorage(TypeId::Of<RawType>());
     }
 
 private:
@@ -267,7 +267,7 @@ private:
     ComponentStorage<std::remove_cvref_t<ComponentType>>& GetOrCreateComponentStorage()
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        const auto type_id = TypeId::Get<RawType>();
+        const auto type_id = TypeId::Of<RawType>();
 
         auto& storage_ptr = component_storages
             .Entry(type_id)

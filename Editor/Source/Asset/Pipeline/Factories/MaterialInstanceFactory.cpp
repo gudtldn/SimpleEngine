@@ -17,7 +17,7 @@ namespace se::editor
 {
 TypeId MaterialInstanceFactory::GetAssetType() const
 {
-    return TypeId::Get<MaterialInstance>();
+    return TypeId::Of<MaterialInstance>();
 }
 
 bool MaterialInstanceFactory::CanCreateAsset(const PipelineBaseNode* node) const

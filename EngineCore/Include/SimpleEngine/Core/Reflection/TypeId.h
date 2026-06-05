@@ -20,7 +20,7 @@ public:
 
     /** 템플릿 타입 T의 TypeId를 반환합니다. */
     template <typename T>
-    [[nodiscard]] constexpr static TypeId Get()
+    [[nodiscard]] constexpr static TypeId Of()
     {
         if constexpr (traits::FunctionType<T>)
         {

@@ -43,7 +43,7 @@ T RoundTrip(const T& original)
 template <typename T>
 T RoundTripViaTypeInfo(const T& original)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<T>());
+    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<T>());
     EXPECT_NE(info.serialize, nullptr);
 
     Array<u8> buffer;
@@ -386,7 +386,7 @@ TEST_F(AutoSerializeTest, StringName_RoundTrip)
 // --- TypeId 단독 ---
 TEST_F(AutoSerializeTest, TypeId_RoundTrip)
 {
-    TypeId original = TypeId::Get<SimpleData>();
+    TypeId original = TypeId::Of<SimpleData>();
     TypeId loaded = RoundTrip(original);
     EXPECT_EQ(loaded, original);
 }
@@ -428,7 +428,7 @@ TEST_F(AutoSerializeTest, SkinVertex_RoundTrip)
 // --- Enum: SE_REFLECT_ENUM으로 등록된 enum -> TypeInfo 경유 직렬화 ---
 TEST_F(AutoSerializeTest, ReflectedEnum_ViaTypeInfo)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<ETestColor>());
+    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<ETestColor>());
     ASSERT_NE(info.serialize, nullptr);
     EXPECT_EQ(info.kind, ETypeKind::Enum);
 
@@ -453,7 +453,7 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
     TransientData original{ .saved_val = 42, .transient_val = 999 };
 
     // AutoSerialize로 직렬화 -> saved_val만 저장, transient_val은 건너뜀
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<TransientData>());
+    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<TransientData>());
 
     Array<u8> buffer;
     MemoryWriter writer(buffer);
@@ -473,7 +473,7 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
 // --- 빈 구조체 AutoSerialize ---
 TEST_F(AutoSerializeTest, EmptyStruct)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<EmptyReflected>());
+    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<EmptyReflected>());
     ASSERT_NE(info.serialize, nullptr);
 
     Array<u8> buffer;
@@ -614,7 +614,7 @@ TEST_F(AutoSerializeTest, OverwriteExistingValues)
 {
     SimpleData original{ .x = 100, .y = 99.9f, .name = "Overwrite" };
 
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<SimpleData>());
+    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<SimpleData>());
 
     Array<u8> buffer;
     MemoryWriter writer(buffer);
@@ -689,8 +689,8 @@ TEST_F(AutoSerializeTest, MapOfAssetIds)
 // --- 여러 AutoSerialize 호출 연속 ---
 TEST_F(AutoSerializeTest, MultipleSequentialAutoSerialize)
 {
-    const TypeInfo& simple_info = TypeRegistry::Get().FindChecked(TypeId::Get<SimpleData>());
-    const TypeInfo& container_info = TypeRegistry::Get().FindChecked(TypeId::Get<ContainerData>());
+    const TypeInfo& simple_info = TypeRegistry::Get().FindChecked(TypeId::Of<SimpleData>());
+    const TypeInfo& container_info = TypeRegistry::Get().FindChecked(TypeId::Of<ContainerData>());
 
     SimpleData s1{ .x = 1, .y = 1.0f, .name = "First" };
     ContainerData c1;
@@ -722,13 +722,13 @@ TEST_F(AutoSerializeTest, TypeInfo_CorrectKind)
 {
     // Struct
     {
-        const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<SimpleData>());
+        const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<SimpleData>());
         EXPECT_EQ(info.kind, ETypeKind::Struct);
         EXPECT_NE(info.serialize, nullptr);
     }
     // Enum
     {
-        const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<ETestColor>());
+        const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<ETestColor>());
         EXPECT_EQ(info.kind, ETypeKind::Enum);
         EXPECT_NE(info.serialize, nullptr);
     }
@@ -737,8 +737,8 @@ TEST_F(AutoSerializeTest, TypeInfo_CorrectKind)
 // --- DerivedData의 base_or_inner_id가 BaseData를 가리키는지 검증 ---
 TEST_F(AutoSerializeTest, Inheritance_BaseIdSet)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Get<DerivedData>());
-    EXPECT_EQ(info.base_or_inner_id, TypeId::Get<BaseData>());
+    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<DerivedData>());
+    EXPECT_EQ(info.base_or_inner_id, TypeId::Of<BaseData>());
 }
 
 // --- Ray 라운드트립 ---

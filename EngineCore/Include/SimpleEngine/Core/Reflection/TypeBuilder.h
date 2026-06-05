@@ -47,7 +47,7 @@ public:
             if constexpr (!std::is_void_v<Super>)
             {
                 static_assert(!std::same_as<std::decay_t<T>, std::decay_t<Super>>, "Class cannot inherit from itself!");
-                info_ptr->base_or_inner_id = TypeId::Get<Super>();
+                info_ptr->base_or_inner_id = TypeId::Of<Super>();
             }
         }
 
@@ -66,7 +66,7 @@ public:
         {
             info_ptr->serialize = [](Archive& ar, void* instance) static
             {
-                AutoSerialize(ar, TypeId::Get<T>(), instance);
+                AutoSerialize(ar, TypeId::Of<T>(), instance);
             };
         }
     }
@@ -109,7 +109,7 @@ public:
         using MemberType = MemberPointerTraits<MemberPtr>::MemberType;
 
         PropertyInfo prop;
-        prop.type_id = TypeId::Get<MemberType>();
+        prop.type_id = TypeId::Of<MemberType>();
         prop.name = name;
         prop.size = sizeof(MemberType);
 
@@ -223,7 +223,7 @@ private:
     // ReSharper disable once CppMemberFunctionMayBeConst
     void ImplementInterface()
     {
-        constexpr TypeId type_id = TypeId::Get<InterfaceType>();
+        constexpr TypeId type_id = TypeId::Of<InterfaceType>();
         info_ptr->interfaces.Insert(type_id, InterfaceInfo{
             .type_id = type_id,
             .caster = [](void* instance) static -> void*
@@ -294,7 +294,7 @@ private:
     {
         ContainerOps ops;
         ops.kind = EContainerKind::Array;
-        ops.element_type_id = TypeId::Get<ElemType>();
+        ops.element_type_id = TypeId::Of<ElemType>();
 
         ops.size = [](const void* c) static -> usize
         {
@@ -346,7 +346,7 @@ private:
     {
         ContainerOps ops;
         ops.kind = EContainerKind::Set;
-        ops.element_type_id = TypeId::Get<ElemType>();
+        ops.element_type_id = TypeId::Of<ElemType>();
 
         ops.size = [](const void* c) static -> usize
         {
@@ -408,8 +408,8 @@ private:
     {
         ContainerOps ops;
         ops.kind = EContainerKind::Map;
-        ops.element_type_id = TypeId::Get<KeyType>();
-        ops.value_type_id = TypeId::Get<ValType>();
+        ops.element_type_id = TypeId::Of<KeyType>();
+        ops.value_type_id = TypeId::Of<ValType>();
 
         ops.size = [](const void* c) static -> usize
         {
@@ -474,7 +474,7 @@ private:
     static constexpr OptionalOps MakeOptionalOps()
     {
         OptionalOps ops;
-        ops.inner_type_id = TypeId::Get<InnerType>();
+        ops.inner_type_id = TypeId::Of<InnerType>();
 
         ops.has_value = [](const void* o) static -> bool
         {

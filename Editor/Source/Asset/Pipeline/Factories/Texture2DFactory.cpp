@@ -13,7 +13,7 @@ namespace se::editor
 {
 TypeId Texture2DFactory::GetAssetType() const
 {
-    return TypeId::Get<Texture2D>();
+    return TypeId::Of<Texture2D>();
 }
 
 bool Texture2DFactory::CanCreateAsset(const PipelineBaseNode* node) const

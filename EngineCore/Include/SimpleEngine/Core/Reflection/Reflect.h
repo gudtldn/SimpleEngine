@@ -208,7 +208,7 @@ public: \
     } \
     virtual ::se::TypeId GetTypeId() const override_keyword \
     { \
-        return ::se::TypeId::Get<this_class>(); \
+        return ::se::TypeId::Of<this_class>(); \
     }
 
 #define SE_INTERNAL_CLASS_DEFAULT(this_class) \

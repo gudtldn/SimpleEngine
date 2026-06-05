@@ -48,7 +48,7 @@ public:
     template <PhaseType P, typename... Systems>
     Schedule& AddSystem(Systems&&... in_systems)
     {
-        const auto stage = FindStage(TypeId::Get<P>());
+        const auto stage = FindStage(TypeId::Of<P>());
         SE_ASSERT(stage.HasValue(), "AddSystem: Stage not found. Register it first with AddStageAfter/AddStageBefore.");
         return stage->schedule.Add(std::forward<Systems>(in_systems)...);
     }
@@ -62,7 +62,7 @@ public:
     template <PhaseType After, PhaseType P>
     void AddStageAfter(EScheduleMode mode = EScheduleMode::EveryFrame)
     {
-        InsertStageAfter(TypeId::Get<After>(), TypeId::Get<P>(), mode);
+        InsertStageAfter(TypeId::Of<After>(), TypeId::Of<P>(), mode);
     }
 
     /**
@@ -74,7 +74,7 @@ public:
     template <PhaseType Before, PhaseType P>
     void AddStageBefore(EScheduleMode mode = EScheduleMode::EveryFrame)
     {
-        InsertStageBefore(TypeId::Get<Before>(), TypeId::Get<P>(), mode);
+        InsertStageBefore(TypeId::Of<Before>(), TypeId::Of<P>(), mode);
     }
 
     /**
@@ -84,7 +84,7 @@ public:
     template <PhaseType P>
     void RunPhase()
     {
-        if (const auto stage = FindStage(TypeId::Get<P>()))
+        if (const auto stage = FindStage(TypeId::Of<P>()))
         {
             stage->schedule.Execute(*world);
         }

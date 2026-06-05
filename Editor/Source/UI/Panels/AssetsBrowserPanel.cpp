@@ -433,7 +433,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
     Array<AssetId> mesh_ids;
     for (const AssetId& id : all_ids)
     {
-        if (registry.GetAssetType(id) == TypeId::Get<StaticMesh>())
+        if (registry.GetAssetType(id) == TypeId::Of<StaticMesh>())
         {
             mesh_ids.Push(id);
         }

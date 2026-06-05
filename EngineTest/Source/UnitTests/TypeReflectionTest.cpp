@@ -103,7 +103,7 @@ TEST_F(TypeReflectionTest, TypeIdReturnsCorrectNameAndHash)
 {
     using namespace se;
 
-    constexpr TypeId TYPE_ID = TypeId::Get<int>();
+    constexpr TypeId TYPE_ID = TypeId::Of<int>();
 
     // 컴파일 타임 기능이지만, 런타임 값도 확인
     EXPECT_EQ(TYPE_ID.GetName(), "int");
@@ -119,17 +119,17 @@ TEST_F(TypeReflectionTest, TypeIdsForDifferentTypesAreDifferent)
 {
     using namespace se;
 
-    constexpr TypeId ID_INT = TypeId::Get<int>();
-    constexpr TypeId ID_FLOAT = TypeId::Get<f32>();
-    constexpr TypeId ID_CLASS = TypeId::Get<WeirdNamespace::MyClass>();
+    constexpr TypeId ID_INT = TypeId::Of<int>();
+    constexpr TypeId ID_FLOAT = TypeId::Of<f32>();
+    constexpr TypeId ID_CLASS = TypeId::Of<WeirdNamespace::MyClass>();
 
     EXPECT_NE(ID_INT, ID_FLOAT);
     EXPECT_NE(ID_INT, ID_CLASS);
     EXPECT_NE(ID_FLOAT, ID_CLASS);
 
     // 포인터/참조가 제거된 기본 타입은 같은 TypeId를 가져야 함
-    constexpr TypeId ID_INT_PTR = TypeId::Get<int*>();
-    constexpr TypeId ID_CONST_INT_REF = TypeId::Get<const int&>();
+    constexpr TypeId ID_INT_PTR = TypeId::Of<int*>();
+    constexpr TypeId ID_CONST_INT_REF = TypeId::Of<const int&>();
     EXPECT_NE(ID_INT, ID_INT_PTR);
     EXPECT_EQ(ID_INT, ID_CONST_INT_REF);
 }

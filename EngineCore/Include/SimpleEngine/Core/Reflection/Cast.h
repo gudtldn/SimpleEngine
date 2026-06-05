@@ -50,13 +50,13 @@ template <typename T, IntrusiveReflectable From>
     {
         return false;
     }
-    return detail::IsTypeDerivedFrom(obj->GetTypeId(), TypeId::Get<T>());
+    return detail::IsTypeDerivedFrom(obj->GetTypeId(), TypeId::Of<T>());
 }
 
 template <typename T, IntrusiveReflectable From>
 [[nodiscard]] bool IsA(const From& obj)
 {
-    return detail::IsTypeDerivedFrom(obj.GetTypeId(), TypeId::Get<T>());
+    return detail::IsTypeDerivedFrom(obj.GetTypeId(), TypeId::Of<T>());
 }
 
 /**
@@ -68,7 +68,7 @@ template <typename T, IntrusiveReflectable From>
 template <IntrusiveReflectable Derived, IntrusiveReflectable Base>
 [[nodiscard]] bool IsChildOf()
 {
-    return detail::IsTypeDerivedFrom(TypeId::Get<Derived>(), TypeId::Get<Base>());
+    return detail::IsTypeDerivedFrom(TypeId::Of<Derived>(), TypeId::Of<Base>());
 }
 
 /**
@@ -80,7 +80,7 @@ template <IntrusiveReflectable Derived, IntrusiveReflectable Base>
 template <IntrusiveReflectable Base>
 [[nodiscard]] bool IsChildOf(TypeId derived_id)
 {
-    return detail::IsTypeDerivedFrom(derived_id, TypeId::Get<Base>());
+    return detail::IsTypeDerivedFrom(derived_id, TypeId::Of<Base>());
 }
 
 /**
@@ -96,7 +96,7 @@ template <typename Interface, IntrusiveReflectable From>
     {
         return false;
     }
-    return detail::IsTypeImplementsInterface(obj->GetTypeId(), TypeId::Get<Interface>());
+    return detail::IsTypeImplementsInterface(obj->GetTypeId(), TypeId::Of<Interface>());
 }
 
 /**
@@ -108,7 +108,7 @@ template <typename Interface, IntrusiveReflectable From>
 template <typename Interface>
 [[nodiscard]] bool Implements(TypeId type_id)
 {
-    return detail::IsTypeImplementsInterface(type_id, TypeId::Get<Interface>());
+    return detail::IsTypeImplementsInterface(type_id, TypeId::Of<Interface>());
 }
 
 /**
@@ -127,13 +127,13 @@ template <typename To>
     }
 
     // 일반 상속 (Base Class) 캐스팅 시도
-    if (detail::IsTypeDerivedFrom(actual_type_id, TypeId::Get<To>()))
+    if (detail::IsTypeDerivedFrom(actual_type_id, TypeId::Of<To>()))
     {
         return static_cast<To*>(raw_instance);
     }
 
     // 인터페이스 캐스팅 시도
-    if (void* result = detail::CastToInterface(raw_instance, actual_type_id, TypeId::Get<To>()))
+    if (void* result = detail::CastToInterface(raw_instance, actual_type_id, TypeId::Of<To>()))
     {
         return static_cast<To*>(result);
     }
@@ -171,7 +171,7 @@ template <typename To, IntrusiveReflectable From>
         }
 
         // 인터페이스 캐스팅 시도
-        void* result = detail::CastToInterface(obj, obj->GetTypeId(), TypeId::Get<To>());
+        void* result = detail::CastToInterface(obj, obj->GetTypeId(), TypeId::Of<To>());
         return static_cast<To*>(result);
     }
 }
@@ -198,7 +198,7 @@ template <typename To, IntrusiveReflectable From>
         }
 
         // 인터페이스 캐스팅 시도
-        void* result = detail::CastToInterface(const_cast<From*>(obj), obj->GetTypeId(), TypeId::Get<To>());
+        void* result = detail::CastToInterface(const_cast<From*>(obj), obj->GetTypeId(), TypeId::Of<To>());
         return static_cast<const To*>(result);
     }
 }
@@ -224,11 +224,11 @@ template <typename To, IntrusiveReflectable From>
     }
 
     // 인터페이스 캐스팅 시도
-    void* result = detail::CastToInterface(obj, obj->GetTypeId(), TypeId::Get<To>());
+    void* result = detail::CastToInterface(obj, obj->GetTypeId(), TypeId::Of<To>());
     SE_ASSERT(
         result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
-        obj->GetTypeId().GetName(), TypeId::Get<To>().GetName()
+        obj->GetTypeId().GetName(), TypeId::Of<To>().GetName()
     );
     return static_cast<To*>(result);
 }
@@ -245,11 +245,11 @@ template <typename To, IntrusiveReflectable From>
     }
 
     // 인터페이스 캐스팅 시도
-    void* result = detail::CastToInterface(const_cast<From*>(obj), obj->GetTypeId(), TypeId::Get<To>());
+    void* result = detail::CastToInterface(const_cast<From*>(obj), obj->GetTypeId(), TypeId::Of<To>());
     SE_ASSERT(
         result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
-        obj->GetTypeId().GetName(), TypeId::Get<To>().GetName()
+        obj->GetTypeId().GetName(), TypeId::Of<To>().GetName()
     );
     return static_cast<const To*>(result);
 }
@@ -265,7 +265,7 @@ template <typename To, IntrusiveReflectable From>
 template <typename To, IntrusiveReflectable From>
 [[nodiscard]] To* ExactCast(From* obj)
 {
-    if (obj && obj->GetTypeId() == TypeId::Get<To>())
+    if (obj && obj->GetTypeId() == TypeId::Of<To>())
     {
         return reinterpret_cast<To*>(obj);
     }
@@ -275,7 +275,7 @@ template <typename To, IntrusiveReflectable From>
 template <typename To, IntrusiveReflectable From>
 [[nodiscard]] const To* ExactCast(const From* obj)
 {
-    if (obj && obj->GetTypeId() == TypeId::Get<To>())
+    if (obj && obj->GetTypeId() == TypeId::Of<To>())
     {
         return reinterpret_cast<const To*>(obj);
     }

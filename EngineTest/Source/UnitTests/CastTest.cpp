@@ -56,7 +56,7 @@ SE_END_REFLECT(CastTest_Derived)
 SE_BEGIN_REFLECT(CastTest_DeepDerived, meta::Internal)
 SE_END_REFLECT(CastTest_DeepDerived)
 
-// 인터페이스는 보통 SE_CLASS를 사용하지 않고 (필요하다면 가능) 
+// 인터페이스는 보통 SE_CLASS를 사용하지 않고 (필요하다면 가능)
 // Registry에 타입으로만 등록하거나 상속 받는 쪽에서 Implements()를 호출합니다.
 SE_BEGIN_REFLECT(CastTest_Implementer, meta::Internal)
     SE_REFLECT_INTERFACE(ICastTest_Interface)
@@ -95,12 +95,12 @@ TEST_F(CastTest, IsChildOf_WorksCorrectly)
     EXPECT_TRUE((IsChildOf<CastTest_Derived, CastTest_Base>()));
     EXPECT_TRUE((IsChildOf<CastTest_DeepDerived, CastTest_Base>()));
     EXPECT_TRUE((IsChildOf<CastTest_DeepDerived, CastTest_Derived>()));
-    
+
     EXPECT_FALSE((IsChildOf<CastTest_Base, CastTest_Derived>()));
     EXPECT_FALSE((IsChildOf<CastTest_Other, CastTest_Base>()));
 
     // TypeId 버전
-    EXPECT_TRUE(IsChildOf<CastTest_Base>(TypeId::Get<CastTest_Derived>()));
+    EXPECT_TRUE(IsChildOf<CastTest_Base>(TypeId::Of<CastTest_Derived>()));
 }
 
 TEST_F(CastTest, Implements_WorksCorrectly)
@@ -123,7 +123,7 @@ TEST_F(CastTest, Cast_WorksCorrectly)
     // Upcasting (컴파일 타임에 static_cast로 처리됨)
     CastTest_Derived* derived_ptr = Cast<CastTest_Derived>(base_ptr);
     EXPECT_NE(derived_ptr, nullptr);
-    
+
     // Downcasting
     CastTest_DeepDerived* casted_deep = Cast<CastTest_DeepDerived>(base_ptr);
     EXPECT_EQ(casted_deep, &deep);
@@ -157,10 +157,10 @@ TEST_F(CastTest, ExactCast_WorksCorrectly)
 
     // 정확히 타입이 일치하는 경우
     EXPECT_NE(ExactCast<CastTest_Derived>(base_ptr), nullptr);
-    
+
     // 상속 관계지만 타입이 다른 경우
     EXPECT_EQ(ExactCast<CastTest_Base>(base_ptr), nullptr);
-    
+
     CastTest_Base base;
     EXPECT_NE(ExactCast<CastTest_Base>(&base), nullptr);
 }
@@ -174,7 +174,7 @@ TEST_F(CastTest, CastChecked_AssertsOnFailure)
         CastTest_Base* ptr = CastChecked<CastTest_Base>(&base);
         EXPECT_EQ(ptr, &base);
     });
-    
+
     CastTest_Implementer implementer;
     EXPECT_NO_THROW({
         ICastTest_Interface* itf = CastChecked<ICastTest_Interface>(&implementer);

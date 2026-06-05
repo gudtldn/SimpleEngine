@@ -11,7 +11,7 @@ namespace se::editor
 {
 TypeId StaticMeshFactory::GetAssetType() const
 {
-    return TypeId::Get<StaticMesh>();
+    return TypeId::Of<StaticMesh>();
 }
 
 bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const

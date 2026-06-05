@@ -118,7 +118,7 @@ void AssetImporter::RegisterTranslator(Args&&... args)
     }
 
     translators.Push({
-        .type_id = TypeId::Get<Translator>(),
+        .type_id = TypeId::Of<Translator>(),
         .translator = std::move(instance),
     });
 }

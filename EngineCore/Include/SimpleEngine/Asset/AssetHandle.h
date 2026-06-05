@@ -109,7 +109,7 @@ public:
             return nullptr; // stale handle
         }
 
-        SE_ASSERT(entry.asset_type == TypeId::Get<AssetType>());
+        SE_ASSERT(entry.asset_type == TypeId::Of<AssetType>());
         return static_cast<T*>(entry.asset.load(std::memory_order_acquire));
     }
 

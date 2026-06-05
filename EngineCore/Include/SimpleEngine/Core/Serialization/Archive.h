@@ -378,7 +378,7 @@ Archive& Archive::operator<<(T& value)
     else if constexpr (Reflectable<PureType>)
     {
         BeginObject();
-        AutoSerialize(*this, TypeId::Get<PureType>(), &value);
+        AutoSerialize(*this, TypeId::Of<PureType>(), &value);
         EndObject();
     }
 

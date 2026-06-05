@@ -121,7 +121,7 @@ public:
         static_assert(std::default_initializable<T>, "Component T must be default constructible.");
         static_assert(std::move_constructible<T>, "Component T must be move constructible.");
 
-        const TypeId type_id = TypeId::Get<T>();
+        const TypeId type_id = TypeId::Of<T>();
         SE_ASSERT(!component_operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", type_id.GetName());
 
         component_operators.Insert(type_id, ComponentOps{
@@ -167,7 +167,7 @@ public:
         static_assert(std::default_initializable<T>, "Resource T must be default constructible.");
         static_assert(std::move_constructible<T>, "Resource T must be move constructible.");
 
-        const TypeId type_id = TypeId::Get<T>();
+        const TypeId type_id = TypeId::Of<T>();
         SE_ASSERT(!resource_operators.Contains(type_id), "Resource '{}' is already registered! Check your initialization logic.", type_id.GetName());
 
         resource_operators.Insert(type_id, ResourceOps{

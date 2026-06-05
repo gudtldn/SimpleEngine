@@ -123,7 +123,7 @@ public:
         for (const auto& node_ptr : in_out_container.GetAllNodes() | std::views::values)
         {
             // StaticMeshPipelineNode인지 확인
-            if (node_ptr->GetTypeId() == TypeId::Get<StaticMeshPipelineNode>())
+            if (node_ptr->GetTypeId() == TypeId::Of<StaticMeshPipelineNode>())
             {
                 // 다운캐스팅
                 auto* mesh_node = static_cast<StaticMeshPipelineNode*>(node_ptr.get());
@@ -153,7 +153,7 @@ public:
     {
         for (const auto& node_ptr : in_out_container.GetAllNodes() | std::views::values)
         {
-            if (node_ptr->GetTypeId() == TypeId::Get<StaticMeshPipelineNode>())
+            if (node_ptr->GetTypeId() == TypeId::Of<StaticMeshPipelineNode>())
             {
                 auto* mesh_node = static_cast<StaticMeshPipelineNode*>(node_ptr.get());
                 for (auto& vertex : mesh_node->vertices)

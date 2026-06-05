@@ -271,7 +271,7 @@ public:
 
 public:
     template <typename T>
-    [[nodiscard]] bool Is() const { return type_id == TypeId::Get<T>(); }
+    [[nodiscard]] bool Is() const { return type_id == TypeId::Of<T>(); }
 };
 
 /**

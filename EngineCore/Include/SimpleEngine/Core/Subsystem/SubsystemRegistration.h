@@ -95,7 +95,7 @@ public:
         requires std::derived_from<Subsystem, SubsystemBase>
     static SubsystemBuilder<Subsystem> Register()
     {
-        TypeId id = TypeId::Get<Subsystem>();
+        TypeId id = TypeId::Of<Subsystem>();
 
         GetInstance().metadata_map.Emplace(id, SubsystemMetadata{
             .factory = [] static -> std::unique_ptr<SubsystemBase>
@@ -122,7 +122,7 @@ void SubsystemBuilder<Subsystem>::AddDependency()
 {
     SubsystemRegistry::GetInstance()
         .GetMetadata(target_id).dependencies
-        .Push(TypeId::Get<Dependency>());
+        .Push(TypeId::Of<Dependency>());
 }
 
 template <typename Subsystem>
@@ -131,7 +131,7 @@ void SubsystemBuilder<Subsystem>::AddUpdateDependency()
 {
     SubsystemRegistry::GetInstance()
         .GetMetadata(target_id).update_dependencies
-        .Push(TypeId::Get<Dependency>());
+        .Push(TypeId::Of<Dependency>());
 }
 } // namespace detail
 } // namespace se

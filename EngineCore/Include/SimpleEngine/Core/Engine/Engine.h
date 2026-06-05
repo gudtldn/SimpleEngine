@@ -129,6 +129,6 @@ template <typename T>
     requires std::derived_from<T, SubsystemBase>
 T* Engine::GetSubsystem() const
 {
-    return static_cast<T*>(GetSubsystem(TypeId::Get<T>()));
+    return static_cast<T*>(GetSubsystem(TypeId::Of<T>()));
 }
 } // namespace se

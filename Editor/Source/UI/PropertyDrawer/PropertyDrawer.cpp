@@ -1136,50 +1136,50 @@ bool DrawerRegistry::DrawValue(
 void DrawerRegistry::RegisterBuiltinDrawers()
 {
     // --- Primitive ---
-    Register(TypeId::Get<bool>(),   &DrawBool);
-    Register(TypeId::Get<i8>(),   &DrawArithmetic<i8>);
-    Register(TypeId::Get<u8>(),  &DrawArithmetic<u8>);
-    Register(TypeId::Get<i16>(),  &DrawArithmetic<i16>);
-    Register(TypeId::Get<u16>(), &DrawArithmetic<u16>);
-    Register(TypeId::Get<i32>(),  &DrawArithmetic<i32>);
-    Register(TypeId::Get<u32>(), &DrawArithmetic<u32>);
-    Register(TypeId::Get<i64>(),  &DrawArithmetic<i64>);
-    Register(TypeId::Get<u64>(), &DrawArithmetic<u64>);
-    Register(TypeId::Get<f32>(),  &DrawArithmetic<f32>);
-    Register(TypeId::Get<f64>(), &DrawArithmetic<f64>);
+    Register(TypeId::Of<bool>(),   &DrawBool);
+    Register(TypeId::Of<i8>(),   &DrawArithmetic<i8>);
+    Register(TypeId::Of<u8>(),  &DrawArithmetic<u8>);
+    Register(TypeId::Of<i16>(),  &DrawArithmetic<i16>);
+    Register(TypeId::Of<u16>(), &DrawArithmetic<u16>);
+    Register(TypeId::Of<i32>(),  &DrawArithmetic<i32>);
+    Register(TypeId::Of<u32>(), &DrawArithmetic<u32>);
+    Register(TypeId::Of<i64>(),  &DrawArithmetic<i64>);
+    Register(TypeId::Of<u64>(), &DrawArithmetic<u64>);
+    Register(TypeId::Of<f32>(),  &DrawArithmetic<f32>);
+    Register(TypeId::Of<f64>(), &DrawArithmetic<f64>);
 
     // --- String ---
-    Register(TypeId::Get<String>(),      &DrawString);
-    Register(TypeId::Get<StringName>(),  &DrawStringName);
+    Register(TypeId::Of<String>(),      &DrawString);
+    Register(TypeId::Of<StringName>(),  &DrawStringName);
 
     // --- Identifiers ---
-    Register(TypeId::Get<Guid>(),        &DrawGuid);
-    Register(TypeId::Get<TypeId>(),      &DrawTypeId);
-    Register(TypeId::Get<AssetId>(),     &DrawAssetId);
-    Register(TypeId::Get<Entity>(),      &DrawEntity);
+    Register(TypeId::Of<Guid>(),        &DrawGuid);
+    Register(TypeId::Of<TypeId>(),      &DrawTypeId);
+    Register(TypeId::Of<AssetId>(),     &DrawAssetId);
+    Register(TypeId::Of<Entity>(),      &DrawEntity);
 
     // --- Math (f64 precision) ---
-    Register(TypeId::Get<Vector2>(),     &DrawVector2<f64>);
-    Register(TypeId::Get<Vector3>(),     &DrawVector3<f64>);
-    Register(TypeId::Get<Vector4>(),     &DrawVector4<f64>);
-    Register(TypeId::Get<Quaternion>(),  &DrawQuaternion<f64>);
-    Register(TypeId::Get<Rotator>(),     &DrawRotator<f64>);
-    Register(TypeId::Get<Matrix4x4>(),   &DrawMatrix4x4<f64>);
+    Register(TypeId::Of<Vector2>(),     &DrawVector2<f64>);
+    Register(TypeId::Of<Vector3>(),     &DrawVector3<f64>);
+    Register(TypeId::Of<Vector4>(),     &DrawVector4<f64>);
+    Register(TypeId::Of<Quaternion>(),  &DrawQuaternion<f64>);
+    Register(TypeId::Of<Rotator>(),     &DrawRotator<f64>);
+    Register(TypeId::Of<Matrix4x4>(),   &DrawMatrix4x4<f64>);
 
     // --- Math (single precision) ---
-    Register(TypeId::Get<Vector2f>(),    &DrawVector2<f32>);
-    Register(TypeId::Get<Vector3f>(),    &DrawVector3<f32>);
-    Register(TypeId::Get<Vector4f>(),    &DrawVector4<f32>);
-    Register(TypeId::Get<Quaternionf>(), &DrawQuaternion<f32>);
-    Register(TypeId::Get<Rotatorf>(),    &DrawRotator<f32>);
-    Register(TypeId::Get<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
+    Register(TypeId::Of<Vector2f>(),    &DrawVector2<f32>);
+    Register(TypeId::Of<Vector3f>(),    &DrawVector3<f32>);
+    Register(TypeId::Of<Vector4f>(),    &DrawVector4<f32>);
+    Register(TypeId::Of<Quaternionf>(), &DrawQuaternion<f32>);
+    Register(TypeId::Of<Rotatorf>(),    &DrawRotator<f32>);
+    Register(TypeId::Of<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
 
     // --- Color ---
-    Register(TypeId::Get<LinearColor>(), &DrawLinearColor);
-    Register(TypeId::Get<Color>(),       &DrawColor);
+    Register(TypeId::Of<LinearColor>(), &DrawLinearColor);
+    Register(TypeId::Of<Color>(),       &DrawColor);
 
     // --- Angles ---
-    Register(TypeId::Get<Degree<f64>>(), &DrawDegree<f64>);
-    Register(TypeId::Get<Degree<f32>>(),  &DrawDegree<f32>);
+    Register(TypeId::Of<Degree<f64>>(), &DrawDegree<f64>);
+    Register(TypeId::Of<Degree<f32>>(),  &DrawDegree<f32>);
 }
 } // namespace se::editor

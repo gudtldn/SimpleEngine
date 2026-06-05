@@ -127,7 +127,7 @@ protected:
 TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
 {
     AssetId id = GenerateAssetId();
-    TypeId type = TypeId::Get<MockTexture>();
+    TypeId type = TypeId::Of<MockTexture>();
     AssetPath path("textures/new.png");
 
     HandleData hd = pool.FindOrCreate(id, type, path);
@@ -143,7 +143,7 @@ TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
 TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
 {
     AssetId id = GenerateAssetId();
-    TypeId type = TypeId::Get<MockTexture>();
+    TypeId type = TypeId::Of<MockTexture>();
     AssetPath path("textures/existing.png");
 
     HandleData hd1 = pool.FindOrCreate(id, type, path);
@@ -164,7 +164,7 @@ TEST_F(AssetCacheTest, Find_NonExistent)
 TEST_F(AssetCacheTest, Find_Existing)
 {
     AssetId id = GenerateAssetId();
-    HandleData created = pool.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
+    HandleData created = pool.FindOrCreate(id, TypeId::Of<MockMesh>(), AssetPath("mesh.obj"));
 
     auto found = pool.Find(id);
     ASSERT_TRUE(found.HasValue());
@@ -174,7 +174,7 @@ TEST_F(AssetCacheTest, Find_Existing)
 TEST_F(AssetCacheTest, Remove)
 {
     AssetId id = GenerateAssetId();
-    (void)pool.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+    (void)pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
 
     EXPECT_EQ(pool.GetCount(), 1u);
 
@@ -188,8 +188,8 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
 
-    HandleData hd1 = pool.FindOrCreate(id1, TypeId::Get<MockTexture>(), AssetPath("tex1.png"));
-    [[maybe_unused]] HandleData hd2 = pool.FindOrCreate(id2, TypeId::Get<MockTexture>(), AssetPath("tex2.png"));
+    HandleData hd1 = pool.FindOrCreate(id1, TypeId::Of<MockTexture>(), AssetPath("tex1.png"));
+    [[maybe_unused]] HandleData hd2 = pool.FindOrCreate(id2, TypeId::Of<MockTexture>(), AssetPath("tex2.png"));
 
     EXPECT_EQ(pool.GetCount(), 2u);
 
@@ -219,7 +219,7 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
 TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
 {
     AssetId id = GenerateAssetId();
-    HandleData hd = pool.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+    HandleData hd = pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
 
     // ref_count를 1로 설정하여 사용 중으로 표시
     pool.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
@@ -244,7 +244,7 @@ protected:
     /** HandleTable에 슬롯을 만들고 MockTexture를 로드한 HandleData를 반환합니다. */
     HandleData CreateSlotWithAsset(const AssetId& id)
     {
-        HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockTexture>(), AssetPath("test.png"));
+        HandleData hd = cache.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
         SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
 
         auto* texture = new MockTexture();
@@ -388,7 +388,7 @@ protected:
 TEST_F(AssetRegistryTest, RegisterAsset)
 {
     AssetId id = GenerateAssetId();
-    TypeId type = TypeId::Get<MockTexture>();
+    TypeId type = TypeId::Of<MockTexture>();
     AssetPath path("textures/diffuse.png");
 
     registry.RegisterAsset(id, type, path, CreateDummyMeta());
@@ -439,7 +439,7 @@ TEST_F(AssetRegistryTest, MultipleAssetsInSameFile)
     VPath file_path("models/character.fbx");
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
-    TypeId mesh_type = TypeId::Get<MockMesh>();
+    TypeId mesh_type = TypeId::Of<MockMesh>();
 
     AssetPath path1(file_path, "Mesh_01");
     AssetPath path2(file_path, "Mesh_02");
@@ -462,7 +462,7 @@ TEST_F(AssetRegistryTest, IsFileImported_AutoTracking)
 
     EXPECT_FALSE(registry.IsFileImported(file_path));
 
-    registry.RegisterAsset(GenerateAssetId(), TypeId::Get<MockTexture>(), asset_path, CreateDummyMeta());
+    registry.RegisterAsset(GenerateAssetId(), TypeId::Of<MockTexture>(), asset_path, CreateDummyMeta());
 
     // 보조 인덱스(file_to_assets)가 정상적으로 동작하여 true 반환하는지 확인
     EXPECT_TRUE(registry.IsFileImported(file_path));
@@ -474,14 +474,14 @@ TEST_F(AssetRegistryTest, FindFirstOfType)
     AssetId mesh_id = GenerateAssetId();
     AssetId texture_id = GenerateAssetId();
 
-    registry.RegisterAsset(mesh_id, TypeId::Get<MockMesh>(), AssetPath(file_path, "MainMesh"), CreateDummyMeta());
-    registry.RegisterAsset(texture_id, TypeId::Get<MockTexture>(), AssetPath(file_path, "Texture"), CreateDummyMeta());
+    registry.RegisterAsset(mesh_id, TypeId::Of<MockMesh>(), AssetPath(file_path, "MainMesh"), CreateDummyMeta());
+    registry.RegisterAsset(texture_id, TypeId::Of<MockTexture>(), AssetPath(file_path, "Texture"), CreateDummyMeta());
 
-    auto found_mesh = registry.FindFirstOfType(file_path, TypeId::Get<MockMesh>());
+    auto found_mesh = registry.FindFirstOfType(file_path, TypeId::Of<MockMesh>());
     ASSERT_TRUE(found_mesh.HasValue());
     EXPECT_EQ(found_mesh.Value(), mesh_id);
 
-    auto found_texture = registry.FindFirstOfType(file_path, TypeId::Get<MockTexture>());
+    auto found_texture = registry.FindFirstOfType(file_path, TypeId::Of<MockTexture>());
     ASSERT_TRUE(found_texture.HasValue());
     EXPECT_EQ(found_texture.Value(), texture_id);
 }
@@ -517,7 +517,7 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
 {
     // 1. Register asset in registry
     AssetId id = GenerateAssetId();
-    TypeId type = TypeId::Get<MockTexture>();
+    TypeId type = TypeId::Of<MockTexture>();
     AssetPath path("textures/diffuse.png");
 
     registry.RegisterAsset(id, type, path, CreateDummyMeta());
@@ -551,7 +551,7 @@ TEST_F(AssetManagementIntegrationTest, FullWorkflow)
 TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 {
     AssetId id = GenerateAssetId();
-    HandleData hd = cache.FindOrCreate(id, TypeId::Get<MockMesh>(), AssetPath("mesh.obj"));
+    HandleData hd = cache.FindOrCreate(id, TypeId::Of<MockMesh>(), AssetPath("mesh.obj"));
     SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
 
     auto* mesh = new MockMesh();
@@ -586,7 +586,7 @@ TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
     AssetPath main_path(file_path, "MainBody");
     AssetPath weapon_path(file_path, "Weapon");
 
-    TypeId mesh_type = TypeId::Get<MockMesh>();
+    TypeId mesh_type = TypeId::Of<MockMesh>();
 
     // Register both sub-assets with metadata
     registry.RegisterAsset(main_mesh_id, mesh_type, AssetPath(main_path), CreateDummyMeta());

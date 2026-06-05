@@ -36,7 +36,7 @@ public:
         requires std::derived_from<T, ILogBackend>
     void AddBackend(Args&&... args)
     {
-        const auto type_id = TypeId::Get<T>();
+        const auto type_id = TypeId::Of<T>();
 
         std::scoped_lock lock(backends_mutex);
         backends.Insert(type_id, std::make_unique<T>(std::forward<Args>(args)...));
@@ -46,7 +46,7 @@ public:
         requires std::derived_from<T, ILogBackend>
     [[nodiscard]] T* GetBackend() const
     {
-        const auto type_id = TypeId::Get<T>();
+        const auto type_id = TypeId::Of<T>();
         constexpr std::unique_ptr<ILogBackend> null_ptr;
 
         std::scoped_lock lock(backends_mutex);

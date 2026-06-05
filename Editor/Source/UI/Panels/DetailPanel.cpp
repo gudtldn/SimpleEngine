@@ -157,7 +157,7 @@ void DetailPanel::DrawContent()
 
             // TODO: 나중에 PropertyDrawer에서 컴포넌트별 커스텀 DrawProperties를 지원하도록 수정
             // TransformComponent는 Quaternion 대신 Euler 각도로 직관적으로 표시
-            if (component_type == TypeId::Get<TransformComponent>())
+            if (component_type == TypeId::Of<TransformComponent>())
             {
                 TransformComponent* transform_component = static_cast<TransformComponent*>(component_data);
                 bool changed = false;

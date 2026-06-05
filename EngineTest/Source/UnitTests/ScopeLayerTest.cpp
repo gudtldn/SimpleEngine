@@ -38,7 +38,7 @@ HandleData SimulateLoad(
     AssetPool& pool, EScopeLayer scope,
     u64 size_bytes = 256, u64 frame = 0)
 {
-    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Get<ScopeTestAsset>(), AssetPath("test/scope_asset"));
+    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<ScopeTestAsset>(), AssetPath("test/scope_asset"));
 
     HandleTable& table = pool.GetTable();
     SlotEntry& slot = table.GetSlot(hd.index);
@@ -131,7 +131,7 @@ TEST_F(ScopeLayerTest, UnloadScope_GlobalGuarded)
 
 TEST_F(ScopeLayerTest, DefaultScopeIsScene)
 {
-    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Get<ScopeTestAsset>(), AssetPath("test/default"));
+    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<ScopeTestAsset>(), AssetPath("test/default"));
     SlotEntry& slot = pool.GetTable().GetSlot(hd.index);
 
     // SlotEntry의 기본 scope는 Scene

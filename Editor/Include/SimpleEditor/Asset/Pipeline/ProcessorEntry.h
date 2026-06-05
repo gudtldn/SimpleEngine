@@ -13,7 +13,7 @@ namespace se::editor
  */
 struct SE_ANNOTATION(=meta::SerializeOnly) ProcessorEntry
 {
-    /** Processor의 구체 타입 (예: TypeId::Get<StaticMeshOptimizer>()) */
+    /** Processor의 구체 타입 (예: TypeId::Of<StaticMeshOptimizer>()) */
     SE_ANNOTATION(=meta::Property)
     TypeId processor_type;
 
