@@ -202,30 +202,26 @@ struct PropertyMetadata
  */
 struct PropertyAccessor
 {
-    using PtrFunc    = void*(*)(void* instance);
-    using GetterFunc = void(*)(const void* instance, void* out_value);
-    using SetterFunc = void(*)(void* instance, const void* in_value);
-
-public:
     /**
-     * Property의 실제 메모리 주소를 반환합니다.
+     * Property의 값을 const로 가져옵니다.
      * @param instance 해당 변수를 가진 객체의 주소
+     * @return 값을 가리키고 있는 포인터 (const)
      */
-    PtrFunc get_ptr = nullptr;
+    const void* (*get)(const void* instance) = nullptr;
 
     /**
      * Property의 값을 가져옵니다.
      * @param instance 해당 변수를 가진 객체의 주소
-     * @param out_value 복사된 값을 저장할 버퍼의 주소
+     * @return 값을 가리키고 있는 포인터
      */
-    GetterFunc getter = nullptr;
+    void* (*get_mut)(void* instance) = nullptr;
 
     /**
      * Property에 값을 설정합니다.
      * @param instance 해당 변수를 가진 객체의 주소
-     * @param in_value 설정할 값이 들어있는 버퍼의 주소
+     * @param value 설정할 값이 들어있는 버퍼의 주소
      */
-    SetterFunc setter = nullptr;
+    void (*set)(void* instance, const void* value) = nullptr;
 };
 
 /**

@@ -963,7 +963,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
         // 고유 ImGui ID 보장 (같은 이름 충돌 방지)
         ImGui::PushID(static_cast<int>(prop.offset));
 
-        void* prop_data = prop.accessor.get_ptr(instance);
+        void* prop_data = prop.accessor.get_mut(instance);
 
         // ReadOnly면 ImGui 위젯 비활성화
         const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags::ReadOnly);
