@@ -102,4 +102,11 @@ concept FloatingType = std::is_floating_point_v<T>;
 // Enum
 template <typename T>
 concept EnumType = std::is_enum_v<T>;
+
+// From 타입을 To 타입으로 static_cast 할 수 있는지 확인하는 TypeTrait
+template <typename From, typename To>
+concept StaticCastableTo = requires(From&& from)
+{
+    static_cast<To>(std::forward<From>(from));
+};
 } // namespace se::traits

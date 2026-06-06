@@ -278,6 +278,18 @@ public:
         return std::forward<Self>(self);
     }
 
+    /** Optional이 가지고 있는 값을 U 타입으로 static_cast 하여 반환합니다. */
+    template <typename U, typename Self>
+        requires se::traits::StaticCastableTo<decltype(std::declval<Self>().Value()), U>
+    [[nodiscard]] constexpr Optional<U> As(this Self&& self)
+    {
+        if (self.HasValue())
+        {
+            return Optional<U>{ static_cast<U>(std::forward<Self>(self).Value()) };
+        }
+        return Optional<U>{};
+    }
+
 public:
     [[nodiscard]] constexpr explicit operator bool() const
     {
@@ -500,6 +512,18 @@ public:
         return *this;
     }
 
+    /** Optional이 가지고 있는 포인터를 U 타입으로 변환합니다. */
+    template <typename U>
+        requires se::traits::StaticCastableTo<T*, U>
+    [[nodiscard]] constexpr Optional<U> As() const
+    {
+        if (HasValue())
+        {
+            return Optional<U>{ static_cast<U>(value_ptr) };
+        }
+        return Optional<U>{};
+    }
+
 public:
     [[nodiscard]] constexpr explicit operator bool() const { return HasValue(); }
 
@@ -687,6 +711,18 @@ public:
             std::invoke(std::forward<Fn>(func), std::as_const(*value_ptr));
         }
         return *this;
+    }
+
+    /** Optional이 가지고 있는 참조를 U 타입으로 변환합니다. */
+    template <typename U>
+        requires se::traits::StaticCastableTo<T&, U>
+    [[nodiscard]] constexpr Optional<U> As() const
+    {
+        if (HasValue())
+        {
+            return Optional<U>{ static_cast<U>(*value_ptr) };
+        }
+        return Optional<U>{};
     }
 
 public:
