@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SimpleEngine/Core/Reflection/Meta.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
@@ -123,30 +123,29 @@ public:
 
         // 접근자(Accessor) 생성
         prop.accessor = {
-            .get_ptr = [](void* instance) static -> void*
+            .get = [](const void* instance) static -> const void*
             {
-                SE_ASSERT(instance, "Instance pointer is null in get_ptr");
-
-                T* typed = static_cast<T*>(instance);
-                return &(typed->*MemberPtr);
+                SE_ASSERT(instance, "Instance pointer is null in get");
+                return &(static_cast<const T*>(instance)->*MemberPtr);
             },
-            .getter = [](const void* instance, void* out_value) static
+            .get_mut = [](void* instance) static -> void*
             {
-                SE_ASSERT(instance, "Instance pointer is null in getter");
-                SE_ASSERT(out_value, "Target buffer (out_value) is null in getter");
-
-                const T* typed = static_cast<const T*>(instance);
-                MemberType* out = static_cast<MemberType*>(out_value);
-                *out = typed->*MemberPtr;
+                SE_ASSERT(instance, "Instance pointer is null in get_mut");
+                return &(static_cast<T*>(instance)->*MemberPtr);
             },
-            .setter = [](void* instance, const void* in_value) static
+            .set = [](void* instance, const void* in_value) static
             {
-                SE_ASSERT(instance, "Instance pointer is null in setter");
-                SE_ASSERT(in_value, "Source value (in_value) is null in setter");
+                SE_ASSERT(instance, "Instance pointer is null in set");
+                SE_ASSERT(in_value, "Source value (in_value) is null in set");
 
-                T* typed = static_cast<T*>(instance);
-                const MemberType* in = static_cast<const MemberType*>(in_value);
-                typed->*MemberPtr = *in;
+                if constexpr (std::is_copy_assignable_v<MemberType>)
+                {
+                    static_cast<T*>(instance)->*MemberPtr = *static_cast<const MemberType*>(in_value);
+                }
+                else
+                {
+                    SE_ASSERT(false, "This property is not copy-assignable.");
+                }
             },
         };
 

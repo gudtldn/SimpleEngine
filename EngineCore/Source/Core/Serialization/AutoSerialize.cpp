@@ -34,7 +34,7 @@ void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
 
         // HintNextName으로 프로퍼티 이름 설정 후 직렬화
         ar(prop.name);
-        prop.serialize(ar, prop.accessor.get_ptr(instance));
+        prop.serialize(ar, prop.accessor.get_mut(instance));
     }
 }
 
