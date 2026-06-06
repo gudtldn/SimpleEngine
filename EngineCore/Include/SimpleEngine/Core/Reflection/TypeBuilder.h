@@ -40,14 +40,20 @@ public:
         // info가 어떤 타입 종류인지 설정
         info_ptr->kind = kind;
 
-        // Super가 존재하면 Info에 부모의 TypeId를 저장
+        // Super가 존재하면 Info에 부모의 정보를 저장
         if constexpr (requires{ typename T::Super; })
         {
             using Super = T::Super;
             if constexpr (!std::is_void_v<Super>)
             {
                 static_assert(!std::same_as<std::decay_t<T>, std::decay_t<Super>>, "Class cannot inherit from itself!");
-                info_ptr->base_or_inner_id = TypeId::Of<Super>();
+                info_ptr->bases.Push({
+                    .base_id = TypeId::Of<Super>(),
+                    .upcast = [](void* p) static -> void*
+                    {
+                        return static_cast<Super*>(static_cast<T*>(p));
+                    }
+                });
             }
         }
 
@@ -222,14 +228,12 @@ private:
     // ReSharper disable once CppMemberFunctionMayBeConst
     void ImplementInterface()
     {
-        constexpr TypeId type_id = TypeId::Of<InterfaceType>();
-        info_ptr->interfaces.Insert(type_id, InterfaceInfo{
-            .type_id = type_id,
-            .caster = [](void* instance) static -> void*
+        info_ptr->bases.Push({
+            .base_id = TypeId::Of<InterfaceType>(),
+            .upcast = [](void* p) static -> void*
             {
-                // 주소 보정 (Pointer Adjustment)
-                T* typed = static_cast<T*>(instance);
-                return static_cast<InterfaceType*>(typed);
+                // 다중 상속 offset 보정
+                return static_cast<InterfaceType*>(static_cast<T*>(p));
             }
         });
     }

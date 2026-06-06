@@ -6,11 +6,11 @@
 #include "SimpleEditor/Asset/MetaFileManager.h"
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
+#include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/MaterialInstanceFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/StaticMeshFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Factories/Texture2DFactory.h"
 #include "SimpleEditor/Asset/Pipeline/Translators/AssimpTranslator.h"
-#include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
@@ -19,14 +19,15 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/Cast.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
@@ -556,7 +557,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
                 continue;
             }
 
-            if (!Implements<IPipelineProcessor>(info_opt->type_id))
+            if (!IsChildOf<IPipelineProcessor>(info_opt->type_id))
             {
                 ConsoleLog(
                     ELogLevel::Warning,

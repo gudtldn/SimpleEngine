@@ -4,6 +4,7 @@
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
 
 
@@ -95,6 +96,7 @@ public:
 
 private:
     void RegisterBuiltinDrawers();
+    bool DrawProperties(const TypeInfo& type_info, void* instance, HashSet<void*>& visited);
 
 private:
     HashMap<TypeId, PropertyDrawFunc> drawers;

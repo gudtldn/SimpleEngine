@@ -734,11 +734,12 @@ TEST_F(AutoSerializeTest, TypeInfo_CorrectKind)
     }
 }
 
-// --- DerivedData의 base_or_inner_id가 BaseData를 가리키는지 검증 ---
+// --- DerivedData의 bases[0].base_id가 BaseData를 가리키는지 검증 ---
 TEST_F(AutoSerializeTest, Inheritance_BaseIdSet)
 {
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<DerivedData>());
-    EXPECT_EQ(info.base_or_inner_id, TypeId::Of<BaseData>());
+    ASSERT_FALSE(info.bases.IsEmpty());
+    EXPECT_EQ(info.bases[0].base_id, TypeId::Of<BaseData>());
 }
 
 // --- Ray 라운드트립 ---
