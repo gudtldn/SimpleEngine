@@ -22,7 +22,7 @@ SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
     .DependsOn<EventSubsystem>()
     .UpdateDependsOn<InputSubsystem>();
 
-SE_BEGIN_REFLECT(ShaderCompileSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(ShaderCompileSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(ShaderCompileSubsystem)
 

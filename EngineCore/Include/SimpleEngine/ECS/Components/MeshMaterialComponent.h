@@ -20,7 +20,7 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) MeshMaterialC
      * @todo 나중에 오브젝트 개수가 많아져 ECS Cache Miss로 인한 성능 병목이 확인되면,
      *       동적 할당(Heap Allocation)을 제거하기 위해 FixedArray<AssetId, 8> 같은 인라인 배열 구조로 변경해야 함.
      */
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<AssetId> material_overrides;
 };
 } // namespace se

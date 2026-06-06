@@ -12,7 +12,7 @@ using namespace se;
 
 // --- Mock Asset ---
 
-class SE_ANNOTATION(=meta::Internal) EvictionTestAsset : public AssetBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EvictionTestAsset : public AssetBase
 {
     SE_CLASS(EvictionTestAsset, AssetBase)
 
@@ -20,7 +20,7 @@ public:
     EvictionTestAsset() = default;
 };
 
-SE_BEGIN_REFLECT(EvictionTestAsset, meta::Internal)
+SE_BEGIN_REFLECT(EvictionTestAsset, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(EvictionTestAsset)
 
 

@@ -12,7 +12,7 @@ namespace se
 {
 using namespace se::math;
 
-SE_BEGIN_REFLECT(DebugLinePass, meta::Internal)
+SE_BEGIN_REFLECT(DebugLinePass, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(DebugLinePass)
 
 DebugLinePass::DebugLinePass(

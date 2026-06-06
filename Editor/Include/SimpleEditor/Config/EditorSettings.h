@@ -11,24 +11,24 @@ namespace se::editor
 /**
  * [window] 섹션 - 에디터 윈도우 설정
  */
-struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) WindowSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String title = "SimpleEngine Editor";
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 width = 1280;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 height = 720;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool fullscreen = false;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool borderless = false;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool resizable = true;
 
     bool operator==(const WindowSettings&) const = default;
@@ -37,12 +37,12 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
 /**
  * [editor.ui] 섹션 - 에디터 UI 설정
  */
-struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) EditorUISettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String font_path = "CoreAssets://Font/malgun.ttf";
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     f32 font_size = 17.0f;
 
     bool operator==(const EditorUISettings&) const = default;
@@ -51,21 +51,21 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) EditorUISettings
 /**
  * [editor.console] 섹션 - 콘솔 패널 설정
  */
-struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) ConsoleSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool auto_scroll = true;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool show_timestamp = false;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool show_thread_name = false;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool show_location = true;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 max_log_lines = 2000;
 
     bool operator==(const ConsoleSettings&) const = default;
@@ -74,13 +74,13 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) ConsoleSettings
 /**
  * [performance] 섹션 - 성능 설정
  */
-struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) PerformanceSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) PerformanceSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 target_fps = 240;
 
     /** 프레임 대기 시 Busy-wait 비율 (0.0 ~ 1.0) */
-    SE_ANNOTATION(=meta::Property, =meta::Range(0.0f, 1.0f))
+    SE_ANNOTATION(=meta::Reflect, =meta::Range(0.0f, 1.0f))
     f32 busy_wait_ratio = 0.1f;
 
     bool operator==(const PerformanceSettings&) const = default;
@@ -99,10 +99,10 @@ enum class EPresentMode : u8
 /**
  * [graphics] 섹션 - 렌더링 설정
  */
-struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) GraphicsSettings
 {
     /** 프레젠트 모드 */
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     EPresentMode present_mode = EPresentMode::Mailbox;
 
     bool operator==(const GraphicsSettings&) const = default;
@@ -110,10 +110,10 @@ struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
 /**
  * [asset_scan] 섹션 - Import 스캔 대상 VFS 스킴 목록
  */
-struct SE_EDITOR_API SE_ANNOTATION(=meta::SerializeOnly) AssetScanSettings
+struct SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetScanSettings
 {
     /** 스캔할 VFS 스킴 이름 목록 */
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<String> schemes = { "CoreAssets", "EditorAssets" };
 
     bool operator==(const AssetScanSettings&) const = default;

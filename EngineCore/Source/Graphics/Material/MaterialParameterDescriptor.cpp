@@ -7,10 +7,10 @@ namespace se
 SE_REFLECT_ENUM(EMaterialParamType)
 
 SE_BEGIN_REFLECT(MaterialParameterDescriptor, meta::Reflect)
-    SE_REFLECT_PROPERTY(name, meta::Property)
-    SE_REFLECT_PROPERTY(type, meta::Property)
-    SE_REFLECT_PROPERTY(offset, meta::Property)
-    SE_REFLECT_PROPERTY(default_value, meta::Property)
+    SE_REFLECT_PROPERTY(name, meta::Reflect)
+    SE_REFLECT_PROPERTY(type, meta::Reflect)
+    SE_REFLECT_PROPERTY(offset, meta::Reflect)
+    SE_REFLECT_PROPERTY(default_value, meta::Reflect)
 SE_END_REFLECT(MaterialParameterDescriptor)
 
 u32 MaterialParameterDescriptor::GetSize() const

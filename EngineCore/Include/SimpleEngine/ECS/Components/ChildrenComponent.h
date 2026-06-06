@@ -12,7 +12,7 @@ namespace se
  */
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) ChildrenComponent
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<Entity> children;
 };
 } // namespace se

@@ -15,7 +15,7 @@ namespace se
  * 매 프레임 BeginFrame()을 호출하여 이전 프레임의 입력 상태를 갱신하고,
  * PollEvents() 과정에서 on_sdl_event를 통해 SDL 입력 이벤트를 수신하여, 현재 프레임의 입력 상태를 누적합니다.
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) InputSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) InputSubsystem : public SubsystemBase
 {
     SE_CLASS(InputSubsystem, SubsystemBase)
 

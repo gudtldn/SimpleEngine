@@ -14,7 +14,7 @@ namespace se
 /**
  * SDL 이벤트 폴링 및 Raw 이벤트 브로드캐스팅을 담당하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) EventSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EventSubsystem : public SubsystemBase
 {
     SE_CLASS(EventSubsystem, SubsystemBase)
 

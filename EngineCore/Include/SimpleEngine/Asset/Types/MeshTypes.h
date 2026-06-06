@@ -28,27 +28,27 @@ public:
     //     Vector4f tangent;
     // }
     //
-    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     // Array<Vector3f> positions;
     //
-    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     // Array<VertexAttributes> attributes;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<StaticVertex> vertices;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<u32> indices;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<MeshLOD> lods;
 
     /** 3D Model Import시 자동 추출된 기본 머티리얼 ID 목록 */
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<AssetId> default_materials;
 
     /** StaticMesh 전체의 바운딩 박스 */
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     AABBf bounds;
 };
 
@@ -60,19 +60,19 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public AssetBase
     SE_CLASS(SkeletalMesh, AssetBase)
 
 public:
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<StaticVertex> vertices;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<SkinVertex> skin_vertices;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     Array<u32> indices;
 
-    // SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    // SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     // Array<Material> materials;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     AABBf bounds;
 
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리

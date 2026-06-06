@@ -79,7 +79,7 @@ JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath, std::atomic<
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::AssetSubsystem>();
 
-SE_BEGIN_REFLECT(EditorAssetSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(EditorAssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(EditorAssetSubsystem)
 
 

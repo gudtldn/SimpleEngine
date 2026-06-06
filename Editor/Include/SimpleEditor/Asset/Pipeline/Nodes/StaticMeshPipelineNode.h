@@ -21,7 +21,7 @@ struct PipelineMeshSection
 /**
  * @todo docs
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) StaticMeshPipelineNode : public PipelineBaseNode
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) StaticMeshPipelineNode : public PipelineBaseNode
 {
     SE_CLASS(StaticMeshPipelineNode, PipelineBaseNode)
 

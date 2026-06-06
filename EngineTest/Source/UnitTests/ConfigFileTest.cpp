@@ -20,93 +20,93 @@ using namespace se;
 namespace config_test
 {
 /** [window] 섹션에 대응하는 설정 구조체 */
-struct SE_ANNOTATION(=meta::SerializeOnly) WindowSettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) WindowSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 width = 800;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 height = 600;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool fullscreen = true;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String title = "Default Title";
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     f32 scale = 1.0f;
 
     bool operator==(const WindowSettings&) const = default;
 };
 
 /** [graphics] 섹션에 대응하는 설정 구조체 */
-struct SE_ANNOTATION(=meta::SerializeOnly) GraphicsSettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) GraphicsSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool vsync = false;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     i32 max_fps = 60;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<String> shaders;
 
     bool operator==(const GraphicsSettings&) const = default;
 };
 
 /** [logging] 섹션에 대응하는 설정 구조체 */
-struct SE_ANNOTATION(=meta::SerializeOnly) LoggingSettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) LoggingSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String level = "info";
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool output_to_file = false;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String log_file_path;
 
     bool operator==(const LoggingSettings&) const = default;
 };
 
 /** Transient 프로퍼티를 포함하는 테스트 구조체 */
-struct SE_ANNOTATION(=meta::SerializeOnly) TransientSettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) TransientSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     i32 saved_val = 0;
 
-    SE_ANNOTATION(=meta::Property, =meta::Transient)
+    SE_ANNOTATION(=meta::Reflect, =meta::Transient)
     i32 transient_val = 0;
 
     bool operator==(const TransientSettings&) const = default;
 };
 
 /** 빈 구조체 */
-struct SE_ANNOTATION(=meta::SerializeOnly) EmptySettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) EmptySettings
 {
     bool operator==(const EmptySettings&) const = default;
 };
 
 /** 컨테이너 프로퍼티를 가진 구조체 */
-struct SE_ANNOTATION(=meta::SerializeOnly) ContainerSettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) ContainerSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<i32> numbers;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     HashMap<String, f32> scores;
 
     bool operator==(const ContainerSettings&) const = default;
 };
 
 /** 루트 레벨 설정 (섹션 없이 최상위에 놓이는 키들) */
-struct SE_ANNOTATION(=meta::SerializeOnly) RootSettings
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) RootSettings
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String title;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     String engine_version;
 
     bool operator==(const RootSettings&) const = default;
@@ -120,48 +120,48 @@ struct SE_ANNOTATION(=meta::SerializeOnly) RootSettings
 using namespace config_test;
 
 SE_DECLARE_REFLECTION(WindowSettings)
-SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(width, meta::Property)
-    SE_REFLECT_PROPERTY(height, meta::Property)
-    SE_REFLECT_PROPERTY(fullscreen, meta::Property)
-    SE_REFLECT_PROPERTY(title, meta::Property)
-    SE_REFLECT_PROPERTY(scale, meta::Property)
+SE_BEGIN_REFLECT(WindowSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(width, meta::Reflect)
+    SE_REFLECT_PROPERTY(height, meta::Reflect)
+    SE_REFLECT_PROPERTY(fullscreen, meta::Reflect)
+    SE_REFLECT_PROPERTY(title, meta::Reflect)
+    SE_REFLECT_PROPERTY(scale, meta::Reflect)
 SE_END_REFLECT(WindowSettings)
 
 SE_DECLARE_REFLECTION(GraphicsSettings)
-SE_BEGIN_REFLECT(GraphicsSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(vsync, meta::Property)
-    SE_REFLECT_PROPERTY(max_fps, meta::Property)
-    SE_REFLECT_PROPERTY(shaders, meta::Property)
+SE_BEGIN_REFLECT(GraphicsSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(vsync, meta::Reflect)
+    SE_REFLECT_PROPERTY(max_fps, meta::Reflect)
+    SE_REFLECT_PROPERTY(shaders, meta::Reflect)
 SE_END_REFLECT(GraphicsSettings)
 
 SE_DECLARE_REFLECTION(LoggingSettings)
-SE_BEGIN_REFLECT(LoggingSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(level, meta::Property)
-    SE_REFLECT_PROPERTY(output_to_file, meta::Property)
-    SE_REFLECT_PROPERTY(log_file_path, meta::Property)
+SE_BEGIN_REFLECT(LoggingSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(level, meta::Reflect)
+    SE_REFLECT_PROPERTY(output_to_file, meta::Reflect)
+    SE_REFLECT_PROPERTY(log_file_path, meta::Reflect)
 SE_END_REFLECT(LoggingSettings)
 
 SE_DECLARE_REFLECTION(TransientSettings)
-SE_BEGIN_REFLECT(TransientSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(saved_val, meta::Property)
+SE_BEGIN_REFLECT(TransientSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(saved_val, meta::Reflect)
     SE_REFLECT_PROPERTY(transient_val, meta::Transient)
 SE_END_REFLECT(TransientSettings)
 
 SE_DECLARE_REFLECTION(EmptySettings)
-SE_BEGIN_REFLECT(EmptySettings, meta::SerializeOnly)
+SE_BEGIN_REFLECT(EmptySettings, meta::Reflect, meta::Hidden)
 SE_END_REFLECT(EmptySettings)
 
 SE_DECLARE_REFLECTION(ContainerSettings)
-SE_BEGIN_REFLECT(ContainerSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(numbers, meta::Property)
-    SE_REFLECT_PROPERTY(scores, meta::Property)
+SE_BEGIN_REFLECT(ContainerSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(numbers, meta::Reflect)
+    SE_REFLECT_PROPERTY(scores, meta::Reflect)
 SE_END_REFLECT(ContainerSettings)
 
 SE_DECLARE_REFLECTION(RootSettings)
-SE_BEGIN_REFLECT(RootSettings, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(title, meta::Property)
-    SE_REFLECT_PROPERTY(engine_version, meta::Property)
+SE_BEGIN_REFLECT(RootSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(title, meta::Reflect)
+    SE_REFLECT_PROPERTY(engine_version, meta::Reflect)
 SE_END_REFLECT(RootSettings)
 
 

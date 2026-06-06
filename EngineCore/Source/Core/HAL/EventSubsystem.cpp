@@ -9,7 +9,7 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(EventSubsystem);
 
-SE_BEGIN_REFLECT(EventSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(EventSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(EventSubsystem)
 
 

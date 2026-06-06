@@ -12,7 +12,7 @@ namespace se
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) ParentComponent
 {
 public:
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Entity parent;
 };
 } // namespace se

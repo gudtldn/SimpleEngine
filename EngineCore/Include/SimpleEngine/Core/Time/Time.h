@@ -35,13 +35,13 @@ public:
     [[nodiscard]] u64 GetFrameCount() const { return frame_count; }
 
 protected:
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     f64 delta = 0.0;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     f64 elapsed = 0.0;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
+    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     u64 frame_count = 0;
 };
 } // namespace detail
@@ -50,7 +50,7 @@ protected:
  * 실제 글로벌 시간입니다.
  * 게임 일시정지나 time scale의 영향을 받지 않습니다.
  */
-class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) RealTime final : public detail::TimeState
+class SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Resource) RealTime final : public detail::TimeState
 {
     friend class TimeAdvancer;
     friend struct TimeResources_Registrar;
@@ -60,7 +60,7 @@ class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) RealTime final : public 
  * 가상 게임 시간입니다. World별로 독립적으로 관리됩니다.
  * time_scale과 pause 상태에 따라 delta가 조절됩니다.
  */
-class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) GameTime final : public detail::TimeState
+class SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Resource) GameTime final : public detail::TimeState
 {
     friend class TimeAdvancer;
     friend struct TimeResources_Registrar;
@@ -79,10 +79,10 @@ public:
     void SetPaused(bool pause) { paused = pause; }
 
 private:
-    SE_ANNOTATION(=meta::Property, =meta::Range(0.1f, 10.0f))
+    SE_ANNOTATION(=meta::Reflect, =meta::Range(0.1f, 10.0f))
     f64 time_scale = 1.0;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool paused = false;
 };
 
@@ -91,7 +91,7 @@ private:
  * 물리 시뮬레이션 등 일정한 간격의 업데이트가 필요한 곳에서 사용합니다.
  * accumulator가 fixed_step 이상이면 FixedUpdatePhase가 실행됩니다.
  */
-class SE_ANNOTATION(=meta::EditorOnly, =meta::Resource) FixedTime final : public detail::TimeState
+class SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Resource) FixedTime final : public detail::TimeState
 {
     friend class TimeAdvancer;
     friend struct TimeResources_Registrar;
@@ -127,7 +127,7 @@ public:
     }
 
 private:
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     f64 fixed_step = 1.0 / 64.0;
 
     // accumulator는 내부 누적 상태이므로 리플렉션 대상에서 제외합니다.

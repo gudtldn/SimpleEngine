@@ -4,24 +4,24 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT(RGResourceBase, meta::Internal)
+SE_BEGIN_REFLECT(RGResourceBase, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGResourceBase)
 
-SE_BEGIN_REFLECT(RGTextureBase, meta::Internal)
+SE_BEGIN_REFLECT(RGTextureBase, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGTextureBase)
 
-SE_BEGIN_REFLECT(RGBufferBase, meta::Internal)
+SE_BEGIN_REFLECT(RGBufferBase, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGBufferBase)
 
-SE_BEGIN_REFLECT(RGTransientTexture, meta::Internal)
+SE_BEGIN_REFLECT(RGTransientTexture, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGTransientTexture)
 
-SE_BEGIN_REFLECT(RGExternalTexture, meta::Internal)
+SE_BEGIN_REFLECT(RGExternalTexture, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGExternalTexture)
 
-SE_BEGIN_REFLECT(RGTransientBuffer, meta::Internal)
+SE_BEGIN_REFLECT(RGTransientBuffer, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGTransientBuffer)
 
-SE_BEGIN_REFLECT(RGExternalBuffer, meta::Internal)
+SE_BEGIN_REFLECT(RGExternalBuffer, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RGExternalBuffer)
 } // namespace se

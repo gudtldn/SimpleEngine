@@ -15,7 +15,7 @@ namespace se::editor
 /**
  * FBX/GLTF 임포트 과정에서 aiMaterial 하나를 MaterialInstance 에셋으로 변환하기 위한 Pipeline 노드
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) PipelineMaterialInstanceNode final : public PipelineBaseNode
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineMaterialInstanceNode final : public PipelineBaseNode
 {
     SE_CLASS(PipelineMaterialInstanceNode, PipelineBaseNode)
 

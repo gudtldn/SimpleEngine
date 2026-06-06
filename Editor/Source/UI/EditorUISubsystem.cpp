@@ -49,7 +49,7 @@ SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
     >()
     .UpdateDependsOn<EntitySubsystem>();
 
-SE_BEGIN_REFLECT(EditorUISubsystem, meta::Internal)
+SE_BEGIN_REFLECT(EditorUISubsystem, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(EditorUISubsystem)
 

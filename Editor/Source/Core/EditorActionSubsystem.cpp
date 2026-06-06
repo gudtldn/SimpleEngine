@@ -24,7 +24,7 @@ SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
         InputSubsystem
     >();
 
-SE_BEGIN_REFLECT(EditorActionSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(EditorActionSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(EditorActionSubsystem)
 

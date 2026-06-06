@@ -59,7 +59,7 @@ public:
 /**
  * 에디터 내의 뷰포트(씬 렌더링 창) 상태와 렌더링 리소스를 관리하는 Subsystem
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) EditorViewportSubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorViewportSubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(EditorViewportSubsystem, SubsystemBase)
 

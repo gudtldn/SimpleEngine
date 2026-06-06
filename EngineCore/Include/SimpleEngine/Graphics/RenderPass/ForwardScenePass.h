@@ -17,7 +17,7 @@ class SamplerCache;
 /**
  * SceneDrawData의 오브젝트를 Forward 렌더링하는 패스
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) ForwardScenePass : public RenderPassBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ForwardScenePass : public RenderPassBase
 {
     SE_CLASS(ForwardScenePass, RenderPassBase)
 

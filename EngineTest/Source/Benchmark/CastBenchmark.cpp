@@ -5,7 +5,7 @@
 namespace se::benchmark_test
 {
 // 벤치마크를 위한 상속 계층 구조
-class SE_ANNOTATION(=meta::Internal) BenchBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchBase
 {
     SE_CLASS(BenchBase)
 
@@ -13,12 +13,12 @@ public:
     virtual ~BenchBase() = default;
 };
 
-class SE_ANNOTATION(=meta::Internal) BenchLevel1 : public BenchBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchLevel1 : public BenchBase
 {
     SE_CLASS(BenchLevel1, BenchBase)
 };
 
-class SE_ANNOTATION(=meta::Internal) BenchLevel2 : public BenchLevel1
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchLevel2 : public BenchLevel1
 {
     SE_CLASS(BenchLevel2, BenchLevel1)
 };
@@ -31,7 +31,7 @@ public:
     virtual void BenchFunc() = 0;
 };
 
-class SE_ANNOTATION(=meta::Internal) BenchImplementer : public BenchBase, public IBenchInterface
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchImplementer : public BenchBase, public IBenchInterface
 {
     SE_CLASS(BenchImplementer, BenchBase)
 
@@ -46,20 +46,20 @@ public:
     virtual ~BenchOther() = default;
 };
 
-SE_BEGIN_REFLECT(BenchBase, meta::Internal)
+SE_BEGIN_REFLECT(BenchBase, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(BenchBase)
 
-SE_BEGIN_REFLECT(BenchLevel1, meta::Internal)
+SE_BEGIN_REFLECT(BenchLevel1, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(BenchLevel1)
 
-SE_BEGIN_REFLECT(BenchLevel2, meta::Internal)
+SE_BEGIN_REFLECT(BenchLevel2, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(BenchLevel2)
 
-SE_BEGIN_REFLECT(BenchImplementer, meta::Internal)
+SE_BEGIN_REFLECT(BenchImplementer, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(IBenchInterface)
 SE_END_REFLECT(BenchImplementer)
 
-SE_BEGIN_REFLECT(BenchOther, meta::Internal)
+SE_BEGIN_REFLECT(BenchOther, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(BenchOther)
 
 // --- 성공하는 캐스팅 (Downcasting) ---

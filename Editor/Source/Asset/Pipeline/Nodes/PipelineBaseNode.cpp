@@ -5,6 +5,6 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(PipelineBaseNode, meta::Internal)
+SE_BEGIN_REFLECT(PipelineBaseNode, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(PipelineBaseNode)
 }

@@ -24,19 +24,19 @@ enum class EMaterialParamType : u8
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
 {
     // 파라미터 식별 이름 (예: "BaseColor")
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     StringName name;
 
     // 데이터 타입
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     EMaterialParamType type = EMaterialParamType::Float4;
 
     // 버퍼 내 바이트 오프셋
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     u32 offset = 0;
 
     // 인스턴스 생성 시 기본값
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Vector4f default_value = {};
 
     /** 이 파라미터가 차지하는 바이트 크기를 반환합니다. */

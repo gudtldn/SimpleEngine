@@ -13,7 +13,7 @@ namespace se::editor
 /**
  * Asset Import Pipeline의 기본 노드 클래스
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) PipelineBaseNode
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineBaseNode
 {
     SE_CLASS(PipelineBaseNode)
 

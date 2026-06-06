@@ -24,7 +24,7 @@ SE_REGISTER_SUBSYSTEM(GizmoSubsystem)
     .DependsOn<RenderSubsystem, SelectionSubsystem>()
     .UpdateDependsOn<EditorViewportSubsystem>();
 
-SE_BEGIN_REFLECT(GizmoSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(GizmoSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(GizmoSubsystem)
 

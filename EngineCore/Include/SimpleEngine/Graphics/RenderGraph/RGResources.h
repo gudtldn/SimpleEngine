@@ -8,7 +8,7 @@
 
 namespace se
 {
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGResourceBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGResourceBase
 {
     SE_CLASS(RGResourceBase)
 
@@ -19,7 +19,7 @@ public:
     virtual void Unrealize(FrameResourcePool& pool) = 0;
 };
 
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGTextureBase : public RGResourceBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTextureBase : public RGResourceBase
 {
     SE_CLASS(RGTextureBase, RGResourceBase)
 
@@ -32,7 +32,7 @@ protected:
     SDL_GPUTexture* actual_texture = nullptr;
 };
 
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGBufferBase : public RGResourceBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGBufferBase : public RGResourceBase
 {
     SE_CLASS(RGBufferBase, RGResourceBase)
 
@@ -48,7 +48,7 @@ protected:
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 텍스처
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGTransientTexture : public RGTextureBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTransientTexture : public RGTextureBase
 {
     SE_CLASS(RGTransientTexture, RGTextureBase)
 
@@ -77,7 +77,7 @@ public:
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGExternalTexture : public RGTextureBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGExternalTexture : public RGTextureBase
 {
     SE_CLASS(RGExternalTexture, RGTextureBase)
 
@@ -94,7 +94,7 @@ public:
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 버퍼
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGTransientBuffer : public RGBufferBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTransientBuffer : public RGBufferBase
 {
     SE_CLASS(RGTransientBuffer, RGBufferBase)
 
@@ -123,7 +123,7 @@ public:
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RGExternalBuffer : public RGBufferBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGExternalBuffer : public RGBufferBase
 {
     SE_CLASS(RGExternalBuffer, RGBufferBase)
 

@@ -5,6 +5,6 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(StaticMeshPipelineNode, meta::Internal)
+SE_BEGIN_REFLECT(StaticMeshPipelineNode, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(StaticMeshPipelineNode)
 }

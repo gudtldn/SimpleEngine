@@ -23,7 +23,7 @@ enum class ERGPassQueue : u8
 /**
  * Render Graph의 각 렌더링 단계를 정의하기 위한 인터페이스
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) RenderPassBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RenderPassBase
 {
     SE_CLASS(RenderPassBase)
 

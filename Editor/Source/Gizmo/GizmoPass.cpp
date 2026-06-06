@@ -14,7 +14,7 @@ namespace se::editor
 {
 using namespace se::math;
 
-SE_BEGIN_REFLECT(GizmoPass, meta::Internal)
+SE_BEGIN_REFLECT(GizmoPass, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(GizmoPass)
 
 GizmoPass::GizmoPass(

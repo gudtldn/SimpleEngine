@@ -8,11 +8,11 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT(AssetRecord, meta::SerializeOnly)
-    SE_REFLECT_PROPERTY(id, meta::Property)
-    SE_REFLECT_PROPERTY(type, meta::Property)
-    SE_REFLECT_PROPERTY(logical_path, meta::Property)
-    SE_REFLECT_PROPERTY(metadata, meta::Property)
+SE_BEGIN_REFLECT(AssetRecord, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY(id, meta::Reflect)
+    SE_REFLECT_PROPERTY(type, meta::Reflect)
+    SE_REFLECT_PROPERTY(logical_path, meta::Reflect)
+    SE_REFLECT_PROPERTY(metadata, meta::Reflect)
 SE_END_REFLECT(AssetRecord)
 
 
