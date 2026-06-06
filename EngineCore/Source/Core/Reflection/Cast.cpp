@@ -6,72 +6,45 @@ namespace se::detail
 {
 bool IsTypeDerivedFrom(const TypeId& derived_id, const TypeId& base_id)
 {
-    TypeId current = derived_id;
-    while (current.IsValid())
+    if (derived_id == base_id)
     {
-        if (current == base_id)
-        {
-            return true;
-        }
-
-        const auto info_opt = TypeRegistry::Get().Find(current);
-        if (!info_opt.HasValue())
-        {
-            break;
-        }
-
-        // 부모 클래스로 이동하여 계속 검색
-        current = info_opt->base_or_inner_id;
+        return true;
     }
-    return false;
+
+    const auto info_opt = TypeRegistry::Get().Find(derived_id);
+    if (!info_opt.HasValue())
+    {
+        return false;
+    }
+
+    return std::ranges::any_of(info_opt->bases, [&](const BaseInfo& base)
+    {
+        return IsTypeDerivedFrom(base.base_id, base_id);
+    });
 }
 
-bool IsTypeImplementsInterface(const TypeId& type_id, const TypeId& interface_id)
+void* TryUpcast(void* instance, const TypeId& from, const TypeId& to)
 {
-    TypeId current_id = type_id;
-    while (current_id.IsValid())
+    // 현재 타입이 목표 타입과 일치하면 즉시 반환
+    if (from == to)
     {
-        const auto info_opt = TypeRegistry::Get().Find(current_id);
-        if (!info_opt.HasValue())
-        {
-            break;
-        }
-
-        // 현재 클래스가 인터페이스를 가지고 있는지 확인
-        if (info_opt->interfaces.Contains(interface_id))
-        {
-            return true;
-        }
-
-        // 부모 클래스로 이동하여 계속 검색
-        current_id = info_opt->base_or_inner_id;
+        return instance;
     }
-    return false;
-}
 
-void* CastToInterface(void* instance, const TypeId& type_id, const TypeId& interface_id)
-{
-    if (!instance)
+    const auto info_opt = TypeRegistry::Get().Find(from);
+    if (!info_opt.HasValue())
     {
         return nullptr;
     }
 
-    TypeId current_id = type_id;
-    while (current_id.IsValid())
+    // bases 배열을 순회하며 재귀적으로 탐색 (인터페이스도 bases에 포함)
+    for (const BaseInfo& base : info_opt->bases)
     {
-        const auto info_opt = TypeRegistry::Get().Find(current_id);
-        if (!info_opt.HasValue())
+        void* adj = base.upcast(instance);
+        if (void* result = TryUpcast(adj, base.base_id, to))
         {
-            break;
+            return result;
         }
-
-        if (const auto interface = info_opt->interfaces.Find(interface_id))
-        {
-            return interface->caster(instance);
-        }
-
-        // 부모 클래스로 이동
-        current_id = info_opt->base_or_inner_id;
     }
 
     return nullptr;

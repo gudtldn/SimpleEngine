@@ -941,14 +941,27 @@ PropertyDrawFunc DrawerRegistry::Find(const TypeId& type_id) const
 
 bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
 {
+    HashSet<void*> visited;
+    return DrawProperties(type_info, instance, visited);
+}
+
+bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, HashSet<void*>& visited)
+{
     bool modified = false;
 
-    // 부모 클래스의 프로퍼티를 먼저 렌더링
-    if (type_info.base_or_inner_id.IsValid() && type_info.kind == ETypeKind::Struct)
+    // 부모 클래스의 프로퍼티를 먼저 렌더링 (다중 상속 포함, 주소 기준 dedup)
+    if (type_info.kind == ETypeKind::Struct)
     {
-        if (const auto parent = TypeRegistry::Get().Find(type_info.base_or_inner_id))
+        for (const BaseInfo& base : type_info.bases)
         {
-            modified |= DrawProperties(*parent, instance);
+            if (const auto parent = TypeRegistry::Get().Find(base.base_id))
+            {
+                void* base_instance = base.upcast(instance);
+                if (visited.Insert(base_instance))
+                {
+                    modified |= DrawProperties(*parent, base_instance, visited);
+                }
+            }
         }
     }
 
@@ -1035,7 +1048,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
             }
             else if (prop_type_opt->kind == ETypeKind::Struct && !prop_type_opt->properties.IsEmpty())
             {
-                // 중첩 Struct -> TreeNode로 재귀 렌더링
+                // 중첩 Struct -> TreeNode로 재귀 렌더링 (별개 객체이므로 fresh visited)
                 if (ImGui::TreeNode(label))
                 {
                     modified |= DrawProperties(*prop_type_opt, prop_data);

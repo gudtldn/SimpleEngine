@@ -188,6 +188,10 @@ public: \
     virtual ::se::TypeId GetTypeId() const override_keyword \
     { \
         return ::se::TypeId::Of<this_class>(); \
+    } \
+    virtual void* GetCompleteObject() override_keyword \
+    { \
+        return this; \
     }
 
 #define SE_INTERNAL_CLASS_DEFAULT(this_class) \
@@ -259,7 +263,7 @@ public: \
 
 /**
  * 열거형(Enum)의 리플렉션 정보를 등록합니다.
- * underlying type의 TypeId가 자동으로 base_or_inner_id에 설정되며,
+ * underlying type의 TypeId가 자동으로 inner_type_id에 설정되며,
  * underlying type 기반 직렬화 콜백과 Enum 항목 목록 접근자가 자동 등록됩니다.
  *
  * @note 이 매크로를 사용하는 파일에서 Archive.h가 포함되어야 합니다.

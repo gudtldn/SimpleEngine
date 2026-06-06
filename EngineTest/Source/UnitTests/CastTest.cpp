@@ -108,11 +108,11 @@ TEST_F(CastTest, Implements_WorksCorrectly)
     CastTest_Implementer implementer;
     CastTest_Base* base_ptr = &implementer;
 
-    EXPECT_TRUE(Implements<ICastTest_Interface>(base_ptr));
-    EXPECT_TRUE(Implements<ICastTest_Interface>(implementer.GetTypeId()));
+    EXPECT_TRUE(IsA<ICastTest_Interface>(base_ptr));
+    EXPECT_TRUE(IsChildOf<ICastTest_Interface>(implementer.GetTypeId()));
 
     CastTest_Derived derived;
-    EXPECT_FALSE(Implements<ICastTest_Interface>(&derived));
+    EXPECT_FALSE(IsA<ICastTest_Interface>(&derived));
 }
 
 TEST_F(CastTest, Cast_WorksCorrectly)

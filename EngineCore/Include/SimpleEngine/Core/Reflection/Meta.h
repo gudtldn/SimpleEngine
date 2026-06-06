@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Reflection/Enum.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
@@ -266,23 +265,23 @@ public:
 };
 
 /**
- * Interface의 메타데이터 정보
+ * 클래스/구조체의 부모 정보
  */
-struct InterfaceInfo
+struct BaseInfo
 {
-    /** Interface의 컴파일타임 타입 식별자 */
-    TypeId type_id;
+    /** 부모의 컴파일타임 타입 식별자 */
+    TypeId base_id;
 
     /**
-     * 객체 포인터를 해당 인터페이스 주소로 변환합니다. (Offset 조정)
+     * 객체 포인터를 해당 부모의 주소로 변환합니다. (Offset 조정)
      * @param instance 원본 객체의 포인터
-     * @return 변환된 인터페이스 포인터 (다중 상속 대응)
+     * @return 변환된 포인터 (다중 상속 대응)
      */
-    void* (*caster)(void* instance) = nullptr;
+    void* (*upcast)(void* instance) = nullptr;
 };
 
 /**
- * 클래스/구조체의 리플렉션 정보
+ * 리플렉션 런타임 타입 정보(RTTI) 구조체
  */
 struct TypeInfo
 {
@@ -295,14 +294,16 @@ public:
     /** Type의 컴파일타임 타입 식별자 */
     TypeId type_id;
 
+    /** 다중 상속을 지원하는 부모 클래스 정보 배열 */
+    Array<BaseInfo> bases;
+
     /**
      * 문맥에 따라 다른 역할의 타입 식별자
-     * - Struct: 부모 클래스의 TypeId
      * - Array/Set: Element의 TypeId
      * - Map: Key의 TypeId
      * - Enum: Underlying Type의 TypeId
      */
-    TypeId base_or_inner_id;
+    TypeId inner_type_id;
 
     /**
      * Map 전용: Value 타입의 TypeId
@@ -330,9 +331,6 @@ public:
 
     /** 해당 타입이 포함하는 멤버 변수(Property)들의 목록 */
     Array<PropertyInfo> properties;
-
-    /** 해당 타입이 구현(상속)하는 인터페이스 목록 */
-    HashMap<TypeId, InterfaceInfo> interfaces;
 
 public:
     /** Instance를 생성하는 함수 (new T()) */

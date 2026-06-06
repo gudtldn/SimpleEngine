@@ -1,19 +1,26 @@
 #include "SimpleEngine/Core/Serialization/AutoSerialize.h"
 
+#include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
 
 namespace se
 {
-void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
+namespace
 {
-    // 부모 타입의 프로퍼티를 먼저 직렬화 (상속 체인 재귀)
-    if (info.base_or_inner_id.IsValid() && info.kind == ETypeKind::Struct)
+void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSet<void*>& visited)
+{
+    // 부모 타입의 프로퍼티를 먼저 직렬화 (다중 상속 포함, 주소 기준 dedup)
+    for (const BaseInfo& base : info.bases)
     {
-        if (const auto parent_opt = TypeRegistry::Get().Find(info.base_or_inner_id))
+        if (const auto parent = TypeRegistry::Get().Find(base.base_id))
         {
-            AutoSerialize(ar, parent_opt.Value(), instance);
+            void* base_instance = base.upcast(instance);
+            if (visited.Insert(base_instance))
+            {
+                AutoSerializeImpl(ar, *parent, base_instance, visited);
+            }
         }
     }
 
@@ -36,6 +43,13 @@ void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
         ar(prop.name);
         prop.serialize(ar, prop.accessor.get_mut(instance));
     }
+}
+} // namespace
+
+void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
+{
+    HashSet<void*> visited;
+    AutoSerializeImpl(ar, info, instance, visited);
 }
 
 void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Reflection/Traits.h"
@@ -68,21 +69,22 @@ public:
     [[nodiscard]] const HashMap<TypeId, TypeInfo>& GetAllTypes() const { return type_map; }
 
     /**
-     * 특정 인터페이스를 구현(Implements)하는 모든 등록된 타입의 TypeInfo 목록을 반환합니다.
-     * @tparam T 인터페이스 타입
-     * @return 해당 인터페이스를 구현하는 TypeInfo 포인터 목록
+     * 특정 타입을 직접 상속/구현하는 모든 등록된 타입의 TypeInfo 목록을 반환합니다.
+     * @note 인터페이스 구현체 조회에도 사용합니다.
+     * @tparam T 부모/인터페이스 타입
+     * @return 해당 타입을 직접 base로 가지는 TypeInfo 포인터 뷰
      */
     template <typename T>
-    [[nodiscard]] Array<const TypeInfo*> GetImplementations() const;
+    [[nodiscard]] ArrayView<const TypeInfo* const> GetDerivedTypes() const;
 
-    [[nodiscard]] Array<const TypeInfo*> GetImplementations(const TypeId& interface_id) const;
+    [[nodiscard]] ArrayView<const TypeInfo* const> GetDerivedTypes(const TypeId& base_id) const;
 
 private:
     HashMap<StringName, TypeId> name_map;
     HashMap<TypeId, TypeInfo> type_map;
 
     bool is_resolved = false;
-    HashMap<TypeId, Array<const TypeInfo*>> interface_implementations_map;
+    HashMap<TypeId, Array<const TypeInfo*>> direct_derived_map;
 };
 
 template <typename T>
@@ -160,7 +162,7 @@ detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
     info.name = id.GetName();
     info.size = sizeof(T);
     info.alignment = alignof(T);
-    info.base_or_inner_id = TypeId::Of<std::underlying_type_t<T>>();
+    info.inner_type_id = TypeId::Of<std::underlying_type_t<T>>();
 
     SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
     name_map.Insert(info.name, id);
@@ -170,9 +172,9 @@ detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
 }
 
 template <typename T>
-Array<const TypeInfo*> TypeRegistry::GetImplementations() const
+ArrayView<const TypeInfo* const> TypeRegistry::GetDerivedTypes() const
 {
-    const TypeId interface_id = TypeId::Of<T>();
-    return GetImplementations(interface_id);
+    const TypeId base_id = TypeId::Of<T>();
+    return GetDerivedTypes(base_id);
 }
 } // namespace se

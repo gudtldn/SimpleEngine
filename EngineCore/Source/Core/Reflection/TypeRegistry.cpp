@@ -21,14 +21,14 @@ void TypeRegistry::Resolve()
         return;
     }
 
-    interface_implementations_map.Clear();
+    direct_derived_map.Clear();
 
     for (const TypeInfo& info : type_map | std::views::values)
     {
-        // info가 구현하는 모든 인터페이스를 순회
-        for (const TypeId& interface_id : info.interfaces | std::views::keys)
+        // info의 모든 base(인터페이스 포함)를 역방향으로 인덱싱
+        for (const BaseInfo& base : info.bases)
         {
-            interface_implementations_map.Entry(interface_id).OrDefault().Push(&info);
+            direct_derived_map.Entry(base.base_id).OrDefault().Push(&info);
         }
     }
 
@@ -54,10 +54,12 @@ const TypeInfo& TypeRegistry::FindChecked(const TypeId& type_id) const
     return type_map.FindChecked(type_id);
 }
 
-Array<const TypeInfo*> TypeRegistry::GetImplementations(const TypeId& interface_id) const
+ArrayView<const TypeInfo* const> TypeRegistry::GetDerivedTypes(const TypeId& base_id) const
 {
-    SE_ASSERT(is_resolved, "TypeRegistry::Resolve() must be called before querying implementations!");
-    return interface_implementations_map.Find(interface_id).Copy().ValueOrDefault();
+    SE_ASSERT(is_resolved, "TypeRegistry::Resolve() must be called before querying derived types!");
+    return direct_derived_map.Find(base_id)
+        .As<ArrayView<const TypeInfo* const>>()
+        .ValueOrDefault();
 }
 } // namespace se
 
