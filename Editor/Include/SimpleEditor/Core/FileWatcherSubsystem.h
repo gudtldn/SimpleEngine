@@ -11,7 +11,7 @@ namespace se::editor
 /**
  * FileWatcher의 수명 주기를 관리하는 Subsystem
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) FileWatcherSubsystem : public SubsystemBase
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) FileWatcherSubsystem : public SubsystemBase
 {
     SE_CLASS(FileWatcherSubsystem, SubsystemBase)
 

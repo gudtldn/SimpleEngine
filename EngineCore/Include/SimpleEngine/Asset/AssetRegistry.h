@@ -21,18 +21,18 @@ namespace se
 /**
  * AssetRegistry 내부에 저장되는 Asset의 전체 정보를 나타내는 구조체
  */
-struct SE_ANNOTATION(=meta::SerializeOnly) AssetRecord
+struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetRecord
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     AssetId id;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     TypeId type;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     AssetPath logical_path;
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     AssetMetadata metadata;
 };
 

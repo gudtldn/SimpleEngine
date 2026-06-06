@@ -29,7 +29,7 @@ struct MetaFileContent;
  * Core의 AssetSubsystem에 DDCMissHandler를 등록하여
  * Import 파이프라인을 연결하고, .meta 파일 관리 및 디렉토리 스캔 기능을 제공합니다.
  */
-class SE_ANNOTATION(=meta::Internal) EditorAssetSubsystem : public SubsystemBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorAssetSubsystem : public SubsystemBase
 {
     SE_CLASS(EditorAssetSubsystem, SubsystemBase)
 

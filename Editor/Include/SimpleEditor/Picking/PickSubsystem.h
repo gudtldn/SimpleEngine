@@ -16,7 +16,7 @@ namespace se::editor
  * ForwardScenePass의 MRT entity_id 텍스처(viewport 해상도)를 소유하며,
  * PerformPick()으로 커서 위치 1픽셀을 GPU -> CPU readback하여 Entity ID를 읽습니다.
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) PickSubsystem : public SubsystemBase
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PickSubsystem : public SubsystemBase
 {
     SE_CLASS(PickSubsystem, SubsystemBase)
 

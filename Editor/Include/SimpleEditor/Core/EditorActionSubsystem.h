@@ -23,7 +23,7 @@ class SelectionSubsystem;
 /**
  * 에디터 전반에서 공유되는 Entity 조작 액션을 처리하는 Subsystem
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) EditorActionSubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorActionSubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(EditorActionSubsystem, SubsystemBase)
 

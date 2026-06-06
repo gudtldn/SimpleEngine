@@ -13,7 +13,7 @@ namespace se
 /**
  * ECS WorldContext 컬렉션을 관리하고 엔진 업데이트 루프와 연결하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) EntitySubsystem : public SubsystemBase, public IUpdatable
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EntitySubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(EntitySubsystem, SubsystemBase)
 

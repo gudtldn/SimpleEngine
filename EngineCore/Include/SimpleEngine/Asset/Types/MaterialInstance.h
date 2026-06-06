@@ -23,23 +23,23 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialInstance : public AssetB
 
 public:
     // 부모 머티리얼 템플릿 ID
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     AssetId parent_material_id;
 
     // 파라미터 데이터 블록 (Raw Bytes)
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<u8> parameter_values;
 
     // 슬롯별 텍스처 오버라이드 맵
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     HashMap<StringName, AssetId> texture_overrides;
 
     // 블렌드 모드 오버라이드 (NullOpt이면 부모 머티리얼 값 사용)
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Optional<EBlendMode> blend_mode_override;
 
     // 양면 렌더링 오버라이드 (NullOpt이면 부모 머티리얼 값 사용)
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Optional<bool> two_sided_override;
 
 public:

@@ -5,7 +5,7 @@
 namespace se::test
 {
 // --- 상속 테스트를 위한 클래스 ---
-class SE_ANNOTATION(=meta::Internal) CastTest_Base
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) CastTest_Base
 {
     SE_CLASS(CastTest_Base)
 
@@ -13,12 +13,12 @@ public:
     virtual ~CastTest_Base() = default;
 };
 
-class SE_ANNOTATION(=meta::Internal) CastTest_Derived : public CastTest_Base
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) CastTest_Derived : public CastTest_Base
 {
     SE_CLASS(CastTest_Derived, CastTest_Base)
 };
 
-class SE_ANNOTATION(=meta::Internal) CastTest_DeepDerived : public CastTest_Derived
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) CastTest_DeepDerived : public CastTest_Derived
 {
     SE_CLASS(CastTest_DeepDerived, CastTest_Derived)
 };
@@ -31,7 +31,7 @@ public:
     virtual int GetValue() const = 0;
 };
 
-class SE_ANNOTATION(=meta::Internal) CastTest_Implementer : public CastTest_Base, public ICastTest_Interface
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) CastTest_Implementer : public CastTest_Base, public ICastTest_Interface
 {
     SE_CLASS(CastTest_Implementer, CastTest_Base)
 
@@ -39,7 +39,7 @@ public:
     int GetValue() const override { return 42; }
 };
 
-class SE_ANNOTATION(=meta::Internal) CastTest_Other
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) CastTest_Other
 {
     SE_CLASS(CastTest_Other)
 public:
@@ -47,22 +47,22 @@ public:
 };
 
 // 리플렉션 정보 등록
-SE_BEGIN_REFLECT(CastTest_Base, meta::Internal)
+SE_BEGIN_REFLECT(CastTest_Base, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(CastTest_Base)
 
-SE_BEGIN_REFLECT(CastTest_Derived, meta::Internal)
+SE_BEGIN_REFLECT(CastTest_Derived, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(CastTest_Derived)
 
-SE_BEGIN_REFLECT(CastTest_DeepDerived, meta::Internal)
+SE_BEGIN_REFLECT(CastTest_DeepDerived, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(CastTest_DeepDerived)
 
 // 인터페이스는 보통 SE_CLASS를 사용하지 않고 (필요하다면 가능)
 // Registry에 타입으로만 등록하거나 상속 받는 쪽에서 Implements()를 호출합니다.
-SE_BEGIN_REFLECT(CastTest_Implementer, meta::Internal)
+SE_BEGIN_REFLECT(CastTest_Implementer, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(ICastTest_Interface)
 SE_END_REFLECT(CastTest_Implementer)
 
-SE_BEGIN_REFLECT(CastTest_Other, meta::Internal)
+SE_BEGIN_REFLECT(CastTest_Other, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(CastTest_Other)
 
 class CastTest : public ::testing::Test {};

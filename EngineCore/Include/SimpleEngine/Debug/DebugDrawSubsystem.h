@@ -36,7 +36,7 @@ struct DebugLine
 /**
  * 디버그 드로우 명령을 수집하고 GPU 업로드를 담당하는 서브시스템
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) DebugDrawSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) DebugDrawSubsystem : public SubsystemBase
 {
     SE_CLASS(DebugDrawSubsystem, SubsystemBase)
 

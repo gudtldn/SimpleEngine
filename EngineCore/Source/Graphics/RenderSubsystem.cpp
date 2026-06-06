@@ -16,7 +16,7 @@ namespace se
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<WindowSubsystem>();
 
-SE_BEGIN_REFLECT(RenderSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(RenderSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(RenderSubsystem)
 
 bool RenderSubsystem::Initialize()

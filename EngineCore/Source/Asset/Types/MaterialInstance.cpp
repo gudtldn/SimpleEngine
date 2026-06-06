@@ -8,11 +8,11 @@
 namespace se
 {
 SE_BEGIN_REFLECT(MaterialInstance, meta::Reflect)
-    SE_REFLECT_PROPERTY(parent_material_id, meta::Property)
-    SE_REFLECT_PROPERTY(parameter_values, meta::Property)
-    SE_REFLECT_PROPERTY(texture_overrides, meta::Property)
-    SE_REFLECT_PROPERTY(blend_mode_override, meta::Property)
-    SE_REFLECT_PROPERTY(two_sided_override, meta::Property)
+    SE_REFLECT_PROPERTY(parent_material_id, meta::Reflect)
+    SE_REFLECT_PROPERTY(parameter_values, meta::Reflect)
+    SE_REFLECT_PROPERTY(texture_overrides, meta::Reflect)
+    SE_REFLECT_PROPERTY(blend_mode_override, meta::Reflect)
+    SE_REFLECT_PROPERTY(two_sided_override, meta::Reflect)
 SE_END_REFLECT(MaterialInstance)
 
 EBlendMode MaterialInstance::GetBlendMode(const Material& parent) const

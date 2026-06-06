@@ -32,11 +32,11 @@ class VPath;
  *     bool fullscreen = false;
  *     String title = "SimpleEngine";
  * };
- * SE_BEGIN_REFLECT(WindowSettings, meta::SerializeOnly)
- *     SE_REFLECT_PROPERTY(width, meta::Property)
- *     SE_REFLECT_PROPERTY(height, meta::Property)
- *     SE_REFLECT_PROPERTY(fullscreen, meta::Property)
- *     SE_REFLECT_PROPERTY(title, meta::Property)
+ * SE_BEGIN_REFLECT(WindowSettings, meta::Reflect, meta::Hidden)
+ *     SE_REFLECT_PROPERTY(width, meta::Reflect)
+ *     SE_REFLECT_PROPERTY(height, meta::Reflect)
+ *     SE_REFLECT_PROPERTY(fullscreen, meta::Reflect)
+ *     SE_REFLECT_PROPERTY(title, meta::Reflect)
  * SE_END_REFLECT(WindowSettings)
  *
  * // 2. 사용

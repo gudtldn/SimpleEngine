@@ -11,14 +11,14 @@ namespace se
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) StaticMeshComponent
 {
     /** 렌더링할 StaticMesh 에셋의 ID */
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     AssetId mesh_id;
 
     /**
      * LOD 오버라이드
      * -1이면 카메라 거리에 따라 자동 계산(Auto LOD)되며, 0 이상의 값이면(예: 0, 1, 2) 거리에 상관없이 강제로 해당 LOD 레벨을 렌더링합니다.
      */
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     i8 force_lod = -1;
 };
 } // namespace se

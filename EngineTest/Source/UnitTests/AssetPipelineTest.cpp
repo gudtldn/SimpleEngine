@@ -23,12 +23,12 @@ struct SE_ANNOTATION(=meta::Reflect) MockImportSettings : public ImportSettingsB
     SE_CLASS(MockImportSettings, ImportSettingsBase)
 
 public:
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool combine_meshes = true;
 };
 
 SE_BEGIN_REFLECT(MockImportSettings, meta::Reflect)
-    SE_REFLECT_PROPERTY(combine_meshes, meta::Property)
+    SE_REFLECT_PROPERTY(combine_meshes, meta::Reflect)
 SE_END_REFLECT(MockImportSettings)
 
 /**

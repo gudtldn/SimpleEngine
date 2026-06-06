@@ -11,7 +11,7 @@
 
 namespace se::editor
 {
-class SE_EDITOR_API SE_ANNOTATION(meta::Internal) EditorUISubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API SE_ANNOTATION(meta::Reflect, meta::Hidden, meta::Transient) EditorUISubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(EditorUISubsystem, SubsystemBase)
 

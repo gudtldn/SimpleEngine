@@ -55,7 +55,6 @@ enum class EPropertyFlags : u32
     // UI Hints & Constraints
     Advanced    = 1 << 4, // 별도의 상세 탭(Advanced)에 표시
     HasRange    = 1 << 5, // range_min/max 값이 유효함 (UI Slider)
-    HasClamp    = 1 << 6, // clamp_min/max 값이 유효함 (Logic Limit)
 };
 SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 
@@ -193,10 +192,6 @@ struct PropertyMetadata
     // se::meta::Range (UI Slider)
     f32 range_min = 0.0f;
     f32 range_max = 0.0f;
-
-    // se::meta::Clamp (Logic Hard Limit)
-    f64 clamp_min = 0.0;
-    f64 clamp_max = 0.0;
 
     // // 네트워크 리플리케이트
     // bool is_replicated = false;

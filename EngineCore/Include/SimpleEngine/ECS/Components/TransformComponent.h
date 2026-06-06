@@ -10,13 +10,13 @@ namespace se
  */
 struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) TransformComponent
 {
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Quaternion rotation = Quaternion::Identity();
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Vector3 position = Vector3::Zero();
 
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Vector3 scale = Vector3::One();
 
     // PropagateTransforms에서 최적화용 flag로 사용

@@ -20,7 +20,7 @@ namespace se::editor
  * GizmoDrawList(GPU 버퍼) + GizmoRenderer(형상 조립)의 생명주기를 관리합니다.
  * GPU Color Picking용 텍스처와 Readback 버퍼도 소유합니다.
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Internal) GizmoSubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) GizmoSubsystem : public SubsystemBase, public IUpdatable
 {
     SE_CLASS(GizmoSubsystem, SubsystemBase)
 

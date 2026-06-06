@@ -8,7 +8,7 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(EditorUIPass, meta::Internal)
+SE_BEGIN_REFLECT(EditorUIPass, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(EditorUIPass)
 
 EditorUIPass::EditorUIPass(

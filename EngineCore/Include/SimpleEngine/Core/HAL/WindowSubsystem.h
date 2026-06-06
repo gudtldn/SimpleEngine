@@ -67,7 +67,7 @@ struct WindowEntry
 /**
  * SDL 윈도우의 생명주기와 상태를 관리하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) WindowSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) WindowSubsystem : public SubsystemBase
 {
     SE_CLASS(WindowSubsystem, SubsystemBase)
 

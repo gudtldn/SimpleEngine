@@ -4,6 +4,6 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT(AssetBase, meta::SerializeOnly)
+SE_BEGIN_REFLECT(AssetBase, meta::Reflect, meta::Hidden)
 SE_END_REFLECT(AssetBase)
 } // namespace se

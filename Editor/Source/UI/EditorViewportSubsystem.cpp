@@ -23,7 +23,7 @@ SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
     .DependsOn<InputSubsystem>()
     .UpdateDependsOn<EntitySubsystem>();
 
-SE_BEGIN_REFLECT(EditorViewportSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(EditorViewportSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
     SE_REFLECT_INTERFACE(IUpdatable)
 SE_END_REFLECT(EditorViewportSubsystem)
 

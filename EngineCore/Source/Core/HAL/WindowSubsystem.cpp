@@ -13,7 +13,7 @@ namespace se
 SE_REGISTER_SUBSYSTEM(WindowSubsystem)
     .DependsOn<EventSubsystem>();
 
-SE_BEGIN_REFLECT(WindowSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(WindowSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(WindowSubsystem)
 
 

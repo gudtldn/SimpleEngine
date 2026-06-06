@@ -38,7 +38,7 @@ using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& fil
  *   4. DDC Miss -> (Editor) Import 파이프라인 실행 -> DDC에 저장 -> Pool 적재 -> 반환
  *   5. DDC Miss Handler 미등록 (런타임 fallback) -> Invalid Handle
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Internal) AssetSubsystem : public SubsystemBase
+class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) AssetSubsystem : public SubsystemBase
 {
     SE_CLASS(AssetSubsystem, SubsystemBase)
 

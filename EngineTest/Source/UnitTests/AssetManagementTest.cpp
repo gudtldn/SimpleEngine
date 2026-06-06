@@ -24,7 +24,7 @@ AssetId GenerateAssetId()
 
 // --- Mock Assets for Testing ---
 
-class SE_ANNOTATION(=meta::Internal) MockTexture : public AssetBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) MockTexture : public AssetBase
 {
     SE_CLASS(MockTexture, AssetBase)
 
@@ -35,10 +35,10 @@ public:
     int height = 1024;
 };
 
-SE_BEGIN_REFLECT(MockTexture, meta::Internal)
+SE_BEGIN_REFLECT(MockTexture, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(MockTexture)
 
-class SE_ANNOTATION(=meta::Internal) MockMesh : public AssetBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) MockMesh : public AssetBase
 {
     SE_CLASS(MockMesh, AssetBase)
 
@@ -48,7 +48,7 @@ public:
     u32 vertex_count = 100;
 };
 
-SE_BEGIN_REFLECT(MockMesh, meta::Internal)
+SE_BEGIN_REFLECT(MockMesh, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(MockMesh)
 
 // =============================================================================

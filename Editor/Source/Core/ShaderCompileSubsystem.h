@@ -12,7 +12,7 @@ namespace se::editor
 /**
  * 셰이더 컴파일 및 핫 리로드를 담당하는 Subsystem
  */
-class SE_ANNOTATION(=meta::Internal) ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
     SE_CLASS(ShaderCompileSubsystem, SubsystemBase)
 

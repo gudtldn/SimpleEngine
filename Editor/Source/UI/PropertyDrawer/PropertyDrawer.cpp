@@ -72,12 +72,13 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
 
     constexpr f32 SPEED = std::floating_point<T> ? 0.1f : 1.0f;
 
-    if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasClamp))
-    {
-        T min_val = static_cast<T>(prop.metadata.clamp_min);
-        T max_val = static_cast<T>(prop.metadata.clamp_max);
-        return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
-    }
+    // --- DEAD CODE ---
+    // if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasClamp))
+    // {
+    //     T min_val = static_cast<T>(prop.metadata.clamp_min);
+    //     T max_val = static_cast<T>(prop.metadata.clamp_max);
+    //     return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
+    // }
 
     return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED);
 }

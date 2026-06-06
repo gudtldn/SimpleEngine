@@ -6,8 +6,8 @@ namespace se
 {
 // Reflection for TransformComponent
 SE_BEGIN_REFLECT(TransformComponent, meta::Reflect, meta::Component)
-    SE_REFLECT_PROPERTY(rotation, meta::Property)
-    SE_REFLECT_PROPERTY(position, meta::Property)
-    SE_REFLECT_PROPERTY(scale, meta::Property)
+    SE_REFLECT_PROPERTY(rotation, meta::Reflect)
+    SE_REFLECT_PROPERTY(position, meta::Reflect)
+    SE_REFLECT_PROPERTY(scale, meta::Reflect)
 SE_END_REFLECT(TransformComponent)
 }

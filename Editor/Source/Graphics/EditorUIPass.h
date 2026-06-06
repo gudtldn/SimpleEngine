@@ -10,7 +10,7 @@ namespace se::editor
  * ImGui UI를 Swapchain에 렌더링하는 패스
  * @note 추후 CompositePass 같은거 만들어서, UIPass에서 하는 역할을 나눠야 할 듯
  */
-class SE_ANNOTATION(=meta::Internal) EditorUIPass : public se::RenderPassBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorUIPass : public se::RenderPassBase
 {
     SE_CLASS(EditorUIPass, se::RenderPassBase)
 

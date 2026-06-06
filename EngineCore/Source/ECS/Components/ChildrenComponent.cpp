@@ -6,6 +6,6 @@ namespace se
 {
 // Reflection for ChildrenComponent
 SE_BEGIN_REFLECT(ChildrenComponent, meta::Reflect, meta::Component)
-    SE_REFLECT_PROPERTY(children, meta::Property)
+    SE_REFLECT_PROPERTY(children, meta::Reflect)
 SE_END_REFLECT(ChildrenComponent)
 }

@@ -20,7 +20,7 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(AssetSubsystem);
 
-SE_BEGIN_REFLECT(AssetSubsystem, meta::Internal)
+SE_BEGIN_REFLECT(AssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(AssetSubsystem)
 
 AssetSubsystem::AssetSubsystem() = default;

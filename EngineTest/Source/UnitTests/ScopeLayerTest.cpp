@@ -12,7 +12,7 @@ using namespace se;
 
 // --- Mock Asset ---
 
-class SE_ANNOTATION(=meta::Internal) ScopeTestAsset : public AssetBase
+class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ScopeTestAsset : public AssetBase
 {
     SE_CLASS(ScopeTestAsset, AssetBase)
 
@@ -20,7 +20,7 @@ public:
     ScopeTestAsset() = default;
 };
 
-SE_BEGIN_REFLECT(ScopeTestAsset, meta::Internal)
+SE_BEGIN_REFLECT(ScopeTestAsset, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(ScopeTestAsset)
 
 

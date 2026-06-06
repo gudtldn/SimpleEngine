@@ -36,39 +36,25 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags()
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
 
-        // Main Reflect Tag (Usage)
-        if constexpr (std::same_as<TagType, tags::Reflect>)
-        {
-            if constexpr (Tag.usage == EReflectUsage::Default)
-            {
-                // ...
-            }
-            else if constexpr (Tag.usage == EReflectUsage::SerializeOnly)
-            {
-                flags |= ETypeFlags::Hidden; // 에디터에서만 숨김
-            }
-            else if constexpr (Tag.usage == EReflectUsage::EditorOnly)
-            {
-                flags |= ETypeFlags::Transient; // 저장만 안 함
-            }
-            else if constexpr (Tag.usage == EReflectUsage::Internal)
-            {
-                flags |= ETypeFlags::Hidden | ETypeFlags::Transient;
-            }
-            else
-            {
-                static_assert(se::traits::AlwaysFalse<TagType>, "Invalid reflect usage tag.");
-            }
-        }
-
-        // ECS 관련 Tags
-        else if constexpr (
-            std::same_as<TagType, tags::Component>
+        // Reflect, ECS 관련 Tags
+        if constexpr (
+            std::same_as<TagType, tags::Reflect>
+            || std::same_as<TagType, tags::Component>
             || std::same_as<TagType, tags::Resource>
         )
         {
             // DeduceECSKind에서 enum_kind 설정
             // 여기는 MakeTypeFlags에서 static_assert 방지용 trap
+        }
+
+        // 가시성/직렬화 수정자 (Type 레벨)
+        else if constexpr (std::same_as<TagType, tags::Hidden>)
+        {
+            flags |= ETypeFlags::Hidden; // 에디터에서 숨김
+        }
+        else if constexpr (std::same_as<TagType, tags::Transient>)
+        {
+            flags |= ETypeFlags::Transient; // 저장 안 함
         }
 
         // Manual Override Tags
@@ -131,25 +117,18 @@ consteval PropertyMetadata MakePropertyMetadata()
             meta.tooltip = TagType::value;
         }
 
-        else if constexpr (std::same_as<TagType, tags::Range>)
+        else if constexpr (std::derived_from<TagType, tags::RangeBase>)
         {
             meta.flags |= EPropertyFlags::HasRange;
-            meta.range_min = Tag.min;
-            meta.range_max = Tag.max;
-        }
-        else if constexpr (std::same_as<TagType, tags::Clamp>)
-        {
-            meta.flags |= EPropertyFlags::HasClamp;
-            meta.range_min = Tag.min;
-            meta.range_max = Tag.max;
+            meta.range_min = static_cast<f32>(Tag.min);
+            meta.range_max = static_cast<f32>(Tag.max);
         }
 
         // Fallback
         else
         {
-            // se::meta::Property 태그는 단순 마커이므로 여기서 무시해도 됨
-            // 추후 C++26에서 properties를 순회할 때, tags::Property가 있어야지만 리플렉션 대상으로 등록
-            if constexpr (!std::same_as<TagType, tags::Property>)
+            // se::meta::Reflect 태그는 단순 마커이므로 무시
+            if constexpr (!std::same_as<TagType, tags::Reflect>)
             {
                 static_assert(se::traits::AlwaysFalse<TagType>, "Unhandled property tag encountered.");
             }

@@ -25,39 +25,39 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Material : public AssetBase
 
 public:
     // 버텍스 셰이더 VPath
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     VPath vertex_shader = "CoreShader://Default.vert";
 
     // 프래그먼트 셰이더 VPath
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     VPath fragment_shader = "CoreShader://Default.frag";
 
     // 블렌드 모드
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     EBlendMode blend_mode = EBlendMode::Opaque;
 
     // 셰이딩 모델 | TODO: 추후 PBR 전환 시 셰이더 퍼뮤테이션 키로 사용 예정
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     EShadingModel shading_model = EShadingModel::Lit;
 
     // 양면 렌더링 여부
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     bool two_sided = false;
 
     // 알파 컷오프 (Masked 전용)
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     f32 alpha_cutoff = 0.5f;
 
     // 추후 셰이더 퍼뮤테이션 시스템 도입 시 사용할 키 (지금은 항상 0)
-    SE_ANNOTATION(=meta::Property, =meta::Hidden)
+    SE_ANNOTATION(=meta::Reflect, =meta::Hidden)
     u32 permutation_key = 0;
 
     // Fragment UBO 파라미터 레이아웃
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<MaterialParameterDescriptor> parameter_layout;
 
     // Fragment Texture 슬롯 정의
-    SE_ANNOTATION(=meta::Property)
+    SE_ANNOTATION(=meta::Reflect)
     Array<MaterialTextureSlot> texture_slots;
 
 public:
