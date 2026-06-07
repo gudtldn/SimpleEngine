@@ -25,6 +25,11 @@ bool IsTypeDerivedFrom(const TypeId& derived_id, const TypeId& base_id)
 
 void* TryUpcast(void* instance, const TypeId& from, const TypeId& to)
 {
+    if (!instance)
+    {
+        return nullptr;
+    }
+
     // 현재 타입이 목표 타입과 일치하면 즉시 반환
     if (from == to)
     {

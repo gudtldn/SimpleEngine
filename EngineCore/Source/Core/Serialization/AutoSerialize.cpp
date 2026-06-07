@@ -9,8 +9,13 @@ namespace se
 {
 namespace
 {
-void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSet<void*>& visited)
+void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSet<void*>& visited) // NOLINT(*-no-recursion)
 {
+    if (!instance)
+    {
+        return;
+    }
+
     // 부모 타입의 프로퍼티를 먼저 직렬화 (다중 상속 포함, 주소 기준 dedup)
     for (const BaseInfo& base : info.bases)
     {

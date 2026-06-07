@@ -217,6 +217,7 @@ struct PropertyAccessor
 
     /**
      * Property에 값을 설정합니다.
+     * @note copy_assignable한 타입이 아닌경우 nullptr일 수 있습니다.
      * @param instance 해당 변수를 가진 객체의 주소
      * @param value 설정할 값이 들어있는 버퍼의 주소
      */

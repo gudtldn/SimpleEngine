@@ -128,32 +128,26 @@ public:
         }();
 
         // 접근자(Accessor) 생성
-        prop.accessor = {
-            .get = [](const void* instance) static -> const void*
-            {
-                SE_ASSERT(instance, "Instance pointer is null in get");
-                return &(static_cast<const T*>(instance)->*MemberPtr);
-            },
-            .get_mut = [](void* instance) static -> void*
-            {
-                SE_ASSERT(instance, "Instance pointer is null in get_mut");
-                return &(static_cast<T*>(instance)->*MemberPtr);
-            },
-            .set = [](void* instance, const void* in_value) static
+        prop.accessor.get = [](const void* instance) static -> const void*
+        {
+            SE_ASSERT(instance, "Instance pointer is null in get");
+            return &(static_cast<const T*>(instance)->*MemberPtr);
+        };
+        prop.accessor.get_mut = [](void* instance) static -> void*
+        {
+            SE_ASSERT(instance, "Instance pointer is null in get_mut");
+            return &(static_cast<T*>(instance)->*MemberPtr);
+        };
+
+        if constexpr (std::is_copy_assignable_v<MemberType>)
+        {
+            prop.accessor.set = [](void* instance, const void* in_value) static
             {
                 SE_ASSERT(instance, "Instance pointer is null in set");
                 SE_ASSERT(in_value, "Source value (in_value) is null in set");
-
-                if constexpr (std::is_copy_assignable_v<MemberType>)
-                {
-                    static_cast<T*>(instance)->*MemberPtr = *static_cast<const MemberType*>(in_value);
-                }
-                else
-                {
-                    SE_ASSERT(false, "This property is not copy-assignable.");
-                }
-            },
-        };
+                static_cast<T*>(instance)->*MemberPtr = *static_cast<const MemberType*>(in_value);
+            };
+        }
 
         prop.serialize = [](Archive& ar, void* ptr) static
         {
@@ -164,28 +158,28 @@ public:
         if constexpr (traits::ArrayLike<MemberType>)
         {
             using ElemType = traits::InnerOf<MemberType>;
-            static constexpr ContainerOps ops = MakeArrayOps<MemberType, ElemType>();
-            prop.container_ops = &ops;
+            static constexpr ContainerOps OPS = MakeArrayOps<MemberType, ElemType>();
+            prop.container_ops = &OPS;
         }
         else if constexpr (traits::SetLike<MemberType>)
         {
             using ElemType = traits::InnerOf<MemberType>;
-            static constexpr ContainerOps ops = MakeSetOps<MemberType, ElemType>();
-            prop.container_ops = &ops;
+            static constexpr ContainerOps OPS = MakeSetOps<MemberType, ElemType>();
+            prop.container_ops = &OPS;
         }
         else if constexpr (traits::MapLike<MemberType>)
         {
             using KeyType = traits::KeyOf<MemberType>;
             using ValType = traits::ValueOf<MemberType>;
-            static constexpr ContainerOps ops = MakeMapOps<MemberType, KeyType, ValType>();
-            prop.container_ops = &ops;
+            static constexpr ContainerOps OPS = MakeMapOps<MemberType, KeyType, ValType>();
+            prop.container_ops = &OPS;
         }
         // Optional 타입 감지 및 OptionalOps 자동 생성
         else if constexpr (traits::OptionalLike<MemberType>)
         {
             using InnerType = traits::InnerOf<MemberType>;
-            static constexpr OptionalOps ops = MakeOptionalOps<MemberType, InnerType>();
-            prop.optional_ops = &ops;
+            static constexpr OptionalOps OPS = MakeOptionalOps<MemberType, InnerType>();
+            prop.optional_ops = &OPS;
         }
 
         info_ptr->properties.Push(prop);
