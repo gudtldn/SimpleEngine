@@ -91,12 +91,11 @@ void FileBackend::RotateFile()
     CloseFile();
 
     namespace chrono = std::chrono;
-    auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::system_clock::now() };
+    auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::floor<chrono::seconds>(chrono::system_clock::now()) };
 
-    auto backup_path = file_path;
-    backup_path += String::Format(".{:%Y-%m-%d_%H:%M:%S}", zt);
-
+    const Path backup_path = file_path.WithFileName(String::Format("{:%Y-%m-%d_%H-%M-%S}.log", zt));
     FileSystem::Rename(file_path, backup_path);
+
     OpenFile();
     current_file_size = 0;
 }
