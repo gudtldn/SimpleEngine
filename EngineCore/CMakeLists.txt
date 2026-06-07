@@ -46,7 +46,7 @@ PRIVATE
         SE_DefaultOptions
 
         # ICU4X (Rust FFI)
-        icu_capi
+        icu4x_bridge
 
         # cpu features
         cpu_features
@@ -70,9 +70,6 @@ PUBLIC
 PRIVATE
         # 내부 구현용 헤더 (EngineCore 내부 cpp 파일들이 편하게 include 하기 위함)
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
-
-        # ICU4X C++ 바인딩 헤더
-        "${icu4x_src_SOURCE_DIR}/ffi/capi/bindings/cpp"
 )
 
 # DXC가 사용 가능한 플랫폼에서만 HLSL 컴파일러 매크로를 정의 (vcpkg.json의 platform 조건과 동일)
