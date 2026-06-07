@@ -71,15 +71,6 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
     }
 
     constexpr f32 SPEED = std::floating_point<T> ? 0.1f : 1.0f;
-
-    // --- DEAD CODE ---
-    // if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasClamp))
-    // {
-    //     T min_val = static_cast<T>(prop.metadata.clamp_min);
-    //     T max_val = static_cast<T>(prop.metadata.clamp_max);
-    //     return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED, &min_val, &max_val, nullptr, ImGuiSliderFlags_AlwaysClamp);
-    // }
-
     return ImGui::DragScalarNInfinity(label, DATA_TYPE, v, 1, SPEED);
 }
 
@@ -947,6 +938,11 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
 
 bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, HashSet<void*>& visited)
 {
+    if (!instance)
+    {
+        return false;
+    }
+
     bool modified = false;
 
     // 부모 클래스의 프로퍼티를 먼저 렌더링 (다중 상속 포함, 주소 기준 dedup)
