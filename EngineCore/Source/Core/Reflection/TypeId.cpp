@@ -7,9 +7,7 @@ namespace se
 TypeId TypeId::FromHash(u64 in_hash)
 {
     const TypeRegistry& registry = TypeRegistry::Get();
-    const TypeId temp_id = TypeId{ "UnknownType", in_hash };
-
-    if (const auto type_info = registry.Find(temp_id))
+    if (const auto type_info = registry.Find(TypeId{ in_hash }))
     {
         return type_info->type_id;
     }
@@ -24,5 +22,10 @@ TypeId TypeId::FromName(const StringName& in_type_name)
         return type_info->type_id;
     }
     return TypeId{};
+}
+
+StringView TypeId::GetName() const
+{
+    return TypeRegistry::Get().FindChecked(*this).name;
 }
 } // namespace se

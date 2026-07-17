@@ -11,9 +11,8 @@ class StringName;
 
 /**
  * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
- * @todo C++26 리플렉션 기반으로 바꿀 때, TypeId는 Hash만 가지고 있고, Name은 Registry에서 조회하도록 개선
  */
-class TypeId
+class SE_CORE_API TypeId
 {
 public:
     constexpr TypeId() = default;
@@ -24,13 +23,12 @@ public:
     {
         if constexpr (traits::FunctionType<T>)
         {
-            constexpr auto signature = GetRawTypeName<T>();
-            return TypeId{ signature, signature };
+            return TypeId{ GetRawTypeName<T>() };
         }
         else
         {
             using CleanType = std::remove_cvref_t<T>;
-            return TypeId{ GetFullTypeName<CleanType>(), GetRawTypeName<CleanType>() };
+            return TypeId{ GetRawTypeName<CleanType>() };
         }
     }
 
@@ -49,7 +47,7 @@ public:
 
 public:
     /** 타입 이름을 반환합니다. */
-    [[nodiscard]] constexpr StringView GetName() const { return type_name; }
+    [[nodiscard]] StringView GetName() const;
 
     /** 타입 해시를 반환합니다. */
     [[nodiscard]] constexpr u64 GetHash() const { return type_hash; }
@@ -63,19 +61,16 @@ public:
     [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
 
 private:
-    constexpr TypeId(StringView in_type_name, StringView in_type_hash)
-        : type_name(in_type_name)
-        , type_hash(HashUtils::FNV(in_type_hash))
+    explicit constexpr TypeId(StringView in_type_hash)
+        : type_hash(HashUtils::FNV(in_type_hash))
     {
     }
 
-    constexpr TypeId(StringView in_type_name, u64 in_hash)
-        : type_name(in_type_name)
-        , type_hash(in_hash)
+    explicit constexpr TypeId(u64 in_hash)
+        : type_hash(in_hash)
     {
     }
 
-    StringView type_name;
     u64 type_hash = 0;
 };
 } // namespace se

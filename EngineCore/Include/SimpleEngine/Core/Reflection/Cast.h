@@ -180,7 +180,7 @@ template <typename To, IntrusiveReflectable From>
     SE_ASSERT(
         result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
-        instance->GetTypeId().GetName(), TypeId::Of<To>().GetName()
+        instance->GetTypeId().GetName(), GetFullTypeName<To>()
     );
     return static_cast<const To*>(result);
 }

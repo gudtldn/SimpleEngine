@@ -186,9 +186,12 @@ public:
     traits::CopyConst<Self, std::remove_cvref_t<T>&> GetResource(this Self&& self)
     {
         using RawType = std::remove_cvref_t<T>;
+
         const TypeId type_id = TypeId::Of<RawType>();
+        const StringView name = GetFullTypeName<RawType>();
+
         const auto resource_opt = self.resource_storages.Find(type_id);
-        SE_ASSERT(resource_opt.HasValue(), "Resource '{}' not found in World.", type_id.GetName());
+        SE_ASSERT(resource_opt.HasValue(), "Resource '{}' not found in World.", name);
         return static_cast<traits::CopyConst<Self, ResourceStorage<RawType>*>>(resource_opt->get())->Get();
     }
 

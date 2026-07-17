@@ -97,7 +97,9 @@ template <typename T>
 const TypeInfo& TypeRegistry::FindChecked() const
 {
     const TypeId id = TypeId::Of<T>();
-    SE_ASSERT(type_map.Contains(id), "Type '{}' is not registered yet! Make sure SE_END_REFLECT is called.", id.GetName());
+    const StringView name = GetFullTypeName<T>();
+
+    SE_ASSERT(type_map.Contains(id), "Type '{}' is not registered yet! Make sure SE_END_REFLECT is called.", name);
     return type_map.FindChecked(id);
 }
 
@@ -110,13 +112,14 @@ detail::TypeBuilder<T> TypeRegistry::Register()
     );
 
     const TypeId id = TypeId::Of<T>();
+    const StringView name = GetFullTypeName<T>();
 
-    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
+    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", name);
     TypeInfo& info = type_map.Emplace(id);
 
     // 기본 정보 채우기
     info.type_id = id;
-    info.name = id.GetName();
+    info.name = name;
     info.size = sizeof(T);
     info.alignment = alignof(T);
 
@@ -131,13 +134,14 @@ template <typename T>
 detail::TypeBuilder<T> TypeRegistry::RegisterPrimitive()
 {
     const TypeId id = TypeId::Of<T>();
+    const StringView name = GetFullTypeName<T>();
 
-    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
+    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", name);
     TypeInfo& info = type_map.Emplace(id);
 
     // 기본 정보 채우기
     info.type_id = id;
-    info.name = id.GetName();
+    info.name = name;
     info.size = sizeof(T);
     info.alignment = alignof(T);
 
@@ -153,13 +157,14 @@ template <typename T>
 detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
 {
     const TypeId id = TypeId::Of<T>();
+    const StringView name = GetFullTypeName<T>();
 
-    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", id.GetName());
+    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", name);
     TypeInfo& info = type_map.Emplace(id);
 
     // 기본 정보 채우기
     info.type_id = id;
-    info.name = id.GetName();
+    info.name = name;
     info.size = sizeof(T);
     info.alignment = alignof(T);
     info.inner_type_id = TypeId::Of<std::underlying_type_t<T>>();

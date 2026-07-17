@@ -50,7 +50,7 @@ Optional<const TypeInfo&> TypeRegistry::Find(const StringName& type_name) const
 
 const TypeInfo& TypeRegistry::FindChecked(const TypeId& type_id) const
 {
-    SE_ASSERT(type_map.Contains(type_id), "Type '{}' is not registered yet! Make sure SE_END_REFLECT is called.", type_id.GetName());
+    SE_ASSERT(type_map.Contains(type_id), "The type is not registered yet! Make sure SE_END_REFLECT is called.");
     return type_map.FindChecked(type_id);
 }
 
