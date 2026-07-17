@@ -1,5 +1,6 @@
 ﻿#include "StringNamePool.h"
 
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
 #include <mutex>
