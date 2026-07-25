@@ -1,27 +1,27 @@
 #pragma once
 
 #include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/Core/Reflection/RegistrationHook.h"
+#include "SimpleEngine/Core/Reflection/TagTraits.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 
 
 namespace se::detail
 {
 template <>
-struct RegistrationHook<se::meta::tags::Component>
+struct RegistrationTrait<se::meta::tags::Component>
 {
     template <typename T>
-    static void OnRegister()
+    static void Apply()
     {
         ::se::ECSRegistry::Get().RegisterComponentOps<T>();
     }
 };
 
 template <>
-struct RegistrationHook<se::meta::tags::Resource>
+struct RegistrationTrait<se::meta::tags::Resource>
 {
     template <typename T>
-    static void OnRegister()
+    static void Apply()
     {
         ::se::ECSRegistry::Get().RegisterResourceOps<T>();
     }

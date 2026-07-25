@@ -2,7 +2,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Reflection/Traits.h"
-#include "SimpleEngine/Core/Reflection/RegistrationHook.h"
+#include "SimpleEngine/Core/Reflection/TagTraits.h"
 #include "SimpleEngine/Core/Container/FixedString.h"
 
 /** C++26으로 마이그레이션 시 CustomAnnotation을 바로 적용할 수 있도록 도와주는 헬퍼 매크로입니다. */
@@ -70,21 +70,21 @@ template <FixedString Str>
 struct DisplayName : DisplayNameBase
 {
     /** static constexpr 이므로 StringView가 가리킬 수 있는 영구 저장소를 제공합니다. */
-    static constexpr FixedString value = Str;
+    static constexpr FixedString VALUE = Str;
 };
 
 /** 에디터에서 카테고리를 나누는 용도로 사용합니다. */
 template <FixedString Str>
 struct Category : CategoryBase
 {
-    static constexpr FixedString value = Str;
+    static constexpr FixedString VALUE = Str;
 };
 
 /** 에디터에서 마우스를 올렸을 때 표시할 도움말입니다. */
 template <FixedString Str>
 struct Tooltip : TooltipBase
 {
-    static constexpr FixedString value = Str;
+    static constexpr FixedString VALUE = Str;
 };
 
 struct RangeBase : target::Field{};
@@ -153,7 +153,69 @@ using Range = tags::Range<T>;
 
 namespace se::detail
 {
-// Component/Resource는 ECS 모듈에서 RegistrationHook을 특수화해 등록을 해야 함.
-template <> struct HookRequired<se::meta::tags::Component> { static constexpr bool VALUE = true; };
-template <> struct HookRequired<se::meta::tags::Resource>  { static constexpr bool VALUE = true; };
+// Component/Resource는 ECS 모듈에서 RegistrationTrait를 특수화해 등록을 해야 함.
+SE_HOOK_REQUIRED(se::meta::tags::Component);
+SE_HOOK_REQUIRED(se::meta::tags::Resource);
+
+// --- TypeFlagTrait (Type 레벨 태그) ---
+SE_TYPE_FLAG(se::meta::tags::Reflect,   ETypeFlags::None);
+SE_TYPE_FLAG(se::meta::tags::Component, ETypeFlags::None);
+SE_TYPE_FLAG(se::meta::tags::Resource,  ETypeFlags::None);
+SE_TYPE_FLAG(se::meta::tags::Hidden,    ETypeFlags::Hidden);
+SE_TYPE_FLAG(se::meta::tags::Transient, ETypeFlags::Transient);
+SE_TYPE_FLAG(se::meta::tags::Abstract,  ETypeFlags::IsAbstract);
+
+// --- PropertyMetadataTrait (Field 레벨 태그) ---
+// Reflect는 flags에 기여하는 값이 없는 유일한 마커라 매크로 대신 직접 작성(no-op)
+template <> struct PropertyMetadataTrait<se::meta::tags::Reflect>
+{
+    static constexpr void Apply(PropertyMetadata&, const se::meta::tags::Reflect&) {}
+};
+SE_PROPERTY_FLAG(se::meta::tags::ReadOnly,  EPropertyFlags::ReadOnly);
+SE_PROPERTY_FLAG(se::meta::tags::Advanced,  EPropertyFlags::Advanced);
+SE_PROPERTY_FLAG(se::meta::tags::Hidden,    EPropertyFlags::Hidden);
+SE_PROPERTY_FLAG(se::meta::tags::Transient, EPropertyFlags::Transient);
+
+// Payload 태그 계열은 본문 로직이 태그마다 달라 매크로화하지 않고, 파생 관계로 묶어서 처리
+template <typename Tag>
+    requires std::derived_from<Tag, se::meta::tags::DisplayNameBase>
+struct PropertyMetadataTrait<Tag>
+{
+    static constexpr void Apply(PropertyMetadata& meta, const Tag&)
+    {
+        meta.display_name = Tag::VALUE;
+    }
+};
+
+template <typename Tag>
+    requires std::derived_from<Tag, se::meta::tags::CategoryBase>
+struct PropertyMetadataTrait<Tag>
+{
+    static constexpr void Apply(PropertyMetadata& meta, const Tag&)
+    {
+        meta.category = Tag::VALUE;
+    }
+};
+
+template <typename Tag>
+    requires std::derived_from<Tag, se::meta::tags::TooltipBase>
+struct PropertyMetadataTrait<Tag>
+{
+    static constexpr void Apply(PropertyMetadata& meta, const Tag&)
+    {
+        meta.tooltip = Tag::VALUE;
+    }
+};
+
+template <typename Tag>
+    requires std::derived_from<Tag, se::meta::tags::RangeBase>
+struct PropertyMetadataTrait<Tag>
+{
+    static constexpr void Apply(PropertyMetadata& meta, const Tag& tag)
+    {
+        meta.flags |= EPropertyFlags::HasRange;
+        meta.range_min = static_cast<f32>(tag.min);
+        meta.range_max = static_cast<f32>(tag.max);
+    }
+};
 } // namespace se::detail

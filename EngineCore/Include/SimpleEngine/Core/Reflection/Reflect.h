@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/Enum.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
-#include "SimpleEngine/Core/Reflection/RegistrationHook.h"
+#include "SimpleEngine/Core/Reflection/TagTraits.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"
@@ -22,8 +22,6 @@ template <typename T, auto... Tags>
     requires (std::derived_from<decltype(Tags), se::meta::target::Type> && ...)
 consteval BitFlags<ETypeFlags> MakeTypeFlags()
 {
-    using namespace se::meta;
-
     BitFlags<ETypeFlags> flags;
 
     // Abstract 클래스 자동 감지
@@ -35,39 +33,7 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags()
     auto process_tag = [&flags]<auto Tag>
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
-
-        // Reflect, ECS 관련 Tags
-        if constexpr (
-            std::same_as<TagType, tags::Reflect>
-            || std::same_as<TagType, tags::Component>
-            || std::same_as<TagType, tags::Resource>
-        )
-        {
-            // 위 태그는 단순 체크용으로, ETypeFlags로 변환되지 않는 태그입니다.
-            // MakeTypeFlags에서 static_assert 방지용 trap
-        }
-
-        // 가시성/직렬화 수정자 (Type 레벨)
-        else if constexpr (std::same_as<TagType, tags::Hidden>)
-        {
-            flags |= ETypeFlags::Hidden; // 에디터에서 숨김
-        }
-        else if constexpr (std::same_as<TagType, tags::Transient>)
-        {
-            flags |= ETypeFlags::Transient; // 저장 안 함
-        }
-
-        // Manual Override Tags
-        else if constexpr (std::same_as<TagType, tags::Abstract>)
-        {
-            flags |= ETypeFlags::IsAbstract;
-        }
-
-        // Fallback
-        else
-        {
-            static_assert(se::traits::AlwaysFalse<TagType>, "Invalid type tag");
-        }
+        flags |= TypeFlagTrait<TagType>::VALUE;
     };
 
     (process_tag.template operator()<Tags>(), ...);
@@ -78,61 +44,11 @@ template <auto... Tags>
     requires (std::derived_from<decltype(Tags), se::meta::target::Field> && ...)
 consteval PropertyMetadata MakePropertyMetadata()
 {
-    using namespace se::meta;
-
     PropertyMetadata meta{};
     auto process_tag = [&meta]<auto Tag>
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
-
-        // --- Marker Tags (Flags) ---
-        if constexpr (std::same_as<TagType, tags::ReadOnly>)
-        {
-            meta.flags |= EPropertyFlags::ReadOnly;
-        }
-        else if constexpr (std::same_as<TagType, tags::Advanced>)
-        {
-            meta.flags |= EPropertyFlags::Advanced;
-        }
-        else if constexpr (std::same_as<TagType, tags::Hidden>)
-        {
-            meta.flags |= EPropertyFlags::Hidden;
-        }
-        else if constexpr (std::same_as<TagType, tags::Transient>)
-        {
-            meta.flags |= EPropertyFlags::Transient;
-        }
-
-        // --- Payload Tags (Data) ---
-        else if constexpr (std::derived_from<TagType, tags::DisplayNameBase>)
-        {
-            meta.display_name = TagType::value;
-        }
-        else if constexpr (std::derived_from<TagType, tags::CategoryBase>)
-        {
-            meta.category = TagType::value;
-        }
-        else if constexpr (std::derived_from<TagType, tags::TooltipBase>)
-        {
-            meta.tooltip = TagType::value;
-        }
-
-        else if constexpr (std::derived_from<TagType, tags::RangeBase>)
-        {
-            meta.flags |= EPropertyFlags::HasRange;
-            meta.range_min = static_cast<f32>(Tag.min);
-            meta.range_max = static_cast<f32>(Tag.max);
-        }
-
-        // Fallback
-        else
-        {
-            // se::meta::Reflect 태그는 단순 마커이므로 무시
-            if constexpr (!std::same_as<TagType, tags::Reflect>)
-            {
-                static_assert(se::traits::AlwaysFalse<TagType>, "Unhandled property tag encountered.");
-            }
-        }
+        PropertyMetadataTrait<TagType>::Apply(meta, Tag);
     };
 
     (process_tag.template operator()<Tags>(), ...);
@@ -146,15 +62,15 @@ void DispatchRegistrationHooks()
     auto process_tag = []<auto Tag>
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
-        constexpr bool implemented = requires { RegistrationHook<TagType>::template OnRegister<T>(); };
+        constexpr bool implemented = requires { RegistrationTrait<TagType>::template Apply<T>(); };
 
-        static_assert(!HookRequired<TagType>::VALUE || implemented,
-            "This tag requires a RegistrationHook<TagType>::OnRegister<T>() specialization. "
+        static_assert(!HookRequiredTrait<TagType>::VALUE || implemented,
+            "This tag requires a RegistrationTrait<TagType>::Apply<T>() specialization. "
             "Please check if the hook header for the consuming module is included.");
 
         if constexpr (implemented)
         {
-            RegistrationHook<TagType>::template OnRegister<T>();
+            RegistrationTrait<TagType>::template Apply<T>();
         }
     };
     (process_tag.template operator()<Tags>(), ...);

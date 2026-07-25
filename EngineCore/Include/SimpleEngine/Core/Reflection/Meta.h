@@ -16,44 +16,44 @@ struct OptionalOps;
 /** 타입 속성 비트 플래그 */
 enum class ETypeFlags : u32
 {
-    None        = 0,
+    None        = 0,        // 아무 기능도 없음 (TypeFlagTrait static_assert 방지용)
 
     // Identity
-    IsAbstract  = 1 << 0, // 추상 클래스 (인스턴스화 불가)
+    IsAbstract  = 1U << 0U, // 추상 클래스 (인스턴스화 불가)
 
     // Serialization
-    Transient   = 1 << 1, // 직렬화 대상에서 제외
+    Transient   = 1U << 1U, // 직렬화 대상에서 제외
 
     // Editor Visibility
-    Hidden      = 1 << 2, // 에디터(ex: Add Component 메뉴)에서 숨기기
+    Hidden      = 1U << 2U, // 에디터(ex: Add Component 메뉴)에서 숨기기
 
     // Enum-specific
-    IsBitFlag   = 1 << 3, // 비트 플래그 조합 (체크박스 UI)
-    IsUnsigned  = 1 << 4, // underlying type이 unsigned
+    IsBitFlag   = 1U << 3U, // 비트 플래그 조합 (체크박스 UI)
+    IsUnsigned  = 1U << 4U, // underlying type이 unsigned
 };
 SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
 
 /** 프로퍼티 속성 비트 플래그 */
 enum class EPropertyFlags : u32
 {
-    None        = 0,
+    None        = 0,        // 아무 기능도 없음 (PropertyMetadataTrait static_assert 방지용)
 
     // Access
     // 기본 Access 권한은 Edit
-    ReadOnly    = 1 << 0, // 에디터에서 값 확인만 가능 (ReadOnly)
-    Hidden      = 1 << 1, // 에디터 UI에 표시하지 않음 (Internal)
+    ReadOnly    = 1U << 0U, // 에디터에서 값 확인만 가능 (ReadOnly)
+    Hidden      = 1U << 1U, // 에디터 UI에 표시하지 않음 (Internal)
 
     // Serialization
     // 기본적으로는 직렬화 대상이며, Transient가 켜져있으면 제외합니다.
-    Transient   = 1 << 2, // 직렬화(저장) 대상에서 제외
+    Transient   = 1U << 2U, // 직렬화(저장) 대상에서 제외
 
     // Networking
-    // Replicated  = 1 << 3, // // 서버의 프로퍼티 변경사항을 클라이언트로 동기화(복제)
+    // Replicated  = 1U << 3U, // 서버의 프로퍼티 변경사항을 클라이언트로 동기화(복제)
     // ReNotify 같은것도 있어야 함
 
     // UI Hints & Constraints
-    Advanced    = 1 << 4, // 별도의 상세 탭(Advanced)에 표시
-    HasRange    = 1 << 5, // range_min/max 값이 유효함 (UI Slider)
+    Advanced    = 1U << 4U, // 별도의 상세 탭(Advanced)에 표시
+    HasRange    = 1U << 5U, // range_min/max 값이 유효함 (UI Slider)
 };
 SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
 
