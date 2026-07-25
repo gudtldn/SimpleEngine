@@ -182,9 +182,9 @@ void ProcessMergedMesh(
 {
     ZoneScopedN("ProcessMergedMesh");
 
-    const Guid guid = io_ctx.AllocateSubAssetGuid(mesh_name);
+    const auto [name, guid] = io_ctx.AllocateSubAsset(mesh_name);
     StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
-    pipeline_node.SetDisplayName(mesh_name);
+    pipeline_node.SetDisplayName(name);
 
     // 전체 크기 사전 계산 후 예약
     u32 total_vertices = 0;
@@ -235,8 +235,6 @@ void ProcessNodeIterative(
     PipelineNodeContainer& out_container
 )
 {
-    HashMap<String, u32> name_count;
-
     Array<const aiNode*> stack;
     stack.Push(root_node);
 
@@ -249,20 +247,7 @@ void ProcessNodeIterative(
             const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             const String base_name = String::Format("{}_{}", node->mName.C_Str(), mesh->mName.C_Str());
 
-            // 동일 이름의 노드가 여러 개일 경우 접미사로 구분하여 GUID 안정성 보장
-            String node_name = base_name;
-            if (const auto count = name_count.Find(base_name))
-            {
-                const u32 n = *count + 1;
-                name_count.Insert(base_name, n);
-                node_name = String::Format("{}_{}", base_name, n);
-            }
-            else
-            {
-                name_count.Insert(base_name, 0);
-            }
-
-            const Guid guid = io_ctx.AllocateSubAssetGuid(node_name);
+            const auto [node_name, guid] = io_ctx.AllocateSubAsset(base_name);
             StaticMeshPipelineNode& pipeline_node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
             pipeline_node.SetDisplayName(node_name);
 
@@ -358,10 +343,10 @@ Guid ExtractTexture(
         {
             const aiTexture* ai_tex = scene->mTextures[embedded_idx];
             const String tex_name = String::Format("Texture_Embedded_{}", embedded_idx);
-            const Guid tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
+            const auto [name, tex_guid] = io_ctx.AllocateSubAsset(tex_name);
 
             PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
-            tex_node.SetDisplayName(tex_name);
+            tex_node.SetDisplayName(name);
             tex_node.SetSRGB(srgb);
 
             if (ai_tex->mHeight > 0)
@@ -390,10 +375,10 @@ Guid ExtractTexture(
     return external_tex_guids.Entry(tex_path_sv).OrInsertWith([&] -> Guid
     {
         const String tex_name = String::Format("Texture_{}_{}", mat_name, slot_name);
-        const Guid tex_guid = io_ctx.AllocateSubAssetGuid(tex_name);
+        const auto [name, tex_guid] = io_ctx.AllocateSubAsset(tex_name);
 
         PipelineTextureNode& tex_node = out_container.CreateNode<PipelineTextureNode>(tex_guid);
-        tex_node.SetDisplayName(tex_name);
+        tex_node.SetDisplayName(name);
         tex_node.SetSourceFile(model_dir / tex_path_sv);
         tex_node.SetSRGB(srgb);
 
@@ -437,9 +422,9 @@ Array<Guid> ProcessMaterials(
             : String::Format("{}", mat_idx);
 
         const String mat_node_name = String::Format("Material_{}", mat_name);
-        const Guid mat_guid = io_ctx.AllocateSubAssetGuid(mat_node_name);
+        const auto [name, mat_guid] = io_ctx.AllocateSubAsset(mat_node_name);
         PipelineMaterialInstanceNode& mat_node = out_container.CreateNode<PipelineMaterialInstanceNode>(mat_guid);
-        mat_node.SetDisplayName(mat_node_name);
+        mat_node.SetDisplayName(name);
         mat_node_uids[mat_idx] = mat_guid;
 
         // --- 스칼라 파라미터 추출 ---

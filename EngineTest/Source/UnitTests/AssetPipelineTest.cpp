@@ -63,9 +63,9 @@ public:
         if (settings.combine_meshes)
         {
             // combine_meshes=true: 1개의 병합된 StaticMesh (1 draw call)
-            const Guid guid = io_ctx.AllocateSubAssetGuid("MockMesh");
+            const auto [name, guid] = io_ctx.AllocateSubAsset("MockMesh");
             auto& node = out_container.CreateNode<StaticMeshPipelineNode>(guid);
-            node.SetDisplayName("MockMesh");
+            node.SetDisplayName(name);
 
             StaticVertex v;
             v.position = Vector3f(1.0f, 1.0f, 1.0f);
@@ -79,9 +79,9 @@ public:
         {
             // combine_meshes=false: 2개의 독립된 StaticMesh (per-primitive)
             {
-                const Guid guid1 = io_ctx.AllocateSubAssetGuid("Mesh1");
+                const auto [name1, guid1] = io_ctx.AllocateSubAsset("Mesh1");
                 auto& node1 = out_container.CreateNode<StaticMeshPipelineNode>(guid1);
-                node1.SetDisplayName("Mesh1");
+                node1.SetDisplayName(name1);
 
                 StaticVertex v;
                 v.position = Vector3f(1.0f, 1.0f, 1.0f);
@@ -93,9 +93,9 @@ public:
             }
 
             {
-                const Guid guid2 = io_ctx.AllocateSubAssetGuid("Mesh2");
+                const auto [name2, guid2] = io_ctx.AllocateSubAsset("Mesh2");
                 auto& node2 = out_container.CreateNode<StaticMeshPipelineNode>(guid2);
-                node2.SetDisplayName("Mesh2");
+                node2.SetDisplayName(name2);
 
                 StaticVertex v;
                 v.position = Vector3f(2.0f, 2.0f, 2.0f);
@@ -305,4 +305,40 @@ TEST_F(AssetPipelineTest, ImportPipeline_EmptyResultTest)
 
     // 에러를 반환
     ASSERT_EQ(assets.Error().GetType(), ImportError::FactoryFailed);
+}
+
+TEST_F(AssetPipelineTest, ImportContext_DuplicateNameGetsUniqueSuffixAndGuid)
+{
+    // 같은 이름을 2번 요청하면 서로 다른 이름(접미사)과 서로 다른 GUID를 받아야 함
+    ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
+
+    const auto [name1, guid1] = ctx.AllocateSubAsset("X");
+    const auto [name2, guid2] = ctx.AllocateSubAsset("X");
+
+    EXPECT_EQ(name1, "X");
+    EXPECT_EQ(name2, "X_1");
+    EXPECT_NE(guid1, guid2);
+}
+
+TEST_F(AssetPipelineTest, ImportContext_ReimportReclaimsReservedGuidsInOrder)
+{
+    // reserved_sub_guids에 {X: G1, X_1: G2}가 있을 때, 같은 이름 "X"를 2번 요청하면
+    // 이름 유일화 순서(X -> X_1)에 따라 G1, G2를 순서대로 회수해야 함 (재임포트 시나리오)
+    const Guid g1 = Guid::NewGuid();
+    const Guid g2 = Guid::NewGuid();
+    reserved_guids.Insert("X", g1);
+    reserved_guids.Insert("X_1", g2);
+
+    ImportContext ctx{ reserved_guids, test_registry, allocated_guids };
+
+    const auto [name1, guid1] = ctx.AllocateSubAsset("X");
+    const auto [name2, guid2] = ctx.AllocateSubAsset("X");
+
+    EXPECT_EQ(name1, "X");
+    EXPECT_EQ(guid1, g1);
+    EXPECT_EQ(name2, "X_1");
+    EXPECT_EQ(guid2, g2);
+
+    // 기존 GUID를 재사용했으므로 신규 발급 목록에는 추가되지 않아야 함
+    EXPECT_TRUE(allocated_guids.IsEmpty());
 }

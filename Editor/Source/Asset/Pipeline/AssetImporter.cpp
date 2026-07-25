@@ -76,7 +76,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
 
     PipelineNodeContainer container;
     {
-        // 각 노드에서 io_ctx.AllocateSubAssetGuid()로 UID를 발급
+        // 각 노드에서 io_ctx.AllocateSubAsset()로 UID를 발급
         ZoneScopedN("Translator::Translate");
         translator_opt->Translate(file_path, import_profile, io_ctx, container);
     }

@@ -1,5 +1,8 @@
 #include "SimpleEditor/Asset/Pipeline/ImportResult.h"
 
+#include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Utility/Debug.h"
+
 
 namespace se::editor
 {
@@ -33,13 +36,16 @@ Optional<const ImportedAsset&> ImportResult::FindByName(StringView name) const
 }
 
 u32 ImportResult::Builder::RegisterAsset(
-    const String& name,
+    const String& unique_name,
     AssetId asset_id,
     std::shared_ptr<AssetBase> asset,
     Array<AssetDependencyEntry> dependencies
 )
 {
-    const String unique_name = MakeUniqueName(name);
+    // 여기서 중복이 감지되면 어떤 Translator가 ImportContext::AllocateSubAsset을 우회했다는 상류 버그 신호.
+    SE_ENSURE(!name_to_index.Contains(unique_name),
+        "Duplicate sub-asset name reached ImportResult (translator bypassed ImportContext::AllocateSubAsset?): {}", unique_name);
+
     const auto index = static_cast<u32>(entries.Len());
 
     entries.Push({
@@ -59,36 +65,10 @@ void ImportResult::Builder::SetMainAssetIndex(u32 index)
 
 ImportResult ImportResult::Builder::Build()
 {
-    ImportResult result = {
+    return {
         std::exchange(entries, {}),
         std::exchange(name_to_index, {}),
         std::exchange(main_asset_index, 0)
     };
-
-    next_suffix_map = {};
-    return result;
-}
-
-String ImportResult::Builder::MakeUniqueName(const String& base_name)
-{
-    // 이름이 이미 존재하지 않으면 그대로 반환
-    if (!name_to_index.Contains(base_name))
-    {
-        return base_name;
-    }
-
-    // 중복 시 suffix 추가: Name_1, Name_2, ...
-    u32& suffix = next_suffix_map.Entry(base_name).OrDefault();
-    ++suffix;
-
-    String candidate;
-    do
-    {
-        candidate = String::Format("{}_{}", base_name, suffix);
-        ++suffix;
-    }
-    while (name_to_index.Contains(candidate));
-
-    return candidate;
 }
 } // namespace se::editor

@@ -148,14 +148,14 @@ class SE_EDITOR_API ImportResult::Builder
 public:
     /**
      * Asset을 등록하고 인덱스를 반환합니다.
-     * @param name 식별 이름 (중복 시 자동 변경됨)
+     * @param unique_name 고유한 식별 이름
      * @param asset_id 해당 에셋의 고유 ID
      * @param asset 등록할 에셋 인스턴스
      * @param dependencies 이 에셋이 의존하는 에셋 목록
      * @return 등록된 엔트리의 인덱스
      */
     u32 RegisterAsset(
-        const String& name,
+        const String& unique_name,
         AssetId asset_id,
         std::shared_ptr<AssetBase> asset,
         Array<AssetDependencyEntry> dependencies = {}
@@ -168,13 +168,8 @@ public:
     [[nodiscard]] ImportResult Build();
 
 private:
-    /** 중복되지 않는 고유한 이름을 생성합니다. */
-    [[nodiscard]] String MakeUniqueName(const String& base_name);
-
-private:
     Array<ImportedAsset> entries;
     HashMap<String, u32> name_to_index;
-    HashMap<String, u32> next_suffix_map; // 임시 상태 저장용
     u32 main_asset_index = 0;
 };
 } // namespace se::editor
