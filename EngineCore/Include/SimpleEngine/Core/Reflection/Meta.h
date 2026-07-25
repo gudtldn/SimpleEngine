@@ -65,14 +65,6 @@ enum class ETypeKind : u8
     Enum,      // 열거형
 };
 
-/** ECS 타입 분류 */
-enum class EECSKind : u8
-{
-    None,      // 일반 타입
-    Component, // ECS 컴포넌트
-    Resource,  // ECS 리소스
-};
-
 /** 컨테이너 타입 분류 */
 enum class EContainerKind : u8
 {
@@ -323,9 +315,6 @@ public:
 
     /** 타입의 종류 (Primitive, Struct, Enum, Container등) */
     ETypeKind kind;
-
-    /** ECS 타입 분류 (Component, Resource 등) */
-    EECSKind ecs_kind = EECSKind::None;
 
     /** 타입의 특성 Flag */
     BitFlags<ETypeFlags> flags;

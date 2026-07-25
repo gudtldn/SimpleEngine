@@ -1,5 +1,7 @@
 #include "SimpleEngine/ECS/Components/Camera3dComponent.h"
+
 #include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/ECSReflectionHook.h"
 
 
 namespace se

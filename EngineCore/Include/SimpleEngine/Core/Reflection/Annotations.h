@@ -2,6 +2,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Reflection/Traits.h"
+#include "SimpleEngine/Core/Reflection/RegistrationHook.h"
 #include "SimpleEngine/Core/Container/FixedString.h"
 
 /** C++26으로 마이그레이션 시 CustomAnnotation을 바로 적용할 수 있도록 도와주는 헬퍼 매크로입니다. */
@@ -149,3 +150,10 @@ using Tooltip = tags::Tooltip<Str>;
 template <typename T>
 using Range = tags::Range<T>;
 } // namespace se::meta
+
+namespace se::detail
+{
+// Component/Resource는 ECS 모듈에서 RegistrationHook을 특수화해 등록을 해야 함.
+template <> struct HookRequired<se::meta::tags::Component> { static constexpr bool VALUE = true; };
+template <> struct HookRequired<se::meta::tags::Resource>  { static constexpr bool VALUE = true; };
+} // namespace se::detail

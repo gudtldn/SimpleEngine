@@ -1,6 +1,7 @@
 #include "SimpleEngine/ECS/Components/NameComponent.h"
 
 #include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/ECSReflectionHook.h"
 
 
 namespace se

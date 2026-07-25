@@ -5,8 +5,8 @@
 #include "SimpleEngine/Core/Reflection/Annotations.h"
 #include "SimpleEngine/Core/Reflection/Enum.h"
 #include "SimpleEngine/Core/Reflection/Meta.h"
+#include "SimpleEngine/Core/Reflection/RegistrationHook.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"
 
@@ -32,7 +32,7 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags()
         flags |= ETypeFlags::IsAbstract;
     }
 
-    auto process_tag = [&flags]<auto Tag>()
+    auto process_tag = [&flags]<auto Tag>
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
 
@@ -43,8 +43,8 @@ consteval BitFlags<ETypeFlags> MakeTypeFlags()
             || std::same_as<TagType, tags::Resource>
         )
         {
-            // DeduceECSKind에서 enum_kind 설정
-            // 여기는 MakeTypeFlags에서 static_assert 방지용 trap
+            // 위 태그는 단순 체크용으로, ETypeFlags로 변환되지 않는 태그입니다.
+            // MakeTypeFlags에서 static_assert 방지용 trap
         }
 
         // 가시성/직렬화 수정자 (Type 레벨)
@@ -81,7 +81,7 @@ consteval PropertyMetadata MakePropertyMetadata()
     using namespace se::meta;
 
     PropertyMetadata meta{};
-    auto process_tag = [&meta]<auto Tag>()
+    auto process_tag = [&meta]<auto Tag>
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
 
@@ -139,32 +139,25 @@ consteval PropertyMetadata MakePropertyMetadata()
     return meta;
 }
 
-template <auto... Tags>
+template <typename T, auto... Tags>
     requires (std::derived_from<decltype(Tags), se::meta::target::Type> && ...)
-consteval EECSKind DeduceECSKind()
+void DispatchRegistrationHooks()
 {
-    using namespace se::meta;
-
-    constexpr usize ecs_tag_count =
-        (0 + ... + static_cast<usize>(std::same_as<std::remove_cvref_t<decltype(Tags)>, tags::Component>))
-      + (0 + ... + static_cast<usize>(std::same_as<std::remove_cvref_t<decltype(Tags)>, tags::Resource>));
-    static_assert(ecs_tag_count <= 1, "A type cannot be both Component and Resource.");
-
-    EECSKind kind = EECSKind::None;
-    auto process = [&kind]<auto Tag>()
+    auto process_tag = []<auto Tag>
     {
         using TagType = std::remove_cvref_t<decltype(Tag)>;
-        if constexpr (std::same_as<TagType, tags::Component>)
+        constexpr bool implemented = requires { RegistrationHook<TagType>::template OnRegister<T>(); };
+
+        static_assert(!HookRequired<TagType>::VALUE || implemented,
+            "This tag requires a RegistrationHook<TagType>::OnRegister<T>() specialization. "
+            "Please check if the hook header for the consuming module is included.");
+
+        if constexpr (implemented)
         {
-            kind = EECSKind::Component;
-        }
-        else if constexpr (std::same_as<TagType, tags::Resource>)
-        {
-            kind = EECSKind::Resource;
+            RegistrationHook<TagType>::template OnRegister<T>();
         }
     };
-    (process.template operator()<Tags>(), ...);
-    return kind;
+    (process_tag.template operator()<Tags>(), ...);
 }
 } // namespace se::detail
 
@@ -223,10 +216,9 @@ public: \
 { \
     using T = type; \
     constexpr auto type_flags = ::se::detail::MakeTypeFlags<T __VA_OPT__(,) __VA_ARGS__>(); \
-    constexpr auto ecs_kind = ::se::detail::DeduceECSKind<__VA_ARGS__>(); \
+    ::se::detail::DispatchRegistrationHooks<T __VA_OPT__(,) __VA_ARGS__>(); \
     ::se::TypeRegistry::Get().Register<T>() \
-        .AddFlags(type_flags) \
-        .SetECSKind(ecs_kind)
+        .AddFlags(type_flags)
 
 /**
  * 인터페이스(Interface)를 등록합니다.
@@ -250,14 +242,6 @@ public: \
 #define SE_END_REFLECT(type) \
     ; /* 체이닝 종료 */ \
     static_assert(std::same_as<std::decay_t<T>, std::decay_t<type>>, "Type mismatch between BEGIN and END reflect macros."); \
-    if constexpr (ecs_kind == ::se::EECSKind::Component) \
-    { \
-        ::se::ECSRegistry::Get().RegisterComponentOps<type>(); \
-    } \
-    else if constexpr (ecs_kind == ::se::EECSKind::Resource) \
-    { \
-        ::se::ECSRegistry::Get().RegisterResourceOps<type>(); \
-    } \
     return true; \
 }();
 

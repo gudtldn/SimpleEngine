@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Math/MathSerialize.h"
 #include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "SimpleEngine/ECS/ECSReflectionHook.h"
 
 
 namespace se

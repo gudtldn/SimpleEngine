@@ -85,13 +85,6 @@ public:
         return *this;
     }
 
-    /** ECS 타입 분류를 설정합니다. */
-    TypeBuilder& SetECSKind(EECSKind kind)
-    {
-        info_ptr->ecs_kind = kind;
-        return *this;
-    }
-
     /**
      * 현재 타입(T)이 구현하는 인터페이스 목록을 등록합니다.
      * @tparam InterfaceTypes T가 상속받는 하나 이상의 인터페이스 타입들
@@ -228,7 +221,7 @@ private:
             {
                 // 다중 상속 offset 보정
                 return static_cast<InterfaceType*>(static_cast<T*>(p));
-            }
+            },
         });
     }
 
