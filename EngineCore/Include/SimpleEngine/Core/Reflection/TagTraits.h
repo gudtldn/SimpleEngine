@@ -20,6 +20,10 @@ struct HookRequiredTrait
  * 코어는 이 Trait만 알고, 특정 태그(예: ECS Component)에 대한 실제 처리는
  * 그 태그를 소비하는 모듈(ECS 등)이 특수화합니다.
  * primary 템플릿은 비어 있으며, Apply<T>() 존재 여부로 "구현됐는지"를 판단합니다.
+ *
+ * @note Apply<T>는 반드시 제약이 없어야 합니다. 제약(requires)이 걸리면 조건에서 탈락한 T에 대해
+ *       존재 감지가 false가 되어 "include 누락"으로 오진되거나 조용히 건너뛰게 됩니다.
+ *       타입 요구조건은 Apply 본문 안의 static_assert로 검증하세요.
  */
 template <typename Tag>
 struct RegistrationTrait

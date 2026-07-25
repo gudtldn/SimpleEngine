@@ -66,7 +66,9 @@ void DispatchRegistrationHooks()
 
         static_assert(!HookRequiredTrait<TagType>::VALUE || implemented,
             "This tag requires a RegistrationTrait<TagType>::Apply<T>() specialization. "
-            "Please check if the hook header for the consuming module is included.");
+            "Please check if the hook header for the consuming module is included. "
+            "(Also fires if Apply<T> exists but is constrained and T fails the constraint - "
+            "Apply must be unconstrained; enforce requirements via static_assert inside the body.)");
 
         if constexpr (implemented)
         {
@@ -132,7 +134,8 @@ public: \
 { \
     using T = type; \
     constexpr auto type_flags = ::se::detail::MakeTypeFlags<T __VA_OPT__(,) __VA_ARGS__>(); \
-    ::se::detail::DispatchRegistrationHooks<T __VA_OPT__(,) __VA_ARGS__>(); \
+    /* 훅은 등록 완료 후(SE_END_REFLECT) 실행합니다 — END는 태그 팩을 받지 않으므로 여기서 캡처합니다. */ \
+    const auto dispatch_hooks = [] { ::se::detail::DispatchRegistrationHooks<T __VA_OPT__(,) __VA_ARGS__>(); }; \
     ::se::TypeRegistry::Get().Register<T>() \
         .AddFlags(type_flags)
 
@@ -158,6 +161,7 @@ public: \
 #define SE_END_REFLECT(type) \
     ; /* 체이닝 종료 */ \
     static_assert(std::same_as<std::decay_t<T>, std::decay_t<type>>, "Type mismatch between BEGIN and END reflect macros."); \
+    dispatch_hooks(); /* 등록 완료 후 훅 실행 — 훅에서 TypeRegistry의 TypeInfo를 조회할 수 있습니다. */ \
     return true; \
 }();
 
