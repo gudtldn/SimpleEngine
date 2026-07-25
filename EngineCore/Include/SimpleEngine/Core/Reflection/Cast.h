@@ -76,6 +76,17 @@ template <typename Base>
 }
 
 /**
+ * 두 TypeId의 상속 관계를 런타임에 검사합니다. (컴파일 타임에 타입을 알 수 없는 경우용)
+ * @param derived_id 검사 대상 (자식) TypeId
+ * @param base_id 기준이 되는 (부모) TypeId
+ * @return derived_id가 base_id이거나, base_id로부터 파생되었으면 true
+ */
+[[nodiscard]] inline bool IsChildOf(TypeId derived_id, TypeId base_id)
+{
+    return detail::IsTypeDerivedFrom(derived_id, base_id);
+}
+
+/**
  * 리플렉션을 통해 생성된 원시 포인터(void*)를 특정 타입(클래스 또는 인터페이스)으로 안전하게 캐스팅합니다.
  * @tparam To 대상 타입 (클래스 또는 인터페이스)
  * @param raw_instance 원본 객체의 포인터 (완전한 객체)
