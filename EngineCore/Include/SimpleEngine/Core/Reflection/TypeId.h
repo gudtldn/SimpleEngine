@@ -35,6 +35,7 @@ public:
     /**
      * 해시를 이용해 TypeId를 생성합니다.
      * 만약 TypeRegistry에 없는 Hash면 빈 TypeId를 반환합니다.
+     * @todo 다시 생각해 보니까 이런 함수는 Registry나 다른 곳에 있어야 할 듯.
      */
     [[nodiscard]] static TypeId FromHash(u64 in_hash);
 
@@ -42,11 +43,15 @@ public:
      * 타입 이름을 이용해 TypeId를 생성합니다.
      * 만약 TypeRegistry에 없는 이름이면 빈 TypeId를 반환합니다.
      * @note 이름은 namespace 포함 타입 이름입니다. (예: se::Texture2D)
+     * @todo 다시 생각해 보니까 이런 함수는 Registry나 다른 곳에 있어야 할 듯.
      */
     [[nodiscard]] static TypeId FromName(const StringName& in_type_name);
 
 public:
-    /** 타입 이름을 반환합니다. */
+    /**
+     * 타입 이름을 반환합니다.
+     * @todo 다시 생각해 보니까 이런 함수는 Registry나 다른 곳에 있어야 할 듯.
+     */
     [[nodiscard]] StringView GetName() const;
 
     /** 타입 해시를 반환합니다. */
