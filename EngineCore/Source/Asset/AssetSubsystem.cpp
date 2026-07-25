@@ -82,6 +82,53 @@ void AssetSubsystem::DeferRelease(AssetPayload payload)
     pool->DeferDestroy(std::move(payload), Engine::GetFrameCount());
 }
 
+bool AssetSubsystem::Reload(const AssetId& id)
+{
+    ZoneScopedN("AssetSubsystem::Reload");
+
+    const auto handle_opt = pool->Find(id);
+    if (!handle_opt.HasValue())
+    {
+        return false;
+    }
+
+    const HandleData& handle_data = handle_opt.Value();
+    SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
+
+    if (!slot.TryBeginReload())
+    {
+        return false;
+    }
+
+    const TypeId asset_type = slot.asset_type;
+    const EScopeLayer scope = slot.scope;
+
+    ContentHash source_hash;
+    u32 cache_version;
+    const bool has_meta = registry->ReadRecord(id, [&source_hash, &cache_version](const AssetRecord& record)
+    {
+        source_hash = record.metadata.source_hash;
+        cache_version = record.metadata.cache_version;
+    });
+
+    if (has_meta && ddc->IsValid(id.GetGuid(), source_hash, cache_version))
+    {
+        if (auto entry = ddc->Load(id.GetGuid()))
+        {
+            if (AssetPayload payload = DeserializeAssetPayload(asset_type, entry->payload))
+            {
+                CommitLoadedPayload(handle_data, std::move(payload), entry->payload.Len(), scope);
+                return true;
+            }
+        }
+    }
+
+    // 실패 시 기존 payload를 유지한 채 Loaded 상태로 복원
+    ConsoleLog(ELogLevel::Warning, "AssetSubsystem::Reload failed, keeping previous payload for: {}", id.GetGuid());
+    slot.SetState(ELoadingState::Loaded);
+    return false;
+}
+
 void AssetSubsystem::EndFrame()
 {
     ZoneScopedN("AssetSubsystem::EndFrame");
@@ -370,7 +417,7 @@ HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, cons
 
 HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
 {
-    Optional<HandleData> handle_opt = pool->Find(asset_id);
+    auto handle_opt = pool->Find(asset_id);
     if (!handle_opt.HasValue())
     {
         return {};

@@ -51,6 +51,17 @@ public:
 SE_BEGIN_REFLECT(MockMesh, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT(MockMesh)
 
+namespace
+{
+// --- Reload 테스트용 소멸 카운터 ---
+int g_reload_test_destroy_count = 0;
+void DestroyMockTextureCounting(void* p)
+{
+    ++g_reload_test_destroy_count;
+    delete static_cast<MockTexture*>(p);
+}
+}
+
 // =============================================================================
 // AssetPath Tests
 // =============================================================================
@@ -230,6 +241,94 @@ TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
 
     // cleanup
     pool.GetTable().GetSlot(hd.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
+}
+
+// =============================================================================
+// Reload Tests (M1-2)
+//
+// AssetSubsystem::Reload가 사용하는 메커니즘(SlotEntry::TryBeginReload + ExchangePayload
+// + DeferDestroy)을 AssetPool 레벨에서 직접 검증합니다. (DDC/VFS 전체 스택 없이도
+// generation 유지 / payload 교체 / 이전 payload 지연 파괴 계약을 확인할 수 있음)
+// =============================================================================
+
+TEST_F(AssetCacheTest, Reload_PreservesGenerationAndSwapsPayload)
+{
+    g_reload_test_destroy_count = 0;
+
+    const AssetId id = GenerateAssetId();
+    const HandleData hd = pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
+
+    SlotEntry& slot = pool.GetTable().GetSlot(hd.index);
+    ASSERT_TRUE(slot.BeginLoad());
+
+    auto* old_asset = new MockTexture();
+    old_asset->width = 111;
+    (void)slot.ExchangePayload({ .ptr = old_asset, .destructor = &DestroyMockTextureCounting });
+    slot.SetState(ELoadingState::Loaded);
+
+    const u32 generation_before = slot.generation;
+
+    // --- Reload 시뮬레이션 ---
+    ASSERT_TRUE(slot.TryBeginReload());
+
+    auto* new_asset = new MockTexture();
+    new_asset->width = 222;
+    AssetPayload old_payload = slot.ExchangePayload({ .ptr = new_asset, .destructor = &DestroyMockTextureCounting });
+    slot.SetState(ELoadingState::Loaded);
+
+    // 1. 핸들 유효 유지 (generation 불변)
+    EXPECT_EQ(slot.generation, generation_before);
+    EXPECT_TRUE(pool.Find(id).HasValue());
+
+    // 2. 새 payload로 교체됨
+    EXPECT_EQ(static_cast<MockTexture*>(slot.asset.load())->width, 222);
+    EXPECT_EQ(static_cast<MockTexture*>(old_payload.ptr)->width, 111);
+
+    // 3. 이전 payload는 즉시 파괴되지 않고 pending_destroy로 이동
+    pool.DeferDestroy(std::move(old_payload), /*current_frame*/ 0);
+    EXPECT_EQ(g_reload_test_destroy_count, 0);
+
+    pool.ProcessPendingDestroy(/*current_frame*/ 100);
+    EXPECT_EQ(g_reload_test_destroy_count, 1);
+
+    // 새 payload는 여전히 살아있어야 함
+    EXPECT_EQ(static_cast<MockTexture*>(slot.asset.load())->width, 222);
+
+    // cleanup
+    (void)slot.ExchangePayload({});
+    delete new_asset;
+}
+
+TEST_F(AssetCacheTest, Reload_FailsWhenNotLoaded)
+{
+    const AssetId id = GenerateAssetId();
+    const HandleData hd = pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
+
+    SlotEntry& slot = pool.GetTable().GetSlot(hd.index);
+    // Unloaded 상태 -> Reload 대상 아님
+    EXPECT_FALSE(slot.TryBeginReload());
+}
+
+TEST_F(AssetCacheTest, Reload_FailsWhileAlreadyLoading)
+{
+    const AssetId id = GenerateAssetId();
+    const HandleData hd = pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
+
+    SlotEntry& slot = pool.GetTable().GetSlot(hd.index);
+    ASSERT_TRUE(slot.BeginLoad());
+    (void)slot.ExchangePayload({ .ptr = new MockTexture(), .destructor = &DestroyMockTextureCounting });
+    slot.SetState(ELoadingState::Loaded);
+
+    ASSERT_TRUE(slot.TryBeginReload()); // Loaded -> Loading
+    EXPECT_FALSE(slot.TryBeginReload()); // 이미 Loading -> 재획득 실패
+
+    // cleanup
+    slot.SetState(ELoadingState::Loaded);
+    AssetPayload payload = slot.ExchangePayload({});
+    if (payload.ptr && payload.destructor)
+    {
+        payload.destructor(payload.ptr);
+    }
 }
 
 // =============================================================================

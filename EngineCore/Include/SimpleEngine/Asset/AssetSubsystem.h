@@ -91,6 +91,14 @@ public:
     /** Asset payload를 프레임 마지막에 안전하게 해제할 수 있도록 대기 큐(Pending Queue)에 삽입합니다. */
     void DeferRelease(AssetPayload payload);
 
+    /**
+     * 이미 Pool에 Loaded 상태로 존재하는 Asset을 DDC에서 다시 읽어 payload를 in-place로 교체합니다.
+     * Generation은 유지되므로 기존에 발급된 AssetHandle들은 계속 유효하며, 다음 접근 시 새 데이터를 보게 됩니다.
+     * @param id 리로드할 Asset의 ID
+     * @return 성공 시 true. 로드되지 않은 에셋이거나, 다른 스레드가 이미 로딩/리로딩 중이거나, DDC 읽기에 실패하면 false.
+     */
+    [[nodiscard]] bool Reload(const AssetId& id);
+
     /** 프레임 끝에서 대기 큐(Pending Queue)를 정리합니다. */
     void EndFrame();
 

@@ -79,6 +79,13 @@ bool SlotEntry::BeginLoad()
     return state.compare_exchange_strong(expected, ELoadingState::Loading, std::memory_order_acq_rel);
 }
 
+bool SlotEntry::TryBeginReload()
+{
+    // Loaded -> Loading
+    ELoadingState expected = ELoadingState::Loaded;
+    return state.compare_exchange_strong(expected, ELoadingState::Loading, std::memory_order_acq_rel);
+}
+
 void SlotEntry::WaitForLoadComplete() const
 {
     while (state.load(std::memory_order_acquire) == ELoadingState::Loading)

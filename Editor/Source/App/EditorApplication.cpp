@@ -444,9 +444,13 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
                 continue; // GPU에 이미 최신 버전이 올라가 있음
             }
 
-            // Reimport 감지
+            // Reimport 감지: in-place Reload로 payload만 교체 (generation 유지 -> 기존 핸들 계속 유효)
             gpu_manager.UnloadMesh(mesh_id);
-            asset_subsystem->GetPool().Remove(mesh_id); // TODO: Scene에 로드된 Mesh가 있는 상태에서 Reimport하면 터짐
+            if (!asset_subsystem->Reload(mesh_id))
+            {
+                // GPU는 이미 Unload되었으므로, 실패 시 아래 3단계 Load()가 기존(구) CPU 데이터를 재업로드하게 됨
+                ConsoleLog(ELogLevel::Warning, "Reload failed during reimport, GPU will re-upload previous data for mesh: {}", mesh_id.GetGuid());
+            }
             is_reimport = true;
         }
 

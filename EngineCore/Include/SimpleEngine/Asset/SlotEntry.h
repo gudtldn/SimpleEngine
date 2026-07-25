@@ -101,6 +101,12 @@ public:
      */
     [[nodiscard]] bool BeginLoad();
 
+    /**
+     * 이미 Loaded 상태인 슬롯을 in-place Reload를 위해 Loading으로 전환합니다. (Loaded -> Loading)
+     * @return 상태 전환에 성공하면 true를 반환합니다. 다른 스레드가 이미 로딩/리로딩 중이면 false.
+     */
+    [[nodiscard]] bool TryBeginReload();
+
     /** Loading 상태가 완료될 때까지 대기합니다. */
     void WaitForLoadComplete() const;
 
