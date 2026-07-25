@@ -18,6 +18,11 @@
 #include <mutex>
 
 
+namespace se
+{
+class DerivedDataCache;
+}
+
 namespace se::editor
 {
 class AssetImporter;
@@ -66,6 +71,20 @@ public:
      * @return 성공 여부
      */
     bool CookAsset(const VPath& file_vpath);
+
+    /**
+     * prev_sub_guids에는 있었지만 new_sub_assets에는 더 이상 없는 GUID의 DDC 캐시 엔트리를 제거합니다.
+     * CookAsset이 재임포트 시 사라진 sub-asset의 고아 캐시를 방지하기 위해 호출합니다.
+     * @param prev_sub_guids 이전 Cook에서 사용되던 이름 -> GUID 맵
+     * @param new_sub_assets 이번 Cook 결과로 확정된 sub-asset 메타데이터 목록
+     * @param ddc 대상 DerivedDataCache
+     * @return 제거된 엔트리 수
+     */
+    static u32 ReclaimOrphanedDDCEntries(
+        const HashMap<String, Guid>& prev_sub_guids,
+        ArrayView<const SubAssetMeta> new_sub_assets,
+        DerivedDataCache& ddc
+    );
 
     /** DependencyGraph에 대한 읽기 전용 접근자 */
     [[nodiscard]] const AssetDependencyGraph& GetDependencyGraph() const { return dep_graph; }

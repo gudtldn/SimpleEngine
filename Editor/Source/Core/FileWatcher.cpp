@@ -11,9 +11,9 @@ namespace se::editor
 {
 struct FileWatcher::Impl final : public efsw::FileWatchListener
 {
-    efsw::FileWatcher watcher;
     TracyLockable(std::mutex, mutex);
     HashMap<i32, Array<FileWatchEvent>> inboxes; // key: WatchId.value
+    efsw::FileWatcher watcher; // 멤버는 선언의 역순으로 파괴됨 -> mutex/inboxes보다 먼저 파괴되도록 마지막에 선언
 
     virtual void handleFileAction(
         efsw::WatchID id,

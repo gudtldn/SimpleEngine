@@ -20,7 +20,7 @@
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Concurrency/JobSystem.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
-#include "SimpleEngine/Core/Container/HashSet.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
@@ -147,6 +147,7 @@ bool EditorAssetSubsystem::Initialize()
     if (is_hot_start)
     {
         AssetRegistry& registry = asset_subsystem->GetRegistry();
+        DerivedDataCache& ddc = asset_subsystem->GetDDC();
 
         Array<VPath> orphaned;
         registry.VisitAllPaths([&all_found_vpaths, &orphaned](const VPath& registered_vpath)
@@ -162,10 +163,11 @@ bool EditorAssetSubsystem::Initialize()
         {
             ConsoleLog(ELogLevel::Warning, "Asset file deleted (offline): {}", vpath);
 
-            // DependencyGraph에서 AssetID 제거
+            // DependencyGraph에서 AssetID 제거 + 고아 DDC 캐시 엔트리 회수
             for (const AssetId& id : registry.GetAssetsInFile(vpath))
             {
                 dep_graph.RemoveNode(id);
+                ddc.Remove(id.GetGuid());
             }
 
             registry.UnregisterByPath(vpath);
@@ -689,6 +691,9 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         // TODO: Hot-reload 시 AssetPool::FindOrCreate + ExchangeAsset으로 메모리 교체
     }
 
+    // 이번 Cook에서 더 이상 쓰이지 않게 된 이전 sub-asset의 DDC 캐시 엔트리 회수 (고아 방지)
+    ReclaimOrphanedDDCEntries(prev_sub_guids, updated_content.metadata.sub_assets, ddc);
+
     // AssetDependencyGraph 동기화 (각 sub-asset의 개별 의존성 사용)
     for (const SubAssetMeta& sub : updated_content.metadata.sub_assets)
     {
@@ -703,6 +708,30 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
     ConsoleLog(ELogLevel::Debug, "Successfully cooked {} assets from: {}", result.GetCount(), file_path);
     return true;
+}
+
+u32 EditorAssetSubsystem::ReclaimOrphanedDDCEntries(
+    const HashMap<String, Guid>& prev_sub_guids,
+    ArrayView<const SubAssetMeta> new_sub_assets,
+    DerivedDataCache& ddc
+)
+{
+    HashSet<Guid> new_sub_guids;
+    for (const SubAssetMeta& sub : new_sub_assets)
+    {
+        new_sub_guids.Insert(sub.guid);
+    }
+
+    u32 removed_count = 0;
+    for (const Guid& prev_guid : prev_sub_guids | std::views::values)
+    {
+        if (!new_sub_guids.Contains(prev_guid))
+        {
+            ddc.Remove(prev_guid);
+            ++removed_count;
+        }
+    }
+    return removed_count;
 }
 
 bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
