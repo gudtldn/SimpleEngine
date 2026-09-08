@@ -13,8 +13,8 @@ vcpkg_from_github(
     REPO     libsdl-org/SDL_shadercross
 
     # 공식 릴리스가 없어 main 브랜치의 특정 커밋을 사용 (Pre-release snapshot)
-    REF      7b7365a86611b2a7b6462e521cf1c43a037d0970 # main @ 2026-02 (v3.0.0-dev)
-    SHA512   52efd2c2507d6ae874cdc177945e15494920f11148e9e9cf8da27fb5ccacb5fcbe44581005e132a84631e9d438616aa1247b7ae23f4ef1785203cdcb08af19af
+    REF      1ff05bec573988a98ef9e0260b4da44f512b8367 # main @ 2026-09 (v3.0.0-dev)
+    SHA512   29c28bdb467d276752e0e1ccc319801fe30fc5dfd305bf1fb5a50c2936b468cd61f575e068659bfdb2434562d809fba24f26a0d80abc453533c43a6920dc6cb0
     HEAD_REF main
     PATCHES
         fix-directx-shader-compiler-includes.patch

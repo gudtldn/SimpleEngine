@@ -3,19 +3,19 @@
   "version-string" : "0.1.0",
   "dependencies" : [ {
     "name" : "gtest",
-    "version>=" : "1.17.0#2"
+    "version>=" : "1.17.0#3"
   }, {
     "name" : "benchmark",
-    "version>=" : "1.9.4"
+    "version>=" : "1.9.5"
   }, {
     "name" : "stduuid",
     "version>=" : "1.2.3"
   }, {
     "name" : "sdl3",
-    "version>=" : "3.4.2"
+    "version>=" : "3.4.12"
   }, {
     "name" : "sdl3-image",
-    "version>=" : "3.4.0",
+    "version>=" : "3.4.4#1",
     "features" : [ "jpeg", "png", "webp" ]
   }, {
     "name" : "sdl3-shadercross",
@@ -26,6 +26,6 @@
     "platform" : "!(windows | (linux & x64))"
   }, {
     "name" : "efsw",
-    "version>=" : "1.5.1"
+    "version>=" : "1.6.3"
   } ]
 }

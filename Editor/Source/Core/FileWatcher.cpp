@@ -20,7 +20,7 @@ struct FileWatcher::Impl final : public efsw::FileWatchListener
         const std::string& dir,
         const std::string& filename,
         efsw::Action action,
-        std::string old_filename
+        const std::string& old_filename
     ) override
     {
         FileWatchEvent event;
