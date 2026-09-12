@@ -4,8 +4,8 @@
 #include "SimpleEditor/Asset/ImportSettings/ImportSettingsBase.h"
 
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
+#include "SimpleEngine/Core/Reflection//Legacy/TypeRegistry.h"
 
 #include <memory>
 
@@ -21,7 +21,7 @@ namespace se::editor
 class SE_EDITOR_API ImportProfile
 {
 public:
-    using SettingsMap = HashMap<TypeId, std::shared_ptr<ImportSettingsBase>>;
+    using SettingsMap = HashMap<TypeId_v1, std::shared_ptr<ImportSettingsBase>>;
 
 public:
     /**
@@ -36,7 +36,7 @@ public:
     {
         using PureType = std::remove_cvref_t<T>;
         settings_map.Insert(
-            TypeId::Of<PureType>(),
+            TypeId_v1::Of<PureType>(),
             std::make_shared<PureType>(std::forward<T>(settings))
         );
     }
@@ -52,7 +52,7 @@ public:
     void Emplace(Args&&... args)
     {
         settings_map.Emplace(
-            TypeId::Of<T>(),
+            TypeId_v1::Of<T>(),
             std::make_shared<T>(std::forward<Args>(args)...)
         );
     }
@@ -68,7 +68,7 @@ public:
     [[nodiscard]] Optional<const T&> Get() const
     {
         return settings_map
-            .Find(TypeId::Of<T>())
+            .Find(TypeId_v1::Of<T>())
             .AndThen([](const auto& ptr) -> Optional<const T&>
             {
                 return static_cast<const T&>(*ptr);
@@ -107,11 +107,11 @@ public:
             for (u64 i = 0; i < count; ++i)
             {
                 ar.BeginMapKey();
-                TypeId type_id;
+                TypeId_v1 type_id;
                 ar << type_id;
                 ar.EndMapKey();
 
-                const auto& registry = TypeRegistry::Get();
+                const auto& registry = TypeRegistry_v1::Get();
                 const auto info_opt = registry.Find(type_id);
 
                 ar.BeginMapValue();
@@ -144,7 +144,7 @@ public:
                 ar.EndMapKey();
 
                 ar.BeginMapValue();
-                const auto& registry = TypeRegistry::Get();
+                const auto& registry = TypeRegistry_v1::Get();
                 const auto info_opt = registry.Find(type_id);
                 if (info_opt && info_opt->serialize && settings_ptr)
                 {

@@ -49,9 +49,9 @@ SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
     >()
     .UpdateDependsOn<EntitySubsystem>();
 
-SE_BEGIN_REFLECT(EditorUISubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE(IUpdatable)
-SE_END_REFLECT(EditorUISubsystem)
+SE_BEGIN_REFLECT_V1(EditorUISubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+    SE_REFLECT_INTERFACE_V1(IUpdatable)
+SE_END_REFLECT_V1(EditorUISubsystem)
 
 bool EditorUISubsystem::Initialize()
 {

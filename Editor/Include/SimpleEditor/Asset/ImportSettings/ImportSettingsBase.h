@@ -2,7 +2,7 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se::editor
@@ -12,7 +12,7 @@ namespace se::editor
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect) ImportSettingsBase
 {
-    SE_CLASS(ImportSettingsBase)
+    SE_CLASS_V1(ImportSettingsBase)
 
 public:
     virtual ~ImportSettingsBase() = default;

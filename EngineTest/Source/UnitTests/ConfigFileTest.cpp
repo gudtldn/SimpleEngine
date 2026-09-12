@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
 
@@ -119,50 +119,50 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) RootSettings
 // ============================================================================
 using namespace config_test;
 
-SE_DECLARE_REFLECTION(WindowSettings)
-SE_BEGIN_REFLECT(WindowSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(width, meta::Reflect)
-    SE_REFLECT_PROPERTY(height, meta::Reflect)
-    SE_REFLECT_PROPERTY(fullscreen, meta::Reflect)
-    SE_REFLECT_PROPERTY(title, meta::Reflect)
-    SE_REFLECT_PROPERTY(scale, meta::Reflect)
-SE_END_REFLECT(WindowSettings)
+SE_DECLARE_REFLECTION_V1(WindowSettings)
+SE_BEGIN_REFLECT_V1(WindowSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(width, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(height, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(fullscreen, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(title, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(scale, meta::Reflect)
+SE_END_REFLECT_V1(WindowSettings)
 
-SE_DECLARE_REFLECTION(GraphicsSettings)
-SE_BEGIN_REFLECT(GraphicsSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(vsync, meta::Reflect)
-    SE_REFLECT_PROPERTY(max_fps, meta::Reflect)
-    SE_REFLECT_PROPERTY(shaders, meta::Reflect)
-SE_END_REFLECT(GraphicsSettings)
+SE_DECLARE_REFLECTION_V1(GraphicsSettings)
+SE_BEGIN_REFLECT_V1(GraphicsSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(vsync, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(max_fps, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(shaders, meta::Reflect)
+SE_END_REFLECT_V1(GraphicsSettings)
 
-SE_DECLARE_REFLECTION(LoggingSettings)
-SE_BEGIN_REFLECT(LoggingSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(level, meta::Reflect)
-    SE_REFLECT_PROPERTY(output_to_file, meta::Reflect)
-    SE_REFLECT_PROPERTY(log_file_path, meta::Reflect)
-SE_END_REFLECT(LoggingSettings)
+SE_DECLARE_REFLECTION_V1(LoggingSettings)
+SE_BEGIN_REFLECT_V1(LoggingSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(level, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(output_to_file, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(log_file_path, meta::Reflect)
+SE_END_REFLECT_V1(LoggingSettings)
 
-SE_DECLARE_REFLECTION(TransientSettings)
-SE_BEGIN_REFLECT(TransientSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(saved_val, meta::Reflect)
-    SE_REFLECT_PROPERTY(transient_val, meta::Transient)
-SE_END_REFLECT(TransientSettings)
+SE_DECLARE_REFLECTION_V1(TransientSettings)
+SE_BEGIN_REFLECT_V1(TransientSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(saved_val, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(transient_val, meta::Transient)
+SE_END_REFLECT_V1(TransientSettings)
 
-SE_DECLARE_REFLECTION(EmptySettings)
-SE_BEGIN_REFLECT(EmptySettings, meta::Reflect, meta::Hidden)
-SE_END_REFLECT(EmptySettings)
+SE_DECLARE_REFLECTION_V1(EmptySettings)
+SE_BEGIN_REFLECT_V1(EmptySettings, meta::Reflect, meta::Hidden)
+SE_END_REFLECT_V1(EmptySettings)
 
-SE_DECLARE_REFLECTION(ContainerSettings)
-SE_BEGIN_REFLECT(ContainerSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(numbers, meta::Reflect)
-    SE_REFLECT_PROPERTY(scores, meta::Reflect)
-SE_END_REFLECT(ContainerSettings)
+SE_DECLARE_REFLECTION_V1(ContainerSettings)
+SE_BEGIN_REFLECT_V1(ContainerSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(numbers, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(scores, meta::Reflect)
+SE_END_REFLECT_V1(ContainerSettings)
 
-SE_DECLARE_REFLECTION(RootSettings)
-SE_BEGIN_REFLECT(RootSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(title, meta::Reflect)
-    SE_REFLECT_PROPERTY(engine_version, meta::Reflect)
-SE_END_REFLECT(RootSettings)
+SE_DECLARE_REFLECTION_V1(RootSettings)
+SE_BEGIN_REFLECT_V1(RootSettings, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(title, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(engine_version, meta::Reflect)
+SE_END_REFLECT_V1(RootSettings)
 
 
 // ============================================================================

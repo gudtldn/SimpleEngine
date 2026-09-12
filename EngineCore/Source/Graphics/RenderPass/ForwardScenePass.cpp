@@ -17,8 +17,8 @@ namespace se
 {
 using namespace se::math;
 
-SE_BEGIN_REFLECT(ForwardScenePass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(ForwardScenePass)
+SE_BEGIN_REFLECT_V1(ForwardScenePass, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(ForwardScenePass)
 
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,

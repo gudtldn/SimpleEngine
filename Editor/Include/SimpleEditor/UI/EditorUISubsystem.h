@@ -13,7 +13,7 @@ namespace se::editor
 {
 class SE_EDITOR_API SE_ANNOTATION(meta::Reflect, meta::Hidden, meta::Transient) EditorUISubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS(EditorUISubsystem, SubsystemBase)
+    SE_CLASS_V1(EditorUISubsystem, SubsystemBase)
 
 public:
     EditorUISubsystem() = default;

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/ECS/Phases.h"
 #include "SimpleEngine/ECS/Schedule.h"
 
@@ -18,7 +18,7 @@ class World;
  */
 struct ScheduleStage
 {
-    TypeId label;
+    TypeId_v1 label;
     Schedule schedule;
     EScheduleMode mode;
 };
@@ -48,7 +48,7 @@ public:
     template <PhaseType P, typename... Systems>
     Schedule& AddSystem(Systems&&... in_systems)
     {
-        const auto stage = FindStage(TypeId::Of<P>());
+        const auto stage = FindStage(TypeId_v1::Of<P>());
         SE_ASSERT(stage.HasValue(), "AddSystem: Stage not found. Register it first with AddStageAfter/AddStageBefore.");
         return stage->schedule.Add(std::forward<Systems>(in_systems)...);
     }
@@ -62,7 +62,7 @@ public:
     template <PhaseType After, PhaseType P>
     void AddStageAfter(EScheduleMode mode = EScheduleMode::EveryFrame)
     {
-        InsertStageAfter(TypeId::Of<After>(), TypeId::Of<P>(), mode);
+        InsertStageAfter(TypeId_v1::Of<After>(), TypeId_v1::Of<P>(), mode);
     }
 
     /**
@@ -74,7 +74,7 @@ public:
     template <PhaseType Before, PhaseType P>
     void AddStageBefore(EScheduleMode mode = EScheduleMode::EveryFrame)
     {
-        InsertStageBefore(TypeId::Of<Before>(), TypeId::Of<P>(), mode);
+        InsertStageBefore(TypeId_v1::Of<Before>(), TypeId_v1::Of<P>(), mode);
     }
 
     /**
@@ -84,7 +84,7 @@ public:
     template <PhaseType P>
     void RunPhase()
     {
-        if (const auto stage = FindStage(TypeId::Of<P>()))
+        if (const auto stage = FindStage(TypeId_v1::Of<P>()))
         {
             stage->schedule.Execute(*world);
         }
@@ -101,13 +101,13 @@ public:
 
 private:
     /** TypeId에 해당하는 Stage를 찾습니다. 없으면 NullOpt. */
-    Optional<ScheduleStage&> FindStage(const TypeId& label);
+    Optional<ScheduleStage&> FindStage(const TypeId_v1& label);
 
     /** anchor Stage 뒤에 새 Stage를 삽입합니다. */
-    void InsertStageAfter(const TypeId& anchor, const TypeId& label, EScheduleMode mode);
+    void InsertStageAfter(const TypeId_v1& anchor, const TypeId_v1& label, EScheduleMode mode);
 
     /** anchor Stage 앞에 새 Stage를 삽입합니다. */
-    void InsertStageBefore(const TypeId& anchor, const TypeId& label, EScheduleMode mode);
+    void InsertStageBefore(const TypeId_v1& anchor, const TypeId_v1& label, EScheduleMode mode);
 
     /** 기본 Stage 순서를 초기화합니다. */
     void SetupDefaultStages();

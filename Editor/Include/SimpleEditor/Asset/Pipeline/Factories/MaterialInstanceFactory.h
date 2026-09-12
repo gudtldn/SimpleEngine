@@ -11,7 +11,7 @@ namespace se::editor
 class SE_EDITOR_API MaterialInstanceFactory : public IPipelineFactory
 {
 public:
-    [[nodiscard]] virtual TypeId GetAssetType() const override;
+    [[nodiscard]] virtual TypeId_v1 GetAssetType() const override;
     [[nodiscard]] virtual bool CanCreateAsset(const PipelineBaseNode* node) const override;
 
     virtual std::shared_ptr<AssetBase> CreateAsset(

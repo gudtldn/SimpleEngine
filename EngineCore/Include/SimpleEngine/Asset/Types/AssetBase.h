@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Container/StringView.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se
@@ -11,7 +11,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetBase
 {
-    SE_CLASS(AssetBase)
+    SE_CLASS_V1(AssetBase)
 
 public:
     virtual ~AssetBase() = default;

@@ -4,7 +4,7 @@
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Asset/AssetPayload.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Core/Reflection/Legacy/TypeId.h"
 
 #include <atomic>
 
@@ -51,7 +51,7 @@ struct SE_CORE_API SlotEntry
 
     // === Non-atomic fields ===
     u32 generation = 0;
-    TypeId asset_type;
+    TypeId_v1 asset_type;
     AssetPath source_path;
     AssetId asset_id;
 
@@ -69,7 +69,7 @@ public:
     SlotEntry() = default;
 
     /** Occupied 상태의 슬롯을 생성합니다. */
-    explicit SlotEntry(const AssetId& in_id, const TypeId& in_type, AssetPath in_path);
+    explicit SlotEntry(const AssetId& in_id, const TypeId_v1& in_type, AssetPath in_path);
 
     // Non-copyable
     SlotEntry(const SlotEntry&) = delete;
@@ -84,7 +84,7 @@ public:
      * 현재 슬롯을 새로운 에셋용으로 초기화합니다.
      * @note 세대 번호(generation)는 유지됩니다.
      */
-    void Initialize(const AssetId& in_id, const TypeId& in_type, AssetPath in_path);
+    void Initialize(const AssetId& in_id, const TypeId_v1& in_type, AssetPath in_path);
 
     /** 슬롯을 완전히 비우고 세대(generation)를 증가시켜 기존 핸들을 무효화합니다. */
     void Clear();

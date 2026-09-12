@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se
@@ -20,7 +20,7 @@ namespace se::editor
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineTextureNode final : public PipelineBaseNode
 {
-    SE_CLASS(PipelineTextureNode, PipelineBaseNode)
+    SE_CLASS_V1(PipelineTextureNode, PipelineBaseNode)
 
 public:
     struct Keys

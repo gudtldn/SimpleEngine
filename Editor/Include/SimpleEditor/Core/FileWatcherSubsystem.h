@@ -13,7 +13,7 @@ namespace se::editor
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) FileWatcherSubsystem : public SubsystemBase
 {
-    SE_CLASS(FileWatcherSubsystem, SubsystemBase)
+    SE_CLASS_V1(FileWatcherSubsystem, SubsystemBase)
 
 public:
     //~ Begin SubsystemBase

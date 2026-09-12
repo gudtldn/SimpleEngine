@@ -2,22 +2,22 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
 
 namespace se
 {
-SE_BEGIN_REFLECT(AssetRecord, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(id, meta::Reflect)
-    SE_REFLECT_PROPERTY(type, meta::Reflect)
-    SE_REFLECT_PROPERTY(logical_path, meta::Reflect)
-    SE_REFLECT_PROPERTY(metadata, meta::Reflect)
-SE_END_REFLECT(AssetRecord)
+SE_BEGIN_REFLECT_V1(AssetRecord, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(id, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(type, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(logical_path, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(metadata, meta::Reflect)
+SE_END_REFLECT_V1(AssetRecord)
 
 
 void AssetRegistry::RegisterAsset(
-    const AssetId& asset_id, const TypeId& asset_type,
+    const AssetId& asset_id, const TypeId_v1& asset_type,
     AssetPath asset_path, AssetMetadata meta
 )
 {
@@ -100,7 +100,7 @@ Optional<AssetId> AssetRegistry::GetAssetId(const AssetPath& asset_path) const
     return path_to_id.Find(asset_path).Copy();
 }
 
-Optional<TypeId> AssetRegistry::GetAssetType(const AssetId& asset_id) const
+Optional<TypeId_v1> AssetRegistry::GetAssetType(const AssetId& asset_id) const
 {
     std::shared_lock lock(registry_mutex);
     return records.Find(asset_id).Map([](const AssetRecord& record)
@@ -109,7 +109,7 @@ Optional<TypeId> AssetRegistry::GetAssetType(const AssetId& asset_id) const
     });
 }
 
-Optional<AssetId> AssetRegistry::FindFirstOfType(const VPath& file_path, const TypeId& type) const
+Optional<AssetId> AssetRegistry::FindFirstOfType(const VPath& file_path, const TypeId_v1& type) const
 {
     std::shared_lock lock(registry_mutex);
 

@@ -31,7 +31,7 @@ struct MetaFileContent;
  */
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorAssetSubsystem : public SubsystemBase
 {
-    SE_CLASS(EditorAssetSubsystem, SubsystemBase)
+    SE_CLASS_V1(EditorAssetSubsystem, SubsystemBase)
 
 public:
     EditorAssetSubsystem();

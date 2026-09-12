@@ -4,7 +4,7 @@
 #include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/SlotEntry.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
 using namespace se;
@@ -14,14 +14,14 @@ using namespace se;
 
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ScopeTestAsset : public AssetBase
 {
-    SE_CLASS(ScopeTestAsset, AssetBase)
+    SE_CLASS_V1(ScopeTestAsset, AssetBase)
 
 public:
     ScopeTestAsset() = default;
 };
 
-SE_BEGIN_REFLECT(ScopeTestAsset, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(ScopeTestAsset)
+SE_BEGIN_REFLECT_V1(ScopeTestAsset, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(ScopeTestAsset)
 
 
 namespace
@@ -38,7 +38,7 @@ HandleData SimulateLoad(
     AssetPool& pool, EScopeLayer scope,
     u64 size_bytes = 256, u64 frame = 0)
 {
-    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<ScopeTestAsset>(), AssetPath("test/scope_asset"));
+    HandleData hd = pool.FindOrCreate(NewId(), TypeId_v1::Of<ScopeTestAsset>(), AssetPath("test/scope_asset"));
 
     HandleTable& table = pool.GetTable();
     SlotEntry& slot = table.GetSlot(hd.index);
@@ -131,7 +131,7 @@ TEST_F(ScopeLayerTest, UnloadScope_GlobalGuarded)
 
 TEST_F(ScopeLayerTest, DefaultScopeIsScene)
 {
-    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<ScopeTestAsset>(), AssetPath("test/default"));
+    HandleData hd = pool.FindOrCreate(NewId(), TypeId_v1::Of<ScopeTestAsset>(), AssetPath("test/default"));
     SlotEntry& slot = pool.GetTable().GetSlot(hd.index);
 
     // SlotEntry의 기본 scope는 Scene

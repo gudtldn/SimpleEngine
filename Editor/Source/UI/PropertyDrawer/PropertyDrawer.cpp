@@ -6,7 +6,7 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/ECS/Entity.h"
@@ -50,7 +50,7 @@ consteval ImGuiDataType_ GetImGuiDataType()
 
 // --- Bool ---
 
-bool DrawBool(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawBool(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     return ImGui::Checkbox(label, static_cast<bool*>(value));
 }
@@ -58,12 +58,12 @@ bool DrawBool(const char* label, void* value, const PropertyInfo& /*prop*/)
 // --- Arithmetic (int, uint, f32, f64) ---
 
 template <typename T>
-bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
+bool DrawArithmetic(const char* label, void* value, const PropertyInfo_v1& prop)
 {
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     T* v = static_cast<T*>(value);
 
-    if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasRange))
+    if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::HasRange))
     {
         T min_val = static_cast<T>(prop.metadata.range_min);
         T max_val = static_cast<T>(prop.metadata.range_max);
@@ -76,7 +76,7 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo& prop)
 
 // --- String ---
 
-bool DrawString(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawString(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     String& str = *static_cast<String*>(value);
     return ImGui::InputText(label, &str);
@@ -84,7 +84,7 @@ bool DrawString(const char* label, void* value, const PropertyInfo& /*prop*/)
 
 // --- StringName (read-only: interned string) ---
 
-bool DrawStringName(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawStringName(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     const StringName& name = *static_cast<StringName*>(value);
     ImGui::LabelText(label, "%s", name.CStr());
@@ -93,7 +93,7 @@ bool DrawStringName(const char* label, void* value, const PropertyInfo& /*prop*/
 
 // --- Guid (read-only) ---
 
-bool DrawGuid(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawGuid(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     const Guid& guid = *static_cast<Guid*>(value);
     const String str = guid.ToString();
@@ -103,9 +103,9 @@ bool DrawGuid(const char* label, void* value, const PropertyInfo& /*prop*/)
 
 // --- TypeId (read-only) ---
 
-bool DrawTypeId(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawTypeId(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
-    const TypeId& type_id = *static_cast<TypeId*>(value);
+    const TypeId_v1& type_id = *static_cast<TypeId_v1*>(value);
     const StringView view = type_id.IsValid() ? type_id.GetName() : "(none)";
     ImGui::LabelText(label, "%.*s", static_cast<int>(view.ByteLen()), view.Data());
     return false;
@@ -113,7 +113,7 @@ bool DrawTypeId(const char* label, void* value, const PropertyInfo& /*prop*/)
 
 // --- AssetId (GUID 표시 + Asset Drag&Drop Target) ---
 
-bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawAssetId(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     AssetId& asset_id = *static_cast<AssetId*>(value);
     bool modified = false;
@@ -155,7 +155,7 @@ bool DrawAssetId(const char* label, void* value, const PropertyInfo& /*prop*/)
 
 // --- Entity (read-only) ---
 
-bool DrawEntity(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawEntity(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     const Entity& entity = *static_cast<Entity*>(value);
     if (entity.IsValid())
@@ -176,7 +176,7 @@ bool DrawEntity(const char* label, void* value, const PropertyInfo& /*prop*/)
 // --- Vector2 / Vector2f ---
 
 template <typename T>
-bool DrawVector2(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawVector2(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     using Vec = math::Vector2Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -188,7 +188,7 @@ bool DrawVector2(const char* label, void* value, const PropertyInfo& /*prop*/)
 // --- Vector3 / Vector3f ---
 
 template <typename T>
-bool DrawVector3(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawVector3(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     using Vec = math::Vector3Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -200,7 +200,7 @@ bool DrawVector3(const char* label, void* value, const PropertyInfo& /*prop*/)
 // --- Vector4 / Vector4f ---
 
 template <typename T>
-bool DrawVector4(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawVector4(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     using Vec = math::Vector4Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -212,7 +212,7 @@ bool DrawVector4(const char* label, void* value, const PropertyInfo& /*prop*/)
 // --- Quaternion / Quaternionf ---
 
 template <typename T>
-bool DrawQuaternion(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawQuaternion(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     using Quat = math::QuaternionImpl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -223,7 +223,7 @@ bool DrawQuaternion(const char* label, void* value, const PropertyInfo& /*prop*/
 // --- Rotator / Rotatorf ---
 
 template <typename T>
-bool DrawRotator(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawRotator(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     using Rot = math::RotatorImpl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -235,7 +235,7 @@ bool DrawRotator(const char* label, void* value, const PropertyInfo& /*prop*/)
 
 // --- Matrix4x4 / Matrix4x4f ---
 template <typename T>
-bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo& prop)
+bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo_v1& prop)
 {
     using Mat = math::Matrix4x4Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -243,7 +243,7 @@ bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo& prop)
 
     bool modified = false;
 
-    const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags::ReadOnly);
+    const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags_v1::ReadOnly);
 
     if (read_only)
     {
@@ -291,7 +291,7 @@ bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo& prop)
 
 // --- LinearColor ---
 
-bool DrawLinearColor(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawLinearColor(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     LinearColor* color = static_cast<LinearColor*>(value);
     return ImGui::ColorEdit4(label, &color->r);
@@ -299,7 +299,7 @@ bool DrawLinearColor(const char* label, void* value, const PropertyInfo& /*prop*
 
 // --- Color (u8 RGBA) ---
 
-bool DrawColor(const char* label, void* value, const PropertyInfo& /*prop*/)
+bool DrawColor(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 {
     Color* color = static_cast<Color*>(value);
     f32 rgba[4] = {
@@ -323,13 +323,13 @@ bool DrawColor(const char* label, void* value, const PropertyInfo& /*prop*/)
 // --- Degree<T> (AngleType) ---
 
 template <typename T>
-bool DrawDegree(const char* label, void* value, const PropertyInfo& prop)
+bool DrawDegree(const char* label, void* value, const PropertyInfo_v1& prop)
 {
     using Deg = Degree<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Deg* angle = static_cast<Deg*>(value);
 
-    if (prop.metadata.flags.IsAnySet(EPropertyFlags::HasRange))
+    if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::HasRange))
     {
         T min_val = static_cast<T>(prop.metadata.range_min);
         T max_val = static_cast<T>(prop.metadata.range_max);
@@ -429,15 +429,15 @@ void WriteEnumValue(void* value, i64 new_value, usize size, bool is_unsigned)
 // Enum Drawer (generic, type-erased)
 // ============================================================================
 
-bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
+bool DrawEnum(const char* label, void* value, const PropertyInfo_v1& prop)
 {
-    const auto type_info_opt = TypeRegistry::Get().Find(prop.type_id);
+    const auto type_info_opt = TypeRegistry_v1::Get().Find(prop.type_id);
     SE_ASSERT(
         type_info_opt && type_info_opt->enum_entries,
         "Enum '{}' is registered without enum_entries. Use SE_REFLECT_ENUM to register.", prop.type_id.GetName()
     );
 
-    const EnumEntry* entries = nullptr;
+    const EnumEntry_v1* entries = nullptr;
     usize count = 0;
     type_info_opt->enum_entries(entries, count);
 
@@ -447,7 +447,7 @@ bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
         return false;
     }
 
-    const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags::IsUnsigned);
+    const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags_v1::IsUnsigned);
     const i64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
 
     // 현재 선택 인덱스 찾기
@@ -490,15 +490,15 @@ bool DrawEnum(const char* label, void* value, const PropertyInfo& prop)
 // BitFlag Enum Drawer (checkbox per flag)
 // ============================================================================
 
-bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
+bool DrawBitFlags(const char* label, void* value, const PropertyInfo_v1& prop)
 {
-    const auto type_info_opt = TypeRegistry::Get().Find(prop.type_id);
+    const auto type_info_opt = TypeRegistry_v1::Get().Find(prop.type_id);
     SE_ASSERT(
         type_info_opt && type_info_opt->enum_entries,
         "BitFlag enum '{}' is registered without enum_entries. Use SE_REFLECT_ENUM to register.", prop.type_id.GetName()
     );
 
-    const EnumEntry* entries = nullptr;
+    const EnumEntry_v1* entries = nullptr;
     usize count = 0;
     type_info_opt->enum_entries(entries, count);
 
@@ -508,7 +508,7 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
         return false;
     }
 
-    const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags::IsUnsigned);
+    const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags_v1::IsUnsigned);
     i64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
 
     bool modified = false;
@@ -548,7 +548,7 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo& prop)
 // Container Drawer Helpers
 // ============================================================================
 
-bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& registry, bool read_only)
+bool DrawArrayContent(const ContainerOps_v1& ops, void* container, DrawerRegistry& registry, bool read_only)
 {
     bool modified = false;
     const usize count = ops.size(container);
@@ -556,9 +556,9 @@ bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& 
     struct IterState
     {
         DrawerRegistry* registry;
-        TypeId elem_type_id;
-        const ContainerOps* elem_container_ops;
-        const OptionalOps* elem_optional_ops;
+        TypeId_v1 elem_type_id;
+        const ContainerOps_v1* elem_container_ops;
+        const OptionalOps_v1* elem_optional_ops;
         bool read_only;
         bool modified;
         usize remove_idx;
@@ -613,7 +613,7 @@ bool DrawArrayContent(const ContainerOps& ops, void* container, DrawerRegistry& 
     return modified;
 }
 
-bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& registry, bool read_only)
+bool DrawSetContent(const ContainerOps_v1& ops, void* container, DrawerRegistry& registry, bool read_only)
 {
     bool modified = false;
     const usize count = ops.size(container);
@@ -621,9 +621,9 @@ bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& re
     struct IterState
     {
         DrawerRegistry* registry;
-        TypeId elem_type_id;
-        const ContainerOps* elem_container_ops;
-        const OptionalOps* elem_optional_ops;
+        TypeId_v1 elem_type_id;
+        const ContainerOps_v1* elem_container_ops;
+        const OptionalOps_v1* elem_optional_ops;
         bool read_only;
         bool modified;
         usize remove_idx;
@@ -682,7 +682,7 @@ bool DrawSetContent(const ContainerOps& ops, void* container, DrawerRegistry& re
     return modified;
 }
 
-bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& registry, bool read_only)
+bool DrawMapContent(const ContainerOps_v1& ops, void* container, DrawerRegistry& registry, bool read_only)
 {
     bool modified = false;
     const usize count = ops.size(container);
@@ -690,12 +690,12 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
     struct IterState
     {
         DrawerRegistry* registry;
-        TypeId key_type_id;
-        TypeId value_type_id;
-        const ContainerOps* key_container_ops;
-        const OptionalOps* key_optional_ops;
-        const ContainerOps* value_container_ops;
-        const OptionalOps* value_optional_ops;
+        TypeId_v1 key_type_id;
+        TypeId_v1 value_type_id;
+        const ContainerOps_v1* key_container_ops;
+        const OptionalOps_v1* key_optional_ops;
+        const ContainerOps_v1* value_container_ops;
+        const OptionalOps_v1* value_optional_ops;
         bool read_only;
         bool modified;
         usize remove_idx;
@@ -767,7 +767,7 @@ bool DrawMapContent(const ContainerOps& ops, void* container, DrawerRegistry& re
 bool DrawContainerProperty(
     const char* label,
     void* container,
-    const ContainerOps& ops,
+    const ContainerOps_v1& ops,
     DrawerRegistry& registry,
     bool read_only
 )
@@ -809,13 +809,13 @@ bool DrawContainerProperty(
         // 요소 렌더링
         switch (ops.kind)
         {
-        case EContainerKind::Array:
+        case EContainerKind_v1::Array:
             modified |= DrawArrayContent(ops, container, registry, read_only);
             break;
-        case EContainerKind::Set:
+        case EContainerKind_v1::Set:
             modified |= DrawSetContent(ops, container, registry, read_only);
             break;
-        case EContainerKind::Map:
+        case EContainerKind_v1::Map:
             modified |= DrawMapContent(ops, container, registry, read_only);
             break;
         default:
@@ -831,7 +831,7 @@ bool DrawContainerProperty(
 bool DrawOptionalProperty(
     const char* label,
     void* optional,
-    const OptionalOps& ops,
+    const OptionalOps_v1& ops,
     DrawerRegistry& registry,
     bool read_only
 )
@@ -916,12 +916,12 @@ DrawerRegistry& DrawerRegistry::Get()
     return instance;
 }
 
-void DrawerRegistry::Register(const TypeId& type_id, PropertyDrawFunc drawer)
+void DrawerRegistry::Register(const TypeId_v1& type_id, PropertyDrawFunc drawer)
 {
     drawers.Insert(type_id, drawer);
 }
 
-PropertyDrawFunc DrawerRegistry::Find(const TypeId& type_id) const
+PropertyDrawFunc DrawerRegistry::Find(const TypeId_v1& type_id) const
 {
     if (const auto draw_fn = drawers.Find(type_id))
     {
@@ -930,13 +930,13 @@ PropertyDrawFunc DrawerRegistry::Find(const TypeId& type_id) const
     return nullptr;
 }
 
-bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance)
+bool DrawerRegistry::DrawProperties(const TypeInfo_v1& type_info, void* instance)
 {
     HashSet<void*> visited;
     return DrawProperties(type_info, instance, visited);
 }
 
-bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, HashSet<void*>& visited)
+bool DrawerRegistry::DrawProperties(const TypeInfo_v1& type_info, void* instance, HashSet<void*>& visited)
 {
     if (!instance)
     {
@@ -946,11 +946,11 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, H
     bool modified = false;
 
     // 부모 클래스의 프로퍼티를 먼저 렌더링 (다중 상속 포함, 주소 기준 dedup)
-    if (type_info.kind == ETypeKind::Struct)
+    if (type_info.kind == ETypeKind_v1::Struct)
     {
-        for (const BaseInfo& base : type_info.bases)
+        for (const BaseInfo_v1& base : type_info.bases)
         {
-            if (const auto parent = TypeRegistry::Get().Find(base.base_id))
+            if (const auto parent = TypeRegistry_v1::Get().Find(base.base_id))
             {
                 void* base_instance = base.upcast(instance);
                 if (visited.Insert(base_instance))
@@ -961,10 +961,10 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, H
         }
     }
 
-    for (const PropertyInfo& prop : type_info.properties)
+    for (const PropertyInfo_v1& prop : type_info.properties)
     {
         // Hidden 프로퍼티는 건너뛰기
-        if (prop.metadata.flags.IsAnySet(EPropertyFlags::Hidden))
+        if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::Hidden))
         {
             continue;
         }
@@ -975,7 +975,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, H
         void* prop_data = prop.accessor.get_mut(instance);
 
         // ReadOnly면 ImGui 위젯 비활성화
-        const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags::ReadOnly);
+        const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags_v1::ReadOnly);
         if (read_only)
         {
             ImGui::BeginDisabled();
@@ -1027,11 +1027,11 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, H
         }
 
         // TypeRegistry에서 타입 정보 조회하여 분기
-        else if (const auto prop_type_opt = TypeRegistry::Get().Find(prop.type_id))
+        else if (const auto prop_type_opt = TypeRegistry_v1::Get().Find(prop.type_id))
         {
-            if (prop_type_opt->kind == ETypeKind::Enum && prop_type_opt->enum_entries)
+            if (prop_type_opt->kind == ETypeKind_v1::Enum && prop_type_opt->enum_entries)
             {
-                if (prop_type_opt->flags.IsAnySet(ETypeFlags::IsBitFlag))
+                if (prop_type_opt->flags.IsAnySet(ETypeFlags_v1::IsBitFlag))
                 {
                     // BitFlag Enum -> Checkbox 위젯
                     modified |= DrawBitFlags(label, prop_data, prop);
@@ -1042,7 +1042,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, H
                     modified |= DrawEnum(label, prop_data, prop);
                 }
             }
-            else if (prop_type_opt->kind == ETypeKind::Struct && !prop_type_opt->properties.IsEmpty())
+            else if (prop_type_opt->kind == ETypeKind_v1::Struct && !prop_type_opt->properties.IsEmpty())
             {
                 // 중첩 Struct -> TreeNode로 재귀 렌더링 (별개 객체이므로 fresh visited)
                 if (ImGui::TreeNode(label))
@@ -1082,11 +1082,11 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, H
 }
 
 bool DrawerRegistry::DrawValue(
-    const TypeId& type_id,
+    const TypeId_v1& type_id,
     const char* label,
     void* value,
-    const ContainerOps* container_ops,
-    const OptionalOps* optional_ops
+    const ContainerOps_v1* container_ops,
+    const OptionalOps_v1* optional_ops
 )
 {
     // 컨테이너 타입: 중첩 ContainerOps를 통해 렌더링
@@ -1105,27 +1105,27 @@ bool DrawerRegistry::DrawValue(
     if (const PropertyDrawFunc drawer = Find(type_id))
     {
         // 빈 PropertyInfo 생성 (메타데이터 없음)
-        PropertyInfo dummy_prop;
+        PropertyInfo_v1 dummy_prop;
         dummy_prop.type_id = type_id;
         return drawer(label, value, dummy_prop);
     }
 
     // TypeRegistry에서 타입 정보 조회하여 분기
-    if (const auto type = TypeRegistry::Get().Find(type_id))
+    if (const auto type = TypeRegistry_v1::Get().Find(type_id))
     {
-        if (type->kind == ETypeKind::Enum && type->enum_entries)
+        if (type->kind == ETypeKind_v1::Enum && type->enum_entries)
         {
-            PropertyInfo dummy_prop;
+            PropertyInfo_v1 dummy_prop;
             dummy_prop.type_id = type_id;
 
-            if (type->flags.IsAnySet(ETypeFlags::IsBitFlag))
+            if (type->flags.IsAnySet(ETypeFlags_v1::IsBitFlag))
             {
                 return DrawBitFlags(label, value, dummy_prop);
             }
             return DrawEnum(label, value, dummy_prop);
         }
 
-        if (type->kind == ETypeKind::Struct && !type->properties.IsEmpty())
+        if (type->kind == ETypeKind_v1::Struct && !type->properties.IsEmpty())
         {
             if (ImGui::TreeNode(label))
             {
@@ -1146,50 +1146,50 @@ bool DrawerRegistry::DrawValue(
 void DrawerRegistry::RegisterBuiltinDrawers()
 {
     // --- Primitive ---
-    Register(TypeId::Of<bool>(),   &DrawBool);
-    Register(TypeId::Of<i8>(),   &DrawArithmetic<i8>);
-    Register(TypeId::Of<u8>(),  &DrawArithmetic<u8>);
-    Register(TypeId::Of<i16>(),  &DrawArithmetic<i16>);
-    Register(TypeId::Of<u16>(), &DrawArithmetic<u16>);
-    Register(TypeId::Of<i32>(),  &DrawArithmetic<i32>);
-    Register(TypeId::Of<u32>(), &DrawArithmetic<u32>);
-    Register(TypeId::Of<i64>(),  &DrawArithmetic<i64>);
-    Register(TypeId::Of<u64>(), &DrawArithmetic<u64>);
-    Register(TypeId::Of<f32>(),  &DrawArithmetic<f32>);
-    Register(TypeId::Of<f64>(), &DrawArithmetic<f64>);
+    Register(TypeId_v1::Of<bool>(),   &DrawBool);
+    Register(TypeId_v1::Of<i8>(),   &DrawArithmetic<i8>);
+    Register(TypeId_v1::Of<u8>(),  &DrawArithmetic<u8>);
+    Register(TypeId_v1::Of<i16>(),  &DrawArithmetic<i16>);
+    Register(TypeId_v1::Of<u16>(), &DrawArithmetic<u16>);
+    Register(TypeId_v1::Of<i32>(),  &DrawArithmetic<i32>);
+    Register(TypeId_v1::Of<u32>(), &DrawArithmetic<u32>);
+    Register(TypeId_v1::Of<i64>(),  &DrawArithmetic<i64>);
+    Register(TypeId_v1::Of<u64>(), &DrawArithmetic<u64>);
+    Register(TypeId_v1::Of<f32>(),  &DrawArithmetic<f32>);
+    Register(TypeId_v1::Of<f64>(), &DrawArithmetic<f64>);
 
     // --- String ---
-    Register(TypeId::Of<String>(),      &DrawString);
-    Register(TypeId::Of<StringName>(),  &DrawStringName);
+    Register(TypeId_v1::Of<String>(),      &DrawString);
+    Register(TypeId_v1::Of<StringName>(),  &DrawStringName);
 
     // --- Identifiers ---
-    Register(TypeId::Of<Guid>(),        &DrawGuid);
-    Register(TypeId::Of<TypeId>(),      &DrawTypeId);
-    Register(TypeId::Of<AssetId>(),     &DrawAssetId);
-    Register(TypeId::Of<Entity>(),      &DrawEntity);
+    Register(TypeId_v1::Of<Guid>(),        &DrawGuid);
+    Register(TypeId_v1::Of<TypeId_v1>(),      &DrawTypeId);
+    Register(TypeId_v1::Of<AssetId>(),     &DrawAssetId);
+    Register(TypeId_v1::Of<Entity>(),      &DrawEntity);
 
     // --- Math (f64 precision) ---
-    Register(TypeId::Of<Vector2>(),     &DrawVector2<f64>);
-    Register(TypeId::Of<Vector3>(),     &DrawVector3<f64>);
-    Register(TypeId::Of<Vector4>(),     &DrawVector4<f64>);
-    Register(TypeId::Of<Quaternion>(),  &DrawQuaternion<f64>);
-    Register(TypeId::Of<Rotator>(),     &DrawRotator<f64>);
-    Register(TypeId::Of<Matrix4x4>(),   &DrawMatrix4x4<f64>);
+    Register(TypeId_v1::Of<Vector2>(),     &DrawVector2<f64>);
+    Register(TypeId_v1::Of<Vector3>(),     &DrawVector3<f64>);
+    Register(TypeId_v1::Of<Vector4>(),     &DrawVector4<f64>);
+    Register(TypeId_v1::Of<Quaternion>(),  &DrawQuaternion<f64>);
+    Register(TypeId_v1::Of<Rotator>(),     &DrawRotator<f64>);
+    Register(TypeId_v1::Of<Matrix4x4>(),   &DrawMatrix4x4<f64>);
 
     // --- Math (single precision) ---
-    Register(TypeId::Of<Vector2f>(),    &DrawVector2<f32>);
-    Register(TypeId::Of<Vector3f>(),    &DrawVector3<f32>);
-    Register(TypeId::Of<Vector4f>(),    &DrawVector4<f32>);
-    Register(TypeId::Of<Quaternionf>(), &DrawQuaternion<f32>);
-    Register(TypeId::Of<Rotatorf>(),    &DrawRotator<f32>);
-    Register(TypeId::Of<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
+    Register(TypeId_v1::Of<Vector2f>(),    &DrawVector2<f32>);
+    Register(TypeId_v1::Of<Vector3f>(),    &DrawVector3<f32>);
+    Register(TypeId_v1::Of<Vector4f>(),    &DrawVector4<f32>);
+    Register(TypeId_v1::Of<Quaternionf>(), &DrawQuaternion<f32>);
+    Register(TypeId_v1::Of<Rotatorf>(),    &DrawRotator<f32>);
+    Register(TypeId_v1::Of<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
 
     // --- Color ---
-    Register(TypeId::Of<LinearColor>(), &DrawLinearColor);
-    Register(TypeId::Of<Color>(),       &DrawColor);
+    Register(TypeId_v1::Of<LinearColor>(), &DrawLinearColor);
+    Register(TypeId_v1::Of<Color>(),       &DrawColor);
 
     // --- Angles ---
-    Register(TypeId::Of<Degree<f64>>(), &DrawDegree<f64>);
-    Register(TypeId::Of<Degree<f32>>(),  &DrawDegree<f32>);
+    Register(TypeId_v1::Of<Degree<f64>>(), &DrawDegree<f64>);
+    Register(TypeId_v1::Of<Degree<f32>>(),  &DrawDegree<f32>);
 }
 } // namespace se::editor

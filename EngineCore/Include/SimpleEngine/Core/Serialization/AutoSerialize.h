@@ -1,12 +1,12 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Meta.h"
+#include "../Reflection/Legacy/Meta.h"
 
 
 namespace se
 {
 // forward declaration
-class TypeRegistry;
+class TypeRegistry_v1;
 
 /**
  * 리플렉션 PropertyInfo 기반 자동 직렬화/역직렬화 함수.
@@ -20,6 +20,6 @@ class TypeRegistry;
  * @param info 대상 타입의 TypeInfo
  * @param instance 직렬화할 객체의 포인터
  */
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance);
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
+SE_CORE_API void AutoSerialize(Archive& ar, const TypeInfo_v1& info, void* instance);
+SE_CORE_API void AutoSerialize(Archive& ar, const TypeId_v1& type_id, void* instance);
 } // namespace se

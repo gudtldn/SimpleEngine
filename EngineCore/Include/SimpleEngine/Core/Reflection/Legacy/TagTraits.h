@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Meta.h"
+#include "Meta.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 
@@ -10,7 +10,7 @@ namespace se::detail
  * 이 태그가 등록 시 RegistrationTrait 특수화(Apply)를 반드시 가져야 하는지 여부
  */
 template <typename Tag>
-struct HookRequiredTrait
+struct HookRequiredTrait_v1
 {
     static constexpr bool VALUE = false;
 };
@@ -26,7 +26,7 @@ struct HookRequiredTrait
  *       타입 요구조건은 Apply 본문 안의 static_assert로 검증하세요.
  */
 template <typename Tag>
-struct RegistrationTrait
+struct RegistrationTrait_v1
 {
 };
 
@@ -35,7 +35,7 @@ struct RegistrationTrait
  * 특수화가 없으면 static_assert로 실패하여, 분류되지 않은 태그를 컴파일 타임에 잡아냅니다.
  */
 template <typename Tag>
-struct TypeFlagTrait
+struct TypeFlagTrait_v1
 {
     static_assert(se::traits::AlwaysFalse<Tag>, "TypeFlagTrait<Tag> specialization missing.");
 };
@@ -45,7 +45,7 @@ struct TypeFlagTrait
  * Range처럼 태그 인스턴스의 값(min/max)이 필요한 경우를 위해 타입이 아닌 인스턴스를 받습니다.
  */
 template <typename Tag>
-struct PropertyMetadataTrait
+struct PropertyMetadataTrait_v1
 {
     static_assert(se::traits::AlwaysFalse<Tag>, "PropertyMetadataTrait<Tag> specialization missing.");
 };
@@ -58,15 +58,15 @@ struct PropertyMetadataTrait
 
 /** HookRequiredTrait<Tag>::VALUE = true 특수화를 생성합니다. */
 #define SE_HOOK_REQUIRED(Tag) \
-    template <> struct HookRequiredTrait<Tag> { static constexpr bool VALUE = true; }
+    template <> struct HookRequiredTrait_v1<Tag> { static constexpr bool VALUE = true; }
 
 /** TypeFlagTrait<Tag>::VALUE = FlagValue 특수화를 생성합니다. */
 #define SE_TYPE_FLAG(Tag, FlagValue) \
-    template <> struct TypeFlagTrait<Tag> { static constexpr ETypeFlags VALUE = FlagValue; }
+    template <> struct TypeFlagTrait_v1<Tag> { static constexpr ETypeFlags_v1 VALUE = FlagValue; }
 
 /** meta.flags |= FlagValue 하나만 수행하는 PropertyMetadataTrait<Tag> 특수화를 생성합니다. */
 #define SE_PROPERTY_FLAG(Tag, FlagValue) \
-    template <> struct PropertyMetadataTrait<Tag> \
+    template <> struct PropertyMetadataTrait_v1<Tag> \
     { \
-        static constexpr void Apply(PropertyMetadata& meta, const Tag&) { meta.flags |= FlagValue; } \
+        static constexpr void Apply(PropertyMetadata_v1& meta, const Tag&) { meta.flags |= FlagValue; } \
     }

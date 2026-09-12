@@ -38,7 +38,7 @@ struct DebugLine
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) DebugDrawSubsystem : public SubsystemBase
 {
-    SE_CLASS(DebugDrawSubsystem, SubsystemBase)
+    SE_CLASS_V1(DebugDrawSubsystem, SubsystemBase)
 
 public:
     static constexpr u32 MAX_DEBUG_LINES = 16384;
@@ -80,4 +80,4 @@ private:
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::DebugDrawSubsystem)
+SE_DECLARE_REFLECTION_V1(se::DebugDrawSubsystem)

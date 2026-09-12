@@ -1,7 +1,7 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 
-#include "SimpleEngine/Core/Reflection/Cast.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGNodeTypes.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
@@ -71,7 +71,7 @@ SDL_GPUTexture* RGExecutionContext::GetActualTexture(RGTextureHandle handle) con
     if (handle.index < builder_ref.resource_nodes.Len())
     {
         RGResourceBase* raw_ptr = builder_ref.resource_nodes[handle.index].resource.get();
-        if (const RGTextureBase* resource = Cast<RGTextureBase>(raw_ptr))
+        if (const RGTextureBase* resource = Cast_v1<RGTextureBase>(raw_ptr))
         {
             return resource->GetActualTexture();
         }
@@ -84,7 +84,7 @@ SDL_GPUBuffer* RGExecutionContext::GetActualBuffer(RGBufferHandle handle) const
     if (handle.index < builder_ref.resource_nodes.Len())
     {
         RGResourceBase* raw_ptr = builder_ref.resource_nodes[handle.index].resource.get();
-        if (const RGBufferBase* resource = Cast<RGBufferBase>(raw_ptr))
+        if (const RGBufferBase* resource = Cast_v1<RGBufferBase>(raw_ptr))
         {
             return resource->GetActualBuffer();
         }

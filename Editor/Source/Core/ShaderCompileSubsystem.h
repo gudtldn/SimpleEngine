@@ -14,7 +14,7 @@ namespace se::editor
  */
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
-    SE_CLASS(ShaderCompileSubsystem, SubsystemBase)
+    SE_CLASS_V1(ShaderCompileSubsystem, SubsystemBase)
 
 public:
     //~ Begin SubsystemBase

@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Traits/SerializationTraits.h"
 #include "SimpleEngine/Utility/StringUtils.h"
@@ -187,8 +187,8 @@ T ConfigFile::GetSection(StringView section_name) const
     }
     else
     {
-        // 리플렉션 등록된 타입 -> TypeInfo::serialize 사용
-        const TypeInfo& info = TypeRegistry::Get().FindChecked<T>();
+        // 리플렉션 등록된 타입 -> TypeInfo_v1::serialize 사용
+        const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked<T>();
         if (info.serialize)
         {
             info.serialize(reader, &result);
@@ -214,7 +214,7 @@ void ConfigFile::SetSection(const T& settings, StringView section_name)
     }
     else
     {
-        const TypeInfo& info = TypeRegistry::Get().FindChecked<T>();
+        const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked<T>();
         if (info.serialize)
         {
             info.serialize(writer, const_cast<void*>(static_cast<const void*>(&settings)));

@@ -26,9 +26,9 @@ SE_REGISTER_SUBSYSTEM(SelectionSubsystem)
     >()
     .UpdateDependsOn<GizmoSubsystem>();
 
-SE_BEGIN_REFLECT(SelectionSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE(IUpdatable)
-SE_END_REFLECT(SelectionSubsystem)
+SE_BEGIN_REFLECT_V1(SelectionSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+    SE_REFLECT_INTERFACE_V1(IUpdatable)
+SE_END_REFLECT_V1(SelectionSubsystem)
 
 bool SelectionSubsystem::Initialize()
 {

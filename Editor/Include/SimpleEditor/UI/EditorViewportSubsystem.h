@@ -61,7 +61,7 @@ public:
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorViewportSubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS(EditorViewportSubsystem, SubsystemBase)
+    SE_CLASS_V1(EditorViewportSubsystem, SubsystemBase)
 
 public:
     [[nodiscard]] virtual bool Initialize() override;

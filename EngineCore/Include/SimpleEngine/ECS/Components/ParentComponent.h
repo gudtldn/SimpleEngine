@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 
@@ -17,4 +17,4 @@ public:
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::ParentComponent)
+SE_DECLARE_REFLECTION_V1(se::ParentComponent)

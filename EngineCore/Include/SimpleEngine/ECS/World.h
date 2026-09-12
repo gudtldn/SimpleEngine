@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/ECS/ComponentStorage.h"
 #include "SimpleEngine/ECS/EntityManager.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
@@ -159,7 +159,7 @@ public:
     T& InsertResource(Args&&... args)
     {
         using RawType = std::remove_cvref_t<T>;
-        const TypeId type_id = TypeId::Of<RawType>();
+        const TypeId_v1 type_id = TypeId_v1::Of<RawType>();
 
         if (const auto existing = resource_storages.Find(type_id))
         {
@@ -178,7 +178,7 @@ public:
     template <typename T>
     void RemoveResource()
     {
-        resource_storages.Remove(TypeId::Of<std::remove_cvref_t<T>>());
+        resource_storages.Remove(TypeId_v1::Of<std::remove_cvref_t<T>>());
     }
 
     /** 리소스를 가져옵니다. 존재하지 않으면 Assert합니다. */
@@ -187,7 +187,7 @@ public:
     {
         using RawType = std::remove_cvref_t<T>;
 
-        const TypeId type_id = TypeId::Of<RawType>();
+        const TypeId_v1 type_id = TypeId_v1::Of<RawType>();
         const StringView name = GetFullTypeName<RawType>();
 
         const auto resource_opt = self.resource_storages.Find(type_id);
@@ -200,7 +200,7 @@ public:
     Optional<traits::CopyConst<Self, std::remove_cvref_t<T>&>> TryGetResource(this Self&& self)
     {
         using RawType = std::remove_cvref_t<T>;
-        if (auto resource = self.resource_storages.Find(TypeId::Of<RawType>()))
+        if (auto resource = self.resource_storages.Find(TypeId_v1::Of<RawType>()))
         {
             return static_cast<traits::CopyConst<Self, ResourceStorage<RawType>*>>(resource->get())->Get();
         }
@@ -211,7 +211,7 @@ public:
     template <typename T>
     [[nodiscard]] bool HasResource() const
     {
-        return resource_storages.Contains(TypeId::Of<std::remove_cvref_t<T>>());
+        return resource_storages.Contains(TypeId_v1::Of<std::remove_cvref_t<T>>());
     }
 
 public:
@@ -226,15 +226,15 @@ public:
      * @param type_id 검색할 타입의 TypeId
      * @return IStorage 포인터, 해당 타입이 없을 경우 nullptr 반환
      */
-    [[nodiscard]] IComponentStorage* FindRawStorage(const TypeId& type_id);
-    [[nodiscard]] const IComponentStorage* FindRawStorage(const TypeId& type_id) const;
+    [[nodiscard]] IComponentStorage* FindRawStorage(const TypeId_v1& type_id);
+    [[nodiscard]] const IComponentStorage* FindRawStorage(const TypeId_v1& type_id) const;
 
     /** template 타입에 맞는 IComponentStorage 포인터를 반환합니다. */
     template <typename ComponentType, typename Self>
     traits::CopyConst<Self, IComponentStorage*> FindRawStorage(this Self&& self)
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        return self.FindRawStorage(TypeId::Of<RawType>());
+        return self.FindRawStorage(TypeId_v1::Of<RawType>());
     }
 
     /** 구체적 타입으로 캐스팅된 실제 Component Pool(SparseSet)을 검색합니다. */
@@ -255,13 +255,13 @@ public:
      * @param type_id 검색하거나 생성할 타입의 TypeId
      * @return IStorage 포인터, 생성되거나 조회된 저장소를 반환
      */
-    [[nodiscard]] IComponentStorage* GetOrCreateRawStorage(const TypeId& type_id);
+    [[nodiscard]] IComponentStorage* GetOrCreateRawStorage(const TypeId_v1& type_id);
 
     template <typename ComponentType>
     [[nodiscard]] IComponentStorage* GetOrCreateRawStorage()
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        return GetOrCreateRawStorage(TypeId::Of<RawType>());
+        return GetOrCreateRawStorage(TypeId_v1::Of<RawType>());
     }
 
 private:
@@ -270,7 +270,7 @@ private:
     ComponentStorage<std::remove_cvref_t<ComponentType>>& GetOrCreateComponentStorage()
     {
         using RawType = std::remove_cvref_t<ComponentType>;
-        const auto type_id = TypeId::Of<RawType>();
+        const auto type_id = TypeId_v1::Of<RawType>();
 
         auto& storage_ptr = component_storages
             .Entry(type_id)
@@ -324,8 +324,8 @@ private:
     EntityManager entity_manager;
     Array<Entity> alive_entities;
 
-    HashMap<TypeId, std::unique_ptr<IComponentStorage>> component_storages;
-    HashMap<TypeId, std::unique_ptr<IResourceStorage>> resource_storages;
+    HashMap<TypeId_v1, std::unique_ptr<IComponentStorage>> component_storages;
+    HashMap<TypeId_v1, std::unique_ptr<IResourceStorage>> resource_storages;
 
     CommandBuffer* active_command_buffer = nullptr;
 };

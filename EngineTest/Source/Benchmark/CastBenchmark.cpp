@@ -1,13 +1,13 @@
 #include <benchmark/benchmark.h>
-#include "SimpleEngine/Core/Reflection/Cast.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 namespace se::benchmark_test
 {
 // 벤치마크를 위한 상속 계층 구조
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchBase
 {
-    SE_CLASS(BenchBase)
+    SE_CLASS_V1(BenchBase)
 
 public:
     virtual ~BenchBase() = default;
@@ -15,12 +15,12 @@ public:
 
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchLevel1 : public BenchBase
 {
-    SE_CLASS(BenchLevel1, BenchBase)
+    SE_CLASS_V1(BenchLevel1, BenchBase)
 };
 
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchLevel2 : public BenchLevel1
 {
-    SE_CLASS(BenchLevel2, BenchLevel1)
+    SE_CLASS_V1(BenchLevel2, BenchLevel1)
 };
 
 // 벤치마크를 위한 인터페이스
@@ -33,7 +33,7 @@ public:
 
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) BenchImplementer : public BenchBase, public IBenchInterface
 {
-    SE_CLASS(BenchImplementer, BenchBase)
+    SE_CLASS_V1(BenchImplementer, BenchBase)
 
 public:
     virtual void BenchFunc() override {}
@@ -41,26 +41,26 @@ public:
 
 class BenchOther
 {
-    SE_CLASS(BenchOther)
+    SE_CLASS_V1(BenchOther)
 public:
     virtual ~BenchOther() = default;
 };
 
-SE_BEGIN_REFLECT(BenchBase, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(BenchBase)
+SE_BEGIN_REFLECT_V1(BenchBase, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(BenchBase)
 
-SE_BEGIN_REFLECT(BenchLevel1, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(BenchLevel1)
+SE_BEGIN_REFLECT_V1(BenchLevel1, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(BenchLevel1)
 
-SE_BEGIN_REFLECT(BenchLevel2, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(BenchLevel2)
+SE_BEGIN_REFLECT_V1(BenchLevel2, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(BenchLevel2)
 
-SE_BEGIN_REFLECT(BenchImplementer, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE(IBenchInterface)
-SE_END_REFLECT(BenchImplementer)
+SE_BEGIN_REFLECT_V1(BenchImplementer, meta::Reflect, meta::Hidden, meta::Transient)
+    SE_REFLECT_INTERFACE_V1(IBenchInterface)
+SE_END_REFLECT_V1(BenchImplementer)
 
-SE_BEGIN_REFLECT(BenchOther, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(BenchOther)
+SE_BEGIN_REFLECT_V1(BenchOther, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(BenchOther)
 
 // --- 성공하는 캐스팅 (Downcasting) ---
 
@@ -83,7 +83,7 @@ static void BM_SE_Cast_Success(benchmark::State& state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(se::Cast<BenchLevel2>(base));
+        benchmark::DoNotOptimize(se::Cast_v1<BenchLevel2>(base));
     }
 }
 BENCHMARK(BM_SE_Cast_Success);
@@ -109,7 +109,7 @@ static void BM_SE_Cast_Interface(benchmark::State& state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(se::Cast<IBenchInterface>(base));
+        benchmark::DoNotOptimize(se::Cast_v1<IBenchInterface>(base));
     }
 }
 BENCHMARK(BM_SE_Cast_Interface);
@@ -123,7 +123,7 @@ static void BM_SE_ExactCast_Success(benchmark::State& state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(se::ExactCast<BenchLevel2>(base));
+        benchmark::DoNotOptimize(se::ExactCast_v1<BenchLevel2>(base));
     }
 }
 BENCHMARK(BM_SE_ExactCast_Success);
@@ -149,7 +149,7 @@ static void BM_SE_Cast_Failure(benchmark::State& state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(se::Cast<BenchLevel2>(base));
+        benchmark::DoNotOptimize(se::Cast_v1<BenchLevel2>(base));
     }
 }
 BENCHMARK(BM_SE_Cast_Failure);
@@ -163,7 +163,7 @@ static void BM_SE_IsA(benchmark::State& state)
 
     for (auto _ : state)
     {
-        benchmark::DoNotOptimize(se::IsA<BenchLevel2>(base));
+        benchmark::DoNotOptimize(se::IsA_v1<BenchLevel2>(base));
     }
 }
 BENCHMARK(BM_SE_IsA);

@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Reflection/Legacy/TypeId.h"
 
 #include <concepts>
 #include <memory>
@@ -60,7 +60,7 @@ public:
      * 등록된 Subsystem을 가져옵니다.
      * @return 등록된 Subsystem 포인터. 없을 경우 nullptr를 반환합니다.
      */
-    [[nodiscard]] SubsystemBase* GetSubsystem(const TypeId& type_id) const;
+    [[nodiscard]] SubsystemBase* GetSubsystem(const TypeId_v1& type_id) const;
 
     /**
      * 등록된 Subsystem을 가져옵니다.
@@ -106,7 +106,7 @@ private:
     static Engine* instance;
 
     // Type별 Subsystem 목록
-    HashMap<TypeId, std::unique_ptr<SubsystemBase>> subsystems;
+    HashMap<TypeId_v1, std::unique_ptr<SubsystemBase>> subsystems;
 
     // 초기화/종료 순서 관리를 위한 벡터
     Array<SubsystemBase*> sorted_subsystems;
@@ -129,6 +129,6 @@ template <typename T>
     requires std::derived_from<T, SubsystemBase>
 T* Engine::GetSubsystem() const
 {
-    return static_cast<T*>(GetSubsystem(TypeId::Of<T>()));
+    return static_cast<T*>(GetSubsystem(TypeId_v1::Of<T>()));
 }
 } // namespace se

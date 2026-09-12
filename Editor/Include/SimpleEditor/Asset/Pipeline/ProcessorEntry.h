@@ -2,8 +2,8 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
-#include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se::editor
@@ -15,7 +15,7 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) ProcessorEntry
 {
     /** Processor의 구체 타입 (예: TypeId::Of<StaticMeshOptimizer>()) */
     SE_ANNOTATION(=meta::Reflect)
-    TypeId processor_type;
+    TypeId_v1 processor_type;
 
     /** 파이프라인 실행 시 이 Processor를 건너뛸 여부 */
     SE_ANNOTATION(=meta::Reflect)
@@ -23,4 +23,4 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) ProcessorEntry
 };
 } // namespace se::editor
 
-SE_DECLARE_REFLECTION(se::editor::ProcessorEntry);
+SE_DECLARE_REFLECTION_V1(se::editor::ProcessorEntry);

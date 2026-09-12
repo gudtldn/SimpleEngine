@@ -10,9 +10,9 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(EntitySubsystem);
 
-SE_BEGIN_REFLECT(EntitySubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE(IUpdatable)
-SE_END_REFLECT(EntitySubsystem)
+SE_BEGIN_REFLECT_V1(EntitySubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+    SE_REFLECT_INTERFACE_V1(IUpdatable)
+SE_END_REFLECT_V1(EntitySubsystem)
 
 bool EntitySubsystem::Initialize()
 {

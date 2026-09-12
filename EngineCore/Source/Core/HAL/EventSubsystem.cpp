@@ -1,7 +1,7 @@
 ﻿#include "SimpleEngine/Core/HAL/EventSubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 
 
@@ -9,8 +9,8 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(EventSubsystem);
 
-SE_BEGIN_REFLECT(EventSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(EventSubsystem)
+SE_BEGIN_REFLECT_V1(EventSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(EventSubsystem)
 
 
 bool EventSubsystem::Initialize()

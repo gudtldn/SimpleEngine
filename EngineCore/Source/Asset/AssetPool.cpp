@@ -24,7 +24,7 @@ Optional<HandleData> AssetPool::Find(const AssetId& id) const
     return table.Find(id);
 }
 
-HandleData AssetPool::FindOrCreate(const AssetId& id, const TypeId& type_id, const AssetPath& asset_path)
+HandleData AssetPool::FindOrCreate(const AssetId& id, const TypeId_v1& type_id, const AssetPath& asset_path)
 {
     return table.FindOrCreate(id, type_id, asset_path);
 }

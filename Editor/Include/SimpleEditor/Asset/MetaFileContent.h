@@ -4,7 +4,7 @@
 #include "SimpleEditor/Asset/Pipeline/ProcessorEntry.h"
 
 #include "SimpleEngine/Asset/AssetMetadata.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se::editor
@@ -29,4 +29,4 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) MetaFileContent
 };
 } // namespace se::editor
 
-SE_DECLARE_REFLECTION(se::editor::MetaFileContent)
+SE_DECLARE_REFLECTION_V1(se::editor::MetaFileContent)

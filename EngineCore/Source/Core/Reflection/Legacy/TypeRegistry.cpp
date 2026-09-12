@@ -1,4 +1,4 @@
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
@@ -8,13 +8,13 @@
 
 namespace se
 {
-TypeRegistry& TypeRegistry::Get()
+TypeRegistry_v1& TypeRegistry_v1::Get()
 {
-    static TypeRegistry instance;
+    static TypeRegistry_v1 instance;
     return instance;
 }
 
-void TypeRegistry::Resolve()
+void TypeRegistry_v1::Resolve()
 {
     if (is_resolved)
     {
@@ -23,10 +23,10 @@ void TypeRegistry::Resolve()
 
     direct_derived_map.Clear();
 
-    for (const TypeInfo& info : type_map | std::views::values)
+    for (const TypeInfo_v1& info : type_map | std::views::values)
     {
         // info의 모든 base(인터페이스 포함)를 역방향으로 인덱싱
-        for (const BaseInfo& base : info.bases)
+        for (const BaseInfo_v1& base : info.bases)
         {
             direct_derived_map.Entry(base.base_id).OrDefault().Push(&info);
         }
@@ -35,30 +35,30 @@ void TypeRegistry::Resolve()
     is_resolved = true;
 }
 
-Optional<const TypeInfo&> TypeRegistry::Find(const TypeId& type_id) const
+Optional<const TypeInfo_v1&> TypeRegistry_v1::Find(const TypeId_v1& type_id) const
 {
     return type_map.Find(type_id);
 }
 
-Optional<const TypeInfo&> TypeRegistry::Find(const StringName& type_name) const
+Optional<const TypeInfo_v1&> TypeRegistry_v1::Find(const StringName& type_name) const
 {
-    return name_map.Find(type_name).AndThen([this](const TypeId& type_id)
+    return name_map.Find(type_name).AndThen([this](const TypeId_v1& type_id)
     {
         return Find(type_id);
     });
 }
 
-const TypeInfo& TypeRegistry::FindChecked(const TypeId& type_id) const
+const TypeInfo_v1& TypeRegistry_v1::FindChecked(const TypeId_v1& type_id) const
 {
     SE_ASSERT(type_map.Contains(type_id), "The type is not registered yet! Make sure SE_END_REFLECT is called.");
     return type_map.FindChecked(type_id);
 }
 
-ArrayView<const TypeInfo* const> TypeRegistry::GetDerivedTypes(const TypeId& base_id) const
+ArrayView<const TypeInfo_v1* const> TypeRegistry_v1::GetDerivedTypes(const TypeId_v1& base_id) const
 {
     SE_ASSERT(is_resolved, "TypeRegistry::Resolve() must be called before querying derived types!");
     return direct_derived_map.Find(base_id)
-        .As<ArrayView<const TypeInfo* const>>()
+        .As<ArrayView<const TypeInfo_v1* const>>()
         .ValueOrDefault();
 }
 } // namespace se
@@ -75,7 +75,7 @@ void MakeSerialize(Archive& ar, void* ptr)
 
 [[maybe_unused]] const bool Primitive_Registrar = [] -> bool
 {
-    TypeRegistry& registry = TypeRegistry::Get();
+    TypeRegistry_v1& registry = TypeRegistry_v1::Get();
 
     // 기본 산술 타입
     registry.RegisterPrimitive<bool>()   .Serialize(&MakeSerialize<bool>);
@@ -94,7 +94,7 @@ void MakeSerialize(Archive& ar, void* ptr)
     registry.RegisterPrimitive<String>()     .Serialize(&MakeSerialize<String>);
     registry.RegisterPrimitive<StringName>() .Serialize(&MakeSerialize<StringName>);
     registry.RegisterPrimitive<Guid>()       .Serialize(&MakeSerialize<Guid>);
-    registry.RegisterPrimitive<TypeId>()     .Serialize(&MakeSerialize<TypeId>);
+    registry.RegisterPrimitive<TypeId_v1>()     .Serialize(&MakeSerialize<TypeId_v1>);
 
     return true;
 }();

@@ -5,7 +5,7 @@
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
@@ -82,9 +82,9 @@ void DetailPanel::DrawContent()
         ImGui::Separator();
 
         usize found_count = 0;
-        for (const TypeId& type_id : ECSRegistry::Get().GetComponentOpsMap() | std::views::keys)
+        for (const TypeId_v1& type_id : ECSRegistry::Get().GetComponentOpsMap() | std::views::keys)
         {
-            const auto type_info_opt = TypeRegistry::Get().Find(type_id);
+            const auto type_info_opt = TypeRegistry_v1::Get().Find(type_id);
             if (!type_info_opt)
             {
                 continue;
@@ -118,7 +118,7 @@ void DetailPanel::DrawContent()
         ImGui::EndPopup();
     }
 
-    TypeId component_to_remove;
+    TypeId_v1 component_to_remove;
     for (const auto& [component_type, component_ops] : ECSRegistry::Get().GetComponentOpsMap())
     {
         const IComponentStorage* storage = world.FindRawStorage(component_type);
@@ -130,7 +130,7 @@ void DetailPanel::DrawContent()
         }
 
         // Component의 타입 정보
-        const TypeInfo& type_info = TypeRegistry::Get().FindChecked(component_type);
+        const TypeInfo_v1& type_info = TypeRegistry_v1::Get().FindChecked(component_type);
 
         const String label = type_info.name;
         ImGui::PushID(label.CStr());
@@ -157,7 +157,7 @@ void DetailPanel::DrawContent()
 
             // TODO: 나중에 PropertyDrawer에서 컴포넌트별 커스텀 DrawProperties를 지원하도록 수정
             // TransformComponent는 Quaternion 대신 Euler 각도로 직관적으로 표시
-            if (component_type == TypeId::Of<TransformComponent>())
+            if (component_type == TypeId_v1::Of<TransformComponent>())
             {
                 TransformComponent* transform_component = static_cast<TransformComponent*>(component_data);
                 bool changed = false;

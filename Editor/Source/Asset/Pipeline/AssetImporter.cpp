@@ -14,7 +14,7 @@ bool AssetImporter::CanImport(const Path& file_path) const
     return FindTranslator(file_path).HasValue();
 }
 
-Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) const
+Optional<TypeId_v1> AssetImporter::FindTranslatorTypeId(const Path& file_path) const
 {
     if (const auto ext = file_path.Extension())
     {

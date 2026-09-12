@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
@@ -16,7 +16,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EventSubsystem : public SubsystemBase
 {
-    SE_CLASS(EventSubsystem, SubsystemBase)
+    SE_CLASS_V1(EventSubsystem, SubsystemBase)
 
 public:
     //~ Begin SubsystemBase

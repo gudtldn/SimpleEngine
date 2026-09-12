@@ -3,7 +3,7 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Functional/Function.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Reflection/Legacy/TypeId.h"
 
 #include <concepts>
 #include <memory>
@@ -25,10 +25,10 @@ struct SubsystemMetadata
     SubsystemFactory factory;
 
     // 다른 Subsystem간 초기화 순서 의존성 목록
-    Array<TypeId> dependencies;
+    Array<TypeId_v1> dependencies;
 
     // IUpdatable 간 업데이트 실행 순서를 위한 의존성 목록
-    Array<TypeId> update_dependencies;
+    Array<TypeId_v1> update_dependencies;
 };
 
 /**
@@ -37,7 +37,7 @@ struct SubsystemMetadata
 template <typename Subsystem>
 struct SubsystemBuilder
 {
-    TypeId target_id;
+    TypeId_v1 target_id;
 
     template <typename... Dependencies>
         requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
@@ -95,7 +95,7 @@ public:
         requires std::derived_from<Subsystem, SubsystemBase>
     static SubsystemBuilder<Subsystem> Register()
     {
-        TypeId id = TypeId::Of<Subsystem>();
+        TypeId_v1 id = TypeId_v1::Of<Subsystem>();
 
         GetInstance().metadata_map.Emplace(id, SubsystemMetadata{
             .factory = [] static -> std::unique_ptr<SubsystemBase>
@@ -108,12 +108,12 @@ public:
         return SubsystemBuilder<Subsystem>{ id };
     }
 
-    [[nodiscard]] SubsystemMetadata& GetMetadata(const TypeId& id) { return metadata_map.FindChecked(id); }
+    [[nodiscard]] SubsystemMetadata& GetMetadata(const TypeId_v1& id) { return metadata_map.FindChecked(id); }
     [[nodiscard]] const auto& GetMetadataMap() const { return metadata_map; }
 
 private:
     SubsystemRegistry() = default;
-    HashMap<TypeId, SubsystemMetadata> metadata_map;
+    HashMap<TypeId_v1, SubsystemMetadata> metadata_map;
 };
 
 template <typename Subsystem>
@@ -122,7 +122,7 @@ void SubsystemBuilder<Subsystem>::AddDependency()
 {
     SubsystemRegistry::GetInstance()
         .GetMetadata(target_id).dependencies
-        .Push(TypeId::Of<Dependency>());
+        .Push(TypeId_v1::Of<Dependency>());
 }
 
 template <typename Subsystem>
@@ -131,7 +131,7 @@ void SubsystemBuilder<Subsystem>::AddUpdateDependency()
 {
     SubsystemRegistry::GetInstance()
         .GetMetadata(target_id).update_dependencies
-        .Push(TypeId::Of<Dependency>());
+        .Push(TypeId_v1::Of<Dependency>());
 }
 } // namespace detail
 } // namespace se

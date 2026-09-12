@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se::editor
@@ -40,4 +40,4 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Transient) EditorCameraState
 };
 } // namespace se::editor
 
-SE_DECLARE_REFLECTION(se::editor::EditorCameraState);
+SE_DECLARE_REFLECTION_V1(se::editor::EditorCameraState);

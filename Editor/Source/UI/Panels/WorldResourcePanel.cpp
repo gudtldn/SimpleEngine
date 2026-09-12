@@ -2,7 +2,7 @@
 
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -45,8 +45,8 @@ void WorldResourcePanel::DrawContent()
                 continue;
             }
 
-            const Optional<const TypeInfo&> type_info = TypeRegistry::Get().Find(res_type);
-            if (!type_info || type_info->flags.IsAnySet(ETypeFlags::Hidden))
+            const Optional<const TypeInfo_v1&> type_info = TypeRegistry_v1::Get().Find(res_type);
+            if (!type_info || type_info->flags.IsAnySet(ETypeFlags_v1::Hidden))
             {
                 continue;
             }

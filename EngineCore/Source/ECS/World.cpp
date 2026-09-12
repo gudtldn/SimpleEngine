@@ -1,8 +1,8 @@
 #include "SimpleEngine/ECS/World.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Meta.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../Include/SimpleEngine/Core/Reflection/Legacy/Meta.h"
+#include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/ECS/ComponentStorage.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 
@@ -17,9 +17,9 @@ namespace
  * 직렬화 대상 여부를 판정합니다.
  * Transient이거나 serialize 콜백이 없으면 제외
  */
-[[nodiscard]] bool ShouldSerializeType(const TypeInfo& info)
+[[nodiscard]] bool ShouldSerializeType(const TypeInfo_v1& info)
 {
-    if (info.flags.IsSet(ETypeFlags::Transient))
+    if (info.flags.IsSet(ETypeFlags_v1::Transient))
     {
         return false;
     }
@@ -55,7 +55,7 @@ void World::DestroyEntity(Entity entity)
     entity_manager.Destroy(entity);
 }
 
-IComponentStorage* World::FindRawStorage(const TypeId& type_id)
+IComponentStorage* World::FindRawStorage(const TypeId_v1& type_id)
 {
     if (const auto storage = component_storages.Find(type_id))
     {
@@ -65,7 +65,7 @@ IComponentStorage* World::FindRawStorage(const TypeId& type_id)
     return nullptr;
 }
 
-const IComponentStorage* World::FindRawStorage(const TypeId& type_id) const
+const IComponentStorage* World::FindRawStorage(const TypeId_v1& type_id) const
 {
     if (const auto storage = component_storages.Find(type_id))
     {
@@ -75,7 +75,7 @@ const IComponentStorage* World::FindRawStorage(const TypeId& type_id) const
     return nullptr;
 }
 
-IComponentStorage* World::GetOrCreateRawStorage(const TypeId& type_id)
+IComponentStorage* World::GetOrCreateRawStorage(const TypeId_v1& type_id)
 {
     if (const auto storage = component_storages.Find(type_id))
     {
@@ -122,7 +122,7 @@ void Serialize(Archive& ar, World& world)
     ar("alive_entities") << world.alive_entities;
 
     // --- Components ---
-    const TypeRegistry& registry = TypeRegistry::Get();
+    const TypeRegistry_v1& registry = TypeRegistry_v1::Get();
     const ECSRegistry& ecs_registry = ECSRegistry::Get();
 
     if (ar.IsSaving())
@@ -191,7 +191,7 @@ void Serialize(Archive& ar, World& world)
         for (u64 t = 0; t < type_count; ++t)
         {
             ar.BeginMapKey();
-            TypeId type_id;
+            TypeId_v1 type_id;
             ar << type_id;
             ar.EndMapKey();
 

@@ -27,7 +27,7 @@ HandleTable::~HandleTable()
     }
 }
 
-HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId& type, const AssetPath& path)
+HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId_v1& type, const AssetPath& path)
 {
     ZoneScopedN("HandleTable::FindOrCreate");
 

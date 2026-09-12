@@ -22,7 +22,7 @@ namespace se::editor
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) GizmoSubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS(GizmoSubsystem, SubsystemBase)
+    SE_CLASS_V1(GizmoSubsystem, SubsystemBase)
 
 public:
     GizmoSubsystem() = default;

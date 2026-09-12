@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../Reflection/Legacy/Reflect.h"
 
 
 namespace se
@@ -11,7 +11,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) SubsystemBase
 {
-    SE_CLASS(SubsystemBase)
+    SE_CLASS_V1(SubsystemBase)
 
 public:
     virtual ~SubsystemBase() = default;

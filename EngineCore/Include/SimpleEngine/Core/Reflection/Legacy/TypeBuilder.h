@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Meta.h"
+#include "Meta.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 
@@ -11,7 +11,7 @@
 namespace se
 {
 // forward declaration
-class TypeRegistry;
+class TypeRegistry_v1;
 
 namespace detail
 {
@@ -31,10 +31,10 @@ struct MemberPointerTraits<Ptr>
  * @tparam T 등록하려는 대상 타입 (클래스, 구조체 등)
  */
 template <typename T>
-class TypeBuilder
+class TypeBuilder_v1
 {
 public:
-    explicit TypeBuilder(TypeInfo* info, ETypeKind kind)
+    explicit TypeBuilder_v1(TypeInfo_v1* info, ETypeKind_v1 kind)
         : info_ptr(info)
     {
         // info가 어떤 타입 종류인지 설정
@@ -48,7 +48,7 @@ public:
             {
                 static_assert(!std::same_as<std::decay_t<T>, std::decay_t<Super>>, "Class cannot inherit from itself!");
                 info_ptr->bases.Push({
-                    .base_id = TypeId::Of<Super>(),
+                    .base_id = TypeId_v1::Of<Super>(),
                     .upcast = [](void* p) static -> void*
                     {
                         return static_cast<Super*>(static_cast<T*>(p));
@@ -65,21 +65,21 @@ public:
         info_ptr->destructor = [](void* ptr) static { delete static_cast<T*>(ptr); };
     }
 
-    ~TypeBuilder()
+    ~TypeBuilder_v1()
     {
         // 체이닝 종료 후 serialize 콜백이 미등록된 Struct에 AutoSerialize를 자동 연결합니다.
-        if (info_ptr && !info_ptr->serialize && info_ptr->kind == ETypeKind::Struct)
+        if (info_ptr && !info_ptr->serialize && info_ptr->kind == ETypeKind_v1::Struct)
         {
             info_ptr->serialize = [](Archive& ar, void* instance) static
             {
-                AutoSerialize(ar, TypeId::Of<T>(), instance);
+                AutoSerialize(ar, TypeId_v1::Of<T>(), instance);
             };
         }
     }
 
 public:
     /** 타입의 특성 플래그(예: Abstract, Transient 등)를 추가합니다. */
-    TypeBuilder& AddFlags(BitFlags<ETypeFlags> flags)
+    TypeBuilder_v1& AddFlags(BitFlags<ETypeFlags_v1> flags)
     {
         info_ptr->flags |= flags;
         return *this;
@@ -91,7 +91,7 @@ public:
      */
     template <typename... InterfaceTypes>
         requires (std::derived_from<T, InterfaceTypes> && ...)
-    TypeBuilder& Implements()
+    TypeBuilder_v1& Implements()
     {
         (ImplementInterface<InterfaceTypes>(), ...);
         return *this;
@@ -103,12 +103,12 @@ public:
      * @param name property의 이름
      */
     template <auto MemberPtr>
-    TypeBuilder& Property(StringView name)
+    TypeBuilder_v1& Property(StringView name)
     {
         using MemberType = MemberPointerTraits<MemberPtr>::MemberType;
 
-        PropertyInfo prop;
-        prop.type_id = TypeId::Of<MemberType>();
+        PropertyInfo_v1 prop;
+        prop.type_id = TypeId_v1::Of<MemberType>();
         prop.name = name;
         prop.size = sizeof(MemberType);
 
@@ -151,27 +151,27 @@ public:
         if constexpr (traits::ArrayLike<MemberType>)
         {
             using ElemType = traits::InnerOf<MemberType>;
-            static constexpr ContainerOps OPS = MakeArrayOps<MemberType, ElemType>();
+            static constexpr ContainerOps_v1 OPS = MakeArrayOps<MemberType, ElemType>();
             prop.container_ops = &OPS;
         }
         else if constexpr (traits::SetLike<MemberType>)
         {
             using ElemType = traits::InnerOf<MemberType>;
-            static constexpr ContainerOps OPS = MakeSetOps<MemberType, ElemType>();
+            static constexpr ContainerOps_v1 OPS = MakeSetOps<MemberType, ElemType>();
             prop.container_ops = &OPS;
         }
         else if constexpr (traits::MapLike<MemberType>)
         {
             using KeyType = traits::KeyOf<MemberType>;
             using ValType = traits::ValueOf<MemberType>;
-            static constexpr ContainerOps OPS = MakeMapOps<MemberType, KeyType, ValType>();
+            static constexpr ContainerOps_v1 OPS = MakeMapOps<MemberType, KeyType, ValType>();
             prop.container_ops = &OPS;
         }
         // Optional 타입 감지 및 OptionalOps 자동 생성
         else if constexpr (traits::OptionalLike<MemberType>)
         {
             using InnerType = traits::InnerOf<MemberType>;
-            static constexpr OptionalOps OPS = MakeOptionalOps<MemberType, InnerType>();
+            static constexpr OptionalOps_v1 OPS = MakeOptionalOps<MemberType, InnerType>();
             prop.optional_ops = &OPS;
         }
 
@@ -183,11 +183,11 @@ public:
      * 방금 등록된 프로퍼티에 메타데이터를 적용합니다.
      * 매크로에서 생성된 PropertyMetadata 구조체를 받아 병합합니다.
      */
-    TypeBuilder& ApplyMetadata(const PropertyMetadata& meta)
+    TypeBuilder_v1& ApplyMetadata(const PropertyMetadata_v1& meta)
     {
         SE_ASSERT(!info_ptr->properties.IsEmpty(), "No property registered yet! Call Property() before ApplyMetadata().");
 
-        PropertyInfo& last_prop = info_ptr->properties.Back().Value();
+        PropertyInfo_v1& last_prop = info_ptr->properties.Back().Value();
         last_prop.metadata = meta;
 
         return *this;
@@ -195,7 +195,7 @@ public:
 
 public:
     /** Enum 항목 목록 접근자를 연결합니다. (SE_REFLECT_ENUM 전용) */
-    TypeBuilder& EnumEntries(TypeInfo::EnumEntriesFunc func)
+    TypeBuilder_v1& EnumEntries(TypeInfo_v1::EnumEntriesFunc func)
     {
         info_ptr->enum_entries = func;
         return *this;
@@ -203,7 +203,7 @@ public:
 
 public:
     /** 외부에서 정의한 직렬화 로직을 연결합니다. */
-    TypeBuilder& Serialize(TypeInfo::SerializeFunc func)
+    TypeBuilder_v1& Serialize(TypeInfo_v1::SerializeFunc func)
     {
         info_ptr->serialize = func;
         return *this;
@@ -216,7 +216,7 @@ private:
     void ImplementInterface()
     {
         info_ptr->bases.Push({
-            .base_id = TypeId::Of<InterfaceType>(),
+            .base_id = TypeId_v1::Of<InterfaceType>(),
             .upcast = [](void* p) static -> void*
             {
                 // 다중 상속 offset 보정
@@ -231,25 +231,25 @@ private:
 
     /** 요소 타입이 컨테이너인 경우 중첩 ContainerOps 포인터를 반환합니다. */
     template <typename ElemType>
-    static constexpr const ContainerOps* GetNestedContainerOps()
+    static constexpr const ContainerOps_v1* GetNestedContainerOps()
     {
         if constexpr (traits::ArrayLike<ElemType>)
         {
             using Inner = traits::InnerOf<ElemType>;
-            static constexpr ContainerOps nested = MakeArrayOps<ElemType, Inner>();
+            static constexpr ContainerOps_v1 nested = MakeArrayOps<ElemType, Inner>();
             return &nested;
         }
         else if constexpr (traits::SetLike<ElemType>)
         {
             using Inner = traits::InnerOf<ElemType>;
-            static constexpr ContainerOps nested = MakeSetOps<ElemType, Inner>();
+            static constexpr ContainerOps_v1 nested = MakeSetOps<ElemType, Inner>();
             return &nested;
         }
         else if constexpr (traits::MapLike<ElemType>)
         {
             using K = traits::KeyOf<ElemType>;
             using V = traits::ValueOf<ElemType>;
-            static constexpr ContainerOps nested = MakeMapOps<ElemType, K, V>();
+            static constexpr ContainerOps_v1 nested = MakeMapOps<ElemType, K, V>();
             return &nested;
         }
         else
@@ -260,12 +260,12 @@ private:
 
     /** 요소 타입이 Optional인 경우 중첩 OptionalOps 포인터를 반환합니다. */
     template <typename ElemType>
-    static constexpr const OptionalOps* GetNestedOptionalOps()
+    static constexpr const OptionalOps_v1* GetNestedOptionalOps()
     {
         if constexpr (traits::OptionalLike<ElemType>)
         {
             using Inner = traits::InnerOf<ElemType>;
-            static constexpr OptionalOps nested = MakeOptionalOps<ElemType, Inner>();
+            static constexpr OptionalOps_v1 nested = MakeOptionalOps<ElemType, Inner>();
             return &nested;
         }
         else
@@ -280,11 +280,11 @@ private:
 
     /** Array-like 컨테이너의 ContainerOps 생성 */
     template <typename Container, typename ElemType>
-    static constexpr ContainerOps MakeArrayOps()
+    static constexpr ContainerOps_v1 MakeArrayOps()
     {
-        ContainerOps ops;
-        ops.kind = EContainerKind::Array;
-        ops.element_type_id = TypeId::Of<ElemType>();
+        ContainerOps_v1 ops;
+        ops.kind = EContainerKind_v1::Array;
+        ops.element_type_id = TypeId_v1::Of<ElemType>();
 
         ops.size = [](const void* c) static -> usize
         {
@@ -332,11 +332,11 @@ private:
 
     /** Set-like 컨테이너의 ContainerOps 생성 */
     template <typename Container, typename ElemType>
-    static constexpr ContainerOps MakeSetOps()
+    static constexpr ContainerOps_v1 MakeSetOps()
     {
-        ContainerOps ops;
-        ops.kind = EContainerKind::Set;
-        ops.element_type_id = TypeId::Of<ElemType>();
+        ContainerOps_v1 ops;
+        ops.kind = EContainerKind_v1::Set;
+        ops.element_type_id = TypeId_v1::Of<ElemType>();
 
         ops.size = [](const void* c) static -> usize
         {
@@ -394,12 +394,12 @@ private:
 
     /** Map-like 컨테이너의 ContainerOps 생성 */
     template <typename Container, typename KeyType, typename ValType>
-    static constexpr ContainerOps MakeMapOps()
+    static constexpr ContainerOps_v1 MakeMapOps()
     {
-        ContainerOps ops;
-        ops.kind = EContainerKind::Map;
-        ops.element_type_id = TypeId::Of<KeyType>();
-        ops.value_type_id = TypeId::Of<ValType>();
+        ContainerOps_v1 ops;
+        ops.kind = EContainerKind_v1::Map;
+        ops.element_type_id = TypeId_v1::Of<KeyType>();
+        ops.value_type_id = TypeId_v1::Of<ValType>();
 
         ops.size = [](const void* c) static -> usize
         {
@@ -461,10 +461,10 @@ private:
 
     /** Optional 타입의 OptionalOps 생성 */
     template <typename Opt, typename InnerType>
-    static constexpr OptionalOps MakeOptionalOps()
+    static constexpr OptionalOps_v1 MakeOptionalOps()
     {
-        OptionalOps ops;
-        ops.inner_type_id = TypeId::Of<InnerType>();
+        OptionalOps_v1 ops;
+        ops.inner_type_id = TypeId_v1::Of<InnerType>();
 
         ops.has_value = [](const void* o) static -> bool
         {
@@ -497,7 +497,7 @@ private:
     }
 
 private:
-    TypeInfo* info_ptr;
+    TypeInfo_v1* info_ptr;
 };
 } // namespace detail
 } // namespace se

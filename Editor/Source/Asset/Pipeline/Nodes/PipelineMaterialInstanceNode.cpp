@@ -3,8 +3,8 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(PipelineMaterialInstanceNode, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(PipelineMaterialInstanceNode)
+SE_BEGIN_REFLECT_V1(PipelineMaterialInstanceNode, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(PipelineMaterialInstanceNode)
 
 void PipelineMaterialInstanceNode::GetFactoryDependencies(Array<Guid>& out_dependencies) const
 {
