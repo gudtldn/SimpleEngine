@@ -22,7 +22,7 @@ namespace se
  */
 class SE_CORE_API DebugLinePass : public RenderPassBase
 {
-    SE_CLASS(DebugLinePass, RenderPassBase)
+    SE_CLASS_V1(DebugLinePass, RenderPassBase)
 
 public:
     DebugLinePass(

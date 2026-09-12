@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se
@@ -132,7 +132,7 @@ struct SE_ANNOTATION(=meta::Reflect) MipDescriptor
 
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Texture2D : public AssetBase
 {
-    SE_CLASS(Texture2D, AssetBase)
+    SE_CLASS_V1(Texture2D, AssetBase)
 
 public:
     SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
@@ -169,4 +169,4 @@ public:
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::MipDescriptor)
+SE_DECLARE_REFLECTION_V1(se::MipDescriptor)

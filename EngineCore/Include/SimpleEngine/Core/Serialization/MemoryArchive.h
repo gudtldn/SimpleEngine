@@ -70,7 +70,7 @@ protected:
     virtual void SerializeString(String& value) override;
     virtual void SerializeStringName(StringName& value) override;
     virtual void SerializeGuid(Guid& value) override;
-    virtual void SerializeTypeId(TypeId& value) override;
+    virtual void SerializeTypeId(TypeId_v1& value) override;
 
 private:
     /** Low-level 바이트를 직접 읽습니다. */
@@ -125,7 +125,7 @@ protected:
     virtual void SerializeString(String& value) override;
     virtual void SerializeStringName(StringName& value) override;
     virtual void SerializeGuid(Guid& value) override;
-    virtual void SerializeTypeId(TypeId& value) override;
+    virtual void SerializeTypeId(TypeId_v1& value) override;
 
 private:
     /** Low-level 바이트를 직접 씁니다. */

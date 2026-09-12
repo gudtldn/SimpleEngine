@@ -5,7 +5,7 @@
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Types/Guid.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se::editor
@@ -15,7 +15,7 @@ namespace se::editor
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineBaseNode
 {
-    SE_CLASS(PipelineBaseNode)
+    SE_CLASS_V1(PipelineBaseNode)
 
 public:
     virtual ~PipelineBaseNode() = default;

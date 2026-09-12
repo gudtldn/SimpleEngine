@@ -13,7 +13,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Error/Expected.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 #include <memory>
@@ -61,7 +61,7 @@ public:
      * @param file_path 소스 파일 경로
      * @return Translator의 TypeId, 없으면 NullOpt
      */
-    [[nodiscard]] Optional<TypeId> FindTranslatorTypeId(const Path& file_path) const;
+    [[nodiscard]] Optional<TypeId_v1> FindTranslatorTypeId(const Path& file_path) const;
 
     /** 등록된 모든 Translator가 지원하는 확장자를 반환합니다. */
     [[nodiscard]] HashSet<StringView> GetAllSupportedExtensions() const;
@@ -92,7 +92,7 @@ private:
     struct TranslatorEntry
     {
         /** Translator의 TypeId */
-        TypeId type_id;
+        TypeId_v1 type_id;
 
         /** 실제 Translator의 Instance */
         std::unique_ptr<IPipelineTranslator> translator;
@@ -118,7 +118,7 @@ void AssetImporter::RegisterTranslator(Args&&... args)
     }
 
     translators.Push({
-        .type_id = TypeId::Of<Translator>(),
+        .type_id = TypeId_v1::Of<Translator>(),
         .translator = std::move(instance),
     });
 }

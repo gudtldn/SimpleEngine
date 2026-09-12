@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se
@@ -25,7 +25,7 @@ enum class ERGPassQueue : u8
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RenderPassBase
 {
-    SE_CLASS(RenderPassBase)
+    SE_CLASS_V1(RenderPassBase)
 
 public:
     virtual ~RenderPassBase() = default;

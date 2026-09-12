@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "SimpleEngine/Core/Reflection/Enum.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Enum.h"
 #include <cstdint>
 
 namespace EnumTestDetail
@@ -49,19 +49,19 @@ TEST_F(EnumTest, EnumNameCompileTime)
     using namespace EnumTestDetail;
     using namespace se;
 
-    constexpr auto NAME1 = EnumName<EColor::Red>();
+    constexpr auto NAME1 = EnumName_v1<EColor::Red>();
     EXPECT_EQ(NAME1, "Red");
 
-    constexpr auto NAME2 = EnumName<EColor::Green>();
+    constexpr auto NAME2 = EnumName_v1<EColor::Green>();
     EXPECT_EQ(NAME2, "Green");
 
-    constexpr auto NAME3 = EnumName<EColor::Blue>();
+    constexpr auto NAME3 = EnumName_v1<EColor::Blue>();
     EXPECT_EQ(NAME3, "Blue");
 
-    constexpr auto NAME4 = EnumName<ENumbers::One>();
+    constexpr auto NAME4 = EnumName_v1<ENumbers::One>();
     EXPECT_EQ(NAME4, "One");
 
-    constexpr auto NAME5 = EnumName<ESparse::Neg>();
+    constexpr auto NAME5 = EnumName_v1<ESparse::Neg>();
     EXPECT_EQ(NAME5, "Neg");
 }
 
@@ -70,16 +70,16 @@ TEST_F(EnumTest, EnumNameRuntime)
     using namespace EnumTestDetail;
     using namespace se;
 
-    EXPECT_EQ(EnumName(EColor::Red), "Red");
-    EXPECT_EQ(EnumName(EColor::Green), "Green");
-    EXPECT_EQ(EnumName(EColor::Blue), "Blue");
+    EXPECT_EQ(EnumName_v1(EColor::Red), "Red");
+    EXPECT_EQ(EnumName_v1(EColor::Green), "Green");
+    EXPECT_EQ(EnumName_v1(EColor::Blue), "Blue");
 
-    EXPECT_EQ(EnumName(ENumbers::Five), "Five");
-    EXPECT_EQ(EnumName(ESparse::Zero), "Zero");
+    EXPECT_EQ(EnumName_v1(ENumbers::Five), "Five");
+    EXPECT_EQ(EnumName_v1(ESparse::Zero), "Zero");
 
     // Invalid value (out of range/not defined in enum)
     // Note: If casted value is within -128 to 127 but not defined in enum, name should be empty.
-    EXPECT_TRUE(EnumName(static_cast<EColor>(99)).IsEmpty());
+    EXPECT_TRUE(EnumName_v1(static_cast<EColor>(99)).IsEmpty());
 }
 
 TEST_F(EnumTest, EnumCast)
@@ -87,19 +87,19 @@ TEST_F(EnumTest, EnumCast)
     using namespace EnumTestDetail;
     using namespace se;
 
-    auto val1 = EnumCast<EColor>("Red");
+    auto val1 = EnumCast_v1<EColor>("Red");
     ASSERT_TRUE(val1.HasValue());
     EXPECT_EQ(*val1, EColor::Red);
 
-    auto val2 = EnumCast<EColor>("Blue");
+    auto val2 = EnumCast_v1<EColor>("Blue");
     ASSERT_TRUE(val2.HasValue());
     EXPECT_EQ(*val2, EColor::Blue);
 
-    auto val3 = EnumCast<ENumbers>("Ten");
+    auto val3 = EnumCast_v1<ENumbers>("Ten");
     ASSERT_TRUE(val3.HasValue());
     EXPECT_EQ(*val3, ENumbers::Ten);
 
-    auto val4 = EnumCast<EColor>("Purple"); // Invalid name
+    auto val4 = EnumCast_v1<EColor>("Purple"); // Invalid name
     EXPECT_FALSE(val4.HasValue());
 }
 
@@ -108,13 +108,13 @@ TEST_F(EnumTest, EnumValues)
     using namespace EnumTestDetail;
     using namespace se;
 
-    const auto& values = EnumValues<EColor>();
+    const auto& values = EnumValues_v1<EColor>();
     EXPECT_EQ(values.Len(), 3);
     EXPECT_EQ(values[0], EColor::Red);
     EXPECT_EQ(values[1], EColor::Green);
     EXPECT_EQ(values[2], EColor::Blue);
 
-    const auto& sparseValues = EnumValues<ESparse>();
+    const auto& sparseValues = EnumValues_v1<ESparse>();
     EXPECT_EQ(sparseValues.Len(), 3);
     // Order depends on the scan order (usually increasing integer value)
     // -5, 0, 5
@@ -128,13 +128,13 @@ TEST_F(EnumTest, EnumNames)
     using namespace EnumTestDetail;
     using namespace se;
 
-    const auto& names = EnumNames<EColor>();
+    const auto& names = EnumNames_v1<EColor>();
     EXPECT_EQ(names.Len(), 3);
     EXPECT_EQ(names[0], "Red");
     EXPECT_EQ(names[1], "Green");
     EXPECT_EQ(names[2], "Blue");
 
-    const auto& sparseNames = EnumNames<ESparse>();
+    const auto& sparseNames = EnumNames_v1<ESparse>();
     EXPECT_EQ(sparseNames.Len(), 3);
     EXPECT_EQ(sparseNames[0], "Neg");
     EXPECT_EQ(sparseNames[1], "Zero");
@@ -146,10 +146,10 @@ TEST_F(EnumTest, EnumCount)
     using namespace EnumTestDetail;
     using namespace se;
 
-    EXPECT_EQ(EnumCount<EColor>(), 3);
-    EXPECT_EQ(EnumCount<ENumbers>(), 3);
-    EXPECT_EQ(EnumCount<EDirection>(), 4);
-    EXPECT_EQ(EnumCount<ESparse>(), 3);
+    EXPECT_EQ(EnumCount_v1<EColor>(), 3);
+    EXPECT_EQ(EnumCount_v1<ENumbers>(), 3);
+    EXPECT_EQ(EnumCount_v1<EDirection>(), 4);
+    EXPECT_EQ(EnumCount_v1<ESparse>(), 3);
 }
 
 TEST_F(EnumTest, EnumLoopIteration)
@@ -158,9 +158,9 @@ TEST_F(EnumTest, EnumLoopIteration)
     using namespace se;
 
     int count = 0;
-    for (auto val : EnumValues<EColor>())
+    for (auto val : EnumValues_v1<EColor>())
     {
-        StringView name = EnumName(val);
+        StringView name = EnumName_v1(val);
         EXPECT_FALSE(name.IsEmpty());
         count++;
     }
@@ -178,11 +178,11 @@ TEST_F(EnumTest, DuplicateValues)
 
     // 값이 같을 때 EnumName이 어떤 것을 반환하는지 정의된 정책 확인
     // 보통 가장 먼저 정의된 것을 반환하거나, 컴파일러 환경에 따라 다를 수 있음
-    [[maybe_unused]] auto name = EnumName(EAlias::Begin);
+    [[maybe_unused]] auto name = EnumName_v1(EAlias::Begin);
     EXPECT_FALSE(name.IsEmpty()); // "Start" in MSVC
 
     // EnumValues는 중복된 값을 어떻게 처리하는가? (보통 하나로 취급하거나 모두 포함)
-    [[maybe_unused]] const auto& values = EnumValues<EAlias>();
+    [[maybe_unused]] const auto& values = EnumValues_v1<EAlias>();
     EXPECT_FALSE(values.IsEmpty()); // Len = 2 in MSVC
 }
 
@@ -195,11 +195,11 @@ TEST_F(EnumTest, BitFlags)
     using namespace se;
 
     // 조합된 값(Read | Write)이 Enum에 All로 정의되어 있을 때의 동작
-    EXPECT_EQ(EnumName(EFlags::All), "All");
+    EXPECT_EQ(EnumName_v1(EFlags::All), "All");
 
     // 정의되지 않은 조합 (정의되지 않은 비트 플래그)
     EFlags undefined = static_cast<EFlags>(0x5);
-    EXPECT_TRUE(EnumName(undefined).IsEmpty());
+    EXPECT_TRUE(EnumName_v1(undefined).IsEmpty());
 }
 
 /**
@@ -211,12 +211,12 @@ TEST_F(EnumTest, EdgeCases)
     using namespace se;
 
     // 빈 Enum 확인
-    EXPECT_EQ(EnumCount<EEmpty>(), 0);
-    EXPECT_TRUE(EnumValues<EEmpty>().IsEmpty());
+    EXPECT_EQ(EnumCount_v1<EEmpty>(), 0);
+    EXPECT_TRUE(EnumValues_v1<EEmpty>().IsEmpty());
 
     // 64비트 큰 값 처리 확인
-    EXPECT_EQ(EnumName(ELarge::Max), "Max");
-    EXPECT_EQ(EnumCast<ELarge>("Min"), ELarge::Min);
+    EXPECT_EQ(EnumName_v1(ELarge::Max), "Max");
+    EXPECT_EQ(EnumCast_v1<ELarge>("Min"), ELarge::Min);
 }
 
 /**
@@ -228,13 +228,13 @@ TEST_F(EnumTest, EnumCastRobustness)
     using namespace se;
 
     // 대소문자 구분 여부 확인 (엔진 정책에 따라)
-    auto valLower = EnumCast<EColor>("red");
+    auto valLower = EnumCast_v1<EColor>("red");
     // 만약 Case-Insensitive 하다면 HasValue()가 true여야 함
     // 보통은 엄격하게 false인 경우가 많음
     EXPECT_FALSE(valLower.HasValue());
 
     // 앞뒤 공백이 포함된 경우
-    auto valSpace = EnumCast<EColor>(" Red ");
+    auto valSpace = EnumCast_v1<EColor>(" Red ");
     EXPECT_FALSE(valSpace.HasValue());
 }
 
@@ -247,8 +247,8 @@ TEST_F(EnumTest, SparseNegativeRange)
     using namespace se;
 
     // 음수 끝단 값 확인
-    EXPECT_EQ(EnumName(ESparse::Neg), "Neg");
+    EXPECT_EQ(EnumName_v1(ESparse::Neg), "Neg");
 
     // -6 등 정의되지 않은 음수 값 확인
-    EXPECT_TRUE(EnumName(static_cast<ESparse>(-6)).IsEmpty());
+    EXPECT_TRUE(EnumName_v1(static_cast<ESparse>(-6)).IsEmpty());
 }

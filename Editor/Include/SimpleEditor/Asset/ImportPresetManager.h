@@ -5,7 +5,7 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Functional/Function.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 
 #include <concepts>
 
@@ -29,7 +29,7 @@ public:
      * @param translator_type Translator의 TypeId (예: TypeId::Of<AssimpTranslator>())
      * @param initializer ImportProfile에 기본 설정을 채우는 콜백
      */
-    void RegisterPreset(const TypeId& translator_type, Function<void(ImportProfile&)> initializer);
+    void RegisterPreset(const TypeId_v1& translator_type, Function<void(ImportProfile&)> initializer);
 
     /**
      * 템플릿 인자 T를 통해 Translator 타입을 자동으로 추론하여 프리셋 초기화 함수를 등록합니다.
@@ -47,17 +47,17 @@ public:
      * @param translator_type Translator의 TypeId
      * @return 기본값이 채워진 ImportProfile
      */
-    [[nodiscard]] ImportProfile GetDefaultProfile(const TypeId& translator_type) const;
+    [[nodiscard]] ImportProfile GetDefaultProfile(const TypeId_v1& translator_type) const;
 
     /**
      * 주어진 Translator TypeId에 대한 기본 프리셋 등록 여부를 확인합니다.
      * @param translator_type Translator의 TypeId
      * @return 해당 TypeId에 대한 프리셋이 등록되어 있으면 true, 아니면 false
      */
-    [[nodiscard]] bool HasPreset(const TypeId& translator_type) const;
+    [[nodiscard]] bool HasPreset(const TypeId_v1& translator_type) const;
 
 private:
-    HashMap<TypeId, Function<void(ImportProfile&)>> preset_map;
+    HashMap<TypeId_v1, Function<void(ImportProfile&)>> preset_map;
 };
 
 template <typename T, typename Fn>
@@ -65,6 +65,6 @@ template <typename T, typename Fn>
     && std::invocable<Fn, ImportProfile&>
 void ImportPresetManager::RegisterPreset(Fn&& initializer)
 {
-    RegisterPreset(TypeId::Of<T>(), std::forward<Fn>(initializer));
+    RegisterPreset(TypeId_v1::Of<T>(), std::forward<Fn>(initializer));
 }
 } // namespace se::editor

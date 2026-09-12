@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 
 namespace se
 {
@@ -23,4 +23,4 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) StaticMeshCom
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::StaticMeshComponent)
+SE_DECLARE_REFLECTION_V1(se::StaticMeshComponent)

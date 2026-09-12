@@ -1,7 +1,7 @@
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -93,11 +93,11 @@ void MemoryReader::SerializeGuid(Guid& value)
     ReadBytes(&value, sizeof(Guid));
 }
 
-void MemoryReader::SerializeTypeId(TypeId& value)
+void MemoryReader::SerializeTypeId(TypeId_v1& value)
 {
     u64 hash = 0;
     ReadPrimitive(hash);
-    value = TypeId::FromHash(hash);
+    value = TypeId_v1::FromHash(hash);
     if (!SE_ENSURE(value.IsValid(), "MemoryReader::SerializeTypeId - Failed to resolve TypeId from hash: {}. The class might be deleted or renamed.", hash))
     {
         SetError(String::Format("MemoryReader: Failed to resolve TypeId from hash: {}.", hash));
@@ -197,7 +197,7 @@ void MemoryWriter::SerializeGuid(Guid& value)
     WriteBytes(&value, sizeof(Guid));
 }
 
-void MemoryWriter::SerializeTypeId(TypeId& value)
+void MemoryWriter::SerializeTypeId(TypeId_v1& value)
 {
     u64 hash = 0;
     if (SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Binary!"))

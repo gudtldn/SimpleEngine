@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Queue.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Cast.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
@@ -51,11 +51,11 @@ void RenderGraphExecutor::Execute(RenderGraphBuilder& builder, SDL_GPUCommandBuf
             res_node.resource->Realize(resource_pool);
 
 #if SE_ENABLE_DEBUG_TOOLS
-            if (const RGTextureBase* tex = Cast<RGTextureBase>(res_node.resource.get()))
+            if (const RGTextureBase* tex = Cast_v1<RGTextureBase>(res_node.resource.get()))
             {
                 SDL_SetGPUTextureName(render_device->GetRawDevice(), tex->GetActualTexture(), res_node.name.CStr());
             }
-            else if (const RGBufferBase* buf = Cast<RGBufferBase>(res_node.resource.get()))
+            else if (const RGBufferBase* buf = Cast_v1<RGBufferBase>(res_node.resource.get()))
             {
                 SDL_SetGPUBufferName(render_device->GetRawDevice(), buf->GetActualBuffer(), res_node.name.CStr());
             }
@@ -201,7 +201,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
     for (const auto [res_idx, res_node] : builder.resource_nodes | std::views::enumerate)
     {
         const RGResourceBase* resource = res_node.resource.get();
-        if (!IsA<RGExternalTexture>(resource) && !IsA<RGExternalBuffer>(resource))
+        if (!IsA_v1<RGExternalTexture>(resource) && !IsA_v1<RGExternalBuffer>(resource))
         {
             continue;
         }
@@ -262,7 +262,7 @@ void RenderGraphExecutor::Compile(RenderGraphBuilder& builder)
         for (const RGResourceRef& read_ref : pass_node.read_refs)
         {
             const RGResourceBase* resource = builder.resource_nodes[read_ref.resource_index].resource.get();
-            if (IsA<RGExternalTexture>(resource) || IsA<RGExternalBuffer>(resource))
+            if (IsA_v1<RGExternalTexture>(resource) || IsA_v1<RGExternalBuffer>(resource))
             {
                 reads_external = true;
                 break;

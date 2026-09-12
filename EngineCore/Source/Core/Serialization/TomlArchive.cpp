@@ -1,6 +1,6 @@
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -438,12 +438,12 @@ void TomlReader::SerializeGuid(Guid& value)
     }
 }
 
-void TomlReader::SerializeTypeId(TypeId& value)
+void TomlReader::SerializeTypeId(TypeId_v1& value)
 {
     String type_name;
     SerializeString(type_name);
 
-    value = TypeId::FromName(type_name);
+    value = TypeId_v1::FromName(type_name);
     if (!SE_ENSURE(value.IsValid(), "TomlReader::SerializeTypeId - Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name))
     {
         SetError(String::Format("TomlReader: Failed to resolve TypeId from name: '{}'.", type_name));
@@ -734,7 +734,7 @@ void TomlWriter::SerializeGuid(Guid& value)
     WriteValue(ToU8StringView(value.ToString()));
 }
 
-void TomlWriter::SerializeTypeId(TypeId& value)
+void TomlWriter::SerializeTypeId(TypeId_v1& value)
 {
     String type_name;
     if (!SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Text!"))

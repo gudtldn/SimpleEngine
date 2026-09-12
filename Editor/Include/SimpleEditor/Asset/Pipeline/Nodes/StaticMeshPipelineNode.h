@@ -23,7 +23,7 @@ struct PipelineMeshSection
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) StaticMeshPipelineNode : public PipelineBaseNode
 {
-    SE_CLASS(StaticMeshPipelineNode, PipelineBaseNode)
+    SE_CLASS_V1(StaticMeshPipelineNode, PipelineBaseNode)
 
 public:
     // Mesh Data

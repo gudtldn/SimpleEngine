@@ -4,7 +4,7 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
 
@@ -19,7 +19,7 @@ class Material;
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialInstance : public AssetBase
 {
-    SE_CLASS(MaterialInstance, AssetBase)
+    SE_CLASS_V1(MaterialInstance, AssetBase)
 
 public:
     // 부모 머티리얼 템플릿 ID

@@ -10,7 +10,7 @@
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -20,8 +20,8 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(AssetSubsystem);
 
-SE_BEGIN_REFLECT(AssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(AssetSubsystem)
+SE_BEGIN_REFLECT_V1(AssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(AssetSubsystem)
 
 AssetSubsystem::AssetSubsystem() = default;
 AssetSubsystem::~AssetSubsystem() = default;
@@ -93,8 +93,8 @@ void AssetSubsystem::EndFrame()
 
 Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
 {
-    const TypeId type_id = asset.GetTypeId();
-    const auto info_opt = TypeRegistry::Get().Find(type_id);
+    const TypeId_v1 type_id = asset.GetTypeId();
+    const auto info_opt = TypeRegistry_v1::Get().Find(type_id);
     if (!info_opt || !info_opt->serialize)
     {
         ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type: {}", type_id.GetName());
@@ -107,9 +107,9 @@ Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     return payload;
 }
 
-AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, ArrayView<const u8> payload_view)
+AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, ArrayView<const u8> payload_view)
 {
-    const auto info_opt = TypeRegistry::Get().Find(type_id);
+    const auto info_opt = TypeRegistry_v1::Get().Find(type_id);
     if (!info_opt || !info_opt->constructor || !info_opt->serialize)
     {
         ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type: {}", type_id.GetName());
@@ -131,7 +131,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId& type_id, Arra
     };
 }
 
-HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const AssetPath& source_path, EScopeLayer scope)
+HandleData AssetSubsystem::LoadInternal(const TypeId_v1& expected_type, const AssetPath& source_path, EScopeLayer scope)
 {
     ZoneScopedN("AssetSubsystem::LoadInternal");
     SE_DEBUG_EXPRESSION({
@@ -285,7 +285,7 @@ HandleData AssetSubsystem::LoadInternal(const TypeId& expected_type, const Asset
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-AssetSubsystem::ESlotAcquireResult AssetSubsystem::AcquireLoadSlot(HandleData handle_data, const TypeId& expected_type)
+AssetSubsystem::ESlotAcquireResult AssetSubsystem::AcquireLoadSlot(HandleData handle_data, const TypeId_v1& expected_type)
 {
     HandleTable& table = pool->GetTable();
     while (true)
@@ -349,7 +349,7 @@ void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload pa
     }
 }
 
-HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, const TypeId& type_id, AssetPayload payload, u64 asset_size)
+HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, const TypeId_v1& type_id, AssetPayload payload, u64 asset_size)
 {
     const HandleData handle_data = pool->FindOrCreate(asset_id, type_id, {});
     SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
@@ -368,7 +368,7 @@ HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, cons
     return handle_data;
 }
 
-HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const AssetId& asset_id) const
+HandleData AssetSubsystem::FindInternal(const TypeId_v1& expected_type, const AssetId& asset_id) const
 {
     Optional<HandleData> handle_opt = pool->Find(asset_id);
     if (!handle_opt.HasValue())
@@ -391,7 +391,7 @@ HandleData AssetSubsystem::FindInternal(const TypeId& expected_type, const Asset
     return handle_data;
 }
 
-JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope)
+JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId_v1 expected_type, AssetPath source_path, EScopeLayer scope)
 {
     // Worker 스레드로 전환 (호출 스레드 비블로킹 보장)
     co_await ResumeOn{ EJobThread::Worker };

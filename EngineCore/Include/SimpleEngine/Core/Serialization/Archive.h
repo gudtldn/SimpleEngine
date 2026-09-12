@@ -2,8 +2,8 @@
 
 #include "SimpleEngine/Core/Container/StringFwd.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Traits.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Reflection/Legacy/Traits.h"
+#include "../Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/SerializationTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
@@ -21,7 +21,7 @@ class Guid;
 class StringName;
 
 /** 리플렉션 기반 자동 직렬화 (TypeId 조회 후 프로퍼티 순회) */
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance);
+SE_CORE_API void AutoSerialize(Archive& ar, const TypeId_v1& type_id, void* instance);
 
 /**
  * Archive의 동작 모드
@@ -229,7 +229,7 @@ protected:
     virtual void SerializeString(String& value) = 0;
     virtual void SerializeStringName(StringName& value) = 0;
     virtual void SerializeGuid(Guid& value) = 0;
-    virtual void SerializeTypeId(TypeId& value) = 0;
+    virtual void SerializeTypeId(TypeId_v1& value) = 0;
 
 protected:
     explicit Archive(EArchiveMode in_mode);
@@ -326,7 +326,7 @@ Archive& Archive::operator<<(T& value)
     {
         SerializeGuid(value);
     }
-    else if constexpr (std::same_as<PureType, TypeId>)
+    else if constexpr (std::same_as<PureType, TypeId_v1>)
     {
         SerializeTypeId(value);
     }
@@ -375,10 +375,10 @@ Archive& Archive::operator<<(T& value)
     }
 
     // Fallback - 리플렉션 시스템에 등록된 타입은 AutoSerialize로 직렬화
-    else if constexpr (Reflectable<PureType>)
+    else if constexpr (Reflectable_v1<PureType>)
     {
         BeginObject();
-        AutoSerialize(*this, TypeId::Of<PureType>(), &value);
+        AutoSerialize(*this, TypeId_v1::Of<PureType>(), &value);
         EndObject();
     }
 

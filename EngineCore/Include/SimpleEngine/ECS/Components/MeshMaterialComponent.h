@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se
@@ -25,4 +25,4 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) MeshMaterialC
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::MeshMaterialComponent)
+SE_DECLARE_REFLECTION_V1(se::MeshMaterialComponent)

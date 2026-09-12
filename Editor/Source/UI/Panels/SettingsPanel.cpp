@@ -72,8 +72,8 @@ void SettingsPanel::DrawContent()
 
             static auto category_entries = []
             {
-                FixedArray<CategoryEntry, EnumCount<ECategory>()> ret{};
-                std::ranges::transform(EnumEntries<ECategory>(), ret.begin(), [](const auto& entry) -> CategoryEntry
+                FixedArray<CategoryEntry, EnumCount_v1<ECategory>()> ret{};
+                std::ranges::transform(EnumEntries_v1<ECategory>(), ret.begin(), [](const auto& entry) -> CategoryEntry
                 {
                     return {
                         .value = static_cast<ECategory>(entry.value),
@@ -102,31 +102,31 @@ void SettingsPanel::DrawContent()
             {
             case ECategory::Window:
             {
-                needs_save |= DrawSettings("Window", TypeId::Of<WindowSettings>(), &window_settings);
+                needs_save |= DrawSettings("Window", TypeId_v1::Of<WindowSettings>(), &window_settings);
                 ImGui::TextDisabled("(Window settings apply on next launch)");
                 break;
             }
             case ECategory::UI:
             {
-                needs_save |= DrawSettings("Editor UI", TypeId::Of<EditorUISettings>(), &ui_settings);
+                needs_save |= DrawSettings("Editor UI", TypeId_v1::Of<EditorUISettings>(), &ui_settings);
                 ImGui::TextDisabled("(Font and theme changes apply on next launch)");
                 break;
             }
             case ECategory::Console:
             {
-                needs_save |= DrawSettings("Console", TypeId::Of<ConsoleSettings>(), &console_settings);
+                needs_save |= DrawSettings("Console", TypeId_v1::Of<ConsoleSettings>(), &console_settings);
                 break;
             }
             case ECategory::Performance:
             {
-                needs_save |= DrawSettings("Performance", TypeId::Of<PerformanceSettings>(), &performance_settings);
+                needs_save |= DrawSettings("Performance", TypeId_v1::Of<PerformanceSettings>(), &performance_settings);
                 ImGui::TextDisabled("Target FPS applies immediately on save.");
                 ImGui::TextDisabled("Busy wait ratio affects frame timing precision vs CPU usage.");
                 break;
             }
             case ECategory::Graphics:
             {
-                needs_save |= DrawSettings("Graphics", TypeId::Of<GraphicsSettings>(), &graphics_settings);
+                needs_save |= DrawSettings("Graphics", TypeId_v1::Of<GraphicsSettings>(), &graphics_settings);
                 ImGui::TextDisabled("(Present mode applies on next launch)");
                 break;
             }
@@ -234,11 +234,11 @@ void SettingsPanel::SaveSettings()
     }
 }
 
-bool SettingsPanel::DrawSettings(const char* label, const TypeId& type_id, void* settings_ptr)
+bool SettingsPanel::DrawSettings(const char* label, const TypeId_v1& type_id, void* settings_ptr)
 {
     ImGui::SeparatorText(label);
 
-    const TypeInfo& settings = TypeRegistry::Get().FindChecked(type_id);
+    const TypeInfo_v1& settings = TypeRegistry_v1::Get().FindChecked(type_id);
     return DrawerRegistry::Get().DrawProperties(settings, settings_ptr);
 }
 } // namespace se::editor

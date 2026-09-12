@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Traits.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "Traits.h"
+#include "SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <concepts>
@@ -17,7 +17,7 @@ namespace detail
  * @param base_id 기준이 되는 (부모 클래스) TypeId
  * @return derived_id가 base_id이거나, base_id의 파생 클래스이면 true
  */
-[[nodiscard]] SE_CORE_API bool IsTypeDerivedFrom(const TypeId& derived_id, const TypeId& base_id);
+[[nodiscard]] SE_CORE_API bool IsTypeDerivedFrom(const TypeId_v1& derived_id, const TypeId_v1& base_id);
 
 /**
  * obj의 완전한 객체 포인터(void*)에서 bases 그래프를 재귀 탐색하여 to 타입 포인터로 업캐스트합니다.
@@ -26,7 +26,7 @@ namespace detail
  * @param to 변환할 TypeId
  * @return 성공 시 to 타입의 포인터, 실패 시 nullptr
  */
-[[nodiscard]] SE_CORE_API void* TryUpcast(void* instance, const TypeId& from, const TypeId& to);
+[[nodiscard]] SE_CORE_API void* TryUpcast(void* instance, const TypeId_v1& from, const TypeId_v1& to);
 } // namespace detail
 
 /**
@@ -35,20 +35,20 @@ namespace detail
  * @param instance 검사할 객체의 포인터 (nullptr일 경우 false)
  * @return obj의 런타임 타입이 T이거나 T로부터 파생되었으면 true
  */
-template <typename T, IntrusiveReflectable From>
-[[nodiscard]] bool IsA(const From* instance)
+template <typename T, IntrusiveReflectable_v1 From>
+[[nodiscard]] bool IsA_v1(const From* instance)
 {
     if (!instance)
     {
         return false;
     }
-    return detail::IsTypeDerivedFrom(instance->GetTypeId(), TypeId::Of<T>());
+    return detail::IsTypeDerivedFrom(instance->GetTypeId(), TypeId_v1::Of<T>());
 }
 
-template <typename T, IntrusiveReflectable From>
-[[nodiscard]] bool IsA(const From& instance)
+template <typename T, IntrusiveReflectable_v1 From>
+[[nodiscard]] bool IsA_v1(const From& instance)
 {
-    return detail::IsTypeDerivedFrom(instance.GetTypeId(), TypeId::Of<T>());
+    return detail::IsTypeDerivedFrom(instance.GetTypeId(), TypeId_v1::Of<T>());
 }
 
 /**
@@ -57,10 +57,10 @@ template <typename T, IntrusiveReflectable From>
  * @tparam Base 부모 타입
  * @return Derived가 Base이거나 Base로부터 파생되었으면 true
  */
-template <IntrusiveReflectable Derived, IntrusiveReflectable Base>
-[[nodiscard]] bool IsChildOf()
+template <IntrusiveReflectable_v1 Derived, IntrusiveReflectable_v1 Base>
+[[nodiscard]] bool IsChildOf_v1()
 {
-    return detail::IsTypeDerivedFrom(TypeId::Of<Derived>(), TypeId::Of<Base>());
+    return detail::IsTypeDerivedFrom(TypeId_v1::Of<Derived>(), TypeId_v1::Of<Base>());
 }
 
 /**
@@ -70,9 +70,9 @@ template <IntrusiveReflectable Derived, IntrusiveReflectable Base>
  * @return derived_id가 Base이거나 Base로부터 파생되었으면 true
  */
 template <typename Base>
-[[nodiscard]] bool IsChildOf(TypeId derived_id)
+[[nodiscard]] bool IsChildOf_v1(TypeId_v1 derived_id)
 {
-    return detail::IsTypeDerivedFrom(derived_id, TypeId::Of<Base>());
+    return detail::IsTypeDerivedFrom(derived_id, TypeId_v1::Of<Base>());
 }
 
 /**
@@ -83,7 +83,7 @@ template <typename Base>
  * @return 성공 시 To* 포인터, 실패 시 nullptr
  */
 template <typename To>
-[[nodiscard]] To* CastFromRaw(void* raw_instance, TypeId actual_type_id)
+[[nodiscard]] To* CastFromRaw_v1(void* raw_instance, TypeId_v1 actual_type_id)
 {
     if (!raw_instance)
     {
@@ -91,7 +91,7 @@ template <typename To>
     }
 
     // bases 그래프를 통해 업캐스트를 시도
-    return static_cast<To*>(detail::TryUpcast(raw_instance, actual_type_id, TypeId::Of<To>()));
+    return static_cast<To*>(detail::TryUpcast(raw_instance, actual_type_id, TypeId_v1::Of<To>()));
 }
 
 /**
@@ -102,8 +102,8 @@ template <typename To>
  * @param instance 캐스팅할 객체의 포인터
  * @return 캐스팅에 성공하면 To* 포인터, 실패하면 nullptr
  */
-template <typename To, IntrusiveReflectable From>
-[[nodiscard]] To* Cast(From* instance)
+template <typename To, IntrusiveReflectable_v1 From>
+[[nodiscard]] To* Cast_v1(From* instance)
 {
     if (!instance)
     {
@@ -119,12 +119,12 @@ template <typename To, IntrusiveReflectable From>
     {
         // GetCompleteObject()로 most-derived 포인터를 얻은 뒤 bases 그래프를 탐색
         void* complete = instance->GetCompleteObject();
-        return static_cast<To*>(detail::TryUpcast(complete, instance->GetTypeId(), TypeId::Of<To>()));
+        return static_cast<To*>(detail::TryUpcast(complete, instance->GetTypeId(), TypeId_v1::Of<To>()));
     }
 }
 
-template <typename To, IntrusiveReflectable From>
-[[nodiscard]] const To* Cast(const From* instance)
+template <typename To, IntrusiveReflectable_v1 From>
+[[nodiscard]] const To* Cast_v1(const From* instance)
 {
     if (!instance)
     {
@@ -140,7 +140,7 @@ template <typename To, IntrusiveReflectable From>
     {
         // GetCompleteObject()로 most-derived 포인터를 얻은 뒤 bases 그래프를 탐색
         void* complete = const_cast<From*>(instance)->GetCompleteObject();
-        return static_cast<const To*>(detail::TryUpcast(complete, instance->GetTypeId(), TypeId::Of<To>()));
+        return static_cast<const To*>(detail::TryUpcast(complete, instance->GetTypeId(), TypeId_v1::Of<To>()));
     }
 }
 
@@ -153,30 +153,30 @@ template <typename To, IntrusiveReflectable From>
  * @param instance 캐스팅할 객체의 포인터 (nullptr 불가)
  * @return 캐스팅된 To* 포인터
  */
-template <typename To, IntrusiveReflectable From>
-[[nodiscard]] To* CastChecked(From* instance)
+template <typename To, IntrusiveReflectable_v1 From>
+[[nodiscard]] To* CastChecked_v1(From* instance)
 {
     SE_ASSERT(instance != nullptr, "CastChecked failed: Source pointer is null!");
 
     // GetCompleteObject()로 most-derived 포인터를 얻은 뒤 bases 그래프를 탐색
     void* complete = instance->GetCompleteObject();
-    void* result = detail::TryUpcast(complete, instance->GetTypeId(), TypeId::Of<To>());
+    void* result = detail::TryUpcast(complete, instance->GetTypeId(), TypeId_v1::Of<To>());
     SE_ASSERT(
         result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
-        instance->GetTypeId().GetName(), TypeId::Of<To>().GetName()
+        instance->GetTypeId().GetName(), TypeId_v1::Of<To>().GetName()
     );
     return static_cast<To*>(result);
 }
 
-template <typename To, IntrusiveReflectable From>
-[[nodiscard]] const To* CastChecked(const From* instance)
+template <typename To, IntrusiveReflectable_v1 From>
+[[nodiscard]] const To* CastChecked_v1(const From* instance)
 {
     SE_ASSERT(instance != nullptr, "CastChecked failed: Source pointer is null!");
 
     // GetCompleteObject()로 most-derived 포인터를 얻은 뒤 bases 그래프를 탐색
     void* complete = const_cast<From*>(instance)->GetCompleteObject();
-    void* result = detail::TryUpcast(complete, instance->GetTypeId(), TypeId::Of<To>());
+    void* result = detail::TryUpcast(complete, instance->GetTypeId(), TypeId_v1::Of<To>());
     SE_ASSERT(
         result != nullptr,
         "CastChecked failed: Cannot cast '{}' to '{}'!",
@@ -193,10 +193,10 @@ template <typename To, IntrusiveReflectable From>
  * @param instance 캐스팅할 객체의 포인터
  * @return 런타임 타입이 To와 동일하면 To* 포인터, 아니면 nullptr
  */
-template <typename To, IntrusiveReflectable From>
-[[nodiscard]] To* ExactCast(From* instance)
+template <typename To, IntrusiveReflectable_v1 From>
+[[nodiscard]] To* ExactCast_v1(From* instance)
 {
-    if (instance && instance->GetTypeId() == TypeId::Of<To>())
+    if (instance && instance->GetTypeId() == TypeId_v1::Of<To>())
     {
         // Multiple inheritance offset 보정을 위해 GetCompleteObject()를 사용
         return static_cast<To*>(instance->GetCompleteObject());
@@ -204,10 +204,10 @@ template <typename To, IntrusiveReflectable From>
     return nullptr;
 }
 
-template <typename To, IntrusiveReflectable From>
-[[nodiscard]] const To* ExactCast(const From* instance)
+template <typename To, IntrusiveReflectable_v1 From>
+[[nodiscard]] const To* ExactCast_v1(const From* instance)
 {
-    if (instance && instance->GetTypeId() == TypeId::Of<To>())
+    if (instance && instance->GetTypeId() == TypeId_v1::Of<To>())
     {
         // Multiple inheritance offset 보정을 위해 GetCompleteObject()를 사용
         return static_cast<const To*>(const_cast<From*>(instance)->GetCompleteObject());

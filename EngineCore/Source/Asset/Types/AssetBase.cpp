@@ -1,9 +1,9 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se
 {
-SE_BEGIN_REFLECT(AssetBase, meta::Reflect, meta::Hidden)
-SE_END_REFLECT(AssetBase)
+SE_BEGIN_REFLECT_V1(AssetBase, meta::Reflect, meta::Hidden)
+SE_END_REFLECT_V1(AssetBase)
 } // namespace se

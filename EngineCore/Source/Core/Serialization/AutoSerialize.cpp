@@ -1,7 +1,7 @@
 #include "SimpleEngine/Core/Serialization/AutoSerialize.h"
 
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
 
@@ -9,7 +9,7 @@ namespace se
 {
 namespace
 {
-void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSet<void*>& visited) // NOLINT(*-no-recursion)
+void AutoSerializeImpl(Archive& ar, const TypeInfo_v1& info, void* instance, HashSet<void*>& visited) // NOLINT(*-no-recursion)
 {
     if (!instance)
     {
@@ -17,9 +17,9 @@ void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSe
     }
 
     // 부모 타입의 프로퍼티를 먼저 직렬화 (다중 상속 포함, 주소 기준 dedup)
-    for (const BaseInfo& base : info.bases)
+    for (const BaseInfo_v1& base : info.bases)
     {
-        if (const auto parent = TypeRegistry::Get().Find(base.base_id))
+        if (const auto parent = TypeRegistry_v1::Get().Find(base.base_id))
         {
             void* base_instance = base.upcast(instance);
             if (visited.Insert(base_instance))
@@ -30,10 +30,10 @@ void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSe
     }
 
     // 현재 타입의 프로퍼티 순회
-    for (const PropertyInfo& prop : info.properties)
+    for (const PropertyInfo_v1& prop : info.properties)
     {
         // Transient 프로퍼티는 건너뜀
-        if (prop.metadata.flags.IsAnySet(EPropertyFlags::Transient))
+        if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::Transient))
         {
             continue;
         }
@@ -51,15 +51,15 @@ void AutoSerializeImpl(Archive& ar, const TypeInfo& info, void* instance, HashSe
 }
 } // namespace
 
-void AutoSerialize(Archive& ar, const TypeInfo& info, void* instance)
+void AutoSerialize(Archive& ar, const TypeInfo_v1& info, void* instance)
 {
     HashSet<void*> visited;
     AutoSerializeImpl(ar, info, instance, visited);
 }
 
-void AutoSerialize(Archive& ar, const TypeId& type_id, void* instance)
+void AutoSerialize(Archive& ar, const TypeId_v1& type_id, void* instance)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(type_id);
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(type_id);
     AutoSerialize(ar, info, instance);
 }
 } // namespace se

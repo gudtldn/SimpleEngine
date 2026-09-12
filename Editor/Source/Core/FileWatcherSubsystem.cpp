@@ -7,8 +7,8 @@ namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(FileWatcherSubsystem);
 
-SE_BEGIN_REFLECT(FileWatcherSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(FileWatcherSubsystem)
+SE_BEGIN_REFLECT_V1(FileWatcherSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(FileWatcherSubsystem)
 
 bool FileWatcherSubsystem::Initialize()
 {

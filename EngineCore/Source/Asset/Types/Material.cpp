@@ -1,5 +1,5 @@
 ﻿#include "SimpleEngine/Asset/Types/Material.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Utility/Common.h"
 
 #include <algorithm>
@@ -8,17 +8,17 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT(Material, meta::Reflect)
-    SE_REFLECT_PROPERTY(vertex_shader, meta::Reflect)
-    SE_REFLECT_PROPERTY(fragment_shader, meta::Reflect)
-    SE_REFLECT_PROPERTY(blend_mode, meta::Reflect)
-    SE_REFLECT_PROPERTY(shading_model, meta::Reflect)
-    SE_REFLECT_PROPERTY(two_sided, meta::Reflect)
-    SE_REFLECT_PROPERTY(alpha_cutoff, meta::Reflect)
-    SE_REFLECT_PROPERTY(permutation_key, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(parameter_layout, meta::Reflect)
-    SE_REFLECT_PROPERTY(texture_slots, meta::Reflect)
-SE_END_REFLECT(Material)
+SE_BEGIN_REFLECT_V1(Material, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(vertex_shader, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(fragment_shader, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(blend_mode, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(shading_model, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(two_sided, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(alpha_cutoff, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(permutation_key, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(parameter_layout, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(texture_slots, meta::Reflect)
+SE_END_REFLECT_V1(Material)
 
 Material& Material::AddParameter(StringName name, EMaterialParamType type, Vector4f default_val)
 {

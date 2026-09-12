@@ -115,7 +115,7 @@ protected:
     virtual void SerializeString(String& value) override;
     virtual void SerializeStringName(StringName& value) override;
     virtual void SerializeGuid(Guid& value) override;
-    virtual void SerializeTypeId(TypeId& value) override;
+    virtual void SerializeTypeId(TypeId_v1& value) override;
 
 private:
     /**
@@ -190,7 +190,7 @@ protected:
     virtual void SerializeString(String& value) override;
     virtual void SerializeStringName(StringName& value) override;
     virtual void SerializeGuid(Guid& value) override;
-    virtual void SerializeTypeId(TypeId& value) override;
+    virtual void SerializeTypeId(TypeId_v1& value) override;
 
 private:
     /**

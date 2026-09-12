@@ -17,7 +17,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) InputSubsystem : public SubsystemBase
 {
-    SE_CLASS(InputSubsystem, SubsystemBase)
+    SE_CLASS_V1(InputSubsystem, SubsystemBase)
 
 public:
     InputSubsystem() = default;

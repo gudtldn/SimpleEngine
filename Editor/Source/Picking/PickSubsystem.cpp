@@ -12,8 +12,8 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(PickSubsystem)
     .DependsOn<RenderSubsystem>();
 
-SE_BEGIN_REFLECT(PickSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(PickSubsystem)
+SE_BEGIN_REFLECT_V1(PickSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(PickSubsystem)
 
 bool PickSubsystem::Initialize()
 {

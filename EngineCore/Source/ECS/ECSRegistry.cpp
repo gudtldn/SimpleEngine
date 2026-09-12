@@ -1,5 +1,5 @@
 #include "SimpleEngine/ECS/ECSRegistry.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 
 namespace se
@@ -10,12 +10,12 @@ ECSRegistry& ECSRegistry::Get()
     return instance;
 }
 
-Optional<const ComponentOps&> ECSRegistry::GetComponentOps(const TypeId& type_id) const
+Optional<const ComponentOps&> ECSRegistry::GetComponentOps(const TypeId_v1& type_id) const
 {
     return component_operators.Find(type_id);
 }
 
-Optional<const ResourceOps&> ECSRegistry::GetResourceOps(const TypeId& type_id) const
+Optional<const ResourceOps&> ECSRegistry::GetResourceOps(const TypeId_v1& type_id) const
 {
     return resource_operators.Find(type_id);
 }
@@ -25,11 +25,11 @@ Optional<const ResourceOps&> ECSRegistry::GetResourceOps(const TypeId& type_id) 
 // 2. ECSRegistry에 등록된 Resource만 대상 -- 미등록 Resource는 누락됨
 void ECSRegistry::InsertDefaultTransientResources(World& world) const
 {
-    const auto& registry = TypeRegistry::Get();
+    const auto& registry = TypeRegistry_v1::Get();
     for (const auto& [type_id, ops] : resource_operators)
     {
         if (auto info_opt = registry.Find(type_id);
-            info_opt.HasValue() && info_opt->flags.IsSet(ETypeFlags::Transient) && !ops.has_resource(world))
+            info_opt.HasValue() && info_opt->flags.IsSet(ETypeFlags_v1::Transient) && !ops.has_resource(world))
         {
             ops.insert_default(world);
         }

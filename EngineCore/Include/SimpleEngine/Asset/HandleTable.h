@@ -58,7 +58,7 @@ public:
 
 public:
     /** AssetId를 사용하여 기존 슬롯을 찾거나, 존재하지 않으면 새로 생성합니다. (Thread-Safe) */
-    [[nodiscard]] HandleData FindOrCreate(const AssetId& id, const TypeId& type, const AssetPath& path);
+    [[nodiscard]] HandleData FindOrCreate(const AssetId& id, const TypeId_v1& type, const AssetPath& path);
 
     /** AssetId를 사용하여 기존 슬롯을 찾습니다. 없으면 잘못된(Invalid) HandleData를 반환합니다. (Thread-Safe) */
     [[nodiscard]] Optional<HandleData> Find(const AssetId& id) const;

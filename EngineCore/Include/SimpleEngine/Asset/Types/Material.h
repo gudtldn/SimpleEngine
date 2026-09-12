@@ -3,7 +3,7 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
 #include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
@@ -21,7 +21,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Material : public AssetBase
 {
-    SE_CLASS(Material, AssetBase)
+    SE_CLASS_V1(Material, AssetBase)
 
 public:
     // 버텍스 셰이더 VPath

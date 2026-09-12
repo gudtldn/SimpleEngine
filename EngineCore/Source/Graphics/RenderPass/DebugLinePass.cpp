@@ -12,8 +12,8 @@ namespace se
 {
 using namespace se::math;
 
-SE_BEGIN_REFLECT(DebugLinePass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(DebugLinePass)
+SE_BEGIN_REFLECT_V1(DebugLinePass, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(DebugLinePass)
 
 DebugLinePass::DebugLinePass(
     DebugDrawSubsystem& in_debug_subsystem,

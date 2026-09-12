@@ -14,8 +14,8 @@ namespace se::editor
 {
 using namespace se::math;
 
-SE_BEGIN_REFLECT(GizmoPickPass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(GizmoPickPass)
+SE_BEGIN_REFLECT_V1(GizmoPickPass, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(GizmoPickPass)
 
 GizmoPickPass::GizmoPickPass(
     const GizmoDrawList& in_draw_list,

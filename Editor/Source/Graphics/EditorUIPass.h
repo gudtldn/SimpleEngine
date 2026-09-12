@@ -12,7 +12,7 @@ namespace se::editor
  */
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorUIPass : public se::RenderPassBase
 {
-    SE_CLASS(EditorUIPass, se::RenderPassBase)
+    SE_CLASS_V1(EditorUIPass, se::RenderPassBase)
 
 public:
     explicit EditorUIPass(

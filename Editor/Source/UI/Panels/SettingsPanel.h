@@ -2,7 +2,7 @@
 
 #include "SimpleEditor/UI/IEditorPanel.h"
 #include "SimpleEditor/Config/EditorSettings.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 
 
 namespace se::editor
@@ -43,7 +43,7 @@ private:
     void SaveSettings();
 
     /** Category UI 그리기 */
-    [[nodiscard]] static bool DrawSettings(const char* label, const TypeId& type_id, void* settings_ptr);
+    [[nodiscard]] static bool DrawSettings(const char* label, const TypeId_v1& type_id, void* settings_ptr);
 
 private:
     ECategory current_category = ECategory::Window;

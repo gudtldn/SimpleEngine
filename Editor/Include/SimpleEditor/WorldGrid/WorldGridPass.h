@@ -17,7 +17,7 @@ enum class EViewMode : u8;
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) WorldGridPass : public se::RenderPassBase
 {
-    SE_CLASS(WorldGridPass, se::RenderPassBase)
+    SE_CLASS_V1(WorldGridPass, se::RenderPassBase)
 
 public:
     explicit WorldGridPass(

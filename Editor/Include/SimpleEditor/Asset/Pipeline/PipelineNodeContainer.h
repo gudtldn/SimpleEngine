@@ -4,7 +4,7 @@
 #include "SimpleEditor/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Reflection/Cast.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -69,7 +69,7 @@ public:
     {
         return GetNode(uid).AndThen([](PipelineBaseNode& node) -> Optional<NodeType&>
         {
-            if (NodeType* casted = Cast<NodeType>(&node))
+            if (NodeType* casted = Cast_v1<NodeType>(&node))
             {
                 return *casted;
             }
@@ -82,7 +82,7 @@ public:
     [[nodiscard]] NodeType& GetNodeChecked(const Guid& uid) const
     {
         auto& node = GetNodeChecked(uid);
-        return *CastChecked<NodeType>(&node);
+        return *CastChecked_v1<NodeType>(&node);
     }
 
     [[nodiscard]] bool Contains(const Guid& uid) const
