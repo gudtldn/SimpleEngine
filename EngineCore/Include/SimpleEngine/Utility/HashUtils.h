@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
@@ -8,64 +9,92 @@ namespace se
 {
 namespace detail
 {
-constexpr u64 DEFAULT_FNV_HASH = 0xcbf29ce484222325ULL;
+constexpr u64 FNV_OFFSET_BASIS = 0xcbf29ce484222325ULL;
 constexpr u64 FNV_PRIME = 0x100000001b3ULL;
 
-/**
- * FNV-1a 해시 알고리즘을 사용한 문자열 해싱 함수
- * @see https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
- */
-template <typename TransformFunc>
-constexpr u64 FNV_Hash_Impl(StringView view, TransformFunc transform) noexcept
+/** FNV-1a 단일 바이트 누적 처리 */
+constexpr void FNV1a_Byte(u64& hash, u8 byte) noexcept
 {
-    u64 hash = DEFAULT_FNV_HASH; // FNV_offset_basis
-    for (const StringView::CharType c : view)
+    hash ^= byte;
+    hash *= FNV_PRIME;
+}
+
+/** 64비트 정수(salt 등)를 리틀 엔디안 바이트 단위로 누적 */
+constexpr void FNV1a_U64(u64& hash, u64 value) noexcept
+{
+    for (i32 i = 0; i < 8; ++i)
     {
-        hash ^= static_cast<u8>(transform(c));
-        hash *= FNV_PRIME;
+        FNV1a_Byte(hash, static_cast<u8>(value >> (i * 8)));
     }
-    return hash;
 }
 } // namespace detail
 
 /**
  * 해시 관련 유틸리티 함수 모음
+ * @see https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
  */
-struct HashUtils
+struct HashUtils final
 {
     HashUtils() = delete;
 
-    /** 원시 바이트 범위에 대한 FNV-1a 해시 */
-    static constexpr u64 FNV(const u8* data, usize size) noexcept
+    /** 원시 바이트 뷰에 대한 FNV-1a 해시 */
+    static constexpr u64 FNV(ArrayView<const u8> bytes, u64 initial_hash = detail::FNV_OFFSET_BASIS) noexcept
     {
-        u64 hash = detail::DEFAULT_FNV_HASH;
-        for (usize i = 0; i < size; ++i)
+        u64 hash = initial_hash;
+        for (const u8 byte : bytes)
         {
-            hash ^= static_cast<u64>(data[i]);
-            hash *= detail::FNV_PRIME;
+            detail::FNV1a_Byte(hash, byte);
         }
         return hash;
     }
 
-    static constexpr u64 FNV(StringView view) noexcept
+    /** 런타임 메모리 버퍼 FNV-1a 해시 */
+    static u64 FNV(const void* data, usize size) noexcept
     {
-        return detail::FNV_Hash_Impl(view, [](auto c) { return c; });
+        return FNV(ArrayView<const u8>(static_cast<const u8*>(data), size));
     }
 
-    static constexpr u64 FNVCaseInsensitive(StringView view) noexcept
+    /** 문자열에 대한 FNV-1a 64-bit 해시 */
+    static constexpr u64 FNV(StringView view, u64 initial_hash = detail::FNV_OFFSET_BASIS) noexcept
     {
-        return detail::FNV_Hash_Impl(view, [](auto c)
+        u64 hash = initial_hash;
+        for (const char c : view)
         {
-            return ('A' <= c && c <= 'Z') ? c | 0x20 : c;
-        });
+            detail::FNV1a_Byte(hash, static_cast<u8>(c));
+        }
+        return hash;
+    }
+
+    /** Salt를 포함한 문자열 FNV-1a 64-bit 해시 */
+    static constexpr u64 FNVWithSalt(StringView view, u64 salt, u64 initial_hash = detail::FNV_OFFSET_BASIS) noexcept
+    {
+        u64 hash = initial_hash;
+        detail::FNV1a_U64(hash, salt);
+        return FNV(view, hash);
+    }
+
+    /** 대소문자 무시 FNV-1a 64-bit 해시 (ASCII 전용) */
+    static constexpr u64 FNVCaseInsensitive(StringView view, u64 initial_hash = detail::FNV_OFFSET_BASIS) noexcept
+    {
+        u64 hash = initial_hash;
+        for (const char c : view)
+        {
+            const u8 normalized = (c >= 'A' && c <= 'Z') ? static_cast<u8>(c | 0x20) : static_cast<u8>(c);
+            detail::FNV1a_Byte(hash, normalized);
+        }
+        return hash;
     }
 
     template <typename... Ts>
-    static void Combine(usize& seed, const Ts&... values)
+    static constexpr void Combine(usize& seed, const Ts&... values)
     {
+        constexpr usize GOLDEN_RATIO = sizeof(usize) == 8
+            ? static_cast<usize>(0x9e3779b97f4a7c15ULL)
+            : static_cast<usize>(0x9e3779b9UL);
+
         const auto combine_one = [&]<typename T>(const T& v)
         {
-            seed ^= std::hash<std::decay_t<T>>{}(v) + 0x9e3779b97f4a7c15 + (seed << 6) + (seed >> 2);
+            seed ^= std::hash<std::remove_cvref_t<T>>{}(v) + GOLDEN_RATIO + (seed << 6) + (seed >> 2);
         };
         (combine_one(values), ...);
     }
