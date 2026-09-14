@@ -29,6 +29,9 @@ public:
     /** 필드 목록을 저장할 배열을 가져옵니다. */
     [[nodiscard]] Array<FieldInfo>& EmplaceFieldStorage(TypeId id);
 
+    /** enum 항목 목록을 저장할 배열을 가져옵니다. */
+    [[nodiscard]] Array<EnumEntry>& EmplaceEnumEntryStorage(TypeId id);
+
     /** TypeId로 TypeInfo를 찾습니다. (등록되지 않았다면 NullOpt)*/
     [[nodiscard]] Optional<const TypeInfo&> Find(TypeId id) const;
 
@@ -47,5 +50,8 @@ private:
 
     /** 각 타입의 필드 정보 저장소 */
     HashMap<TypeId, Array<FieldInfo>> field_storage;
+
+    /** 각 enum 타입의 항목 정보 저장소 */
+    HashMap<TypeId, Array<EnumEntry>> enum_entry_storage;
 };
 } // namespace se
