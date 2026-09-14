@@ -28,6 +28,9 @@ const TypeInfo& EnsureRegistered();
 template <typename T>
 struct Registrar
 {
+    /** "Registrar<T>가 특수화됐는지" requires{} 판별용 마커 */
+    using UnregisteredMarker = void;
+
     static void Fill(TypeInfo& info)
     {
         info.size = sizeof(T);
@@ -38,6 +41,15 @@ struct Registrar
         {
             info.shape = OpaqueInfo{};
         }
+        else if constexpr (traits::EnumType<T>)
+        {
+            using Underlying = std::underlying_type_t<T>;
+            info.shape = EnumInfo{
+                .underlying = TypeId::Of<Underlying>(),
+                .entries = {},
+            };
+            EnsureRegistered<Underlying>();
+        }
         else
         {
             static_assert(traits::AlwaysFalse<T>,
@@ -46,6 +58,19 @@ struct Registrar
         }
     }
 };
+
+namespace detail
+{
+/**
+ * Registrar<T>가 primary로 떨어졌는지 확인
+ * @note requires{}가 MSVC에서 SFINAE로 안 먹혀서 void_t로 우회
+ */
+template <typename T, typename = void>
+constexpr bool IsRegistrarUnspecialized = false;
+
+template <typename T>
+constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnregisteredMarker>> = true;
+} // namespace detail
 
 // ----- 코어 타입 Opaque 등록 -----
 #define SE_DEFINE_OPAQUE_REGISTRAR(type) \
