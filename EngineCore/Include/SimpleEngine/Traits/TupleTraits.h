@@ -152,10 +152,10 @@ struct IsDisjointImpl<TupleLike1<Ts1...>, TupleLike2<Ts2...>>
  * TupleLike의 내부 타입이 모두 고유한지 확인하기 위한 구현체
  */
 template <typename Tuple>
-struct TupleUniqueTypesImpl;
+struct UniqueTupleImpl;
 
 template <template <typename...> typename TupleLike, typename... Ts>
-struct TupleUniqueTypesImpl<TupleLike<Ts...>>
+struct UniqueTupleImpl<TupleLike<Ts...>>
 {
     static constexpr bool Value = UniqueTypePack<Ts...>;
 };
@@ -238,5 +238,5 @@ concept IsDisjoint = detail::IsDisjointImpl<Tuple1, Tuple2>::Value;
  * TupleLike의 내부 타입이 모두 고유한지 확인합니다.
  */
 template <typename Tuple>
-concept TupleUniqueTypes = detail::TupleUniqueTypesImpl<Tuple>::Value;
+concept UniqueTuple = detail::UniqueTupleImpl<Tuple>::Value;
 } // namespace se::traits

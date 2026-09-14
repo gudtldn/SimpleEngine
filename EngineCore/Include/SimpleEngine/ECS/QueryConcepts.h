@@ -72,7 +72,7 @@ struct QueryValidator
     static constexpr bool HasElements = sizeof...(Ts) > 0;
 
     // 모든 타입이 고유해야 함.
-    static constexpr bool IsUnique = traits::TupleUniqueTypes<ProcessedTypes>;
+    static constexpr bool IsUnique = traits::UniqueTuple<ProcessedTypes>;
 
     // 포인터 타입이 없어야 함.
     static constexpr bool NoPointers = !(std::is_pointer_v<std::remove_cvref_t<Ts>> || ...);
