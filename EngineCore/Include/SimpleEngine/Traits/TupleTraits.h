@@ -3,6 +3,7 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 
@@ -238,5 +239,5 @@ concept IsDisjoint = detail::IsDisjointImpl<Tuple1, Tuple2>::Value;
  * TupleLike의 내부 타입이 모두 고유한지 확인합니다.
  */
 template <typename Tuple>
-concept UniqueTuple = detail::UniqueTupleImpl<Tuple>::Value;
+concept UniqueTuple = detail::UniqueTupleImpl<std::remove_cvref_t<Tuple>>::Value;
 } // namespace se::traits
