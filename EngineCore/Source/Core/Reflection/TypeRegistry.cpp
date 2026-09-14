@@ -23,6 +23,11 @@ Array<FieldInfo>& TypeRegistry::EmplaceFieldStorage(TypeId id)
     return field_storage.Entry(id).OrDefault();
 }
 
+Array<EnumEntry>& TypeRegistry::EmplaceEnumEntryStorage(TypeId id)
+{
+    return enum_entry_storage.Entry(id).OrDefault();
+}
+
 Optional<const TypeInfo&> TypeRegistry::Find(TypeId id) const
 {
     return type_map.Find(id);
