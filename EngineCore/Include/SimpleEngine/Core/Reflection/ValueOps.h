@@ -1,7 +1,10 @@
 #pragma once
 
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Utility/Overloaded.h"
 
+#include <utility>
 #include <variant>
 
 
@@ -103,5 +106,38 @@ struct ValueOps
 
     /** 형태별 연산. 컨테이너가 아니면 monostate */
     ShapeOps shape_ops;
+
+    /** Array-like가 아니면 NullOpt */
+    [[nodiscard]] Optional<const ArrayOps&> AsArray() const { return ShapeAs<ArrayOps>(); }
+
+    /** Set-like가 아니면 NullOpt */
+    [[nodiscard]] Optional<const SetOps&> AsSet() const { return ShapeAs<SetOps>(); }
+
+    /** Map-like가 아니면 NullOpt */
+    [[nodiscard]] Optional<const MapOps&> AsMap() const { return ShapeAs<MapOps>(); }
+
+    /** Optional이 아니면 NullOpt */
+    [[nodiscard]] Optional<const OptionalOps&> AsOptional() const { return ShapeAs<OptionalOps>(); }
+
+    /**
+     * 형태별로 분기합니다.
+     * @note monostate(컨테이너 아님)를 포함해 하나라도 빠뜨리면 컴파일 에러입니다.
+     */
+    template <typename... Fns>
+    decltype(auto) VisitShape(Fns&&... fns) const
+    {
+        return std::visit(Overloaded<std::decay_t<Fns>...>{ std::forward<Fns>(fns)... }, shape_ops);
+    }
+
+private:
+    template <typename Ops>
+    [[nodiscard]] Optional<const Ops&> ShapeAs() const
+    {
+        if (const Ops* ops = std::get_if<Ops>(&shape_ops))
+        {
+            return *ops;
+        }
+        return NullOpt;
+    }
 };
 } // namespace se

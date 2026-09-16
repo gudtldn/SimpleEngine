@@ -49,7 +49,7 @@ template <typename T>
 const StructInfo& StructInfoOf()
 {
     const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<T>());
-    return std::get<StructInfo>(info.shape);
+    return info.AsStruct().Value();
 }
 } // namespace se_reflect_inheritance_test
 
@@ -120,10 +120,11 @@ TEST(ReflectInheritanceTest, TwoLevelHierarchyIsReachableThroughBases)
     // MagicSword -> Weapon -> Item 으로 한 단계씩 따라갈 수 있어야 합니다.
     const se::StructInfo& sword_shape = StructInfoOf<MagicSword>();
     const se::TypeInfo& weapon_info = se::TypeRegistry::Get().FindChecked(sword_shape.bases[0].type);
-    const auto& weapon_shape = std::get<se::StructInfo>(weapon_info.shape);
+    const se::Optional<const se::StructInfo&> weapon_shape = weapon_info.AsStruct();
+    ASSERT_TRUE(weapon_shape.HasValue());
 
-    ASSERT_EQ(weapon_shape.bases.Len(), 1u);
-    EXPECT_EQ(weapon_shape.bases[0].type.Value(), se::TypeId::Of<Item>().Value());
+    ASSERT_EQ(weapon_shape->bases.Len(), 1u);
+    EXPECT_EQ(weapon_shape->bases[0].type.Value(), se::TypeId::Of<Item>().Value());
 }
 
 TEST(ReflectInheritanceTest, TypeWithoutBaseHasEmptyBases)
