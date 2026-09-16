@@ -74,6 +74,14 @@ enum class PlainEnum { A, B };
 
 template <typename T>
 struct SimpleTemplate {};
+
+// 비타입 인자(크기)가 섞인 템플릿 — FixedArray<T, N> 과 같은 모양입니다.
+template <typename T, usize N>
+struct SizedTemplate {};
+
+// 비타입 인자만 받는 템플릿 — FixedString<N>, HashDigest<N> 과 같은 모양입니다.
+template <usize N>
+struct SizeOnlyTemplate {};
 }
 
 static_assert(CanonicalNameOf<se_reflection_golden_test::PlainStruct>()
@@ -86,6 +94,17 @@ static_assert(CanonicalNameOf<se_reflection_golden_test::SimpleTemplate<int>>()
     == "se_reflection_golden_test::SimpleTemplate<i32>");
 static_assert(CanonicalNameOf<se_reflection_golden_test::SimpleTemplate<se_reflection_golden_test::PlainStruct>>()
     == "se_reflection_golden_test::SimpleTemplate<se_reflection_golden_test::PlainStruct>");
+
+// 비타입 인자는 10진수로 조립됩니다. 크기가 다르면 다른 타입이어야 합니다.
+static_assert(CanonicalNameOf<se_reflection_golden_test::SizedTemplate<int, 4>>()
+    == "se_reflection_golden_test::SizedTemplate<i32,4>");
+static_assert(se::TypeId::Of<se_reflection_golden_test::SizedTemplate<i32, 4>>()
+    != se::TypeId::Of<se_reflection_golden_test::SizedTemplate<i32, 8>>());
+
+static_assert(CanonicalNameOf<se_reflection_golden_test::SizeOnlyTemplate<32>>()
+    == "se_reflection_golden_test::SizeOnlyTemplate<32>");
+static_assert(se::TypeId::Of<se_reflection_golden_test::SizeOnlyTemplate<32>>()
+    != se::TypeId::Of<se_reflection_golden_test::SizeOnlyTemplate<64>>());
 
 
 // ─────────────────────────────────────────────────────────────
