@@ -10,7 +10,7 @@
 #include "SimpleEngine/Traits/TupleTraits.h"
 #include "SimpleEngine/Utility/Common.h"
 
-#include <cstddef>
+#include <concepts>
 #include <tuple>
 #include <type_traits>
 
@@ -39,7 +39,7 @@
         fields.Push(::se::FieldInfo{ \
             .name = #field, \
             .type = ::se::TypeId::Of<std::remove_cvref_t<decltype(T::field)>>(), \
-            .offset = offsetof(T, field), \
+            .offset = ::se::detail::FieldOffsetOf<T>(&T::field), \
             .annotations = []<typename U>() consteval -> ::se::ArrayView<const ::se::AnnotationRef> \
             { \
                 if constexpr (requires { U::_ANNO_REFS_##field; }) \
@@ -76,11 +76,24 @@
             static constexpr auto TYPE_TAG_REFS = ::se::detail::MakeRefs(&TYPE_TAG_VALUES); \
             info.annotations = TYPE_TAG_REFS; \
         ) \
+        ::se::Array<::se::BaseInfo>& bases = ::se::TypeRegistry::Get().EmplaceBaseStorage(::se::TypeId::Of<T>()); \
         ::se::Array<::se::FieldInfo>& fields = ::se::TypeRegistry::Get().EmplaceFieldStorage(::se::TypeId::Of<T>());
+
+/** 등록 블록 안에서, 부모 타입 하나를 BaseInfo로 만들어 등록합니다. */
+#define SE_BASE(base_type) \
+    { \
+        static_assert(std::derived_from<T, base_type>, \
+            "SE_BASE(" #base_type "): the registered type does not derive from it."); \
+        bases.Push(::se::BaseInfo{ \
+            .type = ::se::TypeId::Of<base_type>(), \
+            .offset = ::se::detail::BaseOffsetOf<T, base_type>(), \
+        }); \
+        ::se::EnsureRegistered<base_type>(); \
+    }
 
 /** 타입의 리플렉션 등록 블록을 마칩니다. */
 #define SE_REFLECT_END() \
-        info.shape = ::se::StructInfo{ .fields = fields }; \
+        info.shape = ::se::StructInfo{ .bases = bases, .fields = fields }; \
     }
 
 /**

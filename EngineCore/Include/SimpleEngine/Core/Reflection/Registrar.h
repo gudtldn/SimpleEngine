@@ -9,10 +9,13 @@
 #include "SimpleEngine/Core/Reflection/TypeInfo.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ValueOpsFactory.h"
+#include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
+#include <concepts>
 #include <type_traits>
 
 
@@ -70,6 +73,26 @@ constexpr bool IsRegistrarUnspecialized = false;
 
 template <typename T>
 constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnregisteredMarker>> = true;
+
+/** Derived 안에서 Base 서브오브젝트가 시작하는 바이트 오프셋을 구합니다. */
+template <typename Derived, typename Base>
+    requires std::derived_from<Derived, Base>
+usize BaseOffsetOf()
+{
+    alignas(Derived) u8 dummy[sizeof(Derived)];
+    Derived* derived = reinterpret_cast<Derived*>(dummy);
+    return reinterpret_cast<usize>(static_cast<Base*>(derived)) - reinterpret_cast<usize>(derived);
+}
+
+/** T 안에서 멤버가 시작하는 바이트 오프셋을 구합니다. */
+template <typename T, typename Member, typename Owner>
+    requires std::derived_from<T, Owner>
+usize FieldOffsetOf(Member Owner::* member_ptr)
+{
+    alignas(T) u8 dummy[sizeof(T)];
+    T* object = reinterpret_cast<T*>(dummy);
+    return reinterpret_cast<usize>(&(object->*member_ptr)) - reinterpret_cast<usize>(object);
+}
 } // namespace detail
 
 // ----- 코어 타입 Opaque 등록 -----
