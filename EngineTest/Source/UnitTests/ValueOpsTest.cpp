@@ -9,8 +9,6 @@
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 
-#include <variant>
-
 
 // 층2 ValueOps가 등록 시점에 올바르게 구워지는지, 타입 소거 상태로 컨테이너를 조작할 수 있는지 검증합니다.
 namespace se_value_ops_test
@@ -52,8 +50,8 @@ TEST(ValueOpsTest, ArrayOpsAreInstalled)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::Array<i32>>();
-    const auto* array_ops = std::get_if<se::ArrayOps>(&ops.shape_ops);
-    ASSERT_NE(array_ops, nullptr);
+    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_TRUE(array_ops->element_trivially_copyable);
     EXPECT_FALSE(array_ops->element_is_pointer);
@@ -80,8 +78,8 @@ TEST(ValueOpsTest, NonTrivialElementDisablesUninitializedResize)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::Array<se::String>>();
-    const auto* array_ops = std::get_if<se::ArrayOps>(&ops.shape_ops);
-    ASSERT_NE(array_ops, nullptr);
+    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_FALSE(array_ops->element_trivially_copyable);
     EXPECT_NE(array_ops->resize, nullptr);
@@ -93,8 +91,8 @@ TEST(ValueOpsTest, FixedArrayHasNoResize)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::FixedArray<i32, 4>>();
-    const auto* array_ops = std::get_if<se::ArrayOps>(&ops.shape_ops);
-    ASSERT_NE(array_ops, nullptr);
+    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_EQ(array_ops->resize, nullptr);
 
@@ -108,8 +106,8 @@ TEST(ValueOpsTest, SetOpsInsertAndIterate)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::HashSet<se::String>>();
-    const auto* set_ops = std::get_if<se::SetOps>(&ops.shape_ops);
-    ASSERT_NE(set_ops, nullptr);
+    const se::Optional<const se::SetOps&> set_ops = ops.AsSet();
+    ASSERT_TRUE(set_ops.HasValue());
     ASSERT_NE(set_ops->emplace_moved, nullptr);
 
     se::HashSet<se::String> texts;
@@ -137,8 +135,8 @@ TEST(ValueOpsTest, MapOpsInsertAndIterate)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::HashMap<se::String, i32>>();
-    const auto* map_ops = std::get_if<se::MapOps>(&ops.shape_ops);
-    ASSERT_NE(map_ops, nullptr);
+    const se::Optional<const se::MapOps&> map_ops = ops.AsMap();
+    ASSERT_TRUE(map_ops.HasValue());
     ASSERT_NE(map_ops->emplace_moved, nullptr);
 
     se::HashMap<se::String, i32> scores;
@@ -166,8 +164,8 @@ TEST(ValueOpsTest, OptionalOpsRoundTrip)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::Optional<f32>>();
-    const auto* optional_ops = std::get_if<se::OptionalOps>(&ops.shape_ops);
-    ASSERT_NE(optional_ops, nullptr);
+    const se::Optional<const se::OptionalOps&> optional_ops = ops.AsOptional();
+    ASSERT_TRUE(optional_ops.HasValue());
     ASSERT_NE(optional_ops->emplace, nullptr);
 
     se::Optional<f32> maybe_health;
@@ -189,7 +187,12 @@ TEST(ValueOpsTest, ConstructAndDestructAreInstalledForPlainTypes)
     const se::ValueOps& ops = OpsOf<i32>();
     ASSERT_NE(ops.default_construct_at, nullptr);
     ASSERT_NE(ops.destruct_at, nullptr);
-    EXPECT_TRUE(std::holds_alternative<std::monostate>(ops.shape_ops));
+
+    // 컨테이너가 아니므로 형태별 연산은 없습니다.
+    EXPECT_FALSE(ops.AsArray().HasValue());
+    EXPECT_FALSE(ops.AsSet().HasValue());
+    EXPECT_FALSE(ops.AsMap().HasValue());
+    EXPECT_FALSE(ops.AsOptional().HasValue());
 
     alignas(i32) u8 storage[sizeof(i32)];
     ops.default_construct_at(storage);

@@ -85,20 +85,19 @@ TEST(ReflectMacrosGoldenTest, WeaponFieldsAreCorrect)
     using namespace se_reflect_macros_golden_test;
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
-    ASSERT_TRUE(std::holds_alternative<se::StructInfo>(info.shape));
+    const se::Optional<const se::StructInfo&> shape = info.AsStruct();
+    ASSERT_TRUE(shape.HasValue());
+    ASSERT_EQ(shape->fields.Len(), 3u);
 
-    const auto& shape = std::get<se::StructInfo>(info.shape);
-    ASSERT_EQ(shape.fields.Len(), 3u);
+    EXPECT_EQ(shape->fields[0].name, "damage");
+    EXPECT_EQ(shape->fields[0].type.Value(), se::TypeId::Of<i32>().Value());
+    EXPECT_EQ(shape->fields[0].offset, offsetof(Weapon, damage));
 
-    EXPECT_EQ(shape.fields[0].name, "damage");
-    EXPECT_EQ(shape.fields[0].type.Value(), se::TypeId::Of<i32>().Value());
-    EXPECT_EQ(shape.fields[0].offset, offsetof(Weapon, damage));
+    EXPECT_EQ(shape->fields[1].name, "type");
+    EXPECT_EQ(shape->fields[1].type.Value(), se::TypeId::Of<EWeaponType>().Value());
 
-    EXPECT_EQ(shape.fields[1].name, "type");
-    EXPECT_EQ(shape.fields[1].type.Value(), se::TypeId::Of<EWeaponType>().Value());
-
-    EXPECT_EQ(shape.fields[2].name, "tint");
-    EXPECT_EQ(shape.fields[2].type.Value(), se::TypeId::Of<EAutoColor>().Value());
+    EXPECT_EQ(shape->fields[2].name, "tint");
+    EXPECT_EQ(shape->fields[2].type.Value(), se::TypeId::Of<EAutoColor>().Value());
 }
 
 TEST(ReflectMacrosGoldenTest, FieldAnnotationsRoundTrip)
@@ -106,8 +105,7 @@ TEST(ReflectMacrosGoldenTest, FieldAnnotationsRoundTrip)
     using namespace se_reflect_macros_golden_test;
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
-    const auto& shape = std::get<se::StructInfo>(info.shape);
-    const se::ArrayView<const se::AnnotationRef> annotations = shape.fields[0].annotations;
+    const se::ArrayView<const se::AnnotationRef> annotations = info.AsStruct()->fields[0].annotations;
 
     ASSERT_EQ(annotations.Len(), 2u);
 
@@ -144,14 +142,14 @@ TEST(ReflectMacrosGoldenTest, NamedEnumEntriesArePopulated)
     using namespace se_reflect_macros_golden_test;
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<EWeaponType>());
-    ASSERT_TRUE(std::holds_alternative<se::EnumInfo>(info.shape));
+    const se::Optional<const se::EnumInfo&> shape = info.AsEnum();
+    ASSERT_TRUE(shape.HasValue());
 
-    const auto& shape = std::get<se::EnumInfo>(info.shape);
-    ASSERT_EQ(shape.entries.Len(), 3u);
-    EXPECT_EQ(shape.entries[0].name, "Sword");
-    EXPECT_EQ(shape.entries[0].value, static_cast<i64>(EWeaponType::Sword));
-    EXPECT_EQ(shape.entries[1].name, "Bow");
-    EXPECT_EQ(shape.entries[2].name, "Staff");
+    ASSERT_EQ(shape->entries.Len(), 3u);
+    EXPECT_EQ(shape->entries[0].name, "Sword");
+    EXPECT_EQ(shape->entries[0].value, static_cast<i64>(EWeaponType::Sword));
+    EXPECT_EQ(shape->entries[1].name, "Bow");
+    EXPECT_EQ(shape->entries[2].name, "Staff");
 }
 
 TEST(ReflectMacrosGoldenTest, AutoEnumHasEmptyEntriesButKnownUnderlying)
@@ -162,9 +160,9 @@ TEST(ReflectMacrosGoldenTest, AutoEnumHasEmptyEntriesButKnownUnderlying)
     // Weapon::tint 필드로 등장해서 전이적으로, Registrar<T> primary template의
     // is_enum_v 분기가 자동으로 등록했어야 합니다.
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<EAutoColor>());
-    ASSERT_TRUE(std::holds_alternative<se::EnumInfo>(info.shape));
+    const se::Optional<const se::EnumInfo&> shape = info.AsEnum();
+    ASSERT_TRUE(shape.HasValue());
 
-    const auto& shape = std::get<se::EnumInfo>(info.shape);
-    EXPECT_EQ(shape.entries.Len(), 0u);
-    EXPECT_EQ(shape.underlying.Value(), se::TypeId::Of<std::underlying_type_t<EAutoColor>>().Value());
+    EXPECT_EQ(shape->entries.Len(), 0u);
+    EXPECT_EQ(shape->underlying.Value(), se::TypeId::Of<std::underlying_type_t<EAutoColor>>().Value());
 }
