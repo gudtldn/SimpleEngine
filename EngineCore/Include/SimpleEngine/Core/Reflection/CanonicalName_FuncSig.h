@@ -69,6 +69,26 @@ struct TemplateArgsOf<Tmpl<Args...>>
     }
 };
 
+/** FixedArray<T, N>처럼 크기를 비타입 인자로 받는 템플릿의 인자를 조립합니다. */
+template <template <typename, usize> class Tmpl, typename T, usize N>
+struct TemplateArgsOf<Tmpl<T, N>>
+{
+    static consteval std::string Get()
+    {
+        return "<" + CanonicalNameOf<T>() + "," + UIntToString(N) + ">";
+    }
+};
+
+/** FixedString<N>, HashDigest<N>처럼 크기만 비타입 인자로 받는 템플릿의 인자를 조립합니다. */
+template <template <usize> class Tmpl, usize N>
+struct TemplateArgsOf<Tmpl<N>>
+{
+    static consteval std::string Get()
+    {
+        return "<" + UIntToString(N) + ">";
+    }
+};
+
 /** head-cut 기법으로 엔티티(클래스/공용체/열거형) 이름을 조립합니다. */
 template <typename T>
 consteval std::string FuncSigEntityNameOf()
