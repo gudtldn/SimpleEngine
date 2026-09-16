@@ -26,6 +26,9 @@ public:
      */
     [[nodiscard]] TypeInfo& Emplace(TypeId id);
 
+    /** 부모 목록을 저장할 배열을 가져옵니다. */
+    [[nodiscard]] Array<BaseInfo>& EmplaceBaseStorage(TypeId id);
+
     /** 필드 목록을 저장할 배열을 가져옵니다. */
     [[nodiscard]] Array<FieldInfo>& EmplaceFieldStorage(TypeId id);
 
@@ -47,6 +50,9 @@ public:
 private:
     /** 각 타입의 TypeInfo 저장소 */
     HashMap<TypeId, TypeInfo> type_map;
+
+    /** 각 타입의 부모 정보 저장소 */
+    HashMap<TypeId, Array<BaseInfo>> base_storage;
 
     /** 각 타입의 필드 정보 저장소 */
     HashMap<TypeId, Array<FieldInfo>> field_storage;
