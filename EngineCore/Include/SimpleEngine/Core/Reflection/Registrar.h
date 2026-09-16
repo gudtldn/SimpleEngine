@@ -195,6 +195,7 @@ const TypeInfo& EnsureRegistered()
     {
         TypeInfo& slot = TypeRegistry::Get().Emplace(TypeId::Of<CleanType>());
         Registrar<CleanType>::Fill(slot);
+        ValueOpsRegistry::Get().Install(slot.id, detail::MakeValueOps<CleanType>());
         return slot;
     }();
     return info;
