@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeInfo.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
+#include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsFactory.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
@@ -196,6 +197,7 @@ const TypeInfo& EnsureRegistered()
         TypeInfo& slot = TypeRegistry::Get().Emplace(TypeId::Of<CleanType>());
         Registrar<CleanType>::Fill(slot);
         ValueOpsRegistry::Get().Install(slot.id, detail::MakeValueOps<CleanType>());
+        TypeRecordRegistry::Get().Install(slot.id);
         return slot;
     }();
     return info;
