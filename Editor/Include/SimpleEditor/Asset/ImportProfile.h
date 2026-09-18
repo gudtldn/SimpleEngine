@@ -98,7 +98,7 @@ public:
      * 직렬화(Save): 등록된 각 설정의 TypeId를 키로 사용하여 serialize 합니다.
      * 역직렬화(Load): TypeId로 TypeRegistry에서 TypeInfo를 찾고, constructor로 인스턴스를 생성한 뒤 deserialize 합니다.
      */
-    friend void Serialize(Archive& ar, ImportProfile& config)
+    friend void Serialize(Archive_v1& ar, ImportProfile& config)
     {
         if (ar.IsLoading())
         {

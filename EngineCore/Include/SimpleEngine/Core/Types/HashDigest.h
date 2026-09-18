@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 #include <algorithm>
 #include <cstring>
@@ -112,11 +112,11 @@ public:
      * Binary: raw bytes (N bytes)
      * Text  : hex 문자열 (N*2 chars)
      */
-    friend void SerializeInline(Archive& ar, HashDigest& digest)
+    friend void SerializeInline(Archive_v1& ar, HashDigest& digest)
     {
         if (ar.IsBinary())
         {
-            ar << BinaryBlob::FromBytes(digest.data.Data(), N);
+            ar << BinaryBlob_v1::FromBytes(digest.data.Data(), N);
         }
         else
         {

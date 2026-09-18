@@ -1,7 +1,7 @@
 #include "../../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -68,7 +68,7 @@ namespace
 using namespace se;
 
 template <typename T>
-void MakeSerialize(Archive& ar, void* ptr)
+void MakeSerialize(Archive_v1& ar, void* ptr)
 {
     ar << *static_cast<T*>(ptr);
 }
