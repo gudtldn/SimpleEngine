@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
 #include "SimpleEngine/ECS/World.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
@@ -20,11 +20,11 @@ void BinaryRoundTrip(World& src, World& dst)
 {
     Array<u8> buffer;
     {
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         writer << src;
     }
     {
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << dst;
     }
 }
@@ -34,11 +34,11 @@ void TomlRoundTrip(World& src, World& dst)
 {
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << src;
     }
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << dst;
     }
 }

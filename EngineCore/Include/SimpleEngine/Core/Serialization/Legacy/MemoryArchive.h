@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 
 namespace se
@@ -11,10 +11,10 @@ namespace se
  * 바이너리 메모리 직렬화의 기반 클래스
  * 내부 바이트 버퍼에 대한 커서(offset) 관리를 제공합니다.
  */
-class SE_CORE_API MemoryArchive : public Archive
+class SE_CORE_API MemoryArchive_v1 : public Archive_v1
 {
 public:
-    virtual ~MemoryArchive() override = default;
+    virtual ~MemoryArchive_v1() override = default;
 
     [[nodiscard]] virtual bool IsBinary() const override { return true; }
 
@@ -25,7 +25,7 @@ public:
     void Seek(usize pos);
 
 protected:
-    explicit MemoryArchive(EArchiveMode mode) : Archive(mode) {}
+    explicit MemoryArchive_v1(EArchiveMode_v1 mode) : Archive_v1(mode) {}
     usize offset = 0;
 };
 
@@ -33,10 +33,10 @@ protected:
 /**
  * 메모리 버퍼에서 데이터를 읽어오는 바이너리 역직렬화 클래스
  */
-class SE_CORE_API MemoryReader : public MemoryArchive
+class SE_CORE_API MemoryReader_v1 : public MemoryArchive_v1
 {
 public:
-    explicit MemoryReader(ArrayView<const u8> in_view);
+    explicit MemoryReader_v1(ArrayView<const u8> in_view);
 
 public:
     virtual void BeginObject() override;
@@ -88,10 +88,10 @@ private:
 /**
  * 메모리 버퍼에 데이터를 써넣는 바이너리 직렬화 클래스
  */
-class SE_CORE_API MemoryWriter : public MemoryArchive
+class SE_CORE_API MemoryWriter_v1 : public MemoryArchive_v1
 {
 public:
-    explicit MemoryWriter(Array<u8>& out_buffer);
+    explicit MemoryWriter_v1(Array<u8>& out_buffer);
 
 public:
     virtual void BeginObject() override;

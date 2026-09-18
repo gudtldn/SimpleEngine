@@ -1,5 +1,5 @@
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 
 namespace se
@@ -126,7 +126,7 @@ StringView VPath::GetStem() const noexcept
     return filename.Substr(0, *last_dot);
 }
 
-void SerializeInline(Archive& ar, VPath& vpath)
+void SerializeInline(Archive_v1& ar, VPath& vpath)
 {
     String str = vpath.full_path;
     ar << str;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Reflection/Legacy/Meta.h"
+#include "../../Reflection/Legacy/Meta.h"
 
 
 namespace se
@@ -16,10 +16,10 @@ class TypeRegistry_v1;
  * - EPropertyFlags::Transient가 설정된 프로퍼티는 건너뜁니다.
  * - 부모 타입이 존재하면 부모의 프로퍼티를 먼저 직렬화합니다. (재귀)
  *
- * @param ar 직렬화에 사용할 Archive
+ * @param ar 직렬화에 사용할 Archive_v1
  * @param info 대상 타입의 TypeInfo
  * @param instance 직렬화할 객체의 포인터
  */
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeInfo_v1& info, void* instance);
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeId_v1& type_id, void* instance);
+SE_CORE_API void AutoSerialize_v1(Archive_v1& ar, const TypeInfo_v1& info, void* instance);
+SE_CORE_API void AutoSerialize_v1(Archive_v1& ar, const TypeId_v1& type_id, void* instance);
 } // namespace se

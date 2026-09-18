@@ -22,8 +22,8 @@
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
@@ -235,7 +235,7 @@ void EditorUISubsystem::DrawMainMenu()
                 {
                     // 다이얼로그 표시 전에 직렬화하여 현재 상태를 캡처
                     Array<u8> buffer;
-                    MemoryWriter writer{ buffer };
+                    MemoryWriter_v1 writer{ buffer };
                     writer << entity_sub->GetMainWorld().GetWorld();
 
                     FileDialog::SaveFile(
@@ -263,7 +263,7 @@ void EditorUISubsystem::DrawMainMenu()
                     {
                         // TOML 직렬화
                         toml::table tbl;
-                        TomlWriter writer(tbl);
+                        TomlWriter_v1 writer(tbl);
                         writer << entity_sub->GetMainWorld().GetWorld();
 
                         // TOML 문자열 생성
@@ -324,7 +324,7 @@ void EditorUISubsystem::DrawMainMenu()
 
                             if (is_binary)
                             {
-                                MemoryReader reader{ data };
+                                MemoryReader_v1 reader{ data };
                                 reader << world;
                                 if (reader.HasError())
                                 {
@@ -343,7 +343,7 @@ void EditorUISubsystem::DrawMainMenu()
                                 }
 
                                 toml::table tbl = std::move(parsed).table();
-                                TomlReader reader{ tbl };
+                                TomlReader_v1 reader{ tbl };
                                 reader << world;
                                 if (reader.HasError())
                                 {
