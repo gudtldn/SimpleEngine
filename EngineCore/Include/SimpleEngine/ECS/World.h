@@ -286,7 +286,7 @@ private:
         return GetOrCreateComponentStorage<ComponentType>().GetStorage();
     }
 
-    friend SE_CORE_API void Serialize(Archive& ar, World& world);
+    friend SE_CORE_API void Serialize(Archive_v1& ar, World& world);
 
 public:
     class EntityChain

@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 
 
 namespace se
@@ -196,7 +196,7 @@ bool AssetRegistry::SaveToFile(const Path& file_path) const
     std::shared_lock lock(registry_mutex);
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     // 헤더
     u32 magic = REGISTRY_MAGIC;
@@ -228,7 +228,7 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
         return false;
     }
 
-    MemoryReader reader{ *file_result };
+    MemoryReader_v1 reader{ *file_result };
 
     // 헤더 검증
     u32 magic = 0;

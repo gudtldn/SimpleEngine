@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Meta.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 
 #include <concepts>
@@ -67,12 +67,12 @@ public:
 
     ~TypeBuilder_v1()
     {
-        // 체이닝 종료 후 serialize 콜백이 미등록된 Struct에 AutoSerialize를 자동 연결합니다.
+        // 체이닝 종료 후 serialize 콜백이 미등록된 Struct에 AutoSerialize_v1을 자동 연결합니다.
         if (info_ptr && !info_ptr->serialize && info_ptr->kind == ETypeKind_v1::Struct)
         {
-            info_ptr->serialize = [](Archive& ar, void* instance) static
+            info_ptr->serialize = [](Archive_v1& ar, void* instance) static
             {
-                AutoSerialize(ar, TypeId_v1::Of<T>(), instance);
+                AutoSerialize_v1(ar, TypeId_v1::Of<T>(), instance);
             };
         }
     }
@@ -142,7 +142,7 @@ public:
             };
         }
 
-        prop.serialize = [](Archive& ar, void* ptr) static
+        prop.serialize = [](Archive_v1& ar, void* ptr) static
         {
             ar << *static_cast<MemberType*>(ptr);
         };

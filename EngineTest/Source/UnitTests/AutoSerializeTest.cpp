@@ -4,11 +4,11 @@
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Math/MathSerialize.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MathSerialize.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/AutoSerialize.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/AutoSerialize.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Asset/AssetId.h"
@@ -30,11 +30,11 @@ template <typename T>
 T RoundTrip(const T& original)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     T copy = original;
     writer << copy;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     T loaded{};
     reader << loaded;
     return loaded;
@@ -47,11 +47,11 @@ T RoundTripViaTypeInfo(const T& original)
     EXPECT_NE(info.serialize, nullptr);
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     T copy = original;
     info.serialize(writer, &copy);
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     T loaded{};
     info.serialize(reader, &loaded);
     return loaded;
@@ -59,7 +59,7 @@ T RoundTripViaTypeInfo(const T& original)
 } // namespace
 
 // ============================================================================
-//  AutoSerialize 테스트용 타입 정의
+//  AutoSerialize_v1 테스트용 타입 정의
 // ============================================================================
 namespace autoserialize_test
 {
@@ -202,7 +202,7 @@ class AutoSerializeTest : public ::testing::Test
 //  일반적인 TC (Normal Cases)
 // ============================================================================
 
-// --- AutoSerialize: 단순 구조체 ---
+// --- AutoSerialize_v1: 단순 구조체 ---
 TEST_F(AutoSerializeTest, SimpleStruct)
 {
     SimpleData original{ .x = 42, .y = 3.14f, .name = "Hello" };
@@ -210,7 +210,7 @@ TEST_F(AutoSerializeTest, SimpleStruct)
     EXPECT_EQ(loaded, original);
 }
 
-// --- AutoSerialize: 상속 (Base + Derived) ---
+// --- AutoSerialize_v1: 상속 (Base + Derived) ---
 TEST_F(AutoSerializeTest, Inheritance)
 {
     DerivedData original;
@@ -229,7 +229,7 @@ TEST_F(AutoSerializeTest, Inheritance)
     EXPECT_EQ(loaded.derived_extra, -42);
 }
 
-// --- AutoSerialize: 컨테이너 프로퍼티 ---
+// --- AutoSerialize_v1: 컨테이너 프로퍼티 ---
 TEST_F(AutoSerializeTest, ContainerProperties)
 {
     ContainerData original;
@@ -260,7 +260,7 @@ TEST_F(AutoSerializeTest, Entity_RoundTrip)
     // 먼저 유효한 Entity를 binary로 생성
     Array<u8> buffer;
     {
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         u32 id = 42;
         u32 gen = 7;
         writer << id << gen;
@@ -269,7 +269,7 @@ TEST_F(AutoSerializeTest, Entity_RoundTrip)
     // Serialize(ar, entity) 경로로 로드
     Entity loaded;
     {
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << loaded;
     }
     EXPECT_EQ(loaded.GetId(), 42u);
@@ -433,11 +433,11 @@ TEST_F(AutoSerializeTest, ReflectedEnum_ViaTypeInfo)
     EXPECT_EQ(info.kind, ETypeKind_v1::Enum);
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     ETestColor original = ETestColor::Green;
     info.serialize(writer, &original);
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     ETestColor loaded = ETestColor::Red;
     info.serialize(reader, &loaded);
     EXPECT_EQ(loaded, ETestColor::Green);
@@ -452,16 +452,16 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
 {
     TransientData original{ .saved_val = 42, .transient_val = 999 };
 
-    // AutoSerialize로 직렬화 -> saved_val만 저장, transient_val은 건너뜀
+    // AutoSerialize_v1로 직렬화 -> saved_val만 저장, transient_val은 건너뜀
     const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<TransientData>());
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     TransientData copy = original;
     info.serialize(writer, &copy);
 
     // 로드 시 transient_val은 기본값(0)을 유지해야 함
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     TransientData loaded;
     loaded.transient_val = 777;  // 초기값을 다른 값으로 설정
     info.serialize(reader, &loaded);
@@ -470,19 +470,19 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
     EXPECT_EQ(loaded.transient_val, 777);  // 변경되지 않음 (Transient)
 }
 
-// --- 빈 구조체 AutoSerialize ---
+// --- 빈 구조체 AutoSerialize_v1 ---
 TEST_F(AutoSerializeTest, EmptyStruct)
 {
     const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<EmptyReflected>());
     ASSERT_NE(info.serialize, nullptr);
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     EmptyReflected original;
     info.serialize(writer, &original);
 
     // 빈 구조체이므로 데이터가 거의 없어야 함
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     EmptyReflected loaded;
     info.serialize(reader, &loaded);
     EXPECT_EQ(loaded, original);
@@ -517,10 +517,10 @@ TEST_F(AutoSerializeTest, Float_NaN)
     f32 original = std::numeric_limits<f32>::quiet_NaN();
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     writer << original;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     f32 loaded = 0.0f;
     reader << loaded;
 
@@ -534,10 +534,10 @@ TEST_F(AutoSerializeTest, Float_Infinity)
     f32 neg_inf = -std::numeric_limits<f32>::infinity();
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     writer << pos_inf << neg_inf;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     f32 loaded_pos = 0.0f;
     f32 loaded_neg = 0.0f;
     reader << loaded_pos << loaded_neg;
@@ -554,10 +554,10 @@ TEST_F(AutoSerializeTest, Math_Vector3_NaN)
     Vector3f original{ std::numeric_limits<f32>::quiet_NaN(), 0.0f, 1.0f };
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     writer << original;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     Vector3f loaded{};
     reader << loaded;
 
@@ -617,14 +617,14 @@ TEST_F(AutoSerializeTest, OverwriteExistingValues)
     const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<SimpleData>());
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     SimpleData copy = original;
     info.serialize(writer, &copy);
 
     // 기존에 다른 값이 들어있는 인스턴스
     SimpleData loaded{ .x = -1, .y = -1.0f, .name = "OldValue" };
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     info.serialize(reader, &loaded);
 
     EXPECT_EQ(loaded, original);
@@ -639,7 +639,7 @@ TEST_F(AutoSerializeTest, ArrayOfEntities)
     // binary로 Entity 3개를 만들어서 Array에 담기
     Array<u8> entity_buf;
     {
-        MemoryWriter w(entity_buf);
+        MemoryWriter_v1 w(entity_buf);
         // Entity 3개의 id, generation 쌍
         u32 ids[] = { 0, 1, 2 };
         u32 gens[] = { 1, 1, 1 };
@@ -652,7 +652,7 @@ TEST_F(AutoSerializeTest, ArrayOfEntities)
     // Entity 3개를 로드
     Array<Entity> entities;
     {
-        MemoryReader r(entity_buf);
+        MemoryReader_v1 r(entity_buf);
         for (int i = 0; i < 3; ++i)
         {
             Entity e;
@@ -686,7 +686,7 @@ TEST_F(AutoSerializeTest, MapOfAssetIds)
     EXPECT_EQ(loaded["material"], original["material"]);
 }
 
-// --- 여러 AutoSerialize 호출 연속 ---
+// --- 여러 AutoSerialize_v1 호출 연속 ---
 TEST_F(AutoSerializeTest, MultipleSequentialAutoSerialize)
 {
     const TypeInfo_v1& simple_info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<SimpleData>());
@@ -699,12 +699,12 @@ TEST_F(AutoSerializeTest, MultipleSequentialAutoSerialize)
     SimpleData s2{ .x = 2, .y = 2.0f, .name = "Second" };
 
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
     simple_info.serialize(writer, &s1);
     container_info.serialize(writer, &c1);
     simple_info.serialize(writer, &s2);
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     SimpleData rs1;
     SimpleData rs2;
     ContainerData rc1;

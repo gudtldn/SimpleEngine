@@ -8,7 +8,7 @@
 namespace se
 {
 // forward declarations
-class Archive;
+class Archive_v1;
 
 /**
  * 엔진의 파일 시스템을 추상화하는 가상 경로 타입
@@ -71,7 +71,7 @@ public:
     [[nodiscard]] StringName ToStringName() const { return StringName{ full_path }; }
 
 public:
-    friend void SerializeInline(Archive& ar, VPath& vpath);
+    friend void SerializeInline(Archive_v1& ar, VPath& vpath);
 
 private:
     /** 입력받은 경로 문자열을 파싱하고 정규화(\ -> /)하여 내부 멤버를 초기화합니다. */

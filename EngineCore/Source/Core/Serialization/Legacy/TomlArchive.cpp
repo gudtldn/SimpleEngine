@@ -1,6 +1,6 @@
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
 
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
+#include "../../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -38,23 +38,23 @@ void FromChars(const se::String& str, T& value)
 
 namespace se
 {
-// TomlArchive (공통 기반)
-TomlArchive::Context& TomlArchive::GetCurrentContext()
+// TomlArchive_v1 (공통 기반)
+TomlArchive_v1::Context& TomlArchive_v1::GetCurrentContext()
 {
     SE_ASSERT(!context_stack.IsEmpty(), "Context stack underflow!");
     return context_stack.Back().Value();
 }
 
-bool TomlArchive::IsRootNode(const toml::node* node) const
+bool TomlArchive_v1::IsRootNode(const toml::node* node) const
 {
     SE_ASSERT(!context_stack.IsEmpty(), "Context stack underflow!");
     return node == context_stack.Front().Value().node;
 }
 
 
-// TomlReader
-TomlReader::TomlReader(const toml::table& root)
-    : TomlArchive(EArchiveMode::Load)
+// TomlReader_v1
+TomlReader_v1::TomlReader_v1(const toml::table& root)
+    : TomlArchive_v1(EArchiveMode_v1::Load)
 {
     context_stack.Push({
         .node = const_cast<toml::table*>(&root),
@@ -62,18 +62,18 @@ TomlReader::TomlReader(const toml::table& root)
     });
 }
 
-void TomlReader::BeginObject()
+void TomlReader_v1::BeginObject()
 {
     Context ctx = GetCurrentContext();
     if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        SE_ASSERT(IsRootNode(ctx.node), "TomlReader::BeginObject - Missing key! This is not the Root node.");
+        SE_ASSERT(IsRootNode(ctx.node), "TomlReader_v1::BeginObject - Missing key! This is not the Root node.");
         context_stack.Push(std::move(ctx));
         return;
     }
 
     toml::node* sub_node = GetCurrentNode();
-    if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader::BeginObject - Expected a table node. (pending_key: '{}')", pending_key))
+    if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader_v1::BeginObject - Expected a table node. (pending_key: '{}')", pending_key))
     {
         context_stack.Push({
             .node = sub_node,
@@ -82,7 +82,7 @@ void TomlReader::BeginObject()
     }
     else
     {
-        SetError(String::Format("TomlReader: Expected a table node for key '{}'.", pending_key));
+        SetError(String::Format("TomlReader_v1: Expected a table node for key '{}'.", pending_key));
         context_stack.Push({
             .node = nullptr,
             .mode = EContextMode::Object,
@@ -90,15 +90,15 @@ void TomlReader::BeginObject()
     }
 }
 
-void TomlReader::EndObject()
+void TomlReader_v1::EndObject()
 {
     context_stack.Pop();
 }
 
-void TomlReader::BeginArray(u64& count)
+void TomlReader_v1::BeginArray(u64& count)
 {
     toml::node* sub_node = GetCurrentNode();
-    if (SE_ENSURE(sub_node && sub_node->is_array(), "TomlReader::BeginArray - Expected an array node. (pending_key: '{}')", pending_key))
+    if (SE_ENSURE(sub_node && sub_node->is_array(), "TomlReader_v1::BeginArray - Expected an array node. (pending_key: '{}')", pending_key))
     {
         toml::array* arr = sub_node->as_array();
         count = arr->size();
@@ -110,7 +110,7 @@ void TomlReader::BeginArray(u64& count)
     }
     else
     {
-        SetError(String::Format("TomlReader: Expected an array node for key '{}'.", pending_key));
+        SetError(String::Format("TomlReader_v1: Expected an array node for key '{}'.", pending_key));
         count = 0;
         context_stack.Push({
             .node = nullptr,
@@ -120,24 +120,24 @@ void TomlReader::BeginArray(u64& count)
     }
 }
 
-void TomlReader::EndArray()
+void TomlReader_v1::EndArray()
 {
     context_stack.Pop();
 }
 
-void TomlReader::BeginMap(u64& count)
+void TomlReader_v1::BeginMap(u64& count)
 {
     const Context& ctx = GetCurrentContext();
 
     // Array가 아닌데, Key가 지정되지 않은 경우
     if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        // Root 노드이거나, Archive::operator<<에 의해 방금 열린 Object일 경우,
+        // Root 노드이거나, Archive_v1::operator<<에 의해 방금 열린 Object일 경우,
         // 이 노드 자체를 Map으로 취급하여 현재 테이블에 그대로 데이터를 읽습니다.
-        SE_ASSERT(ctx.IsObject(), "TomlReader::BeginMap - Invalid state! Cannot open anonymous map.");
+        SE_ASSERT(ctx.IsObject(), "TomlReader_v1::BeginMap - Invalid state! Cannot open anonymous map.");
 
         // Root 노드가 테이블 형태가 아닌 것은 파일 포맷 자체가 깨진 것이므로 방어
-        if (SE_ENSURE(ctx.node && ctx.node->is_table(), "TomlReader::BeginMap - Root node is not a table."))
+        if (SE_ENSURE(ctx.node && ctx.node->is_table(), "TomlReader_v1::BeginMap - Root node is not a table."))
         {
             toml::table* tbl = ctx.node->as_table();
             count = tbl->size();
@@ -150,7 +150,7 @@ void TomlReader::BeginMap(u64& count)
         }
         else
         {
-            SetError("TomlReader: Root map node is not a table.");
+            SetError("TomlReader_v1: Root map node is not a table.");
             count = 0;
             static toml::table empty_table;
             context_stack.Push({
@@ -164,7 +164,7 @@ void TomlReader::BeginMap(u64& count)
     }
 
     toml::node* sub_node = GetCurrentNode();
-    if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader::BeginMap - Expected a table node. (pending_key: '{}')", pending_key))
+    if (SE_ENSURE(sub_node && sub_node->is_table(), "TomlReader_v1::BeginMap - Expected a table node. (pending_key: '{}')", pending_key))
     {
         toml::table* tbl = sub_node->as_table();
         count = tbl->size();
@@ -177,7 +177,7 @@ void TomlReader::BeginMap(u64& count)
     }
     else
     {
-        SetError(String::Format("TomlReader: Expected a table node for map key '{}'.", pending_key));
+        SetError(String::Format("TomlReader_v1: Expected a table node for map key '{}'.", pending_key));
         count = 0;
         static toml::table empty_table;
         context_stack.Push({
@@ -189,20 +189,20 @@ void TomlReader::BeginMap(u64& count)
     }
 }
 
-void TomlReader::EndMap()
+void TomlReader_v1::EndMap()
 {
     context_stack.Pop();
 }
 
-void TomlReader::BeginMapKey()
+void TomlReader_v1::BeginMapKey()
 {
     Context& ctx = GetCurrentContext();
 
     // Map 모드가 아닌데 BeginMapKey를 호출한 경우 Assert (직렬화 코드 작성 오류)
-    SE_ASSERT(ctx.node && ctx.IsMap(), "TomlReader::BeginMapKey - Invalid context. (node: {}, IsMap: {})", static_cast<void*>(ctx.node), ctx.IsMap());
+    SE_ASSERT(ctx.node && ctx.IsMap(), "TomlReader_v1::BeginMapKey - Invalid context. (node: {}, IsMap: {})", static_cast<void*>(ctx.node), ctx.IsMap());
 
     // 모든 Iterator를 소모했으나, BeginMapKey를 호출한 경우 Assert (직렬화 코드 작성 오류)
-    SE_ASSERT(ctx.map_it != ctx.map_end, "TomlReader::BeginMapKey - Map iterator already at end.");
+    SE_ASSERT(ctx.map_it != ctx.map_end, "TomlReader_v1::BeginMapKey - Map iterator already at end.");
 
     if (ctx.map_it != ctx.map_end)
     {
@@ -212,17 +212,17 @@ void TomlReader::BeginMapKey()
     reading_map_key = true;
 }
 
-void TomlReader::EndMapKey()
+void TomlReader_v1::EndMapKey()
 {
     reading_map_key = false;
 }
 
-void TomlReader::BeginMapValue()
+void TomlReader_v1::BeginMapValue()
 {
     pending_key = current_map_key;
 }
 
-void TomlReader::EndMapValue()
+void TomlReader_v1::EndMapValue()
 {
     // iterator 전진
     Context& ctx = GetCurrentContext();
@@ -233,17 +233,17 @@ void TomlReader::EndMapValue()
 }
 
 // Raw 바이트 (텍스트에서는 미지원)
-void TomlReader::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
+void TomlReader_v1::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
 {
     // TODO: Base64 디코딩 지원
 }
 
-void TomlReader::HintNextName(StringView name)
+void TomlReader_v1::HintNextName(StringView name)
 {
     pending_key = name;
 }
 
-void TomlReader::SerializeBool(bool& value)
+void TomlReader_v1::SerializeBool(bool& value)
 {
     if (reading_map_key)
     {
@@ -253,7 +253,7 @@ void TomlReader::SerializeBool(bool& value)
     ReadValue(value);
 }
 
-void TomlReader::SerializeInt8(i8& value)
+void TomlReader_v1::SerializeInt8(i8& value)
 {
     if (reading_map_key)
     {
@@ -268,7 +268,7 @@ void TomlReader::SerializeInt8(i8& value)
     }
 }
 
-void TomlReader::SerializeUInt8(u8& value)
+void TomlReader_v1::SerializeUInt8(u8& value)
 {
     if (reading_map_key)
     {
@@ -283,7 +283,7 @@ void TomlReader::SerializeUInt8(u8& value)
     }
 }
 
-void TomlReader::SerializeInt16(i16& value)
+void TomlReader_v1::SerializeInt16(i16& value)
 {
     if (reading_map_key)
     {
@@ -298,7 +298,7 @@ void TomlReader::SerializeInt16(i16& value)
     }
 }
 
-void TomlReader::SerializeUInt16(u16& value)
+void TomlReader_v1::SerializeUInt16(u16& value)
 {
     if (reading_map_key)
     {
@@ -313,7 +313,7 @@ void TomlReader::SerializeUInt16(u16& value)
     }
 }
 
-void TomlReader::SerializeInt32(i32& value)
+void TomlReader_v1::SerializeInt32(i32& value)
 {
     if (reading_map_key)
     {
@@ -328,7 +328,7 @@ void TomlReader::SerializeInt32(i32& value)
     }
 }
 
-void TomlReader::SerializeUInt32(u32& value)
+void TomlReader_v1::SerializeUInt32(u32& value)
 {
     if (reading_map_key)
     {
@@ -343,7 +343,7 @@ void TomlReader::SerializeUInt32(u32& value)
     }
 }
 
-void TomlReader::SerializeInt64(i64& value)
+void TomlReader_v1::SerializeInt64(i64& value)
 {
     if (reading_map_key)
     {
@@ -353,7 +353,7 @@ void TomlReader::SerializeInt64(i64& value)
     ReadValue(value);
 }
 
-void TomlReader::SerializeUInt64(u64& value)
+void TomlReader_v1::SerializeUInt64(u64& value)
 {
     if (reading_map_key)
     {
@@ -368,7 +368,7 @@ void TomlReader::SerializeUInt64(u64& value)
     }
 }
 
-void TomlReader::SerializeFloat(f32& value)
+void TomlReader_v1::SerializeFloat(f32& value)
 {
     if (reading_map_key)
     {
@@ -383,7 +383,7 @@ void TomlReader::SerializeFloat(f32& value)
     }
 }
 
-void TomlReader::SerializeDouble(f64& value)
+void TomlReader_v1::SerializeDouble(f64& value)
 {
     if (reading_map_key)
     {
@@ -393,7 +393,7 @@ void TomlReader::SerializeDouble(f64& value)
     ReadValue(value);
 }
 
-void TomlReader::SerializeString(String& value)
+void TomlReader_v1::SerializeString(String& value)
 {
     if (reading_map_key)
     {
@@ -408,7 +408,7 @@ void TomlReader::SerializeString(String& value)
     }
 }
 
-void TomlReader::SerializeStringName(StringName& value)
+void TomlReader_v1::SerializeStringName(StringName& value)
 {
     if (reading_map_key)
     {
@@ -423,7 +423,7 @@ void TomlReader::SerializeStringName(StringName& value)
     }
 }
 
-void TomlReader::SerializeGuid(Guid& value)
+void TomlReader_v1::SerializeGuid(Guid& value)
 {
     if (reading_map_key)
     {
@@ -438,19 +438,19 @@ void TomlReader::SerializeGuid(Guid& value)
     }
 }
 
-void TomlReader::SerializeTypeId(TypeId_v1& value)
+void TomlReader_v1::SerializeTypeId(TypeId_v1& value)
 {
     String type_name;
     SerializeString(type_name);
 
     value = TypeId_v1::FromName(type_name);
-    if (!SE_ENSURE(value.IsValid(), "TomlReader::SerializeTypeId - Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name))
+    if (!SE_ENSURE(value.IsValid(), "TomlReader_v1::SerializeTypeId - Failed to resolve TypeId from name: '{}'. The class might be deleted or renamed.", type_name))
     {
-        SetError(String::Format("TomlReader: Failed to resolve TypeId from name: '{}'.", type_name));
+        SetError(String::Format("TomlReader_v1: Failed to resolve TypeId from name: '{}'.", type_name));
     }
 }
 
-toml::node* TomlReader::GetCurrentNode()
+toml::node* TomlReader_v1::GetCurrentNode()
 {
     Context& ctx = GetCurrentContext();
     if (!ctx.node)
@@ -478,9 +478,9 @@ toml::node* TomlReader::GetCurrentNode()
 }
 
 
-// TomlWriter
-TomlWriter::TomlWriter(toml::table& root)
-    : TomlArchive(EArchiveMode::Save)
+// TomlWriter_v1
+TomlWriter_v1::TomlWriter_v1(toml::table& root)
+    : TomlArchive_v1(EArchiveMode_v1::Save)
 {
     context_stack.Push({
         .node = &root,
@@ -488,18 +488,18 @@ TomlWriter::TomlWriter(toml::table& root)
     });
 }
 
-void TomlWriter::BeginObject()
+void TomlWriter_v1::BeginObject()
 {
     Context ctx = GetCurrentContext();
     if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        SE_ASSERT(IsRootNode(ctx.node), "TomlWriter::BeginObject - Missing key! Cannot open an anonymous object unless it is the Root node.");
+        SE_ASSERT(IsRootNode(ctx.node), "TomlWriter_v1::BeginObject - Missing key! Cannot open an anonymous object unless it is the Root node.");
         context_stack.Push(std::move(ctx));
         return;
     }
 
     toml::table* tbl = InsertNewNode<toml::table>(toml::table{});
-    SE_ASSERT(tbl, "TomlWriter::BeginObject - Failed to insert new table node.");
+    SE_ASSERT(tbl, "TomlWriter_v1::BeginObject - Failed to insert new table node.");
 
     context_stack.Push({
         .node = tbl,
@@ -507,15 +507,15 @@ void TomlWriter::BeginObject()
     });
 }
 
-void TomlWriter::EndObject()
+void TomlWriter_v1::EndObject()
 {
     context_stack.Pop();
 }
 
-void TomlWriter::BeginArray([[maybe_unused]] u64& count)
+void TomlWriter_v1::BeginArray([[maybe_unused]] u64& count)
 {
     toml::array* arr = InsertNewNode<toml::array>(toml::array{});
-    SE_ASSERT(arr, "TomlWriter::BeginArray - Failed to insert new array node.");
+    SE_ASSERT(arr, "TomlWriter_v1::BeginArray - Failed to insert new array node.");
     context_stack.Push({
         .node = arr,
         .mode = EContextMode::Array,
@@ -523,21 +523,21 @@ void TomlWriter::BeginArray([[maybe_unused]] u64& count)
     });
 }
 
-void TomlWriter::EndArray()
+void TomlWriter_v1::EndArray()
 {
     context_stack.Pop();
 }
 
-void TomlWriter::BeginMap([[maybe_unused]] u64& count)
+void TomlWriter_v1::BeginMap([[maybe_unused]] u64& count)
 {
     const Context& ctx = GetCurrentContext();
 
     // ArrayMode가 아닌데, Key가 지정되지 않은 경우
     if (!ctx.IsArray() && pending_key.IsEmpty())
     {
-        // Root 노드이거나, Archive::operator<<에 의해 방금 열린 Object일 경우,
+        // Root 노드이거나, Archive_v1::operator<<에 의해 방금 열린 Object일 경우,
         // 이 노드 자체를 Map으로 취급하여 현재 테이블에 그대로 데이터를 씁니다.
-        SE_ASSERT(ctx.IsObject(), "TomlWriter::BeginMap - Invalid state! Cannot open anonymous map.");
+        SE_ASSERT(ctx.IsObject(), "TomlWriter_v1::BeginMap - Invalid state! Cannot open anonymous map.");
 
         context_stack.Push({
             .node = ctx.node,
@@ -548,7 +548,7 @@ void TomlWriter::BeginMap([[maybe_unused]] u64& count)
 
     // Map을 TOML table로 표현
     toml::table* tbl = InsertNewNode<toml::table>(toml::table{});
-    SE_ASSERT(tbl, "TomlWriter::BeginMap - Failed to insert new table node.");
+    SE_ASSERT(tbl, "TomlWriter_v1::BeginMap - Failed to insert new table node.");
 
     context_stack.Push({
         .node = tbl,
@@ -556,45 +556,45 @@ void TomlWriter::BeginMap([[maybe_unused]] u64& count)
     });
 }
 
-void TomlWriter::EndMap()
+void TomlWriter_v1::EndMap()
 {
     context_stack.Pop();
 }
 
-void TomlWriter::BeginMapKey()
+void TomlWriter_v1::BeginMapKey()
 {
     // Key 직렬화 시작 - 캡처 모드 ON
     current_map_key.Clear();
     capturing_map_key = true;
 }
 
-void TomlWriter::EndMapKey()
+void TomlWriter_v1::EndMapKey()
 {
     // Key 캡처 모드를 켰으나, 아무 값도 쓰지 않은 경우 Assert
-    SE_ASSERT(!current_map_key.IsEmpty(), "TomlWriter::EndMapKey - Captured map key is empty.");
+    SE_ASSERT(!current_map_key.IsEmpty(), "TomlWriter_v1::EndMapKey - Captured map key is empty.");
 
     // 캡처 모드 OFF, 캡처된 key를 pending_key로 설정
     capturing_map_key = false;
     pending_key = current_map_key;
 }
 
-void TomlWriter::BeginMapValue() {}
-void TomlWriter::EndMapValue() {}
+void TomlWriter_v1::BeginMapValue() {}
+void TomlWriter_v1::EndMapValue() {}
 
 // Raw 바이트 (텍스트에서는 미지원)
-void TomlWriter::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
+void TomlWriter_v1::SerializeBytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
 {
     // TODO: Base64 인코딩 지원
 }
 
-void TomlWriter::HintNextName(StringView name)
+void TomlWriter_v1::HintNextName(StringView name)
 {
     pending_key = name;
 }
 
 // Map key 캡처 모드에서는 값을 TOML에 쓰지 않고 current_map_key에 문자열로 저장
 // 이후 table에 쓸 때 Key로 사용
-void TomlWriter::SerializeBool(bool& value)
+void TomlWriter_v1::SerializeBool(bool& value)
 {
     if (capturing_map_key)
     {
@@ -604,7 +604,7 @@ void TomlWriter::SerializeBool(bool& value)
     WriteValue(value);
 }
 
-void TomlWriter::SerializeInt8(i8& value)
+void TomlWriter_v1::SerializeInt8(i8& value)
 {
     if (capturing_map_key)
     {
@@ -614,7 +614,7 @@ void TomlWriter::SerializeInt8(i8& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeUInt8(u8& value)
+void TomlWriter_v1::SerializeUInt8(u8& value)
 {
     if (capturing_map_key)
     {
@@ -624,7 +624,7 @@ void TomlWriter::SerializeUInt8(u8& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeInt16(i16& value)
+void TomlWriter_v1::SerializeInt16(i16& value)
 {
     if (capturing_map_key)
     {
@@ -634,7 +634,7 @@ void TomlWriter::SerializeInt16(i16& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeUInt16(u16& value)
+void TomlWriter_v1::SerializeUInt16(u16& value)
 {
     if (capturing_map_key)
     {
@@ -644,7 +644,7 @@ void TomlWriter::SerializeUInt16(u16& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeInt32(i32& value)
+void TomlWriter_v1::SerializeInt32(i32& value)
 {
     if (capturing_map_key)
     {
@@ -654,7 +654,7 @@ void TomlWriter::SerializeInt32(i32& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeUInt32(u32& value)
+void TomlWriter_v1::SerializeUInt32(u32& value)
 {
     if (capturing_map_key)
     {
@@ -664,7 +664,7 @@ void TomlWriter::SerializeUInt32(u32& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeInt64(i64& value)
+void TomlWriter_v1::SerializeInt64(i64& value)
 {
     if (capturing_map_key)
     {
@@ -674,7 +674,7 @@ void TomlWriter::SerializeInt64(i64& value)
     WriteValue(value);
 }
 
-void TomlWriter::SerializeUInt64(u64& value)
+void TomlWriter_v1::SerializeUInt64(u64& value)
 {
     if (capturing_map_key)
     {
@@ -684,7 +684,7 @@ void TomlWriter::SerializeUInt64(u64& value)
     WriteValue(static_cast<i64>(value));
 }
 
-void TomlWriter::SerializeFloat(f32& value)
+void TomlWriter_v1::SerializeFloat(f32& value)
 {
     if (capturing_map_key)
     {
@@ -694,7 +694,7 @@ void TomlWriter::SerializeFloat(f32& value)
     WriteValue(static_cast<f64>(value));
 }
 
-void TomlWriter::SerializeDouble(f64& value)
+void TomlWriter_v1::SerializeDouble(f64& value)
 {
     if (capturing_map_key)
     {
@@ -704,7 +704,7 @@ void TomlWriter::SerializeDouble(f64& value)
     WriteValue(value);
 }
 
-void TomlWriter::SerializeString(String& value)
+void TomlWriter_v1::SerializeString(String& value)
 {
     if (capturing_map_key)
     {
@@ -714,7 +714,7 @@ void TomlWriter::SerializeString(String& value)
     WriteValue(ToU8StringView(value));
 }
 
-void TomlWriter::SerializeStringName(StringName& value)
+void TomlWriter_v1::SerializeStringName(StringName& value)
 {
     if (capturing_map_key)
     {
@@ -724,7 +724,7 @@ void TomlWriter::SerializeStringName(StringName& value)
     WriteValue(ToU8StringView(value.CStr()));
 }
 
-void TomlWriter::SerializeGuid(Guid& value)
+void TomlWriter_v1::SerializeGuid(Guid& value)
 {
     if (capturing_map_key)
     {
@@ -734,12 +734,12 @@ void TomlWriter::SerializeGuid(Guid& value)
     WriteValue(ToU8StringView(value.ToString()));
 }
 
-void TomlWriter::SerializeTypeId(TypeId_v1& value)
+void TomlWriter_v1::SerializeTypeId(TypeId_v1& value)
 {
     String type_name;
     if (!SE_ENSURE(value.IsValid(), "Attempting to save invalid TypeId via Text!"))
     {
-        SetError("TomlWriter: Attempting to save invalid TypeId.");
+        SetError("TomlWriter_v1: Attempting to save invalid TypeId.");
     }
     else
     {

@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #define TOML_EXCEPTIONS 0
@@ -19,7 +19,7 @@ namespace se
  * 트리 구조인 TOML 데이터를 선형적인 C++ 코드 흐름(Serialize 함수 호출)으로
  * 읽고 쓰기 위해, 현재 어디를 탐색 중인지(Context Stack)를 추적합니다.
  */
-class SE_CORE_API TomlArchive : public Archive
+class SE_CORE_API TomlArchive_v1 : public Archive_v1
 {
 protected:
     /** 현재 탐색 중인 노드의 모드를 나타내는 Enum */
@@ -49,12 +49,12 @@ protected:
     };
 
 public:
-    virtual ~TomlArchive() override = default;
+    virtual ~TomlArchive_v1() override = default;
 
     [[nodiscard]] virtual bool IsBinary() const override { return false; }
 
 protected:
-    explicit TomlArchive(EArchiveMode mode) : Archive(mode) {}
+    explicit TomlArchive_v1(EArchiveMode_v1 mode) : Archive_v1(mode) {}
 
     [[nodiscard]] Context& GetCurrentContext();
     [[nodiscard]] bool IsRootNode(const toml::node* node) const;
@@ -79,10 +79,10 @@ protected:
 /**
  * TOML 데이터를 읽어서 데이터를 객체로 변환하는 역직렬화 클래스
  */
-class SE_CORE_API TomlReader : public TomlArchive
+class SE_CORE_API TomlReader_v1 : public TomlArchive_v1
 {
 public:
-    explicit TomlReader(const toml::table& root);
+    explicit TomlReader_v1(const toml::table& root);
 
     virtual void BeginObject() override;
     virtual void EndObject() override;
@@ -154,10 +154,10 @@ private:
 /**
  * 데이터를 TOML 포맷으로 직렬화하는 클래스
  */
-class SE_CORE_API TomlWriter : public TomlArchive
+class SE_CORE_API TomlWriter_v1 : public TomlArchive_v1
 {
 public:
-    explicit TomlWriter(toml::table& root);
+    explicit TomlWriter_v1(toml::table& root);
 
     virtual void BeginObject() override;
     virtual void EndObject() override;
@@ -214,7 +214,7 @@ private:
         else
         {
             // Table 모드인데 Key를 지정하지 않고 값을 쓰려는 경우 Assert
-            SE_ASSERT(false, "TomlWriter::WriteValue - No valid target. (IsArray: false, pending_key: empty)");
+            SE_ASSERT(false, "TomlWriter_v1::WriteValue - No valid target. (IsArray: false, pending_key: empty)");
         }
     }
 
@@ -228,7 +228,7 @@ private:
         Context& ctx = GetCurrentContext();
 
         // Writer의 내부 컨텍스트 노드가 nullptr인 것은 상태 관리 로직이 꼬인 것이므로 Assert
-        SE_ASSERT(ctx.node, "TomlWriter::InsertNewNode - Current node is null!");
+        SE_ASSERT(ctx.node, "TomlWriter_v1::InsertNewNode - Current node is null!");
 
         if (ctx.IsArray())
         {
@@ -237,7 +237,7 @@ private:
         }
 
         // Array가 아닌데 pending_key가 없는 경우 Assert
-        SE_ASSERT(!pending_key.IsEmpty(), "TomlWriter::InsertNewNode - pending_key is empty! Cannot insert into table without a key.");
+        SE_ASSERT(!pending_key.IsEmpty(), "TomlWriter_v1::InsertNewNode - pending_key is empty! Cannot insert into table without a key.");
 
         auto [it, _] = ctx.node->as_table()->insert_or_assign(pending_key, std::forward<Args>(args)...);
         pending_key = "";

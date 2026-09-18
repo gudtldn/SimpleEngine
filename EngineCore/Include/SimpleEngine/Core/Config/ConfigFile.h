@@ -6,8 +6,8 @@
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
-#include "SimpleEngine/Traits/SerializationTraits.h"
+#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/SerializationTraits.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 #include <concepts>
@@ -19,10 +19,10 @@ namespace se
 class VPath;
 
 /**
- * Reflection + Archive 기반 TOML 설정 파일 관리 클래스입니다.
+ * Reflection + Archive_v1 기반 TOML 설정 파일 관리 클래스입니다.
  *
  * 리플렉션이 등록된 구조체를 통해 타입 안전하게 설정을 관리합니다.
- * 내부적으로 TomlReader/TomlWriter Archive를 사용하여 직렬화합니다.
+ * 내부적으로 TomlReader_v1/TomlWriter_v1 Archive_v1을 사용하여 직렬화합니다.
  *
  * @code
  * // 1. 설정 구조체 정의
@@ -178,11 +178,11 @@ T ConfigFile::GetSection(StringView section_name) const
         return result; // 섹션 미존재 -> 기본 생성된 T 반환
     }
 
-    TomlReader reader(*target);
+    TomlReader_v1 reader(*target);
 
-    if constexpr (traits::Serializable<T>)
+    if constexpr (traits::Serializable_v1<T>)
     {
-        // ADL Serialize(Archive&, T&) 가 있는 타입
+        // ADL Serialize(Archive_v1&, T&) 가 있는 타입
         reader << result;
     }
     else
@@ -206,9 +206,9 @@ template <typename T>
 void ConfigFile::SetSection(const T& settings, StringView section_name)
 {
     toml::table section_table;
-    TomlWriter writer(section_table);
+    TomlWriter_v1 writer(section_table);
 
-    if constexpr (traits::Serializable<T>)
+    if constexpr (traits::Serializable_v1<T>)
     {
         writer << settings;
     }
