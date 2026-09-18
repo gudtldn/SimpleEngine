@@ -8,7 +8,7 @@
 #include "SimpleEngine/Core/Container/Map.h"
 #include "SimpleEngine/Core/Container/Set.h"
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 
 using namespace se;
 
@@ -19,7 +19,7 @@ class SerializationTest : public ::testing::Test
 TEST_F(SerializationTest, ReadAndWritePrimitives)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     // 원본 데이터
     i32 original_int = -12345;
@@ -35,7 +35,7 @@ TEST_F(SerializationTest, ReadAndWritePrimitives)
     EXPECT_EQ(writer.Tell(), EXPECTED_SIZE);
 
     // 읽기
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     i32 read_int = 0;
     f32 read_float = 0.0f;
     bool read_bool = false;
@@ -54,7 +54,7 @@ TEST_F(SerializationTest, ReadAndWritePrimitives)
 TEST_F(SerializationTest, SeekAndTell)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     i32 val1 = 100;
     i32 val2 = 200;
@@ -72,7 +72,7 @@ TEST_F(SerializationTest, SeekAndTell)
     EXPECT_EQ(writer.Tell(), sizeof(val3));
 
     // 읽기 및 검증
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     i32 read_val1 = 0;
     i32 read_val2 = 0;
 
@@ -99,7 +99,7 @@ struct TestStruct
 
     auto operator<=>(const TestStruct&) const = default;
 
-    friend void Serialize(Archive& ar, TestStruct& value)
+    friend void Serialize(Archive_v1& ar, TestStruct& value)
     {
         ar("a") << value.a;
         ar("b") << value.b;
@@ -111,7 +111,7 @@ struct TestStruct
 TEST_F(SerializationTest, SerializeStruct)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     TestStruct original_struct = { -1, 123.456f, true };
     TestStruct read_struct = { 0, 0.0f, false };
@@ -120,7 +120,7 @@ TEST_F(SerializationTest, SerializeStruct)
     writer << original_struct;
 
     // 읽기
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     reader << read_struct;
 
     // 검증
@@ -132,11 +132,11 @@ TEST_F(SerializationTest, SerializeArray)
     // 1. Trivial type (int)
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Array<i32> original_array = { 1, 2, 3, 4, 5 };
         Array<i32> read_array;
         writer << original_array;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_array;
         EXPECT_EQ(read_array, original_array);
     }
@@ -144,11 +144,11 @@ TEST_F(SerializationTest, SerializeArray)
     // 2. Non-trivial type (String)
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Array<String> original_array = { "Hello", "World", "!", "TestString" };
         Array<String> read_array;
         writer << original_array;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_array;
         EXPECT_EQ(read_array, original_array);
     }
@@ -156,11 +156,11 @@ TEST_F(SerializationTest, SerializeArray)
     // 3. Empty array
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Array<i32> original_array;
         Array<i32> read_array = { 1, 2, 3 }; // Not empty initially
         writer << original_array;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_array;
         EXPECT_TRUE(read_array.IsEmpty());
     }
@@ -171,11 +171,11 @@ TEST_F(SerializationTest, SerializeHashMap)
     // 1. Trivial Key/Value
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         HashMap<i32, f32> original_map = { { 1, 1.1f }, { 2, 2.2f }, { 3, 3.3f } };
         HashMap<i32, f32> read_map;
         writer << original_map;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_map;
         EXPECT_EQ(read_map, original_map);
     }
@@ -183,11 +183,11 @@ TEST_F(SerializationTest, SerializeHashMap)
     // 2. Non-trivial Value
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         HashMap<i32, String> original_map = { { 1, "One" }, { 2, "Two" }, { 3, "Three" } };
         HashMap<i32, String> read_map;
         writer << original_map;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_map;
         EXPECT_EQ(read_map, original_map);
     }
@@ -195,11 +195,11 @@ TEST_F(SerializationTest, SerializeHashMap)
     // 3. Empty map
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         HashMap<i32, i32> original_map;
         HashMap<i32, i32> read_map = { { 1, 1 } };
         writer << original_map;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_map;
         EXPECT_TRUE(read_map.IsEmpty());
     }
@@ -210,11 +210,11 @@ TEST_F(SerializationTest, SerializeHashSet)
     // 1. Trivial Key
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         HashSet<i32> original_set = { 1, 2, 3, 100, 200 };
         HashSet<i32> read_set;
         writer << original_set;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_set;
         EXPECT_EQ(read_set, original_set);
     }
@@ -222,11 +222,11 @@ TEST_F(SerializationTest, SerializeHashSet)
     // 2. Non-trivial Key
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         HashSet<String> original_set = { "A", "B", "C", "Hello" };
         HashSet<String> read_set;
         writer << original_set;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_set;
         EXPECT_EQ(read_set, original_set);
     }
@@ -234,11 +234,11 @@ TEST_F(SerializationTest, SerializeHashSet)
     // 3. Empty set
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         HashSet<i32> original_set;
         HashSet<i32> read_set = { 1, 2, 3 };
         writer << original_set;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_set;
         EXPECT_TRUE(read_set.IsEmpty());
     }
@@ -250,11 +250,11 @@ TEST_F(SerializationTest, SerializeMap)
     // 1. Trivial Key/Value
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Map<i32, f32> original_map = { { 1, 1.1f }, { 3, 3.3f }, { 2, 2.2f } };
         Map<i32, f32> read_map;
         writer << original_map;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_map;
         EXPECT_EQ(read_map, original_map);
     }
@@ -262,11 +262,11 @@ TEST_F(SerializationTest, SerializeMap)
     // 2. Non-trivial Value
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Map<String, i32> original_map = { { "One", 1 }, { "Two", 2 }, { "Three", 3 } };
         Map<String, i32> read_map;
         writer << original_map;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_map;
         EXPECT_EQ(read_map, original_map);
     }
@@ -278,11 +278,11 @@ TEST_F(SerializationTest, SerializeSet)
     // 1. Trivial Key
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Set<i32> original_set = { 1, 100, 3, 200, 2 };
         Set<i32> read_set;
         writer << original_set;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_set;
         EXPECT_EQ(read_set, original_set);
     }
@@ -290,11 +290,11 @@ TEST_F(SerializationTest, SerializeSet)
     // 2. Non-trivial Key
     {
         Array<u8> buffer;
-        MemoryWriter writer(buffer);
+        MemoryWriter_v1 writer(buffer);
         Set<String> original_set = { "Hello", "A", "World", "C" };
         Set<String> read_set;
         writer << original_set;
-        MemoryReader reader(buffer);
+        MemoryReader_v1 reader(buffer);
         reader << read_set;
         EXPECT_EQ(read_set, original_set);
     }
@@ -304,7 +304,7 @@ TEST_F(SerializationTest, SerializeSet)
 TEST_F(SerializationTest, BoundaryValues)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     i8 i8_min = std::numeric_limits<i8>::min();
     i8 i8_max = std::numeric_limits<i8>::max();
@@ -316,7 +316,7 @@ TEST_F(SerializationTest, BoundaryValues)
 
     writer << i8_min << i8_max << u64_max << f_min << f_max << d_min << d_max;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     i8 r_i8_min = 0, r_i8_max = 0;
     u64 r_u64_max = 0;
     f32 r_f_min = 0.0f, r_f_max = 0.0f;
@@ -340,7 +340,7 @@ struct Inner
     i32 value;
     auto operator<=>(const Inner&) const = default;
 
-    friend void Serialize(Archive& ar, Inner& data)
+    friend void Serialize(Archive_v1& ar, Inner& data)
     {
         ar("value") << data.value;
     }
@@ -351,7 +351,7 @@ struct Middle
     Array<Inner> inners;
     auto operator<=>(const Middle&) const = default;
 
-    friend void Serialize(Archive& ar, Middle& data)
+    friend void Serialize(Archive_v1& ar, Middle& data)
     {
         ar("inners") << data.inners;
     }
@@ -361,7 +361,7 @@ struct Outer
 {
     HashMap<i32, Middle> middles;
 
-    friend void Serialize(Archive& ar, Outer& data)
+    friend void Serialize(Archive_v1& ar, Outer& data)
     {
         ar("middles") << data.middles;
     }
@@ -373,7 +373,7 @@ struct Outer
 TEST_F(SerializationTest, DeepNesting)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     Outer original;
     original.middles.Entry(1).OrDefault().inners.Push({10});
@@ -382,7 +382,7 @@ TEST_F(SerializationTest, DeepNesting)
 
     writer << original;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     Outer read;
     reader << read;
 
@@ -396,7 +396,7 @@ TEST_F(SerializationTest, DeepNesting)
 TEST_F(SerializationTest, LargeData)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     Array<i32> large_array;
     for (i32 i = 0; i < 10000; ++i)
@@ -406,7 +406,7 @@ TEST_F(SerializationTest, LargeData)
 
     writer << large_array;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     Array<i32> read_array;
     reader << read_array;
 
@@ -419,7 +419,7 @@ TEST_F(SerializationTest, LargeData)
 TEST_F(SerializationTest, NestedEmptyContainers)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     Array<Array<i32>> nested_arrays;
     nested_arrays.Push(Array<i32>{}); // Empty
@@ -428,7 +428,7 @@ TEST_F(SerializationTest, NestedEmptyContainers)
 
     writer << nested_arrays;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     Array<Array<i32>> read_arrays;
     reader << read_arrays;
 
@@ -442,7 +442,7 @@ TEST_F(SerializationTest, NestedEmptyContainers)
 TEST_F(SerializationTest, MultipleSequentialOperations)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     // Write multiple values consecutively
     i32 v1 = 100, v2 = 200, v3 = 300;
@@ -451,7 +451,7 @@ TEST_F(SerializationTest, MultipleSequentialOperations)
 
     writer << v1 << s1 << b1 << v2 << s2 << b2 << v3;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     i32 r1 = 0, r2 = 0, r3 = 0;
     String rs1, rs2;
     bool rb1 = false, rb2 = true;
@@ -471,7 +471,7 @@ TEST_F(SerializationTest, MultipleSequentialOperations)
 TEST_F(SerializationTest, MixedContainers)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     HashMap<String, Array<i32>> map_of_arrays;
     map_of_arrays.Insert("first", Array<i32>{1, 2, 3});
@@ -483,7 +483,7 @@ TEST_F(SerializationTest, MixedContainers)
 
     writer << map_of_arrays << array_of_maps;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     HashMap<String, Array<i32>> read_map_of_arrays;
     Array<HashMap<String, String>> read_array_of_maps;
 
@@ -499,7 +499,7 @@ TEST_F(SerializationTest, MixedContainers)
 TEST_F(SerializationTest, ZeroValues)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     i32 zero_int = 0;
     f32 zero_float = 0.0f;
@@ -508,7 +508,7 @@ TEST_F(SerializationTest, ZeroValues)
 
     writer << zero_int << zero_float << empty_str << false_bool;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     i32 r_zero_int = 999;
     f32 r_zero_float = 999.0f;
     String r_empty_str = "not empty";
@@ -526,7 +526,7 @@ TEST_F(SerializationTest, ZeroValues)
 TEST_F(SerializationTest, NegativeNumbers)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     i8 neg_i8 = -100;
     i16 neg_i16 = -30000;
@@ -537,7 +537,7 @@ TEST_F(SerializationTest, NegativeNumbers)
 
     writer << neg_i8 << neg_i16 << neg_i32 << neg_i64 << neg_float << neg_double;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     i8 r_neg_i8 = 0;
     i16 r_neg_i16 = 0;
     i32 r_neg_i32 = 0;
@@ -559,7 +559,7 @@ TEST_F(SerializationTest, NegativeNumbers)
 TEST_F(SerializationTest, VeryLongString)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     String long_str;
     for (int i = 0; i < 1000; ++i)
@@ -569,7 +569,7 @@ TEST_F(SerializationTest, VeryLongString)
 
     writer << long_str;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     String read_str;
     reader << read_str;
 
@@ -581,7 +581,7 @@ TEST_F(SerializationTest, VeryLongString)
 TEST_F(SerializationTest, UnicodeStrings)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     String unicode1 = "한글 테스트";
     String unicode2 = "日本語テスト";
@@ -590,7 +590,7 @@ TEST_F(SerializationTest, UnicodeStrings)
 
     writer << unicode1 << unicode2 << unicode3 << emoji;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     String r_unicode1, r_unicode2, r_unicode3, r_emoji;
     reader << r_unicode1 << r_unicode2 << r_unicode3 << r_emoji;
 
@@ -604,7 +604,7 @@ TEST_F(SerializationTest, UnicodeStrings)
 TEST_F(SerializationTest, SingleElementContainers)
 {
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     Array<i32> single_array{42};
     HashMap<String, i32> single_map{ {"only", 123} };
@@ -612,7 +612,7 @@ TEST_F(SerializationTest, SingleElementContainers)
 
     writer << single_array << single_map << single_set;
 
-    MemoryReader reader(buffer);
+    MemoryReader_v1 reader(buffer);
     Array<i32> r_single_array;
     HashMap<String, i32> r_single_map;
     HashSet<String> r_single_set;

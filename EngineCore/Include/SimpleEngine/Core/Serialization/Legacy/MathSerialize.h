@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 
 /**
@@ -11,21 +11,21 @@ namespace se::math
 {
 // Angle Types (Degree, Radian)
 template <traits::FloatingType T, typename Tag>
-void Serialize(Archive& ar, AngleType<T, Tag>& angle)
+void Serialize(Archive_v1& ar, AngleType<T, Tag>& angle)
 {
     ar("value") << angle.value;
 }
 
 // Vector Types
 template <traits::FloatingType T>
-void Serialize(Archive& ar, Vector2Impl<T>& v)
+void Serialize(Archive_v1& ar, Vector2Impl<T>& v)
 {
     ar("x") << v.x;
     ar("y") << v.y;
 }
 
 template <traits::FloatingType T>
-void Serialize(Archive& ar, Vector3Impl<T>& v)
+void Serialize(Archive_v1& ar, Vector3Impl<T>& v)
 {
     ar("x") << v.x;
     ar("y") << v.y;
@@ -33,7 +33,7 @@ void Serialize(Archive& ar, Vector3Impl<T>& v)
 }
 
 template <traits::FloatingType T>
-void Serialize(Archive& ar, Vector4Impl<T>& v)
+void Serialize(Archive_v1& ar, Vector4Impl<T>& v)
 {
     ar("x") << v.x;
     ar("y") << v.y;
@@ -43,7 +43,7 @@ void Serialize(Archive& ar, Vector4Impl<T>& v)
 
 // Rotation Types
 template <traits::FloatingType T>
-void Serialize(Archive& ar, QuaternionImpl<T>& q)
+void Serialize(Archive_v1& ar, QuaternionImpl<T>& q)
 {
     ar("x") << q.x;
     ar("y") << q.y;
@@ -52,7 +52,7 @@ void Serialize(Archive& ar, QuaternionImpl<T>& q)
 }
 
 template <traits::FloatingType T>
-void Serialize(Archive& ar, RotatorImpl<T>& r)
+void Serialize(Archive_v1& ar, RotatorImpl<T>& r)
 {
     ar("pitch") << r.pitch;
     ar("yaw") << r.yaw;
@@ -61,28 +61,28 @@ void Serialize(Archive& ar, RotatorImpl<T>& r)
 
 // Matrix Types
 template <traits::FloatingType T>
-void Serialize(Archive& ar, Matrix4x4Impl<T>& m)
+void Serialize(Archive_v1& ar, Matrix4x4Impl<T>& m)
 {
     ar("data") << m.data;
 }
 
 // Geometry Types
 template <traits::FloatingType T>
-void Serialize(Archive& ar, AABBImpl<T>& aabb)
+void Serialize(Archive_v1& ar, AABBImpl<T>& aabb)
 {
     ar("min") << aabb.min;
     ar("max") << aabb.max;
 }
 
 template <traits::FloatingType T>
-void Serialize(Archive& ar, RayImpl<T>& ray)
+void Serialize(Archive_v1& ar, RayImpl<T>& ray)
 {
     ar("origin") << ray.origin;
     ar("direction") << ray.direction;
 }
 
 // Color Types
-inline void Serialize(Archive& ar, LinearColor& c)
+inline void Serialize(Archive_v1& ar, LinearColor& c)
 {
     ar("r") << c.r;
     ar("g") << c.g;
@@ -90,7 +90,7 @@ inline void Serialize(Archive& ar, LinearColor& c)
     ar("a") << c.a;
 }
 
-inline void Serialize(Archive& ar, Color& c)
+inline void Serialize(Archive_v1& ar, Color& c)
 {
     ar("r") << c.r;
     ar("g") << c.g;

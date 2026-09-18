@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -56,7 +56,7 @@ Optional<MetaFileContent> MetaFileManager::Load(const Path& source_path)
 
     // 역직렬화
     MetaFileContent content;
-    TomlReader reader(parse_result.table());
+    TomlReader_v1 reader(parse_result.table());
     reader << content;
 
     return content;
@@ -79,7 +79,7 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
 
     // TOML 트리에 직렬화
     toml::table root;
-    TomlWriter writer(root);
+    TomlWriter_v1 writer(root);
     writer << content;
 
     // TOML 문자열 생성
