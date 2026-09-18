@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/FrameResourcePool.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -13,6 +14,8 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient)
     SE_CLASS_V1(RGResourceBase)
 
 public:
+    SE_RTTI_ROOT()
+
     virtual ~RGResourceBase() = default;
 
     virtual void Realize(FrameResourcePool& pool) = 0;
@@ -53,6 +56,8 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient)
     SE_CLASS_V1(RGTransientTexture, RGTextureBase)
 
 public:
+    SE_RTTI(RGTransientTexture)
+
     virtual void Realize(FrameResourcePool& pool) override
     {
         if (!actual_texture)
@@ -82,6 +87,8 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient)
     SE_CLASS_V1(RGExternalTexture, RGTextureBase)
 
 public:
+    SE_RTTI(RGExternalTexture)
+
     explicit RGExternalTexture(SDL_GPUTexture* texture)
     {
         actual_texture = texture;
@@ -99,6 +106,8 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient)
     SE_CLASS_V1(RGTransientBuffer, RGBufferBase)
 
 public:
+    SE_RTTI(RGTransientBuffer)
+
     virtual void Realize(FrameResourcePool& pool) override
     {
         if (!actual_buffer)
@@ -128,6 +137,8 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient)
     SE_CLASS_V1(RGExternalBuffer, RGBufferBase)
 
 public:
+    SE_RTTI(RGExternalBuffer)
+
     explicit RGExternalBuffer(SDL_GPUBuffer* buffer)
     {
         actual_buffer = buffer;
@@ -137,3 +148,11 @@ public:
     virtual void Unrealize([[maybe_unused]] FrameResourcePool& pool) override {}
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RGResourceBase)
+SE_DECLARE_REFLECTION(se::RGTextureBase)
+SE_DECLARE_REFLECTION(se::RGBufferBase)
+SE_DECLARE_REFLECTION(se::RGTransientTexture)
+SE_DECLARE_REFLECTION(se::RGExternalTexture)
+SE_DECLARE_REFLECTION(se::RGTransientBuffer)
+SE_DECLARE_REFLECTION(se::RGExternalBuffer)
