@@ -27,7 +27,7 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
@@ -622,7 +622,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     // Import Settings 해시 계산
     Array<u8> settings_bytes;
     {
-        MemoryWriter writer(settings_bytes);
+        MemoryWriter_v1 writer(settings_bytes);
         writer << import_profile;
     }
     const ContentHash settings_hash = SHA256::HashBytes(settings_bytes);
@@ -822,7 +822,7 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
     {
         Array<u8> settings_bytes;
         {
-            MemoryWriter writer(settings_bytes);
+            MemoryWriter_v1 writer(settings_bytes);
             writer << content.import_settings;
         }
         const ContentHash current_settings_hash = SHA256::HashBytes(settings_bytes);

@@ -1,15 +1,15 @@
-#include "SimpleEngine/Core/Serialization/AutoSerialize.h"
+#include "SimpleEngine/Core/Serialization/Legacy/AutoSerialize.h"
 
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "../../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 
 namespace se
 {
 namespace
 {
-void AutoSerializeImpl(Archive& ar, const TypeInfo_v1& info, void* instance, HashSet<void*>& visited) // NOLINT(*-no-recursion)
+void AutoSerializeImpl(Archive_v1& ar, const TypeInfo_v1& info, void* instance, HashSet<void*>& visited) // NOLINT(*-no-recursion)
 {
     if (!instance)
     {
@@ -51,15 +51,15 @@ void AutoSerializeImpl(Archive& ar, const TypeInfo_v1& info, void* instance, Has
 }
 } // namespace
 
-void AutoSerialize(Archive& ar, const TypeInfo_v1& info, void* instance)
+void AutoSerialize_v1(Archive_v1& ar, const TypeInfo_v1& info, void* instance)
 {
     HashSet<void*> visited;
     AutoSerializeImpl(ar, info, instance, visited);
 }
 
-void AutoSerialize(Archive& ar, const TypeId_v1& type_id, void* instance)
+void AutoSerialize_v1(Archive_v1& ar, const TypeId_v1& type_id, void* instance)
 {
     const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(type_id);
-    AutoSerialize(ar, info, instance);
+    AutoSerialize_v1(ar, info, instance);
 }
 } // namespace se

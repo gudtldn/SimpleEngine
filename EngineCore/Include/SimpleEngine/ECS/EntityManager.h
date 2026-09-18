@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 #include <atomic>
@@ -48,7 +48,7 @@ public:
     }
 
 private:
-    friend void Serialize(Archive& ar, EntityManager& em)
+    friend void Serialize(Archive_v1& ar, EntityManager& em)
     {
         // entity records (array of {generation, alive})
         u64 record_count = em.entity_records.Len();

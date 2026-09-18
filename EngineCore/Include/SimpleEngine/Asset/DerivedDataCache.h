@@ -38,13 +38,13 @@ struct CacheEntry
  *     ab/                                          <- GUID 앞 2글자로 버킷
  *       abcdef01-2345-6789-abcd-ef0123456789.cache
  *
- * 캐시 파일 포맷 (MemoryArchive 바이너리 직렬화):
+ * 캐시 파일 포맷 (MemoryArchive_v1 바이너리 직렬화):
  *   [4  bytes]   Magic: "SEDC"
  *   [4  bytes]   Format Version: u32
  *   [8+N bytes]  Source Hash: String (length-prefixed)
  *   [4  bytes]   Cache Schema Version: u32
  *   [8  bytes]   Payload Size: u64
- *   [M  bytes]   Payload: BinaryBlob (raw 바이너리 데이터)
+ *   [M  bytes]   Payload: BinaryBlob_v1 (raw 바이너리 데이터)
  *
  * Atomic Write를 사용하여 쓰기 도중 크래시로 인한 corruption을 방지합니다.
  */

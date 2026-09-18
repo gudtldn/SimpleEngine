@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
@@ -32,7 +32,7 @@ struct NestedData
 
     auto operator<=>(const NestedData&) const = default;
 
-    friend void Serialize(Archive& ar, NestedData& data)
+    friend void Serialize(Archive_v1& ar, NestedData& data)
     {
         ar("str") << data.str;
         ar("val") << data.val;
@@ -65,7 +65,7 @@ struct TestData
     HashMap<String, NestedData> map_str_nested;
 
 
-    friend void Serialize(Archive& ar, TestData& data)
+    friend void Serialize(Archive_v1& ar, TestData& data)
     {
         ar("i8") << data._i8;
         ar("u8") << data._u8;
@@ -99,7 +99,7 @@ struct EmptyData
     HashSet<String> empty_set;
     String empty_str;
 
-    friend void Serialize(Archive& ar, EmptyData& data)
+    friend void Serialize(Archive_v1& ar, EmptyData& data)
     {
         ar("empty_array") << data.empty_array;
         ar("empty_map") << data.empty_map;
@@ -126,7 +126,7 @@ struct BoundaryData
     i64 i64_max;
     u64 u64_max;
 
-    friend void Serialize(Archive& ar, BoundaryData& data)
+    friend void Serialize(Archive_v1& ar, BoundaryData& data)
     {
         ar("i8_min") << data.i8_min;
         ar("i8_max") << data.i8_max;
@@ -156,7 +156,7 @@ struct SpecialStringData
 
     auto operator<=>(const SpecialStringData&) const = default;
 
-    friend void Serialize(Archive& ar, SpecialStringData& data)
+    friend void Serialize(Archive_v1& ar, SpecialStringData& data)
     {
         ar("unicode_str") << data.unicode_str;
         ar("newline_str") << data.newline_str;
@@ -172,7 +172,7 @@ struct DeepNestingLevel3
 
     auto operator<=>(const DeepNestingLevel3&) const = default;
 
-    friend void Serialize(Archive& ar, DeepNestingLevel3& data)
+    friend void Serialize(Archive_v1& ar, DeepNestingLevel3& data)
     {
         ar("value") << data.value;
     }
@@ -184,7 +184,7 @@ struct DeepNestingLevel2
 
     auto operator<=>(const DeepNestingLevel2&) const = default;
 
-    friend void Serialize(Archive& ar, DeepNestingLevel2& data)
+    friend void Serialize(Archive_v1& ar, DeepNestingLevel2& data)
     {
         ar("items") << data.items;
     }
@@ -194,7 +194,7 @@ struct DeepNestingLevel1
 {
     HashMap<String, DeepNestingLevel2> children;
 
-    friend void Serialize(Archive& ar, DeepNestingLevel1& data)
+    friend void Serialize(Archive_v1& ar, DeepNestingLevel1& data)
     {
         ar("children") << data.children;
     }
@@ -207,7 +207,7 @@ struct UnusualKeyData
     HashMap<f32, String> float_map;
     HashMap<f64, String> double_map;
 
-    friend void Serialize(Archive& ar, UnusualKeyData& data)
+    friend void Serialize(Archive_v1& ar, UnusualKeyData& data)
     {
         ar("bool_map") << data.bool_map;
         ar("negative_key_map") << data.negative_key_map;
@@ -221,7 +221,7 @@ struct LargeTestData
     Array<i32> large_array;
     HashMap<i32, String> large_map;
 
-    friend void Serialize(Archive& ar, LargeTestData& data)
+    friend void Serialize(Archive_v1& ar, LargeTestData& data)
     {
         ar("large_array") << data.large_array;
         ar("large_map") << data.large_map;
@@ -234,7 +234,7 @@ struct NestedEmptyData
     HashMap<String, Array<i32>> map_with_empty_arrays;
     Array<HashMap<String, i32>> array_of_empty_maps;
 
-    friend void Serialize(Archive& ar, NestedEmptyData& data)
+    friend void Serialize(Archive_v1& ar, NestedEmptyData& data)
     {
         ar("nested_arrays") << data.nested_arrays;
         ar("map_with_empty_arrays") << data.map_with_empty_arrays;
@@ -248,7 +248,7 @@ struct TripleNestedData
 
     auto operator<=>(const TripleNestedData&) const = default;
 
-    friend void Serialize(Archive& ar, TripleNestedData& data)
+    friend void Serialize(Archive_v1& ar, TripleNestedData& data)
     {
         ar("triple_array") << data.triple_array;
     }
@@ -260,7 +260,7 @@ struct HeteroData
     Array<HashMap<String, String>> array_of_maps;
     HashMap<i32, HashMap<String, f32>> nested_maps;
 
-    friend void Serialize(Archive& ar, HeteroData& data)
+    friend void Serialize(Archive_v1& ar, HeteroData& data)
     {
         ar("map_of_arrays") << data.map_of_arrays;
         ar("array_of_maps") << data.array_of_maps;
@@ -275,7 +275,7 @@ struct ZeroData
     bool false_bool = true; // true default
     String zero_str = "default";
 
-    friend void Serialize(Archive& ar, ZeroData& data)
+    friend void Serialize(Archive_v1& ar, ZeroData& data)
     {
         ar("zero_int") << data.zero_int;
         ar("zero_float") << data.zero_float;
@@ -288,7 +288,7 @@ struct IntMapData
 {
     HashMap<i32, i32> int_map;
 
-    friend void Serialize(Archive& ar, IntMapData& data)
+    friend void Serialize(Archive_v1& ar, IntMapData& data)
     {
         ar("int_map") << data.int_map;
     }
@@ -298,7 +298,7 @@ struct IntValueData
 {
     i32 value = 999;
 
-    friend void Serialize(Archive& ar, IntValueData& data)
+    friend void Serialize(Archive_v1& ar, IntValueData& data)
     {
         ar("value") << data.value;
     }
@@ -309,7 +309,7 @@ struct TwoFieldData
     i32 present_key = 0;
     i32 missing_key = 999;
 
-    friend void Serialize(Archive& ar, TwoFieldData& data)
+    friend void Serialize(Archive_v1& ar, TwoFieldData& data)
     {
         ar("present_key") << data.present_key;
         ar("missing_key") << data.missing_key;
@@ -320,7 +320,7 @@ struct SmallIntData
 {
     i8 small_int = 0;
 
-    friend void Serialize(Archive& ar, SmallIntData& data)
+    friend void Serialize(Archive_v1& ar, SmallIntData& data)
     {
         ar("small_int") << data.small_int;
     }
@@ -330,7 +330,7 @@ struct ManyMapsData
 {
     HashMap<i32, String> map;
 
-    friend void Serialize(Archive& ar, ManyMapsData& data)
+    friend void Serialize(Archive_v1& ar, ManyMapsData& data)
     {
         ar("map") << data.map;
     }
@@ -343,7 +343,7 @@ struct FloatPrecisionData
     f32 very_small = 1.23456e-38f;
     f64 very_large = 1.23456e308;
 
-    friend void Serialize(Archive& ar, FloatPrecisionData& data)
+    friend void Serialize(Archive_v1& ar, FloatPrecisionData& data)
     {
         ar("f1") << data.f1;
         ar("d1") << data.d1;
@@ -358,7 +358,7 @@ struct SingleElementData
     HashMap<String, i32> single_map;
     HashSet<String> single_set;
 
-    friend void Serialize(Archive& ar, SingleElementData& data)
+    friend void Serialize(Archive_v1& ar, SingleElementData& data)
     {
         ar("single_array") << data.single_array;
         ar("single_map") << data.single_map;
@@ -370,7 +370,7 @@ struct SetDeduplicationData
 {
     HashSet<i32> int_set;
 
-    friend void Serialize(Archive& ar, SetDeduplicationData& data)
+    friend void Serialize(Archive_v1& ar, SetDeduplicationData& data)
     {
         ar("int_set") << data.int_set;
     }
@@ -380,7 +380,7 @@ struct GuidUniquenessData
 {
     Array<Guid> guids;
 
-    friend void Serialize(Archive& ar, GuidUniquenessData& data)
+    friend void Serialize(Archive_v1& ar, GuidUniquenessData& data)
     {
         ar("guids") << data.guids;
     }
@@ -392,7 +392,7 @@ struct LongStringData
 
     auto operator<=>(const LongStringData&) const = default;
 
-    friend void Serialize(Archive& ar, LongStringData& data)
+    friend void Serialize(Archive_v1& ar, LongStringData& data)
     {
         ar("long_str") << data.long_str;
     }
@@ -402,7 +402,7 @@ struct GuidKeyMapData
 {
     HashMap<Guid, String> guid_map;
 
-    friend void Serialize(Archive& ar, GuidKeyMapData& data)
+    friend void Serialize(Archive_v1& ar, GuidKeyMapData& data)
     {
         ar("guid_map") << data.guid_map;
     }
@@ -412,7 +412,7 @@ struct StringNameKeyMapData
 {
     HashMap<StringName, i32> sn_map;
 
-    friend void Serialize(Archive& ar, StringNameKeyMapData& data)
+    friend void Serialize(Archive_v1& ar, StringNameKeyMapData& data)
     {
         ar("sn_map") << data.sn_map;
     }
@@ -422,7 +422,7 @@ struct GuidKeyNestedMapData
 {
     HashMap<Guid, NestedData> guid_nested_map;
 
-    friend void Serialize(Archive& ar, GuidKeyNestedMapData& data)
+    friend void Serialize(Archive_v1& ar, GuidKeyNestedMapData& data)
     {
         ar("guid_nested_map") << data.guid_nested_map;
     }
@@ -432,7 +432,7 @@ struct TypeIdKeyMapData
 {
     HashMap<TypeId_v1, String> type_map;
 
-    friend void Serialize(Archive& ar, TypeIdKeyMapData& data)
+    friend void Serialize(Archive_v1& ar, TypeIdKeyMapData& data)
     {
         ar("type_map") << data.type_map;
     }
@@ -442,7 +442,7 @@ struct TypeIdKeyNestedMapData
 {
     HashMap<TypeId_v1, NestedData> type_nested_map;
 
-    friend void Serialize(Archive& ar, TypeIdKeyNestedMapData& data)
+    friend void Serialize(Archive_v1& ar, TypeIdKeyNestedMapData& data)
     {
         ar("type_nested_map") << data.type_nested_map;
     }
@@ -453,7 +453,7 @@ struct TypeIdKeyNestedMapData
 // -------------------------------------------------------------------------
 
 // ImportProfile 패턴 재현:
-// Serialize 내부에서 직접 BeginMap/EndMap을 호출하는 Serializable 타입.
+// Serialize 내부에서 직접 BeginMap/EndMap을 호출하는 Serializable_v1 타입.
 // 이 타입을 루트에 직접 쓰면, operator<< 가 BeginObject(pending_key 없음)로 감싼 뒤
 // Serialize 안에서 BeginMap(pending_key 없음)을 호출한다.
 // 수정 전에는 InsertNewNode assert로 crash.
@@ -463,7 +463,7 @@ struct ExplicitMapStruct
 
     bool operator==(const ExplicitMapStruct&) const = default;
 
-    friend void Serialize(Archive& ar, ExplicitMapStruct& data)
+    friend void Serialize(Archive_v1& ar, ExplicitMapStruct& data)
     {
         u64 count = data.entries.Len();
         ar.BeginMap(count);
@@ -511,7 +511,7 @@ struct OuterWithExplicitMap
 
     bool operator==(const OuterWithExplicitMap&) const = default;
 
-    friend void Serialize(Archive& ar, OuterWithExplicitMap& data)
+    friend void Serialize(Archive_v1& ar, OuterWithExplicitMap& data)
     {
         ar("prefix") << data.prefix;
         ar("inner") << data.inner;
@@ -526,7 +526,7 @@ struct ArrayOfExplicitMap
 
     bool operator==(const ArrayOfExplicitMap&) const = default;
 
-    friend void Serialize(Archive& ar, ArrayOfExplicitMap& data)
+    friend void Serialize(Archive_v1& ar, ArrayOfExplicitMap& data)
     {
         ar("items") << data.items;
     }
@@ -537,14 +537,14 @@ struct MapValueIsExplicitMap
 {
     HashMap<String, ExplicitMapStruct> map;
 
-    friend void Serialize(Archive& ar, MapValueIsExplicitMap& data)
+    friend void Serialize(Archive_v1& ar, MapValueIsExplicitMap& data)
     {
         ar("map") << data.map;
     }
 };
 
 // MetaFileContent 패턴 재현:
-// Serializable 타입 A(metadata)와 명시적 BeginMap을 쓰는 Serializable 타입 B(import_settings)를
+// Serializable_v1 타입 A(metadata)와 명시적 BeginMap을 쓰는 Serializable_v1 타입 B(import_settings)를
 // 키를 붙여 순서대로 직렬화하는 래퍼 구조체.
 struct SimulatedMetaContent
 {
@@ -553,7 +553,7 @@ struct SimulatedMetaContent
 
     bool operator==(const SimulatedMetaContent&) const = default;
 
-    friend void Serialize(Archive& ar, SimulatedMetaContent& content)
+    friend void Serialize(Archive_v1& ar, SimulatedMetaContent& content)
     {
         ar("metadata") << content.metadata;
         ar("import_settings") << content.import_settings;
@@ -590,7 +590,7 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
@@ -632,7 +632,7 @@ TEST_F(TomlArchiveTest, ReadAndWrite)
 
     TestData read_data = {};
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -668,13 +668,13 @@ TEST_F(TomlArchiveTest, EmptyContainers)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     EmptyData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -707,13 +707,13 @@ TEST_F(TomlArchiveTest, BoundaryValues)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     BoundaryData read_data = {};
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -747,13 +747,13 @@ TEST_F(TomlArchiveTest, SpecialStringCharacters)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     SpecialStringData read_data = {};
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -769,13 +769,13 @@ TEST_F(TomlArchiveTest, DeepNesting)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     DeepNestingLevel1 read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -797,13 +797,13 @@ TEST_F(TomlArchiveTest, UnusualMapKeyTypes)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     UnusualKeyData read_data = {};
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -839,13 +839,13 @@ TEST_F(TomlArchiveTest, LargeData)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     LargeTestData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -875,13 +875,13 @@ TEST_F(TomlArchiveTest, NestedEmptyContainers)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     NestedEmptyData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -914,13 +914,13 @@ TEST_F(TomlArchiveTest, TripleNestedArrays)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     TripleNestedData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -942,13 +942,13 @@ TEST_F(TomlArchiveTest, HeterogeneousContainers)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     HeteroData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -970,13 +970,13 @@ TEST_F(TomlArchiveTest, ZeroValues)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     ZeroData read_data; // Will have non-zero defaults
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -998,7 +998,7 @@ TEST_F(TomlArchiveTest, InvalidMapKeyConversion)
 
     IntMapData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
         // Should log warning for "not_a_number" but continue
         // "123" should be converted successfully
@@ -1020,7 +1020,7 @@ TEST_F(TomlArchiveTest, TypeMismatch)
 
     IntValueData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
         // Should handle gracefully, leaving value unchanged
     }
@@ -1029,7 +1029,7 @@ TEST_F(TomlArchiveTest, TypeMismatch)
     EXPECT_EQ(read_data.value, 999);
 }
 
-// ---- InlineSerializable (HashDigest) ----
+// ---- InlineSerializable_v1 (HashDigest) ----
 
 namespace
 {
@@ -1040,7 +1040,7 @@ struct HashHolder
 
     bool operator==(const HashHolder&) const = default;
 
-    friend void Serialize(Archive& ar, HashHolder& h)
+    friend void Serialize(Archive_v1& ar, HashHolder& h)
     {
         ar("source_hash") << h.source_hash;
         ar("settings_hash") << h.settings_hash;
@@ -1057,7 +1057,7 @@ TEST_F(TomlArchiveTest, HashDigest_FlatTomlValue)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
@@ -1078,13 +1078,13 @@ TEST_F(TomlArchiveTest, HashDigest_RoundTrip)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     HashHolder read;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read;
     }
 
@@ -1098,7 +1098,7 @@ TEST_F(TomlArchiveTest, HashDigest_ZeroRoundTrip)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
@@ -1106,7 +1106,7 @@ TEST_F(TomlArchiveTest, HashDigest_ZeroRoundTrip)
     read.source_hash = ContentHash::FromHex("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read;
     }
 
@@ -1123,7 +1123,7 @@ TEST_F(TomlArchiveTest, MissingKeys)
 
     TwoFieldData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1140,7 +1140,7 @@ TEST_F(TomlArchiveTest, OutOfRangeValues)
 
     SmallIntData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1161,13 +1161,13 @@ TEST_F(TomlArchiveTest, ManyMapIterations)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     ManyMapsData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
         // With O(N^2) approach this would be slow, with O(N) it should be fast
     }
@@ -1186,13 +1186,13 @@ TEST_F(TomlArchiveTest, FloatingPointPrecision)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     FloatPrecisionData read_data = {};
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1212,13 +1212,13 @@ TEST_F(TomlArchiveTest, SingleElementContainers)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     SingleElementData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1243,13 +1243,13 @@ TEST_F(TomlArchiveTest, SetDeduplication)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     SetDeduplicationData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1270,13 +1270,13 @@ TEST_F(TomlArchiveTest, GuidUniqueness)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     GuidUniquenessData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1302,13 +1302,13 @@ TEST_F(TomlArchiveTest, VeryLongStrings)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     LongStringData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1331,13 +1331,13 @@ TEST_F(TomlArchiveTest, GuidAsMapKey)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     GuidKeyMapData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1360,13 +1360,13 @@ TEST_F(TomlArchiveTest, GuidAsMapKeyWithNestedValue)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     GuidKeyNestedMapData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1388,13 +1388,13 @@ TEST_F(TomlArchiveTest, StringNameAsMapKey)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     StringNameKeyMapData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1417,13 +1417,13 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKey)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     TypeIdKeyMapData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1445,13 +1445,13 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original_data;
     }
 
     TypeIdKeyNestedMapData read_data;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << read_data;
     }
 
@@ -1465,15 +1465,15 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
 // =========================================================================
 // BeginMap with no pending_key Fix 검증 TC
 //
-// 배경: operator<< 가 Serializable 타입을 BeginObject/EndObject 로 감싸고, 그 안의
+// 배경: operator<< 가 Serializable_v1 타입을 BeginObject/EndObject 로 감싸고, 그 안의
 //       Serialize 에서 BeginMap 을 호출하면 pending_key 가 이미 소비된 상태(비어있음).
-//       수정 전 TomlWriter::BeginMap / TomlReader::BeginMap 은 pending_key 가 없으면
+//       수정 전 TomlWriter_v1::BeginMap / TomlReader_v1::BeginMap 은 pending_key 가 없으면
 //       InsertNewNode assert 로 crash. 수정 후에는 BeginObject 와 동일하게
 //       현재 컨텍스트를 MapMode 로 재사용한다.
 // =========================================================================
 
 // 1. ExplicitMapStruct 를 루트에 직접 쓰는 경우
-//    operator<<(Serializable) -> BeginObject(no key) -> Serialize -> BeginMap(no key)
+//    operator<<(Serializable_v1) -> BeginObject(no key) -> Serialize -> BeginMap(no key)
 TEST_F(TomlArchiveTest, ExplicitMapStructAtRoot)
 {
     ExplicitMapStruct original;
@@ -1483,13 +1483,13 @@ TEST_F(TomlArchiveTest, ExplicitMapStructAtRoot)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     ExplicitMapStruct result;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 
@@ -1512,13 +1512,13 @@ TEST_F(TomlArchiveTest, ExplicitMapStructNestedUnderKey)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     OuterWithExplicitMap result;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 
@@ -1546,13 +1546,13 @@ TEST_F(TomlArchiveTest, ArrayOfExplicitMapStruct)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     ArrayOfExplicitMap result;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 
@@ -1566,7 +1566,7 @@ TEST_F(TomlArchiveTest, ArrayOfExplicitMapStruct)
 }
 
 // 4. ExplicitMapStruct 를 값으로 갖는 Map
-//    Map value = Serializable(ExplicitMapStruct) -> BeginObject(key 有) -> Serialize -> BeginMap(no key)
+//    Map value = Serializable_v1(ExplicitMapStruct) -> BeginObject(key 有) -> Serialize -> BeginMap(no key)
 TEST_F(TomlArchiveTest, MapValueIsExplicitMapStruct)
 {
     MapValueIsExplicitMap original;
@@ -1580,13 +1580,13 @@ TEST_F(TomlArchiveTest, MapValueIsExplicitMapStruct)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     MapValueIsExplicitMap result;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 
@@ -1599,9 +1599,9 @@ TEST_F(TomlArchiveTest, MapValueIsExplicitMapStruct)
 }
 
 // 5. MetaFileContent 패턴 재현
-//    NestedData(Reflectable) + ExplicitMapStruct(Serializable with explicit BeginMap)
+//    NestedData(Reflectable) + ExplicitMapStruct(Serializable_v1 with explicit BeginMap)
 //    를 각각 키를 붙여 직렬화한다.
-//    ar("metadata") << nested   -> BeginObject("metadata") -> AutoSerialize
+//    ar("metadata") << nested   -> BeginObject("metadata") -> AutoSerialize_v1
 //    ar("import_settings") << explicit_map -> BeginObject("import_settings") -> BeginMap(no key)
 TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
 {
@@ -1612,7 +1612,7 @@ TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
@@ -1622,7 +1622,7 @@ TEST_F(TomlArchiveTest, SimulatedMetaFileContentPattern)
 
     SimulatedMetaContent result;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 
@@ -1644,13 +1644,13 @@ TEST_F(TomlArchiveTest, HashMapAtRoot)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     HashMap<String, i32> result;
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 
@@ -1667,14 +1667,14 @@ TEST_F(TomlArchiveTest, ExplicitMapStructEmptyAtRoot)
 
     toml::table tbl;
     {
-        TomlWriter writer(tbl);
+        TomlWriter_v1 writer(tbl);
         writer << original;
     }
 
     ExplicitMapStruct result;
     result.entries.Insert("should_be_cleared", 999); // 기존값이 있어도 clear 되어야 함
     {
-        TomlReader reader(tbl);
+        TomlReader_v1 reader(tbl);
         reader << result;
     }
 

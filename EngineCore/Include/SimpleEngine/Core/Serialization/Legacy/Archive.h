@@ -2,10 +2,10 @@
 
 #include "SimpleEngine/Core/Container/StringFwd.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "../Reflection/Legacy/Traits.h"
-#include "../Reflection/Legacy/TypeId.h"
+#include "../../Reflection/Legacy/Traits.h"
+#include "../../Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
-#include "SimpleEngine/Traits/SerializationTraits.h"
+#include "SimpleEngine/Core/Serialization/Legacy/SerializationTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <concepts>
@@ -16,17 +16,17 @@
 namespace se
 {
 // Forward declarations
-class Archive;
+class Archive_v1;
 class Guid;
 class StringName;
 
 /** 리플렉션 기반 자동 직렬화 (TypeId 조회 후 프로퍼티 순회) */
-SE_CORE_API void AutoSerialize(Archive& ar, const TypeId_v1& type_id, void* instance);
+SE_CORE_API void AutoSerialize_v1(Archive_v1& ar, const TypeId_v1& type_id, void* instance);
 
 /**
- * Archive의 동작 모드
+ * Archive_v1의 동작 모드
  */
-enum class EArchiveMode : u8
+enum class EArchiveMode_v1 : u8
 {
     Load = 0,
     Save = 1,
@@ -35,7 +35,7 @@ enum class EArchiveMode : u8
 /**
  * Raw Memory 처리를 위한 Wrapper 구조체
  */
-struct BinaryBlob
+struct BinaryBlob_v1
 {
 public:
     void* data;
@@ -43,7 +43,7 @@ public:
     bool is_const;
 
 public:
-    static BinaryBlob FromBytes(void* in_data, u64 in_byte_size)
+    static BinaryBlob_v1 FromBytes(void* in_data, u64 in_byte_size)
     {
         return {
             .data = in_data,
@@ -52,7 +52,7 @@ public:
         };
     }
 
-    static BinaryBlob FromBytes(const void* in_data, u64 in_byte_size)
+    static BinaryBlob_v1 FromBytes(const void* in_data, u64 in_byte_size)
     {
         return {
             .data = const_cast<void*>(in_data),
@@ -63,7 +63,7 @@ public:
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    static BinaryBlob FromItems(T* in_data, u64 count = 1)
+    static BinaryBlob_v1 FromItems(T* in_data, u64 count = 1)
     {
         return {
             .data = in_data,
@@ -74,7 +74,7 @@ public:
 
     template <typename T>
         requires (std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>)
-    static BinaryBlob FromItems(const T* in_data, u64 count = 1)
+    static BinaryBlob_v1 FromItems(const T* in_data, u64 count = 1)
     {
         return {
             .data = const_cast<T*>(in_data),
@@ -87,28 +87,28 @@ public:
 /**
  * 모든 직렬화(Serialization) 시스템의 추상 기본 클래스
  */
-class SE_CORE_API Archive
+class SE_CORE_API Archive_v1
 {
 public:
-    virtual ~Archive();
+    virtual ~Archive_v1();
 
     // 복사 금지 & 이동만 허용
-    Archive(const Archive&) = delete;
-    Archive& operator=(const Archive&) = delete;
-    Archive(Archive&&) noexcept;
-    Archive& operator=(Archive&&) noexcept;
+    Archive_v1(const Archive_v1&) = delete;
+    Archive_v1& operator=(const Archive_v1&) = delete;
+    Archive_v1(Archive_v1&&) noexcept;
+    Archive_v1& operator=(Archive_v1&&) noexcept;
 
 public:
-    /** 현재 Archive가 로드(읽기) 모드인지 확인합니다. */
-    [[nodiscard]] bool IsLoading() const { return mode == EArchiveMode::Load; }
+    /** 현재 Archive_v1이 로드(읽기) 모드인지 확인합니다. */
+    [[nodiscard]] bool IsLoading() const { return mode == EArchiveMode_v1::Load; }
 
-    /** 현재 Archive가 저장(쓰기) 모드인지 확인합니다. */
-    [[nodiscard]] bool IsSaving() const { return mode == EArchiveMode::Save; }
+    /** 현재 Archive_v1이 저장(쓰기) 모드인지 확인합니다. */
+    [[nodiscard]] bool IsSaving() const { return mode == EArchiveMode_v1::Save; }
 
-    /** 현재 Archive가 Binary 포맷인지 확인합니다. */
+    /** 현재 Archive_v1이 Binary 포맷인지 확인합니다. */
     [[nodiscard]] virtual bool IsBinary() const = 0;
 
-    /** 현재 Archive가 Text 포맷인지 확인합니다. */
+    /** 현재 Archive_v1이 Text 포맷인지 확인합니다. */
     [[nodiscard]] bool IsText() const { return !IsBinary(); }
 
 public:
@@ -131,11 +131,11 @@ public:
      * @param name 변수의 이름
      * @return 체이닝을 위한 자기 자신 참조
      */
-    Archive& operator()(StringView name)
+    Archive_v1& operator()(StringView name)
     {
         SE_ASSERT(inline_serialize_depth == 0,
             "SerializeInline: ar(\"key\") calls are not allowed inside SerializeInline. "
-            "InlineSerializable must write a single value without sub-keys.");
+            "InlineSerializable_v1 must write a single value without sub-keys.");
         HintNextName(name);
         return *this;
     }
@@ -145,22 +145,22 @@ public:
      * 타입에 따라 적절한 가상 함수를 호출합니다.
      */
     template <typename T>
-    Archive& operator<<(T& value);
+    Archive_v1& operator<<(T& value);
 
     /**
      * 상수(const) 객체를 위한 저장(Save) 전용 진입점.
      * 복사 오버헤드 방지를 위해 내부에서 const_cast<T&>후 전달합니다. Load 모드에서 호출 시 Assert를 발생시킵니다.
      */
     template <typename T>
-    Archive& operator<<(const T& value);
+    Archive_v1& operator<<(const T& value);
 
-    /** BinaryBlob을 직접 다루는 경우 */
-    friend Archive& operator<<(Archive& ar, const BinaryBlob& blob)
+    /** BinaryBlob_v1을 직접 다루는 경우 */
+    friend Archive_v1& operator<<(Archive_v1& ar, const BinaryBlob_v1& blob)
     {
         // const 원본 데이터를 Load(덮어쓰기) 시도하면 차단
         if (blob.is_const)
         {
-            SE_ASSERT(ar.IsSaving() && "Cannot load into a const BinaryBlob!");
+            SE_ASSERT(ar.IsSaving() && "Cannot load into a const BinaryBlob_v1!");
         }
         ar.SerializeBytes(blob.data, blob.size);
         return ar;
@@ -232,48 +232,48 @@ protected:
     virtual void SerializeTypeId(TypeId_v1& value) = 0;
 
 protected:
-    explicit Archive(EArchiveMode in_mode);
+    explicit Archive_v1(EArchiveMode_v1 in_mode);
 
     std::unique_ptr<String> error_message;
     u32 inline_serialize_depth = 0;       // 0: 일반, 1+: SerializeInline 내부 (> 0이면 ar("key") assert)
     u32 inline_serialize_write_count = 0; // SerializeInline 내 write 횟수; 2 이상이면 assert
-    EArchiveMode mode;
+    EArchiveMode_v1 mode;
 };
 
 namespace detail
 {
 /** Array-like 컨테이너 직렬화 (Array, FixedArray) */
 template <traits::ArrayLike Container>
-void SerializeArrayContainer(Archive& ar, Container& container);
+void SerializeArrayContainer(Archive_v1& ar, Container& container);
 
 /** Set-like 컨테이너 직렬화 (HashSet, Set, FlatSet) */
 template <traits::SetLike Container>
-void SerializeSetContainer(Archive& ar, Container& container);
+void SerializeSetContainer(Archive_v1& ar, Container& container);
 
 /** Map-like 컨테이너 직렬화 (HashMap, Map, FlatMap) */
 template <traits::MapLike Container>
-void SerializeMapContainer(Archive& ar, Container& container);
+void SerializeMapContainer(Archive_v1& ar, Container& container);
 
 /** Optional-like 컨테이너 직렬화 (Optional) */
 template <traits::OptionalLike Container>
-void SerializeOptional(Archive& ar, Container& container);
+void SerializeOptional(Archive_v1& ar, Container& container);
 } // namespace detail
 
 
 template <typename T>
-Archive& Archive::operator<<(T& value)
+Archive_v1& Archive_v1::operator<<(T& value)
 {
     using PureType = std::remove_cvref_t<T>;
 
-    // InlineSerializable 컨텍스트 내에서 직접 쓰기 횟수 추적 (depth==1: 최외층)
+    // InlineSerializable_v1 컨텍스트 내에서 직접 쓰기 횟수 추적 (depth==1: 최외층)
     if (inline_serialize_depth == 1)
     {
-        // 이 write가 InlineSerializable 안에서 일어나는 직접 write일 경우 카운트
-        // 단, 다른 InlineSerializable을 write하는 경우는 그 내부에서 다시 카운트됨
+        // 이 write가 InlineSerializable_v1 안에서 일어나는 직접 write일 경우 카운트
+        // 단, 다른 InlineSerializable_v1을 write하는 경우는 그 내부에서 다시 카운트됨
         inline_serialize_write_count++;
         SE_ASSERT(inline_serialize_write_count <= 1,
             "SerializeInline: multiple value writes are not allowed. "
-            "InlineSerializable must write exactly one value.");
+            "InlineSerializable_v1 must write exactly one value.");
     }
 
     // Bool (std::is_arithmetic_v<bool> == true 이므로 먼저 처리)
@@ -353,11 +353,11 @@ Archive& Archive::operator<<(T& value)
     }
 
     // 인라인(스칼라) 직렬화 - BeginObject/EndObject 없이 값으로 직접 직렬화
-    else if constexpr (traits::InlineSerializable<PureType>)
+    else if constexpr (traits::InlineSerializable_v1<PureType>)
     {
-        static_assert(!traits::Serializable<PureType>,
+        static_assert(!traits::Serializable_v1<PureType>,
             "Type cannot implement both SerializeInline and Serialize. "
-            "InlineSerializable is for single scalar-value types only.");
+            "InlineSerializable_v1 is for single scalar-value types only.");
 
         ++inline_serialize_depth;
         const u32 saved_write_count = std::exchange(inline_serialize_write_count, 0);
@@ -367,18 +367,18 @@ Archive& Archive::operator<<(T& value)
     }
 
     // 커스텀 직렬화 함수가 있는 UDT (ADL 또는 멤버)
-    else if constexpr (traits::Serializable<PureType>)
+    else if constexpr (traits::Serializable_v1<PureType>)
     {
         BeginObject();
         Serialize(*this, value);
         EndObject();
     }
 
-    // Fallback - 리플렉션 시스템에 등록된 타입은 AutoSerialize로 직렬화
+    // Fallback - 리플렉션 시스템에 등록된 타입은 AutoSerialize_v1로 직렬화
     else if constexpr (Reflectable_v1<PureType>)
     {
         BeginObject();
-        AutoSerialize(*this, TypeId_v1::Of<PureType>(), &value);
+        AutoSerialize_v1(*this, TypeId_v1::Of<PureType>(), &value);
         EndObject();
     }
 
@@ -388,7 +388,7 @@ Archive& Archive::operator<<(T& value)
         static_assert(
             traits::AlwaysFalse<T>,
             "No serialization method found for this type. "
-            "Define 'void Serialize(Archive&, T&)' or register the type with the reflection system."
+            "Define 'void Serialize(Archive_v1&, T&)' or register the type with the reflection system."
         );
     }
 
@@ -396,7 +396,7 @@ Archive& Archive::operator<<(T& value)
 }
 
 template <typename T>
-Archive& Archive::operator<<(const T& value)
+Archive_v1& Archive_v1::operator<<(const T& value)
 {
     SE_ASSERT(IsSaving() && "Cannot deserialize (Load) into a const object!");
     return operator<<(const_cast<T&>(value));
@@ -405,4 +405,4 @@ Archive& Archive::operator<<(const T& value)
 
 
 // 컨테이너 직렬화 구현
-#include "SimpleEngine/Core/Serialization/ContainerSerialize.inl"
+#include "SimpleEngine/Core/Serialization/Legacy/ContainerSerialize.inl"
