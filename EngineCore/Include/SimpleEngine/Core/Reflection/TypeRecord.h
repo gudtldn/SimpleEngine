@@ -18,6 +18,6 @@ struct CastEntry
 struct TypeRecord
 {
     TypeId id;
-    Array<CastEntry> all_bases; // offset 0으로 포함
+    Array<CastEntry> all_bases; // offset 0(자기 자신)도 포함
 };
 } // namespace se
