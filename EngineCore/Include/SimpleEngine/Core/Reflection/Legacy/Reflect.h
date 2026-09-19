@@ -1,7 +1,7 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
 
-#include "SimpleEngine/Core/Math/MathSerialize.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MathSerialize.h"
 #include "Annotations.h"
 #include "Enum.h"
 #include "SimpleEngine/Core/Reflection/Legacy/Meta.h"
@@ -188,7 +188,7 @@ inline static const bool SE_CONCAT_NAME(_Reflect_Init_Enum_, enum_type) = [] sta
     } \
     ::se::TypeRegistry_v1::Get().RegisterEnum<T>() \
         .AddFlags(enum_flags) \
-        .Serialize([](::se::Archive& ar, void* p) static { ar << *static_cast<T*>(p); }) \
+        .Serialize([](::se::Archive_v1& ar, void* p) static { ar << *static_cast<T*>(p); }) \
         .EnumEntries([](const ::se::EnumEntry_v1*& out_data, usize& out_count) static \
         { \
             constexpr auto& entries = ::se::detail::EnumReflector_v1<T>::Entries; \

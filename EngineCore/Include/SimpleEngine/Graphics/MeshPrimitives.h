@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Math/MathSerialize.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MathSerialize.h"
 
 
 namespace se
@@ -17,7 +17,7 @@ struct alignas(16) StaticVertex
     Vector2f tex_coord;
     Vector4f tangent;
 
-    friend void Serialize(Archive& ar, StaticVertex& v)
+    friend void Serialize(Archive_v1& ar, StaticVertex& v)
     {
         ar("position") << v.position;
         ar("normal") << v.normal;
@@ -34,7 +34,7 @@ struct SkinVertex
     FixedArray<u32, 4> bone_indices; // 최대 4개의 뼈가 영향
     FixedArray<f32, 4> bone_weights;  // 각 뼈의 가중치 (총합 1.0)
 
-    friend void Serialize(Archive& ar, SkinVertex& v)
+    friend void Serialize(Archive_v1& ar, SkinVertex& v)
     {
         ar("bone_indices") << v.bone_indices;
         ar("bone_weights") << v.bone_weights;
@@ -70,7 +70,7 @@ struct MeshSection
     /** 이 Section의 바운딩 박스 */
     AABBf bounds;
 
-    friend void Serialize(Archive& ar, MeshSection& s)
+    friend void Serialize(Archive_v1& ar, MeshSection& s)
     {
         ar("index_offset") << s.index_offset;
         ar("index_count") << s.index_count;
@@ -89,7 +89,7 @@ struct MeshLOD
     f32 screen_size = 1.0f;    // 이 LOD가 활성화될 화면 차지 비율 (1.0 = 최대 크기)
     Array<MeshSection> sections; // 이 LOD에 속한 서브메시 섹션들
 
-    friend void Serialize(Archive& ar, MeshLOD& l)
+    friend void Serialize(Archive_v1& ar, MeshLOD& l)
     {
         ar("screen_size") << l.screen_size;
         ar("sections") << l.sections;

@@ -8,7 +8,7 @@ namespace se::detail
 {
 // Array-like 컨테이너 직렬화
 template <traits::ArrayLike Container>
-void SerializeArrayContainer(Archive& ar, Container& container)
+void SerializeArrayContainer(Archive_v1& ar, Container& container)
 {
     using ElementType = traits::InnerOf<Container>;
 
@@ -41,7 +41,7 @@ void SerializeArrayContainer(Archive& ar, Container& container)
         {
             if (ar.IsBinary() && count > 0)
             {
-                ar << BinaryBlob::FromItems(container.Data(), count);
+                ar << BinaryBlob_v1::FromItems(container.Data(), count);
                 return;
             }
         }
@@ -58,7 +58,7 @@ void SerializeArrayContainer(Archive& ar, Container& container)
 
 // Set-like 컨테이너 직렬화 (HashSet, Set, FlatSet)
 template <traits::SetLike Container>
-void SerializeSetContainer(Archive& ar, Container& container)
+void SerializeSetContainer(Archive_v1& ar, Container& container)
 {
     using ElementType = traits::InnerOf<Container>;
 
@@ -93,7 +93,7 @@ void SerializeSetContainer(Archive& ar, Container& container)
 
 // Map-like 컨테이너 직렬화 (HashMap, Map, FlatMap)
 template <traits::MapLike Container>
-void SerializeMapContainer(Archive& ar, Container& container)
+void SerializeMapContainer(Archive_v1& ar, Container& container)
 {
     using KeyType = traits::KeyOf<Container>;
     using ValueType = traits::ValueOf<Container>;
@@ -143,7 +143,7 @@ void SerializeMapContainer(Archive& ar, Container& container)
 
 /** Optional-like 컨테이너 직렬화 */
 template <traits::OptionalLike Container>
-void SerializeOptional(Archive& ar, Container& container)
+void SerializeOptional(Archive_v1& ar, Container& container)
 {
     using InnerType = traits::InnerOf<Container>;
 

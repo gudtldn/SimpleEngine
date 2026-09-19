@@ -11,7 +11,7 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -102,7 +102,7 @@ Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     }
 
     Array<u8> payload;
-    MemoryWriter writer(payload);
+    MemoryWriter_v1 writer(payload);
     info_opt->serialize(writer, const_cast<void*>(static_cast<const void*>(&asset)));
     return payload;
 }
@@ -122,7 +122,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, A
         return {};
     }
 
-    MemoryReader reader{ payload_view };
+    MemoryReader_v1 reader{ payload_view };
     info_opt->serialize(reader, raw);
 
     return {

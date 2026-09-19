@@ -3,7 +3,7 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/MemoryArchive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -40,7 +40,7 @@ struct DDC_CacheEntryInternal
         u32 cache_version = 0;
         ContentHash source_hash;
 
-        friend void Serialize(Archive& ar, Header& ar_header)
+        friend void Serialize(Archive_v1& ar, Header& ar_header)
         {
             ar("magic") << ar_header.magic;
             ar("format_version") << ar_header.format_version;
@@ -51,7 +51,7 @@ struct DDC_CacheEntryInternal
 
     Array<u8> payload;
 
-    friend void Serialize(Archive& ar, DDC_CacheEntryInternal& entry)
+    friend void Serialize(Archive_v1& ar, DDC_CacheEntryInternal& entry)
     {
         ar("header") << entry.header;
         ar("payload") << entry.payload;
@@ -78,7 +78,7 @@ bool ReadHeader(
             return false;
         }
 
-        MemoryReader reader{ *file_result };
+        MemoryReader_v1 reader{ *file_result };
         reader << header;
 
         deserialize_success = !reader.HasError();
@@ -121,7 +121,7 @@ DerivedDataCache::DerivedDataCache(Path in_root_path)
 
 Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(ArrayView<const u8> buffer_view)
 {
-    MemoryReader reader{ buffer_view };
+    MemoryReader_v1 reader{ buffer_view };
     DDC_CacheEntryInternal cache_internal;
 
     // Header 역직렬화
@@ -177,9 +177,9 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
         }
     }
 
-    // MemoryWriter로 캐시 데이터 직렬화
+    // MemoryWriter_v1로 캐시 데이터 직렬화
     Array<u8> buffer;
-    MemoryWriter writer(buffer);
+    MemoryWriter_v1 writer(buffer);
 
     DDC_CacheEntryInternal cache_internal;
     cache_internal.header = {

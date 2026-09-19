@@ -1,6 +1,6 @@
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
 
-#include "SimpleEngine/Core/Math/MathSerialize.h"
+#include "SimpleEngine/Core/Serialization/Legacy/MathSerialize.h"
 #include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/ECS/ECSReflectionHook.h"
 

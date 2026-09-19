@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Serialization/Archive.h"
+#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
@@ -32,7 +32,7 @@ public:
     [[nodiscard]] auto operator<=>(const AssetPath&) const = default;
 
 private:
-    friend void Serialize(Archive& ar, AssetPath& path)
+    friend void Serialize(Archive_v1& ar, AssetPath& path)
     {
         String file_str;
         if (ar.IsSaving())

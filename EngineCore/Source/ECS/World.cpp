@@ -90,7 +90,7 @@ IComponentStorage* World::GetOrCreateRawStorage(const TypeId_v1& type_id)
     return nullptr;
 }
 
-void Serialize(Archive& ar, World& world)
+void Serialize(Archive_v1& ar, World& world)
 {
     // --- Header ---
     u32 magic = World::FILE_MAGIC;
