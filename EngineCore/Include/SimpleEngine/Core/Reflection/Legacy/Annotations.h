@@ -1,8 +1,8 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Traits.h"
-#include "SimpleEngine/Core/Reflection/TagTraits.h"
+#include "SimpleEngine/Core/Reflection/Legacy/Traits.h"
+#include "SimpleEngine/Core/Reflection/Legacy/TagTraits.h"
 #include "SimpleEngine/Core/Container/FixedString.h"
 
 /** C++26으로 마이그레이션 시 CustomAnnotation을 바로 적용할 수 있도록 도와주는 헬퍼 매크로입니다. */
@@ -158,30 +158,30 @@ SE_HOOK_REQUIRED(se::meta::tags::Component);
 SE_HOOK_REQUIRED(se::meta::tags::Resource);
 
 // --- TypeFlagTrait (Type 레벨 태그) ---
-SE_TYPE_FLAG(se::meta::tags::Reflect,   ETypeFlags::None);
-SE_TYPE_FLAG(se::meta::tags::Component, ETypeFlags::None);
-SE_TYPE_FLAG(se::meta::tags::Resource,  ETypeFlags::None);
-SE_TYPE_FLAG(se::meta::tags::Hidden,    ETypeFlags::Hidden);
-SE_TYPE_FLAG(se::meta::tags::Transient, ETypeFlags::Transient);
-SE_TYPE_FLAG(se::meta::tags::Abstract,  ETypeFlags::IsAbstract);
+SE_TYPE_FLAG(se::meta::tags::Reflect,   ETypeFlags_v1::None);
+SE_TYPE_FLAG(se::meta::tags::Component, ETypeFlags_v1::None);
+SE_TYPE_FLAG(se::meta::tags::Resource,  ETypeFlags_v1::None);
+SE_TYPE_FLAG(se::meta::tags::Hidden,    ETypeFlags_v1::Hidden);
+SE_TYPE_FLAG(se::meta::tags::Transient, ETypeFlags_v1::Transient);
+SE_TYPE_FLAG(se::meta::tags::Abstract,  ETypeFlags_v1::IsAbstract);
 
 // --- PropertyMetadataTrait (Field 레벨 태그) ---
 // Reflect는 flags에 기여하는 값이 없는 유일한 마커라 매크로 대신 직접 작성(no-op)
-template <> struct PropertyMetadataTrait<se::meta::tags::Reflect>
+template <> struct PropertyMetadataTrait_v1<se::meta::tags::Reflect>
 {
-    static constexpr void Apply(PropertyMetadata&, const se::meta::tags::Reflect&) {}
+    static constexpr void Apply(PropertyMetadata_v1&, const se::meta::tags::Reflect&) {}
 };
-SE_PROPERTY_FLAG(se::meta::tags::ReadOnly,  EPropertyFlags::ReadOnly);
-SE_PROPERTY_FLAG(se::meta::tags::Advanced,  EPropertyFlags::Advanced);
-SE_PROPERTY_FLAG(se::meta::tags::Hidden,    EPropertyFlags::Hidden);
-SE_PROPERTY_FLAG(se::meta::tags::Transient, EPropertyFlags::Transient);
+SE_PROPERTY_FLAG(se::meta::tags::ReadOnly,  EPropertyFlags_v1::ReadOnly);
+SE_PROPERTY_FLAG(se::meta::tags::Advanced,  EPropertyFlags_v1::Advanced);
+SE_PROPERTY_FLAG(se::meta::tags::Hidden,    EPropertyFlags_v1::Hidden);
+SE_PROPERTY_FLAG(se::meta::tags::Transient, EPropertyFlags_v1::Transient);
 
 // Payload 태그 계열은 본문 로직이 태그마다 달라 매크로화하지 않고, 파생 관계로 묶어서 처리
 template <typename Tag>
     requires std::derived_from<Tag, se::meta::tags::DisplayNameBase>
-struct PropertyMetadataTrait<Tag>
+struct PropertyMetadataTrait_v1<Tag>
 {
-    static constexpr void Apply(PropertyMetadata& meta, const Tag&)
+    static constexpr void Apply(PropertyMetadata_v1& meta, const Tag&)
     {
         meta.display_name = Tag::VALUE;
     }
@@ -189,9 +189,9 @@ struct PropertyMetadataTrait<Tag>
 
 template <typename Tag>
     requires std::derived_from<Tag, se::meta::tags::CategoryBase>
-struct PropertyMetadataTrait<Tag>
+struct PropertyMetadataTrait_v1<Tag>
 {
-    static constexpr void Apply(PropertyMetadata& meta, const Tag&)
+    static constexpr void Apply(PropertyMetadata_v1& meta, const Tag&)
     {
         meta.category = Tag::VALUE;
     }
@@ -199,9 +199,9 @@ struct PropertyMetadataTrait<Tag>
 
 template <typename Tag>
     requires std::derived_from<Tag, se::meta::tags::TooltipBase>
-struct PropertyMetadataTrait<Tag>
+struct PropertyMetadataTrait_v1<Tag>
 {
-    static constexpr void Apply(PropertyMetadata& meta, const Tag&)
+    static constexpr void Apply(PropertyMetadata_v1& meta, const Tag&)
     {
         meta.tooltip = Tag::VALUE;
     }
@@ -209,11 +209,11 @@ struct PropertyMetadataTrait<Tag>
 
 template <typename Tag>
     requires std::derived_from<Tag, se::meta::tags::RangeBase>
-struct PropertyMetadataTrait<Tag>
+struct PropertyMetadataTrait_v1<Tag>
 {
-    static constexpr void Apply(PropertyMetadata& meta, const Tag& tag)
+    static constexpr void Apply(PropertyMetadata_v1& meta, const Tag& tag)
     {
-        meta.flags |= EPropertyFlags::HasRange;
+        meta.flags |= EPropertyFlags_v1::HasRange;
         meta.range_min = static_cast<f32>(tag.min);
         meta.range_max = static_cast<f32>(tag.max);
     }

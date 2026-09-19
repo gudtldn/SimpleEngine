@@ -1,0 +1,90 @@
+#pragma once
+
+#include "TypeSignature.h"
+#include "SimpleEngine/Utility/HashUtils.h"
+
+
+namespace se
+{
+// forward declaration
+class StringName;
+
+/**
+ * 타입 이름과 해시를 제공하는 컴파일타임 타입 식별자입니다.
+ */
+class SE_CORE_API TypeId_v1
+{
+public:
+    constexpr TypeId_v1() = default;
+
+    /** 템플릿 타입 T의 TypeId를 반환합니다. */
+    template <typename T>
+    [[nodiscard]] constexpr static TypeId_v1 Of()
+    {
+        if constexpr (traits::FunctionType<T>)
+        {
+            return TypeId_v1{ GetRawTypeName<T>() };
+        }
+        else
+        {
+            using CleanType = std::remove_cvref_t<T>;
+            return TypeId_v1{ GetRawTypeName<CleanType>() };
+        }
+    }
+
+    /**
+     * 해시를 이용해 TypeId를 생성합니다.
+     * 만약 TypeRegistry에 없는 Hash면 빈 TypeId를 반환합니다.
+     * @todo 다시 생각해 보니까 이런 함수는 Registry나 다른 곳에 있어야 할 듯.
+     */
+    [[nodiscard]] static TypeId_v1 FromHash(u64 in_hash);
+
+    /**
+     * 타입 이름을 이용해 TypeId를 생성합니다.
+     * 만약 TypeRegistry에 없는 이름이면 빈 TypeId를 반환합니다.
+     * @note 이름은 namespace 포함 타입 이름입니다. (예: se::Texture2D)
+     * @todo 다시 생각해 보니까 이런 함수는 Registry나 다른 곳에 있어야 할 듯.
+     */
+    [[nodiscard]] static TypeId_v1 FromName(const StringName& in_type_name);
+
+public:
+    /**
+     * 타입 이름을 반환합니다.
+     * @todo 다시 생각해 보니까 이런 함수는 Registry나 다른 곳에 있어야 할 듯.
+     */
+    [[nodiscard]] StringView GetName() const;
+
+    /** 타입 해시를 반환합니다. */
+    [[nodiscard]] constexpr u64 GetHash() const { return type_hash; }
+
+    /** TypeId가 올바른지 확인합니다. */
+    [[nodiscard]] constexpr bool IsValid() const { return type_hash != 0; }
+
+public:
+    [[nodiscard]] constexpr bool operator==(const TypeId_v1& other) const { return type_hash == other.type_hash; }
+    [[nodiscard]] constexpr auto operator<=>(const TypeId_v1& other) const { return type_hash <=> other.type_hash; }
+    [[nodiscard]] explicit constexpr operator bool() const { return IsValid(); }
+
+private:
+    explicit constexpr TypeId_v1(StringView in_type_hash)
+        : type_hash(HashUtils::FNV(in_type_hash))
+    {
+    }
+
+    explicit constexpr TypeId_v1(u64 in_hash)
+        : type_hash(in_hash)
+    {
+    }
+
+    u64 type_hash = 0;
+};
+} // namespace se
+
+template <>
+struct std::hash<se::TypeId_v1>
+{
+    constexpr usize operator()(const se::TypeId_v1& id) const noexcept
+    {
+        return static_cast<usize>(id.GetHash());
+    }
+};

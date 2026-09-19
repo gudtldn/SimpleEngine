@@ -5,8 +5,8 @@
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Functional/Function.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Core/Reflection/Legacy/Annotations.h"
+#include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
@@ -27,7 +27,7 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetRecord
     AssetId id;
 
     SE_ANNOTATION(=meta::Reflect)
-    TypeId type;
+    TypeId_v1 type;
 
     SE_ANNOTATION(=meta::Reflect)
     AssetPath logical_path;
@@ -59,7 +59,7 @@ public:
      * @param meta 등록할 Asset의 Metadata
      */
     void RegisterAsset(
-        const AssetId& asset_id, const TypeId& asset_type,
+        const AssetId& asset_id, const TypeId_v1& asset_type,
         AssetPath asset_path, AssetMetadata meta
     );
 
@@ -87,10 +87,10 @@ public:
     [[nodiscard]] Optional<AssetId> GetAssetId(const AssetPath& asset_path) const;
 
     /** AssetId에 해당하는 TypeId를 반환합니다. */
-    [[nodiscard]] Optional<TypeId> GetAssetType(const AssetId& asset_id) const;
+    [[nodiscard]] Optional<TypeId_v1> GetAssetType(const AssetId& asset_id) const;
 
     /** 파일 내에서 특정 타입의 첫 번째 Asset ID를 찾습니다. */
-    [[nodiscard]] Optional<AssetId> FindFirstOfType(const VPath& file_path, const TypeId& type) const;
+    [[nodiscard]] Optional<AssetId> FindFirstOfType(const VPath& file_path, const TypeId_v1& type) const;
 
     /** 파일에 등록된 모든 sub-asset의 AssetId 목록을 반환합니다. */
     [[nodiscard]] Array<AssetId> GetAssetsInFile(const VPath& file_path) const;
@@ -155,4 +155,4 @@ bool AssetRegistry::ReadRecord(const AssetId& asset_id, Fn&& callback) const
 }
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::AssetRecord)
+SE_DECLARE_REFLECTION_V1(se::AssetRecord)

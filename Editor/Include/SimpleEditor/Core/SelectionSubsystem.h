@@ -24,7 +24,7 @@ class PickSubsystem;
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) SelectionSubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS(SelectionSubsystem, SubsystemBase)
+    SE_CLASS_V1(SelectionSubsystem, SubsystemBase)
 
 public:
     //~ Begin SubsystemBase

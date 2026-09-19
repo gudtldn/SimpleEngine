@@ -19,7 +19,7 @@ class GizmoDrawList;
  */
 class SE_EDITOR_API GizmoPickPass : public se::RenderPassBase
 {
-    SE_CLASS(GizmoPickPass, se::RenderPassBase)
+    SE_CLASS_V1(GizmoPickPass, se::RenderPassBase)
 
 public:
     /**

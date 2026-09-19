@@ -45,7 +45,7 @@ public:
     [[nodiscard]] Optional<HandleData> Find(const AssetId& id) const;
 
     /** AssetId로 HandleData를 조회하거나 없으면 새로 생성합니다. (Thread-Safe) */
-    [[nodiscard]] HandleData FindOrCreate(const AssetId& id, const TypeId& type_id, const AssetPath& asset_path);
+    [[nodiscard]] HandleData FindOrCreate(const AssetId& id, const TypeId_v1& type_id, const AssetPath& asset_path);
 
     /**
      * 특정 슬롯을 캐시에서 강제로 제거합니다. (Unload)

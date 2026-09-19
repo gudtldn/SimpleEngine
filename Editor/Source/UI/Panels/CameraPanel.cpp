@@ -43,7 +43,7 @@ void CameraPanel::DrawContent()
     {
         if (ImGui::TreeNodeEx(viewport_id.CStr(), ImGuiTreeNodeFlags_DefaultOpen))
         {
-            const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<decltype(camera)>());
+            const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<decltype(camera)>());
             DrawerRegistry::Get().DrawProperties(info, &camera);
             ImGui::TreePop();
         }

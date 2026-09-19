@@ -13,8 +13,8 @@ namespace se
 SE_REGISTER_SUBSYSTEM(DebugDrawSubsystem)
     .DependsOn<RenderSubsystem>();
 
-SE_BEGIN_REFLECT(DebugDrawSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(DebugDrawSubsystem)
+SE_BEGIN_REFLECT_V1(DebugDrawSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(DebugDrawSubsystem)
 
 bool DebugDrawSubsystem::Initialize()
 {

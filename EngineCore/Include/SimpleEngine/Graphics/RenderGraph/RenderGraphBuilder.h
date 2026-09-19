@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Reflection/TypeSignature.h"
+#include "../../Core/Reflection/Legacy/TypeSignature.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGNodeTypes.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"

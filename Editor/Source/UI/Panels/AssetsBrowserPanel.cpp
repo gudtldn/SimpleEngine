@@ -14,7 +14,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
@@ -433,7 +433,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
     Array<AssetId> mesh_ids;
     for (const AssetId& id : all_ids)
     {
-        if (registry.GetAssetType(id) == TypeId::Of<StaticMesh>())
+        if (registry.GetAssetType(id) == TypeId_v1::Of<StaticMesh>())
         {
             mesh_ids.Push(id);
         }
@@ -593,7 +593,7 @@ bool AssetsBrowserPanel::DrawImportSettings()
         return false;
     }
 
-    const TypeRegistry& registry = TypeRegistry::Get();
+    const TypeRegistry_v1& registry = TypeRegistry_v1::Get();
     DrawerRegistry& drawer = DrawerRegistry::Get();
 
     for (const auto& [type_id, settings_ptr] : settings_map)
@@ -637,7 +637,7 @@ bool AssetsBrowserPanel::DrawProcessorStack()
         return false;
     }
 
-    const TypeRegistry& registry = TypeRegistry::Get();
+    const TypeRegistry_v1& registry = TypeRegistry_v1::Get();
 
     for (const auto [n, entry] : entries | std::views::enumerate)
     {

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/FrameResourcePool.h"
 
 #include "SDL3/SDL_gpu.h"
@@ -10,9 +11,11 @@ namespace se
 {
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGResourceBase
 {
-    SE_CLASS(RGResourceBase)
+    SE_CLASS_V1(RGResourceBase)
 
 public:
+    SE_RTTI_ROOT()
+
     virtual ~RGResourceBase() = default;
 
     virtual void Realize(FrameResourcePool& pool) = 0;
@@ -21,7 +24,7 @@ public:
 
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTextureBase : public RGResourceBase
 {
-    SE_CLASS(RGTextureBase, RGResourceBase)
+    SE_CLASS_V1(RGTextureBase, RGResourceBase)
 
 public:
     virtual ~RGTextureBase() override = default;
@@ -34,7 +37,7 @@ protected:
 
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGBufferBase : public RGResourceBase
 {
-    SE_CLASS(RGBufferBase, RGResourceBase)
+    SE_CLASS_V1(RGBufferBase, RGResourceBase)
 
 public:
     virtual ~RGBufferBase() override = default;
@@ -50,9 +53,11 @@ protected:
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTransientTexture : public RGTextureBase
 {
-    SE_CLASS(RGTransientTexture, RGTextureBase)
+    SE_CLASS_V1(RGTransientTexture, RGTextureBase)
 
 public:
+    SE_RTTI(RGTransientTexture)
+
     virtual void Realize(FrameResourcePool& pool) override
     {
         if (!actual_texture)
@@ -79,9 +84,11 @@ public:
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGExternalTexture : public RGTextureBase
 {
-    SE_CLASS(RGExternalTexture, RGTextureBase)
+    SE_CLASS_V1(RGExternalTexture, RGTextureBase)
 
 public:
+    SE_RTTI(RGExternalTexture)
+
     explicit RGExternalTexture(SDL_GPUTexture* texture)
     {
         actual_texture = texture;
@@ -96,9 +103,11 @@ public:
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTransientBuffer : public RGBufferBase
 {
-    SE_CLASS(RGTransientBuffer, RGBufferBase)
+    SE_CLASS_V1(RGTransientBuffer, RGBufferBase)
 
 public:
+    SE_RTTI(RGTransientBuffer)
+
     virtual void Realize(FrameResourcePool& pool) override
     {
         if (!actual_buffer)
@@ -125,9 +134,11 @@ public:
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGExternalBuffer : public RGBufferBase
 {
-    SE_CLASS(RGExternalBuffer, RGBufferBase)
+    SE_CLASS_V1(RGExternalBuffer, RGBufferBase)
 
 public:
+    SE_RTTI(RGExternalBuffer)
+
     explicit RGExternalBuffer(SDL_GPUBuffer* buffer)
     {
         actual_buffer = buffer;
@@ -137,3 +148,11 @@ public:
     virtual void Unrealize([[maybe_unused]] FrameResourcePool& pool) override {}
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RGResourceBase)
+SE_DECLARE_REFLECTION(se::RGTextureBase)
+SE_DECLARE_REFLECTION(se::RGBufferBase)
+SE_DECLARE_REFLECTION(se::RGTransientTexture)
+SE_DECLARE_REFLECTION(se::RGExternalTexture)
+SE_DECLARE_REFLECTION(se::RGTransientBuffer)
+SE_DECLARE_REFLECTION(se::RGExternalBuffer)

@@ -21,9 +21,9 @@ tags:
 
 **코드 진입점:**
 
-- `EngineCore/Include/SimpleEngine/Core/Reflection/TagTraits.h` - 4개 트레이트 + 3개 헬퍼 매크로
-- `EngineCore/Include/SimpleEngine/Core/Reflection/Annotations.h` - 태그 정의 + 트레이트 특수화 (파일 끝 `namespace se::detail` 블록)
-- `EngineCore/Include/SimpleEngine/Core/Reflection/Reflect.h` - `MakeTypeFlags`/`MakePropertyMetadata`/`DispatchRegistrationHooks`
+- `../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TagTraits.h` - 4개 트레이트 + 3개 헬퍼 매크로
+- `../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Annotations.h` - 태그 정의 + 트레이트 특수화 (파일 끝 `namespace se::detail` 블록)
+- `../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h` - `MakeTypeFlags`/`MakePropertyMetadata`/`DispatchRegistrationHooks`
 - `EngineCore/Include/SimpleEngine/ECS/ECSReflectionHook.h` - ECS 모듈의 `RegistrationTrait` 특수화
 
 ---

@@ -2,8 +2,8 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../Core/Reflection/Legacy/Annotations.h"
+#include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 
@@ -61,7 +61,7 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) SubAssetMeta
 
     /** Sub-Asset의 타입 식별자 */
     SE_ANNOTATION(=meta::Reflect)
-    TypeId type;
+    TypeId_v1 type;
 
     /** 이 Sub-Asset이 의존하는 다른 에셋 목록 */
     SE_ANNOTATION(=meta::Reflect)
@@ -110,6 +110,6 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetMetadata
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::AssetDependencyEntry)
-SE_DECLARE_REFLECTION(se::SubAssetMeta)
-SE_DECLARE_REFLECTION(se::AssetMetadata)
+SE_DECLARE_REFLECTION_V1(se::AssetDependencyEntry)
+SE_DECLARE_REFLECTION_V1(se::SubAssetMeta)
+SE_DECLARE_REFLECTION_V1(se::AssetMetadata)

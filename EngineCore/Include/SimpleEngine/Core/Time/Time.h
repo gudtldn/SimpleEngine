@@ -1,8 +1,8 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/Core/Reflection/Traits.h"
+#include "../Reflection/Legacy/Annotations.h"
+#include "../Reflection/Legacy/Traits.h"
 
 
 namespace se
@@ -135,6 +135,6 @@ private:
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::RealTime)
-SE_DECLARE_REFLECTION(se::GameTime)
-SE_DECLARE_REFLECTION(se::FixedTime)
+SE_DECLARE_REFLECTION_V1(se::RealTime)
+SE_DECLARE_REFLECTION_V1(se::GameTime)
+SE_DECLARE_REFLECTION_V1(se::FixedTime)

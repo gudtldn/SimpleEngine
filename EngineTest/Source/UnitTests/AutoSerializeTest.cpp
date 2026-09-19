@@ -5,8 +5,8 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Math/MathSerialize.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/AutoSerialize.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
@@ -43,7 +43,7 @@ T RoundTrip(const T& original)
 template <typename T>
 T RoundTripViaTypeInfo(const T& original)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<T>());
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<T>());
     EXPECT_NE(info.serialize, nullptr);
 
     Array<u8> buffer;
@@ -154,42 +154,42 @@ enum class ETestColor : u8
 // ============================================================================
 using namespace autoserialize_test;
 
-SE_DECLARE_REFLECTION(SimpleData)
-SE_BEGIN_REFLECT(SimpleData, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(x, meta::Reflect)
-    SE_REFLECT_PROPERTY(y, meta::Reflect)
-    SE_REFLECT_PROPERTY(name, meta::Reflect)
-SE_END_REFLECT(SimpleData)
+SE_DECLARE_REFLECTION_V1(SimpleData)
+SE_BEGIN_REFLECT_V1(SimpleData, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(x, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(y, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(name, meta::Reflect)
+SE_END_REFLECT_V1(SimpleData)
 
-SE_DECLARE_REFLECTION(BaseData)
-SE_BEGIN_REFLECT(BaseData, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(base_val, meta::Reflect)
-    SE_REFLECT_PROPERTY(base_name, meta::Reflect)
-SE_END_REFLECT(BaseData)
+SE_DECLARE_REFLECTION_V1(BaseData)
+SE_BEGIN_REFLECT_V1(BaseData, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(base_val, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(base_name, meta::Reflect)
+SE_END_REFLECT_V1(BaseData)
 
-SE_DECLARE_REFLECTION(DerivedData)
-SE_BEGIN_REFLECT(DerivedData, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(derived_val, meta::Reflect)
-    SE_REFLECT_PROPERTY(derived_extra, meta::Reflect)
-SE_END_REFLECT(DerivedData)
+SE_DECLARE_REFLECTION_V1(DerivedData)
+SE_BEGIN_REFLECT_V1(DerivedData, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(derived_val, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(derived_extra, meta::Reflect)
+SE_END_REFLECT_V1(DerivedData)
 
-SE_DECLARE_REFLECTION(TransientData)
-SE_BEGIN_REFLECT(TransientData, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(saved_val, meta::Reflect)
-    SE_REFLECT_PROPERTY(transient_val, meta::Transient)
-SE_END_REFLECT(TransientData)
+SE_DECLARE_REFLECTION_V1(TransientData)
+SE_BEGIN_REFLECT_V1(TransientData, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(saved_val, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(transient_val, meta::Transient)
+SE_END_REFLECT_V1(TransientData)
 
-SE_DECLARE_REFLECTION(EmptyReflected)
-SE_BEGIN_REFLECT(EmptyReflected, meta::Reflect, meta::Hidden)
-SE_END_REFLECT(EmptyReflected)
+SE_DECLARE_REFLECTION_V1(EmptyReflected)
+SE_BEGIN_REFLECT_V1(EmptyReflected, meta::Reflect, meta::Hidden)
+SE_END_REFLECT_V1(EmptyReflected)
 
-SE_DECLARE_REFLECTION(ContainerData)
-SE_BEGIN_REFLECT(ContainerData, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(numbers, meta::Reflect)
-    SE_REFLECT_PROPERTY(scores, meta::Reflect)
-SE_END_REFLECT(ContainerData)
+SE_DECLARE_REFLECTION_V1(ContainerData)
+SE_BEGIN_REFLECT_V1(ContainerData, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(numbers, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(scores, meta::Reflect)
+SE_END_REFLECT_V1(ContainerData)
 
-SE_REFLECT_ENUM(ETestColor)
+SE_REFLECT_ENUM_V1(ETestColor)
 
 // ============================================================================
 //  Test Fixture
@@ -386,8 +386,8 @@ TEST_F(AutoSerializeTest, StringName_RoundTrip)
 // --- TypeId 단독 ---
 TEST_F(AutoSerializeTest, TypeId_RoundTrip)
 {
-    TypeId original = TypeId::Of<SimpleData>();
-    TypeId loaded = RoundTrip(original);
+    TypeId_v1 original = TypeId_v1::Of<SimpleData>();
+    TypeId_v1 loaded = RoundTrip(original);
     EXPECT_EQ(loaded, original);
 }
 
@@ -428,9 +428,9 @@ TEST_F(AutoSerializeTest, SkinVertex_RoundTrip)
 // --- Enum: SE_REFLECT_ENUM으로 등록된 enum -> TypeInfo 경유 직렬화 ---
 TEST_F(AutoSerializeTest, ReflectedEnum_ViaTypeInfo)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<ETestColor>());
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<ETestColor>());
     ASSERT_NE(info.serialize, nullptr);
-    EXPECT_EQ(info.kind, ETypeKind::Enum);
+    EXPECT_EQ(info.kind, ETypeKind_v1::Enum);
 
     Array<u8> buffer;
     MemoryWriter writer(buffer);
@@ -453,7 +453,7 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
     TransientData original{ .saved_val = 42, .transient_val = 999 };
 
     // AutoSerialize로 직렬화 -> saved_val만 저장, transient_val은 건너뜀
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<TransientData>());
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<TransientData>());
 
     Array<u8> buffer;
     MemoryWriter writer(buffer);
@@ -473,7 +473,7 @@ TEST_F(AutoSerializeTest, TransientProperty_Skipped)
 // --- 빈 구조체 AutoSerialize ---
 TEST_F(AutoSerializeTest, EmptyStruct)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<EmptyReflected>());
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<EmptyReflected>());
     ASSERT_NE(info.serialize, nullptr);
 
     Array<u8> buffer;
@@ -614,7 +614,7 @@ TEST_F(AutoSerializeTest, OverwriteExistingValues)
 {
     SimpleData original{ .x = 100, .y = 99.9f, .name = "Overwrite" };
 
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<SimpleData>());
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<SimpleData>());
 
     Array<u8> buffer;
     MemoryWriter writer(buffer);
@@ -689,8 +689,8 @@ TEST_F(AutoSerializeTest, MapOfAssetIds)
 // --- 여러 AutoSerialize 호출 연속 ---
 TEST_F(AutoSerializeTest, MultipleSequentialAutoSerialize)
 {
-    const TypeInfo& simple_info = TypeRegistry::Get().FindChecked(TypeId::Of<SimpleData>());
-    const TypeInfo& container_info = TypeRegistry::Get().FindChecked(TypeId::Of<ContainerData>());
+    const TypeInfo_v1& simple_info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<SimpleData>());
+    const TypeInfo_v1& container_info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<ContainerData>());
 
     SimpleData s1{ .x = 1, .y = 1.0f, .name = "First" };
     ContainerData c1;
@@ -722,14 +722,14 @@ TEST_F(AutoSerializeTest, TypeInfo_CorrectKind)
 {
     // Struct
     {
-        const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<SimpleData>());
-        EXPECT_EQ(info.kind, ETypeKind::Struct);
+        const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<SimpleData>());
+        EXPECT_EQ(info.kind, ETypeKind_v1::Struct);
         EXPECT_NE(info.serialize, nullptr);
     }
     // Enum
     {
-        const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<ETestColor>());
-        EXPECT_EQ(info.kind, ETypeKind::Enum);
+        const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<ETestColor>());
+        EXPECT_EQ(info.kind, ETypeKind_v1::Enum);
         EXPECT_NE(info.serialize, nullptr);
     }
 }
@@ -737,9 +737,9 @@ TEST_F(AutoSerializeTest, TypeInfo_CorrectKind)
 // --- DerivedData의 bases[0].base_id가 BaseData를 가리키는지 검증 ---
 TEST_F(AutoSerializeTest, Inheritance_BaseIdSet)
 {
-    const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<DerivedData>());
+    const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<DerivedData>());
     ASSERT_FALSE(info.bases.IsEmpty());
-    EXPECT_EQ(info.bases[0].base_id, TypeId::Of<BaseData>());
+    EXPECT_EQ(info.bases[0].base_id, TypeId_v1::Of<BaseData>());
 }
 
 // --- Ray 라운드트립 ---

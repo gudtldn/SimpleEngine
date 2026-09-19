@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include "SDL3/SDL.h"
@@ -69,7 +69,7 @@ struct WindowEntry
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) WindowSubsystem : public SubsystemBase
 {
-    SE_CLASS(WindowSubsystem, SubsystemBase)
+    SE_CLASS_V1(WindowSubsystem, SubsystemBase)
 
 public:
     //~ Begin SubsystemBase

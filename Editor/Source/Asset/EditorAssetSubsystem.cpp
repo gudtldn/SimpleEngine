@@ -25,8 +25,8 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Cast.h"
-#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
@@ -80,8 +80,8 @@ JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath, std::atomic<
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::AssetSubsystem>();
 
-SE_BEGIN_REFLECT(EditorAssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(EditorAssetSubsystem)
+SE_BEGIN_REFLECT_V1(EditorAssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(EditorAssetSubsystem)
 
 
 EditorAssetSubsystem::EditorAssetSubsystem() = default;
@@ -537,7 +537,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     if (meta_content_opt.HasValue() && !meta_content_opt->processor_stack.IsEmpty())
     {
         PipelineProcessorStack stack;
-        const TypeRegistry& type_registry = TypeRegistry::Get();
+        const TypeRegistry_v1& type_registry = TypeRegistry_v1::Get();
 
         for (const ProcessorEntry& entry : meta_content_opt->processor_stack)
         {
@@ -557,7 +557,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
                 continue;
             }
 
-            if (!IsChildOf<IPipelineProcessor>(info_opt->type_id))
+            if (!IsChildOf_v1<IPipelineProcessor>(info_opt->type_id))
             {
                 ConsoleLog(
                     ELogLevel::Warning,
@@ -568,7 +568,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             }
 
             void* raw = info_opt->constructor();
-            IPipelineProcessor* processor = CastFromRaw<IPipelineProcessor>(raw, info_opt->type_id);
+            IPipelineProcessor* processor = CastFromRaw_v1<IPipelineProcessor>(raw, info_opt->type_id);
 
             stack.AddProcessor(std::unique_ptr<IPipelineProcessor>(processor));
         }
@@ -652,7 +652,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             continue;
         }
 
-        const TypeId asset_type = entry.asset->GetTypeId();
+        const TypeId_v1 asset_type = entry.asset->GetTypeId();
         AssetPath asset_path = AssetPath{ file_vpath, entry.name };
         const AssetId asset_id = entry.asset_id;
 

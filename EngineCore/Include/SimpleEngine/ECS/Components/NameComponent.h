@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se
@@ -16,4 +16,4 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) NameComponent
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::NameComponent)
+SE_DECLARE_REFLECTION_V1(se::NameComponent)

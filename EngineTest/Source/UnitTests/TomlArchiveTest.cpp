@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/StringName.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
@@ -430,7 +430,7 @@ struct GuidKeyNestedMapData
 
 struct TypeIdKeyMapData
 {
-    HashMap<TypeId, String> type_map;
+    HashMap<TypeId_v1, String> type_map;
 
     friend void Serialize(Archive& ar, TypeIdKeyMapData& data)
     {
@@ -440,7 +440,7 @@ struct TypeIdKeyMapData
 
 struct TypeIdKeyNestedMapData
 {
-    HashMap<TypeId, NestedData> type_nested_map;
+    HashMap<TypeId_v1, NestedData> type_nested_map;
 
     friend void Serialize(Archive& ar, TypeIdKeyNestedMapData& data)
     {
@@ -1409,8 +1409,8 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKey)
 {
     TypeIdKeyMapData original_data;
 
-    const TypeId transform_id = TypeId::Of<TransformComponent>();
-    const TypeId subsystem_id = TypeId::Of<SubsystemBase>();
+    const TypeId_v1 transform_id = TypeId_v1::Of<TransformComponent>();
+    const TypeId_v1 subsystem_id = TypeId_v1::Of<SubsystemBase>();
 
     original_data.type_map.Insert(transform_id, "transform_value");
     original_data.type_map.Insert(subsystem_id, "subsystem_value");
@@ -1437,8 +1437,8 @@ TEST_F(TomlArchiveTest, TypeIdAsMapKeyWithNestedValue)
 {
     TypeIdKeyNestedMapData original_data;
 
-    const TypeId transform_id = TypeId::Of<TransformComponent>();
-    const TypeId subsystem_id = TypeId::Of<SubsystemBase>();
+    const TypeId_v1 transform_id = TypeId_v1::Of<TransformComponent>();
+    const TypeId_v1 subsystem_id = TypeId_v1::Of<SubsystemBase>();
 
     original_data.type_nested_map.Insert(transform_id, NestedData{ "nested_transform", 1.5f });
     original_data.type_nested_map.Insert(subsystem_id, NestedData{ "nested_subsystem", 2.5f });

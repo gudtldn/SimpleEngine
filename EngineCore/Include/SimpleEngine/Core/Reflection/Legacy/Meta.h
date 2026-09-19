@@ -2,8 +2,8 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/StringView.h"
-#include "SimpleEngine/Core/Reflection/Enum.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "Enum.h"
+#include "TypeId.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 
 
@@ -11,10 +11,10 @@ namespace se
 {
 // forward declaration
 class Archive;
-struct OptionalOps;
+struct OptionalOps_v1;
 
 /** 타입 속성 비트 플래그 */
-enum class ETypeFlags : u32
+enum class ETypeFlags_v1 : u32
 {
     None        = 0,        // 아무 기능도 없음 (TypeFlagTrait static_assert 방지용)
 
@@ -31,10 +31,10 @@ enum class ETypeFlags : u32
     IsBitFlag   = 1U << 3U, // 비트 플래그 조합 (체크박스 UI)
     IsUnsigned  = 1U << 4U, // underlying type이 unsigned
 };
-SE_ENABLE_BITMASK_OPERATORS(ETypeFlags)
+SE_ENABLE_BITMASK_OPERATORS(ETypeFlags_v1)
 
 /** 프로퍼티 속성 비트 플래그 */
-enum class EPropertyFlags : u32
+enum class EPropertyFlags_v1 : u32
 {
     None        = 0,        // 아무 기능도 없음 (PropertyMetadataTrait static_assert 방지용)
 
@@ -55,10 +55,10 @@ enum class EPropertyFlags : u32
     Advanced    = 1U << 4U, // 별도의 상세 탭(Advanced)에 표시
     HasRange    = 1U << 5U, // range_min/max 값이 유효함 (UI Slider)
 };
-SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags)
+SE_ENABLE_BITMASK_OPERATORS(EPropertyFlags_v1)
 
 /** 리플렉션 타입 분류 */
-enum class ETypeKind : u8
+enum class ETypeKind_v1 : u8
 {
     Primitive, // 기본 자료형 (i32, f32, String 등)
     Struct,    // 구조체 및 클래스
@@ -66,7 +66,7 @@ enum class ETypeKind : u8
 };
 
 /** 컨테이너 타입 분류 */
-enum class EContainerKind : u8
+enum class EContainerKind_v1 : u8
 {
     None,  // 컨테이너가 아님
     Array, // Array, FixedArray 등 (순서 보장, 인덱스 접근)
@@ -77,28 +77,28 @@ enum class EContainerKind : u8
 /**
  * 컨테이너 프로퍼티의 타입 소거(type-erased) 연산 인터페이스
  */
-struct ContainerOps
+struct ContainerOps_v1
 {
     /** 컨테이너 종류 */
-    EContainerKind kind = EContainerKind::None;
+    EContainerKind_v1 kind = EContainerKind_v1::None;
 
     /** 요소 타입 ID (Array/Set: 요소, Map: Key) */
-    TypeId element_type_id;
+    TypeId_v1 element_type_id;
 
     /** Value 타입 ID (Map 전용, Array/Set에서는 빈 TypeId) */
-    TypeId value_type_id;
+    TypeId_v1 value_type_id;
 
     /** 요소가 컨테이너인 경우의 중첩 ContainerOps (Array<Array<T>> 등) */
-    const ContainerOps* element_container_ops = nullptr;
+    const ContainerOps_v1* element_container_ops = nullptr;
 
     /** Map의 Value가 컨테이너인 경우의 중첩 ContainerOps (Map<K, Array<V>> 등) */
-    const ContainerOps* value_container_ops = nullptr;
+    const ContainerOps_v1* value_container_ops = nullptr;
 
     /** 요소가 Optional인 경우의 OptionalOps */
-    const OptionalOps* element_optional_ops = nullptr;
+    const OptionalOps_v1* element_optional_ops = nullptr;
 
     /** Map의 Value가 Optional인 경우의 OptionalOps */
-    const OptionalOps* value_optional_ops = nullptr;
+    const OptionalOps_v1* value_optional_ops = nullptr;
 
 public:
     /** 컨테이너의 현재 요소 수를 반환합니다. */
@@ -134,16 +134,16 @@ public:
 /**
  * Optional 프로퍼티의 타입 소거(type-erased) 연산 인터페이스
  */
-struct OptionalOps
+struct OptionalOps_v1
 {
     /** 내부 값의 타입 ID */
-    TypeId inner_type_id;
+    TypeId_v1 inner_type_id;
 
     /** 내부 값이 컨테이너인 경우의 ContainerOps (없으면 nullptr) */
-    const ContainerOps* inner_container_ops = nullptr;
+    const ContainerOps_v1* inner_container_ops = nullptr;
 
     /** 내부 값이 Optional인 경우의 OptionalOps (없으면 nullptr) */
-    const OptionalOps* inner_optional_ops = nullptr;
+    const OptionalOps_v1* inner_optional_ops = nullptr;
 
 public:
     /** 값이 존재하는지 반환합니다. */
@@ -166,7 +166,7 @@ public:
  * 멤버 변수(Property)의 추가 메타데이터 정보
  * @todo C++26 Custom Annotation 이용해서 구조체 채워넣기
  */
-struct PropertyMetadata
+struct PropertyMetadata_v1
 {
     /** 에디터에 표시될 이름 */
     StringView display_name;
@@ -178,7 +178,7 @@ struct PropertyMetadata
     StringView tooltip;
 
     /** Property의 리플렉션 속성 */
-    BitFlags<EPropertyFlags> flags{ EPropertyFlags::None };
+    BitFlags<EPropertyFlags_v1> flags{ EPropertyFlags_v1::None };
 
     // se::meta::Range (UI Slider)
     f32 range_min = 0.0f;
@@ -191,7 +191,7 @@ struct PropertyMetadata
 /**
  * 멤버 변수(Property)의 접근자
  */
-struct PropertyAccessor
+struct PropertyAccessor_v1
 {
     /**
      * Property의 값을 const로 가져옵니다.
@@ -219,13 +219,13 @@ struct PropertyAccessor
 /**
  * 멤버 변수(Property)의 리플렉션 정보
  */
-struct PropertyInfo
+struct PropertyInfo_v1
 {
     using SerializeFunc = void(*)(Archive& ar, void* prop_ptr);
 
 public:
     /** Property에 대한 컴파일타임 타입 식별자 */
-    TypeId type_id;
+    TypeId_v1 type_id;
 
     /** Property의 이름 */
     StringView name;
@@ -238,32 +238,32 @@ public:
 
 public:
     /** Property에 부여된 부가적인 메타 정보 (예: 에디터 노출 여부, 범위 제한 등) */
-    PropertyMetadata metadata;
+    PropertyMetadata_v1 metadata;
 
     /** Property의 값을 읽거나 쓰기 위한 함수형 접근자 (Getter/Setter 인터페이스) */
-    PropertyAccessor accessor;
+    PropertyAccessor_v1 accessor;
 
     /** Property 단위 직렬화 콜백 (Archive::operator<< 디스패치를 통해 자동 생성됨) */
     SerializeFunc serialize = nullptr;
 
     /** 컨테이너 프로퍼티의 타입 소거 연산 (Array/Set/Map) */
-    const ContainerOps* container_ops = nullptr;
+    const ContainerOps_v1* container_ops = nullptr;
 
     /** Optional 프로퍼티의 타입 소거 연산 */
-    const OptionalOps* optional_ops = nullptr;
+    const OptionalOps_v1* optional_ops = nullptr;
 
 public:
     template <typename T>
-    [[nodiscard]] bool Is() const { return type_id == TypeId::Of<T>(); }
+    [[nodiscard]] bool Is() const { return type_id == TypeId_v1::Of<T>(); }
 };
 
 /**
  * 클래스/구조체의 부모 정보
  */
-struct BaseInfo
+struct BaseInfo_v1
 {
     /** 부모의 컴파일타임 타입 식별자 */
-    TypeId base_id;
+    TypeId_v1 base_id;
 
     /**
      * 객체 포인터를 해당 부모의 주소로 변환합니다. (Offset 조정)
@@ -276,19 +276,19 @@ struct BaseInfo
 /**
  * 리플렉션 런타임 타입 정보(RTTI) 구조체
  */
-struct TypeInfo
+struct TypeInfo_v1
 {
     using ConstructorFunc = void*(*)();
     using DestructorFunc  = void(*)(void*);
     using SerializeFunc   = void(*)(Archive& ar, void* instance);
-    using EnumEntriesFunc = void(*)(const EnumEntry*& out_data, usize& out_count);
+    using EnumEntriesFunc = void(*)(const EnumEntry_v1*& out_data, usize& out_count);
 
 public:
     /** Type의 컴파일타임 타입 식별자 */
-    TypeId type_id;
+    TypeId_v1 type_id;
 
     /** 다중 상속을 지원하는 부모 클래스 정보 배열 */
-    Array<BaseInfo> bases;
+    Array<BaseInfo_v1> bases;
 
     /**
      * 문맥에 따라 다른 역할의 타입 식별자
@@ -296,13 +296,13 @@ public:
      * - Map: Key의 TypeId
      * - Enum: Underlying Type의 TypeId
      */
-    TypeId inner_type_id;
+    TypeId_v1 inner_type_id;
 
     /**
      * Map 전용: Value 타입의 TypeId
      * Map이 아닌 경우에는 사용되지 않습니다 (기본값: 빈 TypeId).
      */
-    TypeId secondary_type_id;
+    TypeId_v1 secondary_type_id;
 
     /** Type의 이름 */
     StringView name;
@@ -314,13 +314,13 @@ public:
     usize alignment;
 
     /** 타입의 종류 (Primitive, Struct, Enum, Container등) */
-    ETypeKind kind;
+    ETypeKind_v1 kind;
 
     /** 타입의 특성 Flag */
-    BitFlags<ETypeFlags> flags;
+    BitFlags<ETypeFlags_v1> flags;
 
     /** 해당 타입이 포함하는 멤버 변수(Property)들의 목록 */
-    Array<PropertyInfo> properties;
+    Array<PropertyInfo_v1> properties;
 
 public:
     /** Instance를 생성하는 함수 (new T()) */

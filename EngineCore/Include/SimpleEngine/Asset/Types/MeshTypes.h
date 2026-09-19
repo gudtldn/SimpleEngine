@@ -3,7 +3,7 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 
@@ -14,7 +14,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect) StaticMesh : public AssetBase
 {
-    SE_CLASS(StaticMesh, AssetBase)
+    SE_CLASS_V1(StaticMesh, AssetBase)
 
 public:
     // 추후 Depth Prepass를 위한 Position정보와 나머지 Vertex정보를 분리해서
@@ -57,7 +57,7 @@ public:
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public AssetBase
 {
-    SE_CLASS(SkeletalMesh, AssetBase)
+    SE_CLASS_V1(SkeletalMesh, AssetBase)
 
 public:
     SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)

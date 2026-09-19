@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Asset/AssetId.h"
-#include "SimpleEngine/Core/Reflection/Annotations.h"
+#include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/Material/SamplerType.h"
 
@@ -31,4 +31,4 @@ struct SE_ANNOTATION(=meta::Reflect) MaterialTextureSlot
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION(se::MaterialTextureSlot)
+SE_DECLARE_REFLECTION_V1(se::MaterialTextureSlot)

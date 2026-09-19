@@ -20,16 +20,16 @@ using namespace se::editor;
 // 테스트용 Import Settings
 struct SE_ANNOTATION(=meta::Reflect) MockImportSettings : public ImportSettingsBase
 {
-    SE_CLASS(MockImportSettings, ImportSettingsBase)
+    SE_CLASS_V1(MockImportSettings, ImportSettingsBase)
 
 public:
     SE_ANNOTATION(=meta::Reflect)
     bool combine_meshes = true;
 };
 
-SE_BEGIN_REFLECT(MockImportSettings, meta::Reflect)
-    SE_REFLECT_PROPERTY(combine_meshes, meta::Reflect)
-SE_END_REFLECT(MockImportSettings)
+SE_BEGIN_REFLECT_V1(MockImportSettings, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(combine_meshes, meta::Reflect)
+SE_END_REFLECT_V1(MockImportSettings)
 
 /**
  * 테스트용 Translator
@@ -123,7 +123,7 @@ public:
         for (const auto& node_ptr : in_out_container.GetAllNodes() | std::views::values)
         {
             // StaticMeshPipelineNode인지 확인
-            if (node_ptr->GetTypeId() == TypeId::Of<StaticMeshPipelineNode>())
+            if (node_ptr->GetTypeId() == TypeId_v1::Of<StaticMeshPipelineNode>())
             {
                 // 다운캐스팅
                 auto* mesh_node = static_cast<StaticMeshPipelineNode*>(node_ptr.get());
@@ -153,7 +153,7 @@ public:
     {
         for (const auto& node_ptr : in_out_container.GetAllNodes() | std::views::values)
         {
-            if (node_ptr->GetTypeId() == TypeId::Of<StaticMeshPipelineNode>())
+            if (node_ptr->GetTypeId() == TypeId_v1::Of<StaticMeshPipelineNode>())
             {
                 auto* mesh_node = static_cast<StaticMeshPipelineNode*>(node_ptr.get());
                 for (auto& vertex : mesh_node->vertices)

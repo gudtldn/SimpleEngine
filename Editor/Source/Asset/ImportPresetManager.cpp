@@ -3,12 +3,12 @@
 
 namespace se::editor
 {
-void ImportPresetManager::RegisterPreset(const TypeId& translator_type, Function<void(ImportProfile&)> initializer)
+void ImportPresetManager::RegisterPreset(const TypeId_v1& translator_type, Function<void(ImportProfile&)> initializer)
 {
     preset_map.Insert(translator_type, std::move(initializer));
 }
 
-ImportProfile ImportPresetManager::GetDefaultProfile(const TypeId& translator_type) const
+ImportProfile ImportPresetManager::GetDefaultProfile(const TypeId_v1& translator_type) const
 {
     ImportProfile profile;
     if (const auto init_fn = preset_map.Find(translator_type))
@@ -18,7 +18,7 @@ ImportProfile ImportPresetManager::GetDefaultProfile(const TypeId& translator_ty
     return profile;
 }
 
-bool ImportPresetManager::HasPreset(const TypeId& translator_type) const
+bool ImportPresetManager::HasPreset(const TypeId_v1& translator_type) const
 {
     return preset_map.Contains(translator_type);
 }

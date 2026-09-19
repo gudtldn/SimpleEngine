@@ -6,7 +6,7 @@
 #include "SimpleEditor/Asset/Pipeline/Nodes/PipelineTextureNode.h"
 #include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Cast.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
 
 #include "assimp/config.h"
@@ -638,7 +638,7 @@ void AssimpTranslator::Translate(
     {
         for (const auto& node_ptr : out_container.GetAllNodes() | std::views::values)
         {
-            if (StaticMeshPipelineNode* mesh_node = Cast<StaticMeshPipelineNode>(node_ptr.get()))
+            if (StaticMeshPipelineNode* mesh_node = Cast_v1<StaticMeshPipelineNode>(node_ptr.get()))
             {
                 mesh_node->material_node_uids = mat_node_uids;
             }

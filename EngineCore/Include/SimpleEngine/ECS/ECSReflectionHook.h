@@ -1,14 +1,14 @@
 #pragma once
 
-#include "SimpleEngine/Core/Reflection/Annotations.h"
-#include "SimpleEngine/Core/Reflection/TagTraits.h"
+#include "../Core/Reflection/Legacy/Annotations.h"
+#include "../Core/Reflection/Legacy/TagTraits.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 
 
 namespace se::detail
 {
 template <>
-struct RegistrationTrait<se::meta::tags::Component>
+struct RegistrationTrait_v1<se::meta::tags::Component>
 {
     template <typename T>
     static void Apply()
@@ -18,7 +18,7 @@ struct RegistrationTrait<se::meta::tags::Component>
 };
 
 template <>
-struct RegistrationTrait<se::meta::tags::Resource>
+struct RegistrationTrait_v1<se::meta::tags::Resource>
 {
     template <typename T>
     static void Apply()

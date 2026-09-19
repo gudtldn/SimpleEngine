@@ -4,21 +4,21 @@
 
 #include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Reflection/Cast.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 
 #include "tracy/Tracy.hpp"
 
 
 namespace se::editor
 {
-TypeId Texture2DFactory::GetAssetType() const
+TypeId_v1 Texture2DFactory::GetAssetType() const
 {
-    return TypeId::Of<Texture2D>();
+    return TypeId_v1::Of<Texture2D>();
 }
 
 bool Texture2DFactory::CanCreateAsset(const PipelineBaseNode* node) const
 {
-    return IsA<PipelineTextureNode>(node);
+    return IsA_v1<PipelineTextureNode>(node);
 }
 
 std::shared_ptr<AssetBase> Texture2DFactory::CreateAsset(PipelineBaseNode* node, const PipelineImportContext& context)
@@ -26,7 +26,7 @@ std::shared_ptr<AssetBase> Texture2DFactory::CreateAsset(PipelineBaseNode* node,
     ZoneScopedN("Texture2DFactory::CreateAsset");
     std::ignore = context;
 
-    const PipelineTextureNode* tex_node = CastChecked<const PipelineTextureNode>(node);
+    const PipelineTextureNode* tex_node = CastChecked_v1<const PipelineTextureNode>(node);
     const bool is_srgb = tex_node->IsSRGB();
 
     ImageLoadResult load_result = [&]() -> ImageLoadResult

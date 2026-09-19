@@ -5,7 +5,7 @@
 
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
-#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 
 
 namespace se::editor
@@ -28,7 +28,7 @@ public:
     virtual ~IPipelineFactory() = default;
 
     /** 생성될 에셋의 타입 정보를 반환합니다. */
-    [[nodiscard]] virtual TypeId GetAssetType() const = 0;
+    [[nodiscard]] virtual TypeId_v1 GetAssetType() const = 0;
 
     /** 현재 Factory가 해당 노드를 처리할 수 있는지 확인합니다. */
     [[nodiscard]] virtual bool CanCreateAsset(const PipelineBaseNode* node) const = 0;

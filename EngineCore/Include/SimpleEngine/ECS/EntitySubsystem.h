@@ -15,7 +15,7 @@ namespace se
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EntitySubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS(EntitySubsystem, SubsystemBase)
+    SE_CLASS_V1(EntitySubsystem, SubsystemBase)
 
 public:
     EntitySubsystem() = default;

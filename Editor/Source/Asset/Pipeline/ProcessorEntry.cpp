@@ -1,12 +1,12 @@
 ﻿#include "SimpleEditor/Asset/Pipeline/ProcessorEntry.h"
 
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(ProcessorEntry, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY(processor_type, meta::Reflect)
-    SE_REFLECT_PROPERTY(enabled, meta::Reflect)
-SE_END_REFLECT(ProcessorEntry)
+SE_BEGIN_REFLECT_V1(ProcessorEntry, meta::Reflect, meta::Hidden)
+    SE_REFLECT_PROPERTY_V1(processor_type, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(enabled, meta::Reflect)
+SE_END_REFLECT_V1(ProcessorEntry)
 } // namespace se::editor

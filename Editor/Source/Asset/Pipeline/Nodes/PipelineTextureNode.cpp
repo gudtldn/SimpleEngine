@@ -5,8 +5,8 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(PipelineTextureNode, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(PipelineTextureNode)
+SE_BEGIN_REFLECT_V1(PipelineTextureNode, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(PipelineTextureNode)
 
 Optional<Path> PipelineTextureNode::GetSourceFile() const
 {

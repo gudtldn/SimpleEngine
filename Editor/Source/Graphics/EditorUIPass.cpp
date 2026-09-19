@@ -8,8 +8,8 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT(EditorUIPass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT(EditorUIPass)
+SE_BEGIN_REFLECT_V1(EditorUIPass, meta::Reflect, meta::Hidden, meta::Transient)
+SE_END_REFLECT_V1(EditorUIPass)
 
 EditorUIPass::EditorUIPass(
     RGTextureHandle in_back_buffer,

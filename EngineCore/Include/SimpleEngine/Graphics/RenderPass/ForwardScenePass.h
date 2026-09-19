@@ -19,7 +19,7 @@ class SamplerCache;
  */
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ForwardScenePass : public RenderPassBase
 {
-    SE_CLASS(ForwardScenePass, RenderPassBase)
+    SE_CLASS_V1(ForwardScenePass, RenderPassBase)
 
 public:
     explicit ForwardScenePass(

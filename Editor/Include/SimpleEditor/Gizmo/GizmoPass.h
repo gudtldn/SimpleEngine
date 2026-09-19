@@ -14,7 +14,7 @@ class GizmoDrawList;
 /** 기즈모를 렌더링하는 패스 */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) GizmoPass : public se::RenderPassBase
 {
-    SE_CLASS(GizmoPass, se::RenderPassBase)
+    SE_CLASS_V1(GizmoPass, se::RenderPassBase)
 
 public:
     /**

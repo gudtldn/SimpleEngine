@@ -5,7 +5,7 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
-#include "SimpleEngine/Core/Reflection/Meta.h"
+#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Meta.h"
 
 
 namespace se::editor
@@ -17,7 +17,7 @@ namespace se::editor
  * @param prop 프로퍼티의 리플렉션 정보 (메타데이터, 타입 등)
  * @return 값이 수정되었으면 true
  */
-using PropertyDrawFunc = bool(*)(const char* label, void* value, const PropertyInfo& prop);
+using PropertyDrawFunc = bool(*)(const char* label, void* value, const PropertyInfo_v1& prop);
 
 /**
  * Asset Drag&Drop 시 파일 경로 -> AssetId 변환 콜백
@@ -48,10 +48,10 @@ public:
 
 public:
     /** 특정 타입에 대한 Drawer 함수를 등록합니다. */
-    void Register(const TypeId& type_id, PropertyDrawFunc drawer);
+    void Register(const TypeId_v1& type_id, PropertyDrawFunc drawer);
 
     /** 특정 타입에 대한 Drawer 함수를 조회합니다. */
-    [[nodiscard]] PropertyDrawFunc Find(const TypeId& type_id) const;
+    [[nodiscard]] PropertyDrawFunc Find(const TypeId_v1& type_id) const;
 
     /**
      * TypeInfo가 가진 모든 프로퍼티를 ImGui 위젯으로 렌더링합니다.
@@ -63,7 +63,7 @@ public:
      * @param instance 실제 인스턴스 데이터의 포인터
      * @return 하나 이상의 프로퍼티가 수정되었으면 true
      */
-    bool DrawProperties(const TypeInfo& type_info, void* instance);
+    bool DrawProperties(const TypeInfo_v1& type_info, void* instance);
 
     /**
      * 단일 값을 TypeId 기반으로 ImGui 위젯으로 렌더링합니다.
@@ -77,11 +77,11 @@ public:
      * @return 값이 수정되었으면 true
      */
     bool DrawValue(
-        const TypeId& type_id,
+        const TypeId_v1& type_id,
         const char* label,
         void* value,
-        const ContainerOps* container_ops = nullptr,
-        const OptionalOps* optional_ops = nullptr
+        const ContainerOps_v1* container_ops = nullptr,
+        const OptionalOps_v1* optional_ops = nullptr
     );
 
 public:
@@ -96,10 +96,10 @@ public:
 
 private:
     void RegisterBuiltinDrawers();
-    bool DrawProperties(const TypeInfo& type_info, void* instance, HashSet<void*>& visited);
+    bool DrawProperties(const TypeInfo_v1& type_info, void* instance, HashSet<void*>& visited);
 
 private:
-    HashMap<TypeId, PropertyDrawFunc> drawers;
+    HashMap<TypeId_v1, PropertyDrawFunc> drawers;
     AssetDropResolverFunc asset_drop_resolver = nullptr;
 };
 } // namespace se::editor

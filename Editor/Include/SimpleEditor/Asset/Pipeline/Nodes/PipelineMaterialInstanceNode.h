@@ -4,7 +4,7 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "SimpleEngine/Core/Reflection/Reflect.h"
+#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
@@ -17,7 +17,7 @@ namespace se::editor
  */
 class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineMaterialInstanceNode final : public PipelineBaseNode
 {
-    SE_CLASS(PipelineMaterialInstanceNode, PipelineBaseNode)
+    SE_CLASS_V1(PipelineMaterialInstanceNode, PipelineBaseNode)
 
 public:
     // 슬롯 이름 -> PipelineTextureNode UID ("BaseColor" -> tex_node.self_uid)

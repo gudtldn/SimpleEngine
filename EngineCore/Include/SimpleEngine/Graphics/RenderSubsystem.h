@@ -20,7 +20,7 @@ namespace se
 {
 class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RenderSubsystem : public SubsystemBase
 {
-    SE_CLASS(RenderSubsystem, SubsystemBase)
+    SE_CLASS_V1(RenderSubsystem, SubsystemBase)
 
 public:
     [[nodiscard]] virtual bool Initialize() override;

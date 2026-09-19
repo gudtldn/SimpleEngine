@@ -1,185 +1,63 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
-#include "SimpleEngine/Core/Reflection/Traits.h"
-#include "SimpleEngine/Core/Reflection/TypeBuilder.h"
-#include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeInfo.h"
 
 
 namespace se
 {
 /**
- * 런타임 타입 정보(RTTI)를 중앙에서 관리하는 전역 저장소
- * 컴파일 타임에 수집된 모든 리플렉션 데이터를 런타임에 검색(Look-up)할 수 있게 해줍니다.
+ * 모든 TypeInfo를 소유하는 전역 레지스트리
  */
 class SE_CORE_API TypeRegistry
 {
     TypeRegistry() = default;
 
 public:
-    ~TypeRegistry() = default;
-
-    TypeRegistry(const TypeRegistry&) = delete;
-    TypeRegistry& operator=(const TypeRegistry&) = delete;
-    TypeRegistry(TypeRegistry&&) = delete;
-    TypeRegistry& operator=(TypeRegistry&&) = delete;
-
-    static TypeRegistry& Get();
-
-public:
-    /** 등록된 모든 리플렉션 데이터를 순회하여 인터페이스 캐시 등을 구축합니다. */
-    void Resolve();
+    /** 전역 싱글톤 인스턴스를 가져옵니다. */
+    [[nodiscard]] static TypeRegistry& Get();
 
     /**
-     * Registry에 타입을 등록합니다.
-     * @tparam T 등록할 타입
+     * 주어진 TypeId에 대한 TypeInfo 슬롯을 가져옵니다.
+     * 이미 있으면 기존 슬롯을, 없으면 새로 만든 빈 슬롯을 반환합니다.
      */
-    template <typename T>
-    detail::TypeBuilder<T> Register();
+    [[nodiscard]] TypeInfo& Emplace(TypeId id);
+
+    /** 부모 목록을 저장할 배열을 가져옵니다. */
+    [[nodiscard]] Array<BaseInfo>& EmplaceBaseStorage(TypeId id);
+
+    /** 필드 목록을 저장할 배열을 가져옵니다. */
+    [[nodiscard]] Array<FieldInfo>& EmplaceFieldStorage(TypeId id);
+
+    /** enum 항목 목록을 저장할 배열을 가져옵니다. */
+    [[nodiscard]] Array<EnumEntry>& EmplaceEnumEntryStorage(TypeId id);
+
+    /** TypeId로 TypeInfo를 찾습니다. (등록되지 않았다면 NullOpt)*/
+    [[nodiscard]] Optional<const TypeInfo&> Find(TypeId id) const;
 
     /**
-     * Registry에 기본 타입(Primitive)을 등록합니다.
-     * @tparam T 기본 타입
+     * TypeId로 TypeInfo를 찾습니다.
+     * @warning 등록되지 않은 타입이면 Assert
      */
-    template <typename T>
-    detail::TypeBuilder<T> RegisterPrimitive();
+    [[nodiscard]] const TypeInfo& FindChecked(TypeId id) const;
 
-    /**
-     * Registry에 열거형(Enum)을 등록합니다.
-     * base_or_inner_id에 underlying type의 TypeId를 자동 설정합니다.
-     * @tparam T 열거형 타입
-     */
-    template <typename T>
-        requires traits::EnumType<T>
-    detail::TypeBuilder<T> RegisterEnum();
-
-public:
-    template <typename T>
-    [[nodiscard]] Optional<const TypeInfo&> Find() const;
-    [[nodiscard]] Optional<const TypeInfo&> Find(const TypeId& type_id) const;
-    [[nodiscard]] Optional<const TypeInfo&> Find(const StringName& type_name) const;
-
-    template <typename T>
-    [[nodiscard]] const TypeInfo& FindChecked() const;
-    [[nodiscard]] const TypeInfo& FindChecked(const TypeId& type_id) const;
-
-    [[nodiscard]] const HashMap<TypeId, TypeInfo>& GetAllTypes() const { return type_map; }
-
-    /**
-     * 특정 타입을 직접 상속/구현하는 모든 등록된 타입의 TypeInfo 목록을 반환합니다.
-     * @note 인터페이스 구현체 조회에도 사용합니다.
-     * @tparam T 부모/인터페이스 타입
-     * @return 해당 타입을 직접 base로 가지는 TypeInfo 포인터 뷰
-     */
-    template <typename T>
-    [[nodiscard]] ArrayView<const TypeInfo* const> GetDerivedTypes() const;
-
-    [[nodiscard]] ArrayView<const TypeInfo* const> GetDerivedTypes(const TypeId& base_id) const;
+    /** 지금까지 등록된 모든 TypeInfo를 순회 가능한 형태로 반환합니다. */
+    [[nodiscard]] Array<const TypeInfo*> GetAllTypes() const;
 
 private:
-    HashMap<StringName, TypeId> name_map;
+    /** 각 타입의 TypeInfo 저장소 */
     HashMap<TypeId, TypeInfo> type_map;
 
-    bool is_resolved = false;
-    HashMap<TypeId, Array<const TypeInfo*>> direct_derived_map;
+    /** 각 타입의 부모 정보 저장소 */
+    HashMap<TypeId, Array<BaseInfo>> base_storage;
+
+    /** 각 타입의 필드 정보 저장소 */
+    HashMap<TypeId, Array<FieldInfo>> field_storage;
+
+    /** 각 enum 타입의 항목 정보 저장소 */
+    HashMap<TypeId, Array<EnumEntry>> enum_entry_storage;
 };
-
-template <typename T>
-Optional<const TypeInfo&> TypeRegistry::Find() const
-{
-    return Find(TypeId::Of<T>());
-}
-
-template <typename T>
-const TypeInfo& TypeRegistry::FindChecked() const
-{
-    const TypeId id = TypeId::Of<T>();
-    const StringView name = GetFullTypeName<T>();
-
-    SE_ASSERT(type_map.Contains(id), "Type '{}' is not registered yet! Make sure SE_END_REFLECT is called.", name);
-    return type_map.FindChecked(id);
-}
-
-template <typename T>
-detail::TypeBuilder<T> TypeRegistry::Register()
-{
-    static_assert(
-        Reflectable<T>,
-        "Type T is not reflectable. Please use SE_CLASS() macro (intrusive) or SE_DECLARE_REFLECTION() macro (non-intrusive)."
-    );
-
-    const TypeId id = TypeId::Of<T>();
-    const StringView name = GetFullTypeName<T>();
-
-    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", name);
-    TypeInfo& info = type_map.Emplace(id);
-
-    // 기본 정보 채우기
-    info.type_id = id;
-    info.name = name;
-    info.size = sizeof(T);
-    info.alignment = alignof(T);
-
-    SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
-    name_map.Insert(info.name, id);
-
-    is_resolved = false; // Resolve 캐시 무효화
-    return detail::TypeBuilder<T>(&info, ETypeKind::Struct);
-}
-
-template <typename T>
-detail::TypeBuilder<T> TypeRegistry::RegisterPrimitive()
-{
-    const TypeId id = TypeId::Of<T>();
-    const StringView name = GetFullTypeName<T>();
-
-    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", name);
-    TypeInfo& info = type_map.Emplace(id);
-
-    // 기본 정보 채우기
-    info.type_id = id;
-    info.name = name;
-    info.size = sizeof(T);
-    info.alignment = alignof(T);
-
-    SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
-    name_map.Insert(info.name, id);
-
-    is_resolved = false; // Resolve 캐시 무효화
-    return detail::TypeBuilder<T>(&info, ETypeKind::Primitive);
-}
-
-template <typename T>
-    requires traits::EnumType<T>
-detail::TypeBuilder<T> TypeRegistry::RegisterEnum()
-{
-    const TypeId id = TypeId::Of<T>();
-    const StringView name = GetFullTypeName<T>();
-
-    SE_ASSERT(!type_map.Contains(id), "Type '{}' is already registered! Check your initialization logic.", name);
-    TypeInfo& info = type_map.Emplace(id);
-
-    // 기본 정보 채우기
-    info.type_id = id;
-    info.name = name;
-    info.size = sizeof(T);
-    info.alignment = alignof(T);
-    info.inner_type_id = TypeId::Of<std::underlying_type_t<T>>();
-
-    SE_ASSERT(!name_map.Contains(info.name), "Type name '{}' collision detected!", info.name);
-    name_map.Insert(info.name, id);
-
-    is_resolved = false; // Resolve 캐시 무효화
-    return detail::TypeBuilder<T>(&info, ETypeKind::Enum);
-}
-
-template <typename T>
-ArrayView<const TypeInfo* const> TypeRegistry::GetDerivedTypes() const
-{
-    const TypeId base_id = TypeId::Of<T>();
-    return GetDerivedTypes(base_id);
-}
 } // namespace se

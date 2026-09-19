@@ -3,7 +3,7 @@
 
 namespace se
 {
-SlotEntry::SlotEntry(const AssetId& in_id, const TypeId& in_type, AssetPath in_path)
+SlotEntry::SlotEntry(const AssetId& in_id, const TypeId_v1& in_type, AssetPath in_path)
     : asset_type{ in_type }
     , source_path{ std::move(in_path) }
     , asset_id{ in_id }
@@ -39,7 +39,7 @@ SlotEntry& SlotEntry::operator=(SlotEntry&& other) noexcept
     return *this;
 }
 
-void SlotEntry::Initialize(const AssetId& in_id, const TypeId& in_type, AssetPath in_path)
+void SlotEntry::Initialize(const AssetId& in_id, const TypeId_v1& in_type, AssetPath in_path)
 {
     // generation은 기존 값 사용 (Clear에서 이미 증가됨)
     const u32 preserved_generation = generation;
