@@ -10,17 +10,17 @@ namespace se
 namespace
 {
 /** id의 서브오브젝트를 accumulated_offset 기준으로 평탄화해 out에 담습니다. */
-void Flatten(TypeId id, usize accumulated_offset, Array<CastEntry>& out)
+void Flatten(TypeId id, usize accumulated_offset, Array<CastEntry>& out) // NOLINT(*-no-recursion)
 {
-    out.Push(CastEntry{ .type = id, .offset = accumulated_offset });
+    out.Push({ .type = id, .offset = accumulated_offset });
 
-    const Optional<const TypeInfo&> info = TypeRegistry::Get().Find(id);
+    const auto info = TypeRegistry::Get().Find(id);
     if (!info.HasValue())
     {
         return; // 등록되지 않은 부모가 있다면 건너뜀
     }
 
-    const Optional<const StructInfo&> struct_info = info->AsStruct();
+    const auto struct_info = info->AsStruct();
     if (!struct_info.HasValue())
     {
         return;
@@ -41,7 +41,7 @@ TypeRecordRegistry& TypeRecordRegistry::Get()
 
 void TypeRecordRegistry::Install(TypeId id)
 {
-    if (record_map.Find(id).HasValue())
+    if (record_map.Contains(id))
     {
         return;
     }
