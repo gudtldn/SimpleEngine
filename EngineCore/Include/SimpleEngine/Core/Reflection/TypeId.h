@@ -25,7 +25,7 @@ template <typename T>
 consteval u64 ComputeTypeIdValue()
 {
     const std::string name = CanonicalNameOf<T>();
-    const u64 hash = HashUtils::FNV(StringView{ name }, TYPE_ID_SCHEMA_SALT);
+    const u64 hash = HashUtils::FNVWithSalt(StringView{ name }, TYPE_ID_SCHEMA_SALT);
     return hash == 0 ? u64{ 1 } : hash; // 0은 null 타입 전용으로 사용하기 때문에, 1로 대체
 }
 
