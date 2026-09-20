@@ -38,7 +38,7 @@ void Registrar<se_registry_golden_test::Nested>::Fill(TypeInfo& info)
 
     EnsureRegistered<f32>();
 
-    Array<FieldInfo>& fields = TypeRegistry::Get().EmplaceFieldStorage(TypeId::Of<T>());
+    Array<FieldInfo>& fields = TypeRegistry::Get().EmplaceStructStorage(TypeId::Of<T>()).fields;
     fields.Push(FieldInfo{ .name = "x", .type = TypeId::Of<f32>(), .offset = offsetof(T, x) });
     fields.Push(FieldInfo{ .name = "y", .type = TypeId::Of<f32>(), .offset = offsetof(T, y) });
 
@@ -60,7 +60,7 @@ void Registrar<se_registry_golden_test::Root>::Fill(TypeInfo& info)
     EnsureRegistered<Nested>();
     EnsureRegistered<Array<i32>>();
 
-    Array<FieldInfo>& fields = TypeRegistry::Get().EmplaceFieldStorage(TypeId::Of<T>());
+    Array<FieldInfo>& fields = TypeRegistry::Get().EmplaceStructStorage(TypeId::Of<T>()).fields;
     fields.Push(FieldInfo{ .name = "value",   .type = TypeId::Of<i32>(),        .offset = offsetof(T, value) });
     fields.Push(FieldInfo{ .name = "nested",  .type = TypeId::Of<Nested>(),     .offset = offsetof(T, nested) });
     fields.Push(FieldInfo{ .name = "numbers", .type = TypeId::Of<Array<i32>>(), .offset = offsetof(T, numbers) });

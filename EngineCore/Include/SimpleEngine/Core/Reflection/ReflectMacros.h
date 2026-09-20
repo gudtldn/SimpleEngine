@@ -76,8 +76,7 @@
             static constexpr auto TYPE_TAG_REFS = ::se::detail::MakeRefs(&TYPE_TAG_VALUES); \
             info.annotations = TYPE_TAG_REFS; \
         ) \
-        ::se::Array<::se::BaseInfo>& bases = ::se::TypeRegistry::Get().EmplaceBaseStorage(::se::TypeId::Of<T>()); \
-        ::se::Array<::se::FieldInfo>& fields = ::se::TypeRegistry::Get().EmplaceFieldStorage(::se::TypeId::Of<T>());
+        auto& [bases, fields] = ::se::TypeRegistry::Get().EmplaceStructStorage(::se::TypeId::Of<T>());
 
 /** 등록 블록 안에서, 부모 타입 하나를 BaseInfo로 만들어 등록합니다. */
 #define SE_BASE(base_type) \
