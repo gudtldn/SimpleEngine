@@ -44,8 +44,14 @@ public:
      */
     [[nodiscard]] const TypeInfo& FindChecked(TypeId id) const;
 
-    /** 지금까지 등록된 모든 TypeInfo를 순회 가능한 형태로 반환합니다. */
-    [[nodiscard]] Array<const TypeInfo*> GetAllTypes() const;
+    /** 지금까지 등록된 모든 TypeInfo를 lazy-view로 반환합니다. */
+    [[nodiscard]] auto GetAllTypes() const
+    {
+        return type_map.Iter().Map([](const auto& pair) -> const TypeInfo*
+        {
+            return &pair.second;
+        });
+    }
 
 private:
     /** 각 타입의 TypeInfo 저장소 */
