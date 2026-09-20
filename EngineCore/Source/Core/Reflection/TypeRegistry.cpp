@@ -13,6 +13,8 @@ TypeRegistry& TypeRegistry::Get()
 
 TypeInfo& TypeRegistry::Emplace(TypeId id)
 {
+    SE_ASSERT(!type_map.Contains(id), "TypeId collision! A different type is already registered under this id.");
+
     TypeInfo& info = type_map.Entry(id).OrDefault();
     info.id = id;
     return info;
@@ -42,13 +44,5 @@ const TypeInfo& TypeRegistry::FindChecked(TypeId id) const
 {
     SE_ASSERT(type_map.Contains(id), "The type is not registered yet! Make sure EnsureRegistered<T>() was called.");
     return type_map.FindChecked(id);
-}
-
-Array<const TypeInfo*> TypeRegistry::GetAllTypes() const
-{
-    return Array<const TypeInfo*>::FromRange(type_map | std::views::values | std::views::transform([](const TypeInfo& info)
-    {
-        return &info;
-    }));
 }
 } // namespace se
