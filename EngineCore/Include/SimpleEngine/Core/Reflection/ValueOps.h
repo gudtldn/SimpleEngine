@@ -108,16 +108,16 @@ struct ValueOps
     ShapeOps shape_ops;
 
     /** Array-like가 아니면 NullOpt */
-    [[nodiscard]] Optional<const ArrayOps&> AsArray() const { return ShapeAs<ArrayOps>(); }
+    [[nodiscard]] Optional<const ArrayOps&> AsArray() const { return VariantGet<ArrayOps>(shape_ops); }
 
     /** Set-like가 아니면 NullOpt */
-    [[nodiscard]] Optional<const SetOps&> AsSet() const { return ShapeAs<SetOps>(); }
+    [[nodiscard]] Optional<const SetOps&> AsSet() const { return VariantGet<SetOps>(shape_ops); }
 
     /** Map-like가 아니면 NullOpt */
-    [[nodiscard]] Optional<const MapOps&> AsMap() const { return ShapeAs<MapOps>(); }
+    [[nodiscard]] Optional<const MapOps&> AsMap() const { return VariantGet<MapOps>(shape_ops); }
 
     /** Optional이 아니면 NullOpt */
-    [[nodiscard]] Optional<const OptionalOps&> AsOptional() const { return ShapeAs<OptionalOps>(); }
+    [[nodiscard]] Optional<const OptionalOps&> AsOptional() const { return VariantGet<OptionalOps>(shape_ops); }
 
     /**
      * 형태별로 분기합니다.
@@ -127,17 +127,6 @@ struct ValueOps
     decltype(auto) VisitShape(Fns&&... fns) const
     {
         return std::visit(Overloaded<std::decay_t<Fns>...>{ std::forward<Fns>(fns)... }, shape_ops);
-    }
-
-private:
-    template <typename Ops>
-    [[nodiscard]] Optional<const Ops&> ShapeAs() const
-    {
-        if (const Ops* ops = std::get_if<Ops>(&shape_ops))
-        {
-            return *ops;
-        }
-        return NullOpt;
     }
 };
 } // namespace se
