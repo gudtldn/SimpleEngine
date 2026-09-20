@@ -30,25 +30,7 @@ public:
     constexpr HashDigest() = default;
 
 public:
-    /** 원시 바이트 배열로부터 생성 */
-    static constexpr HashDigest FromRaw(const u8 (&raw)[N])
-    {
-        HashDigest result;
-        if consteval
-        {
-            for (usize i = 0; i < N; ++i)
-            {
-                result.data[i] = raw[i];
-            }
-        }
-        else
-        {
-            std::memcpy(result.data.Data(), raw, N);
-        }
-        return result;
-    }
-
-    /** 원시 바이트 포인터로부터 생성 */
+    /** 원시 바이트 포인터(또는 배열)로부터 생성합니다. */
     static constexpr HashDigest FromRaw(const u8* raw)
     {
         SE_ASSERT(raw != nullptr);
@@ -84,7 +66,7 @@ public:
         {
             SE_ASSERT(IsHexChar(src[i * 2]) && IsHexChar(src[(i * 2) + 1]), "FromHex: invalid hex character detected");
             result.data[i] = static_cast<u8>(
-                (HexCharToNibble(src[i * 2]) << 4) | HexCharToNibble(src[(i * 2) + 1])
+                (HexCharToNibble(src[i * 2]) << 4) | HexCharToNibble(src[(i * 2) + 1]) // NOLINT(*-signed-bitwise)
             );
         }
         return result;
