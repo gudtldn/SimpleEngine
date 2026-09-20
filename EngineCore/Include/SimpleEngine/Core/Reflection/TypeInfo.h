@@ -41,22 +41,22 @@ struct TypeInfo
     [[nodiscard]] constexpr bool IsOpaque() const { return std::holds_alternative<OpaqueInfo>(shape); }
 
     /** 구조체/클래스가 아니면 NullOpt */
-    [[nodiscard]] constexpr Optional<const StructInfo&> AsStruct() const { return ShapeAs<StructInfo>(); }
+    [[nodiscard]] constexpr Optional<const StructInfo&> AsStruct() const { return VariantGet<StructInfo>(shape); }
 
     /** Array-like가 아니면 NullOpt */
-    [[nodiscard]] constexpr Optional<const ArrayInfo&> AsArray() const { return ShapeAs<ArrayInfo>(); }
+    [[nodiscard]] constexpr Optional<const ArrayInfo&> AsArray() const { return VariantGet<ArrayInfo>(shape); }
 
     /** Set-like가 아니면 NullOpt */
-    [[nodiscard]] constexpr Optional<const SetInfo&> AsSet() const { return ShapeAs<SetInfo>(); }
+    [[nodiscard]] constexpr Optional<const SetInfo&> AsSet() const { return VariantGet<SetInfo>(shape); }
 
     /** Map-like가 아니면 NullOpt */
-    [[nodiscard]] constexpr Optional<const MapInfo&> AsMap() const { return ShapeAs<MapInfo>(); }
+    [[nodiscard]] constexpr Optional<const MapInfo&> AsMap() const { return VariantGet<MapInfo>(shape); }
 
     /** Optional이 아니면 NullOpt */
-    [[nodiscard]] constexpr Optional<const OptionalInfo&> AsOptional() const { return ShapeAs<OptionalInfo>(); }
+    [[nodiscard]] constexpr Optional<const OptionalInfo&> AsOptional() const { return VariantGet<OptionalInfo>(shape); }
 
     /** enum이 아니면 NullOpt */
-    [[nodiscard]] constexpr Optional<const EnumInfo&> AsEnum() const { return ShapeAs<EnumInfo>(); }
+    [[nodiscard]] constexpr Optional<const EnumInfo&> AsEnum() const { return VariantGet<EnumInfo>(shape); }
 
     /**
      * 모양별로 분기합니다.
@@ -66,17 +66,6 @@ struct TypeInfo
     constexpr decltype(auto) VisitShape(Fns&&... fns) const
     {
         return std::visit(Overloaded<std::decay_t<Fns>...>{ std::forward<Fns>(fns)... }, shape);
-    }
-
-private:
-    template <typename Info>
-    [[nodiscard]] constexpr Optional<const Info&> ShapeAs() const
-    {
-        if (const Info* info = std::get_if<Info>(&shape))
-        {
-            return *info;
-        }
-        return NullOpt;
     }
 };
 } // namespace se
