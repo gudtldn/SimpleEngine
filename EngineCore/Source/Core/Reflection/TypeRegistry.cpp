@@ -20,14 +20,9 @@ TypeInfo& TypeRegistry::Emplace(TypeId id)
     return info;
 }
 
-Array<BaseInfo>& TypeRegistry::EmplaceBaseStorage(TypeId id)
+StructStorage& TypeRegistry::EmplaceStructStorage(TypeId id)
 {
-    return base_storage.Entry(id).OrDefault();
-}
-
-Array<FieldInfo>& TypeRegistry::EmplaceFieldStorage(TypeId id)
-{
-    return field_storage.Entry(id).OrDefault();
+    return struct_storage.Entry(id).OrDefault();
 }
 
 Array<EnumEntry>& TypeRegistry::EmplaceEnumEntryStorage(TypeId id)

@@ -10,6 +10,15 @@
 namespace se
 {
 /**
+ * 구조체/클래스 타입 하나의 부모/필드 목록 저장소
+ */
+struct StructStorage
+{
+    Array<BaseInfo> bases;
+    Array<FieldInfo> fields;
+};
+
+/**
  * 모든 TypeInfo를 소유하는 전역 레지스트리
  */
 class SE_CORE_API TypeRegistry
@@ -26,11 +35,8 @@ public:
      */
     [[nodiscard]] TypeInfo& Emplace(TypeId id);
 
-    /** 부모 목록을 저장할 배열을 가져옵니다. */
-    [[nodiscard]] Array<BaseInfo>& EmplaceBaseStorage(TypeId id);
-
-    /** 필드 목록을 저장할 배열을 가져옵니다. */
-    [[nodiscard]] Array<FieldInfo>& EmplaceFieldStorage(TypeId id);
+    /** 부모·필드 목록을 저장할 StructStorage를 가져옵니다. */
+    [[nodiscard]] StructStorage& EmplaceStructStorage(TypeId id);
 
     /** enum 항목 목록을 저장할 배열을 가져옵니다. */
     [[nodiscard]] Array<EnumEntry>& EmplaceEnumEntryStorage(TypeId id);
@@ -57,11 +63,8 @@ private:
     /** 각 타입의 TypeInfo 저장소 */
     HashMap<TypeId, TypeInfo> type_map;
 
-    /** 각 타입의 부모 정보 저장소 */
-    HashMap<TypeId, Array<BaseInfo>> base_storage;
-
-    /** 각 타입의 필드 정보 저장소 */
-    HashMap<TypeId, Array<FieldInfo>> field_storage;
+    /** 각 구조체/클래스 타입의 부모·필드 정보 저장소 */
+    HashMap<TypeId, StructStorage> struct_storage;
 
     /** 각 enum 타입의 항목 정보 저장소 */
     HashMap<TypeId, Array<EnumEntry>> enum_entry_storage;
