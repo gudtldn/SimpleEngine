@@ -13,6 +13,10 @@
 #include "SimpleEngine/Core/Reflection/ValueOpsFactory.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
+#include "SimpleEngine/Core/Types/Path.h"
+#include "SimpleEngine/Core/Types/StringName.h"
+#include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
@@ -113,8 +117,24 @@ struct Registrar<type> \
 SE_DEFINE_OPAQUE_REGISTRAR(TypeId);
 SE_DEFINE_OPAQUE_REGISTRAR(String);
 SE_DEFINE_OPAQUE_REGISTRAR(Guid);
+SE_DEFINE_OPAQUE_REGISTRAR(StringName);
+SE_DEFINE_OPAQUE_REGISTRAR(Path);
+SE_DEFINE_OPAQUE_REGISTRAR(VPath);
 
 #undef SE_DEFINE_OPAQUE_REGISTRAR
+
+/** HashDigest<N>(SHA-256, xxHash128 등 고정 크기 해시) */
+template <usize N>
+struct Registrar<HashDigest<N>>
+{
+    static void Fill(TypeInfo& info)
+    {
+        info.size = sizeof(HashDigest<N>);
+        info.alignment = alignof(HashDigest<N>);
+        info.name = TypeNameOf<HashDigest<N>>();
+        info.shape = OpaqueInfo{};
+    }
+};
 
 /** Array-like 컨테이너(Array, FixedArray 등)의 등록 특수화 */
 template <traits::ArrayLike Container>
