@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeShape.h"
 #include "SimpleEngine/Traits/TupleTraits.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"
 
 #include <concepts>
@@ -78,11 +79,16 @@
         ) \
         auto& [bases, fields] = ::se::TypeRegistry::Get().EmplaceStructStorage(::se::TypeId::Of<T>());
 
-/** 등록 블록 안에서, 부모 타입 하나를 BaseInfo로 만들어 등록합니다. */
+/**
+ * 등록 블록 안에서, 부모 타입 하나를 BaseInfo로 만들어 등록합니다.
+ * @note 가상 상속은 최종 파생 타입에 따라 오프셋이 달라지므로 지원하지 않습니다.
+ */
 #define SE_BASE(base_type) \
     { \
         static_assert(std::derived_from<T, base_type>, \
             "SE_BASE(" #base_type "): the registered type does not derive from it."); \
+        static_assert(::se::traits::StaticCastableTo<base_type*, T*>, \
+            "SE_BASE(" #base_type "): virtual inheritance is not supported."); \
         bases.Push(::se::BaseInfo{ \
             .type = ::se::TypeId::Of<base_type>(), \
             .offset = ::se::detail::BaseOffsetOf<T, base_type>(), \
