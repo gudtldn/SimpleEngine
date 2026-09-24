@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Reflection/ValueOps.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 
+#include <concepts>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -20,13 +21,19 @@ ArrayOps MakeArrayOps()
     ops.data = [](void* c) static -> void* { return static_cast<Container*>(c)->Data(); };
     ops.element_at = [](void* c, usize index) static -> void* { return &(*static_cast<Container*>(c))[index]; };
 
-    if constexpr (requires (Container& container, usize count) { container.Resize(count); })
+    if constexpr (
+        requires (Container& container, usize count) { container.Resize(count); }
+        && std::default_initializable<ElementType>
+        && (std::is_trivially_copyable_v<ElementType> || std::move_constructible<ElementType>)
+    )
     {
         ops.resize = [](void* c, usize count) static { static_cast<Container*>(c)->Resize(count); };
     }
 
-    if constexpr (std::is_trivially_default_constructible_v<ElementType>
-        && requires (Container& container, usize count) { container.ResizeUninitialized(count); })
+    if constexpr (
+        requires (Container& container, usize count) { container.ResizeUninitialized(count); }
+        && std::is_trivially_default_constructible_v<ElementType>
+    )
     {
         ops.resize_uninitialized = [](void* c, usize count) static
         {

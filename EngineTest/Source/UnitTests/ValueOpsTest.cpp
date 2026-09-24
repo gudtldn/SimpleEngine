@@ -209,3 +209,17 @@ TEST(ValueOpsTest, NonDefaultConstructibleTypeStillRegisters)
     EXPECT_EQ(ops.default_construct_at, nullptr);
     EXPECT_NE(ops.destruct_at, nullptr);
 }
+
+TEST(ValueOpsTest, ArrayOfNonDefaultConstructibleElementDisablesResize)
+{
+    using namespace se_value_ops_test;
+
+    // Resize()는 요소를 기본 생성하므로, NoDefault 요소로는 컴파일에 포함되면 안 됩니다.
+    const se::ValueOps& ops = OpsOf<se::Array<NoDefault>>();
+    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
+
+    EXPECT_EQ(array_ops->resize, nullptr);
+    EXPECT_NE(array_ops->len, nullptr);
+    EXPECT_NE(array_ops->element_at, nullptr);
+}
