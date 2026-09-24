@@ -1131,6 +1131,19 @@ TEST_F(HashMapAPI_Test, ToArray)
     EXPECT_EQ(empty_map.ToArray().Len(), 0);
 }
 
+// TypeRegistry 등이 보관하는 참조/포인터가 이후 삽입(rehash 포함)에도 안전한지 보장하는 계약 테스트입니다.
+TEST_F(HashMapAPI_Test, ReferencesStayValidAcrossRehash)
+{
+    HashMap<int, String> map;
+    const String* const address = &map.Insert(0, "zero");
+    for (int key = 1; key < 10'000; ++key)
+    {
+        map.Insert(key, "value");
+    }
+    EXPECT_EQ(&map.FindChecked(0), address);
+    EXPECT_EQ(*address, "zero");
+}
+
 TEST_F(MapAPI_Test, Construction)
 {
     Map<String, int> map1;
