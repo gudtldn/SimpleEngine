@@ -17,6 +17,17 @@ namespace se::detail
 constexpr u64 TYPE_ID_SCHEMA_SALT = 1;
 
 /**
+ * name을 TypeId 원시 값으로 계산합니다.
+ * @param name 타입 이름
+ * @return 0이 아닌 64비트 해시 값
+ */
+[[nodiscard]] constexpr u64 ComputeTypeIdValue(StringView name) noexcept
+{
+    const u64 hash = HashUtils::FNVWithSalt(name, TYPE_ID_SCHEMA_SALT);
+    return hash == 0 ? u64{ 1 } : hash; // 0은 null 타입 전용으로 사용하기 때문에, 1로 대체
+}
+
+/**
  * 타입 T의 TypeId 원시 값을 계산합니다.
  * @tparam T 대상 타입
  * @return 0이 아닌 64비트 해시 값
@@ -24,14 +35,10 @@ constexpr u64 TYPE_ID_SCHEMA_SALT = 1;
 template <typename T>
 consteval u64 ComputeTypeIdValue()
 {
-    const std::string name = CanonicalNameOf<T>();
-    const u64 hash = HashUtils::FNVWithSalt(StringView{ name }, TYPE_ID_SCHEMA_SALT);
-    return hash == 0 ? u64{ 1 } : hash; // 0은 null 타입 전용으로 사용하기 때문에, 1로 대체
+    return ComputeTypeIdValue(StringView{ CanonicalNameOf<T>() });
 }
 
-/**
- * 각 타입별로 FNV 해시를 컴파일 타임에 계산해 캐싱합니다.
- */
+/** 각 타입별로 FNV 해시를 컴파일 타임에 계산해 캐싱합니다. */
 template <typename T>
 constexpr u64 TYPE_ID_VALUE = ComputeTypeIdValue<T>();
 } // namespace se::detail
@@ -77,6 +84,15 @@ public:
     [[nodiscard]] static constexpr TypeId FromRaw(u64 raw) noexcept
     {
         return TypeId{ raw };
+    }
+
+    /**
+     * 정규 이름으로 TypeId를 구합니다.
+     * @note Registry의 등록 여부와는 별개로 생성됩니다.
+     */
+    [[nodiscard]] static constexpr TypeId FromCanonicalName(StringView name) noexcept
+    {
+        return FromRaw(detail::ComputeTypeIdValue(name));
     }
 
     /** 타입 해시를 반환합니다. */
