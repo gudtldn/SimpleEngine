@@ -1,7 +1,12 @@
 ﻿#include "gtest/gtest.h"
 
+#include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
+#include "SimpleEngine/Core/Types/Guid.h"
 
 #include <type_traits>
 
@@ -131,4 +136,41 @@ TEST(ReflectionNameGoldenTest, TypeIdIsStableAcrossCalls)
 {
     EXPECT_EQ(se::TypeId::Of<i32>().Value(), se::TypeId::Of<i32>().Value());
     EXPECT_NE(se::TypeId::Of<i32>().Value(), se::TypeId::Of<f32>().Value());
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// 5. TypeId::FromCanonicalName — 런타임 이름으로 TypeId를 복원하는 경로가
+//    컴파일 타임 경로(TypeId::Of)와 같은 해시 함수를 쓰는지 검증합니다.
+// ─────────────────────────────────────────────────────────────
+namespace se_reflection_golden_test
+{
+struct OverriddenNameStruct {};
+}
+
+SE_TYPE_NAME(se_reflection_golden_test::OverriddenNameStruct, "se_reflection_golden_test::OverriddenNameOverride");
+
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<i32>()) == se::TypeId::Of<i32>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<f64>()) == se::TypeId::Of<f64>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<bool>()) == se::TypeId::Of<bool>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<char>()) == se::TypeId::Of<char>());
+
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<se::String>()) == se::TypeId::Of<se::String>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<se::Array<i32>>()) == se::TypeId::Of<se::Array<i32>>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<se::HashMap<se::String, se::Guid>>())
+    == se::TypeId::Of<se::HashMap<se::String, se::Guid>>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<se::Optional<i32>>()) == se::TypeId::Of<se::Optional<i32>>());
+
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<se_reflection_golden_test::PlainEnum>())
+    == se::TypeId::Of<se_reflection_golden_test::PlainEnum>());
+static_assert(se::TypeId::FromCanonicalName(se::TypeNameOf<se_reflection_golden_test::OverriddenNameStruct>())
+    == se::TypeId::Of<se_reflection_golden_test::OverriddenNameStruct>());
+
+TEST(ReflectionNameGoldenTest, FromCanonicalNameMatchesTypeIdAtRuntime)
+{
+    using MapType = se::HashMap<se::String, se::Guid>;
+
+    // 텍스트 데이터에서 읽은 이름처럼, 상수 평가가 아닌 호출에서도 같은 TypeId가 나와야 합니다.
+    const se::StringView name = se::TypeNameOf<MapType>();
+    EXPECT_EQ(se::TypeId::FromCanonicalName(name).Value(), se::TypeId::Of<MapType>().Value());
 }
