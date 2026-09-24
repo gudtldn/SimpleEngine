@@ -19,7 +19,9 @@
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
 
+#include <atomic>
 #include <concepts>
 #include <type_traits>
 
@@ -212,15 +214,41 @@ template <typename T>
 const TypeInfo& EnsureRegistered()
 {
     using CleanType = std::remove_cvref_t<T>;
-    static const TypeInfo& info = [] -> const TypeInfo&
+
+    // constinit을 사용하여 Magic Statics로 인한 데드락 방지
+    static constinit std::atomic<const TypeInfo*> cached{ nullptr };
+    if (const TypeInfo* const info = cached.load(std::memory_order_acquire))
     {
-        TypeInfo& slot = TypeRegistry::Get().Emplace(TypeId::Of<CleanType>());
-        Registrar<CleanType>::Fill(slot);
-        ValueOpsRegistry::Get().Install(slot.id, detail::MakeValueOps<CleanType>());
-        TypeRecordRegistry::Get().Install(slot.id);
-        return slot;
-    }();
-    return info;
+        return *info;
+    }
+
+    constexpr TypeId id = TypeId::Of<CleanType>();
+    constexpr StringView name = TypeNameOf<CleanType>();
+    TypeRegistry& registry = TypeRegistry::Get();
+
+    // 재귀 재진입 중인 슬롯과, 다른 모듈이 먼저 등록해 둔 슬롯을 모두 여기서 받습니다.
+    if (const auto existing = registry.Find(id))
+    {
+        const TypeInfo& info = existing.Value();
+        SE_ASSERT_RELEASE(
+            info.name == name && info.size == sizeof(CleanType) && info.alignment == alignof(CleanType),
+            "TypeId collision: a different type is already registered under this id.");
+        cached.store(&info, std::memory_order_release);
+        return info;
+    }
+
+    // 재진입한 호출도 TypeInfo를 비교할 수 있도록, Fill보다 먼저 기록
+    TypeInfo& slot = registry.Emplace(id);
+    slot.name = name;
+    slot.size = sizeof(CleanType);
+    slot.alignment = alignof(CleanType);
+
+    Registrar<CleanType>::Fill(slot);
+    ValueOpsRegistry::Get().Install(slot.id, detail::MakeValueOps<CleanType>());
+    TypeRecordRegistry::Get().Install(slot.id);
+
+    cached.store(&slot, std::memory_order_release);
+    return slot;
 }
 } // namespace se
 
