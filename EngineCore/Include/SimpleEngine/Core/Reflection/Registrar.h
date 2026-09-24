@@ -81,9 +81,12 @@ constexpr bool IsRegistrarUnspecialized = false;
 template <typename T>
 constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnregisteredMarker>> = true;
 
-/** Derived 안에서 Base 서브오브젝트가 시작하는 바이트 오프셋을 구합니다. */
+/**
+ * Derived 안에서 Base 서브오브젝트가 시작하는 바이트 오프셋을 구합니다.
+ * @note 가상 상속은 최종 파생 타입에 따라 오프셋이 달라지므로 지원하지 않습니다.
+ */
 template <typename Derived, typename Base>
-    requires std::derived_from<Derived, Base>
+    requires std::derived_from<Derived, Base> && traits::StaticCastableTo<Base*, Derived*>
 usize BaseOffsetOf()
 {
     alignas(Derived) u8 dummy[sizeof(Derived)];
@@ -91,9 +94,12 @@ usize BaseOffsetOf()
     return reinterpret_cast<usize>(static_cast<Base*>(derived)) - reinterpret_cast<usize>(derived);
 }
 
-/** T 안에서 멤버가 시작하는 바이트 오프셋을 구합니다. */
+/**
+ * T 안에서 멤버가 시작하는 바이트 오프셋을 구합니다.
+ * @note 가상 베이스에 선언된 멤버는 최종 파생 타입에 따라 오프셋이 달라지므로 지원하지 않습니다.
+ */
 template <typename T, typename Member, typename Owner>
-    requires std::derived_from<T, Owner>
+    requires std::derived_from<T, Owner> && traits::StaticCastableTo<Owner*, T*>
 usize FieldOffsetOf(Member Owner::* member_ptr)
 {
     alignas(T) u8 dummy[sizeof(T)];
