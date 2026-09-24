@@ -27,6 +27,9 @@ namespace se::detail
 SE_CORE_API void PrintLogImpl(const std::source_location& loc, std::string_view fmt, std::format_args args) noexcept;
 SE_CORE_API void ReportAssertionFailureImpl(const std::source_location& loc, std::string_view expr, std::string_view fmt, std::format_args args) noexcept;
 
+/** 현재 프로세스에 디버거가 붙어 있는지 확인합니다. */
+SE_CORE_API bool IsDebuggerAttached() noexcept;
+
 template <typename... Args>
 void PrintLogWithLocation(const std::source_location& loc, std::format_string<Args...> fmt, Args&&... args) noexcept
 {
@@ -49,18 +52,19 @@ void ReportAssertionFailure(const std::source_location& loc, std::string_view ex
 // --- 중단점 (Breakpoint) ---
 #if SE_ENABLE_DEBUG_TOOLS
     #if defined(SE_COMPILER_MSVC)
-        #define SE_BREAKPOINT() __debugbreak()
+        #define SE_BREAKPOINT_IMPL() __debugbreak()
     #elif defined(SE_COMPILER_CLANG) || defined(SE_COMPILER_GCC)
-        #define SE_BREAKPOINT() __builtin_trap()
+        #define SE_BREAKPOINT_IMPL() __builtin_trap()
     #else
         #include <csignal>
         #if defined(SIGTRAP)
-            #define SE_BREAKPOINT() raise(SIGTRAP)
+            #define SE_BREAKPOINT_IMPL() raise(SIGTRAP)
         #else
-            #define SE_BREAKPOINT() ((void)0)
+            #define SE_BREAKPOINT_IMPL() ((void)0)
         #endif
     #endif
-    #define SE_BREAKPOINT_CONDITION(cond) do { if (cond) { SE_BREAKPOINT(); } } while(0)
+    #define SE_BREAKPOINT() do { if (::se::detail::IsDebuggerAttached()) { SE_BREAKPOINT_IMPL(); } } while(0)
+    #define SE_BREAKPOINT_CONDITION(cond) do { if ((cond) && ::se::detail::IsDebuggerAttached()) { SE_BREAKPOINT_IMPL(); } } while(0)
 #else
     #define SE_BREAKPOINT() ((void)0)
     #define SE_BREAKPOINT_CONDITION(cond) ((void)0)
