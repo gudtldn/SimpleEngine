@@ -427,14 +427,14 @@ void TomlReader_v1::SerializeGuid(Guid& value)
 {
     if (reading_map_key)
     {
-        value = Guid::FromString(current_map_key);
+        value = Guid::TryFromString(current_map_key).ValueOrDefault();
         return;
     }
 
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = Guid::FromString(StringUtils::ToString(sv));
+        value = Guid::TryFromString(StringUtils::ToString(sv)).ValueOrDefault();
     }
 }
 
