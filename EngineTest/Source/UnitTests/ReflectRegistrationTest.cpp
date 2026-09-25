@@ -91,7 +91,7 @@ TEST(ReflectRegistrationTest, NormalizedIntegerAliasesShareOneSlot)
     }
     else
     {
-        GTEST_SKIP() << "이 플랫폼에서는 long과 i32의 크기가 달라 검증 대상이 아닙니다.";
+        GTEST_SKIP() << "long and i32 have different sizes on this platform.";
     }
 }
 
