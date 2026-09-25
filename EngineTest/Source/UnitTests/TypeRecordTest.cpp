@@ -169,7 +169,7 @@ TEST(TypeRecordTest, AllOffsetsMatchActualPointerAdjustment)
         }
         else
         {
-            FAIL() << "예상치 못한 조상 타입입니다.";
+            FAIL() << "Unexpected ancestor type.";
         }
     }
 }
