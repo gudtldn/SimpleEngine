@@ -1,10 +1,11 @@
 #include "gtest/gtest.h"
 
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Graphics/RenderGraph/RGResources.h"
 
 
 // EnsureRegistered<T>()가 재귀·상호 재귀 타입, 정규 이름이 같은 타입, 정체성 충돌을
-// 올바르게 처리하는지 검증합니다.
+// 올바르게 처리하는지, 다른 모듈이 등록한 타입을 다시 등록하지 않는지 검증합니다.
 namespace se_reflect_registration_test
 {
 using namespace se;
@@ -93,6 +94,17 @@ TEST(ReflectRegistrationTest, NormalizedIntegerAliasesShareOneSlot)
     {
         GTEST_SKIP() << "long and i32 have different sizes on this platform.";
     }
+}
+
+TEST(ReflectRegistrationTest, TypeRegisteredByAnotherModuleIsReused)
+{
+    // RGTransientTexture는 EngineCore DLL이 정적 초기화에서 등록합니다.
+    // 이 실행 파일의 EnsureRegistered는 캐시가 모듈마다 따로 있어 처음에는 비어 있지만, 새로 등록하지 않고 그 슬롯을 받아야 합니다.
+    const auto registered = se::TypeRegistry::Get().Find(se::TypeId::Of<se::RGTransientTexture>());
+    ASSERT_TRUE(registered.HasValue());
+
+    const se::TypeInfo& info = se::EnsureRegistered<se::RGTransientTexture>();
+    EXPECT_EQ(&info, &registered.Value());
 }
 
 TEST(ReflectRegistrationTest, IdentityMismatchUnderSharedTypeIdAborts)

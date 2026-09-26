@@ -258,12 +258,15 @@ const TypeInfo& EnsureRegistered()
 }
 } // namespace se
 
-/** 비침투형(non-intrusive) 타입의 Registrar<T> 특수화를 헤더에 선언합니다. */
-#define SE_DECLARE_REFLECTION(type) \
+/**
+ * 비침투형(non-intrusive) 타입의 Registrar<T> 특수화를 헤더에 선언합니다.
+ * 등록 블록이 DLL에 있으면 두 번째 인자로 그 모듈의 export 매크로(SE_CORE_API 등)를 넘겨, 다른 모듈의 EnsureRegistered<T>가 Fill을 링크할 수 있게 합니다.
+ */
+#define SE_DECLARE_REFLECTION(type, ...) \
 namespace se \
 { \
     template <> \
-    struct Registrar<type> \
+    struct __VA_ARGS__ Registrar<type> \
     { \
         static void Fill(TypeInfo& info); \
     }; \
