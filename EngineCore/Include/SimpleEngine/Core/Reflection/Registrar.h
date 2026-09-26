@@ -108,29 +108,6 @@ usize FieldOffsetOf(Member Owner::* member_ptr)
 }
 } // namespace detail
 
-// ----- 코어 타입 Opaque 등록 -----
-#define SE_DEFINE_OPAQUE_REGISTRAR(type) \
-template <> \
-struct Registrar<type> \
-{ \
-    static void Fill(TypeInfo& info) \
-    { \
-        info.size = sizeof(type); \
-        info.alignment = alignof(type); \
-        info.name = TypeNameOf<type>(); \
-        info.shape = OpaqueInfo{}; \
-    } \
-}
-
-SE_DEFINE_OPAQUE_REGISTRAR(TypeId);
-SE_DEFINE_OPAQUE_REGISTRAR(String);
-SE_DEFINE_OPAQUE_REGISTRAR(Guid);
-SE_DEFINE_OPAQUE_REGISTRAR(StringName);
-SE_DEFINE_OPAQUE_REGISTRAR(Path);
-SE_DEFINE_OPAQUE_REGISTRAR(VPath);
-
-#undef SE_DEFINE_OPAQUE_REGISTRAR
-
 /** HashDigest<N>(SHA-256, xxHash128 등 고정 크기 해시) */
 template <usize N>
 struct Registrar<HashDigest<N>>
@@ -271,3 +248,31 @@ namespace se \
         static void Fill(TypeInfo& info); \
     }; \
 }
+
+/**
+ * 내부 구조를 서술하지 않는 Opaque 타입의 Registrar<T> 특수화를 정의합니다.
+ * 타입의 헤더에서 사용하며, Fill이 inline이라 export 없이 어느 모듈에서나 등록할 수 있습니다.
+ */
+#define SE_REFLECT_OPAQUE(type) \
+namespace se \
+{ \
+    template <> \
+    struct Registrar<type> \
+    { \
+        static void Fill(TypeInfo& info) \
+        { \
+            info.size = sizeof(type); \
+            info.alignment = alignof(type); \
+            info.name = TypeNameOf<type>(); \
+            info.shape = OpaqueInfo{}; \
+        } \
+    }; \
+}
+
+// ----- 코어 타입 Opaque 등록 -----
+SE_REFLECT_OPAQUE(se::TypeId)
+SE_REFLECT_OPAQUE(se::String)
+SE_REFLECT_OPAQUE(se::Guid)
+SE_REFLECT_OPAQUE(se::StringName)
+SE_REFLECT_OPAQUE(se::Path)
+SE_REFLECT_OPAQUE(se::VPath)
