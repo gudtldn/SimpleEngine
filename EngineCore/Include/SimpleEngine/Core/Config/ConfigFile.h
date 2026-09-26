@@ -253,7 +253,7 @@ Optional<T> ConfigFile::GetValue(StringView key) const
     {
         if (const auto val_opt = node.value<std::u8string>())
         {
-            return StringUtils::ToString(*val_opt);
+            return str::ToString(*val_opt);
         }
         return NullOpt;
     }

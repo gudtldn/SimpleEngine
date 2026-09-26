@@ -3,7 +3,7 @@
 #include "Asset/EditorAssetSubsystem.h"
 #include "UI/ImGui/ImGuiString.h"
 
-#include "SimpleEditor/Asset/MetaFileManager.h"
+#include "SimpleEditor/Asset/AssetMeta.h"
 #include "SimpleEditor/Core/SelectionSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
@@ -174,7 +174,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
 
     // 파일 목록 수집
     Array<AssetItem> items;
-    for (const auto& entry : FileSystem::ReadDir(current_path))
+    for (const auto& entry : fs::ReadDir(current_path))
     {
         Path item_path = entry.GetPath();
 
@@ -275,7 +275,7 @@ void AssetsBrowserPanel::DrawAssetGrid()
 
 bool AssetsBrowserPanel::HasSubDirectories(const Path& path)
 {
-    return std::ranges::any_of(FileSystem::ReadDir(path), [](const DirectoryEntry& entry)
+    return std::ranges::any_of(fs::ReadDir(path), [](const DirectoryEntry& entry)
     {
         return entry.IsDirectory();
     });
@@ -283,7 +283,7 @@ bool AssetsBrowserPanel::HasSubDirectories(const Path& path)
 
 void AssetsBrowserPanel::RenderDirectoryTreeRecursive(const Path& path)
 {
-    for (const DirectoryEntry& entry : FileSystem::ReadDir(path))
+    for (const DirectoryEntry& entry : fs::ReadDir(path))
     {
         if (!entry.IsDirectory())
         {
@@ -482,7 +482,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
 void AssetsBrowserPanel::OpenImportSettingsModal(const Path& asset_path)
 {
     modal_asset_path = asset_path;
-    modal_content = MetaFileManager::Load(asset_path);
+    modal_content = asset_meta::Load(asset_path);
     modal_dirty = false;
     pending_open_import_settings = true;
 }
@@ -543,7 +543,7 @@ void AssetsBrowserPanel::DrawImportSettingsModal()
     ImGui::BeginDisabled(!modal_dirty);
     if (ImGui::Button("Apply"))
     {
-        if (MetaFileManager::Save(modal_asset_path, *modal_content))
+        if (asset_meta::Save(modal_asset_path, *modal_content))
         {
             if (EditorAssetSubsystem* asset_sub = GetSubsystem<EditorAssetSubsystem>())
             {
@@ -567,7 +567,7 @@ void AssetsBrowserPanel::DrawImportSettingsModal()
     ImGui::BeginDisabled(!modal_dirty);
     if (ImGui::Button("Revert"))
     {
-        modal_content = MetaFileManager::Load(modal_asset_path);
+        modal_content = asset_meta::Load(modal_asset_path);
         modal_dirty = false;
     }
     ImGui::EndDisabled();

@@ -40,7 +40,9 @@ ImageLoadResult PackSurface(SDL_Surface* in_surface, bool is_srgb)
 }
 } // namespace
 
-ImageLoadResult ImageLoader::LoadFromFile(const Path& file_path, bool is_srgb)
+namespace image
+{
+ImageLoadResult LoadFromFile(const Path& file_path, bool is_srgb)
 {
     SDL_Surface* surf = IMG_Load(file_path.CStr());
     if (!surf)
@@ -50,7 +52,7 @@ ImageLoadResult ImageLoader::LoadFromFile(const Path& file_path, bool is_srgb)
     return PackSurface(surf, is_srgb);
 }
 
-ImageLoadResult ImageLoader::LoadFromMemory(ArrayView<const u8> data, bool is_srgb, StringView format_hint)
+ImageLoadResult LoadFromMemory(ArrayView<const u8> data, bool is_srgb, StringView format_hint)
 {
     SDL_IOStream* io = SDL_IOFromConstMem(data.Data(), static_cast<usize>(data.Len()));
     if (!io)
@@ -69,7 +71,7 @@ ImageLoadResult ImageLoader::LoadFromMemory(ArrayView<const u8> data, bool is_sr
     return PackSurface(surf, is_srgb);
 }
 
-ImageData ImageLoader::LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 width, u32 height, bool is_srgb)
+ImageData LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 width, u32 height, bool is_srgb)
 {
     const usize size = static_cast<usize>(width) * height * 4u;
     SE_ASSERT(rgba8_pixels.Len() >= size, "Raw pixel buffer size is smaller than expected.");
@@ -82,4 +84,5 @@ ImageData ImageLoader::LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 w
     std::memcpy(result.pixels.Data(), rgba8_pixels.Data(), size);
     return result;
 }
+} // namespace image
 } // namespace se::editor

@@ -143,12 +143,14 @@ void ValidateInterStageInterface(const Path& hlsl_path, ArrayView<const ShaderCo
 }
 } // namespace
 
-void EditorShaderCompiler::CompileAll(const Path& hlsl_dir, const Path& output_dir)
+namespace shader_compiler
 {
-    FileSystem::CreateDirectories(output_dir);
+void CompileAll(const Path& hlsl_dir, const Path& output_dir)
+{
+    fs::CreateDirectories(output_dir);
 
     // 우선 1-depth만 순회하고, 서브디렉토리의 셰이더는 포함하지 않음.
-    for (const DirectoryEntry& entry : FileSystem::ReadDir(hlsl_dir))
+    for (const DirectoryEntry& entry : fs::ReadDir(hlsl_dir))
     {
         const Path& file_path = entry.GetPath();
         const auto ext_opt = file_path.Extension();
@@ -168,7 +170,7 @@ void EditorShaderCompiler::CompileAll(const Path& hlsl_dir, const Path& output_d
         for (const ShaderCompileOutput& output : result.Value())
         {
             const Path spv_path = output_dir / (output.output_stem + ".spv");
-            if (!FileSystem::Write(spv_path, output.spirv_bytecode))
+            if (!fs::Write(spv_path, output.spirv_bytecode))
             {
                 ConsoleLog(ELogLevel::Error, "EditorShaderCompiler: Failed to write {}", spv_path);
                 continue;
@@ -179,10 +181,10 @@ void EditorShaderCompiler::CompileAll(const Path& hlsl_dir, const Path& output_d
     }
 }
 
-ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileShader(const Path& hlsl_path)
+ShaderCompileResult<Array<ShaderCompileOutput>> CompileShader(const Path& hlsl_path)
 {
     // 소스를 읽어 pragma를 파싱
-    FileResult<String> source_result = FileSystem::ReadToString(hlsl_path);
+    FileResult<String> source_result = fs::ReadToString(hlsl_path);
     if (!source_result.HasValue())
     {
         return Unexpected<ShaderCompileError>{
@@ -251,4 +253,5 @@ ShaderCompileResult<Array<ShaderCompileOutput>> EditorShaderCompiler::CompileSha
 
     return outputs;
 }
+} // namespace shader_compiler
 } // namespace se::editor

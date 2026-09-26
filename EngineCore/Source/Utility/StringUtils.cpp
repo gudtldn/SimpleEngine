@@ -105,12 +105,14 @@ se::String Utf32ToUtf8(const char32_t* data, usize len)
 
 namespace se
 {
-String StringUtils::ToString(std::string_view in_str)
+namespace str
+{
+String ToString(std::string_view in_str)
 {
     return String{ in_str.data(), in_str.size() };
 }
 
-String StringUtils::ToString(std::wstring_view in_str)
+String ToString(std::wstring_view in_str)
 {
 #if SE_PLATFORM_WINDOWS
     // Windows: wchar_t는 16비트(UTF-16)
@@ -123,18 +125,19 @@ String StringUtils::ToString(std::wstring_view in_str)
 #endif
 }
 
-String StringUtils::ToString(std::u8string_view in_str)
+String ToString(std::u8string_view in_str)
 {
     return String{ reinterpret_cast<const char*>(in_str.data()), in_str.size() };
 }
 
-String StringUtils::ToString(std::u16string_view in_str)
+String ToString(std::u16string_view in_str)
 {
     return Utf16ToUtf8(in_str.data(), in_str.size());
 }
 
-String StringUtils::ToString(std::u32string_view in_str)
+String ToString(std::u32string_view in_str)
 {
     return Utf32ToUtf8(in_str.data(), in_str.size());
 }
+} // namespace str
 } // namespace se

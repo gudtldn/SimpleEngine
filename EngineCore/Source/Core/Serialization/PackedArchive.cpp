@@ -46,7 +46,7 @@ bool PackedWriter::IsTextFormat() const
 void PackedWriter::Int(i64 value, EIntWidth width, [[maybe_unused]] bool is_signed)
 {
     // 리틀 엔디안이므로 하위 n바이트만 잘라 쓰면 됨
-    WriteBytes(&value, ByteSizeOf(width));
+    WriteBytes(&value, serde::ByteSizeOf(width));
 }
 
 void PackedWriter::Float(f64 value, EFloatWidth width)
@@ -165,7 +165,7 @@ void PackedReader::Int(i64& value, EIntWidth width, bool is_signed)
         return;
     }
 
-    const usize n = ByteSizeOf(width);
+    const usize n = serde::ByteSizeOf(width);
     i64 raw = 0;
     ReadBytes(&raw, n);
     if (HasError())

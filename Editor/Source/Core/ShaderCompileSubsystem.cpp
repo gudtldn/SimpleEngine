@@ -71,7 +71,7 @@ void ShaderCompileSubsystem::RecompileChanged()
 
     for (const auto [i, src] : sources | std::views::enumerate)
     {
-        for (const DirectoryEntry& entry : FileSystem::ReadDir(src.source_dir))
+        for (const DirectoryEntry& entry : fs::ReadDir(src.source_dir))
         {
             if (!entry.IsFile()) { continue; }
 
@@ -88,9 +88,9 @@ void ShaderCompileSubsystem::RecompileChanged()
             bool any_spv_outdated = false;
             const String spv_prefix = String::Format("{}.", *stem_opt);
 
-            if (FileSystem::Exists(src.output_dir))
+            if (fs::Exists(src.output_dir))
             {
-                for (const DirectoryEntry& spv_entry : FileSystem::ReadDir(src.output_dir))
+                for (const DirectoryEntry& spv_entry : fs::ReadDir(src.output_dir))
                 {
                     if (!spv_entry.IsFile()) { continue; }
 
@@ -137,19 +137,19 @@ void ShaderCompileSubsystem::RecompilePending()
     {
         const ShaderSource& src = sources[source_idx];
 
-        auto result = EditorShaderCompiler::CompileShader(hlsl_path);
+        auto result = shader_compiler::CompileShader(hlsl_path);
         if (!result.HasValue())
         {
             ConsoleLog(ELogLevel::Error, "EditorShaderCompiler: {}", result.Error().What());
             continue;
         }
 
-        FileSystem::CreateDirectories(src.output_dir);
+        fs::CreateDirectories(src.output_dir);
 
         for (const ShaderCompileOutput& output : result.Value())
         {
             const Path spv_path = src.output_dir / Path(output.output_stem + ".spv");
-            if (!FileSystem::Write(spv_path, output.spirv_bytecode))
+            if (!fs::Write(spv_path, output.spirv_bytecode))
             {
                 ConsoleLog(ELogLevel::Error, "EditorShaderCompiler: Failed to write {}", spv_path);
                 continue;

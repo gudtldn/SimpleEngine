@@ -67,7 +67,7 @@ public:
 
 private:
     explicit constexpr TypeId_v1(StringView in_type_hash)
-        : type_hash(HashUtils::FNV(in_type_hash))
+        : type_hash(hash::FNV(in_type_hash))
     {
     }
 

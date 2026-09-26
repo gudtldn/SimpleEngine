@@ -65,14 +65,14 @@ void FileBackend::OpenFile()
     {
         if (const auto parent = file_path.Parent())
         {
-            FileSystem::CreateDirectories(*parent);
+            fs::CreateDirectories(*parent);
         }
     }
 
     io_stream = SDL_IOFromFile(file_path.CStr(), "ab");
     if (io_stream)
     {
-        current_file_size = FileSystem::FileSize(file_path).ValueOr(0);
+        current_file_size = fs::FileSize(file_path).ValueOr(0);
     }
 }
 
@@ -94,7 +94,7 @@ void FileBackend::RotateFile()
     auto zt = chrono::zoned_time{ chrono::current_zone(), chrono::floor<chrono::seconds>(chrono::system_clock::now()) };
 
     const Path backup_path = file_path.WithFileName(String::Format("{:%Y-%m-%d_%H-%M-%S}.log", zt));
-    FileSystem::Rename(file_path, backup_path);
+    fs::Rename(file_path, backup_path);
 
     OpenFile();
     current_file_size = 0;

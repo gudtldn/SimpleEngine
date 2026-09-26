@@ -405,7 +405,7 @@ bool Path::IsSubPathOf(const Path& base) const
 
 bool Path::Exists() const
 {
-    return FileSystem::Exists(*this);
+    return fs::Exists(*this);
 }
 
 bool Path::IsDirectory() const

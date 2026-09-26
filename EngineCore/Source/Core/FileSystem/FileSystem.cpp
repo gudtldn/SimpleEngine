@@ -144,7 +144,9 @@ bool DirectoryIterator::operator==(const DirectoryIterator& other) const
 // FileSystem
 // =============================================================================
 
-Path FileSystem::Absolute(const Path& path)
+namespace fs
+{
+Path Absolute(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -167,7 +169,7 @@ Path FileSystem::Absolute(const Path& path)
     return result;
 }
 
-Optional<Path> FileSystem::Canonical(const Path& path)
+Optional<Path> Canonical(const Path& path)
 {
     Path abs = Absolute(path);
     if (abs.IsEmpty() || !abs.Exists())
@@ -177,7 +179,7 @@ Optional<Path> FileSystem::Canonical(const Path& path)
     return abs;
 }
 
-bool FileSystem::CreateDirectories(const Path& path)
+bool CreateDirectories(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -186,7 +188,7 @@ bool FileSystem::CreateDirectories(const Path& path)
     return SDL_CreateDirectory(path.CStr());
 }
 
-bool FileSystem::Remove(const Path& path)
+bool Remove(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -199,7 +201,7 @@ bool FileSystem::Remove(const Path& path)
     return SDL_RemovePath(path.CStr());
 }
 
-usize FileSystem::RemoveAll(const Path& path)
+usize RemoveAll(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -230,7 +232,7 @@ usize FileSystem::RemoveAll(const Path& path)
     return count;
 }
 
-bool FileSystem::Copy(const Path& from, const Path& to)
+bool Copy(const Path& from, const Path& to)
 {
     if (from.IsEmpty() || to.IsEmpty())
     {
@@ -254,7 +256,7 @@ bool FileSystem::Copy(const Path& from, const Path& to)
     return false;
 }
 
-bool FileSystem::Rename(const Path& from, const Path& to)
+bool Rename(const Path& from, const Path& to)
 {
     if (from.IsEmpty() || to.IsEmpty())
     {
@@ -295,7 +297,7 @@ bool FileSystem::Rename(const Path& from, const Path& to)
 #endif
 }
 
-bool FileSystem::Exists(const Path& path)
+bool Exists(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -306,7 +308,7 @@ bool FileSystem::Exists(const Path& path)
     return SDL_GetPathInfo(path.CStr(), &info);
 }
 
-Optional<usize> FileSystem::FileSize(const Path& path)
+Optional<usize> FileSize(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -320,7 +322,7 @@ Optional<usize> FileSystem::FileSize(const Path& path)
     return static_cast<usize>(info.size);
 }
 
-Optional<u64> FileSystem::LastWriteTime(const Path& path)
+Optional<u64> LastWriteTime(const Path& path)
 {
     if (path.IsEmpty())
     {
@@ -336,7 +338,7 @@ Optional<u64> FileSystem::LastWriteTime(const Path& path)
 
 // TODO: [Performance] SDL_LoadFile가 내부적으로 malloc한 버퍼를 String 생성자에서 다시 복사함
 //       String이 외부 버퍼 소유권을 직접 인수받는 생성자를 지원하면 복사 1회 절약 가능
-FileResult<String> FileSystem::ReadToString(const Path& path)
+FileResult<String> ReadToString(const Path& path)
 {
     const String& path_str = path.ToString();
 
@@ -356,7 +358,7 @@ FileResult<String> FileSystem::ReadToString(const Path& path)
     return content;
 }
 
-FileResult<Array<u8>> FileSystem::ReadBytes(const Path& path)
+FileResult<Array<u8>> ReadBytes(const Path& path)
 {
     const String& path_str = path.ToString();
 
@@ -378,7 +380,7 @@ FileResult<Array<u8>> FileSystem::ReadBytes(const Path& path)
     return result;
 }
 
-std::generator<FileResult<ArrayView<const u8>>> FileSystem::ReadChunked(Path path, usize chunk_size)
+std::generator<FileResult<ArrayView<const u8>>> ReadChunked(Path path, usize chunk_size)
 {
     const String& path_str = path.ToString();
 
@@ -438,7 +440,7 @@ std::generator<FileResult<ArrayView<const u8>>> FileSystem::ReadChunked(Path pat
     }
 }
 
-bool FileSystem::WriteString(const Path& path, StringView content)
+bool WriteString(const Path& path, StringView content)
 {
     if (path.IsEmpty())
     {
@@ -447,7 +449,7 @@ bool FileSystem::WriteString(const Path& path, StringView content)
     return SDL_SaveFile(path.CStr(), content.Data(), content.ByteLen());
 }
 
-bool FileSystem::Write(const Path& path, ArrayView<const u8> data)
+bool Write(const Path& path, ArrayView<const u8> data)
 {
     if (path.IsEmpty())
     {
@@ -456,8 +458,9 @@ bool FileSystem::Write(const Path& path, ArrayView<const u8> data)
     return SDL_SaveFile(path.CStr(), data.Data(), data.Len());
 }
 
-DirectoryIterator FileSystem::ReadDir(const Path& path)
+DirectoryIterator ReadDir(const Path& path)
 {
     return DirectoryIterator{ path };
 }
+} // namespace fs
 } // namespace se

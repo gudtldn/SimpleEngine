@@ -14,7 +14,7 @@ public:
     virtual void SetUp() override
     {
         // 모든 테스트가 실행되기 전에 딱 한 번 호출됩니다.
-        se::VFS::Get().Mount("Config", se::FileSystem::Absolute("Config"));
+        se::VFS::Get().Mount("Config", se::fs::Absolute("Config"));
 
         // Engine 생성자가 내부적으로 instance 포인터를 설정하고 VFS를 초기화합니다.
         engine = std::make_unique<se::Engine>();

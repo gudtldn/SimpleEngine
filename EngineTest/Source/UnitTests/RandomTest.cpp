@@ -3,7 +3,7 @@
 
 #include <thread>
 
-using namespace se::math;
+using namespace se;
 
 TEST(RandomTest, Stream_Consistency)
 {
@@ -63,13 +63,13 @@ TEST(RandomTest, Float_Range)
 
 TEST(RandomTest, Global_ThreadSafety)
 {
-    Random::Seed(42, 123);
-    [[maybe_unused]] f32 val_main = Random::Float();
+    random::Seed(42, 123);
+    [[maybe_unused]] f32 val_main = random::Float();
 
     std::thread t1([]()
     {
-        Random::Seed(42, 123);
-        f32 val_t1 = Random::Float();
+        random::Seed(42, 123);
+        f32 val_t1 = random::Float();
 
         RandomStream rs(42, 123);
         EXPECT_EQ(val_t1, rs.Float());
@@ -78,7 +78,7 @@ TEST(RandomTest, Global_ThreadSafety)
     t1.join();
 
     // 메인 스레드의 상태는 t1에 의해 변경되지 않아야 함
-    f32 val_main_next = Random::Float();
+    f32 val_main_next = random::Float();
     RandomStream rs_main(42, 123);
     rs_main.Float(); // val_main
     EXPECT_EQ(val_main_next, rs_main.Float());

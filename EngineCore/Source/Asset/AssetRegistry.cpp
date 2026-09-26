@@ -208,7 +208,7 @@ bool AssetRegistry::SaveToFile(const Path& file_path) const
     writer << records;
 
     // 디스크 I/O
-    if (!FileSystem::Write(file_path, buffer))
+    if (!fs::Write(file_path, buffer))
     {
         ConsoleLog(ELogLevel::Error, "AssetRegistry::SaveToFile - Failed to write file: {}", file_path);
         return false;
@@ -222,7 +222,7 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
 {
     ZoneScopedN("AssetRegistry::LoadFromFile");
 
-    const FileResult<Array<u8>> file_result = FileSystem::ReadBytes(file_path);
+    const FileResult<Array<u8>> file_result = fs::ReadBytes(file_path);
     if (!file_result.HasValue())
     {
         return false;

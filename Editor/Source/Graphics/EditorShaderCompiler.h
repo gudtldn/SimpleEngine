@@ -35,21 +35,19 @@ struct ShaderCompileOutput
  * #pragma se_shader <stage> <entry> 형태의 pragma를 파싱하여
  * 하나의 HLSL 파일에서 여러 셰이더를 컴파일할 수 있습니다.
  */
-struct EditorShaderCompiler
+namespace shader_compiler
 {
-    EditorShaderCompiler() = delete;
+/**
+ * 셰이더 소스 디렉토리의 모든 .hlsl 파일을 .spv로 컴파일하여 디스크에 저장합니다.
+ * @param hlsl_dir HLSL 소스 디렉토리
+ * @param output_dir SPIR-V 출력 디렉토리
+ */
+void CompileAll(const Path& hlsl_dir, const Path& output_dir);
 
-    /**
-     * 셰이더 소스 디렉토리의 모든 .hlsl 파일을 .spv로 컴파일하여 디스크에 저장합니다.
-     * @param hlsl_dir HLSL 소스 디렉토리
-     * @param output_dir SPIR-V 출력 디렉토리
-     */
-    static void CompileAll(const Path& hlsl_dir, const Path& output_dir);
-
-    /**
-     * 단일 HLSL 파일을 컴파일합니다.
-     * 여러 엔트리포인트를 각각 컴파일하여 여러개의 결과를 반환합니다.
-     */
-    [[nodiscard]] static ShaderCompileResult<Array<ShaderCompileOutput>> CompileShader(const Path& hlsl_path);
-};
+/**
+ * 단일 HLSL 파일을 컴파일합니다.
+ * 여러 엔트리포인트를 각각 컴파일하여 여러개의 결과를 반환합니다.
+ */
+[[nodiscard]] ShaderCompileResult<Array<ShaderCompileOutput>> CompileShader(const Path& hlsl_path);
+} // namespace shader_compiler
 } // namespace se::editor

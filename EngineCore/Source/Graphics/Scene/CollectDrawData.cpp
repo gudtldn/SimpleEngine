@@ -217,7 +217,7 @@ SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> vi
                     }
                 }
 
-                return BuiltinAssetIds::DefaultLitInstance;
+                return builtin_assets::DefaultLitInstance;
             }();
 
             // 아레나 패킹 및 캐싱
@@ -232,11 +232,11 @@ SceneDrawData CollectDrawData(const World& world, ArrayView<const RenderView> vi
                 AssetHandle<MaterialInstance> inst_handle = asset_subsystem.Find<MaterialInstance>(target_mat_id);
                 if (!inst_handle)
                 {
-                    if (target_mat_id != BuiltinAssetIds::DefaultLitInstance)
+                    if (target_mat_id != builtin_assets::DefaultLitInstance)
                     {
                         result.requested_material_instances.Push(target_mat_id);
                     }
-                    inst_handle = asset_subsystem.Find<MaterialInstance>(BuiltinAssetIds::DefaultLitInstance);
+                    inst_handle = asset_subsystem.Find<MaterialInstance>(builtin_assets::DefaultLitInstance);
                 }
 
                 if (inst_handle)

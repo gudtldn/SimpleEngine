@@ -29,6 +29,8 @@ enum class EFloatWidth : u8
     Bits64,
 };
 
+namespace serde
+{
 /** 정수 폭 하나가 차지하는 바이트 수로 변환합니다. */
 [[nodiscard]] inline usize ByteSizeOf(EIntWidth width)
 {
@@ -69,6 +71,7 @@ template <std::floating_point T>
         SE_UNREACHABLE();
     }
 }
+} // namespace serde
 
 /** BeginSeq가 나타내는 시퀀스의 원소 순서 보장 여부 */
 enum class ESeqOrder : u8

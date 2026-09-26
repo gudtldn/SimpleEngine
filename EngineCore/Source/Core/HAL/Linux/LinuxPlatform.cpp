@@ -40,7 +40,7 @@ void Platform::RevealInExplorer(const Path& path)
         return;
     }
 
-    const Path absolute_path = FileSystem::Absolute(path);
+    const Path absolute_path = fs::Absolute(path);
     if (const auto parent_opt = absolute_path.Parent())
     {
         const String command = String::Format("xdg-open \"{}\"", parent_opt->ToString());

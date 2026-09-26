@@ -389,7 +389,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 {
                     const TextureBinding& binding = cache.binding_arena[mat_slot_opt->binding_offset + b];
                     const Optional<TextureResource> tex = gpu_manager.GetTexture(binding.texture_id)
-                        .OrElse([&] { return gpu_manager.GetTexture(BuiltinAssetIds::White1x1); });
+                        .OrElse([&] { return gpu_manager.GetTexture(builtin_assets::White1x1); });
 
                     if (tex.HasValue())
                     {

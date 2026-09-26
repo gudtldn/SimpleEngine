@@ -682,6 +682,8 @@ struct ReadFrame
 }
 } // namespace
 
+namespace serde
+{
 Expected<void, SerializeError> Serialize(ArchiveWriter& writer, const SerializePlan& plan, const void* value)
 {
     Stack<WriteFrame> stack;
@@ -749,4 +751,5 @@ Expected<void, SerializeError> Deserialize(ArchiveReader& reader, const Serializ
     }
     return {};
 }
+} // namespace serde
 } // namespace se

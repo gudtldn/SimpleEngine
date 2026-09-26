@@ -67,12 +67,12 @@ SerializeOps MakePrimitiveOps()
     {
         ops.write = [](ArchiveWriter& writer, const void* value) static
         {
-            writer.Float(static_cast<f64>(*static_cast<const T*>(value)), FloatWidthOf<T>());
+            writer.Float(static_cast<f64>(*static_cast<const T*>(value)), serde::FloatWidthOf<T>());
         };
         ops.read = [](ArchiveReader& reader, void* value) static
         {
             f64 temp = 0.0;
-            reader.Float(temp, FloatWidthOf<T>());
+            reader.Float(temp, serde::FloatWidthOf<T>());
             if (!reader.HasError())
             {
                 *static_cast<T*>(value) = static_cast<T>(temp);
@@ -83,12 +83,12 @@ SerializeOps MakePrimitiveOps()
     {
         ops.write = [](ArchiveWriter& writer, const void* value) static
         {
-            writer.Int(static_cast<i64>(*static_cast<const T*>(value)), IntWidthOf<T>(), std::is_signed_v<T>);
+            writer.Int(static_cast<i64>(*static_cast<const T*>(value)), serde::IntWidthOf<T>(), std::is_signed_v<T>);
         };
         ops.read = [](ArchiveReader& reader, void* value) static
         {
             i64 temp = 0;
-            reader.Int(temp, IntWidthOf<T>(), std::is_signed_v<T>);
+            reader.Int(temp, serde::IntWidthOf<T>(), std::is_signed_v<T>);
             if (!reader.HasError())
             {
                 *static_cast<T*>(value) = static_cast<T>(temp);
@@ -121,7 +121,7 @@ PrimitiveEntry MakePrimitiveEntry()
     PrimitiveEntry entry{ .id = TypeId::Of<T>(), .ops = MakePrimitiveOps<T>() };
     if constexpr (std::integral<T> && !std::same_as<T, bool>)
     {
-        entry.int_format = IntFormat{ .width = IntWidthOf<T>(), .is_signed = std::is_signed_v<T> };
+        entry.int_format = IntFormat{ .width = serde::IntWidthOf<T>(), .is_signed = std::is_signed_v<T> };
     }
     return entry;
 }
@@ -457,7 +457,7 @@ public:
     void Str(StringView value)
     {
         U64(value.ByteLen());
-        hash = HashUtils::FNV(value, hash);
+        hash = hash::FNV(value, hash);
     }
 
     void Node(ESchemaNode node)

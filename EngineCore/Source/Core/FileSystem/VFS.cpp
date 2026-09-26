@@ -54,7 +54,7 @@ void VFS::Mount(StringView scheme, const Path& physical_path, i32 priority)
     }
 
     points.Push({
-        .physical_path = FileSystem::Absolute(physical_path),
+        .physical_path = fs::Absolute(physical_path),
         .priority = priority
     });
 
@@ -86,7 +86,7 @@ void VFS::EnsureDirectories(ArrayView<const StringView> schemes)
         {
             if (!point.physical_path.Exists())
             {
-                FileSystem::CreateDirectories(point.physical_path);
+                fs::CreateDirectories(point.physical_path);
                 ConsoleLog(ELogLevel::Info, "VFS: Created directory for '{}://': '{}'", scheme, point.physical_path);
             }
         }
@@ -158,7 +158,7 @@ Optional<VPath> VFS::UnresolveImpl(const Path& physical_path) const
 {
     std::shared_lock lock(mutex);
 
-    Path abs_input = FileSystem::Absolute(physical_path);
+    Path abs_input = fs::Absolute(physical_path);
     const String& input_str = abs_input.ToString();
     const StringView input_view{ input_str };
 

@@ -284,11 +284,11 @@ TEST(SerializerTest, NestedStructPackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     Transform result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result.position, original.position);
     EXPECT_EQ(result.scale, original.scale);
@@ -305,11 +305,11 @@ TEST(SerializerTest, NestedArrayPackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     Array<Array<i32>> result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result, original);
 }
@@ -327,11 +327,11 @@ TEST(SerializerTest, ContainerFieldsPackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     HasContainerFields result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result.grid, original.grid);
     EXPECT_EQ(result.points, original.points);
@@ -348,12 +348,12 @@ TEST(SerializerTest, OptionalNonePackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     HasOptionalField result;
     result.value.Emplace(999); // 데이터의 None이 실제로 반영되는지 보기 위해 미리 Some으로 채움
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_FALSE(result.value.HasValue());
 }
@@ -369,11 +369,11 @@ TEST(SerializerTest, SignedAndUnsignedEnumPackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     HasEnumFields result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result.level, original.level);
     EXPECT_EQ(result.flag, original.flag);
@@ -389,11 +389,11 @@ TEST(SerializerTest, InheritedFieldsPackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     NamedEntity result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result.id, original.id);
     EXPECT_EQ(result.name, original.name);
@@ -410,11 +410,11 @@ TEST(SerializerTest, TraitLeafFieldsPackedRoundTrip)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     HasTraitLeafFields result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result.id, original.id);
     EXPECT_EQ(result.label, original.label);
@@ -435,7 +435,7 @@ TEST(SerializerTest, EventWriterNodeCallOrderGolden)
 
     Array<SerializeEvent> events;
     EventWriter writer(events, /*is_text_format=*/true);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     ASSERT_EQ(events.Len(), 17u);
 
@@ -493,7 +493,7 @@ TEST(SerializerTest, DeserializeReplacesExistingContainerContents)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, source).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, source).HasValue());
 
     // 원본과 다른 원소를 미리 채움. 결과는 누적 없이 데이터와 같아야 함
     ReplaceableContainers target{
@@ -503,7 +503,7 @@ TEST(SerializerTest, DeserializeReplacesExistingContainerContents)
     };
 
     PackedReader reader(buffer);
-    ASSERT_TRUE(Deserialize(reader, target).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, target).HasValue());
 
     EXPECT_EQ(target, source);
 }
@@ -525,7 +525,7 @@ TEST(SerializerTest, MissingOptionalFieldResetsToNoneEvenWhenPreviouslySome)
     HasOptionalField target;
     target.value.Emplace(123); // 역직렬화 전에는 Some(123)
 
-    ASSERT_TRUE(Deserialize(reader, target).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, target).HasValue());
     EXPECT_FALSE(target.value.HasValue());
 }
 
@@ -544,14 +544,14 @@ TEST(SerializerTest, TruncatedBufferProducesElementFieldPath)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     // count(4바이트) + item0..2(각 4바이트) = 16바이트 뒤, item3의 4바이트 중 2바이트만 남기고 자름
     buffer.Truncate(18);
 
     PackedReader reader(buffer);
     HasItemsArray result;
-    const auto read_result = Deserialize(reader, result);
+    const auto read_result = serde::Deserialize(reader, result);
 
     ASSERT_TRUE(read_result.HasError());
     EXPECT_EQ(read_result.Error().path, "items[3].value");
@@ -565,7 +565,7 @@ TEST(SerializerTest, HugeSeqCountProducesError)
 
     PackedReader reader(buffer);
     Array<i32> target;
-    const auto read_result = Deserialize(reader, target);
+    const auto read_result = serde::Deserialize(reader, target);
 
     EXPECT_TRUE(read_result.HasError());
 }
@@ -584,7 +584,7 @@ TEST(SerializerTest, DeepNestingHitsDepthLimitWithoutCrashing)
 
     PackedReader reader(buffer);
     RecursiveNode result;
-    const auto read_result = Deserialize(reader, result);
+    const auto read_result = serde::Deserialize(reader, result);
 
     ASSERT_TRUE(read_result.HasError());
     EXPECT_TRUE(read_result.Error().message.Contains("depth"));
@@ -603,12 +603,12 @@ TEST(SerializerTest, ArrayOfNonDefaultConstructibleElementFailsToResizeOnDeseria
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    const auto write_result = Serialize(writer, original);
+    const auto write_result = serde::Serialize(writer, original);
     ASSERT_TRUE(write_result.HasValue()); // 쓰기는 len/element_at만 필요
 
     PackedReader reader(buffer);
     HasNoDefaultArray target; // 빈 배열(길이 0)
-    const auto read_result = Deserialize(reader, target);
+    const auto read_result = serde::Deserialize(reader, target);
 
     EXPECT_TRUE(read_result.HasError()); // 길이(0 -> 2)를 바꿀 수 없어 오류
 }
@@ -619,11 +619,11 @@ TEST(SerializerTest, EmptySetOfNonDefaultConstructibleElementDeserializes)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, HasNoDefaultSet{}).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, HasNoDefaultSet{}).HasValue());
 
     PackedReader reader(buffer);
     HasNoDefaultSet target;
-    EXPECT_TRUE(Deserialize(reader, target).HasValue()); // 원소가 없으면 임시 원소를 만들지 않음
+    EXPECT_TRUE(serde::Deserialize(reader, target).HasValue()); // 원소가 없으면 임시 원소를 만들지 않음
 }
 
 TEST(SerializerTest, SetOfNonDefaultConstructibleElementFailsToDeserialize)
@@ -635,11 +635,11 @@ TEST(SerializerTest, SetOfNonDefaultConstructibleElementFailsToDeserialize)
 
     Array<u8> buffer;
     PackedWriter writer(buffer);
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
     PackedReader reader(buffer);
     HasNoDefaultSet target;
-    const auto read_result = Deserialize(reader, target);
+    const auto read_result = serde::Deserialize(reader, target);
 
     ASSERT_TRUE(read_result.HasError()); // 임시 원소를 기본 생성할 수 없어 오류
     EXPECT_EQ(read_result.Error().path, "keys");
@@ -660,12 +660,12 @@ TEST(SerializerTest, PackedFileRoundTrip)
 
     Array<u8> buffer;
     PackedFileWriter writer(buffer, plan.type, plan.SchemaHash());
-    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
     writer.Finish();
 
     PackedFileReader reader(buffer, plan.type, plan.SchemaHash());
     Transform result;
-    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     EXPECT_EQ(result.position, original.position);
     EXPECT_EQ(result.scale, original.scale);
@@ -678,7 +678,7 @@ TEST(SerializerTest, PackedFileHeaderMismatchSurfacesAsDeserializeError)
     const SerializePlan& written_plan = SerializePlan::Of<Transform>();
     Array<u8> buffer;
     PackedFileWriter writer(buffer, written_plan.type, written_plan.SchemaHash());
-    ASSERT_TRUE(Serialize(writer, Transform{}).HasValue());
+    ASSERT_TRUE(serde::Serialize(writer, Transform{}).HasValue());
     writer.Finish();
 
     // Transform으로 쓴 데이터를 다른 타입으로 열면 헤더 검증이 실패하고, 그 오류가 Deserialize의 결과가 됨
@@ -686,7 +686,7 @@ TEST(SerializerTest, PackedFileHeaderMismatchSurfacesAsDeserializeError)
     PackedFileReader reader(buffer, read_plan.type, read_plan.SchemaHash());
 
     HasOptionalField target{ .value = 5 };
-    const auto read_result = Deserialize(reader, target);
+    const auto read_result = serde::Deserialize(reader, target);
 
     ASSERT_TRUE(read_result.HasError());
     EXPECT_TRUE(read_result.Error().message.Contains("root type"));

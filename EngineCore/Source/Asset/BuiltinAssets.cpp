@@ -26,11 +26,11 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         mat->shading_model = EShadingModel::Lit;
 
         // 텍스처 슬롯 정의 (fragment shader binding 순서와 일치)
-        mat->texture_slots.Push({ .name = "BaseColor",         .fragment_slot = 0, .sampler = ESamplerType::LinearRepeat, .default_texture_id = BuiltinAssetIds::White1x1   });
-        mat->texture_slots.Push({ .name = "MetallicRoughness", .fragment_slot = 1, .sampler = ESamplerType::LinearRepeat, .default_texture_id = BuiltinAssetIds::DefaultORM });
-        mat->texture_slots.Push({ .name = "Normal",            .fragment_slot = 2, .sampler = ESamplerType::LinearRepeat, .default_texture_id = BuiltinAssetIds::FlatNormal });
-        mat->texture_slots.Push({ .name = "Occlusion",         .fragment_slot = 3, .sampler = ESamplerType::LinearRepeat, .default_texture_id = BuiltinAssetIds::DefaultORM });
-        mat->texture_slots.Push({ .name = "Emissive",          .fragment_slot = 4, .sampler = ESamplerType::LinearRepeat, .default_texture_id = BuiltinAssetIds::Black1x1   });
+        mat->texture_slots.Push({ .name = "BaseColor",         .fragment_slot = 0, .sampler = ESamplerType::LinearRepeat, .default_texture_id = builtin_assets::White1x1   });
+        mat->texture_slots.Push({ .name = "MetallicRoughness", .fragment_slot = 1, .sampler = ESamplerType::LinearRepeat, .default_texture_id = builtin_assets::DefaultORM });
+        mat->texture_slots.Push({ .name = "Normal",            .fragment_slot = 2, .sampler = ESamplerType::LinearRepeat, .default_texture_id = builtin_assets::FlatNormal });
+        mat->texture_slots.Push({ .name = "Occlusion",         .fragment_slot = 3, .sampler = ESamplerType::LinearRepeat, .default_texture_id = builtin_assets::DefaultORM });
+        mat->texture_slots.Push({ .name = "Emissive",          .fragment_slot = 4, .sampler = ESamplerType::LinearRepeat, .default_texture_id = builtin_assets::Black1x1   });
 
         // 파라미터 정의: std140 UBO 레이아웃 (총 48 bytes):
         //   [0:15]  base_color_factor (Float4) 베이스 컬러 팩터
@@ -48,15 +48,15 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         mat->FinalizeLayout();
 
         auto inst = std::make_unique<MaterialInstance>();
-        inst->parent_material_id = BuiltinAssetIds::DefaultLit;
+        inst->parent_material_id = builtin_assets::DefaultLit;
         inst->InitializeFromParent(*mat);
 
-        if (!subsystem.RegisterBuiltin(BuiltinAssetIds::DefaultLit, std::move(mat)).IsValid())
+        if (!subsystem.RegisterBuiltin(builtin_assets::DefaultLit, std::move(mat)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register DefaultLit Material.");
         }
 
-        if (!subsystem.RegisterBuiltin(BuiltinAssetIds::DefaultLitInstance, std::move(inst)).IsValid())
+        if (!subsystem.RegisterBuiltin(builtin_assets::DefaultLitInstance, std::move(inst)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register DefaultLitInstance.");
         }
@@ -76,7 +76,7 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         tex->generate_mips = false;
         tex->pixels = { 255, 255, 255, 255 };
 
-        if (!subsystem.RegisterBuiltin(BuiltinAssetIds::White1x1, std::move(tex)).IsValid())
+        if (!subsystem.RegisterBuiltin(builtin_assets::White1x1, std::move(tex)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register White1x1 Texture2D.");
         }
@@ -92,7 +92,7 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         tex->generate_mips = false;
         tex->pixels = { 0, 0, 0, 255 };
 
-        if (!subsystem.RegisterBuiltin(BuiltinAssetIds::Black1x1, std::move(tex)).IsValid())
+        if (!subsystem.RegisterBuiltin(builtin_assets::Black1x1, std::move(tex)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register Black1x1 Texture2D.");
         }
@@ -108,7 +108,7 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         tex->generate_mips = false;
         tex->pixels = { 128, 128, 255, 255 };
 
-        if (!subsystem.RegisterBuiltin(BuiltinAssetIds::FlatNormal, std::move(tex)).IsValid())
+        if (!subsystem.RegisterBuiltin(builtin_assets::FlatNormal, std::move(tex)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register FlatNormal Texture2D.");
         }
@@ -129,7 +129,7 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
         // A (Unused)    = 255
         tex->pixels = { 255, 128, 0, 255 };
 
-        if (!subsystem.RegisterBuiltin(BuiltinAssetIds::DefaultORM, std::move(tex)).IsValid())
+        if (!subsystem.RegisterBuiltin(builtin_assets::DefaultORM, std::move(tex)).IsValid())
         {
             ConsoleLog(ELogLevel::Error, "SeedBuiltinAssets: Failed to register DefaultORM Texture2D.");
         }

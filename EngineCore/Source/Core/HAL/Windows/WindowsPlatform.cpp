@@ -61,7 +61,7 @@ se::String GetThreadName(HANDLE handle)
     const std::wstring name{ data };
     LocalFree(data);
 
-    return se::StringUtils::ToString(name);
+    return se::str::ToString(name);
 }
 } // namespace
 
@@ -85,7 +85,7 @@ void Platform::RevealInExplorer(const Path& path)
         return;
     }
 
-    const Path absolute_path = FileSystem::Absolute(path);
+    const Path absolute_path = fs::Absolute(path);
     std::wstring wstr_path = ConvertToWString(absolute_path.ToString());
     std::ranges::replace(wstr_path, L'/', L'\\');
 

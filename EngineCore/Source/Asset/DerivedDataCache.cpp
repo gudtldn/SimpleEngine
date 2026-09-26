@@ -69,7 +69,7 @@ bool ReadHeader(
     DDC_CacheEntryInternal::Header header;
     bool deserialize_success = false;
 
-    for (auto&& file_result : FileSystem::ReadChunked(cache_path, CHUNK_SIZE))
+    for (auto&& file_result : fs::ReadChunked(cache_path, CHUNK_SIZE))
     {
         // 파일 시스템 에러 체크
         if (file_result.HasError())
@@ -115,7 +115,7 @@ DerivedDataCache::DerivedDataCache(Path in_root_path)
     // DDC 루트 디렉토리가 없으면 생성
     if (!root_path.Exists())
     {
-        FileSystem::CreateDirectories(root_path);
+        fs::CreateDirectories(root_path);
     }
 }
 
@@ -173,7 +173,7 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
     {
         if (!parent->Exists())
         {
-            FileSystem::CreateDirectories(*parent);
+            fs::CreateDirectories(*parent);
         }
     }
 
@@ -192,13 +192,13 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
     writer << cache_internal;
 
     // Atomic Write: 임시 파일에 먼저 쓰고 rename
-    if (!FileSystem::Write(temp_path, buffer))
+    if (!fs::Write(temp_path, buffer))
     {
         ConsoleLog(ELogLevel::Error, "DDC::Store - Failed to write temp file: {}", temp_path);
         return false;
     }
 
-    if (!FileSystem::Rename(temp_path, cache_path))
+    if (!fs::Rename(temp_path, cache_path))
     {
         ConsoleLog(ELogLevel::Error, "DDC::Store - Failed to rename temp -> cache: {} -> {}", temp_path, cache_path);
         return false;
@@ -213,7 +213,7 @@ Optional<CacheEntry> DerivedDataCache::Load(const Guid& guid) const
 
     const Path cache_path = BuildCachePath(guid);
 
-    const FileResult<Array<u8>> buffer_result = FileSystem::ReadBytes(cache_path);
+    const FileResult<Array<u8>> buffer_result = fs::ReadBytes(cache_path);
     if (buffer_result)
     {
         return ParseFromBuffer(buffer_result.Value());
@@ -256,7 +256,7 @@ bool DerivedDataCache::Remove(const Guid& guid)
         return true;
     }
 
-    return FileSystem::Remove(cache_path);
+    return fs::Remove(cache_path);
 }
 
 void DerivedDataCache::Clear()
@@ -265,11 +265,11 @@ void DerivedDataCache::Clear()
 
     if (root_path.Exists())
     {
-        const usize removed = FileSystem::RemoveAll(root_path);
+        const usize removed = fs::RemoveAll(root_path);
         ConsoleLog(ELogLevel::Info, "DDC::Clear - Removed {} entries from: {}", removed, root_path);
 
         // 루트 디렉토리 재생성
-        FileSystem::CreateDirectories(root_path);
+        fs::CreateDirectories(root_path);
     }
 }
 

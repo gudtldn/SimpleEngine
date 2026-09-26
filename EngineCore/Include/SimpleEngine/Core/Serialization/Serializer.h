@@ -21,6 +21,8 @@ struct SerializeError
     String message;
 };
 
+namespace serde
+{
 /**
  * plan을 따라 value를 순회하며 writer에 씁니다.
  * @note 단일 스레드를 전제로 설계되었습니다.
@@ -52,4 +54,5 @@ template <typename T>
 {
     return Deserialize(reader, SerializePlan::Of<T>(), &value);
 }
+} // namespace serde
 } // namespace se

@@ -20,7 +20,7 @@ ShaderCompileResult<Array<u8>> CompileHLSLToSPIRV(
 #if SE_HAS_HLSL_COMPILER
     // read shader file
     Array<u8> source;
-    if (auto result = FileSystem::ReadBytes(hlsl_path))
+    if (auto result = fs::ReadBytes(hlsl_path))
     {
         source = std::move(result).Value();
         source.Emplace('\0'); // null-terminated

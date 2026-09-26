@@ -206,7 +206,7 @@ void TomlReader_v1::BeginMapKey()
 
     if (ctx.map_it != ctx.map_end)
     {
-        current_map_key = StringUtils::ToString(ctx.map_it->first);
+        current_map_key = str::ToString(ctx.map_it->first);
     }
 
     reading_map_key = true;
@@ -404,7 +404,7 @@ void TomlReader_v1::SerializeString(String& value)
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = StringUtils::ToString(sv);
+        value = str::ToString(sv);
     }
 }
 
@@ -419,7 +419,7 @@ void TomlReader_v1::SerializeStringName(StringName& value)
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = StringUtils::ToString(sv);
+        value = str::ToString(sv);
     }
 }
 
@@ -434,7 +434,7 @@ void TomlReader_v1::SerializeGuid(Guid& value)
     std::u8string_view sv;
     if (ReadValue(sv))
     {
-        value = Guid::TryFromString(StringUtils::ToString(sv)).ValueOrDefault();
+        value = Guid::TryFromString(str::ToString(sv)).ValueOrDefault();
     }
 }
 

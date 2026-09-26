@@ -40,7 +40,7 @@ void Platform::RevealInExplorer(const Path& path)
     }
 
     // open -R은 파일을 선택하여 Finder에서 보여줌
-    const Path absolute_path = FileSystem::Absolute(path);
+    const Path absolute_path = fs::Absolute(path);
     const String command = String::Format("open -R \"{}\"", absolute_path);
     std::system(command.CStr());
 }

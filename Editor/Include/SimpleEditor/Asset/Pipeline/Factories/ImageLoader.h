@@ -54,36 +54,33 @@ struct ImageData
 using ImageLoadResult = Expected<ImageData, ImageLoadError>;
 
 /**
- * SDL3_image를 사용하여 다양한 소스에서 RGBA8 픽셀을 로드하는 유틸리티 클래스
+ * SDL3_image를 사용하여 다양한 소스에서 RGBA8 픽셀을 로드하는 유틸리티 함수 모음
  */
-class SE_EDITOR_API ImageLoader
+namespace image
 {
-public:
-    ImageLoader() = delete;
+/**
+ * 외부 텍스처 파일에서 이미지를 로드합니다.
+ * @param file_path 이미지 파일 경로
+ * @param is_srgb sRGB 감마 인코딩 여부 (포맷 결정에 사용)
+ */
+[[nodiscard]] SE_EDITOR_API ImageLoadResult LoadFromFile(const Path& file_path, bool is_srgb);
 
-    /**
-     * 외부 텍스처 파일에서 이미지를 로드합니다.
-     * @param file_path 이미지 파일 경로
-     * @param is_srgb sRGB 감마 인코딩 여부 (포맷 결정에 사용)
-     */
-    [[nodiscard]] static ImageLoadResult LoadFromFile(const Path& file_path, bool is_srgb);
+/**
+ * 메모리 상의 압축 이미지 바이트(PNG/JPG/TGA 등)에서 이미지를 로드합니다.
+ * @param data 압축 이미지 데이터 뷰
+ * @param is_srgb sRGB 감마 인코딩 여부
+ * @param format_hint Assimp achFormatHint ("png", "jpg", ...) 또는 빈 문자열
+ */
+[[nodiscard]] SE_EDITOR_API ImageLoadResult LoadFromMemory(ArrayView<const u8> data, bool is_srgb, StringView format_hint);
 
-    /**
-     * 메모리 상의 압축 이미지 바이트(PNG/JPG/TGA 등)에서 이미지를 로드합니다.
-     * @param data 압축 이미지 데이터 뷰
-     * @param is_srgb sRGB 감마 인코딩 여부
-     * @param format_hint Assimp achFormatHint ("png", "jpg", ...) 또는 빈 문자열
-     */
-    [[nodiscard]] static ImageLoadResult LoadFromMemory(ArrayView<const u8> data, bool is_srgb, StringView format_hint);
-
-    /**
-     * 이미 디코딩된 RGBA8 raw pixels를 ImageData로 패키징합니다.
-     * Assimp 임베디드 텍스처가 이미 RGBA8로 디코딩된 경우에 사용합니다.
-     * @param rgba8_pixels RGBA8 픽셀 데이터 뷰 (row-tightly-packed)
-     * @param width 이미지 너비
-     * @param height 이미지 높이
-     * @param is_srgb sRGB 감마 인코딩 여부
-     */
-    [[nodiscard]] static ImageData LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 width, u32 height, bool is_srgb);
-};
+/**
+ * 이미 디코딩된 RGBA8 raw pixels를 ImageData로 패키징합니다.
+ * Assimp 임베디드 텍스처가 이미 RGBA8로 디코딩된 경우에 사용합니다.
+ * @param rgba8_pixels RGBA8 픽셀 데이터 뷰 (row-tightly-packed)
+ * @param width 이미지 너비
+ * @param height 이미지 높이
+ * @param is_srgb sRGB 감마 인코딩 여부
+ */
+[[nodiscard]] SE_EDITOR_API ImageData LoadFromRawPixels(ArrayView<const u8> rgba8_pixels, u32 width, u32 height, bool is_srgb);
+} // namespace image
 } // namespace se::editor

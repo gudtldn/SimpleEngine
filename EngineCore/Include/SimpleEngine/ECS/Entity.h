@@ -55,7 +55,7 @@ struct std::hash<se::Entity>
     usize operator()(const se::Entity& entity) const noexcept
     {
         usize hash = 0;
-        se::HashUtils::Combine(hash, entity.GetId(), entity.GetGeneration());
+        se::hash::Combine(hash, entity.GetId(), entity.GetGeneration());
         return static_cast<usize>(hash);
     }
 };

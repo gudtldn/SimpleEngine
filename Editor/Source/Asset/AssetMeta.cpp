@@ -1,4 +1,4 @@
-#include "SimpleEditor/Asset/MetaFileManager.h"
+#include "SimpleEditor/Asset/AssetMeta.h"
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
@@ -28,18 +28,20 @@ Path BuildTempPath(const Path& meta_path)
 }
 } // namespace
 
-Optional<MetaFileContent> MetaFileManager::Load(const Path& source_path)
+namespace asset_meta
 {
-    ZoneScopedN("MetaFileManager::Load");
+Optional<MetaFileContent> Load(const Path& source_path)
+{
+    ZoneScopedN("asset_meta::Load");
 
-    const Path meta_path = GetMetaPath(source_path);
+    const Path meta_path = MetaPathOf(source_path);
     if (!meta_path.Exists())
     {
         return NullOpt;
     }
 
     // TOML 파일 읽기
-    const auto file_content = FileSystem::ReadToString(meta_path);
+    const auto file_content = fs::ReadToString(meta_path);
     if (!file_content.HasValue())
     {
         ConsoleLog(ELogLevel::Error, "Failed to read meta file: {}", meta_path);
@@ -62,18 +64,18 @@ Optional<MetaFileContent> MetaFileManager::Load(const Path& source_path)
     return content;
 }
 
-bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& content)
+bool Save(const Path& source_path, const MetaFileContent& content)
 {
-    ZoneScopedN("MetaFileManager::Save");
+    ZoneScopedN("asset_meta::Save");
 
-    const Path meta_path = GetMetaPath(source_path);
+    const Path meta_path = MetaPathOf(source_path);
 
     // 부모 디렉토리 보장
     if (const auto parent = meta_path.Parent())
     {
         if (!parent->Exists())
         {
-            FileSystem::CreateDirectories(*parent);
+            fs::CreateDirectories(*parent);
         }
     }
 
@@ -89,18 +91,18 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
     // Atomic Write: .tmp에 먼저 쓰고 rename
     const Path temp_path = BuildTempPath(meta_path);
     SE_SCOPE_DEFER_NAMED(rollback) {
-        FileSystem::Remove(temp_path);
+        fs::Remove(temp_path);
     };
 
-    if (!FileSystem::WriteString(temp_path, oss.view()))
+    if (!fs::WriteString(temp_path, oss.view()))
     {
-        ConsoleLog(ELogLevel::Error, "MetaFileManager::Save - Failed to write temp file: {}", temp_path.ToString());
+        ConsoleLog(ELogLevel::Error, "asset_meta::Save - Failed to write temp file: {}", temp_path.ToString());
         return false;
     }
 
-    if (!FileSystem::Rename(temp_path, meta_path))
+    if (!fs::Rename(temp_path, meta_path))
     {
-        ConsoleLog(ELogLevel::Error, "MetaFileManager::Save - Failed to rename temp -> meta: {} -> {}", temp_path.ToString(), meta_path.ToString());
+        ConsoleLog(ELogLevel::Error, "asset_meta::Save - Failed to rename temp -> meta: {} -> {}", temp_path.ToString(), meta_path.ToString());
         return false;
     }
 
@@ -108,31 +110,31 @@ bool MetaFileManager::Save(const Path& source_path, const MetaFileContent& conte
     return true;
 }
 
-bool MetaFileManager::HasMeta(const Path& source_path)
+bool Exists(const Path& source_path)
 {
-    return GetMetaPath(source_path).Exists();
+    return MetaPathOf(source_path).Exists();
 }
 
-void MetaFileManager::DeleteMeta(const Path& source_path)
+void Delete(const Path& source_path)
 {
-    const Path meta_path = GetMetaPath(source_path);
+    const Path meta_path = MetaPathOf(source_path);
     if (meta_path.Exists())
     {
-        if (!FileSystem::Remove(meta_path))
+        if (!fs::Remove(meta_path))
         {
             ConsoleLog(ELogLevel::Warning, "Failed to delete meta file: {}", meta_path.ToString());
         }
     }
 }
 
-Path MetaFileManager::GetMetaPath(const Path& source_path)
+Path MetaPathOf(const Path& source_path)
 {
     Path meta_path = source_path;
     meta_path += META_EXTENSION;
     return meta_path;
 }
 
-Path MetaFileManager::GetSourcePath(const Path& meta_path)
+Path SourcePathOf(const Path& meta_path)
 {
     // "dir/foo.fbx.meta" -> FileStem()="foo.fbx", Parent()="dir" -> "dir/foo.fbx"
     const String stem = meta_path.FileStem().ValueOrDefault();
@@ -142,4 +144,5 @@ Path MetaFileManager::GetSourcePath(const Path& meta_path)
     }
     return stem;
 }
+} // namespace asset_meta
 } // namespace se::editor

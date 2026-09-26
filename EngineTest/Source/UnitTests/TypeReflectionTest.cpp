@@ -107,10 +107,10 @@ TEST_F(TypeReflectionTest, TypeIdReturnsCorrectNameAndHash)
 
     // 컴파일 타임 기능이지만, 런타임 값도 확인
     EXPECT_EQ(TYPE_ID.GetName(), "int");
-    EXPECT_EQ(TYPE_ID.GetHash(), se::HashUtils::FNV("int"));
+    EXPECT_EQ(TYPE_ID.GetHash(), se::hash::FNV("int"));
 
     // static_assert를 사용하여 컴파일 타임 검증도 명시
-    static_assert(TYPE_ID.GetHash() == se::HashUtils::FNV("int"));
+    static_assert(TYPE_ID.GetHash() == se::hash::FNV("int"));
     SUCCEED(); // static_assert가 통과했음을 gtest에 알림
 }
 

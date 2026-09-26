@@ -104,7 +104,7 @@ Path ShaderCache::ResolveSpvPath(const VPath& shader_key)
 Optional<Array<u8>> ShaderCache::ReadSpvFile(const VPath& shader_key)
 {
     const Path spv_path = ResolveSpvPath(shader_key);
-    auto result = FileSystem::ReadBytes(spv_path);
+    auto result = fs::ReadBytes(spv_path);
     if (!result.HasValue())
     {
         ConsoleLog(

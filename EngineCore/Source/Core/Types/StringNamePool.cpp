@@ -86,7 +86,7 @@ Optional<const StringNameEntry&> StringNamePool::Find(StringView view) const
         return NullOpt;
     }
 
-    const u64 comparison_hash = HashUtils::FNVCaseInsensitive(view);
+    const u64 comparison_hash = hash::FNVCaseInsensitive(view);
 
     std::shared_lock lock(string_pool_mutex);
     return lookup_map.Find(comparison_hash)
@@ -109,7 +109,7 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     }
 
     // pool에 있는지 확인
-    const u64 display_hash = HashUtils::FNV(view);
+    const u64 display_hash = hash::FNV(view);
     {
         std::shared_lock lock(string_pool_mutex);
         if (const auto entry = entry_pool.Find(display_hash))
@@ -119,7 +119,7 @@ const StringNameEntry& StringNamePool::FindOrEmplace(StringView view)
     }
 
     // 없으면 만들기
-    const u64 comparison_hash = HashUtils::FNVCaseInsensitive(view);
+    const u64 comparison_hash = hash::FNVCaseInsensitive(view);
     std::unique_lock lock(string_pool_mutex);
 
     // Double Check

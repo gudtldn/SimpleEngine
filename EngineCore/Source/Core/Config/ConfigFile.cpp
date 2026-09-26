@@ -59,16 +59,16 @@ bool ConfigFile::Save(const VPath& config_file_path) const
     const String& physical_path_str = physical_path.ToString();
     const Path temp_path = Path{ physical_path_str + ".tmp" };
     SE_SCOPE_DEFER_NAMED(rollback) {
-        FileSystem::Remove(temp_path);
+        fs::Remove(temp_path);
     };
 
-    if (!FileSystem::WriteString(temp_path, oss.view()))
+    if (!fs::WriteString(temp_path, oss.view()))
     {
         ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to write temp file: {}", temp_path.ToString());
         return false;
     }
 
-    if (!FileSystem::Rename(temp_path, physical_path))
+    if (!fs::Rename(temp_path, physical_path))
     {
         ConsoleLog(ELogLevel::Error, "ConfigFile::Save: Failed to rename temp -> config: {} -> {}", temp_path.ToString(), physical_path.ToString());
         return false;

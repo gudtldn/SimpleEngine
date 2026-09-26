@@ -3,7 +3,7 @@
 #include "Asset/EditorAssetSubsystem.h"
 
 #include "SimpleEditor/Asset/MetaFileContent.h"
-#include "SimpleEditor/Asset/MetaFileManager.h"
+#include "SimpleEditor/Asset/AssetMeta.h"
 #include "SimpleEditor/Asset/ImportSettings/MeshImportSettings.h"
 #include "SimpleEditor/Asset/Pipeline/AssetImporter.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineProcessorStack.h"
@@ -173,7 +173,7 @@ bool EditorAssetSubsystem::Initialize()
             // 고아 .meta 정리
             if (const Path physical = VFS::ToPath(vpath); !physical.IsEmpty())
             {
-                MetaFileManager::DeleteMeta(physical);
+                asset_meta::Delete(physical);
             }
             ++orphaned_count;
         }
@@ -267,7 +267,7 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
 
         while (const auto dir = stack.Pop())
         {
-            for (const DirectoryEntry& entry : FileSystem::ReadDir(*dir))
+            for (const DirectoryEntry& entry : fs::ReadDir(*dir))
             {
                 const Path& entry_path = entry.GetPath();
 
@@ -289,10 +289,10 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
                 if (ext_opt == ".meta")
                 {
                     // .meta 파일의 소스 파일 존재 여부 확인 -> 없으면 고아 .meta
-                    Path source = MetaFileManager::GetSourcePath(entry_path);
+                    Path source = asset_meta::SourcePathOf(entry_path);
                     if (!source.Exists())
                     {
-                        if (auto content = MetaFileManager::Load(source))
+                        if (auto content = asset_meta::Load(source))
                         {
                             orphan_metas.Push({
                                 .source_path = std::move(source),
@@ -346,15 +346,15 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
     {
         Optional<MetaFileContent> content_opt;
 
-        if (MetaFileManager::HasMeta(file_path))
+        if (asset_meta::Exists(file_path))
         {
             // 기존 .meta 로드
-            content_opt = MetaFileManager::Load(file_path);
+            content_opt = asset_meta::Load(file_path);
         }
         else if (!orphan_by_hash.IsEmpty())
         {
             // .meta 없음 -> 해시 매칭으로 오프라인 이동 감지
-            const ContentHash hash = SHA256::HashFile(file_path);
+            const ContentHash hash = sha256::HashFile(file_path);
             if (const auto idx = orphan_by_hash.Find(hash))
             {
                 OrphanMeta& orphan = orphan_metas[*idx];
@@ -363,11 +363,11 @@ void EditorAssetSubsystem::ScanWorkspace(const Path& root_path, HashSet<VPath>& 
 
                 // 고아 .meta의 GUID를 계승하여 새 위치에 저장
                 MetaFileContent adopted = std::move(orphan.content);
-                adopted.metadata.source_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
-                adopted.metadata.source_size = static_cast<u64>(FileSystem::FileSize(file_path).ValueOrDefault());
+                adopted.metadata.source_mtime = fs::LastWriteTime(file_path).ValueOrDefault();
+                adopted.metadata.source_size = static_cast<u64>(fs::FileSize(file_path).ValueOrDefault());
 
-                MetaFileManager::Save(file_path, adopted);
-                MetaFileManager::DeleteMeta(orphan.source_path);
+                asset_meta::Save(file_path, adopted);
+                asset_meta::Delete(orphan.source_path);
 
                 orphan.source_path = {}; // 소비됨 표시
                 orphan_by_hash.Remove(hash);
@@ -457,10 +457,10 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
     ZoneScopedN("EditorAssetSubsystem::EnsureMetaFile");
 
     // .meta가 있는지 확인
-    if (MetaFileManager::HasMeta(source_path))
+    if (asset_meta::Exists(source_path))
     {
         // 있다면 Load
-        if (auto existing_content = MetaFileManager::Load(source_path))
+        if (auto existing_content = asset_meta::Load(source_path))
         {
             return existing_content;
         }
@@ -473,9 +473,9 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
     MetaFileContent content;
     content.metadata = {
         .guid = Guid::NewGuid(),
-        .source_hash = SHA256::HashFile(source_path),
-        .source_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault(),
-        .source_size = static_cast<u64>(FileSystem::FileSize(source_path).ValueOrDefault()),
+        .source_hash = sha256::HashFile(source_path),
+        .source_mtime = fs::LastWriteTime(source_path).ValueOrDefault(),
+        .source_size = static_cast<u64>(fs::FileSize(source_path).ValueOrDefault()),
         .cache_version = 1,
     };
 
@@ -485,7 +485,7 @@ Optional<MetaFileContent> EditorAssetSubsystem::EnsureMetaFile(const Path& sourc
         content.import_settings = preset_manager.GetDefaultProfile(*translator_type);
     }
 
-    if (!MetaFileManager::Save(source_path, content))
+    if (!asset_meta::Save(source_path, content))
     {
         ConsoleLog(ELogLevel::Error, "Failed to create .meta for: {}", source_path);
         return NullOpt;
@@ -524,7 +524,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const Path& file_path = *physical_opt;
 
     // .meta에서 ImportProfile 획득 (없으면 기본값)
-    auto meta_content_opt = MetaFileManager::Load(file_path);
+    auto meta_content_opt = asset_meta::Load(file_path);
     ImportProfile import_profile = meta_content_opt
         .Map([](const MetaFileContent& content)
         {
@@ -614,10 +614,10 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const ImportResult& result = result_exp.Value();
 
     // 해시 및 파일 메타 계산
-    const ContentHash source_hash = SHA256::HashFile(file_path);
+    const ContentHash source_hash = sha256::HashFile(file_path);
     constexpr u32 CURRENT_CACHE_VERSION = 1; // TODO: 캐시 버전이 여러곳에서 관리되고 있음.
-    const u64 file_mtime = FileSystem::LastWriteTime(file_path).ValueOrDefault();
-    const u64 file_size = static_cast<u64>(FileSystem::FileSize(file_path).ValueOrDefault());
+    const u64 file_mtime = fs::LastWriteTime(file_path).ValueOrDefault();
+    const u64 file_size = static_cast<u64>(fs::FileSize(file_path).ValueOrDefault());
 
     // Import Settings 해시 계산
     Array<u8> settings_bytes;
@@ -625,7 +625,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
         MemoryWriter_v1 writer(settings_bytes);
         writer << import_profile;
     }
-    const ContentHash settings_hash = SHA256::HashBytes(settings_bytes);
+    const ContentHash settings_hash = sha256::HashBytes(settings_bytes);
 
     updated_content.metadata.source_hash = source_hash;
     updated_content.metadata.source_mtime = file_mtime;
@@ -696,7 +696,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     }
 
     // .meta 파일 갱신 (위 루프에서 sub_assets가 이미 갱신된 상태, atomic write)
-    if (!MetaFileManager::Save(file_path, updated_content))
+    if (!asset_meta::Save(file_path, updated_content))
     {
         ConsoleLog(ELogLevel::Warning, "CookAsset: Failed to update .meta for: {}", file_path);
     }
@@ -739,7 +739,7 @@ bool EditorAssetSubsystem::ImportExternalFile(const Path& source_path)
         ConsoleLog(ELogLevel::Warning, "ImportExternalFile: File already exists, overwriting: {}", dest_path);
     }
 
-    if (!FileSystem::Copy(source_path, dest_path))
+    if (!fs::Copy(source_path, dest_path))
     {
         ConsoleLog(ELogLevel::Error, "ImportExternalFile: Failed to copy {} -> {}", source_path, dest_path);
         return false;
@@ -798,10 +798,10 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
     const AssetMetadata& meta = content.metadata;
 
     // 소스 파일 변경 확인 (mtime -> size -> SHA256 순서)
-    const u64 current_mtime = FileSystem::LastWriteTime(source_path).ValueOrDefault();
+    const u64 current_mtime = fs::LastWriteTime(source_path).ValueOrDefault();
     if (current_mtime != meta.source_mtime)
     {
-        const u64 current_size = static_cast<u64>(FileSystem::FileSize(source_path).ValueOrDefault());
+        const u64 current_size = static_cast<u64>(fs::FileSize(source_path).ValueOrDefault());
         if (current_size != meta.source_size)
         {
             return true;
@@ -809,7 +809,7 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
 
         // mtime 변경 + size 동일 -> SHA256 해시로 최종 확인
         // (git branch 전환, touch 등으로 mtime만 바뀐 경우 불필요한 reimport 방지)
-        const ContentHash current_hash = SHA256::HashFile(source_path);
+        const ContentHash current_hash = sha256::HashFile(source_path);
         if (current_hash != meta.source_hash)
         {
             return true;
@@ -825,7 +825,7 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
             MemoryWriter_v1 writer(settings_bytes);
             writer << content.import_settings;
         }
-        const ContentHash current_settings_hash = SHA256::HashBytes(settings_bytes);
+        const ContentHash current_settings_hash = sha256::HashBytes(settings_bytes);
         if (current_settings_hash != meta.settings_hash)
         {
             return true;

@@ -51,7 +51,7 @@ Application& Application::Get()
 
 void Application::Startup(const wchar_t* cmd_line)
 {
-    Startup(StringUtils::ToString(cmd_line));
+    Startup(str::ToString(cmd_line));
 }
 
 void Application::Startup(const String& cmd_line)
@@ -101,8 +101,8 @@ void Application::Startup(const String& cmd_line)
             | std::views::transform([](const PairType& p) { return p.second.Bytes(); });
 
         ConsoleLog(ELogLevel::Debug, "CPU Features:");
-        ConsoleLog(ELogLevel::Debug, "- On:  {}", StringUtils::Join(on_view, ", "));
-        ConsoleLog(ELogLevel::Debug, "- Off: {}", StringUtils::Join(off_view, ", "));
+        ConsoleLog(ELogLevel::Debug, "- On:  {}", str::Join(on_view, ", "));
+        ConsoleLog(ELogLevel::Debug, "- Off: {}", str::Join(off_view, ", "));
     }
 
     CpuFeature::ValidateSimdSupport();

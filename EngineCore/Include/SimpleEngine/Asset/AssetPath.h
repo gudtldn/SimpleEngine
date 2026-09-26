@@ -60,7 +60,7 @@ struct std::hash<se::AssetPath>
     usize operator()(const se::AssetPath& path) const noexcept
     {
         usize hash = 0;
-        se::HashUtils::Combine(hash, path.GetFilePath(), path.GetSubAssetName());
+        se::hash::Combine(hash, path.GetFilePath(), path.GetSubAssetName());
         return hash;
     }
 };

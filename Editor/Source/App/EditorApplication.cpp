@@ -134,13 +134,13 @@ bool EditorApplication::PostInitialize()
         const Path hlsl_dir = VFS::ToPath("CoreShader://");
         const Path output_dir = VFS::ToPath("CoreShader://Compiled");
 
-        EditorShaderCompiler::CompileAll(hlsl_dir, output_dir);
+        shader_compiler::CompileAll(hlsl_dir, output_dir);
     }
     {
         const Path editor_hlsl_dir = VFS::ToPath("EditorShader://");
         const Path editor_output_dir = VFS::ToPath("EditorShader://Compiled");
 
-        EditorShaderCompiler::CompileAll(editor_hlsl_dir, editor_output_dir);
+        shader_compiler::CompileAll(editor_hlsl_dir, editor_output_dir);
     }
 #endif
 
@@ -408,7 +408,7 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
 
     // 텍스처 중복 업로드 방지 (White1x1은 항상 별도 처리하므로 미리 삽입)
     HashSet<AssetId> queued_textures;
-    queued_textures.Insert(BuiltinAssetIds::White1x1);
+    queued_textures.Insert(builtin_assets::White1x1);
 
     // 이번 PrepareGpuUploads 호출에서 로드할 MaterialInstance 누적 세트
     HashSet<AssetId> pending_material_instances;
@@ -568,12 +568,12 @@ void EditorApplication::PrepareGpuUploads(FramePacket& fp)
 
     // --- Texture residency 체크 ---
     // White1x1 빌트인 보장
-    if (!gpu_manager.GetTexture(BuiltinAssetIds::White1x1).HasValue())
+    if (!gpu_manager.GetTexture(builtin_assets::White1x1).HasValue())
     {
-        if (AssetHandle<Texture2D> handle = asset_subsystem->Find<Texture2D>(BuiltinAssetIds::White1x1))
+        if (AssetHandle<Texture2D> handle = asset_subsystem->Find<Texture2D>(builtin_assets::White1x1))
         {
             fp.texture_upload_requests.Push({
-                .texture_id = BuiltinAssetIds::White1x1,
+                .texture_id = builtin_assets::White1x1,
                 .handle = std::move(handle),
             });
         }

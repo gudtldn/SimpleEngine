@@ -172,7 +172,7 @@ void Engine::GenerateDefaultEngineConfig()
     const Path config_dir = Platform::FindProjectRoot() / "Config";
     if (!config_dir.Exists())
     {
-        FileSystem::CreateDirectories(config_dir);
+        fs::CreateDirectories(config_dir);
     }
 
     ConfigFile config;

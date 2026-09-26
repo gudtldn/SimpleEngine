@@ -21,12 +21,12 @@ public:
         char* pref = SDL_GetPrefPath("SimpleEngine", "Tests");
         root_path = Path(pref) / Path("DDCTest") / Path(name);
         SDL_free(pref);
-        FileSystem::CreateDirectories(root_path);
+        fs::CreateDirectories(root_path);
     }
 
     ~TempDir()
     {
-        FileSystem::RemoveAll(root_path);
+        fs::RemoveAll(root_path);
     }
 
     [[nodiscard]] const Path& GetPath() const { return root_path; }

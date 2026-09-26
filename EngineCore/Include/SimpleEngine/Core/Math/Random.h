@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 
-namespace se::math
+namespace se
 {
 /**
  * PCG32 기반의 고성능 난수 스트림 클래스
@@ -47,32 +47,30 @@ private:
 };
 
 /**
- * 전역에서 사용할 수 있는 난수 유틸리티 구조체
+ * 전역에서 사용할 수 있는 난수 유틸리티 함수 모음
  * @details 스레드 로컬 RandomStream을 사용하여 스레드 안전을 보장합니다.
  */
-struct SE_CORE_API Random
+namespace random
 {
-    Random() = delete;
+/** 전역 난수 스트림의 시드를 설정합니다. */
+SE_CORE_API void Seed(u64 in_state, u64 in_seq = 0);
 
-    /** 전역 난수 스트림의 시드를 설정합니다. */
-    static void Seed(u64 in_state, u64 in_seq = 0);
+/** 0 ~ 2^32-1 범위의 난수를 반환합니다. */
+SE_CORE_API u32 Next();
 
-    /** 0 ~ 2^32-1 범위의 난수를 반환합니다. */
-    static u32 Next();
+/** [0, in_max) 범위의 정수 난수를 반환합니다. */
+SE_CORE_API u32 Range(u32 in_max);
 
-    /** [0, in_max) 범위의 정수 난수를 반환합니다. */
-    static u32 Range(u32 in_max);
+/** [in_min, in_max] 범위의 정수 난수를 반환합니다. */
+SE_CORE_API i32 Range(i32 in_min, i32 in_max);
 
-    /** [in_min, in_max] 범위의 정수 난수를 반환합니다. */
-    static i32 Range(i32 in_min, i32 in_max);
+/** [0.0f, 1.0f) 범위의 실수 난수를 반환합니다. */
+SE_CORE_API f32 Float();
 
-    /** [0.0f, 1.0f) 범위의 실수 난수를 반환합니다. */
-    static f32 Float();
+/** [in_min, in_max) 범위의 실수 난수를 반환합니다. */
+SE_CORE_API f32 Range(f32 in_min, f32 in_max);
 
-    /** [in_min, in_max) 범위의 실수 난수를 반환합니다. */
-    static f32 Range(f32 in_min, f32 in_max);
-
-    /** 무작위로 true 또는 false를 반환합니다. */
-    static bool Bool();
-};
-} // namespace se::math
+/** 무작위로 true 또는 false를 반환합니다. */
+SE_CORE_API bool Bool();
+} // namespace random
+} // namespace se

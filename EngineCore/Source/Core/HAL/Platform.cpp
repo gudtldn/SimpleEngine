@@ -25,7 +25,7 @@ Path Platform::FindProjectRoot()
         for (u32 i = 0; i < MAX_TRAVERSAL_DEPTH; ++i)
         {
             // 현재 디렉토리에서 *.seproject 파일 탐색
-            for (const DirectoryEntry& entry : FileSystem::ReadDir(current))
+            for (const DirectoryEntry& entry : fs::ReadDir(current))
             {
                 if (entry.IsFile())
                 {

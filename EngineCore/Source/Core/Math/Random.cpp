@@ -4,7 +4,7 @@
 #include <random>
 
 
-namespace se::math
+namespace se
 {
 namespace
 {
@@ -127,38 +127,41 @@ bool RandomStream::Bool()
     return (Next() & (1U << 31)) != 0U;
 }
 
-void Random::Seed(u64 in_state, u64 in_seq)
+namespace random
+{
+void Seed(u64 in_state, u64 in_seq)
 {
     tl_random_stream.Seed(in_state, in_seq);
 }
 
-u32 Random::Next()
+u32 Next()
 {
     return tl_random_stream.Next();
 }
 
-u32 Random::Range(u32 in_max)
+u32 Range(u32 in_max)
 {
     return tl_random_stream.Range(in_max);
 }
 
-i32 Random::Range(i32 in_min, i32 in_max)
+i32 Range(i32 in_min, i32 in_max)
 {
     return tl_random_stream.Range(in_min, in_max);
 }
 
-f32 Random::Float()
+f32 Float()
 {
     return tl_random_stream.Float();
 }
 
-f32 Random::Range(f32 in_min, f32 in_max)
+f32 Range(f32 in_min, f32 in_max)
 {
     return tl_random_stream.Range(in_min, in_max);
 }
 
-bool Random::Bool()
+bool Bool()
 {
     return tl_random_stream.Bool();
 }
-} // namespace se::math
+} // namespace random
+} // namespace se

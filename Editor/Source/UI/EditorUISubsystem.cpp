@@ -241,7 +241,7 @@ void EditorUISubsystem::DrawMainMenu()
                     FileDialog::SaveFile(
                         [buf = std::move(buffer)](const Path& path)
                         {
-                            if (FileSystem::Write(path, buf))
+                            if (fs::Write(path, buf))
                             {
                                 ConsoleLog(ELogLevel::Info, "World saved (binary): {}", path);
                             }
@@ -276,7 +276,7 @@ void EditorUISubsystem::DrawMainMenu()
                     FileDialog::SaveFile(
                         [con = std::move(content)](const Path& path)
                         {
-                            if (FileSystem::WriteString(path, con))
+                            if (fs::WriteString(path, con))
                             {
                                 ConsoleLog(ELogLevel::Info, "World saved (TOML): {}", path);
                             }
@@ -298,7 +298,7 @@ void EditorUISubsystem::DrawMainMenu()
                     [](const Path& path)
                     {
                         // 파일 읽기는 다이얼로그 스레드에서 수행 (I/O만)
-                        FileResult<Array<u8>> bytes_result = FileSystem::ReadBytes(path);
+                        FileResult<Array<u8>> bytes_result = fs::ReadBytes(path);
                         if (bytes_result.HasError())
                         {
                             ConsoleLog(ELogLevel::Error, "Failed to read file: {}, Err: {}", path, bytes_result.Error().What());

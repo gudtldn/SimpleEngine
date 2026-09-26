@@ -132,153 +132,151 @@ private:
 /**
  * 파일시스템 I/O 작업을 위한 유틸리티
  */
-struct SE_CORE_API FileSystem
+namespace fs
 {
-    FileSystem() = delete;
+// =========================================================================
+// Path Operations
+// =========================================================================
 
-    // =========================================================================
-    // Path Operations
-    // =========================================================================
+/**
+ * 경로를 절대 경로로 변환합니다.
+ * @param path 변환할 경로
+ * @return 절대 경로. 실패 시 빈 경로를 반환합니다.
+ */
+[[nodiscard]] SE_CORE_API Path Absolute(const Path& path);
 
-    /**
-     * 경로를 절대 경로로 변환합니다.
-     * @param path 변환할 경로
-     * @return 절대 경로. 실패 시 빈 경로를 반환합니다.
-     */
-    [[nodiscard]] static Path Absolute(const Path& path);
-
-    /**
-     * 경로를 정규화된 절대 경로(canonical path)로 변환합니다.
-     * @note SDL3에는 심볼릭 링크 해소 API가 없으므로 Absolute + 존재 확인만 수행합니다.
-     * @param path 변환할 경로 (반드시 존재해야 함)
-     * @return 정규화된 절대 경로. 실패 시 nullopt를 반환합니다.
-     */
-    [[nodiscard]] static Optional<Path> Canonical(const Path& path);
+/**
+ * 경로를 정규화된 절대 경로(canonical path)로 변환합니다.
+ * @note SDL3에는 심볼릭 링크 해소 API가 없으므로 Absolute + 존재 확인만 수행합니다.
+ * @param path 변환할 경로 (반드시 존재해야 함)
+ * @return 정규화된 절대 경로. 실패 시 nullopt를 반환합니다.
+ */
+[[nodiscard]] SE_CORE_API Optional<Path> Canonical(const Path& path);
 
 
-    // =========================================================================
-    // Directory Operations
-    // =========================================================================
+// =========================================================================
+// Directory Operations
+// =========================================================================
 
-    /**
-     * 디렉토리를 생성합니다. 중간 디렉토리가 없으면 함께 생성합니다.
-     * @param path 생성할 디렉토리 경로
-     * @return 성공 시 true, 실패 시 false (이미 존재하는 경우도 true)
-     */
-    static bool CreateDirectories(const Path& path);
-
-
-    // =========================================================================
-    // File Operations
-    // =========================================================================
-
-    /**
-     * 파일 또는 디렉토리를 삭제합니다.
-     * @param path 삭제할 경로
-     * @return 삭제 성공 시 true, 실패하거나 존재하지 않으면 false
-     */
-    static bool Remove(const Path& path);
-
-    /**
-     * 파일 또는 디렉토리를 재귀적으로 삭제합니다.
-     * @param path 삭제할 경로
-     * @return 삭제된 항목 수
-     */
-    static usize RemoveAll(const Path& path);
-
-    /**
-     * 파일 또는 디렉토리를 복사합니다.
-     * @param from 원본 경로
-     * @param to 대상 경로
-     * @return 성공 시 true
-     */
-    static bool Copy(const Path& from, const Path& to);
-
-    /**
-     * 파일 또는 디렉토리의 이름을 변경하거나 이동합니다.
-     * @param from 원본 경로
-     * @param to 대상 경로
-     * @return 성공 시 true
-     */
-    static bool Rename(const Path& from, const Path& to);
+/**
+ * 디렉토리를 생성합니다. 중간 디렉토리가 없으면 함께 생성합니다.
+ * @param path 생성할 디렉토리 경로
+ * @return 성공 시 true, 실패 시 false (이미 존재하는 경우도 true)
+ */
+SE_CORE_API bool CreateDirectories(const Path& path);
 
 
-    // =========================================================================
-    // File Info
-    // =========================================================================
+// =========================================================================
+// File Operations
+// =========================================================================
 
-    /**
-     * 파일 또는 디렉토리가 존재하는지 확인합니다.
-     * @param path 확인할 경로
-     * @return 존재하면 true, 존자하지 않으면 false
-     */
-    [[nodiscard]] static bool Exists(const Path& path);
+/**
+ * 파일 또는 디렉토리를 삭제합니다.
+ * @param path 삭제할 경로
+ * @return 삭제 성공 시 true, 실패하거나 존재하지 않으면 false
+ */
+SE_CORE_API bool Remove(const Path& path);
 
-    /**
-     * 파일의 크기를 바이트 단위로 반환합니다.
-     * @param path 파일 경로
-     * @return 파일 크기. 실패 시 nullopt
-     */
-    [[nodiscard]] static Optional<usize> FileSize(const Path& path);
+/**
+ * 파일 또는 디렉토리를 재귀적으로 삭제합니다.
+ * @param path 삭제할 경로
+ * @return 삭제된 항목 수
+ */
+SE_CORE_API usize RemoveAll(const Path& path);
 
-    /**
-     * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다. (SDL3: Unix epoch 초 단위)
-     * @param path 대상 경로
-     * @return 마지막 수정 시간. (u64) 실패 시 nullopt
-     */
-    [[nodiscard]] static Optional<u64> LastWriteTime(const Path& path);
+/**
+ * 파일 또는 디렉토리를 복사합니다.
+ * @param from 원본 경로
+ * @param to 대상 경로
+ * @return 성공 시 true
+ */
+SE_CORE_API bool Copy(const Path& from, const Path& to);
 
-    // =========================================================================
-    // File Read/Write
-    // =========================================================================
-
-    /**
-     * 파일 전체 내용을 문자열로 읽습니다.
-     * @param path 파일 경로
-     * @return 파일 내용. 실패 시 FileReadError
-     */
-    [[nodiscard]] static FileResult<String> ReadToString(const Path& path);
-
-    /**
-     * 파일 전체 내용을 바이트 배열로 읽습니다.
-     * @param path 파일 경로
-     * @return 파일 내용. 실패 시 FileReadError
-     */
-    [[nodiscard]] static FileResult<Array<u8>> ReadBytes(const Path& path);
-
-    /**
-     * 파일을 고정된 크기의 청크 단위로 읽어 Generator로 반환합니다.
-     * @param path 파일 경로
-     * @param chunk_size 한 번에 읽을 데이터의 최대 크기 (Bytes)
-     * @return 읽은 데이터를 처리할 Generator
-     */
-    static std::generator<FileResult<ArrayView<const u8>>>ReadChunked(Path path, usize chunk_size);
-
-    /**
-     * 문자열을 파일에 씁니다. (기존 내용 덮어쓰기)
-     * @param path 파일 경로
-     * @param content 쓸 내용
-     * @return 성공 시 true
-     */
-    static bool WriteString(const Path& path, StringView content);
-
-    /**
-     * 바이트 배열을 파일에 씁니다. (기존 내용 덮어쓰기)
-     * @param path 파일 경로
-     * @param data 쓸 데이터
-     * @return 성공 시 true
-     */
-    static bool Write(const Path& path, ArrayView<const u8> data);
+/**
+ * 파일 또는 디렉토리의 이름을 변경하거나 이동합니다.
+ * @param from 원본 경로
+ * @param to 대상 경로
+ * @return 성공 시 true
+ */
+SE_CORE_API bool Rename(const Path& from, const Path& to);
 
 
-    // =========================================================================
-    // Directory Iteration
-    // =========================================================================
+// =========================================================================
+// File Info
+// =========================================================================
 
-    /**
-     * 디렉토리 내 엔트리를 순회합니다.
-     * @param path 디렉토리 경로
-     */
-    [[nodiscard]] static DirectoryIterator ReadDir(const Path& path);
-};
+/**
+ * 파일 또는 디렉토리가 존재하는지 확인합니다.
+ * @param path 확인할 경로
+ * @return 존재하면 true, 존자하지 않으면 false
+ */
+[[nodiscard]] SE_CORE_API bool Exists(const Path& path);
+
+/**
+ * 파일의 크기를 바이트 단위로 반환합니다.
+ * @param path 파일 경로
+ * @return 파일 크기. 실패 시 nullopt
+ */
+[[nodiscard]] SE_CORE_API Optional<usize> FileSize(const Path& path);
+
+/**
+ * 파일 또는 디렉토리의 마지막 수정 시간을 반환합니다. (SDL3: Unix epoch 초 단위)
+ * @param path 대상 경로
+ * @return 마지막 수정 시간. (u64) 실패 시 nullopt
+ */
+[[nodiscard]] SE_CORE_API Optional<u64> LastWriteTime(const Path& path);
+
+// =========================================================================
+// File Read/Write
+// =========================================================================
+
+/**
+ * 파일 전체 내용을 문자열로 읽습니다.
+ * @param path 파일 경로
+ * @return 파일 내용. 실패 시 FileReadError
+ */
+[[nodiscard]] SE_CORE_API FileResult<String> ReadToString(const Path& path);
+
+/**
+ * 파일 전체 내용을 바이트 배열로 읽습니다.
+ * @param path 파일 경로
+ * @return 파일 내용. 실패 시 FileReadError
+ */
+[[nodiscard]] SE_CORE_API FileResult<Array<u8>> ReadBytes(const Path& path);
+
+/**
+ * 파일을 고정된 크기의 청크 단위로 읽어 Generator로 반환합니다.
+ * @param path 파일 경로
+ * @param chunk_size 한 번에 읽을 데이터의 최대 크기 (Bytes)
+ * @return 읽은 데이터를 처리할 Generator
+ */
+SE_CORE_API std::generator<FileResult<ArrayView<const u8>>> ReadChunked(Path path, usize chunk_size);
+
+/**
+ * 문자열을 파일에 씁니다. (기존 내용 덮어쓰기)
+ * @param path 파일 경로
+ * @param content 쓸 내용
+ * @return 성공 시 true
+ */
+SE_CORE_API bool WriteString(const Path& path, StringView content);
+
+/**
+ * 바이트 배열을 파일에 씁니다. (기존 내용 덮어쓰기)
+ * @param path 파일 경로
+ * @param data 쓸 데이터
+ * @return 성공 시 true
+ */
+SE_CORE_API bool Write(const Path& path, ArrayView<const u8> data);
+
+
+// =========================================================================
+// Directory Iteration
+// =========================================================================
+
+/**
+ * 디렉토리 내 엔트리를 순회합니다.
+ * @param path 디렉토리 경로
+ */
+[[nodiscard]] SE_CORE_API DirectoryIterator ReadDir(const Path& path);
+} // namespace fs
 } // namespace se

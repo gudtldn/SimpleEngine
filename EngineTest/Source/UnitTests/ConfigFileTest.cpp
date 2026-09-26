@@ -212,12 +212,12 @@ TEST_F(ConfigFileTest, LoadNonExistentFileFails)
 TEST_F(ConfigFileTest, LoadInvalidTomlFails)
 {
     const auto physical_path = VFS::ToPath(invalid_toml_path);
-    FileSystem::WriteString(physical_path, "this = is not valid toml' syntax");
+    fs::WriteString(physical_path, "this = is not valid toml' syntax");
 
     auto result = ConfigFile::Load(invalid_toml_path);
     EXPECT_FALSE(result.HasValue());
 
-    FileSystem::Remove(physical_path);
+    fs::Remove(physical_path);
 }
 
 TEST_F(ConfigFileTest, DefaultConstructedIsEmpty)
@@ -513,7 +513,7 @@ TEST_F(ConfigFileTest, SaveAndReloadPreservesValues)
     struct FileDeleter
     {
         Path path;
-        ~FileDeleter() { if (path.Exists()) { FileSystem::Remove(path); } }
+        ~FileDeleter() { if (path.Exists()) { fs::Remove(path); } }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.Save(save_test_path));
@@ -552,7 +552,7 @@ TEST_F(ConfigFileTest, MultiSectionSaveAndReload)
     struct FileDeleter
     {
         Path path;
-        ~FileDeleter() { if (path.Exists()) { FileSystem::Remove(path); } }
+        ~FileDeleter() { if (path.Exists()) { fs::Remove(path); } }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.Save(save_test_path));
@@ -596,7 +596,7 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
     struct FileDeleter
     {
         Path path;
-        ~FileDeleter() { if (path.Exists()) { FileSystem::Remove(path); } }
+        ~FileDeleter() { if (path.Exists()) { fs::Remove(path); } }
     } deleter{ physical_path };
 
     ASSERT_TRUE(new_config.Save(save_test_path));

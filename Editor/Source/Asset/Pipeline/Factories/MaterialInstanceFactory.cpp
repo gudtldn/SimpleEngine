@@ -43,7 +43,7 @@ std::shared_ptr<AssetBase> MaterialInstanceFactory::CreateAsset(
         return nullptr;
     }
 
-    const AssetHandle<Material> parent_handle = asset_sub->Find<Material>(BuiltinAssetIds::DefaultLit);
+    const AssetHandle<Material> parent_handle = asset_sub->Find<Material>(builtin_assets::DefaultLit);
     if (!parent_handle.IsValid())
     {
         ConsoleLog(ELogLevel::Error, "MaterialInstanceFactory: DefaultLit material not found.");
@@ -52,7 +52,7 @@ std::shared_ptr<AssetBase> MaterialInstanceFactory::CreateAsset(
     const Material& parent = *parent_handle;
 
     auto inst = std::make_shared<MaterialInstance>();
-    inst->parent_material_id = BuiltinAssetIds::DefaultLit;
+    inst->parent_material_id = builtin_assets::DefaultLit;
     inst->InitializeFromParent(parent);
 
     // 오버라이드 설정 적용

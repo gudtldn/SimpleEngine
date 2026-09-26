@@ -23,7 +23,7 @@ constexpr u64 TYPE_ID_SCHEMA_SALT = 1;
  */
 [[nodiscard]] constexpr u64 ComputeTypeIdValue(StringView name) noexcept
 {
-    const u64 hash = HashUtils::FNVWithSalt(name, TYPE_ID_SCHEMA_SALT);
+    const u64 hash = hash::FNVWithSalt(name, TYPE_ID_SCHEMA_SALT);
     return hash == 0 ? u64{ 1 } : hash; // 0은 null 타입 전용으로 사용하기 때문에, 1로 대체
 }
 

@@ -22,18 +22,20 @@ ContentHash DigestFromHasher(picosha2::hash256_one_by_one& hasher)
 }
 } // namespace
 
-ContentHash SHA256::HashFile(const Path& file_path)
+namespace sha256
+{
+ContentHash HashFile(const Path& file_path)
 {
     picosha2::hash256_one_by_one hasher;
 
     // 청크 사이즈 설정 (4MB)
     constexpr usize CHUNK_SIZE = 4ULL * 1024 * 1024;
 
-    for (auto&& result : FileSystem::ReadChunked(file_path, CHUNK_SIZE))
+    for (auto&& result : fs::ReadChunked(file_path, CHUNK_SIZE))
     {
         if (result.HasError())
         {
-            ConsoleLog(ELogLevel::Error, "SHA256::HashFile - {}", result.Error().What());
+            ConsoleLog(ELogLevel::Error, "sha256::HashFile - {}", result.Error().What());
             return {};
         }
 
@@ -44,17 +46,18 @@ ContentHash SHA256::HashFile(const Path& file_path)
     return DigestFromHasher(hasher);
 }
 
-ContentHash SHA256::HashBytes(ArrayView<const u8> data)
+ContentHash HashBytes(ArrayView<const u8> data)
 {
     picosha2::hash256_one_by_one hasher;
     hasher.process(data.begin(), data.end());
     return DigestFromHasher(hasher);
 }
 
-ContentHash SHA256::HashString(const StringView str)
+ContentHash HashString(const StringView str)
 {
     picosha2::hash256_one_by_one hasher;
     hasher.process(str.begin(), str.end());
     return DigestFromHasher(hasher);
 }
+} // namespace sha256
 } // namespace se

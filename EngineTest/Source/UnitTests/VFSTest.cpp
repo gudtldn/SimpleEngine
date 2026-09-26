@@ -25,12 +25,12 @@ struct TempDirManager
 
         temp_path = Path(pref) / Path(base_name);
         SDL_free(pref);
-        FileSystem::CreateDirectories(temp_path);
+        fs::CreateDirectories(temp_path);
     }
 
     ~TempDirManager()
     {
-        FileSystem::RemoveAll(temp_path);
+        fs::RemoveAll(temp_path);
     }
 
     void CreateDummyFile(StringView relative_path) const
@@ -38,9 +38,9 @@ struct TempDirManager
         const Path full_path = temp_path / Path(relative_path);
         if (const auto parent = full_path.Parent())
         {
-            FileSystem::CreateDirectories(*parent);
+            fs::CreateDirectories(*parent);
         }
-        FileSystem::WriteString(full_path, "dummy content");
+        fs::WriteString(full_path, "dummy content");
     }
 };
 
@@ -105,7 +105,7 @@ TEST_F(VFSTest, ResolveSucceedsIfFileExists)
 
     ASSERT_TRUE(resolved_path.HasValue());
 
-    Path expected_path = FileSystem::Absolute(assets_dir.temp_path / Path("textures/player.png"));
+    Path expected_path = fs::Absolute(assets_dir.temp_path / Path("textures/player.png"));
     EXPECT_EQ(resolved_path, expected_path);
 }
 
@@ -172,7 +172,7 @@ TEST_F(VFSPriorityTest, ResolveUsesHigherPriorityPathIfExists)
     Optional<Path> resolved_path = VFS::Resolve(virtual_path);
 
     ASSERT_TRUE(resolved_path.HasValue());
-    Path expected_path = FileSystem::Absolute(mod_override_dir.temp_path / Path("config/settings.ini"));
+    Path expected_path = fs::Absolute(mod_override_dir.temp_path / Path("config/settings.ini"));
     EXPECT_EQ(resolved_path.Value(), expected_path);
 }
 
@@ -183,7 +183,7 @@ TEST_F(VFSPriorityTest, ResolveFallsBackToLowerPriorityPath)
     Optional<Path> resolved_path = VFS::Resolve(virtual_path);
 
     ASSERT_TRUE(resolved_path.HasValue());
-    Path expected_path = FileSystem::Absolute(base_game_dir.temp_path / Path("config/settings.ini"));
+    Path expected_path = fs::Absolute(base_game_dir.temp_path / Path("config/settings.ini"));
     EXPECT_EQ(resolved_path.Value(), expected_path);
 }
 

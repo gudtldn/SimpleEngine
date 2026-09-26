@@ -34,7 +34,7 @@ std::shared_ptr<AssetBase> Texture2DFactory::CreateAsset(PipelineBaseNode* node,
         // 우선순위 1: 외부 파일 경로
         if (const auto source_file = tex_node->GetSourceFile())
         {
-            return ImageLoader::LoadFromFile(*source_file, is_srgb);
+            return image::LoadFromFile(*source_file, is_srgb);
         }
 
         if (const auto embedded = tex_node->GetEmbeddedBytes())
@@ -48,7 +48,7 @@ std::shared_ptr<AssetBase> Texture2DFactory::CreateAsset(PipelineBaseNode* node,
                 const usize expected_size = static_cast<usize>(*width) * static_cast<usize>(*height) * 4u;
                 if (expected_size <= embedded->Len())
                 {
-                    return ImageLoader::LoadFromRawPixels(
+                    return image::LoadFromRawPixels(
                         *embedded,
                         static_cast<u32>(*width),
                         static_cast<u32>(*height),
@@ -69,7 +69,7 @@ std::shared_ptr<AssetBase> Texture2DFactory::CreateAsset(PipelineBaseNode* node,
             const auto opt_format = tex_node->GetEmbeddedFormat();
             const StringView format_hint = opt_format ? opt_format->Bytes() : StringView{};
 
-            return ImageLoader::LoadFromMemory(*embedded, is_srgb, format_hint);
+            return image::LoadFromMemory(*embedded, is_srgb, format_hint);
         }
 
         return Unexpected<ImageLoadError>{
