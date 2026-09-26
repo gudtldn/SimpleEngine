@@ -5,6 +5,10 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/TypeShape.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
+#include "SimpleEngine/Utility/Debug.h"
+
+#include <concepts>
 
 
 namespace se
@@ -24,6 +28,47 @@ enum class EFloatWidth : u8
     Bits32,
     Bits64,
 };
+
+/** 정수 폭 하나가 차지하는 바이트 수로 변환합니다. */
+[[nodiscard]] inline usize ByteSizeOf(EIntWidth width)
+{
+    switch (width)
+    {
+        case EIntWidth::Bits8:  return 1;
+        case EIntWidth::Bits16: return 2;
+        case EIntWidth::Bits32: return 4;
+        case EIntWidth::Bits64: return 8;
+    }
+    SE_UNREACHABLE();
+}
+
+/** 정수 또는 문자 타입 T의 크기에 맞는 Int 노드 폭으로 변환합니다. */
+template <std::integral T>
+[[nodiscard]] constexpr EIntWidth IntWidthOf()
+{
+    if constexpr (sizeof(T) == 1)      { return EIntWidth::Bits8;  }
+    else if constexpr (sizeof(T) == 2) { return EIntWidth::Bits16; }
+    else if constexpr (sizeof(T) == 4) { return EIntWidth::Bits32; }
+    else if constexpr (sizeof(T) == 8) { return EIntWidth::Bits64; }
+    else
+    {
+        static_assert(traits::AlwaysFalse<T>, "IntWidthOf: unsupported integer size.");
+        SE_UNREACHABLE();
+    }
+}
+
+/** 실수 타입 T의 크기에 맞는 Float 노드 폭으로 변환합니다. */
+template <std::floating_point T>
+[[nodiscard]] constexpr EFloatWidth FloatWidthOf()
+{
+    if constexpr (sizeof(T) == 4)      { return EFloatWidth::Bits32; }
+    else if constexpr (sizeof(T) == 8) { return EFloatWidth::Bits64; }
+    else
+    {
+        static_assert(traits::AlwaysFalse<T>, "FloatWidthOf: unsupported floating-point size.");
+        SE_UNREACHABLE();
+    }
+}
 
 /** BeginSeq가 나타내는 시퀀스의 원소 순서 보장 여부 */
 enum class ESeqOrder : u8
@@ -53,7 +98,7 @@ public:
     Archive& operator=(Archive&&) = delete;
 
 public:
-    /** 텍스트 포맷인지 확인합니다. 트레이트가 값의 표현(예: Guid를 문자열로 쓸지 16바이트로 쓸지)을 고르는 데 씁니다. */
+    /** 텍스트 포맷인지 확인합니다. */
     [[nodiscard]] virtual bool IsTextFormat() const = 0;
 
     /** 에러가 발생했는지 확인합니다. 한 번 켜지면 이후 모든 연산은 no-op이어야 합니다. */
@@ -87,8 +132,6 @@ public:
     virtual void BeginSeq(u64 count, ESeqOrder order) = 0;
     virtual void EndSeq() = 0;
     virtual void BeginMap(u64 count) = 0;
-
-    /** 엔트리 안의 첫 값이 key, 두 번째 값이 value입니다. */
     virtual void BeginMapEntry() = 0;
     virtual void EndMapEntry() = 0;
     virtual void EndMap() = 0;
