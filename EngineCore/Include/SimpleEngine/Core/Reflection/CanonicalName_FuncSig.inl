@@ -1,4 +1,4 @@
-﻿// C++26 전환 시 이 파일 전체를 삭제하고 CanonicalName_Reflect.h로 교체
+﻿// C++26 전환 시 이 파일 전체를 삭제하고 CanonicalName_Reflect.inl로 교체
 #pragma once
 
 #include "SimpleEngine/Core/Container/StringView.h"

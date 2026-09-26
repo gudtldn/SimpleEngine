@@ -17,10 +17,10 @@ consteval std::string CanonicalNameOf();
 
 #if SE_HAS_REFLECTION
 template <typename T>
-consteval std::string ReflectCanonicalEntityNameOf(); // CanonicalName_Reflect.h
+consteval std::string ReflectCanonicalEntityNameOf(); // CanonicalName_Reflect.inl
 #else
 template <typename T>
-consteval std::string FuncSigEntityNameOf(); // CanonicalName_FuncSig.h
+consteval std::string FuncSigEntityNameOf(); // CanonicalName_FuncSig.inl
 #endif
 
 /**
@@ -184,9 +184,9 @@ consteval std::string CanonicalEntityNameOf()
     else
     {
 #if SE_HAS_REFLECTION
-        return ReflectCanonicalEntityNameOf<T>(); // CanonicalName_Reflect.h
+        return ReflectCanonicalEntityNameOf<T>(); // CanonicalName_Reflect.inl
 #else
-        return FuncSigEntityNameOf<T>(); // CanonicalName_FuncSig.h
+        return FuncSigEntityNameOf<T>(); // CanonicalName_FuncSig.inl
 #endif
     }
 }
@@ -279,7 +279,7 @@ consteval std::string CanonicalNameOf()
     }
 
 #if SE_HAS_REFLECTION
-#include "SimpleEngine/Core/Reflection/CanonicalName_Reflect.h"
+#include "SimpleEngine/Core/Reflection/CanonicalName_Reflect.inl"
 #else
-#include "SimpleEngine/Core/Reflection/CanonicalName_FuncSig.h"
+#include "SimpleEngine/Core/Reflection/CanonicalName_FuncSig.inl"
 #endif
