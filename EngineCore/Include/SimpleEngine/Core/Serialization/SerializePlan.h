@@ -110,6 +110,10 @@ struct SE_CORE_API SerializePlan
      */
     [[nodiscard]] static Expected<const SerializePlan*, String> TryOf(TypeId id);
 
+    /** 이 Plan에 모든 타입의 서술로 스키마 해시를 계산합니다.
+     */
+    [[nodiscard]] u64 SchemaHash() const;
+
     /**
      * 정적 타입 T로 Plan을 가져옵니다. EnsureRegistered<T>()를 먼저 호출합니다.
      * @warning 컴파일에 실패하면 SE_ASSERT_RELEASE로 멈춥니다.

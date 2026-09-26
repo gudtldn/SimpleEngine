@@ -2,15 +2,19 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
+
+#include <type_traits>
 
 
 namespace se
 {
 /**
  * 태그 없이 순서에만 의존하는 바이너리 포맷으로 씁니다.
+ * @note 파일이나 캐시에 남길 때는 PackedFileWriter를 사용하세요.
  */
-class SE_CORE_API PackedWriter final : public ArchiveWriter
+class SE_CORE_API PackedWriter : public ArchiveWriter
 {
 public:
     explicit PackedWriter(Array<u8>& out_buffer);
@@ -41,7 +45,7 @@ private:
     void WriteCount(u64 count);
     void WriteBoolByte(bool value);
 
-private:
+protected:
     Array<u8>& buffer;
     usize offset = 0;
 };
@@ -50,7 +54,7 @@ private:
 /**
  * PackedWriter가 쓴 바이트를 같은 규약으로 되읽습니다.
  */
-class SE_CORE_API PackedReader final : public ArchiveReader
+class SE_CORE_API PackedReader : public ArchiveReader
 {
 public:
     explicit PackedReader(ArrayView<const u8> in_view);
@@ -87,8 +91,62 @@ private:
 
     void ReadBoolByte(bool& value);
 
-private:
+protected:
     ArrayView<const u8> buffer_view;
     usize offset = 0;
+};
+
+
+/**
+ * PackedFileWriter가 payload 앞에 붙이는 헤더
+ * 이 구조체의 메모리 표현을 그대로 쓰고 읽으므로(리틀 엔디언) 패딩 없이 둡니다.
+ * @note Magic과 WireVersion의 내용은 .cpp에 있습니다.
+ */
+struct PackedFileHeader
+{
+    /** 식별 바이트 "SEPK" */
+    u8 magic[4] = {};
+
+    /** 헤더 배치와 노드 인코딩의 버전 */
+    u32 wire_version = 0;
+
+    u64 root_type = 0;
+    u64 schema_hash = 0;
+    u64 payload_size = 0;
+
+    /** payload의 XXH3_64bits */
+    u64 payload_checksum = 0;
+};
+static_assert(std::has_unique_object_representations_v<PackedFileHeader>, "PackedFileHeader must not contain padding bytes.");
+
+
+/**
+ * 파일이나 캐시에 남길 Packed 데이터를 씁니다.
+ */
+class SE_CORE_API PackedFileWriter final : public PackedWriter
+{
+public:
+    PackedFileWriter(Array<u8>& out_buffer, TypeId in_root_type, u64 in_schema_hash);
+    virtual ~PackedFileWriter() override;
+
+    /** 헤더를 채웁니다. 헤더 뒤에 쓴 바이트 전체를 payload로 보고 크기와 체크섬을 기록합니다. */
+    void Finish();
+
+private:
+    usize header_offset = 0;
+    TypeId root_type;
+    u64 schema_hash = 0;
+    bool finished = false;
+};
+
+
+/**
+ * PackedFileWriter가 쓴 데이터를 읽습니다. 생성할 때 헤더를 root_type, schema_hash와 대조합니다.
+ * 크기, magic, wire 버전, 루트 타입, 스키마 해시, payload 크기, 체크섬 중 하나라도 맞지 않으면 SetError를 호출하고, 이후 읽기는 모두 무시됩니다.
+ */
+class SE_CORE_API PackedFileReader final : public PackedReader
+{
+public:
+    PackedFileReader(ArrayView<const u8> in_view, TypeId root_type, u64 schema_hash);
 };
 } // namespace se

@@ -644,3 +644,53 @@ TEST(SerializerTest, SetOfNonDefaultConstructibleElementFailsToDeserialize)
     ASSERT_TRUE(read_result.HasError()); // 임시 원소를 기본 생성할 수 없어 오류
     EXPECT_EQ(read_result.Error().path, "keys");
 }
+
+
+// --- PackedFileWriter / PackedFileReader ---
+
+TEST(SerializerTest, PackedFileRoundTrip)
+{
+    using namespace se_serializer_test;
+
+    const Transform original{
+        .position = Vector3{ .x = 1.0f, .y = 2.0f, .z = 3.0f },
+        .scale = Vector3{ .x = 2.0f, .y = 2.0f, .z = 2.0f },
+    };
+    const SerializePlan& plan = SerializePlan::Of<Transform>();
+
+    Array<u8> buffer;
+    PackedFileWriter writer(buffer, plan.type, plan.SchemaHash());
+    ASSERT_TRUE(Serialize(writer, original).HasValue());
+    writer.Finish();
+
+    PackedFileReader reader(buffer, plan.type, plan.SchemaHash());
+    Transform result;
+    ASSERT_TRUE(Deserialize(reader, result).HasValue());
+
+    EXPECT_EQ(result.position, original.position);
+    EXPECT_EQ(result.scale, original.scale);
+}
+
+TEST(SerializerTest, PackedFileHeaderMismatchSurfacesAsDeserializeError)
+{
+    using namespace se_serializer_test;
+
+    const SerializePlan& written_plan = SerializePlan::Of<Transform>();
+    Array<u8> buffer;
+    PackedFileWriter writer(buffer, written_plan.type, written_plan.SchemaHash());
+    ASSERT_TRUE(Serialize(writer, Transform{}).HasValue());
+    writer.Finish();
+
+    // Transform으로 쓴 데이터를 다른 타입으로 열면 헤더 검증이 실패하고, 그 오류가 Deserialize의 결과가 됨
+    const SerializePlan& read_plan = SerializePlan::Of<HasOptionalField>();
+    PackedFileReader reader(buffer, read_plan.type, read_plan.SchemaHash());
+
+    HasOptionalField target{ .value = 5 };
+    const auto read_result = Deserialize(reader, target);
+
+    ASSERT_TRUE(read_result.HasError());
+    EXPECT_TRUE(read_result.Error().message.Contains("root type"));
+    EXPECT_EQ(read_result.Error().path, "");
+    ASSERT_TRUE(target.value.HasValue());
+    EXPECT_EQ(*target.value, 5); // 헤더에서 멈췄으므로 value는 그대로
+}

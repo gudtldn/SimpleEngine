@@ -2,6 +2,8 @@
 
 #include "SimpleEngine/Core/Container/String.h"
 
+#include <xxhash.h>
+
 #include <bit>
 #include <cstring>
 #include <limits>
@@ -12,6 +14,21 @@ namespace se
 // Int/Float를 바이트 순서 변환 없이 memcpy로 쓰고 읽으므로 리틀 엔디언 플랫폼만 지원합니다.
 // 나중에 빅엔디언을 지원하려면 Int/Float의 쓰기와 읽기에 std::byteswap을 넣어야 합니다.
 static_assert(std::endian::native == std::endian::little, "PackedArchive only supports little-endian platforms.");
+
+namespace
+{
+/** 헤더 맨 앞의 식별 바이트 */
+constexpr u8 HEADER_MAGIC[4] = { 'S', 'E', 'P', 'K' };
+
+/** 헤더 배치와 노드 인코딩의 버전. 둘 중 하나라도 바뀌면 올립니다. */
+constexpr u32 WIRE_VERSION = 1;
+
+/** payload의 체크섬 */
+[[nodiscard]] u64 ChecksumOf(ArrayView<const u8> payload)
+{
+    return XXH3_64bits(payload.Data(), payload.Len());
+}
+} // namespace
 
 
 // PackedWriter
@@ -319,5 +336,99 @@ void PackedReader::ReadBoolByte(bool& value)
         return;
     }
     value = byte != 0;
+}
+
+
+// PackedFileWriter
+PackedFileWriter::PackedFileWriter(Array<u8>& out_buffer, TypeId in_root_type, u64 in_schema_hash)
+    : PackedWriter(out_buffer)
+    , header_offset(offset)
+    , root_type(in_root_type)
+    , schema_hash(in_schema_hash)
+{
+    const PackedFileHeader empty_header{};
+    PackedWriter::Bytes(&empty_header, sizeof(empty_header));
+}
+
+PackedFileWriter::~PackedFileWriter()
+{
+    SE_ASSERT(finished || HasError(), "PackedFileWriter: destroyed without Finish().");
+}
+
+void PackedFileWriter::Finish()
+{
+    SE_ASSERT(!finished, "PackedFileWriter::Finish: already finished.");
+    finished = true;
+    if (HasError())
+    {
+        return;
+    }
+
+    const usize payload_begin = header_offset + sizeof(PackedFileHeader);
+    const ArrayView<const u8> payload(buffer.Data() + payload_begin, offset - payload_begin);
+
+    PackedFileHeader header{
+        .wire_version = WIRE_VERSION,
+        .root_type = root_type.Value(),
+        .schema_hash = schema_hash,
+        .payload_size = payload.Len(),
+        .payload_checksum = ChecksumOf(payload),
+    };
+    std::memcpy(header.magic, HEADER_MAGIC, sizeof(HEADER_MAGIC));
+    std::memcpy(buffer.Data() + header_offset, &header, sizeof(header));
+}
+
+
+// PackedFileReader
+PackedFileReader::PackedFileReader(ArrayView<const u8> in_view, TypeId root_type, u64 schema_hash)
+    : PackedReader(in_view)
+{
+    if (buffer_view.Len() < sizeof(PackedFileHeader))
+    {
+        SetError(String::Format(
+            "PackedFileReader: {} bytes is too short for the {}-byte header.", buffer_view.Len(), sizeof(PackedFileHeader)));
+        return;
+    }
+
+    PackedFileHeader header;
+    std::memcpy(&header, buffer_view.Data(), sizeof(header));
+
+    if (std::memcmp(header.magic, HEADER_MAGIC, sizeof(HEADER_MAGIC)) != 0)
+    {
+        SetError("PackedFileReader: header magic mismatch.");
+        return;
+    }
+    if (header.wire_version != WIRE_VERSION)
+    {
+        SetError(String::Format("PackedFileReader: unsupported wire version {} (expected {}).", header.wire_version, WIRE_VERSION));
+        return;
+    }
+    if (header.root_type != root_type.Value())
+    {
+        SetError(String::Format(
+            "PackedFileReader: root type id {} does not match the expected type id {}.", header.root_type, root_type.Value()));
+        return;
+    }
+    if (header.schema_hash != schema_hash)
+    {
+        SetError(String::Format(
+            "PackedFileReader: schema hash mismatch (stored {:016x}, expected {:016x}).", header.schema_hash, schema_hash));
+        return;
+    }
+
+    const ArrayView<const u8> payload = buffer_view.Subview(sizeof(PackedFileHeader));
+    if (header.payload_size != payload.Len())
+    {
+        SetError(String::Format(
+            "PackedFileReader: payload size {} does not match the remaining {} bytes.", header.payload_size, payload.Len()));
+        return;
+    }
+    if (header.payload_checksum != ChecksumOf(payload))
+    {
+        SetError("PackedFileReader: payload checksum mismatch.");
+        return;
+    }
+
+    offset = sizeof(PackedFileHeader);
 }
 } // namespace se

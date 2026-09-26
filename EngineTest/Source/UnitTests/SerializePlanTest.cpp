@@ -103,6 +103,27 @@ struct RecursivePlanNode
     i32 value = 0;
     se::Array<RecursivePlanNode> children;
 };
+
+// 스키마 해시 테스트에서 직접 만든 Plan에 붙이는 TypeId용 태그입니다. 리플렉션에는 등록하지 않습니다.
+struct HandStruct {};
+struct HandTrait {};
+struct HandEnum {};
+struct HandNode {};
+struct HandNodeArray {};
+struct HandOwner {};
+struct HandOwnerOptional {};
+
+/** 산술 타입이나 트레이트의 Leaf Plan을 만듭니다. */
+[[nodiscard]] SerializePlan MakeLeafPlan(TypeId id, u32 format_version = 0)
+{
+    return SerializePlan{ .type = id, .steps = LeafStep{ .ops = SerializeOps{ .format_version = format_version } } };
+}
+
+/** fields를 가진 Struct Plan을 만듭니다. */
+[[nodiscard]] SerializePlan MakeStructPlan(TypeId id, ArrayView<const FieldStep> fields)
+{
+    return SerializePlan{ .type = id, .steps = StructSteps{ .fields = fields } };
+}
 } // namespace se_serialize_plan_test
 
 SE_DECLARE_REFLECTION(se_serialize_plan_test::FlattenBase)
@@ -362,4 +383,105 @@ TEST(SerializePlanTest, EveryRegisteredOpaqueTypeCompilesOrIsKnownException)
             << "Opaque type '" << std::string_view(info->name.Data(), info->name.ByteLen()) << "' cannot be compiled: "
             << (result.HasError() ? result.Error().CStr() : "");
     }
+}
+
+
+// --- 스키마 해시 ---
+
+TEST(SerializePlanTest, SchemaHashChangesWhenFieldsChange)
+{
+    using namespace se_serialize_plan_test;
+
+    const SerializePlan i32_plan = MakeLeafPlan(TypeId::Of<i32>());
+    const SerializePlan f32_plan = MakeLeafPlan(TypeId::Of<f32>());
+    const SerializePlan f64_plan = MakeLeafPlan(TypeId::Of<f64>());
+    const TypeId id = TypeId::Of<HandStruct>();
+
+    const FieldStep base[] = { { "hp", 0, &i32_plan }, { "speed", 4, &f32_plan } };
+    const FieldStep added[] = { { "hp", 0, &i32_plan }, { "speed", 4, &f32_plan }, { "armor", 8, &i32_plan } };
+    const FieldStep removed[] = { { "hp", 0, &i32_plan } };
+    const FieldStep reordered[] = { { "speed", 4, &f32_plan }, { "hp", 0, &i32_plan } };
+    const FieldStep renamed[] = { { "hp", 0, &i32_plan }, { "velocity", 4, &f32_plan } };
+    const FieldStep retyped[] = { { "hp", 0, &i32_plan }, { "speed", 8, &f64_plan } };
+
+    const u64 base_hash = MakeStructPlan(id, base).SchemaHash();
+    EXPECT_NE(MakeStructPlan(id, added).SchemaHash(), base_hash) << "field added";
+    EXPECT_NE(MakeStructPlan(id, removed).SchemaHash(), base_hash) << "field removed";
+    EXPECT_NE(MakeStructPlan(id, reordered).SchemaHash(), base_hash) << "fields reordered";
+    EXPECT_NE(MakeStructPlan(id, renamed).SchemaHash(), base_hash) << "field renamed";
+    EXPECT_NE(MakeStructPlan(id, retyped).SchemaHash(), base_hash) << "field type changed";
+}
+
+TEST(SerializePlanTest, SchemaHashIgnoresFieldOffsets)
+{
+    using namespace se_serialize_plan_test;
+
+    const SerializePlan i32_plan = MakeLeafPlan(TypeId::Of<i32>());
+    const SerializePlan f32_plan = MakeLeafPlan(TypeId::Of<f32>());
+    const TypeId id = TypeId::Of<HandStruct>();
+
+    const FieldStep tight[] = { { "hp", 0, &i32_plan }, { "speed", 4, &f32_plan } };
+    const FieldStep padded[] = { { "hp", 0, &i32_plan }, { "speed", 16, &f32_plan } };
+
+    EXPECT_EQ(MakeStructPlan(id, tight).SchemaHash(), MakeStructPlan(id, padded).SchemaHash());
+}
+
+TEST(SerializePlanTest, SchemaHashChangesWhenTraitFormatVersionChanges)
+{
+    using namespace se_serialize_plan_test;
+
+    const SerializePlan trait_v1 = MakeLeafPlan(TypeId::Of<HandTrait>(), 1);
+    const SerializePlan trait_v2 = MakeLeafPlan(TypeId::Of<HandTrait>(), 2);
+    const TypeId id = TypeId::Of<HandStruct>();
+
+    const FieldStep uses_v1[] = { { "id", 0, &trait_v1 } };
+    const FieldStep uses_v2[] = { { "id", 0, &trait_v2 } };
+
+    EXPECT_NE(MakeStructPlan(id, uses_v1).SchemaHash(), MakeStructPlan(id, uses_v2).SchemaHash());
+}
+
+TEST(SerializePlanTest, SchemaHashChangesWhenEnumChanges)
+{
+    using namespace se_serialize_plan_test;
+
+    const EnumEntry base[] = { { .value = 0, .name = "Low" }, { .value = 1, .name = "High" } };
+    const EnumEntry revalued[] = { { .value = 0, .name = "Low" }, { .value = 2, .name = "High" } };
+    const EnumEntry renamed[] = { { .value = 0, .name = "Low" }, { .value = 1, .name = "Top" } };
+
+    const auto enum_hash = [](ArrayView<const EnumEntry> entries, EIntWidth width)
+    {
+        const SerializePlan plan{
+            .type = TypeId::Of<HandEnum>(),
+            .steps = EnumStep{ .width = width, .is_signed = true, .entries = entries },
+        };
+        return plan.SchemaHash();
+    };
+
+    const u64 base_hash = enum_hash(base, EIntWidth::Bits32);
+    EXPECT_NE(enum_hash(revalued, EIntWidth::Bits32), base_hash) << "entry value changed";
+    EXPECT_NE(enum_hash(renamed, EIntWidth::Bits32), base_hash) << "entry name changed";
+    EXPECT_NE(enum_hash(base, EIntWidth::Bits8), base_hash) << "underlying width changed";
+}
+
+TEST(SerializePlanTest, SchemaHashOfMutuallyRecursiveTypesDoesNotDependOnRoot)
+{
+    using namespace se_serialize_plan_test;
+
+    // Node { Array<Owner> owners; }, Owner { Optional<Node> node; } 모양의 순환 그래프
+    SerializePlan node{ .type = TypeId::Of<HandNode>() };
+    SerializePlan owners{ .type = TypeId::Of<HandNodeArray>() };
+    SerializePlan owner{ .type = TypeId::Of<HandOwner>() };
+    SerializePlan maybe_node{ .type = TypeId::Of<HandOwnerOptional>() };
+
+    const FieldStep node_fields[] = { { "owners", 0, &owners } };
+    const FieldStep owner_fields[] = { { "node", 0, &maybe_node } };
+
+    node.steps = StructSteps{ .fields = node_fields };
+    owners.steps = ArraySteps{ .element = &owner };
+    owner.steps = StructSteps{ .fields = owner_fields };
+    maybe_node.steps = OptionalSteps{ .inner = &node };
+
+    // 순회 시작점이 달라 방문 순서가 달라도, 정렬한 뒤 서술하므로 값이 같음
+    EXPECT_EQ(node.SchemaHash(), owner.SchemaHash());
+    EXPECT_EQ(node.SchemaHash(), maybe_node.SchemaHash());
 }

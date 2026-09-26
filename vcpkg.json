@@ -27,5 +27,8 @@
   }, {
     "name" : "efsw",
     "version>=" : "1.6.3"
+  }, {
+    "name" : "xxhash",
+    "version>=" : "0.8.3"
   } ]
 }
