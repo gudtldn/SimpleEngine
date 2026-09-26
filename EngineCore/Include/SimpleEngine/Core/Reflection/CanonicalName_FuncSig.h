@@ -3,7 +3,6 @@
 
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/CanonicalName.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <string>

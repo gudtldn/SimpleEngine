@@ -277,3 +277,9 @@ consteval std::string CanonicalNameOf()
         static constexpr bool HAS_VALUE = true; \
         static constexpr ::se::StringView VALUE = name; \
     }
+
+#if SE_HAS_REFLECTION
+#include "SimpleEngine/Core/Reflection/CanonicalName_Reflect.h"
+#else
+#include "SimpleEngine/Core/Reflection/CanonicalName_FuncSig.h"
+#endif

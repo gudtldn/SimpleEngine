@@ -5,12 +5,6 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/CanonicalName.h"
 
-#if SE_HAS_REFLECTION
-#include "SimpleEngine/Core/Reflection/CanonicalName_Reflect.h"
-#else
-#include "SimpleEngine/Core/Reflection/CanonicalName_FuncSig.h"
-#endif
-
 
 namespace se::detail
 {
