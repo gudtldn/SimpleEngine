@@ -50,7 +50,7 @@ TEST(ValueOpsTest, ArrayOpsAreInstalled)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::Array<i32>>();
-    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    const auto array_ops = ops.AsArray();
     ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_TRUE(array_ops->element_trivially_copyable);
@@ -63,14 +63,15 @@ TEST(ValueOpsTest, ArrayOpsAreInstalled)
     ASSERT_EQ(array_ops->len(&numbers), 3u);
 
     // 타입 소거 상태로 쓴 값이 직접 읽은 값과 같아야 합니다.
-    *static_cast<i32*>(array_ops->element_at(&numbers, 0)) = 10;
-    *static_cast<i32*>(array_ops->element_at(&numbers, 1)) = 20;
-    *static_cast<i32*>(array_ops->element_at(&numbers, 2)) = 30;
+    *static_cast<i32*>(array_ops->element_at_mut(&numbers,0)) = 10;
+    *static_cast<i32*>(array_ops->element_at_mut(&numbers,1)) = 20;
+    *static_cast<i32*>(array_ops->element_at_mut(&numbers,2)) = 30;
 
     EXPECT_EQ(numbers[0], 10);
     EXPECT_EQ(numbers[1], 20);
     EXPECT_EQ(numbers[2], 30);
     EXPECT_EQ(array_ops->data(&numbers), numbers.Data());
+    EXPECT_EQ(array_ops->data_mut(&numbers), numbers.Data());
 }
 
 TEST(ValueOpsTest, NonTrivialElementDisablesUninitializedResize)
@@ -78,7 +79,7 @@ TEST(ValueOpsTest, NonTrivialElementDisablesUninitializedResize)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::Array<se::String>>();
-    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    const auto array_ops = ops.AsArray();
     ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_FALSE(array_ops->element_trivially_copyable);
@@ -91,7 +92,7 @@ TEST(ValueOpsTest, FixedArrayHasNoResize)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::FixedArray<i32, 4>>();
-    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    const auto array_ops = ops.AsArray();
     ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_EQ(array_ops->resize, nullptr);
@@ -106,7 +107,7 @@ TEST(ValueOpsTest, SetOpsInsertAndIterate)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::HashSet<se::String>>();
-    const se::Optional<const se::SetOps&> set_ops = ops.AsSet();
+    const auto set_ops = ops.AsSet();
     ASSERT_TRUE(set_ops.HasValue());
     ASSERT_NE(set_ops->emplace_moved, nullptr);
 
@@ -135,7 +136,7 @@ TEST(ValueOpsTest, MapOpsInsertAndIterate)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::HashMap<se::String, i32>>();
-    const se::Optional<const se::MapOps&> map_ops = ops.AsMap();
+    const auto map_ops = ops.AsMap();
     ASSERT_TRUE(map_ops.HasValue());
     ASSERT_NE(map_ops->emplace_moved, nullptr);
 
@@ -147,7 +148,7 @@ TEST(ValueOpsTest, MapOpsInsertAndIterate)
     EXPECT_EQ(map_ops->len(&scores), 1u);
 
     CollectContext context;
-    map_ops->for_each(&scores, [](const void* map_key, void* map_value, void* user_data)
+    map_ops->for_each_mut(&scores, [](const void* map_key, void* map_value, void* user_data)
     {
         auto* collected = static_cast<CollectContext*>(user_data);
         collected->texts.Push(*static_cast<const se::String*>(map_key));
@@ -164,7 +165,7 @@ TEST(ValueOpsTest, OptionalOpsRoundTrip)
     using namespace se_value_ops_test;
 
     const se::ValueOps& ops = OpsOf<se::Optional<f32>>();
-    const se::Optional<const se::OptionalOps&> optional_ops = ops.AsOptional();
+    const auto optional_ops = ops.AsOptional();
     ASSERT_TRUE(optional_ops.HasValue());
     ASSERT_NE(optional_ops->emplace, nullptr);
 
@@ -173,7 +174,7 @@ TEST(ValueOpsTest, OptionalOpsRoundTrip)
 
     *static_cast<f32*>(optional_ops->emplace(&maybe_health)) = 75.0f;
     ASSERT_TRUE(optional_ops->has_value(&maybe_health));
-    EXPECT_FLOAT_EQ(*static_cast<f32*>(optional_ops->value(&maybe_health)), 75.0f);
+    EXPECT_FLOAT_EQ(*static_cast<f32*>(optional_ops->value_mut(&maybe_health)), 75.0f);
     EXPECT_FLOAT_EQ(maybe_health.Value(), 75.0f);
 
     optional_ops->reset(&maybe_health);
@@ -216,10 +217,100 @@ TEST(ValueOpsTest, ArrayOfNonDefaultConstructibleElementDisablesResize)
 
     // Resize()는 요소를 기본 생성하므로, NoDefault 요소로는 컴파일에 포함되면 안 됩니다.
     const se::ValueOps& ops = OpsOf<se::Array<NoDefault>>();
-    const se::Optional<const se::ArrayOps&> array_ops = ops.AsArray();
+    const auto array_ops = ops.AsArray();
     ASSERT_TRUE(array_ops.HasValue());
 
     EXPECT_EQ(array_ops->resize, nullptr);
     EXPECT_NE(array_ops->len, nullptr);
     EXPECT_NE(array_ops->element_at, nullptr);
+}
+
+TEST(ValueOpsTest, ArrayElementAtReadsConstContainer)
+{
+    using namespace se_value_ops_test;
+
+    const se::ValueOps& ops = OpsOf<se::Array<i32>>();
+    const auto array_ops = ops.AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
+    ASSERT_NE(array_ops->element_at, nullptr);
+
+    se::Array<i32> numbers;
+    array_ops->resize(&numbers, 3);
+    *static_cast<i32*>(array_ops->element_at_mut(&numbers,0)) = 10;
+    *static_cast<i32*>(array_ops->element_at_mut(&numbers,1)) = 20;
+    *static_cast<i32*>(array_ops->element_at_mut(&numbers,2)) = 30;
+
+    const se::Array<i32>& const_numbers = numbers;
+    EXPECT_EQ(*static_cast<const i32*>(array_ops->element_at(&const_numbers,0)), 10);
+    EXPECT_EQ(*static_cast<const i32*>(array_ops->element_at(&const_numbers,1)), 20);
+    EXPECT_EQ(*static_cast<const i32*>(array_ops->element_at(&const_numbers,2)), 30);
+}
+
+TEST(ValueOpsTest, SetForEachAcceptsConstContainer)
+{
+    using namespace se_value_ops_test;
+
+    const se::ValueOps& ops = OpsOf<se::HashSet<se::String>>();
+    const auto set_ops = ops.AsSet();
+    ASSERT_TRUE(set_ops.HasValue());
+    ASSERT_NE(set_ops->emplace_moved, nullptr);
+
+    se::HashSet<se::String> texts;
+    se::String alpha = "alpha";
+    se::String beta = "beta";
+    set_ops->emplace_moved(&texts, &alpha);
+    set_ops->emplace_moved(&texts, &beta);
+
+    const se::HashSet<se::String>& const_texts = texts;
+    CollectContext context;
+    set_ops->for_each(&const_texts, [](const void* element, void* user_data)
+    {
+        static_cast<CollectContext*>(user_data)->texts.Push(*static_cast<const se::String*>(element));
+    }, &context);
+
+    EXPECT_EQ(context.texts.Len(), 2u);
+}
+
+TEST(ValueOpsTest, MapForEachReadsConstContainer)
+{
+    using namespace se_value_ops_test;
+
+    const se::ValueOps& ops = OpsOf<se::HashMap<se::String, i32>>();
+    const auto map_ops = ops.AsMap();
+    ASSERT_TRUE(map_ops.HasValue());
+    ASSERT_NE(map_ops->for_each, nullptr);
+
+    se::HashMap<se::String, i32> scores;
+    se::String key = "score";
+    i32 value = 42;
+    map_ops->emplace_moved(&scores, &key, &value);
+
+    const se::HashMap<se::String, i32>& const_scores = scores;
+    CollectContext context;
+    map_ops->for_each(&const_scores, [](const void* map_key, const void* map_value, void* user_data)
+    {
+        auto* collected = static_cast<CollectContext*>(user_data);
+        collected->texts.Push(*static_cast<const se::String*>(map_key));
+        collected->numbers.Push(*static_cast<const i32*>(map_value));
+    }, &context);
+
+    ASSERT_EQ(context.numbers.Len(), 1u);
+    EXPECT_EQ(context.numbers[0], 42);
+    EXPECT_EQ(context.texts[0], "score");
+}
+
+TEST(ValueOpsTest, OptionalValueReadsConstOptional)
+{
+    using namespace se_value_ops_test;
+
+    const se::ValueOps& ops = OpsOf<se::Optional<f32>>();
+    const auto optional_ops = ops.AsOptional();
+    ASSERT_TRUE(optional_ops.HasValue());
+    ASSERT_NE(optional_ops->value, nullptr);
+
+    se::Optional<f32> maybe_health;
+    *static_cast<f32*>(optional_ops->emplace(&maybe_health)) = 75.0f;
+
+    const se::Optional<f32>& const_health = maybe_health;
+    EXPECT_FLOAT_EQ(*static_cast<const f32*>(optional_ops->value(&const_health)), 75.0f);
 }
