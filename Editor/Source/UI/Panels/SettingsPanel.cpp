@@ -4,6 +4,7 @@
 #include "SimpleEngine/App/Application.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
 #include "imgui.h"

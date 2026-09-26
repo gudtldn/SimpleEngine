@@ -3,6 +3,7 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Utility/Common.h"
 
 #include <ostream>
@@ -171,5 +172,63 @@ toml::table* ConfigFile::NavigateOrCreate(StringView key_path, StringView& out_f
     }
 
     return current;
+}
+
+bool ConfigFile::ReadSection(StringView section_name, const SerializePlan& plan, void* out_value) const
+{
+    const toml::table* const section_table = FindSectionTable(section_name);
+    if (!section_table)
+    {
+        return false;
+    }
+
+    TomlReader reader(*section_table);
+    const auto result = serde::Deserialize(reader, plan, out_value);
+
+    // 필드 이름을 바꿨거나 오타를 낸 키를 알아차리게 모두 남김
+    for (const String& warning : reader.GetWarnings())
+    {
+        ConsoleLog(ELogLevel::Warning, "ConfigFile::GetSection: Section '{}': {}", section_name, warning);
+    }
+
+    if (result.HasError())
+    {
+        ConsoleLog(
+            ELogLevel::Error,
+            "ConfigFile::GetSection: Failed to read section '{}' at '{}', using default values. {}",
+            section_name, result.Error().path, result.Error().message
+        );
+        return false;
+    }
+    return true;
+}
+
+void ConfigFile::WriteSection(StringView section_name, const SerializePlan& plan, const void* value)
+{
+    // 실패해도 기존 섹션이 바뀌지 않도록 새 테이블에 씀
+    toml::table section_table;
+    TomlWriter writer(section_table);
+    if (const auto result = serde::Serialize(writer, plan, value); result.HasError())
+    {
+        ConsoleLog(
+            ELogLevel::Error,
+            "ConfigFile::SetSection: Failed to write section '{}' at '{}', the section is left unchanged. {}",
+            section_name, result.Error().path, result.Error().message
+        );
+        return;
+    }
+
+    if (section_name.IsEmpty())
+    {
+        // 루트 테이블에 병합 (기존 값은 덮어씀)
+        for (auto&& [key, val] : section_table)
+        {
+            root_table.insert_or_assign(key, std::move(val));
+        }
+    }
+    else
+    {
+        root_table.insert_or_assign(section_name, std::move(section_table));
+    }
 }
 } // namespace se
