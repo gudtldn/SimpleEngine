@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
@@ -65,6 +66,30 @@ public:
         for (usize i = 0; i < N; ++i)
         {
             SE_ASSERT(IsHexChar(src[i * 2]) && IsHexChar(src[(i * 2) + 1]), "FromHex: invalid hex character detected");
+            result.data[i] = static_cast<u8>(
+                (HexCharToNibble(src[i * 2]) << 4) | HexCharToNibble(src[(i * 2) + 1]) // NOLINT(*-signed-bitwise)
+            );
+        }
+        return result;
+    }
+
+    /** hex 문자열로부터 생성을 시도합니다. 길이나 문자가 올바르지 않으면 NullOpt입니다. */
+    static constexpr Optional<HashDigest> TryFromHex(StringView hex)
+    {
+        const usize expected_len = N * 2;
+        if (hex.ByteLen() != expected_len)
+        {
+            return NullOpt;
+        }
+
+        const char* src = hex.Data();
+        HashDigest result;
+        for (usize i = 0; i < N; ++i)
+        {
+            if (!IsHexChar(src[i * 2]) || !IsHexChar(src[(i * 2) + 1]))
+            {
+                return NullOpt;
+            }
             result.data[i] = static_cast<u8>(
                 (HexCharToNibble(src[i * 2]) << 4) | HexCharToNibble(src[(i * 2) + 1]) // NOLINT(*-signed-bitwise)
             );
