@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <charconv>
-#include <cmath>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -67,6 +66,16 @@ namespace
 [[nodiscard]] std::string_view ToStdStringView(StringView text)
 {
     return { text };
+}
+
+/** TOML 위치 parent 아래에 있는 key의 위치를 만듭니다. 예: ("window", "width")는 "window.width", ("", "vfs")는 "vfs" */
+[[nodiscard]] String JoinPath(StringView parent, StringView key)
+{
+    if (parent.IsEmpty())
+    {
+        return { key };
+    }
+    return String::Format("{}.{}", parent, key);
 }
 
 /**
@@ -319,6 +328,11 @@ TomlReader::TomlReader(const toml::table& in_root)
 {
 }
 
+ArrayView<const String> TomlReader::GetWarnings() const
+{
+    return warnings;
+}
+
 bool TomlReader::IsTextFormat() const
 {
     return true;
@@ -470,7 +484,7 @@ void TomlReader::BeginStruct()
         SetError(String::Format("TomlReader: expected a table, got {}.", NodeKindName(*node)));
         return;
     }
-    open_containers.Push(OpenContainer{ .node = node });
+    open_containers.Push(OpenContainer{ .node = node, .path = PathOfTakenValue() });
 }
 
 bool TomlReader::Field(StringView name)
@@ -486,6 +500,9 @@ bool TomlReader::Field(StringView name)
         SetError(String::Format("TomlReader: field '{}' is outside a struct.", name));
         return false;
     }
+
+    // 타입이 물어본 필드 이름을 기억해 두고, EndStruct에서 타입에 없는 키를 찾음
+    top->known_keys.Push(name);
 
     // 없는 필드는 false (호출자가 현재 값을 유지)
     top->field_value = top->node->as_table()->get(ToStdStringView(name));
@@ -505,6 +522,20 @@ void TomlReader::EndStruct()
         SetError("TomlReader: EndStruct does not match an open struct.");
         return;
     }
+
+    // 타입에 없는 키는 경고로 남기고 읽기는 계속함 (필드 이름을 바꿨거나 오타를 냈을 때 알아차리게)
+    for (const auto& entry : *top->node->as_table())
+    {
+        const StringView key = entry.first.str();
+        const bool is_known = std::ranges::any_of(top->known_keys, [&](const String& known_key)
+        {
+            return known_key == key;
+        });
+        if (!is_known)
+        {
+            warnings.Push(String::Format("TomlReader: unknown key '{}' is ignored.", JoinPath(top->path, key)));
+        }
+    }
     open_containers.Pop();
 }
 
@@ -523,7 +554,7 @@ void TomlReader::BeginSeq(u64& count)
         return;
     }
     count = array->size();
-    open_containers.Push(OpenContainer{ .node = array });
+    open_containers.Push(OpenContainer{ .node = array, .path = PathOfTakenValue() });
 }
 
 void TomlReader::EndSeq()
@@ -631,5 +662,19 @@ Optional<i64> TomlReader::ReadInteger(const toml::node& node, EIntWidth width, b
 
     SetError(String::Format("TomlReader: expected an integer, got {}.", NodeKindName(node)));
     return NullOpt;
+}
+
+String TomlReader::PathOfTakenValue() const
+{
+    const auto parent = open_containers.Peek();
+
+    // 배열이면 TakeValue가 이미 다음 번호로 넘어갔으므로 하나 앞이 방금 꺼낸 원소
+    if (parent->node->is_array())
+    {
+        return String::Format("{}[{}]", parent->path, parent->next_index - 1);
+    }
+
+    // 테이블이면 마지막으로 물어본 필드 이름이 방금 꺼낸 값의 키
+    return JoinPath(parent->path, *parent->known_keys.Back());
 }
 } // namespace se
