@@ -7,7 +7,7 @@
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
 
@@ -20,96 +20,88 @@ using namespace se;
 namespace config_test
 {
 /** [window] 섹션에 대응하는 설정 구조체 */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) WindowSettings
+struct WindowSettings
 {
-    SE_ANNOTATION(=meta::Reflect)
     u32 width = 800;
-
-    SE_ANNOTATION(=meta::Reflect)
     u32 height = 600;
-
-    SE_ANNOTATION(=meta::Reflect)
     bool fullscreen = true;
-
-    SE_ANNOTATION(=meta::Reflect)
     String title = "Default Title";
-
-    SE_ANNOTATION(=meta::Reflect)
     f32 scale = 1.0f;
 
     bool operator==(const WindowSettings&) const = default;
 };
 
 /** [graphics] 섹션에 대응하는 설정 구조체 */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) GraphicsSettings
+struct GraphicsSettings
 {
-    SE_ANNOTATION(=meta::Reflect)
     bool vsync = false;
-
-    SE_ANNOTATION(=meta::Reflect)
     i32 max_fps = 60;
-
-    SE_ANNOTATION(=meta::Reflect)
     Array<String> shaders;
 
     bool operator==(const GraphicsSettings&) const = default;
 };
 
 /** [logging] 섹션에 대응하는 설정 구조체 */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) LoggingSettings
+struct LoggingSettings
 {
-    SE_ANNOTATION(=meta::Reflect)
     String level = "info";
-
-    SE_ANNOTATION(=meta::Reflect)
     bool output_to_file = false;
-
-    SE_ANNOTATION(=meta::Reflect)
     String log_file_path;
 
     bool operator==(const LoggingSettings&) const = default;
 };
 
-/** Transient 프로퍼티를 포함하는 테스트 구조체 */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) TransientSettings
+/** 저장하지 않는 필드(transient_val)를 포함하는 테스트 구조체 */
+struct TransientSettings
 {
-    SE_ANNOTATION(=meta::Reflect)
     i32 saved_val = 0;
-
-    SE_ANNOTATION(=meta::Reflect, =meta::Transient)
     i32 transient_val = 0;
 
     bool operator==(const TransientSettings&) const = default;
 };
 
 /** 빈 구조체 */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) EmptySettings
+struct EmptySettings
 {
     bool operator==(const EmptySettings&) const = default;
 };
 
-/** 컨테이너 프로퍼티를 가진 구조체 */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) ContainerSettings
+/** 컨테이너 필드를 가진 구조체 */
+struct ContainerSettings
 {
-    SE_ANNOTATION(=meta::Reflect)
     Array<i32> numbers;
-
-    SE_ANNOTATION(=meta::Reflect)
-    HashMap<String, f32> scores;
 
     bool operator==(const ContainerSettings&) const = default;
 };
 
-/** 루트 레벨 설정 (섹션 없이 최상위에 놓이는 키들) */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) RootSettings
+/** 맵 필드를 가진 구조체. TOML 아카이브가 아직 맵을 쓰지 못하므로 쓰기 실패 검증에 씁니다. */
+struct MapSettings
 {
-    SE_ANNOTATION(=meta::Reflect)
-    String title;
+    HashMap<String, f32> scores;
+};
 
-    SE_ANNOTATION(=meta::Reflect)
+/** 루트 레벨 설정 (섹션 없이 최상위에 놓이는 키들) */
+struct RootSettings
+{
+    String title;
     String engine_version;
 
     bool operator==(const RootSettings&) const = default;
+};
+
+/** 이름을 등록한 enum */
+enum class EPresentMode : u8
+{
+    Mailbox,
+    VSync,
+    Immediate,
+};
+
+/** 레거시 형식(enum은 정수, f32는 f64로 확장된 값) 읽기 검증용 구조체 */
+struct LegacyFormatSettings
+{
+    EPresentMode present_mode = EPresentMode::Mailbox;
+    f32 busy_wait_ratio = 0.5f;
 };
 } // namespace config_test
 
@@ -119,50 +111,68 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) RootSettings
 // ============================================================================
 using namespace config_test;
 
-SE_DECLARE_REFLECTION_V1(WindowSettings)
-SE_BEGIN_REFLECT_V1(WindowSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(width, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(height, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(fullscreen, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(title, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(scale, meta::Reflect)
-SE_END_REFLECT_V1(WindowSettings)
+SE_DECLARE_REFLECTION(config_test::WindowSettings)
+SE_DECLARE_REFLECTION(config_test::GraphicsSettings)
+SE_DECLARE_REFLECTION(config_test::LoggingSettings)
+SE_DECLARE_REFLECTION(config_test::TransientSettings)
+SE_DECLARE_REFLECTION(config_test::EmptySettings)
+SE_DECLARE_REFLECTION(config_test::ContainerSettings)
+SE_DECLARE_REFLECTION(config_test::MapSettings)
+SE_DECLARE_REFLECTION(config_test::RootSettings)
+SE_DECLARE_REFLECTION(config_test::EPresentMode)
+SE_DECLARE_REFLECTION(config_test::LegacyFormatSettings)
 
-SE_DECLARE_REFLECTION_V1(GraphicsSettings)
-SE_BEGIN_REFLECT_V1(GraphicsSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(vsync, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(max_fps, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(shaders, meta::Reflect)
-SE_END_REFLECT_V1(GraphicsSettings)
+SE_REFLECT_BEGIN(config_test::WindowSettings)
+    SE_FIELD(width)
+    SE_FIELD(height)
+    SE_FIELD(fullscreen)
+    SE_FIELD(title)
+    SE_FIELD(scale)
+SE_REFLECT_END()
 
-SE_DECLARE_REFLECTION_V1(LoggingSettings)
-SE_BEGIN_REFLECT_V1(LoggingSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(level, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(output_to_file, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(log_file_path, meta::Reflect)
-SE_END_REFLECT_V1(LoggingSettings)
+SE_REFLECT_BEGIN(config_test::GraphicsSettings)
+    SE_FIELD(vsync)
+    SE_FIELD(max_fps)
+    SE_FIELD(shaders)
+SE_REFLECT_END()
 
-SE_DECLARE_REFLECTION_V1(TransientSettings)
-SE_BEGIN_REFLECT_V1(TransientSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(saved_val, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(transient_val, meta::Transient)
-SE_END_REFLECT_V1(TransientSettings)
+SE_REFLECT_BEGIN(config_test::LoggingSettings)
+    SE_FIELD(level)
+    SE_FIELD(output_to_file)
+    SE_FIELD(log_file_path)
+SE_REFLECT_END()
 
-SE_DECLARE_REFLECTION_V1(EmptySettings)
-SE_BEGIN_REFLECT_V1(EmptySettings, meta::Reflect, meta::Hidden)
-SE_END_REFLECT_V1(EmptySettings)
+// transient_val은 등록하지 않아 저장되지 않음
+SE_REFLECT_BEGIN(config_test::TransientSettings)
+    SE_FIELD(saved_val)
+SE_REFLECT_END()
 
-SE_DECLARE_REFLECTION_V1(ContainerSettings)
-SE_BEGIN_REFLECT_V1(ContainerSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(numbers, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(scores, meta::Reflect)
-SE_END_REFLECT_V1(ContainerSettings)
+SE_REFLECT_BEGIN(config_test::EmptySettings)
+SE_REFLECT_END()
 
-SE_DECLARE_REFLECTION_V1(RootSettings)
-SE_BEGIN_REFLECT_V1(RootSettings, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(title, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(engine_version, meta::Reflect)
-SE_END_REFLECT_V1(RootSettings)
+SE_REFLECT_BEGIN(config_test::ContainerSettings)
+    SE_FIELD(numbers)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(config_test::MapSettings)
+    SE_FIELD(scores)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(config_test::RootSettings)
+    SE_FIELD(title)
+    SE_FIELD(engine_version)
+SE_REFLECT_END()
+
+SE_REFLECT_ENUM_BEGIN(config_test::EPresentMode)
+    SE_ENUM_VALUE(Mailbox)
+    SE_ENUM_VALUE(VSync)
+    SE_ENUM_VALUE(Immediate)
+SE_REFLECT_ENUM_END()
+
+SE_REFLECT_BEGIN(config_test::LegacyFormatSettings)
+    SE_FIELD(present_mode)
+    SE_FIELD(busy_wait_ratio)
+SE_REFLECT_END()
 
 
 // ============================================================================
@@ -185,12 +195,14 @@ protected:
     static const VPath non_existent_path;
     static const VPath invalid_toml_path;
     static const VPath save_test_path;
+    static const VPath legacy_toml_path;
 };
 
 const VPath ConfigFileTest::test_toml_path = "Config://ConfigTest.toml";
 const VPath ConfigFileTest::non_existent_path = "Config://NonExistent.toml";
 const VPath ConfigFileTest::invalid_toml_path = "Config://Invalid.toml";
 const VPath ConfigFileTest::save_test_path = "Config://ConfigFileSaveTest.toml";
+const VPath ConfigFileTest::legacy_toml_path = "Config://ConfigFileLegacyTest.toml";
 
 
 // ============================================================================
@@ -296,6 +308,17 @@ TEST_F(ConfigFileTest, GetSectionPartialMatch_MissingFieldsKeepDefaults)
     EXPECT_TRUE(logging.log_file_path.IsEmpty()); // 기본값
 }
 
+TEST_F(ConfigFileTest, GetSectionFailureReturnsDefaults)
+{
+    ConfigFile new_config;
+    new_config.SetValue("window.width", 1920);
+    new_config.SetValue("window.title", 42); // 문자열이어야 하는 값
+
+    // width를 읽은 뒤 title에서 실패하므로, 읽다 만 값 대신 기본 생성된 구조체를 받아야 함
+    const auto window = new_config.GetSection<WindowSettings>("window");
+    EXPECT_EQ(window, WindowSettings{});
+}
+
 
 // ============================================================================
 //  SetSection 테스트
@@ -356,19 +379,28 @@ TEST_F(ConfigFileTest, SetSectionWithContainers)
 
     ContainerSettings expected;
     expected.numbers = { 10, 20, 30, 40 };
-    expected.scores.Insert("alice", 95.5f);
-    expected.scores.Insert("bob", 87.3f);
 
     new_config.SetSection(expected, "data");
 
     auto actual = new_config.GetSection<ContainerSettings>("data");
     EXPECT_EQ(actual.numbers, expected.numbers);
-    EXPECT_EQ(actual.scores.Len(), 2u);
-    EXPECT_TRUE(actual.scores.Contains("alice"));
-    EXPECT_TRUE(actual.scores.Contains("bob"));
 }
 
-TEST_F(ConfigFileTest, TransientPropertyNotSerialized)
+TEST_F(ConfigFileTest, SetSectionFailureKeepsExistingSection)
+{
+    ConfigFile new_config;
+    new_config.SetValue("data.kept", 7);
+
+    // TOML 아카이브가 아직 맵을 쓰지 못해 실패하므로 기존 섹션이 그대로 남아야 함
+    MapSettings settings;
+    settings.scores.Insert("alice", 95.5f);
+    new_config.SetSection(settings, "data");
+
+    EXPECT_EQ(new_config.GetValue<i64>("data.kept").Value(), 7);
+    EXPECT_FALSE(new_config.GetValue<f64>("data.scores.alice").HasValue());
+}
+
+TEST_F(ConfigFileTest, TransientFieldNotSerialized)
 {
     ConfigFile new_config;
 
@@ -380,7 +412,7 @@ TEST_F(ConfigFileTest, TransientPropertyNotSerialized)
 
     auto loaded = new_config.GetSection<TransientSettings>("settings");
     EXPECT_EQ(loaded.saved_val, 42);
-    EXPECT_EQ(loaded.transient_val, 0);  // Transient -> 직렬화되지 않아 기본값
+    EXPECT_EQ(loaded.transient_val, 0);  // 등록하지 않은 필드 -> 직렬화되지 않아 기본값
 }
 
 TEST_F(ConfigFileTest, EmptyStructRoundTrip)
@@ -610,6 +642,30 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
     EXPECT_EQ(r_window.fullscreen, true); // 기본값으로 채워짐
     EXPECT_EQ(r_window.title, "Default Title");
     EXPECT_FLOAT_EQ(r_window.scale, 1.0f);
+}
+
+
+// ============================================================================
+//  레거시 형식 호환 테스트
+// ============================================================================
+TEST_F(ConfigFileTest, GetSectionReadsLegacyFormat)
+{
+    // 레거시 TomlWriter_v1이 쓴 모양: enum은 정수, f32는 f64로 확장된 값
+    const auto physical_path = VFS::ToPath(legacy_toml_path);
+    struct FileDeleter
+    {
+        Path path;
+        ~FileDeleter() { if (path.Exists()) { fs::Remove(path); } }
+    } deleter{ physical_path };
+
+    ASSERT_TRUE(fs::WriteString(physical_path, "[legacy]\nbusy_wait_ratio = 0.10000000149011612\npresent_mode = 2\n"));
+
+    auto result = ConfigFile::Load(legacy_toml_path);
+    ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
+
+    const auto legacy = result.Value().GetSection<LegacyFormatSettings>("legacy");
+    EXPECT_EQ(legacy.present_mode, EPresentMode::Immediate);
+    EXPECT_EQ(legacy.busy_wait_ratio, 0.1f);
 }
 
 
