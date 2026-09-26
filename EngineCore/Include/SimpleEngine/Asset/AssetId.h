@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
@@ -42,3 +43,6 @@ struct std::hash<se::AssetId>
         return std::hash<se::Guid>{}(asset_id.GetGuid());
     }
 };
+
+// guid가 private라 SE_FIELD로 서술할 수 없으므로 Opaque로 등록하고, 직렬화는 AssetId.cpp의 SerializeTraits가 맡음
+SE_REFLECT_OPAQUE(se::AssetId)
