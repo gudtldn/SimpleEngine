@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
 
 
-// 내장 트레이트가 SerializeOpsRegistry에 연결되는지, 미등록 타입은 NullOpt인지 검증
+// 내장 트레이트가 SerializeOpsRegistry에 FORMAT_VERSION과 함께 연결되는지, 미등록 타입은 NullOpt인지 검증
 namespace se_serialize_ops_registry_test
 {
 using namespace se;
@@ -24,6 +24,7 @@ TEST(SerializeOpsRegistryTest, BuiltinStringIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, BuiltinStringNameIsInstalled)
@@ -32,6 +33,7 @@ TEST(SerializeOpsRegistryTest, BuiltinStringNameIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, BuiltinGuidIsInstalled)
@@ -40,6 +42,7 @@ TEST(SerializeOpsRegistryTest, BuiltinGuidIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, BuiltinTypeIdIsInstalled)
@@ -48,6 +51,7 @@ TEST(SerializeOpsRegistryTest, BuiltinTypeIdIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, BuiltinPathIsInstalled)
@@ -56,6 +60,7 @@ TEST(SerializeOpsRegistryTest, BuiltinPathIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, BuiltinVPathIsInstalled)
@@ -64,6 +69,7 @@ TEST(SerializeOpsRegistryTest, BuiltinVPathIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, BuiltinContentHashIsInstalled)
@@ -72,6 +78,7 @@ TEST(SerializeOpsRegistryTest, BuiltinContentHashIsInstalled)
     ASSERT_TRUE(ops.HasValue());
     EXPECT_NE(ops->write, nullptr);
     EXPECT_NE(ops->read, nullptr);
+    EXPECT_EQ(ops->format_version, 1u);
 }
 
 TEST(SerializeOpsRegistryTest, UnregisteredTypeIsNullOpt)

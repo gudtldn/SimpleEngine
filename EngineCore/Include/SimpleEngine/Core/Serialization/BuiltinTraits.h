@@ -18,6 +18,8 @@ namespace se
 template <>
 struct SE_CORE_API SerializeTraits<String>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const String& value);
     static void Read(ArchiveReader& reader, String& value);
 };
@@ -26,6 +28,8 @@ struct SE_CORE_API SerializeTraits<String>
 template <>
 struct SE_CORE_API SerializeTraits<StringName>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const StringName& value);
     static void Read(ArchiveReader& reader, StringName& value);
 };
@@ -34,6 +38,8 @@ struct SE_CORE_API SerializeTraits<StringName>
 template <>
 struct SE_CORE_API SerializeTraits<Guid>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const Guid& value);
     static void Read(ArchiveReader& reader, Guid& value);
 };
@@ -42,6 +48,8 @@ struct SE_CORE_API SerializeTraits<Guid>
 template <>
 struct SE_CORE_API SerializeTraits<TypeId>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const TypeId& value);
     static void Read(ArchiveReader& reader, TypeId& value);
 };
@@ -50,6 +58,8 @@ struct SE_CORE_API SerializeTraits<TypeId>
 template <usize N>
 struct SerializeTraits<HashDigest<N>>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const HashDigest<N>& value)
     {
         if (writer.IsTextFormat())
@@ -88,6 +98,8 @@ struct SerializeTraits<HashDigest<N>>
 template <>
 struct SE_CORE_API SerializeTraits<Path>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const Path& value);
     static void Read(ArchiveReader& reader, Path& value);
 };
@@ -96,6 +108,8 @@ struct SE_CORE_API SerializeTraits<Path>
 template <>
 struct SE_CORE_API SerializeTraits<VPath>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(ArchiveWriter& writer, const VPath& value);
     static void Read(ArchiveReader& reader, VPath& value);
 };
