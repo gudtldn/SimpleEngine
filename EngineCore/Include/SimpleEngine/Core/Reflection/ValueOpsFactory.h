@@ -18,8 +18,10 @@ ArrayOps MakeArrayOps()
 
     ArrayOps ops{};
     ops.len = [](const void* c) static -> usize { return static_cast<const Container*>(c)->Len(); };
-    ops.data = [](void* c) static -> void* { return static_cast<Container*>(c)->Data(); };
-    ops.element_at = [](void* c, usize index) static -> void* { return &(*static_cast<Container*>(c))[index]; };
+    ops.data = [](const void* c) static -> const void* { return static_cast<const Container*>(c)->Data(); };
+    ops.data_mut = [](void* c) static -> void* { return static_cast<Container*>(c)->Data(); };
+    ops.element_at = [](const void* c, usize index) static -> const void* { return &(*static_cast<const Container*>(c))[index]; };
+    ops.element_at_mut = [](void* c, usize index) static -> void* { return &(*static_cast<Container*>(c))[index]; };
 
     if constexpr (
         requires (Container& container, usize count) { container.Resize(count); }
@@ -68,9 +70,9 @@ SetOps MakeSetOps()
         };
     }
 
-    ops.for_each = [](void* c, void (*visit)(const void*, void*), void* user_data) static
+    ops.for_each = [](const void* c, void (*visit)(const void*, void*), void* user_data) static
     {
-        for (const auto& element : *static_cast<Container*>(c))
+        for (const auto& element : *static_cast<const Container*>(c))
         {
             visit(&element, user_data);
         }
@@ -105,7 +107,15 @@ MapOps MakeMapOps()
         };
     }
 
-    ops.for_each = [](void* c, void (*visit)(const void*, void*, void*), void* user_data) static
+    ops.for_each = [](const void* c, void (*visit)(const void*, const void*, void*), void* user_data) static
+    {
+        for (auto&& [key, value] : *static_cast<const Container*>(c))
+        {
+            visit(&key, &value, user_data);
+        }
+    };
+
+    ops.for_each_mut = [](void* c, void (*visit)(const void*, void*, void*), void* user_data) static
     {
         for (auto&& [key, value] : *static_cast<Container*>(c))
         {
@@ -121,7 +131,8 @@ OptionalOps MakeOptionalOps()
 {
     OptionalOps ops{};
     ops.has_value = [](const void* opt) static -> bool { return static_cast<const Container*>(opt)->HasValue(); };
-    ops.value = [](void* opt) static -> void* { return &static_cast<Container*>(opt)->Value(); };
+    ops.value = [](const void* opt) static -> const void* { return &static_cast<const Container*>(opt)->Value(); };
+    ops.value_mut = [](void* opt) static -> void* { return &static_cast<Container*>(opt)->Value(); };
     ops.reset = [](void* opt) static { static_cast<Container*>(opt)->Reset(); };
 
     // Optional<T&>는 Emplace()가 없음
