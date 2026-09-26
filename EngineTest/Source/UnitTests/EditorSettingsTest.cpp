@@ -5,6 +5,8 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/Serializer.h"
+#include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include <ranges>
@@ -15,8 +17,8 @@ using namespace se;
 
 // 설정 구조체는 SettingsPanel이 그리는 레거시 리플렉션(TypeRegistry_v1)과 ConfigFile이 읽고 쓰는 리플렉션(TypeRegistry)에
 // 모두 등록되므로, 한쪽에만 필드를 추가하는 실수를 잡기 위해 두 등록을 비교
-// Editor DLL의 타입이라 등록 템플릿(EnsureRegistered, SerializePlan::Of 등)은 인스턴스화하지 않고,
-// Editor DLL이 정적 초기화에서 등록한 정보를 TypeId로 찾음
+// 두 등록은 Editor DLL이 정적 초기화에서 등록한 정보를 TypeId로 찾아 비교하고,
+// Editor DLL 밖(이 실행 파일)에서도 설정 구조체를 직렬화할 수 있는지 확인
 namespace
 {
 /** 설정 타입 하나를 두 레지스트리에서 찾을 TypeId */
@@ -102,4 +104,21 @@ TEST(EditorSettingsTest, BothRegistrationsListSamePresentModeNames)
         JoinNames(enum_info->entries | std::views::transform(&EnumEntry::name)),
         JoinNames(legacy_entries | std::views::transform(&EnumEntry_v1::name))
     );
+}
+
+TEST(EditorSettingsTest, WindowSettingsSerializesFromAnotherModule)
+{
+    // Editor DLL이 등록한 타입을 이 실행 파일에서 EnsureRegistered하고 Plan을 만들어 씀
+    const editor::WindowSettings settings{ .title = "Test Window", .width = 800, .height = 600, .fullscreen = true };
+
+    toml::table table;
+    TomlWriter writer(table);
+    ASSERT_TRUE(serde::Serialize(writer, settings).HasValue());
+
+    EXPECT_EQ(table["title"].value_exact<std::string>(), "Test Window");
+    EXPECT_EQ(table["width"].value_exact<i64>(), 800);
+    EXPECT_EQ(table["height"].value_exact<i64>(), 600);
+    EXPECT_EQ(table["fullscreen"].value_exact<bool>(), true);
+    EXPECT_EQ(table["borderless"].value_exact<bool>(), false);
+    EXPECT_EQ(table["resizable"].value_exact<bool>(), true);
 }
