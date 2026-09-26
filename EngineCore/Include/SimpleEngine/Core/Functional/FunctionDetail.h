@@ -15,7 +15,7 @@ namespace se::detail
 // - 정렬: std::max_align_t 에 맞춤
 // - 버퍼 크기: 포인터 3개 분량 (24 bytes on x64)
 using SBOAlign = std::max_align_t;
-constexpr usize SBO_BUFFER_SIZE = sizeof(void*) * 3;
+inline constexpr usize SBO_BUFFER_SIZE = sizeof(void*) * 3;
 
 /**
  * Callable 인터페이스 - 이동 전용 최소 인터페이스

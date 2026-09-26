@@ -76,10 +76,10 @@ namespace detail
  * @note requires{}가 MSVC에서 SFINAE로 안 먹혀서 void_t로 우회
  */
 template <typename T, typename = void>
-constexpr bool IsRegistrarUnspecialized = false;
+inline constexpr bool IsRegistrarUnspecialized = false;
 
 template <typename T>
-constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnregisteredMarker>> = true;
+inline constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnregisteredMarker>> = true;
 
 /**
  * Derived 안에서 Base 서브오브젝트가 시작하는 바이트 오프셋을 구합니다.

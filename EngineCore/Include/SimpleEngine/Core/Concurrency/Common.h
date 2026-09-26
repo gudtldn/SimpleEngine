@@ -9,7 +9,7 @@
 namespace se
 {
 /** 캐시 라인 크기 - False Sharing 방지용 정렬 단위 */
-constexpr usize SE_CACHE_LINE = std::hardware_destructive_interference_size;
+inline constexpr usize SE_CACHE_LINE = std::hardware_destructive_interference_size;
 
 /** Job이 실행될 스레드를 지정하는 열거형 */
 enum class EJobThread : u8
@@ -27,5 +27,5 @@ enum class EJobPriority : u8
 };
 
 /** 우선순위 레벨 개수 */
-constexpr usize NUM_JOB_PRIORITIES = 3; // EnumCount<EJobPriority>();
+inline constexpr usize NUM_JOB_PRIORITIES = 3; // EnumCount<EJobPriority>();
 } // namespace se

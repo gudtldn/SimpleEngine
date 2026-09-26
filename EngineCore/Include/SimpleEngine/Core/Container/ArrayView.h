@@ -23,7 +23,7 @@ class FixedArray;
 
 
 /** 동적 크기를 나타내는 상수 */
-constexpr usize DynamicExtent = static_cast<usize>(-1);
+inline constexpr usize DynamicExtent = static_cast<usize>(-1);
 
 
 namespace detail

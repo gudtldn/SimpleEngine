@@ -9,19 +9,19 @@
 
 namespace se::math
 {
-constexpr f32 SMALL_NUMBER = 1.e-8f;
-constexpr f32 KINDA_SMALL_NUMBER = 1.e-4f;
+inline constexpr f32 SMALL_NUMBER = 1.e-8f;
+inline constexpr f32 KINDA_SMALL_NUMBER = 1.e-4f;
 
 template <traits::FloatingType T>
-constexpr T PI_V = std::numbers::pi_v<T>;
+inline constexpr T PI_V = std::numbers::pi_v<T>;
 
-constexpr f32 PI = PI_V<f32>;
-constexpr f32 INV_PI = std::numbers::inv_pi_v<f32>;
-constexpr f32 HALF_PI = PI * 0.5f;
-constexpr f32 TWO_PI = PI * 2.0f;
-constexpr f32 PI_SQUARED = PI * PI;
+inline constexpr f32 PI = PI_V<f32>;
+inline constexpr f32 INV_PI = std::numbers::inv_pi_v<f32>;
+inline constexpr f32 HALF_PI = PI * 0.5f;
+inline constexpr f32 TWO_PI = PI * 2.0f;
+inline constexpr f32 PI_SQUARED = PI * PI;
 
-constexpr f64 PI_DOUBLE = PI_V<f64>;
+inline constexpr f64 PI_DOUBLE = PI_V<f64>;
 
 
 // TODO: C++26 컴파일러 나오면 기본 std 함수로 대체

@@ -104,6 +104,6 @@ struct IsReadOnlyType
 
 /** 쿼리 파라미터 팩 전체가 읽기 전용인지 확인합니다. */
 template <typename... Ts>
-constexpr bool IS_READ_ONLY_QUERY_PACK = (IsReadOnlyType<Ts>::Value && ...);
+inline constexpr bool IS_READ_ONLY_QUERY_PACK = (IsReadOnlyType<Ts>::Value && ...);
 } // namespace detail
 } // namespace se

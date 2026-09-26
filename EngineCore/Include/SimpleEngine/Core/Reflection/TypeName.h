@@ -20,7 +20,7 @@ consteval usize CanonicalNameLengthOf()
  * 타입당 한 번만 인스턴스화되므로, 실제로 쓰인 타입의 이름만 .rodata에 들어갑니다.
  */
 template <typename T>
-constexpr auto CANONICAL_NAME_BUFFER = [] consteval
+inline constexpr auto CANONICAL_NAME_BUFFER = [] consteval
 {
     constexpr usize LENGTH = CanonicalNameLengthOf<T>();
 

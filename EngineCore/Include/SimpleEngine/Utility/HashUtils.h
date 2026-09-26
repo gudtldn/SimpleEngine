@@ -9,8 +9,8 @@ namespace se
 {
 namespace detail
 {
-constexpr u64 FNV_OFFSET_BASIS = 0xcbf29ce484222325ULL;
-constexpr u64 FNV_PRIME = 0x100000001b3ULL;
+inline constexpr u64 FNV_OFFSET_BASIS = 0xcbf29ce484222325ULL;
+inline constexpr u64 FNV_PRIME = 0x100000001b3ULL;
 
 /** FNV-1a 단일 바이트 누적 처리 */
 constexpr void FNV1a_Byte(u64& hash, u8 byte) noexcept

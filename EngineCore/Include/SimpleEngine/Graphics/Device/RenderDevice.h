@@ -11,7 +11,7 @@
 namespace se
 {
 /** 리소스 해제 전, 대기할 최대 프레임 수 */
-constexpr u64 MAX_FRAMES_IN_FLIGHT = 2;
+inline constexpr u64 MAX_FRAMES_IN_FLIGHT = 2;
 
 /** RenderDevice가 관리하는 텍스처 리소스의 메타데이터 */
 struct TextureResource

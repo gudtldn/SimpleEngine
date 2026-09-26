@@ -13,7 +13,7 @@
 
 namespace se
 {
-static constexpr u32 INVALID_PASS_INDEX = std::numeric_limits<u32>::max();
+inline constexpr u32 INVALID_PASS_INDEX = std::numeric_limits<u32>::max();
 
 /**
  * 패스가 특정 버전의 리소스를 참조할 때 사용하는 구조체

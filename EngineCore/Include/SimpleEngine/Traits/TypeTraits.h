@@ -11,7 +11,7 @@ namespace se::traits
 namespace detail
 {
 template <typename T, typename... Us>
-constexpr usize COUNT_OCCURRENCES = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
+inline constexpr usize COUNT_OCCURRENCES = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
 
 template <typename T>
 struct ParamTypeImpl

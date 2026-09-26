@@ -14,7 +14,7 @@
 namespace se::detail
 {
 /** canonical name 인코딩 규칙의 버전 */
-constexpr u64 TYPE_ID_SCHEMA_SALT = 1;
+inline constexpr u64 TYPE_ID_SCHEMA_SALT = 1;
 
 /**
  * name을 TypeId 원시 값으로 계산합니다.
@@ -40,7 +40,7 @@ consteval u64 ComputeTypeIdValue()
 
 /** 각 타입별로 FNV 해시를 컴파일 타임에 계산해 캐싱합니다. */
 template <typename T>
-constexpr u64 TYPE_ID_VALUE = ComputeTypeIdValue<T>();
+inline constexpr u64 TYPE_ID_VALUE = ComputeTypeIdValue<T>();
 } // namespace se::detail
 
 namespace se

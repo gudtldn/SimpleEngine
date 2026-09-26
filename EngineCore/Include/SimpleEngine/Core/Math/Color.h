@@ -24,7 +24,7 @@ constexpr f32 LinearToSrgb(f32 val)
 }
 
 /** sRGB -> Linear Lookup Table */
-constexpr f32 SRGB_TO_LINEAR_LUT[256] = {
+inline constexpr f32 SRGB_TO_LINEAR_LUT[256] = {
     0.000000f, 0.000304f, 0.000607f, 0.000911f, 0.001214f, 0.001518f, 0.001821f, 0.002125f,
     0.002428f, 0.002732f, 0.003035f, 0.003347f, 0.003677f, 0.004025f, 0.004391f, 0.004777f,
     0.005182f, 0.005605f, 0.006049f, 0.006512f, 0.006995f, 0.007499f, 0.008023f, 0.008568f,
