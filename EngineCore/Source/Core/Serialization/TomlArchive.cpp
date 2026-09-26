@@ -1,10 +1,13 @@
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 
+#include "SimpleEngine/Utility/Base64.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 #include <algorithm>
 #include <charconv>
+#include <compare>
 #include <iterator>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -101,6 +104,66 @@ namespace
     }
     return shortest;
 }
+
+/** node를 toml++ 기본 형식의 텍스트로 만듭니다. */
+[[nodiscard]] std::string ToTomlText(const toml::node& node)
+{
+    std::ostringstream stream;
+    node.visit([&stream](const auto& concrete) { stream << concrete; });
+    return std::move(stream).str();
+}
+
+/**
+ * 순서 없는 출력을 정렬할 때 쓰는 전순서로 두 노드를 비교합니다.
+ * 종류가 다르면 toml++의 종류 순서이고, 같으면 정수와 실수는 값, 문자열은 사전순, bool은 false가 먼저입니다.
+ * 배열은 원소를 앞에서부터 비교하고([key, value] 쌍은 key가 먼저), 테이블은 TOML 텍스트로 비교합니다.
+ */
+[[nodiscard]] std::weak_ordering CompareNodes(const toml::node& lhs, const toml::node& rhs) // NOLINT(*-no-recursion)
+{
+    if (lhs.type() != rhs.type())
+    {
+        return lhs.type() <=> rhs.type();
+    }
+
+    switch (lhs.type())
+    {
+    case toml::node_type::integer:        return lhs.as_integer()->get() <=> rhs.as_integer()->get();
+    case toml::node_type::floating_point: return std::strong_order(lhs.as_floating_point()->get(), rhs.as_floating_point()->get());
+    case toml::node_type::string:         return lhs.as_string()->get() <=> rhs.as_string()->get();
+    case toml::node_type::boolean:        return lhs.as_boolean()->get() <=> rhs.as_boolean()->get();
+    case toml::node_type::array:
+    {
+        const toml::array& lhs_array = *lhs.as_array();
+        const toml::array& rhs_array = *rhs.as_array();
+        return std::lexicographical_compare_three_way(
+            lhs_array.begin(), lhs_array.end(), rhs_array.begin(), rhs_array.end(), CompareNodes);
+    }
+    default:                              return ToTomlText(lhs) <=> ToTomlText(rhs);
+    }
+}
+
+/**
+ * array의 원소를 CompareNodes 순서로 정렬합니다.
+ * toml::array는 원소를 제자리에서 맞바꿀 수 없어, 정렬한 순서로 옮겨 담은 새 배열로 교체합니다.
+ */
+void SortArray(toml::array& array)
+{
+    Array<toml::node*> order;
+    order.Reserve(array.size());
+    for (toml::node& element : array)
+    {
+        order.Push(&element);
+    }
+    order.Sort([](const toml::node* lhs, const toml::node* rhs) { return CompareNodes(*lhs, *rhs) < 0; });
+
+    toml::array sorted;
+    sorted.reserve(array.size());
+    for (toml::node* const element : order)
+    {
+        sorted.push_back(std::move(*element));
+    }
+    array = std::move(sorted);
+}
 } // namespace
 
 
@@ -146,9 +209,10 @@ void TomlWriter::Str(StringView value)
     PlaceValue(ToStdStringView(value));
 }
 
-void TomlWriter::Bytes([[maybe_unused]] const void* data, [[maybe_unused]] u64 size)
+void TomlWriter::Bytes(const void* data, u64 size)
 {
-    SetError("TomlWriter: bytes are not supported yet.");
+    const String text = base64::Encode(ArrayView<const u8>(static_cast<const u8*>(data), size));
+    PlaceValue(ToStdStringView(text));
 }
 
 void TomlWriter::Enum(i64 value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
@@ -181,13 +245,13 @@ void TomlWriter::BeginStruct()
     if (!root_started)
     {
         root_started = true;
-        open_containers.Push(OpenContainer{ .node = &root });
+        open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = &root });
         return;
     }
 
     if (toml::node* const table = PlaceValue(toml::table{}))
     {
-        open_containers.Push(OpenContainer{ .node = table });
+        open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = table });
     }
 }
 
@@ -199,7 +263,7 @@ void TomlWriter::Field(StringView name)
     }
 
     const auto top = open_containers.Peek();
-    if (!top || !top->node->is_table())
+    if (!top || top->kind != EContainerKind::Struct)
     {
         SetError(String::Format("TomlWriter: field '{}' is outside a struct.", name));
         return;
@@ -220,7 +284,7 @@ void TomlWriter::EndStruct()
     }
 
     const auto top = open_containers.Peek();
-    if (!top || !top->node->is_table())
+    if (!top || top->kind != EContainerKind::Struct)
     {
         SetError("TomlWriter: EndStruct does not match an open struct.");
         return;
@@ -235,15 +299,11 @@ void TomlWriter::EndStruct()
 
 void TomlWriter::BeginSeq([[maybe_unused]] u64 count, ESeqOrder order)
 {
-    if (order == ESeqOrder::Unordered)
-    {
-        SetError("TomlWriter: unordered sequences are not supported yet.");
-        return;
-    }
-
     if (toml::node* const array = PlaceValue(toml::array{}))
     {
-        open_containers.Push(OpenContainer{ .node = array });
+        // 순서 없는 시퀀스는 같은 값이면 같은 텍스트가 나오도록 EndSeq에서 정렬
+        const EContainerKind kind = order == ESeqOrder::Unordered ? EContainerKind::UnorderedSeq : EContainerKind::Seq;
+        open_containers.Push(OpenContainer{ .kind = kind, .node = array });
     }
 }
 
@@ -255,70 +315,195 @@ void TomlWriter::EndSeq()
     }
 
     const auto top = open_containers.Peek();
-    if (!top || !top->node->is_array())
+    if (!top || (top->kind != EContainerKind::Seq && top->kind != EContainerKind::UnorderedSeq))
     {
         SetError("TomlWriter: EndSeq does not match an open sequence.");
         return;
+    }
+    if (top->kind == EContainerKind::UnorderedSeq)
+    {
+        SortArray(*top->node->as_array());
     }
     open_containers.Pop();
 }
 
 void TomlWriter::BeginMap([[maybe_unused]] u64 count)
 {
-    SetError("TomlWriter: maps are not supported yet.");
+    // 테이블로 쓸 수 있는지는 key를 모두 봐야 알 수 있으므로, 넣을 자리만 확인하고 EndMap까지 엔트리를 모아 둠
+    if (CanPlaceValue())
+    {
+        open_containers.Push(OpenContainer{ .kind = EContainerKind::Map });
+    }
 }
 
 void TomlWriter::BeginMapEntry()
 {
-    SetError("TomlWriter: maps are not supported yet.");
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    if (!top || top->kind != EContainerKind::Map)
+    {
+        SetError("TomlWriter: BeginMapEntry is outside a map.");
+        return;
+    }
+
+    // key와 value를 차례로 받을 [key, value] 배열
+    top->map_entries.push_back(toml::array{});
+    open_containers.Push(OpenContainer{ .kind = EContainerKind::MapEntry, .node = &top->map_entries.back() });
 }
 
 void TomlWriter::EndMapEntry()
 {
-    SetError("TomlWriter: maps are not supported yet.");
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    if (!top || top->kind != EContainerKind::MapEntry)
+    {
+        SetError("TomlWriter: EndMapEntry does not match an open map entry.");
+        return;
+    }
+    if (top->node->as_array()->size() != 2)
+    {
+        SetError("TomlWriter: a map entry needs exactly one key and one value.");
+        return;
+    }
+    open_containers.Pop();
 }
 
 void TomlWriter::EndMap()
 {
-    SetError("TomlWriter: maps are not supported yet.");
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    if (!top || top->kind != EContainerKind::Map)
+    {
+        SetError("TomlWriter: EndMap does not match an open map.");
+        return;
+    }
+    toml::array entries = std::move(top->map_entries);
+    open_containers.Pop();
+
+    // key가 모두 문자열이면 테이블 (빈 맵 포함). 테이블은 키 순서로 저장되므로 따로 정렬하지 않음
+    const bool has_only_string_keys = std::all_of(entries.cbegin(), entries.cend(), [](const toml::node& entry)
+    {
+        return entry.as_array()->front().is_string();
+    });
+    if (has_only_string_keys)
+    {
+        toml::table table;
+        for (toml::node& entry : entries)
+        {
+            toml::array& pair = *entry.as_array();
+            const std::string& key = pair.front().as_string()->get();
+
+            // 서로 다른 key가 같은 문자열로 쓰이면 한쪽이 사라지므로 오류로 처리
+            if (!table.insert(key, std::move(pair.back())).second)
+            {
+                SetError(String::Format("TomlWriter: map key '{}' is written twice.", key));
+                return;
+            }
+        }
+        PlaceValue(std::move(table));
+        return;
+    }
+
+    // 아니면 key 순서(key가 같으면 value 순서)로 정렬한 [key, value] 쌍 배열
+    SortArray(entries);
+    PlaceValue(std::move(entries));
 }
 
-void TomlWriter::Present([[maybe_unused]] bool has_value)
-{
-    SetError("TomlWriter: optional values are not supported yet.");
-}
-
-template <typename Value>
-toml::node* TomlWriter::PlaceValue(Value&& value)
+void TomlWriter::Present(bool has_value)
 {
     if (HasError())
     {
-        return nullptr;
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    const bool is_field_value = top && top->kind == EContainerKind::Struct && top->pending_key;
+    if (has_value)
+    {
+        // 이어서 쓰는 내부 값이 이 자리에 들어감
+        if (is_field_value)
+        {
+            top->pending_key_in_some = true;
+        }
+        return;
+    }
+
+    // None은 struct 필드의 키를 생략해서만 쓸 수 있음. 시퀀스 원소, 맵의 key와 value를 생략하면 그 자리가 사라짐
+    if (!is_field_value)
+    {
+        SetError("TomlWriter: None can only be written as a struct field, by omitting its key.");
+        return;
+    }
+
+    // Optional<Optional<T>>의 Some(None)은 키를 생략하면 바깥 None으로 읽힘
+    if (top->pending_key_in_some)
+    {
+        SetError("TomlWriter: None inside another Optional cannot be written because the omitted key reads back as the outer None.");
+        return;
+    }
+    top->pending_key.Reset();
+}
+
+bool TomlWriter::CanPlaceValue()
+{
+    if (HasError())
+    {
+        return false;
     }
 
     const auto top = open_containers.Peek();
     if (!top)
     {
         SetError("TomlWriter: the root value must be a single struct because a TOML document is a table.");
-        return nullptr;
+        return false;
     }
-
-    // 배열이면 끝에 넣음
-    if (toml::array* const array = top->node->as_array())
-    {
-        array->push_back(std::forward<Value>(value));
-        return &array->back();
-    }
-
-    // 테이블이면 Field가 정한 키로 넣음
-    if (!top->pending_key)
+    if (top->kind == EContainerKind::Struct && !top->pending_key)
     {
         SetError("TomlWriter: a value inside a struct needs a Field name first.");
+        return false;
+    }
+    if (top->kind == EContainerKind::Map)
+    {
+        SetError("TomlWriter: a value inside a map needs BeginMapEntry first.");
+        return false;
+    }
+    return true;
+}
+
+template <typename Value>
+toml::node* TomlWriter::PlaceValue(Value&& value)
+{
+    if (!CanPlaceValue())
+    {
         return nullptr;
     }
-    const auto position = top->node->as_table()->insert_or_assign(ToStdStringView(*top->pending_key), std::forward<Value>(value)).first;
-    top->pending_key.Reset();
-    return &position->second;
+
+    // struct면 Field가 정한 키로 넣음
+    const auto top = open_containers.Peek();
+    if (top->kind == EContainerKind::Struct)
+    {
+        const auto position = top->node->as_table()->insert_or_assign(ToStdStringView(*top->pending_key), std::forward<Value>(value)).first;
+        top->pending_key.Reset();
+        top->pending_key_in_some = false;
+        return &position->second;
+    }
+
+    // 시퀀스와 맵 엔트리는 배열 끝에 넣음
+    toml::array* const array = top->node->as_array();
+    array->push_back(std::forward<Value>(value));
+    return &array->back();
 }
 
 
@@ -425,9 +610,33 @@ void TomlReader::Str(String& value)
     value = str::ToString(text->get());
 }
 
-void TomlReader::Bytes([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
+void TomlReader::Bytes(void* data, u64 size)
 {
-    SetError("TomlReader: bytes are not supported yet.");
+    const toml::node* const node = TakeValue();
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    const toml::value<std::string>* const text = node->as_string();
+    if (text == nullptr)
+    {
+        SetError(String::Format("TomlReader: expected a base64 string, got {}.", NodeKindName(*node)));
+        return;
+    }
+
+    const auto bytes = base64::Decode(std::string_view{ text->get() });
+    if (!bytes)
+    {
+        SetError("TomlReader: invalid base64 string.");
+        return;
+    }
+    if (bytes->Len() != size)
+    {
+        SetError(String::Format("TomlReader: expected {} bytes, got {} bytes of base64 data.", size, bytes->Len()));
+        return;
+    }
+    std::ranges::copy(*bytes, static_cast<u8*>(data));
 }
 
 void TomlReader::Enum(i64& value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
@@ -470,7 +679,7 @@ void TomlReader::BeginStruct()
     if (!root_started)
     {
         root_started = true;
-        open_containers.Push(OpenContainer{ .node = &root });
+        open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = &root });
         return;
     }
 
@@ -484,7 +693,7 @@ void TomlReader::BeginStruct()
         SetError(String::Format("TomlReader: expected a table, got {}.", NodeKindName(*node)));
         return;
     }
-    open_containers.Push(OpenContainer{ .node = node, .path = PathOfTakenValue() });
+    open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = node, .path = PathOfTakenValue() });
 }
 
 bool TomlReader::Field(StringView name)
@@ -495,7 +704,7 @@ bool TomlReader::Field(StringView name)
     }
 
     const auto top = open_containers.Peek();
-    if (!top || !top->node->is_table())
+    if (!top || top->kind != EContainerKind::Struct)
     {
         SetError(String::Format("TomlReader: field '{}' is outside a struct.", name));
         return false;
@@ -517,7 +726,7 @@ void TomlReader::EndStruct()
     }
 
     const auto top = open_containers.Peek();
-    if (!top || !top->node->is_table())
+    if (!top || top->kind != EContainerKind::Struct)
     {
         SetError("TomlReader: EndStruct does not match an open struct.");
         return;
@@ -554,7 +763,7 @@ void TomlReader::BeginSeq(u64& count)
         return;
     }
     count = array->size();
-    open_containers.Push(OpenContainer{ .node = array, .path = PathOfTakenValue() });
+    open_containers.Push(OpenContainer{ .kind = EContainerKind::Seq, .node = array, .path = PathOfTakenValue() });
 }
 
 void TomlReader::EndSeq()
@@ -565,7 +774,7 @@ void TomlReader::EndSeq()
     }
 
     const auto top = open_containers.Peek();
-    if (!top || !top->node->is_array())
+    if (!top || top->kind != EContainerKind::Seq)
     {
         SetError("TomlReader: EndSeq does not match an open sequence.");
         return;
@@ -573,29 +782,130 @@ void TomlReader::EndSeq()
     open_containers.Pop();
 }
 
-void TomlReader::BeginMap([[maybe_unused]] u64& count)
+void TomlReader::BeginMap(u64& count)
 {
-    SetError("TomlReader: maps are not supported yet.");
+    const toml::node* const node = TakeValue();
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    // key가 모두 문자열이면 테이블, 아니면 [key, value] 쌍 배열로 쓰여 있음 (빈 맵은 둘 다 받음)
+    if (const toml::table* const table = node->as_table())
+    {
+        count = table->size();
+        open_containers.Push(OpenContainer{
+            .kind = EContainerKind::Map,
+            .node = table,
+            .path = PathOfTakenValue(),
+            .next_entry = table->cbegin(),
+        });
+        return;
+    }
+    if (const toml::array* const array = node->as_array())
+    {
+        count = array->size();
+        open_containers.Push(OpenContainer{ .kind = EContainerKind::Map, .node = array, .path = PathOfTakenValue() });
+        return;
+    }
+    SetError(String::Format("TomlReader: expected a table or an array, got {}.", NodeKindName(*node)));
 }
 
 void TomlReader::BeginMapEntry()
 {
-    SetError("TomlReader: maps are not supported yet.");
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    if (!top || top->kind != EContainerKind::Map)
+    {
+        SetError("TomlReader: BeginMapEntry is outside a map.");
+        return;
+    }
+
+    // 테이블 맵의 엔트리는 키를 문자열 노드로 만들어, key 자리에서 문자열이나 enum 이름으로 읽히게 함
+    if (const toml::table* const table = top->node->as_table())
+    {
+        if (top->next_entry == table->cend())
+        {
+            SetError(String::Format("TomlReader: read past the end of a table of {} entries.", table->size()));
+            return;
+        }
+        const std::string_view key = top->next_entry->first.str();
+        const toml::node& value = top->next_entry->second;
+        ++top->next_entry;
+        open_containers.Push(OpenContainer{
+            .kind = EContainerKind::MapEntry,
+            .node = &value,
+            .path = JoinPath(top->path, key),
+            .table_key = toml::value<std::string>{ std::string{ key } },
+        });
+        return;
+    }
+
+    // 쌍 배열 맵의 엔트리는 원소 하나가 [key, value] 배열
+    const toml::array& pairs = *top->node->as_array();
+    if (top->next_index >= pairs.size())
+    {
+        SetError(String::Format("TomlReader: read past the end of an array of length {}.", pairs.size()));
+        return;
+    }
+    const usize index = top->next_index++;
+    const toml::array* const pair = pairs[index].as_array();
+    if (pair == nullptr)
+    {
+        SetError(String::Format("TomlReader: expected a [key, value] array, got {}.", NodeKindName(pairs[index])));
+        return;
+    }
+    if (pair->size() != 2)
+    {
+        SetError(String::Format("TomlReader: expected a [key, value] array, got an array of length {}.", pair->size()));
+        return;
+    }
+    open_containers.Push(OpenContainer{ .kind = EContainerKind::MapEntry, .node = pair, .path = String::Format("{}[{}]", top->path, index) });
 }
 
 void TomlReader::EndMapEntry()
 {
-    SetError("TomlReader: maps are not supported yet.");
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    if (!top || top->kind != EContainerKind::MapEntry)
+    {
+        SetError("TomlReader: EndMapEntry does not match an open map entry.");
+        return;
+    }
+    open_containers.Pop();
 }
 
 void TomlReader::EndMap()
 {
-    SetError("TomlReader: maps are not supported yet.");
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto top = open_containers.Peek();
+    if (!top || top->kind != EContainerKind::Map)
+    {
+        SetError("TomlReader: EndMap does not match an open map.");
+        return;
+    }
+    open_containers.Pop();
 }
 
-void TomlReader::Present([[maybe_unused]] bool& has_value)
+void TomlReader::Present(bool& has_value)
 {
-    SetError("TomlReader: optional values are not supported yet.");
+    // None은 struct 필드의 키를 생략해서만 쓰므로 읽을 값이 있는 자리는 항상 Some (없는 필드는 Field가 false)
+    if (!HasError())
+    {
+        has_value = true;
+    }
 }
 
 const toml::node* TomlReader::TakeValue()
@@ -612,24 +922,50 @@ const toml::node* TomlReader::TakeValue()
         return nullptr;
     }
 
-    // 배열이면 다음 원소
-    if (const toml::array* const array = top->node->as_array())
+    switch (top->kind)
     {
-        if (top->next_index >= array->size())
+    case EContainerKind::Struct:
+        // Field가 찾아 둔 값
+        if (top->field_value == nullptr)
         {
-            SetError(String::Format("TomlReader: read past the end of an array of length {}.", array->size()));
+            SetError("TomlReader: a value inside a struct needs a Field name first.");
             return nullptr;
         }
-        return array->get(top->next_index++);
+        return std::exchange(top->field_value, nullptr);
+
+    case EContainerKind::Seq:
+    {
+        // 다음 원소
+        const toml::array& array = *top->node->as_array();
+        if (top->next_index >= array.size())
+        {
+            SetError(String::Format("TomlReader: read past the end of an array of length {}.", array.size()));
+            return nullptr;
+        }
+        return array.get(top->next_index++);
     }
 
-    // 테이블이면 Field가 찾아 둔 값
-    if (top->field_value == nullptr)
-    {
-        SetError("TomlReader: a value inside a struct needs a Field name first.");
+    case EContainerKind::Map:
+        SetError("TomlReader: a value inside a map needs BeginMapEntry first.");
         return nullptr;
+
+    case EContainerKind::MapEntry:
+    {
+        // key 다음에 value
+        if (top->next_index >= 2)
+        {
+            SetError("TomlReader: a map entry has only a key and a value.");
+            return nullptr;
+        }
+        const usize slot = top->next_index++;
+        if (top->table_key)
+        {
+            return slot == 0 ? &*top->table_key : top->node;
+        }
+        return top->node->as_array()->get(slot);
     }
-    return std::exchange(top->field_value, nullptr);
+    }
+    SE_UNREACHABLE();
 }
 
 Optional<i64> TomlReader::ReadInteger(const toml::node& node, EIntWidth width, bool is_signed)
@@ -667,14 +1003,28 @@ Optional<i64> TomlReader::ReadInteger(const toml::node& node, EIntWidth width, b
 String TomlReader::PathOfTakenValue() const
 {
     const auto parent = open_containers.Peek();
-
-    // 배열이면 TakeValue가 이미 다음 번호로 넘어갔으므로 하나 앞이 방금 꺼낸 원소
-    if (parent->node->is_array())
+    switch (parent->kind)
     {
-        return String::Format("{}[{}]", parent->path, parent->next_index - 1);
-    }
+    case EContainerKind::Struct:
+        // 마지막으로 물어본 필드 이름이 방금 꺼낸 값의 키
+        return JoinPath(parent->path, *parent->known_keys.Back());
 
-    // 테이블이면 마지막으로 물어본 필드 이름이 방금 꺼낸 값의 키
-    return JoinPath(parent->path, *parent->known_keys.Back());
+    case EContainerKind::Seq:
+        // TakeValue가 이미 다음 번호로 넘어갔으므로 하나 앞이 방금 꺼낸 원소
+        return String::Format("{}[{}]", parent->path, parent->next_index - 1);
+
+    case EContainerKind::MapEntry:
+        // 테이블 맵은 key와 value가 엔트리의 위치("scores.alice"), 쌍 배열 맵은 [key, value] 배열 안의 번호("points[0][1]")
+        if (parent->table_key)
+        {
+            return parent->path;
+        }
+        return String::Format("{}[{}]", parent->path, parent->next_index - 1);
+
+    case EContainerKind::Map:
+        // TakeValue가 맵에서는 값을 꺼내지 않음
+        break;
+    }
+    SE_UNREACHABLE();
 }
 } // namespace se

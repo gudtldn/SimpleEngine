@@ -3,6 +3,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
@@ -70,14 +71,15 @@ struct EmptySettings
 struct ContainerSettings
 {
     Array<i32> numbers;
+    HashMap<String, f32> scores;
 
     bool operator==(const ContainerSettings&) const = default;
 };
 
-/** 맵 필드를 가진 구조체. TOML 아카이브가 아직 맵을 쓰지 못하므로 쓰기 실패 검증에 씁니다. */
-struct MapSettings
+/** None을 원소로 담을 수 있는 배열 필드를 가진 구조체. TOML은 배열 원소의 None을 쓸 수 없으므로 쓰기 실패 검증에 씁니다. */
+struct OptionalListSettings
 {
-    HashMap<String, f32> scores;
+    Array<Optional<i32>> values;
 };
 
 /** 루트 레벨 설정 (섹션 없이 최상위에 놓이는 키들) */
@@ -117,7 +119,7 @@ SE_DECLARE_REFLECTION(config_test::LoggingSettings)
 SE_DECLARE_REFLECTION(config_test::TransientSettings)
 SE_DECLARE_REFLECTION(config_test::EmptySettings)
 SE_DECLARE_REFLECTION(config_test::ContainerSettings)
-SE_DECLARE_REFLECTION(config_test::MapSettings)
+SE_DECLARE_REFLECTION(config_test::OptionalListSettings)
 SE_DECLARE_REFLECTION(config_test::RootSettings)
 SE_DECLARE_REFLECTION(config_test::EPresentMode)
 SE_DECLARE_REFLECTION(config_test::LegacyFormatSettings)
@@ -152,10 +154,11 @@ SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(config_test::ContainerSettings)
     SE_FIELD(numbers)
+    SE_FIELD(scores)
 SE_REFLECT_END()
 
-SE_REFLECT_BEGIN(config_test::MapSettings)
-    SE_FIELD(scores)
+SE_REFLECT_BEGIN(config_test::OptionalListSettings)
+    SE_FIELD(values)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(config_test::RootSettings)
@@ -379,11 +382,14 @@ TEST_F(ConfigFileTest, SetSectionWithContainers)
 
     ContainerSettings expected;
     expected.numbers = { 10, 20, 30, 40 };
+    expected.scores.Insert("alice", 95.5f);
+    expected.scores.Insert("bob", 87.3f);
 
     new_config.SetSection(expected, "data");
 
     auto actual = new_config.GetSection<ContainerSettings>("data");
     EXPECT_EQ(actual.numbers, expected.numbers);
+    EXPECT_EQ(actual.scores, expected.scores);
 }
 
 TEST_F(ConfigFileTest, SetSectionFailureKeepsExistingSection)
@@ -391,13 +397,13 @@ TEST_F(ConfigFileTest, SetSectionFailureKeepsExistingSection)
     ConfigFile new_config;
     new_config.SetValue("data.kept", 7);
 
-    // TOML 아카이브가 아직 맵을 쓰지 못해 실패하므로 기존 섹션이 그대로 남아야 함
-    MapSettings settings;
-    settings.scores.Insert("alice", 95.5f);
+    // TOML은 배열 원소의 None을 쓸 수 없어 실패하므로 기존 섹션이 그대로 남아야 함
+    OptionalListSettings settings;
+    settings.values = { 1, NullOpt };
     new_config.SetSection(settings, "data");
 
     EXPECT_EQ(new_config.GetValue<i64>("data.kept").Value(), 7);
-    EXPECT_FALSE(new_config.GetValue<f64>("data.scores.alice").HasValue());
+    EXPECT_FALSE(new_config.GetValue<i64>("data.values[0]").HasValue());
 }
 
 TEST_F(ConfigFileTest, TransientFieldNotSerialized)

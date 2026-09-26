@@ -3,22 +3,28 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
+#include "SimpleEngine/Core/Container/Map.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Types/Guid.h"
+#include "SimpleEngine/Core/Types/HashDigest.h"
 
+#include <algorithm>
 #include <bit>
 #include <cmath>
 #include <limits>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
 
 using namespace se;
 
-// TomlWriter/TomlReader의 노드 규칙(정수 범위, f32 표현, enum 이름), 레거시 설정 파일 호환, 오류 경로 검증
+// TomlWriter/TomlReader의 노드 규칙(정수 범위, f32 표현, enum 이름, 맵, Optional, Bytes, 정렬), 레거시 설정 파일 호환, 오류 경로, .meta 골든 텍스트 검증
 namespace se_toml_test
 {
 /** 이름을 등록한 enum. 설정 파일의 present_mode를 흉내 냅니다. */
@@ -104,22 +110,176 @@ struct HasItems
     Array<Item> items;
 };
 
-/** 아직 지원하지 않는 Map 노드 검증용 */
+/** 문자열 key 맵(테이블) 검증용 */
 struct HasMap
 {
     HashMap<String, i32> scores;
+
+    [[nodiscard]] bool operator==(const HasMap&) const = default;
 };
 
-/** 아직 지원하지 않는 Optional 노드 검증용 */
+/** struct 값을 담은 테이블 맵에서 모르는 키의 경고 위치 검증용 */
+struct HasItemMap
+{
+    HashMap<String, Item> items;
+};
+
+/** 정수 key 맵([key, value] 쌍 배열) 검증용 */
+struct HasIdMap
+{
+    HashMap<i32, Item> items;
+
+    [[nodiscard]] bool operator==(const HasIdMap&) const = default;
+};
+
+/** 이름을 등록한 enum key 맵 검증용 */
+struct HasModeMap
+{
+    HashMap<EPresentMode, i32> modes;
+
+    [[nodiscard]] bool operator==(const HasModeMap&) const = default;
+};
+
+/** struct key로 쓰는 격자 좌표 */
+struct GridCell
+{
+    i32 x = 0;
+    i32 y = 0;
+
+    [[nodiscard]] auto operator<=>(const GridCell&) const = default;
+};
+
+/** struct key 맵 검증용 */
+struct HasCellMap
+{
+    Map<GridCell, String> cells;
+
+    [[nodiscard]] bool operator==(const HasCellMap&) const = default;
+};
+
+/** i64를 넘는 u64 key 맵 검증용. 그런 key는 10진 문자열로 쓰입니다. */
+struct HasU64Map
+{
+    HashMap<u64, i32> values;
+
+    [[nodiscard]] bool operator==(const HasU64Map&) const = default;
+};
+
+/** Optional 필드 검증용 */
 struct HasOptional
 {
     Optional<i32> value;
+
+    [[nodiscard]] bool operator==(const HasOptional&) const = default;
 };
 
-/** 아직 지원하지 않는 순서 없는 시퀀스 검증용 */
-struct HasSet
+/** 기본값이 Some인 Optional 필드 검증용 */
+struct HasDefaultSome
 {
-    HashSet<i32> tags;
+    Optional<i32> value = 5;
+};
+
+/** 시퀀스 원소의 None 검증용 */
+struct HasOptionalArray
+{
+    Array<Optional<i32>> values;
+};
+
+/** 맵 value의 None 검증용 */
+struct HasOptionalMap
+{
+    HashMap<String, Optional<i32>> values;
+};
+
+/** 다른 Optional 안의 None 검증용 */
+struct HasNestedOptional
+{
+    Optional<Optional<i32>> value;
+};
+
+/** 순서 없는 시퀀스의 정렬 검증용 */
+struct HasSets
+{
+    HashSet<i32> ints;
+    HashSet<f64> floats;
+    HashSet<bool> flags;
+    HashSet<String> names;
+    HashSet<EPresentMode> modes;
+
+    [[nodiscard]] bool operator==(const HasSets&) const = default;
+};
+
+/** .meta 골든 테스트에서 서브 에셋의 type으로 쓰는 메시 에셋 타입 */
+struct MetaStaticMesh
+{
+};
+
+/** .meta 골든 테스트에서 서브 에셋의 type으로 쓰는 머티리얼 에셋 타입 */
+struct MetaMaterialInstance
+{
+};
+
+/** .meta의 import_settings 값을 흉내 내는 메시 임포트 설정 */
+struct MetaMeshImportSettings
+{
+    bool apply_transform = true;
+    bool combine_meshes = true;
+    f32 global_scale = 1.0f;
+
+    [[nodiscard]] bool operator==(const MetaMeshImportSettings&) const = default;
+};
+
+/** .meta의 서브 에셋 의존성을 흉내 내는 타입 */
+struct MetaDependency
+{
+    String source_vpath;
+    Guid asset_guid;
+
+    [[nodiscard]] bool operator==(const MetaDependency&) const = default;
+};
+
+/** .meta의 [[metadata.sub_assets]]를 흉내 내는 타입 */
+struct MetaSubAsset
+{
+    String name;
+    Guid guid;
+    TypeId type;
+    Array<MetaDependency> dependencies;
+
+    [[nodiscard]] bool operator==(const MetaSubAsset&) const = default;
+};
+
+/** .meta의 [metadata]를 흉내 내는 타입 */
+struct MetaMetadata
+{
+    Guid guid;
+    ContentHash source_hash;
+    u64 source_mtime = 0;
+    u64 source_size = 0;
+    u32 cache_version = 0;
+    ContentHash settings_hash;
+    Array<MetaSubAsset> sub_assets;
+
+    [[nodiscard]] bool operator==(const MetaMetadata&) const = default;
+};
+
+/** .meta의 processor_stack 원소를 흉내 내는 타입 */
+struct MetaProcessorEntry
+{
+    TypeId processor_type;
+    bool enabled = true;
+
+    [[nodiscard]] bool operator==(const MetaProcessorEntry&) const = default;
+};
+
+/** .meta 파일 하나와 구조가 같은 루트 타입. 타입 이름이 key인 맵, 중첩 배열을 가진 struct 배열, u64, hex 문자열을 담습니다. */
+struct MetaFile
+{
+    MetaMetadata metadata;
+    HashMap<TypeId, MetaMeshImportSettings> import_settings;
+    Array<MetaProcessorEntry> processor_stack;
+
+    [[nodiscard]] bool operator==(const MetaFile&) const = default;
 };
 } // namespace se_toml_test
 
@@ -133,8 +293,26 @@ SE_DECLARE_REFLECTION(se_toml_test::FloatFields)
 SE_DECLARE_REFLECTION(se_toml_test::Item)
 SE_DECLARE_REFLECTION(se_toml_test::HasItems)
 SE_DECLARE_REFLECTION(se_toml_test::HasMap)
+SE_DECLARE_REFLECTION(se_toml_test::HasItemMap)
+SE_DECLARE_REFLECTION(se_toml_test::HasIdMap)
+SE_DECLARE_REFLECTION(se_toml_test::HasModeMap)
+SE_DECLARE_REFLECTION(se_toml_test::GridCell)
+SE_DECLARE_REFLECTION(se_toml_test::HasCellMap)
+SE_DECLARE_REFLECTION(se_toml_test::HasU64Map)
 SE_DECLARE_REFLECTION(se_toml_test::HasOptional)
-SE_DECLARE_REFLECTION(se_toml_test::HasSet)
+SE_DECLARE_REFLECTION(se_toml_test::HasDefaultSome)
+SE_DECLARE_REFLECTION(se_toml_test::HasOptionalArray)
+SE_DECLARE_REFLECTION(se_toml_test::HasOptionalMap)
+SE_DECLARE_REFLECTION(se_toml_test::HasNestedOptional)
+SE_DECLARE_REFLECTION(se_toml_test::HasSets)
+SE_DECLARE_REFLECTION(se_toml_test::MetaStaticMesh)
+SE_DECLARE_REFLECTION(se_toml_test::MetaMaterialInstance)
+SE_DECLARE_REFLECTION(se_toml_test::MetaMeshImportSettings)
+SE_DECLARE_REFLECTION(se_toml_test::MetaDependency)
+SE_DECLARE_REFLECTION(se_toml_test::MetaSubAsset)
+SE_DECLARE_REFLECTION(se_toml_test::MetaMetadata)
+SE_DECLARE_REFLECTION(se_toml_test::MetaProcessorEntry)
+SE_DECLARE_REFLECTION(se_toml_test::MetaFile)
 
 SE_REFLECT_ENUM_BEGIN(se_toml_test::EPresentMode)
     SE_ENUM_VALUE(Mailbox)
@@ -193,12 +371,102 @@ SE_REFLECT_BEGIN(se_toml_test::HasMap)
     SE_FIELD(scores)
 SE_REFLECT_END()
 
+SE_REFLECT_BEGIN(se_toml_test::HasItemMap)
+    SE_FIELD(items)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasIdMap)
+    SE_FIELD(items)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasModeMap)
+    SE_FIELD(modes)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::GridCell)
+    SE_FIELD(x)
+    SE_FIELD(y)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasCellMap)
+    SE_FIELD(cells)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasU64Map)
+    SE_FIELD(values)
+SE_REFLECT_END()
+
 SE_REFLECT_BEGIN(se_toml_test::HasOptional)
     SE_FIELD(value)
 SE_REFLECT_END()
 
-SE_REFLECT_BEGIN(se_toml_test::HasSet)
-    SE_FIELD(tags)
+SE_REFLECT_BEGIN(se_toml_test::HasDefaultSome)
+    SE_FIELD(value)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasOptionalArray)
+    SE_FIELD(values)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasOptionalMap)
+    SE_FIELD(values)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasNestedOptional)
+    SE_FIELD(value)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::HasSets)
+    SE_FIELD(ints)
+    SE_FIELD(floats)
+    SE_FIELD(flags)
+    SE_FIELD(names)
+    SE_FIELD(modes)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaStaticMesh)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaMaterialInstance)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaMeshImportSettings)
+    SE_FIELD(apply_transform)
+    SE_FIELD(combine_meshes)
+    SE_FIELD(global_scale)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaDependency)
+    SE_FIELD(source_vpath)
+    SE_FIELD(asset_guid)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaSubAsset)
+    SE_FIELD(name)
+    SE_FIELD(guid)
+    SE_FIELD(type)
+    SE_FIELD(dependencies)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaMetadata)
+    SE_FIELD(guid)
+    SE_FIELD(source_hash)
+    SE_FIELD(source_mtime)
+    SE_FIELD(source_size)
+    SE_FIELD(cache_version)
+    SE_FIELD(settings_hash)
+    SE_FIELD(sub_assets)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaProcessorEntry)
+    SE_FIELD(processor_type)
+    SE_FIELD(enabled)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_toml_test::MetaFile)
+    SE_FIELD(metadata)
+    SE_FIELD(import_settings)
+    SE_FIELD(processor_stack)
 SE_REFLECT_END()
 
 
@@ -531,6 +799,320 @@ TEST(TomlWriterReaderTest, UnnamedEnumAboveI64IsError)
 }
 
 
+// --- 맵 ---
+
+TEST(TomlWriterReaderTest, StringKeyMapIsWrittenAsTable)
+{
+    using namespace se_toml_test;
+
+    const HasMap original{ .scores = { { "alice", 95 }, { "bob", 87 } } };
+    const toml::table table = WriteToTable(original);
+
+    ASSERT_TRUE(table["scores"].is_table());
+    EXPECT_EQ(table["scores"]["alice"].value_exact<i64>(), 95);
+    EXPECT_EQ(table["scores"]["bob"].value_exact<i64>(), 87);
+
+    TomlReader reader(table);
+    HasMap result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+}
+
+TEST(TomlWriterReaderTest, EnumKeyMapIsWrittenAsTableOfNames)
+{
+    using namespace se_toml_test;
+
+    const HasModeMap original{ .modes = { { EPresentMode::VSync, 60 }, { EPresentMode::Immediate, 0 } } };
+    const toml::table table = WriteToTable(original);
+
+    EXPECT_EQ(table["modes"]["VSync"].value_exact<i64>(), 60);
+    EXPECT_EQ(table["modes"]["Immediate"].value_exact<i64>(), 0);
+
+    // 테이블의 키를 enum 이름으로 읽음
+    TomlReader reader(table);
+    HasModeMap result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+}
+
+TEST(TomlWriterReaderTest, NonStringKeyMapIsWrittenAsSortedPairs)
+{
+    using namespace se_toml_test;
+
+    const HasIdMap original{
+        .items = { { 10, Item{ .value = 100 } }, { -2, Item{ .value = -20 } }, { 3, Item{ .value = 30 } } },
+    };
+    const toml::table table = WriteToTable(original);
+
+    // key 순서로 정렬한 [key, value] 쌍 배열
+    EXPECT_EQ(ToText(table), "items = [ [ -2, { value = -20 } ], [ 3, { value = 30 } ], [ 10, { value = 100 } ] ]");
+
+    TomlReader reader(table);
+    HasIdMap result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+}
+
+TEST(TomlWriterReaderTest, StructKeyMapIsSortedByText)
+{
+    using namespace se_toml_test;
+
+    const HasCellMap original{
+        .cells = { { GridCell{ .x = 9, .y = 0 }, "nine" }, { GridCell{ .x = 10, .y = 0 }, "ten" } },
+    };
+    const toml::table table = WriteToTable(original);
+
+    // struct key는 테이블이라 TOML 텍스트로 비교하므로 "x = 10"이 "x = 9"보다 먼저
+    EXPECT_EQ(ToText(table), "cells = [ [ { x = 10, y = 0 }, 'ten' ], [ { x = 9, y = 0 }, 'nine' ] ]");
+
+    TomlReader reader(table);
+    HasCellMap result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+}
+
+TEST(TomlWriterReaderTest, U64KeysAboveI64AreTableKeys)
+{
+    using namespace se_toml_test;
+
+    // i64를 넘는 u64는 10진 문자열로 쓰이므로 key가 모두 그렇다면 테이블이 되고, 테이블의 키를 정수로 읽음
+    const HasU64Map original{ .values = { { std::numeric_limits<u64>::max(), 1 } } };
+    const toml::table table = WriteToTable(original);
+    EXPECT_EQ(table["values"]["18446744073709551615"].value_exact<i64>(), 1);
+
+    TomlReader reader(table);
+    HasU64Map result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+}
+
+TEST(TomlWriterReaderTest, EmptyMapIsWrittenAsEmptyTable)
+{
+    using namespace se_toml_test;
+
+    const toml::table table = WriteToTable(HasIdMap{});
+    ASSERT_TRUE(table["items"].is_table());
+    EXPECT_TRUE(table["items"].as_table()->empty());
+
+    // 빈 맵은 빈 테이블과 빈 배열을 모두 받고, 기존 엔트리는 지움
+    for (const std::string_view text : { "items = {}", "items = []" })
+    {
+        const toml::table parsed = ParseToml(text);
+        TomlReader reader(parsed);
+        HasIdMap result{ .items = { { 1, Item{ .value = 1 } } } };
+        ASSERT_TRUE(serde::Deserialize(reader, result).HasValue()) << text;
+        EXPECT_TRUE(result.items.IsEmpty()) << text;
+    }
+}
+
+TEST(TomlWriterReaderTest, MapIsReadFromTableOrPairs)
+{
+    using namespace se_toml_test;
+
+    const HasMap expected{ .scores = { { "alice", 1 }, { "bob", 2 } } };
+    for (const std::string_view text : { "scores = { alice = 1, bob = 2 }", "scores = [ [ 'bob', 2 ], [ 'alice', 1 ] ]" })
+    {
+        const toml::table table = ParseToml(text);
+        TomlReader reader(table);
+        HasMap result;
+        ASSERT_TRUE(serde::Deserialize(reader, result).HasValue()) << text;
+        EXPECT_EQ(result, expected) << text;
+    }
+}
+
+TEST(TomlWriterReaderTest, MapReadErrors)
+{
+    struct Case
+    {
+        std::string_view text;
+        const char* path;
+        const char* message;
+    };
+    const Case cases[] = {
+        { "scores = 5", "scores", "TomlReader: expected a table or an array, got an integer." },
+        { "scores = { alice = 'x' }", "scores[0].value", "TomlReader: expected an integer, got a string." },
+        { "scores = [ 'alice' ]", "scores[0].key", "TomlReader: expected a [key, value] array, got a string." },
+        { "scores = [ [ 'alice' ] ]", "scores[0].key", "TomlReader: expected a [key, value] array, got an array of length 1." },
+        { "scores = [ [ 1, 2 ] ]", "scores[0].key", "TomlReader: expected a string, got an integer." },
+    };
+
+    for (const Case& c : cases)
+    {
+        const toml::table table = ParseToml(c.text);
+        TomlReader reader(table);
+        se_toml_test::HasMap result;
+        const auto read_result = serde::Deserialize(reader, result);
+        ASSERT_TRUE(read_result.HasError()) << c.text;
+        EXPECT_EQ(read_result.Error().path, c.path) << c.text;
+        EXPECT_EQ(read_result.Error().message, c.message) << c.text;
+    }
+}
+
+TEST(TomlWriterReaderTest, DuplicateTableKeyIsError)
+{
+    // 서로 다른 key가 같은 문자열로 쓰이면 테이블에서 한쪽이 사라지므로 오류
+    toml::table table;
+    TomlWriter writer(table);
+    writer.BeginStruct();
+    writer.Field("names");
+    writer.BeginMap(2);
+    for (const i64 value : { 1, 2 })
+    {
+        writer.BeginMapEntry();
+        writer.Str("same");
+        writer.Int(value, EIntWidth::Bits32, true);
+        writer.EndMapEntry();
+    }
+    writer.EndMap();
+
+    ASSERT_TRUE(writer.HasError());
+    EXPECT_EQ(String(writer.GetError()), "TomlWriter: map key 'same' is written twice.");
+}
+
+
+// --- 정렬 ---
+
+TEST(TomlWriterReaderTest, UnorderedSequencesAreWrittenSorted)
+{
+    using namespace se_toml_test;
+
+    const HasSets original{
+        .ints = { 30, -5, 7, 0 },
+        .floats = { 2.5, -1.0, 0.5 },
+        .flags = { true, false },
+        .names = { "b", "a", "B" },
+        .modes = { EPresentMode::VSync, static_cast<EPresentMode>(7), EPresentMode::Mailbox },
+    };
+    const toml::table table = WriteToTable(original);
+
+    // 정수와 실수는 값, 문자열은 사전순, bool은 false가 먼저. 이름 없는 enum 값(7)은 정수라 종류 순서로 문자열 뒤
+    EXPECT_EQ(ToText(table),
+        "flags = [ false, true ]\n"
+        "floats = [ -1.0, 0.5, 2.5 ]\n"
+        "ints = [ -5, 0, 7, 30 ]\n"
+        "modes = [ 'Mailbox', 'VSync', 7 ]\n"
+        "names = [ 'B', 'a', 'b' ]");
+
+    TomlReader reader(table);
+    HasSets result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+}
+
+TEST(TomlWriterReaderTest, SameValueGivesSameText)
+{
+    using namespace se_toml_test;
+
+    // 같은 내용을 반대 순서로 넣어 HashMap과 HashSet의 순회 순서가 달라도 텍스트는 같음
+    HasIdMap forward_map;
+    HasIdMap backward_map;
+    HasSets forward_sets;
+    HasSets backward_sets;
+    for (const i32 value : std::views::iota(0, 100))
+    {
+        forward_map.items.Insert(value, Item{ .value = value });
+        forward_sets.ints.Insert(value);
+        forward_sets.names.Insert(String::Format("name{}", value));
+    }
+    for (const i32 value : std::views::iota(0, 100) | std::views::reverse)
+    {
+        backward_map.items.Insert(value, Item{ .value = value });
+        backward_sets.ints.Insert(value);
+        backward_sets.names.Insert(String::Format("name{}", value));
+    }
+
+    EXPECT_EQ(ToText(WriteToTable(forward_map)), ToText(WriteToTable(backward_map)));
+    EXPECT_EQ(ToText(WriteToTable(forward_sets)), ToText(WriteToTable(backward_sets)));
+}
+
+
+// --- Optional ---
+
+TEST(TomlWriterReaderTest, NoneFieldIsOmitted)
+{
+    using namespace se_toml_test;
+
+    // None은 키를 쓰지 않고, Some은 값을 그대로 씀
+    EXPECT_TRUE(WriteToTable(HasOptional{}).empty());
+    EXPECT_EQ(WriteToTable(HasOptional{ .value = 3 })["value"].value_exact<i64>(), 3);
+
+    for (const HasOptional& original : { HasOptional{}, HasOptional{ .value = 3 } })
+    {
+        const toml::table table = WriteToTable(original);
+        TomlReader reader(table);
+        HasOptional result;
+        ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+        EXPECT_EQ(result, original);
+    }
+}
+
+TEST(TomlWriterReaderTest, MissingOptionalFieldIsReadAsNone)
+{
+    using namespace se_toml_test;
+
+    const toml::table table = WriteToTable(HasDefaultSome{ .value = NullOpt });
+    EXPECT_TRUE(table.empty());
+
+    // 기본값이 Some이어도 키가 없으면 None
+    TomlReader reader(table);
+    HasDefaultSome result;
+    ASSERT_TRUE(result.value.HasValue());
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_FALSE(result.value.HasValue());
+}
+
+
+// --- Bytes ---
+
+TEST(TomlWriterReaderTest, BytesAreWrittenAsBase64)
+{
+    const u8 original[] = { 'M', 'a', 'n', 0xFF };
+
+    toml::table table;
+    TomlWriter writer(table);
+    writer.BeginStruct();
+    writer.Field("blob");
+    writer.Bytes(original, sizeof(original));
+    writer.EndStruct();
+    ASSERT_FALSE(writer.HasError());
+    EXPECT_EQ(table["blob"].value_exact<std::string>(), "TWFu/w==");
+
+    TomlReader reader(table);
+    reader.BeginStruct();
+    ASSERT_TRUE(reader.Field("blob"));
+    u8 result[4] = {};
+    reader.Bytes(result, sizeof(result));
+    reader.EndStruct();
+    ASSERT_FALSE(reader.HasError());
+    EXPECT_TRUE(std::ranges::equal(result, original));
+}
+
+TEST(TomlWriterReaderTest, BytesReadErrors)
+{
+    struct Case
+    {
+        std::string_view text;
+        const char* message;
+    };
+    const Case cases[] = {
+        { "blob = 'TWF'", "TomlReader: invalid base64 string." },
+        { "blob = 'TWFu/w=='", "TomlReader: expected 3 bytes, got 4 bytes of base64 data." },
+        { "blob = 3", "TomlReader: expected a base64 string, got an integer." },
+    };
+
+    for (const Case& c : cases)
+    {
+        const toml::table table = ParseToml(c.text);
+        TomlReader reader(table);
+        reader.BeginStruct();
+        ASSERT_TRUE(reader.Field("blob")) << c.text;
+        u8 result[3] = {};
+        reader.Bytes(result, sizeof(result));
+        EXPECT_EQ(String(reader.GetError()), c.message) << c.text;
+    }
+}
+
+
 // --- 레거시 호환과 필드 누락 ---
 
 TEST(TomlWriterReaderTest, ReadsLegacyConfigText)
@@ -620,6 +1202,32 @@ TEST(TomlWriterReaderTest, UnknownKeyInArrayElementHasIndexedPath)
     EXPECT_EQ(warnings[0], "TomlReader: unknown key 'items[1].extra' is ignored.");
 }
 
+TEST(TomlWriterReaderTest, UnknownKeyInMapValueHasEntryPath)
+{
+    {
+        // 테이블 맵의 value는 "맵.키"
+        const toml::table table = ParseToml("[items.alice]\nvalue = 1\nextra = true");
+        TomlReader reader(table);
+        se_toml_test::HasItemMap result;
+        ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+
+        const ArrayView<const String> warnings = reader.GetWarnings();
+        ASSERT_EQ(warnings.Len(), 1u);
+        EXPECT_EQ(warnings[0], "TomlReader: unknown key 'items.alice.extra' is ignored.");
+    }
+    {
+        // 쌍 배열 맵의 value는 "맵[엔트리 번호][1]"
+        const toml::table table = ParseToml("items = [ [ 7, { value = 1, extra = true } ] ]");
+        TomlReader reader(table);
+        se_toml_test::HasIdMap result;
+        ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+
+        const ArrayView<const String> warnings = reader.GetWarnings();
+        ASSERT_EQ(warnings.Len(), 1u);
+        EXPECT_EQ(warnings[0], "TomlReader: unknown key 'items[0][1].extra' is ignored.");
+    }
+}
+
 TEST(TomlWriterReaderTest, NoWarningsForWrittenTable)
 {
     // TomlWriter가 쓴 테이블에는 타입에 없는 키가 없음
@@ -679,35 +1287,44 @@ TEST(TomlWriterReaderTest, RootMustBeStruct)
     EXPECT_EQ(read_result.Error().message, "TomlReader: the root value must be a single struct because a TOML document is a table.");
 }
 
-TEST(TomlWriterReaderTest, NodesNotSupportedYetAreErrors)
+TEST(TomlWriterReaderTest, NoneOutsideStructFieldIsError)
 {
     using namespace se_toml_test;
 
-    const auto write_error = [](const auto& value) -> String
+    const auto write_error = [](const auto& value) -> SerializeError
     {
         toml::table table;
         TomlWriter writer(table);
         const auto write_result = serde::Serialize(writer, value);
-        return write_result.HasError() ? write_result.Error().message : String("no error");
+        return write_result.HasError() ? write_result.Error() : SerializeError{ .message = "no error" };
     };
-    EXPECT_EQ(write_error(HasMap{}), "TomlWriter: maps are not supported yet.");
-    EXPECT_EQ(write_error(HasOptional{}), "TomlWriter: optional values are not supported yet.");
-    EXPECT_EQ(write_error(HasSet{}), "TomlWriter: unordered sequences are not supported yet.");
 
-    const toml::table table = ParseToml("scores = {}\nvalue = 1");
+    // 시퀀스 원소와 맵 value의 None은 생략하면 그 자리가 사라짐
+    const SerializeError in_array = write_error(HasOptionalArray{ .values = { 1, NullOpt } });
+    EXPECT_EQ(in_array.path, "values[1]");
+    EXPECT_EQ(in_array.message, "TomlWriter: None can only be written as a struct field, by omitting its key.");
+
+    const SerializeError in_map = write_error(HasOptionalMap{ .values = { { "a", NullOpt } } });
+    EXPECT_EQ(in_map.path, "values[0].value");
+    EXPECT_EQ(in_map.message, "TomlWriter: None can only be written as a struct field, by omitting its key.");
+
+    // Some(None)은 키를 생략하면 바깥 None으로 읽힘
+    HasNestedOptional nested_value;
+    nested_value.value.Emplace();
+    const SerializeError nested = write_error(nested_value);
+    EXPECT_EQ(nested.path, "value");
+    EXPECT_EQ(nested.message, "TomlWriter: None inside another Optional cannot be written because the omitted key reads back as the outer None.");
+
     {
-        TomlReader reader(table);
-        HasMap result;
-        const auto read_result = serde::Deserialize(reader, result);
-        ASSERT_TRUE(read_result.HasError());
-        EXPECT_EQ(read_result.Error().message, "TomlReader: maps are not supported yet.");
-    }
-    {
-        TomlReader reader(table);
-        HasOptional result;
-        const auto read_result = serde::Deserialize(reader, result);
-        ASSERT_TRUE(read_result.HasError());
-        EXPECT_EQ(read_result.Error().message, "TomlReader: optional values are not supported yet.");
+        // 맵 key의 None
+        toml::table table;
+        TomlWriter writer(table);
+        writer.BeginStruct();
+        writer.Field("values");
+        writer.BeginMap(1);
+        writer.BeginMapEntry();
+        writer.Present(false);
+        EXPECT_EQ(String(writer.GetError()), "TomlWriter: None can only be written as a struct field, by omitting its key.");
     }
 }
 
@@ -729,6 +1346,28 @@ TEST(TomlWriterReaderTest, NodeOrderMistakesAreErrors)
         writer.Field("first");
         writer.Field("second");
         EXPECT_EQ(String(writer.GetError()), "TomlWriter: field 'first' has no value.");
+    }
+    {
+        // BeginMapEntry 없이 맵에 값을 씀
+        toml::table table;
+        TomlWriter writer(table);
+        writer.BeginStruct();
+        writer.Field("scores");
+        writer.BeginMap(1);
+        writer.Int(1, EIntWidth::Bits32, true);
+        EXPECT_EQ(String(writer.GetError()), "TomlWriter: a value inside a map needs BeginMapEntry first.");
+    }
+    {
+        // value 없이 맵 엔트리를 끝냄
+        toml::table table;
+        TomlWriter writer(table);
+        writer.BeginStruct();
+        writer.Field("scores");
+        writer.BeginMap(1);
+        writer.BeginMapEntry();
+        writer.Str("alice");
+        writer.EndMapEntry();
+        EXPECT_EQ(String(writer.GetError()), "TomlWriter: a map entry needs exactly one key and one value.");
     }
     {
         // 배열 길이보다 많이 읽음
@@ -761,4 +1400,94 @@ TEST(TomlWriterReaderTest, ErrorIsSticky)
 
     EXPECT_TRUE(writer.HasError());
     EXPECT_TRUE(table.empty());
+}
+
+
+// --- .meta 골든 ---
+
+namespace
+{
+/** MakeMetaFile()을 쓴 텍스트. 실제 .meta 파일(EngineCore/Assets/Cube.obj.meta)과 배치가 같습니다. */
+constexpr std::string_view META_FILE_GOLDEN_TEXT =
+    "processor_stack = []\n"
+    "\n"
+    "[import_settings.'se_toml_test::MetaMeshImportSettings']\n"
+    "apply_transform = true\n"
+    "combine_meshes = true\n"
+    "global_scale = 1.0\n"
+    "\n"
+    "[metadata]\n"
+    "cache_version = 1\n"
+    "guid = '0dd9f95f-f684-4b35-8f42-e2ce2d9f52ab'\n"
+    "settings_hash = '82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a'\n"
+    "source_hash = '44cef8efa27cc51242067df382cc419a7b50e43e866ef5b467f7efa46eaddeeb'\n"
+    "source_mtime = 1775110252411093200\n"
+    "source_size = 945\n"
+    "\n"
+    "    [[metadata.sub_assets]]\n"
+    "    dependencies = []\n"
+    "    guid = 'df89d951-dc57-4bc7-90d8-df460daea1b8'\n"
+    "    name = 'Cube'\n"
+    "    type = 'se_toml_test::MetaStaticMesh'\n"
+    "\n"
+    "    [[metadata.sub_assets]]\n"
+    "    guid = '86cf11d2-ee50-46c9-ac18-76ca5172c7c1'\n"
+    "    name = 'Material_DefaultMaterial'\n"
+    "    type = 'se_toml_test::MetaMaterialInstance'\n"
+    "\n"
+    "        [[metadata.sub_assets.dependencies]]\n"
+    "        asset_guid = '3f2a1c9e-8b7d-4e6f-a5c4-b3d2e1f0a9b8'\n"
+    "        source_vpath = 'Assets://Textures/Wood_Diffuse.png'";
+
+/** .meta 파일 하나를 흉내 낸 값. 서브 에셋 하나는 의존성이 없고, 하나는 의존성이 하나 있습니다. */
+[[nodiscard]] se_toml_test::MetaFile MakeMetaFile()
+{
+    using namespace se_toml_test;
+
+    return MetaFile{
+        .metadata = MetaMetadata{
+            .guid = Guid::FromString("0dd9f95f-f684-4b35-8f42-e2ce2d9f52ab"),
+            .source_hash = ContentHash::FromHex("44cef8efa27cc51242067df382cc419a7b50e43e866ef5b467f7efa46eaddeeb"),
+            .source_mtime = 1775110252411093200,
+            .source_size = 945,
+            .cache_version = 1,
+            .settings_hash = ContentHash::FromHex("82a967f4e418eb518b3e599736e29c936cf3452045c20b375a5d854590bc417a"),
+            .sub_assets = {
+                MetaSubAsset{
+                    .name = "Cube",
+                    .guid = Guid::FromString("df89d951-dc57-4bc7-90d8-df460daea1b8"),
+                    .type = TypeId::Of<MetaStaticMesh>(),
+                },
+                MetaSubAsset{
+                    .name = "Material_DefaultMaterial",
+                    .guid = Guid::FromString("86cf11d2-ee50-46c9-ac18-76ca5172c7c1"),
+                    .type = TypeId::Of<MetaMaterialInstance>(),
+                    .dependencies = {
+                        MetaDependency{
+                            .source_vpath = "Assets://Textures/Wood_Diffuse.png",
+                            .asset_guid = Guid::FromString("3f2a1c9e-8b7d-4e6f-a5c4-b3d2e1f0a9b8"),
+                        },
+                    },
+                },
+            },
+        },
+        .import_settings = { { TypeId::Of<MetaMeshImportSettings>(), MetaMeshImportSettings{} } },
+    };
+}
+} // namespace
+
+TEST(TomlWriterReaderTest, MetaFileMatchesGoldenText)
+{
+    using namespace se_toml_test;
+
+    const MetaFile original = MakeMetaFile();
+    EXPECT_EQ(ToText(WriteToTable(original)), META_FILE_GOLDEN_TEXT);
+
+    // 골든 텍스트를 읽으면 같은 값이고, 타입에 없는 키가 없어 경고가 0건
+    const toml::table table = ParseToml(META_FILE_GOLDEN_TEXT);
+    TomlReader reader(table);
+    MetaFile result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result, original);
+    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
 }
