@@ -13,6 +13,9 @@
 
 namespace se
 {
+// forward declaration
+class SerializeContext;
+
 /** Int/Enum 노드가 다루는 정수 폭 */
 enum class EIntWidth : u8
 {
@@ -113,9 +116,21 @@ public:
     /** 에러 상태를 설정합니다. 이미 에러가 있으면 원인 오류를 보존하기 위해 무시합니다. */
     void SetError(String reason);
 
+    /** 트레이트가 쓸 서비스(Entity 리맵 등)를 담은 context를 돌려줍니다. SetContext로 넣지 않았으면 nullptr입니다. */
+    [[nodiscard]] SerializeContext* GetContext() const { return context; }
+
+    /**
+     * 이번 직렬화 작업의 context를 넣습니다.
+     * archive는 context를 소유하지 않으므로, context는 작업이 끝날 때까지 살아 있어야 합니다.
+     */
+    void SetContext(SerializeContext* in_context) { context = in_context; }
+
 private:
     bool has_error = false;
     String error_message;
+
+    /** 호출자가 넣은 작업 하나의 context. 없으면 nullptr입니다. */
+    SerializeContext* context = nullptr;
 };
 
 /** 직렬화할 값을 노드 단위로 받아 포맷별 표현으로 쓰는 인터페이스 */
