@@ -373,3 +373,141 @@ TEST(PackedArchiveTest, StrLengthExceedingRemainingBytesSetsErrorWithoutGrowingO
     EXPECT_TRUE(reader.HasError());
     EXPECT_EQ(value, "sentinel"); // 실패했으므로 out 문자열이 커지거나 바뀌면 안 됩니다.
 }
+
+
+// --- PackedFileWriter / PackedFileReader ---
+
+namespace
+{
+constexpr u64 TEST_SCHEMA_HASH = 0x0123456789ABCDEFULL;
+
+/** Int 노드 하나(i32 42)를 payload로 갖는 파일용 버퍼를 만듭니다. 루트 타입은 i32입니다. */
+[[nodiscard]] Array<u8> MakeFileBuffer()
+{
+    Array<u8> buffer;
+    PackedFileWriter writer(buffer, TypeId::Of<i32>(), TEST_SCHEMA_HASH);
+    writer.Int(42, EIntWidth::Bits32, true);
+    writer.Finish();
+    return buffer;
+}
+
+/** buffer를 PackedFileReader로 열었을 때의 오류 메시지를 돌려줍니다. 헤더가 맞으면 빈 문자열입니다. */
+[[nodiscard]] String OpenError(ArrayView<const u8> buffer, TypeId root_type = TypeId::Of<i32>(), u64 schema_hash = TEST_SCHEMA_HASH)
+{
+    const PackedFileReader reader(buffer, root_type, schema_hash);
+    return String(reader.GetError());
+}
+} // namespace
+
+TEST(PackedArchiveTest, FileRoundTripReadsPayload)
+{
+    const Array<u8> buffer = MakeFileBuffer();
+    EXPECT_EQ(buffer.Len(), sizeof(PackedFileHeader) + sizeof(i32));
+
+    PackedFileReader reader(buffer, TypeId::Of<i32>(), TEST_SCHEMA_HASH);
+    i64 result = 0;
+    reader.Int(result, EIntWidth::Bits32, true);
+
+    EXPECT_FALSE(reader.HasError());
+    EXPECT_EQ(result, 42);
+}
+
+TEST(PackedArchiveTest, FileHeaderRecordsLayoutFields)
+{
+    const Array<u8> buffer = MakeFileBuffer();
+
+    // magic(0) | wire 버전(4) | 루트 TypeId(8) | 스키마 해시(16) | payload 크기(24) | 체크섬(32)
+    // PackedFileHeader의 필드 순서가 바뀌어도 왕복은 통과하므로, 저장 배치는 바이트 위치로 고정합니다.
+    EXPECT_EQ(std::memcmp(buffer.Data(), "SEPK", 4), 0);
+
+    u32 wire_version = 0;
+    std::memcpy(&wire_version, buffer.Data() + 4, sizeof(wire_version));
+    EXPECT_EQ(wire_version, 1u);
+
+    u64 root_type = 0;
+    std::memcpy(&root_type, buffer.Data() + 8, sizeof(root_type));
+    EXPECT_EQ(root_type, TypeId::Of<i32>().Value());
+
+    u64 schema_hash = 0;
+    std::memcpy(&schema_hash, buffer.Data() + 16, sizeof(schema_hash));
+    EXPECT_EQ(schema_hash, TEST_SCHEMA_HASH);
+
+    u64 payload_size = 0;
+    std::memcpy(&payload_size, buffer.Data() + 24, sizeof(payload_size));
+    EXPECT_EQ(payload_size, sizeof(i32));
+}
+
+TEST(PackedArchiveTest, FileTooShortForHeaderSetsError)
+{
+    Array<u8> buffer = MakeFileBuffer();
+    buffer.Truncate(sizeof(PackedFileHeader) - 1);
+
+    EXPECT_TRUE(OpenError(buffer).Contains("too short"));
+}
+
+TEST(PackedArchiveTest, FileMagicMismatchSetsError)
+{
+    Array<u8> buffer = MakeFileBuffer();
+    buffer[0] = 'X';
+
+    EXPECT_TRUE(OpenError(buffer).Contains("magic"));
+}
+
+TEST(PackedArchiveTest, FileWireVersionMismatchSetsError)
+{
+    Array<u8> buffer = MakeFileBuffer();
+    buffer[4] = static_cast<u8>(buffer[4] + 1);
+
+    EXPECT_TRUE(OpenError(buffer).Contains("wire version"));
+}
+
+TEST(PackedArchiveTest, FileRootTypeMismatchSetsError)
+{
+    const Array<u8> buffer = MakeFileBuffer();
+
+    EXPECT_TRUE(OpenError(buffer, TypeId::Of<f32>()).Contains("root type"));
+}
+
+TEST(PackedArchiveTest, FileSchemaHashMismatchSetsError)
+{
+    const Array<u8> buffer = MakeFileBuffer();
+
+    EXPECT_TRUE(OpenError(buffer, TypeId::Of<i32>(), TEST_SCHEMA_HASH + 1).Contains("schema hash"));
+}
+
+TEST(PackedArchiveTest, FileWithTruncatedPayloadSetsError)
+{
+    Array<u8> buffer = MakeFileBuffer();
+    buffer.Truncate(buffer.Len() - 1);
+
+    EXPECT_TRUE(OpenError(buffer).Contains("payload size"));
+}
+
+TEST(PackedArchiveTest, FileWithTrailingBytesSetsError)
+{
+    Array<u8> buffer = MakeFileBuffer();
+    buffer.Push(0);
+
+    EXPECT_TRUE(OpenError(buffer).Contains("payload size"));
+}
+
+TEST(PackedArchiveTest, FileWithCorruptedPayloadSetsError)
+{
+    Array<u8> buffer = MakeFileBuffer();
+    buffer[sizeof(PackedFileHeader)] = static_cast<u8>(buffer[sizeof(PackedFileHeader)] ^ 0xFF);
+
+    EXPECT_TRUE(OpenError(buffer).Contains("checksum"));
+}
+
+TEST(PackedArchiveTest, FailedFileHeaderBlocksPayloadReads)
+{
+    const Array<u8> buffer = MakeFileBuffer();
+
+    PackedFileReader reader(buffer, TypeId::Of<f32>(), TEST_SCHEMA_HASH);
+
+    i64 value = 999; // 센티넬 - 헤더 검증이 실패했으므로 바뀌면 안 됩니다.
+    reader.Int(value, EIntWidth::Bits32, true);
+
+    EXPECT_TRUE(reader.HasError());
+    EXPECT_EQ(value, 999);
+}

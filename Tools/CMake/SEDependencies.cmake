@@ -12,6 +12,7 @@ find_package(stduuid REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 find_package(efsw CONFIG REQUIRED)
+find_package(xxHash CONFIG REQUIRED)
 
 # ICU4X (Rust 기반 Unicode 라이브러리)
 include(FetchContent)
