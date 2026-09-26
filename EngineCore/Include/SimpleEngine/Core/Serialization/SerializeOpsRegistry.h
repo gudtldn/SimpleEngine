@@ -16,6 +16,9 @@ struct SerializeOps
 {
     void (*write)(ArchiveWriter& writer, const void* value) = nullptr;
     void (*read)(ArchiveReader& reader, void* value) = nullptr;
+
+    /** SerializeTraits의 FORMAT_VERSION */
+    u32 format_version = 0;
 };
 
 namespace detail
@@ -34,6 +37,7 @@ SerializeOps MakeSerializeOps()
         {
             SerializeTraits<T>::Read(reader, *static_cast<T*>(value));
         },
+        .format_version = SerializeTraits<T>::FORMAT_VERSION,
     };
 }
 } // namespace detail
@@ -68,6 +72,6 @@ private:
 #define SE_REGISTER_SERIALIZE_TRAITS(type) \
     static_assert(::se::HasSerializeTraits<type>, \
         "SE_REGISTER_SERIALIZE_TRAITS(" #type "): SerializeTraits<" #type "> must provide " \
-        "Write(ArchiveWriter&, const T&) and Read(ArchiveReader&, T&)."); \
+        "FORMAT_VERSION, Write(ArchiveWriter&, const T&) and Read(ArchiveReader&, T&)."); \
     namespace { [[maybe_unused]] const bool SE_CONCAT_NAME(_se_serialize_kick_, __LINE__) = \
         (::se::SerializeOpsRegistry::Get().Install(::se::TypeId::Of<type>(), ::se::detail::MakeSerializeOps<type>()), true); }

@@ -122,6 +122,8 @@ SE_DECLARE_REFLECTION(se_serialize_plan_test::RecursivePlanNode)
 template <>
 struct se::SerializeTraits<se_serialize_plan_test::TraitedLeaf>
 {
+    static constexpr u32 FORMAT_VERSION = 1;
+
     static void Write(se::ArchiveWriter&, const se_serialize_plan_test::TraitedLeaf&) {}
     static void Read(se::ArchiveReader&, se_serialize_plan_test::TraitedLeaf&) {}
 };
