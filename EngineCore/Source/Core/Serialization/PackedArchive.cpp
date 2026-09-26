@@ -1,7 +1,6 @@
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 #include <bit>
 #include <cstring>
@@ -10,24 +9,9 @@
 
 namespace se
 {
-namespace
-{
-// 정수·실수·길이를 바이트 순서 변환 없이 memcpy로 쓰고 읽으므로 리틀 엔디언 플랫폼만 지원합니다.
-// 빅엔디언을 지원하려면 Int/Float/길이의 쓰기와 읽기에 std::byteswap을 넣어야 합니다.
+// Int/Float를 바이트 순서 변환 없이 memcpy로 쓰고 읽으므로 리틀 엔디언 플랫폼만 지원합니다.
+// 나중에 빅엔디언을 지원하려면 Int/Float의 쓰기와 읽기에 std::byteswap을 넣어야 합니다.
 static_assert(std::endian::native == std::endian::little, "PackedArchive only supports little-endian platforms.");
-
-[[nodiscard]] u32 WidthToBytes(EIntWidth width)
-{
-    switch (width)
-    {
-        case EIntWidth::Bits8:  return 1;
-        case EIntWidth::Bits16: return 2;
-        case EIntWidth::Bits32: return 4;
-        case EIntWidth::Bits64: return 8;
-    }
-    SE_UNREACHABLE();
-}
-} // namespace
 
 
 // PackedWriter
@@ -45,7 +29,7 @@ bool PackedWriter::IsTextFormat() const
 void PackedWriter::Int(i64 value, EIntWidth width, [[maybe_unused]] bool is_signed)
 {
     // 리틀 엔디안이므로 하위 n바이트만 잘라 쓰면 됨
-    WriteBytes(&value, WidthToBytes(width));
+    WriteBytes(&value, ByteSizeOf(width));
 }
 
 void PackedWriter::Float(f64 value, EFloatWidth width)
@@ -164,7 +148,7 @@ void PackedReader::Int(i64& value, EIntWidth width, bool is_signed)
         return;
     }
 
-    const u32 n = WidthToBytes(width);
+    const usize n = ByteSizeOf(width);
     i64 raw = 0;
     ReadBytes(&raw, n);
     if (HasError())
@@ -176,7 +160,7 @@ void PackedReader::Int(i64& value, EIntWidth width, bool is_signed)
     if (is_signed && n < sizeof(i64))
     {
         // n바이트 폭에서의 최상위 비트를 i64로 부호 확장
-        const u32 bits = n * 8;
+        const usize bits = n * 8;
         const i64 sign_bit = i64{ 1 } << (bits - 1);
         raw = (raw ^ sign_bit) - sign_bit;
     }
