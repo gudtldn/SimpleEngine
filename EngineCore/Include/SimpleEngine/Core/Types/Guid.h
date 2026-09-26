@@ -29,8 +29,8 @@ public:
     [[nodiscard]] static Guid NewGuid();
 
     /**
-     * 문자열로부터 생성합니다. 코드 안의 상수처럼 형식이 올바르다고 보장된 입력에만 씁니다.
-     * @note 형식이 틀리면 상수식에서는 컴파일 에러, 런타임에서는 assert입니다. 데이터에서 읽은 문자열은 TryFromString을 씁니다.
+     * 문자열로부터 생성합니다.
+     * @note 형식이 틀리면 상수식에서는 컴파일 에러, 런타임에서는 assert입니다.
      */
     [[nodiscard]] static constexpr Guid FromString(StringView view) noexcept
     {
@@ -48,7 +48,7 @@ public:
     }
 
     /**
-     * 문자열로부터 생성을 시도합니다. 파일이나 사용자 입력처럼 형식을 보장할 수 없는 문자열에 씁니다.
+     * 문자열로부터 생성을 시도합니다.
      * @return 형식이 올바르지 않으면 NullOpt
      */
     [[nodiscard]] static constexpr Optional<Guid> TryFromString(StringView view) noexcept
@@ -70,7 +70,7 @@ public:
     [[nodiscard]] bool operator==(const Guid& other) const noexcept = default;
 
 private:
-    /** constexpr가 아니라서 상수식에서 불리면 컴파일 에러가 납니다. */
+    /** 컴파일 타임 에러 유도용 더미 함수 */
     static void InvalidLiteralInConstantExpression() noexcept {}
 
     /**

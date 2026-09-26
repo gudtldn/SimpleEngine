@@ -51,7 +51,7 @@ public:
         return result;
     }
 
-    /** hex 문자열로부터 생성 (예: "db5c66474df3...") */
+    /** hex 문자열로부터 생성합니다. (예: "db5c66474df3...") */
     static constexpr HashDigest FromHex(StringView hex)
     {
         HashDigest result;
