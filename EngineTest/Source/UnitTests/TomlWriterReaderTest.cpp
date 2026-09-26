@@ -569,6 +569,66 @@ width = 1600
 
     // 파일에 없는 필드는 현재 값(기본값)을 유지
     EXPECT_EQ(result.schemes, (Array<String>{ "CoreAssets", "EditorAssets" }));
+
+    // 이 타입에 없는 키와 섹션은 경고로 남음 (window를 먼저 닫으므로 window의 키가 먼저)
+    const ArrayView<const String> warnings = reader.GetWarnings();
+    ASSERT_EQ(warnings.Len(), 3u);
+    EXPECT_EQ(warnings[0], "TomlReader: unknown key 'window.borderless' is ignored.");
+    EXPECT_EQ(warnings[1], "TomlReader: unknown key 'window.resizable' is ignored.");
+    EXPECT_EQ(warnings[2], "TomlReader: unknown key 'vfs' is ignored.");
+}
+
+
+// --- 경고 ---
+
+TEST(TomlWriterReaderTest, UnknownKeysAreWarnings)
+{
+    using namespace se_toml_test;
+
+    const toml::table table = ParseToml(R"(
+typo_at_root = 1
+
+[window]
+widht = 900
+width = 1600
+)");
+
+    TomlReader reader(table);
+    EditorConfig result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+
+    // 경고가 있어도 아는 키는 읽고, 오타 난 키의 필드는 기본값으로 남음
+    EXPECT_EQ(result.window.width, 1600u);
+    EXPECT_EQ(result.window.height, 720u);
+
+    const ArrayView<const String> warnings = reader.GetWarnings();
+    ASSERT_EQ(warnings.Len(), 2u);
+    EXPECT_EQ(warnings[0], "TomlReader: unknown key 'window.widht' is ignored.");
+    EXPECT_EQ(warnings[1], "TomlReader: unknown key 'typo_at_root' is ignored.");
+}
+
+TEST(TomlWriterReaderTest, UnknownKeyInArrayElementHasIndexedPath)
+{
+    const toml::table table = ParseToml("items = [ { value = 1 }, { value = 2, extra = true } ]");
+
+    TomlReader reader(table);
+    se_toml_test::HasItems result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+
+    const ArrayView<const String> warnings = reader.GetWarnings();
+    ASSERT_EQ(warnings.Len(), 1u);
+    EXPECT_EQ(warnings[0], "TomlReader: unknown key 'items[1].extra' is ignored.");
+}
+
+TEST(TomlWriterReaderTest, NoWarningsForWrittenTable)
+{
+    // TomlWriter가 쓴 테이블에는 타입에 없는 키가 없음
+    const toml::table table = WriteToTable(se_toml_test::EditorConfig{});
+
+    TomlReader reader(table);
+    se_toml_test::EditorConfig result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
 }
 
 
