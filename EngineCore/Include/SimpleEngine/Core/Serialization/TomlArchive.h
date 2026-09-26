@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/Stack.h"
 #include "SimpleEngine/Core/Container/String.h"
@@ -73,6 +74,7 @@ private:
 /**
  * toml++ 테이블에서 값을 읽습니다. 파일을 파싱하는 일은 호출자가 합니다.
  * 테이블에 없는 필드는 Field가 false를 돌려줍니다. 값의 TOML 종류가 다르거나 범위를 벗어나면 오류를 남깁니다.
+ * 테이블에 있는데 타입에 없는 키는 오류가 아니라 경고로 남기고 읽기를 계속합니다.
  * @note Map, Optional, Bytes는 아직 지원하지 않아 오류를 남깁니다.
  */
 class SE_CORE_API TomlReader final : public ArchiveReader
@@ -80,6 +82,12 @@ class SE_CORE_API TomlReader final : public ArchiveReader
 public:
     /** in_root를 루트 struct의 테이블로 보고 읽습니다. */
     explicit TomlReader(const toml::table& in_root);
+
+    /**
+     * 테이블에 있는데 타입에 없는 키의 경고를 돌려줍니다. 위치는 TOML 문서 안의 위치입니다.
+     * 예: "TomlReader: unknown key 'window.widht' is ignored."
+     */
+    [[nodiscard]] ArrayView<const String> GetWarnings() const;
 
 public:
     [[nodiscard]] virtual bool IsTextFormat() const override;
@@ -115,14 +123,26 @@ private:
      */
     [[nodiscard]] Optional<i64> ReadInteger(const toml::node& node, EIntWidth width, bool is_signed);
 
+    /**
+     * TakeValue로 방금 꺼낸 값의 TOML 문서 안 위치를 만듭니다.
+     * 열려 있는 컨테이너가 테이블이면 "부모.키", 배열이면 "부모[번호]"입니다(예: "window", "items[1]").
+     */
+    [[nodiscard]] String PathOfTakenValue() const;
+
 private:
     /** 읽는 중인 테이블이나 배열 하나 */
     struct OpenContainer
     {
         const toml::node* node = nullptr;
 
+        /** TOML 문서 안의 위치. 루트는 빈 문자열입니다. */
+        String path;
+
         /** 테이블일 때 Field가 찾아 둔 다음 값 */
         const toml::node* field_value = nullptr;
+
+        /** 테이블일 때 타입이 물어본 필드 이름. */
+        Array<String> known_keys;
 
         /** 배열일 때 다음에 읽을 원소 번호 */
         usize next_index = 0;
@@ -130,6 +150,9 @@ private:
 
     const toml::table& root;
     Stack<OpenContainer> open_containers;
+
+    /** 테이블에 있는데 타입에 없는 키의 경고 */
+    Array<String> warnings;
 
     /** 루트 struct를 시작했는지 여부 */
     bool root_started = false;
