@@ -3,6 +3,7 @@
 #include "SimpleEditor/EditorCommon.h"
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Annotations.h"
 
 
@@ -126,3 +127,11 @@ SE_DECLARE_REFLECTION_V1(se::editor::ConsoleSettings)
 SE_DECLARE_REFLECTION_V1(se::editor::PerformanceSettings)
 SE_DECLARE_REFLECTION_V1(se::editor::GraphicsSettings)
 SE_DECLARE_REFLECTION_V1(se::editor::AssetScanSettings)
+
+SE_DECLARE_REFLECTION(se::editor::WindowSettings)
+SE_DECLARE_REFLECTION(se::editor::EditorUISettings)
+SE_DECLARE_REFLECTION(se::editor::ConsoleSettings)
+SE_DECLARE_REFLECTION(se::editor::PerformanceSettings)
+SE_DECLARE_REFLECTION(se::editor::EPresentMode)
+SE_DECLARE_REFLECTION(se::editor::GraphicsSettings)
+SE_DECLARE_REFLECTION(se::editor::AssetScanSettings)

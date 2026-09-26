@@ -1,13 +1,13 @@
 #pragma once
 
+#include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
-#include "SimpleEngine/Core/Serialization/Legacy/SerializationTraits.h"
+#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
 #include <concepts>
@@ -19,10 +19,10 @@ namespace se
 class VPath;
 
 /**
- * Reflection + Archive_v1 기반 TOML 설정 파일 관리 클래스입니다.
+ * Reflection + serde 기반 TOML 설정 파일 관리 클래스입니다.
  *
  * 리플렉션이 등록된 구조체를 통해 타입 안전하게 설정을 관리합니다.
- * 내부적으로 TomlReader_v1/TomlWriter_v1 Archive_v1을 사용하여 직렬화합니다.
+ * 내부적으로 TomlReader/TomlWriter와 serde::Deserialize/Serialize를 사용하여 직렬화합니다.
  *
  * @code
  * // 1. 설정 구조체 정의
@@ -32,12 +32,14 @@ class VPath;
  *     bool fullscreen = false;
  *     String title = "SimpleEngine";
  * };
- * SE_BEGIN_REFLECT(WindowSettings, meta::Reflect, meta::Hidden)
- *     SE_REFLECT_PROPERTY(width, meta::Reflect)
- *     SE_REFLECT_PROPERTY(height, meta::Reflect)
- *     SE_REFLECT_PROPERTY(fullscreen, meta::Reflect)
- *     SE_REFLECT_PROPERTY(title, meta::Reflect)
- * SE_END_REFLECT(WindowSettings)
+ * SE_DECLARE_REFLECTION(WindowSettings) // 헤더
+ *
+ * SE_REFLECT_BEGIN(WindowSettings)      // .cpp
+ *     SE_FIELD(width)
+ *     SE_FIELD(height)
+ *     SE_FIELD(fullscreen)
+ *     SE_FIELD(title)
+ * SE_REFLECT_END()
  *
  * // 2. 사용
  * auto config = ConfigFile::Load("Config://EngineConfig.toml").Value();
@@ -86,18 +88,20 @@ public:
     /**
      * 지정된 섹션을 리플렉션 구조체로 역직렬화하여 반환합니다.
      * 섹션이 없거나 필드가 누락되면 구조체의 기본값이 유지됩니다.
+     * T에 없는 키는 경고로, 읽기 실패(값의 종류가 다르거나 범위를 벗어남)는 오류로 로그에 남깁니다.
      *
-     * @tparam T 리플렉션이 등록된 구조체 타입 (SE_BEGIN_REFLECT 필수)
+     * @tparam T 리플렉션이 등록된 구조체 타입 (SE_REFLECT_BEGIN 필수)
      * @param section_name TOML 테이블 이름. 비어있으면 루트 테이블에서 직접 역직렬화합니다.
-     * @return 역직렬화된 구조체. 섹션이 없으면 기본 생성된 T를 반환합니다.
+     * @return 역직렬화된 구조체. 섹션이 없거나 읽기에 실패하면 기본 생성된 T를 반환합니다.
      */
     template <typename T>
     [[nodiscard]] T GetSection(StringView section_name = "") const;
 
     /**
      * 구조체를 직렬화하여 지정된 섹션에 저장합니다.
+     * 쓰기에 실패하면 오류를 로그로 남기고 기존 내용을 바꾸지 않습니다.
      *
-     * @tparam T 리플렉션이 등록된 구조체 타입 (SE_BEGIN_REFLECT 필수)
+     * @tparam T 리플렉션이 등록된 구조체 타입 (SE_REFLECT_BEGIN 필수)
      * @param settings 저장할 구조체
      * @param section_name TOML 테이블 이름. 비어있으면 루트 테이블에 직접 기록합니다.
      */
@@ -159,6 +163,19 @@ private:
      */
     [[nodiscard]] toml::table* NavigateOrCreate(StringView key_path, StringView& out_final_key);
 
+    /**
+     * section_name 섹션을 plan으로 읽어 out_value에 채웁니다.
+     * 섹션에 있는데 타입에 없는 키는 경고로, 읽기 실패는 오류로 로그에 남깁니다.
+     * @return 섹션이 있고 읽기에 성공하면 true. 읽기에 실패하면 out_value의 내용은 보장하지 않습니다.
+     */
+    [[nodiscard]] bool ReadSection(StringView section_name, const SerializePlan& plan, void* out_value) const;
+
+    /**
+     * value를 plan으로 새 테이블에 쓴 뒤 section_name 섹션을 그 테이블로 교체합니다.
+     * section_name이 비어있으면 루트 테이블에 키 단위로 덮어씁니다. 쓰기에 실패하면 오류를 로그로 남기고 아무것도 바꾸지 않습니다.
+     */
+    void WriteSection(StringView section_name, const SerializePlan& plan, const void* value);
+
 private:
     /** 파일 경로 -> 파싱된 TOML 테이블 캐시 (물리 경로 기준) */
     static HashMap<String, toml::table> table_cache;
@@ -170,74 +187,19 @@ private:
 template <typename T>
 T ConfigFile::GetSection(StringView section_name) const
 {
-    T result{};
-
-    const toml::table* target = FindSectionTable(section_name);
-    if (!target)
+    // 읽다가 실패하면 내용을 보장하지 않으므로 새 객체에 읽고, 성공했을 때만 돌려줌
+    T loaded{};
+    if (!ReadSection(section_name, SerializePlan::Of<T>(), &loaded))
     {
-        return result; // 섹션 미존재 -> 기본 생성된 T 반환
+        return T{}; // 섹션 미존재 또는 읽기 실패 -> 기본 생성된 T 반환
     }
-
-    TomlReader_v1 reader(*target);
-
-    if constexpr (traits::Serializable_v1<T>)
-    {
-        // ADL Serialize(Archive_v1&, T&) 가 있는 타입
-        reader << result;
-    }
-    else
-    {
-        // 리플렉션 등록된 타입 -> TypeInfo_v1::serialize 사용
-        const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked<T>();
-        if (info.serialize)
-        {
-            info.serialize(reader, &result);
-        }
-        else
-        {
-            ConsoleLog(ELogLevel::Error, "ConfigFile::GetSection: Type '{}' has no serialization support.", info.name);
-        }
-    }
-
-    return result;
+    return loaded;
 }
 
 template <typename T>
 void ConfigFile::SetSection(const T& settings, StringView section_name)
 {
-    toml::table section_table;
-    TomlWriter_v1 writer(section_table);
-
-    if constexpr (traits::Serializable_v1<T>)
-    {
-        writer << settings;
-    }
-    else
-    {
-        const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked<T>();
-        if (info.serialize)
-        {
-            info.serialize(writer, const_cast<void*>(static_cast<const void*>(&settings)));
-        }
-        else
-        {
-            ConsoleLog(ELogLevel::Error, "ConfigFile::SetSection: Type '{}' has no serialization support.", info.name);
-            return;
-        }
-    }
-
-    if (section_name.IsEmpty())
-    {
-        // 루트 테이블에 병합 (기존 값은 덮어씀)
-        for (auto&& [key, val] : section_table)
-        {
-            root_table.insert_or_assign(key, std::move(val));
-        }
-    }
-    else
-    {
-        root_table.insert_or_assign(section_name, std::move(section_table));
-    }
+    WriteSection(section_name, SerializePlan::Of<T>(), &settings);
 }
 
 template <typename T>
