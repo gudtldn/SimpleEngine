@@ -1,5 +1,7 @@
 #include "SimpleEngine/Core/Serialization/BuiltinTraits.h"
 
+#include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
+
 
 namespace se
 {
@@ -55,7 +57,7 @@ void SerializeTraits<Guid>::Read(ArchiveReader& reader, Guid& value)
             return;
         }
 
-        const Optional<Guid> parsed = Guid::TryFromString(text);
+        const auto parsed = Guid::TryFromString(text);
         if (!parsed.HasValue())
         {
             reader.SetError(String::Format("SerializeTraits<Guid>: invalid guid string '{}'.", text));
@@ -73,7 +75,7 @@ void SerializeTraits<TypeId>::Write(ArchiveWriter& writer, const TypeId& value)
 {
     if (writer.IsTextFormat())
     {
-        const Optional<const TypeInfo&> info = TypeRegistry::Get().Find(value);
+        const auto info = TypeRegistry::Get().Find(value);
         if (!info.HasValue())
         {
             writer.SetError(String::Format("SerializeTraits<TypeId>: type {} is not registered.", value.Value()));
@@ -97,8 +99,8 @@ void SerializeTraits<TypeId>::Read(ArchiveReader& reader, TypeId& value)
         }
 
         const TypeId candidate = TypeId::FromCanonicalName(name);
-        const Optional<const TypeInfo&> info = TypeRegistry::Get().Find(candidate);
-        if (!info.HasValue() || !(info.Value().name == StringView{ name }))
+        const auto info_opt = TypeRegistry::Get().Find(candidate);
+        if (!info_opt.HasValue() || info_opt->name != name)
         {
             reader.SetError(String::Format("SerializeTraits<TypeId>: unknown type name '{}'.", name));
             return;
@@ -152,3 +154,11 @@ void SerializeTraits<VPath>::Read(ArchiveReader& reader, VPath& value)
     value = VPath(temp);
 }
 } // namespace se
+
+SE_REGISTER_SERIALIZE_TRAITS(se::String)
+SE_REGISTER_SERIALIZE_TRAITS(se::StringName)
+SE_REGISTER_SERIALIZE_TRAITS(se::Guid)
+SE_REGISTER_SERIALIZE_TRAITS(se::TypeId)
+SE_REGISTER_SERIALIZE_TRAITS(se::Path)
+SE_REGISTER_SERIALIZE_TRAITS(se::VPath)
+SE_REGISTER_SERIALIZE_TRAITS(se::ContentHash)
