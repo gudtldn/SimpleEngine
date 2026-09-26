@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
@@ -59,3 +60,6 @@ struct std::hash<se::Entity>
         return static_cast<usize>(hash);
     }
 };
+
+// id와 generation은 실행마다 달라지는 슬롯 번호라 필드로 저장하지 않으므로 Opaque로 등록하고, 직렬화는 Entity.cpp의 SerializeTraits가 영속 ID로 맡음
+SE_REFLECT_OPAQUE(se::Entity)
