@@ -10,7 +10,6 @@
 namespace se
 {
 // forward declaration
-class Archive_v1;
 struct OptionalOps_v1;
 
 /** 타입 속성 비트 플래그 */
@@ -221,9 +220,6 @@ struct PropertyAccessor_v1
  */
 struct PropertyInfo_v1
 {
-    using SerializeFunc = void(*)(Archive_v1& ar, void* prop_ptr);
-
-public:
     /** Property에 대한 컴파일타임 타입 식별자 */
     TypeId_v1 type_id;
 
@@ -242,9 +238,6 @@ public:
 
     /** Property의 값을 읽거나 쓰기 위한 함수형 접근자 (Getter/Setter 인터페이스) */
     PropertyAccessor_v1 accessor;
-
-    /** Property 단위 직렬화 콜백 (Archive_v1::operator<< 디스패치를 통해 자동 생성됨) */
-    SerializeFunc serialize = nullptr;
 
     /** 컨테이너 프로퍼티의 타입 소거 연산 (Array/Set/Map) */
     const ContainerOps_v1* container_ops = nullptr;
@@ -280,7 +273,6 @@ struct TypeInfo_v1
 {
     using ConstructorFunc = void*(*)();
     using DestructorFunc  = void(*)(void*);
-    using SerializeFunc   = void(*)(Archive_v1& ar, void* instance);
     using EnumEntriesFunc = void(*)(const EnumEntry_v1*& out_data, usize& out_count);
 
 public:
@@ -328,9 +320,6 @@ public:
 
     /** Instance를 소멸시키는 함수 (delete T) */
     DestructorFunc destructor = nullptr;
-
-    /** 객체의 상태를 바이너리나 텍스트로 저장/불러오기 하는 함수 */
-    SerializeFunc serialize = nullptr;
 
     /**
      * 타입이 소거된 Enum 항목 목록에 접근하는 함수

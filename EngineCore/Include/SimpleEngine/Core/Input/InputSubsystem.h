@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/Input/KeyCode.h"
 #include "SimpleEngine/Core/Input/MouseButton.h"
+#include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 

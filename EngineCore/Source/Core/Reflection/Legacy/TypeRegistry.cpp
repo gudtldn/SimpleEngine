@@ -1,7 +1,6 @@
 #include "../../../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include "SimpleEngine/Core/Container/String.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -67,34 +66,28 @@ namespace
 {
 using namespace se;
 
-template <typename T>
-void MakeSerialize(Archive_v1& ar, void* ptr)
-{
-    ar << *static_cast<T*>(ptr);
-}
-
 [[maybe_unused]] const bool Primitive_Registrar = [] -> bool
 {
     TypeRegistry_v1& registry = TypeRegistry_v1::Get();
 
     // 기본 산술 타입
-    registry.RegisterPrimitive<bool>()   .Serialize(&MakeSerialize<bool>);
-    registry.RegisterPrimitive<i8>()   .Serialize(&MakeSerialize<i8>);
-    registry.RegisterPrimitive<u8>()  .Serialize(&MakeSerialize<u8>);
-    registry.RegisterPrimitive<i16>()  .Serialize(&MakeSerialize<i16>);
-    registry.RegisterPrimitive<u16>() .Serialize(&MakeSerialize<u16>);
-    registry.RegisterPrimitive<i32>()  .Serialize(&MakeSerialize<i32>);
-    registry.RegisterPrimitive<u32>() .Serialize(&MakeSerialize<u32>);
-    registry.RegisterPrimitive<i64>()  .Serialize(&MakeSerialize<i64>);
-    registry.RegisterPrimitive<u64>() .Serialize(&MakeSerialize<u64>);
-    registry.RegisterPrimitive<f32>()  .Serialize(&MakeSerialize<f32>);
-    registry.RegisterPrimitive<f64>() .Serialize(&MakeSerialize<f64>);
+    registry.RegisterPrimitive<bool>();
+    registry.RegisterPrimitive<i8>();
+    registry.RegisterPrimitive<u8>();
+    registry.RegisterPrimitive<i16>();
+    registry.RegisterPrimitive<u16>();
+    registry.RegisterPrimitive<i32>();
+    registry.RegisterPrimitive<u32>();
+    registry.RegisterPrimitive<i64>();
+    registry.RegisterPrimitive<u64>();
+    registry.RegisterPrimitive<f32>();
+    registry.RegisterPrimitive<f64>();
 
     // 엔진 타입
-    registry.RegisterPrimitive<String>()     .Serialize(&MakeSerialize<String>);
-    registry.RegisterPrimitive<StringName>() .Serialize(&MakeSerialize<StringName>);
-    registry.RegisterPrimitive<Guid>()       .Serialize(&MakeSerialize<Guid>);
-    registry.RegisterPrimitive<TypeId_v1>()     .Serialize(&MakeSerialize<TypeId_v1>);
+    registry.RegisterPrimitive<String>();
+    registry.RegisterPrimitive<StringName>();
+    registry.RegisterPrimitive<Guid>();
+    registry.RegisterPrimitive<TypeId_v1>();
 
     return true;
 }();

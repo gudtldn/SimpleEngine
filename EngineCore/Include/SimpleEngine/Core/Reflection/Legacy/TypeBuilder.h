@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Meta.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
 
 #include <concepts>
@@ -63,18 +62,6 @@ public:
             info_ptr->constructor = []() static -> void* { return new T(); };
         }
         info_ptr->destructor = [](void* ptr) static { delete static_cast<T*>(ptr); };
-    }
-
-    ~TypeBuilder_v1()
-    {
-        // 체이닝 종료 후 serialize 콜백이 미등록된 Struct에 AutoSerialize_v1을 자동 연결합니다.
-        if (info_ptr && !info_ptr->serialize && info_ptr->kind == ETypeKind_v1::Struct)
-        {
-            info_ptr->serialize = [](Archive_v1& ar, void* instance) static
-            {
-                AutoSerialize_v1(ar, TypeId_v1::Of<T>(), instance);
-            };
-        }
     }
 
 public:
@@ -142,11 +129,6 @@ public:
             };
         }
 
-        prop.serialize = [](Archive_v1& ar, void* ptr) static
-        {
-            ar << *static_cast<MemberType*>(ptr);
-        };
-
         // 컨테이너 타입 감지 및 ContainerOps 자동 생성
         if constexpr (traits::ArrayLike<MemberType>)
         {
@@ -198,14 +180,6 @@ public:
     TypeBuilder_v1& EnumEntries(TypeInfo_v1::EnumEntriesFunc func)
     {
         info_ptr->enum_entries = func;
-        return *this;
-    }
-
-public:
-    /** 외부에서 정의한 직렬화 로직을 연결합니다. */
-    TypeBuilder_v1& Serialize(TypeInfo_v1::SerializeFunc func)
-    {
-        info_ptr->serialize = func;
         return *this;
     }
 

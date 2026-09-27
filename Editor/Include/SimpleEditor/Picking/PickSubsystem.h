@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
+#include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"

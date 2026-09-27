@@ -1,5 +1,4 @@
 #include "SimpleEngine/Core/Types/VPath.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 
 namespace se
@@ -124,16 +123,6 @@ StringView VPath::GetStem() const noexcept
         return filename; // 확장자 없음 또는 숨김파일(.gitignore 등)
     }
     return filename.Substr(0, *last_dot);
-}
-
-void SerializeInline(Archive_v1& ar, VPath& vpath)
-{
-    String str = vpath.full_path;
-    ar << str;
-    if (ar.IsLoading())
-    {
-        vpath.ParseAndNormalize(str);
-    }
 }
 
 void VPath::ParseAndNormalize(StringView path)

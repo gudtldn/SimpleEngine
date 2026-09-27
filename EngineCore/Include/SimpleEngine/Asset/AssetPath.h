@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
@@ -34,23 +33,6 @@ public:
 
 private:
     friend struct ::se::Registrar<AssetPath>;
-
-    friend void Serialize(Archive_v1& ar, AssetPath& path)
-    {
-        String file_str;
-        if (ar.IsSaving())
-        {
-            file_str = path.file_path.ToString();
-        }
-
-        ar("file_path") << file_str;
-        ar("sub_asset_name") << path.sub_asset_name;
-
-        if (ar.IsLoading())
-        {
-            path.file_path = file_str;
-        }
-    }
 
     VPath file_path;
     String sub_asset_name;
