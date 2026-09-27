@@ -31,11 +31,7 @@ class Query;
 class SE_CORE_API World final
 {
     friend class ECSRegistry;
-
-public:
-    // 직렬화 파일 포맷 상수
-    static constexpr u32 FILE_MAGIC = 0x44574553; // "SEWD" little-endian
-    static constexpr u32 FILE_VERSION = 1;
+    friend class WorldFileWriter;
 
 public:
     class EntityChain;
@@ -285,8 +281,6 @@ private:
     {
         return GetOrCreateComponentStorage<ComponentType>().GetStorage();
     }
-
-    friend SE_CORE_API void Serialize(Archive_v1& ar, World& world);
 
 public:
     class EntityChain

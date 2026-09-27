@@ -22,20 +22,17 @@
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
-#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/ECS/WorldFile.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_sdlgpu3.h"
-
-#include <sstream>
 
 
 namespace se::editor
@@ -229,64 +226,34 @@ void EditorUISubsystem::DrawMainMenu()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Save World (Binary)", "Ctrl+S"))
+            if (ImGui::MenuItem("Save World", "Ctrl+S"))
             {
                 if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
                 {
                     // 다이얼로그 표시 전에 직렬화하여 현재 상태를 캡처
-                    Array<u8> buffer;
-                    MemoryWriter_v1 writer{ buffer };
-                    writer << entity_sub->GetMainWorld().GetWorld();
-
-                    FileDialog::SaveFile(
-                        [buf = std::move(buffer)](const Path& path)
-                        {
-                            if (fs::Write(path, buf))
-                            {
-                                ConsoleLog(ELogLevel::Info, "World saved (binary): {}", path);
-                            }
-                            else
-                            {
-                                ConsoleLog(ELogLevel::Error, "Failed to save world: {}", path);
-                            }
-                        },
-                        { WORLD_FILTER }
-                    );
-                }
-            }
-
-            if (ImGui::MenuItem("Save World (TOML)", "Ctrl+Shift+S"))
-            {
-                if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
-                {
-                    String content = [&] -> String
+                    WorldFileWriter writer{ entity_sub->GetMainWorld().GetWorld() };
+                    auto content = writer.Write();
+                    if (content.HasError())
                     {
-                        // TOML 직렬화
-                        toml::table tbl;
-                        TomlWriter_v1 writer(tbl);
-                        writer << entity_sub->GetMainWorld().GetWorld();
-
-                        // TOML 문자열 생성
-                        std::ostringstream oss;
-                        oss << tbl;
-
-                        return { oss.view() };
-                    }();
-
-                    FileDialog::SaveFile(
-                        [con = std::move(content)](const Path& path)
-                        {
-                            if (fs::WriteString(path, con))
+                        ConsoleLog(ELogLevel::Error, "Failed to save world: {}", content.Error());
+                    }
+                    else
+                    {
+                        FileDialog::SaveFile(
+                            [con = std::move(content).Value()](const Path& path)
                             {
-                                ConsoleLog(ELogLevel::Info, "World saved (TOML): {}", path);
-                            }
-                            else
-                            {
-                                ConsoleLog(ELogLevel::Error, "Failed to save world: {}", path);
-                            }
-                        },
-                        { WORLD_FILTER }
-                    );
+                                if (fs::WriteString(path, con))
+                                {
+                                    ConsoleLog(ELogLevel::Info, "World saved: {}", path);
+                                }
+                                else
+                                {
+                                    ConsoleLog(ELogLevel::Error, "Failed to save world: {}", path);
+                                }
+                            },
+                            { WORLD_FILTER }
+                        );
+                    }
                 }
             }
 
@@ -316,40 +283,18 @@ void EditorUISubsystem::DrawMainMenu()
 
                             World& world = entity_sub->GetMainWorld().GetWorld();
 
-                            // DLL 경계를 넘는 constexpr 멤버의 ODR-use(주소 참조)시 발생하는
-                            // 미해결 기호(Unresolved External) 링크 에러를 방지하기 위해 로컬 스택에 할당하여 비교
-                            constexpr u32 EXPECTED_MAGIC = World::FILE_MAGIC;
-                            const bool is_binary = data.Len() >= sizeof(u32)
-                                && std::memcmp(data.Data(), &EXPECTED_MAGIC, sizeof(u32)) == 0;
-
-                            if (is_binary)
+                            // 파일의 영속 ID를 그대로 쓰도록 비운 월드에 읽음 (Resource는 유지)
+                            world.Reset();
+                            WorldFileReader reader{ world };
+                            const auto result = reader.Read(StringView{ reinterpret_cast<const char*>(data.Data()), data.Len() });
+                            for (const String& warning : reader.GetWarnings())
                             {
-                                MemoryReader_v1 reader{ data };
-                                reader << world;
-                                if (reader.HasError())
-                                {
-                                    ConsoleLog(ELogLevel::Error, "Failed to load world (binary): {}", reader.GetError());
-                                    return;
-                                }
+                                ConsoleLog(ELogLevel::Warning, "{}", warning);
                             }
-                            else
+                            if (result.HasError())
                             {
-                                StringView toml_str{ reinterpret_cast<const char*>(data.Data()), data.Len() };
-                                toml::parse_result parsed = toml::parse(toml_str);
-                                if (!parsed)
-                                {
-                                    ConsoleLog(ELogLevel::Error, "TOML parse error: {}", parsed.error().description());
-                                    return;
-                                }
-
-                                toml::table tbl = std::move(parsed).table();
-                                TomlReader_v1 reader{ tbl };
-                                reader << world;
-                                if (reader.HasError())
-                                {
-                                    ConsoleLog(ELogLevel::Error, "Failed to load world (TOML): {}", reader.GetError());
-                                    return;
-                                }
+                                ConsoleLog(ELogLevel::Error, "Failed to load world: {}", result.Error());
+                                return;
                             }
 
                             ConsoleLog(ELogLevel::Info, "World loaded: {}", file_path);
