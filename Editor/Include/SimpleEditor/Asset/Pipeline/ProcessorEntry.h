@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
 #include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Annotations.h"
 
@@ -24,3 +25,4 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) ProcessorEntry
 } // namespace se::editor
 
 SE_DECLARE_REFLECTION_V1(se::editor::ProcessorEntry);
+SE_DECLARE_REFLECTION(se::editor::ProcessorEntry, SE_EDITOR_API)

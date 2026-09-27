@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
@@ -18,3 +19,5 @@ public:
     virtual ~ImportSettingsBase() = default;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::ImportSettingsBase, SE_EDITOR_API)

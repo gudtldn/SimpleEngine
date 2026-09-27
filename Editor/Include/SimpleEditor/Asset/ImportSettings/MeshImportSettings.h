@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/Asset/ImportSettings/ImportSettingsBase.h"
 
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
@@ -33,3 +34,5 @@ public:
     f32 global_scale = 1.0f;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::MeshImportSettings, SE_EDITOR_API)
