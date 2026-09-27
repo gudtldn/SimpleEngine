@@ -656,7 +656,7 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
 // ============================================================================
 TEST_F(ConfigFileTest, GetSectionReadsLegacyFormat)
 {
-    // 레거시 TomlWriter_v1이 쓴 모양: enum은 정수, f32는 f64로 확장된 값
+    // 레거시 직렬화가 쓴 모양: enum은 정수, f32는 f64로 확장된 값
     const auto physical_path = VFS::ToPath(legacy_toml_path);
     struct FileDeleter
     {

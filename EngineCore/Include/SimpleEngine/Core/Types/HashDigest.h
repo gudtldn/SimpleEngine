@@ -4,7 +4,6 @@
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 #include <algorithm>
 #include <cstring>
@@ -131,34 +130,6 @@ public:
 
     [[nodiscard]] explicit constexpr operator bool() const { return !IsZero(); }
     [[nodiscard]] bool operator==(const HashDigest& other) const = default;
-
-    /**
-     * HashDigest 인라인 직렬화 (BeginObject/EndObject 없이 값으로 직접 저장)
-     * Binary: raw bytes (N bytes)
-     * Text  : hex 문자열 (N*2 chars)
-     */
-    friend void SerializeInline(Archive_v1& ar, HashDigest& digest)
-    {
-        if (ar.IsBinary())
-        {
-            ar << BinaryBlob_v1::FromBytes(digest.data.Data(), N);
-        }
-        else
-        {
-            String str;
-            if (ar.IsSaving())
-            {
-                str = digest.ToHex();
-            }
-
-            ar << str;
-
-            if (ar.IsLoading())
-            {
-                digest = HashDigest::FromHex(str);
-            }
-        }
-    }
 
 private:
     static constexpr bool IsHexChar(char c)

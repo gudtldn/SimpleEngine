@@ -1,6 +1,5 @@
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 
 #include "SDL3/SDL_filesystem.h"
 
@@ -623,15 +622,5 @@ usize Path::DetectRootLength(StringView view)
     }
 
     return 0;
-}
-
-void SerializeInline(Archive_v1& ar, Path& path)
-{
-    String str = path.path;
-    ar << str;
-    if (ar.IsLoading())
-    {
-        path.path = Path::NormalizePath(str);
-    }
 }
 } // namespace se

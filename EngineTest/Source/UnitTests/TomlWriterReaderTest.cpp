@@ -1119,7 +1119,7 @@ TEST(TomlWriterReaderTest, ReadsLegacyConfigText)
 {
     using namespace se_toml_test;
 
-    // 레거시 TomlWriter_v1이 쓴 설정 파일의 모양: f32는 넓힌 값, enum은 정수, 모르는 키와 섹션이 있음
+    // 레거시 직렬화가 쓴 설정 파일의 모양: f32는 넓힌 값, enum은 정수, 모르는 키와 섹션이 있음
     const toml::table table = ParseToml(R"(
 [graphics]
 present_mode = 0

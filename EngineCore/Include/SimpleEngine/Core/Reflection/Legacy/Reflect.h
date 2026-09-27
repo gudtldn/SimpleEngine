@@ -1,7 +1,6 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
 
-#include "SimpleEngine/Core/Serialization/Legacy/MathSerialize.h"
 #include "Annotations.h"
 #include "Enum.h"
 #include "SimpleEngine/Core/Reflection/Legacy/Meta.h"
@@ -168,9 +167,8 @@ public: \
 /**
  * 열거형(Enum)의 리플렉션 정보를 등록합니다.
  * underlying type의 TypeId가 자동으로 inner_type_id에 설정되며,
- * underlying type 기반 직렬화 콜백과 Enum 항목 목록 접근자가 자동 등록됩니다.
+ * Enum 항목 목록 접근자가 자동 등록됩니다.
  *
- * @note 이 매크로를 사용하는 파일에서 Archive.h가 포함되어야 합니다.
  * @param enum_type 등록할 열거형 이름
  */
 #define SE_REFLECT_ENUM_V1(enum_type) \
@@ -188,7 +186,6 @@ inline static const bool SE_CONCAT_NAME(_Reflect_Init_Enum_, enum_type) = [] sta
     } \
     ::se::TypeRegistry_v1::Get().RegisterEnum<T>() \
         .AddFlags(enum_flags) \
-        .Serialize([](::se::Archive_v1& ar, void* p) static { ar << *static_cast<T*>(p); }) \
         .EnumEntries([](const ::se::EnumEntry_v1*& out_data, usize& out_count) static \
         { \
             constexpr auto& entries = ::se::detail::EnumReflector_v1<T>::Entries; \

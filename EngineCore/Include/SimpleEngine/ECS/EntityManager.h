@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/ECS/Entity.h"
 
 #include <atomic>
@@ -48,57 +47,6 @@ public:
     }
 
 private:
-    friend void Serialize(Archive_v1& ar, EntityManager& em)
-    {
-        // entity records (array of {generation, alive})
-        u64 record_count = em.entity_records.Len();
-        ar("records");
-        ar.BeginArray(record_count);
-
-        if (ar.IsLoading())
-        {
-            em.entity_records.Resize(static_cast<usize>(record_count));
-        }
-
-        for (u64 i = 0; i < record_count; ++i)
-        {
-            ar.BeginObject();
-            ar("generation") << em.entity_records[i].generation;
-
-            bool alive = em.entity_records[i].IsAlive();
-            ar("alive") << alive;
-
-            if (ar.IsLoading())
-            {
-                // 임시로 alive 상태만 반영. free list는 루프 후 재구축
-                em.entity_records[i].next_free = alive ? ENTITY_ALIVE : ENTITY_FREE_LIST_END;
-            }
-
-            ar.EndObject();
-        }
-
-        ar.EndArray();
-
-        // next_id
-        u32 next = em.next_id.load(std::memory_order_relaxed);
-        ar("next_id") << next;
-        if (ar.IsLoading())
-        {
-            em.next_id.store(next, std::memory_order_relaxed);
-
-            // free list 재구축 (역순 순회 -> 낮은 ID가 먼저 재사용됨)
-            em.free_list_head = ENTITY_FREE_LIST_END;
-            for (u32 idx = static_cast<u32>(record_count); idx-- > 0;)
-            {
-                if (!em.entity_records[idx].IsAlive())
-                {
-                    em.entity_records[idx].next_free = em.free_list_head;
-                    em.free_list_head = idx;
-                }
-            }
-        }
-    }
-
     struct EntityRecord
     {
         u32 generation = 0;

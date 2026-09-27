@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Utility/HashUtils.h"
 
 
@@ -32,12 +31,6 @@ public:
 
 private:
     friend class EntityManager;
-
-    friend void Serialize(Archive_v1& ar, Entity& entity)
-    {
-        ar("id") << entity.id;
-        ar("generation") << entity.generation;
-    }
 
     Entity(u32 in_id, u32 in_generation) noexcept
         : id(in_id)
