@@ -156,6 +156,12 @@ public:
 
     /** Optional 노드가 값을 가지고 있는지 여부(field presence)를 씁니다. */
     virtual void Present(bool has_value) = 0;
+
+    /**
+     * BeginSeq와 EndSeq 사이에서, 원소 노드를 하나씩 쓰는 대신 원소 저장소의 바이트를 그대로 씁니다.
+     * 원소의 인코딩이 메모리 바이트와 같을 때만 호출되며, 바이너리 포맷은 원소마다 쓴 결과와 같은 바이트를 써야 합니다. 텍스트 포맷은 오류로 처리합니다.
+     */
+    virtual void RawElements(const void* data, u64 size) = 0;
 };
 
 /** 포맷별 표현에서 값을 노드 단위로 읽어 오는 인터페이스 */
@@ -179,5 +185,8 @@ public:
     virtual void EndMapEntry() = 0;
     virtual void EndMap() = 0;
     virtual void Present(bool& has_value) = 0;
+
+    /** RawElements로 쓴 원소 바이트를 원소 저장소로 그대로 읽습니다. 텍스트 포맷은 오류로 처리합니다. */
+    virtual void RawElements(void* data, u64 size) = 0;
 };
 } // namespace se

@@ -163,7 +163,10 @@ private:
         writer.EndStruct();
     }
 
-    /** BeginSeq(길이, Ordered)를 쓰고, 원소를 차례로 쓴 뒤 EndSeq를 씁니다. */
+    /**
+     * BeginSeq(길이, Ordered)를 쓰고, 원소를 차례로 쓴 뒤 EndSeq를 씁니다.
+     * 바이너리 포맷이고 원소를 메모리 바이트 그대로 쓸 수 있으면, 원소마다 쓰는 대신 저장소를 RawElements로 한 번에 씁니다.
+     */
     void WriteArray(const ArraySteps& steps, const void* value, usize depth)
     {
         const usize count = steps.ops->len(value);
@@ -173,13 +176,24 @@ private:
             return;
         }
 
-        for (usize i = 0; i < count; ++i)
+        if (steps.raw_element_size != 0 && !writer.IsTextFormat())
         {
-            Write(*steps.element, steps.ops->element_at(value, i), depth + 1);
+            writer.RawElements(steps.ops->data(value), count * steps.raw_element_size);
             if (writer.HasError())
             {
-                error_path.PrependElement(i);
                 return;
+            }
+        }
+        else
+        {
+            for (usize i = 0; i < count; ++i)
+            {
+                Write(*steps.element, steps.ops->element_at(value, i), depth + 1);
+                if (writer.HasError())
+                {
+                    error_path.PrependElement(i);
+                    return;
+                }
             }
         }
         writer.EndSeq();
@@ -423,6 +437,7 @@ private:
      * BeginSeq를 읽고, resize가 있으면 비운 뒤 읽은 길이로 다시 만듭니다(교체).
      * resize가 nullptr이면(FixedArray이거나 원소를 기본 생성할 수 없음) 길이가 이미 같을 때만 제자리에서 읽고, 다르면 오류입니다.
      * 원소를 차례로 읽은 뒤 EndSeq를 읽습니다.
+     * 바이너리 포맷이고 원소를 메모리 바이트 그대로 읽을 수 있으면, 원소마다 읽는 대신 RawElements로 저장소에 한 번에 읽습니다.
      */
     void ReadArray(const ArraySteps& steps, void* value, usize depth)
     {
@@ -433,7 +448,14 @@ private:
             return;
         }
 
-        if (steps.ops->resize != nullptr)
+        const bool reads_raw = steps.raw_element_size != 0 && !reader.IsTextFormat();
+        if (reads_raw && steps.ops->resize_uninitialized != nullptr)
+        {
+            // 원소 바이트로 바로 덮어쓰므로 초기화하지 않고 늘림
+            steps.ops->resize_uninitialized(value, 0);
+            steps.ops->resize_uninitialized(value, static_cast<usize>(count));
+        }
+        else if (steps.ops->resize != nullptr)
         {
             steps.ops->resize(value, 0);
             steps.ops->resize(value, static_cast<usize>(count));
@@ -446,14 +468,25 @@ private:
             return;
         }
 
-        const usize len = steps.ops->len(value);
-        for (usize i = 0; i < len; ++i)
+        if (reads_raw)
         {
-            Read(*steps.element, steps.ops->element_at_mut(value, i), depth + 1);
+            reader.RawElements(steps.ops->data_mut(value), count * steps.raw_element_size);
             if (reader.HasError())
             {
-                error_path.PrependElement(i);
                 return;
+            }
+        }
+        else
+        {
+            const usize len = steps.ops->len(value);
+            for (usize i = 0; i < len; ++i)
+            {
+                Read(*steps.element, steps.ops->element_at_mut(value, i), depth + 1);
+                if (reader.HasError())
+                {
+                    error_path.PrependElement(i);
+                    return;
+                }
             }
         }
         reader.EndSeq();

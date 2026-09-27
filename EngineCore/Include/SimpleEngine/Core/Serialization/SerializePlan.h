@@ -48,6 +48,9 @@ struct ArraySteps
 {
     const SerializePlan* element = nullptr;
     const ArrayOps* ops = nullptr;
+
+    /** 원소를 메모리 바이트 그대로 쓰고 읽을 수 있으면(원소가 trivially packable이고 memcpy로 옮길 수 있음) 원소 하나의 바이트 수, 아니면 0 */
+    usize raw_element_size = 0;
 };
 
 /** Set/Map을 읽을 때 임시 원소를 만들기 위한 정보 */
@@ -103,6 +106,12 @@ struct SE_CORE_API SerializePlan
 {
     TypeId type;
     PlanSteps steps;
+
+    /**
+     * Packed 인코딩이 메모리 바이트와 똑같은 타입(trivially packable)이면 true입니다.
+     * bool을 뺀 산술 타입과, 그런 필드만 오프셋 순서로 패딩 없이 등록한 구조체가 해당합니다. enum과 트레이트 타입은 해당하지 않습니다.
+     */
+    bool is_trivially_packable = false;
 
     /**
      * 데이터에서 온 TypeId로 Plan을 컴파일하거나 캐시에서 가져옵니다.

@@ -39,6 +39,7 @@ public:
     virtual void EndMapEntry() override;
     virtual void EndMap() override;
     virtual void Present(bool has_value) override;
+    virtual void RawElements(const void* data, u64 size) override;
 
 private:
     void WriteBytes(const void* src, u64 byte_size);
@@ -79,6 +80,7 @@ public:
     virtual void EndMapEntry() override;
     virtual void EndMap() override;
     virtual void Present(bool& has_value) override;
+    virtual void RawElements(void* data, u64 size) override;
 
 private:
     void ReadBytes(void* dest, u64 byte_size);

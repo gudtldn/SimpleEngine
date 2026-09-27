@@ -109,8 +109,11 @@ struct ReplaceableContainers
     [[nodiscard]] bool operator==(const ReplaceableContainers&) const = default;
 };
 
-/** 손상된 입력(잘린 버퍼)의 오류 경로 검증용 원소 타입 */
-struct ItemValue
+/**
+ * 손상된 입력(잘린 버퍼)의 오류 경로 검증용 원소 타입
+ * 뒤에 패딩을 두어(alignas) 배열이 원소 바이트를 한 번에 읽지 않고 원소마다 읽게 합니다. Packed 인코딩은 원소당 4바이트 그대로입니다.
+ */
+struct alignas(8) ItemValue
 {
     i32 value = 0;
 };
