@@ -3,25 +3,18 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 
 #include "tracy/Tracy.hpp"
+
+#include <algorithm>
+#include <cstring>
+#include <type_traits>
 
 
 namespace se
 {
 namespace
 {
-/** 캐시 파일 매직 넘버 ("SEDC" = SimpleEngine Derived Cache) */
-constexpr u32 CACHE_MAGIC =
-    static_cast<u32>('S')
-    | (static_cast<u32>('E') << 8)
-    | (static_cast<u32>('D') << 16)
-    | (static_cast<u32>('C') << 24);
-
-/** 캐시 파일 포맷 버전 */
-constexpr u32 CACHE_FORMAT_VERSION = 1;
-
 /** 캐시 파일 확장자 */
 constexpr StringView CACHE_EXTENSION = ".cache";
 
@@ -29,82 +22,52 @@ constexpr StringView CACHE_EXTENSION = ".cache";
 constexpr StringView TEMP_EXTENSION = ".cache.tmp";
 
 /**
- * DDC 캐시 파일에서 읽어온 엔트리 정보 (Internal)
+ * 캐시 파일 맨 앞에 두는 엔트리 정보. 구조체의 메모리 표현을 그대로 쓰고 읽으므로 패딩 없이 둡니다.
+ * payload(에셋의 Packed 파일)와 달리 체크섬 밖에 있어, IsValid가 파일 앞부분만 읽고 판단할 수 있습니다.
  */
-struct DDC_CacheEntryInternal
+struct CachePrefix
 {
-    struct Header
-    {
-        u32 magic = CACHE_MAGIC;
-        u32 format_version = CACHE_FORMAT_VERSION;
-        u32 cache_version = 0;
-        ContentHash source_hash;
-
-        friend void Serialize(Archive_v1& ar, Header& ar_header)
-        {
-            ar("magic") << ar_header.magic;
-            ar("format_version") << ar_header.format_version;
-            ar("cache_version") << ar_header.cache_version;
-            ar("source_hash") << ar_header.source_hash;
-        }
-    } header;
-
-    Array<u8> payload;
-
-    friend void Serialize(Archive_v1& ar, DDC_CacheEntryInternal& entry)
-    {
-        ar("header") << entry.header;
-        ar("payload") << entry.payload;
-    }
+    u32 cache_version = 0;
+    ContentHash source_hash;
 };
+static_assert(std::has_unique_object_representations_v<CachePrefix>, "CachePrefix must not contain padding bytes.");
 
-bool ReadHeader(
-    const Path& cache_path,
-    DDC_CacheEntryInternal::Header& out_header
-)
+/** buffer 앞의 CachePrefix를 읽습니다. buffer가 CachePrefix보다 짧으면 NullOpt를 돌려줍니다. */
+[[nodiscard]] Optional<CachePrefix> ReadPrefix(ArrayView<const u8> buffer)
+{
+    if (buffer.Len() < sizeof(CachePrefix))
+    {
+        return NullOpt;
+    }
+
+    CachePrefix prefix;
+    std::memcpy(&prefix, buffer.Data(), sizeof(prefix));
+    return prefix;
+}
+
+/** 캐시 파일의 앞부분만 읽어 CachePrefix를 얻습니다. 읽지 못했거나 파일이 짧으면 NullOpt를 돌려줍니다. */
+[[nodiscard]] Optional<CachePrefix> ReadPrefixFromFile(const Path& cache_path)
 {
     static constexpr usize CHUNK_SIZE = 128;
-    static_assert(sizeof(DDC_CacheEntryInternal::Header) <= CHUNK_SIZE);
-
-    DDC_CacheEntryInternal::Header header;
-    bool deserialize_success = false;
+    static_assert(sizeof(CachePrefix) <= CHUNK_SIZE);
 
     for (auto&& file_result : fs::ReadChunked(cache_path, CHUNK_SIZE))
     {
-        // 파일 시스템 에러 체크
         if (file_result.HasError())
         {
-            ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - IO Error: {}, {}", cache_path, file_result.Error().What());
-            return false;
+            ConsoleLog(ELogLevel::Warning, "DDC::ReadPrefix - IO Error: {}, {}", cache_path, file_result.Error().What());
+            return NullOpt;
         }
 
-        MemoryReader_v1 reader{ *file_result };
-        reader << header;
-
-        deserialize_success = !reader.HasError();
+        if (const auto prefix = ReadPrefix(*file_result))
+        {
+            return prefix;
+        }
         break;
     }
 
-    // 역직렬화 실패 체크
-    if (!deserialize_success)
-    {
-        ConsoleLog(ELogLevel::Warning, "DDC::ReadHeader - Deserialize failed: {}", cache_path);
-        return false;
-    }
-
-    // Magic + Format Version 검증
-    if (header.magic != CACHE_MAGIC || header.format_version != CACHE_FORMAT_VERSION)
-    {
-        ConsoleLog(
-            ELogLevel::Warning,
-            "DDC::ReadHeader - Invalid Format (Magic: {:#x}, Ver: {}): {}",
-            header.magic, header.format_version, cache_path
-        );
-        return false;
-    }
-
-    out_header = std::move(header);
-    return deserialize_success;
+    ConsoleLog(ELogLevel::Warning, "DDC::ReadPrefix - File is too short for the entry prefix: {}", cache_path);
+    return NullOpt;
 }
 } // namespace
 
@@ -121,43 +84,18 @@ DerivedDataCache::DerivedDataCache(Path in_root_path)
 
 Optional<CacheEntry> DerivedDataCache::ParseFromBuffer(ArrayView<const u8> buffer_view)
 {
-    MemoryReader_v1 reader{ buffer_view };
-    DDC_CacheEntryInternal cache_internal;
-
-    // Header 역직렬화
-    reader << cache_internal.header;
-
-    if (reader.HasError())
+    const auto prefix = ReadPrefix(buffer_view);
+    if (!prefix)
     {
-        ConsoleLog(ELogLevel::Warning, "DDC::ParseFromBuffer - Header deserialization failed");
+        ConsoleLog(ELogLevel::Warning, "DDC::ParseFromBuffer - {} bytes is too short for the entry prefix", buffer_view.Len());
         return NullOpt;
     }
 
-    // Magic 검증
-    if (cache_internal.header.magic != CACHE_MAGIC)
-    {
-        ConsoleLog(ELogLevel::Warning, "DDC::ParseFromBuffer - Invalid magic: {:#x}", cache_internal.header.magic);
-        return NullOpt;
-    }
-
-    // Format Version 검증
-    if (cache_internal.header.format_version != CACHE_FORMAT_VERSION)
-    {
-        ConsoleLog(
-            ELogLevel::Warning,
-            "DDC::ParseFromBuffer - Format version mismatch (expected: {}, got: {})",
-            CACHE_FORMAT_VERSION, cache_internal.header.format_version
-        );
-        return NullOpt;
-    }
-
-    // Payload 역직렬화
-    reader << cache_internal.payload;
-
+    const ArrayView<const u8> payload = buffer_view.Subview(sizeof(CachePrefix));
     return CacheEntry{
-        .source_hash = std::move(cache_internal.header.source_hash),
-        .cache_version = cache_internal.header.cache_version,
-        .payload = std::move(cache_internal.payload),
+        .source_hash = prefix->source_hash,
+        .cache_version = prefix->cache_version,
+        .payload = Array<u8>(payload.begin(), payload.end()),
     };
 }
 
@@ -177,19 +115,14 @@ bool DerivedDataCache::Store(const Guid& guid, CacheEntry&& entry)
         }
     }
 
-    // MemoryWriter_v1로 캐시 데이터 직렬화
-    Array<u8> buffer;
-    MemoryWriter_v1 writer(buffer);
-
-    DDC_CacheEntryInternal cache_internal;
-    cache_internal.header = {
+    // CachePrefix 뒤에 payload를 이어 붙임
+    const CachePrefix prefix{
         .cache_version = entry.cache_version,
-        .source_hash = std::move(entry.source_hash),
+        .source_hash = entry.source_hash,
     };
-    cache_internal.payload = std::move(entry.payload);
-
-    // Cache Entry 직렬화
-    writer << cache_internal;
+    Array<u8> buffer(sizeof(CachePrefix) + entry.payload.Len());
+    std::memcpy(buffer.Data(), &prefix, sizeof(prefix));
+    std::ranges::copy(entry.payload, buffer.Data() + sizeof(prefix));
 
     // Atomic Write: 임시 파일에 먼저 쓰고 rename
     if (!fs::Write(temp_path, buffer))
@@ -230,16 +163,14 @@ bool DerivedDataCache::IsValid(
     u32 cache_version
 ) const
 {
-    const Path cache_path = BuildCachePath(guid);
-
-    DDC_CacheEntryInternal::Header stored_header;
-    if (!ReadHeader(cache_path, stored_header))
+    const auto stored_prefix = ReadPrefixFromFile(BuildCachePath(guid));
+    if (!stored_prefix)
     {
         return false;
     }
 
-    return stored_header.source_hash == source_hash
-        && stored_header.cache_version == cache_version;
+    return stored_prefix->source_hash == source_hash
+        && stored_prefix->cache_version == cache_version;
 }
 
 bool DerivedDataCache::Contains(const Guid& guid) const

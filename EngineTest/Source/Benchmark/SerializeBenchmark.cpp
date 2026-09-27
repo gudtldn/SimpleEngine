@@ -1,7 +1,11 @@
 #include "benchmark/benchmark.h"
 
+#include "SimpleEngine/Asset/AssetPayload.h"
+#include "SimpleEngine/Asset/AssetSubsystem.h"
+#include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/SerializePlan.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
@@ -131,4 +135,71 @@ static void BM_VertexArray_PackedSerializeElementByElement(benchmark::State& sta
     SetVertexBytesProcessed(state);
 }
 BENCHMARK(BM_VertexArray_PackedSerializeElementByElement)->Unit(benchmark::kMillisecond);
+
+/** DDC가 payload를 쓰고 읽을 때마다 계산하는 StaticMesh의 스키마 해시입니다. */
+static void BM_StaticMesh_SchemaHash(benchmark::State& state)
+{
+    const SerializePlan& plan = SerializePlan::Of<StaticMesh>();
+    for ([[maybe_unused]] auto _ : state)
+    {
+        u64 hash = plan.SchemaHash();
+        benchmark::DoNotOptimize(hash);
+    }
+}
+BENCHMARK(BM_StaticMesh_SchemaHash)->Unit(benchmark::kMicrosecond);
+
+/** 아래 DDC payload 벤치마크의 기준선: 반복마다 새 버퍼를 할당해 같은 바이트를 memcpy로 옮깁니다. */
+static void BM_VertexBytes_MemcpyToNewBuffer(benchmark::State& state)
+{
+    const Array<StaticVertex> vertices = MakeBenchmarkVertices();
+
+    for ([[maybe_unused]] auto _ : state)
+    {
+        Array<StaticVertex> copied;
+        copied.ResizeUninitialized(VERTEX_COUNT);
+        std::memcpy(copied.Data(), vertices.Data(), VERTEX_COUNT * sizeof(StaticVertex));
+        benchmark::DoNotOptimize(copied);
+    }
+    SetVertexBytesProcessed(state);
+}
+BENCHMARK(BM_VertexBytes_MemcpyToNewBuffer)->Unit(benchmark::kMillisecond);
+
+/** 정점 1M개를 담은 StaticMesh를 DDC payload로 씁니다. 버퍼 할당, 스키마 해시, 체크섬이 포함됩니다. */
+static void BM_StaticMesh_SerializeAssetPayload(benchmark::State& state)
+{
+    StaticMesh mesh;
+    mesh.vertices = MakeBenchmarkVertices();
+
+    for ([[maybe_unused]] auto _ : state)
+    {
+        Array<u8> payload = AssetSubsystem::SerializeAssetPayload(mesh);
+        benchmark::DoNotOptimize(payload);
+    }
+    SetVertexBytesProcessed(state);
+}
+BENCHMARK(BM_StaticMesh_SerializeAssetPayload)->Unit(benchmark::kMillisecond);
+
+/** 정점 1M개를 담은 StaticMesh DDC payload를 읽습니다. 헤더 검증, 체크섬, 객체 생성이 포함되고 소멸은 빠집니다. */
+static void BM_StaticMesh_DeserializeAssetPayload(benchmark::State& state)
+{
+    StaticMesh mesh;
+    mesh.vertices = MakeBenchmarkVertices();
+    const Array<u8> payload = AssetSubsystem::SerializeAssetPayload(mesh);
+
+    for ([[maybe_unused]] auto _ : state)
+    {
+        const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<StaticMesh>(), payload);
+        if (!loaded.IsValid())
+        {
+            state.SkipWithError("DeserializeAssetPayload failed.");
+            break;
+        }
+
+        state.PauseTiming();
+        loaded.destructor(loaded.ptr);
+        state.ResumeTiming();
+    }
+    SetVertexBytesProcessed(state);
+}
+BENCHMARK(BM_StaticMesh_DeserializeAssetPayload)->Unit(benchmark::kMillisecond);
 } // namespace se
