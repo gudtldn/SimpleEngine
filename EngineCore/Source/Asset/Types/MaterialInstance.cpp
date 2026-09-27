@@ -1,6 +1,7 @@
 ﻿#include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/Material.h"
 #include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
 #include <cstring>
 
@@ -49,3 +50,13 @@ void MaterialInstance::InitializeFromParent(const Material& parent)
     std::memcpy(parameter_values.Data(), block.Data(), block.Len());
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::MaterialInstance)
+    SE_BASE(se::AssetBase)
+    SE_FIELD(parent_material_id)
+    SE_FIELD(parameter_values)
+    SE_FIELD(texture_overrides)
+    SE_FIELD(blend_mode_override)
+    SE_FIELD(two_sided_override)
+SE_REFLECT_END()

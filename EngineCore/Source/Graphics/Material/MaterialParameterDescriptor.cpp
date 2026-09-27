@@ -1,5 +1,7 @@
 ﻿#include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
 #include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Math/MathReflection.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
 
 namespace se
@@ -40,3 +42,19 @@ u32 MaterialParameterDescriptor::GetAlignment() const
     return 16;
 }
 } // namespace se
+
+
+SE_REFLECT_ENUM_BEGIN(se::EMaterialParamType)
+    SE_ENUM_VALUE(Uint)
+    SE_ENUM_VALUE(Float)
+    SE_ENUM_VALUE(Float2)
+    SE_ENUM_VALUE(Float3)
+    SE_ENUM_VALUE(Float4)
+SE_REFLECT_ENUM_END()
+
+SE_REFLECT_BEGIN(se::MaterialParameterDescriptor)
+    SE_FIELD(name)
+    SE_FIELD(type)
+    SE_FIELD(offset)
+    SE_FIELD(default_value)
+SE_REFLECT_END()

@@ -4,6 +4,7 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
@@ -68,3 +69,5 @@ public:
     [[nodiscard]] const Array<u8>& GetParameterBytes() const { return parameter_values; }
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::MaterialInstance, SE_CORE_API)

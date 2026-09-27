@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 
 
 namespace se
@@ -15,3 +16,5 @@ enum class ESamplerType : u8
     Max,          // 전체 샘플러 개수
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::ESamplerType, SE_CORE_API)

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Container/StringView.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Reflect.h"
 
 
@@ -20,3 +21,5 @@ public:
     [[nodiscard]] virtual StringView GetDisplayName() const { return {}; }
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::AssetBase, SE_CORE_API)

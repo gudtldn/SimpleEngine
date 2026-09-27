@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
@@ -89,3 +90,5 @@ private:
     Array<u8> default_parameter_block;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::Material, SE_CORE_API)

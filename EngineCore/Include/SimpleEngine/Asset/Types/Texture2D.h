@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 
 
@@ -170,3 +171,6 @@ public:
 } // namespace se
 
 SE_DECLARE_REFLECTION_V1(se::MipDescriptor)
+SE_DECLARE_REFLECTION(se::ETextureFormat, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::MipDescriptor, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::Texture2D, SE_CORE_API)

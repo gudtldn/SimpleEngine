@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
@@ -48,3 +49,5 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
 } // namespace se
 
 SE_DECLARE_REFLECTION_V1(se::MaterialParameterDescriptor)
+SE_DECLARE_REFLECTION(se::EMaterialParamType, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::MaterialParameterDescriptor, SE_CORE_API)

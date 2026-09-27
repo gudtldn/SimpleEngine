@@ -1,5 +1,6 @@
 ﻿#include "SimpleEngine/Asset/Types/Material.h"
 #include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Utility/Common.h"
 
 #include <algorithm>
@@ -110,3 +111,17 @@ Optional<const MaterialTextureSlot&> Material::FindTextureSlot(StringName name) 
     return NullOpt;
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::Material)
+    SE_BASE(se::AssetBase)
+    SE_FIELD(vertex_shader)
+    SE_FIELD(fragment_shader)
+    SE_FIELD(blend_mode)
+    SE_FIELD(shading_model)
+    SE_FIELD(two_sided)
+    SE_FIELD(alpha_cutoff)
+    SE_FIELD(permutation_key)
+    SE_FIELD(parameter_layout)
+    SE_FIELD(texture_slots)
+SE_REFLECT_END()
