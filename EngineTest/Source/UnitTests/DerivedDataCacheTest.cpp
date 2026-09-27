@@ -1,12 +1,19 @@
 #include "gtest/gtest.h"
 
+#include "SimpleEngine/Asset/AssetPayload.h"
+#include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/Guid.h"
+#include "TestAssetFactories.h"
 
 #include "SDL3/SDL_filesystem.h"
+
+#include <atomic>
+#include <string_view>
+#include <thread>
 
 using namespace se;
 
@@ -363,4 +370,176 @@ TEST(DDCInitTest, CreateRootDirectoryOnConstruction)
 
     EXPECT_TRUE(ddc_root.Exists());
     EXPECT_TRUE(ddc_root.IsDirectory());
+}
+
+
+// =============================================================================
+// 에셋 payload의 전체 경로 (SerializeAssetPayload -> Store -> Load -> DeserializeAssetPayload)
+// =============================================================================
+
+namespace
+{
+/** original을 payload로 써서 DDC에 저장한 뒤, 다시 읽어 역직렬화한 값이 원본과 같은지 확인합니다. */
+template <typename T>
+void ExpectCacheRoundTrip(DerivedDataCache& ddc, const T& original)
+{
+    SCOPED_TRACE(std::string_view{ TypeId_v1::Of<T>().GetName() });
+
+    const Guid guid = Guid::NewGuid();
+    const ContentHash hash = MakeTestHash("source");
+    Array<u8> payload = AssetSubsystem::SerializeAssetPayload(original);
+    ASSERT_FALSE(payload.IsEmpty());
+    ASSERT_TRUE(ddc.Store(guid, { .source_hash = hash, .cache_version = 1, .payload = std::move(payload) }));
+
+    ASSERT_TRUE(ddc.IsValid(guid, hash, 1));
+    const auto entry = ddc.Load(guid);
+    ASSERT_TRUE(entry.HasValue());
+
+    const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<T>(), entry->payload);
+    ASSERT_TRUE(loaded.IsValid());
+    EXPECT_EQ(test_assets::WriteToml(*static_cast<const T*>(loaded.ptr)), test_assets::WriteToml(original));
+    loaded.destructor(loaded.ptr);
+}
+
+/** StaticMesh payload를 guid로 저장하고, 캐시 파일의 바이트를 돌려줍니다. */
+[[nodiscard]] Array<u8> StoreStaticMesh(DerivedDataCache& ddc, const Guid& guid, const ContentHash& hash)
+{
+    EXPECT_TRUE(ddc.Store(guid, {
+        .source_hash = hash,
+        .cache_version = 1,
+        .payload = AssetSubsystem::SerializeAssetPayload(test_assets::MakeStaticMesh()),
+    }));
+
+    const auto file = fs::ReadBytes(ddc.BuildCachePath(guid));
+    EXPECT_TRUE(file.HasValue());
+    return file.HasValue() ? *file : Array<u8>{};
+}
+
+/** guid의 캐시 파일을 IsValid 검사 없이 읽어 StaticMesh로 역직렬화할 수 있는지 돌려줍니다. */
+[[nodiscard]] bool CanDeserializeStaticMesh(const DerivedDataCache& ddc, const Guid& guid)
+{
+    const auto entry = ddc.Load(guid);
+    if (!entry.HasValue())
+    {
+        return false;
+    }
+
+    const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<StaticMesh>(), entry->payload);
+    if (!loaded.IsValid())
+    {
+        return false;
+    }
+    loaded.destructor(loaded.ptr);
+    return true;
+}
+} // namespace
+
+TEST_F(DDCTest, EveryAssetTypeRoundTripsThroughCache)
+{
+    ExpectCacheRoundTrip(ddc, test_assets::MakeStaticMesh());
+    ExpectCacheRoundTrip(ddc, test_assets::MakeSkeletalMesh());
+    ExpectCacheRoundTrip(ddc, test_assets::MakeTexture2D());
+    ExpectCacheRoundTrip(ddc, test_assets::MakeMaterial());
+    ExpectCacheRoundTrip(ddc, test_assets::MakeMaterialInstance());
+}
+
+TEST_F(DDCTest, LegacyFormatFileIsMiss)
+{
+    const Guid guid = Guid::NewGuid();
+    const ContentHash hash = MakeTestHash("source");
+    std::ignore = StoreStaticMesh(ddc, guid, hash);
+
+    // 예전 형식처럼 "SEDC" magic과 format_version 1, cache_version 1로 시작하는 파일로 덮어씀
+    Array<u8> legacy_file = { 'S', 'E', 'D', 'C', 1, 0, 0, 0, 1, 0, 0, 0 };
+    legacy_file.Resize(legacy_file.Len() + 64);
+    ASSERT_TRUE(fs::Write(ddc.BuildCachePath(guid), legacy_file));
+
+    EXPECT_FALSE(ddc.IsValid(guid, hash, 1));
+    EXPECT_FALSE(CanDeserializeStaticMesh(ddc, guid));
+}
+
+TEST_F(DDCTest, CorruptedPayloadIsMiss)
+{
+    const Guid guid = Guid::NewGuid();
+    const ContentHash hash = MakeTestHash("source");
+    Array<u8> file = StoreStaticMesh(ddc, guid, hash);
+    ASSERT_FALSE(file.IsEmpty());
+
+    // 마지막 바이트만 바꾸므로 앞부분 검사는 통과하고 Packed 헤더의 체크섬에서 거절됨
+    file[file.Len() - 1] = static_cast<u8>(~file[file.Len() - 1]);
+    ASSERT_TRUE(fs::Write(ddc.BuildCachePath(guid), file));
+
+    EXPECT_TRUE(ddc.IsValid(guid, hash, 1));
+    EXPECT_FALSE(CanDeserializeStaticMesh(ddc, guid));
+}
+
+TEST_F(DDCTest, TruncatedFileIsMiss)
+{
+    const Guid guid = Guid::NewGuid();
+    const ContentHash hash = MakeTestHash("source");
+    const Array<u8> file = StoreStaticMesh(ddc, guid, hash);
+    ASSERT_GT(file.Len(), 100u);
+
+    // 앞부분보다 짧으면 IsValid와 Load가 모두 실패
+    ASSERT_TRUE(fs::Write(ddc.BuildCachePath(guid), ArrayView<const u8>(file.Data(), 10)));
+    EXPECT_FALSE(ddc.IsValid(guid, hash, 1));
+    EXPECT_FALSE(ddc.Load(guid).HasValue());
+
+    // payload 중간에서 잘리면 Packed 헤더의 크기 검사에서 거절됨
+    ASSERT_TRUE(fs::Write(ddc.BuildCachePath(guid), ArrayView<const u8>(file.Data(), file.Len() - 5)));
+    EXPECT_TRUE(ddc.IsValid(guid, hash, 1));
+    EXPECT_FALSE(CanDeserializeStaticMesh(ddc, guid));
+}
+
+TEST(AssetPayloadTest, PayloadOfAnotherAssetTypeIsRejected)
+{
+    // 루트 타입이 헤더와 다르면 필드를 읽기 전에 거절됨
+    const Array<u8> payload = AssetSubsystem::SerializeAssetPayload(test_assets::MakeStaticMesh());
+    EXPECT_FALSE(AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<SkeletalMesh>(), payload).IsValid());
+}
+
+TEST(AssetPayloadTest, WorkerThreadsDeserializePayloadsConcurrently)
+{
+    // 비동기 로드는 워커 스레드에서 payload를 역직렬화하므로, 여러 스레드가 여러 에셋 타입을 동시에 읽어도 모두 성공해야 함
+    struct TypedPayload
+    {
+        TypeId_v1 type;
+        Array<u8> bytes;
+    };
+    const TypedPayload payloads[] = {
+        { TypeId_v1::Of<StaticMesh>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeStaticMesh()) },
+        { TypeId_v1::Of<SkeletalMesh>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeSkeletalMesh()) },
+        { TypeId_v1::Of<Texture2D>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeTexture2D()) },
+        { TypeId_v1::Of<Material>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeMaterial()) },
+        { TypeId_v1::Of<MaterialInstance>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeMaterialInstance()) },
+    };
+
+    constexpr usize THREAD_COUNT = 8;
+    constexpr usize ROUND_COUNT = 20;
+    std::atomic<usize> failures{ 0 };
+    {
+        Array<std::jthread> threads;
+        threads.Reserve(THREAD_COUNT);
+        for (usize thread_index = 0; thread_index < THREAD_COUNT; ++thread_index)
+        {
+            threads.Emplace([&payloads, &failures]
+            {
+                for (usize round = 0; round < ROUND_COUNT; ++round)
+                {
+                    for (const TypedPayload& payload : payloads)
+                    {
+                        const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(payload.type, payload.bytes);
+                        if (!loaded.IsValid())
+                        {
+                            failures.fetch_add(1, std::memory_order_relaxed);
+                            continue;
+                        }
+                        loaded.destructor(loaded.ptr);
+                    }
+                }
+            });
+        }
+    }
+
+    EXPECT_EQ(failures.load(), 0u);
 }

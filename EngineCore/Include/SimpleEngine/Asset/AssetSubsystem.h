@@ -104,12 +104,13 @@ public:
     [[nodiscard]] AssetHandle<T> RegisterBuiltin(const AssetId& asset_id, std::unique_ptr<T> asset);
 
 public:
-    /** Asset을 DDC payload로 직렬화합니다. */
+    /** Asset을 DDC payload(루트 타입과 스키마 해시를 담은 Packed 파일)로 직렬화합니다. 실패하면 빈 배열을 반환합니다. */
     [[nodiscard]] static Array<u8> SerializeAssetPayload(const AssetBase& asset);
 
     /**
      * DDC payload에서 Asset을 역직렬화하여 AssetPayload로 반환합니다.
      * ptr과 destructor가 분리된 상태로 반환되므로, SlotEntry에 직접 저장할 수 있습니다.
+     * 루트 타입, 스키마 해시, 체크섬이 맞지 않거나 데이터가 손상되었으면 빈 AssetPayload를 반환합니다.
      */
     [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId_v1& type_id, ArrayView<const u8> payload_view);
 

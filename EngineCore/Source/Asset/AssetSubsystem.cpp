@@ -11,7 +11,10 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/Debug.h"
 
@@ -91,28 +94,75 @@ void AssetSubsystem::EndFrame()
     pool->EvictIfOverBudget(current_frame);
 }
 
+namespace
+{
+/**
+ * 레거시 TypeId가 가리키는 에셋 타입의 SerializePlan을 찾습니다.
+ * 두 리플렉션은 TypeId 해시를 서로 다르게 계산하므로, 레거시에 등록된 이름을 새 리플렉션의 정규 이름으로 보고 찾습니다.
+ */
+[[nodiscard]] Expected<const SerializePlan*, String> FindPayloadPlan(const TypeId_v1& legacy_type)
+{
+    const StringView name = legacy_type.GetName();
+    const auto info = TypeRegistry::Get().Find(TypeId::FromCanonicalName(name));
+    if (!info.HasValue() || info->name != name)
+    {
+        return Unexpected{ String::Format("'{}' is not registered with SE_REFLECT_BEGIN", name) };
+    }
+    return SerializePlan::TryOf(info->id);
+}
+} // namespace
+
 Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
 {
     const TypeId_v1 type_id = asset.GetTypeId();
-    const auto info_opt = TypeRegistry_v1::Get().Find(type_id);
-    if (!info_opt || !info_opt->serialize)
+    const auto plan = FindPayloadPlan(type_id);
+    if (plan.HasError())
     {
-        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type: {}", type_id.GetName());
+        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: {}", type_id.GetName(), plan.Error());
         return {};
     }
+    const SerializePlan& payload_plan = *plan.Value();
 
     Array<u8> payload;
-    MemoryWriter_v1 writer(payload);
-    info_opt->serialize(writer, const_cast<void*>(static_cast<const void*>(&asset)));
+    PackedFileWriter writer(payload, payload_plan.type, payload_plan.SchemaHash());
+
+    // 필드 오프셋은 가장 파생된 타입 기준이므로, AssetBase 서브오브젝트가 아닌 객체 전체의 주소를 넘김
+    const auto result = serde::Serialize(writer, payload_plan, dynamic_cast<const void*>(&asset));
+    writer.Finish();
+    if (result.HasError())
+    {
+        ConsoleLog(
+            ELogLevel::Warning, "Failed to serialize asset payload ({}): {} (path: '{}')",
+            type_id.GetName(), result.Error().message, result.Error().path
+        );
+        return {};
+    }
     return payload;
 }
 
 AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, ArrayView<const u8> payload_view)
 {
+    // 객체 생성과 소멸은 레거시 리플렉션이 맡고, 필드는 새 직렬화로 채움
     const auto info_opt = TypeRegistry_v1::Get().Find(type_id);
-    if (!info_opt || !info_opt->constructor || !info_opt->serialize)
+    if (!info_opt || !info_opt->constructor || !info_opt->destructor)
     {
         ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type: {}", type_id.GetName());
+        return {};
+    }
+
+    const auto plan = FindPayloadPlan(type_id);
+    if (plan.HasError())
+    {
+        ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type {}: {}", type_id.GetName(), plan.Error());
+        return {};
+    }
+    const SerializePlan& payload_plan = *plan.Value();
+
+    // 루트 타입, 스키마 해시, 체크섬이 맞지 않으면 객체를 만들기 전에 거절하므로, 바뀐 타입으로 쓴 옛 payload를 잘못 읽지 않음
+    PackedFileReader reader(payload_view, payload_plan.type, payload_plan.SchemaHash());
+    if (reader.HasError())
+    {
+        ConsoleLog(ELogLevel::Warning, "Rejected asset payload ({}): {}", type_id.GetName(), reader.GetError());
         return {};
     }
 
@@ -122,8 +172,15 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, A
         return {};
     }
 
-    MemoryReader_v1 reader{ payload_view };
-    info_opt->serialize(reader, raw);
+    if (const auto result = serde::Deserialize(reader, payload_plan, raw); result.HasError())
+    {
+        ConsoleLog(
+            ELogLevel::Warning, "Failed to deserialize asset payload ({}): {} (path: '{}')",
+            type_id.GetName(), result.Error().message, result.Error().path
+        );
+        info_opt->destructor(raw);
+        return {};
+    }
 
     return {
         .ptr = static_cast<AssetBase*>(raw),
