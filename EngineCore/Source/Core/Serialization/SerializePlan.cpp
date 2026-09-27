@@ -9,6 +9,7 @@
 #include "SimpleEngine/Utility/Overloaded.h"
 
 #include <concepts>
+#include <mutex>
 #include <type_traits>
 #include <utility>
 
@@ -581,6 +582,9 @@ void DescribePlan(SchemaHasher& hasher, const SerializePlan& plan)
 
 Expected<const SerializePlan*, String> SerializePlan::TryOf(TypeId id)
 {
+    // 컴파일 중인 슬롯과 실패했을 때의 롤백을 다른 스레드가 보지 않도록 전체를 락 안에서 수행
+    std::scoped_lock lock{ RegistrationMutex() };
+
     Array<TypeId> newly_inserted;
     auto result = CompileRecursive(id, newly_inserted);
     if (result.HasError())

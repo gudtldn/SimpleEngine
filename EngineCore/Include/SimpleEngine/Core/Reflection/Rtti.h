@@ -8,6 +8,7 @@
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <algorithm>
+#include <atomic>
 #include <concepts>
 #include <type_traits>
 
@@ -31,11 +32,16 @@ concept RuntimeTyped = requires (const T& object)
 template <typename T>
 [[nodiscard]] const TypeRecord* TypeRecordOf()
 {
-    static const TypeRecord* record = []
+    // constinit을 사용하여 Magic Statics로 인한 데드락 방지 (첫 조회가 등록 락을 잡음)
+    static constinit std::atomic<const TypeRecord*> cached{ nullptr };
+    if (const TypeRecord* const record = cached.load(std::memory_order_acquire))
     {
-        EnsureRegistered<T>();
-        return &TypeRecordRegistry::Get().Find(TypeId::Of<T>()).Value();
-    }();
+        return record;
+    }
+
+    EnsureRegistered<T>();
+    const TypeRecord* const record = &TypeRecordRegistry::Get().Find(TypeId::Of<T>()).Value();
+    cached.store(record, std::memory_order_release);
     return record;
 }
 

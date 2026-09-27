@@ -25,7 +25,7 @@ namespace serde
 {
 /**
  * plan을 따라 value를 순회하며 writer에 씁니다.
- * @note 단일 스레드를 전제로 설계되었습니다.
+ * @note writer를 스레드마다 따로 두면 여러 스레드에서 동시에 호출할 수 있습니다.
  */
 [[nodiscard]] SE_CORE_API Expected<void, SerializeError> Serialize(ArchiveWriter& writer, const SerializePlan& plan, const void* value);
 
@@ -37,7 +37,7 @@ namespace serde
  * 컨테이너(Array, Set, Map, Optional)는 기존 내용에 누적하지 않고 데이터로 교체합니다.
  * 실패해도 value는 파괴하거나 다시 대입할 수 있는 유효한 객체로 남지만, 내용은 보장하지 않습니다.
  *
- * @note 단일 스레드를 전제로 설계되었습니다. 한 스레드에서만 호출하고, 정적 초기화 중에는 호출하지 않습니다.
+ * @note reader를 스레드마다 따로 두면 여러 스레드에서 동시에 호출할 수 있습니다. 정적 초기화 중에는 호출하지 않습니다.
  */
 [[nodiscard]] SE_CORE_API Expected<void, SerializeError> Deserialize(ArchiveReader& reader, const SerializePlan& plan, void* value);
 

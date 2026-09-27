@@ -6,9 +6,18 @@
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeInfo.h"
 
+#include <mutex>
+
 
 namespace se
 {
+/**
+ * 리플렉션과 직렬화의 등록 상태(TypeRegistry, ValueOpsRegistry, TypeRecordRegistry, SerializeOpsRegistry, SerializePlan 저장소)를 지키는 전역 락을 가져옵니다.
+ * 이 상태를 읽거나 쓰는 모든 곳이 잡으며, 등록 중 같은 스레드의 재진입을 허용하는 재귀 락입니다.
+ * 모든 모듈이 같은 락을 쓰도록 EngineCore의 비템플릿 함수 안에 둡니다.
+ */
+[[nodiscard]] SE_CORE_API std::recursive_mutex& RegistrationMutex();
+
 /**
  * 구조체/클래스 타입 하나의 부모/필드 목록 저장소
  */
@@ -20,6 +29,7 @@ struct StructStorage
 
 /**
  * 모든 TypeInfo를 소유하는 전역 레지스트리
+ * @note 모든 멤버 함수가 RegistrationMutex()를 잡습니다. Emplace 계열이 돌려준 참조는 EnsureRegistered가 락을 잡은 채로 채웁니다.
  */
 class SE_CORE_API TypeRegistry
 {
@@ -50,14 +60,8 @@ public:
      */
     [[nodiscard]] const TypeInfo& FindChecked(TypeId id) const;
 
-    /** 지금까지 등록된 모든 TypeInfo를 lazy-view로 반환합니다. */
-    [[nodiscard]] auto GetAllTypes() const
-    {
-        return type_map.Iter().Map([](const auto& pair) -> const TypeInfo*
-        {
-            return &pair.second;
-        });
-    }
+    /** 지금까지 등록된 모든 TypeInfo의 스냅샷을 반환합니다. 이후 다른 스레드가 등록한 타입은 담기지 않습니다. */
+    [[nodiscard]] Array<const TypeInfo*> GetAllTypes() const;
 
 private:
     /** 각 타입의 TypeInfo 저장소 */

@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 
+#include <mutex>
 #include <utility>
 
 
@@ -41,6 +42,7 @@ TypeRecordRegistry& TypeRecordRegistry::Get()
 
 void TypeRecordRegistry::Install(TypeId id)
 {
+    std::scoped_lock lock{ RegistrationMutex() };
     if (record_map.Contains(id))
     {
         return;
@@ -53,6 +55,7 @@ void TypeRecordRegistry::Install(TypeId id)
 
 Optional<const TypeRecord&> TypeRecordRegistry::Find(TypeId id) const
 {
+    std::scoped_lock lock{ RegistrationMutex() };
     return record_map.Find(id);
 }
 } // namespace se
