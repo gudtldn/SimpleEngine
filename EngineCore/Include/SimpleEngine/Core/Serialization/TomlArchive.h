@@ -45,6 +45,7 @@ public:
     virtual void EndMapEntry() override;
     virtual void EndMap() override;
     virtual void Present(bool has_value) override;
+    virtual void RawElements(const void* data, u64 size) override;
 
 private:
     /**
@@ -144,6 +145,7 @@ public:
     virtual void EndMapEntry() override;
     virtual void EndMap() override;
     virtual void Present(bool& has_value) override;
+    virtual void RawElements(void* data, u64 size) override;
 
 private:
     /**

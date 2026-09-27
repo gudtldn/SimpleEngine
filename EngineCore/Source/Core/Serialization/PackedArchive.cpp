@@ -110,6 +110,12 @@ void PackedWriter::Present(bool has_value)
     WriteBoolByte(has_value);
 }
 
+void PackedWriter::RawElements(const void* data, u64 size)
+{
+    // 원소 노드도 태그 없이 값 바이트만 쓰므로, 인코딩이 메모리와 같은 원소들은 저장소 바이트가 곧 원소마다 쓴 결과
+    WriteBytes(data, size);
+}
+
 void PackedWriter::WriteBytes(const void* src, u64 byte_size)
 {
     if (HasError())
@@ -275,6 +281,11 @@ void PackedReader::EndMap() {}
 void PackedReader::Present(bool& has_value)
 {
     ReadBoolByte(has_value);
+}
+
+void PackedReader::RawElements(void* data, u64 size)
+{
+    ReadBytes(data, size);
 }
 
 void PackedReader::ReadBytes(void* dest, u64 byte_size)

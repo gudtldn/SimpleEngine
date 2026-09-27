@@ -268,7 +268,13 @@ PrimitiveEntry MakePrimitiveEntry()
 
     const ValueOps& container_ops = ValueOpsRegistry::Get().Find(id).Value();
     const ArrayOps& array_ops = container_ops.AsArray().Value();
-    return PlanSteps{ ArraySteps{ .element = element_plan.Value(), .ops = &array_ops } };
+
+    // 재귀 타입이라 원소 Plan을 아직 만드는 중이면 false로 보이지만, 그런 원소는 컨테이너 필드를 가지므로 원래 false
+    const SerializePlan* const element = element_plan.Value();
+    const usize raw_element_size = element->is_trivially_packable && array_ops.element_trivially_copyable
+        ? TypeRegistry::Get().FindChecked(a.element).size
+        : 0;
+    return PlanSteps{ ArraySteps{ .element = element, .ops = &array_ops, .raw_element_size = raw_element_size } };
 }
 
 /** Set-like 컨테이너 id의 SetSteps를 만듭니다. */
@@ -373,6 +379,37 @@ PrimitiveEntry MakePrimitiveEntry()
 }
 
 /**
+ * steps까지 만든 타입의 Packed 인코딩이 메모리 바이트와 똑같은지(trivially packable) 판단합니다.
+ * bool을 뺀 산술 타입과, trivially packable한 필드만 오프셋 순서로 빈틈없이 등록해 합이 sizeof와 같은 구조체가 해당합니다.
+ */
+[[nodiscard]] bool IsTriviallyPackable(const TypeInfo& info, const PlanSteps& steps)
+{
+    // 여기까지 온 Opaque 타입은 트레이트 없는 산술 타입. bool은 읽을 때 0/1로 바꾸므로 제외
+    if (info.IsOpaque())
+    {
+        return info.id != TypeId::Of<bool>();
+    }
+
+    const auto* const struct_steps = std::get_if<StructSteps>(&steps);
+    if (struct_steps == nullptr)
+    {
+        return false;
+    }
+
+    // 베이스까지 펼친 필드가 0부터 빈틈없이 이어져야 함. vptr, 패딩, 등록하지 않은 멤버가 있으면 실패
+    usize next_offset = 0;
+    for (const FieldStep& field : struct_steps->fields)
+    {
+        if (!field.plan->is_trivially_packable || field.offset != next_offset)
+        {
+            return false;
+        }
+        next_offset += TypeRegistry::Get().FindChecked(field.plan->type).size;
+    }
+    return next_offset == info.size;
+}
+
+/**
  * id의 Plan을 찾거나 새로 만들어 주소를 돌려줍니다. 필드와 원소 같은 자식 타입의 Plan도 함께 만듭니다.
  * 새로 넣은 Plan 슬롯의 TypeId는 실패했을 때 지울 수 있도록 newly_inserted에 기록합니다.
  */
@@ -430,6 +467,7 @@ PrimitiveEntry MakePrimitiveEntry()
 
     // 자식 Plan이 모두 준비되면 슬롯을 설정
     slot.steps = std::move(steps_result).Value();
+    slot.is_trivially_packable = IsTriviallyPackable(info, slot.steps);
     return &slot;
 }
 

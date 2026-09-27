@@ -157,6 +157,11 @@ public:
         Record(SerializeEvent{ EventPresent{ has_value } });
     }
 
+    virtual void RawElements([[maybe_unused]] const void* data, [[maybe_unused]] u64 size) override
+    {
+        SetError("EventWriter: raw element bytes are not recorded.");
+    }
+
 private:
     /** 오류가 이미 켜져 있으면 기록하지 않습니다(Archive 계약: 오류 이후 연산은 no-op). */
     void Record(SerializeEvent event)
@@ -333,6 +338,11 @@ public:
         {
             has_value = data->value;
         }
+    }
+
+    virtual void RawElements([[maybe_unused]] void* data, [[maybe_unused]] u64 size) override
+    {
+        SetError("EventReader: raw element bytes are not recorded.");
     }
 
 private:

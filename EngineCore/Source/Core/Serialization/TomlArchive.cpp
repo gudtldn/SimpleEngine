@@ -215,6 +215,11 @@ void TomlWriter::Bytes(const void* data, u64 size)
     PlaceValue(ToStdStringView(text));
 }
 
+void TomlWriter::RawElements([[maybe_unused]] const void* data, [[maybe_unused]] u64 size)
+{
+    SetError("TomlWriter: raw element bytes are not supported in a text format.");
+}
+
 void TomlWriter::Enum(i64 value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
 {
     // 이름이 있는 값은 이름으로, 없는 값(플래그 조합 등)은 정수로 씀
@@ -637,6 +642,11 @@ void TomlReader::Bytes(void* data, u64 size)
         return;
     }
     std::ranges::copy(*bytes, static_cast<u8*>(data));
+}
+
+void TomlReader::RawElements([[maybe_unused]] void* data, [[maybe_unused]] u64 size)
+{
+    SetError("TomlReader: raw element bytes are not supported in a text format.");
 }
 
 void TomlReader::Enum(i64& value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
