@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/ECS/World.h"
 
@@ -14,6 +15,9 @@ namespace se
  */
 struct ComponentOps
 {
+    /** 컴포넌트 타입의 새 리플렉션 TypeId. 월드 파일이 컴포넌트의 TypeInfo와 SerializePlan을 찾을 때 씁니다. */
+    TypeId type;
+
     /**
      * ComponentStorage를 초기화합니다.
      * @param world 작업을 수행할 World
@@ -126,6 +130,7 @@ public:
         SE_ASSERT(!component_operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", name);
 
         component_operators.Insert(type_id, ComponentOps{
+            .type = TypeId::Of<T>(),
             .ensure_storage = [](World& world) static -> IComponentStorage*
             {
                 return &world.GetOrCreateComponentStorage<T>();
