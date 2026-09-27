@@ -5,6 +5,7 @@
 #include "SimpleEngine/Asset/AssetPath.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../Core/Reflection/Legacy/Annotations.h"
 #include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -156,3 +157,4 @@ bool AssetRegistry::ReadRecord(const AssetId& asset_id, Fn&& callback) const
 } // namespace se
 
 SE_DECLARE_REFLECTION_V1(se::AssetRecord)
+SE_DECLARE_REFLECTION(se::AssetRecord, SE_CORE_API)

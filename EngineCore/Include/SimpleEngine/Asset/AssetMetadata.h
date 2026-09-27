@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../Core/Reflection/Legacy/Annotations.h"
 #include "../Core/Reflection/Legacy/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
@@ -113,3 +114,11 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetMetadata
 SE_DECLARE_REFLECTION_V1(se::AssetDependencyEntry)
 SE_DECLARE_REFLECTION_V1(se::SubAssetMeta)
 SE_DECLARE_REFLECTION_V1(se::AssetMetadata)
+
+// 레거시 TypeId는 바이너리에서 이름의 해시, 텍스트에서 이름 하나로 쓰도록 Opaque로 등록하고, 직렬화는 AssetMetadata.cpp의 SerializeTraits가 맡음
+SE_REFLECT_OPAQUE(se::TypeId_v1)
+
+SE_DECLARE_REFLECTION(se::EAssetDependencyType, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::AssetDependencyEntry, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::SubAssetMeta, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::AssetMetadata, SE_CORE_API)
