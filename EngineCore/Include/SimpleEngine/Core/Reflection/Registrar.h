@@ -23,6 +23,7 @@
 
 #include <atomic>
 #include <concepts>
+#include <mutex>
 #include <type_traits>
 
 
@@ -209,14 +210,22 @@ const TypeInfo& EnsureRegistered()
     constexpr StringView name = TypeNameOf<CleanType>();
     TypeRegistry& registry = TypeRegistry::Get();
 
-    // 재귀 재진입 중인 슬롯과, 다른 모듈이 먼저 등록해 둔 슬롯을 모두 여기서 받습니다.
+    // 등록 전체를 락 안에서 하므로, 다른 스레드는 채우는 중인 TypeInfo를 보지 않고 여기서 기다립니다.
+    std::scoped_lock lock{ RegistrationMutex() };
+
+    // 재귀 재진입 중인 슬롯, 다른 모듈이 먼저 등록해 둔 슬롯, 락을 기다리는 동안 다른 스레드가 등록한 슬롯을 모두 여기서 받습니다.
     if (const auto existing = registry.Find(id))
     {
         const TypeInfo& info = existing.Value();
         SE_ASSERT_RELEASE(
             info.name == name && info.size == sizeof(CleanType) && info.alignment == alignof(CleanType),
             "TypeId collision: a different type is already registered under this id.");
-        cached.store(&info, std::memory_order_release);
+
+        // 재진입 중인 슬롯은 아직 채우는 중이라 캐시하지 않음 (TypeRecord 설치가 등록의 마지막 단계)
+        if (TypeRecordRegistry::Get().Find(id).HasValue())
+        {
+            cached.store(&info, std::memory_order_release);
+        }
         return info;
     }
 

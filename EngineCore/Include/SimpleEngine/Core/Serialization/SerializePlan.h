@@ -97,7 +97,7 @@ using PlanSteps = std::variant<LeafStep, StructSteps, ArraySteps, SetSteps, MapS
 /**
  * 타입 하나를 직렬화하는 데 필요한 정보를 리플렉션 TypeInfo에서 뽑아 둔 결과
  * 타입마다 한 번만 컴파일되고, 이후 직렬화할 때는 레지스트리 조회나 어노테이션 스캔 없이 바로 사용합니다.
- * @note 단일 스레드를 전제로 설계되었습니다. TryOf/Of는 한 스레드에서만 호출하고, 정적 초기화 중에는 호출하지 않습니다.
+ * @note TryOf는 RegistrationMutex()를 잡고, Of는 처음 한 번 뒤로 락 없이 캐시를 읽으므로 여러 스레드에서 호출할 수 있습니다. 정적 초기화 중에는 호출하지 않습니다.
  */
 struct SE_CORE_API SerializePlan
 {
