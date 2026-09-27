@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 
 
@@ -18,3 +19,4 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Compon
 } // namespace se
 
 SE_DECLARE_REFLECTION_V1(se::GlobalTransformComponent)
+SE_DECLARE_REFLECTION(se::GlobalTransformComponent, SE_CORE_API)

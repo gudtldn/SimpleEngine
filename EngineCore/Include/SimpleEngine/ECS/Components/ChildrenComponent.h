@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/ECS/Entity.h"
 
@@ -18,3 +19,4 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) ChildrenCompo
 } // namespace se
 
 SE_DECLARE_REFLECTION_V1(se::ChildrenComponent)
+SE_DECLARE_REFLECTION(se::ChildrenComponent, SE_CORE_API)
