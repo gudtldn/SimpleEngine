@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Container/FixedArray.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Serialization/Legacy/MathSerialize.h"
 
 
@@ -96,3 +97,8 @@ struct MeshLOD
     }
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::StaticVertex, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::SkinVertex, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::MeshSection, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::MeshLOD, SE_CORE_API)

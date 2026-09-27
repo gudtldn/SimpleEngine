@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../Core/Reflection/Legacy/Enum.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 
@@ -36,3 +37,6 @@ SE_ENUM_SET_BITFLAG(EMaterialFlag)
 SE_ENABLE_BITMASK_OPERATORS(EMaterialFlag)
 using MaterialFlags = BitFlags<EMaterialFlag>;
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::EBlendMode, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::EShadingModel, SE_CORE_API)

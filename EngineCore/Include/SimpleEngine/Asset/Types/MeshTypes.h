@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
@@ -79,3 +80,6 @@ public:
     // Array<BoneInfo> ref_skeleton;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::StaticMesh, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::SkeletalMesh, SE_CORE_API)
