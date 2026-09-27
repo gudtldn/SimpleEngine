@@ -2,7 +2,9 @@
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/Legacy/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/SerializeContext.h"
+#include "SimpleEngine/Core/Serialization/Serializer.h"
+#include "SimpleEngine/Core/Serialization/TomlArchive.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -56,11 +58,31 @@ Optional<MetaFileContent> Load(const Path& source_path)
         return NullOpt;
     }
 
-    // 역직렬화
-    MetaFileContent content;
-    TomlReader_v1 reader(parse_result.table());
-    reader << content;
+    // 역직렬화 (모르는 설정 타입은 건너뛰고 skipped_settings에 기록됨)
+    SkippedImportSettings skipped_settings;
+    SerializeContext context;
+    context.Add(skipped_settings);
 
+    MetaFileContent content;
+    TomlReader reader(parse_result.table());
+    reader.SetContext(&context);
+    const auto result = serde::Deserialize(reader, content);
+
+    // 필드 이름을 바꿨거나 오타를 낸 키, 더는 없는 설정 타입을 알아차리게 모두 남김
+    for (const String& warning : reader.GetWarnings())
+    {
+        ConsoleLog(ELogLevel::Warning, "asset_meta::Load - {}: {}", meta_path, warning);
+    }
+    for (const String& type_name : skipped_settings.type_names)
+    {
+        ConsoleLog(ELogLevel::Warning, "asset_meta::Load - {}: unknown import settings type '{}' is skipped.", meta_path, type_name);
+    }
+
+    if (result.HasError())
+    {
+        ConsoleLog(ELogLevel::Error, "Failed to deserialize meta file: {} - {} (path: '{}')", meta_path, result.Error().message, result.Error().path);
+        return NullOpt;
+    }
     return content;
 }
 
@@ -81,8 +103,12 @@ bool Save(const Path& source_path, const MetaFileContent& content)
 
     // TOML 트리에 직렬화
     toml::table root;
-    TomlWriter_v1 writer(root);
-    writer << content;
+    TomlWriter writer(root);
+    if (const auto result = serde::Serialize(writer, content); result.HasError())
+    {
+        ConsoleLog(ELogLevel::Error, "asset_meta::Save - Failed to serialize meta file: {} - {} (path: '{}')", meta_path, result.Error().message, result.Error().path);
+        return false;
+    }
 
     // TOML 문자열 생성
     std::ostringstream oss;

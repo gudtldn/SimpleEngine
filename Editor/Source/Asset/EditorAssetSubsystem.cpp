@@ -27,7 +27,6 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
@@ -620,12 +619,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const u64 file_size = static_cast<u64>(fs::FileSize(file_path).ValueOrDefault());
 
     // Import Settings 해시 계산
-    Array<u8> settings_bytes;
-    {
-        MemoryWriter_v1 writer(settings_bytes);
-        writer << import_profile;
-    }
-    const ContentHash settings_hash = sha256::HashBytes(settings_bytes);
+    const ContentHash settings_hash = import_profile.ComputeHash();
 
     updated_content.metadata.source_hash = source_hash;
     updated_content.metadata.source_mtime = file_mtime;
@@ -820,12 +814,7 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
     // settings_hash가 zero이면 한 번도 쿡되지 않은 상태이므로 건너뜀 (is_new로 처리)
     if (!meta.settings_hash.IsZero())
     {
-        Array<u8> settings_bytes;
-        {
-            MemoryWriter_v1 writer(settings_bytes);
-            writer << content.import_settings;
-        }
-        const ContentHash current_settings_hash = sha256::HashBytes(settings_bytes);
+        const ContentHash current_settings_hash = content.import_settings.ComputeHash();
         if (current_settings_hash != meta.settings_hash)
         {
             return true;
