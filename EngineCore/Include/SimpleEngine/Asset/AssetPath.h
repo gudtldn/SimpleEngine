@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Serialization/Legacy/Archive.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Utility/HashUtils.h"
@@ -32,6 +33,8 @@ public:
     [[nodiscard]] auto operator<=>(const AssetPath&) const = default;
 
 private:
+    friend struct ::se::Registrar<AssetPath>;
+
     friend void Serialize(Archive_v1& ar, AssetPath& path)
     {
         String file_str;
@@ -53,6 +56,8 @@ private:
     String sub_asset_name;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::AssetPath, SE_CORE_API)
 
 template <>
 struct std::hash<se::AssetPath>

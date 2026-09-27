@@ -1,5 +1,7 @@
 ﻿#include "SimpleEngine/Asset/AssetPath.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+
 #include <utility>
 
 
@@ -33,3 +35,10 @@ String AssetPath::ToString() const
     return file_path.ToString();
 }
 } // namespace se
+
+
+// 멤버가 private라 AssetPath가 Registrar<AssetPath>를 friend로 둠. 필드 순서는 레거시 Serialize 훅과 같음
+SE_REFLECT_BEGIN(se::AssetPath)
+    SE_FIELD(file_path)
+    SE_FIELD(sub_asset_name)
+SE_REFLECT_END()

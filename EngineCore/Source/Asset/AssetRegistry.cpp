@@ -3,7 +3,10 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
-#include "SimpleEngine/Core/Serialization/Legacy/MemoryArchive.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/Serializer.h"
 
 
 namespace se
@@ -182,30 +185,23 @@ void AssetRegistry::UnregisterByPath(const VPath& source_path)
 }
 
 /** AssetRegistry 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
-static constexpr u32 REGISTRY_MAGIC =
-    static_cast<u32>('S')
-    | (static_cast<u32>('E') << 8)
-    | (static_cast<u32>('A') << 16)
-    | (static_cast<u32>('R') << 24);
-static constexpr u32 REGISTRY_VERSION = 2;
-
 bool AssetRegistry::SaveToFile(const Path& file_path) const
 {
     ZoneScopedN("AssetRegistry::SaveToFile");
 
     std::shared_lock lock(registry_mutex);
 
+    // records만 직렬화. 루트 타입과 스키마 해시를 헤더에 남겨, AssetRecord가 바뀌면 옛 스냅샷을 거절하게 함
+    const SerializePlan& plan = SerializePlan::Of<decltype(records)>();
     Array<u8> buffer;
-    MemoryWriter_v1 writer(buffer);
-
-    // 헤더
-    u32 magic = REGISTRY_MAGIC;
-    u32 version = REGISTRY_VERSION;
-    writer << magic;
-    writer << version;
-
-    // records만 직렬화
-    writer << records;
+    PackedFileWriter writer(buffer, plan.type, plan.SchemaHash());
+    const auto result = serde::Serialize(writer, records);
+    writer.Finish();
+    if (result.HasError())
+    {
+        ConsoleLog(ELogLevel::Error, "AssetRegistry::SaveToFile - Failed to serialize: {} (path: '{}')", result.Error().message, result.Error().path);
+        return false;
+    }
 
     // 디스크 I/O
     if (!fs::Write(file_path, buffer))
@@ -228,33 +224,21 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
         return false;
     }
 
-    MemoryReader_v1 reader{ *file_result };
-
-    // 헤더 검증
-    u32 magic = 0;
-    u32 version = 0;
-    reader << magic;
-    reader << version;
-
-    if (magic != REGISTRY_MAGIC)
+    // 예전 형식이나 AssetRecord가 바뀐 스냅샷은 헤더에서, 손상된 스냅샷은 체크섬에서 실패하므로 기존 데이터를 건드리지 않고 false를 반환
+    decltype(records) loaded_records;
+    const SerializePlan& plan = SerializePlan::Of<decltype(records)>();
+    PackedFileReader reader(*file_result, plan.type, plan.SchemaHash());
+    if (const auto result = serde::Deserialize(reader, loaded_records); result.HasError())
     {
-        ConsoleLog(ELogLevel::Error, "AssetRegistry::LoadFromFile - Invalid magic number in: {}", file_path);
-        return false;
-    }
-    if (version != REGISTRY_VERSION)
-    {
-        ConsoleLog(ELogLevel::Warning, "AssetRegistry::LoadFromFile - Version mismatch (expected: {}, got: {})", REGISTRY_VERSION, version);
+        ConsoleLog(ELogLevel::Warning, "AssetRegistry::LoadFromFile - Rejected snapshot {}: {}", file_path, result.Error().message);
         return false;
     }
 
-    // 기존 데이터 초기화 후 로드
+    // 기존 데이터를 교체
     std::unique_lock lock(registry_mutex);
-    records.Clear();
+    records = std::move(loaded_records);
     path_to_id.Clear();
     file_to_assets.Clear();
-
-    // records 역직렬화
-    reader << records;
 
     // 보조 인덱스 재구축
     for (const auto& [id, record] : records)
@@ -277,3 +261,11 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
     return true;
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::AssetRecord)
+    SE_FIELD(id)
+    SE_FIELD(type)
+    SE_FIELD(logical_path)
+    SE_FIELD(metadata)
+SE_REFLECT_END()
