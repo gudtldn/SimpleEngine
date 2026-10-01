@@ -184,7 +184,6 @@ void AssetRegistry::UnregisterByPath(const VPath& source_path)
     file_to_assets.Remove(source_path);
 }
 
-/** AssetRegistry 바이너리 파일 매직 넘버 ("SEAR" = SimpleEngine Asset Registry) */
 bool AssetRegistry::SaveToFile(const Path& file_path) const
 {
     ZoneScopedN("AssetRegistry::SaveToFile");
