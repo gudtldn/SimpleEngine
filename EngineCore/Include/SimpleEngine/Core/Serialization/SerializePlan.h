@@ -1,18 +1,13 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/ArrayView.h"
-#include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Container/StringView.h"
-#include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Reflection/TypeShape.h"
 #include "SimpleEngine/Core/Reflection/ValueOps.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
-#include "SimpleEngine/Utility/Debug.h"
 
 #include <variant>
 
