@@ -176,7 +176,7 @@ private:
             return;
         }
 
-        if (steps.raw_element_size != 0 && !writer.IsTextFormat())
+        if (steps.raw_element_size != 0 && writer.SupportsRawElements())
         {
             writer.RawElements(steps.ops->data(value), count * steps.raw_element_size);
             if (writer.HasError())
@@ -448,7 +448,7 @@ private:
             return;
         }
 
-        const bool reads_raw = steps.raw_element_size != 0 && !reader.IsTextFormat();
+        const bool reads_raw = steps.raw_element_size != 0 && reader.SupportsRawElements();
         if (reads_raw && steps.ops->resize_uninitialized != nullptr)
         {
             // 원소 바이트로 바로 덮어쓰므로 초기화하지 않고 늘림

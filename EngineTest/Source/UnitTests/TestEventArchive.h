@@ -74,6 +74,7 @@ public:
 
 public:
     [[nodiscard]] virtual bool IsTextFormat() const override { return text_format; }
+    [[nodiscard]] virtual bool SupportsRawElements() const override { return false; }
 
     virtual void Int(i64 value, EIntWidth width, bool is_signed) override
     {
@@ -194,6 +195,7 @@ public:
 
 public:
     [[nodiscard]] virtual bool IsTextFormat() const override { return text_format; }
+    [[nodiscard]] virtual bool SupportsRawElements() const override { return false; }
 
     virtual void Int(i64& value, EIntWidth width, bool is_signed) override
     {

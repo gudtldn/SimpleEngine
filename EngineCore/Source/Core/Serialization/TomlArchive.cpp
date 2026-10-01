@@ -182,6 +182,11 @@ bool TomlWriter::IsTextFormat() const
     return true;
 }
 
+bool TomlWriter::SupportsRawElements() const
+{
+    return false;
+}
+
 void TomlWriter::Int(i64 value, EIntWidth width, bool is_signed)
 {
     // TOML 정수는 i64라서 i64를 넘는 u64는 10진 문자열로 씀
@@ -549,6 +554,11 @@ ArrayView<const String> TomlReader::GetWarnings() const
 bool TomlReader::IsTextFormat() const
 {
     return true;
+}
+
+bool TomlReader::SupportsRawElements() const
+{
+    return false;
 }
 
 void TomlReader::Int(i64& value, EIntWidth width, bool is_signed)

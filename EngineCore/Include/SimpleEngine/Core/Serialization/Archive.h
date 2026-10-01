@@ -107,6 +107,9 @@ public:
     /** 텍스트 포맷인지 확인합니다. */
     [[nodiscard]] virtual bool IsTextFormat() const = 0;
 
+    /** 시퀀스의 원소 바이트를 RawElements로 한 번에 쓰고 읽을 수 있는지 확인합니다. */
+    [[nodiscard]] virtual bool SupportsRawElements() const = 0;
+
     /** 에러가 발생했는지 확인합니다. 한 번 켜지면 이후 모든 연산은 no-op이어야 합니다. */
     [[nodiscard]] bool HasError() const { return has_error; }
 
@@ -159,7 +162,7 @@ public:
 
     /**
      * BeginSeq와 EndSeq 사이에서, 원소 노드를 하나씩 쓰는 대신 원소 저장소의 바이트를 그대로 씁니다.
-     * 원소의 인코딩이 메모리 바이트와 같을 때만 호출되며, 바이너리 포맷은 원소마다 쓴 결과와 같은 바이트를 써야 합니다. 텍스트 포맷은 오류로 처리합니다.
+     * 원소의 인코딩이 메모리 바이트와 같고 SupportsRawElements()가 true일 때만 호출되며, 원소마다 쓴 결과와 같은 바이트를 써야 합니다. 지원하지 않는 포맷은 오류로 처리합니다.
      */
     virtual void RawElements(const void* data, u64 size) = 0;
 };
@@ -186,7 +189,7 @@ public:
     virtual void EndMap() = 0;
     virtual void Present(bool& has_value) = 0;
 
-    /** RawElements로 쓴 원소 바이트를 원소 저장소로 그대로 읽습니다. 텍스트 포맷은 오류로 처리합니다. */
+    /** RawElements로 쓴 원소 바이트를 원소 저장소로 그대로 읽습니다. 지원하지 않는 포맷은 오류로 처리합니다. */
     virtual void RawElements(void* data, u64 size) = 0;
 };
 } // namespace se

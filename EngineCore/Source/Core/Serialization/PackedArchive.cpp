@@ -43,6 +43,11 @@ bool PackedWriter::IsTextFormat() const
     return false;
 }
 
+bool PackedWriter::SupportsRawElements() const
+{
+    return true;
+}
+
 void PackedWriter::Int(i64 value, EIntWidth width, [[maybe_unused]] bool is_signed)
 {
     // 리틀 엔디안이므로 하위 n바이트만 잘라 쓰면 됨
@@ -162,6 +167,11 @@ PackedReader::PackedReader(ArrayView<const u8> in_view)
 bool PackedReader::IsTextFormat() const
 {
     return false;
+}
+
+bool PackedReader::SupportsRawElements() const
+{
+    return true;
 }
 
 void PackedReader::Int(i64& value, EIntWidth width, bool is_signed)

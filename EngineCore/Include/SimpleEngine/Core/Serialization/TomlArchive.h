@@ -29,6 +29,7 @@ public:
 
 public:
     [[nodiscard]] virtual bool IsTextFormat() const override;
+    [[nodiscard]] virtual bool SupportsRawElements() const override;
 
     virtual void Int(i64 value, EIntWidth width, bool is_signed) override;
     virtual void Float(f64 value, EFloatWidth width) override;
@@ -139,6 +140,7 @@ public:
 
 public:
     [[nodiscard]] virtual bool IsTextFormat() const override;
+    [[nodiscard]] virtual bool SupportsRawElements() const override;
 
     virtual void Int(i64& value, EIntWidth width, bool is_signed) override;
     virtual void Float(f64& value, EFloatWidth width) override;
