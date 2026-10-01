@@ -10,7 +10,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 
 #include <atomic>
@@ -146,7 +146,7 @@ TEST(RegistrationThreadSafetyTest, ConcurrentFirstPlanCompileReturnsSamePlanAndB
 
     const Array<Output> outputs = RunConcurrently([]
     {
-        const SerializePlan& plan = SerializePlan::Of<PlanRaceNode>();
+        const SerializePlan& plan = SerializePlanOf<PlanRaceNode>();
         const PlanRaceNode value = MakePlanRaceNode();
 
         Array<u8> bytes;

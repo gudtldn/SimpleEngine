@@ -659,7 +659,7 @@ TEST(SerializerTest, PackedFileRoundTrip)
         .position = Vector3{ .x = 1.0f, .y = 2.0f, .z = 3.0f },
         .scale = Vector3{ .x = 2.0f, .y = 2.0f, .z = 2.0f },
     };
-    const SerializePlan& plan = SerializePlan::Of<Transform>();
+    const SerializePlan& plan = SerializePlanOf<Transform>();
 
     Array<u8> buffer;
     PackedFileWriter writer(buffer, plan.type, plan.SchemaHash());
@@ -678,14 +678,14 @@ TEST(SerializerTest, PackedFileHeaderMismatchSurfacesAsDeserializeError)
 {
     using namespace se_serializer_test;
 
-    const SerializePlan& written_plan = SerializePlan::Of<Transform>();
+    const SerializePlan& written_plan = SerializePlanOf<Transform>();
     Array<u8> buffer;
     PackedFileWriter writer(buffer, written_plan.type, written_plan.SchemaHash());
     ASSERT_TRUE(serde::Serialize(writer, Transform{}).HasValue());
     writer.Finish();
 
     // Transform으로 쓴 데이터를 다른 타입으로 열면 헤더 검증이 실패하고, 그 오류가 Deserialize의 결과가 됨
-    const SerializePlan& read_plan = SerializePlan::Of<HasOptionalField>();
+    const SerializePlan& read_plan = SerializePlanOf<HasOptionalField>();
     PackedFileReader reader(buffer, read_plan.type, read_plan.SchemaHash());
 
     HasOptionalField target{ .value = 5 };

@@ -5,7 +5,7 @@
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
@@ -139,7 +139,7 @@ BENCHMARK(BM_VertexArray_PackedSerializeElementByElement)->Unit(benchmark::kMill
 /** DDC가 payload를 쓰고 읽을 때마다 계산하는 StaticMesh의 스키마 해시입니다. */
 static void BM_StaticMesh_SchemaHash(benchmark::State& state)
 {
-    const SerializePlan& plan = SerializePlan::Of<StaticMesh>();
+    const SerializePlan& plan = SerializePlanOf<StaticMesh>();
     for ([[maybe_unused]] auto _ : state)
     {
         u64 hash = plan.SchemaHash();

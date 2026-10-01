@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 
 
 namespace se
@@ -41,18 +41,18 @@ namespace serde
  */
 [[nodiscard]] SE_CORE_API Expected<void, SerializeError> Deserialize(ArchiveReader& reader, const SerializePlan& plan, void* value);
 
-/** T의 SerializePlan을 SerializePlan::Of<T>()로 가져와 value를 writer에 씁니다. */
+/** T의 SerializePlan을 SerializePlanOf<T>()로 가져와 value를 writer에 씁니다. */
 template <typename T>
 [[nodiscard]] Expected<void, SerializeError> Serialize(ArchiveWriter& writer, const T& value)
 {
-    return Serialize(writer, SerializePlan::Of<T>(), &value);
+    return Serialize(writer, SerializePlanOf<T>(), &value);
 }
 
-/** T의 SerializePlan을 SerializePlan::Of<T>()로 가져와 reader에서 읽은 값을 value에 채웁니다. */
+/** T의 SerializePlan을 SerializePlanOf<T>()로 가져와 reader에서 읽은 값을 value에 채웁니다. */
 template <typename T>
 [[nodiscard]] Expected<void, SerializeError> Deserialize(ArchiveReader& reader, T& value)
 {
-    return Deserialize(reader, SerializePlan::Of<T>(), &value);
+    return Deserialize(reader, SerializePlanOf<T>(), &value);
 }
 } // namespace serde
 } // namespace se

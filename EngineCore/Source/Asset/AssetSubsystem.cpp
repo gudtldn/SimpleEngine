@@ -14,7 +14,7 @@
 #include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -109,7 +109,7 @@ namespace
     {
         return Unexpected{ String::Format("'{}' is not registered with SE_REFLECT_BEGIN", name) };
     }
-    return SerializePlan::TryOf(info->id);
+    return SerializePlanRegistry::Get().FindOrCompile(info->id);
 }
 } // namespace
 

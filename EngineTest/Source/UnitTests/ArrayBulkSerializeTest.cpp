@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
@@ -79,7 +79,7 @@ namespace
 template <typename Container>
 [[nodiscard]] usize RawElementSizeOf()
 {
-    return std::get<ArraySteps>(SerializePlan::Of<Container>().steps).raw_element_size;
+    return std::get<ArraySteps>(SerializePlanOf<Container>().steps).raw_element_size;
 }
 
 /** values를 serde::Serialize로 Packed에 씁니다. */
@@ -129,20 +129,20 @@ TEST(ArrayBulkSerializeTest, PlanMarksOnlyMemoryIdenticalTypesAsTriviallyPackabl
 {
     using namespace se_array_bulk_test;
 
-    EXPECT_TRUE(SerializePlan::Of<u32>().is_trivially_packable);
-    EXPECT_TRUE(SerializePlan::Of<f32>().is_trivially_packable);
-    EXPECT_TRUE(SerializePlan::Of<StaticVertex>().is_trivially_packable);
-    EXPECT_TRUE(SerializePlan::Of<MeshSection>().is_trivially_packable);
+    EXPECT_TRUE(SerializePlanOf<u32>().is_trivially_packable);
+    EXPECT_TRUE(SerializePlanOf<f32>().is_trivially_packable);
+    EXPECT_TRUE(SerializePlanOf<StaticVertex>().is_trivially_packable);
+    EXPECT_TRUE(SerializePlanOf<MeshSection>().is_trivially_packable);
 
     // bool은 읽을 때 0/1로 바꾸고, enum은 이름을 가진 값이라 제외
-    EXPECT_FALSE(SerializePlan::Of<bool>().is_trivially_packable);
-    EXPECT_FALSE(SerializePlan::Of<EBlendMode>().is_trivially_packable);
+    EXPECT_FALSE(SerializePlanOf<bool>().is_trivially_packable);
+    EXPECT_FALSE(SerializePlanOf<EBlendMode>().is_trivially_packable);
 
     // FixedArray도 길이 접두를 쓰므로 그것을 담은 SkinVertex는 메모리와 다름
-    EXPECT_FALSE(SerializePlan::Of<SkinVertex>().is_trivially_packable);
+    EXPECT_FALSE(SerializePlanOf<SkinVertex>().is_trivially_packable);
 
-    EXPECT_FALSE(SerializePlan::Of<PaddedPair>().is_trivially_packable);
-    EXPECT_FALSE(SerializePlan::Of<ReversedPair>().is_trivially_packable);
+    EXPECT_FALSE(SerializePlanOf<PaddedPair>().is_trivially_packable);
+    EXPECT_FALSE(SerializePlanOf<ReversedPair>().is_trivially_packable);
 }
 
 TEST(ArrayBulkSerializeTest, OnlyArraysOfTriviallyPackableElementsWriteRawElements)

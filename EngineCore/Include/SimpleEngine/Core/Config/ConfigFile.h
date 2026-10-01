@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
@@ -186,7 +186,7 @@ T ConfigFile::GetSection(StringView section_name) const
 {
     // 읽다가 실패하면 내용을 보장하지 않으므로 새 객체에 읽고, 성공했을 때만 돌려줌
     T loaded{};
-    if (!ReadSection(section_name, SerializePlan::Of<T>(), &loaded))
+    if (!ReadSection(section_name, SerializePlanOf<T>(), &loaded))
     {
         return T{}; // 섹션 미존재 또는 읽기 실패 -> 기본 생성된 T 반환
     }
@@ -196,7 +196,7 @@ T ConfigFile::GetSection(StringView section_name) const
 template <typename T>
 void ConfigFile::SetSection(const T& settings, StringView section_name)
 {
-    WriteSection(section_name, SerializePlan::Of<T>(), &settings);
+    WriteSection(section_name, SerializePlanOf<T>(), &settings);
 }
 
 template <typename T>

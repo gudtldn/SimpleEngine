@@ -3,7 +3,7 @@
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializeTraits.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 
@@ -215,7 +215,7 @@ TEST(SerializePlanTest, FlattensBaseFieldsBeforeOwnFields)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<FlattenDerived>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<FlattenDerived>());
     ASSERT_TRUE(result.HasValue());
 
     const se::StructSteps* steps = std::get_if<se::StructSteps>(&result.Value()->steps);
@@ -234,7 +234,7 @@ TEST(SerializePlanTest, DuplicateFieldNameAfterFlatteningIsError)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<ShadowDerived>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<ShadowDerived>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("duplicate field name 'a'")) << result.Error().CStr();
 }
@@ -243,7 +243,7 @@ TEST(SerializePlanTest, TraitTakesPriorityOverStructShape)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<TraitedLeaf>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<TraitedLeaf>());
     ASSERT_TRUE(result.HasValue());
 
     const se::LeafStep* leaf = std::get_if<se::LeafStep>(&result.Value()->steps);
@@ -260,7 +260,7 @@ TEST(SerializePlanTest, BaseWithTraitIsError)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<DerivedFromTraited>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<DerivedFromTraited>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("has a registered SerializeTraits")) << result.Error().CStr();
 }
@@ -269,7 +269,7 @@ TEST(SerializePlanTest, BaseThatIsNotAStructIsError)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<DerivedFromOpaque>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<DerivedFromOpaque>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("is not a struct")) << result.Error().CStr();
 }
@@ -278,7 +278,7 @@ TEST(SerializePlanTest, UnregisteredTypeIdProducesError)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<NeverRegistered>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<NeverRegistered>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("type is not registered")) << result.Error().CStr();
 }
@@ -287,7 +287,7 @@ TEST(SerializePlanTest, FieldOfUntraitedOpaqueTypeIsError)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<HasUntraitedOpaqueField>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<HasUntraitedOpaqueField>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("field 'hash'")) << result.Error().CStr();
     EXPECT_TRUE(result.Error().Contains("no SerializeTraits registered for this opaque type")) << result.Error().CStr();
@@ -297,7 +297,7 @@ TEST(SerializePlanTest, WCharFieldIsRejected)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<HasWCharField>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<HasWCharField>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("wchar_t has a platform-defined width")) << result.Error().CStr();
 }
@@ -306,7 +306,7 @@ TEST(SerializePlanTest, LongDoubleFieldIsRejected)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<HasLongDoubleField>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<HasLongDoubleField>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("long double has a platform-defined width")) << result.Error().CStr();
 }
@@ -315,7 +315,7 @@ TEST(SerializePlanTest, NonIntegerEnumUnderlyingIsError)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<HasBoolEnumField>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<HasBoolEnumField>());
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("is not an integer type")) << result.Error().CStr();
 }
@@ -324,7 +324,7 @@ TEST(SerializePlanTest, RecursiveTypeElementPlanIsSelf)
 {
     using namespace se_serialize_plan_test;
 
-    const auto result = se::SerializePlan::TryOf(se::TypeId::Of<RecursivePlanNode>());
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<RecursivePlanNode>());
     ASSERT_TRUE(result.HasValue());
 
     const se::SerializePlan* node_plan = result.Value();
@@ -344,8 +344,8 @@ TEST(SerializePlanTest, FailedCompilationDoesNotPolluteCache)
 {
     using namespace se_serialize_plan_test;
 
-    const auto first = se::SerializePlan::TryOf(se::TypeId::Of<HasUntraitedOpaqueField>());
-    const auto second = se::SerializePlan::TryOf(se::TypeId::Of<HasUntraitedOpaqueField>());
+    const auto first = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<HasUntraitedOpaqueField>());
+    const auto second = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<HasUntraitedOpaqueField>());
 
     ASSERT_TRUE(first.HasError());
     ASSERT_TRUE(second.HasError());
@@ -378,7 +378,7 @@ TEST(SerializePlanTest, EveryRegisteredOpaqueTypeCompilesOrIsKnownException)
             continue;
         }
 
-        const auto result = se::SerializePlan::TryOf(info->id);
+        const auto result = se::SerializePlanRegistry::Get().FindOrCompile(info->id);
         EXPECT_TRUE(result.HasValue())
             << "Opaque type '" << std::string_view(info->name.Data(), info->name.ByteLen()) << "' cannot be compiled: "
             << (result.HasError() ? result.Error().CStr() : "");

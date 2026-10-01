@@ -5,7 +5,7 @@
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
-#include "SimpleEngine/Core/Serialization/SerializePlan.h"
+#include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/ECS/Components/PersistentIdComponent.h"
@@ -164,7 +164,7 @@ void MarkScalarTablesInline(toml::node& node)
         return {};
     }
 
-    const auto plan = SerializePlan::TryOf(ops->type);
+    const auto plan = SerializePlanRegistry::Get().FindOrCompile(ops->type);
     if (!plan)
     {
         return Unexpected{ String::Format("component '{}': {}", info->name, plan.Error()) };
@@ -213,7 +213,7 @@ void MarkScalarTablesInline(toml::node& node)
         return Unexpected{ String::Format("component '{}' is not a table.", type_name) };
     }
 
-    const auto plan = SerializePlan::TryOf(type);
+    const auto plan = SerializePlanRegistry::Get().FindOrCompile(type);
     if (!plan)
     {
         return Unexpected{ String::Format("component '{}': {}", type_name, plan.Error()) };

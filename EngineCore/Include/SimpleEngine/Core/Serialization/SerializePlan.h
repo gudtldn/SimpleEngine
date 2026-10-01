@@ -14,8 +14,6 @@
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
 #include "SimpleEngine/Utility/Debug.h"
 
-#include <atomic>
-#include <type_traits>
 #include <variant>
 
 
@@ -99,7 +97,7 @@ using PlanSteps = std::variant<LeafStep, StructSteps, ArraySteps, SetSteps, MapS
 
 /**
  * 타입 하나를 직렬화하는 데 필요한 정보를 리플렉션 TypeInfo에서 뽑아 둔 결과
- * 타입마다 한 번만 컴파일되고, 이후 직렬화할 때는 레지스트리 조회나 어노테이션 스캔 없이 바로 사용합니다.
+ * 타입마다 한 번만 컴파일되고(SerializePlanRegistry), 이후 직렬화할 때는 레지스트리 조회나 어노테이션 스캔 없이 바로 사용합니다.
  */
 struct SE_CORE_API SerializePlan
 {
@@ -112,37 +110,8 @@ struct SE_CORE_API SerializePlan
      */
     bool is_trivially_packable = false;
 
-    /**
-     * 데이터에서 온 TypeId로 Plan을 컴파일하거나 캐시에서 가져옵니다.
-     * 실패하면 이번 호출에서 넣은 슬롯을 모두 제거하고 오류를 반환합니다. 이전에 성공한 Plan은 그대로 둡니다.
-     */
-    [[nodiscard]] static Expected<const SerializePlan*, String> TryOf(TypeId id);
-
     /** 이 Plan에 모든 타입의 서술로 스키마 해시를 계산합니다.
      */
     [[nodiscard]] u64 SchemaHash() const;
-
-    /**
-     * 정적 타입 T로 Plan을 가져옵니다. EnsureRegistered<T>()를 먼저 호출합니다.
-     * @warning 컴파일에 실패하면 SE_ASSERT_RELEASE로 멈춥니다.
-     */
-    template <typename T>
-    [[nodiscard]] static const SerializePlan& Of()
-    {
-        using CleanType = std::remove_cvref_t<T>;
-
-        static constinit std::atomic<const SerializePlan*> cached{ nullptr };
-        if (const SerializePlan* const plan = cached.load(std::memory_order_acquire))
-        {
-            return *plan;
-        }
-
-        EnsureRegistered<CleanType>();
-        const auto result = TryOf(TypeId::Of<CleanType>());
-        SE_ASSERT_RELEASE(result.HasValue(), "SerializePlan::Of<{}>: {}", TypeNameOf<CleanType>(), result.Error());
-
-        cached.store(result.Value(), std::memory_order_release);
-        return *result.Value();
-    }
 };
 } // namespace se
