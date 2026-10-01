@@ -29,6 +29,9 @@ struct FieldStep
     const SerializePlan* plan = nullptr;
 };
 
+/** 아직 컴파일 중인 Plan의 단계 */
+struct PendingStep{};
+
 /** 트레이트 또는 허용된 산술 타입의 leaf 노드 */
 struct LeafStep
 {
@@ -93,7 +96,7 @@ struct EnumStep
 };
 
 /** 형태별 직렬화 단계 */
-using PlanSteps = std::variant<LeafStep, StructSteps, ArraySteps, SetSteps, MapSteps, OptionalSteps, EnumStep>;
+using PlanSteps = std::variant<PendingStep, LeafStep, StructSteps, ArraySteps, SetSteps, MapSteps, OptionalSteps, EnumStep>;
 
 /**
  * 타입 하나를 직렬화하는 데 필요한 정보를 리플렉션 TypeInfo에서 뽑아 둔 결과

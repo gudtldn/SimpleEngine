@@ -124,6 +124,8 @@ public:
         }
 
         std::visit(Overloaded{
+            // 레지스트리가 돌려준 Plan에는 컴파일 중인 단계가 남지 않음
+            [](const PendingStep&) { SE_UNREACHABLE(); },
             [&](const LeafStep& leaf) { leaf.ops.write(writer, value); },
             [&](const StructSteps& steps) { WriteStruct(steps, value, depth); },
             [&](const ArraySteps& steps) { WriteArray(steps, value, depth); },
@@ -372,6 +374,7 @@ public:
         }
 
         std::visit(Overloaded{
+            [](const PendingStep&) { SE_UNREACHABLE(); },
             [&](const LeafStep& leaf) { leaf.ops.read(reader, value); },
             [&](const StructSteps& steps) { ReadStruct(steps, value, depth); },
             [&](const ArraySteps& steps) { ReadArray(steps, value, depth); },

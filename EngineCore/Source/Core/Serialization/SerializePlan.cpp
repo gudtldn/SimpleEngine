@@ -55,6 +55,8 @@ template <typename Fn>
 void ForEachChildPlan(const SerializePlan& plan, Fn&& func)
 {
     std::visit(Overloaded{
+        // 레지스트리가 돌려준 Plan에는 컴파일 중인 단계가 남지 않음
+        [](const PendingStep&) { SE_UNREACHABLE(); },
         [](const LeafStep&) {},
         [&](const StructSteps& steps)
         {
@@ -105,6 +107,7 @@ void DescribePlan(SchemaHasher& hasher, const SerializePlan& plan)
 {
     hasher.U64(plan.type.Value());
     std::visit(Overloaded{
+        [](const PendingStep&) { SE_UNREACHABLE(); },
         [&](const LeafStep& leaf)
         {
             // 산술 타입의 폭, 부호, 종류는 TypeId가 정하므로 트레이트 버전만 더 넣음

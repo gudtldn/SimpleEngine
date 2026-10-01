@@ -449,7 +449,7 @@ Expected<const SerializePlan*, String> SerializePlanCompiler::Compile(TypeId id)
     const TypeInfo& info = maybe_info.Value();
 
     // 재귀 참조가 주소를 가져갈 수 있게 빈 슬롯을 먼저 생성. 실패했을 때 Rollback이 지울 수 있게 기록
-    Slot& slot = slots.Emplace(id, Slot{ .plan = SerializePlan{ .type = id, .steps = PlanSteps{ LeafStep{} } } });
+    Slot& slot = slots.Emplace(id, Slot{ .plan = SerializePlan{ .type = id, .steps = PlanSteps{ PendingStep{} } } });
     newly_inserted.Push(id);
 
     // 형태별 steps를 생성
