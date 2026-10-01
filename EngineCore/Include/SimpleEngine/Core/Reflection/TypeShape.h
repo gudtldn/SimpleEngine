@@ -16,7 +16,7 @@ namespace se
  */
 struct AnnotationRef
 {
-    /** Annotaion의 타입 식별자 */
+    /** Annotation의 타입 식별자 */
     TypeId tag;
 
     /** Annotation이 가지고 있는 데이터 */

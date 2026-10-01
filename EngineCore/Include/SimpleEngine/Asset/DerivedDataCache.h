@@ -39,7 +39,7 @@ struct CacheEntry
  *       abcdef01-2345-6789-abcd-ef0123456789.cache
  *
  * 캐시 파일 포맷:
- *   [4  bytes]   Cache Schema Version: u32
+ *   [4  bytes]   Cache Version: u32
  *   [32 bytes]   Source Hash: ContentHash
  *   [N  bytes]   Payload: 에셋을 PackedFileWriter로 쓴 바이트 (magic, 루트 타입, 스키마 해시, 체크섬은 Packed 헤더가 가짐)
  *

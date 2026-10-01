@@ -92,7 +92,7 @@ void LoadFromText(WorldFileReader& reader, StringView text)
 } // namespace
 
 
-TEST(WorldSerializationTest, EmptyWorldRoundTrips)
+TEST(WorldFileTest, EmptyWorldRoundTrips)
 {
     World src;
     const String text = SaveToText(src);
@@ -105,7 +105,7 @@ TEST(WorldSerializationTest, EmptyWorldRoundTrips)
     EXPECT_TRUE(reader.GetWarnings().IsEmpty());
 }
 
-TEST(WorldSerializationTest, EverySavedComponentRoundTrips)
+TEST(WorldFileTest, EverySavedComponentRoundTrips)
 {
     const AssetId mesh_id{ Guid::NewGuid() };
     const AssetId material_id{ Guid::NewGuid() };
@@ -170,7 +170,7 @@ TEST(WorldSerializationTest, EverySavedComponentRoundTrips)
     EXPECT_EQ(children[1], loaded_child_b);
 }
 
-TEST(WorldSerializationTest, WritesReadableText)
+TEST(WorldFileTest, WritesReadableText)
 {
     World world;
     world.SpawnEntity(
@@ -186,7 +186,7 @@ TEST(WorldSerializationTest, WritesReadableText)
     EXPECT_TRUE(text.Contains("fov = 60.0")) << text.CStr();
 }
 
-TEST(WorldSerializationTest, IdsAreStableAcrossSaves)
+TEST(WorldFileTest, IdsAreStableAcrossSaves)
 {
     World world;
     world.SpawnEntity(NameComponent{ .name = "a" });
@@ -208,7 +208,7 @@ TEST(WorldSerializationTest, IdsAreStableAcrossSaves)
     EXPECT_EQ(ReadEntityIds(SaveToText(loaded)), first_ids);
 }
 
-TEST(WorldSerializationTest, GlobalTransformIsNotSaved)
+TEST(WorldFileTest, GlobalTransformIsNotSaved)
 {
     World src;
     src.SpawnEntity(
@@ -232,7 +232,7 @@ TEST(WorldSerializationTest, GlobalTransformIsNotSaved)
     EXPECT_FALSE(dst.HasComponent<GlobalTransformComponent>(entity));
 }
 
-TEST(WorldSerializationTest, LoadsAdditivelyIntoNonEmptyWorld)
+TEST(WorldFileTest, LoadsAdditivelyIntoNonEmptyWorld)
 {
     World world;
     const Entity parent = world.SpawnEntity(NameComponent{ .name = "parent" });
@@ -265,7 +265,7 @@ TEST(WorldSerializationTest, LoadsAdditivelyIntoNonEmptyWorld)
     }
 }
 
-TEST(WorldSerializationTest, UnknownComponentIsSkippedWithWarning)
+TEST(WorldFileTest, UnknownComponentIsSkippedWithWarning)
 {
     constexpr StringView text = R"(
 format_version = 1
@@ -293,7 +293,7 @@ value = 3
     EXPECT_TRUE(reader.GetWarnings()[0].Contains("se::RemovedComponent")) << reader.GetWarnings()[0].CStr();
 }
 
-TEST(WorldSerializationTest, UnresolvedReferenceIsReported)
+TEST(WorldFileTest, UnresolvedReferenceIsReported)
 {
     constexpr StringView text = R"(
 format_version = 1
@@ -318,7 +318,7 @@ parent = 999
     EXPECT_TRUE(warning.Contains("999")) << warning.CStr();
 }
 
-TEST(WorldSerializationTest, RejectsLegacyBinaryFile)
+TEST(WorldFileTest, RejectsLegacyBinaryFile)
 {
     // 레거시 바이너리 월드 파일은 u32 매직 "SEWD"로 시작함
     constexpr StringView bytes = "SEWD\x01\x00\x00\x00";
@@ -331,7 +331,7 @@ TEST(WorldSerializationTest, RejectsLegacyBinaryFile)
     EXPECT_TRUE(world.GetAliveEntities().IsEmpty());
 }
 
-TEST(WorldSerializationTest, FailedReadRemovesCreatedEntities)
+TEST(WorldFileTest, FailedReadRemovesCreatedEntities)
 {
     // 두 번째 엔티티의 name이 문자열이 아니라 읽기에 실패함
     constexpr StringView text = R"(
@@ -363,7 +363,7 @@ name = 5
     EXPECT_EQ(world.GetAliveEntities()[0], existing);
 }
 
-TEST(WorldSerializationTest, UnregisteredComponentFailsToSave)
+TEST(WorldFileTest, UnregisteredComponentFailsToSave)
 {
     // 등록이 없는 컴포넌트를 건너뛰면 파일에서 조용히 사라지므로 저장이 실패해야 함
     World world;

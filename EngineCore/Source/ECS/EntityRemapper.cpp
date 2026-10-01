@@ -10,13 +10,13 @@ bool EntityRemapper::Add(Entity entity, u64 persistent_id)
     {
         return false;
     }
-    if (persistent_ids.Contains(entity) || entities.Contains(persistent_id))
+    if (id_by_entity.Contains(entity) || entity_by_id.Contains(persistent_id))
     {
         return false;
     }
 
-    persistent_ids.Insert(entity, persistent_id);
-    entities.Insert(persistent_id, entity);
+    id_by_entity.Insert(entity, persistent_id);
+    entity_by_id.Insert(persistent_id, entity);
     return true;
 }
 
@@ -26,7 +26,7 @@ Optional<u64> EntityRemapper::ToPersistentId(Entity entity) const
     {
         return u64{ 0 };
     }
-    if (const auto persistent_id = persistent_ids.Find(entity))
+    if (const auto persistent_id = id_by_entity.Find(entity))
     {
         return *persistent_id;
     }
@@ -39,7 +39,7 @@ Entity EntityRemapper::ToEntity(u64 persistent_id)
     {
         return {};
     }
-    if (const auto entity = entities.Find(persistent_id))
+    if (const auto entity = entity_by_id.Find(persistent_id))
     {
         return *entity;
     }

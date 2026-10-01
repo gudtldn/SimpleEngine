@@ -169,7 +169,7 @@ SE_REGISTER_SERIALIZE_TRAITS(se::editor::ImportProfile)
 
 namespace se::editor
 {
-Expected<ContentHash, String> ImportProfile::ComputeHash() const
+Expected<ContentHash, String> ImportProfile::ComputeSettingsHash() const
 {
     Array<u8> bytes;
     PackedWriter writer(bytes);

@@ -37,8 +37,8 @@ public:
     [[nodiscard]] ArrayView<const u64> GetUnresolvedIds() const;
 
 private:
-    HashMap<Entity, u64> persistent_ids;
-    HashMap<u64, Entity> entities;
+    HashMap<Entity, u64> id_by_entity;
+    HashMap<u64, Entity> entity_by_id;
     Array<u64> unresolved_ids;
 };
 } // namespace se

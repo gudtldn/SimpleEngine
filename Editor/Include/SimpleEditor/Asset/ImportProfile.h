@@ -102,7 +102,7 @@ public:
      * 설정을 Packed로 쓴 바이트의 해시이고, 설정 타입 이름 순으로 쓰므로 설정을 넣은 순서와 무관합니다.
      * 설정을 직렬화하지 못하면 오류 메시지를 돌려줍니다.
      */
-    [[nodiscard]] Expected<ContentHash, String> ComputeHash() const;
+    [[nodiscard]] Expected<ContentHash, String> ComputeSettingsHash() const;
 
 public:
     /** 새 직렬화의 트레이트(ImportProfile.cpp)가 읽은 설정을 settings_map에 넣습니다. */
