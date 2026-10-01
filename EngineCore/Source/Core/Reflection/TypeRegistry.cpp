@@ -13,6 +13,27 @@ std::recursive_mutex& RegistrationMutex()
     return mutex;
 }
 
+namespace
+{
+/** 열린 RegistrationScope의 수 */
+constinit usize registration_depth = 0;
+} // namespace
+
+RegistrationScope::RegistrationScope()
+{
+    ++registration_depth;
+}
+
+RegistrationScope::~RegistrationScope()
+{
+    --registration_depth;
+}
+
+bool RegistrationScope::IsRegistering()
+{
+    return registration_depth != 0;
+}
+
 TypeRegistry& TypeRegistry::Get()
 {
     static TypeRegistry instance;

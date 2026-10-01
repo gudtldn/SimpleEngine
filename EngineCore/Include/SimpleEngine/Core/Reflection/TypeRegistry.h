@@ -15,6 +15,26 @@ namespace se
 [[nodiscard]] SE_CORE_API std::recursive_mutex& RegistrationMutex();
 
 /**
+ * EnsureRegistered가 타입 하나를 등록하는 동안 여는 범위
+ * 열린 범위의 수를 세며, RegistrationMutex()를 잡은 채로만 만들고 묻습니다.
+ */
+class SE_CORE_API RegistrationScope
+{
+public:
+    RegistrationScope();
+    ~RegistrationScope();
+
+    RegistrationScope(const RegistrationScope&) = delete;
+    RegistrationScope& operator=(const RegistrationScope&) = delete;
+    RegistrationScope(RegistrationScope&&) = delete;
+    RegistrationScope& operator=(RegistrationScope&&) = delete;
+
+public:
+    /** 등록 중인 타입이 있는지 확인합니다. 있으면 레지스트리에 아직 다 채워지지 않은 슬롯이 있을 수 있습니다. */
+    [[nodiscard]] static bool IsRegistering();
+};
+
+/**
  * 구조체/클래스 타입 하나의 부모/필드 목록 저장소
  */
 struct StructStorage

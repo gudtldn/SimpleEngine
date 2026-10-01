@@ -222,13 +222,16 @@ const TypeInfo& EnsureRegistered()
             info.name == name && info.size == sizeof(CleanType) && info.alignment == alignof(CleanType),
             "TypeId collision: a different type is already registered under this id.");
 
-        // 등록 완료 상태(TypeRecord 존재)일 때만 캐싱, 재귀 중인 미완성 슬롯은 캐싱 스킵
-        if (TypeRecordRegistry::Get().Find(id).HasValue())
+        // 등록 중에 찾은 슬롯은 재귀 중인 미완성 슬롯일 수 있으므로 캐싱하지 않음
+        if (!RegistrationScope::IsRegistering())
         {
             cached.store(&info, std::memory_order_release);
         }
         return info;
     }
+
+    // 슬롯을 선점한 뒤부터 다 채울 때까지 등록 중으로 표시
+    const RegistrationScope scope;
 
     // 재귀 호출 시 Find 및 검증이 가능하도록 슬롯 선점 후 기본 정보 먼저 기입
     TypeInfo& slot = registry.Emplace(id);
