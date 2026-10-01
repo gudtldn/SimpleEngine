@@ -15,7 +15,7 @@ namespace se
  */
 struct ComponentOps
 {
-    /** 컴포넌트 타입의 새 리플렉션 TypeId. 월드 파일이 컴포넌트의 TypeInfo와 SerializePlan을 찾을 때 씁니다. */
+    /** 컴포넌트 타입의 TypeId */
     TypeId type;
 
     /**
@@ -162,7 +162,7 @@ public:
                     return &comp_opt.Value();
                 }
                 return nullptr;
-            }
+            },
         });
     }
 

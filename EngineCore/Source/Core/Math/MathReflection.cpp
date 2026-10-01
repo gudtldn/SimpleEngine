@@ -33,23 +33,20 @@ struct SerializeTraits<Degree<f64>>
 
 SE_REGISTER_SERIALIZE_TRAITS(se::Degree<f64>)
 
-
-SE_REFLECT_BEGIN(se::Vector3)
+SE_REFLECT_BEGIN(se::Vector2)
     SE_FIELD(x)
     SE_FIELD(y)
-    SE_FIELD(z)
-SE_REFLECT_END()
-
-SE_REFLECT_BEGIN(se::Quaternion)
-    SE_FIELD(x)
-    SE_FIELD(y)
-    SE_FIELD(z)
-    SE_FIELD(w)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(se::Vector2f)
     SE_FIELD(x)
     SE_FIELD(y)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::Vector3)
+    SE_FIELD(x)
+    SE_FIELD(y)
+    SE_FIELD(z)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(se::Vector3f)
@@ -58,7 +55,21 @@ SE_REFLECT_BEGIN(se::Vector3f)
     SE_FIELD(z)
 SE_REFLECT_END()
 
+SE_REFLECT_BEGIN(se::Vector4)
+    SE_FIELD(x)
+    SE_FIELD(y)
+    SE_FIELD(z)
+    SE_FIELD(w)
+SE_REFLECT_END()
+
 SE_REFLECT_BEGIN(se::Vector4f)
+    SE_FIELD(x)
+    SE_FIELD(y)
+    SE_FIELD(z)
+    SE_FIELD(w)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::Quaternion)
     SE_FIELD(x)
     SE_FIELD(y)
     SE_FIELD(z)

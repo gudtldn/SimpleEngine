@@ -2,6 +2,8 @@
 
 #include "SimpleEngine/Utility/Debug.h"
 
+#include <ranges>
+
 
 namespace se
 {
@@ -58,9 +60,9 @@ Array<const TypeInfo*> TypeRegistry::GetAllTypes() const
 
     Array<const TypeInfo*> types;
     types.Reserve(type_map.Len());
-    for (const auto& pair : type_map)
+    for (const TypeInfo& value : type_map | std::views::values)
     {
-        types.Push(&pair.second);
+        types.Push(&value);
     }
     return types;
 }

@@ -10,7 +10,6 @@ namespace se
 {
 /**
  * 모든 TypeRecord(캐스트 테이블)를 소유하는 전역 레지스트리
- * @note 모든 멤버 함수가 RegistrationMutex()를 잡습니다.
  */
 class SE_CORE_API TypeRecordRegistry
 {

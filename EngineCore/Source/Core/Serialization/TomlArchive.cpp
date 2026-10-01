@@ -144,7 +144,7 @@ namespace
 
 /**
  * array의 원소를 CompareNodes 순서로 정렬합니다.
- * toml::array는 원소를 제자리에서 맞바꿀 수 없어, 정렬한 순서로 옮겨 담은 새 배열로 교체합니다.
+ * @note toml::array는 원소를 제자리에서 맞바꿀 수 없어, 정렬한 순서로 옮겨 담은 새 배열로 교체합니다.
  */
 void SortArray(toml::array& array)
 {
@@ -154,7 +154,10 @@ void SortArray(toml::array& array)
     {
         order.Push(&element);
     }
-    order.Sort([](const toml::node* lhs, const toml::node* rhs) { return CompareNodes(*lhs, *rhs) < 0; });
+    order.Sort([](const toml::node* lhs, const toml::node* rhs)
+    {
+        return CompareNodes(*lhs, *rhs) < 0;
+    });
 
     toml::array sorted;
     sorted.reserve(array.size());
@@ -250,13 +253,13 @@ void TomlWriter::BeginStruct()
     if (!root_started)
     {
         root_started = true;
-        open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = &root });
+        open_containers.Push({ .kind = EContainerKind::Struct, .node = &root });
         return;
     }
 
     if (toml::node* const table = PlaceValue(toml::table{}))
     {
-        open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = table });
+        open_containers.Push({ .kind = EContainerKind::Struct, .node = table });
     }
 }
 
@@ -308,7 +311,7 @@ void TomlWriter::BeginSeq([[maybe_unused]] u64 count, ESeqOrder order)
     {
         // 순서 없는 시퀀스는 같은 값이면 같은 텍스트가 나오도록 EndSeq에서 정렬
         const EContainerKind kind = order == ESeqOrder::Unordered ? EContainerKind::UnorderedSeq : EContainerKind::Seq;
-        open_containers.Push(OpenContainer{ .kind = kind, .node = array });
+        open_containers.Push({ .kind = kind, .node = array });
     }
 }
 
@@ -337,7 +340,7 @@ void TomlWriter::BeginMap([[maybe_unused]] u64 count)
     // 테이블로 쓸 수 있는지는 key를 모두 봐야 알 수 있으므로, 넣을 자리만 확인하고 EndMap까지 엔트리를 모아 둠
     if (CanPlaceValue())
     {
-        open_containers.Push(OpenContainer{ .kind = EContainerKind::Map });
+        open_containers.Push({ .kind = EContainerKind::Map });
     }
 }
 
@@ -357,7 +360,7 @@ void TomlWriter::BeginMapEntry()
 
     // key와 value를 차례로 받을 [key, value] 배열
     top->map_entries.push_back(toml::array{});
-    open_containers.Push(OpenContainer{ .kind = EContainerKind::MapEntry, .node = &top->map_entries.back() });
+    open_containers.Push({ .kind = EContainerKind::MapEntry, .node = &top->map_entries.back() });
 }
 
 void TomlWriter::EndMapEntry()
@@ -398,7 +401,7 @@ void TomlWriter::EndMap()
     open_containers.Pop();
 
     // key가 모두 문자열이면 테이블 (빈 맵 포함). 테이블은 키 순서로 저장되므로 따로 정렬하지 않음
-    const bool has_only_string_keys = std::all_of(entries.cbegin(), entries.cend(), [](const toml::node& entry)
+    const bool has_only_string_keys = std::ranges::all_of(std::as_const(entries), [](const toml::node& entry)
     {
         return entry.as_array()->front().is_string();
     });
@@ -689,7 +692,7 @@ void TomlReader::BeginStruct()
     if (!root_started)
     {
         root_started = true;
-        open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = &root });
+        open_containers.Push({ .kind = EContainerKind::Struct, .node = &root });
         return;
     }
 
@@ -703,7 +706,7 @@ void TomlReader::BeginStruct()
         SetError(String::Format("TomlReader: expected a table, got {}.", NodeKindName(*node)));
         return;
     }
-    open_containers.Push(OpenContainer{ .kind = EContainerKind::Struct, .node = node, .path = PathOfTakenValue() });
+    open_containers.Push({ .kind = EContainerKind::Struct, .node = node, .path = PathOfTakenValue() });
 }
 
 bool TomlReader::Field(StringView name)
@@ -773,7 +776,7 @@ void TomlReader::BeginSeq(u64& count)
         return;
     }
     count = array->size();
-    open_containers.Push(OpenContainer{ .kind = EContainerKind::Seq, .node = array, .path = PathOfTakenValue() });
+    open_containers.Push({ .kind = EContainerKind::Seq, .node = array, .path = PathOfTakenValue() });
 }
 
 void TomlReader::EndSeq()
@@ -804,7 +807,7 @@ void TomlReader::BeginMap(u64& count)
     if (const toml::table* const table = node->as_table())
     {
         count = table->size();
-        open_containers.Push(OpenContainer{
+        open_containers.Push({
             .kind = EContainerKind::Map,
             .node = table,
             .path = PathOfTakenValue(),
@@ -815,7 +818,7 @@ void TomlReader::BeginMap(u64& count)
     if (const toml::array* const array = node->as_array())
     {
         count = array->size();
-        open_containers.Push(OpenContainer{ .kind = EContainerKind::Map, .node = array, .path = PathOfTakenValue() });
+        open_containers.Push({ .kind = EContainerKind::Map, .node = array, .path = PathOfTakenValue() });
         return;
     }
     SetError(String::Format("TomlReader: expected a table or an array, got {}.", NodeKindName(*node)));
@@ -846,7 +849,7 @@ void TomlReader::BeginMapEntry()
         const std::string_view key = top->next_entry->first.str();
         const toml::node& value = top->next_entry->second;
         ++top->next_entry;
-        open_containers.Push(OpenContainer{
+        open_containers.Push({
             .kind = EContainerKind::MapEntry,
             .node = &value,
             .path = JoinPath(top->path, key),
@@ -874,7 +877,7 @@ void TomlReader::BeginMapEntry()
         SetError(String::Format("TomlReader: expected a [key, value] array, got an array of length {}.", pair->size()));
         return;
     }
-    open_containers.Push(OpenContainer{ .kind = EContainerKind::MapEntry, .node = pair, .path = String::Format("{}[{}]", top->path, index) });
+    open_containers.Push({ .kind = EContainerKind::MapEntry, .node = pair, .path = String::Format("{}[{}]", top->path, index) });
 }
 
 void TomlReader::EndMapEntry()

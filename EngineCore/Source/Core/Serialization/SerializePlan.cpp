@@ -269,7 +269,6 @@ PrimitiveEntry MakePrimitiveEntry()
     const ValueOps& container_ops = ValueOpsRegistry::Get().Find(id).Value();
     const ArrayOps& array_ops = container_ops.AsArray().Value();
 
-    // 재귀 타입이라 원소 Plan을 아직 만드는 중이면 false로 보이지만, 그런 원소는 컨테이너 필드를 가지므로 원래 false
     const SerializePlan* const element = element_plan.Value();
     const usize raw_element_size = element->is_trivially_packable && array_ops.element_trivially_copyable
         ? TypeRegistry::Get().FindChecked(a.element).size
@@ -390,7 +389,7 @@ PrimitiveEntry MakePrimitiveEntry()
         return info.id != TypeId::Of<bool>();
     }
 
-    const auto* const struct_steps = std::get_if<StructSteps>(&steps);
+    const StructSteps* const struct_steps = std::get_if<StructSteps>(&steps);
     if (struct_steps == nullptr)
     {
         return false;

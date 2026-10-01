@@ -32,7 +32,7 @@ concept RuntimeTyped = requires (const T& object)
 template <typename T>
 [[nodiscard]] const TypeRecord* TypeRecordOf()
 {
-    // constinit을 사용하여 Magic Statics로 인한 데드락 방지 (첫 조회가 등록 락을 잡음)
+    // constinit을 사용하여 Magic Statics로 인한 데드락 방지
     static constinit std::atomic<const TypeRecord*> cached{ nullptr };
     if (const TypeRecord* const record = cached.load(std::memory_order_acquire))
     {
@@ -111,7 +111,7 @@ template <typename To, RuntimeTyped From>
     return Cast<To>(const_cast<From*>(instance));
 }
 
-/** 실패하면 assert하는 캐스팅입니다. */
+/** 포인터를 To로 캐스팅합니다. 불가능하거나 모호하면 assert를 발생합니다. */
 template <typename To, RuntimeTyped From>
 [[nodiscard]] To* CastChecked(From* instance)
 {

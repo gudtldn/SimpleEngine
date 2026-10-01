@@ -74,7 +74,6 @@ namespace detail
 {
 /**
  * Registrar<T>가 primary로 떨어졌는지 확인
- * @note requires{}가 MSVC에서 SFINAE로 안 먹혀서 void_t로 우회
  */
 template <typename T, typename = void>
 inline constexpr bool IsRegistrarUnspecialized = false;
@@ -199,6 +198,7 @@ const TypeInfo& EnsureRegistered()
 {
     using CleanType = std::remove_cvref_t<T>;
 
+    // 빠른 경로 (Fast-path / Read-only)
     // constinit을 사용하여 Magic Statics로 인한 데드락 방지
     static constinit std::atomic<const TypeInfo*> cached{ nullptr };
     if (const TypeInfo* const info = cached.load(std::memory_order_acquire))
@@ -210,10 +210,11 @@ const TypeInfo& EnsureRegistered()
     constexpr StringView name = TypeNameOf<CleanType>();
     TypeRegistry& registry = TypeRegistry::Get();
 
-    // 등록 전체를 락 안에서 하므로, 다른 스레드는 채우는 중인 TypeInfo를 보지 않고 여기서 기다립니다.
+    // 동기화 구간 (Slow-path / Registration)
+    // 여러 스레드가 동시에 같은 타입(또는 상호 의존 타입)을 등록하려 할 때 데이터 레이스를 방지
     std::scoped_lock lock{ RegistrationMutex() };
 
-    // 재귀 재진입 중인 슬롯, 다른 모듈이 먼저 등록해 둔 슬롯, 락을 기다리는 동안 다른 스레드가 등록한 슬롯을 모두 여기서 받습니다.
+    // 중복 등록, 타 스레드 선점, 순환 참조(재귀 진입) 처리
     if (const auto existing = registry.Find(id))
     {
         const TypeInfo& info = existing.Value();
@@ -221,7 +222,7 @@ const TypeInfo& EnsureRegistered()
             info.name == name && info.size == sizeof(CleanType) && info.alignment == alignof(CleanType),
             "TypeId collision: a different type is already registered under this id.");
 
-        // 재진입 중인 슬롯은 아직 채우는 중이라 캐시하지 않음 (TypeRecord 설치가 등록의 마지막 단계)
+        // 등록 완료 상태(TypeRecord 존재)일 때만 캐싱, 재귀 중인 미완성 슬롯은 캐싱 스킵
         if (TypeRecordRegistry::Get().Find(id).HasValue())
         {
             cached.store(&info, std::memory_order_release);
@@ -229,7 +230,7 @@ const TypeInfo& EnsureRegistered()
         return info;
     }
 
-    // 재진입한 호출도 TypeInfo를 비교할 수 있도록, Fill보다 먼저 기록
+    // 재귀 호출 시 Find 및 검증이 가능하도록 슬롯 선점 후 기본 정보 먼저 기입
     TypeInfo& slot = registry.Emplace(id);
     slot.name = name;
     slot.size = sizeof(CleanType);

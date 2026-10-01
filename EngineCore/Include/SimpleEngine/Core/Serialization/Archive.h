@@ -48,7 +48,7 @@ namespace serde
 }
 
 /** 정수 또는 문자 타입 T의 크기에 맞는 Int 노드 폭으로 변환합니다. */
-template <std::integral T>
+template <traits::IntegralType T>
 [[nodiscard]] constexpr EIntWidth IntWidthOf()
 {
     if constexpr (sizeof(T) == 1)      { return EIntWidth::Bits8;  }
@@ -63,7 +63,7 @@ template <std::integral T>
 }
 
 /** 실수 타입 T의 크기에 맞는 Float 노드 폭으로 변환합니다. */
-template <std::floating_point T>
+template <traits::FloatingType T>
 [[nodiscard]] constexpr EFloatWidth FloatWidthOf()
 {
     if constexpr (sizeof(T) == 4)      { return EFloatWidth::Bits32; }

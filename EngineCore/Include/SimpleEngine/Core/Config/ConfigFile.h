@@ -19,10 +19,7 @@ namespace se
 class VPath;
 
 /**
- * Reflection + serde 기반 TOML 설정 파일 관리 클래스입니다.
- *
- * 리플렉션이 등록된 구조체를 통해 타입 안전하게 설정을 관리합니다.
- * 내부적으로 TomlReader/TomlWriter와 serde::Deserialize/Serialize를 사용하여 직렬화합니다.
+ * Reflection 기반 TOML 설정 파일 관리 클래스입니다.
  *
  * @code
  * // 1. 설정 구조체 정의

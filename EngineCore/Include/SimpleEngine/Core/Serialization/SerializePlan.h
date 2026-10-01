@@ -100,7 +100,6 @@ using PlanSteps = std::variant<LeafStep, StructSteps, ArraySteps, SetSteps, MapS
 /**
  * 타입 하나를 직렬화하는 데 필요한 정보를 리플렉션 TypeInfo에서 뽑아 둔 결과
  * 타입마다 한 번만 컴파일되고, 이후 직렬화할 때는 레지스트리 조회나 어노테이션 스캔 없이 바로 사용합니다.
- * @note TryOf는 RegistrationMutex()를 잡고, Of는 처음 한 번 뒤로 락 없이 캐시를 읽으므로 여러 스레드에서 호출할 수 있습니다. 정적 초기화 중에는 호출하지 않습니다.
  */
 struct SE_CORE_API SerializePlan
 {
@@ -109,7 +108,7 @@ struct SE_CORE_API SerializePlan
 
     /**
      * Packed 인코딩이 메모리 바이트와 똑같은 타입(trivially packable)이면 true입니다.
-     * bool을 뺀 산술 타입과, 그런 필드만 오프셋 순서로 패딩 없이 등록한 구조체가 해당합니다. enum과 트레이트 타입은 해당하지 않습니다.
+     * bool을 뺀 산술 타입으로 이루어진 필드이면서, 오프셋 순서로 패딩 없이 등록한 구조체가 해당합니다. enum과 트레이트 타입은 해당하지 않습니다.
      */
     bool is_trivially_packable = false;
 

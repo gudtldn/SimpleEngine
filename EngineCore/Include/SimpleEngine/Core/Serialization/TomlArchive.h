@@ -15,7 +15,7 @@ namespace se
 {
 /**
  * 값을 toml++ 테이블에 씁니다.
- * 루트 값은 struct 하나여야 합니다(TOML 문서의 최상위는 테이블). struct는 테이블, 필드는 키, 시퀀스는 배열, Bytes는 base64 문자열이 됩니다.
+ * 루트 값은 struct 하나여야 합니다(TOML의 최상위는 테이블). struct는 테이블, 필드는 키, 시퀀스는 배열, Bytes는 base64 문자열이 됩니다.
  * 맵은 key가 모두 문자열 하나로 쓰이면 테이블, 아니면 [key, value] 쌍 배열이 됩니다. 순서 없는 시퀀스와 쌍 배열은 정렬해서 씁니다.
  * Optional의 None은 struct 필드에서만 키를 생략해 쓰고, 시퀀스 원소, 맵의 key와 value, 다른 Optional 안이면 오류를 남깁니다.
  */
@@ -108,7 +108,7 @@ private:
 
 
 /**
- * toml++ 테이블에서 값을 읽습니다. 파일을 파싱하는 일은 호출자가 합니다.
+ * toml++ 테이블에서 값을 읽습니다.
  * 테이블에 없는 필드는 Field가 false를 돌려줍니다. 값의 TOML 종류가 다르거나 범위를 벗어나면 오류를 남깁니다.
  * 테이블에 있는데 타입에 없는 키는 오류가 아니라 경고로 남기고 읽기를 계속합니다.
  * 맵은 테이블과 [key, value] 쌍 배열을 모두 받고, 테이블의 키는 문자열 노드처럼 읽힙니다(문자열, enum 이름 등).
@@ -119,10 +119,7 @@ public:
     /** in_root를 루트 struct의 테이블로 보고 읽습니다. */
     explicit TomlReader(const toml::table& in_root);
 
-    /**
-     * 테이블에 있는데 타입에 없는 키의 경고를 돌려줍니다. 위치는 TOML 문서 안의 위치입니다.
-     * 예: "TomlReader: unknown key 'window.widht' is ignored."
-     */
+    /** 테이블에 있는데 타입에 없는 키의 경고를 돌려줍니다. */
     [[nodiscard]] ArrayView<const String> GetWarnings() const;
 
 public:
@@ -161,7 +158,7 @@ private:
     [[nodiscard]] Optional<i64> ReadInteger(const toml::node& node, EIntWidth width, bool is_signed);
 
     /**
-     * TakeValue로 방금 꺼낸 값의 TOML 문서 안 위치를 만듭니다.
+     * TakeValue로 방금 꺼낸 값의 TOML 안 위치를 만듭니다.
      * struct면 "부모.키", 시퀀스면 "부모[번호]", 테이블 맵의 엔트리면 "맵.키", 쌍 배열 맵의 엔트리면 "맵[번호][0 또는 1]"입니다.
      * 예: "window", "items[1]", "scores.alice", "points[0][1]"
      */
@@ -192,7 +189,7 @@ private:
         /** 읽을 테이블이나 배열. MapEntry이면 쌍 배열 맵에서는 [key, value] 배열, 테이블 맵에서는 value입니다. */
         const toml::node* node = nullptr;
 
-        /** TOML 문서 안의 위치. 루트는 빈 문자열입니다. */
+        /** TOML 안의 위치. 루트는 빈 문자열입니다. */
         String path;
 
         /** Struct일 때 Field가 찾아 둔 다음 값 */
