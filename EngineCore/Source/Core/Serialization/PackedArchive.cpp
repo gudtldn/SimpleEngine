@@ -117,7 +117,8 @@ void PackedWriter::RawElements(const void* data, u64 size)
 
 void PackedWriter::WriteBytes(const void* src, u64 byte_size)
 {
-    if (HasError())
+    // 빈 컨테이너의 데이터 포인터는 nullptr일 수 있고, memcpy에 nullptr를 넘기면 크기가 0이어도 정의되지 않은 동작
+    if (HasError() || byte_size == 0)
     {
         return;
     }
@@ -289,7 +290,8 @@ void PackedReader::RawElements(void* data, u64 size)
 
 void PackedReader::ReadBytes(void* dest, u64 byte_size)
 {
-    if (HasError())
+    // WriteBytes와 같은 이유로 0바이트는 memcpy를 부르지 않음
+    if (HasError() || byte_size == 0)
     {
         return;
     }

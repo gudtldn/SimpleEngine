@@ -180,6 +180,27 @@ TEST(PackedArchiveTest, BytesRoundTrip)
     EXPECT_FALSE(reader.HasError());
 }
 
+TEST(PackedArchiveTest, ZeroSizeBytesWithNullPointerRoundTrip)
+{
+    // 빈 컨테이너의 데이터 포인터처럼 nullptr와 크기 0을 넘겨도 아무것도 쓰거나 읽지 않아야 합니다.
+    Array<u8> buffer;
+    PackedWriter writer(buffer);
+    writer.Bytes(nullptr, 0);
+    writer.RawElements(nullptr, 0);
+    writer.Bool(true);
+
+    EXPECT_EQ(buffer.Len(), 1);
+
+    PackedReader reader(buffer);
+    reader.Bytes(nullptr, 0);
+    reader.RawElements(nullptr, 0);
+    bool value = false;
+    reader.Bool(value);
+
+    EXPECT_TRUE(value);
+    EXPECT_FALSE(reader.HasError());
+}
+
 TEST(PackedArchiveTest, HugeBytesSizeSetsErrorWithoutOverflow)
 {
     Array<u8> buffer;
