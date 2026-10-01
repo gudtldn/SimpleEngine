@@ -627,7 +627,13 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     const u64 file_size = static_cast<u64>(fs::FileSize(file_path).ValueOrDefault());
 
     // Import Settings 해시 계산
-    const ContentHash settings_hash = import_profile.ComputeHash();
+    const auto settings_hash_result = import_profile.ComputeHash();
+    if (settings_hash_result.HasError())
+    {
+        ConsoleLog(ELogLevel::Error, "CookAsset: failed to hash import settings of {}: {}", file_path, settings_hash_result.Error());
+        return false;
+    }
+    const ContentHash settings_hash = settings_hash_result.Value();
 
     updated_content.metadata.source_hash = source_hash;
     updated_content.metadata.source_mtime = file_mtime;
@@ -822,8 +828,9 @@ bool EditorAssetSubsystem::IsAssetDirty(const Path& source_path, const MetaFileC
     // settings_hash가 zero이면 한 번도 쿡되지 않은 상태이므로 건너뜀 (is_new로 처리)
     if (!meta.settings_hash.IsZero())
     {
-        const ContentHash current_settings_hash = content.import_settings.ComputeHash();
-        if (current_settings_hash != meta.settings_hash)
+        // 해시를 못 구하면 바뀐 것으로 보고 다시 쿡해, 쿡에서 오류가 드러나게 함
+        const auto current_settings_hash = content.import_settings.ComputeHash();
+        if (current_settings_hash.HasError() || current_settings_hash.Value() != meta.settings_hash)
         {
             return true;
         }

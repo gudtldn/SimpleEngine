@@ -161,13 +161,13 @@ SE_REGISTER_SERIALIZE_TRAITS(se::editor::ImportProfile)
 
 namespace se::editor
 {
-ContentHash ImportProfile::ComputeHash() const
+Expected<ContentHash, String> ImportProfile::ComputeHash() const
 {
     Array<u8> bytes;
     PackedWriter writer(bytes);
     if (const auto result = serde::Serialize(writer, *this); result.HasError())
     {
-        ConsoleLog(ELogLevel::Error, "ImportProfile::ComputeHash - Failed to serialize import settings: {}", result.Error().message);
+        return Unexpected{ String::Format("failed to serialize import settings: {}", result.Error().message) };
     }
     return sha256::HashBytes(bytes);
 }

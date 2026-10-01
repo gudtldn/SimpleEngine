@@ -339,7 +339,7 @@ TEST(AssetMetaTest, SettingsHashFollowsSettingsValues)
     changed_profile.Set(mesh);
 
     // 같은 설정이면 같은 해시이고, 값이 바뀌거나 설정이 빠지면 다른 해시
-    EXPECT_EQ(profile.ComputeHash(), same_profile.ComputeHash());
-    EXPECT_NE(profile.ComputeHash(), changed_profile.ComputeHash());
-    EXPECT_NE(profile.ComputeHash(), ImportProfile{}.ComputeHash());
+    EXPECT_EQ(profile.ComputeHash().Value(), same_profile.ComputeHash().Value());
+    EXPECT_NE(profile.ComputeHash().Value(), changed_profile.ComputeHash().Value());
+    EXPECT_NE(profile.ComputeHash().Value(), ImportProfile{}.ComputeHash().Value());
 }
