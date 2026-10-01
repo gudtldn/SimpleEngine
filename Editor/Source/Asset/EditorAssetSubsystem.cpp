@@ -524,6 +524,14 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
 
     // .meta에서 ImportProfile 획득 (없으면 기본값)
     auto meta_content_opt = asset_meta::Load(file_path);
+
+    // 있는데 읽지 못한 .meta를 기본값으로 쿡하면 새 GUID로 덮어써 기존 참조가 끊기므로 중단
+    if (!meta_content_opt && asset_meta::Exists(file_path))
+    {
+        ConsoleLog(ELogLevel::Error, "CookAsset: .meta exists but failed to load for {}. Aborting to prevent data loss.", file_path);
+        return false;
+    }
+
     ImportProfile import_profile = meta_content_opt
         .Map([](const MetaFileContent& content)
         {
