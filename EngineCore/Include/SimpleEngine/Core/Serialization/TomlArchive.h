@@ -6,6 +6,8 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 
+#include <variant>
+
 #define TOML_EXCEPTIONS 0
 #include "toml++/toml.h"
 #undef TOML_EXCEPTIONS
@@ -61,42 +63,55 @@ private:
     template <typename Value>
     toml::node* PlaceValue(Value&& value);
 
+    /** 맨 위 컨테이너가 Frame이면 그 프레임을, 비었거나 다른 종류면 NullOpt를 돌려줍니다. */
+    template <typename Frame>
+    [[nodiscard]] Optional<Frame&> TopAs();
+
 private:
-    /** 쓰는 중인 컨테이너의 종류 */
-    enum class EContainerKind : u8
+    /** Field가 정한 키로 값을 넣는 struct의 테이블 */
+    struct StructFrame
     {
-        /** struct. 테이블에 Field가 정한 키로 값을 넣습니다. */
-        Struct,
+        toml::table* table = nullptr;
 
-        /** 순서 있는 시퀀스. 배열 끝에 값을 넣습니다. */
-        Seq,
-
-        /** 순서 없는 시퀀스. 배열 끝에 값을 넣고 EndSeq에서 정렬합니다. */
-        UnorderedSeq,
-
-        /** 맵. 엔트리를 모아 두었다가 EndMap에서 테이블이나 쌍 배열로 만들어 넣습니다. */
-        Map,
-
-        /** 맵 엔트리 하나. [key, value] 배열에 key와 value를 차례로 넣습니다. */
-        MapEntry,
-    };
-
-    /** 쓰는 중인 컨테이너 하나 */
-    struct OpenContainer
-    {
-        EContainerKind kind = EContainerKind::Struct;
-
-        /** 값을 넣을 테이블이나 배열. Map이면 nullptr입니다. */
-        toml::node* node = nullptr;
-
-        /** Struct일 때 Field가 정한, 다음 값을 넣을 키 */
+        /** Field가 정한, 다음 값을 넣을 키 */
         Optional<String> pending_key;
 
-        /** Struct일 때 pending_key 자리에 값이 있는 Optional을 열었는지 여부 */
+        /** pending_key 자리에 값이 있는 Optional을 열었는지 여부 */
         bool pending_key_in_some = false;
+    };
 
-        /** Map일 때 모은 [key, value] 배열. key를 모두 봐야 테이블로 쓸 수 있는지 알 수 있어 EndMap까지 모읍니다. */
-        toml::array map_entries;
+    /** 끝에 값을 넣는 시퀀스의 배열 */
+    struct SeqFrame
+    {
+        toml::array* array = nullptr;
+
+        /** 순서 없는 시퀀스는 EndSeq에서 정렬합니다. */
+        ESeqOrder order = ESeqOrder::Ordered;
+    };
+
+    /**
+     * EndMap에서 테이블이나 쌍 배열로 만들 맵의 엔트리 모음
+     * key를 모두 봐야 테이블로 쓸 수 있는지 알 수 있어 EndMap까지 모읍니다.
+     */
+    struct MapFrame
+    {
+        /** 지금까지 쓴 [key, value] 배열 */
+        toml::array entries;
+    };
+
+    /** key와 value를 차례로 넣는 맵 엔트리의 [key, value] 배열 */
+    struct MapEntryFrame
+    {
+        toml::array* pair = nullptr;
+    };
+
+    /**
+     * 쓰는 중인 컨테이너 하나
+     * @note std::variant의 operator<는 제약 없이 선언되어 Deque의 기본 operator<=>가 컴파일되지 않으므로, 구조체로 감쌉니다.
+     */
+    struct OpenContainer
+    {
+        std::variant<StructFrame, SeqFrame, MapFrame, MapEntryFrame> frame;
     };
 
     toml::table& root;
@@ -164,48 +179,96 @@ private:
      */
     [[nodiscard]] String PathOfTakenValue() const;
 
+    /** 맨 위 컨테이너가 Frame이면 그 프레임을, 비었거나 다른 종류면 NullOpt를 돌려줍니다. */
+    template <typename Frame>
+    [[nodiscard]] Optional<Frame&> TopAs();
+
 private:
-    /** 읽는 중인 컨테이너의 종류 */
-    enum class EContainerKind : u8
+    /** Field가 찾아 둔 값을 꺼내는 struct의 테이블 */
+    struct StructFrame
     {
-        /** struct. Field가 테이블에서 찾아 둔 값을 꺼냅니다. */
-        Struct,
-
-        /** 시퀀스. 배열 원소를 차례로 꺼냅니다. */
-        Seq,
-
-        /** 맵. 테이블이나 [key, value] 쌍 배열이고, BeginMapEntry가 엔트리를 하나씩 엽니다. */
-        Map,
-
-        /** 맵 엔트리 하나. key와 value를 차례로 꺼냅니다. */
-        MapEntry,
-    };
-
-    /** 읽는 중인 컨테이너 하나 */
-    struct OpenContainer
-    {
-        EContainerKind kind = EContainerKind::Struct;
-
-        /** 읽을 테이블이나 배열. MapEntry이면 쌍 배열 맵에서는 [key, value] 배열, 테이블 맵에서는 value입니다. */
-        const toml::node* node = nullptr;
+        const toml::table* table = nullptr;
 
         /** TOML 안의 위치. 루트는 빈 문자열입니다. */
         String path;
 
-        /** Struct일 때 Field가 찾아 둔 다음 값 */
+        /** Field가 찾아 둔 다음 값 */
         const toml::node* field_value = nullptr;
 
-        /** Struct일 때 타입이 물어본 필드 이름. */
+        /** 타입이 물어본 필드 이름 */
         Array<String> known_keys;
+    };
 
-        /** Seq와 쌍 배열 Map일 때 다음에 읽을 원소 번호, MapEntry일 때 다음에 꺼낼 것(0은 key, 1은 value) */
+    /** 원소를 차례로 꺼내는 시퀀스의 배열 */
+    struct SeqFrame
+    {
+        const toml::array* array = nullptr;
+
+        /** TOML 안의 위치 */
+        String path;
+
+        /** 다음에 꺼낼 원소 번호 */
         usize next_index = 0;
+    };
 
-        /** 테이블 Map일 때 다음에 열 엔트리 */
+    /** 테이블로 적힌 맵 */
+    struct TableMapFrame
+    {
+        const toml::table* table = nullptr;
+
+        /** TOML 안의 위치 */
+        String path;
+
+        /** 다음에 열 엔트리 */
         toml::table::const_iterator next_entry;
+    };
 
-        /** 테이블 맵의 MapEntry일 때 키를 담은 문자열 노드. key 자리에서 문자열이나 enum 이름으로 읽힙니다. */
-        Optional<toml::value<std::string>> table_key;
+    /** [key, value] 쌍 배열로 적힌 맵 */
+    struct PairMapFrame
+    {
+        const toml::array* pairs = nullptr;
+
+        /** TOML 안의 위치 */
+        String path;
+
+        /** 다음에 열 쌍의 번호 */
+        usize next_index = 0;
+    };
+
+    /** 테이블 맵의 엔트리 하나 */
+    struct TableEntryFrame
+    {
+        /** 키를 담은 문자열 노드. key 자리에서 문자열이나 enum 이름으로 읽힙니다. */
+        toml::value<std::string> key;
+
+        const toml::node* value = nullptr;
+
+        /** key와 value가 함께 쓰는 엔트리의 위치 (예: "scores.alice") */
+        String path;
+
+        /** 다음에 꺼낼 것 (0은 key, 1은 value) */
+        usize next_slot = 0;
+    };
+
+    /** 쌍 배열 맵의 엔트리 하나 */
+    struct PairEntryFrame
+    {
+        const toml::array* pair = nullptr;
+
+        /** [key, value] 배열의 위치 (예: "points[0]") */
+        String path;
+
+        /** 다음에 꺼낼 것 (0은 key, 1은 value) */
+        usize next_slot = 0;
+    };
+
+    /**
+     * 읽는 중인 컨테이너 하나
+     * TomlWriter::OpenContainer와 같은 이유로 구조체로 감쌉니다.
+     */
+    struct OpenContainer
+    {
+        std::variant<StructFrame, SeqFrame, TableMapFrame, PairMapFrame, TableEntryFrame, PairEntryFrame> frame;
     };
 
     const toml::table& root;
