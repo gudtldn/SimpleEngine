@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
@@ -117,12 +118,19 @@ struct SerializeTraits<editor::ImportProfile>
                 return;
             }
 
+            // 필드 오프셋은 가장 파생된 타입 기준이므로, ImportSettingsBase 서브오브젝트가 아닌 완전 객체의 주소를 넘김
+            const editor::ImportSettingsBase& settings = *value.GetSettingsMap()[type_id];
+            const auto record = TypeRecordRegistry::Get().Find(plan.Value()->type);
+            const void* const complete = record ? CompleteObjectOf(&settings, *record) : nullptr;
+            if (complete == nullptr)
+            {
+                writer.SetError(String::Format("SerializeTraits<ImportProfile>: ImportSettingsBase is not a single SE_BASE of '{}'.", name));
+                return;
+            }
+
             writer.BeginMapEntry();
             writer.Str(name);
-
-            // 필드 오프셋은 가장 파생된 타입 기준이므로, ImportSettingsBase 서브오브젝트가 아닌 객체 전체의 주소를 넘김
-            const editor::ImportSettingsBase& settings = *value.GetSettingsMap()[type_id];
-            if (serde::Serialize(writer, *plan.Value(), dynamic_cast<const void*>(&settings)).HasError())
+            if (serde::Serialize(writer, *plan.Value(), complete).HasError())
             {
                 return;
             }

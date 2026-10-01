@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Reflection/TypeRecord.h"
 #include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <algorithm>
@@ -109,6 +110,41 @@ template <typename To, RuntimeTyped From>
 [[nodiscard]] const To* Cast(const From* instance)
 {
     return Cast<To>(const_cast<From*>(instance));
+}
+
+/**
+ * Base 서브오브젝트의 주소에서, 동적 타입이 record인 완전 객체의 주소를 구합니다.
+ * Base가 record에 없거나 두 번 이상 나오면 nullptr입니다.
+ */
+template <typename Base>
+[[nodiscard]] traits::CopyConst<Base, void*> CompleteObjectOf(Base* instance, const TypeRecord& record)
+{
+    if (instance == nullptr)
+    {
+        return nullptr;
+    }
+
+    const TypeId base = TypeId::Of<std::remove_cv_t<Base>>();
+    const detail::CastLookup lookup = detail::LookupCast(record, base, base);
+    if (lookup.from_count != 1)
+    {
+        return nullptr;
+    }
+    return reinterpret_cast<traits::CopyConst<Base, u8*>>(instance) - lookup.from_offset;
+}
+
+/**
+ * 동적 타입 정보를 가진 instance의 완전 객체 주소를 구합니다.
+ * Base가 동적 타입의 record에 두 번 이상 나오면 nullptr입니다.
+ */
+template <RuntimeTyped Base>
+[[nodiscard]] traits::CopyConst<Base, void*> CompleteObjectOf(Base* instance)
+{
+    if (instance == nullptr)
+    {
+        return nullptr;
+    }
+    return CompleteObjectOf(instance, *instance->GetTypeRecord());
 }
 
 /** 포인터를 To로 캐스팅합니다. 불가능하거나 모호하면 assert를 발생합니다. */

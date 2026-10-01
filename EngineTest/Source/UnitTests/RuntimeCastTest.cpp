@@ -304,3 +304,72 @@ TEST(RuntimeCastTest, DiamondAmbiguousSourceReturnsNull)
     // 존재 여부만 묻는 IsA는 모호성과 무관하게 true입니다.
     EXPECT_TRUE(se::IsA<DBottom>(root));
 }
+
+TEST(RuntimeCastTest, CompleteObjectOfFirstBaseReturnsObjectAddress)
+{
+    using namespace se_runtime_cast_test;
+
+    TransientTexture texture;
+    const ResourceBase* base = &texture;
+
+    EXPECT_EQ(se::CompleteObjectOf(base, *se::TypeRecordOf<TransientTexture>()), &texture);
+}
+
+TEST(RuntimeCastTest, CompleteObjectOfNonZeroOffsetBaseReturnsObjectAddress)
+{
+    using namespace se_runtime_cast_test;
+
+    TickableTexture texture;
+    const ITickable* tickable = &texture;
+
+    // 두 번째 base라 서브오브젝트 주소가 객체 주소와 다릅니다.
+    ASSERT_NE(static_cast<const void*>(tickable), static_cast<const void*>(&texture));
+    EXPECT_EQ(se::CompleteObjectOf(tickable, *se::TypeRecordOf<TickableTexture>()), &texture);
+}
+
+TEST(RuntimeCastTest, CompleteObjectOfAmbiguousBaseReturnsNull)
+{
+    using namespace se_runtime_cast_test;
+
+    DBottom bottom;
+    const DiamondRoot* root = static_cast<DLeft*>(&bottom);
+
+    // DiamondRoot가 all_bases에 두 번 나오므로 완전 객체를 특정할 수 없습니다.
+    EXPECT_EQ(se::CompleteObjectOf(root, *se::TypeRecordOf<DBottom>()), nullptr);
+}
+
+TEST(RuntimeCastTest, CompleteObjectOfBaseMissingFromRecordReturnsNull)
+{
+    using namespace se_runtime_cast_test;
+
+    TransientTexture texture;
+    const ResourceBase* base = &texture;
+
+    // DiamondRoot 계층의 record에는 ResourceBase가 없습니다.
+    EXPECT_EQ(se::CompleteObjectOf(base, *se::TypeRecordOf<DBottom>()), nullptr);
+}
+
+TEST(RuntimeCastTest, CompleteObjectOfRuntimeTypedUsesDynamicType)
+{
+    using namespace se_runtime_cast_test;
+
+    TransientTexture texture;
+    const ResourceBase* base = &texture;
+    EXPECT_EQ(se::CompleteObjectOf(base), &texture);
+
+    // DRight는 DBottom의 두 번째 base라 서브오브젝트 주소가 객체 주소와 다릅니다.
+    DBottom bottom;
+    const DRight* right = &bottom;
+    ASSERT_NE(static_cast<const void*>(right), static_cast<const void*>(&bottom));
+    EXPECT_EQ(se::CompleteObjectOf(right), &bottom);
+}
+
+TEST(RuntimeCastTest, CompleteObjectOfRuntimeTypedAmbiguousBaseReturnsNull)
+{
+    using namespace se_runtime_cast_test;
+
+    DBottom bottom;
+    const DiamondRoot* root = static_cast<DLeft*>(&bottom);
+
+    EXPECT_EQ(se::CompleteObjectOf(root), nullptr);
+}

@@ -11,6 +11,7 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/PackedArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlan.h"
@@ -123,11 +124,18 @@ Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     }
     const SerializePlan& payload_plan = *plan.Value();
 
+    // 필드 오프셋은 가장 파생된 타입 기준이므로, AssetBase 서브오브젝트가 아닌 완전 객체의 주소를 넘김
+    const auto record = TypeRecordRegistry::Get().Find(payload_plan.type);
+    const void* const complete = record ? CompleteObjectOf(&asset, *record) : nullptr;
+    if (complete == nullptr)
+    {
+        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: AssetBase is not a single SE_BASE of the registered type", type_id.GetName());
+        return {};
+    }
+
     Array<u8> payload;
     PackedFileWriter writer(payload, payload_plan.type, payload_plan.SchemaHash());
-
-    // 필드 오프셋은 가장 파생된 타입 기준이므로, AssetBase 서브오브젝트가 아닌 객체 전체의 주소를 넘김
-    const auto result = serde::Serialize(writer, payload_plan, dynamic_cast<const void*>(&asset));
+    const auto result = serde::Serialize(writer, payload_plan, complete);
     writer.Finish();
     if (result.HasError())
     {
