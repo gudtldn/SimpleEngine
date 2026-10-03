@@ -51,10 +51,7 @@ TEST(ComponentRegistrationTest, BothRegistrationsAgreeForEveryComponent)
         ASSERT_TRUE(info.HasValue()) << "The component is not registered with SE_REFLECT_BEGIN.";
 
         // 월드 파일에 쓰지 않는 컴포넌트는 두 등록 모두에 표시되어야 함
-        const bool is_skipped = std::ranges::any_of(info->annotations, [](const AnnotationRef& annotation)
-        {
-            return annotation.tag == TypeId::Of<WorldFileSkip>();
-        });
+        const bool is_skipped = info->HasAnnotation<WorldFileSkip>();
         EXPECT_EQ(is_skipped, legacy_info->flags.IsSet(ETypeFlags_v1::Transient))
             << "WorldFileSkip in SE_REFLECT_BEGIN and meta::Transient in SE_BEGIN_REFLECT_V1 must agree.";
         if (is_skipped)

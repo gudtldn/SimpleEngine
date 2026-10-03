@@ -113,8 +113,8 @@ TEST(ReflectMacrosGoldenTest, FieldAnnotationsRoundTrip)
     const se::AnnotationRef* tooltip_ref = nullptr;
     for (const se::AnnotationRef& ref : annotations)
     {
-        if (ref.tag.Value() == se::TypeId::Of<RangeTag>().Value()) range_ref = &ref;
-        if (ref.tag.Value() == se::TypeId::Of<TooltipTag>().Value()) tooltip_ref = &ref;
+        if (ref.type.Value() == se::TypeId::Of<RangeTag>().Value()) range_ref = &ref;
+        if (ref.type.Value() == se::TypeId::Of<TooltipTag>().Value()) tooltip_ref = &ref;
     }
 
     ASSERT_NE(range_ref, nullptr);
@@ -134,7 +134,7 @@ TEST(ReflectMacrosGoldenTest, TypeLevelAnnotationRoundTrip)
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
     ASSERT_EQ(info.annotations.Len(), 1u);
-    EXPECT_EQ(info.annotations[0].tag.Value(), se::TypeId::Of<ComponentTag>().Value());
+    EXPECT_EQ(info.annotations[0].type.Value(), se::TypeId::Of<ComponentTag>().Value());
 }
 
 TEST(ReflectMacrosGoldenTest, NamedEnumEntriesArePopulated)

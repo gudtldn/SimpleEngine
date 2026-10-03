@@ -16,11 +16,11 @@
 #include <type_traits>
 
 
-/** 필드 하나에 어노테이션(태그) 값들을 붙입니다. */
+/** 필드 하나에 어노테이션 값들을 붙입니다. */
 #define SE_ANNOTATE(field, ...) \
     static constexpr auto _ANNO_VALUES_##field = std::make_tuple(__VA_ARGS__); \
     static_assert(::se::traits::UniqueTuple<decltype(_ANNO_VALUES_##field)>, \
-        "SE_ANNOTATE(" #field "): the same tag type is attached to this field more than once."); \
+        "SE_ANNOTATE(" #field "): the same annotation type is attached to this field more than once."); \
     static constexpr auto _ANNO_REFS_##field = ::se::detail::MakeRefs(&_ANNO_VALUES_##field); \
     consteval bool _anno_check_##field() const \
     { \
@@ -71,11 +71,11 @@
         info.alignment = alignof(T); \
         info.name = ::se::TypeNameOf<T>(); \
         __VA_OPT__( \
-            static constexpr auto TYPE_TAG_VALUES = std::make_tuple(__VA_ARGS__); \
-            static_assert(::se::traits::UniqueTuple<decltype(TYPE_TAG_VALUES)>, \
-                "SE_REFLECT_BEGIN(" #type "): the same tag type is attached more than once."); \
-            static constexpr auto TYPE_TAG_REFS = ::se::detail::MakeRefs(&TYPE_TAG_VALUES); \
-            info.annotations = TYPE_TAG_REFS; \
+            static constexpr auto TYPE_ANNOTATION_VALUES = std::make_tuple(__VA_ARGS__); \
+            static_assert(::se::traits::UniqueTuple<decltype(TYPE_ANNOTATION_VALUES)>, \
+                "SE_REFLECT_BEGIN(" #type "): the same annotation type is attached more than once."); \
+            static constexpr auto TYPE_ANNOTATION_REFS = ::se::detail::MakeRefs(&TYPE_ANNOTATION_VALUES); \
+            info.annotations = TYPE_ANNOTATION_REFS; \
         ) \
         auto& [bases, fields] = ::se::TypeRegistry::Get().EmplaceStructStorage(::se::TypeId::Of<T>());
 

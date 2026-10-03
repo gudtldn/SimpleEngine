@@ -79,10 +79,7 @@ struct LoadedEntity
 /** 타입에 WorldFileSkip 어노테이션이 붙어 있는지 확인합니다. */
 [[nodiscard]] bool HasWorldFileSkip(const TypeInfo& info)
 {
-    return std::ranges::any_of(info.annotations, [](const AnnotationRef& annotation)
-    {
-        return annotation.tag == TypeId::Of<WorldFileSkip>();
-    });
+    return info.HasAnnotation<WorldFileSkip>();
 }
 
 /** 새 리플렉션 TypeId로 ECSRegistry에 등록된 컴포넌트의 ComponentOps를 찾습니다. */

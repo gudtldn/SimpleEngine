@@ -10,7 +10,7 @@
 
 namespace se::detail
 {
-/** static 수명의 태그 값 튜플(&values)을 받아, 각 원소의 주소를 담은 AnnotationRef 배열로 바꿉니다. */
+/** static 수명의 어노테이션 값 튜플(&values)을 받아, 각 원소의 주소를 담은 AnnotationRef 배열로 바꿉니다. */
 template <typename Tuple>
 consteval auto MakeRefs(const Tuple* values)
 {
@@ -18,7 +18,7 @@ consteval auto MakeRefs(const Tuple* values)
     {
         return FixedArray<AnnotationRef, sizeof...(I)>{
             AnnotationRef{
-                .tag = TypeId::Of<std::tuple_element_t<I, Tuple>>(),
+                .type = TypeId::Of<std::tuple_element_t<I, Tuple>>(),
                 .value = &std::get<I>(*values),
             }...
         };

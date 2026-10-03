@@ -17,7 +17,7 @@ namespace se
 struct AnnotationRef
 {
     /** Annotation의 타입 식별자 */
-    TypeId tag;
+    TypeId type;
 
     /** Annotation이 가지고 있는 데이터 */
     const void* value = nullptr;

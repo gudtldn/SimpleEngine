@@ -8,6 +8,7 @@
 #include "SimpleEngine/Core/Reflection/TypeShape.h"
 #include "SimpleEngine/Utility/Overloaded.h"
 
+#include <algorithm>
 #include <utility>
 #include <variant>
 
@@ -36,6 +37,16 @@ struct TypeInfo
 
     /** Type의 어노테이션 목록 */
     ArrayView<const AnnotationRef> annotations;
+
+    /** Annotation 타입의 어노테이션이 붙어 있는지 확인합니다. */
+    template <typename Annotation>
+    [[nodiscard]] bool HasAnnotation() const
+    {
+        return std::ranges::any_of(annotations, [](const AnnotationRef& annotation)
+        {
+            return annotation.type == TypeId::Of<Annotation>();
+        });
+    }
 
     /** 내부 구조가 없는 타입인지 */
     [[nodiscard]] constexpr bool IsOpaque() const { return std::holds_alternative<OpaqueInfo>(shape); }
