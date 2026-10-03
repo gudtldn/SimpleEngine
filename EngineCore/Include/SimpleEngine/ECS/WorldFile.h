@@ -13,7 +13,7 @@ class ArchiveWriter;
 class World;
 
 /**
- * World의 엔티티와 컴포넌트를 월드 파일(.seworld) 문서로 ArchiveWriter에 씁니다. 파일 형식은 writer가 정합니다.
+ * World의 엔티티와 컴포넌트를 월드 파일(.seworld)로 ArchiveWriter에 씁니다. 파일 형식은 writer가 정합니다.
  * 엔티티마다 영속 ID와, 타입 이름을 키로 한 컴포넌트 Map을 씁니다. 컴포넌트의 필드는 새 리플렉션 등록을 따릅니다.
  */
 class SE_CORE_API WorldFileWriter
@@ -43,7 +43,7 @@ private:
 
 
 /**
- * 월드 파일(.seworld) 문서를 ArchiveReader에서 읽어 World에 엔티티를 더합니다. 이미 있는 엔티티는 그대로 둡니다.
+ * 월드 파일(.seworld)을 ArchiveReader에서 읽어 World에 엔티티를 더합니다. 이미 있는 엔티티는 그대로 둡니다.
  * 파일의 엔티티를 모두 만든 뒤 컴포넌트를 읽으므로, 뒤에 나오는 엔티티를 가리키는 참조도 풀립니다.
  */
 class SE_CORE_API WorldFileReader
