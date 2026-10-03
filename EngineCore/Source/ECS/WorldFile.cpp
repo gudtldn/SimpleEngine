@@ -8,11 +8,11 @@
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
+#include "SimpleEngine/Core/Serialization/Transient.h"
 #include "SimpleEngine/ECS/Components/PersistentIdComponent.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntityRemapper.h"
 #include "SimpleEngine/ECS/World.h"
-#include "SimpleEngine/ECS/WorldFileSkip.h"
 #include "SimpleEngine/Utility/Common.h"
 
 #include <algorithm>
@@ -76,12 +76,6 @@ struct LoadedEntity
     return ids;
 }
 
-/** 타입에 WorldFileSkip 어노테이션이 붙어 있는지 확인합니다. */
-[[nodiscard]] bool HasWorldFileSkip(const TypeInfo& info)
-{
-    return info.HasAnnotation<WorldFileSkip>();
-}
-
 /** 새 리플렉션 TypeId로 ECSRegistry에 등록된 컴포넌트의 ComponentOps를 찾습니다. */
 [[nodiscard]] Optional<const ComponentOps&> FindComponentOps(TypeId type)
 {
@@ -136,7 +130,7 @@ void MarkScalarTablesInline(toml::node& node)
 }
 
 /**
- * entity가 가진 컴포넌트 하나를 타입 이름을 키로 out_components에 씁니다. WorldFileSkip이 붙은 타입은 쓰지 않습니다.
+ * entity가 가진 컴포넌트 하나를 타입 이름을 키로 out_components에 씁니다. Transient가 붙은 타입은 쓰지 않습니다.
  * 등록되지 않은 타입이라 쓸 수 없으면 오류 메시지를 돌려줍니다.
  */
 [[nodiscard]] Expected<void, String> WriteComponent(
@@ -153,10 +147,10 @@ void MarkScalarTablesInline(toml::node& node)
     if (!info)
     {
         return Unexpected{ String::Format(
-            "component '{}' is not registered with SE_REFLECT_BEGIN. Register its fields, or annotate it with WorldFileSkip if it must not be saved.",
+            "component '{}' is not registered with SE_REFLECT_BEGIN. Register its fields, or annotate it with Transient if it must not be saved.",
             LegacyTypeNameOf(legacy_type)) };
     }
-    if (HasWorldFileSkip(*info))
+    if (info->HasAnnotation<TransientAnnotation>())
     {
         return {};
     }
@@ -185,7 +179,7 @@ void MarkScalarTablesInline(toml::node& node)
 
 /**
  * 파일의 컴포넌트 테이블 하나를 읽어 loaded.entity에 붙입니다.
- * 모르는 타입과 WorldFileSkip이 붙은 타입은 건너뛰고, 건너뛴 일과 TomlReader의 경고를 out_warnings에 남깁니다.
+ * 모르는 타입과 Transient가 붙은 타입은 건너뛰고, 건너뛴 일과 TomlReader의 경고를 out_warnings에 남깁니다.
  */
 [[nodiscard]] Expected<void, String> ReadComponent(
     World& world, const LoadedEntity& loaded, StringView type_name, const toml::node& node, SerializeContext& context, Array<String>& out_warnings)
@@ -198,7 +192,7 @@ void MarkScalarTablesInline(toml::node& node)
         out_warnings.Push(String::Format("WorldFileReader: entity {}: unknown component type '{}' is skipped.", loaded.file_id, type_name));
         return {};
     }
-    if (HasWorldFileSkip(*info))
+    if (info->HasAnnotation<TransientAnnotation>())
     {
         out_warnings.Push(String::Format("WorldFileReader: entity {}: component '{}' is not saved in world files and is skipped.", loaded.file_id, type_name));
         return {};
