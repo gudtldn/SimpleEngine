@@ -136,7 +136,7 @@ public:
     explicit TomlReader(const toml::table& in_root);
 
     /** 테이블에 있는데 타입에 없는 키의 경고를 돌려줍니다. */
-    [[nodiscard]] ArrayView<const String> GetWarnings() const;
+    [[nodiscard]] virtual ArrayView<const String> GetWarnings() const override;
 
 public:
     [[nodiscard]] virtual bool IsTextFormat() const override;
