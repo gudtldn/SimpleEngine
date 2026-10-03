@@ -611,6 +611,26 @@ Expected<void, String> WorldFileReader::Read(ArchiveReader& reader)
     return {};
 }
 
+Expected<void, String> WorldFileReader::Replace(ArchiveReader& reader)
+{
+    // 실패해도 world가 그대로이도록 임시 World에 먼저 읽어 봄. World는 이동할 수 없어 교체하지 않고 다시 읽음
+    World scratch_world;
+    WorldFileReader scratch_reader{ scratch_world };
+    if (const auto result = scratch_reader.Read(reader); result.HasError())
+    {
+        warnings.Clear();
+        for (const String& warning : scratch_reader.GetWarnings())
+        {
+            warnings.Push(warning);
+        }
+        return Unexpected{ result.Error() };
+    }
+
+    reader.Rewind();
+    world.Reset();
+    return Read(reader);
+}
+
 ArrayView<const String> WorldFileReader::GetWarnings() const
 {
     return warnings;

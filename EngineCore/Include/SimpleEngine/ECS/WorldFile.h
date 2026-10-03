@@ -13,7 +13,7 @@ class ArchiveWriter;
 class World;
 
 /**
- * World의 엔티티와 컴포넌트를 월드 파일(.seworld) 문서로 ArchiveWriter에 씁니다. 파일 형식은 writer가 정합니다.
+ * World의 엔티티와 컴포넌트를 월드 파일(.seworld)로 ArchiveWriter에 씁니다. 파일 형식은 writer가 정합니다.
  * 엔티티마다 영속 ID와, 타입 이름을 키로 한 컴포넌트 Map을 씁니다. 컴포넌트의 필드는 새 리플렉션 등록을 따릅니다.
  */
 class SE_CORE_API WorldFileWriter
@@ -43,7 +43,7 @@ private:
 
 
 /**
- * 월드 파일(.seworld) 문서를 ArchiveReader에서 읽어 World에 엔티티를 더합니다. 이미 있는 엔티티는 그대로 둡니다.
+ * 월드 파일(.seworld)을 ArchiveReader에서 읽어 World에 엔티티를 더합니다. 이미 있는 엔티티는 그대로 둡니다.
  * 파일의 엔티티를 모두 만든 뒤 컴포넌트를 읽으므로, 뒤에 나오는 엔티티를 가리키는 참조도 풀립니다.
  */
 class SE_CORE_API WorldFileReader
@@ -56,6 +56,12 @@ public:
      * 모르는 컴포넌트 타입과 파일에 없는 엔티티를 가리키는 참조는 경고로 남기고 계속 읽습니다. 실패하면 이번에 만든 엔티티를 모두 지웁니다.
      */
     [[nodiscard]] Expected<void, String> Read(ArchiveReader& reader);
+
+    /**
+     * world를 비우고 reader의 엔티티로 채웁니다. 파일의 영속 ID를 그대로 씁니다.
+     * 읽기에 실패하면 world는 그대로입니다.
+     */
+    [[nodiscard]] Expected<void, String> Replace(ArchiveReader& reader);
 
     /**
      * 마지막 Read가 남긴 경고를 돌려줍니다. reader의 경고에는 엔티티 ID와 컴포넌트 이름을 붙입니다.
