@@ -5,7 +5,6 @@
 #include "SimpleEngine/Core/Container/Stack.h"
 #include "SimpleEngine/Utility/Base64.h"
 #include "SimpleEngine/Utility/Overloaded.h"
-#include "SimpleEngine/Utility/StringUtils.h"
 
 #include "Core/Serialization/TextArchiveCommon.h"
 
@@ -13,7 +12,6 @@
 
 #include <algorithm>
 #include <charconv>
-#include <cmath>
 #include <compare>
 #include <limits>
 #include <string_view>
@@ -56,13 +54,13 @@ constexpr usize INDENT_WIDTH = 4;
 /** 오류 메시지에 쓸 JSON 값 종류의 이름을 돌려줍니다. */
 [[nodiscard]] StringView JsonKindName(yyjson_val* value)
 {
-    if (yyjson_is_obj(value))  { return "an object"; }
-    if (yyjson_is_arr(value))  { return "an array"; }
-    if (yyjson_is_str(value))  { return "a string"; }
+    if (yyjson_is_obj(value))  { return "an object";  }
+    if (yyjson_is_arr(value))  { return "an array";   }
+    if (yyjson_is_str(value))  { return "a string";   }
     if (yyjson_is_int(value))  { return "an integer"; }
-    if (yyjson_is_real(value)) { return "a float"; }
-    if (yyjson_is_bool(value)) { return "a boolean"; }
-    if (yyjson_is_null(value)) { return "null"; }
+    if (yyjson_is_real(value)) { return "a float";    }
+    if (yyjson_is_bool(value)) { return "a boolean";  }
+    if (yyjson_is_null(value)) { return "null";       }
     return "an unknown value";
 }
 
