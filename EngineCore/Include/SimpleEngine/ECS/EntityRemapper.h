@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/ECS/Entity.h"
 
@@ -24,8 +23,11 @@ public:
      */
     [[nodiscard]] bool Add(Entity entity, u64 persistent_id);
 
-    /** 저장할 때 entity의 영속 ID를 돌려줍니다. null Entity는 0이고, 넣지 않은 entity는 NullOpt입니다. */
-    [[nodiscard]] Optional<u64> ToPersistentId(Entity entity) const;
+    /**
+     * 저장할 때 entity의 영속 ID를 돌려줍니다. 0은 null Entity입니다.
+     * 넣지 않은 entity는 저장하지 않는 엔티티를 가리키는 참조라 0을 돌려주고, GetUnresolvedEntities()에 기록합니다.
+     */
+    [[nodiscard]] u64 ToPersistentId(Entity entity);
 
     /**
      * 로드할 때 persistent_id의 Entity를 돌려줍니다. 0은 null Entity입니다.
@@ -36,9 +38,17 @@ public:
     /** ToEntity가 찾지 못한 영속 ID를 처음 만난 순서대로 돌려줍니다. 같은 ID는 한 번만 담습니다. */
     [[nodiscard]] ArrayView<const u64> GetUnresolvedIds() const;
 
+    /** ToPersistentId가 찾지 못한 Entity를 처음 만난 순서대로 돌려줍니다. 같은 Entity는 한 번만 담습니다. */
+    [[nodiscard]] ArrayView<const Entity> GetUnresolvedEntities() const;
+
+    /** ToPersistentId가 Entity를 찾지 못한 횟수를 돌려줍니다. 같은 Entity도 매번 셉니다. */
+    [[nodiscard]] usize GetUnresolvedEntityCount() const;
+
 private:
     HashMap<Entity, u64> id_by_entity;
     HashMap<u64, Entity> entity_by_id;
     Array<u64> unresolved_ids;
+    Array<Entity> unresolved_entities;
+    usize unresolved_entity_count = 0;
 };
 } // namespace se
