@@ -4,6 +4,8 @@
 #include "SimpleEngine/Utility/Overloaded.h"
 #include "SimpleEngine/Utility/StringUtils.h"
 
+#include "Core/Serialization/TextArchiveCommon.h"
+
 #include <algorithm>
 #include <charconv>
 #include <compare>
@@ -18,35 +20,6 @@ namespace se
 {
 namespace
 {
-/** Int/Enum 노드의 폭과 부호를 오류 메시지에 쓸 타입 이름으로 바꿉니다. */
-[[nodiscard]] StringView IntTypeName(EIntWidth width, bool is_signed)
-{
-    switch (width)
-    {
-    case EIntWidth::Bits8: return is_signed ? "i8" : "u8";
-    case EIntWidth::Bits16: return is_signed ? "i16" : "u16";
-    case EIntWidth::Bits32: return is_signed ? "i32" : "u32";
-    case EIntWidth::Bits64: return is_signed ? "i64" : "u64";
-    }
-    SE_UNREACHABLE();
-}
-
-/**
- * value가 width와 부호로 표현할 수 있는 범위 안인지 확인합니다.
- * u64는 0 이상의 i64만 받습니다. i64를 넘는 u64는 10진 문자열로 따로 읽습니다.
- */
-[[nodiscard]] bool FitsInWidth(i64 value, EIntWidth width, bool is_signed)
-{
-    switch (width)
-    {
-    case EIntWidth::Bits8: return is_signed ? std::in_range<i8>(value) : std::in_range<u8>(value);
-    case EIntWidth::Bits16: return is_signed ? std::in_range<i16>(value) : std::in_range<u16>(value);
-    case EIntWidth::Bits32: return is_signed ? std::in_range<i32>(value) : std::in_range<u32>(value);
-    case EIntWidth::Bits64: return is_signed || value >= 0;
-    }
-    SE_UNREACHABLE();
-}
-
 /** 오류 메시지에 쓸 TOML 노드 종류의 이름을 돌려줍니다. */
 [[nodiscard]] StringView NodeKindName(const toml::node& node)
 {
@@ -70,40 +43,6 @@ namespace
 [[nodiscard]] std::string_view ToStdStringView(StringView text)
 {
     return { text };
-}
-
-/** TOML 위치 parent 아래에 있는 key의 위치를 만듭니다. 예: ("window", "width")는 "window.width", ("", "vfs")는 "vfs" */
-[[nodiscard]] String JoinPath(StringView parent, StringView key)
-{
-    if (parent.IsEmpty())
-    {
-        return { key };
-    }
-    return String::Format("{}.{}", parent, key);
-}
-
-/**
- * f32 값을 TOML에 저장할 f64로 바꿉니다. f32로 되읽히는 가장 짧은 10진 표현을 씁니다(0.1f는 0.1).
- * 그 표현을 f64로 읽은 값이 f32로 돌아오지 않으면 확장된 값을 그대로 씁니다.
- */
-[[nodiscard]] f64 ToShortestF64(f32 value)
-{
-    if (!std::isfinite(value))
-    {
-        return value;
-    }
-
-    char buffer[32];
-    const char* const end = std::to_chars(std::begin(buffer), std::end(buffer), value).ptr;
-    f64 shortest = 0.0;
-    std::from_chars(buffer, end, shortest);
-
-    // 짧은 표현이 두 f32의 정확한 중간값으로 읽히면 짝수 쪽 이웃으로 반올림됨 (유한 f32 전체 중 2개)
-    if (static_cast<f32>(shortest) != value)
-    {
-        return value;
-    }
-    return shortest;
 }
 
 /** node를 toml++ 기본 형식의 텍스트로 만듭니다. */
@@ -202,7 +141,7 @@ void TomlWriter::Float(f64 value, EFloatWidth width)
 {
     if (width == EFloatWidth::Bits32)
     {
-        PlaceValue(ToShortestF64(static_cast<f32>(value)));
+        PlaceValue(text_archive::ToShortestF64(static_cast<f32>(value)));
         return;
     }
     PlaceValue(value);
@@ -790,7 +729,7 @@ void TomlReader::EndStruct()
         });
         if (!is_known)
         {
-            warnings.Push(String::Format("TomlReader: unknown key '{}' is ignored.", JoinPath(frame->path, key)));
+            warnings.Push(String::Format("TomlReader: unknown key '{}' is ignored.", text_archive::JoinPath(frame->path, key)));
         }
     }
     open_containers.Pop();
@@ -874,7 +813,7 @@ void TomlReader::BeginMapEntry()
         open_containers.Push({ TableEntryFrame{
             .key = toml::value{ std::string{ key } },
             .value = &value,
-            .path = JoinPath(frame->path, key),
+            .path = text_archive::JoinPath(frame->path, key),
         }, });
         return;
     }
@@ -1041,9 +980,9 @@ Optional<i64> TomlReader::ReadInteger(const toml::node& node, EIntWidth width, b
     if (const toml::value<i64>* const integer = node.as_integer())
     {
         const i64 number = integer->get();
-        if (!FitsInWidth(number, width, is_signed))
+        if (!text_archive::FitsInWidth(number, width, is_signed))
         {
-            SetError(String::Format("TomlReader: {} is out of range for {}.", number, IntTypeName(width, is_signed)));
+            SetError(String::Format("TomlReader: {} is out of range for {}.", number, text_archive::IntTypeName(width, is_signed)));
             return NullOpt;
         }
         return number;
@@ -1072,7 +1011,7 @@ String TomlReader::PathOfTakenValue() const
 {
     return std::visit(Overloaded{
         // 마지막으로 물어본 필드 이름이 방금 꺼낸 값의 키
-        [](const StructFrame& parent) -> String { return JoinPath(parent.path, *parent.known_keys.Back()); },
+        [](const StructFrame& parent) -> String { return text_archive::JoinPath(parent.path, *parent.known_keys.Back()); },
 
         // TakeValue가 이미 다음 번호로 넘어갔으므로 하나 앞이 방금 꺼낸 원소
         [](const SeqFrame& parent) -> String { return String::Format("{}[{}]", parent.path, parent.next_index - 1); },
