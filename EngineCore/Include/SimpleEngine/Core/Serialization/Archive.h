@@ -8,8 +8,6 @@
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Debug.h"
 
-#include <concepts>
-
 
 namespace se
 {
@@ -34,6 +32,9 @@ enum class EFloatWidth : u8
 
 namespace serde
 {
+/** 직렬화할 값이 중첩될 수 있는 최대 깊이 */
+inline constexpr usize MAX_NESTING_DEPTH = 256;
+
 /** 정수 폭 하나가 차지하는 바이트 수로 변환합니다. */
 [[nodiscard]] inline usize ByteSizeOf(EIntWidth width)
 {

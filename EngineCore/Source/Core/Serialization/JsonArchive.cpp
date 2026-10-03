@@ -29,9 +29,6 @@ namespace
 /** JSON 숫자로 정확히 표현할 수 있는 정수의 최대 절댓값 (2^53 - 1) */
 constexpr i64 MAX_SAFE_INTEGER = 9007199254740991;
 
-/** 읽기 전에 문서 전체를 검사할 때 허용하는 중첩 깊이. Serializer가 허용하는 깊이와 같습니다. */
-constexpr usize MAX_NESTING_DEPTH = 256;
-
 /** 출력의 들여쓰기 한 단계에 쓰는 공백 수 */
 constexpr usize INDENT_WIDTH = 4;
 
@@ -404,7 +401,7 @@ enum class EValueKind : u8
 
 /**
  * value 안의 모든 객체에서 같은 키가 두 번 나오는지 찾아, 처음 발견한 것의 오류 메시지를 돌려줍니다.
- * path는 value의 문서 안 위치이고 중첩이 MAX_NESTING_DEPTH를 넘으면 오류입니다. 없으면 NullOpt를 돌려줍니다.
+ * path는 value의 문서 안 위치이고 중첩이 serde::MAX_NESTING_DEPTH를 넘으면 오류입니다. 없으면 NullOpt를 돌려줍니다.
  */
 [[nodiscard]] Optional<String> FindDuplicateKey(yyjson_val* value, String& path, usize depth) // NOLINT(*-no-recursion)
 {
@@ -412,9 +409,9 @@ enum class EValueKind : u8
     {
         return NullOpt;
     }
-    if (depth > MAX_NESTING_DEPTH)
+    if (depth > serde::MAX_NESTING_DEPTH)
     {
-        return String::Format("JsonReader: the document is nested deeper than {} levels.", MAX_NESTING_DEPTH);
+        return String::Format("JsonReader: the document is nested deeper than {} levels.", serde::MAX_NESTING_DEPTH);
     }
 
     const usize parent_length = path.ByteLen();

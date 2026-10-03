@@ -10,15 +10,12 @@ namespace se
 {
 namespace
 {
-/** 값이 중첩될 수 있는 최대 깊이 */
-constexpr usize MAX_NESTING_DEPTH = 256;
-
-/** depth가 MAX_NESTING_DEPTH를 넘으면 archive에 오류를 남기고 true를 돌려줍니다. */
+/** depth가 serde::MAX_NESTING_DEPTH를 넘으면 archive에 오류를 남기고 true를 돌려줍니다. */
 [[nodiscard]] bool ExceedsMaxDepth(Archive& archive, usize depth)
 {
-    if (depth > MAX_NESTING_DEPTH)
+    if (depth > serde::MAX_NESTING_DEPTH)
     {
-        archive.SetError(String::Format("Serializer: exceeded the maximum nesting depth of {}.", MAX_NESTING_DEPTH));
+        archive.SetError(String::Format("Serializer: exceeded the maximum nesting depth of {}.", serde::MAX_NESTING_DEPTH));
         return true;
     }
     return false;
