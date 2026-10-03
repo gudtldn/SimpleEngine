@@ -191,5 +191,8 @@ public:
 
     /** RawElements로 쓴 원소 바이트를 원소 저장소로 그대로 읽습니다. 지원하지 않는 포맷은 오류로 처리합니다. */
     virtual void RawElements(void* data, u64 size) = 0;
+
+    /** 데이터에 있는데 타입에 없는 키 같은 경고를 돌려줍니다. 경고를 남기지 않는 포맷은 빈 목록입니다. */
+    [[nodiscard]] virtual ArrayView<const String> GetWarnings() const;
 };
 } // namespace se

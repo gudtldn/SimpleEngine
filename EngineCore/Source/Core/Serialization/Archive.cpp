@@ -16,4 +16,9 @@ void Archive::SetError(String reason)
     has_error = true;
     error_message = std::move(reason);
 }
+
+ArrayView<const String> ArchiveReader::GetWarnings() const
+{
+    return {};
+}
 } // namespace se
