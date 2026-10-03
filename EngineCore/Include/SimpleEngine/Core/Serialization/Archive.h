@@ -165,6 +165,13 @@ public:
      * 원소의 인코딩이 메모리 바이트와 같고 SupportsRawElements()가 true일 때만 호출되며, 원소마다 쓴 결과와 같은 바이트를 써야 합니다. 지원하지 않는 포맷은 오류로 처리합니다.
      */
     virtual void RawElements(const void* data, u64 size) = 0;
+
+    /**
+     * 다음 값 하나를 구간으로 묶어, 읽는 쪽이 SkipSection으로 통째로 건너뛸 수 있게 합니다.
+     * 구간 안에는 값을 정확히 하나 씁니다. 바이너리 포맷은 앞에 길이를 쓰고, 텍스트 포맷은 아무것도 쓰지 않습니다.
+     */
+    virtual void BeginSection() = 0;
+    virtual void EndSection() = 0;
 };
 
 /** 포맷별 표현에서 값을 노드 단위로 읽어 오는 인터페이스 */
@@ -191,6 +198,18 @@ public:
 
     /** RawElements로 쓴 원소 바이트를 원소 저장소로 그대로 읽습니다. 지원하지 않는 포맷은 오류로 처리합니다. */
     virtual void RawElements(void* data, u64 size) = 0;
+
+    /** BeginSection으로 묶은 구간을 엽니다. 안의 값은 평소처럼 읽습니다. */
+    virtual void BeginSection() = 0;
+
+    /** 구간을 닫습니다. 바이너리 포맷은 구간을 정확히 끝까지 읽었는지 확인하고, 아니면 오류로 처리합니다. */
+    virtual void EndSection() = 0;
+
+    /** 구간 하나를 읽지 않고 건너뜁니다. */
+    virtual void SkipSection() = 0;
+
+    /** 처음부터 다시 읽습니다. 읽기 위치, 열린 컨테이너와 구간, 경고는 처음 상태로 되돌리고 오류와 context는 그대로 둡니다. */
+    virtual void Rewind() = 0;
 
     /** 데이터에 있는데 타입에 없는 키 같은 경고를 돌려줍니다. 경고를 남기지 않는 포맷은 빈 목록입니다. */
     [[nodiscard]] virtual ArrayView<const String> GetWarnings() const;
