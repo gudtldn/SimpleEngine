@@ -396,6 +396,287 @@ TEST(PackedArchiveTest, StrLengthExceedingRemainingBytesSetsErrorWithoutGrowingO
 }
 
 
+// --- 구간과 Rewind ---
+
+TEST(PackedArchiveTest, SectionRoundTrip)
+{
+    Array<u8> buffer;
+    PackedWriter writer(buffer);
+    writer.Bool(true);
+    writer.BeginSection();
+    writer.BeginStruct();
+    writer.Field("id");
+    writer.Int(7, EIntWidth::Bits32, true);
+    writer.Field("name");
+    writer.Str("inside");
+    writer.EndStruct();
+    writer.EndSection();
+    writer.Int(42, EIntWidth::Bits16, false);
+    ASSERT_FALSE(writer.HasError());
+
+    PackedReader reader(buffer);
+    bool flag = false;
+    i64 id = 0;
+    String name;
+    i64 tail = 0;
+    reader.Bool(flag);
+    reader.BeginSection();
+    reader.BeginStruct();
+    ASSERT_TRUE(reader.Field("id"));
+    reader.Int(id, EIntWidth::Bits32, true);
+    ASSERT_TRUE(reader.Field("name"));
+    reader.Str(name);
+    reader.EndStruct();
+    reader.EndSection();
+    reader.Int(tail, EIntWidth::Bits16, false);
+
+    EXPECT_TRUE(flag);
+    EXPECT_EQ(id, 7);
+    EXPECT_EQ(name, "inside");
+    EXPECT_EQ(tail, 42);
+    EXPECT_FALSE(reader.HasError());
+}
+
+TEST(PackedArchiveTest, SectionWritesLengthPrefix)
+{
+    Array<u8> buffer;
+    PackedWriter writer(buffer);
+    writer.BeginSection();
+    writer.BeginStruct();
+    writer.Field("a");
+    writer.Int(7, EIntWidth::Bits32, true);
+    writer.Field("b");
+    writer.Str("abc");
+    writer.EndStruct();
+    writer.EndSection();
+    ASSERT_FALSE(writer.HasError());
+
+    // 길이(8) | i32(4) | 문자열 길이(4) | "abc"(3)
+    ASSERT_EQ(buffer.Len(), 8u + 4u + 4u + 3u);
+    u64 length = 0;
+    std::memcpy(&length, buffer.Data(), sizeof(length));
+    EXPECT_EQ(length, 11u);
+}
+
+TEST(PackedArchiveTest, NestedSectionsRoundTrip)
+{
+    Array<u8> buffer;
+    PackedWriter writer(buffer);
+    writer.BeginSection();
+    writer.BeginStruct();
+    writer.Field("inner");
+    writer.BeginSection();
+    writer.Int(5, EIntWidth::Bits32, true);
+    writer.EndSection();
+    writer.Field("after");
+    writer.Int(6, EIntWidth::Bits32, true);
+    writer.EndStruct();
+    writer.EndSection();
+    ASSERT_FALSE(writer.HasError());
+
+    PackedReader reader(buffer);
+    i64 inner = 0;
+    i64 after = 0;
+    reader.BeginSection();
+    reader.BeginStruct();
+    ASSERT_TRUE(reader.Field("inner"));
+    reader.BeginSection();
+    reader.Int(inner, EIntWidth::Bits32, true);
+    reader.EndSection();
+    ASSERT_TRUE(reader.Field("after"));
+    reader.Int(after, EIntWidth::Bits32, true);
+    reader.EndStruct();
+    reader.EndSection();
+
+    EXPECT_EQ(inner, 5);
+    EXPECT_EQ(after, 6);
+    EXPECT_FALSE(reader.HasError());
+}
+
+TEST(PackedArchiveTest, SkipSectionJumpsToNextValue)
+{
+    Array<u8> buffer;
+    PackedWriter writer(buffer);
+    writer.BeginSection();
+    writer.BeginStruct();
+    writer.Field("inner");
+    writer.BeginSection();
+    writer.Int(5, EIntWidth::Bits32, true);
+    writer.EndSection();
+    writer.Field("after");
+    writer.Int(6, EIntWidth::Bits32, true);
+    writer.EndStruct();
+    writer.EndSection();
+    writer.Int(42, EIntWidth::Bits32, true);
+    ASSERT_FALSE(writer.HasError());
+
+    PackedReader reader(buffer);
+    reader.SkipSection();
+    i64 tail = 0;
+    reader.Int(tail, EIntWidth::Bits32, true);
+
+    EXPECT_EQ(tail, 42);
+    EXPECT_FALSE(reader.HasError());
+}
+
+TEST(PackedArchiveTest, SectionReadShortOrLongIsError)
+{
+    {
+        // 덜 읽음: b를 읽지 않고 구간을 닫음
+        Array<u8> buffer;
+        PackedWriter writer(buffer);
+        writer.BeginSection();
+        writer.BeginStruct();
+        writer.Field("a");
+        writer.Int(1, EIntWidth::Bits32, true);
+        writer.Field("b");
+        writer.Int(2, EIntWidth::Bits32, true);
+        writer.EndStruct();
+        writer.EndSection();
+        ASSERT_FALSE(writer.HasError());
+
+        PackedReader reader(buffer);
+        i64 a = 0;
+        reader.BeginSection();
+        reader.BeginStruct();
+        ASSERT_TRUE(reader.Field("a"));
+        reader.Int(a, EIntWidth::Bits32, true);
+        reader.EndStruct();
+        reader.EndSection();
+
+        ASSERT_TRUE(reader.HasError());
+        EXPECT_TRUE(String(reader.GetError()).Contains("section ends at offset"));
+    }
+    {
+        // 더 읽음: 구간 뒤의 값까지 읽고 구간을 닫음
+        Array<u8> buffer;
+        PackedWriter writer(buffer);
+        writer.BeginSection();
+        writer.Int(1, EIntWidth::Bits32, true);
+        writer.EndSection();
+        writer.Int(2, EIntWidth::Bits32, true);
+        ASSERT_FALSE(writer.HasError());
+
+        PackedReader reader(buffer);
+        i64 first = 0;
+        i64 second = 0;
+        reader.BeginSection();
+        reader.Int(first, EIntWidth::Bits32, true);
+        reader.Int(second, EIntWidth::Bits32, true);
+        reader.EndSection();
+
+        ASSERT_TRUE(reader.HasError());
+        EXPECT_TRUE(String(reader.GetError()).Contains("section ends at offset"));
+    }
+}
+
+TEST(PackedArchiveTest, TruncatedSectionIsError)
+{
+    const auto write_section = [](Array<u8>& out_buffer)
+    {
+        PackedWriter writer(out_buffer);
+        writer.BeginSection();
+        writer.Str("payload");
+        writer.EndSection();
+    };
+
+    // 마지막 1바이트를 잘라 길이가 남은 바이트 수를 넘게 함
+    Array<u8> cut_tail;
+    write_section(cut_tail);
+    cut_tail.Truncate(cut_tail.Len() - 1);
+
+    PackedReader begin_reader(cut_tail);
+    begin_reader.BeginSection();
+    ASSERT_TRUE(begin_reader.HasError());
+    EXPECT_TRUE(String(begin_reader.GetError()).Contains("exceeds remaining bytes"));
+
+    PackedReader skip_reader(cut_tail);
+    skip_reader.SkipSection();
+    ASSERT_TRUE(skip_reader.HasError());
+    EXPECT_TRUE(String(skip_reader.GetError()).Contains("exceeds remaining bytes"));
+
+    // 길이 필드(8바이트) 자체가 잘린 경우
+    Array<u8> cut_length;
+    write_section(cut_length);
+    cut_length.Truncate(4);
+
+    PackedReader short_reader(cut_length);
+    short_reader.BeginSection();
+    EXPECT_TRUE(short_reader.HasError());
+}
+
+TEST(PackedArchiveTest, UnmatchedEndSectionIsError)
+{
+    Array<u8> write_buffer;
+    PackedWriter writer(write_buffer);
+    writer.EndSection();
+    EXPECT_EQ(String(writer.GetError()), "PackedWriter: EndSection does not match an open section.");
+
+    Array<u8> read_buffer;
+    PackedReader reader(read_buffer);
+    reader.EndSection();
+    EXPECT_EQ(String(reader.GetError()), "PackedReader: EndSection does not match an open section.");
+}
+
+TEST(PackedArchiveTest, RewindReadsSameValuesAgain)
+{
+    Array<u8> buffer;
+    PackedWriter writer(buffer);
+    writer.Int(7, EIntWidth::Bits32, true);
+    writer.BeginSection();
+    writer.Str("abc");
+    writer.EndSection();
+    ASSERT_FALSE(writer.HasError());
+
+    PackedReader reader(buffer);
+    const auto read_all = [&reader]()
+    {
+        i64 number = 0;
+        String text;
+        reader.Int(number, EIntWidth::Bits32, true);
+        reader.BeginSection();
+        reader.Str(text);
+        reader.EndSection();
+        EXPECT_EQ(number, 7);
+        EXPECT_EQ(text, "abc");
+    };
+
+    read_all();
+    reader.Rewind();
+    read_all();
+    ASSERT_FALSE(reader.HasError());
+
+    // 구간 중간의 Rewind는 열린 구간을 비움
+    reader.Rewind();
+    i64 number = 0;
+    reader.Int(number, EIntWidth::Bits32, true);
+    reader.BeginSection();
+    reader.Rewind();
+    read_all();
+    EXPECT_FALSE(reader.HasError());
+
+    reader.EndSection();
+    ASSERT_TRUE(reader.HasError());
+    EXPECT_TRUE(String(reader.GetError()).Contains("does not match an open section"));
+}
+
+TEST(PackedArchiveTest, RewindKeepsError)
+{
+    Array<u8> empty_buffer;
+    PackedReader reader(empty_buffer);
+
+    i64 value = 0;
+    reader.Int(value, EIntWidth::Bits32, true);
+    ASSERT_TRUE(reader.HasError());
+    const String message(reader.GetError());
+
+    reader.Rewind();
+
+    EXPECT_TRUE(reader.HasError());
+    EXPECT_EQ(String(reader.GetError()), message);
+}
+
+
 // --- PackedFileWriter / PackedFileReader ---
 
 namespace
@@ -431,6 +712,24 @@ TEST(PackedArchiveTest, FileRoundTripReadsPayload)
 
     EXPECT_FALSE(reader.HasError());
     EXPECT_EQ(result, 42);
+}
+
+TEST(PackedArchiveTest, FileReaderRewindsToPayloadStart)
+{
+    const Array<u8> buffer = MakeFileBuffer();
+
+    PackedFileReader reader(buffer, TypeId::Of<i32>(), TEST_SCHEMA_HASH);
+    i64 first = 0;
+    reader.Int(first, EIntWidth::Bits32, true);
+
+    // 헤더가 아니라 payload 시작으로 돌아가야 같은 값을 다시 읽음
+    reader.Rewind();
+    i64 second = 0;
+    reader.Int(second, EIntWidth::Bits32, true);
+
+    EXPECT_EQ(first, 42);
+    EXPECT_EQ(second, 42);
+    EXPECT_FALSE(reader.HasError());
 }
 
 TEST(PackedArchiveTest, FileHeaderRecordsLayoutFields)

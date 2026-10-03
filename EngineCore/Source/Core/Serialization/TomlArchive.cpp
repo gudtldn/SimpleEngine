@@ -471,6 +471,10 @@ void TomlWriter::Present(bool has_value)
     frame->pending_key.Reset();
 }
 
+// 텍스트는 값의 경계가 문서 구조에 드러나므로 구간에 쓸 것이 없음
+void TomlWriter::BeginSection() {}
+void TomlWriter::EndSection() {}
+
 bool TomlWriter::CanPlaceValue()
 {
     if (HasError())
@@ -943,6 +947,23 @@ void TomlReader::Present(bool& has_value)
     }
 }
 
+// 텍스트는 값의 경계가 문서 구조에 드러나므로 구간에 읽을 것이 없음
+void TomlReader::BeginSection() {}
+void TomlReader::EndSection() {}
+
+void TomlReader::SkipSection()
+{
+    // 구간에는 값이 하나뿐이므로 그 값을 꺼내 버리면 건너뜀
+    (void)TakeValue();
+}
+
+void TomlReader::Rewind()
+{
+    open_containers.Clear();
+    warnings.Clear();
+    root_started = false;
+}
+
 const toml::node* TomlReader::TakeValue()
 {
     if (HasError())
@@ -957,7 +978,7 @@ const toml::node* TomlReader::TakeValue()
         return nullptr;
     }
 
-    const auto value_inside_map = [this]() -> const toml::node*
+    const auto value_inside_map = [this] -> const toml::node*
     {
         SetError("TomlReader: a value inside a map needs BeginMapEntry first.");
         return nullptr;

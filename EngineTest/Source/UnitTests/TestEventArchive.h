@@ -29,6 +29,8 @@ struct EventBeginMapEntry {};
 struct EventEndMapEntry {};
 struct EventEndMap {};
 struct EventPresent { bool value; };
+struct EventBeginSection {};
+struct EventEndSection {};
 
 /** EventWriter가 기록하고 EventReader가 재생하는 노드 호출 하나 */
 using SerializeEvent = std::variant<
@@ -36,7 +38,8 @@ using SerializeEvent = std::variant<
     EventBeginStruct, EventField, EventEndStruct,
     EventBeginSeq, EventEndSeq,
     EventBeginMap, EventBeginMapEntry, EventEndMapEntry, EventEndMap,
-    EventPresent
+    EventPresent,
+    EventBeginSection, EventEndSection
 >;
 
 /** 에러 메시지용으로 이벤트의 노드 종류 이름을 반환합니다. */
@@ -59,6 +62,8 @@ using SerializeEvent = std::variant<
         [](const EventEndMapEntry&)   -> StringView { return "EndMapEntry"; },
         [](const EventEndMap&)        -> StringView { return "EndMap"; },
         [](const EventPresent&)       -> StringView { return "Present"; },
+        [](const EventBeginSection&)  -> StringView { return "BeginSection"; },
+        [](const EventEndSection&)    -> StringView { return "EndSection"; },
     }, event);
 }
 
@@ -161,6 +166,16 @@ public:
     virtual void RawElements([[maybe_unused]] const void* data, [[maybe_unused]] u64 size) override
     {
         SetError("EventWriter: raw element bytes are not recorded.");
+    }
+
+    virtual void BeginSection() override
+    {
+        Record(SerializeEvent{ EventBeginSection{} });
+    }
+
+    virtual void EndSection() override
+    {
+        Record(SerializeEvent{ EventEndSection{} });
     }
 
 private:
@@ -345,6 +360,45 @@ public:
     virtual void RawElements([[maybe_unused]] void* data, [[maybe_unused]] u64 size) override
     {
         SetError("EventReader: raw element bytes are not recorded.");
+    }
+
+    virtual void BeginSection() override
+    {
+        Consume<EventBeginSection>();
+    }
+
+    virtual void EndSection() override
+    {
+        Consume<EventEndSection>();
+    }
+
+    virtual void SkipSection() override
+    {
+        if (Consume<EventBeginSection>() == nullptr)
+        {
+            return;
+        }
+
+        // 중첩된 구간을 세어 짝이 맞는 EndSection 다음으로 이동
+        usize depth = 1;
+        while (cursor < events.Len())
+        {
+            const SerializeEvent& event = events[cursor++];
+            if (std::holds_alternative<EventBeginSection>(event))
+            {
+                ++depth;
+            }
+            else if (std::holds_alternative<EventEndSection>(event) && --depth == 0)
+            {
+                return;
+            }
+        }
+        SetError("EventReader: a section has no matching EndSection.");
+    }
+
+    virtual void Rewind() override
+    {
+        cursor = 0;
     }
 
 private:

@@ -49,6 +49,8 @@ public:
     virtual void EndMap() override;
     virtual void Present(bool has_value) override;
     virtual void RawElements(const void* data, u64 size) override;
+    virtual void BeginSection() override;
+    virtual void EndSection() override;
 
 private:
     /**
@@ -160,6 +162,10 @@ public:
     virtual void EndMap() override;
     virtual void Present(bool& has_value) override;
     virtual void RawElements(void* data, u64 size) override;
+    virtual void BeginSection() override;
+    virtual void EndSection() override;
+    virtual void SkipSection() override;
+    virtual void Rewind() override;
 
 private:
     /**

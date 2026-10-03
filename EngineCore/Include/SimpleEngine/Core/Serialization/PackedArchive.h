@@ -41,6 +41,8 @@ public:
     virtual void EndMap() override;
     virtual void Present(bool has_value) override;
     virtual void RawElements(const void* data, u64 size) override;
+    virtual void BeginSection() override;
+    virtual void EndSection() override;
 
 private:
     void WriteBytes(const void* src, u64 byte_size);
@@ -50,6 +52,10 @@ private:
 protected:
     Array<u8>& buffer;
     usize offset = 0;
+
+private:
+    /** 열린 구간마다 길이(u64)를 채울 위치. 길이는 내용을 다 쓴 EndSection에서 정해집니다. */
+    Array<usize> open_sections;
 };
 
 
@@ -83,6 +89,10 @@ public:
     virtual void EndMap() override;
     virtual void Present(bool& has_value) override;
     virtual void RawElements(void* data, u64 size) override;
+    virtual void BeginSection() override;
+    virtual void EndSection() override;
+    virtual void SkipSection() override;
+    virtual void Rewind() override;
 
 private:
     void ReadBytes(void* dest, u64 byte_size);
@@ -93,11 +103,24 @@ private:
      */
     [[nodiscard]] bool ReadCount(u64& count);
 
+    /**
+     * 구간 길이(u64)를 읽고, 남은 바이트 수를 넘지 않는지 검증합니다.
+     * 실패하면 length를 건드리지 않습니다.
+     */
+    [[nodiscard]] bool ReadSectionLength(u64& length);
+
     void ReadBoolByte(bool& value);
 
 protected:
     ArrayView<const u8> buffer_view;
     usize offset = 0;
+
+    /** Rewind가 돌아갈 읽기 시작 위치. PackedFileReader는 헤더 바로 뒤입니다. */
+    usize start_offset = 0;
+
+private:
+    /** 열린 구간마다 끝나야 하는 위치 */
+    Array<usize> section_ends;
 };
 
 

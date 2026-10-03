@@ -1240,6 +1240,129 @@ TEST(TomlWriterReaderTest, NoWarningsForWrittenTable)
 }
 
 
+// --- 구간과 Rewind ---
+
+TEST(TomlWriterReaderTest, SectionsWriteNothing)
+{
+    const auto write = [](bool with_section)
+    {
+        toml::table table;
+        TomlWriter writer(table);
+        writer.BeginStruct();
+        writer.Field("id");
+        writer.Int(1, EIntWidth::Bits32, true);
+        writer.Field("components");
+        if (with_section)
+        {
+            writer.BeginSection();
+        }
+        writer.BeginStruct();
+        writer.Field("x");
+        writer.Int(2, EIntWidth::Bits32, true);
+        writer.EndStruct();
+        if (with_section)
+        {
+            writer.EndSection();
+        }
+        writer.EndStruct();
+        EXPECT_FALSE(writer.HasError());
+        return table;
+    };
+
+    EXPECT_EQ(ToText(write(true)), ToText(write(false)));
+}
+
+TEST(TomlWriterReaderTest, SkipSectionTakesOneValue)
+{
+    {
+        const toml::table table = ParseToml(R"(
+id = 7
+items = [ 1, 2 ]
+
+[components]
+x = 1
+)");
+        TomlReader reader(table);
+        i64 second = 0;
+        i64 id = 0;
+        reader.BeginStruct();
+        ASSERT_TRUE(reader.Field("components"));
+        reader.SkipSection();
+        ASSERT_TRUE(reader.Field("items"));
+        u64 count = 0;
+        reader.BeginSeq(count);
+        reader.SkipSection(); // 원소 하나
+        reader.Int(second, EIntWidth::Bits32, true);
+        reader.EndSeq();
+        ASSERT_TRUE(reader.Field("id"));
+        reader.Int(id, EIntWidth::Bits32, true);
+        reader.EndStruct();
+
+        EXPECT_FALSE(reader.HasError());
+        EXPECT_EQ(second, 2);
+        EXPECT_EQ(id, 7);
+        // 건너뛴 키도 타입이 물어본 키라 경고가 없음
+        EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+    }
+    {
+        const toml::table table = ParseToml("x = 1");
+        TomlReader reader(table);
+        reader.BeginStruct();
+        reader.SkipSection();
+
+        ASSERT_TRUE(reader.HasError());
+        EXPECT_EQ(String(reader.GetError()), "TomlReader: a value inside a struct needs a Field name first.");
+    }
+}
+
+TEST(TomlWriterReaderTest, RewindReadsSameValuesAgain)
+{
+    using namespace se_toml_test;
+
+    const EditorConfig original{
+        .window = WindowSettings{ .title = "Editor", .width = 1600 },
+    };
+    const toml::table table = WriteToTable(original);
+
+    TomlReader reader(table);
+    EditorConfig first;
+    ASSERT_TRUE(serde::Deserialize(reader, first).HasValue());
+
+    reader.Rewind();
+    EditorConfig second;
+    ASSERT_TRUE(serde::Deserialize(reader, second).HasValue());
+
+    // 읽는 도중에 되감아도 루트부터 다시 읽힘
+    reader.Rewind();
+    reader.BeginStruct();
+    ASSERT_TRUE(reader.Field("window"));
+    reader.BeginStruct();
+    reader.Rewind();
+    EditorConfig third;
+    ASSERT_TRUE(serde::Deserialize(reader, third).HasValue());
+
+    EXPECT_EQ(first, original);
+    EXPECT_EQ(second, original);
+    EXPECT_EQ(third, original);
+}
+
+TEST(TomlWriterReaderTest, RewindClearsWarnings)
+{
+    const toml::table table = ParseToml("typo = 1");
+    TomlReader reader(table);
+    se_toml_test::EditorConfig result;
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
+
+    reader.Rewind();
+    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+
+    // 두 번 읽어도 경고는 한 번 분량
+    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(reader.GetWarnings().Len(), 1u);
+}
+
+
 // --- 오류 ---
 
 TEST(TomlWriterReaderTest, TypeMismatchReportsPath)

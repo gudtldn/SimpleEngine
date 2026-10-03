@@ -120,6 +120,36 @@ void PackedWriter::RawElements(const void* data, u64 size)
     WriteBytes(data, size);
 }
 
+void PackedWriter::BeginSection()
+{
+    if (HasError())
+    {
+        return;
+    }
+
+    // 길이는 내용을 다 써야 알 수 있으므로 자리만 잡고 EndSection에서 채움
+    open_sections.Push(offset);
+    constexpr u64 placeholder = 0;
+    WriteBytes(&placeholder, sizeof(u64));
+}
+
+void PackedWriter::EndSection()
+{
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto length_offset = open_sections.Pop();
+    if (!length_offset)
+    {
+        SetError("PackedWriter: EndSection does not match an open section.");
+        return;
+    }
+    const u64 length = offset - (*length_offset + sizeof(u64));
+    std::memcpy(buffer.Data() + *length_offset, &length, sizeof(u64));
+}
+
 void PackedWriter::WriteBytes(const void* src, u64 byte_size)
 {
     // 빈 컨테이너의 데이터 포인터는 nullptr일 수 있고, memcpy에 nullptr를 넘기면 크기가 0이어도 정의되지 않은 동작
@@ -298,6 +328,49 @@ void PackedReader::RawElements(void* data, u64 size)
     ReadBytes(data, size);
 }
 
+void PackedReader::BeginSection()
+{
+    if (u64 length = 0; ReadSectionLength(length))
+    {
+        section_ends.Push(offset + length);
+    }
+}
+
+void PackedReader::EndSection()
+{
+    if (HasError())
+    {
+        return;
+    }
+
+    const auto end = section_ends.Pop();
+    if (!end)
+    {
+        SetError("PackedReader: EndSection does not match an open section.");
+        return;
+    }
+
+    // 덜 읽거나 더 읽었으면 쓴 타입과 읽는 타입이 다르거나 데이터가 손상된 것
+    if (offset != *end)
+    {
+        SetError(String::Format("PackedReader: section ends at offset {}, but reading stopped at offset {}.", *end, offset));
+    }
+}
+
+void PackedReader::SkipSection()
+{
+    if (u64 length = 0; ReadSectionLength(length))
+    {
+        offset += length;
+    }
+}
+
+void PackedReader::Rewind()
+{
+    offset = start_offset;
+    section_ends.Clear();
+}
+
 void PackedReader::ReadBytes(void* dest, u64 byte_size)
 {
     // WriteBytes와 같은 이유로 0바이트는 memcpy를 부르지 않음
@@ -342,6 +415,33 @@ bool PackedReader::ReadCount(u64& count)
     }
 
     count = narrowed;
+    return true;
+}
+
+bool PackedReader::ReadSectionLength(u64& length)
+{
+    if (HasError())
+    {
+        return false;
+    }
+
+    u64 result = 0;
+    ReadBytes(&result, sizeof(u64));
+    if (HasError())
+    {
+        return false;
+    }
+
+    if (result > buffer_view.Len() - offset)
+    {
+        SetError(String::Format(
+            "PackedReader: section length {} exceeds remaining bytes ({}).",
+            result, buffer_view.Len() - offset
+        ));
+        return false;
+    }
+
+    length = result;
     return true;
 }
 
@@ -452,5 +552,6 @@ PackedFileReader::PackedFileReader(ArrayView<const u8> in_view, TypeId root_type
     }
 
     offset = sizeof(PackedFileHeader);
+    start_offset = offset;
 }
 } // namespace se
