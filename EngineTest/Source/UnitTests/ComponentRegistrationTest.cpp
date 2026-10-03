@@ -3,8 +3,8 @@
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/Transient.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
-#include "SimpleEngine/ECS/WorldFileSkip.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include <algorithm>
@@ -50,10 +50,10 @@ TEST(ComponentRegistrationTest, BothRegistrationsAgreeForEveryComponent)
         const auto info = TypeRegistry::Get().Find(ops.type);
         ASSERT_TRUE(info.HasValue()) << "The component is not registered with SE_REFLECT_BEGIN.";
 
-        // 월드 파일에 쓰지 않는 컴포넌트는 두 등록 모두에 표시되어야 함
-        const bool is_skipped = info->HasAnnotation<WorldFileSkip>();
+        // 저장하지 않는 컴포넌트는 두 등록 모두에 표시되어야 함
+        const bool is_skipped = info->HasAnnotation<TransientAnnotation>();
         EXPECT_EQ(is_skipped, legacy_info->flags.IsSet(ETypeFlags_v1::Transient))
-            << "WorldFileSkip in SE_REFLECT_BEGIN and meta::Transient in SE_BEGIN_REFLECT_V1 must agree.";
+            << "Transient in SE_REFLECT_BEGIN and meta::Transient in SE_BEGIN_REFLECT_V1 must agree.";
         if (is_skipped)
         {
             continue;

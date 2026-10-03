@@ -22,7 +22,7 @@ public:
     explicit WorldFileWriter(World& in_world);
 
     /**
-     * 살아 있는 모든 엔티티를 TOML 텍스트로 만듭니다. WorldFileSkip이 붙은 컴포넌트는 쓰지 않습니다.
+     * 살아 있는 모든 엔티티를 TOML 텍스트로 만듭니다. Transient가 붙은 컴포넌트는 쓰지 않습니다.
      * 새 리플렉션에 등록되지 않은 컴포넌트나 저장하지 않는 엔티티를 가리키는 참조가 있으면 쓰지 않고 오류를 돌려줍니다.
      */
     [[nodiscard]] Expected<String, String> Write();
