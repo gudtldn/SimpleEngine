@@ -109,16 +109,16 @@ private:
     };
 
     /**
-     * 쓰는 중인 컨테이너 하나
+     * 스택에 쌓는 쓰기 Frame 하나
      * @note std::variant의 operator<는 제약 없이 선언되어 Deque의 기본 operator<=>가 컴파일되지 않으므로, 구조체로 감쌉니다.
      */
-    struct OpenContainer
+    struct FrameVariant
     {
-        std::variant<StructFrame, SeqFrame, MapFrame, MapEntryFrame> frame;
+        std::variant<StructFrame, SeqFrame, MapFrame, MapEntryFrame> value;
     };
 
     toml::table& root;
-    Stack<OpenContainer> open_containers;
+    Stack<FrameVariant> frames;
 
     /** 루트 struct를 시작했는지 여부 */
     bool root_started = false;
@@ -271,16 +271,16 @@ private:
     };
 
     /**
-     * 읽는 중인 컨테이너 하나
-     * TomlWriter::OpenContainer와 같은 이유로 구조체로 감쌉니다.
+     * 스택에 쌓는 읽기 Frame 하나
+     * TomlWriter::FrameVariant와 같은 이유로 구조체로 감쌉니다.
      */
-    struct OpenContainer
+    struct FrameVariant
     {
-        std::variant<StructFrame, SeqFrame, TableMapFrame, PairMapFrame, TableEntryFrame, PairEntryFrame> frame;
+        std::variant<StructFrame, SeqFrame, TableMapFrame, PairMapFrame, TableEntryFrame, PairEntryFrame> value;
     };
 
     const toml::table& root;
-    Stack<OpenContainer> open_containers;
+    Stack<FrameVariant> frames;
 
     /** 테이블에 있는데 타입에 없는 키의 경고 */
     Array<String> warnings;

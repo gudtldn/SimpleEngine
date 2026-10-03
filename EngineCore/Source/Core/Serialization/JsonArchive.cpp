@@ -501,12 +501,12 @@ struct JsonWriter::State
     };
 
     /**
-     * 쓰는 중인 컨테이너 하나
+     * 스택에 쌓는 쓰기 Frame 하나
      * @note std::variant의 operator<는 제약 없이 선언되어 Deque의 기본 operator<=>가 컴파일되지 않으므로, 구조체로 감쌉니다.
      */
-    struct OpenContainer
+    struct FrameVariant
     {
-        std::variant<StructFrame, SeqFrame, MapFrame, MapEntryFrame> frame;
+        std::variant<StructFrame, SeqFrame, MapFrame, MapEntryFrame> value;
     };
 
     explicit State(Archive& in_archive)
@@ -541,7 +541,7 @@ struct JsonWriter::State
             return false;
         }
 
-        if (open_containers.IsEmpty())
+        if (frames.IsEmpty())
         {
             if (yyjson_mut_doc_get_root(doc) != nullptr)
             {
@@ -618,12 +618,12 @@ struct JsonWriter::State
     template <typename Frame>
     [[nodiscard]] Optional<Frame&> TopAs()
     {
-        const auto top = open_containers.Peek();
+        const auto top = frames.Peek();
         if (!top)
         {
             return NullOpt;
         }
-        if (Frame* const frame = std::get_if<Frame>(&top->frame))
+        if (Frame* const frame = std::get_if<Frame>(&top->value))
         {
             return *frame;
         }
@@ -632,7 +632,7 @@ struct JsonWriter::State
 
     Archive& archive;
     yyjson_mut_doc* doc = nullptr;
-    Stack<OpenContainer> open_containers;
+    Stack<FrameVariant> frames;
 };
 
 JsonWriter::JsonWriter()
@@ -648,7 +648,7 @@ Expected<String, String> JsonWriter::ToText() const
     {
         return Unexpected{ String(GetError()) };
     }
-    if (!state->open_containers.IsEmpty())
+    if (!state->frames.IsEmpty())
     {
         return Unexpected{ "JsonWriter: the document has an unclosed container." };
     }
@@ -735,7 +735,7 @@ void JsonWriter::BeginStruct()
     yyjson_mut_val* const object = yyjson_mut_obj(state->doc);
     if (state->PlaceValue(object))
     {
-        state->open_containers.Push({ State::StructFrame{ .object = object } });
+        state->frames.Push({ State::StructFrame{ .object = object } });
     }
 }
 
@@ -778,7 +778,7 @@ void JsonWriter::EndStruct()
         SetError(String::Format("JsonWriter: field '{}' has no value.", *frame->pending_key));
         return;
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonWriter::BeginSeq([[maybe_unused]] u64 count, ESeqOrder order)
@@ -786,7 +786,7 @@ void JsonWriter::BeginSeq([[maybe_unused]] u64 count, ESeqOrder order)
     yyjson_mut_val* const array = yyjson_mut_arr(state->doc);
     if (state->PlaceValue(array))
     {
-        state->open_containers.Push({ State::SeqFrame{ .array = array, .order = order } });
+        state->frames.Push({ State::SeqFrame{ .array = array, .order = order } });
     }
 }
 
@@ -820,7 +820,7 @@ void JsonWriter::EndSeq()
             yyjson_mut_arr_append(frame->array, element);
         }
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonWriter::BeginMap([[maybe_unused]] u64 count)
@@ -828,7 +828,7 @@ void JsonWriter::BeginMap([[maybe_unused]] u64 count)
     // 객체로 쓸 수 있는지는 key를 모두 봐야 알 수 있으므로, 넣을 자리만 확인하고 EndMap까지 엔트리를 모아 둠
     if (state->CanPlaceValue())
     {
-        state->open_containers.Push({ State::MapFrame{ .entries = yyjson_mut_arr(state->doc) } });
+        state->frames.Push({ State::MapFrame{ .entries = yyjson_mut_arr(state->doc) } });
     }
 }
 
@@ -853,7 +853,7 @@ void JsonWriter::BeginMapEntry()
         SetError("JsonWriter: failed to allocate a JSON value.");
         return;
     }
-    state->open_containers.Push({ State::MapEntryFrame{ .pair = pair } });
+    state->frames.Push({ State::MapEntryFrame{ .pair = pair } });
 }
 
 void JsonWriter::EndMapEntry()
@@ -874,7 +874,7 @@ void JsonWriter::EndMapEntry()
         SetError("JsonWriter: a map entry needs exactly one key and one value.");
         return;
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonWriter::EndMap()
@@ -891,7 +891,7 @@ void JsonWriter::EndMap()
         return;
     }
     Array<yyjson_mut_val*> entries = ElementsOf(frame->entries);
-    state->open_containers.Pop();
+    state->frames.Pop();
 
     // key가 모두 문자열이면 객체 (빈 맵 포함)
     const bool has_only_string_keys = std::ranges::all_of(entries, [](yyjson_mut_val* entry)
@@ -1066,12 +1066,12 @@ struct JsonReader::State
     };
 
     /**
-     * 읽는 중인 컨테이너 하나
-     * JsonWriter::State::OpenContainer와 같은 이유로 구조체로 감쌉니다.
+     * 스택에 쌓는 읽기 Frame 하나
+     * JsonWriter::State::FrameVariant와 같은 이유로 구조체로 감쌉니다.
      */
-    struct OpenContainer
+    struct FrameVariant
     {
-        std::variant<StructFrame, SeqFrame, ObjectMapFrame, PairMapFrame, ObjectEntryFrame, PairEntryFrame> frame;
+        std::variant<StructFrame, SeqFrame, ObjectMapFrame, PairMapFrame, ObjectEntryFrame, PairEntryFrame> value;
     };
 
     explicit State(Archive& in_archive)
@@ -1098,7 +1098,7 @@ struct JsonReader::State
             return nullptr;
         }
 
-        const auto top = open_containers.Peek();
+        const auto top = frames.Peek();
         if (!top)
         {
             if (is_root_taken)
@@ -1165,7 +1165,7 @@ struct JsonReader::State
                 }
                 return yyjson_arr_get(frame.pair, frame.next_slot++);
             },
-        }, top->frame);
+        }, top->value);
     }
 
     /**
@@ -1250,7 +1250,7 @@ struct JsonReader::State
      */
     [[nodiscard]] String PathOfTakenValue() const
     {
-        const auto top = open_containers.Peek();
+        const auto top = frames.Peek();
         if (!top)
         {
             return {};
@@ -1272,19 +1272,19 @@ struct JsonReader::State
             // TakeValue가 맵에서는 값을 꺼내지 않음
             [](const ObjectMapFrame&) -> String { SE_UNREACHABLE(); },
             [](const PairMapFrame&) -> String { SE_UNREACHABLE(); },
-        }, top->frame);
+        }, top->value);
     }
 
     /** 맨 위 컨테이너가 Frame이면 그 프레임을, 비었거나 다른 종류면 NullOpt를 돌려줍니다. */
     template <typename Frame>
     [[nodiscard]] Optional<Frame&> TopAs()
     {
-        const auto top = open_containers.Peek();
+        const auto top = frames.Peek();
         if (!top)
         {
             return NullOpt;
         }
-        if (Frame* const frame = std::get_if<Frame>(&top->frame))
+        if (Frame* const frame = std::get_if<Frame>(&top->value))
         {
             return *frame;
         }
@@ -1296,7 +1296,7 @@ struct JsonReader::State
     /** 파싱한 문서. 파싱에 실패했으면 nullptr입니다. */
     yyjson_doc* doc = nullptr;
 
-    Stack<OpenContainer> open_containers;
+    Stack<FrameVariant> frames;
 
     /** 객체에 있는데 타입에 없는 키의 경고 */
     Array<String> warnings;
@@ -1497,7 +1497,7 @@ void JsonReader::BeginStruct()
         SetError(String::Format("JsonReader: expected an object, got {}.", JsonKindName(node)));
         return;
     }
-    state->open_containers.Push({ State::StructFrame{ .object = node, .path = state->PathOfTakenValue() } });
+    state->frames.Push({ State::StructFrame{ .object = node, .path = state->PathOfTakenValue() } });
 }
 
 bool JsonReader::Field(StringView name)
@@ -1551,7 +1551,7 @@ void JsonReader::EndStruct()
             state->warnings.Push(String::Format("JsonReader: unknown key '{}' is ignored.", text_archive::JoinPath(frame->path, name)));
         }
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonReader::BeginSeq(u64& count)
@@ -1571,7 +1571,7 @@ void JsonReader::BeginSeq(u64& count)
 
     State::SeqFrame frame{ .array = node, .path = state->PathOfTakenValue() };
     yyjson_arr_iter_init(node, &frame.next_element);
-    state->open_containers.Push({ std::move(frame) });
+    state->frames.Push({ std::move(frame) });
 }
 
 void JsonReader::EndSeq()
@@ -1586,7 +1586,7 @@ void JsonReader::EndSeq()
         SetError("JsonReader: EndSeq does not match an open sequence.");
         return;
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonReader::BeginMap(u64& count)
@@ -1601,13 +1601,13 @@ void JsonReader::BeginMap(u64& count)
     if (yyjson_is_obj(node))
     {
         count = yyjson_obj_size(node);
-        state->open_containers.Push({ State::ObjectMapFrame{ .object = node, .path = state->PathOfTakenValue(), .next_entry = yyjson_obj_iter_with(node) } });
+        state->frames.Push({ State::ObjectMapFrame{ .object = node, .path = state->PathOfTakenValue(), .next_entry = yyjson_obj_iter_with(node) } });
         return;
     }
     if (yyjson_is_arr(node))
     {
         count = yyjson_arr_size(node);
-        state->open_containers.Push({ State::PairMapFrame{ .pairs = node, .path = state->PathOfTakenValue(), .next_pair = yyjson_arr_iter_with(node) } });
+        state->frames.Push({ State::PairMapFrame{ .pairs = node, .path = state->PathOfTakenValue(), .next_pair = yyjson_arr_iter_with(node) } });
         return;
     }
     SetError(String::Format("JsonReader: expected an object or an array, got {}.", JsonKindName(node)));
@@ -1630,7 +1630,7 @@ void JsonReader::BeginMapEntry()
             return;
         }
         const StringView name = std::string_view{ yyjson_get_str(key), yyjson_get_len(key) };
-        state->open_containers.Push({ State::ObjectEntryFrame{
+        state->frames.Push({ State::ObjectEntryFrame{
             .key = key,
             .value = yyjson_obj_iter_get_val(key),
             .path = text_archive::JoinPath(frame->path, name),
@@ -1664,7 +1664,7 @@ void JsonReader::BeginMapEntry()
     }
 
     // 방금 꺼낸 쌍의 번호는 idx - 1
-    state->open_containers.Push({ State::PairEntryFrame{
+    state->frames.Push({ State::PairEntryFrame{
         .pair = pair,
         .path = String::Format("{}[{}]", frame->path, frame->next_pair.idx - 1),
     }, });
@@ -1682,7 +1682,7 @@ void JsonReader::EndMapEntry()
         SetError("JsonReader: EndMapEntry does not match an open map entry.");
         return;
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonReader::EndMap()
@@ -1697,7 +1697,7 @@ void JsonReader::EndMap()
         SetError("JsonReader: EndMap does not match an open map.");
         return;
     }
-    state->open_containers.Pop();
+    state->frames.Pop();
 }
 
 void JsonReader::Present(bool& has_value)
@@ -1721,7 +1721,7 @@ void JsonReader::SkipSection()
 
 void JsonReader::Rewind()
 {
-    state->open_containers.Clear();
+    state->frames.Clear();
     state->warnings.Clear();
     state->is_root_taken = false;
 }
