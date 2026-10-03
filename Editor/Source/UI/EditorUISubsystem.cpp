@@ -294,11 +294,10 @@ void EditorUISubsystem::DrawMainMenu()
 
                             World& world = entity_sub->GetMainWorld().GetWorld();
 
-                            // 파일의 영속 ID를 그대로 쓰도록 비운 월드에 읽음 (Resource는 유지)
-                            world.Reset();
+                            // 읽기에 성공했을 때만 기존 월드를 비우고 파일의 영속 ID 그대로 읽음 (Resource는 유지)
                             JsonReader json_reader{ StringView{ reinterpret_cast<const char*>(data.Data()), data.Len() } };
                             WorldFileReader reader{ world };
-                            const auto result = reader.Read(json_reader);
+                            const auto result = reader.Replace(json_reader);
                             for (const String& warning : reader.GetWarnings())
                             {
                                 ConsoleLog(ELogLevel::Warning, "{}", warning);

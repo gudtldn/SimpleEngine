@@ -609,3 +609,73 @@ TEST(WorldFileTest, DanglingReferenceIsWrittenAsNullWithWarning)
     ASSERT_TRUE(loaded_child.IsValid());
     EXPECT_FALSE(loaded.GetComponent<ParentComponent>(loaded_child).parent.IsValid());
 }
+
+TEST(WorldFileTest, ReplaceSwapsWorldContentsAndKeepsFileIds)
+{
+    constexpr StringView text = R"({
+    "format_version": 1,
+    "entities": [
+        { "id": 42, "components": { "se::NameComponent": { "name": "loaded" }, "se::RemovedComponent": { "value": 3 } } }
+    ]
+})";
+
+    World world;
+    world.SpawnEntity(NameComponent{ .name = "old_a" });
+    world.SpawnEntity(NameComponent{ .name = "old_b" });
+
+    WorldFileReader reader(world);
+    JsonReader json_reader{ text };
+    const auto result = reader.Replace(json_reader);
+    ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
+
+    // 기존 엔티티는 사라지고 파일의 엔티티가 파일의 영속 ID 그대로 남음
+    ASSERT_EQ(world.GetAliveEntities().Len(), 1u);
+    const Entity entity = world.GetAliveEntities()[0];
+    EXPECT_EQ(world.GetComponent<NameComponent>(entity).name, "loaded");
+    EXPECT_EQ(world.GetComponent<PersistentIdComponent>(entity).id, 42u);
+
+    // 경고는 마지막으로 읽은 쪽의 것만 남음
+    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
+    EXPECT_TRUE(reader.GetWarnings()[0].Contains("se::RemovedComponent")) << reader.GetWarnings()[0].CStr();
+}
+
+TEST(WorldFileTest, ReplaceKeepsWorldWhenComponentReadFails)
+{
+    // 두 번째 엔티티의 name이 문자열이 아니라 읽기에 실패함
+    constexpr StringView text = R"({
+    "format_version": 1,
+    "entities": [
+        { "id": 1, "components": { "se::NameComponent": { "name": "first" } } },
+        { "id": 2, "components": { "se::NameComponent": { "name": 5 } } }
+    ]
+})";
+
+    World world;
+    const Entity existing = world.SpawnEntity(NameComponent{ .name = "existing" }, PersistentIdComponent{ .id = 77 });
+
+    WorldFileReader reader(world);
+    JsonReader json_reader{ text };
+    const auto result = reader.Replace(json_reader);
+    ASSERT_TRUE(result.HasError());
+    EXPECT_TRUE(result.Error().Contains("entity 2")) << result.Error().CStr();
+
+    // 기존 엔티티와 컴포넌트가 그대로 남음
+    ASSERT_EQ(world.GetAliveEntities().Len(), 1u);
+    EXPECT_EQ(world.GetAliveEntities()[0], existing);
+    EXPECT_EQ(world.GetComponent<NameComponent>(existing).name, "existing");
+    EXPECT_EQ(world.GetComponent<PersistentIdComponent>(existing).id, 77u);
+}
+
+TEST(WorldFileTest, ReplaceKeepsWorldWhenTextIsNotJson)
+{
+    World world;
+    const Entity existing = world.SpawnEntity(NameComponent{ .name = "existing" });
+
+    WorldFileReader reader(world);
+    JsonReader json_reader{ "{ not json" };
+    const auto result = reader.Replace(json_reader);
+    ASSERT_TRUE(result.HasError());
+
+    ASSERT_EQ(world.GetAliveEntities().Len(), 1u);
+    EXPECT_EQ(world.GetAliveEntities()[0], existing);
+}
