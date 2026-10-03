@@ -22,6 +22,7 @@
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Serialization/JsonArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
@@ -232,8 +233,18 @@ void EditorUISubsystem::DrawMainMenu()
                 {
                     // 다이얼로그 표시 전에 직렬화하여 현재 상태를 캡처
                     WorldFileWriter writer{ entity_sub->GetMainWorld().GetWorld() };
-                    auto content = writer.Write();
-                    if (content.HasError())
+                    JsonWriter json_writer;
+                    const auto write_result = writer.Write(json_writer);
+                    for (const String& warning : writer.GetWarnings())
+                    {
+                        ConsoleLog(ELogLevel::Warning, "{}", warning);
+                    }
+
+                    if (write_result.HasError())
+                    {
+                        ConsoleLog(ELogLevel::Error, "Failed to save world: {}", write_result.Error());
+                    }
+                    else if (auto content = json_writer.ToText(); content.HasError())
                     {
                         ConsoleLog(ELogLevel::Error, "Failed to save world: {}", content.Error());
                     }
@@ -285,8 +296,9 @@ void EditorUISubsystem::DrawMainMenu()
 
                             // 파일의 영속 ID를 그대로 쓰도록 비운 월드에 읽음 (Resource는 유지)
                             world.Reset();
+                            JsonReader json_reader{ StringView{ reinterpret_cast<const char*>(data.Data()), data.Len() } };
                             WorldFileReader reader{ world };
-                            const auto result = reader.Read(StringView{ reinterpret_cast<const char*>(data.Data()), data.Len() });
+                            const auto result = reader.Read(json_reader);
                             for (const String& warning : reader.GetWarnings())
                             {
                                 ConsoleLog(ELogLevel::Warning, "{}", warning);
