@@ -738,7 +738,7 @@ TEST(BinaryArchiveTest, FileHeaderRecordsLayoutFields)
 
     // magic(0) | wire 버전(4) | 루트 TypeId(8) | 스키마 해시(16) | payload 크기(24) | 체크섬(32)
     // BinaryFileHeader의 필드 순서가 바뀌어도 왕복은 통과하므로, 저장 배치는 바이트 위치로 고정합니다.
-    EXPECT_EQ(std::memcmp(buffer.Data(), "SEPK", 4), 0);
+    EXPECT_EQ(std::memcmp(buffer.Data(), "SEBN", 4), 0);
 
     u32 wire_version = 0;
     std::memcpy(&wire_version, buffer.Data() + 4, sizeof(wire_version));

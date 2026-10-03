@@ -18,7 +18,7 @@ static_assert(std::endian::native == std::endian::little, "BinaryArchive only su
 namespace
 {
 /** 헤더 맨 앞의 식별 바이트 */
-constexpr u8 HEADER_MAGIC[4] = { 'S', 'E', 'P', 'K' };
+constexpr u8 HEADER_MAGIC[4] = { 'S', 'E', 'B', 'N' };
 
 /** 헤더 배치와 노드 인코딩의 버전. 둘 중 하나라도 바뀌면 올립니다. */
 constexpr u32 WIRE_VERSION = 1;

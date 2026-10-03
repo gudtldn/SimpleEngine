@@ -131,7 +131,7 @@ private:
  */
 struct BinaryFileHeader
 {
-    /** 식별 바이트 "SEPK" */
+    /** 식별 바이트 "SEBN" */
     u8 magic[4] = {};
 
     /** 헤더 배치와 노드 인코딩의 버전 */
