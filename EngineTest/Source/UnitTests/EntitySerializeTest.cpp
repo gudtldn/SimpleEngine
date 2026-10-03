@@ -177,22 +177,26 @@ TEST(EntitySerializeTest, MissingContextOrRemapperIsError)
     }
 }
 
-TEST(EntitySerializeTest, EntityWithoutPersistentIdIsWriteError)
+TEST(EntitySerializeTest, UnknownEntityIsWrittenAsNullAndRecorded)
 {
-    // 저장하지 않는 엔티티를 가리키는 참조는 영속 ID로 쓸 수 없음
+    using se_entity_serialize_test::HasEntities;
+
+    // 저장하지 않는 엔티티를 가리키는 참조는 null로 쓰고, 같은 엔티티도 참조마다 셈
     EntityManager entities;
     const Entity unsaved = entities.Create();
+    const Entity other_unsaved = entities.Create();
     EntityRemapper remapper;
     SerializeContext context;
     context.Add(remapper);
 
-    Array<u8> buffer;
-    BinaryWriter writer(buffer);
+    toml::table table;
+    TomlWriter writer(table);
     writer.SetContext(&context);
-    const auto result = serde::Serialize(writer, se_entity_serialize_test::HasEntities{ .children = { unsaved } });
-    ASSERT_TRUE(result.HasError());
-    EXPECT_EQ(result.Error().path, "children[0]");
-    EXPECT_EQ(result.Error().message, "SerializeTraits<Entity>: entity (id 0, generation 0) has no persistent id in the EntityRemapper.");
+    ASSERT_TRUE(serde::Serialize(writer, HasEntities{ .parent = unsaved, .children = { unsaved, other_unsaved } }).HasValue());
+    EXPECT_EQ(table["parent"].value_exact<i64>(), 0);
+    EXPECT_EQ(table["children"][0].value_exact<i64>(), 0);
+    EXPECT_EQ(table["children"][1].value_exact<i64>(), 0);
+    EXPECT_EQ(remapper.GetUnresolvedEntityCount(), 3u);
 }
 
 TEST(EntitySerializeTest, UnknownIdIsReadAsNullAndRecorded)
@@ -284,7 +288,7 @@ TEST(EntitySerializeTest, RemapperAddRejectsNullZeroAndDuplicates)
 
     // 실패한 Add는 아무것도 바꾸지 않음
     EXPECT_EQ(remapper.ToPersistentId(first), u64{ 1 });
-    EXPECT_FALSE(remapper.ToPersistentId(second).HasValue());
+    EXPECT_EQ(remapper.ToPersistentId(second), u64{ 0 });
     EXPECT_EQ(remapper.ToEntity(1), first);
     EXPECT_EQ(remapper.ToPersistentId(Entity{}), u64{ 0 });
 }

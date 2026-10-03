@@ -20,17 +20,20 @@ bool EntityRemapper::Add(Entity entity, u64 persistent_id)
     return true;
 }
 
-Optional<u64> EntityRemapper::ToPersistentId(Entity entity) const
+u64 EntityRemapper::ToPersistentId(Entity entity)
 {
     if (!entity.IsValid())
     {
-        return u64{ 0 };
+        return 0;
     }
     if (const auto persistent_id = id_by_entity.Find(entity))
     {
         return *persistent_id;
     }
-    return NullOpt;
+
+    // 저장하지 않는 엔티티를 가리키는 참조는 끊고, 저장하는 쪽이 알릴 수 있게 기록
+    ++unresolved_entity_count;
+    return 0;
 }
 
 Entity EntityRemapper::ToEntity(u64 persistent_id)
@@ -55,5 +58,10 @@ Entity EntityRemapper::ToEntity(u64 persistent_id)
 ArrayView<const u64> EntityRemapper::GetUnresolvedIds() const
 {
     return unresolved_ids;
+}
+
+usize EntityRemapper::GetUnresolvedEntityCount() const
+{
+    return unresolved_entity_count;
 }
 } // namespace se

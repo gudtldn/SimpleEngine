@@ -31,6 +31,7 @@ namespace
 
 /**
  * 실행마다 달라지는 슬롯 번호(id, generation) 대신 EntityRemapper가 정한 u64 영속 ID로 저장합니다. null Entity는 0입니다.
+ * 저장할 때 EntityRemapper가 모르는 Entity는 0(null)으로 쓰고, 저장하는 쪽이 알릴 수 있게 EntityRemapper에 기록됩니다.
  * 로드할 때 EntityRemapper가 모르는 영속 ID는 null Entity로 읽고, 로더가 알릴 수 있게 EntityRemapper에 기록됩니다.
  */
 template <>
@@ -46,16 +47,7 @@ struct SerializeTraits<Entity>
             return;
         }
 
-        // 저장하지 않는 엔티티를 가리키는 참조는 영속 ID로 쓸 수 없으므로 오류로 처리
-        const auto persistent_id = remapper->ToPersistentId(value);
-        if (!persistent_id)
-        {
-            writer.SetError(String::Format(
-                "SerializeTraits<Entity>: entity (id {}, generation {}) has no persistent id in the EntityRemapper.",
-                value.GetId(), value.GetGeneration()));
-            return;
-        }
-        writer.Int(static_cast<i64>(*persistent_id), EIntWidth::Bits64, false);
+        writer.Int(static_cast<i64>(remapper->ToPersistentId(value)), EIntWidth::Bits64, false);
     }
 
     static void Read(ArchiveReader& reader, Entity& value)
