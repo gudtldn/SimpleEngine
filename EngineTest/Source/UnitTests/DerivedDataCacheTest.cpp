@@ -465,7 +465,7 @@ TEST_F(DDCTest, CorruptedPayloadIsMiss)
     Array<u8> file = StoreStaticMesh(ddc, guid, hash);
     ASSERT_FALSE(file.IsEmpty());
 
-    // 마지막 바이트만 바꾸므로 앞부분 검사는 통과하고 Packed 헤더의 체크섬에서 거절됨
+    // 마지막 바이트만 바꾸므로 앞부분 검사는 통과하고 Binary 헤더의 체크섬에서 거절됨
     file[file.Len() - 1] = static_cast<u8>(~file[file.Len() - 1]);
     ASSERT_TRUE(fs::Write(ddc.BuildCachePath(guid), file));
 
@@ -485,7 +485,7 @@ TEST_F(DDCTest, TruncatedFileIsMiss)
     EXPECT_FALSE(ddc.IsValid(guid, hash, 1));
     EXPECT_FALSE(ddc.Load(guid).HasValue());
 
-    // payload 중간에서 잘리면 Packed 헤더의 크기 검사에서 거절됨
+    // payload 중간에서 잘리면 Binary 헤더의 크기 검사에서 거절됨
     ASSERT_TRUE(fs::Write(ddc.BuildCachePath(guid), ArrayView<const u8>(file.Data(), file.Len() - 5)));
     EXPECT_TRUE(ddc.IsValid(guid, hash, 1));
     EXPECT_FALSE(CanDeserializeStaticMesh(ddc, guid));

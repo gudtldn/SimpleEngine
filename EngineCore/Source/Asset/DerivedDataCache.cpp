@@ -23,7 +23,7 @@ constexpr StringView TEMP_EXTENSION = ".cache.tmp";
 
 /**
  * 캐시 파일 맨 앞에 두는 엔트리 정보. 구조체의 메모리 표현을 그대로 쓰고 읽으므로 패딩 없이 둡니다.
- * payload(에셋의 Packed 파일)와 달리 체크섬 밖에 있어, IsValid가 파일 앞부분만 읽고 판단할 수 있습니다.
+ * payload(에셋의 Binary 파일)와 달리 체크섬 밖에 있어, IsValid가 파일 앞부분만 읽고 판단할 수 있습니다.
  */
 struct CachePrefix
 {

@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Core/Types/Guid.h"
@@ -54,17 +54,17 @@ namespace
 } // namespace
 
 
-TEST(AssetIdSerializeTest, PackedRoundTrip)
+TEST(AssetIdSerializeTest, BinaryRoundTrip)
 {
     using namespace se_asset_id_serialize_test;
 
     for (const HasAssetIds& original : MakeOriginals())
     {
         Array<u8> buffer;
-        PackedWriter writer(buffer);
+        BinaryWriter writer(buffer);
         ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
-        PackedReader reader(buffer);
+        BinaryReader reader(buffer);
         HasAssetIds result = MakeTarget();
         ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
         EXPECT_EQ(result, original);
@@ -88,16 +88,16 @@ TEST(AssetIdSerializeTest, TomlRoundTrip)
     }
 }
 
-TEST(AssetIdSerializeTest, PackedWritesSameBytesAsGuid)
+TEST(AssetIdSerializeTest, BinaryWritesSameBytesAsGuid)
 {
     const Guid guid = Guid::NewGuid();
 
     Array<u8> asset_id_bytes;
-    PackedWriter asset_id_writer(asset_id_bytes);
+    BinaryWriter asset_id_writer(asset_id_bytes);
     ASSERT_TRUE(serde::Serialize(asset_id_writer, AssetId{ guid }).HasValue());
 
     Array<u8> guid_bytes;
-    PackedWriter guid_writer(guid_bytes);
+    BinaryWriter guid_writer(guid_bytes);
     ASSERT_TRUE(serde::Serialize(guid_writer, guid).HasValue());
 
     EXPECT_EQ(asset_id_bytes.Len(), sizeof(Guid));

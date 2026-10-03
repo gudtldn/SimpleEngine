@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 
@@ -41,8 +41,8 @@ TEST(SerializeContextTest, ArchiveCarriesContext)
     SerializeContext context;
 
     Array<u8> buffer;
-    PackedWriter packed_writer(buffer);
-    PackedReader packed_reader(buffer);
+    BinaryWriter binary_writer(buffer);
+    BinaryReader binary_reader(buffer);
     toml::table table;
     TomlWriter toml_writer(table);
     TomlReader toml_reader(table);
@@ -54,8 +54,8 @@ TEST(SerializeContextTest, ArchiveCarriesContext)
         archive.SetContext(&context);
         EXPECT_EQ(archive.GetContext(), &context);
     };
-    expect_carries_context(packed_writer);
-    expect_carries_context(packed_reader);
+    expect_carries_context(binary_writer);
+    expect_carries_context(binary_reader);
     expect_carries_context(toml_writer);
     expect_carries_context(toml_reader);
 }

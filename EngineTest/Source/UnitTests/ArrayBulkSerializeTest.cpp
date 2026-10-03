@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
@@ -17,7 +17,7 @@
 
 using namespace se;
 
-// Packed 인코딩이 메모리 바이트와 같은 원소의 배열은 원소마다 쓰지 않고 저장소를 한 번에 쓰고 읽으므로,
+// Binary 인코딩이 메모리 바이트와 같은 원소의 배열은 원소마다 쓰지 않고 저장소를 한 번에 쓰고 읽으므로,
 // Plan의 판단과, 한 번에 쓴 바이트가 원소마다 쓴 바이트와 같은지, 잘린 데이터를 오류로 처리하는지 검증
 namespace se_array_bulk_test
 {
@@ -82,22 +82,22 @@ template <typename Container>
     return std::get<ArraySteps>(SerializePlanOf<Container>().steps).raw_element_size;
 }
 
-/** values를 serde::Serialize로 Packed에 씁니다. */
+/** values를 serde::Serialize로 Binary에 씁니다. */
 template <typename T>
-[[nodiscard]] Array<u8> WritePacked(const Array<T>& values)
+[[nodiscard]] Array<u8> WriteBinary(const Array<T>& values)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     EXPECT_TRUE(serde::Serialize(writer, values).HasValue());
     return buffer;
 }
 
-/** 배열 경로를 거치지 않고, 같은 길이 접두 뒤에 원소를 하나씩 serde::Serialize로 Packed에 씁니다. */
+/** 배열 경로를 거치지 않고, 같은 길이 접두 뒤에 원소를 하나씩 serde::Serialize로 Binary에 씁니다. */
 template <typename T>
 [[nodiscard]] Array<u8> WriteElementByElement(const Array<T>& values)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     writer.BeginSeq(values.Len(), ESeqOrder::Ordered);
     for (const T& value : values)
     {
@@ -107,15 +107,15 @@ template <typename T>
     return buffer;
 }
 
-/** original을 Packed로 쓰고 다른 내용을 담은 배열에 다시 읽어, 길이와 바이트가 같은지 확인합니다. */
+/** original을 Binary로 쓰고 다른 내용을 담은 배열에 다시 읽어, 길이와 바이트가 같은지 확인합니다. */
 template <typename T>
 void ExpectRoundTrip(const Array<T>& original)
 {
     SCOPED_TRACE(std::string_view{ TypeNameOf<Array<T>>() });
 
-    const Array<u8> buffer = WritePacked(original);
+    const Array<u8> buffer = WriteBinary(original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     Array<T> result;
     result.Resize(2);
     ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
@@ -161,7 +161,7 @@ TEST(ArrayBulkSerializeTest, VertexEncodingEqualsItsMemoryBytes)
 
     // 배열이 아닌 구조체 하나는 필드마다 씀
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     ASSERT_TRUE(serde::Serialize(writer, vertex).HasValue());
 
     ASSERT_EQ(buffer.Len(), sizeof(StaticVertex));
@@ -171,16 +171,16 @@ TEST(ArrayBulkSerializeTest, VertexEncodingEqualsItsMemoryBytes)
 TEST(ArrayBulkSerializeTest, RawElementsWriteSameBytesAsElementByElement)
 {
     const Array<StaticVertex> vertices = MakeVertices(3);
-    EXPECT_EQ(WritePacked(vertices), WriteElementByElement(vertices));
+    EXPECT_EQ(WriteBinary(vertices), WriteElementByElement(vertices));
 
     const Array<u32> indices = { 0, 1, 2, 70000, 0xFFFFFFFF };
-    EXPECT_EQ(WritePacked(indices), WriteElementByElement(indices));
+    EXPECT_EQ(WriteBinary(indices), WriteElementByElement(indices));
 
     const Array<u8> pixels = { 0, 1, 128, 255 };
-    EXPECT_EQ(WritePacked(pixels), WriteElementByElement(pixels));
+    EXPECT_EQ(WriteBinary(pixels), WriteElementByElement(pixels));
 }
 
-TEST(ArrayBulkSerializeTest, PackedRoundTripKeepsEveryByte)
+TEST(ArrayBulkSerializeTest, BinaryRoundTripKeepsEveryByte)
 {
     ExpectRoundTrip(MakeVertices(1000));
     ExpectRoundTrip(Array<u32>{ 0, 1, 2, 70000, 0xFFFFFFFF });
@@ -193,10 +193,10 @@ TEST(ArrayBulkSerializeTest, PackedRoundTripKeepsEveryByte)
 
 TEST(ArrayBulkSerializeTest, TruncatedElementBytesFailCleanly)
 {
-    const Array<u8> buffer = WritePacked(MakeVertices(4));
+    const Array<u8> buffer = WriteBinary(MakeVertices(4));
 
     // 길이 접두 검사는 통과하지만 원소 바이트가 1바이트 모자람
-    PackedReader reader(ArrayView<const u8>(buffer.Data(), buffer.Len() - 1));
+    BinaryReader reader(ArrayView<const u8>(buffer.Data(), buffer.Len() - 1));
     Array<StaticVertex> result;
     const auto read_result = serde::Deserialize(reader, result);
 
@@ -208,12 +208,12 @@ TEST(ArrayBulkSerializeTest, CountLargerThanRemainingBytesFailsBeforeResizing)
 {
     // 원소 1000개라고 적었지만 뒤에 8바이트만 있는 데이터
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     writer.BeginSeq(1000, ESeqOrder::Ordered);
     constexpr u64 TRAILING_BYTES = 0;
     writer.Bytes(&TRAILING_BYTES, sizeof(TRAILING_BYTES));
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     Array<StaticVertex> result = MakeVertices(2);
     const auto read_result = serde::Deserialize(reader, result);
 

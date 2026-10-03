@@ -41,7 +41,7 @@ struct CacheEntry
  * 캐시 파일 포맷:
  *   [4  bytes]   Cache Version: u32
  *   [32 bytes]   Source Hash: ContentHash
- *   [N  bytes]   Payload: 에셋을 PackedFileWriter로 쓴 바이트 (magic, 루트 타입, 스키마 해시, 체크섬은 Packed 헤더가 가짐)
+ *   [N  bytes]   Payload: 에셋을 BinaryFileWriter로 쓴 바이트 (magic, 루트 타입, 스키마 해시, 체크섬은 Binary 헤더가 가짐)
  *
  * 앞의 두 값은 IsValid가 파일 앞부분만 읽고 캐시가 최신인지 판단하는 데 씁니다.
  *

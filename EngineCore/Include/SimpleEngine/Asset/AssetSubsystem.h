@@ -104,7 +104,7 @@ public:
     [[nodiscard]] AssetHandle<T> RegisterBuiltin(const AssetId& asset_id, std::unique_ptr<T> asset);
 
 public:
-    /** Asset을 DDC payload(루트 타입과 스키마 해시를 담은 Packed 파일)로 직렬화합니다. 실패하면 빈 배열을 반환합니다. */
+    /** Asset을 DDC payload(루트 타입과 스키마 해시를 담은 Binary 파일)로 직렬화합니다. 실패하면 빈 배열을 반환합니다. */
     [[nodiscard]] static Array<u8> SerializeAssetPayload(const AssetBase& asset);
 
     /**

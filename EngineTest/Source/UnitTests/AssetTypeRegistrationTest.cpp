@@ -11,7 +11,7 @@
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
 #include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
@@ -31,7 +31,7 @@ using namespace se::test_assets;
 
 // 에셋 payload 타입은 에셋 생성과 에디터 UI가 쓰는 레거시 리플렉션(TypeRegistry_v1)과 새 직렬화가 쓰는 리플렉션(TypeRegistry)에
 // 모두 등록되므로, 한쪽에만 필드나 enum 값을 추가하는 실수를 잡기 위해 두 등록을 비교
-// EngineCore가 등록한 에셋 타입을 EngineCore 밖(이 실행 파일)에서 Packed와 TOML로 왕복할 수 있는지도 확인
+// EngineCore가 등록한 에셋 타입을 EngineCore 밖(이 실행 파일)에서 Binary와 TOML로 왕복할 수 있는지도 확인
 namespace
 {
 /** 타입 하나를 두 레지스트리에서 찾을 TypeId */
@@ -64,17 +64,17 @@ template <std::ranges::input_range Names>
     return joined;
 }
 
-/** original을 Packed로 쓰고 기본값 객체에 다시 읽어, 읽은 값이 원본과 같은지 확인합니다. */
+/** original을 Binary로 쓰고 기본값 객체에 다시 읽어, 읽은 값이 원본과 같은지 확인합니다. */
 template <typename T>
-void ExpectPackedRoundTrip(const T& original)
+void ExpectBinaryRoundTrip(const T& original)
 {
     SCOPED_TRACE(std::string_view{ TypeNameOf<T>() });
 
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     T result;
     ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
     EXPECT_EQ(WriteToml(result), WriteToml(original));
@@ -164,13 +164,13 @@ TEST(AssetTypeRegistrationTest, BothRegistrationsListSameEnumNames)
     }
 }
 
-TEST(AssetTypeRegistrationTest, EveryAssetTypeRoundTripsThroughPacked)
+TEST(AssetTypeRegistrationTest, EveryAssetTypeRoundTripsThroughBinary)
 {
-    ExpectPackedRoundTrip(MakeStaticMesh());
-    ExpectPackedRoundTrip(MakeSkeletalMesh());
-    ExpectPackedRoundTrip(MakeTexture2D());
-    ExpectPackedRoundTrip(MakeMaterial());
-    ExpectPackedRoundTrip(MakeMaterialInstance());
+    ExpectBinaryRoundTrip(MakeStaticMesh());
+    ExpectBinaryRoundTrip(MakeSkeletalMesh());
+    ExpectBinaryRoundTrip(MakeTexture2D());
+    ExpectBinaryRoundTrip(MakeMaterial());
+    ExpectBinaryRoundTrip(MakeMaterialInstance());
 }
 
 TEST(AssetTypeRegistrationTest, EveryAssetTypeRoundTripsThroughToml)

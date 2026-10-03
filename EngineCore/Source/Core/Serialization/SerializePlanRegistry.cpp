@@ -182,7 +182,7 @@ PrimitiveEntry MakePrimitiveEntry()
 }
 
 /**
- * steps까지 만든 타입의 Packed 인코딩이 메모리 바이트와 똑같은지(trivially packable) 판단합니다.
+ * steps까지 만든 타입의 Binary 인코딩이 메모리 바이트와 똑같은지(trivially packable) 판단합니다.
  * bool을 뺀 산술 타입과, trivially packable한 필드만 오프셋 순서로 빈틈없이 등록해 합이 sizeof와 같은 구조체가 해당합니다.
  */
 [[nodiscard]] bool IsTriviallyPackable(const TypeInfo& info, const PlanSteps& steps)

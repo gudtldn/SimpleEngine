@@ -4,14 +4,14 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 #include <cstring>
 
-// 쿡된 메시 크기의 정점 배열(1M개, 48MB)을 Packed로 쓰고 읽는 비용을 같은 바이트의 memcpy와 비교합니다.
+// 쿡된 메시 크기의 정점 배열(1M개, 48MB)을 Binary로 쓰고 읽는 비용을 같은 바이트의 memcpy와 비교합니다.
 // 버퍼와 대상 배열은 반복마다 재사용하므로 할당 비용은 빠지고 복사 경로만 비교됩니다.
 
 namespace se
@@ -63,8 +63,8 @@ static void BM_VertexBytes_Memcpy(benchmark::State& state)
 }
 BENCHMARK(BM_VertexBytes_Memcpy)->Unit(benchmark::kMillisecond);
 
-/** serde::Serialize로 정점 배열을 Packed에 씁니다. 원소 바이트를 RawElements로 한 번에 씁니다. */
-static void BM_VertexArray_PackedSerialize(benchmark::State& state)
+/** serde::Serialize로 정점 배열을 Binary에 씁니다. 원소 바이트를 RawElements로 한 번에 씁니다. */
+static void BM_VertexArray_BinarySerialize(benchmark::State& state)
 {
     const Array<StaticVertex> vertices = MakeBenchmarkVertices();
     Array<u8> buffer;
@@ -72,7 +72,7 @@ static void BM_VertexArray_PackedSerialize(benchmark::State& state)
     for ([[maybe_unused]] auto _ : state)
     {
         buffer.Clear();
-        PackedWriter writer(buffer);
+        BinaryWriter writer(buffer);
         if (serde::Serialize(writer, vertices).HasError())
         {
             state.SkipWithError("Serialize failed.");
@@ -82,13 +82,13 @@ static void BM_VertexArray_PackedSerialize(benchmark::State& state)
     }
     SetVertexBytesProcessed(state);
 }
-BENCHMARK(BM_VertexArray_PackedSerialize)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_VertexArray_BinarySerialize)->Unit(benchmark::kMillisecond);
 
-/** serde::Deserialize로 Packed에서 정점 배열을 읽습니다. 원소 바이트를 RawElements로 한 번에 읽습니다. */
-static void BM_VertexArray_PackedDeserialize(benchmark::State& state)
+/** serde::Deserialize로 Binary에서 정점 배열을 읽습니다. 원소 바이트를 RawElements로 한 번에 읽습니다. */
+static void BM_VertexArray_BinaryDeserialize(benchmark::State& state)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     if (serde::Serialize(writer, MakeBenchmarkVertices()).HasError())
     {
         state.SkipWithError("Serialize failed.");
@@ -98,7 +98,7 @@ static void BM_VertexArray_PackedDeserialize(benchmark::State& state)
     Array<StaticVertex> vertices;
     for ([[maybe_unused]] auto _ : state)
     {
-        PackedReader reader(buffer);
+        BinaryReader reader(buffer);
         if (serde::Deserialize(reader, vertices).HasError())
         {
             state.SkipWithError("Deserialize failed.");
@@ -108,10 +108,10 @@ static void BM_VertexArray_PackedDeserialize(benchmark::State& state)
     }
     SetVertexBytesProcessed(state);
 }
-BENCHMARK(BM_VertexArray_PackedDeserialize)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_VertexArray_BinaryDeserialize)->Unit(benchmark::kMillisecond);
 
 /** 비교용: 같은 배열을 원소마다 serde::Serialize로 씁니다. 배열 경로를 거치지 않아 정점마다 필드별로 씁니다. */
-static void BM_VertexArray_PackedSerializeElementByElement(benchmark::State& state)
+static void BM_VertexArray_BinarySerializeElementByElement(benchmark::State& state)
 {
     const Array<StaticVertex> vertices = MakeBenchmarkVertices();
     Array<u8> buffer;
@@ -119,7 +119,7 @@ static void BM_VertexArray_PackedSerializeElementByElement(benchmark::State& sta
     for ([[maybe_unused]] auto _ : state)
     {
         buffer.Clear();
-        PackedWriter writer(buffer);
+        BinaryWriter writer(buffer);
         writer.BeginSeq(vertices.Len(), ESeqOrder::Ordered);
         for (const StaticVertex& vertex : vertices)
         {
@@ -134,7 +134,7 @@ static void BM_VertexArray_PackedSerializeElementByElement(benchmark::State& sta
     }
     SetVertexBytesProcessed(state);
 }
-BENCHMARK(BM_VertexArray_PackedSerializeElementByElement)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_VertexArray_BinarySerializeElementByElement)->Unit(benchmark::kMillisecond);
 
 /** DDC가 payload를 쓰고 읽을 때마다 계산하는 StaticMesh의 스키마 해시입니다. */
 static void BM_StaticMesh_SchemaHash(benchmark::State& state)

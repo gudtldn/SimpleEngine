@@ -103,7 +103,7 @@ struct SE_CORE_API SerializePlan
     PlanSteps steps;
 
     /**
-     * Packed 인코딩이 메모리 바이트와 똑같은 타입(trivially packable)이면 true입니다.
+     * Binary 인코딩이 메모리 바이트와 똑같은 타입(trivially packable)이면 true입니다.
      * bool을 뺀 산술 타입으로 이루어진 필드이면서, 오프셋 순서로 패딩 없이 등록한 구조체가 해당합니다. enum과 트레이트 타입은 해당하지 않습니다.
      */
     bool is_trivially_packable = false;

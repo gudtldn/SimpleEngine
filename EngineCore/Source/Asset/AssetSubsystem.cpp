@@ -13,7 +13,7 @@
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -134,7 +134,7 @@ Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     }
 
     Array<u8> payload;
-    PackedFileWriter writer(payload, payload_plan.type, payload_plan.SchemaHash());
+    BinaryFileWriter writer(payload, payload_plan.type, payload_plan.SchemaHash());
     const auto result = serde::Serialize(writer, payload_plan, complete);
     writer.Finish();
     if (result.HasError())
@@ -167,7 +167,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, A
     const SerializePlan& payload_plan = *plan.Value();
 
     // 루트 타입, 스키마 해시, 체크섬이 맞지 않으면 객체를 만들기 전에 거절하므로, 바뀐 타입으로 쓴 옛 payload를 잘못 읽지 않음
-    PackedFileReader reader(payload_view, payload_plan.type, payload_plan.SchemaHash());
+    BinaryFileReader reader(payload_view, payload_plan.type, payload_plan.SchemaHash());
     if (reader.HasError())
     {
         ConsoleLog(ELogLevel::Warning, "Rejected asset payload ({}): {}", type_id.GetName(), reader.GetError());

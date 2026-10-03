@@ -1,4 +1,4 @@
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 
 #include "SimpleEngine/Core/Container/String.h"
 
@@ -13,7 +13,7 @@ namespace se
 {
 // Int/Float를 바이트 순서 변환 없이 memcpy로 쓰고 읽으므로 리틀 엔디언 플랫폼만 지원합니다.
 // 나중에 빅엔디언을 지원하려면 Int/Float의 쓰기와 읽기에 std::byteswap을 넣어야 합니다.
-static_assert(std::endian::native == std::endian::little, "PackedArchive only supports little-endian platforms.");
+static_assert(std::endian::native == std::endian::little, "BinaryArchive only supports little-endian platforms.");
 
 namespace
 {
@@ -31,30 +31,30 @@ constexpr u32 WIRE_VERSION = 1;
 } // namespace
 
 
-// PackedWriter
-PackedWriter::PackedWriter(Array<u8>& out_buffer)
+// BinaryWriter
+BinaryWriter::BinaryWriter(Array<u8>& out_buffer)
     : buffer(out_buffer)
 {
     offset = buffer.Len();
 }
 
-bool PackedWriter::IsTextFormat() const
+bool BinaryWriter::IsTextFormat() const
 {
     return false;
 }
 
-bool PackedWriter::SupportsRawElements() const
+bool BinaryWriter::SupportsRawElements() const
 {
     return true;
 }
 
-void PackedWriter::Int(i64 value, EIntWidth width, [[maybe_unused]] bool is_signed)
+void BinaryWriter::Int(i64 value, EIntWidth width, [[maybe_unused]] bool is_signed)
 {
     // 리틀 엔디안이므로 하위 n바이트만 잘라 쓰면 됨
     WriteBytes(&value, serde::ByteSizeOf(width));
 }
 
-void PackedWriter::Float(f64 value, EFloatWidth width)
+void BinaryWriter::Float(f64 value, EFloatWidth width)
 {
     if (width == EFloatWidth::Bits32)
     {
@@ -67,60 +67,60 @@ void PackedWriter::Float(f64 value, EFloatWidth width)
     }
 }
 
-void PackedWriter::Bool(bool value)
+void BinaryWriter::Bool(bool value)
 {
     WriteBoolByte(value);
 }
 
-void PackedWriter::Str(StringView value)
+void BinaryWriter::Str(StringView value)
 {
     WriteCount(value.ByteLen());
     WriteBytes(value.Data(), value.ByteLen());
 }
 
-void PackedWriter::Bytes(const void* data, u64 size)
+void BinaryWriter::Bytes(const void* data, u64 size)
 {
     WriteBytes(data, size);
 }
 
-void PackedWriter::Enum(i64 value, EIntWidth width, bool is_signed, [[maybe_unused]] ArrayView<const EnumEntry> entries)
+void BinaryWriter::Enum(i64 value, EIntWidth width, bool is_signed, [[maybe_unused]] ArrayView<const EnumEntry> entries)
 {
     // 바이너리에서는 entries(이름 테이블)를 쓰지 않고 Int와 동일하게 취급
     Int(value, width, is_signed);
 }
 
-void PackedWriter::BeginStruct() {}
-void PackedWriter::Field([[maybe_unused]] StringView name) {}
-void PackedWriter::EndStruct() {}
+void BinaryWriter::BeginStruct() {}
+void BinaryWriter::Field([[maybe_unused]] StringView name) {}
+void BinaryWriter::EndStruct() {}
 
-void PackedWriter::BeginSeq(u64 count, [[maybe_unused]] ESeqOrder order)
+void BinaryWriter::BeginSeq(u64 count, [[maybe_unused]] ESeqOrder order)
 {
-    // Packed는 순서를 되살릴 필요가 없으므로 ESeqOrder를 무시
+    // Binary는 순서를 되살릴 필요가 없으므로 ESeqOrder를 무시
     WriteCount(count);
 }
 
-void PackedWriter::EndSeq() {}
+void BinaryWriter::EndSeq() {}
 
-void PackedWriter::BeginMap(u64 count)
+void BinaryWriter::BeginMap(u64 count)
 {
     WriteCount(count);
 }
 
-void PackedWriter::BeginMapEntry() {}
-void PackedWriter::EndMapEntry() {}
-void PackedWriter::EndMap() {}
+void BinaryWriter::BeginMapEntry() {}
+void BinaryWriter::EndMapEntry() {}
+void BinaryWriter::EndMap() {}
 
-void PackedWriter::Present(bool has_value)
+void BinaryWriter::Present(bool has_value)
 {
     WriteBoolByte(has_value);
 }
 
-void PackedWriter::RawElements(const void* data, u64 size)
+void BinaryWriter::RawElements(const void* data, u64 size)
 {
     WriteBytes(data, size);
 }
 
-void PackedWriter::BeginSection()
+void BinaryWriter::BeginSection()
 {
     if (HasError())
     {
@@ -133,7 +133,7 @@ void PackedWriter::BeginSection()
     WriteBytes(&placeholder, sizeof(u64));
 }
 
-void PackedWriter::EndSection()
+void BinaryWriter::EndSection()
 {
     if (HasError())
     {
@@ -143,14 +143,14 @@ void PackedWriter::EndSection()
     const auto length_offset = open_sections.Pop();
     if (!length_offset)
     {
-        SetError("PackedWriter: EndSection does not match an open section.");
+        SetError("BinaryWriter: EndSection does not match an open section.");
         return;
     }
     const u64 length = offset - (*length_offset + sizeof(u64));
     std::memcpy(buffer.Data() + *length_offset, &length, sizeof(u64));
 }
 
-void PackedWriter::WriteBytes(const void* src, u64 byte_size)
+void BinaryWriter::WriteBytes(const void* src, u64 byte_size)
 {
     // 빈 컨테이너의 데이터 포인터는 nullptr일 수 있고, memcpy에 nullptr를 넘기면 크기가 0이어도 정의되지 않은 동작
     if (HasError() || byte_size == 0)
@@ -166,7 +166,7 @@ void PackedWriter::WriteBytes(const void* src, u64 byte_size)
     offset += byte_size;
 }
 
-void PackedWriter::WriteCount(u64 count)
+void BinaryWriter::WriteCount(u64 count)
 {
     if (HasError())
     {
@@ -174,37 +174,37 @@ void PackedWriter::WriteCount(u64 count)
     }
     if (count > std::numeric_limits<u32>::max())
     {
-        SetError(String::Format("PackedWriter: count {} exceeds u32 range.", count));
+        SetError(String::Format("BinaryWriter: count {} exceeds u32 range.", count));
         return;
     }
     const u32 narrowed = static_cast<u32>(count);
     WriteBytes(&narrowed, sizeof(u32));
 }
 
-void PackedWriter::WriteBoolByte(bool value)
+void BinaryWriter::WriteBoolByte(bool value)
 {
     const u8 byte = value ? 1 : 0;
     WriteBytes(&byte, 1);
 }
 
 
-// PackedReader
-PackedReader::PackedReader(ArrayView<const u8> in_view)
+// BinaryReader
+BinaryReader::BinaryReader(ArrayView<const u8> in_view)
     : buffer_view(in_view)
 {
 }
 
-bool PackedReader::IsTextFormat() const
+bool BinaryReader::IsTextFormat() const
 {
     return false;
 }
 
-bool PackedReader::SupportsRawElements() const
+bool BinaryReader::SupportsRawElements() const
 {
     return true;
 }
 
-void PackedReader::Int(i64& value, EIntWidth width, bool is_signed)
+void BinaryReader::Int(i64& value, EIntWidth width, bool is_signed)
 {
     if (HasError())
     {
@@ -231,7 +231,7 @@ void PackedReader::Int(i64& value, EIntWidth width, bool is_signed)
     value = raw;
 }
 
-void PackedReader::Float(f64& value, EFloatWidth width)
+void BinaryReader::Float(f64& value, EFloatWidth width)
 {
     if (HasError())
     {
@@ -260,12 +260,12 @@ void PackedReader::Float(f64& value, EFloatWidth width)
     }
 }
 
-void PackedReader::Bool(bool& value)
+void BinaryReader::Bool(bool& value)
 {
     ReadBoolByte(value);
 }
 
-void PackedReader::Str(String& value)
+void BinaryReader::Str(String& value)
 {
     u64 length = 0;
     if (!ReadCount(length))
@@ -277,26 +277,26 @@ void PackedReader::Str(String& value)
     ReadBytes(value.Data(), length);
 }
 
-void PackedReader::Bytes(void* data, u64 size)
+void BinaryReader::Bytes(void* data, u64 size)
 {
     ReadBytes(data, size);
 }
 
-void PackedReader::Enum(i64& value, EIntWidth width, bool is_signed, [[maybe_unused]] ArrayView<const EnumEntry> entries)
+void BinaryReader::Enum(i64& value, EIntWidth width, bool is_signed, [[maybe_unused]] ArrayView<const EnumEntry> entries)
 {
     Int(value, width, is_signed);
 }
 
-void PackedReader::BeginStruct() {}
+void BinaryReader::BeginStruct() {}
 
-bool PackedReader::Field([[maybe_unused]] StringView name)
+bool BinaryReader::Field([[maybe_unused]] StringView name)
 {
     return true;
 }
 
-void PackedReader::EndStruct() {}
+void BinaryReader::EndStruct() {}
 
-void PackedReader::BeginSeq(u64& count)
+void BinaryReader::BeginSeq(u64& count)
 {
     if (u64 result = 0; ReadCount(result))
     {
@@ -304,9 +304,9 @@ void PackedReader::BeginSeq(u64& count)
     }
 }
 
-void PackedReader::EndSeq() {}
+void BinaryReader::EndSeq() {}
 
-void PackedReader::BeginMap(u64& count)
+void BinaryReader::BeginMap(u64& count)
 {
     if (u64 result = 0; ReadCount(result))
     {
@@ -314,21 +314,21 @@ void PackedReader::BeginMap(u64& count)
     }
 }
 
-void PackedReader::BeginMapEntry() {}
-void PackedReader::EndMapEntry() {}
-void PackedReader::EndMap() {}
+void BinaryReader::BeginMapEntry() {}
+void BinaryReader::EndMapEntry() {}
+void BinaryReader::EndMap() {}
 
-void PackedReader::Present(bool& has_value)
+void BinaryReader::Present(bool& has_value)
 {
     ReadBoolByte(has_value);
 }
 
-void PackedReader::RawElements(void* data, u64 size)
+void BinaryReader::RawElements(void* data, u64 size)
 {
     ReadBytes(data, size);
 }
 
-void PackedReader::BeginSection()
+void BinaryReader::BeginSection()
 {
     if (u64 length = 0; ReadSectionLength(length))
     {
@@ -336,7 +336,7 @@ void PackedReader::BeginSection()
     }
 }
 
-void PackedReader::EndSection()
+void BinaryReader::EndSection()
 {
     if (HasError())
     {
@@ -346,18 +346,18 @@ void PackedReader::EndSection()
     const auto end = section_ends.Pop();
     if (!end)
     {
-        SetError("PackedReader: EndSection does not match an open section.");
+        SetError("BinaryReader: EndSection does not match an open section.");
         return;
     }
 
     // 덜 읽거나 더 읽었으면 쓴 타입과 읽는 타입이 다르거나 데이터가 손상된 것
     if (offset != *end)
     {
-        SetError(String::Format("PackedReader: section ends at offset {}, but reading stopped at offset {}.", *end, offset));
+        SetError(String::Format("BinaryReader: section ends at offset {}, but reading stopped at offset {}.", *end, offset));
     }
 }
 
-void PackedReader::SkipSection()
+void BinaryReader::SkipSection()
 {
     if (u64 length = 0; ReadSectionLength(length))
     {
@@ -365,13 +365,13 @@ void PackedReader::SkipSection()
     }
 }
 
-void PackedReader::Rewind()
+void BinaryReader::Rewind()
 {
     offset = start_offset;
     section_ends.Clear();
 }
 
-void PackedReader::ReadBytes(void* dest, u64 byte_size)
+void BinaryReader::ReadBytes(void* dest, u64 byte_size)
 {
     // WriteBytes와 같은 이유로 0바이트는 memcpy를 부르지 않음
     if (HasError() || byte_size == 0)
@@ -382,7 +382,7 @@ void PackedReader::ReadBytes(void* dest, u64 byte_size)
     if (byte_size > buffer_view.Len() - offset)
     {
         SetError(String::Format(
-            "PackedReader: buffer overflow. (offset: {}, size: {}, buffer_len: {})",
+            "BinaryReader: buffer overflow. (offset: {}, size: {}, buffer_len: {})",
             offset, byte_size, buffer_view.Len()
         ));
         return;
@@ -391,7 +391,7 @@ void PackedReader::ReadBytes(void* dest, u64 byte_size)
     offset += byte_size;
 }
 
-bool PackedReader::ReadCount(u64& count)
+bool BinaryReader::ReadCount(u64& count)
 {
     if (HasError())
     {
@@ -408,7 +408,7 @@ bool PackedReader::ReadCount(u64& count)
     if (narrowed > buffer_view.Len() - offset)
     {
         SetError(String::Format(
-            "PackedReader: count {} exceeds remaining bytes ({}).",
+            "BinaryReader: count {} exceeds remaining bytes ({}).",
             narrowed, buffer_view.Len() - offset
         ));
         return false;
@@ -418,7 +418,7 @@ bool PackedReader::ReadCount(u64& count)
     return true;
 }
 
-bool PackedReader::ReadSectionLength(u64& length)
+bool BinaryReader::ReadSectionLength(u64& length)
 {
     if (HasError())
     {
@@ -435,7 +435,7 @@ bool PackedReader::ReadSectionLength(u64& length)
     if (result > buffer_view.Len() - offset)
     {
         SetError(String::Format(
-            "PackedReader: section length {} exceeds remaining bytes ({}).",
+            "BinaryReader: section length {} exceeds remaining bytes ({}).",
             result, buffer_view.Len() - offset
         ));
         return false;
@@ -445,7 +445,7 @@ bool PackedReader::ReadSectionLength(u64& length)
     return true;
 }
 
-void PackedReader::ReadBoolByte(bool& value)
+void BinaryReader::ReadBoolByte(bool& value)
 {
     if (HasError())
     {
@@ -461,35 +461,35 @@ void PackedReader::ReadBoolByte(bool& value)
 }
 
 
-// PackedFileWriter
-PackedFileWriter::PackedFileWriter(Array<u8>& out_buffer, TypeId in_root_type, u64 in_schema_hash)
-    : PackedWriter(out_buffer)
+// BinaryFileWriter
+BinaryFileWriter::BinaryFileWriter(Array<u8>& out_buffer, TypeId in_root_type, u64 in_schema_hash)
+    : BinaryWriter(out_buffer)
     , header_offset(offset)
     , root_type(in_root_type)
     , schema_hash(in_schema_hash)
 {
-    const PackedFileHeader empty_header{};
-    PackedWriter::Bytes(&empty_header, sizeof(empty_header));
+    const BinaryFileHeader empty_header{};
+    BinaryWriter::Bytes(&empty_header, sizeof(empty_header));
 }
 
-PackedFileWriter::~PackedFileWriter()
+BinaryFileWriter::~BinaryFileWriter()
 {
-    SE_ASSERT(finished || HasError(), "PackedFileWriter: destroyed without Finish().");
+    SE_ASSERT(finished || HasError(), "BinaryFileWriter: destroyed without Finish().");
 }
 
-void PackedFileWriter::Finish()
+void BinaryFileWriter::Finish()
 {
-    SE_ASSERT(!finished, "PackedFileWriter::Finish: already finished.");
+    SE_ASSERT(!finished, "BinaryFileWriter::Finish: already finished.");
     finished = true;
     if (HasError())
     {
         return;
     }
 
-    const usize payload_begin = header_offset + sizeof(PackedFileHeader);
+    const usize payload_begin = header_offset + sizeof(BinaryFileHeader);
     const ArrayView<const u8> payload(buffer.Data() + payload_begin, offset - payload_begin);
 
-    PackedFileHeader header{
+    BinaryFileHeader header{
         .wire_version = WIRE_VERSION,
         .root_type = root_type.Value(),
         .schema_hash = schema_hash,
@@ -501,57 +501,57 @@ void PackedFileWriter::Finish()
 }
 
 
-// PackedFileReader
-PackedFileReader::PackedFileReader(ArrayView<const u8> in_view, TypeId root_type, u64 schema_hash)
-    : PackedReader(in_view)
+// BinaryFileReader
+BinaryFileReader::BinaryFileReader(ArrayView<const u8> in_view, TypeId root_type, u64 schema_hash)
+    : BinaryReader(in_view)
 {
-    if (buffer_view.Len() < sizeof(PackedFileHeader))
+    if (buffer_view.Len() < sizeof(BinaryFileHeader))
     {
         SetError(String::Format(
-            "PackedFileReader: {} bytes is too short for the {}-byte header.", buffer_view.Len(), sizeof(PackedFileHeader)));
+            "BinaryFileReader: {} bytes is too short for the {}-byte header.", buffer_view.Len(), sizeof(BinaryFileHeader)));
         return;
     }
 
-    PackedFileHeader header;
+    BinaryFileHeader header;
     std::memcpy(&header, buffer_view.Data(), sizeof(header));
 
     if (std::memcmp(header.magic, HEADER_MAGIC, sizeof(HEADER_MAGIC)) != 0)
     {
-        SetError("PackedFileReader: header magic mismatch.");
+        SetError("BinaryFileReader: header magic mismatch.");
         return;
     }
     if (header.wire_version != WIRE_VERSION)
     {
-        SetError(String::Format("PackedFileReader: unsupported wire version {} (expected {}).", header.wire_version, WIRE_VERSION));
+        SetError(String::Format("BinaryFileReader: unsupported wire version {} (expected {}).", header.wire_version, WIRE_VERSION));
         return;
     }
     if (header.root_type != root_type.Value())
     {
         SetError(String::Format(
-            "PackedFileReader: root type id {} does not match the expected type id {}.", header.root_type, root_type.Value()));
+            "BinaryFileReader: root type id {} does not match the expected type id {}.", header.root_type, root_type.Value()));
         return;
     }
     if (header.schema_hash != schema_hash)
     {
         SetError(String::Format(
-            "PackedFileReader: schema hash mismatch (stored {:016x}, expected {:016x}).", header.schema_hash, schema_hash));
+            "BinaryFileReader: schema hash mismatch (stored {:016x}, expected {:016x}).", header.schema_hash, schema_hash));
         return;
     }
 
-    const ArrayView<const u8> payload = buffer_view.Subview(sizeof(PackedFileHeader));
+    const ArrayView<const u8> payload = buffer_view.Subview(sizeof(BinaryFileHeader));
     if (header.payload_size != payload.Len())
     {
         SetError(String::Format(
-            "PackedFileReader: payload size {} does not match the remaining {} bytes.", header.payload_size, payload.Len()));
+            "BinaryFileReader: payload size {} does not match the remaining {} bytes.", header.payload_size, payload.Len()));
         return;
     }
     if (header.payload_checksum != ChecksumOf(payload))
     {
-        SetError("PackedFileReader: payload checksum mismatch.");
+        SetError("BinaryFileReader: payload checksum mismatch.");
         return;
     }
 
-    offset = sizeof(PackedFileHeader);
+    offset = sizeof(BinaryFileHeader);
     start_offset = offset;
 }
 } // namespace se

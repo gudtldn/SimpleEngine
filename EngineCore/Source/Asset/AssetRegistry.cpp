@@ -4,7 +4,7 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 
@@ -193,7 +193,7 @@ bool AssetRegistry::SaveToFile(const Path& file_path) const
     // records만 직렬화. 루트 타입과 스키마 해시를 헤더에 남겨, AssetRecord가 바뀌면 옛 스냅샷을 거절하게 함
     const SerializePlan& plan = SerializePlanOf<decltype(records)>();
     Array<u8> buffer;
-    PackedFileWriter writer(buffer, plan.type, plan.SchemaHash());
+    BinaryFileWriter writer(buffer, plan.type, plan.SchemaHash());
     const auto result = serde::Serialize(writer, records);
     writer.Finish();
     if (result.HasError())
@@ -226,7 +226,7 @@ bool AssetRegistry::LoadFromFile(const Path& file_path)
     // 예전 형식이나 AssetRecord가 바뀐 스냅샷은 헤더에서, 손상된 스냅샷은 체크섬에서 실패하므로 기존 데이터를 건드리지 않고 false를 반환
     decltype(records) loaded_records;
     const SerializePlan& plan = SerializePlanOf<decltype(records)>();
-    PackedFileReader reader(*file_result, plan.type, plan.SchemaHash());
+    BinaryFileReader reader(*file_result, plan.type, plan.SchemaHash());
     if (const auto result = serde::Deserialize(reader, loaded_records); result.HasError())
     {
         ConsoleLog(ELogLevel::Warning, "AssetRegistry::LoadFromFile - Rejected snapshot {}: {}", file_path, result.Error().message);

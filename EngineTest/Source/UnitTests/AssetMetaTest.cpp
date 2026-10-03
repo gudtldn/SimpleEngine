@@ -15,7 +15,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
@@ -245,13 +245,13 @@ TEST(AssetMetaTest, ImportSettingsRoundTrip)
     ExpectOnlyMeshSettings(from_toml.import_settings, mesh);
 
     Array<u8> buffer;
-    PackedWriter packed_writer(buffer);
-    ASSERT_TRUE(serde::Serialize(packed_writer, original.import_settings).HasValue());
+    BinaryWriter binary_writer(buffer);
+    ASSERT_TRUE(serde::Serialize(binary_writer, original.import_settings).HasValue());
 
-    PackedReader packed_reader(buffer);
-    ImportProfile from_packed;
-    ASSERT_TRUE(serde::Deserialize(packed_reader, from_packed).HasValue());
-    ExpectOnlyMeshSettings(from_packed, mesh);
+    BinaryReader binary_reader(buffer);
+    ImportProfile from_binary;
+    ASSERT_TRUE(serde::Deserialize(binary_reader, from_binary).HasValue());
+    ExpectOnlyMeshSettings(from_binary, mesh);
 }
 
 TEST(AssetMetaTest, UnknownSettingsTypeIsSkipped)
@@ -288,10 +288,10 @@ TEST(AssetMetaTest, UnknownSettingsTypeIsSkipped)
     EXPECT_TRUE(reader.GetWarnings().IsEmpty());
 }
 
-TEST(AssetMetaTest, UnknownSettingsTypeFailsInPacked)
+TEST(AssetMetaTest, UnknownSettingsTypeFailsInBinary)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     writer.BeginMap(1);
     writer.BeginMapEntry();
     writer.Str("se::editor::RemovedImportSettings");
@@ -300,7 +300,7 @@ TEST(AssetMetaTest, UnknownSettingsTypeFailsInPacked)
     writer.EndMap();
 
     // 태그 없는 바이너리는 모르는 value의 크기를 몰라 건너뛸 수 없음
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     ImportProfile profile;
     EXPECT_TRUE(serde::Deserialize(reader, profile).HasError());
 }

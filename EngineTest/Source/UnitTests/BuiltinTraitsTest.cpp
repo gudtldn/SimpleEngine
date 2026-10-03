@@ -5,7 +5,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Serialization/BuiltinTraits.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 
 using namespace se;
 
@@ -17,16 +17,16 @@ struct UnregisteredType {};
 } // namespace se_builtin_traits_test
 
 
-// --- 바이너리(Packed) 왕복 ---
+// --- 바이너리 왕복 ---
 
 TEST(BuiltinTraitsTest, StringBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     String original = "Hello, SimpleEngine!";
     SerializeTraits<String>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     String result;
     SerializeTraits<String>::Read(reader, result);
 
@@ -37,11 +37,11 @@ TEST(BuiltinTraitsTest, StringBinaryRoundTrip)
 TEST(BuiltinTraitsTest, StringNameBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     StringName original = "PlayerHealth";
     SerializeTraits<StringName>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     StringName result;
     SerializeTraits<StringName>::Read(reader, result);
 
@@ -52,11 +52,11 @@ TEST(BuiltinTraitsTest, StringNameBinaryRoundTrip)
 TEST(BuiltinTraitsTest, GuidBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     Guid original = Guid::NewGuid();
     SerializeTraits<Guid>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     Guid result;
     SerializeTraits<Guid>::Read(reader, result);
 
@@ -67,11 +67,11 @@ TEST(BuiltinTraitsTest, GuidBinaryRoundTrip)
 TEST(BuiltinTraitsTest, TypeIdBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     TypeId original = TypeId::Of<i32>();
     SerializeTraits<TypeId>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     TypeId result;
     SerializeTraits<TypeId>::Read(reader, result);
 
@@ -83,11 +83,11 @@ TEST(BuiltinTraitsTest, UnregisteredTypeIdBinaryRoundTripSucceeds)
 {
     // 바이너리는 쓰기가 레지스트리를 요구하지 않으므로 읽기도 요구하지 않습니다(대칭).
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     TypeId original = TypeId::Of<se_builtin_traits_test::UnregisteredType>();
     SerializeTraits<TypeId>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     TypeId result;
     SerializeTraits<TypeId>::Read(reader, result);
 
@@ -98,7 +98,7 @@ TEST(BuiltinTraitsTest, UnregisteredTypeIdBinaryRoundTripSucceeds)
 TEST(BuiltinTraitsTest, ContentHashBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     const u8 raw[32] = {
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
         17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
@@ -106,7 +106,7 @@ TEST(BuiltinTraitsTest, ContentHashBinaryRoundTrip)
     ContentHash original = ContentHash::FromRaw(raw);
     SerializeTraits<ContentHash>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     ContentHash result;
     SerializeTraits<ContentHash>::Read(reader, result);
 
@@ -117,11 +117,11 @@ TEST(BuiltinTraitsTest, ContentHashBinaryRoundTrip)
 TEST(BuiltinTraitsTest, PathBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     Path original("Assets/Textures/rock.png");
     SerializeTraits<Path>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     Path result;
     SerializeTraits<Path>::Read(reader, result);
 
@@ -132,11 +132,11 @@ TEST(BuiltinTraitsTest, PathBinaryRoundTrip)
 TEST(BuiltinTraitsTest, VPathBinaryRoundTrip)
 {
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     VPath original("Assets://Textures/rock.png");
     SerializeTraits<VPath>::Write(writer, original);
 
-    PackedReader reader(buffer);
+    BinaryReader reader(buffer);
     VPath result;
     SerializeTraits<VPath>::Read(reader, result);
 

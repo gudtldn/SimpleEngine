@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 #include "SimpleEngine/Core/Serialization/TomlArchive.h"
@@ -85,11 +85,11 @@ TEST(EntitySerializeTest, RoundTripMapsToLoadedEntities)
     const HasEntities expected{ .parent = loaded_root, .children = { loaded_child, Entity{}, loaded_root } };
     {
         Array<u8> buffer;
-        PackedWriter writer(buffer);
+        BinaryWriter writer(buffer);
         writer.SetContext(&save_context);
         ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
 
-        PackedReader reader(buffer);
+        BinaryReader reader(buffer);
         reader.SetContext(&load_context);
         HasEntities result;
         ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
@@ -160,7 +160,7 @@ TEST(EntitySerializeTest, MissingContextOrRemapperIsError)
     for (const Case& c : cases)
     {
         Array<u8> buffer;
-        PackedWriter writer(buffer);
+        BinaryWriter writer(buffer);
         writer.SetContext(c.context);
         const auto write_result = serde::Serialize(writer, HasEntities{});
         ASSERT_TRUE(write_result.HasError());
@@ -187,7 +187,7 @@ TEST(EntitySerializeTest, EntityWithoutPersistentIdIsWriteError)
     context.Add(remapper);
 
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     writer.SetContext(&context);
     const auto result = serde::Serialize(writer, se_entity_serialize_test::HasEntities{ .children = { unsaved } });
     ASSERT_TRUE(result.HasError());
@@ -236,7 +236,7 @@ TEST(EntitySerializeTest, LoadingTwiceCreatesDistinctEntities)
     save_context.Add(save_remapper);
 
     Array<u8> buffer;
-    PackedWriter writer(buffer);
+    BinaryWriter writer(buffer);
     writer.SetContext(&save_context);
     ASSERT_TRUE(serde::Serialize(writer, HasEntities{ .parent = root, .children = { child } }).HasValue());
 
@@ -252,7 +252,7 @@ TEST(EntitySerializeTest, LoadingTwiceCreatesDistinctEntities)
         SerializeContext load_context;
         load_context.Add(load_remapper);
 
-        PackedReader reader(buffer);
+        BinaryReader reader(buffer);
         reader.SetContext(&load_context);
         HasEntities result;
         EXPECT_TRUE(serde::Deserialize(reader, result).HasValue());

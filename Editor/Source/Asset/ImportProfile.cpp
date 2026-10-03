@@ -4,7 +4,7 @@
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
@@ -172,7 +172,7 @@ namespace se::editor
 Expected<ContentHash, String> ImportProfile::ComputeSettingsHash() const
 {
     Array<u8> bytes;
-    PackedWriter writer(bytes);
+    BinaryWriter writer(bytes);
     if (const auto result = serde::Serialize(writer, *this); result.HasError())
     {
         return Unexpected{ String::Format("failed to serialize import settings: {}", result.Error().message) };

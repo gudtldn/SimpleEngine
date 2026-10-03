@@ -9,7 +9,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
-#include "SimpleEngine/Core/Serialization/PackedArchive.h"
+#include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
 
@@ -150,7 +150,7 @@ TEST(RegistrationThreadSafetyTest, ConcurrentFirstPlanCompileReturnsSamePlanAndB
         const PlanRaceNode value = MakePlanRaceNode();
 
         Array<u8> bytes;
-        PackedWriter writer(bytes);
+        BinaryWriter writer(bytes);
         const bool is_written = serde::Serialize(writer, plan, &value).HasValue();
         return Output{ .plan = &plan, .bytes = is_written ? bytes : Array<u8>{} };
     });
@@ -163,7 +163,7 @@ TEST(RegistrationThreadSafetyTest, ConcurrentFirstPlanCompileReturnsSamePlanAndB
     }
 
     // 모든 스레드가 쓴 바이트가 원래 값으로 돌아오는지 확인
-    PackedReader reader(outputs[0].bytes);
+    BinaryReader reader(outputs[0].bytes);
     PlanRaceNode result;
     ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
     EXPECT_EQ(result, MakePlanRaceNode());
