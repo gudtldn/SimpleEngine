@@ -28,23 +28,24 @@ enum class EWeaponType
     Staff,
 };
 
-struct RangeTag
+struct RangeAnnotation
 {
     f32 min = 0.0f;
     f32 max = 0.0f;
 };
 
-struct TooltipTag
+struct TooltipAnnotation
 {
     StringView text;
 };
 
-struct ComponentTag {};
+struct ComponentAnnotation {};
+inline constexpr ComponentAnnotation Component{};
 
 struct Weapon
 {
     // SE_CLASS 류의 별도 매크로 없이, decltype(*this)만으로 필드 존재 검증이 동작하는지도 같이 검증합니다.
-    SE_ANNOTATE(damage, RangeTag{ 0.0f, 100.0f }, TooltipTag{ "Damage amount" })
+    SE_ANNOTATE(damage, RangeAnnotation{ 0.0f, 100.0f }, TooltipAnnotation{ "Damage amount" })
     i32 damage = 0;
 
     EWeaponType type = EWeaponType::Sword;
@@ -61,7 +62,7 @@ SE_REFLECT_ENUM_BEGIN(se_reflect_macros_golden_test::EWeaponType)
     SE_ENUM_VALUE(Staff)
 SE_REFLECT_ENUM_END()
 
-SE_REFLECT_BEGIN(se_reflect_macros_golden_test::Weapon, se_reflect_macros_golden_test::ComponentTag{})
+SE_REFLECT_BEGIN(se_reflect_macros_golden_test::Weapon, se_reflect_macros_golden_test::Component)
     SE_FIELD(damage)
     SE_FIELD(type)
     SE_FIELD(tint)
@@ -113,18 +114,18 @@ TEST(ReflectMacrosGoldenTest, FieldAnnotationsRoundTrip)
     const se::AnnotationRef* tooltip_ref = nullptr;
     for (const se::AnnotationRef& ref : annotations)
     {
-        if (ref.type.Value() == se::TypeId::Of<RangeTag>().Value()) range_ref = &ref;
-        if (ref.type.Value() == se::TypeId::Of<TooltipTag>().Value()) tooltip_ref = &ref;
+        if (ref.type.Value() == se::TypeId::Of<RangeAnnotation>().Value()) range_ref = &ref;
+        if (ref.type.Value() == se::TypeId::Of<TooltipAnnotation>().Value()) tooltip_ref = &ref;
     }
 
     ASSERT_NE(range_ref, nullptr);
     ASSERT_NE(tooltip_ref, nullptr);
 
-    const auto* range = static_cast<const RangeTag*>(range_ref->value);
+    const auto* range = static_cast<const RangeAnnotation*>(range_ref->value);
     EXPECT_FLOAT_EQ(range->min, 0.0f);
     EXPECT_FLOAT_EQ(range->max, 100.0f);
 
-    const auto* tooltip = static_cast<const TooltipTag*>(tooltip_ref->value);
+    const auto* tooltip = static_cast<const TooltipAnnotation*>(tooltip_ref->value);
     EXPECT_EQ(tooltip->text, "Damage amount");
 }
 
@@ -134,7 +135,7 @@ TEST(ReflectMacrosGoldenTest, TypeLevelAnnotationRoundTrip)
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
     ASSERT_EQ(info.annotations.Len(), 1u);
-    EXPECT_EQ(info.annotations[0].type.Value(), se::TypeId::Of<ComponentTag>().Value());
+    EXPECT_EQ(info.annotations[0].type.Value(), se::TypeId::Of<ComponentAnnotation>().Value());
 }
 
 TEST(ReflectMacrosGoldenTest, NamedEnumEntriesArePopulated)
