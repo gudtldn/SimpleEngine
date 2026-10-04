@@ -142,9 +142,9 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
         // Fragment Uniform slot 0: SceneDataUBO (per-pass)
         struct alignas(16) SceneDataUBO
         {
-            Vector3f camera_pos;    f32  _pad0 = 0.0f; // offset  0~15
-            Vector3f light_dir_ws;  f32  _pad1 = 0.0f; // offset 16~31
-            Vector3f light_color;                        // offset 32~43
+            Vector3f camera_pos;    f32 _pad0 = 0.0f; // offset  0~15
+            Vector3f light_dir_ws;  f32 _pad1 = 0.0f; // offset 16~31
+            Vector3f light_color;                     // offset 32~43
             u32 rendering_mode;                       // offset 44~47
         };
         static_assert(sizeof(SceneDataUBO) == 48, "SceneDataUBO must match HLSL cbuffer layout");
@@ -313,12 +313,12 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                         // 래스터라이저(Rasterizer) 상태 설정: 3D 모델을 2D 픽셀로 변환하는 방법을 제어
                         .rasterizer_state = {
                             .fill_mode = render_view.rendering_mode == ERenderingMode::Wireframe
-                                             ? SDL_GPU_FILLMODE_LINE          // 와이어프레임: 삼각형 외곽선만 렌더링
-                                             : SDL_GPU_FILLMODE_FILL,         // 기본: 삼각형 내부를 색으로 채움
+                                             ? SDL_GPU_FILLMODE_LINE           // 와이어프레임: 삼각형 외곽선만 렌더링
+                                             : SDL_GPU_FILLMODE_FILL,          // 기본: 삼각형 내부를 색으로 채움
                             .cull_mode = (render_view.rendering_mode == ERenderingMode::Wireframe || final_two_sided)
-                                             ? SDL_GPU_CULLMODE_NONE          // 와이어프레임: 모든 면 표시
-                                             : SDL_GPU_CULLMODE_BACK,         // 기본: 카메라를 등지고 있는 삼각형(뒷면)은 그리지 않음 (성능 최적화)
-                            .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE // 정점이 반시계 방향으로 정의된 삼각형을 앞면으로 간주
+                                             ? SDL_GPU_CULLMODE_NONE           // 와이어프레임: 모든 면 표시
+                                             : SDL_GPU_CULLMODE_BACK,          // 기본: 카메라를 등지고 있는 삼각형(뒷면)은 그리지 않음 (성능 최적화)
+                            .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE, // 정점이 반시계 방향으로 정의된 삼각형을 앞면으로 간주
                         },
 
                         // 멀티샘플링(MSAA) 상태 설정
@@ -352,7 +352,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                 // Vertex Buffer 바인딩
                 const SDL_GPUBufferBinding vertex_binding = {
                     .buffer = draw_command.gpu_buffer,
-                    .offset = draw_command.vertex_buffer_offset
+                    .offset = draw_command.vertex_buffer_offset,
                 };
                 SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
 
@@ -361,7 +361,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
                     // Index Buffer 바인딩
                     const SDL_GPUBufferBinding index_binding = {
                         .buffer = draw_command.gpu_buffer,
-                        .offset = draw_command.index_buffer_offset
+                        .offset = draw_command.index_buffer_offset,
                     };
                     SDL_BindGPUIndexBuffer(pass, &index_binding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
                 }
