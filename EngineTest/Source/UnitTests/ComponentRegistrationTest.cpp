@@ -51,15 +51,10 @@ TEST(ComponentRegistrationTest, BothRegistrationsAgreeForEveryComponent)
         ASSERT_TRUE(info.HasValue()) << "The component is not registered with SE_REFLECT_BEGIN.";
 
         // 저장하지 않는 컴포넌트는 두 등록 모두에 표시되어야 함
-        const bool is_skipped = info->HasAnnotation<TransientAnnotation>();
-        EXPECT_EQ(is_skipped, legacy_info->flags.IsSet(ETypeFlags_v1::Transient))
+        EXPECT_EQ(info->HasAnnotation<TransientAnnotation>(), legacy_info->flags.IsSet(ETypeFlags_v1::Transient))
             << "Transient in SE_REFLECT_BEGIN and meta::Transient in SE_BEGIN_REFLECT_V1 must agree.";
-        if (is_skipped)
-        {
-            continue;
-        }
 
-        // 저장하는 컴포넌트는 필드 이름과 순서가 모두 같아야 함
+        // 필드는 저장 여부와 관계없이 모두 등록하므로 이름과 순서가 모두 같아야 함
         const auto struct_info = info->AsStruct();
         ASSERT_TRUE(struct_info.HasValue());
         EXPECT_EQ(

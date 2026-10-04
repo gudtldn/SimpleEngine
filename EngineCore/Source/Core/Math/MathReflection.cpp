@@ -76,6 +76,14 @@ SE_REFLECT_BEGIN(se::Quaternion)
     SE_FIELD(w)
 SE_REFLECT_END()
 
+SE_REFLECT_BEGIN(se::Matrix4x4)
+    SE_FIELD(data)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::Matrix4x4f)
+    SE_FIELD(data)
+SE_REFLECT_END()
+
 SE_REFLECT_BEGIN(se::AABBf)
     SE_FIELD(min)
     SE_FIELD(max)
