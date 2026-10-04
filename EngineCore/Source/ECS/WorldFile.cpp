@@ -29,7 +29,7 @@ constexpr i64 FORMAT_VERSION = 1;
 /** 영속 ID를 JSON 숫자로 정확히 쓸 수 있게 하위 53비트만 남기는 마스크 */
 constexpr u64 PERSISTENT_ID_MASK = (u64{ 1 } << 53) - 1;
 
-/** Read가 파일의 엔티티 하나로 만든 엔티티 */
+/** Load가 파일의 엔티티 하나로 만든 엔티티 */
 struct LoadedEntity
 {
     Entity entity;
@@ -38,7 +38,7 @@ struct LoadedEntity
     u64 file_id = 0;
 };
 
-/** Write가 저장할 컴포넌트 타입 하나 */
+/** Save가 저장할 컴포넌트 타입 하나 */
 struct SavedComponent
 {
     /** 파일에서 컴포넌트를 가리키는 타입 이름 */
@@ -51,7 +51,7 @@ struct SavedComponent
     String error;
 };
 
-/** Read가 파일의 타입 이름으로 찾은 컴포넌트 타입 하나 */
+/** Load가 파일의 타입 이름으로 찾은 컴포넌트 타입 하나 */
 struct ReadableComponent
 {
     enum class EKind : u8
@@ -206,7 +206,7 @@ struct ReadableComponent
 /** reader의 오류를 월드 파일 읽기 오류 메시지로 만듭니다. */
 [[nodiscard]] String ReaderErrorOf(const ArchiveReader& reader)
 {
-    return String::Format("WorldFileReader: {}", reader.GetError());
+    return String::Format("WorldFile: {}", reader.GetError());
 }
 
 /**
@@ -223,7 +223,7 @@ struct ReadableComponent
 
     if (!reader.Field("format_version"))
     {
-        return Unexpected{ "WorldFileReader: 'format_version' is missing." };
+        return Unexpected{ "WorldFile: 'format_version' is missing." };
     }
     i64 version = 0;
     reader.Int(version, EIntWidth::Bits32, true);
@@ -233,12 +233,12 @@ struct ReadableComponent
     }
     if (version != FORMAT_VERSION)
     {
-        return Unexpected{ String::Format("WorldFileReader: format_version {} is not supported (expected {}).", version, FORMAT_VERSION) };
+        return Unexpected{ String::Format("WorldFile: format_version {} is not supported (expected {}).", version, FORMAT_VERSION) };
     }
 
     if (!reader.Field("entities"))
     {
-        return Unexpected{ "WorldFileReader: the 'entities' array is missing." };
+        return Unexpected{ "WorldFile: the 'entities' array is missing." };
     }
     u64 count = 0;
     reader.BeginSeq(count);
@@ -294,7 +294,7 @@ struct ReadableComponent
         }
         if (!has_id || id == 0)
         {
-            return Unexpected{ String::Format("WorldFileReader: entities[{}] has no 'id' of a non-zero integer.", index) };
+            return Unexpected{ String::Format("WorldFile: entities[{}] has no 'id' of a non-zero integer.", index) };
         }
 
         const u64 file_id = static_cast<u64>(id);
@@ -302,7 +302,7 @@ struct ReadableComponent
         out_entities.Push(LoadedEntity{ .entity = entity, .file_id = file_id });
         if (!remapper.Add(entity, file_id))
         {
-            return Unexpected{ String::Format("WorldFileReader: entity id {} appears more than once.", file_id) };
+            return Unexpected{ String::Format("WorldFile: entity id {} appears more than once.", file_id) };
         }
 
         // world에 이미 있는 ID면 새 ID를 붙임. 파일 안의 참조는 remapper가 파일의 ID로 이 엔티티에 이어 줌
@@ -331,7 +331,7 @@ struct ReadableComponent
     const auto component = FindOrResolveComponent(cache, TypeId::FromCanonicalName(type_name), type_name);
     if (component.HasError())
     {
-        return Unexpected{ String::Format("WorldFileReader: entity {}: {}", loaded.file_id, component.Error()) };
+        return Unexpected{ String::Format("WorldFile: entity {}: {}", loaded.file_id, component.Error()) };
     }
 
     if (component->kind != ReadableComponent::EKind::Saved)
@@ -342,13 +342,13 @@ struct ReadableComponent
         if (!reader.IsTextFormat())
         {
             return Unexpected{ String::Format(
-                "WorldFileReader: entity {}: component type '{}' is {}, and a binary world file cannot skip it.",
+                "WorldFile: entity {}: component type '{}' is {}, and a binary world file cannot skip it.",
                 loaded.file_id, type_name, is_unknown ? "unknown" : "not saved in world files") };
         }
 
         out_warnings.Push(is_unknown
-            ? String::Format("WorldFileReader: entity {}: unknown component type '{}' is skipped.", loaded.file_id, type_name)
-            : String::Format("WorldFileReader: entity {}: component '{}' is not saved in world files and is skipped.", loaded.file_id, type_name));
+            ? String::Format("WorldFile: entity {}: unknown component type '{}' is skipped.", loaded.file_id, type_name)
+            : String::Format("WorldFile: entity {}: component '{}' is not saved in world files and is skipped.", loaded.file_id, type_name));
         reader.EndMapEntry();
         return {};
     }
@@ -363,13 +363,13 @@ struct ReadableComponent
     // 필드 이름을 바꿨거나 오타를 낸 키를 알아차리게 모두 남김
     for (const String& warning : reader.GetWarnings() | std::views::drop(reader_warning_count))
     {
-        out_warnings.Push(String::Format("WorldFileReader: entity {}, component '{}': {}", loaded.file_id, type_name, warning));
+        out_warnings.Push(String::Format("WorldFile: entity {}, component '{}': {}", loaded.file_id, type_name, warning));
     }
 
     if (result.HasError())
     {
         return Unexpected{ String::Format(
-            "WorldFileReader: entity {}: component '{}' at '{}': {}", loaded.file_id, type_name, result.Error().path, result.Error().message) };
+            "WorldFile: entity {}: component '{}' at '{}': {}", loaded.file_id, type_name, result.Error().path, result.Error().message) };
     }
     reader.EndMapEntry();
 
@@ -378,7 +378,7 @@ struct ReadableComponent
     for (const u64 missing_id : unresolved_ids | std::views::drop(unresolved_count))
     {
         out_warnings.Push(String::Format(
-            "WorldFileReader: entity {}, component '{}': entity id {} is not in the file, so the reference is set to null.",
+            "WorldFile: entity {}, component '{}': entity id {} is not in the file, so the reference is set to null.",
             loaded.file_id, type_name, missing_id));
     }
     return {};
@@ -456,12 +456,12 @@ struct ReadableComponent
 }
 } // namespace
 
-WorldFileWriter::WorldFileWriter(World& in_world)
+WorldFile::WorldFile(World& in_world)
     : world(in_world)
 {
 }
 
-Expected<void, String> WorldFileWriter::Write(ArchiveWriter& writer)
+Expected<void, String> WorldFile::Save(ArchiveWriter& writer)
 {
     warnings.Clear();
 
@@ -484,7 +484,7 @@ Expected<void, String> WorldFileWriter::Write(ArchiveWriter& writer)
         }
 
         [[maybe_unused]] const bool is_added = remapper.Add(entity, id);
-        SE_ASSERT(is_added, "WorldFileWriter: entity (id {}) or persistent id {} is added twice.", entity.GetId(), id);
+        SE_ASSERT(is_added, "WorldFile: entity (id {}) or persistent id {} is added twice.", entity.GetId(), id);
     }
 
     SerializeContext context;
@@ -522,7 +522,7 @@ Expected<void, String> WorldFileWriter::Write(ArchiveWriter& writer)
             }
             if (!saved.error.IsEmpty())
             {
-                return Unexpected{ String::Format("WorldFileWriter: entity {}: {}", id, saved.error) };
+                return Unexpected{ String::Format("WorldFile: entity {}: {}", id, saved.error) };
             }
             present_components.Push(&saved);
         }
@@ -541,7 +541,7 @@ Expected<void, String> WorldFileWriter::Write(ArchiveWriter& writer)
             if (const auto result = serde::Serialize(writer, *saved->plan, saved->storage->GetRaw(entity)); result.HasError())
             {
                 return Unexpected{ String::Format(
-                    "WorldFileWriter: entity {}: component '{}' at '{}': {}", id, saved->name, result.Error().path, result.Error().message) };
+                    "WorldFile: entity {}: component '{}' at '{}': {}", id, saved->name, result.Error().path, result.Error().message) };
             }
             writer.EndMapEntry();
 
@@ -549,7 +549,7 @@ Expected<void, String> WorldFileWriter::Write(ArchiveWriter& writer)
             if (remapper.GetUnresolvedEntityCount() > unresolved_count)
             {
                 warnings.Push(String::Format(
-                    "WorldFileWriter: entity {}, component '{}': a reference to an entity that is not saved is written as null.", id, saved->name));
+                    "WorldFile: entity {}, component '{}': a reference to an entity that is not saved is written as null.", id, saved->name));
             }
         }
         writer.EndMap();
@@ -561,26 +561,16 @@ Expected<void, String> WorldFileWriter::Write(ArchiveWriter& writer)
 
     if (writer.HasError())
     {
-        return Unexpected{ String::Format("WorldFileWriter: {}", writer.GetError()) };
+        return Unexpected{ String::Format("WorldFile: {}", writer.GetError()) };
     }
     return {};
 }
 
-ArrayView<const String> WorldFileWriter::GetWarnings() const
-{
-    return warnings;
-}
-
-WorldFileReader::WorldFileReader(World& in_world)
-    : world(in_world)
-{
-}
-
-Expected<void, String> WorldFileReader::Read(ArchiveReader& reader)
+Expected<void, String> WorldFile::Load(ArchiveReader& reader)
 {
     warnings.Clear();
 
-    // 실패하면 이번에 만든 엔티티를 지워 world를 Read 전으로 되돌림
+    // 실패하면 이번에 만든 엔티티를 지워 world를 Load 전으로 되돌림
     Array<LoadedEntity> loaded_entities;
     SE_SCOPE_DEFER_NAMED(rollback)
     {
@@ -611,15 +601,15 @@ Expected<void, String> WorldFileReader::Read(ArchiveReader& reader)
     return {};
 }
 
-Expected<void, String> WorldFileReader::Replace(ArchiveReader& reader)
+Expected<void, String> WorldFile::Replace(ArchiveReader& reader)
 {
     // 실패해도 world가 그대로이도록 임시 World에 먼저 읽어 봄. World는 이동할 수 없어 교체하지 않고 다시 읽음
     World scratch_world;
-    WorldFileReader scratch_reader{ scratch_world };
-    if (const auto result = scratch_reader.Read(reader); result.HasError())
+    WorldFile scratch_file{ scratch_world };
+    if (const auto result = scratch_file.Load(reader); result.HasError())
     {
         warnings.Clear();
-        for (const String& warning : scratch_reader.GetWarnings())
+        for (const String& warning : scratch_file.GetWarnings())
         {
             warnings.Push(warning);
         }
@@ -628,10 +618,10 @@ Expected<void, String> WorldFileReader::Replace(ArchiveReader& reader)
 
     reader.Rewind();
     world.Reset();
-    return Read(reader);
+    return Load(reader);
 }
 
-ArrayView<const String> WorldFileReader::GetWarnings() const
+ArrayView<const String> WorldFile::GetWarnings() const
 {
     return warnings;
 }

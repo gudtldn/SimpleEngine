@@ -38,9 +38,9 @@ namespace
 /** world를 월드 파일 JSON 텍스트로 씁니다. 실패하면 테스트를 실패로 표시하고 빈 문자열을 돌려줍니다. */
 [[nodiscard]] String SaveToText(World& world)
 {
-    WorldFileWriter writer(world);
+    WorldFile world_file(world);
     JsonWriter json_writer;
-    if (const auto result = writer.Write(json_writer); result.HasError())
+    if (const auto result = world_file.Save(json_writer); result.HasError())
     {
         ADD_FAILURE() << result.Error().CStr();
         return {};
@@ -55,11 +55,11 @@ namespace
     return std::move(text).Value();
 }
 
-/** reader로 JSON text를 읽습니다. 실패하면 테스트를 실패로 표시합니다. */
-void LoadFromText(WorldFileReader& reader, StringView text)
+/** world_file로 JSON text를 읽습니다. 실패하면 테스트를 실패로 표시합니다. */
+void LoadFromText(WorldFile& world_file, StringView text)
 {
     JsonReader json_reader{ text };
-    if (const auto result = reader.Read(json_reader); result.HasError())
+    if (const auto result = world_file.Load(json_reader); result.HasError())
     {
         ADD_FAILURE() << result.Error().CStr();
     }
@@ -123,11 +123,11 @@ TEST(WorldFileTest, EmptyWorldRoundTrips)
     const String text = SaveToText(src);
 
     World dst;
-    WorldFileReader reader(dst);
-    LoadFromText(reader, text);
+    WorldFile world_file(dst);
+    LoadFromText(world_file, text);
 
     EXPECT_TRUE(dst.GetAliveEntities().IsEmpty());
-    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+    EXPECT_TRUE(world_file.GetWarnings().IsEmpty());
 }
 
 TEST(WorldFileTest, EverySavedComponentRoundTrips)
@@ -152,9 +152,9 @@ TEST(WorldFileTest, EverySavedComponentRoundTrips)
     src.AddComponent(parent, ChildrenComponent{ .children = { child_a, child_b } });
 
     World dst;
-    WorldFileReader reader(dst);
-    LoadFromText(reader, SaveToText(src));
-    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+    WorldFile world_file(dst);
+    LoadFromText(world_file, SaveToText(src));
+    EXPECT_TRUE(world_file.GetWarnings().IsEmpty());
     ASSERT_EQ(dst.GetAliveEntities().Len(), 3u);
 
     const Entity loaded_parent = FindByName(dst, "parent");
@@ -206,18 +206,18 @@ TEST(WorldFileTest, BinaryRoundTripInMemory)
     Array<u8> buffer;
     {
         BinaryWriter writer(buffer);
-        WorldFileWriter world_writer(src);
-        const auto result = world_writer.Write(writer);
+        WorldFile src_file(src);
+        const auto result = src_file.Save(writer);
         ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
-        EXPECT_TRUE(world_writer.GetWarnings().IsEmpty());
+        EXPECT_TRUE(src_file.GetWarnings().IsEmpty());
     }
 
     World dst;
-    WorldFileReader world_reader(dst);
+    WorldFile dst_file(dst);
     BinaryReader reader(buffer);
-    const auto result = world_reader.Read(reader);
+    const auto result = dst_file.Load(reader);
     ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
-    EXPECT_TRUE(world_reader.GetWarnings().IsEmpty());
+    EXPECT_TRUE(dst_file.GetWarnings().IsEmpty());
     ASSERT_EQ(dst.GetAliveEntities().Len(), 2u);
 
     const Entity loaded_parent = FindByName(dst, "parent");
@@ -263,8 +263,8 @@ TEST(WorldFileTest, IdsAreStableAcrossSaves)
 
     // 읽은 월드를 다시 저장해도 파일의 ID를 그대로 씀
     World loaded;
-    WorldFileReader reader(loaded);
-    LoadFromText(reader, SaveToText(world));
+    WorldFile world_file(loaded);
+    LoadFromText(world_file, SaveToText(world));
     EXPECT_EQ(ReadEntityIds(SaveToText(loaded)), first_ids);
 }
 
@@ -299,8 +299,8 @@ TEST(WorldFileTest, GlobalTransformIsNotSaved)
     EXPECT_FALSE(text.Contains("GlobalTransformComponent")) << text.CStr();
 
     World dst;
-    WorldFileReader reader(dst);
-    LoadFromText(reader, text);
+    WorldFile world_file(dst);
+    LoadFromText(world_file, text);
     ASSERT_EQ(dst.GetAliveEntities().Len(), 1u);
 
     const Entity entity = dst.GetAliveEntities()[0];
@@ -328,9 +328,9 @@ TEST(WorldFileTest, LoadsAdditivelyIntoNonEmptyWorld)
     const String text = SaveToText(world);
 
     // 같은 파일을 다시 읽으면 파일의 ID가 모두 world에 있으므로 새 ID를 붙인 새 엔티티로 더해짐
-    WorldFileReader reader(world);
-    LoadFromText(reader, text);
-    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+    WorldFile world_file(world);
+    LoadFromText(world_file, text);
+    EXPECT_TRUE(world_file.GetWarnings().IsEmpty());
     ASSERT_EQ(world.GetAliveEntities().Len(), 4u);
 
     const Entity loaded_parent = FindByName(world, "parent", parent);
@@ -364,9 +364,9 @@ TEST(WorldFileTest, ForwardReferenceIsResolved)
 })";
 
     World world;
-    WorldFileReader reader(world);
-    LoadFromText(reader, text);
-    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+    WorldFile world_file(world);
+    LoadFromText(world_file, text);
+    EXPECT_TRUE(world_file.GetWarnings().IsEmpty());
     ASSERT_EQ(world.GetAliveEntities().Len(), 2u);
 
     const Entity child = FindByName(world, "child");
@@ -386,16 +386,16 @@ TEST(WorldFileTest, UnknownComponentIsSkippedWithWarning)
 })";
 
     World world;
-    WorldFileReader reader(world);
-    LoadFromText(reader, text);
+    WorldFile world_file(world);
+    LoadFromText(world_file, text);
 
     ASSERT_EQ(world.GetAliveEntities().Len(), 1u);
     const Entity entity = world.GetAliveEntities()[0];
     EXPECT_EQ(world.GetComponent<NameComponent>(entity).name, "kept");
     EXPECT_EQ(world.GetComponent<PersistentIdComponent>(entity).id, 7u);
 
-    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
-    EXPECT_TRUE(reader.GetWarnings()[0].Contains("se::RemovedComponent")) << reader.GetWarnings()[0].CStr();
+    ASSERT_EQ(world_file.GetWarnings().Len(), 1u);
+    EXPECT_TRUE(world_file.GetWarnings()[0].Contains("se::RemovedComponent")) << world_file.GetWarnings()[0].CStr();
 }
 
 TEST(WorldFileTest, TransientComponentIsSkippedWithWarning)
@@ -408,13 +408,13 @@ TEST(WorldFileTest, TransientComponentIsSkippedWithWarning)
 })";
 
     World world;
-    WorldFileReader reader(world);
-    LoadFromText(reader, text);
+    WorldFile world_file(world);
+    LoadFromText(world_file, text);
 
     ASSERT_EQ(world.GetAliveEntities().Len(), 1u);
     EXPECT_FALSE(world.HasComponent<GlobalTransformComponent>(world.GetAliveEntities()[0]));
-    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
-    EXPECT_TRUE(reader.GetWarnings()[0].Contains("se::GlobalTransformComponent")) << reader.GetWarnings()[0].CStr();
+    ASSERT_EQ(world_file.GetWarnings().Len(), 1u);
+    EXPECT_TRUE(world_file.GetWarnings()[0].Contains("se::GlobalTransformComponent")) << world_file.GetWarnings()[0].CStr();
 }
 
 TEST(WorldFileTest, UnknownKeyOutsideComponentsIsWarned)
@@ -427,12 +427,12 @@ TEST(WorldFileTest, UnknownKeyOutsideComponentsIsWarned)
 })";
 
     World world;
-    WorldFileReader reader(world);
-    LoadFromText(reader, text);
+    WorldFile world_file(world);
+    LoadFromText(world_file, text);
 
     // 컴포넌트 밖의 경고는 엔티티와 컴포넌트 접두어 없이 문서 위치만 남김
-    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
-    const String& warning = reader.GetWarnings()[0];
+    ASSERT_EQ(world_file.GetWarnings().Len(), 1u);
+    const String& warning = world_file.GetWarnings()[0];
     EXPECT_TRUE(warning.Contains("entities[0].tag")) << warning.CStr();
     EXPECT_FALSE(warning.Contains("entity 1")) << warning.CStr();
 }
@@ -447,14 +447,14 @@ TEST(WorldFileTest, UnresolvedReferenceIsReported)
 })";
 
     World world;
-    WorldFileReader reader(world);
-    LoadFromText(reader, text);
+    WorldFile world_file(world);
+    LoadFromText(world_file, text);
 
     ASSERT_EQ(world.GetAliveEntities().Len(), 1u);
     EXPECT_FALSE(world.GetComponent<ParentComponent>(world.GetAliveEntities()[0]).parent.IsValid());
 
-    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
-    const String& warning = reader.GetWarnings()[0];
+    ASSERT_EQ(world_file.GetWarnings().Len(), 1u);
+    const String& warning = world_file.GetWarnings()[0];
     EXPECT_TRUE(warning.Contains("se::ParentComponent")) << warning.CStr();
     EXPECT_TRUE(warning.Contains("999")) << warning.CStr();
 }
@@ -470,9 +470,9 @@ TEST(WorldFileTest, DuplicateIdIsError)
 })";
 
     World world;
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ text };
-    const auto result = reader.Read(json_reader);
+    const auto result = world_file.Load(json_reader);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("more than once")) << result.Error().CStr();
     EXPECT_TRUE(world.GetAliveEntities().IsEmpty());
@@ -481,9 +481,9 @@ TEST(WorldFileTest, DuplicateIdIsError)
 TEST(WorldFileTest, MissingFormatVersionIsError)
 {
     World world;
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ R"({ "entities": [] })" };
-    const auto result = reader.Read(json_reader);
+    const auto result = world_file.Load(json_reader);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("format_version")) << result.Error().CStr();
 }
@@ -491,9 +491,9 @@ TEST(WorldFileTest, MissingFormatVersionIsError)
 TEST(WorldFileTest, UnsupportedFormatVersionIsError)
 {
     World world;
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ R"({ "format_version": 2, "entities": [] })" };
-    const auto result = reader.Read(json_reader);
+    const auto result = world_file.Load(json_reader);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("format_version 2 is not supported")) << result.Error().CStr();
 }
@@ -512,9 +512,9 @@ TEST(WorldFileTest, FailedReadRemovesCreatedEntities)
     World world;
     const Entity existing = world.SpawnEntity(NameComponent{ .name = "existing" });
 
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ text };
-    const auto result = reader.Read(json_reader);
+    const auto result = world_file.Load(json_reader);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("entity 2")) << result.Error().CStr();
 
@@ -553,9 +553,9 @@ TEST(WorldFileTest, BinaryUnknownComponentIsError)
     }
 
     World world;
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     BinaryReader binary_reader(buffer);
-    const auto result = reader.Read(binary_reader);
+    const auto result = world_file.Load(binary_reader);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("se::RemovedComponent")) << result.Error().CStr();
     EXPECT_TRUE(result.Error().Contains("binary")) << result.Error().CStr();
@@ -568,9 +568,9 @@ TEST(WorldFileTest, UnregisteredComponentFailsToSave)
     World world;
     world.SpawnEntity(NameComponent{ .name = "a" }, se_world_file_test::UnregisteredComponent{ .value = 1 });
 
-    WorldFileWriter writer(world);
+    WorldFile world_file(world);
     JsonWriter json_writer;
-    const auto result = writer.Write(json_writer);
+    const auto result = world_file.Save(json_writer);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("not registered")) << result.Error().CStr();
 }
@@ -584,13 +584,13 @@ TEST(WorldFileTest, DanglingReferenceIsWrittenAsNullWithWarning)
     world.SpawnEntity(NameComponent{ .name = "other child" }, ParentComponent{ .parent = removed });
     world.DestroyEntity(removed);
 
-    WorldFileWriter writer(world);
+    WorldFile world_file(world);
     JsonWriter json_writer;
-    const auto result = writer.Write(json_writer);
+    const auto result = world_file.Save(json_writer);
     ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
 
-    ASSERT_EQ(writer.GetWarnings().Len(), 2u);
-    for (const String& warning : writer.GetWarnings())
+    ASSERT_EQ(world_file.GetWarnings().Len(), 2u);
+    for (const String& warning : world_file.GetWarnings())
     {
         EXPECT_TRUE(warning.Contains("se::ParentComponent")) << warning.CStr();
         EXPECT_TRUE(warning.Contains("written as null")) << warning.CStr();
@@ -602,9 +602,9 @@ TEST(WorldFileTest, DanglingReferenceIsWrittenAsNullWithWarning)
 
     // 다시 읽으면 null 참조로 돌아오고 경고가 없음
     World loaded;
-    WorldFileReader reader(loaded);
-    LoadFromText(reader, text.Value());
-    EXPECT_TRUE(reader.GetWarnings().IsEmpty());
+    WorldFile loaded_file(loaded);
+    LoadFromText(loaded_file, text.Value());
+    EXPECT_TRUE(loaded_file.GetWarnings().IsEmpty());
     const Entity loaded_child = FindByName(loaded, "child");
     ASSERT_TRUE(loaded_child.IsValid());
     EXPECT_FALSE(loaded.GetComponent<ParentComponent>(loaded_child).parent.IsValid());
@@ -623,9 +623,9 @@ TEST(WorldFileTest, ReplaceSwapsWorldContentsAndKeepsFileIds)
     world.SpawnEntity(NameComponent{ .name = "old_a" });
     world.SpawnEntity(NameComponent{ .name = "old_b" });
 
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ text };
-    const auto result = reader.Replace(json_reader);
+    const auto result = world_file.Replace(json_reader);
     ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
 
     // 기존 엔티티는 사라지고 파일의 엔티티가 파일의 영속 ID 그대로 남음
@@ -635,8 +635,8 @@ TEST(WorldFileTest, ReplaceSwapsWorldContentsAndKeepsFileIds)
     EXPECT_EQ(world.GetComponent<PersistentIdComponent>(entity).id, 42u);
 
     // 경고는 마지막으로 읽은 쪽의 것만 남음
-    ASSERT_EQ(reader.GetWarnings().Len(), 1u);
-    EXPECT_TRUE(reader.GetWarnings()[0].Contains("se::RemovedComponent")) << reader.GetWarnings()[0].CStr();
+    ASSERT_EQ(world_file.GetWarnings().Len(), 1u);
+    EXPECT_TRUE(world_file.GetWarnings()[0].Contains("se::RemovedComponent")) << world_file.GetWarnings()[0].CStr();
 }
 
 TEST(WorldFileTest, ReplaceKeepsWorldWhenComponentReadFails)
@@ -653,9 +653,9 @@ TEST(WorldFileTest, ReplaceKeepsWorldWhenComponentReadFails)
     World world;
     const Entity existing = world.SpawnEntity(NameComponent{ .name = "existing" }, PersistentIdComponent{ .id = 77 });
 
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ text };
-    const auto result = reader.Replace(json_reader);
+    const auto result = world_file.Replace(json_reader);
     ASSERT_TRUE(result.HasError());
     EXPECT_TRUE(result.Error().Contains("entity 2")) << result.Error().CStr();
 
@@ -671,9 +671,9 @@ TEST(WorldFileTest, ReplaceKeepsWorldWhenTextIsNotJson)
     World world;
     const Entity existing = world.SpawnEntity(NameComponent{ .name = "existing" });
 
-    WorldFileReader reader(world);
+    WorldFile world_file(world);
     JsonReader json_reader{ "{ not json" };
-    const auto result = reader.Replace(json_reader);
+    const auto result = world_file.Replace(json_reader);
     ASSERT_TRUE(result.HasError());
 
     ASSERT_EQ(world.GetAliveEntities().Len(), 1u);

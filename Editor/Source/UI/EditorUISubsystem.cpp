@@ -232,19 +232,19 @@ void EditorUISubsystem::DrawMainMenu()
                 if (EntitySubsystem* entity_sub = GetSubsystem<EntitySubsystem>())
                 {
                     // 다이얼로그 표시 전에 직렬화하여 현재 상태를 캡처
-                    WorldFileWriter writer{ entity_sub->GetMainWorld().GetWorld() };
-                    JsonWriter json_writer;
-                    const auto write_result = writer.Write(json_writer);
-                    for (const String& warning : writer.GetWarnings())
+                    WorldFile world_file{ entity_sub->GetMainWorld().GetWorld() };
+                    JsonWriter writer;
+                    const auto save_result = world_file.Save(writer);
+                    for (const String& warning : world_file.GetWarnings())
                     {
                         ConsoleLog(ELogLevel::Warning, "{}", warning);
                     }
 
-                    if (write_result.HasError())
+                    if (save_result.HasError())
                     {
-                        ConsoleLog(ELogLevel::Error, "Failed to save world: {}", write_result.Error());
+                        ConsoleLog(ELogLevel::Error, "Failed to save world: {}", save_result.Error());
                     }
-                    else if (auto content = json_writer.ToText(); content.HasError())
+                    else if (auto content = writer.ToText(); content.HasError())
                     {
                         ConsoleLog(ELogLevel::Error, "Failed to save world: {}", content.Error());
                     }
@@ -295,10 +295,10 @@ void EditorUISubsystem::DrawMainMenu()
                             World& world = entity_sub->GetMainWorld().GetWorld();
 
                             // 읽기에 성공했을 때만 기존 월드를 비우고 파일의 영속 ID 그대로 읽음 (Resource는 유지)
-                            JsonReader json_reader{ StringView{ reinterpret_cast<const char*>(data.Data()), data.Len() } };
-                            WorldFileReader reader{ world };
-                            const auto result = reader.Replace(json_reader);
-                            for (const String& warning : reader.GetWarnings())
+                            JsonReader reader{ StringView{ reinterpret_cast<const char*>(data.Data()), data.Len() } };
+                            WorldFile world_file{ world };
+                            const auto result = world_file.Replace(reader);
+                            for (const String& warning : world_file.GetWarnings())
                             {
                                 ConsoleLog(ELogLevel::Warning, "{}", warning);
                             }
