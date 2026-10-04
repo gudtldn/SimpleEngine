@@ -559,7 +559,7 @@ TEST_F(ConfigFileTest, SaveAndReloadPreservesValues)
     auto reloaded_result = ConfigFile::Load(save_test_path);
     ASSERT_TRUE(reloaded_result.HasValue()) << reloaded_result.Error().CStr();
 
-    auto reloaded_window = reloaded_result.Value().GetSection<WindowSettings>("window");
+    auto reloaded_window = reloaded_result->GetSection<WindowSettings>("window");
     EXPECT_EQ(reloaded_window, window);
 }
 
@@ -598,9 +598,9 @@ TEST_F(ConfigFileTest, MultiSectionSaveAndReload)
     auto reloaded = ConfigFile::Load(save_test_path);
     ASSERT_TRUE(reloaded.HasValue());
 
-    auto r_window = reloaded.Value().GetSection<WindowSettings>("window");
-    auto r_gfx = reloaded.Value().GetSection<GraphicsSettings>("graphics");
-    auto r_logging = reloaded.Value().GetSection<LoggingSettings>("logging");
+    auto r_window = reloaded->GetSection<WindowSettings>("window");
+    auto r_gfx = reloaded->GetSection<GraphicsSettings>("graphics");
+    auto r_logging = reloaded->GetSection<LoggingSettings>("logging");
 
     EXPECT_EQ(r_window.width, 1920u);
     EXPECT_EQ(r_window.title, "Multi Section");
@@ -642,7 +642,7 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
     auto reloaded = ConfigFile::Load(save_test_path);
     ASSERT_TRUE(reloaded.HasValue());
 
-    auto r_window = reloaded.Value().GetSection<WindowSettings>("window");
+    auto r_window = reloaded->GetSection<WindowSettings>("window");
     EXPECT_EQ(r_window.width, 1920u);    // 원래 값 유지
     EXPECT_EQ(r_window.height, 600u);    // 기본값으로 채워짐
     EXPECT_EQ(r_window.fullscreen, true); // 기본값으로 채워짐
@@ -669,7 +669,7 @@ TEST_F(ConfigFileTest, GetSectionReadsLegacyFormat)
     auto result = ConfigFile::Load(legacy_toml_path);
     ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
 
-    const auto legacy = result.Value().GetSection<LegacyFormatSettings>("legacy");
+    const auto legacy = result->GetSection<LegacyFormatSettings>("legacy");
     EXPECT_EQ(legacy.present_mode, EPresentMode::Immediate);
     EXPECT_EQ(legacy.busy_wait_ratio, 0.1f);
 }

@@ -214,7 +214,7 @@ void EditorConsolePanel::LoadSettings()
     const VPath config_path = "Config://EditorConfig.toml";
     if (auto result = ConfigFile::Load(config_path))
     {
-        settings = result.Value().GetSection<ConsoleSettings>("console");
+        settings = result->GetSection<ConsoleSettings>("console");
     }
 
     // Backend에 max_log_lines 반영

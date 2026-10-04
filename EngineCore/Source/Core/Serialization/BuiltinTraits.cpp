@@ -81,7 +81,7 @@ void SerializeTraits<TypeId>::Write(ArchiveWriter& writer, const TypeId& value)
             writer.SetError(String::Format("SerializeTraits<TypeId>: type {} is not registered.", value.Value()));
             return;
         }
-        writer.Str(info.Value().name);
+        writer.Str(info->name);
         return;
     }
     writer.Int(static_cast<i64>(value.Value()), EIntWidth::Bits64, false);

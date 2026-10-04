@@ -51,7 +51,7 @@ Optional<MetaFileContent> Load(const Path& source_path)
     }
 
     // TOML 파싱
-    const toml::parse_result parse_result = toml::parse(file_content.Value().Bytes());
+    const toml::parse_result parse_result = toml::parse(file_content->Bytes());
     if (!parse_result)
     {
         ConsoleLog(ELogLevel::Error, "Failed to parse meta file: {} - {}", meta_path, parse_result.error().description());

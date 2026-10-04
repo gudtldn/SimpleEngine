@@ -131,7 +131,7 @@ TEST_F(VFSTest, UnresolveSucceedsForPathWithinMountPoint)
     Optional<VPath> virtual_path = VFS::Unresolve(physical_path);
 
     ASSERT_TRUE(virtual_path.HasValue());
-    EXPECT_EQ(virtual_path.Value().ToString(), "Assets://scripts/main.lua");
+    EXPECT_EQ(virtual_path->ToString(), "Assets://scripts/main.lua");
 }
 
 TEST_F(VFSTest, UnresolveFailsForPathOutsideMountPoint)
@@ -212,7 +212,7 @@ TEST_F(VFSUnresolvePriorityTest, UnresolvePrefersLongestPathMatch)
 
     ASSERT_TRUE(virtual_path.HasValue());
     // 더 긴 경로인 "Specific"을 선택해야 함
-    EXPECT_EQ(virtual_path.Value().ToString(), "Specific://file.txt");
+    EXPECT_EQ(virtual_path->ToString(), "Specific://file.txt");
 }
 
 TEST_F(VFSUnresolvePriorityTest, UnresolvePrefersHigherPriorityForSameLengthPaths)
@@ -225,7 +225,7 @@ TEST_F(VFSUnresolvePriorityTest, UnresolvePrefersHigherPriorityForSameLengthPath
 
     ASSERT_TRUE(virtual_path.HasValue());
     // 경로 길이가 같으므로 우선순위가 높은 "Mod"를 선택해야 함
-    EXPECT_EQ(virtual_path.Value().ToString(), "Mod://file.txt");
+    EXPECT_EQ(virtual_path->ToString(), "Mod://file.txt");
 }
 
 

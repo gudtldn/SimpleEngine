@@ -75,7 +75,7 @@ TEST(PathTest, Producers)
     Path p3("/A/B/C");
     auto rel = p3.RelativeTo(Path("/A"));
     ASSERT_TRUE(rel.HasValue());
-    EXPECT_EQ(rel.Value().ToString(), "B/C");
+    EXPECT_EQ(rel->ToString(), "B/C");
 }
 
 TEST(PathTest, Components)
@@ -85,7 +85,7 @@ TEST(PathTest, Components)
     // Parent() -> Optional<Path>
     auto parent = p.Parent();
     ASSERT_TRUE(parent.HasValue());
-    EXPECT_EQ(parent.Value().ToString(), "C:/Project/Game/Source");
+    EXPECT_EQ(parent->ToString(), "C:/Project/Game/Source");
 
     // FileName() -> Optional<String>
     auto filename = p.FileName();
@@ -662,7 +662,7 @@ TEST(PathUnicodeTest, SpacesInPath)
 {
     Path p("My Documents/Game Project/Main Scene.unity");
     EXPECT_EQ(p.FileName().Value(), "Main Scene.unity");
-    EXPECT_EQ(p.Parent().Value().ToString(), "My Documents/Game Project");
+    EXPECT_EQ(p.Parent()->ToString(), "My Documents/Game Project");
 }
 
 TEST(PathUnicodeTest, SpecialCharactersInFilename)

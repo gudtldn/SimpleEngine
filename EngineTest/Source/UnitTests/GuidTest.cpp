@@ -11,7 +11,7 @@ TEST(GuidTest, TryFromStringParsesKnownValue)
     const Optional<Guid> parsed = Guid::TryFromString(text);
 
     ASSERT_TRUE(parsed.HasValue());
-    EXPECT_EQ(parsed.Value().ToString(), text);
+    EXPECT_EQ(parsed->ToString(), text);
 }
 
 TEST(GuidTest, TryFromStringRoundTripsNewGuid)

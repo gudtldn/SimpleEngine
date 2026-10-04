@@ -528,7 +528,7 @@ Expected<void, String> WorldFile::Save(ArchiveWriter& writer)
     {
         if (auto saved = MakeSavedComponent(legacy_type, *storage))
         {
-            saved_components.Push(std::move(*saved));
+            saved_components.Push(*std::move(saved));
         }
     }
     saved_components.SortBy(&SavedComponent::name);
