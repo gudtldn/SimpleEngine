@@ -27,7 +27,7 @@ namespace
 constexpr i64 FORMAT_VERSION = 1;
 
 /** 영속 ID를 JSON 숫자로 정확히 쓸 수 있게 하위 53비트만 남기는 마스크 */
-constexpr u64 PERSISTENT_ID_MASK = (u64{ 1 } << 53) - 1;
+constexpr u64 PERSISTENT_ID_MASK = (u64{ 1 } << 53) - 1; // NOLINT(*-signed-bitwise)
 
 /** Load가 파일의 엔티티 하나로 만든 엔티티 */
 struct LoadedEntity
@@ -77,7 +77,7 @@ struct ReadableComponent
     while (true)
     {
         const u64 high = random::Next();
-        const u64 id = ((high << 32) | random::Next()) & PERSISTENT_ID_MASK;
+        const u64 id = ((high << 32) | random::Next()) & PERSISTENT_ID_MASK; // NOLINT(*-signed-bitwise)
         if (id != 0 && used_ids.Insert(id))
         {
             return id;
@@ -194,10 +194,10 @@ struct ReadableComponent
         return *cached;
     }
 
-    const auto resolved = ResolveComponent(type, type_name);
+    auto resolved = ResolveComponent(type, type_name);
     if (resolved.HasError())
     {
-        return Unexpected{ resolved.Error() };
+        return Unexpected{ std::move(resolved).Error() };
     }
     cache.Insert(type, ReadableComponent{ resolved.Value() });
     return resolved.Value();
@@ -267,10 +267,10 @@ struct ReadableComponent
  */
 [[nodiscard]] Expected<void, String> CreateEntities(ArchiveReader& reader, World& world, EntityRemapper& remapper, Array<LoadedEntity>& out_entities)
 {
-    const auto count = BeginDocument(reader);
+    auto count = BeginDocument(reader);
     if (count.HasError())
     {
-        return Unexpected{ count.Error() };
+        return Unexpected{ std::move(count).Error() };
     }
 
     HashSet<u64> used_ids = CollectPersistentIds(world);
@@ -391,9 +391,9 @@ struct ReadableComponent
 [[nodiscard]] Expected<void, String> ReadComponents(
     ArchiveReader& reader, World& world, EntityRemapper& remapper, ArrayView<const LoadedEntity> loaded_entities, Array<String>& out_warnings)
 {
-    if (const auto count = BeginDocument(reader); count.HasError())
+    if (auto count = BeginDocument(reader); count.HasError())
     {
-        return Unexpected{ count.Error() };
+        return Unexpected{ std::move(count).Error() };
     }
 
     Array<String> document_warnings;
@@ -427,9 +427,9 @@ struct ReadableComponent
             for (u64 index = 0; index < component_count && !reader.HasError(); ++index)
             {
                 take_document_warnings();
-                if (const auto result = ReadComponentEntry(reader, world, remapper, loaded, cache, out_warnings); result.HasError())
+                if (auto result = ReadComponentEntry(reader, world, remapper, loaded, cache, out_warnings); result.HasError())
                 {
-                    return Unexpected{ result.Error() };
+                    return Unexpected{ std::move(result).Error() };
                 }
                 taken_warning_count = reader.GetWarnings().Len();
             }
@@ -443,9 +443,9 @@ struct ReadableComponent
         }
     }
 
-    if (const auto result = EndDocument(reader); result.HasError())
+    if (auto result = EndDocument(reader); result.HasError())
     {
-        return Unexpected{ result.Error() };
+        return Unexpected{ std::move(result).Error() };
     }
     take_document_warnings();
     for (String& warning : document_warnings)
@@ -587,14 +587,14 @@ Expected<void, String> WorldFile::Load(ArchiveReader& reader)
     SE_SCOPE_DEFER { reader.SetContext(nullptr); };
 
     // 뒤에 나오는 엔티티를 가리키는 참조도 풀리도록 엔티티를 모두 먼저 만든 뒤, 처음부터 다시 읽으며 컴포넌트를 읽음
-    if (const auto result = CreateEntities(reader, world, remapper, loaded_entities); result.HasError())
+    if (auto result = CreateEntities(reader, world, remapper, loaded_entities); result.HasError())
     {
-        return Unexpected{ result.Error() };
+        return Unexpected{ std::move(result).Error() };
     }
     reader.Rewind();
-    if (const auto result = ReadComponents(reader, world, remapper, loaded_entities, warnings); result.HasError())
+    if (auto result = ReadComponents(reader, world, remapper, loaded_entities, warnings); result.HasError())
     {
-        return Unexpected{ result.Error() };
+        return Unexpected{ std::move(result).Error() };
     }
 
     rollback.Discard();
@@ -606,14 +606,14 @@ Expected<void, String> WorldFile::Replace(ArchiveReader& reader)
     // 실패해도 world가 그대로이도록 임시 World에 먼저 읽어 봄. World는 이동할 수 없어 교체하지 않고 다시 읽음
     World scratch_world;
     WorldFile scratch_file{ scratch_world };
-    if (const auto result = scratch_file.Load(reader); result.HasError())
+    if (auto result = scratch_file.Load(reader); result.HasError())
     {
         warnings.Clear();
         for (const String& warning : scratch_file.GetWarnings())
         {
             warnings.Push(warning);
         }
-        return Unexpected{ result.Error() };
+        return Unexpected{ std::move(result).Error() };
     }
 
     reader.Rewind();
