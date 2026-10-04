@@ -19,6 +19,36 @@
 #include <ranges>
 
 
+/*
+ * 월드 파일 문서 구조
+ *
+ * {
+ *     "format_version": 1,                  i32
+ *     "entities": [                         파일 순서대로 엔티티를 만듦
+ *         {
+ *             "id": 4810373919164427,       영속 ID, u64, 0이 아님
+ *             "components": {               구간, 엔티티를 먼저 만들 때 통째로 건너뜀
+ *                 "se::NameComponent": { "name": "child" },
+ *                 "se::ParentComponent": { "parent": 1739208414871203 }
+ *             }                             키는 타입 이름, 이름순
+ *         },
+ *         ...
+ *     ]
+ * }
+ *
+ * 바이너리 포맷 (필드 이름 없음, 리틀 엔디안)
+ *
+ * | format_version i32 | entity count u32 | entity 0 | entity 1 | ... |
+ *
+ * entity
+ * | id u64 | section length u64 | component count u32 | component 0 | component 1 | ... |
+ *                               |<--------------- section length bytes ---------------->|
+ *
+ * component
+ * | name length u32 | name bytes | value (컴포넌트 Plan을 따름) |
+ */
+
+
 namespace se
 {
 namespace
