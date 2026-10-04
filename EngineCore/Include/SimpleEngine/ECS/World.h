@@ -31,7 +31,7 @@ class Query;
 class SE_CORE_API World final
 {
     friend class ECSRegistry;
-    friend class WorldFileWriter;
+    friend class WorldFile;
 
 public:
     class EntityChain;
