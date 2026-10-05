@@ -5,35 +5,37 @@
 #pragma se_shader vertex VSMain
 #pragma se_shader fragment PSMain
 
+#include "Bindings.hlsli"
+
 // ----------------------------------------------------------------
 // [정점 셰이더 상수 버퍼]
 // ----------------------------------------------------------------
-cbuffer VS_UBO : register(b0, space1)
+cbuffer VS_UBO : SE_VS_UNIFORM(SE_SLOT_PASS)
 {
-    float4x4 VP;      // 뷰-투영 행렬 (Row-major -> Column-major 자동 전치)
-    float3 CameraPos; // 현재 카메라의 월드 좌표
-    float GridSize;   // 무한 그리드를 그릴 기본 바탕 평면(Quad)의 크기
-    uint GridPlane;   // 그리드가 그려질 평면 타입 (0: XY, 1: XZ, 2: YZ)
+    float4x4 vp;       // 뷰-투영 행렬 (Row-major -> Column-major 자동 전치)
+    float3 camera_pos; // 현재 카메라의 월드 좌표
+    float grid_size;   // 무한 그리드를 그릴 기본 바탕 평면(Quad)의 크기
+    uint grid_plane;   // 그리드가 그려질 평면 타입 (0: XY, 1: XZ, 2: YZ)
 }
 
 // ----------------------------------------------------------------
 // [픽셀 셰이더 상수 버퍼]
 // ----------------------------------------------------------------
-cbuffer PS_UBO : register(b0, space3)
+cbuffer PS_UBO : SE_PS_UNIFORM(SE_SLOT_PASS)
 {
     // 선이 너무 촘촘해져서 다음 단계의 굵은 선(LOD)으로 넘어가기 전,
     // 그리드 한 칸이 화면에서 유지해야 할 "최소 픽셀 수" (보통 2.0 ~ 20.0)
     // 값이 클수록 카메라가 조금만 멀어져도 빠르게 다음 LOD로 전환됨.
-    float GridMinPixelsBetweenCells;
+    float grid_min_pixels_between_cells;
 
     // 가장 얇은 그리드 선 한 칸의 실제 월드 크기 (기본 1.0m)
-    float GridCellSize;
+    float grid_cell_size;
 
     // 얇은 선의 색상과 투명도 (RGBA)
-    float4 GridColorThin;
+    float4 grid_color_thin;
 
     // 두꺼운 선의 색상과 투명도 (RGBA)
-    float4 GridColorThick;
+    float4 grid_color_thick;
 }
 
 // ----------------------------------------------------------------
@@ -77,43 +79,43 @@ VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
 
-    // 1. 하드코딩된 정점 배열에서 로컬 위치를 가져와 GridSize만큼 스케일을 곱함
+    // 1. 하드코딩된 정점 배열에서 로컬 위치를 가져와 grid_size만큼 스케일을 곱함
     int index = Indices[input.vertex_id];
-    float2 local_pos = Pos[index].xy * GridSize;
+    float2 local_pos = Pos[index].xy * grid_size;
     float3 world_pos = float3(0, 0, 0);
 
     // 카메라와 마주보는 바닥 평면이 항상 카메라를 따라다니도록 카메라의 위치로 이동
-    if (GridPlane == 0) // XY 평면 (Top / Bottom)
+    if (grid_plane == 0) // XY 평면 (Top / Bottom)
     {
         world_pos = float3(local_pos.x, local_pos.y, 0.0f);
-        world_pos.xy += CameraPos.xy; // 카메라 따라가기
+        world_pos.xy += camera_pos.xy; // 카메라 따라가기
 
         output.grid_uv = world_pos.xy;
-        output.camera_uv = CameraPos.xy;
+        output.camera_uv = camera_pos.xy;
     }
-    else if (GridPlane == 1) // XZ 평면 (Front / Back)
+    else if (grid_plane == 1) // XZ 평면 (Front / Back)
     {
         world_pos = float3(local_pos.x, 0.0f, local_pos.y);
-        world_pos.xz += CameraPos.xz;
+        world_pos.xz += camera_pos.xz;
 
         output.grid_uv = world_pos.xz;
-        output.camera_uv = CameraPos.xz;
+        output.camera_uv = camera_pos.xz;
     }
     else // YZ 평면 (Right / Left)
     {
         world_pos = float3(0.0f, local_pos.x, local_pos.y);
-        world_pos.yz += CameraPos.yz;
+        world_pos.yz += camera_pos.yz;
 
         output.grid_uv = world_pos.yz;
-        output.camera_uv = CameraPos.yz;
+        output.camera_uv = camera_pos.yz;
     }
 
     // 2. VP 행렬을 사용하여 최종 위치 계산 (월드 좌표 -> 화면 클립 좌표)
-    output.position = mul(VP, float4(world_pos, 1.0f));
+    output.position = mul(vp, float4(world_pos, 1.0f));
 
     // 3. PS에서 필요한 데이터를 전달
-    output.plane_type = GridPlane; // PS에서 X, Y, Z축 색상을 동적으로 고르기 위해 필요
-    output.grid_size = GridSize;   // PS에서 Falloff 비율을 계산하기 위해 필요
+    output.plane_type = grid_plane; // PS에서 X, Y, Z축 색상을 동적으로 고르기 위해 필요
+    output.grid_size = grid_size;   // PS에서 Falloff 비율을 계산하기 위해 필요
 
     return output;
 }
@@ -173,7 +175,7 @@ float4 PSMain(VertexOutput input) : SV_Target0
 
     // 거리가 멀어져 선이 너무 촘촘해지면(linear_dist 증가) LOD 레벨이 올라갑니다.
     // log10을 사용하여 거리에 따라 LOD 값이 0.1, 0.5, 1.2 등 소수로 부드럽게 증가합니다.
-    float lod = max(0.0f, log10(linear_dist * GridMinPixelsBetweenCells / GridCellSize));
+    float lod = max(0.0f, log10(linear_dist * grid_min_pixels_between_cells / grid_cell_size));
 
     // ------------------------------------------------------------
     // [3단계: 카메라 거리에 맞는 3단계 그리드 스케일(10배수) 계산]
@@ -181,7 +183,7 @@ float4 PSMain(VertexOutput input) : SV_Target0
 
     // floor(lod)를 통해 현재 보여야 할 가장 얇은 선의 기준 스케일을 10배수 단위로 구합니다.
     // 예) LOD가 1.5면 10^1 = 10m 단위부터 그리기 시작함.
-    float grid_cell_size_lod0 = GridCellSize * pow(10.0f, floor(lod));
+    float grid_cell_size_lod0 = grid_cell_size * pow(10.0f, floor(lod));
     float grid_cell_size_lod1 = grid_cell_size_lod0 * 10.0f;
     float grid_cell_size_lod2 = grid_cell_size_lod1 * 10.0f;
 
@@ -216,7 +218,7 @@ float4 PSMain(VertexOutput input) : SV_Target0
     float thick_weight = max(grid_lod2_alpha, grid_lod1_alpha * (1.0f - lod_fade));
 
     // 계산된 가중치를 바탕으로 얇은 선 색상과 두꺼운 선 색상을 부드럽게 혼합(lerp)
-    float4 base_color = lerp(GridColorThin, GridColorThick, thick_weight);
+    float4 base_color = lerp(grid_color_thin, grid_color_thick, thick_weight);
 
     // 결정된 색상에 계산된 최종 그리드 투명도 적용
     base_color.a *= final_alpha;
@@ -234,7 +236,7 @@ float4 PSMain(VertexOutput input) : SV_Target0
 
     // [물리적 Coverage 기반 지평선 폭주 제거]
     // 축 선이 가질 수 있는 '최대 실제 월드 두께' (그리드 1칸의 절반 정도로 제한)
-    float max_world_thickness = GridCellSize * 0.5f;
+    float max_world_thickness = grid_cell_size * 0.5f;
 
     // 현재 픽셀 위치에서 화면 1.5픽셀이 덮게 되는 실제 월드 면적(두께)
     float2 pixel_world_thickness = axis_thickness * derivative;
@@ -272,7 +274,7 @@ float4 PSMain(VertexOutput input) : SV_Target0
 
     // TODO: 나중에 OrthoView일 때, falloff 제거하기
 
-    // 카메라 위치를 기준으로 거리를 계산하여, 평면(GridSize) 끝으로 갈수록 투명하게 페이드아웃 처리
+    // 카메라 위치를 기준으로 거리를 계산하여, 평면(grid_size) 끝으로 갈수록 투명하게 페이드아웃 처리
     float distance_from_camera = length(input.grid_uv - input.camera_uv);
     float opacity_falloff = 1.0f - saturate(distance_from_camera / input.grid_size);
 
