@@ -1,4 +1,4 @@
-// [shader] 속성이 없어 진입점이 없습니다.
+// [shader] 속성이 붙은 함수가 없어 진입점을 찾지 못합니다.
 
 float4 VSMain(uint vertex_id : SV_VertexID) : SV_Position
 {

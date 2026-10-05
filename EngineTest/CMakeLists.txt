@@ -17,7 +17,7 @@ target_link_libraries(UnitTests PRIVATE
 
         GTest::gtest
 )
-# 셰이더 픽스처처럼 소스 트리에 있는 테스트 데이터의 기준 경로
+# 소스 트리에 있는 테스트 데이터(셰이더 픽스처 등)의 기준 경로
 target_compile_definitions(UnitTests PRIVATE SE_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 add_custom_command(TARGET UnitTests POST_BUILD

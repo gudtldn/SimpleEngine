@@ -15,7 +15,7 @@ namespace
 {
 constexpr u32 SPIRV_MAGIC = 0x07230203;
 
-/** 테스트 전체가 함께 쓰는 컴파일러. 전역 세션 생성이 무거워 한 번만 만듭니다. */
+/** 모든 테스트가 공유하는 컴파일러. 전역 세션 생성 비용이 커서 한 번만 만듭니다. */
 [[nodiscard]] const ShaderCompiler& GetCompiler()
 {
     static const ShaderCompiler compiler;
@@ -110,7 +110,7 @@ TEST(ShaderCompilerTest, StageInterfaceExcludesOtherStageResources)
     EXPECT_TRUE(FindSlot(ps.sampled_textures, "base_color_texture").HasValue());
     EXPECT_TRUE(FindSlot(ps.samplers, "base_color_sampler").HasValue());
 
-    // 필터 전 선언은 두 스테이지 것을 모두 담습니다.
+    // declared_bindings는 두 스테이지의 선언을 모두 담습니다.
     EXPECT_EQ(result->declared_bindings.Len(), 5u);
 }
 
@@ -126,7 +126,7 @@ TEST(ShaderCompilerTest, ReflectsVertexInputsAndVaryings)
     EXPECT_EQ(inputs[0], (ShaderVertexInput{ .location = 0, .name = "position", .type = EShaderValueType::Float3 }));
     EXPECT_EQ(inputs[1], (ShaderVertexInput{ .location = 1, .name = "tex_coord", .type = EShaderValueType::Float2 }));
 
-    // SV_Position은 보간 값이 아니므로 빠집니다.
+    // SV_Position은 시스템 값이라 제외됩니다.
     ASSERT_EQ(vertex->outputs.Len(), 2u);
     EXPECT_EQ(vertex->outputs[0].semantic, "TEXCOORD0");
     EXPECT_EQ(vertex->outputs[0].type, EShaderValueType::Float2);

@@ -23,14 +23,14 @@ Optional<const CompiledShaderStage&> CompiledShaderProgram::FindStage(EShaderSta
 #if SE_HAS_HLSL_COMPILER
 namespace
 {
-/** 세션 타깃 순서 */
+/** 세션에 등록한 타깃의 인덱스 */
 constexpr SlangInt TARGET_SPIRV = 0;
 constexpr SlangInt TARGET_DXIL = 1;
 
-/** 무해한 경고: vk::binding 없음, 텍스처와 샘플러가 같은 번호, SPIR-V 1.0 버전 고정 */
+/** 끄는 경고 (모두 무해): vk::binding 미지정, 텍스처와 샘플러의 binding 중복, SPIR-V 1.0 지정 */
 constexpr const char* DISABLED_WARNINGS = "39029,39001,50011";
 
-/** 세션의 고정 옵션. 바꾸면 툴체인 식별 문자열이 달라져 캐시가 무효화됩니다. */
+/** 세션 고정 옵션의 설명. 툴체인 식별 문자열에 들어가므로 옵션을 바꾸면 함께 고쳐야 합니다. */
 constexpr const char* FIXED_OPTIONS = "spirv_1_0 sm_6_0 column_major ForceDXLayout VulkanUseEntryPointName";
 
 struct TargetFormat
@@ -44,7 +44,7 @@ constexpr TargetFormat TARGET_FORMATS[] = {
     { .target = TARGET_DXIL,  .format = EShaderFormat::DXIL  },
 };
 
-/** 모듈 이름. 컴파일마다 세션을 새로 만들어 겹칠 일이 없습니다. */
+/** Slang 모듈 이름. 컴파일마다 새 세션을 쓰므로 이름이 겹치지 않습니다. */
 constexpr const char* MODULE_NAME = "ShaderSource";
 
 [[nodiscard]] String ToString(slang::IBlob* blob)
@@ -110,7 +110,7 @@ void AppendDiagnostics(String& diagnostics, slang::IBlob* blob)
     }
 }
 
-/** [shader] 속성이 붙은 진입점 전부 */
+/** [shader] 속성이 붙은 모든 진입점을 모읍니다. */
 [[nodiscard]] ShaderCookResult<Array<Slang::ComPtr<slang::IEntryPoint>>> CollectEntryPoints(slang::IModule* module, const Path& source_path)
 {
     Array<Slang::ComPtr<slang::IEntryPoint>> entry_points;
@@ -134,7 +134,7 @@ void AppendDiagnostics(String& diagnostics, slang::IBlob* blob)
     return entry_points;
 }
 
-/** 모듈과 진입점 전부를 하나로 묶어 링크합니다. */
+/** 모듈과 모든 진입점을 하나의 프로그램으로 묶어 링크합니다. */
 [[nodiscard]] ShaderCookResult<Slang::ComPtr<slang::IComponentType>> Link(
     slang::ISession* session,
     slang::IModule* module,
@@ -171,7 +171,7 @@ void AppendDiagnostics(String& diagnostics, slang::IBlob* blob)
     return linked;
 }
 
-/** 진입점 하나의 포맷별 바이트코드와 리플렉션 */
+/** 진입점 하나의 포맷별 코드를 생성하고 리플렉션합니다. */
 [[nodiscard]] ShaderCookResult<CompiledShaderStage> BuildStage(
     slang::IComponentType* linked,
     const SlangReflector& reflector,
@@ -218,7 +218,7 @@ void AppendDiagnostics(String& diagnostics, slang::IBlob* blob)
     return compiled;
 }
 
-/** 소스 자신과 포함한 파일 */
+/** 소스 파일과 include한 파일 목록 */
 [[nodiscard]] Array<Path> CollectDependencies(slang::IModule* module)
 {
     Array<Path> dependencies;
@@ -239,7 +239,7 @@ struct ShaderCompiler::Impl
     Slang::ComPtr<slang::IGlobalSession> global_session;
     String toolchain_identity;
 
-    /** 컴파일 하나에 쓸 세션. 같은 파일을 한 세션에 다시 불러오면 실패하므로 매번 새로 만듭니다. */
+    /** 컴파일 한 번에 쓸 세션을 만듭니다. 한 세션에서 같은 파일을 다시 불러오면 실패하므로 컴파일마다 새로 만듭니다. */
     [[nodiscard]] Slang::ComPtr<slang::ISession> CreateSession(const ShaderCompileRequest& request) const
     {
         const slang::TargetDesc targets[] = {
@@ -340,7 +340,7 @@ ShaderCompiler::ShaderCompiler()
         return;
     }
 
-    // DXIL은 Slang이 DXC(dxcompiler.dll, 서명용 dxil.dll)에 맡기므로 실행 파일 옆에서 찾게 합니다.
+    // Slang은 DXIL 생성을 DXC(dxcompiler.dll, 서명용 dxil.dll)에 맡기므로, 실행 파일 폴더에서 찾도록 지정합니다.
     const Path dxc_directory = Platform::GetExecutableDirectory();
     impl->global_session->setDownstreamCompilerPath(SLANG_PASS_THROUGH_DXC, dxc_directory.CStr());
 

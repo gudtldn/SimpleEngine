@@ -1,4 +1,4 @@
-// 컴퓨트 스테이지의 세 set(읽기 전용, 읽기·쓰기, 상수 버퍼)을 모두 씁니다.
+// 컴퓨트 스테이지의 세 set(읽기 전용, 읽기/쓰기, 상수 버퍼)을 모두 사용합니다.
 
 Texture2D<float4> source_texture : register(t0, space0);
 SamplerState source_sampler : register(s0, space0);

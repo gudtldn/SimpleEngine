@@ -1,4 +1,4 @@
-// 텍스처 뒤에 읽기 전용 스토리지 버퍼가 이어집니다.
+// 같은 set에서 텍스처 다음 번호에 읽기 전용 스토리지 버퍼를 선언합니다.
 
 StructuredBuffer<float4> vertex_offsets : register(t0, space0);
 

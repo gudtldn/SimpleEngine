@@ -16,7 +16,7 @@ namespace
 using SlangKind = slang::TypeReflection::Kind;
 using SlangScalar = slang::TypeReflection::ScalarType;
 
-/** 스테이지가 쓰는 SDL descriptor set */
+/** 스테이지가 사용하는 descriptor set 번호 */
 struct StageSets
 {
     u32 resources = 0;
@@ -24,7 +24,7 @@ struct StageSets
     u32 uniform_buffers = 0;
 };
 
-/** varying 하나와 그 location */
+/** 보간 값과 그 location */
 struct VaryingField
 {
     ShaderVarying varying;
@@ -53,7 +53,7 @@ struct VaryingField
     return name ? name : "";
 }
 
-/** 텍스처·버퍼 모양과 접근 권한으로 리소스 종류를 정합니다. */
+/** 리소스의 형태(텍스처, 버퍼)와 접근 권한(읽기, 읽기/쓰기)으로 종류를 정합니다. */
 [[nodiscard]] Optional<EShaderResourceKind> ClassifyShapedResource(slang::TypeLayoutReflection* type_layout)
 {
     const u32 base_shape = type_layout->getResourceShape() & SLANG_RESOURCE_BASE_SHAPE_MASK;
@@ -123,7 +123,7 @@ struct VaryingField
     }
 }
 
-/** 스칼라, 벡터, 정사각 float 행렬만 대응하고 나머지는 Unknown입니다. */
+/** 스칼라, 벡터, 정사각 float 행렬만 변환하고, 나머지는 Unknown입니다. */
 [[nodiscard]] EShaderValueType ToValueType(slang::TypeLayoutReflection* type_layout)
 {
     const SlangScalar scalar = type_layout->getScalarType();
@@ -166,7 +166,7 @@ struct VaryingField
     return buffer;
 }
 
-/** uniform_set에 선언된 상수 버퍼. layout이 SPIR-V든 DXIL이든 set과 space 번호가 같습니다. */
+/** uniform_set에 선언된 상수 버퍼를 읽습니다. SPIR-V set과 DXIL space 번호가 같아 두 레이아웃에 모두 쓸 수 있습니다. */
 [[nodiscard]] Array<ShaderUniformBuffer> ReflectUniformBuffers(slang::ProgramLayout* layout, u32 uniform_set)
 {
     Array<ShaderUniformBuffer> buffers;
@@ -201,8 +201,8 @@ struct VaryingField
 }
 
 /**
- * space에 선언된 kind 리소스를 first_binding부터 SDL 슬롯 0으로 놓습니다.
- * first_binding보다 앞에 선언된 것은 규약 위반이라 넣지 않습니다.
+ * space에 선언된 kind 리소스에 SDL 슬롯을 매깁니다. binding이 first_binding인 리소스가 슬롯 0입니다.
+ * binding이 first_binding보다 작은 리소스는 규약 위반이므로 제외합니다.
  */
 [[nodiscard]] Array<ShaderResourceSlot> PlaceResources(
     const Array<ShaderBindingRecord>& bindings,
@@ -222,7 +222,7 @@ struct VaryingField
     return slots;
 }
 
-/** SDL에 넘길 슬롯 범위(최대 슬롯 + 1) */
+/** SDL에 넘길 개수 (가장 큰 슬롯 + 1) */
 template <typename T>
 [[nodiscard]] u32 SlotRange(const Array<T>& slots)
 {
@@ -234,14 +234,14 @@ template <typename T>
     return range;
 }
 
-/** 리소스 set 안을 SDL 순서(샘플 텍스처, 스토리지 텍스처, 스토리지 버퍼)로 나눕니다. */
+/** 리소스 set을 SDL 순서(샘플 텍스처, 스토리지 텍스처, 스토리지 버퍼)대로 나눠 슬롯을 매깁니다. */
 void PlaceReadOnlyResources(const Array<ShaderBindingRecord>& bindings, u32 space, ShaderStageInterface& stage_interface)
 {
     ShaderResourceCounts& counts = stage_interface.counts;
 
     stage_interface.sampled_textures = PlaceResources(bindings, space, EShaderResourceKind::SampledTexture, 0);
     stage_interface.samplers = PlaceResources(bindings, space, EShaderResourceKind::Sampler, 0);
-    // 샘플러는 텍스처와 같은 번호를 쓰므로 둘 중 넓은 범위가 SDL 샘플러 개수입니다.
+    // SDL에서 샘플러는 샘플 텍스처와 짝을 이루므로, 둘 중 큰 범위를 샘플러 개수로 씁니다.
     counts.samplers = std::max(SlotRange(stage_interface.sampled_textures), SlotRange(stage_interface.samplers));
 
     stage_interface.storage_textures = PlaceResources(bindings, space, EShaderResourceKind::StorageTexture, counts.samplers);
@@ -252,7 +252,7 @@ void PlaceReadOnlyResources(const Array<ShaderBindingRecord>& bindings, u32 spac
     counts.storage_buffers = SlotRange(stage_interface.storage_buffers);
 }
 
-/** 읽기/쓰기 set 안을 SDL 순서(텍스처, 버퍼)로 나눕니다. */
+/** 읽기/쓰기 set을 SDL 순서(텍스처, 버퍼)대로 나눠 슬롯을 매깁니다. */
 void PlaceReadWriteResources(const Array<ShaderBindingRecord>& bindings, u32 space, ShaderStageInterface& stage_interface)
 {
     ShaderResourceCounts& counts = stage_interface.counts;
@@ -265,7 +265,7 @@ void PlaceReadWriteResources(const Array<ShaderBindingRecord>& bindings, u32 spa
     counts.readwrite_storage_buffers = SlotRange(stage_interface.readwrite_storage_buffers);
 }
 
-/** SV_로 시작하는 시스템 값 semantic인지 여부 */
+/** semantic이 SV_로 시작하는 시스템 값인지 여부 */
 [[nodiscard]] bool IsSystemValue(const char* semantic)
 {
     return std::toupper(static_cast<unsigned char>(semantic[0])) == 'S'
@@ -273,7 +273,7 @@ void PlaceReadWriteResources(const Array<ShaderBindingRecord>& bindings, u32 spa
         && semantic[2] == '_';
 }
 
-/** var와 그 구조체 필드를 펼쳐 시스템 값이 아닌 varying을 모읍니다. 깊이는 소스의 구조체 중첩만큼입니다. */
+/** var가 구조체면 필드를 재귀로 펼쳐, 시스템 값이 아닌 보간 값을 모읍니다. 재귀 깊이는 소스의 구조체 중첩 깊이와 같습니다. */
 void CollectVaryingFields( // NOLINT(*-no-recursion)
     slang::VariableLayoutReflection* var,
     slang::ParameterCategory category,
