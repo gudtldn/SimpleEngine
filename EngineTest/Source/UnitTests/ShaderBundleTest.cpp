@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "SimpleEngine/Graphics/Shader/ShaderBundle.h"
+#include "SimpleEngine/Shader/ShaderBundle.h"
 
 using namespace se;
 
@@ -41,7 +41,46 @@ namespace
     bundle.dependencies = { "CoreShader://Default.hlsl", "CoreShader://Bindings.hlsli" };
     return bundle;
 }
+
+/** 읽기·쓰기 스토리지와 스레드 수를 채운 컴퓨트 번들을 만듭니다. */
+[[nodiscard]] ShaderBundle MakeComputeBundle()
+{
+    ShaderStageInterface compute{ .stage = EShaderStage::Compute };
+    compute.sampled_textures.Push({ .name = "source_texture", .slot = 0 });
+    compute.samplers.Push({ .name = "source_sampler", .slot = 0 });
+    compute.storage_buffers.Push({ .name = "input_particles", .slot = 0 });
+    compute.readwrite_storage_textures.Push({ .name = "output_texture", .slot = 0 });
+    compute.readwrite_storage_buffers.Push({ .name = "output_particles", .slot = 0 });
+    compute.uniform_buffers.Push({ .name = "DispatchUBO", .slot = 0, .size = 16 });
+    compute.counts = {
+        .samplers = 1, .storage_textures = 0, .storage_buffers = 1,
+        .readwrite_storage_textures = 1, .readwrite_storage_buffers = 1, .uniform_buffers = 1,
+    };
+    compute.threadcount = { .x = 8, .y = 8, .z = 1 };
+
+    ShaderBundle bundle;
+    bundle.program.stages.Push(std::move(compute));
+    bundle.blobs.Push({ .stage = EShaderStage::Compute, .format = EShaderFormat::SPIRV, .entry_point = "CSMain", .code = { 0x03, 0x02, 0x23, 0x07 } });
+    bundle.blobs.Push({ .stage = EShaderStage::Compute, .format = EShaderFormat::DXIL, .entry_point = "CSMain", .code = { 'D', 'X', 'B', 'C' } });
+    bundle.dependencies = { "CoreShader://Particles.hlsl" };
+    return bundle;
+}
 } // namespace
+
+TEST(ShaderBundleTest, RoundTripPreservesComputeStage)
+{
+    const ShaderBundle original = MakeComputeBundle();
+
+    const auto restored = ShaderBundle::Deserialize(original.Serialize());
+
+    ASSERT_TRUE(restored.HasValue()) << restored.Error().CStr();
+    EXPECT_EQ(*restored, original);
+
+    const auto compute = restored->program.FindStage(EShaderStage::Compute);
+    ASSERT_TRUE(compute.HasValue());
+    EXPECT_EQ(compute->threadcount, (ShaderThreadCount{ .x = 8, .y = 8, .z = 1 }));
+    EXPECT_EQ(compute->counts.readwrite_storage_buffers, 1u);
+}
 
 TEST(ShaderBundleTest, RoundTripPreservesEveryField)
 {

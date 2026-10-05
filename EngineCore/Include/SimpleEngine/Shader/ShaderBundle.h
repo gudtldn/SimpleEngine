@@ -6,7 +6,7 @@
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "SimpleEngine/Graphics/Shader/ShaderInterface.h"
+#include "SimpleEngine/Shader/ShaderInterface.h"
 
 
 namespace se

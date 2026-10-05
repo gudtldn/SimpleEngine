@@ -1,4 +1,4 @@
-#include "SimpleEngine/Graphics/Shader/ShaderInterface.h"
+#include "SimpleEngine/Shader/ShaderInterface.h"
 
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
@@ -22,6 +22,7 @@ Optional<const ShaderStageInterface&> ShaderProgramInterface::FindStage(EShaderS
 SE_REFLECT_ENUM_BEGIN(se::EShaderStage)
     SE_ENUM_VALUE(Vertex)
     SE_ENUM_VALUE(Fragment)
+    SE_ENUM_VALUE(Compute)
 SE_REFLECT_ENUM_END()
 
 SE_REFLECT_ENUM_BEGIN(se::EShaderFormat)
@@ -78,7 +79,15 @@ SE_REFLECT_BEGIN(se::ShaderResourceCounts)
     SE_FIELD(samplers)
     SE_FIELD(storage_textures)
     SE_FIELD(storage_buffers)
+    SE_FIELD(readwrite_storage_textures)
+    SE_FIELD(readwrite_storage_buffers)
     SE_FIELD(uniform_buffers)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::ShaderThreadCount)
+    SE_FIELD(x)
+    SE_FIELD(y)
+    SE_FIELD(z)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(se::ShaderStageInterface)
@@ -88,8 +97,11 @@ SE_REFLECT_BEGIN(se::ShaderStageInterface)
     SE_FIELD(samplers)
     SE_FIELD(storage_textures)
     SE_FIELD(storage_buffers)
+    SE_FIELD(readwrite_storage_textures)
+    SE_FIELD(readwrite_storage_buffers)
     SE_FIELD(uniform_buffers)
     SE_FIELD(counts)
+    SE_FIELD(threadcount)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(se::ShaderProgramInterface)

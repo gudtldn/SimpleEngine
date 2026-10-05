@@ -1,4 +1,4 @@
-#include "SimpleEngine/Graphics/Shader/ShaderBundle.h"
+#include "SimpleEngine/Shader/ShaderBundle.h"
 
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Serialization/BinaryArchive.h"
