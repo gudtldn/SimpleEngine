@@ -14,10 +14,11 @@ class ShaderCookError final : public IError
 public:
     enum class EType : u8
     {
-        ReadFailed,    // 소스 파일 읽기 실패
-        CompileFailed, // 컴파일 또는 링크 실패
-        NoEntryPoint,  // [shader] 속성이 붙은 진입점이 없음
-        NotSupported,  // 지원하지 않는 스테이지 또는 플랫폼
+        ReadFailed,       // 소스 파일 읽기 실패
+        CompileFailed,    // 컴파일 또는 링크 실패
+        NoEntryPoint,     // [shader] 속성이 붙은 진입점이 없음
+        NotSupported,     // 지원하지 않는 스테이지 또는 플랫폼
+        ValidationFailed, // SDL3 GPU 규약 또는 포맷 간 일치 검사 실패
     };
     using enum EType;
 

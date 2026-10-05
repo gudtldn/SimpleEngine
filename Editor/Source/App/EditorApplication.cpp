@@ -9,6 +9,8 @@
 #include "SimpleEditor/Gizmo/GizmoPickPass.h"
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 #include "SimpleEditor/Picking/PickSubsystem.h"
+#include "SimpleEditor/ShaderCook/ShaderCompiler.h"
+#include "SimpleEditor/ShaderCook/ShaderCooker.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 #include "SimpleEditor/WorldGrid/WorldGridPass.h"
@@ -17,6 +19,7 @@
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/BuiltinAssets.h"
+#include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Asset/Types/Texture2D.h"
@@ -141,6 +144,21 @@ bool EditorApplication::PostInitialize()
         const Path editor_output_dir = VFS::ToPath("EditorShader://Compiled");
 
         shader_compiler::CompileAll(editor_hlsl_dir, editor_output_dir);
+    }
+    {
+        // 셰이더 번들을 DDC에 쿡합니다. 런타임은 아직 위의 옛 경로를 사용합니다.
+        const ShaderCompiler compiler;
+        const ShaderCooker cooker{ compiler };
+        DerivedDataCache& ddc = se::GetSubsystem<AssetSubsystem>()->GetDDC();
+        for (const VPath& shader_dir : { VPath{ "CoreShader://" }, VPath{ "EditorShader://" } })
+        {
+            const ShaderCookSummary summary = cooker.CookDirectory(shader_dir, ddc);
+            ConsoleLog(
+                ELogLevel::Info,
+                "Shader cook {}: {} cooked, {} up to date, {} failed",
+                shader_dir.ToString(), summary.cooked, summary.up_to_date, summary.failed
+            );
+        }
     }
 #endif
 
