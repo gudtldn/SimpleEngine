@@ -6,6 +6,7 @@
 #include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
+#include "SimpleEngine/Shader/ShaderBundleSource.h"
 
 #include "SDL3/SDL_filesystem.h"
 
@@ -89,11 +90,8 @@ TEST_F(ShaderCookerTest, StoresBundleAndSkipsUpToDateShader)
     EXPECT_EQ(first.cooked, 1u);
     EXPECT_EQ(first.failed, 0u);
 
-    const auto entry = ddc.Load(ShaderCooker::BundleKeyOf("CookTest://Program.hlsl"));
-    ASSERT_TRUE(entry.HasValue());
-    EXPECT_EQ(entry->cache_version, ShaderBundle::FORMAT_VERSION);
-
-    const auto bundle = ShaderBundle::Deserialize(entry->payload);
+    // 쿠커가 쓴 번들을 런타임이 읽는 경로 그대로 읽습니다.
+    const auto bundle = DdcShaderBundleSource{ ddc }.Load("CookTest://Program.hlsl");
     ASSERT_TRUE(bundle.HasValue()) << bundle.Error().CStr();
     ASSERT_EQ(bundle->dependencies.Len(), 2u);
     EXPECT_STREQ(bundle->dependencies[0].CStr(), "CookTest://Common.hlsli");

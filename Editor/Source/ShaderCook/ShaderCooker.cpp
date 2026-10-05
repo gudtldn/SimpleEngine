@@ -6,6 +6,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Shader/ShaderBundleSource.h"
 #include "SimpleEngine/Utility/SHA256.h"
 
 #include <algorithm>
@@ -103,7 +104,7 @@ ShaderCookSummary ShaderCooker::CookDirectory(const VPath& shader_dir, DerivedDa
         }
 
         const VPath shader_vpath = shader_dir / *file_name;
-        const Guid key = BundleKeyOf(shader_vpath);
+        const Guid key = DdcShaderBundleSource::KeyOf(shader_vpath);
         if (IsUpToDate(key, ddc))
         {
             ++summary.up_to_date;
@@ -159,19 +160,6 @@ ShaderCookResult<ShaderBundle> ShaderCooker::CookFile(const VPath& shader_vpath)
         return Unexpected{ std::move(dependencies).Error() };
     }
     return MakeBundle(std::move(*compiled), std::move(*dependencies));
-}
-
-Guid ShaderCooker::BundleKeyOf(const VPath& shader_vpath)
-{
-    const ContentHash hash = sha256::HashString(String::Format("ShaderBundle:{}", shader_vpath.ToString()));
-
-    FixedArray<u8, 16> bytes{};
-    std::copy_n(hash.Data(), bytes.Len(), bytes.Data());
-
-    // 이름 기반 UUID 버전 8(RFC 9562)과 RFC 변형 비트
-    bytes[6] = static_cast<u8>((bytes[6] & 0x0F) | 0x80); // NOLINT(*-signed-bitwise)
-    bytes[8] = static_cast<u8>((bytes[8] & 0x3F) | 0x80); // NOLINT(*-signed-bitwise)
-    return Guid::FromBytes(bytes);
 }
 
 bool ShaderCooker::IsUpToDate(const Guid& key, const DerivedDataCache& ddc) const

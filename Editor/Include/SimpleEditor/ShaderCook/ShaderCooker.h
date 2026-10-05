@@ -43,9 +43,6 @@ public:
     /** DDC를 거치지 않고 소스 하나를 번들로 만듭니다. */
     [[nodiscard]] ShaderCookResult<ShaderBundle> CookFile(const VPath& shader_vpath) const;
 
-    /** shader_vpath의 번들을 저장하는 DDC 키 */
-    [[nodiscard]] static Guid BundleKeyOf(const VPath& shader_vpath);
-
 private:
     /** ddc에 있는 번들이 지금 소스와 툴체인으로 만든 것인지 확인합니다. */
     [[nodiscard]] bool IsUpToDate(const Guid& key, const DerivedDataCache& ddc) const;
