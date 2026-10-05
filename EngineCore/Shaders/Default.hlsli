@@ -2,10 +2,10 @@
 
 struct VertexInput
 {
-    float3 position : POSITION;   // C++: location 0 (Vector3f position)
-    float3 normal : NORMAL;       // C++: location 1 (Vector3f normal)
-    float2 tex_coord : TEXCOORD0; // C++: location 2 (Vector2f tex_coord)
-    float4 tangent : TANGENT;     // C++: location 3 (Vector4f tangent)
+    [[vk::location(0)]] float3 position  : TEXCOORD0; // C++: Vector3f position
+    [[vk::location(1)]] float3 normal    : TEXCOORD1; // C++: Vector3f normal
+    [[vk::location(2)]] float2 tex_coord : TEXCOORD2; // C++: Vector2f tex_coord
+    [[vk::location(3)]] float4 tangent   : TEXCOORD3; // C++: Vector4f tangent
 };
 
 struct VertexOutput
