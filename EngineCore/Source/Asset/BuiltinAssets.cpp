@@ -20,8 +20,7 @@ void SeedBuiltinAssets(AssetSubsystem& subsystem)
     // -------------------------------------------------------------------------
     {
         auto mat = std::make_unique<Material>();
-        mat->vertex_shader = "CoreShader://Default.vert";
-        mat->fragment_shader = "CoreShader://Default.frag";
+        mat->shader_program = "CoreShader://Default.hlsl";
         mat->blend_mode = EBlendMode::Opaque;
         mat->shading_model = EShadingModel::Lit;
 

@@ -10,6 +10,7 @@
 #include "SimpleEngine/Graphics/Memory/GpuResourceManager.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphBuilder.h"
 #include "SimpleEngine/Graphics/RenderGraph/RenderGraphExecutor.h"
+#include "SimpleEngine/Shader/ShaderBundleSource.h"
 
 #include "SDL3/SDL.h"
 
@@ -57,6 +58,7 @@ private:
     std::unique_ptr<RenderDevice> render_device;
     std::unique_ptr<RenderGraphBuilder> render_graph_builder;
     std::unique_ptr<RenderGraphExecutor> render_graph_executor;
+    std::unique_ptr<DdcShaderBundleSource> shader_bundle_source;
     std::unique_ptr<PSOManager> pso_manager;
     std::unique_ptr<SamplerCache> sampler_cache;
     std::unique_ptr<GpuResourceManager> resource_manager;

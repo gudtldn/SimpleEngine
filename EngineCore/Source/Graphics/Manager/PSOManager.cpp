@@ -4,16 +4,37 @@
 #include "SimpleEngine/Graphics/ShaderUtils.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 
-#include "SDL3_shadercross/SDL_shadercross.h"
-
 #include <ranges>
 
 
 namespace se
 {
-PSOManager::PSOManager(RenderDevice& in_render_device)
+namespace
+{
+/** 번들에 기록된 정점 셰이더 입력 location을 정점 속성 필터 입력으로 바꿉니다. */
+[[nodiscard]] ShaderReflectionData VertexReflectionOf(Optional<const ShaderProgramInterface&> program)
+{
+    ShaderReflectionData reflection;
+    if (!program)
+    {
+        return reflection;
+    }
+
+    if (const auto vertex = program->FindStage(EShaderStage::Vertex))
+    {
+        for (const ShaderVertexInput& input : vertex->vertex_inputs)
+        {
+            reflection.vertex_inputs.Push({ .location = input.location });
+        }
+    }
+    return reflection;
+}
+} // namespace
+
+
+PSOManager::PSOManager(RenderDevice& in_render_device, const IShaderBundleSource& shader_bundle_source)
     : render_device(&in_render_device)
-    , shader_cache(in_render_device)
+    , shader_library(in_render_device.GetRawDevice(), shader_bundle_source)
 {
 }
 
@@ -24,14 +45,14 @@ PSOManager::~PSOManager()
         SDL_ReleaseGPUGraphicsPipeline(render_device->GetRawDevice(), pipeline);
     }
     cached_graphics_pipelines.Clear();
-    graphics_shader_to_pipeline_map.Clear();
+    graphics_program_to_pipeline_map.Clear();
 
     for (SDL_GPUComputePipeline* pipeline : cached_compute_pipelines | std::views::values)
     {
         SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), pipeline);
     }
     cached_compute_pipelines.Clear();
-    compute_shader_to_pipeline_map.Clear();
+    compute_program_to_pipeline_map.Clear();
 }
 
 SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsPipelineCreateInfo& create_info)
@@ -41,25 +62,24 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         return *pipeline;
     }
 
-    SDL_GPUShader* vertex_shader = shader_cache.GetOrCreateShader(create_info.vertex_shader, SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
+    SDL_GPUShader* vertex_shader = shader_library.GetOrCreateShader(create_info.shader_program, EShaderStage::Vertex);
     if (!vertex_shader)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to get vertex shader from cache!");
+        ConsoleLog(ELogLevel::Error, "Failed to get vertex shader: {}", create_info.shader_program);
         return nullptr;
     }
 
-    SDL_GPUShader* frag_shader = shader_cache.GetOrCreateShader(create_info.fragment_shader, SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
+    SDL_GPUShader* frag_shader = shader_library.GetOrCreateShader(create_info.shader_program, EShaderStage::Fragment);
     if (!frag_shader)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to get fragment shader from cache!");
+        ConsoleLog(ELogLevel::Error, "Failed to get fragment shader: {}", create_info.shader_program);
         return nullptr;
     }
 
-    // Vertex Shader을 리플렉션 해서, 실제 사용되는 attribute만 필터링
-    static const ShaderReflectionData EMPTY_REFL{};
+    // 정점 셰이더가 실제로 쓰는 attribute만 남깁니다.
     const FilteredVertexInputState filtered = FilterVertexInputState(
         create_info.vertex_input_state,
-        shader_cache.GetReflection(create_info.vertex_shader).ValueOr(EMPTY_REFL)
+        VertexReflectionOf(shader_library.FindInterface(create_info.shader_program))
     );
 
     const SDL_GPUGraphicsPipelineCreateInfo info = {
@@ -79,7 +99,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
     {
         const SDL_GPUVertexInputState state = filtered.AsState();
         ConsoleLog(ELogLevel::Error, "Failed to create graphics pipeline!, Err: {}", SDL_GetError());
-        ConsoleLog(ELogLevel::Error, "  VS: {}, PS: {}", create_info.vertex_shader, create_info.fragment_shader);
+        ConsoleLog(ELogLevel::Error, "  Program: {}", create_info.shader_program);
         ConsoleLog(ELogLevel::Error, "  VertexAttrs: {} -> {} (filtered)", create_info.vertex_input_state.num_vertex_attributes, state.num_vertex_attributes);
         for (u32 i = 0; i < state.num_vertex_attributes; ++i)
         {
@@ -92,8 +112,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
     cached_graphics_pipelines.Insert(create_info, pipeline);
 
     // 역추적 인덱스 등록
-    graphics_shader_to_pipeline_map.Entry(create_info.vertex_shader).OrDefault().Push(create_info);
-    graphics_shader_to_pipeline_map.Entry(create_info.fragment_shader).OrDefault().Push(create_info);
+    graphics_program_to_pipeline_map.Entry(create_info.shader_program).OrDefault().Push(create_info);
 
     return pipeline;
 }
@@ -105,32 +124,25 @@ SDL_GPUComputePipeline* PSOManager::GetOrCreateComputePipeline(const ComputePipe
         return *pipeline;
     }
 
-    // 직접 SPIR-V를 읽어 Compute 파이프라인을 생성
-    auto spirv_opt = ShaderCache::ReadSpvFile(create_info.compute_shader);
-    if (!spirv_opt.HasValue())
-    {
-        return nullptr;
-    }
-
-    SDL_GPUComputePipeline* pipeline = CreateComputePipeline(*render_device, *spirv_opt, create_info.props);
+    SDL_GPUComputePipeline* pipeline = shader_library.CreateComputePipeline(create_info.compute_program, create_info.props);
     if (!pipeline)
     {
-        ConsoleLog(ELogLevel::Error, "Failed to create compute pipeline: {}", create_info.compute_shader);
+        ConsoleLog(ELogLevel::Error, "Failed to create compute pipeline: {}", create_info.compute_program);
         return nullptr;
     }
 
     cached_compute_pipelines.Insert(create_info, pipeline);
 
     // 역추적 인덱스 등록
-    compute_shader_to_pipeline_map.Entry(create_info.compute_shader).OrDefault().Push(create_info);
+    compute_program_to_pipeline_map.Entry(create_info.compute_program).OrDefault().Push(create_info);
 
     return pipeline;
 }
 
-void PSOManager::InvalidateShader(const VPath& shader_key)
+void PSOManager::InvalidateShader(const VPath& shader_program)
 {
     // Graphics 파이프라인 무효화
-    if (const auto pipelines = graphics_shader_to_pipeline_map.Find(shader_key))
+    if (const auto pipelines = graphics_program_to_pipeline_map.Find(shader_program))
     {
         for (const GraphicsPipelineCreateInfo& key : *pipelines)
         {
@@ -139,28 +151,12 @@ void PSOManager::InvalidateShader(const VPath& shader_key)
                 SDL_ReleaseGPUGraphicsPipeline(render_device->GetRawDevice(), *pipeline);
                 cached_graphics_pipelines.Remove(key);
             }
-
-            // 이 파이프라인이 참조하는 다른 셰이더의 역추적 맵에서도 stale 엔트리를 제거
-            auto cleanup_stale_entry = [&](const VPath& other_key)
-            {
-                if (other_key == shader_key) { return; }
-                if (const auto other_list = graphics_shader_to_pipeline_map.Find(other_key))
-                {
-                    if (const auto idx = other_list->Find(key))
-                    {
-                        other_list->RemoveAtSwap(*idx);
-                    }
-                }
-            };
-
-            cleanup_stale_entry(key.vertex_shader);
-            cleanup_stale_entry(key.fragment_shader);
         }
-        graphics_shader_to_pipeline_map.Remove(shader_key);
+        graphics_program_to_pipeline_map.Remove(shader_program);
     }
 
     // Compute 파이프라인 무효화
-    if (const auto pipelines = compute_shader_to_pipeline_map.Find(shader_key))
+    if (const auto pipelines = compute_program_to_pipeline_map.Find(shader_program))
     {
         for (const ComputePipelineCreateInfo& key : *pipelines)
         {
@@ -170,11 +166,11 @@ void PSOManager::InvalidateShader(const VPath& shader_key)
                 cached_compute_pipelines.Remove(key);
             }
         }
-        compute_shader_to_pipeline_map.Remove(shader_key);
+        compute_program_to_pipeline_map.Remove(shader_program);
     }
 
-    // Graphics 셰이더 캐시에서 제거
-    shader_cache.Invalidate(shader_key);
+    // 셰이더 라이브러리에서 제거
+    shader_library.Invalidate(shader_program);
 }
 
 void PSOManager::ClearAll()
@@ -184,15 +180,15 @@ void PSOManager::ClearAll()
         SDL_ReleaseGPUGraphicsPipeline(render_device->GetRawDevice(), pipeline);
     }
     cached_graphics_pipelines.Clear();
-    graphics_shader_to_pipeline_map.Clear();
+    graphics_program_to_pipeline_map.Clear();
 
     for (SDL_GPUComputePipeline* pipeline : cached_compute_pipelines | std::views::values)
     {
         SDL_ReleaseGPUComputePipeline(render_device->GetRawDevice(), pipeline);
     }
     cached_compute_pipelines.Clear();
-    compute_shader_to_pipeline_map.Clear();
+    compute_program_to_pipeline_map.Clear();
 
-    shader_cache.ClearAll();
+    shader_library.ClearAll();
 }
 } // namespace se

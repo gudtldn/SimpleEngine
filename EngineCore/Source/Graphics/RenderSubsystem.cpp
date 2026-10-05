@@ -1,5 +1,6 @@
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 
+#include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -14,7 +15,8 @@ namespace se
 {
 // TODO: GameServer는 이거 필요없는데
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
-    .DependsOn<WindowSubsystem>();
+    .DependsOn<WindowSubsystem>()
+    .DependsOn<AssetSubsystem>();
 
 SE_BEGIN_REFLECT_V1(RenderSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
 SE_END_REFLECT_V1(RenderSubsystem)
@@ -86,7 +88,9 @@ bool RenderSubsystem::Initialize()
     resource_manager = std::make_unique<GpuResourceManager>(*render_device);
     render_graph_builder = std::make_unique<RenderGraphBuilder>();
     render_graph_executor = std::make_unique<RenderGraphExecutor>(*render_device);
-    pso_manager = std::make_unique<PSOManager>(*render_device);
+    // 셰이더 번들은 에디터가 쿡해 DDC에 둔 것을 읽습니다.
+    shader_bundle_source = std::make_unique<DdcShaderBundleSource>(se::GetSubsystemChecked<const AssetSubsystem>().GetDDC());
+    pso_manager = std::make_unique<PSOManager>(*render_device, *shader_bundle_source);
     sampler_cache = std::make_unique<SamplerCache>(*render_device);
 
     // 동적 윈도우 생성/파괴에 대응하기 위해 Delegate 구독
@@ -135,6 +139,7 @@ void RenderSubsystem::Release()
     render_graph_builder.reset();
     render_graph_executor.reset();
     pso_manager.reset();
+    shader_bundle_source.reset();
     sampler_cache.reset();
     resource_manager.reset();
 

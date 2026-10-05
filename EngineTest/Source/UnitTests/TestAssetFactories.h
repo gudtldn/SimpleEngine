@@ -99,8 +99,7 @@ template <typename T>
 [[nodiscard]] inline Material MakeMaterial()
 {
     Material material;
-    material.vertex_shader = "CoreShader://Test.vert";
-    material.fragment_shader = "CoreShader://Test.frag";
+    material.shader_program = "CoreShader://Test.hlsl";
     material.blend_mode = EBlendMode::Masked;
     material.shading_model = EShadingModel::Unlit;
     material.two_sided = true;

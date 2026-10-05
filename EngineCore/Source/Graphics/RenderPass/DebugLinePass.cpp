@@ -101,8 +101,7 @@ void DebugLinePass::Execute(RGExecutionContext& context)
         };
 
         return context.GetOrCreateGraphicsPipeline({
-            .vertex_shader = "CoreShader://DebugLine.vert",
-            .fragment_shader = "CoreShader://DebugLine.frag",
+            .shader_program = "CoreShader://DebugLine.hlsl",
 
             .vertex_input_state = {
                 .vertex_buffer_descriptions = vertex_buffer_desc,

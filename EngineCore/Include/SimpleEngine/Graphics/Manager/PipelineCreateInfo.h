@@ -13,8 +13,7 @@ namespace se
  */
 struct GraphicsPipelineCreateInfo
 {
-    VPath vertex_shader;
-    VPath fragment_shader;
+    VPath shader_program; // 정점·픽셀 스테이지를 모두 가진 셰이더 소스 (예: "CoreShader://Default.hlsl")
 
     SDL_GPUVertexInputState vertex_input_state;    // The vertex layout of the graphics pipeline.
     SDL_GPUPrimitiveType primitive_type;           // The primitive topology of the graphics pipeline.
@@ -34,7 +33,7 @@ struct GraphicsPipelineCreateInfo
  */
 struct ComputePipelineCreateInfo
 {
-    VPath compute_shader;
+    VPath compute_program; // 컴퓨트 스테이지를 가진 셰이더 소스
 
     SDL_PropertiesID props = 0;
 

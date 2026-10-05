@@ -10,8 +10,7 @@
 namespace se
 {
 SE_BEGIN_REFLECT_V1(Material, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(vertex_shader, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(fragment_shader, meta::Reflect)
+    SE_REFLECT_PROPERTY_V1(shader_program, meta::Reflect)
     SE_REFLECT_PROPERTY_V1(blend_mode, meta::Reflect)
     SE_REFLECT_PROPERTY_V1(shading_model, meta::Reflect)
     SE_REFLECT_PROPERTY_V1(two_sided, meta::Reflect)
@@ -115,8 +114,7 @@ Optional<const MaterialTextureSlot&> Material::FindTextureSlot(StringName name) 
 
 SE_REFLECT_BEGIN(se::Material)
     SE_BASE(se::AssetBase)
-    SE_FIELD(vertex_shader)
-    SE_FIELD(fragment_shader)
+    SE_FIELD(shader_program)
     SE_FIELD(blend_mode)
     SE_FIELD(shading_model)
     SE_FIELD(two_sided)

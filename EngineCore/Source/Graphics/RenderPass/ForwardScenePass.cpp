@@ -296,8 +296,7 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
 
                     return context.GetOrCreateGraphicsPipeline({
                         // 사용할 셰이더 지정
-                        .vertex_shader = material.vertex_shader,
-                        .fragment_shader = material.fragment_shader,
+                        .shader_program = material.shader_program,
 
                         // 정점 데이터 형식 정의
                         .vertex_input_state = {
