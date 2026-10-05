@@ -105,8 +105,7 @@ void GizmoPass::Execute(RGExecutionContext& context)
     };
 
     const GraphicsPipelineCreateInfo base_info = {
-        .vertex_shader = "EditorShader://Gizmo.vert",
-        .fragment_shader = "EditorShader://Gizmo.frag",
+        .shader_program = "EditorShader://Gizmo.hlsl",
 
         .vertex_input_state = {
             .vertex_buffer_descriptions = vertex_buffer_desc,

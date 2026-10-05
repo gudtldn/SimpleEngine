@@ -102,8 +102,7 @@ void WorldGridPass::Execute(RGExecutionContext& context)
         };
 
         return context.GetOrCreateGraphicsPipeline({
-            .vertex_shader = "EditorShader://WorldGrid.vert",
-            .fragment_shader = "EditorShader://WorldGrid.frag",
+            .shader_program = "EditorShader://WorldGrid.hlsl",
 
             .vertex_input_state = {
                 .num_vertex_buffers = 0,

@@ -121,8 +121,7 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
     };
 
     const GraphicsPipelineCreateInfo base_info = {
-        .vertex_shader = "EditorShader://GizmoPick.vert",
-        .fragment_shader = "EditorShader://GizmoPick.frag",
+        .shader_program = "EditorShader://GizmoPick.hlsl",
 
         .vertex_input_state = {
             .vertex_buffer_descriptions = vertex_buffer_desc,

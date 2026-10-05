@@ -133,17 +133,20 @@ Optional<const ShaderProgramInterface&> ShaderLibrary::FindInterface(const VPath
     return loaded->bundle.program;
 }
 
+void ShaderLibrary::Invalidate(const VPath& program)
+{
+    if (const auto loaded = programs.Find(program))
+    {
+        ReleaseShaders(*loaded);
+        programs.Remove(program);
+    }
+}
+
 void ShaderLibrary::ClearAll()
 {
     for (const LoadedProgram& loaded : programs | std::views::values)
     {
-        for (SDL_GPUShader* shader : { loaded.vertex_shader, loaded.fragment_shader })
-        {
-            if (shader)
-            {
-                SDL_ReleaseGPUShader(device, shader);
-            }
-        }
+        ReleaseShaders(loaded);
     }
     programs.Clear();
 }
@@ -231,6 +234,17 @@ Optional<ShaderLibrary::LoadedProgram&> ShaderLibrary::FindOrLoad(const VPath& p
         return NullOpt;
     }
     return programs.Insert(program, LoadedProgram{ .bundle = std::move(*bundle) });
+}
+
+void ShaderLibrary::ReleaseShaders(const LoadedProgram& loaded) const
+{
+    for (SDL_GPUShader* shader : { loaded.vertex_shader, loaded.fragment_shader })
+    {
+        if (shader)
+        {
+            SDL_ReleaseGPUShader(device, shader);
+        }
+    }
 }
 
 SDL_GPUShader* ShaderLibrary::CreateShader(const VPath& program, const ShaderBundle& bundle, EShaderStage stage) const

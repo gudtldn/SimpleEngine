@@ -25,13 +25,9 @@ class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Material : public AssetBase
     SE_CLASS_V1(Material, AssetBase)
 
 public:
-    // 버텍스 셰이더 VPath
+    // 정점·픽셀 스테이지를 모두 가진 셰이더 소스 VPath
     SE_ANNOTATION(=meta::Reflect)
-    VPath vertex_shader = "CoreShader://Default.vert";
-
-    // 프래그먼트 셰이더 VPath
-    SE_ANNOTATION(=meta::Reflect)
-    VPath fragment_shader = "CoreShader://Default.frag";
+    VPath shader_program = "CoreShader://Default.hlsl";
 
     // 블렌드 모드
     SE_ANNOTATION(=meta::Reflect)

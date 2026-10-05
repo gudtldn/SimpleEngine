@@ -41,6 +41,9 @@ public:
     /** 이미 읽은 프로그램의 인터페이스. 읽은 적이 없으면 NullOpt */
     [[nodiscard]] Optional<const ShaderProgramInterface&> FindInterface(const VPath& program) const;
 
+    /** program으로 만든 셰이더를 해제하고 읽은 번들을 버립니다. 다음 요청 때 다시 읽습니다. */
+    void Invalidate(const VPath& program);
+
     /** 만든 셰이더를 모두 해제하고 읽은 번들을 비웁니다. */
     void ClearAll();
 
@@ -81,6 +84,9 @@ private:
 
     /** 읽은 프로그램을 찾고, 없으면 번들 소스에서 읽습니다. 실패하면 로그를 남기고 NullOpt */
     [[nodiscard]] Optional<LoadedProgram&> FindOrLoad(const VPath& program);
+
+    /** loaded로 만든 그래픽스 셰이더를 해제합니다. */
+    void ReleaseShaders(const LoadedProgram& loaded) const;
 
     /** bundle의 stage 셰이더를 만듭니다. 실패하면 로그를 남기고 nullptr */
     [[nodiscard]] SDL_GPUShader* CreateShader(const VPath& program, const ShaderBundle& bundle, EShaderStage stage) const;
