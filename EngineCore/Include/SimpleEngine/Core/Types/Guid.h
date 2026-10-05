@@ -61,6 +61,12 @@ public:
         return Guid{ bytes };
     }
 
+    /** 16바이트를 그대로 받아서 GUID를 생성합니다. */
+    [[nodiscard]] static constexpr Guid FromBytes(const FixedArray<u8, 16>& bytes) noexcept
+    {
+        return Guid{ bytes };
+    }
+
 public:
     [[nodiscard]] bool IsValid() const noexcept;
     [[nodiscard]] String ToString() const;

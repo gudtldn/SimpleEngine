@@ -66,3 +66,15 @@ TEST(GuidTest, FromStringParsesLiteralAtCompileTime)
     constexpr Guid parsed = Guid::FromString("01234567-89ab-cdef-0123-456789abcdef");
     EXPECT_EQ(parsed.ToString(), "01234567-89ab-cdef-0123-456789abcdef");
 }
+
+TEST(GuidTest, FromBytesKeepsByteOrder)
+{
+    FixedArray<u8, 16> bytes{};
+    for (usize i = 0; i < bytes.Len(); ++i)
+    {
+        bytes[i] = static_cast<u8>(i + 1);
+    }
+
+    const Guid guid = Guid::FromBytes(bytes);
+    EXPECT_EQ(guid.ToString(), "01020304-0506-0708-090a-0b0c0d0e0f10");
+}
