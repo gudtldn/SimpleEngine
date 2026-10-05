@@ -2,6 +2,7 @@
 #include "Graphics/Compiler/Compiler.h"
 
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
+#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "SimpleEngine/Utility/Common.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -218,8 +219,8 @@ ShaderCompileResult<Array<ShaderCompileOutput>> CompileShader(const Path& hlsl_p
         };
     }
 
-    // hlsl 파일이 위치한 디렉토리를 include 경로로 사용 (예: #include "Default.hlsli" 해석)
-    const Optional<Path> include_dir = hlsl_path.Parent();
+    // 모든 셰이더가 공통 헤더를 찾을 수 있도록 엔진 셰이더 폴더를 include 경로로 사용합니다.
+    const Path include_dir = VFS::ToPath("CoreShader://");
 
     // pragma 기반 멀티 엔트리포인트 컴파일
     Array<ShaderCompileOutput> outputs;
