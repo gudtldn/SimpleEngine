@@ -5,7 +5,6 @@
 #include "ShaderCook/SlangReflector.h"
 
 #include <algorithm>
-#include <cctype>
 #include <utility>
 
 
@@ -241,7 +240,7 @@ void PlaceReadOnlyResources(const Array<ShaderBindingRecord>& bindings, u32 spac
 
     stage_interface.sampled_textures = PlaceResources(bindings, space, EShaderResourceKind::SampledTexture, 0);
     stage_interface.samplers = PlaceResources(bindings, space, EShaderResourceKind::Sampler, 0);
-    // SDL에서 샘플러는 샘플 텍스처와 짝을 이루므로, 둘 중 큰 범위를 샘플러 개수로 씁니다.
+    // SDL에서 샘플러는 샘플 텍스처와 짝을 이루므로, 둘 중 큰 범위를 샘플러 개수로 사용
     counts.samplers = std::max(SlotRange(stage_interface.sampled_textures), SlotRange(stage_interface.samplers));
 
     stage_interface.storage_textures = PlaceResources(bindings, space, EShaderResourceKind::StorageTexture, counts.samplers);
@@ -268,8 +267,8 @@ void PlaceReadWriteResources(const Array<ShaderBindingRecord>& bindings, u32 spa
 /** semantic이 SV_로 시작하는 시스템 값인지 여부 */
 [[nodiscard]] bool IsSystemValue(const char* semantic)
 {
-    return std::toupper(static_cast<unsigned char>(semantic[0])) == 'S'
-        && std::toupper(static_cast<unsigned char>(semantic[1])) == 'V'
+    return (semantic[0] == 'S' || semantic[0] == 's')
+        && (semantic[1] == 'V' || semantic[1] == 'v')
         && semantic[2] == '_';
 }
 
