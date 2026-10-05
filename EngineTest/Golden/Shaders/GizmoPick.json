@@ -1,0 +1,77 @@
+{
+    "program": {
+        "stages": [
+            {
+                "stage": "Vertex",
+                "vertex_inputs": [
+                    { "location": 0, "name": "position", "type": "Float3" },
+                    { "location": 1, "name": "color", "type": "Float4" },
+                    { "location": 2, "name": "pick_id", "type": "UInt" }
+                ],
+                "sampled_textures": [],
+                "samplers": [],
+                "storage_textures": [],
+                "storage_buffers": [],
+                "readwrite_storage_textures": [],
+                "readwrite_storage_buffers": [],
+                "uniform_buffers": [
+                    {
+                        "name": "UBO",
+                        "slot": 0,
+                        "size": 80,
+                        "members": [
+                            { "name": "vp", "offset": 0, "size": 64, "type": "Float4x4", "array_count": 0 },
+                            { "name": "gizmo_center", "offset": 64, "size": 12, "type": "Float3", "array_count": 0 },
+                            { "name": "screen_scale", "offset": 76, "size": 4, "type": "Float", "array_count": 0 }
+                        ]
+                    }
+                ],
+                "counts": { "samplers": 0, "storage_textures": 0, "storage_buffers": 0, "readwrite_storage_textures": 0, "readwrite_storage_buffers": 0, "uniform_buffers": 1 },
+                "thread_count": { "x": 0, "y": 0, "z": 0 }
+            },
+            {
+                "stage": "Fragment",
+                "vertex_inputs": [],
+                "sampled_textures": [],
+                "samplers": [],
+                "storage_textures": [],
+                "storage_buffers": [],
+                "readwrite_storage_textures": [],
+                "readwrite_storage_buffers": [],
+                "uniform_buffers": [],
+                "counts": { "samplers": 0, "storage_textures": 0, "storage_buffers": 0, "readwrite_storage_textures": 0, "readwrite_storage_buffers": 0, "uniform_buffers": 0 },
+                "thread_count": { "x": 0, "y": 0, "z": 0 }
+            }
+        ]
+    },
+    "blobs": [
+        {
+            "stage": "Vertex",
+            "format": "SPIRV",
+            "entry_point": "VSMain",
+            "code": []
+        },
+        {
+            "stage": "Vertex",
+            "format": "DXIL",
+            "entry_point": "VSMain",
+            "code": []
+        },
+        {
+            "stage": "Fragment",
+            "format": "SPIRV",
+            "entry_point": "PSMain",
+            "code": []
+        },
+        {
+            "stage": "Fragment",
+            "format": "DXIL",
+            "entry_point": "PSMain",
+            "code": []
+        }
+    ],
+    "dependencies": [
+        "CoreShader://Bindings.hlsli",
+        "EditorShader://GizmoPick.hlsl"
+    ]
+}

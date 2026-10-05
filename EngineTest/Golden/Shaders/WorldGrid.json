@@ -1,0 +1,86 @@
+{
+    "program": {
+        "stages": [
+            {
+                "stage": "Vertex",
+                "vertex_inputs": [],
+                "sampled_textures": [],
+                "samplers": [],
+                "storage_textures": [],
+                "storage_buffers": [],
+                "readwrite_storage_textures": [],
+                "readwrite_storage_buffers": [],
+                "uniform_buffers": [
+                    {
+                        "name": "VS_UBO",
+                        "slot": 0,
+                        "size": 84,
+                        "members": [
+                            { "name": "vp", "offset": 0, "size": 64, "type": "Float4x4", "array_count": 0 },
+                            { "name": "camera_pos", "offset": 64, "size": 12, "type": "Float3", "array_count": 0 },
+                            { "name": "grid_size", "offset": 76, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "grid_plane", "offset": 80, "size": 4, "type": "UInt", "array_count": 0 }
+                        ]
+                    }
+                ],
+                "counts": { "samplers": 0, "storage_textures": 0, "storage_buffers": 0, "readwrite_storage_textures": 0, "readwrite_storage_buffers": 0, "uniform_buffers": 1 },
+                "thread_count": { "x": 0, "y": 0, "z": 0 }
+            },
+            {
+                "stage": "Fragment",
+                "vertex_inputs": [],
+                "sampled_textures": [],
+                "samplers": [],
+                "storage_textures": [],
+                "storage_buffers": [],
+                "readwrite_storage_textures": [],
+                "readwrite_storage_buffers": [],
+                "uniform_buffers": [
+                    {
+                        "name": "PS_UBO",
+                        "slot": 0,
+                        "size": 48,
+                        "members": [
+                            { "name": "grid_min_pixels_between_cells", "offset": 0, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "grid_cell_size", "offset": 4, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "grid_color_thin", "offset": 16, "size": 16, "type": "Float4", "array_count": 0 },
+                            { "name": "grid_color_thick", "offset": 32, "size": 16, "type": "Float4", "array_count": 0 }
+                        ]
+                    }
+                ],
+                "counts": { "samplers": 0, "storage_textures": 0, "storage_buffers": 0, "readwrite_storage_textures": 0, "readwrite_storage_buffers": 0, "uniform_buffers": 1 },
+                "thread_count": { "x": 0, "y": 0, "z": 0 }
+            }
+        ]
+    },
+    "blobs": [
+        {
+            "stage": "Vertex",
+            "format": "SPIRV",
+            "entry_point": "VSMain",
+            "code": []
+        },
+        {
+            "stage": "Vertex",
+            "format": "DXIL",
+            "entry_point": "VSMain",
+            "code": []
+        },
+        {
+            "stage": "Fragment",
+            "format": "SPIRV",
+            "entry_point": "PSMain",
+            "code": []
+        },
+        {
+            "stage": "Fragment",
+            "format": "DXIL",
+            "entry_point": "PSMain",
+            "code": []
+        }
+    ],
+    "dependencies": [
+        "CoreShader://Bindings.hlsli",
+        "EditorShader://WorldGrid.hlsl"
+    ]
+}

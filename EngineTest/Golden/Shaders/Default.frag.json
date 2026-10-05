@@ -1,0 +1,77 @@
+{
+    "program": {
+        "stages": [
+            {
+                "stage": "Fragment",
+                "vertex_inputs": [],
+                "sampled_textures": [
+                    { "name": "BaseColorTexture", "slot": 0 },
+                    { "name": "MetallicRoughnessTexture", "slot": 1 },
+                    { "name": "NormalTexture", "slot": 2 },
+                    { "name": "OcclusionTexture", "slot": 3 },
+                    { "name": "EmissiveTexture", "slot": 4 }
+                ],
+                "samplers": [
+                    { "name": "BaseColorSampler", "slot": 0 },
+                    { "name": "MetallicRoughnessSampler", "slot": 1 },
+                    { "name": "NormalSampler", "slot": 2 },
+                    { "name": "OcclusionSampler", "slot": 3 },
+                    { "name": "EmissiveSampler", "slot": 4 }
+                ],
+                "storage_textures": [],
+                "storage_buffers": [],
+                "readwrite_storage_textures": [],
+                "readwrite_storage_buffers": [],
+                "uniform_buffers": [
+                    {
+                        "name": "SceneDataUBO",
+                        "slot": 0,
+                        "size": 48,
+                        "members": [
+                            { "name": "camera_pos", "offset": 0, "size": 12, "type": "Float3", "array_count": 0 },
+                            { "name": "_pad0", "offset": 12, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "light_dir_ws", "offset": 16, "size": 12, "type": "Float3", "array_count": 0 },
+                            { "name": "_pad1", "offset": 28, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "light_color", "offset": 32, "size": 12, "type": "Float3", "array_count": 0 },
+                            { "name": "rendering_mode", "offset": 44, "size": 4, "type": "UInt", "array_count": 0 }
+                        ]
+                    },
+                    {
+                        "name": "MaterialUBO",
+                        "slot": 1,
+                        "size": 48,
+                        "members": [
+                            { "name": "base_color_factor", "offset": 0, "size": 16, "type": "Float4", "array_count": 0 },
+                            { "name": "metallic_factor", "offset": 16, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "roughness_factor", "offset": 20, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "alpha_cutoff", "offset": 24, "size": 4, "type": "Float", "array_count": 0 },
+                            { "name": "flags", "offset": 28, "size": 4, "type": "UInt", "array_count": 0 },
+                            { "name": "emissive_factor", "offset": 32, "size": 16, "type": "Float4", "array_count": 0 }
+                        ]
+                    }
+                ],
+                "counts": { "samplers": 5, "storage_textures": 0, "storage_buffers": 0, "readwrite_storage_textures": 0, "readwrite_storage_buffers": 0, "uniform_buffers": 2 },
+                "thread_count": { "x": 0, "y": 0, "z": 0 }
+            }
+        ]
+    },
+    "blobs": [
+        {
+            "stage": "Fragment",
+            "format": "SPIRV",
+            "entry_point": "PSMain",
+            "code": []
+        },
+        {
+            "stage": "Fragment",
+            "format": "DXIL",
+            "entry_point": "PSMain",
+            "code": []
+        }
+    ],
+    "dependencies": [
+        "CoreShader://Bindings.hlsli",
+        "CoreShader://Default.frag.hlsl",
+        "CoreShader://Default.hlsli"
+    ]
+}
