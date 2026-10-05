@@ -29,8 +29,7 @@ struct GoldenCase
 
 constexpr GoldenCase GOLDEN_CASES[] = {
     { .shader = "CoreShader://DebugLine.hlsl", .golden_file = "DebugLine.json" },
-    { .shader = "CoreShader://Default.vert.hlsl", .golden_file = "Default.vert.json" },
-    { .shader = "CoreShader://Default.frag.hlsl", .golden_file = "Default.frag.json" },
+    { .shader = "CoreShader://Default.hlsl", .golden_file = "Default.json" },
     { .shader = "EditorShader://Gizmo.hlsl", .golden_file = "Gizmo.json" },
     { .shader = "EditorShader://GizmoPick.hlsl", .golden_file = "GizmoPick.json" },
     { .shader = "EditorShader://WorldGrid.hlsl", .golden_file = "WorldGrid.json" },

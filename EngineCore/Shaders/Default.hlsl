@@ -1,7 +1,50 @@
-#pragma se_shader fragment PSMain
-
 #include "Bindings.hlsli"
 #include "Default.hlsli"
+
+// ==================== Vertex ====================
+
+// per-pass (뷰포트/카메라 공유, 프레임당 1회 변경)
+cbuffer PassUBO : SE_VS_UNIFORM(SE_SLOT_PASS)
+{
+    float4x4 vp; // View-Projection 행렬 (월드 좌표 -> 카메라 화면 좌표로 변환)
+}
+
+// per-object (드로우콜마다 변경)
+cbuffer ObjectUBO : SE_VS_UNIFORM(SE_VS_SLOT_OBJECT)
+{
+    float4x4 model; // Model 행렬 (물체의 로컬 좌표 -> 월드 공간 좌표로 변환)
+    uint entity_id; // 엔진 내부의 엔티티 ID (마우스 피킹 등의 처리를 위해 전달)
+}
+
+[shader("vertex")]
+VertexOutput VSMain(VertexInput input)
+{
+    VertexOutput output;
+
+    // 1. Position Transform (Local -> World -> Clip Space)
+    float4 world_pos4 = mul(model, float4(input.position, 1.0f));
+    output.position   = mul(vp, world_pos4);
+    output.world_pos  = world_pos4.xyz;
+
+    // 2. Vector Transform
+    // 비균등 스케일(Non-uniform scale) 객체의 경우 법선이 왜곡될 수 있으므로,
+    // 추후 필요하다면 C++에서 transpose(inverse(Model))을 계산해 별도로 넘겨받아야 함.
+
+    // 일단 지금은 균등 스케일(Uniform scale)이라 가정하고 Model의 3x3 회전/스케일만 추출해 사용
+    float3x3 normal_matrix = (float3x3)model;
+
+    output.world_normal  = normalize(mul(normal_matrix, input.normal));
+    output.world_tangent = float4(normalize(mul(normal_matrix, input.tangent.xyz)), input.tangent.w);
+    output.local_normal  = input.normal;
+
+    // 3. Texture UV & Data
+    output.tex_coord = input.tex_coord;
+    output.entity_id = entity_id;
+
+    return output;
+}
+
+// ==================== Fragment ====================
 
 // Per-Pass: 프레임당 1회 업데이트 (카메라, 글로벌 조명 등)
 // std140 레이아웃 (총 48 Bytes)
@@ -75,9 +118,7 @@ PSOutput PSMain(VertexOutput input)
     // Lit / Wireframe
     if (rendering_mode == 0u || rendering_mode == 2u)
     {
-        // TODO: 본격적인 조명 계산 구현 전까지 world_pos/normal/tangent 최적화 제거 방지
-        float3 _keep = (input.world_pos + input.world_normal + input.world_tangent.xyz) * 1e-9f;
-        output.color = float4(base_color.rgb + emissive.rgb + _keep, base_color.a);
+        output.color = float4(base_color.rgb + emissive.rgb, base_color.a);
     }
 
     // Unlit
@@ -116,7 +157,7 @@ PSOutput PSMain(VertexOutput input)
 //     else                     debug_color = float3(0.0f, 1.0f, 1.0f); // Mip 5 이상: 청록
 //
 //     // 4. 원래 텍스처 색상 대신 디버그 색상 출력
-//     output.color = float4(debug_color + _keep, 1.0f);
+//     output.color = float4(debug_color, 1.0f);
     // -------------------- 밉맵 디버그 시각화 --------------------
 
     return output;
