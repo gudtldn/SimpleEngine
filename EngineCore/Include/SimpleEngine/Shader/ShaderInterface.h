@@ -53,7 +53,7 @@ struct ShaderVertexInput
     [[nodiscard]] bool operator==(const ShaderVertexInput&) const = default;
 };
 
-/** 상수 버퍼 멤버 하나. offset과 size는 바이트 단위입니다. */
+/** 상수 버퍼 멤버를 나타내는 구조체 */
 struct ShaderUniformMember
 {
     StringName name;
@@ -61,17 +61,17 @@ struct ShaderUniformMember
     u32 size = 0;
     EShaderValueType type = EShaderValueType::Unknown;
 
-    /** 배열이 아니면 0입니다. */
+    /** 배열이 아니면 0 */
     u32 array_count = 0;
 
     [[nodiscard]] bool operator==(const ShaderUniformMember&) const = default;
 };
 
-/** 상수 버퍼 하나. slot은 SDL 유니폼 슬롯입니다. */
+/** 상수 버퍼를 나타내는 구조체 */
 struct ShaderUniformBuffer
 {
     StringName name;
-    u32 slot = 0;
+    u32 slot = 0; // SDL 유니폼 슬롯
     u32 size = 0;
     Array<ShaderUniformMember> members;
 
@@ -120,25 +120,25 @@ struct ShaderStageInterface
 {
     EShaderStage stage = EShaderStage::Vertex;
 
-    /** 정점 스테이지에만 있습니다. */
+    /** 정점 스테이지에만 존재 */
     Array<ShaderVertexInput> vertex_inputs;
 
     Array<ShaderResourceSlot> sampled_textures;
     Array<ShaderResourceSlot> samplers;
 
-    /** 읽기 전용 스토리지 리소스입니다. */
+    /** 읽기 전용 스토리지 리소스 */
     Array<ShaderResourceSlot> storage_textures;
     Array<ShaderResourceSlot> storage_buffers;
 
-    /** 읽기·쓰기 스토리지 리소스입니다. 컴퓨트 스테이지에만 있습니다. */
+    /** 읽기/쓰기 스토리지 리소스. 컴퓨트 스테이지에만 존재 */
     Array<ShaderResourceSlot> readwrite_storage_textures;
     Array<ShaderResourceSlot> readwrite_storage_buffers;
 
     Array<ShaderUniformBuffer> uniform_buffers;
     ShaderResourceCounts counts;
 
-    /** 컴퓨트 스테이지에만 있습니다. */
-    ShaderThreadCount threadcount;
+    /** 컴퓨트 스테이지에만 존재 */
+    ShaderThreadCount thread_count;
 
     [[nodiscard]] bool operator==(const ShaderStageInterface&) const = default;
 };
