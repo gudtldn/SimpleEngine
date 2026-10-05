@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <map>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -327,27 +328,48 @@ std::vector<size_t> CollectVertexInputs(slang::ProgramLayout* layout)
     return locations;
 }
 
-bool CompileJob(slang::ISession* session, const Options& options, const Job& job)
+// 같은 파일을 한 세션에서 두 번 불러오면 실패하므로, 파일 하나를 모듈 하나로 한 번만 불러옵니다.
+slang::IModule* LoadModule(slang::ISession* session, const fs::path& file)
 {
-    const auto source = ReadText(job.file);
-    if (!source)
+    static std::map<std::string, slang::IModule*> loaded_modules;
+    const std::string key = fs::absolute(file).string();
+    if (const auto it = loaded_modules.find(key); it != loaded_modules.end())
     {
-        std::fprintf(stderr, "Failed to read shader: %s\n", job.file.string().c_str());
-        return false;
+        return it->second;
     }
 
-    const std::string stem = OutputStem(job);
-    std::string module_name = stem;
+    const auto source = ReadText(file);
+    if (!source)
+    {
+        std::fprintf(stderr, "Failed to read shader: %s\n", file.string().c_str());
+        return nullptr;
+    }
+
+    std::string module_name = file.stem().string();
     std::ranges::replace(module_name, '.', '_');
 
     Slang::ComPtr<slang::IBlob> diagnostics;
     slang::IModule* module =
-        session->loadModuleFromSourceString(module_name.c_str(), job.file.string().c_str(), source->c_str(), diagnostics.writeRef());
+        session->loadModuleFromSourceString(module_name.c_str(), file.string().c_str(), source->c_str(), diagnostics.writeRef());
     PrintDiagnostics(diagnostics);
+    if (module)
+    {
+        loaded_modules.emplace(key, module);
+    }
+    return module;
+}
+
+bool CompileJob(slang::ISession* session, const Options& options, const Job& job)
+{
+    const std::string stem = OutputStem(job);
+
+    slang::IModule* module = LoadModule(session, job.file);
     if (!module)
     {
         return false;
     }
+
+    Slang::ComPtr<slang::IBlob> diagnostics;
 
     Slang::ComPtr<slang::IEntryPoint> entry_point;
     module->findAndCheckEntryPoint(job.entry.c_str(), job.stage, entry_point.writeRef(), diagnostics.writeRef());
