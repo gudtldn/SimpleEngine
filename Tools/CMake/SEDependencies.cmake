@@ -15,6 +15,14 @@ find_package(efsw CONFIG REQUIRED)
 find_package(xxHash CONFIG REQUIRED)
 find_package(yyjson CONFIG REQUIRED)
 
+# Slang 셰이더 컴파일러 (vcpkg.json의 platform 조건과 동일)
+if(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64"))
+    set(SE_HAS_SLANG ON)
+    find_package(slang CONFIG REQUIRED)
+else()
+    set(SE_HAS_SLANG OFF)
+endif()
+
 # ICU4X (Rust 기반 Unicode 라이브러리)
 include(FetchContent)
 
