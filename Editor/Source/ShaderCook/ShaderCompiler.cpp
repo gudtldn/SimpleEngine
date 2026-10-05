@@ -63,7 +63,7 @@ void AppendDiagnostics(String& diagnostics, slang::IBlob* blob)
 
 [[nodiscard]] Array<u8> ToBytes(slang::IBlob* blob)
 {
-    const auto* data = static_cast<const u8*>(blob->getBufferPointer());
+    const u8* data = static_cast<const u8*>(blob->getBufferPointer());
     Array<u8> bytes;
     bytes.Push(data, data + blob->getBufferSize());
     return bytes;
@@ -96,18 +96,17 @@ void AppendDiagnostics(String& diagnostics, slang::IBlob* blob)
 
 [[nodiscard]] ShaderCookResult<String> ReadSource(const Path& source_path)
 {
-    if (auto result = fs::ReadToString(source_path))
+    auto result = fs::ReadToString(source_path);
+    if (result)
     {
         return std::move(result).Value();
     }
-    else
-    {
-        return Unexpected<ShaderCookError>{
-            ShaderCookError::ReadFailed,
-            String::Format("Failed to read shader source: {}, Err: {}", source_path, result.Error().What()),
-            source_path,
-        };
-    }
+
+    return Unexpected<ShaderCookError>{
+        ShaderCookError::ReadFailed,
+        String::Format("Failed to read shader source: {}, Err: {}", source_path, result.Error().What()),
+        source_path,
+    };
 }
 
 /** [shader] 속성이 붙은 모든 진입점을 모읍니다. */
@@ -315,7 +314,7 @@ struct ShaderCompiler::Impl
             return Unexpected{ std::move(linked).Error() };
         }
 
-        const SlangReflector reflector((*linked)->getLayout(TARGET_SPIRV), (*linked)->getLayout(TARGET_DXIL));
+        const SlangReflector reflector((*linked)->getLayout(TARGET_SPIRV), (*linked)->getLayout(TARGET_DXIL)); // NOLINT(*-redundant-parentheses)
         for (usize i = 0; i < entry_points->Len(); ++i)
         {
             auto stage = BuildStage(*linked, reflector, static_cast<SlangUInt>(i), source_path, program.diagnostics);
