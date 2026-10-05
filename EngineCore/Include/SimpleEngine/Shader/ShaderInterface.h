@@ -13,6 +13,7 @@ enum class EShaderStage : u8
 {
     Vertex,
     Fragment,
+    Compute,
 };
 
 /** 셰이더 바이트코드 포맷 */
@@ -86,15 +87,32 @@ struct ShaderResourceSlot
     [[nodiscard]] bool operator==(const ShaderResourceSlot&) const = default;
 };
 
-/** SDL_GPUShaderCreateInfo에 그대로 넘기는 리소스 슬롯 범위 */
+/**
+ * SDL에 넘기는 리소스 슬롯 범위
+ *
+ * 그래픽스 스테이지는 SDL_GPUShaderCreateInfo, 컴퓨트는 SDL_GPUComputePipelineCreateInfo의 같은 이름 필드에 넘깁니다.
+ * storage_textures와 storage_buffers는 읽기 전용이고, readwrite_*는 컴퓨트에만 있습니다.
+ */
 struct ShaderResourceCounts
 {
     u32 samplers = 0;
     u32 storage_textures = 0;
     u32 storage_buffers = 0;
+    u32 readwrite_storage_textures = 0;
+    u32 readwrite_storage_buffers = 0;
     u32 uniform_buffers = 0;
 
     [[nodiscard]] bool operator==(const ShaderResourceCounts&) const = default;
+};
+
+/** 컴퓨트 셰이더의 [numthreads] 값 */
+struct ShaderThreadCount
+{
+    u32 x = 0;
+    u32 y = 0;
+    u32 z = 0;
+
+    [[nodiscard]] bool operator==(const ShaderThreadCount&) const = default;
 };
 
 /** 스테이지 하나가 C++과 맺는 계약 */
@@ -107,10 +125,20 @@ struct ShaderStageInterface
 
     Array<ShaderResourceSlot> sampled_textures;
     Array<ShaderResourceSlot> samplers;
+
+    /** 읽기 전용 스토리지 리소스입니다. */
     Array<ShaderResourceSlot> storage_textures;
     Array<ShaderResourceSlot> storage_buffers;
+
+    /** 읽기·쓰기 스토리지 리소스입니다. 컴퓨트 스테이지에만 있습니다. */
+    Array<ShaderResourceSlot> readwrite_storage_textures;
+    Array<ShaderResourceSlot> readwrite_storage_buffers;
+
     Array<ShaderUniformBuffer> uniform_buffers;
     ShaderResourceCounts counts;
+
+    /** 컴퓨트 스테이지에만 있습니다. */
+    ShaderThreadCount threadcount;
 
     [[nodiscard]] bool operator==(const ShaderStageInterface&) const = default;
 };
@@ -135,5 +163,6 @@ SE_DECLARE_REFLECTION(se::ShaderUniformMember, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::ShaderUniformBuffer, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::ShaderResourceSlot, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::ShaderResourceCounts, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::ShaderThreadCount, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::ShaderStageInterface, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::ShaderProgramInterface, SE_CORE_API)
