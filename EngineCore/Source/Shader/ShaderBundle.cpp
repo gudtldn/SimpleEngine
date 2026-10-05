@@ -10,14 +10,10 @@ namespace se
 {
 Optional<const ShaderBlob&> ShaderBundle::FindBlob(EShaderStage stage, EShaderFormat format) const
 {
-    for (const ShaderBlob& blob : blobs)
+    return blobs.FindBy([stage, format](const ShaderBlob& blob)
     {
-        if (blob.stage == stage && blob.format == format)
-        {
-            return blob;
-        }
-    }
-    return NullOpt;
+        return blob.stage == stage && blob.format == format;
+    });
 }
 
 Array<u8> ShaderBundle::Serialize() const

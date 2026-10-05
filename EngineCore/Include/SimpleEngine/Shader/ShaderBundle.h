@@ -17,9 +17,7 @@ struct ShaderBlob
     EShaderStage stage = EShaderStage::Vertex;
     EShaderFormat format = EShaderFormat::SPIRV;
 
-    /** 포맷마다 다를 수 있어 블롭마다 기록합니다. */
     String entry_point;
-
     Array<u8> code;
 
     [[nodiscard]] bool operator==(const ShaderBlob&) const = default;
@@ -33,13 +31,13 @@ struct ShaderBlob
  */
 struct SE_CORE_API ShaderBundle
 {
-    /** DDC cache_version으로 쓰는 번들 형식 버전입니다. 필드 의미가 바뀌었는데 타입은 그대로일 때 올립니다. */
+    /** DDC cache_version으로 쓰는 번들 형식 버전 */
     static constexpr u32 FORMAT_VERSION = 1;
 
     ShaderProgramInterface program;
     Array<ShaderBlob> blobs;
 
-    /** 소스 파일과 include한 파일의 VPath 문자열입니다. 쿡 결과가 최신인지 판단할 때 씁니다. */
+    /** 소스 파일과 include한 파일의 VPath 문자열 */
     Array<String> dependencies;
 
     /** stage와 format이 모두 같은 블롭을 찾습니다. */

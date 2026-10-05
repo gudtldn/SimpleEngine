@@ -56,7 +56,7 @@ namespace
         .samplers = 1, .storage_textures = 0, .storage_buffers = 1,
         .readwrite_storage_textures = 1, .readwrite_storage_buffers = 1, .uniform_buffers = 1,
     };
-    compute.threadcount = { .x = 8, .y = 8, .z = 1 };
+    compute.thread_count = { .x = 8, .y = 8, .z = 1 };
 
     ShaderBundle bundle;
     bundle.program.stages.Push(std::move(compute));
@@ -78,7 +78,7 @@ TEST(ShaderBundleTest, RoundTripPreservesComputeStage)
 
     const auto compute = restored->program.FindStage(EShaderStage::Compute);
     ASSERT_TRUE(compute.HasValue());
-    EXPECT_EQ(compute->threadcount, (ShaderThreadCount{ .x = 8, .y = 8, .z = 1 }));
+    EXPECT_EQ(compute->thread_count, (ShaderThreadCount{ .x = 8, .y = 8, .z = 1 }));
     EXPECT_EQ(compute->counts.readwrite_storage_buffers, 1u);
 }
 

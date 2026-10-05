@@ -7,14 +7,11 @@ namespace se
 {
 Optional<const ShaderStageInterface&> ShaderProgramInterface::FindStage(EShaderStage stage) const
 {
-    for (const ShaderStageInterface& stage_interface : stages)
+
+    return stages.FindBy([stage](const ShaderStageInterface& stage_interface)
     {
-        if (stage_interface.stage == stage)
-        {
-            return stage_interface;
-        }
-    }
-    return NullOpt;
+        return stage_interface.stage == stage;
+    });
 }
 } // namespace se
 
@@ -101,7 +98,7 @@ SE_REFLECT_BEGIN(se::ShaderStageInterface)
     SE_FIELD(readwrite_storage_buffers)
     SE_FIELD(uniform_buffers)
     SE_FIELD(counts)
-    SE_FIELD(threadcount)
+    SE_FIELD(thread_count)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(se::ShaderProgramInterface)
