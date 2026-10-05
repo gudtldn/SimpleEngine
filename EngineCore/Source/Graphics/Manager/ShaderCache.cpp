@@ -40,7 +40,7 @@ Optional<GraphicsShaderCreateResult> TryCreateSlangSpikeShader(
 
     SDL_GPUDevice* device = render_device.GetRawDevice();
     const bool use_dxil = (SDL_GetGPUShaderFormats(device) & SDL_GPU_SHADERFORMAT_DXIL) != 0;
-    const std::string base = std::string(spike_dir) + "/" + shader_key.GetFilename().CStr();
+    const std::string base = std::string(spike_dir) + "/" + shader_key.GetFilename().Data();
 
     std::ifstream code_file(base + (use_dxil ? ".dxil" : ".spv"), std::ios::binary);
     std::ifstream json_file(base + ".json");
@@ -54,7 +54,7 @@ Optional<GraphicsShaderCreateResult> TryCreateSlangSpikeShader(
     json_stream << json_file.rdbuf();
     const std::string json = json_stream.str();
 
-    const size_t entry_key = json.find("\"entry\": \"");
+    const size_t entry_key = json.find(R"("entry": ")");
     if (entry_key == std::string::npos)
     {
         return NullOpt;
@@ -90,7 +90,7 @@ Optional<GraphicsShaderCreateResult> TryCreateSlangSpikeShader(
         while (*cursor != ']' && *cursor != '\0')
         {
             char* next = nullptr;
-            const unsigned long location = std::strtoul(cursor, &next, 10);
+            const u32 location = std::strtoul(cursor, &next, 10);
             if (next == cursor)
             {
                 ++cursor;
