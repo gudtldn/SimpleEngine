@@ -2,15 +2,12 @@
 #include "SimpleEditor/App/EditorFrameInput.h"
 
 #include "Core/Logging/Backend/EditorConsoleBackend.h"
-#include "Graphics/EditorShaderCompiler.h"
 #include "Graphics/EditorUIPass.h"
 #include "SimpleEditor/Config/EditorSettings.h"
 #include "SimpleEditor/Gizmo/GizmoPass.h"
 #include "SimpleEditor/Gizmo/GizmoPickPass.h"
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 #include "SimpleEditor/Picking/PickSubsystem.h"
-#include "SimpleEditor/ShaderCook/ShaderCompiler.h"
-#include "SimpleEditor/ShaderCook/ShaderCooker.h"
 #include "SimpleEditor/UI/EditorUISubsystem.h"
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 #include "SimpleEditor/WorldGrid/WorldGridPass.h"
@@ -19,13 +16,11 @@
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Asset/BuiltinAssets.h"
-#include "SimpleEngine/Asset/DerivedDataCache.h"
 #include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Asset/Types/Texture2D.h"
 #include "SimpleEngine/Core/Config/ConfigFile.h"
 #include "SimpleEngine/Core/Engine/Engine.h"
-#include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Debug/DebugDrawSubsystem.h"
@@ -128,39 +123,6 @@ bool EditorApplication::PostInitialize()
     {
         return false;
     }
-
-    // TODO: 여기 하드코딩 되어있음. 추후 Config에서 불러와서 사용하던가 하는 방향으로
-    // 초기 셰이더 컴파일: 모든 .hlsl -> .spv (DXC를 사용할 수 없는 플랫폼에서는 미리 구워진 .spv만 사용)
-#if SE_HAS_HLSL_COMPILER
-    {
-        // TODO: 현재 ShaderCompileSubsystem과 로직이 중복됨. 추후 FileWatcher 도입 시 셰이더 관리 시스템으로 통합 예정
-        const Path hlsl_dir = VFS::ToPath("CoreShader://");
-        const Path output_dir = VFS::ToPath("CoreShader://Compiled");
-
-        shader_compiler::CompileAll(hlsl_dir, output_dir);
-    }
-    {
-        const Path editor_hlsl_dir = VFS::ToPath("EditorShader://");
-        const Path editor_output_dir = VFS::ToPath("EditorShader://Compiled");
-
-        shader_compiler::CompileAll(editor_hlsl_dir, editor_output_dir);
-    }
-    {
-        // 셰이더 번들을 DDC에 쿡합니다. 런타임은 아직 위의 옛 경로를 사용합니다.
-        const ShaderCompiler compiler;
-        const ShaderCooker cooker{ compiler };
-        DerivedDataCache& ddc = se::GetSubsystem<AssetSubsystem>()->GetDDC();
-        for (const VPath& shader_dir : { VPath{ "CoreShader://" }, VPath{ "EditorShader://" } })
-        {
-            const ShaderCookSummary summary = cooker.CookDirectory(shader_dir, ddc);
-            ConsoleLog(
-                ELogLevel::Info,
-                "Shader cook {}: {} cooked, {} up to date, {} failed",
-                shader_dir.ToString(), summary.cooked, summary.up_to_date, summary.failed
-            );
-        }
-    }
-#endif
 
     return true;
 }

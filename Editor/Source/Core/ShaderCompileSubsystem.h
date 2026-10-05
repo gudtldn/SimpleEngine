@@ -1,16 +1,19 @@
 #pragma once
 
-#include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/HashMap.h"
+#include "SimpleEditor/ShaderCook/ShaderCompiler.h"
+#include "SimpleEditor/ShaderCook/ShaderCooker.h"
+
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
-#include "SimpleEngine/Core/Types/Path.h"
+
+#include <memory>
 
 
 namespace se::editor
 {
 /**
- * 셰이더 컴파일 및 핫 리로드를 담당하는 Subsystem
+ * 셰이더 쿡 및 핫 리로드를 담당하는 Subsystem
+ * 시작할 때 셰이더를 DDC에 쿡하고, F5를 누르면 바뀐 셰이더만 다시 쿡해 파이프라인을 비웁니다.
  */
 class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
@@ -27,26 +30,15 @@ public:
     //~ End IUpdatable
 
 private:
-    /** .hlsl mtime vs .spv mtime을 비교하여 변경된 파일만 재컴파일합니다. */
-    void RecompileChanged();
+    /** 셰이더 폴더를 모두 쿡하고, 새로 쿡한 셰이더 개수를 반환합니다. 최신인 셰이더는 건너뜁니다. */
+    u32 CookAll() const;
 
-    /** pending_files에 등록된 파일만 선택적으로 재컴파일합니다. */
-    void RecompilePending();
+    /** 바뀐 셰이더를 다시 쿡하고, 하나라도 쿡했으면 셰이더와 파이프라인 캐시를 비웁니다. */
+    void RecookChanged() const;
 
 private:
-    /** 셰이더 디렉토리 정보를 담는 구조체 (소스 디렉토리 + 컴파일 출력 디렉토리) */
-    struct ShaderSource
-    {
-        Path source_dir;
-        Path output_dir;
-    };
-
-    Array<ShaderSource> sources;
-
-    /**
-     * 재컴파일 대기 중인 파일 목록
-     * key: 변경된 .hlsl 절대 경로 / value: sources 내 인덱스
-     */
-    HashMap<Path, usize> pending_files;
+    /** Slang 전역 세션을 가지므로 한 번만 만들어 시작 쿡과 핫 리로드가 같이 씁니다. */
+    std::unique_ptr<ShaderCompiler> compiler;
+    std::unique_ptr<ShaderCooker> cooker;
 };
 } // namespace se::editor
