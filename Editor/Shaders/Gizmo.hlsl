@@ -30,6 +30,7 @@ struct VertexOutput
     float4 color : TEXCOORD0;
 };
 
+[shader("vertex")]
 VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
@@ -39,6 +40,7 @@ VertexOutput VSMain(VertexInput input)
     return output;
 }
 
+[shader("pixel")]
 float4 PSMain(VertexOutput input) : SV_TARGET
 {
     return input.color;

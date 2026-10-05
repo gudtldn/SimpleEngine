@@ -16,6 +16,7 @@ cbuffer ObjectUBO : SE_VS_UNIFORM(SE_VS_SLOT_OBJECT)
     uint entity_id; // 엔진 내부의 엔티티 ID (마우스 피킹 등의 처리를 위해 전달)
 }
 
+[shader("vertex")]
 VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;

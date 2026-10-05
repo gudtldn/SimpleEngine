@@ -75,6 +75,7 @@ struct VertexOutput
 // ================================================================
 // 정점 셰이더 (Vertex Shader)
 // ================================================================
+[shader("vertex")]
 VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
@@ -150,6 +151,7 @@ float DrawGrid(float2 world_pos, float cell_size, float2 derivative)
 // ================================================================
 // 프래그먼트/픽셀 셰이더 (Fragment/Pixel Shader)
 // ================================================================
+[shader("pixel")]
 float4 PSMain(VertexOutput input) : SV_Target0
 {
     // ------------------------------------------------------------

@@ -30,6 +30,7 @@ struct VertexOutput
     nointerpolation uint pick_id : TEXCOORD0;
 };
 
+[shader("vertex")]
 VertexOutput VSMain(VertexInput input)
 {
     VertexOutput output;
@@ -39,6 +40,7 @@ VertexOutput VSMain(VertexInput input)
     return output;
 }
 
+[shader("pixel")]
 uint PSMain(VertexOutput input) : SV_TARGET
 {
     return input.pick_id;
