@@ -31,14 +31,14 @@ enum class EShaderResourceKind : u8
     ReadWriteStorageBuffer,
 };
 
-/** 컴파일할 셰이더 소스 */
+/** 컴파일할 셰이더 소스와 include 검색 경로 */
 struct ShaderCompileRequest
 {
     Path source_path;
     Array<Path> include_dirs;
 };
 
-/** 스테이지 사이를 오가는 보간 값 하나 */
+/** 스테이지 사이에 전달되는 보간 값 */
 struct ShaderVarying
 {
     StringName name;
@@ -46,12 +46,12 @@ struct ShaderVarying
     EShaderValueType type = EShaderValueType::Unknown;
 };
 
-/** 스테이지 필터 전 소스에 선언된 리소스 하나 */
+/** 소스에 선언된 리소스 (스테이지별로 거르기 전) */
 struct ShaderBindingRecord
 {
     StringName name;
     EShaderResourceKind kind = EShaderResourceKind::UniformBuffer;
-    u32 space = 0; // SPIR-V descriptor set
+    u32 space = 0; // SPIR-V descriptor set (= HLSL register space)
     u32 binding = 0;
 };
 
@@ -60,13 +60,13 @@ struct CompiledShaderStage
 {
     EShaderStage stage = EShaderStage::Vertex;
 
-    /** 포맷마다 하나 */
+    /** 포맷별 바이트코드 */
     Array<ShaderBlob> blobs;
 
-    /** SPIR-V 레이아웃 기준 계약 */
+    /** SDL에 넘길 셰이더 인터페이스 (SPIR-V 레이아웃 기준) */
     ShaderStageInterface stage_interface;
 
-    /** 포맷 간 오프셋 비교용 DXIL 레이아웃 상수 버퍼 */
+    /** DXIL 레이아웃으로 읽은 상수 버퍼 (SPIR-V와 오프셋 비교용) */
     Array<ShaderUniformBuffer> dxil_uniform_buffers;
 
     /** 정점 스테이지는 정점 입력, 픽셀 스테이지는 보간 입력 */
@@ -82,10 +82,10 @@ struct SE_EDITOR_API CompiledShaderProgram
     Array<CompiledShaderStage> stages;
     Array<ShaderBindingRecord> declared_bindings;
 
-    /** 소스 자신과 포함한 파일 */
+    /** 소스 파일과 include한 파일 */
     Array<Path> dependencies;
 
-    /** 경고 원문 */
+    /** 컴파일러 경고 메시지 */
     String diagnostics;
 
     /** stage의 결과를 찾습니다. 그 스테이지가 없으면 NullOpt입니다. */
@@ -93,9 +93,8 @@ struct SE_EDITOR_API CompiledShaderProgram
 };
 
 /**
- * HLSL 호환 소스를 SPIR-V와 DXIL로 컴파일하고 SDL3 GPU 규약에 맞춘 계약을 만드는 컴파일러
- *
- * 내부 구현은 Slang이며, 공개 타입에는 Slang이 드러나지 않습니다.
+ * HLSL 호환 소스를 SPIR-V와 DXIL로 컴파일하고 SDL3 GPU 규약에 맞춘 셰이더를 만드는 컴파일러
+ * 내부적으로 Slang을 사용하고 있습니다.
  */
 class SE_EDITOR_API ShaderCompiler
 {
@@ -112,7 +111,7 @@ public:
     /** request의 소스를 컴파일합니다. */
     [[nodiscard]] ShaderCookResult<CompiledShaderProgram> Compile(const ShaderCompileRequest& request) const;
 
-    /** 컴파일러 버전과 고정 옵션을 담은 문자열. 캐시 키에 들어갑니다. */
+    /** 컴파일러 버전과 고정 옵션을 나타내는 문자열. 캐시 키에 포함됩니다. */
     [[nodiscard]] const String& GetToolchainIdentity() const;
 
 private:

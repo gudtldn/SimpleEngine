@@ -1,4 +1,4 @@
-// 텍스처 t0과 t4만 선언해 슬롯 1~3이 빕니다.
+// 텍스처를 t0과 t4에만 선언해 슬롯 1~3이 비어 있습니다.
 
 Texture2D first_texture : register(t0, space2);
 Texture2D fifth_texture : register(t4, space2);

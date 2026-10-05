@@ -1,4 +1,4 @@
-// D3D 패킹 규칙이 드러나는 상수 버퍼 레이아웃입니다.
+// D3D 상수 버퍼 패킹 규칙(16바이트 경계)을 확인하는 레이아웃입니다.
 
 cbuffer LayoutUBO : register(b0, space3)
 {

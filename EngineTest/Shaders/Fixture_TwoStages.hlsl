@@ -1,4 +1,4 @@
-// 정점·픽셀 스테이지가 각자 다른 set의 리소스를 씁니다.
+// 정점 스테이지와 픽셀 스테이지가 서로 다른 set의 리소스를 사용합니다.
 
 cbuffer PassUBO : register(b0, space1)
 {

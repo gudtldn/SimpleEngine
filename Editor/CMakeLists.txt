@@ -59,7 +59,7 @@ if(SE_HAS_SLANG)
     target_link_libraries(Editor PRIVATE slang::slang)
 endif()
 
-# Slang은 런타임 DLL 옆에서 표준 모듈과 추가 DLL을, DXIL 생성 때 DXC(dxcompiler.dll, 서명용 dxil.dll)를 찾으므로 함께 복사합니다.
+# Slang은 DXIL 생성 때 DXC(dxcompiler.dll, 서명용 dxil.dll)를 찾으므로 함께 복사
 if(SE_HAS_SLANG AND WIN32)
     set(_se_vcpkg_bin_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
     file(GLOB _se_slang_runtime_files

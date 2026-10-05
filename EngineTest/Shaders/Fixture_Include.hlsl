@@ -1,4 +1,4 @@
-// 다른 파일을 포함해 의존 목록에 두 파일이 들어갑니다.
+// 헤더를 include하므로 의존 파일이 두 개입니다.
 #include "Fixture_Common.hlsli"
 
 [shader("vertex")]
