@@ -31,7 +31,11 @@ struct VaryingField
     u32 location = 0;
 };
 
-/** SDL3 GPU 규약의 스테이지별 set */
+/**
+ * SDL3 GPU 규약의 스테이지별 set (SPIR-V descriptor set = HLSL register space)
+ * https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
+ * https://wiki.libsdl.org/SDL3/SDL_CreateGPUComputePipeline#remarks
+ */
 [[nodiscard]] StageSets SetsOf(EShaderStage stage)
 {
     switch (stage)
