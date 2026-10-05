@@ -42,7 +42,8 @@ struct ShaderCompileRequest
 struct ShaderVarying
 {
     StringName name;
-    String semantic; // 인덱스 포함, 예: TEXCOORD0
+    String semantic;  // 인덱스 포함, 예: TEXCOORD0
+    u32 location = 0; // SPIR-V location
     EShaderValueType type = EShaderValueType::Unknown;
 };
 
@@ -90,6 +91,12 @@ struct SE_EDITOR_API CompiledShaderProgram
 
     /** stage의 결과를 찾습니다. 그 스테이지가 없으면 NullOpt입니다. */
     [[nodiscard]] Optional<const CompiledShaderStage&> FindStage(EShaderStage stage) const;
+
+    /**
+     * SDL3 GPU 규약과 SPIR-V, DXIL 사이의 일치를 검사합니다.
+     * @return 발견한 문제를 모두 반환합니다. 문제가 없으면 빈 배열
+     */
+    [[nodiscard]] Array<String> Validate() const;
 };
 
 /**

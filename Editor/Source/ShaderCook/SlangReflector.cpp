@@ -1,11 +1,9 @@
 #if SE_HAS_HLSL_COMPILER
 
-#include "SimpleEngine/Utility/Debug.h"
-
+#include "ShaderCook/ShaderStageSets.h"
 #include "ShaderCook/SlangReflector.h"
 
 #include <algorithm>
-#include <utility>
 
 
 namespace se::editor
@@ -14,37 +12,6 @@ namespace
 {
 using SlangKind = slang::TypeReflection::Kind;
 using SlangScalar = slang::TypeReflection::ScalarType;
-
-/** 스테이지가 사용하는 descriptor set 번호 */
-struct StageSets
-{
-    u32 resources = 0;
-    Optional<u32> readwrite_resources;
-    u32 uniform_buffers = 0;
-};
-
-/** 보간 값과 그 location */
-struct VaryingField
-{
-    ShaderVarying varying;
-    u32 location = 0;
-};
-
-/**
- * SDL3 GPU 규약의 스테이지별 set (SPIR-V descriptor set = HLSL register space)
- * https://wiki.libsdl.org/SDL3/SDL_CreateGPUShader#remarks
- * https://wiki.libsdl.org/SDL3/SDL_CreateGPUComputePipeline#remarks
- */
-[[nodiscard]] StageSets SetsOf(EShaderStage stage)
-{
-    switch (stage)
-    {
-    case EShaderStage::Vertex:   return { .resources = 0, .uniform_buffers = 1 };
-    case EShaderStage::Fragment: return { .resources = 2, .uniform_buffers = 3 };
-    case EShaderStage::Compute:  return { .resources = 0, .readwrite_resources = 1u, .uniform_buffers = 2 };
-    }
-    SE_UNREACHABLE();
-}
 
 [[nodiscard]] const char* NameOf(slang::VariableLayoutReflection* var)
 {
@@ -277,7 +244,7 @@ void CollectVaryingFields( // NOLINT(*-no-recursion)
     slang::VariableLayoutReflection* var,
     slang::ParameterCategory category,
     usize base_location,
-    Array<VaryingField>& out_fields
+    Array<ShaderVarying>& out_varyings
 )
 {
     slang::TypeLayoutReflection* type_layout = var->getTypeLayout();
@@ -287,7 +254,7 @@ void CollectVaryingFields( // NOLINT(*-no-recursion)
     {
         for (usize i = 0; i < type_layout->getFieldCount(); ++i)
         {
-            CollectVaryingFields(type_layout->getFieldByIndex(static_cast<u32>(i)), category, location, out_fields);
+            CollectVaryingFields(type_layout->getFieldByIndex(static_cast<u32>(i)), category, location, out_varyings);
         }
         return;
     }
@@ -298,32 +265,21 @@ void CollectVaryingFields( // NOLINT(*-no-recursion)
         return;
     }
 
-    out_fields.Push({
-        .varying = {
-            .name = NameOf(var),
-            .semantic = String::Format("{}{}", semantic, var->getSemanticIndex()),
-            .type = ToValueType(type_layout),
-        },
+    // HLSL semantic은 대소문자를 구분하지 않으므로 대문자로 통일
+    out_varyings.Push({
+        .name = NameOf(var),
+        .semantic = String::Format("{}{}", semantic, var->getSemanticIndex()).ToUpper("en_US"),
         .location = static_cast<u32>(location),
+        .type = ToValueType(type_layout),
     });
 }
 
-[[nodiscard]] Array<VaryingField> CollectInputFields(slang::EntryPointReflection* entry)
-{
-    Array<VaryingField> fields;
-    for (usize i = 0; i < entry->getParameterCount(); ++i)
-    {
-        CollectVaryingFields(entry->getParameterByIndex(static_cast<u32>(i)), slang::ParameterCategory::VaryingInput, 0, fields);
-    }
-    return fields;
-}
-
-[[nodiscard]] Array<ShaderVarying> ToVaryings(Array<VaryingField>&& fields)
+[[nodiscard]] Array<ShaderVarying> CollectInputs(slang::EntryPointReflection* entry)
 {
     Array<ShaderVarying> varyings;
-    for (VaryingField& field : fields)
+    for (usize i = 0; i < entry->getParameterCount(); ++i)
     {
-        varyings.Push(std::move(field.varying));
+        CollectVaryingFields(entry->getParameterByIndex(static_cast<u32>(i)), slang::ParameterCategory::VaryingInput, 0, varyings);
     }
     return varyings;
 }
@@ -360,9 +316,9 @@ ShaderStageInterface SlangReflector::ReflectInterface(SlangUInt entry_index, ESh
 
     if (stage == EShaderStage::Vertex)
     {
-        for (const VaryingField& field : CollectInputFields(entry))
+        for (const ShaderVarying& input : CollectInputs(entry))
         {
-            stage_interface.vertex_inputs.Push({ .location = field.location, .name = field.varying.name, .type = field.varying.type });
+            stage_interface.vertex_inputs.Push({ .location = input.location, .name = input.name, .type = input.type });
         }
     }
     if (stage == EShaderStage::Compute)
@@ -379,7 +335,7 @@ Array<ShaderUniformBuffer> SlangReflector::ReflectDxilUniformBuffers(EShaderStag
 
 Array<ShaderVarying> SlangReflector::ReflectInputs(SlangUInt entry_index) const
 {
-    return ToVaryings(CollectInputFields(spirv_layout->getEntryPointByIndex(entry_index)));
+    return CollectInputs(spirv_layout->getEntryPointByIndex(entry_index));
 }
 
 Array<ShaderVarying> SlangReflector::ReflectOutputs(SlangUInt entry_index) const
@@ -390,9 +346,9 @@ Array<ShaderVarying> SlangReflector::ReflectOutputs(SlangUInt entry_index) const
         return {};
     }
 
-    Array<VaryingField> fields;
-    CollectVaryingFields(result, slang::ParameterCategory::VaryingOutput, 0, fields);
-    return ToVaryings(std::move(fields));
+    Array<ShaderVarying> varyings;
+    CollectVaryingFields(result, slang::ParameterCategory::VaryingOutput, 0, varyings);
+    return varyings;
 }
 } // namespace se::editor
 
