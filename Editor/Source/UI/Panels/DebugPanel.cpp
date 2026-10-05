@@ -5,6 +5,8 @@
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Memory/MemoryStats.h"
+#include "SimpleEngine/Graphics/RenderSubsystem.h"
+#include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
 
@@ -222,6 +224,16 @@ void DebugPanel::DrawContent()
                 ImGui::TextUnformatted(FormatBytes(gpu_allocated.load(std::memory_order_acquire)).CStr());
             }
         }
+    }
+
+    if (ImGui::CollapsingHeader("Engine Info", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        static const char* graphics_backend_name = []
+        {
+            const RenderDevice& device = se::GetSubsystemChecked<RenderSubsystem>().GetRenderDevice();
+            return SDL_GetGPUDeviceDriver(device.GetRawDevice());
+        }();
+        ImGui::Text("Graphics Backend: %s", graphics_backend_name);
     }
 }
 } // namespace se::editor
