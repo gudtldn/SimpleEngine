@@ -51,6 +51,7 @@ struct PSOutput
     uint   entity_id : SV_Target1; // RT1: 엔티티 ID 버퍼
 };
 
+[shader("pixel")]
 PSOutput PSMain(VertexOutput input)
 {
     PSOutput output;
