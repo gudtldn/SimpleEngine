@@ -39,6 +39,10 @@
       "platform": "!(windows | (linux & x64))"
     },
     {
+      "name": "shader-slang",
+      "platform": "windows | (linux & x64)"
+    },
+    {
       "name": "efsw",
       "version>=": "1.6.3"
     },

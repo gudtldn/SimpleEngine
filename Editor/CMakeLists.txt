@@ -54,6 +54,34 @@ PRIVATE
         efsw::efsw
 )
 
+# Slang 셰이더 컴파일러 (ShaderCook)
+if(SE_HAS_SLANG)
+    target_link_libraries(Editor PRIVATE slang::slang)
+endif()
+
+# Slang은 런타임 DLL 옆에서 표준 모듈과 추가 DLL을, DXIL 생성 때 DXC(dxcompiler.dll, 서명용 dxil.dll)를 찾으므로 함께 복사합니다.
+if(SE_HAS_SLANG AND WIN32)
+    set(_se_vcpkg_bin_dir "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+    file(GLOB _se_slang_runtime_files
+            "${_se_vcpkg_bin_dir}/slang*.dll"
+            "${_se_vcpkg_bin_dir}/*.slang"
+    )
+    file(GLOB _se_slang_module_dirs LIST_DIRECTORIES true "${_se_vcpkg_bin_dir}/slang-standard-module-*")
+
+    add_custom_command(TARGET Editor POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_se_slang_runtime_files} "${_se_vcpkg_bin_dir}/dxil.dll" $<TARGET_FILE_DIR:Editor>
+            COMMAND_EXPAND_LISTS
+    )
+    foreach(_se_module_dir IN LISTS _se_slang_module_dirs)
+        if(IS_DIRECTORY "${_se_module_dir}")
+            get_filename_component(_se_module_name "${_se_module_dir}" NAME)
+            add_custom_command(TARGET Editor POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different "${_se_module_dir}" "$<TARGET_FILE_DIR:Editor>/${_se_module_name}"
+            )
+        endif()
+    endforeach()
+endif()
+
 target_include_directories(Editor
 PUBLIC
         # 공개 헤더 경로 (SimpleEditor/ prefix로 접근)
