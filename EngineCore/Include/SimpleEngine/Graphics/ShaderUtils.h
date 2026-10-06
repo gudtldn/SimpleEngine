@@ -1,17 +1,12 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
-#include "SimpleEngine/Core/Container/ArrayView.h"
 
 #include "SDL3/SDL_gpu.h"
-#include "SDL3_shadercross/SDL_shadercross.h"
 
 
 namespace se
 {
-// forward declaration
-class RenderDevice;
-
 struct ShaderInputVar
 {
     u32 location;
@@ -21,27 +16,6 @@ struct ShaderReflectionData
 {
     Array<ShaderInputVar> vertex_inputs;
 };
-
-struct GraphicsShaderCreateResult
-{
-    SDL_GPUShader* shader = nullptr;
-    ShaderReflectionData reflection;
-};
-
-/** SPIR-V 바이트를 GPU 그래픽스 셰이더(vertex/fragment)로 생성합니다. */
-[[nodiscard]] SE_CORE_API GraphicsShaderCreateResult CreateGraphicsShader(
-    const RenderDevice& render_device,
-    SDL_ShaderCross_ShaderStage stage,
-    ArrayView<const u8> spirv_bytecode,
-    SDL_PropertiesID props = 0
-);
-
-/** SPIR-V 바이트를 GPU 컴퓨트 파이프라인으로 생성합니다. */
-[[nodiscard]] SE_CORE_API SDL_GPUComputePipeline* CreateComputePipeline(
-    const RenderDevice& render_device,
-    ArrayView<const u8> spirv_bytecode,
-    SDL_PropertiesID props = 0
-);
 
 /**
  * FilterVertexInputState의 반환값. attributes 배열을 직접 소유하므로
