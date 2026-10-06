@@ -45,7 +45,6 @@ PRIVATE
 
         # SDL3
         SDL3::SDL3
-        SDL3_shadercross::SDL3_shadercross
 
         # ImGui
         imgui
@@ -57,6 +56,9 @@ PRIVATE
 # Slang 셰이더 컴파일러 (ShaderCook)
 if(SE_HAS_SLANG)
     target_link_libraries(Editor PRIVATE slang::slang)
+
+    # 셰이더를 쿡할 수 있는 호스트 (에디터와 테스트가 씁니다)
+    target_compile_definitions(Editor PUBLIC SE_HAS_HLSL_COMPILER=1)
 endif()
 
 # Slang은 DXIL 생성 때 DXC(dxcompiler.dll, 서명용 dxil.dll)를 찾으므로 함께 복사
@@ -69,7 +71,7 @@ if(SE_HAS_SLANG AND WIN32)
     file(GLOB _se_slang_module_dirs LIST_DIRECTORIES true "${_se_vcpkg_bin_dir}/slang-standard-module-*")
 
     add_custom_command(TARGET Editor POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_se_slang_runtime_files} "${_se_vcpkg_bin_dir}/dxil.dll" $<TARGET_FILE_DIR:Editor>
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_se_slang_runtime_files} "${_se_vcpkg_bin_dir}/dxcompiler.dll" "${_se_vcpkg_bin_dir}/dxil.dll" $<TARGET_FILE_DIR:Editor>
             COMMAND_EXPAND_LISTS
     )
     foreach(_se_module_dir IN LISTS _se_slang_module_dirs)

@@ -65,7 +65,8 @@ git submodule update --init --recursive
 | --- | --- |
 | `sdl3` | 윈도우 생성, 입력, GPU 추상화 |
 | `sdl3-image` | 이미지 로딩 (JPEG, PNG, WebP) |
-| `sdl3-shadercross` (커스텀 오버레이) | HLSL -> SPIRV 셰이더 크로스 컴파일 (Windows/Linux x64에서 DXC 사용) |
+| `shader-slang` | 에디터 셰이더 쿡 (HLSL 소스 -> SPIR-V, DXIL. Windows/Linux x64) |
+| `directx-dxc` | Slang의 DXIL 생성에 쓰는 DXC (Windows/Linux x64) |
 | `stduuid` | UUID 생성 (AssetId) |
 | `gtest` | Google Test |
 | `benchmark` | Google Benchmark |

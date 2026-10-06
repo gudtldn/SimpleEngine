@@ -16,7 +16,10 @@
     },
     {
       "name": "sdl3",
-      "version>=": "3.4.12"
+      "version>=": "3.4.12",
+      "features": [
+        "vulkan"
+      ]
     },
     {
       "name": "sdl3-image",
@@ -28,18 +31,11 @@
       ]
     },
     {
-      "name": "sdl3-shadercross",
-      "features": [
-        "dxc"
-      ],
+      "name": "shader-slang",
       "platform": "windows | (linux & x64)"
     },
     {
-      "name": "sdl3-shadercross",
-      "platform": "!(windows | (linux & x64))"
-    },
-    {
-      "name": "shader-slang",
+      "name": "directx-dxc",
       "platform": "windows | (linux & x64)"
     },
     {
