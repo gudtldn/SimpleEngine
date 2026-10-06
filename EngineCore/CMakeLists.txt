@@ -39,7 +39,6 @@ PUBLIC
         # SDL3
         SDL3::SDL3
         SDL3_image::SDL3_image
-        SDL3_shadercross::SDL3_shadercross
 
 PRIVATE
         # Project Default Options
@@ -77,8 +76,3 @@ PRIVATE
         # 내부 구현용 헤더 (EngineCore 내부 cpp 파일들이 편하게 include 하기 위함)
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
-
-# DXC가 사용 가능한 플랫폼에서만 HLSL 컴파일러 매크로를 정의 (vcpkg.json의 platform 조건과 동일)
-if(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64"))
-    target_compile_definitions(EngineCore PUBLIC SE_HAS_HLSL_COMPILER=1)
-endif()
