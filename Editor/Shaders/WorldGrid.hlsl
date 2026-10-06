@@ -2,9 +2,6 @@
 // 무한 그리드 셰이더 (Infinite Grid Shader)
 // ==============================================================================
 
-#pragma se_shader vertex VSMain
-#pragma se_shader fragment PSMain
-
 #include "Bindings.hlsli"
 
 // ----------------------------------------------------------------

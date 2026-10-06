@@ -1,8 +1,5 @@
 // Gizmo Pick Shader
 
-#pragma se_shader vertex VSMain
-#pragma se_shader fragment PSMain
-
 #include "Bindings.hlsli"
 
 cbuffer UBO : SE_VS_UNIFORM(SE_SLOT_PASS)
