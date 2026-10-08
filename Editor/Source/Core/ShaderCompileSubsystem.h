@@ -31,13 +31,12 @@ public:
 
 private:
     /** 셰이더 폴더를 모두 쿡하고, 새로 쿡한 셰이더 개수를 반환합니다. 최신인 셰이더는 건너뜁니다. */
-    u32 CookAll() const;
+    u32 CookAll() const; // NOLINT(*-use-nodiscard)
 
     /** 바뀐 셰이더를 다시 쿡하고, 하나라도 쿡했으면 셰이더와 파이프라인 캐시를 비웁니다. */
     void RecookChanged() const;
 
 private:
-    /** Slang 전역 세션을 가지므로 한 번만 만들어 시작 쿡과 핫 리로드가 같이 씁니다. */
     std::unique_ptr<ShaderCompiler> compiler;
     std::unique_ptr<ShaderCooker> cooker;
 };

@@ -35,7 +35,7 @@ bool ShaderCompileSubsystem::Initialize()
     cooker = std::make_unique<ShaderCooker>(*compiler);
 
     // 셰이더는 첫 그리기 때 DDC에서 읽으므로, 첫 프레임 전에 쿡을 끝냅니다.
-    CookAll();
+    (void)CookAll();
 #endif
     return true;
 }
@@ -85,7 +85,7 @@ void ShaderCompileSubsystem::RecookChanged() const
         return;
     }
 
-    // 쿡에 실패한 셰이더는 DDC에 이전 번들이 남아 있으므로, 비운 뒤 다시 읽어도 이전 셰이더를 씁니다.
+    // 쿡에 실패한 셰이더는 DDC에 이전 번들이 남아 있으므로, 비운 뒤 다시 읽어도 이전 셰이더가 사용됨
     if (const RenderSubsystem* render_subsystem = se::GetSubsystem<RenderSubsystem>())
     {
         // 안전한 리소스 해제를 위해 GPU가 작업을 모두 마칠 때까지 대기

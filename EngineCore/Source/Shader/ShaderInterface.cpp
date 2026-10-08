@@ -7,7 +7,6 @@ namespace se
 {
 Optional<const ShaderStageInterface&> ShaderProgramInterface::FindStage(EShaderStage stage) const
 {
-
     return stages.FindBy([stage](const ShaderStageInterface& stage_interface)
     {
         return stage_interface.stage == stage;

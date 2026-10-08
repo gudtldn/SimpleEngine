@@ -57,7 +57,7 @@ PRIVATE
 if(SE_HAS_SLANG)
     target_link_libraries(Editor PRIVATE slang::slang)
 
-    # 셰이더를 쿡할 수 있는 호스트 (에디터와 테스트가 씁니다)
+    # 셰이더를 쿡할 수 있는 호스트라고 알림
     target_compile_definitions(Editor PUBLIC SE_HAS_HLSL_COMPILER=1)
 endif()
 

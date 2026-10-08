@@ -76,7 +76,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         return nullptr;
     }
 
-    // 정점 셰이더가 실제로 쓰는 attribute만 남깁니다.
+    // 정점 셰이더가 실제로 쓰는 attribute만 필터링
     const FilteredVertexInputState filtered = FilterVertexInputState(
         create_info.vertex_input_state,
         VertexReflectionOf(shader_library.FindInterface(create_info.shader_program))
@@ -91,7 +91,7 @@ SDL_GPUGraphicsPipeline* PSOManager::GetOrCreateGraphicsPipeline(const GraphicsP
         .multisample_state = create_info.multisample_state,
         .depth_stencil_state = create_info.depth_stencil_state,
         .target_info = create_info.target_info,
-        .props = create_info.props
+        .props = create_info.props,
     };
 
     SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(render_device->GetRawDevice(), &info);
