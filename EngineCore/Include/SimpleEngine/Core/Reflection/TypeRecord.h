@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 
@@ -18,6 +19,7 @@ struct CastEntry
 struct TypeRecord
 {
     TypeId id;
+    StringView name;
     Array<CastEntry> all_bases; // offset 0(자기 자신)도 포함
 };
 } // namespace se

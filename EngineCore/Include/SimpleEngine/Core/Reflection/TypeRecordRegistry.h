@@ -20,7 +20,7 @@ public:
     [[nodiscard]] static TypeRecordRegistry& Get();
 
     /** id의 캐스트 테이블을 만들어 설치합니다. 부모들이 먼저 등록되어 있어야 합니다. */
-    void Install(TypeId id);
+    void Install(TypeId id, StringView name);
 
     /** TypeId로 TypeRecord를 찾습니다. (등록되지 않았다면 NullOpt) */
     [[nodiscard]] Optional<const TypeRecord&> Find(TypeId id) const;

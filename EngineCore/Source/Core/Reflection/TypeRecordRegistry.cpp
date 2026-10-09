@@ -40,7 +40,7 @@ TypeRecordRegistry& TypeRecordRegistry::Get()
     return instance;
 }
 
-void TypeRecordRegistry::Install(TypeId id)
+void TypeRecordRegistry::Install(TypeId id, StringView name)
 {
     std::scoped_lock lock{ RegistrationMutex() };
     if (record_map.Contains(id))
@@ -48,7 +48,7 @@ void TypeRecordRegistry::Install(TypeId id)
         return;
     }
 
-    TypeRecord record{ .id = id, .all_bases = {} };
+    TypeRecord record{ .id = id, .name = name, .all_bases = {} };
     Flatten(id, 0, record.all_bases);
     record_map.Entry(id).OrDefault() = std::move(record);
 }
