@@ -232,7 +232,7 @@ const TypeInfo& EnsureRegistered()
 
     Registrar<CleanType>::Fill(slot);
     ValueOpsRegistry::Get().Install(slot.id, detail::MakeValueOps<CleanType>());
-    TypeRecordRegistry::Get().Install(slot.id);
+    TypeRecordRegistry::Get().Install(slot.id, TypeNameOf<CleanType>());
 
     cached.store(&slot, std::memory_order_release);
     return slot;
