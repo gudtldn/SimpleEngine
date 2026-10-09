@@ -17,137 +17,115 @@
 namespace se
 {
 /**
- * 런타임에 동적 타입 정보를 조회할 수 있는 타입입니다.
- * 루트 클래스에 SE_RTTI_ROOT(), 파생 클래스에 SE_RTTI(T)를 선언하여 만족시킵니다.
+ * 런타임에 동적 타입 정보를 조회할 수 있는 타입인지 확인합니다.
+ * @details 루트 클래스에 SE_RTTI_ROOT(), 파생 클래스에 SE_RTTI(T)를 선언해야 합니다.
  */
 template <typename T>
-concept RuntimeTyped = requires (const T& object)
+concept RuntimeTyped = requires(const T& object)
 {
     { object.GetTypeRecord() } -> std::same_as<const TypeRecord*>;
 };
 
 /**
- * T의 캐스트 테이블 주소를 가져옵니다.
- * @note 최초 1회만 조회하고 이후에는 캐시된 포인터를 돌려줍니다.
+ * T의 TypeRecord 주소를 반환합니다.
+ * @note 최초 1회만 레지스트리에서 조회하고 이후에는 캐시된 포인터를 사용합니다.
  */
 template <typename T>
-[[nodiscard]] const TypeRecord* TypeRecordOf()
+[[nodiscard]] const TypeRecord* TypeRecordOf() noexcept
 {
     // constinit을 사용하여 Magic Statics로 인한 데드락 방지
     static constinit std::atomic<const TypeRecord*> cached{ nullptr };
-    if (const TypeRecord* const record = cached.load(std::memory_order_acquire))
+    if (const TypeRecord* record = cached.load(std::memory_order_acquire))
     {
         return record;
     }
 
     EnsureRegistered<T>();
-    const TypeRecord* const record = &TypeRecordRegistry::Get().Find(TypeId::Of<T>()).Value();
+    const TypeRecord* record = &TypeRecordRegistry::Get().Find(TypeId::Of<T>()).Value();
     cached.store(record, std::memory_order_release);
     return record;
 }
 
-namespace detail
-{
-/** 캐스트 한 번에 필요한 두 오프셋과, 각각이 몇 번 나왔는지 */
-struct CastLookup
-{
-    usize from_offset = 0;
-    usize to_offset = 0;
-    usize from_count = 0;
-    usize to_count = 0;
-};
+/**
+ * from_id 서브오브젝트 주소를 to_id 서브오브젝트 주소로 바꿉니다.
+ * 정적 타입을 모르고 TypeId만 있을 때 씁니다.
+ * @todo 나중에 inline과 성능 비교
+ * @return 변환된 주소. 상속 관계가 없거나 모호한 경우 nullptr
+ */
+[[nodiscard]] SE_CORE_API void* CastById(void* instance, TypeId from_id, TypeId to_id, const TypeRecord& dynamic_record) noexcept;
 
-/** all_bases를 한 번만 훑으며 from/to 오프셋을 동시에 수집합니다. */
-[[nodiscard]] inline CastLookup LookupCast(const TypeRecord& record, TypeId from, TypeId to)
+/** const 포인터용 CastById 오버로드 */
+[[nodiscard]] inline const void* CastById(const void* instance, TypeId from_id, TypeId to_id, const TypeRecord& dynamic_record) noexcept
 {
-    CastLookup lookup;
-    for (const CastEntry& entry : record.all_bases)
-    {
-        if (entry.type == from)
-        {
-            lookup.from_offset = entry.offset;
-            ++lookup.from_count;
-        }
-        if (entry.type == to)
-        {
-            lookup.to_offset = entry.offset;
-            ++lookup.to_count;
-        }
-    }
-    return lookup;
+    return CastById(const_cast<void*>(instance), from_id, to_id, dynamic_record);
 }
-} // namespace detail
 
 /**
- * 포인터를 To로 캐스팅합니다. 불가능하거나 모호하면 nullptr입니다.
- * @note from이 두 번 이상 나오는 다이아몬드 구조는 완전 객체를 특정할 수 없어 실패시킵니다.
+ * from_id 서브오브젝트 주소로부터 최하위 완전 객체(Most Derived Object) 주소를 구합니다.
+ * 정적 타입을 모르고 TypeId만 있을 때 씁니다.
+ * @return from_id가 dynamic_record에 없거나 두 번 이상 나오면 nullptr
+ */
+[[nodiscard]] SE_CORE_API void* CompleteObjectOfById(void* instance, TypeId from_id, const TypeRecord& dynamic_record) noexcept;
+
+/** const 포인터용 CompleteObjectOfById 오버로드 */
+[[nodiscard]] inline const void* CompleteObjectOfById(const void* instance, TypeId from_id, const TypeRecord& dynamic_record) noexcept
+{
+    return CompleteObjectOfById(const_cast<void*>(instance), from_id, dynamic_record);
+}
+
+/**
+ * dynamic_id 타입이 target_id이거나 target_id를 상속하는지 확인합니다.
+ * 정적 타입을 모를 때 씁니다.
+ * @note 등록되지 않은 dynamic_id는 false입니다.
+ */
+[[nodiscard]] SE_CORE_API bool IsAById(TypeId dynamic_id, TypeId target_id) noexcept;
+
+/**
+ * 포인터를 To 타입으로 캐스팅합니다. 불가능하거나 모호하면 nullptr를 반환합니다.
  */
 template <typename To, RuntimeTyped From>
-[[nodiscard]] To* Cast(From* instance)
+[[nodiscard]] To* Cast(From* instance) noexcept
 {
     if (instance == nullptr)
     {
         return nullptr;
     }
 
-    const TypeRecord* record = instance->GetTypeRecord();
-    const detail::CastLookup lookup = detail::LookupCast(*record, TypeId::Of<From>(), TypeId::Of<To>());
-
-    // from이 0개면 리플렉션 등록 코드에서 SE_BASE를 빠뜨린 것
-    SE_ASSERT(lookup.from_count != 0, "Cast: the static type is missing from the dynamic type's base list. Did you forget SE_BASE?");
-
-    if (lookup.from_count != 1 || lookup.to_count != 1)
-    {
-        return nullptr;
-    }
-
-    u8* const complete = reinterpret_cast<u8*>(instance) - lookup.from_offset;
-    return reinterpret_cast<To*>(complete + lookup.to_offset);
+    void* result = CastById(instance, TypeId::Of<From>(), TypeId::Of<To>(), *instance->GetTypeRecord());
+    return static_cast<To*>(result);
 }
 
-/** const 포인터용 오버로드 */
+/** const 포인터용 Cast 오버로드 */
 template <typename To, RuntimeTyped From>
-[[nodiscard]] const To* Cast(const From* instance)
+[[nodiscard]] const To* Cast(const From* instance) noexcept
 {
     return Cast<To>(const_cast<From*>(instance));
 }
 
 /**
- * Base 서브오브젝트의 주소에서, 동적 타입이 record인 완전 객체의 주소를 구합니다.
- * Base가 record에 없거나 두 번 이상 나오면 nullptr입니다.
+ * 참조를 To 타입으로 캐스팅합니다.
+ * @note 캐스팅 실패 시 assertion이 발생합니다.
  */
-template <typename Base>
-[[nodiscard]] traits::CopyConst<Base, void*> CompleteObjectOf(Base* instance, const TypeRecord& record)
+template <typename To, RuntimeTyped From>
+[[nodiscard]] To& Cast(From& instance)
 {
-    if (instance == nullptr)
-    {
-        return nullptr;
-    }
+    To* result = Cast<To>(&instance);
+    SE_ASSERT(result != nullptr, "Cast(Ref) failed: cannot cast reference to '{}'.", TypeNameOf<std::remove_cv_t<To>>());
+    return *result;
+}
 
-    const TypeId base = TypeId::Of<std::remove_cv_t<Base>>();
-    const detail::CastLookup lookup = detail::LookupCast(record, base, base);
-    if (lookup.from_count != 1)
-    {
-        return nullptr;
-    }
-    return reinterpret_cast<traits::CopyConst<Base, u8*>>(instance) - lookup.from_offset;
+/** const 참조용 Cast 오버로드 */
+template <typename To, RuntimeTyped From>
+[[nodiscard]] const To& Cast(const From& instance)
+{
+    const To* result = Cast<To>(&instance);
+    SE_ASSERT(result != nullptr, "Cast(Const Ref) failed: cannot cast reference to '{}'.", TypeNameOf<std::remove_cv_t<To>>());
+    return *result;
 }
 
 /**
- * 동적 타입 정보를 가진 instance의 완전 객체 주소를 구합니다.
- * Base가 동적 타입의 record에 두 번 이상 나오면 nullptr입니다.
+ * 포인터를 To 타입으로 캐스팅하며, 실패 시 assertion을 발생시킵니다.
  */
-template <RuntimeTyped Base>
-[[nodiscard]] traits::CopyConst<Base, void*> CompleteObjectOf(Base* instance)
-{
-    if (instance == nullptr)
-    {
-        return nullptr;
-    }
-    return CompleteObjectOf(instance, *instance->GetTypeRecord());
-}
-
-/** 포인터를 To로 캐스팅합니다. 불가능하거나 모호하면 assert를 발생합니다. */
 template <typename To, RuntimeTyped From>
 [[nodiscard]] To* CastChecked(From* instance)
 {
@@ -156,7 +134,7 @@ template <typename To, RuntimeTyped From>
     return result;
 }
 
-/** const 포인터용 오버로드 */
+/** const 포인터용 CastChecked 오버로드 */
 template <typename To, RuntimeTyped From>
 [[nodiscard]] const To* CastChecked(const From* instance)
 {
@@ -164,10 +142,10 @@ template <typename To, RuntimeTyped From>
 }
 
 /**
- * 동적 타입이 정확히 To일 때만 캐스팅합니다. 파생 클래스는 매칭되지 않습니다.
+ * 동적 타입이 정확히 To와 일치할 때만 캐스팅합니다. (파생 타입 제외)
  */
 template <typename To, RuntimeTyped From>
-[[nodiscard]] To* ExactCast(From* instance)
+[[nodiscard]] To* ExactCast(From* instance) noexcept
 {
     if (instance == nullptr)
     {
@@ -180,56 +158,91 @@ template <typename To, RuntimeTyped From>
         return nullptr;
     }
 
-    // 동적 타입이 곧 To이므로 from 오프셋만 빼면 됨
-    const detail::CastLookup lookup = detail::LookupCast(*record, TypeId::Of<From>(), TypeId::Of<To>());
-    if (lookup.from_count != 1)
-    {
-        return nullptr;
-    }
-
-    return reinterpret_cast<To*>(reinterpret_cast<u8*>(instance) - lookup.from_offset);
+    return static_cast<To*>(CompleteObjectOfById(instance, TypeId::Of<From>(), *record));
 }
 
-/** const 포인터용 오버로드 */
+/** const 포인터용 ExactCast 오버로드 */
 template <typename To, RuntimeTyped From>
-[[nodiscard]] const To* ExactCast(const From* instance)
+[[nodiscard]] const To* ExactCast(const From* instance) noexcept
 {
     return ExactCast<To>(const_cast<From*>(instance));
 }
 
 /**
- * 동적 타입이 To이거나 To를 상속하는지 확인합니다.
- * @note 존재 여부만 묻는 것이므로 다이아몬드로 중복되어 있어도 true입니다.
+ * 서브오브젝트 주소로부터 최하위 완전 객체 주소를 구합니다. 동적 타입은 instance에서 조회합니다.
+ */
+template <RuntimeTyped Base>
+[[nodiscard]] traits::CopyConst<Base, void*> CompleteObjectOf(Base* instance) noexcept
+{
+    if (instance == nullptr)
+    {
+        return nullptr;
+    }
+    return CompleteObjectOfById(
+        const_cast<std::remove_cv_t<Base>*>(instance),
+        TypeId::Of<std::remove_cv_t<Base>>(),
+        *instance->GetTypeRecord()
+    );
+}
+
+/**
+ * 서브오브젝트 주소로부터 최하위 완전 객체 주소를 구합니다. 동적 타입의 TypeRecord를 직접 받습니다.
+ * @return Base가 dynamic_record에 없거나 두 번 이상 나오면 nullptr
+ */
+template <typename Base>
+    requires (!std::is_void_v<std::remove_cv_t<Base>>)
+[[nodiscard]] traits::CopyConst<Base, void*> CompleteObjectOf(Base* instance, const TypeRecord& dynamic_record) noexcept
+{
+    return CompleteObjectOfById(
+        const_cast<std::remove_cv_t<Base>*>(instance),
+        TypeId::Of<std::remove_cv_t<Base>>(),
+        dynamic_record
+    );
+}
+
+/**
+ * 인스턴스의 동적 타입이 To이거나 To를 상속하는지 확인합니다.
  */
 template <typename To, RuntimeTyped From>
-[[nodiscard]] bool IsA(const From* instance)
+[[nodiscard]] bool IsA(const From* instance) noexcept
 {
     if (instance == nullptr)
     {
         return false;
     }
 
-    const TypeId target = TypeId::Of<To>();
     const TypeRecord* record = instance->GetTypeRecord();
+    const TypeId target = TypeId::Of<To>();
+
     return std::ranges::any_of(record->all_bases, [target](const CastEntry& entry)
     {
         return entry.type == target;
     });
 }
 
-/** 참조용 오버로드 */
+/** 참조형 인스턴스용 IsA 오버로드 */
 template <typename To, RuntimeTyped From>
-[[nodiscard]] bool IsA(const From& instance)
+[[nodiscard]] bool IsA(const From& instance) noexcept
 {
     return IsA<To>(&instance);
+}
+
+/**
+ * id 타입이 To이거나 To를 상속하는지 확인합니다.
+ * @note 등록되지 않은 id는 false입니다.
+ */
+template <typename To>
+[[nodiscard]] bool IsA(TypeId id) noexcept
+{
+    return IsAById(id, TypeId::Of<To>());
 }
 } // namespace se
 
 
-/** 다형성 계층의 최상위 기본 클래스에 선언합니다. 파생 클래스는 SE_RTTI로 이를 구현해야 합니다. */
+/** 다형성 계층의 최상위 기본 클래스에 선언합니다. */
 #define SE_RTTI_ROOT() \
     virtual const ::se::TypeRecord* GetTypeRecord() const = 0;
 
-/** 구체 클래스에 선언합니다. 리플렉션 등록시, SE_BASE로 기본(부모) 클래스가 지정되어 있어야 합니다. */
+/** 구체 파생 클래스에 선언합니다. */
 #define SE_RTTI(type) \
     const ::se::TypeRecord* GetTypeRecord() const override { return ::se::TypeRecordOf<type>(); }
