@@ -277,6 +277,28 @@ TEST(RuntimeCastTest, IsAFollowsInheritanceChain)
     EXPECT_FALSE(se::IsA<BufferBase>(base));
 }
 
+TEST(RuntimeCastTest, IsAByTypeIdFollowsInheritanceChain)
+{
+    using namespace se_runtime_cast_test;
+
+    const se::TypeId id = se::TypeRecordOf<TransientTexture>()->id;
+
+    EXPECT_TRUE(se::IsA<TransientTexture>(id));
+    EXPECT_TRUE(se::IsA<ResourceBase>(id));
+    EXPECT_FALSE(se::IsA<BufferBase>(id));
+    EXPECT_TRUE(se::IsAById(id, se::TypeId::Of<TextureBase>()));
+}
+
+TEST(RuntimeCastTest, IsAByUnregisteredTypeIdReturnsFalse)
+{
+    using namespace se_runtime_cast_test;
+
+    // TypeRecordRegistry에 없는 id는 상속 관계를 알 수 없으므로 false입니다.
+    const se::TypeId id = se::TypeId::FromCanonicalName("se_runtime_cast_test::NotRegistered");
+
+    EXPECT_FALSE(se::IsA<ResourceBase>(id));
+}
+
 TEST(RuntimeCastTest, DiamondUnambiguousBranchesStillCast)
 {
     using namespace se_runtime_cast_test;
