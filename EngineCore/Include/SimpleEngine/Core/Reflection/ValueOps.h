@@ -113,6 +113,12 @@ using ShapeOps = std::variant<std::monostate, ArrayOps, SetOps, MapOps, Optional
  */
 struct ValueOps
 {
+    /** 힙에 동적 할당하여 기본 생성합니다. 기본 생성 불가 타입이면 nullptr */
+    void* (*new_object)() = nullptr;
+
+    /** 힙에 할당된 객체를 소멸하고 메모리를 해제합니다. 소멸 불가 타입이면 nullptr */
+    void (*delete_object)(void*) = nullptr;
+
     /** 주어진 저장 공간에 기본 생성합니다. 기본 생성 불가 타입이면 nullptr */
     void (*default_construct_at)(void* storage);
 

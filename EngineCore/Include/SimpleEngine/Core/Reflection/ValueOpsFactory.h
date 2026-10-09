@@ -152,10 +152,13 @@ ValueOps MakeValueOps()
 
     if constexpr (std::is_default_constructible_v<T>)
     {
+        ops.new_object = [] static -> void* { return new T{}; };
         ops.default_construct_at = [](void* storage) static { std::construct_at(static_cast<T*>(storage)); };
     }
+
     if constexpr (std::is_destructible_v<T>)
     {
+        ops.delete_object = [](void* object) static { delete static_cast<T*>(object); };
         ops.destruct_at = [](void* object) static { std::destroy_at(static_cast<T*>(object)); };
     }
 
