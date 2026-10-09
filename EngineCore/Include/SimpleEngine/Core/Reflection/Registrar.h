@@ -40,7 +40,7 @@ template <typename T>
 struct Registrar
 {
     /** "Registrar<T>가 특수화됐는지" requires{} 판별용 마커 */
-    using UnregisteredMarker = void;
+    using UnspecializedMarker = void;
 
     static void Fill(TypeInfo& info)
     {
@@ -79,7 +79,7 @@ template <typename T, typename = void>
 inline constexpr bool IsRegistrarUnspecialized = false;
 
 template <typename T>
-inline constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnregisteredMarker>> = true;
+inline constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnspecializedMarker>> = true;
 
 /**
  * Derived 안에서 Base 서브오브젝트가 시작하는 바이트 오프셋을 구합니다.
