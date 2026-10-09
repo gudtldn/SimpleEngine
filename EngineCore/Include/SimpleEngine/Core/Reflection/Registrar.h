@@ -73,15 +73,6 @@ struct Registrar
 namespace detail
 {
 /**
- * Registrar<T>가 primary로 떨어졌는지 확인
- */
-template <typename T, typename = void>
-inline constexpr bool IsRegistrarUnspecialized = false;
-
-template <typename T>
-inline constexpr bool IsRegistrarUnspecialized<T, std::void_t<typename Registrar<T>::UnspecializedMarker>> = true;
-
-/**
  * Derived 안에서 Base 서브오브젝트가 시작하는 바이트 오프셋을 구합니다.
  * @note 가상 상속은 최종 파생 타입에 따라 오프셋이 달라지므로 지원하지 않습니다.
  */

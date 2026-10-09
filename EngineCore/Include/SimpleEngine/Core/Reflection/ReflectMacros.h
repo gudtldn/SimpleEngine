@@ -61,7 +61,7 @@
  * SE_DECLARE_REFLECTION(type)이 헤더에 먼저 선언되어 있어야 합니다.
  */
 #define SE_REFLECT_BEGIN(type, ...) \
-    static_assert(!::se::detail::IsRegistrarUnspecialized<type>, \
+    static_assert(::se::traits::IsSpecialized<::se::Registrar, type>, \
         "SE_REFLECT_BEGIN(" #type "): SE_DECLARE_REFLECTION(" #type ") must be declared in a header first."); \
     namespace { [[maybe_unused]] const bool SE_CONCAT_NAME(_se_reg_kick_, __LINE__) = (::se::EnsureRegistered<type>(), true); } \
     void ::se::Registrar<type>::Fill(::se::TypeInfo& info) \
@@ -106,7 +106,7 @@
  * 이름 조회가 필요 없는 enum은 이 매크로 없이도 자동으로(빈 entries) 등록됩니다.
  */
 #define SE_REFLECT_ENUM_BEGIN(type) \
-    static_assert(!::se::detail::IsRegistrarUnspecialized<type>, \
+    static_assert(::se::traits::IsSpecialized<::se::Registrar, type>, \
         "SE_REFLECT_ENUM_BEGIN(" #type "): SE_DECLARE_REFLECTION(" #type ") must be declared in a header first."); \
     namespace { [[maybe_unused]] const bool SE_CONCAT_NAME(_se_reg_enum_kick_, __LINE__) = (::se::EnsureRegistered<type>(), true); } \
     void ::se::Registrar<type>::Fill(::se::TypeInfo& info) \
