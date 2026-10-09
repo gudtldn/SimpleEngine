@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/Reflection/AnnotationBase.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/RegistrationTraits.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Reflection/TypeInfo.h"
 #include "SimpleEngine/Core/Reflection/TypeName.h"
@@ -56,6 +57,22 @@
         ::se::EnsureRegistered<std::remove_cvref_t<decltype(T::field)>>(); \
     }
 
+/** 타입 어노테이션 튜플과, 등록 뒤 RegistrationTraits를 부르는 정적 초기화 변수를 정의합니다. */
+#define SE_DETAIL_REFLECT_AUTOREG(macro_name, type, ...) \
+    namespace \
+    { \
+        constexpr auto SE_LINE_NAME(_se_type_annos_) = std::make_tuple(__VA_ARGS__); \
+        static_assert(::se::traits::UniqueTuple<decltype(SE_LINE_NAME(_se_type_annos_))>, \
+            SE_STRINGIFY(macro_name) "(" #type "): the same annotation type is attached more than once."); \
+        constexpr auto SE_LINE_NAME(_se_type_anno_refs_) = ::se::detail::MakeRefs(&SE_LINE_NAME(_se_type_annos_)); \
+        [[maybe_unused]] const bool SE_LINE_NAME(_se_reg_kick_) = [] \
+        { \
+            ::se::EnsureRegistered<type>(); \
+            ::se::detail::RunRegistrationTraits<type>(SE_LINE_NAME(_se_type_annos_)); \
+            return true; \
+        }(); \
+    }
+
 /**
  * 타입의 리플렉션 등록 블록을 시작합니다.
  * SE_DECLARE_REFLECTION(type)이 헤더에 먼저 선언되어 있어야 합니다.
@@ -63,20 +80,14 @@
 #define SE_REFLECT_BEGIN(type, ...) \
     static_assert(::se::traits::IsSpecialized<::se::Registrar, type>, \
         "SE_REFLECT_BEGIN(" #type "): SE_DECLARE_REFLECTION(" #type ") must be declared in a header first."); \
-    namespace { [[maybe_unused]] const bool SE_CONCAT_NAME(_se_reg_kick_, __LINE__) = (::se::EnsureRegistered<type>(), true); } \
+    SE_DETAIL_REFLECT_AUTOREG(SE_REFLECT_BEGIN, type __VA_OPT__(,) __VA_ARGS__) \
     void ::se::Registrar<type>::Fill(::se::TypeInfo& info) \
     { \
         using T = type; \
         info.size = sizeof(T); \
         info.alignment = alignof(T); \
         info.name = ::se::TypeNameOf<T>(); \
-        __VA_OPT__( \
-            static constexpr auto TYPE_ANNOTATION_VALUES = std::make_tuple(__VA_ARGS__); \
-            static_assert(::se::traits::UniqueTuple<decltype(TYPE_ANNOTATION_VALUES)>, \
-                "SE_REFLECT_BEGIN(" #type "): the same annotation type is attached more than once."); \
-            static constexpr auto TYPE_ANNOTATION_REFS = ::se::detail::MakeRefs(&TYPE_ANNOTATION_VALUES); \
-            info.annotations = TYPE_ANNOTATION_REFS; \
-        ) \
+        info.annotations = SE_LINE_NAME(_se_type_anno_refs_); \
         auto& [bases, fields] = ::se::TypeRegistry::Get().EmplaceStructStorage(::se::TypeId::Of<T>());
 
 /**
@@ -105,10 +116,10 @@
  * enum의 리플렉션 등록 블록을 시작합니다.
  * 이름 조회가 필요 없는 enum은 이 매크로 없이도 자동으로(빈 entries) 등록됩니다.
  */
-#define SE_REFLECT_ENUM_BEGIN(type) \
+#define SE_REFLECT_ENUM_BEGIN(type, ...) \
     static_assert(::se::traits::IsSpecialized<::se::Registrar, type>, \
         "SE_REFLECT_ENUM_BEGIN(" #type "): SE_DECLARE_REFLECTION(" #type ") must be declared in a header first."); \
-    namespace { [[maybe_unused]] const bool SE_CONCAT_NAME(_se_reg_enum_kick_, __LINE__) = (::se::EnsureRegistered<type>(), true); } \
+    SE_DETAIL_REFLECT_AUTOREG(SE_REFLECT_ENUM_BEGIN, type __VA_OPT__(,) __VA_ARGS__) \
     void ::se::Registrar<type>::Fill(::se::TypeInfo& info) \
     { \
         using T = type; \
@@ -116,6 +127,7 @@
         info.size = sizeof(T); \
         info.alignment = alignof(T); \
         info.name = ::se::TypeNameOf<T>(); \
+        info.annotations = SE_LINE_NAME(_se_type_anno_refs_); \
         ::se::Array<::se::EnumEntry>& entries = ::se::TypeRegistry::Get().EmplaceEnumEntryStorage(::se::TypeId::Of<T>()); \
         ::se::EnsureRegistered<UnderlyingType>();
 

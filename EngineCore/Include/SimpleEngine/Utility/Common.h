@@ -12,8 +12,11 @@
 /** 두 토큰을 하나로 결합합니다. */
 #define SE_CONCAT_NAME(a, b) SE_CONCAT_NAME_IMPL(a, b)
 
-/** 중복되지 않는 이름을 생성합니다. */
+/** __COUNTER__ 기반 고유 식별자를 생성합니다. */
 #define SE_UNIQUE_NAME(name) SE_CONCAT_NAME(name, __COUNTER__)
+
+/** __LINE__ 기반 고유 식별자를 생성합니다. */
+#define SE_LINE_NAME(name)   SE_CONCAT_NAME(name, __LINE__)
 
 /** 전달된 인자를 문자열로 변환합니다. */
 #define SE_STRINGIFY(x) #x
