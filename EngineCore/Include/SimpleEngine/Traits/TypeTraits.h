@@ -10,6 +10,12 @@ namespace se::traits
 {
 namespace detail
 {
+template <typename T>
+concept HasUnspecializedMarker = requires
+{
+    typename T::UnspecializedMarker;
+};
+
 template <typename T, typename... Us>
 inline constexpr usize COUNT_OCCURRENCES = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
 
@@ -87,6 +93,20 @@ concept IsSpecializationOf = requires
     }(std::declval<T>());
 };
 
+/**
+ * Trait이 특수화가 되어있는지 확인합니다.
+ * @note 기본 구현에 `using UnspecializedMarker = void`가 있어야 합니다.
+ */
+template <template <typename...> typename Trait, typename... Ts>
+concept IsSpecialized = !detail::HasUnspecializedMarker<Trait<Ts...>>;
+
+// From 타입을 To 타입으로 static_cast 할 수 있는지 확인하는 TypeTrait
+template <typename From, typename To>
+concept StaticCastableTo = requires(From&& from)
+{
+    static_cast<To>(std::forward<From>(from));
+};
+
 // 숫자 타입
 template <typename T>
 concept NumberType = std::is_arithmetic_v<T>;
@@ -102,11 +122,4 @@ concept FloatingType = std::is_floating_point_v<T>;
 // Enum
 template <typename T>
 concept EnumType = std::is_enum_v<T>;
-
-// From 타입을 To 타입으로 static_cast 할 수 있는지 확인하는 TypeTrait
-template <typename From, typename To>
-concept StaticCastableTo = requires(From&& from)
-{
-    static_cast<To>(std::forward<From>(from));
-};
 } // namespace se::traits
