@@ -5,6 +5,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/Transient.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
+#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Meta.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include <algorithm>
@@ -51,7 +52,7 @@ TEST(ComponentRegistrationTest, BothRegistrationsAgreeForEveryComponent)
         ASSERT_TRUE(info.HasValue()) << "The component is not registered with SE_REFLECT_BEGIN.";
 
         // 저장하지 않는 컴포넌트는 두 등록 모두에 표시되어야 함
-        EXPECT_EQ(info->HasAnnotation<TransientAnnotation>(), legacy_info->flags.IsSet(ETypeFlags_v1::Transient))
+        EXPECT_EQ(info->annotations.Has<TransientAnnotation>(), legacy_info->flags.IsSet(ETypeFlags_v1::Transient))
             << "Transient in SE_REFLECT_BEGIN and meta::Transient in SE_BEGIN_REFLECT_V1 must agree.";
 
         // 필드는 저장 여부와 관계없이 모두 등록하므로 이름과 순서가 모두 같아야 함

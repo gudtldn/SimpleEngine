@@ -117,7 +117,7 @@ TEST(ReflectMacrosGoldenTest, FieldAnnotationsRoundTrip)
     using namespace se_reflect_macros_golden_test;
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
-    const se::ArrayView<const se::AnnotationRef> annotations = info.AsStruct()->fields[0].annotations;
+    const se::ArrayView<const se::AnnotationRef> annotations = info.AsStruct()->fields[0].annotations.refs;
 
     ASSERT_EQ(annotations.Len(), 2u);
 
@@ -145,8 +145,8 @@ TEST(ReflectMacrosGoldenTest, TypeLevelAnnotationRoundTrip)
     using namespace se_reflect_macros_golden_test;
 
     const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
-    ASSERT_EQ(info.annotations.Len(), 1u);
-    EXPECT_EQ(info.annotations[0].type.Value(), se::TypeId::Of<TC_ComponentAnnotation>().Value());
+    ASSERT_EQ(info.annotations.refs.Len(), 1u);
+    EXPECT_EQ(info.annotations.refs[0].type.Value(), se::TypeId::Of<TC_ComponentAnnotation>().Value());
 }
 
 TEST(ReflectMacrosGoldenTest, NamedEnumEntriesArePopulated)
