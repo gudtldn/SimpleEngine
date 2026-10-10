@@ -1,4 +1,4 @@
-﻿// C++26 전환 시 이 파일 전체를 삭제하고 CanonicalName_Reflect.inl로 교체
+// C++26 전환 시 이 파일 전체를 삭제하고 CanonicalName_Reflect.inl로 교체
 #pragma once
 
 #include "SimpleEngine/Core/Container/StringView.h"
@@ -10,25 +10,34 @@
 
 namespace se::detail
 {
+/** signature에서 prefix 이후 ~ suffix(마지막 등장) 이전 구간을 잘라냅니다. 실패하면 빈 문자열을 반환합니다. */
+consteval StringView ExtractBetween(StringView signature, StringView prefix, StringView suffix) noexcept
+{
+    const auto start = signature.Find(prefix);
+    const auto end = signature.FindLast(suffix);
+    if (!start.HasValue() || !end.HasValue() || *end <= *start)
+    {
+        return {};
+    }
+
+    const usize begin_pos = *start + prefix.ByteLen();
+    return signature.Substr(begin_pos, *end - begin_pos).Trim();
+}
+
 /** 컴파일러가 생성한 원시 시그니처(__FUNCSIG__)에서 타입 T 부분만 잘라냅니다. */
 template <typename T>
 consteval StringView RawEntitySignatureOf() noexcept
 {
     constexpr StringView sig = __FUNCSIG__;
 
-    constexpr StringView prefix_marker = "RawEntitySignatureOf<";
-    constexpr auto start = sig.Find(prefix_marker);
-
-    constexpr StringView suffix_marker = ">(void) noexcept";
-    constexpr auto end = sig.FindLast(suffix_marker);
-
-    if constexpr (!start.HasValue() || !end.HasValue() || *end <= *start)
+    // MSVC: "... RawEntitySignatureOf<class Foo>(void) noexcept"
+    if constexpr (constexpr StringView msvc = ExtractBetween(sig, "RawEntitySignatureOf<", ">(void) noexcept"); !msvc.IsEmpty())
     {
-        return {};
+        return msvc;
     }
 
-    constexpr usize begin_pos = *start + prefix_marker.ByteLen();
-    return sig.Substr(begin_pos, *end - begin_pos).Trim();
+    // Clangd(clang-cl) 등: "... RawEntitySignatureOf() noexcept [T = Foo]"
+    return ExtractBetween(sig, "[T = ", "]");
 }
 
 /** class / struct / enum / union 선행 키워드를 제거합니다. */
