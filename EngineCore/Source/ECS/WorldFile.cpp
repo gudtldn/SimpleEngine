@@ -181,7 +181,7 @@ struct ReadableComponent
                 LegacyTypeNameOf(legacy_type)),
         };
     }
-    if (info->HasAnnotation<TransientAnnotation>())
+    if (info->annotations.Has<TransientAnnotation>())
     {
         return NullOpt;
     }
@@ -203,7 +203,7 @@ struct ReadableComponent
     {
         return ReadableComponent{ .kind = ReadableComponent::EKind::Unknown };
     }
-    if (info->HasAnnotation<TransientAnnotation>())
+    if (info->annotations.Has<TransientAnnotation>())
     {
         return ReadableComponent{ .kind = ReadableComponent::EKind::Transient };
     }

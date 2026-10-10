@@ -87,7 +87,7 @@
         info.size = sizeof(T); \
         info.alignment = alignof(T); \
         info.name = ::se::TypeNameOf<T>(); \
-        info.annotations = SE_LINE_NAME(_se_type_anno_refs_); \
+        info.annotations = ::se::AnnotationList{ SE_LINE_NAME(_se_type_anno_refs_) }; \
         auto& [bases, fields] = ::se::TypeRegistry::Get().EmplaceStructStorage(::se::TypeId::Of<T>());
 
 /**
@@ -127,7 +127,7 @@
         info.size = sizeof(T); \
         info.alignment = alignof(T); \
         info.name = ::se::TypeNameOf<T>(); \
-        info.annotations = SE_LINE_NAME(_se_type_anno_refs_); \
+        info.annotations = ::se::AnnotationList{ SE_LINE_NAME(_se_type_anno_refs_) }; \
         ::se::Array<::se::EnumEntry>& entries = ::se::TypeRegistry::Get().EmplaceEnumEntryStorage(::se::TypeId::Of<T>()); \
         ::se::EnsureRegistered<UnderlyingType>();
 

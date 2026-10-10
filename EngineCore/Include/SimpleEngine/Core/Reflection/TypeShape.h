@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/ArrayView.h"
+#include "SimpleEngine/Core/Container/Optional.h"
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
@@ -21,6 +22,41 @@ struct AnnotationRef
 
     /** Annotation이 가지고 있는 데이터 */
     const void* value = nullptr;
+};
+
+/** 타입이나 필드에 붙은 어노테이션 목록 */
+struct AnnotationList
+{
+    /** 어노테이션 참조 배열 */
+    ArrayView<const AnnotationRef> refs;
+
+    constexpr AnnotationList() = default;
+
+    constexpr AnnotationList(ArrayView<const AnnotationRef> in_refs) noexcept
+        : refs(in_refs)
+    {
+    }
+
+    /** Annotation 타입의 어노테이션이 붙어 있는지 확인합니다. */
+    template <typename Annotation>
+    [[nodiscard]] bool Has() const
+    {
+        return Find<Annotation>().HasValue();
+    }
+
+    /** Annotation 타입의 어노테이션 값을 찾습니다. 없으면 NullOpt입니다. */
+    template <typename Annotation>
+    [[nodiscard]] Optional<const Annotation&> Find() const
+    {
+        for (const AnnotationRef& ref : refs)
+        {
+            if (ref.type == TypeId::Of<Annotation>())
+            {
+                return *static_cast<const Annotation*>(ref.value);
+            }
+        }
+        return NullOpt;
+    }
 };
 
 /** 열거형(enum)의 항목을 나타내는 Entry */
@@ -51,7 +87,7 @@ struct FieldInfo
     usize offset = 0;
 
     /** 멤버 변수의 Annotation 정보 */
-    ArrayView<const AnnotationRef> annotations;
+    AnnotationList annotations;
 };
 
 /** 클래스/구조체의 부모 정보 */
