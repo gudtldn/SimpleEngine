@@ -6,14 +6,19 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/ECS/Entity.h"
+#include "SimpleEngine/Traits/TypeTraits.h"
 
 #include "imgui.h"
 
+#include <algorithm>
 #include <cstdio>
+#include <ranges>
 
 
 namespace se::editor
@@ -50,7 +55,7 @@ consteval ImGuiDataType_ GetImGuiDataType()
 
 // --- Bool ---
 
-bool DrawBool(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawBool(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     return ImGui::Checkbox(label, static_cast<bool*>(value));
 }
@@ -58,15 +63,15 @@ bool DrawBool(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 // --- Arithmetic (int, uint, f32, f64) ---
 
 template <typename T>
-bool DrawArithmetic(const char* label, void* value, const PropertyInfo_v1& prop)
+bool DrawArithmetic(const char* label, void* value, const AnnotationList& annotations)
 {
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     T* v = static_cast<T*>(value);
 
-    if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::HasRange))
+    if (const auto range = annotations.Find<display::RangeAnnotation>())
     {
-        T min_val = static_cast<T>(prop.metadata.range_min);
-        T max_val = static_cast<T>(prop.metadata.range_max);
+        T min_val = static_cast<T>(range->min);
+        T max_val = static_cast<T>(range->max);
         return ImGui::SliderScalar(label, DATA_TYPE, v, &min_val, &max_val);
     }
 
@@ -76,7 +81,7 @@ bool DrawArithmetic(const char* label, void* value, const PropertyInfo_v1& prop)
 
 // --- String ---
 
-bool DrawString(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawString(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     String& str = *static_cast<String*>(value);
     return ImGui::InputText(label, &str);
@@ -84,7 +89,7 @@ bool DrawString(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 
 // --- StringName (read-only: interned string) ---
 
-bool DrawStringName(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawStringName(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     const StringName& name = *static_cast<StringName*>(value);
     ImGui::LabelText(label, "%s", name.CStr());
@@ -93,7 +98,7 @@ bool DrawStringName(const char* label, void* value, const PropertyInfo_v1& /*pro
 
 // --- Guid (read-only) ---
 
-bool DrawGuid(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawGuid(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     const Guid& guid = *static_cast<Guid*>(value);
     const String str = guid.ToString();
@@ -103,17 +108,27 @@ bool DrawGuid(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 
 // --- TypeId (read-only) ---
 
-bool DrawTypeId(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawTypeId(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
-    const TypeId_v1& type_id = *static_cast<TypeId_v1*>(value);
-    const StringView view = type_id.IsValid() ? type_id.GetName() : "(none)";
-    ImGui::LabelText(label, "%.*s", static_cast<int>(view.ByteLen()), view.Data());
+    const TypeId type_id = *static_cast<TypeId*>(value);
+    if (type_id.IsNull())
+    {
+        ImGui::LabelText(label, "(none)");
+    }
+    else if (const auto type_info = TypeRegistry::Get().Find(type_id))
+    {
+        ImGui::LabelText(label, "%.*s", static_cast<int>(type_info->name.ByteLen()), type_info->name.Data());
+    }
+    else
+    {
+        ImGui::LabelText(label, "%016llx", static_cast<unsigned long long>(type_id.Value()));
+    }
     return false;
 }
 
 // --- AssetId (GUID 표시 + Asset Drag&Drop Target) ---
 
-bool DrawAssetId(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawAssetId(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     AssetId& asset_id = *static_cast<AssetId*>(value);
     bool modified = false;
@@ -155,7 +170,7 @@ bool DrawAssetId(const char* label, void* value, const PropertyInfo_v1& /*prop*/
 
 // --- Entity (read-only) ---
 
-bool DrawEntity(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawEntity(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     const Entity& entity = *static_cast<Entity*>(value);
     if (entity.IsValid())
@@ -176,7 +191,7 @@ bool DrawEntity(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 // --- Vector2 / Vector2f ---
 
 template <typename T>
-bool DrawVector2(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawVector2(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     using Vec = math::Vector2Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -188,7 +203,7 @@ bool DrawVector2(const char* label, void* value, const PropertyInfo_v1& /*prop*/
 // --- Vector3 / Vector3f ---
 
 template <typename T>
-bool DrawVector3(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawVector3(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     using Vec = math::Vector3Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -200,7 +215,7 @@ bool DrawVector3(const char* label, void* value, const PropertyInfo_v1& /*prop*/
 // --- Vector4 / Vector4f ---
 
 template <typename T>
-bool DrawVector4(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawVector4(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     using Vec = math::Vector4Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -212,7 +227,7 @@ bool DrawVector4(const char* label, void* value, const PropertyInfo_v1& /*prop*/
 // --- Quaternion / Quaternionf ---
 
 template <typename T>
-bool DrawQuaternion(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawQuaternion(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     using Quat = math::QuaternionImpl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -223,7 +238,7 @@ bool DrawQuaternion(const char* label, void* value, const PropertyInfo_v1& /*pro
 // --- Rotator / Rotatorf ---
 
 template <typename T>
-bool DrawRotator(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawRotator(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     using Rot = math::RotatorImpl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -235,7 +250,7 @@ bool DrawRotator(const char* label, void* value, const PropertyInfo_v1& /*prop*/
 
 // --- Matrix4x4 / Matrix4x4f ---
 template <typename T>
-bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo_v1& prop)
+bool DrawMatrix4x4(const char* label, void* value, const AnnotationList& annotations)
 {
     using Mat = math::Matrix4x4Impl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
@@ -243,7 +258,7 @@ bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo_v1& prop)
 
     bool modified = false;
 
-    const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags_v1::ReadOnly);
+    const bool read_only = annotations.Has<display::ReadOnlyAnnotation>();
 
     if (read_only)
     {
@@ -291,7 +306,7 @@ bool DrawMatrix4x4(const char* label, void* value, const PropertyInfo_v1& prop)
 
 // --- LinearColor ---
 
-bool DrawLinearColor(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawLinearColor(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     LinearColor* color = static_cast<LinearColor*>(value);
     return ImGui::ColorEdit4(label, &color->r);
@@ -299,7 +314,7 @@ bool DrawLinearColor(const char* label, void* value, const PropertyInfo_v1& /*pr
 
 // --- Color (u8 RGBA) ---
 
-bool DrawColor(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
+bool DrawColor(const char* label, void* value, const AnnotationList& /*annotations*/)
 {
     Color* color = static_cast<Color*>(value);
     f32 rgba[4] = {
@@ -323,16 +338,16 @@ bool DrawColor(const char* label, void* value, const PropertyInfo_v1& /*prop*/)
 // --- Degree<T> (AngleType) ---
 
 template <typename T>
-bool DrawDegree(const char* label, void* value, const PropertyInfo_v1& prop)
+bool DrawDegree(const char* label, void* value, const AnnotationList& annotations)
 {
     using Deg = Degree<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Deg* angle = static_cast<Deg*>(value);
 
-    if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::HasRange))
+    if (const auto range = annotations.Find<display::RangeAnnotation>())
     {
-        T min_val = static_cast<T>(prop.metadata.range_min);
-        T max_val = static_cast<T>(prop.metadata.range_max);
+        T min_val = static_cast<T>(range->min);
+        T max_val = static_cast<T>(range->max);
         return ImGui::SliderScalar(label, DATA_TYPE, &angle->value, &min_val, &max_val);
     }
 
@@ -425,55 +440,46 @@ void WriteEnumValue(void* value, i64 new_value, usize size, bool is_unsigned)
     }
 }
 
+/** enum의 기반 타입이 부호 없는 정수인지 확인합니다. */
+bool IsUnsignedUnderlying(TypeId underlying)
+{
+    return underlying == TypeId::Of<u8>()
+        || underlying == TypeId::Of<u16>()
+        || underlying == TypeId::Of<u32>()
+        || underlying == TypeId::Of<u64>();
+}
+
 // ============================================================================
 // Enum Drawer (generic, type-erased)
 // ============================================================================
 
-bool DrawEnum(const char* label, void* value, const PropertyInfo_v1& prop)
+bool DrawEnum(const char* label, void* value, const TypeInfo& type_info, const EnumInfo& enum_info)
 {
-    const auto type_info_opt = TypeRegistry_v1::Get().Find(prop.type_id);
-    SE_ASSERT(
-        type_info_opt && type_info_opt->enum_entries,
-        "Enum '{}' is registered without enum_entries. Use SE_REFLECT_ENUM to register.", prop.type_id.GetName()
-    );
+    const bool is_unsigned = IsUnsignedUnderlying(enum_info.underlying);
+    const i64 current_value = ReadEnumValue(value, type_info.size, is_unsigned);
 
-    const EnumEntry_v1* entries = nullptr;
-    usize count = 0;
-    type_info_opt->enum_entries(entries, count);
-
-    if (count == 0)
+    // 이름 없이 등록된 enum은 값만 표시
+    if (enum_info.entries.IsEmpty())
     {
-        ImGui::LabelText(label, "[Empty enum]");
+        ImGui::LabelText(label, "%lld", static_cast<long long>(current_value));
         return false;
     }
 
-    const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags_v1::IsUnsigned);
-    const i64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
-
-    // 현재 선택 인덱스 찾기
-    usize current_idx = count; // invalid sentinel
-    for (usize i = 0; i < count; ++i)
-    {
-        if (entries[i].value == current_value)
-        {
-            current_idx = i;
-            break;
-        }
-    }
+    const auto current = std::ranges::find(enum_info.entries, current_value, &EnumEntry::value);
 
     // TODO: 나중에 최적화 하려면 LinearAllocator로 최적화
-    const String preview = (current_idx < count) ? entries[current_idx].name : "???";
+    const String preview = (current != enum_info.entries.end()) ? String{ current->name } : String{ "???" };
 
     bool modified = false;
     if (ImGui::BeginCombo(label, preview.CStr()))
     {
-        for (usize i = 0; i < count; ++i)
+        for (const EnumEntry& entry : enum_info.entries)
         {
-            const String entry_name = entries[i].name;
-            const bool is_selected = (i == current_idx);
+            const String entry_name = entry.name;
+            const bool is_selected = (entry.value == current_value);
             if (ImGui::Selectable(entry_name.CStr(), is_selected))
             {
-                WriteEnumValue(value, entries[i].value, type_info_opt->size, is_unsigned);
+                WriteEnumValue(value, entry.value, type_info.size, is_unsigned);
                 modified = true;
             }
             if (is_selected)
@@ -490,36 +496,27 @@ bool DrawEnum(const char* label, void* value, const PropertyInfo_v1& prop)
 // BitFlag Enum Drawer (checkbox per flag)
 // ============================================================================
 
-bool DrawBitFlags(const char* label, void* value, const PropertyInfo_v1& prop)
+bool DrawBitFlags(const char* label, void* value, const TypeInfo& type_info, const EnumInfo& enum_info, bool read_only)
 {
-    const auto type_info_opt = TypeRegistry_v1::Get().Find(prop.type_id);
-    SE_ASSERT(
-        type_info_opt && type_info_opt->enum_entries,
-        "BitFlag enum '{}' is registered without enum_entries. Use SE_REFLECT_ENUM to register.", prop.type_id.GetName()
-    );
-
-    const EnumEntry_v1* entries = nullptr;
-    usize count = 0;
-    type_info_opt->enum_entries(entries, count);
-
-    if (count == 0)
+    if (enum_info.entries.IsEmpty())
     {
         ImGui::LabelText(label, "[Empty bitflag]");
         return false;
     }
 
-    const bool is_unsigned = type_info_opt->flags.IsAnySet(ETypeFlags_v1::IsUnsigned);
-    i64 current_value = ReadEnumValue(value, type_info_opt->size, is_unsigned);
+    const bool is_unsigned = IsUnsignedUnderlying(enum_info.underlying);
+    i64 current_value = ReadEnumValue(value, type_info.size, is_unsigned);
 
     bool modified = false;
     if (ImGui::TreeNode(label))
     {
-        for (usize i = 0; i < count; ++i)
+        ImGui::BeginDisabled(read_only);
+        for (const EnumEntry& entry : enum_info.entries)
         {
-            const i64 flag = entries[i].value;
+            const i64 flag = entry.value;
             bool has_flag = (current_value & flag) == flag;
 
-            const String entry_name = entries[i].name;
+            const String entry_name = entry.name;
             if (ImGui::Checkbox(entry_name.CStr(), &has_flag))
             {
                 if (has_flag)
@@ -533,10 +530,11 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo_v1& prop)
                 modified = true;
             }
         }
+        ImGui::EndDisabled();
 
         if (modified)
         {
-            WriteEnumValue(value, current_value, type_info_opt->size, is_unsigned);
+            WriteEnumValue(value, current_value, type_info.size, is_unsigned);
         }
 
         ImGui::TreePop();
@@ -548,290 +546,278 @@ bool DrawBitFlags(const char* label, void* value, const PropertyInfo_v1& prop)
 // Container Drawer Helpers
 // ============================================================================
 
-bool DrawArrayContent(const ContainerOps_v1& ops, void* container, DrawerRegistry& registry, bool read_only)
+/** 타입의 ValueOps에서 Ops 형태의 연산을 찾습니다. 없으면 NullOpt입니다. */
+template <typename Ops>
+Optional<const Ops&> FindShapeOps(TypeId type_id)
 {
-    bool modified = false;
-    const usize count = ops.size(container);
-
-    struct IterState
+    const auto value_ops = ValueOpsRegistry::Get().Find(type_id);
+    if (!value_ops)
     {
-        DrawerRegistry* registry;
-        TypeId_v1 elem_type_id;
-        const ContainerOps_v1* elem_container_ops;
-        const OptionalOps_v1* elem_optional_ops;
-        bool read_only;
-        bool modified;
-        usize remove_idx;
-        usize count;
-    };
-
-    IterState state = {
-        .registry = &registry,
-        .elem_type_id = ops.element_type_id,
-        .elem_container_ops = ops.element_container_ops,
-        .elem_optional_ops = ops.element_optional_ops,
-        .read_only = read_only,
-        .modified = false,
-        .remove_idx = count,
-        .count = count
-    };
-
-    ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
-    {
-        IterState& s = *static_cast<IterState*>(user);
-
-        ImGui::PushID(static_cast<int>(idx));
-
-        // [×] 삭제 버튼
-        if (!s.read_only)
-        {
-            if (ImGui::SmallButton("x"))
-            {
-                s.remove_idx = idx;
-                s.modified = true;
-            }
-            ImGui::SameLine();
-        }
-
-        // 인덱스 라벨 + 요소 렌더링
-        char label[32];
-        std::snprintf(label, sizeof(label), "[%zu]", idx);
-        s.modified |= s.registry->DrawValue(s.elem_type_id, label, elem, s.elem_container_ops, s.elem_optional_ops);
-
-        ImGui::PopID();
-        return true;
-    }, &state);
-
-    modified = state.modified;
-
-    // 지연 삭제
-    if (state.remove_idx < count)
-    {
-        ops.remove_at(container, state.remove_idx);
+        return NullOpt;
     }
-
-    return modified;
+    return VariantGet<Ops>(value_ops->shape_ops);
 }
 
-bool DrawSetContent(const ContainerOps_v1& ops, void* container, DrawerRegistry& registry, bool read_only)
+/** 컨테이너에 옮겨 넣을 기본 생성 임시 값입니다. 기본 생성할 수 없는 타입이면 Get()이 nullptr입니다. */
+class DefaultTemp
 {
-    bool modified = false;
-    const usize count = ops.size(container);
-
-    struct IterState
+public:
+    explicit DefaultTemp(TypeId type_id)
     {
-        DrawerRegistry* registry;
-        TypeId_v1 elem_type_id;
-        const ContainerOps_v1* elem_container_ops;
-        const OptionalOps_v1* elem_optional_ops;
-        bool read_only;
-        bool modified;
-        usize remove_idx;
-        usize count;
-    };
-
-    IterState state = {
-        .registry = &registry,
-        .elem_type_id = ops.element_type_id,
-        .elem_container_ops = ops.element_container_ops,
-        .elem_optional_ops = ops.element_optional_ops,
-        .read_only = read_only,
-        .modified = false,
-        .remove_idx = count,
-        .count = count
-    };
-
-    ops.for_each(container, [](usize idx, void* elem, void* /*unused*/, void* user) -> bool
-    {
-        IterState& s = *static_cast<IterState*>(user);
-
-        ImGui::PushID(static_cast<int>(idx));
-
-        // [×] 삭제 버튼
-        if (!s.read_only)
+        const auto value_ops = ValueOpsRegistry::Get().Find(type_id);
+        if (value_ops && value_ops->new_object && value_ops->delete_object)
         {
-            if (ImGui::SmallButton("x"))
-            {
-                s.remove_idx = idx;
-                s.modified = true;
-            }
-            ImGui::SameLine();
+            deleter = value_ops->delete_object;
+            object = value_ops->new_object();
         }
-
-        char label[32];
-        std::snprintf(label, sizeof(label), "[%zu]", idx);
-
-        // Set 요소는 읽기 전용 (값을 변경하면 해시가 깨짐)
-        ImGui::BeginDisabled();
-        s.registry->DrawValue(s.elem_type_id, label, elem, s.elem_container_ops, s.elem_optional_ops);
-        ImGui::EndDisabled();
-
-        ImGui::PopID();
-        return true;
-    }, &state);
-
-    modified = state.modified;
-
-    // 지연 삭제
-    if (state.remove_idx < count)
-    {
-        ops.remove_at(container, state.remove_idx);
-        modified = true;
     }
 
-    return modified;
-}
-
-bool DrawMapContent(const ContainerOps_v1& ops, void* container, DrawerRegistry& registry, bool read_only)
-{
-    bool modified = false;
-    const usize count = ops.size(container);
-
-    struct IterState
+    ~DefaultTemp()
     {
-        DrawerRegistry* registry;
-        TypeId_v1 key_type_id;
-        TypeId_v1 value_type_id;
-        const ContainerOps_v1* key_container_ops;
-        const OptionalOps_v1* key_optional_ops;
-        const ContainerOps_v1* value_container_ops;
-        const OptionalOps_v1* value_optional_ops;
-        bool read_only;
-        bool modified;
-        usize remove_idx;
-        usize count;
-    };
-
-    IterState state = {
-        .registry = &registry,
-        .key_type_id = ops.element_type_id, .value_type_id = ops.value_type_id,
-        .key_container_ops = ops.element_container_ops, .key_optional_ops = ops.element_optional_ops,
-        .value_container_ops = ops.value_container_ops, .value_optional_ops = ops.value_optional_ops,
-        .read_only = read_only,
-        .modified = false,
-        .remove_idx = count,
-        .count = count
-    };
-
-    ops.for_each(container, [](usize idx, void* key, void* value, void* user) -> bool
-    {
-        IterState& s = *static_cast<IterState*>(user);
-
-        ImGui::PushID(static_cast<int>(idx));
-
-        char entry_label[32];
-        std::snprintf(entry_label, sizeof(entry_label), "[%zu]", idx);
-
-        // [×] 삭제 버튼을 TreeNode 앞에 배치
-        bool want_remove = false;
-        if (!s.read_only)
+        if (object)
         {
-            if (ImGui::SmallButton("x"))
-            {
-                s.remove_idx = idx;
-                s.modified = true;
-                want_remove = true;
-            }
-            ImGui::SameLine();
+            deleter(object);
         }
-
-        if (!want_remove && ImGui::TreeNode(entry_label))
-        {
-            // Key는 읽기 전용 (변경하면 해시가 깨짐)
-            ImGui::BeginDisabled();
-            s.registry->DrawValue(s.key_type_id, "Key", key, s.key_container_ops, s.key_optional_ops);
-            ImGui::EndDisabled();
-
-            // Value는 편집 가능
-            s.modified |= s.registry->DrawValue(s.value_type_id, "Value", value, s.value_container_ops, s.value_optional_ops);
-
-            ImGui::TreePop();
-        }
-
-        ImGui::PopID();
-        return true;
-    }, &state);
-
-    modified = state.modified;
-
-    // 지연 삭제
-    if (state.remove_idx < count)
-    {
-        ops.remove_at(container, state.remove_idx);
-        modified = true;
     }
 
-    return modified;
+    DefaultTemp(const DefaultTemp&) = delete;
+    DefaultTemp& operator=(const DefaultTemp&) = delete;
+    DefaultTemp(DefaultTemp&&) = delete;
+    DefaultTemp& operator=(DefaultTemp&&) = delete;
+
+    [[nodiscard]] void* Get() const { return object; }
+
+private:
+    void* object = nullptr;
+    void (*deleter)(void*) = nullptr;
+};
+
+/** "label (N)" 헤더의 TreeNode를 엽니다. */
+bool BeginContainerNode(const char* label, usize count)
+{
+    char header[256];
+    std::snprintf(header, sizeof(header), "%s (%zu)", label, count);
+    return ImGui::TreeNode(header);
 }
 
-bool DrawContainerProperty(
+bool DrawArrayProperty(
     const char* label,
     void* container,
-    const ContainerOps_v1& ops,
+    const ArrayInfo& info,
+    const ArrayOps& ops,
     DrawerRegistry& registry,
     bool read_only
 )
 {
-    const usize count = ops.size(container);
-
-    // 헤더: "label (N elements)"
-    char header[256];
-    std::snprintf(header, sizeof(header), "%s (%zu)", label, count);
-
-    bool modified = false;
-    if (ImGui::TreeNode(header))
+    const usize count = ops.len(container);
+    if (!BeginContainerNode(label, count))
     {
-        // [+] [Clear] 버튼
-        if (!read_only)
-        {
-            if (ops.add)
-            {
-                if (ImGui::SmallButton("+"))
-                {
-                    ops.add(container);
-                    modified = true;
-                }
-                ImGui::SameLine();
-            }
-
-            if (count > 0)
-            {
-                if (ImGui::SmallButton("Clear"))
-                {
-                    ops.clear(container);
-                    modified = true;
-                    ImGui::TreePop();
-                    return modified;
-                }
-            }
-        }
-
-        // 요소 렌더링
-        switch (ops.kind)
-        {
-        case EContainerKind_v1::Array:
-            modified |= DrawArrayContent(ops, container, registry, read_only);
-            break;
-        case EContainerKind_v1::Set:
-            modified |= DrawSetContent(ops, container, registry, read_only);
-            break;
-        case EContainerKind_v1::Map:
-            modified |= DrawMapContent(ops, container, registry, read_only);
-            break;
-        default:
-            break;
-        }
-
-        ImGui::TreePop();
+        return false;
     }
 
+    // [+] [-] [Clear] 버튼 (요소 단위 삭제 연산이 없어 끝에서만 줄임)
+    bool resized = false;
+    if (!read_only && ops.resize)
+    {
+        if (ImGui::SmallButton("+"))
+        {
+            ops.resize(container, count + 1);
+            resized = true;
+        }
+
+        if (count > 0)
+        {
+            ImGui::SameLine();
+            if (ImGui::SmallButton("-"))
+            {
+                ops.resize(container, count - 1);
+                resized = true;
+            }
+
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Clear"))
+            {
+                ops.resize(container, 0);
+                resized = true;
+            }
+        }
+    }
+
+    // 크기가 바뀐 프레임은 요소를 그리지 않음
+    bool modified = resized;
+    if (!resized)
+    {
+        for (usize idx = 0; idx < count; ++idx)
+        {
+            ImGui::PushID(static_cast<int>(idx));
+
+            char elem_label[32];
+            std::snprintf(elem_label, sizeof(elem_label), "[%zu]", idx);
+            modified |= registry.DrawValue(info.element, elem_label, ops.element_at_mut(container, idx), {}, read_only);
+
+            ImGui::PopID();
+        }
+    }
+
+    ImGui::TreePop();
+    return modified;
+}
+
+bool DrawSetProperty(
+    const char* label,
+    void* container,
+    const SetInfo& info,
+    const SetOps& ops,
+    DrawerRegistry& registry,
+    bool read_only
+)
+{
+    const usize count = ops.len(container);
+    if (!BeginContainerNode(label, count))
+    {
+        return false;
+    }
+
+    // [+] [Clear] 버튼
+    bool changed = false;
+    if (!read_only)
+    {
+        if (ops.emplace_moved && ImGui::SmallButton("+"))
+        {
+            const DefaultTemp element{ info.element };
+            if (element.Get())
+            {
+                ops.emplace_moved(container, element.Get());
+                changed = true;
+            }
+        }
+
+        if (count > 0)
+        {
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Clear"))
+            {
+                ops.clear(container);
+                changed = true;
+            }
+        }
+    }
+
+    if (!changed)
+    {
+        struct VisitState
+        {
+            DrawerRegistry* registry;
+            TypeId element;
+            usize index;
+        };
+        VisitState state{ .registry = &registry, .element = info.element, .index = 0 };
+
+        ops.for_each(container, [](const void* element, void* user_data)
+        {
+            VisitState& s = *static_cast<VisitState*>(user_data);
+            ImGui::PushID(static_cast<int>(s.index));
+
+            char elem_label[32];
+            std::snprintf(elem_label, sizeof(elem_label), "[%zu]", s.index);
+
+            // Set 요소는 해시 불변식 때문에 읽기 전용으로만 그리므로 값이 바뀌지 않음
+            s.registry->DrawValue(s.element, elem_label, const_cast<void*>(element), {}, true);
+
+            ImGui::PopID();
+            ++s.index;
+        }, &state);
+    }
+
+    ImGui::TreePop();
+    return changed;
+}
+
+bool DrawMapProperty(
+    const char* label,
+    void* container,
+    const MapInfo& info,
+    const MapOps& ops,
+    DrawerRegistry& registry,
+    bool read_only
+)
+{
+    const usize count = ops.len(container);
+    if (!BeginContainerNode(label, count))
+    {
+        return false;
+    }
+
+    // [+] [Clear] 버튼
+    bool changed = false;
+    if (!read_only)
+    {
+        if (ops.emplace_moved && ImGui::SmallButton("+"))
+        {
+            const DefaultTemp key{ info.key };
+            const DefaultTemp value{ info.value };
+            if (key.Get() && value.Get())
+            {
+                ops.emplace_moved(container, key.Get(), value.Get());
+                changed = true;
+            }
+        }
+
+        if (count > 0)
+        {
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Clear"))
+            {
+                ops.clear(container);
+                changed = true;
+            }
+        }
+    }
+
+    bool modified = changed;
+    if (!changed)
+    {
+        struct VisitState
+        {
+            DrawerRegistry* registry;
+            const MapInfo* info;
+            bool read_only;
+            bool modified;
+            usize index;
+        };
+        VisitState state{ .registry = &registry, .info = &info, .read_only = read_only, .modified = false, .index = 0 };
+
+        ops.for_each_mut(container, [](const void* key, void* value, void* user_data)
+        {
+            VisitState& s = *static_cast<VisitState*>(user_data);
+            ImGui::PushID(static_cast<int>(s.index));
+
+            char entry_label[32];
+            std::snprintf(entry_label, sizeof(entry_label), "[%zu]", s.index);
+
+            if (ImGui::TreeNode(entry_label))
+            {
+                // Key는 해시 불변식 때문에 읽기 전용으로만 그리므로 값이 바뀌지 않음
+                s.registry->DrawValue(s.info->key, "Key", const_cast<void*>(key), {}, true);
+                s.modified |= s.registry->DrawValue(s.info->value, "Value", value, {}, s.read_only);
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+            ++s.index;
+        }, &state);
+        modified = state.modified;
+    }
+
+    ImGui::TreePop();
     return modified;
 }
 
 bool DrawOptionalProperty(
     const char* label,
     void* optional,
-    const OptionalOps_v1& ops,
+    const OptionalInfo& info,
+    const OptionalOps& ops,
     DrawerRegistry& registry,
     bool read_only
 )
@@ -842,11 +828,12 @@ bool DrawOptionalProperty(
     ImGui::PushID(label);
 
     // [ ] Label
+    ImGui::BeginDisabled(read_only || (!has_value && !ops.emplace));
     if (ImGui::Checkbox("##has_value", &has_value))
     {
         if (has_value)
         {
-            ops.emplace_default(optional);
+            ops.emplace(optional);
         }
         else
         {
@@ -854,31 +841,17 @@ bool DrawOptionalProperty(
         }
         modified = true;
     }
+    ImGui::EndDisabled();
 
     ImGui::SameLine();
 
-    if (has_value)
+    if (ops.has_value(optional))
     {
-        void* inner_value = ops.get_value(optional);
-
         // 값 편집 위젯 (한 줄에 표시)
-        f32 available_width = ImGui::GetContentRegionAvail().x;
+        const f32 available_width = ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(available_width - ImGui::GetFrameHeight() - ImGui::GetStyle().ItemSpacing.x);
 
-        if (read_only)
-        {
-            ImGui::BeginDisabled();
-        }
-
-        modified |= registry.DrawValue(
-            ops.inner_type_id, label, inner_value,
-            ops.inner_container_ops, ops.inner_optional_ops
-        );
-
-        if (read_only)
-        {
-            ImGui::EndDisabled();
-        }
+        modified |= registry.DrawValue(info.inner, label, ops.value_mut(optional), {}, read_only);
 
         // 오버라이드 해제(Reset) 버튼
         ImGui::SameLine();
@@ -898,6 +871,12 @@ bool DrawOptionalProperty(
     ImGui::PopID();
     return modified;
 }
+
+/** 그릴 수 없는 값은 타입 이름만 표시합니다. */
+void DrawTypeName(const char* label, const TypeInfo& type_info)
+{
+    ImGui::LabelText(label, "[%.*s]", static_cast<int>(type_info.name.ByteLen()), type_info.name.Data());
+}
 } // namespace
 
 
@@ -916,12 +895,12 @@ DrawerRegistry& DrawerRegistry::Get()
     return instance;
 }
 
-void DrawerRegistry::Register(const TypeId_v1& type_id, PropertyDrawFunc drawer)
+void DrawerRegistry::Register(TypeId type_id, PropertyDrawFunc drawer)
 {
     drawers.Insert(type_id, drawer);
 }
 
-PropertyDrawFunc DrawerRegistry::Find(const TypeId_v1& type_id) const
+PropertyDrawFunc DrawerRegistry::Find(TypeId type_id) const
 {
     if (const auto draw_fn = drawers.Find(type_id))
     {
@@ -930,150 +909,43 @@ PropertyDrawFunc DrawerRegistry::Find(const TypeId_v1& type_id) const
     return nullptr;
 }
 
-bool DrawerRegistry::DrawProperties(const TypeInfo_v1& type_info, void* instance)
+bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, bool read_only)
 {
-    HashSet<void*> visited;
-    return DrawProperties(type_info, instance, visited);
-}
-
-bool DrawerRegistry::DrawProperties(const TypeInfo_v1& type_info, void* instance, HashSet<void*>& visited)
-{
-    if (!instance)
+    const auto struct_info = type_info.AsStruct();
+    if (!instance || !struct_info)
     {
         return false;
     }
 
     bool modified = false;
+    u8* const bytes = static_cast<u8*>(instance);
 
-    // 부모 클래스의 프로퍼티를 먼저 렌더링 (다중 상속 포함, 주소 기준 dedup)
-    if (type_info.kind == ETypeKind_v1::Struct)
+    // 부모 클래스의 필드를 먼저 렌더링 (다중 상속 포함)
+    for (const BaseInfo& base : struct_info->bases)
     {
-        for (const BaseInfo_v1& base : type_info.bases)
+        if (const auto base_info = TypeRegistry::Get().Find(base.type))
         {
-            if (const auto parent = TypeRegistry_v1::Get().Find(base.base_id))
-            {
-                void* base_instance = base.upcast(instance);
-                if (visited.Insert(base_instance))
-                {
-                    modified |= DrawProperties(*parent, base_instance, visited);
-                }
-            }
+            modified |= DrawProperties(*base_info, bytes + base.offset, read_only);
         }
     }
 
-    for (const PropertyInfo_v1& prop : type_info.properties)
+    for (const FieldInfo& field : struct_info->fields)
     {
-        // Hidden 프로퍼티는 건너뛰기
-        if (prop.metadata.flags.IsAnySet(EPropertyFlags_v1::Hidden))
+        if (field.annotations.Has<display::HiddenAnnotation>())
         {
             continue;
         }
 
-        // 고유 ImGui ID 보장 (같은 이름 충돌 방지)
-        ImGui::PushID(static_cast<int>(prop.offset));
+        void* const field_data = bytes + field.offset;
 
-        void* prop_data = prop.accessor.get_mut(instance);
+        // 부모와 자식의 필드 오프셋이 겹치지 않도록 주소로 ImGui ID를 구분
+        ImGui::PushID(field_data);
 
-        // ReadOnly면 ImGui 위젯 비활성화
-        const bool read_only = prop.metadata.flags.IsAnySet(EPropertyFlags_v1::ReadOnly);
-        if (read_only)
-        {
-            ImGui::BeginDisabled();
-        }
+        const auto display_name = field.annotations.Find<display::DisplayNameAnnotation>();
+        const String label = display_name ? display_name->value : field.name;
+        const bool field_read_only = read_only || field.annotations.Has<display::ReadOnlyAnnotation>();
 
-        // 표시 이름 결정
-        const char* label = prop.metadata.display_name.IsEmpty()
-                                ? prop.name.Data()
-                                : prop.metadata.display_name.Data();
-
-        // 컨테이너 프로퍼티 (ContainerOps가 설정된 경우)
-        if (prop.container_ops)
-        {
-            // 컨테이너는 ReadOnly를 자체적으로 처리 (BeginDisabled 중첩 방지)
-            if (read_only)
-            {
-                ImGui::EndDisabled();
-            }
-
-            modified |= DrawContainerProperty(label, prop_data, *prop.container_ops, *this, read_only);
-
-            if (read_only)
-            {
-                ImGui::BeginDisabled();
-            }
-        }
-
-        // Optional 프로퍼티 (OptionalOps가 설정된 경우)
-        else if (prop.optional_ops)
-        {
-            // Optional도 ReadOnly를 자체적으로 처리 (BeginDisabled 중첩 방지)
-            if (read_only)
-            {
-                ImGui::EndDisabled();
-            }
-
-            modified |= DrawOptionalProperty(label, prop_data, *prop.optional_ops, *this, read_only);
-
-            if (read_only)
-            {
-                ImGui::BeginDisabled();
-            }
-        }
-
-        // 등록된 Drawer가 있으면 사용
-        else if (const PropertyDrawFunc drawer = Find(prop.type_id))
-        {
-            modified |= drawer(label, prop_data, prop);
-        }
-
-        // TypeRegistry에서 타입 정보 조회하여 분기
-        else if (const auto prop_type_opt = TypeRegistry_v1::Get().Find(prop.type_id))
-        {
-            if (prop_type_opt->kind == ETypeKind_v1::Enum && prop_type_opt->enum_entries)
-            {
-                if (prop_type_opt->flags.IsAnySet(ETypeFlags_v1::IsBitFlag))
-                {
-                    // BitFlag Enum -> Checkbox 위젯
-                    modified |= DrawBitFlags(label, prop_data, prop);
-                }
-                else
-                {
-                    // Enum -> Combo 위젯
-                    modified |= DrawEnum(label, prop_data, prop);
-                }
-            }
-            else if (prop_type_opt->kind == ETypeKind_v1::Struct && !prop_type_opt->properties.IsEmpty())
-            {
-                // 중첩 Struct -> TreeNode로 재귀 렌더링 (별개 객체이므로 fresh visited)
-                if (ImGui::TreeNode(label))
-                {
-                    modified |= DrawProperties(*prop_type_opt, prop_data);
-                    ImGui::TreePop();
-                }
-            }
-            else
-            {
-                const StringView view = prop.type_id.GetName();
-                ImGui::LabelText(label, "[%.*s]", static_cast<int>(view.ByteLen()), view.Data());
-            }
-        }
-        else
-        {
-            // TypeRegistry에 미등록된 타입
-            const StringView view = prop.type_id.GetName();
-            ImGui::LabelText(label, "[%.*s - unregistered]", static_cast<int>(view.ByteLen()), view.Data());
-        }
-
-        if (read_only)
-        {
-            ImGui::EndDisabled();
-        }
-
-        // Tooltip
-        if (!prop.metadata.tooltip.IsEmpty() && ImGui::IsItemHovered())
-        {
-            ImGui::SetTooltip("%.*s", static_cast<int>(prop.metadata.tooltip.ByteLen()), prop.metadata.tooltip.Data());
-        }
+        modified |= DrawValue(field.type, label.CStr(), field_data, field.annotations, field_read_only);
 
         ImGui::PopID();
     }
@@ -1082,114 +954,143 @@ bool DrawerRegistry::DrawProperties(const TypeInfo_v1& type_info, void* instance
 }
 
 bool DrawerRegistry::DrawValue(
-    const TypeId_v1& type_id,
+    TypeId type_id,
     const char* label,
     void* value,
-    const ContainerOps_v1* container_ops,
-    const OptionalOps_v1* optional_ops
+    const AnnotationList& annotations,
+    bool read_only
 )
 {
-    // 컨테이너 타입: 중첩 ContainerOps를 통해 렌더링
-    if (container_ops)
-    {
-        return DrawContainerProperty(label, value, *container_ops, *this, false);
-    }
-
-    // Optional 타입: 중첩 OptionalOps를 통해 렌더링
-    if (optional_ops)
-    {
-        return DrawOptionalProperty(label, value, *optional_ops, *this, false);
-    }
-
     // 등록된 Drawer가 있으면 사용
     if (const PropertyDrawFunc drawer = Find(type_id))
     {
-        // 빈 PropertyInfo 생성 (메타데이터 없음)
-        PropertyInfo_v1 dummy_prop;
-        dummy_prop.type_id = type_id;
-        return drawer(label, value, dummy_prop);
+        ImGui::BeginDisabled(read_only);
+        const bool modified = drawer(label, value, annotations);
+        ImGui::EndDisabled();
+        return modified;
     }
 
-    // TypeRegistry에서 타입 정보 조회하여 분기
-    if (const auto type = TypeRegistry_v1::Get().Find(type_id))
+    const auto type_info = TypeRegistry::Get().Find(type_id);
+    if (!type_info)
     {
-        if (type->kind == ETypeKind_v1::Enum && type->enum_entries)
-        {
-            PropertyInfo_v1 dummy_prop;
-            dummy_prop.type_id = type_id;
-
-            if (type->flags.IsAnySet(ETypeFlags_v1::IsBitFlag))
-            {
-                return DrawBitFlags(label, value, dummy_prop);
-            }
-            return DrawEnum(label, value, dummy_prop);
-        }
-
-        if (type->kind == ETypeKind_v1::Struct && !type->properties.IsEmpty())
-        {
-            if (ImGui::TreeNode(label))
-            {
-                const bool modified = DrawProperties(*type, value);
-                ImGui::TreePop();
-                return modified;
-            }
-            return false;
-        }
+        ImGui::LabelText(label, "[unregistered %016llx]", static_cast<unsigned long long>(type_id.Value()));
+        return false;
     }
 
-    // 지원하지 않는 타입은 타입명만 표시
-    const StringView view = type_id.GetName();
-    ImGui::LabelText(label, "[%.*s]", static_cast<int>(view.ByteLen()), view.Data());
-    return false;
+    // 컨테이너와 Optional은 ValueOps가 없으면 타입 이름만 표시
+    const auto draw_with_ops = [&]<typename Ops>(const auto& info, auto&& draw) -> bool
+    {
+        if (const auto ops = FindShapeOps<Ops>(type_id))
+        {
+            return draw(label, value, info, *ops, *this, read_only);
+        }
+        DrawTypeName(label, *type_info);
+        return false;
+    };
+
+    return type_info->VisitShape(
+        [&](const OpaqueInfo&) -> bool
+        {
+            DrawTypeName(label, *type_info);
+            return false;
+        },
+        [&](const StructInfo& info) -> bool
+        {
+            if (info.bases.IsEmpty() && info.fields.IsEmpty())
+            {
+                DrawTypeName(label, *type_info);
+                return false;
+            }
+
+            // 중첩 Struct -> TreeNode로 재귀 렌더링
+            if (!ImGui::TreeNode(label))
+            {
+                return false;
+            }
+            const bool modified = DrawProperties(*type_info, value, read_only);
+            ImGui::TreePop();
+            return modified;
+        },
+        [&](const EnumInfo& info) -> bool
+        {
+            if (type_info->annotations.Has<display::BitFlagsAnnotation>())
+            {
+                // BitFlag Enum -> Checkbox 위젯
+                return DrawBitFlags(label, value, *type_info, info, read_only);
+            }
+
+            // Enum -> Combo 위젯
+            ImGui::BeginDisabled(read_only);
+            const bool modified = DrawEnum(label, value, *type_info, info);
+            ImGui::EndDisabled();
+            return modified;
+        },
+        [&](const ArrayInfo& info) -> bool
+        {
+            return draw_with_ops.template operator()<ArrayOps>(info, &DrawArrayProperty);
+        },
+        [&](const SetInfo& info) -> bool
+        {
+            return draw_with_ops.template operator()<SetOps>(info, &DrawSetProperty);
+        },
+        [&](const MapInfo& info) -> bool
+        {
+            return draw_with_ops.template operator()<MapOps>(info, &DrawMapProperty);
+        },
+        [&](const OptionalInfo& info) -> bool
+        {
+            return draw_with_ops.template operator()<OptionalOps>(info, &DrawOptionalProperty);
+        }
+    );
 }
 
 void DrawerRegistry::RegisterBuiltinDrawers()
 {
     // --- Primitive ---
-    Register(TypeId_v1::Of<bool>(),   &DrawBool);
-    Register(TypeId_v1::Of<i8>(),   &DrawArithmetic<i8>);
-    Register(TypeId_v1::Of<u8>(),  &DrawArithmetic<u8>);
-    Register(TypeId_v1::Of<i16>(),  &DrawArithmetic<i16>);
-    Register(TypeId_v1::Of<u16>(), &DrawArithmetic<u16>);
-    Register(TypeId_v1::Of<i32>(),  &DrawArithmetic<i32>);
-    Register(TypeId_v1::Of<u32>(), &DrawArithmetic<u32>);
-    Register(TypeId_v1::Of<i64>(),  &DrawArithmetic<i64>);
-    Register(TypeId_v1::Of<u64>(), &DrawArithmetic<u64>);
-    Register(TypeId_v1::Of<f32>(),  &DrawArithmetic<f32>);
-    Register(TypeId_v1::Of<f64>(), &DrawArithmetic<f64>);
+    Register(TypeId::Of<bool>(),   &DrawBool);
+    Register(TypeId::Of<i8>(),   &DrawArithmetic<i8>);
+    Register(TypeId::Of<u8>(),  &DrawArithmetic<u8>);
+    Register(TypeId::Of<i16>(),  &DrawArithmetic<i16>);
+    Register(TypeId::Of<u16>(), &DrawArithmetic<u16>);
+    Register(TypeId::Of<i32>(),  &DrawArithmetic<i32>);
+    Register(TypeId::Of<u32>(), &DrawArithmetic<u32>);
+    Register(TypeId::Of<i64>(),  &DrawArithmetic<i64>);
+    Register(TypeId::Of<u64>(), &DrawArithmetic<u64>);
+    Register(TypeId::Of<f32>(),  &DrawArithmetic<f32>);
+    Register(TypeId::Of<f64>(), &DrawArithmetic<f64>);
 
     // --- String ---
-    Register(TypeId_v1::Of<String>(),      &DrawString);
-    Register(TypeId_v1::Of<StringName>(),  &DrawStringName);
+    Register(TypeId::Of<String>(),      &DrawString);
+    Register(TypeId::Of<StringName>(),  &DrawStringName);
 
     // --- Identifiers ---
-    Register(TypeId_v1::Of<Guid>(),        &DrawGuid);
-    Register(TypeId_v1::Of<TypeId_v1>(),      &DrawTypeId);
-    Register(TypeId_v1::Of<AssetId>(),     &DrawAssetId);
-    Register(TypeId_v1::Of<Entity>(),      &DrawEntity);
+    Register(TypeId::Of<Guid>(),        &DrawGuid);
+    Register(TypeId::Of<TypeId>(),      &DrawTypeId);
+    Register(TypeId::Of<AssetId>(),     &DrawAssetId);
+    Register(TypeId::Of<Entity>(),      &DrawEntity);
 
     // --- Math (f64 precision) ---
-    Register(TypeId_v1::Of<Vector2>(),     &DrawVector2<f64>);
-    Register(TypeId_v1::Of<Vector3>(),     &DrawVector3<f64>);
-    Register(TypeId_v1::Of<Vector4>(),     &DrawVector4<f64>);
-    Register(TypeId_v1::Of<Quaternion>(),  &DrawQuaternion<f64>);
-    Register(TypeId_v1::Of<Rotator>(),     &DrawRotator<f64>);
-    Register(TypeId_v1::Of<Matrix4x4>(),   &DrawMatrix4x4<f64>);
+    Register(TypeId::Of<Vector2>(),     &DrawVector2<f64>);
+    Register(TypeId::Of<Vector3>(),     &DrawVector3<f64>);
+    Register(TypeId::Of<Vector4>(),     &DrawVector4<f64>);
+    Register(TypeId::Of<Quaternion>(),  &DrawQuaternion<f64>);
+    Register(TypeId::Of<Rotator>(),     &DrawRotator<f64>);
+    Register(TypeId::Of<Matrix4x4>(),   &DrawMatrix4x4<f64>);
 
     // --- Math (single precision) ---
-    Register(TypeId_v1::Of<Vector2f>(),    &DrawVector2<f32>);
-    Register(TypeId_v1::Of<Vector3f>(),    &DrawVector3<f32>);
-    Register(TypeId_v1::Of<Vector4f>(),    &DrawVector4<f32>);
-    Register(TypeId_v1::Of<Quaternionf>(), &DrawQuaternion<f32>);
-    Register(TypeId_v1::Of<Rotatorf>(),    &DrawRotator<f32>);
-    Register(TypeId_v1::Of<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
+    Register(TypeId::Of<Vector2f>(),    &DrawVector2<f32>);
+    Register(TypeId::Of<Vector3f>(),    &DrawVector3<f32>);
+    Register(TypeId::Of<Vector4f>(),    &DrawVector4<f32>);
+    Register(TypeId::Of<Quaternionf>(), &DrawQuaternion<f32>);
+    Register(TypeId::Of<Rotatorf>(),    &DrawRotator<f32>);
+    Register(TypeId::Of<Matrix4x4f>(),  &DrawMatrix4x4<f32>);
 
     // --- Color ---
-    Register(TypeId_v1::Of<LinearColor>(), &DrawLinearColor);
-    Register(TypeId_v1::Of<Color>(),       &DrawColor);
+    Register(TypeId::Of<LinearColor>(), &DrawLinearColor);
+    Register(TypeId::Of<Color>(),       &DrawColor);
 
     // --- Angles ---
-    Register(TypeId_v1::Of<Degree<f64>>(), &DrawDegree<f64>);
-    Register(TypeId_v1::Of<Degree<f32>>(),  &DrawDegree<f32>);
+    Register(TypeId::Of<Degree<f64>>(), &DrawDegree<f64>);
+    Register(TypeId::Of<Degree<f32>>(),  &DrawDegree<f32>);
 }
 } // namespace se::editor

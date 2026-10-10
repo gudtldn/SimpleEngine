@@ -6,7 +6,6 @@
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "SimpleEngine/Core/Math/Math.h"
-#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/TransformComponent.h"
@@ -196,9 +195,9 @@ void DetailPanel::DrawContent()
 
                 transform_component->dirty = changed;
             }
-            else if (const auto legacy_info = TypeRegistry_v1::Get().Find(TypeId_v1::FromName(StringName{ type_info.name })))
+            else
             {
-                DrawerRegistry::Get().DrawProperties(*legacy_info, component_data);
+                DrawerRegistry::Get().DrawProperties(type_info, component_data);
             }
         }
     }

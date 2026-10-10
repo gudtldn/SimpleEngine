@@ -109,19 +109,19 @@ bool EditorUISubsystem::Initialize()
     });
 
     // 일단 명시적으로 Register 코드 작성
-    RegisterPanel<AssetsBrowserPanel>(GetTypeName<AssetsBrowserPanel>());
-    RegisterPanel<CameraPanel>(GetTypeName<CameraPanel>());
-    RegisterPanel<DebugPanel>(GetTypeName<DebugPanel>());
-    RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
-    RegisterPanel<EditorConsolePanel>(GetTypeName<EditorConsolePanel>());
-    RegisterPanel<ImGuiDemoPanel>(GetTypeName<ImGuiDemoPanel>());
-    RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
-    RegisterPanel<SettingsPanel>(GetTypeName<SettingsPanel>());
+    RegisterPanel<AssetsBrowserPanel>("AssetsBrowserPanel");
+    RegisterPanel<CameraPanel>("CameraPanel");
+    RegisterPanel<DebugPanel>("DebugPanel");
+    RegisterPanel<DetailPanel>("DetailPanel");
+    RegisterPanel<EditorConsolePanel>("EditorConsolePanel");
+    RegisterPanel<ImGuiDemoPanel>("ImGuiDemoPanel");
+    RegisterPanel<OutlinerPanel>("OutlinerPanel");
+    RegisterPanel<SettingsPanel>("SettingsPanel");
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main", true);
     RegisterPanel<ViewportPanel>("ViewportPanel_Sub1", "ViewportPanel_Sub1", false);
     RegisterPanel<ViewportPanel>("ViewportPanel_Sub2", "ViewportPanel_Sub2", false);
     RegisterPanel<ViewportPanel>("ViewportPanel_Sub3", "ViewportPanel_Sub3", false);
-    RegisterPanel<WorldResourcePanel>(GetTypeName<WorldResourcePanel>());
+    RegisterPanel<WorldResourcePanel>("WorldResourcePanel");
 
     return true;
 }
