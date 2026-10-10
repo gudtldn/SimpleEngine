@@ -283,7 +283,7 @@ Expected<void, String> SerializePlanCompiler::FlattenFields(TypeId struct_id, us
     for (const FieldInfo& field : struct_info.fields)
     {
         // Transient Field는 Plan에 넣지 않음
-        if (field.annotations.Has<TransientAnnotation>())
+        if (field.annotations.Has<serde::TransientAnnotation>())
         {
             continue;
         }

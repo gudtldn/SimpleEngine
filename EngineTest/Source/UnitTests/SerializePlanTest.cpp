@@ -112,7 +112,7 @@ struct WithTransientField
 {
     i32 kept = 0;
 
-    SE_ANNOTATE(cached, Transient)
+    SE_ANNOTATE(cached, serde::Transient)
     i32 cached = 7;
 };
 
@@ -121,7 +121,7 @@ struct WithTransientUnserializableField
 {
     i32 kept = 0;
 
-    SE_ANNOTATE(letter, Transient)
+    SE_ANNOTATE(letter, serde::Transient)
     wchar_t letter = L'\0';
 };
 
