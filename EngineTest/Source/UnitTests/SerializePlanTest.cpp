@@ -2,9 +2,12 @@
 
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Serialization/JsonArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializeTraits.h"
+#include "SimpleEngine/Core/Serialization/Serializer.h"
+#include "SimpleEngine/Core/Serialization/Transient.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 
 #include <algorithm>
@@ -104,6 +107,24 @@ struct RecursivePlanNode
     se::Array<RecursivePlanNode> children;
 };
 
+/** Transient 필드를 가진 타입입니다. */
+struct WithTransientField
+{
+    i32 kept = 0;
+
+    SE_ANNOTATE(cached, Transient)
+    i32 cached = 7;
+};
+
+/** 직렬화할 수 없는 타입의 Transient 필드를 가진 타입입니다. */
+struct WithTransientUnserializableField
+{
+    i32 kept = 0;
+
+    SE_ANNOTATE(letter, Transient)
+    wchar_t letter = L'\0';
+};
+
 // 스키마 해시 테스트에서 직접 만든 Plan에 붙이는 TypeId용 태그입니다. 리플렉션에는 등록하지 않습니다.
 struct HandStruct {};
 struct HandTrait {};
@@ -138,6 +159,8 @@ SE_DECLARE_REFLECTION(se_serialize_plan_test::HasWCharField)
 SE_DECLARE_REFLECTION(se_serialize_plan_test::HasLongDoubleField)
 SE_DECLARE_REFLECTION(se_serialize_plan_test::HasBoolEnumField)
 SE_DECLARE_REFLECTION(se_serialize_plan_test::RecursivePlanNode)
+SE_DECLARE_REFLECTION(se_serialize_plan_test::WithTransientField)
+SE_DECLARE_REFLECTION(se_serialize_plan_test::WithTransientUnserializableField)
 
 /** 이 파일만의 테스트용 트레이트입니다. Plan 컴파일만 검증하므로 본문은 비워 둡니다. */
 template <>
@@ -208,6 +231,16 @@ SE_REFLECT_END()
 SE_REFLECT_BEGIN(se_serialize_plan_test::RecursivePlanNode)
     SE_FIELD(value)
     SE_FIELD(children)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_serialize_plan_test::WithTransientField)
+    SE_FIELD(kept)
+    SE_FIELD(cached)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_serialize_plan_test::WithTransientUnserializableField)
+    SE_FIELD(kept)
+    SE_FIELD(letter)
 SE_REFLECT_END()
 
 
@@ -484,4 +517,46 @@ TEST(SerializePlanTest, SchemaHashOfMutuallyRecursiveTypesDoesNotDependOnRoot)
     // 순회 시작점이 달라 방문 순서가 달라도, 정렬한 뒤 서술하므로 값이 같음
     EXPECT_EQ(node.SchemaHash(), owner.SchemaHash());
     EXPECT_EQ(node.SchemaHash(), maybe_node.SchemaHash());
+}
+
+TEST(SerializePlanTest, TransientFieldIsNotInPlan)
+{
+    using namespace se_serialize_plan_test;
+
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<WithTransientField>());
+    ASSERT_TRUE(result.HasValue());
+
+    const se::StructSteps* steps = std::get_if<se::StructSteps>(&result.Value()->steps);
+    ASSERT_NE(steps, nullptr);
+    ASSERT_EQ(steps->fields.Len(), 1u);
+    EXPECT_EQ(steps->fields[0].name, se::StringView("kept"));
+}
+
+TEST(SerializePlanTest, TransientFieldOfUnserializableTypeCompiles)
+{
+    using namespace se_serialize_plan_test;
+
+    // 저장하지 않는 필드는 타입의 Plan을 만들지 않으므로 wchar_t여도 오류가 아님
+    const auto result = se::SerializePlanRegistry::Get().FindOrCompile(se::TypeId::Of<WithTransientUnserializableField>());
+    ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
+}
+
+TEST(SerializePlanTest, TransientFieldIsNotWrittenAndKeepsValueOnRead)
+{
+    using namespace se_serialize_plan_test;
+
+    const WithTransientField value{ .kept = 3, .cached = 99 };
+    se::JsonWriter writer;
+    ASSERT_TRUE(se::serde::Serialize(writer, value).HasValue());
+    const auto text = writer.ToText();
+    ASSERT_TRUE(text.HasValue());
+    EXPECT_FALSE(text.Value().Contains("cached")) << text.Value().CStr();
+
+    // 옛 파일에 남은 키는 모르는 키로 경고만 남기고, 필드는 기본값을 유지
+    se::JsonReader reader(se::StringView{ R"({"kept":3,"cached":99})" });
+    WithTransientField result{};
+    ASSERT_TRUE(se::serde::Deserialize(reader, result).HasValue());
+    EXPECT_EQ(result.kept, 3);
+    EXPECT_EQ(result.cached, 7);
+    EXPECT_EQ(reader.GetWarnings().Len(), 1u);
 }

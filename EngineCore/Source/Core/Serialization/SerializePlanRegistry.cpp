@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
+#include "SimpleEngine/Core/Serialization/Transient.h"
 
 #include <concepts>
 #include <mutex>
@@ -281,6 +282,12 @@ Expected<void, String> SerializePlanCompiler::FlattenFields(TypeId struct_id, us
 
     for (const FieldInfo& field : struct_info.fields)
     {
+        // Transient Field는 Plan에 넣지 않음
+        if (field.annotations.Has<TransientAnnotation>())
+        {
+            continue;
+        }
+
         // 섀도잉이나 비가상 다이아몬드로 같은 이름이 두 번 나오면 텍스트의 키가 겹치므로 오류로 판단
         for (const FieldStep& existing : flat_fields)
         {
