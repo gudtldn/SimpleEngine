@@ -65,7 +65,7 @@
         static_assert(::se::traits::UniqueTuple<decltype(SE_LINE_NAME(_se_type_annos_))>, \
             SE_STRINGIFY(macro_name) "(" #type "): the same annotation type is attached more than once."); \
         constexpr auto SE_LINE_NAME(_se_type_anno_refs_) = ::se::detail::MakeRefs(&SE_LINE_NAME(_se_type_annos_)); \
-        [[maybe_unused]] const bool SE_LINE_NAME(_se_reg_kick_) = [] \
+        [[maybe_unused]] const bool SE_LINE_NAME(_se_reg_auto_registar_) = [] \
         { \
             ::se::EnsureRegistered<type>(); \
             ::se::detail::RunRegistrationTraits<type>(SE_LINE_NAME(_se_type_annos_)); \

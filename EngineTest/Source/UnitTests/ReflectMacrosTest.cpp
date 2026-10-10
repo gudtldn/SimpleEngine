@@ -85,7 +85,7 @@ TEST(ReflectMacrosGoldenTest, WeaponIsAutoRegisteredAtStaticInit)
     using namespace se_reflect_macros_golden_test;
 
     // EnsureRegistered<Weapon>()을 이 테스트에서 한 번도 직접 호출하지 않습니다 —
-    // SE_REFLECT_BEGIN이 만든 정적 초기화자(_se_reg_kick_*)가 프로그램 시작 시점에
+    // SE_REFLECT_BEGIN이 만든 정적 초기화자(_se_reg_auto_registar_*)가 프로그램 시작 시점에
     // 이미 등록을 마쳐놨어야 합니다.
     const se::Optional<const se::TypeInfo&> found = se::TypeRegistry::Get().Find(se::TypeId::Of<Weapon>());
     ASSERT_TRUE(found.HasValue());
