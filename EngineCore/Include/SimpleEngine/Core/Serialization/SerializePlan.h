@@ -99,7 +99,13 @@ using PlanSteps = std::variant<PendingStep, LeafStep, StructSteps, ArraySteps, S
  */
 struct SE_CORE_API SerializePlan
 {
+    /** 직렬화 하려는 타입 */
     TypeId type;
+
+    /**
+     * 타입의 형태별 직렬화 방법
+     * Leaf와 Enum은 값을 직접 쓰고, 나머지는 자식 Plan을 가리킵니다.
+     */
     PlanSteps steps;
 
     /**
