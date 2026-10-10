@@ -4,6 +4,9 @@
 #include "SimpleEditor/UI/IEditorPanel.h"
 
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Utility/Debug.h"
@@ -11,11 +14,13 @@
 
 namespace se::editor
 {
-class SE_EDITOR_API SE_ANNOTATION(meta::Reflect, meta::Hidden, meta::Transient) EditorUISubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API EditorUISubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS_V1(EditorUISubsystem, SubsystemBase)
+    friend struct ::se::Registrar<EditorUISubsystem>;
 
 public:
+    SE_RTTI(EditorUISubsystem)
+
     EditorUISubsystem() = default;
     virtual ~EditorUISubsystem() override = default;
 
@@ -52,7 +57,9 @@ private:
     void DrawMainMenu();
 
 private:
+    SE_ANNOTATE(panels, Ignore)
     HashMap<StringName, std::unique_ptr<IEditorPanel>> panels; // TODO: Key GUID로 바꿀까
+    SE_ANNOTATE(sdl_event_handle, Ignore)
     DelegateHandle sdl_event_handle;
 };
 
@@ -69,3 +76,5 @@ PanelType& EditorUISubsystem::RegisterPanel(const StringName& panel_id, Args&&..
     return panel_ref;
 }
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::EditorUISubsystem, SE_EDITOR_API)

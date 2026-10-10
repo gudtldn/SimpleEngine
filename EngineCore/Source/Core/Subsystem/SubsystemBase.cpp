@@ -1,8 +1,11 @@
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 
-namespace se
-{
-SE_BEGIN_REFLECT_V1(SubsystemBase, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(SubsystemBase)
-}
+
+SE_REFLECT_BEGIN(se::SubsystemBase)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::IUpdatable)
+SE_REFLECT_END()

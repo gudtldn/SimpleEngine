@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Debug/DebugDrawSubsystem.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 
@@ -11,9 +12,6 @@
 namespace se
 {
 using namespace se::math;
-
-SE_BEGIN_REFLECT_V1(DebugLinePass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(DebugLinePass)
 
 DebugLinePass::DebugLinePass(
     DebugDrawSubsystem& in_debug_subsystem,
@@ -176,3 +174,12 @@ void DebugLinePass::Execute(RGExecutionContext& context)
     SDL_EndGPURenderPass(pass);
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::DebugLinePass)
+    SE_BASE(se::RenderPassBase)
+    SE_FIELD(debug_subsystem)
+    SE_FIELD(render_view)
+    SE_FIELD(color_target_handle)
+    SE_FIELD(depth_target_handle)
+SE_REFLECT_END()

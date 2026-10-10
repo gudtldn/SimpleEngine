@@ -2,6 +2,9 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
@@ -12,11 +15,13 @@ namespace se::editor
 class GizmoDrawList;
 
 /** 기즈모를 렌더링하는 패스 */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) GizmoPass : public se::RenderPassBase
+class SE_EDITOR_API GizmoPass : public se::RenderPassBase
 {
-    SE_CLASS_V1(GizmoPass, se::RenderPassBase)
+    friend struct ::se::Registrar<GizmoPass>;
 
 public:
+    SE_RTTI(GizmoPass)
+
     /**
      * @param in_draw_list 이번 프레임에 수집된 기즈모 정점 데이터
      * @param in_render_view VP 행렬을 포함한 렌더 뷰
@@ -37,9 +42,12 @@ public:
     virtual void Execute(RGExecutionContext& context) override;
 
 private:
+    SE_ANNOTATE(draw_list, Ignore)
     const GizmoDrawList& draw_list;
     RenderView render_view;
     RGTextureHandle color_target_handle;
     RGTextureHandle depth_target_handle;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::GizmoPass, SE_EDITOR_API)

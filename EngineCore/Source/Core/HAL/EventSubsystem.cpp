@@ -1,16 +1,13 @@
 ﻿#include "SimpleEngine/Core/HAL/EventSubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 
 
 namespace se
 {
 SE_REGISTER_SUBSYSTEM(EventSubsystem);
-
-SE_BEGIN_REFLECT_V1(EventSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(EventSubsystem)
 
 
 bool EventSubsystem::Initialize()
@@ -61,3 +58,11 @@ void EventSubsystem::PollEvents() // NOLINT(*-make-member-function-const)
     }
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::EventSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(on_sdl_event)
+    SE_FIELD(on_quit_requested)
+    SE_FIELD(on_file_dropped)
+SE_REFLECT_END()

@@ -7,6 +7,7 @@
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Input/MouseButton.h"
 #include "SimpleEngine/Core/Math/TransformUtility.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/Components/GlobalTransformComponent.h"
 #include "SimpleEngine/ECS/Components/ParentComponent.h"
@@ -23,10 +24,6 @@ namespace se::editor
 SE_REGISTER_SUBSYSTEM(GizmoSubsystem)
     .DependsOn<RenderSubsystem, SelectionSubsystem>()
     .UpdateDependsOn<EditorViewportSubsystem>();
-
-SE_BEGIN_REFLECT_V1(GizmoSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(GizmoSubsystem)
 
 bool GizmoSubsystem::Initialize()
 {
@@ -390,3 +387,16 @@ GizmoDrawList& GizmoSubsystem::GetOrCreateDrawList(const StringName& viewport_id
     });
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::GizmoSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(draw_lists)
+    SE_FIELD(renderer)
+    SE_FIELD(interaction)
+    SE_FIELD(render_device)
+    SE_FIELD(download_buffer)
+    SE_FIELD(pick_texture_rid)
+    SE_FIELD(hovered_axis)
+SE_REFLECT_END()

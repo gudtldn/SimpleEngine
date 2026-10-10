@@ -4,7 +4,7 @@
 
 namespace se
 {
-SubsystemBase* GetSubsystem(const TypeId_v1& type_id)
+SubsystemBase* GetSubsystem(TypeId type_id)
 {
     return Engine::Get().GetSubsystem(type_id);
 }

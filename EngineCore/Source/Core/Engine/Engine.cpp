@@ -34,23 +34,23 @@ namespace
  * @param get_dependencies 각 노드의 의존성(선행 노드) 목록을 반환하는 콜백
  * @return 정렬된 TypeId 배열. 순환 의존성이 있으면 입력보다 짧은 배열이 반환됩니다.
  */
-template <std::invocable<const TypeId_v1&> DepsFn>
-Array<TypeId_v1> TopologicalSort(const Array<TypeId_v1>& nodes, DepsFn&& get_dependencies)
+template <std::invocable<const TypeId&> DepsFn>
+Array<TypeId> TopologicalSort(const Array<TypeId>& nodes, DepsFn&& get_dependencies)
 {
-    const HashSet<TypeId_v1> node_set = HashSet<TypeId_v1>::FromRange(nodes);
+    const HashSet<TypeId> node_set = HashSet<TypeId>::FromRange(nodes);
 
-    HashMap<TypeId_v1, Array<TypeId_v1>> adj_list;
-    HashMap<TypeId_v1, int> in_degree;
+    HashMap<TypeId, Array<TypeId>> adj_list;
+    HashMap<TypeId, int> in_degree;
 
-    for (const TypeId_v1& id : nodes)
+    for (const TypeId& id : nodes)
     {
         in_degree.Insert(id, 0);
-        adj_list.Insert(id, Array<TypeId_v1>{});
+        adj_list.Insert(id, Array<TypeId>{});
     }
 
-    for (const TypeId_v1& id : nodes)
+    for (const TypeId& id : nodes)
     {
-        for (const TypeId_v1& dep_id : get_dependencies(id))
+        for (const TypeId& dep_id : get_dependencies(id))
         {
             // 노드 집합에 없는 의존성은 무시
             if (!node_set.Contains(dep_id))
@@ -63,7 +63,7 @@ Array<TypeId_v1> TopologicalSort(const Array<TypeId_v1>& nodes, DepsFn&& get_dep
         }
     }
 
-    Queue<TypeId_v1> queue;
+    Queue<TypeId> queue;
     for (const auto& [id, degree] : in_degree)
     {
         if (degree == 0)
@@ -72,11 +72,11 @@ Array<TypeId_v1> TopologicalSort(const Array<TypeId_v1>& nodes, DepsFn&& get_dep
         }
     }
 
-    Array<TypeId_v1> sorted;
-    while (Optional<TypeId_v1> current = queue.Pop())
+    Array<TypeId> sorted;
+    while (Optional<TypeId> current = queue.Pop())
     {
         sorted.Push(*current);
-        for (const TypeId_v1& neighbor : adj_list[*current])
+        for (const TypeId& neighbor : adj_list[*current])
         {
             if (--in_degree[neighbor] == 0)
             {
@@ -205,13 +205,14 @@ void Engine::LoadRegisteredSubsystems()
 
         if (std::unique_ptr<SubsystemBase> subsystem = metadata.factory())
         {
+            const StringView name = subsystem->GetTypeRecord()->name;
             subsystems.Emplace(type_id, std::move(subsystem));
-            ConsoleLog(ELogLevel::Debug, "Instantiated Subsystem: {}", type_id.GetName());
+            ConsoleLog(ELogLevel::Debug, "Instantiated Subsystem: {}", name);
         }
     }
 }
 
-SubsystemBase* Engine::GetSubsystem(const TypeId_v1& type_id) const
+SubsystemBase* Engine::GetSubsystem(TypeId type_id) const
 {
     if (const auto subsystem = subsystems.Find(type_id))
     {
@@ -307,7 +308,7 @@ bool Engine::InitializeAllSubsystems()
     {
         if (!sub_system->Initialize())
         {
-            ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", sub_system->GetTypeId().GetName());
+            ConsoleLog(ELogLevel::Error, "Subsystem {} failed to initialize!", sub_system->GetTypeRecord()->name);
 
             const auto subrange = std::ranges::subrange(sorted_subsystems.begin(), sorted_subsystems.begin() + n);
             for (SubsystemBase* rev_subsystem : subrange | std::views::reverse)
@@ -345,14 +346,14 @@ bool Engine::SortSubsystems()
     detail::SubsystemRegistry& registry = detail::SubsystemRegistry::GetInstance();
 
     // 모든 서브시스템의 TypeId 수집
-    Array<TypeId_v1> all_ids;
-    for (const TypeId_v1& type_id : subsystems | std::views::keys)
+    Array<TypeId> all_ids;
+    for (const TypeId& type_id : subsystems | std::views::keys)
     {
         all_ids.Push(type_id);
     }
 
     // 초기화 순서 위상정렬
-    Array<TypeId_v1> sorted_ids = TopologicalSort(all_ids, [&](const TypeId_v1& id) -> const Array<TypeId_v1>&
+    Array<TypeId> sorted_ids = TopologicalSort(all_ids, [&](const TypeId& id) -> const Array<TypeId>&
     {
         return registry.GetMetadata(id).dependencies;
     });
@@ -360,19 +361,19 @@ bool Engine::SortSubsystems()
     if (sorted_ids.Len() != all_ids.Len())
     {
         ConsoleLog(ELogLevel::Fatal, "Circular dependency detected among Subsystems! Sorting failed.");
-        HashSet<TypeId_v1> sorted_set(sorted_ids.begin(), sorted_ids.end());
-        for (const TypeId_v1& id : all_ids)
+        HashSet<TypeId> sorted_set(sorted_ids.begin(), sorted_ids.end());
+        for (const TypeId& id : all_ids)
         {
             if (!sorted_set.Contains(id))
             {
-                ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
+                ConsoleLog(ELogLevel::Fatal, "- {}", subsystems[id]->GetTypeRecord()->name);
             }
         }
         return false;
     }
 
     sorted_subsystems.Clear();
-    for (const TypeId_v1& id : sorted_ids)
+    for (const TypeId& id : sorted_ids)
     {
         sorted_subsystems.Push(subsystems[id].get());
     }
@@ -380,23 +381,23 @@ bool Engine::SortSubsystems()
     ConsoleLog(ELogLevel::Info, "Subsystems sorted successfully.");
     for (const auto [n, sub_system] : sorted_subsystems | std::views::enumerate)
     {
-        ConsoleLog(ELogLevel::Debug, "  - Init Order {}: {}", n, sub_system->GetTypeId().GetName());
+        ConsoleLog(ELogLevel::Debug, "  - Init Order {}: {}", n, sub_system->GetTypeRecord()->name);
     }
 
     // IUpdatable을 update_dependencies에 따라 별도 위상정렬
     // UpdateDependsOn이 없는 서브시스템은 다른 IUpdatable과의 순서가 보장되지 않음
-    HashMap<TypeId_v1, IUpdatable*> updatable_map;
-    Array<TypeId_v1> updatable_ids;
+    HashMap<TypeId, IUpdatable*> updatable_map;
+    Array<TypeId> updatable_ids;
     for (const auto& [type_id, subsystem_ptr] : subsystems)
     {
-        if (IUpdatable* updatable = Cast_v1<IUpdatable>(subsystem_ptr.get()))
+        if (IUpdatable* updatable = Cast<IUpdatable>(subsystem_ptr.get()))
         {
             updatable_map.Emplace(type_id, updatable);
             updatable_ids.Push(type_id);
         }
     }
 
-    Array<TypeId_v1> sorted_update_ids = TopologicalSort(updatable_ids, [&](const TypeId_v1& id) -> const Array<TypeId_v1>&
+    Array<TypeId> sorted_update_ids = TopologicalSort(updatable_ids, [&](const TypeId& id) -> const Array<TypeId>&
     {
         return registry.GetMetadata(id).update_dependencies;
     });
@@ -404,23 +405,23 @@ bool Engine::SortSubsystems()
     if (sorted_update_ids.Len() != updatable_ids.Len())
     {
         ConsoleLog(ELogLevel::Fatal, "Circular update dependency detected among IUpdatable subsystems!");
-        HashSet<TypeId_v1> sorted_set(sorted_update_ids.begin(), sorted_update_ids.end());
-        for (const TypeId_v1& id : updatable_ids)
+        HashSet<TypeId> sorted_set(sorted_update_ids.begin(), sorted_update_ids.end());
+        for (const TypeId& id : updatable_ids)
         {
             if (!sorted_set.Contains(id))
             {
-                ConsoleLog(ELogLevel::Fatal, "- {}", id.GetName());
+                ConsoleLog(ELogLevel::Fatal, "- {}", subsystems[id]->GetTypeRecord()->name);
             }
         }
         return false;
     }
 
     updatable_systems.Clear();
-    for (const TypeId_v1& id : sorted_update_ids)
+    for (const TypeId& id : sorted_update_ids)
     {
         updatable_systems.Push({
             .updatable = updatable_map[id],
-            .name = id.GetName(),
+            .name = subsystems[id]->GetTypeRecord()->name,
         });
     }
 

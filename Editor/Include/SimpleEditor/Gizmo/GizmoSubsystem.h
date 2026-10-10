@@ -6,6 +6,9 @@
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -20,11 +23,13 @@ namespace se::editor
  * GizmoDrawList(GPU 버퍼) + GizmoRenderer(형상 조립)의 생명주기를 관리합니다.
  * GPU Color Picking용 텍스처와 Readback 버퍼도 소유합니다.
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) GizmoSubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API GizmoSubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS_V1(GizmoSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<GizmoSubsystem>;
 
 public:
+    SE_RTTI(GizmoSubsystem)
+
     GizmoSubsystem() = default;
     virtual ~GizmoSubsystem() override = default;
 
@@ -88,14 +93,21 @@ private:
     void HandleInteraction();
 
 private:
+    SE_ANNOTATE(draw_lists, Ignore)
     HashMap<StringName, std::unique_ptr<GizmoDrawList>> draw_lists;
+    SE_ANNOTATE(renderer, Ignore)
     GizmoRenderer renderer;
+    SE_ANNOTATE(interaction, Ignore)
     GizmoInteraction interaction;
 
     // GPU Color Picking 리소스
+    SE_ANNOTATE(render_device, Ignore)
     RenderDevice* render_device = nullptr;
+    SE_ANNOTATE(download_buffer, Ignore)
     SDL_GPUTransferBuffer* download_buffer = nullptr;
     RID pick_texture_rid = {};
     EGizmoAxis hovered_axis = EGizmoAxis::None;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::GizmoSubsystem, SE_EDITOR_API)

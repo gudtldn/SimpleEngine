@@ -3,6 +3,7 @@
 #include "SimpleEngine/Asset/AssetSubsystem.h"
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
@@ -17,9 +18,6 @@ namespace se
 SE_REGISTER_SUBSYSTEM(RenderSubsystem)
     .DependsOn<WindowSubsystem>()
     .DependsOn<AssetSubsystem>();
-
-SE_BEGIN_REFLECT_V1(RenderSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(RenderSubsystem)
 
 bool RenderSubsystem::Initialize()
 {
@@ -305,3 +303,17 @@ SDL_GPUPresentMode RenderSubsystem::DetermineBestPresentMode(SDL_Window* window)
     return SDL_GPU_PRESENTMODE_VSYNC;
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::RenderSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(render_device)
+    SE_FIELD(render_graph_builder)
+    SE_FIELD(render_graph_executor)
+    SE_FIELD(shader_bundle_source)
+    SE_FIELD(pso_manager)
+    SE_FIELD(sampler_cache)
+    SE_FIELD(resource_manager)
+    SE_FIELD(window_created_handle)
+    SE_FIELD(window_destroyed_handle)
+SE_REFLECT_END()

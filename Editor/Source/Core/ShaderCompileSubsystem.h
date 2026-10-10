@@ -3,6 +3,9 @@
 #include "SimpleEditor/ShaderCook/ShaderCompiler.h"
 #include "SimpleEditor/ShaderCook/ShaderCooker.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
@@ -15,11 +18,13 @@ namespace se::editor
  * 셰이더 쿡 및 핫 리로드를 담당하는 Subsystem
  * 시작할 때 셰이더를 DDC에 쿡하고, F5를 누르면 바뀐 셰이더만 다시 쿡해 파이프라인을 비웁니다.
  */
-class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
+class ShaderCompileSubsystem : public se::SubsystemBase, public se::IUpdatable
 {
-    SE_CLASS_V1(ShaderCompileSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<ShaderCompileSubsystem>;
 
 public:
+    SE_RTTI(ShaderCompileSubsystem)
+
     //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
@@ -37,7 +42,11 @@ private:
     void RecookChanged() const;
 
 private:
+    SE_ANNOTATE(compiler, Ignore)
     std::unique_ptr<ShaderCompiler> compiler;
+    SE_ANNOTATE(cooker, Ignore)
     std::unique_ptr<ShaderCooker> cooker;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::ShaderCompileSubsystem)

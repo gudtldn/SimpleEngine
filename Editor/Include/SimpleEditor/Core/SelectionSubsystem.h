@@ -3,6 +3,9 @@
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Core/EditorSelection.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
@@ -22,11 +25,13 @@ class PickSubsystem;
 /**
  * Entity 선택 상태를 관리하고, 뷰포트 클릭을 통한 Entity 선택을 처리하는 Subsystem
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) SelectionSubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API SelectionSubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS_V1(SelectionSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<SelectionSubsystem>;
 
 public:
+    SE_RTTI(SelectionSubsystem)
+
     //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
@@ -41,12 +46,20 @@ public:
     [[nodiscard]] const EditorSelection& GetSelection() const { return selection; }
 
 private:
+    SE_ANNOTATE(selection, Ignore)
     EditorSelection selection;
 
+    SE_ANNOTATE(input_subsystem, Ignore)
     InputSubsystem* input_subsystem = nullptr;
+    SE_ANNOTATE(entity_subsystem, Ignore)
     EntitySubsystem* entity_subsystem = nullptr;
+    SE_ANNOTATE(viewport_subsystem, Ignore)
     EditorViewportSubsystem* viewport_subsystem = nullptr;
+    SE_ANNOTATE(gizmo_subsystem, Ignore)
     GizmoSubsystem* gizmo_subsystem = nullptr;
+    SE_ANNOTATE(pick_subsystem, Ignore)
     PickSubsystem* pick_subsystem = nullptr;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::SelectionSubsystem, SE_EDITOR_API)

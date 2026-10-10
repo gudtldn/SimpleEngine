@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../../Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/FrameResourcePool.h"
 
@@ -9,10 +10,8 @@
 
 namespace se
 {
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGResourceBase
+class SE_CORE_API RGResourceBase
 {
-    SE_CLASS_V1(RGResourceBase)
-
 public:
     SE_RTTI_ROOT()
 
@@ -22,9 +21,9 @@ public:
     virtual void Unrealize(FrameResourcePool& pool) = 0;
 };
 
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTextureBase : public RGResourceBase
+class SE_CORE_API RGTextureBase : public RGResourceBase
 {
-    SE_CLASS_V1(RGTextureBase, RGResourceBase)
+    friend struct ::se::Registrar<RGTextureBase>;
 
 public:
     virtual ~RGTextureBase() override = default;
@@ -32,12 +31,13 @@ public:
     [[nodiscard]] SDL_GPUTexture* GetActualTexture() const { return actual_texture; }
 
 protected:
+    SE_ANNOTATE(actual_texture, Ignore)
     SDL_GPUTexture* actual_texture = nullptr;
 };
 
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGBufferBase : public RGResourceBase
+class SE_CORE_API RGBufferBase : public RGResourceBase
 {
-    SE_CLASS_V1(RGBufferBase, RGResourceBase)
+    friend struct ::se::Registrar<RGBufferBase>;
 
 public:
     virtual ~RGBufferBase() override = default;
@@ -45,16 +45,15 @@ public:
     [[nodiscard]] SDL_GPUBuffer* GetActualBuffer() const { return actual_buffer; }
 
 protected:
+    SE_ANNOTATE(actual_buffer, Ignore)
     SDL_GPUBuffer* actual_buffer = nullptr;
 };
 
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 텍스처
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTransientTexture : public RGTextureBase
+class SE_CORE_API RGTransientTexture : public RGTextureBase
 {
-    SE_CLASS_V1(RGTransientTexture, RGTextureBase)
-
 public:
     SE_RTTI(RGTransientTexture)
 
@@ -76,16 +75,15 @@ public:
     }
 
 public:
+    SE_ANNOTATE(description, Ignore)
     SDL_GPUTextureCreateInfo description;
 };
 
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGExternalTexture : public RGTextureBase
+class SE_CORE_API RGExternalTexture : public RGTextureBase
 {
-    SE_CLASS_V1(RGExternalTexture, RGTextureBase)
-
 public:
     SE_RTTI(RGExternalTexture)
 
@@ -101,10 +99,8 @@ public:
 /**
  * Render Graph가 직접 생성하고 소유하는 임시(Transient) 버퍼
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGTransientBuffer : public RGBufferBase
+class SE_CORE_API RGTransientBuffer : public RGBufferBase
 {
-    SE_CLASS_V1(RGTransientBuffer, RGBufferBase)
-
 public:
     SE_RTTI(RGTransientBuffer)
 
@@ -126,16 +122,15 @@ public:
     }
 
 public:
+    SE_ANNOTATE(description, Ignore)
     SDL_GPUBufferCreateInfo description;
 };
 
 /**
  * 외부에서 Import된, Render Graph가 소유하지 않는 텍스처
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RGExternalBuffer : public RGBufferBase
+class SE_CORE_API RGExternalBuffer : public RGBufferBase
 {
-    SE_CLASS_V1(RGExternalBuffer, RGBufferBase)
-
 public:
     SE_RTTI(RGExternalBuffer)
 

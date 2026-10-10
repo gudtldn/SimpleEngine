@@ -1,6 +1,7 @@
 #include "SimpleEngine/Graphics/RenderPass/ForwardScenePass.h"
 
 #include "SimpleEngine/Asset/BuiltinAssets.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
@@ -16,9 +17,6 @@
 namespace se
 {
 using namespace se::math;
-
-SE_BEGIN_REFLECT_V1(ForwardScenePass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(ForwardScenePass)
 
 ForwardScenePass::ForwardScenePass(
     const SceneDrawData& in_draw_data,
@@ -435,3 +433,16 @@ void ForwardScenePass::Execute(RGExecutionContext& context)
     SDL_EndGPURenderPass(pass);
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::ForwardScenePass)
+    SE_BASE(se::RenderPassBase)
+    SE_FIELD(draw_data)
+    SE_FIELD(view_index)
+    SE_FIELD(gpu_manager)
+    SE_FIELD(sampler_cache)
+    SE_FIELD(render_view)
+    SE_FIELD(color_target_handle)
+    SE_FIELD(depth_target_handle)
+    SE_FIELD(entity_id_target_handle)
+SE_REFLECT_END()

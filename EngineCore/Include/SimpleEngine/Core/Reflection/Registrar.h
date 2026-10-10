@@ -12,6 +12,7 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsFactory.h"
 #include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
+#include "SimpleEngine/Core/Types/BitFlags.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Core/Types/Path.h"
@@ -109,6 +110,31 @@ struct Registrar<HashDigest<N>>
         info.alignment = alignof(HashDigest<N>);
         info.name = TypeNameOf<HashDigest<N>>();
         info.shape = OpaqueInfo{};
+    }
+};
+
+/** BitFlags<E>(enum 값들의 비트 마스크, 필드는 mask_value 하나) */
+template <traits::EnumType Enum>
+struct Registrar<BitFlags<Enum>>
+{
+    static void Fill(TypeInfo& info)
+    {
+        using T = BitFlags<Enum>;
+        using MaskType = T::MaskType;
+
+        info.size = sizeof(T);
+        info.alignment = alignof(T);
+        info.name = TypeNameOf<T>();
+
+        auto& [bases, fields] = TypeRegistry::Get().EmplaceStructStorage(TypeId::Of<T>());
+        fields.Push({
+            .name = "mask_value",
+            .type = TypeId::Of<MaskType>(),
+            .offset = detail::FieldOffsetOf<T>(&T::mask_value),
+            .annotations = {},
+        });
+        EnsureRegistered<MaskType>();
+        info.shape = StructInfo{ .bases = bases, .fields = fields };
     }
 };
 

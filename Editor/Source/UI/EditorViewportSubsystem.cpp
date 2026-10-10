@@ -2,7 +2,9 @@
 #include "SimpleEditor/Gizmo/GizmoSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
+#include "SimpleEngine/Core/Math/MathReflection.h"
 #include "SimpleEngine/Core/Math/TransformUtility.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -22,10 +24,6 @@ SE_REGISTER_SUBSYSTEM(EditorViewportSubsystem)
     .DependsOn<RenderSubsystem>()
     .DependsOn<InputSubsystem>()
     .UpdateDependsOn<EntitySubsystem>();
-
-SE_BEGIN_REFLECT_V1(EditorViewportSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(EditorViewportSubsystem)
 
 bool EditorViewportSubsystem::Initialize()
 {
@@ -494,3 +492,31 @@ Optional<EditorCameraState&> EditorViewportSubsystem::GetViewportCamera(const St
     });
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::ViewportState)
+    SE_FIELD(color_texture)
+    SE_FIELD(render_view)
+    SE_FIELD(color_target_name)
+    SE_FIELD(depth_target_name)
+    SE_FIELD(is_focused)
+    SE_FIELD(is_hovered)
+    SE_FIELD(persp_camera)
+    SE_FIELD(ortho_camera)
+    SE_FIELD(view_mode)
+    SE_FIELD(gizmo_mode)
+    SE_FIELD(coordinate_space)
+    SE_FIELD(pre_scale_coordinate_space)
+    SE_FIELD(cursor_viewport_pos)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::editor::EditorViewportSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(input_subsystem)
+    SE_FIELD(render_device)
+    SE_FIELD(viewports)
+    SE_FIELD(focused_viewport)
+    SE_FIELD(active_camera_viewport)
+    SE_FIELD(last_mouse_pos)
+SE_REFLECT_END()

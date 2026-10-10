@@ -4,6 +4,8 @@
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoVertex.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Math/MathReflection.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 
@@ -13,9 +15,6 @@
 namespace se::editor
 {
 using namespace se::math;
-
-SE_BEGIN_REFLECT_V1(GizmoPickPass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(GizmoPickPass)
 
 GizmoPickPass::GizmoPickPass(
     const GizmoDrawList& in_draw_list,
@@ -214,3 +213,12 @@ void GizmoPickPass::Execute(RGExecutionContext& context)
     SDL_EndGPURenderPass(pass);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::GizmoPickPass)
+    SE_BASE(se::RenderPassBase)
+    SE_FIELD(draw_list)
+    SE_FIELD(render_view)
+    SE_FIELD(pick_target_handle)
+    SE_FIELD(cursor_pos)
+SE_REFLECT_END()
