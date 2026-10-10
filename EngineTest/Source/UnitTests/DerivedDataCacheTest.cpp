@@ -383,7 +383,7 @@ namespace
 template <typename T>
 void ExpectCacheRoundTrip(DerivedDataCache& ddc, const T& original)
 {
-    SCOPED_TRACE(std::string_view{ TypeId_v1::Of<T>().GetName() });
+    SCOPED_TRACE(std::string_view{ TypeNameOf<T>() });
 
     const Guid guid = Guid::NewGuid();
     const ContentHash hash = MakeTestHash("source");
@@ -395,7 +395,7 @@ void ExpectCacheRoundTrip(DerivedDataCache& ddc, const T& original)
     const auto entry = ddc.Load(guid);
     ASSERT_TRUE(entry.HasValue());
 
-    const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<T>(), entry->payload);
+    const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId::Of<T>(), entry->payload);
     ASSERT_TRUE(loaded.IsValid());
     EXPECT_EQ(test_assets::WriteToml(*static_cast<const T*>(loaded.ptr)), test_assets::WriteToml(original));
     loaded.destructor(loaded.ptr);
@@ -424,7 +424,7 @@ void ExpectCacheRoundTrip(DerivedDataCache& ddc, const T& original)
         return false;
     }
 
-    const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<StaticMesh>(), entry->payload);
+    const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId::Of<StaticMesh>(), entry->payload);
     if (!loaded.IsValid())
     {
         return false;
@@ -495,7 +495,7 @@ TEST(AssetPayloadTest, PayloadOfAnotherAssetTypeIsRejected)
 {
     // 루트 타입이 헤더와 다르면 필드를 읽기 전에 거절됨
     const Array<u8> payload = AssetSubsystem::SerializeAssetPayload(test_assets::MakeStaticMesh());
-    EXPECT_FALSE(AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<SkeletalMesh>(), payload).IsValid());
+    EXPECT_FALSE(AssetSubsystem::DeserializeAssetPayload(TypeId::Of<SkeletalMesh>(), payload).IsValid());
 }
 
 TEST(AssetPayloadTest, WorkerThreadsDeserializePayloadsConcurrently)
@@ -503,15 +503,15 @@ TEST(AssetPayloadTest, WorkerThreadsDeserializePayloadsConcurrently)
     // 비동기 로드는 워커 스레드에서 payload를 역직렬화하므로, 여러 스레드가 여러 에셋 타입을 동시에 읽어도 모두 성공해야 함
     struct TypedPayload
     {
-        TypeId_v1 type;
+        TypeId type;
         Array<u8> bytes;
     };
     const TypedPayload payloads[] = {
-        { TypeId_v1::Of<StaticMesh>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeStaticMesh()) },
-        { TypeId_v1::Of<SkeletalMesh>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeSkeletalMesh()) },
-        { TypeId_v1::Of<Texture2D>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeTexture2D()) },
-        { TypeId_v1::Of<Material>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeMaterial()) },
-        { TypeId_v1::Of<MaterialInstance>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeMaterialInstance()) },
+        { TypeId::Of<StaticMesh>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeStaticMesh()) },
+        { TypeId::Of<SkeletalMesh>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeSkeletalMesh()) },
+        { TypeId::Of<Texture2D>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeTexture2D()) },
+        { TypeId::Of<Material>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeMaterial()) },
+        { TypeId::Of<MaterialInstance>(), AssetSubsystem::SerializeAssetPayload(test_assets::MakeMaterialInstance()) },
     };
 
     constexpr usize THREAD_COUNT = 8;

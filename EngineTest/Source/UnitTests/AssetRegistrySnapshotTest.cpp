@@ -13,7 +13,6 @@
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include "SDL3/SDL_filesystem.h"
 
@@ -28,36 +27,6 @@ using namespace se;
 // 메타데이터 타입은 .meta와 에디터가 쓰는 레거시 리플렉션에도 등록되어 있어, 한쪽에만 필드를 추가하는 실수를 잡기 위해 두 등록을 비교
 namespace
 {
-/** 타입 하나를 두 레지스트리에서 찾을 TypeId */
-struct DualTypeIds
-{
-    TypeId id;
-    TypeId_v1 legacy_id;
-};
-
-/** T의 두 TypeId를 만듭니다. 둘 다 타입 이름의 해시라 등록 템플릿을 인스턴스화하지 않습니다. */
-template <typename T>
-[[nodiscard]] DualTypeIds IdsOf()
-{
-    return { .id = TypeId::Of<T>(), .legacy_id = TypeId_v1::Of<T>() };
-}
-
-/** 이름들을 ", "로 이어 붙입니다. 실패 메시지에 두 목록이 그대로 보이도록 문자열로 비교합니다. */
-template <std::ranges::input_range Names>
-[[nodiscard]] std::string JoinNames(Names&& names)
-{
-    std::string joined;
-    for (const StringView name : names)
-    {
-        if (!joined.empty())
-        {
-            joined += ", ";
-        }
-        joined += std::string_view{ name };
-    }
-    return joined;
-}
-
 /** SDL 사용자 경로 아래의 테스트용 파일 경로. 소멸할 때 디렉터리째 지웁니다. */
 class TempFile
 {
@@ -97,7 +66,7 @@ private:
 }
 
 /** sub-asset 하나와 의존성 하나를 가진 메타데이터를 만듭니다. */
-[[nodiscard]] AssetMetadata MakeMetadata(const AssetId& id, const TypeId_v1& type)
+[[nodiscard]] AssetMetadata MakeMetadata(const AssetId& id, TypeId type)
 {
     return {
         .guid = id.GetGuid(),
@@ -140,34 +109,6 @@ void ExpectSameRecord(const AssetRegistry& expected, const AssetRegistry& actual
 } // namespace
 
 
-TEST(AssetRegistrySnapshotTest, BothRegistrationsListSameFields)
-{
-    const DualTypeIds snapshot_types[] = {
-        IdsOf<AssetDependencyEntry>(),
-        IdsOf<SubAssetMeta>(),
-        IdsOf<AssetMetadata>(),
-        IdsOf<AssetRecord>(),
-    };
-
-    for (const DualTypeIds& type : snapshot_types)
-    {
-        const auto legacy_info = TypeRegistry_v1::Get().Find(type.legacy_id);
-        ASSERT_TRUE(legacy_info.HasValue());
-        SCOPED_TRACE(std::string_view{ legacy_info->name });
-
-        const auto info = TypeRegistry::Get().Find(type.id);
-        ASSERT_TRUE(info.HasValue()) << "The type is not registered with SE_REFLECT_BEGIN.";
-        const auto struct_info = info->AsStruct();
-        ASSERT_TRUE(struct_info.HasValue());
-
-        // 이름과 순서가 모두 같아야 함
-        EXPECT_EQ(
-            JoinNames(struct_info->fields | std::views::transform(&FieldInfo::name)),
-            JoinNames(legacy_info->properties | std::views::transform(&PropertyInfo_v1::name))
-        );
-    }
-}
-
 TEST(AssetRegistrySnapshotTest, SnapshotRoundTripRestoresRecordsAndIndexes)
 {
     const TempFile file{ "RoundTrip.bin" };
@@ -175,8 +116,8 @@ TEST(AssetRegistrySnapshotTest, SnapshotRoundTripRestoresRecordsAndIndexes)
     AssetRegistry original;
     const AssetId mesh_id{ Guid::NewGuid() };
     const AssetId texture_id{ Guid::NewGuid() };
-    original.RegisterAsset(mesh_id, TypeId_v1::Of<StaticMesh>(), AssetPath{ "Assets://Hero.fbx#Mesh_Body" }, MakeMetadata(mesh_id, TypeId_v1::Of<StaticMesh>()));
-    original.RegisterAsset(texture_id, TypeId_v1::Of<Texture2D>(), AssetPath{ "Assets://Wood.png" }, MakeMetadata(texture_id, TypeId_v1::Of<Texture2D>()));
+    original.RegisterAsset(mesh_id, TypeId::Of<StaticMesh>(), AssetPath{ "Assets://Hero.fbx#Mesh_Body" }, MakeMetadata(mesh_id, TypeId::Of<StaticMesh>()));
+    original.RegisterAsset(texture_id, TypeId::Of<Texture2D>(), AssetPath{ "Assets://Wood.png" }, MakeMetadata(texture_id, TypeId::Of<Texture2D>()));
     ASSERT_TRUE(original.SaveToFile(file.GetPath()));
 
     AssetRegistry loaded;
@@ -210,7 +151,7 @@ TEST(AssetRegistrySnapshotTest, CorruptedSnapshotIsRejectedWithoutTouchingRecord
 
     AssetRegistry original;
     const AssetId id{ Guid::NewGuid() };
-    original.RegisterAsset(id, TypeId_v1::Of<StaticMesh>(), AssetPath{ "Assets://Hero.fbx" }, MakeMetadata(id, TypeId_v1::Of<StaticMesh>()));
+    original.RegisterAsset(id, TypeId::Of<StaticMesh>(), AssetPath{ "Assets://Hero.fbx" }, MakeMetadata(id, TypeId::Of<StaticMesh>()));
     ASSERT_TRUE(original.SaveToFile(file.GetPath()));
 
     // 마지막 바이트를 바꾸면 체크섬에서 거절됨
@@ -223,7 +164,7 @@ TEST(AssetRegistrySnapshotTest, CorruptedSnapshotIsRejectedWithoutTouchingRecord
     // 이미 가진 레코드는 그대로 남아야 함
     AssetRegistry registry;
     const AssetId existing_id{ Guid::NewGuid() };
-    registry.RegisterAsset(existing_id, TypeId_v1::Of<Texture2D>(), AssetPath{ "Assets://Wood.png" }, MakeMetadata(existing_id, TypeId_v1::Of<Texture2D>()));
+    registry.RegisterAsset(existing_id, TypeId::Of<Texture2D>(), AssetPath{ "Assets://Wood.png" }, MakeMetadata(existing_id, TypeId::Of<Texture2D>()));
 
     EXPECT_FALSE(registry.LoadFromFile(file.GetPath()));
     EXPECT_EQ(registry.GetAssetCount(), 1u);

@@ -4,7 +4,8 @@
 #include "SimpleEngine/Asset/AssetPool.h"
 #include "SimpleEngine/Asset/SlotEntry.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 
 using namespace se;
@@ -12,16 +13,19 @@ using namespace se;
 
 // --- Mock Asset ---
 
-class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EvictionTestAsset : public AssetBase
+class EvictionTestAsset : public AssetBase
 {
-    SE_CLASS_V1(EvictionTestAsset, AssetBase)
-
 public:
+    SE_RTTI(EvictionTestAsset)
+
     EvictionTestAsset() = default;
 };
 
-SE_BEGIN_REFLECT_V1(EvictionTestAsset, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(EvictionTestAsset)
+SE_DECLARE_REFLECTION(EvictionTestAsset)
+
+SE_REFLECT_BEGIN(EvictionTestAsset)
+    SE_BASE(se::AssetBase)
+SE_REFLECT_END()
 
 
 namespace
@@ -38,7 +42,7 @@ HandleData SimulateLoad(
     AssetPool& pool, u64 size_bytes, u64 frame,
     EScopeLayer scope = EScopeLayer::Scene)
 {
-    HandleData hd = pool.FindOrCreate(NewId(), TypeId_v1::Of<EvictionTestAsset>(), AssetPath("test/eviction_asset"));
+    HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<EvictionTestAsset>(), AssetPath("test/eviction_asset"));
 
     HandleTable& table = pool.GetTable();
     SlotEntry& slot = table.GetSlot(hd.index);

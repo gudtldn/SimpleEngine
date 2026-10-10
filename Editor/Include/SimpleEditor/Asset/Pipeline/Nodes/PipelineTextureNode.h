@@ -5,7 +5,8 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/String.h"
-#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 
 namespace se
@@ -18,11 +19,13 @@ namespace se::editor
 /**
  * Texture의 원본 파일 정보 및 임포트 설정을 담당하는 노드
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineTextureNode final : public PipelineBaseNode
+class SE_EDITOR_API PipelineTextureNode final : public PipelineBaseNode
 {
-    SE_CLASS_V1(PipelineTextureNode, PipelineBaseNode)
+    friend struct ::se::Registrar<PipelineTextureNode>;
 
 public:
+    SE_RTTI(PipelineTextureNode)
+
     struct Keys
     {
         inline static const StringName SOURCE_FILE     = "SourceFile";      // String: 외부 파일 경로
@@ -62,3 +65,5 @@ private:
     Array<u8> embedded_bytes;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::PipelineTextureNode, SE_EDITOR_API)

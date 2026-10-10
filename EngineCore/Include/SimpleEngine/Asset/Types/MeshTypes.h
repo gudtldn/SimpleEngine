@@ -3,8 +3,10 @@
 #include "SimpleEngine/Asset/AssetId.h"
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 
@@ -13,11 +15,11 @@ namespace se
 /**
  * @todo docs
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect) StaticMesh : public AssetBase
+class SE_CORE_API StaticMesh : public AssetBase
 {
-    SE_CLASS_V1(StaticMesh, AssetBase)
-
 public:
+    SE_RTTI(StaticMesh)
+
     // 추후 Depth Prepass를 위한 Position정보와 나머지 Vertex정보를 분리해서
     // 하이브리드 SoA 방식으로 구조를 변경해 볼 수도 있음.
     // (GPU Buffer를 positions +(pad) attributes +(pad) indices로 할당해서, Buffer를 2개로 나눠 Slot0, 1에 할당)
@@ -29,51 +31,48 @@ public:
     //     Vector4f tangent;
     // }
     //
-    // SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     // Array<Vector3f> positions;
     //
-    // SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     // Array<VertexAttributes> attributes;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(vertices, display::ReadOnly)
     Array<StaticVertex> vertices;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(indices, display::ReadOnly)
     Array<u32> indices;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(lods, display::ReadOnly)
     Array<MeshLOD> lods;
 
     /** 3D Model Import시 자동 추출된 기본 머티리얼 ID 목록 */
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(default_materials, display::ReadOnly)
     Array<AssetId> default_materials;
 
     /** StaticMesh 전체의 바운딩 박스 */
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(bounds, display::ReadOnly)
     AABBf bounds;
 };
 
 /**
  * @todo docs
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect) SkeletalMesh : public AssetBase
+class SE_CORE_API SkeletalMesh : public AssetBase
 {
-    SE_CLASS_V1(SkeletalMesh, AssetBase)
-
 public:
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_RTTI(SkeletalMesh)
+
+    SE_ANNOTATE(vertices, display::ReadOnly)
     Array<StaticVertex> vertices;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(skin_vertices, display::ReadOnly)
     Array<SkinVertex> skin_vertices;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(indices, display::ReadOnly)
     Array<u32> indices;
 
-    // SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
     // Array<Material> materials;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(bounds, display::ReadOnly)
     AABBf bounds;
 
     // 뼈대 정보 (계층 구조, InverseBindPose 등)는 별도 구조체로 관리

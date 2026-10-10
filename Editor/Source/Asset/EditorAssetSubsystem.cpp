@@ -25,9 +25,11 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
+#include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
@@ -542,7 +544,6 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
     if (meta_content_opt.HasValue() && !meta_content_opt->processor_stack.IsEmpty())
     {
         PipelineProcessorStack stack;
-        const TypeRegistry_v1& type_registry = TypeRegistry_v1::Get();
 
         for (const ProcessorEntry& entry : meta_content_opt->processor_stack)
         {
@@ -551,29 +552,35 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
                 continue;
             }
 
-            const auto info_opt = type_registry.Find(entry.processor_type);
-            if (!info_opt.HasValue() || !info_opt->constructor)
+            const TypeId processor_type = entry.processor_type;
+            const auto info = TypeRegistry::Get().Find(processor_type);
+            const auto ops = ValueOpsRegistry::Get().Find(processor_type);
+            const auto record = TypeRecordRegistry::Get().Find(processor_type);
+            if (!info || !ops || !ops->new_object || !record)
             {
                 ConsoleLog(
                     ELogLevel::Warning,
-                    "CookAsset: Processor type not found or not constructible: {}",
-                    entry.processor_type.GetName()
+                    "CookAsset: Processor type not found or not constructible: {:#x}",
+                    processor_type.Value()
                 );
                 continue;
             }
 
-            if (!IsChildOf_v1<IPipelineProcessor>(info_opt->type_id))
+            if (!IsA<IPipelineProcessor>(processor_type))
             {
                 ConsoleLog(
                     ELogLevel::Warning,
                     "CookAsset: Processor type does not implement IPipelineProcessor (Skipping): {}",
-                    entry.processor_type.GetName()
+                    info->name
                 );
                 continue;
             }
 
-            void* raw = info_opt->constructor();
-            IPipelineProcessor* processor = CastFromRaw_v1<IPipelineProcessor>(raw, info_opt->type_id);
+            // new_object는 new T로 만들므로 IPipelineProcessor의 가상 소멸자로 해제할 수 있음
+            void* const raw = ops->new_object();
+            IPipelineProcessor* const processor = static_cast<IPipelineProcessor*>(
+                CastById(raw, processor_type, TypeId::Of<IPipelineProcessor>(), *record)
+            );
 
             stack.AddProcessor(std::unique_ptr<IPipelineProcessor>(processor));
         }
@@ -658,7 +665,7 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             continue;
         }
 
-        const TypeId_v1 asset_type = entry.asset->GetTypeId();
+        const TypeId asset_type = entry.asset->GetTypeRecord()->id;
         AssetPath asset_path = AssetPath{ file_vpath, entry.name };
         const AssetId asset_id = entry.asset_id;
 
