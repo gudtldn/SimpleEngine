@@ -32,7 +32,7 @@ void World::DestroyEntity(Entity entity)
     entity_manager.Destroy(entity);
 }
 
-IComponentStorage* World::FindRawStorage(const TypeId_v1& type_id)
+IComponentStorage* World::FindRawStorage(TypeId type_id)
 {
     if (const auto storage = component_storages.Find(type_id))
     {
@@ -42,7 +42,7 @@ IComponentStorage* World::FindRawStorage(const TypeId_v1& type_id)
     return nullptr;
 }
 
-const IComponentStorage* World::FindRawStorage(const TypeId_v1& type_id) const
+const IComponentStorage* World::FindRawStorage(TypeId type_id) const
 {
     if (const auto storage = component_storages.Find(type_id))
     {
@@ -52,7 +52,7 @@ const IComponentStorage* World::FindRawStorage(const TypeId_v1& type_id) const
     return nullptr;
 }
 
-IComponentStorage* World::GetOrCreateRawStorage(const TypeId_v1& type_id)
+IComponentStorage* World::GetOrCreateRawStorage(TypeId type_id)
 {
     if (const auto storage = component_storages.Find(type_id))
     {

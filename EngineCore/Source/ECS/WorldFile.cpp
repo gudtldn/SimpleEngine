@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Math/Random.h"
-#include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/Archive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
@@ -132,41 +131,28 @@ struct ReadableComponent
     return ids;
 }
 
-/** 새 리플렉션 TypeId로 ECSRegistry에 등록된 컴포넌트의 ComponentOps를 찾습니다. */
-[[nodiscard]] Optional<const ComponentOps&> FindComponentOps(TypeId type)
+/** 오류 메시지에 쓸 타입 이름을 돌려줍니다. 등록되지 않은 타입이면 해시를 씁니다. */
+[[nodiscard]] String TypeNameOrHashOf(TypeId type_id)
 {
-    for (const ComponentOps& ops : ECSRegistry::Get().GetComponentOpsMap() | std::views::values)
-    {
-        if (ops.type == type)
-        {
-            return ops;
-        }
-    }
-    return NullOpt;
-}
-
-/** 오류 메시지에 쓸 레거시 타입 이름을 돌려줍니다. 레거시 리플렉션에도 없는 타입이면 해시를 씁니다. */
-[[nodiscard]] String LegacyTypeNameOf(const TypeId_v1& type_id)
-{
-    if (const auto info = TypeRegistry_v1::Get().Find(type_id))
+    if (const auto info = TypeRegistry::Get().Find(type_id))
     {
         return { info->name };
     }
-    return String::Format("type hash {:#x}", type_id.GetHash());
+    return String::Format("type hash {:#x}", type_id.Value());
 }
 
 /**
  * 저장소 하나의 컴포넌트를 저장하는 데 필요한 정보를 만듭니다. Transient가 붙은 타입은 저장하지 않으므로 NullOpt입니다.
  * 등록되지 않은 타입이라 저장할 수 없으면 그 이유를 error에 담습니다.
  */
-[[nodiscard]] Optional<SavedComponent> MakeSavedComponent(const TypeId_v1& legacy_type, const IComponentStorage& storage)
+[[nodiscard]] Optional<SavedComponent> MakeSavedComponent(TypeId type, const IComponentStorage& storage)
 {
-    const auto ops = ECSRegistry::Get().GetComponentOps(legacy_type);
+    const auto ops = ECSRegistry::Get().GetComponentOps(type);
     if (!ops)
     {
         return SavedComponent{
             .storage = &storage,
-            .error = String::Format("component '{}' is not registered as an ECS component (meta::Component).", LegacyTypeNameOf(legacy_type)),
+            .error = String::Format("component '{}' is not registered as an ECS component (ecs::Component).", TypeNameOrHashOf(type)),
         };
     }
 
@@ -178,7 +164,7 @@ struct ReadableComponent
             .storage = &storage,
             .error = String::Format(
                 "component '{}' is not registered with SE_REFLECT_BEGIN. Register its fields, or annotate it with Transient if it must not be saved.",
-                LegacyTypeNameOf(legacy_type)),
+                TypeNameOrHashOf(type)),
         };
     }
     if (info->annotations.Has<serde::TransientAnnotation>())
@@ -198,7 +184,7 @@ struct ReadableComponent
 [[nodiscard]] Expected<ReadableComponent, String> ResolveComponent(TypeId type, StringView type_name)
 {
     const auto info = TypeRegistry::Get().Find(type);
-    const auto ops = FindComponentOps(type);
+    const auto ops = ECSRegistry::Get().GetComponentOps(type);
     if (!info || !ops)
     {
         return ReadableComponent{ .kind = ReadableComponent::EKind::Unknown };
@@ -524,9 +510,9 @@ Expected<void, String> WorldFile::Save(ArchiveWriter& writer)
 
     // 컴포넌트 타입마다 한 번만 정보를 모으고, 바이너리 포맷도 같은 출력이 되게 이름순으로 씀
     Array<SavedComponent> saved_components;
-    for (const auto& [legacy_type, storage] : world.component_storages)
+    for (const auto& [type, storage] : world.component_storages)
     {
-        if (auto saved = MakeSavedComponent(legacy_type, *storage))
+        if (auto saved = MakeSavedComponent(type, *storage))
         {
             saved_components.Push(*std::move(saved));
         }

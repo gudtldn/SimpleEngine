@@ -1,33 +1,28 @@
 #include "SimpleEngine/Core/Time/Time.h"
 
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
-#include "SimpleEngine/ECS/ECSReflectionHook.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Serialization/Transient.h"
+#include "SimpleEngine/ECS/ECSAnnotations.h"
 
 
-namespace se
-{
-// TODO: C++26에서 std::meta::access_context::unchecked()로 접근하면 friend가 필요 없어짐
-struct [[maybe_unused]] TimeResources_Registrar
-{
-    SE_BEGIN_REFLECT_V1(RealTime, meta::Reflect, meta::Transient, meta::Resource)
-        SE_REFLECT_PROPERTY_V1(delta, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(elapsed, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(frame_count, meta::Reflect, meta::ReadOnly)
-    SE_END_REFLECT_V1(RealTime)
+SE_REFLECT_BEGIN(se::detail::TimeState)
+    SE_FIELD(delta)
+    SE_FIELD(elapsed)
+    SE_FIELD(frame_count)
+SE_REFLECT_END()
 
-    SE_BEGIN_REFLECT_V1(GameTime, meta::Reflect, meta::Transient, meta::Resource)
-        SE_REFLECT_PROPERTY_V1(delta, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(elapsed, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(frame_count, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(time_scale, meta::Reflect, meta::Range(0.1f, 10.0f))
-        SE_REFLECT_PROPERTY_V1(paused, meta::Reflect)
-    SE_END_REFLECT_V1(GameTime)
+SE_REFLECT_BEGIN(se::RealTime, se::serde::Transient, se::ecs::Resource)
+    SE_BASE(se::detail::TimeState)
+SE_REFLECT_END()
 
-    SE_BEGIN_REFLECT_V1(FixedTime, meta::Reflect, meta::Transient, meta::Resource)
-        SE_REFLECT_PROPERTY_V1(delta, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(elapsed, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(frame_count, meta::Reflect, meta::ReadOnly)
-        SE_REFLECT_PROPERTY_V1(fixed_step, meta::Reflect)
-    SE_END_REFLECT_V1(FixedTime)
-};
-} // namespace se
+SE_REFLECT_BEGIN(se::GameTime, se::serde::Transient, se::ecs::Resource)
+    SE_BASE(se::detail::TimeState)
+    SE_FIELD(time_scale)
+    SE_FIELD(paused)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::FixedTime, se::serde::Transient, se::ecs::Resource)
+    SE_BASE(se::detail::TimeState)
+    SE_FIELD(fixed_step)
+    SE_FIELD(accumulator)
+SE_REFLECT_END()
