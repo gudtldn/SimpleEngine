@@ -310,41 +310,47 @@ if (is_active)
 
 ### 7.1. 클래스/구조체 등록
 
-`SE_CLASS` 매크로는 클래스 내부 최상단(접근 지정자 앞)에 선언합니다.
-리플렉션 프로퍼티 등록 코드(`SE_BEGIN_REFLECT` ~ `SE_END_REFLECT`)는 헤더가 아닌 `.cpp` 파일에 작성합니다.
+헤더에서는 네임스페이스를 닫은 뒤 `SE_DECLARE_REFLECTION`으로 등록을 선언합니다.
+필드 등록 코드(`SE_REFLECT_BEGIN` ~ `SE_REFLECT_END`)는 헤더가 아닌 `.cpp` 파일의 전역 범위에 작성합니다.
+리플렉션할 수 있는 필드는 모두 `SE_FIELD`로 등록하고, 부모가 등록된 타입이면 `SE_BASE`도 함께 적습니다.
 
 ```cpp
 // 헤더 (MyComponent.h)
-class SE_CORE_API MyComponent : public BaseComponent
-{
-    SE_CLASS(MyComponent, BaseComponent)
-
-public:
-    // ...
-};
-
-// 소스 (MyComponent.cpp)
 namespace se
 {
-SE_BEGIN_REFLECT(MyComponent, meta::Reflect, meta::Component)
-    SE_REFLECT_PROPERTY(health, meta::Property)
-    SE_REFLECT_PROPERTY(speed,  meta::Property, meta::ReadOnly)
-SE_END_REFLECT(MyComponent)
-}
+struct MyComponent
+{
+    i32 health = 100;
+    f32 speed = 1.0f;
+};
+} // namespace se
+
+SE_DECLARE_REFLECTION(se::MyComponent, SE_CORE_API)
+
+// 소스 (MyComponent.cpp)
+SE_REFLECT_BEGIN(se::MyComponent, se::ecs::Component)
+    SE_FIELD(health)
+    SE_FIELD(speed)
+SE_REFLECT_END()
 ```
+
+private 필드를 등록하려면 클래스 안에 `friend struct ::se::Registrar<MyClass>;`를 선언합니다.
+런타임 캐스팅(`Cast`, `IsA`)이 필요한 계층은 루트에 `SE_RTTI_ROOT()`, 파생 클래스에 `SE_RTTI(Type)`를 둡니다.
 
 ### 7.2. 어노테이션 (Annotation)
 
-`SE_ANNOTATION`은 클래스/구조체 선언부, 또는 멤버 변수 바로 위 줄에 단독으로 위치시킵니다.
+필드 어노테이션은 `SE_ANNOTATE`로 멤버 변수 바로 위 줄에 붙이고, 타입 어노테이션은 `SE_REFLECT_BEGIN`의 인자로 넘깁니다.
 > 추후 C++26의 표준 어노테이션으로 쉽게 대체하기 위함
 
 ```cpp
-struct SE_ANNOTATION(=meta::SerializeOnly) MySettings
+struct MySettings
 {
-    SE_ANNOTATION(=meta::Property)
-    String level = "info";
+    SE_ANNOTATE(version, display::ReadOnly)
+    u32 version = 1;
 
-    SE_ANNOTATION(=meta::Property, =meta::ReadOnly)
-    uint32 version = 1;
+    SE_ANNOTATE(cache, se::Ignore)
+    std::unique_ptr<Cache> cache;
 };
 ```
+
+포인터, 참조, 델리게이트처럼 리플렉션이 서술할 수 없는 필드는 빼지 말고 `se::Ignore`를 붙여 등록합니다.
