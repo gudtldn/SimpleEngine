@@ -2,7 +2,6 @@
 
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
-#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
@@ -60,10 +59,7 @@ void WorldResourcePanel::DrawContent()
 
             if (ImGui::TreeNodeEx(res_header.CStr(), ImGuiTreeNodeFlags_DefaultOpen))
             {
-                if (const auto legacy_info = TypeRegistry_v1::Get().Find(TypeId_v1::FromName(StringName{ type_info->name })))
-                {
-                    DrawerRegistry::Get().DrawProperties(*legacy_info, resource);
-                }
+                DrawerRegistry::Get().DrawProperties(*type_info, resource);
                 ImGui::TreePop();
             }
         }

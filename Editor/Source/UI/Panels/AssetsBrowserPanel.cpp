@@ -15,7 +15,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
@@ -614,8 +614,8 @@ bool AssetsBrowserPanel::DrawImportSettings()
         const StringView& type_name = info_opt->name;
         if (ImGui::TreeNodeEx(String(type_name).CStr(), ImGuiTreeNodeFlags_DefaultOpen))
         {
-            const auto legacy_info = TypeRegistry_v1::Get().Find(TypeId_v1::FromName(StringName{ type_name }));
-            if (legacy_info && drawer.DrawProperties(*legacy_info, settings_ptr.get()))
+            // 필드 오프셋은 가장 파생된 타입 기준이므로 완전 객체의 주소를 넘김
+            if (drawer.DrawProperties(*info_opt, CompleteObjectOf(settings_ptr.get())))
             {
                 modified = true;
             }
