@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
-  <!-- Vector2Impl Visualizer -->
+  <!-- ==================== 수학 ==================== -->
+
+  <!-- Vector2Impl<T> -->
   <Type Name="se::math::Vector2Impl&lt;*&gt;">
     <Intrinsic Name="LengthSq" Expression="x*x + y*y"/>
     <DisplayString>{{ x={x,g}, y={y,g} }}</DisplayString>
     <Expand>
       <Item Name="x">x</Item>
       <Item Name="y">y</Item>
-
-      <Item Name="||v||">sqrt(LengthSq())</Item>
-      <Item Name="||v||&#xB2;">LengthSq()</Item>
-
-      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
-        <DisplayString>{{ x={x / sqrt(LengthSq()),g}, y={y / sqrt(LengthSq()),g} }}</DisplayString>
-        <Expand>
-          <Item Name="x">x / sqrt(LengthSq())</Item>
-          <Item Name="y">y / sqrt(LengthSq())</Item>
-        </Expand>
-      </Synthetic>
+      <Item Name="[length]">sqrt(LengthSq())</Item>
+      <Item Name="[length_sq]">LengthSq()</Item>
     </Expand>
   </Type>
 
-  <!-- Vector3Impl Visualizer -->
+  <!-- Vector3Impl<T> -->
   <Type Name="se::math::Vector3Impl&lt;*&gt;">
     <Intrinsic Name="LengthSq" Expression="x*x + y*y + z*z"/>
     <DisplayString>{{ x={x,g}, y={y,g}, z={z,g} }}</DisplayString>
@@ -30,22 +23,12 @@
       <Item Name="x">x</Item>
       <Item Name="y">y</Item>
       <Item Name="z">z</Item>
-
-      <Item Name="||v||">sqrt(LengthSq())</Item>
-      <Item Name="||v||&#xB2;">LengthSq()</Item>
-
-      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
-        <DisplayString>{{ x={x / sqrt(LengthSq()),g}, y={y / sqrt(LengthSq()),g}, z={z / sqrt(LengthSq()),g} }}</DisplayString>
-        <Expand>
-          <Item Name="x">x / sqrt(LengthSq())</Item>
-          <Item Name="y">y / sqrt(LengthSq())</Item>
-          <Item Name="z">z / sqrt(LengthSq())</Item>
-        </Expand>
-      </Synthetic>
+      <Item Name="[length]">sqrt(LengthSq())</Item>
+      <Item Name="[length_sq]">LengthSq()</Item>
     </Expand>
   </Type>
 
-  <!-- Vector4Impl Visualizer -->
+  <!-- Vector4Impl<T> -->
   <Type Name="se::math::Vector4Impl&lt;*&gt;">
     <Intrinsic Name="LengthSq" Expression="x*x + y*y + z*z + w*w"/>
     <DisplayString>{{ x={x,g}, y={y,g}, z={z,g}, w={w,g} }}</DisplayString>
@@ -54,59 +37,48 @@
       <Item Name="y">y</Item>
       <Item Name="z">z</Item>
       <Item Name="w">w</Item>
-
-      <Item Name="||v||">sqrt(LengthSq())</Item>
-      <Item Name="||v||&#xB2;">LengthSq()</Item>
-
-      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
-        <DisplayString>{{ x={x / sqrt(LengthSq()),g}, y={y / sqrt(LengthSq()),g}, z={z / sqrt(LengthSq()),g}, w={w / sqrt(LengthSq()),g} }}</DisplayString>
-        <Expand>
-          <Item Name="x">x / sqrt(LengthSq())</Item>
-          <Item Name="y">y / sqrt(LengthSq())</Item>
-          <Item Name="z">z / sqrt(LengthSq())</Item>
-          <Item Name="w">w / sqrt(LengthSq())</Item>
-        </Expand>
-      </Synthetic>
+      <Item Name="[length]">sqrt(LengthSq())</Item>
+      <Item Name="[length_sq]">LengthSq()</Item>
     </Expand>
   </Type>
 
-  <!-- Matrix4x4 -->
+  <!-- Matrix4x4Impl<T> -->
   <Type Name="se::math::Matrix4x4Impl&lt;*&gt;">
-    <DisplayString>{{{{ {data[0],g}, {data[1],g}, {data[2],g}, {data[3],g} }}, ...}}</DisplayString>
+    <DisplayString>{{ {{ {data.data[0],g}, {data.data[1],g}, {data.data[2],g}, {data.data[3],g} }}, ... }}</DisplayString>
     <Expand>
       <Synthetic Name="[0]">
-        <DisplayString>{data[0],g}, {data[1],g}, {data[2],g}, {data[3],g}</DisplayString>
+        <DisplayString>{{ {data.data[0],g}, {data.data[1],g}, {data.data[2],g}, {data.data[3],g} }}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>&amp;data[0]</ValuePointer>
+            <ValuePointer>&amp;data.data[0]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
       <Synthetic Name="[1]">
-        <DisplayString>{data[4],g}, {data[5],g}, {data[6],g}, {data[7],g}</DisplayString>
+        <DisplayString>{{ {data.data[4],g}, {data.data[5],g}, {data.data[6],g}, {data.data[7],g} }}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>&amp;data[4]</ValuePointer>
+            <ValuePointer>&amp;data.data[4]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
       <Synthetic Name="[2]">
-        <DisplayString>{data[8],g}, {data[9],g}, {data[10],g}, {data[11],g}</DisplayString>
+        <DisplayString>{{ {data.data[8],g}, {data.data[9],g}, {data.data[10],g}, {data.data[11],g} }}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>&amp;data[8]</ValuePointer>
+            <ValuePointer>&amp;data.data[8]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
       <Synthetic Name="[3]">
-        <DisplayString>{data[12],g}, {data[13],g}, {data[14],g}, {data[15],g}</DisplayString>
+        <DisplayString>{{ {data.data[12],g}, {data.data[13],g}, {data.data[14],g}, {data.data[15],g} }}</DisplayString>
         <Expand>
           <ArrayItems>
             <Size>4</Size>
-            <ValuePointer>&amp;data[12]</ValuePointer>
+            <ValuePointer>&amp;data.data[12]</ValuePointer>
           </ArrayItems>
         </Expand>
       </Synthetic>
@@ -124,7 +96,7 @@
 
   <!-- Radian<T> -->
   <Type Name="se::math::AngleType&lt;*,se::math::RadianTag&gt;">
-    <DisplayString>{value,g}_rad</DisplayString>
+    <DisplayString>{value,g} rad</DisplayString>
     <Expand>
       <Item Name="value">value</Item>
       <Item Name="[deg]">value * 57.29577951308232</Item>
@@ -133,59 +105,35 @@
 
   <!-- RotatorImpl<T> -->
   <Type Name="se::math::RotatorImpl&lt;*&gt;">
-    <DisplayString>{{ P={pitch.value,g}°, R={roll.value,g}°, Y={yaw.value,g}° }}</DisplayString>
+    <DisplayString>{{ pitch={pitch}, roll={roll}, yaw={yaw} }}</DisplayString>
     <Expand>
-      <Item Name="Pitch (X)">pitch</Item>
-      <Item Name="Roll  (Y)">roll</Item>
-      <Item Name="Yaw   (Z)">yaw</Item>
+      <Item Name="pitch">pitch</Item>
+      <Item Name="roll">roll</Item>
+      <Item Name="yaw">yaw</Item>
     </Expand>
   </Type>
 
   <!-- QuaternionImpl<T> -->
   <Type Name="se::math::QuaternionImpl&lt;*&gt;">
     <Intrinsic Name="LengthSq" Expression="x*x + y*y + z*z + w*w"/>
-
     <DisplayString>{{ x={x,g}, y={y,g}, z={z,g}, w={w,g} }}</DisplayString>
     <Expand>
       <Item Name="x">x</Item>
       <Item Name="y">y</Item>
       <Item Name="z">z</Item>
       <Item Name="w">w</Item>
-
-      <Item Name="||q||">sqrt(LengthSq())</Item>
-
-      <Synthetic Name="[normalized]" Condition="LengthSq() != 0">
-        <DisplayString>{{ x={x/sqrt(LengthSq()),g}, y={y/sqrt(LengthSq()),g}, z={z/sqrt(LengthSq()),g}, w={w/sqrt(LengthSq()),g} }}</DisplayString>
-        <Expand>
-          <Item Name="x">x / sqrt(LengthSq())</Item>
-          <Item Name="y">y / sqrt(LengthSq())</Item>
-          <Item Name="z">z / sqrt(LengthSq())</Item>
-          <Item Name="w">w / sqrt(LengthSq())</Item>
-        </Expand>
-      </Synthetic>
-
-      <Synthetic Name="[conjugate]">
-        <DisplayString>{{ x={-x,g}, y={-y,g}, z={-z,g}, w={w,g} }}</DisplayString>
-        <Expand>
-          <Item Name="x">-x</Item>
-          <Item Name="y">-y</Item>
-          <Item Name="z">-z</Item>
-          <Item Name="w">w</Item>
-        </Expand>
-      </Synthetic>
+      <Item Name="[length]">sqrt(LengthSq())</Item>
     </Expand>
   </Type>
 
   <!-- AABBImpl<T> -->
   <Type Name="se::math::AABBImpl&lt;*&gt;">
     <Intrinsic Name="IsValid" Expression="min.x &lt;= max.x &amp;&amp; min.y &lt;= max.y &amp;&amp; min.z &lt;= max.z"/>
-
-    <DisplayString Condition="!IsValid()">Invalid</DisplayString>
-    <DisplayString Condition="IsValid()">{{ min={min}, max={max} }}</DisplayString>
+    <DisplayString Condition="!IsValid()">invalid</DisplayString>
+    <DisplayString>{{ min={min}, max={max} }}</DisplayString>
     <Expand>
       <Item Name="min">min</Item>
       <Item Name="max">max</Item>
-
       <Synthetic Name="[size]">
         <DisplayString>{{ x={max.x - min.x,g}, y={max.y - min.y,g}, z={max.z - min.z,g} }}</DisplayString>
         <Expand>
@@ -194,7 +142,6 @@
           <Item Name="z">max.z - min.z</Item>
         </Expand>
       </Synthetic>
-
       <Synthetic Name="[center]">
         <DisplayString>{{ x={(min.x + max.x) * 0.5,g}, y={(min.y + max.y) * 0.5,g}, z={(min.z + max.z) * 0.5,g} }}</DisplayString>
         <Expand>
@@ -217,85 +164,126 @@
 
   <!-- Color -->
   <Type Name="se::math::Color">
-    <Intrinsic Name="ToHexInt" Expression="((unsigned int)r &lt;&lt; 24) | ((unsigned int)g &lt;&lt; 16) | ((unsigned int)b &lt;&lt; 8) | (unsigned int)a" />
-
-    <DisplayString>{{ R={(int)r}, G={(int)g}, B={(int)b}, A={(int)a} }}</DisplayString>
+    <Intrinsic Name="ToHexInt" Expression="((unsigned int)r &lt;&lt; 24) | ((unsigned int)g &lt;&lt; 16) | ((unsigned int)b &lt;&lt; 8) | (unsigned int)a"/>
+    <DisplayString>{{ r={(int)r}, g={(int)g}, b={(int)b}, a={(int)a} }}</DisplayString>
     <Expand>
-      <Item Name="R">(int)r</Item>
-      <Item Name="G">(int)g</Item>
-      <Item Name="B">(int)b</Item>
-      <Item Name="A">(int)a</Item>
-
+      <Item Name="r">(int)r</Item>
+      <Item Name="g">(int)g</Item>
+      <Item Name="b">(int)b</Item>
+      <Item Name="a">(int)a</Item>
       <Item Name="[hex]">ToHexInt(),X</Item>
     </Expand>
   </Type>
 
   <!-- LinearColor -->
   <Type Name="se::math::LinearColor">
-    <DisplayString>{{ R={r,g}, G={g,g}, B={b,g}, A={a,g} }}</DisplayString>
+    <DisplayString>{{ r={r,g}, g={g,g}, b={b,g}, a={a,g} }}</DisplayString>
     <Expand>
-      <Item Name="R">r</Item>
-      <Item Name="G">g</Item>
-      <Item Name="B">b</Item>
-      <Item Name="A">a</Item>
-
+      <Item Name="r">r</Item>
+      <Item Name="g">g</Item>
+      <Item Name="b">b</Item>
+      <Item Name="a">a</Item>
       <Item Name="[luma]">r * 0.2126f + g * 0.7152f + b * 0.0722f</Item>
-      <Item Name="[max]">(r > g ? (r > b ? r : b) : (g > b ? g : b))</Item>
-      <Item Name="[is_hdr]">r > 1.0f || g > 1.0f || b > 1.0f</Item>
+      <Item Name="[max]">(r &gt; g ? (r &gt; b ? r : b) : (g &gt; b ? g : b))</Item>
+      <Item Name="[is_hdr]">r &gt; 1.0f || g &gt; 1.0f || b &gt; 1.0f</Item>
     </Expand>
   </Type>
 
-  <!-- Optional<T> -->
-  <Type Name="Optional&lt;*&gt;">
-    <DisplayString Condition="!is_value_set">nullopt</DisplayString>
-    <DisplayString Condition="is_value_set">{(const $T1&amp;)storage}</DisplayString>
+  <!-- ==================== 오류 처리 ==================== -->
+
+  <!-- Optional<T>, Optional<T*>, Optional<T&> -->
+  <Type Name="se::Optional&lt;*&gt;">
+    <DisplayString Condition="is_value_set" Optional="true">{storage.value}</DisplayString>
+    <DisplayString Condition="!is_value_set" Optional="true">none</DisplayString>
+    <DisplayString Condition="value_ptr != 0" Optional="true">{value_ptr}</DisplayString>
+    <DisplayString Condition="value_ptr == 0" Optional="true">none</DisplayString>
     <Expand>
-      <Item Name="[has_value]" ExcludeView="simple">is_value_set</Item>
-      <Item Name="[value]" Condition="is_value_set">(const $T1&amp;)storage</Item>
+      <Item Name="[value]" Condition="is_value_set" Optional="true">storage.value</Item>
+      <Item Name="is_value_set" Optional="true">is_value_set</Item>
+      <Item Name="value_ptr" Optional="true">value_ptr</Item>
     </Expand>
   </Type>
-
-  <!-- Optional<T&> -->
-  <!--  <Type Name="Optional&lt;*&amp;&gt;">-->
-  <!--    <Intrinsic Name="has_value" Expression="ref_ptr != 0"/>-->
-  <!--    <Intrinsic Name="get_value" Expression="*ref_ptr"/>-->
-  <!--    <DisplayString Condition="!has_value()">nullopt</DisplayString>-->
-  <!--    <DisplayString Condition="has_value()">{get_value()}</DisplayString>-->
-  <!--    <Expand>-->
-  <!--      <Item Name="[has_value]" ExcludeView="simple">has_value()</Item>-->
-  <!--      <Item Name="[value]" Condition="has_value()">get_value()</Item>-->
-  <!--      <Item Name="[address]" IncludeView="detailed">ref_ptr</Item>-->
-  <!--    </Expand>-->
-  <!--  </Type>-->
 
   <!-- Expected<T, E> -->
   <Type Name="se::Expected&lt;*,*&gt;">
     <DisplayString Condition="has_value">Ok({storage.value})</DisplayString>
     <DisplayString Condition="!has_value">Err({storage.error})</DisplayString>
     <Expand>
-      <ExpandedItem Condition="has_value">storage.value</ExpandedItem>
-      <ExpandedItem Condition="!has_value">storage.error</ExpandedItem>
+      <Item Name="[value]" Condition="has_value">storage.value</Item>
+      <Item Name="[error]" Condition="!has_value">storage.error</Item>
+      <Item Name="has_value">has_value</Item>
     </Expand>
   </Type>
 
   <!-- Expected<void, E> -->
   <Type Name="se::Expected&lt;void,*&gt;">
-    <DisplayString Condition="has_value">Ok(void)</DisplayString>
+    <DisplayString Condition="has_value">Ok()</DisplayString>
     <DisplayString Condition="!has_value">Err({storage.error})</DisplayString>
     <Expand>
-      <ExpandedItem Condition="!has_value">storage.error</ExpandedItem>
+      <Item Name="[error]" Condition="!has_value">storage.error</Item>
+      <Item Name="has_value">has_value</Item>
+    </Expand>
+  </Type>
+
+  <!-- ==================== 문자열과 경로 ==================== -->
+
+  <!-- String -->
+  <Type Name="se::BaseString&lt;*&gt;">
+    <DisplayString Condition="data.size &lt;= 1">""</DisplayString>
+    <DisplayString>{data.data,[data.size - 1]s8}</DisplayString>
+    <StringView Condition="data.size &gt; 1">data.data,[data.size - 1]s8</StringView>
+    <Expand>
+      <Item Name="[data]" Condition="data.size &gt; 1">data.data,[data.size - 1]s8</Item>
+      <Item Name="[length]">data.size == 0 ? 0 : data.size - 1</Item>
+      <Item Name="[capacity]">data.capacity == 0 ? 0 : data.capacity - 1</Item>
+    </Expand>
+  </Type>
+
+  <!-- StringView -->
+  <Type Name="se::StringView">
+    <DisplayString>{data_ptr,[data_len]s8}</DisplayString>
+    <StringView>data_ptr,[data_len]s8</StringView>
+    <Expand>
+      <Item Name="data_ptr">data_ptr,[data_len]s8</Item>
+      <Item Name="data_len">data_len</Item>
     </Expand>
   </Type>
 
   <!-- StringName -->
   <Type Name="se::StringName">
-    <DisplayString Condition="display_name == nullptr">None</DisplayString>
-    <DisplayString Condition="display_name != nullptr">{display_name,s8}</DisplayString>
+    <DisplayString Condition="display_name == nullptr">none</DisplayString>
+    <DisplayString>{display_name,s8}</DisplayString>
     <Expand>
-      <Item Name="[display_name]">display_name</Item>
-      <Item Name="[comparison_hash]">comparison_hash</Item>
+      <Item Name="comparison_hash">comparison_hash,X</Item>
+      <Item Name="display_name">display_name,s8</Item>
     </Expand>
   </Type>
+
+  <!-- Path -->
+  <Type Name="se::Path">
+    <DisplayString>{path}</DisplayString>
+    <Expand>
+      <Item Name="path">path</Item>
+    </Expand>
+  </Type>
+
+  <!-- VPath -->
+  <Type Name="se::VPath">
+    <DisplayString>{full_path}</DisplayString>
+    <Expand>
+      <Item Name="full_path">full_path</Item>
+      <Item Name="scheme_len">scheme_len</Item>
+      <Item Name="path_offset">path_offset</Item>
+      <Synthetic Name="[scheme]" Condition="scheme_len &gt; 0">
+        <DisplayString>{full_path.data.data,[scheme_len]s8}</DisplayString>
+      </Synthetic>
+      <Synthetic Name="[path]">
+        <DisplayString>{full_path.data.data + path_offset,s8}</DisplayString>
+      </Synthetic>
+    </Expand>
+  </Type>
+
+  <!-- ==================== 컨테이너 ==================== -->
 
   <!-- FixedArray<T, N> -->
   <Type Name="se::FixedArray&lt;*,*&gt;">
@@ -310,13 +298,12 @@
 
   <!-- Array<T> -->
   <Type Name="se::Array&lt;*&gt;">
-    <DisplayString Condition="size == 0 &amp;&amp; capacity == 0">Empty</DisplayString>
-    <DisplayString Condition="size &lt; 0">Invalid</DisplayString>
-    <DisplayString Condition="capacity &lt; size">Invalid</DisplayString>
-    <DisplayString Condition="capacity &gt;= size">{{ size={size} capacity={capacity} }}</DisplayString>
+    <DisplayString Condition="capacity &lt; size">invalid</DisplayString>
+    <DisplayString Condition="size == 0">empty</DisplayString>
+    <DisplayString>{{ size={size}, capacity={capacity} }}</DisplayString>
     <Expand>
-      <Item Name="[size]">size</Item>
-      <Item Name="[capacity]">capacity</Item>
+      <Item Name="size">size</Item>
+      <Item Name="capacity">capacity</Item>
       <ArrayItems>
         <Size>size</Size>
         <ValuePointer>data</ValuePointer>
@@ -324,14 +311,28 @@
     </Expand>
   </Type>
 
-  <!-- String -->
-  <Type Name="se::BaseString&lt;*&gt;">
-    <DisplayString>{data.data,s8}</DisplayString>
-    <StringView>data.data,s8</StringView>
+  <!-- ArrayView<T, DynamicExtent>: 디버거에 따라 DynamicExtent가 -1로 표기됩니다. -->
+  <Type Name="se::ArrayView&lt;*,18446744073709551615&gt;">
+    <AlternativeType Name="se::ArrayView&lt;*,-1&gt;"/>
+    <DisplayString Condition="data_len == 0">empty</DisplayString>
+    <DisplayString>{{ size={data_len} }}</DisplayString>
     <Expand>
-      <Item Name="[length]">data.size</Item>
-      <Item Name="[capacity]">data.capacity</Item>
-      <Item Name="[buffer]">data.data,s8</Item>
+      <Item Name="data_len">data_len</Item>
+      <ArrayItems>
+        <Size>data_len</Size>
+        <ValuePointer>data_ptr</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <!-- ArrayView<T, N> -->
+  <Type Name="se::ArrayView&lt;*,*&gt;">
+    <DisplayString>{{ size={$T2} }}</DisplayString>
+    <Expand>
+      <ArrayItems>
+        <Size>$T2</Size>
+        <ValuePointer>data_ptr</ValuePointer>
+      </ArrayItems>
     </Expand>
   </Type>
 
@@ -353,9 +354,9 @@
 
   <!-- HashSet<T> -->
   <Type Name="se::HashSet&lt;*&gt;">
-    <DisplayString>{internal_map}</DisplayString>
+    <DisplayString>{internal_set}</DisplayString>
     <Expand>
-      <ExpandedItem>internal_map</ExpandedItem>
+      <ExpandedItem>internal_set</ExpandedItem>
     </Expand>
   </Type>
 
@@ -369,9 +370,9 @@
 
   <!-- Set<T> -->
   <Type Name="se::Set&lt;*&gt;">
-    <DisplayString>{internal_map}</DisplayString>
+    <DisplayString>{internal_set}</DisplayString>
     <Expand>
-      <ExpandedItem>internal_map</ExpandedItem>
+      <ExpandedItem>internal_set</ExpandedItem>
     </Expand>
   </Type>
 
@@ -391,54 +392,36 @@
     </Expand>
   </Type>
 
-  <!-- ArrayView<T, DynamicExtent> -->
-  <Type Name="se::ArrayView&lt;*,18446744073709551615&gt;">
-    <DisplayString Condition="data_len == 0">Empty</DisplayString>
-    <DisplayString Condition="data_len &gt; 0">{{ size={data_len} }}</DisplayString>
-    <Expand>
-      <Item Name="[size]">data_len</Item>
-      <Item Name="[data]">data_ptr</Item>
-      <ArrayItems>
-        <Size>data_len</Size>
-        <ValuePointer>data_ptr</ValuePointer>
-      </ArrayItems>
-    </Expand>
-  </Type>
-
-  <!-- ArrayView<T, N> (static extent) -->
-  <Type Name="se::ArrayView&lt;*,*&gt;">
-    <DisplayString>{{ size={$T2} }}</DisplayString>
-    <Expand>
-      <Item Name="[size]">$T2</Item>
-      <Item Name="[data]">data_ptr</Item>
-      <ArrayItems>
-        <Size>$T2</Size>
-        <ValuePointer>data_ptr</ValuePointer>
-      </ArrayItems>
-    </Expand>
-  </Type>
-
-  <!-- StringView -->
-  <Type Name="se::StringView">
-    <DisplayString>{data_ptr,[data_len]s8}</DisplayString>
-    <StringView>data_ptr,[data_len]s8</StringView>
-    <Expand>
-      <Item Name="[length]">data_len</Item>
-      <Item Name="[data]">data_ptr,[data_len]s8</Item>
-      <Item Name="[is_empty]">data_len == 0</Item>
-    </Expand>
-  </Type>
+  <!-- ==================== 값 타입 ==================== -->
 
   <!-- Guid -->
   <Type Name="se::Guid">
-    <DisplayString>
-      <!-- https://stackoverflow.com/questions/17436643/i-am-looking-for-a-proper-way-to-display-a-uuid-via-natvis-in-vs2012 -->
-      {data[0],nvoXb}{data[1],nvoXb}{data[2],nvoXb}{data[3],nvoXb}-{data[4],nvoXb}{data[5],nvoXb}-{data[6],nvoXb}{data[7],nvoXb}-{data[8],nvoXb}{data[9],nvoXb}-{data[10],nvoXb}{data[11],nvoXb}{data[12],nvoXb}{data[13],nvoXb}{data[14],nvoXb}{data[15],nvoXb}
-    </DisplayString>
+    <!-- https://stackoverflow.com/questions/17436643/i-am-looking-for-a-proper-way-to-display-a-uuid-via-natvis-in-vs2012 -->
+    <DisplayString>{data.data[0],nvoXb}{data.data[1],nvoXb}{data.data[2],nvoXb}{data.data[3],nvoXb}-{data.data[4],nvoXb}{data.data[5],nvoXb}-{data.data[6],nvoXb}{data.data[7],nvoXb}-{data.data[8],nvoXb}{data.data[9],nvoXb}-{data.data[10],nvoXb}{data.data[11],nvoXb}{data.data[12],nvoXb}{data.data[13],nvoXb}{data.data[14],nvoXb}{data.data[15],nvoXb}</DisplayString>
     <Expand>
-      <Item Name="[Raw Bytes]">data</Item>
+      <Item Name="data">data</Item>
     </Expand>
   </Type>
+
+  <!-- HashDigest<N>: 앞 8바이트만 표시합니다. -->
+  <Type Name="se::HashDigest&lt;*&gt;">
+    <DisplayString>{data.data[0],nvoXb}{data.data[1],nvoXb}{data.data[2],nvoXb}{data.data[3],nvoXb}{data.data[4],nvoXb}{data.data[5],nvoXb}{data.data[6],nvoXb}{data.data[7],nvoXb}...</DisplayString>
+    <Expand>
+      <Item Name="data">data</Item>
+    </Expand>
+  </Type>
+
+  <!-- BitFlags<E> -->
+  <Type Name="se::BitFlags&lt;*&gt;">
+    <DisplayString>{($T1)mask_value}</DisplayString>
+    <Expand>
+      <Item Name="mask_value">(unsigned long long)mask_value,X</Item>
+      <Item Name="[flags]">($T1)mask_value</Item>
+      <Item Name="[bits]">(unsigned long long)mask_value,b</Item>
+    </Expand>
+  </Type>
+
+  <!-- ==================== 에셋 ==================== -->
 
   <!-- AssetId -->
   <Type Name="se::AssetId">
@@ -448,55 +431,202 @@
     </Expand>
   </Type>
 
-  <!-- Path -->
-  <Type Name="se::Path">
-    <DisplayString>{internal_path}</DisplayString>
-    <Expand>
-      <ExpandedItem>internal_path</ExpandedItem>
-    </Expand>
-  </Type>
-
-  <!-- VPath -->
-  <Type Name="se::VPath">
-    <DisplayString>{full_path}</DisplayString>
-    <Expand>
-      <Item Name="[full_path]">full_path</Item>
-      <Synthetic Name="[scheme]" Condition="scheme_len > 0">
-        <DisplayString>{full_path.data.data,[scheme_len]s8}</DisplayString>
-      </Synthetic>
-      <Synthetic Name="[path]">
-        <DisplayString>{full_path.data.data + path_offset,s8}</DisplayString>
-      </Synthetic>
-    </Expand>
-  </Type>
-
   <!-- AssetPath -->
   <Type Name="se::AssetPath">
-    <DisplayString Condition="sub_asset_name.data.size == 0">{file_path}</DisplayString>
-    <DisplayString Condition="sub_asset_name.data.size != 0">{file_path}#{sub_asset_name}</DisplayString>
+    <DisplayString Condition="sub_asset_name.data.size &lt;= 1">{file_path}</DisplayString>
+    <DisplayString>{file_path}#{sub_asset_name}</DisplayString>
     <Expand>
       <Item Name="file_path">file_path</Item>
       <Item Name="sub_asset_name">sub_asset_name</Item>
     </Expand>
   </Type>
 
-  <!-- AssetHandle<T> -->
+  <!-- AssetHandle<T>: asset, ref_count, state는 MSVC std::atomic의 내부 멤버(_Storage._Value)를 읽습니다. -->
   <Type Name="se::AssetHandle&lt;*&gt;">
     <Intrinsic Name="GetSlot" Expression="table->slots.data[index]"/>
     <Intrinsic Name="IsStale" Expression="GetSlot().generation != generation"/>
     <Intrinsic Name="GetAsset" Expression="($T1*)GetSlot().asset._Storage._Value"/>
-
     <DisplayString Condition="table == 0 || index == 0xFFFFFFFF">invalid</DisplayString>
     <DisplayString Condition="IsStale()">stale</DisplayString>
-    <DisplayString Condition="!IsStale()">{GetAsset()}</DisplayString>
+    <DisplayString>{GetAsset()}</DisplayString>
     <Expand>
+      <Item Name="index">index</Item>
+      <Item Name="generation">generation</Item>
+      <Item Name="table">table</Item>
       <Item Name="[asset]" Condition="!IsStale()">GetAsset()</Item>
-      <Item Name="[state]" Condition="!IsStale()">GetSlot().state._Storage._Value</Item>
       <Item Name="[ref_count]" Condition="!IsStale()">GetSlot().ref_count._Storage._Value</Item>
+      <Item Name="[state]" Condition="!IsStale()">GetSlot().state._Storage._Value</Item>
       <Item Name="[path]" Condition="!IsStale()">GetSlot().source_path</Item>
-      <Item Name="[index]">index</Item>
-      <Item Name="[generation]">generation</Item>
-      <Item Name="[table]">table</Item>
     </Expand>
+  </Type>
+
+  <!-- ==================== ECS ==================== -->
+
+  <!-- Entity -->
+  <Type Name="se::Entity">
+    <DisplayString Condition="id == 0xFFFFFFFF">invalid</DisplayString>
+    <DisplayString>{{ id={id}, generation={generation} }}</DisplayString>
+    <Expand>
+      <Item Name="id">id</Item>
+      <Item Name="generation">generation</Item>
+    </Expand>
+  </Type>
+
+  <!-- ==================== 그래픽스 ==================== -->
+
+  <!-- RID -->
+  <Type Name="se::RID">
+    <DisplayString Condition="index == 0xFFFFFFFF || generation == 0">invalid</DisplayString>
+    <DisplayString>{{ index={index}, generation={generation} }}</DisplayString>
+    <Expand>
+      <Item Name="index">index</Item>
+      <Item Name="generation">generation</Item>
+    </Expand>
+  </Type>
+
+  <!-- ==================== 리플렉션 ==================== -->
+
+  <!-- TypeId: 이름은 레지스트리 조회가 필요해 해시만 표시합니다. -->
+  <Type Name="se::TypeId">
+    <DisplayString Condition="hash == 0">none</DisplayString>
+    <DisplayString>{hash,X}</DisplayString>
+    <Expand>
+      <Item Name="hash">hash,X</Item>
+    </Expand>
+  </Type>
+
+  <!-- TypeInfo -->
+  <Type Name="se::TypeInfo">
+    <DisplayString>{{ name={name}, size={size}, alignment={alignment} }}</DisplayString>
+    <Expand>
+      <Item Name="id">id</Item>
+      <Item Name="name">name</Item>
+      <Item Name="size">size</Item>
+      <Item Name="alignment">alignment</Item>
+      <Item Name="shape">shape</Item>
+      <Item Name="annotations">annotations</Item>
+    </Expand>
+  </Type>
+
+  <!-- TypeRecord -->
+  <Type Name="se::TypeRecord">
+    <DisplayString>{{ name={name}, all_bases={all_bases} }}</DisplayString>
+    <Expand>
+      <Item Name="id">id</Item>
+      <Item Name="name">name</Item>
+      <Item Name="all_bases">all_bases</Item>
+    </Expand>
+  </Type>
+
+  <!-- CastEntry -->
+  <Type Name="se::CastEntry">
+    <DisplayString>{{ type={type}, offset={offset} }}</DisplayString>
+    <Expand>
+      <Item Name="type">type</Item>
+      <Item Name="offset">offset</Item>
+    </Expand>
+  </Type>
+
+  <!-- AnnotationRef: value는 void*라 내용을 표시하지 않습니다. -->
+  <Type Name="se::AnnotationRef">
+    <DisplayString>{{ type={type} }}</DisplayString>
+    <Expand>
+      <Item Name="type">type</Item>
+      <Item Name="value">value</Item>
+    </Expand>
+  </Type>
+
+  <!-- AnnotationList -->
+  <Type Name="se::AnnotationList">
+    <DisplayString Condition="refs.data_len == 0">empty</DisplayString>
+    <DisplayString>{{ size={refs.data_len} }}</DisplayString>
+    <Expand>
+      <ExpandedItem>refs</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- EnumEntry -->
+  <Type Name="se::EnumEntry">
+    <DisplayString>{{ value={value}, name={name} }}</DisplayString>
+    <Expand>
+      <Item Name="value">value</Item>
+      <Item Name="name">name</Item>
+    </Expand>
+  </Type>
+
+  <!-- FieldInfo -->
+  <Type Name="se::FieldInfo">
+    <DisplayString>{{ name={name}, type={type}, offset={offset} }}</DisplayString>
+    <Expand>
+      <Item Name="name">name</Item>
+      <Item Name="type">type</Item>
+      <Item Name="offset">offset</Item>
+      <Item Name="annotations">annotations</Item>
+    </Expand>
+  </Type>
+
+  <!-- BaseInfo -->
+  <Type Name="se::BaseInfo">
+    <DisplayString>{{ type={type}, offset={offset} }}</DisplayString>
+    <Expand>
+      <Item Name="type">type</Item>
+      <Item Name="offset">offset</Item>
+    </Expand>
+  </Type>
+
+  <!-- StructInfo -->
+  <Type Name="se::StructInfo">
+    <DisplayString>{{ bases={bases}, fields={fields} }}</DisplayString>
+    <Expand>
+      <Item Name="bases">bases</Item>
+      <Item Name="fields">fields</Item>
+    </Expand>
+  </Type>
+
+  <!-- ArrayInfo -->
+  <Type Name="se::ArrayInfo">
+    <DisplayString>{{ element={element} }}</DisplayString>
+    <Expand>
+      <Item Name="element">element</Item>
+    </Expand>
+  </Type>
+
+  <!-- SetInfo -->
+  <Type Name="se::SetInfo">
+    <DisplayString>{{ element={element} }}</DisplayString>
+    <Expand>
+      <Item Name="element">element</Item>
+    </Expand>
+  </Type>
+
+  <!-- MapInfo -->
+  <Type Name="se::MapInfo">
+    <DisplayString>{{ key={key}, value={value} }}</DisplayString>
+    <Expand>
+      <Item Name="key">key</Item>
+      <Item Name="value">value</Item>
+    </Expand>
+  </Type>
+
+  <!-- OptionalInfo -->
+  <Type Name="se::OptionalInfo">
+    <DisplayString>{{ inner={inner} }}</DisplayString>
+    <Expand>
+      <Item Name="inner">inner</Item>
+    </Expand>
+  </Type>
+
+  <!-- EnumInfo -->
+  <Type Name="se::EnumInfo">
+    <DisplayString>{{ underlying={underlying}, entries={entries} }}</DisplayString>
+    <Expand>
+      <Item Name="underlying">underlying</Item>
+      <Item Name="entries">entries</Item>
+    </Expand>
+  </Type>
+
+  <!-- OpaqueInfo -->
+  <Type Name="se::OpaqueInfo">
+    <DisplayString>{{ }}</DisplayString>
   </Type>
 </AutoVisualizer>
