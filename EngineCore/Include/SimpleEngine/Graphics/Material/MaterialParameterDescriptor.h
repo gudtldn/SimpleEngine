@@ -3,7 +3,6 @@
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Annotations.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 
 
@@ -22,22 +21,18 @@ enum class EMaterialParamType : u8
 /**
  * 머티리얼 파라미터 레이아웃 정보
  */
-struct SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
+struct SE_CORE_API MaterialParameterDescriptor
 {
     // 파라미터 식별 이름 (예: "BaseColor")
-    SE_ANNOTATION(=meta::Reflect)
     StringName name;
 
     // 데이터 타입
-    SE_ANNOTATION(=meta::Reflect)
     EMaterialParamType type = EMaterialParamType::Float4;
 
     // 버퍼 내 바이트 오프셋
-    SE_ANNOTATION(=meta::Reflect)
     u32 offset = 0;
 
     // 인스턴스 생성 시 기본값
-    SE_ANNOTATION(=meta::Reflect)
     Vector4f default_value = {};
 
     /** 이 파라미터가 차지하는 바이트 크기를 반환합니다. */
@@ -48,6 +43,5 @@ struct SE_CORE_API SE_ANNOTATION(=meta::Reflect) MaterialParameterDescriptor
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::MaterialParameterDescriptor)
 SE_DECLARE_REFLECTION(se::EMaterialParamType, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::MaterialParameterDescriptor, SE_CORE_API)

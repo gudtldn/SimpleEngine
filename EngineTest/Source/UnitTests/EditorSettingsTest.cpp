@@ -83,29 +83,6 @@ TEST(EditorSettingsTest, BothRegistrationsListSameFields)
     }
 }
 
-TEST(EditorSettingsTest, BothRegistrationsListSamePresentModeNames)
-{
-    const auto legacy_info = TypeRegistry_v1::Get().Find(TypeId_v1::Of<editor::EPresentMode>());
-    ASSERT_TRUE(legacy_info.HasValue());
-    ASSERT_NE(legacy_info->enum_entries, nullptr);
-
-    const EnumEntry_v1* legacy_data = nullptr;
-    usize legacy_count = 0;
-    legacy_info->enum_entries(legacy_data, legacy_count);
-    const ArrayView<const EnumEntry_v1> legacy_entries(legacy_data, legacy_count);
-
-    const auto info = TypeRegistry::Get().Find(TypeId::Of<editor::EPresentMode>());
-    ASSERT_TRUE(info.HasValue()) << "The enum is not registered with SE_REFLECT_ENUM_BEGIN.";
-    const auto enum_info = info->AsEnum();
-    ASSERT_TRUE(enum_info.HasValue());
-
-    // 레거시는 값을 자동으로 모으고 SE_REFLECT_ENUM_BEGIN은 SE_ENUM_VALUE로 적은 것만 가지므로, 값을 추가할 때 빠뜨리면 실패
-    EXPECT_EQ(
-        JoinNames(enum_info->entries | std::views::transform(&EnumEntry::name)),
-        JoinNames(legacy_entries | std::views::transform(&EnumEntry_v1::name))
-    );
-}
-
 TEST(EditorSettingsTest, WindowSettingsSerializesFromAnotherModule)
 {
     // Editor DLL이 등록한 타입을 이 실행 파일에서 EnsureRegistered하고 Plan을 만들어 씀

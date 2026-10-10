@@ -6,7 +6,6 @@
 
 namespace se::editor
 {
-SE_REFLECT_ENUM_V1(EPresentMode)
 
 SE_BEGIN_REFLECT_V1(WindowSettings, meta::Reflect, meta::Hidden)
     SE_REFLECT_PROPERTY_V1(title, meta::Reflect)
