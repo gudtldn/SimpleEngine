@@ -3,6 +3,8 @@
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
 #include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -45,8 +47,8 @@ void WorldResourcePanel::DrawContent()
                 continue;
             }
 
-            const Optional<const TypeInfo_v1&> type_info = TypeRegistry_v1::Get().Find(res_type);
-            if (!type_info || type_info->flags.IsAnySet(ETypeFlags_v1::Hidden))
+            const auto type_info = TypeRegistry::Get().Find(res_type);
+            if (!type_info || type_info->annotations.Has<display::HiddenAnnotation>())
             {
                 continue;
             }
@@ -58,7 +60,10 @@ void WorldResourcePanel::DrawContent()
 
             if (ImGui::TreeNodeEx(res_header.CStr(), ImGuiTreeNodeFlags_DefaultOpen))
             {
-                DrawerRegistry::Get().DrawProperties(*type_info, resource);
+                if (const auto legacy_info = TypeRegistry_v1::Get().Find(TypeId_v1::FromName(StringName{ type_info->name })))
+                {
+                    DrawerRegistry::Get().DrawProperties(*legacy_info, resource);
+                }
                 ImGui::TreePop();
             }
         }

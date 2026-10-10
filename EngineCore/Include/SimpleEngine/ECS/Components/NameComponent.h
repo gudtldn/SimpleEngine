@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se
@@ -10,12 +9,10 @@ namespace se
 /**
  * Entity에 이름을 지정하는 컴포넌트
  */
-struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) NameComponent
+struct SE_CORE_API NameComponent
 {
-    SE_ANNOTATION(=meta::Reflect)
     String name;
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::NameComponent)
 SE_DECLARE_REFLECTION(se::NameComponent, SE_CORE_API)

@@ -1,4 +1,5 @@
 #include "UI/Panels/DetailPanel.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "UI/ImGui/ImGuiWrapper.h"
 
 #include "SimpleEditor/Core/SelectionSubsystem.h"
@@ -82,9 +83,9 @@ void DetailPanel::DrawContent()
         ImGui::Separator();
 
         usize found_count = 0;
-        for (const TypeId_v1& type_id : ECSRegistry::Get().GetComponentOpsMap() | std::views::keys)
+        for (const TypeId type_id : ECSRegistry::Get().GetComponentOpsMap() | std::views::keys)
         {
-            const auto type_info_opt = TypeRegistry_v1::Get().Find(type_id);
+            const auto type_info_opt = TypeRegistry::Get().Find(type_id);
             if (!type_info_opt)
             {
                 continue;
@@ -118,7 +119,7 @@ void DetailPanel::DrawContent()
         ImGui::EndPopup();
     }
 
-    TypeId_v1 component_to_remove;
+    TypeId component_to_remove;
     for (const auto& [component_type, component_ops] : ECSRegistry::Get().GetComponentOpsMap())
     {
         const IComponentStorage* storage = world.FindRawStorage(component_type);
@@ -130,7 +131,7 @@ void DetailPanel::DrawContent()
         }
 
         // Component의 타입 정보
-        const TypeInfo_v1& type_info = TypeRegistry_v1::Get().FindChecked(component_type);
+        const TypeInfo& type_info = TypeRegistry::Get().FindChecked(component_type);
 
         const String label = type_info.name;
         ImGui::PushID(label.CStr());
@@ -157,7 +158,7 @@ void DetailPanel::DrawContent()
 
             // TODO: 나중에 PropertyDrawer에서 컴포넌트별 커스텀 DrawProperties를 지원하도록 수정
             // TransformComponent는 Quaternion 대신 Euler 각도로 직관적으로 표시
-            if (component_type == TypeId_v1::Of<TransformComponent>())
+            if (component_type == TypeId::Of<TransformComponent>())
             {
                 TransformComponent* transform_component = static_cast<TransformComponent*>(component_data);
                 bool changed = false;
@@ -195,15 +196,15 @@ void DetailPanel::DrawContent()
 
                 transform_component->dirty = changed;
             }
-            else
+            else if (const auto legacy_info = TypeRegistry_v1::Get().Find(TypeId_v1::FromName(StringName{ type_info.name })))
             {
-                DrawerRegistry::Get().DrawProperties(type_info, component_data);
+                DrawerRegistry::Get().DrawProperties(*legacy_info, component_data);
             }
         }
     }
 
     // 컴포넌트 삭제 처리 (순회 완료 후)
-    if (component_to_remove.IsValid())
+    if (!component_to_remove.IsNull())
     {
         if (const auto ops = ECSRegistry::Get().GetComponentOps(component_to_remove))
         {

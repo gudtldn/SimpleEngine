@@ -26,7 +26,7 @@ TEST(ECSAnnotationsTest, ComponentAnnotationRegistersComponentOps)
 {
     using namespace se_ecs_annotations_test;
 
-    const auto ops = se::ECSRegistry::Get().GetComponentOps(se::TypeId_v1::Of<AnnotatedComponent>());
+    const auto ops = se::ECSRegistry::Get().GetComponentOps(se::TypeId::Of<AnnotatedComponent>());
     ASSERT_TRUE(ops.HasValue());
     EXPECT_EQ(ops->type, se::TypeId::Of<AnnotatedComponent>());
 

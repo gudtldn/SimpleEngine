@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
-#include "../Core/Reflection/Legacy/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/ECS/World.h"
 
 #include <concepts>
@@ -125,8 +125,8 @@ public:
         static_assert(std::default_initializable<T>, "Component T must be default constructible.");
         static_assert(std::move_constructible<T>, "Component T must be move constructible.");
 
-        const TypeId_v1 type_id = TypeId_v1::Of<T>();
-        const StringView name = GetFullTypeName<T>();
+        const TypeId type_id = TypeId::Of<T>();
+        const StringView name = TypeNameOf<T>();
         SE_ASSERT(!component_operators.Contains(type_id), "Component '{}' is already registered! Check your initialization logic.", name);
 
         component_operators.Insert(type_id, ComponentOps{
@@ -173,8 +173,8 @@ public:
         static_assert(std::default_initializable<T>, "Resource T must be default constructible.");
         static_assert(std::move_constructible<T>, "Resource T must be move constructible.");
 
-        const TypeId_v1 type_id = TypeId_v1::Of<T>();
-        const StringView name = GetFullTypeName<T>();
+        const TypeId type_id = TypeId::Of<T>();
+        const StringView name = TypeNameOf<T>();
         SE_ASSERT(!resource_operators.Contains(type_id), "Resource '{}' is already registered! Check your initialization logic.", name);
 
         resource_operators.Insert(type_id, ResourceOps{
@@ -210,22 +210,22 @@ public:
     }
 
     /** 해당 컴포넌트 타입의 Ops를 찾습니다. */
-    [[nodiscard]] Optional<const ComponentOps&> GetComponentOps(const TypeId_v1& type_id) const;
+    [[nodiscard]] Optional<const ComponentOps&> GetComponentOps(TypeId type_id) const;
 
     /** 해당 리소스 타입의 Ops를 찾습니다. */
-    [[nodiscard]] Optional<const ResourceOps&> GetResourceOps(const TypeId_v1& type_id) const;
+    [[nodiscard]] Optional<const ResourceOps&> GetResourceOps(TypeId type_id) const;
 
     /** 등록된 모든 컴포넌트 타입의 Ops 맵을 반환합니다. */
-    [[nodiscard]] const HashMap<TypeId_v1, ComponentOps>& GetComponentOpsMap() const { return component_operators; }
+    [[nodiscard]] const HashMap<TypeId, ComponentOps>& GetComponentOpsMap() const { return component_operators; }
 
     /** 등록된 모든 리소스 타입의 Ops 맵을 반환합니다. */
-    [[nodiscard]] const HashMap<TypeId_v1, ResourceOps>& GetResourceOpsMap() const { return resource_operators; }
+    [[nodiscard]] const HashMap<TypeId, ResourceOps>& GetResourceOpsMap() const { return resource_operators; }
 
     /** Transient 플래그가 설정된 리소스 중, World에 없는 것을 기본값으로 삽입합니다. */
     void InsertDefaultTransientResources(World& world) const;
 
 private:
-    HashMap<TypeId_v1, ComponentOps> component_operators;
-    HashMap<TypeId_v1, ResourceOps> resource_operators;
+    HashMap<TypeId, ComponentOps> component_operators;
+    HashMap<TypeId, ResourceOps> resource_operators;
 };
 } // namespace se
