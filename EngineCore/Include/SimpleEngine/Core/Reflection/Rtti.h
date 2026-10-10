@@ -76,7 +76,7 @@ template <typename T>
 /**
  * dynamic_id 타입이 target_id이거나 target_id를 상속하는지 확인합니다.
  * 정적 타입을 모를 때 씁니다.
- * @note 등록되지 않은 dynamic_id는 false입니다.
+ * @note dynamic_id와 target_id가 같으면 등록 여부와 관계없이 true, 그 밖에 등록되지 않은 dynamic_id는 false입니다.
  */
 [[nodiscard]] SE_CORE_API bool IsAById(TypeId dynamic_id, TypeId target_id) noexcept;
 
@@ -229,7 +229,7 @@ template <typename To, RuntimeTyped From>
 
 /**
  * id 타입이 To이거나 To를 상속하는지 확인합니다.
- * @note 등록되지 않은 id는 false입니다.
+ * @note id가 To와 같으면 등록 여부와 관계없이 true, 그 밖에 등록되지 않은 id는 false입니다.
  */
 template <typename To>
 [[nodiscard]] bool IsA(TypeId id) noexcept

@@ -99,7 +99,7 @@ using PlanSteps = std::variant<PendingStep, LeafStep, StructSteps, ArraySteps, S
  */
 struct SE_CORE_API SerializePlan
 {
-    /** 직렬화 하려는 타입 */
+    /** 직렬화하려는 타입 */
     TypeId type;
 
     /**
