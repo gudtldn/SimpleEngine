@@ -10,9 +10,11 @@
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/Rtti.h"
+#include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializePlanRegistry.h"
 #include "SimpleEngine/Core/Serialization/Serializer.h"
@@ -23,9 +25,6 @@
 namespace se
 {
 SE_REGISTER_SUBSYSTEM(AssetSubsystem);
-
-SE_BEGIN_REFLECT_V1(AssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(AssetSubsystem)
 
 AssetSubsystem::AssetSubsystem() = default;
 AssetSubsystem::~AssetSubsystem() = default;
@@ -97,39 +96,43 @@ void AssetSubsystem::EndFrame()
 
 namespace
 {
-/**
- * 레거시 TypeId가 가리키는 에셋 타입의 SerializePlan을 찾습니다.
- * 두 리플렉션은 TypeId 해시를 서로 다르게 계산하므로, 레거시에 등록된 이름을 새 리플렉션의 정규 이름으로 보고 찾습니다.
- */
-[[nodiscard]] Expected<const SerializePlan*, String> FindPayloadPlan(const TypeId_v1& legacy_type)
+/** 로그에 쓸 타입 이름을 돌려줍니다. 등록되지 않은 타입이면 빈 문자열입니다. */
+[[nodiscard]] StringView RegisteredNameOf(TypeId type_id)
 {
-    const StringView name = legacy_type.GetName();
-    const auto info = TypeRegistry::Get().Find(TypeId::FromCanonicalName(name));
-    if (!info.HasValue() || info->name != name)
+    if (const auto info = TypeRegistry::Get().Find(type_id))
     {
-        return Unexpected{ String::Format("'{}' is not registered with SE_REFLECT_BEGIN", name) };
+        return info->name;
     }
-    return SerializePlanRegistry::Get().FindOrCompile(info->id);
+    return {};
+}
+
+/** 에셋 타입의 SerializePlan을 찾습니다. */
+[[nodiscard]] Expected<const SerializePlan*, String> FindPayloadPlan(TypeId type_id)
+{
+    if (!TypeRegistry::Get().Find(type_id).HasValue())
+    {
+        return Unexpected{ String::Format("type {:#x} is not registered with SE_REFLECT_BEGIN", type_id.Value()) };
+    }
+    return SerializePlanRegistry::Get().FindOrCompile(type_id);
 }
 } // namespace
 
 Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
 {
-    const TypeId_v1 type_id = asset.GetTypeId();
-    const auto plan = FindPayloadPlan(type_id);
+    const TypeRecord& record = *asset.GetTypeRecord();
+    const auto plan = FindPayloadPlan(record.id);
     if (plan.HasError())
     {
-        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: {}", type_id.GetName(), plan.Error());
+        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: {}", record.name, plan.Error());
         return {};
     }
     const SerializePlan& payload_plan = *plan.Value();
 
     // 필드 오프셋은 가장 파생된 타입 기준이므로, AssetBase 서브오브젝트가 아닌 완전 객체의 주소를 넘김
-    const auto record = TypeRecordRegistry::Get().Find(payload_plan.type);
-    const void* const complete = record ? CompleteObjectOf(&asset, *record) : nullptr;
+    const void* const complete = CompleteObjectOf(&asset);
     if (complete == nullptr)
     {
-        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: AssetBase is not a single SE_BASE of the registered type", type_id.GetName());
+        ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: AssetBase is not a single SE_BASE of the registered type", record.name);
         return {};
     }
 
@@ -141,27 +144,28 @@ Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     {
         ConsoleLog(
             ELogLevel::Warning, "Failed to serialize asset payload ({}): {} (path: '{}')",
-            type_id.GetName(), result.Error().message, result.Error().path
+            record.name, result.Error().message, result.Error().path
         );
         return {};
     }
     return payload;
 }
 
-AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, ArrayView<const u8> payload_view)
+AssetPayload AssetSubsystem::DeserializeAssetPayload(TypeId type_id, ArrayView<const u8> payload_view)
 {
-    // 객체 생성과 소멸은 레거시 리플렉션이 맡고, 필드는 새 직렬화로 채움
-    const auto info_opt = TypeRegistry_v1::Get().Find(type_id);
-    if (!info_opt || !info_opt->constructor || !info_opt->destructor)
+    const StringView type_name = RegisteredNameOf(type_id);
+    const auto ops = ValueOpsRegistry::Get().Find(type_id);
+    const auto record = TypeRecordRegistry::Get().Find(type_id);
+    if (!ops || !ops->new_object || !ops->delete_object || !record || !IsA<AssetBase>(type_id))
     {
-        ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type: {}", type_id.GetName());
+        ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type: {}", type_name);
         return {};
     }
 
     const auto plan = FindPayloadPlan(type_id);
     if (plan.HasError())
     {
-        ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type {}: {}", type_id.GetName(), plan.Error());
+        ConsoleLog(ELogLevel::Warning, "Cannot deserialize asset type {}: {}", type_name, plan.Error());
         return {};
     }
     const SerializePlan& payload_plan = *plan.Value();
@@ -170,11 +174,11 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, A
     BinaryFileReader reader(payload_view, payload_plan.type, payload_plan.SchemaHash());
     if (reader.HasError())
     {
-        ConsoleLog(ELogLevel::Warning, "Rejected asset payload ({}): {}", type_id.GetName(), reader.GetError());
+        ConsoleLog(ELogLevel::Warning, "Rejected asset payload ({}): {}", type_name, reader.GetError());
         return {};
     }
 
-    void* raw = info_opt->constructor();
+    void* const raw = ops->new_object();
     if (!raw)
     {
         return {};
@@ -184,23 +188,26 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(const TypeId_v1& type_id, A
     {
         ConsoleLog(
             ELogLevel::Warning, "Failed to deserialize asset payload ({}): {} (path: '{}')",
-            type_id.GetName(), result.Error().message, result.Error().path
+            type_name, result.Error().message, result.Error().path
         );
-        info_opt->destructor(raw);
+        ops->delete_object(raw);
         return {};
     }
 
+    // AssetPayload::destructor는 ptr을 받으므로, AssetBase 서브오브젝트가 완전 객체와 같은 주소여야 함
+    AssetBase* const asset = static_cast<AssetBase*>(CastById(raw, type_id, TypeId::Of<AssetBase>(), *record));
+    SE_ASSERT(asset == raw, "AssetBase of '{}' must be at offset 0.", type_name);
     return {
-        .ptr = static_cast<AssetBase*>(raw),
-        .destructor = info_opt->destructor
+        .ptr = asset,
+        .destructor = ops->delete_object,
     };
 }
 
-HandleData AssetSubsystem::LoadInternal(const TypeId_v1& expected_type, const AssetPath& source_path, EScopeLayer scope)
+HandleData AssetSubsystem::LoadInternal(TypeId expected_type, const AssetPath& source_path, EScopeLayer scope)
 {
     ZoneScopedN("AssetSubsystem::LoadInternal");
     SE_DEBUG_EXPRESSION({
-        const String zone_text = String::Format("{} | {}", expected_type.GetName(), source_path.ToString());
+        const String zone_text = String::Format("{} | {}", RegisteredNameOf(expected_type), source_path.ToString());
         ZoneText(zone_text.CStr(), zone_text.ByteLen());
     })
 
@@ -344,13 +351,13 @@ HandleData AssetSubsystem::LoadInternal(const TypeId_v1& expected_type, const As
     }
     else
     {
-        ConsoleLog(ELogLevel::Error, "No asset of type '{}' found in file: {}", expected_type.GetName(), file_vpath);
+        ConsoleLog(ELogLevel::Error, "No asset of type '{}' found in file: {}", RegisteredNameOf(expected_type), file_vpath);
     }
     return {};
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
-AssetSubsystem::ESlotAcquireResult AssetSubsystem::AcquireLoadSlot(HandleData handle_data, const TypeId_v1& expected_type)
+AssetSubsystem::ESlotAcquireResult AssetSubsystem::AcquireLoadSlot(HandleData handle_data, TypeId expected_type)
 {
     HandleTable& table = pool->GetTable();
     while (true)
@@ -414,7 +421,7 @@ void AssetSubsystem::CommitLoadedPayload(HandleData handle_data, AssetPayload pa
     }
 }
 
-HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, const TypeId_v1& type_id, AssetPayload payload, u64 asset_size)
+HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, TypeId type_id, AssetPayload payload, u64 asset_size)
 {
     const HandleData handle_data = pool->FindOrCreate(asset_id, type_id, {});
     SlotEntry& slot = pool->GetTable().GetSlot(handle_data.index);
@@ -433,7 +440,7 @@ HandleData AssetSubsystem::RegisterBuiltinInternal(const AssetId& asset_id, cons
     return handle_data;
 }
 
-HandleData AssetSubsystem::FindInternal(const TypeId_v1& expected_type, const AssetId& asset_id) const
+HandleData AssetSubsystem::FindInternal(TypeId expected_type, const AssetId& asset_id) const
 {
     Optional<HandleData> handle_opt = pool->Find(asset_id);
     if (!handle_opt.HasValue())
@@ -448,7 +455,7 @@ HandleData AssetSubsystem::FindInternal(const TypeId_v1& expected_type, const As
     {
         ConsoleLog(
             ELogLevel::Error, "Asset Type Mismatch! Requested: {}, Found: {}",
-            expected_type.GetName(), slot.asset_type.GetName()
+            RegisteredNameOf(expected_type), RegisteredNameOf(slot.asset_type)
         );
         return {};
     }
@@ -456,14 +463,14 @@ HandleData AssetSubsystem::FindInternal(const TypeId_v1& expected_type, const As
     return handle_data;
 }
 
-JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId_v1 expected_type, AssetPath source_path, EScopeLayer scope)
+JobTask<HandleData> AssetSubsystem::LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope)
 {
     // Worker 스레드로 전환 (호출 스레드 비블로킹 보장)
     co_await ResumeOn{ EJobThread::Worker };
 
     ZoneScopedN("AssetSubsystem::LoadAsyncInternal");
     SE_DEBUG_EXPRESSION({
-        const String zone_text = String::Format("{} | {}", expected_type.GetName(), source_path.ToString());
+        const String zone_text = String::Format("{} | {}", RegisteredNameOf(expected_type), source_path.ToString());
         ZoneText(zone_text.CStr(), zone_text.ByteLen());
     })
 
@@ -547,3 +554,15 @@ HandleTable& AssetSubsystem::GetHandleTable() const
     return pool->GetTable();
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::AssetSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(pool)
+    SE_FIELD(registry)
+    SE_FIELD(ddc)
+    SE_FIELD(ddc_miss_handler)
+    SE_FIELD(loading_mutex)
+    SE_FIELD(import_cv)
+    SE_FIELD(files_currently_importing)
+SE_REFLECT_END()

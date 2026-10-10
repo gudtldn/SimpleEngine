@@ -1,15 +1,15 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "../Reflection/Legacy/Annotations.h"
-#include "../Reflection/Legacy/Traits.h"
+#include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 
 
 namespace se
 {
 // forward declarations
 class TimeAdvancer;
-struct TimeResources_Registrar;
 
 namespace detail
 {
@@ -22,7 +22,7 @@ class TimeState
     friend class ::se::TimeAdvancer;
 
     // TODO: C++26에서 std::meta::access_context::unchecked()로 접근하면 friend가 필요 없어짐
-    friend struct ::se::TimeResources_Registrar;
+    friend struct ::se::Registrar<TimeState>;
 
 public:
     /** 이번 프레임 경과 시간(초)을 반환합니다. */
@@ -35,13 +35,13 @@ public:
     [[nodiscard]] u64 GetFrameCount() const { return frame_count; }
 
 protected:
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(delta, display::ReadOnly)
     f64 delta = 0.0;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(elapsed, display::ReadOnly)
     f64 elapsed = 0.0;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(frame_count, display::ReadOnly)
     u64 frame_count = 0;
 };
 } // namespace detail
@@ -50,20 +50,20 @@ protected:
  * 실제 글로벌 시간입니다.
  * 게임 일시정지나 time scale의 영향을 받지 않습니다.
  */
-class SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Resource) RealTime final : public detail::TimeState
+class RealTime final : public detail::TimeState
 {
     friend class TimeAdvancer;
-    friend struct TimeResources_Registrar;
+    friend struct ::se::Registrar<RealTime>;
 };
 
 /**
  * 가상 게임 시간입니다. World별로 독립적으로 관리됩니다.
  * time_scale과 pause 상태에 따라 delta가 조절됩니다.
  */
-class SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Resource) GameTime final : public detail::TimeState
+class GameTime final : public detail::TimeState
 {
     friend class TimeAdvancer;
-    friend struct TimeResources_Registrar;
+    friend struct ::se::Registrar<GameTime>;
 
 public:
     /** 현재 시간 배율을 반환합니다. (기본값: 1.0) */
@@ -79,10 +79,9 @@ public:
     void SetPaused(bool pause) { paused = pause; }
 
 private:
-    SE_ANNOTATION(=meta::Reflect, =meta::Range(0.1f, 10.0f))
+    SE_ANNOTATE(time_scale, display::Range(0.1f, 10.0f))
     f64 time_scale = 1.0;
 
-    SE_ANNOTATION(=meta::Reflect)
     bool paused = false;
 };
 
@@ -91,10 +90,10 @@ private:
  * 물리 시뮬레이션 등 일정한 간격의 업데이트가 필요한 곳에서 사용합니다.
  * accumulator가 fixed_step 이상이면 FixedUpdatePhase가 실행됩니다.
  */
-class SE_ANNOTATION(=meta::Reflect, =meta::Transient, =meta::Resource) FixedTime final : public detail::TimeState
+class FixedTime final : public detail::TimeState
 {
     friend class TimeAdvancer;
-    friend struct TimeResources_Registrar;
+    friend struct ::se::Registrar<FixedTime>;
 
 public:
     /** 고정 시간 스텝(초)을 반환합니다. (기본값: 1/64) */
@@ -127,14 +126,15 @@ public:
     }
 
 private:
-    SE_ANNOTATION(=meta::Reflect)
     f64 fixed_step = 1.0 / 64.0;
 
-    // accumulator는 내부 누적 상태이므로 리플렉션 대상에서 제외합니다.
+    // 내부 누적 상태라 에디터에 표시하지 않음
+    SE_ANNOTATE(accumulator, display::Hidden)
     f64 accumulator = 0.0;
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::RealTime)
-SE_DECLARE_REFLECTION_V1(se::GameTime)
-SE_DECLARE_REFLECTION_V1(se::FixedTime)
+SE_DECLARE_REFLECTION(se::detail::TimeState, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::RealTime, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::GameTime, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::FixedTime, SE_CORE_API)

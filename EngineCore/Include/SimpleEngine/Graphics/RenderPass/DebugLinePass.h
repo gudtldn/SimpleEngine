@@ -1,5 +1,8 @@
 ﻿#pragma once
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
@@ -22,9 +25,11 @@ namespace se
  */
 class SE_CORE_API DebugLinePass : public RenderPassBase
 {
-    SE_CLASS_V1(DebugLinePass, RenderPassBase)
+    friend struct ::se::Registrar<DebugLinePass>;
 
 public:
+    SE_RTTI(DebugLinePass)
+
     DebugLinePass(
         DebugDrawSubsystem& in_debug_subsystem,
         const RenderView& in_render_view,
@@ -36,9 +41,12 @@ public:
     virtual void Execute(RGExecutionContext& context) override;
 
 private:
+    SE_ANNOTATE(debug_subsystem, Ignore)
     DebugDrawSubsystem& debug_subsystem;
     RenderView render_view;
     RGTextureHandle color_target_handle;
     RGTextureHandle depth_target_handle;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::DebugLinePass, SE_CORE_API)

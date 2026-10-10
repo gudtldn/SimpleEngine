@@ -6,6 +6,9 @@
 #include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
@@ -38,11 +41,13 @@ using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& fil
  *   4. DDC Miss -> (Editor) Import 파이프라인 실행 -> DDC에 저장 -> Pool 적재 -> 반환
  *   5. DDC Miss Handler 미등록 (런타임 fallback) -> Invalid Handle
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) AssetSubsystem : public SubsystemBase
+class SE_CORE_API AssetSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(AssetSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<AssetSubsystem>;
 
 public:
+    SE_RTTI(AssetSubsystem)
+
     AssetSubsystem();
     virtual ~AssetSubsystem() override;
 
@@ -112,7 +117,7 @@ public:
      * ptr과 destructor가 분리된 상태로 반환되므로, SlotEntry에 직접 저장할 수 있습니다.
      * 루트 타입, 스키마 해시, 체크섬이 맞지 않거나 데이터가 손상되었으면 빈 AssetPayload를 반환합니다.
      */
-    [[nodiscard]] static AssetPayload DeserializeAssetPayload(const TypeId_v1& type_id, ArrayView<const u8> payload_view);
+    [[nodiscard]] static AssetPayload DeserializeAssetPayload(TypeId type_id, ArrayView<const u8> payload_view);
 
 public:
     [[nodiscard]] FORCE_INLINE AssetPool& GetPool() const { return *pool; }
@@ -127,30 +132,40 @@ private:
         Failed,   // 타입 불일치
     };
 
-    [[nodiscard]] HandleData LoadInternal(const TypeId_v1& expected_type, const AssetPath& source_path, EScopeLayer scope);
-    [[nodiscard]] JobTask<HandleData> LoadAsyncInternal(TypeId_v1 expected_type, AssetPath source_path, EScopeLayer scope);
-    [[nodiscard]] HandleData FindInternal(const TypeId_v1& expected_type, const AssetId& asset_id) const;
+    [[nodiscard]] HandleData LoadInternal(TypeId expected_type, const AssetPath& source_path, EScopeLayer scope);
+    [[nodiscard]] JobTask<HandleData> LoadAsyncInternal(TypeId expected_type, AssetPath source_path, EScopeLayer scope);
+    [[nodiscard]] HandleData FindInternal(TypeId expected_type, const AssetId& asset_id) const;
     [[nodiscard]] HandleTable& GetHandleTable() const;
-    [[nodiscard]] HandleData RegisterBuiltinInternal(const AssetId& asset_id, const TypeId_v1& type_id, AssetPayload payload, u64 asset_size);
+    [[nodiscard]] HandleData RegisterBuiltinInternal(const AssetId& asset_id, TypeId type_id, AssetPayload payload, u64 asset_size);
 
     /**
      * 슬롯 상태를 확인하고 로딩 권한(BeginLoad)을 획득합니다.
      * @warning WaitForLoadComplete()가 블로킹이므로 코루틴 컨텍스트에서 호출 시 워커 스레드를 점유합니다.
      */
-    [[nodiscard]] ESlotAcquireResult AcquireLoadSlot(HandleData handle_data, const TypeId_v1& expected_type);
+    [[nodiscard]] ESlotAcquireResult AcquireLoadSlot(HandleData handle_data, TypeId expected_type);
 
     /** 역직렬화된 payload를 SlotEntry에 커밋합니다. (메모리 추적 + 상태 전환 + 구 payload 지연 해제) */
     void CommitLoadedPayload(HandleData handle_data, AssetPayload payload, u64 payload_size, EScopeLayer scope);
 
 private:
+    SE_ANNOTATE(pool, Ignore)
     std::unique_ptr<AssetPool> pool;
+
+    SE_ANNOTATE(registry, Ignore)
     std::unique_ptr<AssetRegistry> registry;
+
+    SE_ANNOTATE(ddc, Ignore)
     std::unique_ptr<DerivedDataCache> ddc;
 
+    SE_ANNOTATE(ddc_miss_handler, Ignore)
     DDCMissHandler ddc_miss_handler;
 
+    SE_ANNOTATE(loading_mutex, Ignore)
     TracyLockable(std::mutex, loading_mutex);
+
+    SE_ANNOTATE(import_cv, Ignore)
     std::condition_variable_any import_cv;    // 하나의 스레드에서만 Import를 보장하는 cv
+
     HashSet<VPath> files_currently_importing; // 현재 Import 중인 File 목록
 };
 
@@ -158,7 +173,7 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Load(const AssetPath& asset_path, EScopeLayer scope)
 {
-    if (HandleData handle_data = LoadInternal(TypeId_v1::Of<T>(), asset_path, scope))
+    if (HandleData handle_data = LoadInternal(TypeId::Of<T>(), asset_path, scope))
     {
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
@@ -169,7 +184,7 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 JobTask<AssetHandle<T>> AssetSubsystem::LoadAsync(AssetPath asset_path, EScopeLayer scope)
 {
-    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId_v1::Of<T>(), std::move(asset_path), scope))
+    if (HandleData handle_data = co_await LoadAsyncInternal(TypeId::Of<T>(), std::move(asset_path), scope))
     {
         co_return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
@@ -180,7 +195,7 @@ template <typename T>
     requires std::derived_from<T, AssetBase>
 AssetHandle<T> AssetSubsystem::Find(const AssetId& asset_id) const
 {
-    if (HandleData handle_data = FindInternal(TypeId_v1::Of<T>(), asset_id))
+    if (HandleData handle_data = FindInternal(TypeId::Of<T>(), asset_id))
     {
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
     }
@@ -196,7 +211,7 @@ AssetHandle<T> AssetSubsystem::RegisterBuiltin(const AssetId& asset_id, std::uni
         .destructor = [](void* p) noexcept { delete static_cast<T*>(p); },
     };
 
-    if (HandleData handle_data = RegisterBuiltinInternal(asset_id, TypeId_v1::Of<T>(), payload, sizeof(T)))
+    if (HandleData handle_data = RegisterBuiltinInternal(asset_id, TypeId::Of<T>(), payload, sizeof(T)))
     {
         asset.release();
         return AssetHandle<T>{ handle_data, &GetHandleTable() };
@@ -204,3 +219,5 @@ AssetHandle<T> AssetSubsystem::RegisterBuiltin(const AssetId& asset_id, std::uni
     return {};
 }
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::AssetSubsystem, SE_CORE_API)

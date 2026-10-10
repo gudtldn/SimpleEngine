@@ -1,5 +1,6 @@
 #include "Graphics/EditorUIPass.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 
 #include "imgui.h"
@@ -8,9 +9,6 @@
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT_V1(EditorUIPass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(EditorUIPass)
-
 EditorUIPass::EditorUIPass(
     RGTextureHandle in_back_buffer,
     Array<RGTextureHandle> in_viewport_colors
@@ -66,3 +64,10 @@ void EditorUIPass::Execute(RGExecutionContext& context)
     }
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::EditorUIPass)
+    SE_BASE(se::RenderPassBase)
+    SE_FIELD(swapchain_handle)
+    SE_FIELD(viewport_color_handles)
+SE_REFLECT_END()

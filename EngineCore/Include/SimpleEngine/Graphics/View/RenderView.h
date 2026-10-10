@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Graphics/View/ViewSettings.h"
 
 
@@ -117,3 +118,5 @@ public:
     }
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RenderView, SE_CORE_API)

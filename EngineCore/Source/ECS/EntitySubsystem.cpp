@@ -1,5 +1,6 @@
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/ECSRegistry.h"
 
@@ -9,10 +10,6 @@
 namespace se
 {
 SE_REGISTER_SUBSYSTEM(EntitySubsystem);
-
-SE_BEGIN_REFLECT_V1(EntitySubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(EntitySubsystem)
 
 bool EntitySubsystem::Initialize()
 {
@@ -79,3 +76,10 @@ const StringName& EntitySubsystem::GetMainWorldName()
     return main_world_name;
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::EntitySubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(worlds)
+SE_REFLECT_END()

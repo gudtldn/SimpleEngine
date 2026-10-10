@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/StringView.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 
 namespace se
@@ -10,11 +10,11 @@ namespace se
 /**
  * Asset을 나타내는 가장 기본적인 타입
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetBase
+class SE_CORE_API AssetBase
 {
-    SE_CLASS_V1(AssetBase)
-
 public:
+    SE_RTTI_ROOT()
+
     virtual ~AssetBase() = default;
 
     /** 이 Asset의 표시 이름을 반환합니다. (디버깅/에디터용) */

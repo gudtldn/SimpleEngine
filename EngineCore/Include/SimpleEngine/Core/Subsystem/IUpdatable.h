@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+
 
 namespace se
 {
@@ -24,3 +26,5 @@ public:
     virtual void PostUpdate() {}
 };
 }
+
+SE_DECLARE_REFLECTION(se::IUpdatable, SE_CORE_API)

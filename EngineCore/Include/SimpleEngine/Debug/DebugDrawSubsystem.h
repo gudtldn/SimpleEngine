@@ -3,6 +3,9 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Math/Color.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RID.h"
 
@@ -36,11 +39,13 @@ struct DebugLine
 /**
  * 디버그 드로우 명령을 수집하고 GPU 업로드를 담당하는 서브시스템
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) DebugDrawSubsystem : public SubsystemBase
+class SE_CORE_API DebugDrawSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(DebugDrawSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<DebugDrawSubsystem>;
 
 public:
+    SE_RTTI(DebugDrawSubsystem)
+
     static constexpr u32 MAX_DEBUG_LINES = 16384;
 
 public:
@@ -67,17 +72,24 @@ public:
 
 private:
     // DebugLine 등록 대기열
+    SE_ANNOTATE(pending_mutex, Ignore)
     TracyLockable(std::mutex, pending_mutex);
+
     Array<DebugLine> pending_lines;
 
     // 이번 프레임에 렌더링할 DebugLine
     Array<DebugLine> current_frame_lines;
 
     // GPU 리소스
+    SE_ANNOTATE(render_device, Ignore)
     RenderDevice* render_device = nullptr;
+
     RID vertex_buffer_rid;
+
+    SE_ANNOTATE(transfer_buffer, Ignore)
     SDL_GPUTransferBuffer* transfer_buffer = nullptr;
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::DebugDrawSubsystem)
+SE_DECLARE_REFLECTION(se::DebugLine, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::DebugDrawSubsystem, SE_CORE_API)

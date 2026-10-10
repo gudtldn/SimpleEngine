@@ -1,6 +1,7 @@
 #include "UI/Panels/AssetsBrowserPanel.h"
 
 #include "Asset/EditorAssetSubsystem.h"
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "UI/ImGui/ImGuiString.h"
 
 #include "SimpleEditor/Asset/AssetMeta.h"
@@ -14,7 +15,7 @@
 #include "SimpleEngine/Core/FileSystem/FileSystem.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/Components/ChildrenComponent.h"
@@ -433,7 +434,7 @@ void AssetsBrowserPanel::SpawnMeshEntitiesFromFile(const Path& file_path)
     Array<AssetId> mesh_ids;
     for (const AssetId& id : all_ids)
     {
-        if (registry.GetAssetType(id) == TypeId_v1::Of<StaticMesh>())
+        if (registry.GetAssetType(id) == TypeId::Of<StaticMesh>())
         {
             mesh_ids.Push(id);
         }
@@ -593,7 +594,6 @@ bool AssetsBrowserPanel::DrawImportSettings()
         return false;
     }
 
-    const TypeRegistry_v1& registry = TypeRegistry_v1::Get();
     DrawerRegistry& drawer = DrawerRegistry::Get();
 
     for (const auto& [type_id, settings_ptr] : settings_map)
@@ -603,11 +603,10 @@ bool AssetsBrowserPanel::DrawImportSettings()
             continue;
         }
 
-        const auto info_opt = registry.Find(type_id);
+        const auto info_opt = TypeRegistry::Get().Find(type_id);
         if (!info_opt.HasValue())
         {
-            const StringView view = type_id.GetName();
-            ImGui::TextDisabled("Unknown settings type: %.*s", static_cast<int>(view.ByteLen()), view.Data());
+            ImGui::TextDisabled("Unknown settings type: %llx", static_cast<unsigned long long>(type_id.Value()));
             continue;
         }
 
@@ -615,7 +614,8 @@ bool AssetsBrowserPanel::DrawImportSettings()
         const StringView& type_name = info_opt->name;
         if (ImGui::TreeNodeEx(String(type_name).CStr(), ImGuiTreeNodeFlags_DefaultOpen))
         {
-            if (drawer.DrawProperties(*info_opt, settings_ptr.get()))
+            // 필드 오프셋은 가장 파생된 타입 기준이므로 완전 객체의 주소를 넘김
+            if (drawer.DrawProperties(*info_opt, CompleteObjectOf(settings_ptr.get())))
             {
                 modified = true;
             }
@@ -637,14 +637,12 @@ bool AssetsBrowserPanel::DrawProcessorStack()
         return false;
     }
 
-    const TypeRegistry_v1& registry = TypeRegistry_v1::Get();
-
     for (const auto [n, entry] : entries | std::views::enumerate)
     {
         ImGui::PushID(static_cast<int>(n));
 
         String label = "Unknown Processor";
-        if (const auto info = registry.Find(entry.processor_type))
+        if (const auto info = TypeRegistry::Get().Find(entry.processor_type))
         {
             label = info->name;
         }

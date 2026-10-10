@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/Math/Math.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Annotations.h"
 
 
 namespace se
@@ -10,18 +9,14 @@ namespace se
 /**
  * 3D 카메라의 렌즈 특성(시야각, 클리핑 평면)을 정의하는 컴포넌트
  */
-struct SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Component) Camera3dComponent
+struct SE_CORE_API Camera3dComponent
 {
-    SE_ANNOTATION(=meta::Reflect)
     Degree<f64> fov = 90.0_deg;
 
-    SE_ANNOTATION(=meta::Reflect)
     f64 near_plane = 0.1;
 
-    SE_ANNOTATION(=meta::Reflect)
     f64 far_plane = 10'000.0;
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::Camera3dComponent)
 SE_DECLARE_REFLECTION(se::Camera3dComponent, SE_CORE_API)

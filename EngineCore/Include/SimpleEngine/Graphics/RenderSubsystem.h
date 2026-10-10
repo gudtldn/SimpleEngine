@@ -3,6 +3,9 @@
 #include "SimpleEngine/Core/Functional/FunctionRef.h"
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
 #include "SimpleEngine/Graphics/Manager/PSOManager.h"
@@ -19,11 +22,13 @@
 
 namespace se
 {
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RenderSubsystem : public SubsystemBase
+class SE_CORE_API RenderSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(RenderSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<RenderSubsystem>;
 
 public:
+    SE_RTTI(RenderSubsystem)
+
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
 
@@ -55,15 +60,26 @@ private:
     void OnWindowDestroyed(SDL_WindowID window_id, SDL_Window* window);
 
 private:
+    SE_ANNOTATE(render_device, Ignore)
     std::unique_ptr<RenderDevice> render_device;
+    SE_ANNOTATE(render_graph_builder, Ignore)
     std::unique_ptr<RenderGraphBuilder> render_graph_builder;
+    SE_ANNOTATE(render_graph_executor, Ignore)
     std::unique_ptr<RenderGraphExecutor> render_graph_executor;
+    SE_ANNOTATE(shader_bundle_source, Ignore)
     std::unique_ptr<DdcShaderBundleSource> shader_bundle_source;
+    SE_ANNOTATE(pso_manager, Ignore)
     std::unique_ptr<PSOManager> pso_manager;
+    SE_ANNOTATE(sampler_cache, Ignore)
     std::unique_ptr<SamplerCache> sampler_cache;
+    SE_ANNOTATE(resource_manager, Ignore)
     std::unique_ptr<GpuResourceManager> resource_manager;
 
+    SE_ANNOTATE(window_created_handle, Ignore)
     DelegateHandle window_created_handle;
+    SE_ANNOTATE(window_destroyed_handle, Ignore)
     DelegateHandle window_destroyed_handle;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RenderSubsystem, SE_CORE_API)

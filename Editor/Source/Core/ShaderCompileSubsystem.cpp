@@ -4,6 +4,7 @@
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
@@ -16,10 +17,6 @@ SE_REGISTER_SUBSYSTEM(ShaderCompileSubsystem)
     .DependsOn<EventSubsystem>()
     .DependsOn<AssetSubsystem>()
     .UpdateDependsOn<InputSubsystem>();
-
-SE_BEGIN_REFLECT_V1(ShaderCompileSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(ShaderCompileSubsystem)
 
 namespace
 {
@@ -95,3 +92,11 @@ void ShaderCompileSubsystem::RecookChanged() const
     }
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::ShaderCompileSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(compiler)
+    SE_FIELD(cooker)
+SE_REFLECT_END()

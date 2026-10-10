@@ -12,7 +12,7 @@
 - **Asset Pipeline**: Generational Handle, DDC(Derived Data Cache), 비동기 로딩
 - **Editor**: Dear ImGui 기반 (SDL3 + SDL_GPU 백엔드)
 - **VFS**: 가상 파일시스템
-- **Reflection**: 매크로 기반 타입 리플렉션 (`SE_CLASS`, `SE_ANNOTATION`), Reflection 기반 자동 직렬화 지원
+- **Reflection**: 매크로 기반 타입 리플렉션 (`SE_REFLECT_BEGIN`, `SE_FIELD`, `SE_ANNOTATE`), Reflection 기반 자동 직렬화 지원
 - **Math**: Vector, Matrix, AABB, Ray, SIMD (AVX2 / NEON)
 - **Input**: 키보드/마우스 상태 관리, 프레임 기반 Pressed/Released/Down 쿼리
 - **Logging**: 다중 백엔드 (Console, File)

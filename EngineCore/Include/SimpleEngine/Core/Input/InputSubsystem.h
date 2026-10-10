@@ -5,6 +5,9 @@
 #include "SimpleEngine/Core/Input/KeyCode.h"
 #include "SimpleEngine/Core/Input/MouseButton.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 
@@ -16,11 +19,13 @@ namespace se
  * 매 프레임 BeginFrame()을 호출하여 이전 프레임의 입력 상태를 갱신하고,
  * PollEvents() 과정에서 on_sdl_event를 통해 SDL 입력 이벤트를 수신하여, 현재 프레임의 입력 상태를 누적합니다.
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) InputSubsystem : public SubsystemBase
+class SE_CORE_API InputSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(InputSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<InputSubsystem>;
 
 public:
+    SE_RTTI(InputSubsystem)
+
     InputSubsystem() = default;
 
     //~ Begin SubsystemBase
@@ -126,6 +131,9 @@ private:
     Vector2f mouse_wheel = Vector2f::Zero();
 
     // Delegate Handle
+    SE_ANNOTATE(sdl_event_handle, Ignore)
     DelegateHandle sdl_event_handle;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::InputSubsystem, SE_CORE_API)

@@ -2,6 +2,7 @@
 
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
@@ -12,9 +13,6 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(WindowSubsystem)
     .DependsOn<EventSubsystem>();
-
-SE_BEGIN_REFLECT_V1(WindowSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(WindowSubsystem)
 
 
 bool WindowSubsystem::Initialize()
@@ -232,3 +230,35 @@ void WindowSubsystem::OnSDLEvent(const SDL_Event& event)
     }
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::WindowDesc)
+    SE_FIELD(title)
+    SE_FIELD(width)
+    SE_FIELD(height)
+    SE_FIELD(sdl_window_flags)
+    SE_FIELD(swapchain_composition)
+    SE_FIELD(present_mode)
+    SE_FIELD(enable_hdr)
+    SE_FIELD(prefer_linear_color_space)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::WindowEntry)
+    SE_FIELD(native_handle)
+    SE_FIELD(desc)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::WindowSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(on_window_created)
+    SE_FIELD(on_window_destroyed)
+    SE_FIELD(on_window_focus_gained)
+    SE_FIELD(on_window_focus_lost)
+    SE_FIELD(on_window_resized)
+    SE_FIELD(on_window_close_requested)
+    SE_FIELD(prepared_main_window_desc)
+    SE_FIELD(main_window_id)
+    SE_FIELD(focused_window_id)
+    SE_FIELD(windows)
+    SE_FIELD(sdl_event_handle)
+SE_REFLECT_END()

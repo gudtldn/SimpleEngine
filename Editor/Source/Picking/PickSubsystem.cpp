@@ -1,5 +1,6 @@
 #include "SimpleEditor/Picking/PickSubsystem.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
@@ -11,9 +12,6 @@ namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(PickSubsystem)
     .DependsOn<RenderSubsystem>();
-
-SE_BEGIN_REFLECT_V1(PickSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(PickSubsystem)
 
 bool PickSubsystem::Initialize()
 {
@@ -140,3 +138,14 @@ SDL_GPUTexture* PickSubsystem::GetEntityIdTexture() const
     return nullptr;
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::PickSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(render_device)
+    SE_FIELD(entity_id_texture_rid)
+    SE_FIELD(download_buffer)
+    SE_FIELD(texture_width)
+    SE_FIELD(texture_height)
+    SE_FIELD(pick_id)
+SE_REFLECT_END()

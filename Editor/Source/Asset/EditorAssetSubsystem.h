@@ -8,6 +8,9 @@
 #include "SimpleEngine/Core/Container/ArrayView.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/Path.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -29,11 +32,13 @@ struct MetaFileContent;
  * Core의 AssetSubsystem에 DDCMissHandler를 등록하여
  * Import 파이프라인을 연결하고, .meta 파일 관리 및 디렉토리 스캔 기능을 제공합니다.
  */
-class SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorAssetSubsystem : public SubsystemBase
+class EditorAssetSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(EditorAssetSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<EditorAssetSubsystem>;
 
 public:
+    SE_RTTI(EditorAssetSubsystem)
+
     EditorAssetSubsystem();
     virtual ~EditorAssetSubsystem() override;
 
@@ -124,17 +129,25 @@ private:
     void SyncDependencies(const AssetId& asset_id, ArrayView<const AssetDependencyEntry> dependencies);
 
 private:
+    SE_ANNOTATE(asset_subsystem, Ignore)
     AssetSubsystem* asset_subsystem = nullptr;
 
+    SE_ANNOTATE(importer, Ignore)
     std::unique_ptr<AssetImporter> importer;
+    SE_ANNOTATE(preset_manager, Ignore)
     ImportPresetManager preset_manager;
+    SE_ANNOTATE(dep_graph, Ignore)
     AssetDependencyGraph dep_graph;
 
+    SE_ANNOTATE(cooking_mutex, Ignore)
     TracyLockable(std::mutex, cooking_mutex);
     HashSet<VPath> currently_cooking;
 
+    SE_ANNOTATE(file_drop_handle, Ignore)
     DelegateHandle file_drop_handle;
 
     Path active_content_dir;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::EditorAssetSubsystem)

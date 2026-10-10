@@ -2,6 +2,9 @@
 
 #include "SimpleEditor/EditorCommon.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
@@ -19,9 +22,11 @@ class GizmoDrawList;
  */
 class SE_EDITOR_API GizmoPickPass : public se::RenderPassBase
 {
-    SE_CLASS_V1(GizmoPickPass, se::RenderPassBase)
+    friend struct ::se::Registrar<GizmoPickPass>;
 
 public:
+    SE_RTTI(GizmoPickPass)
+
     /**
      * @param in_draw_list 이번 프레임에 수집된 기즈모 정점 데이터
      * @param in_render_view VP 행렬을 포함한 렌더 뷰
@@ -39,9 +44,12 @@ public:
     virtual void Execute(RGExecutionContext& context) override;
 
 private:
+    SE_ANNOTATE(draw_list, Ignore)
     const GizmoDrawList& draw_list;
     RenderView render_view;
     RGTextureHandle pick_target_handle;
     Vector2f cursor_pos;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::GizmoPickPass, SE_EDITOR_API)

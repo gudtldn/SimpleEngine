@@ -27,7 +27,7 @@ HandleTable::~HandleTable()
     }
 }
 
-HandleData HandleTable::FindOrCreate(const AssetId& id, const TypeId_v1& type, const AssetPath& path)
+HandleData HandleTable::FindOrCreate(const AssetId& id, TypeId type, const AssetPath& path)
 {
     ZoneScopedN("HandleTable::FindOrCreate");
 
@@ -241,7 +241,7 @@ void HandleTable::EvictSlotInternal(u32 index, SlotEntry& entry, Array<AssetPayl
     {
         SE_ASSERT(
             entry.destructor != nullptr,
-            "HandleTable::EvictSlotInternal - Asset has no destructor! (Type: {})", entry.asset_type.GetName()
+            "HandleTable::EvictSlotInternal - Asset has no destructor! (Type: {:#x})", entry.asset_type.Value()
         );
         out_deferred.Push(AssetPayload{ ptr, entry.destructor });
     }
@@ -267,7 +267,7 @@ void HandleTable::DestroyAssetData(SlotEntry& entry)
     SE_ASSERT(
         entry.destructor != nullptr,
         "HandleTable::DestroyAssetData - Asset has no destructor! "
-        "Did you forget to register this asset type in the TypeRegistry? (Type: {})", entry.asset_type.GetName()
+        "Did you forget to register this asset type in the TypeRegistry? (Type: {:#x})", entry.asset_type.Value()
     );
 
     entry.destructor(ptr);

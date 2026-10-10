@@ -7,7 +7,7 @@
 #include "SimpleEngine/Asset/Types/Material.h"
 #include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "tracy/Tracy.hpp"
@@ -15,14 +15,14 @@
 
 namespace se::editor
 {
-TypeId_v1 MaterialInstanceFactory::GetAssetType() const
+TypeId MaterialInstanceFactory::GetAssetType() const
 {
-    return TypeId_v1::Of<MaterialInstance>();
+    return TypeId::Of<MaterialInstance>();
 }
 
 bool MaterialInstanceFactory::CanCreateAsset(const PipelineBaseNode* node) const
 {
-    return IsA_v1<PipelineMaterialInstanceNode>(node);
+    return IsA<PipelineMaterialInstanceNode>(node);
 }
 
 std::shared_ptr<AssetBase> MaterialInstanceFactory::CreateAsset(
@@ -33,7 +33,7 @@ std::shared_ptr<AssetBase> MaterialInstanceFactory::CreateAsset(
     ZoneScopedN("MaterialInstanceFactory::CreateAsset");
     std::ignore = context;
 
-    const PipelineMaterialInstanceNode* mat_node = CastChecked_v1<const PipelineMaterialInstanceNode>(node);
+    const PipelineMaterialInstanceNode* mat_node = CastChecked<const PipelineMaterialInstanceNode>(node);
 
     // DefaultLit 머티리얼 로드 (빌트인이므로 항상 메모리에 상주)
     const AssetSubsystem* asset_sub = GetSubsystem<AssetSubsystem>();

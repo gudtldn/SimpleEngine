@@ -1,14 +1,12 @@
 #include "SimpleEditor/Core/FileWatcherSubsystem.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 
 
 namespace se::editor
 {
 SE_REGISTER_SUBSYSTEM(FileWatcherSubsystem);
-
-SE_BEGIN_REFLECT_V1(FileWatcherSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(FileWatcherSubsystem)
 
 bool FileWatcherSubsystem::Initialize()
 {
@@ -35,3 +33,9 @@ Array<FileWatchEvent> FileWatcherSubsystem::DrainEvents(WatchId watch_id)
     return watcher.DrainEvents(watch_id);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::FileWatcherSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(watcher)
+SE_REFLECT_END()

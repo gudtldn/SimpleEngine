@@ -5,6 +5,7 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
+#include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"
@@ -43,7 +44,7 @@ void CameraPanel::DrawContent()
     {
         if (ImGui::TreeNodeEx(viewport_id.CStr(), ImGuiTreeNodeFlags_DefaultOpen))
         {
-            const TypeInfo_v1& info = TypeRegistry_v1::Get().FindChecked(TypeId_v1::Of<decltype(camera)>());
+            const TypeInfo& info = TypeRegistry::Get().FindChecked(TypeId::Of<EditorCameraState>());
             DrawerRegistry::Get().DrawProperties(info, &camera);
             ImGui::TreePop();
         }

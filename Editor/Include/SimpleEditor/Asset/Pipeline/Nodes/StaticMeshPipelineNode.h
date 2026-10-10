@@ -3,6 +3,8 @@
 #include "SimpleEditor/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/MeshPrimitives.h"
 
 
@@ -21,11 +23,11 @@ struct PipelineMeshSection
 /**
  * @todo docs
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) StaticMeshPipelineNode : public PipelineBaseNode
+class SE_EDITOR_API StaticMeshPipelineNode : public PipelineBaseNode
 {
-    SE_CLASS_V1(StaticMeshPipelineNode, PipelineBaseNode)
-
 public:
+    SE_RTTI(StaticMeshPipelineNode)
+
     // Mesh Data
     Array<StaticVertex> vertices;
     Array<u32> indices;
@@ -40,3 +42,6 @@ public:
     Array<Guid> material_node_uids;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::PipelineMeshSection, SE_EDITOR_API)
+SE_DECLARE_REFLECTION(se::editor::StaticMeshPipelineNode, SE_EDITOR_API)

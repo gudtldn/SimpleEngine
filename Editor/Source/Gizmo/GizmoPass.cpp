@@ -4,6 +4,7 @@
 #include "SimpleEditor/Gizmo/GizmoRenderer.h"
 #include "SimpleEditor/Gizmo/GizmoVertex.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 
@@ -13,9 +14,6 @@
 namespace se::editor
 {
 using namespace se::math;
-
-SE_BEGIN_REFLECT_V1(GizmoPass, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(GizmoPass)
 
 GizmoPass::GizmoPass(
     const GizmoDrawList& in_draw_list,
@@ -200,3 +198,12 @@ void GizmoPass::Execute(RGExecutionContext& context)
     SDL_EndGPURenderPass(pass);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::GizmoPass)
+    SE_BASE(se::RenderPassBase)
+    SE_FIELD(draw_list)
+    SE_FIELD(render_view)
+    SE_FIELD(color_target_handle)
+    SE_FIELD(depth_target_handle)
+SE_REFLECT_END()

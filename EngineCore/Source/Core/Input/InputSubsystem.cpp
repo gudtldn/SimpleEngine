@@ -6,6 +6,8 @@
 #include "SimpleEngine/Core/HAL/EventSubsystem.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Math/MathReflection.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
@@ -14,9 +16,6 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(InputSubsystem)
     .DependsOn<EventSubsystem, WindowSubsystem>();
-
-SE_BEGIN_REFLECT_V1(InputSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(InputSubsystem)
 
 
 bool InputSubsystem::Initialize()
@@ -273,3 +272,16 @@ void InputSubsystem::OnSDLEvent(const SDL_Event& event)
 } // namespace se
 
 // NOLINTEND(*-convert-member-functions-to-static)
+
+
+SE_REFLECT_BEGIN(se::InputSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(current_keys)
+    SE_FIELD(previous_keys)
+    SE_FIELD(current_mouse_buttons)
+    SE_FIELD(previous_mouse_buttons)
+    SE_FIELD(mouse_position)
+    SE_FIELD(mouse_delta)
+    SE_FIELD(mouse_wheel)
+    SE_FIELD(sdl_event_handle)
+SE_REFLECT_END()

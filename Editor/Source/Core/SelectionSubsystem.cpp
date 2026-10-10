@@ -6,6 +6,7 @@
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
 #include "SimpleEngine/Core/Input/MouseButton.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
@@ -25,10 +26,6 @@ SE_REGISTER_SUBSYSTEM(SelectionSubsystem)
         RenderSubsystem
     >()
     .UpdateDependsOn<GizmoSubsystem>();
-
-SE_BEGIN_REFLECT_V1(SelectionSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(SelectionSubsystem)
 
 bool SelectionSubsystem::Initialize()
 {
@@ -115,3 +112,15 @@ void SelectionSubsystem::Update(f64 /*delta_time*/)
     }
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::SelectionSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(selection)
+    SE_FIELD(input_subsystem)
+    SE_FIELD(entity_subsystem)
+    SE_FIELD(viewport_subsystem)
+    SE_FIELD(gizmo_subsystem)
+    SE_FIELD(pick_subsystem)
+SE_REFLECT_END()

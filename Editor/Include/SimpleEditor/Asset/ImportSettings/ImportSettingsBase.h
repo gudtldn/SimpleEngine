@@ -3,7 +3,7 @@
 #include "SimpleEditor/EditorCommon.h"
 
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 
 namespace se::editor
@@ -11,11 +11,11 @@ namespace se::editor
 /**
  * 에셋 임포트 설정(Import Settings)의 기본 클래스
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect) ImportSettingsBase
+class SE_EDITOR_API ImportSettingsBase
 {
-    SE_CLASS_V1(ImportSettingsBase)
-
 public:
+    SE_RTTI_ROOT()
+
     virtual ~ImportSettingsBase() = default;
 };
 } // namespace se::editor

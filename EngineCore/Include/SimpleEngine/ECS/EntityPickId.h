@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 
 
 namespace se
@@ -50,3 +51,5 @@ public:
     u32 encoded = ENCODED_NONE;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::EntityPickId, SE_CORE_API)

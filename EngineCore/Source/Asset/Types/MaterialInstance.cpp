@@ -1,6 +1,5 @@
 ﻿#include "SimpleEngine/Asset/Types/MaterialInstance.h"
 #include "SimpleEngine/Asset/Types/Material.h"
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
 #include <cstring>
@@ -8,14 +7,6 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT_V1(MaterialInstance, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(parent_material_id, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(parameter_values, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(texture_overrides, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(blend_mode_override, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(two_sided_override, meta::Reflect)
-SE_END_REFLECT_V1(MaterialInstance)
-
 EBlendMode MaterialInstance::GetBlendMode(const Material& parent) const
 {
     return blend_mode_override.ValueOr(parent.blend_mode);

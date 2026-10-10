@@ -7,7 +7,9 @@
 #include "SimpleEngine/Core/Error/IError.h"
 #include "SimpleEngine/Core/Functional/MultiDelegate.h"
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "../Reflection/Legacy/Annotations.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 #include "SDL3/SDL.h"
@@ -60,6 +62,7 @@ private:
 
 struct WindowEntry
 {
+    SE_ANNOTATE(native_handle, Ignore)
     SDL_Window* native_handle = nullptr;
     WindowDesc desc;
 };
@@ -67,11 +70,13 @@ struct WindowEntry
 /**
  * SDL 윈도우의 생명주기와 상태를 관리하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) WindowSubsystem : public SubsystemBase
+class SE_CORE_API WindowSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(WindowSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<WindowSubsystem>;
 
 public:
+    SE_RTTI(WindowSubsystem)
+
     //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
@@ -85,6 +90,7 @@ public:
      * @param SDL_Window* 생성된 네이티브 윈도우 핸들
      * @param WindowDesc& 윈도우 생성에 사용된 Description
      */
+    SE_ANNOTATE(on_window_created, Ignore)
     MultiDelegate<void(SDL_WindowID, SDL_Window*, const WindowDesc&)> on_window_created;
 
     /**
@@ -93,22 +99,27 @@ public:
      * @param SDL_WindowID 파괴될 윈도우의 ID
      * @param SDL_Window* 파괴될 네이티브 윈도우 핸들
      */
+    SE_ANNOTATE(on_window_destroyed, Ignore)
     MultiDelegate<void(SDL_WindowID, SDL_Window*)> on_window_destroyed;
 
 public:
     /** 윈도우가 키보드 포커스를 획득했을 때 Broadcast됩니다. */
+    SE_ANNOTATE(on_window_focus_gained, Ignore)
     MultiDelegate<void(SDL_WindowID)> on_window_focus_gained;
 
     /** 윈도우가 키보드 포커스를 잃었을 때 Broadcast됩니다. */
+    SE_ANNOTATE(on_window_focus_lost, Ignore)
     MultiDelegate<void(SDL_WindowID)> on_window_focus_lost;
 
     /** 윈도우 크기가 변경되었을 때 Broadcast됩니다. */
+    SE_ANNOTATE(on_window_resized, Ignore)
     MultiDelegate<void(SDL_WindowID, u32 /*width*/, u32 /*height*/)> on_window_resized;
 
     /**
      * SDL_EVENT_WINDOW_CLOSE_REQUESTED 이벤트 발생 시 Broadcast됩니다.
      * @param SDL_WindowID 닫기가 요청된 윈도우의 ID
      */
+    SE_ANNOTATE(on_window_close_requested, Ignore)
     MultiDelegate<void(SDL_WindowID)> on_window_close_requested;
 
 public:
@@ -195,6 +206,7 @@ private:
 
     HashMap<SDL_WindowID, WindowEntry> windows;
 
+    SE_ANNOTATE(sdl_event_handle, Ignore)
     DelegateHandle sdl_event_handle;
 };
 
@@ -208,3 +220,7 @@ void WindowSubsystem::ForEachWindow(Fn&& func) const
     }
 }
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::WindowDesc, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::WindowEntry, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::WindowSubsystem, SE_CORE_API)

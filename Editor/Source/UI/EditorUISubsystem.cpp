@@ -22,6 +22,7 @@
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Serialization/JsonArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -46,10 +47,6 @@ SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
         SelectionSubsystem
     >()
     .UpdateDependsOn<EntitySubsystem>();
-
-SE_BEGIN_REFLECT_V1(EditorUISubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(EditorUISubsystem)
 
 bool EditorUISubsystem::Initialize()
 {
@@ -112,19 +109,19 @@ bool EditorUISubsystem::Initialize()
     });
 
     // 일단 명시적으로 Register 코드 작성
-    RegisterPanel<AssetsBrowserPanel>(GetTypeName<AssetsBrowserPanel>());
-    RegisterPanel<CameraPanel>(GetTypeName<CameraPanel>());
-    RegisterPanel<DebugPanel>(GetTypeName<DebugPanel>());
-    RegisterPanel<DetailPanel>(GetTypeName<DetailPanel>());
-    RegisterPanel<EditorConsolePanel>(GetTypeName<EditorConsolePanel>());
-    RegisterPanel<ImGuiDemoPanel>(GetTypeName<ImGuiDemoPanel>());
-    RegisterPanel<OutlinerPanel>(GetTypeName<OutlinerPanel>());
-    RegisterPanel<SettingsPanel>(GetTypeName<SettingsPanel>());
+    RegisterPanel<AssetsBrowserPanel>("AssetsBrowserPanel");
+    RegisterPanel<CameraPanel>("CameraPanel");
+    RegisterPanel<DebugPanel>("DebugPanel");
+    RegisterPanel<DetailPanel>("DetailPanel");
+    RegisterPanel<EditorConsolePanel>("EditorConsolePanel");
+    RegisterPanel<ImGuiDemoPanel>("ImGuiDemoPanel");
+    RegisterPanel<OutlinerPanel>("OutlinerPanel");
+    RegisterPanel<SettingsPanel>("SettingsPanel");
     RegisterPanel<ViewportPanel>("ViewportPanel_Main", "ViewportPanel_Main", true);
     RegisterPanel<ViewportPanel>("ViewportPanel_Sub1", "ViewportPanel_Sub1", false);
     RegisterPanel<ViewportPanel>("ViewportPanel_Sub2", "ViewportPanel_Sub2", false);
     RegisterPanel<ViewportPanel>("ViewportPanel_Sub3", "ViewportPanel_Sub3", false);
-    RegisterPanel<WorldResourcePanel>(GetTypeName<WorldResourcePanel>());
+    RegisterPanel<WorldResourcePanel>("WorldResourcePanel");
 
     return true;
 }
@@ -353,3 +350,11 @@ void EditorUISubsystem::DrawMainMenu()
     }
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::EditorUISubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(panels)
+    SE_FIELD(sdl_event_handle)
+SE_REFLECT_END()

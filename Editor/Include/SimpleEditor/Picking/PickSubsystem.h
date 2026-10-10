@@ -3,6 +3,9 @@
 #include "SimpleEditor/EditorCommon.h"
 
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/ECS/EntityPickId.h"
 #include "SimpleEngine/Graphics/Device/RenderDevice.h"
@@ -17,11 +20,13 @@ namespace se::editor
  * ForwardScenePass의 MRT entity_id 텍스처(viewport 해상도)를 소유하며,
  * PerformPick()으로 커서 위치 1픽셀을 GPU -> CPU readback하여 Entity ID를 읽습니다.
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PickSubsystem : public SubsystemBase
+class SE_EDITOR_API PickSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(PickSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<PickSubsystem>;
 
 public:
+    SE_RTTI(PickSubsystem)
+
     PickSubsystem() = default;
     virtual ~PickSubsystem() override = default;
 
@@ -58,10 +63,12 @@ private:
     [[nodiscard]] SDL_GPUTexture* GetEntityIdTexture() const;
 
 private:
+    SE_ANNOTATE(render_device, Ignore)
     RenderDevice* render_device = nullptr;
 
     // GPU 리소스
     RID entity_id_texture_rid = {};         // viewport 해상도 R32_UINT
+    SE_ANNOTATE(download_buffer, Ignore)
     SDL_GPUTransferBuffer* download_buffer = nullptr; // 4바이트 readback
 
     // 텍스처 크기 캐시
@@ -72,3 +79,5 @@ private:
     EntityPickId pick_id;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::PickSubsystem, SE_EDITOR_API)
