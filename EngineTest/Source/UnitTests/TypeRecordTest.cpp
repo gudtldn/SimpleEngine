@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
 
 #include <algorithm>
@@ -227,4 +228,13 @@ TEST(TypeRecordTest, DiamondBaseAppearsTwiceWithDifferentOffsets)
 
     ASSERT_EQ(diamond_base_offsets.Len(), 2u);
     EXPECT_NE(diamond_base_offsets[0], diamond_base_offsets[1]);
+}
+
+TEST(TypeRecordTest, RecordNameIsCanonicalTypeName)
+{
+    using namespace se_type_record_test;
+
+    EXPECT_EQ(RecordOf<MagicSword>().name, se::TypeNameOf<MagicSword>());
+    EXPECT_EQ(RecordOf<MagicSword>().name, "se_type_record_test::MagicSword");
+    EXPECT_EQ(RecordOf<i32>().name, "i32");
 }

@@ -22,6 +22,21 @@ struct NoDefault
     i32 value;
 };
 
+/** 기본값이 있는 멤버를 가진 타입 */
+struct Pooled
+{
+    i32 value = 5;
+    String name = "pooled";
+};
+
+/** 추상 타입 */
+class IShape
+{
+public:
+    virtual ~IShape() = default;
+    virtual i32 Sides() const = 0;
+};
+
 /** 타입 T를 등록하고 그 ValueOps를 가져옵니다. */
 template <typename T>
 const ValueOps& OpsOf()
@@ -39,9 +54,19 @@ struct CollectContext
 } // namespace se_value_ops_test
 
 SE_DECLARE_REFLECTION(se_value_ops_test::NoDefault)
+SE_DECLARE_REFLECTION(se_value_ops_test::Pooled)
+SE_DECLARE_REFLECTION(se_value_ops_test::IShape)
 
 SE_REFLECT_BEGIN(se_value_ops_test::NoDefault)
     SE_FIELD(value)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_value_ops_test::Pooled)
+    SE_FIELD(value)
+    SE_FIELD(name)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se_value_ops_test::IShape)
 SE_REFLECT_END()
 
 
@@ -313,4 +338,30 @@ TEST(ValueOpsTest, OptionalValueReadsConstOptional)
 
     const se::Optional<f32>& const_health = maybe_health;
     EXPECT_FLOAT_EQ(*static_cast<const f32*>(optional_ops->value(&const_health)), 75.0f);
+}
+
+TEST(ValueOpsTest, NewObjectAndDeleteObjectArePaired)
+{
+    using namespace se_value_ops_test;
+
+    const se::ValueOps& ops = OpsOf<Pooled>();
+    ASSERT_NE(ops.new_object, nullptr);
+    ASSERT_NE(ops.delete_object, nullptr);
+
+    void* object = ops.new_object();
+    ASSERT_NE(object, nullptr);
+    EXPECT_EQ(static_cast<Pooled*>(object)->value, 5);
+    EXPECT_EQ(static_cast<Pooled*>(object)->name, "pooled");
+    ops.delete_object(object);
+}
+
+TEST(ValueOpsTest, AbstractTypeHasNoNewObject)
+{
+    using namespace se_value_ops_test;
+
+    // 추상 타입은 생성할 수 없지만, 파생 객체를 기본 포인터로 지우는 것은 가능해야 함
+    const se::ValueOps& ops = OpsOf<IShape>();
+    EXPECT_EQ(ops.new_object, nullptr);
+    EXPECT_EQ(ops.default_construct_at, nullptr);
+    EXPECT_NE(ops.delete_object, nullptr);
 }
