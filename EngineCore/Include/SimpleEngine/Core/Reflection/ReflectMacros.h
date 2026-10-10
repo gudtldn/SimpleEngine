@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/Reflection/AnnotationBase.h"
+#include "SimpleEngine/Core/Reflection/Ignore.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
 #include "SimpleEngine/Core/Reflection/RegistrationTraits.h"
 #include "SimpleEngine/Core/Reflection/TypeId.h"
@@ -27,35 +28,49 @@
     { \
         using SelfType = std::remove_cvref_t<decltype(*this)>; \
         static_assert( \
-            []<typename U>() consteval { return requires { &U::field; }; }.operator()<SelfType>(), \
+            []<typename U>() consteval { return requires { U::field; }; }.operator()<SelfType>(), \
             "SE_ANNOTATE: no such field - " #field); \
         return true; \
     }
 
+namespace se::detail
+{
+/** 어노테이션 튜플에 Annotation 타입이 들어 있는지 확인합니다. */
+template <typename Tuple, typename Annotation>
+concept TupleHasAnnotation = !traits::IsDisjoint<std::remove_cvref_t<Tuple>, std::tuple<Annotation>>;
+} // namespace se::detail
+
 /**
  * 등록 블록(SE_REFLECT_BEGIN/END) 안에서, 필드 하나를 FieldInfo로 만들어 등록합니다.
  * 같은 이름의 필드에 SE_ANNOTATE가 있었다면 그 어노테이션 뷰를 자동으로 붙입니다.
+ * Ignore가 붙은 필드는 등록하지 않습니다.
+ * @note 필드를 쓰는 식은 템플릿 람다 안에 두어, Ignore가 붙은 참조 멤버에서 &T::field를 만들지 않습니다.
  */
 #define SE_FIELD(field) \
+    [&]<typename U>() \
     { \
-        fields.Push(::se::FieldInfo{ \
-            .name = #field, \
-            .type = ::se::TypeId::Of<std::remove_cvref_t<decltype(T::field)>>(), \
-            .offset = ::se::detail::FieldOffsetOf<T>(&T::field), \
-            .annotations = []<typename U>() consteval -> ::se::ArrayView<const ::se::AnnotationRef> \
+        constexpr bool is_ignored = requires \
+        { \
+            requires ::se::detail::TupleHasAnnotation<decltype(U::_ANNO_VALUES_##field), ::se::IgnoreAnnotation>; \
+        }; \
+        if constexpr (!is_ignored) \
+        { \
+            static_assert(!std::is_reference_v<decltype(U::field)>, \
+                "SE_FIELD(" #field "): reference members cannot be reflected. Annotate the field with se::Ignore."); \
+            ::se::ArrayView<const ::se::AnnotationRef> annotations; \
+            if constexpr (requires { U::_ANNO_REFS_##field; }) \
             { \
-                if constexpr (requires { U::_ANNO_REFS_##field; }) \
-                { \
-                    return U::_ANNO_REFS_##field; \
-                } \
-                else \
-                { \
-                    return {}; \
-                } \
-            }.operator()<T>(), \
-        }); \
-        ::se::EnsureRegistered<std::remove_cvref_t<decltype(T::field)>>(); \
-    }
+                annotations = U::_ANNO_REFS_##field; \
+            } \
+            fields.Push({ \
+                .name = #field, \
+                .type = ::se::TypeId::Of<std::remove_cvref_t<decltype(U::field)>>(), \
+                .offset = ::se::detail::FieldOffsetOf<U>(&U::field), \
+                .annotations = annotations, \
+            }); \
+            ::se::EnsureRegistered<std::remove_cvref_t<decltype(U::field)>>(); \
+        } \
+    }.operator()<T>();
 
 /** 타입 어노테이션 튜플과, 등록 뒤 RegistrationTraits를 부르는 정적 초기화 변수를 정의합니다. */
 #define SE_DETAIL_REFLECT_AUTOREG(macro_name, type, ...) \
