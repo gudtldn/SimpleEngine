@@ -1,20 +1,10 @@
 ﻿#include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Math/MathReflection.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
 
 namespace se
 {
-SE_REFLECT_ENUM_V1(EMaterialParamType)
-
-SE_BEGIN_REFLECT_V1(MaterialParameterDescriptor, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(name, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(type, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(offset, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(default_value, meta::Reflect)
-SE_END_REFLECT_V1(MaterialParameterDescriptor)
-
 u32 MaterialParameterDescriptor::GetSize() const
 {
     switch (type)

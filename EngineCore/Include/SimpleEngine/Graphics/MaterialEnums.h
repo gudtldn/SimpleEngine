@@ -2,7 +2,6 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../Core/Reflection/Legacy/Enum.h"
 #include "SimpleEngine/Core/Types/BitFlags.h"
 
 
@@ -33,10 +32,10 @@ enum class EMaterialFlag : u32
     None      = 0,
     AlphaTest = 1 << 0, // MASK 블렌드 모드용 알파 테스트 활성화
 };
-SE_ENUM_SET_BITFLAG(EMaterialFlag)
 SE_ENABLE_BITMASK_OPERATORS(EMaterialFlag)
 using MaterialFlags = BitFlags<EMaterialFlag>;
 } // namespace se
 
 SE_DECLARE_REFLECTION(se::EBlendMode, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::EShadingModel, SE_CORE_API)
+SE_DECLARE_REFLECTION(se::EMaterialFlag, SE_CORE_API)

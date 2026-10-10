@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "../Reflection/Legacy/Enum.h"
 
 #include <new>
 
