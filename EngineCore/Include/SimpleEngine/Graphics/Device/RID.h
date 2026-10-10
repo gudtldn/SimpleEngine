@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 
 #include <functional>
 #include <limits>
@@ -39,6 +40,8 @@ struct RID
     }
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RID, SE_CORE_API)
 
 
 template<>

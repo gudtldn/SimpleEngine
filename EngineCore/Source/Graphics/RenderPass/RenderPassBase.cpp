@@ -1,8 +1,6 @@
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
 
-namespace se
-{
-SE_BEGIN_REFLECT_V1(RenderPassBase, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(RenderPassBase)
-}
+SE_REFLECT_BEGIN(se::RenderPassBase)
+SE_REFLECT_END()

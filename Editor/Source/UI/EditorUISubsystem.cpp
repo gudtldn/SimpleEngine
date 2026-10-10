@@ -22,6 +22,7 @@
 #include "SimpleEngine/Core/HAL/FileDialog.h"
 #include "SimpleEngine/Core/HAL/WindowSubsystem.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Serialization/JsonArchive.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Core/Types/VPath.h"
@@ -46,10 +47,6 @@ SE_REGISTER_SUBSYSTEM(EditorUISubsystem)
         SelectionSubsystem
     >()
     .UpdateDependsOn<EntitySubsystem>();
-
-SE_BEGIN_REFLECT_V1(EditorUISubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(EditorUISubsystem)
 
 bool EditorUISubsystem::Initialize()
 {
@@ -353,3 +350,11 @@ void EditorUISubsystem::DrawMainMenu()
     }
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::EditorUISubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(panels)
+    SE_FIELD(sdl_event_handle)
+SE_REFLECT_END()

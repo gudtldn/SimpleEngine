@@ -27,6 +27,7 @@
 #include "SimpleEngine/Core/Logging/Logging.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Utility/ScopedTimer.h"
 #include "SimpleEngine/Utility/SHA256.h"
@@ -78,9 +79,6 @@ JobTask<void> MakeCookTask(EditorAssetSubsystem& self, VPath vpath, std::atomic<
 
 SE_REGISTER_SUBSYSTEM(EditorAssetSubsystem)
     .DependsOn<se::AssetSubsystem>();
-
-SE_BEGIN_REFLECT_V1(EditorAssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(EditorAssetSubsystem)
 
 
 EditorAssetSubsystem::EditorAssetSubsystem() = default;
@@ -980,3 +978,16 @@ void EditorAssetSubsystem::SyncDependencies(
     dep_graph.SetDependencies(asset_id, resolved_ids);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::EditorAssetSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(asset_subsystem)
+    SE_FIELD(importer)
+    SE_FIELD(preset_manager)
+    SE_FIELD(dep_graph)
+    SE_FIELD(cooking_mutex)
+    SE_FIELD(currently_cooking)
+    SE_FIELD(file_drop_handle)
+    SE_FIELD(active_content_dir)
+SE_REFLECT_END()

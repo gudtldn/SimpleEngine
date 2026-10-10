@@ -2,6 +2,9 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/StringName.h"
@@ -13,11 +16,13 @@ namespace se
 /**
  * ECS WorldContext 컬렉션을 관리하고 엔진 업데이트 루프와 연결하는 Subsystem
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EntitySubsystem : public SubsystemBase, public IUpdatable
+class SE_CORE_API EntitySubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS_V1(EntitySubsystem, SubsystemBase)
+    friend struct ::se::Registrar<EntitySubsystem>;
 
 public:
+    SE_RTTI(EntitySubsystem)
+
     EntitySubsystem() = default;
     virtual ~EntitySubsystem() override = default;
 
@@ -58,6 +63,9 @@ private:
     static const StringName& GetMainWorldName();
 
 private:
+    SE_ANNOTATE(worlds, Ignore)
     HashMap<StringName, WorldContext> worlds;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::EntitySubsystem, SE_CORE_API)

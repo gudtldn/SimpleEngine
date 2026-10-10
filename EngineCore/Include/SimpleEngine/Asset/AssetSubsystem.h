@@ -6,6 +6,9 @@
 #include "SimpleEngine/Core/Concurrency/Coroutine/JobTask.h"
 #include "SimpleEngine/Core/Container/HashSet.h"
 #include "SimpleEngine/Core/Functional/Function.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 
@@ -38,11 +41,13 @@ using DDCMissHandler = Function<bool(AssetSubsystem& subsystem, const VPath& fil
  *   4. DDC Miss -> (Editor) Import 파이프라인 실행 -> DDC에 저장 -> Pool 적재 -> 반환
  *   5. DDC Miss Handler 미등록 (런타임 fallback) -> Invalid Handle
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) AssetSubsystem : public SubsystemBase
+class SE_CORE_API AssetSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(AssetSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<AssetSubsystem>;
 
 public:
+    SE_RTTI(AssetSubsystem)
+
     AssetSubsystem();
     virtual ~AssetSubsystem() override;
 
@@ -143,14 +148,24 @@ private:
     void CommitLoadedPayload(HandleData handle_data, AssetPayload payload, u64 payload_size, EScopeLayer scope);
 
 private:
+    SE_ANNOTATE(pool, Ignore)
     std::unique_ptr<AssetPool> pool;
+
+    SE_ANNOTATE(registry, Ignore)
     std::unique_ptr<AssetRegistry> registry;
+
+    SE_ANNOTATE(ddc, Ignore)
     std::unique_ptr<DerivedDataCache> ddc;
 
+    SE_ANNOTATE(ddc_miss_handler, Ignore)
     DDCMissHandler ddc_miss_handler;
 
+    SE_ANNOTATE(loading_mutex, Ignore)
     TracyLockable(std::mutex, loading_mutex);
+
+    SE_ANNOTATE(import_cv, Ignore)
     std::condition_variable_any import_cv;    // 하나의 스레드에서만 Import를 보장하는 cv
+
     HashSet<VPath> files_currently_importing; // 현재 Import 중인 File 목록
 };
 
@@ -204,3 +219,5 @@ AssetHandle<T> AssetSubsystem::RegisterBuiltin(const AssetId& asset_id, std::uni
     return {};
 }
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::AssetSubsystem, SE_CORE_API)

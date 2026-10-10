@@ -2,6 +2,9 @@
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
 #include "SimpleEngine/Graphics/RenderPass/RenderPassBase.h"
 #include "SimpleEngine/Graphics/View/RenderView.h"
@@ -17,11 +20,13 @@ class SamplerCache;
 /**
  * SceneDrawData의 오브젝트를 Forward 렌더링하는 패스
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) ForwardScenePass : public RenderPassBase
+class SE_CORE_API ForwardScenePass : public RenderPassBase
 {
-    SE_CLASS_V1(ForwardScenePass, RenderPassBase)
+    friend struct ::se::Registrar<ForwardScenePass>;
 
 public:
+    SE_RTTI(ForwardScenePass)
+
     explicit ForwardScenePass(
         const SceneDrawData& in_draw_data,
         u32 in_view_index,
@@ -37,9 +42,12 @@ public:
     virtual void Execute(RGExecutionContext& context) override;
 
 private:
+    SE_ANNOTATE(draw_data, Ignore)
     const SceneDrawData& draw_data;
     const u32 view_index;
+    SE_ANNOTATE(gpu_manager, Ignore)
     const GpuResourceManager& gpu_manager;
+    SE_ANNOTATE(sampler_cache, Ignore)
     const SamplerCache& sampler_cache;
     RenderView render_view;
 
@@ -48,3 +56,5 @@ private:
     RGTextureHandle entity_id_target_handle;
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::ForwardScenePass, SE_CORE_API)

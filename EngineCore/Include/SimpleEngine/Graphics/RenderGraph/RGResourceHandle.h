@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 
 #include <functional>
 #include <limits>
@@ -31,6 +32,30 @@ using RGTextureHandle = detail::RGResourceHandleImpl<struct _RGTextureTag>;
 
 /** Render Graph 버퍼 리소스 핸들 */
 using RGBufferHandle = detail::RGResourceHandleImpl<struct _RGBufferTag>;
+
+/** Render Graph 리소스 핸들 (필드는 index 하나) */
+template <typename Tag>
+struct Registrar<detail::RGResourceHandleImpl<Tag>>
+{
+    static void Fill(TypeInfo& info)
+    {
+        using T = detail::RGResourceHandleImpl<Tag>;
+
+        info.size = sizeof(T);
+        info.alignment = alignof(T);
+        info.name = TypeNameOf<T>();
+
+        auto& [bases, fields] = TypeRegistry::Get().EmplaceStructStorage(TypeId::Of<T>());
+        fields.Push({
+            .name = "index",
+            .type = TypeId::Of<u32>(),
+            .offset = ::se::detail::FieldOffsetOf<T>(&T::index),
+            .annotations = {},
+        });
+        EnsureRegistered<u32>();
+        info.shape = StructInfo{ .bases = bases, .fields = fields };
+    }
+};
 } // namespace se
 
 template <typename Tag>

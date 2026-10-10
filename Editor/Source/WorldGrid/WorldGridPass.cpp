@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/UI/ViewModeTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Graphics/Manager/PipelineCreateInfo.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGContexts.h"
 
@@ -246,3 +247,12 @@ void WorldGridPass::Execute(RGExecutionContext& context)
     SDL_EndGPURenderPass(pass);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::WorldGridPass)
+    SE_BASE(se::RenderPassBase)
+    SE_FIELD(view_mode)
+    SE_FIELD(render_view)
+    SE_FIELD(color_target_handle)
+    SE_FIELD(depth_target_handle)
+SE_REFLECT_END()

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "../../Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 
 namespace se
@@ -23,11 +24,11 @@ enum class ERGPassQueue : u8
 /**
  * Render Graph의 각 렌더링 단계를 정의하기 위한 인터페이스
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) RenderPassBase
+class SE_CORE_API RenderPassBase
 {
-    SE_CLASS_V1(RenderPassBase)
-
 public:
+    SE_RTTI_ROOT()
+
     virtual ~RenderPassBase() = default;
 
     /**
@@ -49,3 +50,5 @@ public:
     [[nodiscard]] virtual ERGPassQueue GetQueueType() const { return ERGPassQueue::Graphics; }
 };
 } // namespace se
+
+SE_DECLARE_REFLECTION(se::RenderPassBase, SE_CORE_API)

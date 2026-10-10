@@ -4,6 +4,7 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 
 #include "SimpleEngine/Core/Input/InputSubsystem.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/ECS/EntitySubsystem.h"
 #include "SimpleEngine/ECS/World.h"
@@ -23,10 +24,6 @@ SE_REGISTER_SUBSYSTEM(EditorActionSubsystem)
         EntitySubsystem,
         InputSubsystem
     >();
-
-SE_BEGIN_REFLECT_V1(EditorActionSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-    SE_REFLECT_INTERFACE_V1(IUpdatable)
-SE_END_REFLECT_V1(EditorActionSubsystem)
 
 bool EditorActionSubsystem::Initialize()
 {
@@ -120,3 +117,13 @@ void EditorActionSubsystem::DeleteEntityRecursive(World& world, EditorSelection&
     world.DestroyEntity(entity);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::EditorActionSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_BASE(se::IUpdatable)
+    SE_FIELD(selection_subsystem)
+    SE_FIELD(viewport_subsystem)
+    SE_FIELD(entity_subsystem)
+    SE_FIELD(input_subsystem)
+SE_REFLECT_END()

@@ -13,7 +13,7 @@ namespace se
  * Engine에 등록된 Subsystem을 가져옵니다.
  * @return Subsystem을 반환, 등록되어 있지 않다면 nullptr
  */
-[[nodiscard]] SE_CORE_API SubsystemBase* GetSubsystem(const TypeId_v1& type_id);
+[[nodiscard]] SE_CORE_API SubsystemBase* GetSubsystem(TypeId type_id);
 
 /**
  * Engine에 등록된 Subsystem을 가져옵니다.
@@ -24,7 +24,7 @@ template <typename Subsystem>
     requires std::derived_from<Subsystem, SubsystemBase>
 [[nodiscard]] Subsystem* GetSubsystem()
 {
-    return static_cast<Subsystem*>(GetSubsystem(TypeId_v1::Of<Subsystem>()));
+    return static_cast<Subsystem*>(GetSubsystem(TypeId::Of<Subsystem>()));
 }
 
 /**
@@ -39,7 +39,7 @@ template <typename Subsystem>
 [[nodiscard]] Subsystem& GetSubsystemChecked()
 {
     Subsystem* subsystem = GetSubsystem<Subsystem>();
-    SE_ASSERT(subsystem, "Subsystem {} is not registered.", GetFullTypeName<Subsystem>());
+    SE_ASSERT(subsystem, "Subsystem {} is not registered.", TypeNameOf<Subsystem>());
     return *subsystem;
 }
 

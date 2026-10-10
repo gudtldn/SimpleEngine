@@ -14,6 +14,9 @@
 
 namespace se
 {
+template <typename T>
+struct Registrar;
+
 /**
  * Enum 타입을 비트마스크(Flags)처럼 안전하게 사용하기 위한 클래스
  * @tparam E 비트마스크로 사용할 Enum 타입 (enum class 권장)
@@ -21,6 +24,8 @@ namespace se
 template <traits::EnumType E>
 class BitFlags
 {
+    friend struct Registrar<BitFlags>;
+
 public:
     using EnumType = E;
     using MaskType = std::underlying_type_t<EnumType>;

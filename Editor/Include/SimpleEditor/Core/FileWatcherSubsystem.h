@@ -3,6 +3,9 @@
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Core/FileWatcher.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 
 
@@ -11,11 +14,13 @@ namespace se::editor
 /**
  * FileWatcher의 수명 주기를 관리하는 Subsystem
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) FileWatcherSubsystem : public SubsystemBase
+class SE_EDITOR_API FileWatcherSubsystem : public SubsystemBase
 {
-    SE_CLASS_V1(FileWatcherSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<FileWatcherSubsystem>;
 
 public:
+    SE_RTTI(FileWatcherSubsystem)
+
     //~ Begin SubsystemBase
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
@@ -45,6 +50,9 @@ public:
     [[nodiscard]] Array<FileWatchEvent> DrainEvents(WatchId watch_id);
 
 private:
+    SE_ANNOTATE(watcher, Ignore)
     FileWatcher watcher;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::FileWatcherSubsystem, SE_EDITOR_API)

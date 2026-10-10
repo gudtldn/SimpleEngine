@@ -5,6 +5,9 @@
 #include "SimpleEditor/Gizmo/GizmoTypes.h"
 #include "SimpleEditor/UI/ViewModeTypes.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Types/StringName.h"
@@ -59,11 +62,13 @@ public:
 /**
  * 에디터 내의 뷰포트(씬 렌더링 창) 상태와 렌더링 리소스를 관리하는 Subsystem
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) EditorViewportSubsystem : public SubsystemBase, public IUpdatable
+class SE_EDITOR_API EditorViewportSubsystem : public SubsystemBase, public IUpdatable
 {
-    SE_CLASS_V1(EditorViewportSubsystem, SubsystemBase)
+    friend struct ::se::Registrar<EditorViewportSubsystem>;
 
 public:
+    SE_RTTI(EditorViewportSubsystem)
+
     [[nodiscard]] virtual bool Initialize() override;
     virtual void Release() override;
 
@@ -148,7 +153,9 @@ public:
     [[nodiscard]] Optional<EditorCameraState&> GetViewportCamera(const StringName& viewport_id);
 
 private:
+    SE_ANNOTATE(input_subsystem, Ignore)
     InputSubsystem* input_subsystem = nullptr;
+    SE_ANNOTATE(render_device, Ignore)
     RenderDevice* render_device = nullptr;
 
     HashMap<StringName, ViewportState> viewports;
@@ -158,3 +165,6 @@ private:
     Vector2f last_mouse_pos;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::ViewportState, SE_EDITOR_API)
+SE_DECLARE_REFLECTION(se::editor::EditorViewportSubsystem, SE_EDITOR_API)

@@ -10,7 +10,7 @@
 #include "SimpleEngine/Core/Engine/Engine.h"
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Serialization/BinaryArchive.h"
@@ -23,9 +23,6 @@
 namespace se
 {
 SE_REGISTER_SUBSYSTEM(AssetSubsystem);
-
-SE_BEGIN_REFLECT_V1(AssetSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(AssetSubsystem)
 
 AssetSubsystem::AssetSubsystem() = default;
 AssetSubsystem::~AssetSubsystem() = default;
@@ -547,3 +544,15 @@ HandleTable& AssetSubsystem::GetHandleTable() const
     return pool->GetTable();
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::AssetSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(pool)
+    SE_FIELD(registry)
+    SE_FIELD(ddc)
+    SE_FIELD(ddc_miss_handler)
+    SE_FIELD(loading_mutex)
+    SE_FIELD(import_cv)
+    SE_FIELD(files_currently_importing)
+SE_REFLECT_END()

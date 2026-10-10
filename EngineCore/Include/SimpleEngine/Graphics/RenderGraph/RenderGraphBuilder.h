@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/HashMap.h"
-#include "../../Core/Reflection/Legacy/TypeSignature.h"
+#include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGNodeTypes.h"
 #include "SimpleEngine/Graphics/RenderGraph/RGResourceHandle.h"
@@ -76,7 +76,7 @@ PassType& RenderGraphBuilder::AddPass(Args&&... args)
 {
     auto pass_ptr = std::make_unique<PassType>(std::forward<Args>(args)...);
     PassType* raw_ptr = pass_ptr.get();
-    AddPassInternal(StringName{ GetFullTypeName<PassType>() }, std::move(pass_ptr));
+    AddPassInternal(StringName{ TypeNameOf<PassType>() }, std::move(pass_ptr));
     return *raw_ptr;
 }
 } // namespace se

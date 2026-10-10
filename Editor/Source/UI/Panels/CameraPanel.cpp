@@ -5,6 +5,7 @@
 #include "SimpleEditor/UI/EditorViewportSubsystem.h"
 #include "SimpleEditor/UI/PropertyDrawer/PropertyDrawer.h"
 
+#include "SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 #include "SimpleEngine/Utility/SubsystemUtils.h"
 
 #include "imgui.h"

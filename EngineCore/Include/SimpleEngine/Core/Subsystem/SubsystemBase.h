@@ -1,7 +1,8 @@
 #pragma once
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
-#include "../Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 
 namespace se
@@ -9,11 +10,11 @@ namespace se
 /**
  * Engine에서 사용되는 Subsystem의 기본 구조를 정의하는 인터페이스 클래스
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) SubsystemBase
+class SE_CORE_API SubsystemBase
 {
-    SE_CLASS_V1(SubsystemBase)
-
 public:
+    SE_RTTI_ROOT()
+
     virtual ~SubsystemBase() = default;
 
 public:
@@ -24,3 +25,5 @@ public:
     virtual void Release() = 0;
 };
 }
+
+SE_DECLARE_REFLECTION(se::SubsystemBase, SE_CORE_API)

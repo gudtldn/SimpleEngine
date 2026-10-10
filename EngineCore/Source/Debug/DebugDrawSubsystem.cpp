@@ -1,6 +1,8 @@
 ﻿#include "SimpleEngine/Debug/DebugDrawSubsystem.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
+#include "SimpleEngine/Core/Math/MathReflection.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
 #include "SimpleEngine/Debug/DebugDraw.h"
 #include "SimpleEngine/Graphics/RenderSubsystem.h"
@@ -12,9 +14,6 @@ namespace se
 {
 SE_REGISTER_SUBSYSTEM(DebugDrawSubsystem)
     .DependsOn<RenderSubsystem>();
-
-SE_BEGIN_REFLECT_V1(DebugDrawSubsystem, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(DebugDrawSubsystem)
 
 bool DebugDrawSubsystem::Initialize()
 {
@@ -212,3 +211,21 @@ void DrawDebugRay(const Ray& ray, f64 length, const LinearColor& color, f32 dura
     DrawDebugLine(ray.origin, ray.GetPoint(length), color, duration);
 }
 } // namespace se
+
+
+SE_REFLECT_BEGIN(se::DebugLine)
+    SE_FIELD(start)
+    SE_FIELD(end)
+    SE_FIELD(color)
+    SE_FIELD(duration)
+SE_REFLECT_END()
+
+SE_REFLECT_BEGIN(se::DebugDrawSubsystem)
+    SE_BASE(se::SubsystemBase)
+    SE_FIELD(pending_mutex)
+    SE_FIELD(pending_lines)
+    SE_FIELD(current_frame_lines)
+    SE_FIELD(render_device)
+    SE_FIELD(vertex_buffer_rid)
+    SE_FIELD(transfer_buffer)
+SE_REFLECT_END()
