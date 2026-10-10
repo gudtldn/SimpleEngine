@@ -2,21 +2,21 @@
 #include "SimpleEditor/Asset/Pipeline/Nodes/StaticMeshPipelineNode.h"
 
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
-#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "tracy/Tracy.hpp"
 
 
 namespace se::editor
 {
-TypeId_v1 StaticMeshFactory::GetAssetType() const
+TypeId StaticMeshFactory::GetAssetType() const
 {
-    return TypeId_v1::Of<StaticMesh>();
+    return TypeId::Of<StaticMesh>();
 }
 
 bool StaticMeshFactory::CanCreateAsset(const PipelineBaseNode* node) const
 {
-    return IsA_v1<se::editor::StaticMeshPipelineNode>(node);
+    return IsA<se::editor::StaticMeshPipelineNode>(node);
 }
 
 std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
@@ -26,7 +26,7 @@ std::shared_ptr<AssetBase> StaticMeshFactory::CreateAsset(
 {
     ZoneScopedN("StaticMeshFactory::CreateAsset");
 
-    auto* mesh_node = CastChecked_v1<se::editor::StaticMeshPipelineNode>(node);
+    auto* mesh_node = CastChecked<se::editor::StaticMeshPipelineNode>(node);
 
     auto static_mesh = std::make_shared<StaticMesh>();
     static_mesh->vertices = std::move(mesh_node->vertices);

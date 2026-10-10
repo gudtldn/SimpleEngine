@@ -2,8 +2,10 @@
 
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
+#include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 
 namespace se
@@ -116,40 +118,36 @@ constexpr u32 GetBlockByteSize(ETextureFormat fmt) noexcept
 }
 
 /** pixels 배열 내 개별 밉 레벨의 위치와 크기 */
-struct SE_ANNOTATION(=meta::Reflect) MipDescriptor
+struct MipDescriptor
 {
-    SE_ANNOTATION(=meta::Reflect)
     u32 offset = 0;
 
-    SE_ANNOTATION(=meta::Reflect)
     u32 size = 0;
 
-    SE_ANNOTATION(=meta::Reflect)
     u32 width = 0;
 
-    SE_ANNOTATION(=meta::Reflect)
     u32 height = 0;
 };
 
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Texture2D : public AssetBase
+class SE_CORE_API Texture2D : public AssetBase
 {
-    SE_CLASS_V1(Texture2D, AssetBase)
-
 public:
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_RTTI(Texture2D)
+
+    SE_ANNOTATE(width, display::ReadOnly)
     u32 width = 0;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(height, display::ReadOnly)
     u32 height = 0;
 
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(format, display::ReadOnly)
     ETextureFormat format = ETextureFormat::None;
 
     /**
      * GPU 측 밉맵 자동 생성 여부
      * mips가 비어있지 않거나 IsCompressed(format)이면 무시됩니다.
      */
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(generate_mips, display::ReadOnly)
     bool generate_mips = true;
 
     /**
@@ -157,7 +155,7 @@ public:
      * 비어있으면: pixels가 밉 0만 보유합니다.
      * 있으면: pixels는 각 MipDescriptor의 offset/size 기준 연속 데이터입니다.
      */
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(mips, display::ReadOnly)
     Array<MipDescriptor> mips;
 
     /**
@@ -165,12 +163,11 @@ public:
      * mips가 비어있으면: width × height × GetBytesPerPixel(format) Byte
      * mips가 있으면: 각 밉 레벨 데이터의 연속 배열
      */
-    SE_ANNOTATION(=meta::Reflect, =meta::ReadOnly)
+    SE_ANNOTATE(pixels, display::ReadOnly)
     Array<u8> pixels;
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::MipDescriptor)
 SE_DECLARE_REFLECTION(se::ETextureFormat, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::MipDescriptor, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::Texture2D, SE_CORE_API)

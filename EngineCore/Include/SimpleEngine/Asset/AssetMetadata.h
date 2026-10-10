@@ -3,8 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../Core/Reflection/Legacy/Annotations.h"
-#include "../Core/Reflection/Legacy/TypeId.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 
@@ -27,18 +26,15 @@ enum class EAssetDependencyType : u8
  * Import/Cook 시 Translator가 반환한 의존 파일 목록을 이 구조체로 표현합니다.
  * .meta의 [[metadata.sub_assets.dependencies]] 섹션에 직렬화됩니다.
  */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetDependencyEntry
+struct AssetDependencyEntry
 {
     /** 의존 대상 소스 파일의 가상 경로 (예: "Assets://Textures/Wood_Diffuse.png") */
-    SE_ANNOTATION(=meta::Reflect)
     String source_vpath;
 
     /** 특정 Sub-asset의 GUID (비어있으면 파일 전체에 의존) */
-    SE_ANNOTATION(=meta::Reflect)
     Guid asset_guid;
 
     /** 의존성 종류 */
-    SE_ANNOTATION(=meta::Reflect)
     EAssetDependencyType type = EAssetDependencyType::Hard;
 
     bool operator==(const AssetDependencyEntry&) const = default;
@@ -50,22 +46,18 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetDependencyEntry
  * 하나의 소스 파일(예: character.fbx)에서 여러 Sub-Asset이 생성될 때,
  * 각 Sub-Asset의 이름, GUID, 타입 정보를 담습니다.
  */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) SubAssetMeta
+struct SubAssetMeta
 {
     /** Sub-Asset의 이름 (예: "Mesh_Character", "Material_Body") */
-    SE_ANNOTATION(=meta::Reflect)
     String name;
 
     /** Sub-Asset의 고유 식별자 */
-    SE_ANNOTATION(=meta::Reflect)
     Guid guid;
 
     /** Sub-Asset의 타입 식별자 */
-    SE_ANNOTATION(=meta::Reflect)
-    TypeId_v1 type;
+    TypeId type;
 
     /** 이 Sub-Asset이 의존하는 다른 에셋 목록 */
-    SE_ANNOTATION(=meta::Reflect)
     Array<AssetDependencyEntry> dependencies;
 
     bool operator==(const SubAssetMeta&) const = default;
@@ -77,46 +69,33 @@ struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) SubAssetMeta
  * Editor가 TOML .meta 파일을 파싱/생성할 때 이 구조체를 사용하고, Core의 AssetRegistry에 데이터를 주입합니다.
  * Core는 이 구조체의 존재만 알 뿐, TOML 파싱은 수행하지 않습니다.
  */
-struct SE_ANNOTATION(=meta::Reflect, =meta::Hidden) AssetMetadata
+struct AssetMetadata
 {
     /** 소스 파일의 Primary GUID */
-    SE_ANNOTATION(=meta::Reflect)
     Guid guid;
 
     /** 소스 파일의 SHA-256 해시 (변경 감지용) */
-    SE_ANNOTATION(=meta::Reflect)
     ContentHash source_hash;
 
     /** 소스 파일의 마지막 수정 시간 */
-    SE_ANNOTATION(=meta::Reflect)
     u64 source_mtime = 0;
 
     /** 소스 파일의 크기 */
-    SE_ANNOTATION(=meta::Reflect)
     u64 source_size = 0;
 
     /** 캐시 바이너리의 스키마 버전 (Importer 출력 포맷 변경 시 증가) */
-    SE_ANNOTATION(=meta::Reflect)
     u32 cache_version = 0;
 
     /** Import Settings의 SHA-256 해시 (설정 변경 감지용) */
-    SE_ANNOTATION(=meta::Reflect)
     ContentHash settings_hash;
 
     /** 이 소스 파일에서 생성된 Sub-Asset 목록 */
-    SE_ANNOTATION(=meta::Reflect)
     Array<SubAssetMeta> sub_assets;
 
     bool operator==(const AssetMetadata&) const = default;
 };
 } // namespace se
 
-SE_DECLARE_REFLECTION_V1(se::AssetDependencyEntry)
-SE_DECLARE_REFLECTION_V1(se::SubAssetMeta)
-SE_DECLARE_REFLECTION_V1(se::AssetMetadata)
-
-// 레거시 TypeId는 바이너리에서 이름의 해시, 텍스트에서 이름 하나로 쓰도록 Opaque로 등록하고, 직렬화는 AssetMetadata.cpp의 SerializeTraits가 맡음
-SE_REFLECT_OPAQUE(se::TypeId_v1)
 
 SE_DECLARE_REFLECTION(se::EAssetDependencyType, SE_CORE_API)
 SE_DECLARE_REFLECTION(se::AssetDependencyEntry, SE_CORE_API)

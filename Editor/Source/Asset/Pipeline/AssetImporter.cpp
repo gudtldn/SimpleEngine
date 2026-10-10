@@ -14,7 +14,7 @@ bool AssetImporter::CanImport(const Path& file_path) const
     return FindTranslator(file_path).HasValue();
 }
 
-Optional<TypeId_v1> AssetImporter::FindTranslatorTypeId(const Path& file_path) const
+Optional<TypeId> AssetImporter::FindTranslatorTypeId(const Path& file_path) const
 {
     if (const auto ext = file_path.Extension())
     {
@@ -124,7 +124,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
         {
             ZoneScopedN("Process Node");
 #if TRACY_ENABLE
-            const StringView node_name = node->GetTypeId().GetName();
+            const StringView node_name = node->GetTypeRecord()->name;
             ZoneText(node_name.Data(), node_name.ByteLen());
 #endif
             [&]
@@ -144,7 +144,7 @@ Expected<ImportResult, ImportError> AssetImporter::Import(
                         return;
                     }
                 }
-                ConsoleLog(ELogLevel::Warning, "No factory found for node type: {}", node->GetTypeId().GetName());
+                ConsoleLog(ELogLevel::Warning, "No factory found for node type: {}", node->GetTypeRecord()->name);
             }();
         }
     }
@@ -259,7 +259,7 @@ Array<PipelineBaseNode*> AssetImporter::SortNodesByDependency(const PipelineNode
                 if (const auto node = container.GetNode(node_id))
                 {
                     ConsoleLog(ELogLevel::Error, "- {} (Type: {}, Remaining Deps: {})",
-                        node->GetDisplayName(), node->GetTypeId().GetName(), degree);
+                        node->GetDisplayName(), node->GetTypeRecord()->name, degree);
                 }
             }
         }

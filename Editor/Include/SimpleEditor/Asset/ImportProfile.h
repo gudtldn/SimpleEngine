@@ -7,9 +7,8 @@
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Container/String.h"
 #include "SimpleEngine/Core/Error/Expected.h"
-#include "../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeId.h"
-#include "SimpleEngine/Core/Reflection//Legacy/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/TypeId.h"
 #include "SimpleEngine/Core/Serialization/SerializeTraits.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 
@@ -27,7 +26,7 @@ namespace se::editor
 class SE_EDITOR_API ImportProfile
 {
 public:
-    using SettingsMap = HashMap<TypeId_v1, std::shared_ptr<ImportSettingsBase>>;
+    using SettingsMap = HashMap<TypeId, std::shared_ptr<ImportSettingsBase>>;
 
 public:
     /**
@@ -42,7 +41,7 @@ public:
     {
         using PureType = std::remove_cvref_t<T>;
         settings_map.Insert(
-            TypeId_v1::Of<PureType>(),
+            TypeId::Of<PureType>(),
             std::make_shared<PureType>(std::forward<T>(settings))
         );
     }
@@ -58,7 +57,7 @@ public:
     void Emplace(Args&&... args)
     {
         settings_map.Emplace(
-            TypeId_v1::Of<T>(),
+            TypeId::Of<T>(),
             std::make_shared<T>(std::forward<Args>(args)...)
         );
     }
@@ -74,7 +73,7 @@ public:
     [[nodiscard]] Optional<const T&> Get() const
     {
         return settings_map
-            .Find(TypeId_v1::Of<T>())
+            .Find(TypeId::Of<T>())
             .AndThen([](const auto& ptr) -> Optional<const T&>
             {
                 return static_cast<const T&>(*ptr);

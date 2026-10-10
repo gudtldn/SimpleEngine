@@ -1,13 +1,11 @@
 ﻿#include "SimpleEditor/Asset/Pipeline/Nodes/PipelineTextureNode.h"
 
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Types/Path.h"
 
 
 namespace se::editor
 {
-SE_BEGIN_REFLECT_V1(PipelineTextureNode, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(PipelineTextureNode)
-
 Optional<Path> PipelineTextureNode::GetSourceFile() const
 {
     return attributes.GetAttribute<String>(Keys::SOURCE_FILE)
@@ -86,3 +84,9 @@ void PipelineTextureNode::SetEmbeddedHeight(u64 height)
     attributes.SetAttribute(Keys::EMBEDDED_HEIGHT, height);
 }
 } // namespace se::editor
+
+
+SE_REFLECT_BEGIN(se::editor::PipelineTextureNode)
+    SE_BASE(se::editor::PipelineBaseNode)
+    SE_FIELD(embedded_bytes)
+SE_REFLECT_END()

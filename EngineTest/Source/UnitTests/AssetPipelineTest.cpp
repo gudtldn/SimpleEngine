@@ -11,6 +11,8 @@
 #include "SimpleEngine/Asset/AssetRegistry.h"
 #include "SimpleEngine/Asset/Types/MeshTypes.h"
 #include "SimpleEngine/Core/Math/Math.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 
 using namespace se;
 using namespace se::editor;
@@ -18,18 +20,20 @@ using namespace se::editor;
 // --- Mock Classes ---
 
 // 테스트용 Import Settings
-struct SE_ANNOTATION(=meta::Reflect) MockImportSettings : public ImportSettingsBase
+struct MockImportSettings : public ImportSettingsBase
 {
-    SE_CLASS_V1(MockImportSettings, ImportSettingsBase)
-
 public:
-    SE_ANNOTATION(=meta::Reflect)
+    SE_RTTI(MockImportSettings)
+
     bool combine_meshes = true;
 };
 
-SE_BEGIN_REFLECT_V1(MockImportSettings, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(combine_meshes, meta::Reflect)
-SE_END_REFLECT_V1(MockImportSettings)
+SE_DECLARE_REFLECTION(MockImportSettings)
+
+SE_REFLECT_BEGIN(MockImportSettings)
+    SE_BASE(se::editor::ImportSettingsBase)
+    SE_FIELD(combine_meshes)
+SE_REFLECT_END()
 
 /**
  * 테스트용 Translator
@@ -123,7 +127,7 @@ public:
         for (const auto& node_ptr : in_out_container.GetAllNodes() | std::views::values)
         {
             // StaticMeshPipelineNode인지 확인
-            if (node_ptr->GetTypeId() == TypeId_v1::Of<StaticMeshPipelineNode>())
+            if (node_ptr->GetTypeRecord()->id == TypeId::Of<StaticMeshPipelineNode>())
             {
                 // 다운캐스팅
                 auto* mesh_node = static_cast<StaticMeshPipelineNode*>(node_ptr.get());
@@ -153,7 +157,7 @@ public:
     {
         for (const auto& node_ptr : in_out_container.GetAllNodes() | std::views::values)
         {
-            if (node_ptr->GetTypeId() == TypeId_v1::Of<StaticMeshPipelineNode>())
+            if (node_ptr->GetTypeRecord()->id == TypeId::Of<StaticMeshPipelineNode>())
             {
                 auto* mesh_node = static_cast<StaticMeshPipelineNode*>(node_ptr.get());
                 for (auto& vertex : mesh_node->vertices)

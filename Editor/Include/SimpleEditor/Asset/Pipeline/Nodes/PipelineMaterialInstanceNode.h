@@ -4,7 +4,8 @@
 
 #include "SimpleEngine/Core/Container/HashMap.h"
 #include "SimpleEngine/Core/Math/Math.h"
-#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/StringName.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
@@ -15,11 +16,11 @@ namespace se::editor
 /**
  * FBX/GLTF 임포트 과정에서 aiMaterial 하나를 MaterialInstance 에셋으로 변환하기 위한 Pipeline 노드
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineMaterialInstanceNode final : public PipelineBaseNode
+class SE_EDITOR_API PipelineMaterialInstanceNode final : public PipelineBaseNode
 {
-    SE_CLASS_V1(PipelineMaterialInstanceNode, PipelineBaseNode)
-
 public:
+    SE_RTTI(PipelineMaterialInstanceNode)
+
     // 슬롯 이름 -> PipelineTextureNode UID ("BaseColor" -> tex_node.self_uid)
     HashMap<StringName, Guid> texture_node_refs;
 
@@ -37,3 +38,5 @@ public:
     virtual void GetFactoryDependencies(Array<Guid>& out_dependencies) const override;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::PipelineMaterialInstanceNode, SE_EDITOR_API)

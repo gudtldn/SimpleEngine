@@ -1,10 +1,11 @@
 #include "SimpleEditor/Asset/Pipeline/Nodes/PipelineBaseNode.h"
 
-#include "../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 
 
-namespace se::editor
-{
-SE_BEGIN_REFLECT_V1(PipelineBaseNode, meta::Reflect, meta::Hidden, meta::Transient)
-SE_END_REFLECT_V1(PipelineBaseNode)
-}
+SE_REFLECT_BEGIN(se::editor::PipelineBaseNode)
+    SE_FIELD(self_uid)
+    SE_FIELD(parent_uid)
+    SE_FIELD(display_name)
+    SE_FIELD(attributes)
+SE_REFLECT_END()

@@ -3,8 +3,11 @@
 #include "SimpleEngine/Asset/Types/AssetBase.h"
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Container/Optional.h"
+#include "SimpleEngine/Core/Reflection/DisplayAnnotations.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Core/Reflection/Registrar.h"
-#include "../../Core/Reflection/Legacy/Annotations.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
+#include "SimpleEngine/Core/Serialization/Transient.h"
 #include "SimpleEngine/Core/Types/VPath.h"
 #include "SimpleEngine/Graphics/MaterialEnums.h"
 #include "SimpleEngine/Graphics/Material/MaterialParameterDescriptor.h"
@@ -20,41 +23,36 @@ namespace se
  * PSO 키와 1:1 대응하므로, 인스턴스(MaterialInstance)가 달라도 같은 Material 이면 PSO를 재사용합니다.
  * 실제 파라미터 값과 텍스처 오버라이드는 MaterialInstance 에 저장합니다.
  */
-class SE_CORE_API SE_ANNOTATION(=meta::Reflect) Material : public AssetBase
+class SE_CORE_API Material : public AssetBase
 {
-    SE_CLASS_V1(Material, AssetBase)
+    friend struct ::se::Registrar<Material>;
 
 public:
+    SE_RTTI(Material)
+
     // 정점/픽셀 스테이지를 모두 가진 셰이더 소스 VPath
-    SE_ANNOTATION(=meta::Reflect)
     VPath shader_program = "CoreShader://Default.hlsl";
 
     // 블렌드 모드
-    SE_ANNOTATION(=meta::Reflect)
     EBlendMode blend_mode = EBlendMode::Opaque;
 
     // 셰이딩 모델 | TODO: 추후 PBR 전환 시 셰이더 퍼뮤테이션 키로 사용 예정
-    SE_ANNOTATION(=meta::Reflect)
     EShadingModel shading_model = EShadingModel::Lit;
 
     // 양면 렌더링 여부
-    SE_ANNOTATION(=meta::Reflect)
     bool two_sided = false;
 
     // 알파 컷오프 (Masked 전용)
-    SE_ANNOTATION(=meta::Reflect)
     f32 alpha_cutoff = 0.5f;
 
     // 추후 셰이더 퍼뮤테이션 시스템 도입 시 사용할 키 (지금은 항상 0)
-    SE_ANNOTATION(=meta::Reflect, =meta::Hidden)
+    SE_ANNOTATE(permutation_key, display::Hidden)
     u32 permutation_key = 0;
 
     // Fragment UBO 파라미터 레이아웃
-    SE_ANNOTATION(=meta::Reflect)
     Array<MaterialParameterDescriptor> parameter_layout;
 
     // Fragment Texture 슬롯 정의
-    SE_ANNOTATION(=meta::Reflect)
     Array<MaterialTextureSlot> texture_slots;
 
 public:
@@ -83,6 +81,8 @@ public:
     [[nodiscard]] Optional<const MaterialTextureSlot&> FindTextureSlot(StringName name) const;
 
 private:
+    // FinalizeLayout이 parameter_layout에서 다시 만듦
+    SE_ANNOTATE(default_parameter_block, serde::Transient, display::Hidden)
     Array<u8> default_parameter_block;
 };
 } // namespace se

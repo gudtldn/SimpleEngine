@@ -188,7 +188,7 @@ static void BM_StaticMesh_DeserializeAssetPayload(benchmark::State& state)
 
     for ([[maybe_unused]] auto _ : state)
     {
-        const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId_v1::Of<StaticMesh>(), payload);
+        const AssetPayload loaded = AssetSubsystem::DeserializeAssetPayload(TypeId::Of<StaticMesh>(), payload);
         if (!loaded.IsValid())
         {
             state.SkipWithError("DeserializeAssetPayload failed.");

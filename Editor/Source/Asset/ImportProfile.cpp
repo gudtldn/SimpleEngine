@@ -1,9 +1,10 @@
 #include "SimpleEditor/Asset/ImportProfile.h"
 
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Core/Reflection/Rtti.h"
+#include "SimpleEngine/Core/Reflection/TypeRecordRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
+#include "SimpleEngine/Core/Reflection/ValueOpsRegistry.h"
 #include "SimpleEngine/Core/Serialization/BinaryArchive.h"
 #include "SimpleEngine/Core/Serialization/SerializeContext.h"
 #include "SimpleEngine/Core/Serialization/SerializeOpsRegistry.h"
@@ -17,18 +18,15 @@ namespace se
 {
 namespace
 {
-/**
- * 설정 타입 이름으로 그 타입의 SerializePlan을 찾습니다.
- * 두 리플렉션은 TypeId 해시를 서로 다르게 계산하므로, 레거시에 등록된 이름을 새 리플렉션의 정규 이름으로 보고 찾습니다.
- */
-[[nodiscard]] Expected<const SerializePlan*, String> FindSettingsPlan(StringView name)
+/** 설정 타입 이름으로 등록된 TypeInfo를 찾습니다. 이름이 정규 이름과 다르면 NullOpt입니다. */
+[[nodiscard]] Optional<const TypeInfo&> FindSettingsType(StringView name)
 {
     const auto info = TypeRegistry::Get().Find(TypeId::FromCanonicalName(name));
     if (!info.HasValue() || info->name != name)
     {
-        return Unexpected{ String::Format("'{}' is not registered with SE_REFLECT_BEGIN", name) };
+        return NullOpt;
     }
-    return SerializePlanRegistry::Get().FindOrCompile(info->id);
+    return info;
 }
 
 /**
@@ -55,7 +53,7 @@ void SkipSettingsEntry(ArchiveReader& reader, StringView name)
 
 /**
  * 맵 엔트리 하나에서 설정 타입 이름과 그 설정을 읽어 settings_map에 넣습니다.
- * 레거시에 등록된 ImportSettingsBase 파생 타입이 아니면 SkipSettingsEntry로 건너뜁니다.
+ * 등록된 ImportSettingsBase 파생 타입이 아니면 SkipSettingsEntry로 건너뜁니다.
  */
 void ReadSettingsEntry(ArchiveReader& reader, editor::ImportProfile::SettingsMap& settings_map)
 {
@@ -66,35 +64,43 @@ void ReadSettingsEntry(ArchiveReader& reader, editor::ImportProfile::SettingsMap
         return;
     }
 
-    const TypeId_v1 type_id = TypeId_v1::FromName(StringName{ name });
-    const auto legacy_info = TypeRegistry_v1::Get().Find(type_id);
-    if (!legacy_info.HasValue() || !legacy_info->constructor || !IsChildOf_v1<editor::ImportSettingsBase>(type_id))
+    const auto info = FindSettingsType(name);
+    if (!info || !IsA<editor::ImportSettingsBase>(info->id))
+    {
+        SkipSettingsEntry(reader, name);
+        return;
+    }
+    const auto ops = ValueOpsRegistry::Get().Find(info->id);
+    const auto record = TypeRecordRegistry::Get().Find(info->id);
+    if (!ops || !ops->new_object || !record)
     {
         SkipSettingsEntry(reader, name);
         return;
     }
 
-    const auto plan = FindSettingsPlan(name);
+    const auto plan = SerializePlanRegistry::Get().FindOrCompile(info->id);
     if (plan.HasError())
     {
         reader.SetError(String::Format("SerializeTraits<ImportProfile>: {}.", plan.Error()));
         return;
     }
 
-    // 객체 생성은 레거시 리플렉션이 맡고, 필드는 새 직렬화로 채움
-    void* const raw = legacy_info->constructor();
-    std::shared_ptr<editor::ImportSettingsBase> settings{ CastFromRaw_v1<editor::ImportSettingsBase>(raw, type_id) };
+    // new_object는 new T로 만들므로 ImportSettingsBase의 가상 소멸자로 해제할 수 있음
+    void* const raw = ops->new_object();
+    std::shared_ptr<editor::ImportSettingsBase> settings{
+        static_cast<editor::ImportSettingsBase*>(CastById(raw, info->id, TypeId::Of<editor::ImportSettingsBase>(), *record))
+    };
     if (serde::Deserialize(reader, *plan.Value(), raw).HasError())
     {
         return;
     }
-    settings_map.Insert(type_id, std::move(settings));
+    settings_map.Insert(info->id, std::move(settings));
 }
 } // namespace
 
 /**
  * 설정 타입 이름을 key로, 그 타입의 필드를 value로 하는 맵으로 저장합니다. 기존 .meta 파일의 import_settings 테이블과 같은 표현입니다.
- * 읽을 때 객체는 레거시 리플렉션이 만들고 필드는 새 직렬화로 채우며, 모르는 설정 타입은 건너뜁니다.
+ * 읽을 때 객체는 ValueOps로 만들고 필드는 직렬화로 채우며, 모르는 설정 타입은 건너뜁니다.
  */
 template <>
 struct SerializeTraits<editor::ImportProfile>
@@ -104,14 +110,14 @@ struct SerializeTraits<editor::ImportProfile>
     static void Write(ArchiveWriter& writer, const editor::ImportProfile& value)
     {
         // HashMap 순서는 삽입 이력에 따라 달라지므로, 같은 설정이 같은 바이트가 되도록 타입 이름 순으로 씀
-        Array<TypeId_v1> type_ids = value.GetSettingsMap().Keys();
-        type_ids.SortBy(&TypeId_v1::GetName);
+        Array<TypeId> type_ids = value.GetSettingsMap().Keys();
+        type_ids.SortBy([](TypeId type_id) { return TypeRegistry::Get().FindChecked(type_id).name; });
 
         writer.BeginMap(type_ids.Len());
-        for (const TypeId_v1& type_id : type_ids)
+        for (const TypeId type_id : type_ids)
         {
-            const StringView name = type_id.GetName();
-            const auto plan = FindSettingsPlan(name);
+            const StringView name = TypeRegistry::Get().FindChecked(type_id).name;
+            const auto plan = SerializePlanRegistry::Get().FindOrCompile(type_id);
             if (plan.HasError())
             {
                 writer.SetError(String::Format("SerializeTraits<ImportProfile>: {}.", plan.Error()));
@@ -120,8 +126,7 @@ struct SerializeTraits<editor::ImportProfile>
 
             // 필드 오프셋은 가장 파생된 타입 기준이므로, ImportSettingsBase 서브오브젝트가 아닌 완전 객체의 주소를 넘김
             const editor::ImportSettingsBase& settings = *value.GetSettingsMap()[type_id];
-            const auto record = TypeRecordRegistry::Get().Find(plan.Value()->type);
-            const void* const complete = record ? CompleteObjectOf(&settings, *record) : nullptr;
+            const void* const complete = CompleteObjectOf(&settings);
             if (complete == nullptr)
             {
                 writer.SetError(String::Format("SerializeTraits<ImportProfile>: ImportSettingsBase is not a single SE_BASE of '{}'.", name));

@@ -1,5 +1,4 @@
 ﻿#include "SimpleEngine/Asset/Types/Material.h"
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 #include "SimpleEngine/Core/Reflection/ReflectMacros.h"
 #include "SimpleEngine/Utility/Common.h"
 
@@ -9,17 +8,6 @@
 
 namespace se
 {
-SE_BEGIN_REFLECT_V1(Material, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(shader_program, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(blend_mode, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(shading_model, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(two_sided, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(alpha_cutoff, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(permutation_key, meta::Reflect, meta::Hidden)
-    SE_REFLECT_PROPERTY_V1(parameter_layout, meta::Reflect)
-    SE_REFLECT_PROPERTY_V1(texture_slots, meta::Reflect)
-SE_END_REFLECT_V1(Material)
-
 Material& Material::AddParameter(StringName name, EMaterialParamType type, Vector4f default_val)
 {
     // 현재까지 쌓인 파라미터들의 끝 offset 계산
@@ -122,4 +110,5 @@ SE_REFLECT_BEGIN(se::Material)
     SE_FIELD(permutation_key)
     SE_FIELD(parameter_layout)
     SE_FIELD(texture_slots)
+    SE_FIELD(default_parameter_block)
 SE_REFLECT_END()

@@ -11,7 +11,6 @@
 #include "SimpleEngine/Core/FileSystem/VFS.h"
 #include "SimpleEngine/Core/HAL/Platform.h"
 #include "SimpleEngine/Core/Logging/Logging.h"
-#include "../../../Include/SimpleEngine/Core/Reflection/Legacy/Cast.h"
 #include "SimpleEngine/Core/Subsystem/IUpdatable.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemBase.h"
 #include "SimpleEngine/Core/Subsystem/SubsystemRegistration.h"
@@ -96,9 +95,6 @@ Engine::Engine()
 {
     SE_ASSERT(!instance, "Engine instance already exists.");
     instance = this;
-
-    // Interface Cache 구축
-    TypeRegistry_v1::Get().Resolve();
 
     VFS& vfs = VFS::Get();
 

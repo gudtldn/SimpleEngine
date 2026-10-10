@@ -4,8 +4,10 @@
 #include "SimpleEditor/Asset/Pipeline/Types/AttributeStorage.h"
 
 #include "SimpleEngine/Core/Container/String.h"
+#include "SimpleEngine/Core/Reflection/ReflectMacros.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
+#include "SimpleEngine/Core/Reflection/Rtti.h"
 #include "SimpleEngine/Core/Types/Guid.h"
-#include "../../../../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/Reflect.h"
 
 
 namespace se::editor
@@ -13,11 +15,13 @@ namespace se::editor
 /**
  * Asset Import Pipeline의 기본 노드 클래스
  */
-class SE_EDITOR_API SE_ANNOTATION(=meta::Reflect, =meta::Hidden, =meta::Transient) PipelineBaseNode
+class SE_EDITOR_API PipelineBaseNode
 {
-    SE_CLASS_V1(PipelineBaseNode)
+    friend struct ::se::Registrar<PipelineBaseNode>;
 
 public:
+    SE_RTTI_ROOT()
+
     virtual ~PipelineBaseNode() = default;
 
     /** 팩토리 정렬(Topological Sort)을 위해 이 노드가 참조하는 다른 노드들의 ID 반환합니다. */
@@ -47,6 +51,9 @@ protected:
     Guid parent_uid;
     String display_name;
 
+    SE_ANNOTATE(attributes, Ignore)
     AttributeStorage attributes;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::PipelineBaseNode, SE_EDITOR_API)

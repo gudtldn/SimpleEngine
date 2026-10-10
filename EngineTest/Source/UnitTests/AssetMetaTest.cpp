@@ -22,7 +22,6 @@
 #include "SimpleEngine/Core/Types/Guid.h"
 #include "SimpleEngine/Core/Types/HashDigest.h"
 #include "SimpleEngine/Utility/Common.h"
-#include "../../../EngineCore/Include/SimpleEngine/Core/Reflection/Legacy/TypeRegistry.h"
 
 #include "SDL3/SDL_filesystem.h"
 
@@ -66,36 +65,6 @@ constexpr std::string_view CUBE_META_TEXT =
     "    name = 'Material_DefaultMaterial'\n"
     "    type = 'se::MaterialInstance'";
 
-/** 타입 하나를 두 레지스트리에서 찾을 TypeId */
-struct DualTypeIds
-{
-    TypeId id;
-    TypeId_v1 legacy_id;
-};
-
-/** T의 두 TypeId를 만듭니다. 둘 다 타입 이름의 해시라 등록 템플릿을 인스턴스화하지 않습니다. */
-template <typename T>
-[[nodiscard]] DualTypeIds IdsOf()
-{
-    return { .id = TypeId::Of<T>(), .legacy_id = TypeId_v1::Of<T>() };
-}
-
-/** 이름들을 ", "로 이어 붙입니다. 실패 메시지에 두 목록이 그대로 보이도록 문자열로 비교합니다. */
-template <std::ranges::input_range Names>
-[[nodiscard]] std::string JoinNames(Names&& names)
-{
-    std::string joined;
-    for (const StringView name : names)
-    {
-        if (!joined.empty())
-        {
-            joined += ", ";
-        }
-        joined += std::string_view{ name };
-    }
-    return joined;
-}
-
 /** TOML 텍스트를 테이블로 파싱합니다. 문법 오류면 테스트를 실패시키고 빈 테이블을 돌려줍니다. */
 [[nodiscard]] toml::table ParseToml(std::string_view text)
 {
@@ -132,34 +101,6 @@ void ExpectOnlyMeshSettings(const ImportProfile& profile, const MeshImportSettin
 } // namespace
 
 
-TEST(AssetMetaTest, BothRegistrationsListSameFields)
-{
-    const DualTypeIds meta_types[] = {
-        IdsOf<ImportSettingsBase>(),
-        IdsOf<MeshImportSettings>(),
-        IdsOf<ProcessorEntry>(),
-        IdsOf<MetaFileContent>(),
-    };
-
-    for (const DualTypeIds& type : meta_types)
-    {
-        const auto legacy_info = TypeRegistry_v1::Get().Find(type.legacy_id);
-        ASSERT_TRUE(legacy_info.HasValue());
-        SCOPED_TRACE(std::string_view{ legacy_info->name });
-
-        const auto info = TypeRegistry::Get().Find(type.id);
-        ASSERT_TRUE(info.HasValue()) << "The type is not registered with SE_REFLECT_BEGIN.";
-        const auto struct_info = info->AsStruct();
-        ASSERT_TRUE(struct_info.HasValue());
-
-        // 이름과 순서가 모두 같아야 함
-        EXPECT_EQ(
-            JoinNames(struct_info->fields | std::views::transform(&FieldInfo::name)),
-            JoinNames(legacy_info->properties | std::views::transform(&PropertyInfo_v1::name))
-        );
-    }
-}
-
 TEST(AssetMetaTest, CubeMetaLoadsWithoutWarnings)
 {
     const toml::table table = ParseToml(CUBE_META_TEXT);
@@ -188,12 +129,12 @@ TEST(AssetMetaTest, CubeMetaLoadsWithoutWarnings)
             SubAssetMeta{
                 .name = "Cube",
                 .guid = Guid::FromString("df89d951-dc57-4bc7-90d8-df460daea1b8"),
-                .type = TypeId_v1::Of<StaticMesh>(),
+                .type = TypeId::Of<StaticMesh>(),
             },
             SubAssetMeta{
                 .name = "Material_DefaultMaterial",
                 .guid = Guid::FromString("86cf11d2-ee50-46c9-ac18-76ca5172c7c1"),
-                .type = TypeId_v1::Of<MaterialInstance>(),
+                .type = TypeId::Of<MaterialInstance>(),
             },
         },
     };
@@ -308,8 +249,8 @@ TEST(AssetMetaTest, UnknownSettingsTypeFailsInBinary)
 TEST(AssetMetaTest, ProcessorStackRoundTrip)
 {
     MetaFileContent original;
-    original.processor_stack.Push(ProcessorEntry{ .processor_type = TypeId_v1::Of<StaticMesh>(), .enabled = true });
-    original.processor_stack.Push(ProcessorEntry{ .processor_type = TypeId_v1::Of<Texture2D>(), .enabled = false });
+    original.processor_stack.Push(ProcessorEntry{ .processor_type = TypeId::Of<StaticMesh>(), .enabled = true });
+    original.processor_stack.Push(ProcessorEntry{ .processor_type = TypeId::Of<Texture2D>(), .enabled = false });
 
     // 타입은 레거시에 등록된 이름으로 씀
     const toml::table table = WriteToml(original);
@@ -320,9 +261,9 @@ TEST(AssetMetaTest, ProcessorStackRoundTrip)
     ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
 
     ASSERT_EQ(result.processor_stack.Len(), 2);
-    EXPECT_EQ(result.processor_stack[0].processor_type, TypeId_v1::Of<StaticMesh>());
+    EXPECT_EQ(result.processor_stack[0].processor_type, TypeId::Of<StaticMesh>());
     EXPECT_TRUE(result.processor_stack[0].enabled);
-    EXPECT_EQ(result.processor_stack[1].processor_type, TypeId_v1::Of<Texture2D>());
+    EXPECT_EQ(result.processor_stack[1].processor_type, TypeId::Of<Texture2D>());
     EXPECT_FALSE(result.processor_stack[1].enabled);
 }
 

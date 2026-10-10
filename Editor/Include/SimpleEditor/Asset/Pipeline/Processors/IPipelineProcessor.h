@@ -2,6 +2,7 @@
 
 #include "SimpleEditor/EditorCommon.h"
 #include "SimpleEditor/Asset/Pipeline/PipelineNodeContainer.h"
+#include "SimpleEngine/Core/Reflection/Registrar.h"
 
 
 namespace se::editor
@@ -21,3 +22,5 @@ public:
     virtual void Process(PipelineNodeContainer& in_out_container) = 0;
 };
 } // namespace se::editor
+
+SE_DECLARE_REFLECTION(se::editor::IPipelineProcessor, SE_EDITOR_API)
