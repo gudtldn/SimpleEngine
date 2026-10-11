@@ -129,7 +129,7 @@ Array<u8> AssetSubsystem::SerializeAssetPayload(const AssetBase& asset)
     const SerializePlan& payload_plan = *plan.Value();
 
     // 필드 오프셋은 가장 파생된 타입 기준이므로, AssetBase 서브오브젝트가 아닌 완전 객체의 주소를 넘김
-    const void* const complete = CompleteObjectOf(&asset);
+    const void* complete = CompleteObjectOf(&asset);
     if (complete == nullptr)
     {
         ConsoleLog(ELogLevel::Warning, "Cannot serialize asset type {}: AssetBase is not a single SE_BASE of the registered type", record.name);
@@ -178,7 +178,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(TypeId type_id, ArrayView<c
         return {};
     }
 
-    void* const raw = ops->new_object();
+    void* raw = ops->new_object();
     if (!raw)
     {
         return {};
@@ -195,7 +195,7 @@ AssetPayload AssetSubsystem::DeserializeAssetPayload(TypeId type_id, ArrayView<c
     }
 
     // AssetPayload::destructor는 ptr을 받으므로, AssetBase 서브오브젝트가 완전 객체와 같은 주소여야 함
-    AssetBase* const asset = static_cast<AssetBase*>(CastById(raw, type_id, TypeId::Of<AssetBase>(), *record));
+    AssetBase* asset = static_cast<AssetBase*>(CastById(raw, type_id, TypeId::Of<AssetBase>(), *record));
     SE_ASSERT(asset == raw, "AssetBase of '{}' must be at offset 0.", type_name);
     return {
         .ptr = asset,

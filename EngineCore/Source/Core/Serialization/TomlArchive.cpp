@@ -101,7 +101,7 @@ void SortArray(toml::array& array)
 
     toml::array sorted;
     sorted.reserve(array.size());
-    for (toml::node* const element : order)
+    for (toml::node* element : order)
     {
         sorted.push_back(std::move(*element));
     }
@@ -171,7 +171,7 @@ void TomlWriter::RawElements([[maybe_unused]] const void* data, [[maybe_unused]]
 void TomlWriter::Enum(i64 value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
 {
     // 이름이 있는 값은 이름으로, 없는 값(플래그 조합 등)은 정수로 씀
-    const auto* const entry = std::ranges::find(entries, value, &EnumEntry::value);
+    const auto* entry = std::ranges::find(entries, value, &EnumEntry::value);
     if (entry != entries.end())
     {
         PlaceValue(ToStdStringView(entry->name));
@@ -202,7 +202,7 @@ void TomlWriter::BeginStruct()
         return;
     }
 
-    if (toml::node* const table = PlaceValue(toml::table{}))
+    if (toml::node* table = PlaceValue(toml::table{}))
     {
         frames.Push({ StructFrame{ .table = table->as_table() } });
     }
@@ -252,7 +252,7 @@ void TomlWriter::EndStruct()
 
 void TomlWriter::BeginSeq([[maybe_unused]] u64 count, ESeqOrder order)
 {
-    if (toml::node* const array = PlaceValue(toml::array{}))
+    if (toml::node* array = PlaceValue(toml::array{}))
     {
         frames.Push({ SeqFrame{ .array = array->as_array(), .order = order } });
     }
@@ -305,7 +305,7 @@ void TomlWriter::BeginMapEntry()
 
     // key와 value를 차례로 받을 [key, value] 배열. 원소 노드는 따로 할당되므로 MapFrame이 옮겨져도 주소가 유지됨
     frame->entries.push_back(toml::array{});
-    toml::array* const pair = frame->entries.back().as_array();
+    toml::array* pair = frame->entries.back().as_array();
     frames.Push({ MapEntryFrame{ .pair = pair } });
 }
 
@@ -475,7 +475,7 @@ Optional<Frame&> TomlWriter::TopAs()
     {
         return NullOpt;
     }
-    if (Frame* const frame = std::get_if<Frame>(&top->value))
+    if (Frame* frame = std::get_if<Frame>(&top->value))
     {
         return *frame;
     }
@@ -506,7 +506,7 @@ bool TomlReader::SupportsRawElements() const
 
 void TomlReader::Int(i64& value, EIntWidth width, bool is_signed)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
@@ -520,7 +520,7 @@ void TomlReader::Int(i64& value, EIntWidth width, bool is_signed)
 
 void TomlReader::Float(f64& value, EFloatWidth width)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
@@ -528,11 +528,11 @@ void TomlReader::Float(f64& value, EFloatWidth width)
 
     // 사람이 17처럼 정수로 적은 실수도 받음
     f64 number = 0.0;
-    if (const toml::value<f64>* const floating = node->as_floating_point())
+    if (const toml::value<f64>* floating = node->as_floating_point())
     {
         number = floating->get();
     }
-    else if (const toml::value<i64>* const integer = node->as_integer())
+    else if (const toml::value<i64>* integer = node->as_integer())
     {
         number = static_cast<f64>(integer->get());
     }
@@ -559,13 +559,13 @@ void TomlReader::Float(f64& value, EFloatWidth width)
 
 void TomlReader::Bool(bool& value)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
 
-    const toml::value<bool>* const boolean = node->as_boolean();
+    const toml::value<bool>* boolean = node->as_boolean();
     if (boolean == nullptr)
     {
         SetError(String::Format("TomlReader: expected a boolean, got {}.", NodeKindName(*node)));
@@ -576,13 +576,13 @@ void TomlReader::Bool(bool& value)
 
 void TomlReader::Str(String& value)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
 
-    const toml::value<std::string>* const text = node->as_string();
+    const toml::value<std::string>* text = node->as_string();
     if (text == nullptr)
     {
         SetError(String::Format("TomlReader: expected a string, got {}.", NodeKindName(*node)));
@@ -593,13 +593,13 @@ void TomlReader::Str(String& value)
 
 void TomlReader::Bytes(void* data, u64 size)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
 
-    const toml::value<std::string>* const text = node->as_string();
+    const toml::value<std::string>* text = node->as_string();
     if (text == nullptr)
     {
         SetError(String::Format("TomlReader: expected a base64 string, got {}.", NodeKindName(*node)));
@@ -627,17 +627,17 @@ void TomlReader::RawElements([[maybe_unused]] void* data, [[maybe_unused]] u64 s
 
 void TomlReader::Enum(i64& value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
 
     // 이름으로 적힌 값
-    if (const toml::value<std::string>* const text = node->as_string())
+    if (const toml::value<std::string>* text = node->as_string())
     {
         const StringView name = std::string_view{ text->get() };
-        const auto* const entry = std::ranges::find(entries, name, &EnumEntry::name);
+        const auto* entry = std::ranges::find(entries, name, &EnumEntry::name);
         if (entry == entries.end())
         {
             SetError(String::Format("TomlReader: '{}' is not a name of this enum.", name));
@@ -669,12 +669,12 @@ void TomlReader::BeginStruct()
         return;
     }
 
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
-    const toml::table* const table = node->as_table();
+    const toml::table* table = node->as_table();
     if (table == nullptr)
     {
         SetError(String::Format("TomlReader: expected a table, got {}.", NodeKindName(*node)));
@@ -737,13 +737,13 @@ void TomlReader::EndStruct()
 
 void TomlReader::BeginSeq(u64& count)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
 
-    const toml::array* const array = node->as_array();
+    const toml::array* array = node->as_array();
     if (array == nullptr)
     {
         SetError(String::Format("TomlReader: expected an array, got {}.", NodeKindName(*node)));
@@ -770,20 +770,20 @@ void TomlReader::EndSeq()
 
 void TomlReader::BeginMap(u64& count)
 {
-    const toml::node* const node = TakeValue();
+    const toml::node* node = TakeValue();
     if (node == nullptr)
     {
         return;
     }
 
     // key가 모두 문자열이면 테이블, 아니면 [key, value] 쌍 배열로 쓰여 있음 (빈 맵은 둘 다 받음)
-    if (const toml::table* const table = node->as_table())
+    if (const toml::table* table = node->as_table())
     {
         count = table->size();
         frames.Push({ TableMapFrame{ .table = table, .path = PathOfTakenValue(), .next_entry = table->cbegin() } });
         return;
     }
-    if (const toml::array* const array = node->as_array())
+    if (const toml::array* array = node->as_array())
     {
         count = array->size();
         frames.Push({ PairMapFrame{ .pairs = array, .path = PathOfTakenValue() } });
@@ -833,7 +833,7 @@ void TomlReader::BeginMapEntry()
         return;
     }
     const usize index = frame->next_index++;
-    const toml::array* const pair = pairs[index].as_array();
+    const toml::array* pair = pairs[index].as_array();
     if (pair == nullptr)
     {
         SetError(String::Format("TomlReader: expected a [key, value] array, got {}.", NodeKindName(pairs[index])));
@@ -977,7 +977,7 @@ const toml::node* TomlReader::TakeValue()
 
 Optional<i64> TomlReader::ReadInteger(const toml::node& node, EIntWidth width, bool is_signed)
 {
-    if (const toml::value<i64>* const integer = node.as_integer())
+    if (const toml::value<i64>* integer = node.as_integer())
     {
         const i64 number = integer->get();
         if (!text_archive::FitsInWidth(number, width, is_signed))
@@ -989,7 +989,7 @@ Optional<i64> TomlReader::ReadInteger(const toml::node& node, EIntWidth width, b
     }
 
     // i64를 넘는 u64는 10진 문자열로 저장됨
-    const toml::value<std::string>* const text = node.as_string();
+    const toml::value<std::string>* text = node.as_string();
     if (text != nullptr && width == EIntWidth::Bits64 && !is_signed)
     {
         const std::string& digits = text->get();
@@ -1036,7 +1036,7 @@ Optional<Frame&> TomlReader::TopAs()
     {
         return NullOpt;
     }
-    if (Frame* const frame = std::get_if<Frame>(&top->value))
+    if (Frame* frame = std::get_if<Frame>(&top->value))
     {
         return *frame;
     }

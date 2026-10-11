@@ -577,8 +577,8 @@ bool EditorAssetSubsystem::CookAsset(const VPath& file_vpath)
             }
 
             // new_object는 new T로 만들므로 IPipelineProcessor의 가상 소멸자로 해제할 수 있음
-            void* const raw = ops->new_object();
-            IPipelineProcessor* const processor = static_cast<IPipelineProcessor*>(
+            void* raw = ops->new_object();
+            IPipelineProcessor* processor = static_cast<IPipelineProcessor*>(
                 CastById(raw, processor_type, TypeId::Of<IPipelineProcessor>(), *record)
             );
 

@@ -194,7 +194,7 @@ PrimitiveEntry MakePrimitiveEntry()
         return info.id != TypeId::Of<bool>();
     }
 
-    const StructSteps* const struct_steps = std::get_if<StructSteps>(&steps);
+    const StructSteps* struct_steps = std::get_if<StructSteps>(&steps);
     if (struct_steps == nullptr)
     {
         return false;
@@ -341,7 +341,7 @@ Expected<PlanSteps, String> SerializePlanCompiler::CompileArray(TypeId id, const
     const ValueOps& container_ops = ValueOpsRegistry::Get().Find(id).Value();
     const ArrayOps& array_ops = container_ops.AsArray().Value();
 
-    const SerializePlan* const element = element_plan.Value();
+    const SerializePlan* element = element_plan.Value();
     const usize raw_element_size = element->is_trivially_packable && array_ops.element_trivially_copyable
         ? TypeRegistry::Get().FindChecked(a.element).size
         : 0;

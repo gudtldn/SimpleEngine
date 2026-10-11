@@ -1135,7 +1135,7 @@ TEST_F(HashMapAPI_Test, ToArray)
 TEST_F(HashMapAPI_Test, ReferencesStayValidAcrossRehash)
 {
     HashMap<int, String> map;
-    const String* const address = &map.Insert(0, "zero");
+    const String* address = &map.Insert(0, "zero");
     for (int key = 1; key < 10'000; ++key)
     {
         map.Insert(key, "value");

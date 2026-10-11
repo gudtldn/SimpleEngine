@@ -33,7 +33,7 @@ class TempFile
 public:
     explicit TempFile(StringView name)
     {
-        char* const pref = SDL_GetPrefPath("SimpleEngine", "Tests");
+        char* pref = SDL_GetPrefPath("SimpleEngine", "Tests");
         directory = Path(pref) / Path("AssetRegistrySnapshotTest");
         SDL_free(pref);
         fs::CreateDirectories(directory);

@@ -408,7 +408,7 @@ private:
 
         for (const FieldStep& field : steps.fields)
         {
-            void* const field_value = static_cast<u8*>(value) + field.offset;
+            void* field_value = static_cast<u8*>(value) + field.offset;
 
             const bool present = reader.Field(field.name);
             if (present)

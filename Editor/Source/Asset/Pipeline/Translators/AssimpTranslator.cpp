@@ -606,7 +606,7 @@ void AssimpTranslator::Translate(
     }
 
     // 파일 로드
-    const aiScene* const scene = [&]
+    const aiScene* scene = [&]
     {
         ZoneScopedN("Assimp::ReadFile"); // NOLINT(*-lambda-function-name)
         return importer.ReadFile(file_path.CStr(), flags);

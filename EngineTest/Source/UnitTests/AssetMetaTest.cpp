@@ -145,7 +145,7 @@ TEST(AssetMetaTest, CubeMetaLoadsWithoutWarnings)
 
 TEST(AssetMetaTest, CubeMetaSavesSameText)
 {
-    char* const pref_path = SDL_GetPrefPath("SimpleEngine", "Tests");
+    char* pref_path = SDL_GetPrefPath("SimpleEngine", "Tests");
     const Path dir = Path(pref_path) / Path("AssetMetaTest");
     SDL_free(pref_path);
     fs::CreateDirectories(dir);

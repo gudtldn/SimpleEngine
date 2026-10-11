@@ -564,7 +564,7 @@ void Array<T, Allocator>::RemoveRange(SizeType index, SizeType count)
     else
     {
         // 이동 생성/대입이 필요한 타입은 소유권을 앞으로 이동시킨 후 남겨진 슬롯들 정리
-        T* const result = std::move(
+        T* result = std::move(
             data + index + count, // 소스 시작: (index + count)
             data + size,          // 소스 끝: (size)
             data + index          // 대상 시작: (index)

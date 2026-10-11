@@ -918,7 +918,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, b
     }
 
     bool modified = false;
-    u8* const bytes = static_cast<u8*>(instance);
+    u8* bytes = static_cast<u8*>(instance);
 
     // 부모 클래스의 필드를 먼저 렌더링 (다중 상속 포함)
     for (const BaseInfo& base : struct_info->bases)
@@ -936,7 +936,7 @@ bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, b
             continue;
         }
 
-        void* const field_data = bytes + field.offset;
+        void* field_data = bytes + field.offset;
 
         // 부모와 자식의 필드 오프셋이 겹치지 않도록 주소로 ImGui ID를 구분
         ImGui::PushID(field_data);
