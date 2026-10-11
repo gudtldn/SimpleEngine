@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <ranges>
 
 
 namespace se::editor
@@ -32,15 +31,15 @@ namespace
 template <typename T>
 consteval ImGuiDataType_ GetImGuiDataType()
 {
-    if constexpr (std::same_as<T, i8>)        { return ImGuiDataType_S8;     }
+    if constexpr (std::same_as<T, i8>)       { return ImGuiDataType_S8;     }
     else if constexpr (std::same_as<T, u8>)  { return ImGuiDataType_U8;     }
-    else if constexpr (std::same_as<T, i16>)  { return ImGuiDataType_S16;    }
+    else if constexpr (std::same_as<T, i16>) { return ImGuiDataType_S16;    }
     else if constexpr (std::same_as<T, u16>) { return ImGuiDataType_U16;    }
-    else if constexpr (std::same_as<T, i32>)  { return ImGuiDataType_S32;    }
+    else if constexpr (std::same_as<T, i32>) { return ImGuiDataType_S32;    }
     else if constexpr (std::same_as<T, u32>) { return ImGuiDataType_U32;    }
-    else if constexpr (std::same_as<T, i64>)  { return ImGuiDataType_S64;    }
+    else if constexpr (std::same_as<T, i64>) { return ImGuiDataType_S64;    }
     else if constexpr (std::same_as<T, u64>) { return ImGuiDataType_U64;    }
-    else if constexpr (std::same_as<T, f32>)  { return ImGuiDataType_Float;  }
+    else if constexpr (std::same_as<T, f32>) { return ImGuiDataType_Float;  }
     else if constexpr (std::same_as<T, f64>) { return ImGuiDataType_Double; }
     else
     {
@@ -232,6 +231,7 @@ bool DrawQuaternion(const char* label, void* value, const AnnotationList& /*anno
     using Quat = math::QuaternionImpl<T>;
     constexpr ImGuiDataType_ DATA_TYPE = GetImGuiDataType<T>();
     Quat* quat = static_cast<Quat*>(value);
+
     return ImGui::DragScalarNInfinity(label, DATA_TYPE, &quat->x, 4, 0.01f);
 }
 
@@ -465,19 +465,16 @@ bool DrawEnum(const char* label, void* value, const TypeInfo& type_info, const E
         return false;
     }
 
-    const auto current = std::ranges::find(enum_info.entries, current_value, &EnumEntry::value);
-
-    // TODO: 나중에 최적화 하려면 LinearAllocator로 최적화
-    const String preview = (current != enum_info.entries.end()) ? String{ current->name } : String{ "???" };
+    const EnumEntry* current = std::ranges::find(enum_info.entries, current_value, &EnumEntry::value);
+    const char* preview = (current != enum_info.entries.end()) ? current->name.Data() : "???";
 
     bool modified = false;
-    if (ImGui::BeginCombo(label, preview.CStr()))
+    if (ImGui::BeginCombo(label, preview))
     {
         for (const EnumEntry& entry : enum_info.entries)
         {
-            const String entry_name = entry.name;
             const bool is_selected = (entry.value == current_value);
-            if (ImGui::Selectable(entry_name.CStr(), is_selected))
+            if (ImGui::Selectable(entry.name.Data(), is_selected))
             {
                 WriteEnumValue(value, entry.value, type_info.size, is_unsigned);
                 modified = true;
@@ -513,11 +510,11 @@ bool DrawBitFlags(const char* label, void* value, const TypeInfo& type_info, con
         ImGui::BeginDisabled(read_only);
         for (const EnumEntry& entry : enum_info.entries)
         {
+            // NOLINTBEGIN(*-signed-bitwise)
             const i64 flag = entry.value;
             bool has_flag = (current_value & flag) == flag;
 
-            const String entry_name = entry.name;
-            if (ImGui::Checkbox(entry_name.CStr(), &has_flag))
+            if (ImGui::Checkbox(entry.name.Data(), &has_flag))
             {
                 if (has_flag)
                 {
@@ -529,6 +526,7 @@ bool DrawBitFlags(const char* label, void* value, const TypeInfo& type_info, con
                 }
                 modified = true;
             }
+            // NOLINTEND(*-signed-bitwise)
         }
         ImGui::EndDisabled();
 
@@ -909,7 +907,7 @@ PropertyDrawFunc DrawerRegistry::Find(TypeId type_id) const
     return nullptr;
 }
 
-bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, bool read_only)
+bool DrawerRegistry::DrawProperties(const TypeInfo& type_info, void* instance, bool read_only) // NOLINT(*-no-recursion)
 {
     const auto struct_info = type_info.AsStruct();
     if (!instance || !struct_info)
@@ -1027,19 +1025,19 @@ bool DrawerRegistry::DrawValue(
         },
         [&](const ArrayInfo& info) -> bool
         {
-            return draw_with_ops.template operator()<ArrayOps>(info, &DrawArrayProperty);
+            return draw_with_ops.operator()<ArrayOps>(info, &DrawArrayProperty);
         },
         [&](const SetInfo& info) -> bool
         {
-            return draw_with_ops.template operator()<SetOps>(info, &DrawSetProperty);
+            return draw_with_ops.operator()<SetOps>(info, &DrawSetProperty);
         },
         [&](const MapInfo& info) -> bool
         {
-            return draw_with_ops.template operator()<MapOps>(info, &DrawMapProperty);
+            return draw_with_ops.operator()<MapOps>(info, &DrawMapProperty);
         },
         [&](const OptionalInfo& info) -> bool
         {
-            return draw_with_ops.template operator()<OptionalOps>(info, &DrawOptionalProperty);
+            return draw_with_ops.operator()<OptionalOps>(info, &DrawOptionalProperty);
         }
     );
 }
@@ -1047,17 +1045,17 @@ bool DrawerRegistry::DrawValue(
 void DrawerRegistry::RegisterBuiltinDrawers()
 {
     // --- Primitive ---
-    Register(TypeId::Of<bool>(),   &DrawBool);
+    Register(TypeId::Of<bool>(), &DrawBool);
     Register(TypeId::Of<i8>(),   &DrawArithmetic<i8>);
-    Register(TypeId::Of<u8>(),  &DrawArithmetic<u8>);
+    Register(TypeId::Of<u8>(),   &DrawArithmetic<u8>);
     Register(TypeId::Of<i16>(),  &DrawArithmetic<i16>);
-    Register(TypeId::Of<u16>(), &DrawArithmetic<u16>);
+    Register(TypeId::Of<u16>(),  &DrawArithmetic<u16>);
     Register(TypeId::Of<i32>(),  &DrawArithmetic<i32>);
-    Register(TypeId::Of<u32>(), &DrawArithmetic<u32>);
+    Register(TypeId::Of<u32>(),  &DrawArithmetic<u32>);
     Register(TypeId::Of<i64>(),  &DrawArithmetic<i64>);
-    Register(TypeId::Of<u64>(), &DrawArithmetic<u64>);
+    Register(TypeId::Of<u64>(),  &DrawArithmetic<u64>);
     Register(TypeId::Of<f32>(),  &DrawArithmetic<f32>);
-    Register(TypeId::Of<f64>(), &DrawArithmetic<f64>);
+    Register(TypeId::Of<f64>(),  &DrawArithmetic<f64>);
 
     // --- String ---
     Register(TypeId::Of<String>(),      &DrawString);
@@ -1091,6 +1089,6 @@ void DrawerRegistry::RegisterBuiltinDrawers()
 
     // --- Angles ---
     Register(TypeId::Of<Degree<f64>>(), &DrawDegree<f64>);
-    Register(TypeId::Of<Degree<f32>>(),  &DrawDegree<f32>);
+    Register(TypeId::Of<Degree<f32>>(), &DrawDegree<f32>);
 }
 } // namespace se::editor
