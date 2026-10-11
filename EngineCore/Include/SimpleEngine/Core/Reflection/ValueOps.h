@@ -34,6 +34,9 @@ struct ArrayOps
     /** 미초기화로 크기 변경 (ResizeUninitialized). 요소가 trivial할 때만 사용할 수 있습니다. */
     void (*resize_uninitialized)(void* container, usize count);
 
+    /** index번째 요소를 지우고 뒤 요소를 당깁니다 (RemoveAt). FixedArray처럼 불가능하면 nullptr */
+    void (*remove_at)(void* container, usize index);
+
     /** 요소를 통째로 memcpy해도 되는지 */
     bool element_trivially_copyable;
 
@@ -56,6 +59,9 @@ struct SetOps
     /** element를 move해서 삽입합니다 (Emplace). 이동 생성 불가 타입이면 nullptr */
     void (*emplace_moved)(void* container, void* element);
 
+    /** for_each가 넘긴 요소 주소로 그 요소를 지웁니다. 순회 도중에는 부를 수 없습니다. 지원하지 않으면 nullptr */
+    void (*remove_element)(void* container, const void* element);
+
     /**
      * 모든 요소를 순회합니다.
      * @note 요소는 해시 불변식 때문에 수정할 수 없으므로 컨테이너도 const로 받습니다.
@@ -77,6 +83,9 @@ struct MapOps
 
     /** key/value를 move해서 삽입합니다 (Emplace). 이동 생성 불가 타입이면 nullptr */
     void (*emplace_moved)(void* container, void* key, void* value);
+
+    /** for_each나 for_each_mut가 넘긴 key 주소로 그 엔트리를 지웁니다. 순회 도중에는 부를 수 없습니다. 지원하지 않으면 nullptr */
+    void (*remove_entry)(void* container, const void* key);
 
     /** 모든 엔트리를 읽기 전용으로 순회합니다. */
     void (*for_each)(const void* container, void (*visit)(const void* key, const void* value, void* user_data), void* user_data);

@@ -127,6 +127,86 @@ TEST(ValueOpsTest, FixedArrayHasNoResize)
     EXPECT_EQ(array_ops->data(&fixed), fixed.Data());
 }
 
+TEST(ValueOpsTest, ArrayRemoveAtShiftsElements)
+{
+    using namespace se_value_ops_test;
+
+    const auto array_ops = OpsOf<se::Array<se::String>>().AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
+    ASSERT_NE(array_ops->remove_at, nullptr);
+
+    se::Array<se::String> texts = { "a", "b", "c" };
+    array_ops->remove_at(&texts, 1);
+
+    ASSERT_EQ(texts.Len(), 2u);
+    EXPECT_EQ(texts[0], "a");
+    EXPECT_EQ(texts[1], "c");
+}
+
+TEST(ValueOpsTest, FixedArrayHasNoRemoveAt)
+{
+    using namespace se_value_ops_test;
+
+    const auto array_ops = OpsOf<se::FixedArray<i32, 4>>().AsArray();
+    ASSERT_TRUE(array_ops.HasValue());
+    EXPECT_EQ(array_ops->remove_at, nullptr);
+}
+
+TEST(ValueOpsTest, SetRemoveElementByIteratedAddress)
+{
+    using namespace se_value_ops_test;
+
+    const auto set_ops = OpsOf<se::HashSet<se::String>>().AsSet();
+    ASSERT_TRUE(set_ops.HasValue());
+    ASSERT_NE(set_ops->remove_element, nullptr);
+
+    se::HashSet<se::String> texts = { "alpha", "beta" };
+
+    // for_each가 넘긴 "alpha"의 주소를 기억했다가 순회가 끝난 뒤 지웁니다.
+    const void* target = nullptr;
+    set_ops->for_each(&texts, [](const void* element, void* user_data)
+    {
+        if (*static_cast<const se::String*>(element) == "alpha")
+        {
+            *static_cast<const void**>(user_data) = element;
+        }
+    }, &target);
+    ASSERT_NE(target, nullptr);
+
+    set_ops->remove_element(&texts, target);
+
+    EXPECT_EQ(texts.Len(), 1u);
+    EXPECT_FALSE(texts.Contains("alpha"));
+    EXPECT_TRUE(texts.Contains("beta"));
+}
+
+TEST(ValueOpsTest, MapRemoveEntryByIteratedKeyAddress)
+{
+    using namespace se_value_ops_test;
+
+    const auto map_ops = OpsOf<se::HashMap<se::String, i32>>().AsMap();
+    ASSERT_TRUE(map_ops.HasValue());
+    ASSERT_NE(map_ops->remove_entry, nullptr);
+
+    se::HashMap<se::String, i32> scores = { { "hp", 100 }, { "mp", 50 } };
+
+    const void* target = nullptr;
+    map_ops->for_each(&scores, [](const void* key, const void*, void* user_data)
+    {
+        if (*static_cast<const se::String*>(key) == "hp")
+        {
+            *static_cast<const void**>(user_data) = key;
+        }
+    }, &target);
+    ASSERT_NE(target, nullptr);
+
+    map_ops->remove_entry(&scores, target);
+
+    EXPECT_EQ(scores.Len(), 1u);
+    EXPECT_FALSE(scores.Contains("hp"));
+    EXPECT_TRUE(scores.Contains("mp"));
+}
+
 TEST(ValueOpsTest, SetOpsInsertAndIterate)
 {
     using namespace se_value_ops_test;

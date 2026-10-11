@@ -613,7 +613,7 @@ bool DrawArrayProperty(
         return false;
     }
 
-    // [+] [-] [Clear] 버튼 (요소 단위 삭제 연산이 없어 끝에서만 줄임)
+    // [+] [Clear] 버튼
     bool resized = false;
     if (!read_only && ops.resize)
     {
@@ -625,13 +625,6 @@ bool DrawArrayProperty(
 
         if (count > 0)
         {
-            ImGui::SameLine();
-            if (ImGui::SmallButton("-"))
-            {
-                ops.resize(container, count - 1);
-                resized = true;
-            }
-
             ImGui::SameLine();
             if (ImGui::SmallButton("Clear"))
             {
@@ -645,15 +638,35 @@ bool DrawArrayProperty(
     bool modified = resized;
     if (!resized)
     {
+        const bool can_remove = !read_only && ops.remove_at;
+        Optional<usize> remove_index;
+
         for (usize idx = 0; idx < count; ++idx)
         {
             ImGui::PushID(static_cast<int>(idx));
+
+            // [x] 요소 삭제 버튼
+            if (can_remove)
+            {
+                if (ImGui::SmallButton("x"))
+                {
+                    remove_index = idx;
+                }
+                ImGui::SameLine();
+            }
 
             char elem_label[32];
             std::snprintf(elem_label, sizeof(elem_label), "[%zu]", idx);
             modified |= registry.DrawValue(info.element, elem_label, ops.element_at_mut(container, idx), {}, read_only);
 
             ImGui::PopID();
+        }
+
+        // 순회가 끝난 뒤에 지움
+        if (remove_index)
+        {
+            ops.remove_at(container, *remove_index);
+            modified = true;
         }
     }
 
@@ -707,14 +720,32 @@ bool DrawSetProperty(
         {
             DrawerRegistry* registry;
             TypeId element;
+            bool can_remove;
+            const void* remove_element;
             usize index;
         };
-        VisitState state{ .registry = &registry, .element = info.element, .index = 0 };
+        VisitState state{
+            .registry = &registry,
+            .element = info.element,
+            .can_remove = !read_only && ops.remove_element,
+            .remove_element = nullptr,
+            .index = 0,
+        };
 
         ops.for_each(container, [](const void* element, void* user_data)
         {
             VisitState& s = *static_cast<VisitState*>(user_data);
             ImGui::PushID(static_cast<int>(s.index));
+
+            // [x] 요소 삭제 버튼
+            if (s.can_remove)
+            {
+                if (ImGui::SmallButton("x"))
+                {
+                    s.remove_element = element;
+                }
+                ImGui::SameLine();
+            }
 
             char elem_label[32];
             std::snprintf(elem_label, sizeof(elem_label), "[%zu]", s.index);
@@ -725,6 +756,13 @@ bool DrawSetProperty(
             ImGui::PopID();
             ++s.index;
         }, &state);
+
+        // 순회가 끝난 뒤에 지움
+        if (state.remove_element)
+        {
+            ops.remove_element(container, state.remove_element);
+            changed = true;
+        }
     }
 
     ImGui::TreePop();
@@ -780,15 +818,35 @@ bool DrawMapProperty(
             DrawerRegistry* registry;
             const MapInfo* info;
             bool read_only;
+            bool can_remove;
             bool modified;
+            const void* remove_key;
             usize index;
         };
-        VisitState state{ .registry = &registry, .info = &info, .read_only = read_only, .modified = false, .index = 0 };
+        VisitState state{
+            .registry = &registry,
+            .info = &info,
+            .read_only = read_only,
+            .can_remove = !read_only && ops.remove_entry,
+            .modified = false,
+            .remove_key = nullptr,
+            .index = 0,
+        };
 
         ops.for_each_mut(container, [](const void* key, void* value, void* user_data)
         {
             VisitState& s = *static_cast<VisitState*>(user_data);
             ImGui::PushID(static_cast<int>(s.index));
+
+            // [x] 엔트리 삭제 버튼
+            if (s.can_remove)
+            {
+                if (ImGui::SmallButton("x"))
+                {
+                    s.remove_key = key;
+                }
+                ImGui::SameLine();
+            }
 
             char entry_label[32];
             std::snprintf(entry_label, sizeof(entry_label), "[%zu]", s.index);
@@ -805,6 +863,13 @@ bool DrawMapProperty(
             ++s.index;
         }, &state);
         modified = state.modified;
+
+        // 순회가 끝난 뒤에 지움
+        if (state.remove_key)
+        {
+            ops.remove_entry(container, state.remove_key);
+            modified = true;
+        }
     }
 
     ImGui::TreePop();

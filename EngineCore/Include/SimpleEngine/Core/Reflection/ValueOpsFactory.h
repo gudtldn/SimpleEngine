@@ -43,6 +43,11 @@ ArrayOps MakeArrayOps()
         };
     }
 
+    if constexpr (requires (Container& container, usize index) { container.RemoveAt(index); })
+    {
+        ops.remove_at = [](void* c, usize index) static { static_cast<Container*>(c)->RemoveAt(index); };
+    }
+
     ops.element_trivially_copyable = std::is_trivially_copyable_v<ElementType>;
     ops.element_is_pointer = std::is_pointer_v<ElementType>;
     return ops;
@@ -67,6 +72,18 @@ SetOps MakeSetOps()
         ops.emplace_moved = [](void* c, void* element) static
         {
             static_cast<Container*>(c)->Emplace(std::move(*static_cast<ElementType*>(element)));
+        };
+    }
+
+    // 컨테이너 안의 요소를 참조로 Remove에 넘기면 지우는 도중 그 참조가 무효가 될 수 있어 주소로 찾아 지웁니다.
+    if constexpr (requires (Container& container, bool (*pred)(const ElementType&)) { container.RemoveIf(pred); })
+    {
+        ops.remove_element = [](void* c, const void* element) static
+        {
+            static_cast<Container*>(c)->RemoveIf([element](const ElementType& candidate)
+            {
+                return &candidate == element;
+            });
         };
     }
 
@@ -104,6 +121,18 @@ MapOps MakeMapOps()
                 std::move(*static_cast<KeyType*>(key)),
                 std::move(*static_cast<ValueType*>(value))
             );
+        };
+    }
+
+    // 컨테이너 안의 key를 참조로 Remove에 넘기면 지우는 도중 그 참조가 무효가 될 수 있어 주소로 찾아 지웁니다.
+    if constexpr (requires (Container& container, bool (*pred)(const KeyType&, const ValueType&)) { container.RemoveIf(pred); })
+    {
+        ops.remove_entry = [](void* c, const void* key) static
+        {
+            static_cast<Container*>(c)->RemoveIf([key](const KeyType& candidate, const ValueType&)
+            {
+                return &candidate == key;
+            });
         };
     }
 
