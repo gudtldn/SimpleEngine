@@ -369,7 +369,7 @@ struct ReadableComponent
         return {};
     }
 
-    IComponentStorage* const storage = component->ops->ensure_storage(world);
+    IComponentStorage* storage = component->ops->ensure_storage(world);
     storage->EmplaceDefault(loaded.entity);
 
     const usize reader_warning_count = reader.GetWarnings().Len();
@@ -549,7 +549,7 @@ Expected<void, String> WorldFile::Save(ArchiveWriter& writer)
         writer.Field("components");
         writer.BeginSection();
         writer.BeginMap(present_components.Len());
-        for (const SavedComponent* const saved : present_components)
+        for (const SavedComponent* saved : present_components)
         {
             writer.BeginMapEntry();
             writer.Str(saved->name);

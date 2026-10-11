@@ -72,7 +72,7 @@ constexpr usize INDENT_WIDTH = 4;
 
     yyjson_mut_arr_iter iter;
     yyjson_mut_arr_iter_init(array, &iter);
-    while (yyjson_mut_val* const element = yyjson_mut_arr_iter_next(&iter))
+    while (yyjson_mut_val* element = yyjson_mut_arr_iter_next(&iter))
     {
         elements.Push(element);
     }
@@ -96,7 +96,7 @@ constexpr usize INDENT_WIDTH = 4;
 {
     yyjson_mut_obj_iter iter;
     yyjson_mut_obj_iter_init(object, &iter);
-    while (yyjson_mut_val* const key = yyjson_mut_obj_iter_next(&iter))
+    while (yyjson_mut_val* key = yyjson_mut_obj_iter_next(&iter))
     {
         if (!IsScalar(yyjson_mut_obj_iter_get_val(key)))
         {
@@ -177,7 +177,7 @@ template <traits::IntegralType T>
 void AppendInteger(String& out, T value)
 {
     char buffer[24];
-    const char* const end = std::to_chars(std::begin(buffer), std::end(buffer), value).ptr;
+    const char* end = std::to_chars(std::begin(buffer), std::end(buffer), value).ptr;
     out.Append(StringView{ buffer, static_cast<usize>(end - buffer) });
 }
 
@@ -240,7 +240,7 @@ void AppendValue(String& out, yyjson_mut_val* value, usize depth) // NOLINT(*-no
         yyjson_mut_arr_iter iter;
         yyjson_mut_arr_iter_init(value, &iter);
         bool is_first = true;
-        while (yyjson_mut_val* const element = yyjson_mut_arr_iter_next(&iter))
+        while (yyjson_mut_val* element = yyjson_mut_arr_iter_next(&iter))
         {
             if (!is_first)
             {
@@ -268,7 +268,7 @@ void AppendValue(String& out, yyjson_mut_val* value, usize depth) // NOLINT(*-no
     yyjson_mut_obj_iter iter;
     yyjson_mut_obj_iter_init(value, &iter);
     bool is_first = true;
-    while (yyjson_mut_val* const key = yyjson_mut_obj_iter_next(&iter))
+    while (yyjson_mut_val* key = yyjson_mut_obj_iter_next(&iter))
     {
         if (!is_first)
         {
@@ -371,8 +371,8 @@ enum class EValueKind : u8
         yyjson_mut_arr_iter_init(rhs, &rhs_iter);
         while (true)
         {
-            yyjson_mut_val* const lhs_element = yyjson_mut_arr_iter_next(&lhs_iter);
-            yyjson_mut_val* const rhs_element = yyjson_mut_arr_iter_next(&rhs_iter);
+            yyjson_mut_val* lhs_element = yyjson_mut_arr_iter_next(&lhs_iter);
+            yyjson_mut_val* rhs_element = yyjson_mut_arr_iter_next(&rhs_iter);
 
             // 한쪽이 먼저 끝나면 짧은 쪽이 앞
             if (lhs_element == nullptr || rhs_element == nullptr)
@@ -417,7 +417,7 @@ enum class EValueKind : u8
     {
         yyjson_arr_iter iter;
         yyjson_arr_iter_init(value, &iter);
-        while (yyjson_val* const element = yyjson_arr_iter_next(&iter))
+        while (yyjson_val* element = yyjson_arr_iter_next(&iter))
         {
             // 방금 꺼낸 원소의 번호는 iter.idx - 1
             path.Append(String::Format("[{}]", iter.idx - 1));
@@ -435,7 +435,7 @@ enum class EValueKind : u8
 
     yyjson_obj_iter iter;
     yyjson_obj_iter_init(value, &iter);
-    while (yyjson_val* const key = yyjson_obj_iter_next(&iter))
+    while (yyjson_val* key = yyjson_obj_iter_next(&iter))
     {
         const StringView name = std::string_view{ yyjson_get_str(key), yyjson_get_len(key) };
         if (!seen_keys.insert(std::string_view{ name }).second)
@@ -623,7 +623,7 @@ struct JsonWriter::State
         {
             return NullOpt;
         }
-        if (Frame* const frame = std::get_if<Frame>(&top->value))
+        if (Frame* frame = std::get_if<Frame>(&top->value))
         {
             return *frame;
         }
@@ -652,7 +652,7 @@ Expected<String, String> JsonWriter::ToText() const
     {
         return Unexpected{ "JsonWriter: the document has an unclosed container." };
     }
-    yyjson_mut_val* const root = yyjson_mut_doc_get_root(state->doc);
+    yyjson_mut_val* root = yyjson_mut_doc_get_root(state->doc);
     if (root == nullptr)
     {
         return Unexpected{ "JsonWriter: the document has no value." };
@@ -714,7 +714,7 @@ void JsonWriter::RawElements([[maybe_unused]] const void* data, [[maybe_unused]]
 void JsonWriter::Enum(i64 value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
 {
     // 이름이 있는 값은 이름으로, 없는 값(플래그 조합 등)은 정수로 씀
-    const auto* const entry = std::ranges::find(entries, value, &EnumEntry::value);
+    const auto* entry = std::ranges::find(entries, value, &EnumEntry::value);
     if (entry != entries.end())
     {
         state->PlaceValue(state->MakeString(entry->name));
@@ -732,7 +732,7 @@ void JsonWriter::Enum(i64 value, EIntWidth width, bool is_signed, ArrayView<cons
 
 void JsonWriter::BeginStruct()
 {
-    yyjson_mut_val* const object = yyjson_mut_obj(state->doc);
+    yyjson_mut_val* object = yyjson_mut_obj(state->doc);
     if (state->PlaceValue(object))
     {
         state->frames.Push({ State::StructFrame{ .object = object } });
@@ -783,7 +783,7 @@ void JsonWriter::EndStruct()
 
 void JsonWriter::BeginSeq([[maybe_unused]] u64 count, ESeqOrder order)
 {
-    yyjson_mut_val* const array = yyjson_mut_arr(state->doc);
+    yyjson_mut_val* array = yyjson_mut_arr(state->doc);
     if (state->PlaceValue(array))
     {
         state->frames.Push({ State::SeqFrame{ .array = array, .order = order } });
@@ -815,7 +815,7 @@ void JsonWriter::EndSeq()
 
         // 비운 배열에 정렬한 순서로 다시 넣음
         yyjson_mut_arr_clear(frame->array);
-        for (yyjson_mut_val* const element : elements)
+        for (yyjson_mut_val* element : elements)
         {
             yyjson_mut_arr_append(frame->array, element);
         }
@@ -847,7 +847,7 @@ void JsonWriter::BeginMapEntry()
     }
 
     // key와 value를 차례로 받을 [key, value] 배열
-    yyjson_mut_val* const pair = yyjson_mut_arr(state->doc);
+    yyjson_mut_val* pair = yyjson_mut_arr(state->doc);
     if (!yyjson_mut_arr_append(frame->entries, pair))
     {
         SetError("JsonWriter: failed to allocate a JSON value.");
@@ -919,12 +919,12 @@ void JsonWriter::EndMap()
             }
         }
 
-        yyjson_mut_val* const object = yyjson_mut_obj(state->doc);
-        for (yyjson_mut_val* const entry : entries)
+        yyjson_mut_val* object = yyjson_mut_obj(state->doc);
+        for (yyjson_mut_val* entry : entries)
         {
             // 쌍 배열은 더 쓰지 않으므로 value 노드를 그대로 옮겨 담음. 추가하기 전에 key와 value를 먼저 꺼냄
-            yyjson_mut_val* const key = state->MakeString(StringView{ key_of(entry) });
-            yyjson_mut_val* const value = yyjson_mut_arr_get_last(entry);
+            yyjson_mut_val* key = state->MakeString(StringView{ key_of(entry) });
+            yyjson_mut_val* value = yyjson_mut_arr_get_last(entry);
             yyjson_mut_obj_add(object, key, value);
         }
         state->PlaceValue(object);
@@ -936,8 +936,8 @@ void JsonWriter::EndMap()
     {
         return CompareValues(lhs, rhs) < 0;
     });
-    yyjson_mut_val* const pairs = yyjson_mut_arr(state->doc);
-    for (yyjson_mut_val* const entry : entries)
+    yyjson_mut_val* pairs = yyjson_mut_arr(state->doc);
+    for (yyjson_mut_val* entry : entries)
     {
         yyjson_mut_arr_append(pairs, entry);
     }
@@ -1136,7 +1136,7 @@ struct JsonReader::State
             // 다음 원소
             [this](SeqFrame& frame) -> yyjson_val*
             {
-                yyjson_val* const element = yyjson_arr_iter_next(&frame.next_element);
+                yyjson_val* element = yyjson_arr_iter_next(&frame.next_element);
                 if (element == nullptr)
                 {
                     archive.SetError(String::Format("JsonReader: read past the end of an array of length {}.", yyjson_arr_size(frame.array)));
@@ -1209,8 +1209,8 @@ struct JsonReader::State
         if (yyjson_is_str(node))
         {
             const std::string_view digits{ yyjson_get_str(node), yyjson_get_len(node) };
-            const char* const first = digits.data();
-            const char* const last = first + digits.size();
+            const char* first = digits.data();
+            const char* last = first + digits.size();
             const bool is_u64 = width == EIntWidth::Bits64 && !is_signed;
 
             u64 unsigned_number = 0;
@@ -1284,7 +1284,7 @@ struct JsonReader::State
         {
             return NullOpt;
         }
-        if (Frame* const frame = std::get_if<Frame>(&top->value))
+        if (Frame* frame = std::get_if<Frame>(&top->value))
         {
             return *frame;
         }
@@ -1347,7 +1347,7 @@ bool JsonReader::SupportsRawElements() const
 
 void JsonReader::Int(i64& value, EIntWidth width, bool is_signed)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1361,7 +1361,7 @@ void JsonReader::Int(i64& value, EIntWidth width, bool is_signed)
 
 void JsonReader::Float(f64& value, EFloatWidth width)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1392,7 +1392,7 @@ void JsonReader::Float(f64& value, EFloatWidth width)
 
 void JsonReader::Bool(bool& value)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1408,7 +1408,7 @@ void JsonReader::Bool(bool& value)
 
 void JsonReader::Str(String& value)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1424,7 +1424,7 @@ void JsonReader::Str(String& value)
 
 void JsonReader::Bytes(void* data, u64 size)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1457,7 +1457,7 @@ void JsonReader::RawElements([[maybe_unused]] void* data, [[maybe_unused]] u64 s
 
 void JsonReader::Enum(i64& value, EIntWidth width, bool is_signed, ArrayView<const EnumEntry> entries)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1467,7 +1467,7 @@ void JsonReader::Enum(i64& value, EIntWidth width, bool is_signed, ArrayView<con
     if (yyjson_is_str(node))
     {
         const StringView name = std::string_view{ yyjson_get_str(node), yyjson_get_len(node) };
-        const auto* const entry = std::ranges::find(entries, name, &EnumEntry::name);
+        const auto* entry = std::ranges::find(entries, name, &EnumEntry::name);
         if (entry == entries.end())
         {
             SetError(String::Format("JsonReader: '{}' is not a name of this enum.", name));
@@ -1486,7 +1486,7 @@ void JsonReader::Enum(i64& value, EIntWidth width, bool is_signed, ArrayView<con
 
 void JsonReader::BeginStruct()
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1539,7 +1539,7 @@ void JsonReader::EndStruct()
     // 타입에 없는 키는 경고로 남기고 읽기는 계속함 (필드 이름을 바꿨거나 오타를 냈을 때 알아차리게)
     yyjson_obj_iter iter;
     yyjson_obj_iter_init(frame->object, &iter);
-    while (yyjson_val* const key = yyjson_obj_iter_next(&iter))
+    while (yyjson_val* key = yyjson_obj_iter_next(&iter))
     {
         const StringView name = std::string_view{ yyjson_get_str(key), yyjson_get_len(key) };
         const bool is_known = std::ranges::any_of(frame->known_keys, [&](const String& known_key)
@@ -1556,7 +1556,7 @@ void JsonReader::EndStruct()
 
 void JsonReader::BeginSeq(u64& count)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1591,7 +1591,7 @@ void JsonReader::EndSeq()
 
 void JsonReader::BeginMap(u64& count)
 {
-    yyjson_val* const node = state->TakeValue();
+    yyjson_val* node = state->TakeValue();
     if (node == nullptr)
     {
         return;
@@ -1623,7 +1623,7 @@ void JsonReader::BeginMapEntry()
     // 객체 맵의 엔트리는 키 노드를 그대로 key 자리에서 읽어, 문자열이나 enum 이름으로 읽히게 함
     if (const auto frame = state->TopAs<State::ObjectMapFrame>())
     {
-        yyjson_val* const key = yyjson_obj_iter_next(&frame->next_entry);
+        yyjson_val* key = yyjson_obj_iter_next(&frame->next_entry);
         if (key == nullptr)
         {
             SetError(String::Format("JsonReader: read past the end of an object of {} entries.", yyjson_obj_size(frame->object)));
@@ -1646,7 +1646,7 @@ void JsonReader::BeginMapEntry()
         return;
     }
 
-    yyjson_val* const pair = yyjson_arr_iter_next(&frame->next_pair);
+    yyjson_val* pair = yyjson_arr_iter_next(&frame->next_pair);
     if (pair == nullptr)
     {
         SetError(String::Format("JsonReader: read past the end of an array of length {}.", yyjson_arr_size(frame->pairs)));

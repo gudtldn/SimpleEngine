@@ -77,7 +77,7 @@ void* OsMemory::Realloc(void* address, usize new_size, usize alignment)
         return nullptr;
     }
 
-    OsMemoryHeader* const memory_header = GetHeaderFromUserPtr(address);
+    OsMemoryHeader* memory_header = GetHeaderFromUserPtr(address);
 
     // new_size가 기존에 할당된 메모리보다 작으면 할당된 크기만 줄이기
     if (new_size <= memory_header->allocated_size)

@@ -60,7 +60,7 @@ template <typename T>
     using CleanType = std::remove_cvref_t<T>;
 
     static constinit std::atomic<const SerializePlan*> cached{ nullptr };
-    if (const SerializePlan* const plan = cached.load(std::memory_order_acquire))
+    if (const SerializePlan* plan = cached.load(std::memory_order_acquire))
     {
         return *plan;
     }

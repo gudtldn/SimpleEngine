@@ -12,14 +12,14 @@ namespace
 /** archive의 SerializeContext에서 EntityRemapper를 찾습니다. context나 EntityRemapper가 없으면 archive에 오류를 남기고 nullptr를 돌려줍니다. */
 [[nodiscard]] EntityRemapper* FindRemapper(Archive& archive)
 {
-    SerializeContext* const context = archive.GetContext();
+    SerializeContext* context = archive.GetContext();
     if (context == nullptr)
     {
         archive.SetError("SerializeTraits<Entity>: the archive has no SerializeContext. Add an EntityRemapper to a SerializeContext and pass it with SetContext.");
         return nullptr;
     }
 
-    EntityRemapper* const remapper = context->Find<EntityRemapper>();
+    EntityRemapper* remapper = context->Find<EntityRemapper>();
     if (remapper == nullptr)
     {
         archive.SetError("SerializeTraits<Entity>: the SerializeContext has no EntityRemapper.");
@@ -41,7 +41,7 @@ struct SerializeTraits<Entity>
 
     static void Write(ArchiveWriter& writer, const Entity& value)
     {
-        EntityRemapper* const remapper = FindRemapper(writer);
+        EntityRemapper* remapper = FindRemapper(writer);
         if (remapper == nullptr)
         {
             return;
@@ -52,7 +52,7 @@ struct SerializeTraits<Entity>
 
     static void Read(ArchiveReader& reader, Entity& value)
     {
-        EntityRemapper* const remapper = FindRemapper(reader);
+        EntityRemapper* remapper = FindRemapper(reader);
         if (remapper == nullptr)
         {
             return;

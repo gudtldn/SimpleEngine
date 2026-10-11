@@ -64,7 +64,7 @@ namespace se::text_archive
     }
 
     char buffer[32];
-    const char* const end = std::to_chars(std::begin(buffer), std::end(buffer), value).ptr;
+    const char* end = std::to_chars(std::begin(buffer), std::end(buffer), value).ptr;
     f64 shortest = 0.0;
     std::from_chars(buffer, end, shortest);
 

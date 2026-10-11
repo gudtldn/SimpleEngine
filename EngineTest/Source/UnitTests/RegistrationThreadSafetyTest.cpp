@@ -127,7 +127,7 @@ TEST(RegistrationThreadSafetyTest, ConcurrentEnsureRegisteredReturnsSameComplete
     });
 
     ASSERT_NE(results[0], nullptr);
-    for (const TypeInfo* const info : results)
+    for (const TypeInfo* info : results)
     {
         EXPECT_EQ(info, results[0]);
     }
@@ -198,13 +198,13 @@ TEST(RegistrationThreadSafetyTest, GetAllTypesSnapshotWhileAnotherThreadRegister
 
     // 스냅샷의 포인터는 레지스트리가 가진 슬롯이고, 새로 등록한 타입이 모두 담겨야 함
     const Array<const TypeInfo*> final_snapshot = TypeRegistry::Get().GetAllTypes();
-    for (const TypeInfo* const info : final_snapshot)
+    for (const TypeInfo* info : final_snapshot)
     {
         const auto found = TypeRegistry::Get().Find(info->id);
         ASSERT_TRUE(found.HasValue());
         EXPECT_EQ(&found.Value(), info);
     }
-    for (const TypeInfo* const info : registered)
+    for (const TypeInfo* info : registered)
     {
         EXPECT_TRUE(final_snapshot.Contains(info));
     }

@@ -176,7 +176,7 @@ toml::table* ConfigFile::NavigateOrCreate(StringView key_path, StringView& out_f
 
 bool ConfigFile::ReadSection(StringView section_name, const SerializePlan& plan, void* out_value) const
 {
-    const toml::table* const section_table = FindSectionTable(section_name);
+    const toml::table* section_table = FindSectionTable(section_name);
     if (!section_table)
     {
         return false;

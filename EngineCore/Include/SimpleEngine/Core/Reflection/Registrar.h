@@ -218,7 +218,7 @@ const TypeInfo& EnsureRegistered()
     // 빠른 경로 (Fast-path / Read-only)
     // constinit을 사용하여 Magic Statics로 인한 데드락 방지
     static constinit std::atomic<const TypeInfo*> cached{ nullptr };
-    if (const TypeInfo* const info = cached.load(std::memory_order_acquire))
+    if (const TypeInfo* info = cached.load(std::memory_order_acquire))
     {
         return *info;
     }

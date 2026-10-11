@@ -42,9 +42,9 @@ void SkipSettingsEntry(ArchiveReader& reader, StringView name)
     }
 
     // 텍스트 reader는 value를 읽지 않아도 EndMapEntry에서 다음 엔트리로 넘어감
-    if (const SerializeContext* const context = reader.GetContext())
+    if (const SerializeContext* context = reader.GetContext())
     {
-        if (editor::SkippedImportSettings* const skipped = context->Find<editor::SkippedImportSettings>())
+        if (editor::SkippedImportSettings* skipped = context->Find<editor::SkippedImportSettings>())
         {
             skipped->type_names.Push(name);
         }
@@ -86,7 +86,7 @@ void ReadSettingsEntry(ArchiveReader& reader, editor::ImportProfile::SettingsMap
     }
 
     // new_object는 new T로 만들므로 ImportSettingsBase의 가상 소멸자로 해제할 수 있음
-    void* const raw = ops->new_object();
+    void* raw = ops->new_object();
     std::shared_ptr<editor::ImportSettingsBase> settings{
         static_cast<editor::ImportSettingsBase*>(CastById(raw, info->id, TypeId::Of<editor::ImportSettingsBase>(), *record))
     };
@@ -126,7 +126,7 @@ struct SerializeTraits<editor::ImportProfile>
 
             // 필드 오프셋은 가장 파생된 타입 기준이므로, ImportSettingsBase 서브오브젝트가 아닌 완전 객체의 주소를 넘김
             const editor::ImportSettingsBase& settings = *value.GetSettingsMap()[type_id];
-            const void* const complete = CompleteObjectOf(&settings);
+            const void* complete = CompleteObjectOf(&settings);
             if (complete == nullptr)
             {
                 writer.SetError(String::Format("SerializeTraits<ImportProfile>: ImportSettingsBase is not a single SE_BASE of '{}'.", name));
