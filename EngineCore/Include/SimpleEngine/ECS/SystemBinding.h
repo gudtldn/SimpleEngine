@@ -61,7 +61,7 @@ struct SystemParamExtractor<Resource<T>>
  * @details 함수의 인자 타입을 분석하여 자동 바인딩하며, 원본 함수의 반환 타입(void, bool 등)을 그대로 유지합니다.
  */
 template <typename Fn>
-    requires traits::FunctionType<Fn>
+    requires traits::FunctionLike<Fn>
 auto BindCallable(Fn&& func_obj) -> Function<typename traits::FunctionTraits<std::remove_cvref_t<Fn>>::ReturnType(World&)>
 {
     using FnTrait = traits::FunctionTraits<std::remove_cvref_t<Fn>>;

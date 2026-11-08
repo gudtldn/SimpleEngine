@@ -39,4 +39,12 @@ template <typename R, typename C, typename... Args> struct FunctionTraits<R(C::*
 
 // 람다/함수 객체 지원 (operator() 사용)
 template <typename Fn> struct FunctionTraits<Fn, std::void_t<decltype(&Fn::operator())>> : FunctionTraits<decltype(&Fn::operator())>{};
+
+// 함수, 함수 포인터, 멤버 함수 포인터, 함수 객체처럼 FunctionTraits로 시그니처를 얻을 수 있는 타입
+template <typename T>
+concept FunctionLike = requires
+{
+    typename FunctionTraits<std::remove_cvref_t<T>>::Signature;
+    typename FunctionTraits<std::remove_cvref_t<T>>::ReturnType;
+};
 } // namespace se::traits

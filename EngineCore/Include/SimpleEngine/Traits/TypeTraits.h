@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimpleEngine/Traits/FunctionTraits.h"
+#include "SimpleEngine/Core/HAL/PlatformTypes.h"
 
 #include <concepts>
 #include <type_traits>
@@ -75,14 +75,6 @@ using CopyConst = detail::CopyConstImpl<std::is_const_v<std::remove_reference_t<
  */
 template <typename T>
 using ParamType = detail::ParamTypeImpl<T>::Type;
-
-// 함수인지 확인하는 TypeTrait
-template <typename T>
-concept FunctionType = requires
-{
-    typename FunctionTraits<std::remove_cvref_t<T>>::Signature;
-    typename FunctionTraits<std::remove_cvref_t<T>>::ReturnType;
-};
 
 // T 타입의 객체를 PrimaryTemplate<Args...> 패턴에 매칭되는지 확인합니다.
 template <typename T, template <typename...> typename PrimaryTemplate>

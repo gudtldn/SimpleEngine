@@ -6,6 +6,7 @@
 #include "SimpleEngine/ECS/SystemBinding.h"
 #include "SimpleEngine/ECS/SystemChain.h"
 #include "SimpleEngine/ECS/World.h"
+#include "SimpleEngine/Traits/FunctionTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <type_traits>
@@ -42,7 +43,7 @@ private:
         using CleanType = std::remove_cvref_t<T>;
 
         // Callable 타입인 경우
-        if constexpr (traits::FunctionType<CleanType>)
+        if constexpr (traits::FunctionLike<CleanType>)
         {
             executables.Push(detail::BindCallable(std::forward<T>(system_obj)));
         }

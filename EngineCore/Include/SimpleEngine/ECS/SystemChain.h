@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/ECS/System.h"
+#include "SimpleEngine/Traits/FunctionTraits.h"
 
 #include <utility>
 
@@ -27,7 +28,7 @@ public:
 public:
     /** Chain 전체의 실행 조건을 추가합니다. */
     template <typename Fn>
-        requires traits::FunctionType<Fn>
+        requires traits::FunctionLike<Fn>
     SystemChain& RunIf(Fn&& condition)
     {
         preconditions.Push(detail::BindCallable(std::forward<Fn>(condition)));

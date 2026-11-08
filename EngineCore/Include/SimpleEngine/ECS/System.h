@@ -3,6 +3,7 @@
 #include "SimpleEngine/Core/Container/Array.h"
 #include "SimpleEngine/Core/Functional/Function.h"
 #include "SimpleEngine/ECS/SystemBinding.h"
+#include "SimpleEngine/Traits/FunctionTraits.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <utility>
@@ -20,7 +21,7 @@ class SE_CORE_API System
 {
 public:
     template <typename Fn>
-        requires traits::FunctionType<Fn>
+        requires traits::FunctionLike<Fn>
     explicit System(Fn&& in_system)
         : system(detail::BindCallable(std::forward<Fn>(in_system)))
     {
@@ -29,7 +30,7 @@ public:
 public:
     /** System의 실행 조건을 추가합니다. */
     template <typename Fn>
-        requires traits::FunctionType<Fn>
+        requires traits::FunctionLike<Fn>
     System& RunIf(Fn&& condition)
     {
         preconditions.Push(detail::BindCallable(std::forward<Fn>(condition)));
