@@ -49,9 +49,9 @@ concept AlwaysFalse = false;
 template <typename T, typename... Ts>
 concept IsAnyOf = (std::same_as<T, Ts> || ...);
 
-// Ts가 T와 같은지 확인하는 TypeTrait (덜 엄격함)
+// Ts가 T와 같은지 확인하는 TypeTrait (cv와 참조를 제거하고 비교)
 template <typename T, typename... Ts>
-concept IsAnyOfDecayed = IsAnyOf<std::decay_t<T>, std::decay_t<Ts>...>;
+concept IsAnyOfUnqualified = IsAnyOf<std::remove_cvref_t<T>, std::remove_cvref_t<Ts>...>;
 
 // Ts...중에 중복된 타입이 존재하는지 확인합니다.
 template <typename... Ts>

@@ -224,7 +224,7 @@ public:
     /** 값이 존재할 때, fn(T) -> U인 함수를 호출하여 새로운 Optional<U>를 반환합니다. */
     template <typename Self, typename Fn>
         requires std::invocable<Fn, decltype(std::declval<Self>().Value())>
-        && (!traits::IsAnyOfDecayed<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>, NullOptType>)
+        && (!traits::IsAnyOfUnqualified<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>, NullOptType>)
         && (!std::is_void_v<std::invoke_result_t<Fn, decltype(std::declval<Self>().Value())>>)
     [[nodiscard]] constexpr auto Map(this Self&& self, Fn&& func)
     {
@@ -462,7 +462,7 @@ public:
     /** 값이 존재할 때, fn(T*) -> U를 호출하여 새로운 Optional을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T*>
-        && (!traits::IsAnyOfDecayed<std::invoke_result_t<Fn, T*>, NullOptType>)
+        && (!traits::IsAnyOfUnqualified<std::invoke_result_t<Fn, T*>, NullOptType>)
         && (!std::is_void_v<std::invoke_result_t<Fn, T*>>)
     [[nodiscard]] constexpr auto Map(Fn&& func) const
     {
@@ -661,7 +661,7 @@ public:
     /** 값이 존재할 때, fn(T&) -> U를 호출하여 새로운 Optional을 반환합니다. */
     template <typename Fn>
         requires std::invocable<Fn, T&>
-        && (!traits::IsAnyOfDecayed<std::invoke_result_t<Fn, T&>, NullOptType>)
+        && (!traits::IsAnyOfUnqualified<std::invoke_result_t<Fn, T&>, NullOptType>)
         && (!std::is_void_v<std::invoke_result_t<Fn, T&>>)
     [[nodiscard]] constexpr auto Map(Fn&& func) const
     {

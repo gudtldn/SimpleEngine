@@ -146,7 +146,7 @@ template <
 >
 struct IsDisjointImpl<TupleLike1<Ts1...>, TupleLike2<Ts2...>>
 {
-    static constexpr bool Value = (!IsAnyOfDecayed<Ts1, Ts2...> && ...);
+    static constexpr bool Value = (!IsAnyOfUnqualified<Ts1, Ts2...> && ...);
 };
 
 /**

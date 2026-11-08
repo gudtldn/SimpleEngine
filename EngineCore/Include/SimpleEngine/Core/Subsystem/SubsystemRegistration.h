@@ -40,7 +40,7 @@ struct SubsystemBuilder
     TypeId target_id;
 
     template <typename... Dependencies>
-        requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
+        requires (!traits::IsAnyOfUnqualified<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
     SubsystemBuilder& DependsOn()
     {
         (AddDependency<Dependencies>(), ...);
@@ -53,7 +53,7 @@ struct SubsystemBuilder
      * 미지정 시 다른 IUpdatable과의 업데이트 순서가 보장되지 않습니다.
      */
     template <typename... Dependencies>
-        requires (!traits::IsAnyOfDecayed<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
+        requires (!traits::IsAnyOfUnqualified<Subsystem, Dependencies...> && (std::derived_from<Dependencies, SubsystemBase> && ...))
     SubsystemBuilder& UpdateDependsOn()
     {
         (AddUpdateDependency<Dependencies>(), ...);
