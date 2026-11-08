@@ -2,7 +2,7 @@
 
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
-#include "SimpleEngine/Traits/TupleTraits.h"
+#include "SimpleEngine/Traits/TypeList.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <concepts>
@@ -24,7 +24,7 @@ struct With
         "With<...> requires raw component types. Do not use pointers, references, or const/volatile qualifiers."
     );
 
-    using Types = std::tuple<Components...>;
+    using Types = traits::TypeList<Components...>;
 };
 
 /**
@@ -39,7 +39,7 @@ struct Without
         "Without<...> requires raw component types. Do not use pointers, references, or const/volatile qualifiers."
     );
 
-    using Types = std::tuple<Components...>;
+    using Types = traits::TypeList<Components...>;
 };
 
 namespace detail
@@ -52,13 +52,35 @@ concept IsFetchType = !(traits::IsSpecializationOf<T, With> || traits::IsSpecial
 template <typename T>
 concept IsRequiredComponent = IsFetchType<T> && !(traits::OptionalLike<T> || std::same_as<T, Entity>);
 
-// IsUnique 체크용: With<A, B> 같은 필터 태그를 A, B로 평탄화한 뒤 cvref를 제거합니다.
-// Query<A, With<A>> 처럼 직접 명시와 필터 태그 안에서 동시에 등장하는 중복도 감지합니다.
+// Query 인자 하나가 가리키는 컴포넌트 타입 목록을 구합니다.
+template <typename T>
+struct QueryComponentsOf
+{
+    using Type = traits::TypeList<std::remove_cvref_t<T>>;
+};
+
+template <traits::OptionalLike T>
+struct QueryComponentsOf<T>
+{
+    using Type = traits::TypeList<std::remove_cvref_t<traits::InnerOf<T>>>;
+};
+
 template <typename... Ts>
-using ProcessedQueryTuple = traits::TupleMap<
-    traits::FlattenTuple<std::tuple<Ts...>>,
-    std::remove_cvref_t
->;
+struct QueryComponentsOf<With<Ts...>>
+{
+    using Type = traits::TypeList<Ts...>;
+};
+
+template <typename... Ts>
+struct QueryComponentsOf<Without<Ts...>>
+{
+    using Type = traits::TypeList<Ts...>;
+};
+
+// IsUnique 체크용: Query 인자들이 가리키는 컴포넌트 타입을 한 목록으로 모읍니다.
+// Query<A&, Optional<const A&>>, Query<A, With<A>>, Query<A, Without<A>> 같은 중복도 감지합니다.
+template <typename... Ts>
+using QueryComponents = traits::Flatten<traits::TypeList<typename QueryComponentsOf<Ts>::Type...>>;
 
 /**
  * Query<Ts...> 파라미터의 컴파일 타임 유효성 검사 템플릿
@@ -66,13 +88,13 @@ using ProcessedQueryTuple = traits::TupleMap<
 template <typename... Ts>
 struct QueryValidator
 {
-    using ProcessedTypes = ProcessedQueryTuple<Ts...>;
+    using ProcessedTypes = QueryComponents<Ts...>;
 
     // 최소 1개 이상의 파라미터가 있어야 함.
     static constexpr bool HasElements = sizeof...(Ts) > 0;
 
     // 모든 타입이 고유해야 함.
-    static constexpr bool IsUnique = traits::UniqueTuple<ProcessedTypes>;
+    static constexpr bool IsUnique = traits::IsUnique<ProcessedTypes>;
 
     // 포인터 타입이 없어야 함.
     static constexpr bool NoPointers = !(std::is_pointer_v<std::remove_cvref_t<Ts>> || ...);

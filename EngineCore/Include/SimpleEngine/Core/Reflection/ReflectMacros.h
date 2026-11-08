@@ -9,7 +9,7 @@
 #include "SimpleEngine/Core/Reflection/TypeName.h"
 #include "SimpleEngine/Core/Reflection/TypeRegistry.h"
 #include "SimpleEngine/Core/Reflection/TypeShape.h"
-#include "SimpleEngine/Traits/TupleTraits.h"
+#include "SimpleEngine/Traits/TypeList.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 #include "SimpleEngine/Utility/Common.h"
 
@@ -21,7 +21,7 @@
 /** 필드 하나에 어노테이션 값들을 붙입니다. */
 #define SE_ANNOTATE(field, ...) \
     static constexpr auto _ANNO_VALUES_##field = std::make_tuple(__VA_ARGS__); \
-    static_assert(::se::traits::UniqueTuple<decltype(_ANNO_VALUES_##field)>, \
+    static_assert(::se::traits::IsUnique<decltype(_ANNO_VALUES_##field)>, \
         "SE_ANNOTATE(" #field "): the same annotation type is attached to this field more than once."); \
     static constexpr auto _ANNO_REFS_##field = ::se::detail::MakeRefs(&_ANNO_VALUES_##field); \
     consteval bool _anno_check_##field() const \
@@ -77,7 +77,7 @@ concept TupleHasAnnotation = !traits::IsDisjoint<std::remove_cvref_t<Tuple>, std
     namespace \
     { \
         constexpr auto SE_LINE_NAME(_se_type_annos_) = std::make_tuple(__VA_ARGS__); \
-        static_assert(::se::traits::UniqueTuple<decltype(SE_LINE_NAME(_se_type_annos_))>, \
+        static_assert(::se::traits::IsUnique<decltype(SE_LINE_NAME(_se_type_annos_))>, \
             SE_STRINGIFY(macro_name) "(" #type "): the same annotation type is attached more than once."); \
         constexpr auto SE_LINE_NAME(_se_type_anno_refs_) = ::se::detail::MakeRefs(&SE_LINE_NAME(_se_type_annos_)); \
         [[maybe_unused]] const bool SE_LINE_NAME(_se_reg_auto_registar_) = [] \

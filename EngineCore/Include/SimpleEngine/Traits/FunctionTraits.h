@@ -1,8 +1,8 @@
 #pragma once
-#include <tuple>
 #include <type_traits>
 
 #include "SimpleEngine/Core/HAL/PlatformTypes.h"
+#include "SimpleEngine/Traits/TypeList.h"
 
 
 namespace se::traits
@@ -15,10 +15,7 @@ struct FunctionTraits<R(Args...)>
 {
     using Signature = R(Args...);
     using ReturnType = R;
-    using ArgumentTypes = std::tuple<Args...>;
-
-    /** 함수의 인자 개수 */
-    static constexpr usize Arity = sizeof...(Args);
+    using ArgumentTypes = TypeList<Args...>;
 };
 
 template <typename R, typename... Args> struct FunctionTraits<R(Args...) noexcept> : FunctionTraits<R(Args...)>{};

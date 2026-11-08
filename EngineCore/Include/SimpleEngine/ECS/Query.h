@@ -5,10 +5,11 @@
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/QueryData.h"
 #include "SimpleEngine/Traits/ContainerTraits.h"
-#include "SimpleEngine/Traits/TupleTraits.h"
+#include "SimpleEngine/Traits/TypeList.h"
 #include "SimpleEngine/Utility/Debug.h"
 
 #include <concepts>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -89,13 +90,16 @@ private:
     /** Query 권한에 따른 월드 타입 (const World / World) */
     using TargetWorld = QueryDataType::TargetWorld;
 
-    /** 순회 시 반환할 컴포넌트 팩 (Tuple) */
+    /** 순회 시 반환할 컴포넌트 타입 목록 */
     using FetchTypes = QueryDataType::FetchTypes;
+
+    /** 순회 시 반환할 컴포넌트 값 묶음 */
+    using FetchTuple = traits::Rebind<FetchTypes, std::tuple>;
 
     /** 조회를 위한 SparseSet 포인터 Tuple */
     template <typename T>
     using PoolPtrWrapper = detail::PoolPtrType<T>;
-    using FetchPoolsTuple = traits::TupleMap<FetchTypes, PoolPtrWrapper>;
+    using FetchPoolsTuple = traits::Rebind<traits::Map<FetchTypes, PoolPtrWrapper>, std::tuple>;
 
     /** 쿼리의 순회 범위가 특정 컴포넌트로 제한되는지 여부 (필수 컴포넌트 존재 여부) */
     static constexpr bool IS_COMPONENT_RESTRICTED = QueryDataType::NUM_PREDICATES > 0;
@@ -132,20 +136,20 @@ public:
 
 public:
     /** 특정 Entity가 쿼리 조건을 만족하는 경우, 해당 컴포넌트들을 반환합니다. */
-    [[nodiscard]] Optional<FetchTypes> TryGet(Entity entity) const
+    [[nodiscard]] Optional<FetchTuple> TryGet(Entity entity) const
     {
         if (query_data.IsEntityValid(entity))
         {
             return [this, entity]<usize... Is>(std::index_sequence<Is...>)
             {
-                return FetchTypes{ FetchComponent<std::tuple_element_t<Is, FetchTypes>, Is>(entity)... };
-            }(std::make_index_sequence<std::tuple_size_v<FetchTypes>>{});
+                return FetchTuple{ FetchComponent<std::tuple_element_t<Is, FetchTuple>, Is>(entity)... };
+            }(std::make_index_sequence<std::tuple_size_v<FetchTuple>>{});
         }
         return NullOpt;
     }
 
     /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 Optional로 반환합니다. 결과가 없거나 여러 개이면 nullopt를 반환합니다. */
-    [[nodiscard]] Optional<FetchTypes> TryGetSingle() const
+    [[nodiscard]] Optional<FetchTuple> TryGetSingle() const
     {
         auto it = begin();
         if (it == end())
@@ -153,7 +157,7 @@ public:
             return NullOpt;
         }
 
-        FetchTypes result = *it;
+        FetchTuple result = *it;
         ++it;
         if (it != end())
         {
@@ -164,12 +168,12 @@ public:
     }
 
     /** 쿼리 결과가 정확히 하나일 때만 컴포넌트들을 반환합니다. 결과가 없거나 여러 개이면 assert로 프로그램을 중단시킵니다. */
-    [[nodiscard]] FetchTypes GetSingle() const
+    [[nodiscard]] FetchTuple GetSingle() const
     {
         auto it = begin();
         SE_ASSERT_RELEASE(it != end(), "Called GetSingle() on a query with no matching entities.");
 
-        FetchTypes result = *it;
+        FetchTuple result = *it;
         ++it;
         SE_ASSERT_RELEASE(it == end(), "Called GetSingle() on a query with more than one matching entity.");
 
@@ -225,7 +229,7 @@ public:
     {
     public:
         using iterator_category = std::input_iterator_tag;
-        using value_type = FetchTypes;
+        using value_type = FetchTuple;
         using difference_type = std::ptrdiff_t;
 
     public:
@@ -252,8 +256,8 @@ public:
             // 해시맵 조회 없이 인덱스 시퀀스를 이용해 다이렉트 접근
             return [this, entity]<usize... Is>(std::index_sequence<Is...>)
             {
-                return value_type{ query->FetchComponent<std::tuple_element_t<Is, FetchTypes>, Is>(entity)... };
-            }(std::make_index_sequence<std::tuple_size_v<FetchTypes>>{});
+                return value_type{ query->FetchComponent<std::tuple_element_t<Is, FetchTuple>, Is>(entity)... };
+            }(std::make_index_sequence<std::tuple_size_v<FetchTuple>>{});
         }
 
         Iterator& operator++()

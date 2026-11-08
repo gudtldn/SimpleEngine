@@ -4,7 +4,7 @@
 #include "SimpleEngine/ECS/Entity.h"
 #include "SimpleEngine/ECS/QueryConcepts.h"
 #include "SimpleEngine/ECS/World.h"
-#include "SimpleEngine/Traits/TupleTraits.h"
+#include "SimpleEngine/Traits/TypeList.h"
 #include "SimpleEngine/Traits/TypeTraits.h"
 
 #include <algorithm>
@@ -20,16 +20,38 @@ namespace se::detail
  */
 
 // Ts...에서 ConditionTag<T>::VALUE가 true인 타입들만 추출합니다.
-// 예) FilterTypes<FetchTypePred, A, B, With<C>> -> std::tuple<A, B, With<C>>
+// 예) FilterTypes<FetchTypePred, A, B, With<C>> -> TypeList<A, B, With<C>>
 template <template <typename> typename ConditionTag, typename... Ts>
-using FilterTypes = traits::TupleCat<
-    std::conditional_t<ConditionTag<Ts>::VALUE, std::tuple<Ts>, std::tuple<>>...
+using FilterTypes = traits::Concat<
+    std::conditional_t<ConditionTag<Ts>::VALUE, traits::TypeList<Ts>, traits::TypeList<>>...
 >;
 
+// With/Without 태그를 그 Types(TypeList)로 바꾸고, 태그가 아니면 그대로 둡니다.
+template <typename T>
+struct ExpandFilterTag
+{
+    using Type = T;
+};
+
+template <typename... Cs>
+struct ExpandFilterTag<With<Cs...>>
+{
+    using Type = With<Cs...>::Types;
+};
+
+template <typename... Cs>
+struct ExpandFilterTag<Without<Cs...>>
+{
+    using Type = Without<Cs...>::Types;
+};
+
+template <typename T>
+using ExpandFilterTagT = ExpandFilterTag<T>::Type;
+
 // FilterTypes 결과를 평탄화합니다. With<A,B> 같은 필터 태그를 A, B로 전개할 때 사용합니다.
-// 예) FlatFilterTypes<WithTagPred, A, With<B, C>> -> std::tuple<B, C>
+// 예) FlatFilterTypes<WithTagPred, A, With<B, C>> -> TypeList<B, C>
 template <template <typename...> typename ConditionTag, typename... Ts>
-using FlatFilterTypes = traits::FlattenTuple<FilterTypes<ConditionTag, Ts...>>;
+using FlatFilterTypes = traits::Flatten<traits::Map<FilterTypes<ConditionTag, Ts...>, ExpandFilterTagT>>;
 
 // 가져올 컴포넌트인지 확인 (FilterTag가 아닌 것)
 template <typename T>
@@ -66,10 +88,10 @@ public:
     using WithoutTypes = FlatFilterTypes<WithoutTagPred, Ts...>;
 
     // 실제 Query 검증에 사용되는 타입들(Fetch(Optional, Entity 제외) + With)
-    using PredicateTypes = traits::TupleCat<FlatFilterTypes<RequiredComponentPred, Ts...>, WithTypes>;
+    using PredicateTypes = traits::Concat<FlatFilterTypes<RequiredComponentPred, Ts...>, WithTypes>;
 
-    static constexpr usize NUM_PREDICATES = std::tuple_size_v<PredicateTypes>;
-    static constexpr usize NUM_WITHOUT = std::tuple_size_v<WithoutTypes>;
+    static constexpr usize NUM_PREDICATES = traits::Size<PredicateTypes>;
+    static constexpr usize NUM_WITHOUT = traits::Size<WithoutTypes>;
 
 public:
     explicit QueryData(TargetWorld& in_world)

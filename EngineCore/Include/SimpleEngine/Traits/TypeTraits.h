@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SimpleEngine/Core/HAL/PlatformTypes.h"
-
 #include <concepts>
 #include <type_traits>
 
@@ -15,9 +13,6 @@ concept HasUnspecializedMarker = requires
 {
     typename T::UnspecializedMarker;
 };
-
-template <typename T, typename... Us>
-inline constexpr usize COUNT_OCCURRENCES = (std::same_as<std::decay_t<T>, std::decay_t<Us>> + ...);
 
 template <typename T>
 struct ParamTypeImpl
@@ -52,10 +47,6 @@ concept IsAnyOf = (std::same_as<T, Ts> || ...);
 // Ts가 T와 같은지 확인하는 TypeTrait (cv와 참조를 제거하고 비교)
 template <typename T, typename... Ts>
 concept IsAnyOfUnqualified = IsAnyOf<std::remove_cvref_t<T>, std::remove_cvref_t<Ts>...>;
-
-// Ts...중에 중복된 타입이 존재하는지 확인합니다.
-template <typename... Ts>
-concept UniqueTypePack = ((detail::COUNT_OCCURRENCES<Ts, Ts...> == 1) && ...);
 
 /**
  * Self (객체 매개변수)의 const qualifier 상태를 기반으로 ReturnType의 최종 타입을 결정합니다.
