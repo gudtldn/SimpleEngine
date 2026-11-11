@@ -97,12 +97,12 @@ bool RenderSubsystem::Initialize()
         [this](SDL_WindowID window_id, SDL_Window* window, const WindowDesc& desc)
         {
             OnWindowCreated(window_id, window, desc);
-        }).Detach();
+        });
     window_destroyed_handle = window_subsystem_mut.on_window_destroyed.Add(
         [this](SDL_WindowID window_id, SDL_Window* window)
         {
             OnWindowDestroyed(window_id, window);
-        }).Detach();
+        });
 
     ConsoleLog(ELogLevel::Info, "Window and GPU device created successfully");
     return true;
@@ -116,20 +116,10 @@ void RenderSubsystem::Release()
     }
 
     // Delegate 구독 해제
+    window_created_handle.Reset();
+    window_destroyed_handle.Reset();
+
     WindowSubsystem* window_subsystem = se::GetSubsystem<WindowSubsystem>();
-    if (window_subsystem)
-    {
-        if (window_created_handle.IsValid())
-        {
-            window_subsystem->on_window_created.Remove(window_created_handle);
-            window_created_handle.Invalidate();
-        }
-        if (window_destroyed_handle.IsValid())
-        {
-            window_subsystem->on_window_destroyed.Remove(window_destroyed_handle);
-            window_destroyed_handle.Invalidate();
-        }
-    }
 
     // GPU Resource 해제
     render_device->FlushAllDestructions();

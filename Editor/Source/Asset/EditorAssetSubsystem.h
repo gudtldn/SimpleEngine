@@ -144,7 +144,7 @@ private:
     HashSet<VPath> currently_cooking;
 
     SE_ANNOTATE(file_drop_handle, Ignore)
-    DelegateHandle file_drop_handle;
+    ScopedDelegateHandle file_drop_handle;
 
     Path active_content_dir;
 };

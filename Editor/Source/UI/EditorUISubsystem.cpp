@@ -106,7 +106,7 @@ bool EditorUISubsystem::Initialize()
     sdl_event_handle = event_subsystem.on_sdl_event.Add([](const SDL_Event& event)
     {
         ImGui_ImplSDL3_ProcessEvent(&event);
-    }).Detach();
+    });
 
     // 일단 명시적으로 Register 코드 작성
     RegisterPanel<AssetsBrowserPanel>("AssetsBrowserPanel");
@@ -131,14 +131,7 @@ void EditorUISubsystem::Release()
     panels.Clear();
 
     // SDL 이벤트 구독 해제
-    if (sdl_event_handle.IsValid())
-    {
-        if (EventSubsystem* event_subsystem = GetSubsystem<EventSubsystem>())
-        {
-            event_subsystem->on_sdl_event.Remove(sdl_event_handle);
-        }
-        sdl_event_handle.Invalidate();
-    }
+    sdl_event_handle.Reset();
 
     ImGui_ImplSDLGPU3_Shutdown();
     ImGui_ImplSDL3_Shutdown();

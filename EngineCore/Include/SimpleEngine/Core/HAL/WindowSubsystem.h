@@ -207,7 +207,7 @@ private:
     HashMap<SDL_WindowID, WindowEntry> windows;
 
     SE_ANNOTATE(sdl_event_handle, Ignore)
-    DelegateHandle sdl_event_handle;
+    ScopedDelegateHandle sdl_event_handle;
 };
 
 template <typename Fn>
