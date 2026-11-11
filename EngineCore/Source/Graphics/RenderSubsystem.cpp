@@ -93,16 +93,16 @@ bool RenderSubsystem::Initialize()
 
     // 동적 윈도우 생성/파괴에 대응하기 위해 Delegate 구독
     WindowSubsystem& window_subsystem_mut = se::GetSubsystemChecked<WindowSubsystem>();
-    window_created_handle = window_subsystem_mut.on_window_created.AddLambda(
+    window_created_handle = window_subsystem_mut.on_window_created.Add(
         [this](SDL_WindowID window_id, SDL_Window* window, const WindowDesc& desc)
         {
             OnWindowCreated(window_id, window, desc);
-        });
-    window_destroyed_handle = window_subsystem_mut.on_window_destroyed.AddLambda(
+        }).Detach();
+    window_destroyed_handle = window_subsystem_mut.on_window_destroyed.Add(
         [this](SDL_WindowID window_id, SDL_Window* window)
         {
             OnWindowDestroyed(window_id, window);
-        });
+        }).Detach();
 
     ConsoleLog(ELogLevel::Info, "Window and GPU device created successfully");
     return true;

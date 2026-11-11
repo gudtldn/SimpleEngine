@@ -103,10 +103,10 @@ bool EditorUISubsystem::Initialize()
 
     // Platform Event 등록
     EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
-    sdl_event_handle = event_subsystem.on_sdl_event.AddLambda([](const SDL_Event& event)
+    sdl_event_handle = event_subsystem.on_sdl_event.Add([](const SDL_Event& event)
     {
         ImGui_ImplSDL3_ProcessEvent(&event);
-    });
+    }).Detach();
 
     // 일단 명시적으로 Register 코드 작성
     RegisterPanel<AssetsBrowserPanel>("AssetsBrowserPanel");

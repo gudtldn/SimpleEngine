@@ -218,16 +218,16 @@ bool Application::PostInitialize()
     // 이벤트 핸들러 등록
     if (EventSubsystem* event_sys = engine_instance->GetSubsystem<EventSubsystem>())
     {
-        event_sys->on_quit_requested.AddLambda([this]
+        event_sys->on_quit_requested.Add([this]
         {
             RequestQuit();
-        });
+        }).Detach();
     }
 
     // 윈도우 닫기 이벤트 핸들러 등록
     if (WindowSubsystem* window_sys = engine_instance->GetSubsystem<WindowSubsystem>())
     {
-        window_sys->on_window_close_requested.AddLambda([this, window_sys](SDL_WindowID window_id)
+        window_sys->on_window_close_requested.Add([this, window_sys](SDL_WindowID window_id)
         {
             if (window_id == window_sys->GetMainWindowID())
             {
@@ -237,7 +237,7 @@ bool Application::PostInitialize()
             {
                 window_sys->DestroyWindow(window_id);
             }
-        });
+        }).Detach();
     }
 
     return true;

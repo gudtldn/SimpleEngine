@@ -188,10 +188,10 @@ bool EditorAssetSubsystem::Initialize()
 
     // OS 파일 드롭 이벤트 구독
     EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
-    file_drop_handle = event_subsystem.on_file_dropped.AddLambda([this](const Path& file_path)
+    file_drop_handle = event_subsystem.on_file_dropped.Add([this](const Path& file_path)
     {
         ImportExternalFile(file_path);
-    });
+    }).Detach();
 
     // PropertyPanel D&D용 AssetDropResolver 등록
     DrawerRegistry::Get().SetAssetDropResolver([](const char* dropped_path) -> AssetId
