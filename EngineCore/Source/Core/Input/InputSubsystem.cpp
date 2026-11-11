@@ -30,10 +30,10 @@ bool InputSubsystem::Initialize()
 
     // EventSubsystem의 SDL 이벤트를 구독
     EventSubsystem& event_subsystem = GetSubsystemChecked<EventSubsystem>();
-    sdl_event_handle = event_subsystem.on_sdl_event.AddLambda([this](const SDL_Event& event)
+    sdl_event_handle = event_subsystem.on_sdl_event.Add([this](const SDL_Event& event)
     {
         OnSDLEvent(event);
-    });
+    }).Detach();
 
     ConsoleLog(ELogLevel::Info, "Input Subsystem initialized");
     return true;
