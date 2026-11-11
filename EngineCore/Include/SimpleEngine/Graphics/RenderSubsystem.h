@@ -76,9 +76,9 @@ private:
     std::unique_ptr<GpuResourceManager> resource_manager;
 
     SE_ANNOTATE(window_created_handle, Ignore)
-    DelegateHandle window_created_handle;
+    ScopedDelegateHandle window_created_handle;
     SE_ANNOTATE(window_destroyed_handle, Ignore)
-    DelegateHandle window_destroyed_handle;
+    ScopedDelegateHandle window_destroyed_handle;
 };
 } // namespace se
 

@@ -191,7 +191,7 @@ bool EditorAssetSubsystem::Initialize()
     file_drop_handle = event_subsystem.on_file_dropped.Add([this](const Path& file_path)
     {
         ImportExternalFile(file_path);
-    }).Detach();
+    });
 
     // PropertyPanel D&D용 AssetDropResolver 등록
     DrawerRegistry::Get().SetAssetDropResolver([](const char* dropped_path) -> AssetId
@@ -222,13 +222,7 @@ void EditorAssetSubsystem::Release()
     SaveRegistrySnapshot();
 
     // 이벤트 구독 해제
-    if (file_drop_handle.IsValid())
-    {
-        if (EventSubsystem* event_subsystem = GetSubsystem<EventSubsystem>())
-        {
-            event_subsystem->on_file_dropped.Remove(file_drop_handle);
-        }
-    }
+    file_drop_handle.Reset();
 
     // AssetDropResolver 해제
     DrawerRegistry::Get().SetAssetDropResolver(nullptr);

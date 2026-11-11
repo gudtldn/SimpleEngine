@@ -33,7 +33,7 @@ bool InputSubsystem::Initialize()
     sdl_event_handle = event_subsystem.on_sdl_event.Add([this](const SDL_Event& event)
     {
         OnSDLEvent(event);
-    }).Detach();
+    });
 
     ConsoleLog(ELogLevel::Info, "Input Subsystem initialized");
     return true;
@@ -43,14 +43,7 @@ void InputSubsystem::Release()
 {
     ConsoleLog(ELogLevel::Info, "Releasing Input Subsystem...");
 
-    if (sdl_event_handle.IsValid())
-    {
-        if (EventSubsystem* event_subsystem = GetSubsystem<EventSubsystem>())
-        {
-            event_subsystem->on_sdl_event.Remove(sdl_event_handle);
-        }
-        sdl_event_handle.Invalidate();
-    }
+    sdl_event_handle.Reset();
 
     SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
 }

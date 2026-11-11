@@ -60,7 +60,7 @@ private:
     SE_ANNOTATE(panels, Ignore)
     HashMap<StringName, std::unique_ptr<IEditorPanel>> panels; // TODO: Key GUID로 바꿀까
     SE_ANNOTATE(sdl_event_handle, Ignore)
-    DelegateHandle sdl_event_handle;
+    ScopedDelegateHandle sdl_event_handle;
 };
 
 template <typename PanelType, typename... Args>

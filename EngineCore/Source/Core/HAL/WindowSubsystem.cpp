@@ -31,7 +31,7 @@ bool WindowSubsystem::Initialize()
     sdl_event_handle = event_subsystem.on_sdl_event.Add([this](const SDL_Event& event)
     {
         OnSDLEvent(event);
-    }).Detach();
+    });
 
     // PrepareWindow()로 메인 윈도우 설정이 준비되었으면 생성
     if (prepared_main_window_desc.HasValue())
@@ -61,14 +61,7 @@ void WindowSubsystem::Release()
     ConsoleLog(ELogLevel::Info, "Releasing Window Subsystem...");
 
     // 이벤트 구독 해제
-    if (sdl_event_handle.IsValid())
-    {
-        if (EventSubsystem* event_subsystem = GetSubsystem<EventSubsystem>())
-        {
-            event_subsystem->on_sdl_event.Remove(sdl_event_handle);
-        }
-        sdl_event_handle.Invalidate();
-    }
+    sdl_event_handle.Reset();
 
     for (const auto& [native_handle, _] : windows | std::views::values)
     {
