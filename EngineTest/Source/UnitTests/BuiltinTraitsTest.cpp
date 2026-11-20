@@ -239,16 +239,12 @@ TEST(BuiltinTraitsTest, TypeIdTextReadFailsForUnknownName)
 
 // --- concept 검사 ---
 
-TEST(BuiltinTraitsTest, HasSerializeTraitsDistinguishesBuiltinTypesFromPlainTypes)
-{
-    static_assert(HasSerializeTraits<Guid>);
-    static_assert(HasSerializeTraits<String>);
-    static_assert(HasSerializeTraits<StringName>);
-    static_assert(HasSerializeTraits<TypeId>);
-    static_assert(HasSerializeTraits<ContentHash>);
-    static_assert(HasSerializeTraits<Path>);
-    static_assert(HasSerializeTraits<VPath>);
-    static_assert(!HasSerializeTraits<i32>);
-    static_assert(!HasSerializeTraits<bool>);
-    SUCCEED();
-}
+static_assert(HasSerializeTraits<Guid>);
+static_assert(HasSerializeTraits<String>);
+static_assert(HasSerializeTraits<StringName>);
+static_assert(HasSerializeTraits<TypeId>);
+static_assert(HasSerializeTraits<ContentHash>);
+static_assert(HasSerializeTraits<Path>);
+static_assert(HasSerializeTraits<VPath>);
+static_assert(!HasSerializeTraits<i32>);
+static_assert(!HasSerializeTraits<bool>);

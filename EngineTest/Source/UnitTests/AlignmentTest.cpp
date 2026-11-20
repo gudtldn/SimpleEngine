@@ -326,21 +326,16 @@ TEST_F(SimdArrayAlignmentTest, StaticVertexInArray)
 // Cache Line False Sharing Prevention Tests
 // ============================================================================
 
-class CacheLineFalseSharingTest : public ::testing::Test {};
+// JobCounter는 count와 waiters를 각각 별도 캐시 라인에 배치합니다.
+// 두 필드가 독립된 캐시 라인에 있으려면 sizeof >= 2 * SE_CACHE_LINE이어야 합니다.
+static_assert(sizeof(JobCounter) >= 2 * SE_CACHE_LINE);
+static_assert(alignof(JobCounter) >= SE_CACHE_LINE);
 
-TEST_F(CacheLineFalseSharingTest, JobCounterSizeSeparatesCacheLines)
+namespace se_alignment_test::work_stealing_deque_cache_lines
 {
-    // JobCounter는 count와 waiters를 각각 별도 캐시 라인에 배치합니다.
-    // 두 필드가 독립된 캐시 라인에 있으려면 sizeof >= 2 * SE_CACHE_LINE이어야 합니다.
-    static_assert(sizeof(JobCounter) >= 2 * SE_CACHE_LINE);
-    static_assert(alignof(JobCounter) >= SE_CACHE_LINE);
-}
-
-TEST_F(CacheLineFalseSharingTest, WorkStealingDequeSizeSeparatesCacheLines)
-{
-    // WorkStealingDeque는 top, bottom, buffer를 각각 별도 캐시 라인에 배치합니다.
-    // 세 필드가 독립된 캐시 라인에 있으려면 sizeof >= 3 * SE_CACHE_LINE이어야 합니다.
-    using Deque = WorkStealingDeque<int>;
-    static_assert(sizeof(Deque) >= 3 * SE_CACHE_LINE);
-    static_assert(alignof(Deque) >= SE_CACHE_LINE);
-}
+// WorkStealingDeque는 top, bottom, buffer를 각각 별도 캐시 라인에 배치합니다.
+// 세 필드가 독립된 캐시 라인에 있으려면 sizeof >= 3 * SE_CACHE_LINE이어야 합니다.
+using Deque = WorkStealingDeque<int>;
+static_assert(sizeof(Deque) >= 3 * SE_CACHE_LINE);
+static_assert(alignof(Deque) >= SE_CACHE_LINE);
+} // namespace se_alignment_test::work_stealing_deque_cache_lines

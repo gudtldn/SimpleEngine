@@ -1115,17 +1115,17 @@ TEST_F(MathUtilityTest, CopySign_vs_StdCopySign)
     }
 }
 
-TEST_F(MathUtilityTest, Constexpr_Checks)
+namespace se_math_unit_test::constexpr_checks
 {
-    constexpr f32 SQRT_VAL = Sqrt(4.0f);
-    static_assert(IsNearlyEqual(SQRT_VAL, 2.0f));
+constexpr f32 SQRT_VAL = Sqrt(4.0f);
+static_assert(IsNearlyEqual(SQRT_VAL, 2.0f));
 
-    constexpr f32 POW_VAL = Pow(2.0f, 3.0f);
-    static_assert(IsNearlyEqual(POW_VAL, 8.0f));
+constexpr f32 POW_VAL = Pow(2.0f, 3.0f);
+static_assert(IsNearlyEqual(POW_VAL, 8.0f));
 
-    constexpr f32 ABS_VAL = Abs(-10.0f);
-    static_assert(IsNearlyEqual(ABS_VAL, 10.0f));
+constexpr f32 ABS_VAL = Abs(-10.0f);
+static_assert(IsNearlyEqual(ABS_VAL, 10.0f));
 
-    constexpr f32 FMOD_VAL = Fmod(5.5f, 2.0f);
-    static_assert(IsNearlyEqual(FMOD_VAL, 1.5f));
-}
+constexpr f32 FMOD_VAL = Fmod(5.5f, 2.0f);
+static_assert(IsNearlyEqual(FMOD_VAL, 1.5f));
+} // namespace se_math_unit_test::constexpr_checks
