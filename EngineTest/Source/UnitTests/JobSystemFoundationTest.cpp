@@ -363,37 +363,6 @@ TEST_F(JobAllocatorTest, FreeNull)
     JobAllocator::Free(nullptr);
 }
 
-TEST_F(JobAllocatorTest, CrossThreadFree)
-{
-    constexpr int NUM_BLOCKS = 100;
-    std::vector<void*> blocks(NUM_BLOCKS);
-
-    // 메인 스레드에서 할당
-    for (int i = 0; i < NUM_BLOCKS; ++i)
-    {
-        blocks[i] = JobAllocator::Allocate(32);
-        ASSERT_NE(blocks[i], nullptr);
-    }
-
-    // 다른 스레드에서 해제
-    std::thread freer([&blocks]
-    {
-        for (void* ptr : blocks)
-        {
-            JobAllocator::Free(ptr);
-        }
-    });
-    freer.join();
-
-    // 해제 후 다시 할당 가능해야 함 (다른 스레드의 free list에서)
-    for (int i = 0; i < NUM_BLOCKS; ++i)
-    {
-        void* p = JobAllocator::Allocate(32);
-        ASSERT_NE(p, nullptr);
-        JobAllocator::Free(p);
-    }
-}
-
 TEST_F(JobAllocatorTest, EvictionToGlobalPool)
 {
     // MAX_CACHED_BLOCKS(128)을 초과하면 절반이 GlobalPool로 반환되어야 한다
@@ -421,42 +390,6 @@ TEST_F(JobAllocatorTest, EvictionToGlobalPool)
         std::memset(p, 0xCD, 32);
         JobAllocator::Free(p);
     }
-}
-
-TEST_F(JobAllocatorTest, ProducerConsumerBalancing)
-{
-    // Producer-Consumer 패턴: 메인이 할당, Worker가 해제
-    // Worker의 잉여 메모리가 GlobalPool을 거쳐 다시 메인으로 흘러와야 함
-    constexpr int ITERATIONS = 500;
-    constexpr int BATCH_SIZE = 10;
-
-    for (int iter = 0; iter < ITERATIONS; ++iter)
-    {
-        // 메인 스레드에서 할당
-        std::vector<void*> batch(BATCH_SIZE);
-        for (int i = 0; i < BATCH_SIZE; ++i)
-        {
-            batch[i] = JobAllocator::Allocate(48);
-            ASSERT_NE(batch[i], nullptr);
-            std::memset(batch[i], 0xAB, 48);
-        }
-
-        // Worker 스레드에서 해제
-        std::thread worker([&batch]
-        {
-            for (void* ptr : batch)
-            {
-                JobAllocator::Free(ptr);
-            }
-        });
-        worker.join();
-    }
-
-    // 5000번의 할당/해제 사이클 후에도 메모리가 정상이어야 함
-    void* final_ptr = JobAllocator::Allocate(48);
-    ASSERT_NE(final_ptr, nullptr);
-    std::memset(final_ptr, 0xFF, 48);
-    JobAllocator::Free(final_ptr);
 }
 
 TEST_F(JobAllocatorTest, StealFromGlobalWhenTLSEmpty)

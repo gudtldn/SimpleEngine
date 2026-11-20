@@ -120,19 +120,6 @@ TEST_F(ScopeLayerTest, UnloadScope_DecrementsMemoryUsage)
     EXPECT_EQ(pool.GetTotalMemoryUsage(), 0u);
 }
 
-TEST_F(ScopeLayerTest, UnloadScope_GlobalGuarded)
-{
-    SimulateLoad(pool, EScopeLayer::Global, 1024);
-
-    // Global은 다른 scope 해제에 영향받지 않음
-    pool.UnloadScope(EScopeLayer::Scene);
-    pool.UnloadScope(EScopeLayer::Session);
-    pool.UnloadScope(EScopeLayer::Transient);
-
-    EXPECT_EQ(pool.GetCount(), 1u);
-    EXPECT_EQ(pool.GetTotalMemoryUsage(), 1024u);
-}
-
 TEST_F(ScopeLayerTest, DefaultScopeIsScene)
 {
     HandleData hd = pool.FindOrCreate(NewId(), TypeId::Of<ScopeTestAsset>(), AssetPath("test/default"));

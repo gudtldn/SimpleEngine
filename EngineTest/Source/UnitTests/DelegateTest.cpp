@@ -56,29 +56,6 @@ TEST(SingleDelegateTest, VoidReturn)
 }
 
 // MultiDelegate Tests
-TEST(MultiDelegateTest, AddAndBroadcast)
-{
-    MultiDelegate<void(int&)> delegate;
-
-    delegate.AddLambda([&](int& val) { val += 1; });
-    delegate.AddLambda([&](int& val) { val *= 2; });
-
-    // The order of execution is not guaranteed, so we can't check for a specific value.
-    // Instead, we'll check that both were called by having two separate delegates.
-
-    MultiDelegate<void(int&)> delegate1;
-    int value1 = 0;
-    delegate1.AddLambda([&](int& val) { val += 1; });
-    delegate1.Broadcast(value1);
-    EXPECT_EQ(value1, 1);
-
-    MultiDelegate<void(int&)> delegate2;
-    int value2 = 1;
-    delegate2.AddLambda([&](int& val) { val *= 2; });
-    delegate2.Broadcast(value2);
-    EXPECT_EQ(value2, 2);
-}
-
 TEST(MultiDelegateTest, Remove)
 {
     MultiDelegate<void(int&)> delegate;

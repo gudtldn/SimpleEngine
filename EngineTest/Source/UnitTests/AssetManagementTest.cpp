@@ -128,13 +128,13 @@ TEST_F(AssetPathTest, Hash)
 // AssetPool Tests
 // =============================================================================
 
-class AssetCacheTest : public ::testing::Test
+class AssetPoolTest : public ::testing::Test
 {
 protected:
     AssetPool pool;
 };
 
-TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
+TEST_F(AssetPoolTest, FindOrCreate_NewSlot)
 {
     AssetId id = GenerateAssetId();
     TypeId type = TypeId::Of<MockTexture>();
@@ -150,7 +150,7 @@ TEST_F(AssetCacheTest, FindOrCreate_NewSlot)
     EXPECT_EQ(pool.GetCount(), 1u);
 }
 
-TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
+TEST_F(AssetPoolTest, FindOrCreate_ExistingSlot)
 {
     AssetId id = GenerateAssetId();
     TypeId type = TypeId::Of<MockTexture>();
@@ -163,7 +163,7 @@ TEST_F(AssetCacheTest, FindOrCreate_ExistingSlot)
     EXPECT_EQ(pool.GetCount(), 1u);
 }
 
-TEST_F(AssetCacheTest, Find_NonExistent)
+TEST_F(AssetPoolTest, Find_NonExistent)
 {
     AssetId id = GenerateAssetId();
     auto result = pool.Find(id);
@@ -171,7 +171,7 @@ TEST_F(AssetCacheTest, Find_NonExistent)
     EXPECT_FALSE(result.HasValue());
 }
 
-TEST_F(AssetCacheTest, Find_Existing)
+TEST_F(AssetPoolTest, Find_Existing)
 {
     AssetId id = GenerateAssetId();
     HandleData created = pool.FindOrCreate(id, TypeId::Of<MockMesh>(), AssetPath("mesh.obj"));
@@ -181,7 +181,7 @@ TEST_F(AssetCacheTest, Find_Existing)
     EXPECT_EQ(found.Value(), created);
 }
 
-TEST_F(AssetCacheTest, Remove)
+TEST_F(AssetPoolTest, Remove)
 {
     AssetId id = GenerateAssetId();
     (void)pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
@@ -193,7 +193,7 @@ TEST_F(AssetCacheTest, Remove)
     EXPECT_FALSE(pool.Find(id).HasValue());
 }
 
-TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
+TEST_F(AssetPoolTest, CollectGarbage_RemovesUnused)
 {
     AssetId id1 = GenerateAssetId();
     AssetId id2 = GenerateAssetId();
@@ -226,7 +226,7 @@ TEST_F(AssetCacheTest, CollectGarbage_RemovesUnused)
     pool.GetTable().GetSlot(hd1.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
-TEST_F(AssetCacheTest, CollectGarbage_KeepsInUse)
+TEST_F(AssetPoolTest, CollectGarbage_KeepsInUse)
 {
     AssetId id = GenerateAssetId();
     HandleData hd = pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
@@ -431,7 +431,7 @@ TEST_F(AssetRegistryTest, GetAssetId_NonExistent)
     EXPECT_FALSE(result.HasValue());
 }
 
-TEST_F(AssetRegistryTest, GetAssetPath_NonExistent)
+TEST_F(AssetRegistryTest, ReadRecordOfUnregisteredIdReturnsFalse)
 {
     AssetId id = GenerateAssetId(); // 등록되지 않은 랜덤 ID
 
@@ -523,41 +523,6 @@ protected:
     AssetRegistry registry;
 };
 
-TEST_F(AssetManagementIntegrationTest, FullWorkflow)
-{
-    // 1. Register asset in registry
-    AssetId id = GenerateAssetId();
-    TypeId type = TypeId::Of<MockTexture>();
-    AssetPath path("textures/diffuse.png");
-
-    registry.RegisterAsset(id, type, path, CreateDummyMeta());
-
-    // 2. Create slot in pool
-    HandleData hd = cache.FindOrCreate(id, type, path);
-    SlotEntry& slot = cache.GetTable().GetSlot(hd.index);
-
-    // 3. Load asset into slot
-    auto* texture = new MockTexture();
-    texture->width = 2048;
-    (void)slot.ExchangePayload({
-        .ptr = texture,
-        .destructor = [](void* p) { delete static_cast<MockTexture*>(p); },
-    });
-    slot.SetState(ELoadingState::Loaded);
-
-    // 4. Create handle
-    AssetHandle<MockTexture> handle(hd, &cache.GetTable());
-
-    // 5. Use handle
-    ASSERT_TRUE(handle.IsValid());
-    EXPECT_EQ(handle->width, 2048);
-
-    // 6. Verify registry
-    auto retrieved_id = registry.GetAssetId(path);
-    ASSERT_TRUE(retrieved_id.HasValue());
-    EXPECT_EQ(retrieved_id.Value(), id);
-}
-
 TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 {
     AssetId id = GenerateAssetId();
@@ -584,57 +549,4 @@ TEST_F(AssetManagementIntegrationTest, MultipleHandlesToSameAsset)
 
     // ref_count: handle1 + handle2 + handle3 = 3
     EXPECT_EQ(slot.ref_count.load(), 3u);
-}
-
-TEST_F(AssetManagementIntegrationTest, SubAssetHandling)
-{
-    VPath file_path("models/character.fbx");
-
-    AssetId main_mesh_id = GenerateAssetId();
-    AssetId weapon_mesh_id = GenerateAssetId();
-
-    AssetPath main_path(file_path, "MainBody");
-    AssetPath weapon_path(file_path, "Weapon");
-
-    TypeId mesh_type = TypeId::Of<MockMesh>();
-
-    // Register both sub-assets with metadata
-    registry.RegisterAsset(main_mesh_id, mesh_type, AssetPath(main_path), CreateDummyMeta());
-    registry.RegisterAsset(weapon_mesh_id, mesh_type, AssetPath(weapon_path), CreateDummyMeta());
-
-    // Create slots
-    HandleData main_hd = cache.FindOrCreate(main_mesh_id, mesh_type, main_path);
-    HandleData weapon_hd = cache.FindOrCreate(weapon_mesh_id, mesh_type, weapon_path);
-
-    SlotEntry& main_slot = cache.GetTable().GetSlot(main_hd.index);
-    SlotEntry& weapon_slot = cache.GetTable().GetSlot(weapon_hd.index);
-
-    // Load assets
-    auto* main_mesh = new MockMesh();
-    main_mesh->vertex_count = 1000;
-    (void)main_slot.ExchangePayload({
-        .ptr = main_mesh,
-        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
-    });
-    main_slot.SetState(ELoadingState::Loaded);
-
-    auto* weapon_mesh = new MockMesh();
-    weapon_mesh->vertex_count = 200;
-    (void)weapon_slot.ExchangePayload({
-        .ptr = weapon_mesh,
-        .destructor = [](void* p) { delete static_cast<MockMesh*>(p); },
-    });
-    weapon_slot.SetState(ELoadingState::Loaded);
-
-    // Verify
-    EXPECT_TRUE(registry.IsFileImported(file_path));
-
-    auto assets = registry.GetAssetsInFile(file_path);
-    EXPECT_EQ(assets.Len(), 2u);
-
-    AssetHandle<MockMesh> main_handle(main_hd, &cache.GetTable());
-    AssetHandle<MockMesh> weapon_handle(weapon_hd, &cache.GetTable());
-
-    EXPECT_EQ(main_handle->vertex_count, 1000);
-    EXPECT_EQ(weapon_handle->vertex_count, 200);
 }

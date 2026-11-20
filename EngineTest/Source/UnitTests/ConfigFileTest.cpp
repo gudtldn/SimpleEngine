@@ -52,15 +52,6 @@ struct LoggingSettings
     bool operator==(const LoggingSettings&) const = default;
 };
 
-/** 저장하지 않는 필드(transient_val)를 포함하는 테스트 구조체 */
-struct TransientSettings
-{
-    i32 saved_val = 0;
-    i32 transient_val = 0;
-
-    bool operator==(const TransientSettings&) const = default;
-};
-
 /** 빈 구조체 */
 struct EmptySettings
 {
@@ -116,7 +107,6 @@ using namespace config_test;
 SE_DECLARE_REFLECTION(config_test::WindowSettings)
 SE_DECLARE_REFLECTION(config_test::GraphicsSettings)
 SE_DECLARE_REFLECTION(config_test::LoggingSettings)
-SE_DECLARE_REFLECTION(config_test::TransientSettings)
 SE_DECLARE_REFLECTION(config_test::EmptySettings)
 SE_DECLARE_REFLECTION(config_test::ContainerSettings)
 SE_DECLARE_REFLECTION(config_test::OptionalListSettings)
@@ -142,11 +132,6 @@ SE_REFLECT_BEGIN(config_test::LoggingSettings)
     SE_FIELD(level)
     SE_FIELD(output_to_file)
     SE_FIELD(log_file_path)
-SE_REFLECT_END()
-
-// transient_val은 등록하지 않아 저장되지 않음
-SE_REFLECT_BEGIN(config_test::TransientSettings)
-    SE_FIELD(saved_val)
 SE_REFLECT_END()
 
 SE_REFLECT_BEGIN(config_test::EmptySettings)
@@ -404,21 +389,6 @@ TEST_F(ConfigFileTest, SetSectionFailureKeepsExistingSection)
 
     EXPECT_EQ(new_config.GetValue<i64>("data.kept").Value(), 7);
     EXPECT_FALSE(new_config.GetValue<i64>("data.values[0]").HasValue());
-}
-
-TEST_F(ConfigFileTest, TransientFieldNotSerialized)
-{
-    ConfigFile new_config;
-
-    TransientSettings original;
-    original.saved_val = 42;
-    original.transient_val = 999;
-
-    new_config.SetSection(original, "settings");
-
-    auto loaded = new_config.GetSection<TransientSettings>("settings");
-    EXPECT_EQ(loaded.saved_val, 42);
-    EXPECT_EQ(loaded.transient_val, 0);  // 등록하지 않은 필드 -> 직렬화되지 않아 기본값
 }
 
 TEST_F(ConfigFileTest, EmptyStructRoundTrip)

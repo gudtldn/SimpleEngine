@@ -228,7 +228,8 @@ class JobCounterRaceTest : public ::testing::Test {};
 
 TEST_F(JobCounterRaceTest, ConcurrentAddWaiterAndDecrement)
 {
-    // Waiter 등록과 Decrement가 동시에 경합해도 카운터가 정상 완료되어야 합니다.
+    // Waiter 등록과 Decrement가 동시에 경합해도 콜백은 정확히 한 번 실행되어야 합니다.
+    // 이미 완료된 카운터에 등록하면 AddWaiter가 콜백을 돌려주므로, 그때는 호출한 쪽에서 실행합니다.
     constexpr i32 ITERATIONS = 500;
 
     for (i32 iter = 0; iter < ITERATIONS; ++iter)
@@ -238,10 +239,14 @@ TEST_F(JobCounterRaceTest, ConcurrentAddWaiterAndDecrement)
 
         std::thread waiter_thread([&]
         {
-            std::ignore = counter->AddWaiter([&notified]
+            auto returned = counter->AddWaiter([&notified]
             {
                 notified.fetch_add(1, std::memory_order_relaxed);
             });
+            if (returned.HasValue())
+            {
+                (*returned)();
+            }
         });
 
         std::thread dec_thread1([&] { counter->Decrement(); });
@@ -252,7 +257,7 @@ TEST_F(JobCounterRaceTest, ConcurrentAddWaiterAndDecrement)
         dec_thread2.join();
 
         EXPECT_TRUE(counter->IsComplete());
-        EXPECT_LE(notified.load(), 1);
+        EXPECT_EQ(notified.load(), 1);
     }
 }
 

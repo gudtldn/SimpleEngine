@@ -39,7 +39,7 @@ TEST_F(StringNameTest, CaseInsensitiveComparison)
     EXPECT_NE(name_a, name_c);
 }
 
-TEST_F(StringNameTest, DisplayHashIsCaseSensitive)
+TEST_F(StringNameTest, InterningIsCaseSensitive)
 {
     StringName name_a("Hello");
     StringName name_b("hello");

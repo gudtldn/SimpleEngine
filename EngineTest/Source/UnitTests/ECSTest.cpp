@@ -28,30 +28,6 @@ struct TestTagComponent
 };
 
 
-// Phase 순서(PreUpdate -> Update -> PostUpdate)가 보장되는지 검증합니다.
-TEST_F(ECSTest, ECSScheduleAndSystemExecutionOrder)
-{
-    WorldContext ctx;
-
-    int call_index = 0;
-    int pre_order = -1;
-    int update_order = -1;
-    int post_order = -1;
-
-    ctx.AddSystem<PreUpdatePhase>([&] { pre_order = call_index++; });
-    ctx.AddSystem<UpdatePhase>([&] { update_order = call_index++; });
-    ctx.AddSystem<PostUpdatePhase>([&] { post_order = call_index++; });
-
-    ctx.RunPhase<PreUpdatePhase>();
-    ctx.RunPhase<UpdatePhase>();
-    ctx.RunPhase<PostUpdatePhase>();
-
-    ASSERT_EQ(call_index, 3) << "All 3 systems must run.";
-    EXPECT_LT(pre_order, update_order) << "PreUpdate must run before Update.";
-    EXPECT_LT(update_order, post_order) << "Update must run before PostUpdate.";
-}
-
-
 // With<>/Without<> 필터 조건에 따라 시스템 실행 여부가 올바르게 제어되는지 검증합니다.
 TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
 {

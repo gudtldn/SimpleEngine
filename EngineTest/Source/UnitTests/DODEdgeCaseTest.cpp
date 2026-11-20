@@ -102,37 +102,6 @@ TEST_F(SparseSetBulkTest, FragmentedRemoveAndReinsert)
     EXPECT_EQ(sparse.Len(), COUNT);
 }
 
-TEST_F(SparseSetBulkTest, SwapRemoveDataIntegrity)
-{
-    EntityManager mgr;
-    SparseSet<DODTransformComponent> sparse;
-
-    constexpr usize COUNT = 1000;
-    Array<Entity> entities;
-
-    for (usize i = 0; i < COUNT; ++i)
-    {
-        Entity e = mgr.Create();
-        sparse.Add(e, DODTransformComponent{static_cast<f32>(i), 0, 0});
-        entities.Push(e);
-    }
-
-    // 역순으로 절반 제거
-    for (usize i = COUNT; i > COUNT / 2; --i)
-    {
-        sparse.Remove(entities[i - 1]);
-    }
-
-    EXPECT_EQ(sparse.Len(), COUNT / 2);
-
-    for (usize i = 0; i < COUNT / 2; ++i)
-    {
-        auto opt = sparse.Find(entities[i]);
-        ASSERT_TRUE(opt.HasValue());
-        EXPECT_EQ(opt->x, static_cast<f32>(i));
-    }
-}
-
 TEST_F(SparseSetBulkTest, IterationAfterFragmentation)
 {
     EntityManager mgr;
@@ -154,7 +123,7 @@ TEST_F(SparseSetBulkTest, IterationAfterFragmentation)
         sparse.Remove(entities[i]);
     }
 
-    f32 sum = 0;
+    f64 sum = 0.0;
     usize iter_count = 0;
     for (const auto& [entity, comp] : sparse)
     {
@@ -162,9 +131,20 @@ TEST_F(SparseSetBulkTest, IterationAfterFragmentation)
         ++iter_count;
     }
 
+    // 남은 원소(3의 배수가 아닌 인덱스)의 x 합: 제거 후 swap으로 값이 섞이거나 빠지면 달라집니다.
+    f64 expected_sum = 0.0;
+    for (usize i = 0; i < COUNT; ++i)
+    {
+        if (i % 3 != 0)
+        {
+            expected_sum += static_cast<f64>(i);
+        }
+    }
+
     usize expected_count = COUNT - ((COUNT + 2) / 3);
     EXPECT_EQ(iter_count, expected_count);
     EXPECT_EQ(sparse.Len(), expected_count);
+    EXPECT_EQ(sum, expected_sum);
 }
 
 

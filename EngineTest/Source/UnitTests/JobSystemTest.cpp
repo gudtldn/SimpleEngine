@@ -85,9 +85,9 @@ TEST_F(JobPayloadTest, SBO_MaxCaptureFitsInline)
     delete payload;
 }
 
-TEST_F(JobPayloadTest, HeapFallback_OversizedCapture)
+TEST_F(JobPayloadTest, OversizedCaptureUsesPooledStorage)
 {
-    // SBO 용량을 초과하는 캡처는 JobAllocator에서 외부 블록을 할당합니다
+    // SBO 용량을 초과하는 캡처는 Heap이 아니라 JobAllocator의 풀 블록(Pooled)에 저장합니다
     struct HugeCapture
     {
         u64 data[8];  // 64 바이트 > SBO_CAPACITY(48)

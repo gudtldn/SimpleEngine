@@ -305,7 +305,7 @@ TEST_F(FileSystemReadWriteTest, WriteStringOverwritesExistingContent)
     EXPECT_EQ(StringView(result->CStr(), result->ByteLen()), "new content");
 }
 
-TEST_F(FileSystemReadWriteTest, WriteStringCreatesParentDirectories)
+TEST_F(FileSystemReadWriteTest, WriteStringFailsWhenParentDirectoryIsMissing)
 {
     // 참고: 현재 구현에서는 부모 디렉토리를 자동 생성하지 않음
     // 이 테스트는 현재 동작을 문서화함
@@ -617,12 +617,17 @@ TEST_F(FileSystemChunkedTest, ReadChunkedNonExistentFile)
 {
     Path non_existent = temp_dir / "no_such_file.bin";
 
+    bool has_yielded = false;
     for (auto&& chunk_result : fs::ReadChunked(non_existent, 1024))
     {
         // 첫 yield가 에러여야 함
+        has_yielded = true;
         EXPECT_FALSE(chunk_result.HasValue());
         break;
     }
+
+    // 아무것도 내놓지 않고 끝나면 에러를 알리지 않은 것이므로 실패
+    EXPECT_TRUE(has_yielded);
 }
 
 
