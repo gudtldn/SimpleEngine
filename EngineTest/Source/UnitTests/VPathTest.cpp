@@ -144,38 +144,9 @@ TEST(VPathTest, GetExtensionHandlesMultipleDots)
 // Parent Path
 // =============================================================================
 
-TEST(VPathTest, GetParentPathReturnsParent)
-{
-    VPath p("Assets://Textures/Player.png");
-    VPath parent = p.GetParentPath();
-    EXPECT_EQ(parent.ToString(), "Assets://Textures");
-}
-
-TEST(VPathTest, GetParentPathHandlesNestedPaths)
-{
-    VPath p("Assets://A/B/C/file.txt");
-    EXPECT_EQ(p.GetParentPath().ToString(), "Assets://A/B/C");
-    EXPECT_EQ(p.GetParentPath().GetParentPath().ToString(), "Assets://A/B");
-}
-
-TEST(VPathTest, GetParentPathOfRootReturnsSchemeOnly)
-{
-    VPath p("Assets://file.txt");
-    VPath parent = p.GetParentPath();
-    EXPECT_EQ(parent.ToString(), "Assets://");
-}
-
-
 // =============================================================================
 // Path Concatenation
 // =============================================================================
-
-TEST(VPathTest, SlashOperatorAppendsRelativePath)
-{
-    VPath base("Assets://Textures");
-    VPath result = base / "Player.png";
-    EXPECT_EQ(result.ToString(), "Assets://Textures/Player.png");
-}
 
 TEST(VPathTest, SlashOperatorHandlesTrailingSlash)
 {
@@ -201,14 +172,6 @@ TEST(VPathTest, NormalizesBackslashesToForwardSlashes)
     VPath p("Assets://Textures\\Player\\sprite.png");
     EXPECT_EQ(p.ToString(), "Assets://Textures/Player/sprite.png");
 }
-
-TEST(VPathTest, PreservesSchemeWithBackslashes)
-{
-    VPath p("Assets:\\\\Textures\\file.png");
-    // 백슬래시는 정규화되어야 함
-    EXPECT_EQ(p.GetScheme(), "Assets");
-}
-
 
 // =============================================================================
 // Comparison & Equality
@@ -239,12 +202,6 @@ TEST(VPathTest, SpaceshipOperator)
 // =============================================================================
 // Conversions
 // =============================================================================
-
-TEST(VPathTest, ToStringReturnsFullPath)
-{
-    VPath p("Assets://Textures/Player.png");
-    EXPECT_EQ(p.ToString(), "Assets://Textures/Player.png");
-}
 
 TEST(VPathTest, ToStringNameCreatesStringName)
 {

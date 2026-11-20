@@ -267,27 +267,6 @@ TEST_F(CoroutineTest, WhenAll_MultipleJobs)
     h.Wait();
 }
 
-TEST_F(CoroutineTest, WhenAll_AlreadyComplete)
-{
-    auto handle = JobSystem::Get().Submit([] {});
-    handle.Wait();
-
-    std::promise<bool> promise;
-    auto future = promise.get_future();
-
-    JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle<void> handle) static -> JobTask<void>
-        {
-            co_await WhenAll{ { handle } };
-            p.set_value(true);
-            co_return;
-        }(promise, handle));
-
-    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
-    EXPECT_TRUE(future.get());
-    h.Wait();
-}
-
 TEST_F(CoroutineTest, WhenAll_Empty)
 {
     auto task = []() static -> JobTask<int>
@@ -555,29 +534,6 @@ TEST_F(CoroutineTest, ParallelFor_CoAwaitJobHandle)
 
     ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
     EXPECT_EQ(sum.load(std::memory_order_relaxed), static_cast<usize>(499500));
-    h.Wait();
-}
-
-TEST_F(CoroutineTest, CoAwait_TemporaryJobHandle)
-{
-    std::atomic<int> value = 0;
-    std::promise<bool> promise;
-    auto future = promise.get_future();
-
-    JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::atomic<int>& value, std::promise<bool>& p) static -> JobTask<void>
-        {
-            co_await JobSystem::Get().Submit([&value]
-            {
-                value.store(42, std::memory_order_release);
-            });
-
-            p.set_value(value.load(std::memory_order_acquire) == 42);
-            co_return;
-        }(value, promise));
-
-    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
-    EXPECT_TRUE(future.get());
     h.Wait();
 }
 

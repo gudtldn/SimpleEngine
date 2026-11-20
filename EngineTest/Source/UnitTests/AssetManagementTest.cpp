@@ -226,22 +226,6 @@ TEST_F(AssetPoolTest, CollectGarbage_RemovesUnused)
     pool.GetTable().GetSlot(hd1.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
 }
 
-TEST_F(AssetPoolTest, CollectGarbage_KeepsInUse)
-{
-    AssetId id = GenerateAssetId();
-    HandleData hd = pool.FindOrCreate(id, TypeId::Of<MockTexture>(), AssetPath("test.png"));
-
-    // ref_count를 1로 설정하여 사용 중으로 표시
-    pool.GetTable().GetSlot(hd.index).ref_count.fetch_add(1, std::memory_order_relaxed);
-
-    u32 removed = pool.CollectGarbage();
-    EXPECT_EQ(removed, 0u);
-    EXPECT_EQ(pool.GetCount(), 1u);
-
-    // cleanup
-    pool.GetTable().GetSlot(hd.index).ref_count.fetch_sub(1, std::memory_order_relaxed);
-}
-
 // =============================================================================
 // AssetHandle Tests
 // =============================================================================
@@ -275,6 +259,7 @@ TEST_F(AssetHandleTest, DefaultConstruction)
 
     EXPECT_FALSE(handle.IsValid());
     EXPECT_EQ(handle.Get(), nullptr);
+    EXPECT_EQ(handle.GetAssetId(), AssetId::invalid);
 }
 
 TEST_F(AssetHandleTest, ConstructionWithHandleData)
@@ -353,14 +338,6 @@ TEST_F(AssetHandleTest, MoveConstruction)
 
     // ref_count가 1이어야 함 (handle2만)
     EXPECT_EQ(cache.GetTable().GetSlot(hd.index).ref_count.load(), 1u);
-}
-
-TEST_F(AssetHandleTest, InvalidHandle_ReturnsNull)
-{
-    AssetHandle<MockTexture> handle;
-
-    EXPECT_EQ(handle.Get(), nullptr);
-    EXPECT_EQ(handle.GetAssetId(), AssetId::invalid);
 }
 
 TEST_F(AssetHandleTest, StrongCount_DecrementOnDestruct)

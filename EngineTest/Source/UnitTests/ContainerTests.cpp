@@ -28,13 +28,6 @@ class PriorityQueueAPI_Test : public ::testing::Test {};
 using namespace se;
 
 
-TEST_F(FixedArrayAPI_Test, DefaultConstructionAndCapacity)
-{
-    FixedArray<int, 5> arr;
-    EXPECT_EQ(arr.Len(), 5);
-    EXPECT_FALSE(arr.IsEmpty());
-}
-
 TEST_F(FixedArrayAPI_Test, ElementAccessWithAt)
 {
     FixedArray<int, 3> arr;

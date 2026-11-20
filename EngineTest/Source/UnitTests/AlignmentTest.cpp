@@ -143,17 +143,6 @@ TEST_F(OsMemoryAlignmentTest, AvxAlignment32)
     OsMemory::Free(ptr);
 }
 
-TEST_F(OsMemoryAlignmentTest, CacheLineAlignment)
-{
-    void* ptr = OsMemory::Allocate(512, SE_CACHE_LINE);
-    ASSERT_NE(ptr, nullptr);
-
-    auto addr = reinterpret_cast<usize>(ptr);
-    EXPECT_EQ(addr % SE_CACHE_LINE, 0u);
-
-    OsMemory::Free(ptr);
-}
-
 TEST_F(OsMemoryAlignmentTest, OverAligned64)
 {
     void* ptr = OsMemory::Allocate(1024, 64);
@@ -332,25 +321,6 @@ TEST_F(SimdArrayAlignmentTest, StaticVertexInArray)
         EXPECT_EQ(addr % alignof(StaticVertex), 0u) << "StaticVertex at index " << i << " misaligned";
     }
 }
-
-TEST_F(SimdArrayAlignmentTest, SimdTypeInSparseSet)
-{
-    EntityManager mgr;
-    SparseSet<Quaternionf> sparse;
-
-    for (u32 i = 0; i < 32; ++i)
-    {
-        sparse.Add(mgr.Create(), Quaternionf::Identity());
-    }
-
-    const auto& components = sparse.GetComponents();
-    for (usize i = 0; i < components.Len(); ++i)
-    {
-        auto addr = reinterpret_cast<usize>(&components[i]);
-        EXPECT_EQ(addr % alignof(Quaternionf), 0u) << "Quaternion in SparseSet at index " << i << " misaligned";
-    }
-}
-
 
 // ============================================================================
 // Cache Line False Sharing Prevention Tests

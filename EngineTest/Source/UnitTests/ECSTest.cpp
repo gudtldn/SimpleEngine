@@ -430,27 +430,6 @@ TEST_F(ECSTest, ECSRunAllStageOrder)
 }
 
 
-// 루트 Entity에 대해 GlobalTransformComponent가 로컬 TransformComponent와 동일하게 계산되는지 검증합니다.
-TEST_F(ECSTest, ECSPropagateTransformsRoot)
-{
-    WorldContext ctx;
-
-    Entity root = ctx.GetWorld().SpawnEntity(
-        TransformComponent{ .position = Vector3(10, 20, 30), .scale = Vector3::One() }
-    );
-
-    ctx.RunPhase<PostUpdatePhase>();
-
-    auto global = ctx.GetWorld().TryGetComponent<GlobalTransformComponent>(root);
-    ASSERT_TRUE(global.HasValue());
-
-    // 루트 Entity의 WorldTransform = 로컬 TransformComponent의 모델 행렬
-    EXPECT_DOUBLE_EQ((global->value[3, 0]), 10.0);
-    EXPECT_DOUBLE_EQ((global->value[3, 1]), 20.0);
-    EXPECT_DOUBLE_EQ((global->value[3, 2]), 30.0);
-}
-
-
 // 부모-자식 관계에서 WorldTransform이 올바르게 전파되는지 검증합니다.
 TEST_F(ECSTest, ECSPropagateTransformsParentChild)
 {

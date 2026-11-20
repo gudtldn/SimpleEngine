@@ -9,20 +9,6 @@
 
 using namespace se;
 
-TEST(BinaryArchiveTest, ScalarRoundTrip)
-{
-    Array<u8> buffer;
-    BinaryWriter writer(buffer);
-    writer.Int(42, EIntWidth::Bits32, true);
-
-    BinaryReader reader(buffer);
-    i64 result = 0;
-    reader.Int(result, EIntWidth::Bits32, true);
-
-    EXPECT_EQ(result, 42);
-    EXPECT_FALSE(reader.HasError());
-}
-
 TEST(BinaryArchiveTest, AllIntWidthsRoundTrip)
 {
     struct Case

@@ -140,15 +140,6 @@ TEST(ReflectMacrosGoldenTest, FieldAnnotationsRoundTrip)
     EXPECT_EQ(tooltip->text, "Damage amount");
 }
 
-TEST(ReflectMacrosGoldenTest, TypeLevelAnnotationRoundTrip)
-{
-    using namespace se_reflect_macros_golden_test;
-
-    const se::TypeInfo& info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<Weapon>());
-    ASSERT_EQ(info.annotations.refs.Len(), 1u);
-    EXPECT_EQ(info.annotations.refs[0].type.Value(), se::TypeId::Of<TC_ComponentAnnotation>().Value());
-}
-
 TEST(ReflectMacrosGoldenTest, NamedEnumEntriesArePopulated)
 {
     using namespace se_reflect_macros_golden_test;

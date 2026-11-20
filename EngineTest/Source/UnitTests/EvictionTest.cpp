@@ -74,11 +74,6 @@ protected:
 
 // === Memory Tracking ===
 
-TEST_F(EvictionTest, TrackMemoryUsage_InitialZero)
-{
-    EXPECT_EQ(pool.GetTotalMemoryUsage(), 0u);
-}
-
 TEST_F(EvictionTest, TrackMemoryUsage_AccumulatesOnLoad)
 {
     SimulateLoad(pool, 1024, 0);

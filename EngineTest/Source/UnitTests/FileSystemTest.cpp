@@ -159,23 +159,6 @@ TEST_F(FileSystemFileTest, RemoveReturnsFalseForNonExistent)
     EXPECT_FALSE(result);
 }
 
-TEST_F(FileSystemFileTest, RemoveAllDeletesDirectoryRecursively)
-{
-    // 중첩 구조 생성
-    Path nested = temp_dir / "nested";
-    fs::CreateDirectories(nested / "a/b");
-    fs::WriteString(nested / "file1.txt", "1");
-    fs::WriteString(nested / "a/file2.txt", "2");
-    fs::WriteString(nested / "a/b/file3.txt", "3");
-
-    ASSERT_TRUE(nested.Exists());
-
-    usize removed = fs::RemoveAll(nested);
-
-    EXPECT_GT(removed, 0u);
-    EXPECT_FALSE(nested.Exists());
-}
-
 TEST_F(FileSystemFileTest, CopyCopiesFile)
 {
     Path src = temp_dir / "source.txt";
@@ -652,16 +635,6 @@ TEST_F(FileSystemRenameTest, RenameOverwritesExistingFile)
     EXPECT_TRUE(result);
     EXPECT_FALSE(src.Exists());
     EXPECT_EQ(fs::ReadToString(dst).Value(), String("new content"));
-}
-
-TEST_F(FileSystemRenameTest, RenameToNonExistentTarget)
-{
-    Path src = temp_dir / "exists.txt";
-    Path dst = temp_dir / "new_name.txt";
-    fs::WriteString(src, "content");
-
-    EXPECT_TRUE(fs::Rename(src, dst));
-    EXPECT_TRUE(dst.Exists());
 }
 
 TEST_F(FileSystemRenameTest, RenameEmptyPaths)

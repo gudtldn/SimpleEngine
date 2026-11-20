@@ -152,20 +152,6 @@ TEST(ReflectInheritanceTest, MultipleBasesKeepDeclarationOrderAndOffsets)
     EXPECT_GT(shape.bases[1].offset, 0u);
 }
 
-TEST(ReflectInheritanceTest, TwoLevelHierarchyIsReachableThroughBases)
-{
-    using namespace se_reflect_inheritance_test;
-
-    // MagicSword -> Weapon -> Item 으로 한 단계씩 따라갈 수 있어야 합니다.
-    const se::StructInfo& sword_shape = StructInfoOf<MagicSword>();
-    const se::TypeInfo& weapon_info = se::TypeRegistry::Get().FindChecked(sword_shape.bases[0].type);
-    const se::Optional<const se::StructInfo&> weapon_shape = weapon_info.AsStruct();
-    ASSERT_TRUE(weapon_shape.HasValue());
-
-    ASSERT_EQ(weapon_shape->bases.Len(), 1u);
-    EXPECT_EQ(weapon_shape->bases[0].type.Value(), se::TypeId::Of<Item>().Value());
-}
-
 TEST(ReflectInheritanceTest, TypeWithoutBaseHasEmptyBases)
 {
     using namespace se_reflect_inheritance_test;

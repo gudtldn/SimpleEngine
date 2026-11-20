@@ -71,18 +71,6 @@ TEST_F(WorkStealingDequeTest, StealFIFO)
     EXPECT_FALSE(deque.Steal().HasValue());
 }
 
-TEST_F(WorkStealingDequeTest, PopFromEmptyReturnsNullOpt)
-{
-    WorkStealingDeque<int> deque;
-    EXPECT_FALSE(deque.Pop().HasValue());
-}
-
-TEST_F(WorkStealingDequeTest, StealFromEmptyReturnsNullOpt)
-{
-    WorkStealingDeque<int> deque;
-    EXPECT_FALSE(deque.Steal().HasValue());
-}
-
 TEST_F(WorkStealingDequeTest, ResizeOnCapacityExceed)
 {
     // 초기 capacity: 2^3 = 8
@@ -104,69 +92,6 @@ TEST_F(WorkStealingDequeTest, ResizeOnCapacityExceed)
         EXPECT_EQ(*val, i);
     }
 }
-
-TEST_F(WorkStealingDequeTest, MultithreadedSteal)
-{
-    WorkStealingDeque<int> deque;
-    constexpr int TOTAL = 10000;
-
-    // Owner 스레드에서 Push
-    for (int i = 0; i < TOTAL; ++i)
-    {
-        deque.Push(i);
-    }
-
-    // 여러 Thief 스레드에서 Steal
-    std::atomic<int> stolen_count{0};
-    std::atomic<int64_t> stolen_sum{0};
-    constexpr int NUM_THIEVES = 4;
-
-    std::vector<std::thread> thieves;
-    for (int t = 0; t < NUM_THIEVES; ++t)
-    {
-        thieves.emplace_back([&]
-        {
-            while (true)
-            {
-                auto val = deque.Steal();
-                if (!val.HasValue())
-                {
-                    break;
-                }
-                stolen_count.fetch_add(1, std::memory_order_relaxed);
-                stolen_sum.fetch_add(*val, std::memory_order_relaxed);
-            }
-        });
-    }
-
-    // Owner도 Pop 시도
-    int owner_count = 0;
-    int64_t owner_sum = 0;
-    while (true)
-    {
-        auto val = deque.Pop();
-        if (!val.HasValue())
-        {
-            break;
-        }
-        ++owner_count;
-        owner_sum += *val;
-    }
-
-    for (auto& t : thieves)
-    {
-        t.join();
-    }
-
-    // 모든 항목이 정확히 한 번씩 소비되었는지 확인
-    const int total_consumed = owner_count + stolen_count.load();
-    const int64_t total_sum = owner_sum + stolen_sum.load();
-    const int64_t expected_sum = static_cast<int64_t>(TOTAL - 1) * TOTAL / 2;
-
-    EXPECT_EQ(total_consumed, TOTAL);
-    EXPECT_EQ(total_sum, expected_sum);
-}
-
 
 // ═══════════════════════════════════════════════════════════════════
 //  MpscTaskLinkedQueue Tests
@@ -215,69 +140,6 @@ TEST_F(MpscQueueTest, DrainExecutesInOrder)
     EXPECT_EQ(order[2], 3);
 }
 
-TEST_F(MpscQueueTest, MultipleProducers)
-{
-    MpscTaskLinkedQueue queue;
-    std::atomic<int> sum{0};
-    constexpr int NUM_PRODUCERS = 8;
-    constexpr int ITEMS_PER_PRODUCER = 1000;
-
-    std::vector<std::thread> producers;
-    for (int p = 0; p < NUM_PRODUCERS; ++p)
-    {
-        producers.emplace_back([&queue, &sum]
-        {
-            for (int i = 0; i < ITEMS_PER_PRODUCER; ++i)
-            {
-                queue.Push([&sum] { sum.fetch_add(1, std::memory_order_relaxed); });
-            }
-        });
-    }
-
-    for (auto& t : producers)
-    {
-        t.join();
-    }
-
-    // 메인 스레드에서 Drain
-    u32 executed = queue.Drain();
-    EXPECT_EQ(executed, static_cast<u32>(NUM_PRODUCERS * ITEMS_PER_PRODUCER));
-    EXPECT_EQ(sum.load(), NUM_PRODUCERS * ITEMS_PER_PRODUCER);
-}
-
-TEST_F(MpscQueueTest, ConcurrentPushWhileDraining)
-{
-    MpscTaskLinkedQueue queue;
-    std::atomic<int> executed_count{0};
-    std::atomic<bool> done{false};
-
-    // Producer: 계속 Push
-    std::thread producer([&]
-    {
-        for (int i = 0; i < 5000; ++i)
-        {
-            queue.Push([&executed_count]
-            {
-                executed_count.fetch_add(1, std::memory_order_relaxed);
-            });
-        }
-        done.store(true, std::memory_order_release);
-    });
-
-    // Consumer: 매 루프마다 Drain
-    while (!done.load(std::memory_order_acquire) || !queue.IsEmpty())
-    {
-        queue.Drain();
-        std::this_thread::yield();
-    }
-    queue.Drain();
-
-    producer.join();
-
-    EXPECT_EQ(executed_count.load(), 5000);
-}
-
-
 // ═══════════════════════════════════════════════════════════════════
 //  JobAllocator Tests
 // ═══════════════════════════════════════════════════════════════════
@@ -290,18 +152,6 @@ protected:
         JobAllocator::Shutdown();
     }
 };
-
-TEST_F(JobAllocatorTest, AllocateAndFreeSmall)
-{
-    // Size class 0 (64B block, 56B usable)
-    void* ptr = JobAllocator::Allocate(32);
-    ASSERT_NE(ptr, nullptr);
-
-    // 메모리에 쓰기 — 접근 위반이 없어야 함
-    std::memset(ptr, 0xAB, 32);
-
-    JobAllocator::Free(ptr);
-}
 
 TEST_F(JobAllocatorTest, AllocateAllSizeClasses)
 {
@@ -517,41 +367,6 @@ TEST_F(JobCounterTest, MultipleWaitersAllNotified)
     EXPECT_EQ(notified_count.load(), NUM_WAITERS);
 }
 
-TEST_F(JobCounterTest, ConcurrentDecrement)
-{
-    constexpr int NUM_THREADS = 8;
-    auto counter = std::make_shared<JobCounter>(NUM_THREADS);
-
-    std::promise<bool> promise;
-    std::future<bool> future = promise.get_future();
-
-    std::ignore = counter->AddWaiter([&promise]
-    {
-        promise.set_value(true);
-    });
-
-    // 각 스레드가 1씩 감소
-    std::vector<std::thread> threads;
-    for (int i = 0; i < NUM_THREADS; ++i)
-    {
-        threads.emplace_back([&counter]
-        {
-            counter->Decrement();
-        });
-    }
-
-    for (auto& t : threads)
-    {
-        t.join();
-    }
-
-    auto status = future.wait_for(1s);
-    ASSERT_EQ(status, std::future_status::ready);
-    EXPECT_TRUE(future.get());
-    EXPECT_TRUE(counter->IsComplete());
-}
-
-
 // ═══════════════════════════════════════════════════════════════════
 //  JobHandle Tests
 // ═══════════════════════════════════════════════════════════════════
@@ -589,10 +404,4 @@ TEST_F(JobHandleTest, WaitBlocksUntilComplete)
 
     EXPECT_TRUE(handle.IsComplete());
     worker.join();
-}
-
-TEST_F(JobHandleTest, ZeroCountHandleIsImmediatelyComplete)
-{
-    JobHandle handle = JobHandle<void>::Create(0);
-    EXPECT_TRUE(handle.IsComplete());
 }

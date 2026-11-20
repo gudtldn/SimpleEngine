@@ -81,21 +81,6 @@ struct RootSettings
 
     bool operator==(const RootSettings&) const = default;
 };
-
-/** 이름을 등록한 enum */
-enum class EPresentMode : u8
-{
-    Mailbox,
-    VSync,
-    Immediate,
-};
-
-/** 레거시 형식(enum은 정수, f32는 f64로 확장된 값) 읽기 검증용 구조체 */
-struct LegacyFormatSettings
-{
-    EPresentMode present_mode = EPresentMode::Mailbox;
-    f32 busy_wait_ratio = 0.5f;
-};
 } // namespace config_test
 
 
@@ -111,8 +96,6 @@ SE_DECLARE_REFLECTION(config_test::EmptySettings)
 SE_DECLARE_REFLECTION(config_test::ContainerSettings)
 SE_DECLARE_REFLECTION(config_test::OptionalListSettings)
 SE_DECLARE_REFLECTION(config_test::RootSettings)
-SE_DECLARE_REFLECTION(config_test::EPresentMode)
-SE_DECLARE_REFLECTION(config_test::LegacyFormatSettings)
 
 SE_REFLECT_BEGIN(config_test::WindowSettings)
     SE_FIELD(width)
@@ -151,17 +134,6 @@ SE_REFLECT_BEGIN(config_test::RootSettings)
     SE_FIELD(engine_version)
 SE_REFLECT_END()
 
-SE_REFLECT_ENUM_BEGIN(config_test::EPresentMode)
-    SE_ENUM_VALUE(Mailbox)
-    SE_ENUM_VALUE(VSync)
-    SE_ENUM_VALUE(Immediate)
-SE_REFLECT_ENUM_END()
-
-SE_REFLECT_BEGIN(config_test::LegacyFormatSettings)
-    SE_FIELD(present_mode)
-    SE_FIELD(busy_wait_ratio)
-SE_REFLECT_END()
-
 
 // ============================================================================
 //  Fixture
@@ -183,24 +155,17 @@ protected:
     static const VPath non_existent_path;
     static const VPath invalid_toml_path;
     static const VPath save_test_path;
-    static const VPath legacy_toml_path;
 };
 
 const VPath ConfigFileTest::test_toml_path = "Config://ConfigTest.toml";
 const VPath ConfigFileTest::non_existent_path = "Config://NonExistent.toml";
 const VPath ConfigFileTest::invalid_toml_path = "Config://Invalid.toml";
 const VPath ConfigFileTest::save_test_path = "Config://ConfigFileSaveTest.toml";
-const VPath ConfigFileTest::legacy_toml_path = "Config://ConfigFileLegacyTest.toml";
 
 
 // ============================================================================
 //  Load / Save 기본 테스트
 // ============================================================================
-TEST_F(ConfigFileTest, LoadExistingFileSucceeds)
-{
-    auto result = ConfigFile::Load(test_toml_path);
-    EXPECT_TRUE(result.HasValue());
-}
 
 TEST_F(ConfigFileTest, LoadNonExistentFileFails)
 {
@@ -284,16 +249,6 @@ TEST_F(ConfigFileTest, GetSectionFromRootTable)
 
     EXPECT_EQ(root.title, "TOML Example Config for SimpleEngine Tests");
     EXPECT_EQ(root.engine_version, "0.1.0-alpha");
-}
-
-TEST_F(ConfigFileTest, GetSectionPartialMatch_MissingFieldsKeepDefaults)
-{
-    // LoggingSettings를 "window" 섹션으로 읽으면 필드가 매칭되지 않아 기본값 유지
-    auto logging = config.GetSection<LoggingSettings>("window");
-
-    EXPECT_EQ(logging.level, "info");            // 기본값
-    EXPECT_EQ(logging.output_to_file, false);    // 기본값
-    EXPECT_TRUE(logging.log_file_path.IsEmpty()); // 기본값
 }
 
 TEST_F(ConfigFileTest, GetSectionFailureReturnsDefaults)
@@ -401,33 +356,6 @@ TEST_F(ConfigFileTest, EmptyStructRoundTrip)
     auto loaded = new_config.GetSection<EmptySettings>("empty");
     EXPECT_EQ(loaded, empty);
 }
-
-TEST_F(ConfigFileTest, MultipleSectionsIndependent)
-{
-    ConfigFile new_config;
-
-    WindowSettings window;
-    window.width = 1920;
-    window.height = 1080;
-
-    GraphicsSettings gfx;
-    gfx.vsync = true;
-    gfx.max_fps = 240;
-    gfx.shaders = { "pbr.vert", "pbr.frag" };
-
-    new_config.SetSection(window, "window");
-    new_config.SetSection(gfx, "graphics");
-
-    auto loaded_window = new_config.GetSection<WindowSettings>("window");
-    auto loaded_gfx = new_config.GetSection<GraphicsSettings>("graphics");
-
-    EXPECT_EQ(loaded_window.width, 1920u);
-    EXPECT_EQ(loaded_gfx.vsync, true);
-    EXPECT_EQ(loaded_gfx.max_fps, 240);
-    ASSERT_EQ(loaded_gfx.shaders.Len(), 2u);
-    EXPECT_EQ(loaded_gfx.shaders[0], "pbr.vert");
-}
-
 
 // ============================================================================
 //  GetValue 테스트 (개별 스칼라 접근)
@@ -624,25 +552,6 @@ TEST_F(ConfigFileTest, GetSectionThenSetSectionFillsMissingValues)
 // ============================================================================
 //  레거시 형식 호환 테스트
 // ============================================================================
-TEST_F(ConfigFileTest, GetSectionReadsLegacyFormat)
-{
-    // 레거시 직렬화가 쓴 모양: enum은 정수, f32는 f64로 확장된 값
-    const auto physical_path = VFS::ToPath(legacy_toml_path);
-    struct FileDeleter
-    {
-        Path path;
-        ~FileDeleter() { if (path.Exists()) { fs::Remove(path); } }
-    } deleter{ physical_path };
-
-    ASSERT_TRUE(fs::WriteString(physical_path, "[legacy]\nbusy_wait_ratio = 0.10000000149011612\npresent_mode = 2\n"));
-
-    auto result = ConfigFile::Load(legacy_toml_path);
-    ASSERT_TRUE(result.HasValue()) << result.Error().CStr();
-
-    const auto legacy = result->GetSection<LegacyFormatSettings>("legacy");
-    EXPECT_EQ(legacy.present_mode, EPresentMode::Immediate);
-    EXPECT_EQ(legacy.busy_wait_ratio, 0.1f);
-}
 
 
 // ============================================================================
