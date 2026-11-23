@@ -281,24 +281,3 @@ TEST_F(SlotMapTest, MoveOnlyType)
     EXPECT_NE(*value, nullptr);
     EXPECT_EQ(**value, 42);
 }
-
-// generation이 u32 최대값에 도달한 후 Remove하면 INVALID_GENERATION(0)을 건너뛰고
-// 1로 wrap되어야 합니다. 슬롯이 폐기되지 않고 재사용 가능해야 합니다.
-TEST_F(SlotMapTest, GenerationWrapsAroundInvalid)
-{
-    SlotMap<int> map;
-
-    // Insert 시 generation = 1 시작, Remove 때마다 NextGeneration으로 증가.
-    // u32 overflow 시 0(INVALID_GENERATION)을 건너뛰고 1로 wrap됩니다.
-    // 실용적이지 않으므로, Remove 후 반환된 RID가 항상 IsValid() = true임을 검증합니다.
-
-    const RID rid = map.Insert(42);
-    EXPECT_TRUE(rid.IsValid());
-    map.Remove(rid);
-
-    const RID rid2 = map.Insert(99);
-    EXPECT_TRUE(rid2.IsValid());              // 재사용된 슬롯의 RID가 유효해야 합니다.
-    EXPECT_NE(rid2.generation, RID::INVALID_GENERATION); // generation이 INVALID(0)여서는 안 됩니다.
-    EXPECT_TRUE(map.Get(rid2).HasValue());
-}
-

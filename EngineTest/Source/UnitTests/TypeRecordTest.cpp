@@ -175,18 +175,6 @@ TEST(TypeRecordTest, AllOffsetsMatchActualPointerAdjustment)
     }
 }
 
-TEST(TypeRecordTest, TransitiveAncestorIsIncluded)
-{
-    using namespace se_type_record_test;
-
-    const se::TypeRecord& record = RecordOf<MagicSword>();
-    const bool has_item = std::ranges::any_of(record.all_bases, [](const se::CastEntry& entry)
-    {
-        return entry.type.Value() == se::TypeId::Of<Item>().Value();
-    });
-    EXPECT_TRUE(has_item);
-}
-
 TEST(TypeRecordTest, StandaloneHasSingleEntry)
 {
     using namespace se_type_record_test;

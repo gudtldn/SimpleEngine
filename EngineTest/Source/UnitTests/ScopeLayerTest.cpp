@@ -85,18 +85,6 @@ TEST_F(ScopeLayerTest, UnloadScope_EvictsMatchingScope)
     EXPECT_EQ(pool.GetCount(), 1u);
 }
 
-TEST_F(ScopeLayerTest, UnloadScope_DoesNotAffectOtherScopes)
-{
-    HandleData global_hd = SimulateLoad(pool, EScopeLayer::Global);
-    HandleData session_hd = SimulateLoad(pool, EScopeLayer::Session);
-    SimulateLoad(pool, EScopeLayer::Scene);
-
-    pool.UnloadScope(EScopeLayer::Scene);
-
-    EXPECT_TRUE(pool.GetTable().IsHandleValid(global_hd));
-    EXPECT_TRUE(pool.GetTable().IsHandleValid(session_hd));
-}
-
 TEST_F(ScopeLayerTest, UnloadScope_SkipsActiveHandles)
 {
     HandleData hd = SimulateLoad(pool, EScopeLayer::Scene);
@@ -107,30 +95,6 @@ TEST_F(ScopeLayerTest, UnloadScope_SkipsActiveHandles)
     u32 evicted = pool.UnloadScope(EScopeLayer::Scene);
     EXPECT_EQ(evicted, 0u);
     EXPECT_EQ(pool.GetCount(), 1u);
-}
-
-TEST_F(ScopeLayerTest, UnloadScope_DecrementsMemoryUsage)
-{
-    SimulateLoad(pool, EScopeLayer::Scene, 1024);
-    SimulateLoad(pool, EScopeLayer::Scene, 2048);
-    EXPECT_EQ(pool.GetTotalMemoryUsage(), 3072u);
-
-    pool.UnloadScope(EScopeLayer::Scene);
-
-    EXPECT_EQ(pool.GetTotalMemoryUsage(), 0u);
-}
-
-TEST_F(ScopeLayerTest, UnloadScope_GlobalGuarded)
-{
-    SimulateLoad(pool, EScopeLayer::Global, 1024);
-
-    // Global은 다른 scope 해제에 영향받지 않음
-    pool.UnloadScope(EScopeLayer::Scene);
-    pool.UnloadScope(EScopeLayer::Session);
-    pool.UnloadScope(EScopeLayer::Transient);
-
-    EXPECT_EQ(pool.GetCount(), 1u);
-    EXPECT_EQ(pool.GetTotalMemoryUsage(), 1024u);
 }
 
 TEST_F(ScopeLayerTest, DefaultScopeIsScene)

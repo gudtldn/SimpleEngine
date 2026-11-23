@@ -28,13 +28,6 @@ class PriorityQueueAPI_Test : public ::testing::Test {};
 using namespace se;
 
 
-TEST_F(FixedArrayAPI_Test, DefaultConstructionAndCapacity)
-{
-    FixedArray<int, 5> arr;
-    EXPECT_EQ(arr.Len(), 5);
-    EXPECT_FALSE(arr.IsEmpty());
-}
-
 TEST_F(FixedArrayAPI_Test, ElementAccessWithAt)
 {
     FixedArray<int, 3> arr;
@@ -401,7 +394,7 @@ TEST_F(ArrayAPI_Test, ContainsAndFind)
     EXPECT_FALSE(index.HasValue());
 }
 
-TEST_F(ArrayAPI_Test, Push)
+TEST_F(ArrayAPI_Test, PushRange)
 {
     Array<int> arr1 = { 1, 2 };
     Array<int> arr2 = { 3, 4 };

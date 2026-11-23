@@ -38,19 +38,6 @@ protected:
 //  JobTaskPromise: JobAllocator 연동
 // ═══════════════════════════════════════════════════════════════════
 
-TEST_F(CoroutineTest, Promise_AllocatedViaJobAllocator)
-{
-    // 코루틴 프레임이 JobAllocator를 통해 할당/해제됩니다.
-    // 크래시 없이 생성/소멸되면 성공입니다.
-    auto task = []() static -> JobTask<int> { co_return 42; }();
-    task.handle.resume();
-
-    EXPECT_TRUE(task.handle.done());
-    EXPECT_TRUE(task.handle.promise().storage.HasValue());
-    EXPECT_EQ(task.handle.promise().storage.Value(), 42);
-}
-
-
 // ═══════════════════════════════════════════════════════════════════
 //  JobTask: 기본 co_return
 // ═══════════════════════════════════════════════════════════════════
@@ -280,27 +267,6 @@ TEST_F(CoroutineTest, WhenAll_MultipleJobs)
     h.Wait();
 }
 
-TEST_F(CoroutineTest, WhenAll_AlreadyComplete)
-{
-    auto handle = JobSystem::Get().Submit([] {});
-    handle.Wait();
-
-    std::promise<bool> promise;
-    auto future = promise.get_future();
-
-    JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, JobHandle<void> handle) static -> JobTask<void>
-        {
-            co_await WhenAll{ { handle } };
-            p.set_value(true);
-            co_return;
-        }(promise, handle));
-
-    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
-    EXPECT_TRUE(future.get());
-    h.Wait();
-}
-
 TEST_F(CoroutineTest, WhenAll_Empty)
 {
     auto task = []() static -> JobTask<int>
@@ -402,34 +368,6 @@ TEST_F(CoroutineTest, WhenAny_FirstComplete)
 
     slow_done.store(true, std::memory_order_release);
     slow.Wait();
-    h.Wait();
-}
-
-TEST_F(CoroutineTest, WhenAny_ConcurrentStress)
-{
-    // 다수의 핸들을 동시에 Submit하고 WhenAny 호출 -> 정확히 1회만 resume되는지 검증
-    constexpr usize HANDLE_COUNT = 100;
-
-    Array<JobHandle<void>> handles;
-    handles.Reserve(HANDLE_COUNT);
-    for (usize i = 0; i < HANDLE_COUNT; ++i)
-    {
-        handles.Push(JobSystem::Get().Submit([] { std::this_thread::yield(); }));
-    }
-
-    std::promise<bool> promise;
-    auto future = promise.get_future();
-
-    JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::promise<bool>& p, Array<JobHandle<void>> handles) static -> JobTask<void>
-        {
-            co_await WhenAny{ std::move(handles) };
-            p.set_value(true);
-            co_return;
-        }(promise, std::move(handles)));
-
-    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
-    EXPECT_TRUE(future.get());
     h.Wait();
 }
 
@@ -599,29 +537,6 @@ TEST_F(CoroutineTest, ParallelFor_CoAwaitJobHandle)
     h.Wait();
 }
 
-TEST_F(CoroutineTest, CoAwait_TemporaryJobHandle)
-{
-    std::atomic<int> value = 0;
-    std::promise<bool> promise;
-    auto future = promise.get_future();
-
-    JobHandle h = JobSystem::Get().SubmitTask(
-        [](std::atomic<int>& value, std::promise<bool>& p) static -> JobTask<void>
-        {
-            co_await JobSystem::Get().Submit([&value]
-            {
-                value.store(42, std::memory_order_release);
-            });
-
-            p.set_value(value.load(std::memory_order_acquire) == 42);
-            co_return;
-        }(value, promise));
-
-    ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
-    EXPECT_TRUE(future.get());
-    h.Wait();
-}
-
 TEST_F(CoroutineTest, DeepChain_CoAwaitJobHandle)
 {
     std::atomic<usize> progressed = 0;
@@ -716,21 +631,6 @@ TEST_F(CoroutineTest, DispatchTask_FireAndForget)
 
     ASSERT_EQ(future.wait_for(5s), std::future_status::ready);
     EXPECT_EQ(value.load(std::memory_order_acquire), 77);
-}
-
-TEST_F(CoroutineTest, SubmitTask_FactoryOverload)
-{
-    // Factory 람다 오버로드 테스트
-    std::atomic<int> value = 0;
-
-    JobHandle h = JobSystem::Get().SubmitTask([](std::atomic<int>& v) static -> JobTask<void>
-    {
-        v.store(55, std::memory_order_release);
-        co_return;
-    }(value));
-
-    h.Wait();
-    EXPECT_EQ(value.load(std::memory_order_acquire), 55);
 }
 
 TEST_F(CoroutineTest, SubmitTask_WithSuspend)

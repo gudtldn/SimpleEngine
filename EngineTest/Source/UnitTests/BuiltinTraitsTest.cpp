@@ -64,21 +64,6 @@ TEST(BuiltinTraitsTest, GuidBinaryRoundTrip)
     EXPECT_FALSE(reader.HasError());
 }
 
-TEST(BuiltinTraitsTest, TypeIdBinaryRoundTrip)
-{
-    Array<u8> buffer;
-    BinaryWriter writer(buffer);
-    TypeId original = TypeId::Of<i32>();
-    SerializeTraits<TypeId>::Write(writer, original);
-
-    BinaryReader reader(buffer);
-    TypeId result;
-    SerializeTraits<TypeId>::Read(reader, result);
-
-    EXPECT_EQ(result, original);
-    EXPECT_FALSE(reader.HasError());
-}
-
 TEST(BuiltinTraitsTest, UnregisteredTypeIdBinaryRoundTripSucceeds)
 {
     // 바이너리는 쓰기가 레지스트리를 요구하지 않으므로 읽기도 요구하지 않습니다(대칭).
@@ -254,16 +239,12 @@ TEST(BuiltinTraitsTest, TypeIdTextReadFailsForUnknownName)
 
 // --- concept 검사 ---
 
-TEST(BuiltinTraitsTest, HasSerializeTraitsDistinguishesBuiltinTypesFromPlainTypes)
-{
-    static_assert(HasSerializeTraits<Guid>);
-    static_assert(HasSerializeTraits<String>);
-    static_assert(HasSerializeTraits<StringName>);
-    static_assert(HasSerializeTraits<TypeId>);
-    static_assert(HasSerializeTraits<ContentHash>);
-    static_assert(HasSerializeTraits<Path>);
-    static_assert(HasSerializeTraits<VPath>);
-    static_assert(!HasSerializeTraits<i32>);
-    static_assert(!HasSerializeTraits<bool>);
-    SUCCEED();
-}
+static_assert(HasSerializeTraits<Guid>);
+static_assert(HasSerializeTraits<String>);
+static_assert(HasSerializeTraits<StringName>);
+static_assert(HasSerializeTraits<TypeId>);
+static_assert(HasSerializeTraits<ContentHash>);
+static_assert(HasSerializeTraits<Path>);
+static_assert(HasSerializeTraits<VPath>);
+static_assert(!HasSerializeTraits<i32>);
+static_assert(!HasSerializeTraits<bool>);

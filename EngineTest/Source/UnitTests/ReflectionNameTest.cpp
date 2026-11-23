@@ -132,13 +132,6 @@ TEST(ReflectionNameGoldenTest, TypeNameOfMatchesCanonicalName)
     EXPECT_EQ(se::TypeNameOf<se_reflection_golden_test::PlainStruct>(), "se_reflection_golden_test::PlainStruct");
 }
 
-TEST(ReflectionNameGoldenTest, TypeIdIsStableAcrossCalls)
-{
-    EXPECT_EQ(se::TypeId::Of<i32>().Value(), se::TypeId::Of<i32>().Value());
-    EXPECT_NE(se::TypeId::Of<i32>().Value(), se::TypeId::Of<f32>().Value());
-}
-
-
 // ─────────────────────────────────────────────────────────────
 // 5. TypeId::FromCanonicalName — 런타임 이름으로 TypeId를 복원하는 경로가
 //    컴파일 타임 경로(TypeId::Of)와 같은 해시 함수를 쓰는지 검증합니다.

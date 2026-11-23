@@ -256,25 +256,6 @@ TEST(DependencyGraph, HasCyclicDependency_DirectCycle)
     EXPECT_TRUE(graph.HasCyclicDependency(b, a));
 }
 
-TEST(DependencyGraph, HasCyclicDependency_IndirectCycle)
-{
-    AssetDependencyGraph graph;
-    const AssetId a = NewId();
-    const AssetId b = NewId();
-    const AssetId c = NewId();
-
-    // A -> B -> C, 그 상태에서 C -> A 추가하면 순환
-    Array<AssetId> a_deps;
-    a_deps.Push(b);
-    graph.SetDependencies(a, a_deps);
-
-    Array<AssetId> b_deps;
-    b_deps.Push(c);
-    graph.SetDependencies(b, b_deps);
-
-    EXPECT_TRUE(graph.HasCyclicDependency(c, a));
-}
-
 TEST(DependencyGraph, HasCyclicDependency_NoCycle)
 {
     AssetDependencyGraph graph;

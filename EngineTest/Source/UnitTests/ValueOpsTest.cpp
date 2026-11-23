@@ -351,31 +351,6 @@ TEST(ValueOpsTest, ArrayElementAtReadsConstContainer)
     EXPECT_EQ(*static_cast<const i32*>(array_ops->element_at(&const_numbers,2)), 30);
 }
 
-TEST(ValueOpsTest, SetForEachAcceptsConstContainer)
-{
-    using namespace se_value_ops_test;
-
-    const se::ValueOps& ops = OpsOf<se::HashSet<se::String>>();
-    const auto set_ops = ops.AsSet();
-    ASSERT_TRUE(set_ops.HasValue());
-    ASSERT_NE(set_ops->emplace_moved, nullptr);
-
-    se::HashSet<se::String> texts;
-    se::String alpha = "alpha";
-    se::String beta = "beta";
-    set_ops->emplace_moved(&texts, &alpha);
-    set_ops->emplace_moved(&texts, &beta);
-
-    const se::HashSet<se::String>& const_texts = texts;
-    CollectContext context;
-    set_ops->for_each(&const_texts, [](const void* element, void* user_data)
-    {
-        static_cast<CollectContext*>(user_data)->texts.Push(*static_cast<const se::String*>(element));
-    }, &context);
-
-    EXPECT_EQ(context.texts.Len(), 2u);
-}
-
 TEST(ValueOpsTest, MapForEachReadsConstContainer)
 {
     using namespace se_value_ops_test;

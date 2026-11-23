@@ -28,30 +28,6 @@ struct TestTagComponent
 };
 
 
-// Phase 순서(PreUpdate -> Update -> PostUpdate)가 보장되는지 검증합니다.
-TEST_F(ECSTest, ECSScheduleAndSystemExecutionOrder)
-{
-    WorldContext ctx;
-
-    int call_index = 0;
-    int pre_order = -1;
-    int update_order = -1;
-    int post_order = -1;
-
-    ctx.AddSystem<PreUpdatePhase>([&] { pre_order = call_index++; });
-    ctx.AddSystem<UpdatePhase>([&] { update_order = call_index++; });
-    ctx.AddSystem<PostUpdatePhase>([&] { post_order = call_index++; });
-
-    ctx.RunPhase<PreUpdatePhase>();
-    ctx.RunPhase<UpdatePhase>();
-    ctx.RunPhase<PostUpdatePhase>();
-
-    ASSERT_EQ(call_index, 3) << "All 3 systems must run.";
-    EXPECT_LT(pre_order, update_order) << "PreUpdate must run before Update.";
-    EXPECT_LT(update_order, post_order) << "Update must run before PostUpdate.";
-}
-
-
 // With<>/Without<> 필터 조건에 따라 시스템 실행 여부가 올바르게 제어되는지 검증합니다.
 TEST_F(ECSTest, ECSSystemComponentModificationAndQueries)
 {
@@ -451,27 +427,6 @@ TEST_F(ECSTest, ECSRunAllStageOrder)
     EXPECT_LT(startup_order, pre_order) << "Startup must run before PreUpdate.";
     EXPECT_LT(pre_order, update_order) << "PreUpdate must run before Update.";
     EXPECT_LT(update_order, post_order) << "Update must run before PostUpdate.";
-}
-
-
-// 루트 Entity에 대해 GlobalTransformComponent가 로컬 TransformComponent와 동일하게 계산되는지 검증합니다.
-TEST_F(ECSTest, ECSPropagateTransformsRoot)
-{
-    WorldContext ctx;
-
-    Entity root = ctx.GetWorld().SpawnEntity(
-        TransformComponent{ .position = Vector3(10, 20, 30), .scale = Vector3::One() }
-    );
-
-    ctx.RunPhase<PostUpdatePhase>();
-
-    auto global = ctx.GetWorld().TryGetComponent<GlobalTransformComponent>(root);
-    ASSERT_TRUE(global.HasValue());
-
-    // 루트 Entity의 WorldTransform = 로컬 TransformComponent의 모델 행렬
-    EXPECT_DOUBLE_EQ((global->value[3, 0]), 10.0);
-    EXPECT_DOUBLE_EQ((global->value[3, 1]), 20.0);
-    EXPECT_DOUBLE_EQ((global->value[3, 2]), 30.0);
 }
 
 

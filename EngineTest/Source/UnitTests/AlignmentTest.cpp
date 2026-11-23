@@ -143,17 +143,6 @@ TEST_F(OsMemoryAlignmentTest, AvxAlignment32)
     OsMemory::Free(ptr);
 }
 
-TEST_F(OsMemoryAlignmentTest, CacheLineAlignment)
-{
-    void* ptr = OsMemory::Allocate(512, SE_CACHE_LINE);
-    ASSERT_NE(ptr, nullptr);
-
-    auto addr = reinterpret_cast<usize>(ptr);
-    EXPECT_EQ(addr % SE_CACHE_LINE, 0u);
-
-    OsMemory::Free(ptr);
-}
-
 TEST_F(OsMemoryAlignmentTest, OverAligned64)
 {
     void* ptr = OsMemory::Allocate(1024, 64);
@@ -333,44 +322,20 @@ TEST_F(SimdArrayAlignmentTest, StaticVertexInArray)
     }
 }
 
-TEST_F(SimdArrayAlignmentTest, SimdTypeInSparseSet)
-{
-    EntityManager mgr;
-    SparseSet<Quaternionf> sparse;
-
-    for (u32 i = 0; i < 32; ++i)
-    {
-        sparse.Add(mgr.Create(), Quaternionf::Identity());
-    }
-
-    const auto& components = sparse.GetComponents();
-    for (usize i = 0; i < components.Len(); ++i)
-    {
-        auto addr = reinterpret_cast<usize>(&components[i]);
-        EXPECT_EQ(addr % alignof(Quaternionf), 0u) << "Quaternion in SparseSet at index " << i << " misaligned";
-    }
-}
-
-
 // ============================================================================
 // Cache Line False Sharing Prevention Tests
 // ============================================================================
 
-class CacheLineFalseSharingTest : public ::testing::Test {};
+// JobCounter는 count와 waiters를 각각 별도 캐시 라인에 배치합니다.
+// 두 필드가 독립된 캐시 라인에 있으려면 sizeof >= 2 * SE_CACHE_LINE이어야 합니다.
+static_assert(sizeof(JobCounter) >= 2 * SE_CACHE_LINE);
+static_assert(alignof(JobCounter) >= SE_CACHE_LINE);
 
-TEST_F(CacheLineFalseSharingTest, JobCounterSizeSeparatesCacheLines)
+namespace se_alignment_test::work_stealing_deque_cache_lines
 {
-    // JobCounter는 count와 waiters를 각각 별도 캐시 라인에 배치합니다.
-    // 두 필드가 독립된 캐시 라인에 있으려면 sizeof >= 2 * SE_CACHE_LINE이어야 합니다.
-    static_assert(sizeof(JobCounter) >= 2 * SE_CACHE_LINE);
-    static_assert(alignof(JobCounter) >= SE_CACHE_LINE);
-}
-
-TEST_F(CacheLineFalseSharingTest, WorkStealingDequeSizeSeparatesCacheLines)
-{
-    // WorkStealingDeque는 top, bottom, buffer를 각각 별도 캐시 라인에 배치합니다.
-    // 세 필드가 독립된 캐시 라인에 있으려면 sizeof >= 3 * SE_CACHE_LINE이어야 합니다.
-    using Deque = WorkStealingDeque<int>;
-    static_assert(sizeof(Deque) >= 3 * SE_CACHE_LINE);
-    static_assert(alignof(Deque) >= SE_CACHE_LINE);
-}
+// WorkStealingDeque는 top, bottom, buffer를 각각 별도 캐시 라인에 배치합니다.
+// 세 필드가 독립된 캐시 라인에 있으려면 sizeof >= 3 * SE_CACHE_LINE이어야 합니다.
+using Deque = WorkStealingDeque<int>;
+static_assert(sizeof(Deque) >= 3 * SE_CACHE_LINE);
+static_assert(alignof(Deque) >= SE_CACHE_LINE);
+} // namespace se_alignment_test::work_stealing_deque_cache_lines

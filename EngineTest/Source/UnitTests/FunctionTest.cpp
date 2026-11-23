@@ -297,11 +297,9 @@ TEST_F(UniqueFunctionAPI_Test, MoveSemantics)
     }
 }
 
-TEST_F(UniqueFunctionAPI_Test, NoCopySemantics)
-{
-    EXPECT_FALSE(std::is_copy_constructible_v<UniqueFunction<void()>>);
-    EXPECT_FALSE(std::is_copy_assignable_v<UniqueFunction<void()>>);
-}
+// UniqueFunction은 복사할 수 없습니다.
+static_assert(!std::is_copy_constructible_v<UniqueFunction<void()>>);
+static_assert(!std::is_copy_assignable_v<UniqueFunction<void()>>);
 
 TEST_F(UniqueFunctionAPI_Test, ResetAndReassignment)
 {

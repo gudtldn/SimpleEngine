@@ -726,13 +726,6 @@ TEST(PathMoveTest, SwapPaths)
 // Hash 및 Formatter (Hash & Formatting)
 // =============================================================================
 
-TEST(PathHashTest, EqualPathsHaveSameHash)
-{
-    Path p1("A/B/C");
-    Path p2("A/B/C");
-    EXPECT_EQ(std::hash<Path>{}(p1), std::hash<Path>{}(p2));
-}
-
 TEST(PathHashTest, NormalizedPathsHaveSameHash)
 {
     Path p1("A/B/C");

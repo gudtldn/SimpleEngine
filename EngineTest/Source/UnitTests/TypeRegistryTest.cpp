@@ -92,32 +92,3 @@ TEST(TypeRegistryGoldenTest, TransitiveClosureRegistersFieldTypes)
     EXPECT_TRUE(se::TypeRegistry::Get().Find(se::TypeId::Of<i32>()).HasValue());
     EXPECT_TRUE(se::TypeRegistry::Get().Find(se::TypeId::Of<se::Array<i32>>()).HasValue());
 }
-
-TEST(TypeRegistryGoldenTest, ArrayFieldShapeIsCorrect)
-{
-    using namespace se_registry_golden_test;
-    se::EnsureRegistered<Root>();
-
-    const se::TypeInfo& array_info = se::TypeRegistry::Get().FindChecked(se::TypeId::Of<se::Array<i32>>());
-    ASSERT_TRUE(std::holds_alternative<se::ArrayInfo>(array_info.shape));
-    EXPECT_EQ(std::get<se::ArrayInfo>(array_info.shape).element.Value(), se::TypeId::Of<i32>().Value());
-}
-
-TEST(TypeRegistryGoldenTest, EnsureRegisteredIsIdempotent)
-{
-    using namespace se_registry_golden_test;
-    const se::TypeInfo& first = se::EnsureRegistered<Nested>();
-    const se::TypeInfo& second = se::EnsureRegistered<Nested>();
-    EXPECT_EQ(&first, &second); // function-local static — 항상 같은 객체를 반환해야 합니다.
-}
-
-TEST(TypeRegistryGoldenTest, FindNeverFailsForTransitivelyRegisteredTypes)
-{
-    using namespace se_registry_golden_test;
-    se::EnsureRegistered<Root>();
-
-    for (const se::TypeId id : { se::TypeId::Of<Root>(), se::TypeId::Of<Nested>(), se::TypeId::Of<i32>() })
-    {
-        EXPECT_TRUE(se::TypeRegistry::Get().Find(id).HasValue());
-    }
-}

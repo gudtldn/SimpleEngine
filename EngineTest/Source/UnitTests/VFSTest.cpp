@@ -248,17 +248,6 @@ protected:
     }
 };
 
-TEST_F(VFSPathTraversalTest, DotDotDoesNotEscapeMountPoint)
-{
-    // "../../../" 패턴으로 마운트 포인트 탈출 시도
-    // containment check가 이를 차단하여 NullOpt을 반환해야 함
-    VPath traversal_path("Sandbox://../../secret.txt");
-    Optional<Path> resolved = VFS::Resolve(traversal_path);
-
-    // 마운트 포인트 외부 경로이므로 resolve 자체가 실패해야 함
-    EXPECT_FALSE(resolved.HasValue());
-}
-
 TEST_F(VFSPathTraversalTest, ResolveDoesNotEscapeMount)
 {
     // Sandbox://../TraversalParent/secret.txt

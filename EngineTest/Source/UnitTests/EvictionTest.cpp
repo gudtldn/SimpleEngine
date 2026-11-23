@@ -74,11 +74,6 @@ protected:
 
 // === Memory Tracking ===
 
-TEST_F(EvictionTest, TrackMemoryUsage_InitialZero)
-{
-    EXPECT_EQ(pool.GetTotalMemoryUsage(), 0u);
-}
-
 TEST_F(EvictionTest, TrackMemoryUsage_AccumulatesOnLoad)
 {
     SimulateLoad(pool, 1024, 0);
@@ -100,19 +95,31 @@ TEST_F(EvictionTest, TrackMemoryUsage_DecrementsOnEvict)
 
 // === PendingDestroy Lifecycle ===
 
-TEST_F(EvictionTest, DeferDestroy_ProcessesAfterReleaseFrame)
+TEST_F(EvictionTest, DeferDestroyRunsDestructorAtReleaseFrame)
 {
-    auto* asset = new EvictionTestAsset();
+    static i32 destroyed_count = 0;
+    destroyed_count = 0;
+
+    const auto counting_destructor = [](void* p)
+    {
+        delete static_cast<EvictionTestAsset*>(p);
+        ++destroyed_count;
+    };
 
     // Frame 10에서 추가 -> release_frame = 11
-    pool.DeferDestroy(AssetPayload{ asset, &DestroyAsset }, 10);
+    pool.DeferDestroy(AssetPayload{ new EvictionTestAsset(), counting_destructor }, 10);
 
-    // Frame 10: 10 < 11 -> 아직 해제 안 됨
+    // Frame 10: 10 < 11 -> 아직 해제하지 않음
     pool.ProcessPendingDestroy(10);
-    // 여전히 pending에 남아있음 (직접 검증 불가하므로, 다음 호출로 간접 확인)
+    EXPECT_EQ(destroyed_count, 0);
 
-    // Frame 11: 11 <= 11 -> 해제됨 (no crash = success)
+    // Frame 11: 11 <= 11 -> 정확히 한 번 해제
     pool.ProcessPendingDestroy(11);
+    EXPECT_EQ(destroyed_count, 1);
+
+    // 이미 해제한 payload는 다시 해제하지 않음
+    pool.ProcessPendingDestroy(12);
+    EXPECT_EQ(destroyed_count, 1);
 }
 
 TEST_F(EvictionTest, DeferDestroy_NullPayloadIgnored)

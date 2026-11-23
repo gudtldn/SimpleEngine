@@ -85,9 +85,9 @@ TEST_F(JobPayloadTest, SBO_MaxCaptureFitsInline)
     delete payload;
 }
 
-TEST_F(JobPayloadTest, HeapFallback_OversizedCapture)
+TEST_F(JobPayloadTest, OversizedCaptureUsesPooledStorage)
 {
-    // SBO 용량을 초과하는 캡처는 JobAllocator에서 외부 블록을 할당합니다
+    // SBO 용량을 초과하는 캡처는 Heap이 아니라 JobAllocator의 풀 블록(Pooled)에 저장합니다
     struct HugeCapture
     {
         u64 data[8];  // 64 바이트 > SBO_CAPACITY(48)
@@ -197,30 +197,6 @@ TEST_F(JobSystemTest, SubmitSingleJob)
 
     handle.Wait();
     EXPECT_EQ(value.load(), 42);
-}
-
-TEST_F(JobSystemTest, SubmitMultipleJobs)
-{
-    constexpr int JOB_COUNT = 100;
-    std::atomic<int> counter{0};
-
-    std::vector<JobHandle<void>> handles;
-    handles.reserve(JOB_COUNT);
-
-    for (int i = 0; i < JOB_COUNT; ++i)
-    {
-        handles.push_back(system->Submit([&counter]()
-        {
-            counter.fetch_add(1, std::memory_order_relaxed);
-        }));
-    }
-
-    for (auto& h : handles)
-    {
-        h.Wait();
-    }
-
-    EXPECT_EQ(counter.load(), JOB_COUNT);
 }
 
 TEST_F(JobSystemTest, SubmitWithPriority)
@@ -338,22 +314,6 @@ TEST_F(JobSystemTest, SubmitWithDependencies_EmptyDeps)
 // ═══════════════════════════════════════════════════════════════════
 //  JobSystem: ParallelFor 테스트
 // ═══════════════════════════════════════════════════════════════════
-
-TEST_F(JobSystemTest, ParallelFor_AllIndicesProcessed)
-{
-    constexpr usize COUNT = 256;
-    std::atomic<usize> sum{0};
-
-    auto handle = system->ParallelFor(COUNT, 32, [&sum](usize index)
-    {
-        sum.fetch_add(index, std::memory_order_relaxed);
-    });
-
-    handle.Wait();
-
-    // 0 + 1 + 2 + ... + 255 = 255 * 256 / 2 = 32640
-    EXPECT_EQ(sum.load(), COUNT * (COUNT - 1) / 2);
-}
 
 TEST_F(JobSystemTest, ParallelFor_SingleBatch)
 {

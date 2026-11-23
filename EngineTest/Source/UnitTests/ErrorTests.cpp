@@ -193,75 +193,75 @@ TEST_F(ExpectedAPI_Test, OrElse)
 // Constexpr Tests
 // ============================================================================
 
-TEST_F(ExpectedAPI_Test, ConstexprConstruction)
+namespace se_error_test::expected_constexpr_construction
 {
-    // constexpr 값 생성
-    constexpr Expected<int, TestError> e_val(42);
-    static_assert(e_val.HasValue());
-    static_assert(!e_val.HasError());
-    static_assert(e_val.Value() == 42);
+// constexpr 값 생성
+constexpr Expected<int, TestError> E_VAL(42);
+static_assert(E_VAL.HasValue());
+static_assert(!E_VAL.HasError());
+static_assert(E_VAL.Value() == 42);
 
-    // constexpr 에러 생성
-    constexpr Expected<int, TestError> e_err{ Unexpected(TestError::DefaultError) };
-    static_assert(!e_err.HasValue());
-    static_assert(e_err.HasError());
-    static_assert(e_err.Error() == TestError::DefaultError);
-}
+// constexpr 에러 생성
+constexpr Expected<int, TestError> E_ERR{ Unexpected(TestError::DefaultError) };
+static_assert(!E_ERR.HasValue());
+static_assert(E_ERR.HasError());
+static_assert(E_ERR.Error() == TestError::DefaultError);
+} // namespace se_error_test::expected_constexpr_construction
 
-TEST_F(ExpectedAPI_Test, ConstexprValueOr)
+namespace se_error_test::expected_constexpr_value_or
 {
-    constexpr Expected<int, TestError> E_VAL(42);
-    static_assert(E_VAL.ValueOr(99) == 42);
+constexpr Expected<int, TestError> E_VAL(42);
+static_assert(E_VAL.ValueOr(99) == 42);
 
-    constexpr Expected<int, TestError> E_ERR{ Unexpected(TestError::DefaultError) };
-    static_assert(E_ERR.ValueOr(99) == 99);
-}
+constexpr Expected<int, TestError> E_ERR{ Unexpected(TestError::DefaultError) };
+static_assert(E_ERR.ValueOr(99) == 99);
+} // namespace se_error_test::expected_constexpr_value_or
 
-TEST_F(ExpectedAPI_Test, ConstexprMapAndAndThen)
+namespace se_error_test::expected_constexpr_monadic
 {
-    // constexpr Map
-    constexpr auto MAP_RESULT = []() constexpr
+// constexpr Map
+constexpr auto MAP_RESULT = []() constexpr
+{
+    Expected<int, TestError> e(21);
+    return e.Map([](int n) { return n * 2; });
+}();
+static_assert(MAP_RESULT.HasValue());
+static_assert(MAP_RESULT.Value() == 42);
+
+// constexpr AndThen
+constexpr auto AND_THEN_RESULT = []() constexpr
+{
+    Expected<int, TestError> e(10);
+    return e.AndThen([](int n) -> Expected<int, TestError>
     {
-        Expected<int, TestError> e(21);
-        return e.Map([](int n) { return n * 2; });
-    }();
-    static_assert(MAP_RESULT.HasValue());
-    static_assert(MAP_RESULT.Value() == 42);
-
-    // constexpr AndThen
-    constexpr auto AND_THEN_RESULT = []() constexpr
-    {
-        Expected<int, TestError> e(10);
-        return e.AndThen([](int n) -> Expected<int, TestError>
+        if (n > 0)
         {
-            if (n > 0)
-            {
-                return n * 2;
-            }
-            return Unexpected(TestError::AnotherError);
-        });
-    }();
-    static_assert(AND_THEN_RESULT.HasValue());
-    static_assert(AND_THEN_RESULT.Value() == 20);
+            return n * 2;
+        }
+        return Unexpected(TestError::AnotherError);
+    });
+}();
+static_assert(AND_THEN_RESULT.HasValue());
+static_assert(AND_THEN_RESULT.Value() == 20);
 
-    // constexpr OrElse
-    constexpr auto OR_ELSE_RESULT = []() constexpr
-    {
-        Expected<int, TestError> e{ Unexpected(TestError::DefaultError) };
-        return e.OrElse([](TestError) -> Expected<int, TestError> { return 99; });
-    }();
-    static_assert(OR_ELSE_RESULT.HasValue());
-    static_assert(OR_ELSE_RESULT.Value() == 99);
+// constexpr OrElse
+constexpr auto OR_ELSE_RESULT = []() constexpr
+{
+    Expected<int, TestError> e{ Unexpected(TestError::DefaultError) };
+    return e.OrElse([](TestError) -> Expected<int, TestError> { return 99; });
+}();
+static_assert(OR_ELSE_RESULT.HasValue());
+static_assert(OR_ELSE_RESULT.Value() == 99);
 
-    // constexpr MapError
-    constexpr auto MAP_ERROR_RESULT = []() constexpr
-    {
-        Expected<int, TestError> e{ Unexpected(TestError::DefaultError) };
-        return e.MapError([](TestError err) { return static_cast<int>(err); });
-    }();
-    static_assert(MAP_ERROR_RESULT.HasError());
-    static_assert(MAP_ERROR_RESULT.Error() == 0); // DefaultError = 0
-}
+// constexpr MapError
+constexpr auto MAP_ERROR_RESULT = []() constexpr
+{
+    Expected<int, TestError> e{ Unexpected(TestError::DefaultError) };
+    return e.MapError([](TestError err) { return static_cast<int>(err); });
+}();
+static_assert(MAP_ERROR_RESULT.HasError());
+static_assert(MAP_ERROR_RESULT.Error() == 0); // DefaultError = 0
+} // namespace se_error_test::expected_constexpr_monadic
 
 TEST_F(ExpectedAPI_Test, DeducingThisValueCategories)
 {
@@ -441,36 +441,36 @@ TEST_F(ExpectedAPI_Test, ExpectedVoidMapError)
     EXPECT_EQ(res2.Error(), 0);
 }
 
-TEST_F(ExpectedAPI_Test, ExpectedVoidConstexpr)
+namespace se_error_test::expected_void_constexpr
 {
-    // constexpr 성공 상태
-    constexpr Expected<void, TestError> e_success;
-    static_assert(e_success.HasValue());
-    static_assert(!e_success.HasError());
+// constexpr 성공 상태
+constexpr Expected<void, TestError> E_SUCCESS;
+static_assert(E_SUCCESS.HasValue());
+static_assert(!E_SUCCESS.HasError());
 
-    // constexpr 에러 상태
-    constexpr Expected<void, TestError> e_error{ Unexpected(TestError::DefaultError) };
-    static_assert(!e_error.HasValue());
-    static_assert(e_error.HasError());
-    static_assert(e_error.Error() == TestError::DefaultError);
-}
+// constexpr 에러 상태
+constexpr Expected<void, TestError> E_ERROR{ Unexpected(TestError::DefaultError) };
+static_assert(!E_ERROR.HasValue());
+static_assert(E_ERROR.HasError());
+static_assert(E_ERROR.Error() == TestError::DefaultError);
+} // namespace se_error_test::expected_void_constexpr
 
 // ============================================================================
 // Unexpected Tests
 // ============================================================================
 
-TEST_F(ExpectedAPI_Test, UnexpectedConstexpr)
+namespace se_error_test::unexpected_constexpr
 {
-    constexpr Unexpected<TestError> UNEXPECTED(TestError::DefaultError);
-    static_assert(UNEXPECTED.Error() == TestError::DefaultError);
+constexpr Unexpected<TestError> UNEXPECTED(TestError::DefaultError);
+static_assert(UNEXPECTED.Error() == TestError::DefaultError);
 
-    constexpr auto MOVED_ERROR = []() constexpr
-    {
-        Unexpected<TestError> u(TestError::AnotherError);
-        return std::move(u).Error();
-    }();
-    static_assert(MOVED_ERROR == TestError::AnotherError);
-}
+constexpr auto MOVED_ERROR = []() constexpr
+{
+    Unexpected<TestError> u(TestError::AnotherError);
+    return std::move(u).Error();
+}();
+static_assert(MOVED_ERROR == TestError::AnotherError);
+} // namespace se_error_test::unexpected_constexpr
 
 TEST_F(ExpectedAPI_Test, UnexpectedDeducingThis)
 {

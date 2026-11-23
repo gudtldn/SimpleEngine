@@ -21,9 +21,3 @@ static_assert(std::ranges::bidirectional_range<se::Set<int>>);
 static_assert(std::ranges::bidirectional_range<se::FlatSet<int>>);
 static_assert(std::ranges::forward_range<se::HashSet<int>>);
 
-// 빈 테스트 스위트
-// static_assert가 통과하면 빌드 성공
-TEST(RangesConceptTest, StaticAssertionsPass)
-{
-    SUCCEED();
-}

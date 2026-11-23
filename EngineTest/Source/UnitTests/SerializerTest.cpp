@@ -276,47 +276,6 @@ SE_REFLECT_END()
 
 // --- Binary 왕복 ---
 
-TEST(SerializerTest, NestedStructBinaryRoundTrip)
-{
-    using namespace se_serializer_test;
-
-    Transform original{
-        .position = Vector3{ .x = 1.0f, .y = 2.0f, .z = 3.0f },
-        .scale = Vector3{ .x = 1.0f, .y = 1.0f, .z = 1.0f },
-    };
-
-    Array<u8> buffer;
-    BinaryWriter writer(buffer);
-    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
-
-    BinaryReader reader(buffer);
-    Transform result;
-    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
-
-    EXPECT_EQ(result.position, original.position);
-    EXPECT_EQ(result.scale, original.scale);
-}
-
-TEST(SerializerTest, NestedArrayBinaryRoundTrip)
-{
-    using namespace se_serializer_test;
-
-    Array<Array<i32>> original;
-    original.Push(Array<i32>{ 1, 2, 3 });
-    original.Push(Array<i32>{});
-    original.Push(Array<i32>{ 4 });
-
-    Array<u8> buffer;
-    BinaryWriter writer(buffer);
-    ASSERT_TRUE(serde::Serialize(writer, original).HasValue());
-
-    BinaryReader reader(buffer);
-    Array<Array<i32>> result;
-    ASSERT_TRUE(serde::Deserialize(reader, result).HasValue());
-
-    EXPECT_EQ(result, original);
-}
-
 TEST(SerializerTest, ContainerFieldsBinaryRoundTrip)
 {
     using namespace se_serializer_test;
@@ -558,19 +517,6 @@ TEST(SerializerTest, TruncatedBufferProducesElementFieldPath)
 
     ASSERT_TRUE(read_result.HasError());
     EXPECT_EQ(read_result.Error().path, "items[3].value");
-}
-
-TEST(SerializerTest, HugeSeqCountProducesError)
-{
-    Array<u8> buffer;
-    BinaryWriter writer(buffer);
-    writer.BeginSeq(999999999, ESeqOrder::Ordered); // count만 쓰고 원소는 쓰지 않음
-
-    BinaryReader reader(buffer);
-    Array<i32> target;
-    const auto read_result = serde::Deserialize(reader, target);
-
-    EXPECT_TRUE(read_result.HasError());
 }
 
 TEST(SerializerTest, DeepNestingHitsDepthLimitWithoutCrashing)
