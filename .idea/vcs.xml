@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AgentCommitMessageProject"><![CDATA[{
+  "mode": "CUSTOM",
+  "instruction": "feat, refactor, fix와 커밋 컨벤션과, 변경사항에 대한 내용을 한국어로 1줄로 간단하게 적고, 아래 상세 수정 정보를 같이 정리해서 만들어줘\n\nfeat: ...\n- ...\n- ...\n이렇게\n\n타입 분류(Conventional Commits 확장)\nfeat: 사용자 혹은 퍼블릭 API 관점의 새로운 기능 추가입니다.\nfix: 버그 수정입니다.\nperf: 성능 개선(알고리즘 변경, 메모리 최적화 등)입니다.\nrefactor: 외부 동작 변경 없이 구조/가독성/추상화 개선입니다.\nstyle: 포맷팅, 네이밍, 공백 등 비기능 변경입니다.\ndocs: 문서, README, 주석(의미 변경 없는) 갱신입니다.\ntest: 테스트 추가/수정입니다.\nbuild: 빌드 스크립트, 서브모듈, 툴체인 변경입니다.\nci: CI 파이프라인 구성/수정입니다.\nchore: 기타 잡무(의존성 업데이트, 릴리즈 태깅 등)입니다.\nrevert: 이전 커밋 되돌리기입니다.\ndesign: 에디터 UI/HUD/머티리얼 그래프 등 시각적 자산 변경입니다.\nasset: 대용량 리소스 추가/갱신(텍스처, 애니메이션, 사운드)입니다.\n\n\"`\" 백틱은 사용하지 마세요"
+}]]></component>
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/ThirdParty/assimp" vcs="Git" />
